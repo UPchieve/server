@@ -923,3 +923,8 @@ WHERE
 RETURNING
     id AS ok;
 
+
+/* @name deleteUserFromAdminProfiles */
+DELETE FROM admin_profiles
+WHERE user_id = :userId!;
+

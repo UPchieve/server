@@ -2070,3 +2070,29 @@ const updatePreferredLanguageToUserIR: any = {"usedParamSet":{"preferredLanguage
 export const updatePreferredLanguageToUser = new PreparedQuery<IUpdatePreferredLanguageToUserParams,IUpdatePreferredLanguageToUserResult>(updatePreferredLanguageToUserIR);
 
 
+/** 'DeleteUserFromAdminProfiles' parameters type */
+export interface IDeleteUserFromAdminProfilesParams {
+  userId: string;
+}
+
+/** 'DeleteUserFromAdminProfiles' return type */
+export type IDeleteUserFromAdminProfilesResult = void;
+
+/** 'DeleteUserFromAdminProfiles' query type */
+export interface IDeleteUserFromAdminProfilesQuery {
+  params: IDeleteUserFromAdminProfilesParams;
+  result: IDeleteUserFromAdminProfilesResult;
+}
+
+const deleteUserFromAdminProfilesIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":43,"b":50}]}],"statement":"DELETE FROM admin_profiles\nWHERE user_id = :userId!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * DELETE FROM admin_profiles
+ * WHERE user_id = :userId!
+ * ```
+ */
+export const deleteUserFromAdminProfiles = new PreparedQuery<IDeleteUserFromAdminProfilesParams,IDeleteUserFromAdminProfilesResult>(deleteUserFromAdminProfilesIR);
+
+

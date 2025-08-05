@@ -13,6 +13,7 @@ import {
 } from '../pgUtils'
 import {
   RepoCreateError,
+  RepoDeleteError,
   RepoReadError,
   RepoUpdateError,
   RepoUpsertError,
@@ -824,5 +825,16 @@ export async function updatePreferredLanguageToUser(
       throw new RepoUpdateError('Update query did not return ok')
   } catch (err) {
     throw new RepoUpdateError(err)
+  }
+}
+
+export async function deleteUserFromAdminProfiles(
+  userId: Uuid,
+  tc: TransactionClient
+) {
+  try {
+    await pgQueries.deleteUserFromAdminProfiles.run({ userId }, tc)
+  } catch (err) {
+    throw new RepoDeleteError(err)
   }
 }
