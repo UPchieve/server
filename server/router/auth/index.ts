@@ -25,7 +25,6 @@ import config from '../../config'
 import { ACCOUNT_USER_ACTIONS } from '../../constants'
 import { createAccountAction } from '../../models/UserAction'
 import { AuthRedirect } from './auth-redirect'
-import { getClassLinkStrategy } from './passport-auth-middleware'
 
 async function trackLoggedIn(userId: Ulid, ipAddress: string) {
   await createAccountAction({
@@ -135,8 +134,7 @@ export function routes(app: Express) {
       )
       return
     }
-    const strategy =
-      provider === 'classlink' ? getClassLinkStrategy(req) : provider
+    const strategy = provider
     passport.authenticate(strategy, async function (_, user, data) {
       if (data?.profileId && data?.issuer) {
         const validator = getUuid()

@@ -365,30 +365,6 @@ export function addPassportAuthMiddleware() {
       }
     )
   )
-
-  passport.use(
-    'classlink-launchpad',
-    new ClassLinkStrategy(
-      {
-        callbackURL: getRedirectURI(),
-        clientID: config.classLinkLaunchPadClientId,
-        clientSecret: config.classLinkLaunchPadClientSecret,
-      },
-      async function (
-        req: Request,
-        _accessToken: string,
-        _refreshToken: string,
-        profile: ClassLinkPassportProfile,
-        done: Function
-      ) {
-        return handleSSOStrategy(req, profile, done, {
-          providerName: SsoProviderNames.CLASSLINK,
-          isStudent,
-          isTeacher,
-        })
-      }
-    )
-  )
 }
 
 async function getUserVerificationByEmails(
@@ -400,14 +376,6 @@ async function getUserVerificationByEmails(
     const user = await UserRepo.getUserVerificationByEmail(e)
     if (user) return user
   }
-}
-
-export function getClassLinkStrategy(
-  req: Request
-): 'classlink' | 'classlink-launchpad' {
-  const connection = req.query.connection
-  if (connection === 'launchpad') return 'classlink-launchpad'
-  return 'classlink'
 }
 
 function getRedirectURI() {
