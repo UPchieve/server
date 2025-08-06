@@ -1691,6 +1691,10 @@ COPY upchieve.quizzes (id, name, created_at, updated_at, active, questions_per_s
 9	essays	2024-08-28 00:28:43.751596+00	2024-08-28 00:28:44.16973+00	f	3
 11	planning	2024-08-28 00:28:43.752204+00	2024-08-28 00:28:44.16973+00	f	4
 22	upchieve101	2024-08-28 00:28:43.755436+00	2024-08-28 00:28:44.16973+00	t	27
+33	effectiveCoachingStrategies	2025-08-06 20:17:07.347991+00	2025-08-06 20:17:07.347991+00	t	3
+34	academicIntegrity	2025-08-06 20:17:07.357224+00	2025-08-06 20:17:07.357224+00	t	3
+35	dei	2025-08-06 20:17:07.365664+00	2025-08-06 20:17:07.365664+00	t	3
+36	communitySafety	2025-08-06 20:17:07.373313+00	2025-08-06 20:17:07.373313+00	t	3
 \.
 
 
@@ -2163,6 +2167,10 @@ COPY upchieve.quiz_subcategories (id, name, quiz_id, created_at, updated_at) FRO
 405	passage structure	31	2024-08-28 00:28:43.995199+00	2024-08-28 00:28:43.995199+00
 406	passage unity	31	2024-08-28 00:28:43.995799+00	2024-08-28 00:28:43.995799+00
 407	passage conclusion	31	2024-08-28 00:28:43.996384+00	2024-08-28 00:28:43.996384+00
+408	effectiveCoaching	33	2025-08-06 20:17:07.381188+00	2025-08-06 20:17:07.381188+00
+409	academicIntegrity	34	2025-08-06 20:17:07.389697+00	2025-08-06 20:17:07.389697+00
+410	dei	35	2025-08-06 20:17:07.398046+00	2025-08-06 20:17:07.398046+00
+411	communitySafety	36	2025-08-06 20:17:07.406521+00	2025-08-06 20:17:07.406521+00
 \.
 
 
@@ -2578,6 +2586,22 @@ COPY upchieve.quiz_questions (id, question_text, possible_answers, correct_answe
 405	The answer is A	[{"_id": {"$oid": "5ccfbc95d61b9d689328c530"}, "txt": "A", "val": "a"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52f"}, "txt": "B", "val": "b"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52e"}, "txt": "C", "val": "c"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52d"}, "txt": "D", "val": "d"}]	a	405	\N	2024-08-28 00:28:43.995494+00	2024-08-28 00:28:43.995494+00	\N
 406	The answer is A	[{"_id": {"$oid": "5ccfbc95d61b9d689328c530"}, "txt": "A", "val": "a"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52f"}, "txt": "B", "val": "b"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52e"}, "txt": "C", "val": "c"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52d"}, "txt": "D", "val": "d"}]	a	406	\N	2024-08-28 00:28:43.996084+00	2024-08-28 00:28:43.996084+00	\N
 407	The answer is A	[{"_id": {"$oid": "5ccfbc95d61b9d689328c530"}, "txt": "A", "val": "a"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52f"}, "txt": "B", "val": "b"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52e"}, "txt": "C", "val": "c"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52d"}, "txt": "D", "val": "d"}]	a	407	\N	2024-08-28 00:28:43.996726+00	2024-08-28 00:28:43.996726+00	\N
+408	The answer is A	[{"_id": {"$oid": "5ccfbc95d61b9d689328c530"}, "txt": "A", "val": "a"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52f"}, "txt": "B", "val": "b"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52e"}, "txt": "C", "val": "c"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52d"}, "txt": "D", "val": "d"}]	a	411	\N	2025-08-06 20:17:07.464471+00	2025-08-06 20:17:07.464471+00	\N
+409	The answer is B	[{"_id": {"$oid": "5ccfbc95d61b9d689328c530"}, "txt": "A", "val": "a"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52f"}, "txt": "B", "val": "b"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52e"}, "txt": "C", "val": "c"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52d"}, "txt": "D", "val": "d"}]	b	411	\N	2025-08-06 20:17:07.475423+00	2025-08-06 20:17:07.475423+00	\N
+410	The answer is C	[{"_id": {"$oid": "5ccfbc95d61b9d689328c530"}, "txt": "A", "val": "a"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52f"}, "txt": "B", "val": "b"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52e"}, "txt": "C", "val": "c"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52d"}, "txt": "D", "val": "d"}]	c	411	\N	2025-08-06 20:17:07.48433+00	2025-08-06 20:17:07.48433+00	\N
+411	The answer is D	[{"_id": {"$oid": "5ccfbc95d61b9d689328c530"}, "txt": "A", "val": "a"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52f"}, "txt": "B", "val": "b"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52e"}, "txt": "C", "val": "c"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52d"}, "txt": "D", "val": "d"}]	d	411	\N	2025-08-06 20:17:07.49322+00	2025-08-06 20:17:07.49322+00	\N
+412	The answer is A	[{"_id": {"$oid": "5ccfbc95d61b9d689328c530"}, "txt": "A", "val": "a"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52f"}, "txt": "B", "val": "b"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52e"}, "txt": "C", "val": "c"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52d"}, "txt": "D", "val": "d"}]	a	410	\N	2025-08-06 20:17:07.501979+00	2025-08-06 20:17:07.501979+00	\N
+413	The answer is B	[{"_id": {"$oid": "5ccfbc95d61b9d689328c530"}, "txt": "A", "val": "a"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52f"}, "txt": "B", "val": "b"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52e"}, "txt": "C", "val": "c"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52d"}, "txt": "D", "val": "d"}]	b	410	\N	2025-08-06 20:17:07.513251+00	2025-08-06 20:17:07.513251+00	\N
+414	The answer is C	[{"_id": {"$oid": "5ccfbc95d61b9d689328c530"}, "txt": "A", "val": "a"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52f"}, "txt": "B", "val": "b"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52e"}, "txt": "C", "val": "c"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52d"}, "txt": "D", "val": "d"}]	c	410	\N	2025-08-06 20:17:07.521512+00	2025-08-06 20:17:07.521512+00	\N
+415	The answer is D	[{"_id": {"$oid": "5ccfbc95d61b9d689328c530"}, "txt": "A", "val": "a"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52f"}, "txt": "B", "val": "b"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52e"}, "txt": "C", "val": "c"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52d"}, "txt": "D", "val": "d"}]	d	410	\N	2025-08-06 20:17:07.52995+00	2025-08-06 20:17:07.52995+00	\N
+416	The answer is A	[{"_id": {"$oid": "5ccfbc95d61b9d689328c530"}, "txt": "A", "val": "a"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52f"}, "txt": "B", "val": "b"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52e"}, "txt": "C", "val": "c"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52d"}, "txt": "D", "val": "d"}]	a	409	\N	2025-08-06 20:17:07.540429+00	2025-08-06 20:17:07.540429+00	\N
+417	The answer is B	[{"_id": {"$oid": "5ccfbc95d61b9d689328c530"}, "txt": "A", "val": "a"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52f"}, "txt": "B", "val": "b"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52e"}, "txt": "C", "val": "c"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52d"}, "txt": "D", "val": "d"}]	b	409	\N	2025-08-06 20:17:07.548064+00	2025-08-06 20:17:07.548064+00	\N
+418	The answer is C	[{"_id": {"$oid": "5ccfbc95d61b9d689328c530"}, "txt": "A", "val": "a"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52f"}, "txt": "B", "val": "b"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52e"}, "txt": "C", "val": "c"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52d"}, "txt": "D", "val": "d"}]	c	409	\N	2025-08-06 20:17:07.557749+00	2025-08-06 20:17:07.557749+00	\N
+419	The answer is D	[{"_id": {"$oid": "5ccfbc95d61b9d689328c530"}, "txt": "A", "val": "a"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52f"}, "txt": "B", "val": "b"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52e"}, "txt": "C", "val": "c"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52d"}, "txt": "D", "val": "d"}]	d	409	\N	2025-08-06 20:17:07.565683+00	2025-08-06 20:17:07.565683+00	\N
+420	The answer is A	[{"_id": {"$oid": "5ccfbc95d61b9d689328c530"}, "txt": "A", "val": "a"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52f"}, "txt": "B", "val": "b"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52e"}, "txt": "C", "val": "c"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52d"}, "txt": "D", "val": "d"}]	a	408	\N	2025-08-06 20:17:07.576184+00	2025-08-06 20:17:07.576184+00	\N
+421	The answer is B	[{"_id": {"$oid": "5ccfbc95d61b9d689328c530"}, "txt": "A", "val": "a"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52f"}, "txt": "B", "val": "b"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52e"}, "txt": "C", "val": "c"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52d"}, "txt": "D", "val": "d"}]	b	408	\N	2025-08-06 20:17:07.585685+00	2025-08-06 20:17:07.585685+00	\N
+422	The answer is C	[{"_id": {"$oid": "5ccfbc95d61b9d689328c530"}, "txt": "A", "val": "a"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52f"}, "txt": "B", "val": "b"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52e"}, "txt": "C", "val": "c"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52d"}, "txt": "D", "val": "d"}]	c	408	\N	2025-08-06 20:17:07.593375+00	2025-08-06 20:17:07.593375+00	\N
+423	The answer is D	[{"_id": {"$oid": "5ccfbc95d61b9d689328c530"}, "txt": "A", "val": "a"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52f"}, "txt": "B", "val": "b"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52e"}, "txt": "C", "val": "c"}, {"_id": {"$oid": "5ccfbc95d61b9d689328c52d"}, "txt": "D", "val": "d"}]	d	408	\N	2025-08-06 20:17:07.600873+00	2025-08-06 20:17:07.600873+00	\N
 \.
 
 
@@ -4140,7 +4164,7 @@ SELECT pg_catalog.setval('upchieve.question_types_id_seq', 4, true);
 -- Name: quiz_questions_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.quiz_questions_id_seq', 407, true);
+SELECT pg_catalog.setval('upchieve.quiz_questions_id_seq', 423, true);
 
 
 --
@@ -4154,14 +4178,14 @@ SELECT pg_catalog.setval('upchieve.quiz_review_materials_id_seq', 44, true);
 -- Name: quiz_subcategories_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.quiz_subcategories_id_seq', 407, true);
+SELECT pg_catalog.setval('upchieve.quiz_subcategories_id_seq', 411, true);
 
 
 --
 -- Name: quizzes_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.quizzes_id_seq', 32, true);
+SELECT pg_catalog.setval('upchieve.quizzes_id_seq', 36, true);
 
 
 --
