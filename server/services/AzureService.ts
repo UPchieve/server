@@ -23,6 +23,13 @@ const blobClients = new Map<string, BlobServiceClient>([
       azureStorageCredential
     ),
   ],
+  [
+    config.certificatesStorageAccountName,
+    new BlobServiceClient(
+      `https://${config.certificatesFrontdoorHostName}.z02.azurefd.net`,
+      azureStorageCredential
+    ),
+  ],
 ])
 
 // a helper method used to read a Node.js readable stream into a Buffer

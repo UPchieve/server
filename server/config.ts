@@ -358,6 +358,12 @@ const config: Static<typeof Config> = {
     process.env.SUBWAY_ASSIGNMENTS_STORAGE_CONTAINER || 'bogus',
   assignmentsFrontdoorHostName:
     process.env.SUBWAY_ASSIGNMENTS_FRONTDOOR_HOSTNAME || 'bogus',
+  certificatesStorageAccountName:
+    process.env.SUBWAY_CERTIFICATES_STORAGE_ACCOUNT_NAME || 'bogus',
+  certificatesStorageContainer:
+    process.env.SUBWAY_CERTIFICATES_STORAGE_CONTAINER || 'bogus',
+  certificatesFrontdoorHostName:
+    process.env.SUBWAY_CERTIFICATES_FRONTDOOR_HOSTNAME || 'bogus',
   version: process.env.SUBWAY_VERSION || 'development',
   fileWorkRootPath: process.env.FILE_WORK_ROOT_PATH || `${__dirname}/tmp`,
   ipWhoIsApiKey: process.env.SUBWAY_IP_WHO_IS_API_KEY || 'bogus',
