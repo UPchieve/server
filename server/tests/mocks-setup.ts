@@ -1,4 +1,5 @@
-jest.mock('ioredis', () => require('ioredis-mock/jest'))
+const redisMockImpl = require('ioredis-mock')
+const redisMock = jest.mock('ioredis', () => redisMockImpl)
 jest.mock('yjs')
 jest.mock('posthog-node')
 jest.mock('openai')
