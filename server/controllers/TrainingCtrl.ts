@@ -102,10 +102,8 @@ export async function getQuizScore(
 
     const percent = score / questions.length
     const subjectType = await SubjectsModel.getSubjectType(cert as string)
-    if (!subjectType)
-      throw new Error(`No subject type found for subject: ${cert}`)
     const threshold =
-      subjectType === SUBJECT_TYPES.TRAINING
+      subjectType === SUBJECT_TYPES.TRAINING || !subjectType
         ? TRAINING_THRESHOLD
         : SUBJECT_THRESHOLD
     const passed = percent >= threshold
