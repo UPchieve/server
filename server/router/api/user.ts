@@ -3,6 +3,7 @@ import * as UserService from '../../services/UserService'
 import * as AwsService from '../../services/AwsService'
 import * as VolunteerService from '../../services/VolunteerService'
 import * as UserRolesService from '../../services/UserRolesService'
+import * as PresenceService from '../../services/PresenceService'
 import { updateUserProfile } from '../../services/UserProfileService'
 import {
   getUserForAdminDetail,
@@ -304,6 +305,36 @@ export function routeUser(router: Router): void {
         user.id,
         asString(req.body.preferredLanguage)
       )
+      return res.sendStatus(200)
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+  router.post('/user/track-presence/active', async function (req, res) {
+    try {
+      const user = extractUser(req)
+      const ipAddress = req.ip
+      const clientUUID = req.body.clientUUID
+      await PresenceService.trackActive({
+        userId: user.id,
+        ipAddress,
+        clientUUID,
+      })
+      return res.sendStatus(200)
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+  router.post('/user/track-presence/inactive', async function (req, res) {
+    try {
+      const user = extractUser(req)
+      const ipAddress = req.ip
+      const clientUUID = req.body.clientUUID
+      await PresenceService.trackInactive({
+        userId: user.id,
+        ipAddress,
+        clientUUID,
+      })
       return res.sendStatus(200)
     } catch (err) {
       resError(res, err)

@@ -21,4 +21,5 @@ export type AccountActionParams = {
   sessionId?: Ulid
   volunteerId?: Ulid
   banReason?: string
+  clientUUID?: string
 }

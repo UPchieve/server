@@ -207,6 +207,7 @@ export async function createAccountAction(
         userId: params.userId,
         volunteerId: params.volunteerId ? params.volunteerId : null,
         banReason: params.banReason ? params.banReason : null,
+        clientUUID: params.clientUUID ? params.clientUUID : null,
       },
       client
     )
