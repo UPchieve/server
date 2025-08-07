@@ -716,7 +716,7 @@ export const courses: TrainingCourse[] = [
       {
         name: 'Implementing Effective Coaching Strategies',
         key: 'effective-coaching',
-        quizKey: 'coachingStrategies',
+        quizKey: 'effectiveCoachingStrategies',
         materials: [
           {
             name: 'Implementing Effective Coaching Strategies',
