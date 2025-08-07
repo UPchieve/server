@@ -4,9 +4,7 @@ import config from '../config'
 export const redisClient = new Redis(config.redisConnectionString)
 // Enable Keyspace Notifications for expired events
 // this let's us run a callback when a cache key expires
-if (config.NODE_ENV !== 'test') {
-  redisClient.config('SET', 'notify-keyspace-events', 'Ex')
-}
+redisClient.config('SET', 'notify-keyspace-events', 'Ex')
 
 export const redisSubClient = new Redis(config.redisConnectionString)
 

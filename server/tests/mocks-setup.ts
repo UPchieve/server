@@ -26,7 +26,7 @@ const priorityMatchingSponsorOrgs = priorityMatchingSponsorOrgList.split(',')
 
 jest.mock('../config', () => {
   return {
-    NODE_ENV: 'test',
+    NODE_ENV: 'dev',
     postgresHost: 'localhost', // will not be used in testing
     postgresPort: 5432, // will not be used in testing
     postgresUser: 'subway',
