@@ -13,7 +13,7 @@ export interface TrainingCourse {
 
 interface TrainingModule {
   name: string
-  key: string
+  key?: string
   materials: TrainingMaterial[]
   quizKey?: string
 }
