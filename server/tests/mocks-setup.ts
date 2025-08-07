@@ -1,5 +1,6 @@
 const redisMockImpl = require('ioredis-mock')
-const redisMock = jest.mock('ioredis', () => redisMockImpl)
+redisMockImpl.prototype.config = jest.fn()
+jest.mock('ioredis', () => redisMockImpl)
 jest.mock('yjs')
 jest.mock('posthog-node')
 jest.mock('openai')
