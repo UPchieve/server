@@ -1,4 +1,4 @@
-const redisMockImpl = require('ioredis-mock')
+const redisMockImpl = require('ioredis-mock/jest')
 redisMockImpl.prototype.config = jest.fn()
 jest.mock('ioredis', () => redisMockImpl)
 jest.mock('yjs')
