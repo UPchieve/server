@@ -30,26 +30,26 @@ import * as UserActionService from './UserActionService'
  *
  *  Example:
  *    1. A high-line session creates clientUUID 123 and sends it to /user/track-presence/active
- *    2. `trackActive({ clientUUID: 123 })` is called - this is good!
- *    3. The session loses network connectivity - this is bad
+ *    2. `trackActive({ clientUUID: 123 })` is called - this is good! :D
+ *    3. The session loses network connectivity - this is bad D:
  *    4. After 2 minutes (or whatever our TTL is), the Redis key expires; we log `ACCOUNT_USER_ACTIONS.INACTIVE_ON_SITE`
  *    5. Some time later, high-line reconnects and tiggers a trackActive again with clientUUID 123
- *    6. We create a new Redis key and log `ACCOUNT_USER_ACTIONS.ACTIVE_ON_SITE` - great!
+ *    6. We create a new Redis key and log `ACCOUNT_USER_ACTIONS.ACTIVE_ON_SITE` - great! :D
  */
 
 const PRESENCE_TTL_IN_SECONDS = 120
 const PRESENCE_KEY_PREFIX = 'user-presence'
-const PRESENCE_KEY_MATCH = new RegExp(
-  `^(${PRESENCE_KEY_PREFIX}:)?([^:]+):([^:]+)$`
-)
 
-redisSubClient.on('message', exipredKeyListener)
+redisSubClient.on('message', expiredKeyListener)
 
 function expiredKeyIsPresenceKey(channel: string, expiredKey: string) {
-  return channel === EXPIRED_KEY_CHANNEL && PRESENCE_KEY_MATCH.test(expiredKey)
+  return (
+    channel === EXPIRED_KEY_CHANNEL &&
+    expiredKey.startsWith(PRESENCE_KEY_PREFIX)
+  )
 }
 
-function exipredKeyListener(channel: string, expiredKey: string) {
+function expiredKeyListener(channel: string, expiredKey: string) {
   if (expiredKeyIsPresenceKey(channel, expiredKey)) {
     const [_, userId, clientUUID] = expiredKey.split(':')
     /*
