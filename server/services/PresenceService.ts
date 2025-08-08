@@ -1,3 +1,4 @@
+import Redlock from 'redlock'
 import { ACCOUNT_USER_ACTIONS } from '../constants'
 import logger from '../logger'
 import { Ulid } from '../models/pgUtils'
@@ -49,21 +50,45 @@ function expiredKeyIsPresenceKey(channel: string, expiredKey: string) {
   )
 }
 
-function expiredKeyListener(channel: string, expiredKey: string) {
+export const redlock = new Redlock([redisClient], { retryCount: 0 })
+
+async function expiredKeyListener(channel: string, expiredKey: string) {
   if (expiredKeyIsPresenceKey(channel, expiredKey)) {
-    const [_, userId, clientUUID] = expiredKey.split(':')
-    /*
-     * NOTE:
-     * There's no ipAddress. ipAddress will be present when
-     * high-line sends up a deliberate trackInactive event.
-     * if it just expires, it's null
-     */
-    const params = {
-      action: ACCOUNT_USER_ACTIONS.INACTIVE_ON_SITE,
-      userId,
-      clientUUID,
+    const lockKey = `presence-expiry:${expiredKey}`
+
+    try {
+      const lock = await redlock.lock(lockKey, 1000)
+
+      try {
+        const [_, userId, clientUUID] = expiredKey.split(':')
+        /*
+         * NOTE:
+         * There's no ipAddress. ipAddress will be present when
+         * high-line sends up a deliberate trackInactive event.
+         * if it just expires, it's null
+         */
+        const params = {
+          action: ACCOUNT_USER_ACTIONS.INACTIVE_ON_SITE,
+          userId,
+          clientUUID,
+        }
+        await UserActionService.createAccountAction(params)
+      } finally {
+        await lock.unlock()
+      }
+    } catch (error) {
+      if (error instanceof Error && error.name === 'LockError') {
+        logger.info(
+          { expiredKey },
+          'Presence expiration already being processed by another server'
+        )
+      } else {
+        logger.error(
+          { error, expiredKey },
+          'Error processing presence expiration'
+        )
+      }
     }
-    UserActionService.createAccountAction(params)
   }
 }
 
