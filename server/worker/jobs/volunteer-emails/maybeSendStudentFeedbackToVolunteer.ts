@@ -22,8 +22,9 @@ type ClassifedFeedback = {
   }
 }
 
-function classifyFeedback(
-  feedback: Awaited<ReturnType<typeof getStudentFeedbackForSession>>
+export function classifyFeedback(
+  feedback: Awaited<ReturnType<typeof getStudentFeedbackForSession>>,
+  minimumScore = 5
 ): ClassifedFeedback {
   if (!feedback) {
     return { isPositive: false, feedback: {} }
@@ -37,16 +38,16 @@ function classifyFeedback(
 
   const classifedFeedback: ClassifedFeedback = {
     isPositive:
-      howMuchDidYourCoachPushYouToDoYourBestWorkToday === 5 ||
-      howSupportiveWasYourCoachToday === 5,
+      Number(howMuchDidYourCoachPushYouToDoYourBestWorkToday) >= minimumScore ||
+      Number(howSupportiveWasYourCoachToday) >= minimumScore,
     feedback: {} as ClassifedFeedback['feedback'],
   }
-  if (howMuchDidYourCoachPushYouToDoYourBestWorkToday === 5) {
+  if (Number(howMuchDidYourCoachPushYouToDoYourBestWorkToday) >= minimumScore) {
     classifedFeedback.feedback.howMuchDidYourCoachPushYouToDoYourBestWorkToday =
       howMuchDidYourCoachPushYouToDoYourBestWorkToday
   }
 
-  if (howSupportiveWasYourCoachToday === 5) {
+  if (Number(howSupportiveWasYourCoachToday) >= minimumScore) {
     classifedFeedback.feedback.howSupportiveWasYourCoachToday =
       howSupportiveWasYourCoachToday
   }

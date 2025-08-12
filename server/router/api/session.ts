@@ -14,11 +14,15 @@ import { extractUser } from '../extract-user'
 import { asNumber, asString, asUlid } from '../../utils/type-utils'
 import multer from 'multer'
 import * as SessionMeetingService from '../../services/SessionMeetingService'
-import { asSaveUserSurveyAndSubmissions } from '../../services/SurveyService'
+import {
+  asSaveUserSurveyAndSubmissions,
+  getStudentFeedbackForSession,
+} from '../../services/SurveyService'
 import {
   PrimaryUserRole,
   SessionUserRole,
 } from '../../services/UserRolesService'
+import { classifyFeedback } from '../../worker/jobs/volunteer-emails/maybeSendStudentFeedbackToVolunteer'
 
 export function routeSession(router: Router) {
   // io is now passed to this module so that API events can trigger socket events as needed
@@ -382,11 +386,28 @@ export function routeSession(router: Router) {
       const user = extractUser(req)
       const { sessionId } = req.params
       const isTeacher = user.roleContext.isActiveRole('teacher')
+      const isVolunteer = user.roleContext.isActiveRole('volunteer')
+      const isStudent = user.roleContext.isActiveRole('student')
       const session = await SessionService.getSessionRecap(
         asUlid(sessionId),
         user.id,
         isTeacher
       )
+      const studentFeedbackForVolunteer =
+        await getStudentFeedbackForSession(sessionId)
+      const classifedFeedback = classifyFeedback(studentFeedbackForVolunteer, 4)
+      if (isVolunteer && classifedFeedback.isPositive) {
+        session.feedbackFromStudent = classifedFeedback.feedback
+      } else if (isStudent && studentFeedbackForVolunteer) {
+        const {
+          howMuchDidYourCoachPushYouToDoYourBestWorkToday,
+          howSupportiveWasYourCoachToday,
+        } = studentFeedbackForVolunteer
+        session.feedbackFromStudent = {
+          howMuchDidYourCoachPushYouToDoYourBestWorkToday,
+          howSupportiveWasYourCoachToday,
+        }
+      }
       const isRecapDmsAvailable = await SessionService.isRecapDmsAvailable(
         session.id,
         user.id
