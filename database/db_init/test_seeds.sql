@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 14.15 (Debian 14.15-1.pgdg120+1)
--- Dumped by pg_dump version 14.18 (Homebrew)
+-- Dumped from database version 14.18 (Debian 14.18-1.pgdg120+1)
+-- Dumped by pg_dump version 14.18 (Ubuntu 14.18-0ubuntu0.22.04.1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -441,6 +441,14 @@ COPY upchieve.certification_subject_unlocks (subject_id, certification_id, creat
 31	28	2024-08-28 00:28:44.14612+00	2024-08-28 00:28:44.14612+00
 32	29	2024-08-28 00:28:44.157676+00	2024-08-28 00:28:44.157676+00
 33	30	2024-08-28 00:28:44.157676+00	2024-08-28 00:28:44.157676+00
+\.
+
+
+--
+-- Data for Name: clever_school_mapping; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.clever_school_mapping (clever_school_id, upchieve_school_id) FROM stdin;
 \.
 
 
