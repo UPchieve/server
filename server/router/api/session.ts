@@ -16,13 +16,13 @@ import multer from 'multer'
 import * as SessionMeetingService from '../../services/SessionMeetingService'
 import {
   asSaveUserSurveyAndSubmissions,
+  classifyFeedback,
   getStudentFeedbackForSession,
 } from '../../services/SurveyService'
 import {
   PrimaryUserRole,
   SessionUserRole,
 } from '../../services/UserRolesService'
-import { classifyFeedback } from '../../worker/jobs/volunteer-emails/maybeSendStudentFeedbackToVolunteer'
 
 export function routeSession(router: Router) {
   // io is now passed to this module so that API events can trigger socket events as needed
@@ -395,7 +395,7 @@ export function routeSession(router: Router) {
       )
       const studentFeedbackForVolunteer =
         await getStudentFeedbackForSession(sessionId)
-      const classifedFeedback = classifyFeedback(studentFeedbackForVolunteer, 4)
+      const classifedFeedback = classifyFeedback(studentFeedbackForVolunteer)
       if (isVolunteer && classifedFeedback.isPositive) {
         session.feedbackFromStudent = classifedFeedback.feedback
       } else if (isStudent && studentFeedbackForVolunteer) {

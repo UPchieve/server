@@ -1,6 +1,9 @@
 import { Job } from 'bull'
 import { Uuid } from 'id128'
-import { getStudentFeedbackForSession } from '../../../services/SurveyService'
+import {
+  classifyFeedback,
+  getStudentFeedbackForSession,
+} from '../../../services/SurveyService'
 import { asUlid } from '../../../utils/type-utils'
 import { getUserReferralLink } from '../../../models/User/index'
 import { getSessionById } from '../../../models/Session/index'
@@ -11,52 +14,6 @@ import logger from '../../../logger'
 
 type JobData = {
   sessionId: Uuid
-}
-
-type ClassifedFeedback = {
-  isPositive: boolean
-  feedback: {
-    response?: string
-    howMuchDidYourCoachPushYouToDoYourBestWorkToday?: number
-    howSupportiveWasYourCoachToday?: number
-  }
-}
-
-export function classifyFeedback(
-  feedback: Awaited<ReturnType<typeof getStudentFeedbackForSession>>,
-  minimumScore = 5
-): ClassifedFeedback {
-  if (!feedback) {
-    return { isPositive: false, feedback: {} }
-  }
-
-  const {
-    howMuchDidYourCoachPushYouToDoYourBestWorkToday,
-    howSupportiveWasYourCoachToday,
-    response,
-  } = feedback
-
-  const classifedFeedback: ClassifedFeedback = {
-    isPositive:
-      Number(howMuchDidYourCoachPushYouToDoYourBestWorkToday) >= minimumScore ||
-      Number(howSupportiveWasYourCoachToday) >= minimumScore,
-    feedback: {} as ClassifedFeedback['feedback'],
-  }
-  if (Number(howMuchDidYourCoachPushYouToDoYourBestWorkToday) >= minimumScore) {
-    classifedFeedback.feedback.howMuchDidYourCoachPushYouToDoYourBestWorkToday =
-      howMuchDidYourCoachPushYouToDoYourBestWorkToday
-  }
-
-  if (Number(howSupportiveWasYourCoachToday) >= minimumScore) {
-    classifedFeedback.feedback.howSupportiveWasYourCoachToday =
-      howSupportiveWasYourCoachToday
-  }
-
-  if (response && response.length) {
-    classifedFeedback.feedback.response = response
-  }
-
-  return classifedFeedback
 }
 
 export default async (job: Job<JobData>): Promise<void> => {
