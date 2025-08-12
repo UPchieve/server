@@ -6,14 +6,16 @@ export interface TrainingCourse {
   name: string
   courseKey: string
   description: string
-  quizKey: string
-  quizName: string
+  quizKey?: string
+  quizName?: string
   modules: TrainingModule[]
 }
 
 interface TrainingModule {
   name: string
+  key?: string
   materials: TrainingMaterial[]
+  quizKey?: string
 }
 
 enum MaterialType {
@@ -21,6 +23,7 @@ enum MaterialType {
   DOCUMENT = 'document',
   LINK = 'link',
   RESOURCES = 'resources',
+  OTHER = 'other',
 }
 
 interface TrainingMaterial {
@@ -622,6 +625,7 @@ export const legacyCoursesv2: TrainingCourse[] = [
 ]
 
 export const courses: TrainingCourse[] = [
+  // Legacy UPchieve 101 training
   {
     name: 'UPchieve 101',
     courseKey: 'upchieve101',
@@ -631,6 +635,7 @@ export const courses: TrainingCourse[] = [
     modules: [
       {
         name: 'Coaching on UPchieve',
+        key: 'coaching-on-upchieve',
         materials: [
           {
             name: 'Implementing Effective Coaching Strategies',
@@ -651,6 +656,7 @@ export const courses: TrainingCourse[] = [
       },
       {
         name: 'Community Safety & Success',
+        key: 'community-safety-success',
         materials: [
           {
             name: 'Community Safety & Success',
@@ -684,6 +690,79 @@ export const courses: TrainingCourse[] = [
             isRequired: true,
             linkUrl:
               'https://cdn.upchieve.org/training-courses/upchieve101/volunteer-dei-policy-v2.pdf',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    name: 'UPchieve Training',
+    courseKey: 'upchieveTraining',
+    description:
+      "UPchieve101 will teach you everything you need to know to start helping students achieve their academic goals! You'll need to pass a short quiz at the end in order to be ready to coach.",
+    modules: [
+      {
+        name: 'Introduction',
+        key: 'introduction',
+        materials: [
+          {
+            name: 'Introduction',
+            materialKey: 'UPCHIEVE_TRAINING-INTRODUCTION',
+            type: MaterialType.OTHER,
+            isRequired: true,
+          },
+        ],
+      },
+      {
+        name: 'Implementing Effective Coaching Strategies',
+        key: 'effective-coaching',
+        quizKey: 'coachingStrategies',
+        materials: [
+          {
+            name: 'Implementing Effective Coaching Strategies',
+            materialKey:
+              'UPCHIEVE_TRAINING-IMPLEMENTING_EFFECTIVE_COACHING_STRATEGIES',
+            type: MaterialType.OTHER,
+            isRequired: true,
+          },
+        ],
+      },
+      {
+        name: 'Academic Integrity',
+        key: 'academic-integrity',
+        quizKey: 'academicIntegrity',
+        materials: [
+          {
+            name: 'Academic Integrity',
+            materialKey: 'UPCHIEVE_TRAINING-ACADEMIC_INTEGRITY',
+            type: MaterialType.OTHER,
+            isRequired: true,
+          },
+        ],
+      },
+      {
+        name: 'Diversity, Equity, and Inclusion',
+        key: 'dei',
+        quizKey: 'dei',
+        materials: [
+          {
+            name: 'Diverisity, Equity, and Inclusion',
+            materialKey: 'UPCHIEVE_TRAINING-DEI',
+            type: MaterialType.OTHER,
+            isRequired: true,
+          },
+        ],
+      },
+      {
+        name: 'Community Safety',
+        key: 'safety',
+        quizKey: 'communitySafety',
+        materials: [
+          {
+            name: 'Community Safety',
+            materialKey: 'UPCHIEVE_TRAINING-COMMUNITY_SAFETY',
+            type: MaterialType.OTHER,
+            isRequired: true,
           },
         ],
       },

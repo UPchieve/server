@@ -7,13 +7,18 @@ import {
 import * as TrainingUtils from '../utils/training-courses'
 import logger from '../logger'
 import { runInTransaction, TransactionClient } from '../db'
+import { TrainingCourse } from '../utils/training-courses'
 
-// @note: this type was derived from how the return type is used by the frontend
-// TODO: come back and verify this is the return shape we want
 export async function getCourse(
   volunteer: UserContactInfo,
   courseKey: keyof TrainingCourses
-): Promise<any> {
+): Promise<
+  TrainingCourse & {
+    isComplete: boolean
+    progress: number
+    completedMaterials: string[]
+  }
+> {
   const volunteerTrainingCourses = await getVolunteerTrainingCourses(
     volunteer.id
   )
@@ -36,11 +41,12 @@ export async function getCourse(
       )
     })
   })
+
   return {
     ...course,
     isComplete: volunteerCourse.complete,
     progress: volunteerCourse.progress,
-    quizKey: courseKey,
+    completedMaterials: volunteerCourse.completedMaterials,
   }
 }
 
