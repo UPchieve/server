@@ -29,6 +29,7 @@ import {
 import validator from 'validator'
 import session from 'express-session'
 import { validateRequestRecaptcha } from '../services/RecaptchaService'
+import { isDisposableEmail } from 'disposable-email-domains-js'
 
 // Custom errors
 export class RegistrationError extends CustomError {}
@@ -282,6 +283,9 @@ export function checkNames(first: string, last: string) {
 export function checkEmail(email: string) {
   if (!validator.isEmail(email))
     throw new InputError('Email is not a valid email format')
+
+  if (isDisposableEmail(email))
+    throw new InputError('Email is from an invalid email provider')
 }
 
 export async function getReferredBy(
