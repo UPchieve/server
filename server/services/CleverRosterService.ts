@@ -1,6 +1,7 @@
 import { runInTransaction, TransactionClient } from '../db'
 import { Ulid, Uuid } from '../models/pgUtils'
 import { TeacherClass, TeacherClassWithStudents } from '../models/Teacher'
+import * as SchoolRepo from '../models/School'
 import * as CleverAPIService from './CleverAPIService'
 import * as FederatedCredentialService from './FederatedCredentialService'
 import * as SchoolService from './SchoolService'
@@ -269,6 +270,13 @@ export async function rosterTeacherClasses(
 
     await TeacherService.updateLastSuccessfulCleverSync(teacherId, tc)
   })
+}
+
+export async function addCleverSchoolMapping(
+  cleverSchoolId: string,
+  upchieveSchoolId: Uuid
+) {
+  return SchoolRepo.addCleverSchoolMapping(cleverSchoolId, upchieveSchoolId)
 }
 
 // Exported for testing.

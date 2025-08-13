@@ -108,5 +108,17 @@ export function routeAdmin(app: Express, router: Router): void {
     }
   })
 
+  router.post('/clever/school', async function (req, res) {
+    try {
+      await CleverRosterService.addCleverSchoolMapping(
+        asString(req.body.cleverSchoolId),
+        asString(req.body.upchieveSchoolId)
+      )
+      res.status(200).send()
+    } catch (error) {
+      resError(res, error)
+    }
+  })
+
   app.use('/api/admin', authPassport.isAdmin, router)
 }

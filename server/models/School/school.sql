@@ -263,3 +263,11 @@ GROUP BY
     schools.id,
     spo.key;
 
+
+/* @name addCleverSchoolMapping */
+INSERT INTO clever_school_mapping (clever_school_id, upchieve_school_id)
+    VALUES (:cleverSchoolId!, :upchieveSchoolId!)
+ON CONFLICT (upchieve_school_id)
+    DO UPDATE SET
+        clever_school_id = :cleverSchoolId!, upchieve_school_id = :upchieveSchoolId!;
+

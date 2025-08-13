@@ -678,3 +678,33 @@ const getPartnerSchoolsIR: any = {"usedParamSet":{},"params":[],"statement":"SEL
 export const getPartnerSchools = new PreparedQuery<IGetPartnerSchoolsParams,IGetPartnerSchoolsResult>(getPartnerSchoolsIR);
 
 
+/** 'AddCleverSchoolMapping' parameters type */
+export interface IAddCleverSchoolMappingParams {
+  cleverSchoolId: string;
+  upchieveSchoolId: string;
+}
+
+/** 'AddCleverSchoolMapping' return type */
+export type IAddCleverSchoolMappingResult = void;
+
+/** 'AddCleverSchoolMapping' query type */
+export interface IAddCleverSchoolMappingQuery {
+  params: IAddCleverSchoolMappingParams;
+  result: IAddCleverSchoolMappingResult;
+}
+
+const addCleverSchoolMappingIR: any = {"usedParamSet":{"cleverSchoolId":true,"upchieveSchoolId":true},"params":[{"name":"cleverSchoolId","required":true,"transform":{"type":"scalar"},"locs":[{"a":85,"b":100},{"a":201,"b":216}]},{"name":"upchieveSchoolId","required":true,"transform":{"type":"scalar"},"locs":[{"a":103,"b":120},{"a":240,"b":257}]}],"statement":"INSERT INTO clever_school_mapping (clever_school_id, upchieve_school_id)\n    VALUES (:cleverSchoolId!, :upchieveSchoolId!)\nON CONFLICT (upchieve_school_id)\n    DO UPDATE SET\n        clever_school_id = :cleverSchoolId!, upchieve_school_id = :upchieveSchoolId!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO clever_school_mapping (clever_school_id, upchieve_school_id)
+ *     VALUES (:cleverSchoolId!, :upchieveSchoolId!)
+ * ON CONFLICT (upchieve_school_id)
+ *     DO UPDATE SET
+ *         clever_school_id = :cleverSchoolId!, upchieve_school_id = :upchieveSchoolId!
+ * ```
+ */
+export const addCleverSchoolMapping = new PreparedQuery<IAddCleverSchoolMappingParams,IAddCleverSchoolMappingResult>(addCleverSchoolMappingIR);
+
+
