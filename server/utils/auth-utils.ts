@@ -30,8 +30,7 @@ import {
 import validator from 'validator'
 import session from 'express-session'
 import { validateRequestRecaptcha } from '../services/RecaptchaService'
-import { isDisposableEmail } from 'disposable-email-domains-js'
-
+import { isDisposableEmail } from './domain-utils'
 // Custom errors
 export class RegistrationError extends CustomError {}
 export class ResetError extends CustomError {}
