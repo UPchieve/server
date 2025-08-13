@@ -397,7 +397,8 @@ export function routeSession(router: Router) {
         await getStudentFeedbackForSession(sessionId)
       const classifedFeedback = classifyFeedback(studentFeedbackForVolunteer)
       if (isVolunteer && classifedFeedback.isPositive) {
-        session.feedbackFromStudent = classifedFeedback.feedback
+        const { response, ...withoutResponse } = classifedFeedback.feedback
+        session.feedbackFromStudent = withoutResponse
       } else if (isStudent && studentFeedbackForVolunteer) {
         const {
           howMuchDidYourCoachPushYouToDoYourBestWorkToday,
