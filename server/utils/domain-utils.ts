@@ -7,7 +7,7 @@ const getBlocklist = (): string[] => {
   if (!_blocklist) {
     const confPath = path.join(
       __dirname,
-      '../../data/disposable_email_blocklist.conf'
+      '../data/disposable_email_blocklist.conf'
     )
     _blocklist = fs
       .readFileSync(confPath, 'utf-8')
