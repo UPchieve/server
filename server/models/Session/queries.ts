@@ -1280,6 +1280,10 @@ export type SessionForSessionRecap = {
   quillDoc?: string
   hasWhiteboardDoc: boolean
   messages?: MessageForFrontend[]
+  feedbackFromStudent?: {
+    howMuchDidYourCoachPushYouToDoYourBestWorkToday?: number
+    howSupportiveWasYourCoachToday?: number
+  }
 }
 
 export async function getSessionRecap(
