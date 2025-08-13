@@ -16,6 +16,7 @@ import {
   LookupError,
   LowRecaptchaScoreError,
   MissingRecaptchaTokenError,
+  NotAllowedError,
 } from '../models/Errors'
 import isValidInternationalPhoneNumber from './is-valid-international-phone-number'
 import {
@@ -285,7 +286,7 @@ export function checkEmail(email: string) {
     throw new InputError('Email is not a valid email format')
 
   if (isDisposableEmail(email))
-    throw new InputError('Email is from an invalid email provider')
+    throw new NotAllowedError('Email is from an invalid email provider')
 }
 
 export async function getReferredBy(

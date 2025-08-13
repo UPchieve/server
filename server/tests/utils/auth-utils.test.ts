@@ -1,12 +1,15 @@
 import {
   checkNames,
+  checkEmail,
   checkPassword,
   RegistrationError,
   authPassport,
 } from '../../utils/auth-utils'
 import {
+  InputError,
   LowRecaptchaScoreError,
   MissingRecaptchaTokenError,
+  NotAllowedError,
 } from '../../models/Errors'
 import * as RecaptchaService from '../../services/RecaptchaService'
 
@@ -35,6 +38,26 @@ describe('name validator', () => {
     expect(() => {
       checkNames('Congratulations! Visit https://bit.ly!', 'Name')
     }).toThrow()
+  })
+})
+
+describe('email validator', () => {
+  test('accepts a valid email', () => {
+    expect(() => {
+      checkEmail('user@gmail.com')
+    }).not.toThrow()
+  })
+
+  test('rejects an invalid email format (InputError)', () => {
+    expect(() => {
+      checkEmail('not-an-email')
+    }).toThrow(InputError)
+  })
+
+  test('rejects a disposable email (NotAllowedError)', () => {
+    expect(() => {
+      checkEmail('user@mailshan.com')
+    }).toThrow(NotAllowedError)
   })
 })
 
