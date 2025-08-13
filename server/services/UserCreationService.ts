@@ -188,7 +188,7 @@ export async function registerStudent(
   const userId = data.phId
 
   const isDisableStudentCreationEnabled =
-    await getStudentCreationDisabledFeatureFlag(userId)
+    await getStudentCreationDisabledFeatureFlag(userId as string)
 
   if (isDisableStudentCreationEnabled)
     throw new Error(`Sorry, we can't create a new account right now.`)
