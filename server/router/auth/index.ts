@@ -25,6 +25,7 @@ import config from '../../config'
 import { ACCOUNT_USER_ACTIONS } from '../../constants'
 import { createAccountAction } from '../../models/UserAction'
 import { AuthRedirect } from './auth-redirect'
+import { v4 as uuidv4 } from 'uuid'
 
 async function trackLoggedIn(userId: Ulid, ipAddress: string) {
   await createAccountAction({
@@ -202,11 +203,15 @@ export function routes(app: Express) {
         delete (req.session as SessionWithSsoData).sso
       }
 
+      const phCookie = req.cookies[`ph_${config.posthogToken}_posthog`]
+      const distinctId = phCookie ? JSON.parse(phCookie).distinct_id : uuidv4()
+
       const data = registerStudentValidator({
         ...req.body,
         ...((req.session as SessionWithSsoData).sso?.fedCredData ?? {}),
         ...((req.session as SessionWithSsoData).sso?.userData ?? {}),
         ip: req.ip,
+        phId: distinctId,
       })
       const student = await UserCreationService.registerStudent(data)
       if (
@@ -225,11 +230,15 @@ export function routes(app: Express) {
   // == Remove once midtown clean-up.
   router.route('/register/student/open').post(async function (req, res) {
     try {
+      const phCookie = req.cookies[`ph_${config.posthogToken}_posthog`]
+      const distinctId = phCookie ? JSON.parse(phCookie).distinct_id : uuidv4()
+
       const data = registerStudentValidator({
         ...req.body,
         gradeLevel: req.body.currentGrade,
         schoolId: req.body.highSchoolId,
         ip: req.ip,
+        phId: distinctId,
       })
       const student = await UserCreationService.registerStudent(data)
       await req.asyncLogin(student)
@@ -242,6 +251,9 @@ export function routes(app: Express) {
   // == Remove once midtown clean-up.
   router.route('/register/student/partner').post(async function (req, res) {
     try {
+      const phCookie = req.cookies[`ph_${config.posthogToken}_posthog`]
+      const distinctId = phCookie ? JSON.parse(phCookie).distinct_id : uuidv4()
+
       const data = registerStudentValidator({
         ...req.body,
         gradeLevel: req.body.currentGrade,
@@ -249,6 +261,7 @@ export function routes(app: Express) {
         studentPartnerOrgKey: req.body.studentPartnerOrg,
         studentPartnerOrgSiteName: req.body.partnerSite,
         ip: req.ip,
+        phId: distinctId,
       })
       const student = await UserCreationService.registerStudent(data)
       await req.asyncLogin(student)
