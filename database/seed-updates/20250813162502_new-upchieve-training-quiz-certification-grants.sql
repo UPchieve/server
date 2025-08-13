@@ -1,6 +1,6 @@
 -- migrate:up
 INSERT INTO upchieve.certifications (name, active)
-    VALUES ('effectiveCoachingStrategies', TRUE);
+    VALUES ('coachingStrategies', TRUE);
 
 INSERT INTO upchieve.certifications (name, active)
     VALUES ('academicIntegrity', TRUE);
@@ -19,7 +19,7 @@ FROM
     upchieve.quizzes q
     JOIN upchieve.certifications c ON q.name = c.name
 WHERE
-    q.name IN ('effectiveCoachingStrategies', 'academicIntegrity', 'dei', 'communitySafety');
+    q.name IN ('coachingStrategies', 'academicIntegrity', 'dei', 'communitySafety');
 
 -- migrate:down
 DELETE FROM upchieve.quiz_certification_grants
@@ -29,8 +29,8 @@ WHERE quiz_id IN (
         FROM
             upchieve.quizzes
         WHERE
-            name IN ('effectiveCoachingStrategies', 'academicIntegrity', 'dei', 'communitySafety'));
+            name IN ('coachingStrategies', 'academicIntegrity', 'dei', 'communitySafety'));
 
 DELETE FROM upchieve.certifications
-WHERE name IN ('effectiveCoachingStrategies', 'academicIntegrity', 'dei', 'communitySafety');
+WHERE name IN ('coachingStrategies', 'academicIntegrity', 'dei', 'communitySafety');
 

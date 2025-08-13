@@ -1,6 +1,6 @@
 -- migrate:up
 INSERT INTO upchieve.quizzes (name, active, questions_per_subcategory)
-    VALUES ('effectiveCoachingStrategies', TRUE, 3);
+    VALUES ('coachingStrategies', TRUE, 3);
 
 INSERT INTO upchieve.quizzes (name, active, questions_per_subcategory)
     VALUES ('academicIntegrity', TRUE, 3);
@@ -13,5 +13,5 @@ INSERT INTO upchieve.quizzes (name, active, questions_per_subcategory)
 
 -- migrate:down
 DELETE FROM upchieve.quizzes
-WHERE name IN ('effectiveCoachingStrategies', 'academicIntegrity', 'dei', 'communitySafety');
+WHERE name IN ('coachingStrategies', 'academicIntegrity', 'dei', 'communitySafety');
 
