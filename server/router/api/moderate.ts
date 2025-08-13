@@ -37,22 +37,26 @@ export function routeModeration(router: Router): void {
     .route('/moderate/image')
     .post(upload.single('image'), async (req, res) => {
       const imageToModerate = req.file
-      const sessionId = req.body.sessionId
-      const user = extractUser(req)
+      // const sessionId = req.body.sessionId
+      // const user = extractUser(req)
       if (!imageToModerate) {
         return res.status(400).json({ err: 'No file was attached' })
       }
 
       try {
-        const moderationResult = await ModerationService.moderateImage({
-          image: imageToModerate.buffer,
-          sessionId,
-          userId: user.id,
-          isVolunteer: user.isVolunteer,
-          source: 'image_upload',
-          aggregateInfractions: true,
+        res.status(200).json({
+          isClean: false,
+          failures: ['image upload disabled'],
         })
-        res.status(200).json(moderationResult)
+        // const moderationResult = await ModerationService.moderateImage({
+        //   image: imageToModerate.buffer,
+        //   sessionId,
+        //   userId: user.id,
+        //   isVolunteer: user.isVolunteer,
+        //   source: 'image_upload',
+        //   aggregateInfractions: true,
+        // })
+        // res.status(200).json(moderationResult)
       } catch (err) {
         resError(res, err)
       }
