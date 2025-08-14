@@ -179,8 +179,7 @@ async function handleSSOStrategy(
       })
     }
 
-    // Check if the user already exists, but just hadn't used
-    // Clever SSO before.
+    // Check if the user already exists, but just hadn't used SSO before
     const existingUser = await getUserVerificationByEmails(
       email,
       userData?.email
