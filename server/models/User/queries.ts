@@ -8,8 +8,8 @@ import {
   Ulid,
   Pgid,
   getDbUlid,
-  generateReferralCode,
   Uuid,
+  generateReferralCode,
 } from '../pgUtils'
 import {
   RepoCreateError,
@@ -30,7 +30,6 @@ import {
   CreateUserResult,
   ReportedUser,
   UpsertUserResult,
-  User,
   UserRole,
   UserContactInfo,
   UserForCreateSendGridContact,
@@ -92,7 +91,6 @@ export async function upsertUser(
         phoneVerified: user.phoneVerified ?? false,
         proxyEmail: user.proxyEmail?.toLowerCase(),
         referralCode: generateReferralCode(id),
-        referredBy: user.referredBy,
         signupSourceId: user.signupSourceId,
         verified: user.verified ?? false,
       },

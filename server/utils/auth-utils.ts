@@ -7,9 +7,7 @@ import { Request, Response, NextFunction } from 'express'
 import config from '../config'
 import { getUserContactInfo } from '../services/UserService'
 import { getUserIdByPhone } from '../models/User/queries'
-import { checkReferral } from '../controllers/UserCtrl'
-import { captureEvent } from '../services/AnalyticsService'
-import { EVENTS, GRADES } from '../constants'
+import { GRADES } from '../constants'
 
 import {
   InputError,
@@ -348,19 +346,6 @@ export async function checkValidPartnerEmailAddress(
       throw new RegistrationError(
         'Invalid email domain for volunteer partner organization'
       )
-  }
-}
-
-export async function getReferredBy(
-  referredByCode?: string
-): Promise<Ulid | undefined> {
-  if (!referredByCode) return
-  const referredBy = await checkReferral(referredByCode)
-  if (referredBy) {
-    captureEvent(referredBy, EVENTS.FRIEND_REFERRED, {
-      event: EVENTS.FRIEND_REFERRED,
-    })
-    return referredBy
   }
 }
 

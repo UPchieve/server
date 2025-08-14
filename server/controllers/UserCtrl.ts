@@ -1,36 +1,24 @@
-import { Ulid } from '../models/pgUtils'
 import { captureException } from '@sentry/node'
 import * as UPFRepo from '../models/UserProductFlags'
-import * as UserRepo from '../models/User'
 import * as VolunteerRepo from '../models/Volunteer'
 import * as UserActionRepo from '../models/UserAction'
+import * as ReferralService from '../services/ReferralService'
 import { createContact } from '../services/MailService'
 import { hashPassword } from '../utils/auth-utils'
 import { logError } from '../logger'
-import { ACCOUNT_USER_ACTIONS, STUDENT_EVENTS } from '../constants'
+import { ACCOUNT_USER_ACTIONS } from '../constants'
 
-export async function checkReferral(
-  referredByCode: string | undefined
-): Promise<Ulid | undefined> {
-  if (referredByCode) {
-    try {
-      const user = await UserRepo.getUserByReferralCode(referredByCode)
-      if (user) return user.id
-    } catch (error) {
-      captureException(error)
-      logError(error as Error)
-    }
-  }
-}
-
-// TODO: duck type validation - volunteerData payload
+// TODO: Move to UserCreationService.
 export async function createVolunteer(
   volunteerData: VolunteerRepo.CreateVolunteerPayload,
   ip: string
 ): Promise<VolunteerRepo.CreatedVolunteer> {
   volunteerData.password = await hashPassword(volunteerData.password)
-  // Replaced by VolunteerRepo.createVolunteer
+
   const volunteer = await VolunteerRepo.createVolunteer(volunteerData)
+  if (volunteerData.referredBy) {
+    await ReferralService.addReferralFor(volunteer.id, volunteerData.referredBy)
+  }
 
   // Create a UPF object for this new user
   try {
