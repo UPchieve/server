@@ -289,7 +289,7 @@ export async function checkEmail(email: string) {
     throw new InputError('Email is not a valid email format')
 
   const emailDomain = getEmailDomain(email)
-  //Silently fail to let user know
+
   if (await isEmailDomainBlocked(emailDomain)) {
     logger.info(`${email} is from an invalid email provider`)
     throw new NotAllowedError()
