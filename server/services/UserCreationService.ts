@@ -5,7 +5,6 @@ import {
   checkPassword,
   checkValidPartnerEmailAddress,
   createResetToken,
-  getReferredBy,
   hashPassword,
   RegisterStudentPayload,
   RegisterStudentWithFedCredPayload,
@@ -218,7 +217,9 @@ export async function registerStudent(
         : undefined,
       passwordResetToken,
       profileId: data.profileId,
-      referredBy: await getReferredBy(data.referredByCode),
+      referredBy: await ReferralService.getReferrerIdByCode(
+        data.referredByCode
+      ),
       signupSourceId: data.signupSourceId,
       verified: useFedCred(data),
     }
@@ -313,7 +314,7 @@ export async function registerVolunteer(
     password: usePassword(data) ? await hashPassword(data.password) : undefined,
     passwordResetToken,
     profileId: data.profileId,
-    referredBy: await getReferredBy(data.referredByCode),
+    referredBy: await ReferralService.getReferrerIdByCode(data.referredByCode),
     signupSourceId: data.signupSourceId,
     otherSignupSource: data.otherSignupSource,
     verified: useFedCred(data),
@@ -367,6 +368,11 @@ async function createUser(
 ) {
   const user = await UserRepo.createUser(userData, tc)
   await createUserMetadata(user.id, ip, role, tc)
+
+  if (userData.referredBy) {
+    await ReferralService.addReferralFor(user.id, userData.referredBy, tc)
+  }
+
   if (useFedCred(userData)) {
     await insertFederatedCredential(
       userData.profileId,
@@ -375,6 +381,7 @@ async function createUser(
       tc
     )
   }
+
   return user
 }
 

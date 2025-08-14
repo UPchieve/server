@@ -246,15 +246,6 @@ RETURNING
     user_id AS ok;
 
 
-/* @name createStudentUser */
-INSERT INTO users (id, first_name, last_name, email, PASSWORD, verified, email_verified, referred_by, referral_code, signup_source_id, other_signup_source, last_activity_at, created_at, updated_at)
-    VALUES (:userId!, :firstName!, :lastName!, :email!, :password, :verified!, :emailVerified!, :referredBy, :referralCode!, :signupSourceId, :otherSignupSource, NOW(), NOW(), NOW())
-ON CONFLICT (email)
-    DO NOTHING
-RETURNING
-    id, first_name, last_name, email, verified, ban_type, test_user, deactivated, created_at;
-
-
 /* @name createStudentProfile */
 INSERT INTO student_profiles (user_id, postal_code, student_partner_org_id, student_partner_org_site_id, grade_level_id, school_id, college, created_at, updated_at)
     VALUES (:userId!, :postalCode, (
@@ -736,7 +727,7 @@ FROM
     deleted_rows;
 
 
-/* @name getStudentProfilesByUserIds 
+/* @name getStudentProfilesByUserIds
  @param userIds -> (...)
  */
 SELECT

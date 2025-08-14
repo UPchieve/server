@@ -4,25 +4,25 @@ import { GRADES } from '../../constants'
 import { buildUser, getIpAddress, getEmail } from '../mocks/generate'
 import * as IneligibleStudentRepo from '../../models/IneligibleStudent/queries'
 import * as SchoolRepo from '../../models/School/queries'
-import * as UserCtrl from '../../controllers/UserCtrl'
 import * as ZipCodeRepo from '../../models/ZipCode/queries'
 import { getDbUlid } from '../../models/pgUtils'
 import * as UserRepo from '../../models/User/queries'
 import * as EligibilityService from '../../services/EligibilityService'
+import * as ReferralService from '../../services/ReferralService'
 import { IneligibleStudent } from '../../models/IneligibleStudent'
 
 jest.mock('../../services/IpAddressService')
 jest.mock('../../models/IneligibleStudent/queries')
 jest.mock('../../models/School/queries')
-jest.mock('../../controllers/UserCtrl')
 jest.mock('../../models/User/queries')
 jest.mock('../../models/ZipCode/queries')
+jest.mock('../../services/ReferralService.ts')
 
 const mockedUserRepo = mocked(UserRepo)
 const mockedIneligibleStudentRepo = mocked(IneligibleStudentRepo)
 const mockedSchoolRepo = mocked(SchoolRepo)
-const mockedUserCtrl = mocked(UserCtrl)
 const mockedZipCodeRepo = mocked(ZipCodeRepo)
+const mockedReferralService = mocked(ReferralService)
 
 function buildIneligibleStudent(): IneligibleStudent {
   return {
@@ -92,7 +92,7 @@ describe(ELIGIBILITY_CHECK_PATH, () => {
     ) // email doesnt belong to ineligible student
     mockedSchoolRepo.getSchoolById.mockResolvedValueOnce(school)
     mockedZipCodeRepo.getZipCodeByZipCode.mockResolvedValueOnce(approvedZipCode)
-    mockedUserCtrl.checkReferral.mockResolvedValueOnce(referredBy)
+    mockedReferralService.getReferrerIdByCode.mockResolvedValueOnce(referredBy)
 
     const response = await EligibilityService.checkEligibility(ip, payload)
 
@@ -130,7 +130,7 @@ describe(ELIGIBILITY_CHECK_PATH, () => {
     ) // email belongs to ineligible student
     mockedSchoolRepo.getSchoolById.mockResolvedValueOnce(school)
     mockedZipCodeRepo.getZipCodeByZipCode.mockResolvedValueOnce(approvedZipCode)
-    mockedUserCtrl.checkReferral.mockResolvedValueOnce(referredBy)
+    mockedReferralService.getReferrerIdByCode.mockResolvedValueOnce(referredBy)
 
     const response = await EligibilityService.checkEligibility(ip, payload)
 
@@ -152,7 +152,7 @@ describe(ELIGIBILITY_CHECK_PATH, () => {
     ) // email doesnt belong to ineligible student
     mockedSchoolRepo.getSchoolById.mockResolvedValueOnce(unapprovedSchool)
     mockedZipCodeRepo.getZipCodeByZipCode.mockResolvedValueOnce(approvedZipCode)
-    mockedUserCtrl.checkReferral.mockResolvedValueOnce(referredBy)
+    mockedReferralService.getReferrerIdByCode.mockResolvedValueOnce(referredBy)
 
     const response = await EligibilityService.checkEligibility(ip, payload)
 
@@ -176,7 +176,7 @@ describe(ELIGIBILITY_CHECK_PATH, () => {
     mockedZipCodeRepo.getZipCodeByZipCode.mockResolvedValueOnce(
       unapprovedZipCode
     )
-    mockedUserCtrl.checkReferral.mockResolvedValueOnce(referredBy)
+    mockedReferralService.getReferrerIdByCode.mockResolvedValueOnce(referredBy)
 
     const response = await EligibilityService.checkEligibility(ip, payload)
 
@@ -200,7 +200,7 @@ describe(ELIGIBILITY_CHECK_PATH, () => {
     mockedZipCodeRepo.getZipCodeByZipCode.mockResolvedValueOnce(
       unapprovedZipCode
     )
-    mockedUserCtrl.checkReferral.mockResolvedValueOnce(referredBy)
+    mockedReferralService.getReferrerIdByCode.mockResolvedValueOnce(referredBy)
 
     const response = await EligibilityService.checkEligibility(ip, payload)
 
@@ -222,7 +222,7 @@ describe(ELIGIBILITY_CHECK_PATH, () => {
     ) // email doesnt belong to ineligible student
     mockedSchoolRepo.getSchoolById.mockResolvedValueOnce(school)
     mockedZipCodeRepo.getZipCodeByZipCode.mockResolvedValueOnce(approvedZipCode)
-    mockedUserCtrl.checkReferral.mockResolvedValueOnce(referredBy)
+    mockedReferralService.getReferrerIdByCode.mockResolvedValueOnce(referredBy)
 
     const response = await EligibilityService.checkEligibility(ip, payload)
 

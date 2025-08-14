@@ -1,4 +1,3 @@
-import * as UserCtrl from '../controllers/UserCtrl'
 import { getSchoolById } from '../models/School/queries'
 import { getZipCodeByZipCode } from '../models/ZipCode/queries'
 import {
@@ -13,6 +12,7 @@ import { School } from '../models/School'
 import { ZipCode } from '../models/ZipCode'
 import config from '../config'
 import { InputError } from '../models/Errors'
+import * as ReferralService from './ReferralService'
 
 type CheckEligibilityPayload = {
   email: string
@@ -93,7 +93,7 @@ export async function checkEligibility(
     (isEligibleBySchool || isEligibleByZipCode) && !isCollegeStudent
 
   if (!isStudentEligible) {
-    const referredBy = await UserCtrl.checkReferral(referredByCode)
+    const referredBy = await ReferralService.getReferrerIdByCode(referredByCode)
     if (email) {
       await insertIneligibleStudent(
         email,

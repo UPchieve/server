@@ -7,11 +7,8 @@ import {
   updateUserPasswordById,
   getUserIdByEmail,
 } from '../models/User/queries'
-import * as StudentRepo from '../models/Student'
 import * as VolunteerRepo from '../models/Volunteer'
 import * as FederatedCredentialRepo from '../models/FederatedCredential'
-import { School } from '../models/School'
-import { getSchoolById } from '../models/School/queries'
 import * as UserCtrl from '../controllers/UserCtrl'
 import {
   getVolunteerPartnerOrgForRegistrationByKey,
@@ -38,7 +35,6 @@ import {
   checkPassword,
   checkPhone,
   hashPassword,
-  getReferredBy,
   checkNames,
   checkEmail,
   createResetToken,
@@ -46,6 +42,7 @@ import {
 import { asString } from '../utils/type-utils'
 import { NotAllowedError, InputError, LookupError } from '../models/Errors'
 import logger from '../logger'
+import * as ReferralService from './ReferralService'
 import * as VolunteerService from './VolunteerService'
 import { getIpWhoIs } from './IpAddressService'
 import * as MailService from './MailService'
@@ -130,7 +127,8 @@ export async function registerVolunteer(
   }
 
   let referredBy: Ulid | undefined
-  if (referredByCode) referredBy = await getReferredBy(referredByCode)
+  if (referredByCode)
+    referredBy = await ReferralService.getReferrerIdByCode(referredByCode)
 
   const volunteerData = {
     email,
@@ -202,7 +200,8 @@ export async function registerPartnerVolunteer(
   }
 
   let referredBy: Ulid | undefined
-  if (referredByCode) referredBy = await getReferredBy(referredByCode)
+  if (referredByCode)
+    referredBy = await ReferralService.getReferrerIdByCode(referredByCode)
 
   // Volunteer partner org check
   let volunteerPartnerManifest: VolunteerPartnerOrgForRegistration

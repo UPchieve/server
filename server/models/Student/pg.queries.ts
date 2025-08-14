@@ -731,56 +731,6 @@ const updateStudentInGatesStudyIR: any = {"usedParamSet":{"inGatesStudy":true,"u
 export const updateStudentInGatesStudy = new PreparedQuery<IUpdateStudentInGatesStudyParams,IUpdateStudentInGatesStudyResult>(updateStudentInGatesStudyIR);
 
 
-/** 'CreateStudentUser' parameters type */
-export interface ICreateStudentUserParams {
-  email: string;
-  emailVerified: boolean;
-  firstName: string;
-  lastName: string;
-  otherSignupSource?: string | null | void;
-  password?: string | null | void;
-  referralCode: string;
-  referredBy?: string | null | void;
-  signupSourceId?: number | null | void;
-  userId: string;
-  verified: boolean;
-}
-
-/** 'CreateStudentUser' return type */
-export interface ICreateStudentUserResult {
-  banType: ban_types | null;
-  createdAt: Date;
-  deactivated: boolean;
-  email: string;
-  firstName: string;
-  id: string;
-  lastName: string;
-  testUser: boolean;
-  verified: boolean;
-}
-
-/** 'CreateStudentUser' query type */
-export interface ICreateStudentUserQuery {
-  params: ICreateStudentUserParams;
-  result: ICreateStudentUserResult;
-}
-
-const createStudentUserIR: any = {"usedParamSet":{"userId":true,"firstName":true,"lastName":true,"email":true,"password":true,"verified":true,"emailVerified":true,"referredBy":true,"referralCode":true,"signupSourceId":true,"otherSignupSource":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":210,"b":217}]},{"name":"firstName","required":true,"transform":{"type":"scalar"},"locs":[{"a":220,"b":230}]},{"name":"lastName","required":true,"transform":{"type":"scalar"},"locs":[{"a":233,"b":242}]},{"name":"email","required":true,"transform":{"type":"scalar"},"locs":[{"a":245,"b":251}]},{"name":"password","required":false,"transform":{"type":"scalar"},"locs":[{"a":254,"b":262}]},{"name":"verified","required":true,"transform":{"type":"scalar"},"locs":[{"a":265,"b":274}]},{"name":"emailVerified","required":true,"transform":{"type":"scalar"},"locs":[{"a":277,"b":291}]},{"name":"referredBy","required":false,"transform":{"type":"scalar"},"locs":[{"a":294,"b":304}]},{"name":"referralCode","required":true,"transform":{"type":"scalar"},"locs":[{"a":307,"b":320}]},{"name":"signupSourceId","required":false,"transform":{"type":"scalar"},"locs":[{"a":323,"b":337}]},{"name":"otherSignupSource","required":false,"transform":{"type":"scalar"},"locs":[{"a":340,"b":357}]}],"statement":"INSERT INTO users (id, first_name, last_name, email, PASSWORD, verified, email_verified, referred_by, referral_code, signup_source_id, other_signup_source, last_activity_at, created_at, updated_at)\n    VALUES (:userId!, :firstName!, :lastName!, :email!, :password, :verified!, :emailVerified!, :referredBy, :referralCode!, :signupSourceId, :otherSignupSource, NOW(), NOW(), NOW())\nON CONFLICT (email)\n    DO NOTHING\nRETURNING\n    id, first_name, last_name, email, verified, ban_type, test_user, deactivated, created_at"};
-
-/**
- * Query generated from SQL:
- * ```
- * INSERT INTO users (id, first_name, last_name, email, PASSWORD, verified, email_verified, referred_by, referral_code, signup_source_id, other_signup_source, last_activity_at, created_at, updated_at)
- *     VALUES (:userId!, :firstName!, :lastName!, :email!, :password, :verified!, :emailVerified!, :referredBy, :referralCode!, :signupSourceId, :otherSignupSource, NOW(), NOW(), NOW())
- * ON CONFLICT (email)
- *     DO NOTHING
- * RETURNING
- *     id, first_name, last_name, email, verified, ban_type, test_user, deactivated, created_at
- * ```
- */
-export const createStudentUser = new PreparedQuery<ICreateStudentUserParams,ICreateStudentUserResult>(createStudentUserIR);
-
-
 /** 'CreateStudentProfile' parameters type */
 export interface ICreateStudentProfileParams {
   college?: string | null | void;
