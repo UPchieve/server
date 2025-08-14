@@ -7232,6 +7232,14 @@ COPY upchieve.quiz_review_materials (id, quiz_id, title, pdf, image, created_at,
 
 
 --
+-- Data for Name: referrals; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.referrals (id, referred_by, user_id) FROM stdin;
+\.
+
+
+--
 -- Data for Name: report_reasons; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
@@ -8775,6 +8783,13 @@ SELECT pg_catalog.setval('upchieve.quiz_subcategories_id_seq', 411, true);
 --
 
 SELECT pg_catalog.setval('upchieve.quizzes_id_seq', 36, true);
+
+
+--
+-- Name: referrals_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
+--
+
+SELECT pg_catalog.setval('upchieve.referrals_id_seq', 1, false);
 
 
 --

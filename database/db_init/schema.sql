@@ -1415,6 +1415,37 @@ ALTER SEQUENCE upchieve.quizzes_id_seq OWNED BY upchieve.quizzes.id;
 
 
 --
+-- Name: referrals; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.referrals (
+    id integer NOT NULL,
+    referred_by uuid,
+    user_id uuid
+);
+
+
+--
+-- Name: referrals_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+CREATE SEQUENCE upchieve.referrals_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: referrals_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
+--
+
+ALTER SEQUENCE upchieve.referrals_id_seq OWNED BY upchieve.referrals.id;
+
+
+--
 -- Name: report_reasons; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -3048,6 +3079,13 @@ ALTER TABLE ONLY upchieve.quizzes ALTER COLUMN id SET DEFAULT nextval('upchieve.
 
 
 --
+-- Name: referrals id; Type: DEFAULT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.referrals ALTER COLUMN id SET DEFAULT nextval('upchieve.referrals_id_seq'::regclass);
+
+
+--
 -- Name: report_reasons id; Type: DEFAULT; Schema: upchieve; Owner: -
 --
 
@@ -3761,6 +3799,14 @@ ALTER TABLE ONLY upchieve.quizzes
 
 ALTER TABLE ONLY upchieve.quizzes
     ADD CONSTRAINT quizzes_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: referrals referrals_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.referrals
+    ADD CONSTRAINT referrals_pkey PRIMARY KEY (id);
 
 
 --
@@ -5363,6 +5409,22 @@ ALTER TABLE ONLY upchieve.quiz_subcategories
 
 
 --
+-- Name: referrals referrals_referred_by_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.referrals
+    ADD CONSTRAINT referrals_referred_by_fkey FOREIGN KEY (referred_by) REFERENCES upchieve.users(id);
+
+
+--
+-- Name: referrals referrals_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.referrals
+    ADD CONSTRAINT referrals_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
+
+
+--
 -- Name: required_email_domains required_email_domains_volunteer_partner_org_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -6508,4 +6570,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20250716141321'),
     ('20250801141806'),
     ('20250812230022'),
-    ('20250818220035');
+    ('20250818220035'),
+    ('20250825164601');
