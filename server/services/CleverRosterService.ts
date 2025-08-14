@@ -258,9 +258,12 @@ export async function addCleverSchoolMapping(
   return SchoolRepo.addCleverSchoolMapping(cleverSchoolId, upchieveSchoolId)
 }
 
-export async function getUpchieveSchoolFromCleverId(cleverSchoolId: string) {
-  const ucSchoolId =
-    await SchoolRepo.getUpchieveSchoolIdFromCleverId(cleverSchoolId)
+export async function getUpchieveSchoolIdFromCleverId(cleverSchoolId: string) {
+  return SchoolRepo.getUpchieveSchoolIdFromCleverId(cleverSchoolId)
+}
+
+async function getUpchieveSchoolFromCleverId(cleverSchoolId: string) {
+  const ucSchoolId = await getUpchieveSchoolIdFromCleverId(cleverSchoolId)
   if (ucSchoolId) {
     return SchoolService.getSchool(ucSchoolId)
   }
