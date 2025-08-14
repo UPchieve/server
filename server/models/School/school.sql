@@ -271,3 +271,12 @@ ON CONFLICT (upchieve_school_id)
     DO UPDATE SET
         clever_school_id = :cleverSchoolId!, upchieve_school_id = :upchieveSchoolId!;
 
+
+/* @name getUpchieveSchoolIdFromCleverId */
+SELECT
+    upchieve_school_id
+FROM
+    clever_school_mapping
+WHERE
+    clever_school_id = :cleverSchoolId!;
+

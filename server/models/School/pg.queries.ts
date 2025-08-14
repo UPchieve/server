@@ -708,3 +708,35 @@ const addCleverSchoolMappingIR: any = {"usedParamSet":{"cleverSchoolId":true,"up
 export const addCleverSchoolMapping = new PreparedQuery<IAddCleverSchoolMappingParams,IAddCleverSchoolMappingResult>(addCleverSchoolMappingIR);
 
 
+/** 'GetUpchieveSchoolIdFromCleverId' parameters type */
+export interface IGetUpchieveSchoolIdFromCleverIdParams {
+  cleverSchoolId: string;
+}
+
+/** 'GetUpchieveSchoolIdFromCleverId' return type */
+export interface IGetUpchieveSchoolIdFromCleverIdResult {
+  upchieveSchoolId: string;
+}
+
+/** 'GetUpchieveSchoolIdFromCleverId' query type */
+export interface IGetUpchieveSchoolIdFromCleverIdQuery {
+  params: IGetUpchieveSchoolIdFromCleverIdParams;
+  result: IGetUpchieveSchoolIdFromCleverIdResult;
+}
+
+const getUpchieveSchoolIdFromCleverIdIR: any = {"usedParamSet":{"cleverSchoolId":true},"params":[{"name":"cleverSchoolId","required":true,"transform":{"type":"scalar"},"locs":[{"a":90,"b":105}]}],"statement":"SELECT\n    upchieve_school_id\nFROM\n    clever_school_mapping\nWHERE\n    clever_school_id = :cleverSchoolId!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     upchieve_school_id
+ * FROM
+ *     clever_school_mapping
+ * WHERE
+ *     clever_school_id = :cleverSchoolId!
+ * ```
+ */
+export const getUpchieveSchoolIdFromCleverId = new PreparedQuery<IGetUpchieveSchoolIdFromCleverIdParams,IGetUpchieveSchoolIdFromCleverIdResult>(getUpchieveSchoolIdFromCleverIdIR);
+
+

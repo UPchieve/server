@@ -26,12 +26,7 @@ import * as UserCreationService from './UserCreationService'
  * are using Clever, but there is a lot more data we can pull from Clever that might
  * be useful to integrate with in the future.
  */
-export async function rosterDistrict(
-  districtId: string,
-  cleverToUPchieveIds?: {
-    [cleverSchoolId: string]: CleverAPIService.UPchieveSchoolId
-  }
-) {
+export async function rosterDistrict(districtId: string) {
   const accessToken = await CleverAPIService.getDistrictAccessToken(districtId)
   const schools = await CleverAPIService.getSchoolsInDistrict(accessToken)
 
@@ -53,27 +48,11 @@ export async function rosterDistrict(
 
   for (const school of schools) {
     try {
-      let upchieveSchool
-
-      const upchieveSchoolId = cleverToUPchieveIds?.[school.id]
-      if (upchieveSchoolId) {
-        upchieveSchool = await SchoolService.getSchool(upchieveSchoolId)
-      } else if (school.nces_id) {
-        upchieveSchool = await SchoolService.getSchoolByNcesId(school.nces_id)
-      }
+      const upchieveSchool = await getUpchieveSchoolFromCleverId(school.id)
 
       if (!upchieveSchool) {
-        let failureReason
-        if (upchieveSchoolId) {
-          failureReason = `No UPchieve school found with ID of ${upchieveSchoolId}`
-        } else if (school.nces_id) {
-          failureReason = `No UPchieve school found with nces_id of ${school.nces_id}`
-        } else {
-          failureReason =
-            'Clever school does not contain nces_id and no mapping to UPchieve school provided.'
-        }
-
-        upsertReport.failedSchools[school.id] = failureReason
+        upsertReport.failedSchools[school.id] =
+          `No mapping provided for Clever school with id ${school.id}.`
         continue
       }
 
@@ -277,6 +256,14 @@ export async function addCleverSchoolMapping(
   upchieveSchoolId: Uuid
 ) {
   return SchoolRepo.addCleverSchoolMapping(cleverSchoolId, upchieveSchoolId)
+}
+
+export async function getUpchieveSchoolFromCleverId(cleverSchoolId: string) {
+  const ucSchoolId =
+    await SchoolRepo.getUpchieveSchoolIdFromCleverId(cleverSchoolId)
+  if (ucSchoolId) {
+    return SchoolService.getSchool(ucSchoolId)
+  }
 }
 
 // Exported for testing.

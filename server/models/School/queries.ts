@@ -343,3 +343,22 @@ export async function addCleverSchoolMapping(
     throw new RepoUpsertError(err)
   }
 }
+
+export async function getUpchieveSchoolIdFromCleverId(
+  cleverSchoolId: string,
+  tc = getClient()
+): Promise<Uuid | undefined> {
+  try {
+    const result = await pgQueries.getUpchieveSchoolIdFromCleverId.run(
+      {
+        cleverSchoolId,
+      },
+      tc
+    )
+    if (result.length) {
+      return makeRequired(result[0]).upchieveSchoolId
+    }
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
