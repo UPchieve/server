@@ -291,8 +291,8 @@ export async function checkEmail(email: string) {
   const emailDomain = getEmailDomain(email)
   //Silently fail to let user know
   if (await isEmailDomainBlocked(emailDomain)) {
-    throw new NotAllowedError()
     logger.info(`${email} is from an invalid email provider`)
+    throw new NotAllowedError()
   }
 }
 
