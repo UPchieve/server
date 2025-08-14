@@ -203,7 +203,10 @@ export function routes(app: Express) {
         delete (req.session as SessionWithSsoData).sso
       }
 
-      const phCookie = req.cookies[`ph_${config.posthogToken}_posthog`]
+      const phCookie = config.posthogToken
+        ? req.cookies[`ph_${config.posthogToken}_posthog`]
+        : null
+
       const distinctId = phCookie ? JSON.parse(phCookie).distinct_id : uuidv4()
 
       const data = registerStudentValidator({
@@ -230,7 +233,10 @@ export function routes(app: Express) {
   // == Remove once midtown clean-up.
   router.route('/register/student/open').post(async function (req, res) {
     try {
-      const phCookie = req.cookies[`ph_${config.posthogToken}_posthog`]
+      const phCookie = config.posthogToken
+        ? req.cookies[`ph_${config.posthogToken}_posthog`]
+        : null
+
       const distinctId = phCookie ? JSON.parse(phCookie).distinct_id : uuidv4()
 
       const data = registerStudentValidator({
@@ -251,7 +257,10 @@ export function routes(app: Express) {
   // == Remove once midtown clean-up.
   router.route('/register/student/partner').post(async function (req, res) {
     try {
-      const phCookie = req.cookies[`ph_${config.posthogToken}_posthog`]
+      const phCookie = config.posthogToken
+        ? req.cookies[`ph_${config.posthogToken}_posthog`]
+        : null
+
       const distinctId = phCookie ? JSON.parse(phCookie).distinct_id : uuidv4()
 
       const data = registerStudentValidator({
