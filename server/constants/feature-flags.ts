@@ -17,4 +17,5 @@ export enum FEATURE_FLAGS {
   SEND_AMBASSADOR_OPPORTUNITY_EMAIL = 'send-ambassador-opportunity-email',
   SEND_POSITIVE_STUDENT_FEEDBACK_EMAIL = 'send-positive-student-feedback-email',
   STUDENTS_INITIATE_DMS = 'students-initiate-dms',
+  DISABLE_STUDENT_CREATION = 'disable-student-creation',
 }

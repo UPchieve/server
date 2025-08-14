@@ -37,6 +37,8 @@ import {
 } from '../models/ParentGuardian'
 import { InputError } from '../models/Errors'
 import { createTeacher } from '../models/Teacher'
+import { getStudentCreationDisabledFeatureFlag } from './FeatureFlagService'
+import cookieParser from 'cookie-parser'
 
 export interface RosterStudentPayload {
   cleverId?: string
@@ -183,6 +185,14 @@ export async function registerStudent(
   data: RegisterStudentPayload,
   tc?: TransactionClient
 ) {
+  const userId = data.phId
+
+  const isDisableStudentCreationEnabled =
+    await getStudentCreationDisabledFeatureFlag(userId as string)
+
+  if (isDisableStudentCreationEnabled)
+    throw new Error(`Sorry, we can't create a new account right now.`)
+
   await verifyStudentData(data)
   const newStudent = await runInTransaction(async (tc: TransactionClient) => {
     const passwordResetToken = useResetToken(data)

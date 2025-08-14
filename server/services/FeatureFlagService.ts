@@ -190,3 +190,7 @@ export async function getSendPositiveStudentFeedbackEmailFeatureFlag(
 export async function getStudentsInitiateDmsFeatureFlag(userId: Ulid) {
   return await isFeatureEnabled(FEATURE_FLAGS.STUDENTS_INITIATE_DMS, userId)
 }
+
+export async function getStudentCreationDisabledFeatureFlag(userId: Ulid) {
+  return await isFeatureEnabled(FEATURE_FLAGS.DISABLE_STUDENT_CREATION, userId)
+}

@@ -78,6 +78,7 @@ export interface RegisterStudentPayload {
   studentPartnerOrgKey?: string
   studentPartnerOrgSiteName?: string
   zipCode?: string
+  phId?: string
 }
 export const registerStudentValidator = asFactory<RegisterStudentPayload>({
   classCode: asOptional(asString),
@@ -97,6 +98,7 @@ export const registerStudentValidator = asFactory<RegisterStudentPayload>({
   studentPartnerOrgKey: asOptional(asString),
   studentPartnerOrgSiteName: asOptional(asString),
   zipCode: asOptional(asString),
+  phId: asOptional(asString),
 })
 export interface RegisterStudentWithPasswordPayload
   extends Omit<
