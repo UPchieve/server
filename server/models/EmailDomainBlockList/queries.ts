@@ -1,4 +1,5 @@
 import { getClient, TransactionClient } from '../../db'
+import { makeRequired } from '../pgUtils'
 import { RepoReadError } from '../Errors'
 import * as pgQueries from './pg.queries'
 
@@ -12,7 +13,7 @@ export async function getBlockedEmailDomainByDomain(
       tc
     )
 
-    return result
+    if (result.length) return makeRequired(result[0])
   } catch (err) {
     throw new RepoReadError(err)
   }

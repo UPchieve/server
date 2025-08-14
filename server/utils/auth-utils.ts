@@ -2,6 +2,8 @@ import { randomBytes } from 'crypto'
 import bcrypt from 'bcrypt'
 import passport from 'passport'
 import { CustomError } from 'ts-custom-error'
+import validator from 'validator'
+import session from 'express-session'
 import { Ulid } from '../models/pgUtils'
 import { Request, Response, NextFunction } from 'express'
 import config from '../config'
@@ -10,7 +12,6 @@ import { getUserIdByPhone } from '../models/User/queries'
 import { checkReferral } from '../controllers/UserCtrl'
 import { captureEvent } from '../services/AnalyticsService'
 import { EVENTS, GRADES } from '../constants'
-
 import {
   InputError,
   LookupError,
@@ -18,7 +19,10 @@ import {
   MissingRecaptchaTokenError,
   NotAllowedError,
 } from '../models/Errors'
+import { validateRequestRecaptcha } from '../services/RecaptchaService'
+import { isEmailDomainBlocked } from '../services/EmailDomainBlockListService'
 import isValidInternationalPhoneNumber from './is-valid-international-phone-number'
+import logger from '../logger'
 import {
   asString,
   asBoolean,
@@ -27,10 +31,8 @@ import {
   asEnum,
   asNumber,
 } from './type-utils'
-import validator from 'validator'
-import session from 'express-session'
-import { validateRequestRecaptcha } from '../services/RecaptchaService'
-import { isDisposableEmail } from './domain-utils'
+import { getEmailDomain } from './email-domain'
+
 // Custom errors
 export class RegistrationError extends CustomError {}
 export class ResetError extends CustomError {}
@@ -282,12 +284,16 @@ export function checkNames(first: string, last: string) {
     throw new InputError('Names can only contain letters, spaces and hyphens')
 }
 
-export function checkEmail(email: string) {
+export async function checkEmail(email: string) {
   if (!validator.isEmail(email))
     throw new InputError('Email is not a valid email format')
 
-  if (isDisposableEmail(email))
-    throw new NotAllowedError('Email is from an invalid email provider')
+  const emailDomain = getEmailDomain(email)
+  //Silently fail to let user know
+  if (await isEmailDomainBlocked(emailDomain)) {
+    throw new NotAllowedError()
+    logger.info(`${email} is from an invalid email provider`)
+  }
 }
 
 export async function getReferredBy(
