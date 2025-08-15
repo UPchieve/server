@@ -42,6 +42,7 @@ COPY upchieve.signup_sources (id, name, created_at, updated_at) FROM stdin;
 5	Parent / Relative	2024-08-28 00:28:43.73139+00	2024-08-28 00:28:43.73139+00
 6	Other	2024-08-28 00:28:43.731742+00	2024-08-28 00:28:43.731742+00
 7	Roster	2024-08-28 00:28:44.14509+00	2024-08-28 00:28:44.14509+00
+8	TikTok	2025-08-15 17:17:32.077609+00	2025-08-15 17:17:32.077609+00
 \.
 
 
@@ -3761,7 +3762,7 @@ COPY upchieve.tutor_bot_session_messages (id, session_id, message, tutor_bot_ses
 -- Data for Name: user_actions; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.user_actions (id, user_id, session_id, action_type, action, ip_address_id, device, browser, browser_version, operating_system, operating_system_version, quiz_subcategory, quiz_category, created_at, updated_at, mongo_id, reference_email, volunteer_id, ban_reason) FROM stdin;
+COPY upchieve.user_actions (id, user_id, session_id, action_type, action, ip_address_id, device, browser, browser_version, operating_system, operating_system_version, quiz_subcategory, quiz_category, created_at, updated_at, mongo_id, reference_email, volunteer_id, ban_reason, clientuuid) FROM stdin;
 \.
 
 
@@ -4189,7 +4190,7 @@ SELECT pg_catalog.setval('upchieve.shareable_domains_id_seq', 1, false);
 -- Name: signup_sources_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.signup_sources_id_seq', 7, true);
+SELECT pg_catalog.setval('upchieve.signup_sources_id_seq', 8, true);
 
 
 --
