@@ -63,6 +63,7 @@ import backfillStudentAmbassadorRole from '../../scripts/add-student-ambassador-
 import emailBecomeAnAmbassador from './emailBecomeAnAmbassador'
 import emailReferralSignUpCelebration from './emailReferralSignupCelebration'
 import maybeSendStudentFeedbackToVolunteer from './volunteer-emails/maybeSendStudentFeedbackToVolunteer'
+import emailNationalTutorCertificate from './emailNationalTutorCertificate'
 
 export enum Jobs {
   NotifyTutors = 'NotifyTutors',
@@ -119,6 +120,7 @@ export enum Jobs {
   GenerateSessionSummary = 'GenerateSessionSummary',
   ProcessSessionEnded = 'ProcessSessionEnded',
   DetectSessionLanguages = 'DetectSessionLanguages',
+  EmailNationalTutorCertificate = 'EmailNationalTutorCertificate',
 
   // TODO: remove the following deprecated job names
   EmailStudentUseCases = 'EmailStudentUseCases',
@@ -157,6 +159,7 @@ export enum Jobs {
   BackfillStudentAmbassadorRole = 'BackfillStudentAmbassadorRole',
   SendBecomeAnAmbassadorEmail = 'SendBecomeAnAmbassadorEmail',
   SendReferralSignUpCelebrationEmail = 'SendReferralSignUpCelebrationEmail',
+  SendNationalTutordCertificateEmail = 'SendNationalTutordCertificateEmail',
 
   MaybeSendStudentFeedbackToVolunteer = 'MaybeSendStudentFeedbackToVolunteer',
 }
@@ -466,6 +469,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.MaybeSendStudentFeedbackToVolunteer,
     processor: maybeSendStudentFeedbackToVolunteer,
+  },
+  {
+    name: Jobs.SendNationalTutordCertificateEmail,
+    processor: emailNationalTutorCertificate,
   },
 ]
 

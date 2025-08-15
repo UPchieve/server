@@ -161,6 +161,10 @@ export async function getQuizScore(
         volunteerProfile?.hasCompletedUpchieve101 ||
         cert === TRAINING.UPCHIEVE_101
 
+      // If this is the first quiz the volunteer has passed, and they have passed Upchieve101, send the national tutor certificate email
+      if (unlockedSubjects.length === 1 && passedUpchieve101) {
+        await VolunteerService.queueNationalTutorCertificateEmail(user.id)
+      }
       await VolunteerService.onboardVolunteer(user.id, ip, tc)
     }
 
