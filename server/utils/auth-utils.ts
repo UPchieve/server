@@ -292,7 +292,7 @@ export async function checkEmail(email: string) {
 
   if (await isEmailDomainBlocked(emailDomain)) {
     logger.info(`${email} is from an invalid email provider`)
-    throw new NotAllowedError()
+    throw new NotAllowedError('Signup not allowed')
   }
 }
 
