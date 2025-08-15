@@ -1397,7 +1397,7 @@ export interface IGetStudentSignupSourcesQuery {
   result: IGetStudentSignupSourcesResult;
 }
 
-const getStudentSignupSourcesIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    id,\n    name\nFROM\n    signup_sources\nWHERE\n    name <> 'Roster'\nORDER BY\n    RANDOM()"};
+const getStudentSignupSourcesIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    id,\n    name\nFROM\n    signup_sources\nWHERE\n    name NOT IN ('Roster', 'Youtube')\nORDER BY\n    RANDOM()"};
 
 /**
  * Query generated from SQL:
@@ -1408,7 +1408,7 @@ const getStudentSignupSourcesIR: any = {"usedParamSet":{},"params":[],"statement
  * FROM
  *     signup_sources
  * WHERE
- *     name <> 'Roster'
+ *     name NOT IN ('Roster', 'Youtube')
  * ORDER BY
  *     RANDOM()
  * ```

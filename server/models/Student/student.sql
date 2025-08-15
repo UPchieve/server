@@ -630,7 +630,7 @@ SELECT
 FROM
     signup_sources
 WHERE
-    name <> 'Roster'
+    name NOT IN ('Roster', 'Youtube')
 ORDER BY
     RANDOM();
 
@@ -736,7 +736,7 @@ FROM
     deleted_rows;
 
 
-/* @name getStudentProfilesByUserIds 
+/* @name getStudentProfilesByUserIds
  @param userIds -> (...)
  */
 SELECT
