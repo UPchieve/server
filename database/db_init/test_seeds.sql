@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 14.18 (Debian 14.18-1.pgdg120+1)
--- Dumped by pg_dump version 14.18 (Ubuntu 14.18-0ubuntu0.22.04.1)
+-- Dumped from database version 14.15 (Debian 14.15-1.pgdg120+1)
+-- Dumped by pg_dump version 14.18 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -404,6 +404,10 @@ COPY upchieve.certifications (id, name, created_at, updated_at, active) FROM std
 29	essayPlanning	2024-08-28 00:28:44.157676+00	2024-08-28 00:28:44.157676+00	t
 30	essayFeedback	2024-08-28 00:28:44.157676+00	2024-08-28 00:28:44.157676+00	t
 15	humanitiesEssays	2024-08-28 00:28:44.001035+00	2024-08-28 00:28:44.154065+00	f
+31	coachingStrategies	2025-08-18 20:56:08.843245+00	2025-08-18 20:56:08.843245+00	t
+32	academicIntegrity	2025-08-18 20:56:08.843245+00	2025-08-18 20:56:08.843245+00	t
+33	dei	2025-08-18 20:56:08.843245+00	2025-08-18 20:56:08.843245+00	t
+34	communitySafety	2025-08-18 20:56:08.843245+00	2025-08-18 20:56:08.843245+00	t
 \.
 
 
@@ -1700,6 +1704,10 @@ COPY upchieve.quizzes (id, name, created_at, updated_at, active, questions_per_s
 9	essays	2024-08-28 00:28:43.751596+00	2024-08-28 00:28:44.16973+00	f	3
 11	planning	2024-08-28 00:28:43.752204+00	2024-08-28 00:28:44.16973+00	f	4
 22	upchieve101	2024-08-28 00:28:43.755436+00	2024-08-28 00:28:44.16973+00	t	27
+33	coachingStrategies	2025-08-18 20:56:08.841139+00	2025-08-18 20:56:08.841139+00	t	3
+34	academicIntegrity	2025-08-18 20:56:08.841139+00	2025-08-18 20:56:08.841139+00	t	3
+35	dei	2025-08-18 20:56:08.841139+00	2025-08-18 20:56:08.841139+00	t	3
+36	communitySafety	2025-08-18 20:56:08.841139+00	2025-08-18 20:56:08.841139+00	t	3
 \.
 
 
@@ -1757,6 +1765,10 @@ COPY upchieve.quiz_certification_grants (quiz_id, certification_id, created_at, 
 25	28	2024-08-28 00:28:44.14612+00	2024-08-28 00:28:44.14612+00
 30	29	2024-08-28 00:28:44.157676+00	2024-08-28 00:28:44.157676+00
 31	30	2024-08-28 00:28:44.157676+00	2024-08-28 00:28:44.157676+00
+33	31	2025-08-18 20:56:08.843245+00	2025-08-18 20:56:08.843245+00
+34	32	2025-08-18 20:56:08.843245+00	2025-08-18 20:56:08.843245+00
+35	33	2025-08-18 20:56:08.843245+00	2025-08-18 20:56:08.843245+00
+36	34	2025-08-18 20:56:08.843245+00	2025-08-18 20:56:08.843245+00
 \.
 
 
@@ -2172,6 +2184,10 @@ COPY upchieve.quiz_subcategories (id, name, quiz_id, created_at, updated_at) FRO
 405	passage structure	31	2024-08-28 00:28:43.995199+00	2024-08-28 00:28:43.995199+00
 406	passage unity	31	2024-08-28 00:28:43.995799+00	2024-08-28 00:28:43.995799+00
 407	passage conclusion	31	2024-08-28 00:28:43.996384+00	2024-08-28 00:28:43.996384+00
+408	coachingStrategies	33	2025-08-18 20:56:08.846008+00	2025-08-18 20:56:08.846008+00
+409	academicIntegrity	34	2025-08-18 20:56:08.846008+00	2025-08-18 20:56:08.846008+00
+410	dei	35	2025-08-18 20:56:08.846008+00	2025-08-18 20:56:08.846008+00
+411	communitySafety	36	2025-08-18 20:56:08.846008+00	2025-08-18 20:56:08.846008+00
 \.
 
 
@@ -3739,6 +3755,7 @@ COPY upchieve.surveys_context (survey_id, subject_id, survey_type_id, created_at
 
 COPY upchieve.training_courses (id, name, created_at, updated_at, display_name) FROM stdin;
 1	upchieve101	2024-08-28 00:28:43.735425+00	2024-08-28 00:28:44.16882+00	UPchieve 101
+2	upchieveTraining	2025-08-18 20:56:08.838789+00	2025-08-18 20:56:08.838789+00	UPchieve Training
 \.
 
 
@@ -4044,7 +4061,7 @@ SELECT pg_catalog.setval('upchieve.ban_reasons_id_seq', 6, true);
 -- Name: certifications_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.certifications_id_seq', 30, true);
+SELECT pg_catalog.setval('upchieve.certifications_id_seq', 34, true);
 
 
 --
@@ -4163,14 +4180,14 @@ SELECT pg_catalog.setval('upchieve.quiz_review_materials_id_seq', 44, true);
 -- Name: quiz_subcategories_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.quiz_subcategories_id_seq', 407, true);
+SELECT pg_catalog.setval('upchieve.quiz_subcategories_id_seq', 411, true);
 
 
 --
 -- Name: quizzes_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.quizzes_id_seq', 32, true);
+SELECT pg_catalog.setval('upchieve.quizzes_id_seq', 36, true);
 
 
 --
@@ -4268,7 +4285,7 @@ SELECT pg_catalog.setval('upchieve.topics_id_seq', 6, true);
 -- Name: training_courses_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.training_courses_id_seq', 1, true);
+SELECT pg_catalog.setval('upchieve.training_courses_id_seq', 2, true);
 
 
 --
