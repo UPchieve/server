@@ -9,6 +9,7 @@ import * as USMRepo from '../../models/UserSessionMetrics'
 import * as UPFRepo from '../../models/UserProductFlags'
 import * as UserActionRepo from '../../models/UserAction'
 import * as FedCredRepo from '../../models/FederatedCredential'
+import * as EmailDomainBlockListRepo from '../../models/EmailDomainBlockList'
 import * as AuthService from '../../services/AuthService'
 import * as MailService from '../../services/MailService'
 import * as EligibilityService from '../../services/EligibilityService'
@@ -37,13 +38,13 @@ jest.mock('../../services/EligibilityService')
 jest.mock('../../services/MailService')
 jest.mock('../../services/TeacherService')
 jest.mock('../../utils/auth-utils')
+jest.mock('../../models/EmailDomainBlockList')
 
 const mockedUserRepo = mocked(UserRepo)
 const mockedStudentRepo = mocked(StudentRepo)
 const mockedTeacherRepo = mocked(TeacherRepo)
 const mockedStudentPartnerOrgRepo = mocked(StudentPartnerOrgRepo)
 const mockedSignUpSourceRepo = mocked(SignUpSourceRepo)
-const mockedUSMRepo = mocked(USMRepo)
 const mockedUPFRepo = mocked(UPFRepo)
 const mockedUserActionRepo = mocked(UserActionRepo)
 const mockedFedCredRepo = mocked(FedCredRepo)
@@ -52,6 +53,7 @@ const mockedEligibilityService = mocked(EligibilityService)
 const mockedMailService = mocked(MailService)
 const mockedTeacherService = mocked(TeacherService)
 const mockedAuthUtils = mocked(AuthUtils)
+const mockedEmailDomainBlockedList = mocked(EmailDomainBlockListRepo)
 
 const ROSTER_SIGNUP_SOURCE_ID = 7
 const OTHER_SIGNUP_SOURCE_ID = 6
@@ -87,6 +89,9 @@ describe('rosterPartnerStudents', () => {
     })
 
     await rosterPartnerStudents([data], 'school-id')
+    mockedEmailDomainBlockedList.getBlockedEmailDomainByDomain.mockResolvedValue(
+      undefined
+    )
 
     expect(mockedAuthUtils.checkEmail).toHaveBeenNthCalledWith(1, data.email)
     expect(mockedAuthUtils.checkEmail).toHaveBeenNthCalledWith(
@@ -640,6 +645,10 @@ describe('registerStudent', () => {
       firstName: data.firstName,
     })
 
+    mockedEmailDomainBlockedList.getBlockedEmailDomainByDomain.mockResolvedValue(
+      undefined
+    )
+
     await registerStudent(data)
 
     expect(mockedAuthUtils.checkEmail).toHaveBeenCalledWith(data.email)
@@ -966,6 +975,9 @@ describe('registerTeacher', () => {
       firstName: data.firstName,
       email: data.email,
     })
+    mockedEmailDomainBlockedList.getBlockedEmailDomainByDomain.mockResolvedValue(
+      undefined
+    )
 
     await registerTeacher(data)
 
