@@ -19,7 +19,9 @@ WHERE
 
 /* @name insertFederatedCredential */
 INSERT INTO federated_credentials (id, issuer, user_id)
-    VALUES (:id!, :issuer!, :userId!);
+    VALUES (:id!, :issuer!, :userId!)
+ON CONFLICT
+    DO NOTHING;
 
 
 /* @name deleteFederatedCredentialsForUser */
