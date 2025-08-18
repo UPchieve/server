@@ -120,7 +120,6 @@ export enum Jobs {
   GenerateSessionSummary = 'GenerateSessionSummary',
   ProcessSessionEnded = 'ProcessSessionEnded',
   DetectSessionLanguages = 'DetectSessionLanguages',
-  EmailNationalTutorCertificate = 'EmailNationalTutorCertificate',
 
   // TODO: remove the following deprecated job names
   EmailStudentUseCases = 'EmailStudentUseCases',
@@ -159,7 +158,7 @@ export enum Jobs {
   BackfillStudentAmbassadorRole = 'BackfillStudentAmbassadorRole',
   SendBecomeAnAmbassadorEmail = 'SendBecomeAnAmbassadorEmail',
   SendReferralSignUpCelebrationEmail = 'SendReferralSignUpCelebrationEmail',
-  SendNationalTutordCertificateEmail = 'SendNationalTutordCertificateEmail',
+  SendNationalTutorCertificateEmail = 'SendNationalTutordertificateEmail',
 
   MaybeSendStudentFeedbackToVolunteer = 'MaybeSendStudentFeedbackToVolunteer',
 }
@@ -471,7 +470,7 @@ const jobProcessors: JobProcessor[] = [
     processor: maybeSendStudentFeedbackToVolunteer,
   },
   {
-    name: Jobs.SendNationalTutordCertificateEmail,
+    name: Jobs.SendNationalTutorCertificateEmail,
     processor: emailNationalTutorCertificate,
   },
 ]

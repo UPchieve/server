@@ -11,7 +11,7 @@ export type EmailNationalTutordCertificateJobData = {
 export default async function (
   job: Job<EmailNationalTutordCertificateJobData>
 ): Promise<void> {
-  const jobName = 'SendNationalTutordCertificateEmail'
+  const jobName = job.name
 
   try {
     const user = await UserService.getUserContactInfo(job.data.userId)
