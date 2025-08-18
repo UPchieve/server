@@ -35,3 +35,45 @@ const getSignUpSourceByNameIR: any = {"usedParamSet":{"name":true},"params":[{"n
 export const getSignUpSourceByName = new PreparedQuery<IGetSignUpSourceByNameParams,IGetSignUpSourceByNameResult>(getSignUpSourceByNameIR);
 
 
+/** 'GetSignupSources' parameters type */
+export interface IGetSignupSourcesParams {
+  role?: string | null | void;
+}
+
+/** 'GetSignupSources' return type */
+export interface IGetSignupSourcesResult {
+  id: number;
+  name: string;
+}
+
+/** 'GetSignupSources' query type */
+export interface IGetSignupSourcesQuery {
+  params: IGetSignupSourcesParams;
+  result: IGetSignupSourcesResult;
+}
+
+const getSignupSourcesIR: any = {"usedParamSet":{"role":true},"params":[{"name":"role","required":false,"transform":{"type":"scalar"},"locs":[{"a":162,"b":166},{"a":193,"b":197},{"a":229,"b":233}]}],"statement":"SELECT\n    id,\n    name\nFROM\n    signup_sources\nWHERE\n    -- Do not include Roster in general\n    name <> 'Roster'\n    -- Exclude YouTube for volunteers\n    AND (:role::text IS NULL\n        OR :role::text = 'student'\n        OR (:role::text = 'volunteer'\n            AND name <> 'Youtube'))\nORDER BY\n    RANDOM()"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     id,
+ *     name
+ * FROM
+ *     signup_sources
+ * WHERE
+ *     -- Do not include Roster in general
+ *     name <> 'Roster'
+ *     -- Exclude YouTube for volunteers
+ *     AND (:role::text IS NULL
+ *         OR :role::text = 'student'
+ *         OR (:role::text = 'volunteer'
+ *             AND name <> 'Youtube'))
+ * ORDER BY
+ *     RANDOM()
+ * ```
+ */
+export const getSignupSources = new PreparedQuery<IGetSignupSourcesParams,IGetSignupSourcesResult>(getSignupSourcesIR);
+
+

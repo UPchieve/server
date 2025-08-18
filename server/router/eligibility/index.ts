@@ -12,7 +12,7 @@ import {
   checkZipCode,
   verifyEligibility,
 } from '../../services/EligibilityService'
-import { getStudentSignupSources } from '../../services/StudentService'
+import { getSignupSources } from '../../services/UserService'
 import { InputError } from '../../models/Errors'
 import { rpush } from '../../cache'
 
@@ -167,7 +167,16 @@ export function routes(app: Express) {
 
   router.get('/signup-sources/students', async function (req, res) {
     try {
-      const signupSources = await getStudentSignupSources()
+      const signupSources = await getSignupSources('student')
+      res.json({ signupSources })
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
+  router.get('/signup-sources/volunteers', async function (req, res) {
+    try {
+      const signupSources = await getSignupSources('volunteer')
       res.json({ signupSources })
     } catch (err) {
       resError(res, err)

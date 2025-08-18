@@ -61,6 +61,8 @@ import { runInTransaction, TransactionClient } from '../db'
 import * as VolunteerService from './VolunteerService'
 import * as ImpactStatsService from './ImpactStatsService'
 import config from '../config'
+import { SignupSources } from '../models/SignUpSource'
+import * as SignupSourceRepo from '../models/SignUpSource'
 
 export async function parseUser(baseUser: UserContactInfo) {
   return runInTransaction(async (tc) => {
@@ -577,4 +579,22 @@ export async function countReferredUsers(
 
 export function getReferralSignUpLink(referralCode: string): string {
   return `${config.protocol}://${config.host}/referral/${referralCode}`
+}
+
+export async function getSignupSources(
+  forRole?: 'student' | 'volunteer'
+): Promise<SignupSources[]> {
+  const signupSources = await SignupSourceRepo.getSignUpSources(forRole)
+  const otherSignupSource = signupSources.find(
+    (signupSource) => signupSource.name === 'Other'
+  )
+  // Always put 'Other' last
+  if (otherSignupSource) {
+    return [
+      ...signupSources.filter((signupSource) => signupSource.name !== 'Other'),
+      ...[otherSignupSource],
+    ]
+  } else {
+    return signupSources
+  }
 }

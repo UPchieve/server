@@ -4,16 +4,13 @@ import QueueService from './QueueService'
 import * as AnalyticsService from './AnalyticsService'
 import * as FavoritingService from './FavoritingService'
 import * as StudentRepo from '../models/Student/queries'
+import { StudentPartnerOrgInstance } from '../models/Student/queries'
 import * as StudentPartnerOrgRepo from '../models/StudentPartnerOrg/queries'
 import * as TeacherClassRepo from '../models/TeacherClass/queries'
 import config from '../config'
 import { Ulid, Uuid } from '../models/pgUtils'
 import { FavoriteLimitReachedError } from './Errors'
 import { createAccountAction } from '../models/UserAction'
-import {
-  StudentPartnerOrgInstance,
-  StudentSignupSources,
-} from '../models/Student/queries'
 import { TeacherClassResult } from '../models/TeacherClass'
 import { runInTransaction, TransactionClient } from '../db'
 
@@ -117,12 +114,6 @@ export async function getFavoriteVolunteersPaginated(
   const limit = 5
   const offset = limit * (page - 1)
   return await StudentRepo.getFavoriteVolunteersPaginated(userId, limit, offset)
-}
-
-export async function getStudentSignupSources(): Promise<
-  StudentSignupSources[] | undefined
-> {
-  return await StudentRepo.getStudentSignupSources()
 }
 
 export async function adminGetActivePartnersForStudent(

@@ -623,18 +623,6 @@ ORDER BY
     users.created_at ASC;
 
 
-/* @name getStudentSignupSources */
-SELECT
-    id,
-    name
-FROM
-    signup_sources
-WHERE
-    name <> 'Roster'
-ORDER BY
-    RANDOM();
-
-
 /* @name deleteSelfFavoritedVolunteers */
 DELETE FROM student_favorite_volunteers
 WHERE student_id = volunteer_id;
@@ -736,7 +724,7 @@ FROM
     deleted_rows;
 
 
-/* @name getStudentProfilesByUserIds 
+/* @name getStudentProfilesByUserIds
  @param userIds -> (...)
  */
 SELECT

@@ -1,8 +1,8 @@
 import * as pgQueries from './pg.queries'
 import { RepoReadError } from '../Errors'
 import { makeRequired } from '../pgUtils'
-import { TransactionClient } from '../../db'
-import { GetSignUpSourceResult } from './types'
+import { getClient, TransactionClient } from '../../db'
+import { GetSignUpSourceResult, SignupSources } from './types'
 
 export async function getSignUpSourceByName(
   name: string,
@@ -14,6 +14,23 @@ export async function getSignUpSourceByName(
     if (result.length) {
       return makeRequired(result[0])
     }
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getSignUpSources(
+  forRole?: 'student' | 'volunteer'
+): Promise<SignupSources[]> {
+  try {
+    const result = await pgQueries.getSignupSources.run(
+      {
+        role: forRole,
+      },
+      getClient()
+    )
+    if (!result.length) return []
+    return result.map((row) => makeRequired(row))
   } catch (err) {
     throw new RepoReadError(err)
   }

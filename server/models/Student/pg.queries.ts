@@ -1382,40 +1382,6 @@ const getUsageReportIR: any = {"usedParamSet":{"sessionStart":true,"sessionEnd":
 export const getUsageReport = new PreparedQuery<IGetUsageReportParams,IGetUsageReportResult>(getUsageReportIR);
 
 
-/** 'GetStudentSignupSources' parameters type */
-export type IGetStudentSignupSourcesParams = void;
-
-/** 'GetStudentSignupSources' return type */
-export interface IGetStudentSignupSourcesResult {
-  id: number;
-  name: string;
-}
-
-/** 'GetStudentSignupSources' query type */
-export interface IGetStudentSignupSourcesQuery {
-  params: IGetStudentSignupSourcesParams;
-  result: IGetStudentSignupSourcesResult;
-}
-
-const getStudentSignupSourcesIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    id,\n    name\nFROM\n    signup_sources\nWHERE\n    name <> 'Roster'\nORDER BY\n    RANDOM()"};
-
-/**
- * Query generated from SQL:
- * ```
- * SELECT
- *     id,
- *     name
- * FROM
- *     signup_sources
- * WHERE
- *     name <> 'Roster'
- * ORDER BY
- *     RANDOM()
- * ```
- */
-export const getStudentSignupSources = new PreparedQuery<IGetStudentSignupSourcesParams,IGetStudentSignupSourcesResult>(getStudentSignupSourcesIR);
-
-
 /** 'DeleteSelfFavoritedVolunteers' parameters type */
 export type IDeleteSelfFavoritedVolunteersParams = void;
 

@@ -1,14 +1,5 @@
 import { Pgid } from '../pgUtils'
 
-export type SignUpSourceName =
-  | 'Web search'
-  | 'Social media'
-  | 'Friend / Classmate'
-  | 'School / Teacher'
-  | 'Parent / Relative'
-  | 'Roster'
-  | 'Other'
-
 export type SignUpSource = {
   id: Pgid
   name: string
@@ -17,3 +8,8 @@ export type SignUpSource = {
 }
 
 export type GetSignUpSourceResult = Pick<SignUpSource, 'id' | 'name'>
+
+export type SignupSources = {
+  id: number
+  name: string
+}
