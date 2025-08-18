@@ -379,7 +379,7 @@ export async function queueNationalTutorCertificateEmail(
   volunteerId: Uuid
 ): Promise<void> {
   await QueueService.add(
-    Jobs.EmailNationalTutorCertificate,
+    Jobs.SendNationalTutorCertificateEmail,
     { volunteerId },
     { removeOnComplete: true, removeOnFail: true }
   )
