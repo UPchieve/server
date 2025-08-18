@@ -17,23 +17,21 @@ import {
   checkPassword,
   verifyPassword,
 } from '../../utils/auth-utils'
-import { NotAllowedError, InputError, LookupError } from '../../models/Errors'
+import { InputError, LookupError } from '../../models/Errors'
 import {
   buildUserRow,
   buildUserContactInfo,
-  buildStudent,
   buildSchool,
   buildVolunteerPartnerOrg,
   buildStudentPartnerOrg,
   buildVolunteer,
 } from '../mocks/generate'
 import {
-  buildStudentRegistrationForm,
-  buildPartnerStudentRegistrationForm,
   buildVolunteerRegistrationForm,
   buildPartnerVolunteerRegistrationForm,
 } from '../mocks/services/AuthService.mock'
 import { getDbUlid } from '../../models/pgUtils'
+import * as EmailDomainBlockListService from '../../services/EmailDomainBlockListService'
 
 // Mocks
 jest.mock('../../models/User/queries')
@@ -54,6 +52,8 @@ const mockedIpAddressService = mocked(IpAddressService)
 jest.mock('../../services/VolunteerService')
 jest.mock('../../services/MailService')
 jest.mock('../../services/AnalyticsService')
+jest.mock('../../services/EmailDomainBlockListService')
+const mockedEmailDomainBlockListService = mocked(EmailDomainBlockListService)
 
 describe('Utils tests', () => {
   test('Check valid password', () => {
@@ -134,6 +134,9 @@ describe('Registration tests', () => {
   }
   const volunteerOpen = buildVolunteer()
   const volunteerPartner = buildVolunteer(volunteerPartnerOverrides)
+  mockedEmailDomainBlockListService.isEmailDomainBlocked.mockResolvedValue(
+    false
+  )
 
   test('Check valid credentials', async () => {
     mockedUserRepo.getUserIdByEmail.mockResolvedValueOnce(undefined)
@@ -329,6 +332,7 @@ describe('Registration tests', () => {
     mockedVolunteerPartnerOrgRepo.getVolunteerPartnerOrgForRegistrationByKey.mockResolvedValueOnce(
       mockedVolunteerPartnerOrg
     )
+
     const referrer = buildVolunteer()
     const referree = buildVolunteer({ referredBy: referrer.id })
     mockedUserCtrl.checkReferral.mockResolvedValue(referrer.id)

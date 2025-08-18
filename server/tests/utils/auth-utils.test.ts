@@ -1,3 +1,4 @@
+import { mocked } from 'jest-mock'
 import {
   checkNames,
   checkEmail,
@@ -12,7 +13,10 @@ import {
   NotAllowedError,
 } from '../../models/Errors'
 import * as RecaptchaService from '../../services/RecaptchaService'
+import * as EmailDomainBlockListService from '../../services/EmailDomainBlockListService'
 
+jest.mock('../../services/EmailDomainBlockListService')
+const mockedEmailDomainBlockListService = mocked(EmailDomainBlockListService)
 jest.mock('../../services/RecaptchaService')
 describe('name validator', () => {
   test('accepts two valid names', async () => {
@@ -43,21 +47,21 @@ describe('name validator', () => {
 
 describe('email validator', () => {
   test('accepts a valid email', () => {
-    expect(() => {
-      checkEmail('user@gmail.com')
-    }).not.toThrow()
+    expect(() => checkEmail('user@gmail.com')).not.toThrow()
   })
 
   test('rejects an invalid email format (InputError)', () => {
-    expect(() => {
-      checkEmail('not-an-email')
-    }).toThrow(InputError)
+    expect(() => checkEmail('not-an-email')).rejects.toThrow(InputError)
   })
 
   test('rejects a disposable email (NotAllowedError)', () => {
-    expect(() => {
-      checkEmail('user@mailshan.com')
-    }).toThrow(NotAllowedError)
+    mockedEmailDomainBlockListService.isEmailDomainBlocked.mockResolvedValue(
+      true
+    )
+
+    expect(() => checkEmail('user@mailshan.com')).rejects.toThrow(
+      NotAllowedError
+    )
   })
 })
 
