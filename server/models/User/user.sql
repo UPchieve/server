@@ -433,6 +433,7 @@ WHERE
 SELECT
     users.id,
     users.first_name,
+    users.last_name,
     users.created_at,
     users.email,
     users.email_verified,

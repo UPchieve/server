@@ -11,6 +11,7 @@ import logger from '../../logger'
 import { Uuid } from '../../models/pgUtils'
 import { UserRole } from '../../models/User'
 import * as CleverAPIService from '../../services/CleverAPIService'
+import * as CleverRosterService from '../../services/CleverRosterService'
 import * as SchoolService from '../../services/SchoolService'
 
 export type TCleverPassportProfile = passport.Profile & {
@@ -96,6 +97,14 @@ export default class CleverStrategy extends OAuth2Strategy {
   async getSchoolId(cleverSchoolId: string, accessToken: string) {
     if (!cleverSchoolId) return
 
+    // First try to find the school in our explicit school mapping.
+    const upchieveSchoolId =
+      await CleverRosterService.getUpchieveSchoolIdFromCleverId(cleverSchoolId)
+    if (upchieveSchoolId) {
+      return upchieveSchoolId
+    }
+
+    // But if we can't find the school by our mappings, try by Clever's NCES id.
     const cleverSchool = await CleverAPIService.getSchool(
       cleverSchoolId,
       accessToken

@@ -460,6 +460,16 @@ ALTER SEQUENCE upchieve.cities_id_seq OWNED BY upchieve.cities.id;
 
 
 --
+-- Name: clever_school_mapping; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.clever_school_mapping (
+    clever_school_id text NOT NULL,
+    upchieve_school_id uuid NOT NULL
+);
+
+
+--
 -- Name: computed_subject_unlocks; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -3211,6 +3221,14 @@ ALTER TABLE ONLY upchieve.cities
 
 
 --
+-- Name: clever_school_mapping clever_school_mapping_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.clever_school_mapping
+    ADD CONSTRAINT clever_school_mapping_pkey PRIMARY KEY (upchieve_school_id);
+
+
+--
 -- Name: computed_subject_unlocks computed_subject_unlocks_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -4883,6 +4901,14 @@ ALTER TABLE ONLY upchieve.cities
 
 
 --
+-- Name: clever_school_mapping clever_school_mapping_upchieve_school_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.clever_school_mapping
+    ADD CONSTRAINT clever_school_mapping_upchieve_school_id_fkey FOREIGN KEY (upchieve_school_id) REFERENCES upchieve.schools(id);
+
+
+--
 -- Name: computed_subject_unlocks computed_subject_unlocks_certification_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -6418,4 +6444,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20250522182628'),
     ('20250530172930'),
     ('20250716141321'),
-    ('20250801141806');
+    ('20250801141806'),
+    ('20250812230022');

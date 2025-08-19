@@ -3,6 +3,7 @@ import {
   RepoReadError,
   RepoTransactionError,
   RepoUpdateError,
+  RepoUpsertError,
 } from '../Errors'
 import { PartnerSchool, School } from './types'
 import {
@@ -320,6 +321,43 @@ export async function getPartnerSchools(
     return schools.map((s) =>
       makeSomeOptional(s, ['partnerKey', 'partnerSites'])
     )
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function addCleverSchoolMapping(
+  cleverSchoolId: string,
+  upchieveSchoolId: Uuid,
+  tc = getClient()
+): Promise<void> {
+  try {
+    await pgQueries.addCleverSchoolMapping.run(
+      {
+        cleverSchoolId,
+        upchieveSchoolId,
+      },
+      tc
+    )
+  } catch (err) {
+    throw new RepoUpsertError(err)
+  }
+}
+
+export async function getUpchieveSchoolIdFromCleverId(
+  cleverSchoolId: string,
+  tc = getClient()
+): Promise<Uuid | undefined> {
+  try {
+    const result = await pgQueries.getUpchieveSchoolIdFromCleverId.run(
+      {
+        cleverSchoolId,
+      },
+      tc
+    )
+    if (result.length) {
+      return makeRequired(result[0]).upchieveSchoolId
+    }
   } catch (err) {
     throw new RepoReadError(err)
   }
