@@ -33,6 +33,7 @@ export type LegacyUserModel = {
   // pg
   id: Ulid
   firstName: string
+  lastName: string
   // mongo user
   _id: Ulid
   createdAt: Date
@@ -119,6 +120,7 @@ export async function getLegacyUserObject(
         'id',
         'firstName',
         'firstname',
+        'lastName',
         'createdAt',
         'email',
         'verified',

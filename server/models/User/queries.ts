@@ -119,7 +119,7 @@ export async function getUserIdByPhone(
 export async function getUserVerificationByEmail(email: string) {
   try {
     const result = await pgQueries.getUserVerificationByEmail.run(
-      { email },
+      { email: email.toLowerCase() },
       getClient()
     )
     if (result.length) return makeRequired(result[0])
