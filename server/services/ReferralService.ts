@@ -12,24 +12,20 @@ import config from '../config'
 import * as UserService from './UserService'
 import * as NotificationService from './NotificationService'
 
-// TODO: Use this method once clean-up setting `users.referred_by`.
 export async function addReferralForUserByCode(
   userId: Ulid,
   referredByCode: string,
   tc?: TransactionClient
 ) {
   const referrerId = await getReferrerIdByCode(referredByCode, tc)
-  if (!referrerId) return
+  if (!referrerId) {
+    logger.warn(
+      { referredByCode },
+      'Invalid referral code provided during registration'
+    )
+    return
+  }
 
-  await ReferralRepo.addReferral(userId, referrerId, tc)
-  AnalyticsService.captureEvent(referrerId, EVENTS.FRIEND_REFERRED)
-}
-
-export async function addReferralFor(
-  userId: Ulid,
-  referrerId: Ulid,
-  tc?: TransactionClient
-) {
   await ReferralRepo.addReferral(userId, referrerId, tc)
   AnalyticsService.captureEvent(referrerId, EVENTS.FRIEND_REFERRED)
 }
@@ -58,15 +54,25 @@ export async function getReferredUsers(
   return ReferralRepo.getReferredUsersWithFilter(userId, filters)
 }
 
+export async function getReferredUsersCount(
+  userId: Ulid,
+  filters?: {
+    withPhoneOrEmailVerified?: boolean
+    withRoles?: UserRole[]
+  }
+) {
+  return (await getReferredUsers(userId, filters)).length
+}
+
 export async function queueReferredByEmailsForVolunteer({
   referredBy,
   firstName,
-  volunteerPartnerOrgKey,
+  sendAmbassadorEmail,
   referredByCode,
 }: {
   firstName: string
   referredBy?: string
-  volunteerPartnerOrgKey?: string
+  sendAmbassadorEmail: boolean
   referredByCode?: string
 }) {
   if (!referredBy) return
@@ -76,8 +82,8 @@ export async function queueReferredByEmailsForVolunteer({
     referredFirstName: firstName,
   })
 
-  if (!volunteerPartnerOrgKey) {
-    const referredUsers = await UserService.countReferredUsers(referredBy)
+  if (sendAmbassadorEmail) {
+    const referredUsersCount = await getReferredUsersCount(referredBy)
 
     const hasUserBeenSentCongratsEmail =
       await NotificationService.hasUserBeenSentEmail({
@@ -85,7 +91,11 @@ export async function queueReferredByEmailsForVolunteer({
         emailTemplateId: config.sendgrid.ambassadorCongratsTemplate,
       })
 
-    if (referredByCode && referredUsers >= 5 && !hasUserBeenSentCongratsEmail) {
+    if (
+      referredByCode &&
+      referredUsersCount >= 5 &&
+      !hasUserBeenSentCongratsEmail
+    ) {
       await QueueService.add(Jobs.SendAmbassadorCongratsEmail, {
         userId: referredBy,
         firstName: firstName,

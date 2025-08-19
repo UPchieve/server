@@ -50,8 +50,10 @@ export interface SessionWithSsoData extends session.Session {
     provider?: string
     redirect?: string
     errorRedirect?: string
-    accountType?: Extract<UserRole, 'student' | 'teacher'>
-    userData?: Partial<RegisterStudentPayload | RegisterTeacherPayload>
+    accountType?: Extract<UserRole, 'student' | 'volunteer' | 'teacher'>
+    userData?: Partial<
+      RegisterStudentPayload | RegisterVolunteerPayload | RegisterTeacherPayload
+    >
     fedCredData?: {
       profileId: string
       issuer: string

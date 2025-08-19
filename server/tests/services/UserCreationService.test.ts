@@ -455,9 +455,6 @@ describe('registerStudent', () => {
       email: student.email,
       firstName: student.firstName,
     })
-    mockedReferralService.getReferrerIdByCode.mockResolvedValue(
-      REFERRAL_USER.id
-    )
 
     await registerStudent(student)
 
@@ -468,9 +465,14 @@ describe('registerStudent', () => {
         firstName: student.firstName,
         lastName: student.lastName,
         password: HASHED_PASSWORD_RESOLVED,
-        referredBy: REFERRAL_USER.id,
+        referredByCode: REFERRAL_USER.code,
         verified: false,
       },
+      expect.toBeTransactionClient()
+    )
+    expect(mockedReferralService.addReferralForUserByCode).toHaveBeenCalledWith(
+      USER_ID,
+      REFERRAL_USER.code,
       expect.toBeTransactionClient()
     )
   })

@@ -731,7 +731,6 @@
     "deactivated",
     "last_activity_at",
     "referral_code",
-    "referred_by",
     "test_user",
     "banned",
     "ban_reason_id",

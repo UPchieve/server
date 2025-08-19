@@ -209,9 +209,7 @@ export async function registerStudent(
         : undefined,
       passwordResetToken,
       profileId: data.profileId,
-      referredBy: await ReferralService.getReferrerIdByCode(
-        data.referredByCode
-      ),
+      referredByCode: data.referredByCode,
       signupSourceId: data.signupSourceId,
       verified: useFedCred(data),
     }
@@ -305,7 +303,7 @@ export async function registerVolunteer(
     password: usePassword(data) ? await hashPassword(data.password) : undefined,
     passwordResetToken,
     profileId: data.profileId,
-    referredBy: await ReferralService.getReferrerIdByCode(data.referredByCode),
+    referredByCode: data.referredByCode,
     signupSourceId: data.signupSourceId,
     otherSignupSource: data.otherSignupSource,
     verified: useFedCred(data),
@@ -345,12 +343,16 @@ export async function registerVolunteer(
   }, tc)
 
   await VolunteerService.queueOnboardingReminderOneEmail(newVolunteer.id)
-  await ReferralService.queueReferredByEmailsForVolunteer({
-    referredBy: userData.referredBy,
-    firstName: userData.firstName,
-    volunteerPartnerOrgKey: data.volunteerPartnerOrgKey,
-    referredByCode: data.referredByCode,
-  })
+  if (data.referredByCode) {
+    await ReferralService.queueReferredByEmailsForVolunteer({
+      referredBy: await ReferralService.getReferrerIdByCode(
+        data.referredByCode
+      ),
+      firstName: userData.firstName,
+      sendAmbassadorEmail: !data.volunteerPartnerOrgKey,
+      referredByCode: data.referredByCode,
+    })
+  }
 
   emitter.emit(USER_EVENTS.USER_CREATED, newVolunteer.id)
 
@@ -373,8 +375,12 @@ async function createUser(
   const user = await UserRepo.createUser(userData, tc)
   await createUserMetadata(user.id, ip, role, tc)
 
-  if (userData.referredBy) {
-    await ReferralService.addReferralFor(user.id, userData.referredBy, tc)
+  if (userData.referredByCode) {
+    await ReferralService.addReferralForUserByCode(
+      user.id,
+      userData.referredByCode,
+      tc
+    )
   }
 
   if (useFedCred(userData)) {

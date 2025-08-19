@@ -12,8 +12,8 @@ ORDER BY
 
 
 /* @name createUser */
-INSERT INTO users (id, first_name, last_name, email, proxy_email, phone, sms_consent, PASSWORD, password_reset_token, verified, email_verified, phone_verified, referred_by, referral_code, signup_source_id, other_signup_source, last_activity_at)
-    VALUES (:id!, :firstName!, :lastName!, :email!, :proxyEmail, :phone, :smsConsent, :password, :passwordResetToken, :verified, :emailVerified, :phoneVerified, :referredBy, :referralCode!, :signupSourceId, :otherSignupSource, NOW())
+INSERT INTO users (id, first_name, last_name, email, proxy_email, phone, sms_consent, PASSWORD, password_reset_token, verified, email_verified, phone_verified, referral_code, signup_source_id, other_signup_source, last_activity_at)
+    VALUES (:id!, :firstName!, :lastName!, :email!, :proxyEmail, :phone, :smsConsent, :password, :passwordResetToken, :verified, :emailVerified, :phoneVerified, :referralCode!, :signupSourceId, :otherSignupSource, NOW())
 ON CONFLICT (email)
     DO NOTHING
 RETURNING
@@ -21,8 +21,8 @@ RETURNING
 
 
 /* @name upsertUser */
-INSERT INTO users (id, first_name, last_name, email, proxy_email, phone, PASSWORD, password_reset_token, verified, email_verified, phone_verified, referred_by, referral_code, signup_source_id, other_signup_source, last_activity_at)
-    VALUES (:id!, :firstName!, :lastName!, :email!, :proxyEmail, :phone, :password, :passwordResetToken, :verified, :emailVerified, :phoneVerified, :referredBy, :referralCode!, :signupSourceId, :otherSignupSource, NOW())
+INSERT INTO users (id, first_name, last_name, email, proxy_email, phone, PASSWORD, password_reset_token, verified, email_verified, phone_verified, referral_code, signup_source_id, other_signup_source, last_activity_at)
+    VALUES (:id!, :firstName!, :lastName!, :email!, :proxyEmail, :phone, :password, :passwordResetToken, :verified, :emailVerified, :phoneVerified, :referralCode!, :signupSourceId, :otherSignupSource, NOW())
 ON CONFLICT (email)
     DO UPDATE SET
         first_name = :firstName!, last_name = :lastName!, proxy_email = :proxyEmail, phone = :phone, PASSWORD = :password, password_reset_token = :passwordResetToken, verified = :verified, email_verified = :emailVerified, phone_verified = :phoneVerified, signup_source_id = :signupSourceId, other_signup_source = :otherSignupSource
@@ -160,25 +160,6 @@ FROM
 WHERE
     password_reset_token = :resetToken!
     AND deleted IS FALSE;
-
-
-/* @name countReferredUsersWithFilter */
-SELECT
-    u.id,
-    array_agg(roles.name)::text[] AS roles
-FROM
-    users u
-    JOIN users_roles ur ON ur.user_id = u.id
-    JOIN user_roles roles ON roles.id = ur.role_id
-WHERE
-    u.referred_by = :userId!::uuid
-    AND (:phoneOrEmailVerified::boolean IS NULL
-        OR u.phone_verified = :phoneOrEmailVerified::boolean
-        OR u.email_verified = :phoneOrEmailVerified::boolean)
-GROUP BY
-    u.id
-HAVING
-    array_agg(roles.name)::text[] @> COALESCE(:hasRoles::text[], ARRAY[]::text[]);
 
 
 /* @name updateUserResetTokenById */
@@ -421,7 +402,7 @@ SELECT
     users.deactivated AS is_deactivated,
     users.last_activity_at AS last_activity_at,
     users.referral_code AS referral_code,
-    users.referred_by AS referred_by,
+    referrals.referred_by AS referred_by,
     users.preferred_language AS preferred_language,
     volunteer_profiles.languages AS tutoring_languages,
     volunteer_profiles.experience,
@@ -473,6 +454,7 @@ ELSE
 END AS signup_source
 FROM
     users
+    LEFT JOIN referrals ON users.id = referrals.user_id
     LEFT JOIN (
         SELECT
             updated_at
