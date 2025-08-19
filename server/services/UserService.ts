@@ -21,7 +21,6 @@ import {
   getUsersForAdminSearch,
   deleteUserPhoneInfo,
   UserForAdmin,
-  UserRole,
   updatePreferredLanguageToUser,
 } from '../models/User'
 import * as UserRepo from '../models/User'
@@ -58,6 +57,7 @@ import * as ModerationInfractionsService from '../models/ModerationInfractions'
 import { TransactionClient } from '../db'
 import * as VolunteerService from './VolunteerService'
 import * as ImpactStatsService from './ImpactStatsService'
+import * as ReferralService from './ReferralService'
 import config from '../config'
 import { Jobs } from '../worker/jobs'
 import QueueService from './QueueService'
@@ -65,9 +65,12 @@ import QueueService from './QueueService'
 export async function parseUser(userId: Ulid) {
   const user = await getLegacyUserObject(userId)
 
-  user.numReferredVolunteers = await countReferredUsers(user.id, {
-    withRoles: ['volunteer'],
-  })
+  user.numReferredVolunteers = await ReferralService.getReferredUsersCount(
+    user.id,
+    {
+      withRoles: ['volunteer'],
+    }
+  )
 
   // Approved volunteer
   if (user.roleContext.isActiveRole('volunteer') && user.isApproved) {
@@ -553,16 +556,6 @@ export async function updatePreferredLanguage(
   languageCode: string
 ): Promise<void> {
   return await updatePreferredLanguageToUser(userId, languageCode)
-}
-
-export async function countReferredUsers(
-  referrerId: string,
-  filters?: {
-    withPhoneOrEmailVerifiedAs?: boolean
-    withRoles?: UserRole[]
-  }
-): Promise<number> {
-  return await UserRepo.countReferredUsers(referrerId, filters)
 }
 
 export function getReferralSignUpLink(referralCode: string): string {

@@ -13,6 +13,7 @@ import { Jobs } from '../worker/jobs'
 import * as AnalyticsService from './AnalyticsService'
 import { getTotalElapsedAvailabilityForDateRange } from './AvailabilityService'
 import * as MailService from './MailService'
+import * as ReferralService from './ReferralService'
 import QueueService from './QueueService'
 import { getTimeTutoredForDateRange } from './SessionService'
 import { getQuizzesPassedForDateRangeById } from '../models/UserAction'
@@ -24,7 +25,6 @@ import {
 } from '../models/Volunteer'
 import * as cache from '../cache'
 import { getSubjectsWithTopic } from './SubjectsService'
-import { countReferredUsers } from './UserService'
 
 export interface HourSummaryStats {
   totalCoachingHours: number
@@ -43,7 +43,9 @@ type VolunteerSubjectProfile = {
 }
 
 export function totalReferralMinutes(volunteerId: string) {
-  const totalReferredVolunteers = Number(countReferredUsers(volunteerId))
+  const totalReferredVolunteers = Number(
+    ReferralService.getReferredUsersCount(volunteerId)
+  )
   return totalReferredVolunteers * 12 // volunteer minutes earned per referral
 }
 

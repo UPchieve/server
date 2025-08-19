@@ -5,7 +5,6 @@ import * as StudentRepo from '../../models/Student'
 import * as TeacherRepo from '../../models/Teacher'
 import * as StudentPartnerOrgRepo from '../../models/StudentPartnerOrg'
 import * as SignUpSourceRepo from '../../models/SignUpSource'
-import * as USMRepo from '../../models/UserSessionMetrics'
 import * as UPFRepo from '../../models/UserProductFlags'
 import * as UserActionRepo from '../../models/UserAction'
 import * as FedCredRepo from '../../models/FederatedCredential'
@@ -451,9 +450,6 @@ describe('registerStudent', () => {
       email: student.email,
       firstName: student.firstName,
     })
-    mockedReferralService.getReferrerIdByCode.mockResolvedValue(
-      REFERRAL_USER.id
-    )
 
     await registerStudent(student)
 
@@ -464,9 +460,14 @@ describe('registerStudent', () => {
         firstName: student.firstName,
         lastName: student.lastName,
         password: HASHED_PASSWORD_RESOLVED,
-        referredBy: REFERRAL_USER.id,
+        referredByCode: REFERRAL_USER.code,
         verified: false,
       },
+      expect.toBeTransactionClient()
+    )
+    expect(mockedReferralService.addReferralForUserByCode).toHaveBeenCalledWith(
+      USER_ID,
+      REFERRAL_USER.code,
       expect.toBeTransactionClient()
     )
   })
