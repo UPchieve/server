@@ -2478,7 +2478,6 @@ export interface ICreateVolunteerUserParams {
   password: string;
   phone: string;
   referralCode: string;
-  referredBy?: string | null | void;
   signupSourceId?: number | null | void;
   userId: string;
 }
@@ -2503,13 +2502,13 @@ export interface ICreateVolunteerUserQuery {
   result: ICreateVolunteerUserResult;
 }
 
-const createVolunteerUserIR: any = {"usedParamSet":{"userId":true,"email":true,"phone":true,"firstName":true,"lastName":true,"password":true,"referredBy":true,"referralCode":true,"signupSourceId":true,"otherSignupSource":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":201,"b":208}]},{"name":"email","required":true,"transform":{"type":"scalar"},"locs":[{"a":211,"b":217}]},{"name":"phone","required":true,"transform":{"type":"scalar"},"locs":[{"a":220,"b":226}]},{"name":"firstName","required":true,"transform":{"type":"scalar"},"locs":[{"a":229,"b":239}]},{"name":"lastName","required":true,"transform":{"type":"scalar"},"locs":[{"a":242,"b":251}]},{"name":"password","required":true,"transform":{"type":"scalar"},"locs":[{"a":254,"b":263}]},{"name":"referredBy","required":false,"transform":{"type":"scalar"},"locs":[{"a":273,"b":283}]},{"name":"referralCode","required":true,"transform":{"type":"scalar"},"locs":[{"a":286,"b":299}]},{"name":"signupSourceId","required":false,"transform":{"type":"scalar"},"locs":[{"a":302,"b":316}]},{"name":"otherSignupSource","required":false,"transform":{"type":"scalar"},"locs":[{"a":319,"b":336}]}],"statement":"INSERT INTO users (id, email, phone, first_name, last_name, PASSWORD, verified, referred_by, referral_code, signup_source_id, other_signup_source, last_activity_at, created_at, updated_at)\n    VALUES (:userId!, :email!, :phone!, :firstName!, :lastName!, :password!, FALSE, :referredBy, :referralCode!, :signupSourceId, :otherSignupSource, NOW(), NOW(), NOW())\nON CONFLICT (email)\n    DO NOTHING\nRETURNING\n    id, email, first_name, last_name, phone, banned, ban_type, test_user, deactivated, created_at"};
+const createVolunteerUserIR: any = {"usedParamSet":{"userId":true,"email":true,"phone":true,"firstName":true,"lastName":true,"password":true,"referralCode":true,"signupSourceId":true,"otherSignupSource":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":188,"b":195}]},{"name":"email","required":true,"transform":{"type":"scalar"},"locs":[{"a":198,"b":204}]},{"name":"phone","required":true,"transform":{"type":"scalar"},"locs":[{"a":207,"b":213}]},{"name":"firstName","required":true,"transform":{"type":"scalar"},"locs":[{"a":216,"b":226}]},{"name":"lastName","required":true,"transform":{"type":"scalar"},"locs":[{"a":229,"b":238}]},{"name":"password","required":true,"transform":{"type":"scalar"},"locs":[{"a":241,"b":250}]},{"name":"referralCode","required":true,"transform":{"type":"scalar"},"locs":[{"a":260,"b":273}]},{"name":"signupSourceId","required":false,"transform":{"type":"scalar"},"locs":[{"a":276,"b":290}]},{"name":"otherSignupSource","required":false,"transform":{"type":"scalar"},"locs":[{"a":293,"b":310}]}],"statement":"INSERT INTO users (id, email, phone, first_name, last_name, PASSWORD, verified, referral_code, signup_source_id, other_signup_source, last_activity_at, created_at, updated_at)\n    VALUES (:userId!, :email!, :phone!, :firstName!, :lastName!, :password!, FALSE, :referralCode!, :signupSourceId, :otherSignupSource, NOW(), NOW(), NOW())\nON CONFLICT (email)\n    DO NOTHING\nRETURNING\n    id, email, first_name, last_name, phone, banned, ban_type, test_user, deactivated, created_at"};
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO users (id, email, phone, first_name, last_name, PASSWORD, verified, referred_by, referral_code, signup_source_id, other_signup_source, last_activity_at, created_at, updated_at)
- *     VALUES (:userId!, :email!, :phone!, :firstName!, :lastName!, :password!, FALSE, :referredBy, :referralCode!, :signupSourceId, :otherSignupSource, NOW(), NOW(), NOW())
+ * INSERT INTO users (id, email, phone, first_name, last_name, PASSWORD, verified, referral_code, signup_source_id, other_signup_source, last_activity_at, created_at, updated_at)
+ *     VALUES (:userId!, :email!, :phone!, :firstName!, :lastName!, :password!, FALSE, :referralCode!, :signupSourceId, :otherSignupSource, NOW(), NOW(), NOW())
  * ON CONFLICT (email)
  *     DO NOTHING
  * RETURNING

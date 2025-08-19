@@ -49,7 +49,7 @@ export type CreateUserPayload = {
   phone?: string
   phoneVerified?: boolean
   proxyEmail?: string
-  referredBy?: Ulid
+  referredByCode?: string
   signupSourceId?: number
   verified?: boolean
 }

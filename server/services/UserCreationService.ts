@@ -217,9 +217,7 @@ export async function registerStudent(
         : undefined,
       passwordResetToken,
       profileId: data.profileId,
-      referredBy: await ReferralService.getReferrerIdByCode(
-        data.referredByCode
-      ),
+      referredByCode: data.referredByCode,
       signupSourceId: data.signupSourceId,
       verified: useFedCred(data),
     }
@@ -343,7 +341,7 @@ export async function registerVolunteer(
   await ReferralService.queueReferredByEmailsForVolunteer({
     referredBy: userData.referredBy,
     firstName: userData.firstName,
-    volunteerPartnerOrgKey: data.volunteerPartnerOrgKey,
+    sendAmbassadorEmail: !data.volunteerPartnerOrgKey,
     referredByCode: data.referredByCode,
   })
 
@@ -369,8 +367,12 @@ async function createUser(
   const user = await UserRepo.createUser(userData, tc)
   await createUserMetadata(user.id, ip, role, tc)
 
-  if (userData.referredBy) {
-    await ReferralService.addReferralFor(user.id, userData.referredBy, tc)
+  if (userData.referredByCode) {
+    await ReferralService.addReferralForUserByCode(
+      user.id,
+      userData.referredByCode,
+      tc
+    )
   }
 
   if (useFedCred(userData)) {

@@ -1,5 +1,5 @@
 import logger from '../../logger'
-import { getClient, getRoClient, TransactionClient } from '../../db'
+import { getClient, TransactionClient } from '../../db'
 import * as pgQueries from './pg.queries'
 import {
   makeRequired,
@@ -58,7 +58,6 @@ export async function createUser(
         phoneVerified: user.phoneVerified ?? false,
         proxyEmail: user.proxyEmail?.toLowerCase(),
         referralCode: generateReferralCode(id),
-        referredBy: user.referredBy,
         signupSourceId: user.signupSourceId,
         verified: user.verified ?? false,
       },
@@ -271,29 +270,6 @@ export async function getUserByResetToken(
     if (result.length) {
       return makeRequired(result[0])
     }
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
-export async function countReferredUsers(
-  referrerId: Ulid,
-  filters?: {
-    withPhoneOrEmailVerifiedAs?: boolean
-    withRoles?: UserRole[]
-  }
-): Promise<number> {
-  try {
-    const result = await pgQueries.countReferredUsersWithFilter.run(
-      {
-        userId: referrerId,
-        phoneOrEmailVerified: filters?.withPhoneOrEmailVerifiedAs ?? null,
-        hasRoles: filters?.withRoles ?? null,
-      },
-      getRoClient()
-    )
-    result.map((row) => makeRequired(row))
-    return result.length
   } catch (err) {
     throw new RepoReadError(err)
   }

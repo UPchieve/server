@@ -33,11 +33,10 @@ const mockedUserRepo = mocked(UserRepo)
 jest.mock('../../models/School/queries')
 jest.mock('../../models/ZipCode/queries')
 jest.mock('../../models/StudentPartnerOrg/queries')
-jest.mock('../../models/VolunteerPartnerOrg/queries')
 const mockedVolunteerPartnerOrgRepo = mocked(VolunteerPartnerOrgRepo)
-jest.mock('../../controllers/UserCtrl')
+jest.mock('../../models/VolunteerPartnerOrg/queries')
 const mockedUserCtrl = mocked(UserCtrl)
-jest.mock('../../services/IpAddressService')
+jest.mock('../../controllers/UserCtrl')
 const mockedNotificationsRepo = mocked(NotificationsRepo)
 jest.mock('../../models/Notification/queries')
 const mockedReferralService = mocked(ReferralService)
@@ -277,10 +276,10 @@ describe('Registration tests', () => {
       ...referree,
       userType: 'volunteer',
     })
-    mockedUserRepo.countReferredUsers.mockResolvedValue(0)
     mockedNotificationsRepo.getEmailNotificationsByTemplateId.mockResolvedValue(
       []
     )
+    mockedReferralService.getReferredUsersCount.mockResolvedValue(0)
 
     const serviceVolunteer = await AuthService.registerVolunteer(
       buildVolunteerRegistrationForm({

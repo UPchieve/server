@@ -16,8 +16,11 @@ export async function createVolunteer(
   volunteerData.password = await hashPassword(volunteerData.password)
 
   const volunteer = await VolunteerRepo.createVolunteer(volunteerData)
-  if (volunteerData.referredBy) {
-    await ReferralService.addReferralFor(volunteer.id, volunteerData.referredBy)
+  if (volunteerData.referredByCode) {
+    await ReferralService.addReferralForUserByCode(
+      volunteer.id,
+      volunteerData.referredByCode
+    )
   }
 
   // Create a UPF object for this new user

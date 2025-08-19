@@ -126,16 +126,12 @@ export async function registerVolunteer(
     throw new RegistrationError('Must accept the user agreement')
   }
 
-  let referredBy: Ulid | undefined
-  if (referredByCode)
-    referredBy = await ReferralService.getReferrerIdByCode(referredByCode)
-
   const volunteerData = {
     email,
     phone,
     firstName: firstName.trim(),
     lastName: lastName.trim(),
-    referredBy,
+    referredByCode,
     password,
     timezone,
     volunteerPartnerOrg: undefined,
@@ -146,31 +142,14 @@ export async function registerVolunteer(
   const volunteer = await UserCtrl.createVolunteer(volunteerData, ip)
   VolunteerService.queueOnboardingReminderOneEmail(volunteer.id)
 
-  if (referredBy) {
-    await QueueService.add(
-      Jobs.SendReferralSignUpCelebrationEmail,
-      {
-        userId: referredBy,
-        referredFirstName: volunteerData.firstName,
-      },
-      { removeOnComplete: true, removeOnFail: false }
-    )
-
-    const referredUsers = await UserService.countReferredUsers(referredBy)
-
-    const hasUserBeenSentCongratsEmail =
-      await NotificationService.hasUserBeenSentEmail({
-        userId: referredBy,
-        emailTemplateId: config.sendgrid.ambassadorCongratsTemplate,
-      })
-
-    if (referredByCode && referredUsers >= 5 && !hasUserBeenSentCongratsEmail) {
-      await QueueService.add(Jobs.SendAmbassadorCongratsEmail, {
-        userId: referredBy,
-        firstName: volunteerData.firstName,
-        referralLink: UserService.getReferralSignUpLink(referredByCode),
-      })
-    }
+  if (referredByCode) {
+    const referredBy = await ReferralService.getReferrerIdByCode(referredByCode)
+    await ReferralService.queueReferredByEmailsForVolunteer({
+      referredBy,
+      firstName: volunteerData.firstName,
+      sendAmbassadorEmail: true,
+      referredByCode,
+    })
   }
 
   return volunteer
@@ -203,10 +182,6 @@ export async function registerPartnerVolunteer(
     throw new RegistrationError('Must accept the user agreement')
   }
 
-  let referredBy: Ulid | undefined
-  if (referredByCode)
-    referredBy = await ReferralService.getReferrerIdByCode(referredByCode)
-
   // Volunteer partner org check
   let volunteerPartnerManifest: VolunteerPartnerOrgForRegistration
   try {
@@ -234,7 +209,7 @@ export async function registerPartnerVolunteer(
     firstName: firstName.trim(),
     lastName: lastName.trim(),
     verified: false,
-    referredBy,
+    referredByCode,
     password,
     timezone,
   }
@@ -242,15 +217,14 @@ export async function registerPartnerVolunteer(
   const volunteer = await UserCtrl.createVolunteer(volunteerData, ip)
   VolunteerService.queueOnboardingReminderOneEmail(volunteer.id)
 
-  if (referredBy) {
-    await QueueService.add(
-      Jobs.SendReferralSignUpCelebrationEmail,
-      {
-        userId: referredBy,
-        referredFirstName: volunteerData.firstName,
-      },
-      { removeOnComplete: true, removeOnFail: false }
-    )
+  if (referredByCode) {
+    const referredBy = await ReferralService.getReferrerIdByCode(referredByCode)
+    await ReferralService.queueReferredByEmailsForVolunteer({
+      referredBy,
+      firstName: volunteerData.firstName,
+      sendAmbassadorEmail: false,
+      referredByCode,
+    })
   }
 
   return volunteer

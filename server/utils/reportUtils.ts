@@ -31,7 +31,6 @@ import { AvailabilityHistory } from '../models/Availability/types'
 import { getElapsedAvailabilityForTelecomReport } from '../services/AvailabilityService'
 import * as VolunteerPartnerOrgRepo from '../models/VolunteerPartnerOrg/queries'
 import { ReportNoDataFoundError } from '../services/ReportService'
-import { countReferredUsers } from '../services/UserService'
 
 /**
  * dateQuery is types as any for now since we know it's a mongo agg date query

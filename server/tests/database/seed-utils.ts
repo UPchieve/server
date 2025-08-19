@@ -6,10 +6,10 @@ export async function createTestUser(
   client: TransactionClient,
   overrides: { referredById?: Ulid } = {}
 ): Promise<{ id: Ulid }> {
-  return (
+  const user = (
     await client.query(
-      `INSERT INTO users (id, first_name, last_name, email, referral_code, referred_by)
-       VALUES($1, $2, $3, $4, $5, $6)
+      `INSERT INTO users (id, first_name, last_name, email, referral_code)
+       VALUES($1, $2, $3, $4, $5)
        RETURNING *`,
       [
         getDbUlid(),
@@ -17,10 +17,18 @@ export async function createTestUser(
         faker.person.lastName(),
         faker.internet.email(),
         faker.string.alphanumeric(20),
-        overrides.referredById ?? null,
       ]
     )
   ).rows[0]
+
+  if (overrides.referredById) {
+    await client.query(
+      `INSERT INTO referrals (user_id, referred_by) VALUES($1, $2)`,
+      [user.id, overrides.referredById]
+    )
+  }
+
+  return user
 }
 
 export async function createTestTeacher(

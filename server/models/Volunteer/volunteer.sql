@@ -1075,8 +1075,8 @@ RETURNING
 
 
 /* @name createVolunteerUser */
-INSERT INTO users (id, email, phone, first_name, last_name, PASSWORD, verified, referred_by, referral_code, signup_source_id, other_signup_source, last_activity_at, created_at, updated_at)
-    VALUES (:userId!, :email!, :phone!, :firstName!, :lastName!, :password!, FALSE, :referredBy, :referralCode!, :signupSourceId, :otherSignupSource, NOW(), NOW(), NOW())
+INSERT INTO users (id, email, phone, first_name, last_name, PASSWORD, verified, referral_code, signup_source_id, other_signup_source, last_activity_at, created_at, updated_at)
+    VALUES (:userId!, :email!, :phone!, :firstName!, :lastName!, :password!, FALSE, :referralCode!, :signupSourceId, :otherSignupSource, NOW(), NOW(), NOW())
 ON CONFLICT (email)
     DO NOTHING
 RETURNING
