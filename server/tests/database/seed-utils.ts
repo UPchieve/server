@@ -3,17 +3,21 @@ import { TransactionClient } from '../../db'
 import { getDbUlid, Ulid, Uuid } from '../../models/pgUtils'
 
 export async function createTestUser(
-  client: TransactionClient
-): Promise<{ id: string }> {
+  client: TransactionClient,
+  overrides: { referredById?: Ulid } = {}
+): Promise<{ id: Ulid }> {
   return (
     await client.query(
-      'INSERT INTO users (id, first_name, last_name, email, referral_code) VALUES($1, $2, $3, $4, $5) RETURNING id',
+      `INSERT INTO users (id, first_name, last_name, email, referral_code, referred_by)
+       VALUES($1, $2, $3, $4, $5, $6)
+       RETURNING *`,
       [
         getDbUlid(),
         faker.person.firstName(),
         faker.person.lastName(),
         faker.internet.email(),
         faker.string.alphanumeric(20),
+        overrides.referredById ?? null,
       ]
     )
   ).rows[0]

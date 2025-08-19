@@ -6,6 +6,7 @@ import backfillAvailabilityHistories from '../../scripts/backfill-availability-h
 import backfillElapsedAvailability from '../../scripts/backfill-elapsed-availability'
 import backfillEmailNiceToMeetYou from '../../scripts/backfill-email-nice-to-meet-you'
 import backfillEmailVolunteerInactive from '../../scripts/backfill-email-volunteer-inactive'
+import backfillReferralsTable from '../../scripts/backfill-referrals-table'
 import backfillStudentPosthog from '../../scripts/backfill-student-posthog'
 import backfillStudentUsersRoles from '../../scripts/backfill-student-users-roles'
 import deleteDuplicateUserSurveys from '../../scripts/delete-duplicate-user-surveys'
@@ -77,6 +78,7 @@ export enum Jobs {
   BackfillElapsedAvailability = 'BackfillElapsedAvailability',
   BackfillEmailNiceToMeetYou = 'BackfillEmailNiceToMeetYou',
   BackfillEmailVolunteersInactive = 'BackfillEmailVolunteersInactive',
+  BackfillReferralsTable = 'BackfillReferralsTable',
   BackfillSessionEndedTasks = 'BackfillSessionEndedTasks',
   BackfillStudentAmbassadorRole = 'BackfillStudentAmbassadorRole',
   BackfillStudentPosthog = 'BackfillStudentPosthog',
@@ -185,6 +187,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.BackfillEmailVolunteersInactive,
     processor: backfillEmailVolunteerInactive,
+  },
+  {
+    name: Jobs.BackfillReferralsTable,
+    processor: backfillReferralsTable,
   },
   {
     name: Jobs.BackfillSessionEndedTasks,
