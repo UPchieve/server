@@ -5,6 +5,7 @@ import newrelic from 'newrelic'
 import logger from '../../logger'
 import backfillEmailNiceToMeetYou from '../../scripts/backfill-email-nice-to-meet-you'
 import backfillEmailVolunteerInactive from '../../scripts/backfill-email-volunteer-inactive'
+import backfillReferralsTable from '../../scripts/backfill-referrals-table'
 import backfillStudentPosthog from '../../scripts/backfill-student-posthog'
 import backfillStudentUsersRoles from '../../scripts/backfill-student-users-roles'
 import backfillUpdateElapsedAvailability from '../../scripts/backfill-update-elapsed-availability'
@@ -73,6 +74,7 @@ export enum Jobs {
   AddScheduledJobs = 'AddScheduledJobs',
   BackfillEmailNiceToMeetYou = 'BackfillEmailNiceToMeetYou',
   BackfillEmailVolunteersInactive = 'BackfillEmailVolunteersInactive',
+  BackfillReferralsTable = 'BackfillReferralsTable',
   BackfillStudentAmbassadorRole = 'BackfillStudentAmbassadorRole',
   BackfillStudentPosthog = 'BackfillStudentPosthog',
   BackfillStudentUsersRoles = 'BackfillStudentUsersRoles',
@@ -172,6 +174,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.BackfillEmailVolunteersInactive,
     processor: backfillEmailVolunteerInactive,
+  },
+  {
+    name: Jobs.BackfillReferralsTable,
+    processor: backfillReferralsTable,
   },
   {
     name: Jobs.BackfillStudentAmbassadorRole,
