@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 14.15 (Debian 14.15-1.pgdg120+1)
--- Dumped by pg_dump version 14.18 (Homebrew)
+-- Dumped from database version 14.17 (Debian 14.17-1.pgdg120+1)
+-- Dumped by pg_dump version 16.9 (Ubuntu 16.9-0ubuntu0.24.04.1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -60,6 +60,8 @@ COPY upchieve.users (id, verified, email_verified, phone_verified, email, passwo
 01919662-885c-d39a-1749-5aaf18cf5d3b	t	f	f	student1@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Student	UPchieve	f	\N	A	\N	f	f	\N	\N	\N	2024-08-28 00:28:45.532467+00	2024-08-28 00:28:45.532467+00	\N	f	\N	\N	\N	\N	\N	\N
 01919662-885c-2fca-264b-9558f5b20fe4	t	f	f	student2@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Student	UPchieve	f	\N	F	\N	f	f	\N	\N	\N	2024-08-28 00:28:45.533913+00	2024-08-28 00:28:45.533913+00	\N	f	\N	\N	\N	\N	\N	\N
 01919662-885c-a174-3088-998111f7cc80	t	f	f	student3@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Student	UPchieve	f	\N	G	\N	f	f	\N	\N	\N	2024-08-28 00:28:45.535278+00	2024-08-28 00:28:45.535278+00	\N	f	\N	\N	\N	\N	\N	\N
+0198c4d0-34aa-ef79-20b5-f1c6245c0b7c	t	f	f	teacher1@upchieve.org	$2b$10$yv/XIg.dh3IjCuRKTX8CeekfpkFT/1T5HeVrTPntHpgY6kuj/jeni	\N	NonPartner	UPchieve	f	2025-08-20 00:10:36.035748+00	AZjE0DSq73kgtfHGJFwLfA	\N	f	f	\N	\N	6	2025-08-20 00:10:36.035748+00	2025-08-20 00:10:36.035748+00	\N	f	\N	Internet	\N	\N	\N	\N
+0198c4d1-f405-a71a-931c-e94965191c0a	t	f	f	teacher2@upchieve.org	$2b$10$ewiDyuDyGHUyBn2lbDH9Y.e/k5JoCuy3LsZmuVgK2b3ao8Cc92uKG	\N	Partner	UPchieve	f	2025-08-20 00:12:30.562089+00	AZjE0fQFpxqTHOlJZRkcCg	\N	f	f	\N	\N	6	2025-08-20 00:12:30.562089+00	2025-08-20 00:12:30.562089+00	\N	f	\N	Internet	\N	\N	\N	\N
 \.
 
 
@@ -236,6 +238,8 @@ COPY upchieve.subjects (id, name, display_name, display_order, topic_id, tool_ty
 --
 
 COPY upchieve.teacher_profiles (user_id, school_id, created_at, updated_at, last_successful_clever_sync) FROM stdin;
+0198c4d0-34aa-ef79-20b5-f1c6245c0b7c	01919662-87fb-76b3-54f8-db306e73e181	2025-08-20 00:10:36.035748+00	2025-08-20 00:10:36.035748+00	\N
+0198c4d1-f405-a71a-931c-e94965191c0a	01919662-87fb-d63d-788d-7417e752f5d0	2025-08-20 00:12:30.562089+00	2025-08-20 00:12:30.562089+00	\N
 \.
 
 
@@ -244,6 +248,8 @@ COPY upchieve.teacher_profiles (user_id, school_id, created_at, updated_at, last
 --
 
 COPY upchieve.teacher_classes (id, user_id, name, code, active, created_at, updated_at, topic_id, deactivated_on, clever_id) FROM stdin;
+0198c4d0-a6ae-994d-68be-e67ed2a99bad	0198c4d0-34aa-ef79-20b5-f1c6245c0b7c	Algebra 1	JZ8BZ9	t	2025-08-20 00:11:05.262219+00	2025-08-20 00:11:05.262219+00	1	\N	\N
+0198c4d2-5ba3-f649-221b-0aa81900539b	0198c4d1-f405-a71a-931c-e94965191c0a	Science	7NQ8PJ	t	2025-08-20 00:12:57.122853+00	2025-08-20 00:12:57.122853+00	2	\N	\N
 \.
 
 
@@ -537,6 +543,7 @@ COPY upchieve.grade_levels (id, name, created_at, updated_at) FROM stdin;
 --
 
 COPY upchieve.ip_addresses (id, ip, status, created_at, updated_at, mongo_id) FROM stdin;
+1	::1	\N	2025-08-20 00:10:36.035748+00	2025-08-20 00:10:36.035748+00	\N
 \.
 
 
@@ -2881,6 +2888,8 @@ COPY upchieve.sponsor_orgs_volunteer_partner_orgs_instances (sponsor_org_id, vol
 --
 
 COPY upchieve.student_classes (user_id, class_id, created_at, updated_at) FROM stdin;
+01919662-885c-d39a-1749-5aaf18cf5d3b	0198c4d0-a6ae-994d-68be-e67ed2a99bad	2025-08-20 00:11:52.95565+00	2025-08-20 00:11:52.95565+00
+01919662-885c-2fca-264b-9558f5b20fe4	0198c4d2-5ba3-f649-221b-0aa81900539b	2025-08-20 00:13:22.946335+00	2025-08-20 00:13:22.946335+00
 \.
 
 
@@ -3788,6 +3797,35 @@ COPY upchieve.tutor_bot_session_messages (id, session_id, message, tutor_bot_ses
 --
 
 COPY upchieve.user_actions (id, user_id, session_id, action_type, action, ip_address_id, device, browser, browser_version, operating_system, operating_system_version, quiz_subcategory, quiz_category, created_at, updated_at, mongo_id, reference_email, volunteer_id, ban_reason, clientuuid) FROM stdin;
+1	0198c4d0-34aa-ef79-20b5-f1c6245c0b7c	\N	ACCOUNT	CREATED	1	\N	\N	\N	\N	\N	\N	\N	2025-08-20 00:10:36.035748+00	2025-08-20 00:10:36.035748+00	\N	\N	\N	\N	\N
+2	0198c4d0-34aa-ef79-20b5-f1c6245c0b7c	\N	ACCOUNT	ACTIVE_ON_SITE	1	\N	\N	\N	\N	\N	\N	\N	2025-08-20 00:10:36.22163+00	2025-08-20 00:10:36.22163+00	\N	\N	\N	\N	18d6641a-8435-42c7-a707-40c990bd06e3
+3	0198c4d0-34aa-ef79-20b5-f1c6245c0b7c	\N	ACCOUNT	INACTIVE_ON_SITE	1	\N	\N	\N	\N	\N	\N	\N	2025-08-20 00:10:50.533099+00	2025-08-20 00:10:50.533099+00	\N	\N	\N	\N	18d6641a-8435-42c7-a707-40c990bd06e3
+4	0198c4d0-34aa-ef79-20b5-f1c6245c0b7c	\N	ACCOUNT	ACTIVE_ON_SITE	1	\N	\N	\N	\N	\N	\N	\N	2025-08-20 00:10:51.534004+00	2025-08-20 00:10:51.534004+00	\N	\N	\N	\N	18d6641a-8435-42c7-a707-40c990bd06e3
+5	0198c4d0-34aa-ef79-20b5-f1c6245c0b7c	\N	ACCOUNT	INACTIVE_ON_SITE	1	\N	\N	\N	\N	\N	\N	\N	2025-08-20 00:11:14.504905+00	2025-08-20 00:11:14.504905+00	\N	\N	\N	\N	18d6641a-8435-42c7-a707-40c990bd06e3
+6	0198c4d0-34aa-ef79-20b5-f1c6245c0b7c	\N	ACCOUNT	LOGGED OUT	1	\N	\N	\N	\N	\N	\N	\N	2025-08-20 00:11:14.5275+00	2025-08-20 00:11:14.5275+00	\N	\N	\N	\N	\N
+7	01919662-885c-d39a-1749-5aaf18cf5d3b	\N	ACCOUNT	LOGGED IN	1	\N	\N	\N	\N	\N	\N	\N	2025-08-20 00:11:34.79493+00	2025-08-20 00:11:34.79493+00	\N	\N	\N	\N	\N
+8	01919662-885c-d39a-1749-5aaf18cf5d3b	\N	ACCOUNT	ACTIVE_ON_SITE	1	\N	\N	\N	\N	\N	\N	\N	2025-08-20 00:11:34.979067+00	2025-08-20 00:11:34.979067+00	\N	\N	\N	\N	18d6641a-8435-42c7-a707-40c990bd06e3
+9	01919662-885c-d39a-1749-5aaf18cf5d3b	\N	ACCOUNT	INACTIVE_ON_SITE	1	\N	\N	\N	\N	\N	\N	\N	2025-08-20 00:11:40.791817+00	2025-08-20 00:11:40.791817+00	\N	\N	\N	\N	18d6641a-8435-42c7-a707-40c990bd06e3
+10	01919662-885c-d39a-1749-5aaf18cf5d3b	\N	ACCOUNT	ACTIVE_ON_SITE	1	\N	\N	\N	\N	\N	\N	\N	2025-08-20 00:11:43.097719+00	2025-08-20 00:11:43.097719+00	\N	\N	\N	\N	18d6641a-8435-42c7-a707-40c990bd06e3
+11	01919662-885c-d39a-1749-5aaf18cf5d3b	\N	ACCOUNT	INACTIVE_ON_SITE	1	\N	\N	\N	\N	\N	\N	\N	2025-08-20 00:11:53.122672+00	2025-08-20 00:11:53.122672+00	\N	\N	\N	\N	18d6641a-8435-42c7-a707-40c990bd06e3
+12	01919662-885c-d39a-1749-5aaf18cf5d3b	\N	ACCOUNT	ACTIVE_ON_SITE	1	\N	\N	\N	\N	\N	\N	\N	2025-08-20 00:11:53.705899+00	2025-08-20 00:11:53.705899+00	\N	\N	\N	\N	18d6641a-8435-42c7-a707-40c990bd06e3
+13	01919662-885c-d39a-1749-5aaf18cf5d3b	\N	ACCOUNT	INACTIVE_ON_SITE	1	\N	\N	\N	\N	\N	\N	\N	2025-08-20 00:12:00.662351+00	2025-08-20 00:12:00.662351+00	\N	\N	\N	\N	18d6641a-8435-42c7-a707-40c990bd06e3
+14	01919662-885c-d39a-1749-5aaf18cf5d3b	\N	ACCOUNT	LOGGED OUT	1	\N	\N	\N	\N	\N	\N	\N	2025-08-20 00:12:00.677976+00	2025-08-20 00:12:00.677976+00	\N	\N	\N	\N	\N
+15	0198c4d1-f405-a71a-931c-e94965191c0a	\N	ACCOUNT	CREATED	1	\N	\N	\N	\N	\N	\N	\N	2025-08-20 00:12:30.562089+00	2025-08-20 00:12:30.562089+00	\N	\N	\N	\N	\N
+16	0198c4d1-f405-a71a-931c-e94965191c0a	\N	ACCOUNT	ACTIVE_ON_SITE	1	\N	\N	\N	\N	\N	\N	\N	2025-08-20 00:12:49.846075+00	2025-08-20 00:12:49.846075+00	\N	\N	\N	\N	18d6641a-8435-42c7-a707-40c990bd06e3
+17	0198c4d1-f405-a71a-931c-e94965191c0a	\N	ACCOUNT	INACTIVE_ON_SITE	1	\N	\N	\N	\N	\N	\N	\N	2025-08-20 00:13:04.154409+00	2025-08-20 00:13:04.154409+00	\N	\N	\N	\N	18d6641a-8435-42c7-a707-40c990bd06e3
+18	0198c4d1-f405-a71a-931c-e94965191c0a	\N	ACCOUNT	LOGGED OUT	1	\N	\N	\N	\N	\N	\N	\N	2025-08-20 00:13:04.175408+00	2025-08-20 00:13:04.175408+00	\N	\N	\N	\N	\N
+19	01919662-885c-2fca-264b-9558f5b20fe4	\N	ACCOUNT	LOGGED IN	1	\N	\N	\N	\N	\N	\N	\N	2025-08-20 00:13:14.326137+00	2025-08-20 00:13:14.326137+00	\N	\N	\N	\N	\N
+20	01919662-885c-2fca-264b-9558f5b20fe4	\N	ACCOUNT	ACTIVE_ON_SITE	1	\N	\N	\N	\N	\N	\N	\N	2025-08-20 00:13:14.476856+00	2025-08-20 00:13:14.476856+00	\N	\N	\N	\N	18d6641a-8435-42c7-a707-40c990bd06e3
+21	01919662-885c-2fca-264b-9558f5b20fe4	\N	ACCOUNT	INACTIVE_ON_SITE	1	\N	\N	\N	\N	\N	\N	\N	2025-08-20 00:13:23.502324+00	2025-08-20 00:13:23.502324+00	\N	\N	\N	\N	18d6641a-8435-42c7-a707-40c990bd06e3
+22	01919662-885c-2fca-264b-9558f5b20fe4	\N	ACCOUNT	ACTIVE_ON_SITE	1	\N	\N	\N	\N	\N	\N	\N	2025-08-20 00:13:24.129819+00	2025-08-20 00:13:24.129819+00	\N	\N	\N	\N	18d6641a-8435-42c7-a707-40c990bd06e3
+23	01919662-885c-2fca-264b-9558f5b20fe4	\N	ACCOUNT	INACTIVE_ON_SITE	1	\N	\N	\N	\N	\N	\N	\N	2025-08-20 00:13:28.137886+00	2025-08-20 00:13:28.137886+00	\N	\N	\N	\N	18d6641a-8435-42c7-a707-40c990bd06e3
+24	01919662-885c-2fca-264b-9558f5b20fe4	\N	ACCOUNT	LOGGED OUT	1	\N	\N	\N	\N	\N	\N	\N	2025-08-20 00:13:28.143719+00	2025-08-20 00:13:28.143719+00	\N	\N	\N	\N	\N
+25	0198c4d1-f405-a71a-931c-e94965191c0a	\N	ACCOUNT	LOGGED IN	1	\N	\N	\N	\N	\N	\N	\N	2025-08-20 00:13:37.23631+00	2025-08-20 00:13:37.23631+00	\N	\N	\N	\N	\N
+26	0198c4d1-f405-a71a-931c-e94965191c0a	\N	ACCOUNT	ACTIVE_ON_SITE	1	\N	\N	\N	\N	\N	\N	\N	2025-08-20 00:13:37.321692+00	2025-08-20 00:13:37.321692+00	\N	\N	\N	\N	18d6641a-8435-42c7-a707-40c990bd06e3
+27	0198c4d1-f405-a71a-931c-e94965191c0a	\N	ACCOUNT	INACTIVE_ON_SITE	1	\N	\N	\N	\N	\N	\N	\N	2025-08-20 00:17:17.166892+00	2025-08-20 00:17:17.166892+00	\N	\N	\N	\N	18d6641a-8435-42c7-a707-40c990bd06e3
+28	0198c4d1-f405-a71a-931c-e94965191c0a	\N	ACCOUNT	ACTIVE_ON_SITE	1	\N	\N	\N	\N	\N	\N	\N	2025-08-20 00:17:37.725591+00	2025-08-20 00:17:37.725591+00	\N	\N	\N	\N	18d6641a-8435-42c7-a707-40c990bd06e3
+29	0198c4d1-f405-a71a-931c-e94965191c0a	\N	ACCOUNT	INACTIVE_ON_SITE	1	\N	\N	\N	\N	\N	\N	\N	2025-08-20 00:19:02.422152+00	2025-08-20 00:19:02.422152+00	\N	\N	\N	\N	18d6641a-8435-42c7-a707-40c990bd06e3
 \.
 
 
@@ -3805,6 +3843,8 @@ COPY upchieve.user_product_flags (user_id, sent_ready_to_coach_email, sent_hour_
 01919662-885c-d39a-1749-5aaf18cf5d3b	f	f	f	f	f	f	2024-08-28 00:28:45.53321+00	2024-08-28 00:28:45.53321+00	f	f	\N	\N	\N	\N	{}
 01919662-885c-2fca-264b-9558f5b20fe4	f	f	f	f	f	f	2024-08-28 00:28:45.534598+00	2024-08-28 00:28:45.534598+00	f	f	\N	\N	\N	\N	{}
 01919662-885c-a174-3088-998111f7cc80	f	f	f	f	f	f	2024-08-28 00:28:45.535987+00	2024-08-28 00:28:45.535987+00	f	f	\N	\N	\N	\N	{}
+0198c4d0-34aa-ef79-20b5-f1c6245c0b7c	f	f	f	f	f	f	2025-08-20 00:10:36.035748+00	2025-08-20 00:10:36.035748+00	f	f	\N	\N	\N	\N	{}
+0198c4d1-f405-a71a-931c-e94965191c0a	f	f	f	f	f	f	2025-08-20 00:12:30.562089+00	2025-08-20 00:12:30.562089+00	f	f	\N	\N	\N	\N	{}
 \.
 
 
@@ -3948,6 +3988,8 @@ COPY upchieve.users_roles (user_id, role_id, created_at, updated_at) FROM stdin;
 01919662-885c-d39a-1749-5aaf18cf5d3b	1	2024-08-28 00:28:45.533524+00	2024-08-28 00:28:45.533524+00
 01919662-885c-2fca-264b-9558f5b20fe4	1	2024-08-28 00:28:45.534904+00	2024-08-28 00:28:45.534904+00
 01919662-885c-a174-3088-998111f7cc80	1	2024-08-28 00:28:45.536315+00	2024-08-28 00:28:45.536315+00
+0198c4d0-34aa-ef79-20b5-f1c6245c0b7c	4	2025-08-20 00:10:36.035748+00	2025-08-20 00:10:36.035748+00
+0198c4d1-f405-a71a-931c-e94965191c0a	4	2025-08-20 00:12:30.562089+00	2025-08-20 00:12:30.562089+00
 \.
 
 
@@ -4082,7 +4124,7 @@ SELECT pg_catalog.setval('upchieve.grade_levels_id_seq', 9, true);
 -- Name: ip_addresses_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.ip_addresses_id_seq', 1, false);
+SELECT pg_catalog.setval('upchieve.ip_addresses_id_seq', 29, true);
 
 
 --
@@ -4292,7 +4334,7 @@ SELECT pg_catalog.setval('upchieve.training_courses_id_seq', 2, true);
 -- Name: user_actions_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.user_actions_id_seq', 1, false);
+SELECT pg_catalog.setval('upchieve.user_actions_id_seq', 29, true);
 
 
 --
