@@ -543,7 +543,6 @@ COPY upchieve.grade_levels (id, name, created_at, updated_at) FROM stdin;
 --
 
 COPY upchieve.ip_addresses (id, ip, status, created_at, updated_at, mongo_id) FROM stdin;
-1	::1	\N	2025-08-20 00:10:36.035748+00	2025-08-20 00:10:36.035748+00	\N
 \.
 
 
