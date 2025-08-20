@@ -9,7 +9,7 @@ describe('getSignUpSources', () => {
   })
 
   afterAll(async () => {
-    await client.query(`DELETE FROM signup_sources WHERE name = 'YouTube'`)
+    await client.query(`DELETE FROM signup_sources WHERE name = 'Youtube'`)
   })
 
   it("Omits 'Roster' for all types of users (and when none is specified)", async () => {
