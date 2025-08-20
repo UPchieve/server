@@ -79,6 +79,7 @@ export async function addSessionNotification(
 }
 
 export type UnfulfilledSessions = {
+  id: Uuid
   _id: Ulid
   student: {
     firstname: string
