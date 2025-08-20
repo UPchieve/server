@@ -63,6 +63,7 @@ import backfillStudentAmbassadorRole from '../../scripts/add-student-ambassador-
 import emailBecomeAnAmbassador from './emailBecomeAnAmbassador'
 import emailReferralSignUpCelebration from './emailReferralSignupCelebration'
 import maybeSendStudentFeedbackToVolunteer from './volunteer-emails/maybeSendStudentFeedbackToVolunteer'
+import emailNationalTutorCertificate from './emailNationalTutorCertificate'
 
 export enum Jobs {
   NotifyTutors = 'NotifyTutors',
@@ -157,6 +158,7 @@ export enum Jobs {
   BackfillStudentAmbassadorRole = 'BackfillStudentAmbassadorRole',
   SendBecomeAnAmbassadorEmail = 'SendBecomeAnAmbassadorEmail',
   SendReferralSignUpCelebrationEmail = 'SendReferralSignUpCelebrationEmail',
+  SendNationalTutorCertificateEmail = 'SendNationalTutordertificateEmail',
 
   MaybeSendStudentFeedbackToVolunteer = 'MaybeSendStudentFeedbackToVolunteer',
 }
@@ -466,6 +468,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.MaybeSendStudentFeedbackToVolunteer,
     processor: maybeSendStudentFeedbackToVolunteer,
+  },
+  {
+    name: Jobs.SendNationalTutorCertificateEmail,
+    processor: emailNationalTutorCertificate,
   },
 ]
 

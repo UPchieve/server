@@ -46,7 +46,7 @@ export default class ClassLinkStrategy extends OAuth2Strategy {
       const schoolId = await this.getSchoolId(accessToken)
 
       const profile: ClassLinkPassportProfile = {
-        id: user.UserId.toString(),
+        id: `${user.TenantId}:${user.SourcedId}`,
         displayName: user.DisplayName,
         emails: [{ value: user.Email ?? '' }],
         issuer: ClassLinkStrategy.baseUrl,

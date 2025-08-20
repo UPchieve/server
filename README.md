@@ -157,6 +157,8 @@ The database is populated with the following users for local development:
 | `volunteer4@upchieve.org` | `Password123` | approved, not onboarded                                |
 | `volunteer5@upchieve.org` | `Password123` | not approved, not onboarded                            |
 | `volunteer6@upchieve.org` | `Password123` | admin                                                  |
+| `teacher1@upchieve.org`   | `Password123` | approved school                                        |
+| `teacher2@upchieve.org`   | `Password123` | partner school                                         |
 
 
 Structure

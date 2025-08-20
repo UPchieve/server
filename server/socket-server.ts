@@ -38,6 +38,7 @@ export default function (server: http.Server) {
       maxDisconnectionDuration: 2 * 60 * 1000,
       skipMiddlewares: false,
     },
+    maxHttpBufferSize: 5e6, // 5 megabytes
   })
   // Set up Socket IO admin UI
   instrument(io, {

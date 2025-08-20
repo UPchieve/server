@@ -601,6 +601,24 @@ export async function sendReferralSignUpCelebrationEmail(args: {
   )
 }
 
+export async function sendNationalTutorCertificateEmail(args: {
+  userId: Ulid
+  email: string
+  firstName: string
+}): Promise<void> {
+  const downloadCertificateTemplateId =
+    config.sendgrid.downloadCertificateTemplate
+  await sendEmail(
+    args.email,
+    config.mail.senders.support,
+    'UPchieve',
+    downloadCertificateTemplateId,
+    {
+      firstName: args.firstName,
+    }
+  )
+}
+
 export async function sendBannedUserAlert(
   userId: Ulid,
   banReason: USER_BAN_REASONS,

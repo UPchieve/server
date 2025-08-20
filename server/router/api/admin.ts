@@ -87,9 +87,6 @@ export function routeAdmin(app: Express, router: Router): void {
 
   router.post('/clever/roster', async function (req, res) {
     const districtId = asString(req.body.districtId)
-    const cleverToUPchieveIds = req.body.cleverToUPchieveIds
-      ? JSON.parse(req.body.cleverToUPchieveIds)
-      : undefined
 
     if (!districtId) {
       res.status(422).json({
@@ -98,11 +95,20 @@ export function routeAdmin(app: Express, router: Router): void {
     }
 
     try {
-      const report = await CleverRosterService.rosterDistrict(
-        districtId,
-        cleverToUPchieveIds
-      )
+      const report = await CleverRosterService.rosterDistrict(districtId)
       res.json({ report })
+    } catch (error) {
+      resError(res, error)
+    }
+  })
+
+  router.post('/clever/school', async function (req, res) {
+    try {
+      await CleverRosterService.addCleverSchoolMapping(
+        asString(req.body.cleverSchoolId),
+        asString(req.body.upchieveSchoolId)
+      )
+      res.status(200).send()
     } catch (error) {
       resError(res, error)
     }

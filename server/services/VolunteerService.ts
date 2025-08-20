@@ -374,3 +374,13 @@ export async function getSubjectPresence(): Promise<VolunteerSubjectPresenceMap>
 
   return subjectPresenceMap
 }
+
+export async function queueNationalTutorCertificateEmail(
+  volunteerId: Uuid
+): Promise<void> {
+  await QueueService.add(
+    Jobs.SendNationalTutorCertificateEmail,
+    { volunteerId },
+    { removeOnComplete: true, removeOnFail: true }
+  )
+}

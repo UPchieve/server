@@ -245,7 +245,12 @@ export async function getTrainingCourses(): Promise<TrainingCourses[]> {
       undefined,
       getClient()
     )
-    if (result.length) return result.map((row) => makeRequired(row))
+    if (result.length) {
+      const raw = result.map((row) => makeRequired(row))
+      return raw.filter(
+        (trainingCourse) => trainingCourse.name !== 'upchieveTraining'
+      )
+    }
     return []
   } catch (err) {
     throw new RepoReadError(err)
