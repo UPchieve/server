@@ -854,7 +854,7 @@ async function getAllImageModerationFailures({
     minorFailures,
     textModerationFailureReasons,
   ] = await Promise.all([
-    detectImageModerationFailures(image),
+    detectImageModerationFailures(image, sessionId),
     detectMinorFailures(image),
     detectTextModerationFailures(image, sessionId, isVolunteer),
   ])
