@@ -81,6 +81,7 @@ const SAFETY_RESTRICTION_REGEX = /\b(zoom.us|meet.google.com)\b/gi
 enum LangfuseTraceName {
   MODERATE_SESSION_MESSAGE = 'moderateSessionMessage',
   MODERATE_SESSION_TRANSCRIPT = 'moderateSessionTranscript',
+  MODERATE_SESSION_IMAGE = 'moderateSessionImage',
 }
 enum LangfuseGenerationName {
   SESSION_MESSAGE_MODERATION_DECISION = 'getModerationDecision',
@@ -859,13 +860,22 @@ async function getAllImageModerationFailures({
     detectTextModerationFailures(image, sessionId, isVolunteer),
   ])
 
-  return {
+  const response = {
     failureReasons: [
       ...moderationFailureReasons,
       ...minorFailures,
       ...textModerationFailureReasons,
     ],
   }
+
+  const trace = LangfuseService.getClient().trace({
+    name: LangfuseTraceName.MODERATE_SESSION_IMAGE,
+    sessionId,
+  })
+
+  trace.generation({}).end({ output: response })
+
+  return response
 }
 
 export async function getIndividualSessionMessageModerationResponse({
