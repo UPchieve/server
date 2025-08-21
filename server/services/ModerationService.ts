@@ -94,6 +94,7 @@ export enum LangfuseGenerationName {
   DETECT_TOXICITY_IN_TEXT = 'detectToxicityInText',
   DETECT_MODERATION_LABELS = 'detectModerationLabels',
   DETECT_FACES = 'detectFaces',
+  DETECT_LABELS = 'detectLabels',
 }
 
 // Image moderation
@@ -229,8 +230,12 @@ async function detectMinorFailures(image: Buffer, trace?: LangfuseTraceClient) {
 
   // DetectFaces seems to be more accurate when it comes to detecting minors
   // but we want to handle the case where faces are not in the image
+  if (trace) {
+    generation = trace.generation({
+      name: LangfuseGenerationName.DETECT_LABELS,
+    })
+  }
   const labelResponse = await awsRekognitionClient.send(
-    // @TODO Missed this one
     new DetectLabelsCommand({
       Image: {
         Bytes: image,
@@ -243,6 +248,9 @@ async function detectMinorFailures(image: Buffer, trace?: LangfuseTraceClient) {
       },
     })
   )
+  if (generation) {
+    generation.end({ output: labelResponse })
+  }
   const labels = labelResponse.Labels ?? []
   const labelFailures = labels.map((label) => ({
     reason: `Minor detected in image`,
@@ -976,7 +984,6 @@ export async function getIndividualSessionMessageModerationResponse({
 
   try {
     const response = await invokeOpenAI({
-      // @TODO
       prompt: promptData.prompt,
       userMessage: wrapMessageInXmlTags(
         censoredSessionMessage.message,
@@ -1140,10 +1147,7 @@ export async function moderateMessage({
   userType: PrimaryUserRole
   sessionId?: string
 }): Promise<oldClientModerationResult | ModerationFailureReasons> {
-  const trace = LangfuseService.getClient().trace({
-    name: LangfuseTraceName.MODERATE_SESSION_MESSAGE,
-    metadata: { sessionId, userId: senderId },
-  })
+  let trace: LangfuseTraceClient | undefined = undefined
   const { isClean, failures } = regexModerate(message)
 
   /*
@@ -1156,6 +1160,11 @@ export async function moderateMessage({
 
   let result = failures
   if (!isClean) {
+    trace = LangfuseService.getClient().trace({
+      name: LangfuseTraceName.MODERATE_SESSION_MESSAGE,
+      metadata: { sessionId, userId: senderId },
+      input: message,
+    })
     const censoredSessionMessage = await createCensoredMessage({
       senderId,
       message,
@@ -1196,6 +1205,11 @@ export async function moderateMessage({
   const session = await SessionRepo.getSessionById(sessionId)
   const isDm = !!session.endedAt
   if (!isDm) return { failures: {} }
+  trace = LangfuseService.getClient().trace({
+    name: LangfuseTraceName.MODERATE_SESSION_MESSAGE,
+    metadata: { sessionId, userId: senderId },
+    input: message,
+  })
   // For DMs, we'll moderate the context of the entire transcript to make sure the
   // conversation remains appropriate.
   const transcript = await SessionService.getSessionTranscript(sessionId)
