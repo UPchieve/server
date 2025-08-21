@@ -59,6 +59,7 @@ import { LangfuseTraceClient } from 'langfuse-node'
 import { ModerationInfraction } from '../models/ModerationInfractions/types'
 import { getClient, runInTransaction, TransactionClient } from '../db'
 import { PrimaryUserRole } from './UserRolesService'
+import { LangfuseGenerationClient } from 'langfuse'
 
 const MINOR_AGE_THRESHOLD = 18
 
@@ -156,13 +157,17 @@ const WHITEBOARD_TEXT_TAG = 'whiteboard_text'
 */
 async function detectImageModerationFailures(
   image: Buffer,
-  trace: LangfuseTraceClient,
+  trace?: LangfuseTraceClient,
   sessionId?: string
 ) {
   try {
-    const generation = trace.generation({
-      name: LangfuseGenerationName.DETECT_MODERATION_LABELS,
-    })
+    let generation: LangfuseGenerationClient | undefined = undefined
+    if (trace) {
+      generation = trace.generation({
+        name: LangfuseGenerationName.DETECT_MODERATION_LABELS,
+      })
+    }
+
     const moderationLabelsResponse = await awsRekognitionClient.send(
       new DetectModerationLabelsCommand({
         Image: {
@@ -171,7 +176,9 @@ async function detectImageModerationFailures(
         MinConfidence: config.imageModerationMinConfidence,
       })
     )
-    generation.end({ output: moderationLabelsResponse })
+    if (generation) {
+      generation.end({ output: moderationLabelsResponse })
+    }
     const moderationLabels = moderationLabelsResponse.ModerationLabels ?? []
     return moderationLabels
       .filter(topLevelCategoryFilter)
@@ -185,10 +192,13 @@ async function detectImageModerationFailures(
 /*
   determine if image depicts a minor
 */
-async function detectMinorFailures(image: Buffer, trace: LangfuseTraceClient) {
-  const generation = trace.generation({
-    name: LangfuseGenerationName.DETECT_FACES,
-  })
+async function detectMinorFailures(image: Buffer, trace?: LangfuseTraceClient) {
+  let generation: LangfuseGenerationClient | undefined = undefined
+  if (trace) {
+    generation = trace.generation({
+      name: LangfuseGenerationName.DETECT_FACES,
+    })
+  }
   const facesResponse = await awsRekognitionClient.send(
     new DetectFacesCommand({
       Image: {
@@ -197,7 +207,9 @@ async function detectMinorFailures(image: Buffer, trace: LangfuseTraceClient) {
       Attributes: ['AGE_RANGE'],
     })
   )
-  generation.end({ output: facesResponse })
+  if (generation) {
+    generation.end({ output: facesResponse })
+  }
   const faces = facesResponse.FaceDetails ?? []
   const faceFailures = faces
     .filter(
@@ -218,6 +230,7 @@ async function detectMinorFailures(image: Buffer, trace: LangfuseTraceClient) {
   // DetectFaces seems to be more accurate when it comes to detecting minors
   // but we want to handle the case where faces are not in the image
   const labelResponse = await awsRekognitionClient.send(
+    // @TODO Missed this one
     new DetectLabelsCommand({
       Image: {
         Bytes: image,
@@ -244,11 +257,15 @@ async function detectMinorFailures(image: Buffer, trace: LangfuseTraceClient) {
 
 export async function extractTextFromImage(
   image: Buffer,
-  trace: LangfuseTraceClient
+  trace?: LangfuseTraceClient
 ) {
-  const generation = trace.generation({
-    name: LangfuseGenerationName.EXTRACT_TEXT_FROM_IMAGE,
-  })
+  let generation: LangfuseGenerationClient | undefined = undefined
+  if (trace) {
+    generation = trace.generation({
+      name: LangfuseGenerationName.EXTRACT_TEXT_FROM_IMAGE,
+    })
+  }
+
   const extractedText = await awsRekognitionClient.send(
     new DetectTextCommand({
       Image: {
@@ -256,7 +273,9 @@ export async function extractTextFromImage(
       },
     })
   )
-  generation.end({ output: extractedText })
+  if (generation) {
+    generation.end({ output: extractedText })
+  }
   const detections = extractedText.TextDetections ?? []
   const textSegments = detections
     .filter(({ Type }) => Type === 'LINE')
@@ -267,12 +286,16 @@ export async function extractTextFromImage(
 
 const detectToxicContent = async (
   textSegments: string[],
-  trace: LangfuseTraceClient
+  trace?: LangfuseTraceClient
 ) => {
-  const generation = trace.generation({
-    name: LangfuseGenerationName.DETECT_TOXICITY_IN_TEXT,
-    input: textSegments,
-  })
+  let generation: LangfuseGenerationClient | undefined = undefined
+  if (trace) {
+    generation = trace.generation({
+      name: LangfuseGenerationName.DETECT_TOXICITY_IN_TEXT,
+      input: textSegments,
+    })
+  }
+
   const toxicContent = []
   const concatenatedText = textSegments.join(' ')
   const result = await awsComprehendClient.send(
@@ -281,7 +304,9 @@ const detectToxicContent = async (
       LanguageCode: 'en',
     })
   )
-  generation.end({ output: result })
+  if (generation) {
+    generation.end({ output: result })
+  }
   if (result.ResultList) {
     toxicContent.push(
       ...result.ResultList.map((r) => ({
@@ -320,7 +345,7 @@ async function isLikelyToBeAPhoneNumber({
   entityText: string
   sessionId: string
   isVolunteer: boolean
-  trace: LangfuseTraceClient
+  trace?: LangfuseTraceClient
 }) {
   // Since many users will be sharing numbers that look like phone numbers,
   // we want to moderate them in similar way we moderate phone numbers in messages.
@@ -607,19 +632,25 @@ async function detectPii(
   text: string,
   sessionId: string,
   isVolunteer: boolean,
-  trace: LangfuseTraceClient
+  trace?: LangfuseTraceClient
 ) {
-  const generation = trace.generation({
-    name: LangfuseGenerationName.DETECT_PII_IN_TEXT,
-    input: text,
-  })
+  let generation: LangfuseGenerationClient | undefined = undefined
+  if (trace) {
+    generation = trace.generation({
+      name: LangfuseGenerationName.DETECT_PII_IN_TEXT,
+      input: text,
+    })
+  }
+
   const piiEntities = await awsComprehendClient.send(
     new DetectPiiEntitiesCommand({
       Text: text,
       LanguageCode: 'en',
     })
   )
-  generation.end({ output: piiEntities })
+  if (generation) {
+    generation.end({ output: piiEntities })
+  }
   const entities = piiEntities.Entities ?? []
 
   const links: ModeratedLink[] = []
@@ -734,7 +765,7 @@ async function detectTextModerationFailures(
   image: Buffer,
   sessionId: string,
   isVolunteer: boolean,
-  trace: LangfuseTraceClient
+  trace?: LangfuseTraceClient
 ) {
   const textSegments = await extractTextFromImage(image, trace)
 
@@ -863,7 +894,7 @@ export function moderateImageInBackground(options: {
     ModerationSource,
     'screenshare' | 'image_upload' | 'whiteboard'
   >
-  trace: LangfuseTraceClient
+  trace?: LangfuseTraceClient
 }): void {
   detectImageModerationFailures(
     options.image,
@@ -892,7 +923,7 @@ async function getAllImageModerationFailures({
   image: Buffer
   sessionId: string
   isVolunteer: boolean
-  trace: LangfuseTraceClient
+  trace?: LangfuseTraceClient
 }): Promise<{
   failureReasons: ImageModerationFailureReason[]
 }> {
@@ -925,22 +956,27 @@ export async function getIndividualSessionMessageModerationResponse({
     'sessionId' | 'message'
   > & { id?: string }
   isVolunteer: boolean
-  trace: LangfuseTraceClient
+  trace?: LangfuseTraceClient
 }) {
   const promptData = await getPromptData(
     LangfusePromptNameEnum.GET_SESSION_MESSAGE_MODERATION_DECISION,
     FALLBACK_MODERATION_PROMPT
   )
 
-  const gen = trace.generation({
-    name: LangfuseGenerationName.SESSION_MESSAGE_MODERATION_DECISION,
-    model: OPENAI_MODEL_ID,
-    input: { censoredSessionMessage, isVolunteer },
-    // Attach prompt object, if it exists, in order to associate the generation with the prompt in LF
-    ...(promptData.promptObject && { prompt: promptData.promptObject }),
-  })
+  let gen: LangfuseGenerationClient | undefined = undefined
+  if (trace) {
+    gen = trace.generation({
+      name: LangfuseGenerationName.SESSION_MESSAGE_MODERATION_DECISION,
+      model: OPENAI_MODEL_ID,
+      input: { censoredSessionMessage, isVolunteer },
+      // Attach prompt object, if it exists, in order to associate the generation with the prompt in LF
+      ...(promptData.promptObject && { prompt: promptData.promptObject }),
+    })
+  }
+
   try {
     const response = await invokeOpenAI({
+      // @TODO
       prompt: promptData.prompt,
       userMessage: wrapMessageInXmlTags(
         censoredSessionMessage.message,
@@ -948,9 +984,11 @@ export async function getIndividualSessionMessageModerationResponse({
       ),
     })
 
-    gen.end({
-      output: response,
-    })
+    if (gen) {
+      gen.end({
+        output: response,
+      })
+    }
 
     return response.results
   } catch (err) {
@@ -1064,7 +1102,7 @@ const regexModerate = (message: string): RegexModerationResult => {
 const getAiModerationResult = async (
   censoredSessionMessage: Pick<CensoredSessionMessage, 'sessionId' | 'message'>,
   isVolunteer: boolean,
-  trace: LangfuseTraceClient
+  trace?: LangfuseTraceClient
 ) => {
   return await timeLimit({
     promise: getIndividualSessionMessageModerationResponse({
@@ -1384,16 +1422,17 @@ export const moderateImage = async ({
   failures: string[]
 } | void> => {
   const traceClient =
-    trace ??
-    LangfuseService.getClient().trace({
-      name: LangfuseTraceName.MODERATE_IMAGE,
-      metadata: {
-        sessionId,
-        isVolunteer,
-        source,
-        userId,
-      },
-    })
+    (trace ?? source !== 'screenshare')
+      ? LangfuseService.getClient().trace({
+          name: LangfuseTraceName.MODERATE_IMAGE,
+          metadata: {
+            sessionId,
+            isVolunteer,
+            source,
+            userId,
+          },
+        })
+      : undefined
   if (aggregateInfractions) {
     const result = await getAllImageModerationFailures({
       image,
@@ -1429,7 +1468,6 @@ export const moderateImage = async ({
       userId,
       isVolunteer,
       source,
-      trace: traceClient,
     })
   }
 }
