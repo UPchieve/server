@@ -1,9 +1,9 @@
 import { Job } from 'bull'
 import { logError } from '../../logger'
 import { sendVolunteerFeedbackToStudent } from '../../../services/MailService'
+import { getUserContactInfo } from '../../../services/UserService'
 import { Uuid } from '../../../models/pgUtils'
 import { asUlid } from '../../../utils/type-utils'
-import { getUserReferralLink } from '../../../models/User/index'
 import { getSessionById } from '../../../models/Session/index'
 import config from '../../../config'
 
@@ -17,15 +17,11 @@ export default async (job: Job<SendVolunteerFeedbackData>): Promise<void> => {
 
   try {
     const session = await getSessionById(data.sessionId)
-    const student = await getUserReferralLink(asUlid(session.studentId))
-    const volunteer = await getUserReferralLink(asUlid(session.volunteerId))
+    const student = await getUserContactInfo(session.studentId)
+    const volunteer = await getUserContactInfo(asUlid(session.volunteerId))
 
     if (!volunteer || !student) {
       throw Error('No volunteer or student for session')
-    }
-
-    if (!student.email) {
-      throw Error("Student doesn't have an email")
     }
 
     const upchieveDashboardLink = `https://${config.client.host}`

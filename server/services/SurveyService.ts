@@ -94,7 +94,6 @@ export async function saveUserSurvey(
   )
   await saveUserSurveyAndSubmissions(userId, userSurvey, submissions, tc)
 
-  debugger
   // Only process feedback metrics for post-session surveys.
   if (userSurvey.sessionId) {
     const surveyType = await getSurveyTypeFromSurveyTypeId(
