@@ -45,6 +45,7 @@ export const asSurveySubmissions = asFactory<SaveUserSurveySubmission>({
 
 export type SaveSurveyAndSubmissions = SaveUserSurvey & {
   submissions: SaveUserSurveySubmission[]
+  volunteerFeedbackForStudent?: string
 }
 
 export const asSaveUserSurveyAndSubmissions =
@@ -54,6 +55,7 @@ export const asSaveUserSurveyAndSubmissions =
     progressReportId: asOptional(asString),
     surveyTypeId: asNumber,
     submissions: asArray(asSurveySubmissions),
+    volunteerFeedbackForStudent: asOptional(asString),
   })
 
 type VolunteerContextResponse = {
@@ -101,10 +103,23 @@ export async function saveUserSurvey(
       await processFeedbackMetrics(userSurvey.sessionId)
 
       const role = await UserRolesService.getRoleContext(userId)
-      if (role.activeRole === 'student') {
+
+      if (role.activeRole === USER_ROLES.STUDENT) {
         await QueueService.add(
           Jobs.MaybeSendStudentFeedbackToVolunteer,
           { sessionId: userSurvey.sessionId },
+          { removeOnComplete: true, removeOnFail: false, delay: FIVE_MINUTES }
+        )
+      } else if (
+        role.activeRole === USER_ROLES.VOLUNTEER &&
+        data?.volunteerFeedbackForStudent
+      ) {
+        await QueueService.add(
+          Jobs.SendVolunteerFeedbackToStudent,
+          {
+            sessionId: userSurvey.sessionId,
+            volunteerFeedback: data.volunteerFeedbackForStudent,
+          },
           { removeOnComplete: true, removeOnFail: false, delay: FIVE_MINUTES }
         )
       }
