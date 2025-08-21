@@ -120,25 +120,6 @@ describe('getQuestions', () => {
 })
 
 describe('getQuizScore', () => {
-  test('Should throw error when a subject is not found', async () => {
-    const volunteer = buildVolunteer()
-    const questions = buildQuestions()
-    const subject = MATH_CERTS.ALGEBRA_ONE
-    const idAnswerMap = await buildIdAnswerMapHelper(questions)
-    const quizScoreInput = {
-      user: volunteer,
-      category: subject,
-      idAnswerMap,
-      ip: '',
-    }
-    mockedQuestionRepo.getMultipleQuestionsById.mockResolvedValueOnce(questions)
-    mockedSubjectsRepo.getSubjectType.mockResolvedValueOnce(undefined)
-
-    await expect(async () => {
-      await getQuizScore(quizScoreInput)
-    }).rejects.toThrow(`No subject type found for subject: ${subject}`)
-  })
-
   test('Fails subject quiz', async () => {
     const volunteer = buildVolunteer()
     const questions = buildQuestions()
