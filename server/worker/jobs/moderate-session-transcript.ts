@@ -3,10 +3,12 @@ import { Job } from 'bull'
 import * as SessionService from '../../services/SessionService'
 import * as ModerationService from '../../services/ModerationService'
 import * as WhiteboardService from '../../services/WhiteboardService'
+import * as LangfuseService from '../../services/LangfuseService'
 import config from '../../config'
 import { importFromStringSync } from 'module-from-string'
 import { get } from 'node:https'
 import logger from '../../logger'
+import { LangfuseTraceName } from '../../services/ModerationService'
 
 export function fetchRemoteJs(url: string): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -26,6 +28,13 @@ export interface ModerateSessionTranscriptJobData {
 export default async function moderateSessionTranscript(
   job: Job<ModerateSessionTranscriptJobData>
 ) {
+  const trace = LangfuseService.getClient().trace({
+    name: LangfuseTraceName.MODERATE_SESSION_TRANSCRIPT,
+    sessionId: job.data.sessionId,
+    metadata: {
+      sessionId: job.data.sessionId,
+    },
+  })
   const ZwibblerString = await fetchRemoteJs(config.zwibblerNodeUrl)
 
   logger.warn(`1. zwibbler imported string, ${ZwibblerString}`)
@@ -74,6 +83,7 @@ export default async function moderateSessionTranscript(
           source: 'whiteboard',
           aggregateInfractions: true,
           recordInfractions: false,
+          trace,
         })
 
         logger.warn(
@@ -92,7 +102,8 @@ export default async function moderateSessionTranscript(
         }
 
         extractedText = await ModerationService.extractTextFromImage(
-          Buffer.from(whiteboardImage, 'binary')
+          Buffer.from(whiteboardImage, 'binary'),
+          trace
         )
       }
     }
@@ -101,6 +112,7 @@ export default async function moderateSessionTranscript(
 
     const moderationResults = await ModerationService.moderateTranscript(
       transcript,
+      trace,
       extractedText
     )
 
