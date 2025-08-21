@@ -27,7 +27,7 @@ export default async (job: Job<SendVolunteerFeedbackData>): Promise<void> => {
     const upchieveDashboardLink = `https://${config.client.host}`
 
     const emailArgs = {
-      recipientEmail: student.proxyEmail ?? student.email,
+      recipientEmail: student.email,
       volunteerFirstName: volunteer.firstName,
       studentFirstName: student.firstName,
       subject: session.subjectDisplayName,
