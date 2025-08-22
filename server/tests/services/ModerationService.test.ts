@@ -283,6 +283,7 @@ describe('ModerationService', () => {
         await getIndividualSessionMessageModerationResponse({
           censoredSessionMessage,
           isVolunteer,
+          trace: mockLangfuseClient.trace(),
         })
         expect(invokeModel).toHaveBeenCalledWith(
           expect.objectContaining({
@@ -293,7 +294,6 @@ describe('ModerationService', () => {
           })
         )
         expect(LangfuseService.getPrompt).toHaveBeenCalled()
-        expect(LangfuseService.getClient).toHaveBeenCalled()
       })
 
       test('It calls OpenAI with the fallback prompt if it cannot be retrieved from LF', async () => {
@@ -305,6 +305,7 @@ describe('ModerationService', () => {
         await getIndividualSessionMessageModerationResponse({
           censoredSessionMessage,
           isVolunteer,
+          trace: mockLangfuseClient.trace(),
         })
         expect(invokeModel).toHaveBeenCalledWith(
           expect.objectContaining({
@@ -315,7 +316,6 @@ describe('ModerationService', () => {
           })
         )
         expect(LangfuseService.getPrompt).toHaveBeenCalled()
-        expect(LangfuseService.getClient).toHaveBeenCalled()
       })
 
       it('Associates the Langfuse prompt with the generation', async () => {
@@ -335,6 +335,7 @@ describe('ModerationService', () => {
         await getIndividualSessionMessageModerationResponse({
           censoredSessionMessage,
           isVolunteer,
+          trace: mockLangfuseClient.trace(),
         })
         expect(mockLangfuseClient.trace).toHaveBeenCalled()
         expect(mockTrace.generation).toHaveBeenCalledWith(
@@ -355,6 +356,7 @@ describe('ModerationService', () => {
         await getIndividualSessionMessageModerationResponse({
           censoredSessionMessage,
           isVolunteer,
+          trace: mockLangfuseClient.trace(),
         })
         expect(mockLangfuseClient.trace).toHaveBeenCalled()
         expect(mockTrace.generation).toHaveBeenCalledWith({

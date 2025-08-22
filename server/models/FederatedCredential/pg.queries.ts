@@ -87,13 +87,15 @@ export interface IInsertFederatedCredentialQuery {
   result: IInsertFederatedCredentialResult;
 }
 
-const insertFederatedCredentialIR: any = {"usedParamSet":{"id":true,"issuer":true,"userId":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":68,"b":71}]},{"name":"issuer","required":true,"transform":{"type":"scalar"},"locs":[{"a":74,"b":81}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":84,"b":91}]}],"statement":"INSERT INTO federated_credentials (id, issuer, user_id)\n    VALUES (:id!, :issuer!, :userId!)"};
+const insertFederatedCredentialIR: any = {"usedParamSet":{"id":true,"issuer":true,"userId":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":68,"b":71}]},{"name":"issuer","required":true,"transform":{"type":"scalar"},"locs":[{"a":74,"b":81}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":84,"b":91}]}],"statement":"INSERT INTO federated_credentials (id, issuer, user_id)\n    VALUES (:id!, :issuer!, :userId!)\nON CONFLICT\n    DO NOTHING"};
 
 /**
  * Query generated from SQL:
  * ```
  * INSERT INTO federated_credentials (id, issuer, user_id)
  *     VALUES (:id!, :issuer!, :userId!)
+ * ON CONFLICT
+ *     DO NOTHING
  * ```
  */
 export const insertFederatedCredential = new PreparedQuery<IInsertFederatedCredentialParams,IInsertFederatedCredentialResult>(insertFederatedCredentialIR);
