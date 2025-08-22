@@ -71,15 +71,7 @@ async function emailReportedSession(
     const reportedUserRole =
       session.studentId === userId ? 'student' : 'volunteer'
 
-    if (reportedUserRole === 'volunteer') {
-      const volunteerEmail = await safeAsync(
-        MailService.sendCoachReported(user.email, user.firstName)
-      )
-      if (volunteerEmail.error)
-        errors.push(
-          `Failed to send volunteer ${user.id} email for report: ${volunteerEmail.error.message}`
-        )
-    } else if (reportedUserRole === 'student') {
+    if (reportedUserRole === 'student') {
       const studentEmail = await safeAsync(
         MailService.sendStudentReported(
           user.email,
