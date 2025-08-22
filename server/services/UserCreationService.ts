@@ -90,8 +90,8 @@ export async function rosterPartnerStudents(
     try {
       await runInTransaction(async (tc: TransactionClient) => {
         checkNames(student.firstName, student.lastName)
-        checkEmail(student.email)
-        if (student.proxyEmail) checkEmail(student.proxyEmail)
+        await checkEmail(student.email)
+        if (student.proxyEmail) await checkEmail(student.proxyEmail)
         if (student.password) {
           student.password = await hashPassword(student.password)
         }
@@ -164,7 +164,7 @@ export async function rosterPartnerStudents(
 }
 
 export async function verifyStudentData(data: RegisterStudentPayload) {
-  checkEmail(data.email)
+  await checkEmail(data.email)
   checkNames(data.firstName, data.lastName)
   await checkUser(data.email)
   if (usePassword(data)) {
@@ -338,19 +338,19 @@ export async function upsertStudent(
 
     let spoOrgToAdd = studentData.studentPartnerOrgKey
       ? await StudentPartnerOrgRepo.getStudentPartnerOrgByKey(
-          tc,
-          studentData.studentPartnerOrgKey,
-          studentData.studentPartnerOrgSiteName
-        )
+        tc,
+        studentData.studentPartnerOrgKey,
+        studentData.studentPartnerOrgSiteName
+      )
       : null
     let spoSchoolToAdd =
       // Don't add a school student partner org from the school id if
       // the non-school student partner org to add is that already school.
       studentData.schoolId && spoOrgToAdd?.schoolId !== studentData.schoolId
         ? await StudentPartnerOrgRepo.getStudentPartnerOrgBySchoolId(
-            tc,
-            studentData.schoolId
-          )
+          tc,
+          studentData.schoolId
+        )
         : null
 
     for (const a of activeInstances ?? []) {
@@ -403,7 +403,7 @@ export async function upsertStudent(
 }
 
 export async function registerTeacher(data: RegisterTeacherPayload) {
-  checkEmail(data.email)
+  await checkEmail(data.email)
   checkNames(data.firstName, data.lastName)
   if (usePassword(data)) {
     checkPassword(data.password)

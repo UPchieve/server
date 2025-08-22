@@ -95,7 +95,6 @@
     "cors": "^2.8.5",
     "csrf-sync": "^4.0.3",
     "csv-parse": "^5.5.6",
-    "disposable-email-domains-js": "^1.16.0",
     "exceljs": "^4.2.1",
     "exponential-backoff": "^3.1.0",
     "express": "^4.16.4",
