@@ -24,6 +24,13 @@ CREATE SCHEMA basic_access;
 
 
 --
+-- Name: public; Type: SCHEMA; Schema: -; Owner: -
+--
+
+-- *not* creating schema, since initdb creates it
+
+
+--
 -- Name: upchieve; Type: SCHEMA; Schema: -; Owner: -
 --
 
@@ -561,6 +568,38 @@ CREATE MATERIALIZED VIEW upchieve.current_grade_levels_mview AS
    FROM (grade_progression
      JOIN upchieve.grade_levels ON ((grade_progression.grade_level_id = grade_levels.id)))
   WITH NO DATA;
+
+
+--
+-- Name: email_domain_blocklist; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.email_domain_blocklist (
+    id integer NOT NULL,
+    domain character varying(255) NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: email_domain_blocklist_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+CREATE SEQUENCE upchieve.email_domain_blocklist_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: email_domain_blocklist_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
+--
+
+ALTER SEQUENCE upchieve.email_domain_blocklist_id_seq OWNED BY upchieve.email_domain_blocklist.id;
 
 
 --
@@ -2911,6 +2950,13 @@ ALTER TABLE ONLY upchieve.cities ALTER COLUMN id SET DEFAULT nextval('upchieve.c
 
 
 --
+-- Name: email_domain_blocklist id; Type: DEFAULT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.email_domain_blocklist ALTER COLUMN id SET DEFAULT nextval('upchieve.email_domain_blocklist_id_seq'::regclass);
+
+
+--
 -- Name: grade_levels id; Type: DEFAULT; Schema: upchieve; Owner: -
 --
 
@@ -3242,6 +3288,22 @@ ALTER TABLE ONLY upchieve.computed_subject_unlocks
 
 ALTER TABLE ONLY upchieve.contact_form_submissions
     ADD CONSTRAINT contact_form_submissions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: email_domain_blocklist email_domain_blocklist_domain_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.email_domain_blocklist
+    ADD CONSTRAINT email_domain_blocklist_domain_key UNIQUE (domain);
+
+
+--
+-- Name: email_domain_blocklist email_domain_blocklist_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.email_domain_blocklist
+    ADD CONSTRAINT email_domain_blocklist_pkey PRIMARY KEY (id);
 
 
 --
@@ -4497,6 +4559,13 @@ ALTER TABLE ONLY upchieve.weekdays
 --
 
 CREATE INDEX "IDX_session_expire" ON auth.session USING btree (expire);
+
+
+--
+-- Name: IDX_email_domain_blocklist_domain; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX "IDX_email_domain_blocklist_domain" ON upchieve.email_domain_blocklist USING btree (domain);
 
 
 --
@@ -6445,4 +6514,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20250530172930'),
     ('20250716141321'),
     ('20250801141806'),
-    ('20250812230022');
+    ('20250812230022'),
+    ('20250818220035');
