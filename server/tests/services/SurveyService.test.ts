@@ -20,6 +20,7 @@ import { GetSessionByIdResult } from '../../models/Session'
 import { UserContactInfo } from '../../models/User'
 import { RoleContext } from '../../services/UserRolesService'
 import { PostsessionSurveyGoalResponse } from '../../models/Survey'
+import { Jobs } from '../../worker/jobs'
 
 jest.mock('../../models/Survey/queries')
 jest.mock('../../models/User/queries')
@@ -34,6 +35,7 @@ const mockedUserRepo = mocked(UserRepo)
 const mockedSessionRepo = mocked(SessionRepo)
 const mockedUserService = mocked(UserService)
 const mockedUserRolesService = mocked(UserRolesService)
+
 const mockedSessionFlagsService = mocked(SessionFlagsService)
 const mockedQueueService = mocked(QueueService)
 
@@ -135,16 +137,80 @@ describe('saveUserSurvey', () => {
       mockedSessionFlagsService.processFeedbackMetrics
     ).toHaveBeenCalledWith(expectedUserSurvey.sessionId)
     expect(mockedQueueService.default.add).toHaveBeenCalledWith(
-      'MaybeSendStudentFeedbackToVolunteer',
+      Jobs.MaybeSendStudentFeedbackToVolunteer,
+      { sessionId: expectedUserSurvey.sessionId },
+      { delay: 300000, removeOnComplete: true, removeOnFail: false }
+    )
+    expect(mockedQueueService.default.add).not.toHaveBeenCalledWith(
+      Jobs.SendVolunteerFeedbackToStudent,
       { sessionId: expectedUserSurvey.sessionId },
       { delay: 300000, removeOnComplete: true, removeOnFail: false }
     )
   })
 
-  test(`Should not queue send positive feedback job after saving volunteer postsession survey`, async () => {
+  test(`Should send volunteer feedback to student`, async () => {
     mockedUserRolesService.getRoleContext.mockResolvedValue({
       activeRole: 'volunteer',
     } as any)
+
+    const sessionId = getDbUlid()
+    const userSurvey = buildUserSurvey({ sessionId })
+    const submissions = [
+      buildUserSurveySubmission({ responseChoiceId: 1, questionId: 1 }),
+      buildUserSurveySubmission({ responseChoiceId: 5, questionId: 5 }),
+      buildUserSurveySubmission({ responseChoiceId: 10, questionId: 10 }),
+    ]
+    const volunteerFeedbackForStudent =
+      'Great Job!!! Keep up logging in those session buddy ole pale.'
+
+    mockedSurveyRepo.saveUserSurveyAndSubmissions.mockResolvedValueOnce()
+    mockedSurveyRepo.getSurveyTypeFromSurveyTypeId.mockResolvedValueOnce(
+      'postsession'
+    )
+
+    const data = {
+      ...userSurvey,
+      submissions,
+      volunteerFeedbackForStudent,
+    }
+    const userId = getDbUlid()
+
+    await SurveyService.saveUserSurvey(userId, data)
+    const expectedUserSurvey = {
+      surveyId: data.surveyId,
+      sessionId: data.sessionId,
+      surveyTypeId: data.surveyTypeId,
+    }
+    const expectedSubmissions = data.submissions
+    expect(mockedSurveyRepo.saveUserSurveyAndSubmissions).toHaveBeenCalledTimes(
+      1
+    )
+    expect(mockedSurveyRepo.saveUserSurveyAndSubmissions).toHaveBeenCalledWith(
+      userId,
+      expectedUserSurvey,
+      expectedSubmissions,
+      undefined
+    )
+
+    expect(
+      mockedSessionFlagsService.processFeedbackMetrics
+    ).toHaveBeenCalledWith(expectedUserSurvey.sessionId)
+
+    expect(mockedQueueService.default.add).toHaveBeenCalledWith(
+      Jobs.SendVolunteerFeedbackToStudent,
+      {
+        sessionId: expectedUserSurvey.sessionId,
+        volunteerFeedback: volunteerFeedbackForStudent,
+      },
+      { delay: 300000, removeOnComplete: true, removeOnFail: false }
+    )
+  })
+
+  test(`Should not send positive feedback to volunteer from student`, async () => {
+    mockedUserRolesService.getRoleContext.mockResolvedValue({
+      activeRole: 'volunteer',
+    } as any)
+
     const sessionId = getDbUlid()
     const userSurvey = buildUserSurvey({ sessionId })
     const submissions = [
@@ -162,7 +228,11 @@ describe('saveUserSurvey', () => {
 
     await SurveyService.saveUserSurvey(userId, data)
 
-    expect(mockedQueueService.default.add).not.toHaveBeenCalled()
+    expect(mockedQueueService.default.add).not.toHaveBeenCalledWith(
+      Jobs.MaybeSendStudentFeedbackToVolunteer,
+      { sessionId: userSurvey.sessionId },
+      { delay: 300000, removeOnComplete: true, removeOnFail: false }
+    )
   })
 })
 
