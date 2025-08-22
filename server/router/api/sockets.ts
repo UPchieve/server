@@ -35,6 +35,7 @@ import { createSessionAction } from '../../models/UserAction/queries'
 import { updateVolunteerSubjectPresence } from '../../services/VolunteerService'
 import { asJoinSessionData } from '../../utils/session-utils'
 import { SessionJoinError } from '../../models/Errors'
+import * as cache from '../../cache'
 
 export type SessionMessageType = 'audio-transcription' // todo - add 'chat' later
 
@@ -265,7 +266,13 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
         new Promise<void>(async (resolve, reject) => {
           try {
             const sessions = await SessionRepo.getUnfulfilledSessions()
-            socket.emit('sessions', sessions)
+            const excludedSessionIds = await cache.smembers(
+              'goalSettingSessions'
+            )
+            const filteredSessions = sessions.filter(
+              (session) => !excludedSessionIds.includes(session.id)
+            )
+            socket.emit('sessions', filteredSessions)
             callback({
               status: 200,
               sessions,

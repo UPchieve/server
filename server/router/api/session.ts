@@ -45,6 +45,7 @@ export function routeSession(router: Router) {
       const session = await SessionService.startSession(user, {
         ...sessionData,
         presessionSurvey,
+        isSettingGoalsSession: req.body.isSettingGoalsSession,
       })
       // For legacy (mobile), we still need to just return the sessionId.
       res.json({ sessionId: session.id, session })

@@ -614,6 +614,7 @@ export async function startSession(
   user: UserContactInfo,
   data: sessionUtils.StartSessionData & {
     presessionSurvey?: SurveyService.SaveSurveyAndSubmissions
+    isSettingGoalsSession?: boolean
   }
 ) {
   const {
@@ -699,7 +700,10 @@ export async function startSession(
     await setDocEditorVersion(newSession.id, `${docEditorVersion ?? 1}`)
   }
 
-  if (!isUserBanned) {
+  if (data.isSettingGoalsSession)
+    cache.sadd('goalSettingSessions', newSession.id)
+
+  if (!isUserBanned && !data.isSettingGoalsSession) {
     await beginRegularNotifications(newSession.id, newSession.studentId)
   }
 
