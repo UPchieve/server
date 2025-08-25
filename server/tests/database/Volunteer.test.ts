@@ -266,22 +266,45 @@ describe('VolunteerRepo', () => {
       expect(result?.id).toEqual(v1.id)
     })
 
-    it('Returns the volunteer without the higher-level subject when there are other volunteers available', async () => {
-      // calculusAB is the high level subject
-      const v1 = await loadVolunteer({
-        certificationSubjects: ['prealgebra', 'calculusAB'],
+    it('Returns the volunteer WITHOUT the higher-level subject when there are other volunteers available', async () => {
+      const highLevelSubjects = ['calculusAB']
+      const subject = 'prealgebra'
+      await loadVolunteer({
+        certificationSubjects: [subject, highLevelSubjects[0]],
       })
-      const v2 = await loadVolunteer()
+      const noHighLevelSubjectsVolunteer = await loadVolunteer({
+        certificationSubjects: [subject],
+      })
       const result = await getNextVolunteerToNotify({
-        subject: 'reading',
+        subject: subject,
         lastNotified: new Date(),
         isPartner: false,
-        highLevelSubjects: undefined,
+        highLevelSubjects,
         disqualifiedVolunteers: undefined,
         specificPartner: undefined,
         favoriteVolunteers: undefined,
       })
-      expect(result).toBeUndefined()
+      expect(result?.id).toEqual(noHighLevelSubjectsVolunteer.id)
+    })
+
+    it('Returns the volunteer WITH the high-level subject certification when a high-level subject is requested', async () => {
+      const highLevelSubjects = ['calculusAB']
+      const highLevelSubjectVolunteer = await loadVolunteer({
+        certificationSubjects: ['prealgebra', highLevelSubjects[0]],
+      })
+      const noHighLevelSubjectsVolunteer = await loadVolunteer({
+        certificationSubjects: ['prealgebra'],
+      })
+      const highLevelSubjectResult = await getNextVolunteerToNotify({
+        subject: highLevelSubjects[0],
+        lastNotified: new Date(),
+        isPartner: false,
+        highLevelSubjects,
+        disqualifiedVolunteers: undefined,
+        specificPartner: undefined,
+        favoriteVolunteers: undefined,
+      })
+      expect(highLevelSubjectResult?.id).toEqual(highLevelSubjectVolunteer.id)
     })
 
     it('Returns undefined when there is no suitable volunteer', async () => {
