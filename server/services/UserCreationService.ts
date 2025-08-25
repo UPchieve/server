@@ -338,19 +338,19 @@ export async function upsertStudent(
 
     let spoOrgToAdd = studentData.studentPartnerOrgKey
       ? await StudentPartnerOrgRepo.getStudentPartnerOrgByKey(
-        tc,
-        studentData.studentPartnerOrgKey,
-        studentData.studentPartnerOrgSiteName
-      )
+          tc,
+          studentData.studentPartnerOrgKey,
+          studentData.studentPartnerOrgSiteName
+        )
       : null
     let spoSchoolToAdd =
       // Don't add a school student partner org from the school id if
       // the non-school student partner org to add is that already school.
       studentData.schoolId && spoOrgToAdd?.schoolId !== studentData.schoolId
         ? await StudentPartnerOrgRepo.getStudentPartnerOrgBySchoolId(
-          tc,
-          studentData.schoolId
-        )
+            tc,
+            studentData.schoolId
+          )
         : null
 
     for (const a of activeInstances ?? []) {
