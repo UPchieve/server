@@ -268,20 +268,23 @@ describe('VolunteerRepo', () => {
 
     it('Returns the volunteer without the higher-level subject when there are other volunteers available', async () => {
       // calculusAB is the high level subject
-      const v1 = await loadVolunteer({
-        certificationSubjects: ['prealgebra', 'calculusAB'],
+      const highLevelSubjects = ['calculusAB']
+      await loadVolunteer({
+        certificationSubjects: ['prealgebra', highLevelSubjects[0]],
       })
-      const v2 = await loadVolunteer()
+      const noHighLevelSubjectCoach = await loadVolunteer({
+        certificationSubjects: ['prealgebra'],
+      })
       const result = await getNextVolunteerToNotify({
-        subject: 'reading',
+        subject: 'prealgebra',
         lastNotified: new Date(),
         isPartner: false,
-        highLevelSubjects: undefined,
+        highLevelSubjects: highLevelSubjects,
         disqualifiedVolunteers: undefined,
         specificPartner: undefined,
         favoriteVolunteers: undefined,
       })
-      expect(result).toBeUndefined()
+      expect(result?.id).toEqual(noHighLevelSubjectCoach.id)
     })
 
     it('Returns undefined when there is no suitable volunteer', async () => {
