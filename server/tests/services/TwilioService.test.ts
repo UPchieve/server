@@ -3,7 +3,7 @@ import * as StudentRepo from '../../models/Student/queries'
 import * as VolunteerRepo from '../../models/Volunteer/queries'
 import { mocked } from 'jest-mock'
 import * as TwilioService from '../../services/TwilioService'
-import * as SubjectsService from '../../services/SubjectsService'
+import * as FeatureFlagService from '../../services/FeatureFlagService'
 import { buildStudent, buildSession, buildVolunteer } from '../mocks/generate'
 
 import { getDbUlid } from '../../models/pgUtils'
@@ -12,14 +12,13 @@ jest.mock('../../models/Session/queries')
 jest.mock('../../models/Student/queries')
 jest.mock('../../models/Volunteer/queries')
 jest.mock('../../utils/get-times')
-jest.mock('../../services/SubjectsService')
 
 const mockedSessionRepo = mocked(SessionRepo)
 const mockedStudentRepo = mocked(StudentRepo)
 const mockedVolunteerRepo = mocked(VolunteerRepo)
-const mockSubjectService = mocked(SubjectsService)
+const mockedFeatureFlagService = mocked(FeatureFlagService)
 
-const buildStudentAndSession = async () => {
+const buildStudentAndSessionForMutedSubjects = async () => {
   const studentId = getDbUlid()
   const student = buildStudent({ id: studentId })
   const session = await buildSession({ studentId })
@@ -32,13 +31,12 @@ const buildStudentAndSession = async () => {
 
 beforeEach(async () => {
   jest.resetAllMocks()
-  mockSubjectService.getHighLevelSubjects.mockResolvedValue(['calculusAB'])
 })
 
 describe('Muted subjects tests', () => {
   test('Notifies volunteer if subject is not muted', async () => {
     const volunteer = buildVolunteer()
-    const session = await buildStudentAndSession()
+    const session = await buildStudentAndSessionForMutedSubjects()
     mockedVolunteerRepo.getNextVolunteerToNotify.mockResolvedValueOnce(
       volunteer
     )
@@ -49,7 +47,7 @@ describe('Muted subjects tests', () => {
 
   test('Does not notify volunteer for muted subject', async () => {
     const volunteer = buildVolunteer({ mutedSubjectAlerts: ['algebraOne'] })
-    const session = await buildStudentAndSession()
+    const session = await buildStudentAndSessionForMutedSubjects()
     mockedVolunteerRepo.getNextVolunteerToNotify.mockResolvedValueOnce(
       volunteer
     )
@@ -57,39 +55,6 @@ describe('Muted subjects tests', () => {
     const notifiedVolunteerId = await TwilioService.notifyVolunteer(session)
 
     expect(notifiedVolunteerId!).toBe(undefined)
-  })
-})
-
-describe('notifyVolunteer', () => {
-  test('Reads in high-level subjects from SubjectService', async () => {
-    const volunteer = buildVolunteer()
-    mockedVolunteerRepo.getNextVolunteerToNotify.mockResolvedValue(volunteer)
-
-    const session = await buildStudentAndSession()
-    const testHighLevelSubjects = [
-      'calculusAB',
-      'statistics',
-      'chemistry',
-      'test',
-    ]
-    mockSubjectService.getHighLevelSubjects.mockResolvedValue(
-      testHighLevelSubjects
-    )
-
-    const notifiedVolunteerId = await TwilioService.notifyVolunteer(session)
-    expect(notifiedVolunteerId).toEqual(volunteer.id)
-    expect(mockSubjectService.getHighLevelSubjects).toHaveBeenCalled()
-    expect(mockSubjectService.getHighLevelSubjects).toHaveBeenCalledWith(
-      session.studentId
-    )
-
-    // There is no expect(...).toHaveResolvedWith(...) matcher, so this is a workaround.
-    const returnedHighLevelSubjects =
-      mockSubjectService.getHighLevelSubjects.mock.results
-    const lastReturnedPromise =
-      returnedHighLevelSubjects[returnedHighLevelSubjects.length - 1]
-    const lastReturnedHighLevelSubjects = await lastReturnedPromise.value
-    expect(lastReturnedHighLevelSubjects).toEqual(testHighLevelSubjects)
   })
 })
 

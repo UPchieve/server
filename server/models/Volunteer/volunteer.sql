@@ -1271,7 +1271,6 @@ volunteers_with_needed_certification AS (
         OR :subject = ANY (computed_subjects_unlocked.subjects))
     AND ( -- user does not have high level subjects if provided
         (:highLevelSubjects)::text[] IS NULL
-        OR :subject!::text = ANY (:highLevelSubjects::text[])
         OR (:highLevelSubjects)::text[] && subjects_unlocked.subjects IS FALSE)
 ),
 -- The above volunteers, narrowed down to those with availability
