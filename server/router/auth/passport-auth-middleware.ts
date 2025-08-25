@@ -110,7 +110,7 @@ type SSOHandlerOptions = {
   isStudent: (userType: USER_ROLES_TYPE) => boolean
   isTeacher: (userType: USER_ROLES_TYPE) => boolean
   // TODO: When including ClassLink rostering, normalize to a similar type
-  rosterTeacher?: (
+  rosterTeacherFn?: (
     userId: Uuid,
     classes: CleverAPIService.TCleverSectionData[],
     students: CleverAPIService.TCleverStudentData[]
@@ -125,7 +125,7 @@ async function handleSSOStrategy(
 ) {
   try {
     const { userData } = (req.session as SessionWithSsoData).sso ?? {}
-    // Check if the user already has used SSO provider
+    // Check if the user already has used SSO provider.
     const existingFedCred = await FedCredService.getFedCredForUser(
       profile.id,
       profile.issuer
@@ -146,10 +146,10 @@ async function handleSSOStrategy(
       } else if (
         options.isTeacher(profile.userType) &&
         profile.teacher &&
-        options.rosterTeacher
+        options.rosterTeacherFn
       ) {
         // Always update the teacher's classes whenever they sign in.
-        await options.rosterTeacher(
+        await options.rosterTeacherFn(
           existingFedCred.userId,
           profile.teacher.classes,
           profile.teacher.students
@@ -179,7 +179,7 @@ async function handleSSOStrategy(
       })
     }
 
-    // Check if the user already exists, but just hadn't used SSO before
+    // Check if the user already exists, but just hadn't used SSO before.
     const existingUser = await getUserVerificationByEmails(
       email,
       userData?.email
@@ -199,9 +199,9 @@ async function handleSSOStrategy(
       } else if (
         options.isTeacher(profile.userType) &&
         profile.teacher &&
-        options.rosterTeacher
+        options.rosterTeacherFn
       ) {
-        await options.rosterTeacher(
+        await options.rosterTeacherFn(
           existingUser.id,
           profile.teacher.classes,
           profile.teacher.students
@@ -231,8 +231,8 @@ async function handleSSOStrategy(
       return done(null, student)
     } else if (options.isTeacher(profile.userType)) {
       const teacher = await UserCreationService.registerTeacher(data)
-      if (profile.teacher && options.rosterTeacher) {
-        await options.rosterTeacher(
+      if (profile.teacher && options.rosterTeacherFn) {
+        await options.rosterTeacherFn(
           teacher.id,
           profile.teacher.classes,
           profile.teacher.students
@@ -336,7 +336,7 @@ export function addPassportAuthMiddleware() {
         providerName: SsoProviderNames.CLEVER,
         isStudent,
         isTeacher,
-        rosterTeacher: CleverRosterService.rosterTeacherClasses,
+        rosterTeacherFn: CleverRosterService.rosterTeacherClasses,
       })
     })
   )
