@@ -422,6 +422,8 @@ const config: Static<typeof Config> = {
     Number(process.env.PHONE_NUMBER_MODERATION_CONFIDENCE_THRESHOLD) || 0.9,
   contextualModerationConfidenceThreshold:
     Number(process.env.CONTEXTUAL_MODERATION_CONFIDENCE_THRESHOLD) || 50,
+  emailModerationConfidenceThreshold:
+    Number(process.env.EMAIL_MODERATION_CONFIDENCE_THRESHOLD) || 0.8,
   moderateMessageTimeLimitMs:
     Number(process.env.MODERATE_MESSAGE_TIME_LIMIT_MS) || 5 * 1000,
   contextualModerationBatchSize:

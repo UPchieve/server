@@ -354,7 +354,7 @@ export function isSupportedSsoProvider(provider?: string) {
 
 export function getSsoProviderFromRequest(req: Request): SsoProvider | '' {
   const referer = req.headers.referer
-  const queryProvider = asString(req.query.provider)
+  const queryProvider = req.query.provider ? asString(req.query.provider) : ''
 
   if (referer?.includes('clever')) return 'clever'
   if (referer?.includes('classlink')) return 'classlink'

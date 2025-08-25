@@ -679,7 +679,11 @@ async function detectPii(
           confidence: entityConfidence,
         },
       })
-    } else if (entity.Type === 'EMAIL' && !existsInArray(emails, entityText)) {
+    } else if (
+      entity.Type === 'EMAIL' &&
+      !existsInArray(emails, entityText) &&
+      entityConfidence >= config.emailModerationConfidenceThreshold
+    ) {
       emails.push({
         reason: 'Email',
         details: {
