@@ -12,10 +12,10 @@ import * as SessionRepo from '../models/Session'
 import * as VolunteerRepo from '../models/Volunteer'
 import Case from 'case'
 import logger from '../logger'
-import { VERIFICATION_METHOD, SUBJECTS } from '../constants'
+import { VERIFICATION_METHOD } from '../constants'
 import startsWithVowel from '../utils/starts-with-vowel'
 import { Ulid } from '../models/pgUtils'
-import { getSessionById, NotificationData } from '../models/Session'
+import { NotificationData } from '../models/Session'
 import {
   AssociatedPartner,
   getAssociatedPartnerBySponsorOrg,
@@ -23,6 +23,7 @@ import {
 } from '../models/AssociatedPartner'
 import { getSponsorOrgs } from '../models/SponsorOrg'
 import { Jobs } from '../worker/jobs'
+import * as SubjectsService from '../services/SubjectsService'
 
 const protocol = config.NODE_ENV === 'production' ? 'https' : 'http'
 const apiRoot = `${config.protocol}://${config.host}/twiml`
@@ -265,13 +266,12 @@ export async function notifyVolunteer(
     ...notifiedForThisSessionId,
   ]
 
+  const highLevelSubjects = await SubjectsService.getHighLevelSubjects(
+    student.id
+  )
+
   // Prioritize volunteers who do not have high-level subjects to avoid
   // lack of volunteers when high-level subjects are requested
-  const highLevelSubjects = [
-    SUBJECTS.CALCULUS_AB,
-    SUBJECTS.CHEMISTRY,
-    SUBJECTS.STATISTICS,
-  ]
 
   /**
    * 1. Favorite volunteers - not notified in the last 15 mins

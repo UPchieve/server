@@ -194,3 +194,19 @@ export async function getStudentsInitiateDmsFeatureFlag(userId: Ulid) {
 export async function getStudentCreationDisabledFeatureFlag(userId: Ulid) {
   return await isFeatureEnabled(FEATURE_FLAGS.DISABLE_STUDENT_CREATION, userId)
 }
+
+export async function getHighLevelSubjectsFeatureFlag(userId: Ulid) {
+  return await isFeatureEnabled(
+    FEATURE_FLAGS.HIGH_LEVEL_SUBJECTS,
+    userId,
+    5 * 1000
+  )
+}
+
+export async function getHighLevelSubjectsFeatureFlagPayload(userId: Ulid) {
+  return await getFeatureFlagPayload(
+    FEATURE_FLAGS.HIGH_LEVEL_SUBJECTS,
+    userId,
+    5 * 1000
+  )
+}
