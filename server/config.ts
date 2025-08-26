@@ -360,6 +360,12 @@ const config: Static<typeof Config> = {
     process.env.SUBWAY_ASSIGNMENTS_STORAGE_CONTAINER || 'bogus',
   assignmentsFrontdoorHostName:
     process.env.SUBWAY_ASSIGNMENTS_FRONTDOOR_HOSTNAME || 'bogus',
+  sessionsStorageAccountName:
+    process.env.SUBWAY_SESSIONS_STORAGE_ACCOUNT_NAME || 'bogus',
+  sessionsStorageAccountAccessKey:
+    process.env.SUBWAY_SESSIONS_STORAGE_ACCOUNT_ACCESS_KEY || 'bogus',
+  sessionsStorageContainer:
+    process.env.SUBWAY_SESSIONS_STORAGE_CONTAINER || 'bogus',
   version: process.env.SUBWAY_VERSION || 'development',
   fileWorkRootPath: process.env.FILE_WORK_ROOT_PATH || `${__dirname}/tmp`,
   ipWhoIsApiKey: process.env.SUBWAY_IP_WHO_IS_API_KEY || 'bogus',
