@@ -55,12 +55,12 @@ type BedrockInvokeResponse = {
 }
 
 async function imageContentPayload(image: Buffer) {
-  const imageFileType = await getImageFileType(image)
+  const imageFileType = getImageFileType(image)
 
   return {
     type: 'image',
     source: {
-      type: imageFileType?.ext,
+      type: 'base64',
       media_type: imageFileType?.mime,
       data: image.toString('base64'),
     },

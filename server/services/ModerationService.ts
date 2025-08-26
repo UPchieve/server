@@ -175,47 +175,35 @@ async function detectImageEducationPurpose(
         input_schema: {
           type: 'object',
           properties: {
-            subjectConfidence: {
-              type: 'object',
-              properties: {
-                mathScience: {
-                  type: 'number',
-                  description: 'The math and science subject confidence rating',
+            detectedLabels: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  label: {
+                    type: 'string',
+                    description: 'Educational subject detected',
+                  },
+                  confidence: {
+                    type: 'number',
+                    description: 'The confidence rating for the subject',
+                  },
                 },
-                historyGeography: {
-                  type: 'number',
-                  description:
-                    'The history and geography subject confidence rating',
-                },
-                languageArts: {
-                  type: 'number',
-                  description: 'The language arts subject confidence rating',
-                },
-                generalEducation: {
-                  type: 'number',
-                  description:
-                    'The general education subject confidence rating',
-                },
+                required: ['label', 'confidence'],
               },
             },
             reason: {
               type: 'string',
-              description:
-                'The explanation of why the confidence rating was choosen for all subjects',
+              description: 'The explanation of labels were chosen',
             },
           },
-          required: ['subjectConfidence', 'reason'],
+          required: ['detectLabels', 'reason'],
         },
       },
     ]
 
     const response: {
-      subjectConfidence: {
-        mathScience: number
-        languageArts: number
-        generalEducation: number
-        historyGeography: number
-      }
+      detectedLabels: [{ label: string; confidence: number }]
       reason: string
     } = await invokeModel({
       modelId: config.awsBedrockSonnetArnId,
@@ -227,23 +215,36 @@ async function detectImageEducationPurpose(
       },
     })
 
+    debugger
+
     if (generation) {
       generation.end({ output: response })
     }
 
-    const educationalReasons = Object.entries(
-      response.subjectConfidence
-    ).filter(
-      (subject, confidenceScore) =>
-        confidenceScore >= config.imageModerationMinConfidence
+    const nonEducational = response.detectedLabels.find(
+      (category) =>
+        category.label === 'NonEducational' &&
+        category.confidence >= config.imageModerationMinConfidence
     )
 
-    return isEmpty(educationalReasons)
-      ? null
-      : {
-          reason: `"The image doesn't serve any educational purpose"`,
-          details: response.subjectConfidence,
-        }
+    const educationalLabels = response.detectedLabels.filter(
+      (category) =>
+        category.confidence >= config.imageModerationMinConfidence &&
+        category.label !== 'NonEducational'
+    )
+
+    if (
+      isEmpty(response.detectedLabels) ||
+      nonEducational ||
+      isEmpty(educationalLabels)
+    ) {
+      return {
+        reason: `"The image doesn't serve any educational purpose"`,
+        details: response,
+      }
+    }
+
+    return null
   } catch (err) {
     logger.error(
       { sessionId, err },
@@ -1011,7 +1012,7 @@ async function handleImageModerationFailure({
     source,
   })
 
-  logger.warn(
+  logger.info(
     { sessionId, reasons: failureReasons, imageUrl, source, userId },
     'Image triggered moderation'
   )
