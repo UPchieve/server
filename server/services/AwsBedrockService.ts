@@ -67,7 +67,7 @@ async function imageContentPayload(image: Buffer) {
   }
 }
 
-async function textContextPayload(text: string) {
+function textContextPayload(text: string) {
   return { type: 'text', text: `<text>${text}</text>` }
 }
 
@@ -86,7 +86,7 @@ export async function invokeModel({
     payLoadContent.push(textContextPayload(text))
   }
   if (image) {
-    payLoadContent.push(imageContentPayload(image))
+    payLoadContent.push(await imageContentPayload(image))
   }
 
   const payload = {

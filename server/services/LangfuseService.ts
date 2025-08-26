@@ -1,4 +1,4 @@
-import { Langfuse, LangfuseMedia } from 'langfuse-node'
+import { Langfuse } from 'langfuse-node'
 import config from '../config'
 import { timeLimit } from '../utils/time-limit'
 import { ChatPromptClient, TextPromptClient } from 'langfuse-core'
@@ -47,12 +47,5 @@ export async function getPrompt(
     fallbackReturnValue: undefined,
     timeLimitReachedErrorMessage: `Time limit reached when fetching Langfuse prompt ${promptName}`,
     waitInMs,
-  })
-}
-
-export function langfuseMedia(image) {
-  const wrappedMedia = new LangfuseMedia({
-    contentBytes: fs.readFileSync('./static/bitcoin.pdf'),
-    contentType: 'application/pdf',
   })
 }

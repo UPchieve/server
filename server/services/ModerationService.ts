@@ -175,22 +175,28 @@ async function detectImageEducationPurpose(
         input_schema: {
           type: 'object',
           properties: {
-            mathScience: {
-              type: 'number',
-              description: 'The math and science subject confidence rating',
-            },
-            historyGeography: {
-              type: 'number',
-              description:
-                'The history and geography subject confidence rating',
-            },
-            languageArts: {
-              type: 'number',
-              description: 'The language arts subject confidence rating',
-            },
-            generalEducation: {
-              type: 'number',
-              description: 'The general education subject confidence rating',
+            subjectConfidence: {
+              type: 'object',
+              properties: {
+                mathScience: {
+                  type: 'number',
+                  description: 'The math and science subject confidence rating',
+                },
+                historyGeography: {
+                  type: 'number',
+                  description:
+                    'The history and geography subject confidence rating',
+                },
+                languageArts: {
+                  type: 'number',
+                  description: 'The language arts subject confidence rating',
+                },
+                generalEducation: {
+                  type: 'number',
+                  description:
+                    'The general education subject confidence rating',
+                },
+              },
             },
             reason: {
               type: 'string',
@@ -198,13 +204,7 @@ async function detectImageEducationPurpose(
                 'The explanation of why the confidence rating was choosen for all subjects',
             },
           },
-          required: [
-            'mathScience',
-            'historyGeography',
-            'languageArts',
-            'generalEducation',
-            'reason',
-          ],
+          required: ['subjectConfidence', 'reason'],
         },
       },
     ]
