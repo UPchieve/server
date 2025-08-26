@@ -1,6 +1,6 @@
 import * as SessionmeetingsService from '../services/SessionMeetingService'
-import crypto from 'crypto'
 import moment from 'moment'
+import { v4 as uuidv4 } from 'uuid'
 import * as cache from '../cache'
 import { Ulid, Uuid } from '../models/pgUtils'
 import config from '../config'
@@ -40,7 +40,7 @@ import {
   updateSessionReviewReasonsById,
 } from '../models/Session'
 import * as SessionRepo from '../models/Session'
-import { UserContactInfo, UserRole } from '../models/User'
+import { UserContactInfo } from '../models/User'
 import * as UserRepo from '../models/User'
 import {
   createAccountAction,
@@ -62,7 +62,6 @@ import SocketService from './SocketService'
 import * as TwilioService from './TwilioService'
 import { beginRegularNotifications } from './TwilioService'
 import * as WhiteboardService from './WhiteboardService'
-import * as VoiceMessageService from './VoiceMessageService'
 import { getUserAgentInfo } from '../utils/parse-user-agent'
 import { getSubjectAndTopic } from '../models/Subjects'
 import {
@@ -73,7 +72,6 @@ import {
 import { getStudentPartnerInfoById } from '../models/Student'
 import * as Y from 'yjs'
 import { TransactionClient, runInTransaction, getClient } from '../db'
-import { getDbUlid } from '../models/pgUtils'
 import * as SessionAudioRepo from '../models/SessionAudio'
 import { SessionMessageType } from '../router/api/sockets'
 import * as TeacherService from './TeacherService'
@@ -82,7 +80,8 @@ import { processReportMetrics } from './SessionFlagsService'
 import * as SurveyService from './SurveyService'
 import { SessionUserRole } from './UserRolesService'
 import * as FeatureFlagsService from './FeatureFlagService'
-import { isStudent } from './CleverAPIService'
+import { createBlobSasUrl } from './AzureService'
+import { isDevEnvironment } from '../utils/environments'
 
 export async function reviewSession(data: unknown) {
   const { sessionId, reviewed, toReview } =
@@ -517,21 +516,29 @@ export async function getStaleSessions(staleThreshold = 43200000) {
   )
 }
 
-export async function getSessionPhotoUploadUrl(sessionId: Ulid) {
-  const sessionPhotoS3Key = `${sessionId}${crypto
-    .randomBytes(8)
-    .toString('hex')}`
-  await SessionRepo.updateSessionPhotoKey(sessionId, sessionPhotoS3Key)
-  return sessionPhotoS3Key
+export async function storeSessionPhotoKey(sessionId: Uuid) {
+  const sessionPhotoKey = uuidv4()
+  await SessionRepo.updateSessionPhotoKey(sessionId, sessionPhotoKey)
+  return sessionPhotoKey
 }
 
 export async function getImageAndUploadUrl(data: unknown) {
   const sessionId = asString(data)
-  const sessionPhotoS3Key = await getSessionPhotoUploadUrl(sessionId)
-  const uploadUrl = await AwsService.getSessionPhotoUploadUrl(sessionPhotoS3Key)
-  const bucketName = config.awsS3.sessionPhotoBucket
-  const imageUrl = `https://${bucketName}.s3.amazonaws.com/${sessionPhotoS3Key}`
-  return { uploadUrl, imageUrl }
+  const session = await SessionRepo.getSessionById(sessionId)
+  const sessionPhotoKey = await storeSessionPhotoKey(sessionId)
+
+  if (sessionUtils.isSubjectUsingDocumentEditor(session.toolType)) {
+    const { uploadUrl, imageUrl } = await createSessionImageUploadUrl(
+      sessionId,
+      sessionPhotoKey
+    )
+    return { uploadUrl, imageUrl }
+  } else {
+    const uploadUrl = await AwsService.getSessionPhotoUploadUrl(sessionPhotoKey)
+    const bucketName = config.awsS3.sessionPhotoBucket
+    const imageUrl = `https://${bucketName}.s3.amazonaws.com/${sessionPhotoKey}`
+    return { uploadUrl, imageUrl }
+  }
 }
 
 export async function adminFilteredSessions(data: unknown) {
@@ -1271,4 +1278,41 @@ export async function getSessionTranscript(
     sessionId,
     messages,
   }
+}
+
+function buildSessionImagePath(sessionId: Uuid, fileName: string): string {
+  return `${sessionId}/images/${fileName}`
+}
+
+export async function createSessionImageUploadUrl(
+  sessionId: Uuid,
+  fileName: string
+) {
+  const filePath = buildSessionImagePath(sessionId, fileName)
+  const uploadUrl = await createBlobSasUrl(
+    config.sessionsStorageAccountName,
+    config.sessionsStorageAccountAccessKey,
+    config.sessionsStorageContainer,
+    filePath,
+    { expiresInSeconds: 10 * 60, permissions: 'cw' }
+  )
+
+  const host = isDevEnvironment()
+    ? `http://localhost:3000`
+    : `${config.protocol}://${config.host}`
+  const imageUrl = `${host}/api/sessions/${filePath}`
+  return { uploadUrl, imageUrl }
+}
+
+export async function getSessionImageUrl(sessionId: Uuid, fileName: string) {
+  const filePath = buildSessionImagePath(sessionId, fileName)
+  const blobUrl = await createBlobSasUrl(
+    config.sessionsStorageAccountName,
+    config.sessionsStorageAccountAccessKey,
+    config.sessionsStorageContainer,
+    filePath,
+    // TTL of 2 hours
+    { expiresInSeconds: 2 * 60 * 60, permissions: 'r' }
+  )
+  return blobUrl
 }

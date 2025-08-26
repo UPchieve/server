@@ -23,6 +23,7 @@ import {
   PrimaryUserRole,
   SessionUserRole,
 } from '../../services/UserRolesService'
+import { getSessionImageUrl } from '../../services/SessionService'
 
 export function routeSession(router: Router) {
   // io is now passed to this module so that API events can trigger socket events as needed
@@ -487,4 +488,12 @@ export function routeSession(router: Router) {
       }
     }
   )
+
+  router.get('/sessions/:sessionId/images/:fileName', async (req, res) => {
+    const { sessionId, fileName } = req.params
+    const photoUrl = await getSessionImageUrl(sessionId, fileName)
+    if (!photoUrl) return res.sendStatus(404)
+    res.set('Cache-Control', 'private, max-age=300')
+    res.redirect(302, photoUrl)
+  })
 }
