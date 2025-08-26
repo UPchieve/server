@@ -349,7 +349,6 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               message,
               source,
               type,
-              transcript,
               saidAt,
               zoomMessageId,
               msgId,
@@ -381,9 +380,8 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               return resolve()
             }
 
-            const createdAt = new Date()
+            const createdAt = data.createdAt ?? new Date()
             let sanitizedMessage: string | undefined = undefined
-            let messageIsUnclean = false
             // TODO: correctly type user from payload
             const saveMessageData: {
               sessionId: Ulid
@@ -408,7 +406,6 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
                 source: 'audio_transcription',
               })
               if (!result.isClean) {
-                messageIsUnclean = true
                 const sanitized = (
                   result as SanitizedTranscriptModerationResult
                 ).sanitizedTranscript
