@@ -2,5 +2,5 @@ import { getBlockedEmailDomainByDomain } from '../models/EmailDomainBlockList/qu
 
 export async function isEmailDomainBlocked(domain: string) {
   const result = await getBlockedEmailDomainByDomain(domain)
-  return result ? true : false
+  return !!result
 }
