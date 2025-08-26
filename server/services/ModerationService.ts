@@ -215,8 +215,6 @@ async function detectImageEducationPurpose(
       },
     })
 
-    debugger
-
     if (generation) {
       generation.end({ output: response })
     }

@@ -44,7 +44,6 @@ export function routeModeration(router: Router): void {
       }
 
       try {
-        debugger
         const moderationResult = await ModerationService.moderateImage({
           image: imageToModerate.buffer,
           sessionId,
