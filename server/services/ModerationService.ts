@@ -99,7 +99,8 @@ export enum LangfuseGenerationName {
   DETECT_TOXICITY_IN_TEXT = 'detectToxicityInText',
   DETECT_MODERATION_LABELS = 'detectModerationLabels',
   DETECT_FACES = 'detectFaces',
-  DETECT_LABELS = 'detectLabels',
+  DETECT_PERSON = 'detectPerson',
+  DETECT_MINORS = 'detectMinors',
   IS_IMAGE_EDUCATIONAL = 'is-image-educational',
 }
 
@@ -263,7 +264,7 @@ async function detectPersonInImage(
 
     if (trace) {
       generation = trace.generation({
-        name: `DETECT_PERSON_${LangfuseGenerationName.DETECT_MODERATION_LABELS}`,
+        name: LangfuseGenerationName.DETECT_PERSON,
       })
     }
 
@@ -359,7 +360,7 @@ async function detectMinorFailures(image: Buffer, trace?: LangfuseTraceClient) {
   let generation: LangfuseGenerationClient | undefined = undefined
   if (trace) {
     generation = trace.generation({
-      name: `DETECT_MINORS_${LangfuseGenerationName.DETECT_FACES}`,
+      name: LangfuseGenerationName.DETECT_FACES,
     })
   }
   const facesResponse = await awsRekognitionClient.send(
@@ -394,7 +395,7 @@ async function detectMinorFailures(image: Buffer, trace?: LangfuseTraceClient) {
   // but we want to handle the case where faces are not in the image
   if (trace) {
     generation = trace.generation({
-      name: `DETECT_MINORS_${LangfuseGenerationName.DETECT_LABELS}`,
+      name: LangfuseGenerationName.DETECT_MINORS,
     })
   }
   const labelResponse = await awsRekognitionClient.send(
