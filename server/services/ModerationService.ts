@@ -263,7 +263,7 @@ async function detectPersonInImage(
 
     if (trace) {
       generation = trace.generation({
-        name: `DETECT_PERSON_LangfuseGenerationName.DETECT_MODERATION_LABELS`,
+        name: `DETECT_PERSON_${LangfuseGenerationName.DETECT_MODERATION_LABELS}`,
       })
     }
 
