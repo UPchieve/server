@@ -1,5 +1,11 @@
 import { ClientSecretCredential } from '@azure/identity'
-import { BlobServiceClient } from '@azure/storage-blob'
+import {
+  BlobServiceClient,
+  BlobSASPermissions,
+  SASProtocol,
+  generateBlobSASQueryParameters,
+  StorageSharedKeyCredential,
+} from '@azure/storage-blob'
 import config from '../config'
 
 const azureStorageCredential = new ClientSecretCredential(
@@ -20,6 +26,13 @@ const blobClients = new Map<string, BlobServiceClient>([
     config.assignmentsStorageAccountName,
     new BlobServiceClient(
       `https://${config.assignmentsFrontdoorHostName}.z02.azurefd.net`,
+      azureStorageCredential
+    ),
+  ],
+  [
+    config.sessionsStorageAccountName,
+    new BlobServiceClient(
+      `https://${config.sessionsStorageAccountName}.blob.core.windows.net`,
       azureStorageCredential
     ),
   ],
@@ -130,4 +143,42 @@ export async function uploadBlobFile(
     console.error('Full upload error:', error)
     throw error
   }
+}
+
+type CreateBlobSasUrlOptions = {
+  // Examples: 'r' (read), 'c' (create), 'cw' (create, write), 'rwd' (read, write, delete)
+  permissions: string
+  expiresInSeconds?: number
+}
+
+export async function createBlobSasUrl(
+  storageAccountName: string,
+  storageAccountAccessKey: string,
+  containerName: string,
+  blobName: string,
+  { expiresInSeconds = 10 * 60, permissions }: CreateBlobSasUrlOptions
+): Promise<string> {
+  const service = getBlobClient(storageAccountName)
+  const container = service.getContainerClient(containerName)
+  const blob = container.getBlockBlobClient(blobName)
+  const startsOn = new Date(Date.now() - 5 * 60 * 1000)
+  const expiresOn = new Date(Date.now() + expiresInSeconds * 1000)
+  const cred = new StorageSharedKeyCredential(
+    storageAccountName,
+    storageAccountAccessKey
+  )
+  const sas = generateBlobSASQueryParameters(
+    {
+      containerName,
+      blobName,
+      permissions: BlobSASPermissions.parse(permissions),
+      protocol: SASProtocol.Https,
+      startsOn,
+      expiresOn,
+    },
+    cred
+  ).toString()
+
+  const sasUrl = `${blob.url}?${sas}`
+  return sasUrl
 }
