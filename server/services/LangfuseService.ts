@@ -1,4 +1,4 @@
-import { Langfuse } from 'langfuse-node'
+import { Langfuse, LangfuseMedia } from 'langfuse-node'
 import config from '../config'
 import { timeLimit } from '../utils/time-limit'
 import { ChatPromptClient, TextPromptClient } from 'langfuse-core'
@@ -28,6 +28,7 @@ export enum LangfusePromptNameEnum {
   GET_ADDRESS_DETECTION_MODERATION_DECISION = 'get-address-detection-moderation-decision',
   SESSION_SUMMARY_TEACHER_PROMPT = 'session-summary-teacher-prompt',
   GET_QUESTIONABLE_LINK_MODERATION_DECISION = 'get-questionable-link-moderation-decision',
+  IS_IMAGE_EDUCATIONAL = 'is-image-for-educational-use',
 }
 
 export enum LangfuseTraceTagEnum {
@@ -46,5 +47,12 @@ export async function getPrompt(
     fallbackReturnValue: undefined,
     timeLimitReachedErrorMessage: `Time limit reached when fetching Langfuse prompt ${promptName}`,
     waitInMs,
+  })
+}
+
+export function langfuseMedia(image) {
+  const wrappedMedia = new LangfuseMedia({
+    contentBytes: fs.readFileSync('./static/bitcoin.pdf'),
+    contentType: 'application/pdf',
   })
 }

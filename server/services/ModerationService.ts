@@ -54,11 +54,16 @@ import {
 import crypto from 'crypto'
 import { putObject } from './AwsService'
 import * as ShareableDomainsRepo from '../models/ShareableDomains/queries'
-import { invokeModel, BedrockToolChoice } from './AwsBedrockService'
+import {
+  invokeModel,
+  BedrockToolChoice,
+  BedrockTools,
+} from './AwsBedrockService'
 import { LangfuseTraceClient } from 'langfuse-node'
 import { ModerationInfraction } from '../models/ModerationInfractions/types'
 import { getClient, runInTransaction, TransactionClient } from '../db'
 import { PrimaryUserRole } from './UserRolesService'
+
 import { LangfuseGenerationClient } from 'langfuse'
 
 const MINOR_AGE_THRESHOLD = 18
@@ -95,6 +100,7 @@ export enum LangfuseGenerationName {
   DETECT_MODERATION_LABELS = 'detectModerationLabels',
   DETECT_FACES = 'detectFaces',
   DETECT_LABELS = 'detectLabels',
+  IS_IMAGE_EDUCATIONAL = 'is-image-educational',
 }
 
 // Image moderation
@@ -140,6 +146,163 @@ export type ModerationSource =
 const DIRECT_MESSAGE_TAG = 'direct_message'
 const MESSAGE_TAG = 'session_chat'
 const WHITEBOARD_TEXT_TAG = 'whiteboard_text'
+
+async function detectImageEducationPurpose(
+  image: Buffer,
+  sessionId: string,
+  trace?: LangfuseTraceClient
+): Promise<ImageModerationFailureReason | null> {
+  try {
+    const prompt = await getPromptData(
+      LangfusePromptNameEnum.IS_IMAGE_EDUCATIONAL,
+      ''
+    )
+    if (isEmpty(prompt)) throw Error("Couldn't get prompt")
+
+    let generation: LangfuseGenerationClient | undefined = undefined
+    if (trace) {
+      generation = trace.generation({
+        name: `DETECT_PERSON_${LangfuseGenerationName.IS_IMAGE_EDUCATIONAL}`,
+        prompt: prompt.promptObject,
+        model: config.awsBedrockSonnetArnId,
+      })
+    }
+
+    const response_tool: BedrockTools = [
+      {
+        name: 'json_response',
+        description: 'Prints answer in json format',
+        input_schema: {
+          type: 'object',
+          properties: {
+            mathScience: {
+              type: 'number',
+              description: 'The math and science subject confidence rating',
+            },
+            historyGeography: {
+              type: 'number',
+              description:
+                'The history and geography subject confidence rating',
+            },
+            languageArts: {
+              type: 'number',
+              description: 'The language arts subject confidence rating',
+            },
+            generalEducation: {
+              type: 'number',
+              description: 'The general education subject confidence rating',
+            },
+            reason: {
+              type: 'string',
+              description:
+                'The explanation of why the confidence rating was choosen for all subjects',
+            },
+          },
+          required: [
+            'mathScience',
+            'historyGeography',
+            'languageArts',
+            'generalEducation',
+            'reason',
+          ],
+        },
+      },
+    ]
+
+    const response: {
+      subjectConfidence: {
+        mathScience: number
+        languageArts: number
+        generalEducation: number
+        historyGeography: number
+      }
+      reason: string
+    } = await invokeModel({
+      modelId: config.awsBedrockSonnetArnId,
+      image: image,
+      prompt: prompt.prompt,
+      tools_option: {
+        tool_choice: { type: BedrockToolChoice.TOOL, name: 'json_response' },
+        tools: response_tool,
+      },
+    })
+
+    if (generation) {
+      generation.end({ output: response })
+    }
+
+    const educationalReasons = Object.entries(
+      response.subjectConfidence
+    ).filter(
+      (subject, confidenceScore) =>
+        confidenceScore >= config.imageModerationMinConfidence
+    )
+
+    return isEmpty(educationalReasons)
+      ? null
+      : {
+          reason: `"The image doesn't serve any educational purpose"`,
+          details: response.subjectConfidence,
+        }
+  } catch (err) {
+    logger.error(
+      { sessionId, err },
+      'Failed to detect if image is for educational purposes'
+    )
+    throw new Error(
+      `Failed to detect if image is for educational purposes ${sessionId}`
+    )
+  }
+}
+async function detectPersonInImage(
+  image: Buffer,
+  sessionId: string,
+  trace?: LangfuseTraceClient
+) {
+  try {
+    let generation: LangfuseGenerationClient | undefined = undefined
+
+    if (trace) {
+      generation = trace.generation({
+        name: `DETECT_PERSON_LangfuseGenerationName.DETECT_MODERATION_LABELS`,
+      })
+    }
+
+    const labelResponse = await awsRekognitionClient.send(
+      new DetectLabelsCommand({
+        Image: {
+          Bytes: image as Uint8Array,
+        },
+        MinConfidence: config.imageModerationMinConfidence,
+        Settings: {
+          GeneralLabels: {
+            LabelInclusionFilters: ['Person'],
+          },
+        },
+      })
+    )
+
+    if (generation) {
+      generation.end({ output: labelResponse })
+    }
+
+    const labels = labelResponse.Labels ?? []
+    const labelFailures = labels.map((label) => ({
+      reason: `Person detected in image`,
+      details: {
+        label: label.Name,
+        confidence: label.Confidence,
+      },
+    }))
+
+    return labelFailures
+  } catch (err) {
+    logger.error({ sessionId, err }, 'Failed to detect a person in image')
+    throw new Error(
+      `Failed to detect a person in image for session ${sessionId}`
+    )
+  }
+}
 
 /*
   detect harmful content in the image
@@ -197,7 +360,7 @@ async function detectMinorFailures(image: Buffer, trace?: LangfuseTraceClient) {
   let generation: LangfuseGenerationClient | undefined = undefined
   if (trace) {
     generation = trace.generation({
-      name: LangfuseGenerationName.DETECT_FACES,
+      name: `DETECT_MINORS_${LangfuseGenerationName.DETECT_FACES}`,
     })
   }
   const facesResponse = await awsRekognitionClient.send(
@@ -232,7 +395,7 @@ async function detectMinorFailures(image: Buffer, trace?: LangfuseTraceClient) {
   // but we want to handle the case where faces are not in the image
   if (trace) {
     generation = trace.generation({
-      name: LangfuseGenerationName.DETECT_LABELS,
+      name: `DETECT_MINORS_${LangfuseGenerationName.DETECT_LABELS}`,
     })
   }
   const labelResponse = await awsRekognitionClient.send(
@@ -459,7 +622,7 @@ async function checkForFullAddresses({
     sessionId,
   })
 
-  const VERIFY_EMAIL_RESPONSE_TOOL = [
+  const VERIFY_EMAIL_RESPONSE_TOOL: BedrockTools = [
     {
       name: 'json_response',
       description: 'Prints answer in json format',
@@ -567,7 +730,7 @@ async function checkForQuestionableLinks({
     ...(promptData.promptObject && { prompt: promptData.promptObject }),
   })
 
-  const QUESTIONABLE_LINKS_RESPONSE_TOOL = [
+  const QUESTIONABLE_LINKS_RESPONSE_TOOL: BedrockTools = [
     {
       name: 'json_response',
       description: 'Prints answer in json format',
@@ -943,11 +1106,30 @@ async function getAllImageModerationFailures({
     moderationFailureReasons,
     minorFailures,
     textModerationFailureReasons,
+    detectPersonResponse,
   ] = await Promise.all([
     detectImageModerationFailures(image, trace, sessionId),
     detectMinorFailures(image, trace),
     detectTextModerationFailures(image, sessionId, isVolunteer, trace),
+    detectPersonInImage(image, sessionId, trace),
   ])
+
+  if (
+    isEmpty(moderationFailureReasons) &&
+    isEmpty(minorFailures) &&
+    isEmpty(textModerationFailureReasons) &&
+    !isEmpty(detectPersonResponse)
+  ) {
+    const noEducationalContext = await detectImageEducationPurpose(
+      image,
+      sessionId,
+      trace
+    )
+
+    if (noEducationalContext) {
+      return { failureReasons: [noEducationalContext] }
+    }
+  }
 
   return {
     failureReasons: [
