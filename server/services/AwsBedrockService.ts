@@ -54,7 +54,7 @@ type BedrockInvokeResponse = {
   content: Array<{ input?: Object; text?: string }>
 }
 
-async function imageContentPayload(image: Buffer) {
+function imageContentPayload(image: Buffer) {
   const imageFileType = getImageFileType(image)
 
   return {
@@ -86,7 +86,7 @@ export async function invokeModel({
     payLoadContent.push(textContextPayload(text))
   }
   if (image) {
-    payLoadContent.push(await imageContentPayload(image))
+    payLoadContent.push(imageContentPayload(image))
   }
 
   const payload = {
