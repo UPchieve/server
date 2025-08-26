@@ -97,6 +97,7 @@ jest.mock('../config', () => {
     cacheKeys: {
       updateTotalVolunteerHoursLastRun: 'UPDATE_TOTAL_VOLUNTEER_HOURS_LAST_RUN',
     },
+    highLevelSubjectsCacheTtl: 10 * 60 * 1000,
 
     logLevel: 'info',
 

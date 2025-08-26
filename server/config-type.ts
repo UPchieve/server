@@ -167,6 +167,7 @@ export const Config = Record({
     waitTimeHeatMapAllSubjects: String,
     userRoleContextPrefix: String,
   }),
+  highLevelSubjectsCacheTtl: Number,
 
   // Sentry Data Source Name
   sentryDsn: String,

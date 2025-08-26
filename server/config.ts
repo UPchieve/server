@@ -244,6 +244,8 @@ const config: Static<typeof Config> = {
     waitTimeHeatMapAllSubjects: 'WAIT_TIME_HEAT_MAP_ALL_SUBJECTS',
     userRoleContextPrefix: 'USER_ROLE_CONTEXT-',
   },
+  highLevelSubjectsCacheTtl:
+    Number(process.env.SUBWAY_HIGH_LEVEL_SUBJECTS_CACHE_TTL) || 10 * 60 * 1000,
 
   // Sentry Data Source Name
   sentryDsn: process.env.SUBWAY_SENTRY_DSN || '',

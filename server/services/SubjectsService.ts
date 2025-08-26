@@ -5,7 +5,13 @@ import Case from 'case'
 import { TransactionClient } from '../db'
 import { SUBJECTS } from '../constants'
 import { Ulid } from '../models/pgUtils'
+import * as CacheService from '../cache'
+import config from '../config'
+import logger from '../logger'
 
+export const HIGH_LEVEL_SUBJECTS_ENABLED_CACHE_KEY =
+  'high-level-subjects-enabled'
+export const HIGH_LEVEL_SUBJECTS_VALUE_CACHE_KEY = 'high-level-subjects'
 export const DEFAULT_HIGH_LEVEL_SUBJECTS = [
   SUBJECTS.CALCULUS_AB,
   SUBJECTS.CHEMISTRY,
@@ -56,16 +62,57 @@ export async function getSubjectsWithTopic() {
   return SubjectsRepo.getSubjectsWithTopic()
 }
 
-export async function getHighLevelSubjects(userId: Ulid) {
-  const isEnabled =
-    await FeatureFlagService.getHighLevelSubjectsFeatureFlag(userId)
-  if (!isEnabled) {
+export async function getHighLevelSubjects(userId: Ulid): Promise<SUBJECTS[]> {
+  /*
+  For performance reasons, attempt to read from the cache first.
+  High Level Subjects has enabled/disabled status as well as a list of subjects.
+  When disabled, use a default list.
+   */
+  try {
+    const isEnabledCache = await CacheService.getIfExists(
+      HIGH_LEVEL_SUBJECTS_ENABLED_CACHE_KEY
+    )
+    if (isEnabledCache && isEnabledCache.toLowerCase() === 'true') {
+      return getAndMaybeSetHighLevelSubjects(userId)
+    }
+    const isEnabledFeatureFlag =
+      await FeatureFlagService.getHighLevelSubjectsFeatureFlag(userId)
+    const isEnabled = isEnabledFeatureFlag ?? false
+    await CacheService.saveWithExpiration(
+      HIGH_LEVEL_SUBJECTS_ENABLED_CACHE_KEY,
+      JSON.stringify(isEnabled),
+      config.highLevelSubjectsCacheTtl
+    )
+    if (!isEnabled) {
+      return DEFAULT_HIGH_LEVEL_SUBJECTS
+    }
+    return await getAndMaybeSetHighLevelSubjects(userId)
+  } catch (err) {
+    logger.error(
+      { err },
+      'Failed to fetch high level subjects. Using default list'
+    )
     return DEFAULT_HIGH_LEVEL_SUBJECTS
   }
-  const featureFlagResponse =
+}
+
+async function getAndMaybeSetHighLevelSubjects(
+  userId: Ulid
+): Promise<SUBJECTS[]> {
+  const cacheValue = await CacheService.getIfExists(
+    HIGH_LEVEL_SUBJECTS_VALUE_CACHE_KEY
+  )
+  if (cacheValue) {
+    return JSON.parse(cacheValue)
+  }
+  const highLevelSubjectsFeatureFlag =
     await FeatureFlagService.getHighLevelSubjectsFeatureFlagPayload(userId)
-  if (!featureFlagResponse) {
-    return DEFAULT_HIGH_LEVEL_SUBJECTS
-  }
-  return featureFlagResponse
+  const highLevelSubjects =
+    highLevelSubjectsFeatureFlag ?? DEFAULT_HIGH_LEVEL_SUBJECTS
+  await CacheService.saveWithExpiration(
+    HIGH_LEVEL_SUBJECTS_VALUE_CACHE_KEY,
+    JSON.stringify(highLevelSubjects),
+    config.highLevelSubjectsCacheTtl
+  )
+  return highLevelSubjects
 }

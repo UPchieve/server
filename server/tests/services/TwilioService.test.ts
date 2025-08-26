@@ -7,6 +7,7 @@ import * as SubjectsService from '../../services/SubjectsService'
 import { buildStudent, buildSession, buildVolunteer } from '../mocks/generate'
 
 import { getDbUlid } from '../../models/pgUtils'
+import { SUBJECTS } from '../../constants'
 
 jest.mock('../../models/Session/queries')
 jest.mock('../../models/Student/queries')
@@ -32,7 +33,9 @@ const buildStudentAndSession = async () => {
 
 beforeEach(async () => {
   jest.resetAllMocks()
-  mockSubjectService.getHighLevelSubjects.mockResolvedValue(['calculusAB'])
+  mockSubjectService.getHighLevelSubjects.mockResolvedValue([
+    SUBJECTS.CALCULUS_AB,
+  ])
 })
 
 describe('Muted subjects tests', () => {
@@ -67,10 +70,9 @@ describe('notifyVolunteer', () => {
 
     const session = await buildStudentAndSession()
     const testHighLevelSubjects = [
-      'calculusAB',
-      'statistics',
-      'chemistry',
-      'test',
+      SUBJECTS.CALCULUS_AB,
+      SUBJECTS.STATISTICS,
+      SUBJECTS.CHEMISTRY,
     ]
     mockSubjectService.getHighLevelSubjects.mockResolvedValue(
       testHighLevelSubjects
