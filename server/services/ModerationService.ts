@@ -1304,6 +1304,7 @@ export const handleModerationInfraction = async (
     source,
     occurredAt: new Date(),
     stopStreamImmediately: doLiveMediaBan || streamStoppingReasons.length > 0,
+    stopStreamImmediatelyReasons: streamStoppingReasons,
   })
 }
 
@@ -1333,7 +1334,6 @@ export function getScoreForCategory(
   switch (category.toLowerCase()) {
     case 'profanity':
     case 'high toxicity':
-    case 'minor detected in image':
     case 'drugs & tobacco':
     case 'alcohol':
     case 'rude gestures':
@@ -1342,15 +1342,18 @@ export function getScoreForCategory(
       break
     case 'violence':
     case 'swimwear or underwear':
-    case 'link':
-    case 'email':
-    case 'phone':
-    case 'address':
     case 'explicit':
     case 'non-explicit nudity of intimate parts and kissing':
     case 'hate symbols':
     case 'visually disturbing':
       categoryScore = 10
+      break
+    case 'link':
+    case 'email':
+    case 'phone':
+    case 'address':
+    case 'minor detected in image':
+      categoryScore = 4
       break
   }
   if (!categoryScore) {

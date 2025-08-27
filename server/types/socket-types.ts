@@ -69,6 +69,7 @@ export type ServerToClientEvents = {
     source: string
     occurredAt: Date
     stopStreamImmediately: boolean
+    stopStreamImmediatelyReasons?: string[]
   }) => void
 }
 
