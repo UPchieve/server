@@ -1274,6 +1274,7 @@ export const handleModerationInfraction = async (
       userId,
       {
         active: true,
+        sessionId,
       },
       client
     )
