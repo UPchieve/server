@@ -518,6 +518,7 @@ describe('ModerationService', () => {
           userId,
           {
             active: true,
+            sessionId,
           },
           expect.anything()
         )
