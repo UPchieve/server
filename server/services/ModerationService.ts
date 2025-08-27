@@ -1278,7 +1278,8 @@ export const handleModerationInfraction = async (
       },
       client
     )
-  const infractionScore = getInfractionScore(allActiveInfractions)
+  const { infractionScore, streamStoppingReasons } =
+    weighSessionInfractions(allActiveInfractions)
   const doLiveMediaBan =
     infractionScore >= config.liveMediaBanInfractionScoreThreshold
   const socketService = await SocketService.getInstance()
@@ -1296,11 +1297,13 @@ export const handleModerationInfraction = async (
   }
 
   const failures: string[] = [...new Set<string>(Object.keys(reasons.failures))]
+
   await socketService.emitModerationInfractionEvent(userId, {
     isBanned: doLiveMediaBan,
     infraction: failures,
     source,
     occurredAt: new Date(),
+    stopStreamImmediately: doLiveMediaBan || streamStoppingReasons.length > 0,
   })
 }
 
@@ -1359,15 +1362,40 @@ export function getScoreForCategory(
   return categoryScore
 }
 
-export function getInfractionScore(
-  infractions: ModerationInfraction[]
-): number {
-  const reasons = infractions.flatMap((i) => Object.keys(i.reason))
+export function isStreamStoppingReason(
+  category: LiveMediaModerationCategories | string
+): boolean {
+  const streamStoppingReasons = [
+    'minor detected in image',
+    'swimwear or underwear',
+    'link',
+    'email',
+    'phone',
+    'address',
+    'explicit',
+    'non-explicit nudity of intimate parts and kissing',
+  ]
+  return streamStoppingReasons.includes(category.toLowerCase())
+}
 
-  return reasons.reduce((acc, current) => {
+export function weighSessionInfractions(infractions: ModerationInfraction[]): {
+  infractionScore: number
+  streamStoppingReasons: string[]
+} {
+  const reasons = infractions.flatMap((i) => Object.keys(i.reason))
+  const streamStoppingReasons: string[] = []
+
+  const infractionScore = reasons.reduce((acc, current) => {
     const categoryScore = getScoreForCategory(current)
+    if (isStreamStoppingReason(current)) {
+      streamStoppingReasons.push(current)
+    }
     return acc + categoryScore
   }, 0)
+  return {
+    infractionScore,
+    streamStoppingReasons,
+  }
 }
 
 export type CleanTranscriptModerationResult = {

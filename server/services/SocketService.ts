@@ -150,6 +150,7 @@ class SocketService {
       infraction: string[]
       source: string
       occurredAt: Date
+      stopStreamImmediately: boolean
     }
   ): Promise<void> {
     this.io.to(userId).emit('moderation-infraction', data)
