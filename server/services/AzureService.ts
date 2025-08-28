@@ -145,24 +145,31 @@ export async function uploadBlobFile(
   }
 }
 
+type PermissionChar = 'r' | 'c' | 'w'
+
 type CreateBlobSasUrlOptions = {
-  // Examples: 'r' (read), 'c' (create), 'cw' (create, write), 'rwd' (read, write, delete)
-  permissions: string
+  permissions: ReadonlyArray<PermissionChar>
   expiresInSeconds?: number
 }
 
-export async function createBlobSasUrl(
+const MS_PER_SECOND = 1000
+const SECONDS_PER_MINUTE = 60
+const DEFAULT_EXPIRES_IN_SECONDS = 3 * SECONDS_PER_MINUTE
+
+export function createBlobSasUrl(
   storageAccountName: string,
   storageAccountAccessKey: string,
   containerName: string,
   blobName: string,
-  { expiresInSeconds = 10 * 60, permissions }: CreateBlobSasUrlOptions
-): Promise<string> {
+  {
+    permissions,
+    expiresInSeconds = DEFAULT_EXPIRES_IN_SECONDS,
+  }: CreateBlobSasUrlOptions
+): string {
   const service = getBlobClient(storageAccountName)
   const container = service.getContainerClient(containerName)
   const blob = container.getBlockBlobClient(blobName)
-  const startsOn = new Date(Date.now() - 5 * 60 * 1000)
-  const expiresOn = new Date(Date.now() + expiresInSeconds * 1000)
+  const expiresOn = new Date(Date.now() + expiresInSeconds * MS_PER_SECOND)
   const cred = new StorageSharedKeyCredential(
     storageAccountName,
     storageAccountAccessKey
@@ -171,9 +178,8 @@ export async function createBlobSasUrl(
     {
       containerName,
       blobName,
-      permissions: BlobSASPermissions.parse(permissions),
+      permissions: BlobSASPermissions.parse(permissions.join('')),
       protocol: SASProtocol.Https,
-      startsOn,
       expiresOn,
     },
     cred
