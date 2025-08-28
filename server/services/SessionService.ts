@@ -528,7 +528,7 @@ export async function getImageAndUploadUrl(data: unknown) {
   const sessionPhotoKey = await storeSessionPhotoKey(sessionId)
 
   if (sessionUtils.isSubjectUsingDocumentEditor(session.toolType)) {
-    const { uploadUrl, imageUrl } = await createSessionImageUploadUrl(
+    const { uploadUrl, imageUrl } = await createDocEditorImageUploadUrl(
       sessionId,
       sessionPhotoKey
     )
@@ -1284,35 +1284,32 @@ function buildSessionImagePath(sessionId: Uuid, fileName: string): string {
   return `${sessionId}/images/${fileName}`
 }
 
-export async function createSessionImageUploadUrl(
+export function createDocEditorImageUploadUrl(
   sessionId: Uuid,
   fileName: string
 ) {
   const filePath = buildSessionImagePath(sessionId, fileName)
-  const uploadUrl = await createBlobSasUrl(
+  const uploadUrl = createBlobSasUrl(
     config.sessionsStorageAccountName,
     config.sessionsStorageAccountAccessKey,
     config.sessionsStorageContainer,
     filePath,
-    { expiresInSeconds: 10 * 60, permissions: 'cw' }
+    { expiresInSeconds: 10 * 60, permissions: ['c', 'w'] }
   )
 
-  const host = isDevEnvironment()
-    ? `http://localhost:3000`
-    : `${config.protocol}://${config.host}`
-  const imageUrl = `${host}/api/sessions/${filePath}`
+  const imageUrl = `${config.apiOrigin}/api/sessions/${filePath}`
   return { uploadUrl, imageUrl }
 }
 
-export async function getSessionImageUrl(sessionId: Uuid, fileName: string) {
+export function getDocEditorSessionImageUrl(sessionId: Uuid, fileName: string) {
   const filePath = buildSessionImagePath(sessionId, fileName)
-  const blobUrl = await createBlobSasUrl(
+  const blobUrl = createBlobSasUrl(
     config.sessionsStorageAccountName,
     config.sessionsStorageAccountAccessKey,
     config.sessionsStorageContainer,
     filePath,
     // TTL of 2 hours
-    { expiresInSeconds: 2 * 60 * 60, permissions: 'r' }
+    { expiresInSeconds: 2 * 60 * 60, permissions: ['r'] }
   )
   return blobUrl
 }
