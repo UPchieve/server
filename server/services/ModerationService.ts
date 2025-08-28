@@ -101,7 +101,7 @@ export enum LangfuseGenerationName {
   DETECT_FACES = 'detectFaces',
   DETECT_PERSON = 'detectPerson',
   DETECT_MINORS = 'detectMinors',
-  IS_IMAGE_EDUCATIONAL = 'is-image-educational',
+  IS_IMAGE_EDUCATIONAL = 'isImageEducational',
 }
 
 // Image moderation
@@ -158,12 +158,12 @@ async function detectImageEducationPurpose(
       LangfusePromptNameEnum.IS_IMAGE_EDUCATIONAL,
       ''
     )
-    if (isEmpty(prompt)) throw Error("Couldn't get prompt")
+    if (prompt.isFallback) throw Error("Couldn't get prompt")
 
     let generation: LangfuseGenerationClient | undefined = undefined
     if (trace) {
       generation = trace.generation({
-        name: `DETECT_PERSON_${LangfuseGenerationName.IS_IMAGE_EDUCATIONAL}`,
+        name: LangfuseGenerationName.IS_IMAGE_EDUCATIONAL,
         prompt: prompt.promptObject,
         model: config.awsBedrockSonnetArnId,
       })
