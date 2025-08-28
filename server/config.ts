@@ -23,6 +23,7 @@ const config: Static<typeof Config> = {
   SSL_CERT_PATH: '',
   // set host to your public IP address to test Twilio voice calling
   host: process.env.SUBWAY_SERVER_HOST || 'localhost:8080',
+  apiOrigin: process.env.SUBWAY_SERVER_API_ORIGIN || 'http://localhost:3000',
   protocol: process.env.SUBWAY_SERVER_PROTOCOL || 'http',
   additionalAllowedOrigins: process.env.SUBWAY_ADDITIONAL_ALLOWED_ORIGINS || '',
   sessionSecret: process.env.SUBWAY_SESSION_SECRET || 'secret',
