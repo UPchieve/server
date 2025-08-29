@@ -1327,6 +1327,12 @@ export type LiveMediaModerationCategories =
   | 'gambling'
   | 'hate symbols'
 
+/**
+ * This gets the score/weight for the severity of the moderation infraction.
+ * We have a configurable threshold for the max score you can accrue before being
+ * live media-banned - see {@link config.liveMediaBanInfractionScoreThreshold}
+ * @param category
+ */
 export function getScoreForCategory(
   category: LiveMediaModerationCategories | string
 ): number {
