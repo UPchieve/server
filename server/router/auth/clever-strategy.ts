@@ -69,7 +69,7 @@ export default class CleverStrategy extends OAuth2Strategy {
           givenName: user.name.first,
         },
         provider: 'Clever',
-        teacher: CleverAPIService.isTeacher(userType)
+        teacher: this.hasTeacherData(user.roles)
           ? {
               classes: await CleverAPIService.getTeacherClasses(
                 user.id,
@@ -118,10 +118,16 @@ export default class CleverStrategy extends OAuth2Strategy {
   }
 
   getUserType(roles: { student?: Object; teacher?: Object }): UserRole {
-    if (!isEmpty(roles.teacher ?? {})) {
-      return 'teacher'
+    if (!isEmpty(roles.student ?? {})) {
+      return 'student'
     }
 
-    return 'student'
+    // We will be letting non-teacher users in Clever, who have the 'staff'
+    // role, sign up as teachers.
+    return 'teacher'
+  }
+
+  hasTeacherData(roles: { teacher?: Object }): boolean {
+    return !isEmpty(roles.teacher ?? {})
   }
 }
