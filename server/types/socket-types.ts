@@ -68,6 +68,8 @@ export type ServerToClientEvents = {
     infraction: string[]
     source: string
     occurredAt: Date
+    stopStreamImmediately: boolean
+    stopStreamImmediatelyReasons?: string[]
   }) => void
 }
 

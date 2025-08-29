@@ -4,11 +4,12 @@ import {
   moderateMessage,
   filterDisallowedDomains,
   type ModeratedLink,
-  getInfractionScore,
+  weighSessionInfractions,
   handleModerationInfraction,
   getScoreForCategory,
   LiveMediaModerationCategories,
   getSessionFlagByModerationReason,
+  isStreamStoppingReason,
 } from '../../services/ModerationService'
 import { mocked } from 'jest-mock'
 import * as FeatureFlagsService from '../../services/FeatureFlagService'
@@ -423,34 +424,43 @@ describe('ModerationService', () => {
   describe('Moderation infractions', () => {
     const profanityReason = { failures: { profanity: [] } }
     const violenceReason = { failures: { violence: [] } }
+    const explicitReason = { failures: { explicit: [] } }
 
     const buildModerationInfractionWithReason = (reason: any) => {
       return buildModerationInfractionRow('userId', 'sessionId', {
         reason: reason.failures,
       })
     }
-    describe('getInfractionScore', () => {
+    describe('weighModerationInfractions', () => {
       it.each([
-        ['profanity', 1],
-        ['high toxicity', 1],
-        ['minor detected in image', 1],
-        ['drugs & tobacco', 1],
-        ['alcohol', 1],
-        ['rude gestures', 1],
-        ['gambling', 1],
-        ['violence', 10],
-        ['swimwear or underwear', 10],
-        ['link', 10],
-        ['email', 10],
-        ['phone', 10],
-        ['address', 10],
-        ['explicit', 10],
-        ['non-explicit nudity of intimate parts and kissing', 10],
-        ['hate symbols', 10],
-        ['visually disturbing', 10],
+        ['profanity', 1, []],
+        ['high toxicity', 1, []],
+        ['minor detected in image', 4, ['minor detected in image']],
+        ['drugs & tobacco', 1, []],
+        ['alcohol', 1, []],
+        ['rude gestures', 1, []],
+        ['gambling', 1, []],
+        ['violence', 10, []],
+        ['swimwear or underwear', 10, ['swimwear or underwear']],
+        ['link', 4, ['link']],
+        ['email', 4, ['email']],
+        ['phone', 4, ['phone']],
+        ['address', 4, ['address']],
+        ['explicit', 10, ['explicit']],
+        [
+          'non-explicit nudity of intimate parts and kissing',
+          10,
+          ['non-explicit nudity of intimate parts and kissing'],
+        ],
+        ['hate symbols', 10, []],
+        ['visually disturbing', 10, []],
       ])(
         'Calculates the correct score for each category of infraction',
-        (category, expectedScore) => {
+        (
+          category: string,
+          expectedScore: number,
+          streamStoppingReasons: string[]
+        ) => {
           const moderationInfraction = buildModerationInfractionRow(
             'userId',
             'sessionId',
@@ -460,9 +470,9 @@ describe('ModerationService', () => {
               },
             }
           )
-          expect(getInfractionScore([moderationInfraction])).toEqual(
-            expectedScore
-          )
+          const actual = weighSessionInfractions([moderationInfraction])
+          expect(actual.infractionScore).toEqual(expectedScore)
+          expect(actual.streamStoppingReasons).toEqual(streamStoppingReasons)
         }
       )
 
@@ -472,8 +482,11 @@ describe('ModerationService', () => {
           buildModerationInfractionWithReason(profanityReason),
           buildModerationInfractionWithReason(violenceReason),
           buildModerationInfractionWithReason(violenceReason),
+          buildModerationInfractionWithReason(explicitReason),
         ]
-        expect(getInfractionScore(infractions)).toEqual(22)
+        const result = weighSessionInfractions(infractions)
+        expect(result.infractionScore).toEqual(32)
+        expect(result.streamStoppingReasons).toEqual(['explicit'])
       })
     })
 
@@ -559,6 +572,23 @@ describe('ModerationService', () => {
           expect(actualScore).toEqual(expectedScore)
         }
       )
+    })
+
+    describe('isStreamStoppingReason', () => {
+      it.each([
+        ['minor detected in image', true],
+        ['swimwear or underwear', true],
+        ['link', true],
+        ['email', true],
+        ['phone', true],
+        ['address', true],
+        ['explicit', true],
+        ['non-explicit nudity of intimate parts and kissing', true],
+        ['profanity', false],
+        ['violence', false],
+      ])('Returns the correct value', (category: string, expected: boolean) => {
+        expect(isStreamStoppingReason(category)).toEqual(expected)
+      })
     })
   })
 

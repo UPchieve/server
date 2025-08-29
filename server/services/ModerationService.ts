@@ -1278,7 +1278,8 @@ export const handleModerationInfraction = async (
       },
       client
     )
-  const infractionScore = getInfractionScore(allActiveInfractions)
+  const { infractionScore, streamStoppingReasons } =
+    weighSessionInfractions(allActiveInfractions)
   const doLiveMediaBan =
     infractionScore >= config.liveMediaBanInfractionScoreThreshold
   const socketService = await SocketService.getInstance()
@@ -1296,11 +1297,14 @@ export const handleModerationInfraction = async (
   }
 
   const failures: string[] = [...new Set<string>(Object.keys(reasons.failures))]
+
   await socketService.emitModerationInfractionEvent(userId, {
     isBanned: doLiveMediaBan,
     infraction: failures,
     source,
     occurredAt: new Date(),
+    stopStreamImmediately: doLiveMediaBan || streamStoppingReasons.length > 0,
+    stopStreamImmediatelyReasons: streamStoppingReasons,
   })
 }
 
@@ -1323,6 +1327,12 @@ export type LiveMediaModerationCategories =
   | 'gambling'
   | 'hate symbols'
 
+/**
+ * This gets the score/weight for the severity of the moderation infraction.
+ * We have a configurable threshold for the max score you can accrue before being
+ * live media-banned - see {@link config.liveMediaBanInfractionScoreThreshold}
+ * @param category
+ */
 export function getScoreForCategory(
   category: LiveMediaModerationCategories | string
 ): number {
@@ -1330,7 +1340,6 @@ export function getScoreForCategory(
   switch (category.toLowerCase()) {
     case 'profanity':
     case 'high toxicity':
-    case 'minor detected in image':
     case 'drugs & tobacco':
     case 'alcohol':
     case 'rude gestures':
@@ -1339,15 +1348,18 @@ export function getScoreForCategory(
       break
     case 'violence':
     case 'swimwear or underwear':
-    case 'link':
-    case 'email':
-    case 'phone':
-    case 'address':
     case 'explicit':
     case 'non-explicit nudity of intimate parts and kissing':
     case 'hate symbols':
     case 'visually disturbing':
       categoryScore = 10
+      break
+    case 'link':
+    case 'email':
+    case 'phone':
+    case 'address':
+    case 'minor detected in image':
+      categoryScore = 4
       break
   }
   if (!categoryScore) {
@@ -1359,15 +1371,40 @@ export function getScoreForCategory(
   return categoryScore
 }
 
-export function getInfractionScore(
-  infractions: ModerationInfraction[]
-): number {
-  const reasons = infractions.flatMap((i) => Object.keys(i.reason))
+export function isStreamStoppingReason(
+  category: LiveMediaModerationCategories | string
+): boolean {
+  const streamStoppingReasons = [
+    'minor detected in image',
+    'swimwear or underwear',
+    'link',
+    'email',
+    'phone',
+    'address',
+    'explicit',
+    'non-explicit nudity of intimate parts and kissing',
+  ]
+  return streamStoppingReasons.includes(category.toLowerCase())
+}
 
-  return reasons.reduce((acc, current) => {
+export function weighSessionInfractions(infractions: ModerationInfraction[]): {
+  infractionScore: number
+  streamStoppingReasons: string[]
+} {
+  const reasons = infractions.flatMap((i) => Object.keys(i.reason))
+  const streamStoppingReasons: string[] = []
+
+  const infractionScore = reasons.reduce((acc, current) => {
     const categoryScore = getScoreForCategory(current)
+    if (isStreamStoppingReason(current)) {
+      streamStoppingReasons.push(current)
+    }
     return acc + categoryScore
   }, 0)
+  return {
+    infractionScore,
+    streamStoppingReasons,
+  }
 }
 
 export type CleanTranscriptModerationResult = {
