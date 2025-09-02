@@ -139,7 +139,6 @@ const moderationLabelToFailureReason = (
 export type ModerationSource =
   | 'image_upload'
   | 'screenshare'
-  | 'voice_chat'
   | 'audio_transcription'
   | 'text_chat'
   | 'whiteboard'
@@ -1460,8 +1459,10 @@ export const handleModerationInfraction = async (
       },
       client
     )
-  const { infractionScore, streamStoppingReasons } =
-    weighSessionInfractions(allActiveInfractions)
+  const infractionScore = weighSessionInfractions(allActiveInfractions)
+  const streamStoppingReasons = getStreamStoppingReasonsFromInfractions([
+    insertedInfraction,
+  ])
   const doLiveMediaBan =
     infractionScore >= config.liveMediaBanInfractionScoreThreshold
   const socketService = await SocketService.getInstance()
@@ -1559,6 +1560,9 @@ export function isStreamStoppingReason(
   const streamStoppingReasons = [
     'minor detected in image',
     'swimwear or underwear',
+    'violence',
+    'visually disturbing',
+    'hate symbols',
     'link',
     'email',
     'phone',
@@ -1569,24 +1573,27 @@ export function isStreamStoppingReason(
   return streamStoppingReasons.includes(category.toLowerCase())
 }
 
-export function weighSessionInfractions(infractions: ModerationInfraction[]): {
-  infractionScore: number
-  streamStoppingReasons: string[]
-} {
-  const reasons = infractions.flatMap((i) => Object.keys(i.reason))
-  const streamStoppingReasons: string[] = []
+function getReasonsFromInfractions(
+  infractions: ModerationInfraction[]
+): string[] {
+  return infractions.flatMap((i) => Object.keys(i.reason))
+}
 
-  const infractionScore = reasons.reduce((acc, current) => {
+export function weighSessionInfractions(
+  infractions: ModerationInfraction[]
+): number {
+  const reasons = getReasonsFromInfractions(infractions)
+  return reasons.reduce((acc, current) => {
     const categoryScore = getScoreForCategory(current)
-    if (isStreamStoppingReason(current)) {
-      streamStoppingReasons.push(current)
-    }
     return acc + categoryScore
   }, 0)
-  return {
-    infractionScore,
-    streamStoppingReasons,
-  }
+}
+
+export function getStreamStoppingReasonsFromInfractions(
+  infractions: ModerationInfraction[]
+): string[] {
+  const reasons = getReasonsFromInfractions(infractions)
+  return reasons.filter((reason) => isStreamStoppingReason(reason))
 }
 
 export type CleanTranscriptModerationResult = {
