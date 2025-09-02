@@ -54,11 +54,16 @@ import {
 import crypto from 'crypto'
 import { putObject } from './AwsService'
 import * as ShareableDomainsRepo from '../models/ShareableDomains/queries'
-import { invokeModel, BedrockToolChoice } from './AwsBedrockService'
+import {
+  invokeModel,
+  BedrockToolChoice,
+  BedrockTools,
+} from './AwsBedrockService'
 import { LangfuseTraceClient } from 'langfuse-node'
 import { ModerationInfraction } from '../models/ModerationInfractions/types'
 import { getClient, runInTransaction, TransactionClient } from '../db'
 import { PrimaryUserRole } from './UserRolesService'
+
 import { LangfuseGenerationClient } from 'langfuse'
 
 const MINOR_AGE_THRESHOLD = 18
@@ -94,7 +99,9 @@ export enum LangfuseGenerationName {
   DETECT_TOXICITY_IN_TEXT = 'detectToxicityInText',
   DETECT_MODERATION_LABELS = 'detectModerationLabels',
   DETECT_FACES = 'detectFaces',
-  DETECT_LABELS = 'detectLabels',
+  DETECT_PERSON = 'detectPerson',
+  DETECT_MINORS = 'detectMinors',
+  IS_IMAGE_EDUCATIONAL = 'isImageEducational',
 }
 
 // Image moderation
@@ -140,6 +147,162 @@ export type ModerationSource =
 const DIRECT_MESSAGE_TAG = 'direct_message'
 const MESSAGE_TAG = 'session_chat'
 const WHITEBOARD_TEXT_TAG = 'whiteboard_text'
+
+async function detectImageEducationPurpose(
+  image: Buffer,
+  sessionId: string,
+  trace?: LangfuseTraceClient
+): Promise<ImageModerationFailureReason | null> {
+  try {
+    const prompt = await getPromptData(
+      LangfusePromptNameEnum.IS_IMAGE_EDUCATIONAL,
+      ''
+    )
+    if (prompt.isFallback) throw Error("Couldn't get prompt")
+
+    let generation: LangfuseGenerationClient | undefined = undefined
+    if (trace) {
+      generation = trace.generation({
+        name: LangfuseGenerationName.IS_IMAGE_EDUCATIONAL,
+        prompt: prompt.promptObject,
+        model: config.awsBedrockSonnetArnId,
+      })
+    }
+
+    const response_tool: BedrockTools = [
+      {
+        name: 'json_response',
+        description: 'Prints answer in json format',
+        input_schema: {
+          type: 'object',
+          properties: {
+            detectedLabels: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  label: {
+                    type: 'string',
+                    description: 'Educational subject detected',
+                  },
+                  confidence: {
+                    type: 'number',
+                    description: 'The confidence rating for the subject',
+                  },
+                },
+                required: ['label', 'confidence'],
+              },
+            },
+            reason: {
+              type: 'string',
+              description: 'The explanation of labels were chosen',
+            },
+          },
+          required: ['detectLabels', 'reason'],
+        },
+      },
+    ]
+
+    const response: {
+      detectedLabels: [{ label: string; confidence: number }]
+      reason: string
+    } = await invokeModel({
+      modelId: config.awsBedrockSonnetArnId,
+      image: image,
+      prompt: prompt.prompt,
+      tools_option: {
+        tool_choice: { type: BedrockToolChoice.TOOL, name: 'json_response' },
+        tools: response_tool,
+      },
+    })
+
+    if (generation) {
+      generation.end({ output: response })
+    }
+
+    const nonEducational = response.detectedLabels.find(
+      (category) =>
+        category.label === 'NonEducational' &&
+        category.confidence >= config.imageModerationMinConfidence
+    )
+
+    const educationalLabels = response.detectedLabels.filter(
+      (category) =>
+        category.confidence >= config.imageModerationMinConfidence &&
+        category.label !== 'NonEducational'
+    )
+
+    if (
+      isEmpty(response.detectedLabels) ||
+      nonEducational ||
+      isEmpty(educationalLabels)
+    ) {
+      return {
+        reason: `"The image doesn't serve any educational purpose"`,
+        details: response,
+      }
+    }
+
+    return null
+  } catch (err) {
+    logger.error(
+      { sessionId, err },
+      'Failed to detect if image is for educational purposes'
+    )
+    throw new Error(
+      `Failed to detect if image is for educational purposes ${sessionId}`
+    )
+  }
+}
+async function detectPersonInImage(
+  image: Buffer,
+  sessionId: string,
+  trace?: LangfuseTraceClient
+) {
+  try {
+    let generation: LangfuseGenerationClient | undefined = undefined
+
+    if (trace) {
+      generation = trace.generation({
+        name: LangfuseGenerationName.DETECT_PERSON,
+      })
+    }
+
+    const labelResponse = await awsRekognitionClient.send(
+      new DetectLabelsCommand({
+        Image: {
+          Bytes: image as Uint8Array,
+        },
+        MinConfidence: config.imageModerationMinConfidence,
+        Settings: {
+          GeneralLabels: {
+            LabelInclusionFilters: ['Person'],
+          },
+        },
+      })
+    )
+
+    if (generation) {
+      generation.end({ output: labelResponse })
+    }
+
+    const labels = labelResponse.Labels ?? []
+    const labelFailures = labels.map((label) => ({
+      reason: `Person detected in image`,
+      details: {
+        label: label.Name,
+        confidence: label.Confidence,
+      },
+    }))
+
+    return labelFailures
+  } catch (err) {
+    logger.error({ sessionId, err }, 'Failed to detect a person in image')
+    throw new Error(
+      `Failed to detect a person in image for session ${sessionId}`
+    )
+  }
+}
 
 /*
   detect harmful content in the image
@@ -232,7 +395,7 @@ async function detectMinorFailures(image: Buffer, trace?: LangfuseTraceClient) {
   // but we want to handle the case where faces are not in the image
   if (trace) {
     generation = trace.generation({
-      name: LangfuseGenerationName.DETECT_LABELS,
+      name: LangfuseGenerationName.DETECT_MINORS,
     })
   }
   const labelResponse = await awsRekognitionClient.send(
@@ -459,7 +622,7 @@ async function checkForFullAddresses({
     sessionId,
   })
 
-  const VERIFY_EMAIL_RESPONSE_TOOL = [
+  const VERIFY_EMAIL_RESPONSE_TOOL: BedrockTools = [
     {
       name: 'json_response',
       description: 'Prints answer in json format',
@@ -567,7 +730,7 @@ async function checkForQuestionableLinks({
     ...(promptData.promptObject && { prompt: promptData.promptObject }),
   })
 
-  const QUESTIONABLE_LINKS_RESPONSE_TOOL = [
+  const QUESTIONABLE_LINKS_RESPONSE_TOOL: BedrockTools = [
     {
       name: 'json_response',
       description: 'Prints answer in json format',
@@ -848,7 +1011,7 @@ async function handleImageModerationFailure({
     source,
   })
 
-  logger.warn(
+  logger.info(
     { sessionId, reasons: failureReasons, imageUrl, source, userId },
     'Image triggered moderation'
   )
@@ -943,11 +1106,30 @@ async function getAllImageModerationFailures({
     moderationFailureReasons,
     minorFailures,
     textModerationFailureReasons,
+    detectPersonResponse,
   ] = await Promise.all([
     detectImageModerationFailures(image, trace, sessionId),
     detectMinorFailures(image, trace),
     detectTextModerationFailures(image, sessionId, isVolunteer, trace),
+    detectPersonInImage(image, sessionId, trace),
   ])
+
+  if (
+    isEmpty(moderationFailureReasons) &&
+    isEmpty(minorFailures) &&
+    isEmpty(textModerationFailureReasons) &&
+    !isEmpty(detectPersonResponse)
+  ) {
+    const noEducationalContext = await detectImageEducationPurpose(
+      image,
+      sessionId,
+      trace
+    )
+
+    if (noEducationalContext) {
+      return { failureReasons: [noEducationalContext] }
+    }
+  }
 
   return {
     failureReasons: [
