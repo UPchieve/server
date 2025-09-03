@@ -164,7 +164,7 @@ async function expiredKeyListener(channel: string, expiredKey: string) {
             clientUUID,
             CACHE_KEY_TYPE.PASSIVE_TIMEOUT
           )
-          // User became active -- ignore this expiry
+          // If user is still passive after missing an eligible session, mark them as inactive.
           if (await redisClient.exists(passiveTimeoutKey)) {
             await UserActionService.createAccountAction({
               action: ACCOUNT_USER_ACTIONS.INACTIVE_ON_SITE,
