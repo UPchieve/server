@@ -504,6 +504,39 @@ const detectToxicContent = async (
   return highToxicity
 }
 
+async function isLikelyToBeAnEmail({
+  entityConfidence,
+  entityText,
+  sessionId,
+  isVolunteer,
+  trace,
+}: {
+  entityConfidence: number
+  entityText: string
+  sessionId: string
+  isVolunteer: boolean
+  trace?: LangfuseTraceClient
+}) {
+  const isMaybeEmail =
+    entityConfidence >= config.emailModerationConfidenceThreshold &&
+    EMAIL_REGEX.test(entityText)
+
+  if (!isMaybeEmail) {
+    return false
+  }
+
+  const aiModerationResult = await getAiModerationResult(
+    {
+      message: entityText,
+      sessionId,
+    },
+    isVolunteer,
+    trace
+  )
+
+  return aiModerationResult?.reasons?.email ?? false
+}
+
 async function isLikelyToBeAPhoneNumber({
   entityConfidence,
   entityText,
@@ -538,11 +571,11 @@ async function isLikelyToBeAPhoneNumber({
     trace
   )
 
-  return aiModerationResult?.isPhoneNumber ?? true
+  return aiModerationResult?.reasons?.phone ?? false
 }
 
 function existsInArray(array: any[], item: any) {
-  return array.some((i) => i === item)
+  return array.some((i) => i?.details?.text === item)
 }
 
 export type ModeratedLink = {
@@ -844,7 +877,13 @@ async function detectPii(
     } else if (
       entity.Type === 'EMAIL' &&
       !existsInArray(emails, entityText) &&
-      entityConfidence >= config.emailModerationConfidenceThreshold
+      (await isLikelyToBeAnEmail({
+        entityConfidence,
+        entityText,
+        sessionId,
+        isVolunteer,
+        trace,
+      }))
     ) {
       emails.push({
         reason: 'Email',
@@ -888,12 +927,10 @@ async function detectPii(
   const moderatedPII: ModeratedPII[] = [...emails, ...phones]
 
   const allowedDomains = await ShareableDomainsRepo.getAllowedDomains()
-  const moderatedLinks = (
-    await filterDisallowedDomains({
-      allowedDomains,
-      links,
-    })
-  ).filter(meetsOrExceedsLinkConfidenceThreshold)
+  const moderatedLinks = filterDisallowedDomains({
+    allowedDomains,
+    links,
+  }).filter(meetsOrExceedsLinkConfidenceThreshold)
 
   if (moderatedLinks.length > 0) {
     const questionableLinks = await checkForQuestionableLinks({
@@ -1465,7 +1502,7 @@ export const handleModerationInfraction = async (
   ])
   const doLiveMediaBan =
     infractionScore >= config.liveMediaBanInfractionScoreThreshold
-  const socketService = await SocketService.getInstance()
+  const socketService = SocketService.getInstance()
   if (doLiveMediaBan) {
     await UsersRepo.banUserById(
       userId,
