@@ -115,6 +115,7 @@ const config: Static<typeof Config> = {
     volunteerPositiveStudentFeedback: 'd-a8ebf5652afc4a6e97e8f582abc172e4',
     downloadCertificateTemplate: 'd-708608ba2c6c4e04a2b2902fdc5ecf50',
     volunteerFeedbackForStudent: 'd-1fc618232eea4d64a7396995a51e8a12',
+    genericVolunteerFeedbackForStudent: 'd-d516c2b1c2ed49089f823817a5b2be3e',
     unsubscribeGroup: {
       newsletter: 12567,
       account: 12570,

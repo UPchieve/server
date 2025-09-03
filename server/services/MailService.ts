@@ -578,25 +578,27 @@ export async function sendVolunteerFeedbackToStudent({
   recipientEmail,
   volunteerFirstName,
   studentFirstName,
-  subject,
   volunteerFeedback,
   upchieveDashboardLink,
+  templateId,
+  inspriationalQuote,
 }: {
   recipientEmail: string
   volunteerFirstName: string
-  subject: string
   studentFirstName: string
   volunteerFeedback: string
   upchieveDashboardLink: string
+  templateId: string
+  inspriationalQuote: { author: string; quote: string } | null
 }): Promise<void> {
-  const templateId = config.sendgrid.volunteerFeedbackForStudent
-  const emailArgs = {
-    volunteerFirstName,
-    subject,
+  const defaultArgs = {
     studentFirstName,
-    volunteerFeedback,
     upchieveDashboardLink,
   }
+
+  const emailArgs = !!inspriationalQuote
+    ? { author: inspriationalQuote.author, quote: inspriationalQuote.quote }
+    : { volunteerFirstName, volunteerFeedback, ...defaultArgs }
 
   await sendEmail(
     recipientEmail,
