@@ -315,7 +315,7 @@ export function routeUser(router: Router): void {
       const user = extractUser(req)
       const ipAddress = req.ip
       const clientUUID = req.body.clientUUID
-      await PresenceService.trackActive({
+      await PresenceService.trackActivity({
         userId: user.id,
         ipAddress,
         clientUUID,
@@ -330,7 +330,7 @@ export function routeUser(router: Router): void {
       const user = extractUser(req)
       const ipAddress = req.ip
       const clientUUID = req.body.clientUUID
-      await PresenceService.trackInactive({
+      await PresenceService.trackInactivity({
         userId: user.id,
         ipAddress,
         clientUUID,
@@ -340,4 +340,37 @@ export function routeUser(router: Router): void {
       resError(res, err)
     }
   })
+  router.post('/user/track-presence/passive', async function (req, res) {
+    try {
+      const user = extractUser(req)
+      const ipAddress = req.ip
+      const clientUUID = req.body.clientUUID
+      await PresenceService.trackPassivity({
+        userId: user.id,
+        ipAddress,
+        clientUUID,
+      })
+      return res.sendStatus(200)
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+  router.post(
+    '/user/track-presence/check-for-inactivity',
+    async function (req, res) {
+      try {
+        const user = extractUser(req)
+        const clientUUID = req.body.clientUUID
+        if (user.id && typeof clientUUID === 'string') {
+          PresenceService.setInactivityCountdown({
+            userId: user.id,
+            clientUUID,
+          })
+        }
+        return res.sendStatus(200)
+      } catch (err) {
+        resError(res, err)
+      }
+    }
+  )
 }

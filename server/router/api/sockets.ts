@@ -36,6 +36,7 @@ import { updateVolunteerSubjectPresence } from '../../services/VolunteerService'
 import { asJoinSessionData } from '../../utils/session-utils'
 import { SessionJoinError } from '../../models/Errors'
 import * as cache from '../../cache'
+import * as PresenceService from '../../services/PresenceService'
 
 export type SessionMessageType = 'audio-transcription' // todo - add 'chat' later
 
@@ -92,6 +93,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
   io.on('connection', async function (socket: SocketUser) {
     const {
       request: { user },
+      handshake: { query },
     } = socket
 
     if (user) {
@@ -590,6 +592,19 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
 
       if (user?.roleContext?.isActiveRole('volunteer')) {
         await updateVolunteerSubjectPresence(user.id, 'remove')
+      }
+
+      /*
+       * If a user is disconnected, they can not take a session.
+       * Mark them as inactive.
+       */
+      const clientUUID = socket.handshake.query.clientUUID
+      if (clientUUID && typeof clientUUID === 'string') {
+        PresenceService.trackInactivity({
+          userId: user.id,
+          clientUUID,
+          ipAddress: socket.handshake.address,
+        })
       }
     })
 

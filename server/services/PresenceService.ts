@@ -10,16 +10,24 @@ import {
 import * as UserActionService from './UserActionService'
 
 /*
- *  This service tracks when a user is active or inactive on high-line.
+ *  This service tracks when a user is active, passive, or inactive on high-line.
  *
- *  The client may send many `trackActive` events, but we only care about the first
- * `trackActive` event in a given period and its corresponding `trackInactive` event.
+ *  The client may send many `trackActivity` events, but we only care about the first
+ *  `trackActivity` event in a given period and its corresponding `trackInactivity` event.
  *
- *  We use Redis' (actually Valkey under the hood) TTLs and Keyspace Notifications
- *  to subscribe to key expirations and save an ACCOUNT_USER_ACTIONS.INACTIVE_ON_SITE
- *  user action when a key expires.
+ *  When our users are waiting for sessions to come in, they will often not trigger any activity
+ *  or they might tab away in their browser. In that case will will set them to passive. PASSIVE_ON_SITE
+ *  is a state that will either move to ACTIVE_ON_SITE or INACTIVE_ON_SITE. That means a user can go:
  *
- *  This protects us against things like network outages, connectivity issues, or the user
+ *  ACTIVE_ON_SITE -> PASSIVE_ON_SITE -> ACTIVE_ON_SITE -> PASSIVE_ON_SITE -> INACTIVE_ON_SITE
+ *
+ *  When doing reporting, we will count them as "present" (or whatever nomenclature we land on)
+ *  for the duration of the first ACTIVITY_ON_SITE to the next INACTIVE_ON_SITE
+ *
+ *  We use Redis' (actually Valkey) TTLs and Keyspace Notifications
+ *  to subscribe to key expirations. These expiration subscriptions can move users through the different states.
+ *
+ *  This helps protects us against things like network outages, connectivity issues, or the user
  *  walking away from their computer with the tab still open.
  *
  *  In those cases, our tracked time may drift from the user's actual time on site,
@@ -31,48 +39,145 @@ import * as UserActionService from './UserActionService'
  *
  *  Example:
  *    1. A high-line session creates clientUUID 123 and sends it to /user/track-presence/active
- *    2. `trackActive({ clientUUID: 123 })` is called - this is good! :D
+ *    2. `trackActivity({ clientUUID: 123 })` is called - this is good! :D
  *    3. The session loses network connectivity - this is bad D:
- *    4. After 2 minutes (or whatever our TTL is), the Redis key expires; we log `ACCOUNT_USER_ACTIONS.INACTIVE_ON_SITE`
- *    5. Some time later, high-line reconnects and tiggers a trackActive again with clientUUID 123
+ *    4. Our socket.io handler will regiser a `disconnecting` event; we log `ACCOUNT_USER_ACTIONS.INACTIVE_ON_SITE`
+ *    5. Some time later, high-line reconnects and tiggers a `trackActivity` again with clientUUID 123
  *    6. We create a new Redis key and log `ACCOUNT_USER_ACTIONS.ACTIVE_ON_SITE` - great! :D
+ *    7. The user gets up to make a sandwich; after receiving no activity for the duration of the the active key timeout, we set them as `PASSIVE_ON_SITE`
+ *    8. A session comes in that they are qualified to take; we start a countdown to inactivity.
+ *    9. The countdown passes and the user is still inactive (maybe they dropped their sandwich and had to make another one), we mark them as `INACTIVE_ON_SITE`
+ *    10. They finish eating and come back; we mark them as `ACTIVE_ON_SITE`
  */
 
-const PRESENCE_TTL_IN_SECONDS = 120
 const PRESENCE_KEY_PREFIX = 'user-presence'
+const ONE_MINUTE_IN_SECONDS = 60
+const PRESENCE_NO_ACTIVITY_IN_SECONDS = ONE_MINUTE_IN_SECONDS * 2
+const PRESENCE_PASSIVE_TIMEOUT_IN_SECONDS = ONE_MINUTE_IN_SECONDS * 60
+const PASSIVE_MISSED_SESSION_GRACE_PERIOD_IN_SECONDS = ONE_MINUTE_IN_SECONDS
 
-redisSubClient.on('message', expiredKeyListener)
-
-function expiredKeyIsPresenceKey(channel: string, expiredKey: string) {
-  return (
-    channel === EXPIRED_KEY_CHANNEL &&
-    expiredKey.startsWith(PRESENCE_KEY_PREFIX)
-  )
+enum CACHE_KEY_TYPE {
+  /*
+   * This key is used to set users that are ACTIVE_ON_SITE to PASSIVE_ON_SITE when there is no
+   * activity after the TTL
+   */
+  ACTIVE_TIMEOUT = 'active-timeout',
+  /*
+   * This key is used as a countdown when a PASSIVE_ON_SITE user has a session that they can pick up come in.
+   * If they are not active at the end of the countdown, they become INACTIVE_ON_SITE
+   */
+  MAYBE_INACTIVE = 'maybe-inactive',
+  /*
+   * This key is used to mark passive users as inactive after a long period of inactivity when no eligible sessions have come in.
+   * We may want to revisit this one but it should protect against users leaving the tab open all night and staying passive.
+   *
+   * NOTE: This should be pretty rare as it will only fire if there have been NO sessions that this user is eligible for.
+   */
+  PASSIVE_TIMEOUT = 'passive-timeout',
 }
 
-export const redlock = new Redlock([redisClient], { retryCount: 0 })
+class CacheKeys {
+  static isPresenceNamespace(channel: string, expiredKey: string) {
+    return (
+      channel === EXPIRED_KEY_CHANNEL &&
+      expiredKey.startsWith(PRESENCE_KEY_PREFIX)
+    )
+  }
 
+  static key(userId: string, clientUUID: string, keyType: CACHE_KEY_TYPE) {
+    return `${PRESENCE_KEY_PREFIX}:${keyType}:${userId}:${clientUUID}`
+  }
+
+  static isMaybeInactive(keyType: string) {
+    return keyType === CACHE_KEY_TYPE.MAYBE_INACTIVE
+  }
+
+  static isActiveTimeout(keyType: string) {
+    return keyType === CACHE_KEY_TYPE.ACTIVE_TIMEOUT
+  }
+
+  static isPassiveTimeout(keyType: string) {
+    return keyType === CACHE_KEY_TYPE.PASSIVE_TIMEOUT
+  }
+
+  static async delete(keys: Array<string>) {
+    return await redisClient.del(...keys)
+  }
+}
+
+const redlock = new Redlock([redisClient], { retryCount: 0 })
+redisSubClient.on('message', expiredKeyListener)
 async function expiredKeyListener(channel: string, expiredKey: string) {
-  if (expiredKeyIsPresenceKey(channel, expiredKey)) {
+  if (CacheKeys.isPresenceNamespace(channel, expiredKey)) {
     const lockKey = `presence-expiry:${expiredKey}`
 
     try {
       const lock = await redlock.lock(lockKey, 1000)
 
       try {
-        const [_, userId, clientUUID] = expiredKey.split(':')
-        /*
-         * NOTE:
-         * There's no ipAddress. ipAddress will be present when
-         * high-line sends up a deliberate trackInactive event.
-         * if it just expires, it's null
-         */
-        const params = {
-          action: ACCOUNT_USER_ACTIONS.INACTIVE_ON_SITE,
-          userId,
-          clientUUID,
+        const [_namespace, keyType, userId, clientUUID] = expiredKey.split(':')
+
+        if (CacheKeys.isActiveTimeout(keyType)) {
+          await UserActionService.createAccountAction({
+            action: ACCOUNT_USER_ACTIONS.PASSIVE_ON_SITE,
+            userId,
+            clientUUID,
+          })
+
+          await CacheKeys.delete([
+            CacheKeys.key(userId, clientUUID, CACHE_KEY_TYPE.MAYBE_INACTIVE),
+          ])
+
+          const passiveTimeoutKey = CacheKeys.key(
+            userId,
+            clientUUID,
+            CACHE_KEY_TYPE.PASSIVE_TIMEOUT
+          )
+
+          await redisClient.set(
+            passiveTimeoutKey,
+            1,
+            'EX',
+            PRESENCE_PASSIVE_TIMEOUT_IN_SECONDS
+          )
+        } else if (CacheKeys.isPassiveTimeout(keyType)) {
+          const activeTimeoutKey = CacheKeys.key(
+            userId,
+            clientUUID,
+            CACHE_KEY_TYPE.ACTIVE_TIMEOUT
+          )
+          // User became active -- ignore this expiry
+          if (await redisClient.exists(activeTimeoutKey)) return
+
+          await UserActionService.createAccountAction({
+            action: ACCOUNT_USER_ACTIONS.INACTIVE_ON_SITE,
+            userId,
+            clientUUID,
+          })
+          await CacheKeys.delete([
+            CacheKeys.key(userId, clientUUID, CACHE_KEY_TYPE.ACTIVE_TIMEOUT),
+            CacheKeys.key(userId, clientUUID, CACHE_KEY_TYPE.MAYBE_INACTIVE),
+          ])
+        } else if (CacheKeys.isMaybeInactive(keyType)) {
+          const passiveTimeoutKey = CacheKeys.key(
+            userId,
+            clientUUID,
+            CACHE_KEY_TYPE.PASSIVE_TIMEOUT
+          )
+          // If user is still passive after missing an eligible session, mark them as inactive.
+          if (await redisClient.exists(passiveTimeoutKey)) {
+            await UserActionService.createAccountAction({
+              action: ACCOUNT_USER_ACTIONS.INACTIVE_ON_SITE,
+              userId,
+              clientUUID,
+            })
+            await CacheKeys.delete([
+              CacheKeys.key(userId, clientUUID, CACHE_KEY_TYPE.PASSIVE_TIMEOUT),
+            ])
+          }
+        } else {
+          throw Error(`Unhandled ${PRESENCE_KEY_PREFIX} key: ${expiredKey}`)
         }
-        await UserActionService.createAccountAction(params)
       } finally {
         await lock.unlock()
       }
@@ -85,6 +190,7 @@ async function expiredKeyListener(channel: string, expiredKey: string) {
       } else {
         logger.error(
           { error, expiredKey },
+
           'Error processing presence expiration'
         )
       }
@@ -92,11 +198,11 @@ async function expiredKeyListener(channel: string, expiredKey: string) {
   }
 }
 
-function makeKey(userId: string, clientUUID: string) {
-  return `${PRESENCE_KEY_PREFIX}:${userId}:${clientUUID}`
-}
-
-export async function trackActive({
+/*
+ * A user is tracked as ACTIVE_ON_SITE when they take any action on high-line
+ * things like pointermove, keypress, scroll, resize
+ */
+export async function trackActivity({
   userId,
   ipAddress,
   clientUUID,
@@ -105,16 +211,30 @@ export async function trackActive({
   clientUUID: string
   ipAddress: string
 }) {
-  const key = makeKey(userId, clientUUID)
+  /*
+   * we're active now so delete all other keys if they exist
+   */
+
+  await CacheKeys.delete([
+    CacheKeys.key(userId, clientUUID, CACHE_KEY_TYPE.PASSIVE_TIMEOUT),
+    CacheKeys.key(userId, clientUUID, CACHE_KEY_TYPE.MAYBE_INACTIVE),
+  ])
+
+  const key = CacheKeys.key(userId, clientUUID, CACHE_KEY_TYPE.ACTIVE_TIMEOUT)
   const keyExists = await redisClient.get(key)
+
+  /*
+   * We only want to write to the active action to the DB
+   * once. If the key already exists, skip this step
+   * and update the TTL by setting the key again
+   */
   if (!keyExists) {
-    const params = {
+    await UserActionService.createAccountAction({
       action: ACCOUNT_USER_ACTIONS.ACTIVE_ON_SITE,
       userId,
       clientUUID,
       ipAddress,
-    }
-    UserActionService.createAccountAction(params)
+    })
   }
 
   /*
@@ -122,10 +242,15 @@ export async function trackActive({
    * or it creates it for the first time
    * setting 1 as the value is arbitrary. we never read it but we need a value
    */
-  redisClient.set(key, 1, 'EX', PRESENCE_TTL_IN_SECONDS)
+  await redisClient.set(key, 1, 'EX', PRESENCE_NO_ACTIVITY_IN_SECONDS)
 }
 
-export async function trackInactive({
+/*
+ * A user is tracked as PASSIVE_ON_SITE when they have not taken any action on high-line after
+ * the specified PRESENCE_NO_ACTIVITY_IN_SECONDS. Since there's not much to do on the site, they could
+ * be waiting for a session and we don't to mark them as INACTIVE_ON_SITE.
+ */
+export async function trackPassivity({
   userId,
   ipAddress,
   clientUUID,
@@ -134,23 +259,114 @@ export async function trackInactive({
   clientUUID: string
   ipAddress: string
 }) {
-  const key = makeKey(userId, clientUUID)
-  const deletedKeyCount = await redisClient.del(key)
-  if (deletedKeyCount === 1) {
-    const params = {
+  const activeTimeoutKey = CacheKeys.key(
+    userId,
+    clientUUID,
+    CACHE_KEY_TYPE.ACTIVE_TIMEOUT
+  )
+
+  const activeKeyExists = await redisClient.get(activeTimeoutKey)
+  /*
+   * We only want to write to the passive action to the DB
+   * if we are in the active state.
+   */
+  if (!activeKeyExists) return
+
+  await CacheKeys.delete([
+    activeTimeoutKey,
+    CacheKeys.key(userId, clientUUID, CACHE_KEY_TYPE.MAYBE_INACTIVE),
+  ])
+
+  const key = CacheKeys.key(userId, clientUUID, CACHE_KEY_TYPE.PASSIVE_TIMEOUT)
+  await UserActionService.createAccountAction({
+    action: ACCOUNT_USER_ACTIONS.PASSIVE_ON_SITE,
+    userId,
+    clientUUID,
+    ipAddress,
+  })
+  await redisClient.set(key, 1, 'EX', PRESENCE_PASSIVE_TIMEOUT_IN_SECONDS)
+}
+
+/*
+ * This is called when the session list is updated for a volunteer.
+ * If they are currently active or inactive, do nothing.
+ * If they are currently in a countdown, do nothing.
+ * If they are currently passive, with no countdown, set a cache key with a PASSIVE_MISSED_SESSION_GRACE_PERIOD_IN_SECONDS
+ * TTL, when it expires, check to see if they are still passive (expiredKeyListener). if they are,
+ * mark them as INACTIVE_ON_SITE
+ */
+export async function setInactivityCountdown({
+  userId,
+  clientUUID,
+  TTL_IN_SECONDS = PASSIVE_MISSED_SESSION_GRACE_PERIOD_IN_SECONDS,
+}: {
+  userId: string
+  clientUUID: string
+  TTL_IN_SECONDS?: number
+}) {
+  const maybeInactiveKey = CacheKeys.key(
+    userId,
+    clientUUID,
+    CACHE_KEY_TYPE.MAYBE_INACTIVE
+  )
+  const isNotCurrentlyInCountdown =
+    !(await redisClient.exists(maybeInactiveKey))
+
+  const passiveTimeoutKey = CacheKeys.key(
+    userId,
+    clientUUID,
+    CACHE_KEY_TYPE.PASSIVE_TIMEOUT
+  )
+  const isPassive = await redisClient.exists(passiveTimeoutKey)
+  const canStartCountdown = isPassive && isNotCurrentlyInCountdown
+  if (canStartCountdown) {
+    // When this key expires, we will check to see if the user
+    // is still PASSIVE_ON_SITE, if they are, set them as INACTIVE_ON_SITE
+    await redisClient.set(maybeInactiveKey, 1, 'EX', TTL_IN_SECONDS)
+  }
+}
+
+/*
+ * A user is tracked as INACTIVE_ON_SITE in three ways:
+ *  1. they close high-line (this is detected using 'pagehide')
+ *  2. their socket connection is closed - we assume their network went out and they can't
+ *     take any sessions
+ *  3. they are PASSIVE_ON_SITE and a session request came in that they are qualified to take,
+ *     if they are still PASSIVE_ON_SITE after PASSIVE_MISSED_SESSION_GRACE_PERIOD_IN_SECONDS of the request, we assume they
+ *     are INACTIVE_ON_SITE and mark them as such. the mechanism that triggers this is in high-line:
+ *     when a session comes in, high-line hits the /user/track-presence/check-for-inactivity endpoint
+ */
+export async function trackInactivity({
+  userId,
+  ipAddress,
+  clientUUID,
+}: {
+  userId: Ulid
+  clientUUID: string
+  ipAddress: string
+}) {
+  const deletedKeyCount = await CacheKeys.delete([
+    CacheKeys.key(userId, clientUUID, CACHE_KEY_TYPE.ACTIVE_TIMEOUT),
+    CacheKeys.key(userId, clientUUID, CACHE_KEY_TYPE.PASSIVE_TIMEOUT),
+    CacheKeys.key(userId, clientUUID, CACHE_KEY_TYPE.MAYBE_INACTIVE),
+  ])
+
+  if (deletedKeyCount >= 1) {
+    await UserActionService.createAccountAction({
       action: ACCOUNT_USER_ACTIONS.INACTIVE_ON_SITE,
       userId,
       clientUUID,
       ipAddress,
-    }
-    UserActionService.createAccountAction(params)
+    })
   } else {
     /*
-     * This can happen if the browser has paused js execution (tab is suspended)
-     * and then resumes later (tab unsuspended).
+     * This can happen if the browser has paused js execution (tab is frozen or discarded)
+     * and then resumes later (tab active).
      *
      * It could also happen if the user tabs away very quickly right as the page is loaded.
-     * In that case, it's possible for the trackInactive POST to get here before the first trackActive
+     * In that case, it's possible for the trackInactivity POST to get here before the first trackActivity
+     * but I think it's unlikely because chrome and safari don't seem to freeze tabs immediately when
+     * they are backgrounded.
      */
     logger.warn(
       {
@@ -158,7 +374,9 @@ export async function trackInactive({
         ipAddress,
         clientUUID,
       },
-      `No cache key ${key} was found when attempting to set user as INACTIVE_ON_SITE. Probably not anything to worry about but getting a lot of these it might mean something is broken`
+      `No cache active or passive related keys for user ${userId} with clientUUID ${clientUUID} was found when attempting to set user as INACTIVE_ON_SITE.
+      Since we're calling 'inactive' endpoint on log out, this can happen when the user logsout then closes the window (socket.io will send a 'disconnecting' event)
+      Probably not anything to worry about but getting a lot of these it might mean something is broken`
     )
   }
 }
