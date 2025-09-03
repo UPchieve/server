@@ -107,3 +107,8 @@ export async function removeFromSet(key: string, ...members: string[]) {
 export async function getSetSize(key: string) {
   return await redisClient.scard(key)
 }
+
+export async function exists(key: string): Promise<boolean> {
+  const result = await redisClient.exists(key)
+  return result === 1
+}

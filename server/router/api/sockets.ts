@@ -512,27 +512,49 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
     })
 
     socket.on('requestQuillStateV2', async ({ sessionId }) => {
-      newrelic.startWebTransaction(
-        '/socket-io/requestQuillStateV2',
-        async () => {
-          const updates = await QuillDocService.getDocumentUpdates(sessionId)
-          socket.emit('quillStateV2', { updates })
-        }
-      )
+      newrelic.startWebTransaction('/socket-io/requestQuillStateV2', () => {
+        new Promise<void>(async (resolve, reject) => {
+          try {
+            const updates = await QuillDocService.getDocumentUpdates(sessionId)
+            socket.emit('quillStateV2', { updates })
+            resolve()
+          } catch {
+            logger.error(
+              {
+                sessionId,
+                userId: socket.request.user?.id,
+              },
+              'Failed to get Quill v2 doc.'
+            )
+            reject()
+          }
+        })
+      })
     })
 
     socket.on(
       'transmitQuillDeltaV2',
       async ({ sessionId, update }: { sessionId: string; update: string }) => {
-        newrelic.startWebTransaction(
-          '/socket-io/transmitQuillDeltaV2',
-          async () => {
-            await QuillDocService.addDocumentUpdate(sessionId, update)
-            socket
-              .to(getSessionRoom(sessionId))
-              .emit('partnerQuillDeltaV2', { update })
-          }
-        )
+        newrelic.startWebTransaction('/socket-io/transmitQuillDeltaV2', () => {
+          new Promise<void>(async (resolve, reject) => {
+            try {
+              await QuillDocService.addDocumentUpdate(sessionId, update)
+              socket
+                .to(getSessionRoom(sessionId))
+                .emit('partnerQuillDeltaV2', { update })
+              resolve()
+            } catch {
+              logger.error(
+                {
+                  sessionId,
+                  userId: socket.request.user?.id,
+                },
+                'Failed to transmit Quill v2 doc update.'
+              )
+              reject()
+            }
+          })
+        })
       }
     )
 
