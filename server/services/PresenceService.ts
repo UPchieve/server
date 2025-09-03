@@ -329,7 +329,7 @@ export async function setInactivityCountdown({
 /*
  * A user is tracked as INACTIVE_ON_SITE in three ways:
  *  1. they close high-line (this is detected using 'pagehide')
- *  2. their websocket connection is closed - we assume their network went out and they can
+ *  2. their socket connection is closed - we assume their network went out and they can't
  *     take any sessions
  *  3. they are PASSIVE_ON_SITE and a session request came in that they are qualified to take,
  *     if they are still PASSIVE_ON_SITE after PASSIVE_MISSED_SESSION_GRACE_PERIOD_IN_SECONDS of the request, we assume they
