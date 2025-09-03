@@ -63,7 +63,7 @@ enum CACHE_KEY_TYPE {
    */
   ACTIVE_TIMEOUT = 'active-timeout',
   /*
-   * This key us used as a countdown when a PASSIVE_ON_SITE user has a session that they can pick up come in.
+   * This key is used as a countdown when a PASSIVE_ON_SITE user has a session that they can pick up come in.
    * If they are not active at the end of the countdown, they become INACTIVE_ON_SITE
    */
   MAYBE_INACTIVE = 'maybe-inactive',
