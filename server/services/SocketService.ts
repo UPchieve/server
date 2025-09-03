@@ -13,7 +13,6 @@ import * as SessionService from '../services/SessionService'
 import { backOff } from 'exponential-backoff'
 import { UserContactInfo } from '../models/User'
 import * as cache from '../cache'
-import * as PresenceService from '../services/PresenceService'
 
 // TODO: Remove class wrapper.
 class SocketService {
