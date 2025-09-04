@@ -959,6 +959,7 @@ WHERE
     volunteer_profiles.approved IS FALSE
     AND NOT volunteer_profiles.country IS NULL
     AND NOT volunteer_profiles.photo_id_s3_key IS NULL
+    AND users.ban_type IS NULL
     AND photo_id_statuses.name = ANY ('{ "submitted", "approved" }')
     AND user_actions.action = ANY ('{ "ADDED PHOTO ID", "COMPLETED BACKGROUND INFO" }')
     AND (
