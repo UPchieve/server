@@ -1143,19 +1143,19 @@ async function getAllImageModerationFailures({
 }> {
   const [
     moderationFailureReasons,
-    //    minorFailures,
+    minorFailures,
     textModerationFailureReasons,
     detectPersonResponse,
   ] = await Promise.all([
     detectImageModerationFailures(image, trace, sessionId),
-    // detectMinorFailures(image, trace),
+    detectMinorFailures(image, trace),
     detectTextModerationFailures(image, sessionId, isVolunteer, trace),
     detectPersonInImage(image, sessionId, trace),
   ])
 
   if (
     isEmpty(moderationFailureReasons) &&
-    //isEmpty(minorFailures) &&
+    isEmpty(minorFailures) &&
     isEmpty(textModerationFailureReasons) &&
     !isEmpty(detectPersonResponse)
   ) {
