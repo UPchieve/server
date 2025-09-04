@@ -1173,7 +1173,7 @@ async function getAllImageModerationFailures({
   return {
     failureReasons: [
       ...moderationFailureReasons,
-      // ...minorFailures,
+      ...minorFailures,
       ...textModerationFailureReasons,
     ],
   }
