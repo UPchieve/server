@@ -65,6 +65,7 @@ import { getClient, runInTransaction, TransactionClient } from '../db'
 import { PrimaryUserRole } from './UserRolesService'
 
 import { LangfuseGenerationClient } from 'langfuse'
+import { getImageFileType, resize } from '../utils/image-utils'
 
 const MINOR_AGE_THRESHOLD = 18
 
@@ -202,12 +203,14 @@ async function detectImageEducationPurpose(
       },
     ]
 
+    const resizedImage = await resize(image)
+
     const response: {
       detectedLabels: [{ label: string; confidence: number }]
       reason: string
     } = await invokeModel({
       modelId: config.awsBedrockSonnetArnId,
-      image: image,
+      image: resizedImage,
       prompt: prompt.prompt,
       tools_option: {
         tool_choice: { type: BedrockToolChoice.TOOL, name: 'json_response' },
@@ -1140,19 +1143,19 @@ async function getAllImageModerationFailures({
 }> {
   const [
     moderationFailureReasons,
-    minorFailures,
+    //    minorFailures,
     textModerationFailureReasons,
     detectPersonResponse,
   ] = await Promise.all([
     detectImageModerationFailures(image, trace, sessionId),
-    detectMinorFailures(image, trace),
+    // detectMinorFailures(image, trace),
     detectTextModerationFailures(image, sessionId, isVolunteer, trace),
     detectPersonInImage(image, sessionId, trace),
   ])
 
   if (
     isEmpty(moderationFailureReasons) &&
-    isEmpty(minorFailures) &&
+    //isEmpty(minorFailures) &&
     isEmpty(textModerationFailureReasons) &&
     !isEmpty(detectPersonResponse)
   ) {
@@ -1170,7 +1173,7 @@ async function getAllImageModerationFailures({
   return {
     failureReasons: [
       ...moderationFailureReasons,
-      ...minorFailures,
+      // ...minorFailures,
       ...textModerationFailureReasons,
     ],
   }
