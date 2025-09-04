@@ -106,7 +106,11 @@ export async function getUnfulfilledSessions(
     )
 
     return result.map((session) => {
-      const s = makeSomeOptional(session, ['volunteer', 'studentBanType'])
+      const s = makeSomeOptional(session, [
+        'volunteer',
+        'studentBanType',
+        'currentGradeName',
+      ])
       return {
         ...s,
         _id: s.id,
@@ -114,6 +118,7 @@ export async function getUnfulfilledSessions(
           firstname: s.studentFirstName,
           isTestUser: s.studentTestUser,
           isShadowBanned: s.studentBanType === USER_BAN_TYPES.SHADOW,
+          currentGradeName: s.currentGradeName,
         },
       }
     })
