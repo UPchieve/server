@@ -43,7 +43,7 @@ FROM
     JOIN users ON sessions.student_id = users.id
     JOIN student_profiles ON student_profiles.user_id = sessions.student_id
     LEFT JOIN grade_levels ON grade_levels.id = student_profiles.grade_level_id
-    LEFT JOIN current_grade_levels_mview on current_grade_levels_mview.user_id = sessions.student_id
+    LEFT JOIN current_grade_levels_mview ON current_grade_levels_mview.user_id = sessions.student_id
     LEFT JOIN subjects ON sessions.subject_id = subjects.id
     LEFT JOIN topics ON subjects.topic_id = topics.id
     JOIN LATERAL (
