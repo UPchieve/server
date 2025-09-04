@@ -1523,7 +1523,6 @@ export const handleModerationInfraction = async (
     infraction: failures,
     source,
     occurredAt: new Date(),
-    stopStreamImmediately: doLiveMediaBan || streamStoppingReasons.length > 0,
     stopStreamImmediatelyReasons: streamStoppingReasons,
   })
 }
