@@ -9,8 +9,8 @@ export async function resize(image: Buffer, options?: sharp.ResizeOptions) {
   const resizeOptions = !!options
     ? options
     : {
-        width: 256,
-        height: 256,
+        width: 224,
+        height: 224,
         //sharp's default quality is 80
       }
 
