@@ -8,7 +8,7 @@ WHERE
     AND action = 'PASSED QUIZ'
     AND user_id = :userId!
     AND created_at >= DATE(:start!)
-    AND created_at < DATE(:end!);
+    AND created_at <= DATE(:end!);
 
 
 /* @name getQuizzesPassedForDateRangeForTelecomReportByVolunteerId */
@@ -21,7 +21,7 @@ WHERE
     AND action = 'PASSED QUIZ'
     AND user_id = :userId!
     AND created_at >= DATE(:start!)
-    AND created_at < DATE(:end!);
+    AND created_at <= DATE(:end!);
 
 
 /* @name getSessionRequestedUserAgentFromSessionId */
