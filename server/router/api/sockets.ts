@@ -650,6 +650,29 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       }
     })
 
+    socket.on('moderatingImage', async ({ sessionId }) => {
+      newrelic.startWebTransaction('/socket-io/moderatingImage', async () => {
+        socket.to(getSessionRoom(sessionId)).emit('partnerUploadingImage')
+      })
+    })
+
+    socket.on(
+      'imageUploadFailed',
+      async ({ sessionId, moderationFailures, uploadError }) => {
+        newrelic.startWebTransaction(
+          '/socket-io/partnerImageUploadFailed',
+          async () => {
+            socket
+              .to(getSessionRoom(sessionId))
+              .emit('partnerImageUploadFailed', {
+                moderationFailures,
+                uploadError,
+              })
+          }
+        )
+      }
+    )
+
     // Log socket connection-related events for analytics and debugging
     socket.onAny((eventName, args) => {
       logSocketEvent(eventName, socket, args)

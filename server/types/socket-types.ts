@@ -40,6 +40,12 @@ export type ClientToServerEvents = {
   'sessions:join': (data: { sessionId: Ulid }, callback: Function) => void
   'sessions:leave': (data: { sessionId: Ulid }) => void
   'sessions/recap:leave': (data: { sessionId: Ulid }) => void
+  moderatingImage: (data: { sessionId: Ulid }) => void
+  imageUploadFailed: (data: {
+    sessionId: Ulid
+    moderationFailures?: object
+    uploadError?: string
+  }) => void
 }
 
 export type ServerToClientEvents = {
@@ -69,6 +75,11 @@ export type ServerToClientEvents = {
     source: string
     occurredAt: Date
     stopStreamImmediatelyReasons: string[]
+  }) => void
+  partnerUploadingImage: () => void
+  partnerImageUploadFailed: (data: {
+    moderationFailures?: object
+    uploadError?: string
   }) => void
 }
 
