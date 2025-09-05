@@ -325,21 +325,6 @@ export function routeUser(router: Router): void {
       resError(res, err)
     }
   })
-  router.post('/user/track-presence/inactive', async function (req, res) {
-    try {
-      const user = extractUser(req)
-      const ipAddress = req.ip
-      const clientUUID = req.body.clientUUID
-      await PresenceService.trackInactivity({
-        userId: user.id,
-        ipAddress,
-        clientUUID,
-      })
-      return res.sendStatus(200)
-    } catch (err) {
-      resError(res, err)
-    }
-  })
   router.post('/user/track-presence/passive', async function (req, res) {
     try {
       const user = extractUser(req)
