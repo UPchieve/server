@@ -89,11 +89,13 @@ class SocketService {
 
   private async updateSessionList(tc?: TransactionClient): Promise<void> {
     const sessions = await getUnfulfilledSessions(tc)
-    const excludedSessionIds = await cache.smembers('goalSettingSessions')
-    const filteredSessions = sessions.filter(
-      (session) => !excludedSessionIds.includes(session.id)
+    const goalSettingSessionIds = await cache.smembers('goalSettingSessions')
+    const sessionsWithGoals = sessions.map((session) =>
+      goalSettingSessionIds.includes(session.id)
+        ? { ...session, isGoalSettingSession: true }
+        : session
     )
-    this.io.in('volunteers').emit('sessions', filteredSessions)
+    this.io.in('volunteers').emit('sessions', sessionsWithGoals)
   }
 
   async emitSessionChange(

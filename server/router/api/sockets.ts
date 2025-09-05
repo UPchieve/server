@@ -268,13 +268,15 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
         new Promise<void>(async (resolve, reject) => {
           try {
             const sessions = await SessionRepo.getUnfulfilledSessions()
-            const excludedSessionIds = await cache.smembers(
+            const goalSettingSessionIds = await cache.smembers(
               'goalSettingSessions'
             )
-            const filteredSessions = sessions.filter(
-              (session) => !excludedSessionIds.includes(session.id)
+            const sessionsWithGoals = sessions.map((session) =>
+              goalSettingSessionIds.includes(session.id)
+                ? { ...session, isGoalSettingSession: true }
+                : session
             )
-            socket.emit('sessions', filteredSessions)
+            socket.emit('sessions', sessionsWithGoals)
             callback({
               status: 200,
               sessions,
