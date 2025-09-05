@@ -188,3 +188,32 @@ export function createBlobSasUrl(
   const sasUrl = `${blob.url}?${sas}`
   return sasUrl
 }
+
+export async function getSasUrlsInFolder(
+  storageAccountName: string,
+  storageAccountAccessKey: string,
+  containerName: string,
+  folderPath: string,
+  {
+    permissions,
+    expiresInSeconds = DEFAULT_EXPIRES_IN_SECONDS,
+  }: CreateBlobSasUrlOptions
+): Promise<BlobDocument[]> {
+  const service = getBlobClient(storageAccountName)
+  const container = service.getContainerClient(containerName)
+  const results: BlobDocument[] = []
+  for await (const item of container.listBlobsFlat({ prefix: folderPath })) {
+    const sasUrl = createBlobSasUrl(
+      storageAccountName,
+      storageAccountAccessKey,
+      containerName,
+      item.name,
+      { permissions, expiresInSeconds }
+    )
+    results.push({
+      name: item.name,
+      url: sasUrl,
+    })
+  }
+  return results
+}

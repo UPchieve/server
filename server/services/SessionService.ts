@@ -55,6 +55,7 @@ import * as AnalyticsService from './AnalyticsService'
 import { captureEvent } from './AnalyticsService'
 import * as AssignmentsService from './AssignmentsService'
 import * as AwsService from './AwsService'
+import * as AzureService from './AzureService'
 import * as PushTokenService from './PushTokenService'
 import QueueService from './QueueService'
 import * as QuillDocService from './QuillDocService'
@@ -607,10 +608,19 @@ export async function adminSessionView(data: unknown) {
   const sessionUserAgent =
     await getSessionRequestedUserAgentFromSessionId(sessionId)
   const bucket: keyof typeof config.awsS3 = 'sessionPhotoBucket'
-  const sessionPhotos = await AwsService.getObjects(
-    bucket,
-    session.photos || []
-  )
+
+  let sessionPhotos = []
+  if (sessionUtils.isSubjectUsingDocumentEditor(session.toolType)) {
+    const photos = await AzureService.getSasUrlsInFolder(
+      config.appStorageAccountName,
+      config.appStorageAccountAccessKey,
+      config.sessionsStorageContainer,
+      `${sessionId}/images/`,
+      { permissions: ['r'], expiresInSeconds: 2 * 60 * 60 }
+    )
+    sessionPhotos = photos.map((photo) => photo.url)
+  } else
+    sessionPhotos = await AwsService.getObjects(bucket, session.photos || [])
 
   return {
     ...session,
