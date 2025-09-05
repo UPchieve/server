@@ -1290,8 +1290,8 @@ export function createDocEditorImageUploadUrl(
 ) {
   const filePath = buildSessionImagePath(sessionId, fileName)
   const uploadUrl = createBlobSasUrl(
-    config.sessionsStorageAccountName,
-    config.sessionsStorageAccountAccessKey,
+    config.appStorageAccountName,
+    config.appStorageAccountAccessKey,
     config.sessionsStorageContainer,
     filePath,
     { expiresInSeconds: 10 * 60, permissions: ['c', 'w'] }
@@ -1304,8 +1304,8 @@ export function createDocEditorImageUploadUrl(
 export function getDocEditorSessionImageUrl(sessionId: Uuid, fileName: string) {
   const filePath = buildSessionImagePath(sessionId, fileName)
   const blobUrl = createBlobSasUrl(
-    config.sessionsStorageAccountName,
-    config.sessionsStorageAccountAccessKey,
+    config.appStorageAccountName,
+    config.appStorageAccountAccessKey,
     config.sessionsStorageContainer,
     filePath,
     // TTL of 2 hours

@@ -30,9 +30,9 @@ const blobClients = new Map<string, BlobServiceClient>([
     ),
   ],
   [
-    config.sessionsStorageAccountName,
+    config.appStorageAccountName,
     new BlobServiceClient(
-      `https://${config.sessionsStorageAccountName}.blob.core.windows.net`,
+      `https://${config.appStorageAccountName}.blob.core.windows.net`,
       azureStorageCredential
     ),
   ],
