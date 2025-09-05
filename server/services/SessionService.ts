@@ -616,7 +616,7 @@ export async function adminSessionView(data: unknown) {
       config.appStorageAccountAccessKey,
       config.sessionsStorageContainer,
       `${sessionId}/images/`,
-      { permissions: ['r'], expiresInSeconds: 2 * 60 * 60 }
+      { permissions: ['r'], expiresInSeconds: 10 * 60 }
     )
     sessionPhotos = photos.map((photo) => photo.url)
   } else
