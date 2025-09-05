@@ -65,6 +65,7 @@ import { getClient, runInTransaction, TransactionClient } from '../db'
 import { PrimaryUserRole } from './UserRolesService'
 
 import { LangfuseGenerationClient } from 'langfuse'
+import { getImageFileType, resize } from '../utils/image-utils'
 
 const MINOR_AGE_THRESHOLD = 18
 
@@ -202,12 +203,14 @@ async function detectImageEducationPurpose(
       },
     ]
 
+    const resizedImage = await resize(image)
+
     const response: {
       detectedLabels: [{ label: string; confidence: number }]
       reason: string
     } = await invokeModel({
       modelId: config.awsBedrockSonnetArnId,
-      image: image,
+      image: resizedImage,
       prompt: prompt.prompt,
       tools_option: {
         tool_choice: { type: BedrockToolChoice.TOOL, name: 'json_response' },
