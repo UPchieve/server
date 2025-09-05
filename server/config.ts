@@ -23,6 +23,7 @@ const config: Static<typeof Config> = {
   SSL_CERT_PATH: '',
   // set host to your public IP address to test Twilio voice calling
   host: process.env.SUBWAY_SERVER_HOST || 'localhost:8080',
+  apiOrigin: process.env.SUBWAY_SERVER_API_ORIGIN || 'http://localhost:3000',
   protocol: process.env.SUBWAY_SERVER_PROTOCOL || 'http',
   additionalAllowedOrigins: process.env.SUBWAY_ADDITIONAL_ALLOWED_ORIGINS || '',
   sessionSecret: process.env.SUBWAY_SESSION_SECRET || 'secret',
@@ -360,6 +361,11 @@ const config: Static<typeof Config> = {
     process.env.SUBWAY_ASSIGNMENTS_STORAGE_CONTAINER || 'bogus',
   assignmentsFrontdoorHostName:
     process.env.SUBWAY_ASSIGNMENTS_FRONTDOOR_HOSTNAME || 'bogus',
+  appStorageAccountName: process.env.SUBWAY_APP_STORAGE_ACCOUNT_NAME || 'bogus',
+  appStorageAccountAccessKey:
+    process.env.SUBWAY_APP_STORAGE_ACCOUNT_ACCESS_KEY || 'bogus',
+  sessionsStorageContainer:
+    process.env.SUBWAY_SESSIONS_STORAGE_CONTAINER || 'bogus',
   version: process.env.SUBWAY_VERSION || 'development',
   fileWorkRootPath: process.env.FILE_WORK_ROOT_PATH || `${__dirname}/tmp`,
   ipWhoIsApiKey: process.env.SUBWAY_IP_WHO_IS_API_KEY || 'bogus',
