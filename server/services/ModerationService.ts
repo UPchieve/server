@@ -54,12 +54,18 @@ import {
 import crypto from 'crypto'
 import { putObject } from './AwsService'
 import * as ShareableDomainsRepo from '../models/ShareableDomains/queries'
-import { invokeModel, BedrockToolChoice } from './AwsBedrockService'
+import {
+  invokeModel,
+  BedrockToolChoice,
+  BedrockTools,
+} from './AwsBedrockService'
 import { LangfuseTraceClient } from 'langfuse-node'
 import { ModerationInfraction } from '../models/ModerationInfractions/types'
 import { getClient, runInTransaction, TransactionClient } from '../db'
 import { PrimaryUserRole } from './UserRolesService'
+
 import { LangfuseGenerationClient } from 'langfuse'
+import { getImageFileType, resize } from '../utils/image-utils'
 
 const MINOR_AGE_THRESHOLD = 18
 
@@ -94,7 +100,9 @@ export enum LangfuseGenerationName {
   DETECT_TOXICITY_IN_TEXT = 'detectToxicityInText',
   DETECT_MODERATION_LABELS = 'detectModerationLabels',
   DETECT_FACES = 'detectFaces',
-  DETECT_LABELS = 'detectLabels',
+  DETECT_PERSON = 'detectPerson',
+  DETECT_MINORS = 'detectMinors',
+  IS_IMAGE_EDUCATIONAL = 'isImageEducational',
 }
 
 // Image moderation
@@ -132,7 +140,6 @@ const moderationLabelToFailureReason = (
 export type ModerationSource =
   | 'image_upload'
   | 'screenshare'
-  | 'voice_chat'
   | 'audio_transcription'
   | 'text_chat'
   | 'whiteboard'
@@ -140,6 +147,164 @@ export type ModerationSource =
 const DIRECT_MESSAGE_TAG = 'direct_message'
 const MESSAGE_TAG = 'session_chat'
 const WHITEBOARD_TEXT_TAG = 'whiteboard_text'
+
+async function detectImageEducationPurpose(
+  image: Buffer,
+  sessionId: string,
+  trace?: LangfuseTraceClient
+): Promise<ImageModerationFailureReason | null> {
+  try {
+    const prompt = await getPromptData(
+      LangfusePromptNameEnum.IS_IMAGE_EDUCATIONAL,
+      ''
+    )
+    if (prompt.isFallback) throw Error("Couldn't get prompt")
+
+    let generation: LangfuseGenerationClient | undefined = undefined
+    if (trace) {
+      generation = trace.generation({
+        name: LangfuseGenerationName.IS_IMAGE_EDUCATIONAL,
+        prompt: prompt.promptObject,
+        model: config.awsBedrockSonnetArnId,
+      })
+    }
+
+    const response_tool: BedrockTools = [
+      {
+        name: 'json_response',
+        description: 'Prints answer in json format',
+        input_schema: {
+          type: 'object',
+          properties: {
+            detectedLabels: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  label: {
+                    type: 'string',
+                    description: 'Educational subject detected',
+                  },
+                  confidence: {
+                    type: 'number',
+                    description: 'The confidence rating for the subject',
+                  },
+                },
+                required: ['label', 'confidence'],
+              },
+            },
+            reason: {
+              type: 'string',
+              description: 'The explanation of labels were chosen',
+            },
+          },
+          required: ['detectLabels', 'reason'],
+        },
+      },
+    ]
+
+    const resizedImage = await resize(image)
+
+    const response: {
+      detectedLabels: [{ label: string; confidence: number }]
+      reason: string
+    } = await invokeModel({
+      modelId: config.awsBedrockSonnetArnId,
+      image: resizedImage,
+      prompt: prompt.prompt,
+      tools_option: {
+        tool_choice: { type: BedrockToolChoice.TOOL, name: 'json_response' },
+        tools: response_tool,
+      },
+    })
+
+    if (generation) {
+      generation.end({ output: response })
+    }
+
+    const nonEducational = response.detectedLabels.find(
+      (category) =>
+        category.label === 'NonEducational' &&
+        category.confidence >= config.imageModerationMinConfidence
+    )
+
+    const educationalLabels = response.detectedLabels.filter(
+      (category) =>
+        category.confidence >= config.imageModerationMinConfidence &&
+        category.label !== 'NonEducational'
+    )
+
+    if (
+      isEmpty(response.detectedLabels) ||
+      nonEducational ||
+      isEmpty(educationalLabels)
+    ) {
+      return {
+        reason: `"The image doesn't serve any educational purpose"`,
+        details: response,
+      }
+    }
+
+    return null
+  } catch (err) {
+    logger.error(
+      { sessionId, err },
+      'Failed to detect if image is for educational purposes'
+    )
+    throw new Error(
+      `Failed to detect if image is for educational purposes ${sessionId}`
+    )
+  }
+}
+async function detectPersonInImage(
+  image: Buffer,
+  sessionId: string,
+  trace?: LangfuseTraceClient
+) {
+  try {
+    let generation: LangfuseGenerationClient | undefined = undefined
+
+    if (trace) {
+      generation = trace.generation({
+        name: LangfuseGenerationName.DETECT_PERSON,
+      })
+    }
+
+    const labelResponse = await awsRekognitionClient.send(
+      new DetectLabelsCommand({
+        Image: {
+          Bytes: image as Uint8Array,
+        },
+        MinConfidence: config.imageModerationMinConfidence,
+        Settings: {
+          GeneralLabels: {
+            LabelInclusionFilters: ['Person'],
+          },
+        },
+      })
+    )
+
+    if (generation) {
+      generation.end({ output: labelResponse })
+    }
+
+    const labels = labelResponse.Labels ?? []
+    const labelFailures = labels.map((label) => ({
+      reason: `Person detected in image`,
+      details: {
+        label: label.Name,
+        confidence: label.Confidence,
+      },
+    }))
+
+    return labelFailures
+  } catch (err) {
+    logger.error({ sessionId, err }, 'Failed to detect a person in image')
+    throw new Error(
+      `Failed to detect a person in image for session ${sessionId}`
+    )
+  }
+}
 
 /*
   detect harmful content in the image
@@ -232,7 +397,7 @@ async function detectMinorFailures(image: Buffer, trace?: LangfuseTraceClient) {
   // but we want to handle the case where faces are not in the image
   if (trace) {
     generation = trace.generation({
-      name: LangfuseGenerationName.DETECT_LABELS,
+      name: LangfuseGenerationName.DETECT_MINORS,
     })
   }
   const labelResponse = await awsRekognitionClient.send(
@@ -342,6 +507,39 @@ const detectToxicContent = async (
   return highToxicity
 }
 
+async function isLikelyToBeAnEmail({
+  entityConfidence,
+  entityText,
+  sessionId,
+  isVolunteer,
+  trace,
+}: {
+  entityConfidence: number
+  entityText: string
+  sessionId: string
+  isVolunteer: boolean
+  trace?: LangfuseTraceClient
+}) {
+  const isMaybeEmail =
+    entityConfidence >= config.emailModerationConfidenceThreshold &&
+    EMAIL_REGEX.test(entityText)
+
+  if (!isMaybeEmail) {
+    return false
+  }
+
+  const aiModerationResult = await getAiModerationResult(
+    {
+      message: entityText,
+      sessionId,
+    },
+    isVolunteer,
+    trace
+  )
+
+  return aiModerationResult?.reasons?.email ?? false
+}
+
 async function isLikelyToBeAPhoneNumber({
   entityConfidence,
   entityText,
@@ -376,11 +574,11 @@ async function isLikelyToBeAPhoneNumber({
     trace
   )
 
-  return aiModerationResult?.isPhoneNumber ?? true
+  return aiModerationResult?.reasons?.phone ?? false
 }
 
 function existsInArray(array: any[], item: any) {
-  return array.some((i) => i === item)
+  return array.some((i) => i?.details?.text === item)
 }
 
 export type ModeratedLink = {
@@ -459,7 +657,7 @@ async function checkForFullAddresses({
     sessionId,
   })
 
-  const VERIFY_EMAIL_RESPONSE_TOOL = [
+  const VERIFY_EMAIL_RESPONSE_TOOL: BedrockTools = [
     {
       name: 'json_response',
       description: 'Prints answer in json format',
@@ -567,7 +765,7 @@ async function checkForQuestionableLinks({
     ...(promptData.promptObject && { prompt: promptData.promptObject }),
   })
 
-  const QUESTIONABLE_LINKS_RESPONSE_TOOL = [
+  const QUESTIONABLE_LINKS_RESPONSE_TOOL: BedrockTools = [
     {
       name: 'json_response',
       description: 'Prints answer in json format',
@@ -682,7 +880,13 @@ async function detectPii(
     } else if (
       entity.Type === 'EMAIL' &&
       !existsInArray(emails, entityText) &&
-      entityConfidence >= config.emailModerationConfidenceThreshold
+      (await isLikelyToBeAnEmail({
+        entityConfidence,
+        entityText,
+        sessionId,
+        isVolunteer,
+        trace,
+      }))
     ) {
       emails.push({
         reason: 'Email',
@@ -726,12 +930,10 @@ async function detectPii(
   const moderatedPII: ModeratedPII[] = [...emails, ...phones]
 
   const allowedDomains = await ShareableDomainsRepo.getAllowedDomains()
-  const moderatedLinks = (
-    await filterDisallowedDomains({
-      allowedDomains,
-      links,
-    })
-  ).filter(meetsOrExceedsLinkConfidenceThreshold)
+  const moderatedLinks = filterDisallowedDomains({
+    allowedDomains,
+    links,
+  }).filter(meetsOrExceedsLinkConfidenceThreshold)
 
   if (moderatedLinks.length > 0) {
     const questionableLinks = await checkForQuestionableLinks({
@@ -848,7 +1050,7 @@ async function handleImageModerationFailure({
     source,
   })
 
-  logger.warn(
+  logger.info(
     { sessionId, reasons: failureReasons, imageUrl, source, userId },
     'Image triggered moderation'
   )
@@ -943,11 +1145,30 @@ async function getAllImageModerationFailures({
     moderationFailureReasons,
     minorFailures,
     textModerationFailureReasons,
+    detectPersonResponse,
   ] = await Promise.all([
     detectImageModerationFailures(image, trace, sessionId),
     detectMinorFailures(image, trace),
     detectTextModerationFailures(image, sessionId, isVolunteer, trace),
+    detectPersonInImage(image, sessionId, trace),
   ])
+
+  if (
+    isEmpty(moderationFailureReasons) &&
+    isEmpty(minorFailures) &&
+    isEmpty(textModerationFailureReasons) &&
+    !isEmpty(detectPersonResponse)
+  ) {
+    const noEducationalContext = await detectImageEducationPurpose(
+      image,
+      sessionId,
+      trace
+    )
+
+    if (noEducationalContext) {
+      return { failureReasons: [noEducationalContext] }
+    }
+  }
 
   return {
     failureReasons: [
@@ -1278,10 +1499,13 @@ export const handleModerationInfraction = async (
       },
       client
     )
-  const infractionScore = getInfractionScore(allActiveInfractions)
+  const infractionScore = weighSessionInfractions(allActiveInfractions)
+  const streamStoppingReasons = getStreamStoppingReasonsFromInfractions([
+    insertedInfraction,
+  ])
   const doLiveMediaBan =
     infractionScore >= config.liveMediaBanInfractionScoreThreshold
-  const socketService = await SocketService.getInstance()
+  const socketService = SocketService.getInstance()
   if (doLiveMediaBan) {
     await UsersRepo.banUserById(
       userId,
@@ -1296,11 +1520,13 @@ export const handleModerationInfraction = async (
   }
 
   const failures: string[] = [...new Set<string>(Object.keys(reasons.failures))]
+
   await socketService.emitModerationInfractionEvent(userId, {
     isBanned: doLiveMediaBan,
     infraction: failures,
     source,
     occurredAt: new Date(),
+    stopStreamImmediatelyReasons: streamStoppingReasons,
   })
 }
 
@@ -1323,6 +1549,12 @@ export type LiveMediaModerationCategories =
   | 'gambling'
   | 'hate symbols'
 
+/**
+ * This gets the score/weight for the severity of the moderation infraction.
+ * We have a configurable threshold for the max score you can accrue before being
+ * live media-banned - see {@link config.liveMediaBanInfractionScoreThreshold}
+ * @param category
+ */
 export function getScoreForCategory(
   category: LiveMediaModerationCategories | string
 ): number {
@@ -1330,7 +1562,6 @@ export function getScoreForCategory(
   switch (category.toLowerCase()) {
     case 'profanity':
     case 'high toxicity':
-    case 'minor detected in image':
     case 'drugs & tobacco':
     case 'alcohol':
     case 'rude gestures':
@@ -1339,15 +1570,18 @@ export function getScoreForCategory(
       break
     case 'violence':
     case 'swimwear or underwear':
-    case 'link':
-    case 'email':
-    case 'phone':
-    case 'address':
     case 'explicit':
     case 'non-explicit nudity of intimate parts and kissing':
     case 'hate symbols':
     case 'visually disturbing':
       categoryScore = 10
+      break
+    case 'link':
+    case 'email':
+    case 'phone':
+    case 'address':
+    case 'minor detected in image':
+      categoryScore = 4
       break
   }
   if (!categoryScore) {
@@ -1359,15 +1593,46 @@ export function getScoreForCategory(
   return categoryScore
 }
 
-export function getInfractionScore(
+export function isStreamStoppingReason(
+  category: LiveMediaModerationCategories | string
+): boolean {
+  const streamStoppingReasons = [
+    'minor detected in image',
+    'swimwear or underwear',
+    'violence',
+    'visually disturbing',
+    'hate symbols',
+    'link',
+    'email',
+    'phone',
+    'address',
+    'explicit',
+    'non-explicit nudity of intimate parts and kissing',
+  ]
+  return streamStoppingReasons.includes(category.toLowerCase())
+}
+
+function getReasonsFromInfractions(
+  infractions: ModerationInfraction[]
+): string[] {
+  return infractions.flatMap((i) => Object.keys(i.reason))
+}
+
+export function weighSessionInfractions(
   infractions: ModerationInfraction[]
 ): number {
-  const reasons = infractions.flatMap((i) => Object.keys(i.reason))
-
+  const reasons = getReasonsFromInfractions(infractions)
   return reasons.reduce((acc, current) => {
     const categoryScore = getScoreForCategory(current)
     return acc + categoryScore
   }, 0)
+}
+
+export function getStreamStoppingReasonsFromInfractions(
+  infractions: ModerationInfraction[]
+): string[] {
+  const reasons = getReasonsFromInfractions(infractions)
+  return reasons.filter((reason) => isStreamStoppingReason(reason))
 }
 
 export type CleanTranscriptModerationResult = {

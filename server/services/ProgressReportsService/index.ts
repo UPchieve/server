@@ -61,7 +61,7 @@ import {
 import { PROGRESS_REPORT_JSON_INSTRUCTIONS } from '../../constants'
 import { Student, getStudentProfileByUserId } from '../../models/Student'
 import { SubjectAndTopic, getSubjectAndTopic } from '../../models/Subjects'
-import { convertBase64ToImage } from '../../utils/convert-base-to-image'
+import { convertBase64ToImage } from '../../utils/image-utils'
 import { getTextFromImageAnalysis } from '../VisionService'
 import * as LangfuseService from '../LangfuseService'
 

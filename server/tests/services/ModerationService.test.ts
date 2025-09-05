@@ -4,11 +4,12 @@ import {
   moderateMessage,
   filterDisallowedDomains,
   type ModeratedLink,
-  getInfractionScore,
+  weighSessionInfractions,
   handleModerationInfraction,
   getScoreForCategory,
   LiveMediaModerationCategories,
   getSessionFlagByModerationReason,
+  isStreamStoppingReason,
 } from '../../services/ModerationService'
 import { mocked } from 'jest-mock'
 import * as FeatureFlagsService from '../../services/FeatureFlagService'
@@ -22,6 +23,7 @@ import * as ModerationInfractionsRepo from '../../models/ModerationInfractions'
 import * as SessionRepo from '../../models/Session'
 import SocketService from '../../services/SocketService'
 import { UserSessionFlags } from '../../constants'
+import { ModerationInfraction } from '../../models/ModerationInfractions'
 
 jest.mock('../../models/Session')
 jest.mock('../../utils/time-limit')
@@ -423,34 +425,35 @@ describe('ModerationService', () => {
   describe('Moderation infractions', () => {
     const profanityReason = { failures: { profanity: [] } }
     const violenceReason = { failures: { violence: [] } }
+    const explicitReason = { failures: { explicit: [] } }
 
     const buildModerationInfractionWithReason = (reason: any) => {
       return buildModerationInfractionRow('userId', 'sessionId', {
         reason: reason.failures,
       })
     }
-    describe('getInfractionScore', () => {
+    describe('weighModerationInfractions', () => {
       it.each([
         ['profanity', 1],
         ['high toxicity', 1],
-        ['minor detected in image', 1],
+        ['minor detected in image', 4],
         ['drugs & tobacco', 1],
         ['alcohol', 1],
         ['rude gestures', 1],
         ['gambling', 1],
         ['violence', 10],
         ['swimwear or underwear', 10],
-        ['link', 10],
-        ['email', 10],
-        ['phone', 10],
-        ['address', 10],
+        ['link', 4],
+        ['email', 4],
+        ['phone', 4],
+        ['address', 4],
         ['explicit', 10],
         ['non-explicit nudity of intimate parts and kissing', 10],
         ['hate symbols', 10],
         ['visually disturbing', 10],
       ])(
         'Calculates the correct score for each category of infraction',
-        (category, expectedScore) => {
+        (category: string, expectedScore: number) => {
           const moderationInfraction = buildModerationInfractionRow(
             'userId',
             'sessionId',
@@ -460,9 +463,8 @@ describe('ModerationService', () => {
               },
             }
           )
-          expect(getInfractionScore([moderationInfraction])).toEqual(
-            expectedScore
-          )
+          const actual = weighSessionInfractions([moderationInfraction])
+          expect(actual).toEqual(expectedScore)
         }
       )
 
@@ -472,9 +474,43 @@ describe('ModerationService', () => {
           buildModerationInfractionWithReason(profanityReason),
           buildModerationInfractionWithReason(violenceReason),
           buildModerationInfractionWithReason(violenceReason),
+          buildModerationInfractionWithReason(explicitReason),
         ]
-        expect(getInfractionScore(infractions)).toEqual(22)
+        const result = weighSessionInfractions(infractions)
+        expect(result).toEqual(32)
       })
+    })
+
+    describe('isStreamStoppingReason', () => {
+      it.each([
+        ['non-explicit nudity of intimate parts and kissing', true],
+        ['explicit', true],
+        ['hate symbols', true],
+        ['visually disturbing', true],
+        ['swimwear or underwear', true],
+        ['violence', true],
+        ['swimwear or underwear', true],
+        ['profanity', false],
+        ['high toxicity', false],
+        ['minor detected in image', true],
+        ['drugs & tobacco', false],
+        ['alcohol', false],
+        ['rude gestures', false],
+        ['gambling', false],
+        ['link', true],
+        ['email', true],
+        ['phone', true],
+        ['address', true],
+      ])(
+        'Determines whether the reason is reason to immediately stop the stream (reason is %s)',
+        async (reason: string, expectedValue: boolean) => {
+          const actual = isStreamStoppingReason(reason)
+          console.log(
+            `TEST: reason=${reason}, expected=${expectedValue}, and actual=${actual}`
+          )
+          expect(actual).toEqual(expectedValue)
+        }
+      )
     })
 
     describe('handleModerationInfraction', () => {
@@ -482,6 +518,17 @@ describe('ModerationService', () => {
       const sessionId = 'session-456'
 
       it('Writes an infraction if the source is screenshare', async () => {
+        mockModerationInfractionsRepo.insertModerationInfraction.mockResolvedValue(
+          {
+            id: '123',
+            userId: '123',
+            sessionId: '123',
+            reason: { ...profanityReason.failures },
+            active: true,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          } as ModerationInfraction
+        )
         const mockSocketServiceInstance =
           SocketService.getInstance as jest.Mock<SocketService>
         mockSocketServiceInstance.mockImplementation(() => {
@@ -559,6 +606,23 @@ describe('ModerationService', () => {
           expect(actualScore).toEqual(expectedScore)
         }
       )
+    })
+
+    describe('isStreamStoppingReason', () => {
+      it.each([
+        ['minor detected in image', true],
+        ['swimwear or underwear', true],
+        ['link', true],
+        ['email', true],
+        ['phone', true],
+        ['address', true],
+        ['explicit', true],
+        ['non-explicit nudity of intimate parts and kissing', true],
+        ['profanity', false],
+        ['violence', true],
+      ])('Returns the correct value', (category: string, expected: boolean) => {
+        expect(isStreamStoppingReason(category)).toEqual(expected)
+      })
     })
   })
 

@@ -28,6 +28,7 @@ export enum LangfusePromptNameEnum {
   GET_ADDRESS_DETECTION_MODERATION_DECISION = 'get-address-detection-moderation-decision',
   SESSION_SUMMARY_TEACHER_PROMPT = 'session-summary-teacher-prompt',
   GET_QUESTIONABLE_LINK_MODERATION_DECISION = 'get-questionable-link-moderation-decision',
+  IS_IMAGE_EDUCATIONAL = 'is-image-for-educational-use',
 }
 
 export enum LangfuseTraceTagEnum {

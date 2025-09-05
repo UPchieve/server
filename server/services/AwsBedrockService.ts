@@ -3,6 +3,7 @@ import {
   InvokeModelCommand,
 } from '@aws-sdk/client-bedrock-runtime'
 import config from '../config'
+import { getImageFileType } from '../utils/image-utils'
 
 const ANTHROPIC_VERSION = 'bedrock-2023-05-31'
 
@@ -30,32 +31,63 @@ export enum BedrockToolChoice {
   TOOL = 'tool',
 }
 
+export type BedrockTools = Array<{
+  name: string
+  description: string
+  input_schema: { type: string; properties: object; required: Array<string> }
+}>
+
 export type BedrockToolsAttribute = {
-  tools: Array<{
-    name: string
-    description: string
-    input_schema: { required: Array<string> }
-  }>
+  tools: BedrockTools
   tool_choice: { type: BedrockToolChoice; name?: string }
 }
+
 type BedrockInvokeInput = {
   modelId: string
-  text: string
+  text?: string
   prompt: string
   tools_option?: BedrockToolsAttribute
+  image?: Buffer
 }
 
 type BedrockInvokeResponse = {
   content: Array<{ input?: Object; text?: string }>
 }
 
+function imageContentPayload(image: Buffer) {
+  const imageFileType = getImageFileType(image)
+
+  return {
+    type: 'image',
+    source: {
+      type: 'base64',
+      media_type: imageFileType?.mime,
+      data: image.toString('base64'),
+    },
+  }
+}
+
+function textContextPayload(text: string) {
+  return { type: 'text', text: `<text>${text}</text>` }
+}
+
 export async function invokeModel({
   modelId,
+  image,
   text,
   prompt,
   tools_option,
 }: BedrockInvokeInput) {
   const client = getClient()
+
+  const payLoadContent = []
+
+  if (text) {
+    payLoadContent.push(textContextPayload(text))
+  }
+  if (image) {
+    payLoadContent.push(imageContentPayload(image))
+  }
 
   const payload = {
     anthropic_version: ANTHROPIC_VERSION,
@@ -65,7 +97,7 @@ export async function invokeModel({
     messages: [
       {
         role: 'user',
-        content: [{ type: 'text', text: `<text>${text}</text>` }],
+        content: payLoadContent,
       },
     ],
   }

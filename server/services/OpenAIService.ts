@@ -15,7 +15,7 @@ export enum OpenAiResponseType {
 }
 export type OpenAiInput = {
   prompt: string
-  userMessage: string
+  userMessage: string | Array<OpenAI.ChatCompletionContentPart>
   responseType?: OpenAiResponseType
 }
 

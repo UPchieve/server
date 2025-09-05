@@ -23,7 +23,7 @@ export interface IGetQuizzesPassedForDateRangeByVolunteerIdQuery {
   result: IGetQuizzesPassedForDateRangeByVolunteerIdResult;
 }
 
-const getQuizzesPassedForDateRangeByVolunteerIdIR: any = {"usedParamSet":{"userId":true,"start":true,"end":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":136,"b":143}]},{"name":"start","required":true,"transform":{"type":"scalar"},"locs":[{"a":172,"b":178}]},{"name":"end","required":true,"transform":{"type":"scalar"},"locs":[{"a":207,"b":211}]}],"statement":"SELECT\n    count(*)::int AS total\nFROM\n    user_actions\nWHERE\n    action_type = 'QUIZ'\n    AND action = 'PASSED QUIZ'\n    AND user_id = :userId!\n    AND created_at >= DATE(:start!)\n    AND created_at < DATE(:end!)"};
+const getQuizzesPassedForDateRangeByVolunteerIdIR: any = {"usedParamSet":{"userId":true,"start":true,"end":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":136,"b":143}]},{"name":"start","required":true,"transform":{"type":"scalar"},"locs":[{"a":167,"b":173}]},{"name":"end","required":true,"transform":{"type":"scalar"},"locs":[{"a":197,"b":201}]}],"statement":"SELECT\n    count(*)::int AS total\nFROM\n    user_actions\nWHERE\n    action_type = 'QUIZ'\n    AND action = 'PASSED QUIZ'\n    AND user_id = :userId!\n    AND created_at >= :start!\n    AND created_at <= :end!"};
 
 /**
  * Query generated from SQL:
@@ -36,8 +36,8 @@ const getQuizzesPassedForDateRangeByVolunteerIdIR: any = {"usedParamSet":{"userI
  *     action_type = 'QUIZ'
  *     AND action = 'PASSED QUIZ'
  *     AND user_id = :userId!
- *     AND created_at >= DATE(:start!)
- *     AND created_at < DATE(:end!)
+ *     AND created_at >= :start!
+ *     AND created_at <= :end!
  * ```
  */
 export const getQuizzesPassedForDateRangeByVolunteerId = new PreparedQuery<IGetQuizzesPassedForDateRangeByVolunteerIdParams,IGetQuizzesPassedForDateRangeByVolunteerIdResult>(getQuizzesPassedForDateRangeByVolunteerIdIR);
@@ -61,7 +61,7 @@ export interface IGetQuizzesPassedForDateRangeForTelecomReportByVolunteerIdQuery
   result: IGetQuizzesPassedForDateRangeForTelecomReportByVolunteerIdResult;
 }
 
-const getQuizzesPassedForDateRangeForTelecomReportByVolunteerIdIR: any = {"usedParamSet":{"userId":true,"start":true,"end":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":124,"b":131}]},{"name":"start","required":true,"transform":{"type":"scalar"},"locs":[{"a":160,"b":166}]},{"name":"end","required":true,"transform":{"type":"scalar"},"locs":[{"a":195,"b":199}]}],"statement":"SELECT\n    created_at\nFROM\n    user_actions\nWHERE\n    action_type = 'QUIZ'\n    AND action = 'PASSED QUIZ'\n    AND user_id = :userId!\n    AND created_at >= DATE(:start!)\n    AND created_at < DATE(:end!)"};
+const getQuizzesPassedForDateRangeForTelecomReportByVolunteerIdIR: any = {"usedParamSet":{"userId":true,"start":true,"end":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":124,"b":131}]},{"name":"start","required":true,"transform":{"type":"scalar"},"locs":[{"a":155,"b":161}]},{"name":"end","required":true,"transform":{"type":"scalar"},"locs":[{"a":185,"b":189}]}],"statement":"SELECT\n    created_at\nFROM\n    user_actions\nWHERE\n    action_type = 'QUIZ'\n    AND action = 'PASSED QUIZ'\n    AND user_id = :userId!\n    AND created_at >= :start!\n    AND created_at <= :end!"};
 
 /**
  * Query generated from SQL:
@@ -74,8 +74,8 @@ const getQuizzesPassedForDateRangeForTelecomReportByVolunteerIdIR: any = {"usedP
  *     action_type = 'QUIZ'
  *     AND action = 'PASSED QUIZ'
  *     AND user_id = :userId!
- *     AND created_at >= DATE(:start!)
- *     AND created_at < DATE(:end!)
+ *     AND created_at >= :start!
+ *     AND created_at <= :end!
  * ```
  */
 export const getQuizzesPassedForDateRangeForTelecomReportByVolunteerId = new PreparedQuery<IGetQuizzesPassedForDateRangeForTelecomReportByVolunteerIdParams,IGetQuizzesPassedForDateRangeForTelecomReportByVolunteerIdResult>(getQuizzesPassedForDateRangeForTelecomReportByVolunteerIdIR);
