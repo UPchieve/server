@@ -542,6 +542,9 @@ export async function sendAmbassadorCongratsEmail(args: {
     config.sendgrid.ambassadorCongratsTemplate
 
   const overrides = {
+    asm: {
+      group_id: config.sendgrid.unsubscribeGroup.incentiveProgram,
+    },
     categories: ['ambassador-congrats-email'],
   }
   await sendEmail(
