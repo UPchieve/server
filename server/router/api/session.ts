@@ -24,6 +24,7 @@ import {
   SessionUserRole,
 } from '../../services/UserRolesService'
 import { getDocEditorSessionImageUrl } from '../../services/SessionService'
+import { getFeatureAccess } from '../../services/FeatureAccessService'
 
 export function routeSession(router: Router) {
   // io is now passed to this module so that API events can trigger socket events as needed
@@ -65,7 +66,8 @@ export function routeSession(router: Router) {
         userAgent: req.get('User-Agent'),
         joinedFrom,
       })
-      res.json({ session })
+      const featureAccess = await getFeatureAccess(user.id)
+      res.json({ session, featureAccess })
     } catch (error) {
       resError(res, error)
     }
