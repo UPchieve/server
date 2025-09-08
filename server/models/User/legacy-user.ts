@@ -40,6 +40,8 @@ export type LegacyUserModel = {
   email: string
   proxyEmail?: string
   verified: boolean
+  emailVerified: boolean
+  phoneVerified: boolean
   firstname: string
   phone?: string
   college?: string
