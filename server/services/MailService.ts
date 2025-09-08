@@ -532,6 +532,31 @@ export async function sendBecomeAnAmbassadorEmail(args: {
   )
 }
 
+export async function sendAmbassadorCongratsEmail(args: {
+  userId: Ulid
+  email: string
+  firstName: string
+  referralLink: string
+}): Promise<void> {
+  const ambassadorCongratsTemplateId =
+    config.sendgrid.ambassadorCongratsTemplate
+
+  const overrides = {
+    categories: ['ambassador-congrats-email'],
+  }
+  await sendEmail(
+    args.email,
+    config.mail.senders.support,
+    'UPchieve',
+    ambassadorCongratsTemplateId,
+    {
+      referralLink: args.referralLink,
+      firstName: args.firstName,
+    },
+    overrides
+  )
+}
+
 export async function sendPositiveStudentFeedbackEmailToVolunteer({
   email,
   firstName,
