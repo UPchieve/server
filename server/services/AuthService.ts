@@ -145,8 +145,6 @@ export async function registerVolunteer(
     otherSignupSource,
   }
 
-  console.log('****volunteer data', volunteerData)
-
   const volunteer = await UserCtrl.createVolunteer(volunteerData, ip)
   VolunteerService.queueOnboardingReminderOneEmail(volunteer.id)
 
@@ -168,12 +166,9 @@ export async function registerVolunteer(
         emailTemplateId: config.sendgrid.ambassadorCongratsTemplate,
       })
 
-    console.log('****referred by code', referredByCode)
-    console.log('****referred first name', volunteerData.firstName)
-
     if (
       referredByCode &&
-      referredUsers === 5 &&
+      referredUsers >= 5 &&
       !hasUserBeenSentCongratsEmail
     ) {
       await QueueService.add(Jobs.SendAmbassadorCongratsEmail, {
