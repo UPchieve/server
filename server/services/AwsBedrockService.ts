@@ -82,7 +82,7 @@ export async function invokeModel({
 
   const payLoadContent = []
 
-  if (text) {
+  if (text != null && text != undefined) {
     payLoadContent.push(textContextPayload(text))
   }
   if (image) {
