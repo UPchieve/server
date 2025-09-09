@@ -166,11 +166,7 @@ export async function registerVolunteer(
         emailTemplateId: config.sendgrid.ambassadorCongratsTemplate,
       })
 
-    if (
-      referredByCode &&
-      referredUsers >= 5 &&
-      !hasUserBeenSentCongratsEmail
-    ) {
+    if (referredByCode && referredUsers >= 5 && !hasUserBeenSentCongratsEmail) {
       await QueueService.add(Jobs.SendAmbassadorCongratsEmail, {
         userId: referredBy,
         firstName: volunteerData.firstName,
