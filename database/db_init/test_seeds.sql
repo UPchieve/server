@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 14.17 (Debian 14.17-1.pgdg120+1)
--- Dumped by pg_dump version 15.13 (Homebrew)
+-- Dumped from database version 14.15 (Debian 14.15-1.pgdg120+1)
+-- Dumped by pg_dump version 14.18 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -7338,6 +7338,7 @@ COPY upchieve.session_flags (id, name, created_at, updated_at) FROM stdin;
 28	Personally identifiable information	2025-03-26 22:14:09.855431+00	2025-03-26 22:14:09.855431+00
 29	Safety concern	2025-03-26 22:14:09.855431+00	2025-03-26 22:14:09.855431+00
 30	General moderation concern	2025-03-26 22:14:09.855431+00	2025-03-26 22:14:09.855431+00
+31	Live media ban	2025-09-09 15:16:33.85088+00	2025-09-09 15:16:33.85088+00
 \.
 
 
@@ -8787,7 +8788,7 @@ SELECT pg_catalog.setval('upchieve.report_reasons_id_seq', 9, true);
 -- Name: session_flags_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.session_flags_id_seq', 30, true);
+SELECT pg_catalog.setval('upchieve.session_flags_id_seq', 31, true);
 
 
 --
