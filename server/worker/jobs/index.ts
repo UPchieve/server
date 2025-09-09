@@ -160,6 +160,7 @@ export enum Jobs {
   SendBecomeAnAmbassadorEmail = 'SendBecomeAnAmbassadorEmail',
   SendReferralSignUpCelebrationEmail = 'SendReferralSignUpCelebrationEmail',
   SendNationalTutorCertificateEmail = 'SendNationalTutordertificateEmail',
+  SendAmbassadorCongratsEmail = 'SendAmbassadorCongratsEmail',
 
   MaybeSendStudentFeedbackToVolunteer = 'MaybeSendStudentFeedbackToVolunteer',
   SendVolunteerFeedbackToStudent = 'SendVolunteerFeedbackToStudent',
