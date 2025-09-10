@@ -4,6 +4,7 @@ import { Jobs } from '../worker/jobs'
 import { Job } from 'bull'
 import { asString } from '../utils/type-utils'
 import { log } from '../worker/logger'
+import { getStudySlackCommunityEmailFeatureFlag } from '../services/FeatureFlagService'
 
 type BackfillEmailNiceToMeetYouData = {
   startDate: string
@@ -30,8 +31,12 @@ export default async function BackfillEmailNiceToMeetYou(
   const errors: string[] = []
   for (const volunteer of volunteers) {
     try {
-      await MailService.sendNiceToMeetYou(volunteer)
-      totalEmailed++
+      const isSlackCommunityEmailEnabled =
+        await getStudySlackCommunityEmailFeatureFlag(volunteer.id)
+      if (isSlackCommunityEmailEnabled) {
+        await MailService.sendNiceToMeetYou(volunteer)
+        totalEmailed++
+      }
     } catch (error) {
       errors.push(`volunteer ${volunteer.id}: ${error}`)
     }
