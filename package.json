@@ -37,7 +37,6 @@
     "pgtyped": "pgtyped -w -c pgtyped.config.json",
     "pgtyped:seeds": "pgtyped --config database/seeds/pgtyped.config.json --watch",
     "pgtyped:check": "./bin/pgtyped_check.sh",
-    "add-cron-jobs": "ts-node -P tsconfig.server.json server/scripts/add-cron-jobs.ts",
     "db:reset": "./bin/reset_db.sh",
     "db:schema": "PGPASSFILE=\"database/.pgpass\" psql -w -h localhost -p 5432 -d upchieve -U admin -f \"database/db_init/schema.sql\" &> /dev/null",
     "db:auth": "PGPASSFILE=\"database/.pgpass\" psql -w -h localhost -p 5432 -d upchieve -U admin -f \"database/db_init/auth.sql\" &> /dev/null",
