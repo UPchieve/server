@@ -35,7 +35,6 @@ import emailStudentSessionActions from './student-emails/emailStudentSessionActi
 import updateElapsedAvailability from './updateElapsedAvailability'
 import updateTotalVolunteerHours from './updateTotalVolunteerHours'
 import emailFailedFirstAttemptedQuiz from './volunteer-emails/emailFailedFirstAttemptedQuiz'
-import emailVolunteerGentleWarning from './volunteer-emails/emailGentleWarning'
 import emailOnboardingReminder from './volunteer-emails/emailOnboardingReminder'
 import emailQuickTips from './volunteer-emails/emailQuickTips'
 import emailVolunteerTenSessionMilestone from './volunteer-emails/emailTenSessionMilestone'
@@ -96,7 +95,6 @@ export enum Jobs {
   EmailPartnerVolunteerLowHoursSelected = 'EmailPartnerVolunteerLowHoursSelected',
   EmailVolunteerTenSessionMilestone = 'EmailVolunteerTenSessionMilestone',
   EmailVolunteerInactiveBlackoutOver = 'EmailVolunteerInactiveBlackoutOver',
-  EmailVolunteerGentleWarning = 'EmailVolunteerGentleWarning',
   EmailVolunteerInactiveThirtyDays = 'EmailVolunteerInactiveThirtyDays',
   EmailVolunteerInactiveSixtyDays = 'EmailVolunteerInactiveSixtyDays',
   EmailVolunteerInactiveNinetyDays = 'EmailVolunteerInactiveNinetyDays',
@@ -284,10 +282,6 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.EmailVolunteerTenSessionMilestone,
     processor: emailVolunteerTenSessionMilestone,
-  },
-  {
-    name: Jobs.EmailVolunteerGentleWarning,
-    processor: emailVolunteerGentleWarning,
   },
   {
     name: Jobs.EmailVolunteerInactive,

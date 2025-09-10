@@ -91,7 +91,6 @@ const config: Static<typeof Config> = {
       'd-476522cdd78e4c4ebc2af51a2086a640',
     volunteerFirstSessionCongratsTemplate: 'd-ebd561df99a7497d9401cec3f54ef23a',
     volunteerTenSessionMilestoneTemplate: 'd-0447cf80536a430881262f8f92044b73',
-    volunteerGentleWarningTemplate: 'd-5f7366fbde7841beb757b8694afdc6a4',
     volunteerInactiveThirtyDaysTemplate: 'd-e2c9917e22c24d72a187ff00a5eff5e9',
     volunteerInactiveSixtyDaysTemplate: 'd-659b7e8d08754ef58d9b6e594f748e19',
     volunteerInactiveNinetyDaysTemplate: 'd-1bb491dbb4a044f5a4cd9cd926eacf38',

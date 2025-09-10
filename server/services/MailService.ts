@@ -1088,27 +1088,6 @@ export async function sendVolunteerTenSessionMilestone(
   )
 }
 
-export async function sendVolunteerGentleWarning(
-  email: string,
-  firstName: string
-): Promise<void> {
-  const sender = config.mail.senders.volunteerManager
-  const overrides = {
-    reply_to: {
-      email: sender,
-    },
-    categories: ['volunteer - gentle warning'],
-  }
-  await sendEmail(
-    email,
-    sender,
-    config.mail.people.volunteerManager.firstName,
-    config.sendgrid.volunteerGentleWarningTemplate,
-    { firstName },
-    overrides
-  )
-}
-
 export async function sendVolunteerInactiveThirtyDays(
   email: string,
   firstName: string

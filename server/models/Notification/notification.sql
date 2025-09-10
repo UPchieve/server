@@ -44,32 +44,6 @@ WHERE
     AND notification_types.type IS NOT NULL;
 
 
-/* @name getNotificationsForGentleWarning */
-SELECT
-    users.id,
-    users.first_name AS first_name,
-    users.email AS email,
-    COUNT(*)::int AS total_notifications
-FROM
-    notifications
-    JOIN sessions ON notifications.session_id = sessions.id
-    JOIN users ON notifications.user_id = users.id
-    JOIN (
-        SELECT
-            sessions.volunteer_id
-        FROM
-            sessions
-        GROUP BY
-            volunteer_id
-        HAVING
-            COUNT(*) = 0) AS session_count ON session_count.volunteer_id = users.id
-WHERE
-    notifications.session_id = :sessionId!
-    AND notifications.user_id != sessions.volunteer_id
-GROUP BY
-    users.id;
-
-
 /* @name createEmailNotification */
 INSERT INTO notifications (id, user_id, session_id, email_template_id, method_id, sent_at)
 SELECT

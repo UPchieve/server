@@ -63,30 +63,6 @@ export async function getSessionNotificationsWithSessionId(
   }
 }
 
-export type GentleWarning = {
-  id: Ulid
-  totalNotifications: number
-  firstName: string
-  email: string
-}
-export async function getNotificationsForGentleWarning(
-  sessionId: Ulid
-): Promise<GentleWarning[]> {
-  try {
-    const result = await pgQueries.getNotificationsForGentleWarning.run(
-      { sessionId },
-      getClient()
-    )
-    return result.map((v) => {
-      const ret = makeRequired(v)
-      ret.email = ret.email.toLowerCase()
-      return ret
-    })
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
 export async function createEmailNotification(
   data: CreateEmailNotificationProps
 ): Promise<void> {
