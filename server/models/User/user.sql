@@ -505,7 +505,12 @@ muted_users_subject_alerts_agg.muted_subject_alerts,
 number_of_student_classes.count AS number_of_student_classes,
 federated_credentials_agg.issuers,
 teacher_profiles.last_successful_clever_sync,
-COALESCE(users.other_signup_source, signup_sources.name) AS signup_source
+CASE WHEN users.other_signup_source <> ''
+    AND users.other_signup_source IS NOT NULL THEN
+    users.other_signup_source
+ELSE
+    signup_sources.name
+END AS signup_source
 FROM
     users
     LEFT JOIN (
