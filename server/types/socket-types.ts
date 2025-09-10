@@ -22,10 +22,10 @@ export type ClientToServerEvents = {
     user: SocketUser
     sessionId: Ulid
     message: string
+    createdAt?: Date
     source: 'recap' | ''
     type?: SessionMessageType
     saidAt?: Date
-    transcript?: string
     zoomMessageId?: string
     msgId?: string
   }) => void

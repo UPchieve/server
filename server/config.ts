@@ -91,7 +91,6 @@ const config: Static<typeof Config> = {
       'd-476522cdd78e4c4ebc2af51a2086a640',
     volunteerFirstSessionCongratsTemplate: 'd-ebd561df99a7497d9401cec3f54ef23a',
     volunteerTenSessionMilestoneTemplate: 'd-0447cf80536a430881262f8f92044b73',
-    volunteerGentleWarningTemplate: 'd-5f7366fbde7841beb757b8694afdc6a4',
     volunteerInactiveThirtyDaysTemplate: 'd-e2c9917e22c24d72a187ff00a5eff5e9',
     volunteerInactiveSixtyDaysTemplate: 'd-659b7e8d08754ef58d9b6e594f748e19',
     volunteerInactiveNinetyDaysTemplate: 'd-1bb491dbb4a044f5a4cd9cd926eacf38',
@@ -116,6 +115,7 @@ const config: Static<typeof Config> = {
     volunteerPositiveStudentFeedback: 'd-a8ebf5652afc4a6e97e8f582abc172e4',
     downloadCertificateTemplate: 'd-708608ba2c6c4e04a2b2902fdc5ecf50',
     volunteerFeedbackForStudent: 'd-1fc618232eea4d64a7396995a51e8a12',
+    ambassadorCongratsTemplate: 'd-1c344164434544e4962ec2a125d647cf',
     unsubscribeGroup: {
       newsletter: 12567,
       account: 12570,
