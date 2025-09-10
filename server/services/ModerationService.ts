@@ -1525,10 +1525,10 @@ export const handleModerationInfraction = async (
   })
 }
 
-const liveMediaBanUser = async (
+async function liveMediaBanUser(
   userId: string,
   sessionId: string
-): Promise<void> => {
+): Promise<void> {
   await runInTransaction(async (tc) => {
     await UsersRepo.banUserById(
       userId,
