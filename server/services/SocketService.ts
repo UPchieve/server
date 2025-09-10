@@ -3,7 +3,10 @@ import { difference, intersection } from 'lodash'
 import type { RemoteSocket } from 'socket.io'
 import logger from '../logger'
 import { Ulid, Uuid } from '../models/pgUtils'
-import { getUnfulfilledSessions } from '../models/Session/queries'
+import {
+  getUnfulfilledSessions,
+  UnfulfilledSessions,
+} from '../models/Session/queries'
 import getSessionRoom from '../utils/get-session-room'
 import { ProgressReport } from '../services/ProgressReportsService'
 import { addDocEditorVersionTo } from './SessionService'
@@ -87,13 +90,20 @@ class SocketService {
       .emit('sessions/partner:in-session', !!userSocketsInSession.length)
   }
 
-  private async updateSessionList(tc?: TransactionClient): Promise<void> {
-    const sessions = await getUnfulfilledSessions(tc)
-    const excludedSessionIds = await cache.smembers('goalSettingSessions')
-    const filteredSessions = sessions.filter(
-      (session) => !excludedSessionIds.includes(session.id)
+  async getSessionsWithGoals(sessions: UnfulfilledSessions[]) {
+    const goalSettingSessionIds = await cache.smembers('goalSettingSessions')
+    const sessionsWithGoals = sessions.map((session) =>
+      goalSettingSessionIds.includes(session.id)
+        ? { ...session, isGoalSettingSession: true }
+        : session
     )
-    this.io.in('volunteers').emit('sessions', filteredSessions)
+    return sessionsWithGoals
+  }
+
+  private async updateSessionList(tc?: TransactionClient): Promise<void> {
+    let sessions = await getUnfulfilledSessions(tc)
+    sessions = await this.getSessionsWithGoals(sessions)
+    this.io.in('volunteers').emit('sessions', sessions)
   }
 
   async emitSessionChange(
