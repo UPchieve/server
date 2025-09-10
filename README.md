@@ -1,5 +1,4 @@
-UPchieve API Server and Worker
-===================
+# UPchieve API Server and Worker
 
 > Web app providing api endpoints and serving a SPA frontend.
 
@@ -8,9 +7,11 @@ UPchieve API Server and Worker
 [Contributing Guide](https://gitlab.com/groups/upchieve/-/wikis/1-Community-Development)
 
 ## GITLAB
+
 NOTE: Active development on this project has moved to https://gitlab.com/upchieve/subway, no more pushes should go straight to the Github repo.
 
 ## IMPORTANT: THE FRONTEND IS IN A SEPARATE REPOSITORY
+
 This repository is the backend API server and queue worker only. To work on the frontend, you also need to follow [the readme for the frontend repo](https://gitlab.com/upchieve/application/high-line).
 
 **Table of Contents**
@@ -40,8 +41,8 @@ This repository is the backend API server and queue worker only. To work on the 
     - [Testing](#testing)
       - [Known issue with visually testing SVG components:](#known-issue-with-visually-testing-svg-components)
 
-Local Development
------------------
+## Local Development
+
 ### Local Dependencies
 
 The recommended tool for runtime version management is [`nvm`][nvm]. To use `nvm` on Windows, first install the appropriate Linux shell distribution using [`WSL`][wsl] (Windows Subsystem for Linux). We currently run on Node v20.10.0, you can switch to this using
@@ -57,36 +58,44 @@ After switching npm versions using nvm, you will need to run `$ npm install`. Ne
 [Docker]: https://www.docker.com/products/docker-desktop
 
 ### App Dependencies
+
 On Linux systems you may need to install [`docker-compose` manually](https://docs.docker.com/compose/install/); on Windows and MacOS it ships with base docker. A docker-compose yaml specifies how to spin up Mongo, Redis, PostgreSQL, and PGAdmin containers to support the server, and also seeds the PostgreSQL database with test data.
 
 1. Run the following command to start the containers
+
 ```shell
 $ docker-compose --profile dev up -d
 ```
+
 2. Confirm PostgreSQL is running and the database is properly seeded by making a query in a DB admin tool
-    - connect via `$ psql --host 127.0.0.1 --port 5432 --username admin --dbname upchieve` and password `Password123` OR
-    - use PGAdmin at [`http://localhost:80`](http://localhost:80) with username `admin@upchieve.org` and password `Password123`
+   - connect via `$ psql --host 127.0.0.1 --port 5432 --username admin --dbname upchieve` and password `Password123` OR
+   - use PGAdmin at [`http://localhost:80`](http://localhost:80) with username `admin@upchieve.org` and password `Password123`
 
 When you want to stop and remove the containers, run:
+
 ```shell
 $ docker-compose --profile dev down
 ```
 
 ### Prepare to run the server
+
 The below steps are tested on a Macintosh.
 
 1. Confirm the database container dependencies above are running with `docker ps`
 2. Custom properties are currently required for the server to connect data sources on a desktop computer, so run or add to your profile the below commands:
+
 ```
 export SUBWAY_REDIS_HOST=localhost
 export SUBWAY_DB_HOST=localhost
 ```
+
 3. (optional) If you want to test Twilio voice calling functionality, set the `host` property to `[your public IP address]:3000` (minus the brackets), and configure your router/firewall to allow connections to port 3000 from the Internet. Twilio will need to connect to your system to obtain TwiML instructions.
 4. (optional) Run `npm run dev:worker` to start the worker process. The dev worker will automatically attempt to connect to your local Redis instance and read jobs from there. Additionally, you can run `npm run add-cron-jobs` to add all repeatable jobs to the job queue.
 
 ### Run the app
 
 #### IMPORTANT: THE FRONTEND IS IN A SEPARATE REPOSITORY
+
 This repository is the backend API server and queue worker only. To work on the frontend, you also need to follow [the readme for the frontend repo](https://gitlab.com/upchieve/application/high-line).
 
 Once you have the dependencies running and installed, you can run the following
@@ -94,6 +103,7 @@ Once you have the dependencies running and installed, you can run the following
 ```
 $ npm run dev:backend
 ```
+
 to start the dev server and a watch for changes to the server code. Once you also have the frontend running you can visit http://localhost:8080 and you're good to go!
 
 ### Database updates
@@ -101,13 +111,16 @@ to start the dev server and a watch for changes to the server code. Once you als
 If you change anything in the `.sql` files in `server/models`, run [`npm run pgtyped`](https://pgtyped.vercel.app/) to pick up the changes and regenerate the associated `.ts` files. This generates typescript versions of the queries that can be referenced in code, as well as entity types.
 
 #### Important files
+
 All database administration files live in `/database`. The `db_init` directory houses files used to bring up a fresh database for local dev or staging. To bring up a fresh database run:
+
 1. `schema.sql` to create the UPchieve schema
 2. `auth.sql` to create relevant app roles and grant them permission over the schema
 3. `test_seeds.sql` to fill the db with static seeds and test data for local development
 4. `seed_migrations.sql` to populate the `public.seed_migrations` table so we know how to apply future seed migrations
 
 #### Package.json Scripts
+
 1. `db:reset`: resets the local postgres container's `pchieve` database to an empty state
 2. `db:schema`: applies `db_init/schema.sql` to the local db
 3. `db:auth`: applies `db_init/auth.sql` to the local tb
@@ -123,7 +136,9 @@ All database administration files live in `/database`. The `db_init` directory h
 13. `db:seeds-up` applies any pending seed migrations
 
 #### Migrations
+
 When writing a schema migration include both rollout and rollback instructions - for example:
+
 ```sql
 -- migrate:up
 ALTER TABLE upchieve.schools
@@ -133,9 +148,11 @@ ALTER TABLE upchieve.schools
 ALTER TABLE upchieve.schools
   DROP COLUMN legacy_city_name;
 ```
+
 Test that the rollback script actually works by running `npm run db:schema-down`. Note that a `seeds-down` script does not exist because writing reversible seed migrations is often mroe trouble than it's worth.
 
 Notes:
+
 - If the database/schema end up in an irrecoverable state, you can drop everything with `npm run db:reset-seeds` to get the database to a fresh state (alternatively destroy and rebuild the container)
 - After verifying the migrations are good dump the schema and data for the next developer with `npm run db:dump`
 - Everything in `db_init` is programmatically generated and can be ignored in diff examinations
@@ -147,7 +164,7 @@ Notes:
 The database is populated with the following users for local development:
 
 | email                     | password      | properties                                             |
-|:--------------------------|:--------------|--------------------------------------------------------|
+| :------------------------ | :------------ | ------------------------------------------------------ |
 | `student1@upchieve.org`   | `Password123` | approved school                                        |
 | `student2@upchieve.org`   | `Password123` | partner student, approved school                       |
 | `student3@upchieve.org`   | `Password123` | partner student, no school                             |
@@ -160,9 +177,7 @@ The database is populated with the following users for local development:
 | `teacher1@upchieve.org`   | `Password123` | approved school                                        |
 | `teacher2@upchieve.org`   | `Password123` | partner school                                         |
 
-
-Structure
----------
+## Structure
 
 The app is split into two components, the server/worker, and the frontend Vue SPA.
 
@@ -206,6 +221,7 @@ See all current endpoints in the [Swagger UI](./server/swagger/swagger.yaml) doc
 If you have the local backend dev running you can go [here](https://localhost:3000/docs) for a local version.
 
 ## Worker
+
 Our application runs several asynchronous jobs. These jobs are put into a queue, managed by [BullMQ](https://github.com/OptimalBits/bull), that lives in a Redis instance.
 These jobs might be triggered programmatically, on a schedule, or manually using BullMQ's UI called TaskForce.sh.
 
@@ -213,7 +229,8 @@ These jobs might be triggered programmatically, on a schedule, or manually using
 - Jobs need to be registered in the jobProcessors list in `worker/jobs/index.ts`
 
 There are three ways to enqueue jobs:
-- Schedule them in `scripts/add-cron-jobs.ts`, which will insert them into the local Redis database. Do this for jobs that need to repeat regularly.
+
+- Schedule them in `worker/jobs/addCronJobs.ts`, which will insert them into the local Redis database. Do this for jobs that need to repeat regularly.
 - Programmatically (example: search code base for `QueueService.add(...)`)
 - Manually using the TaskForce.sh UI (Ask a teammate to add you!)
   - Go to TaskForce -> Dashboard -> Production queue -> "Add a new job"
@@ -221,6 +238,7 @@ There are three ways to enqueue jobs:
 ### Testing locally
 
 You can run the worker queue locally as well as enqueue specific jobs:
+
 - To run the queue, do `npm run dev:worker`
 - To enqueue jobs locally, we use the script `server/scripts/testing-jobs.ts`
   - Simply edit the value of `jobToQueue` with the job you want
