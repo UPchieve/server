@@ -79,7 +79,6 @@ export default async function addCronJobs() {
   logger.info('Queue Created')
 
   const repeatableJobs = await queue.getRepeatableJobs()
-  logger.info(`Stopping ${repeatableJobs?.length} repeatable jobs`)
 
   await Promise.all(
     map(repeatableJobs, async (job) => {
