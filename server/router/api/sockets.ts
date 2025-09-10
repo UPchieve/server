@@ -267,16 +267,9 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       newrelic.startWebTransaction('/socket-io/list', () =>
         new Promise<void>(async (resolve, reject) => {
           try {
-            const sessions = await SessionRepo.getUnfulfilledSessions()
-            const goalSettingSessionIds = await cache.smembers(
-              'goalSettingSessions'
-            )
-            const sessionsWithGoals = sessions.map((session) =>
-              goalSettingSessionIds.includes(session.id)
-                ? { ...session, isGoalSettingSession: true }
-                : session
-            )
-            socket.emit('sessions', sessionsWithGoals)
+            let sessions = await SessionRepo.getUnfulfilledSessions()
+            sessions = await socketService.getSessionsWithGoals(sessions)
+            socket.emit('sessions', sessions)
             callback({
               status: 200,
               sessions,
