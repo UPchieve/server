@@ -136,8 +136,7 @@ export async function handleDmReporting(
   client: TransactionClient = getClient()
 ): Promise<void> {
   await runInTransaction(async (tc: TransactionClient) => {
-    await updateSessionFlagsById(sessionId, sessionFlags, tc)
-    await updateSessionReviewReasonsById(sessionId, sessionFlags, false, tc)
+    await markSessionForReview(sessionId, sessionFlags, tc)
   }, client)
 }
 
@@ -1322,4 +1321,15 @@ export function getDocEditorSessionImageUrl(sessionId: Uuid, fileName: string) {
     { expiresInSeconds: 2 * 60 * 60, permissions: ['r'] }
   )
   return blobUrl
+}
+
+export async function markSessionForReview(
+  sessionId: string,
+  sessionFlags: UserSessionFlags[],
+  tc: TransactionClient = getClient()
+): Promise<void> {
+  await runInTransaction(async (tc: TransactionClient) => {
+    await updateSessionFlagsById(sessionId, sessionFlags, tc)
+    await updateSessionReviewReasonsById(sessionId, sessionFlags, false, tc)
+  }, tc)
 }
