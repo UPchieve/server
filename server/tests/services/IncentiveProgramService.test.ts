@@ -7,7 +7,6 @@ import {
   isUserInIncentiveProgram,
   queueIncentiveProgramEnrollmentWelcomeJob,
   queueIncentiveInvitedToEnrollReminderJob,
-  queueFallIncentiveLeavingMoneyOnTableJob,
   queueFallIncentiveSessionQualificationJob,
   getUserFallIncentiveData,
 } from '../../services/IncentiveProgramService'
@@ -99,28 +98,6 @@ describe('queueIncentiveInvitedToEnrollReminderJob', () => {
       Jobs.EmailFallIncentiveInvitedToEnrollReminder,
       { userId },
       { removeOnComplete: true, removeOnFail: true, delay: twelveHoursInMs }
-    )
-  })
-})
-
-describe('queueFallIncentiveMoneyCanBeMadeReminderJob', () => {
-  beforeEach(() => {
-    jest.clearAllMocks()
-  })
-
-  test('Should queue the EmailFallIncentiveLeavingMoneyOnTable job with studentId', async () => {
-    const sessionId = getDbUlid()
-    const studentId = getDbUlid()
-    mockedSessionRepo.getSessionById.mockResolvedValue(
-      buildSession({ studentId })
-    )
-
-    await queueFallIncentiveLeavingMoneyOnTableJob(sessionId)
-    expect(mockedSessionRepo.getSessionById).toHaveBeenCalledWith(sessionId)
-    expect(mockedQueueService.add).toHaveBeenCalledWith(
-      Jobs.EmailFallIncentiveLeavingMoneyOnTable,
-      { userId: studentId, sessionId },
-      { removeOnComplete: true, removeOnFail: true }
     )
   })
 })
