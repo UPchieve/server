@@ -74,12 +74,12 @@ export default async function addScheduledJobs() {
     }
   })
 
-  jobTemplates.forEach(async (job) => {
+  for (const job of jobTemplates) {
     logger.info(`Adding scheduled job ${job.name}...`)
     await queue.add(job.name, job.data, {
       ...job.options,
       removeOnComplete: true,
       removeOnFail: true,
     })
-  })
+  }
 }
