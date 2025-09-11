@@ -22,16 +22,6 @@ export default async (job: Job<NotifyTutorsJobData>): Promise<void> => {
   const session = await getSessionById(sessionId)
   const fulfilled = sessionUtils.isSessionFulfilled(session)
   if (fulfilled) {
-    await QueueService.add(
-      Jobs.EmailVolunteerGentleWarning,
-      {
-        sessionId,
-      },
-      {
-        removeOnComplete: true,
-        removeOnFail: true,
-      }
-    )
     return log(`Cancel ${Jobs.NotifyTutors} for ${sessionId}: fulfilled`)
   }
   const delay = notificationSchedule.shift()

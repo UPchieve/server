@@ -4,6 +4,7 @@ export const Config = Record({
   NODE_ENV: String,
   SSL_CERT_PATH: String,
   host: String,
+  apiOrigin: String,
   protocol: String,
   additionalAllowedOrigins: String,
   sessionSecret: String,
@@ -66,7 +67,6 @@ export const Config = Record({
     partnerVolunteerLowHoursSelectedTemplate: String,
     volunteerFirstSessionCongratsTemplate: String,
     volunteerTenSessionMilestoneTemplate: String,
-    volunteerGentleWarningTemplate: String,
     volunteerInactiveThirtyDaysTemplate: String,
     volunteerInactiveSixtyDaysTemplate: String,
     volunteerInactiveNinetyDaysTemplate: String,
@@ -87,6 +87,7 @@ export const Config = Record({
     volunteerPositiveStudentFeedback: String,
     downloadCertificateTemplate: String,
     volunteerFeedbackForStudent: String,
+    ambassadorCongratsTemplate: String,
 
     unsubscribeGroup: Record({
       newsletter: Number,
@@ -230,6 +231,9 @@ export const Config = Record({
   assignmentsStorageAccountName: String,
   assignmentsStorageContainer: String,
   assignmentsFrontdoorHostName: String,
+  appStorageAccountName: String,
+  appStorageAccountAccessKey: String,
+  sessionsStorageContainer: String,
   version: String,
   fileWorkRootPath: String,
   ipWhoIsApiKey: String,

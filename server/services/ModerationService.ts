@@ -9,8 +9,8 @@ import QueueService from './QueueService'
 import { Jobs } from '../worker/jobs'
 import {
   invokeModel as invokeOpenAI,
-  OpenAiResults,
   MODEL_ID as OPENAI_MODEL_ID,
+  OpenAiResults,
 } from './OpenAIService'
 import * as UsersRepo from '../models/User/queries'
 import * as SessionRepo from '../models/Session'
@@ -55,9 +55,9 @@ import crypto from 'crypto'
 import { putObject } from './AwsService'
 import * as ShareableDomainsRepo from '../models/ShareableDomains/queries'
 import {
-  invokeModel,
   BedrockToolChoice,
   BedrockTools,
+  invokeModel,
 } from './AwsBedrockService'
 import { LangfuseTraceClient } from 'langfuse-node'
 import { ModerationInfraction } from '../models/ModerationInfractions/types'
@@ -65,7 +65,7 @@ import { getClient, runInTransaction, TransactionClient } from '../db'
 import { PrimaryUserRole } from './UserRolesService'
 
 import { LangfuseGenerationClient } from 'langfuse'
-import { getImageFileType, resize } from '../utils/image-utils'
+import { resize } from '../utils/image-utils'
 
 const MINOR_AGE_THRESHOLD = 18
 
@@ -1507,12 +1507,7 @@ export const handleModerationInfraction = async (
     infractionScore >= config.liveMediaBanInfractionScoreThreshold
   const socketService = SocketService.getInstance()
   if (doLiveMediaBan) {
-    await UsersRepo.banUserById(
-      userId,
-      USER_BAN_TYPES.LIVE_MEDIA,
-      USER_BAN_REASONS.AUTOMATED_MODERATION
-    )
-    await socketService.emitUserLiveMediaBannedEvents(userId, sessionId)
+    await liveMediaBanUser(userId, sessionId)
     logger.info(
       { userId, sessionId, infractionId: insertedInfraction.id },
       'Live media banned user'
@@ -1528,6 +1523,29 @@ export const handleModerationInfraction = async (
     occurredAt: new Date(),
     stopStreamImmediatelyReasons: streamStoppingReasons,
   })
+}
+
+async function liveMediaBanUser(
+  userId: string,
+  sessionId: string
+): Promise<void> {
+  await runInTransaction(async (tc) => {
+    await UsersRepo.banUserById(
+      userId,
+      USER_BAN_TYPES.LIVE_MEDIA,
+      USER_BAN_REASONS.AUTOMATED_MODERATION,
+      tc
+    )
+    await SessionService.markSessionForReview(
+      sessionId,
+      [UserSessionFlags.liveMediaBan],
+      tc
+    )
+  })
+  await SocketService.getInstance().emitUserLiveMediaBannedEvents(
+    userId,
+    sessionId
+  )
 }
 
 export type LiveMediaModerationCategories =
@@ -1894,17 +1912,6 @@ export function getSessionFlagByModerationReason(
     default:
       return UserSessionFlags.generalModerationIssue
   }
-}
-
-export async function markSessionForReview(
-  sessionId: string,
-  sessionFlags: UserSessionFlags[],
-  tc: TransactionClient = getClient()
-): Promise<void> {
-  await runInTransaction(async (tc: TransactionClient) => {
-    await updateSessionFlagsById(sessionId, sessionFlags, tc)
-    await updateSessionReviewReasonsById(sessionId, sessionFlags, false, tc)
-  }, tc)
 }
 
 export const FALLBACK_MODERATION_PROMPT = `

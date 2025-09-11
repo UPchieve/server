@@ -9,6 +9,8 @@ import * as VolunteerPartnerOrgRepo from '../../models/VolunteerPartnerOrg/queri
 import * as MailService from '../../services/MailService'
 import * as IpAddressService from '../../services/IpAddressService'
 import * as UserCtrl from '../../controllers/UserCtrl'
+import * as NotificationsRepo from '../../models/Notification/queries'
+import QueueService from '../../services/QueueService'
 
 import * as AuthService from '../../services/AuthService'
 import {
@@ -34,6 +36,7 @@ import {
   buildPartnerVolunteerRegistrationForm,
 } from '../mocks/services/AuthService.mock'
 import { getDbUlid } from '../../models/pgUtils'
+import { Jobs } from '../../worker/jobs'
 
 // Mocks
 jest.mock('../../models/User/queries')
@@ -50,10 +53,15 @@ jest.mock('../../controllers/UserCtrl')
 const mockedUserCtrl = mocked(UserCtrl)
 jest.mock('../../services/IpAddressService')
 const mockedIpAddressService = mocked(IpAddressService)
+const mockedNotificationsRepo = mocked(NotificationsRepo)
+jest.mock('../../models/Notification/queries')
 
 jest.mock('../../services/VolunteerService')
 jest.mock('../../services/MailService')
 jest.mock('../../services/AnalyticsService')
+jest.mock('../../services/QueueService', () => ({
+  add: jest.fn(),
+}))
 
 describe('Utils tests', () => {
   test('Check valid password', () => {
@@ -298,13 +306,16 @@ describe('Registration tests', () => {
       ...referree,
       userType: 'volunteer',
     })
+    mockedUserRepo.countReferredUsers.mockResolvedValue(0)
+    mockedNotificationsRepo.getEmailNotificationsByTemplateId.mockResolvedValue(
+      []
+    )
 
     const serviceVolunteer = await AuthService.registerVolunteer(
       buildVolunteerRegistrationForm({
         referredByCode: referrer.id,
       })
     )
-
     expect(serviceVolunteer).toMatchObject(referree)
   })
 

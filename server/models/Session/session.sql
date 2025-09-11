@@ -793,41 +793,6 @@ WHERE
         OR NOT session_flags.name = ANY ('{"Absent student", "Absent volunteer"}'));
 
 
-/* @name getVolunteersForGentleWarning */
-SELECT
-    users.id,
-    users.email,
-    users.first_name,
-    notification_count.total AS total_notifications
-FROM
-    notifications
-    LEFT JOIN users ON users.id = notifications.user_id
-    LEFT JOIN LATERAL (
-        SELECT
-            COUNT(*)::int AS total
-        FROM
-            sessions
-        WHERE
-            sessions.volunteer_id = users.id) AS session_count ON TRUE
-    LEFT JOIN LATERAL (
-        SELECT
-            COUNT(*)::int AS total
-        FROM
-            notifications
-        WHERE
-            notifications.user_id = users.id) AS notification_count ON TRUE
-WHERE
-    users.ban_type IS DISTINCT FROM 'complete'
-    AND users.deactivated IS FALSE
-    AND users.test_user IS FALSE
-    AND session_count.total = 0
-    AND (notifications.session_id::uuid = :sessionId
-        OR notifications.mongo_id::text = :mongoSessionId)
-GROUP BY
-    users.id,
-    notification_count.total;
-
-
 /* @name getStudentForEmailFirstSession */
 SELECT
     users.id,

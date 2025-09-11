@@ -35,7 +35,6 @@ import emailStudentSessionActions from './student-emails/emailStudentSessionActi
 import updateElapsedAvailability from './updateElapsedAvailability'
 import updateTotalVolunteerHours from './updateTotalVolunteerHours'
 import emailFailedFirstAttemptedQuiz from './volunteer-emails/emailFailedFirstAttemptedQuiz'
-import emailVolunteerGentleWarning from './volunteer-emails/emailGentleWarning'
 import emailOnboardingReminder from './volunteer-emails/emailOnboardingReminder'
 import emailQuickTips from './volunteer-emails/emailQuickTips'
 import emailVolunteerTenSessionMilestone from './volunteer-emails/emailTenSessionMilestone'
@@ -65,6 +64,7 @@ import emailReferralSignUpCelebration from './emailReferralSignupCelebration'
 import maybeSendStudentFeedbackToVolunteer from './volunteer-emails/maybeSendStudentFeedbackToVolunteer'
 import emailNationalTutorCertificate from './emailNationalTutorCertificate'
 import sendVolunteerFeedback from './student-emails/sendVolunteerFeedback'
+import addCronJobs from './addCronJobs'
 
 export enum Jobs {
   NotifyTutors = 'NotifyTutors',
@@ -96,7 +96,6 @@ export enum Jobs {
   EmailPartnerVolunteerLowHoursSelected = 'EmailPartnerVolunteerLowHoursSelected',
   EmailVolunteerTenSessionMilestone = 'EmailVolunteerTenSessionMilestone',
   EmailVolunteerInactiveBlackoutOver = 'EmailVolunteerInactiveBlackoutOver',
-  EmailVolunteerGentleWarning = 'EmailVolunteerGentleWarning',
   EmailVolunteerInactiveThirtyDays = 'EmailVolunteerInactiveThirtyDays',
   EmailVolunteerInactiveSixtyDays = 'EmailVolunteerInactiveSixtyDays',
   EmailVolunteerInactiveNinetyDays = 'EmailVolunteerInactiveNinetyDays',
@@ -160,9 +159,11 @@ export enum Jobs {
   SendBecomeAnAmbassadorEmail = 'SendBecomeAnAmbassadorEmail',
   SendReferralSignUpCelebrationEmail = 'SendReferralSignUpCelebrationEmail',
   SendNationalTutorCertificateEmail = 'SendNationalTutordertificateEmail',
+  SendAmbassadorCongratsEmail = 'SendAmbassadorCongratsEmail',
 
   MaybeSendStudentFeedbackToVolunteer = 'MaybeSendStudentFeedbackToVolunteer',
   SendVolunteerFeedbackToStudent = 'SendVolunteerFeedbackToStudent',
+  AddCronJobs = 'AddCronJobs',
 }
 
 // register new job processors here
@@ -283,10 +284,6 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.EmailVolunteerTenSessionMilestone,
     processor: emailVolunteerTenSessionMilestone,
-  },
-  {
-    name: Jobs.EmailVolunteerGentleWarning,
-    processor: emailVolunteerGentleWarning,
   },
   {
     name: Jobs.EmailVolunteerInactive,
@@ -478,6 +475,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.SendVolunteerFeedbackToStudent,
     processor: sendVolunteerFeedback,
+  },
+  {
+    name: Jobs.AddCronJobs,
+    processor: addCronJobs,
   },
 ]
 

@@ -532,6 +532,34 @@ export async function sendBecomeAnAmbassadorEmail(args: {
   )
 }
 
+export async function sendAmbassadorCongratsEmail(args: {
+  userId: Ulid
+  email: string
+  firstName: string
+  referralLink: string
+}): Promise<void> {
+  const ambassadorCongratsTemplateId =
+    config.sendgrid.ambassadorCongratsTemplate
+
+  const overrides = {
+    asm: {
+      group_id: config.sendgrid.unsubscribeGroup.incentiveProgram,
+    },
+    categories: ['ambassador-congrats-email'],
+  }
+  await sendEmail(
+    args.email,
+    config.mail.senders.support,
+    'UPchieve',
+    ambassadorCongratsTemplateId,
+    {
+      referralLink: args.referralLink,
+      firstName: args.firstName,
+    },
+    overrides
+  )
+}
+
 export async function sendPositiveStudentFeedbackEmailToVolunteer({
   email,
   firstName,
@@ -1055,27 +1083,6 @@ export async function sendVolunteerTenSessionMilestone(
     sender,
     `${config.mail.people.volunteerManager.firstName} ${config.mail.people.volunteerManager.lastName}`,
     config.sendgrid.volunteerTenSessionMilestoneTemplate,
-    { firstName },
-    overrides
-  )
-}
-
-export async function sendVolunteerGentleWarning(
-  email: string,
-  firstName: string
-): Promise<void> {
-  const sender = config.mail.senders.volunteerManager
-  const overrides = {
-    reply_to: {
-      email: sender,
-    },
-    categories: ['volunteer - gentle warning'],
-  }
-  await sendEmail(
-    email,
-    sender,
-    config.mail.people.volunteerManager.firstName,
-    config.sendgrid.volunteerGentleWarningTemplate,
     { firstName },
     overrides
   )

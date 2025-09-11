@@ -935,33 +935,6 @@ export async function getSessionsVolunteerRating(
   }
 }
 
-export type VolunteerForGentleWarning = {
-  id: Ulid
-  firstName: string
-  email: string
-  totalNotifications: number
-}
-export async function getVolunteersForGentleWarning(
-  sessionId: Ulid
-): Promise<VolunteerForGentleWarning[]> {
-  try {
-    const result = await pgQueries.getVolunteersForGentleWarning.run(
-      {
-        sessionId: isPgId(sessionId) ? sessionId : undefined,
-        mongoSessionId: isPgId(sessionId) ? undefined : sessionId,
-      },
-      getClient()
-    )
-    return result.map((v) => {
-      const ret = makeRequired(v)
-      ret.email = ret.email.toLowerCase()
-      return ret
-    })
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
 export type UserForFirstSession = {
   id: Ulid
   firstName: string

@@ -1742,68 +1742,6 @@ const getSessionsForReferCoworkerIR: any = {"usedParamSet":{"volunteerId":true},
 export const getSessionsForReferCoworker = new PreparedQuery<IGetSessionsForReferCoworkerParams,IGetSessionsForReferCoworkerResult>(getSessionsForReferCoworkerIR);
 
 
-/** 'GetVolunteersForGentleWarning' parameters type */
-export interface IGetVolunteersForGentleWarningParams {
-  mongoSessionId?: string | null | void;
-  sessionId?: string | null | void;
-}
-
-/** 'GetVolunteersForGentleWarning' return type */
-export interface IGetVolunteersForGentleWarningResult {
-  email: string;
-  firstName: string;
-  id: string;
-  totalNotifications: number | null;
-}
-
-/** 'GetVolunteersForGentleWarning' query type */
-export interface IGetVolunteersForGentleWarningQuery {
-  params: IGetVolunteersForGentleWarningParams;
-  result: IGetVolunteersForGentleWarningResult;
-}
-
-const getVolunteersForGentleWarningIR: any = {"usedParamSet":{"sessionId":true,"mongoSessionId":true},"params":[{"name":"sessionId","required":false,"transform":{"type":"scalar"},"locs":[{"a":782,"b":791}]},{"name":"mongoSessionId","required":false,"transform":{"type":"scalar"},"locs":[{"a":835,"b":849}]}],"statement":"SELECT\n    users.id,\n    users.email,\n    users.first_name,\n    notification_count.total AS total_notifications\nFROM\n    notifications\n    LEFT JOIN users ON users.id = notifications.user_id\n    LEFT JOIN LATERAL (\n        SELECT\n            COUNT(*)::int AS total\n        FROM\n            sessions\n        WHERE\n            sessions.volunteer_id = users.id) AS session_count ON TRUE\n    LEFT JOIN LATERAL (\n        SELECT\n            COUNT(*)::int AS total\n        FROM\n            notifications\n        WHERE\n            notifications.user_id = users.id) AS notification_count ON TRUE\nWHERE\n    users.ban_type IS DISTINCT FROM 'complete'\n    AND users.deactivated IS FALSE\n    AND users.test_user IS FALSE\n    AND session_count.total = 0\n    AND (notifications.session_id::uuid = :sessionId\n        OR notifications.mongo_id::text = :mongoSessionId)\nGROUP BY\n    users.id,\n    notification_count.total"};
-
-/**
- * Query generated from SQL:
- * ```
- * SELECT
- *     users.id,
- *     users.email,
- *     users.first_name,
- *     notification_count.total AS total_notifications
- * FROM
- *     notifications
- *     LEFT JOIN users ON users.id = notifications.user_id
- *     LEFT JOIN LATERAL (
- *         SELECT
- *             COUNT(*)::int AS total
- *         FROM
- *             sessions
- *         WHERE
- *             sessions.volunteer_id = users.id) AS session_count ON TRUE
- *     LEFT JOIN LATERAL (
- *         SELECT
- *             COUNT(*)::int AS total
- *         FROM
- *             notifications
- *         WHERE
- *             notifications.user_id = users.id) AS notification_count ON TRUE
- * WHERE
- *     users.ban_type IS DISTINCT FROM 'complete'
- *     AND users.deactivated IS FALSE
- *     AND users.test_user IS FALSE
- *     AND session_count.total = 0
- *     AND (notifications.session_id::uuid = :sessionId
- *         OR notifications.mongo_id::text = :mongoSessionId)
- * GROUP BY
- *     users.id,
- *     notification_count.total
- * ```
- */
-export const getVolunteersForGentleWarning = new PreparedQuery<IGetVolunteersForGentleWarningParams,IGetVolunteersForGentleWarningResult>(getVolunteersForGentleWarningIR);
-
-
 /** 'GetStudentForEmailFirstSession' parameters type */
 export interface IGetStudentForEmailFirstSessionParams {
   mongoSessionId?: string | null | void;
