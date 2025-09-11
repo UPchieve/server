@@ -32,17 +32,6 @@ export async function queueIncentiveInvitedToEnrollReminderJob(userId: Ulid) {
   )
 }
 
-export async function queueFallIncentiveLeavingMoneyOnTableJob(
-  sessionId: Ulid
-) {
-  const session = await getSessionById(sessionId)
-  await QueueService.add(
-    Jobs.EmailFallIncentiveLeavingMoneyOnTable,
-    { userId: session.studentId, sessionId },
-    { removeOnComplete: true, removeOnFail: true }
-  )
-}
-
 export async function queueFallIncentiveSessionQualificationJob(
   sessionId: Ulid
 ) {

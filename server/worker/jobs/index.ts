@@ -65,6 +65,7 @@ import maybeSendStudentFeedbackToVolunteer from './volunteer-emails/maybeSendStu
 import emailNationalTutorCertificate from './emailNationalTutorCertificate'
 import sendVolunteerFeedback from './student-emails/sendVolunteerFeedback'
 import addCronJobs from './addCronJobs'
+import emailAmbassadorCongrats from './emailAmbassadorCongrats'
 
 export enum Jobs {
   NotifyTutors = 'NotifyTutors',
@@ -113,10 +114,7 @@ export enum Jobs {
   UpdateSendGridGradeLevels = 'UpdateSendGridGradeLevels',
   EmailFallIncentiveEnrollmentWelcome = 'EmailFallIncentiveEnrollmentWelcome',
   EmailFallIncentiveInvitedToEnrollReminder = 'EmailFallIncentiveInvitedToEnrollReminder',
-  EmailFallIncentiveLeavingMoneyOnTable = 'EmailFallIncentiveLeavingMoneyOnTable',
   EmailFallIncentiveSessionQualification = 'EmailFallIncentiveSessionQualification',
-  EmailFallIncentiveReminderToQualify = 'EmailFallIncentiveReminderToQualify',
-  EmailFallIncentiveGiftCards = 'EmailFallIncentiveGiftCards',
   GenerateSessionSummary = 'GenerateSessionSummary',
   ProcessSessionEnded = 'ProcessSessionEnded',
   DetectSessionLanguages = 'DetectSessionLanguages',
@@ -158,7 +156,7 @@ export enum Jobs {
   BackfillStudentAmbassadorRole = 'BackfillStudentAmbassadorRole',
   SendBecomeAnAmbassadorEmail = 'SendBecomeAnAmbassadorEmail',
   SendReferralSignUpCelebrationEmail = 'SendReferralSignUpCelebrationEmail',
-  SendNationalTutorCertificateEmail = 'SendNationalTutordertificateEmail',
+  SendNationalTutorCertificateEmail = 'SendNationalTutorCertificateEmail',
   SendAmbassadorCongratsEmail = 'SendAmbassadorCongratsEmail',
 
   MaybeSendStudentFeedbackToVolunteer = 'MaybeSendStudentFeedbackToVolunteer',
@@ -479,6 +477,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.AddCronJobs,
     processor: addCronJobs,
+  },
+  {
+    name: Jobs.SendAmbassadorCongratsEmail,
+    processor: emailAmbassadorCongrats,
   },
 ]
 

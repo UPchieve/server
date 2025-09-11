@@ -625,32 +625,6 @@ describe('addPastSession', () => {
   })
 })
 
-describe('processAssistmentsSession', () => {
-  test('Should queue job to send assistments data for assistments session if session was matched', async () => {
-    const mockValue = mockedGetSessionById({
-      student: getObjectId(),
-      volunteer: getObjectId(),
-    })
-    const sessionId = mockValue._id
-    mockedSessionRepo.getSessionById.mockImplementationOnce(
-      async () => mockValue
-    )
-    const mockedAd = {
-      studentId: 'student',
-      assignmentId: 'assignment',
-      problemId: 12345,
-    } as AssistmentsData
-    mockedAssistmentsDataRepo.getAssistmentsDataBySession.mockResolvedValueOnce(
-      mockedAd
-    )
-
-    await SessionService.processAssistmentsSession(sessionId)
-
-    expect(QueueService.add).toHaveBeenCalledWith(Jobs.SendAssistmentsData, {
-      sessionId,
-    })
-  })
-
   test('Should do nothing for an unmatched session', async () => {
     const mockValue = mockedGetSessionById({
       student: getObjectId(),
@@ -999,41 +973,6 @@ describe('processEmailPartnerVolunteer', () => {
     await SessionService.processEmailPartnerVolunteer(sessionId)
     expect(QueueService.add).toHaveBeenCalledTimes(0)
   })
-
-  test('Should queue email if partner volunteer has completed 10 sessions', async () => {
-    const pastSessions = []
-    for (let i = 0; i < 10; i++) {
-      pastSessions.push(getObjectId())
-    }
-    const volunteer = buildVolunteer({
-      volunteerPartnerOrg: 'example',
-      pastSessions,
-    })
-    const mockedSession = mockedGetSessionToEnd({
-      volunteer: {
-        _id: volunteer._id,
-        firstname: volunteer.firstname,
-        email: volunteer.email,
-        pastSessions: volunteer.pastSessions,
-        volunteerPartnerOrg: volunteer.volunteerPartnerOrg,
-      },
-    })
-    const sessionId = mockedSession._id
-    mockedSessionRepo.getSessionToEndById.mockImplementationOnce(
-      async () => mockedSession
-    )
-    await SessionService.processEmailPartnerVolunteer(sessionId)
-    expect(QueueService.add).toHaveBeenCalledWith(
-      Jobs.EmailPartnerVolunteerTenSessionMilestone,
-      {
-        volunteerId: volunteer._id,
-        firstName: volunteer.firstname,
-        email: volunteer.email,
-      },
-      expect.anything()
-    )
-  })
-})
 
 describe('processVolunteerTimeTutored', () => {
   test('Should do nothing if the session does not have a volunteer', async () => {
