@@ -64,7 +64,7 @@ import emailReferralSignUpCelebration from './emailReferralSignupCelebration'
 import maybeSendStudentFeedbackToVolunteer from './volunteer-emails/maybeSendStudentFeedbackToVolunteer'
 import emailNationalTutorCertificate from './emailNationalTutorCertificate'
 import sendVolunteerFeedback from './student-emails/sendVolunteerFeedback'
-import addCronJobs from './addCronJobs'
+import addScheduledJobs from './addScheduledJobs'
 
 export enum Jobs {
   NotifyTutors = 'NotifyTutors',
@@ -163,7 +163,7 @@ export enum Jobs {
 
   MaybeSendStudentFeedbackToVolunteer = 'MaybeSendStudentFeedbackToVolunteer',
   SendVolunteerFeedbackToStudent = 'SendVolunteerFeedbackToStudent',
-  AddCronJobs = 'AddCronJobs',
+  AddScheduledJobs = 'AddScheduledJobs',
 }
 
 // register new job processors here
@@ -477,8 +477,8 @@ const jobProcessors: JobProcessor[] = [
     processor: sendVolunteerFeedback,
   },
   {
-    name: Jobs.AddCronJobs,
-    processor: addCronJobs,
+    name: Jobs.AddScheduledJobs,
+    processor: addScheduledJobs,
   },
 ]
 
