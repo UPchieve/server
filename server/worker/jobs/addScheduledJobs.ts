@@ -1,17 +1,15 @@
-import Queue from 'bull'
-import { find, map } from 'lodash'
-import Redis from 'ioredis'
-import config from '../../config'
+import { JobOptions as BullJobOptions } from 'bull'
 import logger from '../../logger'
-import { Jobs } from '../../worker/jobs'
+import { Jobs } from '.'
+import queue from '../../services/QueueService'
 
 interface JobTemplate {
   name: Jobs
   data?: any
-  options?: Queue.JobOptions
+  options?: BullJobOptions
 }
 
-export default async function addCronJobs() {
+export default async function addScheduledJobs() {
   const jobTemplates: JobTemplate[] = [
     {
       name: Jobs.UpdateElapsedAvailability,
@@ -67,36 +65,21 @@ export default async function addCronJobs() {
     },
   ]
 
-  logger.info('Initializing Queue')
-  const queue = new Queue(config.workerQueueName, {
-    createClient: () => new Redis(config.redisConnectionString),
-    settings: {
-      // to prevent stalling long jobs
-      stalledInterval: 1000 * 60 * 30,
-      lockDuration: 1000 * 60 * 30,
-    },
-  })
-  logger.info('Queue Created')
-
   const repeatableJobs = await queue.getRepeatableJobs()
 
-  await Promise.all(
-    map(repeatableJobs, async (job) => {
-      if (find(jobTemplates, (template) => template.name === job.name)) {
-        logger.info(`Stopping job: \n${JSON.stringify(job, null, ' ')}`)
-        await queue.removeRepeatableByKey(job.key)
-      }
-    })
-  )
+  repeatableJobs.map(async (job) => {
+    if (jobTemplates.find((template) => template.name === job.name)) {
+      logger.info(`Removing scheduled job: ${job.name}...`)
+      await queue.removeRepeatableByKey(job.key)
+    }
+  })
 
-  await Promise.all(
-    map(jobTemplates, (job) => {
-      logger.info(`Started ${job.name} job...`)
-      queue.add(job.name, job.data, {
-        ...job.options,
-        removeOnComplete: true,
-        removeOnFail: true,
-      })
+  jobTemplates.forEach(async (job) => {
+    logger.info(`Adding scheduled job ${job.name}...`)
+    await queue.add(job.name, job.data, {
+      ...job.options,
+      removeOnComplete: true,
+      removeOnFail: true,
     })
-  )
+  })
 }
