@@ -160,168 +160,52 @@ interface JobProcessor {
 
 const jobProcessors: JobProcessor[] = [
   {
-    name: Jobs.NotifyTutors,
-    processor: notifyTutors,
+    name: Jobs.AddScheduledJobs,
+    processor: addScheduledJobs,
   },
   {
-    name: Jobs.UpdateElapsedAvailability,
-    processor: updateElapsedAvailability,
+    name: Jobs.BackfillEmailNiceToMeetYou,
+    processor: backfillEmailNiceToMeetYou,
   },
   {
-    name: Jobs.UpdateTotalVolunteerHours,
-    processor: updateTotalVolunteerHours,
+    name: Jobs.BackfillEmailVolunteersInactive,
+    processor: backfillEmailVolunteerInactive,
   },
   {
-    name: Jobs.EndStaleSessions,
-    processor: endStaleSessions,
+    name: Jobs.BackfillStudentAmbassadorRole,
+    processor: backfillStudentAmbassadorRole,
   },
   {
-    name: Jobs.EndUnmatchedSession,
-    processor: endUnmatchedSession,
+    name: Jobs.BackfillStudentPosthog,
+    processor: backfillStudentPosthog,
   },
   {
-    name: Jobs.GenerateAndStoreWaitTimeHeatMap,
-    processor: generateAndStoreWaitTimeHeatMap,
+    name: Jobs.BackfillStudentUsersRoles,
+    processor: backfillStudentUsersRoles,
   },
   {
-    name: Jobs.EmailReferences,
-    processor: emailReferences,
+    name: Jobs.BackfillUpdateElapsedAvailability,
+    processor: backfillUpdateElapsedAvailability,
   },
   {
-    name: Jobs.EmailReferencesFormApology,
-    processor: emailReferencesFormApology,
+    name: Jobs.DeleteDuplicateStudentFavoriteVolunteers,
+    processor: deleteDuplicateStudentFavoriteVolunteers,
   },
   {
-    name: Jobs.EmailReadyToCoach,
-    processor: emailReadyToCoach,
+    name: Jobs.DeleteDuplicateUserSurveys,
+    processor: deleteDuplicateUserSurveys,
   },
   {
-    name: Jobs.EmailReferenceFollowup,
-    processor: emailReferenceFollowup,
+    name: Jobs.DeleteSelfFavoritedVolunteers,
+    processor: deleteSelfFavoritedVolunteers,
   },
   {
-    name: Jobs.EmailWaitingOnReferences,
-    processor: emailWaitingOnReferences,
-  },
-  {
-    name: Jobs.EmailNiceToMeetYou,
-    processor: emailNiceToMeetYou,
-  },
-  {
-    name: Jobs.SpawnEmailWeeklyHourSummaryJobs,
-    processor: spawnEmailWeeklyHourSummaryJobs,
-  },
-  {
-    name: Jobs.EmailWeeklyHourSummary,
-    processor: emailWeeklyHourSummary,
-  },
-  {
-    name: Jobs.EmailOnboardingReminderOne,
-    processor: emailOnboardingReminder,
-  },
-  {
-    name: Jobs.EmailOnboardingReminderTwo,
-    processor: emailOnboardingReminder,
-  },
-  {
-    name: Jobs.EmailOnboardingReminderThree,
-    processor: emailOnboardingReminder,
-  },
-  {
-    name: Jobs.EmailStudentOnboardingHowItWorks,
-    processor: emailStudentOnboardingSeries,
-  },
-  {
-    name: Jobs.EmailMeetOurVolunteers,
-    processor: emailStudentOnboardingSeries,
-  },
-  {
-    name: Jobs.EmailStudentOnboardingMission,
-    processor: emailStudentOnboardingSeries,
-  },
-  {
-    name: Jobs.EmailStudentOnboardingSurvey,
-    processor: emailStudentOnboardingSeries,
-  },
-  {
-    name: Jobs.EmailStudentAbsentWarning,
-    processor: emailStudentSessionActions,
-  },
-  {
-    name: Jobs.EmailStudentAbsentVolunteerApology,
-    processor: emailStudentSessionActions,
-  },
-  {
-    name: Jobs.EmailStudentUnmatchedApology,
-    processor: emailStudentSessionActions,
-  },
-  {
-    name: Jobs.EmailStudentOnlyLookingForAnswers,
-    processor: emailStudentSessionActions,
-  },
-  {
-    name: Jobs.EmailVolunteerQuickTips,
-    processor: emailQuickTips,
-  },
-  {
-    name: Jobs.EmailPartnerVolunteerLowHoursSelected,
-    processor: emailPartnerVolunteerLowHoursSelected,
-  },
-  {
-    name: Jobs.EmailVolunteerTenSessionMilestone,
-    processor: emailVolunteerTenSessionMilestone,
-  },
-  {
-    name: Jobs.EmailVolunteerInactive,
-    processor: emailVolunteerInactive,
-  },
-  {
-    name: Jobs.EmailVolunteerFirstSessionCongrats,
-    processor: emailVolunteerFirstSessionCongrats,
-  },
-  {
-    name: Jobs.EmailVolunteerInactiveBlackoutOver,
-    processor: emailVolunteerInactiveBlackoutOver,
-  },
-  {
-    name: Jobs.EmailStudentFirstSessionCongrats,
-    processor: emailStudentFirstSessionCongrats,
-  },
-  {
-    name: Jobs.EmailVolunteerAbsentWarning,
-    processor: emailVolunteerSessionActions,
-  },
-  {
-    name: Jobs.EmailVolunteerAbsentStudentApology,
-    processor: emailVolunteerSessionActions,
+    name: Jobs.DetectSessionLanguages,
+    processor: detectSessionLanguages,
   },
   {
     name: Jobs.EmailFailedFirstAttemptedQuiz,
     processor: emailFailedFirstAttemptedQuiz,
-  },
-  {
-    name: Jobs.EmailSessionReported,
-    processor: emailSessionReported,
-  },
-  {
-    name: Jobs.SendFollowupText,
-    processor: sendFollowupText,
-  },
-  {
-    name: Jobs.UpdateGradeLevel,
-    processor: updateGradeLevel,
-  },
-  {
-    name: Jobs.SendSessionRecapMessageNotification,
-    processor: sendSessionRecapMessageNotification,
-  },
-  {
-    name: Jobs.GenerateProgressReport,
-    processor: generateProgressReport,
-  },
-  {
-    name: Jobs.UpdateSendGridGradeLevels,
-    processor: updateSendGridGradeLevels,
   },
   {
     name: Jobs.EmailFallIncentiveEnrollmentWelcome,
@@ -336,83 +220,156 @@ const jobProcessors: JobProcessor[] = [
     processor: emailFallIncentiveSessionQualification,
   },
   {
-    name: Jobs.GenerateSessionSummary,
-    processor: generateSessionSummary,
-  },
-  {
-    name: Jobs.ProcessSessionEnded,
-    processor: processSessionEnded,
-  },
-  {
-    name: Jobs.DetectSessionLanguages,
-    processor: detectSessionLanguages,
-  },
-  // TODO: remove the following deprecated job names
-  {
-    name: Jobs.EmailStudentUseCases,
-    processor: emailStudentOnboardingSeries,
-  },
-  {
     name: Jobs.EmailIndependentLearning,
     processor: emailStudentOnboardingSeries,
+  },
+  {
+    name: Jobs.EmailMeetOurVolunteers,
+    processor: emailStudentOnboardingSeries,
+  },
+  {
+    name: Jobs.EmailNiceToMeetYou,
+    processor: emailNiceToMeetYou,
+  },
+  {
+    name: Jobs.EmailOnboardingReminderOne,
+    processor: emailOnboardingReminder,
+  },
+  {
+    name: Jobs.EmailOnboardingReminderThree,
+    processor: emailOnboardingReminder,
+  },
+  {
+    name: Jobs.EmailOnboardingReminderTwo,
+    processor: emailOnboardingReminder,
+  },
+  {
+    name: Jobs.EmailPartnerVolunteerLowHoursSelected,
+    processor: emailPartnerVolunteerLowHoursSelected,
+  },
+  {
+    name: Jobs.EmailReadyToCoach,
+    processor: emailReadyToCoach,
+  },
+  {
+    name: Jobs.EmailReferenceFollowup,
+    processor: emailReferenceFollowup,
+  },
+  {
+    name: Jobs.EmailReferences,
+    processor: emailReferences,
+  },
+  {
+    name: Jobs.EmailReferencesFormApology,
+    processor: emailReferencesFormApology,
+  },
+  {
+    name: Jobs.EmailSessionReported,
+    processor: emailSessionReported,
+  },
+  {
+    name: Jobs.EmailStudentAbsentVolunteerApology,
+    processor: emailStudentSessionActions,
+  },
+  {
+    name: Jobs.EmailStudentAbsentWarning,
+    processor: emailStudentSessionActions,
+  },
+  {
+    name: Jobs.EmailStudentFirstSessionCongrats,
+    processor: emailStudentFirstSessionCongrats,
   },
   {
     name: Jobs.EmailStudentGoalSetting,
     processor: emailStudentOnboardingSeries,
   },
-
-  // Backfill scripts
   {
-    name: Jobs.BackfillEmailNiceToMeetYou,
-    processor: backfillEmailNiceToMeetYou,
+    name: Jobs.EmailStudentOnboardingHowItWorks,
+    processor: emailStudentOnboardingSeries,
   },
   {
-    name: Jobs.BackfillEmailVolunteersInactive,
-    processor: backfillEmailVolunteerInactive,
+    name: Jobs.EmailStudentOnboardingMission,
+    processor: emailStudentOnboardingSeries,
   },
   {
-    name: Jobs.BackfillStudentPosthog,
-    processor: backfillStudentPosthog,
+    name: Jobs.EmailStudentOnboardingSurvey,
+    processor: emailStudentOnboardingSeries,
   },
   {
-    name: Jobs.SendWeeklyHourSummaryApology,
-    processor: sendWeeklyHourSummaryApology,
+    name: Jobs.EmailStudentOnlyLookingForAnswers,
+    processor: emailStudentSessionActions,
   },
   {
-    name: Jobs.DeleteDuplicateUserSurveys,
-    processor: deleteDuplicateUserSurveys,
+    name: Jobs.EmailStudentUnmatchedApology,
+    processor: emailStudentSessionActions,
   },
   {
-    name: Jobs.BackfillUpdateElapsedAvailability,
-    processor: backfillUpdateElapsedAvailability,
+    name: Jobs.EmailStudentUseCases,
+    processor: emailStudentOnboardingSeries,
   },
   {
-    name: Jobs.BackfillStudentUsersRoles,
-    processor: backfillStudentUsersRoles,
+    name: Jobs.EmailVolunteerAbsentStudentApology,
+    processor: emailVolunteerSessionActions,
   },
   {
-    name: Jobs.DeleteSelfFavoritedVolunteers,
-    processor: deleteSelfFavoritedVolunteers,
+    name: Jobs.EmailVolunteerAbsentWarning,
+    processor: emailVolunteerSessionActions,
   },
   {
-    name: Jobs.UpsertPostalCodes,
-    processor: upsertPostalCodes,
+    name: Jobs.EmailVolunteerFirstSessionCongrats,
+    processor: emailVolunteerFirstSessionCongrats,
   },
   {
-    name: Jobs.TitlecaseSchoolNames,
-    processor: titlecaseSchoolNames,
+    name: Jobs.EmailVolunteerInactive,
+    processor: emailVolunteerInactive,
   },
   {
-    name: Jobs.UpsertSchools,
-    processor: upsertSchools,
+    name: Jobs.EmailVolunteerInactiveBlackoutOver,
+    processor: emailVolunteerInactiveBlackoutOver,
   },
   {
-    name: Jobs.DeleteDuplicateStudentFavoriteVolunteers,
-    processor: deleteDuplicateStudentFavoriteVolunteers,
+    name: Jobs.EmailVolunteerQuickTips,
+    processor: emailQuickTips,
   },
   {
-    name: Jobs.UpdateBasicAccessViews,
-    processor: updateBasicAccessViews,
+    name: Jobs.EmailVolunteerTenSessionMilestone,
+    processor: emailVolunteerTenSessionMilestone,
+  },
+  {
+    name: Jobs.EmailWaitingOnReferences,
+    processor: emailWaitingOnReferences,
+  },
+  {
+    name: Jobs.EmailWeeklyHourSummary,
+    processor: emailWeeklyHourSummary,
+  },
+  {
+    name: Jobs.EndStaleSessions,
+    processor: endStaleSessions,
+  },
+  {
+    name: Jobs.EndUnmatchedSession,
+    processor: endUnmatchedSession,
+  },
+  {
+    name: Jobs.GenerateAndStoreWaitTimeHeatMap,
+    processor: generateAndStoreWaitTimeHeatMap,
+  },
+  {
+    name: Jobs.GenerateProgressReport,
+    processor: generateProgressReport,
+  },
+  {
+    name: Jobs.GenerateSessionSummary,
+    processor: generateSessionSummary,
+  },
+  {
+    name: Jobs.MaybeSendStudentFeedbackToVolunteer,
+    processor: maybeSendStudentFeedbackToVolunteer,
+  },
+  {
+    name: Jobs.MigrateBannedAndTestUsersToBanType,
+    processor: migrateBannedAndTestUsersToBanType,
   },
   {
     name: Jobs.MigrateProgressReportPromptIds,
@@ -427,43 +384,80 @@ const jobProcessors: JobProcessor[] = [
     processor: moderateSessionTranscript,
   },
   {
-    name: Jobs.MigrateBannedAndTestUsersToBanType,
-    processor: migrateBannedAndTestUsersToBanType,
+    name: Jobs.NotifyTutors,
+    processor: notifyTutors,
   },
   {
-    name: Jobs.BackfillStudentAmbassadorRole,
-    processor: backfillStudentAmbassadorRole,
+    name: Jobs.ProcessSessionEnded,
+    processor: processSessionEnded,
   },
-
+  {
+    name: Jobs.SendAmbassadorCongratsEmail,
+    processor: emailAmbassadorCongrats,
+  },
   {
     name: Jobs.SendBecomeAnAmbassadorEmail,
     processor: emailBecomeAnAmbassador,
   },
-
   {
-    name: Jobs.SendReferralSignUpCelebrationEmail,
-    processor: emailReferralSignUpCelebration,
-  },
-
-  {
-    name: Jobs.MaybeSendStudentFeedbackToVolunteer,
-    processor: maybeSendStudentFeedbackToVolunteer,
+    name: Jobs.SendFollowupText,
+    processor: sendFollowupText,
   },
   {
     name: Jobs.SendNationalTutorCertificateEmail,
     processor: emailNationalTutorCertificate,
   },
   {
+    name: Jobs.SendReferralSignUpCelebrationEmail,
+    processor: emailReferralSignUpCelebration,
+  },
+  {
+    name: Jobs.SendSessionRecapMessageNotification,
+    processor: sendSessionRecapMessageNotification,
+  },
+  {
     name: Jobs.SendVolunteerFeedbackToStudent,
     processor: sendVolunteerFeedback,
   },
   {
-    name: Jobs.AddScheduledJobs,
-    processor: addScheduledJobs,
+    name: Jobs.SendWeeklyHourSummaryApology,
+    processor: sendWeeklyHourSummaryApology,
   },
   {
-    name: Jobs.SendAmbassadorCongratsEmail,
-    processor: emailAmbassadorCongrats,
+    name: Jobs.SpawnEmailWeeklyHourSummaryJobs,
+    processor: spawnEmailWeeklyHourSummaryJobs,
+  },
+  {
+    name: Jobs.TitlecaseSchoolNames,
+    processor: titlecaseSchoolNames,
+  },
+  {
+    name: Jobs.UpdateBasicAccessViews,
+    processor: updateBasicAccessViews,
+  },
+  {
+    name: Jobs.UpdateElapsedAvailability,
+    processor: updateElapsedAvailability,
+  },
+  {
+    name: Jobs.UpdateGradeLevel,
+    processor: updateGradeLevel,
+  },
+  {
+    name: Jobs.UpdateSendGridGradeLevels,
+    processor: updateSendGridGradeLevels,
+  },
+  {
+    name: Jobs.UpdateTotalVolunteerHours,
+    processor: updateTotalVolunteerHours,
+  },
+  {
+    name: Jobs.UpsertPostalCodes,
+    processor: upsertPostalCodes,
+  },
+  {
+    name: Jobs.UpsertSchools,
+    processor: upsertSchools,
   },
 ]
 
