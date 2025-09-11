@@ -113,7 +113,6 @@ export enum Jobs {
   UpdateSendGridGradeLevels = 'UpdateSendGridGradeLevels',
   EmailFallIncentiveEnrollmentWelcome = 'EmailFallIncentiveEnrollmentWelcome',
   EmailFallIncentiveInvitedToEnrollReminder = 'EmailFallIncentiveInvitedToEnrollReminder',
-  EmailFallIncentiveLeavingMoneyOnTable = 'EmailFallIncentiveLeavingMoneyOnTable',
   EmailFallIncentiveSessionQualification = 'EmailFallIncentiveSessionQualification',
   EmailFallIncentiveReminderToQualify = 'EmailFallIncentiveReminderToQualify',
   EmailFallIncentiveGiftCards = 'EmailFallIncentiveGiftCards',
@@ -408,11 +407,6 @@ const jobProcessors: JobProcessor[] = [
     name: Jobs.DeleteSelfFavoritedVolunteers,
     processor: deleteSelfFavoritedVolunteers,
   },
-  // TODO: uncomment this processor when ready to migrate
-  //{
-  //  name: Jobs.MigrateHistoricalPartnerData,
-  //  processor: migrateHistoricalPartnerData
-  //},
   {
     name: Jobs.UpsertPostalCodes,
     processor: upsertPostalCodes,
@@ -479,6 +473,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.AddScheduledJobs,
     processor: addScheduledJobs,
+  },
+  {
+    name: Jobs.SendAmbassadorCongratsEmail,
+    processor: emailBecomeAnAmbassador,
   },
 ]
 
