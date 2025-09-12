@@ -11,25 +11,16 @@ export function routeCalendar(router: Router): void {
       const user = extractUser(req)
       if (!req.body.hasOwnProperty('availability'))
         throw new InputError('No availability object specified')
+      const skipAvailabilityOnboardingRequirement =
+        req.body?.skipAvailabilityOnboardingRequirement ?? false
       await updateSchedule({
         ...req.body,
         user: user,
         ip: req.ip,
+        skipAvailabilityOnboardingRequirement,
       })
       res.json({
         msg: 'Schedule saved',
-      })
-    } catch (err) {
-      resError(res, err)
-    }
-  })
-
-  router.post('/calendar/clear', async function (req, res) {
-    try {
-      const user = extractUser(req)
-      await clearSchedule(user, asString(req.body.tz))
-      res.json({
-        msg: 'Schedule cleared',
       })
     } catch (err) {
       resError(res, err)

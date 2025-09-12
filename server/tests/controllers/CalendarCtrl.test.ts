@@ -90,7 +90,7 @@ describe('Save availability and time zone', () => {
       buildVolunteerForScheduleUpdate(user.id)
     )
 
-    const input = { user, tz, ip }
+    const input = { user, tz, ip, skipAvailabilityOnboardingRequirement: false }
 
     await expect(CalendarCtrl.updateSchedule(input)).rejects.toThrow(
       'No availability object specified'
@@ -111,6 +111,7 @@ describe('Save availability and time zone', () => {
         Saturday: undefined,
       },
       ip,
+      skipAvailabilityOnboardingRequirement: false,
     }
 
     await expect(CalendarCtrl.updateSchedule(input)).rejects.toThrow(
@@ -133,6 +134,7 @@ describe('Save availability and time zone', () => {
       tz,
       availability,
       ip,
+      skipAvailabilityOnboardingRequirement: false,
     }
     await CalendarCtrl.updateSchedule(input)
 
@@ -180,6 +182,7 @@ describe('Save availability and time zone', () => {
       tz,
       availability,
       ip,
+      skipAvailabilityOnboardingRequirement: false,
     }
     await CalendarCtrl.updateSchedule(input)
 

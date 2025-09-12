@@ -4,7 +4,7 @@ import QueueService from '../../services/QueueService'
 import * as AnalyticsService from '../../services/AnalyticsService'
 import { createAccountAction } from '../../models/UserAction'
 import { TransactionClient } from '../../db'
-import { EVENTS } from '../../constants'
+import { ACCOUNT_USER_ACTIONS, EVENTS } from '../../constants'
 import { mocked } from 'jest-mock'
 
 jest.mock('../../models/Volunteer')
@@ -42,7 +42,7 @@ describe('onboardVolunteer', () => {
     mockedVolunteerRepo.getVolunteerForOnboardingById.mockResolvedValue(
       mockVolunteer
     )
-    await VolunteerService.onboardVolunteer(mockVolunteer.id, mockIp, tc)
+    await VolunteerService.onboardVolunteer(mockVolunteer.id, mockIp, false, tc)
 
     expect(VolunteerRepo.updateVolunteerOnboarded).toHaveBeenCalledWith(
       mockVolunteer.id,
@@ -77,7 +77,12 @@ describe('onboardVolunteer', () => {
       mockedVolunteerRepo.getVolunteerForOnboardingById.mockResolvedValue(
         modifiedVolunteer
       )
-      await VolunteerService.onboardVolunteer(modifiedVolunteer.id, mockIp, tc)
+      await VolunteerService.onboardVolunteer(
+        modifiedVolunteer.id,
+        mockIp,
+        false,
+        tc
+      )
 
       expect(VolunteerRepo.updateVolunteerOnboarded).not.toHaveBeenCalled()
       expect(QueueService.add).not.toHaveBeenCalled()
@@ -87,8 +92,55 @@ describe('onboardVolunteer', () => {
   )
 
   test('should not call partner-specific functions if volunteerPartnerOrg is undefined', async () => {
-    await VolunteerService.onboardVolunteer(mockVolunteer.id, mockIp, tc)
+    await VolunteerService.onboardVolunteer(mockVolunteer.id, mockIp, false, tc)
 
     expect(QueueService.add).toHaveBeenCalledTimes(0)
+  })
+
+  test('It does NOT require the volunteer to have set availability if skipAvailabilityOnboardingRequirement = true', async () => {
+    const testVolunteerWithNoAvailability = {
+      ...mockVolunteer,
+      availabilityLastModifiedAt: undefined,
+    }
+    await VolunteerService.onboardVolunteer(
+      testVolunteerWithNoAvailability.id,
+      mockIp,
+      true,
+      tc
+    )
+    expect(VolunteerRepo.updateVolunteerOnboarded).toHaveBeenCalled()
+    expect(createAccountAction).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: ACCOUNT_USER_ACTIONS.ONBOARDED,
+        ipAddress: mockIp,
+        userId: testVolunteerWithNoAvailability.id,
+      }),
+      expect.anything()
+    )
+    expect(AnalyticsService.captureEvent).toHaveBeenCalledWith(
+      expect.anything(),
+      EVENTS.ACCOUNT_ONBOARDED,
+      expect.anything()
+    )
+  })
+
+  test('It DOES require the volunteer to have set availability if skipAvailabilityOnboardingRequirement = false', async () => {
+    const testVolunteerWithNoAvailability = {
+      ...mockVolunteer,
+      availabilityLastModifiedAt: undefined,
+    }
+    await VolunteerService.onboardVolunteer(
+      testVolunteerWithNoAvailability.id,
+      mockIp,
+      false,
+      tc
+    )
+    expect(VolunteerRepo.updateVolunteerOnboarded).not.toHaveBeenCalled()
+    expect(createAccountAction).not.toHaveBeenCalled()
+    expect(AnalyticsService.captureEvent).not.toHaveBeenCalledWith(
+      expect.anything(),
+      EVENTS.ACCOUNT_ONBOARDED,
+      expect.anything()
+    )
   })
 })

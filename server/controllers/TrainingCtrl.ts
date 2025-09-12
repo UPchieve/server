@@ -74,6 +74,7 @@ export interface GetQuizScoreOptions {
   idAnswerMap: AnswerMap
   category: keyof Quizzes
   ip: string
+  skipAvailabilityOnboardingRequirement: boolean
 }
 
 export interface GetQuizScoreOutput {
@@ -153,8 +154,6 @@ export async function getQuizScore(
       // If volunteer is not onboarded and has completed other onboarding steps - including passing an academic quiz
       const volunteerProfile =
         await VolunteerModel.getVolunteerForOnboardingById(user.id, tc)
-      const hasSubjects =
-        unlockedSubjects.length > 0 || currentSubjects.length > 0
       const passedUpchieve101 =
         volunteerProfile?.hasCompletedUpchieve101 ||
         cert === TRAINING.UPCHIEVE_101
@@ -163,7 +162,12 @@ export async function getQuizScore(
       if (unlockedSubjects.length === 1 && passedUpchieve101) {
         await VolunteerService.queueNationalTutorCertificateEmail(user.id)
       }
-      await VolunteerService.onboardVolunteer(user.id, ip, tc)
+      await VolunteerService.onboardVolunteer(
+        user.id,
+        ip,
+        options.skipAvailabilityOnboardingRequirement,
+        tc
+      )
     }
 
     const idCorrectAnswerMap = questions.reduce((correctAnswers, question) => {
