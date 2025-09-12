@@ -230,7 +230,7 @@ These jobs might be triggered programmatically, on a schedule, or manually using
 
 There are three ways to enqueue jobs:
 
-- Schedule them in `worker/jobs/addCronJobs.ts`, which will insert them into the local Redis database. Do this for jobs that need to repeat regularly.
+- Schedule them in `worker/jobs/addScheduledJobs.ts`, which will insert them into the local Redis database. Do this for jobs that need to repeat regularly.
 - Programmatically (example: search code base for `QueueService.add(...)`)
 - Manually using the TaskForce.sh UI (Ask a teammate to add you!)
   - Go to TaskForce -> Dashboard -> Production queue -> "Add a new job"

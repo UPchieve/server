@@ -82,7 +82,6 @@ import * as SurveyService from './SurveyService'
 import { SessionUserRole } from './UserRolesService'
 import * as FeatureFlagsService from './FeatureFlagService'
 import { createBlobSasUrl } from './AzureService'
-import { isDevEnvironment } from '../utils/environments'
 
 export async function reviewSession(data: unknown) {
   const { sessionId, reviewed, toReview } =
@@ -411,53 +410,40 @@ export async function processFirstSessionCongratsEmail(sessionId: Ulid) {
   }
 }
 
-async function getDocEditorVersion(sessionId: Ulid): Promise<number> {
-  return Number(await cache.get(`${sessionId}-doc-editor-version`))
-}
-
-async function setDocEditorVersion(
-  sessionId: Ulid,
-  value: string
-): Promise<void> {
-  return await cache.saveWithExpiration(
-    `${sessionId}-doc-editor-version`,
-    value
-  )
-}
-
 export async function addDocEditorVersionTo(session: {
   id: Ulid
   toolType: string
   docEditorVersion?: number
 }): Promise<void> {
   if (sessionUtils.isSubjectUsingDocumentEditor(session.toolType)) {
-    session.docEditorVersion = await getDocEditorVersion(session.id)
+    session.docEditorVersion = await QuillDocService.getDocEditorVersion(
+      session.id
+    )
   }
 }
 
-async function storeQuillDocV2(sessionId: Ulid) {
-  const quillStateV2 = await QuillDocService.getDocumentUpdates(sessionId)
+async function convertV2DocToV1(quillDoc: string[]) {
   const ydoc = new Y.Doc()
   const text = ydoc.getText('quill')
-  for (const update of quillStateV2) {
+  for (const update of quillDoc) {
     Y.applyUpdate(ydoc, Uint8Array.from(update.split(',').map(Number)))
   }
-  await SessionRepo.updateSessionQuillDoc(
-    sessionId,
-    // Ensure viewing the document in a recap works by matching existing sessions.quill_doc format
-    JSON.stringify({ ops: text.toDelta() })
-  )
+  // Ensure viewing the document in a recap works by matching existing
+  // sessions.quill_doc format.
+  return JSON.stringify({ ops: text.toDelta() })
 }
 
 export async function storeAndDeleteQuillDoc(sessionId: Ulid): Promise<void> {
-  const quillStateV2 = await QuillDocService.getDocumentUpdates(sessionId)
-  const quillState = await QuillDocService.getQuillDocV1(sessionId)
-  if (quillStateV2.length) {
-    await storeQuillDocV2(sessionId)
-  } else if (quillState?.doc) {
+  const v2QuillDoc = await QuillDocService.getDocumentUpdates(sessionId)
+
+  const v1QuillDoc = v2QuillDoc.length
+    ? await convertV2DocToV1(v2QuillDoc)
+    : (await QuillDocService.getQuillDocV1(sessionId))?.doc
+
+  if (v1QuillDoc) {
     await SessionRepo.updateSessionQuillDoc(
       sessionId,
-      JSON.stringify(quillState.doc)
+      JSON.stringify(v1QuillDoc)
     )
   }
 
@@ -480,9 +466,11 @@ export async function storeAndDeleteWhiteboardDoc(sessionId: Ulid) {
 
 export async function processSessionEditors(sessionId: Ulid) {
   const session = await SessionRepo.getSessionById(sessionId)
-  if (sessionUtils.isSubjectUsingDocumentEditor(session.toolType))
+  if (sessionUtils.isSubjectUsingDocumentEditor(session.toolType)) {
     await storeAndDeleteQuillDoc(sessionId)
-  else await storeAndDeleteWhiteboardDoc(sessionId)
+  } else {
+    await storeAndDeleteWhiteboardDoc(sessionId)
+  }
 }
 
 export async function processEmailVolunteer(sessionId: Ulid) {
@@ -712,10 +700,13 @@ export async function startSession(
   })
 
   // TODO: Remove after midtown clean-up.
-  if (sessionUtils.isSubjectUsingDocumentEditor(subjectAndTopic.toolType)) {
-    // Save doc editor version before `beginRegularNotifications` to avoid a client calling `currentSession`
-    // and looking for this value before it's set.
-    await setDocEditorVersion(newSession.id, `${docEditorVersion ?? 1}`)
+  if (
+    sessionUtils.isSubjectUsingDocumentEditor(subjectAndTopic.toolType) &&
+    docEditorVersion === 2
+  ) {
+    // Save doc editor version before `beginRegularNotifications` to avoid
+    // a client calling `currentSession` and looking for this value before it's set.
+    await QuillDocService.ensureDocumentUpdateExists(newSession.id)
   }
 
   if (data.isSettingGoalsSession)

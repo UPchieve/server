@@ -64,106 +64,90 @@ import emailReferralSignUpCelebration from './emailReferralSignupCelebration'
 import maybeSendStudentFeedbackToVolunteer from './volunteer-emails/maybeSendStudentFeedbackToVolunteer'
 import emailNationalTutorCertificate from './emailNationalTutorCertificate'
 import sendVolunteerFeedback from './student-emails/sendVolunteerFeedback'
-import addCronJobs from './addCronJobs'
+import addScheduledJobs from './addScheduledJobs'
+import emailAmbassadorCongrats from './emailAmbassadorCongrats'
 
 export enum Jobs {
-  NotifyTutors = 'NotifyTutors',
-  UpdateElapsedAvailability = 'UpdateElapsedAvailability',
-  UpdateTotalVolunteerHours = 'UpdateTotalVolunteerHours',
+  AddScheduledJobs = 'AddScheduledJobs',
+  BackfillEmailNiceToMeetYou = 'BackfillEmailNiceToMeetYou',
+  BackfillEmailVolunteersInactive = 'BackfillEmailVolunteersInactive',
+  BackfillStudentAmbassadorRole = 'BackfillStudentAmbassadorRole',
+  BackfillStudentPosthog = 'BackfillStudentPosthog',
+  BackfillStudentUsersRoles = 'BackfillStudentUsersRoles',
+  BackfillUpdateElapsedAvailability = 'BackfillUpdateElapsedAvailability',
+  DeleteDuplicateFeedbacks = 'DeleteDuplicateFeedbacks',
+  DeleteDuplicateStudentFavoriteVolunteers = 'DeleteDuplicateStudentFavoriteVolunteers',
+  DeleteDuplicateUserSurveys = 'DeleteDuplicateUserSurveys',
+  DeleteSelfFavoritedVolunteers = 'DeleteSelfFavoritedVolunteers',
+  DetectSessionLanguages = 'DetectSessionLanguages',
+  EmailFallIncentiveEnrollmentWelcome = 'EmailFallIncentiveEnrollmentWelcome',
+  EmailFallIncentiveInvitedToEnrollReminder = 'EmailFallIncentiveInvitedToEnrollReminder',
+  EmailFallIncentiveSessionQualification = 'EmailFallIncentiveSessionQualification',
+  EmailFailedFirstAttemptedQuiz = 'EmailFailedFirstAttemptedQuiz',
+  EmailIndependentLearning = 'EmailIndependentLearning',
+  EmailMeetOurVolunteers = 'EmailMeetOurVolunteers',
+  EmailNiceToMeetYou = 'EmailNiceToMeetYou',
+  EmailOnboardingReminderOne = 'EmailOnboardingReminderOne',
+  EmailOnboardingReminderThree = 'EmailOnboardingReminderThree',
+  EmailOnboardingReminderTwo = 'EmailOnboardingReminderTwo',
+  EmailPartnerVolunteerLowHoursSelected = 'EmailPartnerVolunteerLowHoursSelected',
+  EmailReadyToCoach = 'EmailReadyToCoach',
+  EmailReferenceFollowup = 'EmailReferenceFollowup',
+  EmailReferences = 'EmailReferences',
+  EmailReferencesFormApology = 'EmailReferencesFormApology',
+  EmailSessionReported = 'EmailSessionReported',
+  EmailStudentAbsentVolunteerApology = 'EmailStudentAbsentVolunteerApology',
+  EmailStudentAbsentWarning = 'EmailStudentAbsentWarning',
+  EmailStudentFirstSessionCongrats = 'EmailStudentFirstSessionCongrats',
+  EmailStudentGoalSetting = 'EmailStudentGoalSetting',
+  EmailStudentOnboardingHowItWorks = 'EmailStudentOnboardingHowItWorks',
+  EmailStudentOnboardingMission = 'EmailStudentOnboardingMission',
+  EmailStudentOnboardingSurvey = 'EmailStudentOnboardingSurvey',
+  EmailStudentOnlyLookingForAnswers = 'EmailStudentOnlyLookingForAnswers',
+  EmailStudentUnmatchedApology = 'EmailStudentUnmatchedApology',
+  EmailStudentUseCases = 'EmailStudentUseCases',
+  EmailVolunteerAbsentStudentApology = 'EmailVolunteerAbsentStudentApology',
+  EmailVolunteerAbsentWarning = 'EmailVolunteerAbsentWarning',
+  EmailVolunteerFirstSessionCongrats = 'EmailVolunteerFirstSessionCongrats',
+  EmailVolunteerInactive = 'EmailVolunteerInactive',
+  EmailVolunteerInactiveBlackoutOver = 'EmailVolunteerInactiveBlackoutOver',
+  EmailVolunteerInactiveNinetyDays = 'EmailVolunteerInactiveNinetyDays',
+  EmailVolunteerInactiveSixtyDays = 'EmailVolunteerInactiveSixtyDays',
+  EmailVolunteerInactiveThirtyDays = 'EmailVolunteerInactiveThirtyDays',
+  EmailVolunteerQuickTips = 'EmailVolunteerQuickTips',
+  EmailVolunteerTenSessionMilestone = 'EmailVolunteerTenSessionMilestone',
+  EmailWaitingOnReferences = 'EmailWaitingOnReferences',
+  EmailWeeklyHourSummary = 'EmailWeeklyHourSummary',
   EndStaleSessions = 'EndStaleSessions',
   EndUnmatchedSession = 'EndUnmatchedSession',
   GenerateAndStoreWaitTimeHeatMap = 'GenerateAndStoreWaitTimeHeatMap',
-  EmailReferences = 'EmailReferences',
-  EmailReferencesFormApology = 'EmailReferencesFormApology',
-  EmailReadyToCoach = 'EmailReadyToCoach',
-  EmailReferenceFollowup = 'EmailReferenceFollowup',
-  EmailWaitingOnReferences = 'EmailWaitingOnReferences',
-  EmailNiceToMeetYou = 'EmailNiceToMeetYou',
-  SpawnEmailWeeklyHourSummaryJobs = 'SpawnEmailWeeklyHourSummaryJobs',
-  EmailWeeklyHourSummary = 'EmailWeeklyHourSummary',
-  EmailOnboardingReminderOne = 'EmailOnboardingReminderOne',
-  EmailOnboardingReminderTwo = 'EmailOnboardingReminderTwo',
-  EmailOnboardingReminderThree = 'EmailOnboardingReminderThree',
-  EmailStudentOnboardingHowItWorks = 'EmailStudentOnboardingHowItWorks',
-  EmailStudentOnboardingMission = 'EmailStudentOnboardingMission',
-  EmailMeetOurVolunteers = 'EmailMeetOurVolunteers',
-  EmailStudentOnboardingSurvey = 'EmailStudentOnboardingSurvey',
-  EmailStudentAbsentWarning = 'EmailStudentAbsentWarning',
-  EmailStudentAbsentVolunteerApology = 'EmailStudentAbsentVolunteerApology',
-  EmailStudentUnmatchedApology = 'EmailStudentUnmatchedApology',
-  EmailSessionReported = 'EmailSessionReported',
-  EmailVolunteerQuickTips = 'EmailVolunteerQuickTips',
-  EmailPartnerVolunteerLowHoursSelected = 'EmailPartnerVolunteerLowHoursSelected',
-  EmailVolunteerTenSessionMilestone = 'EmailVolunteerTenSessionMilestone',
-  EmailVolunteerInactiveBlackoutOver = 'EmailVolunteerInactiveBlackoutOver',
-  EmailVolunteerInactiveThirtyDays = 'EmailVolunteerInactiveThirtyDays',
-  EmailVolunteerInactiveSixtyDays = 'EmailVolunteerInactiveSixtyDays',
-  EmailVolunteerInactiveNinetyDays = 'EmailVolunteerInactiveNinetyDays',
-  EmailVolunteerInactive = 'EmailVolunteerInactive',
-  EmailVolunteerFirstSessionCongrats = 'EmailVolunteerFirstSessionCongrats',
-  EmailVolunteerAbsentWarning = 'EmailVolunteerAbsentWarning',
-  EmailVolunteerAbsentStudentApology = 'EmailVolunteerAbsentStudentApology',
-  EmailStudentFirstSessionCongrats = 'EmailStudentFirstSessionCongrats',
-  EmailFailedFirstAttemptedQuiz = 'EmailFailedFirstAttemptedQuiz',
-  EmailStudentOnlyLookingForAnswers = 'EmailStudentOnlyLookingForAnswers',
-  SendFollowupText = 'SendFollowupText',
-  UpdateGradeLevel = 'UpdateGradeLevel',
-  SendSessionRecapMessageNotification = 'SendSessionRecapMessageNotification',
   GenerateProgressReport = 'GenerateProgressReport',
-  UpdateSendGridGradeLevels = 'UpdateSendGridGradeLevels',
-  EmailFallIncentiveEnrollmentWelcome = 'EmailFallIncentiveEnrollmentWelcome',
-  EmailFallIncentiveInvitedToEnrollReminder = 'EmailFallIncentiveInvitedToEnrollReminder',
-  EmailFallIncentiveLeavingMoneyOnTable = 'EmailFallIncentiveLeavingMoneyOnTable',
-  EmailFallIncentiveSessionQualification = 'EmailFallIncentiveSessionQualification',
-  EmailFallIncentiveReminderToQualify = 'EmailFallIncentiveReminderToQualify',
-  EmailFallIncentiveGiftCards = 'EmailFallIncentiveGiftCards',
   GenerateSessionSummary = 'GenerateSessionSummary',
-  ProcessSessionEnded = 'ProcessSessionEnded',
-  DetectSessionLanguages = 'DetectSessionLanguages',
-
-  // TODO: remove the following deprecated job names
-  EmailStudentUseCases = 'EmailStudentUseCases',
-  EmailIndependentLearning = 'EmailIndependentLearning',
-  EmailStudentGoalSetting = 'EmailStudentGoalSetting',
-
-  // Backfill scripts
-  BackfillEmailNiceToMeetYou = 'BackfillEmailNiceToMeetYou',
-  BackfillEmailVolunteersInactive = 'BackfillEmailVolunteersInactive',
-  BackfillStudentPosthog = 'BackfillStudentPosthog',
-  SendWeeklyHourSummaryApology = 'SendWeeklyHourSummaryApology',
-  BackfillUpdateElapsedAvailability = 'BackfillUpdateElapsedAvailability',
-  BackfillStudentUsersRoles = 'BackfillStudentUsersRoles',
-
-  // Delete scripts
-  DeleteDuplicateFeedbacks = 'DeleteDuplicateFeedbacks',
-  DeleteSelfFavoritedVolunteers = 'DeleteSelfFavoritedVolunteers',
-  DeleteDuplicateUserSurveys = 'DeleteDuplicateUserSurveys',
-  DeleteDuplicateStudentFavoriteVolunteers = 'DeleteDuplicateStudentFavoriteVolunteers',
-
-  // Migration scripts
-  MigrateHistoricalPartnerData = 'MigrateHistoricalPartnerData',
-  UpsertPostalCodes = 'UpsertPostalCodes',
-  TitlecaseSchoolNames = 'TitlecaseSchoolNames',
-  UpsertSchools = 'UpsertSchools',
-  MigrateProgressReportPromptIds = 'MigrateProgressReportPromptIds',
+  MaybeSendStudentFeedbackToVolunteer = 'MaybeSendStudentFeedbackToVolunteer',
   MigrateBannedAndTestUsersToBanType = 'MigrateBannedAndTestUsersToBanType',
-
-  // Eng Tooling Scripts
-  UpdateBasicAccessViews = 'UpdateBasicAccessViews',
-
-  // Moderation
+  MigrateHistoricalPartnerData = 'MigrateHistoricalPartnerData',
+  MigrateProgressReportPromptIds = 'MigrateProgressReportPromptIds',
   ModerateSessionMessage = 'ModerateSessionMessage',
   ModerateSessionTranscript = 'ModerateSessionTranscript',
-
-  BackfillStudentAmbassadorRole = 'BackfillStudentAmbassadorRole',
-  SendBecomeAnAmbassadorEmail = 'SendBecomeAnAmbassadorEmail',
-  SendReferralSignUpCelebrationEmail = 'SendReferralSignUpCelebrationEmail',
-  SendNationalTutorCertificateEmail = 'SendNationalTutordertificateEmail',
+  NotifyTutors = 'NotifyTutors',
+  ProcessSessionEnded = 'ProcessSessionEnded',
   SendAmbassadorCongratsEmail = 'SendAmbassadorCongratsEmail',
-
-  MaybeSendStudentFeedbackToVolunteer = 'MaybeSendStudentFeedbackToVolunteer',
+  SendBecomeAnAmbassadorEmail = 'SendBecomeAnAmbassadorEmail',
+  SendFollowupText = 'SendFollowupText',
+  SendNationalTutorCertificateEmail = 'SendNationalTutorCertificateEmail',
+  SendReferralSignUpCelebrationEmail = 'SendReferralSignUpCelebrationEmail',
+  SendSessionRecapMessageNotification = 'SendSessionRecapMessageNotification',
   SendVolunteerFeedbackToStudent = 'SendVolunteerFeedbackToStudent',
-  AddCronJobs = 'AddCronJobs',
+  SendWeeklyHourSummaryApology = 'SendWeeklyHourSummaryApology',
+  SpawnEmailWeeklyHourSummaryJobs = 'SpawnEmailWeeklyHourSummaryJobs',
+  TitlecaseSchoolNames = 'TitlecaseSchoolNames',
+  UpdateBasicAccessViews = 'UpdateBasicAccessViews',
+  UpdateElapsedAvailability = 'UpdateElapsedAvailability',
+  UpdateGradeLevel = 'UpdateGradeLevel',
+  UpdateSendGridGradeLevels = 'UpdateSendGridGradeLevels',
+  UpdateTotalVolunteerHours = 'UpdateTotalVolunteerHours',
+  UpsertPostalCodes = 'UpsertPostalCodes',
+  UpsertSchools = 'UpsertSchools',
 }
 
 // register new job processors here
@@ -174,168 +158,52 @@ interface JobProcessor {
 
 const jobProcessors: JobProcessor[] = [
   {
-    name: Jobs.NotifyTutors,
-    processor: notifyTutors,
+    name: Jobs.AddScheduledJobs,
+    processor: addScheduledJobs,
   },
   {
-    name: Jobs.UpdateElapsedAvailability,
-    processor: updateElapsedAvailability,
+    name: Jobs.BackfillEmailNiceToMeetYou,
+    processor: backfillEmailNiceToMeetYou,
   },
   {
-    name: Jobs.UpdateTotalVolunteerHours,
-    processor: updateTotalVolunteerHours,
+    name: Jobs.BackfillEmailVolunteersInactive,
+    processor: backfillEmailVolunteerInactive,
   },
   {
-    name: Jobs.EndStaleSessions,
-    processor: endStaleSessions,
+    name: Jobs.BackfillStudentAmbassadorRole,
+    processor: backfillStudentAmbassadorRole,
   },
   {
-    name: Jobs.EndUnmatchedSession,
-    processor: endUnmatchedSession,
+    name: Jobs.BackfillStudentPosthog,
+    processor: backfillStudentPosthog,
   },
   {
-    name: Jobs.GenerateAndStoreWaitTimeHeatMap,
-    processor: generateAndStoreWaitTimeHeatMap,
+    name: Jobs.BackfillStudentUsersRoles,
+    processor: backfillStudentUsersRoles,
   },
   {
-    name: Jobs.EmailReferences,
-    processor: emailReferences,
+    name: Jobs.BackfillUpdateElapsedAvailability,
+    processor: backfillUpdateElapsedAvailability,
   },
   {
-    name: Jobs.EmailReferencesFormApology,
-    processor: emailReferencesFormApology,
+    name: Jobs.DeleteDuplicateStudentFavoriteVolunteers,
+    processor: deleteDuplicateStudentFavoriteVolunteers,
   },
   {
-    name: Jobs.EmailReadyToCoach,
-    processor: emailReadyToCoach,
+    name: Jobs.DeleteDuplicateUserSurveys,
+    processor: deleteDuplicateUserSurveys,
   },
   {
-    name: Jobs.EmailReferenceFollowup,
-    processor: emailReferenceFollowup,
+    name: Jobs.DeleteSelfFavoritedVolunteers,
+    processor: deleteSelfFavoritedVolunteers,
   },
   {
-    name: Jobs.EmailWaitingOnReferences,
-    processor: emailWaitingOnReferences,
-  },
-  {
-    name: Jobs.EmailNiceToMeetYou,
-    processor: emailNiceToMeetYou,
-  },
-  {
-    name: Jobs.SpawnEmailWeeklyHourSummaryJobs,
-    processor: spawnEmailWeeklyHourSummaryJobs,
-  },
-  {
-    name: Jobs.EmailWeeklyHourSummary,
-    processor: emailWeeklyHourSummary,
-  },
-  {
-    name: Jobs.EmailOnboardingReminderOne,
-    processor: emailOnboardingReminder,
-  },
-  {
-    name: Jobs.EmailOnboardingReminderTwo,
-    processor: emailOnboardingReminder,
-  },
-  {
-    name: Jobs.EmailOnboardingReminderThree,
-    processor: emailOnboardingReminder,
-  },
-  {
-    name: Jobs.EmailStudentOnboardingHowItWorks,
-    processor: emailStudentOnboardingSeries,
-  },
-  {
-    name: Jobs.EmailMeetOurVolunteers,
-    processor: emailStudentOnboardingSeries,
-  },
-  {
-    name: Jobs.EmailStudentOnboardingMission,
-    processor: emailStudentOnboardingSeries,
-  },
-  {
-    name: Jobs.EmailStudentOnboardingSurvey,
-    processor: emailStudentOnboardingSeries,
-  },
-  {
-    name: Jobs.EmailStudentAbsentWarning,
-    processor: emailStudentSessionActions,
-  },
-  {
-    name: Jobs.EmailStudentAbsentVolunteerApology,
-    processor: emailStudentSessionActions,
-  },
-  {
-    name: Jobs.EmailStudentUnmatchedApology,
-    processor: emailStudentSessionActions,
-  },
-  {
-    name: Jobs.EmailStudentOnlyLookingForAnswers,
-    processor: emailStudentSessionActions,
-  },
-  {
-    name: Jobs.EmailVolunteerQuickTips,
-    processor: emailQuickTips,
-  },
-  {
-    name: Jobs.EmailPartnerVolunteerLowHoursSelected,
-    processor: emailPartnerVolunteerLowHoursSelected,
-  },
-  {
-    name: Jobs.EmailVolunteerTenSessionMilestone,
-    processor: emailVolunteerTenSessionMilestone,
-  },
-  {
-    name: Jobs.EmailVolunteerInactive,
-    processor: emailVolunteerInactive,
-  },
-  {
-    name: Jobs.EmailVolunteerFirstSessionCongrats,
-    processor: emailVolunteerFirstSessionCongrats,
-  },
-  {
-    name: Jobs.EmailVolunteerInactiveBlackoutOver,
-    processor: emailVolunteerInactiveBlackoutOver,
-  },
-  {
-    name: Jobs.EmailStudentFirstSessionCongrats,
-    processor: emailStudentFirstSessionCongrats,
-  },
-  {
-    name: Jobs.EmailVolunteerAbsentWarning,
-    processor: emailVolunteerSessionActions,
-  },
-  {
-    name: Jobs.EmailVolunteerAbsentStudentApology,
-    processor: emailVolunteerSessionActions,
+    name: Jobs.DetectSessionLanguages,
+    processor: detectSessionLanguages,
   },
   {
     name: Jobs.EmailFailedFirstAttemptedQuiz,
     processor: emailFailedFirstAttemptedQuiz,
-  },
-  {
-    name: Jobs.EmailSessionReported,
-    processor: emailSessionReported,
-  },
-  {
-    name: Jobs.SendFollowupText,
-    processor: sendFollowupText,
-  },
-  {
-    name: Jobs.UpdateGradeLevel,
-    processor: updateGradeLevel,
-  },
-  {
-    name: Jobs.SendSessionRecapMessageNotification,
-    processor: sendSessionRecapMessageNotification,
-  },
-  {
-    name: Jobs.GenerateProgressReport,
-    processor: generateProgressReport,
-  },
-  {
-    name: Jobs.UpdateSendGridGradeLevels,
-    processor: updateSendGridGradeLevels,
   },
   {
     name: Jobs.EmailFallIncentiveEnrollmentWelcome,
@@ -350,88 +218,156 @@ const jobProcessors: JobProcessor[] = [
     processor: emailFallIncentiveSessionQualification,
   },
   {
-    name: Jobs.GenerateSessionSummary,
-    processor: generateSessionSummary,
-  },
-  {
-    name: Jobs.ProcessSessionEnded,
-    processor: processSessionEnded,
-  },
-  {
-    name: Jobs.DetectSessionLanguages,
-    processor: detectSessionLanguages,
-  },
-  // TODO: remove the following deprecated job names
-  {
-    name: Jobs.EmailStudentUseCases,
-    processor: emailStudentOnboardingSeries,
-  },
-  {
     name: Jobs.EmailIndependentLearning,
     processor: emailStudentOnboardingSeries,
+  },
+  {
+    name: Jobs.EmailMeetOurVolunteers,
+    processor: emailStudentOnboardingSeries,
+  },
+  {
+    name: Jobs.EmailNiceToMeetYou,
+    processor: emailNiceToMeetYou,
+  },
+  {
+    name: Jobs.EmailOnboardingReminderOne,
+    processor: emailOnboardingReminder,
+  },
+  {
+    name: Jobs.EmailOnboardingReminderThree,
+    processor: emailOnboardingReminder,
+  },
+  {
+    name: Jobs.EmailOnboardingReminderTwo,
+    processor: emailOnboardingReminder,
+  },
+  {
+    name: Jobs.EmailPartnerVolunteerLowHoursSelected,
+    processor: emailPartnerVolunteerLowHoursSelected,
+  },
+  {
+    name: Jobs.EmailReadyToCoach,
+    processor: emailReadyToCoach,
+  },
+  {
+    name: Jobs.EmailReferenceFollowup,
+    processor: emailReferenceFollowup,
+  },
+  {
+    name: Jobs.EmailReferences,
+    processor: emailReferences,
+  },
+  {
+    name: Jobs.EmailReferencesFormApology,
+    processor: emailReferencesFormApology,
+  },
+  {
+    name: Jobs.EmailSessionReported,
+    processor: emailSessionReported,
+  },
+  {
+    name: Jobs.EmailStudentAbsentVolunteerApology,
+    processor: emailStudentSessionActions,
+  },
+  {
+    name: Jobs.EmailStudentAbsentWarning,
+    processor: emailStudentSessionActions,
+  },
+  {
+    name: Jobs.EmailStudentFirstSessionCongrats,
+    processor: emailStudentFirstSessionCongrats,
   },
   {
     name: Jobs.EmailStudentGoalSetting,
     processor: emailStudentOnboardingSeries,
   },
-
-  // Backfill scripts
   {
-    name: Jobs.BackfillEmailNiceToMeetYou,
-    processor: backfillEmailNiceToMeetYou,
+    name: Jobs.EmailStudentOnboardingHowItWorks,
+    processor: emailStudentOnboardingSeries,
   },
   {
-    name: Jobs.BackfillEmailVolunteersInactive,
-    processor: backfillEmailVolunteerInactive,
+    name: Jobs.EmailStudentOnboardingMission,
+    processor: emailStudentOnboardingSeries,
   },
   {
-    name: Jobs.BackfillStudentPosthog,
-    processor: backfillStudentPosthog,
+    name: Jobs.EmailStudentOnboardingSurvey,
+    processor: emailStudentOnboardingSeries,
   },
   {
-    name: Jobs.SendWeeklyHourSummaryApology,
-    processor: sendWeeklyHourSummaryApology,
+    name: Jobs.EmailStudentOnlyLookingForAnswers,
+    processor: emailStudentSessionActions,
   },
   {
-    name: Jobs.DeleteDuplicateUserSurveys,
-    processor: deleteDuplicateUserSurveys,
+    name: Jobs.EmailStudentUnmatchedApology,
+    processor: emailStudentSessionActions,
   },
   {
-    name: Jobs.BackfillUpdateElapsedAvailability,
-    processor: backfillUpdateElapsedAvailability,
+    name: Jobs.EmailStudentUseCases,
+    processor: emailStudentOnboardingSeries,
   },
   {
-    name: Jobs.BackfillStudentUsersRoles,
-    processor: backfillStudentUsersRoles,
+    name: Jobs.EmailVolunteerAbsentStudentApology,
+    processor: emailVolunteerSessionActions,
   },
   {
-    name: Jobs.DeleteSelfFavoritedVolunteers,
-    processor: deleteSelfFavoritedVolunteers,
-  },
-  // TODO: uncomment this processor when ready to migrate
-  //{
-  //  name: Jobs.MigrateHistoricalPartnerData,
-  //  processor: migrateHistoricalPartnerData
-  //},
-  {
-    name: Jobs.UpsertPostalCodes,
-    processor: upsertPostalCodes,
+    name: Jobs.EmailVolunteerAbsentWarning,
+    processor: emailVolunteerSessionActions,
   },
   {
-    name: Jobs.TitlecaseSchoolNames,
-    processor: titlecaseSchoolNames,
+    name: Jobs.EmailVolunteerFirstSessionCongrats,
+    processor: emailVolunteerFirstSessionCongrats,
   },
   {
-    name: Jobs.UpsertSchools,
-    processor: upsertSchools,
+    name: Jobs.EmailVolunteerInactive,
+    processor: emailVolunteerInactive,
   },
   {
-    name: Jobs.DeleteDuplicateStudentFavoriteVolunteers,
-    processor: deleteDuplicateStudentFavoriteVolunteers,
+    name: Jobs.EmailVolunteerInactiveBlackoutOver,
+    processor: emailVolunteerInactiveBlackoutOver,
   },
   {
-    name: Jobs.UpdateBasicAccessViews,
-    processor: updateBasicAccessViews,
+    name: Jobs.EmailVolunteerQuickTips,
+    processor: emailQuickTips,
+  },
+  {
+    name: Jobs.EmailVolunteerTenSessionMilestone,
+    processor: emailVolunteerTenSessionMilestone,
+  },
+  {
+    name: Jobs.EmailWaitingOnReferences,
+    processor: emailWaitingOnReferences,
+  },
+  {
+    name: Jobs.EmailWeeklyHourSummary,
+    processor: emailWeeklyHourSummary,
+  },
+  {
+    name: Jobs.EndStaleSessions,
+    processor: endStaleSessions,
+  },
+  {
+    name: Jobs.EndUnmatchedSession,
+    processor: endUnmatchedSession,
+  },
+  {
+    name: Jobs.GenerateAndStoreWaitTimeHeatMap,
+    processor: generateAndStoreWaitTimeHeatMap,
+  },
+  {
+    name: Jobs.GenerateProgressReport,
+    processor: generateProgressReport,
+  },
+  {
+    name: Jobs.GenerateSessionSummary,
+    processor: generateSessionSummary,
+  },
+  {
+    name: Jobs.MaybeSendStudentFeedbackToVolunteer,
+    processor: maybeSendStudentFeedbackToVolunteer,
+  },
+  {
+    name: Jobs.MigrateBannedAndTestUsersToBanType,
+    processor: migrateBannedAndTestUsersToBanType,
   },
   {
     name: Jobs.MigrateProgressReportPromptIds,
@@ -446,39 +382,80 @@ const jobProcessors: JobProcessor[] = [
     processor: moderateSessionTranscript,
   },
   {
-    name: Jobs.MigrateBannedAndTestUsersToBanType,
-    processor: migrateBannedAndTestUsersToBanType,
+    name: Jobs.NotifyTutors,
+    processor: notifyTutors,
   },
   {
-    name: Jobs.BackfillStudentAmbassadorRole,
-    processor: backfillStudentAmbassadorRole,
+    name: Jobs.ProcessSessionEnded,
+    processor: processSessionEnded,
   },
-
+  {
+    name: Jobs.SendAmbassadorCongratsEmail,
+    processor: emailAmbassadorCongrats,
+  },
   {
     name: Jobs.SendBecomeAnAmbassadorEmail,
     processor: emailBecomeAnAmbassador,
   },
-
   {
-    name: Jobs.SendReferralSignUpCelebrationEmail,
-    processor: emailReferralSignUpCelebration,
-  },
-
-  {
-    name: Jobs.MaybeSendStudentFeedbackToVolunteer,
-    processor: maybeSendStudentFeedbackToVolunteer,
+    name: Jobs.SendFollowupText,
+    processor: sendFollowupText,
   },
   {
     name: Jobs.SendNationalTutorCertificateEmail,
     processor: emailNationalTutorCertificate,
   },
   {
+    name: Jobs.SendReferralSignUpCelebrationEmail,
+    processor: emailReferralSignUpCelebration,
+  },
+  {
+    name: Jobs.SendSessionRecapMessageNotification,
+    processor: sendSessionRecapMessageNotification,
+  },
+  {
     name: Jobs.SendVolunteerFeedbackToStudent,
     processor: sendVolunteerFeedback,
   },
   {
-    name: Jobs.AddCronJobs,
-    processor: addCronJobs,
+    name: Jobs.SendWeeklyHourSummaryApology,
+    processor: sendWeeklyHourSummaryApology,
+  },
+  {
+    name: Jobs.SpawnEmailWeeklyHourSummaryJobs,
+    processor: spawnEmailWeeklyHourSummaryJobs,
+  },
+  {
+    name: Jobs.TitlecaseSchoolNames,
+    processor: titlecaseSchoolNames,
+  },
+  {
+    name: Jobs.UpdateBasicAccessViews,
+    processor: updateBasicAccessViews,
+  },
+  {
+    name: Jobs.UpdateElapsedAvailability,
+    processor: updateElapsedAvailability,
+  },
+  {
+    name: Jobs.UpdateGradeLevel,
+    processor: updateGradeLevel,
+  },
+  {
+    name: Jobs.UpdateSendGridGradeLevels,
+    processor: updateSendGridGradeLevels,
+  },
+  {
+    name: Jobs.UpdateTotalVolunteerHours,
+    processor: updateTotalVolunteerHours,
+  },
+  {
+    name: Jobs.UpsertPostalCodes,
+    processor: upsertPostalCodes,
+  },
+  {
+    name: Jobs.UpsertSchools,
+    processor: upsertSchools,
   },
 ]
 
