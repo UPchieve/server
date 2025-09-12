@@ -1,28 +1,55 @@
 #! /usr/bin/env bash
 
-echo "linting files in server/"
+# collect sql files
+declare -a server_files=()
 for filename in $(find ./server -name "*.sql"); do
     [ -e "$filename" ] || continue
-    npx pg-formatter --keyword-case="uppercase" --inplace --placeholder=":\w+!" "$filename"
+    server_files+=("$filename")
 done
 
-echo "linting files in database/migrations"
+declare -a migrations_files=()
 for filename in $(find ./database/migrations -name "*.sql"); do
   [ -e "$filename" ] || continue
-  npx pg-formatter --keyword-case="uppercase" --inplace --placeholder=":\w+!" "$filename"
+  migrations_files+=("$filename")
 done
 
-echo "linting files in database/seed-updates"
+declare -a seed_updates_files=()
 for filename in $(find ./database/seed-updates -name "*.sql"); do
   [ -e "$filename" ] || continue
-  npx pg-formatter --keyword-case="uppercase" --inplace --placeholder=":\w+!" "$filename"
+  seed_updates_files+=("$filename")
 done
+
+declare -a seeds_files=()
+for filename in $(find ./database/seeds -name "*.sql"); do
+  [ -e "$filename" ] || continue
+  seeds_files+=("$filename")
+done
+
+# run formatter for each set of files in parallel
+(
+echo "linting files in server/"
+npx pg-formatter --keyword-case="uppercase" --inplace --placeholder=":\w+!" ${server_files[@]}
+echo "linting files in server/ done"
+) &
+
+(
+echo "linting files in database/migrations"
+npx pg-formatter --keyword-case="uppercase" --inplace --placeholder=":\w+!" ${migrations_files[@]}
+echo "linting files in database/migrations done"
+) &
+
+(
+echo "linting files in database/seed-updates"
+npx pg-formatter --keyword-case="uppercase" --inplace --placeholder=":\w+!" ${seed_updates_files[@]}
+echo "linting files in database/seed-updates done"
 
 echo "linting files in database/seeds"
-for filename in $(find ./database/seed-updates -name "*.sql"); do
-  [ -e "$filename" ] || continue
-  npx pg-formatter --keyword-case="uppercase" --inplace --placeholder=":\w+!" "$filename"
-done
+npx pg-formatter --keyword-case="uppercase" --inplace --placeholder=":\w+!" ${seeds_files[@]}
+echo "linting files in database/seeds done"
+) &
+
+# wait for the above background process to be complete
+wait
 
 if [[ $(git ls-files -m "*.sql") ]]; then
   echo "SQL code changes made by pg-formatter, please stage the files and try again."
