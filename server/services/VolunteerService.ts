@@ -264,9 +264,19 @@ export async function addBackgroundInfo(
   })
 }
 
+/**
+ * Onboard the volunteer if they were not previously onboarded, but they have now met the requirements.
+ *
+ * @param volunteerId - The volunteer to onboard
+ * @param ip - The IP address of the volunteer
+ * @param skipAvailabilityOnboardingRequirement - If true, we will not require the user to have set
+ * their availability to consider them ready to onboard.
+ * @param tc - Client to run db transaction on
+ */
 export async function onboardVolunteer(
   volunteerId: Uuid,
   ip: string,
+  skipAvailabilityOnboardingRequirement: boolean,
   tc: TransactionClient
 ): Promise<void> {
   const volunteer = await VolunteerRepo.getVolunteerForOnboardingById(
@@ -278,13 +288,21 @@ export async function onboardVolunteer(
     return
   }
 
-  // Onboard the volunteer if they were not previously onboarded,
-  // but they have now met the requirements.
-  if (
+  /*
+   * Note: We are in the process of removing setting your availability as an onboarding requirement.
+   * The client will send up `skipAvailabilityOnboardingRequirement` argument to determine whether
+   * we consider it required or not.
+   *
+   * @TODO - Remove this logic once we are fully migrated to the new calculation & have backfilled other coaches'
+   *   `onboarded` status.
+   */
+  const isReadyToOnboard =
     volunteer.subjects.length &&
     volunteer.hasCompletedUpchieve101 &&
-    volunteer.availabilityLastModifiedAt
-  ) {
+    (skipAvailabilityOnboardingRequirement ||
+      !!volunteer.availabilityLastModifiedAt)
+
+  if (isReadyToOnboard) {
     await VolunteerRepo.updateVolunteerOnboarded(volunteer.id, tc)
     await queueOnboardingEventEmails(
       volunteer.id,
