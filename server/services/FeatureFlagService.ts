@@ -196,8 +196,5 @@ export async function getStudentCreationDisabledFeatureFlag(userId: Ulid) {
 }
 
 export async function getStudySlackCommunityEmailFeatureFlag(userId: Ulid) {
-  return isFeatureEnabled(
-    FEATURE_FLAGS.STUDY_SLACK_COACH_COMMUNITY,
-    userId
-  )
+  return isFeatureEnabled(FEATURE_FLAGS.STUDY_SLACK_COACH_COMMUNITY, userId)
 }
