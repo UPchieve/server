@@ -46,6 +46,7 @@ export type ClientToServerEvents = {
     moderationFailures?: object
     uploadError?: string
   }) => void
+  imageUploadSuccess: (data: { sessionId: Ulid }) => void
 }
 
 export type ServerToClientEvents = {
@@ -81,6 +82,7 @@ export type ServerToClientEvents = {
     moderationFailures?: object
     uploadError?: string
   }) => void
+  partnerImageUploadSuccess: () => void
 }
 
 export type InterServerEvents = {}

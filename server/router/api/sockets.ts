@@ -35,7 +35,6 @@ import { createSessionAction } from '../../models/UserAction/queries'
 import { updateVolunteerSubjectPresence } from '../../services/VolunteerService'
 import { asJoinSessionData } from '../../utils/session-utils'
 import { SessionJoinError } from '../../models/Errors'
-import * as cache from '../../cache'
 import * as PresenceService from '../../services/PresenceService'
 
 export type SessionMessageType = 'audio-transcription' // todo - add 'chat' later
@@ -686,6 +685,15 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
         )
       }
     )
+
+    socket.on('imageUploadSuccess', async ({ sessionId }) => {
+      newrelic.startWebTransaction(
+        '/socket-io/partnerImageUploadSuccess',
+        async () => {
+          socket.to(getSessionRoom(sessionId)).emit('partnerImageUploadSuccess')
+        }
+      )
+    })
 
     // Log socket connection-related events for analytics and debugging
     socket.onAny((eventName, args) => {
