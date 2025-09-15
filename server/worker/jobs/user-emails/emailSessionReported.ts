@@ -35,7 +35,10 @@ async function emailReportedSession(
 
   if (!user) errors.push(`user ${userId} not found`)
   else {
-    if (isBanReason) {
+    const reportedUserRole =
+      session.studentId === userId ? 'student' : 'volunteer'
+
+    if (isBanReason && reportedUserRole !== 'volunteer') {
       const banAlert = await safeAsync(
         // TODO: double check the email
         MailService.sendBannedUserAlert(
@@ -67,9 +70,6 @@ async function emailReportedSession(
       errors.push(
         `Failed to send report alert email: ${reportAlert.error.message}`
       )
-
-    const reportedUserRole =
-      session.studentId === userId ? 'student' : 'volunteer'
 
     if (reportedUserRole === 'student') {
       const studentEmail = await safeAsync(
