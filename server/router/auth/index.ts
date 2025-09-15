@@ -26,6 +26,7 @@ import { ACCOUNT_USER_ACTIONS } from '../../constants'
 import { createAccountAction } from '../../models/UserAction'
 import { AuthRedirect } from './auth-redirect'
 import { v4 as uuidv4 } from 'uuid'
+import { UserRole } from '../../models/User'
 
 async function trackLoggedIn(userId: Ulid, ipAddress: string) {
   await createAccountAction({
@@ -91,6 +92,7 @@ export function routes(app: Express) {
     const provider = req.query.provider as string
     const isLogin = req.query.isLogin === 'true' ?? true
     const errorRedirect = req.query.errorRedirect as string
+    const accountType = req.query.accountType ?? 'student'
     if (!provider || !isSupportedSsoProvider(provider)) {
       res.redirect(
         AuthRedirect.failureRedirect(isLogin, provider ?? '', errorRedirect)
@@ -107,6 +109,7 @@ export function routes(app: Express) {
         : undefined,
       provider,
       isLogin,
+      accountType: accountType as Extract<UserRole, 'student' | 'teacher'>,
       redirect: req.query.redirect as string,
       errorRedirect,
     }

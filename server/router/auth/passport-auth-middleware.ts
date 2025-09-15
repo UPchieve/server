@@ -13,6 +13,7 @@ import * as FedCredService from '../../services/FederatedCredentialService'
 import * as UserCreationService from '../../services/UserCreationService'
 import {
   RegisterStudentPayload,
+  RegisterTeacherPayload,
   SessionWithSsoData,
   SsoProviderNames,
   verifyPassword,
@@ -54,7 +55,8 @@ async function passportRegisterUser(
   profile: passport.Profile,
   issuer: string,
   providerName: string,
-  data: Partial<RegisterStudentPayload> = {},
+  accountType = 'student',
+  data: Partial<RegisterStudentPayload | RegisterTeacherPayload> = {},
   done: Function
 ) {
   try {
@@ -86,7 +88,7 @@ async function passportRegisterUser(
       })
     }
 
-    const studentData = {
+    const userData = {
       email,
       firstName,
       issuer,
@@ -94,8 +96,13 @@ async function passportRegisterUser(
       profileId: profile.id,
       ...data,
     }
-    const student = await UserCreationService.registerStudent(studentData)
-    return done(null, student)
+    if (accountType === 'teacher') {
+      const teacher = await UserCreationService.registerTeacher(userData)
+      return done(null, teacher)
+    } else {
+      const student = await UserCreationService.registerStudent(userData)
+      return done(null, student)
+    }
   } catch (err) {
     return done(err)
   }
@@ -315,11 +322,13 @@ export function addPassportAuthMiddleware() {
         if (isLogin) {
           return passportLoginUser(profile, issuer, done)
         } else {
-          const { userData } = (req.session as SessionWithSsoData).sso ?? {}
+          const { accountType, userData } =
+            (req.session as SessionWithSsoData).sso ?? {}
           return passportRegisterUser(
             profile,
             issuer,
             SsoProviderNames.GOOGLE,
+            accountType,
             userData,
             done
           )

@@ -18,4 +18,5 @@ export enum FEATURE_FLAGS {
   SEND_POSITIVE_STUDENT_FEEDBACK_EMAIL = 'send-positive-student-feedback-email',
   STUDENTS_INITIATE_DMS = 'students-initiate-dms',
   DISABLE_STUDENT_CREATION = 'disable-student-creation',
+  STUDY_SLACK_COACH_COMMUNITY = 'study-slack-coach-community',
 }

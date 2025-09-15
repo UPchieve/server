@@ -505,9 +505,6 @@ describe('ModerationService', () => {
         'Determines whether the reason is reason to immediately stop the stream (reason is %s)',
         async (reason: string, expectedValue: boolean) => {
           const actual = isStreamStoppingReason(reason)
-          console.log(
-            `TEST: reason=${reason}, expected=${expectedValue}, and actual=${actual}`
-          )
           expect(actual).toEqual(expectedValue)
         }
       )

@@ -31,6 +31,7 @@ import validator from 'validator'
 import session from 'express-session'
 import { validateRequestRecaptcha } from '../services/RecaptchaService'
 import { isDisposableEmail } from './domain-utils'
+import { UserRole } from '../models/User'
 // Custom errors
 export class RegistrationError extends CustomError {}
 export class ResetError extends CustomError {}
@@ -51,6 +52,7 @@ export interface SessionWithSsoData extends session.Session {
     provider?: string
     redirect?: string
     errorRedirect?: string
+    accountType?: Extract<UserRole, 'student' | 'teacher'>
     userData?: Partial<RegisterStudentPayload | RegisterTeacherPayload>
     fedCredData?: {
       profileId: string

@@ -2,6 +2,7 @@ import { log } from '../logger'
 import { getVolunteersForNiceToMeetYou } from '../../models/Volunteer/queries'
 import * as MailService from '../../services/MailService'
 import { Jobs } from '.'
+import { getStudySlackCommunityEmailFeatureFlag } from '../../services/FeatureFlagService'
 
 // Runs every day at 10am EST
 export default async (): Promise<void> => {
@@ -21,8 +22,12 @@ export default async (): Promise<void> => {
   const errors: string[] = []
   for (const volunteer of volunteers) {
     try {
-      await MailService.sendNiceToMeetYou(volunteer)
-      totalEmailed++
+      const isSlackCommunityEmailEnabled =
+        await getStudySlackCommunityEmailFeatureFlag(volunteer.id)
+      if (isSlackCommunityEmailEnabled) {
+        await MailService.sendNiceToMeetYou(volunteer)
+        totalEmailed++
+      }
     } catch (error) {
       errors.push(`volunteer ${volunteer.id}: ${error}`)
     }
