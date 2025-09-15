@@ -815,29 +815,20 @@ export async function sendNiceToMeetYou<V extends VolunteerContactInfo>(
   const isSlackCommunityEmailEnabled =
     await getStudySlackCommunityEmailFeatureFlag(volunteer.id)
 
-  if (isSlackCommunityEmailEnabled) {
-    await sendEmail(
-      volunteer.email,
-      config.mail.senders.supportApp,
-      config.mail.people.volunteerManager.firstName,
-      config.sendgrid.niceToMeetYouNoSlackTemplate,
-      {
-        firstName: capitalize(volunteer.firstName),
-      },
-      overrides
-    )
-  } else {
-    await sendEmail(
-      volunteer.email,
-      config.mail.senders.supportApp,
-      config.mail.people.volunteerManager.firstName,
-      config.sendgrid.niceToMeetYouTemplate,
-      {
-        firstName: capitalize(volunteer.firstName),
-      },
-      overrides
-    )
-  }
+  const templateId = isSlackCommunityEmailEnabled
+    ? config.sendgrid.niceToMeetYouNoSlackTemplate
+    : config.sendgrid.niceToMeetYouTemplate
+
+  await sendEmail(
+    volunteer.email,
+    config.mail.senders.supportApp,
+    config.mail.people.volunteerManager.firstName,
+    templateId,
+    {
+      firstName: capitalize(volunteer.firstName),
+    },
+    overrides
+  )
 }
 
 export async function sendHourSummaryEmail(
