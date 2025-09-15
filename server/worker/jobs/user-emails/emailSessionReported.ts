@@ -38,6 +38,7 @@ async function emailReportedSession(
     const reportedUserRole =
       session.studentId === userId ? 'student' : 'volunteer'
 
+    // Volunteers do not get banned, avoid sending a banned email notification to staff
     if (isBanReason && reportedUserRole !== 'volunteer') {
       const banAlert = await safeAsync(
         // TODO: double check the email
