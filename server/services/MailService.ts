@@ -19,6 +19,7 @@ import { getPublicUPFByUserId } from '../models/UserProductFlags'
 import { buildAppLink } from '../utils/link-builders'
 import { isDevEnvironment, isE2eEnvironment } from '../utils/environments'
 import logger from '../logger'
+import { getStudySlackCommunityEmailFeatureFlag } from './FeatureFlagService'
 
 sgMail.setApiKey(config.sendgrid.apiKey)
 
@@ -811,16 +812,32 @@ export async function sendNiceToMeetYou<V extends VolunteerContactInfo>(
     categories: ['nice to meet you email'],
   }
 
-  await sendEmail(
-    volunteer.email,
-    config.mail.senders.supportApp,
-    config.mail.people.volunteerManager.firstName,
-    config.sendgrid.niceToMeetYouTemplate,
-    {
-      firstName: capitalize(volunteer.firstName),
-    },
-    overrides
-  )
+  const isSlackCommunityEmailEnabled =
+    await getStudySlackCommunityEmailFeatureFlag(volunteer.id)
+
+  if (isSlackCommunityEmailEnabled) {
+    await sendEmail(
+      volunteer.email,
+      config.mail.senders.supportApp,
+      config.mail.people.volunteerManager.firstName,
+      config.sendgrid.niceToMeetYouNoSlackTemplate,
+      {
+        firstName: capitalize(volunteer.firstName),
+      },
+      overrides
+    )
+  } else {
+    await sendEmail(
+      volunteer.email,
+      config.mail.senders.supportApp,
+      config.mail.people.volunteerManager.firstName,
+      config.sendgrid.niceToMeetYouTemplate,
+      {
+        firstName: capitalize(volunteer.firstName),
+      },
+      overrides
+    )
+  }
 }
 
 export async function sendHourSummaryEmail(
