@@ -468,7 +468,8 @@ const config: Static<typeof Config> = {
     process.env.SUBWAY_AWS_BEDROCK_SECRET_ACCESS_KEY || 'bogus',
   awsBedrockRegion: process.env.SUBWAY_AWS_BEDROCK_REGION || 'us-east-1',
   awsBedrockHaikuId: process.env.SUBWAY_AWS_BEDROCK_HAIKU_ID || 'bogus',
-  awsBedrockSonnetArnId:
+  awsBedrockSonnet4Id: process.env.SUBWAY_AWS_BEDROCK_SONNET_4_ID || 'bogus',
+  awsBedrockSonnet3ArnId:
     process.env.SUBWAY_AWS_BEDROCK_SONNET_ARN_ID || 'bogus',
 
   // Zwibbler
