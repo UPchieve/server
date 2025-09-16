@@ -269,6 +269,12 @@ async function deidentifyRows(
     `,
     [userId]
   )
+  await tc.query(
+    `
+    UPDATE referrals SET user_id = null WHERE referred_by = $1
+  `,
+    [userId]
+  )
   for (const referredUser of referredUsersResult.rows) {
     await tc.query(
       `
@@ -278,12 +284,6 @@ async function deidentifyRows(
       [referredUser.user_id]
     )
   }
-  await tc.query(
-    `
-    UPDATE referrals SET user_id = null WHERE referred_by = $1
-  `,
-    [userId]
-  )
 
   await tc.query(
     `UPDATE users SET
