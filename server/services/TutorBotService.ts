@@ -317,7 +317,7 @@ const getAwsBedRockResponse = async (
   const promptData = await getPromptData(subjectName, transcript)
   const gen = t.generation({
     name: LF_GENERATION_NAME,
-    metadata: { model: config.awsBedrockSonnetArnId },
+    metadata: { model: config.awsBedrockSonnet3ArnId },
     input: promptData.prompt,
   })
   let savedBotMessage = null
@@ -325,7 +325,7 @@ const getAwsBedRockResponse = async (
 
   try {
     botResponse = await invokeModel({
-      modelId: config.awsBedrockSonnetArnId,
+      modelId: config.awsBedrockSonnet3ArnId,
       text: '',
       prompt: promptData.prompt,
       tools_option: {
@@ -423,5 +423,5 @@ Format your answer as a JSON object: {"strategy": #, "intention": #, "reason": "
 `
 
 const AWS_BEDROCK_TUTOR_ANSWER_FALLBACK = `
-Hi there! I noticed you seem to be trying to communicate, but the messages aren't clear. 
+Hi there! I noticed you seem to be trying to communicate, but the messages aren't clear.
 Could you tell me more about what your problem?`
