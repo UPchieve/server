@@ -6,6 +6,7 @@ import { getSessionById } from '../../../models/Session'
 import { safeAsync } from '../../../utils/safe-async'
 import { asString } from '../../../utils/type-utils'
 import { Uuid } from '../../../models/pgUtils'
+import { Jobs } from '..'
 
 export interface EmailSessionReportedJobData {
   userId: Uuid
@@ -85,12 +86,13 @@ async function emailReportedSession(
           `Failed to send student ${user.id} email for report: ${studentEmail.error.message}`
         )
     }
-    let errMsg = ''
-    for (const err of errors) {
-      if (err) errMsg += `${err}\n`
-    }
-    if (errMsg) throw new Error(errMsg)
   }
+
+  let errMsg = ''
+  for (const err of errors) {
+    if (err) errMsg += `${err}\n`
+  }
+  if (errMsg) throw new Error(`${Jobs.EmailSessionReported}: ${errMsg}`)
 }
 
 export default emailReportedSession
