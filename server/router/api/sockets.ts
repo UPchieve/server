@@ -665,7 +665,11 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
 
     socket.on('moderatingImage', async ({ sessionId }) => {
       newrelic.startWebTransaction('/socket-io/moderatingImage', async () => {
-        socket.to(getSessionRoom(sessionId)).emit('partnerUploadingImage')
+        const user = await extractSocketUser(socket)
+        socket
+          .to(getSessionRoom(sessionId))
+          .except(user.id)
+          .emit('partnerUploadingImage')
       })
     })
 
@@ -675,8 +679,10 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
         newrelic.startWebTransaction(
           '/socket-io/partnerImageUploadFailed',
           async () => {
+            const user = await extractSocketUser(socket)
             socket
               .to(getSessionRoom(sessionId))
+              .except(user.id)
               .emit('partnerImageUploadFailed', {
                 moderationFailures,
                 uploadError,
@@ -690,7 +696,11 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       newrelic.startWebTransaction(
         '/socket-io/partnerImageUploadSuccess',
         async () => {
-          socket.to(getSessionRoom(sessionId)).emit('partnerImageUploadSuccess')
+          const user = await extractSocketUser(socket)
+          socket
+            .to(getSessionRoom(sessionId))
+            .except(user.id)
+            .emit('partnerImageUploadSuccess')
         }
       )
     })
