@@ -22,12 +22,8 @@ export default async (): Promise<void> => {
   const errors: string[] = []
   for (const volunteer of volunteers) {
     try {
-      const isSlackCommunityEmailEnabled =
-        await getStudySlackCommunityEmailFeatureFlag(volunteer.id)
-      if (isSlackCommunityEmailEnabled) {
-        await MailService.sendNiceToMeetYou(volunteer)
-        totalEmailed++
-      }
+      await MailService.sendNiceToMeetYou(volunteer)
+      totalEmailed++
     } catch (error) {
       errors.push(`volunteer ${volunteer.id}: ${error}`)
     }
