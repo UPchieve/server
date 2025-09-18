@@ -3,6 +3,8 @@ import EventEmitter from 'events'
 import { map } from 'lodash'
 import newrelic from 'newrelic'
 import logger from '../../logger'
+import backfillAvailabilityHistories from '../../scripts/backfill-availabilities-histories'
+import backfillElapsedAvailability from '../../scripts/backfill-elapsed-availability'
 import backfillEmailNiceToMeetYou from '../../scripts/backfill-email-nice-to-meet-you'
 import backfillEmailVolunteerInactive from '../../scripts/backfill-email-volunteer-inactive'
 import backfillStudentPosthog from '../../scripts/backfill-student-posthog'
@@ -69,6 +71,8 @@ import emailAmbassadorCongrats from './emailAmbassadorCongrats'
 
 export enum Jobs {
   AddScheduledJobs = 'AddScheduledJobs',
+  BackfillAvailabilityHistories = 'BackfillAvailabilityHistories',
+  BackfillElapsedAvailability = 'BackfillElapsedAvailability',
   BackfillEmailNiceToMeetYou = 'BackfillEmailNiceToMeetYou',
   BackfillEmailVolunteersInactive = 'BackfillEmailVolunteersInactive',
   BackfillStudentAmbassadorRole = 'BackfillStudentAmbassadorRole',
@@ -160,6 +164,14 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.AddScheduledJobs,
     processor: addScheduledJobs,
+  },
+  {
+    name: Jobs.BackfillAvailabilityHistories,
+    processor: backfillAvailabilityHistories,
+  },
+  {
+    name: Jobs.BackfillElapsedAvailability,
+    processor: backfillElapsedAvailability,
   },
   {
     name: Jobs.BackfillEmailNiceToMeetYou,
