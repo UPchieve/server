@@ -1,6 +1,12 @@
-import { getClient, runInTransaction, TransactionClient } from '../../db'
+import { getClient, TransactionClient } from '../../db'
 import * as pgQueries from './pg.queries'
-import { Ulid, getDbUlid, makeRequired, makeSomeOptional } from '../pgUtils'
+import {
+  Ulid,
+  Uuid,
+  getDbUlid,
+  makeRequired,
+  makeSomeOptional,
+} from '../pgUtils'
 
 import _ from 'lodash'
 import moment from 'moment'
@@ -12,14 +18,7 @@ import {
   AvailabilityHistory,
   AvailabilitySnapshot,
 } from './types'
-import {
-  RepoCreateError,
-  RepoDeleteError,
-  RepoReadError,
-  RepoUpdateError,
-} from '../Errors'
-import { PoolClient } from 'pg'
-import { isPgId } from '../../utils/type-utils'
+import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 
 // TODO: Move out any of the following functions that aren't actually queries.
 function createNewAvailability(): Availability {
@@ -303,5 +302,20 @@ export async function clearAvailabilityForVolunteer(
       throw new RepoUpdateError('Update query did not return ok')
   } catch (err) {
     throw new RepoUpdateError(err)
+  }
+}
+
+export async function getAvailabilityHistoryByRecordedAt(
+  userId: Uuid,
+  recordedAt: Date
+): Promise<boolean> {
+  try {
+    const rows = await pgQueries.getAvailabilityHistoryByRecordedAt.run(
+      { userId, recordedAt },
+      getClient()
+    )
+    return rows.length > 0
+  } catch (err) {
+    throw new RepoReadError(err)
   }
 }

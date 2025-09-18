@@ -241,3 +241,14 @@ WHERE
             AND user_id = :userId!)
     AND user_id = :userId!;
 
+
+/* @name getAvailabilityHistoryByRecordedAt */
+SELECT
+    id
+FROM
+    availability_histories
+WHERE
+    user_id = :userId!
+    AND recorded_at = :recordedAt!
+LIMIT 1;
+
