@@ -25,13 +25,10 @@ export default function (server: http.Server) {
   >(server, {
     pingTimeout: 30000,
     cors: {
-      origin: new RegExp(`^(${config.protocol}://${config.host})$`),
+      origin: `${config.protocol}://${config.host}`,
       credentials: true,
     },
-    cookie: {
-      name: 'subway-io',
-      httpOnly: false,
-    },
+    // TODO(axellindsay): Monitor app versions and remove in about a month.
     allowEIO3: true,
     connectionStateRecovery: {
       // the backup duration of the sessions and the packets
