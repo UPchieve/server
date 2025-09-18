@@ -716,6 +716,25 @@ export async function updateVolunteerElapsedAvailabilityById(
   }
 }
 
+export async function setVolunteerElapsedAvailabilityById(
+  userId: Ulid,
+  elapsedAvailability: number
+): Promise<void> {
+  try {
+    const result = await pgQueries.setVolunteerElapsedAvailabilityById.run(
+      {
+        userId,
+        elapsedAvailability,
+      },
+      getClient()
+    )
+    if (!(result.length && makeRequired(result[0]).ok))
+      throw new Error('Update query did not return ok')
+  } catch (err) {
+    throw new RepoUpdateError(err)
+  }
+}
+
 export async function updateVolunteerTotalHoursById(
   userId: Ulid,
   totalHours: number
