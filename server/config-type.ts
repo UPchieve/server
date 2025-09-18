@@ -87,7 +87,6 @@ export const Config = Record({
     fallIncentiveCompletedChallengeTemplate: String,
     volunteerPositiveStudentFeedback: String,
     downloadCertificateTemplate: String,
-    volunteerFeedbackForStudent: String,
     ambassadorCongratsTemplate: String,
 
     unsubscribeGroup: Record({
