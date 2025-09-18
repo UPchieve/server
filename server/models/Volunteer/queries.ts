@@ -1845,3 +1845,26 @@ export async function getVolunteerMutedSubjects(
     throw new RepoReadError(err)
   }
 }
+
+export async function getVolunteersForOnboardingBackfill(
+  tc: TransactionClient = getClient()
+): Promise<
+  {
+    id: Ulid
+    email: string
+    onboarded: boolean
+    approved: boolean
+    lastActivityAt: Date
+  }[]
+> {
+  try {
+    const rawResults =
+      await pgQueries.getVolunteersWhoAreOnboardedExceptForAvailability.run(
+        undefined,
+        tc
+      )
+    return rawResults.map((row) => makeRequired(row))
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
