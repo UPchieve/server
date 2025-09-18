@@ -1,5 +1,5 @@
 
--- Dumped from database version 14.18 (Debian 14.18-1.pgdg120+1)
+-- Dumped from database version 14.19 (Debian 14.19-1.pgdg13+1)
 -- Dumped by pg_dump version 14.19 (Ubuntu 14.19-0ubuntu0.22.04.1)
 
 SET statement_timeout = 0;
@@ -1533,7 +1533,7 @@ CREATE TABLE upchieve.schools (
     name text NOT NULL,
     approved boolean DEFAULT false NOT NULL,
     partner boolean DEFAULT false NOT NULL,
-    city_id integer,
+    city_id integer NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     mongo_id character varying(24),
@@ -6576,4 +6576,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20250801141806'),
     ('20250812230022'),
     ('20250818220035'),
-    ('20250825164601');
+    ('20250825164601'),
+    ('20250918185105');
