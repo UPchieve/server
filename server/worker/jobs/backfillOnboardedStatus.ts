@@ -25,6 +25,7 @@ export default async function backfillOnboardedStatus() {
       `Onboarding backfill: Found ${volunteersToUpdate.length} volunteers to backfill onboarded status for.`
     )
 
+    const onboardedVolunteers = []
     for (const volunteer of volunteersToUpdate) {
       await updateVolunteerOnboarded(volunteer.id, tc)
       await createAccountAction(
@@ -48,6 +49,13 @@ export default async function backfillOnboardedStatus() {
           }
         )
       }
+      onboardedVolunteers.push(volunteer.id)
     }
+    logger.info(
+      {
+        onboardedVolunteerIds: onboardedVolunteers,
+      },
+      `Onboarding backfill: Onboarded ${onboardedVolunteers.length} volunteers`
+    )
   })
 }
