@@ -10,39 +10,31 @@ import * as TranscriptMessagesRepo from '../models/SessionAudioTranscriptMessage
 import * as SessionRepo from '../models/Session'
 import { asString } from '../utils/type-utils'
 
-// async function createDirectMessage({
-//   message,
-//   sessionId,
-//   sender,
-//   saidAt,
-// }: {
-//   message: string
-//   sessionId: Ulid
-//   sender: UserContactInfo
-// }) {
-//   const messageId = await saveMessage(user, createdAt, saveMessageData)
+type MessageType = {
+  sessionId: Ulid
+  message: string
+  type?: SessionMessageType
+  saidAt?: Date // @TODO Improve typing to handle different types of messages
+}
+async function createDirectMessage(sender: any, data: MessageType) {
+  const messageId = await saveMessage(sender, data)
 
-//   await QueueService.add(
-//     Jobs.SendSessionRecapMessageNotification,
-//     { messageId },
-//     { removeOnComplete: true, removeOnFail: true }
-//   )
-//   captureAnalyticsEvent(sender.id, EVENTS.USER_SUBMITTED_SESSION_RECAP_DM, {
-//     sessionId: sessionId,
-//     message,
-//     userType: sender.roleContext.activeRole,
-//   })
-// }
+  await QueueService.add(
+    Jobs.SendSessionRecapMessageNotification,
+    { messageId },
+    { removeOnComplete: true, removeOnFail: true }
+  )
+  captureAnalyticsEvent(sender.id, EVENTS.USER_SUBMITTED_SESSION_RECAP_DM, {
+    sessionId: data.sessionId,
+    message: data.message,
+    userType: sender.roleContext.activeRole,
+  })
+}
 
 // TODO: we don't know the shape of the user coming from a socket. user is provided from the client at the moment
 export async function saveMessage(
   user: any,
-  data: {
-    sessionId: Ulid
-    message: string
-    type?: SessionMessageType
-    saidAt?: Date // @TODO Improve typing to handle different types of messages
-  }
+  data: MessageType
 ): Promise<string> {
   const { sessionId, message } = sessionUtils.asSaveMessageData(data)
   const session = await SessionRepo.getSessionById(sessionId)
@@ -57,7 +49,7 @@ export async function saveMessage(
 
   if (data.type === 'audio-transcription') {
     return await TranscriptMessagesRepo.insertSessionAudioTranscriptMessage({
-      userId: user.id,
+      userId: user._id,
       sessionId,
       message,
       saidAt: data.saidAt!,
