@@ -7,6 +7,8 @@ import logger from '../../logger'
 import { createAccountAction } from '../../models/UserAction'
 import { ACCOUNT_USER_ACTIONS, EVENTS } from '../../constants'
 import * as AnalyticsService from '../../services/AnalyticsService'
+import QueueService from '../../services/QueueService'
+import { Jobs } from './index'
 
 /**
  * Backfills the onboarded status for volunteers now that the availability
@@ -22,6 +24,9 @@ export default async function backfillOnboardedStatus() {
       return
     }
     logger.info(
+      {
+        volunteerIdsToOnboard: volunteersToUpdate.map((vol) => vol.id),
+      },
       `Onboarding backfill: Found ${volunteersToUpdate.length} volunteers to backfill onboarded status for.`
     )
 
@@ -57,5 +62,24 @@ export default async function backfillOnboardedStatus() {
       },
       `Onboarding backfill: Onboarded ${onboardedVolunteers.length} volunteers`
     )
+
+    try {
+      for (const volunteer of volunteersToUpdate) {
+        await QueueService.add(
+          Jobs.EmailVolunteerQuickTips,
+          { volunteerId: volunteer.id },
+          // Process job 5 days after the volunteer is onboarded.
+          {
+            delay: 1000 * 60 * 60 * 24 * 5,
+            removeOnComplete: true,
+            removeOnFail: true,
+          }
+        )
+
+        // @TODO Special email for these volunteers, especially ones whose lastActivityAt was a while ago?
+      }
+    } catch (err) {
+      logger.error('Onboarding backfill: Failed to send onboarding email')
+    }
   })
 }
