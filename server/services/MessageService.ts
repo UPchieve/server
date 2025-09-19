@@ -16,7 +16,7 @@ type MessageType = {
   type?: SessionMessageType
   saidAt?: Date // @TODO Improve typing to handle different types of messages
 }
-async function createDirectMessage(sender: any, data: MessageType) {
+export async function saveDirectMessage(sender: any, data: MessageType) {
   const messageId = await saveMessage(sender, data)
 
   await QueueService.add(

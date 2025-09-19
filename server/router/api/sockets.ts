@@ -346,7 +346,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               type,
               saidAt,
               zoomMessageId,
-              msgId,
+              msgId: socketMessageId,
             } = data
 
             // TODO: handle this differently?
@@ -388,10 +388,9 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               sessionId,
               message,
               saidAt,
+              type: type ? type : undefined,
             }
-            if (type) {
-              saveMessageData.type = type
-            }
+
             if (type === 'audio-transcription') {
               const result = await moderateIndividualTranscription({
                 transcript: message,
@@ -409,10 +408,11 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               }
             }
 
-            const messageId = await MessageService.saveMessage(
-              user,
-              saveMessageData
-            )
+            if (source == 'recap') {
+              await MessageService.saveDirectMessage(user, saveMessageData)
+            } else {
+              await MessageService.saveMessage(user, saveMessageData)
+            }
 
             const userType = dbUser.roleContext.activeRole
             const messageData: {
@@ -434,26 +434,8 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               user: user.id,
               sessionId,
               zoomMessageId,
-              msgId,
-            }
-
-            if (type) {
-              messageData.type = type
-            }
-
-            // If the message is coming from the recap page, queue the message to send a notification
-            if (source === 'recap') {
-              await QueueService.add(
-                Jobs.SendSessionRecapMessageNotification,
-                { messageId },
-                { removeOnComplete: true, removeOnFail: true }
-              )
-              captureEvent(user.id, EVENTS.USER_SUBMITTED_SESSION_RECAP_DM, {
-                sessionId: sessionId,
-                message,
-                isVolunteer: dbUser.roleContext.isActiveRole('volunteer'),
-                userType: userType,
-              })
+              msgId: socketMessageId,
+              type: type ? type : undefined,
             }
 
             const socketRoom = getSessionRoom(saveMessageData.sessionId)
