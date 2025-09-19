@@ -603,42 +603,6 @@ export async function sendPositiveStudentFeedbackEmailToVolunteer({
   )
 }
 
-export async function sendVolunteerFeedbackToStudent({
-  recipientEmail,
-  volunteerFirstName,
-  studentFirstName,
-  subject,
-  volunteerFeedback,
-  upchieveDashboardLink,
-}: {
-  recipientEmail: string
-  volunteerFirstName: string
-  subject: string
-  studentFirstName: string
-  volunteerFeedback: string
-  upchieveDashboardLink: string
-}): Promise<void> {
-  const templateId = config.sendgrid.volunteerFeedbackForStudent
-  const emailArgs = {
-    volunteerFirstName,
-    subject,
-    studentFirstName,
-    volunteerFeedback,
-    upchieveDashboardLink,
-  }
-
-  await sendEmail(
-    recipientEmail,
-    config.mail.senders.support,
-    'UPchieve',
-    templateId,
-    emailArgs,
-    {
-      categories: ['student feedback'],
-    }
-  )
-}
-
 export async function sendReferralSignUpCelebrationEmail(args: {
   userId: Ulid
   email: string
