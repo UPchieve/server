@@ -35,8 +35,8 @@ import { createSessionAction } from '../../models/UserAction/queries'
 import { updateVolunteerSubjectPresence } from '../../services/VolunteerService'
 import { asJoinSessionData } from '../../utils/session-utils'
 import { SessionJoinError } from '../../models/Errors'
-import * as cache from '../../cache'
 import * as PresenceService from '../../services/PresenceService'
+import * as MessageService from '../../services/MessageService'
 
 export type SessionMessageType = 'audio-transcription' // todo - add 'chat' later
 
@@ -349,6 +349,11 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               msgId,
             } = data
 
+            // TODO: handle this differently?
+            if (!sessionId) {
+              return resolve()
+            }
+
             newrelic.addCustomAttribute('sessionId', sessionId)
 
             // Do not allow banned users to send DMs
@@ -368,11 +373,6 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
                   )
                 )
               }
-            }
-
-            // TODO: handle this differently?
-            if (!sessionId) {
-              return resolve()
             }
 
             const createdAt = data.createdAt ?? new Date()
@@ -409,9 +409,8 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               }
             }
 
-            const messageId = await SessionService.saveMessage(
+            const messageId = await MessageService.saveMessage(
               user,
-              createdAt,
               saveMessageData
             )
 

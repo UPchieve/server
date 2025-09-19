@@ -904,44 +904,6 @@ export async function ensureCanJoinSession(
   return session
 }
 
-// TODO: we don't know the shape of the user coming from a socket. user is provided from the client at the moment
-export async function saveMessage(
-  user: any,
-  createdAt: Date,
-  data: {
-    sessionId: Ulid
-    message: string
-    type?: SessionMessageType
-    saidAt?: Date // @TODO Improve typing to handle different types of messages
-  }
-): Promise<string> {
-  const { sessionId, message } = sessionUtils.asSaveMessageData(data)
-  const session = await SessionRepo.getSessionById(sessionId)
-  if (
-    !sessionUtils.isSessionParticipant(
-      session.studentId,
-      session.volunteerId,
-      asString(user._id)
-    )
-  )
-    throw new Error('Only session participants are allowed to send messages')
-
-  if (data.type === 'audio-transcription') {
-    return await TranscriptMessagesRepo.insertSessionAudioTranscriptMessage({
-      userId: user.id,
-      sessionId,
-      message,
-      saidAt: data.saidAt!,
-    })
-  } else {
-    return await SessionRepo.addMessageToSessionById(
-      sessionId,
-      user._id,
-      message
-    )
-  }
-}
-
 export async function generateWaitTimeHeatMap(startDate: Date, endDate: Date) {
   const heatMap = sessionUtils.createEmptyHeatMap()
   const map = await SessionRepo.getSessionsWithAvgWaitTimePerDayAndHour(
