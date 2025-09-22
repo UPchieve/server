@@ -375,7 +375,6 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               }
             }
 
-            const createdAt = data.createdAt ?? new Date()
             let sanitizedMessage: string | undefined = undefined
             // TODO: correctly type user from payload
             const saveMessageData: {
@@ -414,7 +413,6 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               await MessageService.saveMessage(user, saveMessageData)
             }
 
-            const userType = dbUser.roleContext.activeRole
             const messageData: {
               contents: string
               createdAt: Date
@@ -428,9 +426,9 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               msgId?: string
             } = {
               contents: sanitizedMessage ?? message,
-              createdAt: createdAt,
+              createdAt: data.createdAt ?? new Date(),
               isVolunteer: dbUser.roleContext.isActiveRole('volunteer'),
-              userType: userType,
+              userType: dbUser.roleContext.activeRole,
               user: user.id,
               sessionId,
               zoomMessageId,
