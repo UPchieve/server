@@ -143,7 +143,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
 
     // TODO: Remove once no longer have legacy mobile app.
     socket.on('join', async function (data) {
-      observeWebTransaction(
+      await observeWebTransaction(
         '/socket-io/join',
         () =>
           new Promise<void>(async (resolve, reject) => {
@@ -162,10 +162,6 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
                 throw new Error('Volunteer not approved')
             } catch (error) {
               socket.emit('redirect')
-              logger.error({
-                error,
-                message: 'Failed to join session socket: Invalid user state',
-              })
               reject({
                 error: error,
                 message: 'Failed to join session socket: Invalid user state',
@@ -220,7 +216,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
     })
 
     socket.on('sessions/recap:join', async function (data) {
-      observeWebTransaction(
+      await observeWebTransaction(
         '/socket-io/sessions/recap:join',
         () =>
           new Promise<void>(async (resolve, reject) => {
@@ -261,7 +257,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
     })
 
     socket.on('sessions/recap:leave', async ({ sessionId }) => {
-      observeWebTransaction(
+      await observeWebTransaction(
         '/socket-io/sessions/recap:leave',
         () =>
           new Promise<void>((resolve, reject) => {
@@ -276,8 +272,8 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       )
     })
 
-    socket.on('list', (_data, callback) => {
-      observeWebTransaction(
+    socket.on('list', async (_data, callback) => {
+      await observeWebTransaction(
         '/socket-io/list',
         () =>
           new Promise<void>(async (resolve, reject) => {
@@ -297,8 +293,8 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       )
     })
 
-    socket.on('typing', (data) => {
-      observeWebTransaction(
+    socket.on('typing', async (data) => {
+      await observeWebTransaction(
         '/socket-io/typing',
         () =>
           new Promise<void>(async (resolve, reject) => {
@@ -315,8 +311,8 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       )
     })
 
-    socket.on('notTyping', (data) => {
-      observeWebTransaction(
+    socket.on('notTyping', async (data) => {
+      await observeWebTransaction(
         '/socket-io/notTyping',
         () =>
           new Promise<void>(async (resolve, reject) => {
@@ -334,7 +330,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
     })
 
     socket.on('celebrate', async (data) => {
-      observeWebTransaction(
+      await observeWebTransaction(
         '/socket-io/celebrate',
         () =>
           new Promise<void>(async (resolve, reject) => {
@@ -355,7 +351,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
     })
 
     socket.on('message', async (data) => {
-      observeWebTransaction(
+      await observeWebTransaction(
         '/socket-io/message',
         () =>
           new Promise<void>(async (resolve, reject) => {
@@ -495,7 +491,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
     })
 
     socket.on('requestQuillState', async ({ sessionId }) => {
-      observeWebTransaction(
+      await observeWebTransaction(
         '/socket-io/requestQuillState',
         () =>
           new Promise<void>(async (resolve, reject) => {
@@ -525,7 +521,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
     })
 
     socket.on('requestQuillStateV2', async ({ sessionId }) => {
-      observeWebTransaction(
+      await observeWebTransaction(
         '/socket-io/requestQuillStateV2',
         () =>
           new Promise<void>(async (resolve, reject) => {
@@ -548,7 +544,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
     socket.on(
       'transmitQuillDeltaV2',
       async ({ sessionId, update }: { sessionId: string; update: string }) => {
-        observeWebTransaction(
+        await observeWebTransaction(
           '/socket-io/transmitQuillDeltaV2',
           () =>
             new Promise<void>(async (resolve, reject) => {
@@ -574,7 +570,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
     )
 
     socket.on('transmitQuillDelta', async ({ sessionId, delta }) => {
-      observeWebTransaction(
+      await observeWebTransaction(
         '/socket-io/transmitQuillDelta',
         () =>
           new Promise<void>(async (resolve, reject) => {
@@ -602,7 +598,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
     })
 
     socket.on('transmitQuillSelection', async ({ sessionId, range }) => {
-      observeWebTransaction(
+      await observeWebTransaction(
         '/socket-io/transmitQuillSelection',
         () =>
           new Promise((resolve, reject) => {
