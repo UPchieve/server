@@ -1796,19 +1796,7 @@ WHERE
     AND u.banned IS FALSE
     AND u.ban_type IS NULL
     AND u.deactivated IS FALSE
-    AND
-    -- user has not set their availability
-    NOT EXISTS (
-        SELECT
-            1
-        FROM
-            user_actions
-        WHERE
-            action = 'UPDATED AVAILABILITY'
-            AND user_id = u.id)
-    AND
-    -- but they have completed the other steps, including:
-    EXISTS (
+    AND EXISTS (
         SELECT
             1
         FROM

@@ -1846,17 +1846,16 @@ export async function getVolunteerMutedSubjects(
   }
 }
 
+export type VolunteerToOnboard = {
+  id: Ulid
+  email: string
+  onboarded: boolean
+  approved: boolean
+  lastActivityAt: Date
+}
 export async function getVolunteersForOnboardingBackfill(
   tc: TransactionClient = getClient()
-): Promise<
-  {
-    id: Ulid
-    email: string
-    onboarded: boolean
-    approved: boolean
-    lastActivityAt: Date
-  }[]
-> {
+): Promise<VolunteerToOnboard[]> {
   try {
     const rawResults =
       await pgQueries.getVolunteersWhoAreOnboardedExceptForAvailability.run(

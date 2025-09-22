@@ -3773,7 +3773,7 @@ export interface IGetVolunteersWhoAreOnboardedExceptForAvailabilityQuery {
   result: IGetVolunteersWhoAreOnboardedExceptForAvailabilityResult;
 }
 
-const getVolunteersWhoAreOnboardedExceptForAvailabilityIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    u.id,\n    u.email,\n    vp.onboarded,\n    vp.approved,\n    u.last_activity_at\nFROM\n    users u\n    JOIN volunteer_profiles vp ON vp.user_id = u.id\n    LEFT JOIN user_actions ua ON ua.user_id = u.id\nWHERE\n    vp.onboarded IS FALSE\n    AND u.banned IS FALSE\n    AND u.ban_type IS NULL\n    AND u.deactivated IS FALSE\n    AND\n    -- user has not set their availability\n    NOT EXISTS (\n        SELECT\n            1\n        FROM\n            user_actions\n        WHERE\n            action = 'UPDATED AVAILABILITY'\n            AND user_id = u.id)\n    AND\n    -- but they have completed the other steps, including:\n    EXISTS (\n        SELECT\n            1\n        FROM\n            user_actions\n        WHERE\n            user_id = u.id\n            AND action = 'UNLOCKED SUBJECT'\n            AND quiz_category <> 'TRAINING')\n    AND EXISTS (\n        SELECT\n            1\n        FROM\n            user_actions\n        WHERE\n            user_id = u.id\n            AND action = 'PASSED QUIZ'\n            AND quiz_category = 'TRAINING')\nGROUP BY\n    u.id,\n    u.email,\n    vp.onboarded,\n    vp.approved,\n    u.last_activity_at"};
+const getVolunteersWhoAreOnboardedExceptForAvailabilityIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    u.id,\n    u.email,\n    vp.onboarded,\n    vp.approved,\n    u.last_activity_at\nFROM\n    users u\n    JOIN volunteer_profiles vp ON vp.user_id = u.id\n    LEFT JOIN user_actions ua ON ua.user_id = u.id\nWHERE\n    vp.onboarded IS FALSE\n    AND u.banned IS FALSE\n    AND u.ban_type IS NULL\n    AND u.deactivated IS FALSE\n    AND EXISTS (\n        SELECT\n            1\n        FROM\n            user_actions\n        WHERE\n            user_id = u.id\n            AND action = 'UNLOCKED SUBJECT'\n            AND quiz_category <> 'TRAINING')\n    AND EXISTS (\n        SELECT\n            1\n        FROM\n            user_actions\n        WHERE\n            user_id = u.id\n            AND action = 'PASSED QUIZ'\n            AND quiz_category = 'TRAINING')\nGROUP BY\n    u.id,\n    u.email,\n    vp.onboarded,\n    vp.approved,\n    u.last_activity_at"};
 
 /**
  * Query generated from SQL:
@@ -3793,19 +3793,7 @@ const getVolunteersWhoAreOnboardedExceptForAvailabilityIR: any = {"usedParamSet"
  *     AND u.banned IS FALSE
  *     AND u.ban_type IS NULL
  *     AND u.deactivated IS FALSE
- *     AND
- *     -- user has not set their availability
- *     NOT EXISTS (
- *         SELECT
- *             1
- *         FROM
- *             user_actions
- *         WHERE
- *             action = 'UPDATED AVAILABILITY'
- *             AND user_id = u.id)
- *     AND
- *     -- but they have completed the other steps, including:
- *     EXISTS (
+ *     AND EXISTS (
  *         SELECT
  *             1
  *         FROM

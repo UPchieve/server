@@ -72,11 +72,19 @@ export default async function backfillOnboardedStatus() {
     `Onboarding backfill: Onboarded ${onboarded.length ?? 0} volunteers`
   )
 
+  const readyToCoachVolunteers = onboarded.filter(
+    (volunteer) => volunteer.approved
+  )
+
   try {
     logger.info(
-      `Onboarding backfill: Queueing up volunteer quick tips email for ${onboarded.length} volunteers`
+      {
+        readyToCoachVolunteerIds: readyToCoachVolunteers.map((vol) => vol.id),
+      },
+      `Onboarding backfill: Sending now-ready-to-coach email and enqueueing Volunteer Quick Tips email to ${readyToCoachVolunteers.length} volunteers`
     )
-    for (const volunteer of onboarded) {
+    // Queue up the Quick Tips email to send in 5 days
+    for (const volunteer of readyToCoachVolunteers) {
       await QueueService.add(
         Jobs.EmailVolunteerQuickTips,
         { volunteerId: volunteer.id },
@@ -87,26 +95,8 @@ export default async function backfillOnboardedStatus() {
           removeOnFail: true,
         }
       )
+      // @TODO mail service call
     }
-  } catch (err) {
-    logger.error(
-      { err },
-      'Onboarding backfill: Failed to enqueue volunteer quick tips email job'
-    )
-  }
-
-  const readyToCoachVolunteers = onboarded.filter(
-    (volunteer) => volunteer.approved
-  )
-
-  try {
-    logger.info(
-      {
-        readyToCoachVolunteerIds: readyToCoachVolunteers.map((vol) => vol.id),
-      },
-      `Onboarding backfill: Sending now-ready-to-coach email to ${readyToCoachVolunteers.length} volunteers`
-    )
-    // @TODO mail service call
   } catch (err) {
     logger.error(
       { err },
