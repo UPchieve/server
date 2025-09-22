@@ -1784,6 +1784,7 @@ WHERE
 SELECT
     u.id,
     u.email,
+    u.first_name,
     vp.onboarded,
     vp.approved,
     u.last_activity_at
@@ -1817,6 +1818,7 @@ WHERE
 GROUP BY
     u.id,
     u.email,
+    u.first_name,
     vp.onboarded,
     vp.approved,
     u.last_activity_at;

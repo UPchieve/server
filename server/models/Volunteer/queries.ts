@@ -1849,6 +1849,7 @@ export async function getVolunteerMutedSubjects(
 export type VolunteerToOnboard = {
   id: Ulid
   email: string
+  firstName: string
   onboarded: boolean
   approved: boolean
   lastActivityAt: Date

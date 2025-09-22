@@ -8,6 +8,7 @@ import logger from '../../logger'
 import { createAccountAction } from '../../models/UserAction'
 import { ACCOUNT_USER_ACTIONS, EVENTS } from '../../constants'
 import * as AnalyticsService from '../../services/AnalyticsService'
+import * as MailService from '../../services/MailService'
 import QueueService from '../../services/QueueService'
 import { Jobs } from './index'
 
@@ -95,7 +96,10 @@ export default async function backfillOnboardedStatus() {
           removeOnFail: true,
         }
       )
-      // @TODO mail service call
+      await MailService.sendBackfillNowReadyToCoachEmail(
+        volunteer.email,
+        volunteer.firstName
+      )
     }
   } catch (err) {
     logger.error(

@@ -1574,6 +1574,24 @@ export async function sendStudentFavoritedVolunteerEmail(
   )
 }
 
+export async function sendBackfillNowReadyToCoachEmail(
+  email: string,
+  volunteerFirstName: string
+) {
+  await sendEmail(
+    email,
+    config.mail.senders.support,
+    'UPchieve',
+    config.sendgrid.onboardingBackfillReadyToCoachEmail,
+    {
+      firstName: volunteerFirstName,
+    },
+    {
+      categories: ['onboarding-backfill-now-ready-to-coach-email'],
+    }
+  )
+}
+
 export async function createContact(userIds: Ulid | Ulid[]): Promise<any> {
   if (isDevEnvironment() || isE2eEnvironment()) {
     logger.debug('Skipping createContact: ' + userIds)
