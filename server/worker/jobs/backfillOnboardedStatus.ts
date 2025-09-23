@@ -17,8 +17,8 @@ import { Jobs } from './index'
  * step is no longer required.
  */
 export default async function backfillOnboardedStatus() {
-  const onboarded: VolunteerToOnboard[] | undefined = await runInTransaction(
-    async (tc: TransactionClient) => {
+  const onboardedVolunteers: VolunteerToOnboard[] | undefined =
+    await runInTransaction(async (tc: TransactionClient) => {
       const targetVolunteers = await getVolunteersForOnboardingBackfill(tc)
       if (!targetVolunteers.length) {
         logger.info(
@@ -60,20 +60,21 @@ export default async function backfillOnboardedStatus() {
         onboardedVolunteers.push(volunteer)
       }
       return onboardedVolunteers
-    }
-  )
-  if (!onboarded) {
+    })
+  if (!onboardedVolunteers) {
     return
   }
 
   logger.info(
     {
-      onboardedVolunteerIds: onboarded.map((volunteer) => volunteer.id),
+      onboardedVolunteerIds: onboardedVolunteers.map(
+        (volunteer) => volunteer.id
+      ),
     },
-    `Onboarding backfill: Onboarded ${onboarded.length} volunteers`
+    `Onboarding backfill: Onboarded ${onboardedVolunteers.length} volunteers`
   )
 
-  const readyToCoachVolunteers = onboarded.filter(
+  const readyToCoachVolunteers = onboardedVolunteers.filter(
     (volunteer) => volunteer.approved
   )
 
