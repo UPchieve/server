@@ -1779,3 +1779,47 @@ FROM
 WHERE
     muted_users_subject_alerts.user_id = :userId!;
 
+
+/* @name getVolunteersWhoAreOnboardedExceptForAvailability */
+SELECT
+    u.id,
+    u.email,
+    u.first_name,
+    vp.onboarded,
+    vp.approved,
+    u.last_activity_at
+FROM
+    users u
+    JOIN volunteer_profiles vp ON vp.user_id = u.id
+    LEFT JOIN user_actions ua ON ua.user_id = u.id
+WHERE
+    vp.onboarded IS FALSE
+    AND u.banned IS FALSE
+    AND u.ban_type IS NULL
+    AND u.deactivated IS FALSE
+    AND EXISTS (
+        SELECT
+            1
+        FROM
+            user_actions
+        WHERE
+            user_id = u.id
+            AND action = 'UNLOCKED SUBJECT'
+            AND quiz_category <> 'TRAINING')
+    AND EXISTS (
+        SELECT
+            1
+        FROM
+            user_actions
+        WHERE
+            user_id = u.id
+            AND action = 'PASSED QUIZ'
+            AND quiz_category = 'TRAINING')
+GROUP BY
+    u.id,
+    u.email,
+    u.first_name,
+    vp.onboarded,
+    vp.approved,
+    u.last_activity_at;
+

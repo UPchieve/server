@@ -3755,3 +3755,73 @@ const getVolunteerMutedSubjectsIR: any = {"usedParamSet":{"userId":true},"params
 export const getVolunteerMutedSubjects = new PreparedQuery<IGetVolunteerMutedSubjectsParams,IGetVolunteerMutedSubjectsResult>(getVolunteerMutedSubjectsIR);
 
 
+/** 'GetVolunteersWhoAreOnboardedExceptForAvailability' parameters type */
+export type IGetVolunteersWhoAreOnboardedExceptForAvailabilityParams = void;
+
+/** 'GetVolunteersWhoAreOnboardedExceptForAvailability' return type */
+export interface IGetVolunteersWhoAreOnboardedExceptForAvailabilityResult {
+  approved: boolean;
+  email: string;
+  firstName: string;
+  id: string;
+  lastActivityAt: Date | null;
+  onboarded: boolean;
+}
+
+/** 'GetVolunteersWhoAreOnboardedExceptForAvailability' query type */
+export interface IGetVolunteersWhoAreOnboardedExceptForAvailabilityQuery {
+  params: IGetVolunteersWhoAreOnboardedExceptForAvailabilityParams;
+  result: IGetVolunteersWhoAreOnboardedExceptForAvailabilityResult;
+}
+
+const getVolunteersWhoAreOnboardedExceptForAvailabilityIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    u.id,\n    u.email,\n    u.first_name,\n    vp.onboarded,\n    vp.approved,\n    u.last_activity_at\nFROM\n    users u\n    JOIN volunteer_profiles vp ON vp.user_id = u.id\n    LEFT JOIN user_actions ua ON ua.user_id = u.id\nWHERE\n    vp.onboarded IS FALSE\n    AND u.banned IS FALSE\n    AND u.ban_type IS NULL\n    AND u.deactivated IS FALSE\n    AND EXISTS (\n        SELECT\n            1\n        FROM\n            user_actions\n        WHERE\n            user_id = u.id\n            AND action = 'UNLOCKED SUBJECT'\n            AND quiz_category <> 'TRAINING')\n    AND EXISTS (\n        SELECT\n            1\n        FROM\n            user_actions\n        WHERE\n            user_id = u.id\n            AND action = 'PASSED QUIZ'\n            AND quiz_category = 'TRAINING')\nGROUP BY\n    u.id,\n    u.email,\n    u.first_name,\n    vp.onboarded,\n    vp.approved,\n    u.last_activity_at"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     u.id,
+ *     u.email,
+ *     u.first_name,
+ *     vp.onboarded,
+ *     vp.approved,
+ *     u.last_activity_at
+ * FROM
+ *     users u
+ *     JOIN volunteer_profiles vp ON vp.user_id = u.id
+ *     LEFT JOIN user_actions ua ON ua.user_id = u.id
+ * WHERE
+ *     vp.onboarded IS FALSE
+ *     AND u.banned IS FALSE
+ *     AND u.ban_type IS NULL
+ *     AND u.deactivated IS FALSE
+ *     AND EXISTS (
+ *         SELECT
+ *             1
+ *         FROM
+ *             user_actions
+ *         WHERE
+ *             user_id = u.id
+ *             AND action = 'UNLOCKED SUBJECT'
+ *             AND quiz_category <> 'TRAINING')
+ *     AND EXISTS (
+ *         SELECT
+ *             1
+ *         FROM
+ *             user_actions
+ *         WHERE
+ *             user_id = u.id
+ *             AND action = 'PASSED QUIZ'
+ *             AND quiz_category = 'TRAINING')
+ * GROUP BY
+ *     u.id,
+ *     u.email,
+ *     u.first_name,
+ *     vp.onboarded,
+ *     vp.approved,
+ *     u.last_activity_at
+ * ```
+ */
+export const getVolunteersWhoAreOnboardedExceptForAvailability = new PreparedQuery<IGetVolunteersWhoAreOnboardedExceptForAvailabilityParams,IGetVolunteersWhoAreOnboardedExceptForAvailabilityResult>(getVolunteersWhoAreOnboardedExceptForAvailabilityIR);
+
+

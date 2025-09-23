@@ -65,6 +65,7 @@ import maybeSendStudentFeedbackToVolunteer from './volunteer-emails/maybeSendStu
 import emailNationalTutorCertificate from './emailNationalTutorCertificate'
 import addScheduledJobs from './addScheduledJobs'
 import emailAmbassadorCongrats from './emailAmbassadorCongrats'
+import backfillOnboardedStatus from './backfillOnboardedStatus'
 
 export enum Jobs {
   AddScheduledJobs = 'AddScheduledJobs',
@@ -146,6 +147,7 @@ export enum Jobs {
   UpdateTotalVolunteerHours = 'UpdateTotalVolunteerHours',
   UpsertPostalCodes = 'UpsertPostalCodes',
   UpsertSchools = 'UpsertSchools',
+  BackfillOnboardedStatus = 'BackfillOnboardedStatus',
 }
 
 // register new job processors here
@@ -450,6 +452,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.UpsertSchools,
     processor: upsertSchools,
+  },
+  {
+    name: Jobs.BackfillOnboardedStatus,
+    processor: backfillOnboardedStatus,
   },
 ]
 
