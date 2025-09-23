@@ -1786,8 +1786,7 @@ SELECT
     u.email,
     u.first_name,
     vp.onboarded,
-    vp.approved,
-    u.last_activity_at
+    vp.approved
 FROM
     users u
     JOIN volunteer_profiles vp ON vp.user_id = u.id
@@ -1820,6 +1819,5 @@ GROUP BY
     u.email,
     u.first_name,
     vp.onboarded,
-    vp.approved,
-    u.last_activity_at;
+    vp.approved;
 
