@@ -3764,7 +3764,6 @@ export interface IGetVolunteersWhoAreOnboardedExceptForAvailabilityResult {
   email: string;
   firstName: string;
   id: string;
-  lastActivityAt: Date | null;
   onboarded: boolean;
 }
 
@@ -3774,7 +3773,7 @@ export interface IGetVolunteersWhoAreOnboardedExceptForAvailabilityQuery {
   result: IGetVolunteersWhoAreOnboardedExceptForAvailabilityResult;
 }
 
-const getVolunteersWhoAreOnboardedExceptForAvailabilityIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    u.id,\n    u.email,\n    u.first_name,\n    vp.onboarded,\n    vp.approved,\n    u.last_activity_at\nFROM\n    users u\n    JOIN volunteer_profiles vp ON vp.user_id = u.id\n    LEFT JOIN user_actions ua ON ua.user_id = u.id\nWHERE\n    vp.onboarded IS FALSE\n    AND u.banned IS FALSE\n    AND u.ban_type IS NULL\n    AND u.deactivated IS FALSE\n    AND EXISTS (\n        SELECT\n            1\n        FROM\n            user_actions\n        WHERE\n            user_id = u.id\n            AND action = 'UNLOCKED SUBJECT'\n            AND quiz_category <> 'TRAINING')\n    AND EXISTS (\n        SELECT\n            1\n        FROM\n            user_actions\n        WHERE\n            user_id = u.id\n            AND action = 'PASSED QUIZ'\n            AND quiz_category = 'TRAINING')\nGROUP BY\n    u.id,\n    u.email,\n    u.first_name,\n    vp.onboarded,\n    vp.approved,\n    u.last_activity_at"};
+const getVolunteersWhoAreOnboardedExceptForAvailabilityIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    u.id,\n    u.email,\n    u.first_name,\n    vp.onboarded,\n    vp.approved\nFROM\n    users u\n    JOIN volunteer_profiles vp ON vp.user_id = u.id\n    LEFT JOIN user_actions ua ON ua.user_id = u.id\nWHERE\n    vp.onboarded IS FALSE\n    AND u.banned IS FALSE\n    AND u.ban_type IS NULL\n    AND u.deactivated IS FALSE\n    AND EXISTS (\n        SELECT\n            1\n        FROM\n            user_actions\n        WHERE\n            user_id = u.id\n            AND action = 'UNLOCKED SUBJECT'\n            AND quiz_category <> 'TRAINING')\n    AND EXISTS (\n        SELECT\n            1\n        FROM\n            user_actions\n        WHERE\n            user_id = u.id\n            AND action = 'PASSED QUIZ'\n            AND quiz_category = 'TRAINING')\nGROUP BY\n    u.id,\n    u.email,\n    u.first_name,\n    vp.onboarded,\n    vp.approved"};
 
 /**
  * Query generated from SQL:
@@ -3784,8 +3783,7 @@ const getVolunteersWhoAreOnboardedExceptForAvailabilityIR: any = {"usedParamSet"
  *     u.email,
  *     u.first_name,
  *     vp.onboarded,
- *     vp.approved,
- *     u.last_activity_at
+ *     vp.approved
  * FROM
  *     users u
  *     JOIN volunteer_profiles vp ON vp.user_id = u.id
@@ -3818,8 +3816,7 @@ const getVolunteersWhoAreOnboardedExceptForAvailabilityIR: any = {"usedParamSet"
  *     u.email,
  *     u.first_name,
  *     vp.onboarded,
- *     vp.approved,
- *     u.last_activity_at
+ *     vp.approved
  * ```
  */
 export const getVolunteersWhoAreOnboardedExceptForAvailability = new PreparedQuery<IGetVolunteersWhoAreOnboardedExceptForAvailabilityParams,IGetVolunteersWhoAreOnboardedExceptForAvailabilityResult>(getVolunteersWhoAreOnboardedExceptForAvailabilityIR);

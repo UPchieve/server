@@ -1852,7 +1852,6 @@ export type VolunteerToOnboard = {
   firstName: string
   onboarded: boolean
   approved: boolean
-  lastActivityAt: Date
 }
 export async function getVolunteersForOnboardingBackfill(
   tc: TransactionClient = getClient()
