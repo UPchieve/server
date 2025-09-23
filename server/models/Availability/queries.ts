@@ -304,18 +304,3 @@ export async function clearAvailabilityForVolunteer(
     throw new RepoUpdateError(err)
   }
 }
-
-export async function getAvailabilityHistoryByRecordedAt(
-  userId: Uuid,
-  recordedAt: Date
-): Promise<boolean> {
-  try {
-    const rows = await pgQueries.getAvailabilityHistoryByRecordedAt.run(
-      { userId, recordedAt },
-      getClient()
-    )
-    return rows.length > 0
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}

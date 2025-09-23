@@ -1,10 +1,10 @@
 import moment from 'moment'
 import 'moment-timezone'
 import { Job } from 'bull'
+import * as db from '../db'
 import {
   getAvailabilityForVolunteerByDate,
   saveAvailabilityAsHistoryByDate,
-  getAvailabilityHistoryByRecordedAt,
 } from '../models/Availability'
 import { getVolunteerIdsForElapsedAvailability } from '../models/Volunteer/queries'
 import { Jobs } from '../worker/jobs'
@@ -18,10 +18,29 @@ type BackfillAvailabilityHistoriesData = {
   toDate?: string
 }
 
+async function hasAvailabilityHistoryAtRecordedAt(
+  userId: string,
+  recordedAt: Date
+): Promise<boolean> {
+  const { rows } = await db.getClient().query(
+    `
+    SELECT EXISTS (
+      SELECT 1
+      FROM availability_histories
+      WHERE user_id = $1
+        AND recorded_at = $2
+    ) AS exists;
+    `,
+    [userId, recordedAt]
+  )
+  return rows[0]?.exists === true
+}
+
 export default async function backfillAvailabilityHistories(
   job: Job<BackfillAvailabilityHistoriesData>
 ): Promise<void> {
   const { fromDate, toDate } = job.data
+  await db.connect()
 
   // Get a snapshot at 4:00 am ET, since that is when the cron job runs
   let snapshotTimeEt = moment
@@ -60,7 +79,7 @@ export default async function backfillAvailabilityHistories(
          * with snapshots on backfill re-runs
          *
          */
-        const alreadyHasSnapshot = await getAvailabilityHistoryByRecordedAt(
+        const alreadyHasSnapshot = await hasAvailabilityHistoryAtRecordedAt(
           volunteerId,
           snapshotTimeUtc
         )

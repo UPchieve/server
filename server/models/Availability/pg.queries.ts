@@ -556,38 +556,3 @@ const getAvailabilityForVolunteerByDateIR: any = {"usedParamSet":{"recordedAt":t
 export const getAvailabilityForVolunteerByDate = new PreparedQuery<IGetAvailabilityForVolunteerByDateParams,IGetAvailabilityForVolunteerByDateResult>(getAvailabilityForVolunteerByDateIR);
 
 
-/** 'GetAvailabilityHistoryByRecordedAt' parameters type */
-export interface IGetAvailabilityHistoryByRecordedAtParams {
-  recordedAt: DateOrString;
-  userId: string;
-}
-
-/** 'GetAvailabilityHistoryByRecordedAt' return type */
-export interface IGetAvailabilityHistoryByRecordedAtResult {
-  id: string;
-}
-
-/** 'GetAvailabilityHistoryByRecordedAt' query type */
-export interface IGetAvailabilityHistoryByRecordedAtQuery {
-  params: IGetAvailabilityHistoryByRecordedAtParams;
-  result: IGetAvailabilityHistoryByRecordedAtResult;
-}
-
-const getAvailabilityHistoryByRecordedAtIR: any = {"usedParamSet":{"userId":true,"recordedAt":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":66,"b":73}]},{"name":"recordedAt","required":true,"transform":{"type":"scalar"},"locs":[{"a":97,"b":108}]}],"statement":"SELECT\n    id\nFROM\n    availability_histories\nWHERE\n    user_id = :userId!\n    AND recorded_at = :recordedAt!\nLIMIT 1"};
-
-/**
- * Query generated from SQL:
- * ```
- * SELECT
- *     id
- * FROM
- *     availability_histories
- * WHERE
- *     user_id = :userId!
- *     AND recorded_at = :recordedAt!
- * LIMIT 1
- * ```
- */
-export const getAvailabilityHistoryByRecordedAt = new PreparedQuery<IGetAvailabilityHistoryByRecordedAtParams,IGetAvailabilityHistoryByRecordedAtResult>(getAvailabilityHistoryByRecordedAtIR);
-
-
