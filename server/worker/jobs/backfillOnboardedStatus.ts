@@ -70,7 +70,7 @@ export default async function backfillOnboardedStatus() {
     {
       onboardedVolunteerIds: onboarded.map((volunteer) => volunteer.id),
     },
-    `Onboarding backfill: Onboarded ${onboarded.length ?? 0} volunteers`
+    `Onboarding backfill: Onboarded ${onboarded.length} volunteers`
   )
 
   const readyToCoachVolunteers = onboarded.filter(
