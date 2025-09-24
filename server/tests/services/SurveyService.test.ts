@@ -141,11 +141,6 @@ describe('saveUserSurvey', () => {
       { sessionId: expectedUserSurvey.sessionId },
       { delay: 300000, removeOnComplete: true, removeOnFail: false }
     )
-    expect(mockedQueueService.default.add).not.toHaveBeenCalledWith(
-      Jobs.SendVolunteerFeedbackToStudent,
-      { sessionId: expectedUserSurvey.sessionId },
-      { delay: 300000, removeOnComplete: true, removeOnFail: false }
-    )
   })
 
   test(`Should send volunteer feedback to student`, async () => {
@@ -195,15 +190,6 @@ describe('saveUserSurvey', () => {
     expect(
       mockedSessionFlagsService.processFeedbackMetrics
     ).toHaveBeenCalledWith(expectedUserSurvey.sessionId)
-
-    expect(mockedQueueService.default.add).toHaveBeenCalledWith(
-      Jobs.SendVolunteerFeedbackToStudent,
-      {
-        sessionId: expectedUserSurvey.sessionId,
-        volunteerFeedback: volunteerFeedbackForStudent,
-      },
-      { delay: 300000, removeOnComplete: true, removeOnFail: false }
-    )
   })
 
   test(`Should not send positive feedback to volunteer from student`, async () => {

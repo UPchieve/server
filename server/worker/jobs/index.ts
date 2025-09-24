@@ -64,9 +64,9 @@ import emailBecomeAnAmbassador from './emailBecomeAnAmbassador'
 import emailReferralSignUpCelebration from './emailReferralSignupCelebration'
 import maybeSendStudentFeedbackToVolunteer from './volunteer-emails/maybeSendStudentFeedbackToVolunteer'
 import emailNationalTutorCertificate from './emailNationalTutorCertificate'
-import sendVolunteerFeedback from './student-emails/sendVolunteerFeedback'
 import addScheduledJobs from './addScheduledJobs'
 import emailAmbassadorCongrats from './emailAmbassadorCongrats'
+import backfillOnboardedStatus from './backfillOnboardedStatus'
 
 export enum Jobs {
   AddScheduledJobs = 'AddScheduledJobs',
@@ -139,7 +139,6 @@ export enum Jobs {
   SendNationalTutorCertificateEmail = 'SendNationalTutorCertificateEmail',
   SendReferralSignUpCelebrationEmail = 'SendReferralSignUpCelebrationEmail',
   SendSessionRecapMessageNotification = 'SendSessionRecapMessageNotification',
-  SendVolunteerFeedbackToStudent = 'SendVolunteerFeedbackToStudent',
   SendWeeklyHourSummaryApology = 'SendWeeklyHourSummaryApology',
   SpawnEmailWeeklyHourSummaryJobs = 'SpawnEmailWeeklyHourSummaryJobs',
   TitlecaseSchoolNames = 'TitlecaseSchoolNames',
@@ -150,6 +149,7 @@ export enum Jobs {
   UpdateTotalVolunteerHours = 'UpdateTotalVolunteerHours',
   UpsertPostalCodes = 'UpsertPostalCodes',
   UpsertSchools = 'UpsertSchools',
+  BackfillOnboardedStatus = 'BackfillOnboardedStatus',
 }
 
 // register new job processors here
@@ -420,10 +420,6 @@ const jobProcessors: JobProcessor[] = [
     processor: sendSessionRecapMessageNotification,
   },
   {
-    name: Jobs.SendVolunteerFeedbackToStudent,
-    processor: sendVolunteerFeedback,
-  },
-  {
     name: Jobs.SendWeeklyHourSummaryApology,
     processor: sendWeeklyHourSummaryApology,
   },
@@ -462,6 +458,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.UpsertSchools,
     processor: upsertSchools,
+  },
+  {
+    name: Jobs.BackfillOnboardedStatus,
+    processor: backfillOnboardedStatus,
   },
 ]
 

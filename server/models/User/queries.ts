@@ -202,12 +202,13 @@ export async function getUserContactInfoById(
 }
 
 export async function getUserByReferralCode(
-  referralCode: string
+  referralCode: string,
+  tc: TransactionClient = getClient()
 ): Promise<{ id: Ulid; firstName: string } | undefined> {
   try {
     const result = await pgQueries.getUserByReferralCode.run(
       { referralCode },
-      getClient()
+      tc
     )
     if (result.length) {
       return makeRequired(result[0])

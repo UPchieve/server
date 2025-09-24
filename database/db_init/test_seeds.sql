@@ -2,8 +2,9 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 14.15 (Debian 14.15-1.pgdg120+1)
--- Dumped by pg_dump version 14.18 (Homebrew)
+
+-- Dumped from database version 14.18 (Debian 14.18-1.pgdg120+1)
+-- Dumped by pg_dump version 14.19 (Ubuntu 14.19-0ubuntu0.22.04.1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -313,6 +314,8 @@ COPY upchieve.student_partner_orgs (id, key, name, signup_code, high_school_sign
 01919662-87dc-57b3-892e-791e974fd03a	all-the-students	All The Students	ALLTHESTUDENTS	t	t	t	2024-08-28 00:28:45.42937+00	2024-08-28 00:28:45.42937+00	\N
 01919662-87fe-5dbc-4b00-412d50590a2b	approved-partner-school	Approved Partner School	APPROVED-PARTNER-SCHOOL	t	f	t	2024-08-28 00:28:45.43769+00	2024-08-28 00:28:45.43769+00	01919662-87fb-d63d-788d-7417e752f5d0
 01919662-8800-b5d6-dff4-97b4627082b9	another-approved-partner-school	Another Approved Partner School	ANOTHER-APPROVED-PARTNER-SCHOOL	t	f	t	2024-08-28 00:28:45.44006+00	2024-08-28 00:28:45.44006+00	01919662-87fb-6ad2-8227-c1e38adf0907
+6e074695-be6f-49db-a3a8-cd242c61f6a4	dummy-org	Dummy Org	\N	f	f	f	2025-09-15 22:26:38.419067+00	2025-09-15 22:26:38.419067+00	\N
+c631f993-a53c-4fdb-8ec2-35142a7eb575	dummy-school-org	Dummy School Org	\N	f	f	f	2025-09-15 22:26:38.419067+00	2025-09-15 22:26:38.419067+00	\N
 \.
 
 
@@ -323,6 +326,7 @@ COPY upchieve.student_partner_orgs (id, key, name, signup_code, high_school_sign
 COPY upchieve.volunteer_partner_orgs (id, key, name, receive_weekly_hour_summary_email, created_at, updated_at) FROM stdin;
 01919662-87f7-ecae-08ec-2d9b6c13ba3c	big-telecom	Big Telecom	t	2024-08-28 00:28:45.431653+00	2024-08-28 00:28:45.431653+00
 01919662-87f7-e08c-976a-8abd40c8fd45	health-co	Health Co	f	2024-08-28 00:28:45.432353+00	2024-08-28 00:28:45.432353+00
+b55302ea-9a9e-408c-b00c-3874f42e0e18	dummy-org	Dummy Org	f	2025-09-15 22:26:38.419067+00	2025-09-15 22:26:38.419067+00
 \.
 
 
@@ -7232,6 +7236,14 @@ COPY upchieve.quiz_review_materials (id, quiz_id, title, pdf, image, created_at,
 
 
 --
+-- Data for Name: referrals; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.referrals (id, referred_by, user_id) FROM stdin;
+\.
+
+
+--
 -- Data for Name: report_reasons; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
@@ -8778,6 +8790,13 @@ SELECT pg_catalog.setval('upchieve.quizzes_id_seq', 36, true);
 
 
 --
+-- Name: referrals_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
+--
+
+SELECT pg_catalog.setval('upchieve.referrals_id_seq', 1, false);
+
+
+--
 -- Name: report_reasons_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
@@ -8906,4 +8925,5 @@ SELECT pg_catalog.setval('upchieve.weekdays_id_seq', 1, false);
 --
 -- PostgreSQL database dump complete
 --
+
 
