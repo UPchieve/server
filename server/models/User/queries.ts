@@ -564,23 +564,24 @@ export async function getUserForAdminDetail(
 
 export async function getUserToCreateSendGridContact(
   userId: Ulid
-): Promise<UserForCreateSendGridContact> {
+): Promise<UserForCreateSendGridContact | undefined> {
   try {
     const result = await pgQueries.getUserToCreateSendGridContact.run(
       { userId },
       getClient()
     )
-    if (!result.length) throw new RepoReadError('User not found')
-    return makeSomeOptional(result[0], [
-      'banType',
-      'lastActivityAt',
-      'passedUpchieve101',
-      'studentGradeLevel',
-      'studentPartnerOrg',
-      'studentPartnerOrgDisplay',
-      'volunteerPartnerOrg',
-      'volunteerPartnerOrgDisplay',
-    ])
+    if (result.length) {
+      return makeSomeOptional(result[0], [
+        'banType',
+        'lastActivityAt',
+        'passedUpchieve101',
+        'studentGradeLevel',
+        'studentPartnerOrg',
+        'studentPartnerOrgDisplay',
+        'volunteerPartnerOrg',
+        'volunteerPartnerOrgDisplay',
+      ])
+    }
   } catch (err) {
     throw new RepoReadError(err)
   }
