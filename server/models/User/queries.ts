@@ -202,12 +202,13 @@ export async function getUserContactInfoById(
 }
 
 export async function getUserByReferralCode(
-  referralCode: string
+  referralCode: string,
+  tc: TransactionClient = getClient()
 ): Promise<{ id: Ulid; firstName: string } | undefined> {
   try {
     const result = await pgQueries.getUserByReferralCode.run(
       { referralCode },
-      getClient()
+      tc
     )
     if (result.length) {
       return makeRequired(result[0])
@@ -395,12 +396,13 @@ export async function updateUserLastActivityById(
 export async function banUserById(
   userId: Ulid,
   banType: USER_BAN_TYPES,
-  banReason: USER_BAN_REASONS
+  banReason: USER_BAN_REASONS,
+  tc: TransactionClient = getClient()
 ) {
   try {
     const result = await pgQueries.updateUserBanById.run(
       { userId, banType, banReason },
-      getClient()
+      tc
     )
     if (!(result.length && makeRequired(result[0]).ok))
       throw new RepoUpdateError('Update query did not return ok')

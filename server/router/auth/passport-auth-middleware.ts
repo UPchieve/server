@@ -13,6 +13,7 @@ import * as FedCredService from '../../services/FederatedCredentialService'
 import * as UserCreationService from '../../services/UserCreationService'
 import {
   RegisterStudentPayload,
+  RegisterTeacherPayload,
   SessionWithSsoData,
   SsoProviderNames,
   verifyPassword,
@@ -24,20 +25,27 @@ import { Uuid } from '../../models/pgUtils'
 import { USER_ROLES_TYPE } from '../../constants'
 
 async function passportLoginUser(
-  profileId: string,
+  profile: passport.Profile,
   issuer: string,
   done: Function
 ) {
   try {
     const existingFedCred = await FedCredService.getFedCredForUser(
-      profileId,
+      profile.id,
       issuer
     )
-    if (!existingFedCred) {
-      return done(null, false)
+    if (existingFedCred) {
+      return done(null, { id: existingFedCred.userId })
     }
 
-    return done(null, { id: existingFedCred.userId })
+    const email = profile.emails?.[0]?.value
+    const existingUser = await getUserVerificationByEmails(email)
+    if (existingUser && existingUser.emailVerified) {
+      await FedCredService.linkAccount(profile.id, issuer, existingUser.id)
+      return done(null, { id: existingUser.id })
+    }
+
+    return done(null, false)
   } catch (error) {
     return done(error)
   }
@@ -47,7 +55,8 @@ async function passportRegisterUser(
   profile: passport.Profile,
   issuer: string,
   providerName: string,
-  data: Partial<RegisterStudentPayload> = {},
+  accountType = 'student',
+  data: Partial<RegisterStudentPayload | RegisterTeacherPayload> = {},
   done: Function
 ) {
   try {
@@ -79,7 +88,7 @@ async function passportRegisterUser(
       })
     }
 
-    const studentData = {
+    const userData = {
       email,
       firstName,
       issuer,
@@ -87,8 +96,13 @@ async function passportRegisterUser(
       profileId: profile.id,
       ...data,
     }
-    const student = await UserCreationService.registerStudent(studentData)
-    return done(null, student)
+    if (accountType === 'teacher') {
+      const teacher = await UserCreationService.registerTeacher(userData)
+      return done(null, teacher)
+    } else {
+      const student = await UserCreationService.registerStudent(userData)
+      return done(null, student)
+    }
   } catch (err) {
     return done(err)
   }
@@ -185,7 +199,7 @@ async function handleSSOStrategy(
       userData?.email
     )
 
-    if (existingUser) {
+    if (existingUser && existingUser.emailVerified) {
       if (userData && options.isStudent(profile.userType)) {
         const data = {
           schoolId: userData.schoolId,
@@ -306,15 +320,15 @@ export function addPassportAuthMiddleware() {
       ) {
         const { isLogin } = (req.session as SessionWithSsoData).sso ?? {}
         if (isLogin) {
-          // TODO: Consider passportLoginUser to support logging in users who haven't used Google SSO before,
-          // but have an UPchieve account with a matching email similar to Clever/ClassLink SSO behavior
-          return passportLoginUser(profile.id, issuer, done)
+          return passportLoginUser(profile, issuer, done)
         } else {
-          const { userData } = (req.session as SessionWithSsoData).sso ?? {}
+          const { accountType, userData } =
+            (req.session as SessionWithSsoData).sso ?? {}
           return passportRegisterUser(
             profile,
             issuer,
             SsoProviderNames.GOOGLE,
+            accountType,
             userData,
             done
           )

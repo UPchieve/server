@@ -110,18 +110,6 @@ export async function saveUserSurvey(
           { sessionId: userSurvey.sessionId },
           { removeOnComplete: true, removeOnFail: false, delay: FIVE_MINUTES }
         )
-      } else if (
-        role.activeRole === USER_ROLES.VOLUNTEER &&
-        data?.volunteerFeedbackForStudent
-      ) {
-        await QueueService.add(
-          Jobs.SendVolunteerFeedbackToStudent,
-          {
-            sessionId: userSurvey.sessionId,
-            volunteerFeedback: data.volunteerFeedbackForStudent,
-          },
-          { removeOnComplete: true, removeOnFail: false, delay: FIVE_MINUTES }
-        )
       }
     }
   }

@@ -8,14 +8,17 @@ import { COLLEGE_LIST_DOC_WORKSHEET } from '../constants'
 import { getCollegeListWorkSheetFlag } from './FeatureFlagService'
 import * as Y from 'yjs'
 
+// Used for v1.
 function sessionIdToKey(id: Ulid): string {
   return `quill-${id.toString()}`
 }
 
+// Used for v1.
 function getSessionDeltasKey(id: Ulid): string {
   return `${sessionIdToKey(id)}-deltas`
 }
 
+// Used for v2.
 function getSessionDocumentUpdatesKey(id: Ulid): string {
   return `${sessionIdToKey(id)}-document-updates`
 }
@@ -29,6 +32,10 @@ export async function createDoc(sessionId: Ulid): Promise<Delta> {
       : new Delta()
   await cache.save(sessionIdToKey(sessionId), JSON.stringify(newDoc))
   return newDoc
+}
+
+export async function getDocEditorVersion(sessionId: Ulid): Promise<number> {
+  return (await cache.exists(getSessionDocumentUpdatesKey(sessionId))) ? 2 : 1
 }
 
 export async function getDoc(sessionId: Ulid): Promise<Delta | undefined> {
@@ -127,10 +134,9 @@ export async function appendToDoc(
 }
 
 /**
- *
  * The new version of our Quill editor is backed by Yjs CRDTs.
  * Updates to the document are represented as Uint8Arrays. We
- * store them in a Redis @set as a string of comma separated 8-bit integers
+ * store them in a Redis @set as a string of comma separated 8-bit integers.
  *
  * example: "1,8,3,9,4"
  *
@@ -138,6 +144,10 @@ export async function appendToDoc(
  * of the Redis @set at a given key, convert them back to Uint8Arrays, then
  * apply them as updates to the Y.Doc.
  *
+ * Redis does not allow empty sets, so when starting a session with v2 doc,
+ * we store a dummy value (SET_EXISTS) into the set, then we can use the
+ * existence of the v2 doc in cache to know which version of the doc editor
+ * to use - the dummy value just needs to be removed before using the doc.
  */
 export async function getDocumentUpdates(sessionId: Ulid): Promise<string[]> {
   const updates = await cache.smembers(getSessionDocumentUpdatesKey(sessionId))
@@ -155,7 +165,7 @@ export async function getDocumentUpdates(sessionId: Ulid): Promise<string[]> {
     await addDocumentUpdate(sessionId, updateString)
     return [updateString]
   }
-  return updates
+  return updates.filter((u) => u !== SET_EXISTS)
 }
 
 export async function addDocumentUpdate(
@@ -163,6 +173,12 @@ export async function addDocumentUpdate(
   update: string
 ): Promise<void> {
   await cache.sadd(getSessionDocumentUpdatesKey(sessionId), update)
+}
+
+const SET_EXISTS = 'SET_EXISTS'
+export async function ensureDocumentUpdateExists(sessionId: Ulid) {
+  const key = getSessionDocumentUpdatesKey(sessionId)
+  await cache.sadd(key, SET_EXISTS)
 }
 
 export async function deleteDoc(sessionId: Ulid): Promise<void> {

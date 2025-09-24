@@ -35,7 +35,6 @@ import { createSessionAction } from '../../models/UserAction/queries'
 import { updateVolunteerSubjectPresence } from '../../services/VolunteerService'
 import { asJoinSessionData } from '../../utils/session-utils'
 import { SessionJoinError } from '../../models/Errors'
-import * as cache from '../../cache'
 import * as PresenceService from '../../services/PresenceService'
 
 export type SessionMessageType = 'audio-transcription' // todo - add 'chat' later
@@ -268,13 +267,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
         new Promise<void>(async (resolve, reject) => {
           try {
             const sessions = await SessionRepo.getUnfulfilledSessions()
-            const excludedSessionIds = await cache.smembers(
-              'goalSettingSessions'
-            )
-            const filteredSessions = sessions.filter(
-              (session) => !excludedSessionIds.includes(session.id)
-            )
-            socket.emit('sessions', filteredSessions)
+            socket.emit('sessions', sessions)
             callback({
               status: 200,
               sessions,
@@ -349,7 +342,6 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               message,
               source,
               type,
-              transcript,
               saidAt,
               zoomMessageId,
               msgId,
@@ -381,9 +373,8 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               return resolve()
             }
 
-            const createdAt = new Date()
+            const createdAt = data.createdAt ?? new Date()
             let sanitizedMessage: string | undefined = undefined
-            let messageIsUnclean = false
             // TODO: correctly type user from payload
             const saveMessageData: {
               sessionId: Ulid
@@ -408,7 +399,6 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
                 source: 'audio_transcription',
               })
               if (!result.isClean) {
-                messageIsUnclean = true
                 const sanitized = (
                   result as SanitizedTranscriptModerationResult
                 ).sanitizedTranscript
@@ -520,27 +510,49 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
     })
 
     socket.on('requestQuillStateV2', async ({ sessionId }) => {
-      newrelic.startWebTransaction(
-        '/socket-io/requestQuillStateV2',
-        async () => {
-          const updates = await QuillDocService.getDocumentUpdates(sessionId)
-          socket.emit('quillStateV2', { updates })
-        }
-      )
+      newrelic.startWebTransaction('/socket-io/requestQuillStateV2', () => {
+        new Promise<void>(async (resolve, reject) => {
+          try {
+            const updates = await QuillDocService.getDocumentUpdates(sessionId)
+            socket.emit('quillStateV2', { updates })
+            resolve()
+          } catch {
+            logger.error(
+              {
+                sessionId,
+                userId: socket.request.user?.id,
+              },
+              'Failed to get Quill v2 doc.'
+            )
+            reject()
+          }
+        })
+      })
     })
 
     socket.on(
       'transmitQuillDeltaV2',
       async ({ sessionId, update }: { sessionId: string; update: string }) => {
-        newrelic.startWebTransaction(
-          '/socket-io/transmitQuillDeltaV2',
-          async () => {
-            await QuillDocService.addDocumentUpdate(sessionId, update)
-            socket
-              .to(getSessionRoom(sessionId))
-              .emit('partnerQuillDeltaV2', { update })
-          }
-        )
+        newrelic.startWebTransaction('/socket-io/transmitQuillDeltaV2', () => {
+          new Promise<void>(async (resolve, reject) => {
+            try {
+              await QuillDocService.addDocumentUpdate(sessionId, update)
+              socket
+                .to(getSessionRoom(sessionId))
+                .emit('partnerQuillDeltaV2', { update })
+              resolve()
+            } catch {
+              logger.error(
+                {
+                  sessionId,
+                  userId: socket.request.user?.id,
+                },
+                'Failed to transmit Quill v2 doc update.'
+              )
+              reject()
+            }
+          })
+        })
       }
     )
 

@@ -19,6 +19,7 @@ import { getPublicUPFByUserId } from '../models/UserProductFlags'
 import { buildAppLink } from '../utils/link-builders'
 import { isDevEnvironment, isE2eEnvironment } from '../utils/environments'
 import logger from '../logger'
+import { getStudySlackCommunityEmailFeatureFlag } from './FeatureFlagService'
 
 sgMail.setApiKey(config.sendgrid.apiKey)
 
@@ -532,6 +533,34 @@ export async function sendBecomeAnAmbassadorEmail(args: {
   )
 }
 
+export async function sendAmbassadorCongratsEmail(args: {
+  userId: Ulid
+  email: string
+  firstName: string
+  referralLink: string
+}): Promise<void> {
+  const ambassadorCongratsTemplateId =
+    config.sendgrid.ambassadorCongratsTemplate
+
+  const overrides = {
+    asm: {
+      group_id: config.sendgrid.unsubscribeGroup.incentiveProgram,
+    },
+    categories: ['ambassador-congrats-email'],
+  }
+  await sendEmail(
+    args.email,
+    config.mail.senders.support,
+    'UPchieve',
+    ambassadorCongratsTemplateId,
+    {
+      referralLink: args.referralLink,
+      firstName: args.firstName,
+    },
+    overrides
+  )
+}
+
 export async function sendPositiveStudentFeedbackEmailToVolunteer({
   email,
   firstName,
@@ -570,42 +599,6 @@ export async function sendPositiveStudentFeedbackEmailToVolunteer({
     emailArgs,
     {
       categories: ['volunteer feedback'],
-    }
-  )
-}
-
-export async function sendVolunteerFeedbackToStudent({
-  recipientEmail,
-  volunteerFirstName,
-  studentFirstName,
-  subject,
-  volunteerFeedback,
-  upchieveDashboardLink,
-}: {
-  recipientEmail: string
-  volunteerFirstName: string
-  subject: string
-  studentFirstName: string
-  volunteerFeedback: string
-  upchieveDashboardLink: string
-}): Promise<void> {
-  const templateId = config.sendgrid.volunteerFeedbackForStudent
-  const emailArgs = {
-    volunteerFirstName,
-    subject,
-    studentFirstName,
-    volunteerFeedback,
-    upchieveDashboardLink,
-  }
-
-  await sendEmail(
-    recipientEmail,
-    config.mail.senders.support,
-    'UPchieve',
-    templateId,
-    emailArgs,
-    {
-      categories: ['student feedback'],
     }
   )
 }
@@ -783,11 +776,18 @@ export async function sendNiceToMeetYou<V extends VolunteerContactInfo>(
     categories: ['nice to meet you email'],
   }
 
+  const isSlackCommunityEmailEnabled =
+    await getStudySlackCommunityEmailFeatureFlag(volunteer.id)
+
+  const templateId = isSlackCommunityEmailEnabled
+    ? config.sendgrid.niceToMeetYouNoSlackTemplate
+    : config.sendgrid.niceToMeetYouTemplate
+
   await sendEmail(
     volunteer.email,
     config.mail.senders.supportApp,
     config.mail.people.volunteerManager.firstName,
-    config.sendgrid.niceToMeetYouTemplate,
+    templateId,
     {
       firstName: capitalize(volunteer.firstName),
     },
@@ -1055,27 +1055,6 @@ export async function sendVolunteerTenSessionMilestone(
     sender,
     `${config.mail.people.volunteerManager.firstName} ${config.mail.people.volunteerManager.lastName}`,
     config.sendgrid.volunteerTenSessionMilestoneTemplate,
-    { firstName },
-    overrides
-  )
-}
-
-export async function sendVolunteerGentleWarning(
-  email: string,
-  firstName: string
-): Promise<void> {
-  const sender = config.mail.senders.volunteerManager
-  const overrides = {
-    reply_to: {
-      email: sender,
-    },
-    categories: ['volunteer - gentle warning'],
-  }
-  await sendEmail(
-    email,
-    sender,
-    config.mail.people.volunteerManager.firstName,
-    config.sendgrid.volunteerGentleWarningTemplate,
     { firstName },
     overrides
   )
@@ -1591,6 +1570,24 @@ export async function sendStudentFavoritedVolunteerEmail(
     {
       firstName: volunteerFirstName,
       studentName: studentFirstName,
+    }
+  )
+}
+
+export async function sendBackfillNowReadyToCoachEmail(
+  email: string,
+  volunteerFirstName: string
+) {
+  await sendEmail(
+    email,
+    config.mail.senders.support,
+    'UPchieve',
+    config.sendgrid.onboardingBackfillReadyToCoachEmail,
+    {
+      firstName: volunteerFirstName,
+    },
+    {
+      categories: ['onboarding-backfill-now-ready-to-coach-email'],
     }
   )
 }

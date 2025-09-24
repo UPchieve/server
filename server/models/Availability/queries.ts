@@ -305,17 +305,3 @@ export async function clearAvailabilityForVolunteer(
     throw new RepoUpdateError(err)
   }
 }
-
-export async function deleteAvailabilityHistoryForVolunteer(
-  userId: Ulid,
-  tc: TransactionClient
-) {
-  try {
-    await Promise.all([
-      pgQueries.deleteAvailabilityHistoriesForUser.run({ userId }, tc),
-      pgQueries.deleteLegacyAvailabilityHistoriesForUser.run({ userId }, tc),
-    ])
-  } catch (err) {
-    throw new RepoDeleteError(err)
-  }
-}

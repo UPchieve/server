@@ -6,6 +6,7 @@ import { getSessionById } from '../../../models/Session'
 import { safeAsync } from '../../../utils/safe-async'
 import { asString } from '../../../utils/type-utils'
 import { Uuid } from '../../../models/pgUtils'
+import { Jobs } from '..'
 
 export interface EmailSessionReportedJobData {
   userId: Uuid
@@ -35,7 +36,11 @@ async function emailReportedSession(
 
   if (!user) errors.push(`user ${userId} not found`)
   else {
-    if (isBanReason) {
+    const reportedUserRole =
+      session.studentId === userId ? 'student' : 'volunteer'
+
+    // Volunteers do not get banned, avoid sending a banned email notification to staff
+    if (isBanReason && reportedUserRole !== 'volunteer') {
       const banAlert = await safeAsync(
         // TODO: double check the email
         MailService.sendBannedUserAlert(
@@ -68,9 +73,6 @@ async function emailReportedSession(
         `Failed to send report alert email: ${reportAlert.error.message}`
       )
 
-    const reportedUserRole =
-      session.studentId === userId ? 'student' : 'volunteer'
-
     if (reportedUserRole === 'student') {
       const studentEmail = await safeAsync(
         MailService.sendStudentReported(
@@ -84,12 +86,13 @@ async function emailReportedSession(
           `Failed to send student ${user.id} email for report: ${studentEmail.error.message}`
         )
     }
-    let errMsg = ''
-    for (const err of errors) {
-      if (err) errMsg += `${err}\n`
-    }
-    if (errMsg) throw new Error(errMsg)
   }
+
+  let errMsg = ''
+  for (const err of errors) {
+    if (err) errMsg += `${err}\n`
+  }
+  if (errMsg) throw new Error(`${Jobs.EmailSessionReported}: ${errMsg}`)
 }
 
 export default emailReportedSession

@@ -112,58 +112,6 @@ const getSessionNotificationsWithSessionIdIR: any = {"usedParamSet":{"sessionId"
 export const getSessionNotificationsWithSessionId = new PreparedQuery<IGetSessionNotificationsWithSessionIdParams,IGetSessionNotificationsWithSessionIdResult>(getSessionNotificationsWithSessionIdIR);
 
 
-/** 'GetNotificationsForGentleWarning' parameters type */
-export interface IGetNotificationsForGentleWarningParams {
-  sessionId: string;
-}
-
-/** 'GetNotificationsForGentleWarning' return type */
-export interface IGetNotificationsForGentleWarningResult {
-  email: string;
-  firstName: string;
-  id: string;
-  totalNotifications: number | null;
-}
-
-/** 'GetNotificationsForGentleWarning' query type */
-export interface IGetNotificationsForGentleWarningQuery {
-  params: IGetNotificationsForGentleWarningParams;
-  result: IGetNotificationsForGentleWarningResult;
-}
-
-const getNotificationsForGentleWarningIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":530,"b":540}]}],"statement":"SELECT\n    users.id,\n    users.first_name AS first_name,\n    users.email AS email,\n    COUNT(*)::int AS total_notifications\nFROM\n    notifications\n    JOIN sessions ON notifications.session_id = sessions.id\n    JOIN users ON notifications.user_id = users.id\n    JOIN (\n        SELECT\n            sessions.volunteer_id\n        FROM\n            sessions\n        GROUP BY\n            volunteer_id\n        HAVING\n            COUNT(*) = 0) AS session_count ON session_count.volunteer_id = users.id\nWHERE\n    notifications.session_id = :sessionId!\n    AND notifications.user_id != sessions.volunteer_id\nGROUP BY\n    users.id"};
-
-/**
- * Query generated from SQL:
- * ```
- * SELECT
- *     users.id,
- *     users.first_name AS first_name,
- *     users.email AS email,
- *     COUNT(*)::int AS total_notifications
- * FROM
- *     notifications
- *     JOIN sessions ON notifications.session_id = sessions.id
- *     JOIN users ON notifications.user_id = users.id
- *     JOIN (
- *         SELECT
- *             sessions.volunteer_id
- *         FROM
- *             sessions
- *         GROUP BY
- *             volunteer_id
- *         HAVING
- *             COUNT(*) = 0) AS session_count ON session_count.volunteer_id = users.id
- * WHERE
- *     notifications.session_id = :sessionId!
- *     AND notifications.user_id != sessions.volunteer_id
- * GROUP BY
- *     users.id
- * ```
- */
-export const getNotificationsForGentleWarning = new PreparedQuery<IGetNotificationsForGentleWarningParams,IGetNotificationsForGentleWarningResult>(getNotificationsForGentleWarningIR);
-
-
 /** 'CreateEmailNotification' parameters type */
 export interface ICreateEmailNotificationParams {
   emailTemplateId: string;

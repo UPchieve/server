@@ -65,6 +65,7 @@ const config: Static<typeof Config> = {
     rejectedReferenceTemplate: 'd-9afea0862a264bbb93ed6a2c074fd6b4',
     waitingOnReferencesTemplate: 'd-65bf8204d28746f58ad28a4aa92407c7',
     niceToMeetYouTemplate: 'd-8afee528e5184d8797c50c109d6b631b',
+    niceToMeetYouNoSlackTemplate: 'd-d8f30bd7d62742c58bb015a297190850',
     weeklyHourSummaryEmailTemplate: 'd-19a5fbe8656249d2822c8bde1c2ab086',
     weeklyHourSummaryIntroEmailTemplate: 'd-4d8394e4da3847eabdfd23f257f7a8d3',
     customWeeklyHourSummaryEmailTemplate: 'd-c07f4bcfed5f4acbba8038edb353866d',
@@ -91,7 +92,6 @@ const config: Static<typeof Config> = {
       'd-476522cdd78e4c4ebc2af51a2086a640',
     volunteerFirstSessionCongratsTemplate: 'd-ebd561df99a7497d9401cec3f54ef23a',
     volunteerTenSessionMilestoneTemplate: 'd-0447cf80536a430881262f8f92044b73',
-    volunteerGentleWarningTemplate: 'd-5f7366fbde7841beb757b8694afdc6a4',
     volunteerInactiveThirtyDaysTemplate: 'd-e2c9917e22c24d72a187ff00a5eff5e9',
     volunteerInactiveSixtyDaysTemplate: 'd-659b7e8d08754ef58d9b6e594f748e19',
     volunteerInactiveNinetyDaysTemplate: 'd-1bb491dbb4a044f5a4cd9cd926eacf38',
@@ -115,7 +115,8 @@ const config: Static<typeof Config> = {
       'd-e7e5b09cc1444128aceaa6807981c595',
     volunteerPositiveStudentFeedback: 'd-a8ebf5652afc4a6e97e8f582abc172e4',
     downloadCertificateTemplate: 'd-708608ba2c6c4e04a2b2902fdc5ecf50',
-    volunteerFeedbackForStudent: 'd-1fc618232eea4d64a7396995a51e8a12',
+    ambassadorCongratsTemplate: 'd-1c344164434544e4962ec2a125d647cf',
+    onboardingBackfillReadyToCoachEmail: 'd-7cf98c7f80aa4a02b8cf96da19a73f36',
     unsubscribeGroup: {
       newsletter: 12567,
       account: 12570,
@@ -467,7 +468,8 @@ const config: Static<typeof Config> = {
     process.env.SUBWAY_AWS_BEDROCK_SECRET_ACCESS_KEY || 'bogus',
   awsBedrockRegion: process.env.SUBWAY_AWS_BEDROCK_REGION || 'us-east-1',
   awsBedrockHaikuId: process.env.SUBWAY_AWS_BEDROCK_HAIKU_ID || 'bogus',
-  awsBedrockSonnetArnId:
+  awsBedrockSonnet4Id: process.env.SUBWAY_AWS_BEDROCK_SONNET_4_ID || 'bogus',
+  awsBedrockSonnet3ArnId:
     process.env.SUBWAY_AWS_BEDROCK_SONNET_ARN_ID || 'bogus',
 
   // Zwibbler

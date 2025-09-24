@@ -42,6 +42,7 @@ export enum UserSessionFlags {
   pii = 'Personally identifiable information',
   safetyConcern = 'Safety concern',
   generalModerationIssue = 'General moderation concern',
+  liveMediaBan = 'Live media ban',
 }
 
 export const SESSION_REPORT_REASON = {

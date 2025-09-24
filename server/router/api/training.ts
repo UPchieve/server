@@ -35,6 +35,8 @@ export function routeTraining(router: Router): void {
     try {
       const { ip } = req
       const user = extractUser(req)
+      const skipAvailabilityOnboardingRequirement =
+        req.body?.skipAvailabilityOnboardingRequirement ?? false
 
       const category = asString(req.body.category)
       const idAnswerMap = req.body.idAnswerMap // TODO: duck type validation
@@ -44,6 +46,7 @@ export function routeTraining(router: Router): void {
           user: user,
           ip,
           category: category as keyof Certifications,
+          skipAvailabilityOnboardingRequirement,
           idAnswerMap,
         })
 

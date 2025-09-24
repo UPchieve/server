@@ -2,8 +2,9 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 14.17 (Debian 14.17-1.pgdg120+1)
--- Dumped by pg_dump version 15.13 (Homebrew)
+
+-- Dumped from database version 14.19 (Debian 14.19-1.pgdg13+1)
+-- Dumped by pg_dump version 14.19 (Ubuntu 14.19-0ubuntu0.22.04.1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -50,18 +51,18 @@ COPY upchieve.signup_sources (id, name, created_at, updated_at) FROM stdin;
 -- Data for Name: users; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.users (id, verified, email_verified, phone_verified, email, password, password_reset_token, first_name, last_name, deactivated, last_activity_at, referral_code, referred_by, test_user, banned, ban_reason_id, time_tutored, signup_source_id, created_at, updated_at, phone, sms_consent, mongo_id, other_signup_source, proxy_email, ban_type, preferred_language_code, preferred_language) FROM stdin;
-01919662-8804-8772-ecf7-b08dfa28c6e4	t	f	f	volunteer1@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Partner	UPchieve	f	\N	B	\N	f	f	\N	25200000	\N	2024-08-28 00:28:45.444933+00	2024-08-28 00:28:45.444933+00	+12125551212	f	\N	\N	\N	\N	\N	\N
-01919662-8804-ad82-c517-37eaab0e19c2	t	f	f	volunteer2@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Special Reporting	UPchieve	f	\N	C	\N	f	f	\N	25200000	\N	2024-08-28 00:28:45.44726+00	2024-08-28 00:28:45.44726+00	+12125551213	f	\N	\N	\N	\N	\N	\N
-01919662-8804-9ccc-4601-1e98c09c946b	t	f	f	volunteer3@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Open Sign Up	UPchieve	f	\N	D	\N	f	f	\N	25200000	\N	2024-08-28 00:28:45.448816+00	2024-08-28 00:28:45.448816+00	+12125551214	f	\N	\N	\N	\N	\N	\N
-01919662-8804-29c4-5ff7-cb6803c09fa6	t	f	f	volunteer4@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Needs Onboarding	UPchieve	f	\N	E	\N	f	f	\N	0	\N	2024-08-28 00:28:45.450257+00	2024-08-28 00:28:45.450257+00	+12125551215	f	\N	\N	\N	\N	\N	\N
-01919662-8804-9826-da53-f1b2a1e53205	t	f	f	volunteer5@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Needs Approval	UPchieve	f	\N	Z	\N	f	f	\N	0	\N	2024-08-28 00:28:45.451788+00	2024-08-28 00:28:45.451788+00	+12125551216	f	\N	\N	\N	\N	\N	\N
-01919662-8804-cc87-1ee3-90a35b65414d	t	f	f	volunteer6@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Admin	UPchieve	f	\N	Y	\N	f	f	\N	0	\N	2024-08-28 00:28:45.453188+00	2024-08-28 00:28:45.453188+00	+12125551217	f	\N	\N	\N	\N	\N	\N
-01919662-885c-d39a-1749-5aaf18cf5d3b	t	f	f	student1@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Student	UPchieve	f	\N	A	\N	f	f	\N	\N	\N	2024-08-28 00:28:45.532467+00	2024-08-28 00:28:45.532467+00	\N	f	\N	\N	\N	\N	\N	\N
-01919662-885c-2fca-264b-9558f5b20fe4	t	f	f	student2@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Student	UPchieve	f	\N	F	\N	f	f	\N	\N	\N	2024-08-28 00:28:45.533913+00	2024-08-28 00:28:45.533913+00	\N	f	\N	\N	\N	\N	\N	\N
-01919662-885c-a174-3088-998111f7cc80	t	f	f	student3@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Student	UPchieve	f	\N	G	\N	f	f	\N	\N	\N	2024-08-28 00:28:45.535278+00	2024-08-28 00:28:45.535278+00	\N	f	\N	\N	\N	\N	\N	\N
-0198c4d0-34aa-ef79-20b5-f1c6245c0b7c	t	f	f	teacher1@upchieve.org	$2b$10$yv/XIg.dh3IjCuRKTX8CeekfpkFT/1T5HeVrTPntHpgY6kuj/jeni	\N	NonPartner	UPchieve	f	2025-08-20 00:10:36.035748+00	AZjE0DSq73kgtfHGJFwLfA	\N	f	f	\N	\N	6	2025-08-20 00:10:36.035748+00	2025-08-20 00:10:36.035748+00	\N	f	\N	Internet	\N	\N	\N	\N
-0198c4d1-f405-a71a-931c-e94965191c0a	t	f	f	teacher2@upchieve.org	$2b$10$ewiDyuDyGHUyBn2lbDH9Y.e/k5JoCuy3LsZmuVgK2b3ao8Cc92uKG	\N	Partner	UPchieve	f	2025-08-20 00:12:30.562089+00	AZjE0fQFpxqTHOlJZRkcCg	\N	f	f	\N	\N	6	2025-08-20 00:12:30.562089+00	2025-08-20 00:12:30.562089+00	\N	f	\N	Internet	\N	\N	\N	\N
+COPY upchieve.users (id, verified, email_verified, phone_verified, email, password, password_reset_token, first_name, last_name, deactivated, last_activity_at, referral_code, referred_by, test_user, banned, ban_reason_id, time_tutored, signup_source_id, created_at, updated_at, phone, sms_consent, mongo_id, other_signup_source, proxy_email, ban_type, preferred_language_code, preferred_language, deleted) FROM stdin;
+01919662-8804-8772-ecf7-b08dfa28c6e4	t	f	f	volunteer1@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Partner	UPchieve	f	\N	B	\N	f	f	\N	25200000	\N	2024-08-28 00:28:45.444933+00	2024-08-28 00:28:45.444933+00	+12125551212	f	\N	\N	\N	\N	\N	\N	f
+01919662-8804-ad82-c517-37eaab0e19c2	t	f	f	volunteer2@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Special Reporting	UPchieve	f	\N	C	\N	f	f	\N	25200000	\N	2024-08-28 00:28:45.44726+00	2024-08-28 00:28:45.44726+00	+12125551213	f	\N	\N	\N	\N	\N	\N	f
+01919662-8804-9ccc-4601-1e98c09c946b	t	f	f	volunteer3@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Open Sign Up	UPchieve	f	\N	D	\N	f	f	\N	25200000	\N	2024-08-28 00:28:45.448816+00	2024-08-28 00:28:45.448816+00	+12125551214	f	\N	\N	\N	\N	\N	\N	f
+01919662-8804-29c4-5ff7-cb6803c09fa6	t	f	f	volunteer4@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Needs Onboarding	UPchieve	f	\N	E	\N	f	f	\N	0	\N	2024-08-28 00:28:45.450257+00	2024-08-28 00:28:45.450257+00	+12125551215	f	\N	\N	\N	\N	\N	\N	f
+01919662-8804-9826-da53-f1b2a1e53205	t	f	f	volunteer5@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Needs Approval	UPchieve	f	\N	Z	\N	f	f	\N	0	\N	2024-08-28 00:28:45.451788+00	2024-08-28 00:28:45.451788+00	+12125551216	f	\N	\N	\N	\N	\N	\N	f
+01919662-8804-cc87-1ee3-90a35b65414d	t	f	f	volunteer6@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Admin	UPchieve	f	\N	Y	\N	f	f	\N	0	\N	2024-08-28 00:28:45.453188+00	2024-08-28 00:28:45.453188+00	+12125551217	f	\N	\N	\N	\N	\N	\N	f
+01919662-885c-d39a-1749-5aaf18cf5d3b	t	f	f	student1@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Student	UPchieve	f	\N	A	\N	f	f	\N	\N	\N	2024-08-28 00:28:45.532467+00	2024-08-28 00:28:45.532467+00	\N	f	\N	\N	\N	\N	\N	\N	f
+01919662-885c-2fca-264b-9558f5b20fe4	t	f	f	student2@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Student	UPchieve	f	\N	F	\N	f	f	\N	\N	\N	2024-08-28 00:28:45.533913+00	2024-08-28 00:28:45.533913+00	\N	f	\N	\N	\N	\N	\N	\N	f
+01919662-885c-a174-3088-998111f7cc80	t	f	f	student3@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Student	UPchieve	f	\N	G	\N	f	f	\N	\N	\N	2024-08-28 00:28:45.535278+00	2024-08-28 00:28:45.535278+00	\N	f	\N	\N	\N	\N	\N	\N	f
+0198c4d0-34aa-ef79-20b5-f1c6245c0b7c	t	f	f	teacher1@upchieve.org	$2b$10$yv/XIg.dh3IjCuRKTX8CeekfpkFT/1T5HeVrTPntHpgY6kuj/jeni	\N	NonPartner	UPchieve	f	2025-08-20 00:10:36.035748+00	AZjE0DSq73kgtfHGJFwLfA	\N	f	f	\N	\N	6	2025-08-20 00:10:36.035748+00	2025-08-20 00:10:36.035748+00	\N	f	\N	Internet	\N	\N	\N	\N	f
+0198c4d1-f405-a71a-931c-e94965191c0a	t	f	f	teacher2@upchieve.org	$2b$10$ewiDyuDyGHUyBn2lbDH9Y.e/k5JoCuy3LsZmuVgK2b3ao8Cc92uKG	\N	Partner	UPchieve	f	2025-08-20 00:12:30.562089+00	AZjE0fQFpxqTHOlJZRkcCg	\N	f	f	\N	\N	6	2025-08-20 00:12:30.562089+00	2025-08-20 00:12:30.562089+00	\N	f	\N	Internet	\N	\N	\N	\N	f
 \.
 
 
@@ -313,6 +314,8 @@ COPY upchieve.student_partner_orgs (id, key, name, signup_code, high_school_sign
 01919662-87dc-57b3-892e-791e974fd03a	all-the-students	All The Students	ALLTHESTUDENTS	t	t	t	2024-08-28 00:28:45.42937+00	2024-08-28 00:28:45.42937+00	\N
 01919662-87fe-5dbc-4b00-412d50590a2b	approved-partner-school	Approved Partner School	APPROVED-PARTNER-SCHOOL	t	f	t	2024-08-28 00:28:45.43769+00	2024-08-28 00:28:45.43769+00	01919662-87fb-d63d-788d-7417e752f5d0
 01919662-8800-b5d6-dff4-97b4627082b9	another-approved-partner-school	Another Approved Partner School	ANOTHER-APPROVED-PARTNER-SCHOOL	t	f	t	2024-08-28 00:28:45.44006+00	2024-08-28 00:28:45.44006+00	01919662-87fb-6ad2-8227-c1e38adf0907
+6e074695-be6f-49db-a3a8-cd242c61f6a4	dummy-org	Dummy Org	\N	f	f	f	2025-09-15 22:26:38.419067+00	2025-09-15 22:26:38.419067+00	\N
+c631f993-a53c-4fdb-8ec2-35142a7eb575	dummy-school-org	Dummy School Org	\N	f	f	f	2025-09-15 22:26:38.419067+00	2025-09-15 22:26:38.419067+00	\N
 \.
 
 
@@ -323,6 +326,7 @@ COPY upchieve.student_partner_orgs (id, key, name, signup_code, high_school_sign
 COPY upchieve.volunteer_partner_orgs (id, key, name, receive_weekly_hour_summary_email, created_at, updated_at) FROM stdin;
 01919662-87f7-ecae-08ec-2d9b6c13ba3c	big-telecom	Big Telecom	t	2024-08-28 00:28:45.431653+00	2024-08-28 00:28:45.431653+00
 01919662-87f7-e08c-976a-8abd40c8fd45	health-co	Health Co	f	2024-08-28 00:28:45.432353+00	2024-08-28 00:28:45.432353+00
+b55302ea-9a9e-408c-b00c-3874f42e0e18	dummy-org	Dummy Org	f	2025-09-15 22:26:38.419067+00	2025-09-15 22:26:38.419067+00
 \.
 
 
@@ -7232,6 +7236,14 @@ COPY upchieve.quiz_review_materials (id, quiz_id, title, pdf, image, created_at,
 
 
 --
+-- Data for Name: referrals; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.referrals (id, referred_by, user_id) FROM stdin;
+\.
+
+
+--
 -- Data for Name: report_reasons; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
@@ -7338,6 +7350,7 @@ COPY upchieve.session_flags (id, name, created_at, updated_at) FROM stdin;
 28	Personally identifiable information	2025-03-26 22:14:09.855431+00	2025-03-26 22:14:09.855431+00
 29	Safety concern	2025-03-26 22:14:09.855431+00	2025-03-26 22:14:09.855431+00
 30	General moderation concern	2025-03-26 22:14:09.855431+00	2025-03-26 22:14:09.855431+00
+31	Live media ban	2025-09-09 15:16:33.85088+00	2025-09-09 15:16:33.85088+00
 \.
 
 
@@ -8777,6 +8790,13 @@ SELECT pg_catalog.setval('upchieve.quizzes_id_seq', 36, true);
 
 
 --
+-- Name: referrals_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
+--
+
+SELECT pg_catalog.setval('upchieve.referrals_id_seq', 1, false);
+
+
+--
 -- Name: report_reasons_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
@@ -8787,7 +8807,7 @@ SELECT pg_catalog.setval('upchieve.report_reasons_id_seq', 9, true);
 -- Name: session_flags_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.session_flags_id_seq', 30, true);
+SELECT pg_catalog.setval('upchieve.session_flags_id_seq', 31, true);
 
 
 --
@@ -8905,4 +8925,5 @@ SELECT pg_catalog.setval('upchieve.weekdays_id_seq', 1, false);
 --
 -- PostgreSQL database dump complete
 --
+
 

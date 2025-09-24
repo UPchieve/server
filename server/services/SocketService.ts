@@ -12,7 +12,6 @@ import { TransactionClient } from '../db'
 import * as SessionService from '../services/SessionService'
 import { backOff } from 'exponential-backoff'
 import { UserContactInfo } from '../models/User'
-import * as cache from '../cache'
 
 // TODO: Remove class wrapper.
 class SocketService {
@@ -89,11 +88,7 @@ class SocketService {
 
   private async updateSessionList(tc?: TransactionClient): Promise<void> {
     const sessions = await getUnfulfilledSessions(tc)
-    const excludedSessionIds = await cache.smembers('goalSettingSessions')
-    const filteredSessions = sessions.filter(
-      (session) => !excludedSessionIds.includes(session.id)
-    )
-    this.io.in('volunteers').emit('sessions', filteredSessions)
+    this.io.in('volunteers').emit('sessions', sessions)
   }
 
   async emitSessionChange(

@@ -54,6 +54,9 @@ import * as AuthRepo from '../models/Auth'
 import { FederatedCredential } from '../models/FederatedCredential'
 import QueueService from './QueueService'
 import { Jobs } from '../worker/jobs'
+import * as UserService from './UserService'
+import * as NotificationService from './NotificationService'
+import config from '../config'
 
 export async function checkIpAddress(ip: string): Promise<void> {
   const { country_code: countryCode } = await getIpWhoIs(ip)
@@ -154,6 +157,22 @@ export async function registerVolunteer(
       },
       { removeOnComplete: true, removeOnFail: false }
     )
+
+    const referredUsers = await UserService.countReferredUsers(referredBy)
+
+    const hasUserBeenSentCongratsEmail =
+      await NotificationService.hasUserBeenSentEmail({
+        userId: referredBy,
+        emailTemplateId: config.sendgrid.ambassadorCongratsTemplate,
+      })
+
+    if (referredByCode && referredUsers >= 5 && !hasUserBeenSentCongratsEmail) {
+      await QueueService.add(Jobs.SendAmbassadorCongratsEmail, {
+        userId: referredBy,
+        firstName: volunteerData.firstName,
+        referralLink: UserService.getReferralSignUpLink(referredByCode),
+      })
+    }
   }
 
   return volunteer

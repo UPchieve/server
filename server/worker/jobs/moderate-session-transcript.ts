@@ -132,7 +132,7 @@ export default async function moderateSessionTranscript(
       )
 
       logger.warn(`11. marking session for review, ${sessionFlags}`)
-      await ModerationService.markSessionForReview(
+      await SessionService.markSessionForReview(
         job.data.sessionId,
         sessionFlags
       )

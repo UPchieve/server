@@ -43,6 +43,7 @@ export const Config = Record({
     rejectedReferenceTemplate: String,
     waitingOnReferencesTemplate: String,
     niceToMeetYouTemplate: String,
+    niceToMeetYouNoSlackTemplate: String,
     weeklyHourSummaryEmailTemplate: String,
     weeklyHourSummaryIntroEmailTemplate: String,
     customWeeklyHourSummaryEmailTemplate: String,
@@ -67,7 +68,6 @@ export const Config = Record({
     partnerVolunteerLowHoursSelectedTemplate: String,
     volunteerFirstSessionCongratsTemplate: String,
     volunteerTenSessionMilestoneTemplate: String,
-    volunteerGentleWarningTemplate: String,
     volunteerInactiveThirtyDaysTemplate: String,
     volunteerInactiveSixtyDaysTemplate: String,
     volunteerInactiveNinetyDaysTemplate: String,
@@ -87,7 +87,8 @@ export const Config = Record({
     fallIncentiveCompletedChallengeTemplate: String,
     volunteerPositiveStudentFeedback: String,
     downloadCertificateTemplate: String,
-    volunteerFeedbackForStudent: String,
+    ambassadorCongratsTemplate: String,
+    onboardingBackfillReadyToCoachEmail: String,
 
     unsubscribeGroup: Record({
       newsletter: Number,
@@ -307,7 +308,8 @@ export const Config = Record({
   awsBedrockSecretAccessKey: String,
   awsBedrockRegion: String,
   awsBedrockHaikuId: String,
-  awsBedrockSonnetArnId: String,
+  awsBedrockSonnet4Id: String,
+  awsBedrockSonnet3ArnId: String,
 
   // Zwibbler
   zwibblerNodeUrl: String,
