@@ -2,20 +2,23 @@ import moment from 'moment'
 import 'moment-timezone'
 import { Job } from 'bull'
 import * as db from '../db'
-import {
-  getAvailabilityForVolunteerByDate,
-  saveAvailabilityAsHistoryByDate,
-} from '../models/Availability'
 import { getVolunteerIdsForElapsedAvailability } from '../models/Volunteer/queries'
 import { Jobs } from '../worker/jobs'
 import { log } from '../worker/logger'
-import countAvailabilitySelected from '../utils/count-availability-selected'
 import { asString } from '../utils/type-utils'
 
 type BackfillAvailabilityHistoriesData = {
-  // Example: '2025-09-01'
+  // Inclusive - Example: '2025-09-01'
   fromDate: string
+  // Exclusive - Example: '2025-09-03' will have last record processed as '2025-09-02'
   toDate?: string
+}
+
+type AvailabilityRow = {
+  available_start: number
+  available_end: number
+  timezone: string
+  weekday: string
 }
 
 async function hasAvailabilityHistoryAtRecordedAt(
@@ -34,6 +37,84 @@ async function hasAvailabilityHistoryAtRecordedAt(
     [userId, recordedAt]
   )
   return rows[0]?.exists === true
+}
+
+async function getAvailabilityHistoryRowsAtOrBefore(
+  userId: string,
+  recordedAt: Date
+): Promise<AvailabilityRow[]> {
+  const { rows } = await db.getClient().query(
+    `
+    SELECT
+        ah.available_start,
+        ah.available_end,
+        ah.timezone,
+        weekdays.day AS weekday
+    FROM
+        availability_histories ah
+        JOIN weekdays ON weekdays.id = ah.weekday_id
+    WHERE
+        ah.user_id = $1
+        AND ah.recorded_at = (
+            SELECT
+                MAX(recorded_at)
+            FROM
+                availability_histories
+            WHERE
+                user_id = $1
+                AND recorded_at <= $2);
+    `,
+    [userId, recordedAt]
+  )
+  return rows
+}
+
+async function insertAvailabilityHistoryRows(
+  userId: string,
+  recordedAt: Date,
+  rows: AvailabilityRow[]
+): Promise<number> {
+  if (rows.length === 0) return 0
+
+  const startTimes: number[] = []
+  const endTimes: number[] = []
+  const days: string[] = []
+
+  for (const row of rows) {
+    startTimes.push(row.available_start)
+    endTimes.push(row.available_end)
+    days.push(row.weekday)
+  }
+  const timezone = rows[0]?.timezone
+
+  const results = await db.getClient().query(
+    `
+      WITH args AS (
+          SELECT
+              $1::uuid AS user_id,
+              $2::timestamptz AS recorded_at,
+              $6::text AS timezone)
+      INSERT INTO availability_histories (id, user_id, recorded_at, available_start, available_end, timezone, weekday_id, created_at, updated_at)
+      SELECT
+          generate_ulid (),
+          args.user_id,
+          args.recorded_at,
+          time_ranges.available_start,
+          time_ranges.available_end,
+          args.timezone,
+          weekdays.id,
+          NOW(),
+          NOW()
+      FROM
+          args
+          JOIN unnest($3::int[], $4::int[], $5::text[]) AS time_ranges (available_start,
+              available_end,
+              weekday_name) ON TRUE
+          JOIN weekdays ON weekdays.day = time_ranges.weekday_name;
+    `,
+    [userId, recordedAt, startTimes, endTimes, days, timezone]
+  )
+  return results.rowCount ?? 0
 }
 
 export default async function backfillAvailabilityHistories(
@@ -64,7 +145,7 @@ export default async function backfillAvailabilityHistories(
 
   const volunteerIds = await getVolunteerIdsForElapsedAvailability()
   const errors: string[] = []
-  let totalUpdated = 0
+  let totalRowsInserted = 0
 
   while (snapshotTimeEt.isBefore(endSnapshotTimeEt)) {
     const snapshotTimeUtc = snapshotTimeEt.clone().utc().toDate()
@@ -85,16 +166,21 @@ export default async function backfillAvailabilityHistories(
         )
         if (alreadyHasSnapshot) continue
 
-        // Grab the most recent availability snapshot time instant
-        const availability = await getAvailabilityForVolunteerByDate(
+        // Grab the most recent availability snapshots and duplicate them for today's
+        // daily snapshot. Note: This could grab either the daily snapshot, or the
+        // snapshot taken when the user changes their availability.
+        const rows = await getAvailabilityHistoryRowsAtOrBefore(
           volunteerId,
           snapshotTimeUtc
         )
-        if (!availability || countAvailabilitySelected(availability) === 0)
-          continue
+        if (rows.length === 0) continue
 
-        await saveAvailabilityAsHistoryByDate(volunteerId, snapshotTimeUtc)
-        totalUpdated += 1
+        const insertedRows = await insertAvailabilityHistoryRows(
+          volunteerId,
+          snapshotTimeUtc,
+          rows
+        )
+        if (insertedRows > 0) totalRowsInserted += insertedRows
       } catch (error) {
         errors.push(
           `${Jobs.BackfillAvailabilityHistories}: snapshot ${snapshotTimeUtc.toISOString()} for volunteer ${volunteerId} failed: ${error}`
@@ -107,7 +193,7 @@ export default async function backfillAvailabilityHistories(
   }
 
   log(
-    `${Jobs.BackfillAvailabilityHistories}: inserted ${totalUpdated} history rows`
+    `${Jobs.BackfillAvailabilityHistories}: inserted ${totalRowsInserted} history rows`
   )
 
   if (errors.length)
