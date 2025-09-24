@@ -477,7 +477,7 @@ RETURNING
 UPDATE
     volunteer_profiles
 SET
-    elapsed_availability = COALESCE(:elapsedAvailability!::int, 0),
+    elapsed_availability = :elapsedAvailability!::int,
     updated_at = NOW()
 WHERE
     user_id = :userId!

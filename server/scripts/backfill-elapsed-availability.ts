@@ -34,6 +34,7 @@ export default async function backfillElapsedAvailability() {
         start,
         endUtc
       )
+      if (total === 0) continue
 
       await setVolunteerElapsedAvailabilityById(volunteerId, total)
       totalUpdated += 1

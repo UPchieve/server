@@ -1098,7 +1098,7 @@ export interface ISetVolunteerElapsedAvailabilityByIdQuery {
   result: ISetVolunteerElapsedAvailabilityByIdResult;
 }
 
-const setVolunteerElapsedAvailabilityByIdIR: any = {"usedParamSet":{"elapsedAvailability":true,"userId":true},"params":[{"name":"elapsedAvailability","required":true,"transform":{"type":"scalar"},"locs":[{"a":70,"b":90}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":145,"b":152}]}],"statement":"UPDATE\n    volunteer_profiles\nSET\n    elapsed_availability = COALESCE(:elapsedAvailability!::int, 0),\n    updated_at = NOW()\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok"};
+const setVolunteerElapsedAvailabilityByIdIR: any = {"usedParamSet":{"elapsedAvailability":true,"userId":true},"params":[{"name":"elapsedAvailability","required":true,"transform":{"type":"scalar"},"locs":[{"a":61,"b":81}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":132,"b":139}]}],"statement":"UPDATE\n    volunteer_profiles\nSET\n    elapsed_availability = :elapsedAvailability!::int,\n    updated_at = NOW()\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok"};
 
 /**
  * Query generated from SQL:
@@ -1106,7 +1106,7 @@ const setVolunteerElapsedAvailabilityByIdIR: any = {"usedParamSet":{"elapsedAvai
  * UPDATE
  *     volunteer_profiles
  * SET
- *     elapsed_availability = COALESCE(:elapsedAvailability!::int, 0),
+ *     elapsed_availability = :elapsedAvailability!::int,
  *     updated_at = NOW()
  * WHERE
  *     user_id = :userId!
