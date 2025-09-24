@@ -1,21 +1,18 @@
+import { Job } from 'bull'
 import {
   redisClient,
   getMemoryStatsByPattern,
 } from '../../services/RedisService'
 import logger from '../../logger'
 
-export async function logRedisKeyMemStats() {
-  const keyPatterns = [
-    'user-presence*',
-    'user-rewards*',
-    'quill*',
-    'zwibbler*',
-    'getting-started-assignments*',
-    'online:subject*',
-  ]
+export interface RedisKeyPatterns {
+  keyPatterns: string[]
+}
+
+export async function logRedisKeyMemStats(job: Job<RedisKeyPatterns>) {
   const stats = []
 
-  for (const keyPattern of keyPatterns) {
+  for (const keyPattern of job.data.keyPatterns) {
     stats.push(await getMemoryStatsByPattern(keyPattern, redisClient))
   }
 
