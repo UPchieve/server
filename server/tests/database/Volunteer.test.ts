@@ -32,6 +32,7 @@ import {
 } from '../mocks/generate'
 import { omit } from 'lodash'
 import { addFavoriteVolunteer } from '../../models/Student'
+import { createTestUser, createTestVolunteer } from './seed-utils'
 
 const client = getClient()
 const TIMEZONE = 'EST'
@@ -385,6 +386,15 @@ describe('VolunteerRepo', () => {
   })
 
   describe('getVolunteerContactInfoById', () => {
+    it('does not return a deleted volunteer', async() => {
+      const user = await createTestUser(client)
+      await createTestVolunteer(user.id, client)
+      await client.query('UPDATE users SET deleted = TRUE WHERE id = $1', [user.id])
+
+      const result = await getVolunteerContactInfoById(user.id)
+      expect(result).toBe(undefined)
+    })
+
     it('Filters out volunteers based on testUser', async () => {
       const volunteer = await loadVolunteer()
       const queryForVolunteer = async () => {
@@ -557,7 +567,6 @@ describe('VolunteerRepo', () => {
 
   describe('updateVolunteerTrainingById', () => {
     const requiredMaterials = ['7b6a76', 'jsn832', 'ps87f9', 'jgu55k', 'fj8tzq']
-    const material = requiredMaterials[0]
     const upchieve101TrainingCourseId = 1
 
     it('Calculates progress/complete correctly when there are no completed REQUIRED materials', async () => {
@@ -701,6 +710,7 @@ const loadVolunteer = async (opts = {}): Promise<CreatedVolunteer> => {
     approved: true,
     onboarded: true,
     deactivated: false,
+    deleted: false,
     certificationSubjects: ['prealgebra'],
     withFullAvailability: true,
     partner: undefined,

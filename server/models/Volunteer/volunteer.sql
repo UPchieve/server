@@ -19,6 +19,7 @@ WHERE
             AND users.ban_type IS DISTINCT FROM 'complete'))
     AND (:deactivated::boolean IS NULL
         OR users.deactivated = :deactivated::boolean)
+    AND deleted IS FALSE
     AND (:testUser::boolean IS NULL
         OR users.test_user = :testUser::boolean);
 
@@ -40,6 +41,7 @@ WHERE
     AND users.banned IS FALSE
     AND users.ban_type IS DISTINCT FROM 'complete'
     AND users.deactivated IS FALSE
+    AND users.deleted IS FALSE
     AND users.test_user IS FALSE;
 
 

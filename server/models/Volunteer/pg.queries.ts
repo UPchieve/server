@@ -35,7 +35,7 @@ export interface IGetVolunteerContactInfoByIdQuery {
   result: IGetVolunteerContactInfoByIdResult;
 }
 
-const getVolunteerContactInfoByIdIR: any = {"usedParamSet":{"userId":true,"banned":true,"deactivated":true,"testUser":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":352,"b":359}]},{"name":"banned","required":false,"transform":{"type":"scalar"},"locs":[{"a":370,"b":376},{"a":407,"b":413},{"a":489,"b":495}]},{"name":"deactivated","required":false,"transform":{"type":"scalar"},"locs":[{"a":585,"b":596},{"a":646,"b":657}]},{"name":"testUser","required":false,"transform":{"type":"scalar"},"locs":[{"a":678,"b":686},{"a":734,"b":742}]}],"statement":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    phone,\n    email,\n    volunteer_partner_orgs.key AS volunteer_partner_org\nFROM\n    users\n    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\nWHERE\n    users.id = :userId!\n    AND (:banned::boolean IS NULL\n        OR (:banned::boolean IS TRUE\n            AND users.ban_type = 'complete')\n        OR (:banned::boolean IS FALSE\n            AND users.ban_type IS DISTINCT FROM 'complete'))\n    AND (:deactivated::boolean IS NULL\n        OR users.deactivated = :deactivated::boolean)\n    AND (:testUser::boolean IS NULL\n        OR users.test_user = :testUser::boolean)"};
+const getVolunteerContactInfoByIdIR: any = {"usedParamSet":{"userId":true,"banned":true,"deactivated":true,"testUser":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":352,"b":359}]},{"name":"banned","required":false,"transform":{"type":"scalar"},"locs":[{"a":370,"b":376},{"a":407,"b":413},{"a":489,"b":495}]},{"name":"deactivated","required":false,"transform":{"type":"scalar"},"locs":[{"a":585,"b":596},{"a":646,"b":657}]},{"name":"testUser","required":false,"transform":{"type":"scalar"},"locs":[{"a":703,"b":711},{"a":759,"b":767}]}],"statement":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    phone,\n    email,\n    volunteer_partner_orgs.key AS volunteer_partner_org\nFROM\n    users\n    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\nWHERE\n    users.id = :userId!\n    AND (:banned::boolean IS NULL\n        OR (:banned::boolean IS TRUE\n            AND users.ban_type = 'complete')\n        OR (:banned::boolean IS FALSE\n            AND users.ban_type IS DISTINCT FROM 'complete'))\n    AND (:deactivated::boolean IS NULL\n        OR users.deactivated = :deactivated::boolean)\n    AND deleted IS FALSE\n    AND (:testUser::boolean IS NULL\n        OR users.test_user = :testUser::boolean)"};
 
 /**
  * Query generated from SQL:
@@ -60,6 +60,7 @@ const getVolunteerContactInfoByIdIR: any = {"usedParamSet":{"userId":true,"banne
  *             AND users.ban_type IS DISTINCT FROM 'complete'))
  *     AND (:deactivated::boolean IS NULL
  *         OR users.deactivated = :deactivated::boolean)
+ *     AND deleted IS FALSE
  *     AND (:testUser::boolean IS NULL
  *         OR users.test_user = :testUser::boolean)
  * ```
@@ -88,7 +89,7 @@ export interface IGetVolunteerContactInfoByIdsQuery {
   result: IGetVolunteerContactInfoByIdsResult;
 }
 
-const getVolunteerContactInfoByIdsIR: any = {"usedParamSet":{"userIds":true},"params":[{"name":"userIds","required":true,"transform":{"type":"scalar"},"locs":[{"a":357,"b":365}]}],"statement":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    phone,\n    email,\n    volunteer_partner_orgs.key AS volunteer_partner_org\nFROM\n    users\n    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\nWHERE\n    users.id = ANY (:userIds!)\n    AND users.banned IS FALSE\n    AND users.ban_type IS DISTINCT FROM 'complete'\n    AND users.deactivated IS FALSE\n    AND users.test_user IS FALSE                                                                                                                                                            "};
+const getVolunteerContactInfoByIdsIR: any = {"usedParamSet":{"userIds":true},"params":[{"name":"userIds","required":true,"transform":{"type":"scalar"},"locs":[{"a":357,"b":365}]}],"statement":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    phone,\n    email,\n    volunteer_partner_orgs.key AS volunteer_partner_org\nFROM\n    users\n    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\nWHERE\n    users.id = ANY (:userIds!)\n    AND users.banned IS FALSE\n    AND users.ban_type IS DISTINCT FROM 'complete'\n    AND users.deactivated IS FALSE\n    AND users.deleted IS FALSE\n    AND users.test_user IS FALSE                                                                                                                                                            "};
 
 /**
  * Query generated from SQL:
@@ -109,6 +110,7 @@ const getVolunteerContactInfoByIdsIR: any = {"usedParamSet":{"userIds":true},"pa
  *     AND users.banned IS FALSE
  *     AND users.ban_type IS DISTINCT FROM 'complete'
  *     AND users.deactivated IS FALSE
+ *     AND users.deleted IS FALSE
  *     AND users.test_user IS FALSE                                                                                                                                                            
  * ```
  */
