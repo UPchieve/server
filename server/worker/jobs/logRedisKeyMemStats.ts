@@ -65,5 +65,5 @@ export async function logRedisKeyMemStats(job: Job<RedisKeyPatterns>) {
     stats.push(await getMemoryStatsByPattern(keyPattern, redisClient))
   }
 
-  logger.info(stats)
+  logger.info(stats, 'Redis Keys Memory Stats')
 }
