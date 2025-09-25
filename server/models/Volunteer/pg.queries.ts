@@ -170,8 +170,7 @@ export const getVolunteersForBlackoutOver = new PreparedQuery<IGetVolunteersForB
 
 /** 'GetVolunteerForQuickTips' parameters type */
 export interface IGetVolunteerForQuickTipsParams {
-  mongoUserId?: string | null | void;
-  userId?: string | null | void;
+  userId: string;
 }
 
 /** 'GetVolunteerForQuickTips' return type */
@@ -190,7 +189,7 @@ export interface IGetVolunteerForQuickTipsQuery {
   result: IGetVolunteerForQuickTipsResult;
 }
 
-const getVolunteerForQuickTipsIR: any = {"usedParamSet":{"userId":true,"mongoUserId":true},"params":[{"name":"userId","required":false,"transform":{"type":"scalar"},"locs":[{"a":350,"b":356}]},{"name":"mongoUserId","required":false,"transform":{"type":"scalar"},"locs":[{"a":388,"b":399}]}],"statement":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    phone,\n    email,\n    volunteer_partner_orgs.key AS volunteer_partner_org\nFROM\n    users\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\nWHERE (users.id::uuid = :userId\n    OR users.mongo_id::text = :mongoUserId)\nAND volunteer_profiles.onboarded IS TRUE\nAND users.banned IS FALSE\nAND users.ban_type IS DISTINCT FROM 'complete'\nAND users.deactivated IS FALSE\nAND users.test_user IS FALSE"};
+const getVolunteerForQuickTipsIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":347,"b":354}]}],"statement":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    phone,\n    email,\n    volunteer_partner_orgs.key AS volunteer_partner_org\nFROM\n    users\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\nWHERE\n    users.id = :userId!\n    AND volunteer_profiles.onboarded IS TRUE\n    AND users.banned IS FALSE\n    AND users.ban_type IS DISTINCT FROM 'complete'\n    AND users.deactivated IS FALSE\n    AND users.deleted IS FALSE\n    AND users.test_user IS FALSE"};
 
 /**
  * Query generated from SQL:
@@ -206,13 +205,14 @@ const getVolunteerForQuickTipsIR: any = {"usedParamSet":{"userId":true,"mongoUse
  *     users
  *     JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
  *     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
- * WHERE (users.id::uuid = :userId
- *     OR users.mongo_id::text = :mongoUserId)
- * AND volunteer_profiles.onboarded IS TRUE
- * AND users.banned IS FALSE
- * AND users.ban_type IS DISTINCT FROM 'complete'
- * AND users.deactivated IS FALSE
- * AND users.test_user IS FALSE
+ * WHERE
+ *     users.id = :userId!
+ *     AND volunteer_profiles.onboarded IS TRUE
+ *     AND users.banned IS FALSE
+ *     AND users.ban_type IS DISTINCT FROM 'complete'
+ *     AND users.deactivated IS FALSE
+ *     AND users.deleted IS FALSE
+ *     AND users.test_user IS FALSE
  * ```
  */
 export const getVolunteerForQuickTips = new PreparedQuery<IGetVolunteerForQuickTipsParams,IGetVolunteerForQuickTipsResult>(getVolunteerForQuickTipsIR);

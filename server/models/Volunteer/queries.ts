@@ -136,8 +136,7 @@ export async function getVolunteerForQuickTips(
   try {
     const vResult = await pgQueries.getVolunteerForQuickTips.run(
       {
-        userId: isPgId(userId) ? userId : undefined,
-        mongoUserId: isPgId(userId) ? undefined : userId,
+        userId,
       },
       getClient()
     )

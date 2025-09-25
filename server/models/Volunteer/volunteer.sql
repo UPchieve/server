@@ -82,13 +82,14 @@ FROM
     users
     JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
-WHERE (users.id::uuid = :userId
-    OR users.mongo_id::text = :mongoUserId)
-AND volunteer_profiles.onboarded IS TRUE
-AND users.banned IS FALSE
-AND users.ban_type IS DISTINCT FROM 'complete'
-AND users.deactivated IS FALSE
-AND users.test_user IS FALSE;
+WHERE
+    users.id = :userId!
+    AND volunteer_profiles.onboarded IS TRUE
+    AND users.banned IS FALSE
+    AND users.ban_type IS DISTINCT FROM 'complete'
+    AND users.deactivated IS FALSE
+    AND users.deleted IS FALSE
+    AND users.test_user IS FALSE;
 
 
 /* @name getPartnerVolunteerForLowHours */
