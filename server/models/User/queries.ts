@@ -828,3 +828,24 @@ export async function updatePreferredLanguageToUser(
     throw new RepoUpdateError(err)
   }
 }
+
+export async function updatePhoneAndSignupSource(
+  attrs: {
+    userId: Uuid
+    phone: string
+    signupSourceId: number
+    otherSignupSource?: string
+  },
+  tc?: TransactionClient
+) {
+  try {
+    const result = await pgQueries.updatePhoneAndSignupSource.run(
+      attrs,
+      tc ?? getClient()
+    )
+    if (!(result.length && makeRequired(result[0]).ok))
+      throw new RepoUpdateError('Update query did not return ok')
+  } catch (err) {
+    throw new RepoUpdateError(err)
+  }
+}

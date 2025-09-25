@@ -12,7 +12,7 @@ import {
 } from '../../models/User/'
 import { authPassport } from '../../utils/auth-utils'
 import { resError } from '../res-error'
-import { asString, asBoolean, asUlid } from '../../utils/type-utils'
+import { asString, asBoolean, asUlid, asNumber } from '../../utils/type-utils'
 import { extractUser } from '../extract-user'
 import { InputError, NotAllowedError } from '../../models/Errors'
 
@@ -358,4 +358,37 @@ export function routeUser(router: Router): void {
       }
     }
   )
+
+  router.put('/user/volunteer/complete-sso-signup', async function (req, res) {
+    try {
+      const user = extractUser(req)
+      if (!req.body.phone || req.body.phone.length === 0) {
+        throw new InputError('Phone number must be provided')
+      }
+      if (!req.body.signupSourceId) {
+        throw new InputError('Signup source must be provided')
+      }
+
+      const attrs: {
+        userId: string
+        phone: string
+        signupSourceId: number
+        otherSignupSource?: string
+      } = {
+        userId: user.id,
+        phone: req.body.phone,
+        signupSourceId: req.body.signupSourceId,
+      }
+
+      if (req.body.otherSignupSource) {
+        attrs.otherSignupSource = req.body.otherSignupSource
+      }
+
+      await UserService.updatePhoneAndSignupSource(attrs)
+
+      return res.sendStatus(201)
+    } catch (err) {
+      resError(res, err)
+    }
+  })
 }

@@ -2077,3 +2077,43 @@ const updatePreferredLanguageToUserIR: any = {"usedParamSet":{"preferredLanguage
 export const updatePreferredLanguageToUser = new PreparedQuery<IUpdatePreferredLanguageToUserParams,IUpdatePreferredLanguageToUserResult>(updatePreferredLanguageToUserIR);
 
 
+/** 'UpdatePhoneAndSignupSource' parameters type */
+export interface IUpdatePhoneAndSignupSourceParams {
+  otherSignupSource?: string | null | void;
+  phone: string;
+  signupSourceId: number;
+  userId?: string | null | void;
+}
+
+/** 'UpdatePhoneAndSignupSource' return type */
+export interface IUpdatePhoneAndSignupSourceResult {
+  ok: string;
+}
+
+/** 'UpdatePhoneAndSignupSource' query type */
+export interface IUpdatePhoneAndSignupSourceQuery {
+  params: IUpdatePhoneAndSignupSourceParams;
+  result: IUpdatePhoneAndSignupSourceResult;
+}
+
+const updatePhoneAndSignupSourceIR: any = {"usedParamSet":{"phone":true,"signupSourceId":true,"otherSignupSource":true,"userId":true},"params":[{"name":"phone","required":true,"transform":{"type":"scalar"},"locs":[{"a":33,"b":39}]},{"name":"signupSourceId","required":true,"transform":{"type":"scalar"},"locs":[{"a":65,"b":80}]},{"name":"otherSignupSource","required":false,"transform":{"type":"scalar"},"locs":[{"a":109,"b":126}]},{"name":"userId","required":false,"transform":{"type":"scalar"},"locs":[{"a":173,"b":179}]}],"statement":"UPDATE\n    users\nSET\n    phone = :phone!,\n    signup_source_id = :signupSourceId!,\n    other_signup_source = :otherSignupSource,\n    updated_at = NOW()\nWHERE\n    users.id = :userId\nRETURNING\n    id AS ok"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE
+ *     users
+ * SET
+ *     phone = :phone!,
+ *     signup_source_id = :signupSourceId!,
+ *     other_signup_source = :otherSignupSource,
+ *     updated_at = NOW()
+ * WHERE
+ *     users.id = :userId
+ * RETURNING
+ *     id AS ok
+ * ```
+ */
+export const updatePhoneAndSignupSource = new PreparedQuery<IUpdatePhoneAndSignupSourceParams,IUpdatePhoneAndSignupSourceResult>(updatePhoneAndSignupSourceIR);
+
+

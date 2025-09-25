@@ -929,3 +929,17 @@ WHERE
 RETURNING
     id AS ok;
 
+
+/* @name updatePhoneAndSignupSource */
+UPDATE
+    users
+SET
+    phone = :phone!,
+    signup_source_id = :signupSourceId!,
+    other_signup_source = :otherSignupSource,
+    updated_at = NOW()
+WHERE
+    users.id = :userId
+RETURNING
+    id AS ok;
+
