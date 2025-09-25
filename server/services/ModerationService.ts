@@ -1155,9 +1155,8 @@ async function getAllImageModerationFailures({
 
   if (
     isEmpty(moderationFailureReasons) &&
-    isEmpty(minorFailures) &&
     isEmpty(textModerationFailureReasons) &&
-    !isEmpty(detectPersonResponse)
+    (!isEmpty(minorFailures) || !isEmpty(detectPersonResponse))
   ) {
     const noEducationalContext = await detectImageEducationPurpose(
       image,
@@ -1173,7 +1172,6 @@ async function getAllImageModerationFailures({
   return {
     failureReasons: [
       ...moderationFailureReasons,
-      ...minorFailures,
       ...textModerationFailureReasons,
     ],
   }
