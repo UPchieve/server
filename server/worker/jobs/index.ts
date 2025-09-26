@@ -63,9 +63,10 @@ import emailBecomeAnAmbassador from './emailBecomeAnAmbassador'
 import emailReferralSignUpCelebration from './emailReferralSignupCelebration'
 import maybeSendStudentFeedbackToVolunteer from './volunteer-emails/maybeSendStudentFeedbackToVolunteer'
 import emailNationalTutorCertificate from './emailNationalTutorCertificate'
-import sendVolunteerFeedback from './student-emails/sendVolunteerFeedback'
 import addScheduledJobs from './addScheduledJobs'
 import emailAmbassadorCongrats from './emailAmbassadorCongrats'
+import backfillOnboardedStatus from './backfillOnboardedStatus'
+import { logRedisKeyMemStats } from './logRedisKeyMemStats'
 
 export enum Jobs {
   AddScheduledJobs = 'AddScheduledJobs',
@@ -131,13 +132,13 @@ export enum Jobs {
   ModerateSessionTranscript = 'ModerateSessionTranscript',
   NotifyTutors = 'NotifyTutors',
   ProcessSessionEnded = 'ProcessSessionEnded',
+  RedisKeyMemStats = 'RedisKeyMemStats',
   SendAmbassadorCongratsEmail = 'SendAmbassadorCongratsEmail',
   SendBecomeAnAmbassadorEmail = 'SendBecomeAnAmbassadorEmail',
   SendFollowupText = 'SendFollowupText',
   SendNationalTutorCertificateEmail = 'SendNationalTutorCertificateEmail',
   SendReferralSignUpCelebrationEmail = 'SendReferralSignUpCelebrationEmail',
   SendSessionRecapMessageNotification = 'SendSessionRecapMessageNotification',
-  SendVolunteerFeedbackToStudent = 'SendVolunteerFeedbackToStudent',
   SendWeeklyHourSummaryApology = 'SendWeeklyHourSummaryApology',
   SpawnEmailWeeklyHourSummaryJobs = 'SpawnEmailWeeklyHourSummaryJobs',
   TitlecaseSchoolNames = 'TitlecaseSchoolNames',
@@ -148,6 +149,7 @@ export enum Jobs {
   UpdateTotalVolunteerHours = 'UpdateTotalVolunteerHours',
   UpsertPostalCodes = 'UpsertPostalCodes',
   UpsertSchools = 'UpsertSchools',
+  BackfillOnboardedStatus = 'BackfillOnboardedStatus',
 }
 
 // register new job processors here
@@ -389,6 +391,7 @@ const jobProcessors: JobProcessor[] = [
     name: Jobs.ProcessSessionEnded,
     processor: processSessionEnded,
   },
+  { name: Jobs.RedisKeyMemStats, processor: logRedisKeyMemStats },
   {
     name: Jobs.SendAmbassadorCongratsEmail,
     processor: emailAmbassadorCongrats,
@@ -412,10 +415,6 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.SendSessionRecapMessageNotification,
     processor: sendSessionRecapMessageNotification,
-  },
-  {
-    name: Jobs.SendVolunteerFeedbackToStudent,
-    processor: sendVolunteerFeedback,
   },
   {
     name: Jobs.SendWeeklyHourSummaryApology,
@@ -456,6 +455,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.UpsertSchools,
     processor: upsertSchools,
+  },
+  {
+    name: Jobs.BackfillOnboardedStatus,
+    processor: backfillOnboardedStatus,
   },
 ]
 

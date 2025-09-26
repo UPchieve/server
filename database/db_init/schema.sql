@@ -1,3 +1,7 @@
+
+-- Dumped from database version 14.19 (Debian 14.19-1.pgdg13+1)
+-- Dumped by pg_dump version 14.19 (Ubuntu 14.19-0ubuntu0.22.04.1)
+
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -1415,6 +1419,37 @@ ALTER SEQUENCE upchieve.quizzes_id_seq OWNED BY upchieve.quizzes.id;
 
 
 --
+-- Name: referrals; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.referrals (
+    id integer NOT NULL,
+    referred_by uuid,
+    user_id uuid
+);
+
+
+--
+-- Name: referrals_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+CREATE SEQUENCE upchieve.referrals_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: referrals_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
+--
+
+ALTER SEQUENCE upchieve.referrals_id_seq OWNED BY upchieve.referrals.id;
+
+
+--
 -- Name: report_reasons; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -1498,7 +1533,7 @@ CREATE TABLE upchieve.schools (
     name text NOT NULL,
     approved boolean DEFAULT false NOT NULL,
     partner boolean DEFAULT false NOT NULL,
-    city_id integer,
+    city_id integer NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     mongo_id character varying(24),
@@ -2604,7 +2639,8 @@ CREATE TABLE upchieve.users (
     proxy_email text,
     ban_type upchieve.ban_types,
     preferred_language_code text,
-    preferred_language text
+    preferred_language text,
+    deleted boolean DEFAULT false
 );
 
 
@@ -3045,6 +3081,13 @@ ALTER TABLE ONLY upchieve.quiz_subcategories ALTER COLUMN id SET DEFAULT nextval
 --
 
 ALTER TABLE ONLY upchieve.quizzes ALTER COLUMN id SET DEFAULT nextval('upchieve.quizzes_id_seq'::regclass);
+
+
+--
+-- Name: referrals id; Type: DEFAULT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.referrals ALTER COLUMN id SET DEFAULT nextval('upchieve.referrals_id_seq'::regclass);
 
 
 --
@@ -3761,6 +3804,14 @@ ALTER TABLE ONLY upchieve.quizzes
 
 ALTER TABLE ONLY upchieve.quizzes
     ADD CONSTRAINT quizzes_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: referrals referrals_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.referrals
+    ADD CONSTRAINT referrals_pkey PRIMARY KEY (id);
 
 
 --
@@ -5363,6 +5414,22 @@ ALTER TABLE ONLY upchieve.quiz_subcategories
 
 
 --
+-- Name: referrals referrals_referred_by_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.referrals
+    ADD CONSTRAINT referrals_referred_by_fkey FOREIGN KEY (referred_by) REFERENCES upchieve.users(id);
+
+
+--
+-- Name: referrals referrals_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.referrals
+    ADD CONSTRAINT referrals_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
+
+
+--
 -- Name: required_email_domains required_email_domains_volunteer_partner_org_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -6279,6 +6346,7 @@ ALTER TABLE ONLY upchieve.volunteer_references
 --
 
 
+
 --
 -- Dbmate schema migrations
 --
@@ -6508,4 +6576,7 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20250716141321'),
     ('20250801141806'),
     ('20250812230022'),
-    ('20250818220035');
+    ('20250818220035'),
+    ('20250825164601'),
+    ('20250918185105'),
+    ('20250922200444');

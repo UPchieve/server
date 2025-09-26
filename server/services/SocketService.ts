@@ -3,10 +3,7 @@ import { difference, intersection } from 'lodash'
 import type { RemoteSocket } from 'socket.io'
 import logger from '../logger'
 import { Ulid, Uuid } from '../models/pgUtils'
-import {
-  getUnfulfilledSessions,
-  UnfulfilledSessions,
-} from '../models/Session/queries'
+import { getUnfulfilledSessions } from '../models/Session/queries'
 import getSessionRoom from '../utils/get-session-room'
 import { ProgressReport } from '../services/ProgressReportsService'
 import { addDocEditorVersionTo } from './SessionService'
@@ -15,7 +12,6 @@ import { TransactionClient } from '../db'
 import * as SessionService from '../services/SessionService'
 import { backOff } from 'exponential-backoff'
 import { UserContactInfo } from '../models/User'
-import * as cache from '../cache'
 
 // TODO: Remove class wrapper.
 class SocketService {
@@ -90,19 +86,8 @@ class SocketService {
       .emit('sessions/partner:in-session', !!userSocketsInSession.length)
   }
 
-  async getSessionsWithGoals(sessions: UnfulfilledSessions[]) {
-    const goalSettingSessionIds = await cache.smembers('goalSettingSessions')
-    const sessionsWithGoals = sessions.map((session) =>
-      goalSettingSessionIds.includes(session.id)
-        ? { ...session, isGoalSettingSession: true }
-        : session
-    )
-    return sessionsWithGoals
-  }
-
   private async updateSessionList(tc?: TransactionClient): Promise<void> {
-    let sessions = await getUnfulfilledSessions(tc)
-    sessions = await this.getSessionsWithGoals(sessions)
+    const sessions = await getUnfulfilledSessions(tc)
     this.io.in('volunteers').emit('sessions', sessions)
   }
 

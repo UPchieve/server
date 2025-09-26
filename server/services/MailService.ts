@@ -19,6 +19,7 @@ import { getPublicUPFByUserId } from '../models/UserProductFlags'
 import { buildAppLink } from '../utils/link-builders'
 import { isDevEnvironment, isE2eEnvironment } from '../utils/environments'
 import logger from '../logger'
+import { getStudySlackCommunityEmailFeatureFlag } from './FeatureFlagService'
 
 sgMail.setApiKey(config.sendgrid.apiKey)
 
@@ -602,42 +603,6 @@ export async function sendPositiveStudentFeedbackEmailToVolunteer({
   )
 }
 
-export async function sendVolunteerFeedbackToStudent({
-  recipientEmail,
-  volunteerFirstName,
-  studentFirstName,
-  subject,
-  volunteerFeedback,
-  upchieveDashboardLink,
-}: {
-  recipientEmail: string
-  volunteerFirstName: string
-  subject: string
-  studentFirstName: string
-  volunteerFeedback: string
-  upchieveDashboardLink: string
-}): Promise<void> {
-  const templateId = config.sendgrid.volunteerFeedbackForStudent
-  const emailArgs = {
-    volunteerFirstName,
-    subject,
-    studentFirstName,
-    volunteerFeedback,
-    upchieveDashboardLink,
-  }
-
-  await sendEmail(
-    recipientEmail,
-    config.mail.senders.support,
-    'UPchieve',
-    templateId,
-    emailArgs,
-    {
-      categories: ['student feedback'],
-    }
-  )
-}
-
 export async function sendReferralSignUpCelebrationEmail(args: {
   userId: Ulid
   email: string
@@ -811,11 +776,18 @@ export async function sendNiceToMeetYou<V extends VolunteerContactInfo>(
     categories: ['nice to meet you email'],
   }
 
+  const isSlackCommunityEmailEnabled =
+    await getStudySlackCommunityEmailFeatureFlag(volunteer.id)
+
+  const templateId = isSlackCommunityEmailEnabled
+    ? config.sendgrid.niceToMeetYouNoSlackTemplate
+    : config.sendgrid.niceToMeetYouTemplate
+
   await sendEmail(
     volunteer.email,
     config.mail.senders.supportApp,
     config.mail.people.volunteerManager.firstName,
-    config.sendgrid.niceToMeetYouTemplate,
+    templateId,
     {
       firstName: capitalize(volunteer.firstName),
     },
@@ -1598,6 +1570,24 @@ export async function sendStudentFavoritedVolunteerEmail(
     {
       firstName: volunteerFirstName,
       studentName: studentFirstName,
+    }
+  )
+}
+
+export async function sendBackfillNowReadyToCoachEmail(
+  email: string,
+  volunteerFirstName: string
+) {
+  await sendEmail(
+    email,
+    config.mail.senders.support,
+    'UPchieve',
+    config.sendgrid.onboardingBackfillReadyToCoachEmail,
+    {
+      firstName: volunteerFirstName,
+    },
+    {
+      categories: ['onboarding-backfill-now-ready-to-coach-email'],
     }
   )
 }

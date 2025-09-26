@@ -102,8 +102,8 @@ describe('getPartnerSchools', () => {
     // Insert a new school student partner org with sites.
     const schoolId = (
       await client.query(
-        'INSERT INTO schools (id, name, approved, partner) VALUES ($1, $2, $3, $4) RETURNING id',
-        [getDbUlid(), 'School with Sites', 'true', 'true']
+        'INSERT INTO schools (id, name, city_id, approved, partner) VALUES ($1, $2, $3, $4, $5) RETURNING id',
+        [getDbUlid(), 'School with Sites', 1, 'true', 'true']
       )
     ).rows[0].id
     const spoId = (

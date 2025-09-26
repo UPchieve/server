@@ -266,8 +266,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       newrelic.startWebTransaction('/socket-io/list', () =>
         new Promise<void>(async (resolve, reject) => {
           try {
-            let sessions = await SessionRepo.getUnfulfilledSessions()
-            sessions = await socketService.getSessionsWithGoals(sessions)
+            const sessions = await SessionRepo.getUnfulfilledSessions()
             socket.emit('sessions', sessions)
             callback({
               status: 200,
