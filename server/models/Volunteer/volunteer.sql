@@ -291,18 +291,6 @@ GROUP BY
     volunteer_partner_org;
 
 
-/* @name getVolunteersNotifiedSinceDate */
-SELECT
-    users.id
-FROM
-    users
-    LEFT JOIN notifications ON users.id = notifications.user_id
-GROUP BY
-    users.id
-HAVING
-    MAX(notifications.sent_at) > :sinceDate!;
-
-
 /* @name getVolunteersNotifiedBySessionId */
 SELECT
     notifications.user_id

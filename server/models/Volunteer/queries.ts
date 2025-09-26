@@ -447,20 +447,6 @@ export async function getVolunteersForTelecomReport(
   }
 }
 
-export async function getVolunteersNotifiedSinceDate(
-  sinceDate: Date
-): Promise<Ulid[]> {
-  try {
-    const result = await pgQueries.getVolunteersNotifiedSinceDate.run(
-      { sinceDate },
-      getClient()
-    )
-    return result.map((v) => makeRequired(v).id)
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
 export async function getVolunteersNotifiedBySessionId(
   sessionId: Ulid
 ): Promise<Ulid[]> {

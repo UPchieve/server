@@ -622,41 +622,6 @@ const getVolunteersForTelecomReportIR: any = {"usedParamSet":{"partnerOrg":true}
 export const getVolunteersForTelecomReport = new PreparedQuery<IGetVolunteersForTelecomReportParams,IGetVolunteersForTelecomReportResult>(getVolunteersForTelecomReportIR);
 
 
-/** 'GetVolunteersNotifiedSinceDate' parameters type */
-export interface IGetVolunteersNotifiedSinceDateParams {
-  sinceDate: DateOrString;
-}
-
-/** 'GetVolunteersNotifiedSinceDate' return type */
-export interface IGetVolunteersNotifiedSinceDateResult {
-  id: string;
-}
-
-/** 'GetVolunteersNotifiedSinceDate' query type */
-export interface IGetVolunteersNotifiedSinceDateQuery {
-  params: IGetVolunteersNotifiedSinceDateParams;
-  result: IGetVolunteersNotifiedSinceDateResult;
-}
-
-const getVolunteersNotifiedSinceDateIR: any = {"usedParamSet":{"sinceDate":true},"params":[{"name":"sinceDate","required":true,"transform":{"type":"scalar"},"locs":[{"a":161,"b":171}]}],"statement":"SELECT\n    users.id\nFROM\n    users\n    LEFT JOIN notifications ON users.id = notifications.user_id\nGROUP BY\n    users.id\nHAVING\n    MAX(notifications.sent_at) > :sinceDate!"};
-
-/**
- * Query generated from SQL:
- * ```
- * SELECT
- *     users.id
- * FROM
- *     users
- *     LEFT JOIN notifications ON users.id = notifications.user_id
- * GROUP BY
- *     users.id
- * HAVING
- *     MAX(notifications.sent_at) > :sinceDate!
- * ```
- */
-export const getVolunteersNotifiedSinceDate = new PreparedQuery<IGetVolunteersNotifiedSinceDateParams,IGetVolunteersNotifiedSinceDateResult>(getVolunteersNotifiedSinceDateIR);
-
-
 /** 'GetVolunteersNotifiedBySessionId' parameters type */
 export interface IGetVolunteersNotifiedBySessionIdParams {
   sessionId: string;
