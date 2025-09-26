@@ -220,8 +220,7 @@ export const getVolunteerForQuickTips = new PreparedQuery<IGetVolunteerForQuickT
 
 /** 'GetPartnerVolunteerForLowHours' parameters type */
 export interface IGetPartnerVolunteerForLowHoursParams {
-  mongoUserId?: string | null | void;
-  userId?: string | null | void;
+  userId: string;
 }
 
 /** 'GetPartnerVolunteerForLowHours' return type */
@@ -240,7 +239,7 @@ export interface IGetPartnerVolunteerForLowHoursQuery {
   result: IGetPartnerVolunteerForLowHoursResult;
 }
 
-const getPartnerVolunteerForLowHoursIR: any = {"usedParamSet":{"userId":true,"mongoUserId":true},"params":[{"name":"userId","required":false,"transform":{"type":"scalar"},"locs":[{"a":476,"b":482},{"a":535,"b":541}]},{"name":"mongoUserId","required":false,"transform":{"type":"scalar"},"locs":[{"a":573,"b":584}]}],"statement":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    phone,\n    email,\n    volunteer_partner_orgs.key AS volunteer_partner_org\nFROM\n    users\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\n    LEFT JOIN (\n        SELECT\n            COUNT(*)::int AS total\n        FROM\n            sessions\n        WHERE\n            sessions.volunteer_id = :userId) AS total_sessions ON TRUE\nWHERE (users.id::uuid = :userId\n    OR users.mongo_id::text = :mongoUserId)\nAND volunteer_profiles.onboarded IS TRUE\nAND volunteer_profiles.volunteer_partner_org_id IS NOT NULL\nAND users.banned IS FALSE\nAND users.ban_type IS DISTINCT FROM 'complete'\nAND users.deactivated IS FALSE\nAND total_sessions.total > 0\nAND users.test_user IS FALSE"};
+const getPartnerVolunteerForLowHoursIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":476,"b":482},{"a":532,"b":539}]}],"statement":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    phone,\n    email,\n    volunteer_partner_orgs.key AS volunteer_partner_org\nFROM\n    users\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\n    LEFT JOIN (\n        SELECT\n            COUNT(*)::int AS total\n        FROM\n            sessions\n        WHERE\n            sessions.volunteer_id = :userId) AS total_sessions ON TRUE\nWHERE\n    users.id = :userId!\n    AND volunteer_profiles.onboarded IS TRUE\n    AND volunteer_profiles.volunteer_partner_org_id IS NOT NULL\n    AND users.banned IS FALSE\n    AND users.ban_type IS DISTINCT FROM 'complete'\n    AND users.deactivated IS FALSE\n    AND users.deleted IS FALSE\n    AND total_sessions.total > 0\n    AND users.test_user IS FALSE"};
 
 /**
  * Query generated from SQL:
@@ -263,15 +262,16 @@ const getPartnerVolunteerForLowHoursIR: any = {"usedParamSet":{"userId":true,"mo
  *             sessions
  *         WHERE
  *             sessions.volunteer_id = :userId) AS total_sessions ON TRUE
- * WHERE (users.id::uuid = :userId
- *     OR users.mongo_id::text = :mongoUserId)
- * AND volunteer_profiles.onboarded IS TRUE
- * AND volunteer_profiles.volunteer_partner_org_id IS NOT NULL
- * AND users.banned IS FALSE
- * AND users.ban_type IS DISTINCT FROM 'complete'
- * AND users.deactivated IS FALSE
- * AND total_sessions.total > 0
- * AND users.test_user IS FALSE
+ * WHERE
+ *     users.id = :userId!
+ *     AND volunteer_profiles.onboarded IS TRUE
+ *     AND volunteer_profiles.volunteer_partner_org_id IS NOT NULL
+ *     AND users.banned IS FALSE
+ *     AND users.ban_type IS DISTINCT FROM 'complete'
+ *     AND users.deactivated IS FALSE
+ *     AND users.deleted IS FALSE
+ *     AND total_sessions.total > 0
+ *     AND users.test_user IS FALSE
  * ```
  */
 export const getPartnerVolunteerForLowHours = new PreparedQuery<IGetPartnerVolunteerForLowHoursParams,IGetPartnerVolunteerForLowHoursResult>(getPartnerVolunteerForLowHoursIR);
