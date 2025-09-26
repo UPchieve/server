@@ -356,6 +356,14 @@ FROM (
         name = 'submitted') AS subquery
 WHERE
     volunteer_references.id = :referenceId!
+    AND EXISTS (
+        SELECT
+            1
+        FROM
+            users
+        WHERE
+            users.id = volunteer_references.user_id
+            AND users.deleted IS FALSE)
 RETURNING
     volunteer_references.id AS ok;
 
