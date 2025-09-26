@@ -248,7 +248,7 @@ export type SessionsToReview = {
   id: Ulid
   _id: Ulid
   createdAt: Date
-  endedAt: Date
+  endedAt?: Date
   volunteer?: Ulid
   volunteerFirstName?: string
   totalMessages: number
@@ -282,6 +282,7 @@ export async function getSessionsToReview(
           'reviewReasons',
           'studentCounselingFeedback',
           'flags',
+          'endedAt',
         ])
         const studentRating = await getSessionRating(
           temp.id,
