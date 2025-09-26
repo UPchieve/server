@@ -259,37 +259,35 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
     socket.on('sessions/recap:leave', async ({ sessionId }) => {
       await observeWebTransaction(
         '/socket-io/sessions/recap:leave',
-        () =>
-          new Promise<void>((resolve, reject) => {
-            try {
-              socket.leave(getSessionRoom(sessionId))
-              delete socket.data.sessionId
-              resolve()
-            } catch (error) {
-              reject({ error, details: { sessionId } })
-            }
-          })
+        async () => {
+          socket.leave(getSessionRoom(sessionId))
+          delete socket.data.sessionId
+        }
       )
     })
 
     socket.on('list', async (_data, callback) => {
-      await observeWebTransaction(
-        '/socket-io/list',
-        () =>
-          new Promise<void>(async (resolve, reject) => {
-            try {
-              let sessions = await SessionRepo.getUnfulfilledSessions()
-              sessions = await socketService.getSessionsWithGoals(sessions)
-              socket.emit('sessions', sessions)
-              callback({
-                status: 200,
-                sessions,
-              })
-              resolve()
-            } catch (error) {
-              reject({ error })
-            }
-          })
+      await observeWebTransaction('/socket-io/list', () =>
+        new Promise<void>(async (resolve, reject) => {
+          try {
+            const sessions = await SessionRepo.getUnfulfilledSessions()
+            socket.emit('sessions', sessions)
+            callback({
+              status: 200,
+              sessions,
+            })
+            resolve()
+          } catch (error) {
+            reject(error)
+          }
+        }).catch((err) => {
+          logger.error(
+            {
+              error: err?.message,
+            },
+            'Promise rejected while handling "list" event'
+          )
+        })
       )
     })
 

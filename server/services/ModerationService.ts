@@ -165,7 +165,7 @@ async function detectImageEducationPurpose(
       generation = trace.generation({
         name: LangfuseGenerationName.IS_IMAGE_EDUCATIONAL,
         prompt: prompt.promptObject,
-        model: config.awsBedrockSonnetArnId,
+        model: config.awsBedrockSonnet3ArnId,
       })
     }
 
@@ -209,7 +209,7 @@ async function detectImageEducationPurpose(
       detectedLabels: [{ label: string; confidence: number }]
       reason: string
     } = await invokeModel({
-      modelId: config.awsBedrockSonnetArnId,
+      modelId: config.awsBedrockSonnet3ArnId,
       image: resizedImage,
       prompt: prompt.prompt,
       tools_option: {
@@ -645,7 +645,7 @@ async function checkForFullAddresses({
   reason: 'Address'
   details: { text: string; confidence: number; explanation: string }
 } | null> {
-  const modelId = config.awsBedrockHaikuId
+  const modelId = config.awsBedrockSonnet4Id
 
   const promptData = await getPromptData(
     LangfusePromptNameEnum.GET_ADDRESS_DETECTION_MODERATION_DECISION,
