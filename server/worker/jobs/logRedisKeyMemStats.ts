@@ -27,7 +27,7 @@ export async function getMemoryStatsByPattern(
       // Use reduce to accumulate total size and key count
       const { batchTotal, batchCount } = sizes.reduce(
         (acc, size) => {
-          if (size !== null) {
+          if (size) {
             acc.batchTotal += Number(size)
             acc.batchCount++
           }
