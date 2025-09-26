@@ -537,9 +537,9 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
           new Promise<void>(async (resolve, reject) => {
             try {
               await QuillDocService.addDocumentUpdate(sessionId, update)
-              socket
-                .to(getSessionRoom(sessionId))
-                .emit('partnerQuillDeltaV2', { update })
+              io.to(getSessionRoom(sessionId)).emit('partnerQuillDeltaV2', {
+                update,
+              })
               resolve()
             } catch {
               logger.error(
@@ -572,7 +572,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
              */
             delta.id = uuidv4()
             await QuillDocService.appendToDoc(sessionId, delta)
-            socket.to(getSessionRoom(sessionId)).emit('partnerQuillDelta', {
+            io.to(getSessionRoom(sessionId)).emit('partnerQuillDelta', {
               delta,
             })
             return resolve()
@@ -582,7 +582,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
 
     socket.on('transmitQuillSelection', async ({ sessionId, range }) => {
       newrelic.startWebTransaction('/socket-io/transmitQuillSelection', () => {
-        socket.to(getSessionRoom(sessionId)).emit('quillPartnerSelection', {
+        io.to(getSessionRoom(sessionId)).emit('quillPartnerSelection', {
           range,
         })
       })
@@ -665,8 +665,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
     socket.on('moderatingImage', async ({ sessionId }) => {
       newrelic.startWebTransaction('/socket-io/moderatingImage', async () => {
         const user = await extractSocketUser(socket)
-        socket
-          .to(getSessionRoom(sessionId))
+        io.to(getSessionRoom(sessionId))
           .except(user.id)
           .emit('partnerUploadingImage')
       })
@@ -679,8 +678,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
           '/socket-io/partnerImageUploadFailed',
           async () => {
             const user = await extractSocketUser(socket)
-            socket
-              .to(getSessionRoom(sessionId))
+            io.to(getSessionRoom(sessionId))
               .except(user.id)
               .emit('partnerImageUploadFailed', {
                 moderationFailures,
@@ -696,8 +694,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
         '/socket-io/partnerImageUploadSuccess',
         async () => {
           const user = await extractSocketUser(socket)
-          socket
-            .to(getSessionRoom(sessionId))
+          io.to(getSessionRoom(sessionId))
             .except(user.id)
             .emit('partnerImageUploadSuccess')
         }
