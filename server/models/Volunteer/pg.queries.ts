@@ -414,7 +414,7 @@ export interface IGetVolunteerIdsForElapsedAvailabilityQuery {
   result: IGetVolunteerIdsForElapsedAvailabilityResult;
 }
 
-const getVolunteerIdsForElapsedAvailabilityIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    user_id\nFROM\n    volunteer_profiles\n    JOIN users ON volunteer_profiles.user_id = users.id\nWHERE\n    users.deactivated IS FALSE\n    AND users.test_user IS FALSE\n    AND volunteer_profiles.onboarded IS TRUE\n    AND volunteer_profiles.approved IS TRUE"};
+const getVolunteerIdsForElapsedAvailabilityIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    user_id\nFROM\n    volunteer_profiles\n    JOIN users ON volunteer_profiles.user_id = users.id\nWHERE\n    users.deactivated IS FALSE\n    AND users.deleted IS FALSE\n    AND users.test_user IS FALSE\n    AND volunteer_profiles.onboarded IS TRUE\n    AND volunteer_profiles.approved IS TRUE"};
 
 /**
  * Query generated from SQL:
@@ -426,6 +426,7 @@ const getVolunteerIdsForElapsedAvailabilityIR: any = {"usedParamSet":{},"params"
  *     JOIN users ON volunteer_profiles.user_id = users.id
  * WHERE
  *     users.deactivated IS FALSE
+ *     AND users.deleted IS FALSE
  *     AND users.test_user IS FALSE
  *     AND volunteer_profiles.onboarded IS TRUE
  *     AND volunteer_profiles.approved IS TRUE
