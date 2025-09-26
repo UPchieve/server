@@ -66,6 +66,7 @@ import emailNationalTutorCertificate from './emailNationalTutorCertificate'
 import addScheduledJobs from './addScheduledJobs'
 import emailAmbassadorCongrats from './emailAmbassadorCongrats'
 import backfillOnboardedStatus from './backfillOnboardedStatus'
+import { logRedisKeyMemStats } from './logRedisKeyMemStats'
 
 export enum Jobs {
   AddScheduledJobs = 'AddScheduledJobs',
@@ -131,6 +132,7 @@ export enum Jobs {
   ModerateSessionTranscript = 'ModerateSessionTranscript',
   NotifyTutors = 'NotifyTutors',
   ProcessSessionEnded = 'ProcessSessionEnded',
+  RedisKeyMemStats = 'RedisKeyMemStats',
   SendAmbassadorCongratsEmail = 'SendAmbassadorCongratsEmail',
   SendBecomeAnAmbassadorEmail = 'SendBecomeAnAmbassadorEmail',
   SendFollowupText = 'SendFollowupText',
@@ -389,6 +391,7 @@ const jobProcessors: JobProcessor[] = [
     name: Jobs.ProcessSessionEnded,
     processor: processSessionEnded,
   },
+  { name: Jobs.RedisKeyMemStats, processor: logRedisKeyMemStats },
   {
     name: Jobs.SendAmbassadorCongratsEmail,
     processor: emailAmbassadorCongrats,
