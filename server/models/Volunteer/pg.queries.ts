@@ -296,7 +296,7 @@ export interface IGetVolunteersForWeeklyHourSummaryQuery {
   result: IGetVolunteersForWeeklyHourSummaryResult;
 }
 
-const getVolunteersForWeeklyHourSummaryIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    email,\n    volunteer_partner_orgs.key AS volunteer_partner_org,\n    sent_hour_summary_intro_email\nFROM\n    users\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\n    LEFT JOIN user_product_flags ON users.id = user_product_flags.user_id\nWHERE (volunteer_partner_orgs.id IS NULL\n    OR volunteer_partner_orgs.receive_weekly_hour_summary_email IS TRUE)\nAND users.banned IS FALSE\nAND users.ban_type IS DISTINCT FROM 'complete'\nAND users.deactivated IS FALSE\nAND users.test_user IS FALSE\nGROUP BY\n    users.id,\n    volunteer_partner_org,\n    sent_hour_summary_intro_email"};
+const getVolunteersForWeeklyHourSummaryIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    email,\n    volunteer_partner_orgs.key AS volunteer_partner_org,\n    sent_hour_summary_intro_email\nFROM\n    users\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\n    LEFT JOIN user_product_flags ON users.id = user_product_flags.user_id\nWHERE (volunteer_partner_orgs.id IS NULL\n    OR volunteer_partner_orgs.receive_weekly_hour_summary_email IS TRUE)\nAND users.banned IS FALSE\nAND users.ban_type IS DISTINCT FROM 'complete'\nAND users.deactivated IS FALSE\nAND users.deleted IS FALSE\nAND users.test_user IS FALSE\nGROUP BY\n    users.id,\n    volunteer_partner_org,\n    sent_hour_summary_intro_email"};
 
 /**
  * Query generated from SQL:
@@ -318,6 +318,7 @@ const getVolunteersForWeeklyHourSummaryIR: any = {"usedParamSet":{},"params":[],
  * AND users.banned IS FALSE
  * AND users.ban_type IS DISTINCT FROM 'complete'
  * AND users.deactivated IS FALSE
+ * AND users.deleted IS FALSE
  * AND users.test_user IS FALSE
  * GROUP BY
  *     users.id,
