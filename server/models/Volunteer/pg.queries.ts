@@ -481,6 +481,7 @@ export const getVolunteersForTotalHours = new PreparedQuery<IGetVolunteersForTot
 
 /** 'GetVolunteerForOnboardingById' parameters type */
 export interface IGetVolunteerForOnboardingByIdParams {
+  deactivated?: boolean | null | void;
   userId?: string | null | void;
 }
 
@@ -503,7 +504,7 @@ export interface IGetVolunteerForOnboardingByIdQuery {
   result: IGetVolunteerForOnboardingByIdResult;
 }
 
-const getVolunteerForOnboardingByIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":false,"transform":{"type":"scalar"},"locs":[{"a":1103,"b":1109},{"a":1658,"b":1664}]}],"statement":"WITH CTE AS (\n    SELECT\n        subjects.name,\n        COUNT(*)::int AS total\n    FROM\n        certification_subject_unlocks\n        JOIN subjects ON subjects.id = certification_subject_unlocks.subject_id\n    GROUP BY\n        subjects.name\n)\nSELECT\n    users.id,\n    email,\n    first_name,\n    volunteer_profiles.onboarded,\n    volunteer_profiles.approved,\n    COALESCE(array_agg(subjects_unlocked.subject) FILTER (WHERE subjects_unlocked.subject IS NOT NULL), '{}') AS subjects,\n    country,\n    MAX(availabilities.updated_at) AS availability_last_modified_at,\n    volunteer_partner_orgs.key AS volunteer_partner_org_key\nFROM\n    users\n    LEFT JOIN (\n        SELECT\n            subjects.name AS subject,\n            COUNT(*)::int AS earned_certs\n        FROM\n            users_certifications\n            JOIN certification_subject_unlocks USING (certification_id)\n            JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id\n            JOIN users ON users.id = users_certifications.user_id\n            JOIN CTE ON CTE.name = subjects.name\n        WHERE\n            users.id = :userId\n        GROUP BY\n            subjects.name, CTE.total) AS subjects_unlocked ON TRUE\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN availabilities ON availabilities.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\nWHERE\n    users.banned IS FALSE\n    AND users.ban_type IS DISTINCT FROM 'complete'\n    AND users.deactivated IS FALSE\n    AND users.test_user IS FALSE\n    AND volunteer_profiles.onboarded IS FALSE\n    AND users.id = :userId\nGROUP BY\n    users.id,\n    onboarded,\n    approved,\n    country,\n    volunteer_partner_org_key"};
+const getVolunteerForOnboardingByIdIR: any = {"usedParamSet":{"userId":true,"deactivated":true},"params":[{"name":"userId","required":false,"transform":{"type":"scalar"},"locs":[{"a":1103,"b":1109},{"a":1747,"b":1753}]},{"name":"deactivated","required":false,"transform":{"type":"scalar"},"locs":[{"a":1534,"b":1545},{"a":1595,"b":1606}]}],"statement":"WITH CTE AS (\n    SELECT\n        subjects.name,\n        COUNT(*)::int AS total\n    FROM\n        certification_subject_unlocks\n        JOIN subjects ON subjects.id = certification_subject_unlocks.subject_id\n    GROUP BY\n        subjects.name\n)\nSELECT\n    users.id,\n    email,\n    first_name,\n    volunteer_profiles.onboarded,\n    volunteer_profiles.approved,\n    COALESCE(array_agg(subjects_unlocked.subject) FILTER (WHERE subjects_unlocked.subject IS NOT NULL), '{}') AS subjects,\n    country,\n    MAX(availabilities.updated_at) AS availability_last_modified_at,\n    volunteer_partner_orgs.key AS volunteer_partner_org_key\nFROM\n    users\n    LEFT JOIN (\n        SELECT\n            subjects.name AS subject,\n            COUNT(*)::int AS earned_certs\n        FROM\n            users_certifications\n            JOIN certification_subject_unlocks USING (certification_id)\n            JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id\n            JOIN users ON users.id = users_certifications.user_id\n            JOIN CTE ON CTE.name = subjects.name\n        WHERE\n            users.id = :userId\n        GROUP BY\n            subjects.name, CTE.total) AS subjects_unlocked ON TRUE\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN availabilities ON availabilities.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\nWHERE\n    users.banned IS FALSE\n    AND users.ban_type IS DISTINCT FROM 'complete'\n    AND (:deactivated::boolean IS NULL\n        OR users.deactivated = :deactivated::boolean)\n    AND users.deleted IS FALSE\n    AND users.test_user IS FALSE\n    AND volunteer_profiles.onboarded IS FALSE\n    AND users.id = :userId\nGROUP BY\n    users.id,\n    onboarded,\n    approved,\n    country,\n    volunteer_partner_org_key"};
 
 /**
  * Query generated from SQL:
@@ -550,7 +551,9 @@ const getVolunteerForOnboardingByIdIR: any = {"usedParamSet":{"userId":true},"pa
  * WHERE
  *     users.banned IS FALSE
  *     AND users.ban_type IS DISTINCT FROM 'complete'
- *     AND users.deactivated IS FALSE
+ *     AND (:deactivated::boolean IS NULL
+ *         OR users.deactivated = :deactivated::boolean)
+ *     AND users.deleted IS FALSE
  *     AND users.test_user IS FALSE
  *     AND volunteer_profiles.onboarded IS FALSE
  *     AND users.id = :userId

@@ -251,7 +251,9 @@ FROM
 WHERE
     users.banned IS FALSE
     AND users.ban_type IS DISTINCT FROM 'complete'
-    AND users.deactivated IS FALSE
+    AND (:deactivated::boolean IS NULL
+        OR users.deactivated = :deactivated::boolean)
+    AND users.deleted IS FALSE
     AND users.test_user IS FALSE
     AND volunteer_profiles.onboarded IS FALSE
     AND users.id = :userId

@@ -12,7 +12,7 @@ interface OnboardingReminder {
 export default async (job: Job<OnboardingReminder>): Promise<void> => {
   const { name: currentJob } = job
   const volunteerId = asString(job.data.volunteerId)
-  const volunteer = await getVolunteerForOnboardingById(volunteerId)
+  const volunteer = await getVolunteerForOnboardingById(undefined, volunteerId)
 
   if (volunteer) {
     try {

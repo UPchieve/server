@@ -159,7 +159,7 @@ export async function getPartnerVolunteerForLowHours(
   try {
     const vResult = await pgQueries.getPartnerVolunteerForLowHours.run(
       {
-        userId
+        userId,
       },
       getClient()
     )
@@ -379,13 +379,17 @@ export type VolunteerForOnboarding = Pick<
   volunteerPartnerOrgKey?: string
 }
 export async function getVolunteerForOnboardingById(
+  tc: TransactionClient = getClient(),
   userId: Ulid,
-  tc: TransactionClient = getClient()
+  filters: {
+    includeDeactivated: boolean
+  } = { includeDeactivated: false }
 ): Promise<VolunteerForOnboarding | undefined> {
   try {
     const result = await pgQueries.getVolunteerForOnboardingById.run(
       {
         userId,
+        deactivated: filters.includeDeactivated ? null : false,
       },
       tc
     )

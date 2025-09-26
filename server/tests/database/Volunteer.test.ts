@@ -386,10 +386,12 @@ describe('VolunteerRepo', () => {
   })
 
   describe('getVolunteerContactInfoById', () => {
-    it('does not return a deleted volunteer', async() => {
+    it('does not return a deleted volunteer', async () => {
       const user = await createTestUser(client)
       await createTestVolunteer(user.id, client)
-      await client.query('UPDATE users SET deleted = TRUE WHERE id = $1', [user.id])
+      await client.query('UPDATE users SET deleted = TRUE WHERE id = $1', [
+        user.id,
+      ])
 
       const result = await getVolunteerContactInfoById(user.id)
       expect(result).toBe(undefined)
@@ -459,7 +461,7 @@ describe('VolunteerRepo', () => {
         }),
         client
       )
-      const actual = await getVolunteerForOnboardingById(volunteer.id, client)
+      const actual = await getVolunteerForOnboardingById(client, volunteer.id)
       expect(actual?.id).toEqual(volunteer.id)
       expect(actual?.hasCompletedUpchieve101).toBeTruthy()
     })
@@ -477,7 +479,7 @@ describe('VolunteerRepo', () => {
         }),
         client
       )
-      const actual = await getVolunteerForOnboardingById(volunteer.id, client)
+      const actual = await getVolunteerForOnboardingById(client, volunteer.id)
       expect(actual?.id).toEqual(volunteer.id)
       expect(actual?.hasCompletedUpchieve101).toBeTruthy()
     })
@@ -503,7 +505,7 @@ describe('VolunteerRepo', () => {
         }),
         client
       )
-      const actual = await getVolunteerForOnboardingById(volunteer.id, client)
+      const actual = await getVolunteerForOnboardingById(client, volunteer.id)
       expect(actual?.id).toEqual(volunteer.id)
       expect(actual?.hasCompletedUpchieve101).toBeTruthy()
     })
@@ -515,8 +517,8 @@ describe('VolunteerRepo', () => {
       })
 
       const firstActual = await getVolunteerForOnboardingById(
-        volunteer.id,
-        client
+        client,
+        volunteer.id
       )
       expect(firstActual?.id).toEqual(volunteer.id)
       expect(firstActual?.hasCompletedUpchieve101).toBeFalsy()
@@ -530,8 +532,8 @@ describe('VolunteerRepo', () => {
         client
       )
       const secondActual = await getVolunteerForOnboardingById(
-        volunteer.id,
-        client
+        client,
+        volunteer.id
       )
       expect(secondActual?.id).toEqual(volunteer.id)
       expect(secondActual?.hasCompletedUpchieve101).toBeFalsy()
@@ -545,8 +547,8 @@ describe('VolunteerRepo', () => {
         client
       )
       const thirdActual = await getVolunteerForOnboardingById(
-        volunteer.id,
-        client
+        client,
+        volunteer.id
       )
       expect(thirdActual?.id).toEqual(volunteer.id)
       expect(secondActual?.hasCompletedUpchieve101).toBeFalsy()
@@ -557,8 +559,8 @@ describe('VolunteerRepo', () => {
         [UPCHIEVE_101_QUIZ_ID, volunteer.id]
       )
       const fourthActual = await getVolunteerForOnboardingById(
-        volunteer.id,
-        client
+        client,
+        volunteer.id
       )
       expect(fourthActual?.id).toEqual(volunteer.id)
       expect(fourthActual?.hasCompletedUpchieve101).toBeTruthy()
