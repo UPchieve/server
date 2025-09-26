@@ -451,7 +451,7 @@ export interface IGetVolunteersForTotalHoursQuery {
   result: IGetVolunteersForTotalHoursResult;
 }
 
-const getVolunteersForTotalHoursIR: any = {"usedParamSet":{"targetPartnerOrgs":true},"params":[{"name":"targetPartnerOrgs","required":true,"transform":{"type":"scalar"},"locs":[{"a":334,"b":352}]}],"statement":"SELECT\n    users.id\nFROM\n    users\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\n    LEFT JOIN user_product_flags ON users.id = user_product_flags.user_id\nWHERE\n    volunteer_partner_orgs.key = ANY (:targetPartnerOrgs!)\n    AND volunteer_profiles.onboarded IS TRUE\n    AND volunteer_profiles.approved IS TRUE\n    AND users.banned IS FALSE\n    AND users.ban_type IS DISTINCT FROM 'complete'\n    AND users.deactivated IS FALSE\n    AND users.test_user IS FALSE\nGROUP BY\n    users.id"};
+const getVolunteersForTotalHoursIR: any = {"usedParamSet":{"targetPartnerOrgs":true},"params":[{"name":"targetPartnerOrgs","required":true,"transform":{"type":"scalar"},"locs":[{"a":334,"b":352}]}],"statement":"SELECT\n    users.id\nFROM\n    users\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\n    LEFT JOIN user_product_flags ON users.id = user_product_flags.user_id\nWHERE\n    volunteer_partner_orgs.key = ANY (:targetPartnerOrgs!)\n    AND volunteer_profiles.onboarded IS TRUE\n    AND volunteer_profiles.approved IS TRUE\n    AND users.banned IS FALSE\n    AND users.ban_type IS DISTINCT FROM 'complete'\n    AND users.deactivated IS FALSE\n    AND users.deleted IS FALSE\n    AND users.test_user IS FALSE\nGROUP BY\n    users.id"};
 
 /**
  * Query generated from SQL:
@@ -470,6 +470,7 @@ const getVolunteersForTotalHoursIR: any = {"usedParamSet":{"targetPartnerOrgs":t
  *     AND users.banned IS FALSE
  *     AND users.ban_type IS DISTINCT FROM 'complete'
  *     AND users.deactivated IS FALSE
+ *     AND users.deleted IS FALSE
  *     AND users.test_user IS FALSE
  * GROUP BY
  *     users.id
