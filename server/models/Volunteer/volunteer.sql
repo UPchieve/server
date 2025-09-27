@@ -1167,6 +1167,7 @@ ready_to_tutor_volunteers AS (
         AND banned IS FALSE
         AND ban_type IS DISTINCT FROM 'complete'
         AND deactivated IS FALSE
+        AND deleted IS FALSE
         AND volunteer_profiles.onboarded IS TRUE
         AND volunteer_profiles.approved IS TRUE
         AND ( -- user is not part of disqualified group (like active session volunteers) if provided
