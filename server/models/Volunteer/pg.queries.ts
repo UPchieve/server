@@ -3450,7 +3450,7 @@ export interface IGetVolunteersWhoAreOnboardedExceptForAvailabilityQuery {
   result: IGetVolunteersWhoAreOnboardedExceptForAvailabilityResult;
 }
 
-const getVolunteersWhoAreOnboardedExceptForAvailabilityIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    u.id,\n    u.email,\n    u.first_name,\n    vp.onboarded,\n    vp.approved\nFROM\n    users u\n    JOIN volunteer_profiles vp ON vp.user_id = u.id\n    LEFT JOIN user_actions ua ON ua.user_id = u.id\nWHERE\n    vp.onboarded IS FALSE\n    AND u.banned IS FALSE\n    AND u.ban_type IS NULL\n    AND u.deactivated IS FALSE\n    AND EXISTS (\n        SELECT\n            1\n        FROM\n            user_actions\n        WHERE\n            user_id = u.id\n            AND action = 'UNLOCKED SUBJECT'\n            AND quiz_category <> 'TRAINING')\n    AND EXISTS (\n        SELECT\n            1\n        FROM\n            user_actions\n        WHERE\n            user_id = u.id\n            AND action = 'PASSED QUIZ'\n            AND quiz_category = 'TRAINING')\nGROUP BY\n    u.id,\n    u.email,\n    u.first_name,\n    vp.onboarded,\n    vp.approved"};
+const getVolunteersWhoAreOnboardedExceptForAvailabilityIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    u.id,\n    u.email,\n    u.first_name,\n    vp.onboarded,\n    vp.approved\nFROM\n    users u\n    JOIN volunteer_profiles vp ON vp.user_id = u.id\n    LEFT JOIN user_actions ua ON ua.user_id = u.id\nWHERE\n    vp.onboarded IS FALSE\n    AND u.banned IS FALSE\n    AND u.ban_type IS NULL\n    AND u.deactivated IS FALSE\n    AND u.deleted IS FALSE\n    AND EXISTS (\n        SELECT\n            1\n        FROM\n            user_actions\n        WHERE\n            user_id = u.id\n            AND action = 'UNLOCKED SUBJECT'\n            AND quiz_category <> 'TRAINING')\n    AND EXISTS (\n        SELECT\n            1\n        FROM\n            user_actions\n        WHERE\n            user_id = u.id\n            AND action = 'PASSED QUIZ'\n            AND quiz_category = 'TRAINING')\nGROUP BY\n    u.id,\n    u.email,\n    u.first_name,\n    vp.onboarded,\n    vp.approved"};
 
 /**
  * Query generated from SQL:
@@ -3470,6 +3470,7 @@ const getVolunteersWhoAreOnboardedExceptForAvailabilityIR: any = {"usedParamSet"
  *     AND u.banned IS FALSE
  *     AND u.ban_type IS NULL
  *     AND u.deactivated IS FALSE
+ *     AND u.deleted IS FALSE
  *     AND EXISTS (
  *         SELECT
  *             1

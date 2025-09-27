@@ -1625,6 +1625,7 @@ WHERE
     AND u.banned IS FALSE
     AND u.ban_type IS NULL
     AND u.deactivated IS FALSE
+    AND u.deleted IS FALSE
     AND EXISTS (
         SELECT
             1
