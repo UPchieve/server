@@ -1527,39 +1527,6 @@ ORDER BY
 LIMIT (:pageSize!::int);
 
 
-/* @name removeOnboardedStatusForUnqualifiedVolunteers */
-UPDATE
-    volunteer_profiles
-SET
-    onboarded = FALSE,
-    updated_at = NOW()
-FROM (
-    SELECT
-        users_training_courses.complete AS training_course_complete,
-        users_training_courses.user_id,
-        users_quizzes.passed AS training_quiz_passed
-    FROM
-        users_training_courses
-    LEFT JOIN (
-        SELECT
-            users_quizzes.passed,
-            users_quizzes.user_id,
-            quizzes.name
-        FROM
-            users_quizzes
-            LEFT JOIN quizzes ON users_quizzes.quiz_id = quizzes.id) AS users_quizzes ON users_quizzes.user_id = users_training_courses.user_id
-            AND users_quizzes.name = 'upchieve101') AS subquery
-WHERE
-    volunteer_profiles.onboarded IS TRUE
-    AND volunteer_profiles.created_at >= '2022-01-01 00:00:00.000000+00'
-    AND subquery.training_course_complete IS TRUE
-    AND (subquery.training_quiz_passed IS FALSE
-        OR subquery.training_quiz_passed IS NULL)
-AND volunteer_profiles.user_id = subquery.user_id
-RETURNING
-    volunteer_profiles.user_id AS ok;
-
-
 /* @name getPartnerOrgsByVolunteer */
 SELECT
     vpo.name,

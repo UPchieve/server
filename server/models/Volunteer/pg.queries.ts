@@ -3180,60 +3180,6 @@ const getVolunteersForAnalyticsReportIR: any = {"usedParamSet":{"start":true,"en
 export const getVolunteersForAnalyticsReport = new PreparedQuery<IGetVolunteersForAnalyticsReportParams,IGetVolunteersForAnalyticsReportResult>(getVolunteersForAnalyticsReportIR);
 
 
-/** 'RemoveOnboardedStatusForUnqualifiedVolunteers' parameters type */
-export type IRemoveOnboardedStatusForUnqualifiedVolunteersParams = void;
-
-/** 'RemoveOnboardedStatusForUnqualifiedVolunteers' return type */
-export interface IRemoveOnboardedStatusForUnqualifiedVolunteersResult {
-  ok: string;
-}
-
-/** 'RemoveOnboardedStatusForUnqualifiedVolunteers' query type */
-export interface IRemoveOnboardedStatusForUnqualifiedVolunteersQuery {
-  params: IRemoveOnboardedStatusForUnqualifiedVolunteersParams;
-  result: IRemoveOnboardedStatusForUnqualifiedVolunteersResult;
-}
-
-const removeOnboardedStatusForUnqualifiedVolunteersIR: any = {"usedParamSet":{},"params":[],"statement":"UPDATE\n    volunteer_profiles\nSET\n    onboarded = FALSE,\n    updated_at = NOW()\nFROM (\n    SELECT\n        users_training_courses.complete AS training_course_complete,\n        users_training_courses.user_id,\n        users_quizzes.passed AS training_quiz_passed\n    FROM\n        users_training_courses\n    LEFT JOIN (\n        SELECT\n            users_quizzes.passed,\n            users_quizzes.user_id,\n            quizzes.name\n        FROM\n            users_quizzes\n            LEFT JOIN quizzes ON users_quizzes.quiz_id = quizzes.id) AS users_quizzes ON users_quizzes.user_id = users_training_courses.user_id\n            AND users_quizzes.name = 'upchieve101') AS subquery\nWHERE\n    volunteer_profiles.onboarded IS TRUE\n    AND volunteer_profiles.created_at >= '2022-01-01 00:00:00.000000+00'\n    AND subquery.training_course_complete IS TRUE\n    AND (subquery.training_quiz_passed IS FALSE\n        OR subquery.training_quiz_passed IS NULL)\nAND volunteer_profiles.user_id = subquery.user_id\nRETURNING\n    volunteer_profiles.user_id AS ok"};
-
-/**
- * Query generated from SQL:
- * ```
- * UPDATE
- *     volunteer_profiles
- * SET
- *     onboarded = FALSE,
- *     updated_at = NOW()
- * FROM (
- *     SELECT
- *         users_training_courses.complete AS training_course_complete,
- *         users_training_courses.user_id,
- *         users_quizzes.passed AS training_quiz_passed
- *     FROM
- *         users_training_courses
- *     LEFT JOIN (
- *         SELECT
- *             users_quizzes.passed,
- *             users_quizzes.user_id,
- *             quizzes.name
- *         FROM
- *             users_quizzes
- *             LEFT JOIN quizzes ON users_quizzes.quiz_id = quizzes.id) AS users_quizzes ON users_quizzes.user_id = users_training_courses.user_id
- *             AND users_quizzes.name = 'upchieve101') AS subquery
- * WHERE
- *     volunteer_profiles.onboarded IS TRUE
- *     AND volunteer_profiles.created_at >= '2022-01-01 00:00:00.000000+00'
- *     AND subquery.training_course_complete IS TRUE
- *     AND (subquery.training_quiz_passed IS FALSE
- *         OR subquery.training_quiz_passed IS NULL)
- * AND volunteer_profiles.user_id = subquery.user_id
- * RETURNING
- *     volunteer_profiles.user_id AS ok
- * ```
- */
-export const removeOnboardedStatusForUnqualifiedVolunteers = new PreparedQuery<IRemoveOnboardedStatusForUnqualifiedVolunteersParams,IRemoveOnboardedStatusForUnqualifiedVolunteersResult>(removeOnboardedStatusForUnqualifiedVolunteersIR);
-
-
 /** 'GetPartnerOrgsByVolunteer' parameters type */
 export interface IGetPartnerOrgsByVolunteerParams {
   volunteerId: string;
