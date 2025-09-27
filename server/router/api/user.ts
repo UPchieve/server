@@ -122,21 +122,6 @@ export function routeUser(router: Router): void {
     }
   })
 
-  router.post('/user/volunteer-approval/reference/delete', async (req, res) => {
-    try {
-      const { ip } = req
-      const user = extractUser(req)
-      await UserService.deleteReference(
-        user.id,
-        asString(req.body.referenceEmail),
-        ip
-      )
-      res.sendStatus(200)
-    } catch (err) {
-      resError(res, err)
-    }
-  })
-
   router.get('/user/volunteer-approval/photo-url', async (req, res) => {
     try {
       const { ip } = req

@@ -618,26 +618,6 @@ export async function updateVolunteerPending(
   }
 }
 
-export async function deleteVolunteerReferenceByEmail(
-  userId: Ulid,
-  referenceEmail: string
-): Promise<void> {
-  try {
-    const result = await pgQueries.deleteVolunteerReferenceById.run(
-      {
-        userId,
-        referenceEmail: referenceEmail.toLowerCase(),
-      },
-      getClient()
-    )
-    if (!(result.length && makeRequired(result[0]).ok))
-      throw new RepoUpdateError('Update query did not return ok')
-  } catch (err) {
-    if (err instanceof RepoUpdateError) throw err
-    throw new RepoUpdateError(err)
-  }
-}
-
 export async function updateVolunteersReadyToCoachByIds(
   userIds: Ulid[]
 ): Promise<void> {

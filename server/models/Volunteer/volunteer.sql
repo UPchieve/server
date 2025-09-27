@@ -411,26 +411,6 @@ RETURNING
     volunteer_references.id AS ok;
 
 
-/* @name deleteVolunteerReferenceById */
-UPDATE
-    volunteer_references
-SET
-    status_id = subquery.id,
-    updated_at = NOW()
-FROM (
-    SELECT
-        id
-    FROM
-        volunteer_reference_statuses
-    WHERE
-        name = 'removed') AS subquery
-WHERE
-    volunteer_references.email = :referenceEmail!
-    AND volunteer_references.user_id = :userId!
-RETURNING
-    volunteer_references.id AS ok;
-
-
 /* @name updateVolunteersReadyToCoachByIds */
 UPDATE
     user_product_flags

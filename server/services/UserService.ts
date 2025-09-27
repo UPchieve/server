@@ -33,7 +33,6 @@ import {
   addVolunteerReferenceById,
   updateVolunteerPhotoIdById,
   updateVolunteerReferenceSentById,
-  deleteVolunteerReferenceByEmail,
   updateVolunteerForAdmin,
   updateVolunteerReferenceSubmission,
   checkReferenceExistsBeforeAdding,
@@ -232,24 +231,6 @@ export async function notifyReference(
   // TODO: error handling - these need to be 'atomic'
   await MailService.sendReferenceForm(reference, volunteer)
   await updateVolunteerReferenceSentById(reference.id)
-}
-
-export async function deleteReference(
-  userId: Ulid,
-  referenceEmail: string,
-  ip: string
-) {
-  await createAccountAction({
-    userId,
-    ipAddress: ip,
-    action: ACCOUNT_USER_ACTIONS.DELETED_REFERENCE,
-    referenceEmail,
-  })
-  AnalyticsService.captureEvent(userId, EVENTS.REFERENCE_DELETED, {
-    event: EVENTS.REFERENCE_DELETED,
-    referenceEmail,
-  })
-  await deleteVolunteerReferenceByEmail(userId, referenceEmail)
 }
 
 interface AdminUpdate {
