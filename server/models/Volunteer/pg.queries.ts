@@ -1459,49 +1459,6 @@ const getVolunteerUnsentReferencesIR: any = {"usedParamSet":{},"params":[],"stat
 export const getVolunteerUnsentReferences = new PreparedQuery<IGetVolunteerUnsentReferencesParams,IGetVolunteerUnsentReferencesResult>(getVolunteerUnsentReferencesIR);
 
 
-/** 'GetReferencesForReferenceFormApology' parameters type */
-export type IGetReferencesForReferenceFormApologyParams = void;
-
-/** 'GetReferencesForReferenceFormApology' return type */
-export interface IGetReferencesForReferenceFormApologyResult {
-  email: string;
-  firstName: string;
-  id: string;
-  lastName: string;
-  status: string;
-  userId: string;
-}
-
-/** 'GetReferencesForReferenceFormApology' query type */
-export interface IGetReferencesForReferenceFormApologyQuery {
-  params: IGetReferencesForReferenceFormApologyParams;
-  result: IGetReferencesForReferenceFormApologyResult;
-}
-
-const getReferencesForReferenceFormApologyIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    volunteer_references.id,\n    user_id,\n    first_name,\n    last_name,\n    email,\n    volunteer_reference_statuses.name AS status\nFROM\n    volunteer_references\n    LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id\nWHERE\n    volunteer_reference_statuses.name = 'sent'\n    AND volunteer_references.sent_at <= '2022-04-12 18:00:00.000'\n    AND volunteer_references.sent_at >= '2022-02-26 00:00:00.000'"};
-
-/**
- * Query generated from SQL:
- * ```
- * SELECT
- *     volunteer_references.id,
- *     user_id,
- *     first_name,
- *     last_name,
- *     email,
- *     volunteer_reference_statuses.name AS status
- * FROM
- *     volunteer_references
- *     LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id
- * WHERE
- *     volunteer_reference_statuses.name = 'sent'
- *     AND volunteer_references.sent_at <= '2022-04-12 18:00:00.000'
- *     AND volunteer_references.sent_at >= '2022-02-26 00:00:00.000'
- * ```
- */
-export const getReferencesForReferenceFormApology = new PreparedQuery<IGetReferencesForReferenceFormApologyParams,IGetReferencesForReferenceFormApologyResult>(getReferencesForReferenceFormApologyIR);
-
-
 /** 'GetReferencesByVolunteer' parameters type */
 export interface IGetReferencesByVolunteerParams {
   userId: string;
