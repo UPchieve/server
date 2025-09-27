@@ -1437,23 +1437,25 @@ export interface IGetVolunteerUnsentReferencesQuery {
   result: IGetVolunteerUnsentReferencesResult;
 }
 
-const getVolunteerUnsentReferencesIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    volunteer_references.id,\n    user_id,\n    first_name,\n    last_name,\n    email,\n    volunteer_reference_statuses.name AS status\nFROM\n    volunteer_references\n    LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id\nWHERE\n    volunteer_reference_statuses.name = 'unsent'"};
+const getVolunteerUnsentReferencesIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    vr.id,\n    vr.user_id,\n    vr.first_name,\n    vr.last_name,\n    vr.email,\n    volunteer_reference_statuses.name AS status\nFROM\n    volunteer_references vr\n    LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = vr.status_id\n    JOIN users ON vr.user_id = users.id\nWHERE\n    volunteer_reference_statuses.name = 'unsent'\n    AND users.deleted IS FALSE"};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
- *     volunteer_references.id,
- *     user_id,
- *     first_name,
- *     last_name,
- *     email,
+ *     vr.id,
+ *     vr.user_id,
+ *     vr.first_name,
+ *     vr.last_name,
+ *     vr.email,
  *     volunteer_reference_statuses.name AS status
  * FROM
- *     volunteer_references
- *     LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id
+ *     volunteer_references vr
+ *     LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = vr.status_id
+ *     JOIN users ON vr.user_id = users.id
  * WHERE
  *     volunteer_reference_statuses.name = 'unsent'
+ *     AND users.deleted IS FALSE
  * ```
  */
 export const getVolunteerUnsentReferences = new PreparedQuery<IGetVolunteerUnsentReferencesParams,IGetVolunteerUnsentReferencesResult>(getVolunteerUnsentReferencesIR);

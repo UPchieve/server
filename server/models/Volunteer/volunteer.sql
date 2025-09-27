@@ -633,17 +633,19 @@ RETURNING
 
 /* @name getVolunteerUnsentReferences */
 SELECT
-    volunteer_references.id,
-    user_id,
-    first_name,
-    last_name,
-    email,
+    vr.id,
+    vr.user_id,
+    vr.first_name,
+    vr.last_name,
+    vr.email,
     volunteer_reference_statuses.name AS status
 FROM
-    volunteer_references
-    LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id
+    volunteer_references vr
+    LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = vr.status_id
+    JOIN users ON vr.user_id = users.id
 WHERE
-    volunteer_reference_statuses.name = 'unsent';
+    volunteer_reference_statuses.name = 'unsent'
+    AND users.deleted IS FALSE;
 
 
 /* @name getReferencesByVolunteer */
