@@ -601,26 +601,6 @@ export async function updateVolunteerReferenceSentById(
   }
 }
 
-export async function updateVolunteerReferenceStatusById(
-  referenceId: Ulid,
-  status: string
-): Promise<void> {
-  try {
-    const result = await pgQueries.updateVolunteerReferenceStatusById.run(
-      {
-        referenceId,
-        status: status.toLowerCase(),
-      },
-      getClient()
-    )
-    if (!(result.length && makeRequired(result[0]).ok))
-      throw new RepoUpdateError('Update query did not return ok')
-  } catch (err) {
-    if (err instanceof RepoUpdateError) throw err
-    throw new RepoUpdateError(err)
-  }
-}
-
 export async function updateVolunteerPending(
   userId: Ulid,
   approved: boolean,

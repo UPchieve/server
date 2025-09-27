@@ -900,50 +900,6 @@ const updateVolunteerReferenceSentByIdIR: any = {"usedParamSet":{"referenceId":t
 export const updateVolunteerReferenceSentById = new PreparedQuery<IUpdateVolunteerReferenceSentByIdParams,IUpdateVolunteerReferenceSentByIdResult>(updateVolunteerReferenceSentByIdIR);
 
 
-/** 'UpdateVolunteerReferenceStatusById' parameters type */
-export interface IUpdateVolunteerReferenceStatusByIdParams {
-  referenceId: string;
-  status: string;
-}
-
-/** 'UpdateVolunteerReferenceStatusById' return type */
-export interface IUpdateVolunteerReferenceStatusByIdResult {
-  ok: string;
-}
-
-/** 'UpdateVolunteerReferenceStatusById' query type */
-export interface IUpdateVolunteerReferenceStatusByIdQuery {
-  params: IUpdateVolunteerReferenceStatusByIdParams;
-  result: IUpdateVolunteerReferenceStatusByIdResult;
-}
-
-const updateVolunteerReferenceStatusByIdIR: any = {"usedParamSet":{"status":true,"referenceId":true},"params":[{"name":"status","required":true,"transform":{"type":"scalar"},"locs":[{"a":209,"b":216}]},{"name":"referenceId","required":true,"transform":{"type":"scalar"},"locs":[{"a":267,"b":279}]}],"statement":"UPDATE\n    volunteer_references\nSET\n    status_id = subquery.id,\n    sent_at = NOW(),\n    updated_at = NOW()\nFROM (\n    SELECT\n        id\n    FROM\n        volunteer_reference_statuses\n    WHERE\n        name = :status!) AS subquery\nWHERE\n    volunteer_references.id = :referenceId!\nRETURNING\n    volunteer_references.id AS ok"};
-
-/**
- * Query generated from SQL:
- * ```
- * UPDATE
- *     volunteer_references
- * SET
- *     status_id = subquery.id,
- *     sent_at = NOW(),
- *     updated_at = NOW()
- * FROM (
- *     SELECT
- *         id
- *     FROM
- *         volunteer_reference_statuses
- *     WHERE
- *         name = :status!) AS subquery
- * WHERE
- *     volunteer_references.id = :referenceId!
- * RETURNING
- *     volunteer_references.id AS ok
- * ```
- */
-export const updateVolunteerReferenceStatusById = new PreparedQuery<IUpdateVolunteerReferenceStatusByIdParams,IUpdateVolunteerReferenceStatusByIdResult>(updateVolunteerReferenceStatusByIdIR);
-
-
 /** 'DeleteVolunteerReferenceById' parameters type */
 export interface IDeleteVolunteerReferenceByIdParams {
   referenceEmail: string;

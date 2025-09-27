@@ -411,26 +411,6 @@ RETURNING
     volunteer_references.id AS ok;
 
 
-/* @name updateVolunteerReferenceStatusById */
-UPDATE
-    volunteer_references
-SET
-    status_id = subquery.id,
-    sent_at = NOW(),
-    updated_at = NOW()
-FROM (
-    SELECT
-        id
-    FROM
-        volunteer_reference_statuses
-    WHERE
-        name = :status!) AS subquery
-WHERE
-    volunteer_references.id = :referenceId!
-RETURNING
-    volunteer_references.id AS ok;
-
-
 /* @name deleteVolunteerReferenceById */
 UPDATE
     volunteer_references
