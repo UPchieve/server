@@ -2003,56 +2003,6 @@ const updateVolunteerQuizIR: any = {"usedParamSet":{"userId":true,"passed":true,
 export const updateVolunteerQuiz = new PreparedQuery<IUpdateVolunteerQuizParams,IUpdateVolunteerQuizResult>(updateVolunteerQuizIR);
 
 
-/** 'GetVolunteerForTextResponse' parameters type */
-export interface IGetVolunteerForTextResponseParams {
-  phone: string;
-}
-
-/** 'GetVolunteerForTextResponse' return type */
-export interface IGetVolunteerForTextResponseResult {
-  endedAt: Date | null;
-  sessionId: string;
-  subject: string;
-  topic: string;
-  volunteerId: string;
-  volunteerJoinedAt: Date | null;
-}
-
-/** 'GetVolunteerForTextResponse' query type */
-export interface IGetVolunteerForTextResponseQuery {
-  params: IGetVolunteerForTextResponseParams;
-  result: IGetVolunteerForTextResponseResult;
-}
-
-const getVolunteerForTextResponseIR: any = {"usedParamSet":{"phone":true},"params":[{"name":"phone","required":true,"transform":{"type":"scalar"},"locs":[{"a":531,"b":537}]}],"statement":"SELECT\n    users.id AS volunteer_id,\n    sessions.id AS session_id,\n    sessions.volunteer_joined_at,\n    sessions.ended_at,\n    subjects.name AS subject,\n    topics.name AS topic\nFROM\n    users\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN notifications ON notifications.user_id = users.id\n    LEFT JOIN sessions ON sessions.id = notifications.session_id\n    LEFT JOIN subjects ON subjects.id = sessions.subject_id\n    LEFT JOIN topics ON topics.id = subjects.topic_id\nWHERE\n    users.phone = :phone!\nORDER BY\n    notifications.created_at DESC\nLIMIT 1"};
-
-/**
- * Query generated from SQL:
- * ```
- * SELECT
- *     users.id AS volunteer_id,
- *     sessions.id AS session_id,
- *     sessions.volunteer_joined_at,
- *     sessions.ended_at,
- *     subjects.name AS subject,
- *     topics.name AS topic
- * FROM
- *     users
- *     JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
- *     LEFT JOIN notifications ON notifications.user_id = users.id
- *     LEFT JOIN sessions ON sessions.id = notifications.session_id
- *     LEFT JOIN subjects ON subjects.id = sessions.subject_id
- *     LEFT JOIN topics ON topics.id = subjects.topic_id
- * WHERE
- *     users.phone = :phone!
- * ORDER BY
- *     notifications.created_at DESC
- * LIMIT 1
- * ```
- */
-export const getVolunteerForTextResponse = new PreparedQuery<IGetVolunteerForTextResponseParams,IGetVolunteerForTextResponseResult>(getVolunteerForTextResponseIR);
-
-
 /** 'GetVolunteersToReview' parameters type */
 export interface IGetVolunteersToReviewParams {
   limit: number;

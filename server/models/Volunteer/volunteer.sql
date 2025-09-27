@@ -885,28 +885,6 @@ ON CONFLICT (user_id,
         user_id AS ok;
 
 
-/* @name getVolunteerForTextResponse */
-SELECT
-    users.id AS volunteer_id,
-    sessions.id AS session_id,
-    sessions.volunteer_joined_at,
-    sessions.ended_at,
-    subjects.name AS subject,
-    topics.name AS topic
-FROM
-    users
-    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
-    LEFT JOIN notifications ON notifications.user_id = users.id
-    LEFT JOIN sessions ON sessions.id = notifications.session_id
-    LEFT JOIN subjects ON subjects.id = sessions.subject_id
-    LEFT JOIN topics ON topics.id = subjects.topic_id
-WHERE
-    users.phone = :phone!
-ORDER BY
-    notifications.created_at DESC
-LIMIT 1;
-
-
 /* @name getVolunteersToReview */
 SELECT
     users.id,

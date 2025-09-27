@@ -1272,28 +1272,6 @@ export async function createVolunteer(
     client.release()
   }
 }
-export type VolunteerForTextResponse = {
-  volunteerId: Ulid
-  sessionId: Ulid
-  endedAt?: Date
-  volunteerJoinedAt: Date
-  subject: string
-  topic: string
-}
-export async function getVolunteerForTextResponse(
-  phone: string
-): Promise<VolunteerForTextResponse | undefined> {
-  try {
-    const result = await pgQueries.getVolunteerForTextResponse.run(
-      { phone },
-      getClient()
-    )
-    if (!result.length) return
-    return makeSomeOptional(result[0], ['endedAt'])
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
 
 export type VolunteerPartnerOrgByKey = {
   partnerId: Ulid
