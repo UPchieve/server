@@ -1629,21 +1629,6 @@ export async function getVolunteerForScheduleUpdate(
   }
 }
 
-export async function getVolunteersOnDeck(
-  subject: string,
-  excludedIds: Ulid[]
-): Promise<VolunteerContactInfo[]> {
-  try {
-    const result = await pgQueries.getVolunteersOnDeck.run(
-      { subject, excludedIds },
-      getClient()
-    )
-    return result.map((v) => makeRequired(v))
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
 // TODO: break out anything that uses RO client into their own repo
 export async function getUniqueStudentsHelpedForAnalyticsReportSummary(
   volunteerPartnerOrg: string,
