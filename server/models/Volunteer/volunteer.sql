@@ -827,6 +827,7 @@ WHERE
     users.banned IS FALSE
     AND users.ban_type IS DISTINCT FROM 'complete'
     AND users.deactivated IS FALSE
+    AND users.deleted IS FALSE
     AND users.test_user IS FALSE
     AND volunteer_reference_statuses.name = 'sent'
     AND volunteer_references.sent_at > :start!

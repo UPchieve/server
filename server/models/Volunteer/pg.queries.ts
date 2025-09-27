@@ -1871,7 +1871,7 @@ export interface IGetVolunteersForWaitingReferencesQuery {
   result: IGetVolunteersForWaitingReferencesResult;
 }
 
-const getVolunteersForWaitingReferencesIR: any = {"usedParamSet":{"start":true,"end":true},"params":[{"name":"start","required":true,"transform":{"type":"scalar"},"locs":[{"a":780,"b":786}]},{"name":"end","required":true,"transform":{"type":"scalar"},"locs":[{"a":827,"b":831}]}],"statement":"SELECT\n    users.id,\n    users.first_name,\n    users.last_name,\n    users.phone,\n    users.email,\n    volunteer_partner_orgs.key AS volunteer_partner_org\nFROM\n    users\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\n    LEFT JOIN volunteer_references ON volunteer_references.user_id = users.id\n    LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id\nWHERE\n    users.banned IS FALSE\n    AND users.ban_type IS DISTINCT FROM 'complete'\n    AND users.deactivated IS FALSE\n    AND users.test_user IS FALSE\n    AND volunteer_reference_statuses.name = 'sent'\n    AND volunteer_references.sent_at > :start!\n    AND volunteer_references.sent_at < :end!\nGROUP BY\n    users.id,\n    volunteer_partner_orgs.key"};
+const getVolunteersForWaitingReferencesIR: any = {"usedParamSet":{"start":true,"end":true},"params":[{"name":"start","required":true,"transform":{"type":"scalar"},"locs":[{"a":811,"b":817}]},{"name":"end","required":true,"transform":{"type":"scalar"},"locs":[{"a":858,"b":862}]}],"statement":"SELECT\n    users.id,\n    users.first_name,\n    users.last_name,\n    users.phone,\n    users.email,\n    volunteer_partner_orgs.key AS volunteer_partner_org\nFROM\n    users\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\n    LEFT JOIN volunteer_references ON volunteer_references.user_id = users.id\n    LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id\nWHERE\n    users.banned IS FALSE\n    AND users.ban_type IS DISTINCT FROM 'complete'\n    AND users.deactivated IS FALSE\n    AND users.deleted IS FALSE\n    AND users.test_user IS FALSE\n    AND volunteer_reference_statuses.name = 'sent'\n    AND volunteer_references.sent_at > :start!\n    AND volunteer_references.sent_at < :end!\nGROUP BY\n    users.id,\n    volunteer_partner_orgs.key"};
 
 /**
  * Query generated from SQL:
@@ -1893,6 +1893,7 @@ const getVolunteersForWaitingReferencesIR: any = {"usedParamSet":{"start":true,"
  *     users.banned IS FALSE
  *     AND users.ban_type IS DISTINCT FROM 'complete'
  *     AND users.deactivated IS FALSE
+ *     AND users.deleted IS FALSE
  *     AND users.test_user IS FALSE
  *     AND volunteer_reference_statuses.name = 'sent'
  *     AND volunteer_references.sent_at > :start!
