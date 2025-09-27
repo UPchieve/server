@@ -779,6 +779,7 @@ WHERE
     users.banned IS FALSE
     AND users.ban_type IS DISTINCT FROM 'complete'
     AND users.deactivated IS FALSE
+    AND users.deleted IS FALSE
     AND users.test_user IS FALSE
     AND users.created_at >= :start!
     AND users.created_at < :end!;

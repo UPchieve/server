@@ -1770,7 +1770,7 @@ export interface IGetVolunteersForNiceToMeetYouQuery {
   result: IGetVolunteersForNiceToMeetYouResult;
 }
 
-const getVolunteersForNiceToMeetYouIR: any = {"usedParamSet":{"start":true,"end":true},"params":[{"name":"start","required":true,"transform":{"type":"scalar"},"locs":[{"a":505,"b":511}]},{"name":"end","required":true,"transform":{"type":"scalar"},"locs":[{"a":540,"b":544}]}],"statement":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    phone,\n    email,\n    volunteer_partner_orgs.key AS volunteer_partner_org\nFROM\n    users\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\nWHERE\n    users.banned IS FALSE\n    AND users.ban_type IS DISTINCT FROM 'complete'\n    AND users.deactivated IS FALSE\n    AND users.test_user IS FALSE\n    AND users.created_at >= :start!\n    AND users.created_at < :end!"};
+const getVolunteersForNiceToMeetYouIR: any = {"usedParamSet":{"start":true,"end":true},"params":[{"name":"start","required":true,"transform":{"type":"scalar"},"locs":[{"a":536,"b":542}]},{"name":"end","required":true,"transform":{"type":"scalar"},"locs":[{"a":571,"b":575}]}],"statement":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    phone,\n    email,\n    volunteer_partner_orgs.key AS volunteer_partner_org\nFROM\n    users\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\nWHERE\n    users.banned IS FALSE\n    AND users.ban_type IS DISTINCT FROM 'complete'\n    AND users.deactivated IS FALSE\n    AND users.deleted IS FALSE\n    AND users.test_user IS FALSE\n    AND users.created_at >= :start!\n    AND users.created_at < :end!"};
 
 /**
  * Query generated from SQL:
@@ -1790,6 +1790,7 @@ const getVolunteersForNiceToMeetYouIR: any = {"usedParamSet":{"start":true,"end"
  *     users.banned IS FALSE
  *     AND users.ban_type IS DISTINCT FROM 'complete'
  *     AND users.deactivated IS FALSE
+ *     AND users.deleted IS FALSE
  *     AND users.test_user IS FALSE
  *     AND users.created_at >= :start!
  *     AND users.created_at < :end!
