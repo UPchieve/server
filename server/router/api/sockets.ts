@@ -116,143 +116,131 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
     }
 
     socket.on('sessions:join', async (data, callback) => {
-      await observeWebTransaction(
-        '/socket-io/sessions:join',
-        () =>
-          new Promise<void>(async (resolve, reject) => {
-            try {
-              const user = await extractSocketUser(socket)
-              await socketService.joinSession(socket, user, data.sessionId)
-              callback({
-                sessionId: data.sessionId,
-                success: true,
-              })
-              resolve()
-            } catch (error) {
-              const isRetryable = !(error instanceof SessionJoinError)
-              callback({
-                sessionId: data.sessionId,
-                retry: isRetryable,
-                success: false,
-              })
-              reject({ error, message: 'Unable to join socket' })
-            }
+      await observeWebTransaction('/socket-io/sessions:join', async () => {
+        try {
+          const user = await extractSocketUser(socket)
+          await socketService.joinSession(socket, user, data.sessionId)
+          callback({
+            sessionId: data.sessionId,
+            success: true,
           })
-      )
+        } catch (error) {
+          const isRetryable = !(error instanceof SessionJoinError)
+          logger.error(error, 'Unable to join socket')
+          callback({
+            sessionId: data.sessionId,
+            retry: isRetryable,
+            success: false,
+          })
+        }
+      })
     })
 
     // TODO: Remove once no longer have legacy mobile app.
-    socket.on('join', async function (data) {
-      await observeWebTransaction(
-        '/socket-io/join',
-        () =>
-          new Promise<void>(async (resolve, reject) => {
-            if (!data || !data.sessionId) {
-              socket.emit('redirect')
-              reject({ error: new Error('No data or sessionId') })
-            }
+    socket.on('join', async (data) => {
+      await observeWebTransaction('/socket-io/join', async () => {
+        if (!data || !data.sessionId) {
+          socket.emit('redirect')
+          throw new Error('No data or sessionId')
+        }
 
-            const { sessionId, joinedFrom } = data
-            const user = await extractSocketUser(socket)
+        const { sessionId, joinedFrom } = data
+        const user = await extractSocketUser(socket)
 
-            try {
-              // TODO: have middleware handle the auth
-              if (!user) throw new Error('User not authenticated')
-              if (user.roleContext.isActiveRole('volunteer') && !user.approved)
-                throw new Error('Volunteer not approved')
-            } catch (error) {
-              socket.emit('redirect')
-              reject({
-                error: error,
-                message: 'Failed to join session socket: Invalid user state',
-              })
-            }
+        try {
+          // TODO: have middleware handle the auth
+          if (!user) throw new Error('User not authenticated')
+          if (user.roleContext.isActiveRole('volunteer') && !user.approved)
+            throw new Error('Volunteer not approved')
+        } catch (error) {
+          socket.emit('redirect')
+          logger.error(
+            error,
+            'Failed to join session socket: Invalid user state'
+          )
+        }
 
-            try {
-              const data = asJoinSessionData({
-                socket,
-                joinedFrom,
-              })
-              const ipAddress = socket.handshake?.address
-              const userAgent = socket.request?.headers['user-agent']
-              await SessionService.joinSession(user, sessionId, {
-                ipAddress,
-                userAgent,
-                joinedFrom: data.joinedFrom,
-              })
-            } catch (error) {
-              const session = await SessionRepo.getSessionById(sessionId)
-              socketService.bump(
-                socket,
-                {
-                  endedAt: session.endedAt,
-                  volunteer: session.volunteerId,
-                  student: session.studentId,
-                  sessionId: session.id,
-                  userId: user.id,
-                },
-                error as Error
-              )
-
-              reject({
-                error,
-                details: { sessionId, userId: user.id },
-                message: `User ${user.id} failed to join session ${sessionId}`,
-              })
-            }
-
-            try {
-              await socketService.joinSession(socket, user, sessionId)
-              resolve()
-            } catch (error) {
-              reject({
-                error,
-                message: `User ${user.id} failed to join sockets to session room for session ${sessionId}: ${error}`,
-                details: { userId: user.id, sessionId },
-              })
-            }
+        try {
+          const data = asJoinSessionData({
+            socket,
+            joinedFrom,
           })
-      )
+          const ipAddress = socket.handshake?.address
+          const userAgent = socket.request?.headers['user-agent']
+          await SessionService.joinSession(user, sessionId, {
+            ipAddress,
+            userAgent,
+            joinedFrom: data.joinedFrom,
+          })
+        } catch (error) {
+          const session = await SessionRepo.getSessionById(sessionId)
+          socketService.bump(
+            socket,
+            {
+              endedAt: session.endedAt,
+              volunteer: session.volunteerId,
+              student: session.studentId,
+              sessionId: session.id,
+              userId: user.id,
+            },
+            error as Error
+          )
+
+          logger.error(
+            error,
+            { sessionId, userId: user.id },
+            `User ${user.id} failed to join session ${sessionId}`
+          )
+        }
+
+        try {
+          await socketService.joinSession(socket, user, sessionId)
+        } catch (error) {
+          logger.error(
+            error,
+            { userId: user.id, sessionId },
+            `User ${user.id} failed to join sockets to session room for session ${sessionId}: ${error}`
+          )
+        }
+      })
     })
 
-    socket.on('sessions/recap:join', async function (data) {
+    socket.on('sessions/recap:join', async (data) => {
       await observeWebTransaction(
         '/socket-io/sessions/recap:join',
-        () =>
-          new Promise<void>(async (resolve, reject) => {
-            if (!data || !data.sessionId) {
-              socket.emit('redirect')
-              reject({ error: new Error('No data or sessionId') })
-            }
+        async () => {
+          if (!data || !data.sessionId) {
+            socket.emit('redirect')
+            throw new Error('No data or sessionId')
+          }
 
-            const { sessionId } = data
-            const user = await extractSocketUser(socket)
+          const { sessionId } = data
+          const user = await extractSocketUser(socket)
 
-            try {
-              const session = await SessionRepo.getSessionById(sessionId)
-              if (
-                user.id !== session.studentId &&
-                user.id !== session.volunteerId
-              )
-                throw new Error('Not a session participant')
-            } catch (error) {
-              socket.emit('redirect', error as Error)
-              reject({ error, details: { sessionId } })
-            }
+          try {
+            const session = await SessionRepo.getSessionById(sessionId)
+            if (
+              user.id !== session.studentId &&
+              user.id !== session.volunteerId
+            )
+              throw new Error('Not a session participant')
+          } catch (error) {
+            socket.emit('redirect', error as Error)
+            logger.error(error, { sessionId })
+          }
 
-            try {
-              const sessionRoom = getSessionRoom(sessionId)
-              await socket.join(sessionRoom)
-              socket.emit('sessions/recap:joined')
-              // Attach the sessionId to the socket for analytics and debugging purposes
-              // Currently only one sessionId is attached to a socket at a time
-              socket.data.sessionId = data.sessionId
-              resolve()
-            } catch (error) {
-              socket.emit('sessions/recap:join-failed', error as Error)
-              reject({ error, details: { sessionId } })
-            }
-          })
+          try {
+            const sessionRoom = getSessionRoom(sessionId)
+            await socket.join(sessionRoom)
+            socket.emit('sessions/recap:joined')
+            // Attach the sessionId to the socket for analytics and debugging purposes
+            // Currently only one sessionId is attached to a socket at a time
+            socket.data.sessionId = data.sessionId
+          } catch (error) {
+            socket.emit('sessions/recap:join-failed', error as Error)
+            logger.error(error, { sessionId }, 'Failed to join session recap')
+          }
+        }
       )
     })
 
@@ -260,282 +248,237 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       await observeWebTransaction(
         '/socket-io/sessions/recap:leave',
         async () => {
-          socket.leave(getSessionRoom(sessionId))
-          delete socket.data.sessionId
+          try {
+            socket.leave(getSessionRoom(sessionId))
+            delete socket.data.sessionId
+          } catch (error) {
+            logger.error(error, 'Failed leaving session recap')
+          }
         }
       )
     })
 
     socket.on('list', async (_data, callback) => {
-      await observeWebTransaction('/socket-io/list', () =>
-        new Promise<void>(async (resolve, reject) => {
-          try {
-            const sessions = await SessionRepo.getUnfulfilledSessions()
-            socket.emit('sessions', sessions)
-            callback({
-              status: 200,
-              sessions,
-            })
-            resolve()
-          } catch (error) {
-            reject(error)
-          }
-        }).catch((err) => {
-          logger.error(
-            {
-              error: err?.message,
-            },
-            'Promise rejected while handling "list" event'
-          )
-        })
-      )
+      await observeWebTransaction('/socket-io/list', async () => {
+        try {
+          const sessions = await SessionRepo.getUnfulfilledSessions()
+          socket.emit('sessions', sessions)
+          callback({
+            status: 200,
+            sessions,
+          })
+        } catch (error) {
+          logger.error(error, 'Failed getting unfulfilled sessions')
+        }
+      })
     })
 
     socket.on('typing', async (data) => {
-      await observeWebTransaction(
-        '/socket-io/typing',
-        () =>
-          new Promise<void>(async (resolve, reject) => {
-            try {
-              const user = await extractSocketUser(socket)
-              io.in(getSessionRoom(data.sessionId))
-                .except(user.id)
-                .emit('is-typing', { sessionId: data.sessionId })
-              resolve()
-            } catch (error) {
-              reject({ error, details: data })
-            }
-          })
-      )
+      await observeWebTransaction('/socket-io/typing', async () => {
+        try {
+          const user = await extractSocketUser(socket)
+          io.in(getSessionRoom(data.sessionId))
+            .except(user.id)
+            .emit('is-typing', { sessionId: data.sessionId })
+        } catch (error) {
+          logger.error(error, { data }, 'Failed emitting user is typing')
+        }
+      })
     })
 
     socket.on('notTyping', async (data) => {
-      await observeWebTransaction(
-        '/socket-io/notTyping',
-        () =>
-          new Promise<void>(async (resolve, reject) => {
-            try {
-              const user = await extractSocketUser(socket)
-              io.in(getSessionRoom(data.sessionId))
-                .except(user.id)
-                .emit('not-typing', { sessionId: data.sessionId })
-              resolve()
-            } catch (error) {
-              reject({ error, details: data })
-            }
-          })
-      )
+      await observeWebTransaction('/socket-io/notTyping', async () => {
+        try {
+          const user = await extractSocketUser(socket)
+          io.in(getSessionRoom(data.sessionId))
+            .except(user.id)
+            .emit('not-typing', { sessionId: data.sessionId })
+        } catch (error) {
+          logger.error(error, { data }, 'Failed emitting user is not typing')
+        }
+      })
     })
 
     socket.on('celebrate', async (data) => {
-      await observeWebTransaction(
-        '/socket-io/celebrate',
-        () =>
-          new Promise<void>(async (resolve, reject) => {
-            try {
-              const { sessionId, userId, duration } = data
-              await createSessionAction({
-                userId,
-                sessionId,
-                action: SESSION_USER_ACTIONS.SENT_CELEBRATION,
-              })
-
-              io.in(getSessionRoom(sessionId)).emit('celebrate', { duration })
-            } catch (error) {
-              reject({ error, details: data })
-            }
+      await observeWebTransaction('/socket-io/celebrate', async () => {
+        try {
+          const { sessionId, userId, duration } = data
+          await createSessionAction({
+            userId,
+            sessionId,
+            action: SESSION_USER_ACTIONS.SENT_CELEBRATION,
           })
-      )
+
+          io.in(getSessionRoom(sessionId)).emit('celebrate', { duration })
+        } catch (error) {
+          logger.error(error, { data }, 'Failed emitting celebrate')
+        }
+      })
     })
 
     socket.on('message', async (data) => {
-      await observeWebTransaction(
-        '/socket-io/message',
-        () =>
-          new Promise<void>(async (resolve, reject) => {
-            try {
-              const {
-                user,
-                sessionId,
-                message,
-                source,
-                type,
-                saidAt,
-                zoomMessageId,
-                msgId,
-              } = data
+      await observeWebTransaction('/socket-io/message', async () => {
+        try {
+          const {
+            user,
+            sessionId,
+            message,
+            source,
+            type,
+            saidAt,
+            zoomMessageId,
+            msgId,
+          } = data
 
-              // TODO: handle this differently?
-              if (!sessionId) {
-                return reject({
-                  error: new Error('No session ID'),
-                  details: data,
-                })
-              }
+          // TODO: handle this differently?
+          if (!sessionId) {
+            throw new Error('No session ID')
+          }
 
-              newrelic.addCustomAttribute('sessionId', sessionId)
+          newrelic.addCustomAttribute('sessionId', sessionId)
 
-              // Do not allow banned users to send DMs
-              const dbUser = await UserService.getUserContactInfo(user.id)
-              if (!dbUser) return resolve()
-              if (source === 'recap') {
-                const { eligible, ineligibleReason } =
-                  await SessionService.isRecapDmsAvailable(sessionId, dbUser.id)
-                if (!eligible) {
-                  logger.warn(
-                    { ineligibleReason },
-                    'Dropping recap message because session is not eligible for DMs'
-                  )
-                  return reject({
-                    error: new Error(
-                      `Session is ineligible for DMs. Reason: ${ineligibleReason}`
-                    ),
-                    details: data,
-                  })
-                }
-              }
-
-              const createdAt = data.createdAt ?? new Date()
-              let sanitizedMessage: string | undefined = undefined
-              // TODO: correctly type user from payload
-              const saveMessageData: {
-                sessionId: Ulid
-                message: string
-                type?: SessionMessageType
-                transcript?: string
-                saidAt?: Date
-              } = {
-                sessionId,
-                message,
-                saidAt,
-              }
-              if (type) {
-                saveMessageData.type = type
-              }
-              if (type === 'audio-transcription') {
-                const result = await moderateIndividualTranscription({
-                  transcript: message,
-                  sessionId,
-                  userId: user.id,
-                  saidAt: saidAt!,
-                  source: 'audio_transcription',
-                })
-                if (!result.isClean) {
-                  const sanitized = (
-                    result as SanitizedTranscriptModerationResult
-                  ).sanitizedTranscript
-                  saveMessageData.message = sanitized
-                  sanitizedMessage = sanitized
-                }
-              }
-
-              const messageId = await SessionService.saveMessage(
-                user,
-                createdAt,
-                saveMessageData
+          // Do not allow banned users to send DMs
+          const dbUser = await UserService.getUserContactInfo(user.id)
+          if (!dbUser) throw new Error('User is banned to send DMs')
+          if (source === 'recap') {
+            const { eligible, ineligibleReason } =
+              await SessionService.isRecapDmsAvailable(sessionId, dbUser.id)
+            if (!eligible)
+              throw new Error(
+                `Dropping recap message because session is not eligible for DMs Reason: ${ineligibleReason}`
               )
+          }
 
-              const userType = dbUser.roleContext.activeRole
-              const messageData: {
-                contents: string
-                createdAt: Date
-                isVolunteer: boolean
-                userType: UserRole
-                user: Ulid
-                sessionId: Ulid
-                type?: SessionMessageType
-                transcript?: string
-                zoomMessageId?: string
-                msgId?: string
-              } = {
-                contents: sanitizedMessage ?? message,
-                createdAt: createdAt,
-                isVolunteer: dbUser.roleContext.isActiveRole('volunteer'),
-                userType: userType,
-                user: user.id,
-                sessionId,
-                zoomMessageId,
-                msgId,
-              }
-
-              if (type) {
-                messageData.type = type
-              }
-
-              // If the message is coming from the recap page, queue the message to send a notification
-              if (source === 'recap') {
-                await QueueService.add(
-                  Jobs.SendSessionRecapMessageNotification,
-                  { messageId },
-                  { removeOnComplete: true, removeOnFail: true }
-                )
-                captureEvent(user.id, EVENTS.USER_SUBMITTED_SESSION_RECAP_DM, {
-                  sessionId: sessionId,
-                  message,
-                  isVolunteer: dbUser.roleContext.isActiveRole('volunteer'),
-                  userType: userType,
-                })
-              }
-
-              const socketRoom = getSessionRoom(saveMessageData.sessionId)
-              io.in(socketRoom).emit('messageSend', messageData)
-              resolve()
-            } catch (error) {
-              socket.emit('messageError', { sessionId: data.sessionId })
-              reject({ error, details: data })
+          const createdAt = data.createdAt ?? new Date()
+          let sanitizedMessage: string | undefined = undefined
+          // TODO: correctly type user from payload
+          const saveMessageData: {
+            sessionId: Ulid
+            message: string
+            type?: SessionMessageType
+            transcript?: string
+            saidAt?: Date
+          } = {
+            sessionId,
+            message,
+            saidAt,
+          }
+          if (type) {
+            saveMessageData.type = type
+          }
+          if (type === 'audio-transcription') {
+            const result = await moderateIndividualTranscription({
+              transcript: message,
+              sessionId,
+              userId: user.id,
+              saidAt: saidAt!,
+              source: 'audio_transcription',
+            })
+            if (!result.isClean) {
+              const sanitized = (result as SanitizedTranscriptModerationResult)
+                .sanitizedTranscript
+              saveMessageData.message = sanitized
+              sanitizedMessage = sanitized
             }
-          })
-      )
+          }
+
+          const messageId = await SessionService.saveMessage(
+            user,
+            createdAt,
+            saveMessageData
+          )
+
+          const userType = dbUser.roleContext.activeRole
+          const messageData: {
+            contents: string
+            createdAt: Date
+            isVolunteer: boolean
+            userType: UserRole
+            user: Ulid
+            sessionId: Ulid
+            type?: SessionMessageType
+            transcript?: string
+            zoomMessageId?: string
+            msgId?: string
+          } = {
+            contents: sanitizedMessage ?? message,
+            createdAt: createdAt,
+            isVolunteer: dbUser.roleContext.isActiveRole('volunteer'),
+            userType: userType,
+            user: user.id,
+            sessionId,
+            zoomMessageId,
+            msgId,
+          }
+
+          if (type) {
+            messageData.type = type
+          }
+
+          // If the message is coming from the recap page, queue the message to send a notification
+          if (source === 'recap') {
+            await QueueService.add(
+              Jobs.SendSessionRecapMessageNotification,
+              { messageId },
+              { removeOnComplete: true, removeOnFail: true }
+            )
+            captureEvent(user.id, EVENTS.USER_SUBMITTED_SESSION_RECAP_DM, {
+              sessionId: sessionId,
+              message,
+              isVolunteer: dbUser.roleContext.isActiveRole('volunteer'),
+              userType: userType,
+            })
+          }
+
+          const socketRoom = getSessionRoom(saveMessageData.sessionId)
+          io.in(socketRoom).emit('messageSend', messageData)
+        } catch (error) {
+          socket.emit('messageError', { sessionId: data.sessionId })
+          logger.error(error, { data }, "Failed sending a session's message")
+        }
+      })
     })
 
     socket.on('requestQuillState', async ({ sessionId }) => {
-      await observeWebTransaction(
-        '/socket-io/requestQuillState',
-        () =>
-          new Promise<void>(async (resolve, reject) => {
-            try {
-              const quillState =
-                await QuillDocService.lockAndGetDocCacheState(sessionId)
-              let doc = quillState?.doc
+      await observeWebTransaction('/socket-io/requestQuillState', async () => {
+        try {
+          const quillState =
+            await QuillDocService.lockAndGetDocCacheState(sessionId)
+          let doc = quillState?.doc
 
-              if (quillState?.lastDeltaStored)
-                socket.emit('lastDeltaStored', {
-                  delta: quillState.lastDeltaStored,
-                })
-              else if (!doc) doc = await QuillDocService.createDoc(sessionId)
+          if (quillState?.lastDeltaStored)
+            socket.emit('lastDeltaStored', {
+              delta: quillState.lastDeltaStored,
+            })
+          else if (!doc) doc = await QuillDocService.createDoc(sessionId)
 
-              socket.emit('quillState', {
-                delta: doc,
-              })
-              resolve()
-            } catch (error) {
-              if (error instanceof LockError) {
-                socket.emit('retryLoadingDoc')
-              }
-              reject({ error, details: { sessionId } })
-            }
+          socket.emit('quillState', {
+            delta: doc,
           })
-      )
+        } catch (error) {
+          if (error instanceof LockError) {
+            socket.emit('retryLoadingDoc')
+          }
+          logger.error(error, { sessionId }, 'Failed requesting the quill doc')
+        }
+      })
     })
 
     socket.on('requestQuillStateV2', async ({ sessionId }) => {
       await observeWebTransaction(
         '/socket-io/requestQuillStateV2',
-        () =>
-          new Promise<void>(async (resolve, reject) => {
-            try {
-              const updates =
-                await QuillDocService.getDocumentUpdates(sessionId)
-              socket.emit('quillStateV2', { updates })
-              resolve()
-            } catch (error) {
-              reject({
-                error,
-                details: { sessionId, userId: socket.request.user?.id },
-                message: 'Failed to get Quill v2 doc',
-              })
-            }
-          })
+        async () => {
+          try {
+            const updates = await QuillDocService.getDocumentUpdates(sessionId)
+            socket.emit('quillStateV2', { updates })
+          } catch (error) {
+            logger.error(
+              error,
+              { sessionId, userId: socket.request.user?.id },
+              'Failed to requesting Quill v2 doc'
+            )
+          }
+        }
       )
     })
 
@@ -544,89 +487,82 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       async ({ sessionId, update }: { sessionId: string; update: string }) => {
         await observeWebTransaction(
           '/socket-io/transmitQuillDeltaV2',
-          () =>
-            new Promise<void>(async (resolve, reject) => {
-              try {
-                await QuillDocService.addDocumentUpdate(sessionId, update)
-                socket
-                  .to(getSessionRoom(sessionId))
-                  .emit('partnerQuillDeltaV2', { update })
-                resolve()
-              } catch (error) {
-                reject({
-                  error,
-                  details: {
-                    sessionId,
-                    userId: socket.request.user?.id,
-                  },
-                  message: 'Failed to transmit Quill v2 doc update.',
-                })
-              }
-            })
+          async () => {
+            try {
+              await QuillDocService.addDocumentUpdate(sessionId, update)
+              io.to(getSessionRoom(sessionId)).emit('partnerQuillDeltaV2', {
+                update,
+              })
+            } catch (error) {
+              logger.error(
+                error,
+                {
+                  sessionId,
+                  userId: socket.request.user?.id,
+                },
+                'Failed to transmit Quill v2 doc update.'
+              )
+            }
+          }
         )
       }
     )
 
     socket.on('transmitQuillDelta', async ({ sessionId, delta }) => {
-      await observeWebTransaction(
-        '/socket-io/transmitQuillDelta',
-        () =>
-          new Promise<void>(async (resolve, reject) => {
-            /**
-             *
-             * Add a unique ID to each delta. This allows for the client to determine
-             * which deltas are which when it is queueing incoming deltas.
-             *
-             * The IDs are ignored when a delta is instantiated with `new Delta(delta)`
-             * or when a quill doc is composed
-             *
-             */
-            try {
-              delta.id = uuidv4()
-              await QuillDocService.appendToDoc(sessionId, delta)
-              socket.to(getSessionRoom(sessionId)).emit('partnerQuillDelta', {
-                delta,
-              })
-              resolve()
-            } catch (error) {
-              reject({ error, details: { sessionId } })
-            }
+      await observeWebTransaction('/socket-io/transmitQuillDelta', async () => {
+        /**
+         *
+         * Add a unique ID to each delta. This allows for the client to determine
+         * which deltas are which when it is queueing incoming deltas.
+         *
+         * The IDs are ignored when a delta is instantiated with `new Delta(delta)`
+         * or when a quill doc is composed
+         *
+         */
+        try {
+          delta.id = uuidv4()
+          await QuillDocService.appendToDoc(sessionId, delta)
+          io.to(getSessionRoom(sessionId)).emit('partnerQuillDelta', {
+            delta,
           })
-      )
+        } catch (error) {
+          logger.error(
+            error,
+            { sessionId },
+            'Failed transmitting quill doc delta'
+          )
+        }
+      })
     })
 
     socket.on('transmitQuillSelection', async ({ sessionId, range }) => {
       await observeWebTransaction(
         '/socket-io/transmitQuillSelection',
-        () =>
-          new Promise((resolve, reject) => {
-            try {
-              socket
-                .to(getSessionRoom(sessionId))
-                .emit('quillPartnerSelection', {
-                  range,
-                })
-              resolve()
-            } catch (error) {
-              reject({ error, details: { sessionId } })
-            }
-          })
+        async () => {
+          try {
+            io.to(getSessionRoom(sessionId)).emit('quillPartnerSelection', {
+              range,
+            })
+          } catch (error) {
+            logger.error(
+              error,
+              { sessionId },
+              'Failed transmitting quill doc selection'
+            )
+          }
+        }
       )
     })
 
     socket.on('error', async (error) => {
-      await observeWebTransaction(
-        '/socket-io/error',
-        () =>
-          new Promise((resolve, reject) => {
-            try {
-              logger.error(`Socket error: ${error}`)
-              Sentry.captureException(error)
-            } catch (error) {
-              reject({ error })
-            }
-          })
-      )
+      await observeWebTransaction('/socket-io/error', async () => {
+        try {
+          logger.error(`Socket error: ${error}`)
+          Sentry.captureException(error)
+        } catch (error) {
+          logger.error(error, 'Error capturing error')
+        }
+      })
     })
 
     socket.on('disconnecting', async () => {
@@ -657,19 +593,14 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
     socket.on(
       'sessions:leave',
       async ({ sessionId }) =>
-        await observeWebTransaction(
-          '/socket-io/sessions:leave',
-          () =>
-            new Promise<void>(async (resolve, reject) => {
-              try {
-                const user = await extractSocketUser(socket)
-                await socketService.leaveSession(socket, user, sessionId)
-                resolve()
-              } catch (error) {
-                reject({ error })
-              }
-            })
-        )
+        await observeWebTransaction('/socket-io/sessions:leave', async () => {
+          try {
+            const user = await extractSocketUser(socket)
+            await socketService.leaveSession(socket, user, sessionId)
+          } catch (error) {
+            logger.error(error, { sessionId }, 'Failed to leave session')
+          }
+        })
     )
 
     socket.conn.once('upgrade', () => {
@@ -693,22 +624,20 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
     })
 
     socket.on('moderatingImage', async ({ sessionId }) => {
-      await observeWebTransaction(
-        '/socket-io/moderatingImage',
-        async () =>
-          new Promise(async (resolve, reject) => {
-            try {
-              const user = await extractSocketUser(socket)
-              socket
-                .to(getSessionRoom(sessionId))
-                .except(user.id)
-                .emit('partnerUploadingImage')
-              resolve()
-            } catch (error) {
-              reject({ error })
-            }
-          })
-      )
+      await observeWebTransaction('/socket-io/moderatingImage', async () => {
+        try {
+          const user = await extractSocketUser(socket)
+          io.to(getSessionRoom(sessionId))
+            .except(user.id)
+            .emit('partnerUploadingImage')
+        } catch (error) {
+          logger.error(
+            error,
+            { sessionId },
+            'Failed emitting partnerUploadingImage'
+          )
+        }
+      })
     })
 
     socket.on(
@@ -716,21 +645,23 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       async ({ sessionId, moderationFailures, uploadError }) => {
         await observeWebTransaction(
           '/socket-io/partnerImageUploadFailed',
-          async () =>
-            new Promise(async (resolve, reject) => {
-              try {
-                const user = await extractSocketUser(socket)
-                socket
-                  .to(getSessionRoom(sessionId))
-                  .except(user.id)
-                  .emit('partnerImageUploadFailed', {
-                    moderationFailures,
-                    uploadError,
-                  })
-              } catch (error) {
-                reject({ error })
-              }
-            })
+          async () => {
+            try {
+              const user = await extractSocketUser(socket)
+              io.to(getSessionRoom(sessionId))
+                .except(user.id)
+                .emit('partnerImageUploadFailed', {
+                  moderationFailures,
+                  uploadError,
+                })
+            } catch (error) {
+              logger.error(
+                error,
+                { sessionId },
+                'Failed emitting partnerImageUploadFailed'
+              )
+            }
+          }
         )
       }
     )
@@ -738,14 +669,20 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
     socket.on('imageUploadSuccess', async ({ sessionId }) => {
       await observeWebTransaction(
         '/socket-io/partnerImageUploadSuccess',
-        async () =>
-          new Promise(async (resolve, reject) => {
+        async () => {
+          try {
             const user = await extractSocketUser(socket)
-            socket
-              .to(getSessionRoom(sessionId))
+            io.to(getSessionRoom(sessionId))
               .except(user.id)
               .emit('partnerImageUploadSuccess')
-          })
+          } catch (error) {
+            logger.error(
+              error,
+              { sessionId },
+              'Failed emitting partnerImageUploadSuccess'
+            )
+          }
+        }
       )
     })
 

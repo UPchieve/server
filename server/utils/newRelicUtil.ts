@@ -43,15 +43,7 @@ export async function observeWebTransaction(
     try {
       await webTransaction()
     } catch (error: any) {
-      const errorWithDetails = error as WebTransactionError
-      const errorContext = errorWithDetails?.details
-        ? errorWithDetails.details
-        : {}
-      logger.error(
-        errorWithDetails.error,
-        { ...errorContext },
-        errorWithDetails?.message ? error.message : ''
-      )
+      logger.error(error, false)
     } finally {
       transaction.end()
     }
