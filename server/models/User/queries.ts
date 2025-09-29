@@ -637,7 +637,12 @@ export async function updateUserProfileById(
   userId: string,
   data: Pick<
     EditUserProfilePayload,
-    'deactivated' | 'phone' | 'smsConsent' | 'preferredLanguage'
+    | 'deactivated'
+    | 'phone'
+    | 'smsConsent'
+    | 'preferredLanguage'
+    | 'signupSourceId'
+    | 'otherSignupSource'
   >,
   tc?: TransactionClient
 ): Promise<void> {
@@ -649,6 +654,8 @@ export async function updateUserProfileById(
         phone: data.phone,
         smsConsent: data.smsConsent,
         preferredLanguage: data.preferredLanguage,
+        signupSourceId: data.signupSourceId,
+        otherSignupSource: data.otherSignupSource,
       },
       tc ?? getClient()
     )

@@ -127,4 +127,6 @@ export type EditUserProfilePayload = {
   phone?: string
   preferredLanguage?: string
   schoolId?: string
+  signupSourceId?: number
+  otherSignupSource?: string
 }
