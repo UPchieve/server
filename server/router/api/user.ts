@@ -36,7 +36,7 @@ export function routeUser(router: Router): void {
         : false
 
       // Form request object
-      let updateReq: { [k: string]: boolean | string | string[] } = {
+      let updateReq: EditUserProfilePayload = {
         deactivated: isDeactivated,
         ...(req.body?.schoolId ? { schoolId: req.body?.schoolId } : {}),
       }
@@ -61,9 +61,7 @@ export function routeUser(router: Router): void {
         updateReq['preferredLanguage'] = preferredLanguage
       }
 
-      await updateUserProfile(user, ip, {
-        ...updateReq,
-      } as EditUserProfilePayload)
+      await updateUserProfile(user, ip, updateReq)
 
       res.sendStatus(200)
     } catch (err) {
