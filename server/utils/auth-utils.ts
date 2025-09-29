@@ -32,6 +32,10 @@ import session from 'express-session'
 import { validateRequestRecaptcha } from '../services/RecaptchaService'
 import { isDisposableEmail } from './domain-utils'
 import { UserRole } from '../models/User'
+import {
+  getVolunteerPartnerOrgForRegistrationByKey,
+  VolunteerPartnerOrgForRegistration,
+} from '../models/VolunteerPartnerOrg'
 // Custom errors
 export class RegistrationError extends CustomError {}
 export class ResetError extends CustomError {}
@@ -221,6 +225,36 @@ export const registerTeacherValidator = asFactory<RegisterTeacherPayload>({
   signupSource: asOptional(asString),
 })
 
+export interface RegisterVolunteerPayload {
+  email: string
+  firstName: string
+  ip?: string
+  issuer?: string
+  lastName: string
+  password?: string
+  profileId?: string
+  signupSourceId?: number
+  otherSignupSource?: string
+  referredByCode?: string
+  volunteerPartnerOrgKey?: string
+  timezone?: string
+}
+
+export const registerVolunteerValidator = asFactory<RegisterVolunteerPayload>({
+  email: asString,
+  firstName: asString,
+  ip: asOptional(asString),
+  issuer: asOptional(asString),
+  lastName: asString,
+  password: asString,
+  profileId: asOptional(asString),
+  signupSourceId: asOptional(asNumber),
+  otherSignupSource: asOptional(asString),
+  referredByCode: asOptional(asString),
+  volunteerPartnerOrgKey: asOptional(asString),
+  timezone: asOptional(asString),
+})
+
 export interface ResetConfirmData {
   email: string
   password: string
@@ -290,6 +324,31 @@ export function checkEmail(email: string) {
 
   if (isDisposableEmail(email))
     throw new NotAllowedError('Email is from an invalid email provider')
+}
+
+export async function checkValidPartnerEmailAddress(
+  email: string,
+  volunteerPartnerOrgKey: string
+) {
+  let volunteerPartnerManifest: VolunteerPartnerOrgForRegistration
+  try {
+    volunteerPartnerManifest = await getVolunteerPartnerOrgForRegistrationByKey(
+      volunteerPartnerOrgKey
+    )
+  } catch (err) {
+    throw new RegistrationError('Invalid volunteer partner organization')
+  }
+
+  const volunteerPartnerDomains = volunteerPartnerManifest.domains
+
+  // Confirm email has one of volunteer partner's required domains
+  if (volunteerPartnerDomains && volunteerPartnerDomains.length) {
+    const userEmailDomain = email.split('@')[1]
+    if (volunteerPartnerDomains.indexOf(userEmailDomain) === -1)
+      throw new RegistrationError(
+        'Invalid email domain for volunteer partner organization'
+      )
+  }
 }
 
 export async function getReferredBy(
