@@ -370,12 +370,12 @@ export function routeUser(router: Router): void {
       }
 
       const attrs: {
-        userId: string
+        deactivated: false
         phone: string
         signupSourceId: number
         otherSignupSource?: string
       } = {
-        userId: user.id,
+        deactivated: false,
         phone: req.body.phone,
         signupSourceId: req.body.signupSourceId,
       }
@@ -384,7 +384,7 @@ export function routeUser(router: Router): void {
         attrs.otherSignupSource = req.body.otherSignupSource
       }
 
-      await UserService.updatePhoneAndSignupSource(attrs)
+      await updateUserProfile(user, req.ip, attrs)
 
       return res.sendStatus(201)
     } catch (err) {

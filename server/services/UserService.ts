@@ -578,12 +578,3 @@ export async function countReferredUsers(
 export function getReferralSignUpLink(referralCode: string): string {
   return `${config.protocol}://${config.host}/referral/${referralCode}`
 }
-
-export async function updatePhoneAndSignupSource(attrs: {
-  userId: Uuid
-  phone: string
-  signupSourceId: number
-  otherSignupSource?: string
-}) {
-  return await UserRepo.updatePhoneAndSignupSource(attrs)
-}

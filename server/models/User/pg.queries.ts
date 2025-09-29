@@ -1643,8 +1643,10 @@ export const insertUserRoleByUserId = new PreparedQuery<IInsertUserRoleByUserIdP
 /** 'UpdateUserProfileById' parameters type */
 export interface IUpdateUserProfileByIdParams {
   deactivated?: boolean | null | void;
+  otherSignupSource?: string | null | void;
   phone?: string | null | void;
   preferredLanguage?: string | null | void;
+  signupSourceId?: number | null | void;
   smsConsent?: boolean | null | void;
   userId: string;
 }
@@ -1660,7 +1662,7 @@ export interface IUpdateUserProfileByIdQuery {
   result: IUpdateUserProfileByIdResult;
 }
 
-const updateUserProfileByIdIR: any = {"usedParamSet":{"deactivated":true,"phone":true,"smsConsent":true,"preferredLanguage":true,"userId":true},"params":[{"name":"deactivated","required":false,"transform":{"type":"scalar"},"locs":[{"a":48,"b":59}]},{"name":"phone","required":false,"transform":{"type":"scalar"},"locs":[{"a":97,"b":102}]},{"name":"smsConsent","required":false,"transform":{"type":"scalar"},"locs":[{"a":140,"b":150}]},{"name":"preferredLanguage","required":false,"transform":{"type":"scalar"},"locs":[{"a":201,"b":218}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":256,"b":263}]}],"statement":"UPDATE\n    users\nSET\n    deactivated = COALESCE(:deactivated, deactivated),\n    phone = COALESCE(:phone, phone),\n    sms_consent = COALESCE(:smsConsent, sms_consent),\n    preferred_language = COALESCE(:preferredLanguage, preferred_language)\nWHERE\n    id = :userId!\nRETURNING\n    id AS ok"};
+const updateUserProfileByIdIR: any = {"usedParamSet":{"deactivated":true,"phone":true,"smsConsent":true,"preferredLanguage":true,"signupSourceId":true,"otherSignupSource":true,"userId":true},"params":[{"name":"deactivated","required":false,"transform":{"type":"scalar"},"locs":[{"a":48,"b":59}]},{"name":"phone","required":false,"transform":{"type":"scalar"},"locs":[{"a":97,"b":102}]},{"name":"smsConsent","required":false,"transform":{"type":"scalar"},"locs":[{"a":140,"b":150}]},{"name":"preferredLanguage","required":false,"transform":{"type":"scalar"},"locs":[{"a":201,"b":218}]},{"name":"signupSourceId","required":false,"transform":{"type":"scalar"},"locs":[{"a":274,"b":288}]},{"name":"otherSignupSource","required":false,"transform":{"type":"scalar"},"locs":[{"a":345,"b":362}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":401,"b":408}]}],"statement":"UPDATE\n    users\nSET\n    deactivated = COALESCE(:deactivated, deactivated),\n    phone = COALESCE(:phone, phone),\n    sms_consent = COALESCE(:smsConsent, sms_consent),\n    preferred_language = COALESCE(:preferredLanguage, preferred_language),\n    signup_source_id = COALESCE(:signupSourceId, signup_source_id),\n    other_signup_source = COALESCE(:otherSignupSource, other_signup_source)\nWHERE\n    id = :userId!\nRETURNING\n    id AS ok"};
 
 /**
  * Query generated from SQL:
@@ -1671,7 +1673,9 @@ const updateUserProfileByIdIR: any = {"usedParamSet":{"deactivated":true,"phone"
  *     deactivated = COALESCE(:deactivated, deactivated),
  *     phone = COALESCE(:phone, phone),
  *     sms_consent = COALESCE(:smsConsent, sms_consent),
- *     preferred_language = COALESCE(:preferredLanguage, preferred_language)
+ *     preferred_language = COALESCE(:preferredLanguage, preferred_language),
+ *     signup_source_id = COALESCE(:signupSourceId, signup_source_id),
+ *     other_signup_source = COALESCE(:otherSignupSource, other_signup_source)
  * WHERE
  *     id = :userId!
  * RETURNING
@@ -2075,45 +2079,5 @@ const updatePreferredLanguageToUserIR: any = {"usedParamSet":{"preferredLanguage
  * ```
  */
 export const updatePreferredLanguageToUser = new PreparedQuery<IUpdatePreferredLanguageToUserParams,IUpdatePreferredLanguageToUserResult>(updatePreferredLanguageToUserIR);
-
-
-/** 'UpdatePhoneAndSignupSource' parameters type */
-export interface IUpdatePhoneAndSignupSourceParams {
-  otherSignupSource?: string | null | void;
-  phone: string;
-  signupSourceId: number;
-  userId?: string | null | void;
-}
-
-/** 'UpdatePhoneAndSignupSource' return type */
-export interface IUpdatePhoneAndSignupSourceResult {
-  ok: string;
-}
-
-/** 'UpdatePhoneAndSignupSource' query type */
-export interface IUpdatePhoneAndSignupSourceQuery {
-  params: IUpdatePhoneAndSignupSourceParams;
-  result: IUpdatePhoneAndSignupSourceResult;
-}
-
-const updatePhoneAndSignupSourceIR: any = {"usedParamSet":{"phone":true,"signupSourceId":true,"otherSignupSource":true,"userId":true},"params":[{"name":"phone","required":true,"transform":{"type":"scalar"},"locs":[{"a":33,"b":39}]},{"name":"signupSourceId","required":true,"transform":{"type":"scalar"},"locs":[{"a":65,"b":80}]},{"name":"otherSignupSource","required":false,"transform":{"type":"scalar"},"locs":[{"a":109,"b":126}]},{"name":"userId","required":false,"transform":{"type":"scalar"},"locs":[{"a":173,"b":179}]}],"statement":"UPDATE\n    users\nSET\n    phone = :phone!,\n    signup_source_id = :signupSourceId!,\n    other_signup_source = :otherSignupSource,\n    updated_at = NOW()\nWHERE\n    users.id = :userId\nRETURNING\n    id AS ok"};
-
-/**
- * Query generated from SQL:
- * ```
- * UPDATE
- *     users
- * SET
- *     phone = :phone!,
- *     signup_source_id = :signupSourceId!,
- *     other_signup_source = :otherSignupSource,
- *     updated_at = NOW()
- * WHERE
- *     users.id = :userId
- * RETURNING
- *     id AS ok
- * ```
- */
-export const updatePhoneAndSignupSource = new PreparedQuery<IUpdatePhoneAndSignupSourceParams,IUpdatePhoneAndSignupSourceResult>(updatePhoneAndSignupSourceIR);
 
 

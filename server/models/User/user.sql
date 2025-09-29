@@ -772,7 +772,9 @@ SET
     deactivated = COALESCE(:deactivated, deactivated),
     phone = COALESCE(:phone, phone),
     sms_consent = COALESCE(:smsConsent, sms_consent),
-    preferred_language = COALESCE(:preferredLanguage, preferred_language)
+    preferred_language = COALESCE(:preferredLanguage, preferred_language),
+    signup_source_id = COALESCE(:signupSourceId, signup_source_id),
+    other_signup_source = COALESCE(:otherSignupSource, other_signup_source)
 WHERE
     id = :userId!
 RETURNING
@@ -923,20 +925,6 @@ UPDATE
     users
 SET
     preferred_language = :preferredLanguage!,
-    updated_at = NOW()
-WHERE
-    users.id = :userId
-RETURNING
-    id AS ok;
-
-
-/* @name updatePhoneAndSignupSource */
-UPDATE
-    users
-SET
-    phone = :phone!,
-    signup_source_id = :signupSourceId!,
-    other_signup_source = :otherSignupSource,
     updated_at = NOW()
 WHERE
     users.id = :userId
