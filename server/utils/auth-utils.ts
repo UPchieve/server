@@ -243,7 +243,7 @@ export interface RegisterVolunteerPayload {
 export const registerVolunteerValidator = asFactory<RegisterVolunteerPayload>({
   email: asString,
   firstName: asString,
-  ip: asString,
+  ip: asOptional(asString),
   issuer: asOptional(asString),
   lastName: asString,
   password: asString,

@@ -46,11 +46,7 @@ import {
   getPartnerOrgByKey,
 } from '../models/Volunteer'
 import * as VolunteerService from './VolunteerService'
-import { Jobs } from '../worker/jobs'
-import QueueService from './QueueService'
-import config from '../config'
-import * as UserService from './UserService'
-import * as NotificationService from './NotificationService'
+import * as ReferralService from './ReferralService'
 
 export interface RosterStudentPayload {
   cleverId?: string
@@ -281,7 +277,7 @@ export async function registerStudent(
 }
 
 export async function verifyVolunteerData(data: RegisterVolunteerPayload) {
-  if (data?.volunteerPartnerOrgKey) {
+  if (data.volunteerPartnerOrgKey) {
     await checkValidPartnerEmailAddress(data.email, data.volunteerPartnerOrgKey)
   }
 
@@ -343,7 +339,7 @@ export async function registerVolunteer(
   }, tc)
 
   await VolunteerService.queueOnboardingReminderOneEmail(newVolunteer.id)
-  await handleReferredBy({
+  await ReferralService.queueReferredByEmailsForVolunteer({
     referredBy: userData.referredBy,
     firstName: userData.firstName,
     volunteerPartnerOrgKey: data.volunteerPartnerOrgKey,
@@ -357,47 +353,6 @@ export async function registerVolunteer(
     isAdmin: false,
     isVolunteer: true,
     userType: 'volunteer',
-  }
-}
-
-async function handleReferredBy({
-  referredBy,
-  firstName,
-  volunteerPartnerOrgKey,
-  referredByCode,
-}: {
-  firstName: string
-  referredBy?: string
-  volunteerPartnerOrgKey?: string
-  referredByCode?: string
-}) {
-  if (!referredBy) return
-
-  await QueueService.add(
-    Jobs.SendReferralSignUpCelebrationEmail,
-    {
-      userId: referredBy,
-      referredFirstName: firstName,
-    },
-    { removeOnComplete: true, removeOnFail: false }
-  )
-
-  if (!volunteerPartnerOrgKey) {
-    const referredUsers = await UserService.countReferredUsers(referredBy)
-
-    const hasUserBeenSentCongratsEmail =
-      await NotificationService.hasUserBeenSentEmail({
-        userId: referredBy,
-        emailTemplateId: config.sendgrid.ambassadorCongratsTemplate,
-      })
-
-    if (referredByCode && referredUsers >= 5 && !hasUserBeenSentCongratsEmail) {
-      await QueueService.add(Jobs.SendAmbassadorCongratsEmail, {
-        userId: referredBy,
-        firstName: firstName,
-        referralLink: UserService.getReferralSignUpLink(referredByCode),
-      })
-    }
   }
 }
 
