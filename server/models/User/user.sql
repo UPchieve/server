@@ -816,17 +816,6 @@ INSERT INTO muted_users_subject_alerts (user_id, subject_id)
 
 
 /*
- @name deleteUnmutedUserSubjectAlerts
- @param mutedSubjectAlertIds -> (...)
- */
-DELETE FROM muted_users_subject_alerts
-WHERE user_id = :userId
-    AND subject_id NOT IN :mutedSubjectAlertIds
-RETURNING
-    user_id AS ok;
-
-
-/*
  @name deleteAllUserSubjectAlerts
  */
 DELETE FROM muted_users_subject_alerts
