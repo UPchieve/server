@@ -208,6 +208,11 @@ export function routeSession(router: Router) {
 
   router.get('/session/:sessionId/photo-url', async function (req, res) {
     try {
+      const user = extractUser(req)
+      const featureAccess = await getFeatureAccess(user.id)
+      if (!featureAccess.imageUpload.allow)
+        throw new Error('Image upload is not allowed')
+
       const { sessionId } = req.params
       const { uploadUrl, imageUrl } = await SessionService.getImageAndUploadUrl(
         sessionId as unknown
@@ -438,8 +443,12 @@ export function routeSession(router: Router) {
 
   router.post('/sessions/:sessionId/meeting', async function (req, res) {
     try {
-      const sessionId = req.params.sessionId
       const userId = extractUser(req).id
+      const featureAccess = await getFeatureAccess(userId)
+      if (!featureAccess.screenshare.allow)
+        throw new Error('Screenshare is not allowed')
+
+      const sessionId = req.params.sessionId
       const { meeting, attendee, partnerAttendee } =
         await SessionMeetingService.getOrCreateSessionMeeting(sessionId, userId)
       return res.json({
@@ -466,6 +475,11 @@ export function routeSession(router: Router) {
     '/sessions/:sessionId/meeting/start-transcription',
     async function (req, res) {
       try {
+        const userId = extractUser(req).id
+        const featureAccess = await getFeatureAccess(userId)
+        if (!featureAccess.voiceChat.allow)
+          throw new Error('Screenshare is not allowed')
+
         const sessionId = req.params.sessionId
         const transcriptionStarted =
           await SessionMeetingService.startTranscription(sessionId)
@@ -480,6 +494,11 @@ export function routeSession(router: Router) {
     '/sessions/:sessionId/meeting/start-recording',
     async function (req, res) {
       try {
+        const userId = extractUser(req).id
+        const featureAccess = await getFeatureAccess(userId)
+        if (!featureAccess.screenshare.allow)
+          throw new Error('Voice chat is not allowed')
+
         const sessionId = req.params.sessionId
         const recordingId =
           await SessionMeetingService.startRecording(sessionId)
