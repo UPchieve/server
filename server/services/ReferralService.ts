@@ -6,6 +6,11 @@ import * as ReferralRepo from '../models/Referrals'
 import * as UserRepo from '../models/User'
 import { UserRole } from '../models/User'
 import * as AnalyticsService from './AnalyticsService'
+import { Jobs } from '../worker/jobs'
+import QueueService from './QueueService'
+import config from '../config'
+import * as UserService from './UserService'
+import * as NotificationService from './NotificationService'
 
 // TODO: Use this method once clean-up setting `users.referred_by`.
 export async function addReferralForUserByCode(
@@ -51,4 +56,45 @@ export async function getReferredUsers(
   }
 ) {
   return ReferralRepo.getReferredUsersWithFilter(userId, filters)
+}
+
+export async function queueReferredByEmailsForVolunteer({
+  referredBy,
+  firstName,
+  volunteerPartnerOrgKey,
+  referredByCode,
+}: {
+  firstName: string
+  referredBy?: string
+  volunteerPartnerOrgKey?: string
+  referredByCode?: string
+}) {
+  if (!referredBy) return
+
+  await QueueService.add(
+    Jobs.SendReferralSignUpCelebrationEmail,
+    {
+      userId: referredBy,
+      referredFirstName: firstName,
+    },
+    { removeOnComplete: true, removeOnFail: false }
+  )
+
+  if (!volunteerPartnerOrgKey) {
+    const referredUsers = await UserService.countReferredUsers(referredBy)
+
+    const hasUserBeenSentCongratsEmail =
+      await NotificationService.hasUserBeenSentEmail({
+        userId: referredBy,
+        emailTemplateId: config.sendgrid.ambassadorCongratsTemplate,
+      })
+
+    if (referredByCode && referredUsers >= 5 && !hasUserBeenSentCongratsEmail) {
+      await QueueService.add(Jobs.SendAmbassadorCongratsEmail, {
+        userId: referredBy,
+        firstName: firstName,
+        referralLink: UserService.getReferralSignUpLink(referredByCode),
+      })
+    }
+  }
 }
