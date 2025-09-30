@@ -1786,38 +1786,6 @@ const insertMutedUserSubjectAlertsIR: any = {"usedParamSet":{"mutedSubjectAlertI
 export const insertMutedUserSubjectAlerts = new PreparedQuery<IInsertMutedUserSubjectAlertsParams,IInsertMutedUserSubjectAlertsResult>(insertMutedUserSubjectAlertsIR);
 
 
-/** 'DeleteUnmutedUserSubjectAlerts' parameters type */
-export interface IDeleteUnmutedUserSubjectAlertsParams {
-  mutedSubjectAlertIds: readonly (number | null | void)[];
-  userId?: string | null | void;
-}
-
-/** 'DeleteUnmutedUserSubjectAlerts' return type */
-export interface IDeleteUnmutedUserSubjectAlertsResult {
-  ok: string;
-}
-
-/** 'DeleteUnmutedUserSubjectAlerts' query type */
-export interface IDeleteUnmutedUserSubjectAlertsQuery {
-  params: IDeleteUnmutedUserSubjectAlertsParams;
-  result: IDeleteUnmutedUserSubjectAlertsResult;
-}
-
-const deleteUnmutedUserSubjectAlertsIR: any = {"usedParamSet":{"userId":true,"mutedSubjectAlertIds":true},"params":[{"name":"mutedSubjectAlertIds","required":false,"transform":{"type":"array_spread"},"locs":[{"a":89,"b":109}]},{"name":"userId","required":false,"transform":{"type":"scalar"},"locs":[{"a":55,"b":61}]}],"statement":"DELETE FROM muted_users_subject_alerts\nWHERE user_id = :userId\n    AND subject_id NOT IN :mutedSubjectAlertIds\nRETURNING\n    user_id AS ok"};
-
-/**
- * Query generated from SQL:
- * ```
- * DELETE FROM muted_users_subject_alerts
- * WHERE user_id = :userId
- *     AND subject_id NOT IN :mutedSubjectAlertIds
- * RETURNING
- *     user_id AS ok
- * ```
- */
-export const deleteUnmutedUserSubjectAlerts = new PreparedQuery<IDeleteUnmutedUserSubjectAlertsParams,IDeleteUnmutedUserSubjectAlertsResult>(deleteUnmutedUserSubjectAlertsIR);
-
-
 /** 'DeleteAllUserSubjectAlerts' parameters type */
 export interface IDeleteAllUserSubjectAlertsParams {
   userId?: string | null | void;
