@@ -144,7 +144,9 @@ SELECT
 FROM
     users
 WHERE
-    id = :id!;
+    id = :id!
+    AND deactivated IS FALSE
+    AND deleted IS FALSE;
 
 
 /* @name getUserForPassport */
