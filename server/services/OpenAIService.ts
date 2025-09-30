@@ -61,10 +61,7 @@ function getResults(
   result: OpenAI.ChatCompletion,
   responseType: OpenAiResponseType
 ) {
-  if (
-    result?.choices[0]?.message?.content == undefined ||
-    result?.choices[0]?.message?.content == null
-  ) {
+  if (result?.choices[0]?.message?.content == null) {
     return null
   }
 
