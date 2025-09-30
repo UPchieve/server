@@ -44,7 +44,8 @@ export async function invokeModel({
     })
 
     results = getResults(response, responseType)
-    if (!results) throw new Error("Didn't get an expected openai chat response")
+    if (results == null)
+      throw new Error("Didn't get an expected openai chat response")
   } catch (err) {
     logger.error(err)
     throw err
@@ -60,7 +61,7 @@ function getResults(
   result: OpenAI.ChatCompletion,
   responseType: OpenAiResponseType
 ) {
-  if (!result?.choices[0]?.message?.content) {
+  if (result?.choices[0]?.message?.content == null) {
     return null
   }
 
