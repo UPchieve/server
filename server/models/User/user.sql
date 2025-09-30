@@ -105,6 +105,8 @@ FROM
     LEFT JOIN user_roles ON user_roles.id = users_roles.role_id
 WHERE
     users.id = :id!
+    AND users.deactivated IS FALSE
+    AND users.deleted IS FALSE
 GROUP BY
     users.id,
     volunteer_profiles.user_id,
@@ -112,6 +114,15 @@ GROUP BY
     volunteer_partner_orgs.id,
     student_partner_orgs.id
 LIMIT 1;
+
+
+/* @name getUserBanStatus */
+SELECT
+    ban_type
+FROM
+    users
+WHERE
+    id = :id!;
 
 
 /* @name getUserByReferralCode */
@@ -362,6 +373,7 @@ SELECT
     users.email,
     users.created_at,
     users.deactivated AS is_deactivated,
+    users.deleted AS is_deleted,
     users.test_user AS is_test_user,
     users.verified,
     users.ban_type AS ban_type,
