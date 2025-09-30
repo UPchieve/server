@@ -316,10 +316,7 @@ export async function adminUpdateUser(data: unknown) {
     userBeforeUpdate.banType === USER_BAN_TYPES.COMPLETE &&
     banType !== USER_BAN_TYPES.COMPLETE
   )
-    await updateIpStatusByUserId(
-      userBeforeUpdate.id,
-      IP_ADDRESS_STATUS.OK,
-    )
+    await updateIpStatusByUserId(userBeforeUpdate.id, IP_ADDRESS_STATUS.OK)
 
   if (
     userBeforeUpdate.banType !== USER_BAN_TYPES.COMPLETE &&
@@ -346,20 +343,14 @@ export async function adminUpdateUser(data: unknown) {
     userBeforeUpdate.banType !== USER_BAN_TYPES.LIVE_MEDIA &&
     banType === USER_BAN_TYPES.LIVE_MEDIA
   ) {
-    await createAdminAction(
-      ACCOUNT_USER_ACTIONS.LIVE_MEDIA_BANNED,
-      userId,
-    )
+    await createAdminAction(ACCOUNT_USER_ACTIONS.LIVE_MEDIA_BANNED, userId)
   }
 
   //track reversing live_media bans
   if (userBeforeUpdate.banType === USER_BAN_TYPES.LIVE_MEDIA && !banType) {
-    await createAdminAction(
-      ACCOUNT_USER_ACTIONS.UNLIVE_MEDIA_BANNED,
-      userId,
-    )
+    await createAdminAction(ACCOUNT_USER_ACTIONS.UNLIVE_MEDIA_BANNED, userId)
     await ModerationInfractionsService.deactivateModerationInfractionByUserId(
-      userId,
+      userId
     )
   }
 
@@ -389,13 +380,11 @@ export async function adminUpdateUser(data: unknown) {
     }
   }
 
-  if (isDeactivated && !userBeforeUpdate.deactivated)
-    await createAccountAction(
-      {
-        userId,
-        action: ACCOUNT_USER_ACTIONS.DEACTIVATED,
-      },
-    )
+  if (isDeactivated && !userBeforeUpdate.isDeactivated)
+    await createAccountAction({
+      userId,
+      action: ACCOUNT_USER_ACTIONS.DEACTIVATED,
+    })
 
   if (isVolunteer) {
     await updateVolunteerForAdmin(userId, update)

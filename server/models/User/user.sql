@@ -861,6 +861,7 @@ FROM
     LEFT JOIN volunteer_partner_orgs ON volunteer_profiles.volunteer_partner_org_id = volunteer_partner_orgs.id
 WHERE
     deactivated IS FALSE
+    AND deleted IS FALSE
     AND test_user IS FALSE
     AND users.id = :userId!;
 
