@@ -229,28 +229,6 @@ RETURNING
     id AS ok;
 
 
-/* @name insertUserIpById */
-WITH ins AS (
-INSERT INTO users_ip_addresses (id, ip_address_id, user_id, created_at, updated_at)
-        VALUES (:id!, :ipId!, :userId!, NOW(), NOW())
-    ON CONFLICT
-        DO NOTHING
-    RETURNING
-        id AS ok)
-    SELECT
-        *
-    FROM
-        ins
-    UNION
-    SELECT
-        id AS ok
-    FROM
-        users_ip_addresses
-    WHERE
-        ip_address_id = :ipId!
-            AND user_id = :userId!;
-
-
 /* @name updateUserVerifiedEmailById */
 UPDATE
     users

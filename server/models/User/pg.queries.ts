@@ -677,53 +677,6 @@ const updateUserPasswordByIdIR: any = {"usedParamSet":{"password":true,"userId":
 export const updateUserPasswordById = new PreparedQuery<IUpdateUserPasswordByIdParams,IUpdateUserPasswordByIdResult>(updateUserPasswordByIdIR);
 
 
-/** 'InsertUserIpById' parameters type */
-export interface IInsertUserIpByIdParams {
-  id: string;
-  ipId: number;
-  userId: string;
-}
-
-/** 'InsertUserIpById' return type */
-export interface IInsertUserIpByIdResult {
-  ok: string | null;
-}
-
-/** 'InsertUserIpById' query type */
-export interface IInsertUserIpByIdQuery {
-  params: IInsertUserIpByIdParams;
-  result: IInsertUserIpByIdResult;
-}
-
-const insertUserIpByIdIR: any = {"usedParamSet":{"id":true,"ipId":true,"userId":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":114,"b":117}]},{"name":"ipId","required":true,"transform":{"type":"scalar"},"locs":[{"a":120,"b":125},{"a":369,"b":374}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":128,"b":135},{"a":402,"b":409}]}],"statement":"WITH ins AS (\nINSERT INTO users_ip_addresses (id, ip_address_id, user_id, created_at, updated_at)\n        VALUES (:id!, :ipId!, :userId!, NOW(), NOW())\n    ON CONFLICT\n        DO NOTHING\n    RETURNING\n        id AS ok)\n    SELECT\n        *\n    FROM\n        ins\n    UNION\n    SELECT\n        id AS ok\n    FROM\n        users_ip_addresses\n    WHERE\n        ip_address_id = :ipId!\n            AND user_id = :userId!"};
-
-/**
- * Query generated from SQL:
- * ```
- * WITH ins AS (
- * INSERT INTO users_ip_addresses (id, ip_address_id, user_id, created_at, updated_at)
- *         VALUES (:id!, :ipId!, :userId!, NOW(), NOW())
- *     ON CONFLICT
- *         DO NOTHING
- *     RETURNING
- *         id AS ok)
- *     SELECT
- *         *
- *     FROM
- *         ins
- *     UNION
- *     SELECT
- *         id AS ok
- *     FROM
- *         users_ip_addresses
- *     WHERE
- *         ip_address_id = :ipId!
- *             AND user_id = :userId!
- * ```
- */
-export const insertUserIpById = new PreparedQuery<IInsertUserIpByIdParams,IInsertUserIpByIdResult>(insertUserIpByIdIR);
-
-
 /** 'UpdateUserVerifiedEmailById' parameters type */
 export interface IUpdateUserVerifiedEmailByIdParams {
   email: string;
