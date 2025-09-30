@@ -1713,13 +1713,12 @@ export async function getVolunteersForAnalyticsReport(
 }
 
 export async function getActiveSponsorshipsByUserId(
-  userId: Ulid,
-  tc: TransactionClient = getRoClient()
+  userId: Ulid
 ): Promise<Sponsorship[]> {
   try {
     const result = await pgQueries.getActiveSponsorshipsByUserId.run(
       { userId },
-      tc
+      getRoClient()
     )
     return result.map((v) => makeRequired(v))
   } catch (err) {

@@ -628,7 +628,8 @@ FROM
             federated_credentials.user_id = :userId!) AS federated_credentials_agg ON TRUE
     LEFT JOIN signup_sources ON signup_sources.id = users.signup_source_id
 WHERE
-    users.id = :userId!;
+    users.id = :userId!
+    AND users.deleted IS FALSE;
 
 
 /* @name getUserToCreateSendGridContact */
