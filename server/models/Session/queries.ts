@@ -1494,8 +1494,7 @@ export async function getSessionTranscriptItems(sessionId: Ulid) {
 
 export async function getUniqueStudentsHelpedCount(
   userId: Ulid,
-  minSessionLength: number,
-  tc?: TransactionClient
+  minSessionLength: number
 ) {
   try {
     const result = await pgQueries.getUniqueStudentsHelpedCount.run(
@@ -1503,7 +1502,7 @@ export async function getUniqueStudentsHelpedCount(
         userId,
         minSessionLength,
       },
-      tc || getClient()
+      getClient()
     )
     return makeRequired(result[0]).total
   } catch (err) {

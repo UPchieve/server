@@ -63,34 +63,30 @@ import * as ImpactStatsService from './ImpactStatsService'
 import config from '../config'
 
 export async function parseUser(baseUser: UserContactInfo) {
-  return runInTransaction(async (tc) => {
-    const user = await getLegacyUserObject(baseUser.id, tc)
+  const user = await getLegacyUserObject(baseUser.id)
 
-    user.numReferredVolunteers = await countReferredUsers(user.id, {
-      withRoles: ['volunteer'],
-    })
-
-    // Approved volunteer
-    if (user.roleContext.isActiveRole('volunteer') && user.isApproved) {
-      user.hoursTutored = Number(user.hoursTutored)
-
-      user.hoursTutoredThisWeek = await ImpactStatsService.hoursTutoredThisWeek(
-        baseUser.id,
-        tc
-      )
-
-      user.uniqueStudentsHelpedCount =
-        await ImpactStatsService.uniqueStudentsHelpedCount(baseUser.id, tc)
-
-      user.sponsorships = await VolunteerService.getActiveSponsorshipsByUserId(
-        baseUser.id,
-        tc
-      )
-      return omit(user, ['references', 'photoIdS3Key', 'photoIdStatus'])
-    }
-
-    return user
+  user.numReferredVolunteers = await countReferredUsers(user.id, {
+    withRoles: ['volunteer'],
   })
+
+  // Approved volunteer
+  if (user.roleContext.isActiveRole('volunteer') && user.isApproved) {
+    user.hoursTutored = Number(user.hoursTutored)
+
+    user.hoursTutoredThisWeek = await ImpactStatsService.hoursTutoredThisWeek(
+      baseUser.id
+    )
+
+    user.uniqueStudentsHelpedCount =
+      await ImpactStatsService.uniqueStudentsHelpedCount(baseUser.id)
+
+    user.sponsorships = await VolunteerService.getActiveSponsorshipsByUserId(
+      baseUser.id
+    )
+    return omit(user, ['references', 'photoIdS3Key', 'photoIdStatus'])
+  }
+
+  return user
 }
 
 export async function addPhotoId(userId: Ulid, ip: string): Promise<string> {
