@@ -166,7 +166,7 @@ export interface IGetUserVerificationByEmailQuery {
   result: IGetUserVerificationByEmailResult;
 }
 
-const getUserVerificationByEmailIR: any = {"usedParamSet":{"email":true},"params":[{"name":"email","required":true,"transform":{"type":"scalar"},"locs":[{"a":112,"b":118}]}],"statement":"SELECT\n    id,\n    email,\n    email_verified,\n    phone_verified,\n    verified\nFROM\n    users\nWHERE\n    email = :email!"};
+const getUserVerificationByEmailIR: any = {"usedParamSet":{"email":true},"params":[{"name":"email","required":true,"transform":{"type":"scalar"},"locs":[{"a":112,"b":118}]}],"statement":"SELECT\n    id,\n    email,\n    email_verified,\n    phone_verified,\n    verified\nFROM\n    users\nWHERE\n    email = :email!\n    AND deactivated IS FALSE\n    AND deleted IS FALSE"};
 
 /**
  * Query generated from SQL:
@@ -181,6 +181,8 @@ const getUserVerificationByEmailIR: any = {"usedParamSet":{"email":true},"params
  *     users
  * WHERE
  *     email = :email!
+ *     AND deactivated IS FALSE
+ *     AND deleted IS FALSE
  * ```
  */
 export const getUserVerificationByEmail = new PreparedQuery<IGetUserVerificationByEmailParams,IGetUserVerificationByEmailResult>(getUserVerificationByEmailIR);

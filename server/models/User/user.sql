@@ -40,7 +40,9 @@ SELECT
 FROM
     users
 WHERE
-    email = :email!;
+    email = :email!
+    AND deactivated IS FALSE
+    AND deleted IS FALSE;
 
 
 /* @name getUserIdByEmail */
