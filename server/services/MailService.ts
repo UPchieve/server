@@ -444,30 +444,6 @@ export async function sendReferenceForm(
   )
 }
 
-// TODO: remove once job is executed
-export async function sendReferenceFormApology(
-  reference: UnsentReference,
-  volunteer: VolunteerContactInfo
-): Promise<void> {
-  const emailData = {
-    referenceUrl: buildAppLink(`reference-form/${reference.id}`),
-    referenceName: reference.firstName,
-    volunteerName: `${volunteer.firstName} ${volunteer.lastName}`,
-  }
-  const overrides = {
-    categories: ['reference form email'],
-  }
-
-  await sendEmail(
-    reference.email,
-    config.mail.senders.noreply,
-    'UPchieve',
-    config.sendgrid.referenceFormApologyTemplate,
-    emailData,
-    overrides
-  )
-}
-
 export async function sendApprovedNotOnboardedEmail<
   V extends VolunteerContactInfo,
 >(volunteer: V): Promise<void> {
