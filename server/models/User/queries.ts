@@ -342,23 +342,6 @@ export async function updateUserPasswordById(
   }
 }
 
-// updateUserIpById
-export async function insertUserIpById(
-  userId: Ulid,
-  ipId: Pgid
-): Promise<void> {
-  try {
-    const result = await pgQueries.insertUserIpById.run(
-      { id: getDbUlid(), userId, ipId },
-      getClient()
-    )
-    if (!(result.length && makeRequired(result[0]).ok))
-      throw new RepoUpdateError('Insert query did not return ok')
-  } catch (err) {
-    throw new RepoUpdateError(err)
-  }
-}
-
 export async function updateUserVerifiedInfoById(
   userId: Ulid,
   sendTo: string,
