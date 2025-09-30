@@ -429,7 +429,7 @@ export interface IGetUserReferralLinkQuery {
   result: IGetUserReferralLinkResult;
 }
 
-const getUserReferralLinkIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":82,"b":85}]}],"statement":"SELECT\n    first_name,\n    email,\n    referral_code\nFROM\n    users\nWHERE\n    id = :id!"};
+const getUserReferralLinkIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":82,"b":85}]}],"statement":"SELECT\n    first_name,\n    email,\n    referral_code\nFROM\n    users\nWHERE\n    id = :id!\n    AND deactivated IS FALSE\n    AND deleted IS FALSE"};
 
 /**
  * Query generated from SQL:
@@ -442,6 +442,8 @@ const getUserReferralLinkIR: any = {"usedParamSet":{"id":true},"params":[{"name"
  *     users
  * WHERE
  *     id = :id!
+ *     AND deactivated IS FALSE
+ *     AND deleted IS FALSE
  * ```
  */
 export const getUserReferralLink = new PreparedQuery<IGetUserReferralLinkParams,IGetUserReferralLinkResult>(getUserReferralLinkIR);
