@@ -67,6 +67,7 @@ import addScheduledJobs from './addScheduledJobs'
 import emailAmbassadorCongrats from './emailAmbassadorCongrats'
 import backfillOnboardedStatus from './backfillOnboardedStatus'
 import { logRedisKeyMemStats } from './logRedisKeyMemStats'
+import { clearBullJobByStatus } from './clearBullJobsByStatus'
 
 export enum Jobs {
   AddScheduledJobs = 'AddScheduledJobs',
@@ -76,6 +77,7 @@ export enum Jobs {
   BackfillStudentPosthog = 'BackfillStudentPosthog',
   BackfillStudentUsersRoles = 'BackfillStudentUsersRoles',
   BackfillUpdateElapsedAvailability = 'BackfillUpdateElapsedAvailability',
+  ClearBullJobsByStatus = 'ClearBullJobsByStatus',
   DeleteDuplicateFeedbacks = 'DeleteDuplicateFeedbacks',
   DeleteDuplicateStudentFavoriteVolunteers = 'DeleteDuplicateStudentFavoriteVolunteers',
   DeleteDuplicateUserSurveys = 'DeleteDuplicateUserSurveys',
@@ -186,6 +188,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.BackfillUpdateElapsedAvailability,
     processor: backfillUpdateElapsedAvailability,
+  },
+  {
+    name: Jobs.ClearBullJobsByStatus,
+    processor: clearBullJobByStatus,
   },
   {
     name: Jobs.DeleteDuplicateStudentFavoriteVolunteers,
