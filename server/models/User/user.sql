@@ -170,7 +170,8 @@ SELECT
 FROM
     users
 WHERE
-    password_reset_token = :resetToken!;
+    password_reset_token = :resetToken!
+    AND deleted IS FALSE;
 
 
 /* @name deleteUser */
