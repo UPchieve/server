@@ -468,7 +468,7 @@ export interface IGetUserForPassportQuery {
   result: IGetUserForPassportResult;
 }
 
-const getUserForPassportIR: any = {"usedParamSet":{"email":true},"params":[{"name":"email","required":true,"transform":{"type":"scalar"},"locs":[{"a":102,"b":108}]}],"statement":"SELECT\n    id,\n    email,\n    proxy_email,\n    PASSWORD\nFROM\n    users\nWHERE\n    LOWER(email) = LOWER(:email!)\nLIMIT 1"};
+const getUserForPassportIR: any = {"usedParamSet":{"email":true},"params":[{"name":"email","required":true,"transform":{"type":"scalar"},"locs":[{"a":102,"b":108}]}],"statement":"SELECT\n    id,\n    email,\n    proxy_email,\n    PASSWORD\nFROM\n    users\nWHERE\n    LOWER(email) = LOWER(:email!)\n    AND deleted IS FALSE\nLIMIT 1"};
 
 /**
  * Query generated from SQL:
@@ -482,6 +482,7 @@ const getUserForPassportIR: any = {"usedParamSet":{"email":true},"params":[{"nam
  *     users
  * WHERE
  *     LOWER(email) = LOWER(:email!)
+ *     AND deleted IS FALSE
  * LIMIT 1
  * ```
  */

@@ -159,6 +159,7 @@ FROM
     users
 WHERE
     LOWER(email) = LOWER(:email!)
+    AND deleted IS FALSE
 LIMIT 1;
 
 
