@@ -210,7 +210,7 @@ export function routeSession(router: Router) {
     try {
       const user = extractUser(req)
       const featureAccess = await getFeatureAccess(user.id)
-      if (!featureAccess.imageUpload.allow)
+      if (!featureAccess.imageUpload?.allow)
         throw new Error('Image upload is not allowed')
 
       const { sessionId } = req.params
@@ -445,7 +445,7 @@ export function routeSession(router: Router) {
     try {
       const userId = extractUser(req).id
       const featureAccess = await getFeatureAccess(userId)
-      if (!featureAccess.screenshare.allow)
+      if (!featureAccess.screenshare?.allow)
         throw new Error('Screenshare is not allowed')
 
       const sessionId = req.params.sessionId
@@ -477,7 +477,7 @@ export function routeSession(router: Router) {
       try {
         const userId = extractUser(req).id
         const featureAccess = await getFeatureAccess(userId)
-        if (!featureAccess.voiceChat.allow)
+        if (!featureAccess.voiceChat?.allow)
           throw new Error('Screenshare is not allowed')
 
         const sessionId = req.params.sessionId
@@ -496,7 +496,7 @@ export function routeSession(router: Router) {
       try {
         const userId = extractUser(req).id
         const featureAccess = await getFeatureAccess(userId)
-        if (!featureAccess.screenshare.allow)
+        if (!featureAccess.screenshare?.allow)
           throw new Error('Voice chat is not allowed')
 
         const sessionId = req.params.sessionId
