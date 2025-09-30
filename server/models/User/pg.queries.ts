@@ -506,7 +506,7 @@ export interface IGetUserByResetTokenQuery {
   result: IGetUserByResetTokenResult;
 }
 
-const getUserByResetTokenIR: any = {"usedParamSet":{"resetToken":true},"params":[{"name":"resetToken","required":true,"transform":{"type":"scalar"},"locs":[{"a":73,"b":84}]}],"statement":"SELECT\n    id,\n    email\nFROM\n    users\nWHERE\n    password_reset_token = :resetToken!"};
+const getUserByResetTokenIR: any = {"usedParamSet":{"resetToken":true},"params":[{"name":"resetToken","required":true,"transform":{"type":"scalar"},"locs":[{"a":73,"b":84}]}],"statement":"SELECT\n    id,\n    email\nFROM\n    users\nWHERE\n    password_reset_token = :resetToken!\n    AND deleted IS FALSE"};
 
 /**
  * Query generated from SQL:
@@ -518,6 +518,7 @@ const getUserByResetTokenIR: any = {"usedParamSet":{"resetToken":true},"params":
  *     users
  * WHERE
  *     password_reset_token = :resetToken!
+ *     AND deleted IS FALSE
  * ```
  */
 export const getUserByResetToken = new PreparedQuery<IGetUserByResetTokenParams,IGetUserByResetTokenResult>(getUserByResetTokenIR);
