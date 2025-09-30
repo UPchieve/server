@@ -55,6 +55,7 @@ export interface IGetSubjectsResult {
   displayName: string;
   displayOrder: number;
   id: number;
+  isComputedUnlock: boolean | null;
   name: string;
   topicColor: string | null;
   topicDashboardOrder: number;
@@ -71,7 +72,7 @@ export interface IGetSubjectsQuery {
   result: IGetSubjectsResult;
 }
 
-const getSubjectsIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    subjects.id AS id,\n    subjects.name AS name,\n    subjects.display_name AS display_name,\n    subjects.display_order AS display_order,\n    subjects.active AS active,\n    topics.name AS topic_name,\n    topics.display_name AS topic_display_name,\n    topics.dashboard_order AS topic_dashboard_order,\n    topics.training_order AS topic_training_order,\n    topics.id AS topic_id,\n    topics.icon_link AS topic_icon_link,\n    topics.color AS topic_color\nFROM\n    subjects\n    JOIN topics ON subjects.topic_id = topics.id"};
+const getSubjectsIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    subjects.id AS id,\n    subjects.name AS name,\n    subjects.display_name AS display_name,\n    subjects.display_order AS display_order,\n    subjects.active AS active,\n    topics.name AS topic_name,\n    topics.display_name AS topic_display_name,\n    topics.dashboard_order AS topic_dashboard_order,\n    topics.training_order AS topic_training_order,\n    topics.id AS topic_id,\n    topics.icon_link AS topic_icon_link,\n    topics.color AS topic_color,\n    CASE WHEN EXISTS (\n        SELECT\n            1\n        FROM\n            computed_subject_unlocks\n        WHERE\n            subject_id = subjects.id) THEN\n        TRUE\n    ELSE\n        FALSE\n    END AS is_computed_unlock\nFROM\n    subjects\n    JOIN topics ON subjects.topic_id = topics.id"};
 
 /**
  * Query generated from SQL:
@@ -88,7 +89,18 @@ const getSubjectsIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n 
  *     topics.training_order AS topic_training_order,
  *     topics.id AS topic_id,
  *     topics.icon_link AS topic_icon_link,
- *     topics.color AS topic_color
+ *     topics.color AS topic_color,
+ *     CASE WHEN EXISTS (
+ *         SELECT
+ *             1
+ *         FROM
+ *             computed_subject_unlocks
+ *         WHERE
+ *             subject_id = subjects.id) THEN
+ *         TRUE
+ *     ELSE
+ *         FALSE
+ *     END AS is_computed_unlock
  * FROM
  *     subjects
  *     JOIN topics ON subjects.topic_id = topics.id
@@ -426,6 +438,7 @@ export interface IGetSubjectsForTopicByTopicIdResult {
   displayName: string;
   displayOrder: number;
   id: number;
+  isComputedUnlock: boolean | null;
   name: string;
   topicColor: string | null;
   topicDashboardOrder: number;
@@ -442,7 +455,7 @@ export interface IGetSubjectsForTopicByTopicIdQuery {
   result: IGetSubjectsForTopicByTopicIdResult;
 }
 
-const getSubjectsForTopicByTopicIdIR: any = {"usedParamSet":{"topicId":true},"params":[{"name":"topicId","required":true,"transform":{"type":"scalar"},"locs":[{"a":547,"b":555}]}],"statement":"SELECT\n    subjects.id AS id,\n    subjects.name AS name,\n    subjects.display_name AS display_name,\n    subjects.display_order AS display_order,\n    subjects.active AS active,\n    topics.name AS topic_name,\n    topics.display_name AS topic_display_name,\n    topics.dashboard_order AS topic_dashboard_order,\n    topics.training_order AS topic_training_order,\n    topics.id AS topic_id,\n    topics.icon_link AS topic_icon_link,\n    topics.color AS topic_color\nFROM\n    topics\n    JOIN subjects ON subjects.topic_id = topics.id\nWHERE\n    topics.id = :topicId!\n    AND subjects.active IS TRUE"};
+const getSubjectsForTopicByTopicIdIR: any = {"usedParamSet":{"topicId":true},"params":[{"name":"topicId","required":true,"transform":{"type":"scalar"},"locs":[{"a":773,"b":781}]}],"statement":"SELECT\n    subjects.id AS id,\n    subjects.name AS name,\n    subjects.display_name AS display_name,\n    subjects.display_order AS display_order,\n    subjects.active AS active,\n    topics.name AS topic_name,\n    topics.display_name AS topic_display_name,\n    topics.dashboard_order AS topic_dashboard_order,\n    topics.training_order AS topic_training_order,\n    topics.id AS topic_id,\n    topics.icon_link AS topic_icon_link,\n    topics.color AS topic_color,\n    CASE WHEN EXISTS (\n        SELECT\n            1\n        FROM\n            computed_subject_unlocks\n        WHERE\n            subject_id = subjects.id) THEN\n        TRUE\n    ELSE\n        FALSE\n    END AS is_computed_unlock\nFROM\n    topics\n    JOIN subjects ON subjects.topic_id = topics.id\nWHERE\n    topics.id = :topicId!\n    AND subjects.active IS TRUE"};
 
 /**
  * Query generated from SQL:
@@ -459,7 +472,18 @@ const getSubjectsForTopicByTopicIdIR: any = {"usedParamSet":{"topicId":true},"pa
  *     topics.training_order AS topic_training_order,
  *     topics.id AS topic_id,
  *     topics.icon_link AS topic_icon_link,
- *     topics.color AS topic_color
+ *     topics.color AS topic_color,
+ *     CASE WHEN EXISTS (
+ *         SELECT
+ *             1
+ *         FROM
+ *             computed_subject_unlocks
+ *         WHERE
+ *             subject_id = subjects.id) THEN
+ *         TRUE
+ *     ELSE
+ *         FALSE
+ *     END AS is_computed_unlock
  * FROM
  *     topics
  *     JOIN subjects ON subjects.topic_id = topics.id
