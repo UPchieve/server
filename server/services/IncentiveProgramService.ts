@@ -19,7 +19,7 @@ export async function queueIncentiveProgramEnrollmentWelcomeJob(userId: Ulid) {
   await QueueService.add(
     Jobs.EmailFallIncentiveEnrollmentWelcome,
     { userId },
-    { removeOnComplete: true, removeOnFail: true }
+    { removeOnComplete: true, removeOnFail: false }
   )
 }
 
@@ -28,7 +28,7 @@ export async function queueIncentiveInvitedToEnrollReminderJob(userId: Ulid) {
   await QueueService.add(
     Jobs.EmailFallIncentiveInvitedToEnrollReminder,
     { userId },
-    { removeOnComplete: true, removeOnFail: true, delay: twelveHoursInMs }
+    { removeOnComplete: true, removeOnFail: false, delay: twelveHoursInMs }
   )
 }
 
@@ -41,7 +41,7 @@ export async function queueFallIncentiveSessionQualificationJob(
   await QueueService.add(
     Jobs.EmailFallIncentiveSessionQualification,
     { userId: session.studentId, sessionId },
-    { removeOnComplete: true, removeOnFail: true }
+    { removeOnComplete: true, removeOnFail: false }
   )
 }
 

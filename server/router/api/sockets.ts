@@ -445,7 +445,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               await QueueService.add(
                 Jobs.SendSessionRecapMessageNotification,
                 { messageId },
-                { removeOnComplete: true, removeOnFail: true }
+                { removeOnComplete: true, removeOnFail: false }
               )
               captureEvent(user.id, EVENTS.USER_SUBMITTED_SESSION_RECAP_DM, {
                 sessionId: sessionId,
