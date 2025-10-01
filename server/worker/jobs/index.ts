@@ -3,11 +3,12 @@ import EventEmitter from 'events'
 import { map } from 'lodash'
 import newrelic from 'newrelic'
 import logger from '../../logger'
+import backfillAvailabilityHistories from '../../scripts/backfill-availability-histories'
+import backfillElapsedAvailability from '../../scripts/backfill-elapsed-availability'
 import backfillEmailNiceToMeetYou from '../../scripts/backfill-email-nice-to-meet-you'
 import backfillEmailVolunteerInactive from '../../scripts/backfill-email-volunteer-inactive'
 import backfillStudentPosthog from '../../scripts/backfill-student-posthog'
 import backfillStudentUsersRoles from '../../scripts/backfill-student-users-roles'
-import backfillUpdateElapsedAvailability from '../../scripts/backfill-update-elapsed-availability'
 import deleteDuplicateUserSurveys from '../../scripts/delete-duplicate-user-surveys'
 import deleteSelfFavoritedVolunteers from '../../scripts/delete-self-favorited-volunteers'
 import deleteDuplicateStudentFavoriteVolunteers from '../../scripts/delete-duplicate-student-favorite-volunteers'
@@ -71,12 +72,13 @@ import { clearBullJobByStatus } from './clearBullJobsByStatus'
 
 export enum Jobs {
   AddScheduledJobs = 'AddScheduledJobs',
+  BackfillAvailabilityHistories = 'BackfillAvailabilityHistories',
+  BackfillElapsedAvailability = 'BackfillElapsedAvailability',
   BackfillEmailNiceToMeetYou = 'BackfillEmailNiceToMeetYou',
   BackfillEmailVolunteersInactive = 'BackfillEmailVolunteersInactive',
   BackfillStudentAmbassadorRole = 'BackfillStudentAmbassadorRole',
   BackfillStudentPosthog = 'BackfillStudentPosthog',
   BackfillStudentUsersRoles = 'BackfillStudentUsersRoles',
-  BackfillUpdateElapsedAvailability = 'BackfillUpdateElapsedAvailability',
   ClearBullJobsByStatus = 'ClearBullJobsByStatus',
   DeleteDuplicateFeedbacks = 'DeleteDuplicateFeedbacks',
   DeleteDuplicateStudentFavoriteVolunteers = 'DeleteDuplicateStudentFavoriteVolunteers',
@@ -166,6 +168,14 @@ const jobProcessors: JobProcessor[] = [
     processor: addScheduledJobs,
   },
   {
+    name: Jobs.BackfillAvailabilityHistories,
+    processor: backfillAvailabilityHistories,
+  },
+  {
+    name: Jobs.BackfillElapsedAvailability,
+    processor: backfillElapsedAvailability,
+  },
+  {
     name: Jobs.BackfillEmailNiceToMeetYou,
     processor: backfillEmailNiceToMeetYou,
   },
@@ -184,10 +194,6 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.BackfillStudentUsersRoles,
     processor: backfillStudentUsersRoles,
-  },
-  {
-    name: Jobs.BackfillUpdateElapsedAvailability,
-    processor: backfillUpdateElapsedAvailability,
   },
   {
     name: Jobs.ClearBullJobsByStatus,

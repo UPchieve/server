@@ -473,6 +473,18 @@ RETURNING
     user_id AS ok;
 
 
+/* @name setVolunteerElapsedAvailabilityById */
+UPDATE
+    volunteer_profiles
+SET
+    elapsed_availability = :elapsedAvailability!::int,
+    updated_at = NOW()
+WHERE
+    user_id = :userId!
+RETURNING
+    user_id AS ok;
+
+
 /* @name updateVolunteerTotalHoursById */
 UPDATE
     volunteer_profiles

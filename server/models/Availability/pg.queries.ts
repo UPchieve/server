@@ -323,57 +323,6 @@ const saveCurrentAvailabilityAsHistoryIR: any = {"usedParamSet":{"userId":true},
 export const saveCurrentAvailabilityAsHistory = new PreparedQuery<ISaveCurrentAvailabilityAsHistoryParams,ISaveCurrentAvailabilityAsHistoryResult>(saveCurrentAvailabilityAsHistoryIR);
 
 
-/** 'SaveAvailabilityAsHistoryByDate' parameters type */
-export interface ISaveAvailabilityAsHistoryByDateParams {
-  recordedAt: DateOrString;
-  userId: string;
-}
-
-/** 'SaveAvailabilityAsHistoryByDate' return type */
-export interface ISaveAvailabilityAsHistoryByDateResult {
-  ok: string;
-}
-
-/** 'SaveAvailabilityAsHistoryByDate' query type */
-export interface ISaveAvailabilityAsHistoryByDateQuery {
-  params: ISaveAvailabilityAsHistoryByDateParams;
-  result: ISaveAvailabilityAsHistoryByDateResult;
-}
-
-const saveAvailabilityAsHistoryByDateIR: any = {"usedParamSet":{"recordedAt":true,"userId":true},"params":[{"name":"recordedAt","required":true,"transform":{"type":"scalar"},"locs":[{"a":173,"b":184},{"a":482,"b":493}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":521,"b":528}]}],"statement":"INSERT INTO availability_histories (id, recorded_at, user_id, available_start, available_end, timezone, weekday_id, created_at, updated_at)\nSELECT\n    generate_ulid (),\n    :recordedAt!,\n    user_id,\n    available_start,\n    available_end,\n    timezone,\n    weekday_id,\n    NOW(),\n    NOW()\nFROM\n    availability_histories\nWHERE\n    recorded_at = (\n        SELECT\n            MAX(recorded_at)\n        FROM\n            availability_histories\n        WHERE\n            recorded_at <= :recordedAt!\n            AND user_id = :userId!)\nRETURNING\n    id AS ok"};
-
-/**
- * Query generated from SQL:
- * ```
- * INSERT INTO availability_histories (id, recorded_at, user_id, available_start, available_end, timezone, weekday_id, created_at, updated_at)
- * SELECT
- *     generate_ulid (),
- *     :recordedAt!,
- *     user_id,
- *     available_start,
- *     available_end,
- *     timezone,
- *     weekday_id,
- *     NOW(),
- *     NOW()
- * FROM
- *     availability_histories
- * WHERE
- *     recorded_at = (
- *         SELECT
- *             MAX(recorded_at)
- *         FROM
- *             availability_histories
- *         WHERE
- *             recorded_at <= :recordedAt!
- *             AND user_id = :userId!)
- * RETURNING
- *     id AS ok
- * ```
- */
-export const saveAvailabilityAsHistoryByDate = new PreparedQuery<ISaveAvailabilityAsHistoryByDateParams,ISaveAvailabilityAsHistoryByDateResult>(saveAvailabilityAsHistoryByDateIR);
-
-
 /** 'InsertNewAvailability' parameters type */
 export interface IInsertNewAvailabilityParams {
   availableEnd: number;
@@ -501,58 +450,5 @@ const deleteLegacyAvailabilityHistoriesForUserIR: any = {"usedParamSet":{"userId
  * ```
  */
 export const deleteLegacyAvailabilityHistoriesForUser = new PreparedQuery<IDeleteLegacyAvailabilityHistoriesForUserParams,IDeleteLegacyAvailabilityHistoriesForUserResult>(deleteLegacyAvailabilityHistoriesForUserIR);
-
-
-/** 'GetAvailabilityForVolunteerByDate' parameters type */
-export interface IGetAvailabilityForVolunteerByDateParams {
-  recordedAt: DateOrString;
-  userId: string;
-}
-
-/** 'GetAvailabilityForVolunteerByDate' return type */
-export interface IGetAvailabilityForVolunteerByDateResult {
-  availableEnd: number;
-  availableStart: number;
-  id: string;
-  recordedAt: Date;
-  timezone: string;
-  weekday: string;
-}
-
-/** 'GetAvailabilityForVolunteerByDate' query type */
-export interface IGetAvailabilityForVolunteerByDateQuery {
-  params: IGetAvailabilityForVolunteerByDateParams;
-  result: IGetAvailabilityForVolunteerByDateResult;
-}
-
-const getAvailabilityForVolunteerByDateIR: any = {"usedParamSet":{"recordedAt":true,"userId":true},"params":[{"name":"recordedAt","required":true,"transform":{"type":"scalar"},"locs":[{"a":559,"b":570}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":598,"b":605},{"a":626,"b":633}]}],"statement":"SELECT\n    availability_histories.id,\n    availability_histories.available_start,\n    availability_histories.available_end,\n    availability_histories.timezone,\n    availability_histories.recorded_at,\n    weekdays.day AS weekday\nFROM\n    availability_histories\n    LEFT JOIN weekdays ON availability_histories.weekday_id = weekdays.id\n    LEFT JOIN users ON availability_histories.user_id = users.id\nWHERE\n    recorded_at = (\n        SELECT\n            MAX(recorded_at)\n        FROM\n            availability_histories\n        WHERE\n            recorded_at <= :recordedAt!\n            AND user_id = :userId!)\n    AND user_id = :userId!"};
-
-/**
- * Query generated from SQL:
- * ```
- * SELECT
- *     availability_histories.id,
- *     availability_histories.available_start,
- *     availability_histories.available_end,
- *     availability_histories.timezone,
- *     availability_histories.recorded_at,
- *     weekdays.day AS weekday
- * FROM
- *     availability_histories
- *     LEFT JOIN weekdays ON availability_histories.weekday_id = weekdays.id
- *     LEFT JOIN users ON availability_histories.user_id = users.id
- * WHERE
- *     recorded_at = (
- *         SELECT
- *             MAX(recorded_at)
- *         FROM
- *             availability_histories
- *         WHERE
- *             recorded_at <= :recordedAt!
- *             AND user_id = :userId!)
- *     AND user_id = :userId!
- * ```
- */
-export const getAvailabilityForVolunteerByDate = new PreparedQuery<IGetAvailabilityForVolunteerByDateParams,IGetAvailabilityForVolunteerByDateResult>(getAvailabilityForVolunteerByDateIR);
 
 
