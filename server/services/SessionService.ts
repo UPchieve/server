@@ -204,7 +204,7 @@ export async function reportSession(user: UserContactInfo, data: unknown) {
   if (session.endedAt)
     await QueueService.add(Jobs.EmailSessionReported, emailData, {
       removeOnComplete: true,
-      removeOnFail: true,
+      removeOnFail: false,
     })
   else
     await cache.saveWithExpiration(
@@ -225,8 +225,10 @@ export async function endSession(
     : undefined
 
   const session = await SessionRepo.getSessionToEndById(sessionId)
-  if (session.endedAt)
+  if (session.endedAt) {
+    logger.error({ sessionId }, 'endSession error: Session has already ended')
     throw new sessionUtils.EndSessionError('Session has already ended')
+  }
   if (
     !isAdmin &&
     !sessionUtils.isSessionParticipant(
@@ -287,7 +289,7 @@ export async function endSession(
     },
     {
       removeOnComplete: true,
-      removeOnFail: true,
+      removeOnFail: false,
     }
   )
 
@@ -322,7 +324,7 @@ export async function processSessionReported(sessionId: Ulid) {
     await QueueService.add(
       Jobs.EmailSessionReported,
       JSON.parse(await cache.get(`${sessionId}-reported`)),
-      { removeOnComplete: true, removeOnFail: true }
+      { removeOnComplete: true, removeOnFail: false }
     )
     await cache.remove(`${sessionId}-reported`)
   } catch (err) {
@@ -337,7 +339,7 @@ export async function processSessionTranscript(sessionId: Ulid) {
       Jobs.ModerateSessionTranscript,
       { sessionId },
       {
-        removeOnComplete: false,
+        removeOnComplete: true,
         removeOnFail: false,
         /* attempt to delay until the whiteboard is uploaded to storage */
         delay: 2 * 60 * 1000,
@@ -393,7 +395,7 @@ export async function processFirstSessionCongratsEmail(sessionId: Ulid) {
       {
         sessionId: session.id,
       },
-      { delay, removeOnComplete: true, removeOnFail: true }
+      { delay, removeOnComplete: true, removeOnFail: false }
     )
   if (sendVolunteerFirstSessionCongrats) {
     await QueueService.add(
@@ -401,7 +403,7 @@ export async function processFirstSessionCongratsEmail(sessionId: Ulid) {
       {
         sessionId: session.id,
       },
-      { delay, removeOnComplete: true, removeOnFail: true }
+      { delay, removeOnComplete: true, removeOnFail: false }
     )
   }
 }
@@ -477,7 +479,7 @@ export async function processEmailVolunteer(sessionId: Ulid) {
       {
         volunteerId: session.volunteer.id,
       },
-      { removeOnComplete: true, removeOnFail: true }
+      { removeOnComplete: true, removeOnFail: false }
     )
 }
 
@@ -616,7 +618,6 @@ export async function startSession(
   user: UserContactInfo,
   data: sessionUtils.StartSessionData & {
     presessionSurvey?: SurveyService.SaveSurveyAndSubmissions
-    isSettingGoalsSession?: boolean
   }
 ) {
   const {
@@ -705,11 +706,8 @@ export async function startSession(
     await QuillDocService.ensureDocumentUpdateExists(newSession.id)
   }
 
-  if (data.isSettingGoalsSession)
-    cache.sadd('goalSettingSessions', newSession.id)
-
-  if (!isUserBanned && !data.isSettingGoalsSession) {
-    await beginRegularNotifications(newSession.id, newSession.studentId)
+  if (!isUserBanned) {
+    //await beginRegularNotifications(newSession.id, newSession.studentId)
   }
 
   // Auto end the session after 45 minutes if the session is unmatched.
@@ -717,7 +715,7 @@ export async function startSession(
   await QueueService.add(
     Jobs.EndUnmatchedSession,
     { sessionId: newSession.id },
-    { delay, removeOnComplete: true, removeOnFail: true }
+    { delay, removeOnComplete: true, removeOnFail: false }
   )
 
   return {
@@ -879,6 +877,10 @@ export async function ensureCanJoinSession(
 
   if (session.endedAt) {
     await SessionRepo.updateSessionFailedJoinsById(session.id, user.id)
+    logger.error(
+      { sessionId, userId: user.id, isStudent, isVolunteer },
+      'ensureUserCanJoinSession: User cannot join session because it has already ended'
+    )
     throw new SessionJoinError('Session has ended.')
   }
 

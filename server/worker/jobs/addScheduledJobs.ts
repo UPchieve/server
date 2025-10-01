@@ -79,7 +79,7 @@ export default async function addScheduledJobs() {
     await queue.add(job.name, job.data, {
       ...job.options,
       removeOnComplete: true,
-      removeOnFail: true,
+      removeOnFail: false,
     })
   }
 }

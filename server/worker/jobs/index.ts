@@ -3,7 +3,7 @@ import EventEmitter from 'events'
 import { map } from 'lodash'
 import newrelic from 'newrelic'
 import logger from '../../logger'
-import backfillAvailabilityHistories from '../../scripts/backfill-availabilities-histories'
+import backfillAvailabilityHistories from '../../scripts/backfill-availability-histories'
 import backfillElapsedAvailability from '../../scripts/backfill-elapsed-availability'
 import backfillEmailNiceToMeetYou from '../../scripts/backfill-email-nice-to-meet-you'
 import backfillEmailVolunteerInactive from '../../scripts/backfill-email-volunteer-inactive'
@@ -67,6 +67,8 @@ import emailNationalTutorCertificate from './emailNationalTutorCertificate'
 import addScheduledJobs from './addScheduledJobs'
 import emailAmbassadorCongrats from './emailAmbassadorCongrats'
 import backfillOnboardedStatus from './backfillOnboardedStatus'
+import { logRedisKeyMemStats } from './logRedisKeyMemStats'
+import { clearBullJobByStatus } from './clearBullJobsByStatus'
 
 export enum Jobs {
   AddScheduledJobs = 'AddScheduledJobs',
@@ -77,6 +79,7 @@ export enum Jobs {
   BackfillStudentAmbassadorRole = 'BackfillStudentAmbassadorRole',
   BackfillStudentPosthog = 'BackfillStudentPosthog',
   BackfillStudentUsersRoles = 'BackfillStudentUsersRoles',
+  ClearBullJobsByStatus = 'ClearBullJobsByStatus',
   DeleteDuplicateFeedbacks = 'DeleteDuplicateFeedbacks',
   DeleteDuplicateStudentFavoriteVolunteers = 'DeleteDuplicateStudentFavoriteVolunteers',
   DeleteDuplicateUserSurveys = 'DeleteDuplicateUserSurveys',
@@ -133,6 +136,7 @@ export enum Jobs {
   ModerateSessionTranscript = 'ModerateSessionTranscript',
   NotifyTutors = 'NotifyTutors',
   ProcessSessionEnded = 'ProcessSessionEnded',
+  RedisKeyMemStats = 'RedisKeyMemStats',
   SendAmbassadorCongratsEmail = 'SendAmbassadorCongratsEmail',
   SendBecomeAnAmbassadorEmail = 'SendBecomeAnAmbassadorEmail',
   SendFollowupText = 'SendFollowupText',
@@ -190,6 +194,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.BackfillStudentUsersRoles,
     processor: backfillStudentUsersRoles,
+  },
+  {
+    name: Jobs.ClearBullJobsByStatus,
+    processor: clearBullJobByStatus,
   },
   {
     name: Jobs.DeleteDuplicateStudentFavoriteVolunteers,
@@ -395,6 +403,7 @@ const jobProcessors: JobProcessor[] = [
     name: Jobs.ProcessSessionEnded,
     processor: processSessionEnded,
   },
+  { name: Jobs.RedisKeyMemStats, processor: logRedisKeyMemStats },
   {
     name: Jobs.SendAmbassadorCongratsEmail,
     processor: emailAmbassadorCongrats,

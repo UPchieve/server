@@ -1278,6 +1278,31 @@ export async function createVolunteerProfile(
   }
 }
 
+export async function createUserVolunteerPartnerOrgInstance(
+  {
+    userId,
+    vpoName,
+  }: {
+    userId: string
+    vpoName: string
+  },
+  tc: TransactionClient = getClient()
+) {
+  const vpoInstanceResult =
+    await pgQueries.createUserVolunteerPartnerOrgInstance.run(
+      {
+        userId,
+        vpoName,
+      },
+      tc
+    )
+  if (!makeRequired(vpoInstanceResult)[0].ok)
+    throw new RepoCreateError(
+      'Could not create volunteer: user partner org instance creation did not return rows'
+    )
+  return vpoInstanceResult
+}
+
 export async function createVolunteer(
   volunteerData: CreateVolunteerPayload
 ): Promise<CreatedVolunteer> {
@@ -1312,18 +1337,13 @@ export async function createVolunteer(
     )
 
     if (partnerOrg) {
-      const vpoInstanceResult =
-        await pgQueries.createUserVolunteerPartnerOrgInstance.run(
-          {
-            userId,
-            vpoName: partnerOrg.partnerName,
-          },
-          client
-        )
-      if (!makeRequired(vpoInstanceResult)[0].ok)
-        throw new RepoCreateError(
-          'Could not create volunteer: user partner org instance creation did not return rows'
-        )
+      await createUserVolunteerPartnerOrgInstance(
+        {
+          userId,
+          vpoName: partnerOrg.partnerName,
+        },
+        client
+      )
     }
     await client.query('COMMIT')
     await insertUserRoleByUserId(userId, USER_ROLES.VOLUNTEER, client)

@@ -53,7 +53,7 @@ export default async (job: Job<OnboardingReminder>): Promise<void> => {
         job.queue.add(
           nextJob,
           { volunteerId: volunteerId.toString() },
-          { delay, removeOnComplete: true, removeOnFail: true }
+          { delay, removeOnComplete: true, removeOnFail: false }
         )
     } catch (error) {
       throw new Error(

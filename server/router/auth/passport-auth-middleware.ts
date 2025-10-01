@@ -14,6 +14,7 @@ import * as UserCreationService from '../../services/UserCreationService'
 import {
   RegisterStudentPayload,
   RegisterTeacherPayload,
+  RegisterVolunteerPayload,
   SessionWithSsoData,
   SsoProviderNames,
   verifyPassword,
@@ -56,7 +57,9 @@ async function passportRegisterUser(
   issuer: string,
   providerName: string,
   accountType = 'student',
-  data: Partial<RegisterStudentPayload | RegisterTeacherPayload> = {},
+  data: Partial<
+    RegisterStudentPayload | RegisterTeacherPayload | RegisterVolunteerPayload
+  > = {},
   done: Function
 ) {
   try {
@@ -99,6 +102,9 @@ async function passportRegisterUser(
     if (accountType === 'teacher') {
       const teacher = await UserCreationService.registerTeacher(userData)
       return done(null, teacher)
+    } else if (accountType === 'volunteer') {
+      const volunteer = await UserCreationService.registerVolunteer(userData)
+      return done(null, volunteer)
     } else {
       const student = await UserCreationService.registerStudent(userData)
       return done(null, student)

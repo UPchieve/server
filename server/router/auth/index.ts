@@ -11,6 +11,7 @@ import {
   isSupportedSsoProvider,
   registerStudentValidator,
   registerTeacherValidator,
+  registerVolunteerValidator,
   SessionWithSsoData,
 } from '../../utils/auth-utils'
 import { InputError, LookupError } from '../../models/Errors'
@@ -299,6 +300,7 @@ export function routes(app: Express) {
 
   router.route('/register/volunteer/open').post(async function (req, res) {
     try {
+      // TODO replace this with UserCreationService.regsterVolunteer?
       const volunteer = await AuthService.registerVolunteer({
         ...req.body,
         ip: req.ip,
@@ -313,6 +315,7 @@ export function routes(app: Express) {
 
   router.route('/register/volunteer/partner').post(async function (req, res) {
     try {
+      // TODO replace this with UserCreationService.regsterVolunteer?
       const volunteer = await AuthService.registerPartnerVolunteer({
         ...req.body,
         ip: req.ip,

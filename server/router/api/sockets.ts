@@ -35,7 +35,6 @@ import { createSessionAction } from '../../models/UserAction/queries'
 import { updateVolunteerSubjectPresence } from '../../services/VolunteerService'
 import { asJoinSessionData } from '../../utils/session-utils'
 import { SessionJoinError } from '../../models/Errors'
-import * as cache from '../../cache'
 import * as PresenceService from '../../services/PresenceService'
 
 export type SessionMessageType = 'audio-transcription' // todo - add 'chat' later
@@ -267,8 +266,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       newrelic.startWebTransaction('/socket-io/list', () =>
         new Promise<void>(async (resolve, reject) => {
           try {
-            let sessions = await SessionRepo.getUnfulfilledSessions()
-            sessions = await socketService.getSessionsWithGoals(sessions)
+            const sessions = await SessionRepo.getUnfulfilledSessions()
             socket.emit('sessions', sessions)
             callback({
               status: 200,
@@ -447,7 +445,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               await QueueService.add(
                 Jobs.SendSessionRecapMessageNotification,
                 { messageId },
-                { removeOnComplete: true, removeOnFail: true }
+                { removeOnComplete: true, removeOnFail: false }
               )
               captureEvent(user.id, EVENTS.USER_SUBMITTED_SESSION_RECAP_DM, {
                 sessionId: sessionId,
