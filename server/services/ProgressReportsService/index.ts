@@ -405,7 +405,7 @@ export async function queueGenerateProgressReportForUser(
   await QueueService.add(
     Jobs.GenerateProgressReport,
     { sessionId },
-    { removeOnComplete: true, removeOnFail: true }
+    { removeOnComplete: true, removeOnFail: false }
   )
 }
 
