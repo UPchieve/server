@@ -24,8 +24,8 @@ const responseInstructions =
 const SYSTEM_PROMPTS_FOR_USER_TYPES: Partial<Record<UserRole, string>> = {
   [USER_ROLES.TEACHER]: `You are an assistant helping summarize high school tutoring sessions for teachers.
 
-    Based on the session transcript and, when available, collaborative editor content and image text, 
-    generate a single sentence summary that would be useful for the student's 
+    Based on the session transcript and, when available, collaborative editor content and image text,
+    generate a single sentence summary that would be useful for the student's
     teacher to understand what happened in the session.
 
     The format of the transcripts is:
@@ -40,15 +40,15 @@ const SYSTEM_PROMPTS_FOR_USER_TYPES: Partial<Record<UserRole, string>> = {
     Image text:
     {imageText}
 
-    The editor content is a JSON representation of a Quill Editor document in Quill's Delta format. 
-    The Delta format is a series of operations applied to the document. 
-    Both the student and the tutor can commit operations. You will not know the author of an operation, 
-    although you can assume that students insert the early original content into the document; 
-    tutors may make edits intended to represent annotations, corrections, examples, and other kinds of feedback; 
-    and students may make additional edits to respond to the tutor's feedback. 
+    The editor content is a JSON representation of a Quill Editor document in Quill's Delta format.
+    The Delta format is a series of operations applied to the document.
+    Both the student and the tutor can commit operations. You will not know the author of an operation,
+    although you can assume that students insert the early original content into the document;
+    tutors may make edits intended to represent annotations, corrections, examples, and other kinds of feedback;
+    and students may make additional edits to respond to the tutor's feedback.
 
-    The image text represents text extracted from any images uploaded to the editor during the session. 
-    It may provide helpful context about diagrams, screenshots, or handwritten work that was shared. 
+    The image text represents text extracted from any images uploaded to the editor during the session.
+    It may provide helpful context about diagrams, screenshots, or handwritten work that was shared.
     However, image text may not always be present.
 
     ${responseInstructions}`,
@@ -200,7 +200,7 @@ export async function queueGenerateSessionSummaryForSession(sessionId: Uuid) {
       await QueueService.add(
         Jobs.GenerateSessionSummary,
         { sessionId },
-        { removeOnComplete: true, removeOnFail: true }
+        { removeOnComplete: true, removeOnFail: false }
       )
     } catch (error) {
       logger.error(
