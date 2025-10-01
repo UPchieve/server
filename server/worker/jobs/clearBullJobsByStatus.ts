@@ -14,7 +14,7 @@ export async function clearBullJobByStatus(job: Job<BullJobStatus>) {
     job.data.timeOffsetInMs != undefined
       ? job.data.timeOffsetInMs
       : hoursInMs(24)
-  debugger
+
   for (const jobStatus of job.data.statuses) {
     try {
       const removedJobs =
