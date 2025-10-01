@@ -63,6 +63,13 @@ export async function getElapsedAvailabilityForTelecomReport(
  * and makes sure Sunday is included. Without the +1 shift, a Monday through Sunday input
  * would actually capture Sunday through Saturday
  *
+ * TODO: Make this calculation simpler. A couple of options to consider:
+ * - Add a small rollup table where we write daily elapsed availability hours earned and for which date
+ * - Add a calculated_for date column to the availabilities_histories table
+ *
+ * That way we can just sum weekly totals without worrying about day shifts
+ *
+ *
  */
 export async function getTotalElapsedAvailabilityForDateRange(
   volunteerId: Ulid,
