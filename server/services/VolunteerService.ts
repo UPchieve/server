@@ -82,7 +82,7 @@ export async function queueOnboardingReminderOneEmail(
   await QueueService.add(
     Jobs.EmailOnboardingReminderOne,
     { volunteerId },
-    { delay: sevenDaysInMs, removeOnComplete: true, removeOnFail: true }
+    { delay: sevenDaysInMs, removeOnComplete: true, removeOnFail: false }
   )
 }
 
@@ -97,7 +97,7 @@ export async function queueOnboardingEventEmails(
     {
       delay: 1000 * 60 * 60 * 24 * 5,
       removeOnComplete: true,
-      removeOnFail: true,
+      removeOnFail: false,
     }
   )
   if (isPartnerVolunteer) {
@@ -108,7 +108,7 @@ export async function queueOnboardingEventEmails(
       {
         delay: 1000 * 60 * 60 * 24 * 10,
         removeOnComplete: true,
-        removeOnFail: true,
+        removeOnFail: false,
       }
     )
   }
@@ -130,7 +130,7 @@ export async function queueFailedFirstAttemptedQuizEmail(
     },
     {
       removeOnComplete: true,
-      removeOnFail: true,
+      removeOnFail: false,
     }
   )
 }
@@ -399,6 +399,6 @@ export async function queueNationalTutorCertificateEmail(
   await QueueService.add(
     Jobs.SendNationalTutorCertificateEmail,
     { volunteerId },
-    { removeOnComplete: true, removeOnFail: true }
+    { removeOnComplete: true, removeOnFail: false }
   )
 }
