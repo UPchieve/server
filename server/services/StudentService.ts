@@ -25,7 +25,7 @@ export const queueOnboardingEmails = async (studentId: Ulid): Promise<void> => {
     {
       delay: 1000 * 60 * 60 * 24 * 1,
       removeOnComplete: true,
-      removeOnFail: true,
+      removeOnFail: false,
     }
   )
   await QueueService.add(
@@ -35,7 +35,7 @@ export const queueOnboardingEmails = async (studentId: Ulid): Promise<void> => {
     {
       delay: 1000 * 60 * 60 * 24 * 3,
       removeOnComplete: true,
-      removeOnFail: true,
+      removeOnFail: false,
     }
   )
   await QueueService.add(
@@ -45,7 +45,7 @@ export const queueOnboardingEmails = async (studentId: Ulid): Promise<void> => {
     {
       delay: 1000 * 60 * 60 * 24 * 10,
       removeOnComplete: true,
-      removeOnFail: true,
+      removeOnFail: false,
     }
   )
   await QueueService.add(
@@ -55,7 +55,7 @@ export const queueOnboardingEmails = async (studentId: Ulid): Promise<void> => {
     {
       delay: 1000 * 60 * 60 * 24 * 14,
       removeOnComplete: true,
-      removeOnFail: true,
+      removeOnFail: false,
     }
   )
 }

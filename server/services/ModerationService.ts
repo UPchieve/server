@@ -1276,7 +1276,7 @@ async function createIndividualSessionMessageModerationJob({
         censoredSessionMessage,
         isVolunteer,
       },
-      { removeOnComplete: true, removeOnFail: true }
+      { removeOnComplete: true, removeOnFail: false }
     )
   } catch (err) {
     logger.error(

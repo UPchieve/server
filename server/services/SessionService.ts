@@ -204,7 +204,7 @@ export async function reportSession(user: UserContactInfo, data: unknown) {
   if (session.endedAt)
     await QueueService.add(Jobs.EmailSessionReported, emailData, {
       removeOnComplete: true,
-      removeOnFail: true,
+      removeOnFail: false,
     })
   else
     await cache.saveWithExpiration(
@@ -289,7 +289,7 @@ export async function endSession(
     },
     {
       removeOnComplete: true,
-      removeOnFail: true,
+      removeOnFail: false,
     }
   )
 
@@ -324,7 +324,7 @@ export async function processSessionReported(sessionId: Ulid) {
     await QueueService.add(
       Jobs.EmailSessionReported,
       JSON.parse(await cache.get(`${sessionId}-reported`)),
-      { removeOnComplete: true, removeOnFail: true }
+      { removeOnComplete: true, removeOnFail: false }
     )
     await cache.remove(`${sessionId}-reported`)
   } catch (err) {
@@ -339,7 +339,7 @@ export async function processSessionTranscript(sessionId: Ulid) {
       Jobs.ModerateSessionTranscript,
       { sessionId },
       {
-        removeOnComplete: false,
+        removeOnComplete: true,
         removeOnFail: false,
         /* attempt to delay until the whiteboard is uploaded to storage */
         delay: 2 * 60 * 1000,
@@ -395,7 +395,7 @@ export async function processFirstSessionCongratsEmail(sessionId: Ulid) {
       {
         sessionId: session.id,
       },
-      { delay, removeOnComplete: true, removeOnFail: true }
+      { delay, removeOnComplete: true, removeOnFail: false }
     )
   if (sendVolunteerFirstSessionCongrats) {
     await QueueService.add(
@@ -403,7 +403,7 @@ export async function processFirstSessionCongratsEmail(sessionId: Ulid) {
       {
         sessionId: session.id,
       },
-      { delay, removeOnComplete: true, removeOnFail: true }
+      { delay, removeOnComplete: true, removeOnFail: false }
     )
   }
 }
@@ -479,7 +479,7 @@ export async function processEmailVolunteer(sessionId: Ulid) {
       {
         volunteerId: session.volunteer.id,
       },
-      { removeOnComplete: true, removeOnFail: true }
+      { removeOnComplete: true, removeOnFail: false }
     )
 }
 
@@ -715,7 +715,7 @@ export async function startSession(
   await QueueService.add(
     Jobs.EndUnmatchedSession,
     { sessionId: newSession.id },
-    { delay, removeOnComplete: true, removeOnFail: true }
+    { delay, removeOnComplete: true, removeOnFail: false }
   )
 
   return {
