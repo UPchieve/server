@@ -661,7 +661,6 @@ SELECT
     student_partner_orgs.name AS student_partner_org_display,
     users.last_activity_at,
     users.created_at,
-    users.deactivated,
     (
         CASE WHEN user_upchieve101.id IS NULL THEN
             FALSE
@@ -691,6 +690,8 @@ FROM
     LEFT JOIN current_grade_levels_mview cgl ON student_profiles.user_id = cgl.user_id
 WHERE
     users.id = :userId!
+    AND users.deactivated IS FALSE
+    AND users.deleted IS FALSE
 LIMIT 1;
 
 
