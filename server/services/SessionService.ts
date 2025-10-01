@@ -339,7 +339,7 @@ export async function processSessionTranscript(sessionId: Ulid) {
       Jobs.ModerateSessionTranscript,
       { sessionId },
       {
-        removeOnComplete: false,
+        removeOnComplete: true,
         removeOnFail: false,
         /* attempt to delay until the whiteboard is uploaded to storage */
         delay: 2 * 60 * 1000,
