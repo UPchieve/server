@@ -707,7 +707,7 @@ export async function startSession(
   }
 
   if (!isUserBanned) {
-    await beginRegularNotifications(newSession.id, newSession.studentId)
+    //await beginRegularNotifications(newSession.id, newSession.studentId)
   }
 
   // Auto end the session after 45 minutes if the session is unmatched.
