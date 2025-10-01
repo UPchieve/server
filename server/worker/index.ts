@@ -41,6 +41,16 @@ const main = async (): Promise<void> => {
       logger.error(`error in queue: ${error}`)
       newrelic.noticeError(error)
     })
+    queue.on('stalled', (job) => {
+      logger.info({ job: job.name }, 'Worker job stalled.')
+    })
+    queue.on('lock-extension-failed', (job, err) => {
+      logger.error({ err, job: job.name }, 'Worker job failed to extend lock.')
+    })
+    queue.on('cleaned', (jobs, type) => {
+      logger.info({ jobs, type }, 'Worker jobs cleaned from queue.')
+    })
+
     addJobProcessors(queue)
     registerListeners()
   } catch (error) {
