@@ -71,14 +71,10 @@ export async function queueReferredByEmailsForVolunteer({
 }) {
   if (!referredBy) return
 
-  await QueueService.add(
-    Jobs.SendReferralSignUpCelebrationEmail,
-    {
-      userId: referredBy,
-      referredFirstName: firstName,
-    },
-    { removeOnComplete: true, removeOnFail: false }
-  )
+  await QueueService.add(Jobs.SendReferralSignUpCelebrationEmail, {
+    userId: referredBy,
+    referredFirstName: firstName,
+  })
 
   if (!volunteerPartnerOrgKey) {
     const referredUsers = await UserService.countReferredUsers(referredBy)

@@ -108,7 +108,7 @@ export async function saveUserSurvey(
         await QueueService.add(
           Jobs.MaybeSendStudentFeedbackToVolunteer,
           { sessionId: userSurvey.sessionId },
-          { removeOnComplete: true, removeOnFail: false, delay: FIVE_MINUTES }
+          { delay: FIVE_MINUTES }
         )
       }
     }

@@ -1,7 +1,7 @@
 import { JobOptions as BullJobOptions } from 'bull'
 import logger from '../../logger'
 import { Jobs } from '.'
-import queue from '../../services/QueueService'
+import * as QueueService from '../../services/QueueService'
 
 interface JobTemplate {
   name: Jobs
@@ -65,18 +65,18 @@ export default async function addScheduledJobs() {
     },
   ]
 
-  const repeatableJobs = await queue.getRepeatableJobs()
+  const repeatableJobs = await QueueService.queue.getRepeatableJobs()
 
   repeatableJobs.map(async (job) => {
     if (jobTemplates.find((template) => template.name === job.name)) {
       logger.info(`Removing scheduled job: ${job.name}...`)
-      await queue.removeRepeatableByKey(job.key)
+      await QueueService.queue.removeRepeatableByKey(job.key)
     }
   })
 
   for (const job of jobTemplates) {
     logger.info(`Adding scheduled job ${job.name}...`)
-    await queue.add(job.name, job.data, {
+    await QueueService.add(job.name, job.data, {
       ...job.options,
       removeOnComplete: true,
       removeOnFail: false,

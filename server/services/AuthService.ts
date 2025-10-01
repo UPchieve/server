@@ -149,14 +149,10 @@ export async function registerVolunteer(
   VolunteerService.queueOnboardingReminderOneEmail(volunteer.id)
 
   if (referredBy) {
-    await QueueService.add(
-      Jobs.SendReferralSignUpCelebrationEmail,
-      {
-        userId: referredBy,
-        referredFirstName: volunteerData.firstName,
-      },
-      { removeOnComplete: true, removeOnFail: false }
-    )
+    await QueueService.add(Jobs.SendReferralSignUpCelebrationEmail, {
+      userId: referredBy,
+      referredFirstName: volunteerData.firstName,
+    })
 
     const referredUsers = await UserService.countReferredUsers(referredBy)
 
@@ -244,14 +240,10 @@ export async function registerPartnerVolunteer(
   VolunteerService.queueOnboardingReminderOneEmail(volunteer.id)
 
   if (referredBy) {
-    await QueueService.add(
-      Jobs.SendReferralSignUpCelebrationEmail,
-      {
-        userId: referredBy,
-        referredFirstName: volunteerData.firstName,
-      },
-      { removeOnComplete: true, removeOnFail: false }
-    )
+    await QueueService.add(Jobs.SendReferralSignUpCelebrationEmail, {
+      userId: referredBy,
+      referredFirstName: volunteerData.firstName,
+    })
   }
 
   return volunteer

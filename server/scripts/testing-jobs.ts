@@ -4,7 +4,7 @@ import { Jobs } from '../worker/jobs'
 async function main() {
   let exitCode = 0
   try {
-    const jobToQueue = 'Some sample job' // Jobs.EmailOnboardingReminderOne
+    const jobToQueue = 'Some sample job' as Jobs // Jobs.EmailOnboardingReminderOne
     await QueueService.add(jobToQueue, {})
     console.log('Added: ', jobToQueue)
   } catch (error) {

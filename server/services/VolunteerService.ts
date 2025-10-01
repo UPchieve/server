@@ -82,7 +82,7 @@ export async function queueOnboardingReminderOneEmail(
   await QueueService.add(
     Jobs.EmailOnboardingReminderOne,
     { volunteerId },
-    { delay: sevenDaysInMs, removeOnComplete: true, removeOnFail: false }
+    { delay: sevenDaysInMs }
   )
 }
 
@@ -96,8 +96,6 @@ export async function queueOnboardingEventEmails(
     // Process job 5 days after the volunteer is onboarded.
     {
       delay: 1000 * 60 * 60 * 24 * 5,
-      removeOnComplete: true,
-      removeOnFail: false,
     }
   )
   if (isPartnerVolunteer) {
@@ -107,8 +105,6 @@ export async function queueOnboardingEventEmails(
       // Process job 10 days after the volunteer is onboarded.
       {
         delay: 1000 * 60 * 60 * 24 * 10,
-        removeOnComplete: true,
-        removeOnFail: false,
       }
     )
   }
@@ -120,19 +116,12 @@ export async function queueFailedFirstAttemptedQuizEmail(
   firstName: string,
   volunteerId: Uuid
 ) {
-  await QueueService.add(
-    Jobs.EmailFailedFirstAttemptedQuiz,
-    {
-      category,
-      email,
-      firstName,
-      volunteerId,
-    },
-    {
-      removeOnComplete: true,
-      removeOnFail: false,
-    }
-  )
+  await QueueService.add(Jobs.EmailFailedFirstAttemptedQuiz, {
+    category,
+    email,
+    firstName,
+    volunteerId,
+  })
 }
 
 export async function getVolunteersToReview(page: number = 1): Promise<{
@@ -396,9 +385,7 @@ export async function getSubjectPresence(): Promise<VolunteerSubjectPresenceMap>
 export async function queueNationalTutorCertificateEmail(
   volunteerId: Uuid
 ): Promise<void> {
-  await QueueService.add(
-    Jobs.SendNationalTutorCertificateEmail,
-    { volunteerId },
-    { removeOnComplete: true, removeOnFail: false }
-  )
+  await QueueService.add(Jobs.SendNationalTutorCertificateEmail, {
+    volunteerId,
+  })
 }
