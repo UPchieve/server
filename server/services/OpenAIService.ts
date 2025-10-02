@@ -2,9 +2,12 @@ import 'openai/shims/node'
 import OpenAI from 'openai'
 import config from '../config'
 import logger from '../logger'
+import { secondsInMs } from '../utils/time-utils'
 
 export const openai = new OpenAI({
   apiKey: config.openAIApiKey,
+  timeout: secondsInMs(30),
+  maxRetries: 2,
 })
 
 export const MODEL_ID = config.openAIModelId

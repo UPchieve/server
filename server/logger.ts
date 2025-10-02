@@ -34,6 +34,7 @@ const logger = {
   error(...args: any) {
     // @ts-ignore
     pinoLogger.error(...args)
+    newrelic.noticeError(args[0])
     Sentry.captureException(args)
   },
 }

@@ -65,7 +65,7 @@ describe(Jobs.GenerateProgressReport, () => {
 
   test('Should generate and send progress report for a single session and an overview progress report via http', async () => {
     const userId = getDbUlid()
-    const session = await buildSession({
+    const session = buildSession({
       studentId: userId,
       subject: 'reading',
       timeTutored: 1000 * 60,
@@ -122,6 +122,7 @@ describe(Jobs.GenerateProgressReport, () => {
       },
       {
         headers: { 'x-api-key': config.subwayApiCredentials },
+        timeout: 3000,
       }
     )
     expect(axios.post).toHaveBeenNthCalledWith(
@@ -136,6 +137,7 @@ describe(Jobs.GenerateProgressReport, () => {
       },
       {
         headers: { 'x-api-key': config.subwayApiCredentials },
+        timeout: 3000,
       }
     )
   })

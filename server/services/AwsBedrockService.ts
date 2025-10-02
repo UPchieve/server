@@ -4,6 +4,7 @@ import {
 } from '@aws-sdk/client-bedrock-runtime'
 import config from '../config'
 import { getImageFileType } from '../utils/image-utils'
+import { secondsInMs } from '../utils/time-utils'
 
 const ANTHROPIC_VERSION = 'bedrock-2023-05-31'
 
@@ -18,6 +19,9 @@ const createClient = (): BedrockRuntimeClient => {
     credentials: {
       accessKeyId: config.awsBedrockAccessKey,
       secretAccessKey: config.awsBedrockSecretAccessKey,
+    },
+    requestHandler: {
+      requestTimeout: secondsInMs(30),
     },
   })
 }
