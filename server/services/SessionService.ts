@@ -293,7 +293,7 @@ export async function endSession(
     }
   )
 
-  /*QueueService.add(
+  QueueService.add(
     Jobs.ProcessSessionEnded,
     {
       sessionId,
@@ -302,7 +302,7 @@ export async function endSession(
       removeOnComplete: true,
       removeOnFail: false,
     }
-  )*/
+  )
 
   return endedSession
 }
