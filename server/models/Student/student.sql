@@ -29,9 +29,9 @@ FROM
 WHERE
     ban_type IS DISTINCT FROM 'complete'
     AND deactivated IS FALSE
+    AND deleted IS FALSE
     AND test_user IS FALSE
-    AND (users.id::uuid = :userId
-        OR users.mongo_id::text = :mongoUserId);
+    AND users.id = :userId!;
 
 
 /* @name getStudentByEmail */

@@ -53,8 +53,7 @@ export const getGatesStudentById = new PreparedQuery<IGetGatesStudentByIdParams,
 
 /** 'GetStudentContactInfoById' parameters type */
 export interface IGetStudentContactInfoByIdParams {
-  mongoUserId?: string | null | void;
-  userId?: string | null | void;
+  userId: string;
 }
 
 /** 'GetStudentContactInfoById' return type */
@@ -72,7 +71,7 @@ export interface IGetStudentContactInfoByIdQuery {
   result: IGetStudentContactInfoByIdResult;
 }
 
-const getStudentContactInfoByIdIR: any = {"usedParamSet":{"userId":true,"mongoUserId":true},"params":[{"name":"userId","required":false,"transform":{"type":"scalar"},"locs":[{"a":450,"b":456}]},{"name":"mongoUserId","required":false,"transform":{"type":"scalar"},"locs":[{"a":492,"b":503}]}],"statement":"SELECT\n    users.id,\n    first_name,\n    email,\n    student_partner_orgs.key AS student_partner_org,\n    student_profiles.school_id\nFROM\n    users\n    LEFT JOIN student_profiles ON student_profiles.user_id = users.id\n    LEFT JOIN student_partner_orgs ON student_partner_orgs.id = student_profiles.student_partner_org_id\nWHERE\n    ban_type IS DISTINCT FROM 'complete'\n    AND deactivated IS FALSE\n    AND test_user IS FALSE\n    AND (users.id::uuid = :userId\n        OR users.mongo_id::text = :mongoUserId)"};
+const getStudentContactInfoByIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":468,"b":475}]}],"statement":"SELECT\n    users.id,\n    first_name,\n    email,\n    student_partner_orgs.key AS student_partner_org,\n    student_profiles.school_id\nFROM\n    users\n    LEFT JOIN student_profiles ON student_profiles.user_id = users.id\n    LEFT JOIN student_partner_orgs ON student_partner_orgs.id = student_profiles.student_partner_org_id\nWHERE\n    ban_type IS DISTINCT FROM 'complete'\n    AND deactivated IS FALSE\n    AND deleted IS FALSE\n    AND test_user IS FALSE\n    AND users.id = :userId!"};
 
 /**
  * Query generated from SQL:
@@ -90,9 +89,9 @@ const getStudentContactInfoByIdIR: any = {"usedParamSet":{"userId":true,"mongoUs
  * WHERE
  *     ban_type IS DISTINCT FROM 'complete'
  *     AND deactivated IS FALSE
+ *     AND deleted IS FALSE
  *     AND test_user IS FALSE
- *     AND (users.id::uuid = :userId
- *         OR users.mongo_id::text = :mongoUserId)
+ *     AND users.id = :userId!
  * ```
  */
 export const getStudentContactInfoById = new PreparedQuery<IGetStudentContactInfoByIdParams,IGetStudentContactInfoByIdResult>(getStudentContactInfoByIdIR);
