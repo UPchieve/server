@@ -318,7 +318,7 @@ export async function triggerSessionActions(
         },
         {
           removeOnComplete: true,
-          removeOnFail: true,
+          removeOnFail: false,
         }
       )
 
@@ -331,7 +331,7 @@ export async function triggerSessionActions(
         },
         {
           removeOnComplete: true,
-          removeOnFail: true,
+          removeOnFail: false,
         }
       )
   }
@@ -346,7 +346,7 @@ export async function triggerSessionActions(
         },
         {
           removeOnComplete: true,
-          removeOnFail: true,
+          removeOnFail: false,
         }
       )
     // Send an apology email to the student the first time he or she encounters an absent volunteer
@@ -358,7 +358,7 @@ export async function triggerSessionActions(
         },
         {
           removeOnComplete: true,
-          removeOnFail: true,
+          removeOnFail: false,
         }
       )
   }
@@ -373,7 +373,7 @@ export async function triggerSessionActions(
         },
         {
           removeOnComplete: true,
-          removeOnFail: true,
+          removeOnFail: false,
         }
       )
   }
@@ -397,7 +397,7 @@ export async function triggerFeedbackActions(
       },
       {
         removeOnComplete: true,
-        removeOnFail: true,
+        removeOnFail: false,
       }
     )
 
@@ -414,7 +414,7 @@ export async function triggerFeedbackActions(
       },
       {
         removeOnComplete: true,
-        removeOnFail: true,
+        removeOnFail: false,
       }
     )
   }

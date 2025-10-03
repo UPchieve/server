@@ -1081,6 +1081,42 @@ const updateVolunteerElapsedAvailabilityByIdIR: any = {"usedParamSet":{"elapsedA
 export const updateVolunteerElapsedAvailabilityById = new PreparedQuery<IUpdateVolunteerElapsedAvailabilityByIdParams,IUpdateVolunteerElapsedAvailabilityByIdResult>(updateVolunteerElapsedAvailabilityByIdIR);
 
 
+/** 'SetVolunteerElapsedAvailabilityById' parameters type */
+export interface ISetVolunteerElapsedAvailabilityByIdParams {
+  elapsedAvailability: number;
+  userId: string;
+}
+
+/** 'SetVolunteerElapsedAvailabilityById' return type */
+export interface ISetVolunteerElapsedAvailabilityByIdResult {
+  ok: string;
+}
+
+/** 'SetVolunteerElapsedAvailabilityById' query type */
+export interface ISetVolunteerElapsedAvailabilityByIdQuery {
+  params: ISetVolunteerElapsedAvailabilityByIdParams;
+  result: ISetVolunteerElapsedAvailabilityByIdResult;
+}
+
+const setVolunteerElapsedAvailabilityByIdIR: any = {"usedParamSet":{"elapsedAvailability":true,"userId":true},"params":[{"name":"elapsedAvailability","required":true,"transform":{"type":"scalar"},"locs":[{"a":61,"b":81}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":132,"b":139}]}],"statement":"UPDATE\n    volunteer_profiles\nSET\n    elapsed_availability = :elapsedAvailability!::int,\n    updated_at = NOW()\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE
+ *     volunteer_profiles
+ * SET
+ *     elapsed_availability = :elapsedAvailability!::int,
+ *     updated_at = NOW()
+ * WHERE
+ *     user_id = :userId!
+ * RETURNING
+ *     user_id AS ok
+ * ```
+ */
+export const setVolunteerElapsedAvailabilityById = new PreparedQuery<ISetVolunteerElapsedAvailabilityByIdParams,ISetVolunteerElapsedAvailabilityByIdResult>(setVolunteerElapsedAvailabilityByIdIR);
+
+
 /** 'UpdateVolunteerTotalHoursById' parameters type */
 export interface IUpdateVolunteerTotalHoursByIdParams {
   totalHours: NumberOrString;

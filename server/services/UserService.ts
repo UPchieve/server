@@ -294,9 +294,8 @@ const asAdminUpdate = asFactory<AdminUpdate>({
 
 export async function flagForDeletion(user: UserContactInfo) {
   try {
-    // if a user is requesting deletion, we should remove them from automatic emails
-    const contact = await MailService.searchContact(user.email)
-    if (contact) await MailService.deleteContact(contact.id)
+    // If a user is requesting deletion, we should remove them from automatic emails
+    await MailService.deleteContactByEmail(user.email)
   } catch (err) {
     logger.error(
       `Error searching for or deleting contact in user deletion process: ${err}`
@@ -338,8 +337,7 @@ export async function adminUpdateUser(data: unknown) {
 
     // Remove the contact associated with the previous email from SendGrid
     if (isUpdatedEmail) {
-      const contact = await MailService.searchContact(userBeforeUpdate.email)
-      if (contact) MailService.deleteContact(contact.id)
+      await MailService.deleteContactByEmail(userBeforeUpdate.email)
     }
 
     // if unbanning student, also unban their IP addresses

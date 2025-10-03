@@ -1,6 +1,12 @@
-import { getClient, runInTransaction, TransactionClient } from '../../db'
+import { getClient, TransactionClient } from '../../db'
 import * as pgQueries from './pg.queries'
-import { Ulid, getDbUlid, makeRequired, makeSomeOptional } from '../pgUtils'
+import {
+  Ulid,
+  Uuid,
+  getDbUlid,
+  makeRequired,
+  makeSomeOptional,
+} from '../pgUtils'
 
 import _ from 'lodash'
 import moment from 'moment'
@@ -12,14 +18,7 @@ import {
   AvailabilityHistory,
   AvailabilitySnapshot,
 } from './types'
-import {
-  RepoCreateError,
-  RepoDeleteError,
-  RepoReadError,
-  RepoUpdateError,
-} from '../Errors'
-import { PoolClient } from 'pg'
-import { isPgId } from '../../utils/type-utils'
+import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 
 // TODO: Move out any of the following functions that aren't actually queries.
 function createNewAvailability(): Availability {
@@ -219,41 +218,6 @@ export async function saveCurrentAvailabilityAsHistory(
     if (errors.length) throw new Error(errors.join('\n'))
   } catch (err) {
     throw new RepoCreateError(err)
-  }
-}
-
-export async function saveAvailabilityAsHistoryByDate(
-  userId: Ulid,
-  outageDate: Date
-): Promise<void> {
-  try {
-    const result = await pgQueries.saveAvailabilityAsHistoryByDate.run(
-      { userId, recordedAt: outageDate },
-      getClient()
-    )
-    const errors = []
-    for (const row of result) {
-      if (!makeRequired(row).ok)
-        errors.push(`AvailabilityHistory row ${row} did not save correctly`)
-    }
-    if (errors.length) throw new Error(errors.join('\n'))
-  } catch (err) {
-    throw new RepoCreateError(err)
-  }
-}
-
-export async function getAvailabilityForVolunteerByDate(
-  userId: Ulid,
-  date: Date
-): Promise<Availability> {
-  try {
-    const result = await pgQueries.getAvailabilityForVolunteerByDate.run(
-      { userId, recordedAt: date },
-      getClient()
-    )
-    return buildAvailabilityModel(result.map((v) => makeRequired(v)))
-  } catch (err) {
-    throw new RepoReadError(err)
   }
 }
 

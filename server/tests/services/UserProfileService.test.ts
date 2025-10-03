@@ -5,8 +5,7 @@ import { updateUserProfile } from '../../services/UserProfileService'
 import * as StudentService from '../../services/UserCreationService'
 import { createAccountAction } from '../../models/UserAction'
 import { ACCOUNT_USER_ACTIONS } from '../../constants'
-
-import { createContact } from '../../services/MailService'
+import { createContact, deleteContactByEmail } from '../../services/MailService'
 
 jest.mock('../../models/User/queries')
 jest.mock('../../models/UserAction')
@@ -87,13 +86,13 @@ describe('User Profile', () => {
       expect(mockedStudentService.upsertStudent).toHaveBeenCalledTimes(0)
     })
 
-    it('User is deactived', async () => {
+    it('deletes SendGrid contact when user is deactivated', async () => {
       await updateUserProfile(mockedVolunteer, '123', {
         ...DEFAULT_REQUEST,
         deactivated: true,
       })
 
-      expect(createContact).toHaveBeenCalledWith(mockedVolunteer.id)
+      expect(deleteContactByEmail).toHaveBeenCalledWith(mockedVolunteer.email)
       expect(createAccountAction).toHaveBeenCalledWith({
         action: ACCOUNT_USER_ACTIONS.DEACTIVATED,
         userId: mockedVolunteer.id,

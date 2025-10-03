@@ -79,7 +79,7 @@ describe('queueIncentiveProgramEnrollmentWelcomeJob', () => {
     expect(mockedQueueService.add).toHaveBeenCalledWith(
       Jobs.EmailFallIncentiveEnrollmentWelcome,
       { userId },
-      { removeOnComplete: true, removeOnFail: true }
+      { removeOnComplete: true, removeOnFail: false }
     )
   })
 })
@@ -97,7 +97,7 @@ describe('queueIncentiveInvitedToEnrollReminderJob', () => {
     expect(mockedQueueService.add).toHaveBeenCalledWith(
       Jobs.EmailFallIncentiveInvitedToEnrollReminder,
       { userId },
-      { removeOnComplete: true, removeOnFail: true, delay: twelveHoursInMs }
+      { removeOnComplete: true, removeOnFail: false, delay: twelveHoursInMs }
     )
   })
 })
@@ -131,7 +131,7 @@ describe('queueFallIncentiveSessionQualificationJob', () => {
     expect(mockedQueueService.add).toHaveBeenCalledWith(
       Jobs.EmailFallIncentiveSessionQualification,
       { userId: studentId, sessionId },
-      { removeOnComplete: true, removeOnFail: true }
+      { removeOnComplete: true, removeOnFail: false }
     )
   })
 })
