@@ -661,6 +661,10 @@ SELECT
 FROM
     student_profiles sp
     JOIN current_grade_levels_mview cgl ON cgl.user_id = sp.user_id
+    JOIN users u ON u.id = sp.user_id
+WHERE
+    u.deactivated IS FALSE
+    AND u.deleted IS FALSE
 ORDER BY
     sp.created_at DESC;
 

@@ -1476,7 +1476,7 @@ export interface IGetStudentsIdsForGradeLevelSgUpdateQuery {
   result: IGetStudentsIdsForGradeLevelSgUpdateResult;
 }
 
-const getStudentsIdsForGradeLevelSgUpdateIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    sp.user_id\nFROM\n    student_profiles sp\n    JOIN current_grade_levels_mview cgl ON cgl.user_id = sp.user_id\nORDER BY\n    sp.created_at DESC"};
+const getStudentsIdsForGradeLevelSgUpdateIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    sp.user_id\nFROM\n    student_profiles sp\n    JOIN current_grade_levels_mview cgl ON cgl.user_id = sp.user_id\n    JOIN users u ON u.id = sp.user_id\nWHERE\n    u.deactivated IS FALSE\n    AND u.deleted IS FALSE\nORDER BY\n    sp.created_at DESC"};
 
 /**
  * Query generated from SQL:
@@ -1486,6 +1486,10 @@ const getStudentsIdsForGradeLevelSgUpdateIR: any = {"usedParamSet":{},"params":[
  * FROM
  *     student_profiles sp
  *     JOIN current_grade_levels_mview cgl ON cgl.user_id = sp.user_id
+ *     JOIN users u ON u.id = sp.user_id
+ * WHERE
+ *     u.deactivated IS FALSE
+ *     AND u.deleted IS FALSE
  * ORDER BY
  *     sp.created_at DESC
  * ```
