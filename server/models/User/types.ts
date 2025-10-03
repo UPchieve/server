@@ -89,7 +89,7 @@ export type UserContactInfo = Pick<
 
 export type UserForCreateSendGridContact = Omit<
   UserContactInfo,
-  'roles' | 'roleContext' | 'referralCode'
+  'deactivated' | 'roles' | 'roleContext' | 'referralCode'
 > & {
   createdAt: Date
   lastName: string
@@ -127,4 +127,6 @@ export type EditUserProfilePayload = {
   phone?: string
   preferredLanguage?: string
   schoolId?: string
+  signupSourceId?: number
+  otherSignupSource?: string
 }

@@ -5,8 +5,11 @@ import {
   SASProtocol,
   generateBlobSASQueryParameters,
   StorageSharedKeyCredential,
+  BlockBlobClient,
+  BlockBlobUploadOptions,
 } from '@azure/storage-blob'
 import config from '../config'
+import { secondsInMs } from '../utils/time-utils'
 
 const azureStorageCredential = new ClientSecretCredential(
   config.azureTenantId,
@@ -114,6 +117,17 @@ export async function getBlobsInFolder(
   return documents
 }
 
+async function upload(
+  blockBlobClient: BlockBlobClient,
+  content: string | Buffer,
+  options?: BlockBlobUploadOptions
+) {
+  return blockBlobClient.upload(content, content.length, {
+    ...options,
+    abortSignal: AbortSignal.timeout(secondsInMs(30)),
+  })
+}
+
 export async function uploadBlobString(
   storageAccountName: string,
   containerName: string,
@@ -123,7 +137,7 @@ export async function uploadBlobString(
   const blobServiceClient = getBlobClient(storageAccountName)
   const containerClient = blobServiceClient.getContainerClient(containerName)
   const blockBlobClient = containerClient.getBlockBlobClient(blobName)
-  await blockBlobClient.upload(content, content.length)
+  await upload(blockBlobClient, content)
 }
 
 export async function uploadBlobFile(
@@ -136,7 +150,7 @@ export async function uploadBlobFile(
     const blobServiceClient = getBlobClient(storageAccountName)
     const containerClient = blobServiceClient.getContainerClient(containerName)
     const blockBlobClient = containerClient.getBlockBlobClient(blobName)
-    await blockBlobClient.upload(content.buffer, content.buffer.length, {
+    await upload(blockBlobClient, content.buffer, {
       blobHTTPHeaders: { blobContentType: content.mimetype },
     })
   } catch (error) {

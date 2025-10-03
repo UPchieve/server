@@ -22,7 +22,11 @@ export async function updateUserProfile(
   })
 
   if (data.deactivated !== user.deactivated) {
-    await MailService.createContact(user.id)
+    if (data.deactivated) {
+      await MailService.deleteContactByEmail(user.email)
+    } else {
+      await MailService.createContact(user.id)
+    }
 
     await createAccountAction({
       action: ACCOUNT_USER_ACTIONS.DEACTIVATED,

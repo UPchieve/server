@@ -16,6 +16,7 @@ import {
 } from '../../models/ProgressReports'
 import logger from '../../logger'
 import { asUlid } from '../../utils/type-utils'
+import { secondsInMs } from '../../utils/time-utils'
 
 interface GenerateProgressReport {
   sessionId: Ulid
@@ -38,10 +39,11 @@ async function sendProgressReport(userId: Ulid, data: ProgressReportPayload) {
       headers: {
         'x-api-key': config.subwayApiCredentials,
       },
+      timeout: secondsInMs(3),
     })
   } catch (error) {
-    const errorMessage = `Failed to send progress report via HTTP to user ${userId} error ${error}`
-    logger.error(errorMessage)
+    const errorMessage = `Failed to send progress report via HTTP to user.`
+    logger.error({ err: error, userId }, errorMessage)
     throw new Error(errorMessage)
   }
 }

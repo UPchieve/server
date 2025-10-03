@@ -94,7 +94,7 @@ export default async function backfillOnboardedStatus() {
         {
           delay: 1000 * 60 * 60 * 24 * 5,
           removeOnComplete: true,
-          removeOnFail: true,
+          removeOnFail: false,
         }
       )
       await MailService.sendBackfillNowReadyToCoachEmail(

@@ -1,13 +1,13 @@
 import { ProcessPromiseFunction, Queue } from 'bull'
 import EventEmitter from 'events'
-import { map } from 'lodash'
 import newrelic from 'newrelic'
 import logger from '../../logger'
+import backfillAvailabilityHistories from '../../scripts/backfill-availability-histories'
+import backfillElapsedAvailability from '../../scripts/backfill-elapsed-availability'
 import backfillEmailNiceToMeetYou from '../../scripts/backfill-email-nice-to-meet-you'
 import backfillEmailVolunteerInactive from '../../scripts/backfill-email-volunteer-inactive'
 import backfillStudentPosthog from '../../scripts/backfill-student-posthog'
 import backfillStudentUsersRoles from '../../scripts/backfill-student-users-roles'
-import backfillUpdateElapsedAvailability from '../../scripts/backfill-update-elapsed-availability'
 import deleteDuplicateUserSurveys from '../../scripts/delete-duplicate-user-surveys'
 import deleteSelfFavoritedVolunteers from '../../scripts/delete-self-favorited-volunteers'
 import deleteDuplicateStudentFavoriteVolunteers from '../../scripts/delete-duplicate-student-favorite-volunteers'
@@ -67,15 +67,18 @@ import addScheduledJobs from './addScheduledJobs'
 import emailAmbassadorCongrats from './emailAmbassadorCongrats'
 import backfillOnboardedStatus from './backfillOnboardedStatus'
 import { logRedisKeyMemStats } from './logRedisKeyMemStats'
+import { clearBullJobByStatus } from './clearBullJobsByStatus'
 
 export enum Jobs {
   AddScheduledJobs = 'AddScheduledJobs',
+  BackfillAvailabilityHistories = 'BackfillAvailabilityHistories',
+  BackfillElapsedAvailability = 'BackfillElapsedAvailability',
   BackfillEmailNiceToMeetYou = 'BackfillEmailNiceToMeetYou',
   BackfillEmailVolunteersInactive = 'BackfillEmailVolunteersInactive',
   BackfillStudentAmbassadorRole = 'BackfillStudentAmbassadorRole',
   BackfillStudentPosthog = 'BackfillStudentPosthog',
   BackfillStudentUsersRoles = 'BackfillStudentUsersRoles',
-  BackfillUpdateElapsedAvailability = 'BackfillUpdateElapsedAvailability',
+  ClearBullJobsByStatus = 'ClearBullJobsByStatus',
   DeleteDuplicateFeedbacks = 'DeleteDuplicateFeedbacks',
   DeleteDuplicateStudentFavoriteVolunteers = 'DeleteDuplicateStudentFavoriteVolunteers',
   DeleteDuplicateUserSurveys = 'DeleteDuplicateUserSurveys',
@@ -164,6 +167,14 @@ const jobProcessors: JobProcessor[] = [
     processor: addScheduledJobs,
   },
   {
+    name: Jobs.BackfillAvailabilityHistories,
+    processor: backfillAvailabilityHistories,
+  },
+  {
+    name: Jobs.BackfillElapsedAvailability,
+    processor: backfillElapsedAvailability,
+  },
+  {
     name: Jobs.BackfillEmailNiceToMeetYou,
     processor: backfillEmailNiceToMeetYou,
   },
@@ -184,8 +195,8 @@ const jobProcessors: JobProcessor[] = [
     processor: backfillStudentUsersRoles,
   },
   {
-    name: Jobs.BackfillUpdateElapsedAvailability,
-    processor: backfillUpdateElapsedAvailability,
+    name: Jobs.ClearBullJobsByStatus,
+    processor: clearBullJobByStatus,
   },
   {
     name: Jobs.DeleteDuplicateStudentFavoriteVolunteers,
@@ -478,36 +489,27 @@ EventEmitter.defaultMaxListeners = jobProcessors.length * 8
 
 export const addJobProcessors = (queue: Queue): void => {
   try {
-    map(jobProcessors, (jobProcessor) =>
-      queue.process(jobProcessor.name, (job /*, done*/) => {
-        return new Promise<void>((res, rej) => {
-          newrelic
-            .startBackgroundTransaction(`job:${job.name}`, async () => {
-              const transaction = newrelic.getTransaction()
-              logger.info(`Processing job: ${job.name}`)
-              try {
-                await jobProcessor.processor(job)
-                logger.info(`Completed job: ${job.name}`)
-                res()
-              } catch (error) {
-                logger.error(`Error processing job: ${job.name}\n${error}`)
-                newrelic.noticeError(error as Error)
-                rej(error)
-              } finally {
-                transaction.end()
-              }
-            })
-            .catch((error) => {
-              logger.error(
-                `error in job processor newrelic transaction: ${error}`
-              )
-              newrelic.noticeError(error)
-            })
-        })
+    for (const jobProcessor of jobProcessors) {
+      queue.process(jobProcessor.name, async (job) => {
+        await newrelic.startBackgroundTransaction(
+          `job:${job.name}`,
+          async () => {
+            const transaction = newrelic.getTransaction()
+            logger.info(`Processing job: ${job.name}`)
+            try {
+              await jobProcessor.processor(job)
+              logger.info(`Completed job: ${job.name}`)
+            } catch (error) {
+              logger.error(error, `Error processing job: ${job.name}`)
+              throw error
+            } finally {
+              transaction.end()
+            }
+          }
+        )
       })
-    )
+    }
   } catch (error) {
-    logger.error(`error adding job processors: ${error}`)
-    newrelic.noticeError(error as Error)
+    logger.error(error, `Error adding job processors`)
   }
 }
