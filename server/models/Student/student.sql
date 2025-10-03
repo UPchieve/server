@@ -1,20 +1,3 @@
-/* @name getGatesStudentById */
-SELECT
-    student_profiles.user_id AS id,
-    COALESCE(cgl.current_grade_name, grade_levels.name) AS current_grade,
-    student_partner_orgs.name AS student_partner_org,
-    schools.partner AS is_partner_school,
-    student_profiles.school_id AS approved_highschool
-FROM
-    student_profiles
-    LEFT JOIN student_partner_orgs ON student_profiles.student_partner_org_id = student_partner_orgs.id
-    JOIN grade_levels ON student_profiles.grade_level_id = grade_levels.id
-    LEFT JOIN current_grade_levels_mview cgl ON cgl.user_id = student_profiles.user_id
-    LEFT JOIN schools ON student_profiles.school_id = schools.id
-WHERE
-    student_profiles.user_id = :userId!;
-
-
 /* @name getStudentContactInfoById */
 SELECT
     users.id,
@@ -355,59 +338,6 @@ RETURNING
     (xmax = 0) AS is_created;
 
 
-/* @name createUserStudentPartnerOrgInstance */
-INSERT INTO users_student_partner_orgs_instances (user_id, student_partner_org_id, student_partner_org_site_id, created_at, updated_at)
-SELECT
-    :userId!,
-    spo.id,
-    CASE WHEN (:spoSiteName)::text IS NOT NULL THEN
-        sposite.id
-    ELSE
-        NULL
-    END,
-    NOW(),
-    NOW()
-FROM
-    student_partner_orgs spo
-    LEFT JOIN student_partner_org_sites sposite ON sposite.student_partner_org_id = spo.id
-WHERE
-    spo.name = :spoName!
-    AND ((:spoSiteName)::text IS NULL
-        OR (:spoSiteName)::text = sposite.name)
-LIMIT 1
-RETURNING
-    user_id AS ok;
-
-
-/* @name createUserStudentPartnerOrgInstanceWithSchoolId */
-INSERT INTO users_student_partner_orgs_instances (user_id, student_partner_org_id, student_partner_org_site_id, created_at, updated_at)
-SELECT
-    :userId!,
-    spo.id,
-    NULL,
-    NOW(),
-    NOW()
-FROM
-    student_partner_orgs spo
-WHERE
-    spo.school_id = :schoolId!
-RETURNING
-    user_id AS ok;
-
-
-/* @name getActiveStudentOrgInstance */
-SELECT
-    spo.name,
-    spo.id
-FROM
-    users_student_partner_orgs_instances uspoi
-    JOIN student_partner_orgs spo ON spo.id = uspoi.student_partner_org_id
-WHERE
-    uspoi.user_id = :studentId!
-    AND uspoi.student_partner_org_id = :spoId!
-    AND deactivated_on IS NULL;
-
-
 /* @name getSessionReport */
 WITH student_sessions AS (
     SELECT
@@ -640,19 +570,6 @@ WHERE
     user_id = :userId!
 RETURNING
     user_id AS ok;
-
-
-/* @name getActivePartnersForStudent */
-SELECT
-    spo.name,
-    spo.id,
-    spo.school_id
-FROM
-    users_student_partner_orgs_instances uspoi
-    JOIN student_partner_orgs spo ON spo.id = uspoi.student_partner_org_id
-WHERE
-    uspoi.user_id = :studentId!
-    AND deactivated_on IS NOT NULL;
 
 
 /* @name getStudentsIdsForGradeLevelSgUpdate */
