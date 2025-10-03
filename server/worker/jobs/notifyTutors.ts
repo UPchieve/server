@@ -4,7 +4,7 @@ import { getSessionById } from '../../models/Session/queries'
 import * as sessionUtils from '../../utils/session-utils'
 import QueueService from '../../services/QueueService'
 import * as TwilioService from '../../services/TwilioService'
-import { log, logError } from '../logger'
+import { log } from '../logger'
 import { Jobs } from '.'
 import { asString } from '../../utils/type-utils'
 
