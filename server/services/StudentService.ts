@@ -24,8 +24,6 @@ export const queueOnboardingEmails = async (studentId: Ulid): Promise<void> => {
     // process job 1 day after the student account is created
     {
       delay: 1000 * 60 * 60 * 24 * 1,
-      removeOnComplete: true,
-      removeOnFail: false,
     }
   )
   await QueueService.add(
@@ -34,8 +32,6 @@ export const queueOnboardingEmails = async (studentId: Ulid): Promise<void> => {
     // process job 3 days after the student account is created
     {
       delay: 1000 * 60 * 60 * 24 * 3,
-      removeOnComplete: true,
-      removeOnFail: false,
     }
   )
   await QueueService.add(
@@ -44,8 +40,6 @@ export const queueOnboardingEmails = async (studentId: Ulid): Promise<void> => {
     // process job 10 days after the student account is created
     {
       delay: 1000 * 60 * 60 * 24 * 10,
-      removeOnComplete: true,
-      removeOnFail: false,
     }
   )
   await QueueService.add(
@@ -54,8 +48,6 @@ export const queueOnboardingEmails = async (studentId: Ulid): Promise<void> => {
     // process job 14 days after the student account is created
     {
       delay: 1000 * 60 * 60 * 24 * 14,
-      removeOnComplete: true,
-      removeOnFail: false,
     }
   )
 }

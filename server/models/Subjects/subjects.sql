@@ -28,7 +28,18 @@ SELECT
     topics.training_order AS topic_training_order,
     topics.id AS topic_id,
     topics.icon_link AS topic_icon_link,
-    topics.color AS topic_color
+    topics.color AS topic_color,
+    CASE WHEN EXISTS (
+        SELECT
+            1
+        FROM
+            computed_subject_unlocks
+        WHERE
+            subject_id = subjects.id) THEN
+        TRUE
+    ELSE
+        FALSE
+    END AS is_computed_unlock
 FROM
     subjects
     JOIN topics ON subjects.topic_id = topics.id;
@@ -161,7 +172,18 @@ SELECT
     topics.training_order AS topic_training_order,
     topics.id AS topic_id,
     topics.icon_link AS topic_icon_link,
-    topics.color AS topic_color
+    topics.color AS topic_color,
+    CASE WHEN EXISTS (
+        SELECT
+            1
+        FROM
+            computed_subject_unlocks
+        WHERE
+            subject_id = subjects.id) THEN
+        TRUE
+    ELSE
+        FALSE
+    END AS is_computed_unlock
 FROM
     topics
     JOIN subjects ON subjects.topic_id = topics.id

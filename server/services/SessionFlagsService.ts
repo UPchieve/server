@@ -311,71 +311,36 @@ export async function triggerSessionActions(
   if (flags.includes(UserSessionFlags.absentStudent)) {
     // Send a warning email to the student about ghosting volunteers the first time the he or she is absent
     if (studentUSM.absentStudent === 1)
-      await QueueService.add(
-        Jobs.EmailStudentAbsentWarning,
-        {
-          sessionId,
-        },
-        {
-          removeOnComplete: true,
-          removeOnFail: false,
-        }
-      )
+      await QueueService.add(Jobs.EmailStudentAbsentWarning, {
+        sessionId,
+      })
 
     // Send an apology email to the volunteer the first time he or she encounters an absent student
     if (voluteerUSM?.absentStudent === 1)
-      await QueueService.add(
-        Jobs.EmailVolunteerAbsentStudentApology,
-        {
-          sessionId,
-        },
-        {
-          removeOnComplete: true,
-          removeOnFail: false,
-        }
-      )
+      await QueueService.add(Jobs.EmailVolunteerAbsentStudentApology, {
+        sessionId,
+      })
   }
 
   if (flags.includes(UserSessionFlags.absentVolunteer)) {
     // Send a warning email to the volunteer about ghosting students the first time he or she is absent
     if (voluteerUSM?.absentVolunteer === 1)
-      await QueueService.add(
-        Jobs.EmailVolunteerAbsentWarning,
-        {
-          sessionId,
-        },
-        {
-          removeOnComplete: true,
-          removeOnFail: false,
-        }
-      )
+      await QueueService.add(Jobs.EmailVolunteerAbsentWarning, {
+        sessionId,
+      })
     // Send an apology email to the student the first time he or she encounters an absent volunteer
     if (studentUSM.absentVolunteer === 1)
-      await QueueService.add(
-        Jobs.EmailStudentAbsentVolunteerApology,
-        {
-          sessionId,
-        },
-        {
-          removeOnComplete: true,
-          removeOnFail: false,
-        }
-      )
+      await QueueService.add(Jobs.EmailStudentAbsentVolunteerApology, {
+        sessionId,
+      })
   }
 
   if (flags.includes(UserSessionFlags.hasBeenUnmatched)) {
     // Send an apology email to the student the first time their session is unmatched
     if (studentUSM.hasBeenUnmatched === 1)
-      await QueueService.add(
-        Jobs.EmailStudentUnmatchedApology,
-        {
-          sessionId,
-        },
-        {
-          removeOnComplete: true,
-          removeOnFail: false,
-        }
-      )
+      await QueueService.add(Jobs.EmailStudentUnmatchedApology, {
+        sessionId,
+      })
   }
 }
 
@@ -390,33 +355,19 @@ export async function triggerFeedbackActions(
     flags.includes(UserSessionFlags.onlyLookingForAnswers) &&
     studentUSM.onlyLookingForAnswers === 1
   )
-    await QueueService.add(
-      Jobs.EmailStudentOnlyLookingForAnswers,
-      {
-        sessionId,
-      },
-      {
-        removeOnComplete: true,
-        removeOnFail: false,
-      }
-    )
+    await QueueService.add(Jobs.EmailStudentOnlyLookingForAnswers, {
+      sessionId,
+    })
 
   // If session was not reported, follow report workflow for emotional distress
   if (flags.includes(UserSessionFlags.studentCrisis) && !session.reported) {
-    QueueService.add(
-      Jobs.EmailSessionReported,
-      {
-        userId: session.studentId,
-        reportedBy: session.volunteerId,
-        reportReason: SESSION_REPORT_REASON.STUDENT_SAFETY,
-        isBanReason: false,
-        sessionId: session.id,
-      },
-      {
-        removeOnComplete: true,
-        removeOnFail: false,
-      }
-    )
+    QueueService.add(Jobs.EmailSessionReported, {
+      userId: session.studentId,
+      reportedBy: session.volunteerId,
+      reportReason: SESSION_REPORT_REASON.STUDENT_SAFETY,
+      isBanReason: false,
+      sessionId: session.id,
+    })
   }
 }
 

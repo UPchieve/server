@@ -202,10 +202,7 @@ export async function reportSession(user: UserContactInfo, data: unknown) {
   }
 
   if (session.endedAt)
-    await QueueService.add(Jobs.EmailSessionReported, emailData, {
-      removeOnComplete: true,
-      removeOnFail: false,
-    })
+    await QueueService.add(Jobs.EmailSessionReported, emailData)
   else
     await cache.saveWithExpiration(
       `${sessionId}-reported`,
@@ -281,28 +278,14 @@ export async function endSession(
 
   await SessionmeetingsService.endMeeting(sessionId)
 
-  QueueService.add(
-    Jobs.DetectSessionLanguages,
-    {
-      sessionId,
-      studentId: session.student.id,
-    },
-    {
-      removeOnComplete: true,
-      removeOnFail: false,
-    }
-  )
+  QueueService.add(Jobs.DetectSessionLanguages, {
+    sessionId,
+    studentId: session.student.id,
+  })
 
-  QueueService.add(
-    Jobs.ProcessSessionEnded,
-    {
-      sessionId,
-    },
-    {
-      removeOnComplete: true,
-      removeOnFail: false,
-    }
-  )
+  QueueService.add(Jobs.ProcessSessionEnded, {
+    sessionId,
+  })
 
   return endedSession
 }
@@ -323,8 +306,7 @@ export async function processSessionReported(sessionId: Ulid) {
   try {
     await QueueService.add(
       Jobs.EmailSessionReported,
-      JSON.parse(await cache.get(`${sessionId}-reported`)),
-      { removeOnComplete: true, removeOnFail: false }
+      JSON.parse(await cache.get(`${sessionId}-reported`))
     )
     await cache.remove(`${sessionId}-reported`)
   } catch (err) {
@@ -339,8 +321,6 @@ export async function processSessionTranscript(sessionId: Ulid) {
       Jobs.ModerateSessionTranscript,
       { sessionId },
       {
-        removeOnComplete: true,
-        removeOnFail: false,
         /* attempt to delay until the whiteboard is uploaded to storage */
         delay: 2 * 60 * 1000,
         attempts: 3,
@@ -395,7 +375,7 @@ export async function processFirstSessionCongratsEmail(sessionId: Ulid) {
       {
         sessionId: session.id,
       },
-      { delay, removeOnComplete: true, removeOnFail: false }
+      { delay }
     )
   if (sendVolunteerFirstSessionCongrats) {
     await QueueService.add(
@@ -403,7 +383,7 @@ export async function processFirstSessionCongratsEmail(sessionId: Ulid) {
       {
         sessionId: session.id,
       },
-      { delay, removeOnComplete: true, removeOnFail: false }
+      { delay }
     )
   }
 }
@@ -474,13 +454,9 @@ export async function processSessionEditors(sessionId: Ulid) {
 export async function processEmailVolunteer(sessionId: Ulid) {
   const session = await SessionRepo.getSessionToEndById(sessionId)
   if (session.volunteer?.numPastSessions === 10)
-    await QueueService.add(
-      Jobs.EmailVolunteerTenSessionMilestone,
-      {
-        volunteerId: session.volunteer.id,
-      },
-      { removeOnComplete: true, removeOnFail: false }
-    )
+    await QueueService.add(Jobs.EmailVolunteerTenSessionMilestone, {
+      volunteerId: session.volunteer.id,
+    })
 }
 
 /**
@@ -715,7 +691,7 @@ export async function startSession(
   await QueueService.add(
     Jobs.EndUnmatchedSession,
     { sessionId: newSession.id },
-    { delay, removeOnComplete: true, removeOnFail: false }
+    { delay }
   )
 
   return {

@@ -93,8 +93,6 @@ export default async function backfillOnboardedStatus() {
         // Process job 5 days after the volunteer is onboarded.
         {
           delay: 1000 * 60 * 60 * 24 * 5,
-          removeOnComplete: true,
-          removeOnFail: false,
         }
       )
       await MailService.sendBackfillNowReadyToCoachEmail(
