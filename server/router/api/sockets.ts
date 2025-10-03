@@ -108,7 +108,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
           await socketService.joinSession(socket, user, socket.data.sessionId)
         } catch (error) {
           logger.error(
-            { err: error },
+            error,
             `Unable to join socket session on socket recovery`
           )
         }
@@ -158,6 +158,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
             error,
             'Failed to join session socket: Invalid user state'
           )
+          return
         }
 
         try {
@@ -191,6 +192,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
             { sessionId, userId: user.id },
             `User ${user.id} failed to join session ${sessionId}`
           )
+          return
         }
 
         try {
@@ -227,6 +229,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
           } catch (error) {
             socket.emit('redirect', error as Error)
             logger.error(error, { sessionId })
+            return
           }
 
           try {
@@ -475,7 +478,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
             logger.error(
               error,
               { sessionId, userId: socket.request.user?.id },
-              'Failed to requesting Quill v2 doc'
+              'Failed requesting Quill v2 doc'
             )
           }
         }
@@ -528,7 +531,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
         } catch (error) {
           logger.error(
             error,
-            { sessionId },
+            { sessionId, userId: socket.request.user?.id },
             'Failed transmitting quill doc delta'
           )
         }
@@ -546,7 +549,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
           } catch (error) {
             logger.error(
               error,
-              { sessionId },
+              { sessionId, userId: socket.request.user?.id },
               'Failed transmitting quill doc selection'
             )
           }
@@ -566,28 +569,45 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
     })
 
     socket.on('disconnecting', async () => {
-      const user = await extractSocketUser(socket)
+      await observeWebTransaction('/socket-io/disconnecting', async () => {
+        try {
+          const user = await extractSocketUser(socket)
 
-      if (socket.data.sessionId) {
-        await socketService.leaveSession(socket, user, socket.data.sessionId)
-      }
+          if (socket.data.sessionId) {
+            await socketService.leaveSession(
+              socket,
+              user,
+              socket.data.sessionId
+            )
+          }
 
-      if (user?.roleContext?.isActiveRole('volunteer')) {
-        await updateVolunteerSubjectPresence(user.id, 'remove')
-      }
+          if (user?.roleContext?.isActiveRole('volunteer')) {
+            await updateVolunteerSubjectPresence(user.id, 'remove')
+          }
 
-      /*
-       * If a user is disconnected, they can not take a session.
-       * Mark them as inactive.
-       */
-      const clientUUID = socket.handshake.query.clientUUID
-      if (clientUUID && typeof clientUUID === 'string') {
-        PresenceService.trackInactivity({
-          userId: user.id,
-          clientUUID,
-          ipAddress: socket.handshake.address,
-        })
-      }
+          /*
+           * If a user is disconnected, they can not take a session.
+           * Mark them as inactive.
+           */
+          const clientUUID = socket.handshake.query.clientUUID
+          if (clientUUID && typeof clientUUID === 'string') {
+            PresenceService.trackInactivity({
+              userId: user.id,
+              clientUUID,
+              ipAddress: socket.handshake.address,
+            })
+          }
+        } catch (error) {
+          logger.error(
+            error,
+            {
+              sessionId: socket.data.sessionId,
+              userId: socket.request.user?.id,
+            },
+            'Failed disconnecting from socket'
+          )
+        }
+      })
     })
 
     socket.on(
@@ -598,7 +618,11 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
             const user = await extractSocketUser(socket)
             await socketService.leaveSession(socket, user, sessionId)
           } catch (error) {
-            logger.error(error, { sessionId }, 'Failed to leave session')
+            logger.error(
+              error,
+              { sessionId, userId: socket.request.user?.id },
+              'Failed to leave session'
+            )
           }
         })
     )
@@ -633,7 +657,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
         } catch (error) {
           logger.error(
             error,
-            { sessionId },
+            { sessionId, userId: socket.request.user?.id },
             'Failed emitting partnerUploadingImage'
           )
         }
@@ -657,7 +681,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
             } catch (error) {
               logger.error(
                 error,
-                { sessionId },
+                { sessionId, userId: socket.request.user?.id },
                 'Failed emitting partnerImageUploadFailed'
               )
             }
@@ -678,7 +702,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
           } catch (error) {
             logger.error(
               error,
-              { sessionId },
+              { sessionId, userId: socket.request.user?.id },
               'Failed emitting partnerImageUploadSuccess'
             )
           }
