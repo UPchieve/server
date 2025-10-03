@@ -1,8 +1,9 @@
-import Queue from 'bull'
+import Queue, { JobOptions } from 'bull'
 import Redis from 'ioredis'
 import config from '../config'
+import { Jobs } from '../worker/jobs'
 
-const queue = new Queue(config.workerQueueName, {
+export const queue = new Queue(config.workerQueueName, {
   createClient: () =>
     new Redis(config.redisConnectionString, {
       /**
@@ -24,4 +25,16 @@ const queue = new Queue(config.workerQueueName, {
     }),
 })
 
-export default queue
+export type AddJobOptions = JobOptions
+export async function add(job: Jobs, data?: any, options?: AddJobOptions) {
+  queue.add(job, data, {
+    removeOnFail: false,
+    removeOnComplete: true,
+    ...(options ?? {}),
+  })
+}
+
+export default {
+  add,
+  queue,
+}

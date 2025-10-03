@@ -520,7 +520,7 @@ export async function beginRegularNotifications(
   await QueueService.add(
     Jobs.NotifyTutors,
     { sessionId, notificationSchedule, currentNotificationRound: 1 },
-    { delay, removeOnComplete: true, removeOnFail: true }
+    { delay }
   )
 }
 

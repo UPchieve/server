@@ -1270,14 +1270,10 @@ async function createIndividualSessionMessageModerationJob({
   isVolunteer: boolean
 }) {
   try {
-    await QueueService.add(
-      Jobs.ModerateSessionMessage,
-      {
-        censoredSessionMessage,
-        isVolunteer,
-      },
-      { removeOnComplete: true, removeOnFail: false }
-    )
+    await QueueService.add(Jobs.ModerateSessionMessage, {
+      censoredSessionMessage,
+      isVolunteer,
+    })
   } catch (err) {
     logger.error(
       censoredSessionMessage,

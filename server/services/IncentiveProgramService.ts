@@ -16,11 +16,7 @@ export async function isUserInIncentiveProgram(userId: Ulid) {
 }
 
 export async function queueIncentiveProgramEnrollmentWelcomeJob(userId: Ulid) {
-  await QueueService.add(
-    Jobs.EmailFallIncentiveEnrollmentWelcome,
-    { userId },
-    { removeOnComplete: true, removeOnFail: false }
-  )
+  await QueueService.add(Jobs.EmailFallIncentiveEnrollmentWelcome, { userId })
 }
 
 export async function queueIncentiveInvitedToEnrollReminderJob(userId: Ulid) {
@@ -28,7 +24,7 @@ export async function queueIncentiveInvitedToEnrollReminderJob(userId: Ulid) {
   await QueueService.add(
     Jobs.EmailFallIncentiveInvitedToEnrollReminder,
     { userId },
-    { removeOnComplete: true, removeOnFail: false, delay: twelveHoursInMs }
+    { delay: twelveHoursInMs }
   )
 }
 
@@ -38,11 +34,10 @@ export async function queueFallIncentiveSessionQualificationJob(
   const session = await getSessionById(sessionId)
   // Do nothing if the session was not matched
   if (!session.volunteerId) return
-  await QueueService.add(
-    Jobs.EmailFallIncentiveSessionQualification,
-    { userId: session.studentId, sessionId },
-    { removeOnComplete: true, removeOnFail: false }
-  )
+  await QueueService.add(Jobs.EmailFallIncentiveSessionQualification, {
+    userId: session.studentId,
+    sessionId,
+  })
 }
 
 type UserAndFallIncentiveData = {

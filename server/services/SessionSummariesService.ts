@@ -197,11 +197,7 @@ export async function queueGenerateSessionSummaryForSession(sessionId: Uuid) {
   // so the student must be enrolled in at least one class
   if (classes.length) {
     try {
-      await QueueService.add(
-        Jobs.GenerateSessionSummary,
-        { sessionId },
-        { removeOnComplete: true, removeOnFail: false }
-      )
+      await QueueService.add(Jobs.GenerateSessionSummary, { sessionId })
     } catch (error) {
       logger.error(
         `Failed to queue ${Jobs.GenerateSessionSummary} for session ${sessionId}`

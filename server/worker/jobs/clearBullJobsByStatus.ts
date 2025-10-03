@@ -1,5 +1,5 @@
 import { Job, JobStatusClean } from 'bull'
-import queue from '../../services/QueueService'
+import * as QueueService from '../../services/QueueService'
 import logger from '../../logger'
 import { hoursInMs } from '../../utils/time-utils'
 
@@ -19,8 +19,12 @@ export async function clearBullJobByStatus(job: Job<BullJobStatus>) {
     try {
       const removedJobs =
         job.data.limit != undefined
-          ? await queue.clean(gracePeriod, jobStatus, job.data.limit)
-          : await queue.clean(gracePeriod, jobStatus)
+          ? await QueueService.queue.clean(
+              gracePeriod,
+              jobStatus,
+              job.data.limit
+            )
+          : await QueueService.queue.clean(gracePeriod, jobStatus)
       logger.info(`Removed ${removedJobs.length} ${jobStatus} Bull jobs`)
     } catch (error) {
       logger.error(

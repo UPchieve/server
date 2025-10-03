@@ -139,7 +139,7 @@ describe('saveUserSurvey', () => {
     expect(mockedQueueService.default.add).toHaveBeenCalledWith(
       Jobs.MaybeSendStudentFeedbackToVolunteer,
       { sessionId: expectedUserSurvey.sessionId },
-      { delay: 300000, removeOnComplete: true, removeOnFail: false }
+      { delay: 300000 }
     )
   })
 
