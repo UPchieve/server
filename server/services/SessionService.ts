@@ -682,8 +682,11 @@ export async function startSession(
     await QuillDocService.ensureDocumentUpdateExists(newSession.id)
   }
 
-  if (!isUserBanned) {
-    //await beginRegularNotifications(newSession.id, newSession.studentId)
+  const isNotifyTutorEnabled = await FeatureFlagsService.getNotifyTutorFlag(
+    user.id
+  )
+  if (!isUserBanned && isNotifyTutorEnabled) {
+    await beginRegularNotifications(newSession.id, newSession.studentId)
   }
 
   // Auto end the session after 45 minutes if the session is unmatched.
