@@ -151,9 +151,11 @@ export async function getQuizScore(
           await VolunteerModel.addVolunteerCertification(user.id, subject, tc)
         }
       }
-      // If volunteer is not onboarded and has completed other onboarding steps - including passing an academic quiz
+      // If volunteer is not onboarded and has completed other onboarding steps - including passing an academic quiz.
       const volunteerProfile =
-        await VolunteerModel.getVolunteerForOnboardingById(user.id, tc)
+        await VolunteerModel.getVolunteerForOnboardingById(tc, user.id, {
+          includeDeactivated: true,
+        })
       const passedUpchieve101 =
         volunteerProfile?.hasCompletedUpchieve101 ||
         cert === TRAINING.UPCHIEVE_101

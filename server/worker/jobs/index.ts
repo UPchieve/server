@@ -19,7 +19,6 @@ import emailNiceToMeetYou from './emailNiceToMeetYou'
 import emailReadyToCoach from './emailReadyToCoach'
 import emailReferenceFollowup from './emailReferenceFollowup'
 import emailReferences from './emailReferences'
-import emailReferencesFormApology from './emailReferencesFormApology'
 import emailWaitingOnReferences from './emailWaitingOnReferences'
 import emailWeeklyHourSummary from './emailWeeklyHourSummary'
 import endStaleSessions from './endStaleSessions'
@@ -98,7 +97,6 @@ export enum Jobs {
   EmailReadyToCoach = 'EmailReadyToCoach',
   EmailReferenceFollowup = 'EmailReferenceFollowup',
   EmailReferences = 'EmailReferences',
-  EmailReferencesFormApology = 'EmailReferencesFormApology',
   EmailSessionReported = 'EmailSessionReported',
   EmailStudentAbsentVolunteerApology = 'EmailStudentAbsentVolunteerApology',
   EmailStudentAbsentWarning = 'EmailStudentAbsentWarning',
@@ -269,10 +267,6 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.EmailReferences,
     processor: emailReferences,
-  },
-  {
-    name: Jobs.EmailReferencesFormApology,
-    processor: emailReferencesFormApology,
   },
   {
     name: Jobs.EmailSessionReported,

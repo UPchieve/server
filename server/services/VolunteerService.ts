@@ -269,8 +269,9 @@ export async function onboardVolunteer(
   tc: TransactionClient
 ): Promise<void> {
   const volunteer = await VolunteerRepo.getVolunteerForOnboardingById(
+    tc,
     volunteerId,
-    tc
+    { includeDeactivated: true }
   )
   if (!volunteer) {
     // If there is no volunteer, means they've already been onboarded.

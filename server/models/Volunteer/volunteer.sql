@@ -19,6 +19,7 @@ WHERE
             AND users.ban_type IS DISTINCT FROM 'complete'))
     AND (:deactivated::boolean IS NULL
         OR users.deactivated = :deactivated::boolean)
+    AND deleted IS FALSE
     AND (:testUser::boolean IS NULL
         OR users.test_user = :testUser::boolean);
 
@@ -40,6 +41,7 @@ WHERE
     AND users.banned IS FALSE
     AND users.ban_type IS DISTINCT FROM 'complete'
     AND users.deactivated IS FALSE
+    AND users.deleted IS FALSE
     AND users.test_user IS FALSE;
 
 
@@ -62,6 +64,7 @@ WHERE
     AND users.banned IS FALSE
     AND users.ban_type IS DISTINCT FROM 'complete'
     AND users.deactivated IS FALSE
+    AND users.deleted IS FALSE
     AND users.test_user IS FALSE
     AND volunteer_profiles.onboarded IS TRUE
     AND volunteer_profiles.volunteer_partner_org_id IS NULL;
@@ -79,13 +82,14 @@ FROM
     users
     JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
-WHERE (users.id::uuid = :userId
-    OR users.mongo_id::text = :mongoUserId)
-AND volunteer_profiles.onboarded IS TRUE
-AND users.banned IS FALSE
-AND users.ban_type IS DISTINCT FROM 'complete'
-AND users.deactivated IS FALSE
-AND users.test_user IS FALSE;
+WHERE
+    users.id = :userId!
+    AND volunteer_profiles.onboarded IS TRUE
+    AND users.banned IS FALSE
+    AND users.ban_type IS DISTINCT FROM 'complete'
+    AND users.deactivated IS FALSE
+    AND users.deleted IS FALSE
+    AND users.test_user IS FALSE;
 
 
 /* @name getPartnerVolunteerForLowHours */
@@ -107,15 +111,16 @@ FROM
             sessions
         WHERE
             sessions.volunteer_id = :userId) AS total_sessions ON TRUE
-WHERE (users.id::uuid = :userId
-    OR users.mongo_id::text = :mongoUserId)
-AND volunteer_profiles.onboarded IS TRUE
-AND volunteer_profiles.volunteer_partner_org_id IS NOT NULL
-AND users.banned IS FALSE
-AND users.ban_type IS DISTINCT FROM 'complete'
-AND users.deactivated IS FALSE
-AND total_sessions.total > 0
-AND users.test_user IS FALSE;
+WHERE
+    users.id = :userId!
+    AND volunteer_profiles.onboarded IS TRUE
+    AND volunteer_profiles.volunteer_partner_org_id IS NOT NULL
+    AND users.banned IS FALSE
+    AND users.ban_type IS DISTINCT FROM 'complete'
+    AND users.deactivated IS FALSE
+    AND users.deleted IS FALSE
+    AND total_sessions.total > 0
+    AND users.test_user IS FALSE;
 
 
 /* @name getVolunteersForWeeklyHourSummary */
@@ -136,6 +141,7 @@ WHERE (volunteer_partner_orgs.id IS NULL
 AND users.banned IS FALSE
 AND users.ban_type IS DISTINCT FROM 'complete'
 AND users.deactivated IS FALSE
+AND users.deleted IS FALSE
 AND users.test_user IS FALSE
 GROUP BY
     users.id,
@@ -175,6 +181,7 @@ FROM
     JOIN users ON volunteer_profiles.user_id = users.id
 WHERE
     users.deactivated IS FALSE
+    AND users.deleted IS FALSE
     AND users.test_user IS FALSE
     AND volunteer_profiles.onboarded IS TRUE
     AND volunteer_profiles.approved IS TRUE;
@@ -195,6 +202,7 @@ WHERE
     AND users.banned IS FALSE
     AND users.ban_type IS DISTINCT FROM 'complete'
     AND users.deactivated IS FALSE
+    AND users.deleted IS FALSE
     AND users.test_user IS FALSE
 GROUP BY
     users.id;
@@ -243,7 +251,9 @@ FROM
 WHERE
     users.banned IS FALSE
     AND users.ban_type IS DISTINCT FROM 'complete'
-    AND users.deactivated IS FALSE
+    AND (:deactivated::boolean IS NULL
+        OR users.deactivated = :deactivated::boolean)
+    AND users.deleted IS FALSE
     AND users.test_user IS FALSE
     AND volunteer_profiles.onboarded IS FALSE
     AND users.id = :userId
@@ -272,24 +282,13 @@ WHERE
     AND users.banned IS FALSE
     AND users.ban_type IS DISTINCT FROM 'complete'
     AND users.deactivated IS FALSE
+    AND users.deleted IS FALSE
     AND users.test_user IS FALSE
     AND volunteer_profiles.onboarded IS TRUE
     AND volunteer_profiles.approved IS TRUE
 GROUP BY
     users.id,
     volunteer_partner_org;
-
-
-/* @name getVolunteersNotifiedSinceDate */
-SELECT
-    users.id
-FROM
-    users
-    LEFT JOIN notifications ON users.id = notifications.user_id
-GROUP BY
-    users.id
-HAVING
-    MAX(notifications.sent_at) > :sinceDate!;
 
 
 /* @name getVolunteersNotifiedBySessionId */
@@ -357,6 +356,14 @@ FROM (
         name = 'submitted') AS subquery
 WHERE
     volunteer_references.id = :referenceId!
+    AND EXISTS (
+        SELECT
+            1
+        FROM
+            users
+        WHERE
+            users.id = volunteer_references.user_id
+            AND users.deleted IS FALSE)
 RETURNING
     volunteer_references.id AS ok;
 
@@ -379,6 +386,7 @@ WHERE
     AND users.banned IS FALSE
     AND users.ban_type IS DISTINCT FROM 'complete'
     AND users.deactivated IS FALSE
+    AND users.deleted IS FALSE
     AND users.test_user IS FALSE
     AND volunteer_profiles.onboarded IS TRUE;
 
@@ -399,46 +407,6 @@ FROM (
         name = 'sent') AS subquery
 WHERE
     volunteer_references.id = :referenceId!
-RETURNING
-    volunteer_references.id AS ok;
-
-
-/* @name updateVolunteerReferenceStatusById */
-UPDATE
-    volunteer_references
-SET
-    status_id = subquery.id,
-    sent_at = NOW(),
-    updated_at = NOW()
-FROM (
-    SELECT
-        id
-    FROM
-        volunteer_reference_statuses
-    WHERE
-        name = :status!) AS subquery
-WHERE
-    volunteer_references.id = :referenceId!
-RETURNING
-    volunteer_references.id AS ok;
-
-
-/* @name deleteVolunteerReferenceById */
-UPDATE
-    volunteer_references
-SET
-    status_id = subquery.id,
-    updated_at = NOW()
-FROM (
-    SELECT
-        id
-    FROM
-        volunteer_reference_statuses
-    WHERE
-        name = 'removed') AS subquery
-WHERE
-    volunteer_references.email = :referenceEmail!
-    AND volunteer_references.user_id = :userId!
 RETURNING
     volunteer_references.id AS ok;
 
@@ -625,34 +593,19 @@ RETURNING
 
 /* @name getVolunteerUnsentReferences */
 SELECT
-    volunteer_references.id,
-    user_id,
-    first_name,
-    last_name,
-    email,
+    vr.id,
+    vr.user_id,
+    vr.first_name,
+    vr.last_name,
+    vr.email,
     volunteer_reference_statuses.name AS status
 FROM
-    volunteer_references
-    LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id
+    volunteer_references vr
+    LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = vr.status_id
+    JOIN users ON vr.user_id = users.id
 WHERE
-    volunteer_reference_statuses.name = 'unsent';
-
-
-/* @name getReferencesForReferenceFormApology */
-SELECT
-    volunteer_references.id,
-    user_id,
-    first_name,
-    last_name,
-    email,
-    volunteer_reference_statuses.name AS status
-FROM
-    volunteer_references
-    LEFT JOIN volunteer_reference_statuses ON volunteer_reference_statuses.id = volunteer_references.status_id
-WHERE
-    volunteer_reference_statuses.name = 'sent'
-    AND volunteer_references.sent_at <= '2022-04-12 18:00:00.000'
-    AND volunteer_references.sent_at >= '2022-02-26 00:00:00.000';
+    volunteer_reference_statuses.name = 'unsent'
+    AND users.deleted IS FALSE;
 
 
 /* @name getReferencesByVolunteer */
@@ -826,6 +779,7 @@ WHERE
     users.banned IS FALSE
     AND users.ban_type IS DISTINCT FROM 'complete'
     AND users.deactivated IS FALSE
+    AND users.deleted IS FALSE
     AND users.test_user IS FALSE
     AND users.created_at >= :start!
     AND users.created_at < :end!;
@@ -848,6 +802,7 @@ WHERE
     users.banned IS FALSE
     AND users.ban_type IS DISTINCT FROM 'complete'
     AND users.deactivated IS FALSE
+    AND users.deleted IS FALSE
     AND users.test_user IS FALSE
     AND volunteer_profiles.onboarded IS TRUE
     AND volunteer_profiles.approved IS TRUE
@@ -872,6 +827,7 @@ WHERE
     users.banned IS FALSE
     AND users.ban_type IS DISTINCT FROM 'complete'
     AND users.deactivated IS FALSE
+    AND users.deleted IS FALSE
     AND users.test_user IS FALSE
     AND volunteer_reference_statuses.name = 'sent'
     AND volunteer_references.sent_at > :start!
@@ -927,28 +883,6 @@ ON CONFLICT (user_id,
         updated_at = NOW()
     RETURNING
         user_id AS ok;
-
-
-/* @name getVolunteerForTextResponse */
-SELECT
-    users.id AS volunteer_id,
-    sessions.id AS session_id,
-    sessions.volunteer_joined_at,
-    sessions.ended_at,
-    subjects.name AS subject,
-    topics.name AS topic
-FROM
-    users
-    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
-    LEFT JOIN notifications ON notifications.user_id = users.id
-    LEFT JOIN sessions ON sessions.id = notifications.session_id
-    LEFT JOIN subjects ON subjects.id = sessions.subject_id
-    LEFT JOIN topics ON topics.id = subjects.topic_id
-WHERE
-    users.phone = :phone!
-ORDER BY
-    notifications.created_at DESC
-LIMIT 1;
 
 
 /* @name getVolunteersToReview */
@@ -1007,6 +941,7 @@ WHERE
     users.banned IS FALSE
     AND users.ban_type IS DISTINCT FROM 'complete'
     AND users.deactivated IS FALSE
+    AND users.deleted IS FALSE
     AND users.test_user IS FALSE
     AND volunteer_reference_statuses.name = 'sent'
     AND volunteer_references.sent_at > :start!
@@ -1232,6 +1167,7 @@ ready_to_tutor_volunteers AS (
         AND banned IS FALSE
         AND ban_type IS DISTINCT FROM 'complete'
         AND deactivated IS FALSE
+        AND deleted IS FALSE
         AND volunteer_profiles.onboarded IS TRUE
         AND volunteer_profiles.approved IS TRUE
         AND ( -- user is not part of disqualified group (like active session volunteers) if provided
@@ -1414,92 +1350,6 @@ WHERE
 LIMIT 1;
 
 
-/* @name getVolunteersOnDeck */
-SELECT
-    users.id,
-    first_name,
-    last_name,
-    phone,
-    email,
-    volunteer_partner_orgs.key AS volunteer_partner_org
-FROM
-    users
-    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
-    JOIN availabilities ON users.id = availabilities.user_id
-    JOIN weekdays ON weekdays.id = availabilities.weekday_id
-    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
-    LEFT JOIN (
-        SELECT
-            sub_unlocked.user_id,
-            subjects.name AS subject
-        FROM (
-            SELECT
-                user_id,
-                subjects.name AS subject,
-                COUNT(*)::int AS earned_certs,
-                subject_total.total
-            FROM
-                users_certifications
-                JOIN certification_subject_unlocks USING (certification_id)
-                JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id
-                JOIN (
-                    SELECT
-                        subjects.name, COUNT(*)::int AS total
-                    FROM
-                        certification_subject_unlocks
-                        JOIN subjects ON subjects.id = certification_subject_unlocks.subject_id
-                    GROUP BY
-                        subjects.name) AS subject_total ON subject_total.name = subjects.name
-                GROUP BY
-                    user_id,
-                    subjects.name,
-                    subject_total.total) AS sub_unlocked
-                JOIN subjects ON sub_unlocked.subject = subjects.name) AS subjects_unlocked ON subjects_unlocked.user_id = users.id
-    LEFT JOIN (
-        SELECT
-            sub_unlocked.user_id,
-            subjects.name AS subject
-        FROM (
-            SELECT
-                user_id,
-                subjects.name AS subject,
-                COUNT(*)::int AS earned_certs,
-                subject_total.total
-            FROM
-                users_certifications
-                JOIN computed_subject_unlocks USING (certification_id)
-                JOIN subjects ON computed_subject_unlocks.subject_id = subjects.id
-                JOIN (
-                    SELECT
-                        subjects.name, COUNT(*)::int AS total
-                    FROM
-                        computed_subject_unlocks
-                        JOIN subjects ON subjects.id = computed_subject_unlocks.subject_id
-                    GROUP BY
-                        subjects.name) AS subject_total ON subject_total.name = subjects.name
-                GROUP BY
-                    user_id,
-                    subjects.name,
-                    subject_total.total
-                HAVING
-                    COUNT(*)::int >= subject_total.total) AS sub_unlocked
-                JOIN subjects ON sub_unlocked.subject = subjects.name) AS computed_subjects_unlocked ON computed_subjects_unlocked.user_id = users.id
-WHERE
-    test_user IS FALSE
-    AND banned IS FALSE
-    AND ban_type IS DISTINCT FROM 'complete'
-    AND deactivated IS FALSE
-    AND NOT users.id = ANY (:excludedIds!)
-AND TRIM(BOTH FROM to_char(NOW() at time zone 'America/New_York', 'Day')) = weekdays.day
-    AND extract(hour FROM (now() at time zone availabilities.timezone)) >= availabilities.available_start
-    AND extract(hour FROM (now() at time zone availabilities.timezone)) < availabilities.available_end
-    AND (subjects_unlocked.subject = :subject!
-        OR computed_subjects_unlocked.subject = :subject!)
-GROUP BY
-    users.id,
-    volunteer_partner_orgs.key;
-
-
 /* @name getUniqueStudentsHelpedForAnalyticsReportSummary */
 SELECT
     COALESCE(COUNT(DISTINCT sessions.student_id), 0)::int AS total_unique_students_helped,
@@ -1677,39 +1527,6 @@ ORDER BY
 LIMIT (:pageSize!::int);
 
 
-/* @name removeOnboardedStatusForUnqualifiedVolunteers */
-UPDATE
-    volunteer_profiles
-SET
-    onboarded = FALSE,
-    updated_at = NOW()
-FROM (
-    SELECT
-        users_training_courses.complete AS training_course_complete,
-        users_training_courses.user_id,
-        users_quizzes.passed AS training_quiz_passed
-    FROM
-        users_training_courses
-    LEFT JOIN (
-        SELECT
-            users_quizzes.passed,
-            users_quizzes.user_id,
-            quizzes.name
-        FROM
-            users_quizzes
-            LEFT JOIN quizzes ON users_quizzes.quiz_id = quizzes.id) AS users_quizzes ON users_quizzes.user_id = users_training_courses.user_id
-            AND users_quizzes.name = 'upchieve101') AS subquery
-WHERE
-    volunteer_profiles.onboarded IS TRUE
-    AND volunteer_profiles.created_at >= '2022-01-01 00:00:00.000000+00'
-    AND subquery.training_course_complete IS TRUE
-    AND (subquery.training_quiz_passed IS FALSE
-        OR subquery.training_quiz_passed IS NULL)
-AND volunteer_profiles.user_id = subquery.user_id
-RETURNING
-    volunteer_profiles.user_id AS ok;
-
-
 /* @name getPartnerOrgsByVolunteer */
 SELECT
     vpo.name,
@@ -1808,6 +1625,7 @@ WHERE
     AND u.banned IS FALSE
     AND u.ban_type IS NULL
     AND u.deactivated IS FALSE
+    AND u.deleted IS FALSE
     AND EXISTS (
         SELECT
             1
