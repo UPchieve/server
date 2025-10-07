@@ -67,6 +67,7 @@ import emailAmbassadorCongrats from './emailAmbassadorCongrats'
 import backfillOnboardedStatus from './backfillOnboardedStatus'
 import { logRedisKeyMemStats } from './logRedisKeyMemStats'
 import { clearBullJobByStatus } from './clearBullJobsByStatus'
+import backfillSessionEndedTasks from '../../scripts/backfill-sessionEndedTasks'
 
 export enum Jobs {
   AddScheduledJobs = 'AddScheduledJobs',
@@ -74,6 +75,7 @@ export enum Jobs {
   BackfillElapsedAvailability = 'BackfillElapsedAvailability',
   BackfillEmailNiceToMeetYou = 'BackfillEmailNiceToMeetYou',
   BackfillEmailVolunteersInactive = 'BackfillEmailVolunteersInactive',
+  BackfillSessionEndedTasks = 'BackfillSessionEndedTasks',
   BackfillStudentAmbassadorRole = 'BackfillStudentAmbassadorRole',
   BackfillStudentPosthog = 'BackfillStudentPosthog',
   BackfillStudentUsersRoles = 'BackfillStudentUsersRoles',
@@ -179,6 +181,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.BackfillEmailVolunteersInactive,
     processor: backfillEmailVolunteerInactive,
+  },
+  {
+    name: Jobs.BackfillSessionEndedTasks,
+    processor: backfillSessionEndedTasks,
   },
   {
     name: Jobs.BackfillStudentAmbassadorRole,
