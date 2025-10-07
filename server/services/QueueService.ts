@@ -27,7 +27,7 @@ export const queue = new Queue(config.workerQueueName, {
 
 export type AddJobOptions = JobOptions
 export async function add(job: Jobs, data?: any, options?: AddJobOptions) {
-  queue.add(job, data, {
+  await queue.add(job, data, {
     removeOnFail: false,
     removeOnComplete: true,
     ...(options ?? {}),
