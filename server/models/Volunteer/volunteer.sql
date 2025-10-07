@@ -1651,3 +1651,77 @@ GROUP BY
     vp.onboarded,
     vp.approved;
 
+
+/* @name getVolunteersForTextNotificationsInTheCurrentHour */
+SELECT DISTINCT ON (u.id)
+    u.id,
+    u.phone,
+    u.first_name,
+    vp.volunteer_partner_org_id,
+    muted_subject_alerts.muted_subject_names,
+    associated_sponsors.associated_student_sponsor_orgs,
+    associated_partners.associated_student_partner_orgs
+FROM
+    users u
+    JOIN volunteer_profiles vp ON vp.user_id = u.id
+    LEFT JOIN associated_partners ap ON ap.volunteer_partner_org_id = vp.volunteer_partner_org_id
+    JOIN availabilities a ON a.user_id = u.id
+    JOIN weekdays ON weekdays.id = a.weekday_id
+    LEFT JOIN notifications n ON n.user_id = u.id
+    LEFT JOIN LATERAL (
+        SELECT
+            COALESCE(array_agg(s.name), '{}') AS muted_subject_names
+        FROM
+            muted_users_subject_alerts muted_subjects
+            JOIN subjects s ON s.id = muted_subjects.subject_id
+        WHERE
+            muted_subjects.user_id = u.id) AS muted_subject_alerts ON TRUE
+    LEFT JOIN LATERAL (
+        SELECT
+            coalesce(array_agg(ap.student_sponsor_org_id) FILTER (WHERE ap.student_sponsor_org_id IS NOT NULL), '{}') AS associated_student_sponsor_orgs
+        FROM
+            associated_partners ap
+        WHERE
+            ap.volunteer_partner_org_id = vp.volunteer_partner_org_id) AS associated_sponsors ON TRUE
+    LEFT JOIN LATERAL (
+        SELECT
+            coalesce(array_agg(ap.student_partner_org_id) FILTER (WHERE ap.student_partner_org_id IS NOT NULL), '{}') AS associated_student_partner_orgs
+        FROM
+            associated_partners ap
+        WHERE
+            ap.volunteer_partner_org_id = vp.volunteer_partner_org_id) AS associated_partners ON TRUE
+WHERE (u.ban_type IS NULL
+    OR u.ban_type <> 'complete'::ban_types
+    OR u.ban_type <> 'shadow'::ban_types)
+AND u.deactivated IS FALSE
+AND u.test_user IS FALSE
+AND vp.onboarded IS TRUE
+AND vp.approved IS TRUE
+AND TRIM(BOTH FROM to_char(NOW() at time zone 'America/New_York', 'Day')) = weekdays.day
+AND extract(hour FROM (NOW() at time zone 'America/New_York')) >= a.available_start
+AND extract(hour FROM (NOW() at time zone 'America/New_York')) < a.available_end;
+
+
+/* @name getCoachesWithFalseSmsConsent */
+SELECT DISTINCT
+    u.id
+FROM
+    users u
+    JOIN volunteer_profiles vp ON vp.user_id = u.id
+    LEFT JOIN student_profiles sp ON sp.user_id = u.id
+WHERE
+    sp.user_id IS NULL
+    AND u.sms_consent IS FALSE;
+
+
+/* @name backfillCoachSmsConsent */
+UPDATE
+    users
+SET
+    sms_consent = TRUE,
+    updated_at = NOW()
+WHERE
+    id = ANY (:coachUserIds!::uuid[])
+RETURNING
+    id AS user_id;
+

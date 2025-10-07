@@ -111,7 +111,7 @@ const getVolunteerContactInfoByIdsIR: any = {"usedParamSet":{"userIds":true},"pa
  *     AND users.ban_type IS DISTINCT FROM 'complete'
  *     AND users.deactivated IS FALSE
  *     AND users.deleted IS FALSE
- *     AND users.test_user IS FALSE                                                                                                                                                            
+ *     AND users.test_user IS FALSE
  * ```
  */
 export const getVolunteerContactInfoByIds = new PreparedQuery<IGetVolunteerContactInfoByIdsParams,IGetVolunteerContactInfoByIdsResult>(getVolunteerContactInfoByIdsIR);
@@ -3500,5 +3500,150 @@ const getVolunteersWhoAreOnboardedExceptForAvailabilityIR: any = {"usedParamSet"
  * ```
  */
 export const getVolunteersWhoAreOnboardedExceptForAvailability = new PreparedQuery<IGetVolunteersWhoAreOnboardedExceptForAvailabilityParams,IGetVolunteersWhoAreOnboardedExceptForAvailabilityResult>(getVolunteersWhoAreOnboardedExceptForAvailabilityIR);
+
+
+/** 'GetVolunteersForTextNotificationsInTheCurrentHour' parameters type */
+export type IGetVolunteersForTextNotificationsInTheCurrentHourParams = void;
+
+/** 'GetVolunteersForTextNotificationsInTheCurrentHour' return type */
+export interface IGetVolunteersForTextNotificationsInTheCurrentHourResult {
+  associatedStudentPartnerOrgs: stringArray | null;
+  associatedStudentSponsorOrgs: stringArray | null;
+  firstName: string;
+  id: string;
+  mutedSubjectNames: stringArray | null;
+  phone: string | null;
+  volunteerPartnerOrgId: string | null;
+}
+
+/** 'GetVolunteersForTextNotificationsInTheCurrentHour' query type */
+export interface IGetVolunteersForTextNotificationsInTheCurrentHourQuery {
+  params: IGetVolunteersForTextNotificationsInTheCurrentHourParams;
+  result: IGetVolunteersForTextNotificationsInTheCurrentHourResult;
+}
+
+const getVolunteersForTextNotificationsInTheCurrentHourIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT DISTINCT ON (u.id)\n    u.id,\n    u.phone,\n    u.first_name,\n    vp.volunteer_partner_org_id,\n    muted_subject_alerts.muted_subject_names,\n    associated_sponsors.associated_student_sponsor_orgs,\n    associated_partners.associated_student_partner_orgs\nFROM\n    users u\n    JOIN volunteer_profiles vp ON vp.user_id = u.id\n    LEFT JOIN associated_partners ap ON ap.volunteer_partner_org_id = vp.volunteer_partner_org_id\n    JOIN availabilities a ON a.user_id = u.id\n    JOIN weekdays ON weekdays.id = a.weekday_id\n    LEFT JOIN notifications n ON n.user_id = u.id\n    LEFT JOIN LATERAL (\n        SELECT\n            COALESCE(array_agg(s.name), '{}') AS muted_subject_names\n        FROM\n            muted_users_subject_alerts muted_subjects\n            JOIN subjects s ON s.id = muted_subjects.subject_id\n        WHERE\n            muted_subjects.user_id = u.id) AS muted_subject_alerts ON TRUE\n    LEFT JOIN LATERAL (\n        SELECT\n            coalesce(array_agg(ap.student_sponsor_org_id) FILTER (WHERE ap.student_sponsor_org_id IS NOT NULL), '{}') AS associated_student_sponsor_orgs\n        FROM\n            associated_partners ap\n        WHERE\n            ap.volunteer_partner_org_id = vp.volunteer_partner_org_id) AS associated_sponsors ON TRUE\n    LEFT JOIN LATERAL (\n        SELECT\n            coalesce(array_agg(ap.student_partner_org_id) FILTER (WHERE ap.student_partner_org_id IS NOT NULL), '{}') AS associated_student_partner_orgs\n        FROM\n            associated_partners ap\n        WHERE\n            ap.volunteer_partner_org_id = vp.volunteer_partner_org_id) AS associated_partners ON TRUE\nWHERE (u.ban_type IS NULL\n    OR u.ban_type <> 'complete'::ban_types\n    OR u.ban_type <> 'shadow'::ban_types)\nAND u.deactivated IS FALSE\nAND u.test_user IS FALSE\nAND vp.onboarded IS TRUE\nAND vp.approved IS TRUE\nAND TRIM(BOTH FROM to_char(NOW() at time zone 'America/New_York', 'Day')) = weekdays.day\nAND extract(hour FROM (NOW() at time zone 'America/New_York')) >= a.available_start\nAND extract(hour FROM (NOW() at time zone 'America/New_York')) < a.available_end"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT DISTINCT ON (u.id)
+ *     u.id,
+ *     u.phone,
+ *     u.first_name,
+ *     vp.volunteer_partner_org_id,
+ *     muted_subject_alerts.muted_subject_names,
+ *     associated_sponsors.associated_student_sponsor_orgs,
+ *     associated_partners.associated_student_partner_orgs
+ * FROM
+ *     users u
+ *     JOIN volunteer_profiles vp ON vp.user_id = u.id
+ *     LEFT JOIN associated_partners ap ON ap.volunteer_partner_org_id = vp.volunteer_partner_org_id
+ *     JOIN availabilities a ON a.user_id = u.id
+ *     JOIN weekdays ON weekdays.id = a.weekday_id
+ *     LEFT JOIN notifications n ON n.user_id = u.id
+ *     LEFT JOIN LATERAL (
+ *         SELECT
+ *             COALESCE(array_agg(s.name), '{}') AS muted_subject_names
+ *         FROM
+ *             muted_users_subject_alerts muted_subjects
+ *             JOIN subjects s ON s.id = muted_subjects.subject_id
+ *         WHERE
+ *             muted_subjects.user_id = u.id) AS muted_subject_alerts ON TRUE
+ *     LEFT JOIN LATERAL (
+ *         SELECT
+ *             coalesce(array_agg(ap.student_sponsor_org_id) FILTER (WHERE ap.student_sponsor_org_id IS NOT NULL), '{}') AS associated_student_sponsor_orgs
+ *         FROM
+ *             associated_partners ap
+ *         WHERE
+ *             ap.volunteer_partner_org_id = vp.volunteer_partner_org_id) AS associated_sponsors ON TRUE
+ *     LEFT JOIN LATERAL (
+ *         SELECT
+ *             coalesce(array_agg(ap.student_partner_org_id) FILTER (WHERE ap.student_partner_org_id IS NOT NULL), '{}') AS associated_student_partner_orgs
+ *         FROM
+ *             associated_partners ap
+ *         WHERE
+ *             ap.volunteer_partner_org_id = vp.volunteer_partner_org_id) AS associated_partners ON TRUE
+ * WHERE (u.ban_type IS NULL
+ *     OR u.ban_type <> 'complete'::ban_types
+ *     OR u.ban_type <> 'shadow'::ban_types)
+ * AND u.deactivated IS FALSE
+ * AND u.test_user IS FALSE
+ * AND vp.onboarded IS TRUE
+ * AND vp.approved IS TRUE
+ * AND TRIM(BOTH FROM to_char(NOW() at time zone 'America/New_York', 'Day')) = weekdays.day
+ * AND extract(hour FROM (NOW() at time zone 'America/New_York')) >= a.available_start
+ * AND extract(hour FROM (NOW() at time zone 'America/New_York')) < a.available_end
+ * ```
+ */
+export const getVolunteersForTextNotificationsInTheCurrentHour = new PreparedQuery<IGetVolunteersForTextNotificationsInTheCurrentHourParams,IGetVolunteersForTextNotificationsInTheCurrentHourResult>(getVolunteersForTextNotificationsInTheCurrentHourIR);
+
+
+/** 'GetCoachesWithFalseSmsConsent' parameters type */
+export type IGetCoachesWithFalseSmsConsentParams = void;
+
+/** 'GetCoachesWithFalseSmsConsent' return type */
+export interface IGetCoachesWithFalseSmsConsentResult {
+  id: string;
+}
+
+/** 'GetCoachesWithFalseSmsConsent' query type */
+export interface IGetCoachesWithFalseSmsConsentQuery {
+  params: IGetCoachesWithFalseSmsConsentParams;
+  result: IGetCoachesWithFalseSmsConsentResult;
+}
+
+const getCoachesWithFalseSmsConsentIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT DISTINCT\n    u.id\nFROM\n    users u\n    JOIN volunteer_profiles vp ON vp.user_id = u.id\n    LEFT JOIN student_profiles sp ON sp.user_id = u.id\nWHERE\n    sp.user_id IS NULL\n    AND u.sms_consent IS FALSE"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT DISTINCT
+ *     u.id
+ * FROM
+ *     users u
+ *     JOIN volunteer_profiles vp ON vp.user_id = u.id
+ *     LEFT JOIN student_profiles sp ON sp.user_id = u.id
+ * WHERE
+ *     sp.user_id IS NULL
+ *     AND u.sms_consent IS FALSE
+ * ```
+ */
+export const getCoachesWithFalseSmsConsent = new PreparedQuery<IGetCoachesWithFalseSmsConsentParams,IGetCoachesWithFalseSmsConsentResult>(getCoachesWithFalseSmsConsentIR);
+
+
+/** 'BackfillCoachSmsConsent' parameters type */
+export interface IBackfillCoachSmsConsentParams {
+  coachUserIds: stringArray;
+}
+
+/** 'BackfillCoachSmsConsent' return type */
+export interface IBackfillCoachSmsConsentResult {
+  userId: string;
+}
+
+/** 'BackfillCoachSmsConsent' query type */
+export interface IBackfillCoachSmsConsentQuery {
+  params: IBackfillCoachSmsConsentParams;
+  result: IBackfillCoachSmsConsentResult;
+}
+
+const backfillCoachSmsConsentIR: any = {"usedParamSet":{"coachUserIds":true},"params":[{"name":"coachUserIds","required":true,"transform":{"type":"scalar"},"locs":[{"a":88,"b":101}]}],"statement":"UPDATE\n    users\nSET\n    sms_consent = TRUE,\n    updated_at = NOW()\nWHERE\n    id = ANY (:coachUserIds!::uuid[])\nRETURNING\n    id AS user_id"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE
+ *     users
+ * SET
+ *     sms_consent = TRUE,
+ *     updated_at = NOW()
+ * WHERE
+ *     id = ANY (:coachUserIds!::uuid[])
+ * RETURNING
+ *     id AS user_id
+ * ```
+ */
+export const backfillCoachSmsConsent = new PreparedQuery<IBackfillCoachSmsConsentParams,IBackfillCoachSmsConsentResult>(backfillCoachSmsConsentIR);
 
 
