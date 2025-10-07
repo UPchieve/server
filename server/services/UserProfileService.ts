@@ -5,6 +5,7 @@ import { createAccountAction } from '../models/UserAction'
 import { ACCOUNT_USER_ACTIONS } from '../constants'
 import * as MailService from './MailService'
 import { upsertStudent } from './UserCreationService'
+import { Ulid } from '../models/pgUtils'
 
 export async function updateUserProfile(
   user: UserContactInfo,
@@ -36,4 +37,10 @@ export async function updateUserProfile(
   }
 }
 
+export async function updateUserSmsConsent(
+  userId: Ulid,
+  hasGivenConsent: boolean
+) {
+  return updateUserProfileById(userId, { smsConsent: hasGivenConsent })
+}
 //TODO move other user profile related code here

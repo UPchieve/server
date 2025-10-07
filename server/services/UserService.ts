@@ -548,3 +548,7 @@ export async function countReferredUsers(
 export function getReferralSignUpLink(referralCode: string): string {
   return `${config.protocol}://${config.host}/referral/${referralCode}`
 }
+
+export function getUserIdByPhone(phone: string): Promise<Ulid | undefined> {
+  return UserRepo.getUserIdByPhone(phone)
+}
