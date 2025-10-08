@@ -1794,7 +1794,7 @@ export async function getVolunteersForTextNotifications(
         tc
       )
     return rawResults.map((row) =>
-      makeSomeOptional(row, ['volunteerPartnerOrgId'])
+      makeSomeOptional(row, ['volunteerPartnerOrgKey'])
     )
   } catch (err) {
     throw new RepoReadError(err)

@@ -1657,15 +1657,13 @@ SELECT DISTINCT ON (u.id)
     u.id,
     u.phone,
     u.first_name,
-    vp.volunteer_partner_org_id,
+    vpo.key AS volunteer_partner_org_key,
     muted_subject_alerts.muted_subject_names AS muted_subjects,
-    associated_sponsors.associated_student_sponsor_orgs,
-    associated_partners.associated_student_partner_orgs,
     unlocked_subjects.unlocked_subjects
 FROM
     users u
     JOIN volunteer_profiles vp ON vp.user_id = u.id
-    LEFT JOIN associated_partners ap ON ap.volunteer_partner_org_id = vp.volunteer_partner_org_id
+    LEFT JOIN volunteer_partner_orgs vpo ON vpo.id = vp.volunteer_partner_org_id
     JOIN availabilities a ON a.user_id = u.id
     JOIN weekdays ON weekdays.id = a.weekday_id
     LEFT JOIN LATERAL (
@@ -1676,20 +1674,6 @@ FROM
             JOIN subjects s ON s.id = muted_subjects.subject_id
         WHERE
             muted_subjects.user_id = u.id) AS muted_subject_alerts ON TRUE
-    LEFT JOIN LATERAL (
-        SELECT
-            coalesce(array_agg(ap.student_sponsor_org_id) FILTER (WHERE ap.student_sponsor_org_id IS NOT NULL), '{}') AS associated_student_sponsor_orgs
-        FROM
-            associated_partners ap
-        WHERE
-            ap.volunteer_partner_org_id = vp.volunteer_partner_org_id) AS associated_sponsors ON TRUE
-    LEFT JOIN LATERAL (
-        SELECT
-            coalesce(array_agg(ap.student_partner_org_id) FILTER (WHERE ap.student_partner_org_id IS NOT NULL), '{}') AS associated_student_partner_orgs
-        FROM
-            associated_partners ap
-        WHERE
-            ap.volunteer_partner_org_id = vp.volunteer_partner_org_id) AS associated_partners ON TRUE
     JOIN users_unlocked_subjects_mview unlocked_subjects ON unlocked_subjects.user_id = u.id
 WHERE (u.ban_type IS NULL
     OR (u.ban_type <> 'complete'::ban_types

@@ -107,9 +107,7 @@ export type VolunteerSubject = {
 export type TextableVolunteer = {
   id: Ulid
   firstName: string
-  volunteerPartnerOrgId?: Ulid
+  volunteerPartnerOrgKey?: string
   mutedSubjects: string[]
-  associatedStudentSponsorOrgs: Ulid[]
-  associatedStudentPartnerOrgs: Ulid[]
   unlockedSubjects: string[]
 }
