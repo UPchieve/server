@@ -15,7 +15,7 @@ const EVICTED_KEY_CHANNEL = '__keyevent@0__:evicted'
 redisSubClient.subscribe(EXPIRED_KEY_CHANNEL)
 
 // Subscribe to eviction events
-redisSubClient.subscribe('__keyevent@0__:evicted')
+redisSubClient.subscribe(EVICTED_KEY_CHANNEL)
 
 redisSubClient.on('message', async (channel, key) => {
   if (channel == EVICTED_KEY_CHANNEL) {
