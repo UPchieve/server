@@ -108,7 +108,7 @@ export type TextableVolunteer = {
   id: Ulid
   firstName: string
   volunteerPartnerOrgId?: Ulid
-  mutedSubjectNames: string[]
+  mutedSubjects: string[]
   associatedStudentSponsorOrgs: Ulid[]
   associatedStudentPartnerOrgs: Ulid[]
   unlockedSubjects: string[]

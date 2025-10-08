@@ -1658,7 +1658,7 @@ SELECT DISTINCT ON (u.id)
     u.phone,
     u.first_name,
     vp.volunteer_partner_org_id,
-    muted_subject_alerts.muted_subject_names,
+    muted_subject_alerts.muted_subject_names AS muted_subjects,
     associated_sponsors.associated_student_sponsor_orgs,
     associated_partners.associated_student_partner_orgs,
     unlocked_subjects.unlocked_subjects
