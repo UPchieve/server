@@ -3,7 +3,6 @@ import * as StudentRepo from '../../models/Student/queries'
 import * as VolunteerRepo from '../../models/Volunteer/queries'
 import { mocked } from 'jest-mock'
 import * as TwilioService from '../../services/TwilioService'
-import * as FeatureFlagService from '../../services/FeatureFlagService'
 import { buildStudent, buildSession, buildVolunteer } from '../mocks/generate'
 
 import { getDbUlid } from '../../models/pgUtils'
@@ -12,16 +11,16 @@ jest.mock('../../models/Session/queries')
 jest.mock('../../models/Student/queries')
 jest.mock('../../models/Volunteer/queries')
 jest.mock('../../utils/get-times')
+jest.mock('../../services/AssociatedPartnerService')
 
 const mockedSessionRepo = mocked(SessionRepo)
 const mockedStudentRepo = mocked(StudentRepo)
 const mockedVolunteerRepo = mocked(VolunteerRepo)
-const mockedFeatureFlagService = mocked(FeatureFlagService)
 
 const buildStudentAndSessionForMutedSubjects = async () => {
   const studentId = getDbUlid()
   const student = buildStudent({ id: studentId })
-  const session = await buildSession({ studentId })
+  const session = buildSession({ studentId })
 
   mockedStudentRepo.getStudentContactInfoById.mockResolvedValue(student)
   mockedSessionRepo.getActiveSessionsWithVolunteers.mockResolvedValueOnce([])

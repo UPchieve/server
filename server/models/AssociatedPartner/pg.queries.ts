@@ -150,13 +150,13 @@ const getAssociatedPartnerBySponsorOrgKeyIR: any = {"usedParamSet":{"key":true},
 export const getAssociatedPartnerBySponsorOrgKey = new PreparedQuery<IGetAssociatedPartnerBySponsorOrgKeyParams,IGetAssociatedPartnerBySponsorOrgKeyResult>(getAssociatedPartnerBySponsorOrgKeyIR);
 
 
-/** 'GetAssociatedPartnerByPartnerOrgKey' parameters type */
-export interface IGetAssociatedPartnerByPartnerOrgKeyParams {
+/** 'GetAssociatedPartnerByStudentPartnerOrgKey' parameters type */
+export interface IGetAssociatedPartnerByStudentPartnerOrgKeyParams {
   key: string;
 }
 
-/** 'GetAssociatedPartnerByPartnerOrgKey' return type */
-export interface IGetAssociatedPartnerByPartnerOrgKeyResult {
+/** 'GetAssociatedPartnerByStudentPartnerOrgKey' return type */
+export interface IGetAssociatedPartnerByStudentPartnerOrgKeyResult {
   key: string;
   studentOrgDisplay: string | null;
   studentPartnerOrg: string;
@@ -168,13 +168,13 @@ export interface IGetAssociatedPartnerByPartnerOrgKeyResult {
   volunteerPartnerOrgId: string;
 }
 
-/** 'GetAssociatedPartnerByPartnerOrgKey' query type */
-export interface IGetAssociatedPartnerByPartnerOrgKeyQuery {
-  params: IGetAssociatedPartnerByPartnerOrgKeyParams;
-  result: IGetAssociatedPartnerByPartnerOrgKeyResult;
+/** 'GetAssociatedPartnerByStudentPartnerOrgKey' query type */
+export interface IGetAssociatedPartnerByStudentPartnerOrgKeyQuery {
+  params: IGetAssociatedPartnerByStudentPartnerOrgKeyParams;
+  result: IGetAssociatedPartnerByStudentPartnerOrgKeyResult;
 }
 
-const getAssociatedPartnerByPartnerOrgKeyIR: any = {"usedParamSet":{"key":true},"params":[{"name":"key","required":true,"transform":{"type":"scalar"},"locs":[{"a":616,"b":620}]}],"statement":"SELECT\n    ap.key AS KEY,\n    vpo.id AS volunteer_partner_org_id,\n    vpo.key AS volunteer_partner_org,\n    vpo.name AS volunteer_org_display,\n    spo.id AS student_partner_org_id,\n    spo.key AS student_partner_org,\n    coalesce(spo.name, so.name) AS student_org_display,\n    so.id AS student_sponsor_org_id,\n    so.key AS student_sponsor_org\nFROM\n    associated_partners ap\n    JOIN volunteer_partner_orgs vpo ON ap.volunteer_partner_org_id = vpo.id\n    LEFT JOIN student_partner_orgs spo ON ap.student_partner_org_id = spo.id\n    LEFT JOIN sponsor_orgs so ON ap.student_sponsor_org_id = so.id\nWHERE\n    spo.key = :key!"};
+const getAssociatedPartnerByStudentPartnerOrgKeyIR: any = {"usedParamSet":{"key":true},"params":[{"name":"key","required":true,"transform":{"type":"scalar"},"locs":[{"a":616,"b":620}]}],"statement":"SELECT\n    ap.key AS KEY,\n    vpo.id AS volunteer_partner_org_id,\n    vpo.key AS volunteer_partner_org,\n    vpo.name AS volunteer_org_display,\n    spo.id AS student_partner_org_id,\n    spo.key AS student_partner_org,\n    coalesce(spo.name, so.name) AS student_org_display,\n    so.id AS student_sponsor_org_id,\n    so.key AS student_sponsor_org\nFROM\n    associated_partners ap\n    JOIN volunteer_partner_orgs vpo ON ap.volunteer_partner_org_id = vpo.id\n    LEFT JOIN student_partner_orgs spo ON ap.student_partner_org_id = spo.id\n    LEFT JOIN sponsor_orgs so ON ap.student_sponsor_org_id = so.id\nWHERE\n    spo.key = :key!"};
 
 /**
  * Query generated from SQL:
@@ -198,7 +198,7 @@ const getAssociatedPartnerByPartnerOrgKeyIR: any = {"usedParamSet":{"key":true},
  *     spo.key = :key!
  * ```
  */
-export const getAssociatedPartnerByPartnerOrgKey = new PreparedQuery<IGetAssociatedPartnerByPartnerOrgKeyParams,IGetAssociatedPartnerByPartnerOrgKeyResult>(getAssociatedPartnerByPartnerOrgKeyIR);
+export const getAssociatedPartnerByStudentPartnerOrgKey = new PreparedQuery<IGetAssociatedPartnerByStudentPartnerOrgKeyParams,IGetAssociatedPartnerByStudentPartnerOrgKeyResult>(getAssociatedPartnerByStudentPartnerOrgKeyIR);
 
 
 /** 'GetAssociatedPartnerByVolunteerPartnerKey' parameters type */
