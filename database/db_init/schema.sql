@@ -2847,10 +2847,7 @@ CREATE MATERIALIZED VIEW upchieve.users_unlocked_subjects_mview AS
              JOIN ( SELECT csu.subject_id,
                     array_agg(DISTINCT csu.certification_id) AS required_certs
                    FROM upchieve.computed_subject_unlocks csu
-                  GROUP BY csu.subject_id) comp_su ON (true))
-          WHERE (NOT (EXISTS ( SELECT 1
-                   FROM unnest(comp_su.required_certs) req_cert(req_cert)
-                  WHERE (NOT (req_cert.req_cert IN ( SELECT unnest(cbu.certification_ids) AS unnest))))))
+                  GROUP BY csu.subject_id) comp_su ON ((cbu.certification_ids @> comp_su.required_certs)))
         )
  SELECT all_unlocks.user_id,
     array_agg(DISTINCT s.name) AS unlocked_subjects

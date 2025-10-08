@@ -30,21 +30,11 @@ computed_unlocks AS (
             FROM
                 upchieve.computed_subject_unlocks csu
             GROUP BY
-                subject_id) comp_su ON TRUE
-        WHERE
-            NOT EXISTS (
-                SELECT
-                    1
-                FROM
-                    unnest(comp_su.required_certs) AS req_cert
-                WHERE
-                    req_cert NOT IN (
-                        SELECT
-                            unnest(cbu.certification_ids))))
-            -- Now combine and deduplicate
-            SELECT
-                all_unlocks.user_id AS user_id,
-                array_agg(DISTINCT s.name) AS unlocked_subjects
+                subject_id) comp_su ON cbu.certification_ids @> comp_su.required_certs)
+    -- Now combine and deduplicate
+    SELECT
+        all_unlocks.user_id AS user_id,
+        array_agg(DISTINCT s.name) AS unlocked_subjects
 FROM (
     SELECT
         *
