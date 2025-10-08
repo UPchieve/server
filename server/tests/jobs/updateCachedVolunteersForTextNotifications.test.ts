@@ -55,8 +55,6 @@ function buildTextableVolunteer(
     id: getDbUlid(),
     firstName: faker.string.alpha(),
     mutedSubjects: [],
-    associatedStudentSponsorOrgs: [],
-    associatedStudentPartnerOrgs: [],
     unlockedSubjects: ['prealgebra', 'algebraOne'],
     ...overrides,
   }
