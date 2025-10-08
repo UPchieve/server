@@ -1,7 +1,7 @@
 import { Job } from 'bull'
 import Redis from 'ioredis'
-import axios from 'axios'
 import { redisClient } from '../../services/RedisService'
+import { createSlackAlert } from '../../services/SlackAlertService'
 import logger from '../../logger'
 import config from '../../config'
 
@@ -110,7 +110,5 @@ export async function logRedisKeyMemStats(job: Job<RedisKeyPatterns>) {
   const formattedStats = formatRedisStats(stats)
   logger.info(formattedStats)
 
-  await axios.post(config.redisMemUsageSlackWebookUrl, {
-    message: formattedStats,
-  })
+  await createSlackAlert('Redis Memory Usage', formattedStats)
 }
