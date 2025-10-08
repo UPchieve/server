@@ -238,6 +238,7 @@ export function buildVolunteer(
     volunteerPartnerOrg: '',
     phone: getPhoneNumber(),
     roles: ['volunteer'] as UserRole[],
+    smsConsent: true,
     ...overrides,
   }
 }

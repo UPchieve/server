@@ -1154,10 +1154,11 @@ export type CreatedVolunteer = Omit<VolunteerContactInfo, 'roleContext'> & {
   createdAt: Date
   isVolunteer: boolean
   isAdmin: boolean
+  smsConsent: boolean
+  userType: UserRole
   banType?: USER_BAN_TYPES
   signupSourceId?: number
   otherSignupSource?: string
-  userType: UserRole
 }
 
 export async function createVolunteerProfile(
@@ -1232,6 +1233,7 @@ export async function createVolunteer(
         ...volunteerData,
         signupSourceId: volunteerData.signupSourceId,
         otherSignupSource: volunteerData.otherSignupSource,
+        smsConsent: true,
       },
       client
     )

@@ -2325,6 +2325,7 @@ export interface ICreateVolunteerUserParams {
   referralCode: string;
   referredBy?: string | null | void;
   signupSourceId?: number | null | void;
+  smsConsent: boolean;
   userId: string;
 }
 
@@ -2339,6 +2340,7 @@ export interface ICreateVolunteerUserResult {
   id: string;
   lastName: string;
   phone: string | null;
+  smsConsent: boolean;
   testUser: boolean;
 }
 
@@ -2348,17 +2350,17 @@ export interface ICreateVolunteerUserQuery {
   result: ICreateVolunteerUserResult;
 }
 
-const createVolunteerUserIR: any = {"usedParamSet":{"userId":true,"email":true,"phone":true,"firstName":true,"lastName":true,"password":true,"referredBy":true,"referralCode":true,"signupSourceId":true,"otherSignupSource":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":201,"b":208}]},{"name":"email","required":true,"transform":{"type":"scalar"},"locs":[{"a":211,"b":217}]},{"name":"phone","required":true,"transform":{"type":"scalar"},"locs":[{"a":220,"b":226}]},{"name":"firstName","required":true,"transform":{"type":"scalar"},"locs":[{"a":229,"b":239}]},{"name":"lastName","required":true,"transform":{"type":"scalar"},"locs":[{"a":242,"b":251}]},{"name":"password","required":true,"transform":{"type":"scalar"},"locs":[{"a":254,"b":263}]},{"name":"referredBy","required":false,"transform":{"type":"scalar"},"locs":[{"a":273,"b":283}]},{"name":"referralCode","required":true,"transform":{"type":"scalar"},"locs":[{"a":286,"b":299}]},{"name":"signupSourceId","required":false,"transform":{"type":"scalar"},"locs":[{"a":302,"b":316}]},{"name":"otherSignupSource","required":false,"transform":{"type":"scalar"},"locs":[{"a":319,"b":336}]}],"statement":"INSERT INTO users (id, email, phone, first_name, last_name, PASSWORD, verified, referred_by, referral_code, signup_source_id, other_signup_source, last_activity_at, created_at, updated_at)\n    VALUES (:userId!, :email!, :phone!, :firstName!, :lastName!, :password!, FALSE, :referredBy, :referralCode!, :signupSourceId, :otherSignupSource, NOW(), NOW(), NOW())\nON CONFLICT (email)\n    DO NOTHING\nRETURNING\n    id, email, first_name, last_name, phone, banned, ban_type, test_user, deactivated, created_at"};
+const createVolunteerUserIR: any = {"usedParamSet":{"userId":true,"email":true,"phone":true,"smsConsent":true,"firstName":true,"lastName":true,"password":true,"referredBy":true,"referralCode":true,"signupSourceId":true,"otherSignupSource":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":214,"b":221}]},{"name":"email","required":true,"transform":{"type":"scalar"},"locs":[{"a":224,"b":230}]},{"name":"phone","required":true,"transform":{"type":"scalar"},"locs":[{"a":233,"b":239}]},{"name":"smsConsent","required":true,"transform":{"type":"scalar"},"locs":[{"a":242,"b":253}]},{"name":"firstName","required":true,"transform":{"type":"scalar"},"locs":[{"a":256,"b":266}]},{"name":"lastName","required":true,"transform":{"type":"scalar"},"locs":[{"a":269,"b":278}]},{"name":"password","required":true,"transform":{"type":"scalar"},"locs":[{"a":281,"b":290}]},{"name":"referredBy","required":false,"transform":{"type":"scalar"},"locs":[{"a":300,"b":310}]},{"name":"referralCode","required":true,"transform":{"type":"scalar"},"locs":[{"a":313,"b":326}]},{"name":"signupSourceId","required":false,"transform":{"type":"scalar"},"locs":[{"a":329,"b":343}]},{"name":"otherSignupSource","required":false,"transform":{"type":"scalar"},"locs":[{"a":346,"b":363}]}],"statement":"INSERT INTO users (id, email, phone, sms_consent, first_name, last_name, PASSWORD, verified, referred_by, referral_code, signup_source_id, other_signup_source, last_activity_at, created_at, updated_at)\n    VALUES (:userId!, :email!, :phone!, :smsConsent!, :firstName!, :lastName!, :password!, FALSE, :referredBy, :referralCode!, :signupSourceId, :otherSignupSource, NOW(), NOW(), NOW())\nON CONFLICT (email)\n    DO NOTHING\nRETURNING\n    id, email, first_name, last_name, phone, sms_consent, banned, ban_type, test_user, deactivated, created_at"};
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO users (id, email, phone, first_name, last_name, PASSWORD, verified, referred_by, referral_code, signup_source_id, other_signup_source, last_activity_at, created_at, updated_at)
- *     VALUES (:userId!, :email!, :phone!, :firstName!, :lastName!, :password!, FALSE, :referredBy, :referralCode!, :signupSourceId, :otherSignupSource, NOW(), NOW(), NOW())
+ * INSERT INTO users (id, email, phone, sms_consent, first_name, last_name, PASSWORD, verified, referred_by, referral_code, signup_source_id, other_signup_source, last_activity_at, created_at, updated_at)
+ *     VALUES (:userId!, :email!, :phone!, :smsConsent!, :firstName!, :lastName!, :password!, FALSE, :referredBy, :referralCode!, :signupSourceId, :otherSignupSource, NOW(), NOW(), NOW())
  * ON CONFLICT (email)
  *     DO NOTHING
  * RETURNING
- *     id, email, first_name, last_name, phone, banned, ban_type, test_user, deactivated, created_at
+ *     id, email, first_name, last_name, phone, sms_consent, banned, ban_type, test_user, deactivated, created_at
  * ```
  */
 export const createVolunteerUser = new PreparedQuery<ICreateVolunteerUserParams,ICreateVolunteerUserResult>(createVolunteerUserIR);
