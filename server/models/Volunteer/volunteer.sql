@@ -1022,12 +1022,12 @@ RETURNING
 
 
 /* @name createVolunteerUser */
-INSERT INTO users (id, email, phone, first_name, last_name, PASSWORD, verified, referred_by, referral_code, signup_source_id, other_signup_source, last_activity_at, created_at, updated_at)
-    VALUES (:userId!, :email!, :phone!, :firstName!, :lastName!, :password!, FALSE, :referredBy, :referralCode!, :signupSourceId, :otherSignupSource, NOW(), NOW(), NOW())
+INSERT INTO users (id, email, phone, sms_consent, first_name, last_name, PASSWORD, verified, referred_by, referral_code, signup_source_id, other_signup_source, last_activity_at, created_at, updated_at)
+    VALUES (:userId!, :email!, :phone!, :smsConsent!, :firstName!, :lastName!, :password!, FALSE, :referredBy, :referralCode!, :signupSourceId, :otherSignupSource, NOW(), NOW(), NOW())
 ON CONFLICT (email)
     DO NOTHING
 RETURNING
-    id, email, first_name, last_name, phone, banned, ban_type, test_user, deactivated, created_at;
+    id, email, first_name, last_name, phone, sms_consent, banned, ban_type, test_user, deactivated, created_at;
 
 
 /* @name createUserVolunteerPartnerOrgInstance */

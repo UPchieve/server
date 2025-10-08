@@ -676,6 +676,22 @@ describe('VolunteerRepo', () => {
       expect(actual.progress).toEqual(100)
     })
   })
+
+  describe('createVolunteer', () => {
+    it('Defaults sms_consent to true', async () => {
+      const result = await createVolunteer({
+        email: faker.internet.email(),
+        phone: faker.phone.number(),
+        firstName: faker.string.alpha(),
+        lastName: faker.string.alpha(),
+        password: faker.internet.password(),
+        referredBy: undefined,
+        volunteerPartnerOrg: undefined,
+        timezone: undefined,
+      })
+      expect(result.smsConsent).toEqual(true)
+    })
+  })
 })
 
 const loadVolunteerAvailability = async (

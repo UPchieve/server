@@ -52,6 +52,7 @@ export type CreateUserPayload = {
   referredBy?: Ulid
   signupSourceId?: number
   verified?: boolean
+  smsConsent?: boolean
 }
 
 export type CreateUserResult = Required<
