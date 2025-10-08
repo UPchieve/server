@@ -473,7 +473,7 @@ const config: Static<typeof Config> = {
 
   // Zwibbler
   zwibblerNodeUrl: process.env.ZWIBBLER_NODE_URL || 'bogus',
-  redisMemUsageSlackWebookUrl:
+  slackAlertWebHookUrl:
     process.env.REDIS_MEM_USAGE_SLACK_WEBHOOK_URL || 'bogus',
 }
 module.exports = config
