@@ -20,6 +20,12 @@ export type Session = {
   updatedAt: Date
 }
 
+export type CreateSessionResult = Session & {
+  subject: string
+  subjectDisplayName: string
+  topic: string
+}
+
 export type GetSessionByIdResult = {
   id: Ulid
   studentId: Ulid

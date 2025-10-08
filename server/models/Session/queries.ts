@@ -18,6 +18,7 @@ import {
   Session,
   SessionToEnd,
   EndedSession,
+  CreateSessionResult,
 } from './types'
 import 'moment-timezone'
 import {
@@ -617,7 +618,7 @@ export async function createSession(
   subject: string,
   isShadowBanned: boolean,
   tc: TransactionClient
-): Promise<Session> {
+): Promise<CreateSessionResult> {
   try {
     const result = await pgQueries.createSession.run(
       { id: getDbUlid(), studentId, subject, shadowbanned: isShadowBanned },
@@ -632,6 +633,9 @@ export async function createSession(
       'subjectId',
       'hasWhiteboardDoc',
       'reviewed',
+      'subject',
+      'subjectDisplayName',
+      'topic',
       'toReview',
       'timeTutored',
       'createdAt',

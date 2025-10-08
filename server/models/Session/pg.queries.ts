@@ -1151,8 +1151,11 @@ export interface ICreateSessionResult {
   shadowbanned: boolean | null;
   studentBanned: boolean | null;
   studentId: string;
+  subject: string;
+  subjectDisplayName: string;
   subjectId: number;
   timeTutored: string;
+  topic: string;
   toReview: boolean;
   updatedAt: Date;
   volunteerId: string | null;
@@ -1165,25 +1168,36 @@ export interface ICreateSessionQuery {
   result: ICreateSessionResult;
 }
 
-const createSessionIR: any = {"usedParamSet":{"id":true,"studentId":true,"shadowbanned":true,"subject":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":99,"b":102}]},{"name":"studentId","required":true,"transform":{"type":"scalar"},"locs":[{"a":109,"b":119}]},{"name":"shadowbanned","required":true,"transform":{"type":"scalar"},"locs":[{"a":143,"b":156}]},{"name":"subject","required":true,"transform":{"type":"scalar"},"locs":[{"a":224,"b":232}]}],"statement":"INSERT INTO sessions (id, student_id, subject_id, shadowbanned, created_at, updated_at)\nSELECT\n    :id!,\n    :studentId!,\n    subjects.id,\n    :shadowbanned!,\n    NOW(),\n    NOW()\nFROM\n    subjects\nWHERE\n    subjects.name = :subject!\nRETURNING\n    *"};
+const createSessionIR: any = {"usedParamSet":{"id":true,"studentId":true,"shadowbanned":true,"subject":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":134,"b":137}]},{"name":"studentId","required":true,"transform":{"type":"scalar"},"locs":[{"a":148,"b":158}]},{"name":"shadowbanned","required":true,"transform":{"type":"scalar"},"locs":[{"a":190,"b":203}]},{"name":"subject","required":true,"transform":{"type":"scalar"},"locs":[{"a":295,"b":303}]}],"statement":"WITH inserted_session AS (\nINSERT INTO sessions (id, student_id, subject_id, shadowbanned, created_at, updated_at)\n    SELECT\n        :id!,\n        :studentId!,\n        subjects.id,\n        :shadowbanned!,\n        NOW(),\n        NOW()\n    FROM\n        subjects\n    WHERE\n        subjects.name = :subject!\n    RETURNING\n        *\n)\nSELECT\n    inserted_session.*,\n    subjects.name AS subject,\n    subjects.display_name AS subject_display_name,\n    topics.name AS topic\nFROM\n    inserted_session\n    JOIN subjects ON subjects.id = inserted_session.subject_id\n    JOIN topics ON topics.id = subjects.topic_id"};
 
 /**
  * Query generated from SQL:
  * ```
+ * WITH inserted_session AS (
  * INSERT INTO sessions (id, student_id, subject_id, shadowbanned, created_at, updated_at)
+ *     SELECT
+ *         :id!,
+ *         :studentId!,
+ *         subjects.id,
+ *         :shadowbanned!,
+ *         NOW(),
+ *         NOW()
+ *     FROM
+ *         subjects
+ *     WHERE
+ *         subjects.name = :subject!
+ *     RETURNING
+ *         *
+ * )
  * SELECT
- *     :id!,
- *     :studentId!,
- *     subjects.id,
- *     :shadowbanned!,
- *     NOW(),
- *     NOW()
+ *     inserted_session.*,
+ *     subjects.name AS subject,
+ *     subjects.display_name AS subject_display_name,
+ *     topics.name AS topic
  * FROM
- *     subjects
- * WHERE
- *     subjects.name = :subject!
- * RETURNING
- *     *
+ *     inserted_session
+ *     JOIN subjects ON subjects.id = inserted_session.subject_id
+ *     JOIN topics ON topics.id = subjects.topic_id
  * ```
  */
 export const createSession = new PreparedQuery<ICreateSessionParams,ICreateSessionResult>(createSessionIR);
