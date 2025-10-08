@@ -1,7 +1,7 @@
 import { Job } from 'bull'
 import Redis from 'ioredis'
 import { redisClient } from '../../services/RedisService'
-import { sendSlackAlert } from '../../services/SlackAlertService'
+import { createSlackAlert } from '../../services/SlackAlertService'
 import logger from '../../logger'
 import config from '../../config'
 
@@ -110,5 +110,5 @@ export async function logRedisKeyMemStats(job: Job<RedisKeyPatterns>) {
   const formattedStats = formatRedisStats(stats)
   logger.info(formattedStats)
 
-  await sendSlackAlert('Redis Memory Usage', formattedStats)
+  await createSlackAlert('Redis Memory Usage', formattedStats)
 }
