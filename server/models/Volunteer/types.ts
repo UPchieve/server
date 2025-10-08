@@ -1,4 +1,4 @@
-import { REFERENCE_STATUS, TRAINING } from '../../constants'
+import { REFERENCE_STATUS, SUBJECTS, TRAINING } from '../../constants'
 import { Ulid, Uuid } from '../pgUtils'
 
 export interface Reference {
@@ -107,6 +107,7 @@ export type VolunteerSubject = {
 export type TextableVolunteer = {
   id: Ulid
   firstName: string
+  phone: string
   volunteerPartnerOrgKey?: string
   mutedSubjects: string[]
   unlockedSubjects: string[]

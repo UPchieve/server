@@ -48,7 +48,6 @@ import {
 import {
   TextableVolunteer,
   UserQuiz,
-  UserTrainingCourse,
   VolunteersForAnalyticsReport,
 } from '../../models/Volunteer'
 import { SubjectAndTopic } from '../../models/Subjects'
@@ -249,6 +248,7 @@ export function buildTextableVolunteer(
 ): TextableVolunteer {
   return {
     id: getDbUlid(),
+    phone: faker.phone.number(),
     firstName: faker.person.firstName(),
     mutedSubjects: [],
     unlockedSubjects: ['prealgebra', 'algebraOne'],

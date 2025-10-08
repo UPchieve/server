@@ -22,11 +22,11 @@ export async function emailFavoritedVolunteer(
 
 export async function getFavoritedVolunteerIdsFromList(
   studentId: Ulid,
-  volunteers: { userId: Ulid }[]
+  volunteers: { id: Ulid }[]
 ): Promise<Set<Ulid>> {
   const favoritedIds = await StudentRepo.getFavoritedVolunteerIdsFromList(
     studentId,
-    volunteers.map((v) => v.userId)
+    volunteers.map((v) => v.id)
   )
   return new Set(favoritedIds)
 }
