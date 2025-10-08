@@ -3513,6 +3513,7 @@ export interface IGetVolunteersForTextNotificationsInTheCurrentHourResult {
   id: string;
   mutedSubjectNames: stringArray | null;
   phone: string | null;
+  unlockedSubjects: stringArray | null;
   volunteerPartnerOrgId: string | null;
 }
 
@@ -3522,7 +3523,7 @@ export interface IGetVolunteersForTextNotificationsInTheCurrentHourQuery {
   result: IGetVolunteersForTextNotificationsInTheCurrentHourResult;
 }
 
-const getVolunteersForTextNotificationsInTheCurrentHourIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT DISTINCT ON (u.id)\n    u.id,\n    u.phone,\n    u.first_name,\n    vp.volunteer_partner_org_id,\n    muted_subject_alerts.muted_subject_names,\n    associated_sponsors.associated_student_sponsor_orgs,\n    associated_partners.associated_student_partner_orgs\nFROM\n    users u\n    JOIN volunteer_profiles vp ON vp.user_id = u.id\n    LEFT JOIN associated_partners ap ON ap.volunteer_partner_org_id = vp.volunteer_partner_org_id\n    JOIN availabilities a ON a.user_id = u.id\n    JOIN weekdays ON weekdays.id = a.weekday_id\n    LEFT JOIN notifications n ON n.user_id = u.id\n    LEFT JOIN LATERAL (\n        SELECT\n            COALESCE(array_agg(s.name), '{}') AS muted_subject_names\n        FROM\n            muted_users_subject_alerts muted_subjects\n            JOIN subjects s ON s.id = muted_subjects.subject_id\n        WHERE\n            muted_subjects.user_id = u.id) AS muted_subject_alerts ON TRUE\n    LEFT JOIN LATERAL (\n        SELECT\n            coalesce(array_agg(ap.student_sponsor_org_id) FILTER (WHERE ap.student_sponsor_org_id IS NOT NULL), '{}') AS associated_student_sponsor_orgs\n        FROM\n            associated_partners ap\n        WHERE\n            ap.volunteer_partner_org_id = vp.volunteer_partner_org_id) AS associated_sponsors ON TRUE\n    LEFT JOIN LATERAL (\n        SELECT\n            coalesce(array_agg(ap.student_partner_org_id) FILTER (WHERE ap.student_partner_org_id IS NOT NULL), '{}') AS associated_student_partner_orgs\n        FROM\n            associated_partners ap\n        WHERE\n            ap.volunteer_partner_org_id = vp.volunteer_partner_org_id) AS associated_partners ON TRUE\nWHERE (u.ban_type IS NULL\n    OR u.ban_type <> 'complete'::ban_types\n    OR u.ban_type <> 'shadow'::ban_types)\nAND u.deactivated IS FALSE\nAND u.test_user IS FALSE\nAND vp.onboarded IS TRUE\nAND vp.approved IS TRUE\nAND TRIM(BOTH FROM to_char(NOW() at time zone 'America/New_York', 'Day')) = weekdays.day\nAND extract(hour FROM (NOW() at time zone 'America/New_York')) >= a.available_start\nAND extract(hour FROM (NOW() at time zone 'America/New_York')) < a.available_end"};
+const getVolunteersForTextNotificationsInTheCurrentHourIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT DISTINCT ON (u.id)\n    u.id,\n    u.phone,\n    u.first_name,\n    vp.volunteer_partner_org_id,\n    muted_subject_alerts.muted_subject_names,\n    associated_sponsors.associated_student_sponsor_orgs,\n    associated_partners.associated_student_partner_orgs,\n    unlocked_subjects.unlocked_subjects\nFROM\n    users u\n    JOIN volunteer_profiles vp ON vp.user_id = u.id\n    LEFT JOIN associated_partners ap ON ap.volunteer_partner_org_id = vp.volunteer_partner_org_id\n    JOIN availabilities a ON a.user_id = u.id\n    JOIN weekdays ON weekdays.id = a.weekday_id\n    LEFT JOIN LATERAL (\n        SELECT\n            COALESCE(array_agg(s.name), '{}') AS muted_subject_names\n        FROM\n            muted_users_subject_alerts muted_subjects\n            JOIN subjects s ON s.id = muted_subjects.subject_id\n        WHERE\n            muted_subjects.user_id = u.id) AS muted_subject_alerts ON TRUE\n    LEFT JOIN LATERAL (\n        SELECT\n            coalesce(array_agg(ap.student_sponsor_org_id) FILTER (WHERE ap.student_sponsor_org_id IS NOT NULL), '{}') AS associated_student_sponsor_orgs\n        FROM\n            associated_partners ap\n        WHERE\n            ap.volunteer_partner_org_id = vp.volunteer_partner_org_id) AS associated_sponsors ON TRUE\n    LEFT JOIN LATERAL (\n        SELECT\n            coalesce(array_agg(ap.student_partner_org_id) FILTER (WHERE ap.student_partner_org_id IS NOT NULL), '{}') AS associated_student_partner_orgs\n        FROM\n            associated_partners ap\n        WHERE\n            ap.volunteer_partner_org_id = vp.volunteer_partner_org_id) AS associated_partners ON TRUE\n    JOIN users_unlocked_subjects_mview unlocked_subjects ON unlocked_subjects.user_id = u.id\nWHERE (u.ban_type IS NULL\n    OR u.ban_type <> 'complete'::ban_types\n    OR u.ban_type <> 'shadow'::ban_types)\nAND u.deactivated IS FALSE\nAND u.test_user IS FALSE\nAND vp.onboarded IS TRUE\nAND vp.approved IS TRUE\nAND TRIM(BOTH FROM to_char(NOW() at time zone 'America/New_York', 'Day')) = weekdays.day\nAND extract(hour FROM (NOW() at time zone 'America/New_York')) >= a.available_start\nAND extract(hour FROM (NOW() at time zone 'America/New_York')) < a.available_end"};
 
 /**
  * Query generated from SQL:
@@ -3534,14 +3535,14 @@ const getVolunteersForTextNotificationsInTheCurrentHourIR: any = {"usedParamSet"
  *     vp.volunteer_partner_org_id,
  *     muted_subject_alerts.muted_subject_names,
  *     associated_sponsors.associated_student_sponsor_orgs,
- *     associated_partners.associated_student_partner_orgs
+ *     associated_partners.associated_student_partner_orgs,
+ *     unlocked_subjects.unlocked_subjects
  * FROM
  *     users u
  *     JOIN volunteer_profiles vp ON vp.user_id = u.id
  *     LEFT JOIN associated_partners ap ON ap.volunteer_partner_org_id = vp.volunteer_partner_org_id
  *     JOIN availabilities a ON a.user_id = u.id
  *     JOIN weekdays ON weekdays.id = a.weekday_id
- *     LEFT JOIN notifications n ON n.user_id = u.id
  *     LEFT JOIN LATERAL (
  *         SELECT
  *             COALESCE(array_agg(s.name), '{}') AS muted_subject_names
@@ -3564,6 +3565,7 @@ const getVolunteersForTextNotificationsInTheCurrentHourIR: any = {"usedParamSet"
  *             associated_partners ap
  *         WHERE
  *             ap.volunteer_partner_org_id = vp.volunteer_partner_org_id) AS associated_partners ON TRUE
+ *     JOIN users_unlocked_subjects_mview unlocked_subjects ON unlocked_subjects.user_id = u.id
  * WHERE (u.ban_type IS NULL
  *     OR u.ban_type <> 'complete'::ban_types
  *     OR u.ban_type <> 'shadow'::ban_types)

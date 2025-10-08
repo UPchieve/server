@@ -1660,14 +1660,14 @@ SELECT DISTINCT ON (u.id)
     vp.volunteer_partner_org_id,
     muted_subject_alerts.muted_subject_names,
     associated_sponsors.associated_student_sponsor_orgs,
-    associated_partners.associated_student_partner_orgs
+    associated_partners.associated_student_partner_orgs,
+    unlocked_subjects.unlocked_subjects
 FROM
     users u
     JOIN volunteer_profiles vp ON vp.user_id = u.id
     LEFT JOIN associated_partners ap ON ap.volunteer_partner_org_id = vp.volunteer_partner_org_id
     JOIN availabilities a ON a.user_id = u.id
     JOIN weekdays ON weekdays.id = a.weekday_id
-    LEFT JOIN notifications n ON n.user_id = u.id
     LEFT JOIN LATERAL (
         SELECT
             COALESCE(array_agg(s.name), '{}') AS muted_subject_names
@@ -1690,6 +1690,7 @@ FROM
             associated_partners ap
         WHERE
             ap.volunteer_partner_org_id = vp.volunteer_partner_org_id) AS associated_partners ON TRUE
+    JOIN users_unlocked_subjects_mview unlocked_subjects ON unlocked_subjects.user_id = u.id
 WHERE (u.ban_type IS NULL
     OR u.ban_type <> 'complete'::ban_types
     OR u.ban_type <> 'shadow'::ban_types)
