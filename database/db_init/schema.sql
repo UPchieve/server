@@ -1,7 +1,3 @@
-
--- Dumped from database version 14.19 (Debian 14.19-1.pgdg13+1)
--- Dumped by pg_dump version 14.19 (Ubuntu 14.19-0ubuntu0.22.04.1)
-
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -204,6 +200,20 @@ CREATE FUNCTION upchieve.refresh_users_subjects_mview() RETURNS trigger
 BEGIN
     REFRESH MATERIALIZED VIEW upchieve.users_subjects_mview;
     RETURN NEW;
+END;
+$$;
+
+
+--
+-- Name: refresh_users_subjects_unlocked_mview(); Type: FUNCTION; Schema: upchieve; Owner: -
+--
+
+CREATE FUNCTION upchieve.refresh_users_subjects_unlocked_mview() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    REFRESH MATERIALIZED VIEW upchieve.users_unlocked_subjects_mview;
+    RETURN new;
 END;
 $$;
 
@@ -2816,6 +2826,44 @@ CREATE TABLE upchieve.users_training_courses (
 
 
 --
+-- Name: users_unlocked_subjects_mview; Type: MATERIALIZED VIEW; Schema: upchieve; Owner: -
+--
+
+CREATE MATERIALIZED VIEW upchieve.users_unlocked_subjects_mview AS
+ WITH certifications_by_user AS (
+         SELECT users_certifications.user_id,
+            array_agg(DISTINCT users_certifications.certification_id) AS certification_ids
+           FROM upchieve.users_certifications
+          GROUP BY users_certifications.user_id
+        ), direct_subject_unlocks AS (
+         SELECT uc.user_id,
+            csu.subject_id
+           FROM (upchieve.users_certifications uc
+             JOIN upchieve.certification_subject_unlocks csu ON ((csu.certification_id = uc.certification_id)))
+        ), computed_unlocks AS (
+         SELECT cbu.user_id,
+            comp_su.subject_id
+           FROM (certifications_by_user cbu
+             JOIN ( SELECT csu.subject_id,
+                    array_agg(DISTINCT csu.certification_id) AS required_certs
+                   FROM upchieve.computed_subject_unlocks csu
+                  GROUP BY csu.subject_id) comp_su ON ((cbu.certification_ids @> comp_su.required_certs)))
+        )
+ SELECT all_unlocks.user_id,
+    array_agg(DISTINCT s.name) AS unlocked_subjects
+   FROM (( SELECT direct_subject_unlocks.user_id,
+            direct_subject_unlocks.subject_id
+           FROM direct_subject_unlocks
+        UNION ALL
+         SELECT computed_unlocks.user_id,
+            computed_unlocks.subject_id
+           FROM computed_unlocks) all_unlocks
+     JOIN upchieve.subjects s ON ((s.id = all_unlocks.subject_id)))
+  GROUP BY all_unlocks.user_id
+  WITH NO DATA;
+
+
+--
 -- Name: users_volunteer_partner_orgs_instances; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -4886,6 +4934,13 @@ CREATE TRIGGER update_users_subjects AFTER INSERT OR DELETE OR UPDATE ON upchiev
 
 
 --
+-- Name: users_certifications update_users_unlocked_subjects; Type: TRIGGER; Schema: upchieve; Owner: -
+--
+
+CREATE TRIGGER update_users_unlocked_subjects AFTER INSERT OR DELETE OR UPDATE ON upchieve.users_certifications FOR EACH ROW EXECUTE FUNCTION upchieve.refresh_users_subjects_unlocked_mview();
+
+
+--
 -- Name: admin_profiles admin_profiles_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -6346,7 +6401,6 @@ ALTER TABLE ONLY upchieve.volunteer_references
 --
 
 
-
 --
 -- Dbmate schema migrations
 --
@@ -6579,4 +6633,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20250818220035'),
     ('20250825164601'),
     ('20250918185105'),
-    ('20250922200444');
+    ('20250922200444'),
+    ('20251008134946');
