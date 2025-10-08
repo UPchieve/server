@@ -19,7 +19,8 @@ export default async function (jobData: Job<BackFillSessionEndedData>) {
       {
         removeOnComplete: false,
         removeOnFail: false,
-        delay: minutesInMs(idx % 5),
+        delay: minutesInMs(idx % 5) + 3,
+        priority: 3,
       }
     )
     logger.info(`Queued ${sessionId} for session end tasks`)
