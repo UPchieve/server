@@ -515,20 +515,31 @@ ORDER BY
 
 
 /* @name createSession */
+WITH inserted_session AS (
 INSERT INTO sessions (id, student_id, subject_id, shadowbanned, created_at, updated_at)
+    SELECT
+        :id!,
+        :studentId!,
+        subjects.id,
+        :shadowbanned!,
+        NOW(),
+        NOW()
+    FROM
+        subjects
+    WHERE
+        subjects.name = :subject!
+    RETURNING
+        *
+)
 SELECT
-    :id!,
-    :studentId!,
-    subjects.id,
-    :shadowbanned!,
-    NOW(),
-    NOW()
+    inserted_session.*,
+    subjects.name AS subject,
+    subjects.display_name AS subject_display_name,
+    topics.name AS topic
 FROM
-    subjects
-WHERE
-    subjects.name = :subject!
-RETURNING
-    *;
+    inserted_session
+    JOIN subjects ON subjects.id = inserted_session.subject_id
+    JOIN topics ON topics.id = subjects.topic_id;
 
 
 /* @name getCurrentSessionByUserId */
