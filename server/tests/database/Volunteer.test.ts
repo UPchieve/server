@@ -680,17 +680,12 @@ describe('VolunteerRepo', () => {
   })
 
   describe('getVolunteersForTextNotifications', () => {
-    const TEST_VPO_NAME = 'big-telecom'
-    const TEST_VPO_ID = '01919662-87f7-ecae-08ec-2d9b6c13ba3c'
-    const TEST_VPO_ASSOCIATED_STUDENT_SPONSOR_ORG_ID =
-      '01919662-8800-b331-97c6-6521b0dfd65b'
-    const TEST_VPO_ASSOCIATED_STUDENT_PARTNER_ORG_ID =
-      '01919662-87dc-1b9c-e053-326c64a2edbc'
+    const TEST_VPO_KEY = 'big-telecom'
 
     it('Returns volunteers matching the criteria', async () => {
       const eligibleVolunteer = await loadVolunteer()
       const eligiblePartnerVolunteer = await loadVolunteer({
-        partner: TEST_VPO_NAME,
+        partner: TEST_VPO_KEY,
       })
       // Ineligible volunteers:
       // No availability
@@ -701,6 +696,8 @@ describe('VolunteerRepo', () => {
       await loadVolunteer({ deactivated: true })
       // Not approved
       await loadVolunteer({ approved: false })
+      // No SMS consent
+      await loadVolunteer({ smsConsent: false })
 
       const actual = await getVolunteersForTextNotifications(client)
       // There should only be 2 volunteers returned.
@@ -711,19 +708,11 @@ describe('VolunteerRepo', () => {
 
       // Non-partner volunteer
       expect(actual[0].unlockedSubjects).toEqual(['prealgebra'])
-      expect(actual[0].volunteerPartnerOrgId).toBeUndefined()
-      expect(actual[0].associatedStudentPartnerOrgs).toEqual([])
-      expect(actual[0].associatedStudentSponsorOrgs).toEqual([])
+      expect(actual[0].volunteerPartnerOrgKey).toBeUndefined()
 
       // Partner volunteer
       expect(actual[1].unlockedSubjects).toEqual(['prealgebra'])
-      expect(actual[1].volunteerPartnerOrgId).toEqual(TEST_VPO_ID)
-      expect(actual[1].associatedStudentPartnerOrgs).toEqual([
-        TEST_VPO_ASSOCIATED_STUDENT_PARTNER_ORG_ID,
-      ])
-      expect(actual[1].associatedStudentSponsorOrgs).toEqual([
-        TEST_VPO_ASSOCIATED_STUDENT_SPONSOR_ORG_ID,
-      ])
+      expect(actual[1].volunteerPartnerOrgKey).toEqual(TEST_VPO_KEY)
     })
 
     // @TODO: This test could technically be flaky if it runs on the cusp of an hour. There might be a way we could mock the time in postgres.
@@ -788,6 +777,7 @@ const loadVolunteer = async (opts = {}): Promise<CreatedVolunteer> => {
     withFullAvailability: true,
     partner: undefined,
     banType: undefined,
+    smsConsent: true,
     ...opts,
   }
   const v = generateVolunteer()
@@ -795,6 +785,10 @@ const loadVolunteer = async (opts = {}): Promise<CreatedVolunteer> => {
     v.volunteerPartnerOrg = options.partner as string
   }
   const res = await createVolunteer(v)
+  await client.query('UPDATE users SET sms_consent = $1 where id = $2', [
+    options.smsConsent,
+    res.id,
+  ])
   if (options.onboarded) await updateVolunteerOnboarded(res.id, client)
   if (options.certificationSubjects) {
     for (let subj of options.certificationSubjects) {
