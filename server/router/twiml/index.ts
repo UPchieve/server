@@ -1,38 +1,74 @@
 import { Express, Router } from 'express'
+import type { Request, Response } from 'express'
 import twilio from 'twilio'
-
 import config from '../../config'
 import logger from '../../logger'
-import { resError } from '../res-error'
+import * as UserService from '../../services/UserService'
+import * as UserProfileService from '../../services/UserProfileService'
 
 export function routes(app: Express): void {
   const router = Router()
 
-  // TODO: Is this used?
-  // This route is called by Twilio to receive TwiML instructions for
-  // voice calls. The Twilio API for voice calling requires that a URL be
-  // specified to obtain the TwiML code it needs to generate the voice message.
-  // In order to put our message content into a voice call we give Twilio
-  // a URL pointing to our own server, which contains the message text encoded
-  // in it. When the call is answered, Twilio sends a request to this
-  // URL, and our server responds with TwiML containing the decoded message text
-  // and the configured voice for the text-to-speech conversion.
-  router.post('/message/:message', function (req, res) {
+  router.post('/incoming-sms', async function (req, res) {
     try {
-      const message = decodeURIComponent(req.params.message)
-      logger.info('Making TwiML for voice message')
+      await ensureValidTwilioRequest(req, 'incoming-sms')
 
-      const twiml = new twilio.twiml.VoiceResponse()
+      const { From: phoneNumber, OptOutType: optOutType } = req.body
 
-      twiml.say({ voice: config.voice }, message)
+      if (!phoneNumber) {
+        logger.warn('No phone number provided in Twilio webhook.')
+        return sendEmptyTwimlResponse(res)
+      }
 
-      res.type('text/xml')
-      res.send(twiml.toString())
+      if (optOutType === 'START' || optOutType === 'STOP') {
+        const hasGivenConsent = optOutType === 'START'
+        const userId = await UserService.getUserIdByPhone(phoneNumber)
+
+        if (!userId) {
+          logger.warn(
+            { phoneNumber },
+            `Unable to update opt-in/out user: No user found with phone number.`
+          )
+          return sendEmptyTwimlResponse(res)
+        }
+
+        await UserProfileService.updateUserSmsConsent(userId, hasGivenConsent)
+        logger.info(
+          {
+            hasGivenConsent,
+            userId,
+          },
+          `Updated sms_consent for user.`
+        )
+      }
+
+      sendEmptyTwimlResponse(res)
     } catch (err) {
-      // TODO: should we bother replying to twilio?
-      resError(res, err)
+      logger.error(err, 'Error processing opt-out webhook.')
+      sendEmptyTwimlResponse(res)
     }
   })
 
-  app.use('/twiml', router)
+  app.use('/api-public/twiml', router)
+}
+
+async function ensureValidTwilioRequest(req: Request, routeName: string) {
+  const twilioSignature = req.headers['x-twilio-signature'] as string
+  const url = `${config.protocol}://${config.host}/api-public/twiml/${routeName}`
+
+  const isValid = twilio.validateRequest(
+    config.authToken,
+    twilioSignature,
+    url,
+    req.body
+  )
+
+  if (!isValid) {
+    throw new Error('Invalid Twilio signature for webhook request.')
+  }
+}
+
+function sendEmptyTwimlResponse(res: Response) {
+  const twiml = new twilio.twiml.MessagingResponse()
+  res.type('text/xml').send(twiml.toString())
 }

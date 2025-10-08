@@ -121,7 +121,7 @@ export type ReportedUser = Pick<
 }
 
 export type EditUserProfilePayload = {
-  deactivated: boolean
+  deactivated?: boolean
   smsConsent?: boolean
   mutedSubjectAlerts?: string[]
   phone?: string
