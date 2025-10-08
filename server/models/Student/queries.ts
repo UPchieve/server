@@ -1,4 +1,3 @@
-import { PoolClient } from 'pg'
 import {
   getAnalyticsClient,
   getClient,
@@ -15,7 +14,6 @@ import {
   RepoUpsertError,
 } from '../Errors'
 import {
-  getDbUlid,
   makeRequired,
   makeSomeRequired,
   makeSomeOptional,
@@ -23,12 +21,8 @@ import {
   Uuid,
 } from '../pgUtils'
 import * as pgQueries from './pg.queries'
-import * as SchoolRepo from '../School/queries'
-import { USER_BAN_TYPES, USER_ROLES } from '../../constants'
-import { insertUserRoleByUserId } from '../User'
+import { USER_BAN_TYPES } from '../../constants'
 import {
-  CreatedStudent,
-  CreateStudentPayload,
   CreateStudentProfilePayload,
   Student,
   StudentContactInfo,
@@ -251,6 +245,21 @@ export async function addFavoriteVolunteer(
     }
   } catch (err) {
     throw new RepoUpdateError(err)
+  }
+}
+
+export async function getFavoritedVolunteerIdsFromList(
+  studentId: Ulid,
+  volunteerIds: Ulid[]
+) {
+  try {
+    const result = await pgQueries.getFavoritedVolunteerIdsFromList.run(
+      { studentId, volunteerIds },
+      getClient()
+    )
+    return result.map((r) => makeRequired(r).volunteerId)
+  } catch (err) {
+    throw new RepoReadError(err)
   }
 }
 
