@@ -664,6 +664,24 @@ export async function updateUserProfileById(
   }
 }
 
+export async function updateSmsConsentForPhoneNumber(
+  phoneNumber: string,
+  smsConsent: boolean,
+  tc = getClient()
+) {
+  try {
+    await pgQueries.updateSmsConsentForPhoneNumber.run(
+      {
+        phoneNumber,
+        smsConsent,
+      },
+      tc
+    )
+  } catch (err) {
+    throw new RepoUpdateError(err)
+  }
+}
+
 export async function updateSubjectAlerts(
   userId: string,
   mutedSubjectAlerts: string[] | undefined,

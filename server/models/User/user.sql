@@ -782,6 +782,16 @@ RETURNING
     id AS ok;
 
 
+/* @name updateSmsConsentForPhoneNumber */
+UPDATE
+    users
+SET
+    sms_consent = :smsConsent!,
+    updated_at = NOW()
+WHERE
+    phone = :phoneNumber!;
+
+
 /* @name deletePhone */
 UPDATE
     users

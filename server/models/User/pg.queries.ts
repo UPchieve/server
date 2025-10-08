@@ -1685,6 +1685,38 @@ const updateUserProfileByIdIR: any = {"usedParamSet":{"deactivated":true,"phone"
 export const updateUserProfileById = new PreparedQuery<IUpdateUserProfileByIdParams,IUpdateUserProfileByIdResult>(updateUserProfileByIdIR);
 
 
+/** 'UpdateSmsConsentForPhoneNumber' parameters type */
+export interface IUpdateSmsConsentForPhoneNumberParams {
+  phoneNumber: string;
+  smsConsent: boolean;
+}
+
+/** 'UpdateSmsConsentForPhoneNumber' return type */
+export type IUpdateSmsConsentForPhoneNumberResult = void;
+
+/** 'UpdateSmsConsentForPhoneNumber' query type */
+export interface IUpdateSmsConsentForPhoneNumberQuery {
+  params: IUpdateSmsConsentForPhoneNumberParams;
+  result: IUpdateSmsConsentForPhoneNumberResult;
+}
+
+const updateSmsConsentForPhoneNumberIR: any = {"usedParamSet":{"smsConsent":true,"phoneNumber":true},"params":[{"name":"smsConsent","required":true,"transform":{"type":"scalar"},"locs":[{"a":39,"b":50}]},{"name":"phoneNumber","required":true,"transform":{"type":"scalar"},"locs":[{"a":94,"b":106}]}],"statement":"UPDATE\n    users\nSET\n    sms_consent = :smsConsent!,\n    updated_at = NOW()\nWHERE\n    phone = :phoneNumber!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE
+ *     users
+ * SET
+ *     sms_consent = :smsConsent!,
+ *     updated_at = NOW()
+ * WHERE
+ *     phone = :phoneNumber!
+ * ```
+ */
+export const updateSmsConsentForPhoneNumber = new PreparedQuery<IUpdateSmsConsentForPhoneNumberParams,IUpdateSmsConsentForPhoneNumberResult>(updateSmsConsentForPhoneNumberIR);
+
+
 /** 'DeletePhone' parameters type */
 export interface IDeletePhoneParams {
   userId: string;

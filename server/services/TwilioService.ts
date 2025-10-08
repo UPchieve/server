@@ -8,6 +8,7 @@ import {
   getVolunteersNotifiedBySessionId,
 } from '../models/Volunteer'
 import QueueService from './QueueService'
+import * as UserProfileService from './UserProfileService'
 import * as SessionRepo from '../models/Session'
 import * as VolunteerRepo from '../models/Volunteer'
 import Case from 'case'
@@ -72,33 +73,35 @@ export function getCurrentAvailabilityPath(): string {
 export async function sendTextMessage(
   phoneNumber: string,
   messageText: string
-): Promise<string> {
-  logger.info(`Sending text message "${messageText}" to ${phoneNumber}`)
+): Promise<string | undefined> {
+  try {
+    logger.info(`Sending text message "${messageText}" to ${phoneNumber}`)
 
-  // If stored phone number doesn't have international calling code (E.164 formatting)
-  // then default to US number
-  // TODO: normalize previously stored US phone numbers
-  const fullPhoneNumber =
-    phoneNumber[0] === '+' ? phoneNumber : `+1${phoneNumber}`
+    // If stored phone number doesn't have international calling code (E.164 formatting)
+    // then default to US number
+    // TODO: normalize previously stored US phone numbers
+    const fullPhoneNumber =
+      phoneNumber[0] === '+' ? phoneNumber : `+1${phoneNumber}`
 
-  if (!twilioClient) {
-    logger.warn('Twilio client not loaded.')
-    return '0'
-  }
-  const message = await twilioClient.messages.create({
-    to: fullPhoneNumber,
-    from: config.sendingNumber,
-    body: messageText,
-  })
-  if (message.sid) {
-    logger.info(
-      `Message sent to ${phoneNumber} with message id \n ${message.sid}`
-    )
+    if (!twilioClient) {
+      logger.warn('Twilio client not loaded.')
+      return
+    }
+
+    const message = await twilioClient.messages.create({
+      to: fullPhoneNumber,
+      from: config.sendingNumber,
+      body: messageText,
+    })
     return message.sid
+  } catch (err) {
+    if (
+      (err as Error).message === 'Attempt to send to unsubscribed recipient'
+    ) {
+      await UserProfileService.optOutSmsConsentForPhoneNumber(phoneNumber)
+    }
+    logger.error(err as Error)
   }
-  throw new Error(
-    `Failed to send text message ${messageText} to ${phoneNumber}`
-  )
 }
 
 export async function sendVoiceMessage(
@@ -166,12 +169,10 @@ export async function sendFollowupText(
     method: 'sms',
     priorityGroup: 'follow-up',
   }
-  try {
-    const messageId = await sendTextMessage(volunteerPhone, messageText)
+  const messageId = await sendTextMessage(volunteerPhone, messageText)
+  if (messageId) {
     notification.wasSuccessful = true
     notification.messageId = messageId
-  } catch (err) {
-    logger.error(err as Error)
   }
 
   await SessionRepo.addSessionNotification(sessionId, notification)
@@ -433,12 +434,10 @@ export async function notifyVolunteer(
     method: 'sms',
     priorityGroup,
   }
-  try {
-    const messageId = await sendTextMessage(volunteer.phone, messageText)
+  const messageId = await sendTextMessage(volunteer.phone, messageText)
+  if (messageId) {
     notification.wasSuccessful = true
     notification.messageId = messageId
-  } catch (err) {
-    logger.error(err as Error)
   }
 
   await SessionRepo.addSessionNotification(session.id, notification)
