@@ -23,6 +23,11 @@ export const queue = new Queue(config.workerQueueName, {
       enableReadyCheck: false,
       maxRetriesPerRequest: null,
     }),
+  settings: {
+    // to prevent stalling long jobs
+    stalledInterval: 1000 * 60 * 30,
+    lockDuration: 1000 * 60 * 30,
+  },
 })
 
 export type AddJobOptions = JobOptions
