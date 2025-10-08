@@ -62,15 +62,14 @@ import emailBecomeAnAmbassador from './emailBecomeAnAmbassador'
 import emailReferralSignUpCelebration from './emailReferralSignupCelebration'
 import maybeSendStudentFeedbackToVolunteer from './volunteer-emails/maybeSendStudentFeedbackToVolunteer'
 import emailNationalTutorCertificate from './emailNationalTutorCertificate'
-import addScheduledJobs from './addScheduledJobs'
 import emailAmbassadorCongrats from './emailAmbassadorCongrats'
 import backfillOnboardedStatus from './backfillOnboardedStatus'
 import { logRedisKeyMemStats } from './logRedisKeyMemStats'
 import { clearBullJobByStatus } from './clearBullJobsByStatus'
 import backfillSessionEndedTasks from '../../scripts/backfill-sessionEndedTasks'
+import scheduleJobs from './jobScheduler'
 
 export enum Jobs {
-  AddScheduledJobs = 'AddScheduledJobs',
   BackfillAvailabilityHistories = 'BackfillAvailabilityHistories',
   BackfillElapsedAvailability = 'BackfillElapsedAvailability',
   BackfillEmailNiceToMeetYou = 'BackfillEmailNiceToMeetYou',
@@ -127,6 +126,7 @@ export enum Jobs {
   GenerateAndStoreWaitTimeHeatMap = 'GenerateAndStoreWaitTimeHeatMap',
   GenerateProgressReport = 'GenerateProgressReport',
   GenerateSessionSummary = 'GenerateSessionSummary',
+  JobScheduler = 'JobScheduler',
   MaybeSendStudentFeedbackToVolunteer = 'MaybeSendStudentFeedbackToVolunteer',
   MigrateBannedAndTestUsersToBanType = 'MigrateBannedAndTestUsersToBanType',
   MigrateHistoricalPartnerData = 'MigrateHistoricalPartnerData',
@@ -162,10 +162,6 @@ interface JobProcessor {
 }
 
 const jobProcessors: JobProcessor[] = [
-  {
-    name: Jobs.AddScheduledJobs,
-    processor: addScheduledJobs,
-  },
   {
     name: Jobs.BackfillAvailabilityHistories,
     processor: backfillAvailabilityHistories,
@@ -373,6 +369,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.GenerateSessionSummary,
     processor: generateSessionSummary,
+  },
+  {
+    name: Jobs.JobScheduler,
+    processor: scheduleJobs,
   },
   {
     name: Jobs.MaybeSendStudentFeedbackToVolunteer,
