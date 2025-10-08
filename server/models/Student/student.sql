@@ -106,6 +106,16 @@ RETURNING
     student_id, volunteer_id;
 
 
+/* @name getFavoritedVolunteerIdsFromList */
+SELECT
+    volunteer_id
+FROM
+    student_favorite_volunteers
+WHERE
+    student_id = :studentId!
+    AND volunteer_id = ANY (:volunteerIds!);
+
+
 /* @name getStudentPartnerInfoById */
 SELECT
     student_profiles.user_id AS id,
