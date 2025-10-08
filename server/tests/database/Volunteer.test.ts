@@ -1,5 +1,5 @@
 /**
- * @group database/sequential
+ * @group database/jamie // @TODO change it back
  */
 
 import {
@@ -16,6 +16,7 @@ import {
   getNextVolunteerToNotify,
   getVolunteerContactInfoById,
   getVolunteerForOnboardingById,
+  getVolunteersForTextNotifications,
   updateVolunteerForAdmin,
   updateVolunteerOnboarded,
   updateVolunteerTrainingById,
@@ -676,6 +677,59 @@ describe('VolunteerRepo', () => {
       expect(actual.completedMaterials).toEqual(requiredMaterials)
       expect(actual.progress).toEqual(100)
     })
+  })
+
+  describe('getVolunteersForTextNotifications', () => {
+    const TEST_VPO_NAME = 'big-telecom'
+    const TEST_VPO_ID = '01919662-87f7-ecae-08ec-2d9b6c13ba3c'
+    const TEST_VPO_ASSOCIATED_STUDENT_SPONSOR_ORG_ID =
+      '01919662-8800-b331-97c6-6521b0dfd65b'
+    const TEST_VPO_ASSOCIATED_STUDENT_PARTNER_ORG_ID =
+      '01919662-87dc-1b9c-e053-326c64a2edbc'
+
+    it('Returns volunteers matching the criteria', async () => {
+      const eligibleVolunteer = await loadVolunteer()
+      const eligiblePartnerVolunteer = await loadVolunteer({
+        partner: TEST_VPO_NAME,
+      })
+      // Ineligible volunteers:
+      // No availability
+      await loadVolunteer({ withFullAvailability: false })
+      // Banned
+      await loadVolunteer({ banType: 'complete' })
+      // Deactivated
+      await loadVolunteer({ deactivated: true })
+      // Not approved
+      await loadVolunteer({ approved: false })
+
+      const actual = await getVolunteersForTextNotifications(client)
+      // There should only be 2 volunteers returned.
+      expect(actual.map((vol) => vol.id)).toEqual([
+        eligibleVolunteer.id,
+        eligiblePartnerVolunteer.id,
+      ])
+
+      // Non-partner volunteer
+      expect(actual[0].unlockedSubjects).toEqual(['prealgebra'])
+      expect(actual[0].volunteerPartnerOrgId).toBeUndefined()
+      expect(actual[0].associatedStudentPartnerOrgs).toEqual([])
+      expect(actual[0].associatedStudentSponsorOrgs).toEqual([])
+
+      // Partner volunteer
+      expect(actual[1].unlockedSubjects).toEqual(['prealgebra'])
+      expect(actual[1].volunteerPartnerOrgId).toEqual(TEST_VPO_ID)
+      expect(actual[1].associatedStudentPartnerOrgs).toEqual([
+        TEST_VPO_ASSOCIATED_STUDENT_PARTNER_ORG_ID,
+      ])
+      expect(actual[1].associatedStudentSponsorOrgs).toEqual([
+        TEST_VPO_ASSOCIATED_STUDENT_SPONSOR_ORG_ID,
+      ])
+    })
+
+    // @TODO: This test could technically be flaky if it runs on the cusp of an hour. There might be a way we could mock the time in postgres.
+    it.todo(
+      'Only returns volunteers with availability that includes this current hour'
+    )
   })
 
   describe('createVolunteer', () => {
