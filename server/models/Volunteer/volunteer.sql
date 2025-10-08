@@ -1692,8 +1692,8 @@ FROM
             ap.volunteer_partner_org_id = vp.volunteer_partner_org_id) AS associated_partners ON TRUE
     JOIN users_unlocked_subjects_mview unlocked_subjects ON unlocked_subjects.user_id = u.id
 WHERE (u.ban_type IS NULL
-    OR u.ban_type <> 'complete'::ban_types
-    OR u.ban_type <> 'shadow'::ban_types)
+    OR (u.ban_type <> 'complete'::ban_types
+        AND u.ban_type <> 'shadow'::ban_types))
 AND u.deactivated IS FALSE
 AND u.test_user IS FALSE
 AND vp.onboarded IS TRUE
