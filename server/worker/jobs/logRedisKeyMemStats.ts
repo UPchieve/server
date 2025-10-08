@@ -3,7 +3,6 @@ import Redis from 'ioredis'
 import { redisClient } from '../../services/RedisService'
 import { createSlackAlert } from '../../services/SlackAlertService'
 import logger from '../../logger'
-import config from '../../config'
 
 export async function getMemoryStatsByPattern(
   pattern: string,
