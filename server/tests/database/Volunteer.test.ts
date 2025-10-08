@@ -1,5 +1,5 @@
 /**
- * @group database/jamie // @TODO change it back
+ * @group database/sequential
  */
 
 import {
