@@ -1513,3 +1513,11 @@ export async function isSessionFulfilled(sessionId: Uuid): Promise<boolean> {
   )
   return makeRequired(result[0]).isFulfilled
 }
+
+export async function getVolunteersInSessions(): Promise<Ulid[]> {
+  const result = await pgQueries.getVolunteersInSessions.run(
+    undefined,
+    getClient()
+  )
+  return result.map((r) => makeRequired(r).volunteerId)
+}

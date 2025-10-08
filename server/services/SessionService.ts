@@ -1280,3 +1280,8 @@ export async function markSessionForReview(
 export async function isSessionFulfilled(sessionId: Uuid): Promise<boolean> {
   return SessionRepo.isSessionFulfilled(sessionId)
 }
+
+export async function getVolunteersInSessions(): Promise<Set<Ulid>> {
+  const volunteers = await SessionRepo.getVolunteersInSessions()
+  return new Set(volunteers)
+}

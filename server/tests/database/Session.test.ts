@@ -14,6 +14,7 @@ import {
   getLatestSession,
   getMessagesForFrontend,
   getSessionTranscriptItems,
+  getVolunteersInSessions,
   isEligibleForSessionRecap,
   isSessionFulfilled,
   updateSessionFlagsById,
@@ -24,6 +25,7 @@ import { camelCaseKeys, insertSingleRow } from '../db-utils'
 import { range } from 'lodash'
 import moment from 'moment'
 import { USER_SESSION_METRICS, UserSessionFlags } from '../../constants'
+import { createTestUser, createTestVolunteer } from './seed-utils'
 
 describe('Session repo', () => {
   const dbClient = getClient()
@@ -749,6 +751,46 @@ describe('Session repo', () => {
 
       const result = await isSessionFulfilled(session.id)
       expect(result).toBe(true)
+    })
+  })
+
+  describe('getVolunteersInSessions', () => {
+    test('returns the ids of volunteers in an active session', async () => {
+      const id1 = (await createTestUser(getClient())).id
+      await createTestVolunteer(id1, getClient())
+      const id2 = (await createTestUser(getClient())).id
+      await createTestVolunteer(id2, getClient())
+      const id3 = (await createTestUser(getClient())).id
+      await createTestVolunteer(id3, getClient())
+      const id4 = (await createTestUser(getClient())).id
+      await createTestVolunteer(id4, getClient())
+
+      const activeSession1 = await buildSessionRow({
+        studentId,
+        volunteerId: id1,
+        volunteerJoinedAt: new Date(),
+      })
+      await insertSingleRow('sessions', activeSession1, getClient())
+      const endedSession = await buildSessionRow({
+        studentId,
+        endedAt: new Date(),
+        volunteerId: id2,
+        volunteerJoinedAt: new Date(),
+      })
+      await insertSingleRow('sessions', endedSession, getClient())
+      const activeSession2 = await buildSessionRow({
+        studentId,
+        volunteerId: id3,
+        volunteerJoinedAt: new Date(),
+      })
+      await insertSingleRow('sessions', activeSession2, getClient())
+
+      const result = await getVolunteersInSessions()
+
+      expect(result).toContain(id1)
+      expect(result).toContain(id3)
+      expect(result).not.toContain(id2)
+      expect(result).not.toContain(id4)
     })
   })
 })

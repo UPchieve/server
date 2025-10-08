@@ -1396,3 +1396,14 @@ SELECT
             AND (volunteer_joined_at IS NOT NULL
                 OR ended_at IS NOT NULL)) AS is_fulfilled;
 
+
+/* @name getVolunteersInSessions */
+SELECT
+    volunteer_id
+FROM
+    sessions
+WHERE
+    volunteer_joined_at IS NOT NULL
+    AND volunteer_id IS NOT NULL
+    AND ended_at IS NULL;
+

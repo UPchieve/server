@@ -2971,3 +2971,35 @@ const isSessionFulfilledIR: any = {"usedParamSet":{"sessionId":true},"params":[{
 export const isSessionFulfilled = new PreparedQuery<IIsSessionFulfilledParams,IIsSessionFulfilledResult>(isSessionFulfilledIR);
 
 
+/** 'GetVolunteersInSessions' parameters type */
+export type IGetVolunteersInSessionsParams = void;
+
+/** 'GetVolunteersInSessions' return type */
+export interface IGetVolunteersInSessionsResult {
+  volunteerId: string | null;
+}
+
+/** 'GetVolunteersInSessions' query type */
+export interface IGetVolunteersInSessionsQuery {
+  params: IGetVolunteersInSessionsParams;
+  result: IGetVolunteersInSessionsResult;
+}
+
+const getVolunteersInSessionsIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    volunteer_id\nFROM\n    sessions\nWHERE\n    volunteer_joined_at IS NOT NULL\n    AND volunteer_id IS NOT NULL\n    AND ended_at IS NULL"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     volunteer_id
+ * FROM
+ *     sessions
+ * WHERE
+ *     volunteer_joined_at IS NOT NULL
+ *     AND volunteer_id IS NOT NULL
+ *     AND ended_at IS NULL
+ * ```
+ */
+export const getVolunteersInSessions = new PreparedQuery<IGetVolunteersInSessionsParams,IGetVolunteersInSessionsResult>(getVolunteersInSessionsIR);
+
+
