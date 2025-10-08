@@ -2836,12 +2836,10 @@ CREATE MATERIALIZED VIEW upchieve.users_unlocked_subjects_mview AS
            FROM upchieve.users_certifications
           GROUP BY users_certifications.user_id
         ), direct_subject_unlocks AS (
-         SELECT u_1.id AS user_id,
-            s_1.id AS subject_id
-           FROM (((upchieve.users u_1
-             JOIN upchieve.users_certifications uc ON ((uc.user_id = u_1.id)))
+         SELECT uc.user_id,
+            csu.subject_id
+           FROM (upchieve.users_certifications uc
              JOIN upchieve.certification_subject_unlocks csu ON ((csu.certification_id = uc.certification_id)))
-             JOIN upchieve.subjects s_1 ON ((s_1.id = csu.subject_id)))
         ), computed_unlocks AS (
          SELECT cbu.user_id,
             comp_su.subject_id
@@ -2854,18 +2852,17 @@ CREATE MATERIALIZED VIEW upchieve.users_unlocked_subjects_mview AS
                    FROM unnest(comp_su.required_certs) req_cert(req_cert)
                   WHERE (NOT (req_cert.req_cert IN ( SELECT unnest(cbu.certification_ids) AS unnest))))))
         )
- SELECT u.id AS user_id,
+ SELECT all_unlocks.user_id,
     array_agg(DISTINCT s.name) AS unlocked_subjects
-   FROM ((upchieve.users u
-     LEFT JOIN ( SELECT direct_subject_unlocks.user_id,
+   FROM (( SELECT direct_subject_unlocks.user_id,
             direct_subject_unlocks.subject_id
            FROM direct_subject_unlocks
         UNION ALL
          SELECT computed_unlocks.user_id,
             computed_unlocks.subject_id
-           FROM computed_unlocks) all_unlocks ON ((all_unlocks.user_id = u.id)))
+           FROM computed_unlocks) all_unlocks
      JOIN upchieve.subjects s ON ((s.id = all_unlocks.subject_id)))
-  GROUP BY u.id
+  GROUP BY all_unlocks.user_id
   WITH NO DATA;
 
 

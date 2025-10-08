@@ -11,13 +11,11 @@ WITH certifications_by_user AS (
 ),
 direct_subject_unlocks AS (
     SELECT
-        u.id AS user_id,
-        s.id AS subject_id
+        uc.user_id,
+        csu.subject_id
     FROM
-        upchieve.users u
-        JOIN upchieve.users_certifications uc ON uc.user_id = u.id
+        upchieve.users_certifications uc
         JOIN upchieve.certification_subject_unlocks csu ON csu.certification_id = uc.certification_id
-        JOIN upchieve.subjects s ON s.id = csu.subject_id
 ),
 computed_unlocks AS (
     SELECT
@@ -45,23 +43,21 @@ computed_unlocks AS (
                             unnest(cbu.certification_ids))))
             -- Now combine and deduplicate
             SELECT
-                u.id AS user_id,
+                all_unlocks.user_id AS user_id,
                 array_agg(DISTINCT s.name) AS unlocked_subjects
-FROM
-    upchieve.users u
-    LEFT JOIN (
-        SELECT
-            *
-        FROM
-            direct_subject_unlocks
+FROM (
+    SELECT
+        *
+    FROM
+        direct_subject_unlocks
     UNION ALL
     SELECT
         *
     FROM
-        computed_unlocks) all_unlocks ON all_unlocks.user_id = u.id
+        computed_unlocks) AS all_unlocks
     JOIN upchieve.subjects s ON s.id = all_unlocks.subject_id
 GROUP BY
-    u.id;
+    all_unlocks.user_id;
 
 CREATE FUNCTION upchieve.refresh_users_subjects_unlocked_mview ()
     RETURNS TRIGGER
