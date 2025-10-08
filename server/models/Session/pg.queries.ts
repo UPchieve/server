@@ -2935,3 +2935,39 @@ const getUniqueStudentsHelpedCountIR: any = {"usedParamSet":{"userId":true,"minS
 export const getUniqueStudentsHelpedCount = new PreparedQuery<IGetUniqueStudentsHelpedCountParams,IGetUniqueStudentsHelpedCountResult>(getUniqueStudentsHelpedCountIR);
 
 
+/** 'IsSessionFulfilled' parameters type */
+export interface IIsSessionFulfilledParams {
+  sessionId: string;
+}
+
+/** 'IsSessionFulfilled' return type */
+export interface IIsSessionFulfilledResult {
+  isFulfilled: boolean | null;
+}
+
+/** 'IsSessionFulfilled' query type */
+export interface IIsSessionFulfilledQuery {
+  params: IIsSessionFulfilledParams;
+  result: IIsSessionFulfilledResult;
+}
+
+const isSessionFulfilledIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":114,"b":124}]}],"statement":"SELECT\n    EXISTS (\n        SELECT\n            1\n        FROM\n            sessions\n        WHERE\n            id = :sessionId!\n            AND (volunteer_joined_at IS NOT NULL\n                OR ended_at IS NOT NULL)) AS is_fulfilled"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     EXISTS (
+ *         SELECT
+ *             1
+ *         FROM
+ *             sessions
+ *         WHERE
+ *             id = :sessionId!
+ *             AND (volunteer_joined_at IS NOT NULL
+ *                 OR ended_at IS NOT NULL)) AS is_fulfilled
+ * ```
+ */
+export const isSessionFulfilled = new PreparedQuery<IIsSessionFulfilledParams,IIsSessionFulfilledResult>(isSessionFulfilledIR);
+
+

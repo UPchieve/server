@@ -1383,3 +1383,16 @@ WHERE
     AND time_tutored >= :minSessionLength!::int
     AND ended_at IS NOT NULL;
 
+
+/* @name isSessionFulfilled */
+SELECT
+    EXISTS (
+        SELECT
+            1
+        FROM
+            sessions
+        WHERE
+            id = :sessionId!
+            AND (volunteer_joined_at IS NOT NULL
+                OR ended_at IS NOT NULL)) AS is_fulfilled;
+
