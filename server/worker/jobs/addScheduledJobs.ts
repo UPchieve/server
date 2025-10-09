@@ -71,18 +71,18 @@ export default async function addScheduledJobs() {
 
   const repeatableJobs = await QueueService.queue.getRepeatableJobs()
 
-  repeatableJobs.map(async (job) => {
+  for (const job of repeatableJobs) {
     if (jobTemplates.find((template) => template.name === job.name)) {
       logger.info(`Removing scheduled job: ${job.name}...`)
       await QueueService.queue.removeRepeatableByKey(job.key)
     }
-  })
+  }
 
   for (const job of jobTemplates) {
     logger.info(`Adding scheduled job ${job.name}...`)
     await QueueService.add(job.name, job.data, {
       ...job.options,
-      removeOnComplete: true,
+      removeOnComplete: false,
       removeOnFail: false,
     })
   }
