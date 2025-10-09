@@ -73,7 +73,6 @@ const DEFAULT_KEY_PATTERNS = [
   'getting-started-assignments*',
   'online:subject*',
   'bull*',
-  'socket.io*',
   'USER_ROLE_CONTEXT*',
 ]
 
