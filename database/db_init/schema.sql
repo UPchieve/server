@@ -209,7 +209,7 @@ $$;
 --
 
 CREATE FUNCTION upchieve.refresh_users_subjects_unlocked_mview() RETURNS trigger
-    LANGUAGE plpgsql
+    LANGUAGE plpgsql SECURITY DEFINER
     AS $$
 BEGIN
     REFRESH MATERIALIZED VIEW upchieve.users_unlocked_subjects_mview;
@@ -6634,4 +6634,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20250825164601'),
     ('20250918185105'),
     ('20250922200444'),
-    ('20251008134946');
+    ('20251008134946'),
+    ('20251009143829');
