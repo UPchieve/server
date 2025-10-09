@@ -18,7 +18,9 @@ export default async function (
     const user = await UserService.getUserContactInfo(job.data.userId)
 
     if (!user) {
-      throw new Error(`${jobName}: No user exists with ID ${job.data.userId}`)
+      throw new Error(
+        `${jobName}: No active user exists with ID ${job.data.userId}`
+      )
     }
 
     await sendReferralSignUpCelebrationEmail({

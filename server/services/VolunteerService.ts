@@ -317,10 +317,9 @@ export async function onboardVolunteer(
 }
 
 export async function getActiveSponsorshipsByUserId(
-  userId: Uuid,
-  tc?: TransactionClient
+  userId: Uuid
 ): Promise<Sponsorship[]> {
-  return await VolunteerRepo.getActiveSponsorshipsByUserId(userId, tc)
+  return VolunteerRepo.getActiveSponsorshipsByUserId(userId)
 }
 
 function getVolunteerSubjectPresenceCacheKey(subject: string) {
