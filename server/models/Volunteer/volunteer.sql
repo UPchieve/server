@@ -1651,3 +1651,27 @@ GROUP BY
     vp.onboarded,
     vp.approved;
 
+
+/* @name getCoachesWithFalseSmsConsent */
+SELECT DISTINCT
+    u.id
+FROM
+    users u
+    JOIN volunteer_profiles vp ON vp.user_id = u.id
+    LEFT JOIN student_profiles sp ON sp.user_id = u.id
+WHERE
+    sp.user_id IS NULL
+    AND u.sms_consent IS FALSE;
+
+
+/* @name backfillCoachSmsConsent */
+UPDATE
+    users
+SET
+    sms_consent = TRUE,
+    updated_at = NOW()
+WHERE
+    id = ANY (:coachUserIds!::uuid[])
+RETURNING
+    id AS user_id;
+

@@ -1782,3 +1782,32 @@ export async function getVolunteersForOnboardingBackfill(
     throw new RepoReadError(err)
   }
 }
+
+export async function getCoachesWithFalseSmsConsent(
+  tc: TransactionClient
+): Promise<Ulid[]> {
+  try {
+    const rawResults = await pgQueries.getCoachesWithFalseSmsConsent.run(
+      undefined,
+      tc
+    )
+    return rawResults.map((row) => makeRequired(row).id)
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function backfillCoachSmsConsent(
+  userIds: Ulid[],
+  tc: TransactionClient
+): Promise<Ulid[]> {
+  try {
+    const rawResults = await pgQueries.backfillCoachSmsConsent.run(
+      { coachUserIds: userIds },
+      tc
+    )
+    return rawResults.map((row) => makeRequired(row).userId)
+  } catch (err) {
+    throw new RepoUpdateError(err)
+  }
+}
