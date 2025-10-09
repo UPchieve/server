@@ -14,7 +14,7 @@ interface GenerateProgressReport {
   sessionId: Ulid
 }
 
-async function generateAndEmitProgressReport(
+async function generateProgressReport(
   userId: Ulid,
   reportOptions: ProgressReportSessionFilter
 ) {
@@ -37,12 +37,12 @@ export default async (job: Job<GenerateProgressReport>): Promise<void> => {
 
   // Execute both generation tasks in parallel
   const results = await Promise.allSettled([
-    generateAndEmitProgressReport(session.studentId, {
+    generateProgressReport(session.studentId, {
       sessionId: session.id,
       subject: session.subject,
       analysisType: 'single',
     }),
-    generateAndEmitProgressReport(session.studentId, {
+    generateProgressReport(session.studentId, {
       subject: session.subject,
       end: session.endedAt,
       analysisType: 'group',
