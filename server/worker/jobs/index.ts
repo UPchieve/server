@@ -68,7 +68,6 @@ import backfillOnboardedStatus from './backfillOnboardedStatus'
 import { logRedisKeyMemStats } from './logRedisKeyMemStats'
 import { clearBullJobByStatus } from './clearBullJobsByStatus'
 import backfillSessionEndedTasks from '../../scripts/backfill-sessionEndedTasks'
-import backfillCoachSmsConsent from './backfillCoachSmsConsent'
 
 export enum Jobs {
   AddScheduledJobs = 'AddScheduledJobs',
@@ -154,7 +153,6 @@ export enum Jobs {
   UpsertPostalCodes = 'UpsertPostalCodes',
   UpsertSchools = 'UpsertSchools',
   BackfillOnboardedStatus = 'BackfillOnboardedStatus',
-  BackfillCoachSmsConsent = 'BackfillCoachSmsConsent',
 }
 
 // register new job processors here
@@ -472,10 +470,6 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.BackfillOnboardedStatus,
     processor: backfillOnboardedStatus,
-  },
-  {
-    name: Jobs.BackfillCoachSmsConsent,
-    processor: backfillCoachSmsConsent,
   },
 ]
 
