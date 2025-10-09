@@ -4,75 +4,21 @@ import { Ulid } from '../../models/pgUtils'
 import {
   generateProgressReportForUser,
   hasActiveSubjectPrompt,
-  ProgressReport,
   ProgressReportSessionFilter,
 } from '../../services/ProgressReportsService'
 import { getProgressReportsFeatureFlag } from '../../services/FeatureFlagService'
 import config from '../../config'
-import axios from 'axios'
-import {
-  ProgressReportAnalysisTypes,
-  ProgressReportStatuses,
-} from '../../models/ProgressReports'
-import logger from '../../logger'
 import { asUlid } from '../../utils/type-utils'
-import { secondsInMs } from '../../utils/time-utils'
 
 interface GenerateProgressReport {
   sessionId: Ulid
-}
-
-type ProgressReportPayload = {
-  userId: Ulid
-  sessionId?: Ulid
-  subject: string
-  report: Partial<ProgressReport>
-  analysisType: ProgressReportAnalysisTypes
-}
-
-async function sendProgressReport(userId: Ulid, data: ProgressReportPayload) {
-  const protocol = config.NODE_ENV === 'dev' ? 'http' : 'https'
-  const port = config.NODE_ENV === 'dev' ? `:${config.apiPort}` : ''
-  const url = `${protocol}://${config.clusterServerAddress}${port}/api/webhooks/progress-reports/processed`
-  try {
-    await axios.post(url, data, {
-      headers: {
-        'x-api-key': config.subwayApiCredentials,
-      },
-      timeout: secondsInMs(3),
-    })
-  } catch (error) {
-    const errorMessage = `Failed to send progress report via HTTP to user.`
-    logger.error({ err: error, userId }, errorMessage)
-    throw new Error(errorMessage)
-  }
 }
 
 async function generateAndEmitProgressReport(
   userId: Ulid,
   reportOptions: ProgressReportSessionFilter
 ) {
-  let report: Partial<ProgressReport>
-  let reportGenerationError
-  try {
-    report = await generateProgressReportForUser(userId, reportOptions)
-  } catch (error) {
-    reportGenerationError = error
-    logger.error(`Error generating progress report: ${error}`)
-    report = {
-      status: 'error' as ProgressReportStatuses,
-      summary: undefined,
-      concepts: undefined,
-    }
-  }
-
-  const data = {
-    userId: userId,
-    ...reportOptions,
-    report,
-  }
-  await sendProgressReport(userId, data)
-  if (reportGenerationError) throw reportGenerationError
+  return await generateProgressReportForUser(userId, reportOptions)
 }
 
 export default async (job: Job<GenerateProgressReport>): Promise<void> => {
@@ -88,7 +34,9 @@ export default async (job: Job<GenerateProgressReport>): Promise<void> => {
     session.timeTutored < config.minSessionLength
   )
     return
-  const tasks = [
+
+  // Execute both generation tasks in parallel
+  const results = await Promise.allSettled([
     generateAndEmitProgressReport(session.studentId, {
       sessionId: session.id,
       subject: session.subject,
@@ -99,10 +47,7 @@ export default async (job: Job<GenerateProgressReport>): Promise<void> => {
       end: session.endedAt,
       analysisType: 'group',
     }),
-  ]
-
-  // Execute both generation tasks in parallel
-  const results = await Promise.allSettled(tasks)
+  ])
   const errors = results
     .filter(
       (result): result is PromiseRejectedResult => result.status === 'rejected'
