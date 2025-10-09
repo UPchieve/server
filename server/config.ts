@@ -473,6 +473,7 @@ const config: Static<typeof Config> = {
 
   // Zwibbler
   zwibblerNodeUrl: process.env.ZWIBBLER_NODE_URL || 'bogus',
+  slackAlertWebHookUrl: process.env.SUBWAY_SLACK_ALERT_WEBHOOK_URL || 'bogus',
 }
 module.exports = config
 export default config

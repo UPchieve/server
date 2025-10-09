@@ -1,6 +1,7 @@
 import { Job } from 'bull'
 import Redis from 'ioredis'
 import { redisClient } from '../../services/RedisService'
+import { createSlackAlert } from '../../services/SlackAlertService'
 import logger from '../../logger'
 
 export async function getMemoryStatsByPattern(
@@ -58,12 +59,54 @@ export interface RedisKeyPatterns {
   keyPatterns: string[]
 }
 
+type RedisStats = {
+  pattern: string
+  keyCount: number
+  totalMB: string
+}
+
+const DEFAULT_KEY_PATTERNS = [
+  'user-presence*',
+  'user-rewards*',
+  'quill*',
+  'zwibbler*',
+  'getting-started-assignments*',
+  'online:subject*',
+  'bull*',
+  'USER_ROLE_CONTEXT*',
+]
+
+function formatRedisStats(stats: RedisStats[]): string {
+  const header =
+    'Pattern'.padEnd(35) + 'Keys'.padStart(10) + ' | ' + 'MB'.padStart(6)
+  const divider = '-'.repeat(65)
+
+  const rows = stats
+    .map(
+      ({ pattern, keyCount, totalMB }) =>
+        pattern.padEnd(35) +
+        keyCount.toString().padStart(10) +
+        ' | ' +
+        totalMB.toString().padStart(6)
+    )
+    .join('\n')
+
+  return `Redis Key Pattern Stats:\n\n${header}\n${divider}\n${rows}`
+}
+
 export async function logRedisKeyMemStats(job: Job<RedisKeyPatterns>) {
   const stats = []
 
-  for (const keyPattern of job.data.keyPatterns) {
+  const keyPatterns = job.data.keyPatterns?.length
+    ? job.data.keyPatterns
+    : DEFAULT_KEY_PATTERNS
+
+  for (const keyPattern of keyPatterns) {
     stats.push(await getMemoryStatsByPattern(keyPattern, redisClient))
   }
 
-  logger.info(stats, 'Redis Keys Memory Stats')
+  const formattedStats = formatRedisStats(stats)
+  logger.info(formattedStats)
+
+  await createSlackAlert('Redis Memory Usage', formattedStats)
 }
