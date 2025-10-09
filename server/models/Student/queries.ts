@@ -1,11 +1,9 @@
-import { PoolClient } from 'pg'
 import {
   getAnalyticsClient,
   getClient,
   runInTransaction,
   TransactionClient,
 } from '../../db'
-import { isPgId } from '../../utils/type-utils'
 import {
   RepoCreateError,
   RepoDeleteError,
@@ -15,7 +13,6 @@ import {
   RepoUpsertError,
 } from '../Errors'
 import {
-  getDbUlid,
   makeRequired,
   makeSomeRequired,
   makeSomeOptional,
@@ -23,12 +20,8 @@ import {
   Uuid,
 } from '../pgUtils'
 import * as pgQueries from './pg.queries'
-import * as SchoolRepo from '../School/queries'
-import { USER_BAN_TYPES, USER_ROLES } from '../../constants'
-import { insertUserRoleByUserId } from '../User'
+import { USER_BAN_TYPES } from '../../constants'
 import {
-  CreatedStudent,
-  CreateStudentPayload,
   CreateStudentProfilePayload,
   Student,
   StudentContactInfo,
@@ -67,8 +60,7 @@ export async function getStudentContactInfoById(
   try {
     const result = await pgQueries.getStudentContactInfoById.run(
       {
-        userId: isPgId(studentId) ? studentId : undefined,
-        mongoUserId: isPgId(studentId) ? undefined : studentId,
+        userId: studentId,
       },
       getClient()
     )
@@ -114,28 +106,6 @@ export async function isTestUser(
     )
     if (result.length) return makeRequired(result[0]).testUser
     return false
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
-export type GatesStudent = {
-  id: Ulid
-  studentPartnerOrg?: string
-  currentGrade: string
-  isPartnerSchool: boolean
-  approvedHighschool: Ulid
-}
-
-export async function getGatesStudentById(
-  userId: Ulid
-): Promise<GatesStudent | undefined> {
-  try {
-    const result = await pgQueries.getGatesStudentById.run(
-      { userId },
-      getClient()
-    )
-    if (result.length) return makeSomeOptional(result[0], ['studentPartnerOrg'])
   } catch (err) {
     throw new RepoReadError(err)
   }
