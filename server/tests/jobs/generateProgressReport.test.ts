@@ -7,10 +7,7 @@ import * as SessionRepo from '../../models/Session'
 import { buildProgressReport, buildSession } from '../mocks/generate'
 import { getDbUlid } from '../../models/pgUtils'
 import { Job } from 'bull'
-import axios from 'axios'
-import config from '../../config'
 
-jest.mock('axios')
 jest.mock('../../services/ProgressReportsService')
 jest.mock('../../services/FeatureFlagService')
 jest.mock('../../models/Session')
@@ -109,37 +106,6 @@ describe(Jobs.GenerateProgressReport, () => {
       end: session.endedAt,
       analysisType: 'group',
     })
-    expect(axios.post).toHaveBeenCalledTimes(2)
-    expect(axios.post).toHaveBeenNthCalledWith(
-      1,
-      url,
-      {
-        userId,
-        sessionId: session.id,
-        subject: session.subject,
-        report: reportOne,
-        analysisType: 'single',
-      },
-      {
-        headers: { 'x-api-key': config.subwayApiCredentials },
-        timeout: 3000,
-      }
-    )
-    expect(axios.post).toHaveBeenNthCalledWith(
-      2,
-      url,
-      {
-        userId,
-        subject: session.subject,
-        report: reportTwo,
-        analysisType: 'group',
-        end: expect.anything(),
-      },
-      {
-        headers: { 'x-api-key': config.subwayApiCredentials },
-        timeout: 3000,
-      }
-    )
   })
 
   test('Should early exit if no prompt for subject session', async () => {
