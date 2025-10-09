@@ -1,12 +1,12 @@
 import Delta from 'quill-delta'
 import * as cache from '../cache'
 import { Ulid } from '../models/pgUtils'
-import { LockError } from 'redlock'
 import logger from '../logger'
 import { getSessionById } from '../models/Session'
 import { COLLEGE_LIST_DOC_WORKSHEET } from '../constants'
 import { getCollegeListWorkSheetFlag } from './FeatureFlagService'
 import * as Y from 'yjs'
+import { ResourceLockedError } from '@sesamecare-oss/redlock'
 
 // Used for v1.
 function sessionIdToKey(id: Ulid): string {
@@ -67,7 +67,7 @@ export async function lockAndGetDocCacheState(
     const lock = await cache.lock(sessionCacheKey, 5000)
     const docString = await cache.get(sessionCacheKey)
     const result = await processDoc(sessionId, docString)
-    await lock.unlock()
+    await lock.release()
     return result
   } catch (err) {
     if (!(err instanceof cache.KeyNotFoundError)) throw err
@@ -84,7 +84,7 @@ export async function getQuillDocV1(
   try {
     return await lockAndGetDocCacheState(sessionId)
   } catch (error) {
-    if (error instanceof LockError && retries < 10)
+    if (error instanceof ResourceLockedError && retries < 10)
       return getQuillDocV1(sessionId, retries + 1)
     else
       logger.error(
@@ -108,7 +108,7 @@ export async function processDoc(
   docString: string
 ): Promise<QuillCacheState> {
   const deltasCacheKey = getSessionDeltasKey(sessionId)
-  let pendingDelta: string = await cache.lpop(deltasCacheKey)
+  let pendingDelta = await cache.lpop(deltasCacheKey)
   const isUpdateNeeded = !!pendingDelta
   let doc: Delta = new Delta(JSON.parse(docString))
   let lastDeltaStored: Delta | undefined
