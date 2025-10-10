@@ -6,6 +6,7 @@ import logger from '../../logger'
 import { SUBJECTS } from '../../constants'
 import startsWithVowel from '../../utils/starts-with-vowel'
 import { Ulid, Uuid } from '../../models/pgUtils'
+import { Jobs } from './index'
 import type { TextableVolunteer as TextableVolunteerDbResult } from '../../models/Volunteer'
 import * as AssociatedPartnerService from '../../services/AssociatedPartnerService'
 import * as CacheService from '../../cache'
@@ -13,18 +14,22 @@ import * as FavoritingService from '../../services/FavoritingService'
 import * as NotificationService from '../../services/NotificationService'
 import * as SessionService from '../../services/SessionService'
 import * as TwilioService from '../../services/TwilioService'
+import * as QueueService from '../../services/QueueService'
 import {
   TEXTABLE_VOLUNTEERS_CACHE_KEY,
   getAndCacheAvailableVolunteers,
 } from './updateCachedVolunteersForTextNotifications'
+import { secondsInMs } from '../../utils/time-utils'
 
 const HIGH_LEVEL_SUBJECTS = new Set<SUBJECTS>([
   SUBJECTS.CALCULUS_AB,
   SUBJECTS.STATISTICS,
   SUBJECTS.PHYSICS_ONE,
 ])
+const MAX_NOTIFICATION_ROUNDS = 5
 
 export type TextVolunteersJobData = {
+  notificationRound: number
   sessionId: string
   subject: string
   subjectDisplayName: string
@@ -49,6 +54,7 @@ export type PriorityGroup = {
 export default async function textVolunteers(
   job: Job<TextVolunteersJobData>
 ): Promise<void> {
+  const notificationRound = job.data.notificationRound
   const sessionId = job.data.sessionId
   const subject = job.data.subject as SUBJECTS
   const subjectDisplayName = job.data.subjectDisplayName
@@ -104,7 +110,17 @@ export default async function textVolunteers(
     },
     studentOrgDisplay
   )
-  // TODO: Queue TextVolunters job again.
+
+  if (notificationRound <= MAX_NOTIFICATION_ROUNDS) {
+    await QueueService.add(
+      Jobs.TextVolunteers,
+      {
+        ...job.data,
+        notificationRound: notificationRound + 1,
+      },
+      { delay: secondsInMs(30) }
+    )
+  }
 }
 
 async function getTextableVolunteers(): Promise<TextableVolunteer[]> {
@@ -176,7 +192,10 @@ export async function filterFavoritedVolunteers(
 // Exported for testing.
 export const subjectToNumberOfTexts: Partial<Record<SUBJECTS, number>> = {
   // TODO: Figure out the actual numbers and add more.
+  //     Do we just want to make this more for HIGH_LEVEL_SUBJECTS only?
   [SUBJECTS.CALCULUS_AB]: 3,
+  [SUBJECTS.STATISTICS]: 3,
+  [SUBJECTS.PHYSICS_ONE]: 3,
 }
 // Exported for testing.
 export async function selectVolunteersByPriority(
