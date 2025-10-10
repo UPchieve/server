@@ -7,7 +7,7 @@ import {
 import { RepoCreateError, RepoReadError } from '../Errors'
 import { getClient } from '../../db'
 import * as pgQueries from './pg.queries'
-import { Ulid, makeSomeOptional, makeRequired } from '../pgUtils'
+import { Ulid, makeSomeOptional, makeRequired, Uuid } from '../pgUtils'
 
 export async function getTextNotificationsByVolunteerId(
   userId: Ulid
@@ -20,6 +20,21 @@ export async function getTextNotificationsByVolunteerId(
     return result.map((v) =>
       makeSomeOptional(v, ['sentAt', 'messageId', 'wasSuccessful'])
     )
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getVolunteersNotifiedSince(
+  notifiedSince: Date,
+  method: string
+): Promise<Uuid[]> {
+  try {
+    const result = await pgQueries.getVolunteersNotifiedSince.run(
+      { notifiedSince, method },
+      getClient()
+    )
+    return result.map((v) => makeRequired(v).id)
   } catch (err) {
     throw new RepoReadError(err)
   }

@@ -1,3 +1,4 @@
+import moment from 'moment'
 import * as NotificationRepo from '../models/Notification'
 import { Ulid } from '../models/pgUtils'
 
@@ -25,4 +26,15 @@ export async function getTotalEmailsSentToUser(
 ): Promise<number> {
   const emailActivity = await getEmailNotificationsByTemplateId(data)
   return emailActivity.length
+}
+
+export async function getVolunteersTextedSince5MinutesAgo(): Promise<
+  Set<Ulid>
+> {
+  const fiveMinutesAgoDate = moment().subtract(5, 'minutes').toDate()
+  const volunteers = await NotificationRepo.getVolunteersNotifiedSince(
+    fiveMinutesAgoDate,
+    'sms'
+  )
+  return new Set(volunteers)
 }

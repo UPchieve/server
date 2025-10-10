@@ -19,6 +19,17 @@ WHERE
     AND notifications.method_id = 1;
 
 
+/* @name getVolunteersNotifiedSince */
+SELECT DISTINCT
+    user_id AS id
+FROM
+    notifications n
+    JOIN notification_methods nm ON n.method_id = nm.id
+WHERE
+    sent_at >= :notifiedSince!
+    AND method = :method!;
+
+
 /* @name getSessionNotificationsWithSessionId */
 SELECT
     notifications.id,

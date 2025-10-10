@@ -55,6 +55,41 @@ const getTextNotificationsByVolunteerIdIR: any = {"usedParamSet":{"userId":true}
 export const getTextNotificationsByVolunteerId = new PreparedQuery<IGetTextNotificationsByVolunteerIdParams,IGetTextNotificationsByVolunteerIdResult>(getTextNotificationsByVolunteerIdIR);
 
 
+/** 'GetVolunteersNotifiedSince' parameters type */
+export interface IGetVolunteersNotifiedSinceParams {
+  method: string;
+  notifiedSince: DateOrString;
+}
+
+/** 'GetVolunteersNotifiedSince' return type */
+export interface IGetVolunteersNotifiedSinceResult {
+  id: string;
+}
+
+/** 'GetVolunteersNotifiedSince' query type */
+export interface IGetVolunteersNotifiedSinceQuery {
+  params: IGetVolunteersNotifiedSinceParams;
+  result: IGetVolunteersNotifiedSinceResult;
+}
+
+const getVolunteersNotifiedSinceIR: any = {"usedParamSet":{"notifiedSince":true,"method":true},"params":[{"name":"notifiedSince","required":true,"transform":{"type":"scalar"},"locs":[{"a":136,"b":150}]},{"name":"method","required":true,"transform":{"type":"scalar"},"locs":[{"a":169,"b":176}]}],"statement":"SELECT DISTINCT\n    user_id AS id\nFROM\n    notifications n\n    JOIN notification_methods nm ON n.method_id = nm.id\nWHERE\n    sent_at >= :notifiedSince!\n    AND method = :method!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT DISTINCT
+ *     user_id AS id
+ * FROM
+ *     notifications n
+ *     JOIN notification_methods nm ON n.method_id = nm.id
+ * WHERE
+ *     sent_at >= :notifiedSince!
+ *     AND method = :method!
+ * ```
+ */
+export const getVolunteersNotifiedSince = new PreparedQuery<IGetVolunteersNotifiedSinceParams,IGetVolunteersNotifiedSinceResult>(getVolunteersNotifiedSinceIR);
+
+
 /** 'GetSessionNotificationsWithSessionId' parameters type */
 export interface IGetSessionNotificationsWithSessionIdParams {
   sessionId: string;

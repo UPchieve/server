@@ -14,6 +14,7 @@ import textVolunteers, {
 import * as AssociatedPartnerService from '../../services/AssociatedPartnerService'
 import * as CacheService from '../../cache'
 import * as FavoritingService from '../../services/FavoritingService'
+import * as NotificationService from '../../services/NotificationService'
 import * as SessionService from '../../services/SessionService'
 import * as TwilioService from '../../services/TwilioService'
 import { AssociatedPartner } from '../../models/AssociatedPartner'
@@ -22,6 +23,7 @@ import { buildTextableVolunteer } from '../mocks/generate'
 jest.mock('../../services/AssociatedPartnerService')
 jest.mock('../../cache')
 jest.mock('../../services/FavoritingService')
+jest.mock('../../services/NotificationService')
 jest.mock('../../services/SessionService')
 jest.mock('../../services/TwilioService')
 jest.mock('../../logger')
@@ -29,6 +31,7 @@ jest.mock('../../logger')
 const mockedAssociatedPartnerService = mocked(AssociatedPartnerService)
 const mockedCacheService = mocked(CacheService)
 const mockedFavoritingService = mocked(FavoritingService)
+const mockedNotificationService = mocked(NotificationService)
 const mockedSessionService = mocked(SessionService)
 const mockedTwilioService = mocked(TwilioService)
 const mockedLogger = mocked(logger)
@@ -41,6 +44,9 @@ describe('TextVolunteers job', () => {
       undefined
     )
     mockedFavoritingService.getFavoritedVolunteerIdsFromList.mockResolvedValue(
+      new Set()
+    )
+    mockedNotificationService.getVolunteersTextedSince5MinutesAgo.mockResolvedValue(
       new Set()
     )
     mockedSessionService.getVolunteersInSessions.mockResolvedValue(new Set())
@@ -437,6 +443,64 @@ describe('TextVolunteers job', () => {
       expect(result).toContainEqual(
         expect.objectContaining({ id: availableVol1.id })
       )
+    })
+
+    test('should exclude volunteers recently texted within the last 5 minutes', async () => {
+      const recentlyTextedVol = buildTextableVolunteer()
+      const availableVol1 = buildTextableVolunteer()
+      const availableVol2 = buildTextableVolunteer()
+      mockedNotificationService.getVolunteersTextedSince5MinutesAgo.mockResolvedValueOnce(
+        new Set([recentlyTextedVol.id])
+      )
+
+      const result = await selectVolunteersByPriority(SUBJECTS.ALGEBRA_ONE, [
+        {
+          name: PriorityGroupName.REGULAR,
+          volunteers: [recentlyTextedVol, availableVol1, availableVol2],
+        },
+      ])
+
+      expect(result).toHaveLength(2)
+      expect(result).not.toContainEqual(
+        expect.objectContaining({ id: recentlyTextedVol.id })
+      )
+      expect(result.some((v) => v.id === availableVol1.id)).toBe(true)
+      expect(result.some((v) => v.id === availableVol2.id)).toBe(true)
+    })
+
+    test('should exclude volunteers who are either in a session or have recently been texted', async () => {
+      const busyVol = buildTextableVolunteer()
+      const recentlyTextedVol = buildTextableVolunteer()
+      const availableVol1 = buildTextableVolunteer()
+      const availableVol2 = buildTextableVolunteer()
+      mockedSessionService.getVolunteersInSessions.mockResolvedValueOnce(
+        new Set([busyVol.id])
+      )
+      mockedNotificationService.getVolunteersTextedSince5MinutesAgo.mockResolvedValueOnce(
+        new Set([recentlyTextedVol.id])
+      )
+
+      const result = await selectVolunteersByPriority(SUBJECTS.ALGEBRA_ONE, [
+        {
+          name: PriorityGroupName.REGULAR,
+          volunteers: [
+            busyVol,
+            recentlyTextedVol,
+            availableVol1,
+            availableVol2,
+          ],
+        },
+      ])
+
+      expect(result).toHaveLength(2)
+      expect(result).not.toContainEqual(
+        expect.objectContaining({ id: busyVol.id })
+      )
+      expect(result).not.toContainEqual(
+        expect.objectContaining({ id: recentlyTextedVol.id })
+      )
+      expect(result.some((v) => v.id === availableVol1.id)).toBe(true)
+      expect(result.some((v) => v.id === availableVol2.id)).toBe(true)
     })
 
     test('should return fewer than limit when not enough volunteers available', async () => {
@@ -1009,6 +1073,74 @@ describe('TextVolunteers job', () => {
       )
     })
 
+    test('should exclude volunteers texted within the last 5 minutes', async () => {
+      const recentlyTextedVol = buildTextableVolunteer({
+        unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
+      })
+      const availableVol1 = buildTextableVolunteer({
+        unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
+      })
+      const availableVol2 = buildTextableVolunteer({
+        unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
+      })
+      mockedCacheService.getIfExists.mockResolvedValueOnce(
+        JSON.stringify([recentlyTextedVol, availableVol1, availableVol2])
+      )
+      mockedNotificationService.getVolunteersTextedSince5MinutesAgo.mockResolvedValueOnce(
+        new Set([recentlyTextedVol.id])
+      )
+      mockedTwilioService.sendTextMessage
+        .mockResolvedValueOnce('msg-id-1')
+        .mockResolvedValueOnce('msg-id-2')
+
+      const sessionId = getDbUlid()
+      const job = {
+        data: {
+          sessionId,
+          subject: SUBJECTS.ALGEBRA_ONE,
+          subjectDisplayName: 'Algebra 1',
+          topic: SUBJECT_TYPES.MATH,
+          studentId: getDbUlid(),
+        },
+      }
+
+      await textVolunteers(job as Job)
+
+      expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledTimes(2)
+      expect(mockedTwilioService.sendTextMessage).not.toHaveBeenCalledWith(
+        recentlyTextedVol.phone,
+        expect.anything()
+      )
+      expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
+        availableVol1.phone,
+        expect.stringContaining(availableVol1.firstName)
+      )
+      expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
+        availableVol2.phone,
+        expect.stringContaining(availableVol2.firstName)
+      )
+
+      expect(
+        mockedSessionService.addSessionSmsNotification
+      ).toHaveBeenCalledTimes(2)
+      expect(
+        mockedSessionService.addSessionSmsNotification
+      ).toHaveBeenCalledWith(
+        sessionId,
+        availableVol1.id,
+        'Regular volunteers',
+        expect.anything()
+      )
+      expect(
+        mockedSessionService.addSessionSmsNotification
+      ).toHaveBeenCalledWith(
+        sessionId,
+        availableVol2.id,
+        'Regular volunteers',
+        expect.anything()
+      )
+    })
+
     test('should respect subject-specific text limits (Calculus AB = 3)', async () => {
       const vol1 = buildTextableVolunteer({
         unlockedSubjects: [SUBJECTS.CALCULUS_AB],
@@ -1198,6 +1330,9 @@ describe('TextVolunteers job', () => {
       const busyVol = buildTextableVolunteer({
         unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
       })
+      const recentVol = buildTextableVolunteer({
+        unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
+      })
       const chemistryVol = buildTextableVolunteer({
         unlockedSubjects: [SUBJECTS.CHEMISTRY],
       })
@@ -1223,6 +1358,9 @@ describe('TextVolunteers job', () => {
       )
       mockedSessionService.getVolunteersInSessions.mockResolvedValueOnce(
         new Set([busyVol.id])
+      )
+      mockedNotificationService.getVolunteersTextedSince5MinutesAgo.mockResolvedValueOnce(
+        new Set([recentVol.id])
       )
       mockedTwilioService.sendTextMessage
         .mockResolvedValueOnce('msg-id-1')
