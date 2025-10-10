@@ -17,7 +17,6 @@ import { Ulid } from '../../models/pgUtils'
 import * as SessionRepo from '../../models/Session/queries'
 import { UserContactInfo, UserRole } from '../../models/User'
 import * as UserService from '../../services/UserService'
-import * as UserRolesService from '../../services/UserRolesService'
 import { captureEvent } from '../../services/AnalyticsService'
 import QueueService from '../../services/QueueService'
 import * as QuillDocService from '../../services/QuillDocService'
@@ -324,6 +323,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       await observeWebTransaction('/socket-io/message', async () => {
         try {
           const {
+            user,
             sessionId,
             message,
             source,
@@ -332,7 +332,6 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
             zoomMessageId,
             msgId,
           } = data
-          const user = await extractSocketUser(socket)
 
           // TODO: handle this differently?
           if (!sessionId) {
@@ -341,13 +340,12 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
 
           newrelic.addCustomAttribute('sessionId', sessionId)
 
-          // Do not allow banned users to send messages.
-          const banStatus = await UserService.getUserBanStatus(user.id)
-          if (banStatus) return
-
+          // Do not allow banned users to send DMs
+          const dbUser = await UserService.getUserContactInfo(user.id)
+          if (!dbUser) throw new Error('User is banned to send DMs')
           if (source === 'recap') {
             const { eligible, ineligibleReason } =
-              await SessionService.isRecapDmsAvailable(sessionId, user.id)
+              await SessionService.isRecapDmsAvailable(sessionId, dbUser.id)
             if (!eligible)
               throw new Error(
                 `Dropping recap message because session is not eligible for DMs Reason: ${ineligibleReason}`
@@ -393,6 +391,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
             saveMessageData
           )
 
+          const userType = dbUser.roleContext.activeRole
           const messageData: {
             contents: string
             createdAt: Date
@@ -407,8 +406,8 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
           } = {
             contents: sanitizedMessage ?? message,
             createdAt: createdAt,
-            isVolunteer: user.roleContext.isActiveRole('volunteer'),
-            userType: user.roleContext.activeRole,
+            isVolunteer: dbUser.roleContext.isActiveRole('volunteer'),
+            userType: userType,
             user: user.id,
             sessionId,
             zoomMessageId,
@@ -427,8 +426,8 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
             captureEvent(user.id, EVENTS.USER_SUBMITTED_SESSION_RECAP_DM, {
               sessionId: sessionId,
               message,
-              isVolunteer: user.roleContext.isActiveRole('volunteer'),
-              userType: user.roleContext.activeRole,
+              isVolunteer: dbUser.roleContext.isActiveRole('volunteer'),
+              userType: userType,
             })
           }
 

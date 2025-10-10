@@ -40,9 +40,7 @@ SELECT
 FROM
     users
 WHERE
-    email = :email!
-    AND deactivated IS FALSE
-    AND deleted IS FALSE;
+    email = :email!;
 
 
 /* @name getUserIdByEmail */
@@ -105,8 +103,6 @@ FROM
     LEFT JOIN user_roles ON user_roles.id = users_roles.role_id
 WHERE
     users.id = :id!
-    AND users.deactivated IS FALSE
-    AND users.deleted IS FALSE
 GROUP BY
     users.id,
     volunteer_profiles.user_id,
@@ -114,15 +110,6 @@ GROUP BY
     volunteer_partner_orgs.id,
     student_partner_orgs.id
 LIMIT 1;
-
-
-/* @name getUserBanStatus */
-SELECT
-    ban_type
-FROM
-    users
-WHERE
-    id = :id!;
 
 
 /* @name getUserByReferralCode */
@@ -144,9 +131,7 @@ SELECT
 FROM
     users
 WHERE
-    id = :id!
-    AND deactivated IS FALSE
-    AND deleted IS FALSE;
+    id = :id!;
 
 
 /* @name getUserForPassport */
@@ -159,7 +144,6 @@ FROM
     users
 WHERE
     LOWER(email) = LOWER(:email!)
-    AND deleted IS FALSE
 LIMIT 1;
 
 
@@ -170,8 +154,7 @@ SELECT
 FROM
     users
 WHERE
-    password_reset_token = :resetToken!
-    AND deleted IS FALSE;
+    password_reset_token = :resetToken!;
 
 
 /* @name deleteUser */
@@ -227,6 +210,28 @@ WHERE
     id = :userId!
 RETURNING
     id AS ok;
+
+
+/* @name insertUserIpById */
+WITH ins AS (
+INSERT INTO users_ip_addresses (id, ip_address_id, user_id, created_at, updated_at)
+        VALUES (:id!, :ipId!, :userId!, NOW(), NOW())
+    ON CONFLICT
+        DO NOTHING
+    RETURNING
+        id AS ok)
+    SELECT
+        *
+    FROM
+        ins
+    UNION
+    SELECT
+        id AS ok
+    FROM
+        users_ip_addresses
+    WHERE
+        ip_address_id = :ipId!
+            AND user_id = :userId!;
 
 
 /* @name updateUserVerifiedEmailById */
@@ -355,7 +360,6 @@ SELECT
     users.email,
     users.created_at,
     users.deactivated AS is_deactivated,
-    users.deleted AS is_deleted,
     users.test_user AS is_test_user,
     users.verified,
     users.ban_type AS ban_type,
@@ -628,8 +632,7 @@ FROM
             federated_credentials.user_id = :userId!) AS federated_credentials_agg ON TRUE
     LEFT JOIN signup_sources ON signup_sources.id = users.signup_source_id
 WHERE
-    users.id = :userId!
-    AND users.deleted IS FALSE;
+    users.id = :userId!;
 
 
 /* @name getUserToCreateSendGridContact */
@@ -816,6 +819,17 @@ INSERT INTO muted_users_subject_alerts (user_id, subject_id)
 
 
 /*
+ @name deleteUnmutedUserSubjectAlerts
+ @param mutedSubjectAlertIds -> (...)
+ */
+DELETE FROM muted_users_subject_alerts
+WHERE user_id = :userId
+    AND subject_id NOT IN :mutedSubjectAlertIds
+RETURNING
+    user_id AS ok;
+
+
+/*
  @name deleteAllUserSubjectAlerts
  */
 DELETE FROM muted_users_subject_alerts
@@ -861,7 +875,6 @@ FROM
     LEFT JOIN volunteer_partner_orgs ON volunteer_profiles.volunteer_partner_org_id = volunteer_partner_orgs.id
 WHERE
     deactivated IS FALSE
-    AND deleted IS FALSE
     AND test_user IS FALSE
     AND users.id = :userId!;
 
