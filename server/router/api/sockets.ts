@@ -435,7 +435,10 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
           io.in(socketRoom).emit('messageSend', messageData)
         } catch (error) {
           socket.emit('messageError', { sessionId: data.sessionId })
-          logger.error(error, { data }, "Failed sending a session's message")
+          logger.error(
+            { err: error, sessionId: data.sessionId },
+            "Failed sending a session's message"
+          )
         }
       })
     })

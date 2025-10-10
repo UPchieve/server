@@ -332,6 +332,40 @@ const addFavoriteVolunteerIR: any = {"usedParamSet":{"studentId":true,"volunteer
 export const addFavoriteVolunteer = new PreparedQuery<IAddFavoriteVolunteerParams,IAddFavoriteVolunteerResult>(addFavoriteVolunteerIR);
 
 
+/** 'GetFavoritedVolunteerIdsFromList' parameters type */
+export interface IGetFavoritedVolunteerIdsFromListParams {
+  studentId: string;
+  volunteerIds: stringArray;
+}
+
+/** 'GetFavoritedVolunteerIdsFromList' return type */
+export interface IGetFavoritedVolunteerIdsFromListResult {
+  volunteerId: string;
+}
+
+/** 'GetFavoritedVolunteerIdsFromList' query type */
+export interface IGetFavoritedVolunteerIdsFromListQuery {
+  params: IGetFavoritedVolunteerIdsFromListParams;
+  result: IGetFavoritedVolunteerIdsFromListResult;
+}
+
+const getFavoritedVolunteerIdsFromListIR: any = {"usedParamSet":{"studentId":true,"volunteerIds":true},"params":[{"name":"studentId","required":true,"transform":{"type":"scalar"},"locs":[{"a":84,"b":94}]},{"name":"volunteerIds","required":true,"transform":{"type":"scalar"},"locs":[{"a":124,"b":137}]}],"statement":"SELECT\n    volunteer_id\nFROM\n    student_favorite_volunteers\nWHERE\n    student_id = :studentId!\n    AND volunteer_id = ANY (:volunteerIds!)"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     volunteer_id
+ * FROM
+ *     student_favorite_volunteers
+ * WHERE
+ *     student_id = :studentId!
+ *     AND volunteer_id = ANY (:volunteerIds!)
+ * ```
+ */
+export const getFavoritedVolunteerIdsFromList = new PreparedQuery<IGetFavoritedVolunteerIdsFromListParams,IGetFavoritedVolunteerIdsFromListResult>(getFavoritedVolunteerIdsFromListIR);
+
+
 /** 'GetStudentPartnerInfoById' parameters type */
 export interface IGetStudentPartnerInfoByIdParams {
   userId: string;

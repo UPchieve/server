@@ -902,7 +902,7 @@ export async function saveMessage(
     !sessionUtils.isSessionParticipant(
       session.studentId,
       session.volunteerId,
-      asString(user._id)
+      asString(user.id)
     )
   )
     throw new Error('Only session participants are allowed to send messages')
@@ -917,7 +917,7 @@ export async function saveMessage(
   } else {
     return await SessionRepo.addMessageToSessionById(
       sessionId,
-      user._id,
+      user.id,
       message
     )
   }

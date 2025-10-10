@@ -5,6 +5,7 @@
 import {
   addStudentsToTeacherClass,
   createStudentProfile,
+  getFavoritedVolunteerIdsFromList,
   getStudentContactInfoById,
   upsertStudentProfile,
 } from '../../models/Student/queries'
@@ -12,6 +13,12 @@ import { faker } from '@faker-js/faker'
 import { CreateUserPayload } from '../../models/User'
 import { getClient } from '../../db'
 import { getDbUlid, Ulid } from '../../models/pgUtils'
+import {
+  createTestStudent,
+  createTestUser,
+  createTestVolunteer,
+} from './seed-utils'
+import { insertSingleRow } from '../db-utils'
 
 const client = getClient()
 
@@ -301,6 +308,59 @@ describe('addStudentsToTeacherClass', () => {
       [c.id]
     )
     expect(actual.rows.length).toBe(0)
+  })
+
+  describe('getFavoritedVolunteerIdsFromList', () => {
+    test("returns a list of the student's actually favorited volunteers from a list", async () => {
+      const studentId = (await createTestStudent(getClient())).user_id
+      const fav1 = (await createTestUser(getClient())).id
+      await createTestVolunteer(fav1, getClient())
+      const fav2 = (await createTestUser(getClient())).id
+      await createTestVolunteer(fav2, getClient())
+      const fav3 = (await createTestUser(getClient())).id
+      await createTestVolunteer(fav3, getClient())
+      const notFav1 = (await createTestUser(getClient())).id
+      await createTestVolunteer(notFav1, getClient())
+      const notFav2 = (await createTestUser(getClient())).id
+      await createTestVolunteer(notFav2, getClient())
+      const notFav3 = (await createTestUser(getClient())).id
+      await createTestVolunteer(notFav3, getClient())
+      const notFav4 = (await createTestUser(getClient())).id
+      await createTestVolunteer(notFav4, getClient())
+      await insertSingleRow(
+        'student_favorite_volunteers',
+        { studentId, volunteerId: fav1 },
+        getClient()
+      )
+      await insertSingleRow(
+        'student_favorite_volunteers',
+        { studentId, volunteerId: fav2 },
+        getClient()
+      )
+      await insertSingleRow(
+        'student_favorite_volunteers',
+        { studentId, volunteerId: fav3 },
+        getClient()
+      )
+
+      const result = await getFavoritedVolunteerIdsFromList(studentId, [
+        fav1,
+        fav2,
+        fav3,
+        notFav1,
+        notFav2,
+        notFav3,
+        notFav4,
+      ])
+
+      expect(result).toContain(fav1)
+      expect(result).toContain(fav2)
+      expect(result).toContain(fav3)
+      expect(result).not.toContain(notFav1)
+      expect(result).not.toContain(notFav2)
+      expect(result).not.toContain(notFav3)
+      expect(result).not.toContain(notFav4)
+    })
   })
 })
 

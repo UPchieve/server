@@ -1,5 +1,7 @@
+import { Ulid } from '../models/pgUtils'
 import * as MailService from './MailService'
 import * as UserService from './UserService'
+import * as StudentRepo from '../models/Student'
 
 export async function emailFavoritedVolunteer(
   volunteerId: string,
@@ -16,4 +18,15 @@ export async function emailFavoritedVolunteer(
     volunteer.firstName,
     student.firstName
   )
+}
+
+export async function getFavoritedVolunteerIdsFromList(
+  studentId: Ulid,
+  volunteers: { userId: Ulid }[]
+): Promise<Set<Ulid>> {
+  const favoritedIds = await StudentRepo.getFavoritedVolunteerIdsFromList(
+    studentId,
+    volunteers.map((v) => v.userId)
+  )
+  return new Set(favoritedIds)
 }
