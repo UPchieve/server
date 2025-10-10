@@ -14,6 +14,7 @@ export type stringArray = (string)[];
 /** 'AddNotification' parameters type */
 export interface IAddNotificationParams {
   id: string;
+  messageCarrierId?: string | null | void;
   method: string;
   priorityGroup: string;
   sessionId: string;
@@ -33,15 +34,16 @@ export interface IAddNotificationQuery {
   result: IAddNotificationResult;
 }
 
-const addNotificationIR: any = {"usedParamSet":{"id":true,"volunteer":true,"wasSuccessful":true,"sessionId":true,"type":true,"method":true,"priorityGroup":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":147,"b":150}]},{"name":"volunteer","required":true,"transform":{"type":"scalar"},"locs":[{"a":157,"b":167}]},{"name":"wasSuccessful","required":true,"transform":{"type":"scalar"},"locs":[{"a":278,"b":292}]},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":299,"b":309}]},{"name":"type","required":true,"transform":{"type":"scalar"},"locs":[{"a":481,"b":486}]},{"name":"method","required":true,"transform":{"type":"scalar"},"locs":[{"a":526,"b":533}]},{"name":"priorityGroup","required":true,"transform":{"type":"scalar"},"locs":[{"a":579,"b":593}]}],"statement":"INSERT INTO notifications (id, user_id, sent_at, type_id, method_id, priority_group_id, successful, session_id, created_at, updated_at)\nSELECT\n    :id!,\n    :volunteer!,\n    NOW(),\n    notification_types.id,\n    notification_methods.id,\n    notification_priority_groups.id,\n    :wasSuccessful!,\n    :sessionId!,\n    NOW(),\n    NOW()\nFROM\n    notification_types\n    JOIN notification_methods ON TRUE\n    JOIN notification_priority_groups ON TRUE\nWHERE\n    notification_types.type = :type!\n    AND notification_methods.method = :method!\n    AND notification_priority_groups.name = :priorityGroup!\nRETURNING\n    id AS ok"};
+const addNotificationIR: any = {"usedParamSet":{"id":true,"volunteer":true,"messageCarrierId":true,"wasSuccessful":true,"sessionId":true,"priorityGroup":true,"type":true,"method":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":167,"b":170}]},{"name":"volunteer","required":true,"transform":{"type":"scalar"},"locs":[{"a":177,"b":187}]},{"name":"messageCarrierId","required":false,"transform":{"type":"scalar"},"locs":[{"a":194,"b":210}]},{"name":"wasSuccessful","required":true,"transform":{"type":"scalar"},"locs":[{"a":321,"b":335}]},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":342,"b":352}]},{"name":"priorityGroup","required":true,"transform":{"type":"scalar"},"locs":[{"a":531,"b":545}]},{"name":"type","required":true,"transform":{"type":"scalar"},"locs":[{"a":588,"b":593}]},{"name":"method","required":true,"transform":{"type":"scalar"},"locs":[{"a":633,"b":640}]}],"statement":"INSERT INTO notifications (id, user_id, message_carrier_id, sent_at, type_id, method_id, priority_group_id, successful, session_id, created_at, updated_at)\nSELECT\n    :id!,\n    :volunteer!,\n    :messageCarrierId,\n    NOW(),\n    notification_types.id,\n    notification_methods.id,\n    notification_priority_groups.id,\n    :wasSuccessful!,\n    :sessionId!,\n    NOW(),\n    NOW()\nFROM\n    notification_types\n    JOIN notification_methods ON TRUE\n    LEFT JOIN notification_priority_groups ON notification_priority_groups.name = NULLIF(:priorityGroup!, '')\nWHERE\n    notification_types.type = :type!\n    AND notification_methods.method = :method!\nRETURNING\n    id AS ok"};
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO notifications (id, user_id, sent_at, type_id, method_id, priority_group_id, successful, session_id, created_at, updated_at)
+ * INSERT INTO notifications (id, user_id, message_carrier_id, sent_at, type_id, method_id, priority_group_id, successful, session_id, created_at, updated_at)
  * SELECT
  *     :id!,
  *     :volunteer!,
+ *     :messageCarrierId,
  *     NOW(),
  *     notification_types.id,
  *     notification_methods.id,
@@ -53,11 +55,10 @@ const addNotificationIR: any = {"usedParamSet":{"id":true,"volunteer":true,"wasS
  * FROM
  *     notification_types
  *     JOIN notification_methods ON TRUE
- *     JOIN notification_priority_groups ON TRUE
+ *     LEFT JOIN notification_priority_groups ON notification_priority_groups.name = NULLIF(:priorityGroup!, '')
  * WHERE
  *     notification_types.type = :type!
  *     AND notification_methods.method = :method!
- *     AND notification_priority_groups.name = :priorityGroup!
  * RETURNING
  *     id AS ok
  * ```

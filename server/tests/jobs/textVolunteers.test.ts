@@ -7,7 +7,9 @@ import textVolunteers, {
   filterFavoritedVolunteers,
   filterPartnerVolunteers,
   filterSubjectEligibleVolunteers,
+  PriorityGroupName,
   selectVolunteersByPriority,
+  sendTextMessages,
 } from '../../worker/jobs/textVolunteers'
 import * as AssociatedPartnerService from '../../services/AssociatedPartnerService'
 import * as CacheService from '../../cache'
@@ -224,19 +226,18 @@ describe('TextVolunteers job', () => {
         'school-id'
       )
 
-      expect(result).toHaveLength(2)
-      expect(result).toContainEqual(
+      expect(result?.volunteers).toHaveLength(2)
+      expect(result?.volunteers).toContainEqual(
         expect.objectContaining({
           id: partnerVolunteer1.id,
-          studentOrgDisplay: 'Example Partner School',
         })
       )
-      expect(result).toContainEqual(
+      expect(result?.volunteers).toContainEqual(
         expect.objectContaining({
           id: partnerVolunteer2.id,
-          studentOrgDisplay: 'Example Partner School',
         })
       )
+      expect(result?.studentOrgDisplay).toBe('Example Partner School')
     })
 
     test('should return undefined when no associated partner exists', async () => {
@@ -277,7 +278,7 @@ describe('TextVolunteers job', () => {
         'school-id'
       )
 
-      expect(result).toHaveLength(0)
+      expect(result?.volunteers).toHaveLength(0)
     })
 
     test('should handle volunteers without partner org key', async () => {
@@ -301,9 +302,9 @@ describe('TextVolunteers job', () => {
         'school-id'
       )
 
-      expect(result).toHaveLength(1)
-      expect(result?.[0].id).toBe(partnerVolunteer.id)
-      expect(result?.[0].studentOrgDisplay).toBe('Example Partner School')
+      expect(result?.volunteers).toHaveLength(1)
+      expect(result?.volunteers[0].id).toBe(partnerVolunteer.id)
+      expect(result?.studentOrgDisplay).toBe('Example Partner School')
     })
   })
 
@@ -315,12 +316,14 @@ describe('TextVolunteers job', () => {
       const partnerVol = buildTextableVolunteer()
       const regularVol = buildTextableVolunteer()
 
-      const result = await selectVolunteersByPriority(
-        SUBJECTS.ALGEBRA_ONE,
-        [favoritedVol1, favoritedVol2, favoritedVol3],
-        [partnerVol],
-        [regularVol]
-      )
+      const result = await selectVolunteersByPriority(SUBJECTS.ALGEBRA_ONE, [
+        {
+          name: PriorityGroupName.FAVORITED,
+          volunteers: [favoritedVol1, favoritedVol2, favoritedVol3],
+        },
+        { name: PriorityGroupName.PARTNER, volunteers: [partnerVol] },
+        { name: PriorityGroupName.REGULAR, volunteers: [regularVol] },
+      ])
 
       expect(result).toHaveLength(2)
       expect(
@@ -339,12 +342,14 @@ describe('TextVolunteers job', () => {
       const partnerVol2 = buildTextableVolunteer()
       const regularVol = buildTextableVolunteer()
 
-      const result = await selectVolunteersByPriority(
-        SUBJECTS.ALGEBRA_ONE,
-        [favoritedVol],
-        [partnerVol1, partnerVol2],
-        [regularVol]
-      )
+      const result = await selectVolunteersByPriority(SUBJECTS.ALGEBRA_ONE, [
+        { name: PriorityGroupName.FAVORITED, volunteers: [favoritedVol] },
+        {
+          name: PriorityGroupName.PARTNER,
+          volunteers: [partnerVol1, partnerVol2],
+        },
+        { name: PriorityGroupName.REGULAR, volunteers: [regularVol] },
+      ])
 
       expect(result).toHaveLength(2)
       expect(result[0].id).toBe(favoritedVol.id)
@@ -358,12 +363,14 @@ describe('TextVolunteers job', () => {
       const regularVol1 = buildTextableVolunteer()
       const regularVol2 = buildTextableVolunteer()
 
-      const result = await selectVolunteersByPriority(
-        SUBJECTS.ALGEBRA_ONE,
-        [favoritedVol],
-        [],
-        [regularVol1, regularVol2]
-      )
+      const result = await selectVolunteersByPriority(SUBJECTS.ALGEBRA_ONE, [
+        { name: PriorityGroupName.FAVORITED, volunteers: [favoritedVol] },
+        { name: PriorityGroupName.PARTNER, volunteers: [] },
+        {
+          name: PriorityGroupName.REGULAR,
+          volunteers: [regularVol1, regularVol2],
+        },
+      ])
 
       expect(result).toHaveLength(2)
       expect(result[0].id).toBe(favoritedVol.id)
@@ -378,12 +385,14 @@ describe('TextVolunteers job', () => {
       const vol3 = buildTextableVolunteer()
       const vol4 = buildTextableVolunteer()
 
-      const result = await selectVolunteersByPriority(
-        SUBJECTS.CALCULUS_AB,
-        [],
-        [],
-        [vol1, vol2, vol3, vol4]
-      )
+      const result = await selectVolunteersByPriority(SUBJECTS.CALCULUS_AB, [
+        { name: PriorityGroupName.FAVORITED, volunteers: [] },
+        { name: PriorityGroupName.PARTNER, volunteers: [] },
+        {
+          name: PriorityGroupName.REGULAR,
+          volunteers: [vol1, vol2, vol3, vol4],
+        },
+      ])
 
       expect(result).toHaveLength(3)
     })
@@ -394,12 +403,14 @@ describe('TextVolunteers job', () => {
       const vol3 = buildTextableVolunteer()
       const vol4 = buildTextableVolunteer()
 
-      const result = await selectVolunteersByPriority(
-        SUBJECTS.GEOMETRY,
-        [],
-        [],
-        [vol1, vol2, vol3, vol4]
-      )
+      const result = await selectVolunteersByPriority(SUBJECTS.GEOMETRY, [
+        { name: PriorityGroupName.FAVORITED, volunteers: [] },
+        { name: PriorityGroupName.PARTNER, volunteers: [] },
+        {
+          name: PriorityGroupName.REGULAR,
+          volunteers: [vol1, vol2, vol3, vol4],
+        },
+      ])
 
       expect(result).toHaveLength(2)
     })
@@ -412,12 +423,12 @@ describe('TextVolunteers job', () => {
         new Set([busyVol.id])
       )
 
-      const result = await selectVolunteersByPriority(
-        SUBJECTS.ALGEBRA_ONE,
-        [],
-        [],
-        [busyVol, availableVol1]
-      )
+      const result = await selectVolunteersByPriority(SUBJECTS.ALGEBRA_ONE, [
+        {
+          name: PriorityGroupName.REGULAR,
+          volunteers: [busyVol, availableVol1],
+        },
+      ])
 
       expect(result).toHaveLength(1)
       expect(result).not.toContainEqual(
@@ -431,24 +442,22 @@ describe('TextVolunteers job', () => {
     test('should return fewer than limit when not enough volunteers available', async () => {
       const vol1 = buildTextableVolunteer()
 
-      const result = await selectVolunteersByPriority(
-        SUBJECTS.ALGEBRA_ONE,
-        [],
-        [],
-        [vol1]
-      )
+      const result = await selectVolunteersByPriority(SUBJECTS.ALGEBRA_ONE, [
+        { name: PriorityGroupName.FAVORITED, volunteers: [] },
+        { name: PriorityGroupName.PARTNER, volunteers: [] },
+        { name: PriorityGroupName.REGULAR, volunteers: [vol1] },
+      ])
 
       expect(result).toHaveLength(1)
       expect(result[0].id).toBe(vol1.id)
     })
 
     test('should return empty array when no volunteers available', async () => {
-      const result = await selectVolunteersByPriority(
-        SUBJECTS.ALGEBRA_ONE,
-        [],
-        [],
-        []
-      )
+      const result = await selectVolunteersByPriority(SUBJECTS.ALGEBRA_ONE, [
+        { name: PriorityGroupName.FAVORITED, volunteers: [] },
+        { name: PriorityGroupName.PARTNER, volunteers: [] },
+        { name: PriorityGroupName.REGULAR, volunteers: [] },
+      ])
 
       expect(result).toHaveLength(0)
     })
@@ -459,12 +468,14 @@ describe('TextVolunteers job', () => {
       const regularVol1 = buildTextableVolunteer()
       const regularVol2 = buildTextableVolunteer()
 
-      const result = await selectVolunteersByPriority(
-        SUBJECTS.CALCULUS_AB,
-        [favoritedVol],
-        [partnerVol],
-        [regularVol1, regularVol2]
-      )
+      const result = await selectVolunteersByPriority(SUBJECTS.CALCULUS_AB, [
+        { name: PriorityGroupName.FAVORITED, volunteers: [favoritedVol] },
+        { name: PriorityGroupName.PARTNER, volunteers: [partnerVol] },
+        {
+          name: PriorityGroupName.REGULAR,
+          volunteers: [regularVol1, regularVol2],
+        },
+      ])
 
       expect(result).toHaveLength(3)
       expect(result[0].id).toBe(favoritedVol.id)
@@ -477,15 +488,185 @@ describe('TextVolunteers job', () => {
     test('should deduplicate volunteers appearing in multiple priority groups', async () => {
       const partnerVol = buildTextableVolunteer()
 
-      const result = await selectVolunteersByPriority(
-        SUBJECTS.ALGEBRA_ONE,
-        [],
-        [partnerVol],
-        [partnerVol]
-      )
+      const result = await selectVolunteersByPriority(SUBJECTS.ALGEBRA_ONE, [
+        { name: PriorityGroupName.FAVORITED, volunteers: [] },
+        { name: PriorityGroupName.PARTNER, volunteers: [partnerVol] },
+        { name: PriorityGroupName.REGULAR, volunteers: [partnerVol] },
+      ])
 
       expect(result).toHaveLength(1)
       expect(result[0].id).toBe(partnerVol.id)
+    })
+  })
+
+  describe('sendTextMessages', () => {
+    test('should send text messages to all volunteers', async () => {
+      const volunteer1 = buildTextableVolunteer({
+        firstName: 'Alice',
+      })
+      const volunteer2 = buildTextableVolunteer({
+        firstName: 'Bob',
+      })
+
+      mockedTwilioService.sendTextMessage.mockResolvedValueOnce('msg-id-1')
+      mockedTwilioService.sendTextMessage.mockResolvedValueOnce('msg-id-2')
+
+      await sendTextMessages([volunteer1, volunteer2], {
+        sessionId: getDbUlid(),
+        subject: SUBJECTS.ALGEBRA_ONE,
+        subjectDisplayName: 'Algebra 1',
+        topic: SUBJECT_TYPES.MATH,
+      })
+
+      expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledTimes(2)
+      expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
+        volunteer1.phone,
+        expect.stringContaining('Hi Alice')
+      )
+      expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
+        volunteer2.phone,
+        expect.stringContaining('Hi Bob')
+      )
+    })
+
+    test('should add session notification for each volunteer with message carrier ID', async () => {
+      const volunteer1 = buildTextableVolunteer({
+        priorityGroupName: 'Favorited volunteers',
+      })
+      const volunteer2 = buildTextableVolunteer({
+        priorityGroupName: 'Associated partner volunteers',
+      })
+      const sessionId = getDbUlid()
+
+      mockedTwilioService.sendTextMessage.mockResolvedValueOnce('msg-id-a')
+      mockedTwilioService.sendTextMessage.mockResolvedValueOnce('msg-id-b')
+
+      await sendTextMessages([volunteer1, volunteer2], {
+        sessionId,
+        subject: SUBJECTS.ALGEBRA_ONE,
+        subjectDisplayName: 'Algebra 1',
+        topic: SUBJECT_TYPES.MATH,
+      })
+
+      expect(
+        mockedSessionService.addSessionSmsNotification
+      ).toHaveBeenCalledTimes(2)
+      expect(
+        mockedSessionService.addSessionSmsNotification
+      ).toHaveBeenCalledWith(
+        sessionId,
+        volunteer1.id,
+        'Favorited volunteers',
+        'msg-id-a'
+      )
+      expect(
+        mockedSessionService.addSessionSmsNotification
+      ).toHaveBeenCalledWith(
+        sessionId,
+        volunteer2.id,
+        'Associated partner volunteers',
+        'msg-id-b'
+      )
+    })
+
+    test('should include student org display in message when provided', async () => {
+      const volunteer = buildTextableVolunteer({
+        firstName: 'Persephone',
+        priorityGroupName: 'Associated partner volunteers',
+      })
+
+      mockedTwilioService.sendTextMessage.mockResolvedValueOnce('msg-id')
+
+      await sendTextMessages(
+        [volunteer],
+        {
+          sessionId: getDbUlid(),
+          subject: SUBJECTS.ALGEBRA_ONE,
+          subjectDisplayName: 'Algebra 1',
+          topic: SUBJECT_TYPES.MATH,
+        },
+        'Example School'
+      )
+
+      expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
+        volunteer.phone,
+        expect.stringContaining('Hi Persephone')
+      )
+      expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
+        volunteer.phone,
+        expect.stringContaining('an Example School student needs help')
+      )
+    })
+
+    test('should use generic "a student" when no student org display', async () => {
+      const volunteer = buildTextableVolunteer({
+        firstName: 'Hades',
+      })
+
+      mockedTwilioService.sendTextMessage.mockResolvedValueOnce('msg-id')
+
+      await sendTextMessages([volunteer], {
+        sessionId: getDbUlid(),
+        subject: SUBJECTS.ALGEBRA_ONE,
+        subjectDisplayName: 'Algebra 1',
+        topic: SUBJECT_TYPES.MATH,
+      })
+
+      expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
+        volunteer.phone,
+        expect.stringContaining('a student needs help')
+      )
+      expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
+        volunteer.phone,
+        expect.stringContaining('Hi Hades')
+      )
+    })
+
+    test('should use correct article ("an") for org names starting with vowels', async () => {
+      const volunteer = buildTextableVolunteer({
+        firstName: 'Hercules',
+        priorityGroupName: 'Associated partner volunteers',
+      })
+
+      mockedTwilioService.sendTextMessage.mockResolvedValueOnce('msg-id')
+
+      await sendTextMessages(
+        [volunteer],
+        {
+          sessionId: getDbUlid(),
+          subject: SUBJECTS.ALGEBRA_ONE,
+          subjectDisplayName: 'Algebra 1',
+          topic: SUBJECT_TYPES.MATH,
+        },
+        'Awesome School'
+      )
+
+      expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
+        volunteer.phone,
+        expect.stringContaining('Hi Hercules')
+      )
+      expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
+        volunteer.phone,
+        expect.stringContaining('an Awesome School student')
+      )
+    })
+
+    test('should handle failed message sending (undefined message carrier ID)', async () => {
+      const volunteer = buildTextableVolunteer()
+      const sessionId = getDbUlid()
+
+      mockedTwilioService.sendTextMessage.mockResolvedValueOnce(undefined)
+
+      await sendTextMessages([volunteer], {
+        sessionId,
+        subject: SUBJECTS.ALGEBRA_ONE,
+        subjectDisplayName: 'Algebra 1',
+        topic: SUBJECT_TYPES.MATH,
+      })
+
+      expect(
+        mockedSessionService.addSessionSmsNotification
+      ).toHaveBeenCalledWith(sessionId, volunteer.id, undefined, undefined)
     })
   })
 
@@ -507,7 +688,7 @@ describe('TextVolunteers job', () => {
       })
 
       mockedCacheService.getIfExists.mockResolvedValueOnce(
-        JSON.stringify([favoritedVol, partnerVol, regularVol1, regularVol2])
+        JSON.stringify([regularVol1, regularVol2, favoritedVol, partnerVol])
       )
       mockedFavoritingService.getFavoritedVolunteerIdsFromList.mockResolvedValueOnce(
         new Set([favoritedVol.id])
@@ -518,10 +699,14 @@ describe('TextVolunteers job', () => {
           studentOrgDisplay: 'Example School',
         } as AssociatedPartner
       )
+      mockedTwilioService.sendTextMessage
+        .mockResolvedValueOnce('msg-id-1')
+        .mockResolvedValueOnce('msg-id-2')
 
+      const sessionId = getDbUlid()
       const job = {
         data: {
-          sessionId: getDbUlid(),
+          sessionId,
           subject: SUBJECTS.ALGEBRA_ONE,
           subjectDisplayName: 'Algebra 1',
           topic: SUBJECT_TYPES.MATH,
@@ -535,12 +720,39 @@ describe('TextVolunteers job', () => {
       expect(mockedTwilioService.sendTextMessage).toHaveBeenNthCalledWith(
         1,
         favoritedVol.phone,
-        expect.anything()
+        expect.stringContaining(favoritedVol.firstName)
       )
       expect(mockedTwilioService.sendTextMessage).toHaveBeenNthCalledWith(
         2,
         partnerVol.phone,
-        expect.anything()
+        expect.stringContaining(partnerVol.firstName)
+      )
+      expect(mockedTwilioService.sendTextMessage).toHaveBeenNthCalledWith(
+        2,
+        partnerVol.phone,
+        expect.stringContaining('Example School')
+      )
+
+      expect(
+        mockedSessionService.addSessionSmsNotification
+      ).toHaveBeenCalledTimes(2)
+      expect(
+        mockedSessionService.addSessionSmsNotification
+      ).toHaveBeenNthCalledWith(
+        1,
+        sessionId,
+        favoritedVol.id,
+        'Favorited volunteers',
+        'msg-id-1'
+      )
+      expect(
+        mockedSessionService.addSessionSmsNotification
+      ).toHaveBeenNthCalledWith(
+        2,
+        sessionId,
+        partnerVol.id,
+        'Associated partner volunteers',
+        'msg-id-2'
       )
     })
 
@@ -558,10 +770,12 @@ describe('TextVolunteers job', () => {
       mockedCacheService.getIfExists.mockResolvedValueOnce(
         JSON.stringify([algebraVol, chemistryVol, geometryVol])
       )
+      mockedTwilioService.sendTextMessage.mockResolvedValueOnce('msg-id')
 
+      const sessionId = getDbUlid()
       const job = {
         data: {
-          sessionId: getDbUlid(),
+          sessionId,
           subject: SUBJECTS.ALGEBRA_ONE,
           subjectDisplayName: 'Algebra 1',
           topic: SUBJECT_TYPES.MATH,
@@ -574,7 +788,19 @@ describe('TextVolunteers job', () => {
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledTimes(1)
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
         algebraVol.phone,
-        expect.anything()
+        expect.stringContaining(algebraVol.firstName)
+      )
+
+      expect(
+        mockedSessionService.addSessionSmsNotification
+      ).toHaveBeenCalledTimes(1)
+      expect(
+        mockedSessionService.addSessionSmsNotification
+      ).toHaveBeenCalledWith(
+        sessionId,
+        algebraVol.id,
+        'Regular volunteers',
+        'msg-id'
       )
     })
 
@@ -592,10 +818,14 @@ describe('TextVolunteers job', () => {
       mockedCacheService.getIfExists.mockResolvedValueOnce(
         JSON.stringify([highLevelVol, regularVol1, regularVol2])
       )
+      mockedTwilioService.sendTextMessage
+        .mockResolvedValueOnce('msg-id-1')
+        .mockResolvedValueOnce('msg-id-2')
 
+      const sessionId = getDbUlid()
       const job = {
         data: {
-          sessionId: getDbUlid(),
+          sessionId,
           subject: SUBJECTS.ALGEBRA_ONE,
           subjectDisplayName: 'Algebra 1',
           topic: SUBJECT_TYPES.MATH,
@@ -612,10 +842,29 @@ describe('TextVolunteers job', () => {
       )
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
         regularVol1.phone,
-        expect.anything()
+        expect.stringContaining(regularVol1.firstName)
       )
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
         regularVol2.phone,
+        expect.stringContaining(regularVol2.firstName)
+      )
+      expect(
+        mockedSessionService.addSessionSmsNotification
+      ).toHaveBeenCalledTimes(2)
+      expect(
+        mockedSessionService.addSessionSmsNotification
+      ).toHaveBeenCalledWith(
+        sessionId,
+        regularVol1.id,
+        'Regular volunteers',
+        expect.anything()
+      )
+      expect(
+        mockedSessionService.addSessionSmsNotification
+      ).toHaveBeenCalledWith(
+        sessionId,
+        regularVol2.id,
+        'Regular volunteers',
         expect.anything()
       )
     })
@@ -635,10 +884,14 @@ describe('TextVolunteers job', () => {
       mockedCacheService.getIfExists.mockResolvedValueOnce(
         JSON.stringify([mutedVol, availableVol1, availableVol2])
       )
+      mockedTwilioService.sendTextMessage
+        .mockResolvedValueOnce('msg-id-1')
+        .mockResolvedValueOnce('msg-id-2')
 
+      const sessionId = getDbUlid()
       const job = {
         data: {
-          sessionId: getDbUlid(),
+          sessionId,
           subject: SUBJECTS.ALGEBRA_ONE,
           subjectDisplayName: 'Algebra 1',
           topic: SUBJECT_TYPES.MATH,
@@ -651,6 +904,38 @@ describe('TextVolunteers job', () => {
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledTimes(2)
       expect(mockedTwilioService.sendTextMessage).not.toHaveBeenCalledWith(
         mutedVol.phone,
+        expect.anything()
+      )
+      expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
+        availableVol1.phone,
+        expect.stringContaining(availableVol1.firstName)
+      )
+      expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
+        availableVol2.phone,
+        expect.stringContaining(availableVol2.firstName)
+      )
+
+      expect(
+        mockedSessionService.addSessionSmsNotification
+      ).toHaveBeenCalledTimes(2)
+
+      expect(
+        mockedSessionService.addSessionSmsNotification
+      ).toHaveBeenCalledTimes(2)
+      expect(
+        mockedSessionService.addSessionSmsNotification
+      ).toHaveBeenCalledWith(
+        sessionId,
+        availableVol1.id,
+        'Regular volunteers',
+        expect.anything()
+      )
+      expect(
+        mockedSessionService.addSessionSmsNotification
+      ).toHaveBeenCalledWith(
+        sessionId,
+        availableVol2.id,
+        'Regular volunteers',
         expect.anything()
       )
     })
@@ -672,10 +957,14 @@ describe('TextVolunteers job', () => {
       mockedSessionService.getVolunteersInSessions.mockResolvedValueOnce(
         new Set([busyVol.id])
       )
+      mockedTwilioService.sendTextMessage
+        .mockResolvedValueOnce('msg-id-1')
+        .mockResolvedValueOnce('msg-id-2')
 
+      const sessionId = getDbUlid()
       const job = {
         data: {
-          sessionId: getDbUlid(),
+          sessionId,
           subject: SUBJECTS.ALGEBRA_ONE,
           subjectDisplayName: 'Algebra 1',
           topic: SUBJECT_TYPES.MATH,
@@ -692,10 +981,30 @@ describe('TextVolunteers job', () => {
       )
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
         availableVol1.phone,
-        expect.anything()
+        expect.stringContaining(availableVol1.firstName)
       )
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
         availableVol2.phone,
+        expect.stringContaining(availableVol2.firstName)
+      )
+
+      expect(
+        mockedSessionService.addSessionSmsNotification
+      ).toHaveBeenCalledTimes(2)
+      expect(
+        mockedSessionService.addSessionSmsNotification
+      ).toHaveBeenCalledWith(
+        sessionId,
+        availableVol1.id,
+        'Regular volunteers',
+        expect.anything()
+      )
+      expect(
+        mockedSessionService.addSessionSmsNotification
+      ).toHaveBeenCalledWith(
+        sessionId,
+        availableVol2.id,
+        'Regular volunteers',
         expect.anything()
       )
     })
@@ -717,10 +1026,15 @@ describe('TextVolunteers job', () => {
       mockedCacheService.getIfExists.mockResolvedValueOnce(
         JSON.stringify([vol1, vol2, vol3, vol4])
       )
+      mockedTwilioService.sendTextMessage
+        .mockResolvedValueOnce('msg-id-1')
+        .mockResolvedValueOnce('msg-id-2')
+        .mockResolvedValueOnce('msg-id-3')
 
+      const sessionId = getDbUlid()
       const job = {
         data: {
-          sessionId: getDbUlid(),
+          sessionId,
           subject: SUBJECTS.CALCULUS_AB,
           subjectDisplayName: 'Calculus AB',
           topic: SUBJECT_TYPES.MATH,
@@ -730,6 +1044,10 @@ describe('TextVolunteers job', () => {
       await textVolunteers(job as Job)
 
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledTimes(3)
+
+      expect(
+        mockedSessionService.addSessionSmsNotification
+      ).toHaveBeenCalledTimes(3)
     })
 
     test('should include student org display in message when partner exists', async () => {
@@ -747,10 +1065,12 @@ describe('TextVolunteers job', () => {
           studentOrgDisplay: 'Example School',
         } as AssociatedPartner
       )
+      mockedTwilioService.sendTextMessage.mockResolvedValueOnce('msg-id')
 
+      const sessionId = getDbUlid()
       const job = {
         data: {
-          sessionId: getDbUlid(),
+          sessionId,
           subject: SUBJECTS.ALGEBRA_ONE,
           subjectDisplayName: 'Algebra 1',
           topic: SUBJECT_TYPES.MATH,
@@ -763,11 +1083,27 @@ describe('TextVolunteers job', () => {
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledTimes(1)
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
         volunteer.phone,
+        expect.stringContaining(volunteer.firstName)
+      )
+      expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
+        volunteer.phone,
         expect.stringContaining('Example School student')
       )
       expect(mockedTwilioService.sendTextMessage).not.toHaveBeenCalledWith(
         volunteer.phone,
         expect.stringContaining('a student needs help')
+      )
+
+      expect(
+        mockedSessionService.addSessionSmsNotification
+      ).toHaveBeenCalledTimes(1)
+      expect(
+        mockedSessionService.addSessionSmsNotification
+      ).toHaveBeenCalledWith(
+        sessionId,
+        volunteer.id,
+        'Associated partner volunteers',
+        'msg-id'
       )
     })
 
@@ -779,10 +1115,12 @@ describe('TextVolunteers job', () => {
       mockedCacheService.getIfExists.mockResolvedValueOnce(
         JSON.stringify([volunteer])
       )
+      mockedTwilioService.sendTextMessage.mockResolvedValueOnce('msg-id')
 
+      const sessionId = getDbUlid()
       const job = {
         data: {
-          sessionId: getDbUlid(),
+          sessionId,
           subject: SUBJECTS.ALGEBRA_ONE,
           subjectDisplayName: 'Algebra 1',
           topic: SUBJECT_TYPES.MATH,
@@ -793,7 +1131,23 @@ describe('TextVolunteers job', () => {
 
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
         volunteer.phone,
+        expect.stringContaining(volunteer.firstName)
+      )
+      expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
+        volunteer.phone,
         expect.stringContaining('a student needs help')
+      )
+
+      expect(
+        mockedSessionService.addSessionSmsNotification
+      ).toHaveBeenCalledTimes(1)
+      expect(
+        mockedSessionService.addSessionSmsNotification
+      ).toHaveBeenCalledWith(
+        sessionId,
+        volunteer.id,
+        'Regular volunteers',
+        'msg-id'
       )
     })
 
@@ -870,10 +1224,14 @@ describe('TextVolunteers job', () => {
       mockedSessionService.getVolunteersInSessions.mockResolvedValueOnce(
         new Set([busyVol.id])
       )
+      mockedTwilioService.sendTextMessage
+        .mockResolvedValueOnce('msg-id-1')
+        .mockResolvedValueOnce('msg-id-2')
 
+      const sessionId = getDbUlid()
       const job = {
         data: {
-          sessionId: getDbUlid(),
+          sessionId,
           subject: SUBJECTS.ALGEBRA_ONE,
           subjectDisplayName: 'Algebra 1',
           topic: SUBJECT_TYPES.MATH,
@@ -887,6 +1245,11 @@ describe('TextVolunteers job', () => {
       expect(mockedTwilioService.sendTextMessage).toHaveBeenNthCalledWith(
         1,
         favoritedVol.phone,
+        expect.stringContaining(favoritedVol.firstName)
+      )
+      expect(mockedTwilioService.sendTextMessage).toHaveBeenNthCalledWith(
+        1,
+        favoritedVol.phone,
         expect.stringContaining('a student needs help')
       )
       expect(mockedTwilioService.sendTextMessage).not.toHaveBeenNthCalledWith(
@@ -897,12 +1260,39 @@ describe('TextVolunteers job', () => {
       expect(mockedTwilioService.sendTextMessage).toHaveBeenNthCalledWith(
         2,
         partnerVol.phone,
+        expect.stringContaining(partnerVol.firstName)
+      )
+      expect(mockedTwilioService.sendTextMessage).toHaveBeenNthCalledWith(
+        2,
+        partnerVol.phone,
         expect.stringContaining('Example School student')
       )
       expect(mockedTwilioService.sendTextMessage).not.toHaveBeenNthCalledWith(
         2,
         partnerVol.phone,
         expect.stringContaining('a student needs help')
+      )
+
+      expect(
+        mockedSessionService.addSessionSmsNotification
+      ).toHaveBeenCalledTimes(2)
+      expect(
+        mockedSessionService.addSessionSmsNotification
+      ).toHaveBeenNthCalledWith(
+        1,
+        sessionId,
+        favoritedVol.id,
+        'Favorited volunteers',
+        'msg-id-1'
+      )
+      expect(
+        mockedSessionService.addSessionSmsNotification
+      ).toHaveBeenNthCalledWith(
+        2,
+        sessionId,
+        partnerVol.id,
+        'Associated partner volunteers',
+        'msg-id-2'
       )
     })
   })

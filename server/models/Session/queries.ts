@@ -67,6 +67,7 @@ export async function addSessionNotification(
     const result = await pgQueries.addNotification.run(
       {
         ...notification,
+        messageCarrierId: notification.messageId,
         sessionId,
         id: getDbUlid(),
       },

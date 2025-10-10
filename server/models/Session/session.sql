@@ -1,10 +1,11 @@
 /*
  @name addNotification
  */
-INSERT INTO notifications (id, user_id, sent_at, type_id, method_id, priority_group_id, successful, session_id, created_at, updated_at)
+INSERT INTO notifications (id, user_id, message_carrier_id, sent_at, type_id, method_id, priority_group_id, successful, session_id, created_at, updated_at)
 SELECT
     :id!,
     :volunteer!,
+    :messageCarrierId,
     NOW(),
     notification_types.id,
     notification_methods.id,
@@ -16,11 +17,10 @@ SELECT
 FROM
     notification_types
     JOIN notification_methods ON TRUE
-    JOIN notification_priority_groups ON TRUE
+    LEFT JOIN notification_priority_groups ON notification_priority_groups.name = NULLIF (:priorityGroup!, '')
 WHERE
     notification_types.type = :type!
     AND notification_methods.method = :method!
-    AND notification_priority_groups.name = :priorityGroup!
 RETURNING
     id AS ok;
 
