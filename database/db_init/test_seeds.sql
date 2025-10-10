@@ -6037,6 +6037,9 @@ COPY upchieve.notification_priority_groups (id, name, priority, created_at, upda
 17	Favorite volunteers - not notified in the last 15 mins	10	2024-08-28 00:28:44.087159+00	2024-08-28 00:28:44.087159+00
 18	Associated partner volunteers - not notified in the last 24 hours AND they don't have "high level subjects"	85	2024-08-28 00:28:44.101139+00	2024-08-28 00:28:44.101139+00
 19	Associated partner volunteers - not notified in the last 3 days AND they don't have "high level subjects"	95	2024-08-28 00:28:44.101139+00	2024-08-28 00:28:44.101139+00
+20	Favorite volunteers	10	2025-10-10 19:23:22.32625+00	2025-10-10 19:23:22.32625+00
+21	Associated partner volunteers	20	2025-10-10 19:23:22.32625+00	2025-10-10 19:23:22.32625+00
+22	Regular volunteers	30	2025-10-10 19:23:22.32625+00	2025-10-10 19:23:22.32625+00
 \.
 
 
@@ -8694,7 +8697,7 @@ SELECT pg_catalog.setval('upchieve.notification_methods_id_seq', 4, true);
 -- Name: notification_priority_groups_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.notification_priority_groups_id_seq', 19, true);
+SELECT pg_catalog.setval('upchieve.notification_priority_groups_id_seq', 22, true);
 
 
 --
