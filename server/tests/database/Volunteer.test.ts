@@ -698,6 +698,8 @@ describe('VolunteerRepo', () => {
       await loadVolunteer({ approved: false })
       // No SMS consent
       await loadVolunteer({ smsConsent: false })
+      // Deleted
+      await loadVolunteer({ deleted: true })
 
       const actual = await getVolunteersForTextNotifications(client)
       // There should only be 2 volunteers returned.
@@ -789,6 +791,12 @@ const loadVolunteer = async (opts = {}): Promise<CreatedVolunteer> => {
     options.smsConsent,
     res.id,
   ])
+  if (options.deleted) {
+    await client.query('UPDATE users SET deleted = $1 where id = $2', [
+      options.deleted,
+      res.id,
+    ])
+  }
   if (options.onboarded) await updateVolunteerOnboarded(res.id, client)
   if (options.certificationSubjects) {
     for (let subj of options.certificationSubjects) {

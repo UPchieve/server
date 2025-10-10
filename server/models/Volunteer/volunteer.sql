@@ -1679,8 +1679,9 @@ WHERE (u.ban_type IS NULL
     OR (u.ban_type <> 'complete'::ban_types
         AND u.ban_type <> 'shadow'::ban_types))
 AND u.deactivated IS FALSE
-AND u.test_user IS FALSE
+AND u.deleted IS FALSE
 AND u.sms_consent IS TRUE
+AND u.test_user IS FALSE
 AND vp.onboarded IS TRUE
 AND vp.approved IS TRUE
 AND TRIM(BOTH FROM to_char(NOW() at time zone 'America/New_York', 'Day')) = weekdays.day
