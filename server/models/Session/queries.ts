@@ -1505,3 +1505,11 @@ export async function getUniqueStudentsHelpedCount(
     throw new RepoReadError(err)
   }
 }
+
+export async function isSessionFulfilled(sessionId: Uuid): Promise<boolean> {
+  const result = await pgQueries.isSessionFulfilled.run(
+    { sessionId },
+    getClient()
+  )
+  return makeRequired(result[0]).isFulfilled
+}

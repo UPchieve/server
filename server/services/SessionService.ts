@@ -1276,3 +1276,7 @@ export async function markSessionForReview(
     await updateSessionReviewReasonsById(sessionId, sessionFlags, false, tc)
   }, tc)
 }
+
+export async function isSessionFulfilled(sessionId: Uuid): Promise<boolean> {
+  return SessionRepo.isSessionFulfilled(sessionId)
+}

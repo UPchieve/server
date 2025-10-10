@@ -10,12 +10,12 @@ import {
 } from '../mocks/generate'
 import { getClient } from '../../db'
 import {
-  getFilteredSessionHistory,
   getFilteredSessionHistoryTotalCount,
   getLatestSession,
   getMessagesForFrontend,
   getSessionTranscriptItems,
   isEligibleForSessionRecap,
+  isSessionFulfilled,
   updateSessionFlagsById,
   updateSessionReviewReasonsById,
   updateSessionToEnd,
@@ -36,7 +36,7 @@ describe('Session repo', () => {
         const timeTutored = 100000
         const endedAt = new Date()
         const createdAt = moment().subtract(1, 'hours').toDate()
-        for (const i in range(0, 5)) {
+        for (const _ in range(0, 5)) {
           const sessionRow = await buildSessionRow({
             studentId,
             volunteerId,
@@ -699,6 +699,56 @@ describe('Session repo', () => {
         dbClient
       )
       expect(await getResult()).toEqual(true)
+    })
+  })
+
+  describe('isSessionFulfilled', () => {
+    test('returns false if the session has not ended and has no volunteer', async () => {
+      const session = await buildSessionRow({
+        studentId,
+        endedAt: undefined,
+        volunteerJoinedAt: undefined,
+      })
+      await insertSingleRow('sessions', session, getClient())
+
+      const result = await isSessionFulfilled(session.id)
+      expect(result).toBe(false)
+    })
+
+    test('returns true if the session has ended', async () => {
+      const session = await buildSessionRow({
+        studentId,
+        endedAt: new Date(),
+        volunteerJoinedAt: undefined,
+      })
+      await insertSingleRow('sessions', session, getClient())
+
+      const result = await isSessionFulfilled(session.id)
+      expect(result).toBe(true)
+    })
+
+    test('returns true if a volunteer has joined', async () => {
+      const session = await buildSessionRow({
+        studentId,
+        endedAt: undefined,
+        volunteerJoinedAt: new Date(),
+      })
+      await insertSingleRow('sessions', session, getClient())
+
+      const result = await isSessionFulfilled(session.id)
+      expect(result).toBe(true)
+    })
+
+    test('returns true if session has ended and a volunteer has joined', async () => {
+      const session = await buildSessionRow({
+        studentId,
+        endedAt: new Date(),
+        volunteerJoinedAt: new Date(),
+      })
+      await insertSingleRow('sessions', session, getClient())
+
+      const result = await isSessionFulfilled(session.id)
+      expect(result).toBe(true)
     })
   })
 })
