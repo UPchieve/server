@@ -3,7 +3,7 @@ import * as VolunteerService from '../../services/VolunteerService'
 import { TextableVolunteer } from '../../models/Volunteer'
 import logger from '../../logger'
 
-const CACHE_KEY = 'VOLUNTEERS-FOR-TEXT-NOTIFICATIONS'
+export const TEXTABLE_VOLUNTEERS_CACHE_KEY = 'VOLUNTEERS-FOR-TEXT-NOTIFICATIONS'
 const LOG_PREFIX = 'Caching textable volunteers: '
 export default async (): Promise<void> => {
   const textableVolunteers: TextableVolunteer[] =
@@ -13,9 +13,14 @@ export default async (): Promise<void> => {
   )
 
   await saveToCache(textableVolunteers)
-  logger.info(`${LOG_PREFIX}Saved volunteers to cache.`)
+  logger.info(
+    `${LOG_PREFIX}Saved ${textableVolunteers.length} volunteers to cache.`
+  )
 }
 
 async function saveToCache(volunteers: TextableVolunteer[]) {
-  await CacheService.save(CACHE_KEY, JSON.stringify(volunteers))
+  await CacheService.save(
+    TEXTABLE_VOLUNTEERS_CACHE_KEY,
+    JSON.stringify(volunteers)
+  )
 }

@@ -46,6 +46,7 @@ import {
   ProgressReportSummaryRow,
 } from '../../models/ProgressReports/'
 import {
+  TextableVolunteer,
   UserQuiz,
   UserTrainingCourse,
   VolunteersForAnalyticsReport,
@@ -239,6 +240,18 @@ export function buildVolunteer(
     phone: getPhoneNumber(),
     roles: ['volunteer'] as UserRole[],
     smsConsent: true,
+    ...overrides,
+  }
+}
+
+export function buildTextableVolunteer(
+  overrides: Partial<TextableVolunteer> = {}
+): TextableVolunteer {
+  return {
+    id: getDbUlid(),
+    firstName: faker.person.firstName(),
+    mutedSubjects: [],
+    unlockedSubjects: ['prealgebra', 'algebraOne'],
     ...overrides,
   }
 }
