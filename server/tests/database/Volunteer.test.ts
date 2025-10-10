@@ -16,6 +16,7 @@ import {
   getNextVolunteerToNotify,
   getVolunteerContactInfoById,
   getVolunteerForOnboardingById,
+  getVolunteersForTextNotifications,
   updateVolunteerForAdmin,
   updateVolunteerOnboarded,
   updateVolunteerTrainingById,
@@ -678,6 +679,50 @@ describe('VolunteerRepo', () => {
     })
   })
 
+  describe('getVolunteersForTextNotifications', () => {
+    const TEST_VPO_KEY = 'big-telecom'
+
+    it('Returns volunteers matching the criteria', async () => {
+      const eligibleVolunteer = await loadVolunteer()
+      const eligiblePartnerVolunteer = await loadVolunteer({
+        partner: TEST_VPO_KEY,
+      })
+      // Ineligible volunteers:
+      // No availability
+      await loadVolunteer({ withFullAvailability: false })
+      // Banned
+      await loadVolunteer({ banType: 'complete' })
+      // Deactivated
+      await loadVolunteer({ deactivated: true })
+      // Not approved
+      await loadVolunteer({ approved: false })
+      // No SMS consent
+      await loadVolunteer({ smsConsent: false })
+      // Deleted
+      await loadVolunteer({ deleted: true })
+
+      const actual = await getVolunteersForTextNotifications()
+      // There should only be 2 volunteers returned.
+      expect(actual.map((vol) => vol.id)).toEqual([
+        eligibleVolunteer.id,
+        eligiblePartnerVolunteer.id,
+      ])
+
+      // Non-partner volunteer
+      expect(actual[0].unlockedSubjects).toEqual(['prealgebra'])
+      expect(actual[0].volunteerPartnerOrgKey).toBeUndefined()
+
+      // Partner volunteer
+      expect(actual[1].unlockedSubjects).toEqual(['prealgebra'])
+      expect(actual[1].volunteerPartnerOrgKey).toEqual(TEST_VPO_KEY)
+    })
+
+    // @TODO: This test could technically be flaky if it runs on the cusp of an hour. There might be a way we could mock the time in postgres.
+    it.todo(
+      'Only returns volunteers with availability that includes this current hour'
+    )
+  })
+
   describe('createVolunteer', () => {
     it('Defaults sms_consent to true', async () => {
       const result = await createVolunteer({
@@ -734,6 +779,7 @@ const loadVolunteer = async (opts = {}): Promise<CreatedVolunteer> => {
     withFullAvailability: true,
     partner: undefined,
     banType: undefined,
+    smsConsent: true,
     ...opts,
   }
   const v = generateVolunteer()
@@ -741,6 +787,16 @@ const loadVolunteer = async (opts = {}): Promise<CreatedVolunteer> => {
     v.volunteerPartnerOrg = options.partner as string
   }
   const res = await createVolunteer(v)
+  await client.query('UPDATE users SET sms_consent = $1 where id = $2', [
+    options.smsConsent,
+    res.id,
+  ])
+  if (options.deleted) {
+    await client.query('UPDATE users SET deleted = $1 where id = $2', [
+      options.deleted,
+      res.id,
+    ])
+  }
   if (options.onboarded) await updateVolunteerOnboarded(res.id, client)
   if (options.certificationSubjects) {
     for (let subj of options.certificationSubjects) {

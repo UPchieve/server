@@ -1651,3 +1651,40 @@ GROUP BY
     vp.onboarded,
     vp.approved;
 
+
+/* @name getVolunteersForTextNotificationsInTheCurrentHour */
+SELECT DISTINCT ON (u.id)
+    u.id,
+    u.phone,
+    u.first_name,
+    vpo.key AS volunteer_partner_org_key,
+    muted_subject_alerts.muted_subject_names AS muted_subjects,
+    unlocked_subjects.unlocked_subjects
+FROM
+    users u
+    JOIN volunteer_profiles vp ON vp.user_id = u.id
+    LEFT JOIN volunteer_partner_orgs vpo ON vpo.id = vp.volunteer_partner_org_id
+    JOIN availabilities a ON a.user_id = u.id
+    JOIN weekdays ON weekdays.id = a.weekday_id
+    LEFT JOIN LATERAL (
+        SELECT
+            COALESCE(array_agg(s.name), '{}') AS muted_subject_names
+        FROM
+            muted_users_subject_alerts muted_subjects
+            JOIN subjects s ON s.id = muted_subjects.subject_id
+        WHERE
+            muted_subjects.user_id = u.id) AS muted_subject_alerts ON TRUE
+    JOIN users_unlocked_subjects_mview unlocked_subjects ON unlocked_subjects.user_id = u.id
+WHERE (u.ban_type IS NULL
+    OR (u.ban_type <> 'complete'::ban_types
+        AND u.ban_type <> 'shadow'::ban_types))
+AND u.deactivated IS FALSE
+AND u.deleted IS FALSE
+AND u.sms_consent IS TRUE
+AND u.test_user IS FALSE
+AND vp.onboarded IS TRUE
+AND vp.approved IS TRUE
+AND TRIM(BOTH FROM to_char(NOW() at time zone 'America/New_York', 'Day')) = weekdays.day
+AND extract(hour FROM (NOW() at time zone 'America/New_York')) >= a.available_start
+AND extract(hour FROM (NOW() at time zone 'America/New_York')) < a.available_end;
+

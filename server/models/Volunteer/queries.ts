@@ -21,6 +21,7 @@ import { getAvailabilityForVolunteer } from '../Availability'
 import {
   Quizzes,
   Sponsorship,
+  TextableVolunteer,
   UserTrainingCourse,
   VolunteersForAnalyticsReport,
   VolunteerSubject,
@@ -1778,6 +1779,23 @@ export async function getVolunteersForOnboardingBackfill(
         tc
       )
     return rawResults.map((row) => makeRequired(row))
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getVolunteersForTextNotifications(): Promise<
+  TextableVolunteer[]
+> {
+  try {
+    const rawResults =
+      await pgQueries.getVolunteersForTextNotificationsInTheCurrentHour.run(
+        undefined,
+        getRoClient()
+      )
+    return rawResults.map((row) =>
+      makeSomeOptional(row, ['volunteerPartnerOrgKey'])
+    )
   } catch (err) {
     throw new RepoReadError(err)
   }

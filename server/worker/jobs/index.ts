@@ -67,6 +67,7 @@ import emailAmbassadorCongrats from './emailAmbassadorCongrats'
 import backfillOnboardedStatus from './backfillOnboardedStatus'
 import { logRedisKeyMemStats } from './logRedisKeyMemStats'
 import { clearBullJobByStatus } from './clearBullJobsByStatus'
+import updateCachedVolunteersForTextNotifications from './updateCachedVolunteersForTextNotifications'
 import backfillSessionEndedTasks from '../../scripts/backfill-sessionEndedTasks'
 
 export enum Jobs {
@@ -153,6 +154,7 @@ export enum Jobs {
   UpsertPostalCodes = 'UpsertPostalCodes',
   UpsertSchools = 'UpsertSchools',
   BackfillOnboardedStatus = 'BackfillOnboardedStatus',
+  UpdateCachedVolunteersForTextNotifications = 'UpdateCachedVolunteersForTextNotifications',
 }
 
 // register new job processors here
@@ -470,6 +472,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.BackfillOnboardedStatus,
     processor: backfillOnboardedStatus,
+  },
+  {
+    name: Jobs.UpdateCachedVolunteersForTextNotifications,
+    processor: updateCachedVolunteersForTextNotifications,
   },
 ]
 

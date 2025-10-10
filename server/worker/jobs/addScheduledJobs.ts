@@ -63,6 +63,10 @@ export default async function addScheduledJobs() {
       name: Jobs.UpdateGradeLevel,
       options: { repeat: { cron: '0 8 1 8 *', tz: 'America/New_York' } }, // On August 1st at 8am ET
     },
+    {
+      name: Jobs.UpdateCachedVolunteersForTextNotifications,
+      options: { repeat: { cron: '0 * * * *', tz: 'America/New_York' } }, // Every hour at minute 0
+    },
   ]
 
   const repeatableJobs = await QueueService.queue.getRepeatableJobs()
