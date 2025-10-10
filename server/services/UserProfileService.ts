@@ -1,4 +1,8 @@
-import { updateUserProfileById, updateSubjectAlerts } from '../models/User'
+import {
+  updateUserProfileById,
+  updateSubjectAlerts,
+  updateSmsConsentForPhoneNumber,
+} from '../models/User'
 import { UserContactInfo, EditUserProfilePayload } from '../models/User/types'
 import { runInTransaction, TransactionClient } from '../db'
 import { createAccountAction } from '../models/UserAction'
@@ -43,4 +47,9 @@ export async function updateUserSmsConsent(
 ) {
   return updateUserProfileById(userId, { smsConsent: hasGivenConsent })
 }
+
+export async function optOutSmsConsentForPhoneNumber(phoneNumber: string) {
+  return updateSmsConsentForPhoneNumber(phoneNumber, false)
+}
+
 //TODO move other user profile related code here

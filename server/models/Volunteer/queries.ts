@@ -21,6 +21,7 @@ import { getAvailabilityForVolunteer } from '../Availability'
 import {
   Quizzes,
   Sponsorship,
+  TextableVolunteer,
   UserTrainingCourse,
   VolunteersForAnalyticsReport,
   VolunteerSubject,
@@ -1154,10 +1155,11 @@ export type CreatedVolunteer = Omit<VolunteerContactInfo, 'roleContext'> & {
   createdAt: Date
   isVolunteer: boolean
   isAdmin: boolean
+  smsConsent: boolean
+  userType: UserRole
   banType?: USER_BAN_TYPES
   signupSourceId?: number
   otherSignupSource?: string
-  userType: UserRole
 }
 
 export async function createVolunteerProfile(
@@ -1232,6 +1234,7 @@ export async function createVolunteer(
         ...volunteerData,
         signupSourceId: volunteerData.signupSourceId,
         otherSignupSource: volunteerData.otherSignupSource,
+        smsConsent: true,
       },
       client
     )
@@ -1776,6 +1779,23 @@ export async function getVolunteersForOnboardingBackfill(
         tc
       )
     return rawResults.map((row) => makeRequired(row))
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getVolunteersForTextNotifications(): Promise<
+  TextableVolunteer[]
+> {
+  try {
+    const rawResults =
+      await pgQueries.getVolunteersForTextNotificationsInTheCurrentHour.run(
+        undefined,
+        getRoClient()
+      )
+    return rawResults.map((row) =>
+      makeSomeOptional(row, ['volunteerPartnerOrgKey'])
+    )
   } catch (err) {
     throw new RepoReadError(err)
   }

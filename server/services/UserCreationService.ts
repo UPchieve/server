@@ -318,6 +318,7 @@ export async function registerVolunteer(
     signupSourceId: data.signupSourceId,
     otherSignupSource: data.otherSignupSource,
     verified: useFedCred(data),
+    smsConsent: true,
   }
   const newVolunteer = await runInTransaction(async (tc: TransactionClient) => {
     const user = await createUser(userData, data.ip, USER_ROLES.VOLUNTEER, tc)

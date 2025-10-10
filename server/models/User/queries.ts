@@ -61,6 +61,7 @@ export async function createUser(
         referredBy: user.referredBy,
         signupSourceId: user.signupSourceId,
         verified: user.verified ?? false,
+        smsConsent: user.smsConsent ?? false,
       },
       tc
     )
@@ -660,6 +661,24 @@ export async function updateUserProfileById(
     )
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
+    throw new RepoUpdateError(err)
+  }
+}
+
+export async function updateSmsConsentForPhoneNumber(
+  phoneNumber: string,
+  smsConsent: boolean,
+  tc = getClient()
+) {
+  try {
+    await pgQueries.updateSmsConsentForPhoneNumber.run(
+      {
+        phoneNumber,
+        smsConsent,
+      },
+      tc
+    )
+  } catch (err) {
     throw new RepoUpdateError(err)
   }
 }
