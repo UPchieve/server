@@ -61,6 +61,7 @@ export async function createUser(
         referredBy: user.referredBy,
         signupSourceId: user.signupSourceId,
         verified: user.verified ?? false,
+        smsConsent: user.smsConsent ?? false,
       },
       tc
     )

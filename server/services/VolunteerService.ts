@@ -15,7 +15,7 @@ import QueueService from './QueueService'
 import { getTimeTutoredForDateRange } from './SessionService'
 import { getQuizzesPassedForDateRangeById } from '../models/UserAction'
 import { TransactionClient } from '../db'
-import { Sponsorship } from '../models/Volunteer'
+import { Sponsorship, TextableVolunteer } from '../models/Volunteer'
 import * as cache from '../cache'
 import { getSubjectsWithTopic } from './SubjectsService'
 import { countReferredUsers } from './UserService'
@@ -389,4 +389,10 @@ export async function queueNationalTutorCertificateEmail(
   await QueueService.add(Jobs.SendNationalTutorCertificateEmail, {
     volunteerId,
   })
+}
+
+export async function getVolunteersForTextNotifications(): Promise<
+  TextableVolunteer[]
+> {
+  return await VolunteerRepo.getVolunteersForTextNotifications()
 }

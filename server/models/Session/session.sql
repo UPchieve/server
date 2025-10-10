@@ -808,6 +808,7 @@ WHERE (sessions.id::uuid = :sessionId
 AND (session_flags.name IS NULL
     OR NOT session_flags.name = ANY ('{"Absent student", "Absent volunteer", "Low coach rating from student", "Low session rating from student" }'))
 AND users.deactivated IS FALSE
+AND users.deleted IS FALSE
 AND users.test_user IS FALSE;
 
 
@@ -826,6 +827,7 @@ WHERE (sessions.id::uuid = :sessionId
 AND (session_flags.name IS NULL
     OR NOT session_flags.name = ANY ('{"Absent student", "Absent volunteer", "Low coach rating from student", "Low session rating from student" }'))
 AND users.deactivated IS FALSE
+AND users.deleted IS FALSE
 AND users.test_user IS FALSE;
 
 

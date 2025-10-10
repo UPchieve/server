@@ -67,6 +67,10 @@ export default async function addScheduledJobs() {
       name: Jobs.RedisKeyMemStats,
       options: { repeat: { cron: '0 5 * * *', tz: 'America/New_York' } }, // each day at 5am
     },
+    {
+      name: Jobs.UpdateCachedVolunteersForTextNotifications,
+      options: { repeat: { cron: '0 * * * *', tz: 'America/New_York' } }, // Every hour at minute 0
+    },
   ]
 
   const repeatableJobs = await QueueService.queue.getRepeatableJobs()

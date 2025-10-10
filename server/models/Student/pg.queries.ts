@@ -7,54 +7,9 @@ export type DateOrString = Date | string;
 
 export type stringArray = (string)[];
 
-/** 'GetGatesStudentById' parameters type */
-export interface IGetGatesStudentByIdParams {
-  userId: string;
-}
-
-/** 'GetGatesStudentById' return type */
-export interface IGetGatesStudentByIdResult {
-  approvedHighschool: string | null;
-  currentGrade: string | null;
-  id: string;
-  isPartnerSchool: boolean;
-  studentPartnerOrg: string;
-}
-
-/** 'GetGatesStudentById' query type */
-export interface IGetGatesStudentByIdQuery {
-  params: IGetGatesStudentByIdParams;
-  result: IGetGatesStudentByIdResult;
-}
-
-const getGatesStudentByIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":661,"b":668}]}],"statement":"SELECT\n    student_profiles.user_id AS id,\n    COALESCE(cgl.current_grade_name, grade_levels.name) AS current_grade,\n    student_partner_orgs.name AS student_partner_org,\n    schools.partner AS is_partner_school,\n    student_profiles.school_id AS approved_highschool\nFROM\n    student_profiles\n    LEFT JOIN student_partner_orgs ON student_profiles.student_partner_org_id = student_partner_orgs.id\n    JOIN grade_levels ON student_profiles.grade_level_id = grade_levels.id\n    LEFT JOIN current_grade_levels_mview cgl ON cgl.user_id = student_profiles.user_id\n    LEFT JOIN schools ON student_profiles.school_id = schools.id\nWHERE\n    student_profiles.user_id = :userId!"};
-
-/**
- * Query generated from SQL:
- * ```
- * SELECT
- *     student_profiles.user_id AS id,
- *     COALESCE(cgl.current_grade_name, grade_levels.name) AS current_grade,
- *     student_partner_orgs.name AS student_partner_org,
- *     schools.partner AS is_partner_school,
- *     student_profiles.school_id AS approved_highschool
- * FROM
- *     student_profiles
- *     LEFT JOIN student_partner_orgs ON student_profiles.student_partner_org_id = student_partner_orgs.id
- *     JOIN grade_levels ON student_profiles.grade_level_id = grade_levels.id
- *     LEFT JOIN current_grade_levels_mview cgl ON cgl.user_id = student_profiles.user_id
- *     LEFT JOIN schools ON student_profiles.school_id = schools.id
- * WHERE
- *     student_profiles.user_id = :userId!
- * ```
- */
-export const getGatesStudentById = new PreparedQuery<IGetGatesStudentByIdParams,IGetGatesStudentByIdResult>(getGatesStudentByIdIR);
-
-
 /** 'GetStudentContactInfoById' parameters type */
 export interface IGetStudentContactInfoByIdParams {
-  mongoUserId?: string | null | void;
-  userId?: string | null | void;
+  userId: string;
 }
 
 /** 'GetStudentContactInfoById' return type */
@@ -72,7 +27,7 @@ export interface IGetStudentContactInfoByIdQuery {
   result: IGetStudentContactInfoByIdResult;
 }
 
-const getStudentContactInfoByIdIR: any = {"usedParamSet":{"userId":true,"mongoUserId":true},"params":[{"name":"userId","required":false,"transform":{"type":"scalar"},"locs":[{"a":450,"b":456}]},{"name":"mongoUserId","required":false,"transform":{"type":"scalar"},"locs":[{"a":492,"b":503}]}],"statement":"SELECT\n    users.id,\n    first_name,\n    email,\n    student_partner_orgs.key AS student_partner_org,\n    student_profiles.school_id\nFROM\n    users\n    LEFT JOIN student_profiles ON student_profiles.user_id = users.id\n    LEFT JOIN student_partner_orgs ON student_partner_orgs.id = student_profiles.student_partner_org_id\nWHERE\n    ban_type IS DISTINCT FROM 'complete'\n    AND deactivated IS FALSE\n    AND test_user IS FALSE\n    AND (users.id::uuid = :userId\n        OR users.mongo_id::text = :mongoUserId)"};
+const getStudentContactInfoByIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":468,"b":475}]}],"statement":"SELECT\n    users.id,\n    first_name,\n    email,\n    student_partner_orgs.key AS student_partner_org,\n    student_profiles.school_id\nFROM\n    users\n    LEFT JOIN student_profiles ON student_profiles.user_id = users.id\n    LEFT JOIN student_partner_orgs ON student_partner_orgs.id = student_profiles.student_partner_org_id\nWHERE\n    ban_type IS DISTINCT FROM 'complete'\n    AND deactivated IS FALSE\n    AND deleted IS FALSE\n    AND test_user IS FALSE\n    AND users.id = :userId!"};
 
 /**
  * Query generated from SQL:
@@ -90,9 +45,9 @@ const getStudentContactInfoByIdIR: any = {"usedParamSet":{"userId":true,"mongoUs
  * WHERE
  *     ban_type IS DISTINCT FROM 'complete'
  *     AND deactivated IS FALSE
+ *     AND deleted IS FALSE
  *     AND test_user IS FALSE
- *     AND (users.id::uuid = :userId
- *         OR users.mongo_id::text = :mongoUserId)
+ *     AND users.id = :userId!
  * ```
  */
 export const getStudentContactInfoById = new PreparedQuery<IGetStudentContactInfoByIdParams,IGetStudentContactInfoByIdResult>(getStudentContactInfoByIdIR);
@@ -915,133 +870,6 @@ const upsertStudentProfileIR: any = {"usedParamSet":{"userId":true,"postalCode":
 export const upsertStudentProfile = new PreparedQuery<IUpsertStudentProfileParams,IUpsertStudentProfileResult>(upsertStudentProfileIR);
 
 
-/** 'CreateUserStudentPartnerOrgInstance' parameters type */
-export interface ICreateUserStudentPartnerOrgInstanceParams {
-  spoName: string;
-  spoSiteName?: string | null | void;
-  userId: string;
-}
-
-/** 'CreateUserStudentPartnerOrgInstance' return type */
-export interface ICreateUserStudentPartnerOrgInstanceResult {
-  ok: string | null;
-}
-
-/** 'CreateUserStudentPartnerOrgInstance' query type */
-export interface ICreateUserStudentPartnerOrgInstanceQuery {
-  params: ICreateUserStudentPartnerOrgInstanceParams;
-  result: ICreateUserStudentPartnerOrgInstanceResult;
-}
-
-const createUserStudentPartnerOrgInstanceIR: any = {"usedParamSet":{"userId":true,"spoSiteName":true,"spoName":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":147,"b":154}]},{"name":"spoSiteName","required":false,"transform":{"type":"scalar"},"locs":[{"a":184,"b":195},{"a":458,"b":469},{"a":498,"b":509}]},{"name":"spoName","required":true,"transform":{"type":"scalar"},"locs":[{"a":438,"b":446}]}],"statement":"INSERT INTO users_student_partner_orgs_instances (user_id, student_partner_org_id, student_partner_org_site_id, created_at, updated_at)\nSELECT\n    :userId!,\n    spo.id,\n    CASE WHEN (:spoSiteName)::text IS NOT NULL THEN\n        sposite.id\n    ELSE\n        NULL\n    END,\n    NOW(),\n    NOW()\nFROM\n    student_partner_orgs spo\n    LEFT JOIN student_partner_org_sites sposite ON sposite.student_partner_org_id = spo.id\nWHERE\n    spo.name = :spoName!\n    AND ((:spoSiteName)::text IS NULL\n        OR (:spoSiteName)::text = sposite.name)\nLIMIT 1\nRETURNING\n    user_id AS ok"};
-
-/**
- * Query generated from SQL:
- * ```
- * INSERT INTO users_student_partner_orgs_instances (user_id, student_partner_org_id, student_partner_org_site_id, created_at, updated_at)
- * SELECT
- *     :userId!,
- *     spo.id,
- *     CASE WHEN (:spoSiteName)::text IS NOT NULL THEN
- *         sposite.id
- *     ELSE
- *         NULL
- *     END,
- *     NOW(),
- *     NOW()
- * FROM
- *     student_partner_orgs spo
- *     LEFT JOIN student_partner_org_sites sposite ON sposite.student_partner_org_id = spo.id
- * WHERE
- *     spo.name = :spoName!
- *     AND ((:spoSiteName)::text IS NULL
- *         OR (:spoSiteName)::text = sposite.name)
- * LIMIT 1
- * RETURNING
- *     user_id AS ok
- * ```
- */
-export const createUserStudentPartnerOrgInstance = new PreparedQuery<ICreateUserStudentPartnerOrgInstanceParams,ICreateUserStudentPartnerOrgInstanceResult>(createUserStudentPartnerOrgInstanceIR);
-
-
-/** 'CreateUserStudentPartnerOrgInstanceWithSchoolId' parameters type */
-export interface ICreateUserStudentPartnerOrgInstanceWithSchoolIdParams {
-  schoolId: string;
-  userId: string;
-}
-
-/** 'CreateUserStudentPartnerOrgInstanceWithSchoolId' return type */
-export interface ICreateUserStudentPartnerOrgInstanceWithSchoolIdResult {
-  ok: string | null;
-}
-
-/** 'CreateUserStudentPartnerOrgInstanceWithSchoolId' query type */
-export interface ICreateUserStudentPartnerOrgInstanceWithSchoolIdQuery {
-  params: ICreateUserStudentPartnerOrgInstanceWithSchoolIdParams;
-  result: ICreateUserStudentPartnerOrgInstanceWithSchoolIdResult;
-}
-
-const createUserStudentPartnerOrgInstanceWithSchoolIdIR: any = {"usedParamSet":{"userId":true,"schoolId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":147,"b":154}]},{"name":"schoolId","required":true,"transform":{"type":"scalar"},"locs":[{"a":260,"b":269}]}],"statement":"INSERT INTO users_student_partner_orgs_instances (user_id, student_partner_org_id, student_partner_org_site_id, created_at, updated_at)\nSELECT\n    :userId!,\n    spo.id,\n    NULL,\n    NOW(),\n    NOW()\nFROM\n    student_partner_orgs spo\nWHERE\n    spo.school_id = :schoolId!\nRETURNING\n    user_id AS ok"};
-
-/**
- * Query generated from SQL:
- * ```
- * INSERT INTO users_student_partner_orgs_instances (user_id, student_partner_org_id, student_partner_org_site_id, created_at, updated_at)
- * SELECT
- *     :userId!,
- *     spo.id,
- *     NULL,
- *     NOW(),
- *     NOW()
- * FROM
- *     student_partner_orgs spo
- * WHERE
- *     spo.school_id = :schoolId!
- * RETURNING
- *     user_id AS ok
- * ```
- */
-export const createUserStudentPartnerOrgInstanceWithSchoolId = new PreparedQuery<ICreateUserStudentPartnerOrgInstanceWithSchoolIdParams,ICreateUserStudentPartnerOrgInstanceWithSchoolIdResult>(createUserStudentPartnerOrgInstanceWithSchoolIdIR);
-
-
-/** 'GetActiveStudentOrgInstance' parameters type */
-export interface IGetActiveStudentOrgInstanceParams {
-  spoId: string;
-  studentId: string;
-}
-
-/** 'GetActiveStudentOrgInstance' return type */
-export interface IGetActiveStudentOrgInstanceResult {
-  id: string;
-  name: string;
-}
-
-/** 'GetActiveStudentOrgInstance' query type */
-export interface IGetActiveStudentOrgInstanceQuery {
-  params: IGetActiveStudentOrgInstanceParams;
-  result: IGetActiveStudentOrgInstanceResult;
-}
-
-const getActiveStudentOrgInstanceIR: any = {"usedParamSet":{"studentId":true,"spoId":true},"params":[{"name":"studentId","required":true,"transform":{"type":"scalar"},"locs":[{"a":185,"b":195}]},{"name":"spoId","required":true,"transform":{"type":"scalar"},"locs":[{"a":236,"b":242}]}],"statement":"SELECT\n    spo.name,\n    spo.id\nFROM\n    users_student_partner_orgs_instances uspoi\n    JOIN student_partner_orgs spo ON spo.id = uspoi.student_partner_org_id\nWHERE\n    uspoi.user_id = :studentId!\n    AND uspoi.student_partner_org_id = :spoId!\n    AND deactivated_on IS NULL"};
-
-/**
- * Query generated from SQL:
- * ```
- * SELECT
- *     spo.name,
- *     spo.id
- * FROM
- *     users_student_partner_orgs_instances uspoi
- *     JOIN student_partner_orgs spo ON spo.id = uspoi.student_partner_org_id
- * WHERE
- *     uspoi.user_id = :studentId!
- *     AND uspoi.student_partner_org_id = :spoId!
- *     AND deactivated_on IS NULL
- * ```
- */
-export const getActiveStudentOrgInstance = new PreparedQuery<IGetActiveStudentOrgInstanceParams,IGetActiveStudentOrgInstanceResult>(getActiveStudentOrgInstanceIR);
-
-
 /** 'GetSessionReport' parameters type */
 export interface IGetSessionReportParams {
   end: DateOrString;
@@ -1425,44 +1253,6 @@ const updateStudentSchoolIR: any = {"usedParamSet":{"schoolId":true,"userId":tru
 export const updateStudentSchool = new PreparedQuery<IUpdateStudentSchoolParams,IUpdateStudentSchoolResult>(updateStudentSchoolIR);
 
 
-/** 'GetActivePartnersForStudent' parameters type */
-export interface IGetActivePartnersForStudentParams {
-  studentId: string;
-}
-
-/** 'GetActivePartnersForStudent' return type */
-export interface IGetActivePartnersForStudentResult {
-  id: string;
-  name: string;
-  schoolId: string | null;
-}
-
-/** 'GetActivePartnersForStudent' query type */
-export interface IGetActivePartnersForStudentQuery {
-  params: IGetActivePartnersForStudentParams;
-  result: IGetActivePartnersForStudentResult;
-}
-
-const getActivePartnersForStudentIR: any = {"usedParamSet":{"studentId":true},"params":[{"name":"studentId","required":true,"transform":{"type":"scalar"},"locs":[{"a":204,"b":214}]}],"statement":"SELECT\n    spo.name,\n    spo.id,\n    spo.school_id\nFROM\n    users_student_partner_orgs_instances uspoi\n    JOIN student_partner_orgs spo ON spo.id = uspoi.student_partner_org_id\nWHERE\n    uspoi.user_id = :studentId!\n    AND deactivated_on IS NOT NULL"};
-
-/**
- * Query generated from SQL:
- * ```
- * SELECT
- *     spo.name,
- *     spo.id,
- *     spo.school_id
- * FROM
- *     users_student_partner_orgs_instances uspoi
- *     JOIN student_partner_orgs spo ON spo.id = uspoi.student_partner_org_id
- * WHERE
- *     uspoi.user_id = :studentId!
- *     AND deactivated_on IS NOT NULL
- * ```
- */
-export const getActivePartnersForStudent = new PreparedQuery<IGetActivePartnersForStudentParams,IGetActivePartnersForStudentResult>(getActivePartnersForStudentIR);
-
-
 /** 'GetStudentsIdsForGradeLevelSgUpdate' parameters type */
 export type IGetStudentsIdsForGradeLevelSgUpdateParams = void;
 
@@ -1477,7 +1267,7 @@ export interface IGetStudentsIdsForGradeLevelSgUpdateQuery {
   result: IGetStudentsIdsForGradeLevelSgUpdateResult;
 }
 
-const getStudentsIdsForGradeLevelSgUpdateIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    sp.user_id\nFROM\n    student_profiles sp\n    JOIN current_grade_levels_mview cgl ON cgl.user_id = sp.user_id\nORDER BY\n    sp.created_at DESC"};
+const getStudentsIdsForGradeLevelSgUpdateIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    sp.user_id\nFROM\n    student_profiles sp\n    JOIN current_grade_levels_mview cgl ON cgl.user_id = sp.user_id\n    JOIN users u ON u.id = sp.user_id\nWHERE\n    u.deactivated IS FALSE\n    AND u.deleted IS FALSE\nORDER BY\n    sp.created_at DESC"};
 
 /**
  * Query generated from SQL:
@@ -1487,6 +1277,10 @@ const getStudentsIdsForGradeLevelSgUpdateIR: any = {"usedParamSet":{},"params":[
  * FROM
  *     student_profiles sp
  *     JOIN current_grade_levels_mview cgl ON cgl.user_id = sp.user_id
+ *     JOIN users u ON u.id = sp.user_id
+ * WHERE
+ *     u.deactivated IS FALSE
+ *     AND u.deleted IS FALSE
  * ORDER BY
  *     sp.created_at DESC
  * ```

@@ -12,8 +12,8 @@ ORDER BY
 
 
 /* @name createUser */
-INSERT INTO users (id, first_name, last_name, email, proxy_email, phone, PASSWORD, password_reset_token, verified, email_verified, phone_verified, referred_by, referral_code, signup_source_id, other_signup_source, last_activity_at)
-    VALUES (:id!, :firstName!, :lastName!, :email!, :proxyEmail, :phone, :password, :passwordResetToken, :verified, :emailVerified, :phoneVerified, :referredBy, :referralCode!, :signupSourceId, :otherSignupSource, NOW())
+INSERT INTO users (id, first_name, last_name, email, proxy_email, phone, sms_consent, PASSWORD, password_reset_token, verified, email_verified, phone_verified, referred_by, referral_code, signup_source_id, other_signup_source, last_activity_at)
+    VALUES (:id!, :firstName!, :lastName!, :email!, :proxyEmail, :phone, :smsConsent, :password, :passwordResetToken, :verified, :emailVerified, :phoneVerified, :referredBy, :referralCode!, :signupSourceId, :otherSignupSource, NOW())
 ON CONFLICT (email)
     DO NOTHING
 RETURNING
