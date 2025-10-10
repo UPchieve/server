@@ -17,7 +17,7 @@ export function eventObservabilityWrapper(
         await handler(...args)
         logger.info(`${name} successfully handled event ${event}`)
       } catch (error) {
-        logger.error(`${name} error handling event ${event}: ${error}`)
+        logger.error(error, `${name} error handling event ${event}: ${error}`)
       } finally {
         transaction.end()
       }
