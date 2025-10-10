@@ -62,30 +62,34 @@ import * as ImpactStatsService from './ImpactStatsService'
 import config from '../config'
 
 export async function parseUser(baseUser: UserContactInfo) {
-  const user = await getLegacyUserObject(baseUser.id)
+  return runInTransaction(async (tc) => {
+    const user = await getLegacyUserObject(baseUser.id, tc)
 
-  user.numReferredVolunteers = await countReferredUsers(user.id, {
-    withRoles: ['volunteer'],
+    user.numReferredVolunteers = await countReferredUsers(user.id, {
+      withRoles: ['volunteer'],
+    })
+
+    // Approved volunteer
+    if (user.roleContext.isActiveRole('volunteer') && user.isApproved) {
+      user.hoursTutored = Number(user.hoursTutored)
+
+      user.hoursTutoredThisWeek = await ImpactStatsService.hoursTutoredThisWeek(
+        baseUser.id,
+        tc
+      )
+
+      user.uniqueStudentsHelpedCount =
+        await ImpactStatsService.uniqueStudentsHelpedCount(baseUser.id, tc)
+
+      user.sponsorships = await VolunteerService.getActiveSponsorshipsByUserId(
+        baseUser.id,
+        tc
+      )
+      return omit(user, ['references', 'photoIdS3Key', 'photoIdStatus'])
+    }
+
+    return user
   })
-
-  // Approved volunteer
-  if (user.roleContext.isActiveRole('volunteer') && user.isApproved) {
-    user.hoursTutored = Number(user.hoursTutored)
-
-    user.hoursTutoredThisWeek = await ImpactStatsService.hoursTutoredThisWeek(
-      baseUser.id
-    )
-
-    user.uniqueStudentsHelpedCount =
-      await ImpactStatsService.uniqueStudentsHelpedCount(baseUser.id)
-
-    user.sponsorships = await VolunteerService.getActiveSponsorshipsByUserId(
-      baseUser.id
-    )
-    return omit(user, ['references', 'photoIdS3Key', 'photoIdStatus'])
-  }
-
-  return user
 }
 
 export async function addPhotoId(userId: Ulid, ip: string): Promise<string> {
@@ -273,125 +277,143 @@ export async function flagForDeletion(user: UserContactInfo) {
 }
 
 export async function adminUpdateUser(data: unknown) {
-  const {
-    userId,
-    firstName,
-    lastName,
-    email,
-    partnerOrg,
-    partnerSite,
-    isVerified,
-    banType,
-    isDeactivated,
-    isApproved,
-    inGatesStudy,
-    partnerSchool,
-    schoolId,
-  } = asAdminUpdate(data)
-
-  const userBeforeUpdate = await getUserForAdminDetail(userId, 0, 0)
-
-  if (!userBeforeUpdate) {
-    throw new UserNotFoundError('id', userId)
-  }
-
-  const isVolunteer = userBeforeUpdate.roleContext.legacyRole === 'volunteer'
-  const isStudent = userBeforeUpdate.roleContext.legacyRole === 'student'
-  const isTeacher = userBeforeUpdate.roleContext.legacyRole === 'teacher'
-
-  const trimmedEmail = email.trim()
-  const isUpdatedEmail = userBeforeUpdate.email !== trimmedEmail
-
-  // Remove the contact associated with the previous email from SendGrid
-  if (isUpdatedEmail) {
-    await MailService.deleteContactByEmail(userBeforeUpdate.email)
-  }
-
-  // if unbanning student, also unban their IP addresses
-  if (
-    isStudent &&
-    userBeforeUpdate.banType === USER_BAN_TYPES.COMPLETE &&
-    banType !== USER_BAN_TYPES.COMPLETE
-  )
-    await updateIpStatusByUserId(userBeforeUpdate.id, IP_ADDRESS_STATUS.OK)
-
-  if (
-    userBeforeUpdate.banType !== USER_BAN_TYPES.COMPLETE &&
-    banType === USER_BAN_TYPES.COMPLETE
-  )
-    // TODO: queue email
-    await MailService.sendBannedUserAlert(userId, 'admin')
-
-  //track shadow bans
-  if (
-    userBeforeUpdate.banType !== USER_BAN_TYPES.SHADOW &&
-    banType === USER_BAN_TYPES.SHADOW
-  ) {
-    await createAdminAction(ACCOUNT_USER_ACTIONS.SHADOW_BANNED, userId)
-  }
-
-  //track reversing shadow bans
-  if (userBeforeUpdate.banType === USER_BAN_TYPES.SHADOW && !banType) {
-    await createAdminAction(ACCOUNT_USER_ACTIONS.UNSHADOW_BANNED, userId)
-  }
-
-  //track live_media bans
-  if (
-    userBeforeUpdate.banType !== USER_BAN_TYPES.LIVE_MEDIA &&
-    banType === USER_BAN_TYPES.LIVE_MEDIA
-  ) {
-    await createAdminAction(ACCOUNT_USER_ACTIONS.LIVE_MEDIA_BANNED, userId)
-  }
-
-  //track reversing live_media bans
-  if (userBeforeUpdate.banType === USER_BAN_TYPES.LIVE_MEDIA && !banType) {
-    await createAdminAction(ACCOUNT_USER_ACTIONS.UNLIVE_MEDIA_BANNED, userId)
-    await ModerationInfractionsService.deactivateModerationInfractionByUserId(
-      userId
-    )
-  }
-
-  const update = {
-    firstName,
-    lastName,
-    email: trimmedEmail,
-    isVerified,
-    banType,
-    isDeactivated,
-    isApproved,
-    volunteerPartnerOrg: isVolunteer && partnerOrg ? partnerOrg : undefined,
-    studentPartnerOrg: isStudent && partnerOrg ? partnerOrg : undefined,
-    partnerSite: isStudent && partnerSite ? partnerSite : undefined,
-    inGatesStudy: isStudent && inGatesStudy ? inGatesStudy : undefined,
-    banReason: banType ? ('admin' as USER_BAN_REASONS) : undefined,
-    partnerSchool: isStudent && partnerSchool ? partnerSchool : undefined,
-    schoolId,
-  }
-
-  if (isStudent) {
-    // tracking organic/partner students for posthog if there is a change in partner status
-    if (userBeforeUpdate.studentPartnerOrg !== partnerOrg) {
-      AnalyticsService.identify(userId, {
-        partner: partnerOrg,
-      })
-    }
-  }
-
-  if (isDeactivated && !userBeforeUpdate.isDeactivated)
-    await createAccountAction({
+  return runInTransaction(async (tc) => {
+    const {
       userId,
-      action: ACCOUNT_USER_ACTIONS.DEACTIVATED,
-    })
+      firstName,
+      lastName,
+      email,
+      partnerOrg,
+      partnerSite,
+      isVerified,
+      banType,
+      isDeactivated,
+      isApproved,
+      inGatesStudy,
+      partnerSchool,
+      schoolId,
+    } = asAdminUpdate(data)
 
-  if (isVolunteer) {
-    await updateVolunteerForAdmin(userId, update)
-  } else if (isStudent) {
-    await adminUpdateStudent(userId, update)
-  } else if (isTeacher) {
-    await TeacherService.adminUpdateTeacher(userId, update)
-  }
+    const userBeforeUpdate = await getUserContactInfo(userId, tc)
 
-  await MailService.createContact(userId)
+    if (!userBeforeUpdate) {
+      throw new UserNotFoundError('id', userId)
+    }
+
+    const isVolunteer = userBeforeUpdate.roleContext.legacyRole === 'volunteer'
+    const isStudent = userBeforeUpdate.roleContext.legacyRole === 'student'
+    const isTeacher = userBeforeUpdate.roleContext.legacyRole === 'teacher'
+
+    const trimmedEmail = email.trim()
+    const isUpdatedEmail = userBeforeUpdate.email !== trimmedEmail
+
+    // Remove the contact associated with the previous email from SendGrid
+    if (isUpdatedEmail) {
+      await MailService.deleteContactByEmail(userBeforeUpdate.email)
+    }
+
+    // if unbanning student, also unban their IP addresses
+    if (
+      isStudent &&
+      userBeforeUpdate.banType === USER_BAN_TYPES.COMPLETE &&
+      banType !== USER_BAN_TYPES.COMPLETE
+    )
+      await updateIpStatusByUserId(
+        userBeforeUpdate.id,
+        IP_ADDRESS_STATUS.OK,
+        tc
+      )
+
+    if (
+      userBeforeUpdate.banType !== USER_BAN_TYPES.COMPLETE &&
+      banType === USER_BAN_TYPES.COMPLETE
+    )
+      // TODO: queue email
+      await MailService.sendBannedUserAlert(userId, 'admin')
+
+    //track shadow bans
+    if (
+      userBeforeUpdate.banType !== USER_BAN_TYPES.SHADOW &&
+      banType === USER_BAN_TYPES.SHADOW
+    ) {
+      await createAdminAction(ACCOUNT_USER_ACTIONS.SHADOW_BANNED, userId, tc)
+    }
+
+    //track reversing shadow bans
+    if (userBeforeUpdate.banType === USER_BAN_TYPES.SHADOW && !banType) {
+      await createAdminAction(ACCOUNT_USER_ACTIONS.UNSHADOW_BANNED, userId, tc)
+    }
+
+    //track live_media bans
+    if (
+      userBeforeUpdate.banType !== USER_BAN_TYPES.LIVE_MEDIA &&
+      banType === USER_BAN_TYPES.LIVE_MEDIA
+    ) {
+      await createAdminAction(
+        ACCOUNT_USER_ACTIONS.LIVE_MEDIA_BANNED,
+        userId,
+        tc
+      )
+    }
+
+    //track reversing live_media bans
+    if (userBeforeUpdate.banType === USER_BAN_TYPES.LIVE_MEDIA && !banType) {
+      await createAdminAction(
+        ACCOUNT_USER_ACTIONS.UNLIVE_MEDIA_BANNED,
+        userId,
+        tc
+      )
+      await ModerationInfractionsService.deactivateModerationInfractionByUserId(
+        userId,
+        tc
+      )
+    }
+
+    const update = {
+      firstName,
+      lastName,
+      email: trimmedEmail,
+      isVerified,
+      banType,
+      isDeactivated,
+      isApproved,
+      volunteerPartnerOrg: isVolunteer && partnerOrg ? partnerOrg : undefined,
+      studentPartnerOrg: isStudent && partnerOrg ? partnerOrg : undefined,
+      partnerSite: isStudent && partnerSite ? partnerSite : undefined,
+      inGatesStudy: isStudent && inGatesStudy ? inGatesStudy : undefined,
+      banReason: banType ? ('admin' as USER_BAN_REASONS) : undefined,
+      partnerSchool: isStudent && partnerSchool ? partnerSchool : undefined,
+      schoolId,
+    }
+
+    if (isStudent) {
+      // tracking organic/partner students for posthog if there is a change in partner status
+      if (userBeforeUpdate.studentPartnerOrg !== partnerOrg) {
+        AnalyticsService.identify(userId, {
+          partner: partnerOrg,
+        })
+      }
+    }
+
+    if (isDeactivated && !userBeforeUpdate.deactivated)
+      await createAccountAction(
+        {
+          userId,
+          action: ACCOUNT_USER_ACTIONS.DEACTIVATED,
+        },
+        tc
+      )
+
+    if (isVolunteer) {
+      await updateVolunteerForAdmin(userId, update, tc)
+    } else if (isStudent) {
+      await adminUpdateStudent(userId, update, tc)
+    } else if (isTeacher) {
+      await TeacherService.adminUpdateTeacher(userId, update, tc)
+    }
+
+    await MailService.createContact(userId)
+  })
 }
 
 interface UserQuery {
@@ -481,36 +503,9 @@ export async function getUserContactInfo(
 ): Promise<(UserContactInfo & { roleContext: RoleContext }) | undefined> {
   const baseUserInfo = await UserRepo.getUserContactInfoById(userId, tc)
   if (baseUserInfo) {
-    // TODO: The roles are returned in `getUserContactInfoById`. Can we reuse
-    // those instead of having to refetch on cache miss in method below?
     const roleContext = await UserRolesService.getRoleContext(userId, false, tc)
     return {
       ...baseUserInfo,
-      roleContext,
-    }
-  }
-}
-
-export async function getUserBanStatus(
-  userId: Ulid
-): Promise<USER_BAN_TYPES | undefined> {
-  const user = await UserRepo.getUserBanStatus(userId)
-  if (user) {
-    return user.banType
-  }
-}
-
-export async function getUserForAdminDetail(
-  userId: Ulid,
-  // TODO: Make these pagination parameters more clear.
-  limit: number,
-  offset: number
-) {
-  const user = await UserRepo.getUserForAdminDetail(userId, limit, offset)
-  if (user) {
-    const roleContext = await UserRolesService.getRoleContext(userId, false)
-    return {
-      ...user,
       roleContext,
     }
   }
