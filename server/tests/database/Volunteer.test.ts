@@ -701,7 +701,7 @@ describe('VolunteerRepo', () => {
       // Deleted
       await loadVolunteer({ deleted: true })
 
-      const actual = await getVolunteersForTextNotifications(client)
+      const actual = await getVolunteersForTextNotifications()
       // There should only be 2 volunteers returned.
       expect(actual.map((vol) => vol.id)).toEqual([
         eligibleVolunteer.id,

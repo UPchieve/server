@@ -391,8 +391,8 @@ export async function queueNationalTutorCertificateEmail(
   })
 }
 
-export async function getVolunteersForTextNotifications(
-  tc?: TransactionClient
-): Promise<TextableVolunteer[]> {
-  return await VolunteerRepo.getVolunteersForTextNotifications(tc)
+export async function getVolunteersForTextNotifications(): Promise<
+  TextableVolunteer[]
+> {
+  return await VolunteerRepo.getVolunteersForTextNotifications()
 }

@@ -1784,14 +1784,14 @@ export async function getVolunteersForOnboardingBackfill(
   }
 }
 
-export async function getVolunteersForTextNotifications(
-  tc: TransactionClient = getClient()
-): Promise<TextableVolunteer[]> {
+export async function getVolunteersForTextNotifications(): Promise<
+  TextableVolunteer[]
+> {
   try {
     const rawResults =
       await pgQueries.getVolunteersForTextNotificationsInTheCurrentHour.run(
         undefined,
-        tc
+        getRoClient()
       )
     return rawResults.map((row) =>
       makeSomeOptional(row, ['volunteerPartnerOrgKey'])
