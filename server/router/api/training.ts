@@ -35,6 +35,7 @@ export function routeTraining(router: Router): void {
     try {
       const { ip } = req
       const user = extractUser(req)
+      console.log('****uesr', user)
       const skipAvailabilityOnboardingRequirement =
         req.body?.skipAvailabilityOnboardingRequirement ?? false
 
