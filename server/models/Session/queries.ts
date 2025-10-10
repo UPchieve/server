@@ -1511,5 +1511,5 @@ export async function isSessionFulfilled(sessionId: Uuid): Promise<boolean> {
     { sessionId },
     getClient()
   )
-  return makeRequired(result[0]).isFulfilled ?? false
+  return makeRequired(result[0]).isFulfilled
 }
