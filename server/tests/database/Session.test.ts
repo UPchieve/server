@@ -703,7 +703,7 @@ describe('Session repo', () => {
   })
 
   describe('isSessionFulfilled', () => {
-    test('returns false if the session has not ended and has not volunteer', async () => {
+    test('returns false if the session has not ended and has no volunteer', async () => {
       const session = await buildSessionRow({
         studentId,
         endedAt: undefined,
