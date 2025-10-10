@@ -3,14 +3,15 @@ import {
   checkEmail,
   checkNames,
   checkPassword,
+  checkValidPartnerEmailAddress,
   createResetToken,
-  getReferredBy,
   hashPassword,
   RegisterStudentPayload,
   RegisterStudentWithFedCredPayload,
   RegisterStudentWithPasswordPayload,
   RegisterStudentWithPGPayload,
   RegisterTeacherPayload,
+  RegisterVolunteerPayload,
 } from '../utils/auth-utils'
 import {
   sendRosterStudentSetPasswordEmail,
@@ -27,7 +28,7 @@ import { STUDENT_EVENTS, USER_EVENTS, USER_ROLES } from '../constants'
 import { emitter } from './EventsService'
 import { GetStudentPartnerOrgResult } from '../models/StudentPartnerOrg'
 import { insertFederatedCredential } from '../models/FederatedCredential'
-import { checkIpAddress, checkUser } from './AuthService'
+import * as AuthService from './AuthService'
 import { verifyEligibility } from './EligibilityService'
 import * as FederatedCredentialService from './FederatedCredentialService'
 import * as TeacherService from './TeacherService'
@@ -38,7 +39,13 @@ import {
 import { InputError } from '../models/Errors'
 import { createTeacher } from '../models/Teacher'
 import { getStudentCreationDisabledFeatureFlag } from './FeatureFlagService'
-import cookieParser from 'cookie-parser'
+import {
+  createUserVolunteerPartnerOrgInstance,
+  createVolunteerProfile,
+  getPartnerOrgByKey,
+} from '../models/Volunteer'
+import * as VolunteerService from './VolunteerService'
+import * as ReferralService from './ReferralService'
 
 export interface RosterStudentPayload {
   cleverId?: string
@@ -166,7 +173,7 @@ export async function rosterPartnerStudents(
 export async function verifyStudentData(data: RegisterStudentPayload) {
   checkEmail(data.email)
   checkNames(data.firstName, data.lastName)
-  await checkUser(data.email)
+  await AuthService.checkUser(data.email)
   if (usePassword(data)) {
     checkPassword(data.password)
   }
@@ -174,7 +181,7 @@ export async function verifyStudentData(data: RegisterStudentPayload) {
     await verifyEligibility(data.zipCode, data.schoolId)
   }
   if (data.ip && !data.studentPartnerOrgKey) {
-    await checkIpAddress(data.ip)
+    await AuthService.checkIpAddress(data.ip)
   }
   if (!usePassword(data) && !useResetToken(data) && !useFedCred(data)) {
     throw new InputError('No authentication method provided.')
@@ -210,7 +217,9 @@ export async function registerStudent(
         : undefined,
       passwordResetToken,
       profileId: data.profileId,
-      referredBy: await getReferredBy(data.referredByCode),
+      referredBy: await ReferralService.getReferrerIdByCode(
+        data.referredByCode
+      ),
       signupSourceId: data.signupSourceId,
       verified: useFedCred(data),
     }
@@ -268,6 +277,87 @@ export async function registerStudent(
   }
 }
 
+export async function verifyVolunteerData(data: RegisterVolunteerPayload) {
+  if (data.volunteerPartnerOrgKey) {
+    await checkValidPartnerEmailAddress(data.email, data.volunteerPartnerOrgKey)
+  }
+
+  checkEmail(data.email)
+  checkNames(data.firstName, data.lastName)
+  await AuthService.checkUser(data.email)
+  if (usePassword(data)) {
+    checkPassword(data.password)
+  }
+  if (data.ip) {
+    await AuthService.checkIpAddress(data.ip)
+  }
+  if (!usePassword(data) && !useResetToken(data) && !useFedCred(data)) {
+    throw new InputError('No authentication method provided.')
+  }
+}
+
+export async function registerVolunteer(
+  data: RegisterVolunteerPayload,
+  tc?: TransactionClient
+) {
+  await verifyVolunteerData(data)
+  const passwordResetToken = useResetToken(data)
+    ? createResetToken()
+    : undefined
+
+  const userData = {
+    email: data.email,
+    emailVerified: useFedCred(data),
+    firstName: data.firstName,
+    issuer: data.issuer,
+    lastName: data.lastName,
+    password: usePassword(data) ? await hashPassword(data.password) : undefined,
+    passwordResetToken,
+    profileId: data.profileId,
+    referredBy: await ReferralService.getReferrerIdByCode(data.referredByCode),
+    signupSourceId: data.signupSourceId,
+    otherSignupSource: data.otherSignupSource,
+    verified: useFedCred(data),
+    smsConsent: true,
+  }
+  const newVolunteer = await runInTransaction(async (tc: TransactionClient) => {
+    const user = await createUser(userData, data.ip, USER_ROLES.VOLUNTEER, tc)
+
+    const partnerOrg = await getPartnerOrgByKey(data.volunteerPartnerOrgKey, tc)
+    const volunteerData = {
+      partnerOrgId: partnerOrg?.partnerId ?? null,
+      timezone: data.timezone ?? null,
+    }
+
+    await createVolunteerProfile(user.id, volunteerData, tc)
+    if (partnerOrg) {
+      await createUserVolunteerPartnerOrgInstance({
+        userId: user.id,
+        vpoName: partnerOrg.partnerName,
+      })
+    }
+
+    return user
+  }, tc)
+
+  await VolunteerService.queueOnboardingReminderOneEmail(newVolunteer.id)
+  await ReferralService.queueReferredByEmailsForVolunteer({
+    referredBy: userData.referredBy,
+    firstName: userData.firstName,
+    volunteerPartnerOrgKey: data.volunteerPartnerOrgKey,
+    referredByCode: data.referredByCode,
+  })
+
+  emitter.emit(USER_EVENTS.USER_CREATED, newVolunteer.id)
+
+  return {
+    ...newVolunteer,
+    isAdmin: false,
+    isVolunteer: true,
+    userType: 'volunteer',
+  }
+}
+
 async function createUser(
   userData: UserRepo.CreateUserPayload & {
     issuer?: string
@@ -279,6 +369,11 @@ async function createUser(
 ) {
   const user = await UserRepo.createUser(userData, tc)
   await createUserMetadata(user.id, ip, role, tc)
+
+  if (userData.referredBy) {
+    await ReferralService.addReferralFor(user.id, userData.referredBy, tc)
+  }
+
   if (useFedCred(userData)) {
     await insertFederatedCredential(
       userData.profileId,
@@ -287,6 +382,7 @@ async function createUser(
       tc
     )
   }
+
   return user
 }
 
@@ -408,7 +504,7 @@ export async function registerTeacher(data: RegisterTeacherPayload) {
   if (usePassword(data)) {
     checkPassword(data.password)
   }
-  await checkUser(data.email)
+  await AuthService.checkUser(data.email)
 
   const newTeacher = await runInTransaction(async (tc: TransactionClient) => {
     const signupSource = await SignUpSourceRepo.getSignUpSourceByName(

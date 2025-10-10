@@ -10,12 +10,13 @@ import {
 } from '../mocks/generate'
 import { getClient } from '../../db'
 import {
-  getFilteredSessionHistory,
   getFilteredSessionHistoryTotalCount,
   getLatestSession,
   getMessagesForFrontend,
   getSessionTranscriptItems,
+  getVolunteersInSessions,
   isEligibleForSessionRecap,
+  isSessionFulfilled,
   updateSessionFlagsById,
   updateSessionReviewReasonsById,
   updateSessionToEnd,
@@ -24,6 +25,7 @@ import { camelCaseKeys, insertSingleRow } from '../db-utils'
 import { range } from 'lodash'
 import moment from 'moment'
 import { USER_SESSION_METRICS, UserSessionFlags } from '../../constants'
+import { createTestUser, createTestVolunteer } from './seed-utils'
 
 describe('Session repo', () => {
   const dbClient = getClient()
@@ -36,7 +38,7 @@ describe('Session repo', () => {
         const timeTutored = 100000
         const endedAt = new Date()
         const createdAt = moment().subtract(1, 'hours').toDate()
-        for (const i in range(0, 5)) {
+        for (const _ in range(0, 5)) {
           const sessionRow = await buildSessionRow({
             studentId,
             volunteerId,
@@ -699,6 +701,96 @@ describe('Session repo', () => {
         dbClient
       )
       expect(await getResult()).toEqual(true)
+    })
+  })
+
+  describe('isSessionFulfilled', () => {
+    test('returns false if the session has not ended and has no volunteer', async () => {
+      const session = await buildSessionRow({
+        studentId,
+        endedAt: undefined,
+        volunteerJoinedAt: undefined,
+      })
+      await insertSingleRow('sessions', session, getClient())
+
+      const result = await isSessionFulfilled(session.id)
+      expect(result).toBe(false)
+    })
+
+    test('returns true if the session has ended', async () => {
+      const session = await buildSessionRow({
+        studentId,
+        endedAt: new Date(),
+        volunteerJoinedAt: undefined,
+      })
+      await insertSingleRow('sessions', session, getClient())
+
+      const result = await isSessionFulfilled(session.id)
+      expect(result).toBe(true)
+    })
+
+    test('returns true if a volunteer has joined', async () => {
+      const session = await buildSessionRow({
+        studentId,
+        endedAt: undefined,
+        volunteerJoinedAt: new Date(),
+      })
+      await insertSingleRow('sessions', session, getClient())
+
+      const result = await isSessionFulfilled(session.id)
+      expect(result).toBe(true)
+    })
+
+    test('returns true if session has ended and a volunteer has joined', async () => {
+      const session = await buildSessionRow({
+        studentId,
+        endedAt: new Date(),
+        volunteerJoinedAt: new Date(),
+      })
+      await insertSingleRow('sessions', session, getClient())
+
+      const result = await isSessionFulfilled(session.id)
+      expect(result).toBe(true)
+    })
+  })
+
+  describe('getVolunteersInSessions', () => {
+    test('returns the ids of volunteers in an active session', async () => {
+      const id1 = (await createTestUser(getClient())).id
+      await createTestVolunteer(id1, getClient())
+      const id2 = (await createTestUser(getClient())).id
+      await createTestVolunteer(id2, getClient())
+      const id3 = (await createTestUser(getClient())).id
+      await createTestVolunteer(id3, getClient())
+      const id4 = (await createTestUser(getClient())).id
+      await createTestVolunteer(id4, getClient())
+
+      const activeSession1 = await buildSessionRow({
+        studentId,
+        volunteerId: id1,
+        volunteerJoinedAt: new Date(),
+      })
+      await insertSingleRow('sessions', activeSession1, getClient())
+      const endedSession = await buildSessionRow({
+        studentId,
+        endedAt: new Date(),
+        volunteerId: id2,
+        volunteerJoinedAt: new Date(),
+      })
+      await insertSingleRow('sessions', endedSession, getClient())
+      const activeSession2 = await buildSessionRow({
+        studentId,
+        volunteerId: id3,
+        volunteerJoinedAt: new Date(),
+      })
+      await insertSingleRow('sessions', activeSession2, getClient())
+
+      const result = await getVolunteersInSessions()
+
+      expect(result).toContain(id1)
+      expect(result).toContain(id3)
+      expect(result).not.toContain(id2)
+      expect(result).not.toContain(id4)
     })
   })
 })

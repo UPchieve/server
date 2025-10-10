@@ -33,7 +33,6 @@ import {
   addVolunteerReferenceById,
   updateVolunteerPhotoIdById,
   updateVolunteerReferenceSentById,
-  deleteVolunteerReferenceByEmail,
   updateVolunteerForAdmin,
   updateVolunteerReferenceSubmission,
   checkReferenceExistsBeforeAdding,
@@ -234,33 +233,6 @@ export async function notifyReference(
   await updateVolunteerReferenceSentById(reference.id)
 }
 
-// TODO: remove once job is executed
-export async function notifyReferenceApology(
-  reference: UnsentReference,
-  volunteer: VolunteerContactInfo
-) {
-  await MailService.sendReferenceFormApology(reference, volunteer)
-  await updateVolunteerReferenceSentById(reference.id)
-}
-
-export async function deleteReference(
-  userId: Ulid,
-  referenceEmail: string,
-  ip: string
-) {
-  await createAccountAction({
-    userId,
-    ipAddress: ip,
-    action: ACCOUNT_USER_ACTIONS.DELETED_REFERENCE,
-    referenceEmail,
-  })
-  AnalyticsService.captureEvent(userId, EVENTS.REFERENCE_DELETED, {
-    event: EVENTS.REFERENCE_DELETED,
-    referenceEmail,
-  })
-  await deleteVolunteerReferenceByEmail(userId, referenceEmail)
-}
-
 interface AdminUpdate {
   userId: Ulid
   firstName?: string
@@ -294,9 +266,8 @@ const asAdminUpdate = asFactory<AdminUpdate>({
 
 export async function flagForDeletion(user: UserContactInfo) {
   try {
-    // if a user is requesting deletion, we should remove them from automatic emails
-    const contact = await MailService.searchContact(user.email)
-    if (contact) await MailService.deleteContact(contact.id)
+    // If a user is requesting deletion, we should remove them from automatic emails
+    await MailService.deleteContactByEmail(user.email)
   } catch (err) {
     logger.error(
       `Error searching for or deleting contact in user deletion process: ${err}`
@@ -338,8 +309,7 @@ export async function adminUpdateUser(data: unknown) {
 
     // Remove the contact associated with the previous email from SendGrid
     if (isUpdatedEmail) {
-      const contact = await MailService.searchContact(userBeforeUpdate.email)
-      if (contact) MailService.deleteContact(contact.id)
+      await MailService.deleteContactByEmail(userBeforeUpdate.email)
     }
 
     // if unbanning student, also unban their IP addresses
@@ -577,4 +547,8 @@ export async function countReferredUsers(
 
 export function getReferralSignUpLink(referralCode: string): string {
   return `${config.protocol}://${config.host}/referral/${referralCode}`
+}
+
+export function getUserIdByPhone(phone: string): Promise<Ulid | undefined> {
+  return UserRepo.getUserIdByPhone(phone)
 }

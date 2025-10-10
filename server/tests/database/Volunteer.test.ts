@@ -16,6 +16,7 @@ import {
   getNextVolunteerToNotify,
   getVolunteerContactInfoById,
   getVolunteerForOnboardingById,
+  getVolunteersForTextNotifications,
   updateVolunteerForAdmin,
   updateVolunteerOnboarded,
   updateVolunteerTrainingById,
@@ -32,6 +33,7 @@ import {
 } from '../mocks/generate'
 import { omit } from 'lodash'
 import { addFavoriteVolunteer } from '../../models/Student'
+import { createTestUser, createTestVolunteer } from './seed-utils'
 
 const client = getClient()
 const TIMEZONE = 'EST'
@@ -136,7 +138,8 @@ describe('VolunteerRepo', () => {
       expect(result?.id).toEqual(v2.id)
 
       // Make volunteer1 available every day except today
-      const currentDayOfWeek = new Date().toDateString().split(' ')[0] // i.e. Mon
+      const estDate = moment().tz('America/New_York')
+      const currentDayOfWeek = estDate.format('ddd') // i.e. Mon
       const currentAvailabilityDay = DAYS.find(
         (d) => d.toLowerCase().slice(0, 3) == currentDayOfWeek.toLowerCase()
       )!
@@ -385,6 +388,17 @@ describe('VolunteerRepo', () => {
   })
 
   describe('getVolunteerContactInfoById', () => {
+    it('does not return a deleted volunteer', async () => {
+      const user = await createTestUser(client)
+      await createTestVolunteer(user.id, client)
+      await client.query('UPDATE users SET deleted = TRUE WHERE id = $1', [
+        user.id,
+      ])
+
+      const result = await getVolunteerContactInfoById(user.id)
+      expect(result).toBe(undefined)
+    })
+
     it('Filters out volunteers based on testUser', async () => {
       const volunteer = await loadVolunteer()
       const queryForVolunteer = async () => {
@@ -449,7 +463,7 @@ describe('VolunteerRepo', () => {
         }),
         client
       )
-      const actual = await getVolunteerForOnboardingById(volunteer.id, client)
+      const actual = await getVolunteerForOnboardingById(client, volunteer.id)
       expect(actual?.id).toEqual(volunteer.id)
       expect(actual?.hasCompletedUpchieve101).toBeTruthy()
     })
@@ -467,7 +481,7 @@ describe('VolunteerRepo', () => {
         }),
         client
       )
-      const actual = await getVolunteerForOnboardingById(volunteer.id, client)
+      const actual = await getVolunteerForOnboardingById(client, volunteer.id)
       expect(actual?.id).toEqual(volunteer.id)
       expect(actual?.hasCompletedUpchieve101).toBeTruthy()
     })
@@ -493,7 +507,7 @@ describe('VolunteerRepo', () => {
         }),
         client
       )
-      const actual = await getVolunteerForOnboardingById(volunteer.id, client)
+      const actual = await getVolunteerForOnboardingById(client, volunteer.id)
       expect(actual?.id).toEqual(volunteer.id)
       expect(actual?.hasCompletedUpchieve101).toBeTruthy()
     })
@@ -505,8 +519,8 @@ describe('VolunteerRepo', () => {
       })
 
       const firstActual = await getVolunteerForOnboardingById(
-        volunteer.id,
-        client
+        client,
+        volunteer.id
       )
       expect(firstActual?.id).toEqual(volunteer.id)
       expect(firstActual?.hasCompletedUpchieve101).toBeFalsy()
@@ -520,8 +534,8 @@ describe('VolunteerRepo', () => {
         client
       )
       const secondActual = await getVolunteerForOnboardingById(
-        volunteer.id,
-        client
+        client,
+        volunteer.id
       )
       expect(secondActual?.id).toEqual(volunteer.id)
       expect(secondActual?.hasCompletedUpchieve101).toBeFalsy()
@@ -535,8 +549,8 @@ describe('VolunteerRepo', () => {
         client
       )
       const thirdActual = await getVolunteerForOnboardingById(
-        volunteer.id,
-        client
+        client,
+        volunteer.id
       )
       expect(thirdActual?.id).toEqual(volunteer.id)
       expect(secondActual?.hasCompletedUpchieve101).toBeFalsy()
@@ -547,8 +561,8 @@ describe('VolunteerRepo', () => {
         [UPCHIEVE_101_QUIZ_ID, volunteer.id]
       )
       const fourthActual = await getVolunteerForOnboardingById(
-        volunteer.id,
-        client
+        client,
+        volunteer.id
       )
       expect(fourthActual?.id).toEqual(volunteer.id)
       expect(fourthActual?.hasCompletedUpchieve101).toBeTruthy()
@@ -557,7 +571,6 @@ describe('VolunteerRepo', () => {
 
   describe('updateVolunteerTrainingById', () => {
     const requiredMaterials = ['7b6a76', 'jsn832', 'ps87f9', 'jgu55k', 'fj8tzq']
-    const material = requiredMaterials[0]
     const upchieve101TrainingCourseId = 1
 
     it('Calculates progress/complete correctly when there are no completed REQUIRED materials', async () => {
@@ -665,6 +678,66 @@ describe('VolunteerRepo', () => {
       expect(actual.progress).toEqual(100)
     })
   })
+
+  describe('getVolunteersForTextNotifications', () => {
+    const TEST_VPO_KEY = 'big-telecom'
+
+    it('Returns volunteers matching the criteria', async () => {
+      const eligibleVolunteer = await loadVolunteer()
+      const eligiblePartnerVolunteer = await loadVolunteer({
+        partner: TEST_VPO_KEY,
+      })
+      // Ineligible volunteers:
+      // No availability
+      await loadVolunteer({ withFullAvailability: false })
+      // Banned
+      await loadVolunteer({ banType: 'complete' })
+      // Deactivated
+      await loadVolunteer({ deactivated: true })
+      // Not approved
+      await loadVolunteer({ approved: false })
+      // No SMS consent
+      await loadVolunteer({ smsConsent: false })
+      // Deleted
+      await loadVolunteer({ deleted: true })
+
+      const actual = await getVolunteersForTextNotifications()
+      // There should only be 2 volunteers returned.
+      expect(actual.map((vol) => vol.id)).toEqual([
+        eligibleVolunteer.id,
+        eligiblePartnerVolunteer.id,
+      ])
+
+      // Non-partner volunteer
+      expect(actual[0].unlockedSubjects).toEqual(['prealgebra'])
+      expect(actual[0].volunteerPartnerOrgKey).toBeUndefined()
+
+      // Partner volunteer
+      expect(actual[1].unlockedSubjects).toEqual(['prealgebra'])
+      expect(actual[1].volunteerPartnerOrgKey).toEqual(TEST_VPO_KEY)
+    })
+
+    // @TODO: This test could technically be flaky if it runs on the cusp of an hour. There might be a way we could mock the time in postgres.
+    it.todo(
+      'Only returns volunteers with availability that includes this current hour'
+    )
+  })
+
+  describe('createVolunteer', () => {
+    it('Defaults sms_consent to true', async () => {
+      const result = await createVolunteer({
+        email: faker.internet.email(),
+        phone: faker.phone.number(),
+        firstName: faker.string.alpha(),
+        lastName: faker.string.alpha(),
+        password: faker.internet.password(),
+        referredBy: undefined,
+        volunteerPartnerOrg: undefined,
+        timezone: undefined,
+      })
+      expect(result.smsConsent).toEqual(true)
+    })
+  })
 })
 
 const loadVolunteerAvailability = async (
@@ -701,10 +774,12 @@ const loadVolunteer = async (opts = {}): Promise<CreatedVolunteer> => {
     approved: true,
     onboarded: true,
     deactivated: false,
+    deleted: false,
     certificationSubjects: ['prealgebra'],
     withFullAvailability: true,
     partner: undefined,
     banType: undefined,
+    smsConsent: true,
     ...opts,
   }
   const v = generateVolunteer()
@@ -712,6 +787,16 @@ const loadVolunteer = async (opts = {}): Promise<CreatedVolunteer> => {
     v.volunteerPartnerOrg = options.partner as string
   }
   const res = await createVolunteer(v)
+  await client.query('UPDATE users SET sms_consent = $1 where id = $2', [
+    options.smsConsent,
+    res.id,
+  ])
+  if (options.deleted) {
+    await client.query('UPDATE users SET deleted = $1 where id = $2', [
+      options.deleted,
+      res.id,
+    ])
+  }
   if (options.onboarded) await updateVolunteerOnboarded(res.id, client)
   if (options.certificationSubjects) {
     for (let subj of options.certificationSubjects) {

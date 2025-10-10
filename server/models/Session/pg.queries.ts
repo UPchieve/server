@@ -1761,7 +1761,7 @@ export interface IGetStudentForEmailFirstSessionQuery {
   result: IGetStudentForEmailFirstSessionResult;
 }
 
-const getStudentForEmailFirstSessionIR: any = {"usedParamSet":{"sessionId":true,"mongoSessionId":true},"params":[{"name":"sessionId","required":false,"transform":{"type":"scalar"},"locs":[{"a":335,"b":344}]},{"name":"mongoSessionId","required":false,"transform":{"type":"scalar"},"locs":[{"a":379,"b":393}]}],"statement":"SELECT\n    users.id,\n    users.first_name,\n    users.email\nFROM\n    sessions\n    LEFT JOIN sessions_session_flags ON sessions_session_flags.session_id = sessions.id\n    LEFT JOIN session_flags ON sessions_session_flags.session_flag_id = session_flags.id\n    LEFT JOIN users ON users.id = sessions.student_id\nWHERE (sessions.id::uuid = :sessionId\n    OR sessions.mongo_id::text = :mongoSessionId)\nAND (session_flags.name IS NULL\n    OR NOT session_flags.name = ANY ('{\"Absent student\", \"Absent volunteer\", \"Low coach rating from student\", \"Low session rating from student\" }'))\nAND users.deactivated IS FALSE\nAND users.test_user IS FALSE"};
+const getStudentForEmailFirstSessionIR: any = {"usedParamSet":{"sessionId":true,"mongoSessionId":true},"params":[{"name":"sessionId","required":false,"transform":{"type":"scalar"},"locs":[{"a":335,"b":344}]},{"name":"mongoSessionId","required":false,"transform":{"type":"scalar"},"locs":[{"a":379,"b":393}]}],"statement":"SELECT\n    users.id,\n    users.first_name,\n    users.email\nFROM\n    sessions\n    LEFT JOIN sessions_session_flags ON sessions_session_flags.session_id = sessions.id\n    LEFT JOIN session_flags ON sessions_session_flags.session_flag_id = session_flags.id\n    LEFT JOIN users ON users.id = sessions.student_id\nWHERE (sessions.id::uuid = :sessionId\n    OR sessions.mongo_id::text = :mongoSessionId)\nAND (session_flags.name IS NULL\n    OR NOT session_flags.name = ANY ('{\"Absent student\", \"Absent volunteer\", \"Low coach rating from student\", \"Low session rating from student\" }'))\nAND users.deactivated IS FALSE\nAND users.deleted IS FALSE\nAND users.test_user IS FALSE"};
 
 /**
  * Query generated from SQL:
@@ -1780,6 +1780,7 @@ const getStudentForEmailFirstSessionIR: any = {"usedParamSet":{"sessionId":true,
  * AND (session_flags.name IS NULL
  *     OR NOT session_flags.name = ANY ('{"Absent student", "Absent volunteer", "Low coach rating from student", "Low session rating from student" }'))
  * AND users.deactivated IS FALSE
+ * AND users.deleted IS FALSE
  * AND users.test_user IS FALSE
  * ```
  */
@@ -1805,7 +1806,7 @@ export interface IGetVolunteerForEmailFirstSessionQuery {
   result: IGetVolunteerForEmailFirstSessionResult;
 }
 
-const getVolunteerForEmailFirstSessionIR: any = {"usedParamSet":{"sessionId":true,"mongoSessionId":true},"params":[{"name":"sessionId","required":false,"transform":{"type":"scalar"},"locs":[{"a":337,"b":346}]},{"name":"mongoSessionId","required":false,"transform":{"type":"scalar"},"locs":[{"a":381,"b":395}]}],"statement":"SELECT\n    users.id,\n    users.first_name,\n    users.email\nFROM\n    sessions\n    LEFT JOIN sessions_session_flags ON sessions_session_flags.session_id = sessions.id\n    LEFT JOIN session_flags ON sessions_session_flags.session_flag_id = session_flags.id\n    LEFT JOIN users ON users.id = sessions.volunteer_id\nWHERE (sessions.id::uuid = :sessionId\n    OR sessions.mongo_id::text = :mongoSessionId)\nAND (session_flags.name IS NULL\n    OR NOT session_flags.name = ANY ('{\"Absent student\", \"Absent volunteer\", \"Low coach rating from student\", \"Low session rating from student\" }'))\nAND users.deactivated IS FALSE\nAND users.test_user IS FALSE"};
+const getVolunteerForEmailFirstSessionIR: any = {"usedParamSet":{"sessionId":true,"mongoSessionId":true},"params":[{"name":"sessionId","required":false,"transform":{"type":"scalar"},"locs":[{"a":337,"b":346}]},{"name":"mongoSessionId","required":false,"transform":{"type":"scalar"},"locs":[{"a":381,"b":395}]}],"statement":"SELECT\n    users.id,\n    users.first_name,\n    users.email\nFROM\n    sessions\n    LEFT JOIN sessions_session_flags ON sessions_session_flags.session_id = sessions.id\n    LEFT JOIN session_flags ON sessions_session_flags.session_flag_id = session_flags.id\n    LEFT JOIN users ON users.id = sessions.volunteer_id\nWHERE (sessions.id::uuid = :sessionId\n    OR sessions.mongo_id::text = :mongoSessionId)\nAND (session_flags.name IS NULL\n    OR NOT session_flags.name = ANY ('{\"Absent student\", \"Absent volunteer\", \"Low coach rating from student\", \"Low session rating from student\" }'))\nAND users.deactivated IS FALSE\nAND users.deleted IS FALSE\nAND users.test_user IS FALSE"};
 
 /**
  * Query generated from SQL:
@@ -1824,6 +1825,7 @@ const getVolunteerForEmailFirstSessionIR: any = {"usedParamSet":{"sessionId":tru
  * AND (session_flags.name IS NULL
  *     OR NOT session_flags.name = ANY ('{"Absent student", "Absent volunteer", "Low coach rating from student", "Low session rating from student" }'))
  * AND users.deactivated IS FALSE
+ * AND users.deleted IS FALSE
  * AND users.test_user IS FALSE
  * ```
  */
@@ -2931,5 +2933,73 @@ const getUniqueStudentsHelpedCountIR: any = {"usedParamSet":{"userId":true,"minS
  * ```
  */
 export const getUniqueStudentsHelpedCount = new PreparedQuery<IGetUniqueStudentsHelpedCountParams,IGetUniqueStudentsHelpedCountResult>(getUniqueStudentsHelpedCountIR);
+
+
+/** 'IsSessionFulfilled' parameters type */
+export interface IIsSessionFulfilledParams {
+  sessionId: string;
+}
+
+/** 'IsSessionFulfilled' return type */
+export interface IIsSessionFulfilledResult {
+  isFulfilled: boolean | null;
+}
+
+/** 'IsSessionFulfilled' query type */
+export interface IIsSessionFulfilledQuery {
+  params: IIsSessionFulfilledParams;
+  result: IIsSessionFulfilledResult;
+}
+
+const isSessionFulfilledIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":114,"b":124}]}],"statement":"SELECT\n    EXISTS (\n        SELECT\n            1\n        FROM\n            sessions\n        WHERE\n            id = :sessionId!\n            AND (volunteer_joined_at IS NOT NULL\n                OR ended_at IS NOT NULL)) AS is_fulfilled"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     EXISTS (
+ *         SELECT
+ *             1
+ *         FROM
+ *             sessions
+ *         WHERE
+ *             id = :sessionId!
+ *             AND (volunteer_joined_at IS NOT NULL
+ *                 OR ended_at IS NOT NULL)) AS is_fulfilled
+ * ```
+ */
+export const isSessionFulfilled = new PreparedQuery<IIsSessionFulfilledParams,IIsSessionFulfilledResult>(isSessionFulfilledIR);
+
+
+/** 'GetVolunteersInSessions' parameters type */
+export type IGetVolunteersInSessionsParams = void;
+
+/** 'GetVolunteersInSessions' return type */
+export interface IGetVolunteersInSessionsResult {
+  volunteerId: string | null;
+}
+
+/** 'GetVolunteersInSessions' query type */
+export interface IGetVolunteersInSessionsQuery {
+  params: IGetVolunteersInSessionsParams;
+  result: IGetVolunteersInSessionsResult;
+}
+
+const getVolunteersInSessionsIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    volunteer_id\nFROM\n    sessions\nWHERE\n    volunteer_joined_at IS NOT NULL\n    AND volunteer_id IS NOT NULL\n    AND ended_at IS NULL"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     volunteer_id
+ * FROM
+ *     sessions
+ * WHERE
+ *     volunteer_joined_at IS NOT NULL
+ *     AND volunteer_id IS NOT NULL
+ *     AND ended_at IS NULL
+ * ```
+ */
+export const getVolunteersInSessions = new PreparedQuery<IGetVolunteersInSessionsParams,IGetVolunteersInSessionsResult>(getVolunteersInSessionsIR);
 
 

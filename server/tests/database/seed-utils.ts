@@ -19,6 +19,15 @@ export async function createTestUser(
   ).rows[0]
 }
 
+export async function createTestVolunteer(
+  userId: Ulid,
+  client: TransactionClient
+) {
+  await client.query('INSERT INTO volunteer_profiles (user_id) VALUES ($1)', [
+    userId,
+  ])
+}
+
 export async function createTestTeacher(
   userId: Ulid,
   client: TransactionClient

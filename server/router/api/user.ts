@@ -12,7 +12,7 @@ import {
 } from '../../models/User/'
 import { authPassport } from '../../utils/auth-utils'
 import { resError } from '../res-error'
-import { asString, asBoolean, asUlid } from '../../utils/type-utils'
+import { asString, asBoolean, asUlid, asNumber } from '../../utils/type-utils'
 import { extractUser } from '../extract-user'
 import { InputError, NotAllowedError } from '../../models/Errors'
 
@@ -36,7 +36,7 @@ export function routeUser(router: Router): void {
         : false
 
       // Form request object
-      let updateReq: { [k: string]: boolean | string | string[] } = {
+      let updateReq: EditUserProfilePayload = {
         deactivated: isDeactivated,
         ...(req.body?.schoolId ? { schoolId: req.body?.schoolId } : {}),
       }
@@ -61,9 +61,7 @@ export function routeUser(router: Router): void {
         updateReq['preferredLanguage'] = preferredLanguage
       }
 
-      await updateUserProfile(user, ip, {
-        ...updateReq,
-      } as EditUserProfilePayload)
+      await updateUserProfile(user, ip, updateReq)
 
       res.sendStatus(200)
     } catch (err) {
@@ -121,21 +119,6 @@ export function routeUser(router: Router): void {
           message: err.message,
         })
       } else resError(res, err)
-    }
-  })
-
-  router.post('/user/volunteer-approval/reference/delete', async (req, res) => {
-    try {
-      const { ip } = req
-      const user = extractUser(req)
-      await UserService.deleteReference(
-        user.id,
-        asString(req.body.referenceEmail),
-        ip
-      )
-      res.sendStatus(200)
-    } catch (err) {
-      resError(res, err)
     }
   })
 
@@ -358,4 +341,37 @@ export function routeUser(router: Router): void {
       }
     }
   )
+
+  router.put('/user/volunteer/complete-sso-signup', async function (req, res) {
+    try {
+      const user = extractUser(req)
+      if (!req.body.phone || req.body.phone.length === 0) {
+        throw new InputError('Phone number must be provided')
+      }
+      if (!req.body.signupSourceId) {
+        throw new InputError('Signup source must be provided')
+      }
+
+      const attrs: {
+        deactivated: false
+        phone: string
+        signupSourceId: number
+        otherSignupSource?: string
+      } = {
+        deactivated: false,
+        phone: req.body.phone,
+        signupSourceId: req.body.signupSourceId,
+      }
+
+      if (req.body.otherSignupSource) {
+        attrs.otherSignupSource = req.body.otherSignupSource
+      }
+
+      await updateUserProfile(user, req.ip, attrs)
+
+      return res.sendStatus(201)
+    } catch (err) {
+      resError(res, err)
+    }
+  })
 }

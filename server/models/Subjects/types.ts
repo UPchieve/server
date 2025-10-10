@@ -38,6 +38,7 @@ export type SubjectWithTopic = {
   topicName: string
   topicDisplayName: string
   topicDashboardOrder: number
+  isComputedUnlock: boolean
   topicIconLink?: string
   topicColor?: string
 }

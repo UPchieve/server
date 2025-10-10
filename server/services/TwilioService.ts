@@ -8,6 +8,7 @@ import {
   getVolunteersNotifiedBySessionId,
 } from '../models/Volunteer'
 import QueueService from './QueueService'
+import * as UserProfileService from './UserProfileService'
 import * as SessionRepo from '../models/Session'
 import * as VolunteerRepo from '../models/Volunteer'
 import Case from 'case'
@@ -16,13 +17,10 @@ import { VERIFICATION_METHOD, SUBJECTS } from '../constants'
 import startsWithVowel from '../utils/starts-with-vowel'
 import { Ulid } from '../models/pgUtils'
 import { getSessionById, NotificationData } from '../models/Session'
-import {
-  AssociatedPartner,
-  getAssociatedPartnerBySponsorOrg,
-  getAssociatedPartnerByPartnerOrg,
-} from '../models/AssociatedPartner'
 import { getSponsorOrgs } from '../models/SponsorOrg'
+import * as AssociatedPartnerService from './AssociatedPartnerService'
 import { Jobs } from '../worker/jobs'
+import { AssociatedPartner } from '../models/AssociatedPartner'
 
 const protocol = config.NODE_ENV === 'production' ? 'https' : 'http'
 const apiRoot = `${config.protocol}://${config.host}/twiml`
@@ -72,33 +70,35 @@ export function getCurrentAvailabilityPath(): string {
 export async function sendTextMessage(
   phoneNumber: string,
   messageText: string
-): Promise<string> {
-  logger.info(`Sending text message "${messageText}" to ${phoneNumber}`)
+): Promise<string | undefined> {
+  try {
+    logger.info(`Sending text message "${messageText}" to ${phoneNumber}`)
 
-  // If stored phone number doesn't have international calling code (E.164 formatting)
-  // then default to US number
-  // TODO: normalize previously stored US phone numbers
-  const fullPhoneNumber =
-    phoneNumber[0] === '+' ? phoneNumber : `+1${phoneNumber}`
+    // If stored phone number doesn't have international calling code (E.164 formatting)
+    // then default to US number
+    // TODO: normalize previously stored US phone numbers
+    const fullPhoneNumber =
+      phoneNumber[0] === '+' ? phoneNumber : `+1${phoneNumber}`
 
-  if (!twilioClient) {
-    logger.warn('Twilio client not loaded.')
-    return '0'
-  }
-  const message = await twilioClient.messages.create({
-    to: fullPhoneNumber,
-    from: config.sendingNumber,
-    body: messageText,
-  })
-  if (message.sid) {
-    logger.info(
-      `Message sent to ${phoneNumber} with message id \n ${message.sid}`
-    )
+    if (!twilioClient) {
+      logger.warn('Twilio client not loaded.')
+      return
+    }
+
+    const message = await twilioClient.messages.create({
+      to: fullPhoneNumber,
+      from: config.sendingNumber,
+      body: messageText,
+    })
     return message.sid
+  } catch (err) {
+    if (
+      (err as Error).message === 'Attempt to send to unsubscribed recipient'
+    ) {
+      await UserProfileService.optOutSmsConsentForPhoneNumber(phoneNumber)
+    }
+    logger.error(err as Error)
   }
-  throw new Error(
-    `Failed to send text message ${messageText} to ${phoneNumber}`
-  )
 }
 
 export async function sendVoiceMessage(
@@ -166,12 +166,10 @@ export async function sendFollowupText(
     method: 'sms',
     priorityGroup: 'follow-up',
   }
-  try {
-    const messageId = await sendTextMessage(volunteerPhone, messageText)
+  const messageId = await sendTextMessage(volunteerPhone, messageText)
+  if (messageId) {
     notification.wasSuccessful = true
     notification.messageId = messageId
-  } catch (err) {
-    logger.error(err as Error)
   }
 
   await SessionRepo.addSessionNotification(sessionId, notification)
@@ -184,9 +182,9 @@ export function buildTargetStudentContent(
   return associatedPartner &&
     associatedPartner.studentOrgDisplay &&
     volunteer.volunteerPartnerOrg === associatedPartner.volunteerPartnerOrg
-    ? startsWithVowel(associatedPartner.studentOrgDisplay!)
-      ? `an ${associatedPartner.studentOrgDisplay!} student`
-      : `a ${associatedPartner.studentOrgDisplay!} student`
+    ? startsWithVowel(associatedPartner.studentOrgDisplay)
+      ? `an ${associatedPartner.studentOrgDisplay} student`
+      : `a ${associatedPartner.studentOrgDisplay} student`
     : 'a student'
 }
 
@@ -202,45 +200,6 @@ export function buildNotificationContent(
   )} needs help in ${session.subjectDisplayName} on UPchieve! ${sessionUrl}`
 }
 
-export async function getAssociatedPartner(
-  partnerOrg: string | undefined,
-  highSchoolId: Ulid | undefined
-): Promise<AssociatedPartner | undefined> {
-  // Determine if the student's partner org is one of the orgs that
-  // should have priority matching with its partner volunteer org counterpart
-  if (
-    partnerOrg &&
-    config.priorityMatchingPartnerOrgs.some((org) => partnerOrg === org)
-  )
-    return await getAssociatedPartnerByPartnerOrg(partnerOrg)
-
-  for (const sponsorOrg of config.priorityMatchingSponsorOrgs) {
-    // Determine if the student's school belongs to a sponsor org that
-    // should have priority matching with its partner volunteer org counterpart
-    const sponsorOrgs = await getSponsorOrgs()
-    const matchingOrg = sponsorOrgs.find((org) => org.key === sponsorOrg)
-    if (
-      highSchoolId &&
-      matchingOrg &&
-      Array.isArray(matchingOrg.schoolIds) &&
-      matchingOrg.schoolIds.some((schoolId) => schoolId === highSchoolId)
-    )
-      return await getAssociatedPartnerBySponsorOrg(sponsorOrg)
-
-    // Determine if the student's partner org belongs to a sponsor org that
-    // should have priority matching with its partner volunteer org counterpart
-    if (
-      partnerOrg &&
-      matchingOrg &&
-      Array.isArray(matchingOrg.studentPartnerOrgKeys) &&
-      matchingOrg.studentPartnerOrgKeys.includes(partnerOrg)
-    )
-      return await getAssociatedPartnerBySponsorOrg(sponsorOrg)
-  }
-
-  return undefined
-}
-
 export async function notifyVolunteer(
   session: SessionRepo.GetSessionByIdResult
 ): Promise<Ulid | undefined> {
@@ -252,9 +211,10 @@ export async function notifyVolunteer(
   const favoriteVolunteers =
     await StudentsRepo.getFavoriteVolunteersByStudentId(student.id)
 
-  const associatedPartner = student.studentPartnerOrg
-    ? await getAssociatedPartner(student.studentPartnerOrg, student.schoolId)
-    : undefined
+  const associatedPartner = await AssociatedPartnerService.getAssociatedPartner(
+    student.studentPartnerOrg,
+    student.schoolId
+  )
 
   const activeSessionVolunteers = await getActiveSessionVolunteers()
   const notifiedForThisSessionId = await getVolunteersNotifiedBySessionId(
@@ -433,12 +393,10 @@ export async function notifyVolunteer(
     method: 'sms',
     priorityGroup,
   }
-  try {
-    const messageId = await sendTextMessage(volunteer.phone, messageText)
+  const messageId = await sendTextMessage(volunteer.phone, messageText)
+  if (messageId) {
     notification.wasSuccessful = true
     notification.messageId = messageId
-  } catch (err) {
-    logger.error(err as Error)
   }
 
   await SessionRepo.addSessionNotification(session.id, notification)
@@ -520,7 +478,7 @@ export async function beginRegularNotifications(
   await QueueService.add(
     Jobs.NotifyTutors,
     { sessionId, notificationSchedule, currentNotificationRound: 1 },
-    { delay, removeOnComplete: true, removeOnFail: true }
+    { delay }
   )
 }
 

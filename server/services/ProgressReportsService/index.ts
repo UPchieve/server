@@ -402,11 +402,7 @@ export async function queueGenerateProgressReportForUser(
     session.studentId
   )
   if (!isSubjectPromptActive || !isProgressReportsActive) return
-  await QueueService.add(
-    Jobs.GenerateProgressReport,
-    { sessionId },
-    { removeOnComplete: true, removeOnFail: true }
-  )
+  await QueueService.add(Jobs.GenerateProgressReport, { sessionId })
 }
 
 function transformProgressReportSummaryRows(

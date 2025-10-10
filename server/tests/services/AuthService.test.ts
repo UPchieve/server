@@ -1,16 +1,11 @@
 import { mocked } from 'jest-mock'
-import { GRADES } from '../../constants'
 
 import * as UserRepo from '../../models/User/queries'
-import * as SchoolRepo from '../../models/School/queries'
-import * as ZipCodeRepo from '../../models/ZipCode/queries'
-import * as StudentPartnerOrgRepo from '../../models/StudentPartnerOrg/queries'
 import * as VolunteerPartnerOrgRepo from '../../models/VolunteerPartnerOrg/queries'
 import * as MailService from '../../services/MailService'
-import * as IpAddressService from '../../services/IpAddressService'
 import * as UserCtrl from '../../controllers/UserCtrl'
 import * as NotificationsRepo from '../../models/Notification/queries'
-import QueueService from '../../services/QueueService'
+import * as ReferralService from '../../services/ReferralService'
 
 import * as AuthService from '../../services/AuthService'
 import {
@@ -19,42 +14,34 @@ import {
   checkPassword,
   verifyPassword,
 } from '../../utils/auth-utils'
-import { NotAllowedError, InputError, LookupError } from '../../models/Errors'
+import { InputError, LookupError } from '../../models/Errors'
 import {
   buildUserRow,
   buildUserContactInfo,
-  buildStudent,
-  buildSchool,
   buildVolunteerPartnerOrg,
-  buildStudentPartnerOrg,
   buildVolunteer,
 } from '../mocks/generate'
 import {
-  buildStudentRegistrationForm,
-  buildPartnerStudentRegistrationForm,
   buildVolunteerRegistrationForm,
   buildPartnerVolunteerRegistrationForm,
 } from '../mocks/services/AuthService.mock'
 import { getDbUlid } from '../../models/pgUtils'
-import { Jobs } from '../../worker/jobs'
 
 // Mocks
 jest.mock('../../models/User/queries')
 const mockedUserRepo = mocked(UserRepo)
 jest.mock('../../models/School/queries')
-const mockedSchoolRepo = mocked(SchoolRepo)
 jest.mock('../../models/ZipCode/queries')
-const mockedZipCodeRepo = mocked(ZipCodeRepo)
 jest.mock('../../models/StudentPartnerOrg/queries')
-const mockedStudentPartnerOrgRepo = mocked(StudentPartnerOrgRepo)
 jest.mock('../../models/VolunteerPartnerOrg/queries')
 const mockedVolunteerPartnerOrgRepo = mocked(VolunteerPartnerOrgRepo)
 jest.mock('../../controllers/UserCtrl')
 const mockedUserCtrl = mocked(UserCtrl)
 jest.mock('../../services/IpAddressService')
-const mockedIpAddressService = mocked(IpAddressService)
 const mockedNotificationsRepo = mocked(NotificationsRepo)
 jest.mock('../../models/Notification/queries')
+const mockedReferralService = mocked(ReferralService)
+jest.mock('../../services/ReferralService')
 
 jest.mock('../../services/VolunteerService')
 jest.mock('../../services/MailService')
@@ -75,7 +62,7 @@ describe('Utils tests', () => {
     function password() {
       return checkPassword('Pass123')
     }
-    expect(password).toThrowError(
+    expect(password).toThrow(
       new RegistrationError('Password must be 8 characters or longer')
     )
   })
@@ -84,7 +71,7 @@ describe('Utils tests', () => {
     function password() {
       return checkPassword('password123')
     }
-    expect(password).toThrowError(
+    expect(password).toThrow(
       new RegistrationError(
         'Password must contain at least one uppercase letter'
       )
@@ -95,7 +82,7 @@ describe('Utils tests', () => {
     function password() {
       return checkPassword('PASSWORD123')
     }
-    expect(password).toThrowError(
+    expect(password).toThrow(
       new RegistrationError(
         'Password must contain at least one lowercase letter'
       )
@@ -106,7 +93,7 @@ describe('Utils tests', () => {
     function password() {
       return checkPassword('PasswordABC')
     }
-    expect(password).toThrowError(
+    expect(password).toThrow(
       new RegistrationError('Password must contain at least one number')
     )
   })
@@ -118,23 +105,7 @@ describe('Registration tests', () => {
   })
 
   // Test objects
-  const ip = { country_code: 'US', org: 'example' }
-  const highSchool = buildSchool()
-  const mockedStudentPartnerOrg = buildStudentPartnerOrg({ sites: undefined })
   const mockedVolunteerPartnerOrg = buildVolunteerPartnerOrg()
-  const studentOpenOverrides = {
-    zipCode: '11201',
-    highSchoolId: highSchool.id,
-    currentGrade: GRADES.EIGHTH,
-    signupSourceId: 1,
-  }
-  const studentPartnerOverrides = {
-    studentPartnerOrg: 'example',
-    studentPartnerSite: 'example.org',
-    partnerUserId: '123',
-    college: 'UPchieve University',
-  }
-
   const plainUser = buildUserRow()
 
   const volunteerPartnerOverrides = {
@@ -196,7 +167,7 @@ describe('Registration tests', () => {
   test('Register valid open volunteer', async () => {
     mockedUserRepo.getUserIdByEmail.mockResolvedValue(undefined)
     mockedUserRepo.getUserIdByPhone.mockResolvedValue(undefined)
-    mockedUserCtrl.checkReferral.mockResolvedValue(undefined)
+    mockedReferralService.getReferrerIdByCode.mockResolvedValue(undefined)
     mockedUserCtrl.createVolunteer.mockResolvedValue({
       ...volunteerOpen,
       userType: 'volunteer',
@@ -211,7 +182,7 @@ describe('Registration tests', () => {
   test('Register valid partner volunteer', async () => {
     mockedUserRepo.getUserIdByEmail.mockResolvedValue(undefined)
     mockedUserRepo.getUserIdByPhone.mockResolvedValue(undefined)
-    mockedUserCtrl.checkReferral.mockResolvedValue(undefined)
+    mockedReferralService.getReferrerIdByCode.mockResolvedValue(undefined)
     mockedUserCtrl.createVolunteer.mockResolvedValue({
       ...volunteerPartner,
       userType: 'volunteer',
@@ -301,7 +272,7 @@ describe('Registration tests', () => {
     mockedUserRepo.getUserIdByPhone.mockResolvedValue(undefined)
     const referrer = buildVolunteer()
     const referree = buildVolunteer({ referredBy: referrer.id })
-    mockedUserCtrl.checkReferral.mockResolvedValue(referrer.id)
+    mockedReferralService.getReferrerIdByCode.mockResolvedValue(referrer.id)
     mockedUserCtrl.createVolunteer.mockResolvedValue({
       ...referree,
       userType: 'volunteer',
@@ -342,7 +313,7 @@ describe('Registration tests', () => {
     )
     const referrer = buildVolunteer()
     const referree = buildVolunteer({ referredBy: referrer.id })
-    mockedUserCtrl.checkReferral.mockResolvedValue(referrer.id)
+    mockedReferralService.getReferrerIdByCode.mockResolvedValue(referrer.id)
     mockedUserCtrl.createVolunteer.mockResolvedValue({
       ...referree,
       userType: 'volunteer',

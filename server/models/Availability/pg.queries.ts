@@ -110,7 +110,7 @@ export interface IGetAvailabilityForVolunteerHeatmapQuery {
   result: IGetAvailabilityForVolunteerHeatmapResult;
 }
 
-const getAvailabilityForVolunteerHeatmapIR: any = {"usedParamSet":{"subject":true},"params":[{"name":"subject","required":true,"transform":{"type":"scalar"},"locs":[{"a":231,"b":239},{"a":469,"b":477},{"a":1316,"b":1324},{"a":1916,"b":1924}]}],"statement":"WITH certs_for_subject AS (\n    SELECT\n        COUNT(*)::int AS total\n    FROM\n        certification_subject_unlocks\n        JOIN subjects ON subjects.id = certification_subject_unlocks.subject_id\n    WHERE\n        subjects.name = :subject!\n),\ncerts_for_computed_subject AS (\n    SELECT\n        COUNT(*)::int AS total\n    FROM\n        computed_subject_unlocks\n        JOIN subjects ON subjects.id = computed_subject_unlocks.subject_id\n    WHERE\n        subjects.name = :subject!\n)\nSELECT\n    availabilities.id,\n    availabilities.available_start,\n    availabilities.available_end,\n    availabilities.timezone,\n    availabilities.user_id,\n    weekdays.day AS weekday\nFROM\n    availabilities\n    LEFT JOIN weekdays ON availabilities.weekday_id = weekdays.id\n    JOIN users ON users.id = availabilities.user_id\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN (\n        SELECT\n            users_certifications.user_id,\n            COUNT(*)::int AS earned_certs,\n            certs_for_subject.total\n        FROM\n            users_certifications\n            JOIN certification_subject_unlocks USING (certification_id)\n            JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id\n            JOIN certs_for_subject ON TRUE\n        WHERE\n            subjects.name = :subject!\n        GROUP BY\n            users_certifications.user_id, subjects.name, certs_for_subject.total) user_certs ON user_certs.user_id = users.id\n    LEFT JOIN (\n        SELECT\n            users_certifications.user_id,\n            COUNT(*)::int AS earned_certs,\n            certs_for_computed_subject.total\n        FROM\n            users_certifications\n            JOIN computed_subject_unlocks USING (certification_id)\n            JOIN subjects ON computed_subject_unlocks.subject_id = subjects.id\n            JOIN certs_for_computed_subject ON TRUE\n        WHERE\n            subjects.name = :subject!\n        GROUP BY\n            users_certifications.user_id, subjects.name, certs_for_computed_subject.total\n        HAVING\n            COUNT(*)::int >= certs_for_computed_subject.total) user_computed_subjects ON user_computed_subjects.user_id = users.id\nWHERE\n    users.test_user IS FALSE\n    AND volunteer_profiles.onboarded IS TRUE\n    AND users.deactivated IS FALSE\n    AND users.ban_type IS DISTINCT FROM 'complete'\n    AND (user_certs.total IS NOT NULL\n        OR user_computed_subjects.total IS NOT NULL)"};
+const getAvailabilityForVolunteerHeatmapIR: any = {"usedParamSet":{"subject":true},"params":[{"name":"subject","required":true,"transform":{"type":"scalar"},"locs":[{"a":231,"b":239},{"a":469,"b":477},{"a":1316,"b":1324},{"a":1916,"b":1924}]}],"statement":"WITH certs_for_subject AS (\n    SELECT\n        COUNT(*)::int AS total\n    FROM\n        certification_subject_unlocks\n        JOIN subjects ON subjects.id = certification_subject_unlocks.subject_id\n    WHERE\n        subjects.name = :subject!\n),\ncerts_for_computed_subject AS (\n    SELECT\n        COUNT(*)::int AS total\n    FROM\n        computed_subject_unlocks\n        JOIN subjects ON subjects.id = computed_subject_unlocks.subject_id\n    WHERE\n        subjects.name = :subject!\n)\nSELECT\n    availabilities.id,\n    availabilities.available_start,\n    availabilities.available_end,\n    availabilities.timezone,\n    availabilities.user_id,\n    weekdays.day AS weekday\nFROM\n    availabilities\n    LEFT JOIN weekdays ON availabilities.weekday_id = weekdays.id\n    JOIN users ON users.id = availabilities.user_id\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN (\n        SELECT\n            users_certifications.user_id,\n            COUNT(*)::int AS earned_certs,\n            certs_for_subject.total\n        FROM\n            users_certifications\n            JOIN certification_subject_unlocks USING (certification_id)\n            JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id\n            JOIN certs_for_subject ON TRUE\n        WHERE\n            subjects.name = :subject!\n        GROUP BY\n            users_certifications.user_id, subjects.name, certs_for_subject.total) user_certs ON user_certs.user_id = users.id\n    LEFT JOIN (\n        SELECT\n            users_certifications.user_id,\n            COUNT(*)::int AS earned_certs,\n            certs_for_computed_subject.total\n        FROM\n            users_certifications\n            JOIN computed_subject_unlocks USING (certification_id)\n            JOIN subjects ON computed_subject_unlocks.subject_id = subjects.id\n            JOIN certs_for_computed_subject ON TRUE\n        WHERE\n            subjects.name = :subject!\n        GROUP BY\n            users_certifications.user_id, subjects.name, certs_for_computed_subject.total\n        HAVING\n            COUNT(*)::int >= certs_for_computed_subject.total) user_computed_subjects ON user_computed_subjects.user_id = users.id\nWHERE\n    users.test_user IS FALSE\n    AND volunteer_profiles.onboarded IS TRUE\n    AND users.deactivated IS FALSE\n    AND users.deleted IS FALSE\n    AND users.ban_type IS DISTINCT FROM 'complete'\n    AND (user_certs.total IS NOT NULL\n        OR user_computed_subjects.total IS NOT NULL)"};
 
 /**
  * Query generated from SQL:
@@ -179,6 +179,7 @@ const getAvailabilityForVolunteerHeatmapIR: any = {"usedParamSet":{"subject":tru
  *     users.test_user IS FALSE
  *     AND volunteer_profiles.onboarded IS TRUE
  *     AND users.deactivated IS FALSE
+ *     AND users.deleted IS FALSE
  *     AND users.ban_type IS DISTINCT FROM 'complete'
  *     AND (user_certs.total IS NOT NULL
  *         OR user_computed_subjects.total IS NOT NULL)
@@ -323,57 +324,6 @@ const saveCurrentAvailabilityAsHistoryIR: any = {"usedParamSet":{"userId":true},
 export const saveCurrentAvailabilityAsHistory = new PreparedQuery<ISaveCurrentAvailabilityAsHistoryParams,ISaveCurrentAvailabilityAsHistoryResult>(saveCurrentAvailabilityAsHistoryIR);
 
 
-/** 'SaveAvailabilityAsHistoryByDate' parameters type */
-export interface ISaveAvailabilityAsHistoryByDateParams {
-  recordedAt: DateOrString;
-  userId: string;
-}
-
-/** 'SaveAvailabilityAsHistoryByDate' return type */
-export interface ISaveAvailabilityAsHistoryByDateResult {
-  ok: string;
-}
-
-/** 'SaveAvailabilityAsHistoryByDate' query type */
-export interface ISaveAvailabilityAsHistoryByDateQuery {
-  params: ISaveAvailabilityAsHistoryByDateParams;
-  result: ISaveAvailabilityAsHistoryByDateResult;
-}
-
-const saveAvailabilityAsHistoryByDateIR: any = {"usedParamSet":{"recordedAt":true,"userId":true},"params":[{"name":"recordedAt","required":true,"transform":{"type":"scalar"},"locs":[{"a":173,"b":184},{"a":482,"b":493}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":521,"b":528}]}],"statement":"INSERT INTO availability_histories (id, recorded_at, user_id, available_start, available_end, timezone, weekday_id, created_at, updated_at)\nSELECT\n    generate_ulid (),\n    :recordedAt!,\n    user_id,\n    available_start,\n    available_end,\n    timezone,\n    weekday_id,\n    NOW(),\n    NOW()\nFROM\n    availability_histories\nWHERE\n    recorded_at = (\n        SELECT\n            MAX(recorded_at)\n        FROM\n            availability_histories\n        WHERE\n            recorded_at <= :recordedAt!\n            AND user_id = :userId!)\nRETURNING\n    id AS ok"};
-
-/**
- * Query generated from SQL:
- * ```
- * INSERT INTO availability_histories (id, recorded_at, user_id, available_start, available_end, timezone, weekday_id, created_at, updated_at)
- * SELECT
- *     generate_ulid (),
- *     :recordedAt!,
- *     user_id,
- *     available_start,
- *     available_end,
- *     timezone,
- *     weekday_id,
- *     NOW(),
- *     NOW()
- * FROM
- *     availability_histories
- * WHERE
- *     recorded_at = (
- *         SELECT
- *             MAX(recorded_at)
- *         FROM
- *             availability_histories
- *         WHERE
- *             recorded_at <= :recordedAt!
- *             AND user_id = :userId!)
- * RETURNING
- *     id AS ok
- * ```
- */
-export const saveAvailabilityAsHistoryByDate = new PreparedQuery<ISaveAvailabilityAsHistoryByDateParams,ISaveAvailabilityAsHistoryByDateResult>(saveAvailabilityAsHistoryByDateIR);
-
-
 /** 'InsertNewAvailability' parameters type */
 export interface IInsertNewAvailabilityParams {
   availableEnd: number;
@@ -501,58 +451,5 @@ const deleteLegacyAvailabilityHistoriesForUserIR: any = {"usedParamSet":{"userId
  * ```
  */
 export const deleteLegacyAvailabilityHistoriesForUser = new PreparedQuery<IDeleteLegacyAvailabilityHistoriesForUserParams,IDeleteLegacyAvailabilityHistoriesForUserResult>(deleteLegacyAvailabilityHistoriesForUserIR);
-
-
-/** 'GetAvailabilityForVolunteerByDate' parameters type */
-export interface IGetAvailabilityForVolunteerByDateParams {
-  recordedAt: DateOrString;
-  userId: string;
-}
-
-/** 'GetAvailabilityForVolunteerByDate' return type */
-export interface IGetAvailabilityForVolunteerByDateResult {
-  availableEnd: number;
-  availableStart: number;
-  id: string;
-  recordedAt: Date;
-  timezone: string;
-  weekday: string;
-}
-
-/** 'GetAvailabilityForVolunteerByDate' query type */
-export interface IGetAvailabilityForVolunteerByDateQuery {
-  params: IGetAvailabilityForVolunteerByDateParams;
-  result: IGetAvailabilityForVolunteerByDateResult;
-}
-
-const getAvailabilityForVolunteerByDateIR: any = {"usedParamSet":{"recordedAt":true,"userId":true},"params":[{"name":"recordedAt","required":true,"transform":{"type":"scalar"},"locs":[{"a":559,"b":570}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":598,"b":605},{"a":626,"b":633}]}],"statement":"SELECT\n    availability_histories.id,\n    availability_histories.available_start,\n    availability_histories.available_end,\n    availability_histories.timezone,\n    availability_histories.recorded_at,\n    weekdays.day AS weekday\nFROM\n    availability_histories\n    LEFT JOIN weekdays ON availability_histories.weekday_id = weekdays.id\n    LEFT JOIN users ON availability_histories.user_id = users.id\nWHERE\n    recorded_at = (\n        SELECT\n            MAX(recorded_at)\n        FROM\n            availability_histories\n        WHERE\n            recorded_at <= :recordedAt!\n            AND user_id = :userId!)\n    AND user_id = :userId!"};
-
-/**
- * Query generated from SQL:
- * ```
- * SELECT
- *     availability_histories.id,
- *     availability_histories.available_start,
- *     availability_histories.available_end,
- *     availability_histories.timezone,
- *     availability_histories.recorded_at,
- *     weekdays.day AS weekday
- * FROM
- *     availability_histories
- *     LEFT JOIN weekdays ON availability_histories.weekday_id = weekdays.id
- *     LEFT JOIN users ON availability_histories.user_id = users.id
- * WHERE
- *     recorded_at = (
- *         SELECT
- *             MAX(recorded_at)
- *         FROM
- *             availability_histories
- *         WHERE
- *             recorded_at <= :recordedAt!
- *             AND user_id = :userId!)
- *     AND user_id = :userId!
- * ```
- */
-export const getAvailabilityForVolunteerByDate = new PreparedQuery<IGetAvailabilityForVolunteerByDateParams,IGetAvailabilityForVolunteerByDateResult>(getAvailabilityForVolunteerByDateIR);
 
 

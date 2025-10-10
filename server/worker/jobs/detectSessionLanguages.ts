@@ -11,6 +11,7 @@ import { asString } from '../../utils/type-utils'
 import { captureEvent } from '../../services/AnalyticsService'
 import { EVENTS } from '../../constants'
 import { getDisplayVolunteerLanguagesFlag } from '../../services/FeatureFlagService'
+import { secondsInMs } from '../../utils/time-utils'
 
 type DetectLanguagesSessionJobData = {
   sessionId: Uuid
@@ -22,6 +23,9 @@ const AWS_CONFIG = {
   credentials: {
     accessKeyId: config.awsS3.accessKeyId,
     secretAccessKey: config.awsS3.secretAccessKey,
+  },
+  requestHandler: {
+    requestTimeout: secondsInMs(30),
   },
 }
 const awsComprehendClient = new ComprehendClient(AWS_CONFIG)

@@ -12,6 +12,7 @@ import * as FedCredRepo from '../../models/FederatedCredential'
 import * as AuthService from '../../services/AuthService'
 import * as MailService from '../../services/MailService'
 import * as EligibilityService from '../../services/EligibilityService'
+import * as ReferralService from '../../services/ReferralService'
 import * as TeacherService from '../../services/TeacherService'
 import * as AuthUtils from '../../utils/auth-utils'
 import {
@@ -34,6 +35,7 @@ jest.mock('../../models/UserAction/queries')
 jest.mock('../../models/FederatedCredential/queries')
 jest.mock('../../services/AuthService')
 jest.mock('../../services/EligibilityService')
+jest.mock('../../services/ReferralService')
 jest.mock('../../services/MailService')
 jest.mock('../../services/TeacherService')
 jest.mock('../../utils/auth-utils')
@@ -43,12 +45,12 @@ const mockedStudentRepo = mocked(StudentRepo)
 const mockedTeacherRepo = mocked(TeacherRepo)
 const mockedStudentPartnerOrgRepo = mocked(StudentPartnerOrgRepo)
 const mockedSignUpSourceRepo = mocked(SignUpSourceRepo)
-const mockedUSMRepo = mocked(USMRepo)
 const mockedUPFRepo = mocked(UPFRepo)
 const mockedUserActionRepo = mocked(UserActionRepo)
 const mockedFedCredRepo = mocked(FedCredRepo)
 const mockedAuthService = mocked(AuthService)
 const mockedEligibilityService = mocked(EligibilityService)
+const mockedReferralService = mocked(ReferralService)
 const mockedMailService = mocked(MailService)
 const mockedTeacherService = mocked(TeacherService)
 const mockedAuthUtils = mocked(AuthUtils)
@@ -449,7 +451,9 @@ describe('registerStudent', () => {
       email: student.email,
       firstName: student.firstName,
     })
-    mockedAuthUtils.getReferredBy.mockResolvedValue(REFERRAL_USER.id)
+    mockedReferralService.getReferrerIdByCode.mockResolvedValue(
+      REFERRAL_USER.id
+    )
 
     await registerStudent(student)
 
@@ -480,7 +484,7 @@ describe('registerStudent', () => {
       email: student.email,
       firstName: student.firstName,
     })
-    mockedAuthUtils.getReferredBy.mockResolvedValue(undefined)
+    mockedReferralService.getReferrerIdByCode.mockResolvedValue(undefined)
 
     await registerStudent(student)
 

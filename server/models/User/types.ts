@@ -52,6 +52,7 @@ export type CreateUserPayload = {
   referredBy?: Ulid
   signupSourceId?: number
   verified?: boolean
+  smsConsent?: boolean
 }
 
 export type CreateUserResult = Required<
@@ -89,7 +90,7 @@ export type UserContactInfo = Pick<
 
 export type UserForCreateSendGridContact = Omit<
   UserContactInfo,
-  'roles' | 'roleContext' | 'referralCode'
+  'deactivated' | 'roles' | 'roleContext' | 'referralCode'
 > & {
   createdAt: Date
   lastName: string
@@ -121,10 +122,12 @@ export type ReportedUser = Pick<
 }
 
 export type EditUserProfilePayload = {
-  deactivated: boolean
+  deactivated?: boolean
   smsConsent?: boolean
   mutedSubjectAlerts?: string[]
   phone?: string
   preferredLanguage?: string
   schoolId?: string
+  signupSourceId?: number
+  otherSignupSource?: string
 }

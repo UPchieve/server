@@ -12,8 +12,8 @@ ORDER BY
 
 
 /* @name createUser */
-INSERT INTO users (id, first_name, last_name, email, proxy_email, phone, PASSWORD, password_reset_token, verified, email_verified, phone_verified, referred_by, referral_code, signup_source_id, other_signup_source, last_activity_at)
-    VALUES (:id!, :firstName!, :lastName!, :email!, :proxyEmail, :phone, :password, :passwordResetToken, :verified, :emailVerified, :phoneVerified, :referredBy, :referralCode!, :signupSourceId, :otherSignupSource, NOW())
+INSERT INTO users (id, first_name, last_name, email, proxy_email, phone, sms_consent, PASSWORD, password_reset_token, verified, email_verified, phone_verified, referred_by, referral_code, signup_source_id, other_signup_source, last_activity_at)
+    VALUES (:id!, :firstName!, :lastName!, :email!, :proxyEmail, :phone, :smsConsent, :password, :passwordResetToken, :verified, :emailVerified, :phoneVerified, :referredBy, :referralCode!, :signupSourceId, :otherSignupSource, NOW())
 ON CONFLICT (email)
     DO NOTHING
 RETURNING
@@ -25,7 +25,7 @@ INSERT INTO users (id, first_name, last_name, email, proxy_email, phone, PASSWOR
     VALUES (:id!, :firstName!, :lastName!, :email!, :proxyEmail, :phone, :password, :passwordResetToken, :verified, :emailVerified, :phoneVerified, :referredBy, :referralCode!, :signupSourceId, :otherSignupSource, NOW())
 ON CONFLICT (email)
     DO UPDATE SET
-        first_name = :firstName!, last_name = :lastName!, proxy_email = :proxyEmail, phone = :phone, PASSWORD = :password, password_reset_token = :passwordResetToken, verified = :verified, email_verified = :emailVerified, phone_verified = :phoneVerified, referred_by = :referredBy, referral_code = :referralCode!, signup_source_id = :signupSourceId, other_signup_source = :otherSignupSource
+        first_name = :firstName!, last_name = :lastName!, proxy_email = :proxyEmail, phone = :phone, PASSWORD = :password, password_reset_token = :passwordResetToken, verified = :verified, email_verified = :emailVerified, phone_verified = :phoneVerified, signup_source_id = :signupSourceId, other_signup_source = :otherSignupSource
     RETURNING
         id, email, first_name, proxy_email, (xmax = 0) AS is_created;
 
@@ -505,7 +505,12 @@ muted_users_subject_alerts_agg.muted_subject_alerts,
 number_of_student_classes.count AS number_of_student_classes,
 federated_credentials_agg.issuers,
 teacher_profiles.last_successful_clever_sync,
-COALESCE(users.other_signup_source, signup_sources.name) AS signup_source
+CASE WHEN users.other_signup_source <> ''
+    AND users.other_signup_source IS NOT NULL THEN
+    users.other_signup_source
+ELSE
+    signup_sources.name
+END AS signup_source
 FROM
     users
     LEFT JOIN (
@@ -656,7 +661,6 @@ SELECT
     student_partner_orgs.name AS student_partner_org_display,
     users.last_activity_at,
     users.created_at,
-    users.deactivated,
     (
         CASE WHEN user_upchieve101.id IS NULL THEN
             FALSE
@@ -686,6 +690,8 @@ FROM
     LEFT JOIN current_grade_levels_mview cgl ON student_profiles.user_id = cgl.user_id
 WHERE
     users.id = :userId!
+    AND users.deactivated IS FALSE
+    AND users.deleted IS FALSE
 LIMIT 1;
 
 
@@ -767,11 +773,23 @@ SET
     deactivated = COALESCE(:deactivated, deactivated),
     phone = COALESCE(:phone, phone),
     sms_consent = COALESCE(:smsConsent, sms_consent),
-    preferred_language = COALESCE(:preferredLanguage, preferred_language)
+    preferred_language = COALESCE(:preferredLanguage, preferred_language),
+    signup_source_id = COALESCE(:signupSourceId, signup_source_id),
+    other_signup_source = COALESCE(:otherSignupSource, other_signup_source)
 WHERE
     id = :userId!
 RETURNING
     id AS ok;
+
+
+/* @name updateSmsConsentForPhoneNumber */
+UPDATE
+    users
+SET
+    sms_consent = :smsConsent!,
+    updated_at = NOW()
+WHERE
+    phone = :phoneNumber!;
 
 
 /* @name deletePhone */

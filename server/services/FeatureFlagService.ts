@@ -151,13 +151,11 @@ export async function getTeacherGettingStartedAssignmentFlag(userId: Uuid) {
 }
 
 export async function getGenerateSessionSummaryFeatureFlag(userId: Uuid) {
-  return true
-  // return await isFeatureEnabled(FEATURE_FLAGS.GENERATE_SESSION_SUMMARY, userId)
+  return await isFeatureEnabled(FEATURE_FLAGS.GENERATE_SESSION_SUMMARY, userId)
 }
 
 export async function getSessionSummaryFeatureFlag(userId: Uuid) {
-  return true
-  // return await isFeatureEnabled(FEATURE_FLAGS.GET_SESSION_SUMMARY, userId)
+  return await isFeatureEnabled(FEATURE_FLAGS.GET_SESSION_SUMMARY, userId)
 }
 
 export async function getDisplayVolunteerLanguagesFlag(userId: Uuid) {
@@ -197,4 +195,8 @@ export async function getStudentCreationDisabledFeatureFlag(userId: Ulid) {
 
 export async function getStudySlackCommunityEmailFeatureFlag(userId: Ulid) {
   return isFeatureEnabled(FEATURE_FLAGS.STUDY_SLACK_COACH_COMMUNITY, userId)
+}
+
+export async function getNotifyTutorFlag(userId: Ulid) {
+  return isFeatureEnabled(FEATURE_FLAGS.NOTIFY_TUTOR, userId)
 }

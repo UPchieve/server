@@ -42,6 +42,7 @@ export default function (app: Express) {
       '/auth/reset',
       '/api-public/eligibility',
       '/api-public/contact',
+      '/api-public/twiml',
       '/api/verify',
       '/api/session/current',
       '/api/session/latest',

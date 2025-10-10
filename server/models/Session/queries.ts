@@ -248,7 +248,7 @@ export type SessionsToReview = {
   id: Ulid
   _id: Ulid
   createdAt: Date
-  endedAt: Date
+  endedAt?: Date
   volunteer?: Ulid
   volunteerFirstName?: string
   totalMessages: number
@@ -282,6 +282,7 @@ export async function getSessionsToReview(
           'reviewReasons',
           'studentCounselingFeedback',
           'flags',
+          'endedAt',
         ])
         const studentRating = await getSessionRating(
           temp.id,
@@ -1503,4 +1504,20 @@ export async function getUniqueStudentsHelpedCount(
   } catch (err) {
     throw new RepoReadError(err)
   }
+}
+
+export async function isSessionFulfilled(sessionId: Uuid): Promise<boolean> {
+  const result = await pgQueries.isSessionFulfilled.run(
+    { sessionId },
+    getClient()
+  )
+  return makeRequired(result[0]).isFulfilled
+}
+
+export async function getVolunteersInSessions(): Promise<Ulid[]> {
+  const result = await pgQueries.getVolunteersInSessions.run(
+    undefined,
+    getClient()
+  )
+  return result.map((r) => makeRequired(r).volunteerId)
 }

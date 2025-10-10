@@ -444,30 +444,6 @@ export async function sendReferenceForm(
   )
 }
 
-// TODO: remove once job is executed
-export async function sendReferenceFormApology(
-  reference: UnsentReference,
-  volunteer: VolunteerContactInfo
-): Promise<void> {
-  const emailData = {
-    referenceUrl: buildAppLink(`reference-form/${reference.id}`),
-    referenceName: reference.firstName,
-    volunteerName: `${volunteer.firstName} ${volunteer.lastName}`,
-  }
-  const overrides = {
-    categories: ['reference form email'],
-  }
-
-  await sendEmail(
-    reference.email,
-    config.mail.senders.noreply,
-    'UPchieve',
-    config.sendgrid.referenceFormApologyTemplate,
-    emailData,
-    overrides
-  )
-}
-
 export async function sendApprovedNotOnboardedEmail<
   V extends VolunteerContactInfo,
 >(volunteer: V): Promise<void> {
@@ -1603,6 +1579,7 @@ export async function createContact(userIds: Ulid | Ulid[]): Promise<any> {
   let contactListId
   for (const userId of listOfUserIds) {
     const user = await getUserToCreateSendGridContact(userId)
+    if (!user) continue
     const userRoleContext = await UserRolesService.getRoleContext(userId)
     const productFlags = await getPublicUPFByUserId(userId)
     const customFields = {
@@ -1615,7 +1592,6 @@ export async function createContact(userIds: Ulid | Ulid[]): Promise<any> {
       [SG_CUSTOM_FIELDS.isTeacher]: String(userRoleContext.hasRole('teacher')),
       [SG_CUSTOM_FIELDS.isStudent]: String(userRoleContext.hasRole('student')),
       [SG_CUSTOM_FIELDS.isAdmin]: String(user.isAdmin),
-      [SG_CUSTOM_FIELDS.isDeactivated]: String(user.deactivated),
       [SG_CUSTOM_FIELDS.joined]: user.createdAt,
     }
 
@@ -1671,7 +1647,7 @@ export async function createContact(userIds: Ulid | Ulid[]): Promise<any> {
   return response.data.job_id
 }
 
-export async function searchContact(email: string): Promise<any> {
+async function searchContact(email: string): Promise<any> {
   const response = await getContact(email)
   const {
     data: { result },
@@ -1680,8 +1656,15 @@ export async function searchContact(email: string): Promise<any> {
   return contact
 }
 
-export async function deleteContact(contactId: string): Promise<any> {
+async function deleteContact(contactId: string): Promise<any> {
   return await sgDeleteContact(contactId)
+}
+
+export async function deleteContactByEmail(email: string): Promise<void> {
+  const contact = await searchContact(email)
+  if (contact) {
+    await deleteContact(contact.id)
+  }
 }
 
 type SendGridJobStatus = {

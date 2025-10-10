@@ -88,6 +88,7 @@ export function routeVolunteers(router: Router): void {
     }
   })
 
+  // TODO: Looks like this ff is turned off - remove?
   router.get('/volunteers/presence', async function (req, res) {
     try {
       const presenceBySubject = await VolunteerService.getSubjectPresence()

@@ -1,7 +1,7 @@
 import { JobOptions as BullJobOptions } from 'bull'
 import logger from '../../logger'
 import { Jobs } from '.'
-import queue from '../../services/QueueService'
+import * as QueueService from '../../services/QueueService'
 
 interface JobTemplate {
   name: Jobs
@@ -63,23 +63,31 @@ export default async function addScheduledJobs() {
       name: Jobs.UpdateGradeLevel,
       options: { repeat: { cron: '0 8 1 8 *', tz: 'America/New_York' } }, // On August 1st at 8am ET
     },
+    {
+      name: Jobs.RedisKeyMemStats,
+      options: { repeat: { cron: '0 5 * * *', tz: 'America/New_York' } }, // each day at 5am
+    },
+    {
+      name: Jobs.UpdateCachedVolunteersForTextNotifications,
+      options: { repeat: { cron: '0 * * * *', tz: 'America/New_York' } }, // Every hour at minute 0
+    },
   ]
 
-  const repeatableJobs = await queue.getRepeatableJobs()
+  const repeatableJobs = await QueueService.queue.getRepeatableJobs()
 
-  repeatableJobs.map(async (job) => {
+  for (const job of repeatableJobs) {
     if (jobTemplates.find((template) => template.name === job.name)) {
       logger.info(`Removing scheduled job: ${job.name}...`)
-      await queue.removeRepeatableByKey(job.key)
+      await QueueService.queue.removeRepeatableByKey(job.key)
     }
-  })
+  }
 
   for (const job of jobTemplates) {
     logger.info(`Adding scheduled job ${job.name}...`)
-    await queue.add(job.name, job.data, {
+    await QueueService.add(job.name, job.data, {
       ...job.options,
-      removeOnComplete: true,
-      removeOnFail: true,
+      removeOnComplete: false,
+      removeOnFail: false,
     })
   }
 }

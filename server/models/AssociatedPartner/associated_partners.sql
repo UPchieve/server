@@ -56,7 +56,7 @@ WHERE
     so.key = :key!;
 
 
-/* @name getAssociatedPartnerByPartnerOrgKey */
+/* @name getAssociatedPartnerByStudentPartnerOrgKey */
 SELECT
     ap.key AS KEY,
     vpo.id AS volunteer_partner_org_id,

@@ -38,7 +38,7 @@ export async function getReferredUsersWithFilter(
       },
       getRoClient()
     )
-    result.map((row) => makeRequired(row))
+    return result.map((row) => makeRequired(row))
   } catch (err) {
     throw new RepoReadError(err)
   }

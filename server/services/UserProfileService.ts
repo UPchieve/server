@@ -1,10 +1,15 @@
-import { updateUserProfileById, updateSubjectAlerts } from '../models/User'
+import {
+  updateUserProfileById,
+  updateSubjectAlerts,
+  updateSmsConsentForPhoneNumber,
+} from '../models/User'
 import { UserContactInfo, EditUserProfilePayload } from '../models/User/types'
 import { runInTransaction, TransactionClient } from '../db'
 import { createAccountAction } from '../models/UserAction'
 import { ACCOUNT_USER_ACTIONS } from '../constants'
 import * as MailService from './MailService'
 import { upsertStudent } from './UserCreationService'
+import { Ulid } from '../models/pgUtils'
 
 export async function updateUserProfile(
   user: UserContactInfo,
@@ -22,7 +27,11 @@ export async function updateUserProfile(
   })
 
   if (data.deactivated !== user.deactivated) {
-    await MailService.createContact(user.id)
+    if (data.deactivated) {
+      await MailService.deleteContactByEmail(user.email)
+    } else {
+      await MailService.createContact(user.id)
+    }
 
     await createAccountAction({
       action: ACCOUNT_USER_ACTIONS.DEACTIVATED,
@@ -30,6 +39,17 @@ export async function updateUserProfile(
       ipAddress: ipAddress,
     })
   }
+}
+
+export async function updateUserSmsConsent(
+  userId: Ulid,
+  hasGivenConsent: boolean
+) {
+  return updateUserProfileById(userId, { smsConsent: hasGivenConsent })
+}
+
+export async function optOutSmsConsentForPhoneNumber(phoneNumber: string) {
+  return updateSmsConsentForPhoneNumber(phoneNumber, false)
 }
 
 //TODO move other user profile related code here

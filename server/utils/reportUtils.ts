@@ -119,11 +119,16 @@ function telecomTutorTime(
   // Add time spent on call per availability hour
   for (const availabilityHistory of availabilityForDateRange) {
     const availability = availabilityHistory.availability
-    const day = DAYS[moment(availabilityHistory.recordedAt).day()]
-    if (availability[day]) {
-      for (const hourA of Object.keys(availability[day]) as HOURS[]) {
-        if (availability[day][hourA]) {
+    const prevEt = moment(availabilityHistory.recordedAt)
+      .tz('America/New_York')
+      .subtract(1, 'day')
+    const prevDay = DAYS[prevEt.day()]
+    if (availability[prevDay]) {
+      for (const hourA of Object.keys(availability[prevDay]) as HOURS[]) {
+        if (availability[prevDay][hourA]) {
           const temp = moment(availabilityHistory.recordedAt)
+            .tz('America/New_York')
+            .subtract(1, 'day')
           const { day, hour } = formatStamp(
             temp.hour(HOUR_TO_UTC_MAPPING[hourA])
           )

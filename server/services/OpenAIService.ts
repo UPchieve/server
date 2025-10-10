@@ -2,9 +2,12 @@ import 'openai/shims/node'
 import OpenAI from 'openai'
 import config from '../config'
 import logger from '../logger'
+import { secondsInMs } from '../utils/time-utils'
 
 export const openai = new OpenAI({
   apiKey: config.openAIApiKey,
+  timeout: secondsInMs(30),
+  maxRetries: 2,
 })
 
 export const MODEL_ID = config.openAIModelId
@@ -44,7 +47,8 @@ export async function invokeModel({
     })
 
     results = getResults(response, responseType)
-    if (!results) throw new Error("Didn't get an expected openai chat response")
+    if (results == null)
+      throw new Error("Didn't get an expected openai chat response")
   } catch (err) {
     logger.error(err)
     throw err
@@ -60,7 +64,7 @@ function getResults(
   result: OpenAI.ChatCompletion,
   responseType: OpenAiResponseType
 ) {
-  if (!result?.choices[0]?.message?.content) {
+  if (result?.choices[0]?.message?.content == null) {
     return null
   }
 

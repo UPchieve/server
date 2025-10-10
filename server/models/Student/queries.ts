@@ -1,11 +1,9 @@
-import { PoolClient } from 'pg'
 import {
   getAnalyticsClient,
   getClient,
   runInTransaction,
   TransactionClient,
 } from '../../db'
-import { isPgId } from '../../utils/type-utils'
 import {
   RepoCreateError,
   RepoDeleteError,
@@ -15,8 +13,6 @@ import {
   RepoUpsertError,
 } from '../Errors'
 import {
-  generateReferralCode,
-  getDbUlid,
   makeRequired,
   makeSomeRequired,
   makeSomeOptional,
@@ -24,12 +20,8 @@ import {
   Uuid,
 } from '../pgUtils'
 import * as pgQueries from './pg.queries'
-import * as SchoolRepo from '../School/queries'
-import { USER_BAN_TYPES, USER_ROLES } from '../../constants'
-import { insertUserRoleByUserId } from '../User'
+import { USER_BAN_TYPES } from '../../constants'
 import {
-  CreatedStudent,
-  CreateStudentPayload,
   CreateStudentProfilePayload,
   Student,
   StudentContactInfo,
@@ -68,8 +60,7 @@ export async function getStudentContactInfoById(
   try {
     const result = await pgQueries.getStudentContactInfoById.run(
       {
-        userId: isPgId(studentId) ? studentId : undefined,
-        mongoUserId: isPgId(studentId) ? undefined : studentId,
+        userId: studentId,
       },
       getClient()
     )
@@ -115,28 +106,6 @@ export async function isTestUser(
     )
     if (result.length) return makeRequired(result[0]).testUser
     return false
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
-export type GatesStudent = {
-  id: Ulid
-  studentPartnerOrg?: string
-  currentGrade: string
-  isPartnerSchool: boolean
-  approvedHighschool: Ulid
-}
-
-export async function getGatesStudentById(
-  userId: Ulid
-): Promise<GatesStudent | undefined> {
-  try {
-    const result = await pgQueries.getGatesStudentById.run(
-      { userId },
-      getClient()
-    )
-    if (result.length) return makeSomeOptional(result[0], ['studentPartnerOrg'])
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -535,6 +504,7 @@ export async function adminUpdateStudent(
   }, tc ?? getClient())
 }
 
+// TODO: Remove: Only referenced in tests.
 export async function createStudentProfile(
   studentData: CreateStudentProfilePayload,
   tc: TransactionClient
@@ -582,130 +552,6 @@ export async function upsertStudentProfile(
     return makeSomeRequired(result[0], ['createdAt', 'updatedAt', 'userId'])
   } catch (err) {
     throw new RepoUpsertError(err)
-  }
-}
-
-export async function createStudent(
-  studentData: CreateStudentPayload
-): Promise<CreatedStudent> {
-  const transactionClient = await getClient().connect()
-  try {
-    const userId = getDbUlid()
-    await transactionClient.query('BEGIN')
-    const userResult = await pgQueries.createStudentUser.run(
-      {
-        userId,
-        referralCode: generateReferralCode(userId),
-        email: studentData.email.toLowerCase(),
-        firstName: studentData.firstName,
-        lastName: studentData.lastName,
-        password: studentData.password,
-        referredBy: studentData.referredBy,
-        signupSourceId: studentData.signupSourceId,
-        otherSignupSource: studentData.otherSignupSource,
-        verified: studentData.verified ?? false,
-        emailVerified: studentData.emailVerified ?? false,
-      },
-      transactionClient
-    )
-    const profileResult = await pgQueries.createStudentProfile.run(
-      {
-        userId,
-        college: studentData.college,
-        partnerOrg: studentData.studentPartnerOrg,
-        partnerSite: studentData.partnerSite,
-        postalCode: studentData.zipCode,
-        gradeLevel: studentData.currentGrade,
-        schoolId: studentData.approvedHighschool,
-      },
-      transactionClient
-    )
-
-    if (studentData.studentPartnerOrg) {
-      const partnerOrg = await getPartnerOrgByKey(
-        studentData.studentPartnerOrg,
-        studentData.partnerSite,
-        transactionClient
-      )
-
-      if (partnerOrg) {
-        const spoInstanceResult =
-          await pgQueries.createUserStudentPartnerOrgInstance.run(
-            {
-              userId,
-              spoName: partnerOrg.partnerName,
-              spoSiteName: studentData.partnerSite,
-            },
-            transactionClient
-          )
-        if (!spoInstanceResult.length || !makeRequired(spoInstanceResult[0]).ok)
-          throw new RepoCreateError(
-            'Could not create student: user partner org instance creation did not return rows'
-          )
-      }
-    }
-
-    if (studentData.approvedHighschool) {
-      const school = await SchoolRepo.getSchoolById(
-        studentData.approvedHighschool
-      )
-
-      if (school && school.isPartner) {
-        const spoInstanceResult =
-          await pgQueries.createUserStudentPartnerOrgInstanceWithSchoolId.run(
-            {
-              userId,
-              schoolId: school.id,
-            },
-            transactionClient
-          )
-        if (!spoInstanceResult.length || !makeRequired(spoInstanceResult[0]).ok)
-          throw new RepoCreateError(
-            'Could not create student: user school partner instance creation did not return rows'
-          )
-      }
-    }
-
-    if (userResult.length && profileResult.length) {
-      const profile = makeSomeOptional(profileResult[0], [
-        'studentPartnerOrg',
-        'partnerSite',
-        'college',
-        'schoolId',
-        'postalCode',
-        'gradeLevel',
-      ])
-      const user = makeRequired(userResult[0])
-
-      await transactionClient.query('COMMIT')
-      await insertUserRoleByUserId(user.id, USER_ROLES.STUDENT)
-      return {
-        id: user.id,
-        firstname: user.firstName,
-        firstName: user.firstName,
-        lastname: user.lastName,
-        email: user.email.toLowerCase(),
-        banType: user.banType,
-        isDeactivated: user.deactivated,
-        isTestUser: user.testUser,
-        isAdmin: false,
-        isVolunteer: false,
-        userType: 'student',
-        verified: user.verified,
-        createdAt: user.createdAt,
-        currentGrade: profile.gradeLevel,
-        zipCode: profile.postalCode,
-      }
-    }
-    throw new RepoCreateError(
-      'could not create student, profile or user came back with 0 rows'
-    )
-  } catch (err) {
-    await transactionClient.query('ROLLBACK')
-    if (err instanceof RepoCreateError) throw err
-    throw new RepoTransactionError(err)
-  } finally {
-    transactionClient.release()
   }
 }
 

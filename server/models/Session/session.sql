@@ -808,6 +808,7 @@ WHERE (sessions.id::uuid = :sessionId
 AND (session_flags.name IS NULL
     OR NOT session_flags.name = ANY ('{"Absent student", "Absent volunteer", "Low coach rating from student", "Low session rating from student" }'))
 AND users.deactivated IS FALSE
+AND users.deleted IS FALSE
 AND users.test_user IS FALSE;
 
 
@@ -826,6 +827,7 @@ WHERE (sessions.id::uuid = :sessionId
 AND (session_flags.name IS NULL
     OR NOT session_flags.name = ANY ('{"Absent student", "Absent volunteer", "Low coach rating from student", "Low session rating from student" }'))
 AND users.deactivated IS FALSE
+AND users.deleted IS FALSE
 AND users.test_user IS FALSE;
 
 
@@ -1380,4 +1382,28 @@ WHERE
     volunteer_id = :userId!
     AND time_tutored >= :minSessionLength!::int
     AND ended_at IS NOT NULL;
+
+
+/* @name isSessionFulfilled */
+SELECT
+    EXISTS (
+        SELECT
+            1
+        FROM
+            sessions
+        WHERE
+            id = :sessionId!
+            AND (volunteer_joined_at IS NOT NULL
+                OR ended_at IS NOT NULL)) AS is_fulfilled;
+
+
+/* @name getVolunteersInSessions */
+SELECT
+    volunteer_id
+FROM
+    sessions
+WHERE
+    volunteer_joined_at IS NOT NULL
+    AND volunteer_id IS NOT NULL
+    AND ended_at IS NULL;
 

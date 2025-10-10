@@ -15,7 +15,7 @@ import QueueService from './QueueService'
 import { getTimeTutoredForDateRange } from './SessionService'
 import { getQuizzesPassedForDateRangeById } from '../models/UserAction'
 import { TransactionClient } from '../db'
-import { Sponsorship } from '../models/Volunteer'
+import { Sponsorship, TextableVolunteer } from '../models/Volunteer'
 import * as cache from '../cache'
 import { getSubjectsWithTopic } from './SubjectsService'
 import { countReferredUsers } from './UserService'
@@ -82,7 +82,7 @@ export async function queueOnboardingReminderOneEmail(
   await QueueService.add(
     Jobs.EmailOnboardingReminderOne,
     { volunteerId },
-    { delay: sevenDaysInMs, removeOnComplete: true, removeOnFail: true }
+    { delay: sevenDaysInMs }
   )
 }
 
@@ -96,8 +96,6 @@ export async function queueOnboardingEventEmails(
     // Process job 5 days after the volunteer is onboarded.
     {
       delay: 1000 * 60 * 60 * 24 * 5,
-      removeOnComplete: true,
-      removeOnFail: true,
     }
   )
   if (isPartnerVolunteer) {
@@ -107,8 +105,6 @@ export async function queueOnboardingEventEmails(
       // Process job 10 days after the volunteer is onboarded.
       {
         delay: 1000 * 60 * 60 * 24 * 10,
-        removeOnComplete: true,
-        removeOnFail: true,
       }
     )
   }
@@ -120,19 +116,12 @@ export async function queueFailedFirstAttemptedQuizEmail(
   firstName: string,
   volunteerId: Uuid
 ) {
-  await QueueService.add(
-    Jobs.EmailFailedFirstAttemptedQuiz,
-    {
-      category,
-      email,
-      firstName,
-      volunteerId,
-    },
-    {
-      removeOnComplete: true,
-      removeOnFail: true,
-    }
-  )
+  await QueueService.add(Jobs.EmailFailedFirstAttemptedQuiz, {
+    category,
+    email,
+    firstName,
+    volunteerId,
+  })
 }
 
 export async function getVolunteersToReview(page: number = 1): Promise<{
@@ -280,8 +269,9 @@ export async function onboardVolunteer(
   tc: TransactionClient
 ): Promise<void> {
   const volunteer = await VolunteerRepo.getVolunteerForOnboardingById(
+    tc,
     volunteerId,
-    tc
+    { includeDeactivated: true }
   )
   if (!volunteer) {
     // If there is no volunteer, means they've already been onboarded.
@@ -396,9 +386,13 @@ export async function getSubjectPresence(): Promise<VolunteerSubjectPresenceMap>
 export async function queueNationalTutorCertificateEmail(
   volunteerId: Uuid
 ): Promise<void> {
-  await QueueService.add(
-    Jobs.SendNationalTutorCertificateEmail,
-    { volunteerId },
-    { removeOnComplete: true, removeOnFail: true }
-  )
+  await QueueService.add(Jobs.SendNationalTutorCertificateEmail, {
+    volunteerId,
+  })
+}
+
+export async function getVolunteersForTextNotifications(): Promise<
+  TextableVolunteer[]
+> {
+  return await VolunteerRepo.getVolunteersForTextNotifications()
 }

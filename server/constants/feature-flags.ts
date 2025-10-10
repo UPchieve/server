@@ -19,4 +19,5 @@ export enum FEATURE_FLAGS {
   STUDENTS_INITIATE_DMS = 'students-initiate-dms',
   DISABLE_STUDENT_CREATION = 'disable-student-creation',
   STUDY_SLACK_COACH_COMMUNITY = 'study-slack-coach-community',
+  NOTIFY_TUTOR = 'notify-tutor',
 }

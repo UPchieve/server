@@ -4,7 +4,7 @@ import { getSessionById } from '../../models/Session/queries'
 import * as sessionUtils from '../../utils/session-utils'
 import QueueService from '../../services/QueueService'
 import * as TwilioService from '../../services/TwilioService'
-import { log, logError } from '../logger'
+import { log } from '../logger'
 import { Jobs } from '.'
 import { asString } from '../../utils/type-utils'
 
@@ -33,7 +33,7 @@ export default async (job: Job<NotifyTutorsJobData>): Promise<void> => {
         notificationSchedule,
         currentNotificationRound: currentNotificationRound + 1,
       },
-      { delay, removeOnComplete: true, removeOnFail: true }
+      { delay, removeOnFail: true }
     )
 
   try {
@@ -50,7 +50,7 @@ export default async (job: Job<NotifyTutorsJobData>): Promise<void> => {
           sessionId: sessionId.toString(),
           volunteerId: volunteerNotified.toString(),
         },
-        { delay: 1000 * 60 * 5, removeOnComplete: true, removeOnFail: true }
+        { delay: 1000 * 60 * 5, removeOnFail: true }
       )
     } else {
       log(

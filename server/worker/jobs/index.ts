@@ -1,13 +1,13 @@
 import { ProcessPromiseFunction, Queue } from 'bull'
 import EventEmitter from 'events'
-import { map } from 'lodash'
 import newrelic from 'newrelic'
 import logger from '../../logger'
+import backfillAvailabilityHistories from '../../scripts/backfill-availability-histories'
+import backfillElapsedAvailability from '../../scripts/backfill-elapsed-availability'
 import backfillEmailNiceToMeetYou from '../../scripts/backfill-email-nice-to-meet-you'
 import backfillEmailVolunteerInactive from '../../scripts/backfill-email-volunteer-inactive'
 import backfillStudentPosthog from '../../scripts/backfill-student-posthog'
 import backfillStudentUsersRoles from '../../scripts/backfill-student-users-roles'
-import backfillUpdateElapsedAvailability from '../../scripts/backfill-update-elapsed-availability'
 import deleteDuplicateUserSurveys from '../../scripts/delete-duplicate-user-surveys'
 import deleteSelfFavoritedVolunteers from '../../scripts/delete-self-favorited-volunteers'
 import deleteDuplicateStudentFavoriteVolunteers from '../../scripts/delete-duplicate-student-favorite-volunteers'
@@ -19,7 +19,6 @@ import emailNiceToMeetYou from './emailNiceToMeetYou'
 import emailReadyToCoach from './emailReadyToCoach'
 import emailReferenceFollowup from './emailReferenceFollowup'
 import emailReferences from './emailReferences'
-import emailReferencesFormApology from './emailReferencesFormApology'
 import emailWaitingOnReferences from './emailWaitingOnReferences'
 import emailWeeklyHourSummary from './emailWeeklyHourSummary'
 import endStaleSessions from './endStaleSessions'
@@ -66,15 +65,22 @@ import emailNationalTutorCertificate from './emailNationalTutorCertificate'
 import addScheduledJobs from './addScheduledJobs'
 import emailAmbassadorCongrats from './emailAmbassadorCongrats'
 import backfillOnboardedStatus from './backfillOnboardedStatus'
+import { logRedisKeyMemStats } from './logRedisKeyMemStats'
+import { clearBullJobByStatus } from './clearBullJobsByStatus'
+import updateCachedVolunteersForTextNotifications from './updateCachedVolunteersForTextNotifications'
+import backfillSessionEndedTasks from '../../scripts/backfill-sessionEndedTasks'
 
 export enum Jobs {
   AddScheduledJobs = 'AddScheduledJobs',
+  BackfillAvailabilityHistories = 'BackfillAvailabilityHistories',
+  BackfillElapsedAvailability = 'BackfillElapsedAvailability',
   BackfillEmailNiceToMeetYou = 'BackfillEmailNiceToMeetYou',
   BackfillEmailVolunteersInactive = 'BackfillEmailVolunteersInactive',
+  BackfillSessionEndedTasks = 'BackfillSessionEndedTasks',
   BackfillStudentAmbassadorRole = 'BackfillStudentAmbassadorRole',
   BackfillStudentPosthog = 'BackfillStudentPosthog',
   BackfillStudentUsersRoles = 'BackfillStudentUsersRoles',
-  BackfillUpdateElapsedAvailability = 'BackfillUpdateElapsedAvailability',
+  ClearBullJobsByStatus = 'ClearBullJobsByStatus',
   DeleteDuplicateFeedbacks = 'DeleteDuplicateFeedbacks',
   DeleteDuplicateStudentFavoriteVolunteers = 'DeleteDuplicateStudentFavoriteVolunteers',
   DeleteDuplicateUserSurveys = 'DeleteDuplicateUserSurveys',
@@ -94,7 +100,6 @@ export enum Jobs {
   EmailReadyToCoach = 'EmailReadyToCoach',
   EmailReferenceFollowup = 'EmailReferenceFollowup',
   EmailReferences = 'EmailReferences',
-  EmailReferencesFormApology = 'EmailReferencesFormApology',
   EmailSessionReported = 'EmailSessionReported',
   EmailStudentAbsentVolunteerApology = 'EmailStudentAbsentVolunteerApology',
   EmailStudentAbsentWarning = 'EmailStudentAbsentWarning',
@@ -131,6 +136,7 @@ export enum Jobs {
   ModerateSessionTranscript = 'ModerateSessionTranscript',
   NotifyTutors = 'NotifyTutors',
   ProcessSessionEnded = 'ProcessSessionEnded',
+  RedisKeyMemStats = 'RedisKeyMemStats',
   SendAmbassadorCongratsEmail = 'SendAmbassadorCongratsEmail',
   SendBecomeAnAmbassadorEmail = 'SendBecomeAnAmbassadorEmail',
   SendFollowupText = 'SendFollowupText',
@@ -148,6 +154,7 @@ export enum Jobs {
   UpsertPostalCodes = 'UpsertPostalCodes',
   UpsertSchools = 'UpsertSchools',
   BackfillOnboardedStatus = 'BackfillOnboardedStatus',
+  UpdateCachedVolunteersForTextNotifications = 'UpdateCachedVolunteersForTextNotifications',
 }
 
 // register new job processors here
@@ -162,12 +169,24 @@ const jobProcessors: JobProcessor[] = [
     processor: addScheduledJobs,
   },
   {
+    name: Jobs.BackfillAvailabilityHistories,
+    processor: backfillAvailabilityHistories,
+  },
+  {
+    name: Jobs.BackfillElapsedAvailability,
+    processor: backfillElapsedAvailability,
+  },
+  {
     name: Jobs.BackfillEmailNiceToMeetYou,
     processor: backfillEmailNiceToMeetYou,
   },
   {
     name: Jobs.BackfillEmailVolunteersInactive,
     processor: backfillEmailVolunteerInactive,
+  },
+  {
+    name: Jobs.BackfillSessionEndedTasks,
+    processor: backfillSessionEndedTasks,
   },
   {
     name: Jobs.BackfillStudentAmbassadorRole,
@@ -182,8 +201,8 @@ const jobProcessors: JobProcessor[] = [
     processor: backfillStudentUsersRoles,
   },
   {
-    name: Jobs.BackfillUpdateElapsedAvailability,
-    processor: backfillUpdateElapsedAvailability,
+    name: Jobs.ClearBullJobsByStatus,
+    processor: clearBullJobByStatus,
   },
   {
     name: Jobs.DeleteDuplicateStudentFavoriteVolunteers,
@@ -256,10 +275,6 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.EmailReferences,
     processor: emailReferences,
-  },
-  {
-    name: Jobs.EmailReferencesFormApology,
-    processor: emailReferencesFormApology,
   },
   {
     name: Jobs.EmailSessionReported,
@@ -389,6 +404,7 @@ const jobProcessors: JobProcessor[] = [
     name: Jobs.ProcessSessionEnded,
     processor: processSessionEnded,
   },
+  { name: Jobs.RedisKeyMemStats, processor: logRedisKeyMemStats },
   {
     name: Jobs.SendAmbassadorCongratsEmail,
     processor: emailAmbassadorCongrats,
@@ -457,6 +473,10 @@ const jobProcessors: JobProcessor[] = [
     name: Jobs.BackfillOnboardedStatus,
     processor: backfillOnboardedStatus,
   },
+  {
+    name: Jobs.UpdateCachedVolunteersForTextNotifications,
+    processor: updateCachedVolunteersForTextNotifications,
+  },
 ]
 
 // Each Bull processor needs at least one listener per thread - https://github.com/OptimalBits/bull/issues/615
@@ -475,36 +495,27 @@ EventEmitter.defaultMaxListeners = jobProcessors.length * 8
 
 export const addJobProcessors = (queue: Queue): void => {
   try {
-    map(jobProcessors, (jobProcessor) =>
-      queue.process(jobProcessor.name, (job /*, done*/) => {
-        return new Promise<void>((res, rej) => {
-          newrelic
-            .startBackgroundTransaction(`job:${job.name}`, async () => {
-              const transaction = newrelic.getTransaction()
-              logger.info(`Processing job: ${job.name}`)
-              try {
-                await jobProcessor.processor(job)
-                logger.info(`Completed job: ${job.name}`)
-                res()
-              } catch (error) {
-                logger.error(`Error processing job: ${job.name}\n${error}`)
-                newrelic.noticeError(error as Error)
-                rej(error)
-              } finally {
-                transaction.end()
-              }
-            })
-            .catch((error) => {
-              logger.error(
-                `error in job processor newrelic transaction: ${error}`
-              )
-              newrelic.noticeError(error)
-            })
-        })
+    for (const jobProcessor of jobProcessors) {
+      queue.process(jobProcessor.name, async (job) => {
+        await newrelic.startBackgroundTransaction(
+          `job:${job.name}`,
+          async () => {
+            const transaction = newrelic.getTransaction()
+            logger.info(`Processing job: ${job.name}`)
+            try {
+              await jobProcessor.processor(job)
+              logger.info(`Completed job: ${job.name}`)
+            } catch (error) {
+              logger.error(error, `Error processing job: ${job.name}`)
+              throw error
+            } finally {
+              transaction.end()
+            }
+          }
+        )
       })
-    )
+    }
   } catch (error) {
-    logger.error(`error adding job processors: ${error}`)
-    newrelic.noticeError(error as Error)
+    logger.error(error, `Error adding job processors`)
   }
 }

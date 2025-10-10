@@ -202,10 +202,7 @@ export async function reportSession(user: UserContactInfo, data: unknown) {
   }
 
   if (session.endedAt)
-    await QueueService.add(Jobs.EmailSessionReported, emailData, {
-      removeOnComplete: true,
-      removeOnFail: true,
-    })
+    await QueueService.add(Jobs.EmailSessionReported, emailData)
   else
     await cache.saveWithExpiration(
       `${sessionId}-reported`,
@@ -281,28 +278,14 @@ export async function endSession(
 
   await SessionmeetingsService.endMeeting(sessionId)
 
-  QueueService.add(
-    Jobs.DetectSessionLanguages,
-    {
-      sessionId,
-      studentId: session.student.id,
-    },
-    {
-      removeOnComplete: true,
-      removeOnFail: true,
-    }
-  )
+  QueueService.add(Jobs.DetectSessionLanguages, {
+    sessionId,
+    studentId: session.student.id,
+  })
 
-  QueueService.add(
-    Jobs.ProcessSessionEnded,
-    {
-      sessionId,
-    },
-    {
-      removeOnComplete: true,
-      removeOnFail: false,
-    }
-  )
+  QueueService.add(Jobs.ProcessSessionEnded, {
+    sessionId,
+  })
 
   return endedSession
 }
@@ -323,8 +306,7 @@ export async function processSessionReported(sessionId: Ulid) {
   try {
     await QueueService.add(
       Jobs.EmailSessionReported,
-      JSON.parse(await cache.get(`${sessionId}-reported`)),
-      { removeOnComplete: true, removeOnFail: true }
+      JSON.parse(await cache.get(`${sessionId}-reported`))
     )
     await cache.remove(`${sessionId}-reported`)
   } catch (err) {
@@ -339,8 +321,6 @@ export async function processSessionTranscript(sessionId: Ulid) {
       Jobs.ModerateSessionTranscript,
       { sessionId },
       {
-        removeOnComplete: false,
-        removeOnFail: false,
         /* attempt to delay until the whiteboard is uploaded to storage */
         delay: 2 * 60 * 1000,
         attempts: 3,
@@ -395,7 +375,7 @@ export async function processFirstSessionCongratsEmail(sessionId: Ulid) {
       {
         sessionId: session.id,
       },
-      { delay, removeOnComplete: true, removeOnFail: true }
+      { delay }
     )
   if (sendVolunteerFirstSessionCongrats) {
     await QueueService.add(
@@ -403,7 +383,7 @@ export async function processFirstSessionCongratsEmail(sessionId: Ulid) {
       {
         sessionId: session.id,
       },
-      { delay, removeOnComplete: true, removeOnFail: true }
+      { delay }
     )
   }
 }
@@ -474,13 +454,9 @@ export async function processSessionEditors(sessionId: Ulid) {
 export async function processEmailVolunteer(sessionId: Ulid) {
   const session = await SessionRepo.getSessionToEndById(sessionId)
   if (session.volunteer?.numPastSessions === 10)
-    await QueueService.add(
-      Jobs.EmailVolunteerTenSessionMilestone,
-      {
-        volunteerId: session.volunteer.id,
-      },
-      { removeOnComplete: true, removeOnFail: true }
-    )
+    await QueueService.add(Jobs.EmailVolunteerTenSessionMilestone, {
+      volunteerId: session.volunteer.id,
+    })
 }
 
 /**
@@ -706,7 +682,10 @@ export async function startSession(
     await QuillDocService.ensureDocumentUpdateExists(newSession.id)
   }
 
-  if (!isUserBanned) {
+  const isNotifyTutorEnabled = await FeatureFlagsService.getNotifyTutorFlag(
+    user.id
+  )
+  if (!isUserBanned && isNotifyTutorEnabled) {
     await beginRegularNotifications(newSession.id, newSession.studentId)
   }
 
@@ -715,7 +694,7 @@ export async function startSession(
   await QueueService.add(
     Jobs.EndUnmatchedSession,
     { sessionId: newSession.id },
-    { delay, removeOnComplete: true, removeOnFail: true }
+    { delay }
   )
 
   return {
@@ -1000,31 +979,6 @@ export async function getWaitTimeHeatMap(
     }
     throw err
   }
-}
-
-export async function volunteersAvailableForSession(
-  sessionId: Ulid,
-  subject: string
-): Promise<boolean> {
-  const [activeVolunteers, notifiedForSession, notifiedLastFifteenMins] =
-    await Promise.all([
-      TwilioService.getActiveSessionVolunteers(),
-      VolunteerRepo.getVolunteersNotifiedBySessionId(sessionId),
-      VolunteerRepo.getVolunteersNotifiedSinceDate(
-        TwilioService.relativeDate(15 * 60 * 1000)
-      ),
-    ])
-  const excludedVolunteers = [
-    ...activeVolunteers,
-    ...notifiedForSession,
-    ...notifiedLastFifteenMins,
-  ]
-  const volunteers = await VolunteerRepo.getVolunteersOnDeck(
-    subject,
-    excludedVolunteers
-  )
-
-  return volunteers.length > 0
 }
 
 export const asSessionHistoryFilter = asFactory<SessionHistoryFilter>({
@@ -1321,4 +1275,13 @@ export async function markSessionForReview(
     await updateSessionFlagsById(sessionId, sessionFlags, tc)
     await updateSessionReviewReasonsById(sessionId, sessionFlags, false, tc)
   }, tc)
+}
+
+export async function isSessionFulfilled(sessionId: Uuid): Promise<boolean> {
+  return SessionRepo.isSessionFulfilled(sessionId)
+}
+
+export async function getVolunteersInSessions(): Promise<Set<Ulid>> {
+  const volunteers = await SessionRepo.getVolunteersInSessions()
+  return new Set(volunteers)
 }
