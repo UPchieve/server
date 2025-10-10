@@ -137,7 +137,8 @@ describe('VolunteerRepo', () => {
       expect(result?.id).toEqual(v2.id)
 
       // Make volunteer1 available every day except today
-      const currentDayOfWeek = new Date().toDateString().split(' ')[0] // i.e. Mon
+      const estDate = moment().tz('America/New_York')
+      const currentDayOfWeek = estDate.format('ddd') // i.e. Mon
       const currentAvailabilityDay = DAYS.find(
         (d) => d.toLowerCase().slice(0, 3) == currentDayOfWeek.toLowerCase()
       )!
