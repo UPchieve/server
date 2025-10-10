@@ -237,7 +237,6 @@ const messageHandlers: {
 }
 
 export function routes(app: Express): void {
-  // Create a router and apply express-ws to it
   const router = express.Router()
   const wsRouter = expressWs(router as any).app
 
@@ -246,7 +245,6 @@ export function routes(app: Express): void {
     let sessionId: string
 
     try {
-      console.log('*****inside room')
       // use string here for socket room
       sessionId = asUlid(req.params.sessionId)
     } catch (error) {
@@ -254,11 +252,7 @@ export function routes(app: Express): void {
       return
     }
 
-    console.log('********hello there')
-
     wsEmitter.addClientToRoom(wsClient, sessionId)
-
-    console.log('****session id', sessionId)
 
     setTimeout(() => {
       if (!initialized) {
