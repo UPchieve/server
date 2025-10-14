@@ -2,6 +2,7 @@ import Queue, { JobOptions } from 'bull'
 import Redis from 'ioredis'
 import config from '../config'
 import { Jobs } from '../worker/jobs'
+import logger from '../logger'
 
 export const queue = new Queue(config.workerQueueName, {
   createClient: () =>
@@ -23,6 +24,24 @@ export const queue = new Queue(config.workerQueueName, {
       enableReadyCheck: false,
       maxRetriesPerRequest: null,
     }),
+  settings: {
+    // to prevent stalling long jobs
+    stalledInterval: 1000 * 60 * 30,
+    lockDuration: 1000 * 60 * 30,
+  },
+})
+
+queue.on('error', (error) => {
+  logger.error(error, `error in queue`)
+})
+queue.on('stalled', (job) => {
+  logger.info({ job: job.name }, 'Worker job stalled.')
+})
+queue.on('lock-extension-failed', (job, error) => {
+  logger.error(error, { job: job.name }, 'Worker job failed to extend lock.')
+})
+queue.on('cleaned', (jobs, type) => {
+  logger.info({ jobs, type }, 'Worker jobs cleaned from queue.')
 })
 
 export type AddJobOptions = JobOptions
