@@ -1,1 +1,2 @@
 REFRESH MATERIALIZED VIEW upchieve.current_grade_levels_mview;
+REFRESH MATERIALIZED VIEW upchieve.users_unlocked_subjects_mview;

@@ -18,11 +18,13 @@ This repository is the backend API server and queue worker only. To work on the 
 
 - [UPchieve API Server and Worker](#upchieve-api-server-and-worker)
   - [GITLAB](#gitlab)
+  - [IMPORTANT: THE FRONTEND IS IN A SEPARATE REPOSITORY](#important-the-frontend-is-in-a-separate-repository)
   - [Local Development](#local-development)
     - [Local Dependencies](#local-dependencies)
     - [App Dependencies](#app-dependencies)
     - [Prepare to run the server](#prepare-to-run-the-server)
     - [Run the app](#run-the-app)
+      - [IMPORTANT: THE FRONTEND IS IN A SEPARATE REPOSITORY](#important-the-frontend-is-in-a-separate-repository-1)
     - [Database updates](#database-updates)
       - [Important files](#important-files)
       - [Package.json Scripts](#packagejson-scripts)
@@ -36,10 +38,8 @@ This repository is the backend API server and queue worker only. To work on the 
     - [Services](#services)
   - [Endpoints](#endpoints)
   - [Worker](#worker)
-    - [Worker Jobs](#worker-jobs)
-  - [Component Library](#component-library)
-    - [Testing](#testing)
-      - [Known issue with visually testing SVG components:](#known-issue-with-visually-testing-svg-components)
+    - [Testing locally](#testing-locally)
+  - [Socket IO Admin UI](#socket-io-admin-ui)
 
 ## Local Development
 
@@ -56,6 +56,12 @@ After switching npm versions using nvm, you will need to run `$ npm install`. Ne
 [wsl]: https://docs.microsoft.com/en-us/windows/wsl/install-win10
 [nvm]: https://github.com/nvm-sh/nvm
 [Docker]: https://www.docker.com/products/docker-desktop
+
+We use [Yelp's detect-secrets](https://github.com/Yelp/detect-secrets) Python module as a precommit step to unsure we are not accidentally pushing secrets to GitLab. This is run within a virtual env. For setup, run:
+
+```shell
+chmod +x scripts/setup-detect-secrets.sh scripts/wrap-detect-secrets.sh
+```
 
 ### App Dependencies
 

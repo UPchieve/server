@@ -249,3 +249,7 @@ out/
 telepresence.env
 
 .env
+
+# python
+.venv/
+__pycache__
