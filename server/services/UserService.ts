@@ -39,6 +39,7 @@ import {
   updateVolunteerReferenceStatus,
 } from '../models/Volunteer'
 import { asReferenceFormData } from '../utils/reference-utils'
+import { checkEmail } from '../utils/auth-utils'
 import {
   asBoolean,
   asEnum,
@@ -293,6 +294,8 @@ export async function adminUpdateUser(data: unknown) {
       partnerSchool,
       schoolId,
     } = asAdminUpdate(data)
+
+    checkEmail(email)
 
     const userBeforeUpdate = await getUserContactInfo(userId, tc)
 
