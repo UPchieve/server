@@ -17,13 +17,10 @@ import { VERIFICATION_METHOD, SUBJECTS } from '../constants'
 import startsWithVowel from '../utils/starts-with-vowel'
 import { Ulid } from '../models/pgUtils'
 import { getSessionById, NotificationData } from '../models/Session'
-import {
-  AssociatedPartner,
-  getAssociatedPartnerBySponsorOrg,
-  getAssociatedPartnerByPartnerOrg,
-} from '../models/AssociatedPartner'
 import { getSponsorOrgs } from '../models/SponsorOrg'
+import * as AssociatedPartnerService from './AssociatedPartnerService'
 import { Jobs } from '../worker/jobs'
+import { AssociatedPartner } from '../models/AssociatedPartner'
 
 const protocol = config.NODE_ENV === 'production' ? 'https' : 'http'
 const apiRoot = `${config.protocol}://${config.host}/twiml`
@@ -185,9 +182,9 @@ export function buildTargetStudentContent(
   return associatedPartner &&
     associatedPartner.studentOrgDisplay &&
     volunteer.volunteerPartnerOrg === associatedPartner.volunteerPartnerOrg
-    ? startsWithVowel(associatedPartner.studentOrgDisplay!)
-      ? `an ${associatedPartner.studentOrgDisplay!} student`
-      : `a ${associatedPartner.studentOrgDisplay!} student`
+    ? startsWithVowel(associatedPartner.studentOrgDisplay)
+      ? `an ${associatedPartner.studentOrgDisplay} student`
+      : `a ${associatedPartner.studentOrgDisplay} student`
     : 'a student'
 }
 
@@ -203,45 +200,6 @@ export function buildNotificationContent(
   )} needs help in ${session.subjectDisplayName} on UPchieve! ${sessionUrl}`
 }
 
-export async function getAssociatedPartner(
-  partnerOrg: string | undefined,
-  highSchoolId: Ulid | undefined
-): Promise<AssociatedPartner | undefined> {
-  // Determine if the student's partner org is one of the orgs that
-  // should have priority matching with its partner volunteer org counterpart
-  if (
-    partnerOrg &&
-    config.priorityMatchingPartnerOrgs.some((org) => partnerOrg === org)
-  )
-    return await getAssociatedPartnerByPartnerOrg(partnerOrg)
-
-  for (const sponsorOrg of config.priorityMatchingSponsorOrgs) {
-    // Determine if the student's school belongs to a sponsor org that
-    // should have priority matching with its partner volunteer org counterpart
-    const sponsorOrgs = await getSponsorOrgs()
-    const matchingOrg = sponsorOrgs.find((org) => org.key === sponsorOrg)
-    if (
-      highSchoolId &&
-      matchingOrg &&
-      Array.isArray(matchingOrg.schoolIds) &&
-      matchingOrg.schoolIds.some((schoolId) => schoolId === highSchoolId)
-    )
-      return await getAssociatedPartnerBySponsorOrg(sponsorOrg)
-
-    // Determine if the student's partner org belongs to a sponsor org that
-    // should have priority matching with its partner volunteer org counterpart
-    if (
-      partnerOrg &&
-      matchingOrg &&
-      Array.isArray(matchingOrg.studentPartnerOrgKeys) &&
-      matchingOrg.studentPartnerOrgKeys.includes(partnerOrg)
-    )
-      return await getAssociatedPartnerBySponsorOrg(sponsorOrg)
-  }
-
-  return undefined
-}
-
 export async function notifyVolunteer(
   session: SessionRepo.GetSessionByIdResult
 ): Promise<Ulid | undefined> {
@@ -253,9 +211,10 @@ export async function notifyVolunteer(
   const favoriteVolunteers =
     await StudentsRepo.getFavoriteVolunteersByStudentId(student.id)
 
-  const associatedPartner = student.studentPartnerOrg
-    ? await getAssociatedPartner(student.studentPartnerOrg, student.schoolId)
-    : undefined
+  const associatedPartner = await AssociatedPartnerService.getAssociatedPartner(
+    student.studentPartnerOrg,
+    student.schoolId
+  )
 
   const activeSessionVolunteers = await getActiveSessionVolunteers()
   const notifiedForThisSessionId = await getVolunteersNotifiedBySessionId(

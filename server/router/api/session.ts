@@ -116,7 +116,7 @@ export function routeSession(router: Router) {
         res.json(null)
       } else {
         res.json({
-          sessionId: currentSession._id,
+          sessionId: currentSession.id,
           data: currentSession,
         })
       }
@@ -134,7 +134,7 @@ export function routeSession(router: Router) {
         resError(res, new LookupError('No current session'), 404)
       } else {
         res.json({
-          sessionId: currentSession._id,
+          sessionId: currentSession.id,
           data: currentSession,
         })
       }

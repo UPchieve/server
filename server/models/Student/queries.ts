@@ -224,6 +224,21 @@ export async function addFavoriteVolunteer(
   }
 }
 
+export async function getFavoritedVolunteerIdsFromList(
+  studentId: Ulid,
+  volunteerIds: Ulid[]
+) {
+  try {
+    const result = await pgQueries.getFavoritedVolunteerIdsFromList.run(
+      { studentId, volunteerIds },
+      getClient()
+    )
+    return result.map((r) => makeRequired(r).volunteerId)
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
 export async function deleteStudent(studentId: Ulid, email: string) {
   try {
     const result = await pgQueries.deleteStudent.run(

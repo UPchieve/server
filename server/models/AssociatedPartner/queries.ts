@@ -50,22 +50,23 @@ export async function getAssociatedPartnerByKey(
 }
 
 export async function getAssociatedPartnerByPartnerOrg(
-  key: string
-): Promise<AssociatedPartner> {
+  spoKey: string
+): Promise<AssociatedPartner | undefined> {
   try {
-    const result = await pgQueries.getAssociatedPartnerByPartnerOrgKey.run(
-      { key },
-      getClient()
-    )
-    if (!result.length)
-      throw new Error(`no associated partner found with key ${key}`)
-    return makeSomeOptional(result[0], [
-      'studentPartnerOrg',
-      'studentPartnerOrgId',
-      'studentOrgDisplay',
-      'studentSponsorOrgId',
-      'studentSponsorOrg',
-    ])
+    const result =
+      await pgQueries.getAssociatedPartnerByStudentPartnerOrgKey.run(
+        { key: spoKey },
+        getClient()
+      )
+    if (result.length) {
+      return makeSomeOptional(result[0], [
+        'studentPartnerOrg',
+        'studentPartnerOrgId',
+        'studentOrgDisplay',
+        'studentSponsorOrgId',
+        'studentSponsorOrg',
+      ])
+    }
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -73,21 +74,21 @@ export async function getAssociatedPartnerByPartnerOrg(
 
 export async function getAssociatedPartnerBySponsorOrg(
   key: string
-): Promise<AssociatedPartner> {
+): Promise<AssociatedPartner | undefined> {
   try {
     const result = await pgQueries.getAssociatedPartnerBySponsorOrgKey.run(
       { key },
       getClient()
     )
-    if (!result.length)
-      throw new Error(`no associated partner found with key ${key}`)
-    return makeSomeOptional(result[0], [
-      'studentPartnerOrg',
-      'studentPartnerOrgId',
-      'studentOrgDisplay',
-      'studentSponsorOrgId',
-      'studentSponsorOrg',
-    ])
+    if (result.length) {
+      return makeSomeOptional(result[0], [
+        'studentPartnerOrg',
+        'studentPartnerOrgId',
+        'studentOrgDisplay',
+        'studentSponsorOrgId',
+        'studentSponsorOrg',
+      ])
+    }
   } catch (err) {
     throw new RepoReadError(err)
   }

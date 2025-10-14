@@ -47,6 +47,7 @@ import generateProgressReport from './generateProgressReport'
 import updateBasicAccessViews from '../../scripts/update-basic-access-views'
 import migrateProgressReportPromptIds from '../../scripts/migrate-progress-report-prompt-ids'
 import spawnEmailWeeklyHourSummaryJobs from './spawnEmailWeeklyHourSummaryJobs'
+import textVolunteers from './textVolunteers'
 import moderateSessionMessage from '../../scripts/moderate-session-message'
 import moderateSessionTranscript from '../jobs/moderate-session-transcript'
 import migrateBannedAndTestUsersToBanType from '../../scripts/migrate-banned-and-test-users-to-bantype'
@@ -145,6 +146,7 @@ export enum Jobs {
   SendSessionRecapMessageNotification = 'SendSessionRecapMessageNotification',
   SendWeeklyHourSummaryApology = 'SendWeeklyHourSummaryApology',
   SpawnEmailWeeklyHourSummaryJobs = 'SpawnEmailWeeklyHourSummaryJobs',
+  TextVolunteers = 'TextVolunteers',
   TitlecaseSchoolNames = 'TitlecaseSchoolNames',
   UpdateBasicAccessViews = 'UpdateBasicAccessViews',
   UpdateElapsedAvailability = 'UpdateElapsedAvailability',
@@ -436,6 +438,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.SpawnEmailWeeklyHourSummaryJobs,
     processor: spawnEmailWeeklyHourSummaryJobs,
+  },
+  {
+    name: Jobs.TextVolunteers,
+    processor: textVolunteers,
   },
   {
     name: Jobs.TitlecaseSchoolNames,

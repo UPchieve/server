@@ -902,7 +902,7 @@ export async function saveMessage(
     !sessionUtils.isSessionParticipant(
       session.studentId,
       session.volunteerId,
-      asString(user._id)
+      asString(user.id)
     )
   )
     throw new Error('Only session participants are allowed to send messages')
@@ -917,7 +917,7 @@ export async function saveMessage(
   } else {
     return await SessionRepo.addMessageToSessionById(
       sessionId,
-      user._id,
+      user.id,
       message
     )
   }
@@ -1275,4 +1275,13 @@ export async function markSessionForReview(
     await updateSessionFlagsById(sessionId, sessionFlags, tc)
     await updateSessionReviewReasonsById(sessionId, sessionFlags, false, tc)
   }, tc)
+}
+
+export async function isSessionFulfilled(sessionId: Uuid): Promise<boolean> {
+  return SessionRepo.isSessionFulfilled(sessionId)
+}
+
+export async function getVolunteersInSessions(): Promise<Set<Ulid>> {
+  const volunteers = await SessionRepo.getVolunteersInSessions()
+  return new Set(volunteers)
 }
