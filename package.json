@@ -51,9 +51,10 @@
     "db:schema-down": "dbmate --no-dump-schema -d \"./database/migrations\" --url=\"postgres://admin:Password123@localhost:5432/upchieve?sslmode=disable\" --migrations-table=\"schema_migrations\" down",
     "db:seeds-up": "dbmate --no-dump-schema -d \"./database/seed-updates\" --url=\"postgres://admin:Password123@localhost:5432/upchieve?sslmode=disable\" --migrations-table=\"seed_migrations\" up",
     "db:seeds-down": "dbmate --no-dump-schema -d \"./database/seed-updates\" --url=\"postgres://admin:Password123@localhost:5432/upchieve?sslmode=disable\" --migrations-table=\"seed_migrations\" down",
-    "scan:add": "detect-secrets scan --baseline .secrets.baseline --exclude-files package-lock.json",
-    "scan:diff": "git diff --staged --name-only -z | xargs -0 detect-secrets-hook --baseline .secrets.baseline --exclude-files package-lock.json",
-    "scan:audit": "detect-secrets audit .secrets.baseline"
+    "setup:detect-secrets": "./scripts/setup-detect-secrets.sh",
+    "scan:add": "./scripts/wrap-detect-secrets.sh scan",
+    "scan:diff": "./scripts/wrap-detect-secrets.sh hook",
+    "scan:audit": "./scripts/wrap-detect-secrets.sh audit"
   },
   "pre-commit": [
     "scan:diff",
