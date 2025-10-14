@@ -57,7 +57,7 @@ After switching npm versions using nvm, you will need to run `$ npm install`. Ne
 [nvm]: https://github.com/nvm-sh/nvm
 [Docker]: https://www.docker.com/products/docker-desktop
 
-Also run:
+We use [Yelp's detect-secrets](https://github.com/Yelp/detect-secrets) Python module as a precommit step to unsure we are not accidentally pushing secrets to GitLab. This is run within a virtual env. For setup, run:
 
 ```shell
 chmod +x scripts/setup-detect-secrets.sh scripts/wrap-detect-secrets.sh
