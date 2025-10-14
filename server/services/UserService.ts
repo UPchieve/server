@@ -295,7 +295,6 @@ export async function adminUpdateUser(data: unknown) {
       schoolId,
     } = asAdminUpdate(data)
 
-    // Validate email format
     checkEmail(email)
 
     const userBeforeUpdate = await getUserContactInfo(userId, tc)
