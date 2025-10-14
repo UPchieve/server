@@ -36,14 +36,14 @@ queue.on('error', (error) => {
   logger.error(error, `error in queue`)
 })
 queue.on('stalled', (job) => {
-  logger.info({ job: job.name }, 'Job stalled.')
+  logger.warn({ job: job.name }, 'Job stalled.')
   createSlackAlert('Stalled Job', `${job.name} stalled`)
 })
 queue.on('lock-extension-failed', (job, error) => {
   logger.error(error, { job: job.name }, 'Job failed to extend lock.')
 })
 queue.on('cleaned', (jobs, type) => {
-  logger.info({ jobs, type }, 'Jobs cleaned from queue.')
+  logger.warn({ jobs, type }, 'Jobs cleaned from queue.')
 })
 
 export type AddJobOptions = JobOptions
