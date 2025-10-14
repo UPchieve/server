@@ -69,6 +69,7 @@ import { logRedisKeyMemStats } from './logRedisKeyMemStats'
 import { clearBullJobByStatus } from './clearBullJobsByStatus'
 import updateCachedVolunteersForTextNotifications from './updateCachedVolunteersForTextNotifications'
 import backfillSessionEndedTasks from '../../scripts/backfill-sessionEndedTasks'
+import testJob from './test-job'
 
 export enum Jobs {
   AddScheduledJobs = 'AddScheduledJobs',
@@ -155,6 +156,7 @@ export enum Jobs {
   UpsertSchools = 'UpsertSchools',
   BackfillOnboardedStatus = 'BackfillOnboardedStatus',
   UpdateCachedVolunteersForTextNotifications = 'UpdateCachedVolunteersForTextNotifications',
+  TestJob = 'TestJob',
 }
 
 // register new job processors here
@@ -163,7 +165,7 @@ interface JobProcessor {
   processor: ProcessPromiseFunction<any>
 }
 
-const jobProcessors: JobProcessor[] = [
+export const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.AddScheduledJobs,
     processor: addScheduledJobs,
@@ -476,6 +478,13 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.UpdateCachedVolunteersForTextNotifications,
     processor: updateCachedVolunteersForTextNotifications,
+  },
+]
+
+export const jobProcessorsMQ: any[] = [
+  {
+    name: Jobs.TestJob,
+    processor: testJob,
   },
 ]
 
