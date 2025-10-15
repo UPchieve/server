@@ -10,6 +10,8 @@ import config from '../../config'
 import * as cache from '../../cache'
 import { Jobs } from './index'
 
+// TODO: Update the name to make it more clear this is only
+// for the `customVolunteerPartnerOrgs`.
 async function updateTotalVolunteerHours(): Promise<void> {
   const startDate = moment(
     await cache.get(config.cacheKeys.updateTotalVolunteerHoursLastRun)
@@ -22,7 +24,7 @@ async function updateTotalVolunteerHours(): Promise<void> {
   for (const volunteer of volunteers) {
     try {
       const stats = await telecomHourSummaryStats(
-        volunteer,
+        volunteer.id,
         startDate.toDate(),
         endDate.toDate()
       )

@@ -35,7 +35,6 @@ import {
   getAssociatedPartnersAndSchools,
 } from '../AssociatedPartner'
 import { UniqueStudentsHelped } from '.'
-import { isPgId } from '../../utils/type-utils'
 import { insertUserRoleByUserId, UserRole } from '../User'
 import { getVolunteerPartnerOrgIdByKey } from '../VolunteerPartnerOrg'
 import { ReportNoDataFoundError } from '../../services/ReportService'
@@ -279,23 +278,17 @@ export type VolunteerForWeeklyHourSummary = Omit<
   'phone'
 > & {
   sentHourSummaryIntroEmail: boolean
-  quizzes: Quizzes
 }
 
-export async function getVolunteersForWeeklyHourSummary(): Promise<
-  VolunteerForWeeklyHourSummary[]
-> {
+export async function getVolunteersForWeeklyHourSummary(
+  startOfWeek: string
+): Promise<VolunteerForWeeklyHourSummary[]> {
   try {
     const result = await pgQueries.getVolunteersForWeeklyHourSummary.run(
-      undefined,
+      { startOfWeek },
       getClient()
     )
-    const rows = result.map((v) => makeSomeOptional(v, ['volunteerPartnerOrg']))
-    const quizzes = await getQuizzesForVolunteers(rows.map((v) => v.id))
-    return rows.map((v) => ({
-      ...v,
-      quizzes: quizzes[v.id],
-    }))
+    return result.map((v) => makeSomeOptional(v, ['volunteerPartnerOrg']))
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -424,10 +417,9 @@ export async function getVolunteerForOnboardingById(
   }
 }
 
-export type VolunteerForTelecomReport = Omit<
-  VolunteerForWeeklyHourSummary,
-  'sentHourSummaryIntroEmail' | 'phone'
->
+export type VolunteerForTelecomReport = Omit<VolunteerContactInfo, 'phone'> & {
+  quizzes: Quizzes
+}
 // TODO: break out anything that uses RO client into their own repo
 export async function getVolunteersForTelecomReport(
   partnerOrg: string

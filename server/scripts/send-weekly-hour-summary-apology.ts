@@ -60,7 +60,9 @@ export default async function sendWeeklyHourSummaryApology(): Promise<void> {
   const lastMonday = moment().utc().subtract(1, 'weeks').startOf('isoWeek')
   const lastSunday = moment().utc().subtract(1, 'weeks').endOf('isoWeek')
 
-  const volunteers = await getVolunteersForWeeklyHourSummary()
+  const volunteers = await getVolunteersForWeeklyHourSummary(
+    lastMonday.toISOString()
+  )
 
   let totalEmailed = 0
   const errors: string[] = []

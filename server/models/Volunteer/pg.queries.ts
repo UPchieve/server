@@ -278,7 +278,9 @@ export const getPartnerVolunteerForLowHours = new PreparedQuery<IGetPartnerVolun
 
 
 /** 'GetVolunteersForWeeklyHourSummary' parameters type */
-export type IGetVolunteersForWeeklyHourSummaryParams = void;
+export interface IGetVolunteersForWeeklyHourSummaryParams {
+  startOfWeek?: DateOrString | null | void;
+}
 
 /** 'GetVolunteersForWeeklyHourSummary' return type */
 export interface IGetVolunteersForWeeklyHourSummaryResult {
@@ -296,7 +298,7 @@ export interface IGetVolunteersForWeeklyHourSummaryQuery {
   result: IGetVolunteersForWeeklyHourSummaryResult;
 }
 
-const getVolunteersForWeeklyHourSummaryIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    email,\n    volunteer_partner_orgs.key AS volunteer_partner_org,\n    sent_hour_summary_intro_email\nFROM\n    users\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\n    LEFT JOIN user_product_flags ON users.id = user_product_flags.user_id\nWHERE (volunteer_partner_orgs.id IS NULL\n    OR volunteer_partner_orgs.receive_weekly_hour_summary_email IS TRUE)\nAND users.banned IS FALSE\nAND users.ban_type IS DISTINCT FROM 'complete'\nAND users.deactivated IS FALSE\nAND users.deleted IS FALSE\nAND users.test_user IS FALSE\nGROUP BY\n    users.id,\n    volunteer_partner_org,\n    sent_hour_summary_intro_email"};
+const getVolunteersForWeeklyHourSummaryIR: any = {"usedParamSet":{"startOfWeek":true},"params":[{"name":"startOfWeek","required":false,"transform":{"type":"scalar"},"locs":[{"a":728,"b":739}]}],"statement":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    email,\n    volunteer_partner_orgs.key AS volunteer_partner_org,\n    sent_hour_summary_intro_email\nFROM\n    users\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\n    LEFT JOIN user_product_flags ON users.id = user_product_flags.user_id\nWHERE (volunteer_partner_orgs.id IS NULL\n    OR volunteer_partner_orgs.receive_weekly_hour_summary_email IS TRUE)\nAND users.banned IS FALSE\nAND users.ban_type IS DISTINCT FROM 'complete'\nAND users.deactivated IS FALSE\nAND users.deleted IS FALSE\nAND users.test_user IS FALSE\nAND users.last_activity_at >= :startOfWeek\nAND EXISTS (\n    SELECT\n        1\n    FROM\n        users_certifications\n    WHERE\n        users_certifications.user_id = users.id)\nGROUP BY\n    users.id,\n    volunteer_partner_org,\n    sent_hour_summary_intro_email"};
 
 /**
  * Query generated from SQL:
@@ -320,6 +322,14 @@ const getVolunteersForWeeklyHourSummaryIR: any = {"usedParamSet":{},"params":[],
  * AND users.deactivated IS FALSE
  * AND users.deleted IS FALSE
  * AND users.test_user IS FALSE
+ * AND users.last_activity_at >= :startOfWeek
+ * AND EXISTS (
+ *     SELECT
+ *         1
+ *     FROM
+ *         users_certifications
+ *     WHERE
+ *         users_certifications.user_id = users.id)
  * GROUP BY
  *     users.id,
  *     volunteer_partner_org,

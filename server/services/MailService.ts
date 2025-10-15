@@ -782,7 +782,7 @@ export async function sendHourSummaryEmail(
   totalQuizzesPassed: number,
   totalVolunteerHours: number,
   totalReferralMinutes: number,
-  customOrg = false
+  sendCustomReport = false
 ): Promise<void> {
   const formattedCoachingHours = getFormattedHourSummaryTime(totalCoachingHours)
   const formattedVolunteerHours =
@@ -799,11 +799,11 @@ export async function sendHourSummaryEmail(
     categories: ['weekly hour summary email'],
   }
 
-  const weeklyTemplate = customOrg
+  const weeklyTemplate = sendCustomReport
     ? config.sendgrid.customWeeklyHourSummaryEmailTemplate
     : config.sendgrid.weeklyHourSummaryEmailTemplate
 
-  const introTemplate = customOrg
+  const introTemplate = sendCustomReport
     ? config.sendgrid.customWeeklyHourSummaryIntroEmailTemplate
     : config.sendgrid.weeklyHourSummaryIntroEmailTemplate
 

@@ -64,10 +64,6 @@ export async function getSessionRecapDmsFeatureFlag(userId: Ulid) {
   return isFeatureEnabled(FEATURE_FLAGS.SESSION_RECAP_DMS, userId)
 }
 
-export async function getWeeklySummaryAllHoursFlag(userId: Ulid) {
-  return isFeatureEnabled(FEATURE_FLAGS.WEEKLY_SUMMARY_ALL_HOURS, userId)
-}
-
 export async function getAllowDmsToPartnerStudentsFeatureFlag(userId: Ulid) {
   return isFeatureEnabled(FEATURE_FLAGS.ALLOW_DMS_TO_PARTNER_STUDENTS, userId)
 }

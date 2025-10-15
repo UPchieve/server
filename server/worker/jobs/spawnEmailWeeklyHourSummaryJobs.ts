@@ -19,7 +19,7 @@ export default async (): Promise<void> => {
     .endOf('isoWeek')
     .toISOString()
 
-  const volunteers = await getVolunteersForWeeklyHourSummary()
+  const volunteers = await getVolunteersForWeeklyHourSummary(lastMonday)
   const errors: { userId: string; error: unknown }[] = []
   for (const volunteer of volunteers) {
     try {
@@ -54,7 +54,7 @@ export default async (): Promise<void> => {
       {
         lastMonday,
         lastSunday,
-        errors: errors,
+        errors,
       }
     )
   }

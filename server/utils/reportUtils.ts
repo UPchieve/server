@@ -32,6 +32,7 @@ import { getElapsedAvailabilityForTelecomReport } from '../services/Availability
 import * as VolunteerPartnerOrgRepo from '../models/VolunteerPartnerOrg/queries'
 import { ReportNoDataFoundError } from '../services/ReportService'
 import { countReferredUsers } from '../services/UserService'
+import { Ulid } from '../models/pgUtils'
 
 /**
  * dateQuery is types as any for now since we know it's a mongo agg date query
@@ -199,24 +200,20 @@ interface TelecomRow {
   hours: number
 }
 
-async function getVolunteerData<V extends VolunteerForTotalHours>(
-  volunteer: V,
-  start: Date,
-  end: Date
-) {
+async function getVolunteerData(volunteerId: Ulid, start: Date, end: Date) {
   const quizPassedActions =
     await UserActionRepo.getQuizzesPassedForDateRangeForTelecomReportByVolunteerId(
-      volunteer.id,
+      volunteerId,
       start,
       end
     )
   const sessions = await SessionRepo.getSessionsForVolunteerHourSummary(
-    volunteer.id,
+    volunteerId,
     start,
     end
   )
   const availabilityForDateRange = await getElapsedAvailabilityForTelecomReport(
-    volunteer.id,
+    volunteerId,
     start,
     end
   )
@@ -235,7 +232,7 @@ async function telecomProcessVolunteer<V extends VolunteerForTelecomReport>(
   const totalCerts = countCerts(volunteer.quizzes)
   if (totalCerts === 0) return []
   const { sessions, availabilityForDateRange, quizPassedActions } =
-    await getVolunteerData(volunteer, start, end)
+    await getVolunteerData(volunteer.id, start, end)
   // Accumulate hours into rows
   const rows = []
 
@@ -302,17 +299,14 @@ export function emptyHours(): HourSummaryStats {
 }
 
 // To be used by email/update job(s) for generating telecom volunteer hours
-export async function telecomHourSummaryStats<V extends VolunteerForTotalHours>(
-  volunteer: V,
+export async function telecomHourSummaryStats(
+  volunteerId: Ulid,
   start: Date,
   end: Date
 ): Promise<HourSummaryStats> {
   try {
-    const totalCerts = countCerts(volunteer.quizzes)
-    if (totalCerts === 0) return emptyHours()
-
     const { sessions, availabilityForDateRange, quizPassedActions } =
-      await getVolunteerData(volunteer, start, end)
+      await getVolunteerData(volunteerId, start, end)
     const { totalTime, sessionTime, availabilityTime, certificationTime } =
       telecomTutorTime(sessions, availabilityForDateRange, quizPassedActions)
     const row = {
@@ -320,7 +314,7 @@ export async function telecomHourSummaryStats<V extends VolunteerForTotalHours>(
       totalCoachingHours: sumHours(sessionTime),
       totalElapsedAvailability: sumHours(availabilityTime),
       totalQuizzesPassed: sumHours(certificationTime),
-      totalReferralMinutes: totalReferralMinutes(volunteer.id),
+      totalReferralMinutes: totalReferralMinutes(volunteerId),
     } as HourSummaryStats
     return row
   } catch (error) {

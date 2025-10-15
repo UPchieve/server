@@ -143,6 +143,14 @@ AND users.ban_type IS DISTINCT FROM 'complete'
 AND users.deactivated IS FALSE
 AND users.deleted IS FALSE
 AND users.test_user IS FALSE
+AND users.last_activity_at >= :startOfWeek
+AND EXISTS (
+    SELECT
+        1
+    FROM
+        users_certifications
+    WHERE
+        users_certifications.user_id = users.id)
 GROUP BY
     users.id,
     volunteer_partner_org,

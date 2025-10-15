@@ -8,7 +8,6 @@ import {
   VolunteerForWeeklyHourSummary,
   updateVolunteerHourSummaryIntroById,
 } from '../../models/Volunteer/queries'
-import { getWeeklySummaryAllHoursFlag } from '../../services/FeatureFlagService'
 import { Job } from 'bull'
 import { ISOString } from '../../constants'
 import { Jobs } from '.'
@@ -32,36 +31,23 @@ export default async (
     } = volunteer
     const start = moment(startDate).utc()
     const end = moment(endDate).utc()
-    const customCheck = config.customVolunteerPartnerOrgs.some(
-      (org) => org === volunteerPartnerOrg
-    )
-    let summaryStats
-    if (volunteer.sentHourSummaryIntroEmail === undefined) return
-    if (customCheck)
-      summaryStats = await telecomHourSummaryStats(
-        volunteer,
-        start.toDate(),
-        end.toDate()
-      )
-    else
-      summaryStats = await getHourSummaryStats(id, start.toDate(), end.toDate())
 
-    const isWeeklySummaryAllHoursActive = await getWeeklySummaryAllHoursFlag(id)
-    const allowZeroHours = isWeeklySummaryAllHoursActive && !volunteerPartnerOrg
+    const sendCustomReport = volunteerPartnerOrg
+      ? config.customVolunteerPartnerOrgs.includes(volunteerPartnerOrg)
+      : false
+    const summaryStats = sendCustomReport
+      ? await telecomHourSummaryStats(id, start.toDate(), end.toDate())
+      : await getHourSummaryStats(id, start.toDate(), end.toDate())
 
     /*
-      The smallest this number can be is .01 hours =36 seconds (as per the rounding
-      in VolunteerService.ts:68-70) So users with 36-54 seconds of time will have
-      .01 hours coaching which gets rounded down to 0 hours/minutes at formatting
-      in MailService/index.js:87-99. So we need to check .01 hours in addition
-      to 0 prevent an email from getting sent that displays 0 hours of volutneering
-      TODO: clean up formatting rounding logic to round 30+ seconds up a minute
+      The smallest the total volunteer hours can be is .01 hours
+      because of the rounding in `getHourSummaryStats`.
+      Users with .01 hours coaching gets rounded down to 0 hours/minutes at
+      formatting in `sendHourSummaryEmail`, and we don't want to send an email
+      with 0 hours of volunteering.
+      TODO: clean up formatting rounding logic to round 30+ seconds up a minute.
       */
-    if (
-      !summaryStats ||
-      (!allowZeroHours && summaryStats.totalVolunteerHours <= 0.01)
-    )
-      return
+    if (summaryStats.totalVolunteerHours <= 0.01) return
 
     await MailService.sendHourSummaryEmail(
       firstName,
@@ -74,7 +60,7 @@ export default async (
       summaryStats.totalQuizzesPassed,
       summaryStats.totalVolunteerHours,
       summaryStats.totalReferralMinutes,
-      customCheck
+      sendCustomReport
     )
     if (!sentHourSummaryIntroEmail)
       await updateVolunteerHourSummaryIntroById(id)

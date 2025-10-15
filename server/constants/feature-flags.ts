@@ -2,7 +2,6 @@ export enum FEATURE_FLAGS {
   STANDARDIZED_CERTS = 'standardized-certs',
   USING_OUR_PLATFORM = 'using-our-platform',
   SESSION_RECAP_DMS = 'session-recap-dms',
-  WEEKLY_SUMMARY_ALL_HOURS = 'weekly-summary-all-hours',
   SMS_VERIFICATION = 'sms-verification',
   ALLOW_DMS_TO_PARTNER_STUDENTS = 'allow-dms-to-partner-students',
   PROGRESS_REPORTS = 'progress-reports',
