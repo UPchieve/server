@@ -23,7 +23,6 @@ export type UserProductFlags = {
   gatesQualified: boolean
   fallIncentiveEnrollmentAt?: Date
   impactStudyEnrollmentAt?: Date
-  tellThemCollegePrepModalSeenAt?: Date
   impactStudyCampaigns?: ImpactStudyCampaignsMap
   createdAt: Date
   updatedAt: Date
@@ -35,6 +34,5 @@ export type PublicUserProductFlags = Pick<
   | 'gatesQualified'
   | 'fallIncentiveEnrollmentAt'
   | 'impactStudyEnrollmentAt'
-  | 'tellThemCollegePrepModalSeenAt'
   | 'impactStudyCampaigns'
 >

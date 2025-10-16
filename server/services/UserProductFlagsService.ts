@@ -13,7 +13,6 @@ import {
   ImpactStudyCampaign,
   enrollStudentToFallIncentiveProgram,
   enrollStudentToImpactStudy,
-  updateTellThemCollegePrepModalSeenAt,
   getUPFByUserId,
 } from '../models/UserProductFlags'
 import {
@@ -127,10 +126,6 @@ export async function processImpactStudyReward(
     }
     await createGiftCardRewardLink(rewardPayload)
   }
-}
-
-export async function sawTellThemCollegePrepModal(userId: Uuid) {
-  return await updateTellThemCollegePrepModalSeenAt(userId)
 }
 
 export const asImpactStudyCampaignData = asFactory<ImpactStudyCampaign>({
