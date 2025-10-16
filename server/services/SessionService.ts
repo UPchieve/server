@@ -1285,3 +1285,19 @@ export async function getVolunteersInSessions(): Promise<Set<Ulid>> {
   const volunteers = await SessionRepo.getVolunteersInSessions()
   return new Set(volunteers)
 }
+
+export async function addSessionSmsNotification(
+  sessionId: Uuid,
+  volunteerId: Uuid,
+  priorityGroupName: string = '',
+  messageCarrierId?: string
+) {
+  await SessionRepo.addSessionNotification(sessionId, {
+    wasSuccessful: !!messageCarrierId,
+    messageId: messageCarrierId,
+    volunteer: volunteerId,
+    type: 'initial',
+    method: 'sms',
+    priorityGroup: priorityGroupName,
+  })
+}

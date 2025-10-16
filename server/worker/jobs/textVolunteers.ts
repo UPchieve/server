@@ -32,8 +32,17 @@ export type TextVolunteersJobData = {
   schoolId?: string
   studentPartnerOrg?: string
 }
+export enum PriorityGroupName {
+  FAVORITED = 'Favorited volunteers',
+  PARTNER = 'Associated partner volunteers',
+  REGULAR = 'Regular volunteers',
+}
 export type TextableVolunteer = TextableVolunteerDbResult & {
-  studentOrgDisplay?: string
+  priorityGroupName?: PriorityGroupName
+}
+export type PriorityGroup = {
+  name: PriorityGroupName
+  volunteers: TextableVolunteer[]
 }
 
 export default async function textVolunteers(
@@ -53,22 +62,28 @@ export default async function textVolunteers(
     allTextableVolunteers,
     subject
   )
-  const eligiblePartnerVolunteers = await filterPartnerVolunteers(
-    eligibleVolunteers,
-    studentPartnerOrg,
-    schoolId
-  )
+  const { volunteers: eligiblePartnerVolunteers, studentOrgDisplay } =
+    (await filterPartnerVolunteers(
+      eligibleVolunteers,
+      studentPartnerOrg,
+      schoolId
+    )) ?? { volunteers: [] }
   const eligibleFavoritedVolunteers = await filterFavoritedVolunteers(
     eligibleVolunteers,
     studentId
   )
 
-  const selectedTutors = await selectVolunteersByPriority(
-    subject,
-    eligibleFavoritedVolunteers,
-    eligiblePartnerVolunteers ?? [],
-    eligibleVolunteers
-  )
+  const selectedTutors = await selectVolunteersByPriority(subject, [
+    {
+      name: PriorityGroupName.FAVORITED,
+      volunteers: eligibleFavoritedVolunteers,
+    },
+    {
+      name: PriorityGroupName.PARTNER,
+      volunteers: eligiblePartnerVolunteers,
+    },
+    { name: PriorityGroupName.REGULAR, volunteers: eligibleVolunteers },
+  ])
 
   if (!selectedTutors.length) {
     logger.warn(
@@ -78,13 +93,16 @@ export default async function textVolunteers(
     return
   }
 
-  await sendTextMessages(selectedTutors, {
-    sessionId,
-    subject,
-    subjectDisplayName,
-    topic,
-  })
-  // TODO: Add notification to db.
+  await sendTextMessages(
+    selectedTutors,
+    {
+      sessionId,
+      subject,
+      subjectDisplayName,
+      topic,
+    },
+    studentOrgDisplay
+  )
   // TODO: Queue TextVolunters job again.
 }
 
@@ -123,21 +141,21 @@ export async function filterPartnerVolunteers(
   volunteers: TextableVolunteer[],
   studentPartnerOrg?: string,
   schoolId?: string
-) {
+): Promise<
+  { studentOrgDisplay?: string; volunteers: TextableVolunteer[] } | undefined
+> {
   const associatedPartner = await AssociatedPartnerService.getAssociatedPartner(
     studentPartnerOrg,
     schoolId
   )
   if (!associatedPartner) return
 
-  return volunteers
-    .filter((v) => {
+  return {
+    volunteers: volunteers.filter((v) => {
       return v.volunteerPartnerOrgKey === associatedPartner.volunteerPartnerOrg
-    })
-    .map((v) => ({
-      ...v,
-      studentOrgDisplay: associatedPartner.studentOrgDisplay,
-    }))
+    }),
+    studentOrgDisplay: associatedPartner?.studentOrgDisplay,
+  }
 }
 
 // Exported for testing.
@@ -162,32 +180,41 @@ export const subjectToNumberOfTexts: Partial<Record<SUBJECTS, number>> = {
 // Exported for testing.
 export async function selectVolunteersByPriority(
   subject: SUBJECTS,
-  ...priorityGroupsInOrder: TextableVolunteer[][]
+  priorityGroups: PriorityGroup[]
 ): Promise<TextableVolunteer[]> {
   const n = subjectToNumberOfTexts[subject] ?? 2
 
-  const filteredPriorityGroups = await filterVolunteersNotInSession(
-    priorityGroupsInOrder
-  )
+  const filteredPriorityGroups =
+    await filterVolunteersNotInSession(priorityGroups)
 
   const toText: TextableVolunteer[] = []
   for (const group of filteredPriorityGroups) {
     if (toText.length >= n) break
-    if (group.length > 0) {
+    if (group.volunteers.length > 0) {
       // Get volunteers in this group that haven't been selected yet
       // from a previous priority group.
-      const uniqueVolunteers = differenceBy(group, toText, 'id')
-      toText.push(...sampleSize(uniqueVolunteers, n - toText.length))
+      const uniqueVolunteers = differenceBy(group.volunteers, toText, 'id')
+      const selected = sampleSize(uniqueVolunteers, n - toText.length)
+
+      toText.push(
+        ...selected.map((v) => ({
+          ...v,
+          priorityGroupName: group.name,
+        }))
+      )
     }
   }
   return toText
 }
 
-async function filterVolunteersNotInSession(volunteers: TextableVolunteer[][]) {
+async function filterVolunteersNotInSession(
+  priorityGroups: PriorityGroup[]
+): Promise<PriorityGroup[]> {
   const volunteersInSessions = await SessionService.getVolunteersInSessions()
-  return volunteers.map((group) =>
-    group.filter((v) => !volunteersInSessions.has(v.id))
-  )
+  return priorityGroups.map((group) => ({
+    name: group.name,
+    volunteers: group.volunteers.filter((v) => !volunteersInSessions.has(v.id)),
+  }))
 }
 
 type SessionForTextMessage = {
@@ -196,14 +223,30 @@ type SessionForTextMessage = {
   topic: string
   subjectDisplayName: string
 }
-async function sendTextMessages(
+// Exported for testing.
+export async function sendTextMessages(
   volunteers: TextableVolunteer[],
-  session: SessionForTextMessage
+  session: SessionForTextMessage,
+  studentOrgDisplay?: string
 ) {
   await Promise.all(
-    volunteers.map((v) => {
-      const content = buildContent(v.firstName, v.studentOrgDisplay)
-      return TwilioService.sendTextMessage(v.phone, content)
+    volunteers.map(async (v) => {
+      const content = buildContent(
+        v.firstName,
+        v.priorityGroupName === PriorityGroupName.PARTNER
+          ? studentOrgDisplay
+          : undefined
+      )
+      const carrierMessageId = await TwilioService.sendTextMessage(
+        v.phone,
+        content
+      )
+      await SessionService.addSessionSmsNotification(
+        session.sessionId,
+        v.id,
+        v.priorityGroupName,
+        carrierMessageId
+      )
     })
   )
 

@@ -244,7 +244,7 @@ export function buildVolunteer(
 }
 
 export function buildTextableVolunteer(
-  overrides: Partial<TextableVolunteer> = {}
+  overrides: Partial<TextableVolunteer & { priorityGroupName?: string }> = {}
 ): TextableVolunteer {
   return {
     id: getDbUlid(),
