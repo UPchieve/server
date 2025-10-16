@@ -10,6 +10,7 @@ import type { TextableVolunteer as TextableVolunteerDbResult } from '../../model
 import * as AssociatedPartnerService from '../../services/AssociatedPartnerService'
 import * as CacheService from '../../cache'
 import * as FavoritingService from '../../services/FavoritingService'
+import * as NotificationService from '../../services/NotificationService'
 import * as SessionService from '../../services/SessionService'
 import * as TwilioService from '../../services/TwilioService'
 import {
@@ -185,7 +186,7 @@ export async function selectVolunteersByPriority(
   const n = subjectToNumberOfTexts[subject] ?? 2
 
   const filteredPriorityGroups =
-    await filterVolunteersNotInSession(priorityGroups)
+    await filterEligibleVolunteersToText(priorityGroups)
 
   const toText: TextableVolunteer[] = []
   for (const group of filteredPriorityGroups) {
@@ -195,7 +196,6 @@ export async function selectVolunteersByPriority(
       // from a previous priority group.
       const uniqueVolunteers = differenceBy(group.volunteers, toText, 'id')
       const selected = sampleSize(uniqueVolunteers, n - toText.length)
-
       toText.push(
         ...selected.map((v) => ({
           ...v,
@@ -207,13 +207,19 @@ export async function selectVolunteersByPriority(
   return toText
 }
 
-async function filterVolunteersNotInSession(
+async function filterEligibleVolunteersToText(
   priorityGroups: PriorityGroup[]
 ): Promise<PriorityGroup[]> {
   const volunteersInSessions = await SessionService.getVolunteersInSessions()
+  const volunteersRecentlyNotified =
+    await NotificationService.getVolunteersTextedSince5MinutesAgo()
+
   return priorityGroups.map((group) => ({
     name: group.name,
-    volunteers: group.volunteers.filter((v) => !volunteersInSessions.has(v.id)),
+    volunteers: group.volunteers.filter(
+      (v) =>
+        !volunteersInSessions.has(v.id) && !volunteersRecentlyNotified.has(v.id)
+    ),
   }))
 }
 
