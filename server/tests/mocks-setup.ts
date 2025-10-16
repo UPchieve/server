@@ -1,4 +1,4 @@
-const redisMockImpl = require('ioredis-mock/jest')
+const redisMockImpl = require('ioredis-mock')
 redisMockImpl.prototype.config = jest.fn()
 jest.mock('ioredis', () => redisMockImpl)
 jest.mock('yjs')
@@ -35,6 +35,7 @@ jest.mock('../config', () => {
     postgresPassword: 'Password123',
     postgresDatabase: 'upchieve',
     sessionSecret: 'secret',
+    workerQueueName: 'main',
     awsS3: {
       accessKeyId: 'ACCESSKEY123',
       secretAccessKey: 'SECRETACCESSKEY789',
