@@ -436,7 +436,6 @@ describe('ModerationService', () => {
       it.each([
         ['profanity', 1],
         ['high toxicity', 1],
-        ['minor detected in image', 4],
         ['drugs & tobacco', 1],
         ['alcohol', 1],
         ['rude gestures', 1],
@@ -492,7 +491,6 @@ describe('ModerationService', () => {
         ['swimwear or underwear', true],
         ['profanity', false],
         ['high toxicity', false],
-        ['minor detected in image', true],
         ['drugs & tobacco', false],
         ['alcohol', false],
         ['rude gestures', false],
@@ -607,7 +605,6 @@ describe('ModerationService', () => {
 
     describe('isStreamStoppingReason', () => {
       it.each([
-        ['minor detected in image', true],
         ['swimwear or underwear', true],
         ['link', true],
         ['email', true],

@@ -18,8 +18,6 @@ import {
   ExtractedTextItem,
   SessionTranscript,
   SessionTranscriptItem,
-  updateSessionFlagsById,
-  updateSessionReviewReasonsById,
 } from '../models/Session'
 import {
   AI_MODERATION_STATE,
@@ -67,8 +65,6 @@ import { PrimaryUserRole } from './UserRolesService'
 import { LangfuseGenerationClient } from 'langfuse'
 import { resize } from '../utils/image-utils'
 
-const MINOR_AGE_THRESHOLD = 18
-
 // EMAIL_REGEX checks for standard and complex email formats
 // Ex: yay-hoo@yahoo.hello.com
 const EMAIL_REGEX =
@@ -101,7 +97,6 @@ export enum LangfuseGenerationName {
   DETECT_MODERATION_LABELS = 'detectModerationLabels',
   DETECT_FACES = 'detectFaces',
   DETECT_PERSON = 'detectPerson',
-  DETECT_MINORS = 'detectMinors',
   IS_IMAGE_EDUCATIONAL = 'isImageEducational',
 }
 
@@ -353,79 +348,6 @@ async function detectImageModerationFailures(
     logger.error({ sessionId, err }, 'Failed to moderate image')
     throw new Error(`Failed to moderate image for session ${sessionId}`)
   }
-}
-
-/*
-  determine if image depicts a minor
-*/
-async function detectMinorFailures(image: Buffer, trace?: LangfuseTraceClient) {
-  let generation: LangfuseGenerationClient | undefined = undefined
-  if (trace) {
-    generation = trace.generation({
-      name: LangfuseGenerationName.DETECT_FACES,
-    })
-  }
-  const facesResponse = await awsRekognitionClient.send(
-    new DetectFacesCommand({
-      Image: {
-        Bytes: image,
-      },
-      Attributes: ['AGE_RANGE'],
-    })
-  )
-  if (generation) {
-    generation.end({ output: facesResponse })
-  }
-  const faces = facesResponse.FaceDetails ?? []
-  const faceFailures = faces
-    .filter(
-      (face) => face.AgeRange?.Low && face.AgeRange?.Low < MINOR_AGE_THRESHOLD
-    )
-    .map((face) => ({
-      reason: `Minor detected in image`,
-      details: {
-        ageRange: face.AgeRange,
-        confidence: face.Confidence,
-      },
-    }))
-
-  if (faceFailures.length > 0) {
-    return faceFailures
-  }
-
-  // DetectFaces seems to be more accurate when it comes to detecting minors
-  // but we want to handle the case where faces are not in the image
-  if (trace) {
-    generation = trace.generation({
-      name: LangfuseGenerationName.DETECT_MINORS,
-    })
-  }
-  const labelResponse = await awsRekognitionClient.send(
-    new DetectLabelsCommand({
-      Image: {
-        Bytes: image,
-      },
-      MinConfidence: config.imageModerationMinConfidence,
-      Settings: {
-        GeneralLabels: {
-          LabelInclusionFilters: ['Teen', 'Girl', 'Boy', 'Child'],
-        },
-      },
-    })
-  )
-  if (generation) {
-    generation.end({ output: labelResponse })
-  }
-  const labels = labelResponse.Labels ?? []
-  const labelFailures = labels.map((label) => ({
-    reason: `Minor detected in image`,
-    details: {
-      label: label.Name,
-      confidence: label.Confidence,
-    },
-  }))
-
-  return labelFailures
 }
 
 export async function extractTextFromImage(
@@ -1116,10 +1038,6 @@ export function moderateImageInBackground(options: {
     options.sessionId
   ).then(maybeHandleImageModerationFailure(options))
 
-  detectMinorFailures(options.image, options.trace).then(
-    maybeHandleImageModerationFailure(options)
-  )
-
   detectTextModerationFailures(
     options.image,
     options.sessionId,
@@ -1143,12 +1061,10 @@ async function getAllImageModerationFailures({
 }> {
   const [
     moderationFailureReasons,
-    minorFailures,
     textModerationFailureReasons,
     detectPersonResponse,
   ] = await Promise.all([
     detectImageModerationFailures(image, trace, sessionId),
-    detectMinorFailures(image, trace),
     detectTextModerationFailures(image, sessionId, isVolunteer, trace),
     detectPersonInImage(image, sessionId, trace),
   ])
@@ -1156,7 +1072,7 @@ async function getAllImageModerationFailures({
   if (
     isEmpty(moderationFailureReasons) &&
     isEmpty(textModerationFailureReasons) &&
-    (!isEmpty(minorFailures) || !isEmpty(detectPersonResponse))
+    !isEmpty(detectPersonResponse)
   ) {
     const noEducationalContext = await detectImageEducationPurpose(
       image,
@@ -1547,7 +1463,6 @@ export type LiveMediaModerationCategories =
   | 'violence'
   | 'link'
   | 'address'
-  | 'minor detected in image'
   | 'email'
   | 'phone'
   | 'high toxicity'
@@ -1592,7 +1507,6 @@ export function getScoreForCategory(
     case 'email':
     case 'phone':
     case 'address':
-    case 'minor detected in image':
       categoryScore = 4
       break
   }
@@ -1609,7 +1523,6 @@ export function isStreamStoppingReason(
   category: LiveMediaModerationCategories | string
 ): boolean {
   const streamStoppingReasons = [
-    'minor detected in image',
     'swimwear or underwear',
     'violence',
     'visually disturbing',
