@@ -54,14 +54,16 @@
     "setup:detect-secrets": "./scripts/setup-detect-secrets.sh",
     "scan:add": "./scripts/wrap-detect-secrets.sh scan",
     "scan:diff": "./scripts/wrap-detect-secrets.sh hook",
-    "scan:audit": "./scripts/wrap-detect-secrets.sh audit"
+    "scan:audit": "./scripts/wrap-detect-secrets.sh audit",
+    "check:socket-address": "./bin/check_socket_address.sh"
   },
   "pre-commit": [
     "scan:diff",
     "pgtyped:check",
     "lint:backend:dry",
     "lint:database:dry",
-    "lint:sql:check"
+    "lint:sql:check",
+    "check:socket-address"
   ],
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "^3.758.0",

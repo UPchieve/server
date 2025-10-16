@@ -63,7 +63,10 @@ app.use(
 app.use(timeout('300000'))
 
 /**
- * Account for nginx proxy when getting client's IP address
+ * Account for our proxies when getting the client's IP address.
+ * Setting `trust proxy` to true means Express will return
+ * the leftmost IP in X-Forwarded-For header when we access `req.ip`.
+ * For more information, see:
  * http://expressjs.com/en/guide/behind-proxies.html
  */
 app.set('trust proxy', true)
