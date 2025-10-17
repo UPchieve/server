@@ -235,7 +235,7 @@ async function detectImageEducationPurpose(
       isEmpty(educationalLabels)
     ) {
       return {
-        reason: `"The image doesn't serve any educational purpose"`,
+        reason: "The image doesn't serve any educational purpose",
         details: response,
       }
     }
@@ -1038,6 +1038,10 @@ export function moderateImageInBackground(options: {
     options.sessionId
   ).then(maybeHandleImageModerationFailure(options))
 
+  detectPersonInImage(options.image, options.sessionId, options.trace).then(
+    maybeHandleImageModerationFailure(options)
+  )
+
   detectTextModerationFailures(
     options.image,
     options.sessionId,
@@ -1391,48 +1395,61 @@ export const handleModerationInfraction = async (
     // Therefore there is no need to write an infraction, which represents a retroactive strike for an offense.
     return
   }
-  const insertedInfraction =
-    await ModerationInfractionsRepo.insertModerationInfraction(
-      {
-        userId,
-        sessionId,
-        reason: reasons.failures,
-      },
-      client
-    )
-  const allActiveInfractions =
-    await ModerationInfractionsRepo.getModerationInfractionsByUser(
-      userId,
-      {
-        active: true,
-        sessionId,
-      },
-      client
-    )
-  const infractionScore = weighSessionInfractions(allActiveInfractions)
-  const streamStoppingReasons = getStreamStoppingReasonsFromInfractions([
-    insertedInfraction,
-  ])
-  const doLiveMediaBan =
-    infractionScore >= config.liveMediaBanInfractionScoreThreshold
   const socketService = SocketService.getInstance()
-  if (doLiveMediaBan) {
-    await liveMediaBanUser(userId, sessionId)
-    logger.info(
-      { userId, sessionId, infractionId: insertedInfraction.id },
-      'Live media banned user'
-    )
-  }
-
   const failures: string[] = [...new Set<string>(Object.keys(reasons.failures))]
 
-  await socketService.emitModerationInfractionEvent(userId, {
-    isBanned: doLiveMediaBan,
-    infraction: failures,
-    source,
-    occurredAt: new Date(),
-    stopStreamImmediatelyReasons: streamStoppingReasons,
-  })
+  if (!failures.includes('Person detected in image')) {
+    const insertedInfraction =
+      await ModerationInfractionsRepo.insertModerationInfraction(
+        {
+          userId,
+          sessionId,
+          reason: reasons.failures,
+        },
+        client
+      )
+    const allActiveInfractions =
+      await ModerationInfractionsRepo.getModerationInfractionsByUser(
+        userId,
+        {
+          active: true,
+          sessionId,
+        },
+        client
+      )
+    allActiveInfractions
+    const infractionScore = weighSessionInfractions(allActiveInfractions)
+    const streamStoppingReasons = getStreamStoppingReasonsFromInfractions([
+      insertedInfraction,
+    ])
+    const doLiveMediaBan =
+      infractionScore >= config.liveMediaBanInfractionScoreThreshold
+
+    if (doLiveMediaBan) {
+      await liveMediaBanUser(userId, sessionId)
+      logger.info(
+        { userId, sessionId, infractionId: insertedInfraction.id },
+        'Live media banned user'
+      )
+    }
+
+    await socketService.emitModerationInfractionEvent(userId, {
+      isBanned: doLiveMediaBan,
+      infraction: failures,
+      source,
+      occurredAt: new Date(),
+      stopStreamImmediatelyReasons: streamStoppingReasons,
+    })
+  } else {
+    //Let the users decide if there's an infraction
+    await socketService.emitModerationInfractionEvent(userId, {
+      isBanned: false,
+      infraction: failures,
+      source,
+      occurredAt: new Date(),
+      stopStreamImmediatelyReasons: [],
+    })
+  }
 }
 
 async function liveMediaBanUser(
@@ -1485,8 +1502,11 @@ export type LiveMediaModerationCategories =
 export function getScoreForCategory(
   category: LiveMediaModerationCategories | string
 ): number {
-  let categoryScore
+  let categoryScore = null
   switch (category.toLowerCase()) {
+    case 'person detected in image':
+      categoryScore = 0
+      break
     case 'profanity':
     case 'high toxicity':
     case 'drugs & tobacco':
@@ -1510,7 +1530,7 @@ export function getScoreForCategory(
       categoryScore = 4
       break
   }
-  if (!categoryScore) {
+  if (categoryScore == null) {
     logger.error(
       `Missing score for infraction category ${category}. Defaulting to severe score.`
     )
