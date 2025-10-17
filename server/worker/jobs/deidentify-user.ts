@@ -6,6 +6,7 @@ import * as AwsService from '../../services/AwsService'
 import config from '../../config'
 import { ACCOUNT_USER_ACTIONS } from '../../constants'
 import { createAccountAction } from '../../models/UserAction'
+import logger from '../../logger'
 
 type DeidentifyUserJob = {
   userId: Ulid
@@ -60,6 +61,8 @@ export default async (job: Job<DeidentifyUserJob>): Promise<void> => {
     )
     await tc.query(`UPDATE users SET deleted = true WHERE id = $1`, [userId])
   })
+
+  logger.info({ userId }, 'Successfully deidentified user.')
 }
 
 async function hardDeleteRows(userId: Ulid, tc: TransactionClient) {
