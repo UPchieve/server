@@ -1,3 +1,7 @@
+
+-- Dumped from database version 14.19 (Debian 14.19-1.pgdg13+1)
+-- Dumped by pg_dump version 14.19 (Ubuntu 14.19-0ubuntu0.22.04.1)
+
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -3863,6 +3867,14 @@ ALTER TABLE ONLY upchieve.referrals
 
 
 --
+-- Name: referrals referrals_user_id_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.referrals
+    ADD CONSTRAINT referrals_user_id_key UNIQUE (user_id);
+
+
+--
 -- Name: report_reasons report_reasons_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -6401,6 +6413,7 @@ ALTER TABLE ONLY upchieve.volunteer_references
 --
 
 
+
 --
 -- Dbmate schema migrations
 --
@@ -6635,4 +6648,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20250918185105'),
     ('20250922200444'),
     ('20251008134946'),
-    ('20251009150451');
+    ('20251009150451'),
+    ('20251014214939');

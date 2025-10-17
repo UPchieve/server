@@ -10,7 +10,6 @@ import * as ApiRouter from './api'
 import * as ApiPublicRouter from './api-public'
 import * as EligibilityRouter from './eligibility'
 import * as WhiteboardRouter from './whiteboard'
-import * as EduRouter from './edu'
 import * as MobileRouter from './mobile'
 import * as ReferenceRouter from './reference'
 import * as ReferralRouter from './referral'
@@ -39,7 +38,6 @@ export default function (app: Express, io: Server) {
   AuthRouter.routes(app)
   ApiRouter.routes(app, sessionStore, io)
   ApiPublicRouter.routes(app)
-  EduRouter.routes(app)
   EligibilityRouter.routes(app)
   TwimlRouter.routes(app)
   ContactFormRouter.routes(app)
