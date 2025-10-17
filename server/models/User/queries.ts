@@ -200,6 +200,16 @@ export async function getUserContactInfoById(
   }
 }
 
+export async function getUserBanStatus(userId: Ulid) {
+  const result = await pgQueries.getUserBanStatus.run(
+    { id: userId },
+    getClient()
+  )
+  if (result.length) {
+    return makeSomeOptional(result[0], ['banType'])
+  }
+}
+
 export async function getUserByReferralCode(
   referralCode: string,
   tc: TransactionClient = getClient()
@@ -332,23 +342,6 @@ export async function updateUserPasswordById(
   }
 }
 
-// updateUserIpById
-export async function insertUserIpById(
-  userId: Ulid,
-  ipId: Pgid
-): Promise<void> {
-  try {
-    const result = await pgQueries.insertUserIpById.run(
-      { id: getDbUlid(), userId, ipId },
-      getClient()
-    )
-    if (!(result.length && makeRequired(result[0]).ok))
-      throw new RepoUpdateError('Insert query did not return ok')
-  } catch (err) {
-    throw new RepoUpdateError(err)
-  }
-}
-
 export async function updateUserVerifiedInfoById(
   userId: Ulid,
   sendTo: string,
@@ -464,14 +457,12 @@ export type PastSessionForAdmin = {
 export async function getPastSessionsForAdminDetail(
   userId: Ulid,
   limit: number,
-  offset: number,
-  poolClient?: PoolClient
+  offset: number
 ): Promise<PastSessionForAdmin[]> {
-  const client = poolClient ? poolClient : getClient()
   try {
     const result = await pgQueries.getPastSessionsForAdminDetail.run(
       { userId, limit, offset },
-      client
+      getClient()
     )
     return result.map((v) => {
       const temp = makeSomeOptional(v, [
@@ -499,11 +490,10 @@ export async function getUserForAdminDetail(
   limit: number,
   offset: number
 ) {
-  const client = await getClient().connect()
   try {
     const userResult = await pgQueries.getUserForAdminDetail.run(
       { userId },
-      client
+      getClient()
     )
     const user = makeSomeRequired(userResult[0], [
       'id',
@@ -512,6 +502,7 @@ export async function getUserForAdminDetail(
       'firstName',
       'isAdmin',
       'isDeactivated',
+      'isDeleted',
       'isTestUser',
       'verified',
       'numPastSessions',
@@ -519,16 +510,12 @@ export async function getUserForAdminDetail(
     if (user.email) {
       user.email = user.email.toLowerCase()
     }
-    const references = await getReferencesByVolunteerForAdminDetail(
-      user.id,
-      client
-    )
-    const sessions = await getPastSessionsForAdminDetail(
-      user.id,
-      limit,
-      offset,
-      client
-    )
+    // TODO: Move to service method.
+    const references = await getReferencesByVolunteerForAdminDetail(user.id)
+    let sessions
+    if (limit) {
+      sessions = await getPastSessionsForAdminDetail(user.id, limit, offset)
+    }
 
     const background = {
       occupation: user.occupation,
@@ -548,7 +535,7 @@ export async function getUserForAdminDetail(
         ...ref,
         status: ref.status.toUpperCase(),
       })),
-      pastSessions: sessions.sort((a, b) =>
+      pastSessions: sessions?.sort((a, b) =>
         a.createdAt > b.createdAt ? 1 : -1
       ),
       photoIdStatus: user.photoIdStatus?.toUpperCase(),
@@ -556,8 +543,6 @@ export async function getUserForAdminDetail(
     }
   } catch (err) {
     throw new RepoReadError(err)
-  } finally {
-    client.release()
   }
 }
 
