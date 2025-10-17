@@ -28,13 +28,6 @@ CREATE SCHEMA basic_access;
 
 
 --
--- Name: public; Type: SCHEMA; Schema: -; Owner: -
---
-
--- *not* creating schema, since initdb creates it
-
-
---
 -- Name: upchieve; Type: SCHEMA; Schema: -; Owner: -
 --
 
@@ -6418,8 +6411,6 @@ ALTER TABLE ONLY upchieve.volunteer_references
 --
 -- PostgreSQL database dump complete
 --
-
-\unrestrict 6fy2KgBgSUIejsFlSSjgtIMqMeth0mKctpIlqel1XksOK4oU543aFWkbngMKJpG
 
 
 
