@@ -37,6 +37,7 @@ import { asJoinSessionData } from '../../utils/session-utils'
 import { SessionJoinError } from '../../models/Errors'
 import * as PresenceService from '../../services/PresenceService'
 import { observeWebTransaction } from '../../utils/newRelicUtil'
+import { extractSocketIp } from '../../utils/extract-socket-ip'
 
 export type SessionMessageType = 'audio-transcription' // todo - add 'chat' later
 
@@ -93,7 +94,6 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
   io.on('connection', async function (socket: SocketUser) {
     const {
       request: { user },
-      handshake: { query },
     } = socket
 
     if (user) {
@@ -166,7 +166,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
             socket,
             joinedFrom,
           })
-          const ipAddress = socket.handshake?.address
+          const ipAddress = extractSocketIp(socket)
           const userAgent = socket.request?.headers['user-agent']
           await SessionService.joinSession(user, sessionId, {
             ipAddress,
@@ -595,7 +595,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
             PresenceService.trackInactivity({
               userId: user.id,
               clientUUID,
-              ipAddress: socket.handshake.address,
+              ipAddress: extractSocketIp(socket),
             })
           }
         } catch (error) {
