@@ -751,7 +751,15 @@ export async function sendNiceToMeetYou<V extends VolunteerContactInfo>(
     categories: ['nice to meet you email'],
   }
 
-  const templateId = config.sendgrid.niceToMeetYouTemplate
+  let templateId
+
+  const roleContext = await UserRolesService.getRoleContext(volunteer.id)
+
+  if (roleContext.hasRole('student')) {
+    templateId = config.sendgrid.niceToMeetYouStudentVolunteersTemplate
+  } else {
+    templateId = config.sendgrid.niceToMeetYouTemplate
+  }
 
   await sendEmail(
     volunteer.email,
