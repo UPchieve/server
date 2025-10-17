@@ -4,7 +4,6 @@ import { Jobs } from '../worker/jobs'
 import { Job } from 'bull'
 import { asString } from '../utils/type-utils'
 import { log } from '../worker/logger'
-import { getStudySlackCommunityEmailFeatureFlag } from '../services/FeatureFlagService'
 
 type BackfillEmailNiceToMeetYouData = {
   startDate: string

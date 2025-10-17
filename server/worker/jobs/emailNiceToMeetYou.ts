@@ -2,7 +2,6 @@ import { log } from '../logger'
 import { getVolunteersForNiceToMeetYou } from '../../models/Volunteer/queries'
 import * as MailService from '../../services/MailService'
 import { Jobs } from '.'
-import { getStudySlackCommunityEmailFeatureFlag } from '../../services/FeatureFlagService'
 
 // Runs every day at 10am EST
 export default async (): Promise<void> => {

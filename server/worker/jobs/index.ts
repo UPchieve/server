@@ -11,7 +11,6 @@ import backfillStudentUsersRoles from '../../scripts/backfill-student-users-role
 import deleteDuplicateUserSurveys from '../../scripts/delete-duplicate-user-surveys'
 import deleteSelfFavoritedVolunteers from '../../scripts/delete-self-favorited-volunteers'
 import deleteDuplicateStudentFavoriteVolunteers from '../../scripts/delete-duplicate-student-favorite-volunteers'
-import sendWeeklyHourSummaryApology from '../../scripts/send-weekly-hour-summary-apology'
 import upsertPostalCodes from '../../scripts/upsert-postal-codes'
 import titlecaseSchoolNames from '../../scripts/titlecase-school-names'
 import upsertSchools from '../../scripts/upsert-schools'
@@ -144,7 +143,6 @@ export enum Jobs {
   SendNationalTutorCertificateEmail = 'SendNationalTutorCertificateEmail',
   SendReferralSignUpCelebrationEmail = 'SendReferralSignUpCelebrationEmail',
   SendSessionRecapMessageNotification = 'SendSessionRecapMessageNotification',
-  SendWeeklyHourSummaryApology = 'SendWeeklyHourSummaryApology',
   SpawnEmailWeeklyHourSummaryJobs = 'SpawnEmailWeeklyHourSummaryJobs',
   TextVolunteers = 'TextVolunteers',
   TitlecaseSchoolNames = 'TitlecaseSchoolNames',
@@ -430,10 +428,6 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.SendSessionRecapMessageNotification,
     processor: sendSessionRecapMessageNotification,
-  },
-  {
-    name: Jobs.SendWeeklyHourSummaryApology,
-    processor: sendWeeklyHourSummaryApology,
   },
   {
     name: Jobs.SpawnEmailWeeklyHourSummaryJobs,
