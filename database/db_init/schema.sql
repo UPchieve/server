@@ -1,4 +1,4 @@
-\restrict WmUoVo71Dd9UOjmtNGKttWGwjEG8ad2bYppSmCwgtRCICkr9yKrFuzNhsW6hxRN
+\restrict 6fy2KgBgSUIejsFlSSjgtIMqMeth0mKctpIlqel1XksOK4oU543aFWkbngMKJpG
 
 -- Dumped from database version 14.17 (Debian 14.17-1.pgdg120+1)
 -- Dumped by pg_dump version 15.14 (Homebrew)
@@ -2513,6 +2513,7 @@ CREATE TABLE upchieve.user_product_flags (
     paid_tutors_pilot_group public.paid_tutors_pilot_groups,
     fall_incentive_enrollment_at timestamp with time zone,
     impact_study_enrollment_at timestamp with time zone,
+    tell_them_college_prep_modal_seen_at timestamp with time zone,
     impact_study_campaigns jsonb DEFAULT '{}'::jsonb
 );
 
@@ -3871,6 +3872,14 @@ ALTER TABLE ONLY upchieve.quizzes
 
 ALTER TABLE ONLY upchieve.referrals
     ADD CONSTRAINT referrals_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: referrals referrals_user_id_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.referrals
+    ADD CONSTRAINT referrals_user_id_key UNIQUE (user_id);
 
 
 --
@@ -6411,7 +6420,7 @@ ALTER TABLE ONLY upchieve.volunteer_references
 -- PostgreSQL database dump complete
 --
 
-\unrestrict WmUoVo71Dd9UOjmtNGKttWGwjEG8ad2bYppSmCwgtRCICkr9yKrFuzNhsW6hxRN
+\unrestrict 6fy2KgBgSUIejsFlSSjgtIMqMeth0mKctpIlqel1XksOK4oU543aFWkbngMKJpG
 
 
 --
@@ -6649,4 +6658,4 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20250922200444'),
     ('20251008134946'),
     ('20251009150451'),
-    ('20251016200606');
+    ('20251014214939');
