@@ -1,9 +1,5 @@
 import { mocked } from 'jest-mock'
-import {
-  getQuestions,
-  getQuizScore,
-  filterSubtopicsFromQuestions,
-} from '../../controllers/TrainingCtrl'
+import { getQuestions, getQuizScore } from '../../controllers/TrainingCtrl'
 import { buildVolunteer } from '../mocks/generate'
 import {
   MATH_CERTS,
@@ -729,35 +725,5 @@ describe('getQuizScore', () => {
     )
     expect(MailService.createContact).not.toHaveBeenCalled()
     expect(result).toEqual(expectedResult)
-  })
-})
-
-// TODO: Remove in medium-certs-v2 clean up
-describe('filterSubtopicsFromQuestions', () => {
-  test('Should not filter out subtopics for a quiz that has no subtopics to filter', async () => {
-    const subject = MATH_CERTS.ALGEBRA_ONE
-    const questions = buildQuestions(4, [
-      { subcategory: '1' },
-      { subcategory: '2' },
-      { subcategory: '3' },
-      { subcategory: '4' },
-    ])
-
-    const result = await filterSubtopicsFromQuestions(subject, questions)
-    expect(result).toHaveLength(4)
-  })
-
-  test('Should filter out subtopics for a quiz that has subtopics to filter', async () => {
-    const subject = MATH_CERTS.ALGEBRA_TWO
-    const questions = buildQuestions(4, [
-      { subcategory: '1' },
-      { subcategory: '2' },
-      { subcategory: '3' },
-      { subcategory: 'rounding_and_scientific_notation' },
-      { subcategory: 'functions_domain' },
-    ])
-
-    const result = await filterSubtopicsFromQuestions(subject, questions)
-    expect(result).toHaveLength(3)
   })
 })
