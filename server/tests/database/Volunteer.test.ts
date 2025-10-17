@@ -390,7 +390,7 @@ describe('VolunteerRepo', () => {
   describe('getVolunteerContactInfoById', () => {
     it('does not return a deleted volunteer', async () => {
       const user = await createTestUser(client)
-      await createTestVolunteer(user.id, client)
+      await createTestVolunteer(client, user.id, {})
       await client.query('UPDATE users SET deleted = TRUE WHERE id = $1', [
         user.id,
       ])
