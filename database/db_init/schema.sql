@@ -1,7 +1,7 @@
-\restrict tLtMSIvQGkAcWs7PafgHpCXSp3SgmehC5z9ndCJqDLAk6zAtzuz5cg4egoEln9T
+\restrict Myx6H0WGd6JuLuu1JKRheO5xpHQO7A4IFY7ncWsVxJjvhMsW9ZC6tleeEfqFbPV
 
--- Dumped from database version 14.17 (Debian 14.17-1.pgdg120+1)
--- Dumped by pg_dump version 15.14 (Homebrew)
+-- Dumped from database version 14.19 (Debian 14.19-1.pgdg13+1)
+-- Dumped by pg_dump version 14.19 (Ubuntu 14.19-0ubuntu0.22.04.1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -26,13 +26,6 @@ CREATE SCHEMA auth;
 --
 
 CREATE SCHEMA basic_access;
-
-
---
--- Name: public; Type: SCHEMA; Schema: -; Owner: -
---
-
--- *not* creating schema, since initdb creates it
 
 
 --
@@ -2645,7 +2638,6 @@ CREATE TABLE upchieve.users (
     deactivated boolean DEFAULT false NOT NULL,
     last_activity_at timestamp with time zone,
     referral_code text NOT NULL,
-    referred_by uuid,
     test_user boolean DEFAULT false NOT NULL,
     banned boolean DEFAULT false NOT NULL,
     ban_reason_id integer,
@@ -6419,7 +6411,7 @@ ALTER TABLE ONLY upchieve.volunteer_references
 -- PostgreSQL database dump complete
 --
 
-\unrestrict tLtMSIvQGkAcWs7PafgHpCXSp3SgmehC5z9ndCJqDLAk6zAtzuz5cg4egoEln9T
+\unrestrict Myx6H0WGd6JuLuu1JKRheO5xpHQO7A4IFY7ncWsVxJjvhMsW9ZC6tleeEfqFbPV
 
 
 --
@@ -6658,4 +6650,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20251008134946'),
     ('20251009150451'),
     ('20251014214939'),
-    ('20251017145606');
+    ('20251017145606'),
+    ('20251018000509');
