@@ -1417,7 +1417,7 @@ export const handleModerationInfraction = async (
         },
         client
       )
-    allActiveInfractions
+
     const infractionScore = weighSessionInfractions(allActiveInfractions)
     const streamStoppingReasons = getStreamStoppingReasonsFromInfractions([
       insertedInfraction,
