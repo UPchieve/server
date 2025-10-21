@@ -1,5 +1,6 @@
 import * as Sentry from '@sentry/node'
 import express, { Express } from 'express'
+import expressWs from 'express-ws'
 import { KeyNotFoundError } from '../../cache'
 import logger, { logError } from '../../logger'
 import { WebSocketEmitter } from '../../services/WebSocketEmitterService'
@@ -237,8 +238,9 @@ const messageHandlers: {
 
 export function routes(app: Express): void {
   const router = express.Router()
+  const wsRouter = expressWs(router as any).app
 
-  router.ws('/room/:sessionId', function (wsClient, req, next) {
+  wsRouter.ws('/room/:sessionId', function (wsClient, req, next) {
     let initialized = false
     let sessionId: string
 
@@ -292,7 +294,7 @@ export function routes(app: Express): void {
     next()
   })
 
-  router.ws('/admin/:sessionId', async function (wsClient, req) {
+  wsRouter.ws('/admin/:sessionId', async function (wsClient, req) {
     const sessionId = asUlid(req.params.sessionId)
     try {
       let document: string | undefined
@@ -317,7 +319,7 @@ export function routes(app: Express): void {
     }
   })
 
-  router.ws('/recap/:sessionId', async function (wsClient, req) {
+  wsRouter.ws('/recap/:sessionId', async function (wsClient, req) {
     const sessionId = asUlid(req.params.sessionId)
     try {
       const document = await WhiteboardService.getDocFromStorage(sessionId)
@@ -334,5 +336,5 @@ export function routes(app: Express): void {
     }
   })
 
-  app.use('/whiteboard', router)
+  app.use('/whiteboard', wsRouter)
 }
