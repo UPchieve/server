@@ -19,9 +19,9 @@ describe('Notification repo', () => {
   describe('getVolunteersNotifiedSince', () => {
     it('returns volunteers who received SMS notifications since the given time', async () => {
       const volunteer1 = await createTestUser(dbClient)
-      await createTestVolunteer(volunteer1.id, dbClient)
+      await createTestVolunteer(dbClient, volunteer1.id)
       const volunteer2 = await createTestUser(dbClient)
-      await createTestVolunteer(volunteer2.id, dbClient)
+      await createTestVolunteer(dbClient, volunteer2.id)
       const fiveMinutesAgo = moment().subtract(5, 'minutes').toDate()
       const fourMinutesAgo = moment().subtract(4, 'minutes').toDate()
       await insertSingleRow(
@@ -54,7 +54,7 @@ describe('Notification repo', () => {
 
     it('does not return volunteers notified before the given time', async () => {
       const volunteer = await createTestUser(dbClient)
-      await createTestVolunteer(volunteer.id, dbClient)
+      await createTestVolunteer(dbClient, volunteer.id)
       const tenMinutesAgo = moment().subtract(10, 'minutes').toDate()
       const tenMinutesOneSecondAgo = moment()
         .subtract(10, 'minutes')
@@ -78,7 +78,7 @@ describe('Notification repo', () => {
 
     it('only returns volunteers who were notified with the specified notification method', async () => {
       const volunteer = await createTestUser(dbClient)
-      await createTestVolunteer(volunteer.id, dbClient)
+      await createTestVolunteer(dbClient, volunteer.id)
       const fiveMinutesAgo = moment().subtract(5, 'minutes').toDate()
       const fourMinutesAgo = moment().subtract(4, 'minutes').toDate()
       await insertSingleRow(
@@ -119,7 +119,7 @@ describe('Notification repo', () => {
 
     it('returns distinct volunteer IDs when a volunteer has multiple notifications', async () => {
       const volunteer = await createTestUser(dbClient)
-      await createTestVolunteer(volunteer.id, dbClient)
+      await createTestVolunteer(dbClient, volunteer.id)
       const fifteenMinutesAgo = moment().subtract(15, 'minutes').toDate()
       const twoMinutesAgo = moment().subtract(2, 'minutes').toDate()
       const oneMinuteAgo = moment().subtract(1, 'minutes').toDate()
@@ -155,7 +155,7 @@ describe('Notification repo', () => {
 
     it('returns empty array when no volunteers were notified since the given time', async () => {
       const volunteer = await createTestUser(dbClient)
-      await createTestVolunteer(volunteer.id, dbClient)
+      await createTestVolunteer(dbClient, volunteer.id)
       const twoMinutesAgo = moment().subtract(2, 'minutes').toDate()
       const oneMinuteAgo = moment().subtract(1, 'minute').toDate()
       await insertSingleRow(
@@ -176,7 +176,7 @@ describe('Notification repo', () => {
 
     it('includes notifications sent exactly at the boundary time', async () => {
       const volunteer = await createTestUser(dbClient)
-      await createTestVolunteer(volunteer.id, dbClient)
+      await createTestVolunteer(dbClient, volunteer.id)
       const boundaryTime = moment().subtract(5, 'minutes').toDate()
       await insertSingleRow(
         'notifications',

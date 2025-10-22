@@ -314,19 +314,19 @@ describe('addStudentsToTeacherClass', () => {
     test("returns a list of the student's actually favorited volunteers from a list", async () => {
       const studentId = (await createTestStudent(getClient())).user_id
       const fav1 = (await createTestUser(getClient())).id
-      await createTestVolunteer(fav1, getClient())
+      await createTestVolunteer(getClient(), fav1)
       const fav2 = (await createTestUser(getClient())).id
-      await createTestVolunteer(fav2, getClient())
+      await createTestVolunteer(getClient(), fav2)
       const fav3 = (await createTestUser(getClient())).id
-      await createTestVolunteer(fav3, getClient())
+      await createTestVolunteer(getClient(), fav3)
       const notFav1 = (await createTestUser(getClient())).id
-      await createTestVolunteer(notFav1, getClient())
+      await createTestVolunteer(getClient(), notFav1)
       const notFav2 = (await createTestUser(getClient())).id
-      await createTestVolunteer(notFav2, getClient())
+      await createTestVolunteer(getClient(), notFav2)
       const notFav3 = (await createTestUser(getClient())).id
-      await createTestVolunteer(notFav3, getClient())
+      await createTestVolunteer(getClient(), notFav3)
       const notFav4 = (await createTestUser(getClient())).id
-      await createTestVolunteer(notFav4, getClient())
+      await createTestVolunteer(getClient(), notFav4)
       await insertSingleRow(
         'student_favorite_volunteers',
         { studentId, volunteerId: fav1 },

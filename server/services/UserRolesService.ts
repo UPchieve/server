@@ -62,7 +62,7 @@ export async function getRoleContext(
     }
 
     const roleContext = new RoleContext(roles, activeRole, legacyRole)
-    await updateRoleContext(userId, roleContext)
+    await updateRoleContextCache(userId, roleContext)
     return roleContext
   } else {
     const data: {
@@ -94,11 +94,11 @@ export async function switchActiveRole(
     newActiveRole,
     existingRoleContext.legacyRole
   )
-  await updateRoleContext(userId, newRoleContext)
+  await updateRoleContextCache(userId, newRoleContext)
   return { newRoleContext }
 }
 
-async function updateRoleContext(
+async function updateRoleContextCache(
   userId: string,
   newRoleContext: RoleContext
 ): Promise<void> {
@@ -112,8 +112,7 @@ function getRoleContextCacheKey(userId: string): string {
 }
 
 export async function addVolunteerRoleToUser(userId: string): Promise<void> {
-  const tc = getClient()
-  const existingRoleContext = await getRoleContext(userId, false, tc)
+  const existingRoleContext = await getRoleContext(userId, false)
   if (existingRoleContext.roles.includes('volunteer'))
     throw new InputError('User already has volunteer role')
 
@@ -124,8 +123,8 @@ export async function addVolunteerRoleToUser(userId: string): Promise<void> {
       { timezone: null, partnerOrgId: null },
       tc
     )
-  }, tc)
-  await updateRoleContext(
+  })
+  await updateRoleContextCache(
     userId,
     new RoleContext(
       [...existingRoleContext.roles, 'volunteer'],

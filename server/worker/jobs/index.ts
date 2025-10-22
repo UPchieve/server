@@ -11,6 +11,7 @@ import backfillStudentUsersRoles from '../../scripts/backfill-student-users-role
 import deleteDuplicateUserSurveys from '../../scripts/delete-duplicate-user-surveys'
 import deleteSelfFavoritedVolunteers from '../../scripts/delete-self-favorited-volunteers'
 import deleteDuplicateStudentFavoriteVolunteers from '../../scripts/delete-duplicate-student-favorite-volunteers'
+import deidentifyUser from './deidentify-user'
 import upsertPostalCodes from '../../scripts/upsert-postal-codes'
 import titlecaseSchoolNames from '../../scripts/titlecase-school-names'
 import upsertSchools from '../../scripts/upsert-schools'
@@ -81,6 +82,7 @@ export enum Jobs {
   BackfillStudentPosthog = 'BackfillStudentPosthog',
   BackfillStudentUsersRoles = 'BackfillStudentUsersRoles',
   ClearBullJobsByStatus = 'ClearBullJobsByStatus',
+  DeidentifyUser = 'DeidentifyUser',
   DeleteDuplicateFeedbacks = 'DeleteDuplicateFeedbacks',
   DeleteDuplicateStudentFavoriteVolunteers = 'DeleteDuplicateStudentFavoriteVolunteers',
   DeleteDuplicateUserSurveys = 'DeleteDuplicateUserSurveys',
@@ -203,6 +205,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.ClearBullJobsByStatus,
     processor: clearBullJobByStatus,
+  },
+  {
+    name: Jobs.DeidentifyUser,
+    processor: deidentifyUser,
   },
   {
     name: Jobs.DeleteDuplicateStudentFavoriteVolunteers,

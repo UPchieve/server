@@ -1,35 +1,32 @@
 import { faker } from '@faker-js/faker'
+import { USER_BAN_TYPES } from '../../constants'
 import { TransactionClient } from '../../db'
 import { getDbUlid, Ulid, Uuid } from '../../models/pgUtils'
 
 export async function createTestUser(
   client: TransactionClient,
-  overrides: { referredById?: Ulid } = {}
+  overrides: {
+    email?: string
+    referredById?: Ulid
+    banType?: USER_BAN_TYPES
+  } = {}
 ): Promise<{ id: Ulid }> {
   return (
     await client.query(
-      `INSERT INTO users (id, first_name, last_name, email, referral_code, referred_by)
-       VALUES($1, $2, $3, $4, $5, $6)
+      `INSERT INTO users (id, first_name, last_name, email, referral_code, referred_by, ban_type)
+       VALUES($1, $2, $3, $4, $5, $6, $7)
        RETURNING *`,
       [
         getDbUlid(),
         faker.person.firstName(),
         faker.person.lastName(),
-        faker.internet.email(),
+        overrides.email ?? faker.internet.email(),
         faker.string.alphanumeric(20),
         overrides.referredById ?? null,
+        overrides.banType ?? null,
       ]
     )
   ).rows[0]
-}
-
-export async function createTestVolunteer(
-  userId: Ulid,
-  client: TransactionClient
-) {
-  await client.query('INSERT INTO volunteer_profiles (user_id) VALUES ($1)', [
-    userId,
-  ])
 }
 
 export async function createTestTeacher(
@@ -48,6 +45,19 @@ export async function createTestStudent(client: TransactionClient) {
     await client.query(
       'INSERT INTO student_profiles (user_id) VALUES ($1) RETURNING user_id',
       [user.id]
+    )
+  ).rows[0]
+}
+
+export async function createTestVolunteer(
+  client: TransactionClient,
+  userId: Ulid,
+  overrides: { photoIdS3Key?: string } = {}
+) {
+  return (
+    await client.query(
+      `INSERT INTO volunteer_profiles (user_id, photo_id_s3_key) VALUES ($1, $2)`,
+      [userId, overrides.photoIdS3Key ?? null]
     )
   ).rows[0]
 }
