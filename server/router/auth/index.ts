@@ -11,7 +11,6 @@ import {
   isSupportedSsoProvider,
   registerStudentValidator,
   registerTeacherValidator,
-  registerVolunteerValidator,
   SessionWithSsoData,
 } from '../../utils/auth-utils'
 import { InputError, LookupError } from '../../models/Errors'
@@ -28,7 +27,6 @@ import { createAccountAction } from '../../models/UserAction'
 import { AuthRedirect } from './auth-redirect'
 import { v4 as uuidv4 } from 'uuid'
 import { UserRole } from '../../models/User'
-import { getClient } from '../../db'
 
 async function trackLoggedIn(userId: Ulid, ipAddress: string) {
   await createAccountAction({

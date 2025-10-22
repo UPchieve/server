@@ -27,7 +27,7 @@ import { UserRole } from './types'
 import * as AssignmentsService from '../../services/AssignmentsService'
 import { StudentAssignment } from '../Assignments/types'
 import { RoleContext } from '../../services/UserRolesService'
-import { getClient, runInTransaction, TransactionClient } from '../../db'
+import { runInTransaction, TransactionClient } from '../../db'
 
 export type LegacyUserModel = {
   // pg
