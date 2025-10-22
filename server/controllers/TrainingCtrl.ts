@@ -3,11 +3,10 @@ import { captureEvent } from '../services/AnalyticsService'
 import {
   TRAINING,
   SUBJECT_TYPES,
-  ACCOUNT_USER_ACTIONS,
   QUIZ_USER_ACTIONS,
   EVENTS,
 } from '../constants'
-import { createQuizAction, createAccountAction } from '../models/UserAction'
+import { createQuizAction } from '../models/UserAction'
 import { createContact } from '../services/MailService'
 import { Quizzes } from '../models/Volunteer'
 import * as VolunteerService from '../services/VolunteerService'
@@ -136,11 +135,14 @@ export async function getQuizScore(
       // Create a user action for every subject unlocked
       for (const subject of unlockedSubjects) {
         if (!currentSubjects.includes(subject)) {
-          await createQuizAction({
-            action: QUIZ_USER_ACTIONS.UNLOCKED_SUBJECT,
-            userId: user.id,
-            quizSubcategory: subject,
-          })
+          await createQuizAction(
+            {
+              action: QUIZ_USER_ACTIONS.UNLOCKED_SUBJECT,
+              userId: user.id,
+              quizSubcategory: subject,
+            },
+            tc
+          )
           captureEvent(user.id, EVENTS.SUBJECT_UNLOCKED, {
             event: EVENTS.SUBJECT_UNLOCKED,
             subject,

@@ -15,26 +15,20 @@ import {
   Uuid,
 } from '../pgUtils'
 import * as pgQueries from './pg.queries'
-import { getClient, TransactionClient } from '../../db'
+import { getClient, runInTransaction, TransactionClient } from '../../db'
 import * as geoQueries from '../Geography/pg.queries'
 import {
   createSchoolStudentPartnerOrg,
   createStudentPartnerOrgUpchieveInstance,
   deactivateSchoolStudentPartnerOrgs,
-  StudentPartnerOrg,
 } from '../StudentPartnerOrg'
 import { FormattedSchoolNcesMetadataRecord } from '../../scripts/upsert-schools'
-import { asNumber } from '../../utils/type-utils'
-import { toTitleCase } from '../../utils/string-utils'
-import logger from '../../logger'
 import { AdminUpdate } from '../../services/SchoolService'
 import { isSchoolApproved } from '../../services/EligibilityService'
-import { IGetStudentPartnerOrgForRegistrationByKeyParams } from '../StudentPartnerOrg/pg.queries'
-import { PoolClient } from 'pg'
 
 export async function getSchoolById(
   schoolId: Ulid,
-  client?: PoolClient
+  client?: TransactionClient
 ): Promise<School | undefined> {
   try {
     const result = await pgQueries.getSchoolById.run(
@@ -137,57 +131,49 @@ export async function updateApproval(
   }
 }
 
-export async function updateIsPartner(
+export async function updateIsPartner( // @TODO - Split into separate query functions and have service call all in a transaction
   schoolId: Ulid,
   isPartner: boolean,
-  existingStudentPartnerOrgId: string | undefined
+  existingStudentPartnerOrgId: string | undefined,
+  client: TransactionClient
 ): Promise<void> {
   if (!existingStudentPartnerOrgId && !isPartner)
     throw new Error(
       `Cannot deactivate student partner org for school ${schoolId}: SPO does not exist`
     )
 
-  const transactionClient = await getClient().connect()
   try {
-    await transactionClient.query('BEGIN')
     // Set schools.partner.
     // @TODO Drop this column and let student_partner_orgs_upchieve_instances be the source of truth
     const result = await pgQueries.updateIsPartner.run(
       { schoolId, isPartner },
-      transactionClient
+      client
     )
-
-    const school = await getSchoolById(schoolId, transactionClient)
+    const school = await getSchoolById(schoolId, client)
     if (!school)
       throw new Error(
         `Cannot update partner status: School with id ${schoolId} does not exist`
       )
     if (isPartner) {
       if (!existingStudentPartnerOrgId) {
-        await createSchoolStudentPartnerOrg(school.id, transactionClient)
+        await createSchoolStudentPartnerOrg(school.id, client)
       }
-      await createStudentPartnerOrgUpchieveInstance(schoolId, transactionClient)
+      await createStudentPartnerOrgUpchieveInstance(schoolId, client)
     } else {
-      await deactivateSchoolStudentPartnerOrgs(schoolId, transactionClient)
+      await deactivateSchoolStudentPartnerOrgs(schoolId, client)
     }
-
-    // @TODO switch to runInTransaction style and move this logic into the service layer.
-    await transactionClient.query('COMMIT')
     if (result.length) return makeRequired(result[0])
   } catch (err) {
-    await transactionClient.query('ROLLBACK')
     throw new RepoUpdateError(err)
-  } finally {
-    transactionClient.release()
   }
 }
 
-export async function adminUpdateSchool(data: AdminUpdate): Promise<void> {
-  const client = await getClient().connect()
+export async function adminUpdateSchool( // @TODO - Split into separate query functions and have service call all in a transaction
+  data: AdminUpdate,
+  client: TransactionClient
+): Promise<void> {
   try {
     const { schoolId, name, city, state, zip, isApproved } = data
-
-    await client.query('BEGIN')
     await pgQueries.adminUpdateSchoolMetaData.run({ schoolId, zip }, client)
 
     // we need to find the city's id, or if it doesn't exist, create it
@@ -204,12 +190,8 @@ export async function adminUpdateSchool(data: AdminUpdate): Promise<void> {
       { schoolId, name, cityId, isApproved },
       client
     )
-    await client.query('COMMIT')
   } catch (err) {
-    await client.query('ROLLBACK')
     throw new RepoUpdateError(err)
-  } finally {
-    client.release()
   }
 }
 

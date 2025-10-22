@@ -556,8 +556,8 @@ export async function getMessagesForFrontend(
 export async function getSessionByIdWithStudentAndVolunteer(
   sessionId: Ulid
 ): Promise<SessionByIdWithStudentAndVolunteer> {
-  const client = await getClient().connect()
   try {
+    const client = getClient()
     const sessionResult = await pgQueries.getSessionForAdminView.run(
       { sessionId },
       client
@@ -581,17 +581,25 @@ export async function getSessionByIdWithStudentAndVolunteer(
       client
     )
     const messages = await getMessagesForFrontend(sessionId, client)
-    const feedbacks = await getFeedbackBySessionId(sessionId) // need this to display legacy feedback from before context sharing
-    const presessionSurvey = await getPresessionSurveyResponse(sessionId)
+    const feedbacks = await getFeedbackBySessionId(sessionId, client) // need this to display legacy feedback from before context sharing
+    const presessionSurvey = await getPresessionSurveyResponse(
+      sessionId,
+      client
+    )
     const studentPostsessionSurvey = await getPostsessionSurveyResponse(
       sessionId,
-      USER_ROLES.STUDENT
+      USER_ROLES.STUDENT,
+      client
     )
     const volunteerPostsessionSurvey = await getPostsessionSurveyResponse(
       sessionId,
-      USER_ROLES.VOLUNTEER
+      USER_ROLES.VOLUNTEER,
+      client
     )
-    const notifications = await getSessionNotificationsWithSessionId(sessionId)
+    const notifications = await getSessionNotificationsWithSessionId(
+      sessionId,
+      client
+    )
 
     return {
       ...session,
@@ -609,8 +617,6 @@ export async function getSessionByIdWithStudentAndVolunteer(
     }
   } catch (err) {
     throw new RepoReadError(err)
-  } finally {
-    client.release()
   }
 }
 
@@ -692,15 +698,16 @@ export type SessionInfoForUser = {
 
 export async function handleSessionParsingForUser(
   session: SessionInfoForUser,
-  tc: TransactionClient
+  tc?: TransactionClient
 ): Promise<CurrentSession> {
+  const client = tc ?? getClient()
   try {
-    const messages = await getMessagesForFrontend(session.id, tc)
+    const messages = await getMessagesForFrontend(session.id, client)
     const { student, volunteer } = await getSessionUsers(
       session.id,
       session.studentId,
       session.volunteerId,
-      tc
+      client
     )
     return {
       ...session,
@@ -740,7 +747,7 @@ export async function getCurrentSessionByUserId(
 export async function getRecapSessionForDmsBySessionId(
   sessionId: Ulid
 ): Promise<CurrentSession | undefined> {
-  const client = await getClient().connect()
+  const client = getClient()
   try {
     const result = await pgQueries.getRecapSessionForDmsBySessionId.run(
       { sessionId },
@@ -753,8 +760,6 @@ export async function getRecapSessionForDmsBySessionId(
     }
   } catch (error) {
     throw new RepoReadError(error)
-  } finally {
-    client.release()
   }
 }
 
@@ -776,7 +781,7 @@ export type MessageInfoByMessageId = {
 export async function getMessageInfoByMessageId(
   messageId: Ulid
 ): Promise<MessageInfoByMessageId | undefined> {
-  const client = await getClient().connect()
+  const client = await getClient()
   try {
     const result = await pgQueries.getMessageInfoByMessageId.run(
       { messageId },
@@ -785,8 +790,6 @@ export async function getMessageInfoByMessageId(
     if (result.length) return makeRequired(result[0])
   } catch (error) {
     throw new RepoReadError(error)
-  } finally {
-    client.release()
   }
 }
 
@@ -1274,7 +1277,7 @@ export type SessionForSessionRecap = {
 export async function getSessionRecap(
   sessionId: Ulid
 ): Promise<SessionForSessionRecap> {
-  const client = await getRoClient().connect()
+  const client = await getRoClient()
   try {
     const sessionResult = await pgQueries.getSessionRecap.run(
       { sessionId },
@@ -1288,15 +1291,13 @@ export async function getSessionRecap(
     return { ...session, messages }
   } catch (err) {
     throw new RepoReadError(err)
-  } finally {
-    client.release()
   }
 }
 
 export async function isEligibleForSessionRecap(
   sessionId: Ulid
 ): Promise<boolean> {
-  const client = await getClient().connect()
+  const client = await getClient()
   try {
     const result = await pgQueries.isEligibleForSessionRecap.run(
       { sessionId },
@@ -1306,15 +1307,13 @@ export async function isEligibleForSessionRecap(
     else return makeRequired(result[0]).isEligible
   } catch (err) {
     throw new RepoReadError(err)
-  } finally {
-    client.release()
   }
 }
 
 export async function volunteerSentMessageAfterSessionEnded(
   sessionId: Ulid
 ): Promise<boolean> {
-  const client = await getClient().connect()
+  const client = await getClient()
   try {
     const result = await pgQueries.volunteerSentMessageAfterSessionEnded.run(
       { sessionId },
@@ -1323,15 +1322,13 @@ export async function volunteerSentMessageAfterSessionEnded(
     return !!result.length
   } catch (err) {
     throw new RepoReadError(err)
-  } finally {
-    client.release()
   }
 }
 
 export async function sessionHasBannedParticipant(
   sessionId: Ulid
 ): Promise<boolean> {
-  const client = await getClient().connect()
+  const client = await getClient()
   try {
     const result = await pgQueries.sessionHasBannedParticipant.run(
       { sessionId },
@@ -1340,8 +1337,6 @@ export async function sessionHasBannedParticipant(
     return !!result.length
   } catch (err) {
     throw new RepoReadError(err)
-  } finally {
-    client.release()
   }
 }
 

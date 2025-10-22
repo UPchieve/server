@@ -11,7 +11,6 @@ import {
   isSupportedSsoProvider,
   registerStudentValidator,
   registerTeacherValidator,
-  registerVolunteerValidator,
   SessionWithSsoData,
 } from '../../utils/auth-utils'
 import { InputError, LookupError } from '../../models/Errors'

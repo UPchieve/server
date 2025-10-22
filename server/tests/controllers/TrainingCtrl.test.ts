@@ -234,11 +234,14 @@ describe('getQuizScore', () => {
       expect.toBeTransactionClient()
     )
     for (const subject of unlockedSubjectNames) {
-      expect(UserActionRepo.createQuizAction).toHaveBeenCalledWith({
-        action: QUIZ_USER_ACTIONS.UNLOCKED_SUBJECT,
-        userId: volunteer.id,
-        quizSubcategory: subject,
-      })
+      expect(UserActionRepo.createQuizAction).toHaveBeenCalledWith(
+        {
+          action: QUIZ_USER_ACTIONS.UNLOCKED_SUBJECT,
+          userId: volunteer.id,
+          quizSubcategory: subject,
+        },
+        expect.anything()
+      )
       expect(AnalyticsService.captureEvent).toHaveBeenCalledWith(
         volunteer.id,
         EVENTS.SUBJECT_UNLOCKED,
@@ -337,11 +340,14 @@ describe('getQuizScore', () => {
       expect.toBeTransactionClient()
     )
     for (const subject of unlockedSubjectNames) {
-      expect(UserActionRepo.createQuizAction).toHaveBeenCalledWith({
-        action: QUIZ_USER_ACTIONS.UNLOCKED_SUBJECT,
-        userId: volunteer.id,
-        quizSubcategory: subject,
-      })
+      expect(UserActionRepo.createQuizAction).toHaveBeenCalledWith(
+        {
+          action: QUIZ_USER_ACTIONS.UNLOCKED_SUBJECT,
+          userId: volunteer.id,
+          quizSubcategory: subject,
+        },
+        expect.anything()
+      )
       expect(AnalyticsService.captureEvent).toHaveBeenCalledWith(
         volunteer.id,
         EVENTS.SUBJECT_UNLOCKED,
@@ -516,11 +522,14 @@ describe('getQuizScore', () => {
     )
 
     for (const subject of unlockedSubjectNames) {
-      expect(UserActionRepo.createQuizAction).toHaveBeenCalledWith({
-        action: QUIZ_USER_ACTIONS.UNLOCKED_SUBJECT,
-        userId: volunteer.id,
-        quizSubcategory: subject,
-      })
+      expect(UserActionRepo.createQuizAction).toHaveBeenCalledWith(
+        {
+          action: QUIZ_USER_ACTIONS.UNLOCKED_SUBJECT,
+          userId: volunteer.id,
+          quizSubcategory: subject,
+        },
+        expect.anything()
+      )
       expect(AnalyticsService.captureEvent).toHaveBeenCalledWith(
         volunteer.id,
         EVENTS.SUBJECT_UNLOCKED,
@@ -698,11 +707,14 @@ describe('getQuizScore', () => {
     expect(MailService.createContact).not.toHaveBeenCalled()
 
     for (const subject of unlockedSubjectNames) {
-      expect(UserActionRepo.createQuizAction).toHaveBeenCalledWith({
-        action: QUIZ_USER_ACTIONS.UNLOCKED_SUBJECT,
-        userId: volunteer.id,
-        quizSubcategory: subject,
-      })
+      expect(UserActionRepo.createQuizAction).toHaveBeenCalledWith(
+        {
+          action: QUIZ_USER_ACTIONS.UNLOCKED_SUBJECT,
+          userId: volunteer.id,
+          quizSubcategory: subject,
+        },
+        expect.anything()
+      )
       expect(AnalyticsService.captureEvent).toHaveBeenCalledWith(
         volunteer.id,
         EVENTS.SUBJECT_UNLOCKED,

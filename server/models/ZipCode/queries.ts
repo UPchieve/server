@@ -1,7 +1,7 @@
 import { RepoCreateError, RepoReadError, RepoTransactionError } from '../Errors'
 import { ZipCode } from './types'
 import { makeSomeOptional } from '../pgUtils'
-import { getClient } from '../../db'
+import { getClient, TransactionClient } from '../../db'
 import * as pgQueries from './pg.queries'
 import config from '../../config'
 
@@ -33,10 +33,11 @@ export async function getZipCodeByZipCode(
   }
 }
 
-export async function upsertZipcodes(zipRecords: csvPostalCodeRecord[]) {
-  const transactionClient = await getClient().connect()
+export async function upsertZipcodes(
+  zipRecords: csvPostalCodeRecord[],
+  client: TransactionClient
+) {
   try {
-    await transactionClient.query('BEGIN')
     for (const record of zipRecords) {
       // The parsing library has an open issue where empty values in the csv
       // are given a string value of 'null' instead of just null.
@@ -58,7 +59,7 @@ export async function upsertZipcodes(zipRecords: csvPostalCodeRecord[]) {
           latitude: typedRecord.latitude,
           longitude: typedRecord.longitude,
         },
-        transactionClient
+        client
       )
     }
     await pgQueries.upsertZipCode.run(
@@ -71,14 +72,10 @@ export async function upsertZipcodes(zipRecords: csvPostalCodeRecord[]) {
         latitude: 0,
         longitude: 0,
       },
-      transactionClient
+      client
     )
-    await transactionClient.query('COMMIT')
   } catch (err) {
-    await transactionClient.query('ROLLBACK')
     if (err instanceof RepoCreateError) throw err
     throw new RepoTransactionError(err)
-  } finally {
-    transactionClient.release()
   }
 }
