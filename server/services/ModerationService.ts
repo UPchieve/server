@@ -1441,14 +1441,28 @@ export const handleModerationInfraction = async (
       stopStreamImmediatelyReasons: streamStoppingReasons,
     })
   } else {
-    //Let the users decide if there's an infraction
+    //Let the partner user decide if there's an infraction
     await socketService.emitModerationInfractionEvent(userId, {
       isBanned: false,
       infraction: failures,
       source,
       occurredAt: new Date(),
-      stopStreamImmediatelyReasons: [],
+      stopStreamImmediatelyReasons: failures,
     })
+    await socketService.emitPotentialModerationInfractionEvent(
+      sessionId,
+      userId,
+      {
+        infraction: failures,
+        source,
+        occurredAt: new Date(),
+      }
+    )
+
+    await SocketService.getInstance().emitUserLiveMediaBannedEvents(
+      userId,
+      sessionId
+    )
   }
 }
 
