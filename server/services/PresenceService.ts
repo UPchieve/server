@@ -343,7 +343,7 @@ export async function trackInactivity({
 }: {
   userId: Ulid
   clientUUID: string
-  ipAddress: string
+  ipAddress?: string
 }) {
   const deletedKeyCount = await CacheKeys.delete([
     CacheKeys.key(userId, clientUUID, CACHE_KEY_TYPE.ACTIVE_TIMEOUT),

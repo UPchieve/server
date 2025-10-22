@@ -757,13 +757,13 @@ describe('Session repo', () => {
   describe('getVolunteersInSessions', () => {
     test('returns the ids of volunteers in an active session', async () => {
       const id1 = (await createTestUser(getClient())).id
-      await createTestVolunteer(id1, getClient())
+      await createTestVolunteer(getClient(), id1)
       const id2 = (await createTestUser(getClient())).id
-      await createTestVolunteer(id2, getClient())
+      await createTestVolunteer(getClient(), id2)
       const id3 = (await createTestUser(getClient())).id
-      await createTestVolunteer(id3, getClient())
+      await createTestVolunteer(getClient(), id3)
       const id4 = (await createTestUser(getClient())).id
-      await createTestVolunteer(id4, getClient())
+      await createTestVolunteer(getClient(), id4)
 
       const activeSession1 = await buildSessionRow({
         studentId,

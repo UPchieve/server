@@ -916,14 +916,12 @@ export async function getReferencesByVolunteer(
 }
 
 export async function getReferencesByVolunteerForAdminDetail(
-  userId: Ulid,
-  poolClient?: PoolClient
+  userId: Ulid
 ): Promise<ReferenceContactInfo[]> {
-  const client = poolClient ? poolClient : getClient()
   try {
     const result = await pgQueries.getReferencesByVolunteerForAdminDetail.run(
       { userId },
-      client
+      getClient()
     )
     return result.map((v) => {
       const ret = makeSomeRequired(v, [
@@ -1708,13 +1706,12 @@ export async function getVolunteersForAnalyticsReport(
 }
 
 export async function getActiveSponsorshipsByUserId(
-  userId: Ulid,
-  tc: TransactionClient = getRoClient()
+  userId: Ulid
 ): Promise<Sponsorship[]> {
   try {
     const result = await pgQueries.getActiveSponsorshipsByUserId.run(
       { userId },
-      tc
+      getRoClient()
     )
     return result.map((v) => makeRequired(v))
   } catch (err) {
