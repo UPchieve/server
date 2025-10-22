@@ -725,16 +725,19 @@ describe('VolunteerRepo', () => {
 
   describe('createVolunteer', () => {
     it('Defaults sms_consent to true', async () => {
-      const result = await createVolunteer({
-        email: faker.internet.email(),
-        phone: faker.phone.number(),
-        firstName: faker.string.alpha(),
-        lastName: faker.string.alpha(),
-        password: faker.internet.password(),
-        referredBy: undefined,
-        volunteerPartnerOrg: undefined,
-        timezone: undefined,
-      })
+      const result = await createVolunteer(
+        {
+          email: faker.internet.email(),
+          phone: faker.phone.number(),
+          firstName: faker.string.alpha(),
+          lastName: faker.string.alpha(),
+          password: faker.internet.password(),
+          referredBy: undefined,
+          volunteerPartnerOrg: undefined,
+          timezone: undefined,
+        },
+        client
+      )
       expect(result.smsConsent).toEqual(true)
     })
   })
