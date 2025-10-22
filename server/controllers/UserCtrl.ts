@@ -6,7 +6,7 @@ import * as ReferralService from '../services/ReferralService'
 import { createContact } from '../services/MailService'
 import { hashPassword } from '../utils/auth-utils'
 import { logError } from '../logger'
-import { ACCOUNT_USER_ACTIONS, STUDENT_EVENTS } from '../constants'
+import { ACCOUNT_USER_ACTIONS } from '../constants'
 import { getClient, runInTransaction } from '../db'
 
 // TODO: Move to UserCreationService.
@@ -50,4 +50,6 @@ export async function createVolunteer(
     captureException(err)
     logError(err as Error)
   }
+
+  return volunteer
 }

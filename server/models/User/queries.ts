@@ -495,7 +495,7 @@ export async function getUserForAdminDetail(
   try {
     const userResult = await pgQueries.getUserForAdminDetail.run(
       { userId },
-      getClient()
+      client
     )
     const user = makeSomeRequired(userResult[0], [
       'id',
@@ -516,7 +516,12 @@ export async function getUserForAdminDetail(
     const references = await getReferencesByVolunteerForAdminDetail(user.id)
     let sessions
     if (limit) {
-      sessions = await getPastSessionsForAdminDetail(user.id, limit, offset)
+      sessions = await getPastSessionsForAdminDetail(
+        user.id,
+        limit,
+        offset,
+        client
+      )
     }
 
     const background = {
