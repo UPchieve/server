@@ -1,6 +1,7 @@
 stages:
   - build
   - test
+  - pre-merge
   - deploy
   - post-deploy
 
@@ -253,3 +254,18 @@ lint_database:
       when: never
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event' # MR is created or updated.
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
+
+verify_migration_data_deletion:
+  stage: pre-merge
+  image: alpine:latest
+  script:
+    - echo "When you're creating a database migration, there might be a new column or columns within a new table that should be deleted/anonymized when a user requests account deletion."
+    - echo ""
+    - echo "If anything should be deleted/anonymized, update the DeidentifyUser job accordingly, then go ahead and run this job to continue with merging."
+    - echo "If there is nothing to update, just go ahead and run this job!"
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event' # MR is created or updated.
+      changes:
+        - database/migrations/**/*.sql
+      when: manual
+  allow_failure: false

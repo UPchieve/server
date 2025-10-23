@@ -4,6 +4,7 @@ import { logError } from '../logger'
 import { extractUser } from '../router/extract-user'
 import * as UserActionRepo from '../models/UserAction'
 import { ACCOUNT_USER_ACTIONS, QUIZ_USER_ACTIONS } from '../constants'
+import { getClient } from '../db'
 
 export async function addUserAction(
   req: Request,
@@ -30,12 +31,15 @@ export async function addUserAction(
     if (req.url === '/api/training/questions') {
       const { category } = req.body
       try {
-        await UserActionRepo.createQuizAction({
-          action: QUIZ_USER_ACTIONS.STARTED,
-          quizSubcategory: category,
-          userId: id,
-          ipAddress,
-        })
+        await UserActionRepo.createQuizAction(
+          {
+            action: QUIZ_USER_ACTIONS.STARTED,
+            quizSubcategory: category,
+            userId: id,
+            ipAddress,
+          },
+          getClient()
+        ) // @TODO service fn
       } catch (err) {
         captureException(err)
         logError(err as Error)

@@ -1,4 +1,4 @@
-import { getClient } from '../../db'
+import { getClient, TransactionClient } from '../../db'
 import { RepoReadError } from '../Errors'
 import { makeSomeOptional, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
@@ -60,12 +60,13 @@ function buildFeedback(rows: FeedbackByResult[]): Feedback {
 
 // need this for session review, which still displays legacy feedback
 export async function getFeedbackBySessionId(
-  sessionId: Ulid
+  sessionId: Ulid,
+  client: TransactionClient = getClient()
 ): Promise<Feedback | undefined> {
   try {
     const result = await pgQueries.getFeedbackBySessionId.run(
       { sessionId },
-      getClient()
+      client
     )
     if (!result.length) return
     return buildFeedback(result)

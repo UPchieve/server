@@ -9,24 +9,7 @@ import {
   StudentPartnerOrg,
   StudentPartnerOrgForRegistration,
 } from './types'
-import { School } from '../School'
 import logger from '../../logger'
-
-export async function getStudentPartnerOrgForRegistrationByKey(
-  key: string
-): Promise<StudentPartnerOrgForRegistration> {
-  try {
-    const result = await pgQueries.getStudentPartnerOrgForRegistrationByKey.run(
-      { key },
-      getClient()
-    )
-    if (!result.length)
-      throw new Error(`no student partner org found with key ${key}`)
-    return makeSomeOptional(result[0], ['sites'])
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
 
 export async function getStudentPartnerOrgByKey(
   tc: TransactionClient,
@@ -142,93 +125,9 @@ export async function createUserStudentPartnerOrgInstance(
   }
 }
 
-export async function migrateExistingStudentPartnerOrgs(
-  client?: PoolClient
-): Promise<void> {
-  try {
-    await pgQueries.migrateExistingStudentPartnerOrgs.run(
-      undefined,
-      client || getClient()
-    )
-  } catch (err) {
-    throw new RepoReadError(
-      `Failed to migrate existing instances for student partner orgs: ${err}`
-    )
-  }
-}
-
-export async function migrateExistingStudentPartnerOrgRelationships(
-  client?: PoolClient
-): Promise<void> {
-  try {
-    await pgQueries.migrateExistingStudentPartnerOrgRelationships.run(
-      undefined,
-      client || getClient()
-    )
-  } catch (err) {
-    throw new RepoReadError(
-      `Failed to migrate existing user relationships for student partner orgs: ${err}`
-    )
-  }
-}
-
-// TODO: waiting on programs to get list mapping partnerSchool->partnership start date
-// Will need custom mapping of school names to student_partner_orgs_upchieve_instance.created_at
-// MUST BE RUN FIRST
-export async function migratePartnerSchoolsToPartnerOrgs(
-  schoolName: string,
-  createdAt: Date,
-  client?: PoolClient
-): Promise<void> {
-  try {
-    await pgQueries.migratePartnerSchoolsToPartnerOrgs.run(
-      { schoolName, createdAt },
-      client || getClient()
-    )
-  } catch (err) {
-    throw new RepoReadError(
-      `Failed to migrate schools to student partner orgs: ${err}`
-    )
-  }
-}
-
-export async function backfillStudentPartnerOrgStartDates(
-  spoName: string,
-  createdAt: Date,
-  endedAt?: Date,
-  client?: PoolClient
-): Promise<void> {
-  try {
-    await pgQueries.backfillStudentPartnerOrgStartDates.run(
-      { spoName, createdAt, endedAt },
-      client || getClient()
-    )
-  } catch (err) {
-    throw new RepoReadError(
-      `Failed to backfill student partner org start date: ${err}`
-    )
-  }
-}
-
-// must be run after migrating schools to partner orgs
-export async function migrateExistingPartnerSchoolRelationships(
-  client?: PoolClient
-): Promise<void> {
-  try {
-    await pgQueries.migrateExistingPartnerSchoolRelationships.run(
-      undefined,
-      client || getClient()
-    )
-  } catch (err) {
-    throw new RepoReadError(
-      `Failed to migrate user-school relationship for student partner orgs: ${err}`
-    )
-  }
-}
-
 export async function createSchoolStudentPartnerOrg(
   schoolId: string,
-  client?: PoolClient
+  client: TransactionClient
 ): Promise<void> {
   try {
     await pgQueries.createSchoolStudentPartnerOrg.run(
@@ -244,7 +143,7 @@ export async function createSchoolStudentPartnerOrg(
 
 export async function createStudentPartnerOrgUpchieveInstance(
   schoolId: string,
-  client?: PoolClient
+  client: TransactionClient
 ): Promise<void> {
   try {
     await pgQueries.createStudentPartnerOrgInstance.run(
@@ -260,7 +159,7 @@ export async function createStudentPartnerOrgUpchieveInstance(
 
 export async function deactivateSchoolStudentPartnerOrgs(
   schoolId: string,
-  client?: PoolClient
+  client: TransactionClient
 ): Promise<void> {
   try {
     await pgQueries.deactivateStudentPartnerOrg.run(

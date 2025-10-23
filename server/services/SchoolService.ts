@@ -103,16 +103,16 @@ export function updateApproval(schoolId: Ulid, isApproved: boolean) {
 }
 
 export async function updateIsPartner(schoolId: Ulid, isPartner: boolean) {
-  const existingStudentPartnerOrg =
-    await StudentPartnerOrgRepo.getStudentPartnerOrgBySchoolId(
-      getClient(),
-      schoolId
+  return await runInTransaction(async (tc) => {
+    const existingStudentPartnerOrg =
+      await StudentPartnerOrgRepo.getStudentPartnerOrgBySchoolId(tc, schoolId)
+    return SchoolRepo.updateIsPartner(
+      schoolId,
+      isPartner,
+      existingStudentPartnerOrg?.partnerId,
+      tc
     )
-  return SchoolRepo.updateIsPartner(
-    schoolId,
-    isPartner,
-    existingStudentPartnerOrg?.partnerId
-  )
+  }, getClient())
 }
 
 export interface AdminUpdate {
@@ -142,8 +142,9 @@ export async function adminUpdateSchool(data: unknown) {
     zip,
     isApproved,
   }
-
-  return SchoolRepo.adminUpdateSchool(schoolData)
+  return await runInTransaction(async (tc) => {
+    return SchoolRepo.adminUpdateSchool(schoolData, tc)
+  }, getClient())
 }
 
 export async function titlecaseSchoolNames() {

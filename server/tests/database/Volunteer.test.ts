@@ -725,16 +725,19 @@ describe('VolunteerRepo', () => {
 
   describe('createVolunteer', () => {
     it('Defaults sms_consent to true', async () => {
-      const result = await createVolunteer({
-        email: faker.internet.email(),
-        phone: faker.phone.number(),
-        firstName: faker.string.alpha(),
-        lastName: faker.string.alpha(),
-        password: faker.internet.password(),
-        referredBy: undefined,
-        volunteerPartnerOrg: undefined,
-        timezone: undefined,
-      })
+      const result = await createVolunteer(
+        {
+          email: faker.internet.email(),
+          phone: faker.phone.number(),
+          firstName: faker.string.alpha(),
+          lastName: faker.string.alpha(),
+          password: faker.internet.password(),
+          referredBy: undefined,
+          volunteerPartnerOrg: undefined,
+          timezone: undefined,
+        },
+        client
+      )
       expect(result.smsConsent).toEqual(true)
     })
   })
@@ -786,7 +789,7 @@ const loadVolunteer = async (opts = {}): Promise<CreatedVolunteer> => {
   if (options.partner) {
     v.volunteerPartnerOrg = options.partner as string
   }
-  const res = await createVolunteer(v)
+  const res = await createVolunteer(v, client)
   await client.query('UPDATE users SET sms_consent = $1 where id = $2', [
     options.smsConsent,
     res.id,

@@ -1,7 +1,7 @@
 import * as ZCRepo from '../models/ZipCode'
-import logger from '../logger'
 import fs from 'fs'
 import { parse } from 'csv-parse/sync'
+import { runInTransaction } from '../db'
 
 export default async function upsertPostalCodes(): Promise<void> {
   try {
@@ -12,7 +12,9 @@ export default async function upsertPostalCodes(): Promise<void> {
       delimiter: ',',
       columns: true,
     })
-    await ZCRepo.upsertZipcodes(zipRecords)
+    await runInTransaction(async (tc) => {
+      return ZCRepo.upsertZipcodes(zipRecords, tc)
+    })
   } catch (err) {
     throw new Error(`error upserting postal code records: ${err}`)
   }
