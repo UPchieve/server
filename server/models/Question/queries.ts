@@ -36,11 +36,11 @@ export async function listQuestions(
   }
 }
 
-export async function createQuestion(question: Question): Promise<Question> {
-  const client = await getClient().connect()
+export async function createQuestion(
+  question: Question,
+  client: TransactionClient
+): Promise<Question> {
   try {
-    await client.query('BEGIN')
-
     const quizUpsertResult = await pgQueries.upsertQuiz.run(
       { name: question.category },
       client
@@ -73,14 +73,10 @@ export async function createQuestion(question: Question): Promise<Question> {
         category: question.category,
         subcategory: question.subcategory,
       })
-      await client.query('COMMIT')
       return toRtn
     } else throw new Error('insertion of question did not return new row')
   } catch (err) {
-    await client.query('ROLLBACK')
     throw new RepoCreateError(err)
-  } finally {
-    client.release()
   }
 }
 
@@ -90,13 +86,11 @@ export type QuestionUpdateOptions = {
 }
 
 export async function updateQuestion(
-  options: QuestionUpdateOptions
+  options: QuestionUpdateOptions,
+  client: TransactionClient
 ): Promise<Question> {
-  const client = await getClient().connect()
   try {
     const question = options.question
-
-    await client.query('BEGIN')
 
     const quizUpsertResult = await pgQueries.upsertQuiz.run(
       { name: question.category },
@@ -126,13 +120,9 @@ export async function updateQuestion(
     )
     if (!(result.length && makeRequired(result[0]).ok))
       throw new Error('insertion of question did not return ok')
-    await client.query('COMMIT')
     return question
   } catch (err) {
-    await client.query('ROLLBACK')
     throw new RepoUpdateError(err)
-  } finally {
-    client.release()
   }
 }
 

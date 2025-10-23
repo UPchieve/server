@@ -7,6 +7,7 @@ import {
   updateQuestion,
   destroy,
 } from '../models/Question'
+import { getClient, runInTransaction } from '../db'
 
 // TODO: duck type validation
 export async function list(
@@ -17,7 +18,9 @@ export async function list(
 
 // TODO: duck type validation
 export async function create(question: Question): Promise<Question> {
-  return await createQuestion(question)
+  return await runInTransaction(async (tc) => {
+    return createQuestion(question, tc)
+  }, getClient())
 }
 
 // TODO: duck type validation
@@ -29,7 +32,9 @@ export interface QuestionUpdateOptions {
 export async function update(
   options: QuestionUpdateOptions
 ): Promise<Question> {
-  return updateQuestion(options)
+  return await runInTransaction(async (tc) => {
+    return updateQuestion(options, tc)
+  }, getClient())
 }
 
 export async function destroyQuestion(questionId: number): Promise<void> {
