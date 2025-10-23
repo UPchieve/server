@@ -13,7 +13,7 @@ export function buildClient(): Pool {
     password: config.postgresPassword,
     database: config.postgresDatabase,
     ssl: config.postgresRequireSSL ? { rejectUnauthorized: false } : false,
-    max: 20,
+    max: 100,
   })
 }
 
@@ -26,6 +26,7 @@ export function buildReadOnlyClient(): Pool {
     password: config.postgresPassword,
     database: config.postgresDatabase,
     ssl: config.postgresRequireSSL ? { rejectUnauthorized: false } : false,
+    max: 100,
   })
 }
 
@@ -38,6 +39,7 @@ export function buildAnalyticsClient(): Pool {
     password: config.postgresPassword,
     database: config.postgresDatabase,
     ssl: config.postgresRequireSSL ? { rejectUnauthorized: false } : false,
+    max: 100,
   })
 }
 

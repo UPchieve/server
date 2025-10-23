@@ -74,23 +74,30 @@ export async function sendTextMessage(
   try {
     logger.info(`Sending text message "${messageText}" to ${phoneNumber}`)
 
+
+    await new Promise((resolve) => {
+      setTimeout(() => {
+        resolve('hi')
+      }, 1000)
+    })
+    return
     // If stored phone number doesn't have international calling code (E.164 formatting)
     // then default to US number
     // TODO: normalize previously stored US phone numbers
-    const fullPhoneNumber =
-      phoneNumber[0] === '+' ? phoneNumber : `+1${phoneNumber}`
+    // const fullPhoneNumber =
+    //   phoneNumber[0] === '+' ? phoneNumber : `+1${phoneNumber}`
 
-    if (!twilioClient) {
-      logger.warn('Twilio client not loaded.')
-      return
-    }
+    // if (!twilioClient) {
+    //   logger.warn('Twilio client not loaded.')
+    //   return
+    // }
 
-    const message = await twilioClient.messages.create({
-      to: fullPhoneNumber,
-      from: config.sendingNumber,
-      body: messageText,
-    })
-    return message.sid
+    // const message = await twilioClient.messages.create({
+    //   to: fullPhoneNumber,
+    //   from: config.sendingNumber,
+    //   body: messageText,
+    // })
+    // return message.sid
   } catch (err) {
     if (
       (err as Error).message === 'Attempt to send to unsubscribed recipient'
@@ -259,9 +266,8 @@ export async function notifyVolunteer(
         }),
     },
     {
-      groupName: `${
-        associatedPartner ? 'Associated partner' : 'Partner'
-      } volunteers - not notified in the last 3 days AND they don\'t have "high level subjects"`,
+      groupName: `${associatedPartner ? 'Associated partner' : 'Partner'
+        } volunteers - not notified in the last 3 days AND they don\'t have "high level subjects"`,
       query: () =>
         VolunteerRepo.getNextVolunteerToNotify({
           subject: session.subject,
@@ -288,9 +294,8 @@ export async function notifyVolunteer(
         }),
     },
     {
-      groupName: `${
-        associatedPartner ? 'Associated partner' : 'Partner'
-      } volunteers - not notified in the last 24 hours AND they don\'t have "high level subjects"`,
+      groupName: `${associatedPartner ? 'Associated partner' : 'Partner'
+        } volunteers - not notified in the last 24 hours AND they don\'t have "high level subjects"`,
       query: () =>
         VolunteerRepo.getNextVolunteerToNotify({
           subject: session.subject,

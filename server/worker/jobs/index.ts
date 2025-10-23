@@ -70,8 +70,10 @@ import { logRedisKeyMemStats } from './logRedisKeyMemStats'
 import { clearBullJobByStatus } from './clearBullJobsByStatus'
 import updateCachedVolunteersForTextNotifications from './updateCachedVolunteersForTextNotifications'
 import backfillSessionEndedTasks from '../../scripts/backfill-sessionEndedTasks'
+import spawnTextTest from './spawnTextTest'
 
 export enum Jobs {
+  SpawnTextTest = 'SpawnTextTest',
   AddScheduledJobs = 'AddScheduledJobs',
   BackfillAvailabilityHistories = 'BackfillAvailabilityHistories',
   BackfillElapsedAvailability = 'BackfillElapsedAvailability',
@@ -166,6 +168,10 @@ interface JobProcessor {
 }
 
 const jobProcessors: JobProcessor[] = [
+  {
+    name: Jobs.SpawnTextTest,
+    processor: spawnTextTest,
+  },
   {
     name: Jobs.AddScheduledJobs,
     processor: addScheduledJobs,
