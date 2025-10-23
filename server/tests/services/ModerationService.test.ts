@@ -5,6 +5,7 @@ import {
   filterDisallowedDomains,
   type ModeratedLink,
   weighSessionInfractions,
+  getReasonsFromInfractions,
   handleModerationInfraction,
   getScoreForCategory,
   LiveMediaModerationCategories,
@@ -462,7 +463,9 @@ describe('ModerationService', () => {
               },
             }
           )
-          const actual = weighSessionInfractions([moderationInfraction])
+
+          const reasons = getReasonsFromInfractions([moderationInfraction])
+          const actual = weighSessionInfractions(reasons)
           expect(actual).toEqual(expectedScore)
         }
       )
@@ -475,7 +478,8 @@ describe('ModerationService', () => {
           buildModerationInfractionWithReason(violenceReason),
           buildModerationInfractionWithReason(explicitReason),
         ]
-        const result = weighSessionInfractions(infractions)
+        const reasons = getReasonsFromInfractions(infractions)
+        const result = weighSessionInfractions(reasons)
         expect(result).toEqual(32)
       })
     })
@@ -502,7 +506,9 @@ describe('ModerationService', () => {
       ])(
         'Determines whether the reason is reason to immediately stop the stream (reason is %s)',
         async (reason: string, expectedValue: boolean) => {
-          const actual = isStreamStoppingReason(reason)
+          const actual = isStreamStoppingReason(
+            reason as LiveMediaModerationCategories
+          )
           expect(actual).toEqual(expectedValue)
         }
       )
@@ -615,7 +621,9 @@ describe('ModerationService', () => {
         ['profanity', false],
         ['violence', true],
       ])('Returns the correct value', (category: string, expected: boolean) => {
-        expect(isStreamStoppingReason(category)).toEqual(expected)
+        expect(
+          isStreamStoppingReason(category as LiveMediaModerationCategories)
+        ).toEqual(expected)
       })
     })
   })

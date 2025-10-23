@@ -1398,7 +1398,29 @@ export const handleModerationInfraction = async (
   const socketService = SocketService.getInstance()
   const failures: string[] = [...new Set<string>(Object.keys(reasons.failures))]
 
-  if (!failures.includes('Person detected in image')) {
+  const allActiveInfractions =
+    await ModerationInfractionsRepo.getModerationInfractionsByUser(
+      userId,
+      {
+        active: true,
+        sessionId,
+      },
+      client
+    )
+
+  debugger
+
+  const allInfractionResons = getReasonsFromInfractions(allActiveInfractions)
+
+  if (
+    isEmpty(
+      failures.filter(
+        (failure) =>
+          failure.toLocaleLowerCase() ===
+          LiveMediaModerationCategories.PERSON_IN_IMAGE
+      )
+    )
+  ) {
     const insertedInfraction =
       await ModerationInfractionsRepo.insertModerationInfraction(
         {
@@ -1408,17 +1430,11 @@ export const handleModerationInfraction = async (
         },
         client
       )
-    const allActiveInfractions =
-      await ModerationInfractionsRepo.getModerationInfractionsByUser(
-        userId,
-        {
-          active: true,
-          sessionId,
-        },
-        client
-      )
 
-    const infractionScore = weighSessionInfractions(allActiveInfractions)
+    const infractionScore = weighSessionInfractions([
+      ...allInfractionResons,
+      ...getReasonsFromInfractions([insertedInfraction]),
+    ])
     const streamStoppingReasons = getStreamStoppingReasonsFromInfractions([
       insertedInfraction,
     ])
@@ -1440,8 +1456,32 @@ export const handleModerationInfraction = async (
       occurredAt: new Date(),
       stopStreamImmediatelyReasons: streamStoppingReasons,
     })
-  } else {
-    //Let the partner user decide if there's an infraction
+  } else if (
+    isEmpty(
+      allInfractionResons.filter(
+        (infractionReason) =>
+          infractionReason.toLocaleLowerCase() ===
+          LiveMediaModerationCategories.PERSON_IN_IMAGE
+      )
+    )
+  ) {
+    await runInTransaction(async (tc) => {
+      /*
+       * if a person in image infraction exist, the user already received a temporary ban already
+       * if not, ban them temporarily until the partner in sesson confirms whether the frame is appropriate or not
+       */
+      await ModerationInfractionsRepo.insertModerationInfraction(
+        {
+          userId,
+          sessionId,
+          reason: reasons.failures,
+        },
+        tc
+      )
+
+      await liveMediaBanUser(userId, sessionId, tc)
+    })
+
     await socketService.emitModerationInfractionEvent(userId, {
       isBanned: false,
       infraction: failures,
@@ -1449,6 +1489,7 @@ export const handleModerationInfraction = async (
       occurredAt: new Date(),
       stopStreamImmediatelyReasons: failures,
     })
+    //Let the partner user decide if there's an infraction
     await socketService.emitPotentialModerationInfractionEvent(
       sessionId,
       userId,
@@ -1458,17 +1499,13 @@ export const handleModerationInfraction = async (
         occurredAt: new Date(),
       }
     )
-
-    await SocketService.getInstance().emitUserLiveMediaBannedEvents(
-      userId,
-      sessionId
-    )
   }
 }
 
 async function liveMediaBanUser(
   userId: string,
-  sessionId: string
+  sessionId: string,
+  transactionClient?: TransactionClient
 ): Promise<void> {
   await runInTransaction(async (tc) => {
     await UsersRepo.banUserById(
@@ -1482,30 +1519,32 @@ async function liveMediaBanUser(
       [UserSessionFlags.liveMediaBan],
       tc
     )
-  })
+  }, transactionClient)
   await SocketService.getInstance().emitUserLiveMediaBannedEvents(
     userId,
     sessionId
   )
 }
 
-export type LiveMediaModerationCategories =
-  | 'profanity'
-  | 'violence'
-  | 'link'
-  | 'address'
-  | 'email'
-  | 'phone'
-  | 'high toxicity'
-  | 'swimwear or underwear'
-  | 'explicit'
-  | 'non-explicit nudity of intimate parts and kissing'
-  | 'visually disturbing'
-  | 'drugs & tobacco'
-  | 'alcohol'
-  | 'rude gestures'
-  | 'gambling'
-  | 'hate symbols'
+export enum LiveMediaModerationCategories {
+  PROFANITY = 'profanity',
+  VIOLENCE = 'violence',
+  LINK = 'link',
+  ADDRESS = 'address',
+  EMAIL = 'email',
+  PHONE = 'phone',
+  HIGH_TOXICITY = 'high toxicity',
+  SWIM_WEAR = 'swimwear or underwear',
+  EXPLICIT = 'explicit',
+  NON_EXPLICIT = 'non-explicit nudity of intimate parts and kissing',
+  DISTURBING = 'visually disturbing',
+  DRUGS = 'drugs & tobacco',
+  ALCOHOL = 'alcohol',
+  RUDE_GESTURES = 'rude gestures',
+  GAMBLING = 'gambling',
+  HATE_SYMBOLS = 'hate symbols',
+  PERSON_IN_IMAGE = 'person detected in image',
+}
 
 /**
  * This gets the score/weight for the severity of the moderation infraction.
@@ -1518,29 +1557,29 @@ export function getScoreForCategory(
 ): number {
   let categoryScore = null
   switch (category.toLowerCase()) {
-    case 'person detected in image':
+    case LiveMediaModerationCategories.PERSON_IN_IMAGE:
       categoryScore = 0
       break
-    case 'profanity':
-    case 'high toxicity':
-    case 'drugs & tobacco':
-    case 'alcohol':
-    case 'rude gestures':
-    case 'gambling':
+    case LiveMediaModerationCategories.PROFANITY:
+    case LiveMediaModerationCategories.HIGH_TOXICITY:
+    case LiveMediaModerationCategories.DRUGS:
+    case LiveMediaModerationCategories.ALCOHOL:
+    case LiveMediaModerationCategories.RUDE_GESTURES:
+    case LiveMediaModerationCategories.GAMBLING:
       categoryScore = 1
       break
-    case 'violence':
-    case 'swimwear or underwear':
-    case 'explicit':
-    case 'non-explicit nudity of intimate parts and kissing':
-    case 'hate symbols':
-    case 'visually disturbing':
+    case LiveMediaModerationCategories.VIOLENCE:
+    case LiveMediaModerationCategories.SWIM_WEAR:
+    case LiveMediaModerationCategories.EXPLICIT:
+    case LiveMediaModerationCategories.NON_EXPLICIT:
+    case LiveMediaModerationCategories.HATE_SYMBOLS:
+    case LiveMediaModerationCategories.DISTURBING:
       categoryScore = 10
       break
-    case 'link':
-    case 'email':
-    case 'phone':
-    case 'address':
+    case LiveMediaModerationCategories.LINK:
+    case LiveMediaModerationCategories.EMAIL:
+    case LiveMediaModerationCategories.PHONE:
+    case LiveMediaModerationCategories.ADDRESS:
       categoryScore = 4
       break
   }
@@ -1554,33 +1593,30 @@ export function getScoreForCategory(
 }
 
 export function isStreamStoppingReason(
-  category: LiveMediaModerationCategories | string
+  category: LiveMediaModerationCategories
 ): boolean {
   const streamStoppingReasons = [
-    'swimwear or underwear',
-    'violence',
-    'visually disturbing',
-    'hate symbols',
-    'link',
-    'email',
-    'phone',
-    'address',
-    'explicit',
-    'non-explicit nudity of intimate parts and kissing',
+    LiveMediaModerationCategories.SWIM_WEAR,
+    LiveMediaModerationCategories.VIOLENCE,
+    LiveMediaModerationCategories.DISTURBING,
+    LiveMediaModerationCategories.HATE_SYMBOLS,
+    LiveMediaModerationCategories.LINK,
+    LiveMediaModerationCategories.EMAIL,
+    LiveMediaModerationCategories.PHONE,
+    LiveMediaModerationCategories.ADDRESS,
+    LiveMediaModerationCategories.EXPLICIT,
+    LiveMediaModerationCategories.NON_EXPLICIT,
   ]
-  return streamStoppingReasons.includes(category.toLowerCase())
+  return streamStoppingReasons.includes(category)
 }
 
-function getReasonsFromInfractions(
+export function getReasonsFromInfractions(
   infractions: ModerationInfraction[]
 ): string[] {
   return infractions.flatMap((i) => Object.keys(i.reason))
 }
 
-export function weighSessionInfractions(
-  infractions: ModerationInfraction[]
-): number {
-  const reasons = getReasonsFromInfractions(infractions)
+export function weighSessionInfractions(reasons: string[]): number {
   return reasons.reduce((acc, current) => {
     const categoryScore = getScoreForCategory(current)
     return acc + categoryScore
@@ -1591,7 +1627,9 @@ export function getStreamStoppingReasonsFromInfractions(
   infractions: ModerationInfraction[]
 ): string[] {
   const reasons = getReasonsFromInfractions(infractions)
-  return reasons.filter((reason) => isStreamStoppingReason(reason))
+  return reasons.filter((reason) =>
+    isStreamStoppingReason(reason as LiveMediaModerationCategories)
+  )
 }
 
 export type CleanTranscriptModerationResult = {
