@@ -12,7 +12,6 @@ import {
 import { Availability } from '../Availability/types'
 import { RepoReadError } from '../Errors'
 import * as pgQueries from './pg.queries'
-import { runInTransaction, TransactionClient } from '../../db'
 import _ from 'lodash'
 import { getAvailabilityForVolunteer } from '../Availability'
 import {
@@ -28,6 +27,7 @@ import { UserRole } from './types'
 import * as AssignmentsService from '../../services/AssignmentsService'
 import { StudentAssignment } from '../Assignments/types'
 import { RoleContext } from '../../services/UserRolesService'
+import { runInTransaction, TransactionClient } from '../../db'
 
 export type LegacyUserModel = {
   // pg
@@ -112,8 +112,8 @@ export async function getLegacyUserObject(
   client?: TransactionClient
 ): Promise<LegacyUserModel> {
   try {
-    return await runInTransaction(async (client) => {
-      const baseResult = await pgQueries.getLegacyUser.run({ userId }, client)
+    return await runInTransaction(async (dbClient) => {
+      const baseResult = await pgQueries.getLegacyUser.run({ userId }, dbClient)
       if (!baseResult.length)
         throw new RepoReadError('Did not find Legacy User object')
       const baseUser = makeSomeRequired(baseResult[0], [
@@ -136,7 +136,7 @@ export async function getLegacyUserObject(
       // The frontend still expects ALL possible certification objects on the legacy user
       // So we get all quizzes and map their name to a fresh QuizInfo object
       const legacyCertificationsResult =
-        await pgQueries.getLegacyCertifications.run(undefined, client)
+        await pgQueries.getLegacyCertifications.run(undefined, dbClient)
       const legacyCertifications = legacyCertificationsResult.reduce(
         (agg, v) => {
           const name = makeRequired(v).name
@@ -156,7 +156,6 @@ export async function getLegacyUserObject(
       const studentUser: any = {}
       const teacherUser: { usesClever?: boolean; usesClassLink?: boolean } = {}
       const roleContext = await UserRolesService.getRoleContext(userId)
-
       const ratings =
         await SurveyService.getUserPostsessionGoalRatingsMetrics(userId)
       if (roleContext.isActiveRole('student')) {
@@ -179,9 +178,9 @@ export async function getLegacyUserObject(
         if (!baseUser.mutedSubjectAlerts) baseUser.mutedSubjectAlerts = []
         volunteerUser.availability = await getAvailabilityForVolunteer(
           userId,
-          client
+          dbClient
         )
-        const references = await getReferencesByVolunteer(userId, client)
+        const references = await getReferencesByVolunteer(userId, dbClient)
         volunteerUser.references = references.map((ref) => ({
           ...ref,
           _id: ref.id,
@@ -190,7 +189,7 @@ export async function getLegacyUserObject(
         baseUser.photoIdStatus = baseUser.photoIdStatus?.toUpperCase()
         const trainingCourses = await getVolunteerTrainingCourses(
           userId,
-          client
+          dbClient
         )
         if (!trainingCourses['upchieve101']) {
           trainingCourses['upchieve101'] = {
@@ -209,11 +208,11 @@ export async function getLegacyUserObject(
         volunteerUser.certifications = {
           // legacyCertifications is a map of all of the quizzes defined via the `quizzes` table
           ...legacyCertifications,
-          ...(await getQuizzesForVolunteers([userId], client))[userId],
-          ...(await getCertificationsForVolunteer([userId], client))[userId],
+          ...(await getQuizzesForVolunteers([userId], dbClient))[userId],
+          ...(await getCertificationsForVolunteer([userId], dbClient))[userId],
         }
         const totalActiveCerts = Object.keys(
-          (await getActiveQuizzesForVolunteers([userId], client))[userId]
+          (await getActiveQuizzesForVolunteers([userId], dbClient))[userId]
         ).length
         volunteerUser.totalActiveCertifications = totalActiveCerts
       }

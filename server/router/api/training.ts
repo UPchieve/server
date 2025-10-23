@@ -12,6 +12,7 @@ import {
 } from '../../models/UserAction/queries'
 import { QUIZ_USER_ACTIONS } from '../../constants'
 import { getQuizReviewMaterials } from '../../models/Question/queries'
+import { getClient } from '../../db'
 
 export function routeTraining(router: Router): void {
   router.post('/training/questions', async function (req, res) {
@@ -51,12 +52,15 @@ export function routeTraining(router: Router): void {
         })
 
       if (passed) {
-        await createQuizAction({
-          userId: user.id,
-          action: QUIZ_USER_ACTIONS.PASSED,
-          quizSubcategory: category,
-          ipAddress: ip,
-        })
+        await createQuizAction(
+          {
+            userId: user.id,
+            action: QUIZ_USER_ACTIONS.PASSED,
+            quizSubcategory: category,
+            ipAddress: ip,
+          },
+          getClient()
+        ) // @TODO service fn
       } else {
         // we want to queue a job to send this email only if this is the first time
         // a volunteer has taken a quiz ever, and they failed it
@@ -70,12 +74,15 @@ export function routeTraining(router: Router): void {
             user.firstName,
             user.id
           )
-        await createQuizAction({
-          userId: user.id,
-          action: QUIZ_USER_ACTIONS.FAILED,
-          quizSubcategory: category,
-          ipAddress: ip,
-        })
+        await createQuizAction(
+          {
+            userId: user.id,
+            action: QUIZ_USER_ACTIONS.FAILED,
+            quizSubcategory: category,
+            ipAddress: ip,
+          },
+          getClient()
+        ) // @TODO service fn
       }
 
       res.json({
@@ -97,12 +104,15 @@ export function routeTraining(router: Router): void {
       const category = asString(req.params.category)
       const { ip: ipAddress } = req
 
-      createQuizAction({
-        userId: user.id,
-        action: QUIZ_USER_ACTIONS.VIEWED_MATERIALS,
-        quizSubcategory: category,
-        ipAddress: ipAddress,
-      })
+      await createQuizAction(
+        {
+          userId: user.id,
+          action: QUIZ_USER_ACTIONS.VIEWED_MATERIALS,
+          quizSubcategory: category,
+          ipAddress: ipAddress,
+        },
+        getClient()
+      ) // @TODO This needs to be wrapped in a service function that uses runInTransaction
 
       const resultList = await getQuizReviewMaterials(category)
       if (resultList) {

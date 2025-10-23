@@ -1,6 +1,7 @@
+\restrict tLtMSIvQGkAcWs7PafgHpCXSp3SgmehC5z9ndCJqDLAk6zAtzuz5cg4egoEln9T
 
--- Dumped from database version 14.19 (Debian 14.19-1.pgdg13+1)
--- Dumped by pg_dump version 14.19 (Ubuntu 14.19-0ubuntu0.22.04.1)
+-- Dumped from database version 14.17 (Debian 14.17-1.pgdg120+1)
+-- Dumped by pg_dump version 15.14 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -25,6 +26,13 @@ CREATE SCHEMA auth;
 --
 
 CREATE SCHEMA basic_access;
+
+
+--
+-- Name: public; Type: SCHEMA; Schema: -; Owner: -
+--
+
+-- *not* creating schema, since initdb creates it
 
 
 --
@@ -2505,7 +2513,6 @@ CREATE TABLE upchieve.user_product_flags (
     paid_tutors_pilot_group public.paid_tutors_pilot_groups,
     fall_incentive_enrollment_at timestamp with time zone,
     impact_study_enrollment_at timestamp with time zone,
-    tell_them_college_prep_modal_seen_at timestamp with time zone,
     impact_study_campaigns jsonb DEFAULT '{}'::jsonb
 );
 
@@ -6412,6 +6419,7 @@ ALTER TABLE ONLY upchieve.volunteer_references
 -- PostgreSQL database dump complete
 --
 
+\unrestrict tLtMSIvQGkAcWs7PafgHpCXSp3SgmehC5z9ndCJqDLAk6zAtzuz5cg4egoEln9T
 
 
 --
@@ -6649,4 +6657,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20250922200444'),
     ('20251008134946'),
     ('20251009150451'),
-    ('20251014214939');
+    ('20251014214939'),
+    ('20251017145606');

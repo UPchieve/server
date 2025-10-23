@@ -23,7 +23,6 @@ export async function createUPFByUserId(
       const upf = makeSomeOptional(result[0], [
         'fallIncentiveEnrollmentAt',
         'impactStudyEnrollmentAt',
-        'tellThemCollegePrepModalSeenAt',
         'impactStudyCampaigns',
       ])
       return upf as UserProductFlags
@@ -50,7 +49,6 @@ export async function getUPFByUserId(
       const upf = makeSomeOptional(result[0], [
         'fallIncentiveEnrollmentAt',
         'impactStudyEnrollmentAt',
-        'tellThemCollegePrepModalSeenAt',
         'impactStudyCampaigns',
       ])
       return upf as UserProductFlags
@@ -75,7 +73,6 @@ export async function getPublicUPFByUserId(
       const upf = makeSomeOptional(result[0], [
         'fallIncentiveEnrollmentAt',
         'impactStudyEnrollmentAt',
-        'tellThemCollegePrepModalSeenAt',
         'impactStudyCampaigns',
       ])
       return upf as UserProductFlags
@@ -162,21 +159,6 @@ export async function enrollStudentToImpactStudy(
       tc ?? getClient()
     )
     if (result.length) return makeRequired(result[0]).impactStudyEnrollmentAt
-    throw new RepoUpdateError('Update query was not acknowledged')
-  } catch (err) {
-    if (err instanceof RepoUpdateError) throw err
-    throw new RepoUpdateError(err)
-  }
-}
-
-export async function updateTellThemCollegePrepModalSeenAt(userId: Ulid) {
-  try {
-    const result = await pgQueries.tellThemCollegePrepModalSeenAt.run(
-      { userId },
-      getClient()
-    )
-    if (result.length)
-      return makeRequired(result[0]).tellThemCollegePrepModalSeenAt
     throw new RepoUpdateError('Update query was not acknowledged')
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err

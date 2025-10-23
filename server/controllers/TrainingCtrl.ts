@@ -3,11 +3,10 @@ import { captureEvent } from '../services/AnalyticsService'
 import {
   TRAINING,
   SUBJECT_TYPES,
-  ACCOUNT_USER_ACTIONS,
   QUIZ_USER_ACTIONS,
   EVENTS,
 } from '../constants'
-import { createQuizAction, createAccountAction } from '../models/UserAction'
+import { createQuizAction } from '../models/UserAction'
 import { createContact } from '../services/MailService'
 import { Quizzes } from '../models/Volunteer'
 import * as VolunteerService from '../services/VolunteerService'
@@ -40,12 +39,9 @@ export async function getQuestions(
     subcategory: null,
   })
   const isStandardizedCertsActive = await getStandardizedCertsFlag(userId)
-  const filteredSubcategoryQuestions = filterSubtopicsFromQuestions(
-    category,
-    questions
-  )
+
   const questionsBySubcategory = _.groupBy(
-    isStandardizedCertsActive ? filteredSubcategoryQuestions : questions,
+    questions,
     (question) => question.subcategory
   )
 
@@ -139,11 +135,14 @@ export async function getQuizScore(
       // Create a user action for every subject unlocked
       for (const subject of unlockedSubjects) {
         if (!currentSubjects.includes(subject)) {
-          await createQuizAction({
-            action: QUIZ_USER_ACTIONS.UNLOCKED_SUBJECT,
-            userId: user.id,
-            quizSubcategory: subject,
-          })
+          await createQuizAction(
+            {
+              action: QUIZ_USER_ACTIONS.UNLOCKED_SUBJECT,
+              userId: user.id,
+              quizSubcategory: subject,
+            },
+            tc
+          )
           captureEvent(user.id, EVENTS.SUBJECT_UNLOCKED, {
             event: EVENTS.SUBJECT_UNLOCKED,
             subject,
@@ -191,118 +190,4 @@ export async function getQuizScore(
       isTrainingSubject: subjectType === SUBJECT_TYPES.TRAINING,
     }
   })
-}
-
-// TODO: Remove in medium-certs-v2 clean up
-export function filterSubtopicsFromQuestions(
-  subject: string,
-  questions: QuestionModel.Question[]
-): QuestionModel.Question[] {
-  const filterSubtopicsOut: { [subject: string]: string[] } = {
-    '6thGradeMath': [
-      'ratios',
-      'area',
-      'polygons',
-      'exponents',
-      'factoring',
-      'doubleNumberLine',
-      'SEL',
-      'middleSchool',
-    ],
-    '7thGradeMath': [
-      'ratio',
-      'propertiesof',
-      'scalefactor',
-      'areaofcircle',
-      'prisms',
-      'visual3',
-      'SEL',
-    ],
-    '8thGradeMath': [
-      'middleSchool',
-      'SEL',
-      'linearEquations',
-      'functions',
-      'geometryCongruence',
-      'volume',
-      'Exponents',
-      'scatterPlots',
-      'geometryDialations',
-      'pythagoreanTheorem',
-    ],
-    // no subtopics to filter
-    prealgebra: [],
-    // no subtopics to filter
-    algebraOne: [],
-    algebraTwo: [
-      'rounding_and_scientific_notation',
-      'functions_domain',
-      'rational_expressions',
-      'square_root_equations',
-      'arithmetic_and_geometric_sequences',
-    ],
-    // no subtopics to filter
-    geometry: [],
-    trigonometry: ['trig functions', 'pythagorean theorem', 'right triangles'],
-    // no subtopics to filter
-    statistics: [],
-    // no subtopics to filter
-    precalculus: [],
-    // no subtopics to filter
-    calculusAB: [],
-    // no subtopics to filter
-    calculusBC: [],
-    biology: ['the cell'],
-    // no subtopics to filter
-    chemistry: [],
-    // no subtopics to filter
-    physicsOne: [],
-    // no subtopics to filter
-    physicsTwo: [],
-    // no subtopics to filter
-    environmentalScience: [],
-    // no subtopics to filter
-    reading: [],
-    essayPlanning: [
-      // had a space
-      'set expectations',
-      'planning steps',
-      'outlines',
-      'types of essays',
-      'common requests',
-    ],
-    essayFeedback: [
-      'types of essays',
-      'basics',
-      'passage details',
-      'structure',
-      'passage unity',
-      'conclusion',
-      'passage thesis',
-      'punctuation',
-      'wordiness',
-      'nonvarying sentence length',
-      'specificity and coherence',
-      'common requests',
-      'independent and dependent clauses',
-    ],
-    // no subtopics to filter
-    usHistory: [],
-    // no subtopics to filter
-    worldHistory: [],
-    collegePrep: ['timeline'],
-    collegeList: ['research', 'cost'],
-    // no subtopics to filter
-    collegeApps: [],
-    // no subtopics to filter
-    applicationEssays: [],
-    financialAid: ['special', 'source', 'direct', 'FAFSA advanced', 'CSS'],
-    // no subtopics to filter
-    satMath: [],
-    // no subtopics to filter
-    satReading: [],
-  }
-
-  const subtopicsToFilter = new Set(filterSubtopicsOut[subject])
-  return questions.filter((q) => !subtopicsToFilter.has(q.subcategory))
 }

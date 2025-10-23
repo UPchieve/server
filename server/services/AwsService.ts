@@ -4,6 +4,7 @@ import {
   PutObjectCommand,
   S3,
   ObjectCannedACL,
+  DeleteObjectCommand,
 } from '@aws-sdk/client-s3'
 import * as Sentry from '@sentry/node'
 import config from '../config'
@@ -134,4 +135,13 @@ export async function putObject(bucket: string, s3Key: string, body: Buffer) {
   const response = await s3.send(command)
   const location = `https://${bucket}.s3.amazonaws.com/${s3Key}`
   return { response, location }
+}
+
+export async function deleteObject(bucket: string, objectKey: string) {
+  const deleteObjectParams = {
+    Bucket: bucket,
+    Key: objectKey,
+  }
+  const command = new DeleteObjectCommand(deleteObjectParams)
+  await s3.send(command)
 }

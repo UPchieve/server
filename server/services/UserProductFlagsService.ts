@@ -13,7 +13,6 @@ import {
   ImpactStudyCampaign,
   enrollStudentToFallIncentiveProgram,
   enrollStudentToImpactStudy,
-  updateTellThemCollegePrepModalSeenAt,
   getUPFByUserId,
 } from '../models/UserProductFlags'
 import {
@@ -39,6 +38,7 @@ export async function incentiveProgramEnrollmentEnroll(
   userId: Uuid,
   proxyEmail?: string
 ) {
+  // @TODO Run in transaction
   const isInIncentiveProgram = await isUserInIncentiveProgram(userId)
   if (isInIncentiveProgram)
     throw new Error(`You're already enrolled in the fall incentive program.`)
@@ -127,10 +127,6 @@ export async function processImpactStudyReward(
     }
     await createGiftCardRewardLink(rewardPayload)
   }
-}
-
-export async function sawTellThemCollegePrepModal(userId: Uuid) {
-  return await updateTellThemCollegePrepModalSeenAt(userId)
 }
 
 export const asImpactStudyCampaignData = asFactory<ImpactStudyCampaign>({

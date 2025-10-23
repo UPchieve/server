@@ -11,7 +11,6 @@ import {
   isSupportedSsoProvider,
   registerStudentValidator,
   registerTeacherValidator,
-  registerVolunteerValidator,
   SessionWithSsoData,
 } from '../../utils/auth-utils'
 import { InputError, LookupError } from '../../models/Errors'
@@ -330,7 +329,7 @@ export function routes(app: Express) {
 
   router.route('/partner/volunteer').get(async function (req, res) {
     try {
-      if (!req.query.hasOwnProperty('partnerId'))
+      if (!('partnerId' in req.query))
         throw new InputError('Missing volunteerPartnerId query string')
       const partner = await AuthService.lookupPartnerVolunteer(
         req.query.partnerId as unknown
@@ -343,7 +342,7 @@ export function routes(app: Express) {
 
   router.route('/partner/student').get(async function (req, res) {
     try {
-      if (!req.query.hasOwnProperty('partnerId'))
+      if (!('partnerId' in req.query))
         throw new InputError('Missing studentPartnerId query string')
       const partner = await AuthService.lookupPartnerStudent(
         req.query.partnerId as unknown
@@ -362,7 +361,7 @@ export function routes(app: Express) {
 
   router.route('/partner/student/code').get(async function (req, res) {
     try {
-      if (!req.query.hasOwnProperty('partnerSignupCode'))
+      if (!('partnerSignupCode' in req.query))
         throw new InputError('Missing partnerSignupCode query string')
       const studentPartnerKey = await AuthService.lookupPartnerStudentCode(
         req.query.partnerSignupCode as unknown

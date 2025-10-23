@@ -42,7 +42,7 @@ export const Config = Record({
     rejectedReferenceTemplate: String,
     waitingOnReferencesTemplate: String,
     niceToMeetYouTemplate: String,
-    niceToMeetYouNoSlackTemplate: String,
+    niceToMeetYouStudentVolunteersTemplate: String,
     weeklyHourSummaryEmailTemplate: String,
     weeklyHourSummaryIntroEmailTemplate: String,
     customWeeklyHourSummaryEmailTemplate: String,

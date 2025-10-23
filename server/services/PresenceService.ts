@@ -112,7 +112,7 @@ async function expiredKeyListener(channel: string, expiredKey: string) {
     const lockKey = `presence-expiry:${expiredKey}`
 
     try {
-      const lock = await redlock.acquire([lockKey], 1000)
+      const lock = await redlock.acquire([lockKey], 5000)
 
       try {
         const [_namespace, keyType, userId, clientUUID] = expiredKey.split(':')
@@ -343,7 +343,7 @@ export async function trackInactivity({
 }: {
   userId: Ulid
   clientUUID: string
-  ipAddress: string
+  ipAddress?: string
 }) {
   const deletedKeyCount = await CacheKeys.delete([
     CacheKeys.key(userId, clientUUID, CACHE_KEY_TYPE.ACTIVE_TIMEOUT),
