@@ -187,22 +187,19 @@ export function routeSession(router: Router) {
     }
   )
 
-  router.put(
-    '/session/:sessionId',
-    authPassport.isAdmin,
-    async function (req, res) {
-      try {
-        const { sessionId } = req.params
-        await SessionService.reviewSession({
-          ...req.body,
-          sessionId,
-        } as unknown)
-        res.sendStatus(200)
-      } catch (error) {
-        resError(res, error)
-      }
+  router.put('/session/:sessionId', async function (req, res) {
+    //TODO: Allow this endpoint to handle updates to any session field
+    try {
+      const { sessionId } = req.params
+      await SessionService.reviewSession({
+        ...req.body,
+        sessionId,
+      } as unknown)
+      res.sendStatus(200)
+    } catch (error) {
+      resError(res, error)
     }
-  )
+  })
 
   router.get('/session/:sessionId/photo-url', async function (req, res) {
     try {
