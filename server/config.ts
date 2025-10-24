@@ -298,6 +298,8 @@ const config: Static<typeof Config> = {
   postgresUser: process.env.SUBWAY_POSTGRES_USER || 'subway',
   postgresPassword: process.env.SUBWAY_POSTGRES_PASSWORD || 'Password123',
   postgresDatabase: process.env.SUBWAY_POSTGRES_DB || 'upchieve',
+  // we use pg_bouncer in prod. the name of the db is the pool name created in aiven
+  postgresRoDatabase: process.env.SUBWAY_POSTGRES_RO_DB || 'upchieve',
   postgresRequireSSL: stringToBoolean(
     process.env.SUBWAY_POSTGRES_REQUIRE_SSL || 'false'
   ),
