@@ -589,11 +589,13 @@ describe('TextVolunteers job', () => {
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledTimes(2)
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
         volunteer1.phone,
-        expect.stringContaining('Hi Alice')
+        expect.stringContaining('Hi Alice'),
+        expect.any(String)
       )
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
         volunteer2.phone,
-        expect.stringContaining('Hi Bob')
+        expect.stringContaining('Hi Bob'),
+        expect.any(String)
       )
     })
 
@@ -658,11 +660,13 @@ describe('TextVolunteers job', () => {
 
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
         volunteer.phone,
-        expect.stringContaining('Hi Persephone')
+        expect.stringContaining('Hi Persephone'),
+        expect.any(String)
       )
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
         volunteer.phone,
-        expect.stringContaining('an Example School student needs help')
+        expect.stringContaining('an Example School student needs help'),
+        expect.any(String)
       )
     })
 
@@ -682,11 +686,13 @@ describe('TextVolunteers job', () => {
 
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
         volunteer.phone,
-        expect.stringContaining('a student needs help')
+        expect.stringContaining('a student needs help'),
+        expect.any(String)
       )
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
         volunteer.phone,
-        expect.stringContaining('Hi Hades')
+        expect.stringContaining('Hi Hades'),
+        expect.any(String)
       )
     })
 
@@ -711,11 +717,13 @@ describe('TextVolunteers job', () => {
 
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
         volunteer.phone,
-        expect.stringContaining('Hi Hercules')
+        expect.stringContaining('Hi Hercules'),
+        expect.any(String)
       )
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
         volunteer.phone,
-        expect.stringContaining('an Awesome School student')
+        expect.stringContaining('an Awesome School student'),
+        expect.any(String)
       )
     })
 
@@ -788,17 +796,20 @@ describe('TextVolunteers job', () => {
       expect(mockedTwilioService.sendTextMessage).toHaveBeenNthCalledWith(
         1,
         favoritedVol.phone,
-        expect.stringContaining(favoritedVol.firstName)
+        expect.stringContaining(favoritedVol.firstName),
+        expect.any(String)
       )
       expect(mockedTwilioService.sendTextMessage).toHaveBeenNthCalledWith(
         2,
         partnerVol.phone,
-        expect.stringContaining(partnerVol.firstName)
+        expect.stringContaining(partnerVol.firstName),
+        expect.any(String)
       )
       expect(mockedTwilioService.sendTextMessage).toHaveBeenNthCalledWith(
         2,
         partnerVol.phone,
-        expect.stringContaining('Example School')
+        expect.stringContaining('Example School'),
+        expect.any(String)
       )
 
       expect(
@@ -856,7 +867,8 @@ describe('TextVolunteers job', () => {
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledTimes(1)
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
         algebraVol.phone,
-        expect.stringContaining(algebraVol.firstName)
+        expect.stringContaining(algebraVol.firstName),
+        expect.any(String)
       )
 
       expect(
@@ -906,15 +918,18 @@ describe('TextVolunteers job', () => {
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledTimes(2)
       expect(mockedTwilioService.sendTextMessage).not.toHaveBeenCalledWith(
         highLevelVol.phone,
-        expect.anything()
+        expect.anything(),
+        expect.any(String)
       )
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
         regularVol1.phone,
-        expect.stringContaining(regularVol1.firstName)
+        expect.stringContaining(regularVol1.firstName),
+        expect.any(String)
       )
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
         regularVol2.phone,
-        expect.stringContaining(regularVol2.firstName)
+        expect.stringContaining(regularVol2.firstName),
+        expect.any(String)
       )
       expect(
         mockedSessionService.addSessionSmsNotification
@@ -972,15 +987,18 @@ describe('TextVolunteers job', () => {
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledTimes(2)
       expect(mockedTwilioService.sendTextMessage).not.toHaveBeenCalledWith(
         mutedVol.phone,
-        expect.anything()
+        expect.anything(),
+        expect.any(String)
       )
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
         availableVol1.phone,
-        expect.stringContaining(availableVol1.firstName)
+        expect.stringContaining(availableVol1.firstName),
+        expect.any(String)
       )
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
         availableVol2.phone,
-        expect.stringContaining(availableVol2.firstName)
+        expect.stringContaining(availableVol2.firstName),
+        expect.any(String)
       )
 
       expect(
@@ -1045,15 +1063,18 @@ describe('TextVolunteers job', () => {
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledTimes(2)
       expect(mockedTwilioService.sendTextMessage).not.toHaveBeenCalledWith(
         busyVol.phone,
-        expect.anything()
+        expect.anything(),
+        expect.any(String)
       )
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
         availableVol1.phone,
-        expect.stringContaining(availableVol1.firstName)
+        expect.stringContaining(availableVol1.firstName),
+        expect.any(String)
       )
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
         availableVol2.phone,
-        expect.stringContaining(availableVol2.firstName)
+        expect.stringContaining(availableVol2.firstName),
+        expect.any(String)
       )
 
       expect(
@@ -1113,15 +1134,18 @@ describe('TextVolunteers job', () => {
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledTimes(2)
       expect(mockedTwilioService.sendTextMessage).not.toHaveBeenCalledWith(
         recentlyTextedVol.phone,
-        expect.anything()
+        expect.anything(),
+        expect.any(String)
       )
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
         availableVol1.phone,
-        expect.stringContaining(availableVol1.firstName)
+        expect.stringContaining(availableVol1.firstName),
+        expect.any(String)
       )
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
         availableVol2.phone,
-        expect.stringContaining(availableVol2.firstName)
+        expect.stringContaining(availableVol2.firstName),
+        expect.any(String)
       )
 
       expect(
@@ -1219,15 +1243,18 @@ describe('TextVolunteers job', () => {
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledTimes(1)
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
         volunteer.phone,
-        expect.stringContaining(volunteer.firstName)
+        expect.stringContaining(volunteer.firstName),
+        expect.any(String)
       )
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
         volunteer.phone,
-        expect.stringContaining('Example School student')
+        expect.stringContaining('Example School student'),
+        expect.any(String)
       )
       expect(mockedTwilioService.sendTextMessage).not.toHaveBeenCalledWith(
         volunteer.phone,
-        expect.stringContaining('a student needs help')
+        expect.stringContaining('a student needs help'),
+        expect.any(String)
       )
 
       expect(
@@ -1267,11 +1294,13 @@ describe('TextVolunteers job', () => {
 
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
         volunteer.phone,
-        expect.stringContaining(volunteer.firstName)
+        expect.stringContaining(volunteer.firstName),
+        expect.any(String)
       )
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
         volunteer.phone,
-        expect.stringContaining('a student needs help')
+        expect.stringContaining('a student needs help'),
+        expect.any(String)
       )
 
       expect(
@@ -1387,27 +1416,32 @@ describe('TextVolunteers job', () => {
       expect(mockedTwilioService.sendTextMessage).toHaveBeenNthCalledWith(
         1,
         favoritedVol.phone,
-        expect.stringContaining(favoritedVol.firstName)
+        expect.stringContaining(favoritedVol.firstName),
+        expect.any(String)
       )
       expect(mockedTwilioService.sendTextMessage).toHaveBeenNthCalledWith(
         1,
         favoritedVol.phone,
-        expect.stringContaining('a student needs help')
+        expect.stringContaining('a student needs help'),
+        expect.any(String)
       )
       expect(mockedTwilioService.sendTextMessage).not.toHaveBeenNthCalledWith(
         1,
         favoritedVol.phone,
-        expect.stringContaining('Example School student')
+        expect.stringContaining('Example School student'),
+        expect.any(String)
       )
       expect(mockedTwilioService.sendTextMessage).toHaveBeenNthCalledWith(
         2,
         partnerVol.phone,
-        expect.stringContaining(partnerVol.firstName)
+        expect.stringContaining(partnerVol.firstName),
+        expect.any(String)
       )
       expect(mockedTwilioService.sendTextMessage).toHaveBeenNthCalledWith(
         2,
         partnerVol.phone,
-        expect.stringContaining('Example School student')
+        expect.stringContaining('Example School student'),
+        expect.any(String)
       )
       expect(mockedTwilioService.sendTextMessage).not.toHaveBeenNthCalledWith(
         2,
