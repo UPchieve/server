@@ -13,6 +13,8 @@ export function buildClient(): Pool {
     password: config.postgresPassword,
     database: config.postgresDatabase,
     ssl: config.postgresRequireSSL ? { rejectUnauthorized: false } : false,
+    // wondering how we got this number?
+    // https://gitlab.com/upchieve/subway/-/merge_requests/2325
     max: 500,
   })
 }
@@ -26,6 +28,8 @@ export function buildReadOnlyClient(): Pool {
     password: config.postgresPassword,
     database: config.postgresRoDatabase,
     ssl: config.postgresRequireSSL ? { rejectUnauthorized: false } : false,
+    // wondering how we got this number?
+    // https://gitlab.com/upchieve/subway/-/merge_requests/2325
     max: 500,
   })
 }
