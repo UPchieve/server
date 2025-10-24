@@ -82,7 +82,8 @@ export function routeUser(router: Router): void {
   router.delete('/user', async (req, res) => {
     try {
       const user = extractUser(req)
-      await UserService.flagForDeletion(user)
+      await UserService.deleteUser(user)
+      req.logout()
       res.sendStatus(200)
     } catch (err) {
       resError(res, err)
