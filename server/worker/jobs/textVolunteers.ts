@@ -39,7 +39,8 @@ export type TextVolunteersJobData = {
   studentPartnerOrg?: string
 }
 export enum PriorityGroupName {
-  FAVORITED = 'Favorited volunteers',
+  // These strings need to match the notification_priority_groups in the DB exactly
+  FAVORITE = 'Favorite volunteers',
   PARTNER = 'Associated partner volunteers',
   REGULAR = 'Regular volunteers',
 }
@@ -96,7 +97,7 @@ export default async function textVolunteers(
 
   const selectedTutors = await selectVolunteersByPriority(subject, [
     {
-      name: PriorityGroupName.FAVORITED,
+      name: PriorityGroupName.FAVORITE,
       volunteers: eligibleFavoritedVolunteers,
     },
     {
