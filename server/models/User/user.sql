@@ -772,7 +772,9 @@ SET
     sms_consent = COALESCE(:smsConsent, sms_consent),
     preferred_language = COALESCE(:preferredLanguage, preferred_language),
     signup_source_id = COALESCE(:signupSourceId, signup_source_id),
-    other_signup_source = COALESCE(:otherSignupSource, other_signup_source)
+    other_signup_source = COALESCE(:otherSignupSource, other_signup_source),
+    ban_type = COALESCE(:ban_type, ban_type),
+    banned = COALESCE(:banned, banned)
 WHERE
     id = :userId!
 RETURNING

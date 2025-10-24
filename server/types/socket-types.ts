@@ -47,6 +47,12 @@ export type ClientToServerEvents = {
     uploadError?: string
   }) => void
   imageUploadSuccess: (data: { sessionId: Ulid }) => void
+  handlePotentialPartnerInfraction: (data: {
+    sessionId: string
+    partnerBanType: string
+    partnerBanned: boolean
+    isPartnerStudent: boolean
+  }) => void
 }
 
 export type ServerToClientEvents = {

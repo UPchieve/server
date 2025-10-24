@@ -3,7 +3,7 @@ import {
   updateSubjectAlerts,
   updateSmsConsentForPhoneNumber,
 } from '../models/User'
-import { UserContactInfo, EditUserProfilePayload } from '../models/User/types'
+import { UserContactInfo, EditUserPayload } from '../models/User/types'
 import { runInTransaction, TransactionClient } from '../db'
 import { createAccountAction } from '../models/UserAction'
 import { ACCOUNT_USER_ACTIONS } from '../constants'
@@ -14,7 +14,7 @@ import { Ulid } from '../models/pgUtils'
 export async function updateUserProfile(
   user: UserContactInfo,
   ipAddress: string,
-  data: EditUserProfilePayload
+  data: EditUserPayload
 ) {
   await runInTransaction(async (tc: TransactionClient) => {
     await updateUserProfileById(user.id, data, tc)

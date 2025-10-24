@@ -121,7 +121,7 @@ export type ReportedUser = Pick<
   volunteerPartnerOrg?: string
 }
 
-export type EditUserProfilePayload = {
+export type EditUserPayload = {
   deactivated?: boolean
   smsConsent?: boolean
   mutedSubjectAlerts?: string[]
@@ -130,4 +130,6 @@ export type EditUserProfilePayload = {
   schoolId?: string
   signupSourceId?: number
   otherSignupSource?: string
+  banTyped?: USER_BAN_TYPES
+  banned?: boolean
 }

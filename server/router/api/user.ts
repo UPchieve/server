@@ -8,7 +8,7 @@ import { updateUserProfile } from '../../services/UserProfileService'
 import {
   getUserForAdminDetail,
   getUserIdByEmail,
-  EditUserProfilePayload,
+  EditUserPayload,
 } from '../../models/User/'
 import { authPassport } from '../../utils/auth-utils'
 import { resError } from '../res-error'
@@ -36,7 +36,7 @@ export function routeUser(router: Router): void {
         : false
 
       // Form request object
-      let updateReq: EditUserProfilePayload = {
+      let updateReq: EditUserPayload = {
         deactivated: isDeactivated,
         ...(req.body?.schoolId ? { schoolId: req.body?.schoolId } : {}),
       }

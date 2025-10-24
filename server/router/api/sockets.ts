@@ -11,13 +11,16 @@ import { ResourceLockedError } from '@sesamecare-oss/redlock'
 import { Server, Socket } from 'socket.io'
 import { v4 as uuidv4 } from 'uuid'
 import config from '../../config'
-import { EVENTS, SESSION_USER_ACTIONS } from '../../constants'
+import { EVENTS, SESSION_USER_ACTIONS, USER_BAN_TYPES } from '../../constants'
 import logger from '../../logger'
 import { Ulid } from '../../models/pgUtils'
 import * as SessionRepo from '../../models/Session/queries'
-import { UserContactInfo, UserRole } from '../../models/User'
+import {
+  getUserContactInfoById,
+  UserContactInfo,
+  UserRole,
+} from '../../models/User'
 import * as UserService from '../../services/UserService'
-import * as UserRolesService from '../../services/UserRolesService'
 import { captureEvent } from '../../services/AnalyticsService'
 import QueueService from '../../services/QueueService'
 import * as QuillDocService from '../../services/QuillDocService'
@@ -39,6 +42,7 @@ import { SessionJoinError } from '../../models/Errors'
 import * as PresenceService from '../../services/PresenceService'
 import { observeWebTransaction } from '../../utils/newRelicUtil'
 import { extractSocketIp } from '../../utils/extract-socket-ip'
+import { updateUserProfile } from '../../services/UserProfileService'
 
 export type SessionMessageType = 'audio-transcription' // todo - add 'chat' later
 
@@ -711,6 +715,62 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
         }
       )
     })
+
+    socket.on(
+      'handlePotentialPartnerInfraction',
+      async ({
+        sessionId,
+        partnerBanType,
+        partnerBanned,
+        isPartnerStudent,
+      }) => {
+        await observeWebTransaction(
+          '/socket-io/handlePotentialPartnerInfraction',
+          async () => {
+            try {
+              const session = await SessionRepo.getSessionById(sessionId)
+              const partnerUserId = isPartnerStudent
+                ? session.studentId
+                : session.volunteerId
+
+              const partnerUserContactInfo = await getUserContactInfoById(
+                partnerUserId as string
+              )
+
+              await updateUserProfile(
+                partnerUserContactInfo as UserContactInfo,
+                '',
+                {
+                  banTyped: partnerBanType as USER_BAN_TYPES,
+                  banned: partnerBanned,
+                }
+              )
+
+              await SessionService.reviewSession({
+                sessionId: sessionId,
+                reviewed: !partnerBanned,
+                toReview: true,
+              })
+
+              const user = await extractSocketUser(socket)
+
+              io.to(getSessionRoom(sessionId))
+                .except(user.id)
+                .emit('partnerAckModerationInfraction', {
+                  isBanned: partnerBanned,
+                  sessionId,
+                })
+            } catch (err) {
+              logger.error(
+                err,
+                { sessionId, userId: socket.request.user?.id },
+                'Failed emitting partnerAckModerationInfraction'
+              )
+            }
+          }
+        )
+      }
+    )
 
     // Log socket connection-related events for analytics and debugging
     socket.onAny((eventName, args) => {
