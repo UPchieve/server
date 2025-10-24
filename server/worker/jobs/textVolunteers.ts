@@ -71,6 +71,12 @@ export default async function textVolunteers(
     `TextVolunteers: Processing round ${notificationRound}`
   )
 
+  const isSessionFulfilled = await SessionService.isSessionFulfilled(sessionId)
+  if (isSessionFulfilled) {
+    logger.info({ sessionId }, 'Session fulfilled.')
+    return
+  }
+
   const allTextableVolunteers = await getTextableVolunteers()
 
   const eligibleVolunteers = filterSubjectEligibleVolunteers(

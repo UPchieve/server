@@ -747,6 +747,29 @@ describe('TextVolunteers job', () => {
   })
 
   describe('textVolunteers', () => {
+    test('should early exit when the session is already fulfilled', async () => {
+      mockedSessionService.isSessionFulfilled.mockResolvedValueOnce(true)
+
+      const job = {
+        data: {
+          sessionId: getDbUlid(),
+          subject: SUBJECTS.ALGEBRA_ONE,
+          subjectDisplayName: 'Algebra 1',
+          topic: SUBJECT_TYPES.MATH,
+          studentId: getDbUlid(),
+        },
+      }
+      await textVolunteers(job as Job)
+
+      expect(mockedLogger.info).toHaveBeenCalledWith(
+        {
+          sessionId: job.data.sessionId,
+        },
+        'Session fulfilled.'
+      )
+      expect(mockedCacheService.getIfExists).not.toHaveBeenCalled()
+    })
+
     test('should prioritize favorited volunteers over partner and regular volunteers', async () => {
       const studentId = getDbUlid()
       const favoritedVol = buildTextableVolunteer({
