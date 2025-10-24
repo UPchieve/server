@@ -69,10 +69,14 @@ export function getCurrentAvailabilityPath(): string {
 
 export async function sendTextMessage(
   phoneNumber: string,
-  messageText: string
+  messageText: string,
+  sessionId?: string
 ): Promise<string | undefined> {
   try {
-    logger.info(`Sending text message "${messageText}" to ${phoneNumber}`)
+    logger.info(
+      { sessionId },
+      `Sending text message "${messageText}" to ${phoneNumber}`
+    )
 
     // If stored phone number doesn't have international calling code (E.164 formatting)
     // then default to US number
