@@ -74,7 +74,6 @@ export async function sendTextMessage(
   try {
     logger.info(`Sending text message "${messageText}" to ${phoneNumber}`)
 
-
     await new Promise((resolve) => {
       setTimeout(() => {
         resolve('hi')
@@ -266,8 +265,9 @@ export async function notifyVolunteer(
         }),
     },
     {
-      groupName: `${associatedPartner ? 'Associated partner' : 'Partner'
-        } volunteers - not notified in the last 3 days AND they don\'t have "high level subjects"`,
+      groupName: `${
+        associatedPartner ? 'Associated partner' : 'Partner'
+      } volunteers - not notified in the last 3 days AND they don\'t have "high level subjects"`,
       query: () =>
         VolunteerRepo.getNextVolunteerToNotify({
           subject: session.subject,
@@ -294,8 +294,9 @@ export async function notifyVolunteer(
         }),
     },
     {
-      groupName: `${associatedPartner ? 'Associated partner' : 'Partner'
-        } volunteers - not notified in the last 24 hours AND they don\'t have "high level subjects"`,
+      groupName: `${
+        associatedPartner ? 'Associated partner' : 'Partner'
+      } volunteers - not notified in the last 24 hours AND they don\'t have "high level subjects"`,
       query: () =>
         VolunteerRepo.getNextVolunteerToNotify({
           subject: session.subject,

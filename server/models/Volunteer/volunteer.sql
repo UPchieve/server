@@ -1665,13 +1665,19 @@ SELECT DISTINCT ON (u.id)
     u.id,
     u.phone,
     u.first_name,
-    vpo.key AS volunteer_partner_org_key,
     muted_subject_alerts.muted_subject_names AS muted_subjects,
-    unlocked_subjects.unlocked_subjects
+    unlocked_subjects.unlocked_subjects,
+    CASE WHEN uvpoi.deactivated_on IS NULL
+        AND vpo.key IS NOT NULL THEN
+        vpo.key
+    ELSE
+        NULL
+    END AS volunteer_partner_org_key
 FROM
     users u
     JOIN volunteer_profiles vp ON vp.user_id = u.id
-    LEFT JOIN volunteer_partner_orgs vpo ON vpo.id = vp.volunteer_partner_org_id
+    LEFT JOIN users_volunteer_partner_orgs_instances uvpoi ON uvpoi.user_id = vp.user_id
+    LEFT JOIN volunteer_partner_orgs vpo ON vpo.id = uvpoi.volunteer_partner_org_id
     JOIN availabilities a ON a.user_id = u.id
     JOIN weekdays ON weekdays.id = a.weekday_id
     LEFT JOIN LATERAL (
@@ -1688,6 +1694,7 @@ WHERE (u.ban_type IS NULL
         AND u.ban_type <> 'shadow'::ban_types))
 AND u.deactivated IS FALSE
 AND u.deleted IS FALSE
+AND u.phone IS NOT NULL
 AND u.sms_consent IS TRUE
 AND u.test_user IS FALSE
 AND vp.onboarded IS TRUE
