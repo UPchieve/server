@@ -197,6 +197,7 @@ export const Config = Record({
   postgresUser: String,
   postgresPassword: String,
   postgresDatabase: String,
+  postgresRoDatabase: String,
   postgresRequireSSL: Boolean,
   firebase: Record({
     projectId: String,

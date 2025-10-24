@@ -2,10 +2,8 @@
 -- PostgreSQL database dump
 --
 
-\restrict Gp73rLc120yGe9K9vVI40N3liQm9122pM8c1hbYi0PAMjd4BXfN8dPcElvnAk1p
-
--- Dumped from database version 14.17 (Debian 14.17-1.pgdg120+1)
--- Dumped by pg_dump version 15.14 (Homebrew)
+-- Dumped from database version 14.15 (Debian 14.15-1.pgdg120+1)
+-- Dumped by pg_dump version 14.19 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -8929,6 +8927,4 @@ SELECT pg_catalog.setval('upchieve.weekdays_id_seq', 1, false);
 --
 -- PostgreSQL database dump complete
 --
-
-\unrestrict Gp73rLc120yGe9K9vVI40N3liQm9122pM8c1hbYi0PAMjd4BXfN8dPcElvnAk1p
 

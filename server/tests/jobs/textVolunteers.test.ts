@@ -15,6 +15,7 @@ import * as AssociatedPartnerService from '../../services/AssociatedPartnerServi
 import * as CacheService from '../../cache'
 import * as FavoritingService from '../../services/FavoritingService'
 import * as NotificationService from '../../services/NotificationService'
+import * as QueueService from '../../services/QueueService'
 import * as SessionService from '../../services/SessionService'
 import * as TwilioService from '../../services/TwilioService'
 import { AssociatedPartner } from '../../models/AssociatedPartner'
@@ -24,6 +25,7 @@ jest.mock('../../services/AssociatedPartnerService')
 jest.mock('../../cache')
 jest.mock('../../services/FavoritingService')
 jest.mock('../../services/NotificationService')
+jest.mock('../../services/QueueService')
 jest.mock('../../services/SessionService')
 jest.mock('../../services/TwilioService')
 jest.mock('../../logger')
@@ -32,6 +34,7 @@ const mockedAssociatedPartnerService = mocked(AssociatedPartnerService)
 const mockedCacheService = mocked(CacheService)
 const mockedFavoritingService = mocked(FavoritingService)
 const mockedNotificationService = mocked(NotificationService)
+const mockedQueueService = mocked(QueueService)
 const mockedSessionService = mocked(SessionService)
 const mockedTwilioService = mocked(TwilioService)
 const mockedLogger = mocked(logger)
@@ -49,6 +52,7 @@ describe('TextVolunteers job', () => {
     mockedNotificationService.getVolunteersTextedSince5MinutesAgo.mockResolvedValue(
       new Set()
     )
+    mockedQueueService.add.mockResolvedValue(undefined)
     mockedSessionService.getVolunteersInSessions.mockResolvedValue(new Set())
     mockedTwilioService.sendTextMessage.mockResolvedValue(undefined)
   })
@@ -1432,6 +1436,89 @@ describe('TextVolunteers job', () => {
         'Associated partner volunteers',
         'msg-id-2'
       )
+    })
+
+    test('should queue another job when notificationRound is 1', async () => {
+      const volunteer = buildTextableVolunteer({
+        unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
+      })
+      mockedCacheService.getIfExists.mockResolvedValueOnce(
+        JSON.stringify([volunteer])
+      )
+      const sessionId = getDbUlid()
+      const studentId = getDbUlid()
+      const job = {
+        data: {
+          notificationRound: 1,
+          sessionId,
+          subject: SUBJECTS.ALGEBRA_ONE,
+          subjectDisplayName: 'Algebra 1',
+          topic: SUBJECT_TYPES.MATH,
+          studentId,
+        },
+      }
+      await textVolunteers(job as Job)
+
+      expect(mockedQueueService.add).toHaveBeenCalledTimes(1)
+      expect(mockedQueueService.add).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          ...job.data,
+          notificationRound: 2,
+        }),
+        expect.objectContaining({ delay: 30000 })
+      )
+    })
+
+    test('should queue another job when notificationRound is 5', async () => {
+      const volunteer = buildTextableVolunteer({
+        unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
+      })
+      mockedCacheService.getIfExists.mockResolvedValueOnce(
+        JSON.stringify([volunteer])
+      )
+
+      const sessionId = getDbUlid()
+      const studentId = getDbUlid()
+      const job = {
+        data: {
+          notificationRound: 5,
+          sessionId,
+          subject: SUBJECTS.ALGEBRA_ONE,
+          subjectDisplayName: 'Algebra 1',
+          topic: SUBJECT_TYPES.MATH,
+          studentId,
+        },
+      }
+      await textVolunteers(job as Job)
+
+      expect(mockedQueueService.add).toHaveBeenCalledTimes(1)
+      expect(mockedQueueService.add).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          ...job.data,
+          notificationRound: 6,
+        }),
+        expect.objectContaining({ delay: 30000 })
+      )
+    })
+
+    test('should not queue another job when notificationRound is above 5', async () => {
+      const volunteer = buildTextableVolunteer({
+        unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
+      })
+      mockedCacheService.getIfExists.mockResolvedValueOnce(
+        JSON.stringify([volunteer])
+      )
+
+      const job = {
+        data: {
+          notificationRound: 6,
+        },
+      }
+      await textVolunteers(job as Job)
+
+      expect(mockedQueueService.add).not.toHaveBeenCalled()
     })
   })
 })
