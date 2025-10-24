@@ -63,6 +63,14 @@ export default async function textVolunteers(
   const schoolId = job.data.schoolId
   const studentPartnerOrg = job.data.studentPartnerOrg
 
+  logger.info(
+    {
+      sessionId,
+      notificationRound,
+    },
+    `TextVolunteers: Processing round ${notificationRound}`
+  )
+
   const allTextableVolunteers = await getTextableVolunteers()
 
   const eligibleVolunteers = filterSubjectEligibleVolunteers(
@@ -264,7 +272,8 @@ export async function sendTextMessages(
       )
       const carrierMessageId = await TwilioService.sendTextMessage(
         v.phone,
-        content
+        content,
+        session.sessionId
       )
       await SessionService.addSessionSmsNotification(
         session.sessionId,
