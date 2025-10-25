@@ -10,6 +10,7 @@ import {
 import { UserContactInfo } from '../models/User'
 import {
   getVolunteerForScheduleUpdate,
+  VolunteerForScheduleUpdate,
   updateTimezoneByUserId,
 } from '../models/Volunteer'
 import { runInTransaction, TransactionClient } from '../db'

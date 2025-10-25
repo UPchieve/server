@@ -1,12 +1,12 @@
 import { Job } from 'bull'
-import type Redis from 'ioredis'
+import Redis from 'ioredis'
 import { redisClient } from '../../services/RedisService'
 import { createSlackAlert } from '../../services/SlackAlertService'
 import logger from '../../logger'
 
 export async function getMemoryStatsByPattern(
   pattern: string,
-  redisClient: Redis
+  redisClient: Redis.Redis
 ) {
   let totalBytes = 0
   let keyCount = 0
@@ -21,7 +21,7 @@ export async function getMemoryStatsByPattern(
       const sizes = await Promise.all(
         keys.map(
           async (key: string) =>
-            await redisClient.call('MEMORY', ['USAGE', key])
+            await redisClient.send_command('MEMORY', ['USAGE', key])
         )
       )
 
