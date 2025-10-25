@@ -182,8 +182,7 @@ class SocketService {
       return sockets
     } catch (error) {
       logger.error(
-        { error: JSON.stringify(error), roomName },
-        'Failed to fetch sockets.'
+        `Failed to fetch sockets. ${JSON.stringify({ error, roomName })}`
       )
       return []
     }
