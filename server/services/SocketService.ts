@@ -181,9 +181,7 @@ class SocketService {
       const sockets = await backOff(() => this.io.in(roomName).fetchSockets())
       return sockets
     } catch (error) {
-      logger.error(error, 'Failed to fetch sockets.', {
-        roomName,
-      })
+      logger.error({ error, roomName }, 'Failed to fetch sockets.')
       return []
     }
   }
