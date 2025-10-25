@@ -1,4 +1,5 @@
 import { mocked } from 'jest-mock'
+import { ACCOUNT_USER_ACTIONS } from '../../constants'
 import { faker } from '@faker-js/faker'
 
 import * as CalendarCtrl from '../../controllers/CalendarCtrl'
@@ -12,6 +13,7 @@ import {
   buildAvailability,
   getIpAddress,
 } from '../mocks/generate'
+import * as UserActionRepo from '../../models/UserAction'
 import { TransactionClient } from '../../db'
 jest.mock('../../services/VolunteerService')
 jest.mock('../../services/AnalyticsService')

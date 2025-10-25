@@ -1,4 +1,4 @@
-import { Redlock } from '@sesamecare-oss/redlock'
+import Redlock from 'redlock'
 import { ACCOUNT_USER_ACTIONS } from '../constants'
 import logger from '../logger'
 import { Ulid } from '../models/pgUtils'
@@ -112,7 +112,7 @@ async function expiredKeyListener(channel: string, expiredKey: string) {
     const lockKey = `presence-expiry:${expiredKey}`
 
     try {
-      const lock = await redlock.acquire([lockKey], 5000)
+      const lock = await redlock.lock(lockKey, 1000)
 
       try {
         const [_namespace, keyType, userId, clientUUID] = expiredKey.split(':')
@@ -179,7 +179,7 @@ async function expiredKeyListener(channel: string, expiredKey: string) {
           throw Error(`Unhandled ${PRESENCE_KEY_PREFIX} key: ${expiredKey}`)
         }
       } finally {
-        await lock.release()
+        await lock.unlock()
       }
     } catch (error) {
       if (error instanceof Error && error.name === 'LockError') {

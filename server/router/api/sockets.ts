@@ -7,7 +7,7 @@ import { PGStore } from 'connect-pg-simple'
 import session from 'express-session'
 import newrelic from 'newrelic'
 import passport from 'passport'
-import { ResourceLockedError } from '@sesamecare-oss/redlock'
+import { LockError } from 'redlock'
 import { Server, Socket } from 'socket.io'
 import { v4 as uuidv4 } from 'uuid'
 import config from '../../config'
@@ -461,7 +461,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
             delta: doc,
           })
         } catch (error) {
-          if (error instanceof ResourceLockedError) {
+          if (error instanceof LockError) {
             socket.emit('retryLoadingDoc')
           }
           logger.error(error, { sessionId }, 'Failed requesting the quill doc')
