@@ -32,14 +32,23 @@ class SocketService {
   }
 
   async joinSession(socket: Socket, user: UserContactInfo, sessionId: Uuid) {
+    logger.info({ userId: user.id, sessionId }, 'Joining session')
     try {
       await SessionService.ensureCanJoinSession(user, sessionId)
     } catch (error) {
+      logger.error(
+        { userId: user.id, sessionId, error: JSON.stringify(error) },
+        'User cannot join session'
+      )
       delete socket.data.sessionId
       throw error
     }
 
     const sessionRoom = getSessionRoom(sessionId)
+    logger.info(
+      { sessionRoom, sessionId },
+      'Got session room. Joining to the room now.'
+    )
     await socket.join(sessionRoom)
     socket.data.sessionId = sessionId
 
@@ -60,8 +69,16 @@ class SocketService {
     roomName: string,
     hasJoined: boolean
   ) {
+    logger.info(
+      { userId, roomName, hasJoined },
+      'Emitting session presence: Fetching sockets'
+    )
     const sessionSocketIds = await this.getAllSocketIdsInRoom(roomName)
     const userSocketIds = await this.getAllSocketIdsInRoom(userId)
+    logger.info(
+      { userId, roomName, hasJoined, userSocketIds, sessionSocketIds },
+      'Emitting session presence: Got back sockets'
+    )
 
     if (hasJoined) {
       // Emit to self if partner is connected to the session or not.
