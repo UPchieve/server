@@ -44,7 +44,7 @@ class SocketService {
     socket.data.sessionId = sessionId
 
     await this.emitSessionChange(sessionId)
-    await this.emitSessionPresence(user.id, sessionRoom, true)
+    // await this.emitSessionPresence(user.id, sessionRoom, true)
   }
 
   async leaveSession(socket: Socket, user: UserContactInfo, sessionId: Uuid) {
