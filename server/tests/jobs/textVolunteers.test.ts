@@ -601,7 +601,7 @@ describe('TextVolunteers job', () => {
 
     test('should add session notification for each volunteer with message carrier ID', async () => {
       const volunteer1 = buildTextableVolunteer({
-        priorityGroupName: 'Favorited volunteers',
+        priorityGroupName: 'Favorite volunteers',
       })
       const volunteer2 = buildTextableVolunteer({
         priorityGroupName: 'Associated partner volunteers',
@@ -626,7 +626,7 @@ describe('TextVolunteers job', () => {
       ).toHaveBeenCalledWith(
         sessionId,
         volunteer1.id,
-        'Favorited volunteers',
+        'Favorite volunteers',
         'msg-id-a'
       )
       expect(
@@ -844,7 +844,7 @@ describe('TextVolunteers job', () => {
         1,
         sessionId,
         favoritedVol.id,
-        'Favorited volunteers',
+        'Favorite volunteers',
         'msg-id-1'
       )
       expect(
@@ -1481,7 +1481,7 @@ describe('TextVolunteers job', () => {
         1,
         sessionId,
         favoritedVol.id,
-        'Favorited volunteers',
+        'Favorite volunteers',
         'msg-id-1'
       )
       expect(
