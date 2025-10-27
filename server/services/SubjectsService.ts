@@ -2,6 +2,7 @@ import { asFactory, asString } from '../utils/type-utils'
 import * as SubjectsRepo from '../models/Subjects'
 import Case from 'case'
 import { TransactionClient } from '../db'
+import { SUBJECTS } from '../constants'
 
 export type ValidSubjectAndTopicCheck = {
   subject: string
@@ -45,4 +46,10 @@ export async function getSubjectsForTopicByTopicId(
 
 export async function getSubjectsWithTopic() {
   return SubjectsRepo.getSubjectsWithTopic()
+}
+
+export async function getRequiredCertificationsByComputedSubjectUnlock(
+  subject: SUBJECTS
+): Promise<SUBJECTS[] | undefined> {
+  return SubjectsRepo.getRequiredCertificationsByComputedSubjectUnlock(subject)
 }

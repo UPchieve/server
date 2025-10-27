@@ -21,6 +21,7 @@ import {
 } from './types'
 import _ from 'lodash'
 import { asBoolean, asNumber, asString } from '../../utils/type-utils'
+import { SUBJECTS } from '../../constants'
 
 export async function getSubjectAndTopic(
   subject: string,
@@ -202,6 +203,22 @@ export async function getComputedSubjectUnlocks(): Promise<TrainingRowPerTopic> 
     const additionalSubjects = generateTrainingRow(processedSubjectGrouped)
 
     return additionalSubjects
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getRequiredCertificationsByComputedSubjectUnlock(
+  subject: SUBJECTS
+): Promise<SUBJECTS[] | undefined> {
+  try {
+    const results =
+      await pgQueries.getRequiredCertificationsByComputedSubjectUnlock.run(
+        { subject },
+        getClient()
+      )
+    if (results.length)
+      return makeRequired(results[0]).requiredCertifications as SUBJECTS[]
   } catch (err) {
     throw new RepoReadError(err)
   }

@@ -8,6 +8,7 @@ import startsWithVowel from '../../utils/starts-with-vowel'
 import { Ulid, Uuid } from '../../models/pgUtils'
 import { Jobs } from './index'
 import type { TextableVolunteer as TextableVolunteerDbResult } from '../../models/Volunteer'
+import * as SubjectsService from '../../services/SubjectsService'
 import * as AssociatedPartnerService from '../../services/AssociatedPartnerService'
 import * as CacheService from '../../cache'
 import * as FavoritingService from '../../services/FavoritingService'
@@ -80,9 +81,15 @@ export default async function textVolunteers(
 
   const allTextableVolunteers = await getTextableVolunteers()
 
+  const computedSubjectRequirements =
+    await SubjectsService.getRequiredCertificationsByComputedSubjectUnlock(
+      subject
+    )
+
   const eligibleVolunteers = filterSubjectEligibleVolunteers(
     allTextableVolunteers,
-    subject
+    subject,
+    !!computedSubjectRequirements
   )
   const { volunteers: eligiblePartnerVolunteers, studentOrgDisplay } =
     (await filterPartnerVolunteers(
@@ -151,7 +158,8 @@ async function getTextableVolunteers(): Promise<TextableVolunteer[]> {
 // Exported for testing.
 export function filterSubjectEligibleVolunteers(
   volunteers: TextableVolunteer[],
-  subject: SUBJECTS
+  subject: SUBJECTS,
+  allowHighLevelVolunteers = false
 ) {
   const isHighLevelSubject = HIGH_LEVEL_SUBJECTS.has(subject)
 

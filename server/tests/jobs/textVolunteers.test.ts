@@ -157,6 +157,27 @@ describe('TextVolunteers job', () => {
       expect(result).toHaveLength(1)
       expect(result[0].id).toBe(regularVolunteer.id)
     })
+
+    test('returns eligible high-level volunteers for subjects that require HLS to unlock', () => {
+      const subject = SUBJECTS.INTEGRATED_MATH_ONE // requires statistics, a high-level subject
+      const highLevelVolunteer = buildTextableVolunteer({
+        unlockedSubjects: [
+          SUBJECTS.GEOMETRY,
+          SUBJECTS.STATISTICS,
+          SUBJECTS.ALGEBRA_ONE,
+          SUBJECTS.INTEGRATED_MATH_ONE,
+        ],
+      })
+      const subjectIneligibleVolunteer = buildTextableVolunteer({
+        unlockedSubjects: [SUBJECTS.GEOMETRY],
+      })
+      const result = filterSubjectEligibleVolunteers(
+        [highLevelVolunteer, subjectIneligibleVolunteer],
+        subject
+      )
+      expect(result).toHaveLength(1)
+      expect(result[0].id).toBe(highLevelVolunteer.id)
+    })
   })
 
   describe('filterFavoritedVolunteers', () => {
