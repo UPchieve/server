@@ -328,7 +328,7 @@ describe('TextVolunteers job', () => {
 
       const result = await selectVolunteersByPriority(SUBJECTS.ALGEBRA_ONE, [
         {
-          name: PriorityGroupName.FAVORITED,
+          name: PriorityGroupName.FAVORITE,
           volunteers: [favoritedVol1, favoritedVol2, favoritedVol3],
         },
         { name: PriorityGroupName.PARTNER, volunteers: [partnerVol] },
@@ -353,7 +353,7 @@ describe('TextVolunteers job', () => {
       const regularVol = buildTextableVolunteer()
 
       const result = await selectVolunteersByPriority(SUBJECTS.ALGEBRA_ONE, [
-        { name: PriorityGroupName.FAVORITED, volunteers: [favoritedVol] },
+        { name: PriorityGroupName.FAVORITE, volunteers: [favoritedVol] },
         {
           name: PriorityGroupName.PARTNER,
           volunteers: [partnerVol1, partnerVol2],
@@ -374,7 +374,7 @@ describe('TextVolunteers job', () => {
       const regularVol2 = buildTextableVolunteer()
 
       const result = await selectVolunteersByPriority(SUBJECTS.ALGEBRA_ONE, [
-        { name: PriorityGroupName.FAVORITED, volunteers: [favoritedVol] },
+        { name: PriorityGroupName.FAVORITE, volunteers: [favoritedVol] },
         { name: PriorityGroupName.PARTNER, volunteers: [] },
         {
           name: PriorityGroupName.REGULAR,
@@ -396,7 +396,7 @@ describe('TextVolunteers job', () => {
       const vol4 = buildTextableVolunteer()
 
       const result = await selectVolunteersByPriority(SUBJECTS.CALCULUS_AB, [
-        { name: PriorityGroupName.FAVORITED, volunteers: [] },
+        { name: PriorityGroupName.FAVORITE, volunteers: [] },
         { name: PriorityGroupName.PARTNER, volunteers: [] },
         {
           name: PriorityGroupName.REGULAR,
@@ -414,7 +414,7 @@ describe('TextVolunteers job', () => {
       const vol4 = buildTextableVolunteer()
 
       const result = await selectVolunteersByPriority(SUBJECTS.GEOMETRY, [
-        { name: PriorityGroupName.FAVORITED, volunteers: [] },
+        { name: PriorityGroupName.FAVORITE, volunteers: [] },
         { name: PriorityGroupName.PARTNER, volunteers: [] },
         {
           name: PriorityGroupName.REGULAR,
@@ -511,7 +511,7 @@ describe('TextVolunteers job', () => {
       const vol1 = buildTextableVolunteer()
 
       const result = await selectVolunteersByPriority(SUBJECTS.ALGEBRA_ONE, [
-        { name: PriorityGroupName.FAVORITED, volunteers: [] },
+        { name: PriorityGroupName.FAVORITE, volunteers: [] },
         { name: PriorityGroupName.PARTNER, volunteers: [] },
         { name: PriorityGroupName.REGULAR, volunteers: [vol1] },
       ])
@@ -522,7 +522,7 @@ describe('TextVolunteers job', () => {
 
     test('should return empty array when no volunteers available', async () => {
       const result = await selectVolunteersByPriority(SUBJECTS.ALGEBRA_ONE, [
-        { name: PriorityGroupName.FAVORITED, volunteers: [] },
+        { name: PriorityGroupName.FAVORITE, volunteers: [] },
         { name: PriorityGroupName.PARTNER, volunteers: [] },
         { name: PriorityGroupName.REGULAR, volunteers: [] },
       ])
@@ -537,7 +537,7 @@ describe('TextVolunteers job', () => {
       const regularVol2 = buildTextableVolunteer()
 
       const result = await selectVolunteersByPriority(SUBJECTS.CALCULUS_AB, [
-        { name: PriorityGroupName.FAVORITED, volunteers: [favoritedVol] },
+        { name: PriorityGroupName.FAVORITE, volunteers: [favoritedVol] },
         { name: PriorityGroupName.PARTNER, volunteers: [partnerVol] },
         {
           name: PriorityGroupName.REGULAR,
@@ -557,7 +557,7 @@ describe('TextVolunteers job', () => {
       const partnerVol = buildTextableVolunteer()
 
       const result = await selectVolunteersByPriority(SUBJECTS.ALGEBRA_ONE, [
-        { name: PriorityGroupName.FAVORITED, volunteers: [] },
+        { name: PriorityGroupName.FAVORITE, volunteers: [] },
         { name: PriorityGroupName.PARTNER, volunteers: [partnerVol] },
         { name: PriorityGroupName.REGULAR, volunteers: [partnerVol] },
       ])
@@ -589,17 +589,19 @@ describe('TextVolunteers job', () => {
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledTimes(2)
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
         volunteer1.phone,
-        expect.stringContaining('Hi Alice')
+        expect.stringContaining('Hi Alice'),
+        expect.any(String)
       )
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
         volunteer2.phone,
-        expect.stringContaining('Hi Bob')
+        expect.stringContaining('Hi Bob'),
+        expect.any(String)
       )
     })
 
     test('should add session notification for each volunteer with message carrier ID', async () => {
       const volunteer1 = buildTextableVolunteer({
-        priorityGroupName: 'Favorited volunteers',
+        priorityGroupName: 'Favorite volunteers',
       })
       const volunteer2 = buildTextableVolunteer({
         priorityGroupName: 'Associated partner volunteers',
@@ -624,7 +626,7 @@ describe('TextVolunteers job', () => {
       ).toHaveBeenCalledWith(
         sessionId,
         volunteer1.id,
-        'Favorited volunteers',
+        'Favorite volunteers',
         'msg-id-a'
       )
       expect(
@@ -658,11 +660,13 @@ describe('TextVolunteers job', () => {
 
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
         volunteer.phone,
-        expect.stringContaining('Hi Persephone')
+        expect.stringContaining('Hi Persephone'),
+        expect.any(String)
       )
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
         volunteer.phone,
-        expect.stringContaining('an Example School student needs help')
+        expect.stringContaining('an Example School student needs help'),
+        expect.any(String)
       )
     })
 
@@ -682,11 +686,13 @@ describe('TextVolunteers job', () => {
 
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
         volunteer.phone,
-        expect.stringContaining('a student needs help')
+        expect.stringContaining('a student needs help'),
+        expect.any(String)
       )
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
         volunteer.phone,
-        expect.stringContaining('Hi Hades')
+        expect.stringContaining('Hi Hades'),
+        expect.any(String)
       )
     })
 
@@ -711,11 +717,13 @@ describe('TextVolunteers job', () => {
 
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
         volunteer.phone,
-        expect.stringContaining('Hi Hercules')
+        expect.stringContaining('Hi Hercules'),
+        expect.any(String)
       )
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
         volunteer.phone,
-        expect.stringContaining('an Awesome School student')
+        expect.stringContaining('an Awesome School student'),
+        expect.any(String)
       )
     })
 
@@ -739,6 +747,29 @@ describe('TextVolunteers job', () => {
   })
 
   describe('textVolunteers', () => {
+    test('should early exit when the session is already fulfilled', async () => {
+      mockedSessionService.isSessionFulfilled.mockResolvedValueOnce(true)
+
+      const job = {
+        data: {
+          sessionId: getDbUlid(),
+          subject: SUBJECTS.ALGEBRA_ONE,
+          subjectDisplayName: 'Algebra 1',
+          topic: SUBJECT_TYPES.MATH,
+          studentId: getDbUlid(),
+        },
+      }
+      await textVolunteers(job as Job)
+
+      expect(mockedLogger.info).toHaveBeenCalledWith(
+        {
+          sessionId: job.data.sessionId,
+        },
+        'Session fulfilled.'
+      )
+      expect(mockedCacheService.getIfExists).not.toHaveBeenCalled()
+    })
+
     test('should prioritize favorited volunteers over partner and regular volunteers', async () => {
       const studentId = getDbUlid()
       const favoritedVol = buildTextableVolunteer({
@@ -788,17 +819,20 @@ describe('TextVolunteers job', () => {
       expect(mockedTwilioService.sendTextMessage).toHaveBeenNthCalledWith(
         1,
         favoritedVol.phone,
-        expect.stringContaining(favoritedVol.firstName)
+        expect.stringContaining(favoritedVol.firstName),
+        expect.any(String)
       )
       expect(mockedTwilioService.sendTextMessage).toHaveBeenNthCalledWith(
         2,
         partnerVol.phone,
-        expect.stringContaining(partnerVol.firstName)
+        expect.stringContaining(partnerVol.firstName),
+        expect.any(String)
       )
       expect(mockedTwilioService.sendTextMessage).toHaveBeenNthCalledWith(
         2,
         partnerVol.phone,
-        expect.stringContaining('Example School')
+        expect.stringContaining('Example School'),
+        expect.any(String)
       )
 
       expect(
@@ -810,7 +844,7 @@ describe('TextVolunteers job', () => {
         1,
         sessionId,
         favoritedVol.id,
-        'Favorited volunteers',
+        'Favorite volunteers',
         'msg-id-1'
       )
       expect(
@@ -856,7 +890,8 @@ describe('TextVolunteers job', () => {
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledTimes(1)
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
         algebraVol.phone,
-        expect.stringContaining(algebraVol.firstName)
+        expect.stringContaining(algebraVol.firstName),
+        expect.any(String)
       )
 
       expect(
@@ -906,15 +941,18 @@ describe('TextVolunteers job', () => {
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledTimes(2)
       expect(mockedTwilioService.sendTextMessage).not.toHaveBeenCalledWith(
         highLevelVol.phone,
-        expect.anything()
+        expect.anything(),
+        expect.any(String)
       )
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
         regularVol1.phone,
-        expect.stringContaining(regularVol1.firstName)
+        expect.stringContaining(regularVol1.firstName),
+        expect.any(String)
       )
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
         regularVol2.phone,
-        expect.stringContaining(regularVol2.firstName)
+        expect.stringContaining(regularVol2.firstName),
+        expect.any(String)
       )
       expect(
         mockedSessionService.addSessionSmsNotification
@@ -972,15 +1010,18 @@ describe('TextVolunteers job', () => {
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledTimes(2)
       expect(mockedTwilioService.sendTextMessage).not.toHaveBeenCalledWith(
         mutedVol.phone,
-        expect.anything()
+        expect.anything(),
+        expect.any(String)
       )
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
         availableVol1.phone,
-        expect.stringContaining(availableVol1.firstName)
+        expect.stringContaining(availableVol1.firstName),
+        expect.any(String)
       )
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
         availableVol2.phone,
-        expect.stringContaining(availableVol2.firstName)
+        expect.stringContaining(availableVol2.firstName),
+        expect.any(String)
       )
 
       expect(
@@ -1045,15 +1086,18 @@ describe('TextVolunteers job', () => {
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledTimes(2)
       expect(mockedTwilioService.sendTextMessage).not.toHaveBeenCalledWith(
         busyVol.phone,
-        expect.anything()
+        expect.anything(),
+        expect.any(String)
       )
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
         availableVol1.phone,
-        expect.stringContaining(availableVol1.firstName)
+        expect.stringContaining(availableVol1.firstName),
+        expect.any(String)
       )
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
         availableVol2.phone,
-        expect.stringContaining(availableVol2.firstName)
+        expect.stringContaining(availableVol2.firstName),
+        expect.any(String)
       )
 
       expect(
@@ -1113,15 +1157,18 @@ describe('TextVolunteers job', () => {
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledTimes(2)
       expect(mockedTwilioService.sendTextMessage).not.toHaveBeenCalledWith(
         recentlyTextedVol.phone,
-        expect.anything()
+        expect.anything(),
+        expect.any(String)
       )
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
         availableVol1.phone,
-        expect.stringContaining(availableVol1.firstName)
+        expect.stringContaining(availableVol1.firstName),
+        expect.any(String)
       )
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
         availableVol2.phone,
-        expect.stringContaining(availableVol2.firstName)
+        expect.stringContaining(availableVol2.firstName),
+        expect.any(String)
       )
 
       expect(
@@ -1219,15 +1266,18 @@ describe('TextVolunteers job', () => {
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledTimes(1)
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
         volunteer.phone,
-        expect.stringContaining(volunteer.firstName)
+        expect.stringContaining(volunteer.firstName),
+        expect.any(String)
       )
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
         volunteer.phone,
-        expect.stringContaining('Example School student')
+        expect.stringContaining('Example School student'),
+        expect.any(String)
       )
       expect(mockedTwilioService.sendTextMessage).not.toHaveBeenCalledWith(
         volunteer.phone,
-        expect.stringContaining('a student needs help')
+        expect.stringContaining('a student needs help'),
+        expect.any(String)
       )
 
       expect(
@@ -1267,11 +1317,13 @@ describe('TextVolunteers job', () => {
 
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
         volunteer.phone,
-        expect.stringContaining(volunteer.firstName)
+        expect.stringContaining(volunteer.firstName),
+        expect.any(String)
       )
       expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
         volunteer.phone,
-        expect.stringContaining('a student needs help')
+        expect.stringContaining('a student needs help'),
+        expect.any(String)
       )
 
       expect(
@@ -1387,27 +1439,32 @@ describe('TextVolunteers job', () => {
       expect(mockedTwilioService.sendTextMessage).toHaveBeenNthCalledWith(
         1,
         favoritedVol.phone,
-        expect.stringContaining(favoritedVol.firstName)
+        expect.stringContaining(favoritedVol.firstName),
+        expect.any(String)
       )
       expect(mockedTwilioService.sendTextMessage).toHaveBeenNthCalledWith(
         1,
         favoritedVol.phone,
-        expect.stringContaining('a student needs help')
+        expect.stringContaining('a student needs help'),
+        expect.any(String)
       )
       expect(mockedTwilioService.sendTextMessage).not.toHaveBeenNthCalledWith(
         1,
         favoritedVol.phone,
-        expect.stringContaining('Example School student')
+        expect.stringContaining('Example School student'),
+        expect.any(String)
       )
       expect(mockedTwilioService.sendTextMessage).toHaveBeenNthCalledWith(
         2,
         partnerVol.phone,
-        expect.stringContaining(partnerVol.firstName)
+        expect.stringContaining(partnerVol.firstName),
+        expect.any(String)
       )
       expect(mockedTwilioService.sendTextMessage).toHaveBeenNthCalledWith(
         2,
         partnerVol.phone,
-        expect.stringContaining('Example School student')
+        expect.stringContaining('Example School student'),
+        expect.any(String)
       )
       expect(mockedTwilioService.sendTextMessage).not.toHaveBeenNthCalledWith(
         2,
@@ -1424,7 +1481,7 @@ describe('TextVolunteers job', () => {
         1,
         sessionId,
         favoritedVol.id,
-        'Favorited volunteers',
+        'Favorite volunteers',
         'msg-id-1'
       )
       expect(

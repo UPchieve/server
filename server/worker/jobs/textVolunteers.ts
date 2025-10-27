@@ -39,7 +39,8 @@ export type TextVolunteersJobData = {
   studentPartnerOrg?: string
 }
 export enum PriorityGroupName {
-  FAVORITED = 'Favorited volunteers',
+  // These strings need to match the notification_priority_groups in the DB exactly
+  FAVORITE = 'Favorite volunteers',
   PARTNER = 'Associated partner volunteers',
   REGULAR = 'Regular volunteers',
 }
@@ -63,6 +64,20 @@ export default async function textVolunteers(
   const schoolId = job.data.schoolId
   const studentPartnerOrg = job.data.studentPartnerOrg
 
+  logger.info(
+    {
+      sessionId,
+      notificationRound,
+    },
+    `TextVolunteers: Processing round ${notificationRound}`
+  )
+
+  const isSessionFulfilled = await SessionService.isSessionFulfilled(sessionId)
+  if (isSessionFulfilled) {
+    logger.info({ sessionId }, 'Session fulfilled.')
+    return
+  }
+
   const allTextableVolunteers = await getTextableVolunteers()
 
   const eligibleVolunteers = filterSubjectEligibleVolunteers(
@@ -82,7 +97,7 @@ export default async function textVolunteers(
 
   const selectedTutors = await selectVolunteersByPriority(subject, [
     {
-      name: PriorityGroupName.FAVORITED,
+      name: PriorityGroupName.FAVORITE,
       volunteers: eligibleFavoritedVolunteers,
     },
     {
@@ -264,7 +279,8 @@ export async function sendTextMessages(
       )
       const carrierMessageId = await TwilioService.sendTextMessage(
         v.phone,
-        content
+        content,
+        session.sessionId
       )
       await SessionService.addSessionSmsNotification(
         session.sessionId,

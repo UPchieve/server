@@ -715,6 +715,14 @@ describe('VolunteerRepo', () => {
       // Partner volunteer
       expect(actual[1].unlockedSubjects).toEqual(['prealgebra'])
       expect(actual[1].volunteerPartnerOrgKey).toEqual(TEST_VPO_KEY)
+
+      // Now remove the phone number for one of the volunteers and make sure they are no longer returned
+      // in the query results
+      await client.query('UPDATE users SET phone = NULL WHERE id = ANY ($1)', [
+        [eligibleVolunteer.id, eligiblePartnerVolunteer.id],
+      ])
+      const newResults = await getVolunteersForTextNotifications()
+      expect(newResults.length).toEqual(0)
     })
 
     // @TODO: This test could technically be flaky if it runs on the cusp of an hour. There might be a way we could mock the time in postgres.

@@ -1688,6 +1688,7 @@ WHERE (u.ban_type IS NULL
         AND u.ban_type <> 'shadow'::ban_types))
 AND u.deactivated IS FALSE
 AND u.deleted IS FALSE
+AND u.phone IS NOT NULL
 AND u.sms_consent IS TRUE
 AND u.test_user IS FALSE
 AND vp.onboarded IS TRUE

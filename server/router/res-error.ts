@@ -56,7 +56,7 @@ export function resError(
       err: message || err.message,
     })
   } else {
-    logger.error(`Unexpected non-error type thrown: ${err as any}`)
+    logger.error(err, 'Unexpected non-error type thrown')
     res.status(500)
   }
 }
