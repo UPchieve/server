@@ -84,6 +84,10 @@ class CacheKeys {
     )
   }
 
+  static isKeyExpiration(channel: string) {
+    return channel === EXPIRED_KEY_CHANNEL
+  }
+
   static key(userId: string, clientUUID: string, keyType: CACHE_KEY_TYPE) {
     return `${PRESENCE_KEY_PREFIX}:${keyType}:${userId}:${clientUUID}`
   }
@@ -108,15 +112,16 @@ class CacheKeys {
 const redlock = new Redlock([redisClient], { retryCount: 0 })
 redisSubClient.on('message', expiredKeyListener)
 async function expiredKeyListener(channel: string, expiredKey: string) {
+  if (CacheKeys.isKeyExpiration(channel)) {
+    logger.warn({ expiredKey }, 'Cache key expired.')
+  }
+
   if (CacheKeys.isPresenceNamespace(channel, expiredKey)) {
     const lockKey = `presence-expiry:${expiredKey}`
+    const [_namespace, keyType, userId, clientUUID] = expiredKey.split(':')
 
     try {
-      const lock = await redlock.acquire([lockKey], 5000)
-
-      try {
-        const [_namespace, keyType, userId, clientUUID] = expiredKey.split(':')
-
+      await redlock.using([lockKey], 5000, async (signal) => {
         if (CacheKeys.isActiveTimeout(keyType)) {
           await UserActionService.createAccountAction({
             action: ACCOUNT_USER_ACTIONS.PASSIVE_ON_SITE,
@@ -178,9 +183,7 @@ async function expiredKeyListener(channel: string, expiredKey: string) {
         } else {
           throw Error(`Unhandled ${PRESENCE_KEY_PREFIX} key: ${expiredKey}`)
         }
-      } finally {
-        await lock.release()
-      }
+      })
     } catch (error) {
       if (error instanceof Error && error.name === 'LockError') {
         logger.info(
@@ -189,9 +192,8 @@ async function expiredKeyListener(channel: string, expiredKey: string) {
         )
       } else {
         logger.error(
-          { error, expiredKey },
-
-          'Error processing presence expiration'
+          { error, expiredKey, userId },
+          'Error processing presence expiration.'
         )
       }
     }
