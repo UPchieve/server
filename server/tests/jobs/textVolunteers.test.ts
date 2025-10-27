@@ -328,7 +328,7 @@ describe('TextVolunteers job', () => {
 
       const result = await selectVolunteersByPriority(SUBJECTS.ALGEBRA_ONE, [
         {
-          name: PriorityGroupName.FAVORITED,
+          name: PriorityGroupName.FAVORITE,
           volunteers: [favoritedVol1, favoritedVol2, favoritedVol3],
         },
         { name: PriorityGroupName.PARTNER, volunteers: [partnerVol] },
@@ -353,7 +353,7 @@ describe('TextVolunteers job', () => {
       const regularVol = buildTextableVolunteer()
 
       const result = await selectVolunteersByPriority(SUBJECTS.ALGEBRA_ONE, [
-        { name: PriorityGroupName.FAVORITED, volunteers: [favoritedVol] },
+        { name: PriorityGroupName.FAVORITE, volunteers: [favoritedVol] },
         {
           name: PriorityGroupName.PARTNER,
           volunteers: [partnerVol1, partnerVol2],
@@ -374,7 +374,7 @@ describe('TextVolunteers job', () => {
       const regularVol2 = buildTextableVolunteer()
 
       const result = await selectVolunteersByPriority(SUBJECTS.ALGEBRA_ONE, [
-        { name: PriorityGroupName.FAVORITED, volunteers: [favoritedVol] },
+        { name: PriorityGroupName.FAVORITE, volunteers: [favoritedVol] },
         { name: PriorityGroupName.PARTNER, volunteers: [] },
         {
           name: PriorityGroupName.REGULAR,
@@ -396,7 +396,7 @@ describe('TextVolunteers job', () => {
       const vol4 = buildTextableVolunteer()
 
       const result = await selectVolunteersByPriority(SUBJECTS.CALCULUS_AB, [
-        { name: PriorityGroupName.FAVORITED, volunteers: [] },
+        { name: PriorityGroupName.FAVORITE, volunteers: [] },
         { name: PriorityGroupName.PARTNER, volunteers: [] },
         {
           name: PriorityGroupName.REGULAR,
@@ -414,7 +414,7 @@ describe('TextVolunteers job', () => {
       const vol4 = buildTextableVolunteer()
 
       const result = await selectVolunteersByPriority(SUBJECTS.GEOMETRY, [
-        { name: PriorityGroupName.FAVORITED, volunteers: [] },
+        { name: PriorityGroupName.FAVORITE, volunteers: [] },
         { name: PriorityGroupName.PARTNER, volunteers: [] },
         {
           name: PriorityGroupName.REGULAR,
@@ -511,7 +511,7 @@ describe('TextVolunteers job', () => {
       const vol1 = buildTextableVolunteer()
 
       const result = await selectVolunteersByPriority(SUBJECTS.ALGEBRA_ONE, [
-        { name: PriorityGroupName.FAVORITED, volunteers: [] },
+        { name: PriorityGroupName.FAVORITE, volunteers: [] },
         { name: PriorityGroupName.PARTNER, volunteers: [] },
         { name: PriorityGroupName.REGULAR, volunteers: [vol1] },
       ])
@@ -522,7 +522,7 @@ describe('TextVolunteers job', () => {
 
     test('should return empty array when no volunteers available', async () => {
       const result = await selectVolunteersByPriority(SUBJECTS.ALGEBRA_ONE, [
-        { name: PriorityGroupName.FAVORITED, volunteers: [] },
+        { name: PriorityGroupName.FAVORITE, volunteers: [] },
         { name: PriorityGroupName.PARTNER, volunteers: [] },
         { name: PriorityGroupName.REGULAR, volunteers: [] },
       ])
@@ -537,7 +537,7 @@ describe('TextVolunteers job', () => {
       const regularVol2 = buildTextableVolunteer()
 
       const result = await selectVolunteersByPriority(SUBJECTS.CALCULUS_AB, [
-        { name: PriorityGroupName.FAVORITED, volunteers: [favoritedVol] },
+        { name: PriorityGroupName.FAVORITE, volunteers: [favoritedVol] },
         { name: PriorityGroupName.PARTNER, volunteers: [partnerVol] },
         {
           name: PriorityGroupName.REGULAR,
@@ -557,7 +557,7 @@ describe('TextVolunteers job', () => {
       const partnerVol = buildTextableVolunteer()
 
       const result = await selectVolunteersByPriority(SUBJECTS.ALGEBRA_ONE, [
-        { name: PriorityGroupName.FAVORITED, volunteers: [] },
+        { name: PriorityGroupName.FAVORITE, volunteers: [] },
         { name: PriorityGroupName.PARTNER, volunteers: [partnerVol] },
         { name: PriorityGroupName.REGULAR, volunteers: [partnerVol] },
       ])
@@ -601,7 +601,7 @@ describe('TextVolunteers job', () => {
 
     test('should add session notification for each volunteer with message carrier ID', async () => {
       const volunteer1 = buildTextableVolunteer({
-        priorityGroupName: 'Favorited volunteers',
+        priorityGroupName: 'Favorite volunteers',
       })
       const volunteer2 = buildTextableVolunteer({
         priorityGroupName: 'Associated partner volunteers',
@@ -626,7 +626,7 @@ describe('TextVolunteers job', () => {
       ).toHaveBeenCalledWith(
         sessionId,
         volunteer1.id,
-        'Favorited volunteers',
+        'Favorite volunteers',
         'msg-id-a'
       )
       expect(
@@ -844,7 +844,7 @@ describe('TextVolunteers job', () => {
         1,
         sessionId,
         favoritedVol.id,
-        'Favorited volunteers',
+        'Favorite volunteers',
         'msg-id-1'
       )
       expect(
@@ -1481,7 +1481,7 @@ describe('TextVolunteers job', () => {
         1,
         sessionId,
         favoritedVol.id,
-        'Favorited volunteers',
+        'Favorite volunteers',
         'msg-id-1'
       )
       expect(
