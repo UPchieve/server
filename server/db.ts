@@ -14,7 +14,7 @@ export function buildClient(): Pool {
     database: config.postgresDatabase,
     ssl: config.postgresRequireSSL ? { rejectUnauthorized: false } : false,
     //Lowering connection pool to not flood pgbouncer with idle connections
-    max: 5,
+    max: 10,
   })
 }
 
@@ -28,7 +28,7 @@ export function buildReadOnlyClient(): Pool {
     database: config.postgresRoDatabase,
     ssl: config.postgresRequireSSL ? { rejectUnauthorized: false } : false,
     //Lowering connection pool to not flood pgbouncer with idle connections
-    max: 5,
+    max: 10,
   })
 }
 
