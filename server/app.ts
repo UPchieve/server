@@ -60,7 +60,7 @@ app.use(
   }) as express.RequestHandler
 )
 
-app.use(timeout('300000'))
+app.use(timeout(config.requestTimeout))
 
 /**
  * Account for our proxies when getting the client's IP address.

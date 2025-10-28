@@ -30,6 +30,7 @@ const config: Static<typeof Config> = {
   sessionCookieMaxAge: parseInt(
     process.env.SUBWAY_SESSION_COOKIE_MAX_AGE || '5184000000'
   ),
+  requestTimeout: process.env.REQUEST_TIMEOUT || '30000',
   saltRounds: 10,
   smtp: {
     host: process.env.SUBWAY_SMTP_HOST || 'smtp.mailtrap.io',

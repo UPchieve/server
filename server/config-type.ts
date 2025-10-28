@@ -10,6 +10,7 @@ export const Config = Record({
   sessionSecret: String,
   sessionCookieMaxAge: Number,
   saltRounds: Number,
+  requestTimeout: String,
   smtp: Record({
     host: String,
     port: Number,
