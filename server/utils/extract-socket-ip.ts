@@ -5,7 +5,7 @@ import { Socket } from 'socket.io'
  * by using the CF-Connecting-IP header set by Cloudflare, which contains
  * the actual client IP address.
  *
- * The `socket.handshake.address` property cannot be used to get the client
+ * The `socket handshake address` property cannot be used to get the client
  * IP address because does not reliably return that IP, and instead
  * sometimes returns the IP of the last proxy (potentially depending on
  * which transport, websockets or polling, is used - more investigation
