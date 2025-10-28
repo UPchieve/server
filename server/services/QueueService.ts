@@ -48,7 +48,7 @@ export type AddJobOptions = JobOptions
 export async function add(job: Jobs, data?: any, options?: AddJobOptions) {
   await queue.add(job, data, {
     removeOnFail: false,
-    removeOnComplete: true,
+    removeOnComplete: false,
     ...(options ?? {}),
   })
 }
