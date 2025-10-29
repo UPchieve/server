@@ -25,16 +25,6 @@ import { fetchOrCreateRateLimit } from './services/TwilioService'
 import { isDevEnvironment } from './utils/environments'
 import { Server as Engine } from 'engine.io'
 
-function skipMiddlewareIfPathIncludes(pathFragment, middleware) {
-  return function (req, res, next) {
-    if (req.url.includes(pathFragment)) {
-      return next()
-    } else {
-      return middleware(req, res, next)
-    }
-  }
-}
-
 function haltOnTimedout(req: Request, res: Response, next: NextFunction) {
   if (!req.timedout) {
     next()
@@ -80,9 +70,7 @@ app.use(
   }) as express.RequestHandler
 )
 
-app.use(
-  skipMiddlewareIfPathIncludes('websocket', timeout(config.requestTimeout))
-)
+app.use(timeout(config.requestTimeout))
 
 /**
  * Account for our proxies when getting the client's IP address.
@@ -122,7 +110,7 @@ app.use(
     noCache: true,
   })
 )
-
+app.use(haltOnTimedout)
 // see https://stackoverflow.com/questions/51023943/nodejs-getting-username-of-logged-in-user-within-route
 app.use((req, res, next) => {
   res.locals.user = req.user || null
@@ -168,10 +156,12 @@ server.on('upgrade', (request, socket, head) => {
 })
 // Load server router
 router(app, io)
+
 // Halt any requests that have timed out
 app.use(haltOnTimedout)
-// Send error responses to API requests after they are passed to Sentry
+// Send error responses to requests after logging
 app.use(defaultErrorHandler)
+
 fetchOrCreateRateLimit()
   .then(() => {
     logger.info('Successfully loaded Twilio rate limit')
