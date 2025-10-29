@@ -1,4 +1,4 @@
-import { JobOptions as BullJobOptions, JobStatusClean } from 'bull'
+import { JobOptions as BullJobOptions } from 'bull'
 import logger from '../../logger'
 import { Jobs } from '.'
 import * as QueueService from '../../services/QueueService'
