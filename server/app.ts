@@ -26,20 +26,30 @@ import { isDevEnvironment } from './utils/environments'
 import { Server as Engine } from 'engine.io'
 
 function haltOnTimedout(req: Request, res: Response, next: NextFunction) {
-  if (!req.timedout) next()
-  else {
-    logger.error(
-      {
-        reqId: req.id,
-        userId: req.user?.id,
-        method: req.method,
-        path: req.path,
-        url: req.url,
-        originalUrl: req.originalUrl,
-      },
-      'Request timed out'
-    )
+  if (!req.timedout) {
+    next()
   }
+}
+
+function defaultErrorHandler(
+  err: any,
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  logger.error(
+    {
+      reqId: req.id,
+      userId: req.user?.id,
+      method: req.method,
+      path: req.path,
+      url: req.url,
+      originalUrl: req.originalUrl,
+    },
+    err.message ?? 'An error occurred'
+  )
+  res.status(err.httpStatus || 500).json({ err: err.message || err })
+  next()
 }
 
 // Express App
@@ -147,27 +157,10 @@ server.on('upgrade', (request, socket, head) => {
 // Load server router
 router(app, io)
 
+// Halt any requests that have timed out
 app.use(haltOnTimedout)
-
-function defaultErrorHandler(
-  err: any,
-  req: Request,
-  res: Response,
-  next: NextFunction
-) {
-  logger.error(err)
-  res.status(err.httpStatus || 500).json({ err: err.message || err })
-  next()
-}
-
-// Send error responses to API requests after they are passed to Sentry
-app.use(
-  ['/api', '/auth', '/contact', '/school', '/twiml', '/whiteboard'],
-  defaultErrorHandler,
-  haltOnTimedout
-)
-
-app.use(haltOnTimedout)
+// Send error responses to requests after logging
+app.use(defaultErrorHandler)
 
 fetchOrCreateRateLimit()
   .then(() => {

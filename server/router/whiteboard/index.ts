@@ -294,7 +294,7 @@ export function routes(app: Express): void {
     next()
   })
 
-  wsRouter.ws('/admin/:sessionId', async function (wsClient, req) {
+  wsRouter.ws('/admin/:sessionId', async function (wsClient, req, next) {
     const sessionId = asUlid(req.params.sessionId)
     try {
       let document: string | undefined
@@ -316,10 +316,12 @@ export function routes(app: Express): void {
     } catch (error) {
       if (!(error instanceof KeyNotFoundError))
         return sendErrorDocument(wsClient, error as Error)
+    } finally {
+      next()
     }
   })
 
-  wsRouter.ws('/recap/:sessionId', async function (wsClient, req) {
+  wsRouter.ws('/recap/:sessionId', async function (wsClient, req, next) {
     const sessionId = asUlid(req.params.sessionId)
     try {
       const document = await WhiteboardService.getDocFromStorage(sessionId)
@@ -333,6 +335,8 @@ export function routes(app: Express): void {
       )
     } catch (error) {
       return sendErrorDocument(wsClient, error as Error)
+    } finally {
+      next()
     }
   })
 
