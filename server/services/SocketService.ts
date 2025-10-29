@@ -180,7 +180,7 @@ class SocketService {
     this.io
       .to(getSessionRoom(sessionId))
       .except(currentUserId)
-      .emit('potential-partner-moderation-infraction', data)
+      .emit('potentialPartnerModerationInfraction', data)
   }
 
   // TODO: Remove once no longer have legacy mobile app.
