@@ -25,6 +25,16 @@ import { fetchOrCreateRateLimit } from './services/TwilioService'
 import { isDevEnvironment } from './utils/environments'
 import { Server as Engine } from 'engine.io'
 
+function skipMiddlewareIfPathIncludes(pathFragment, middleware) {
+  return function (req, res, next) {
+    if (req.url.includes(pathFragment)) {
+      return next()
+    } else {
+      return middleware(req, res, next)
+    }
+  }
+}
+
 function haltOnTimedout(req: Request, res: Response, next: NextFunction) {
   if (!req.timedout) {
     next()
@@ -37,33 +47,18 @@ function defaultErrorHandler(
   res: Response,
   next: NextFunction
 ) {
-  if (req.timedout && req.path.includes('websocket')) {
-    logger.warn(
-      {
-        reqId: req.id,
-        userId: req.user?.id,
-        method: req.method,
-        path: req.path,
-        url: req.url,
-        originalUrl: req.originalUrl,
-      },
-      'Websocket Request timed out'
-    )
-    res.status(err.httpStatus || 500).json({ err: err.message || err })
-  } else {
-    logger.error(
-      {
-        reqId: req.id,
-        userId: req.user?.id,
-        method: req.method,
-        path: req.path,
-        url: req.url,
-        originalUrl: req.originalUrl,
-      },
-      err.message ?? 'An error occurred'
-    )
-    res.status(err.httpStatus || 500).json({ err: err.message || err })
-  }
+  logger.error(
+    {
+      reqId: req.id,
+      userId: req.user?.id,
+      method: req.method,
+      path: req.path,
+      url: req.url,
+      originalUrl: req.originalUrl,
+    },
+    err.message ?? 'An error occurred'
+  )
+  res.status(err.httpStatus || 500).json({ err: err.message || err })
   next()
 }
 
@@ -85,7 +80,9 @@ app.use(
   }) as express.RequestHandler
 )
 
-app.use(timeout(config.requestTimeout))
+app.use(
+  skipMiddlewareIfPathIncludes('websocket', timeout(config.requestTimeout))
+)
 
 /**
  * Account for our proxies when getting the client's IP address.
@@ -171,11 +168,10 @@ server.on('upgrade', (request, socket, head) => {
 })
 // Load server router
 router(app, io)
-
 // Halt any requests that have timed out
 app.use(haltOnTimedout)
 // Send error responses to API requests after they are passed to Sentry
-app.use(defaultErrorHandler, haltOnTimedout)
+app.use(defaultErrorHandler)
 fetchOrCreateRateLimit()
   .then(() => {
     logger.info('Successfully loaded Twilio rate limit')
