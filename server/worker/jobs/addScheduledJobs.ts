@@ -1,4 +1,4 @@
-import { JobOptions as BullJobOptions } from 'bull'
+import { JobOptions as BullJobOptions, JobStatusClean } from 'bull'
 import logger from '../../logger'
 import { Jobs } from '.'
 import * as QueueService from '../../services/QueueService'
@@ -70,6 +70,11 @@ export default async function addScheduledJobs() {
     {
       name: Jobs.UpdateCachedVolunteersForTextNotifications,
       options: { repeat: { cron: '0 * * * *', tz: 'America/New_York' } }, // Every hour at minute 0
+    },
+    {
+      name: Jobs.ClearBullJobsByStatus,
+      data: { statuses: ['completed', 'failed'], timeOffsetInMs: 0 },
+      options: { repeat: { cron: '0 6 * * *', tz: 'America/New_York' } }, // each day at 6am
     },
   ]
 
