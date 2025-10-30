@@ -71,6 +71,11 @@ export default async function addScheduledJobs() {
       name: Jobs.UpdateCachedVolunteersForTextNotifications,
       options: { repeat: { cron: '0 * * * *', tz: 'America/New_York' } }, // Every hour at minute 0
     },
+    {
+      name: Jobs.ClearBullJobsByStatus,
+      data: { statuses: ['completed', 'failed'], timeOffsetInMs: 0 },
+      options: { repeat: { cron: '0 6 * * *', tz: 'America/New_York' } }, // each day at 6am
+    },
   ]
 
   const repeatableJobs = await QueueService.queue.getRepeatableJobs()

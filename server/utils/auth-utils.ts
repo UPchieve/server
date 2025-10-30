@@ -417,7 +417,10 @@ function setupPassport() {
   passport.deserializeUser(async function (id: Ulid, done: Function) {
     try {
       const user = await getUserContactInfo(id)
-      if (!user) throw new Error('User not found for authenticated session')
+      if (!user)
+        throw new Error(
+          `User with id ${id} not found for authenticated session.`
+        )
       return done(null, user)
     } catch (error) {
       return done(error)
