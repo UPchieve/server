@@ -1,6 +1,3 @@
--- Dumped from database version 14.15 (Debian 14.15-1.pgdg120+1)
--- Dumped by pg_dump version 14.19 (Homebrew)
-
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -4671,6 +4668,13 @@ CREATE INDEX "IDX_email_domain_blocklist_domain" ON upchieve.email_domain_blockl
 
 
 --
+-- Name: avail_user_id_idx; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX avail_user_id_idx ON upchieve.availabilities USING btree (user_id);
+
+
+--
 -- Name: availabilities_weekday_id_idx; Type: INDEX; Schema: upchieve; Owner: -
 --
 
@@ -4696,6 +4700,20 @@ CREATE INDEX censored_messages_sent_at ON upchieve.censored_session_messages USI
 --
 
 CREATE INDEX censored_messages_session_id ON upchieve.censored_session_messages USING btree (session_id);
+
+
+--
+-- Name: cgl_user_id_idx; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX cgl_user_id_idx ON upchieve.current_grade_levels_mview USING btree (user_id);
+
+
+--
+-- Name: fed_creds_user_id_idx; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX fed_creds_user_id_idx ON upchieve.federated_credentials USING btree (user_id);
 
 
 --
@@ -6647,4 +6665,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20251008134946'),
     ('20251009150451'),
     ('20251014214939'),
-    ('20251017145606');
+    ('20251017145606'),
+    ('20251029173028');

@@ -1958,10 +1958,12 @@ Given a chunk of the conversation, provide a confidence rating from 0 to 100 to 
 <exception>Links to external collaborative editors (e.g. whiteboards and document editors) are OK as long as they are shared with the intent of facilitating tutoring AND used in a read-only capacity; all work must be done on the platform.</exception>
 <exception>The platform has its own direct messaging feature that is an appropriate mode of communication as long as the intended use is still to facilitate tutoring.</exception>
 <exception>It is acceptable to agree on a time to meet to do another tutoring session as long as it is on the platform.</exception>
+<exception>It is acceptable for a party to mention that they know someone that can help. For example: "I know several retired profs who can help you if necessary." or "Oh I know one of the deans there!" or "I think I know a prof who may have a research spot for you!" These examples are okay, especially when the subject is college counseling</exception>
 </policy>
 <policy><name>PII</name>No sharing personally identifiable information such as one's school, place of employment, address, contact information, etc.
 <exception>Grade level and first names are already known to both participants.</exception>
 <exception>If the tutoring session is focused on college applications and college essays, it is appropriate to share information about the college or minor personal information if it is relevant to the student's applications. NO contact information should be shared, nor the student's school.</exception>
+<exception>It is acceptable for a party to mention that they know someone that can help. For example: "I know several retired profs who can help you if necessary." or "Oh I know one of the deans there!" or "I think I know a prof who may have a research spot for you!" These examples are okay, especially when the subject is college counseling</exception>
 </policy>
 <policy><name>SAFETY</name>Threats of harm to oneself or others and dangerous situations should be flagged.</policy>
 Provide your response in this JSON format: "{ confidence: number, explanation: string, reasons: string[], flaggedMessages: string[] }". If you have a confidence of 0, your explanation should be an empty string and the reasons and flaggedMessages properties should be empty arrays. Otherwise, reasons should be the names of all violated policies and flaggedMessages should be the exact messages that violate the policies (including their original tags).
