@@ -34,7 +34,7 @@ import {
   UserContactInfo,
   UserForCreateSendGridContact,
   UserForAdmin,
-  EditUserProfilePayload as EditUserProfilePayload,
+  EditUserProfilePayload,
 } from './types'
 import { IDeletePhoneResult } from './pg.queries'
 

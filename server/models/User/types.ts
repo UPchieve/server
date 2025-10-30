@@ -130,6 +130,4 @@ export type EditUserProfilePayload = {
   schoolId?: string
   signupSourceId?: number
   otherSignupSource?: string
-  banTyped?: USER_BAN_TYPES
-  banned?: boolean
 }
