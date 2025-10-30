@@ -34,7 +34,7 @@ import {
   UserContactInfo,
   UserForCreateSendGridContact,
   UserForAdmin,
-  EditUserPayload,
+  EditUserProfilePayload as EditUserProfilePayload,
 } from './types'
 import { IDeletePhoneResult } from './pg.queries'
 
@@ -628,15 +628,13 @@ export async function updateUserPhoneNumberByUserId(
 export async function updateUserProfileById(
   userId: string,
   data: Pick<
-    EditUserPayload,
+    EditUserProfilePayload,
     | 'deactivated'
     | 'phone'
     | 'smsConsent'
     | 'preferredLanguage'
     | 'signupSourceId'
     | 'otherSignupSource'
-    | 'banTyped'
-    | 'banned'
   >,
   tc?: TransactionClient
 ): Promise<void> {
@@ -650,8 +648,6 @@ export async function updateUserProfileById(
         preferredLanguage: data.preferredLanguage,
         signupSourceId: data.signupSourceId,
         otherSignupSource: data.otherSignupSource,
-        ban_type: data.banTyped,
-        banned: data.banned,
       },
       tc ?? getClient()
     )

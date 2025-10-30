@@ -1639,8 +1639,6 @@ export const insertUserRoleByUserId = new PreparedQuery<IInsertUserRoleByUserIdP
 
 /** 'UpdateUserProfileById' parameters type */
 export interface IUpdateUserProfileByIdParams {
-  ban_type?: ban_types | null | void;
-  banned?: boolean | null | void;
   deactivated?: boolean | null | void;
   otherSignupSource?: string | null | void;
   phone?: string | null | void;
@@ -1661,7 +1659,7 @@ export interface IUpdateUserProfileByIdQuery {
   result: IUpdateUserProfileByIdResult;
 }
 
-const updateUserProfileByIdIR: any = {"usedParamSet":{"deactivated":true,"phone":true,"smsConsent":true,"preferredLanguage":true,"signupSourceId":true,"otherSignupSource":true,"ban_type":true,"banned":true,"userId":true},"params":[{"name":"deactivated","required":false,"transform":{"type":"scalar"},"locs":[{"a":48,"b":59}]},{"name":"phone","required":false,"transform":{"type":"scalar"},"locs":[{"a":97,"b":102}]},{"name":"smsConsent","required":false,"transform":{"type":"scalar"},"locs":[{"a":140,"b":150}]},{"name":"preferredLanguage","required":false,"transform":{"type":"scalar"},"locs":[{"a":201,"b":218}]},{"name":"signupSourceId","required":false,"transform":{"type":"scalar"},"locs":[{"a":274,"b":288}]},{"name":"otherSignupSource","required":false,"transform":{"type":"scalar"},"locs":[{"a":345,"b":362}]},{"name":"ban_type","required":false,"transform":{"type":"scalar"},"locs":[{"a":411,"b":419}]},{"name":"banned","required":false,"transform":{"type":"scalar"},"locs":[{"a":455,"b":461}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":487,"b":494}]}],"statement":"UPDATE\n    users\nSET\n    deactivated = COALESCE(:deactivated, deactivated),\n    phone = COALESCE(:phone, phone),\n    sms_consent = COALESCE(:smsConsent, sms_consent),\n    preferred_language = COALESCE(:preferredLanguage, preferred_language),\n    signup_source_id = COALESCE(:signupSourceId, signup_source_id),\n    other_signup_source = COALESCE(:otherSignupSource, other_signup_source),\n    ban_type = COALESCE(:ban_type, ban_type),\n    banned = COALESCE(:banned, banned)\nWHERE\n    id = :userId!\nRETURNING\n    id AS ok"};
+const updateUserProfileByIdIR: any = {"usedParamSet":{"deactivated":true,"phone":true,"smsConsent":true,"preferredLanguage":true,"signupSourceId":true,"otherSignupSource":true,"userId":true},"params":[{"name":"deactivated","required":false,"transform":{"type":"scalar"},"locs":[{"a":48,"b":59}]},{"name":"phone","required":false,"transform":{"type":"scalar"},"locs":[{"a":97,"b":102}]},{"name":"smsConsent","required":false,"transform":{"type":"scalar"},"locs":[{"a":140,"b":150}]},{"name":"preferredLanguage","required":false,"transform":{"type":"scalar"},"locs":[{"a":201,"b":218}]},{"name":"signupSourceId","required":false,"transform":{"type":"scalar"},"locs":[{"a":274,"b":288}]},{"name":"otherSignupSource","required":false,"transform":{"type":"scalar"},"locs":[{"a":345,"b":362}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":401,"b":408}]}],"statement":"UPDATE\n    users\nSET\n    deactivated = COALESCE(:deactivated, deactivated),\n    phone = COALESCE(:phone, phone),\n    sms_consent = COALESCE(:smsConsent, sms_consent),\n    preferred_language = COALESCE(:preferredLanguage, preferred_language),\n    signup_source_id = COALESCE(:signupSourceId, signup_source_id),\n    other_signup_source = COALESCE(:otherSignupSource, other_signup_source)\nWHERE\n    id = :userId!\nRETURNING\n    id AS ok"};
 
 /**
  * Query generated from SQL:
@@ -1674,9 +1672,7 @@ const updateUserProfileByIdIR: any = {"usedParamSet":{"deactivated":true,"phone"
  *     sms_consent = COALESCE(:smsConsent, sms_consent),
  *     preferred_language = COALESCE(:preferredLanguage, preferred_language),
  *     signup_source_id = COALESCE(:signupSourceId, signup_source_id),
- *     other_signup_source = COALESCE(:otherSignupSource, other_signup_source),
- *     ban_type = COALESCE(:ban_type, ban_type),
- *     banned = COALESCE(:banned, banned)
+ *     other_signup_source = COALESCE(:otherSignupSource, other_signup_source)
  * WHERE
  *     id = :userId!
  * RETURNING
