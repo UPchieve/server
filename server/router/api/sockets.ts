@@ -726,7 +726,6 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       await observeWebTransaction(
         '/socket-io/removePartnerLiveMediaBan',
         async () => {
-          debugger
           try {
             const session = await SessionRepo.getSessionById(sessionId)
             const user = await extractSocketUser(socket)
@@ -768,7 +767,6 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       await observeWebTransaction(
         '/socket-io/addPartnerLiveMediaBan',
         async () => {
-          debugger
           try {
             //ModerationService already sets live media ban
             const user = await extractSocketUser(socket)

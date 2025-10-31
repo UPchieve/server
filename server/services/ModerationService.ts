@@ -1408,8 +1408,6 @@ export const handleModerationInfraction = async (
       client
     )
 
-  debugger
-
   const allInfractionResons = getReasonsFromInfractions(allActiveInfractions)
 
   if (
