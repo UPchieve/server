@@ -1622,10 +1622,11 @@ SELECT
     subjects.name,
     subjects.active
 FROM
-    users_subjects_mview
-    JOIN subjects ON subjects.id = users_subjects_mview.subject_id
+    users_unlocked_subjects_view uusv
+    CROSS JOIN UNNEST(uusv.unlocked_subjects) AS unnested
+    JOIN subjects ON subjects.name = unnested
 WHERE
-    users_subjects_mview.user_id = :userId!;
+    uusv.user_id = :userId!;
 
 
 /* @name getVolunteerMutedSubjects */

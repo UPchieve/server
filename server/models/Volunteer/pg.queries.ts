@@ -3416,7 +3416,7 @@ export interface IGetVolunteerSubjectsQuery {
   result: IGetVolunteerSubjectsResult;
 }
 
-const getVolunteerSubjectsIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":184,"b":191}]}],"statement":"SELECT\n    subjects.name,\n    subjects.active\nFROM\n    users_subjects_mview\n    JOIN subjects ON subjects.id = users_subjects_mview.subject_id\nWHERE\n    users_subjects_mview.user_id = :userId!"};
+const getVolunteerSubjectsIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":218,"b":225}]}],"statement":"SELECT\n    subjects.name,\n    subjects.active\nFROM\n    users_unlocked_subjects_view uusv\n    CROSS JOIN UNNEST(uusv.unlocked_subjects) AS unnested\n    JOIN subjects ON subjects.name = unnested\nWHERE\n    uusv.user_id = :userId!"};
 
 /**
  * Query generated from SQL:
@@ -3425,10 +3425,11 @@ const getVolunteerSubjectsIR: any = {"usedParamSet":{"userId":true},"params":[{"
  *     subjects.name,
  *     subjects.active
  * FROM
- *     users_subjects_mview
- *     JOIN subjects ON subjects.id = users_subjects_mview.subject_id
+ *     users_unlocked_subjects_view uusv
+ *     CROSS JOIN UNNEST(uusv.unlocked_subjects) AS unnested
+ *     JOIN subjects ON subjects.name = unnested
  * WHERE
- *     users_subjects_mview.user_id = :userId!
+ *     uusv.user_id = :userId!
  * ```
  */
 export const getVolunteerSubjects = new PreparedQuery<IGetVolunteerSubjectsParams,IGetVolunteerSubjectsResult>(getVolunteerSubjectsIR);
