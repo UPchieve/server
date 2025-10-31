@@ -855,7 +855,7 @@ export async function ensureCanJoinSession(
 
   if (session.endedAt) {
     await SessionRepo.updateSessionFailedJoinsById(session.id, user.id)
-    throw new SessionJoinError('Session has ended.')
+    throw new SessionJoinError('Session has already ended.')
   }
 
   if (isStudent && session.studentId !== user.id) {
