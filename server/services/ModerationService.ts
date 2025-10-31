@@ -12,7 +12,7 @@ import {
   MODEL_ID as OPENAI_MODEL_ID,
   OpenAiResults,
 } from './OpenAIService'
-import * as UsersRepo from '../models/User/queries'
+import * as UsersRepo from '../models/User'
 import * as SessionRepo from '../models/Session'
 import {
   ExtractedTextItem,

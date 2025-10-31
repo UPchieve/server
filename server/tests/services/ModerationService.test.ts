@@ -25,6 +25,7 @@ import * as SessionRepo from '../../models/Session'
 import SocketService from '../../services/SocketService'
 import { UserSessionFlags } from '../../constants'
 import { ModerationInfraction } from '../../models/ModerationInfractions'
+import * as UserRepo from '../../models/User/queries'
 
 jest.mock('../../models/Session')
 jest.mock('../../utils/time-limit')
@@ -39,20 +40,23 @@ jest.mock('../../services/OpenAIService', () => {
 jest.mock('../../services/LangfuseService')
 jest.mock('../../models/ModerationInfractions')
 
-jest.mock('../../services/SocketService', () => {
-  return {
-    getInstance: jest.fn(() => {
-      emitModerationInfractionEvent: jest.fn()
-    }),
-  }
-})
+jest.mock('../../services/SocketService', () => ({
+  getInstance: jest.fn(() => {}),
+}))
+
 jest.mock('../../services/SessionService')
+
+jest.mock('../../models/User/queries')
 
 describe('ModerationService', () => {
   const isVolunteer = true
   const mockLangfuseService = mocked(LangfuseService)
   const mockModerationInfractionsRepo = mocked(ModerationInfractionsRepo)
   const mockSessionRepo = mocked(SessionRepo)
+  const mockSocketService = mocked(SocketService)
+  const mockUserRepo = mocked(UserRepo)
+  const mockSessionService = mocked(SessionService)
+
   const senderId = '123'
   const sessionId = '123'
   const badMessage = 'Call me at (555)555-5555'
@@ -73,6 +77,15 @@ describe('ModerationService', () => {
     }
     mockLangfuseService.getPrompt.mockResolvedValue(undefined)
     mockLangfuseService.getClient.mockReturnValue(mockLangfuseClient as any)
+
+    mockSocketService.getInstance.mockReturnValue({
+      emitModerationInfractionEvent: jest.fn(),
+      emitPotentialModerationInfractionEvent: jest.fn(),
+      emitUserLiveMediaBannedEvents: jest.fn(),
+    } as unknown as SocketService)
+
+    mockUserRepo.banUserById.mockResolvedValue()
+    mockSessionService.markSessionForReview.mockResolvedValue()
   })
 
   const userType = 'volunteer'
@@ -427,6 +440,9 @@ describe('ModerationService', () => {
     const profanityReason = { failures: { profanity: [] } }
     const violenceReason = { failures: { violence: [] } }
     const explicitReason = { failures: { explicit: [] } }
+    const personInImageReason = {
+      failures: { [LiveMediaModerationCategories.PERSON_IN_IMAGE]: [] },
+    }
 
     const buildModerationInfractionWithReason = (reason: any) => {
       return buildModerationInfractionRow('userId', 'sessionId', {
@@ -530,14 +546,7 @@ describe('ModerationService', () => {
             updatedAt: new Date(),
           } as ModerationInfraction
         )
-        const mockSocketServiceInstance =
-          SocketService.getInstance as jest.Mock<SocketService>
-        mockSocketServiceInstance.mockImplementation(() => {
-          return {
-            getInstance: jest.fn(),
-            emitModerationInfractionEvent: jest.fn(),
-          } as unknown as SocketService
-        })
+
         mockModerationInfractionsRepo.getModerationInfractionsByUser.mockResolvedValue(
           []
         )
@@ -585,6 +594,76 @@ describe('ModerationService', () => {
         expect(
           mockModerationInfractionsRepo.insertModerationInfraction
         ).not.toHaveBeenCalled()
+      })
+
+      it('Skip handling infractions if user already has a person in image infraction', async () => {
+        mockModerationInfractionsRepo.getModerationInfractionsByUser.mockResolvedValue(
+          [
+            {
+              id: '1',
+              reason: personInImageReason.failures,
+              sessionId: '1123e',
+              active: true,
+              userId: '1123',
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            },
+          ]
+        )
+
+        const mockSocketServiceInstance = mockSocketService.getInstance()
+
+        await handleModerationInfraction(
+          userId,
+          sessionId,
+          personInImageReason,
+          'screenshare'
+        )
+        expect(
+          mockModerationInfractionsRepo.insertModerationInfraction
+        ).not.toHaveBeenCalled()
+
+        expect(
+          mockSocketServiceInstance.emitModerationInfractionEvent
+        ).not.toHaveBeenCalled()
+
+        expect(
+          mockSocketServiceInstance.emitPotentialModerationInfractionEvent
+        ).not.toHaveBeenCalled()
+      })
+
+      it('Handling Potential infraction if person in image infraction', async () => {
+        mockModerationInfractionsRepo.getModerationInfractionsByUser.mockResolvedValue(
+          []
+        )
+
+        const mockSocketServiceInstance = mockSocketService.getInstance()
+
+        await handleModerationInfraction(
+          userId,
+          sessionId,
+          personInImageReason,
+          'screenshare'
+        )
+        expect(
+          mockModerationInfractionsRepo.insertModerationInfraction
+        ).toHaveBeenCalled()
+
+        expect(
+          mockSocketServiceInstance.emitModerationInfractionEvent
+        ).toHaveBeenCalled()
+
+        expect(
+          mockSocketServiceInstance.emitPotentialModerationInfractionEvent
+        ).toHaveBeenCalled()
+
+        expect(
+          mockModerationInfractionsRepo.insertModerationInfraction
+        ).toHaveBeenCalled()
+
+        expect(
+          mockSocketServiceInstance.emitUserLiveMediaBannedEvents
+        ).toHaveBeenCalled()
       })
     })
 
