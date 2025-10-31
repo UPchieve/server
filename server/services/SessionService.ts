@@ -223,7 +223,9 @@ export async function endSession(
 
   const session = await SessionRepo.getSessionToEndById(sessionId)
   if (session.endedAt) {
-    throw new sessionUtils.EndSessionError('Session has already ended')
+    throw new sessionUtils.EndSessionError(
+      `Session has already ended for session: ${sessionId}`
+    )
   }
   if (
     !isAdmin &&
@@ -855,7 +857,10 @@ export async function ensureCanJoinSession(
 
   if (session.endedAt) {
     await SessionRepo.updateSessionFailedJoinsById(session.id, user.id)
-    throw new SessionJoinError('Session has already ended.')
+
+    throw new SessionJoinError(
+      `Session has already ended on session: ${sessionId} for user: ${user.id} with isActiveRoleVolunteer: ${isVolunteer}`
+    )
   }
 
   if (isStudent && session.studentId !== user.id) {
