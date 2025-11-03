@@ -45,6 +45,8 @@ export function resError(
     // bad input
     else if (err instanceof InputError) status = 422
     else if (err instanceof AlreadyInUseError) status = 409
+    // response timeout
+    else if (err.message === 'Response timeout') status = 408
     // unknown error
     else status = 500
 
