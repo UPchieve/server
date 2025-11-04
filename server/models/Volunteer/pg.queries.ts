@@ -2153,6 +2153,9 @@ export interface IUpdateVolunteerBackgroundInfoParams {
     createdAt: DateOrString | null | void,
     updatedAt: DateOrString | null | void
   })[];
+  otherSignupSource?: string | null | void;
+  phoneNumber?: string | null | void;
+  signupSourceId?: number | null | void;
   state?: string | null | void;
   userId: string;
 }
@@ -2168,7 +2171,7 @@ export interface IUpdateVolunteerBackgroundInfoQuery {
   result: IUpdateVolunteerBackgroundInfoResult;
 }
 
-const updateVolunteerBackgroundInfoIR: any = {"usedParamSet":{"userId":true,"occupation":true,"approved":true,"experience":true,"company":true,"college":true,"linkedInUrl":true,"country":true,"state":true,"city":true,"languages":true},"params":[{"name":"occupation","required":true,"transform":{"type":"pick_array_spread","keys":[{"name":"userId","required":false},{"name":"occupation","required":false},{"name":"createdAt","required":false},{"name":"updatedAt","required":false}]},"locs":[{"a":210,"b":221}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":78,"b":85},{"a":868,"b":875}]},{"name":"approved","required":false,"transform":{"type":"scalar"},"locs":[{"a":357,"b":365}]},{"name":"experience","required":false,"transform":{"type":"scalar"},"locs":[{"a":413,"b":423}]},{"name":"company","required":false,"transform":{"type":"scalar"},"locs":[{"a":470,"b":477}]},{"name":"college","required":false,"transform":{"type":"scalar"},"locs":[{"a":521,"b":528}]},{"name":"linkedInUrl","required":false,"transform":{"type":"scalar"},"locs":[{"a":577,"b":588}]},{"name":"country","required":false,"transform":{"type":"scalar"},"locs":[{"a":637,"b":644}]},{"name":"state","required":false,"transform":{"type":"scalar"},"locs":[{"a":686,"b":691}]},{"name":"city","required":false,"transform":{"type":"scalar"},"locs":[{"a":730,"b":734}]},{"name":"languages","required":false,"transform":{"type":"scalar"},"locs":[{"a":777,"b":786}]}],"statement":"WITH clear_occ AS (\n    DELETE FROM volunteer_occupations\n    WHERE user_id = :userId!\n),\nins_occ AS (\nINSERT INTO volunteer_occupations (user_id, occupation, created_at, updated_at)\n        VALUES\n            :occupation!\n        ON CONFLICT\n            DO NOTHING)\n        UPDATE\n            volunteer_profiles\n        SET\n            approved = COALESCE(:approved, approved),\n            experience = COALESCE(:experience, experience),\n            company = COALESCE(:company, company),\n            college = COALESCE(:college, college),\n            linkedin_url = COALESCE(:linkedInUrl, linkedin_url),\n            country = COALESCE(:country, country),\n            state = COALESCE(:state, state),\n            city = COALESCE(:city, city),\n            languages = COALESCE(:languages, languages),\n            updated_at = NOW()\n        WHERE\n            user_id = :userId!\n        RETURNING\n            user_id AS ok"};
+const updateVolunteerBackgroundInfoIR: any = {"usedParamSet":{"userId":true,"occupation":true,"approved":true,"experience":true,"company":true,"college":true,"linkedInUrl":true,"country":true,"state":true,"city":true,"languages":true,"phoneNumber":true,"signupSourceId":true,"otherSignupSource":true},"params":[{"name":"occupation","required":true,"transform":{"type":"pick_array_spread","keys":[{"name":"userId","required":false},{"name":"occupation","required":false},{"name":"createdAt","required":false},{"name":"updatedAt","required":false}]},"locs":[{"a":210,"b":221}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":78,"b":85},{"a":827,"b":834}]},{"name":"approved","required":false,"transform":{"type":"scalar"},"locs":[{"a":360,"b":368}]},{"name":"experience","required":false,"transform":{"type":"scalar"},"locs":[{"a":412,"b":422}]},{"name":"company","required":false,"transform":{"type":"scalar"},"locs":[{"a":465,"b":472}]},{"name":"college","required":false,"transform":{"type":"scalar"},"locs":[{"a":512,"b":519}]},{"name":"linkedInUrl","required":false,"transform":{"type":"scalar"},"locs":[{"a":564,"b":575}]},{"name":"country","required":false,"transform":{"type":"scalar"},"locs":[{"a":620,"b":627}]},{"name":"state","required":false,"transform":{"type":"scalar"},"locs":[{"a":665,"b":670}]},{"name":"city","required":false,"transform":{"type":"scalar"},"locs":[{"a":705,"b":709}]},{"name":"languages","required":false,"transform":{"type":"scalar"},"locs":[{"a":748,"b":757}]},{"name":"phoneNumber","required":false,"transform":{"type":"scalar"},"locs":[{"a":941,"b":952}]},{"name":"signupSourceId","required":false,"transform":{"type":"scalar"},"locs":[{"a":999,"b":1013}]},{"name":"otherSignupSource","required":false,"transform":{"type":"scalar"},"locs":[{"a":1074,"b":1091}]}],"statement":"WITH clear_occ AS (\n    DELETE FROM volunteer_occupations\n    WHERE user_id = :userId!\n),\nins_occ AS (\nINSERT INTO volunteer_occupations (user_id, occupation, created_at, updated_at)\n        VALUES\n            :occupation!\n        ON CONFLICT\n            DO NOTHING\n), upd_profile AS (\n    UPDATE\n        volunteer_profiles\n    SET\n        approved = COALESCE(:approved, approved),\n        experience = COALESCE(:experience, experience),\n        company = COALESCE(:company, company),\n        college = COALESCE(:college, college),\n        linkedin_url = COALESCE(:linkedInUrl, linkedin_url),\n        country = COALESCE(:country, country),\n        state = COALESCE(:state, state),\n        city = COALESCE(:city, city),\n        languages = COALESCE(:languages, languages),\n        updated_at = NOW()\n    WHERE\n        user_id = :userId!\n    RETURNING\n        user_id\n),\nupd_user AS (\n    UPDATE\n        users\n    SET\n        phone = COALESCE(:phoneNumber, phone),\n        signup_source_id = COALESCE(:signupSourceId, signup_source_id),\n        other_signup_source = COALESCE(:otherSignupSource, other_signup_source)\n    WHERE\n        id = (\n            SELECT\n                user_id\n            FROM\n                upd_profile)\n        RETURNING\n            id\n)\nSELECT\n    user_id AS ok\nFROM\n    upd_profile"};
 
 /**
  * Query generated from SQL:
@@ -2182,24 +2185,46 @@ const updateVolunteerBackgroundInfoIR: any = {"usedParamSet":{"userId":true,"occ
  *         VALUES
  *             :occupation!
  *         ON CONFLICT
- *             DO NOTHING)
- *         UPDATE
- *             volunteer_profiles
- *         SET
- *             approved = COALESCE(:approved, approved),
- *             experience = COALESCE(:experience, experience),
- *             company = COALESCE(:company, company),
- *             college = COALESCE(:college, college),
- *             linkedin_url = COALESCE(:linkedInUrl, linkedin_url),
- *             country = COALESCE(:country, country),
- *             state = COALESCE(:state, state),
- *             city = COALESCE(:city, city),
- *             languages = COALESCE(:languages, languages),
- *             updated_at = NOW()
- *         WHERE
- *             user_id = :userId!
+ *             DO NOTHING
+ * ), upd_profile AS (
+ *     UPDATE
+ *         volunteer_profiles
+ *     SET
+ *         approved = COALESCE(:approved, approved),
+ *         experience = COALESCE(:experience, experience),
+ *         company = COALESCE(:company, company),
+ *         college = COALESCE(:college, college),
+ *         linkedin_url = COALESCE(:linkedInUrl, linkedin_url),
+ *         country = COALESCE(:country, country),
+ *         state = COALESCE(:state, state),
+ *         city = COALESCE(:city, city),
+ *         languages = COALESCE(:languages, languages),
+ *         updated_at = NOW()
+ *     WHERE
+ *         user_id = :userId!
+ *     RETURNING
+ *         user_id
+ * ),
+ * upd_user AS (
+ *     UPDATE
+ *         users
+ *     SET
+ *         phone = COALESCE(:phoneNumber, phone),
+ *         signup_source_id = COALESCE(:signupSourceId, signup_source_id),
+ *         other_signup_source = COALESCE(:otherSignupSource, other_signup_source)
+ *     WHERE
+ *         id = (
+ *             SELECT
+ *                 user_id
+ *             FROM
+ *                 upd_profile)
  *         RETURNING
- *             user_id AS ok
+ *             id
+ * )
+ * SELECT
+ *     user_id AS ok
+ * FROM
+ *     upd_profile
  * ```
  */
 export const updateVolunteerBackgroundInfo = new PreparedQuery<IUpdateVolunteerBackgroundInfoParams,IUpdateVolunteerBackgroundInfoResult>(updateVolunteerBackgroundInfoIR);
