@@ -1,6 +1,8 @@
 /** Types generated for queries found in "server/models/Subjects/subjects.sql" */
 import { PreparedQuery } from '@pgtyped/runtime';
 
+export type stringArray = (string)[];
+
 /** 'GetSubjectAndTopic' parameters type */
 export interface IGetSubjectAndTopicParams {
   subject: string;
@@ -322,6 +324,40 @@ const getComputedSubjectUnlocksIR: any = {"usedParamSet":{},"params":[],"stateme
  * ```
  */
 export const getComputedSubjectUnlocks = new PreparedQuery<IGetComputedSubjectUnlocksParams,IGetComputedSubjectUnlocksResult>(getComputedSubjectUnlocksIR);
+
+
+/** 'GetRequiredCertificationsByComputedSubjectUnlock' parameters type */
+export type IGetRequiredCertificationsByComputedSubjectUnlockParams = void;
+
+/** 'GetRequiredCertificationsByComputedSubjectUnlock' return type */
+export interface IGetRequiredCertificationsByComputedSubjectUnlockResult {
+  name: string;
+  requiredCertifications: stringArray | null;
+}
+
+/** 'GetRequiredCertificationsByComputedSubjectUnlock' query type */
+export interface IGetRequiredCertificationsByComputedSubjectUnlockQuery {
+  params: IGetRequiredCertificationsByComputedSubjectUnlockParams;
+  result: IGetRequiredCertificationsByComputedSubjectUnlockResult;
+}
+
+const getRequiredCertificationsByComputedSubjectUnlockIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    s.name,\n    ARRAY_AGG(c.name) AS required_certifications\nFROM\n    computed_subject_unlocks csu\n    JOIN subjects s ON s.id = csu.subject_id\n    JOIN certifications c ON c.id = csu.certification_id\nGROUP BY\n    s.name"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     s.name,
+ *     ARRAY_AGG(c.name) AS required_certifications
+ * FROM
+ *     computed_subject_unlocks csu
+ *     JOIN subjects s ON s.id = csu.subject_id
+ *     JOIN certifications c ON c.id = csu.certification_id
+ * GROUP BY
+ *     s.name
+ * ```
+ */
+export const getRequiredCertificationsByComputedSubjectUnlock = new PreparedQuery<IGetRequiredCertificationsByComputedSubjectUnlockParams,IGetRequiredCertificationsByComputedSubjectUnlockResult>(getRequiredCertificationsByComputedSubjectUnlockIR);
 
 
 /** 'GetSubjectType' parameters type */

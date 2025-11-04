@@ -124,6 +124,18 @@ FROM
     JOIN subjects AS cert_info ON cert_info.name = certifications.name;
 
 
+/* @name getRequiredCertificationsByComputedSubjectUnlock */
+SELECT
+    s.name,
+    ARRAY_AGG(c.name) AS required_certifications
+FROM
+    computed_subject_unlocks csu
+    JOIN subjects s ON s.id = csu.subject_id
+    JOIN certifications c ON c.id = csu.certification_id
+GROUP BY
+    s.name;
+
+
 /* @name getSubjectType */
 SELECT
     CASE WHEN topics.name IS NOT NULL THEN

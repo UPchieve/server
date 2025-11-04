@@ -2,6 +2,10 @@ import { asFactory, asString } from '../utils/type-utils'
 import * as SubjectsRepo from '../models/Subjects'
 import Case from 'case'
 import { TransactionClient } from '../db'
+import { SUBJECTS } from '../constants'
+import * as CacheService from '../cache'
+import { ComputedSubjectUnlocks } from '../models/Subjects'
+import { hoursInSeconds } from '../utils/time-utils'
 
 export type ValidSubjectAndTopicCheck = {
   subject: string
@@ -45,4 +49,26 @@ export async function getSubjectsForTopicByTopicId(
 
 export async function getSubjectsWithTopic() {
   return SubjectsRepo.getSubjectsWithTopic()
+}
+
+export async function getRequiredCertificationsByComputedSubjectUnlock(): Promise<ComputedSubjectUnlocks> {
+  return SubjectsRepo.getRequiredCertificationsByComputedSubjectUnlock()
+}
+
+export const COMPUTED_SUBJECT_UNLOCKS_CACHE_KEY = 'COMPUTED_SUBJECT_UNLOCKS'
+export async function getCachedComputedSubjectUnlocks(): Promise<ComputedSubjectUnlocks> {
+  const cachedValue = await CacheService.getIfExists(
+    COMPUTED_SUBJECT_UNLOCKS_CACHE_KEY
+  )
+  if (cachedValue) {
+    return JSON.parse(cachedValue) as ComputedSubjectUnlocks
+  }
+  const valueFromDb =
+    await SubjectsRepo.getRequiredCertificationsByComputedSubjectUnlock()
+  await CacheService.saveWithExpiration(
+    COMPUTED_SUBJECT_UNLOCKS_CACHE_KEY,
+    JSON.stringify(valueFromDb),
+    hoursInSeconds(1)
+  )
+  return valueFromDb
 }

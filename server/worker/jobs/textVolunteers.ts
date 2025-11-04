@@ -8,6 +8,7 @@ import startsWithVowel from '../../utils/starts-with-vowel'
 import { Ulid, Uuid } from '../../models/pgUtils'
 import { Jobs } from './index'
 import type { TextableVolunteer as TextableVolunteerDbResult } from '../../models/Volunteer'
+import * as SubjectsService from '../../services/SubjectsService'
 import * as AssociatedPartnerService from '../../services/AssociatedPartnerService'
 import * as CacheService from '../../cache'
 import * as FavoritingService from '../../services/FavoritingService'
@@ -80,9 +81,14 @@ export default async function textVolunteers(
 
   const allTextableVolunteers = await getTextableVolunteers()
 
+  const computedSubjectRequirements =
+    await SubjectsService.getCachedComputedSubjectUnlocks()
+  const subjectRequiresHighLevelSubjectCerts =
+    (subject as SUBJECTS) in computedSubjectRequirements
   const eligibleVolunteers = filterSubjectEligibleVolunteers(
     allTextableVolunteers,
-    subject
+    subject,
+    subjectRequiresHighLevelSubjectCerts
   )
   const { volunteers: eligiblePartnerVolunteers, studentOrgDisplay } =
     (await filterPartnerVolunteers(
@@ -148,15 +154,36 @@ async function getTextableVolunteers(): Promise<TextableVolunteer[]> {
   return getAndCacheAvailableVolunteers()
 }
 
-// Exported for testing.
+/**
+ * (Exported for testing.)
+ *
+ * This function filters the given volunteers based off of their subject certification eligibility. A volunteer must have
+ * the given subject's certification to be eligible.
+ *
+ * In addition, if the volunteer has ANY high level subject certification, we actually want to consider them INELIGIBLE
+ * so that we can reserve them for those subject requests. This behavior can be overridden with the `allowHighLevelVolunteers`
+ * param. An example of when we'd want to override this is with the computed subjects (subjects that require multiple
+ * certifications for you to be able to coach in them), such as Integrated Math One, which actually DOES require you to
+ * have a high level subject certification (Statistics).
+ *
+ * @param volunteers - The volunteer list to filter, will not be modified by this function
+ * @param subject - The requested subject
+ * @param allowHighLevelVolunteers - When true, volunteers with high level subject certs will NOT be considered ineligible.
+ * Default false.
+ */
 export function filterSubjectEligibleVolunteers(
   volunteers: TextableVolunteer[],
-  subject: SUBJECTS
+  subject: SUBJECTS,
+  allowHighLevelVolunteers = false
 ) {
   const isHighLevelSubject = HIGH_LEVEL_SUBJECTS.has(subject)
 
   return volunteers.filter((c) => {
     const canTutorInSubject = c.unlockedSubjects.includes(subject)
+    // If the volunteer has high level subject certs, we want to reserve them for when those sessions are requested.
+    // This behavior can be overriden by `allowHighLevelVolunteers`
+    if (canTutorInSubject && allowHighLevelVolunteers) return true
+
     const hasMutedSubject = c.mutedSubjects.includes(subject)
     if (!canTutorInSubject || hasMutedSubject) return false
     if (canTutorInSubject && isHighLevelSubject) return true

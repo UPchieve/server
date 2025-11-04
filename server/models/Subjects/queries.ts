@@ -18,9 +18,11 @@ import {
   TrainingCourses,
   GetTopicsResult,
   SubjectWithTopic,
+  ComputedSubjectUnlocks,
 } from './types'
 import _ from 'lodash'
 import { asBoolean, asNumber, asString } from '../../utils/type-utils'
+import { SUBJECTS } from '../../constants'
 
 export async function getSubjectAndTopic(
   subject: string,
@@ -202,6 +204,25 @@ export async function getComputedSubjectUnlocks(): Promise<TrainingRowPerTopic> 
     const additionalSubjects = generateTrainingRow(processedSubjectGrouped)
 
     return additionalSubjects
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getRequiredCertificationsByComputedSubjectUnlock(): Promise<ComputedSubjectUnlocks> {
+  try {
+    const results =
+      await pgQueries.getRequiredCertificationsByComputedSubjectUnlock.run(
+        undefined,
+        getClient()
+      )
+    const mapping: ComputedSubjectUnlocks = {} as ComputedSubjectUnlocks
+    results.forEach((row) => {
+      const unlocks = makeRequired(row)
+      mapping[unlocks.name as SUBJECTS] =
+        unlocks.requiredCertifications as SUBJECTS[]
+    })
+    return mapping
   } catch (err) {
     throw new RepoReadError(err)
   }
