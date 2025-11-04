@@ -4941,6 +4941,13 @@ CREATE INDEX user_actions_user_id ON upchieve.user_actions USING btree (user_id)
 
 
 --
+-- Name: users_lower_case_email_key; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE UNIQUE INDEX users_lower_case_email_key ON upchieve.users USING btree (lower(email));
+
+
+--
 -- Name: users_submissions_idx_user_id; Type: INDEX; Schema: upchieve; Owner: -
 --
 
@@ -6674,4 +6681,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20251014214939'),
     ('20251017145606'),
     ('20251029173028'),
-    ('20251103144758');
+    ('20251103144758'),
+    ('20251104141004');
