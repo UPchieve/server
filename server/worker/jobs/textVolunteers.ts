@@ -21,7 +21,6 @@ import {
   getAndCacheAvailableVolunteers,
 } from './updateCachedVolunteersForTextNotifications'
 import { secondsInMs } from '../../utils/time-utils'
-import { getCachedComputedSubjectUnlocks } from '../../services/SubjectsService'
 
 const HIGH_LEVEL_SUBJECTS = new Set<SUBJECTS>([
   SUBJECTS.CALCULUS_AB,
@@ -181,6 +180,10 @@ export function filterSubjectEligibleVolunteers(
 
   return volunteers.filter((c) => {
     const canTutorInSubject = c.unlockedSubjects.includes(subject)
+    // If the volunteer has high level subject certs, we want to reserve them for when those sessions are requested.
+    // This behavior can be overriden by `allowHighLevelVolunteers`
+    if (canTutorInSubject && allowHighLevelVolunteers) return true
+
     const hasMutedSubject = c.mutedSubjects.includes(subject)
     if (!canTutorInSubject || hasMutedSubject) return false
     if (canTutorInSubject && isHighLevelSubject) return true
@@ -188,11 +191,7 @@ export function filterSubjectEligibleVolunteers(
     const canTutorHighLevelSubjects = c.unlockedSubjects.some((s) =>
       HIGH_LEVEL_SUBJECTS.has(s as SUBJECTS)
     )
-    // If the volunteer has high level subject certs, we want to reserve them for when those sessions are requested.
-    // This behavior can be overriden by `allowHighLevelVolunteers`
-    return allowHighLevelVolunteers
-      ? canTutorHighLevelSubjects
-      : !canTutorHighLevelSubjects
+    return !canTutorHighLevelSubjects
   })
 }
 

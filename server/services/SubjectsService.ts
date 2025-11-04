@@ -5,6 +5,7 @@ import { TransactionClient } from '../db'
 import { SUBJECTS } from '../constants'
 import * as CacheService from '../cache'
 import { ComputedSubjectUnlocks } from '../models/Subjects'
+import { hoursInSeconds } from '../utils/time-utils'
 
 export type ValidSubjectAndTopicCheck = {
   subject: string
@@ -50,9 +51,7 @@ export async function getSubjectsWithTopic() {
   return SubjectsRepo.getSubjectsWithTopic()
 }
 
-export async function getRequiredCertificationsByComputedSubjectUnlock(
-  subject: SUBJECTS
-): Promise<ComputedSubjectUnlocks> {
+export async function getRequiredCertificationsByComputedSubjectUnlock(): Promise<ComputedSubjectUnlocks> {
   return SubjectsRepo.getRequiredCertificationsByComputedSubjectUnlock()
 }
 
@@ -69,7 +68,7 @@ export async function getCachedComputedSubjectUnlocks(): Promise<ComputedSubject
   await CacheService.saveWithExpiration(
     COMPUTED_SUBJECT_UNLOCKS_CACHE_KEY,
     JSON.stringify(valueFromDb),
-    1000 * 60 * 60
+    hoursInSeconds(1)
   )
   return valueFromDb
 }
