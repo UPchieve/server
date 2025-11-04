@@ -1,3 +1,5 @@
+import { SUBJECTS } from '../../constants'
+
 export type SubjectAndTopic = {
   subjectName: string
   subjectDisplayName: string
@@ -107,3 +109,5 @@ export type TrainingCourses = {
   name: string
   displayName: string
 }
+
+export type ComputedSubjectUnlocks = Record<SUBJECTS, SUBJECTS[]>

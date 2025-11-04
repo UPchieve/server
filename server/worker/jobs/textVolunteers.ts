@@ -21,6 +21,7 @@ import {
   getAndCacheAvailableVolunteers,
 } from './updateCachedVolunteersForTextNotifications'
 import { secondsInMs } from '../../utils/time-utils'
+import { getCachedComputedSubjectUnlocks } from '../../services/SubjectsService'
 
 const HIGH_LEVEL_SUBJECTS = new Set<SUBJECTS>([
   SUBJECTS.CALCULUS_AB,
@@ -82,14 +83,13 @@ export default async function textVolunteers(
   const allTextableVolunteers = await getTextableVolunteers()
 
   const computedSubjectRequirements =
-    await SubjectsService.getRequiredCertificationsByComputedSubjectUnlock(
-      subject
-    )
-
+    await SubjectsService.getCachedComputedSubjectUnlocks()
+  const subjectRequiresHighLevelSubjectCerts =
+    (subject as SUBJECTS) in computedSubjectRequirements
   const eligibleVolunteers = filterSubjectEligibleVolunteers(
     allTextableVolunteers,
     subject,
-    !!computedSubjectRequirements
+    subjectRequiresHighLevelSubjectCerts
   )
   const { volunteers: eligiblePartnerVolunteers, studentOrgDisplay } =
     (await filterPartnerVolunteers(
@@ -155,7 +155,23 @@ async function getTextableVolunteers(): Promise<TextableVolunteer[]> {
   return getAndCacheAvailableVolunteers()
 }
 
-// Exported for testing.
+/**
+ * (Exported for testing.)
+ *
+ * This function filters the given volunteers based off of their subject certification eligibility. A volunteer must have
+ * the given subject's certification to be eligible.
+ *
+ * In addition, if the volunteer has ANY high level subject certification, we actually want to consider them INELIGIBLE
+ * so that we can reserve them for those subject requests. This behavior can be overridden with the `allowHighLevelVolunteers`
+ * param. An example of when we'd want to override this is with the computed subjects (subjects that require multiple
+ * certifications for you to be able to coach in them), such as Integrated Math One, which actually DOES require you to
+ * have a high level subject certification (Statistics).
+ *
+ * @param volunteers - The volunteer list to filter, will not be modified by this function
+ * @param subject - The requested subject
+ * @param allowHighLevelVolunteers - When true, volunteers with high level subject certs will NOT be considered ineligible.
+ * Default false.
+ */
 export function filterSubjectEligibleVolunteers(
   volunteers: TextableVolunteer[],
   subject: SUBJECTS,
@@ -172,7 +188,11 @@ export function filterSubjectEligibleVolunteers(
     const canTutorHighLevelSubjects = c.unlockedSubjects.some((s) =>
       HIGH_LEVEL_SUBJECTS.has(s as SUBJECTS)
     )
-    return !canTutorHighLevelSubjects
+    // If the volunteer has high level subject certs, we want to reserve them for when those sessions are requested.
+    // This behavior can be overriden by `allowHighLevelVolunteers`
+    return allowHighLevelVolunteers
+      ? canTutorHighLevelSubjects
+      : !canTutorHighLevelSubjects
   })
 }
 

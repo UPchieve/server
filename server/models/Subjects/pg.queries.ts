@@ -327,12 +327,11 @@ export const getComputedSubjectUnlocks = new PreparedQuery<IGetComputedSubjectUn
 
 
 /** 'GetRequiredCertificationsByComputedSubjectUnlock' parameters type */
-export interface IGetRequiredCertificationsByComputedSubjectUnlockParams {
-  subject?: string | null | void;
-}
+export type IGetRequiredCertificationsByComputedSubjectUnlockParams = void;
 
 /** 'GetRequiredCertificationsByComputedSubjectUnlock' return type */
 export interface IGetRequiredCertificationsByComputedSubjectUnlockResult {
+  name: string;
   requiredCertifications: stringArray | null;
 }
 
@@ -342,19 +341,18 @@ export interface IGetRequiredCertificationsByComputedSubjectUnlockQuery {
   result: IGetRequiredCertificationsByComputedSubjectUnlockResult;
 }
 
-const getRequiredCertificationsByComputedSubjectUnlockIR: any = {"usedParamSet":{"subject":true},"params":[{"name":"subject","required":false,"transform":{"type":"scalar"},"locs":[{"a":215,"b":222}]}],"statement":"SELECT\n    ARRAY_AGG(c.name) AS required_certifications\nFROM\n    computed_subject_unlocks csu\n    JOIN subjects s ON s.id = csu.subject_id\n    JOIN certifications c ON c.id = csu.certification_id\nWHERE\n    s.name = :subject::text\nGROUP BY\n    s.name"};
+const getRequiredCertificationsByComputedSubjectUnlockIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    s.name,\n    ARRAY_AGG(c.name) AS required_certifications\nFROM\n    computed_subject_unlocks csu\n    JOIN subjects s ON s.id = csu.subject_id\n    JOIN certifications c ON c.id = csu.certification_id\nGROUP BY\n    s.name"};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
+ *     s.name,
  *     ARRAY_AGG(c.name) AS required_certifications
  * FROM
  *     computed_subject_unlocks csu
  *     JOIN subjects s ON s.id = csu.subject_id
  *     JOIN certifications c ON c.id = csu.certification_id
- * WHERE
- *     s.name = :subject::text
  * GROUP BY
  *     s.name
  * ```

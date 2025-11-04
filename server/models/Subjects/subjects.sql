@@ -126,13 +126,12 @@ FROM
 
 /* @name getRequiredCertificationsByComputedSubjectUnlock */
 SELECT
+    s.name,
     ARRAY_AGG(c.name) AS required_certifications
 FROM
     computed_subject_unlocks csu
     JOIN subjects s ON s.id = csu.subject_id
     JOIN certifications c ON c.id = csu.certification_id
-WHERE
-    s.name = :subject::text
 GROUP BY
     s.name;
 
