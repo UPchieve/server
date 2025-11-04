@@ -11,12 +11,7 @@ import { ResourceLockedError } from '@sesamecare-oss/redlock'
 import { Server, Socket } from 'socket.io'
 import { v4 as uuidv4 } from 'uuid'
 import config from '../../config'
-import {
-  EVENTS,
-  SESSION_USER_ACTIONS,
-  USER_BAN_REASONS,
-  USER_BAN_TYPES,
-} from '../../constants'
+import { EVENTS, SESSION_USER_ACTIONS, USER_BAN_REASONS } from '../../constants'
 import logger from '../../logger'
 import { Ulid } from '../../models/pgUtils'
 import * as SessionRepo from '../../models/Session/queries'
@@ -48,7 +43,6 @@ import { SessionJoinError } from '../../models/Errors'
 import * as PresenceService from '../../services/PresenceService'
 import { observeWebTransaction } from '../../utils/newRelicUtil'
 import { extractSocketIp } from '../../utils/extract-socket-ip'
-import { updateUserProfile } from '../../services/UserProfileService'
 
 export type SessionMessageType = 'audio-transcription' // todo - add 'chat' later
 
@@ -754,8 +748,7 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               })
           } catch (err) {
             logger.error(
-              err,
-              { sessionId, userId: socket.request.user?.id },
+              { err, sessionId, userId: socket.request.user?.id },
               'Failed handling removePartnerLiveMediaBan event'
             )
           }

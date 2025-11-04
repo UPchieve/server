@@ -1553,11 +1553,8 @@ export enum LiveMediaModerationCategories {
 export function getScoreForCategory(
   category: LiveMediaModerationCategories | string
 ): number {
-  let categoryScore = null
+  let categoryScore
   switch (category.toLowerCase()) {
-    case LiveMediaModerationCategories.PERSON_IN_IMAGE:
-      categoryScore = 0
-      break
     case LiveMediaModerationCategories.PROFANITY:
     case LiveMediaModerationCategories.HIGH_TOXICITY:
     case LiveMediaModerationCategories.DRUGS:
@@ -1580,13 +1577,13 @@ export function getScoreForCategory(
     case LiveMediaModerationCategories.ADDRESS:
       categoryScore = 4
       break
+    default:
+      logger.error(
+        `Missing score for infraction category ${category}. Defaulting to severe score.`
+      )
+      categoryScore = 10
   }
-  if (categoryScore == null) {
-    logger.error(
-      `Missing score for infraction category ${category}. Defaulting to severe score.`
-    )
-    categoryScore = 10
-  }
+
   return categoryScore
 }
 
