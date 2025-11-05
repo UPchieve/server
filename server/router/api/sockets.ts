@@ -756,30 +756,6 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
       )
     })
 
-    socket.on('addPartnerLiveMediaBan', async ({ sessionId }) => {
-      await observeWebTransaction(
-        '/socket-io/addPartnerLiveMediaBan',
-        async () => {
-          try {
-            //ModerationService already sets live media ban
-            const user = await extractSocketUser(socket)
-
-            io.to(getSessionRoom(sessionId))
-              .except(user.id)
-              .emit('partnerAckLiveMediaBan', {
-                isBanned: true,
-              })
-          } catch (err) {
-            logger.error(
-              err,
-              { sessionId, userId: socket.request.user?.id },
-              'Failed handling addPartnerLiveMediaBan event'
-            )
-          }
-        }
-      )
-    })
-
     // Log socket connection-related events for analytics and debugging
     socket.onAny((eventName, args) => {
       logSocketEvent(eventName, socket, args)
