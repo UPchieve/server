@@ -42,7 +42,7 @@ describe('onboardVolunteer', () => {
     mockedVolunteerRepo.getVolunteerForOnboardingById.mockResolvedValue(
       mockVolunteer
     )
-    await VolunteerService.onboardVolunteer(mockVolunteer.id, mockIp, false, tc)
+    await VolunteerService.onboardVolunteer(mockVolunteer.id, mockIp, tc)
 
     expect(VolunteerRepo.updateVolunteerOnboarded).toHaveBeenCalledWith(
       mockVolunteer.id,
@@ -69,7 +69,6 @@ describe('onboardVolunteer', () => {
   test.each([
     ['missing subjects', { subjects: [] }],
     ['incomplete Upchieve101', { hasCompletedUpchieve101: false }],
-    ['no availability', { availabilityLastModifiedAt: undefined }],
   ])(
     'should not call functions in the if block if volunteer is %s',
     async (_, override) => {
@@ -77,12 +76,7 @@ describe('onboardVolunteer', () => {
       mockedVolunteerRepo.getVolunteerForOnboardingById.mockResolvedValue(
         modifiedVolunteer
       )
-      await VolunteerService.onboardVolunteer(
-        modifiedVolunteer.id,
-        mockIp,
-        false,
-        tc
-      )
+      await VolunteerService.onboardVolunteer(modifiedVolunteer.id, mockIp, tc)
 
       expect(VolunteerRepo.updateVolunteerOnboarded).not.toHaveBeenCalled()
       expect(QueueService.add).not.toHaveBeenCalled()
@@ -92,20 +86,22 @@ describe('onboardVolunteer', () => {
   )
 
   test('should not call partner-specific functions if volunteerPartnerOrg is undefined', async () => {
-    await VolunteerService.onboardVolunteer(mockVolunteer.id, mockIp, false, tc)
+    await VolunteerService.onboardVolunteer(mockVolunteer.id, mockIp, tc)
 
     expect(QueueService.add).toHaveBeenCalledTimes(0)
   })
 
-  test('It does NOT require the volunteer to have set availability if skipAvailabilityOnboardingRequirement = true', async () => {
+  test('It does NOT require the volunteer to have set availability', async () => {
     const testVolunteerWithNoAvailability = {
       ...mockVolunteer,
       availabilityLastModifiedAt: undefined,
     }
+    mockedVolunteerRepo.getVolunteerForOnboardingById.mockResolvedValue(
+      testVolunteerWithNoAvailability
+    )
     await VolunteerService.onboardVolunteer(
       testVolunteerWithNoAvailability.id,
       mockIp,
-      true,
       tc
     )
     expect(VolunteerRepo.updateVolunteerOnboarded).toHaveBeenCalled()
@@ -118,26 +114,6 @@ describe('onboardVolunteer', () => {
       expect.anything()
     )
     expect(AnalyticsService.captureEvent).toHaveBeenCalledWith(
-      expect.anything(),
-      EVENTS.ACCOUNT_ONBOARDED,
-      expect.anything()
-    )
-  })
-
-  test('It DOES require the volunteer to have set availability if skipAvailabilityOnboardingRequirement = false', async () => {
-    const testVolunteerWithNoAvailability = {
-      ...mockVolunteer,
-      availabilityLastModifiedAt: undefined,
-    }
-    await VolunteerService.onboardVolunteer(
-      testVolunteerWithNoAvailability.id,
-      mockIp,
-      false,
-      tc
-    )
-    expect(VolunteerRepo.updateVolunteerOnboarded).not.toHaveBeenCalled()
-    expect(createAccountAction).not.toHaveBeenCalled()
-    expect(AnalyticsService.captureEvent).not.toHaveBeenCalledWith(
       expect.anything(),
       EVENTS.ACCOUNT_ONBOARDED,
       expect.anything()
