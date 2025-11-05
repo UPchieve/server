@@ -70,7 +70,6 @@ export interface GetQuizScoreOptions {
   idAnswerMap: AnswerMap
   category: keyof Quizzes
   ip: string
-  skipAvailabilityOnboardingRequirement: boolean
 }
 
 export interface GetQuizScoreOutput {
@@ -163,12 +162,7 @@ export async function getQuizScore(
       if (unlockedSubjects.length === 1 && passedUpchieve101) {
         await VolunteerService.queueNationalTutorCertificateEmail(user.id)
       }
-      await VolunteerService.onboardVolunteer(
-        user.id,
-        ip,
-        options.skipAvailabilityOnboardingRequirement,
-        tc
-      )
+      await VolunteerService.onboardVolunteer(user.id, ip, tc)
     }
 
     const idCorrectAnswerMap = questions.reduce((correctAnswers, question) => {
