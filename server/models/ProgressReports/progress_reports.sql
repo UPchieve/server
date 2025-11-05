@@ -172,6 +172,8 @@ FROM
         FROM
             progress_report_sessions
             JOIN sessions ON progress_report_sessions.session_id = sessions.id
+        WHERE
+            progress_report_id = ANY (:reportIds!)
         GROUP BY
             progress_report_id) AS latest_session_for_summary ON progress_report_summaries.progress_report_id = latest_session_for_summary.progress_report_id
 WHERE

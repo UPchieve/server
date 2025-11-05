@@ -4759,6 +4759,13 @@ CREATE INDEX notifications_user_id ON upchieve.notifications USING btree (user_i
 
 
 --
+-- Name: partial_session_id_idx; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX partial_session_id_idx ON upchieve.user_actions USING btree (session_id) WHERE (session_id IS NOT NULL);
+
+
+--
 -- Name: progress_report_concept_details_concept_id; Type: INDEX; Schema: upchieve; Owner: -
 --
 
@@ -4931,6 +4938,13 @@ CREATE UNIQUE INDEX tutor_bot_conversations_unique_non_null_session_id ON upchie
 --
 
 CREATE INDEX user_actions_user_id ON upchieve.user_actions USING btree (user_id);
+
+
+--
+-- Name: users_lower_case_email_key; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE UNIQUE INDEX users_lower_case_email_key ON upchieve.users USING btree (lower(email));
 
 
 --
@@ -6666,4 +6680,6 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20251009150451'),
     ('20251014214939'),
     ('20251017145606'),
-    ('20251029173028');
+    ('20251029173028'),
+    ('20251103144758'),
+    ('20251104141004');

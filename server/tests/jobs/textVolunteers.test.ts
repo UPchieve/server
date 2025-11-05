@@ -18,8 +18,10 @@ import * as NotificationService from '../../services/NotificationService'
 import * as QueueService from '../../services/QueueService'
 import * as SessionService from '../../services/SessionService'
 import * as TwilioService from '../../services/TwilioService'
+import * as SubjectService from '../../services/SubjectsService'
 import { AssociatedPartner } from '../../models/AssociatedPartner'
 import { buildTextableVolunteer } from '../mocks/generate'
+import { ComputedSubjectUnlocks } from '../../models/Subjects'
 
 jest.mock('../../services/AssociatedPartnerService')
 jest.mock('../../cache')
@@ -28,6 +30,7 @@ jest.mock('../../services/NotificationService')
 jest.mock('../../services/QueueService')
 jest.mock('../../services/SessionService')
 jest.mock('../../services/TwilioService')
+jest.mock('../../services/SubjectsService')
 jest.mock('../../logger')
 
 const mockedAssociatedPartnerService = mocked(AssociatedPartnerService)
@@ -38,6 +41,23 @@ const mockedQueueService = mocked(QueueService)
 const mockedSessionService = mocked(SessionService)
 const mockedTwilioService = mocked(TwilioService)
 const mockedLogger = mocked(logger)
+const mockedSubjectService = mocked(SubjectService)
+
+const COMPUTED_SUBJECT_UNLOCKS = {
+  [SUBJECTS.INTEGRATED_MATH_ONE]: [
+    SUBJECTS.GEOMETRY,
+    SUBJECTS.STATISTICS,
+    SUBJECTS.ALGEBRA_ONE,
+  ],
+  [SUBJECTS.INTEGRATED_MATH_TWO]: [
+    SUBJECTS.GEOMETRY,
+    SUBJECTS.TRIGONOMETRY,
+    SUBJECTS.STATISTICS,
+    SUBJECTS.ALGEBRA_ONE,
+  ],
+  [SUBJECTS.INTEGRATED_MATH_THREE]: [SUBJECTS.STATISTICS, SUBJECTS.PRECALCULUS],
+  [SUBJECTS.INTEGRATED_MATH_FOUR]: [SUBJECTS.PRECALCULUS],
+} as ComputedSubjectUnlocks
 
 describe('TextVolunteers job', () => {
   beforeEach(() => {
@@ -55,6 +75,9 @@ describe('TextVolunteers job', () => {
     mockedQueueService.add.mockResolvedValue(undefined)
     mockedSessionService.getVolunteersInSessions.mockResolvedValue(new Set())
     mockedTwilioService.sendTextMessage.mockResolvedValue(undefined)
+    mockedSubjectService.getCachedComputedSubjectUnlocks.mockResolvedValue(
+      COMPUTED_SUBJECT_UNLOCKS
+    )
   })
 
   describe('filterSubjectEligibleVolunteers', () => {
@@ -156,6 +179,38 @@ describe('TextVolunteers job', () => {
 
       expect(result).toHaveLength(1)
       expect(result[0].id).toBe(regularVolunteer.id)
+    })
+
+    test('returns eligible high-level volunteers for subjects that require HLS to unlock', () => {
+      let allowHighLevelVolunteers = true
+      const subject = SUBJECTS.INTEGRATED_MATH_ONE // requires statistics, a high-level subject
+      const highLevelVolunteer = buildTextableVolunteer({
+        unlockedSubjects: [
+          SUBJECTS.GEOMETRY,
+          SUBJECTS.STATISTICS,
+          SUBJECTS.ALGEBRA_ONE,
+          SUBJECTS.INTEGRATED_MATH_ONE,
+        ],
+      })
+      const subjectIneligibleVolunteer = buildTextableVolunteer({
+        unlockedSubjects: [SUBJECTS.GEOMETRY],
+      })
+      const result = filterSubjectEligibleVolunteers(
+        [highLevelVolunteer, subjectIneligibleVolunteer],
+        subject,
+        allowHighLevelVolunteers
+      )
+      expect(result).toHaveLength(1)
+      expect(result[0].id).toBe(highLevelVolunteer.id)
+
+      allowHighLevelVolunteers = false
+      const resultWithoutAllowingHighLevelVolunteers =
+        filterSubjectEligibleVolunteers(
+          [highLevelVolunteer, subjectIneligibleVolunteer],
+          subject,
+          allowHighLevelVolunteers
+        )
+      expect(resultWithoutAllowingHighLevelVolunteers).toHaveLength(0)
     })
   })
 
