@@ -735,12 +735,6 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
               USER_BAN_REASONS.AUTOMATED_MODERATION
             )
 
-            await SessionService.reviewSession({
-              sessionId: sessionId,
-              reviewed: false,
-              toReview: false,
-            })
-
             io.to(getSessionRoom(sessionId))
               .except(user.id)
               .emit('partnerAckLiveMediaBan', {
