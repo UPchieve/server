@@ -1,4 +1,4 @@
-import { Express, Router } from 'express'
+import { Express, RequestHandler, Router } from 'express'
 import { PGStore } from 'connect-pg-simple'
 import expressWs from 'express-ws'
 import { Server } from 'socket.io'
@@ -34,7 +34,11 @@ import { routeRewards } from './rewards'
 import { sendTextMessage } from '../../services/TwilioService'
 import { asString } from '../../utils/type-utils'
 
-export function routes(app: Express, sessionStore: PGStore, io: Server): void {
+export function routes(
+  app: Express,
+  sessionMiddleware: RequestHandler,
+  io: Server
+): void {
   const router: expressWs.Router = Router()
 
   routeVolunteers(router)
@@ -45,7 +49,7 @@ export function routes(app: Express, sessionStore: PGStore, io: Server): void {
   routeVoiceMessages(router)
   routeCalendar(router)
   routeTraining(router)
-  routeSockets(io, sessionStore)
+  routeSockets(io, sessionMiddleware)
   routeModeration(router)
   routePushToken(router)
   routeReports(router)
@@ -98,8 +102,8 @@ export function routes(app: Express, sessionStore: PGStore, io: Server): void {
       const referralLink = `https://${config.client.host}/referral/${user.referralCode}`
       const phoneNumber = asString(req.body.phoneNumber)
       const message = `Hey! Want to change lives in your spare time? ✨
-        ${user.firstName} is volunteering online at UPchieve to tutor students at low-income schools and thought you'd enjoy it, too! 🍎 
-        💬 It's all chat & audio based and you can tutor as little or as much as you want. (Plus earn volunteer hours!) 
+        ${user.firstName} is volunteering online at UPchieve to tutor students at low-income schools and thought you'd enjoy it, too! 🍎
+        💬 It's all chat & audio based and you can tutor as little or as much as you want. (Plus earn volunteer hours!)
         Sign up today to start making an impact! ${referralLink}`
 
       await sendTextMessage(phoneNumber, message)
