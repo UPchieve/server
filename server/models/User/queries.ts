@@ -6,7 +6,6 @@ import {
   makeSomeOptional,
   makeSomeRequired,
   Ulid,
-  Pgid,
   getDbUlid,
   Uuid,
   generateReferralCode,
@@ -24,7 +23,6 @@ import {
 } from '../../constants'
 import { getReferencesByVolunteerForAdminDetail } from '../Volunteer/queries'
 import { getSubjectNameIdMapping } from '../Subjects/queries'
-import { PoolClient } from 'pg'
 import {
   CreateUserPayload,
   CreateUserResult,
@@ -138,19 +136,6 @@ export async function getUserIdByEmail(
     if (result.length) return makeRequired(result[0]).id
   } catch (err) {
     throw new RepoReadError(err)
-  }
-}
-
-export async function deleteUser(userId: Ulid, email: string) {
-  try {
-    const result = await pgQueries.deleteUser.run(
-      { userId: userId, email: email.toLowerCase() },
-      getClient()
-    )
-    if (result.length && makeRequired(result[0].ok)) return
-    throw new RepoUpdateError('Update query did not delete student')
-  } catch (err) {
-    throw new RepoUpdateError(err)
   }
 }
 
@@ -841,6 +826,19 @@ export async function updatePreferredLanguageToUser(
     )
     if (!(result.length && makeRequired(result[0]).ok))
       throw new RepoUpdateError('Update query did not return ok')
+  } catch (err) {
+    throw new RepoUpdateError(err)
+  }
+}
+
+export async function flagUserForDeletion(userId: Uuid) {
+  try {
+    await pgQueries.flagUserForDeletion.run(
+      {
+        userId,
+      },
+      getClient()
+    )
   } catch (err) {
     throw new RepoUpdateError(err)
   }

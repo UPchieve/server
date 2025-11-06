@@ -3,6 +3,7 @@ import { Job } from 'bull'
 import { runInTransaction, TransactionClient } from '../../db'
 import { Ulid } from '../../models/pgUtils'
 import * as AwsService from '../../services/AwsService'
+import * as MailService from '../../services/MailService'
 import config from '../../config'
 import { ACCOUNT_USER_ACTIONS } from '../../constants'
 import { createAccountAction } from '../../models/UserAction'
@@ -38,6 +39,7 @@ export default async (job: Job<DeidentifyUserJob>): Promise<void> => {
       JSON.stringify({ passport: { user: userId } }),
     ])
 
+    await MailService.deleteContactByEmail(user.email)
     const photoIdKeyResult = await tc.query(
       'SELECT photo_id_s3_key FROM volunteer_profiles WHERE user_id = $1',
       [userId]

@@ -1743,28 +1743,6 @@ export async function getVolunteerMutedSubjects(
   }
 }
 
-export type VolunteerToOnboard = {
-  id: Ulid
-  email: string
-  firstName: string
-  onboarded: boolean
-  approved: boolean
-}
-export async function getVolunteersForOnboardingBackfill(
-  tc: TransactionClient = getClient()
-): Promise<VolunteerToOnboard[]> {
-  try {
-    const rawResults =
-      await pgQueries.getVolunteersWhoAreOnboardedExceptForAvailability.run(
-        undefined,
-        tc
-      )
-    return rawResults.map((row) => makeRequired(row))
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
 export async function getVolunteersForTextNotifications(): Promise<
   TextableVolunteer[]
 > {

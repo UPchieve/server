@@ -3,7 +3,6 @@ import { omit } from 'lodash'
 import { Ulid, Uuid } from '../models/pgUtils'
 import {
   ACCOUNT_USER_ACTIONS,
-  EVENTS,
   IP_ADDRESS_STATUS,
   PHOTO_ID_STATUS,
   REFERENCE_STATUS,
@@ -20,7 +19,6 @@ import { adminUpdateStudent } from '../models/Student'
 import {
   UserContactInfo,
   getUsersForAdminSearch,
-  deleteUser,
   deleteUserPhoneInfo,
   UserForAdmin,
   UserRole,
@@ -61,6 +59,8 @@ import { runInTransaction, TransactionClient } from '../db'
 import * as VolunteerService from './VolunteerService'
 import * as ImpactStatsService from './ImpactStatsService'
 import config from '../config'
+import { Jobs } from '../worker/jobs'
+import QueueService from './QueueService'
 
 export async function parseUser(baseUser: UserContactInfo) {
   const user = await getLegacyUserObject(baseUser.id)
@@ -261,16 +261,20 @@ const asAdminUpdate = asFactory<AdminUpdate>({
   schoolId: asOptional(asString),
 })
 
-export async function flagForDeletion(user: UserContactInfo) {
-  try {
-    // If a user is requesting deletion, we should remove them from automatic emails
-    await MailService.deleteContactByEmail(user.email)
-  } catch (err) {
-    logger.error(
-      `Error searching for or deleting contact in user deletion process: ${err}`
+export async function deleteUser(user: UserContactInfo) {
+  if (user.banType) {
+    logger.warn(
+      { userId: user.id, banType: user.banType },
+      'Banned user attempted to delete account.'
+    )
+    throw new NotAllowedError(
+      'Unable to perform action - please reach out to support to finish deleting your account.'
     )
   }
-  await deleteUser(user.id, `${user.email}deactivated`)
+
+  // Change their email so they can't log in before/while the job is completing.
+  await UserRepo.flagUserForDeletion(user.id)
+  await QueueService.add(Jobs.DeidentifyUser, { userId: user.id })
 }
 
 export async function adminUpdateUser(data: unknown) {

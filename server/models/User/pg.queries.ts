@@ -524,42 +524,6 @@ const getUserByResetTokenIR: any = {"usedParamSet":{"resetToken":true},"params":
 export const getUserByResetToken = new PreparedQuery<IGetUserByResetTokenParams,IGetUserByResetTokenResult>(getUserByResetTokenIR);
 
 
-/** 'DeleteUser' parameters type */
-export interface IDeleteUserParams {
-  email: string;
-  userId: string;
-}
-
-/** 'DeleteUser' return type */
-export interface IDeleteUserResult {
-  ok: string;
-}
-
-/** 'DeleteUser' query type */
-export interface IDeleteUserQuery {
-  params: IDeleteUserParams;
-  result: IDeleteUserResult;
-}
-
-const deleteUserIR: any = {"usedParamSet":{"email":true,"userId":true},"params":[{"name":"email","required":true,"transform":{"type":"scalar"},"locs":[{"a":33,"b":39}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":80,"b":87}]}],"statement":"UPDATE\n    users\nSET\n    email = :email!,\n    updated_at = NOW()\nWHERE\n    id = :userId!\nRETURNING\n    id AS ok"};
-
-/**
- * Query generated from SQL:
- * ```
- * UPDATE
- *     users
- * SET
- *     email = :email!,
- *     updated_at = NOW()
- * WHERE
- *     id = :userId!
- * RETURNING
- *     id AS ok
- * ```
- */
-export const deleteUser = new PreparedQuery<IDeleteUserParams,IDeleteUserResult>(deleteUserIR);
-
-
 /** 'CountReferredUsersWithFilter' parameters type */
 export interface ICountReferredUsersWithFilterParams {
   hasRoles?: stringArray | null | void;
@@ -2077,5 +2041,35 @@ const updatePreferredLanguageToUserIR: any = {"usedParamSet":{"preferredLanguage
  * ```
  */
 export const updatePreferredLanguageToUser = new PreparedQuery<IUpdatePreferredLanguageToUserParams,IUpdatePreferredLanguageToUserResult>(updatePreferredLanguageToUserIR);
+
+
+/** 'FlagUserForDeletion' parameters type */
+export interface IFlagUserForDeletionParams {
+  userId: string;
+}
+
+/** 'FlagUserForDeletion' return type */
+export type IFlagUserForDeletionResult = void;
+
+/** 'FlagUserForDeletion' query type */
+export interface IFlagUserForDeletionQuery {
+  params: IFlagUserForDeletionParams;
+  result: IFlagUserForDeletionResult;
+}
+
+const flagUserForDeletionIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":33,"b":40},{"a":57,"b":64}]}],"statement":"UPDATE\n    users\nSET\n    email = :userId!\nWHERE\n    id = :userId!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE
+ *     users
+ * SET
+ *     email = :userId!
+ * WHERE
+ *     id = :userId!
+ * ```
+ */
+export const flagUserForDeletion = new PreparedQuery<IFlagUserForDeletionParams,IFlagUserForDeletionResult>(flagUserForDeletionIR);
 
 
