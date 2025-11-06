@@ -65,7 +65,6 @@ import maybeSendStudentFeedbackToVolunteer from './volunteer-emails/maybeSendStu
 import emailNationalTutorCertificate from './emailNationalTutorCertificate'
 import addScheduledJobs from './addScheduledJobs'
 import emailAmbassadorCongrats from './emailAmbassadorCongrats'
-import backfillOnboardedStatus from './backfillOnboardedStatus'
 import { logRedisKeyMemStats } from './logRedisKeyMemStats'
 import { clearBullJobByStatus } from './clearBullJobsByStatus'
 import updateCachedVolunteersForTextNotifications from './updateCachedVolunteersForTextNotifications'
@@ -155,7 +154,6 @@ export enum Jobs {
   UpdateTotalVolunteerHours = 'UpdateTotalVolunteerHours',
   UpsertPostalCodes = 'UpsertPostalCodes',
   UpsertSchools = 'UpsertSchools',
-  BackfillOnboardedStatus = 'BackfillOnboardedStatus',
   UpdateCachedVolunteersForTextNotifications = 'UpdateCachedVolunteersForTextNotifications',
 }
 
@@ -474,10 +472,6 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.UpsertSchools,
     processor: upsertSchools,
-  },
-  {
-    name: Jobs.BackfillOnboardedStatus,
-    processor: backfillOnboardedStatus,
   },
   {
     name: Jobs.UpdateCachedVolunteersForTextNotifications,

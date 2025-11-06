@@ -21,7 +21,6 @@ export interface UpdateScheduleOptions {
   // @note: this is set to optional to test the absence of an availability object
   availability?: Availability
   tz: string // TODO: Remove timezones: Use UTC.
-  skipAvailabilityOnboardingRequirement: boolean
 }
 
 export async function updateSchedule(
@@ -67,12 +66,7 @@ export async function updateSchedule(
       updateTimezoneByUserId(volunteer.id, newTimezone, tc),
     ])
 
-    await VolunteerService.onboardVolunteer(
-      volunteer.id,
-      ip,
-      options.skipAvailabilityOnboardingRequirement,
-      tc
-    )
+    await VolunteerService.onboardVolunteer(volunteer.id, ip, tc)
   })
 }
 

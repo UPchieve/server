@@ -127,7 +127,6 @@ describe('getQuizScore', () => {
       user: volunteer,
       category: cert,
       idAnswerMap,
-      skipAvailabilityOnboardingRequirement: false,
     }
 
     mockedQuestionRepo.getMultipleQuestionsById.mockResolvedValueOnce(questions)
@@ -200,7 +199,6 @@ describe('getQuizScore', () => {
       user: volunteer,
       category: cert,
       idAnswerMap,
-      skipAvailabilityOnboardingRequirement: false,
     }
 
     mockedQuestionRepo.getMultipleQuestionsById.mockResolvedValueOnce(questions)
@@ -259,7 +257,6 @@ describe('getQuizScore', () => {
     expect(VolunteerService.onboardVolunteer).toHaveBeenCalledWith(
       volunteer.id,
       undefined,
-      false,
       expect.toBeTransactionClient()
     )
     expect(VolunteerRepo.updateVolunteerOnboarded).not.toHaveBeenCalled()
@@ -307,7 +304,6 @@ describe('getQuizScore', () => {
       user: volunteer,
       category: cert,
       idAnswerMap,
-      skipAvailabilityOnboardingRequirement: false,
     }
 
     mockedQuestionRepo.getMultipleQuestionsById.mockResolvedValueOnce(questions)
@@ -365,7 +361,6 @@ describe('getQuizScore', () => {
     expect(VolunteerService.onboardVolunteer).toHaveBeenCalledWith(
       volunteer.id,
       undefined,
-      false,
       expect.toBeTransactionClient()
     )
     expect(MailService.createContact).not.toHaveBeenCalled()
@@ -397,7 +392,6 @@ describe('getQuizScore', () => {
       user: volunteer,
       category: cert,
       idAnswerMap,
-      skipAvailabilityOnboardingRequirement: false,
     }
 
     mockedQuestionRepo.getMultipleQuestionsById.mockResolvedValueOnce(questions)
@@ -452,7 +446,6 @@ describe('getQuizScore', () => {
     expect(VolunteerService.onboardVolunteer).toHaveBeenCalledWith(
       volunteer.id,
       undefined,
-      false,
       expect.toBeTransactionClient()
     )
     expect(MailService.createContact).toHaveBeenCalled()
@@ -488,7 +481,6 @@ describe('getQuizScore', () => {
       user: volunteer,
       category: cert,
       idAnswerMap,
-      skipAvailabilityOnboardingRequirement: false,
     }
 
     mockedQuestionRepo.getMultipleQuestionsById.mockResolvedValueOnce(questions)
@@ -547,7 +539,6 @@ describe('getQuizScore', () => {
     expect(VolunteerService.onboardVolunteer).toHaveBeenCalledWith(
       volunteer.id,
       undefined,
-      false,
       expect.toBeTransactionClient()
     )
     expect(MailService.createContact).not.toHaveBeenCalled()
@@ -579,7 +570,6 @@ describe('getQuizScore', () => {
       user: volunteer,
       category: cert,
       idAnswerMap,
-      skipAvailabilityOnboardingRequirement: false,
     }
 
     mockedQuestionRepo.getMultipleQuestionsById.mockResolvedValueOnce(questions)
@@ -634,7 +624,6 @@ describe('getQuizScore', () => {
     expect(VolunteerService.onboardVolunteer).toHaveBeenCalledWith(
       volunteer.id,
       undefined,
-      false,
       expect.toBeTransactionClient()
     )
     expect(MailService.createContact).toHaveBeenCalled()
@@ -672,7 +661,6 @@ describe('getQuizScore', () => {
       user: volunteer,
       category: cert,
       idAnswerMap,
-      skipAvailabilityOnboardingRequirement: false,
     }
 
     mockedQuestionRepo.getMultipleQuestionsById.mockResolvedValueOnce(questions)
@@ -732,7 +720,6 @@ describe('getQuizScore', () => {
     expect(VolunteerService.onboardVolunteer).toHaveBeenCalledWith(
       volunteer.id,
       undefined,
-      false,
       expect.toBeTransactionClient()
     )
     expect(MailService.createContact).not.toHaveBeenCalled()
