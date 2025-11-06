@@ -132,15 +132,6 @@ export async function rosterPartnerStudents(
         }
         await upsertStudent(studentData, tc)
 
-        if (student.cleverId) {
-          await FederatedCredentialService.linkAccount(
-            student.cleverId,
-            FederatedCredentialService.Issuer.CLEVER,
-            user.id,
-            tc
-          )
-        }
-
         if (user.isCreated) {
           newUsers.push({ passwordResetToken, ...user })
         } else {
