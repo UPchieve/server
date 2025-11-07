@@ -12,8 +12,12 @@ import Redis from 'ioredis'
 import { CustomError } from 'ts-custom-error'
 import config from '../config'
 import { Redlock, type Lock } from '@sesamecare-oss/redlock'
+import logger from '../logger'
 
 const redisClient = new Redis(config.redisConnectionString)
+redisClient.on('error', (error) => {
+  logger.error({ error }, `Redis Cache Error: ${error.name}`)
+})
 
 const redisLock = new Redlock([redisClient])
 
