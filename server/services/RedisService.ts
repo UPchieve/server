@@ -1,5 +1,6 @@
 import Redis from 'ioredis'
 import config from '../config'
+import logger from '../logger'
 import { createSlackAlert } from '../services/SlackAlertService'
 
 export const redisClient = new Redis(config.redisConnectionString)
@@ -21,4 +22,11 @@ redisSubClient.on('message', async (channel, key) => {
   if (channel == EVICTED_KEY_CHANNEL) {
     await createSlackAlert('Evicted Key Alert', `${key} was evicted`)
   }
+})
+
+redisClient.on('error', (error) => {
+  logger.error({ error }, `Redis Service Client Error: ${error.name}`)
+})
+redisSubClient.on('error', (error) => {
+  logger.error({ error }, `Redis Service SubClient Error: ${error.name}`)
 })
