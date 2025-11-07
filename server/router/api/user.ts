@@ -165,6 +165,9 @@ export function routeUser(router: Router): void {
         country,
         state,
         city,
+        phoneNumber,
+        signupSourceId,
+        otherSignupSource,
       } = req.body
 
       const update = {
@@ -177,6 +180,9 @@ export function routeUser(router: Router): void {
         country,
         state,
         city,
+        phoneNumber,
+        signupSourceId,
+        otherSignupSource,
       }
 
       try {
