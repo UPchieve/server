@@ -10,22 +10,36 @@ import config from '../../config'
 import * as cache from '../../cache'
 import { Jobs } from './index'
 
+export type UpdateTotalVolunteerHoursJobData = {
+  startDate?: string
+}
+
 // TODO: Update the name to make it more clear this is only
 // for the `customVolunteerPartnerOrgs`.
-async function updateTotalVolunteerHours(): Promise<void> {
+async function updateTotalVolunteerHours(
+  data?: UpdateTotalVolunteerHoursJobData
+): Promise<void> {
   const cachedDate = await cache.getIfExists(
     config.cacheKeys.updateTotalVolunteerHoursLastRun
   )
   const endDate = moment.tz('America/New_York')
-  // If the last run date is not found in the cache, default to last Monday at 6am ET
-  const startDate = cachedDate
-    ? moment(cachedDate)
-    : moment
-        .tz('America/New_York')
-        .startOf('isoWeek')
-        .hour(6)
-        .startOf('hour')
-        .subtract(7, 'days')
+  // The default start date is last Monday at 6am ET
+  const defaultStart = endDate
+    .clone()
+    .startOf('isoWeek')
+    .hour(6)
+    .startOf('hour')
+    .subtract(7, 'days')
+
+  // Use the custom date passed in if provided
+  // If not provided, use the cached last run date
+  // If no cache value exists, default to last Monday at 6am ET,
+  // which is when the cron job runs
+  const startDate = data?.startDate
+    ? moment.tz(data.startDate, 'America/New_York')
+    : cachedDate
+      ? moment(cachedDate)
+      : defaultStart
 
   const volunteers = await getVolunteersForTotalHours()
 
