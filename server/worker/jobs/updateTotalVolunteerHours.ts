@@ -13,10 +13,20 @@ import { Jobs } from './index'
 // TODO: Update the name to make it more clear this is only
 // for the `customVolunteerPartnerOrgs`.
 async function updateTotalVolunteerHours(): Promise<void> {
-  const startDate = moment(
-    await cache.get(config.cacheKeys.updateTotalVolunteerHoursLastRun)
+  const cachedDate = await cache.getIfExists(
+    config.cacheKeys.updateTotalVolunteerHoursLastRun
   )
-  const endDate = moment()
+  const endDate = moment.tz('America/New_York')
+  // If the last run date is not found in the cache, default to last Monday at 6am ET
+  const startDate = cachedDate
+    ? moment(cachedDate)
+    : moment
+        .tz('America/New_York')
+        .startOf('isoWeek')
+        .hour(6)
+        .startOf('hour')
+        .subtract(7, 'days')
+
   const volunteers = await getVolunteersForTotalHours()
 
   let totalUpdated = 0
@@ -32,18 +42,17 @@ async function updateTotalVolunteerHours(): Promise<void> {
         volunteer.id,
         stats.totalVolunteerHours
       )
+      totalUpdated += 1
     } catch (error) {
       errors.push(`${volunteer.id}: ${error}\n`)
-      continue
     }
-    totalUpdated += 1
   }
   log(
     `Successfully ${Jobs.UpdateTotalVolunteerHours} for ${totalUpdated} volunteers`
   )
   await cache.save(
     config.cacheKeys.updateTotalVolunteerHoursLastRun,
-    endDate.format()
+    endDate.toISOString()
   )
 
   if (errors.length) {
