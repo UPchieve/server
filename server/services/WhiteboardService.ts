@@ -42,6 +42,7 @@ export const appendToDoc = (
 }
 
 export const deleteDoc = (sessionId: Ulid): Promise<number> => {
+  logger.info({ sessionId }, 'Removing whiteboard doc from cache')
   return cache.remove(sessionIdToKey(sessionId))
 }
 
