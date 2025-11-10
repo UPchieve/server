@@ -497,12 +497,12 @@ export const addJobProcessors = (queue: Queue): void => {
   try {
     for (const jobProcessor of jobProcessors) {
       queue.process(jobProcessor.name, async (job) => {
+        const jobData = job.data
+        logger.info({ jobData }, `Processing job: ${job.name}`)
         await newrelic.startBackgroundTransaction(
           `job:${job.name}`,
           async () => {
             const transaction = newrelic.getTransaction()
-            const jobData = job.data
-            logger.info({ jobData }, `Processing job: ${job.name}`)
             try {
               await jobProcessor.processor(job)
               logger.info({ jobData }, `Completed job: ${job.name}`)
