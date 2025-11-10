@@ -501,12 +501,17 @@ export const addJobProcessors = (queue: Queue): void => {
           `job:${job.name}`,
           async () => {
             const transaction = newrelic.getTransaction()
-            logger.info(`Processing job: ${job.name}`)
+            const jobData = job.data
+            logger.info({ jobData }, `Processing job: ${job.name}`)
             try {
               await jobProcessor.processor(job)
-              logger.info(`Completed job: ${job.name}`)
+              logger.info({ jobData }, `Completed job: ${job.name}`)
             } catch (error) {
-              logger.error(error, `Error processing job: ${job.name}`)
+              logger.error(
+                error,
+                { jobData },
+                `Error processing job: ${job.name}`
+              )
               throw error
             } finally {
               transaction.end()
