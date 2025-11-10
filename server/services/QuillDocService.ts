@@ -182,10 +182,12 @@ export async function ensureDocumentUpdateExists(sessionId: Ulid) {
 }
 
 export async function deleteDoc(sessionId: Ulid): Promise<void> {
-  logger.info({ sessionId }, 'Removing qull doc from cache')
-  await Promise.allSettled([
-    cache.remove(sessionIdToKey(sessionId)),
-    cache.remove(getSessionDeltasKey(sessionId)),
-    cache.remove(getSessionDocumentUpdatesKey(sessionId)),
-  ])
+  try {
+    logger.info({ sessionId }, 'Removing qull doc from cache')
+    await cache.remove(sessionIdToKey(sessionId))
+    await cache.remove(getSessionDeltasKey(sessionId))
+    await cache.remove(getSessionDocumentUpdatesKey(sessionId))
+  } catch (error) {
+    logger.warn({ err: error, sessionId }, "Couldn't remove all quill doc keys")
+  }
 }

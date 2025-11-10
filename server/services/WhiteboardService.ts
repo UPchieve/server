@@ -41,9 +41,16 @@ export const appendToDoc = (
   return cache.append(sessionIdToKey(sessionId), docAddition)
 }
 
-export const deleteDoc = (sessionId: Ulid): Promise<number> => {
-  logger.info({ sessionId }, 'Removing whiteboard doc from cache')
-  return cache.remove(sessionIdToKey(sessionId))
+export async function deleteDoc(sessionId: Ulid) {
+  try {
+    logger.info({ sessionId }, 'Removing whiteboard doc from cache')
+    await cache.remove(sessionIdToKey(sessionId))
+  } catch (error) {
+    logger.warn(
+      { err: error, sessionId },
+      "Couldn't remove whiteboard doc from cache"
+    )
+  }
 }
 
 export const uploadedToStorage = async (
