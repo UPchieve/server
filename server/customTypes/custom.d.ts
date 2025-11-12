@@ -9,9 +9,10 @@ declare global {
     }
     export interface Request {
       ip: string
-      // this is the signature we get after promisifying login
-      // see app.ts line 166
-      asyncLogin: (arg1: User, arg2?: any) => Promise<unknown>
+      // This is the signature we get after promisifying passport's login
+      // and logout. See app.ts.
+      asyncLogin: (user: User) => Promise<void>
+      asyncLogout: () => Promise<unknown>
     }
   }
 }

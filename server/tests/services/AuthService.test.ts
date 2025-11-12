@@ -408,9 +408,7 @@ describe('Password reset tests', () => {
       token: 'bad token',
     }
 
-    const t = async <T>(p: T) => await AuthService.confirmReset(p)
-
-    await expect(t(payload)).rejects.toThrow(
+    await expect(AuthService.confirmReset(payload)).rejects.toThrow(
       new ResetError(
         'Invalid password reset token. Please use the link provided in the latest password reset email you received from UPchieve.'
       )
@@ -427,9 +425,7 @@ describe('Password reset tests', () => {
       token: '0123456789abcdef0123456789abcdef',
     }
 
-    const t = async <T>(p: T) => await AuthService.confirmReset(p)
-
-    await expect(t(payload)).rejects.toThrow(
+    await expect(AuthService.confirmReset(payload)).rejects.toThrow(
       new LookupError(
         'No account found with provided password reset token. Please use the link provided in the latest password reset email you received from UPchieve.'
       )
@@ -446,9 +442,7 @@ describe('Password reset tests', () => {
       token: '0123456789abcdef0123456789abcdef',
     }
 
-    const t = async <T>(p: T) => await AuthService.confirmReset(p)
-
-    await expect(t(payload)).rejects.toThrow(
+    await expect(AuthService.confirmReset(payload)).rejects.toThrow(
       new ResetError('Email did not match the password reset token.')
     )
   })
@@ -463,9 +457,7 @@ describe('Password reset tests', () => {
       token: '0123456789abcdef0123456789abcdef',
     }
 
-    const t = async <T>(p: T) => await AuthService.confirmReset(p)
-
-    await expect(t(payload)).rejects.toThrow(
+    await expect(AuthService.confirmReset(payload)).rejects.toThrow(
       new ResetError('The passwords you entered do not match.')
     )
   })

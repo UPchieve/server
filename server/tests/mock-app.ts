@@ -32,8 +32,12 @@ export function mockPassportMiddleware(
     next: express.NextFunction
   ): void => {
     req.user = getUser()
+    // @ts-ignore
     req.asyncLogin = login || jest.fn()
-    req.logout = logout || jest.fn()
+    // @ts-ignore
+    req.asyncLogout = logout || jest.fn()
+    // @ts-ignore
+    req.isAuthenticated = () => true
     req.session = {
       // @ts-expect-error: mocking a partial express session
       destroy: destroy || jest.fn(),

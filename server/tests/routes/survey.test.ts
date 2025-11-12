@@ -10,7 +10,6 @@ import { mockApp, mockPassportMiddleware, mockRouter } from '../mock-app'
 import {
   buildSimpleSurveyResponse,
   buildSimpleSurvey,
-  buildSimpleSurveyLegacy,
   buildUserContactInfo,
   buildUserSurvey,
   buildUserSurveySubmission,

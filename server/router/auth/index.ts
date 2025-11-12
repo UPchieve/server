@@ -6,6 +6,7 @@ import * as StudentService from '../../services/StudentService'
 import * as UserCreationService from '../../services/UserCreationService'
 import { switchActiveRole } from '../../services/UserRolesService'
 import {
+  asResetConfirmData,
   authPassport,
   getSsoProviderFromRequest,
   isSupportedSsoProvider,
@@ -40,18 +41,13 @@ export function routes(app: Express) {
   const router = Router()
 
   router.route('/logout').get(async function (req, res) {
-    const userId = req.user?.id
-    req.session.destroy(() => {
-      /* do nothing */
+    await req.asyncLogout()
+
+    res.json({
+      msg: 'You have been logged out!',
     })
 
-    // We do not remove all sessions from the database when users log out
-    // because we have lots of students who share multiple devices. They may
-    // want to log out of a laptop they share with a sibling, but stay logged
-    // in on their mobile device, for example.
-
-    req.logout()
-
+    const userId = req.user?.id
     if (userId) {
       await createAccountAction({
         userId,
@@ -59,9 +55,6 @@ export function routes(app: Express) {
         ipAddress: req.ip,
       })
     }
-    res.json({
-      msg: 'You have been logged out',
-    })
   })
 
   router.route('/login').post(
@@ -139,41 +132,52 @@ export function routes(app: Express) {
       return
     }
     const strategy = provider
-    passport.authenticate(strategy, async function (_, user, data) {
-      if (data?.profileId && data?.issuer) {
-        const validator = getUuid()
-        ;(req.session as SessionWithSsoData).sso = {
-          fedCredData: {
-            profileId: data.profileId,
-            issuer: data.issuer,
-            validator,
-          },
-          userData: {
-            ...userData,
-            firstName: data.firstName,
-            lastName: data.lastName,
-          },
+    passport.authenticate(
+      strategy,
+      async function (
+        _err: any,
+        user?: Express.User,
+        data?: {
+          profileId?: string
+          issuer?: string
+          firstName?: string
+          lastName?: string
+          errorMessage?: string
         }
-        return res.redirect(AuthRedirect.emailRedirect(validator))
-      }
+      ) {
+        if (data?.profileId && data?.issuer) {
+          const validator = getUuid()
+          ;(req.session as SessionWithSsoData).sso = {
+            fedCredData: {
+              profileId: data.profileId,
+              issuer: data.issuer,
+              validator,
+            },
+            userData: {
+              ...userData,
+              firstName: data.firstName,
+              lastName: data.lastName,
+            },
+          }
+          return res.redirect(AuthRedirect.emailRedirect(validator))
+        }
 
-      delete (req.session as SessionWithSsoData).sso
-
-      if (user) {
-        await req.asyncLogin(user)
-        return res.redirect(AuthRedirect.successRedirect(redirect))
-      } else {
-        return res.redirect(
-          AuthRedirect.failureRedirect(
-            isLogin,
-            provider,
-            errorRedirect,
-            userData,
-            data?.errorMessage
+        if (user) {
+          await req.asyncLogin(user)
+          return res.redirect(AuthRedirect.successRedirect(redirect))
+        } else {
+          return res.redirect(
+            AuthRedirect.failureRedirect(
+              isLogin,
+              provider,
+              errorRedirect,
+              userData,
+              data?.errorMessage
+            )
           )
-        )
+        }
       }
-    })(req, res)
+    )(req, res)
   })
 
   router.route('/register/checkcred').post(async function (req, res) {
@@ -419,19 +423,9 @@ export function routes(app: Express) {
         if (!(err instanceof LookupError)) return resError(res, err) // will handle sending response with status/error
         logger.info(err) // log expected lookup errors
       }
-      let userId: Ulid | undefined
-      if (!req.user) {
-        // user not logged in
-        userId = await getUserIdByEmail(email)
-      } // logged in
-      else userId = req.user.id
-      req.session.destroy(() => {
-        /* do nothing */
-      })
-      // if account with given email exists then try to destroy its sessions
-      if (userId) {
-        await AuthService.deleteAllUserSessions(userId)
-        req.logout()
+
+      if (req.user) {
+        await req.asyncLogout()
       }
       res.status(200).json({
         msg: 'If an account with this email address exists then we will send a password reset email',
@@ -446,8 +440,14 @@ export function routes(app: Express) {
     authPassport.checkRecaptcha,
     async function (req: Request, res: Response) {
       try {
-        await AuthService.confirmReset(req.body as unknown)
-        res.sendStatus(200)
+        const data = asResetConfirmData(req.body)
+        await AuthService.confirmReset(data)
+        const userId = await getUserIdByEmail(req.body.email)
+        if (userId) {
+          await AuthService.deleteAllUserSessions(userId)
+          await req.asyncLogin({ id: userId, isAdmin: false })
+        }
+        res.redirect('/')
       } catch (err) {
         resError(res, err)
       }

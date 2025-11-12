@@ -24,6 +24,10 @@ const mockedUserAction = mocked(UserAction)
 jest.mock('../../services/UserCreationService')
 const mockedUserCreationService = mocked(UserCreationService)
 
+jest.mock('../../models/User/queries')
+import * as UserQueries from '../../models/User/queries'
+const mockedUserQueries = mocked(UserQueries)
+
 jest.mock('../../utils/auth-utils', () => ({
   ...(jest.requireActual('../../utils/auth-utils') as any),
   authPassport: {
@@ -172,9 +176,7 @@ describe('Test router logic', () => {
       body: { msg },
     } = response
     expect(AuthService.sendReset).toHaveBeenCalledTimes(1)
-    expect(mockDestroy).toHaveBeenCalledTimes(1)
-    expect(mockLogout).toBeCalledTimes(1)
-    expect(AuthService.deleteAllUserSessions).toHaveBeenCalledTimes(1)
+    expect(mockLogout).toHaveBeenCalledTimes(1)
     expect(msg).toEqual(
       'If an account with this email address exists then we will send a password reset email'
     )
@@ -304,8 +306,30 @@ describe('Test simple routes hit AuthService', () => {
   })
 
   test('Route /reset/confirm', async () => {
-    const response = await sendPost('/reset/confirm', {})
+    const userEmail = 'test@example.com'
+    const userId = 'test-user-id-123'
+    const payload = {
+      email: userEmail,
+      password: 'Password123!',
+      newpassword: 'Password123!',
+      token: '0123456789abcdef0123456789abcdef',
+    }
 
-    expect(response.status).toEqual(200)
+    mockedAuthService.confirmReset.mockResolvedValueOnce(undefined)
+    mockedUserQueries.getUserIdByEmail.mockResolvedValueOnce(userId)
+    mockedAuthService.deleteAllUserSessions.mockResolvedValueOnce()
+
+    const response = await sendPost('/reset/confirm', payload)
+
+    expect(AuthService.confirmReset).toHaveBeenCalledTimes(1)
+    expect(AuthService.confirmReset).toHaveBeenCalledWith(payload)
+    expect(UserQueries.getUserIdByEmail).toHaveBeenCalledTimes(1)
+    expect(UserQueries.getUserIdByEmail).toHaveBeenCalledWith(userEmail)
+    expect(AuthService.deleteAllUserSessions).toHaveBeenCalledTimes(1)
+    expect(AuthService.deleteAllUserSessions).toHaveBeenCalledWith(userId)
+    expect(mockLogin).toHaveBeenCalledTimes(1)
+    expect(mockLogin).toHaveBeenCalledWith({ id: userId, isAdmin: false })
+    expect(response.status).toEqual(302)
+    expect(response.header.location).toEqual('/')
   })
 })
