@@ -5,6 +5,7 @@ import { Express } from 'express'
 import { getClient } from '../../db'
 import { csrfSync } from 'csrf-sync'
 import { getApiKeyFromHeader } from '../../utils/auth-utils'
+import { isProductionEnvironment } from '../../utils/environments'
 
 const PgStore = CreatePgStore(session)
 
@@ -19,7 +20,9 @@ export default function (app: Express) {
       tableName: 'session',
     }),
     cookie: {
-      httpOnly: false,
+      httpOnly: true,
+      sameSite: 'strict',
+      secure: isProductionEnvironment(),
       maxAge: config.sessionCookieMaxAge,
     },
   })
