@@ -1959,7 +1959,7 @@ Given a chunk of the conversation, provide a confidence rating from 0 to 100 to 
 <exception>The platform has its own direct messaging feature that is an appropriate mode of communication as long as the intended use is still to facilitate tutoring.</exception>
 <exception>It is acceptable to agree on a time to meet to do another tutoring session as long as it is on the platform.</exception>
 <exception>It is acceptable for a party to mention that they know someone that can help. For example: "I know several retired profs who can help you if necessary." or "Oh I know one of the deans there!" or "I think I know a prof who may have a research spot for you!" These examples are okay, especially when the subject is college counseling</exception>
-<exception>It is acceptable for a volunteer to suggest requesting another session and/or to suggest to a student to send a message on the session once it ends as the platform has a direct messaging feature once a session ends.</exception>
+<exception>It is acceptable for a volunteer to suggest requesting another session and/or to suggest sending a direct message on the platform.</exception>
 </policy>
 <policy><name>PII</name>No sharing personally identifiable information such as one's school, place of employment, address, contact information, etc.
 <exception>Grade level and first names are already known to both participants.</exception>
