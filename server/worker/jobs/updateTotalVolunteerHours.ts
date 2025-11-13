@@ -1,5 +1,6 @@
 import moment from 'moment'
 import 'moment-timezone'
+import { Job } from 'bull'
 import {
   getVolunteersForTotalHours,
   updateVolunteerTotalHoursById,
@@ -18,7 +19,7 @@ export type UpdateTotalVolunteerHoursJobData = {
 // TODO: Update the name to make it more clear this is only
 // for the `customVolunteerPartnerOrgs`.
 async function updateTotalVolunteerHours(
-  data?: UpdateTotalVolunteerHoursJobData
+  data?: Job<UpdateTotalVolunteerHoursJobData>
 ): Promise<void> {
   const cachedDate = await cache.getIfExists(
     config.cacheKeys.updateTotalVolunteerHoursLastRun
