@@ -174,18 +174,6 @@ WHERE
     AND deleted IS FALSE;
 
 
-/* @name deleteUser */
-UPDATE
-    users
-SET
-    email = :email!,
-    updated_at = NOW()
-WHERE
-    id = :userId!
-RETURNING
-    id AS ok;
-
-
 /* @name countReferredUsersWithFilter */
 SELECT
     u.id,
@@ -928,4 +916,13 @@ WHERE
     users.id = :userId
 RETURNING
     id AS ok;
+
+
+/* @name flagUserForDeletion */
+UPDATE
+    users
+SET
+    email = :userId!
+WHERE
+    id = :userId!;
 

@@ -43,7 +43,8 @@ export default class ClassLinkStrategy extends OAuth2Strategy {
     try {
       const user = await ClassLinkApiService.getUserProfile(accessToken)
       const userType = this.getUserType(user.Role)
-      const schoolId = await this.getSchoolId(accessToken)
+
+      //We may need a mapping for orgID (school id) and tenantID (district ID) to nces_id later on
 
       const profile: ClassLinkPassportProfile = {
         id: `${user.TenantId}:${user.SourcedId}`,
@@ -55,7 +56,6 @@ export default class ClassLinkStrategy extends OAuth2Strategy {
           givenName: user.FirstName,
         },
         provider: 'ClassLink',
-        schoolId,
         userType,
       }
       return done(null, profile)
@@ -71,16 +71,5 @@ export default class ClassLinkStrategy extends OAuth2Strategy {
     if (role === 'Tenant Administrator')
       throw new Error(`Unsupported ClassLink role: ${role}`)
     return role.toLowerCase() as UserRole
-  }
-
-  async getSchoolId(accessToken: string) {
-    const districtInfo =
-      await ClassLinkApiService.getDistrictInformation(accessToken)
-    if (districtInfo.ncesId) {
-      const upchieveSchool = await SchoolService.getSchoolByNcesId(
-        districtInfo.ncesId
-      )
-      return upchieveSchool?.id
-    }
   }
 }

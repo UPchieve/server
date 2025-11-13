@@ -34,15 +34,6 @@ type ClassLinkProfile = {
   SourcedId: string
 }
 
-type ClassLinkDistrict = {
-  tenantId: number
-  name: string
-  stateId: number
-  state: string
-  ncesId: string
-  ncesName: string
-}
-
 // TODO: May need to distinguish access token types (e.g user vs. district) for rostering later
 export async function getUserProfile(accessToken: string) {
   const response = await axios.get<ClassLinkProfile>(
@@ -53,18 +44,5 @@ export async function getUserProfile(accessToken: string) {
       },
     }
   )
-  return response.data
-}
-
-export async function getDistrictInformation(accessToken: string) {
-  const response = await axios.get<ClassLinkDistrict>(
-    `${CLASSLINK_API_BASE}/v2/my/district`,
-    {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    }
-  )
-
   return response.data
 }

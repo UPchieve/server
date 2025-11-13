@@ -1517,6 +1517,9 @@ export type BackgroundInfo = {
   company: string | undefined
   college: string | undefined
   linkedInUrl: string | undefined
+  phoneNumber: string | undefined
+  signupSourceId: number | undefined
+  otherSignupSource: string | undefined
 }
 
 export async function updateVolunteerBackgroundInfo(

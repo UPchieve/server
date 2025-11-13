@@ -26,6 +26,19 @@ export class WebSocketEmitter {
       this.encoder = options.encoder
     this.SubClient.psubscribe(this.channel + '*')
     this.SubClient.on('pmessage', this.onMessage)
+
+    this.SubClient.on('error', (error) => {
+      logger.error(
+        { error },
+        `Redis WebSocketEmitter SubClient Error: ${error.name}`
+      )
+    })
+    this.PubClient.on('error', (error) => {
+      logger.error(
+        { error },
+        `Redis WebSocketEmitter PubClient Error: ${error.name}`
+      )
+    })
   }
 
   // @note: Use of arrow function to bind `this` to the class instead of Redis

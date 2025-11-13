@@ -16,6 +16,7 @@ import {
 import { Job } from 'bull'
 import config from '../../../config'
 
+jest.mock('../../../services/MailService')
 jest.mock('../../../services/AwsService')
 const mockAwsService = mocked(AwsService)
 
