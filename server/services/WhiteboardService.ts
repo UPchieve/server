@@ -6,6 +6,7 @@ import * as cache from '../cache'
 import { KeyNotFoundError } from '../cache'
 
 const sessionIdToKey = (id: Ulid): string => `zwibbler-${id}`
+const zwibserveKey = (id: Ulid): string => `zwibbler:${id}`
 
 export const createDoc = async (sessionId: Ulid): Promise<string> => {
   const newDoc = ''
@@ -21,6 +22,9 @@ export const getDocIfExist = async (
   sessionId: Uuid
 ): Promise<string | undefined> => {
   try {
+    const members = await cache.smembers(config.cacheKeys.zwibserveSessions)
+    if (members.includes(sessionId)) return cache.get(zwibserveKey(sessionId))
+
     return await cache.get(sessionIdToKey(sessionId))
   } catch (error) {
     if (!(error instanceof KeyNotFoundError)) throw error
@@ -41,6 +45,8 @@ export const appendToDoc = (
   return cache.append(sessionIdToKey(sessionId), docAddition)
 }
 
+// TODO: Delete zwibserve document, alternatively extend sessionIdToKey to dynamically get
+// the correct key for zwibserve or our custom collab server
 export const deleteDoc = (sessionId: Ulid): Promise<number> => {
   return cache.remove(sessionIdToKey(sessionId))
 }
