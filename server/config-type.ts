@@ -168,6 +168,7 @@ export const Config = Record({
     updateTotalVolunteerHoursLastRun: String,
     waitTimeHeatMapAllSubjects: String,
     userRoleContextPrefix: String,
+    zwibserveSessions: String,
   }),
 
   // Sentry Data Source Name
