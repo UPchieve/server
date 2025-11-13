@@ -153,14 +153,17 @@ export async function getUserRolesById(
   }
 }
 
-export async function getUserContactInfoById(
+export async function getUserById(
   id: Ulid,
-  tc?: TransactionClient
+  filters: {
+    includeDeactivated: boolean
+  },
+  tc: TransactionClient = getClient()
 ): Promise<Omit<UserContactInfo, 'roleContext'> | undefined> {
   try {
-    const result = await pgQueries.getUserContactInfoById.run(
-      { id },
-      tc ?? getClient()
+    const result = await pgQueries.getUserById.run(
+      { id, deactivated: filters.includeDeactivated ? null : false },
+      tc
     )
     if (result.length) {
       const ret = makeSomeOptional(result[0], [

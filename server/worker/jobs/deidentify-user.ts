@@ -84,6 +84,19 @@ async function deidentifyRows(
     `UPDATE contact_form_submissions SET user_email = null WHERE user_id = $1`,
     [userId]
   )
+  // The federated_crendentials(id, issuer) act as primary key, meaning we can't have dupes.
+  // For the few cases where we have duplicate (issuer, user_id), delete one of the rows
+  // first so we can anonymize by setting the id (i.e. profile id, received from SSO provider)
+  // just to the user's id.
+  await tc.query(
+    `DELETE FROM federated_credentials fc1
+     USING federated_credentials fc2
+     WHERE fc1.user_id = $1
+       AND fc2.user_id = $1
+       AND fc1.issuer = fc2.issuer
+       AND fc1.id < fc2.id`,
+    [userId]
+  )
   await tc.query(
     `UPDATE federated_credentials SET id = $1 WHERE user_id = $1`,
     [userId]
