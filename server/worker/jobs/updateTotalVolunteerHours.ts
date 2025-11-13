@@ -11,6 +11,7 @@ import * as cache from '../../cache'
 import { Jobs } from './index'
 
 export type UpdateTotalVolunteerHoursJobData = {
+  // Example: '2025-11-01T04:00:00.000Z'
   startDate?: string
 }
 
