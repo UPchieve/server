@@ -628,7 +628,7 @@ describe('ModerationService', () => {
         ).not.toHaveBeenCalled()
 
         expect(
-          mockSocketServiceInstance.emitPotentialModerationInfractionEvent
+          mockSocketServiceInstance.emitPotentialInfractionToPartnerEvent
         ).not.toHaveBeenCalled()
       })
 
@@ -654,7 +654,7 @@ describe('ModerationService', () => {
         ).toHaveBeenCalled()
 
         expect(
-          mockSocketServiceInstance.emitPotentialModerationInfractionEvent
+          mockSocketServiceInstance.emitPotentialInfractionToPartnerEvent
         ).toHaveBeenCalled()
 
         expect(

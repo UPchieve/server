@@ -1488,7 +1488,7 @@ export const handleModerationInfraction = async (
       stopStreamImmediatelyReasons: failures,
     })
     //Let the partner user decide if there's an infraction
-    await socketService.emitPotentialModerationInfractionEvent(
+    await socketService.emitPotentialInfractionToPartnerEvent(
       sessionId,
       userId,
       {

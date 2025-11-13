@@ -168,7 +168,7 @@ class SocketService {
     this.io.to(userId).emit('moderation-infraction', data)
   }
 
-  async emitPotentialModerationInfractionEvent(
+  async emitPotentialInfractionToPartnerEvent(
     sessionId: string,
     currentUserId: string,
     data: {
