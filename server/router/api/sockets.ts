@@ -39,6 +39,7 @@ import { SessionJoinError } from '../../models/Errors'
 import * as PresenceService from '../../services/PresenceService'
 import { observeWebTransaction } from '../../utils/newRelicUtil'
 import { extractSocketIp } from '../../utils/extract-socket-ip'
+import { RequestHandler } from 'express'
 
 export type SessionMessageType = 'audio-transcription' // todo - add 'chat' later
 
@@ -60,23 +61,13 @@ async function handleUser(socket: SocketUser, user: UserContactInfo) {
   }
 }
 
-export function routeSockets(io: Server, sessionStore: PGStore): void {
+export function routeSockets(
+  io: Server,
+  sessionMiddleware: RequestHandler
+): void {
   const socketService = SocketService.getInstance()
 
-  // Authentication middleware for sockets
-  const wrap = (middleware: Function) => (socket: Socket, next: Function) =>
-    middleware(socket.request, {}, next)
-  const sessionMiddleware = session({
-    resave: false,
-    saveUninitialized: false,
-    secret: config.sessionSecret,
-    store: sessionStore,
-    cookie: {
-      httpOnly: false,
-      maxAge: config.sessionCookieMaxAge,
-    },
-  })
-
+  // Authentication middleware for sockets.
   io.use(wrap(sessionMiddleware))
   io.use(wrap(passport.initialize()))
   io.use(wrap(passport.session()))
@@ -84,13 +75,15 @@ export function routeSockets(io: Server, sessionStore: PGStore): void {
     if (socket.request.user) {
       next()
     } else {
-      next(new Error('unauthorized'))
+      next(new Error('Unauthorized'))
     }
   })
-
-  io.on('ping', (cb) => {
-    cb(os.hostname())
-  })
+  function wrap(middleware: Function) {
+    return (socket: Socket, next: Function) => {
+      // The middlewares expect (req, res, next) parameters.
+      middleware(socket.request, {}, next)
+    }
+  }
 
   io.on('connection', async function (socket: SocketUser) {
     const {
