@@ -297,12 +297,7 @@ export function routes(app: Express): void {
   wsRouter.ws('/admin/:sessionId', async function (wsClient, req, next) {
     const sessionId = asUlid(req.params.sessionId)
     try {
-      let document: string | undefined
-      try {
-        document = await WhiteboardService.getDoc(asUlid(sessionId))
-      } catch (err) {
-        if (!(err instanceof KeyNotFoundError)) throw err
-      }
+      let document = await WhiteboardService.getDocIfExist(sessionId)
       if (!document)
         document = await WhiteboardService.getDocFromStorage(sessionId)
       return wsClient.send(
