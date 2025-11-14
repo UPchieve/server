@@ -80,7 +80,7 @@ describe('ModerationService', () => {
 
     mockSocketService.getInstance.mockReturnValue({
       emitModerationInfractionEvent: jest.fn(),
-      emitPotentialModerationInfractionEvent: jest.fn(),
+      emitPotentialInfractionToPartnerEvent: jest.fn(),
       emitUserLiveMediaBannedEvents: jest.fn(),
     } as unknown as SocketService)
 
