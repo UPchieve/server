@@ -15,12 +15,7 @@ import { EVENTS, SESSION_USER_ACTIONS, USER_BAN_REASONS } from '../../constants'
 import logger from '../../logger'
 import { Ulid } from '../../models/pgUtils'
 import * as SessionRepo from '../../models/Session/queries'
-import {
-  banUserById,
-  getUserContactInfoById,
-  UserContactInfo,
-  UserRole,
-} from '../../models/User'
+import { banUserById, UserContactInfo, UserRole } from '../../models/User'
 import * as UserService from '../../services/UserService'
 import { captureEvent } from '../../services/AnalyticsService'
 import QueueService from '../../services/QueueService'
