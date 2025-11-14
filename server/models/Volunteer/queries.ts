@@ -1631,9 +1631,8 @@ export async function getUniqueStudentsHelpedForAnalyticsReportSummary(
   end: Date
 ): Promise<UniqueStudentsHelped> {
   try {
-    const associatedPartners = await getAssociatedPartnersAndSchools(
-      volunteerPartnerOrg
-    )
+    const associatedPartners =
+      await getAssociatedPartnersAndSchools(volunteerPartnerOrg)
     const result =
       await pgQueries.getUniqueStudentsHelpedForAnalyticsReportSummary.run(
         {
