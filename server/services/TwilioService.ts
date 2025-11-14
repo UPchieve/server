@@ -4,7 +4,6 @@ import config from '../config'
 import moment from 'moment'
 import * as StudentsRepo from '../models/Student'
 import {
-  VolunteerContactInfo,
   VolunteerContactInfoWithPhoneRequired,
   getVolunteersNotifiedBySessionId,
 } from '../models/Volunteer'
@@ -193,13 +192,9 @@ export function buildTargetStudentContent(
     : 'a student'
 }
 
- type VolunteerWithRequiredPhone = Omit<VolunteerContactInfo, 'phone'> & {
-   phone: string
- }
-
 export function buildNotificationContent(
   session: SessionRepo.GetSessionByIdResult,
-  volunteer: VolunteerWithRequiredPhone,
+  volunteer: VolunteerContactInfoWithPhoneRequired,
   associatedPartner: AssociatedPartner | undefined
 ) {
   const sessionUrl = getSessionUrl(session)
@@ -403,7 +398,7 @@ export async function notifyVolunteer(
     priorityGroup,
   }
 
-  if(volunteer.phone) {
+  if (volunteer.phone) {
     const messageId = await sendTextMessage(volunteer.phone, messageText)
 
     if (messageId) {

@@ -48,10 +48,12 @@ export type VolunteerContactInfo = {
   volunteerPartnerOrg?: string
 }
 
-export type VolunteerContactInfoWithPhoneRequired = Omit<VolunteerContactInfo, 'phone'> & {
+export type VolunteerContactInfoWithPhoneRequired = Omit<
+  VolunteerContactInfo,
+  'phone'
+> & {
   phone: string
 }
-
 
 export async function getVolunteerContactInfoById(
   userId: Ulid,
@@ -1629,8 +1631,9 @@ export async function getUniqueStudentsHelpedForAnalyticsReportSummary(
   end: Date
 ): Promise<UniqueStudentsHelped> {
   try {
-    const associatedPartners =
-      await getAssociatedPartnersAndSchools(volunteerPartnerOrg)
+    const associatedPartners = await getAssociatedPartnersAndSchools(
+      volunteerPartnerOrg
+    )
     const result =
       await pgQueries.getUniqueStudentsHelpedForAnalyticsReportSummary.run(
         {
