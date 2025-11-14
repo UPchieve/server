@@ -5,6 +5,7 @@ import moment from 'moment'
 import * as StudentsRepo from '../models/Student'
 import {
   VolunteerContactInfo,
+  VolunteerContactInfoWithPhoneRequired,
   getVolunteersNotifiedBySessionId,
 } from '../models/Volunteer'
 import QueueService from './QueueService'
@@ -180,7 +181,7 @@ export async function sendFollowupText(
 }
 
 export function buildTargetStudentContent(
-  volunteer: VolunteerContactInfo,
+  volunteer: VolunteerContactInfoWithPhoneRequired,
   associatedPartner: AssociatedPartner | undefined
 ) {
   return associatedPartner &&
@@ -192,9 +193,13 @@ export function buildTargetStudentContent(
     : 'a student'
 }
 
+ type VolunteerWithRequiredPhone = Omit<VolunteerContactInfo, 'phone'> & {
+   phone: string
+ }
+
 export function buildNotificationContent(
   session: SessionRepo.GetSessionByIdResult,
-  volunteer: VolunteerContactInfo,
+  volunteer: VolunteerWithRequiredPhone,
   associatedPartner: AssociatedPartner | undefined
 ) {
   const sessionUrl = getSessionUrl(session)
@@ -361,7 +366,7 @@ export async function notifyVolunteer(
     },
   ]
 
-  let volunteer: VolunteerContactInfo | undefined
+  let volunteer: VolunteerContactInfoWithPhoneRequired | undefined
   let priorityGroup: any
 
   for (const priorityFilter of volunteerPriority) {
@@ -397,10 +402,14 @@ export async function notifyVolunteer(
     method: 'sms',
     priorityGroup,
   }
-  const messageId = await sendTextMessage(volunteer.phone, messageText)
-  if (messageId) {
-    notification.wasSuccessful = true
-    notification.messageId = messageId
+
+  if(volunteer.phone) {
+    const messageId = await sendTextMessage(volunteer.phone, messageText)
+
+    if (messageId) {
+      notification.wasSuccessful = true
+      notification.messageId = messageId
+    }
   }
 
   await SessionRepo.addSessionNotification(session.id, notification)

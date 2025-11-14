@@ -48,6 +48,11 @@ export type VolunteerContactInfo = {
   volunteerPartnerOrg?: string
 }
 
+export type VolunteerContactInfoWithPhoneRequired = Omit<VolunteerContactInfo, 'phone'> & {
+  phone: string
+}
+
+
 export async function getVolunteerContactInfoById(
   userId: Ulid,
   filters?: {
@@ -1557,7 +1562,7 @@ export async function getNextVolunteerToNotify(options: {
   disqualifiedVolunteers: Ulid[] | undefined
   specificPartner: string | undefined
   favoriteVolunteers: Ulid[] | undefined
-}): Promise<VolunteerContactInfo | undefined> {
+}): Promise<VolunteerContactInfoWithPhoneRequired | undefined> {
   try {
     const result = await pgQueries.getNextVolunteerToNotify.run(
       options,
