@@ -443,11 +443,11 @@ export function routeSockets(
             await QuillDocService.lockAndGetDocCacheState(sessionId)
           let doc = quillState?.doc
 
-          if (quillState?.lastDeltaStored)
+          if (quillState?.lastDeltaStored) {
             socket.emit('lastDeltaStored', {
               delta: quillState.lastDeltaStored,
             })
-          else if (!doc) doc = await QuillDocService.createDoc(sessionId)
+          } else if (!doc) doc = await QuillDocService.createDoc(sessionId)
 
           socket.emit('quillState', {
             delta: doc,
@@ -516,16 +516,28 @@ export function routeSockets(
          * or when a quill doc is composed
          *
          */
+        const userId = socket.request.user?.id
         try {
+          if (!userId) {
+            logger.error(
+              { sessionId },
+              'No user ID on socket in transmitQuillDelta'
+            )
+            throw new Error(
+              `No user ID found during transmitQuillDelta of session ${sessionId}`
+            )
+          }
           delta.id = uuidv4()
           await QuillDocService.appendToDoc(sessionId, delta)
-          io.to(getSessionRoom(sessionId)).emit('partnerQuillDelta', {
-            delta,
-          })
+          io.to(getSessionRoom(sessionId))
+            .except(userId)
+            .emit('partnerQuillDelta', {
+              delta,
+            })
         } catch (error) {
           logger.error(
             error,
-            { sessionId, userId: socket.request.user?.id },
+            { sessionId, userId },
             'Failed transmitting quill doc delta'
           )
         }
