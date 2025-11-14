@@ -65,7 +65,7 @@ WHERE
 LIMIT 1;
 
 
-/* @name getUserContactInfoById */
+/* @name getUserById */
 SELECT
     users.id,
     first_name,
@@ -105,7 +105,8 @@ FROM
     LEFT JOIN user_roles ON user_roles.id = users_roles.role_id
 WHERE
     users.id = :id!
-    AND users.deactivated IS FALSE
+    AND (:deactivated::boolean IS NULL
+        OR users.deactivated = :deactivated::boolean)
     AND users.deleted IS FALSE
 GROUP BY
     users.id,

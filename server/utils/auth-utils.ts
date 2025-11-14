@@ -5,7 +5,7 @@ import { CustomError } from 'ts-custom-error'
 import { Ulid } from '../models/pgUtils'
 import { Request, Response, NextFunction } from 'express'
 import config from '../config'
-import { getUserContactInfo } from '../services/UserService'
+import { getUserContactInfo, getUserForAuth } from '../services/UserService'
 import { getUserIdByPhone } from '../models/User/queries'
 import { GRADES } from '../constants'
 
@@ -416,7 +416,7 @@ function setupPassport() {
 
   passport.deserializeUser(async function (id: Ulid, done: Function) {
     try {
-      const user = await getUserContactInfo(id)
+      const user = await getUserForAuth(id)
       if (!user)
         throw new Error(
           `User with id ${id} not found for authenticated session.`

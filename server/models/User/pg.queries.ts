@@ -254,13 +254,14 @@ const getUserIdByPhoneIR: any = {"usedParamSet":{"phone":true},"params":[{"name"
 export const getUserIdByPhone = new PreparedQuery<IGetUserIdByPhoneParams,IGetUserIdByPhoneResult>(getUserIdByPhoneIR);
 
 
-/** 'GetUserContactInfoById' parameters type */
-export interface IGetUserContactInfoByIdParams {
+/** 'GetUserById' parameters type */
+export interface IGetUserByIdParams {
+  deactivated?: boolean | null | void;
   id: string;
 }
 
-/** 'GetUserContactInfoById' return type */
-export interface IGetUserContactInfoByIdResult {
+/** 'GetUserById' return type */
+export interface IGetUserByIdResult {
   approved: boolean;
   banType: ban_types | null;
   deactivated: boolean;
@@ -280,13 +281,13 @@ export interface IGetUserContactInfoByIdResult {
   volunteerPartnerOrg: string;
 }
 
-/** 'GetUserContactInfoById' query type */
-export interface IGetUserContactInfoByIdQuery {
-  params: IGetUserContactInfoByIdParams;
-  result: IGetUserContactInfoByIdResult;
+/** 'GetUserById' query type */
+export interface IGetUserByIdQuery {
+  params: IGetUserByIdParams;
+  result: IGetUserByIdResult;
 }
 
-const getUserContactInfoByIdIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":1268,"b":1271}]}],"statement":"SELECT\n    users.id,\n    first_name,\n    email,\n    proxy_email,\n    ban_type,\n    (\n        CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN\n            TRUE\n        ELSE\n            FALSE\n        END) AS is_volunteer,\n    (\n        CASE WHEN admin_profiles.user_id IS NOT NULL THEN\n            TRUE\n        ELSE\n            FALSE\n        END) AS is_admin,\n    volunteer_partner_orgs.key AS volunteer_partner_org,\n    student_partner_orgs.key AS student_partner_org,\n    users.last_activity_at,\n    deactivated,\n    volunteer_profiles.approved,\n    users.phone,\n    users.phone_verified,\n    users.sms_consent,\n    array_agg(user_roles.name) AS roles,\n    users.referral_code\nFROM\n    users\n    LEFT JOIN admin_profiles ON admin_profiles.user_id = users.id\n    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\n    LEFT JOIN student_profiles ON student_profiles.user_id = users.id\n    LEFT JOIN student_partner_orgs ON student_partner_orgs.id = student_profiles.student_partner_org_id\n    LEFT JOIN users_roles ON users_roles.user_id = users.id\n    LEFT JOIN user_roles ON user_roles.id = users_roles.role_id\nWHERE\n    users.id = :id!\n    AND users.deactivated IS FALSE\n    AND users.deleted IS FALSE\nGROUP BY\n    users.id,\n    volunteer_profiles.user_id,\n    admin_profiles.user_id,\n    volunteer_partner_orgs.id,\n    student_partner_orgs.id\nLIMIT 1"};
+const getUserByIdIR: any = {"usedParamSet":{"id":true,"deactivated":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":1268,"b":1271}]},{"name":"deactivated","required":false,"transform":{"type":"scalar"},"locs":[{"a":1282,"b":1293},{"a":1343,"b":1354}]}],"statement":"SELECT\n    users.id,\n    first_name,\n    email,\n    proxy_email,\n    ban_type,\n    (\n        CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN\n            TRUE\n        ELSE\n            FALSE\n        END) AS is_volunteer,\n    (\n        CASE WHEN admin_profiles.user_id IS NOT NULL THEN\n            TRUE\n        ELSE\n            FALSE\n        END) AS is_admin,\n    volunteer_partner_orgs.key AS volunteer_partner_org,\n    student_partner_orgs.key AS student_partner_org,\n    users.last_activity_at,\n    deactivated,\n    volunteer_profiles.approved,\n    users.phone,\n    users.phone_verified,\n    users.sms_consent,\n    array_agg(user_roles.name) AS roles,\n    users.referral_code\nFROM\n    users\n    LEFT JOIN admin_profiles ON admin_profiles.user_id = users.id\n    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\n    LEFT JOIN student_profiles ON student_profiles.user_id = users.id\n    LEFT JOIN student_partner_orgs ON student_partner_orgs.id = student_profiles.student_partner_org_id\n    LEFT JOIN users_roles ON users_roles.user_id = users.id\n    LEFT JOIN user_roles ON user_roles.id = users_roles.role_id\nWHERE\n    users.id = :id!\n    AND (:deactivated::boolean IS NULL\n        OR users.deactivated = :deactivated::boolean)\n    AND users.deleted IS FALSE\nGROUP BY\n    users.id,\n    volunteer_profiles.user_id,\n    admin_profiles.user_id,\n    volunteer_partner_orgs.id,\n    student_partner_orgs.id\nLIMIT 1"};
 
 /**
  * Query generated from SQL:
@@ -330,7 +331,8 @@ const getUserContactInfoByIdIR: any = {"usedParamSet":{"id":true},"params":[{"na
  *     LEFT JOIN user_roles ON user_roles.id = users_roles.role_id
  * WHERE
  *     users.id = :id!
- *     AND users.deactivated IS FALSE
+ *     AND (:deactivated::boolean IS NULL
+ *         OR users.deactivated = :deactivated::boolean)
  *     AND users.deleted IS FALSE
  * GROUP BY
  *     users.id,
@@ -341,7 +343,7 @@ const getUserContactInfoByIdIR: any = {"usedParamSet":{"id":true},"params":[{"na
  * LIMIT 1
  * ```
  */
-export const getUserContactInfoById = new PreparedQuery<IGetUserContactInfoByIdParams,IGetUserContactInfoByIdResult>(getUserContactInfoByIdIR);
+export const getUserById = new PreparedQuery<IGetUserByIdParams,IGetUserByIdResult>(getUserByIdIR);
 
 
 /** 'GetUserBanStatus' parameters type */
