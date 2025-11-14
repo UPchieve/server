@@ -892,7 +892,8 @@ CREATE TABLE upchieve.nths_group_members (
     user_id uuid NOT NULL,
     title text,
     joined_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    deactivated_at timestamp with time zone
 );
 
 
@@ -3608,6 +3609,14 @@ ALTER TABLE ONLY upchieve.notifications
 
 
 --
+-- Name: nths_group_members nths_group_members_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_group_members
+    ADD CONSTRAINT nths_group_members_pkey PRIMARY KEY (nths_group_id, user_id);
+
+
+--
 -- Name: nths_groups nths_groups_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -4790,20 +4799,6 @@ CREATE INDEX notifications_session_id ON upchieve.notifications USING btree (ses
 --
 
 CREATE INDEX notifications_user_id ON upchieve.notifications USING btree (user_id);
-
-
---
--- Name: nths_group_members_group_id; Type: INDEX; Schema: upchieve; Owner: -
---
-
-CREATE INDEX nths_group_members_group_id ON upchieve.nths_group_members USING btree (nths_group_id);
-
-
---
--- Name: nths_group_members_user_id; Type: INDEX; Schema: upchieve; Owner: -
---
-
-CREATE INDEX nths_group_members_user_id ON upchieve.nths_group_members USING btree (user_id);
 
 
 --
