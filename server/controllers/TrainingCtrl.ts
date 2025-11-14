@@ -15,14 +15,12 @@ import * as UserModel from '../models/User'
 import * as VolunteerModel from '../models/Volunteer'
 import * as SubjectsModel from '../models/Subjects'
 import { asString } from '../utils/type-utils'
-import { Ulid } from '../models/pgUtils'
-import { getStandardizedCertsFlag } from '../services/FeatureFlagService'
 import { runInTransaction, TransactionClient } from '../db'
 import logger from '../logger'
+import config from '../config'
 
 export async function getQuestions(
-  category: string,
-  userId: Ulid
+  category: string
 ): Promise<QuestionModel.Question[]> {
   const subcategories = await QuestionModel.getSubcategoriesForQuiz(category)
 
@@ -38,7 +36,6 @@ export async function getQuestions(
     category,
     subcategory: null,
   })
-  const isStandardizedCertsActive = await getStandardizedCertsFlag(userId)
 
   const questionsBySubcategory = _.groupBy(
     questions,
@@ -51,15 +48,7 @@ export async function getQuestions(
     )
   )
 
-  if (isStandardizedCertsActive) {
-    captureEvent(userId, EVENTS.FLAGGED_BY_STANDARDIZED_CERTS, {
-      event: EVENTS.FLAGGED_BY_STANDARDIZED_CERTS,
-      subject: category,
-    })
-  }
-  return isStandardizedCertsActive
-    ? shuffledQuestions.slice(0, quiz.totalQuestions)
-    : shuffledQuestions
+  return shuffledQuestions.slice(0, config.totalQuizQuestions)
 }
 
 type AnswerMap = { [k: number]: string }

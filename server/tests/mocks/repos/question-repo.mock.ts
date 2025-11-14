@@ -41,7 +41,6 @@ export const buildQuiz = (
     name: 'Test Quiz',
     active: true,
     questionsPerSubcategory: 1,
-    totalQuestions: 10,
     ...overrides,
   }
 

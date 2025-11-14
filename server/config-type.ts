@@ -260,6 +260,7 @@ export const Config = Record({
   classlinkRosterApiKey: String,
 
   minSessionLength: Number,
+  totalQuizQuestions: Number,
 
   openAIModelId: String,
   openAIApiKey: String,

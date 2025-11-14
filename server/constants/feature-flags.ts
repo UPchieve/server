@@ -1,5 +1,4 @@
 export enum FEATURE_FLAGS {
-  STANDARDIZED_CERTS = 'standardized-certs',
   USING_OUR_PLATFORM = 'using-our-platform',
   SESSION_RECAP_DMS = 'session-recap-dms',
   SMS_VERIFICATION = 'sms-verification',
