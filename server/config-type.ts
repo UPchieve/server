@@ -280,7 +280,6 @@ export const Config = Record({
   // Moderation
   liveMediaBanInfractionScoreThreshold: Number,
   imageModerationMinConfidence: Number,
-  minorDetectedEntityConfidenceThreshold: Number,
   toxicityModerationMinConfidence: Number,
   phoneNumberModerationConfidenceThreshold: Number,
   contextualModerationConfidenceThreshold: Number,

@@ -11,13 +11,12 @@ import { ResourceLockedError } from '@sesamecare-oss/redlock'
 import { Server, Socket } from 'socket.io'
 import { v4 as uuidv4 } from 'uuid'
 import config from '../../config'
-import { EVENTS, SESSION_USER_ACTIONS } from '../../constants'
+import { EVENTS, SESSION_USER_ACTIONS, USER_BAN_REASONS } from '../../constants'
 import logger from '../../logger'
 import { Ulid } from '../../models/pgUtils'
 import * as SessionRepo from '../../models/Session/queries'
-import { UserContactInfo, UserRole } from '../../models/User'
+import { banUserById, UserContactInfo, UserRole } from '../../models/User'
 import * as UserService from '../../services/UserService'
-import * as UserRolesService from '../../services/UserRolesService'
 import { captureEvent } from '../../services/AnalyticsService'
 import QueueService from '../../services/QueueService'
 import * as QuillDocService from '../../services/QuillDocService'
@@ -699,6 +698,40 @@ export function routeSockets(
               error,
               { sessionId, userId: socket.request.user?.id },
               'Failed emitting partnerImageUploadSuccess'
+            )
+          }
+        }
+      )
+    })
+
+    socket.on('removePartnerLiveMediaBan', async ({ sessionId, banType }) => {
+      await observeWebTransaction(
+        '/socket-io/removePartnerLiveMediaBan',
+        async () => {
+          try {
+            const session = await SessionRepo.getSessionById(sessionId)
+            const user = await extractSocketUser(socket)
+            const partnerUserId =
+              user.id === session.volunteerId
+                ? session.studentId
+                : session.volunteerId
+
+            //Bypass typescript and insert null for banType
+            await banUserById(
+              partnerUserId as string,
+              banType,
+              USER_BAN_REASONS.AUTOMATED_MODERATION
+            )
+
+            io.to(getSessionRoom(sessionId))
+              .except(user.id)
+              .emit('partnerAckLiveMediaBan', {
+                isBanned: false,
+              })
+          } catch (err) {
+            logger.error(
+              { err, sessionId, userId: socket.request.user?.id },
+              'Failed handling removePartnerLiveMediaBan event'
             )
           }
         }

@@ -4,6 +4,7 @@ import { Ulid } from '../models/pgUtils'
 import { CurrentSession, UnfulfilledSessions } from '../models/Session'
 import Delta from 'quill-delta'
 import { SessionMessageType } from '../router/api/sockets'
+import { USER_BAN_TYPES } from '../constants'
 
 export type SocketDelta = Delta & {
   id?: string
@@ -47,6 +48,11 @@ export type ClientToServerEvents = {
     uploadError?: string
   }) => void
   imageUploadSuccess: (data: { sessionId: Ulid }) => void
+  removePartnerLiveMediaBan: (data: {
+    sessionId: string
+    banType: USER_BAN_TYPES
+  }) => void
+  addPartnerLiveMediaBan: (data: { sessionId: string }) => void
 }
 
 export type ServerToClientEvents = {
@@ -83,6 +89,7 @@ export type ServerToClientEvents = {
     uploadError?: string
   }) => void
   partnerImageUploadSuccess: () => void
+  partnerAckLiveMediaBan: (data: { isBanned: boolean }) => void
 }
 
 export type InterServerEvents = {}

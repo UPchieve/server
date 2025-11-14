@@ -12,14 +12,12 @@ import {
   MODEL_ID as OPENAI_MODEL_ID,
   OpenAiResults,
 } from './OpenAIService'
-import * as UsersRepo from '../models/User/queries'
+import * as UsersRepo from '../models/User'
 import * as SessionRepo from '../models/Session'
 import {
   ExtractedTextItem,
   SessionTranscript,
   SessionTranscriptItem,
-  updateSessionFlagsById,
-  updateSessionReviewReasonsById,
 } from '../models/Session'
 import {
   AI_MODERATION_STATE,
@@ -67,8 +65,6 @@ import { PrimaryUserRole } from './UserRolesService'
 import { LangfuseGenerationClient } from 'langfuse'
 import { resize } from '../utils/image-utils'
 
-const MINOR_AGE_THRESHOLD = 18
-
 // EMAIL_REGEX checks for standard and complex email formats
 // Ex: yay-hoo@yahoo.hello.com
 const EMAIL_REGEX =
@@ -101,7 +97,6 @@ export enum LangfuseGenerationName {
   DETECT_MODERATION_LABELS = 'detectModerationLabels',
   DETECT_FACES = 'detectFaces',
   DETECT_PERSON = 'detectPerson',
-  DETECT_MINORS = 'detectMinors',
   IS_IMAGE_EDUCATIONAL = 'isImageEducational',
 }
 
@@ -240,7 +235,7 @@ async function detectImageEducationPurpose(
       isEmpty(educationalLabels)
     ) {
       return {
-        reason: `"The image doesn't serve any educational purpose"`,
+        reason: "The image doesn't serve any educational purpose",
         details: response,
       }
     }
@@ -353,79 +348,6 @@ async function detectImageModerationFailures(
     logger.error({ sessionId, err }, 'Failed to moderate image')
     throw new Error(`Failed to moderate image for session ${sessionId}`)
   }
-}
-
-/*
-  determine if image depicts a minor
-*/
-async function detectMinorFailures(image: Buffer, trace?: LangfuseTraceClient) {
-  let generation: LangfuseGenerationClient | undefined = undefined
-  if (trace) {
-    generation = trace.generation({
-      name: LangfuseGenerationName.DETECT_FACES,
-    })
-  }
-  const facesResponse = await awsRekognitionClient.send(
-    new DetectFacesCommand({
-      Image: {
-        Bytes: image,
-      },
-      Attributes: ['AGE_RANGE'],
-    })
-  )
-  if (generation) {
-    generation.end({ output: facesResponse })
-  }
-  const faces = facesResponse.FaceDetails ?? []
-  const faceFailures = faces
-    .filter(
-      (face) => face.AgeRange?.Low && face.AgeRange?.Low < MINOR_AGE_THRESHOLD
-    )
-    .map((face) => ({
-      reason: `Minor detected in image`,
-      details: {
-        ageRange: face.AgeRange,
-        confidence: face.Confidence,
-      },
-    }))
-
-  if (faceFailures.length > 0) {
-    return faceFailures
-  }
-
-  // DetectFaces seems to be more accurate when it comes to detecting minors
-  // but we want to handle the case where faces are not in the image
-  if (trace) {
-    generation = trace.generation({
-      name: LangfuseGenerationName.DETECT_MINORS,
-    })
-  }
-  const labelResponse = await awsRekognitionClient.send(
-    new DetectLabelsCommand({
-      Image: {
-        Bytes: image,
-      },
-      MinConfidence: config.imageModerationMinConfidence,
-      Settings: {
-        GeneralLabels: {
-          LabelInclusionFilters: ['Teen', 'Girl', 'Boy', 'Child'],
-        },
-      },
-    })
-  )
-  if (generation) {
-    generation.end({ output: labelResponse })
-  }
-  const labels = labelResponse.Labels ?? []
-  const labelFailures = labels.map((label) => ({
-    reason: `Minor detected in image`,
-    details: {
-      label: label.Name,
-      confidence: label.Confidence,
-    },
-  }))
-
-  return labelFailures
 }
 
 export async function extractTextFromImage(
@@ -1116,7 +1038,7 @@ export function moderateImageInBackground(options: {
     options.sessionId
   ).then(maybeHandleImageModerationFailure(options))
 
-  detectMinorFailures(options.image, options.trace).then(
+  detectPersonInImage(options.image, options.sessionId, options.trace).then(
     maybeHandleImageModerationFailure(options)
   )
 
@@ -1143,12 +1065,10 @@ async function getAllImageModerationFailures({
 }> {
   const [
     moderationFailureReasons,
-    minorFailures,
     textModerationFailureReasons,
     detectPersonResponse,
   ] = await Promise.all([
     detectImageModerationFailures(image, trace, sessionId),
-    detectMinorFailures(image, trace),
     detectTextModerationFailures(image, sessionId, isVolunteer, trace),
     detectPersonInImage(image, sessionId, trace),
   ])
@@ -1156,7 +1076,7 @@ async function getAllImageModerationFailures({
   if (
     isEmpty(moderationFailureReasons) &&
     isEmpty(textModerationFailureReasons) &&
-    (!isEmpty(minorFailures) || !isEmpty(detectPersonResponse))
+    !isEmpty(detectPersonResponse)
   ) {
     const noEducationalContext = await detectImageEducationPurpose(
       image,
@@ -1475,15 +1395,9 @@ export const handleModerationInfraction = async (
     // Therefore there is no need to write an infraction, which represents a retroactive strike for an offense.
     return
   }
-  const insertedInfraction =
-    await ModerationInfractionsRepo.insertModerationInfraction(
-      {
-        userId,
-        sessionId,
-        reason: reasons.failures,
-      },
-      client
-    )
+  const socketService = SocketService.getInstance()
+  const failures: string[] = [...new Set<string>(Object.keys(reasons.failures))]
+
   const allActiveInfractions =
     await ModerationInfractionsRepo.getModerationInfractionsByUser(
       userId,
@@ -1493,35 +1407,103 @@ export const handleModerationInfraction = async (
       },
       client
     )
-  const infractionScore = weighSessionInfractions(allActiveInfractions)
-  const streamStoppingReasons = getStreamStoppingReasonsFromInfractions([
-    insertedInfraction,
-  ])
-  const doLiveMediaBan =
-    infractionScore >= config.liveMediaBanInfractionScoreThreshold
-  const socketService = SocketService.getInstance()
-  if (doLiveMediaBan) {
-    await liveMediaBanUser(userId, sessionId)
-    logger.info(
-      { userId, sessionId, infractionId: insertedInfraction.id },
-      'Live media banned user'
+
+  const allInfractionResons = getReasonsFromInfractions(allActiveInfractions)
+
+  if (
+    isEmpty(
+      failures.filter(
+        (failure) =>
+          failure.toLocaleLowerCase() ===
+          LiveMediaModerationCategories.PERSON_IN_IMAGE
+      )
+    )
+  ) {
+    const insertedInfraction =
+      await ModerationInfractionsRepo.insertModerationInfraction(
+        {
+          userId,
+          sessionId,
+          reason: reasons.failures,
+        },
+        client
+      )
+
+    const infractionScore = weighSessionInfractions([
+      ...allInfractionResons,
+      ...getReasonsFromInfractions([insertedInfraction]),
+    ])
+    const streamStoppingReasons = getStreamStoppingReasonsFromInfractions([
+      insertedInfraction,
+    ])
+    const doLiveMediaBan =
+      infractionScore >= config.liveMediaBanInfractionScoreThreshold
+
+    if (doLiveMediaBan) {
+      await liveMediaBanUser(userId, sessionId)
+      logger.info(
+        { userId, sessionId, infractionId: insertedInfraction.id },
+        'Live media banned user'
+      )
+    }
+
+    await socketService.emitModerationInfractionEvent(userId, {
+      isBanned: doLiveMediaBan,
+      infraction: failures,
+      source,
+      occurredAt: new Date(),
+      stopStreamImmediatelyReasons: streamStoppingReasons,
+    })
+  } else if (
+    isEmpty(
+      allInfractionResons.filter(
+        (infractionReason) =>
+          infractionReason.toLocaleLowerCase() ===
+          LiveMediaModerationCategories.PERSON_IN_IMAGE
+      )
+    )
+  ) {
+    await runInTransaction(async (tc) => {
+      /*
+       * if a person in image infraction exist, the user already received a temporary ban already
+       * if not, ban them temporarily until the partner in sesson confirms whether the frame is appropriate or not
+       */
+      await ModerationInfractionsRepo.insertModerationInfraction(
+        {
+          userId,
+          sessionId,
+          reason: reasons.failures,
+        },
+        tc
+      )
+
+      await liveMediaBanUser(userId, sessionId, tc)
+    })
+
+    await socketService.emitModerationInfractionEvent(userId, {
+      isBanned: false,
+      infraction: failures,
+      source,
+      occurredAt: new Date(),
+      stopStreamImmediatelyReasons: failures,
+    })
+    //Let the partner user decide if there's an infraction
+    await socketService.emitPotentialInfractionToPartnerEvent(
+      sessionId,
+      userId,
+      {
+        infraction: failures,
+        source,
+        occurredAt: new Date(),
+      }
     )
   }
-
-  const failures: string[] = [...new Set<string>(Object.keys(reasons.failures))]
-
-  await socketService.emitModerationInfractionEvent(userId, {
-    isBanned: doLiveMediaBan,
-    infraction: failures,
-    source,
-    occurredAt: new Date(),
-    stopStreamImmediatelyReasons: streamStoppingReasons,
-  })
 }
 
 async function liveMediaBanUser(
   userId: string,
-  sessionId: string
+  sessionId: string,
+  transactionClient?: TransactionClient
 ): Promise<void> {
   await runInTransaction(async (tc) => {
     await UsersRepo.banUserById(
@@ -1535,31 +1517,32 @@ async function liveMediaBanUser(
       [UserSessionFlags.liveMediaBan],
       tc
     )
-  })
+  }, transactionClient)
   await SocketService.getInstance().emitUserLiveMediaBannedEvents(
     userId,
     sessionId
   )
 }
 
-export type LiveMediaModerationCategories =
-  | 'profanity'
-  | 'violence'
-  | 'link'
-  | 'address'
-  | 'minor detected in image'
-  | 'email'
-  | 'phone'
-  | 'high toxicity'
-  | 'swimwear or underwear'
-  | 'explicit'
-  | 'non-explicit nudity of intimate parts and kissing'
-  | 'visually disturbing'
-  | 'drugs & tobacco'
-  | 'alcohol'
-  | 'rude gestures'
-  | 'gambling'
-  | 'hate symbols'
+export enum LiveMediaModerationCategories {
+  PROFANITY = 'profanity',
+  VIOLENCE = 'violence',
+  LINK = 'link',
+  ADDRESS = 'address',
+  EMAIL = 'email',
+  PHONE = 'phone',
+  HIGH_TOXICITY = 'high toxicity',
+  SWIM_WEAR = 'swimwear or underwear',
+  EXPLICIT = 'explicit',
+  NON_EXPLICIT = 'non-explicit nudity of intimate parts and kissing',
+  DISTURBING = 'visually disturbing',
+  DRUGS = 'drugs & tobacco',
+  ALCOHOL = 'alcohol',
+  RUDE_GESTURES = 'rude gestures',
+  GAMBLING = 'gambling',
+  HATE_SYMBOLS = 'hate symbols',
+  PERSON_IN_IMAGE = 'person detected in image',
+}
 
 /**
  * This gets the score/weight for the severity of the moderation infraction.
@@ -1572,68 +1555,63 @@ export function getScoreForCategory(
 ): number {
   let categoryScore
   switch (category.toLowerCase()) {
-    case 'profanity':
-    case 'high toxicity':
-    case 'drugs & tobacco':
-    case 'alcohol':
-    case 'rude gestures':
-    case 'gambling':
+    case LiveMediaModerationCategories.PROFANITY:
+    case LiveMediaModerationCategories.HIGH_TOXICITY:
+    case LiveMediaModerationCategories.DRUGS:
+    case LiveMediaModerationCategories.ALCOHOL:
+    case LiveMediaModerationCategories.RUDE_GESTURES:
+    case LiveMediaModerationCategories.GAMBLING:
       categoryScore = 1
       break
-    case 'violence':
-    case 'swimwear or underwear':
-    case 'explicit':
-    case 'non-explicit nudity of intimate parts and kissing':
-    case 'hate symbols':
-    case 'visually disturbing':
+    case LiveMediaModerationCategories.VIOLENCE:
+    case LiveMediaModerationCategories.SWIM_WEAR:
+    case LiveMediaModerationCategories.EXPLICIT:
+    case LiveMediaModerationCategories.NON_EXPLICIT:
+    case LiveMediaModerationCategories.HATE_SYMBOLS:
+    case LiveMediaModerationCategories.DISTURBING:
       categoryScore = 10
       break
-    case 'link':
-    case 'email':
-    case 'phone':
-    case 'address':
-    case 'minor detected in image':
+    case LiveMediaModerationCategories.LINK:
+    case LiveMediaModerationCategories.EMAIL:
+    case LiveMediaModerationCategories.PHONE:
+    case LiveMediaModerationCategories.ADDRESS:
       categoryScore = 4
       break
+    default:
+      logger.error(
+        `Missing score for infraction category ${category}. Defaulting to severe score.`
+      )
+      categoryScore = 10
   }
-  if (!categoryScore) {
-    logger.error(
-      `Missing score for infraction category ${category}. Defaulting to severe score.`
-    )
-    categoryScore = 10
-  }
+
   return categoryScore
 }
 
 export function isStreamStoppingReason(
-  category: LiveMediaModerationCategories | string
+  category: LiveMediaModerationCategories
 ): boolean {
   const streamStoppingReasons = [
-    'minor detected in image',
-    'swimwear or underwear',
-    'violence',
-    'visually disturbing',
-    'hate symbols',
-    'link',
-    'email',
-    'phone',
-    'address',
-    'explicit',
-    'non-explicit nudity of intimate parts and kissing',
+    LiveMediaModerationCategories.SWIM_WEAR,
+    LiveMediaModerationCategories.VIOLENCE,
+    LiveMediaModerationCategories.DISTURBING,
+    LiveMediaModerationCategories.HATE_SYMBOLS,
+    LiveMediaModerationCategories.LINK,
+    LiveMediaModerationCategories.EMAIL,
+    LiveMediaModerationCategories.PHONE,
+    LiveMediaModerationCategories.ADDRESS,
+    LiveMediaModerationCategories.EXPLICIT,
+    LiveMediaModerationCategories.NON_EXPLICIT,
   ]
-  return streamStoppingReasons.includes(category.toLowerCase())
+  return streamStoppingReasons.includes(category)
 }
 
-function getReasonsFromInfractions(
+export function getReasonsFromInfractions(
   infractions: ModerationInfraction[]
 ): string[] {
   return infractions.flatMap((i) => Object.keys(i.reason))
 }
 
-export function weighSessionInfractions(
-  infractions: ModerationInfraction[]
-): number {
-  const reasons = getReasonsFromInfractions(infractions)
+export function weighSessionInfractions(reasons: string[]): number {
   return reasons.reduce((acc, current) => {
     const categoryScore = getScoreForCategory(current)
     return acc + categoryScore
@@ -1644,7 +1622,9 @@ export function getStreamStoppingReasonsFromInfractions(
   infractions: ModerationInfraction[]
 ): string[] {
   const reasons = getReasonsFromInfractions(infractions)
-  return reasons.filter((reason) => isStreamStoppingReason(reason))
+  return reasons.filter((reason) =>
+    isStreamStoppingReason(reason as LiveMediaModerationCategories)
+  )
 }
 
 export type CleanTranscriptModerationResult = {
