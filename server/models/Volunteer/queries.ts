@@ -42,10 +42,17 @@ import { ReportNoDataFoundError } from '../../services/ReportService'
 export type VolunteerContactInfo = {
   id: Ulid
   email: string
-  phone: string
+  phone?: string
   firstName: string
   lastName: string
   volunteerPartnerOrg?: string
+}
+
+export type VolunteerContactInfoWithPhoneRequired = Omit<
+  VolunteerContactInfo,
+  'phone'
+> & {
+  phone: string
 }
 
 export async function getVolunteerContactInfoById(
@@ -65,7 +72,7 @@ export async function getVolunteerContactInfoById(
       getClient()
     )
     if (!result.length) return
-    const ret = makeSomeOptional(result[0], ['volunteerPartnerOrg'])
+    const ret = makeSomeOptional(result[0], ['volunteerPartnerOrg', 'phone'])
     ret.email = ret.email.toLowerCase()
     return ret
   } catch (err) {
@@ -1557,7 +1564,7 @@ export async function getNextVolunteerToNotify(options: {
   disqualifiedVolunteers: Ulid[] | undefined
   specificPartner: string | undefined
   favoriteVolunteers: Ulid[] | undefined
-}): Promise<VolunteerContactInfo | undefined> {
+}): Promise<VolunteerContactInfoWithPhoneRequired | undefined> {
   try {
     const result = await pgQueries.getNextVolunteerToNotify.run(
       options,

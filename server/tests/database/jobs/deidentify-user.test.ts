@@ -205,6 +205,43 @@ describe('deidentifyUserJob', () => {
     })
   })
 
+  test('deidentifies rows in federated_credentials if there are duplicate fedcreds from the provider', async () => {
+    const user = await createTestUser(client)
+    const userId = user.id
+
+    await client.query(
+      `INSERT INTO upchieve.federated_credentials (id, issuer, user_id)
+      VALUES ('1', 'google', $1),
+      ('2', 'google', $1),
+      ('3', 'classlink', $1)`,
+      [userId]
+    )
+    const fedCredBefore = await client.query(
+      'SELECT * FROM upchieve.federated_credentials WHERE user_id = $1',
+      [userId]
+    )
+    expect(fedCredBefore.rowCount).toBe(3)
+    fedCredBefore.rows.forEach((r) => {
+      expect(r.user_id).toBeDefined()
+      expect(r.id).not.toBe(r.user_id)
+    })
+
+    await deidentifyUserJob(createJob(userId))
+
+    const fedCredAfter = await client.query(
+      'SELECT * FROM upchieve.federated_credentials WHERE user_id = $1',
+      [userId]
+    )
+    expect(fedCredAfter.rowCount).toBe(2)
+    fedCredAfter.rows.forEach((r) => {
+      expect(r.user_id).toBeDefined()
+      expect(r.id).toBe(r.user_id)
+    })
+    const issuers = fedCredAfter.rows.map((r) => r.issuer)
+    expect(issuers.includes('google')).toBe(true)
+    expect(issuers.includes('classlink')).toBe(true)
+  })
+
   test('deidentifies rows in ineligible_students', async () => {
     const email = faker.internet.email()
     const user = await createTestUser(client, { email })

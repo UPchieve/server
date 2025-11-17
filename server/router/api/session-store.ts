@@ -9,23 +9,21 @@ import { getApiKeyFromHeader } from '../../utils/auth-utils'
 const PgStore = CreatePgStore(session)
 
 export default function (app: Express) {
-  const store = new PgStore({
-    pool: getClient(),
-    schemaName: 'auth',
-    tableName: 'session',
+  const sessionMiddleware = session({
+    resave: false,
+    saveUninitialized: false,
+    secret: config.sessionSecret,
+    store: new PgStore({
+      pool: getClient(),
+      schemaName: 'auth',
+      tableName: 'session',
+    }),
+    cookie: {
+      httpOnly: false,
+      maxAge: config.sessionCookieMaxAge,
+    },
   })
-  app.use(
-    session({
-      resave: false,
-      saveUninitialized: false,
-      secret: config.sessionSecret,
-      store: store,
-      cookie: {
-        httpOnly: false,
-        maxAge: config.sessionCookieMaxAge,
-      },
-    })
-  )
+  app.use(sessionMiddleware)
 
   // CSRF middleware - must be registered after session middleware
   const { generateToken, csrfSynchronisedProtection } = csrfSync()
@@ -58,5 +56,5 @@ export default function (app: Express) {
     }
   })
 
-  return store
+  return sessionMiddleware
 }

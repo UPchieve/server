@@ -55,15 +55,15 @@ import { createAccountAction, createAdminAction } from '../models/UserAction'
 import { getLegacyUserObject } from '../models/User/legacy-user'
 import { PrimaryUserRole, RoleContext } from './UserRolesService'
 import * as ModerationInfractionsService from '../models/ModerationInfractions'
-import { runInTransaction, TransactionClient } from '../db'
+import { TransactionClient } from '../db'
 import * as VolunteerService from './VolunteerService'
 import * as ImpactStatsService from './ImpactStatsService'
 import config from '../config'
 import { Jobs } from '../worker/jobs'
 import QueueService from './QueueService'
 
-export async function parseUser(baseUser: UserContactInfo) {
-  const user = await getLegacyUserObject(baseUser.id)
+export async function parseUser(userId: Ulid) {
+  const user = await getLegacyUserObject(userId)
 
   user.numReferredVolunteers = await countReferredUsers(user.id, {
     withRoles: ['volunteer'],
@@ -73,16 +73,14 @@ export async function parseUser(baseUser: UserContactInfo) {
   if (user.roleContext.isActiveRole('volunteer') && user.isApproved) {
     user.hoursTutored = Number(user.hoursTutored)
 
-    user.hoursTutoredThisWeek = await ImpactStatsService.hoursTutoredThisWeek(
-      baseUser.id
-    )
+    user.hoursTutoredThisWeek =
+      await ImpactStatsService.hoursTutoredThisWeek(userId)
 
     user.uniqueStudentsHelpedCount =
-      await ImpactStatsService.uniqueStudentsHelpedCount(baseUser.id)
+      await ImpactStatsService.uniqueStudentsHelpedCount(userId)
 
-    user.sponsorships = await VolunteerService.getActiveSponsorshipsByUserId(
-      baseUser.id
-    )
+    user.sponsorships =
+      await VolunteerService.getActiveSponsorshipsByUserId(userId)
     return omit(user, ['references', 'photoIdS3Key', 'photoIdStatus'])
   }
 
@@ -398,7 +396,13 @@ export async function adminUpdateUser(data: unknown) {
     await TeacherService.adminUpdateTeacher(userId, update)
   }
 
-  await MailService.createContact(userId)
+  if (update.isDeactivated !== userBeforeUpdate.isDeactivated) {
+    if (update.isDeactivated) {
+      await MailService.deleteContactByEmail(userBeforeUpdate.email)
+    } else {
+      await MailService.createContact(userId)
+    }
+  }
 }
 
 interface UserQuery {
@@ -482,14 +486,23 @@ export async function getUserByReferralCode(referralCode: string) {
   }
 }
 
-export async function getUserContactInfo(
-  userId: string,
+export async function getUserContactInfo(userId: Ulid, tc?: TransactionClient) {
+  return getUserById(userId, { includeDeactivated: false }, tc)
+}
+
+export async function getUserForAuth(userId: Ulid) {
+  return getUserById(userId)
+}
+
+export async function getUserById(
+  userId: Ulid,
+  options: {
+    includeDeactivated: boolean
+  } = { includeDeactivated: true },
   tc?: TransactionClient
 ): Promise<(UserContactInfo & { roleContext: RoleContext }) | undefined> {
-  const baseUserInfo = await UserRepo.getUserContactInfoById(userId, tc)
+  const baseUserInfo = await UserRepo.getUserById(userId, options, tc)
   if (baseUserInfo) {
-    // TODO: The roles are returned in `getUserContactInfoById`. Can we reuse
-    // those instead of having to refetch on cache miss in method below?
     const roleContext = await UserRolesService.getRoleContext(userId, false, tc)
     return {
       ...baseUserInfo,
@@ -531,12 +544,7 @@ export async function switchActiveRoleForUser(
     userId,
     role
   )
-  const userContactInfo = await getUserContactInfo(userId)
-  if (!userContactInfo)
-    throw new Error(
-      "Failed to switch user's active role: User contact info not found"
-    )
-  const parsedUser = await parseUser(userContactInfo)
+  const parsedUser = await parseUser(userId)
   return { activeRole: newRoleContext.activeRole, user: parsedUser }
 }
 

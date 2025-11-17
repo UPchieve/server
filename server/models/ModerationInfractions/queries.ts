@@ -12,7 +12,7 @@ import { camelCaseKeys } from '../../tests/db-utils'
 
 export async function insertModerationInfraction(
   data: InsertModerationInfractionArgs,
-  client = getClient()
+  client: TransactionClient = getClient()
 ): Promise<ModerationInfraction> {
   try {
     const result = await pgQueries.insertModerationInfraction.run(

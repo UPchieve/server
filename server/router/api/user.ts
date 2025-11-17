@@ -19,7 +19,7 @@ import { InputError, NotAllowedError } from '../../models/Errors'
 export function routeUser(router: Router): void {
   router.route('/user').get(async function (req, res) {
     const user = extractUser(req)
-    const parsedUser = await UserService.parseUser(user)
+    const parsedUser = await UserService.parseUser(user.id)
 
     return res.json({ user: parsedUser })
   })

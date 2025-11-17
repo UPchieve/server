@@ -260,6 +260,7 @@ export const Config = Record({
   classlinkRosterApiKey: String,
 
   minSessionLength: Number,
+  totalQuizQuestions: Number,
 
   openAIModelId: String,
   openAIApiKey: String,
@@ -280,7 +281,6 @@ export const Config = Record({
   // Moderation
   liveMediaBanInfractionScoreThreshold: Number,
   imageModerationMinConfidence: Number,
-  minorDetectedEntityConfidenceThreshold: Number,
   toxicityModerationMinConfidence: Number,
   phoneNumberModerationConfidenceThreshold: Number,
   contextualModerationConfidenceThreshold: Number,

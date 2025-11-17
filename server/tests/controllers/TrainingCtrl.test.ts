@@ -16,7 +16,6 @@ import * as VolunteerRepo from '../../models/Volunteer'
 import * as MailService from '../../services/MailService'
 import * as AnalyticsService from '../../services/AnalyticsService'
 import * as VolunteerService from '../../services/VolunteerService'
-import * as FeatureFlagService from '../../services/FeatureFlagService'
 import { buildIdAnswerMapHelper } from '../mocks/controllers/TrainingCtrl.mock'
 import {
   buildSubcategoriesForQuiz,
@@ -25,10 +24,10 @@ import {
   buildQuizUnlockCert,
 } from '../mocks/repos/question-repo.mock'
 import { buildVolunteerQuizMap } from '../mocks/repos/volunteer-repo.mock'
+import config from '../../config'
 jest.mock('../../services/MailService')
 jest.mock('../../services/VolunteerService')
 jest.mock('../../services/AnalyticsService')
-jest.mock('../../services/FeatureFlagService')
 jest.mock('../../models/Question')
 jest.mock('../../models/Subjects')
 jest.mock('../../models/Volunteer')
@@ -37,20 +36,17 @@ jest.mock('../../models/UserAction')
 const mockedQuestionRepo = mocked(QuestionRepo)
 const mockedSubjectsRepo = mocked(SubjectsRepo)
 const mockedVolunteerRepo = mocked(VolunteerRepo)
-const mockedFeatureFlagService = mocked(FeatureFlagService)
 
 beforeEach(async () => {
   jest.clearAllMocks()
 })
-
-const volunteer = buildVolunteer()
 
 describe('getQuestions', () => {
   test('Should throw error when no subcategories exist', async () => {
     const subject = MATH_CERTS.ALGEBRA_ONE
     mockedQuestionRepo.getSubcategoriesForQuiz.mockResolvedValueOnce([])
     await expect(async () => {
-      await getQuestions(subject, volunteer.id)
+      await getQuestions(subject)
     }).rejects.toThrow(`No subcategories defined for category: ${subject}`)
   })
 
@@ -62,7 +58,7 @@ describe('getQuestions', () => {
     )
     mockedQuestionRepo.getQuizByName.mockResolvedValueOnce(undefined)
     await expect(async () => {
-      await getQuestions(subject, volunteer.id)
+      await getQuestions(subject)
     }).rejects.toThrow(`No quiz created for category: ${subject}`)
   })
 
@@ -77,18 +73,16 @@ describe('getQuestions', () => {
     mockedQuestionRepo.getQuizByName.mockResolvedValueOnce(quiz)
     mockedQuestionRepo.listQuestions.mockResolvedValueOnce(questions)
 
-    const result = await getQuestions(subject, volunteer.id)
+    const result = await getQuestions(subject)
     expect(result).toHaveLength(2)
   })
 
-  // TODO: Remove in medium-certs-v2 clean up
-  test('Experiment: Medium certs v2 - quiz length of 10', async () => {
+  test('should have quiz questions be length defined in config', async () => {
     const subject = MATH_CERTS.ALGEBRA_TWO
     const subcategories = buildSubcategoriesForQuiz()
 
     const quiz = buildQuiz({ questionsPerSubcategory: 2 })
-    // Create enough subcategories to make sure the maximum questions are 10 for a quiz
-    const questions = buildQuestions(14, [
+    const questions = buildQuestions(config.totalQuizQuestions + 1, [
       { subcategory: '1' },
       { subcategory: '2' },
       { subcategory: '3' },
@@ -106,12 +100,9 @@ describe('getQuestions', () => {
     )
     mockedQuestionRepo.getQuizByName.mockResolvedValueOnce(quiz)
     mockedQuestionRepo.listQuestions.mockResolvedValueOnce(questions)
-    mockedFeatureFlagService.getStandardizedCertsFlag.mockResolvedValueOnce(
-      true
-    )
 
-    const result = await getQuestions(subject, volunteer.id)
-    expect(result).toHaveLength(10)
+    const result = await getQuestions(subject)
+    expect(result).toHaveLength(config.totalQuizQuestions)
   })
 })
 

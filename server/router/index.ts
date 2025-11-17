@@ -21,16 +21,14 @@ import { getAllFlagsForId } from '../services/FeatureFlagService'
 import { addPassportAuthMiddleware } from './auth/passport-auth-middleware'
 import { extractUserIfExists } from './extract-user'
 import { getPersonPropertiesForAnalytics } from '../services/AnalyticsService'
-import QueueService from '../services/QueueService'
-import { Jobs } from '../worker/jobs'
 
 export default function (app: Express, io: Server) {
   logger.info('initializing server routing')
 
-  // initialize session store
-  const sessionStore = SessionStore(app)
+  // Initialize session store.
+  const sessionMiddleware = SessionStore(app)
 
-  // initialize passport AFTER session store (https://stackoverflow.com/a/30882574)
+  // Initialize passport AFTER session store (https://stackoverflow.com/a/30882574).
   authPassport.setupPassport()
   addPassportAuthMiddleware()
   app.use(passport.initialize())
@@ -38,7 +36,7 @@ export default function (app: Express, io: Server) {
 
   WhiteboardRouter.routes(app)
   AuthRouter.routes(app)
-  ApiRouter.routes(app, sessionStore, io)
+  ApiRouter.routes(app, sessionMiddleware, io)
   ApiPublicRouter.routes(app)
   EligibilityRouter.routes(app)
   TwimlRouter.routes(app)

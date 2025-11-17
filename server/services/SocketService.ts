@@ -168,6 +168,21 @@ class SocketService {
     this.io.to(userId).emit('moderation-infraction', data)
   }
 
+  async emitPotentialInfractionToPartnerEvent(
+    sessionId: string,
+    currentUserId: string,
+    data: {
+      infraction: string[]
+      source: string
+      occurredAt: Date
+    }
+  ) {
+    this.io
+      .to(getSessionRoom(sessionId))
+      .except(currentUserId)
+      .emit('potentialPartnerModerationInfraction', data)
+  }
+
   // TODO: Remove once no longer have legacy mobile app.
   bump(
     socket: socketio.Socket,

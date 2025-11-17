@@ -17,12 +17,9 @@ import { getClient } from '../../db'
 export function routeTraining(router: Router): void {
   router.post('/training/questions', async function (req, res) {
     try {
-      const user = extractUser(req)
       const questions = await TrainingCtrl.getQuestions(
-        asString(req.body.category),
-        user.id
+        asString(req.body.category)
       )
-
       res.json({
         msg: 'Questions retrieved from database',
         questions,
