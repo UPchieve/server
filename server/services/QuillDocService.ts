@@ -183,7 +183,7 @@ export async function ensureDocumentUpdateExists(sessionId: Ulid) {
 
 export async function deleteDoc(sessionId: Ulid): Promise<void> {
   try {
-    logger.info({ sessionId }, 'Removing qull doc from cache')
+    logger.info({ sessionId }, 'Removing quill doc from cache')
     await cache.remove(sessionIdToKey(sessionId))
     await cache.remove(getSessionDeltasKey(sessionId))
     await cache.remove(getSessionDocumentUpdatesKey(sessionId))
