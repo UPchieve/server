@@ -21,7 +21,6 @@ export default async (job: Job<OnboardingReminder>): Promise<void> => {
       const { firstName, email } = volunteer
       if (currentJob === Jobs.EmailOnboardingReminderOne) {
         const hasUnlockedASubject = volunteer.subjects.length > 0
-        const hasSelectedAvailability = !!volunteer.availabilityLastModifiedAt
         const hasCompletedBackgroundInfo = !!volunteer.country
 
         // Volunteer has not completed onboarding 7 days after creating  account
@@ -30,8 +29,7 @@ export default async (job: Job<OnboardingReminder>): Promise<void> => {
           email,
           hasCompletedBackgroundInfo,
           volunteer.hasCompletedUpchieve101,
-          hasUnlockedASubject,
-          hasSelectedAvailability
+          hasUnlockedASubject
         )
         delay = 1000 * 60 * 60 * 24 * 7
         nextJob = Jobs.EmailOnboardingReminderTwo

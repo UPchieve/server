@@ -857,8 +857,7 @@ export async function sendOnboardingReminderOne(
   email: string,
   hasCompletedBackgroundInfo: boolean,
   hasCompletedUpchieve101: boolean,
-  hasUnlockedASubject: boolean,
-  hasSelectedAvailability: boolean
+  hasUnlockedASubject: boolean
 ): Promise<void> {
   const overrides = {
     categories: ['onboarding reminder one email'],
@@ -874,7 +873,6 @@ export async function sendOnboardingReminderOne(
       hasCompletedBackgroundInfo,
       hasCompletedUpchieve101,
       hasUnlockedASubject,
-      hasSelectedAvailability,
     },
     overrides
   )
