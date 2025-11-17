@@ -4,7 +4,7 @@ import {
   PHOTO_ID_STATUS,
   STATUS,
 } from '../constants'
-import { Uuid } from '../models/pgUtils'
+import { Ulid, Uuid } from '../models/pgUtils'
 import { createAccountAction } from '../models/UserAction'
 import * as VolunteerRepo from '../models/Volunteer'
 import { Jobs } from '../worker/jobs'
@@ -14,8 +14,12 @@ import * as MailService from './MailService'
 import QueueService from './QueueService'
 import { getTimeTutoredForDateRange } from './SessionService'
 import { getQuizzesPassedForDateRangeById } from '../models/UserAction'
-import { TransactionClient } from '../db'
-import { Sponsorship, TextableVolunteer } from '../models/Volunteer'
+import { getClient, TransactionClient } from '../db'
+import {
+  Sponsorship,
+  TextableVolunteer,
+  VolunteerForOnboarding,
+} from '../models/Volunteer'
 import * as cache from '../cache'
 import { getSubjectsWithTopic } from './SubjectsService'
 import { countReferredUsers } from './UserService'

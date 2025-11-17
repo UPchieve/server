@@ -28,7 +28,13 @@ import {
 } from './types'
 import config from '../../config'
 import _ from 'lodash'
-import { PHOTO_ID_STATUS, USER_BAN_TYPES, USER_ROLES } from '../../constants'
+import {
+  PHOTO_ID_STATUS,
+  TRAINING,
+  TRAINING_QUIZZES,
+  USER_BAN_TYPES,
+  USER_ROLES,
+} from '../../constants'
 import { PoolClient } from 'pg'
 import {
   AssociatedPartnersAndSchools,
@@ -372,7 +378,6 @@ export type VolunteerForOnboarding = Pick<
   approved: boolean
   hasCompletedUpchieve101: boolean
   subjects: string[]
-  availabilityLastModifiedAt?: Date
   country?: string
   volunteerPartnerOrgKey?: string
 }
@@ -401,20 +406,51 @@ export async function getVolunteerForOnboardingById(
       volunteer.email = volunteer.email.toLowerCase()
     }
 
-    // Some users may skip the UPchieve101 training course and go straight to the quiz
+    // Legacy users will have completed the old UPchieve training course and passed a single quiz for the training course.
+    // Moving forward, users will have "passed UPchieve training" when they pass all the training quizzes.
     const trainingCourses = await getVolunteerTrainingCourses(volunteer.id, tc)
     const userQuizzes = (await getQuizzesForVolunteers([userId], tc))[userId]
 
-    const upchieve101Quiz = userQuizzes.hasOwnProperty('upchieve101')
-      ? userQuizzes['upchieve101']
+    const upchieve101Quiz = userQuizzes.hasOwnProperty(
+      TRAINING_QUIZZES.LEGACY_UPCHIEVE_101
+    )
+      ? userQuizzes[TRAINING_QUIZZES.LEGACY_UPCHIEVE_101]
       : null
-    const completedTrainingCourse = !!trainingCourses['upchieve101']?.complete
-    const passedQuiz = upchieve101Quiz
+    const completedLegacyCourse =
+      !!trainingCourses[TRAINING.UPCHIEVE_101]?.complete
+    const passedLegacyQuiz = upchieve101Quiz
       ? (upchieve101Quiz?.passed as boolean)
       : false
+    const completedLegacyTraining = completedLegacyCourse || passedLegacyQuiz
+
+    const safetyQuiz = userQuizzes.hasOwnProperty(
+      TRAINING_QUIZZES.COMMUNITY_SAFETY
+    )
+      ? userQuizzes[TRAINING_QUIZZES.COMMUNITY_SAFETY]
+      : null
+    const academicIntegrityQuiz = userQuizzes.hasOwnProperty(
+      TRAINING_QUIZZES.ACADEMIC_INTEGRITY
+    )
+      ? userQuizzes[TRAINING_QUIZZES.ACADEMIC_INTEGRITY]
+      : null
+    const deiQuiz = userQuizzes.hasOwnProperty(TRAINING_QUIZZES.DEI)
+      ? userQuizzes[TRAINING_QUIZZES.DEI]
+      : null
+    const coachingStrategiesQuiz = userQuizzes.hasOwnProperty(
+      TRAINING_QUIZZES.COACHING_STRATEGIES
+    )
+      ? userQuizzes[TRAINING_QUIZZES.COACHING_STRATEGIES]
+      : null
+    const completedTraining =
+      (safetyQuiz?.passed &&
+        academicIntegrityQuiz?.passed &&
+        deiQuiz?.passed &&
+        coachingStrategiesQuiz?.passed) ||
+      false
+
     return {
       ...volunteer,
-      hasCompletedUpchieve101: completedTrainingCourse || passedQuiz,
+      hasCompletedUpchieve101: completedLegacyTraining || completedTraining,
     }
   } catch (err) {
     throw new RepoReadError(err)
