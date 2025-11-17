@@ -1,9 +1,6 @@
 import { Express } from 'express'
-import passport from 'passport'
 import config from '../config'
 import logger, { logError } from '../logger'
-import { authPassport } from '../utils/auth-utils'
-import SessionStore from './api/session-store'
 import * as ContactFormRouter from './contact'
 import * as AuthRouter from './auth'
 import * as ApiRouter from './api'
@@ -18,25 +15,15 @@ import * as TwimlRouter from './twiml'
 import { Server } from 'socket.io'
 import { v4 as uuidv4 } from 'uuid'
 import { getAllFlagsForId } from '../services/FeatureFlagService'
-import { addPassportAuthMiddleware } from './auth/passport-auth-middleware'
 import { extractUserIfExists } from './extract-user'
 import { getPersonPropertiesForAnalytics } from '../services/AnalyticsService'
 
 export default function (app: Express, io: Server) {
   logger.info('initializing server routing')
 
-  // Initialize session store.
-  const sessionMiddleware = SessionStore(app)
-
-  // Initialize passport AFTER session store (https://stackoverflow.com/a/30882574).
-  authPassport.setupPassport()
-  addPassportAuthMiddleware()
-  app.use(passport.initialize())
-  app.use(passport.session())
-
   WhiteboardRouter.routes(app)
   AuthRouter.routes(app)
-  ApiRouter.routes(app, sessionMiddleware, io)
+  ApiRouter.routes(app, io)
   ApiPublicRouter.routes(app)
   EligibilityRouter.routes(app)
   TwimlRouter.routes(app)

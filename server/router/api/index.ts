@@ -35,11 +35,7 @@ import { sendTextMessage } from '../../services/TwilioService'
 import { asString } from '../../utils/type-utils'
 import { routeNTHSGroups } from './nths-groups'
 
-export function routes(
-  app: Express,
-  sessionMiddleware: RequestHandler,
-  io: Server
-): void {
+export function routes(app: Express, io: Server): void {
   const router: expressWs.Router = Router()
 
   routeVolunteers(router)
@@ -50,7 +46,7 @@ export function routes(
   routeVoiceMessages(router)
   routeCalendar(router)
   routeTraining(router)
-  routeSockets(io, sessionMiddleware)
+  routeSockets(io)
   routeModeration(router)
   routePushToken(router)
   routeReports(router)

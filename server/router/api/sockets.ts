@@ -1,16 +1,12 @@
 /**
  * Processes incoming socket messages
  */
-import * as os from 'os'
 import Sentry from '@sentry/node'
-import { PGStore } from 'connect-pg-simple'
-import session from 'express-session'
 import newrelic from 'newrelic'
 import passport from 'passport'
 import { ResourceLockedError } from '@sesamecare-oss/redlock'
 import { Server, Socket } from 'socket.io'
 import { v4 as uuidv4 } from 'uuid'
-import config from '../../config'
 import { EVENTS, SESSION_USER_ACTIONS, USER_BAN_REASONS } from '../../constants'
 import logger from '../../logger'
 import { Ulid } from '../../models/pgUtils'
@@ -38,7 +34,7 @@ import { SessionJoinError } from '../../models/Errors'
 import * as PresenceService from '../../services/PresenceService'
 import { observeWebTransaction } from '../../utils/newRelicUtil'
 import { extractSocketIp } from '../../utils/extract-socket-ip'
-import { RequestHandler } from 'express'
+import sessionMiddleware from '../middleware/session'
 
 export type SessionMessageType = 'audio-transcription' // todo - add 'chat' later
 
@@ -60,10 +56,7 @@ async function handleUser(socket: SocketUser, user: UserContactInfo) {
   }
 }
 
-export function routeSockets(
-  io: Server,
-  sessionMiddleware: RequestHandler
-): void {
+export function routeSockets(io: Server): void {
   const socketService = SocketService.getInstance()
 
   // Authentication middleware for sockets.

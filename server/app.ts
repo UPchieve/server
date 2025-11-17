@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import { Server as Engine } from 'engine.io'
 import express, { json, NextFunction, Request, Response } from 'express'
+import passport from 'passport'
 import cacheControl from 'express-cache-controller'
 import expressWs from 'express-ws'
 import fs from 'fs'
@@ -19,8 +20,11 @@ import socketServer from './socket-server'
 import { fetchOrCreateRateLimit } from './services/TwilioService'
 import { isDevEnvironment } from './utils/environments'
 import { HttpError } from './models/Errors'
+import { authPassport } from './utils/auth-utils'
+import { addPassportAuthMiddleware } from './router/auth/passport-auth-middleware'
+import sessionMiddleware from './router/middleware/session'
+import { getUuid } from './models/pgUtils'
 
-// Express App
 const app = express()
 
 // TODO: Figure out how much we should sample so we don't run into
@@ -43,27 +47,45 @@ app.use(timeout(config.requestTimeout))
  */
 app.set('trust proxy', true)
 
-// Setup middleware
 app.use(json() as express.RequestHandler)
-
 app.use(cookieParser(config.sessionSecret))
-
-let originRegex
-if (config.additionalAllowedOrigins !== '') {
-  originRegex = new RegExp(
-    `^(${config.protocol}://${config.host}|${config.additionalAllowedOrigins})$`
-  )
-} else {
-  originRegex = new RegExp(`^(${config.protocol}://${config.host})$`)
-}
 
 app.use(
   cors({
-    origin: originRegex,
+    origin: `${config.protocol}://${config.host}`,
     credentials: true,
-    exposedHeaders: config.NODE_ENV === 'dev' ? ['Date'] : undefined,
   })
 )
+
+/*
+ * Since we do not use `<form>` elements to submit data, we can simply rely on adding a
+ * custom header to force preflight on cross-origin requests for CSRF protection.
+ *
+ * If the header is present, an OPTIONS request is sent for cross-origin requests,
+ * which verifies CORS compliance (i.e. rejects any cross-origin traffic not specified in
+ * our CORS config).
+ * If the header is not present, we can simply reject the request as potential forgery.
+ *
+ * Only state-changing methods (POST, PUT, PATCH, DELETE) require CSRF protection.
+ * Safe methods (GET, HEAD, OPTIONS) are exempt per OWASP guidelines.
+ *
+ * See https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html#employing-custom-request-headers-for-ajaxapi
+ * for more information.
+ */
+app.use((req, _res, next) => {
+  const safeMethods = ['GET', 'HEAD', 'OPTIONS']
+  if (safeMethods.includes(req.method) || req.headers['x-csrf-token']) {
+    next()
+  } else {
+    const error = new HttpError('Missing CSRF token.', 403)
+    next(error)
+  }
+})
+// TODO: Remove once midtown is no longer calling this route.
+// Just add any value on the client instead. See above comment.
+app.get('/api/csrftoken', (_req, res) => {
+  return res.json({ csrfToken: getUuid() })
+})
 
 // for now, send directive to never cache to prevent Zwibbler issues
 // until we figure out a caching strategy
@@ -72,6 +94,14 @@ app.use(
     noCache: true,
   })
 )
+
+// Initialize session store.
+app.use(sessionMiddleware)
+// Initialize passport AFTER session store (https://stackoverflow.com/a/30882574).
+authPassport.setupPassport()
+addPassportAuthMiddleware()
+app.use(passport.initialize())
+app.use(passport.session())
 
 // see https://stackoverflow.com/questions/51023943/nodejs-getting-username-of-logged-in-user-within-route
 app.use((req, res, next) => {
