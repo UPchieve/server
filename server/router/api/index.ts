@@ -33,6 +33,7 @@ import { routeAssignments } from './assignments'
 import { routeRewards } from './rewards'
 import { sendTextMessage } from '../../services/TwilioService'
 import { asString } from '../../utils/type-utils'
+import { routeNTHSGroups } from './nths-groups'
 
 export function routes(
   app: Express,
@@ -64,6 +65,7 @@ export function routes(
   routeTutorBot(router)
   routeAssignments(router)
   routeRewards(router)
+  routeNTHSGroups(router)
 
   router.post('/send-referral-email', async function (req, res) {
     try {

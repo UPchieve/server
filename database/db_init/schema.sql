@@ -884,6 +884,33 @@ CREATE TABLE upchieve.notifications (
 
 
 --
+-- Name: nths_group_members; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.nths_group_members (
+    nths_group_id uuid NOT NULL,
+    user_id uuid NOT NULL,
+    title text,
+    joined_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    deactivated_at timestamp with time zone
+);
+
+
+--
+-- Name: nths_groups; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.nths_groups (
+    id uuid NOT NULL,
+    name text NOT NULL,
+    key text NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
 -- Name: parents_guardians; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -3582,6 +3609,22 @@ ALTER TABLE ONLY upchieve.notifications
 
 
 --
+-- Name: nths_group_members nths_group_members_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_group_members
+    ADD CONSTRAINT nths_group_members_pkey PRIMARY KEY (nths_group_id, user_id);
+
+
+--
+-- Name: nths_groups nths_groups_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_groups
+    ADD CONSTRAINT nths_groups_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: parents_guardians parents_guardians_email_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -5310,6 +5353,22 @@ ALTER TABLE ONLY upchieve.notifications
 
 
 --
+-- Name: nths_group_members nths_group_members_nths_group_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_group_members
+    ADD CONSTRAINT nths_group_members_nths_group_id_fkey FOREIGN KEY (nths_group_id) REFERENCES upchieve.nths_groups(id);
+
+
+--
+-- Name: nths_group_members nths_group_members_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_group_members
+    ADD CONSTRAINT nths_group_members_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
+
+
+--
 -- Name: parents_guardians_students parents_guardians_students_parents_guardians_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -6690,4 +6749,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20251029173028'),
     ('20251103144758'),
     ('20251104141004'),
-    ('20251112181842');
+    ('20251112181842'),
+    ('20251113180824');
