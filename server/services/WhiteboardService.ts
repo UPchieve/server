@@ -4,9 +4,16 @@ import { getBlob, uploadBlobString } from './AzureService'
 import { Ulid, Uuid } from '../models/pgUtils'
 import * as cache from '../cache'
 import { KeyNotFoundError } from '../cache'
+import { isZwibserveSession } from './SessionService'
 
 const sessionIdToKey = (id: Ulid): string => `zwibbler-${id}`
 const zwibserveKey = (id: Ulid): string => `zwibbler:${id}`
+
+async function getZwibserveOrCustomCollabKey(sessionId: Ulid) {
+  const isUsingZwibserve = await isZwibserveSession(sessionId)
+  if (isUsingZwibserve) return zwibserveKey(sessionId)
+  return sessionIdToKey(sessionId)
+}
 
 export const createDoc = async (sessionId: Ulid): Promise<string> => {
   const newDoc = ''
@@ -22,10 +29,8 @@ export const getDocIfExist = async (
   sessionId: Uuid
 ): Promise<string | undefined> => {
   try {
-    const members = await cache.smembers(config.cacheKeys.zwibserveSessions)
-    if (members.includes(sessionId)) return cache.get(zwibserveKey(sessionId))
-
-    return await cache.get(sessionIdToKey(sessionId))
+    const sessionKey = await getZwibserveOrCustomCollabKey(sessionId)
+    return await cache.get(sessionKey)
   } catch (error) {
     if (!(error instanceof KeyNotFoundError)) throw error
   }
@@ -45,10 +50,9 @@ export const appendToDoc = (
   return cache.append(sessionIdToKey(sessionId), docAddition)
 }
 
-// TODO: Delete zwibserve document, alternatively extend sessionIdToKey to dynamically get
-// the correct key for zwibserve or our custom collab server
-export const deleteDoc = (sessionId: Ulid): Promise<number> => {
-  return cache.remove(sessionIdToKey(sessionId))
+export const deleteDoc = async (sessionId: Ulid): Promise<number> => {
+  const sessionKey = await getZwibserveOrCustomCollabKey(sessionId)
+  return cache.remove(sessionKey)
 }
 
 export const uploadedToStorage = async (
