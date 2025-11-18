@@ -18,6 +18,7 @@ import { asString } from '../utils/type-utils'
 import { runInTransaction, TransactionClient } from '../db'
 import logger from '../logger'
 import config from '../config'
+import * as VolunteerService from '../services/VolunteerService'
 
 export async function getQuestions(
   category: string
