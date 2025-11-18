@@ -113,9 +113,13 @@ export function routeSockets(
         try {
           const user = await extractSocketUser(socket)
           await socketService.joinSession(socket, user, data.sessionId)
+          const isZwibserveSession = await SessionService.isZwibserveSession(
+            data.sessionId
+          )
           callback({
             sessionId: data.sessionId,
             success: true,
+            isZwibserveSession,
           })
         } catch (error) {
           const isRetryable = !(error instanceof SessionJoinError)
