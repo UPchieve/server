@@ -28,14 +28,7 @@ import {
 } from './types'
 import config from '../../config'
 import _ from 'lodash'
-import {
-  PHOTO_ID_STATUS,
-  TRAINING,
-  TRAINING_QUIZZES,
-  USER_BAN_TYPES,
-  USER_ROLES,
-} from '../../constants'
-import { PoolClient } from 'pg'
+import { PHOTO_ID_STATUS, USER_BAN_TYPES, USER_ROLES } from '../../constants'
 import {
   AssociatedPartnersAndSchools,
   getAssociatedPartnersAndSchools,
