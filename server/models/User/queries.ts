@@ -553,7 +553,6 @@ export async function getUserToCreateSendGridContact(
       return makeSomeOptional(result[0], [
         'banType',
         'lastActivityAt',
-        'passedUpchieve101',
         'studentGradeLevel',
         'studentPartnerOrg',
         'studentPartnerOrgDisplay',

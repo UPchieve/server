@@ -1345,7 +1345,6 @@ export interface IGetUserToCreateSendGridContactResult {
   isVolunteer: boolean | null;
   lastActivityAt: Date | null;
   lastName: string;
-  passedUpchieve101: boolean | null;
   phoneVerified: boolean;
   smsConsent: boolean;
   studentGradeLevel: string | null;
@@ -1362,7 +1361,7 @@ export interface IGetUserToCreateSendGridContactQuery {
   result: IGetUserToCreateSendGridContactResult;
 }
 
-const getUserToCreateSendGridContactIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":1922,"b":1929}]}],"statement":"SELECT\n    users.id,\n    first_name,\n    email,\n    sms_consent,\n    phone_verified,\n    ban_type,\n    (\n        CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN\n            TRUE\n        ELSE\n            FALSE\n        END) AS is_volunteer,\n    (\n        CASE WHEN admin_profiles.user_id IS NOT NULL THEN\n            TRUE\n        ELSE\n            FALSE\n        END) AS is_admin,\n    volunteer_partner_orgs.key AS volunteer_partner_org,\n    volunteer_partner_orgs.name AS volunteer_partner_org_display,\n    student_partner_orgs.key AS student_partner_org,\n    student_partner_orgs.name AS student_partner_org_display,\n    users.last_activity_at,\n    users.created_at,\n    (\n        CASE WHEN user_upchieve101.id IS NULL THEN\n            FALSE\n        ELSE\n            TRUE\n        END) AS passed_upchieve101,\n    users.test_user,\n    users.last_name,\n    COALESCE(cgl.current_grade_name, grade_levels.name) AS student_grade_level\nFROM\n    users\n    LEFT JOIN admin_profiles ON admin_profiles.user_id = users.id\n    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\n    LEFT JOIN student_profiles ON student_profiles.user_id = users.id\n    LEFT JOIN student_partner_orgs ON student_partner_orgs.id = student_profiles.student_partner_org_id\n    LEFT JOIN LATERAL (\n        SELECT\n            id\n        FROM\n            users_training_courses\n            LEFT JOIN training_courses ON training_courses.id = users_training_courses.training_course_id\n        WHERE\n            users_training_courses.user_id = users.id\n            AND training_courses.name = 'UPchieve 101') AS user_upchieve101 ON TRUE\n    LEFT JOIN grade_levels ON student_profiles.grade_level_id = grade_levels.id\n    LEFT JOIN current_grade_levels_mview cgl ON student_profiles.user_id = cgl.user_id\nWHERE\n    users.id = :userId!\n    AND users.deactivated IS FALSE\n    AND users.deleted IS FALSE\nLIMIT 1"};
+const getUserToCreateSendGridContactIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":1421,"b":1428}]}],"statement":"SELECT\n    users.id,\n    first_name,\n    email,\n    sms_consent,\n    phone_verified,\n    ban_type,\n    (\n        CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN\n            TRUE\n        ELSE\n            FALSE\n        END) AS is_volunteer,\n    (\n        CASE WHEN admin_profiles.user_id IS NOT NULL THEN\n            TRUE\n        ELSE\n            FALSE\n        END) AS is_admin,\n    volunteer_partner_orgs.key AS volunteer_partner_org,\n    volunteer_partner_orgs.name AS volunteer_partner_org_display,\n    student_partner_orgs.key AS student_partner_org,\n    student_partner_orgs.name AS student_partner_org_display,\n    users.last_activity_at,\n    users.created_at,\n    users.test_user,\n    users.last_name,\n    COALESCE(cgl.current_grade_name, grade_levels.name) AS student_grade_level\nFROM\n    users\n    LEFT JOIN admin_profiles ON admin_profiles.user_id = users.id\n    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\n    LEFT JOIN student_profiles ON student_profiles.user_id = users.id\n    LEFT JOIN student_partner_orgs ON student_partner_orgs.id = student_profiles.student_partner_org_id\n    LEFT JOIN grade_levels ON student_profiles.grade_level_id = grade_levels.id\n    LEFT JOIN current_grade_levels_mview cgl ON student_profiles.user_id = cgl.user_id\nWHERE\n    users.id = :userId!\n    AND users.deactivated IS FALSE\n    AND users.deleted IS FALSE\nLIMIT 1"};
 
 /**
  * Query generated from SQL:
@@ -1392,12 +1391,6 @@ const getUserToCreateSendGridContactIR: any = {"usedParamSet":{"userId":true},"p
  *     student_partner_orgs.name AS student_partner_org_display,
  *     users.last_activity_at,
  *     users.created_at,
- *     (
- *         CASE WHEN user_upchieve101.id IS NULL THEN
- *             FALSE
- *         ELSE
- *             TRUE
- *         END) AS passed_upchieve101,
  *     users.test_user,
  *     users.last_name,
  *     COALESCE(cgl.current_grade_name, grade_levels.name) AS student_grade_level
@@ -1408,15 +1401,6 @@ const getUserToCreateSendGridContactIR: any = {"usedParamSet":{"userId":true},"p
  *     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
  *     LEFT JOIN student_profiles ON student_profiles.user_id = users.id
  *     LEFT JOIN student_partner_orgs ON student_partner_orgs.id = student_profiles.student_partner_org_id
- *     LEFT JOIN LATERAL (
- *         SELECT
- *             id
- *         FROM
- *             users_training_courses
- *             LEFT JOIN training_courses ON training_courses.id = users_training_courses.training_course_id
- *         WHERE
- *             users_training_courses.user_id = users.id
- *             AND training_courses.name = 'UPchieve 101') AS user_upchieve101 ON TRUE
  *     LEFT JOIN grade_levels ON student_profiles.grade_level_id = grade_levels.id
  *     LEFT JOIN current_grade_levels_mview cgl ON student_profiles.user_id = cgl.user_id
  * WHERE

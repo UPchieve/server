@@ -94,7 +94,6 @@ export type UserForCreateSendGridContact = Omit<
 > & {
   createdAt: Date
   lastName: string
-  passedUpchieve101?: boolean
   studentGradeLevel?: string
   studentPartnerOrgDisplay?: string
   testUser: boolean
