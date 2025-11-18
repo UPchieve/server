@@ -21,8 +21,6 @@ import { getAllFlagsForId } from '../services/FeatureFlagService'
 import { addPassportAuthMiddleware } from './auth/passport-auth-middleware'
 import { extractUserIfExists } from './extract-user'
 import { getPersonPropertiesForAnalytics } from '../services/AnalyticsService'
-import QueueService from '../services/QueueService'
-import { Jobs } from '../worker/jobs'
 
 export default function (app: Express, io: Server) {
   logger.info('initializing server routing')

@@ -157,6 +157,7 @@ jest.mock('../config', () => {
     // recaptcha
     googleRecaptchaThreshold: 0.5,
 
+    totalQuizQuestions: 10,
     minSessionLength: 60000,
 
     corporatePartnerReports: {

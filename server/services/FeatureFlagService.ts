@@ -52,10 +52,6 @@ export async function getAllFlagsForId(
   })
 }
 
-export async function getStandardizedCertsFlag(userId: Ulid) {
-  return await isFeatureEnabled(FEATURE_FLAGS.STANDARDIZED_CERTS, userId)
-}
-
 export async function getUsingOurPlatformFlag(userId: Ulid) {
   return await isFeatureEnabled(FEATURE_FLAGS.USING_OUR_PLATFORM, userId)
 }
