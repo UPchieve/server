@@ -43,8 +43,8 @@ export const appendToDoc = (
 
 export async function deleteDoc(sessionId: Ulid) {
   try {
-    logger.info({ sessionId }, 'Removing whiteboard doc from cache')
-    await cache.remove(sessionIdToKey(sessionId))
+    ;(await cache.remove(sessionIdToKey(sessionId))) &&
+      logger.info({ sessionId }, 'Removed whiteboard doc from cache')
   } catch (error) {
     logger.warn(
       { err: error, sessionId },
