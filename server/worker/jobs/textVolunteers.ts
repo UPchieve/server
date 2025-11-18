@@ -27,7 +27,11 @@ const HIGH_LEVEL_SUBJECTS = new Set<SUBJECTS>([
   SUBJECTS.STATISTICS,
   SUBJECTS.PHYSICS_ONE,
 ])
-const MAX_NOTIFICATION_ROUNDS = 5
+export const JOB_CONFIG = {
+  maxNotificationRounds: 6,
+  roundDelay: 30,
+  lastTextedInMinutes: 5,
+}
 
 export type TextVolunteersJobData = {
   notificationRound: number
@@ -132,14 +136,14 @@ export default async function textVolunteers(
     studentOrgDisplay
   )
 
-  if (notificationRound <= MAX_NOTIFICATION_ROUNDS) {
+  if (notificationRound < JOB_CONFIG.maxNotificationRounds) {
     await QueueService.add(
       Jobs.TextVolunteers,
       {
         ...job.data,
         notificationRound: notificationRound + 1,
       },
-      { delay: secondsInMs(30) }
+      { delay: secondsInMs(JOB_CONFIG.roundDelay) }
     )
   }
 }
@@ -273,7 +277,9 @@ async function filterEligibleVolunteersToText(
 ): Promise<PriorityGroup[]> {
   const volunteersInSessions = await SessionService.getVolunteersInSessions()
   const volunteersRecentlyNotified =
-    await NotificationService.getVolunteersTextedSince5MinutesAgo()
+    await NotificationService.getVolunteersTextedSinceXMinutesAgo(
+      JOB_CONFIG.lastTextedInMinutes
+    )
 
   return priorityGroups.map((group) => ({
     name: group.name,
