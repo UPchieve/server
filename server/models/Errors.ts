@@ -120,3 +120,11 @@ export class MissingRecaptchaTokenError extends CustomError {
 }
 
 export class SessionJoinError extends CustomError {}
+
+export class HttpError extends CustomError {
+  httpStatus: number
+  constructor(message: string, httpStatus: number) {
+    super(message)
+    this.httpStatus = httpStatus
+  }
+}

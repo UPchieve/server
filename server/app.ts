@@ -3,6 +3,7 @@ import { Socket } from 'net'
 import timeout from 'connect-timeout'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
+import { Server as Engine } from 'engine.io'
 import express, {
   json,
   NextFunction,
@@ -23,46 +24,10 @@ import router from './router'
 import socketServer from './socket-server'
 import { fetchOrCreateRateLimit } from './services/TwilioService'
 import { isDevEnvironment } from './utils/environments'
-import { Server as Engine } from 'engine.io'
-
-function haltOnTimedout(req: Request, res: Response, next: NextFunction) {
-  if (!req.timedout) {
-    next()
-  }
-}
-
-function defaultErrorHandler(
-  err: any,
-  req: Request,
-  res: Response,
-  next: NextFunction
-) {
-  logger.error(
-    {
-      reqId: req.id,
-      userId: req.user?.id,
-      method: req.method,
-      path: req.path,
-      url: req.url,
-      originalUrl: req.originalUrl,
-    },
-    err.message ?? 'An error occurred'
-  )
-  // Attaching the error to the response means the error will be correctly
-  // logged on the request by pino (instead of a generic error).
-  res.err = err
-  res.status(err.httpStatus || 500).json({ err: err.message || err })
-  next()
-}
+import { HttpError } from './models/Errors'
 
 // Express App
 const app = express()
-
-/**
- * @note: must typecast many handlers with express.RequestHandler
- * due to @types/node >=15.9.x and @types/express <14.7.1
- * see https://github.com/expressjs/express/issues/4618
- */
 
 // TODO: Figure out how much we should sample so we don't run into
 // NR data ingestion limits.
@@ -70,7 +35,7 @@ const app = express()
 app.use(
   pinoHttp({
     logger: pinoLogger,
-  }) as express.RequestHandler
+  })
 )
 
 app.use(timeout(config.requestTimeout))
@@ -106,6 +71,7 @@ app.use(
     exposedHeaders: config.NODE_ENV === 'dev' ? ['Date'] : undefined,
   })
 )
+
 // for now, send directive to never cache to prevent Zwibbler issues
 // until we figure out a caching strategy
 app.use(
@@ -113,7 +79,7 @@ app.use(
     noCache: true,
   })
 )
-app.use(haltOnTimedout)
+
 // see https://stackoverflow.com/questions/51023943/nodejs-getting-username-of-logged-in-user-within-route
 app.use((req, res, next) => {
   res.locals.user = req.user || null
@@ -157,13 +123,31 @@ server.on('upgrade', (request, socket, head) => {
     })
   }
 })
-// Load server router
+
+// Load server router.
 router(app, io)
 
-// Halt any requests that have timed out
-app.use(haltOnTimedout)
-// Send error responses to requests after logging
-app.use(defaultErrorHandler)
+// Send error responses to requests after logging.
+app.use((err: HttpError, req: Request, res: Response, _next: NextFunction) => {
+  if (req.timedout) {
+    err.httpStatus = 504
+  }
+  logger.error(
+    {
+      reqId: req.id,
+      userId: req.user?.id,
+      method: req.method,
+      path: req.path,
+      url: req.url,
+      originalUrl: req.originalUrl,
+    },
+    err.message ?? 'An error occurred'
+  )
+  // Attaching the error to the response means the error will be correctly
+  // logged on the request by pino (instead of a generic error).
+  res.err = err
+  res.status(err.httpStatus || 500).json({ err: err.message || err })
+})
 
 fetchOrCreateRateLimit()
   .then(() => {
