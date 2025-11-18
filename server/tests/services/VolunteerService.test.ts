@@ -13,6 +13,7 @@ import {
 import { mocked } from 'jest-mock'
 import { TrainingCourse } from '../../models/Volunteer'
 import { hasCompletedVolunteerTraining } from '../../services/VolunteerService'
+import { QuizInfo } from '../../models/Volunteer'
 
 jest.mock('../../models/Volunteer')
 jest.mock('../../services/QueueService', () => ({
@@ -46,9 +47,32 @@ const COMPLETED_TRAINING_COURSE: Omit<TrainingCourse, 'trainingCourse'> = {
   updatedAt: new Date(),
   isComplete: true,
 }
+const mockIp = 'mock-ip'
+const tc = {} as TransactionClient
 
 beforeEach(() => {
   jest.clearAllMocks()
+
+  mockedVolunteerRepo.getVolunteerTrainingCourses.mockResolvedValue({
+    [TRAINING.UPCHIEVE_101]: {
+      userId: mockVolunteer.id,
+      complete: true,
+      trainingCourse: TRAINING.UPCHIEVE_101,
+      progress: 100,
+      completedMaterials: [],
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      isComplete: true,
+    },
+  })
+  mockedVolunteerRepo.getQuizzesForVolunteers.mockResolvedValue({
+    [mockVolunteer.id]: {
+      [TRAINING_QUIZZES.LEGACY_UPCHIEVE_101]: {
+        passed: true,
+        tries: 1,
+      },
+    },
+  })
 })
 
 describe('hasCompletedVolunteerTraining', () => {
