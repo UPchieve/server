@@ -387,7 +387,9 @@ export async function getVolunteerForOnboardingById(
   filters: {
     includeDeactivated: boolean
   } = { includeDeactivated: false }
-): Promise<VolunteerForOnboarding | undefined> {
+): Promise<
+  Omit<VolunteerForOnboarding, 'hasCompletedUpchieve101'> | undefined
+> {
   try {
     const result = await pgQueries.getVolunteerForOnboardingById.run(
       {
@@ -405,53 +407,7 @@ export async function getVolunteerForOnboardingById(
     if (volunteer.email) {
       volunteer.email = volunteer.email.toLowerCase()
     }
-
-    // Legacy users will have completed the old UPchieve training course and passed a single quiz for the training course.
-    // Moving forward, users will have "passed UPchieve training" when they pass all the training quizzes.
-    const trainingCourses = await getVolunteerTrainingCourses(volunteer.id, tc)
-    const userQuizzes = (await getQuizzesForVolunteers([userId], tc))[userId]
-
-    const upchieve101Quiz = userQuizzes.hasOwnProperty(
-      TRAINING_QUIZZES.LEGACY_UPCHIEVE_101
-    )
-      ? userQuizzes[TRAINING_QUIZZES.LEGACY_UPCHIEVE_101]
-      : null
-    const completedLegacyCourse =
-      !!trainingCourses[TRAINING.UPCHIEVE_101]?.complete
-    const passedLegacyQuiz = upchieve101Quiz
-      ? (upchieve101Quiz?.passed as boolean)
-      : false
-    const completedLegacyTraining = completedLegacyCourse || passedLegacyQuiz
-
-    const safetyQuiz = userQuizzes.hasOwnProperty(
-      TRAINING_QUIZZES.COMMUNITY_SAFETY
-    )
-      ? userQuizzes[TRAINING_QUIZZES.COMMUNITY_SAFETY]
-      : null
-    const academicIntegrityQuiz = userQuizzes.hasOwnProperty(
-      TRAINING_QUIZZES.ACADEMIC_INTEGRITY
-    )
-      ? userQuizzes[TRAINING_QUIZZES.ACADEMIC_INTEGRITY]
-      : null
-    const deiQuiz = userQuizzes.hasOwnProperty(TRAINING_QUIZZES.DEI)
-      ? userQuizzes[TRAINING_QUIZZES.DEI]
-      : null
-    const coachingStrategiesQuiz = userQuizzes.hasOwnProperty(
-      TRAINING_QUIZZES.COACHING_STRATEGIES
-    )
-      ? userQuizzes[TRAINING_QUIZZES.COACHING_STRATEGIES]
-      : null
-    const completedTraining =
-      (safetyQuiz?.passed &&
-        academicIntegrityQuiz?.passed &&
-        deiQuiz?.passed &&
-        coachingStrategiesQuiz?.passed) ||
-      false
-
-    return {
-      ...volunteer,
-      hasCompletedUpchieve101: completedLegacyTraining || completedTraining,
-    }
+    return volunteer
   } catch (err) {
     throw new RepoReadError(err)
   }

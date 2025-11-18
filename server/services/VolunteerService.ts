@@ -3,6 +3,8 @@ import {
   EVENTS,
   PHOTO_ID_STATUS,
   STATUS,
+  TRAINING,
+  TRAINING_QUIZZES,
 } from '../constants'
 import { Ulid, Uuid } from '../models/pgUtils'
 import { createAccountAction } from '../models/UserAction'
@@ -269,11 +271,7 @@ export async function onboardVolunteer(
   ip: string,
   tc: TransactionClient
 ): Promise<void> {
-  const volunteer = await VolunteerRepo.getVolunteerForOnboardingById(
-    tc,
-    volunteerId,
-    { includeDeactivated: true }
-  )
+  const volunteer = await getVolunteerForOnboardingById(volunteerId, tc, true)
   if (!volunteer) {
     // If there is no volunteer, means they've already been onboarded.
     return
@@ -382,4 +380,79 @@ export async function getVolunteersForTextNotifications(): Promise<
   TextableVolunteer[]
 > {
   return await VolunteerRepo.getVolunteersForTextNotifications()
+}
+
+export async function getVolunteerForOnboardingById(
+  userId: Ulid,
+  tc: TransactionClient = getClient(),
+  includeDeactivatedUsers = false
+): Promise<VolunteerForOnboarding | undefined> {
+  const volunteer = await VolunteerRepo.getVolunteerForOnboardingById(
+    tc,
+    userId,
+    { includeDeactivated: includeDeactivatedUsers }
+  )
+  if (volunteer) {
+    const completedVolunteerTraining =
+      await hasCompletedVolunteerTraining(userId)
+    return {
+      ...volunteer,
+      hasCompletedUpchieve101: completedVolunteerTraining,
+    }
+  }
+}
+
+export async function hasCompletedVolunteerTraining(
+  userId: Ulid,
+  tc: TransactionClient = getClient()
+): Promise<boolean> {
+  // Case 1: Passed the legacy training course
+  const trainingCourses = await VolunteerRepo.getVolunteerTrainingCourses(
+    userId,
+    tc
+  )
+  const completedLegacyCourse =
+    !!trainingCourses[TRAINING.UPCHIEVE_101]?.complete
+  if (completedLegacyCourse) return completedLegacyCourse
+
+  // Case 2: Passed the legacy training quiz
+  const userQuizzes = (
+    await VolunteerRepo.getQuizzesForVolunteers([userId], tc)
+  )[userId]
+  const upchieve101Quiz = userQuizzes.hasOwnProperty(
+    TRAINING_QUIZZES.LEGACY_UPCHIEVE_101
+  )
+    ? userQuizzes[TRAINING_QUIZZES.LEGACY_UPCHIEVE_101]
+    : null
+  const passedLegacyQuiz = upchieve101Quiz
+    ? (upchieve101Quiz?.passed as boolean)
+    : false
+  if (passedLegacyQuiz) return passedLegacyQuiz
+
+  // Case 3: Passed all the new training quizzes
+  const safetyQuiz = userQuizzes.hasOwnProperty(
+    TRAINING_QUIZZES.COMMUNITY_SAFETY
+  )
+    ? userQuizzes[TRAINING_QUIZZES.COMMUNITY_SAFETY]
+    : null
+  const academicIntegrityQuiz = userQuizzes.hasOwnProperty(
+    TRAINING_QUIZZES.ACADEMIC_INTEGRITY
+  )
+    ? userQuizzes[TRAINING_QUIZZES.ACADEMIC_INTEGRITY]
+    : null
+  const deiQuiz = userQuizzes.hasOwnProperty(TRAINING_QUIZZES.DEI)
+    ? userQuizzes[TRAINING_QUIZZES.DEI]
+    : null
+  const coachingStrategiesQuiz = userQuizzes.hasOwnProperty(
+    TRAINING_QUIZZES.COACHING_STRATEGIES
+  )
+    ? userQuizzes[TRAINING_QUIZZES.COACHING_STRATEGIES]
+    : null
+  const completedTraining =
+    (safetyQuiz?.passed &&
+      academicIntegrityQuiz?.passed &&
+      deiQuiz?.passed &&
+      coachingStrategiesQuiz?.passed) ||
+    false
+  return completedTraining
 }

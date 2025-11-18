@@ -140,9 +140,7 @@ export async function getQuizScore(
       }
       // If volunteer is not onboarded and has completed other onboarding steps - including passing an academic quiz.
       const volunteerProfile =
-        await VolunteerModel.getVolunteerForOnboardingById(tc, user.id, {
-          includeDeactivated: true,
-        })
+        await VolunteerService.getVolunteerForOnboardingById(user.id, tc, true)
 
       // If this is the first quiz the volunteer has passed, and they have passed Upchieve101, send the national tutor certificate email
       if (

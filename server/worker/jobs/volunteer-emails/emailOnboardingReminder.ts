@@ -1,7 +1,7 @@
 import { Job } from 'bull'
 import { log } from '../../logger'
 import * as MailService from '../../../services/MailService'
-import { getVolunteerForOnboardingById } from '../../../models/Volunteer/queries'
+import { getVolunteerForOnboardingById } from '../../../services/VolunteerService'
 import { Jobs } from '../index'
 import { asString } from '../../../utils/type-utils'
 
@@ -12,7 +12,7 @@ interface OnboardingReminder {
 export default async (job: Job<OnboardingReminder>): Promise<void> => {
   const { name: currentJob } = job
   const volunteerId = asString(job.data.volunteerId)
-  const volunteer = await getVolunteerForOnboardingById(undefined, volunteerId)
+  const volunteer = await getVolunteerForOnboardingById(volunteerId)
 
   if (volunteer) {
     try {
