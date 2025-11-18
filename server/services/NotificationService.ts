@@ -31,9 +31,9 @@ export async function getTotalEmailsSentToUser(
 export async function getVolunteersTextedSinceXMinutesAgo(
   minutes: number
 ): Promise<Set<Ulid>> {
-  const fiveMinutesAgoDate = moment().subtract(minutes, 'minutes').toDate()
+  const xMinutesAgoDate = moment().subtract(minutes, 'minutes').toDate()
   const volunteers = await NotificationRepo.getVolunteersNotifiedSince(
-    fiveMinutesAgoDate,
+    xMinutesAgoDate,
     'sms'
   )
   return new Set(volunteers)
