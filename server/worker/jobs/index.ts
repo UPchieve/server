@@ -497,16 +497,25 @@ export const addJobProcessors = (queue: Queue): void => {
   try {
     for (const jobProcessor of jobProcessors) {
       queue.process(jobProcessor.name, async (job) => {
+        const loggingContext = {
+          sessionId: job.data?.sessionId,
+          userId: job.data?.userId,
+        }
+
+        logger.info(loggingContext, `Processing job: ${job.name}`)
         await newrelic.startBackgroundTransaction(
           `job:${job.name}`,
           async () => {
             const transaction = newrelic.getTransaction()
-            logger.info(`Processing job: ${job.name}`)
             try {
               await jobProcessor.processor(job)
-              logger.info(`Completed job: ${job.name}`)
+              logger.info(loggingContext, `Completed job: ${job.name}`)
             } catch (error) {
-              logger.error(error, `Error processing job: ${job.name}`)
+              logger.error(
+                error,
+                loggingContext,
+                `Error processing job: ${job.name}`
+              )
               throw error
             } finally {
               transaction.end()
