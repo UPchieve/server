@@ -47,12 +47,10 @@ export function routeSession(router: Router) {
         ...sessionData,
         presessionSurvey,
       })
-      // For legacy (mobile), we still need to just return the sessionId.
-      // TODO: make sure we don't target mobile users with the feature flag or update
-      // the collab server endpoint on mobile
       const isZwibserveSession = await SessionService.isZwibserveSession(
         session.id
       )
+      // For legacy (mobile), we still need to just return the sessionId.
       res.json({ sessionId: session.id, session, isZwibserveSession })
     } catch (error) {
       resError(res, error)

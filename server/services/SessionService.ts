@@ -683,7 +683,6 @@ export async function startSession(
     await QuillDocService.ensureDocumentUpdateExists(newSession.id)
   }
 
-  // TODO: Skip this if the user is on mobile, since we'd need to update mobile
   const isZwibserveEnabled = await FeatureFlagsService.isZwibserveEnabled(
     user.id
   )
