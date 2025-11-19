@@ -47,8 +47,11 @@ export function routeSession(router: Router) {
         ...sessionData,
         presessionSurvey,
       })
+      const isZwibserveSession = await SessionService.isZwibserveSession(
+        session.id
+      )
       // For legacy (mobile), we still need to just return the sessionId.
-      res.json({ sessionId: session.id, session })
+      res.json({ sessionId: session.id, session, isZwibserveSession })
     } catch (error) {
       resError(res, error)
     }
@@ -64,7 +67,10 @@ export function routeSession(router: Router) {
         userAgent: req.get('User-Agent'),
         joinedFrom,
       })
-      res.json({ session })
+      const isZwibserveSession = await SessionService.isZwibserveSession(
+        session.id
+      )
+      res.json({ session, isZwibserveSession })
     } catch (error) {
       resError(res, error)
     }

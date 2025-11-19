@@ -683,6 +683,13 @@ export async function startSession(
     await QuillDocService.ensureDocumentUpdateExists(newSession.id)
   }
 
+  const isZwibserveEnabled = await FeatureFlagsService.isZwibserveEnabled(
+    user.id
+  )
+  if (isZwibserveEnabled) {
+    await cache.sadd(config.cacheKeys.zwibserveSessions, newSession.id)
+  }
+
   const isNotifyTutorEnabled = await FeatureFlagsService.getNotifyTutorFlag(
     user.id
   )
@@ -1300,4 +1307,9 @@ export async function addSessionSmsNotification(
     method: 'sms',
     priorityGroup: priorityGroupName,
   })
+}
+
+export async function isZwibserveSession(sessionId: Uuid) {
+  const members = await cache.smembers(config.cacheKeys.zwibserveSessions)
+  return members.includes(sessionId)
 }

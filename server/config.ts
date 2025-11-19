@@ -246,6 +246,7 @@ const config: Static<typeof Config> = {
     updateTotalVolunteerHoursLastRun: 'UPDATE_TOTAL_VOLUNTEERS_LAST_RUN',
     waitTimeHeatMapAllSubjects: 'WAIT_TIME_HEAT_MAP_ALL_SUBJECTS',
     userRoleContextPrefix: 'USER_ROLE_CONTEXT-',
+    zwibserveSessions: 'ZWIBSERVE_SESSIONS',
   },
 
   // Sentry Data Source Name

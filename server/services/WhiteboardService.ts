@@ -4,8 +4,16 @@ import { getBlob, uploadBlobString } from './AzureService'
 import { Ulid, Uuid } from '../models/pgUtils'
 import * as cache from '../cache'
 import { KeyNotFoundError } from '../cache'
+import { isZwibserveSession } from './SessionService'
 
 const sessionIdToKey = (id: Ulid): string => `zwibbler-${id}`
+const zwibserveKey = (id: Ulid): string => `zwibbler:${id}`
+
+async function getZwibserveOrCustomCollabKey(sessionId: Ulid) {
+  const isUsingZwibserve = await isZwibserveSession(sessionId)
+  if (isUsingZwibserve) return zwibserveKey(sessionId)
+  return sessionIdToKey(sessionId)
+}
 
 export const createDoc = async (sessionId: Ulid): Promise<string> => {
   const newDoc = ''
@@ -21,7 +29,8 @@ export const getDocIfExist = async (
   sessionId: Uuid
 ): Promise<string | undefined> => {
   try {
-    return await cache.get(sessionIdToKey(sessionId))
+    const sessionKey = await getZwibserveOrCustomCollabKey(sessionId)
+    return await cache.get(sessionKey)
   } catch (error) {
     if (!(error instanceof KeyNotFoundError)) throw error
   }
@@ -43,7 +52,8 @@ export const appendToDoc = (
 
 export async function deleteDoc(sessionId: Ulid) {
   try {
-    ;(await cache.remove(sessionIdToKey(sessionId))) &&
+    const sessionKey = await getZwibserveOrCustomCollabKey(sessionId)
+    ;(await cache.remove(sessionKey)) &&
       logger.info({ sessionId }, 'Removed whiteboard doc from cache')
   } catch (error) {
     logger.warn(

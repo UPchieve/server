@@ -17,4 +17,5 @@ export enum FEATURE_FLAGS {
   STUDENTS_INITIATE_DMS = 'students-initiate-dms',
   DISABLE_STUDENT_CREATION = 'disable-student-creation',
   NOTIFY_TUTOR = 'notify-tutor',
+  ZWIBSERVE = 'zwibserve',
 }

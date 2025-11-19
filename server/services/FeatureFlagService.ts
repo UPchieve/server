@@ -188,3 +188,7 @@ export async function getStudentCreationDisabledFeatureFlag(userId: Ulid) {
 export async function getNotifyTutorFlag(userId: Ulid) {
   return isFeatureEnabled(FEATURE_FLAGS.NOTIFY_TUTOR, userId)
 }
+
+export async function isZwibserveEnabled(userId: Ulid) {
+  return isFeatureEnabled(FEATURE_FLAGS.ZWIBSERVE, userId)
+}
