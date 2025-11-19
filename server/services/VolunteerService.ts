@@ -271,7 +271,7 @@ export async function onboardVolunteer(
   ip: string,
   tc: TransactionClient
 ): Promise<void> {
-  const volunteer = await getVolunteerForOnboardingById(volunteerId, tc, true)
+  const volunteer = await getVolunteerForOnboardingById(volunteerId, true, tc)
   if (!volunteer) {
     // If there is no volunteer, means they've already been onboarded.
     return
@@ -384,8 +384,8 @@ export async function getVolunteersForTextNotifications(): Promise<
 
 export async function getVolunteerForOnboardingById(
   userId: Ulid,
-  tc: TransactionClient = getClient(),
-  includeDeactivatedUsers = false
+  includeDeactivatedUsers = false,
+  tc: TransactionClient = getClient()
 ): Promise<VolunteerForOnboarding | undefined> {
   const volunteer = await VolunteerRepo.getVolunteerForOnboardingById(
     tc,
@@ -424,9 +424,8 @@ export async function hasCompletedVolunteerTraining(
   )
     ? userQuizzes[TRAINING_QUIZZES.LEGACY_UPCHIEVE_101]
     : null
-  const passedLegacyQuiz = upchieve101Quiz
-    ? (upchieve101Quiz?.passed as boolean)
-    : false
+  const passedLegacyQuiz =
+    userQuizzes[TRAINING_QUIZZES.LEGACY_UPCHIEVE_101]?.passed
   if (passedLegacyQuiz) return passedLegacyQuiz
 
   // Case 3: Passed all the new training quizzes
