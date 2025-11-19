@@ -647,12 +647,6 @@ SELECT
     student_partner_orgs.name AS student_partner_org_display,
     users.last_activity_at,
     users.created_at,
-    (
-        CASE WHEN user_upchieve101.id IS NULL THEN
-            FALSE
-        ELSE
-            TRUE
-        END) AS passed_upchieve101,
     users.test_user,
     users.last_name,
     COALESCE(cgl.current_grade_name, grade_levels.name) AS student_grade_level
@@ -663,15 +657,6 @@ FROM
     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
     LEFT JOIN student_profiles ON student_profiles.user_id = users.id
     LEFT JOIN student_partner_orgs ON student_partner_orgs.id = student_profiles.student_partner_org_id
-    LEFT JOIN LATERAL (
-        SELECT
-            id
-        FROM
-            users_training_courses
-            LEFT JOIN training_courses ON training_courses.id = users_training_courses.training_course_id
-        WHERE
-            users_training_courses.user_id = users.id
-            AND training_courses.name = 'UPchieve 101') AS user_upchieve101 ON TRUE
     LEFT JOIN grade_levels ON student_profiles.grade_level_id = grade_levels.id
     LEFT JOIN current_grade_levels_mview cgl ON student_profiles.user_id = cgl.user_id
 WHERE

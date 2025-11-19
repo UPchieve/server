@@ -16,6 +16,14 @@ export enum TRAINING {
   COLLEGE_SKILLS = 'collegeSkills',
 }
 
+export enum TRAINING_QUIZZES {
+  LEGACY_UPCHIEVE_101 = 'upchieve101', // legacy training quiz
+  COACHING_STRATEGIES = 'coachingStrategies',
+  ACADEMIC_INTEGRITY = 'academicIntegrity',
+  DEI = 'dei',
+  COMMUNITY_SAFETY = 'communitySafety',
+}
+
 export enum MATH_CERTS {
   // TODO: fix typo
   PREALGREBA = 'prealgebra',

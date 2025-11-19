@@ -1,7 +1,7 @@
 import { Job } from 'bull'
 import { log } from '../../logger'
 import * as MailService from '../../../services/MailService'
-import { getVolunteerForOnboardingById } from '../../../models/Volunteer/queries'
+import { getVolunteerForOnboardingById } from '../../../services/VolunteerService'
 import { Jobs } from '../index'
 import { asString } from '../../../utils/type-utils'
 
@@ -12,7 +12,7 @@ interface OnboardingReminder {
 export default async (job: Job<OnboardingReminder>): Promise<void> => {
   const { name: currentJob } = job
   const volunteerId = asString(job.data.volunteerId)
-  const volunteer = await getVolunteerForOnboardingById(undefined, volunteerId)
+  const volunteer = await getVolunteerForOnboardingById(volunteerId)
 
   if (volunteer) {
     try {
@@ -21,7 +21,6 @@ export default async (job: Job<OnboardingReminder>): Promise<void> => {
       const { firstName, email } = volunteer
       if (currentJob === Jobs.EmailOnboardingReminderOne) {
         const hasUnlockedASubject = volunteer.subjects.length > 0
-        const hasSelectedAvailability = !!volunteer.availabilityLastModifiedAt
         const hasCompletedBackgroundInfo = !!volunteer.country
 
         // Volunteer has not completed onboarding 7 days after creating  account
@@ -30,8 +29,7 @@ export default async (job: Job<OnboardingReminder>): Promise<void> => {
           email,
           hasCompletedBackgroundInfo,
           volunteer.hasCompletedUpchieve101,
-          hasUnlockedASubject,
-          hasSelectedAvailability
+          hasUnlockedASubject
         )
         delay = 1000 * 60 * 60 * 24 * 7
         nextJob = Jobs.EmailOnboardingReminderTwo
