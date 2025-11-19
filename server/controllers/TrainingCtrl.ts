@@ -14,12 +14,10 @@ import * as VolunteerService from '../services/VolunteerService'
 import * as QuestionModel from '../models/Question'
 import * as UserModel from '../models/User'
 import * as VolunteerModel from '../models/Volunteer'
-import * as SubjectsModel from '../models/Subjects'
 import { asString } from '../utils/type-utils'
 import { runInTransaction, TransactionClient } from '../db'
 import logger from '../logger'
 import config from '../config'
-import * as VolunteerService from '../services/VolunteerService'
 
 export async function getQuestions(
   category: string
