@@ -7,6 +7,7 @@ import textVolunteers, {
   filterFavoritedVolunteers,
   filterPartnerVolunteers,
   filterSubjectEligibleVolunteers,
+  JOB_CONFIG,
   PriorityGroupName,
   selectVolunteersByPriority,
   sendTextMessages,
@@ -69,7 +70,7 @@ describe('TextVolunteers job', () => {
     mockedFavoritingService.getFavoritedVolunteerIdsFromList.mockResolvedValue(
       new Set()
     )
-    mockedNotificationService.getVolunteersTextedSince5MinutesAgo.mockResolvedValue(
+    mockedNotificationService.getVolunteersTextedSinceXMinutesAgo.mockResolvedValue(
       new Set()
     )
     mockedQueueService.add.mockResolvedValue(undefined)
@@ -504,11 +505,11 @@ describe('TextVolunteers job', () => {
       )
     })
 
-    test('should exclude volunteers recently texted within the last 5 minutes', async () => {
+    test('should exclude volunteers recently texted within the last x minutes', async () => {
       const recentlyTextedVol = buildTextableVolunteer()
       const availableVol1 = buildTextableVolunteer()
       const availableVol2 = buildTextableVolunteer()
-      mockedNotificationService.getVolunteersTextedSince5MinutesAgo.mockResolvedValueOnce(
+      mockedNotificationService.getVolunteersTextedSinceXMinutesAgo.mockResolvedValueOnce(
         new Set([recentlyTextedVol.id])
       )
 
@@ -535,7 +536,7 @@ describe('TextVolunteers job', () => {
       mockedSessionService.getVolunteersInSessions.mockResolvedValueOnce(
         new Set([busyVol.id])
       )
-      mockedNotificationService.getVolunteersTextedSince5MinutesAgo.mockResolvedValueOnce(
+      mockedNotificationService.getVolunteersTextedSinceXMinutesAgo.mockResolvedValueOnce(
         new Set([recentlyTextedVol.id])
       )
 
@@ -1176,7 +1177,7 @@ describe('TextVolunteers job', () => {
       )
     })
 
-    test('should exclude volunteers texted within the last 5 minutes', async () => {
+    test('should exclude volunteers texted within the last x minutes', async () => {
       const recentlyTextedVol = buildTextableVolunteer({
         unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
       })
@@ -1189,7 +1190,7 @@ describe('TextVolunteers job', () => {
       mockedCacheService.getIfExists.mockResolvedValueOnce(
         JSON.stringify([recentlyTextedVol, availableVol1, availableVol2])
       )
-      mockedNotificationService.getVolunteersTextedSince5MinutesAgo.mockResolvedValueOnce(
+      mockedNotificationService.getVolunteersTextedSinceXMinutesAgo.mockResolvedValueOnce(
         new Set([recentlyTextedVol.id])
       )
       mockedTwilioService.sendTextMessage
@@ -1470,7 +1471,7 @@ describe('TextVolunteers job', () => {
       mockedSessionService.getVolunteersInSessions.mockResolvedValueOnce(
         new Set([busyVol.id])
       )
-      mockedNotificationService.getVolunteersTextedSince5MinutesAgo.mockResolvedValueOnce(
+      mockedNotificationService.getVolunteersTextedSinceXMinutesAgo.mockResolvedValueOnce(
         new Set([recentVol.id])
       )
       mockedTwilioService.sendTextMessage
@@ -1631,6 +1632,14 @@ describe('TextVolunteers job', () => {
       await textVolunteers(job as Job)
 
       expect(mockedQueueService.add).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('JOB_CONFIG', () => {
+    test('should be configured so volunteers will not be texted more than once per session', () => {
+      expect(
+        (JOB_CONFIG.maxNotificationRounds * JOB_CONFIG.roundDelay) / 60
+      ).toBeLessThan(JOB_CONFIG.lastTextedInMinutes)
     })
   })
 })
