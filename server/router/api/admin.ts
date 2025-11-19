@@ -1,5 +1,6 @@
 import multer from 'multer'
 import { Express, Router } from 'express'
+import timeout from 'connect-timeout'
 import { authPassport } from '../../utils/auth-utils'
 import { resError } from '../res-error'
 import { readCsvFromBuffer } from '../../utils/file-utils'
@@ -10,13 +11,8 @@ import {
   RosterStudentPayload,
   rosterPartnerStudents,
 } from '../../services/UserCreationService'
-import {
-  asBoolean,
-  asNumber,
-  asOptional,
-  asString,
-  asUlid,
-} from '../../utils/type-utils'
+import { asBoolean, asNumber, asString, asUlid } from '../../utils/type-utils'
+import { minutesInMs } from '../../utils/time-utils'
 
 export function routeAdmin(app: Express, router: Router): void {
   const upload = multer()
@@ -85,22 +81,26 @@ export function routeAdmin(app: Express, router: Router): void {
     }
   )
 
-  router.post('/clever/roster', async function (req, res) {
-    const districtId = asString(req.body.districtId)
+  router.post(
+    '/clever/roster',
+    timeout(minutesInMs(5).toString()),
+    async function (req, res) {
+      const districtId = asString(req.body.districtId)
 
-    if (!districtId) {
-      res.status(422).json({
-        err: 'Missing district id.',
-      })
-    }
+      if (!districtId) {
+        res.status(422).json({
+          err: 'Missing district id.',
+        })
+      }
 
-    try {
-      const report = await CleverRosterService.rosterDistrict(districtId)
-      res.json({ report })
-    } catch (error) {
-      resError(res, error)
+      try {
+        const report = await CleverRosterService.rosterDistrict(districtId)
+        res.json({ report })
+      } catch (error) {
+        resError(res, error)
+      }
     }
-  })
+  )
 
   router.post('/clever/school', async function (req, res) {
     try {
