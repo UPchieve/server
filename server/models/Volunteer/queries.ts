@@ -29,7 +29,6 @@ import {
 import config from '../../config'
 import _ from 'lodash'
 import { PHOTO_ID_STATUS, USER_BAN_TYPES, USER_ROLES } from '../../constants'
-import { PoolClient } from 'pg'
 import {
   AssociatedPartnersAndSchools,
   getAssociatedPartnersAndSchools,
@@ -372,7 +371,6 @@ export type VolunteerForOnboarding = Pick<
   approved: boolean
   hasCompletedUpchieve101: boolean
   subjects: string[]
-  availabilityLastModifiedAt?: Date
   country?: string
   volunteerPartnerOrgKey?: string
 }
@@ -382,7 +380,9 @@ export async function getVolunteerForOnboardingById(
   filters: {
     includeDeactivated: boolean
   } = { includeDeactivated: false }
-): Promise<VolunteerForOnboarding | undefined> {
+): Promise<
+  Omit<VolunteerForOnboarding, 'hasCompletedUpchieve101'> | undefined
+> {
   try {
     const result = await pgQueries.getVolunteerForOnboardingById.run(
       {
@@ -400,22 +400,7 @@ export async function getVolunteerForOnboardingById(
     if (volunteer.email) {
       volunteer.email = volunteer.email.toLowerCase()
     }
-
-    // Some users may skip the UPchieve101 training course and go straight to the quiz
-    const trainingCourses = await getVolunteerTrainingCourses(volunteer.id, tc)
-    const userQuizzes = (await getQuizzesForVolunteers([userId], tc))[userId]
-
-    const upchieve101Quiz = userQuizzes.hasOwnProperty('upchieve101')
-      ? userQuizzes['upchieve101']
-      : null
-    const completedTrainingCourse = !!trainingCourses['upchieve101']?.complete
-    const passedQuiz = upchieve101Quiz
-      ? (upchieve101Quiz?.passed as boolean)
-      : false
-    return {
-      ...volunteer,
-      hasCompletedUpchieve101: completedTrainingCourse || passedQuiz,
-    }
+    return volunteer
   } catch (err) {
     throw new RepoReadError(err)
   }

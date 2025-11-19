@@ -72,7 +72,6 @@ const SG_CUSTOM_FIELDS = {
   studentPartnerOrgDisplay: 'e12_T',
   volunteerPartnerOrg: 'e13_T',
   volunteerPartnerOrgDisplay: 'e14_T',
-  passedUpchieve101: 'e17_T',
   studentGradeLevel: 'w20_T',
   fallIncentiveEnrollmentAt: 'e34_D',
 }
@@ -857,8 +856,7 @@ export async function sendOnboardingReminderOne(
   email: string,
   hasCompletedBackgroundInfo: boolean,
   hasCompletedUpchieve101: boolean,
-  hasUnlockedASubject: boolean,
-  hasSelectedAvailability: boolean
+  hasUnlockedASubject: boolean
 ): Promise<void> {
   const overrides = {
     categories: ['onboarding reminder one email'],
@@ -874,7 +872,6 @@ export async function sendOnboardingReminderOne(
       hasCompletedBackgroundInfo,
       hasCompletedUpchieve101,
       hasUnlockedASubject,
-      hasSelectedAvailability,
     },
     overrides
   )
@@ -1600,9 +1597,6 @@ export async function createContact(userIds: Ulid | Ulid[]): Promise<any> {
     if (userRoleContext.hasRole('volunteer')) {
       contactListId = config.sendgrid.contactList.volunteers
       const volunteer = { ...user }
-      customFields[SG_CUSTOM_FIELDS.passedUpchieve101] = String(
-        volunteer.passedUpchieve101
-      )
 
       if (volunteer.volunteerPartnerOrg) {
         customFields[SG_CUSTOM_FIELDS.volunteerPartnerOrg] =
