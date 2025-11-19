@@ -70,36 +70,7 @@ beforeEach(() => {
       },
     },
   })
-
-  test('Is false if all the quizzes have been attempted but not all passed', async () => {
-    const testAndAssert = async (expectedValue: boolean) => {
-      const actual = await hasCompletedVolunteerTraining(mockVolunteer.id)
-      expect(actual).toEqual(expectedValue)
-    }
-
-    // Incomplete legacy training
-    mockedVolunteerRepo.getVolunteerTrainingCourses.mockResolvedValue({
-      [TRAINING.UPCHIEVE_101]: {
-        ...COMPLETED_TRAINING_COURSE,
-        complete: false,
-        isComplete: false,
-        progress: 50,
-        trainingCourse: TRAINING.UPCHIEVE_101,
-      },
-    })
-
-    // Only 1 of the quizzes passed, the rest failed
-    mockedVolunteerRepo.getQuizzesForVolunteers.mockResolvedValue({
-      [mockVolunteer.id]: {
-        [TRAINING_QUIZZES.ACADEMIC_INTEGRITY]: { ...passedQuiz },
-        [TRAINING_QUIZZES.COACHING_STRATEGIES]: { ...failedQuiz },
-        [TRAINING_QUIZZES.COMMUNITY_SAFETY]: { ...failedQuiz },
-        [TRAINING_QUIZZES.DEI]: { ...failedQuiz },
-      },
-    })
-    await testAndAssert(false)
-    jest.resetAllMocks()
-  })
+})
 
 describe('hasCompletedVolunteerTraining', () => {
   const passedQuiz = {
