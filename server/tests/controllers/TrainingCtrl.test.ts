@@ -8,6 +8,7 @@ import {
   QUIZ_USER_ACTIONS,
   EVENTS,
   ACCOUNT_USER_ACTIONS,
+  TRAINING_QUIZZES,
 } from '../../constants'
 import * as UserActionRepo from '../../models/UserAction'
 import * as QuestionRepo from '../../models/Question'
@@ -36,6 +37,7 @@ jest.mock('../../models/UserAction')
 const mockedQuestionRepo = mocked(QuestionRepo)
 const mockedSubjectsRepo = mocked(SubjectsRepo)
 const mockedVolunteerRepo = mocked(VolunteerRepo)
+const mockedVolunteerService = mocked(VolunteerService)
 
 beforeEach(async () => {
   jest.clearAllMocks()
@@ -203,7 +205,7 @@ describe('getQuizScore', () => {
     mockedVolunteerRepo.getSubjectsForVolunteer.mockResolvedValueOnce(
       currentSubjects
     )
-    mockedVolunteerRepo.getVolunteerForOnboardingById.mockResolvedValueOnce(
+    mockedVolunteerService.getVolunteerForOnboardingById.mockResolvedValueOnce(
       mockVolunteerForOnboarding
     )
 
@@ -308,7 +310,7 @@ describe('getQuizScore', () => {
     mockedVolunteerRepo.getSubjectsForVolunteer.mockResolvedValueOnce(
       currentSubjects
     )
-    mockedVolunteerRepo.getVolunteerForOnboardingById.mockResolvedValueOnce(
+    mockedVolunteerService.getVolunteerForOnboardingById.mockResolvedValueOnce(
       mockVolunteerForOnboarding
     )
 
@@ -398,7 +400,7 @@ describe('getQuizScore', () => {
     mockedVolunteerRepo.getSubjectsForVolunteer.mockResolvedValueOnce(
       currentSubjects
     )
-    mockedVolunteerRepo.getVolunteerForOnboardingById.mockResolvedValueOnce(
+    mockedVolunteerService.getVolunteerForOnboardingById.mockResolvedValueOnce(
       mockVolunteerForOnboarding
     )
 
@@ -485,7 +487,7 @@ describe('getQuizScore', () => {
     mockedVolunteerRepo.getSubjectsForVolunteer.mockResolvedValueOnce(
       currentSubjects
     )
-    mockedVolunteerRepo.getVolunteerForOnboardingById.mockResolvedValueOnce(
+    mockedVolunteerService.getVolunteerForOnboardingById.mockResolvedValueOnce(
       mockVolunteerForOnboarding
     )
 
@@ -536,7 +538,7 @@ describe('getQuizScore', () => {
     expect(result).toEqual(expectedResult)
   })
 
-  test('Passes training quiz and becomes onboarded', async () => {
+  test('Passes LEGACY training quiz and becomes onboarded', async () => {
     const volunteer = buildVolunteer()
     const questions = buildQuestions()
     const cert = CERTS.UPCHIEVE_101
@@ -576,7 +578,7 @@ describe('getQuizScore', () => {
     mockedVolunteerRepo.getSubjectsForVolunteer.mockResolvedValueOnce(
       currentSubjects
     )
-    mockedVolunteerRepo.getVolunteerForOnboardingById.mockResolvedValueOnce(
+    mockedVolunteerService.getVolunteerForOnboardingById.mockResolvedValueOnce(
       mockVolunteerForOnboarding
     )
 
@@ -665,7 +667,7 @@ describe('getQuizScore', () => {
     mockedVolunteerRepo.getSubjectsForVolunteer.mockResolvedValueOnce(
       currentSubjects
     )
-    mockedVolunteerRepo.getVolunteerForOnboardingById.mockResolvedValueOnce(
+    mockedVolunteerService.getVolunteerForOnboardingById.mockResolvedValueOnce(
       mockVolunteerForOnboarding
     )
 
@@ -715,5 +717,83 @@ describe('getQuizScore', () => {
     )
     expect(MailService.createContact).not.toHaveBeenCalled()
     expect(result).toEqual(expectedResult)
+  })
+
+  test('Fails the non-legacy training quiz if less than 100% of answers are correct', async () => {
+    const volunteer = buildVolunteer()
+    const questions = buildQuestions(3)
+    const quiz = TRAINING_QUIZZES.COACHING_STRATEGIES
+    const numIncorrectAnswers = 1
+    const idAnswerMap = buildIdAnswerMapHelper(questions, numIncorrectAnswers)
+    const mockQuizMap = buildVolunteerQuizMap(volunteer.id, [])
+
+    mockedQuestionRepo.getMultipleQuestionsById.mockResolvedValueOnce(questions)
+    mockedVolunteerRepo.getQuizzesForVolunteers.mockResolvedValue(mockQuizMap)
+
+    const actual = await getQuizScore({
+      user: volunteer,
+      idAnswerMap,
+      category: quiz,
+      ip: 'test-ip',
+    })
+    expect(actual).toEqual({
+      tries: 1,
+      passed: false,
+      score: questions.length - numIncorrectAnswers,
+      idCorrectAnswerMap: buildIdAnswerMapHelper(questions),
+      isTrainingSubject: true,
+    })
+
+    expect(
+      mockedQuestionRepo.getQuizCertUnlocksByQuizName
+    ).not.toHaveBeenCalled()
+    expect(VolunteerRepo.getSubjectsForVolunteer).not.toHaveBeenCalled()
+    expect(UserActionRepo.createQuizAction).not.toHaveBeenCalled()
+    expect(mockedVolunteerRepo.addVolunteerCertification).not.toHaveBeenCalled()
+    expect(
+      mockedVolunteerService.getVolunteerForOnboardingById
+    ).not.toHaveBeenCalled()
+    expect(
+      mockedVolunteerService.queueNationalTutorCertificateEmail
+    ).not.toHaveBeenCalled()
+  })
+
+  test('Passes non-legacy training quiz if 100% of answers are correct', async () => {
+    const volunteer = buildVolunteer()
+    const questions = buildQuestions(3)
+    const quiz = TRAINING_QUIZZES.COACHING_STRATEGIES
+    const idAnswerMap = buildIdAnswerMapHelper(questions)
+    const mockQuizMap = buildVolunteerQuizMap(volunteer.id, [])
+
+    mockedQuestionRepo.getMultipleQuestionsById.mockResolvedValueOnce(questions)
+    mockedVolunteerRepo.getQuizzesForVolunteers.mockResolvedValue(mockQuizMap)
+    mockedQuestionRepo.getQuizCertUnlocksByQuizName.mockResolvedValue([])
+
+    const actual = await getQuizScore({
+      user: volunteer,
+      idAnswerMap,
+      category: quiz,
+      ip: 'test-ip',
+    })
+    expect(actual).toEqual({
+      tries: 1,
+      passed: true,
+      score: questions.length,
+      idCorrectAnswerMap: buildIdAnswerMapHelper(questions),
+      isTrainingSubject: true,
+    })
+
+    expect(mockedQuestionRepo.getQuizCertUnlocksByQuizName).toHaveBeenCalled()
+    expect(VolunteerRepo.getSubjectsForVolunteer).toHaveBeenCalled()
+    expect(
+      mockedVolunteerService.getVolunteerForOnboardingById
+    ).toHaveBeenCalled()
+
+    // No certs for training quiz
+    expect(UserActionRepo.createQuizAction).not.toHaveBeenCalled()
+    expect(mockedVolunteerRepo.addVolunteerCertification).not.toHaveBeenCalled()
+    expect(
+      mockedVolunteerService.queueNationalTutorCertificateEmail
+    ).not.toHaveBeenCalled()
   })
 })

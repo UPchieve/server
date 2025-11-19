@@ -5,6 +5,7 @@ import {
   SUBJECT_TYPES,
   QUIZ_USER_ACTIONS,
   EVENTS,
+  TRAINING_QUIZZES,
 } from '../constants'
 import { createQuizAction } from '../models/UserAction'
 import { createContact } from '../services/MailService'
@@ -75,23 +76,25 @@ export async function getQuizScore(
 ): Promise<GetQuizScoreOutput> {
   return runInTransaction(async (tc: TransactionClient) => {
     const { user, idAnswerMap, ip } = options
-    const cert = options.category
+    const quiz = options.category
     const objIDs = Object.keys(idAnswerMap)
     const numIDs = objIDs.map((id) => Number(id))
     const questions = await QuestionModel.getMultipleQuestionsById(numIDs)
     const SUBJECT_THRESHOLD = 0.8
-    const TRAINING_THRESHOLD = 0.9
+    // @TODO: Once the legacy training quiz ("UPchieve 101 quiz") is fully ripped out,
+    // simplify the below logic to `TRAINING_THRESHOLD = 1.0`
+    const TRAINING_THRESHOLD =
+      quiz === TRAINING_QUIZZES.LEGACY_UPCHIEVE_101 ? 0.9 : 1.0
 
     const score = questions.filter(
       (question) => question.correctAnswer === idAnswerMap[question.id]
     ).length
 
     const percent = score / questions.length
-    const subjectType = await SubjectsModel.getSubjectType(cert as string)
-    const threshold =
-      subjectType === SUBJECT_TYPES.TRAINING || !subjectType
-        ? TRAINING_THRESHOLD
-        : SUBJECT_THRESHOLD
+    const isTrainingQuiz = Object.values(TRAINING_QUIZZES).includes(
+      quiz as TRAINING_QUIZZES
+    )
+    const threshold = isTrainingQuiz ? TRAINING_THRESHOLD : SUBJECT_THRESHOLD
     const passed = percent >= threshold
 
     const userQuizzesMap = await VolunteerModel.getQuizzesForVolunteers([
@@ -99,7 +102,7 @@ export async function getQuizScore(
     ])
     const userQuizzes = userQuizzesMap[user.id]
 
-    const tries = userQuizzes[cert] ? userQuizzes[cert].tries : 1
+    const tries = userQuizzes[quiz] ? userQuizzes[quiz].tries : 1
 
     await VolunteerModel.updateVolunteerQuiz(
       user.id,
@@ -110,7 +113,7 @@ export async function getQuizScore(
 
     if (passed) {
       const quizCertUnlocks = await QuestionModel.getQuizCertUnlocksByQuizName(
-        asString(cert),
+        asString(quiz),
         tc
       )
       const unlockedSubjects = quizCertUnlocks.map(
@@ -159,7 +162,8 @@ export async function getQuizScore(
     }, {} as AnswerMap)
 
     try {
-      if (cert === TRAINING.UPCHIEVE_101) await createContact(user.id)
+      // @TODO - Update me. But also, why are we creating the SendGrid contact here...?
+      if (quiz === TRAINING.UPCHIEVE_101) await createContact(user.id)
     } catch (err) {
       logger.error('Cannot create sendgrid contact: ' + err)
     }
@@ -169,7 +173,7 @@ export async function getQuizScore(
       passed,
       score,
       idCorrectAnswerMap,
-      isTrainingSubject: subjectType === SUBJECT_TYPES.TRAINING,
+      isTrainingSubject: isTrainingQuiz,
     }
   })
 }

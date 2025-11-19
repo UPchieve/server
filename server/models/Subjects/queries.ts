@@ -342,6 +342,10 @@ export async function getVolunteerTrainingData(): Promise<TrainingView> {
   }
 }
 
+/*
+ * @TODO: This feels like an awkward way to determine if something is a subject or a training.
+ * It relies on there being a training_course of the same name.
+ */
 export async function getSubjectType(
   subject: string
 ): Promise<string | undefined> {
