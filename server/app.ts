@@ -48,6 +48,9 @@ function defaultErrorHandler(
     },
     err.message ?? 'An error occurred'
   )
+  // Attaching the error to the response means the error will be correctly
+  // logged on the request by pino (instead of a generic error).
+  res.err = err
   res.status(err.httpStatus || 500).json({ err: err.message || err })
   next()
 }

@@ -81,26 +81,23 @@ export function routeAdmin(app: Express, router: Router): void {
     }
   )
 
-  router.post(
-    '/clever/roster',
-    timeout(minutesInMs(5).toString()),
-    async function (req, res) {
-      const districtId = asString(req.body.districtId)
+  router.post('/clever/roster', async function (req, res) {
+    req.clearTimeout()
+    const districtId = asString(req.body.districtId)
 
-      if (!districtId) {
-        res.status(422).json({
-          err: 'Missing district id.',
-        })
-      }
-
-      try {
-        const report = await CleverRosterService.rosterDistrict(districtId)
-        res.json({ report })
-      } catch (error) {
-        resError(res, error)
-      }
+    if (!districtId) {
+      res.status(422).json({
+        err: 'Missing district id.',
+      })
     }
-  )
+
+    try {
+      const report = await CleverRosterService.rosterDistrict(districtId)
+      res.json({ report })
+    } catch (error) {
+      resError(res, error)
+    }
+  })
 
   router.post('/clever/school', async function (req, res) {
     try {

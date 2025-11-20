@@ -49,9 +49,9 @@ export function routeReports(router: expressWs.Router): void {
   router.get(
     '/reports/partner-analytics-report',
     authPassport.isAdmin,
-    timeout(minutesInMs(5).toString()),
     async function (req, res) {
       try {
+        req.clearTimeout()
         const reportFilePath = await ReportService.getAnalyticsReport(
           req.query as unknown
         )
