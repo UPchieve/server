@@ -1,4 +1,4 @@
-import { Express, Router } from 'express'
+import express, { Express, Router, urlencoded } from 'express'
 import type { Request, Response } from 'express'
 import twilio from 'twilio'
 import config from '../../config'
@@ -8,6 +8,7 @@ import * as UserProfileService from '../../services/UserProfileService'
 
 export function routes(app: Express): void {
   const router = Router()
+  router.use(urlencoded({ extended: true }) as express.RequestHandler)
 
   router.post('/incoming-sms', async function (req, res) {
     try {

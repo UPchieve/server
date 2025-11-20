@@ -4,13 +4,7 @@ import timeout from 'connect-timeout'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import { Server as Engine } from 'engine.io'
-import express, {
-  json,
-  NextFunction,
-  Request,
-  Response,
-  urlencoded,
-} from 'express'
+import express, { json, NextFunction, Request, Response } from 'express'
 import cacheControl from 'express-cache-controller'
 import expressWs from 'express-ws'
 import fs from 'fs'
@@ -51,7 +45,6 @@ app.set('trust proxy', true)
 
 // Setup middleware
 app.use(json() as express.RequestHandler)
-app.use(urlencoded({ extended: true }) as express.RequestHandler)
 
 app.use(cookieParser(config.sessionSecret))
 
