@@ -28,7 +28,7 @@ import { AuthRedirect } from './auth-redirect'
 import { v4 as uuidv4 } from 'uuid'
 import { UserRole } from '../../models/User'
 
-async function trackLoggedIn(userId: Ulid, ipAddress: string) {
+async function trackLoggedIn(userId: Ulid, ipAddress?: string) {
   await createAccountAction({
     userId,
     action: ACCOUNT_USER_ACTIONS.LOGGED_IN,
@@ -83,7 +83,7 @@ export function routes(app: Express) {
         user.userType = newRoleContext.activeRole
       }
 
-      await trackLoggedIn(user.id, req.ip)
+      await trackLoggedIn(user.id, req.ip || '')
       res.json({ user })
     }
   )

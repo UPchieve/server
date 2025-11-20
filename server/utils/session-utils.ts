@@ -154,7 +154,7 @@ export function createEmptyHeatMap() {
 
 export interface RequestIdentifier {
   userAgent: string
-  ip: string
+  ip?: string
 }
 const requestIdentifierValidators = {
   ip: asString,

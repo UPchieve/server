@@ -13,7 +13,7 @@ import { Ulid } from '../models/pgUtils'
 
 export async function updateUserProfile(
   user: UserContactInfo,
-  ipAddress: string,
+  ipAddress: string = '',
   data: EditUserProfilePayload
 ) {
   await runInTransaction(async (tc: TransactionClient) => {

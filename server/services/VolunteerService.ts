@@ -219,7 +219,7 @@ export async function updatePendingVolunteerStatus(
 export async function addBackgroundInfo(
   volunteerId: Uuid,
   update: Omit<VolunteerRepo.BackgroundInfo, 'approved'>,
-  ip: string
+  ip?: string
 ): Promise<void> {
   const volunteer = await VolunteerRepo.getVolunteerContactInfoById(volunteerId)
   if (!volunteer) throw new Error('Volunteer for background info not found')
@@ -268,7 +268,7 @@ export async function addBackgroundInfo(
  */
 export async function onboardVolunteer(
   volunteerId: Uuid,
-  ip: string,
+  ip: string = '',
   tc: TransactionClient
 ): Promise<void> {
   const volunteer = await getVolunteerForOnboardingById(volunteerId, true, tc)

@@ -45,7 +45,7 @@ type CheckEligibilityResponse = {
 export class ExistingUserError extends CustomError {}
 
 export async function checkEligibility(
-  ip: string,
+  ip: string = '',
   payload: unknown
 ): Promise<CheckEligibilityResponse> {
   const {

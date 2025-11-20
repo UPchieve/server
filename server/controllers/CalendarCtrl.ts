@@ -16,7 +16,7 @@ import { runInTransaction, TransactionClient } from '../db'
 
 // TODO: duck type validation
 export interface UpdateScheduleOptions {
-  ip: string
+  ip?: string
   user: UserContactInfo
   // @note: this is set to optional to test the absence of an availability object
   availability?: Availability

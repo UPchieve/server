@@ -211,7 +211,7 @@ export async function trackActivity({
 }: {
   userId: Ulid
   clientUUID: string
-  ipAddress: string
+  ipAddress?: string
 }) {
   /*
    * we're active now so delete all other keys if they exist
@@ -259,7 +259,7 @@ export async function trackPassivity({
 }: {
   userId: Ulid
   clientUUID: string
-  ipAddress: string
+  ipAddress?: string
 }) {
   const activeTimeoutKey = CacheKeys.key(
     userId,

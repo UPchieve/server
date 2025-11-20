@@ -58,7 +58,7 @@ export interface GetQuizScoreOptions {
   user: UserModel.UserContactInfo
   idAnswerMap: AnswerMap
   category: keyof Quizzes
-  ip: string
+  ip?: string
 }
 
 export interface GetQuizScoreOutput {

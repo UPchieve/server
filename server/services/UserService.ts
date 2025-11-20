@@ -87,7 +87,7 @@ export async function parseUser(userId: Ulid) {
   return user
 }
 
-export async function addPhotoId(userId: Ulid, ip: string): Promise<string> {
+export async function addPhotoId(userId: Ulid, ip?: string): Promise<string> {
   const photoIdS3Key = crypto.randomBytes(32).toString('hex')
   await createAccountAction({
     userId,
@@ -185,7 +185,7 @@ export async function saveReferenceForm(
   referenceId: Ulid,
   referenceEmail: string,
   referenceFormData: unknown,
-  ip: string
+  ip?: string
 ) {
   const {
     affiliation,
