@@ -337,10 +337,6 @@ export function routeSockets(
 
           newrelic.addCustomAttribute('sessionId', sessionId)
 
-          // Do not allow banned users to send messages.
-          const banStatus = await UserService.getUserBanStatus(user.id)
-          if (banStatus) return
-
           if (source === 'recap') {
             const { eligible, ineligibleReason } =
               await SessionService.isRecapDmsAvailable(sessionId, user.id)
