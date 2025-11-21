@@ -2893,6 +2893,43 @@ CREATE MATERIALIZED VIEW upchieve.users_unlocked_subjects_mview AS
 
 
 --
+-- Name: users_unlocked_subjects_view; Type: VIEW; Schema: upchieve; Owner: -
+--
+
+CREATE VIEW upchieve.users_unlocked_subjects_view AS
+ WITH certifications_by_user AS (
+         SELECT users_certifications.user_id,
+            array_agg(DISTINCT users_certifications.certification_id) AS certification_ids
+           FROM upchieve.users_certifications
+          GROUP BY users_certifications.user_id
+        ), direct_subject_unlocks AS (
+         SELECT uc.user_id,
+            csu.subject_id
+           FROM (upchieve.users_certifications uc
+             JOIN upchieve.certification_subject_unlocks csu ON ((csu.certification_id = uc.certification_id)))
+        ), computed_unlocks AS (
+         SELECT cbu.user_id,
+            comp_su.subject_id
+           FROM (certifications_by_user cbu
+             JOIN ( SELECT csu.subject_id,
+                    array_agg(DISTINCT csu.certification_id) AS required_certs
+                   FROM upchieve.computed_subject_unlocks csu
+                  GROUP BY csu.subject_id) comp_su ON ((cbu.certification_ids @> comp_su.required_certs)))
+        )
+ SELECT all_unlocks.user_id,
+    array_agg(DISTINCT s.name) AS unlocked_subjects
+   FROM (( SELECT direct_subject_unlocks.user_id,
+            direct_subject_unlocks.subject_id
+           FROM direct_subject_unlocks
+        UNION ALL
+         SELECT computed_unlocks.user_id,
+            computed_unlocks.subject_id
+           FROM computed_unlocks) all_unlocks
+     JOIN upchieve.subjects s ON ((s.id = all_unlocks.subject_id)))
+  GROUP BY all_unlocks.user_id;
+
+
+--
 -- Name: users_volunteer_partner_orgs_instances; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -6761,4 +6798,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20251104141004'),
     ('20251112181842'),
     ('20251113180824'),
-    ('20251121162621');
+    ('20251121162621'),
+    ('20251121191436');
