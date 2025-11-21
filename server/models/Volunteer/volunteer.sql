@@ -1622,10 +1622,11 @@ SELECT
     subjects.name,
     subjects.active
 FROM
-    users_subjects_mview
-    JOIN subjects ON subjects.id = users_subjects_mview.subject_id
+    users_unlocked_subjects_view uusv
+    CROSS JOIN UNNEST(uusv.unlocked_subjects) AS unnested
+    JOIN subjects ON subjects.name = unnested
 WHERE
-    users_subjects_mview.user_id = :userId!;
+    uusv.user_id = :userId!;
 
 
 /* @name getVolunteerMutedSubjects */
@@ -1661,7 +1662,7 @@ FROM
             JOIN subjects s ON s.id = muted_subjects.subject_id
         WHERE
             muted_subjects.user_id = u.id) AS muted_subject_alerts ON TRUE
-    JOIN users_unlocked_subjects_mview unlocked_subjects ON unlocked_subjects.user_id = u.id
+    JOIN users_unlocked_subjects_view unlocked_subjects ON unlocked_subjects.user_id = u.id
 WHERE (u.ban_type IS NULL
     OR (u.ban_type <> 'complete'::ban_types
         AND u.ban_type <> 'shadow'::ban_types))
