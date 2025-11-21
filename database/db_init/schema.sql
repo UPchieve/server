@@ -5015,6 +5015,13 @@ CREATE INDEX users_surveys_idx_session_id ON upchieve.users_surveys USING btree 
 
 
 --
+-- Name: uspoi_user_id_idx; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX uspoi_user_id_idx ON upchieve.users_student_partner_orgs_instances USING btree (user_id);
+
+
+--
 -- Name: volunteer_partner_orgs_key; Type: INDEX; Schema: upchieve; Owner: -
 --
 
@@ -6753,4 +6760,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20251103144758'),
     ('20251104141004'),
     ('20251112181842'),
-    ('20251113180824');
+    ('20251113180824'),
+    ('20251121162621');
