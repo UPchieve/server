@@ -177,6 +177,11 @@ class SocketService {
       occurredAt: Date
     }
   ) {
+    logger.info('sent potentialPartnerModerationInfraction event', {
+      ...data,
+      sessionId,
+      partner: currentUserId,
+    })
     this.io
       .to(getSessionRoom(sessionId))
       .except(currentUserId)
