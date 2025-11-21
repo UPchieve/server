@@ -5001,6 +5001,13 @@ CREATE UNIQUE INDEX users_lower_case_email_key ON upchieve.users USING btree (lo
 
 
 --
+-- Name: users_subjects_mview_user_id_idx; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX users_subjects_mview_user_id_idx ON upchieve.users_subjects_mview USING btree (user_id);
+
+
+--
 -- Name: users_submissions_idx_user_id; Type: INDEX; Schema: upchieve; Owner: -
 --
 
@@ -6761,4 +6768,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20251104141004'),
     ('20251112181842'),
     ('20251113180824'),
-    ('20251121162621');
+    ('20251121162621'),
+    ('20251121171301');
