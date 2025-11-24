@@ -177,10 +177,16 @@ class SocketService {
       occurredAt: Date
     }
   ) {
+    const context = {
+      ...data,
+      sessionId,
+      partner: currentUserId,
+    }
+    logger.info('sent potentialPartnerModerationInfraction event', context)
     this.io
       .to(getSessionRoom(sessionId))
       .except(currentUserId)
-      .emit('potentialPartnerModerationInfraction', data)
+      .emit('potentialPartnerModerationInfraction', context)
   }
 
   // TODO: Remove once no longer have legacy mobile app.
