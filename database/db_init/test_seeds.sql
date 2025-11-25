@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 14.15 (Debian 14.15-1.pgdg120+1)
--- Dumped by pg_dump version 14.19 (Homebrew)
+-- Dumped from database version 14.19 (Debian 14.19-1.pgdg13+1)
+-- Dumped by pg_dump version 14.13 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -43,6 +43,8 @@ COPY upchieve.signup_sources (id, name, created_at, updated_at) FROM stdin;
 6	Other	2024-08-28 00:28:43.731742+00	2024-08-28 00:28:43.731742+00
 7	Roster	2024-08-28 00:28:44.14509+00	2024-08-28 00:28:44.14509+00
 8	TikTok	2025-08-15 17:17:32.077609+00	2025-08-15 17:17:32.077609+00
+9	SchooLinks	2025-11-25 19:11:52.874095+00	2025-11-25 19:11:52.874095+00
+10	Innerview	2025-11-25 19:11:52.895614+00	2025-11-25 19:11:52.895614+00
 \.
 
 
@@ -62,6 +64,7 @@ COPY upchieve.users (id, verified, email_verified, phone_verified, email, passwo
 01919662-885c-a174-3088-998111f7cc80	t	f	f	student3@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Student	UPchieve	f	\N	G	\N	f	f	\N	\N	\N	2024-08-28 00:28:45.535278+00	2024-08-28 00:28:45.535278+00	\N	f	\N	\N	\N	\N	\N	\N	f
 0198c4d0-34aa-ef79-20b5-f1c6245c0b7c	t	f	f	teacher1@upchieve.org	$2b$10$yv/XIg.dh3IjCuRKTX8CeekfpkFT/1T5HeVrTPntHpgY6kuj/jeni	\N	NonPartner	UPchieve	f	2025-08-20 00:10:36.035748+00	AZjE0DSq73kgtfHGJFwLfA	\N	f	f	\N	\N	6	2025-08-20 00:10:36.035748+00	2025-08-20 00:10:36.035748+00	\N	f	\N	Internet	\N	\N	\N	\N	f
 0198c4d1-f405-a71a-931c-e94965191c0a	t	f	f	teacher2@upchieve.org	$2b$10$ewiDyuDyGHUyBn2lbDH9Y.e/k5JoCuy3LsZmuVgK2b3ao8Cc92uKG	\N	Partner	UPchieve	f	2025-08-20 00:12:30.562089+00	AZjE0fQFpxqTHOlJZRkcCg	\N	f	f	\N	\N	6	2025-08-20 00:12:30.562089+00	2025-08-20 00:12:30.562089+00	\N	f	\N	Internet	\N	\N	\N	\N	f
+019ab9f4-c6fc-cc26-1c8e-c548c5e4b295	t	f	f	volunteer7@upchieve.org	$2b$10$42OvbXAP7ghHrKZZfHpjQ.6NiajqcUdqaN0KU4q36rTpsqm1EIVOC	\N	Volunteer	UPchieve	f	2025-11-25 07:40:18.045625+00	AZq59Mb8zCYcjsVIxeSylQ	\N	f	f	\N	\N	3	2025-11-25 07:40:18.045625+00	2025-11-25 07:40:18.045625+00	+12015550123	t	\N		\N	\N	\N	\N	f
 \.
 
 
@@ -5113,6 +5116,7 @@ COPY upchieve.grade_levels (id, name, created_at, updated_at) FROM stdin;
 --
 
 COPY upchieve.ip_addresses (id, ip, status, created_at, updated_at, mongo_id) FROM stdin;
+2	::1	\N	2025-11-25 07:40:18.071999+00	2025-11-25 07:40:18.071999+00	\N
 \.
 
 
@@ -8414,6 +8418,26 @@ COPY upchieve.tutor_bot_session_messages (id, session_id, message, tutor_bot_ses
 --
 
 COPY upchieve.user_actions (id, user_id, session_id, action_type, action, ip_address_id, device, browser, browser_version, operating_system, operating_system_version, quiz_subcategory, quiz_category, created_at, updated_at, mongo_id, reference_email, volunteer_id, ban_reason, clientuuid) FROM stdin;
+2	019ab9f4-c6fc-cc26-1c8e-c548c5e4b295	\N	ACCOUNT	CREATED	2	\N	\N	\N	\N	\N	\N	\N	2025-11-25 07:40:18.075143+00	2025-11-25 07:40:18.075143+00	\N	\N	\N	\N	\N
+3	019ab9f4-c6fc-cc26-1c8e-c548c5e4b295	\N	ACCOUNT	LOGGED IN	2	\N	\N	\N	\N	\N	\N	\N	2025-11-25 07:40:18.096+00	2025-11-25 07:40:18.096+00	\N	\N	\N	\N	\N
+4	019ab9f4-c6fc-cc26-1c8e-c548c5e4b295	\N	ACCOUNT	ACTIVE_ON_SITE	2	\N	\N	\N	\N	\N	\N	\N	2025-11-25 07:40:18.55818+00	2025-11-25 07:40:18.55818+00	\N	\N	\N	\N	eb300a9e-6134-47a9-9bf0-8594b0b9e9f2
+5	019ab9f4-c6fc-cc26-1c8e-c548c5e4b295	\N	ACCOUNT	PASSIVE_ON_SITE	2	\N	\N	\N	\N	\N	\N	\N	2025-11-25 07:40:21.628731+00	2025-11-25 07:40:21.628731+00	\N	\N	\N	\N	eb300a9e-6134-47a9-9bf0-8594b0b9e9f2
+6	019ab9f4-c6fc-cc26-1c8e-c548c5e4b295	\N	ACCOUNT	ACTIVE_ON_SITE	2	\N	\N	\N	\N	\N	\N	\N	2025-11-25 07:40:42.245148+00	2025-11-25 07:40:42.245148+00	\N	\N	\N	\N	eb300a9e-6134-47a9-9bf0-8594b0b9e9f2
+7	019ab9f4-c6fc-cc26-1c8e-c548c5e4b295	\N	ACCOUNT	INACTIVE_ON_SITE	\N	\N	\N	\N	\N	\N	\N	\N	2025-11-25 07:40:42.349228+00	2025-11-25 07:40:42.349228+00	\N	\N	\N	\N	eb300a9e-6134-47a9-9bf0-8594b0b9e9f2
+8	019ab9f4-c6fc-cc26-1c8e-c548c5e4b295	\N	ACCOUNT	ACTIVE_ON_SITE	2	\N	\N	\N	\N	\N	\N	\N	2025-11-25 07:40:44.743134+00	2025-11-25 07:40:44.743134+00	\N	\N	\N	\N	eb300a9e-6134-47a9-9bf0-8594b0b9e9f2
+9	019ab9f4-c6fc-cc26-1c8e-c548c5e4b295	\N	QUIZ	STARTED QUIZ	2	\N	\N	\N	\N	\N	PREALGEBRA	MATH	2025-11-25 07:40:47.316227+00	2025-11-25 07:40:47.316227+00	\N	\N	\N	\N	\N
+10	019ab9f4-c6fc-cc26-1c8e-c548c5e4b295	\N	QUIZ	UNLOCKED SUBJECT	\N	\N	\N	\N	\N	\N	PREALGEBRA	MATH	2025-11-25 07:40:58.217503+00	2025-11-25 07:40:58.217503+00	\N	\N	\N	\N	\N
+11	019ab9f4-c6fc-cc26-1c8e-c548c5e4b295	\N	QUIZ	PASSED QUIZ	2	\N	\N	\N	\N	\N	PREALGEBRA	MATH	2025-11-25 07:40:58.331597+00	2025-11-25 07:40:58.331597+00	\N	\N	\N	\N	\N
+12	019ab9f4-c6fc-cc26-1c8e-c548c5e4b295	\N	ACCOUNT	PASSIVE_ON_SITE	2	\N	\N	\N	\N	\N	\N	\N	2025-11-25 07:41:28.747537+00	2025-11-25 07:41:28.747537+00	\N	\N	\N	\N	eb300a9e-6134-47a9-9bf0-8594b0b9e9f2
+13	019ab9f4-c6fc-cc26-1c8e-c548c5e4b295	\N	ACCOUNT	ACTIVE_ON_SITE	2	\N	\N	\N	\N	\N	\N	\N	2025-11-25 08:04:06.277148+00	2025-11-25 08:04:06.277148+00	\N	\N	\N	\N	eb300a9e-6134-47a9-9bf0-8594b0b9e9f2
+14	019ab9f4-c6fc-cc26-1c8e-c548c5e4b295	\N	ACCOUNT	PASSIVE_ON_SITE	2	\N	\N	\N	\N	\N	\N	\N	2025-11-25 08:04:06.720316+00	2025-11-25 08:04:06.720316+00	\N	\N	\N	\N	eb300a9e-6134-47a9-9bf0-8594b0b9e9f2
+15	019ab9f4-c6fc-cc26-1c8e-c548c5e4b295	\N	ACCOUNT	ACTIVE_ON_SITE	2	\N	\N	\N	\N	\N	\N	\N	2025-11-25 08:06:01.128954+00	2025-11-25 08:06:01.128954+00	\N	\N	\N	\N	eb300a9e-6134-47a9-9bf0-8594b0b9e9f2
+16	019ab9f4-c6fc-cc26-1c8e-c548c5e4b295	\N	ACCOUNT	PASSIVE_ON_SITE	2	\N	\N	\N	\N	\N	\N	\N	2025-11-25 08:06:15.864899+00	2025-11-25 08:06:15.864899+00	\N	\N	\N	\N	eb300a9e-6134-47a9-9bf0-8594b0b9e9f2
+17	019ab9f4-c6fc-cc26-1c8e-c548c5e4b295	\N	ACCOUNT	ACTIVE_ON_SITE	2	\N	\N	\N	\N	\N	\N	\N	2025-11-25 08:06:21.501315+00	2025-11-25 08:06:21.501315+00	\N	\N	\N	\N	eb300a9e-6134-47a9-9bf0-8594b0b9e9f2
+18	019ab9f4-c6fc-cc26-1c8e-c548c5e4b295	\N	ACCOUNT	PASSIVE_ON_SITE	2	\N	\N	\N	\N	\N	\N	\N	2025-11-25 08:06:26.143335+00	2025-11-25 08:06:26.143335+00	\N	\N	\N	\N	eb300a9e-6134-47a9-9bf0-8594b0b9e9f2
+19	019ab9f4-c6fc-cc26-1c8e-c548c5e4b295	\N	ACCOUNT	ACTIVE_ON_SITE	2	\N	\N	\N	\N	\N	\N	\N	2025-11-25 08:06:37.694819+00	2025-11-25 08:06:37.694819+00	\N	\N	\N	\N	eb300a9e-6134-47a9-9bf0-8594b0b9e9f2
+20	019ab9f4-c6fc-cc26-1c8e-c548c5e4b295	\N	ACCOUNT	PASSIVE_ON_SITE	2	\N	\N	\N	\N	\N	\N	\N	2025-11-25 08:06:38.901594+00	2025-11-25 08:06:38.901594+00	\N	\N	\N	\N	eb300a9e-6134-47a9-9bf0-8594b0b9e9f2
+21	019ab9f4-c6fc-cc26-1c8e-c548c5e4b295	\N	ACCOUNT	INACTIVE_ON_SITE	\N	\N	\N	\N	\N	\N	\N	\N	2025-11-25 08:11:36.103378+00	2025-11-25 08:11:36.103378+00	\N	\N	\N	\N	eb300a9e-6134-47a9-9bf0-8594b0b9e9f2
 \.
 
 
@@ -8433,6 +8457,7 @@ COPY upchieve.user_product_flags (user_id, sent_ready_to_coach_email, sent_hour_
 01919662-885c-a174-3088-998111f7cc80	f	f	f	f	f	f	2024-08-28 00:28:45.535987+00	2024-08-28 00:28:45.535987+00	f	f	\N	\N	\N	{}
 0198c4d0-34aa-ef79-20b5-f1c6245c0b7c	f	f	f	f	f	f	2025-08-20 00:10:36.035748+00	2025-08-20 00:10:36.035748+00	f	f	\N	\N	\N	{}
 0198c4d1-f405-a71a-931c-e94965191c0a	f	f	f	f	f	f	2025-08-20 00:12:30.562089+00	2025-08-20 00:12:30.562089+00	f	f	\N	\N	\N	{}
+019ab9f4-c6fc-cc26-1c8e-c548c5e4b295	f	f	f	f	f	f	2025-11-25 07:40:18.066865+00	2025-11-25 07:40:18.066865+00	f	f	\N	\N	\N	{}
 \.
 
 
@@ -8499,6 +8524,7 @@ COPY upchieve.users_certifications (user_id, certification_id, created_at, updat
 01919662-8804-9ccc-4601-1e98c09c946b	11	2024-08-28 00:28:45.510522+00	2024-08-28 00:28:45.510522+00
 01919662-8804-9ccc-4601-1e98c09c946b	19	2024-08-28 00:28:45.511876+00	2024-08-28 00:28:45.511876+00
 01919662-8804-9ccc-4601-1e98c09c946b	18	2024-08-28 00:28:45.51322+00	2024-08-28 00:28:45.51322+00
+019ab9f4-c6fc-cc26-1c8e-c548c5e4b295	1	2025-11-25 07:40:58.217503+00	2025-11-25 07:40:58.217503+00
 \.
 
 
@@ -8559,6 +8585,7 @@ COPY upchieve.users_quizzes (user_id, quiz_id, attempts, passed, created_at, upd
 01919662-8804-9ccc-4601-1e98c09c946b	11	1	t	2024-08-28 00:28:45.530678+00	2024-08-28 00:28:45.530678+00
 01919662-8804-9ccc-4601-1e98c09c946b	19	1	t	2024-08-28 00:28:45.531015+00	2024-08-28 00:28:45.531015+00
 01919662-8804-9ccc-4601-1e98c09c946b	18	1	t	2024-08-28 00:28:45.531326+00	2024-08-28 00:28:45.531326+00
+019ab9f4-c6fc-cc26-1c8e-c548c5e4b295	1	1	t	2025-11-25 07:40:58.217503+00	2025-11-25 07:40:58.217503+00
 \.
 
 
@@ -8578,6 +8605,7 @@ COPY upchieve.users_roles (user_id, role_id, created_at, updated_at) FROM stdin;
 01919662-885c-a174-3088-998111f7cc80	1	2024-08-28 00:28:45.536315+00	2024-08-28 00:28:45.536315+00
 0198c4d0-34aa-ef79-20b5-f1c6245c0b7c	4	2025-08-20 00:10:36.035748+00	2025-08-20 00:10:36.035748+00
 0198c4d1-f405-a71a-931c-e94965191c0a	4	2025-08-20 00:12:30.562089+00	2025-08-20 00:12:30.562089+00
+019ab9f4-c6fc-cc26-1c8e-c548c5e4b295	2	2025-11-25 07:40:18.058631+00	2025-11-25 07:40:18.058631+00
 \.
 
 
@@ -8655,6 +8683,7 @@ COPY upchieve.volunteer_profiles (user_id, volunteer_partner_org_id, timezone, a
 01919662-8804-29c4-5ff7-cb6803c09fa6	\N	America/New_York	t	f	\N	\N	\N	Volunteer College	\N	\N	\N	\N	\N	\N	2024-08-28 00:28:45.455818+00	2024-08-28 00:28:45.455818+00	\N	\N
 01919662-8804-9826-da53-f1b2a1e53205	\N	America/New_York	f	f	\N	\N	\N	Volunteer College	\N	\N	\N	\N	\N	\N	2024-08-28 00:28:45.456156+00	2024-08-28 00:28:45.456156+00	\N	\N
 01919662-8804-cc87-1ee3-90a35b65414d	\N	America/New_York	t	t	\N	\N	\N		\N	\N	\N	\N	\N	\N	2024-08-28 00:28:45.456518+00	2024-08-28 00:28:45.456518+00	\N	\N
+019ab9f4-c6fc-cc26-1c8e-c548c5e4b295	\N	\N	f	f	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	2025-11-25 07:40:18.053847+00	2025-11-25 07:40:18.053847+00	\N	\N
 \.
 
 
@@ -8719,7 +8748,7 @@ SELECT pg_catalog.setval('upchieve.grade_levels_id_seq', 9, true);
 -- Name: ip_addresses_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.ip_addresses_id_seq', 1, true);
+SELECT pg_catalog.setval('upchieve.ip_addresses_id_seq', 18, true);
 
 
 --
@@ -8859,7 +8888,7 @@ SELECT pg_catalog.setval('upchieve.shareable_domains_id_seq', 1, false);
 -- Name: signup_sources_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.signup_sources_id_seq', 8, true);
+SELECT pg_catalog.setval('upchieve.signup_sources_id_seq', 10, true);
 
 
 --
@@ -8936,7 +8965,7 @@ SELECT pg_catalog.setval('upchieve.training_courses_id_seq', 2, true);
 -- Name: user_actions_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.user_actions_id_seq', 1, true);
+SELECT pg_catalog.setval('upchieve.user_actions_id_seq', 21, true);
 
 
 --
