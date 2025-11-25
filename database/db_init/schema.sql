@@ -4969,6 +4969,13 @@ CREATE INDEX volunteer_partner_orgs_key ON upchieve.volunteer_partner_orgs USING
 
 
 --
+-- Name: volunteer_references_user_id_index; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX volunteer_references_user_id_index ON upchieve.volunteer_references USING btree (user_id);
+
+
+--
 -- Name: admin_profiles admin_profiles_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -6689,4 +6696,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20251113180824'),
     ('20251121162621'),
     ('20251121191436'),
-    ('20251121214549');
+    ('20251121214549'),
+    ('20251125134512');
