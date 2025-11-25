@@ -1754,3 +1754,14 @@ export async function getVolunteersForTextNotifications(): Promise<
     throw new RepoReadError(err)
   }
 }
+export async function doesVolunteerWithEmailExist(email: string) {
+  try {
+    const rawResults = await pgQueries.doesVolunteerWithEmailExist.run(
+      { email },
+      getRoClient()
+    )
+    return rawResults[0].exists
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}

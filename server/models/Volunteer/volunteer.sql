@@ -1677,3 +1677,16 @@ AND TRIM(BOTH FROM to_char(NOW() at time zone 'America/New_York', 'Day')) = week
 AND extract(hour FROM (NOW() at time zone 'America/New_York')) >= a.available_start
 AND extract(hour FROM (NOW() at time zone 'America/New_York')) < a.available_end;
 
+
+/* @name doesVolunteerWithEmailExist */
+SELECT
+    EXISTS (
+        SELECT
+            1
+        FROM
+            users u
+            INNER JOIN volunteer_profiles vp ON vp.user_id = u.id
+        WHERE
+            u.email = :email!
+        LIMIT 1);
+
