@@ -60,14 +60,12 @@ import * as PushTokenService from './PushTokenService'
 import QueueService from './QueueService'
 import * as QuillDocService from './QuillDocService'
 import SocketService from './SocketService'
-import * as TwilioService from './TwilioService'
 import { beginRegularNotifications } from './TwilioService'
 import * as WhiteboardService from './WhiteboardService'
 import { getUserAgentInfo } from '../utils/parse-user-agent'
 import { getSubjectAndTopic } from '../models/Subjects'
 import {
   getAllowDmsToPartnerStudentsFeatureFlag,
-  getSessionRecapDmsFeatureFlag,
   getSessionSummaryFeatureFlag,
 } from './FeatureFlagService'
 import { getStudentPartnerInfoById } from '../models/Student'
@@ -1075,11 +1073,10 @@ export enum DmIneligibilityReason {
  *
  * - Banned users should not be able to send DMs in the recap page
  * - Coaches cannot send DMs to partner students unless the flag allow-dms-to-partner-students is on
- * - Coaches can send DMs once session ended and they have the session-recap-dms flag as `true`.
+ * - Coaches can send DMs once session ended.
  * - Students are not able to initiate the conversation. A coach must send the first message.
  *   We determine this by looking to see if a coach had sent a message after the
  *   session ended.
- *
  */
 export async function isRecapDmsAvailable(
   sessionId: Ulid,
@@ -1120,12 +1117,6 @@ export async function isRecapDmsAvailable(
       }
   }
 
-  const flag = await getSessionRecapDmsFeatureFlag(volunteerId)
-  if (!flag)
-    return {
-      eligible: false,
-      ineligibleReason: DmIneligibilityReason.DmFeatureFlag,
-    }
   // Only allow volunteers to initiate DMs
   // Students may send DMs if a DM conversation has already been started
   const sentMessages =

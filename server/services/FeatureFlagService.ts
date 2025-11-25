@@ -56,10 +56,6 @@ export async function getUsingOurPlatformFlag(userId: Ulid) {
   return await isFeatureEnabled(FEATURE_FLAGS.USING_OUR_PLATFORM, userId)
 }
 
-export async function getSessionRecapDmsFeatureFlag(userId: Ulid) {
-  return isFeatureEnabled(FEATURE_FLAGS.SESSION_RECAP_DMS, userId)
-}
-
 export async function getAllowDmsToPartnerStudentsFeatureFlag(userId: Ulid) {
   return isFeatureEnabled(FEATURE_FLAGS.ALLOW_DMS_TO_PARTNER_STUDENTS, userId)
 }

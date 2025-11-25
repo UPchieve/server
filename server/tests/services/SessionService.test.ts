@@ -123,9 +123,6 @@ describe('SessionService', () => {
       mockFeatureFlagService.getAllowDmsToPartnerStudentsFeatureFlag.mockResolvedValue(
         true
       )
-      mockFeatureFlagService.getSessionRecapDmsFeatureFlag.mockResolvedValue(
-        true
-      )
       mockStudentRepo.getStudentPartnerInfoById.mockResolvedValue({
         id: session.studentId,
       })
@@ -164,24 +161,7 @@ describe('SessionService', () => {
       expect(await getActual()).toEqual({ eligible: true })
     })
 
-    it('Is not available if the FF is off', async () => {
-      mockFeatureFlagService.getSessionRecapDmsFeatureFlag.mockResolvedValue(
-        false
-      )
-      expect(await getActual()).toEqual({
-        eligible: false,
-        ineligibleReason: DmIneligibilityReason.DmFeatureFlag,
-      })
-      mockFeatureFlagService.getSessionRecapDmsFeatureFlag.mockResolvedValue(
-        true
-      )
-      expect(await getActual()).toEqual({ eligible: true })
-    })
-
     it('Is only true for students if the volunteer has already sent some DMs', async () => {
-      mockFeatureFlagService.getSessionRecapDmsFeatureFlag.mockResolvedValue(
-        true
-      )
       const actualForVolunteer = await isRecapDmsAvailable(
         session.id,
         session.volunteerId!
@@ -206,9 +186,6 @@ describe('SessionService', () => {
     })
 
     it('Is also true for students if the student-initiate-dms feature flag is on', async () => {
-      mockFeatureFlagService.getSessionRecapDmsFeatureFlag.mockResolvedValue(
-        true
-      )
       mockFeatureFlagService.getStudentsInitiateDmsFeatureFlag.mockResolvedValue(
         true
       )
