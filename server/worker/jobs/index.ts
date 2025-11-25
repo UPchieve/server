@@ -69,6 +69,7 @@ import { logRedisKeyMemStats } from './logRedisKeyMemStats'
 import { clearBullJobByStatus } from './clearBullJobsByStatus'
 import updateCachedVolunteersForTextNotifications from './updateCachedVolunteersForTextNotifications'
 import backfillSessionEndedTasks from '../../scripts/backfill-sessionEndedTasks'
+import spawnDeidentifyUsers from './spawn-deidentify-users'
 
 export enum Jobs {
   AddScheduledJobs = 'AddScheduledJobs',
@@ -144,6 +145,7 @@ export enum Jobs {
   SendNationalTutorCertificateEmail = 'SendNationalTutorCertificateEmail',
   SendReferralSignUpCelebrationEmail = 'SendReferralSignUpCelebrationEmail',
   SendSessionRecapMessageNotification = 'SendSessionRecapMessageNotification',
+  SpawnDeidentifyUsers = 'SpawnDeidentifyUsers',
   SpawnEmailWeeklyHourSummaryJobs = 'SpawnEmailWeeklyHourSummaryJobs',
   TextVolunteers = 'TextVolunteers',
   TitlecaseSchoolNames = 'TitlecaseSchoolNames',
@@ -432,6 +434,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.SendSessionRecapMessageNotification,
     processor: sendSessionRecapMessageNotification,
+  },
+  {
+    name: Jobs.SpawnDeidentifyUsers,
+    processor: spawnDeidentifyUsers,
   },
   {
     name: Jobs.SpawnEmailWeeklyHourSummaryJobs,
