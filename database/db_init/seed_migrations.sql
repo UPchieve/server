@@ -83,6 +83,7 @@ COPY public.seed_migrations (version) FROM stdin;
 20251010190804
 20251125191034
 20251125191114
+20251125201142
 \.
 
 
