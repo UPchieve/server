@@ -21,7 +21,7 @@ export default function (app: Express) {
     }),
     cookie: {
       httpOnly: true,
-      sameSite: 'strict',
+      sameSite: 'lax',
       secure: isProductionEnvironment(),
       maxAge: config.sessionCookieMaxAge,
     },
