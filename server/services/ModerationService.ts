@@ -1787,6 +1787,10 @@ const getSessionTranscriptModerationResult = async (
   return moderationResult
 }
 
+const getModerationConfidenceThresholds = async (flagReason: string): Promise<number> => {
+  return await ModerationConfidenceThresholdsRepo.getConfidenceRating(flagReason)
+}
+
 export type ModerationSessionReviewFlagReason =
   | 'PII'
   | 'HATE_SPEECH'
@@ -1855,24 +1859,77 @@ export const moderateTranscript = async (
     )
     results.push(result)
   }
-  if (
-    results.some(
-      (r) => r.confidence >= config.contextualModerationConfidenceThreshold
-    )
-  ) {
+
+  const allReasons = new Set<ModerationSessionReviewFlagReason>(
+    results.flatMap((result) => result.reasons)
+  )
+
+  const confidenceThresholdMap = new Map<string, number>()
+  
+  await Promise.all(
+    Array.from(allReasons).map(async (reason) => {
+      try {
+        const threshold = await getModerationConfidenceThresholds(reason)
+        confidenceThresholdMap.set(reason, threshold)
+      } catch (error) {
+        confidenceThresholdMap.set(
+          reason,
+          config.contextualModerationConfidenceThreshold
+        )
+      }
+    })
+  )
+
+  const hasAnyFlaggedReason = results.some((result) =>
+    result.reasons.some((reason) => {
+      const threshold =
+        confidenceThresholdMap.get(reason) ??
+        config.contextualModerationConfidenceThreshold
+      return result.confidence >= threshold
+    })
+  )
+
+  if (hasAnyFlaggedReason) {
     trace.update({ tags: [LangfuseTraceTagEnum.FLAGGED_BY_MODERATION] })
   }
 
-  const confidenceThreshold = config.contextualModerationConfidenceThreshold
-  const flaggedChunks = results.filter(
-    (chunk) => chunk.confidence >= confidenceThreshold
-  )
-  const flagReasons = new Set<ModerationSessionReviewFlagReason>(
-    flaggedChunks.flatMap((chunk) => chunk.reasons)
-  )
+   const flaggedReasons = new Set<ModerationSessionReviewFlagReason>()
+   const flaggedMessages = new Set<string>()
+
+   results.forEach((result) => {
+     result.reasons.forEach((reason) => {
+       const threshold =
+         confidenceThresholdMap.get(reason) ??
+         config.contextualModerationConfidenceThreshold
+
+       if (result.confidence >= threshold) {
+         flaggedReasons.add(reason)
+         result.flaggedMessages.forEach((msg) => flaggedMessages.add(msg))
+       }
+     })
+   })
+
+  // if (
+  //   results.some(
+  //     (r) => r.confidence >= config.contextualModerationConfidenceThreshold
+  //   )
+  // ) {
+  //   trace.update({ tags: [LangfuseTraceTagEnum.FLAGGED_BY_MODERATION] })
+  // }
+
+  // const confidenceThreshold = config.contextualModerationConfidenceThreshold
+  // const flaggedChunks = results.filter(
+  //   (chunk) => chunk.confidence >= confidenceThreshold
+  // )
+  // const flagReasons = new Set<ModerationSessionReviewFlagReason>(
+  //   flaggedChunks.flatMap((chunk) => chunk.reasons)
+  // )
+
+  console.log('****flagged reasons', flaggedReasons)
   return {
-    reasons: Array.from(flagReasons),
-    flaggedMessages: flaggedChunks.flatMap((chunk) => chunk.flaggedMessages),
+    reasons: Array.from(flaggedReasons),
+    flaggedMessages: Array.from(flaggedMessages),
+    // flaggedMessages: flaggedChunks.flatMap((chunk) => chunk.flaggedMessages),
   }
 }
 
