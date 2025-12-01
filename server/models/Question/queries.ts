@@ -4,10 +4,22 @@ import {
   RepoReadError,
   RepoUpdateError,
 } from '../Errors'
-import { makeRequired, makeSomeOptional, Pgid } from '../pgUtils'
-import { Question, Quiz, QuizUnlockCert, ReviewMaterial } from './types'
+import {
+  makeRequired,
+  makeSomeOptional,
+  makeSomeRequired,
+  Pgid,
+} from '../pgUtils'
+import {
+  Question,
+  Quiz,
+  QuizCertUnlockInfo,
+  QuizSubjectUnlockCertInfo,
+  ReviewMaterial,
+} from './types'
 import * as pgQueries from './pg.queries'
 import { getClient, TransactionClient } from '../../db'
+import { camelCaseKeys } from '../../tests/db-utils'
 
 export type QuestionQueryResult = Omit<Question, 'possibleAnswers'> & {
   possibleAnswers: pgQueries.Json
@@ -223,13 +235,25 @@ export async function getQuizByName(
 export async function getQuizCertUnlocksByQuizName(
   quizName: string,
   tc?: TransactionClient
-): Promise<QuizUnlockCert[]> {
+): Promise<(QuizSubjectUnlockCertInfo | QuizCertUnlockInfo)[]> {
   try {
     const results = await pgQueries.getQuizCertUnlocksByQuizName.run(
       { quizName },
       tc ?? getClient()
     )
-    if (results.length) return results.map((v) => makeRequired(v))
+    if (results.length) {
+      return results.map((unlock) => {
+        const camelCased = camelCaseKeys(unlock)
+        if (camelCased.isSubjectCertification) {
+          return makeRequired(camelCased) as QuizSubjectUnlockCertInfo
+        }
+        return {
+          quizName: camelCased.quizName,
+          isSubjectCertification: camelCased.isSubjectCertification,
+          unlockedCertName: camelCased.unlockedCertName,
+        } as QuizCertUnlockInfo
+      })
+    }
     return []
   } catch (err) {
     throw new RepoReadError(err)
