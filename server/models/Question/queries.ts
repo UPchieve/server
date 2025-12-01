@@ -19,6 +19,7 @@ import {
 } from './types'
 import * as pgQueries from './pg.queries'
 import { getClient, TransactionClient } from '../../db'
+import { camelCaseKeys } from '../../tests/db-utils'
 
 export type QuestionQueryResult = Omit<Question, 'possibleAnswers'> & {
   possibleAnswers: pgQueries.Json
@@ -231,7 +232,7 @@ export async function getQuizByName(
   }
 }
 
-export async function getQuizCertUnlocksByQuizName( // @TODO add db tests for me
+export async function getQuizCertUnlocksByQuizName(
   quizName: string,
   tc?: TransactionClient
 ): Promise<(QuizSubjectUnlockCertInfo | QuizCertUnlockInfo)[]> {
@@ -242,14 +243,15 @@ export async function getQuizCertUnlocksByQuizName( // @TODO add db tests for me
     )
     if (results.length) {
       return results.map((unlock) => {
-        if (unlock.isSubjectCertification) {
-          return makeRequired(unlock)
+        const camelCased = camelCaseKeys(unlock)
+        if (camelCased.isSubjectCertification) {
+          return makeRequired(camelCased) as QuizSubjectUnlockCertInfo
         }
-        return makeSomeRequired(unlock, [
-          'quizName',
-          'isSubjectCertification',
-          'unlockedCertName',
-        ])
+        return {
+          quizName: camelCased.quizName,
+          isSubjectCertification: camelCased.isSubjectCertification,
+          unlockedCertName: camelCased.unlockedCertName,
+        } as QuizCertUnlockInfo
       })
     }
     return []
