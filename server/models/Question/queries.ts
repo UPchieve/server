@@ -4,8 +4,19 @@ import {
   RepoReadError,
   RepoUpdateError,
 } from '../Errors'
-import { makeRequired, makeSomeOptional, Pgid } from '../pgUtils'
-import { Question, Quiz, QuizUnlockCert, ReviewMaterial } from './types'
+import {
+  makeRequired,
+  makeSomeOptional,
+  makeSomeRequired,
+  Pgid,
+} from '../pgUtils'
+import {
+  Question,
+  Quiz,
+  QuizCertUnlockInfo,
+  QuizSubjectUnlockCertInfo,
+  ReviewMaterial,
+} from './types'
 import * as pgQueries from './pg.queries'
 import { getClient, TransactionClient } from '../../db'
 
@@ -220,16 +231,27 @@ export async function getQuizByName(
   }
 }
 
-export async function getQuizCertUnlocksByQuizName(
+export async function getQuizCertUnlocksByQuizName( // @TODO add db tests for me
   quizName: string,
   tc?: TransactionClient
-): Promise<QuizUnlockCert[]> {
+): Promise<(QuizSubjectUnlockCertInfo | QuizCertUnlockInfo)[]> {
   try {
     const results = await pgQueries.getQuizCertUnlocksByQuizName.run(
       { quizName },
       tc ?? getClient()
     )
-    if (results.length) return results.map((v) => makeRequired(v))
+    if (results.length) {
+      return results.map((unlock) => {
+        if (unlock.isSubjectCertification) {
+          return makeRequired(unlock)
+        }
+        return makeSomeRequired(unlock, [
+          'quizName',
+          'isSubjectCertification',
+          'unlockedCertName',
+        ])
+      })
+    }
     return []
   } catch (err) {
     throw new RepoReadError(err)

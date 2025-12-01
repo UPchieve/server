@@ -21,7 +21,7 @@ import {
   buildSubcategoriesForQuiz,
   buildQuiz,
   buildQuestions,
-  buildQuizUnlockCert,
+  buildQuizSubjectUnlockCert,
 } from '../mocks/repos/question-repo.mock'
 import { buildVolunteerQuizMap } from '../mocks/repos/volunteer-repo.mock'
 import config from '../../config'
@@ -169,7 +169,7 @@ describe('getQuizScore', () => {
     const cert = CERTS.ALGEBRA_ONE
     const idAnswerMap = buildIdAnswerMapHelper(questions)
     const mockQuizMap = buildVolunteerQuizMap(volunteer.id, [])
-    const unlockedCerts = buildQuizUnlockCert(cert)
+    const unlockedCerts = buildQuizSubjectUnlockCert(cert)
     const unlockedSubjectNames = unlockedCerts.map(
       (cert) => cert.unlockedCertName
     )
@@ -274,7 +274,7 @@ describe('getQuizScore', () => {
     const cert = CERTS.ALGEBRA_ONE
     const idAnswerMap = buildIdAnswerMapHelper(questions)
     const mockQuizMap = buildVolunteerQuizMap(volunteer.id, [])
-    const unlockedCerts = buildQuizUnlockCert(cert)
+    const unlockedCerts = buildQuizSubjectUnlockCert(cert)
     const unlockedSubjectNames = unlockedCerts.map(
       (cert) => cert.unlockedCertName
     )
@@ -451,7 +451,7 @@ describe('getQuizScore', () => {
     const mockQuizMap = buildVolunteerQuizMap(volunteer.id, [
       CERTS.UPCHIEVE_101,
     ])
-    const unlockedCerts = buildQuizUnlockCert(cert)
+    const unlockedCerts = buildQuizSubjectUnlockCert(cert)
     const unlockedSubjectNames = unlockedCerts.map(
       (cert) => cert.unlockedCertName
     )
@@ -627,7 +627,7 @@ describe('getQuizScore', () => {
     const cert = CERTS.CALCULUS_AB
     const idAnswerMap = buildIdAnswerMapHelper(questions)
     const mockQuizMap = buildVolunteerQuizMap(volunteer.id, [CERTS.ALGEBRA_ONE])
-    const unlockedCerts = buildQuizUnlockCert(cert)
+    const unlockedCerts = buildQuizSubjectUnlockCert(cert)
     const currentSubjects = [CERTS.PREALGREBA, CERTS.ALGEBRA_ONE]
     const unlockedSubjectNames = unlockedCerts
       .map((cert) => {

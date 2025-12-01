@@ -507,6 +507,7 @@ export interface IGetQuizCertUnlocksByQuizNameParams {
 
 /** 'GetQuizCertUnlocksByQuizName' return type */
 export interface IGetQuizCertUnlocksByQuizNameResult {
+  isSubjectCertification: boolean | null;
   quizDisplayName: string;
   quizDisplayOrder: number;
   quizName: string;
@@ -525,18 +526,23 @@ export interface IGetQuizCertUnlocksByQuizNameQuery {
   result: IGetQuizCertUnlocksByQuizNameResult;
 }
 
-const getQuizCertUnlocksByQuizNameIR: any = {"usedParamSet":{"quizName":true},"params":[{"name":"quizName","required":true,"transform":{"type":"scalar"},"locs":[{"a":825,"b":834}]}],"statement":"SELECT\n    quizzes.name AS quiz_name,\n    quiz_info.display_name AS quiz_display_name,\n    quiz_info.display_order AS quiz_display_order,\n    certs.name AS unlocked_cert_name,\n    cert_info.display_name AS unlocked_cert_display_name,\n    cert_info.display_order AS unlocked_cert_display_order,\n    topics.name AS topic_name,\n    topics.display_name AS topic_display_name,\n    topics.dashboard_order AS topic_dashboard_order,\n    topics.training_order AS topic_training_order\nFROM\n    quiz_certification_grants qcg\n    JOIN quizzes ON quizzes.id = qcg.quiz_id\n    JOIN subjects AS quiz_info ON quiz_info.name = quizzes.name\n    JOIN certifications certs ON certs.id = qcg.certification_id\n    JOIN subjects AS cert_info ON cert_info.name = certs.name\n    JOIN topics ON topics.id = cert_info.topic_id\nWHERE\n    quizzes.name = :quizName!"};
+const getQuizCertUnlocksByQuizNameIR: any = {"usedParamSet":{"quizName":true},"params":[{"name":"quizName","required":true,"transform":{"type":"scalar"},"locs":[{"a":1024,"b":1033}]}],"statement":"SELECT\n    quizzes.name AS quiz_name,\n    CASE WHEN topics.name IS NULL THEN\n        FALSE\n    ELSE\n        TRUE\n    END AS is_subject_certification,\n    subject_quiz_info.display_name AS quiz_display_name,\n    subject_quiz_info.display_order AS quiz_display_order,\n    certs.name AS unlocked_cert_name,\n    subject_cert_info.display_name AS unlocked_cert_display_name,\n    subject_cert_info.display_order AS unlocked_cert_display_order,\n    topics.name AS topic_name,\n    topics.display_name AS topic_display_name,\n    topics.dashboard_order AS topic_dashboard_order,\n    topics.training_order AS topic_training_order\nFROM\n    quiz_certification_grants qcg\n    JOIN quizzes ON quizzes.id = qcg.quiz_id\n    JOIN certifications certs ON certs.id = qcg.certification_id\n    LEFT JOIN subjects AS subject_quiz_info ON subject_quiz_info.name = quizzes.name\n    LEFT JOIN subjects AS subject_cert_info ON subject_cert_info.name = certs.name\n    LEFT JOIN topics ON topics.id = subject_cert_info.topic_id\nWHERE\n    quizzes.name = :quizName!"};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
  *     quizzes.name AS quiz_name,
- *     quiz_info.display_name AS quiz_display_name,
- *     quiz_info.display_order AS quiz_display_order,
+ *     CASE WHEN topics.name IS NULL THEN
+ *         FALSE
+ *     ELSE
+ *         TRUE
+ *     END AS is_subject_certification,
+ *     subject_quiz_info.display_name AS quiz_display_name,
+ *     subject_quiz_info.display_order AS quiz_display_order,
  *     certs.name AS unlocked_cert_name,
- *     cert_info.display_name AS unlocked_cert_display_name,
- *     cert_info.display_order AS unlocked_cert_display_order,
+ *     subject_cert_info.display_name AS unlocked_cert_display_name,
+ *     subject_cert_info.display_order AS unlocked_cert_display_order,
  *     topics.name AS topic_name,
  *     topics.display_name AS topic_display_name,
  *     topics.dashboard_order AS topic_dashboard_order,
@@ -544,10 +550,10 @@ const getQuizCertUnlocksByQuizNameIR: any = {"usedParamSet":{"quizName":true},"p
  * FROM
  *     quiz_certification_grants qcg
  *     JOIN quizzes ON quizzes.id = qcg.quiz_id
- *     JOIN subjects AS quiz_info ON quiz_info.name = quizzes.name
  *     JOIN certifications certs ON certs.id = qcg.certification_id
- *     JOIN subjects AS cert_info ON cert_info.name = certs.name
- *     JOIN topics ON topics.id = cert_info.topic_id
+ *     LEFT JOIN subjects AS subject_quiz_info ON subject_quiz_info.name = quizzes.name
+ *     LEFT JOIN subjects AS subject_cert_info ON subject_cert_info.name = certs.name
+ *     LEFT JOIN topics ON topics.id = subject_cert_info.topic_id
  * WHERE
  *     quizzes.name = :quizName!
  * ```

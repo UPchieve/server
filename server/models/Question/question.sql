@@ -173,11 +173,16 @@ WHERE
 /* @name getQuizCertUnlocksByQuizName */
 SELECT
     quizzes.name AS quiz_name,
-    quiz_info.display_name AS quiz_display_name,
-    quiz_info.display_order AS quiz_display_order,
+    CASE WHEN topics.name IS NULL THEN
+        FALSE
+    ELSE
+        TRUE
+    END AS is_subject_certification,
+    subject_quiz_info.display_name AS quiz_display_name,
+    subject_quiz_info.display_order AS quiz_display_order,
     certs.name AS unlocked_cert_name,
-    cert_info.display_name AS unlocked_cert_display_name,
-    cert_info.display_order AS unlocked_cert_display_order,
+    subject_cert_info.display_name AS unlocked_cert_display_name,
+    subject_cert_info.display_order AS unlocked_cert_display_order,
     topics.name AS topic_name,
     topics.display_name AS topic_display_name,
     topics.dashboard_order AS topic_dashboard_order,
@@ -185,10 +190,10 @@ SELECT
 FROM
     quiz_certification_grants qcg
     JOIN quizzes ON quizzes.id = qcg.quiz_id
-    JOIN subjects AS quiz_info ON quiz_info.name = quizzes.name
     JOIN certifications certs ON certs.id = qcg.certification_id
-    JOIN subjects AS cert_info ON cert_info.name = certs.name
-    JOIN topics ON topics.id = cert_info.topic_id
+    LEFT JOIN subjects AS subject_quiz_info ON subject_quiz_info.name = quizzes.name
+    LEFT JOIN subjects AS subject_cert_info ON subject_cert_info.name = certs.name
+    LEFT JOIN topics ON topics.id = subject_cert_info.topic_id
 WHERE
     quizzes.name = :quizName!;
 
