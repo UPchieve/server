@@ -6717,3 +6717,4 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20251125134512'),
     ('20251201200733'),
     ('20251205231954');
+    ('20251201200733');
