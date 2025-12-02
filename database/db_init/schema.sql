@@ -1,6 +1,3 @@
--- Dumped from database version 14.15 (Debian 14.15-1.pgdg120+1)
--- Dumped by pg_dump version 14.19 (Homebrew)
-
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -493,6 +490,39 @@ CREATE TABLE upchieve.contact_form_submissions (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
+
+
+--
+-- Name: contextual_moderation_confidence_thresholds; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.contextual_moderation_confidence_thresholds (
+    id integer NOT NULL,
+    flag_reason character varying(255) NOT NULL,
+    confidence_rating integer NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: contextual_moderation_confidence_thresholds_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+CREATE SEQUENCE upchieve.contextual_moderation_confidence_thresholds_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: contextual_moderation_confidence_thresholds_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
+--
+
+ALTER SEQUENCE upchieve.contextual_moderation_confidence_thresholds_id_seq OWNED BY upchieve.contextual_moderation_confidence_thresholds.id;
 
 
 --
@@ -3048,6 +3078,13 @@ ALTER TABLE ONLY upchieve.cities ALTER COLUMN id SET DEFAULT nextval('upchieve.c
 
 
 --
+-- Name: contextual_moderation_confidence_thresholds id; Type: DEFAULT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.contextual_moderation_confidence_thresholds ALTER COLUMN id SET DEFAULT nextval('upchieve.contextual_moderation_confidence_thresholds_id_seq'::regclass);
+
+
+--
 -- Name: email_domain_blocklist id; Type: DEFAULT; Schema: upchieve; Owner: -
 --
 
@@ -3400,6 +3437,22 @@ ALTER TABLE ONLY upchieve.computed_subject_unlocks
 
 ALTER TABLE ONLY upchieve.contact_form_submissions
     ADD CONSTRAINT contact_form_submissions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: contextual_moderation_confidence_thresholds contextual_moderation_confidence_thresholds_flag_reason_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.contextual_moderation_confidence_thresholds
+    ADD CONSTRAINT contextual_moderation_confidence_thresholds_flag_reason_key UNIQUE (flag_reason);
+
+
+--
+-- Name: contextual_moderation_confidence_thresholds contextual_moderation_confidence_thresholds_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.contextual_moderation_confidence_thresholds
+    ADD CONSTRAINT contextual_moderation_confidence_thresholds_pkey PRIMARY KEY (id);
 
 
 --
