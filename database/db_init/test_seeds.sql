@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 14.15 (Debian 14.15-1.pgdg120+1)
--- Dumped by pg_dump version 14.19 (Homebrew)
+-- Dumped from database version 14.19 (Debian 14.19-1.pgdg13+1)
+-- Dumped by pg_dump version 14.13 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -43,6 +43,8 @@ COPY upchieve.signup_sources (id, name, created_at, updated_at) FROM stdin;
 6	Other	2024-08-28 00:28:43.731742+00	2024-08-28 00:28:43.731742+00
 7	Roster	2024-08-28 00:28:44.14509+00	2024-08-28 00:28:44.14509+00
 8	TikTok	2025-08-15 17:17:32.077609+00	2025-08-15 17:17:32.077609+00
+10	Innerview	2025-11-25 20:11:55.987791+00	2025-11-25 20:11:55.987791+00
+11	SchooLinks	2025-11-25 20:11:56.000354+00	2025-11-25 20:11:56.000354+00
 \.
 
 
@@ -8859,7 +8861,7 @@ SELECT pg_catalog.setval('upchieve.shareable_domains_id_seq', 1, false);
 -- Name: signup_sources_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.signup_sources_id_seq', 8, true);
+SELECT pg_catalog.setval('upchieve.signup_sources_id_seq', 11, true);
 
 
 --
