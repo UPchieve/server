@@ -124,6 +124,16 @@ CREATE TYPE upchieve.ban_types AS ENUM (
 
 
 --
+-- Name: moderation_types; Type: TYPE; Schema: upchieve; Owner: -
+--
+
+CREATE TYPE upchieve.moderation_types AS ENUM (
+    'contextual',
+    'realtime_image'
+);
+
+
+--
 -- Name: tutor_bot_conversation_user_type; Type: TYPE; Schema: upchieve; Owner: -
 --
 
@@ -490,6 +500,39 @@ CREATE TABLE upchieve.contact_form_submissions (
 
 
 --
+-- Name: contextual_moderation_confidence_thresholds; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.contextual_moderation_confidence_thresholds (
+    id integer NOT NULL,
+    flag_reason character varying(255) NOT NULL,
+    confidence_rating integer NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: contextual_moderation_confidence_thresholds_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+CREATE SEQUENCE upchieve.contextual_moderation_confidence_thresholds_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: contextual_moderation_confidence_thresholds_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
+--
+
+ALTER SEQUENCE upchieve.contextual_moderation_confidence_thresholds_id_seq OWNED BY upchieve.contextual_moderation_confidence_thresholds.id;
+
+
+--
 -- Name: grade_levels; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -719,6 +762,36 @@ CREATE TABLE upchieve.legacy_availability_histories (
 
 
 --
+-- Name: moderation_categories; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.moderation_categories (
+    id integer NOT NULL,
+    name text NOT NULL
+);
+
+
+--
+-- Name: moderation_categories_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+CREATE SEQUENCE upchieve.moderation_categories_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: moderation_categories_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
+--
+
+ALTER SEQUENCE upchieve.moderation_categories_id_seq OWNED BY upchieve.moderation_categories.id;
+
+
+--
 -- Name: moderation_infractions; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -730,6 +803,18 @@ CREATE TABLE upchieve.moderation_infractions (
     active boolean DEFAULT true NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: moderation_settings; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.moderation_settings (
+    moderation_type upchieve.moderation_types,
+    moderation_category_id integer,
+    threshold numeric(3,2),
+    penalty integer
 );
 
 
@@ -3001,6 +3086,13 @@ ALTER TABLE ONLY upchieve.cities ALTER COLUMN id SET DEFAULT nextval('upchieve.c
 
 
 --
+-- Name: contextual_moderation_confidence_thresholds id; Type: DEFAULT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.contextual_moderation_confidence_thresholds ALTER COLUMN id SET DEFAULT nextval('upchieve.contextual_moderation_confidence_thresholds_id_seq'::regclass);
+
+
+--
 -- Name: email_domain_blocklist id; Type: DEFAULT; Schema: upchieve; Owner: -
 --
 
@@ -3019,6 +3111,13 @@ ALTER TABLE ONLY upchieve.grade_levels ALTER COLUMN id SET DEFAULT nextval('upch
 --
 
 ALTER TABLE ONLY upchieve.ip_addresses ALTER COLUMN id SET DEFAULT nextval('upchieve.ip_addresses_id_seq'::regclass);
+
+
+--
+-- Name: moderation_categories id; Type: DEFAULT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.moderation_categories ALTER COLUMN id SET DEFAULT nextval('upchieve.moderation_categories_id_seq'::regclass);
 
 
 --
@@ -3349,6 +3448,22 @@ ALTER TABLE ONLY upchieve.contact_form_submissions
 
 
 --
+-- Name: contextual_moderation_confidence_thresholds contextual_moderation_confidence_thresholds_flag_reason_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.contextual_moderation_confidence_thresholds
+    ADD CONSTRAINT contextual_moderation_confidence_thresholds_flag_reason_key UNIQUE (flag_reason);
+
+
+--
+-- Name: contextual_moderation_confidence_thresholds contextual_moderation_confidence_thresholds_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.contextual_moderation_confidence_thresholds
+    ADD CONSTRAINT contextual_moderation_confidence_thresholds_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: email_domain_blocklist email_domain_blocklist_domain_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -3466,6 +3581,14 @@ ALTER TABLE ONLY upchieve.ip_addresses
 
 ALTER TABLE ONLY upchieve.legacy_availability_histories
     ADD CONSTRAINT legacy_availability_histories_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: moderation_categories moderation_categories_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.moderation_categories
+    ADD CONSTRAINT moderation_categories_pkey PRIMARY KEY (id);
 
 
 --
@@ -5257,6 +5380,14 @@ ALTER TABLE ONLY upchieve.moderation_infractions
 
 ALTER TABLE ONLY upchieve.moderation_infractions
     ADD CONSTRAINT moderation_infractions_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
+
+
+--
+-- Name: moderation_settings moderation_settings_moderation_category_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.moderation_settings
+    ADD CONSTRAINT moderation_settings_moderation_category_id_fkey FOREIGN KEY (moderation_category_id) REFERENCES upchieve.moderation_categories(id);
 
 
 --
