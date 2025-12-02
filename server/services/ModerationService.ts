@@ -64,7 +64,6 @@ import { PrimaryUserRole } from './UserRolesService'
 
 import { LangfuseGenerationClient } from 'langfuse'
 import { resize } from '../utils/image-utils'
-import * as ModerationConfidenceThresholdsRepo from '../models/ModerationConfidenceThresholds/queries'
 
 // EMAIL_REGEX checks for standard and complex email formats
 // Ex: yay-hoo@yahoo.hello.com
