@@ -17,7 +17,7 @@ RUN npm ci
 COPY tsconfig*.json ./
 COPY server ./server
 COPY database ./database
-RUN npm run build:tsc
+RUN npm run build
 
 ENTRYPOINT ["doppler", "run", "--"]
 CMD ["npm", "run", "start"]
