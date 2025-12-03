@@ -883,7 +883,7 @@ CREATE TABLE upchieve.nths_groups (
     key text NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
-    invite_code text
+    invite_code character varying(6)
 );
 
 
@@ -4752,6 +4752,13 @@ CREATE INDEX notifications_session_id ON upchieve.notifications USING btree (ses
 --
 
 CREATE INDEX notifications_user_id ON upchieve.notifications USING btree (user_id);
+
+
+--
+-- Name: nths_groups_invite_code_index; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE UNIQUE INDEX nths_groups_invite_code_index ON upchieve.nths_groups USING btree (invite_code);
 
 
 --
