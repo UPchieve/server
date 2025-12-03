@@ -103,17 +103,17 @@ addPassportAuthMiddleware()
 app.use(passport.initialize())
 app.use(passport.session())
 
-// see https://stackoverflow.com/questions/51023943/nodejs-getting-username-of-logged-in-user-within-route
+// In order to access the user object in templates, add to the response object.
+// See https://stackoverflow.com/questions/51023943/nodejs-getting-username-of-logged-in-user-within-route.
 app.use((req, res, next) => {
   res.locals.user = req.user || null
   next()
 })
 
-// Make req.login async
-app.use((req, res, next): void => {
-  // Wrapper around promise to allow for no callback when using with await
-  req.asyncLogin = (arg1: Express.User, arg2?: any) =>
-    promisify(req.login.bind(req))(arg1)
+// Make passport's login and logout into promises.
+app.use((req, _res, next): void => {
+  req.asyncLogin = (user: Express.User) => promisify(req.login.bind(req))(user)
+  req.asyncLogout = () => promisify(req.logout.bind(req))()
   next()
 })
 

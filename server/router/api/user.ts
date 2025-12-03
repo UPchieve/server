@@ -83,7 +83,7 @@ export function routeUser(router: Router): void {
     try {
       const user = extractUser(req)
       await UserService.deleteUser(user)
-      req.logout()
+      await req.asyncLogout()
       res.sendStatus(200)
     } catch (err) {
       resError(res, err)
