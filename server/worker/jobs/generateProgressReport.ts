@@ -85,11 +85,12 @@ export default async (job: Job<GenerateProgressReport>): Promise<void> => {
     return
   }
 
-  await generateAndEmitProgressReport(session.studentId, {
+  await generateProgressReportForUser(session.studentId, {
     sessionId: session.id,
     subject: session.subject,
     analysisType: 'single',
   })
+
   await generateAndEmitProgressReport(session.studentId, {
     subject: session.subject,
     end: session.endedAt,
