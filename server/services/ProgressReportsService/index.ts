@@ -306,42 +306,51 @@ export async function generateProgressReportForUser(
   userId: Ulid,
   filter: ProgressReportSessionFilter
 ): Promise<ProgressReport> {
-  const subjectData = await getSubjectAndTopic(filter.subject)
-  if (!subjectData)
-    throw new Error(
-      `generateProgressReportForUser: No subject named ${filter.subject} found`
+  try {
+    const subjectData = await getSubjectAndTopic(filter.subject)
+    if (!subjectData)
+      throw new Error(
+        `generateProgressReportForUser: No subject named ${filter.subject} found`
+      )
+    const sessions = await getSessionsToAnalyzeForProgressReport(userId, filter)
+    const botPrompt = await formatSessionsForBotPrompt(sessions)
+    const subjectPrompt = await getActiveSubjectPromptWithTemplateReplacement(
+      userId,
+      subjectData
     )
-  const sessions = await getSessionsToAnalyzeForProgressReport(userId, filter)
-  const botPrompt = await formatSessionsForBotPrompt(sessions)
-  const subjectPrompt = await getActiveSubjectPromptWithTemplateReplacement(
-    userId,
-    subjectData
-  )
-  const botReport = await generateProgressReport(
-    userId,
-    subjectPrompt.prompt,
-    botPrompt
-  )
-  captureEvent(userId, EVENTS.PROGRESS_REPORT_ANALYSIS_COMPLETED, {
-    response: botReport,
-    debug: botReport,
-  })
-  const sessionIds = sessions.map((s) => s.id)
-  const reportId = await saveProgressReport({
-    userId,
-    sessionIds,
-    data: botReport,
-    analysisType: filter.analysisType,
-    promptId: subjectPrompt.id,
-  })
-  if (!reportId)
-    throw new Error(
-      `Failed to save a progress report for sessions ${sessionIds.join(
-        ','
-      )} for user ${userId}`
+    const botReport = await generateProgressReport(
+      userId,
+      subjectPrompt.prompt,
+      botPrompt
     )
-  const report = await getProgressReportForReport(reportId)
-  return report
+    captureEvent(userId, EVENTS.PROGRESS_REPORT_ANALYSIS_COMPLETED, {
+      response: botReport,
+      debug: botReport,
+    })
+    const sessionIds = sessions.map((s) => s.id)
+    const reportId = await saveProgressReport({
+      userId,
+      sessionIds,
+      data: botReport,
+      analysisType: filter.analysisType,
+      promptId: subjectPrompt.id,
+    })
+    if (!reportId)
+      throw new Error(
+        `Failed to save a progress report for sessions ${sessionIds.join(
+          ','
+        )} for user ${userId}`
+      )
+    const report = await getProgressReportForReport(reportId)
+    return report
+  } catch (error) {
+    logger.error(
+      error,
+      { userId, ...filter },
+      `Error generating progress report`
+    )
+    throw error
+  }
 }
 
 const LF_TRACE_NAME = 'progressReport'
