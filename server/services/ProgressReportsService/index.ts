@@ -344,7 +344,7 @@ export async function generateProgressReportForUser(
     const report = await getProgressReportForReport(reportId)
     return report
   } catch (error) {
-    logger.error(
+    logger.warn(
       error,
       { userId, ...filter },
       `Error generating progress report`
