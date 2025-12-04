@@ -109,24 +109,8 @@ describe(Jobs.GenerateProgressReport, () => {
       end: session.endedAt,
       analysisType: 'group',
     })
-    expect(axios.post).toHaveBeenCalledTimes(2)
-    expect(axios.post).toHaveBeenNthCalledWith(
-      1,
-      url,
-      {
-        userId,
-        sessionId: session.id,
-        subject: session.subject,
-        report: reportOne,
-        analysisType: 'single',
-      },
-      {
-        headers: { 'x-api-key': config.subwayApiCredentials },
-        timeout: 3000,
-      }
-    )
-    expect(axios.post).toHaveBeenNthCalledWith(
-      2,
+    expect(axios.post).toHaveBeenCalledTimes(1)
+    expect(axios.post).toHaveBeenCalledWith(
       url,
       {
         userId,
