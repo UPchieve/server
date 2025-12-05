@@ -383,22 +383,8 @@ export async function generateProgressReport(
     )
     return result.results as ProgressReport
   } catch (err) {
-    logger.error(err)
-  }
-  return {
-    id: '-1',
-    status: 'error',
-    createdAt: new Date(),
-    summary: {
-      id: '',
-      summary: '',
-      overallGrade: 0,
-      details: [],
-      createdAt: new Date(),
-      reportId: '',
-      sessionCreatedAt: new Date(),
-    },
-    concepts: [],
+    logger.warn(err, "AI couldn't generate report")
+    throw err
   }
 }
 
