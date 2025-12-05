@@ -361,31 +361,24 @@ export async function generateProgressReport(
   systemPrompt: string,
   botPrompt: string
 ): Promise<ProgressReport> {
-  try {
-    const t = LangfuseService.getClient().trace({
-      name: LF_TRACE_NAME,
-      userId,
-    })
+  const t = LangfuseService.getClient().trace({
+    name: LF_TRACE_NAME,
+    userId,
+  })
 
-    const gen = t.generation({
-      name: LF_GENERATION_NAME,
-      model: OPENAI_MODELID,
-      input: botPrompt,
-    })
-    const result = await invokeModel({
-      prompt: systemPrompt,
-      userMessage: botPrompt,
-    })
-    gen.end({ output: result })
+  const gen = t.generation({
+    name: LF_GENERATION_NAME,
+    model: OPENAI_MODELID,
+    input: botPrompt,
+  })
+  const result = await invokeModel({
+    prompt: systemPrompt,
+    userMessage: botPrompt,
+  })
+  gen.end({ output: result })
 
-    logger.info(
-      `User: ${userId} received ProgressReport with response ${result}`
-    )
-    return result.results as ProgressReport
-  } catch (err) {
-    logger.warn(err, "AI couldn't generate report")
-    throw err
-  }
+  logger.info(`User: ${userId} received ProgressReport with response ${result}`)
+  return result.results as ProgressReport
 }
 
 export async function queueGenerateProgressReportForUser(
