@@ -38,6 +38,7 @@ import {
   checkNames,
   checkEmail,
   createResetToken,
+  ResetConfirmData,
 } from '../utils/auth-utils'
 import { asString } from '../utils/type-utils'
 import { NotAllowedError, InputError, LookupError } from '../models/Errors'
@@ -334,13 +335,9 @@ export async function sendReset(email: unknown): Promise<void> {
   await MailService.sendReset(toEmail, token)
 }
 
-export async function confirmReset(data: unknown): Promise<void> {
-  const {
-    email,
-    password,
-    newpassword: reenteredPassword,
-    token,
-  } = asResetConfirmData(data)
+export async function confirmReset(data: ResetConfirmData): Promise<void> {
+  const { token, password, newpassword: reenteredPassword, email } = data
+
   // Make sure token is a valid 16-byte hex string.
   if (!token.match(/^[a-f0-9]{32}$/)) {
     throw new ResetError(
@@ -348,18 +345,21 @@ export async function confirmReset(data: unknown): Promise<void> {
     )
   }
 
-  if (password !== reenteredPassword)
+  if (password !== reenteredPassword) {
     throw new ResetError('The passwords you entered do not match.')
+  }
 
   const user = await getUserByResetToken(token)
-  if (!user)
+  if (!user) {
     throw new LookupError(
       'No account found with provided password reset token. Please use the link provided in the latest password reset email you received from UPchieve.'
     )
+  }
 
   // case match strings
-  if (user.email.toLowerCase() !== email.toLowerCase())
+  if (user.email.toLowerCase() !== email.toLowerCase()) {
     throw new ResetError('Email did not match the password reset token.')
+  }
 
   checkPassword(password)
 

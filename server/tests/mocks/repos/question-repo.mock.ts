@@ -118,9 +118,9 @@ export const OnlyCerts = {
 export type OnlyCerts = ExtractValues<typeof OnlyCerts>
 
 // TODO: How to deal topic related details and display ordering?
-export const buildQuizUnlockCert = (
+export const buildQuizSubjectUnlockCert = (
   cert: OnlyCerts
-): QuestionRepo.QuizUnlockCert[] => {
+): QuestionRepo.QuizSubjectUnlockCertInfo[] => {
   const unlockedSubjects = []
   const unlockedCerts = CERT_UNLOCKING[cert]
   for (const unlockedCert of unlockedCerts) {

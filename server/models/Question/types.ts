@@ -23,7 +23,12 @@ export type ReviewMaterial = {
   image: string
 }
 
-export type QuizUnlockCert = {
+export type QuizCertUnlockInfo = {
+  quizName: string
+  unlockedCertName: string
+}
+
+export type QuizSubjectUnlockCertInfo = {
   quizName: string
   quizDisplayName: string
   quizDisplayOrder: number
