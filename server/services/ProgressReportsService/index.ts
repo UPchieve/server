@@ -319,7 +319,8 @@ export async function generateProgressReportForUser(
     const botReport = await generateProgressReport(
       userId,
       subjectPrompt.prompt,
-      botPrompt
+      botPrompt,
+      filter.sessionId
     )
     captureEvent(userId, EVENTS.PROGRESS_REPORT_ANALYSIS_COMPLETED, {
       response: botReport,
@@ -354,7 +355,8 @@ const LF_GENERATION_NAME = 'getProgressReportResult'
 export async function generateProgressReport(
   userId: Ulid,
   systemPrompt: string,
-  botPrompt: string
+  botPrompt: string,
+  sessionId?: Ulid
 ): Promise<ProgressReport> {
   const t = LangfuseService.getClient().trace({
     name: LF_TRACE_NAME,
@@ -365,6 +367,10 @@ export async function generateProgressReport(
     name: LF_GENERATION_NAME,
     model: OPENAI_MODELID,
     input: botPrompt,
+    metadata: {
+      userId,
+      sessionId,
+    },
   })
   const result = await invokeModel({
     prompt: systemPrompt,
