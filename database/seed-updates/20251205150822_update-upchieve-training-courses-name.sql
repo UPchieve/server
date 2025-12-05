@@ -5,7 +5,8 @@ SET
     display_name = 'Intro to UPchieve',
     updated_at = NOW()
 WHERE
-    id = 1;
+    name = 'upchieve101'
+    OR name = 'upchieveTraining';
 
 -- migrate:down
 UPDATE
@@ -14,5 +15,6 @@ SET
     display_name = 'UPchieve 101',
     updated_at = NOW()
 WHERE
-    id = 1;
+    name = 'upchieve101'
+    OR name = 'upchieveTraining';
 

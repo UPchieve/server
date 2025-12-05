@@ -8383,8 +8383,8 @@ COPY upchieve.surveys_context (survey_id, subject_id, survey_type_id, created_at
 --
 
 COPY upchieve.training_courses (id, name, created_at, updated_at, display_name) FROM stdin;
-1	upchieve101	2024-08-28 00:28:43.735425+00	2024-08-28 00:28:44.16882+00	UPchieve 101
-2	upchieveTraining	2025-08-18 21:59:53.708917+00	2025-08-18 21:59:53.708917+00	UPchieve Training
+1	upchieve101	2024-08-28 00:28:43.735425+00	2025-12-05 15:09:34.494574+00	Intro to UPchieve
+2	upchieveTraining	2025-08-18 21:59:53.708917+00	2025-12-05 15:09:34.494574+00	Intro to UPchieve
 \.
 
 
