@@ -1,3 +1,7 @@
+
+-- Dumped from database version 14.20 (Debian 14.20-1.pgdg13+1)
+-- Dumped by pg_dump version 14.20 (Ubuntu 14.20-0ubuntu0.22.04.1)
+
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -3321,7 +3325,7 @@ ALTER TABLE ONLY upchieve.cities
 --
 
 ALTER TABLE ONLY upchieve.clever_school_mapping
-    ADD CONSTRAINT clever_school_mapping_pkey PRIMARY KEY (upchieve_school_id);
+    ADD CONSTRAINT clever_school_mapping_pkey PRIMARY KEY (upchieve_school_id, clever_school_id);
 
 
 --
@@ -6449,6 +6453,7 @@ ALTER TABLE ONLY upchieve.volunteer_references
 --
 
 
+
 --
 -- Dbmate schema migrations
 --
@@ -6694,4 +6699,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20251121162621'),
     ('20251121191436'),
     ('20251121214549'),
-    ('20251125134512');
+    ('20251125134512'),
+    ('20251205231954');
