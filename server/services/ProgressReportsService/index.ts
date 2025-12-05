@@ -306,42 +306,47 @@ export async function generateProgressReportForUser(
   userId: Ulid,
   filter: ProgressReportSessionFilter
 ): Promise<ProgressReport> {
-  const subjectData = await getSubjectAndTopic(filter.subject)
-  if (!subjectData)
-    throw new Error(
-      `generateProgressReportForUser: No subject named ${filter.subject} found`
+  try {
+    const subjectData = await getSubjectAndTopic(filter.subject)
+    if (!subjectData)
+      throw new Error(`No subject named ${filter.subject} found`)
+    const sessions = await getSessionsToAnalyzeForProgressReport(userId, filter)
+    const botPrompt = await formatSessionsForBotPrompt(sessions)
+    const subjectPrompt = await getActiveSubjectPromptWithTemplateReplacement(
+      userId,
+      subjectData
     )
-  const sessions = await getSessionsToAnalyzeForProgressReport(userId, filter)
-  const botPrompt = await formatSessionsForBotPrompt(sessions)
-  const subjectPrompt = await getActiveSubjectPromptWithTemplateReplacement(
-    userId,
-    subjectData
-  )
-  const botReport = await generateProgressReport(
-    userId,
-    subjectPrompt.prompt,
-    botPrompt
-  )
-  captureEvent(userId, EVENTS.PROGRESS_REPORT_ANALYSIS_COMPLETED, {
-    response: botReport,
-    debug: botReport,
-  })
-  const sessionIds = sessions.map((s) => s.id)
-  const reportId = await saveProgressReport({
-    userId,
-    sessionIds,
-    data: botReport,
-    analysisType: filter.analysisType,
-    promptId: subjectPrompt.id,
-  })
-  if (!reportId)
-    throw new Error(
-      `Failed to save a progress report for sessions ${sessionIds.join(
-        ','
-      )} for user ${userId}`
+    const botReport = await generateProgressReport(
+      userId,
+      subjectPrompt.prompt,
+      botPrompt,
+      filter.sessionId
     )
-  const report = await getProgressReportForReport(reportId)
-  return report
+    captureEvent(userId, EVENTS.PROGRESS_REPORT_ANALYSIS_COMPLETED, {
+      response: botReport,
+      debug: botReport,
+    })
+    const sessionIds = sessions.map((s) => s.id)
+    const reportId = await saveProgressReport({
+      userId,
+      sessionIds,
+      data: botReport,
+      analysisType: filter.analysisType,
+      promptId: subjectPrompt.id,
+    })
+
+    if (!reportId) throw new Error(`Failed to save a progress report`)
+
+    const report = await getProgressReportForReport(reportId)
+    return report
+  } catch (error) {
+    logger.warn(
+      error,
+      { userId, ...filter },
+      `Error generating progress report`
+    )
+    throw error
+  }
 }
 
 const LF_TRACE_NAME = 'progressReport'
@@ -350,47 +355,31 @@ const LF_GENERATION_NAME = 'getProgressReportResult'
 export async function generateProgressReport(
   userId: Ulid,
   systemPrompt: string,
-  botPrompt: string
+  botPrompt: string,
+  sessionId?: Ulid
 ): Promise<ProgressReport> {
-  try {
-    const t = LangfuseService.getClient().trace({
-      name: LF_TRACE_NAME,
+  const t = LangfuseService.getClient().trace({
+    name: LF_TRACE_NAME,
+    userId,
+  })
+
+  const gen = t.generation({
+    name: LF_GENERATION_NAME,
+    model: OPENAI_MODELID,
+    input: botPrompt,
+    metadata: {
       userId,
-    })
-
-    const gen = t.generation({
-      name: LF_GENERATION_NAME,
-      model: OPENAI_MODELID,
-      input: botPrompt,
-    })
-    const result = await invokeModel({
-      prompt: systemPrompt,
-      userMessage: botPrompt,
-    })
-    gen.end({ output: result })
-
-    logger.info(
-      `User: ${userId} received ProgressReport with response ${result}`
-    )
-    return result.results as ProgressReport
-  } catch (err) {
-    logger.error(err)
-  }
-  return {
-    id: '-1',
-    status: 'error',
-    createdAt: new Date(),
-    summary: {
-      id: '',
-      summary: '',
-      overallGrade: 0,
-      details: [],
-      createdAt: new Date(),
-      reportId: '',
-      sessionCreatedAt: new Date(),
+      sessionId,
     },
-    concepts: [],
-  }
+  })
+  const result = await invokeModel({
+    prompt: systemPrompt,
+    userMessage: botPrompt,
+  })
+  gen.end({ output: result })
+
+  logger.info(`User: ${userId} received ProgressReport with response ${result}`)
+  return result.results as ProgressReport
 }
 
 export async function queueGenerateProgressReportForUser(

@@ -28,7 +28,7 @@ describe(Jobs.GenerateProgressReport, () => {
     )
   })
 
-  test('Should let progress report errors bubble up for both single and group progress report analysis', async () => {
+  test('Should let progress report errors bubble up for progress report analysis', async () => {
     const session = await buildSession({
       studentId: getDbUlid(),
       subject: 'reading',
@@ -39,28 +39,16 @@ describe(Jobs.GenerateProgressReport, () => {
         sessionId: session.id,
       },
     }
-    const errorMessageOne = 'Error one'
-    const errorOne = `Error in single session report: ${errorMessageOne}`
-    const errorMessageTwo = 'Error two'
-    const errorTwo = `Error in group session report: ${errorMessageTwo}`
-    const expectedErrors = [errorOne, errorTwo]
+
     mockedSessionRepo.getSessionById.mockResolvedValueOnce(session)
     mockedProgressReportsService.hasActiveSubjectPrompt.mockResolvedValueOnce(
       true
     )
     mockedProgressReportsService.generateProgressReportForUser.mockRejectedValueOnce(
-      errorMessageOne
-    )
-    mockedProgressReportsService.generateProgressReportForUser.mockRejectedValueOnce(
-      errorMessageTwo
+      new Error()
     )
 
-    await expect(generateProgressReport(job as Job)).rejects.toThrow(
-      expectedErrors.join('\n')
-    )
-    expect(
-      mockedProgressReportsService.generateProgressReportForUser
-    ).toHaveBeenCalledTimes(2)
+    await expect(generateProgressReport(job as Job)).rejects.toThrow(Error)
   })
 
   test('Should generate and send progress report for a single session and an overview progress report via http', async () => {
@@ -109,24 +97,8 @@ describe(Jobs.GenerateProgressReport, () => {
       end: session.endedAt,
       analysisType: 'group',
     })
-    expect(axios.post).toHaveBeenCalledTimes(2)
-    expect(axios.post).toHaveBeenNthCalledWith(
-      1,
-      url,
-      {
-        userId,
-        sessionId: session.id,
-        subject: session.subject,
-        report: reportOne,
-        analysisType: 'single',
-      },
-      {
-        headers: { 'x-api-key': config.subwayApiCredentials },
-        timeout: 3000,
-      }
-    )
-    expect(axios.post).toHaveBeenNthCalledWith(
-      2,
+    expect(axios.post).toHaveBeenCalledTimes(1)
+    expect(axios.post).toHaveBeenCalledWith(
       url,
       {
         userId,

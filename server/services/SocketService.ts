@@ -137,11 +137,7 @@ class SocketService {
       analysisType: ProgressReportAnalysisTypes
     }
   ) {
-    // The overall progress report is ready
-    if (data.analysisType === 'group')
-      this.io.to(userId).emit('progress-report:processed:overview', data)
-    // A single progress report is ready
-    else this.io.to(userId).emit('progress-report:processed:session', data)
+    this.io.to(userId).emit('progress-report:processed:overview', data)
   }
 
   async emitUserLiveMediaBannedEvents(

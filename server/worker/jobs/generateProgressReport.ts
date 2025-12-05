@@ -52,27 +52,13 @@ async function generateAndEmitProgressReport(
   userId: Ulid,
   reportOptions: ProgressReportSessionFilter
 ) {
-  let report: Partial<ProgressReport>
-  let reportGenerationError
-  try {
-    report = await generateProgressReportForUser(userId, reportOptions)
-  } catch (error) {
-    reportGenerationError = error
-    logger.error(`Error generating progress report: ${error}`)
-    report = {
-      status: 'error' as ProgressReportStatuses,
-      summary: undefined,
-      concepts: undefined,
-    }
-  }
+  const report = await generateProgressReportForUser(userId, reportOptions)
 
-  const data = {
+  await sendProgressReport(userId, {
     userId: userId,
     ...reportOptions,
     report,
-  }
-  await sendProgressReport(userId, data)
-  if (reportGenerationError) throw reportGenerationError
+  })
 }
 
 export default async (job: Job<GenerateProgressReport>): Promise<void> => {
@@ -86,35 +72,28 @@ export default async (job: Job<GenerateProgressReport>): Promise<void> => {
     !isSubjectPromptActive ||
     !isProgressReportsActive ||
     session.timeTutored < config.minSessionLength
-  )
+  ) {
+    logger.info(
+      {
+        sessionId,
+        subject: session.subject,
+        isSubjectPromptActive,
+        isProgressReportsActive,
+      },
+      "Couldn't generate progress report for session or subject"
+    )
     return
-  const tasks = [
-    generateAndEmitProgressReport(session.studentId, {
-      sessionId: session.id,
-      subject: session.subject,
-      analysisType: 'single',
-    }),
-    generateAndEmitProgressReport(session.studentId, {
-      subject: session.subject,
-      end: session.endedAt,
-      analysisType: 'group',
-    }),
-  ]
-
-  // Execute both generation tasks in parallel
-  const results = await Promise.allSettled(tasks)
-  const errors = results
-    .filter(
-      (result): result is PromiseRejectedResult => result.status === 'rejected'
-    )
-    .map(
-      (result, i) =>
-        `Error in ${i === 0 ? 'single' : 'group'} session report: ${
-          result.reason
-        }`
-    )
-
-  if (errors.length) {
-    throw new Error(errors.join('\n'))
   }
+
+  await generateProgressReportForUser(session.studentId, {
+    sessionId: session.id,
+    subject: session.subject,
+    analysisType: 'single',
+  })
+
+  await generateAndEmitProgressReport(session.studentId, {
+    subject: session.subject,
+    end: session.endedAt,
+    analysisType: 'group',
+  })
 }
