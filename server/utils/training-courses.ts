@@ -8,7 +8,7 @@ export interface TrainingCourse {
   courseKey: string
   description: string
   modules: TrainingModule[]
-  requiredCertifications: string[] // @TODO This should be some const/enum
+  requiredCertifications: TRAINING_QUIZZES[]
   // @TODO After deprecating the legacy training course (upchieve101), remove these props
   quizKey?: string
   quizName?: string
