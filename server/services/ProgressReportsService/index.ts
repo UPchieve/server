@@ -306,47 +306,38 @@ export async function generateProgressReportForUser(
   userId: Ulid,
   filter: ProgressReportSessionFilter
 ): Promise<ProgressReport> {
-  try {
-    const subjectData = await getSubjectAndTopic(filter.subject)
-    if (!subjectData)
-      throw new Error(`No subject named ${filter.subject} found`)
-    const sessions = await getSessionsToAnalyzeForProgressReport(userId, filter)
-    const botPrompt = await formatSessionsForBotPrompt(sessions)
-    const subjectPrompt = await getActiveSubjectPromptWithTemplateReplacement(
-      userId,
-      subjectData
-    )
-    const botReport = await generateProgressReport(
-      userId,
-      subjectPrompt.prompt,
-      botPrompt,
-      filter.sessionId
-    )
-    captureEvent(userId, EVENTS.PROGRESS_REPORT_ANALYSIS_COMPLETED, {
-      response: botReport,
-      debug: botReport,
-    })
-    const sessionIds = sessions.map((s) => s.id)
-    const reportId = await saveProgressReport({
-      userId,
-      sessionIds,
-      data: botReport,
-      analysisType: filter.analysisType,
-      promptId: subjectPrompt.id,
-    })
+  const subjectData = await getSubjectAndTopic(filter.subject)
+  if (!subjectData) throw new Error(`No subject named ${filter.subject} found`)
+  const sessions = await getSessionsToAnalyzeForProgressReport(userId, filter)
+  const botPrompt = await formatSessionsForBotPrompt(sessions)
+  const subjectPrompt = await getActiveSubjectPromptWithTemplateReplacement(
+    userId,
+    subjectData
+  )
+  const botReport = await generateProgressReport(
+    userId,
+    subjectPrompt.prompt,
+    botPrompt,
+    filter.sessionId
+  )
+  captureEvent(userId, EVENTS.PROGRESS_REPORT_ANALYSIS_COMPLETED, {
+    response: botReport,
+    debug: botReport,
+  })
+  const sessionIds = sessions.map((s) => s.id)
+  const reportId = await saveProgressReport({
+    userId,
+    sessionIds,
+    data: botReport,
+    analysisType: filter.analysisType,
+    promptId: subjectPrompt.id,
+  })
 
-    if (!reportId) throw new Error(`Failed to save a progress report`)
+  if (!reportId)
+    throw new Error(`Failed to save a ${filter.subject}progress report`)
 
-    const report = await getProgressReportForReport(reportId)
-    return report
-  } catch (error) {
-    logger.warn(
-      error,
-      { userId, ...filter },
-      `Error generating progress report`
-    )
-    throw error
-  }
+  const report = await getProgressReportForReport(reportId)
+  return report
 }
 
 const LF_TRACE_NAME = 'progressReport'
