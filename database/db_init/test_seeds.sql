@@ -65,7 +65,6 @@ COPY upchieve.users (id, verified, email_verified, phone_verified, email, passwo
 01919662-885c-a174-3088-998111f7cc80	t	f	f	student3@upchieve.org	$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y	\N	Student	UPchieve	f	\N	G	\N	f	f	\N	\N	\N	2024-08-28 00:28:45.535278+00	2024-08-28 00:28:45.535278+00	\N	f	\N	\N	\N	\N	\N	\N	f
 0198c4d0-34aa-ef79-20b5-f1c6245c0b7c	t	f	f	teacher1@upchieve.org	$2b$10$yv/XIg.dh3IjCuRKTX8CeekfpkFT/1T5HeVrTPntHpgY6kuj/jeni	\N	NonPartner	UPchieve	f	2025-08-20 00:10:36.035748+00	AZjE0DSq73kgtfHGJFwLfA	\N	f	f	\N	\N	6	2025-08-20 00:10:36.035748+00	2025-08-20 00:10:36.035748+00	\N	f	\N	Internet	\N	\N	\N	\N	f
 0198c4d1-f405-a71a-931c-e94965191c0a	t	f	f	teacher2@upchieve.org	$2b$10$ewiDyuDyGHUyBn2lbDH9Y.e/k5JoCuy3LsZmuVgK2b3ao8Cc92uKG	\N	Partner	UPchieve	f	2025-08-20 00:12:30.562089+00	AZjE0fQFpxqTHOlJZRkcCg	\N	f	f	\N	\N	6	2025-08-20 00:12:30.562089+00	2025-08-20 00:12:30.562089+00	\N	f	\N	Internet	\N	\N	\N	\N	f
-019aefad-6832-c138-cbf2-28ffc35dfdd3	t	f	f	volunteer7@gmail.com	$2b$10$NWlDU/NNYOZHF2fkOER72u8f3x1R5T8S/QjTvxAcs9eeD6hzJd7Gm	\N	Volunteer	UPchieve	f	2025-12-07 18:44:09.308+00	AZrvrWgywTjL8ij_w1390w	\N	f	f	\N	\N	2	2025-12-05 18:01:50.387615+00	2025-12-07 18:44:09.320501+00	+12015550123	t	\N		\N	\N	\N	\N	f
 \.
 
 
@@ -5117,7 +5116,6 @@ COPY upchieve.grade_levels (id, name, created_at, updated_at) FROM stdin;
 --
 
 COPY upchieve.ip_addresses (id, ip, status, created_at, updated_at, mongo_id) FROM stdin;
-2	::1	\N	2025-12-05 18:01:50.42232+00	2025-12-05 18:01:50.42232+00	\N
 \.
 
 
@@ -8401,8 +8399,8 @@ COPY upchieve.surveys_context (survey_id, subject_id, survey_type_id, created_at
 --
 
 COPY upchieve.training_courses (id, name, created_at, updated_at, display_name) FROM stdin;
-1	upchieve101	2024-08-28 00:28:43.735425+00	2025-12-05 15:09:34.494574+00	Intro to UPchieve
-2	upchieveTraining	2025-08-18 21:59:53.708917+00	2025-12-05 15:09:34.494574+00	Intro to UPchieve
+1	upchieve101	2024-08-28 00:28:43.735425+00	2024-08-28 00:28:44.16882+00	UPchieve 101
+2	upchieveTraining	2025-08-18 21:59:53.708917+00	2025-08-18 21:59:53.708917+00	UPchieve Training
 \.
 
 
@@ -8435,37 +8433,6 @@ COPY upchieve.tutor_bot_session_messages (id, session_id, message, tutor_bot_ses
 --
 
 COPY upchieve.user_actions (id, user_id, session_id, action_type, action, ip_address_id, device, browser, browser_version, operating_system, operating_system_version, quiz_subcategory, quiz_category, created_at, updated_at, mongo_id, reference_email, volunteer_id, ban_reason, clientuuid) FROM stdin;
-2	019aefad-6832-c138-cbf2-28ffc35dfdd3	\N	ACCOUNT	CREATED	2	\N	\N	\N	\N	\N	\N	\N	2025-12-05 18:01:50.429907+00	2025-12-05 18:01:50.429907+00	\N	\N	\N	\N	\N
-3	019aefad-6832-c138-cbf2-28ffc35dfdd3	\N	ACCOUNT	LOGGED IN	2	\N	\N	\N	\N	\N	\N	\N	2025-12-05 18:01:50.445118+00	2025-12-05 18:01:50.445118+00	\N	\N	\N	\N	\N
-4	019aefad-6832-c138-cbf2-28ffc35dfdd3	\N	ACCOUNT	ACTIVE_ON_SITE	2	\N	\N	\N	\N	\N	\N	\N	2025-12-05 18:01:50.986573+00	2025-12-05 18:01:50.986573+00	\N	\N	\N	\N	47326de3-1bd9-4bd2-ad13-ce51e26afc73
-5	019aefad-6832-c138-cbf2-28ffc35dfdd3	\N	ACCOUNT	PASSIVE_ON_SITE	2	\N	\N	\N	\N	\N	\N	\N	2025-12-05 18:01:53.913463+00	2025-12-05 18:01:53.913463+00	\N	\N	\N	\N	47326de3-1bd9-4bd2-ad13-ce51e26afc73
-6	019aefad-6832-c138-cbf2-28ffc35dfdd3	\N	ACCOUNT	ACTIVE_ON_SITE	2	\N	\N	\N	\N	\N	\N	\N	2025-12-05 18:02:28.030762+00	2025-12-05 18:02:28.030762+00	\N	\N	\N	\N	47326de3-1bd9-4bd2-ad13-ce51e26afc73
-7	019aefad-6832-c138-cbf2-28ffc35dfdd3	\N	ACCOUNT	PASSIVE_ON_SITE	2	\N	\N	\N	\N	\N	\N	\N	2025-12-05 18:02:30.657548+00	2025-12-05 18:02:30.657548+00	\N	\N	\N	\N	47326de3-1bd9-4bd2-ad13-ce51e26afc73
-8	019aefad-6832-c138-cbf2-28ffc35dfdd3	\N	ACCOUNT	ACTIVE_ON_SITE	2	\N	\N	\N	\N	\N	\N	\N	2025-12-05 18:02:42.456989+00	2025-12-05 18:02:42.456989+00	\N	\N	\N	\N	47326de3-1bd9-4bd2-ad13-ce51e26afc73
-9	019aefad-6832-c138-cbf2-28ffc35dfdd3	\N	QUIZ	STARTED QUIZ	2	\N	\N	\N	\N	\N	ALGEBRAONE	MATH	2025-12-05 18:02:48.096359+00	2025-12-05 18:02:48.096359+00	\N	\N	\N	\N	\N
-10	019aefad-6832-c138-cbf2-28ffc35dfdd3	\N	QUIZ	UNLOCKED SUBJECT	\N	\N	\N	\N	\N	\N	ALGEBRAONE	MATH	2025-12-05 18:03:01.640612+00	2025-12-05 18:03:01.640612+00	\N	\N	\N	\N	\N
-11	019aefad-6832-c138-cbf2-28ffc35dfdd3	\N	QUIZ	UNLOCKED SUBJECT	\N	\N	\N	\N	\N	\N	PREALGEBRA	MATH	2025-12-05 18:03:01.640612+00	2025-12-05 18:03:01.640612+00	\N	\N	\N	\N	\N
-12	019aefad-6832-c138-cbf2-28ffc35dfdd3	\N	QUIZ	PASSED QUIZ	2	\N	\N	\N	\N	\N	ALGEBRAONE	MATH	2025-12-05 18:03:01.809102+00	2025-12-05 18:03:01.809102+00	\N	\N	\N	\N	\N
-13	019aefad-6832-c138-cbf2-28ffc35dfdd3	\N	ACCOUNT	INACTIVE_ON_SITE	\N	\N	\N	\N	\N	\N	\N	\N	2025-12-05 18:03:20.230163+00	2025-12-05 18:03:20.230163+00	\N	\N	\N	\N	47326de3-1bd9-4bd2-ad13-ce51e26afc73
-14	019aefad-6832-c138-cbf2-28ffc35dfdd3	\N	ACCOUNT	ACTIVE_ON_SITE	2	\N	\N	\N	\N	\N	\N	\N	2025-12-05 18:03:22.951572+00	2025-12-05 18:03:22.951572+00	\N	\N	\N	\N	47326de3-1bd9-4bd2-ad13-ce51e26afc73
-15	019aefad-6832-c138-cbf2-28ffc35dfdd3	\N	ACCOUNT	PASSIVE_ON_SITE	2	\N	\N	\N	\N	\N	\N	\N	2025-12-05 18:03:58.659507+00	2025-12-05 18:03:58.659507+00	\N	\N	\N	\N	47326de3-1bd9-4bd2-ad13-ce51e26afc73
-16	019aefad-6832-c138-cbf2-28ffc35dfdd3	\N	ACCOUNT	ACTIVE_ON_SITE	2	\N	\N	\N	\N	\N	\N	\N	2025-12-05 18:06:15.936366+00	2025-12-05 18:06:15.936366+00	\N	\N	\N	\N	47326de3-1bd9-4bd2-ad13-ce51e26afc73
-17	019aefad-6832-c138-cbf2-28ffc35dfdd3	\N	ACCOUNT	INACTIVE_ON_SITE	\N	\N	\N	\N	\N	\N	\N	\N	2025-12-05 18:06:25.352322+00	2025-12-05 18:06:25.352322+00	\N	\N	\N	\N	47326de3-1bd9-4bd2-ad13-ce51e26afc73
-18	019aefad-6832-c138-cbf2-28ffc35dfdd3	\N	ACCOUNT	ACTIVE_ON_SITE	2	\N	\N	\N	\N	\N	\N	\N	2025-12-05 18:06:27.780579+00	2025-12-05 18:06:27.780579+00	\N	\N	\N	\N	47326de3-1bd9-4bd2-ad13-ce51e26afc73
-19	019aefad-6832-c138-cbf2-28ffc35dfdd3	\N	ACCOUNT	INACTIVE_ON_SITE	\N	\N	\N	\N	\N	\N	\N	\N	2025-12-05 18:06:51.065679+00	2025-12-05 18:06:51.065679+00	\N	\N	\N	\N	47326de3-1bd9-4bd2-ad13-ce51e26afc73
-20	019aefad-6832-c138-cbf2-28ffc35dfdd3	\N	ACCOUNT	ACTIVE_ON_SITE	2	\N	\N	\N	\N	\N	\N	\N	2025-12-05 18:06:53.914156+00	2025-12-05 18:06:53.914156+00	\N	\N	\N	\N	47326de3-1bd9-4bd2-ad13-ce51e26afc73
-21	019aefad-6832-c138-cbf2-28ffc35dfdd3	\N	ACCOUNT	ACTIVE_ON_SITE	2	\N	\N	\N	\N	\N	\N	\N	2025-12-05 18:11:23.775848+00	2025-12-05 18:11:23.775848+00	\N	\N	\N	\N	47326de3-1bd9-4bd2-ad13-ce51e26afc73
-22	019aefad-6832-c138-cbf2-28ffc35dfdd3	\N	ACCOUNT	ACTIVE_ON_SITE	2	\N	\N	\N	\N	\N	\N	\N	2025-12-05 18:17:38.970304+00	2025-12-05 18:17:38.970304+00	\N	\N	\N	\N	47326de3-1bd9-4bd2-ad13-ce51e26afc73
-23	019aefad-6832-c138-cbf2-28ffc35dfdd3	\N	ACCOUNT	PASSIVE_ON_SITE	2	\N	\N	\N	\N	\N	\N	\N	2025-12-05 18:17:40.08915+00	2025-12-05 18:17:40.08915+00	\N	\N	\N	\N	47326de3-1bd9-4bd2-ad13-ce51e26afc73
-24	019aefad-6832-c138-cbf2-28ffc35dfdd3	\N	ACCOUNT	ACTIVE_ON_SITE	2	\N	\N	\N	\N	\N	\N	\N	2025-12-05 18:22:17.451271+00	2025-12-05 18:22:17.451271+00	\N	\N	\N	\N	47326de3-1bd9-4bd2-ad13-ce51e26afc73
-25	019aefad-6832-c138-cbf2-28ffc35dfdd3	\N	ACCOUNT	ACTIVE_ON_SITE	2	\N	\N	\N	\N	\N	\N	\N	2025-12-05 18:24:47.528973+00	2025-12-05 18:24:47.528973+00	\N	\N	\N	\N	47326de3-1bd9-4bd2-ad13-ce51e26afc73
-26	019aefad-6832-c138-cbf2-28ffc35dfdd3	\N	ACCOUNT	INACTIVE_ON_SITE	\N	\N	\N	\N	\N	\N	\N	\N	2025-12-05 18:24:53.858519+00	2025-12-05 18:24:53.858519+00	\N	\N	\N	\N	47326de3-1bd9-4bd2-ad13-ce51e26afc73
-27	019aefad-6832-c138-cbf2-28ffc35dfdd3	\N	ACCOUNT	ACTIVE_ON_SITE	2	\N	\N	\N	\N	\N	\N	\N	2025-12-05 18:24:59.355236+00	2025-12-05 18:24:59.355236+00	\N	\N	\N	\N	47326de3-1bd9-4bd2-ad13-ce51e26afc73
-28	019aefad-6832-c138-cbf2-28ffc35dfdd3	\N	ACCOUNT	INACTIVE_ON_SITE	\N	\N	\N	\N	\N	\N	\N	\N	2025-12-05 18:25:01.031962+00	2025-12-05 18:25:01.031962+00	\N	\N	\N	\N	47326de3-1bd9-4bd2-ad13-ce51e26afc73
-29	019aefad-6832-c138-cbf2-28ffc35dfdd3	\N	ACCOUNT	ACTIVE_ON_SITE	2	\N	\N	\N	\N	\N	\N	\N	2025-12-05 18:25:03.897523+00	2025-12-05 18:25:03.897523+00	\N	\N	\N	\N	47326de3-1bd9-4bd2-ad13-ce51e26afc73
-30	019aefad-6832-c138-cbf2-28ffc35dfdd3	\N	ACCOUNT	ACTIVE_ON_SITE	2	\N	\N	\N	\N	\N	\N	\N	2025-12-05 18:36:25.661027+00	2025-12-05 18:36:25.661027+00	\N	\N	\N	\N	47326de3-1bd9-4bd2-ad13-ce51e26afc73
-31	019aefad-6832-c138-cbf2-28ffc35dfdd3	\N	ACCOUNT	PASSIVE_ON_SITE	2	\N	\N	\N	\N	\N	\N	\N	2025-12-05 18:36:28.173328+00	2025-12-05 18:36:28.173328+00	\N	\N	\N	\N	47326de3-1bd9-4bd2-ad13-ce51e26afc73
-32	019aefad-6832-c138-cbf2-28ffc35dfdd3	\N	ACCOUNT	INACTIVE_ON_SITE	\N	\N	\N	\N	\N	\N	\N	\N	2025-12-05 18:36:38.130814+00	2025-12-05 18:36:38.130814+00	\N	\N	\N	\N	47326de3-1bd9-4bd2-ad13-ce51e26afc73
 \.
 
 
@@ -8485,7 +8452,6 @@ COPY upchieve.user_product_flags (user_id, sent_ready_to_coach_email, sent_hour_
 01919662-885c-a174-3088-998111f7cc80	f	f	f	f	f	f	2024-08-28 00:28:45.535987+00	2024-08-28 00:28:45.535987+00	f	f	\N	\N	\N	{}
 0198c4d0-34aa-ef79-20b5-f1c6245c0b7c	f	f	f	f	f	f	2025-08-20 00:10:36.035748+00	2025-08-20 00:10:36.035748+00	f	f	\N	\N	\N	{}
 0198c4d1-f405-a71a-931c-e94965191c0a	f	f	f	f	f	f	2025-08-20 00:12:30.562089+00	2025-08-20 00:12:30.562089+00	f	f	\N	\N	\N	{}
-019aefad-6832-c138-cbf2-28ffc35dfdd3	f	f	f	f	f	f	2025-12-05 18:01:50.416873+00	2025-12-05 18:01:50.416873+00	f	f	\N	\N	\N	{}
 \.
 
 
@@ -8552,8 +8518,6 @@ COPY upchieve.users_certifications (user_id, certification_id, created_at, updat
 01919662-8804-9ccc-4601-1e98c09c946b	11	2024-08-28 00:28:45.510522+00	2024-08-28 00:28:45.510522+00
 01919662-8804-9ccc-4601-1e98c09c946b	19	2024-08-28 00:28:45.511876+00	2024-08-28 00:28:45.511876+00
 01919662-8804-9ccc-4601-1e98c09c946b	18	2024-08-28 00:28:45.51322+00	2024-08-28 00:28:45.51322+00
-019aefad-6832-c138-cbf2-28ffc35dfdd3	16	2025-12-05 18:03:01.640612+00	2025-12-05 18:03:01.640612+00
-019aefad-6832-c138-cbf2-28ffc35dfdd3	1	2025-12-05 18:03:01.640612+00	2025-12-05 18:03:01.640612+00
 \.
 
 
@@ -8614,7 +8578,6 @@ COPY upchieve.users_quizzes (user_id, quiz_id, attempts, passed, created_at, upd
 01919662-8804-9ccc-4601-1e98c09c946b	11	1	t	2024-08-28 00:28:45.530678+00	2024-08-28 00:28:45.530678+00
 01919662-8804-9ccc-4601-1e98c09c946b	19	1	t	2024-08-28 00:28:45.531015+00	2024-08-28 00:28:45.531015+00
 01919662-8804-9ccc-4601-1e98c09c946b	18	1	t	2024-08-28 00:28:45.531326+00	2024-08-28 00:28:45.531326+00
-019aefad-6832-c138-cbf2-28ffc35dfdd3	16	1	t	2025-12-05 18:03:01.640612+00	2025-12-05 18:03:01.640612+00
 \.
 
 
@@ -8634,7 +8597,6 @@ COPY upchieve.users_roles (user_id, role_id, created_at, updated_at) FROM stdin;
 01919662-885c-a174-3088-998111f7cc80	1	2024-08-28 00:28:45.536315+00	2024-08-28 00:28:45.536315+00
 0198c4d0-34aa-ef79-20b5-f1c6245c0b7c	4	2025-08-20 00:10:36.035748+00	2025-08-20 00:10:36.035748+00
 0198c4d1-f405-a71a-931c-e94965191c0a	4	2025-08-20 00:12:30.562089+00	2025-08-20 00:12:30.562089+00
-019aefad-6832-c138-cbf2-28ffc35dfdd3	2	2025-12-05 18:01:50.410857+00	2025-12-05 18:01:50.410857+00
 \.
 
 
@@ -8670,7 +8632,6 @@ COPY upchieve.users_surveys_submissions (user_survey_id, survey_question_id, sur
 --
 
 COPY upchieve.users_training_courses (user_id, training_course_id, complete, progress, completed_materials, created_at, updated_at) FROM stdin;
-019aefad-6832-c138-cbf2-28ffc35dfdd3	2	f	80	{UPCHIEVE_TRAINING-INTRODUCTION,UPCHIEVE_TRAINING-IMPLEMENTING_EFFECTIVE_COACHING_STRATEGIES,UPCHIEVE_TRAINING-ACADEMIC_INTEGRITY,UPCHIEVE_TRAINING-DEI}	2025-12-05 18:06:16.581615+00	2025-12-05 18:06:21.328078+00
 \.
 
 
@@ -8713,7 +8674,6 @@ COPY upchieve.volunteer_profiles (user_id, volunteer_partner_org_id, timezone, a
 01919662-8804-29c4-5ff7-cb6803c09fa6	\N	America/New_York	t	f	\N	\N	\N	Volunteer College	\N	\N	\N	\N	\N	\N	2024-08-28 00:28:45.455818+00	2024-08-28 00:28:45.455818+00	\N	\N
 01919662-8804-9826-da53-f1b2a1e53205	\N	America/New_York	f	f	\N	\N	\N	Volunteer College	\N	\N	\N	\N	\N	\N	2024-08-28 00:28:45.456156+00	2024-08-28 00:28:45.456156+00	\N	\N
 01919662-8804-cc87-1ee3-90a35b65414d	\N	America/New_York	t	t	\N	\N	\N		\N	\N	\N	\N	\N	\N	2024-08-28 00:28:45.456518+00	2024-08-28 00:28:45.456518+00	\N	\N
-019aefad-6832-c138-cbf2-28ffc35dfdd3	\N	\N	f	f	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	2025-12-05 18:01:50.402827+00	2025-12-05 18:01:50.402827+00	\N	\N
 \.
 
 
@@ -8778,7 +8738,7 @@ SELECT pg_catalog.setval('upchieve.grade_levels_id_seq', 9, true);
 -- Name: ip_addresses_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.ip_addresses_id_seq', 24, true);
+SELECT pg_catalog.setval('upchieve.ip_addresses_id_seq', 1, true);
 
 
 --
@@ -9002,7 +8962,7 @@ SELECT pg_catalog.setval('upchieve.training_courses_id_seq', 2, true);
 -- Name: user_actions_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.user_actions_id_seq', 32, true);
+SELECT pg_catalog.setval('upchieve.user_actions_id_seq', 1, true);
 
 
 --
