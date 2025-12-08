@@ -19,12 +19,10 @@ export async function getCourse(
     completedMaterials: string[]
   }
 > {
-  const volunteerTrainingCourses = await getVolunteerTrainingCourses(
-    volunteer.id
-  )
-  const foundCourse = volunteerTrainingCourses[courseKey]
+  const userTrainingCourses = await getVolunteerTrainingCourses(volunteer.id)
+  const foundCourse = userTrainingCourses[courseKey]
   // if the volunteer has no progress so far make a blank
-  const volunteerCourse = foundCourse || {
+  const userCourse = foundCourse || {
     complete: false,
     completedMaterials: [],
     progress: 0,
@@ -36,17 +34,15 @@ export async function getCourse(
   )
   course.modules.forEach((mod: any) => {
     mod.materials.forEach((mat: any) => {
-      mat.isCompleted = volunteerCourse.completedMaterials.includes(
-        mat.materialKey
-      )
+      mat.isCompleted = userCourse.completedMaterials.includes(mat.materialKey)
     })
   })
 
   return {
     ...course,
-    isComplete: volunteerCourse.complete,
-    progress: volunteerCourse.progress,
-    completedMaterials: volunteerCourse.completedMaterials,
+    isComplete: userCourse.complete,
+    progress: userCourse.progress,
+    completedMaterials: userCourse.completedMaterials,
   }
 }
 
