@@ -53,6 +53,7 @@ export async function getCourse(
 interface CourseProgress {
   progress: number
   isComplete: boolean
+  completedMaterialKeys: string[]
 }
 export async function recordProgress(
   volunteer: UserContactInfo,
@@ -111,11 +112,13 @@ export async function recordProgress(
       return {
         progress: updated.progress,
         isComplete: updated.complete,
+        completedMaterialKeys,
       }
     }
     return {
       progress: volunteerCourse.progress,
       isComplete: volunteerCourse.progress === 100,
+      completedMaterialKeys,
     }
   })
 }
