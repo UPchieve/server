@@ -13,6 +13,7 @@ import {
 import { mocked } from 'jest-mock'
 import { TrainingCourse } from '../../models/Volunteer'
 import { hasCompletedVolunteerTraining } from '../../services/VolunteerService'
+import { QuizInfo } from '../../models/Volunteer'
 
 jest.mock('../../models/Volunteer')
 jest.mock('../../services/QueueService', () => ({
@@ -35,8 +36,6 @@ const mockVolunteer = {
   subjects: ['algebraOne'],
   availabilityLastModifiedAt: new Date(),
 }
-const mockIp = 'mock-ip'
-const tc = {} as TransactionClient
 const COMPLETED_TRAINING_COURSE: Omit<TrainingCourse, 'trainingCourse'> = {
   userId: mockVolunteer.id,
   complete: true,
@@ -46,9 +45,32 @@ const COMPLETED_TRAINING_COURSE: Omit<TrainingCourse, 'trainingCourse'> = {
   updatedAt: new Date(),
   isComplete: true,
 }
+const mockIp = 'mock-ip'
+const tc = {} as TransactionClient
 
 beforeEach(() => {
   jest.clearAllMocks()
+
+  mockedVolunteerRepo.getVolunteerTrainingCourses.mockResolvedValue({
+    [TRAINING.UPCHIEVE_101]: {
+      userId: mockVolunteer.id,
+      complete: true,
+      trainingCourse: TRAINING.UPCHIEVE_101,
+      progress: 100,
+      completedMaterials: [],
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      isComplete: true,
+    },
+  })
+  mockedVolunteerRepo.getQuizzesForVolunteers.mockResolvedValue({
+    [mockVolunteer.id]: {
+      [TRAINING_QUIZZES.LEGACY_UPCHIEVE_101]: {
+        passed: true,
+        tries: 1,
+      },
+    },
+  })
 })
 
 describe('hasCompletedVolunteerTraining', () => {
@@ -121,6 +143,28 @@ describe('hasCompletedVolunteerTraining', () => {
     jest.resetAllMocks()
   })
 
+  test('Is true if all the quizzes are passed', async () => {
+    // Incomplete legacy training
+    mockedVolunteerRepo.getVolunteerTrainingCourses.mockResolvedValue({
+      [TRAINING.UPCHIEVE_101]: {
+        ...COMPLETED_TRAINING_COURSE,
+        complete: false,
+        isComplete: false,
+        progress: 50,
+        trainingCourse: TRAINING.UPCHIEVE_101,
+      },
+    })
+    mockedVolunteerRepo.getQuizzesForVolunteers.mockResolvedValue({
+      [mockVolunteer.id]: {
+        [TRAINING_QUIZZES.ACADEMIC_INTEGRITY]: { ...passedQuiz },
+        [TRAINING_QUIZZES.COACHING_STRATEGIES]: { ...passedQuiz },
+        [TRAINING_QUIZZES.COMMUNITY_SAFETY]: { ...passedQuiz },
+        [TRAINING_QUIZZES.DEI]: { ...passedQuiz },
+      },
+    })
+    const actual = await hasCompletedVolunteerTraining(mockVolunteer.id)
+    expect(actual).toEqual(true)
+  })
   test('Is true if all the quizzes are passed', async () => {
     // Incomplete legacy training
     mockedVolunteerRepo.getVolunteerTrainingCourses.mockResolvedValue({
