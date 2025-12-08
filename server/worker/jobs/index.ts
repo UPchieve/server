@@ -518,8 +518,10 @@ export const addJobProcessors = (queue: Queue): void => {
               logger.info(loggingContext, `Completed job: ${job.name}`)
             } catch (error) {
               logger.error(
-                error,
-                loggingContext,
+                {
+                  err: error,
+                  ...loggingContext,
+                },
                 `Error processing job: ${job.name}`
               )
               throw error

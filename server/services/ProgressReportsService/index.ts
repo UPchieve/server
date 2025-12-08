@@ -334,7 +334,7 @@ export async function generateProgressReportForUser(
   })
 
   if (!reportId)
-    throw new Error(`Failed to save a ${filter.subject} progress report`)
+    throw new Error(`Failed to save a ${filter.subject}progress report`)
 
   const report = await getProgressReportForReport(reportId)
   return report
