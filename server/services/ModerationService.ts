@@ -1790,7 +1790,7 @@ const getSessionTranscriptModerationResult = async (
 async function getModerationConfidenceThresholds(
   moderationCategory: string,
   moderationType: ModerationConfidenceThresholdsRepo.ModerationType
-): Promise<string> {
+): Promise<Number> {
   return await ModerationConfidenceThresholdsRepo.getConfidenceTreshold(
     moderationCategory,
     moderationType
@@ -1871,7 +1871,7 @@ export const moderateTranscript = async (
     results.flatMap((result) => result.reasons)
   )
 
-  const confidenceThresholdMap = new Map<string, string>()
+  const confidenceThresholdMap = new Map<string, Number>()
 
   await Promise.all(
     Array.from(allReasons).map(async (reason) => {
@@ -1884,7 +1884,7 @@ export const moderateTranscript = async (
       } catch (error) {
         confidenceThresholdMap.set(
           reason,
-          config.contextualModerationConfidenceThreshold as unknown as string
+          config.contextualModerationConfidenceThreshold
         )
       }
     })

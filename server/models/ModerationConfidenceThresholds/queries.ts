@@ -10,7 +10,7 @@ export async function getConfidenceTreshold(
   moderationCategory: string,
   moderationType: ModerationType,
   client: TransactionClient = getClient()
-): Promise<string> {
+): Promise<Number> {
   try {
     const result = await pgQueries.getConfidenceThreshold.run(
       {
@@ -20,10 +20,9 @@ export async function getConfidenceTreshold(
       client
     )
 
-    if (!result.length)
-      return config.contextualModerationConfidenceThreshold as unknown as string
+    if (!result.length) return config.contextualModerationConfidenceThreshold
 
-    return makeRequired(result[0]).threshold
+    return Number(makeRequired(result[0]).threshold)
   } catch (err) {
     throw new RepoReadError(err)
   }
