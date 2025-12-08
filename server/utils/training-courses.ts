@@ -705,7 +705,7 @@ export const courses: TrainingCourse[] = [
     name: 'UPchieve Training',
     courseKey: 'upchieveTraining',
     description:
-      "UPchieve101 will teach you everything you need to know to start helping students achieve their academic goals! You'll need to pass a short quiz at the end in order to be ready to coach.",
+      "UPchieve Training will teach you everything you need to know to start helping students achieve their academic goals! You'll need to pass a short quiz at the end in order to be ready to coach.",
     requiredCertifications: [
       TRAINING_QUIZZES.COACHING_STRATEGIES,
       TRAINING_QUIZZES.COMMUNITY_SAFETY,
