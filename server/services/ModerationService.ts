@@ -1914,6 +1914,7 @@ where 'message' is the message provided between XML tags, 'appropriate' is a dec
 Acceptable values for the elements of the 'reasons' array are:
 - "profanity" - Use this reason when the message is inappropriate due to profanity.
 - "hateful_language" - Use this reason when the message is inappropriate due to hateful language.
+- "rude" - Use this reason when the message is rude, disrespectful, or contains personal attacks.
 - "email" - Use this reason when the message is inappropriate because it includes an email address
 - "phone" - Use this reason when the message is inappropriate because it includes a phone number
 - "other_contact_info" - Use this reason when the message is inappropriate because it includes other forms of contact information, such as social media handles, hints to a participant's physical location, etc
@@ -1925,7 +1926,8 @@ Acceptable values for the elements of the 'reasons' array are:
 - Links to common text-based collaboration tools (like Google Docs) that are shared for the purpose of reviewing school assignments
 - Direct quotes from literature
 - Profanity that is likely just a typo. In this event, prefer flagging the message as appropriate instead of inappropriate if and only if the context of the message indicates it was likely a mistake.
-</exceptions>`
+</exceptions>
+`
 
 const FALLBACK_TRANSCRIPT_MODERATION_PROMPT = `
 You are a Trust & Safety expert. Your job is to review a tutoring conversation between a student and volunteer tutor on a platform called UPchieve and decide if it violates any policies. The platform has built-in support for written chat messages, voice chat, and collaborative document editor and whiteboard.
@@ -1934,20 +1936,28 @@ Policies are described in the <policy> tags, and each has a name to be returned 
 Given a chunk of the conversation, provide a confidence rating from 0 to 100 to quantify your confidence that the conversation is inappropriate, where 100 means maximally confident that the conversation is inappropriate.
 <policy><name>HATE_SPEECH</name>No hate speech</policy>
 <policy><name>INAPPROPRIATE_CONTENT</name>No sexual or flirtatious content</policy>
+<policy><name>RUDE</name>No rude or disrespectful messages and no personal attacks</policy>
 <policy><name>PLATFORM_CIRCUMVENTION</name>No circumventing the platform by communicating outside of it OR expressing intent to. This includes sharing contact information such as email addresses, usernames for other apps, phone numbers, etc.
 <exception>Links to external collaborative editors (e.g. whiteboards and document editors) are OK as long as they are shared with the intent of facilitating tutoring AND used in a read-only capacity; all work must be done on the platform.</exception>
 <exception>The platform has its own direct messaging feature that is an appropriate mode of communication as long as the intended use is still to facilitate tutoring.</exception>
 <exception>It is acceptable to agree on a time to meet to do another tutoring session as long as it is on the platform.</exception>
 <exception>It is acceptable for a party to mention that they know someone that can help. For example: "I know several retired profs who can help you if necessary." or "Oh I know one of the deans there!" or "I think I know a prof who may have a research spot for you!" These examples are okay, especially when the subject is college counseling</exception>
-<exception>It is acceptable for a volunteer to suggest requesting another session and/or to suggest sending a direct message on the platform.</exception>
+<exception>It is acceptable for a student to talk about their school as long as they don't specifically mention the name, address, or location of the school. For example: "my school" or "our school" or similar.<exception>
 </policy>
 <policy><name>PII</name>No sharing personally identifiable information such as one's school, place of employment, address, contact information, etc.
 <exception>Grade level and first names are already known to both participants.</exception>
 <exception>If the tutoring session is focused on college applications and college essays, it is appropriate to share information about the college or minor personal information if it is relevant to the student's applications. NO contact information should be shared, nor the student's school.</exception>
 <exception>It is acceptable for a party to mention that they know someone that can help. For example: "I know several retired profs who can help you if necessary." or "Oh I know one of the deans there!" or "I think I know a prof who may have a research spot for you!" These examples are okay, especially when the subject is college counseling</exception>
-<exception>It is acceptable for a student to talk about their school as long as they don't specifically mention the name, address, or location of the school. For example: "my school" or "our school" or similar.<exception>
+<exception>It is acceptable for a volunteer to suggest requesting another session and/or to suggest sending a direct message on the platform.</exception>
 </policy>
-<policy><name>SAFETY</name>Threats of harm to oneself or others and dangerous situations should be flagged.</policy>
+<policy><name>SAFETY</name>
+Any of the following should be flagged:
+(1) A user mentions wanting to hurt themselves or not wanting to live.
+(2) A user describes being harmed, abused, or neglected.
+(3) A user makes a credible threat to harm others.
+(4) A user discloses sexual exploitation, drug use, or other high-risk behavior
+(5) A user mentions knowledge of a credit threat by someone else (school shooting, etc)
+</policy>
 Provide your response in this JSON format: "{ confidence: number, explanation: string, reasons: string[], flaggedMessages: string[] }". If you have a confidence of 0, your explanation should be an empty string and the reasons and flaggedMessages properties should be empty arrays. Otherwise, reasons should be the names of all violated policies and flaggedMessages should be the exact messages that violate the policies (including their original tags).
 `
 
