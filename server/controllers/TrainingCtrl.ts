@@ -1,14 +1,7 @@
 import _ from 'lodash'
 import { captureEvent } from '../services/AnalyticsService'
-import {
-  TRAINING,
-  SUBJECT_TYPES,
-  QUIZ_USER_ACTIONS,
-  EVENTS,
-  TRAINING_QUIZZES,
-} from '../constants'
+import { QUIZ_USER_ACTIONS, EVENTS, TRAINING_QUIZZES } from '../constants'
 import { createQuizAction } from '../models/UserAction'
-import { createContact } from '../services/MailService'
 import { Quizzes } from '../models/Volunteer'
 import * as VolunteerService from '../services/VolunteerService'
 import * as QuestionModel from '../models/Question'
@@ -16,7 +9,6 @@ import * as UserModel from '../models/User'
 import * as VolunteerModel from '../models/Volunteer'
 import { asString } from '../utils/type-utils'
 import { runInTransaction, TransactionClient } from '../db'
-import logger from '../logger'
 import config from '../config'
 
 export async function getQuestions(
@@ -158,13 +150,6 @@ export async function getQuizScore(
       correctAnswers[question.id] = question.correctAnswer
       return correctAnswers
     }, {} as AnswerMap)
-
-    try {
-      // @TODO - Update me. But also, why are we creating the SendGrid contact here...?
-      if (quiz === TRAINING.UPCHIEVE_101) await createContact(user.id)
-    } catch (err) {
-      logger.error('Cannot create sendgrid contact: ' + err)
-    }
 
     return {
       tries,
