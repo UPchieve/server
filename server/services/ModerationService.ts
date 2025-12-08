@@ -1787,10 +1787,10 @@ const getSessionTranscriptModerationResult = async (
   return moderationResult
 }
 
-const getModerationConfidenceThresholds = async (
+async function getModerationConfidenceThresholds(
   moderationCategory: string,
   moderationType: ModerationConfidenceThresholdsRepo.ModerationType
-): Promise<string> => {
+): Promise<string> {
   return await ModerationConfidenceThresholdsRepo.getConfidenceTreshold(
     moderationCategory,
     moderationType
