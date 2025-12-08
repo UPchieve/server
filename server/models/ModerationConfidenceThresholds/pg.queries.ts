@@ -1,30 +1,40 @@
-/** Types generated for queries found in "server/models/ModerationConfidenceThresholds/confidene_thresholds.sql" */
+/** Types generated for queries found in "server/models/ModerationConfidenceThresholds/confidence_thresholds.sql" */
 import { PreparedQuery } from '@pgtyped/runtime';
 
-/** 'GetConfidenceRating' parameters type */
-export interface IGetConfidenceRatingParams {
-  flagReason: string;
+export type moderation_types = 'contextual' | 'realtime_image';
+
+/** 'GetConfidenceThreshold' parameters type */
+export interface IGetConfidenceThresholdParams {
+  moderationCategory: string;
+  moderationType: moderation_types;
 }
 
-/** 'GetConfidenceRating' return type */
-export interface IGetConfidenceRatingResult {
-  confidenceRating: number;
+/** 'GetConfidenceThreshold' return type */
+export interface IGetConfidenceThresholdResult {
+  threshold: string | null;
 }
 
-/** 'GetConfidenceRating' query type */
-export interface IGetConfidenceRatingQuery {
-  params: IGetConfidenceRatingParams;
-  result: IGetConfidenceRatingResult;
+/** 'GetConfidenceThreshold' query type */
+export interface IGetConfidenceThresholdQuery {
+  params: IGetConfidenceThresholdParams;
+  result: IGetConfidenceThresholdResult;
 }
 
-const getConfidenceRatingIR: any = {"usedParamSet":{"flagReason":true},"params":[{"name":"flagReason","required":true,"transform":{"type":"scalar"},"locs":[{"a":94,"b":105}]}],"statement":"SELECT confidence_rating FROM contextual_moderation_confidence_thresholds WHERE flag_reason = :flagReason!"};
+const getConfidenceThresholdIR: any = {"usedParamSet":{"moderationCategory":true,"moderationType":true},"params":[{"name":"moderationCategory","required":true,"transform":{"type":"scalar"},"locs":[{"a":165,"b":184}]},{"name":"moderationType","required":true,"transform":{"type":"scalar"},"locs":[{"a":215,"b":230}]}],"statement":"SELECT\n    ms.threshold\nFROM\n    upchieve.moderation_settings ms\n    JOIN upchieve.moderation_categories mc ON ms.moderation_category_id = mc.id\nWHERE\n    mc.name = :moderationCategory!\n    AND ms.moderation_type = :moderationType!"};
 
 /**
  * Query generated from SQL:
  * ```
- * SELECT confidence_rating FROM contextual_moderation_confidence_thresholds WHERE flag_reason = :flagReason!
+ * SELECT
+ *     ms.threshold
+ * FROM
+ *     upchieve.moderation_settings ms
+ *     JOIN upchieve.moderation_categories mc ON ms.moderation_category_id = mc.id
+ * WHERE
+ *     mc.name = :moderationCategory!
+ *     AND ms.moderation_type = :moderationType!
  * ```
  */
-export const getConfidenceRating = new PreparedQuery<IGetConfidenceRatingParams,IGetConfidenceRatingResult>(getConfidenceRatingIR);
+export const getConfidenceThreshold = new PreparedQuery<IGetConfidenceThresholdParams,IGetConfidenceThresholdResult>(getConfidenceThresholdIR);
 
 

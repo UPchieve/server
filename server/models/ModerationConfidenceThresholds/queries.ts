@@ -4,21 +4,26 @@ import * as pgQueries from './pg.queries'
 import { RepoReadError } from '../Errors'
 import { makeRequired } from '../pgUtils'
 
-export async function getConfidenceRating(
-  flagReason: string,
+export type ModerationType = 'contextual' | 'realtime_image'
+
+export async function getConfidenceTreshold(
+  moderationCategory: string,
+  moderationType: ModerationType,
   client: TransactionClient = getClient()
-): Promise<number> {
+): Promise<string> {
   try {
-    const result = await pgQueries.getConfidenceRating.run(
+    const result = await pgQueries.getConfidenceThreshold.run(
       {
-        flagReason,
+        moderationCategory,
+        moderationType,
       },
       client
     )
 
-    if (!result.length) return config.contextualModerationConfidenceThreshold
+    if (!result.length)
+      return config.contextualModerationConfidenceThreshold as unknown as string
 
-    return makeRequired(result[0]).confidenceRating
+    return makeRequired(result[0]).threshold
   } catch (err) {
     throw new RepoReadError(err)
   }

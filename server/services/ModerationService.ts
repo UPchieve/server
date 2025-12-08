@@ -1788,10 +1788,12 @@ const getSessionTranscriptModerationResult = async (
 }
 
 const getModerationConfidenceThresholds = async (
-  flagReason: string
-): Promise<number> => {
-  return await ModerationConfidenceThresholdsRepo.getConfidenceRating(
-    flagReason
+  moderationCategory: string,
+  moderationType: ModerationConfidenceThresholdsRepo.ModerationType
+): Promise<string> => {
+  return await ModerationConfidenceThresholdsRepo.getConfidenceTreshold(
+    moderationCategory,
+    moderationType
   )
 }
 
@@ -1869,17 +1871,20 @@ export const moderateTranscript = async (
     results.flatMap((result) => result.reasons)
   )
 
-  const confidenceThresholdMap = new Map<string, number>()
+  const confidenceThresholdMap = new Map<string, string>()
 
   await Promise.all(
     Array.from(allReasons).map(async (reason) => {
       try {
-        const threshold = await getModerationConfidenceThresholds(reason)
+        const threshold = await getModerationConfidenceThresholds(
+          reason,
+          'contextual'
+        )
         confidenceThresholdMap.set(reason, threshold)
       } catch (error) {
         confidenceThresholdMap.set(
           reason,
-          config.contextualModerationConfidenceThreshold
+          config.contextualModerationConfidenceThreshold as unknown as string
         )
       }
     })
@@ -1890,7 +1895,7 @@ export const moderateTranscript = async (
       const threshold =
         confidenceThresholdMap.get(reason) ??
         config.contextualModerationConfidenceThreshold
-      return result.confidence >= threshold
+      return result.confidence >= Number(threshold)
     })
   )
 
@@ -1907,7 +1912,7 @@ export const moderateTranscript = async (
         confidenceThresholdMap.get(reason) ??
         config.contextualModerationConfidenceThreshold
 
-      if (result.confidence >= threshold) {
+      if (result.confidence >= Number(threshold)) {
         flaggedReasons.add(reason)
         result.flaggedMessages.forEach((msg) => flaggedMessages.add(msg))
       }

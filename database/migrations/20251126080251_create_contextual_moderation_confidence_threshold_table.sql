@@ -9,3 +9,4 @@ CREATE TABLE upchieve.contextual_moderation_confidence_thresholds (
 
 -- migrate:down
 DROP TABLE IF EXISTS upchieve.contextual_moderation_confidence_thresholds CASCADE;
+
