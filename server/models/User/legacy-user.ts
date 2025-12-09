@@ -18,6 +18,7 @@ import {
   getQuizzesForVolunteers,
   getReferencesByVolunteer,
 } from '../Volunteer/queries'
+import { hasCompletedVolunteerTraining } from '../../services/VolunteerService'
 import { getUserSessionStats, UserSessionStats } from '../Session'
 import { getUsersLatestSubjectsByUserId } from './'
 import * as UserRolesService from '../../services/UserRolesService'
@@ -86,6 +87,7 @@ export type LegacyUserModel = {
   references?: Reference[]
   photoIdStatus?: string
   uniqueStudentsHelpedCount?: number
+  hasCompletedVolunteerTraining?: boolean
   // student
   gradeLevel?: GRADES
   schoolName?: string
@@ -211,6 +213,8 @@ export async function getLegacyUserObject(
           ...(await getQuizzesForVolunteers([userId], dbClient))[userId],
           ...(await getCertificationsForVolunteer([userId], dbClient))[userId],
         }
+        volunteerUser.hasCompletedVolunteerTraining =
+          await hasCompletedVolunteerTraining(userId, dbClient)
         const totalActiveCerts = Object.keys(
           (await getActiveQuizzesForVolunteers([userId], dbClient))[userId]
         ).length

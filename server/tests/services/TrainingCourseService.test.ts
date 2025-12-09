@@ -74,6 +74,7 @@ describe('TrainingCourseService', () => {
       expect(result).toEqual({
         isComplete,
         progress,
+        completedMaterialKeys: [materialKey],
       })
     })
 
@@ -105,6 +106,7 @@ describe('TrainingCourseService', () => {
       expect(result).toEqual({
         isComplete,
         progress,
+        completedMaterialKeys: [materialKey],
       })
     })
 
@@ -150,6 +152,7 @@ describe('TrainingCourseService', () => {
       expect(result).toEqual({
         isComplete,
         progress: endingProgress,
+        completedMaterialKeys: [materialKey, newMaterialKey],
       })
     })
   })

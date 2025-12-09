@@ -13,7 +13,6 @@ import {
 import { mocked } from 'jest-mock'
 import { TrainingCourse } from '../../models/Volunteer'
 import { hasCompletedVolunteerTraining } from '../../services/VolunteerService'
-import { QuizInfo } from '../../models/Volunteer'
 
 jest.mock('../../models/Volunteer')
 jest.mock('../../services/QueueService', () => ({
@@ -78,17 +77,16 @@ describe('hasCompletedVolunteerTraining', () => {
     passed: true,
     tries: 1,
   }
-  const failedQuiz = { ...passedQuiz, passed: false }
 
-  test('Is true if the legacy training is complete', async () => {
-    mockedVolunteerRepo.getVolunteerTrainingCourses.mockResolvedValue({
-      [TRAINING.UPCHIEVE_101]: {
-        ...COMPLETED_TRAINING_COURSE,
-        trainingCourse: TRAINING.UPCHIEVE_101,
+  beforeEach(() => {
+    mockedVolunteerRepo.getQuizzesForVolunteers.mockResolvedValue({
+      [mockVolunteer.id]: {
+        [TRAINING_QUIZZES.LEGACY_UPCHIEVE_101]: {
+          passed: false,
+          tries: 1,
+        },
       },
     })
-    const actual = await hasCompletedVolunteerTraining(mockVolunteer.id)
-    expect(actual).toEqual(true)
   })
 
   test('Is true if the legacy training quiz is passed', async () => {
@@ -113,59 +111,18 @@ describe('hasCompletedVolunteerTraining', () => {
     expect(actual).toEqual(true)
   })
 
-  test('Is false if all the quizzes have been attempted but not all passed', async () => {
-    const testAndAssert = async (expectedValue: boolean) => {
-      const actual = await hasCompletedVolunteerTraining(mockVolunteer.id)
-      expect(actual).toEqual(expectedValue)
-    }
-
-    // Incomplete legacy training
-    mockedVolunteerRepo.getVolunteerTrainingCourses.mockResolvedValue({
-      [TRAINING.UPCHIEVE_101]: {
-        ...COMPLETED_TRAINING_COURSE,
-        complete: false,
-        isComplete: false,
-        progress: 50,
-        trainingCourse: TRAINING.UPCHIEVE_101,
-      },
-    })
-
-    // Only 1 of the quizzes passed, the rest failed
-    mockedVolunteerRepo.getQuizzesForVolunteers.mockResolvedValue({
+  test('Is false if missing some of the certs', async () => {
+    mockedVolunteerRepo.getCertificationsForVolunteer.mockResolvedValue({
       [mockVolunteer.id]: {
         [TRAINING_QUIZZES.ACADEMIC_INTEGRITY]: { ...passedQuiz },
-        [TRAINING_QUIZZES.COACHING_STRATEGIES]: { ...failedQuiz },
-        [TRAINING_QUIZZES.COMMUNITY_SAFETY]: { ...failedQuiz },
-        [TRAINING_QUIZZES.DEI]: { ...failedQuiz },
-      },
-    })
-    await testAndAssert(false)
-    jest.resetAllMocks()
-  })
-
-  test('Is true if all the quizzes are passed', async () => {
-    // Incomplete legacy training
-    mockedVolunteerRepo.getVolunteerTrainingCourses.mockResolvedValue({
-      [TRAINING.UPCHIEVE_101]: {
-        ...COMPLETED_TRAINING_COURSE,
-        complete: false,
-        isComplete: false,
-        progress: 50,
-        trainingCourse: TRAINING.UPCHIEVE_101,
-      },
-    })
-    mockedVolunteerRepo.getQuizzesForVolunteers.mockResolvedValue({
-      [mockVolunteer.id]: {
-        [TRAINING_QUIZZES.ACADEMIC_INTEGRITY]: { ...passedQuiz },
-        [TRAINING_QUIZZES.COACHING_STRATEGIES]: { ...passedQuiz },
-        [TRAINING_QUIZZES.COMMUNITY_SAFETY]: { ...passedQuiz },
-        [TRAINING_QUIZZES.DEI]: { ...passedQuiz },
       },
     })
     const actual = await hasCompletedVolunteerTraining(mockVolunteer.id)
-    expect(actual).toEqual(true)
+    expect(actual).toEqual(false)
+    jest.resetAllMocks()
   })
-  test('Is true if all the quizzes are passed', async () => {
+
+  test('Is true if they have all the required certifications', async () => {
     // Incomplete legacy training
     mockedVolunteerRepo.getVolunteerTrainingCourses.mockResolvedValue({
       [TRAINING.UPCHIEVE_101]: {
@@ -176,7 +133,7 @@ describe('hasCompletedVolunteerTraining', () => {
         trainingCourse: TRAINING.UPCHIEVE_101,
       },
     })
-    mockedVolunteerRepo.getQuizzesForVolunteers.mockResolvedValue({
+    mockedVolunteerRepo.getCertificationsForVolunteer.mockResolvedValue({
       [mockVolunteer.id]: {
         [TRAINING_QUIZZES.ACADEMIC_INTEGRITY]: { ...passedQuiz },
         [TRAINING_QUIZZES.COACHING_STRATEGIES]: { ...passedQuiz },

@@ -27,7 +27,7 @@ RUN if [ -n "$ZWIBBLER_NODE_URL" ]; then \
       wget -q "$ZWIBBLER_NODE_URL" -O vendors/zwibbler-node.js; \
     fi
 
-RUN npm run build:tsc
+RUN npm run build
 
 ENTRYPOINT ["doppler", "run", "--"]
 CMD ["npm", "run", "start"]
