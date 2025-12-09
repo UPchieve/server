@@ -1,14 +1,17 @@
 import { find, chain, cloneDeep } from 'lodash'
 import { Ulid } from '../models/pgUtils'
 import { getUsingOurPlatformFlag } from '../services/FeatureFlagService'
+import { TRAINING_QUIZZES } from '../constants'
 
 export interface TrainingCourse {
   name: string
   courseKey: string
   description: string
+  modules: TrainingModule[]
+  requiredCertifications: TRAINING_QUIZZES[]
+  // @TODO After deprecating the legacy training course (upchieve101), remove these props
   quizKey?: string
   quizName?: string
-  modules: TrainingModule[]
 }
 
 interface TrainingModule {
@@ -60,6 +63,7 @@ export const legacyCourses: TrainingCourse[] = [
     description: `UPchieve101 will teach you everything you need to know to start helping students achieve their academic goals! You'll need to pass a short quiz at the end in order to be ready to coach.`,
     quizKey: 'upchieve101',
     quizName: 'UPchieve 101 Quiz',
+    requiredCertifications: [],
     modules: [
       {
         name: 'Intro to UPchieve',
@@ -335,6 +339,7 @@ export const legacyCoursesv2: TrainingCourse[] = [
     name: 'UPchieve 101',
     courseKey: 'upchieve101',
     description: `UPchieve101 will teach you everything you need to know to start helping students achieve their academic goals! You'll need to pass a short quiz at the end in order to be ready to coach.`,
+    requiredCertifications: [],
     quizKey: 'upchieve101',
     quizName: 'UPchieve 101 Quiz',
     modules: [
@@ -630,6 +635,7 @@ export const courses: TrainingCourse[] = [
     name: 'UPchieve 101',
     courseKey: 'upchieve101',
     description: `UPchieve101 will teach you everything you need to know to start helping students achieve their academic goals! You'll need to pass a short quiz at the end in order to be ready to coach.`,
+    requiredCertifications: [],
     quizKey: 'upchieve101',
     quizName: 'UPchieve 101 Quiz',
     modules: [
@@ -699,7 +705,13 @@ export const courses: TrainingCourse[] = [
     name: 'UPchieve Training',
     courseKey: 'upchieveTraining',
     description:
-      "UPchieve101 will teach you everything you need to know to start helping students achieve their academic goals! You'll need to pass a short quiz at the end in order to be ready to coach.",
+      "UPchieve Training will teach you everything you need to know to start helping students achieve their academic goals! You'll need to pass a short quiz at the end in order to be ready to coach.",
+    requiredCertifications: [
+      TRAINING_QUIZZES.COACHING_STRATEGIES,
+      TRAINING_QUIZZES.COMMUNITY_SAFETY,
+      TRAINING_QUIZZES.DEI,
+      TRAINING_QUIZZES.ACADEMIC_INTEGRITY,
+    ],
     modules: [
       {
         name: 'Introduction',
