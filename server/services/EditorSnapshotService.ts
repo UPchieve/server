@@ -4,8 +4,8 @@ import { Uuid } from '../models/pgUtils'
 import { getBlobBuffer, uploadBlobBuffer } from './AzureService'
 import * as WhiteboardService from './WhiteboardService'
 
-// This feature depends on vendors/zwibbler-node.js, which is NOT open source.
-// That file is deliberately gitignored and is provided at build/deploy time.
+// This feature depends on vendors/zwibbler-node.js, which is NOT open source
+// That file is gitignored and is provided at build/deploy time
 type Zwibbler = {
   save(doc: string, format: string): Promise<string>
 }
@@ -43,12 +43,8 @@ export async function generateWhiteboardSnapshot(
   try {
     const rawBinary: string = await zwibbler.save(whiteboardDoc, 'png')
     return Buffer.from(rawBinary, 'binary')
-    // Just let it throw naturally?
-  } catch (err) {
-    console.error(
-      '[EditorSnapshotService] Failed to render whiteboard snapshot:',
-      err
-    )
+  } catch (error) {
+    logger.error('Failed to render whiteboard snapshot: ', error)
     return
   }
 }
@@ -84,7 +80,6 @@ export async function getWhiteboardSnapshot(sessionId: Uuid) {
   if (!whiteboardDoc)
     throw new Error(`No whiteboard document found for session ${sessionId}`)
 
-  // If no snapshot can be generated, we should not include it into the progress-report?
   snapshot = await generateWhiteboardSnapshot(whiteboardDoc)
   if (!snapshot) return
 
