@@ -406,46 +406,36 @@ export async function hasCompletedVolunteerTraining(
   userId: Ulid,
   tc: TransactionClient = getClient()
 ): Promise<boolean> {
-  // Case 1: Passed the legacy training course
-  const trainingCourses = await VolunteerRepo.getVolunteerTrainingCourses(
-    userId,
-    tc
-  )
-  const completedLegacyCourse =
-    !!trainingCourses[TRAINING.UPCHIEVE_101]?.complete
-  if (completedLegacyCourse) return completedLegacyCourse
-
-  // Case 2: Passed the legacy training quiz
+  // Case 1: Passed the legacy training quiz
   const userQuizzes = (
     await VolunteerRepo.getQuizzesForVolunteers([userId], tc)
   )[userId]
-  const upchieve101Quiz = userQuizzes.hasOwnProperty(
-    TRAINING_QUIZZES.LEGACY_UPCHIEVE_101
-  )
-    ? userQuizzes[TRAINING_QUIZZES.LEGACY_UPCHIEVE_101]
-    : null
   const passedLegacyQuiz =
     userQuizzes[TRAINING_QUIZZES.LEGACY_UPCHIEVE_101]?.passed
   if (passedLegacyQuiz) return passedLegacyQuiz
 
-  // Case 3: Passed all the new training quizzes
-  const safetyQuiz = userQuizzes.hasOwnProperty(
+  // Case 2: Got all the new training certifications
+  const userCertifications = (
+    await VolunteerRepo.getCertificationsForVolunteer([userId], tc)
+  )[userId]
+
+  const safetyQuiz = userCertifications.hasOwnProperty(
     TRAINING_QUIZZES.COMMUNITY_SAFETY
   )
-    ? userQuizzes[TRAINING_QUIZZES.COMMUNITY_SAFETY]
+    ? userCertifications[TRAINING_QUIZZES.COMMUNITY_SAFETY]
     : null
-  const academicIntegrityQuiz = userQuizzes.hasOwnProperty(
+  const academicIntegrityQuiz = userCertifications.hasOwnProperty(
     TRAINING_QUIZZES.ACADEMIC_INTEGRITY
   )
-    ? userQuizzes[TRAINING_QUIZZES.ACADEMIC_INTEGRITY]
+    ? userCertifications[TRAINING_QUIZZES.ACADEMIC_INTEGRITY]
     : null
-  const deiQuiz = userQuizzes.hasOwnProperty(TRAINING_QUIZZES.DEI)
-    ? userQuizzes[TRAINING_QUIZZES.DEI]
+  const deiQuiz = userCertifications.hasOwnProperty(TRAINING_QUIZZES.DEI)
+    ? userCertifications[TRAINING_QUIZZES.DEI]
     : null
-  const coachingStrategiesQuiz = userQuizzes.hasOwnProperty(
+  const coachingStrategiesQuiz = userCertifications.hasOwnProperty(
     TRAINING_QUIZZES.COACHING_STRATEGIES
   )
-    ? userQuizzes[TRAINING_QUIZZES.COACHING_STRATEGIES]
+    ? userCertifications[TRAINING_QUIZZES.COACHING_STRATEGIES]
     : null
   const completedTraining =
     (safetyQuiz?.passed &&
