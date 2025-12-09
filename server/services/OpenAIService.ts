@@ -50,7 +50,10 @@ export async function invokeModel({
     if (results == null)
       throw new Error("Didn't get an expected OpenAI chat response")
   } catch (err) {
-    logger.warn(err, 'An unexpected OpenAI error occurred')
+    logger.warn(
+      { err, prompt, userMessage, responseType },
+      'An unexpected OpenAI error occurred'
+    )
     throw err
   }
 
