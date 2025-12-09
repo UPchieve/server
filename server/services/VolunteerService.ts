@@ -419,29 +419,29 @@ export async function hasCompletedVolunteerTraining(
     await VolunteerRepo.getCertificationsForVolunteer([userId], tc)
   )[userId]
 
-  const safetyQuiz = userCertifications.hasOwnProperty(
+  const safetyCert = userCertifications.hasOwnProperty(
     TRAINING_QUIZZES.COMMUNITY_SAFETY
   )
     ? userCertifications[TRAINING_QUIZZES.COMMUNITY_SAFETY]
     : null
-  const academicIntegrityQuiz = userCertifications.hasOwnProperty(
+  const academicIntegrityCert = userCertifications.hasOwnProperty(
     TRAINING_QUIZZES.ACADEMIC_INTEGRITY
   )
     ? userCertifications[TRAINING_QUIZZES.ACADEMIC_INTEGRITY]
     : null
-  const deiQuiz = userCertifications.hasOwnProperty(TRAINING_QUIZZES.DEI)
+  const deiCert = userCertifications.hasOwnProperty(TRAINING_QUIZZES.DEI)
     ? userCertifications[TRAINING_QUIZZES.DEI]
     : null
-  const coachingStrategiesQuiz = userCertifications.hasOwnProperty(
+  const coachingStrategiesCert = userCertifications.hasOwnProperty(
     TRAINING_QUIZZES.COACHING_STRATEGIES
   )
     ? userCertifications[TRAINING_QUIZZES.COACHING_STRATEGIES]
     : null
   const completedTraining =
-    (safetyQuiz?.passed &&
-      academicIntegrityQuiz?.passed &&
-      deiQuiz?.passed &&
-      coachingStrategiesQuiz?.passed) ||
+    (safetyCert?.passed &&
+      academicIntegrityCert?.passed &&
+      deiCert?.passed &&
+      coachingStrategiesCert?.passed) ||
     false
   return completedTraining
 }
