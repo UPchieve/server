@@ -330,7 +330,10 @@ export async function generateProgressReportForUser(
   })
 
   if (!reportId) {
-    logger.warn(`No ${filter.subject} progress report generated`)
+    logger.warn(
+      { userId, ...filter },
+      `No ${filter.subject} progress report generated`
+    )
     return null
   }
 
