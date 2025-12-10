@@ -367,7 +367,6 @@ export async function generateProgressReport(
   })
   gen.end({ output: result })
 
-  logger.info(`User: ${userId} received ProgressReport with response ${result}`)
   return result.results as ProgressReport
 }
 
