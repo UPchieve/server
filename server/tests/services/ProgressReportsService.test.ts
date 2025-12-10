@@ -2,6 +2,7 @@ import { mocked } from 'jest-mock'
 import * as ProgressReportsService from '../../services/ProgressReportsService'
 import { Ulid, getDbUlid, getUuid } from '../../models/pgUtils'
 import * as AnalyticsService from '../../services/AnalyticsService'
+import * as VisionService from '../../services/VisionService'
 import * as ProgressReportsRepo from '../../models/ProgressReports'
 import * as SessionRepo from '../../models/Session'
 import * as StudentRepo from '../../models/Student'
@@ -27,6 +28,8 @@ jest.mock('../../services/OpenAIService', () => {
   }
 })
 jest.mock('../../services/AnalyticsService')
+jest.mock('../../services/EditorSnapshotService')
+jest.mock('../../services/VisionService')
 jest.mock('../../models/ProgressReports')
 jest.mock('../../models/Session')
 jest.mock('../../models/Student')
@@ -37,6 +40,7 @@ const mockedProgressReportsRepo = mocked(ProgressReportsRepo)
 const mockedSessionRepo = mocked(SessionRepo)
 const mockedStudentRepo = mocked(StudentRepo)
 const mockedSubjectRepo = mocked(SubjectsRepo)
+const mockedVisionService = mocked(VisionService)
 
 const userId: Ulid = getDbUlid()
 const session = buildUserSession({
@@ -329,6 +333,7 @@ describe('generateProgressReportForUser', () => {
     mockedSubjectRepo.getSubjectAndTopic.mockResolvedValueOnce(
       buildSubjectAndTopic()
     )
+    mockedVisionService.describeWhiteboardSnapshot.mockResolvedValueOnce('')
     mockedProgressReportsRepo.getActiveSubjectPromptBySubjectName.mockResolvedValueOnce(
       mockActivePrompt
     )
