@@ -77,13 +77,13 @@ function textContextPayload(text: string) {
   return { type: 'text', text: `<text>${text}</text>` }
 }
 
-export async function invokeModel({
+export async function invokeModel<T = string | ToolInput>({
   modelId,
   image,
   text,
   prompt,
   tools_option,
-}: BedrockInvokeInput) {
+}: BedrockInvokeInput): Promise<T> {
   const client = getClient()
 
   const payLoadContent = []
@@ -127,7 +127,7 @@ export async function invokeModel({
     throw new Error('No expected Bedrock response')
   }
 
-  return response
+  return response as T
 }
 
 const getResponseWithToolsOption = (modelRes: BedrockInvokeResponse) => {
