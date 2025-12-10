@@ -1230,11 +1230,13 @@ SELECT
     topics.name AS topic_name,
     quill_doc,
     sessions.student_id,
-    sessions.volunteer_id
+    sessions.volunteer_id,
+    tool_types.name AS tool_type
 FROM
     sessions
     JOIN subjects ON subjects.id = sessions.subject_id
     JOIN topics ON topics.id = subjects.topic_id
+    JOIN tool_types ON subjects.tool_type_id = tool_types.id
 WHERE (sessions.student_id = :userId!
     OR sessions.volunteer_id = :userId!)
 AND ((:start)::timestamptz IS NULL

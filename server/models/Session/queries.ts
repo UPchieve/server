@@ -1345,6 +1345,7 @@ export type UserSessions = {
   createdAt: Date
   subjectName: string
   topicName: string
+  toolType: string
   quillDoc?: string
   studentId: string
   volunteerId?: string

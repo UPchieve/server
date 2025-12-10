@@ -2594,6 +2594,7 @@ export interface IGetUserSessionsByUserIdResult {
   quillDoc: string | null;
   studentId: string;
   subjectName: string;
+  toolType: string;
   topicName: string;
   volunteerId: string | null;
 }
@@ -2604,7 +2605,7 @@ export interface IGetUserSessionsByUserIdQuery {
   result: IGetUserSessionsByUserIdResult;
 }
 
-const getUserSessionsByUserIdIR: any = {"usedParamSet":{"userId":true,"start":true,"end":true,"subject":true,"sessionId":true,"topic":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":332,"b":339},{"a":372,"b":379}]},{"name":"start","required":false,"transform":{"type":"scalar"},"locs":[{"a":388,"b":393},{"a":448,"b":453}]},{"name":"end","required":false,"transform":{"type":"scalar"},"locs":[{"a":476,"b":479},{"a":534,"b":537}]},{"name":"subject","required":true,"transform":{"type":"scalar"},"locs":[{"a":560,"b":567},{"a":608,"b":616}]},{"name":"sessionId","required":false,"transform":{"type":"scalar"},"locs":[{"a":631,"b":640},{"a":677,"b":686}]},{"name":"topic","required":false,"transform":{"type":"scalar"},"locs":[{"a":701,"b":706},{"a":745,"b":750}]}],"statement":"SELECT\n    sessions.id,\n    sessions.created_at,\n    subjects.name AS subject_name,\n    topics.name AS topic_name,\n    quill_doc,\n    sessions.student_id,\n    sessions.volunteer_id\nFROM\n    sessions\n    JOIN subjects ON subjects.id = sessions.subject_id\n    JOIN topics ON topics.id = subjects.topic_id\nWHERE (sessions.student_id = :userId!\n    OR sessions.volunteer_id = :userId!)\nAND ((:start)::timestamptz IS NULL\n    OR sessions.created_at >= (:start)::timestamptz)\nAND ((:end)::timestamptz IS NULL\n    OR sessions.created_at <= (:end)::timestamptz)\nAND ((:subject)::text IS NULL\n    OR subjects.name = (:subject!)::text)\nAND (:sessionId::uuid IS NULL\n    OR sessions.id = :sessionId::uuid)\nAND ((:topic)::text IS NULL\n    OR topics.name = (:topic)::text)\nORDER BY\n    sessions.created_at DESC"};
+const getUserSessionsByUserIdIR: any = {"usedParamSet":{"userId":true,"start":true,"end":true,"subject":true,"sessionId":true,"topic":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":427,"b":434},{"a":467,"b":474}]},{"name":"start","required":false,"transform":{"type":"scalar"},"locs":[{"a":483,"b":488},{"a":543,"b":548}]},{"name":"end","required":false,"transform":{"type":"scalar"},"locs":[{"a":571,"b":574},{"a":629,"b":632}]},{"name":"subject","required":true,"transform":{"type":"scalar"},"locs":[{"a":655,"b":662},{"a":703,"b":711}]},{"name":"sessionId","required":false,"transform":{"type":"scalar"},"locs":[{"a":726,"b":735},{"a":772,"b":781}]},{"name":"topic","required":false,"transform":{"type":"scalar"},"locs":[{"a":796,"b":801},{"a":840,"b":845}]}],"statement":"SELECT\n    sessions.id,\n    sessions.created_at,\n    subjects.name AS subject_name,\n    topics.name AS topic_name,\n    quill_doc,\n    sessions.student_id,\n    sessions.volunteer_id,\n    tool_types.name AS tool_type\nFROM\n    sessions\n    JOIN subjects ON subjects.id = sessions.subject_id\n    JOIN topics ON topics.id = subjects.topic_id\n    JOIN tool_types ON subjects.tool_type_id = tool_types.id\nWHERE (sessions.student_id = :userId!\n    OR sessions.volunteer_id = :userId!)\nAND ((:start)::timestamptz IS NULL\n    OR sessions.created_at >= (:start)::timestamptz)\nAND ((:end)::timestamptz IS NULL\n    OR sessions.created_at <= (:end)::timestamptz)\nAND ((:subject)::text IS NULL\n    OR subjects.name = (:subject!)::text)\nAND (:sessionId::uuid IS NULL\n    OR sessions.id = :sessionId::uuid)\nAND ((:topic)::text IS NULL\n    OR topics.name = (:topic)::text)\nORDER BY\n    sessions.created_at DESC"};
 
 /**
  * Query generated from SQL:
@@ -2616,11 +2617,13 @@ const getUserSessionsByUserIdIR: any = {"usedParamSet":{"userId":true,"start":tr
  *     topics.name AS topic_name,
  *     quill_doc,
  *     sessions.student_id,
- *     sessions.volunteer_id
+ *     sessions.volunteer_id,
+ *     tool_types.name AS tool_type
  * FROM
  *     sessions
  *     JOIN subjects ON subjects.id = sessions.subject_id
  *     JOIN topics ON topics.id = subjects.topic_id
+ *     JOIN tool_types ON subjects.tool_type_id = tool_types.id
  * WHERE (sessions.student_id = :userId!
  *     OR sessions.volunteer_id = :userId!)
  * AND ((:start)::timestamptz IS NULL
