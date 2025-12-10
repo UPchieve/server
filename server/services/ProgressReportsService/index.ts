@@ -241,7 +241,7 @@ export async function saveProgressReport({
       !data.concepts ||
       !data.concepts.length
     ) {
-      return
+      return null
     }
 
     reportId = await insertProgressReport(userId, 'pending', promptId)
