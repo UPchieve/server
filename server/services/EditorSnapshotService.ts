@@ -1,7 +1,11 @@
 import config from '../config'
 import logger from '../logger'
 import { Uuid } from '../models/pgUtils'
-import { getBlobBuffer, uploadBlobBuffer } from './AzureService'
+import {
+  createBlobSasUrl,
+  getBlobBuffer,
+  uploadBlobBuffer,
+} from './AzureService'
 import * as WhiteboardService from './WhiteboardService'
 
 // This feature depends on vendors/zwibbler-node.js, which is NOT open source
@@ -85,4 +89,23 @@ export async function getWhiteboardSnapshot(sessionId: Uuid) {
 
   await storeWhiteboardSnapshot(sessionId, snapshot)
   return snapshot
+}
+
+export async function getWhiteboardSnapshotUrl(
+  sessionId: Uuid
+): Promise<string | undefined> {
+  const snapshot = await getWhiteboardSnapshot(sessionId)
+  if (!snapshot) return
+
+  const blobName = buildWhiteboardSnapshotPath(sessionId)
+  return createBlobSasUrl(
+    config.appStorageAccountName,
+    config.appStorageAccountAccessKey,
+    config.sessionsStorageContainer,
+    blobName,
+    {
+      permissions: ['r'],
+      expiresInSeconds: 60,
+    }
+  )
 }
