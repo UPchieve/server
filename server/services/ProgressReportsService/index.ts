@@ -64,7 +64,7 @@ import {
   getTextFromImageAnalysis,
 } from '../VisionService'
 import * as LangfuseService from '../LangfuseService'
-import { getWhiteboardSnapshotUrl } from '../EditorSnapshotService'
+import { getWhiteboardSnapshot } from '../EditorSnapshotService'
 import { isSubjectUsingDocumentEditor } from '../../utils/session-utils'
 
 function formatTranscriptMessage(
@@ -126,10 +126,10 @@ async function formatWhiteboardPrompt(
   sessionId: Ulid,
   transcript: string
 ): Promise<string> {
-  const snapshotUrl = await getWhiteboardSnapshotUrl(sessionId)
+  const snapshot = await getWhiteboardSnapshot(sessionId)
   let editorText: string
-  if (snapshotUrl) {
-    const description = await describeWhiteboardSnapshot(snapshotUrl)
+  if (snapshot) {
+    const description = await describeWhiteboardSnapshot(snapshot)
     editorText = description
       ? `[Whiteboard content recognized from the student's and tutor's drawings]: ${description}`
       : '[Whiteboard snapshot was available, but its contents could not be interpreted.]'
