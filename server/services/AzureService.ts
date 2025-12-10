@@ -11,6 +11,7 @@ import {
 } from '@azure/storage-blob'
 import config from '../config'
 import { secondsInMs } from '../utils/time-utils'
+import logger from '../logger'
 
 const azureStorageCredential = new ClientSecretCredential(
   config.azureTenantId,
@@ -115,8 +116,13 @@ export async function getBlobBuffer(
       err.statusCode === 404 ||
       err.code === 'BlobNotFound' ||
       err.code === 'ResourceNotFound'
-    )
+    ) {
+      logger.warn(
+        { err, blobName, containerName, storageAccountName },
+        'Blob not found'
+      )
       return
+    }
     throw err
   }
 }

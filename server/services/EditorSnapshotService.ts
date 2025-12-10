@@ -1,11 +1,7 @@
 import config from '../config'
 import logger from '../logger'
 import { Uuid } from '../models/pgUtils'
-import {
-  createBlobSasUrl,
-  getBlobBuffer,
-  uploadBlobBuffer,
-} from './AzureService'
+import { getBlobBuffer, uploadBlobBuffer } from './AzureService'
 import * as WhiteboardService from './WhiteboardService'
 
 // This feature depends on vendors/zwibbler-node.js, which is NOT open source
@@ -20,16 +16,17 @@ function loadZwibbler(): Zwibbler | undefined {
   if (zwibblerLoadAttempted) return zwibbler
   zwibblerLoadAttempted = true
 
+  let zwibblerPath
   try {
-    const zwibblerPath =
+    zwibblerPath =
       process.env.ZWIBBLER_NODE_PATH ||
       require.resolve('../vendors/zwibbler-node')
     zwibbler = require(zwibblerPath).Zwibbler
     return zwibbler as Zwibbler
   } catch (error) {
     logger.warn(
-      `Zwibbler not found. Whiteboard snapshots will be skipped.`,
-      error
+      { err: error, zwibblerPath },
+      `Zwibbler not found. Whiteboard snapshots will be skipped.`
     )
   }
 }
@@ -48,7 +45,7 @@ export async function generateWhiteboardSnapshot(
     const rawBinary: string = await zwibbler.save(whiteboardDoc, 'png')
     return Buffer.from(rawBinary, 'binary')
   } catch (error) {
-    logger.error('Failed to render whiteboard snapshot: ', error)
+    logger.error({ err: error }, 'Failed to render whiteboard snapshot')
     return
   }
 }
@@ -89,23 +86,4 @@ export async function getWhiteboardSnapshot(sessionId: Uuid) {
 
   await storeWhiteboardSnapshot(sessionId, snapshot)
   return snapshot
-}
-
-export async function getWhiteboardSnapshotUrl(
-  sessionId: Uuid
-): Promise<string | undefined> {
-  const snapshot = await getWhiteboardSnapshot(sessionId)
-  if (!snapshot) return
-
-  const blobName = buildWhiteboardSnapshotPath(sessionId)
-  return createBlobSasUrl(
-    config.appStorageAccountName,
-    config.appStorageAccountAccessKey,
-    config.sessionsStorageContainer,
-    blobName,
-    {
-      permissions: ['r'],
-      expiresInSeconds: 60,
-    }
-  )
 }

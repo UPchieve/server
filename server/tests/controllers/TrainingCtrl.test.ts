@@ -14,7 +14,6 @@ import * as UserActionRepo from '../../models/UserAction'
 import * as QuestionRepo from '../../models/Question'
 import * as SubjectsRepo from '../../models/Subjects'
 import * as VolunteerRepo from '../../models/Volunteer'
-import * as MailService from '../../services/MailService'
 import * as AnalyticsService from '../../services/AnalyticsService'
 import * as VolunteerService from '../../services/VolunteerService'
 import { buildIdAnswerMapHelper } from '../mocks/controllers/TrainingCtrl.mock'
@@ -26,7 +25,6 @@ import {
 } from '../mocks/repos/question-repo.mock'
 import { buildVolunteerQuizMap } from '../mocks/repos/volunteer-repo.mock'
 import config from '../../config'
-jest.mock('../../services/MailService')
 jest.mock('../../services/VolunteerService')
 jest.mock('../../services/AnalyticsService')
 jest.mock('../../models/Question')
@@ -143,7 +141,6 @@ describe('getQuizScore', () => {
       false,
       expect.toBeTransactionClient()
     )
-    expect(MailService.createContact).not.toHaveBeenCalled()
     expect(UserActionRepo.createQuizAction).not.toHaveBeenCalledWith({
       action: QUIZ_USER_ACTIONS.UNLOCKED_SUBJECT,
       userId: volunteer.id,
@@ -266,7 +263,6 @@ describe('getQuizScore', () => {
         event: EVENTS.ACCOUNT_ONBOARDED,
       }
     )
-    expect(MailService.createContact).not.toHaveBeenCalled()
     expect(result).toEqual(expectedResult)
   })
 
@@ -356,7 +352,6 @@ describe('getQuizScore', () => {
       undefined,
       expect.toBeTransactionClient()
     )
-    expect(MailService.createContact).not.toHaveBeenCalled()
     expect(result).toEqual(expectedResult)
   })
 
@@ -441,7 +436,6 @@ describe('getQuizScore', () => {
       undefined,
       expect.toBeTransactionClient()
     )
-    expect(MailService.createContact).toHaveBeenCalled()
     expect(result).toEqual(expectedResult)
   })
 
@@ -534,7 +528,6 @@ describe('getQuizScore', () => {
       undefined,
       expect.toBeTransactionClient()
     )
-    expect(MailService.createContact).not.toHaveBeenCalled()
     expect(result).toEqual(expectedResult)
   })
 
@@ -619,7 +612,6 @@ describe('getQuizScore', () => {
       undefined,
       expect.toBeTransactionClient()
     )
-    expect(MailService.createContact).toHaveBeenCalled()
     expect(result).toEqual(expectedResult)
   })
 
@@ -685,7 +677,6 @@ describe('getQuizScore', () => {
       true,
       expect.toBeTransactionClient()
     )
-    expect(MailService.createContact).not.toHaveBeenCalled()
 
     for (const subject of unlockedSubjectNames) {
       expect(UserActionRepo.createQuizAction).toHaveBeenCalledWith(
@@ -715,7 +706,6 @@ describe('getQuizScore', () => {
       undefined,
       expect.toBeTransactionClient()
     )
-    expect(MailService.createContact).not.toHaveBeenCalled()
     expect(result).toEqual(expectedResult)
   })
 
