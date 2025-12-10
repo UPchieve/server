@@ -16,16 +16,17 @@ function loadZwibbler(): Zwibbler | undefined {
   if (zwibblerLoadAttempted) return zwibbler
   zwibblerLoadAttempted = true
 
+  let zwibblerPath
   try {
-    const zwibblerPath =
+    zwibblerPath =
       process.env.ZWIBBLER_NODE_PATH ||
       require.resolve('../vendors/zwibbler-node')
     zwibbler = require(zwibblerPath).Zwibbler
     return zwibbler as Zwibbler
   } catch (error) {
     logger.warn(
-      `Zwibbler not found. Whiteboard snapshots will be skipped.`,
-      error
+      { error, zwibblerPath },
+      `Zwibbler not found. Whiteboard snapshots will be skipped.`
     )
   }
 }
@@ -44,7 +45,7 @@ export async function generateWhiteboardSnapshot(
     const rawBinary: string = await zwibbler.save(whiteboardDoc, 'png')
     return Buffer.from(rawBinary, 'binary')
   } catch (error) {
-    logger.error('Failed to render whiteboard snapshot: ', error)
+    logger.error({ error }, 'Failed to render whiteboard snapshot')
     return
   }
 }
