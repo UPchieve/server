@@ -82,3 +82,10 @@ export async function getTextFromImageAnalysis(
     return ''
   }
 }
+
+// Stubbed implementation, acting as a placeholder for now
+export async function describeWhiteboardSnapshot(
+  image: Buffer
+): Promise<string> {
+  return ''
+}

@@ -68,14 +68,6 @@ export async function getProgressReportsFeatureFlag(userId: Ulid) {
   )
 }
 
-export async function getProgressReportVisionAIFeatureFlag(userId: Ulid) {
-  return await isFeatureEnabled(
-    FEATURE_FLAGS.PROGRESS_REPORTS_VISION_AI,
-    userId,
-    1000 * 5
-  )
-}
-
 export enum AI_MODERATION_STATE {
   disabled = 'disabled',
   targeted = 'targeted',
