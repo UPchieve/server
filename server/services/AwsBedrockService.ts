@@ -54,8 +54,10 @@ type BedrockInvokeInput = {
   image?: Buffer
 }
 
+type ToolInput = Record<string, any>
+
 type BedrockInvokeResponse = {
-  content: Array<{ input?: Object; text?: string }>
+  content: Array<{ input?: ToolInput; text?: string }>
 }
 
 function imageContentPayload(image: Buffer) {
@@ -122,7 +124,7 @@ export async function invokeModel({
   const response = getModelResponse(modelRes)
 
   if (!response) {
-    throw new Error('No excpected Bedrock response')
+    throw new Error('No expected Bedrock response')
   }
 
   return response
@@ -132,7 +134,5 @@ const getResponseWithToolsOption = (modelRes: BedrockInvokeResponse) => {
   return modelRes?.content[0]?.input ?? null
 }
 const getResponse = (modelRes: BedrockInvokeResponse) => {
-  return modelRes?.content[0]?.text
-    ? JSON.parse(modelRes.content[0].text)
-    : null
+  return modelRes?.content[0]?.text ?? null
 }
