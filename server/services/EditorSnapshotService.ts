@@ -25,7 +25,7 @@ function loadZwibbler(): Zwibbler | undefined {
     return zwibbler as Zwibbler
   } catch (error) {
     logger.warn(
-      { error, zwibblerPath },
+      { err: error, zwibblerPath },
       `Zwibbler not found. Whiteboard snapshots will be skipped.`
     )
   }
@@ -45,7 +45,7 @@ export async function generateWhiteboardSnapshot(
     const rawBinary: string = await zwibbler.save(whiteboardDoc, 'png')
     return Buffer.from(rawBinary, 'binary')
   } catch (error) {
-    logger.error({ error }, 'Failed to render whiteboard snapshot')
+    logger.error({ err: error }, 'Failed to render whiteboard snapshot')
     return
   }
 }

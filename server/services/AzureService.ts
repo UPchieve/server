@@ -118,7 +118,7 @@ export async function getBlobBuffer(
       err.code === 'ResourceNotFound'
     ) {
       logger.warn(
-        { error, blobName, containerName, storageAccountName },
+        { err, blobName, containerName, storageAccountName },
         'Blob not found'
       )
       return
