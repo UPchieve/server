@@ -160,7 +160,7 @@ async function detectImageEducationPurpose(
       generation = trace.generation({
         name: LangfuseGenerationName.IS_IMAGE_EDUCATIONAL,
         prompt: prompt.promptObject,
-        model: config.awsBedrockSonnet3ArnId,
+        model: config.awsBedrockSonnet4Id,
       })
     }
 
@@ -193,7 +193,7 @@ async function detectImageEducationPurpose(
               description: 'The explanation of labels were chosen',
             },
           },
-          required: ['detectLabels', 'reason'],
+          required: ['detectedLabels', 'reason'],
         },
       },
     ]
@@ -204,7 +204,7 @@ async function detectImageEducationPurpose(
       detectedLabels: [{ label: string; confidence: number }]
       reason: string
     } = await invokeModel({
-      modelId: config.awsBedrockSonnet3ArnId,
+      modelId: config.awsBedrockSonnet4Id,
       image: resizedImage,
       prompt: prompt.prompt,
       tools_option: {
