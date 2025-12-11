@@ -83,12 +83,6 @@ export async function invokeVisionModel(
       : `data:image/png;base64,${image.toString('base64')}`
   const userMessage: OpenAI.Chat.Completions.ChatCompletionContentPart[] = [
     {
-      type: 'text',
-      text:
-        'Here is a whiteboard snapshot from a tutoring session. ' +
-        'Describe clearly what math or science work it shows.',
-    },
-    {
       type: 'image_url',
       image_url: {
         url: imageUrl,
