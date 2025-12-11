@@ -7,9 +7,11 @@ import {
   StorageSharedKeyCredential,
   BlockBlobClient,
   BlockBlobUploadOptions,
+  RestError,
 } from '@azure/storage-blob'
 import config from '../config'
 import { secondsInMs } from '../utils/time-utils'
+import logger from '../logger'
 
 const azureStorageCredential = new ClientSecretCredential(
   config.azureTenantId,
@@ -68,22 +70,61 @@ function getBlobClient(storageAccountName: string): BlobServiceClient {
   return client
 }
 
+async function downloadBlobToBuffer(
+  storageAccountName: string,
+  containerName: string,
+  blobName: string
+): Promise<Buffer> {
+  const blobServiceClient = getBlobClient(storageAccountName)
+  const containerClient = blobServiceClient.getContainerClient(containerName)
+  const blobClient = containerClient.getBlobClient(blobName)
+  const downloadBlockBlobResponse = await blobClient.download()
+  const buffer = await streamToBuffer(
+    // readableStreamBody always available within Node
+    downloadBlockBlobResponse.readableStreamBody as NodeJS.ReadableStream
+  )
+  return buffer
+}
+
 export async function getBlob(
   storageAccountName: string,
   containerName: string,
   blobName: string
 ): Promise<string> {
-  const blobServiceClient = getBlobClient(storageAccountName)
-  const containerClient = blobServiceClient.getContainerClient(containerName)
-  const blobClient = containerClient.getBlobClient(blobName)
-  const downloadBlockBlobResponse = await blobClient.download()
-  const blobContent = (
-    await streamToBuffer(
-      // readableStreamBody always available within Node
-      downloadBlockBlobResponse.readableStreamBody as NodeJS.ReadableStream
+  const buffer = await downloadBlobToBuffer(
+    storageAccountName,
+    containerName,
+    blobName
+  )
+  return buffer.toString()
+}
+
+export async function getBlobBuffer(
+  storageAccountName: string,
+  containerName: string,
+  blobName: string
+): Promise<Buffer | undefined> {
+  try {
+    return await downloadBlobToBuffer(
+      storageAccountName,
+      containerName,
+      blobName
     )
-  ).toString()
-  return blobContent
+  } catch (error) {
+    const err = error as RestError
+    if (
+      err.statusCode === 404 ||
+      err.code === 'BlobNotFound' ||
+      err.code === 'ResourceNotFound'
+    ) {
+      logger.warn(
+        { err, blobName, containerName, storageAccountName },
+        'Blob not found'
+      )
+      return
+    }
+    throw err
+  }
 }
 
 type BlobDocument = {
@@ -230,4 +271,22 @@ export async function getSasUrlsInFolder(
     })
   }
   return results
+}
+
+export async function uploadBlobBuffer(
+  storageAccountName: string,
+  containerName: string,
+  blobName: string,
+  content: Buffer,
+  contentType: string = 'application/octet-stream'
+): Promise<void> {
+  const blobServiceClient = getBlobClient(storageAccountName)
+  const containerClient = blobServiceClient.getContainerClient(containerName)
+  const blockBlobClient = containerClient.getBlockBlobClient(blobName)
+
+  await upload(blockBlobClient, content, {
+    blobHTTPHeaders: {
+      blobContentType: contentType,
+    },
+  })
 }

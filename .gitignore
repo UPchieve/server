@@ -253,3 +253,6 @@ telepresence.env
 # python
 .venv/
 __pycache__
+
+# Vendors
+vendors/

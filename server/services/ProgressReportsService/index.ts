@@ -54,16 +54,18 @@ import QueueService from '../QueueService'
 import { Jobs } from '../../worker/jobs'
 export * from './types'
 import { ProgressReportNotFoundError } from '../Errors'
-import {
-  getProgressReportVisionAIFeatureFlag,
-  getProgressReportsFeatureFlag,
-} from '../FeatureFlagService'
+import { getProgressReportsFeatureFlag } from '../FeatureFlagService'
 import { PROGRESS_REPORT_JSON_INSTRUCTIONS } from '../../constants'
 import { Student, getStudentProfileByUserId } from '../../models/Student'
 import { SubjectAndTopic, getSubjectAndTopic } from '../../models/Subjects'
 import { convertBase64ToImage } from '../../utils/image-utils'
-import { getTextFromImageAnalysis } from '../VisionService'
+import {
+  describeWhiteboardSnapshot,
+  getTextFromImageAnalysis,
+} from '../VisionService'
 import * as LangfuseService from '../LangfuseService'
+import { getWhiteboardSnapshot } from '../EditorSnapshotService'
+import { isSubjectUsingDocumentEditor } from '../../utils/session-utils'
 
 function formatTranscriptMessage(
   message: MessageForFrontend,
@@ -82,6 +84,16 @@ async function formatTranscriptAndEditor(
     const userType = message.user === session.studentId ? 'Student' : 'Tutor'
     transcript += formatTranscriptMessage(message, userType)
   }
+
+  if (isSubjectUsingDocumentEditor(session.toolType))
+    return formatDocumentEditorPrompt(session, transcript)
+  return formatWhiteboardPrompt(session.id, transcript)
+}
+
+async function formatDocumentEditorPrompt(
+  session: UserSessionsWithMessages,
+  transcript: string
+): Promise<string> {
   const quillDoc = removeImageInsertsFromQuillDoc(session.quillDoc)
   /**
    *
@@ -90,10 +102,9 @@ async function formatTranscriptAndEditor(
    *
    **/
   let imageText = ''
-  const isVisionActive = await getProgressReportVisionAIFeatureFlag(
-    session.studentId
-  )
-  if (isVisionActive && session.quillDoc) {
+  if (session.quillDoc) {
+    // TODO: Update image extraction logic since we now store image URLs in Quill docs instead of base64 data.
+    //       We need to keep base64 decoding for older Quill docs created before that change
     const docImages = await getDocumentEditorImages(session.quillDoc)
     if (docImages.length > 0)
       imageText = await getProgressReportImageText(docImages)
@@ -108,7 +119,29 @@ async function formatTranscriptAndEditor(
 
     Image Text:
     ${imageText}
-    `
+    `.trim()
+}
+
+async function formatWhiteboardPrompt(
+  sessionId: Ulid,
+  transcript: string
+): Promise<string> {
+  const snapshot = await getWhiteboardSnapshot(sessionId)
+  let editorText: string
+  if (snapshot) {
+    const description = await describeWhiteboardSnapshot(snapshot)
+    editorText = description
+      ? `[Whiteboard content recognized from the student's and tutor's drawings]: ${description}`
+      : '[Whiteboard snapshot was available, but its contents could not be interpreted.]'
+  } else editorText = '[Whiteboard was used but no snapshot was available]'
+
+  return `
+    Session:
+    ${transcript}
+
+    Editor:
+    ${editorText}
+  `.trim()
 }
 
 export function removeImageInsertsFromQuillDoc(

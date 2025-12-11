@@ -410,6 +410,7 @@ export const buildUserSession = (
     topicName: 'math',
     studentId: getDbUlid(),
     createdAt: new Date(),
+    toolType: 'whiteboard',
     ...overrides,
   }
   return session

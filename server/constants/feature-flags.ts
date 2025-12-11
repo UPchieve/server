@@ -3,7 +3,6 @@ export enum FEATURE_FLAGS {
   SESSION_RECAP_DMS = 'session-recap-dms',
   ALLOW_DMS_TO_PARTNER_STUDENTS = 'allow-dms-to-partner-students',
   PROGRESS_REPORTS = 'progress-reports',
-  PROGRESS_REPORTS_VISION_AI = 'progress-reports-vision-ai',
   AI_MODERATION = 'ai-moderation',
   COLLEGE_LIST_WORKSHEET = 'college-list-worksheet',
   FALL_INCENTIVE_PROGRAM = 'fall-incentive-program',
