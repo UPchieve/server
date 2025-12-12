@@ -40,9 +40,6 @@ export function routes(app: Express) {
     }
   })
 
-  // TODO do we need a public version of this?
-  // probably not, instead we should store code in local storage
-  // and then call once we have a user?
   router.post('/nths-groups/join', async function (req, res) {
     try {
       const inviteCode = asString(req.body.inviteCode)

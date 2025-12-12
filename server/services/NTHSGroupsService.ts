@@ -26,7 +26,6 @@ export async function joinGroupAsMemberByGroupId(
   groupId: Ulid,
   tc: TransactionClient = getClient()
 ) {
-  console.log('=============@@@@@@@@@@@@@@2', { userId, groupId })
   return await NTHSGroupsRepo.joinGroupById(
     {
       userId,
@@ -35,19 +34,4 @@ export async function joinGroupAsMemberByGroupId(
     },
     tc
   )
-}
-
-// Will use this when creating a group
-async function generateUniqueCode() {
-  let count = 5
-  while (count > 0) {
-    const code = generateAlphanumericOfLength(6)
-    const group = await NTHSGroupsRepo.getGroupByInviteCode(code)
-    if (!group) {
-      return code
-    }
-    count--
-  }
-
-  throw new Error('Could not generate unique class code.')
 }

@@ -1,5 +1,5 @@
 import { getClient, getRoClient, TransactionClient } from '../../db'
-import { RepoReadError } from '../Errors'
+import { RepoCreateError, RepoReadError } from '../Errors'
 import { makeRequired, makeSomeOptional, Ulid, Uuid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import type { NTHSGroup, UserGroup } from './types'
@@ -72,7 +72,6 @@ export async function joinGroupById(
 
     return results.map((row) => makeSomeOptional(row, ['deactivatedAt']))
   } catch (err) {
-    console.error('WHAT!!!!!!!!!!!!!!!!!', err)
-    throw new RepoReadError(err)
+    throw new RepoCreateError(err)
   }
 }
