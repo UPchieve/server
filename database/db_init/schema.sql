@@ -6469,7 +6469,6 @@ ALTER TABLE ONLY upchieve.volunteer_references
 --
 
 
-
 --
 -- Dbmate schema migrations
 --
@@ -6716,5 +6715,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20251121191436'),
     ('20251121214549'),
     ('20251125134512'),
+    ('20251201200733'),
     ('20251205231954');
-    ('20251201200733');
