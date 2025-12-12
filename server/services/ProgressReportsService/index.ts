@@ -268,18 +268,14 @@ export async function saveProgressReport({
 }: SaveProgressReportOptions) {
   let reportId: Ulid = ''
   try {
-    if (!data.summary || !Object.keys(data.summary).length)
-      throw new Error(
-        `No progress report summary created for user ${userId} on session ${sessionIds.join(
-          ','
-        )}`
-      )
-    if (!data.concepts || !data.concepts.length)
-      throw new Error(
-        `No progress report concepts created for user ${userId} on session ${sessionIds.join(
-          ','
-        )}`
-      )
+    if (
+      !data.summary ||
+      !Object.keys(data.summary).length ||
+      !data.concepts ||
+      !data.concepts.length
+    ) {
+      return null
+    }
 
     reportId = await insertProgressReport(userId, 'pending', promptId)
 
@@ -338,7 +334,7 @@ export async function getSessionsToAnalyzeForProgressReport(
 export async function generateProgressReportForUser(
   userId: Ulid,
   filter: ProgressReportSessionFilter
-): Promise<ProgressReport> {
+) {
   const subjectData = await getSubjectAndTopic(filter.subject)
   if (!subjectData) throw new Error(`No subject named ${filter.subject} found`)
   const sessions = await getSessionsToAnalyzeForProgressReport(userId, filter)
@@ -366,11 +362,15 @@ export async function generateProgressReportForUser(
     promptId: subjectPrompt.id,
   })
 
-  if (!reportId)
-    throw new Error(`Failed to save a ${filter.subject}progress report`)
+  if (!reportId) {
+    logger.warn(
+      { userId, ...filter },
+      `No ${filter.subject} progress report generated`
+    )
+    return null
+  }
 
-  const report = await getProgressReportForReport(reportId)
-  return report
+  return await getProgressReportForReport(reportId)
 }
 
 const LF_TRACE_NAME = 'progressReport'
@@ -394,6 +394,7 @@ export async function generateProgressReport(
     metadata: {
       userId,
       sessionId,
+      systemPrompt,
     },
   })
   const result = await invokeModel({
@@ -402,7 +403,6 @@ export async function generateProgressReport(
   })
   gen.end({ output: result })
 
-  logger.info(`User: ${userId} received ProgressReport with response ${result}`)
   return result.results as ProgressReport
 }
 

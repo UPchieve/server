@@ -54,11 +54,13 @@ async function generateAndEmitProgressReport(
 ) {
   const report = await generateProgressReportForUser(userId, reportOptions)
 
-  await sendProgressReport(userId, {
-    userId: userId,
-    ...reportOptions,
-    report,
-  })
+  if (report) {
+    await sendProgressReport(userId, {
+      userId: userId,
+      ...reportOptions,
+      report,
+    })
+  }
 }
 
 export default async (job: Job<GenerateProgressReport>): Promise<void> => {

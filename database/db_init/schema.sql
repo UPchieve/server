@@ -882,7 +882,8 @@ CREATE TABLE upchieve.nths_groups (
     name text NOT NULL,
     key text NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    invite_code character varying(6)
 );
 
 
@@ -3561,6 +3562,14 @@ ALTER TABLE ONLY upchieve.nths_group_members
 
 
 --
+-- Name: nths_groups nths_groups_invite_code_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_groups
+    ADD CONSTRAINT nths_groups_invite_code_key UNIQUE (invite_code);
+
+
+--
 -- Name: nths_groups nths_groups_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -4743,6 +4752,13 @@ CREATE INDEX notifications_session_id ON upchieve.notifications USING btree (ses
 --
 
 CREATE INDEX notifications_user_id ON upchieve.notifications USING btree (user_id);
+
+
+--
+-- Name: nths_groups_invite_code_index; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE UNIQUE INDEX nths_groups_invite_code_index ON upchieve.nths_groups USING btree (invite_code);
 
 
 --
@@ -6453,7 +6469,6 @@ ALTER TABLE ONLY upchieve.volunteer_references
 --
 
 
-
 --
 -- Dbmate schema migrations
 --
@@ -6700,4 +6715,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20251121191436'),
     ('20251121214549'),
     ('20251125134512'),
+    ('20251201200733'),
     ('20251205231954');

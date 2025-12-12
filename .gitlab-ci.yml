@@ -45,7 +45,7 @@ variables:
     - az acr login --name $AZURE_CONTAINER_REGISTRY
   script:
     - echo $IMAGE_TAG
-    - docker build --build-arg ZWIBBLER_NODE_URL="$ZWIBBLER_NODE_URL" -t $IMAGE_TAG .
+    - docker build -t $IMAGE_TAG .
     - docker push $IMAGE_TAG
 
 # Build the application as part of a MR - does not also push to registry.
@@ -55,7 +55,7 @@ build_ci:
   image: docker:20.10.6
   cache: []
   script:
-    - docker build --build-arg ZWIBBLER_NODE_URL="$ZWIBBLER_NODE_URL" .
+    - docker build .
   rules:
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event' # MR is created or updated.
 
