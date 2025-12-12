@@ -7,8 +7,7 @@ CREATE TYPE upchieve.moderation_types AS ENUM (
 CREATE TABLE upchieve.moderation_settings (
     moderation_type upchieve.moderation_types,
     moderation_category_id integer REFERENCES upchieve.moderation_categories (id),
-    threshold numeric(3, 2),
-    penalty integer
+    threshold numeric(3, 2)
 );
 
 -- migrate:down

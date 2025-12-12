@@ -1,10 +1,3 @@
-
--- Dumped from database version 14.20 (Debian 14.20-1.pgdg13+1)
--- Dumped by pg_dump version 14.20 (Ubuntu 14.20-0ubuntu0.22.04.1)
-
--- Dumped from database version 14.15 (Debian 14.15-1.pgdg120+1)
--- Dumped by pg_dump version 14.19 (Homebrew)
-
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -780,8 +773,7 @@ CREATE TABLE upchieve.moderation_infractions (
 CREATE TABLE upchieve.moderation_settings (
     moderation_type upchieve.moderation_types,
     moderation_category_id integer,
-    threshold numeric(3,2),
-    penalty integer
+    threshold numeric(3,2)
 );
 
 
