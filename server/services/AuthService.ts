@@ -55,6 +55,7 @@ import { Jobs } from '../worker/jobs'
 import * as UserService from './UserService'
 import * as NotificationService from './NotificationService'
 import config from '../config'
+import * as NTHSGroupsService from './NTHSGroupsService'
 
 export async function checkIpAddress(ip: string): Promise<void> {
   const { country_code: countryCode } = await getIpWhoIs(ip)
@@ -114,6 +115,7 @@ export async function registerVolunteer(
     timezone,
     signupSourceId,
     otherSignupSource,
+    inviteCode,
   } = asVolunteerRegData(data)
 
   await Promise.all([
@@ -170,6 +172,11 @@ export async function registerVolunteer(
     }
   }
 
+  if (inviteCode) {
+    const group = await NTHSGroupsService.getNTHSGroupByInviteCode(inviteCode)
+    await NTHSGroupsService.joinGroupAsMemberByGroupId(volunteer.id, group.id)
+  }
+
   return volunteer
 }
 
@@ -188,6 +195,7 @@ export async function registerPartnerVolunteer(
     firstName,
     lastName,
     timezone,
+    inviteCode,
   } = asPartnerVolunteerRegData(data)
   await Promise.all([
     checkCredential({ email, password }),
@@ -244,6 +252,11 @@ export async function registerPartnerVolunteer(
       userId: referredBy,
       referredFirstName: volunteerData.firstName,
     })
+  }
+
+  if (inviteCode) {
+    const group = await NTHSGroupsService.getNTHSGroupByInviteCode(inviteCode)
+    await NTHSGroupsService.joinGroupAsMemberByGroupId(volunteer.id, group.id)
   }
 
   return volunteer

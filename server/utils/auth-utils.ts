@@ -182,11 +182,13 @@ export const asPartnerStudentRegData = asFactory<PartnerStudentRegData>({
 export interface VolunteerRegData extends UserRegData {
   phone: string
   timezone?: string
+  inviteCode?: string
 }
 export const asVolunteerRegData = asFactory<VolunteerRegData>({
   ...userRegDataValidators,
   phone: asString,
   timezone: asOptional(asString),
+  inviteCode: asOptional(asString),
 })
 
 export interface PartnerVolunteerRegData extends VolunteerRegData {
@@ -198,6 +200,7 @@ export const asPartnerVolunteerRegData = asFactory<PartnerVolunteerRegData>({
   phone: asString,
   volunteerPartnerOrg: asString,
   timezone: asOptional(asString),
+  inviteCode: asOptional(asString),
 })
 
 export interface RegisterTeacherPayload {
@@ -236,6 +239,7 @@ export interface RegisterVolunteerPayload {
   referredByCode?: string
   volunteerPartnerOrgKey?: string
   timezone?: string
+  inviteCode?: string
 }
 
 export const registerVolunteerValidator = asFactory<RegisterVolunteerPayload>({
@@ -251,6 +255,7 @@ export const registerVolunteerValidator = asFactory<RegisterVolunteerPayload>({
   referredByCode: asOptional(asString),
   volunteerPartnerOrgKey: asOptional(asString),
   timezone: asOptional(asString),
+  inviteCode: asOptional(asString),
 })
 
 export interface ResetConfirmData {

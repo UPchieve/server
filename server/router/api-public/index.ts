@@ -2,8 +2,11 @@ import express, { Express, Router } from 'express'
 import { extractUserIfExists } from '../extract-user'
 import { resError } from '../res-error'
 import * as StudentService from '../../services/StudentService'
+import * as VolunteerService from '../../services/VolunteerService'
 import * as TeacherService from '../../services/TeacherService'
+import * as NTHSGroupsService from '../../services/NTHSGroupsService'
 import { InputError } from '../../models/Errors'
+import { asString } from '../../utils/type-utils'
 
 export function routes(app: Express) {
   const router: Router = express.Router()
@@ -32,6 +35,46 @@ export function routes(app: Express) {
       const isExistingStudent =
         await StudentService.doesStudentWithEmailExist(email)
       res.json({ isExistingStudent })
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
+  router.post('/nths-groups/join', async function (req, res) {
+    try {
+      const inviteCode = asString(req.body.inviteCode)
+      const email = asString(req.body.email).toLocaleLowerCase()
+      const authenticatedUser = extractUserIfExists(req)
+      const group = await NTHSGroupsService.getNTHSGroupByInviteCode(inviteCode)
+
+      if (!group) {
+        throw new InputError('Invalid team invite code')
+      }
+
+      if (authenticatedUser?.email.toLowerCase() === email) {
+        const NTHSGroup = await NTHSGroupsService.joinGroupAsMemberByGroupId(
+          authenticatedUser.id,
+          group.id
+        )
+        return res.json({ NTHSGroup })
+      }
+
+      const isExistingVolunteer =
+        await VolunteerService.doesVolunteerWithEmailExist(email)
+      res.json({ isExistingVolunteer })
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+  router.get('/nths-groups/:inviteCode', async function (req, res) {
+    try {
+      const inviteCode = asString(req.params.inviteCode)
+      const group = await NTHSGroupsService.getNTHSGroupByInviteCode(inviteCode)
+
+      if (!group) {
+        throw new InputError('Invalid team invite code')
+      }
+      return res.json({ NTHSGroup: group })
     } catch (err) {
       resError(res, err)
     }

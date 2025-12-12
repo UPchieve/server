@@ -46,6 +46,7 @@ import {
 } from '../models/Volunteer'
 import * as VolunteerService from './VolunteerService'
 import * as ReferralService from './ReferralService'
+import * as NTHSGroupsService from './NTHSGroupsService'
 
 export interface RosterStudentPayload {
   cleverId?: string
@@ -326,6 +327,14 @@ export async function registerVolunteer(
         userId: user.id,
         vpoName: partnerOrg.partnerName,
       })
+    }
+
+    if (data.inviteCode) {
+      const group = await NTHSGroupsService.getNTHSGroupByInviteCode(
+        data.inviteCode,
+        tc
+      )
+      await NTHSGroupsService.joinGroupAsMemberByGroupId(user.id, group.id, tc)
     }
 
     return user
