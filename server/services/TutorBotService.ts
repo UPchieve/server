@@ -317,7 +317,7 @@ const getAwsBedRockResponse = async (
   const promptData = await getPromptData(subjectName, transcript)
   const gen = t.generation({
     name: LF_GENERATION_NAME,
-    metadata: { model: config.awsBedrockSonnet3ArnId },
+    metadata: { model: config.awsBedrockSonnet4Id },
     input: promptData.prompt,
   })
   let savedBotMessage = null
@@ -325,7 +325,7 @@ const getAwsBedRockResponse = async (
 
   try {
     botResponse = await invokeModel({
-      modelId: config.awsBedrockSonnet3ArnId,
+      modelId: config.awsBedrockSonnet4Id,
       text: '',
       prompt: promptData.prompt,
       tools_option: {
