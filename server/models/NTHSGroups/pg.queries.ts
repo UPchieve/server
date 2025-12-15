@@ -11,7 +11,7 @@ export interface IGetGroupsByUserResult {
   groupId: string;
   groupKey: string;
   groupName: string;
-  inviteCode: string | null;
+  inviteCode: string;
   joinedAt: Date;
   memberTitle: string | null;
 }
@@ -51,7 +51,7 @@ export interface IGetInviteCodeForGroupParams {
 
 /** 'GetInviteCodeForGroup' return type */
 export interface IGetInviteCodeForGroupResult {
-  inviteCode: string | null;
+  inviteCode: string;
 }
 
 /** 'GetInviteCodeForGroup' query type */
