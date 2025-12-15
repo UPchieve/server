@@ -11,7 +11,7 @@ CREATE TABLE upchieve.moderation_settings (
 );
 
 -- migrate:down
-DROP TABLE IF EXISTS upchieve.moderation_settings;
+DROP TABLE upchieve.moderation_settings;
 
-DROP TYPE IF EXISTS upchieve.moderation_types;
+DROP TYPE upchieve.moderation_types;
 
