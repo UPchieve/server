@@ -62,16 +62,12 @@ function createSessionsWithMessages(sessions: SessionRepo.UserSessions[]) {
 }
 
 describe('saveProgressReport', () => {
-  test(`Should throw error if no summary has been generated`, async () => {
+  test(`Should return null if no summary has been generated`, async () => {
     const mockedProgressReport = buildProgressReport({
       summary: {} as ProgressReportsService.ProgressReportSummary,
     })
     const sessionIds = [session.id]
-    const error = new Error(
-      `No progress report summary created for user ${userId} on session ${sessionIds.join(
-        ','
-      )}`
-    )
+
     await expect(
       ProgressReportsService.saveProgressReport({
         userId,
@@ -80,19 +76,15 @@ describe('saveProgressReport', () => {
         analysisType: 'single',
         promptId: 1,
       })
-    ).rejects.toThrow(error)
+    ).resolves.toBeNull()
   })
 
-  test(`Should throw error if no concepts have been generated`, async () => {
+  test(`Should return null if no concepts have been generated`, async () => {
     const mockedProgressReport = buildProgressReport({
       concepts: [] as ProgressReportsService.ProgressReportConcept[],
     })
     const sessionIds = [session.id]
-    const error = new Error(
-      `No progress report concepts created for user ${userId} on session ${sessionIds.join(
-        ','
-      )}`
-    )
+
     await expect(
       ProgressReportsService.saveProgressReport({
         userId,
@@ -101,7 +93,7 @@ describe('saveProgressReport', () => {
         analysisType: 'single',
         promptId: 1,
       })
-    ).rejects.toThrow(error)
+    ).resolves.toBeNull()
   })
 
   test(`Should save the progress report for 'single' and 'group' session analysis`, async () => {
@@ -384,7 +376,7 @@ describe('generateProgressReportForUser', () => {
      * changing it back to a Date to properly assert it against the mock
      *
      */
-    report.summary.createdAt = new Date(report.summary.createdAt)
+
     expect(report).toMatchObject(progressReport)
     expect(AnalyticsService.captureEvent).toHaveBeenCalledWith(
       userId,

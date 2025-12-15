@@ -3534,3 +3534,39 @@ const getVolunteersForTextNotificationsInTheCurrentHourIR: any = {"usedParamSet"
 export const getVolunteersForTextNotificationsInTheCurrentHour = new PreparedQuery<IGetVolunteersForTextNotificationsInTheCurrentHourParams,IGetVolunteersForTextNotificationsInTheCurrentHourResult>(getVolunteersForTextNotificationsInTheCurrentHourIR);
 
 
+/** 'DoesVolunteerWithEmailExist' parameters type */
+export interface IDoesVolunteerWithEmailExistParams {
+  email: string;
+}
+
+/** 'DoesVolunteerWithEmailExist' return type */
+export interface IDoesVolunteerWithEmailExistResult {
+  exists: boolean | null;
+}
+
+/** 'DoesVolunteerWithEmailExist' query type */
+export interface IDoesVolunteerWithEmailExistQuery {
+  params: IDoesVolunteerWithEmailExistParams;
+  result: IDoesVolunteerWithEmailExistResult;
+}
+
+const doesVolunteerWithEmailExistIR: any = {"usedParamSet":{"email":true},"params":[{"name":"email","required":true,"transform":{"type":"scalar"},"locs":[{"a":184,"b":190}]}],"statement":"SELECT\n    EXISTS (\n        SELECT\n            1\n        FROM\n            users u\n            INNER JOIN volunteer_profiles vp ON vp.user_id = u.id\n        WHERE\n            u.email = :email!\n        LIMIT 1)"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     EXISTS (
+ *         SELECT
+ *             1
+ *         FROM
+ *             users u
+ *             INNER JOIN volunteer_profiles vp ON vp.user_id = u.id
+ *         WHERE
+ *             u.email = :email!
+ *         LIMIT 1)
+ * ```
+ */
+export const doesVolunteerWithEmailExist = new PreparedQuery<IDoesVolunteerWithEmailExistParams,IDoesVolunteerWithEmailExistResult>(doesVolunteerWithEmailExistIR);
+
+

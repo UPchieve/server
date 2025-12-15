@@ -445,3 +445,7 @@ export async function hasCompletedVolunteerTraining(
     false
   return completedTraining
 }
+
+export async function doesVolunteerWithEmailExist(email: string) {
+  return VolunteerRepo.doesVolunteerWithEmailExist(email)
+}
