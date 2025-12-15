@@ -85,6 +85,11 @@ async function formatTranscriptAndEditor(
     transcript += formatTranscriptMessage(message, userType)
   }
 
+  logger.info(
+    { sessionId: session.id, transcript },
+    'Progress Report session transcript'
+  )
+
   if (isSubjectUsingDocumentEditor(session.toolType))
     return formatDocumentEditorPrompt(session, transcript)
   return formatWhiteboardPrompt(session.id, transcript)
@@ -106,8 +111,9 @@ async function formatDocumentEditorPrompt(
     // TODO: Update image extraction logic since we now store image URLs in Quill docs instead of base64 data.
     //       We need to keep base64 decoding for older Quill docs created before that change
     const docImages = await getDocumentEditorImages(session.quillDoc)
-    if (docImages.length > 0)
+    if (docImages.length > 0) {
       imageText = await getProgressReportImageText(docImages)
+    }
   }
 
   return `
@@ -327,6 +333,18 @@ export async function getSessionsToAnalyzeForProgressReport(
     } catch (error) {
       logError(error as Error)
     }
+  }
+
+  if (!sessions.length) {
+    logger.info(
+      { userId, filter },
+      'Progress Report found no sessions for filter'
+    )
+  } else if (!sessionsWithMessages.length) {
+    logger.info(
+      { userId, filter },
+      'Progress Report generated no session messages from filter'
+    )
   }
   return sessionsWithMessages
 }
