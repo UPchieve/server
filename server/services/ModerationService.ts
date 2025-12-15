@@ -198,14 +198,12 @@ async function detectImageEducationPurpose(
       },
     ]
 
-    const resizedImage = await resize(image)
-
     const response: {
       detectedLabels: [{ label: string; confidence: number }]
       reason: string
     } = await invokeModel({
       modelId: config.awsBedrockSonnet4Id,
-      image: resizedImage,
+      image,
       prompt: prompt.prompt,
       tools_option: {
         tool_choice: { type: BedrockToolChoice.TOOL, name: 'json_response' },
@@ -1714,9 +1712,12 @@ export const moderateImage = async ({
           },
         })
       : undefined
+
+  const resizedImage = await resize(image)
+
   if (aggregateInfractions) {
     const result = await getAllImageModerationFailures({
-      image,
+      image: resizedImage,
       sessionId,
       isVolunteer,
       trace: traceClient,
@@ -1728,7 +1729,7 @@ export const moderateImage = async ({
         userId,
         sessionId,
         failureReasons: result.failureReasons,
-        image,
+        image: resizedImage,
         source,
       })
     }
@@ -1744,7 +1745,7 @@ export const moderateImage = async ({
     return { isClean: false, failures }
   } else {
     moderateImageInBackground({
-      image,
+      image: resizedImage,
       sessionId,
       userId,
       isVolunteer,
