@@ -883,7 +883,7 @@ CREATE TABLE upchieve.nths_groups (
     key text NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
-    invite_code character varying(6)
+    invite_code character varying(6) NOT NULL
 );
 
 
@@ -6716,4 +6716,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20251121214549'),
     ('20251125134512'),
     ('20251201200733'),
-    ('20251205231954');
+    ('20251205231954'),
+    ('20251215171217');
