@@ -71,6 +71,11 @@ build_staging:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
     - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
       when: manual
+  needs:
+    - job: build_staging
+      artifacts: true
+    - job: test_backend
+      optional: true
 
 # Build the application and push to production registry.
 build_production:
