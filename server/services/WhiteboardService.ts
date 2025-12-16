@@ -150,7 +150,7 @@ export async function loadZwibbler(): Promise<Zwibbler | undefined> {
     } catch (err) {
       logger.warn(
         { err },
-        'Zwibbler load failed; snapshots will be skipped for now.'
+        'Zwibbler load failed. Snapshots will be skipped for now.'
       )
       return
     } finally {
