@@ -267,10 +267,7 @@ export async function getTrainingCourses(): Promise<TrainingCourses[]> {
       getClient()
     )
     if (result.length) {
-      const raw = result.map((row) => makeRequired(row))
-      return raw.filter(
-        (trainingCourse) => trainingCourse.name !== 'upchieveTraining'
-      )
+      return result.map((row) => makeRequired(row))
     }
     return []
   } catch (err) {
