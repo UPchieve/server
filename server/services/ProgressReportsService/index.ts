@@ -82,7 +82,7 @@ async function formatTranscriptAndEditor(
   let transcript = ''
   for (const message of session.messages) {
     const userType = message.user === session.studentId ? 'Student' : 'Tutor'
-    transcript += formatTranscriptMessage(message, userType)
+    transcript += await formatTranscriptMessage(message, userType)
   }
 
   logger.info(
@@ -255,14 +255,20 @@ export async function hasActiveSubjectPrompt(
 export async function formatSessionsForBotPrompt(
   sessions: UserSessionsWithMessages[]
 ): Promise<string> {
-  const results = await Promise.allSettled(
-    sessions.map(formatTranscriptAndEditor)
+  const sessionIds = sessions.map((s) => s.id)
+
+  const formattedSessions = await Promise.all(
+    sessions.map((session) => formatTranscriptAndEditor(session))
   )
-  const formattedSessions = results
-    .filter((result) => result.status === 'fulfilled')
-    .map((result) => (result as PromiseFulfilledResult<string>).value)
-    .join('\n')
-  return formattedSessions
+
+  const formattedTranscript = formattedSessions.join('\n')
+
+  logger.info(
+    { sessionId: sessionIds, formattedTranscript: formattedTranscript },
+    'Progress Report All Sessions Formatted Transcript'
+  )
+
+  return formattedTranscript
 }
 
 export async function saveProgressReport({
@@ -413,6 +419,7 @@ export async function generateProgressReport(
       userId,
       sessionId,
       systemPrompt,
+      formattedSessions: botPrompt,
     },
   })
   const result = await invokeModel({
