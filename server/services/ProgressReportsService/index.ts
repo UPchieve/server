@@ -99,7 +99,6 @@ async function formatDocumentEditorPrompt(
   session: UserSessionsWithMessages,
   transcript: string
 ): Promise<string> {
-  const quillDoc = removeImageInsertsFromQuillDoc(session.quillDoc)
   /**
    *
    * Note: This should be optimized since we will be extracting texts from
@@ -107,7 +106,9 @@ async function formatDocumentEditorPrompt(
    *
    **/
   let imageText = ''
+  let quillDoc = ''
   if (session.quillDoc) {
+    quillDoc = removeImageInsertsFromQuillDoc(session.quillDoc)
     // TODO: Update image extraction logic since we now store image URLs in Quill docs instead of base64 data.
     //       We need to keep base64 decoding for older Quill docs created before that change
     const docImages = await getDocumentEditorImages(session.quillDoc)
@@ -150,11 +151,11 @@ async function formatWhiteboardPrompt(
   `.trim()
 }
 
-export function removeImageInsertsFromQuillDoc(
-  quillDoc: string | undefined
-): string {
-  if (!quillDoc) return ''
+export function removeImageInsertsFromQuillDoc(quillDoc: string): string {
   const document: Delta = JSON.parse(quillDoc)
+
+  if (!document.ops) return ''
+
   const filteredOps = document.ops.filter(
     (op) => op.insert && typeof op.insert === 'string'
   )
