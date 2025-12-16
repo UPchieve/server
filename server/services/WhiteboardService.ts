@@ -136,8 +136,13 @@ async function loadZwibblerLib(): Promise<Zwibbler | undefined> {
 
 export async function loadZwibbler(): Promise<Zwibbler | undefined> {
   if (zwibbler) return zwibbler
+  // If Zwibbler is currently being loaded, return the same Promise
+  // so that multiple callers wait for the same load instead of
+  // starting multiple network requests
   if (zwibblerLoad) return zwibblerLoad
 
+  // Start loading Zwibbler and store the Promise immediately
+  // Any concurrent calls will reuse this Promise instead of starting the work again
   zwibblerLoad = (async () => {
     try {
       zwibbler = await loadZwibblerLib()
