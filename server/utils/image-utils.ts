@@ -6,18 +6,14 @@ export function getImageFileType(image: Buffer) {
 }
 
 export async function resize(image: Buffer, options?: sharp.ResizeOptions) {
-  const resizeOptions = !!options
-    ? options
-    : {
-        width: 224,
-        height: 224,
-        //sharp's default quality is 80
-      }
+  const resizeOptions: sharp.ResizeOptions = {
+    width: 224,
+    height: 224,
+    fit: 'contain',
+    ...options,
+  }
 
-  return await sharp(image)
-    .resize({ ...resizeOptions, fit: 'contain' })
-    .jpeg()
-    .toBuffer()
+  return await sharp(image).resize(resizeOptions).jpeg().toBuffer()
 }
 
 export async function convertBase64ToImage(base64Data: string) {
