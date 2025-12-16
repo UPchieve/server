@@ -2,9 +2,8 @@
 -- PostgreSQL database dump
 --
 
-
--- Dumped from database version 14.20 (Debian 14.20-1.pgdg13+1)
--- Dumped by pg_dump version 14.20 (Ubuntu 14.20-0ubuntu0.22.04.1)
+-- Dumped from database version 14.19 (Debian 14.19-1.pgdg13+1)
+-- Dumped by pg_dump version 14.13 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -5989,10 +5988,26 @@ COPY upchieve.legacy_availability_histories (id, mongo_id, user_id, timezone, re
 
 
 --
+-- Data for Name: moderation_categories; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.moderation_categories (id, name) FROM stdin;
+\.
+
+
+--
 -- Data for Name: moderation_infractions; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
 COPY upchieve.moderation_infractions (id, user_id, session_id, reason, active, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: moderation_settings; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.moderation_settings (moderation_type, moderation_category_id, threshold) FROM stdin;
 \.
 
 
@@ -8383,8 +8398,8 @@ COPY upchieve.surveys_context (survey_id, subject_id, survey_type_id, created_at
 --
 
 COPY upchieve.training_courses (id, name, created_at, updated_at, display_name) FROM stdin;
-1	upchieve101	2024-08-28 00:28:43.735425+00	2025-12-05 15:09:34.494574+00	Intro to UPchieve
-2	upchieveTraining	2025-08-18 21:59:53.708917+00	2025-12-05 15:09:34.494574+00	Intro to UPchieve
+1	upchieve101	2024-08-28 00:28:43.735425+00	2025-12-12 07:03:44.164213+00	Intro to UPchieve
+2	upchieveTraining	2025-08-18 21:59:53.708917+00	2025-12-12 07:03:44.164213+00	Intro to UPchieve
 \.
 
 
@@ -8726,6 +8741,13 @@ SELECT pg_catalog.setval('upchieve.ip_addresses_id_seq', 1, true);
 
 
 --
+-- Name: moderation_categories_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
+--
+
+SELECT pg_catalog.setval('upchieve.moderation_categories_id_seq', 1, false);
+
+
+--
 -- Name: notification_methods_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
@@ -8966,5 +8988,4 @@ SELECT pg_catalog.setval('upchieve.weekdays_id_seq', 1, false);
 --
 -- PostgreSQL database dump complete
 --
-
 
