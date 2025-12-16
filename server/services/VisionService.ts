@@ -10,6 +10,7 @@ import config from '../config'
 import { isValidConfigToken } from '../utils/environments'
 import * as LangfuseService from './LangfuseService'
 import { invokeVisionModel, MODEL_ID } from './OpenAIService'
+import { resize } from '../utils/image-utils'
 
 const client: ImageAnalysisClient = isValidConfigToken(
   config.subwayAIVisionApiKey
@@ -130,10 +131,17 @@ export async function describeWhiteboardSnapshot(
         waitInMs: 5000,
       }
     )
+
+    // Resize to a normalized portrait size for the vision model to keep whiteboard content legible
+    // and avoid downscaling too much which could make symbols or drawings hard to read
+    const resizedImage = await resize(image, {
+      width: 768,
+      height: 1024,
+    })
     const { result: description } =
       await LangfuseService.runWithGeneration<string>(
         () => {
-          return invokeVisionModel(promptData.prompt, image)
+          return invokeVisionModel(promptData.prompt, resizedImage)
         },
         {
           traceName: LF_TRACE_NAME_WHITEBOARD,

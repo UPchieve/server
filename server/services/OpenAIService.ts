@@ -3,6 +3,7 @@ import OpenAI from 'openai'
 import config from '../config'
 import logger from '../logger'
 import { secondsInMs } from '../utils/time-utils'
+import { getImageFileType } from '../utils/image-utils'
 
 export const openai = new OpenAI({
   apiKey: config.openAIApiKey,
@@ -80,7 +81,7 @@ export async function invokeVisionModel(
   const imageUrl =
     typeof image === 'string'
       ? image
-      : `data:image/png;base64,${image.toString('base64')}`
+      : `data:${getImageFileType(image)};base64,${image.toString('base64')}`
   const userMessage: OpenAI.Chat.Completions.ChatCompletionContentPart[] = [
     {
       type: 'image_url',
