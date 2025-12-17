@@ -165,6 +165,9 @@ export function removeImageInsertsFromQuillDoc(quillDoc: string): string {
 
 function extractBase64ImagesFromQuillDoc(quillDoc: string): string[] {
   const document: Delta = JSON.parse(quillDoc)
+
+  if (!document.ops) return []
+
   const base64Images: string[] = document.ops
     .filter(
       (op) => op.insert && typeof op.insert === 'object' && 'image' in op.insert
