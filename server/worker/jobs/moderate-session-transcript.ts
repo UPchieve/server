@@ -108,7 +108,7 @@ export default async function moderateSessionTranscript(
     logger.warn(`8. moderationResults, ${moderationResults}`)
 
     const combinedResults = [
-      ...moderationResults.reasons,
+      ...moderationResults.map((flagged) => flagged.reason),
       ...(moderatedWhiteboardResults?.failures ?? []),
     ]
 

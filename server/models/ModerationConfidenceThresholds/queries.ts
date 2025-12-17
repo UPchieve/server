@@ -20,9 +20,33 @@ export async function getConfidenceTreshold(
       client
     )
 
-    if (!result.length) return config.contextualModerationConfidenceThreshold
+    if (!result.length) {
+      if (moderationType === 'contextual')
+        return config.contextualModerationConfidenceThreshold
+      else return config.imageModerationMinConfidence
+    }
 
     return Number(makeRequired(result[0]).threshold)
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export type ModerationTreshold = {
+  name: string
+  threshold: string
+}
+
+export async function getContextualConfidenceThresholds(
+  client: TransactionClient = getClient()
+): Promise<ModerationTreshold[]> {
+  try {
+    const result = await pgQueries.getContextualConfidenceThresholds.run(
+      undefined,
+      client
+    )
+
+    return result.map((row) => makeRequired(row))
   } catch (err) {
     throw new RepoReadError(err)
   }

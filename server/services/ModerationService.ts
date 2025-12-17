@@ -1368,14 +1368,15 @@ export async function moderateMessage({
     transcript,
     trace
   )
-  const uncleanDms = transcriptModerationResults.flaggedMessages.filter(
-    (message) => message.includes(DIRECT_MESSAGE_TAG)
+  const uncleanDms = transcriptModerationResults.filter((flagged) =>
+    flagged.message.includes(DIRECT_MESSAGE_TAG)
   )
   if (uncleanDms.length) {
     const failures = {} as Record<string, string[]>
-    transcriptModerationResults.reasons.forEach((reason) => {
-      failures[reason.toLowerCase().replace('_', ' ')] = []
-    })
+    transcriptModerationResults.forEach(
+      (flagged) =>
+        (failures[flagged.reason.toLowerCase().replace('_', ' ')] = [])
+    )
     return { failures }
   } else {
     return { failures: {} }
@@ -1787,16 +1788,6 @@ const getSessionTranscriptModerationResult = async (
   return moderationResult
 }
 
-async function getModerationConfidenceThresholds(
-  moderationCategory: string,
-  moderationType: ModerationConfidenceThresholdsRepo.ModerationType
-): Promise<Number> {
-  return await ModerationConfidenceThresholdsRepo.getConfidenceTreshold(
-    moderationCategory,
-    moderationType
-  )
-}
-
 export type ModerationSessionReviewFlagReason =
   | 'PII'
   | 'HATE_SPEECH'
@@ -1810,14 +1801,20 @@ export type TranscriptChunkModerationResult = {
   reasons: ModerationSessionReviewFlagReason[]
   flaggedMessages: string[]
 }
+type FlaggedReason = {
+  reason: ModerationSessionReviewFlagReason | string
+  message: string
+  confidence: Number
+}
 export const moderateTranscript = async (
   transcript: SessionTranscript,
   trace: LangfuseTraceClient,
   extractedText?: string[]
-): Promise<{
-  reasons: ModerationSessionReviewFlagReason[]
-  flaggedMessages: string[]
-}> => {
+): Promise<
+  FlaggedReason[]
+  // reasons: ModerationSessionReviewFlagReason[]
+  // flaggedMessages: string[]
+> => {
   const extractedTextItems: ExtractedTextItem[] =
     extractedText?.map((text) => {
       return {
@@ -1867,62 +1864,57 @@ export const moderateTranscript = async (
     results.push(result)
   }
 
-  const allReasons = new Set<ModerationSessionReviewFlagReason>(
-    results.flatMap((result) => result.reasons)
-  )
+  const allReasons = results.flatMap((result) => result.reasons)
 
   const confidenceThresholdMap = new Map<string, Number>()
 
-  await Promise.all(
-    Array.from(allReasons).map(async (reason) => {
-      try {
-        const threshold = await getModerationConfidenceThresholds(
-          reason,
-          'contextual'
-        )
-        confidenceThresholdMap.set(reason, threshold)
-      } catch (error) {
-        confidenceThresholdMap.set(
-          reason,
-          config.contextualModerationConfidenceThreshold
-        )
-      }
-    })
-  )
+  const contextualThresholds =
+    await ModerationConfidenceThresholdsRepo.getContextualConfidenceThresholds()
 
-  const hasAnyFlaggedReason = results.some((result) =>
-    result.reasons.some((reason) => {
-      const threshold =
-        confidenceThresholdMap.get(reason) ??
+  for (const reason of allReasons) {
+    const thresholdObj = contextualThresholds.find(
+      (threshold) => threshold.name === reason
+    )
+
+    if (thresholdObj) {
+      confidenceThresholdMap.set(reason, Number(thresholdObj.threshold))
+    } else {
+      confidenceThresholdMap.set(
+        reason,
         config.contextualModerationConfidenceThreshold
-      return result.confidence >= Number(threshold)
-    })
-  )
-
-  if (hasAnyFlaggedReason) {
-    trace.update({ tags: [LangfuseTraceTagEnum.FLAGGED_BY_MODERATION] })
+      )
+    }
   }
 
   const flaggedReasons = new Set<ModerationSessionReviewFlagReason>()
-  const flaggedMessages = new Set<string>()
 
-  results.forEach((result) => {
-    result.reasons.forEach((reason) => {
+  let flaggedOutput: FlaggedReason[] = []
+
+  for (const result of results) {
+    for (const reason of result.reasons) {
       const threshold =
         confidenceThresholdMap.get(reason) ??
         config.contextualModerationConfidenceThreshold
 
       if (result.confidence >= Number(threshold)) {
-        flaggedReasons.add(reason)
-        result.flaggedMessages.forEach((msg) => flaggedMessages.add(msg))
+        for (const msg of result.flaggedMessages) {
+          flaggedOutput.push({
+            reason,
+            message: msg,
+            confidence: threshold,
+          })
+        }
       }
-    })
-  })
-
-  return {
-    reasons: Array.from(flaggedReasons),
-    flaggedMessages: Array.from(flaggedMessages),
+    }
   }
+
+  const hasAnyFlaggedReason = !!flaggedReasons.size
+
+  if (hasAnyFlaggedReason) {
+    trace.update({ tags: [LangfuseTraceTagEnum.FLAGGED_BY_MODERATION] })
+  }
+
+  return flaggedOutput
 }
 
 export function getSessionFlagByModerationReason(
