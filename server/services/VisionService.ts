@@ -135,8 +135,8 @@ export async function describeWhiteboardSnapshot(
     // Resize to a normalized portrait size for the vision model to keep whiteboard content legible
     // and avoid downscaling too much which could make symbols or drawings hard to read
     const resizedImage = await resize(image, {
-      width: 768,
       height: 1024,
+      fit: 'inside',
     })
     const { result: description } =
       await LangfuseService.runWithGeneration<string>(
