@@ -81,7 +81,7 @@ export async function invokeVisionModel(
   const imageUrl =
     typeof image === 'string'
       ? image
-      : `data:${getImageFileType(image)};base64,${image.toString('base64')}`
+      : `data:${getImageFileType(image)?.mime};base64,${image.toString('base64')}`
   const userMessage: OpenAI.Chat.Completions.ChatCompletionContentPart[] = [
     {
       type: 'image_url',

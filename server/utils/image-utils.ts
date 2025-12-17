@@ -12,8 +12,11 @@ export async function resize(image: Buffer, options?: sharp.ResizeOptions) {
     fit: 'contain',
     ...options,
   }
+  const meta = await sharp(image).metadata()
+  const pipeline = sharp(image).resize(resizeOptions)
 
-  return await sharp(image).resize(resizeOptions).jpeg().toBuffer()
+  if (meta.format === 'png') return pipeline.toBuffer()
+  return pipeline.jpeg().toBuffer()
 }
 
 export async function convertBase64ToImage(base64Data: string) {
