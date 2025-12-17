@@ -6,20 +6,9 @@ import * as WhiteboardService from '../../services/WhiteboardService'
 import * as LangfuseService from '../../services/LangfuseService'
 import config from '../../config'
 import { importFromStringSync } from 'module-from-string'
-import { get } from 'node:https'
 import logger from '../../logger'
 import { LangfuseTraceName } from '../../services/ModerationService'
-
-export function fetchRemoteJs(url: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    get(url, (res) => {
-      let data = ''
-      res.setEncoding('utf8')
-      res.on('data', (chunk) => (data += chunk))
-      res.on('end', () => resolve(data)).on('error', (err) => reject(err))
-    })
-  })
-}
+import { fetchRemoteJs } from '../../utils/fetch-remote-js'
 
 export interface ModerateSessionTranscriptJobData {
   sessionId: Ulid

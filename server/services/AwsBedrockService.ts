@@ -54,8 +54,10 @@ type BedrockInvokeInput = {
   image?: Buffer
 }
 
+type ToolInput = Record<string, any>
+
 type BedrockInvokeResponse = {
-  content: Array<{ input?: Object; text?: string }>
+  content: Array<{ input?: ToolInput; text?: string }>
 }
 
 function imageContentPayload(image: Buffer) {
@@ -75,13 +77,13 @@ function textContextPayload(text: string) {
   return { type: 'text', text: `<text>${text}</text>` }
 }
 
-export async function invokeModel({
+export async function invokeModel<T = string | ToolInput>({
   modelId,
   image,
   text,
   prompt,
   tools_option,
-}: BedrockInvokeInput) {
+}: BedrockInvokeInput): Promise<T> {
   const client = getClient()
 
   const payLoadContent = []
@@ -122,17 +124,15 @@ export async function invokeModel({
   const response = getModelResponse(modelRes)
 
   if (!response) {
-    throw new Error('No excpected Bedrock response')
+    throw new Error('No expected Bedrock response')
   }
 
-  return response
+  return response as T
 }
 
 const getResponseWithToolsOption = (modelRes: BedrockInvokeResponse) => {
   return modelRes?.content[0]?.input ?? null
 }
 const getResponse = (modelRes: BedrockInvokeResponse) => {
-  return modelRes?.content[0]?.text
-    ? JSON.parse(modelRes.content[0].text)
-    : null
+  return modelRes?.content[0]?.text ?? null
 }

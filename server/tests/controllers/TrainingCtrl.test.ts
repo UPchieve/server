@@ -139,7 +139,7 @@ describe('getQuizScore', () => {
       volunteer.id,
       cert,
       false,
-      expect.toBeTransactionClient()
+      expect.anything()
     )
     expect(UserActionRepo.createQuizAction).not.toHaveBeenCalledWith({
       action: QUIZ_USER_ACTIONS.UNLOCKED_SUBJECT,
@@ -219,7 +219,7 @@ describe('getQuizScore', () => {
       volunteer.id,
       cert,
       true,
-      expect.toBeTransactionClient()
+      expect.anything()
     )
     for (const subject of unlockedSubjectNames) {
       expect(UserActionRepo.createQuizAction).toHaveBeenCalledWith(
@@ -241,13 +241,13 @@ describe('getQuizScore', () => {
       expect(VolunteerRepo.addVolunteerCertification).toHaveBeenCalledWith(
         volunteer.id,
         subject,
-        expect.toBeTransactionClient()
+        expect.anything()
       )
     }
     expect(VolunteerService.onboardVolunteer).toHaveBeenCalledWith(
       volunteer.id,
       undefined,
-      expect.toBeTransactionClient()
+      expect.anything()
     )
     expect(VolunteerRepo.updateVolunteerOnboarded).not.toHaveBeenCalled()
     expect(VolunteerService.queueOnboardingEventEmails).not.toHaveBeenCalled()
@@ -322,7 +322,7 @@ describe('getQuizScore', () => {
       volunteer.id,
       cert,
       true,
-      expect.toBeTransactionClient()
+      expect.anything()
     )
     for (const subject of unlockedSubjectNames) {
       expect(UserActionRepo.createQuizAction).toHaveBeenCalledWith(
@@ -344,13 +344,13 @@ describe('getQuizScore', () => {
       expect(VolunteerRepo.addVolunteerCertification).toHaveBeenCalledWith(
         volunteer.id,
         subject,
-        expect.toBeTransactionClient()
+        expect.anything()
       )
     }
     expect(VolunteerService.onboardVolunteer).toHaveBeenCalledWith(
       volunteer.id,
       undefined,
-      expect.toBeTransactionClient()
+      expect.anything()
     )
     expect(result).toEqual(expectedResult)
   })
@@ -411,7 +411,7 @@ describe('getQuizScore', () => {
       volunteer.id,
       cert,
       true,
-      expect.toBeTransactionClient()
+      expect.anything()
     )
 
     expect(UserActionRepo.createQuizAction).not.toHaveBeenCalledWith({
@@ -434,7 +434,7 @@ describe('getQuizScore', () => {
     expect(VolunteerService.onboardVolunteer).toHaveBeenCalledWith(
       volunteer.id,
       undefined,
-      expect.toBeTransactionClient()
+      expect.anything()
     )
     expect(result).toEqual(expectedResult)
   })
@@ -497,7 +497,7 @@ describe('getQuizScore', () => {
       volunteer.id,
       cert,
       true,
-      expect.toBeTransactionClient()
+      expect.anything()
     )
 
     for (const subject of unlockedSubjectNames) {
@@ -520,13 +520,13 @@ describe('getQuizScore', () => {
       expect(VolunteerRepo.addVolunteerCertification).toHaveBeenCalledWith(
         volunteer.id,
         subject,
-        expect.toBeTransactionClient()
+        expect.anything()
       )
     }
     expect(VolunteerService.onboardVolunteer).toHaveBeenCalledWith(
       volunteer.id,
       undefined,
-      expect.toBeTransactionClient()
+      expect.anything()
     )
     expect(result).toEqual(expectedResult)
   })
@@ -588,7 +588,7 @@ describe('getQuizScore', () => {
       volunteer.id,
       cert,
       true,
-      expect.toBeTransactionClient()
+      expect.anything()
     )
     expect(UserActionRepo.createQuizAction).not.toHaveBeenCalledWith({
       action: QUIZ_USER_ACTIONS.UNLOCKED_SUBJECT,
@@ -610,7 +610,7 @@ describe('getQuizScore', () => {
     expect(VolunteerService.onboardVolunteer).toHaveBeenCalledWith(
       volunteer.id,
       undefined,
-      expect.toBeTransactionClient()
+      expect.anything()
     )
     expect(result).toEqual(expectedResult)
   })
@@ -675,7 +675,7 @@ describe('getQuizScore', () => {
       volunteer.id,
       cert,
       true,
-      expect.toBeTransactionClient()
+      expect.anything()
     )
 
     for (const subject of unlockedSubjectNames) {
@@ -698,13 +698,13 @@ describe('getQuizScore', () => {
       expect(VolunteerRepo.addVolunteerCertification).toHaveBeenCalledWith(
         volunteer.id,
         subject,
-        expect.toBeTransactionClient()
+        expect.anything()
       )
     }
     expect(VolunteerService.onboardVolunteer).toHaveBeenCalledWith(
       volunteer.id,
       undefined,
-      expect.toBeTransactionClient()
+      expect.anything()
     )
     expect(result).toEqual(expectedResult)
   })

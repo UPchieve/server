@@ -8,7 +8,7 @@ import * as QuestionModel from '../models/Question'
 import * as UserModel from '../models/User'
 import * as VolunteerModel from '../models/Volunteer'
 import { asString } from '../utils/type-utils'
-import { runInTransaction, TransactionClient } from '../db'
+import { getClient, runInTransaction, TransactionClient } from '../db'
 import config from '../config'
 
 export async function getQuestions(
@@ -158,5 +158,5 @@ export async function getQuizScore(
       idCorrectAnswerMap,
       isTrainingSubject: isTrainingQuiz,
     }
-  })
+  }, getClient())
 }

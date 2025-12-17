@@ -4,33 +4,6 @@ import { Uuid } from '../models/pgUtils'
 import { getBlobBuffer, uploadBlobBuffer } from './AzureService'
 import * as WhiteboardService from './WhiteboardService'
 
-// This feature depends on vendors/zwibbler-node.js, which is NOT open source
-// That file is gitignored and is provided at build/deploy time
-type Zwibbler = {
-  save(doc: string, format: string): Promise<string>
-}
-let zwibbler: Zwibbler | undefined
-let zwibblerLoadAttempted = false
-
-function loadZwibbler(): Zwibbler | undefined {
-  if (zwibblerLoadAttempted) return zwibbler
-  zwibblerLoadAttempted = true
-
-  let zwibblerPath
-  try {
-    zwibblerPath =
-      process.env.ZWIBBLER_NODE_PATH ||
-      require.resolve('../vendors/zwibbler-node')
-    zwibbler = require(zwibblerPath).Zwibbler
-    return zwibbler as Zwibbler
-  } catch (error) {
-    logger.warn(
-      { err: error, zwibblerPath },
-      `Zwibbler not found. Whiteboard snapshots will be skipped.`
-    )
-  }
-}
-
 function buildWhiteboardSnapshotPath(sessionId: Uuid): string {
   return `${sessionId}/whiteboard/snapshot.png`
 }
@@ -38,7 +11,7 @@ function buildWhiteboardSnapshotPath(sessionId: Uuid): string {
 export async function generateWhiteboardSnapshot(
   whiteboardDoc: string
 ): Promise<Buffer | undefined> {
-  const zwibbler = loadZwibbler()
+  const zwibbler = await WhiteboardService.loadZwibbler()
   if (!zwibbler) return
 
   try {

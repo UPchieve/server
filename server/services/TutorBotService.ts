@@ -49,6 +49,12 @@ const BED_ROCK_TOOL = [
   },
 ]
 
+type TutorBotModelResponse = {
+  strategy: string
+  intention: string
+  response: string
+}
+
 interface TutorBotConversationMessage {
   tutorBotConversationId: string
   userId: string
@@ -303,7 +309,7 @@ const getAwsBedRockResponse = async (
   | (TutorBotConversationMessage & {
       traceId: string
       obeservationId: string | null
-      status: number
+      status: string
     })
   | null
 > => {
@@ -320,8 +326,9 @@ const getAwsBedRockResponse = async (
     metadata: { model: config.awsBedrockSonnet4Id },
     input: promptData.prompt,
   })
-  let savedBotMessage = null
-  let botResponse = null
+
+  let savedBotMessage: TutorBotConversationMessage | null = null
+  let botResponse: TutorBotModelResponse | string | null = null
 
   try {
     botResponse = await invokeModel({
@@ -342,11 +349,15 @@ const getAwsBedRockResponse = async (
       traceName: LF_TRACE_NAME,
     })
   } finally {
+    const message =
+      typeof botResponse === 'string'
+        ? botResponse
+        : (botResponse?.response ?? AWS_BEDROCK_TUTOR_ANSWER_FALLBACK)
     savedBotMessage = await insertTutorBotConversationMessage(
       {
         conversationId,
         userId,
-        message: botResponse?.response ? botResponse.response : botResponse,
+        message,
         senderUserType: 'bot',
       },
       tc
@@ -357,14 +368,19 @@ const getAwsBedRockResponse = async (
     })
   }
 
+  const message =
+    typeof botResponse === 'string'
+      ? botResponse
+      : (botResponse?.response ?? AWS_BEDROCK_TUTOR_ANSWER_FALLBACK)
+
   return {
     senderUserType: 'bot',
-    message: botResponse?.response ? botResponse.response : botResponse,
+    message,
     createdAt: savedBotMessage.createdAt,
     tutorBotConversationId: conversationId,
     userId,
-    status: botResponse?.intention
-      ? botResponse.intention
+    status: (botResponse as TutorBotModelResponse)?.intention
+      ? (botResponse as TutorBotModelResponse).intention
       : '1. Get the student to elaborate their answer',
     traceId: gen.traceId,
     obeservationId: gen.observationId,

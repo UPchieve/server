@@ -555,6 +555,11 @@ export function filterDisallowedDomains({
   return links.filter(linksWithDisallowedDomain)
 }
 
+type AddressDetectionModelResponse = {
+  confidence: number
+  explanation: string
+}
+
 async function checkForFullAddresses({
   text,
   sessionId,
@@ -607,7 +612,7 @@ async function checkForFullAddresses({
     ...(promptData.promptObject && { prompt: promptData.promptObject }),
   })
   try {
-    const completion = await invokeModel({
+    const completion = await invokeModel<AddressDetectionModelResponse>({
       modelId,
       text,
       prompt: promptData.prompt,
@@ -727,7 +732,7 @@ async function checkForQuestionableLinks({
   ]
 
   try {
-    const completion = await invokeModel({
+    const completion = await invokeModel<ModeratedLinkResponse['details']>({
       modelId,
       text: formattedLinks,
       prompt: promptData.prompt,
