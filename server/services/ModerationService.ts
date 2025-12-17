@@ -1879,7 +1879,7 @@ export const moderateTranscript = async (
         reason,
         config.contextualModerationConfidenceThreshold
       )
-      logger.warn('No confidence threshold set for reason ', reason)
+      logger.warn({ reason }, 'No confidence threshold set for reason')
     }
   }
 
