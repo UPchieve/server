@@ -1,7 +1,3 @@
-
--- Dumped from database version 14.20 (Debian 14.20-1.pgdg13+1)
--- Dumped by pg_dump version 14.20 (Ubuntu 14.20-0ubuntu0.22.04.1)
-
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -117,6 +113,16 @@ CREATE TYPE upchieve.ban_types AS ENUM (
     'shadow',
     'complete',
     'live_media'
+);
+
+
+--
+-- Name: moderation_types; Type: TYPE; Schema: upchieve; Owner: -
+--
+
+CREATE TYPE upchieve.moderation_types AS ENUM (
+    'contextual',
+    'realtime_image'
 );
 
 
@@ -716,6 +722,36 @@ CREATE TABLE upchieve.legacy_availability_histories (
 
 
 --
+-- Name: moderation_categories; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.moderation_categories (
+    id integer NOT NULL,
+    name text NOT NULL
+);
+
+
+--
+-- Name: moderation_categories_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+CREATE SEQUENCE upchieve.moderation_categories_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: moderation_categories_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
+--
+
+ALTER SEQUENCE upchieve.moderation_categories_id_seq OWNED BY upchieve.moderation_categories.id;
+
+
+--
 -- Name: moderation_infractions; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -727,6 +763,17 @@ CREATE TABLE upchieve.moderation_infractions (
     active boolean DEFAULT true NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: moderation_settings; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.moderation_settings (
+    moderation_type upchieve.moderation_types,
+    moderation_category_id integer,
+    threshold numeric(3,2)
 );
 
 
@@ -3019,6 +3066,13 @@ ALTER TABLE ONLY upchieve.ip_addresses ALTER COLUMN id SET DEFAULT nextval('upch
 
 
 --
+-- Name: moderation_categories id; Type: DEFAULT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.moderation_categories ALTER COLUMN id SET DEFAULT nextval('upchieve.moderation_categories_id_seq'::regclass);
+
+
+--
 -- Name: notification_methods id; Type: DEFAULT; Schema: upchieve; Owner: -
 --
 
@@ -3463,6 +3517,14 @@ ALTER TABLE ONLY upchieve.ip_addresses
 
 ALTER TABLE ONLY upchieve.legacy_availability_histories
     ADD CONSTRAINT legacy_availability_histories_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: moderation_categories moderation_categories_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.moderation_categories
+    ADD CONSTRAINT moderation_categories_pkey PRIMARY KEY (id);
 
 
 --
@@ -5254,6 +5316,14 @@ ALTER TABLE ONLY upchieve.moderation_infractions
 
 ALTER TABLE ONLY upchieve.moderation_infractions
     ADD CONSTRAINT moderation_infractions_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
+
+
+--
+-- Name: moderation_settings moderation_settings_moderation_category_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.moderation_settings
+    ADD CONSTRAINT moderation_settings_moderation_category_id_fkey FOREIGN KEY (moderation_category_id) REFERENCES upchieve.moderation_categories(id);
 
 
 --

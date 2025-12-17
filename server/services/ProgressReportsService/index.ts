@@ -82,7 +82,7 @@ async function formatTranscriptAndEditor(
   let transcript = ''
   for (const message of session.messages) {
     const userType = message.user === session.studentId ? 'Student' : 'Tutor'
-    transcript += formatTranscriptMessage(message, userType)
+    transcript += await formatTranscriptMessage(message, userType)
   }
 
   logger.info(
@@ -99,7 +99,6 @@ async function formatDocumentEditorPrompt(
   session: UserSessionsWithMessages,
   transcript: string
 ): Promise<string> {
-  const quillDoc = removeImageInsertsFromQuillDoc(session.quillDoc)
   /**
    *
    * Note: This should be optimized since we will be extracting texts from
@@ -107,7 +106,9 @@ async function formatDocumentEditorPrompt(
    *
    **/
   let imageText = ''
+  let quillDoc = ''
   if (session.quillDoc) {
+    quillDoc = removeImageInsertsFromQuillDoc(session.quillDoc)
     // TODO: Update image extraction logic since we now store image URLs in Quill docs instead of base64 data.
     //       We need to keep base64 decoding for older Quill docs created before that change
     const docImages = await getDocumentEditorImages(session.quillDoc)
@@ -150,11 +151,11 @@ async function formatWhiteboardPrompt(
   `.trim()
 }
 
-export function removeImageInsertsFromQuillDoc(
-  quillDoc: string | undefined
-): string {
-  if (!quillDoc) return ''
+export function removeImageInsertsFromQuillDoc(quillDoc: string): string {
   const document: Delta = JSON.parse(quillDoc)
+
+  if (!document.ops) return ''
+
   const filteredOps = document.ops.filter(
     (op) => op.insert && typeof op.insert === 'string'
   )
@@ -255,14 +256,20 @@ export async function hasActiveSubjectPrompt(
 export async function formatSessionsForBotPrompt(
   sessions: UserSessionsWithMessages[]
 ): Promise<string> {
-  const results = await Promise.allSettled(
-    sessions.map(formatTranscriptAndEditor)
+  const sessionIds = sessions.map((s) => s.id)
+
+  const formattedSessions = await Promise.all(
+    sessions.map((session) => formatTranscriptAndEditor(session))
   )
-  const formattedSessions = results
-    .filter((result) => result.status === 'fulfilled')
-    .map((result) => (result as PromiseFulfilledResult<string>).value)
-    .join('\n')
-  return formattedSessions
+
+  const formattedTranscript = formattedSessions.join('\n')
+
+  logger.info(
+    { sessionId: sessionIds, formattedTranscript: formattedTranscript },
+    'Progress Report All Sessions Formatted Transcript'
+  )
+
+  return formattedTranscript
 }
 
 export async function saveProgressReport({
@@ -413,6 +420,7 @@ export async function generateProgressReport(
       userId,
       sessionId,
       systemPrompt,
+      formattedSessions: botPrompt,
     },
   })
   const result = await invokeModel({
