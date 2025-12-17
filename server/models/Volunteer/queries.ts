@@ -1084,12 +1084,12 @@ export async function getVolunteersForWaitingReferences(
 export async function addVolunteerCertification(
   userId: Ulid,
   subject: string,
-  tc?: TransactionClient
+  tc: TransactionClient = getClient()
 ): Promise<void> {
   try {
     const result = await pgQueries.addVolunteerCertification.run(
       { userId, subject },
-      tc ?? getClient()
+      tc
     )
     if (!result.length && makeRequired(result[0]).ok)
       throw new RepoUpdateError('update query did not return ok')
