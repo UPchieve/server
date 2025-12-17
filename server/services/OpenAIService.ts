@@ -3,6 +3,7 @@ import OpenAI from 'openai'
 import config from '../config'
 import logger from '../logger'
 import { secondsInMs } from '../utils/time-utils'
+import { getImageFileType } from '../utils/image-utils'
 
 export const openai = new OpenAI({
   apiKey: config.openAIApiKey,
@@ -71,4 +72,33 @@ function getResults(
   return responseType === OpenAiResponseType.JSON
     ? JSON.parse(result.choices[0].message.content)
     : result.choices[0].message.content
+}
+
+export async function invokeVisionModel(
+  systemPrompt: string,
+  image: Buffer | string
+): Promise<string> {
+  const imageUrl =
+    typeof image === 'string'
+      ? image
+      : `data:${getImageFileType(image)?.mime};base64,${image.toString('base64')}`
+  const userMessage: OpenAI.Chat.Completions.ChatCompletionContentPart[] = [
+    {
+      type: 'image_url',
+      image_url: {
+        url: imageUrl,
+      },
+    },
+  ]
+  const { results } = await invokeModel({
+    prompt: systemPrompt,
+    userMessage,
+    responseType: OpenAiResponseType.TEXT,
+  })
+  if (typeof results !== 'string')
+    throw new Error(
+      'Expected a text response from the vision model when analyzing snapshot'
+    )
+
+  return results
 }

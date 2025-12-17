@@ -6,14 +6,20 @@ export function getImageFileType(image: Buffer) {
 }
 
 export async function resize(image: Buffer, options?: sharp.ResizeOptions) {
+  // Default to 224x224 for generic image moderation use cases
+  // Callers can override by providing width or height explicitly
+  const hasExplicitSize = options?.width || options?.height
   const resizeOptions: sharp.ResizeOptions = {
-    width: 224,
-    height: 224,
     fit: 'contain',
+    ...(hasExplicitSize ? {} : { width: 224, height: 224 }),
     ...options,
   }
+  const meta = await sharp(image).metadata()
+  const pipeline = sharp(image).resize(resizeOptions)
 
-  return await sharp(image).resize(resizeOptions).jpeg().toBuffer()
+  // Preserve PNG when input is PNG, otherwise encode JPEG
+  if (meta.format === 'png') return pipeline.toBuffer()
+  return pipeline.jpeg().toBuffer()
 }
 
 export async function convertBase64ToImage(base64Data: string) {

@@ -1,3 +1,4 @@
+import { importFromStringSync } from 'module-from-string'
 import config from '../config'
 import logger from '../logger'
 import { getBlob, uploadBlobString } from './AzureService'
@@ -5,9 +6,16 @@ import { Ulid, Uuid } from '../models/pgUtils'
 import * as cache from '../cache'
 import { KeyNotFoundError } from '../cache'
 import { isZwibserveSession } from './SessionService'
+import { fetchRemoteJs } from '../utils/fetch-remote-js'
 
 const sessionIdToKey = (id: Ulid): string => `zwibbler-${id}`
 const zwibserveKey = (id: Ulid): string => `zwibbler:${id}`
+
+type Zwibbler = {
+  save(doc: string, format: string): Promise<string>
+}
+let zwibbler: Zwibbler | undefined
+let zwibblerLoad: Promise<Zwibbler | undefined> | undefined
 
 async function getZwibserveOrCustomCollabKey(sessionId: Ulid) {
   const isUsingZwibserve = await isZwibserveSession(sessionId)
@@ -111,4 +119,44 @@ export const getDocFromStorage = async (sessionId: Ulid): Promise<string> => {
     )
     return ''
   }
+}
+
+async function loadZwibblerLib(): Promise<Zwibbler | undefined> {
+  // NOTE: we're grabbing the Zwibbler node library from our CDN
+  // we don't want to keep it in the repo for licensing reasons
+  // WARNING: DO NOT use 'module-from-string' for code we don't control since it
+  // doesn't go through the same CVE checks that node modules do
+  const js = await fetchRemoteJs(config.zwibblerNodeUrl)
+  const lib: any = importFromStringSync(js, {
+    globals: { setTimeout },
+  })
+
+  return lib?.Zwibbler as Zwibbler | undefined
+}
+
+export async function loadZwibbler(): Promise<Zwibbler | undefined> {
+  if (zwibbler) return zwibbler
+  // If Zwibbler is currently being loaded, return the same Promise
+  // so that multiple callers wait for the same load instead of
+  // starting multiple network requests
+  if (zwibblerLoad) return zwibblerLoad
+
+  // Start loading Zwibbler and store the Promise immediately
+  // Any concurrent calls will reuse this Promise instead of starting the work again
+  zwibblerLoad = (async () => {
+    try {
+      zwibbler = await loadZwibblerLib()
+      return zwibbler
+    } catch (err) {
+      logger.warn(
+        { err },
+        'Zwibbler load failed. Snapshots will be skipped for now.'
+      )
+      return
+    } finally {
+      if (!zwibbler) zwibblerLoad = undefined
+    }
+  })()
+
+  return zwibblerLoad
 }
