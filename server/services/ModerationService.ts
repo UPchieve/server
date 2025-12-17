@@ -1810,11 +1810,7 @@ export const moderateTranscript = async (
   transcript: SessionTranscript,
   trace: LangfuseTraceClient,
   extractedText?: string[]
-): Promise<
-  FlaggedReason[]
-  // reasons: ModerationSessionReviewFlagReason[]
-  // flaggedMessages: string[]
-> => {
+): Promise<FlaggedReason[]> => {
   const extractedTextItems: ExtractedTextItem[] =
     extractedText?.map((text) => {
       return {
@@ -1883,10 +1879,9 @@ export const moderateTranscript = async (
         reason,
         config.contextualModerationConfidenceThreshold
       )
+      logger.warn('No confidence threshold set for reason ', reason)
     }
   }
-
-  const flaggedReasons = new Set<ModerationSessionReviewFlagReason>()
 
   let flaggedOutput: FlaggedReason[] = []
 
@@ -1897,6 +1892,7 @@ export const moderateTranscript = async (
         config.contextualModerationConfidenceThreshold
 
       if (result.confidence >= Number(threshold)) {
+        trace.update({ tags: [LangfuseTraceTagEnum.FLAGGED_BY_MODERATION] })
         for (const msg of result.flaggedMessages) {
           flaggedOutput.push({
             reason,
@@ -1906,12 +1902,6 @@ export const moderateTranscript = async (
         }
       }
     }
-  }
-
-  const hasAnyFlaggedReason = !!flaggedReasons.size
-
-  if (hasAnyFlaggedReason) {
-    trace.update({ tags: [LangfuseTraceTagEnum.FLAGGED_BY_MODERATION] })
   }
 
   return flaggedOutput
