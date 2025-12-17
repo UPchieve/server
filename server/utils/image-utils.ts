@@ -6,7 +6,7 @@ export function getImageFileType(image: Buffer) {
 }
 
 export async function resize(image: Buffer, options?: sharp.ResizeOptions) {
-  // Default to 224x224 for generic image classification use cases
+  // Default to 224x224 for generic image moderation use cases
   // Callers can override by providing width or height explicitly
   const hasExplicitSize = options?.width || options?.height
   const resizeOptions: sharp.ResizeOptions = {
