@@ -300,9 +300,9 @@ export async function adminUpdateUser(data: unknown) {
     throw new UserNotFoundError('id', userId)
   }
 
-  const isVolunteer = userBeforeUpdate.roleContext.legacyRole === 'volunteer'
-  const isStudent = userBeforeUpdate.roleContext.legacyRole === 'student'
-  const isTeacher = userBeforeUpdate.roleContext.legacyRole === 'teacher'
+  const isVolunteer = userBeforeUpdate.roleContext.activeRole === 'volunteer'
+  const isStudent = userBeforeUpdate.roleContext.activeRole === 'student'
+  const isTeacher = userBeforeUpdate.roleContext.activeRole === 'teacher'
 
   const trimmedEmail = email.trim()
   const isUpdatedEmail = userBeforeUpdate.email !== trimmedEmail
@@ -453,7 +453,7 @@ export async function getUsers(
       const roleContext = await UserRolesService.getRoleContext(u.id)
       return {
         ...u,
-        userType: roleContext.legacyRole,
+        userType: roleContext.activeRole,
       }
     })
     const usersWithUserType = await Promise.all(withUserTypes)
@@ -481,7 +481,7 @@ export async function getUserByReferralCode(referralCode: string) {
     const roleContext = await UserRolesService.getRoleContext(user.id)
     return {
       ...user,
-      userType: roleContext.legacyRole,
+      userType: roleContext.activeRole,
     }
   }
 }

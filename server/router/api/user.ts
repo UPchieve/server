@@ -241,7 +241,7 @@ export function routeUser(router: Router): void {
 
       res.json({
         ...user,
-        userType: roleContext.legacyRole,
+        userType: roleContext.activeRole,
         roles: roleContext.roles,
       })
     } catch (err) {
