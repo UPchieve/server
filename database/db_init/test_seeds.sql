@@ -8747,7 +8747,7 @@ SELECT pg_catalog.setval('upchieve.grade_levels_id_seq', 9, true);
 -- Name: ip_addresses_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.ip_addresses_id_seq', 70, true);
+SELECT pg_catalog.setval('upchieve.ip_addresses_id_seq', 1, true);
 
 
 --
