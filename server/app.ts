@@ -89,11 +89,9 @@ app.get('/api/csrftoken', (_req, res) => {
 
 // for now, send directive to never cache to prevent Zwibbler issues
 // until we figure out a caching strategy
-app.use(
-  cacheControl({
-    noCache: true,
-  })
-)
+// app.use(
+//   cacheControl({ noCache: true, })
+// )
 
 // Initialize session store.
 app.use(sessionMiddleware)
