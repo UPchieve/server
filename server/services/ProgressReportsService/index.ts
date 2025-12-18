@@ -114,7 +114,7 @@ async function formatDocumentEditorPrompt(
   let imageText = ''
   let quillDoc = ''
   if (session.quillDoc) {
-    quillDoc = removeImagesFromQuillDoc(session.quillDoc)
+    quillDoc = removeImageInsertsFromQuillDoc(session.quillDoc)
     const docImages = await getDocumentEditorImages(session.quillDoc)
     if (docImages.length > 0) {
       imageText = await getProgressReportImageText(docImages)
@@ -155,7 +155,7 @@ async function formatWhiteboardPrompt(
   `.trim()
 }
 
-export function removeImagesFromQuillDoc(quillDoc: string): string {
+export function removeImageInsertsFromQuillDoc(quillDoc: string): string {
   const document: Delta = parseQuillDoc(quillDoc)
   if (!document.ops) return ''
 
