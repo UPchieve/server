@@ -66,6 +66,12 @@ import {
 import * as LangfuseService from '../LangfuseService'
 import { getWhiteboardSnapshot } from '../EditorSnapshotService'
 import { isSubjectUsingDocumentEditor } from '../../utils/session-utils'
+import {
+  extractImagesFromDoc,
+  parseDocEditorImageRoute,
+  parseQuillDoc,
+} from '../QuillDocService'
+import { getDocEditorSessionImageUrl } from '../SessionService'
 
 function formatTranscriptMessage(
   message: MessageForFrontend,
@@ -108,9 +114,7 @@ async function formatDocumentEditorPrompt(
   let imageText = ''
   let quillDoc = ''
   if (session.quillDoc) {
-    quillDoc = removeImageInsertsFromQuillDoc(session.quillDoc)
-    // TODO: Update image extraction logic since we now store image URLs in Quill docs instead of base64 data.
-    //       We need to keep base64 decoding for older Quill docs created before that change
+    quillDoc = removeImagesFromQuillDoc(session.quillDoc)
     const docImages = await getDocumentEditorImages(session.quillDoc)
     if (docImages.length > 0) {
       imageText = await getProgressReportImageText(docImages)
@@ -151,9 +155,8 @@ async function formatWhiteboardPrompt(
   `.trim()
 }
 
-export function removeImageInsertsFromQuillDoc(quillDoc: string): string {
-  const document: Delta = JSON.parse(quillDoc)
-
+export function removeImagesFromQuillDoc(quillDoc: string): string {
+  const document: Delta = parseQuillDoc(quillDoc)
   if (!document.ops) return ''
 
   const filteredOps = document.ops.filter(
@@ -163,26 +166,33 @@ export function removeImageInsertsFromQuillDoc(quillDoc: string): string {
   return JSON.stringify(document)
 }
 
-function extractBase64ImagesFromQuillDoc(quillDoc: string): string[] {
-  const document: Delta = JSON.parse(quillDoc)
+async function fetchDocEditorImageBuffer(imageUrl: string): Promise<Buffer> {
+  const parsed = parseDocEditorImageRoute(imageUrl)
+  if (!parsed) throw new Error('Invalid document editor image URL')
 
-  if (!document.ops) return []
+  const { sessionId, fileName } = parsed
+  const sasUrl = getDocEditorSessionImageUrl(sessionId, fileName)
+  const res = await fetch(sasUrl)
+  if (!res.ok)
+    throw new Error(`Failed to fetch document editor image: ${imageUrl}`)
 
-  const base64Images: string[] = document.ops
-    .filter(
-      (op) => op.insert && typeof op.insert === 'object' && 'image' in op.insert
-    )
-    .map((op) => (op.insert as { image: string }).image)
-    .filter((src) => src.startsWith('data:image'))
-  return base64Images
+  const arrayBuffer = await res.arrayBuffer()
+  return Buffer.from(arrayBuffer)
 }
 
-async function getDocumentEditorImages(quillDoc: string): Promise<Buffer[]> {
-  const imageBuffers = []
-  const base64Images: string[] = extractBase64ImagesFromQuillDoc(quillDoc)
-  for (const base64Image of base64Images) {
-    const outputBuffer = await convertBase64ToImage(base64Image)
-    imageBuffers.push(outputBuffer)
+async function imageSourceToBuffer(src: string): Promise<Buffer> {
+  if (src.startsWith('data:image/')) return convertBase64ToImage(src)
+  return fetchDocEditorImageBuffer(src)
+}
+
+export async function getDocumentEditorImages(
+  quillDoc: string
+): Promise<Buffer[]> {
+  const imageBuffers: Buffer[] = []
+  const allImages: string[] = extractImagesFromDoc(quillDoc)
+  for (const image of allImages) {
+    const buffer = await imageSourceToBuffer(image)
+    imageBuffers.push(buffer)
   }
   return imageBuffers
 }
