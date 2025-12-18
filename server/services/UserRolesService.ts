@@ -12,7 +12,11 @@ export type SessionUserRole = 'student' | 'volunteer'
 export class RoleContext {
   readonly roles: UserRole[]
   readonly activeRole: PrimaryUserRole
-  /** @deprecated */
+  /**
+   * @deprecated Use activeRole instead. Before users were allowed to have multiple user types/roles (i.e. student
+   * AND volunteer), they had just one role. legacyRole is here just for backwards compatibility with clients, and we
+   * should rip it out once all clients are updated.
+   * */
   readonly legacyRole: PrimaryUserRole
 
   constructor(
