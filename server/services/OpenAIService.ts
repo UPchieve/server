@@ -21,6 +21,9 @@ export type OpenAiInput = {
   prompt: string
   userMessage: string | Array<OpenAI.ChatCompletionContentPart>
   responseType?: OpenAiResponseType
+  options?:
+    | Omit<OpenAI.RequestOptions, 'body' | 'method' | 'path' | 'query'>
+    | {}
 }
 
 export type OpenAiResults = {
@@ -32,6 +35,7 @@ export async function invokeModel({
   prompt,
   userMessage,
   responseType = OpenAiResponseType.JSON,
+  options = {},
 }: OpenAiInput): Promise<OpenAiResults> {
   let results = null
   try {
