@@ -66,6 +66,7 @@ import {
 import * as LangfuseService from '../LangfuseService'
 import { getWhiteboardSnapshot } from '../EditorSnapshotService'
 import { isSubjectUsingDocumentEditor } from '../../utils/session-utils'
+import { minutesInMs } from '../../utils/time-utils'
 
 function formatTranscriptMessage(
   message: MessageForFrontend,
@@ -419,6 +420,9 @@ export async function generateProgressReport(
   const result = await invokeModel({
     prompt: systemPrompt,
     userMessage: botPrompt,
+    options: {
+      timeout: minutesInMs(1),
+    },
   })
   gen.end({ output: result })
 
