@@ -6,13 +6,24 @@ import * as CacheService from '../cache'
 import config from '../config'
 import { InputError } from '../models/Errors'
 
+/*
+ * - Right now, most of the app experience is driven by whether a user is a student, volunteer, or teacher, and
+ * these are what we serve to the client to use as the userType/activeRole.
+ * - But technically users can have other roles, like admin and ambassador, which don't dictate the overall in-app
+ * experience like the other 3 do. Furthermore, admins and ambassadors are also both volunteers.
+ * - So you can think of PrimaryUserRole as referring to the "main user types"
+ */
 export type PrimaryUserRole = Exclude<UserRole, 'admin' | 'ambassador'>
 export type SessionUserRole = 'student' | 'volunteer'
 
 export class RoleContext {
   readonly roles: UserRole[]
   readonly activeRole: PrimaryUserRole
-  /** @deprecated */
+  /**
+   * @deprecated Use activeRole instead. Before users were allowed to have multiple user types/roles (i.e. student
+   * AND volunteer), they had just one role. legacyRole is here just for backwards compatibility with clients, and we
+   * should rip it out once all clients are updated.
+   * */
   readonly legacyRole: PrimaryUserRole
 
   constructor(

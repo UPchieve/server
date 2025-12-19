@@ -91,11 +91,6 @@ async function formatTranscriptAndEditor(
     transcript += await formatTranscriptMessage(message, userType)
   }
 
-  logger.info(
-    { sessionId: session.id, transcript },
-    'Progress Report session transcript'
-  )
-
   if (isSubjectUsingDocumentEditor(session.toolType))
     return formatDocumentEditorPrompt(session, transcript)
   return formatWhiteboardPrompt(session.id, transcript)
@@ -322,11 +317,6 @@ export async function formatSessionsForBotPrompt(
   )
 
   const formattedTranscript = formattedSessions.join('\n')
-
-  logger.info(
-    { sessionId: sessionIds, formattedTranscript: formattedTranscript },
-    'Progress Report All Sessions Formatted Transcript'
-  )
 
   return formattedTranscript
 }

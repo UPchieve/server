@@ -3,7 +3,6 @@ import {
   EVENTS,
   PHOTO_ID_STATUS,
   STATUS,
-  TRAINING,
   TRAINING_QUIZZES,
 } from '../constants'
 import { Ulid, Uuid } from '../models/pgUtils'
@@ -25,6 +24,7 @@ import {
 import * as cache from '../cache'
 import { getSubjectsWithTopic } from './SubjectsService'
 import { countReferredUsers } from './UserService'
+import logger from '../logger'
 
 export interface HourSummaryStats {
   totalCoachingHours: number
@@ -59,6 +59,17 @@ export async function getHourSummaryStats(
       getTotalElapsedAvailabilityForDateRange(volunteerId, fromDate, toDate),
       getTimeTutoredForDateRange(volunteerId, fromDate, toDate),
     ]
+  )
+  logger.info(
+    {
+      volunteerId,
+      quizzesPassed,
+      elapsedAvailability,
+      timeTutoredMS,
+      startDate: fromDate,
+      endDate: toDate,
+    },
+    'Calculating volunteer hourly summay stats'
   )
 
   const timeTutoredInHours = Number(timeTutoredMS / 3600000).toFixed(2)
