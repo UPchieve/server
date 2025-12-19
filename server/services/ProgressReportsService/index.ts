@@ -114,10 +114,31 @@ async function formatDocumentEditorPrompt(
   let imageText = ''
   let quillDoc = ''
   if (session.quillDoc) {
-    quillDoc = removeImageInsertsFromQuillDoc(session.quillDoc)
-    const docImages = await getDocumentEditorImages(session.quillDoc)
-    if (docImages.length > 0) {
-      imageText = await getProgressReportImageText(docImages)
+    try {
+      quillDoc = removeImageInsertsFromQuillDoc(session.quillDoc)
+    } catch (error) {
+      logger.warn(
+        {
+          err: error,
+          sessionId: session.id,
+        },
+        'Failed to process document editor content. Continuing without editor content'
+      )
+    }
+
+    try {
+      const docImages = await getDocumentEditorImages(session.quillDoc)
+      if (docImages.length > 0) {
+        imageText = await getProgressReportImageText(docImages)
+      }
+    } catch (error) {
+      logger.warn(
+        {
+          err: error,
+          sessionId: session.id,
+        },
+        'Failed to process document editor images. Continuing without imageText'
+      )
     }
   }
 
@@ -137,14 +158,22 @@ async function formatWhiteboardPrompt(
   sessionId: Ulid,
   transcript: string
 ): Promise<string> {
-  const snapshot = await getWhiteboardSnapshot(sessionId)
-  let editorText: string
-  if (snapshot) {
-    const description = await describeWhiteboardSnapshot(snapshot)
-    editorText = description
-      ? `[Whiteboard content recognized from the student's and tutor's drawings]: ${description}`
-      : '[Whiteboard snapshot was available, but its contents could not be interpreted.]'
-  } else editorText = '[Whiteboard was used but no snapshot was available]'
+  let editorText = '[Whiteboard was used but no snapshot was available]'
+  try {
+    const snapshot = await getWhiteboardSnapshot(sessionId)
+    if (snapshot) {
+      const description = await describeWhiteboardSnapshot(snapshot)
+      editorText = description
+        ? `[Whiteboard content recognized from the student's and tutor's drawings]: ${description}`
+        : '[Whiteboard snapshot was available, but its contents could not be interpreted.]'
+    }
+  } catch (error) {
+    logger.warn(
+      { err: error, sessionId },
+      'Failed to process whiteboard snapshot. Continuing without whiteboard content'
+    )
+    editorText = '[Whiteboard content could not be processed]'
+  }
 
   return `
     Session:
@@ -191,8 +220,18 @@ export async function getDocumentEditorImages(
   const imageBuffers: Buffer[] = []
   const allImages = extractImagesFromDoc(quillDoc)
   for (const image of allImages) {
-    const buffer = await imageSourceToBuffer(image)
-    imageBuffers.push(buffer)
+    try {
+      const buffer = await imageSourceToBuffer(image)
+      imageBuffers.push(buffer)
+    } catch (error) {
+      logger.warn(
+        {
+          err: error,
+          imageType: image.startsWith('data:image') ? 'base64' : 'url',
+        },
+        'Failed to create buffer for document editor image. Skipping'
+      )
+    }
   }
   return imageBuffers
 }
@@ -202,7 +241,14 @@ async function getProgressReportImageText(
 ): Promise<string> {
   let imageText = ''
   for (const image of imageBuffers) {
-    imageText += await getTextFromImageAnalysis(image)
+    try {
+      imageText += await getTextFromImageAnalysis(image)
+    } catch (error) {
+      logger.warn(
+        { err: error },
+        'Failed to analyze a progress report image. Skipping'
+      )
+    }
   }
   return imageText
 }
