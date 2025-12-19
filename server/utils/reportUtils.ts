@@ -309,14 +309,25 @@ export async function telecomHourSummaryStats(
       await getVolunteerData(volunteerId, start, end)
     const { totalTime, sessionTime, availabilityTime, certificationTime } =
       telecomTutorTime(sessions, availabilityForDateRange, quizPassedActions)
-    const row = {
+    const stats = {
       totalVolunteerHours: sumHours(totalTime),
       totalCoachingHours: sumHours(sessionTime),
       totalElapsedAvailability: sumHours(availabilityTime),
       totalQuizzesPassed: sumHours(certificationTime),
       totalReferralMinutes: totalReferralMinutes(volunteerId),
     } as HourSummaryStats
-    return row
+
+    logger.info(
+      {
+        volunteerId,
+        ...stats,
+        startDate: start,
+        endDate: end,
+      },
+      'Calculating volunteer hourly summay stats'
+    )
+
+    return stats
   } catch (error) {
     throw new Error(`Failed to generate hour summary stats: ${error}`)
   }

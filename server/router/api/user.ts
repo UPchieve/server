@@ -21,6 +21,7 @@ export function routeUser(router: Router): void {
     const user = extractUser(req)
     const parsedUser = await UserService.parseUser(user.id)
 
+    res.cacheControl = { noStore: true }
     return res.json({ user: parsedUser })
   })
 

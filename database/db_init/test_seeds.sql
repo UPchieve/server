@@ -5992,6 +5992,11 @@ COPY upchieve.legacy_availability_histories (id, mongo_id, user_id, timezone, re
 --
 
 COPY upchieve.moderation_categories (id, name) FROM stdin;
+1	PII
+2	HATE_SPEECH
+3	PLATFORM_CIRCUMVENTION
+4	INAPPROPRIATE_CONTENT
+5	SAFETY
 \.
 
 
@@ -6008,6 +6013,11 @@ COPY upchieve.moderation_infractions (id, user_id, session_id, reason, active, c
 --
 
 COPY upchieve.moderation_settings (moderation_type, moderation_category_id, threshold) FROM stdin;
+contextual	1	0.75
+contextual	2	0.75
+contextual	3	0.75
+contextual	4	0.75
+contextual	5	0.75
 \.
 
 
@@ -6083,7 +6093,7 @@ COPY upchieve.notifications (id, user_id, sent_at, type_id, method_id, priority_
 -- Data for Name: nths_groups; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.nths_groups (id, name, key, created_at, updated_at) FROM stdin;
+COPY upchieve.nths_groups (id, name, key, created_at, updated_at, invite_code) FROM stdin;
 \.
 
 
@@ -8744,7 +8754,7 @@ SELECT pg_catalog.setval('upchieve.ip_addresses_id_seq', 1, true);
 -- Name: moderation_categories_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.moderation_categories_id_seq', 1, false);
+SELECT pg_catalog.setval('upchieve.moderation_categories_id_seq', 5, true);
 
 
 --

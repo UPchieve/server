@@ -47,7 +47,12 @@ export default async (
       with 0 hours of volunteering.
       TODO: clean up formatting rounding logic to round 30+ seconds up a minute.
       */
-    if (summaryStats.totalVolunteerHours <= 0.01) return
+    if (
+      summaryStats.totalVolunteerHours <= 0.01 &&
+      summaryStats.totalQuizzesPassed <= 0.01 &&
+      summaryStats.totalElapsedAvailability <= 0.01
+    )
+      return
 
     await MailService.sendHourSummaryEmail(
       firstName,
