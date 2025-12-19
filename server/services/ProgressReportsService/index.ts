@@ -166,7 +166,7 @@ export function removeImageInsertsFromQuillDoc(quillDoc: string): string {
   return JSON.stringify(document)
 }
 
-async function fetchDocEditorImageBuffer(imageUrl: string): Promise<Buffer> {
+async function getDocEditorImageBuffer(imageUrl: string): Promise<Buffer> {
   const parsed = parseDocEditorImageRoute(imageUrl)
   if (!parsed) throw new Error('Invalid document editor image URL')
 
@@ -181,15 +181,15 @@ async function fetchDocEditorImageBuffer(imageUrl: string): Promise<Buffer> {
 }
 
 async function imageSourceToBuffer(src: string): Promise<Buffer> {
-  if (src.startsWith('data:image/')) return convertBase64ToImage(src)
-  return fetchDocEditorImageBuffer(src)
+  if (src.startsWith('data:image')) return convertBase64ToImage(src)
+  return getDocEditorImageBuffer(src)
 }
 
 export async function getDocumentEditorImages(
   quillDoc: string
 ): Promise<Buffer[]> {
   const imageBuffers: Buffer[] = []
-  const allImages: string[] = extractImagesFromDoc(quillDoc)
+  const allImages = extractImagesFromDoc(quillDoc)
   for (const image of allImages) {
     const buffer = await imageSourceToBuffer(image)
     imageBuffers.push(buffer)
