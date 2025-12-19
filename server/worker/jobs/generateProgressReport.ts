@@ -7,16 +7,17 @@ import {
   ProgressReport,
   ProgressReportSessionFilter,
 } from '../../services/ProgressReportsService'
-import { getProgressReportsFeatureFlag } from '../../services/FeatureFlagService'
+import {
+  getStemProgressReportEnabled,
+  getProgressReportsFeatureFlag,
+} from '../../services/FeatureFlagService'
 import config from '../../config'
 import axios from 'axios'
-import {
-  ProgressReportAnalysisTypes,
-  ProgressReportStatuses,
-} from '../../models/ProgressReports'
+import { ProgressReportAnalysisTypes } from '../../models/ProgressReports'
 import logger from '../../logger'
 import { asUlid } from '../../utils/type-utils'
 import { secondsInMs } from '../../utils/time-utils'
+import { isSubjectUsingDocumentEditor } from '../../utils/session-utils'
 
 interface GenerateProgressReport {
   sessionId: Ulid
@@ -67,6 +68,28 @@ export default async (job: Job<GenerateProgressReport>): Promise<void> => {
   const sessionId = asUlid(job.data.sessionId)
   const session = await getSessionById(sessionId)
   const isSubjectPromptActive = await hasActiveSubjectPrompt(session.subject)
+  // We want to slowly rollout progress report processing on subjects that use a whiteboard
+  if (
+    isSubjectPromptActive &&
+    !isSubjectUsingDocumentEditor(session.toolType)
+  ) {
+    const isStemProgressReportEnabled = await getStemProgressReportEnabled(
+      session.studentId
+    )
+    if (!isStemProgressReportEnabled) {
+      logger.info(
+        {
+          isStemProgressReportEnabled,
+          sessionId,
+          subject: session.subject,
+          userId: session.studentId,
+        },
+        'STEM Progress Report processing not enabled for user'
+      )
+      return
+    }
+  }
+
   const isProgressReportsActive = await getProgressReportsFeatureFlag(
     session.studentId
   )

@@ -16,4 +16,5 @@ export enum FEATURE_FLAGS {
   DISABLE_STUDENT_CREATION = 'disable-student-creation',
   NOTIFY_TUTOR = 'notify-tutor',
   ZWIBSERVE = 'zwibserve',
+  STEM_PROGRESS_REPORT = 'stem-progress-report',
 }
