@@ -180,3 +180,11 @@ export async function getNotifyTutorFlag(userId: Ulid) {
 export async function isZwibserveEnabled(userId: Ulid) {
   return isFeatureEnabled(FEATURE_FLAGS.ZWIBSERVE, userId)
 }
+
+export async function getStemProgressReportEnabled(userId: Ulid) {
+  return await isFeatureEnabled(
+    FEATURE_FLAGS.STEM_PROGRESS_REPORT,
+    userId,
+    1000 * 5
+  )
+}
