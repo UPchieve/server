@@ -43,9 +43,11 @@ async function sendProgressReport(userId: Ulid, data: ProgressReportPayload) {
       timeout: secondsInMs(3),
     })
   } catch (error) {
-    const errorMessage = `Failed to send progress report via HTTP to user.`
-    logger.error({ err: error, userId }, errorMessage)
-    throw new Error(errorMessage)
+    logger.warn(
+      { err: error, userId },
+      'Failed to send progress report via HTTP to user.'
+    )
+    throw error
   }
 }
 
