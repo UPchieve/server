@@ -66,6 +66,12 @@ import {
 import * as LangfuseService from '../LangfuseService'
 import { getWhiteboardSnapshot } from '../EditorSnapshotService'
 import { isSubjectUsingDocumentEditor } from '../../utils/session-utils'
+import {
+  extractImagesFromDoc,
+  parseDocEditorImageRoute,
+  parseQuillDoc,
+} from '../QuillDocService'
+import { getDocEditorSessionImageUrl } from '../SessionService'
 
 function formatTranscriptMessage(
   message: MessageForFrontend,
@@ -103,12 +109,31 @@ async function formatDocumentEditorPrompt(
   let imageText = ''
   let quillDoc = ''
   if (session.quillDoc) {
-    quillDoc = removeImageInsertsFromQuillDoc(session.quillDoc)
-    // TODO: Update image extraction logic since we now store image URLs in Quill docs instead of base64 data.
-    //       We need to keep base64 decoding for older Quill docs created before that change
-    const docImages = await getDocumentEditorImages(session.quillDoc)
-    if (docImages.length > 0) {
-      imageText = await getProgressReportImageText(docImages)
+    try {
+      quillDoc = removeImageInsertsFromQuillDoc(session.quillDoc)
+    } catch (error) {
+      logger.warn(
+        {
+          err: error,
+          sessionId: session.id,
+        },
+        'Failed to process document editor content. Continuing without editor content'
+      )
+    }
+
+    try {
+      const docImages = await getDocumentEditorImages(session.quillDoc)
+      if (docImages.length > 0) {
+        imageText = await getProgressReportImageText(docImages)
+      }
+    } catch (error) {
+      logger.warn(
+        {
+          err: error,
+          sessionId: session.id,
+        },
+        'Failed to process document editor images. Continuing without imageText'
+      )
     }
   }
 
@@ -128,14 +153,22 @@ async function formatWhiteboardPrompt(
   sessionId: Ulid,
   transcript: string
 ): Promise<string> {
-  const snapshot = await getWhiteboardSnapshot(sessionId)
-  let editorText: string
-  if (snapshot) {
-    const description = await describeWhiteboardSnapshot(snapshot)
-    editorText = description
-      ? `[Whiteboard content recognized from the student's and tutor's drawings]: ${description}`
-      : '[Whiteboard snapshot was available, but its contents could not be interpreted.]'
-  } else editorText = '[Whiteboard was used but no snapshot was available]'
+  let editorText = '[Whiteboard was used but no snapshot was available]'
+  try {
+    const snapshot = await getWhiteboardSnapshot(sessionId)
+    if (snapshot) {
+      const description = await describeWhiteboardSnapshot(snapshot)
+      editorText = description
+        ? `[Whiteboard content recognized from the student's and tutor's drawings]: ${description}`
+        : '[Whiteboard snapshot was available, but its contents could not be interpreted.]'
+    }
+  } catch (error) {
+    logger.warn(
+      { err: error, sessionId },
+      'Failed to process whiteboard snapshot. Continuing without whiteboard content'
+    )
+    editorText = '[Whiteboard content could not be processed]'
+  }
 
   return `
     Session:
@@ -147,8 +180,7 @@ async function formatWhiteboardPrompt(
 }
 
 export function removeImageInsertsFromQuillDoc(quillDoc: string): string {
-  const document: Delta = JSON.parse(quillDoc)
-
+  const document: Delta = parseQuillDoc(quillDoc)
   if (!document.ops) return ''
 
   const filteredOps = document.ops.filter(
@@ -158,26 +190,43 @@ export function removeImageInsertsFromQuillDoc(quillDoc: string): string {
   return JSON.stringify(document)
 }
 
-function extractBase64ImagesFromQuillDoc(quillDoc: string): string[] {
-  const document: Delta = JSON.parse(quillDoc)
+async function getDocEditorImageBuffer(imageUrl: string): Promise<Buffer> {
+  const parsed = parseDocEditorImageRoute(imageUrl)
+  if (!parsed) throw new Error('Invalid document editor image URL')
 
-  if (!document.ops) return []
+  const { sessionId, fileName } = parsed
+  const sasUrl = getDocEditorSessionImageUrl(sessionId, fileName)
+  const res = await fetch(sasUrl)
+  if (!res.ok)
+    throw new Error(`Failed to fetch document editor image: ${imageUrl}`)
 
-  const base64Images: string[] = document.ops
-    .filter(
-      (op) => op.insert && typeof op.insert === 'object' && 'image' in op.insert
-    )
-    .map((op) => (op.insert as { image: string }).image)
-    .filter((src) => src.startsWith('data:image'))
-  return base64Images
+  const arrayBuffer = await res.arrayBuffer()
+  return Buffer.from(arrayBuffer)
 }
 
-async function getDocumentEditorImages(quillDoc: string): Promise<Buffer[]> {
-  const imageBuffers = []
-  const base64Images: string[] = extractBase64ImagesFromQuillDoc(quillDoc)
-  for (const base64Image of base64Images) {
-    const outputBuffer = await convertBase64ToImage(base64Image)
-    imageBuffers.push(outputBuffer)
+async function imageSourceToBuffer(src: string): Promise<Buffer> {
+  if (src.startsWith('data:image')) return convertBase64ToImage(src)
+  return getDocEditorImageBuffer(src)
+}
+
+export async function getDocumentEditorImages(
+  quillDoc: string
+): Promise<Buffer[]> {
+  const imageBuffers: Buffer[] = []
+  const allImages = extractImagesFromDoc(quillDoc)
+  for (const image of allImages) {
+    try {
+      const buffer = await imageSourceToBuffer(image)
+      imageBuffers.push(buffer)
+    } catch (error) {
+      logger.warn(
+        {
+          err: error,
+          imageType: image.startsWith('data:image') ? 'base64' : 'url',
+        },
+        'Failed to create buffer for document editor image. Skipping'
+      )
+    }
   }
   return imageBuffers
 }
@@ -187,7 +236,14 @@ async function getProgressReportImageText(
 ): Promise<string> {
   let imageText = ''
   for (const image of imageBuffers) {
-    imageText += await getTextFromImageAnalysis(image)
+    try {
+      imageText += await getTextFromImageAnalysis(image)
+    } catch (error) {
+      logger.warn(
+        { err: error },
+        'Failed to analyze a progress report image. Skipping'
+      )
+    }
   }
   return imageText
 }

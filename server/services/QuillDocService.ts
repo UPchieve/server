@@ -193,3 +193,58 @@ export async function deleteDoc(sessionId: Ulid): Promise<void> {
     logger.warn({ err: error, sessionId }, "Couldn't remove all quill doc keys")
   }
 }
+
+export function parseQuillDoc(quillDoc: string): Delta {
+  let document = quillDoc
+  if (typeof document === 'string') document = JSON.parse(document)
+  // If it was double-encoded, parse again
+  if (typeof document === 'string') document = JSON.parse(document)
+  // If it remains a string, it was encoded too many times and we're likely
+  // storing the document editor incorrectly
+  if (typeof document === 'string')
+    throw new Error(
+      'Quill document was encoded too many times. Document storage is wrong'
+    )
+
+  if (!('ops' in document) || !Array.isArray((document as Delta).ops))
+    throw new Error(
+      'Quill document is missing ops[] and is not a valid Quill Delta'
+    )
+
+  return document
+}
+
+export function extractImagesFromDoc(quillDoc: string): string[] {
+  const out: string[] = []
+  if (!quillDoc) return out
+
+  const delta = parseQuillDoc(quillDoc)
+  if (!delta.ops) return out
+
+  for (const op of delta.ops) {
+    if (op.insert && typeof op.insert === 'object' && 'image' in op.insert) {
+      const src = (op.insert as { image: string }).image
+      if (typeof src === 'string' && src.length > 0) out.push(src)
+    }
+  }
+  return out
+}
+
+export function parseDocEditorImageRoute(
+  url: string
+): { sessionId: string; fileName: string } | null {
+  try {
+    const { pathname } = new URL(url)
+    // Matches:
+    // /sessions/:sessionId/images/:fileName
+    // /api/sessions/:sessionId/images/:fileName
+    const match = pathname.match(
+      /^(?:\/api)?\/sessions\/([^/]+)\/images\/([^/]+)$/
+    )
+    return match
+      ? { sessionId: match[1], fileName: decodeURIComponent(match[2]) }
+      : null
+  } catch (error) {
+    return null
+  }
+}
