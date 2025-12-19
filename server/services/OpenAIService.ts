@@ -39,17 +39,20 @@ export async function invokeModel({
 }: OpenAiInput): Promise<OpenAiResults> {
   let results = null
   try {
-    const response = await openai.chat.completions.create({
-      model: MODEL_ID,
-      messages: [
-        { role: 'system', content: prompt },
-        {
-          role: 'user',
-          content: userMessage,
-        },
-      ],
-      response_format: { type: responseType },
-    })
+    const response = await openai.chat.completions.create(
+      {
+        model: MODEL_ID,
+        messages: [
+          { role: 'system', content: prompt },
+          {
+            role: 'user',
+            content: userMessage,
+          },
+        ],
+        response_format: { type: responseType },
+      },
+      options
+    )
 
     results = getResults(response, responseType)
     if (results == null)
