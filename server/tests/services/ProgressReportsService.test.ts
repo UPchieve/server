@@ -2,6 +2,7 @@ import { mocked } from 'jest-mock'
 import * as ProgressReportsService from '../../services/ProgressReportsService'
 import { Ulid, getDbUlid, getUuid } from '../../models/pgUtils'
 import * as AnalyticsService from '../../services/AnalyticsService'
+import * as EditorSnapshotService from '../../services/EditorSnapshotService'
 import * as VisionService from '../../services/VisionService'
 import * as ProgressReportsRepo from '../../models/ProgressReports'
 import * as SessionRepo from '../../models/Session'
@@ -18,9 +19,10 @@ import {
   buildStudent,
   buildSubjectAndTopic,
 } from '../mocks/generate'
-import { logError } from '../../logger'
+import logger, { logError } from '../../logger'
 import { EVENTS, PROGRESS_REPORT_JSON_INSTRUCTIONS } from '../../constants'
 import { invokeModel } from '../../services/OpenAIService'
+import * as sessionUtils from '../../utils/session-utils'
 
 jest.mock('../../services/OpenAIService', () => {
   return {
@@ -35,12 +37,15 @@ jest.mock('../../models/Session')
 jest.mock('../../models/Student')
 jest.mock('../../models/Subjects')
 jest.mock('../../logger')
+jest.mock('../../utils/session-utils')
 
 const mockedProgressReportsRepo = mocked(ProgressReportsRepo)
 const mockedSessionRepo = mocked(SessionRepo)
 const mockedStudentRepo = mocked(StudentRepo)
 const mockedSubjectRepo = mocked(SubjectsRepo)
+const mockedEditorSnapshotService = mocked(EditorSnapshotService)
 const mockedVisionService = mocked(VisionService)
+const mockedSessionUtils = mocked(sessionUtils)
 
 const userId: Ulid = getDbUlid()
 const session = buildUserSession({
@@ -49,6 +54,8 @@ const session = buildUserSession({
 })
 const mockedProgressReport = buildProgressReport()
 const mockPrompt = `This is a test prompt for a {{gradeLevel}} student. Please respond with {{responseInstructions}}`
+const base64Image =
+  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADElEQVR4nGNgYAAAAAMAASsJTYQAAAAASUVORK5CYII='
 
 beforeEach(() => {
   jest.clearAllMocks()
@@ -485,6 +492,166 @@ describe('hasActiveSubjectPrompt', () => {
       await ProgressReportsService.hasActiveSubjectPrompt('reading')
     expect(result).toBeTruthy()
   })
+
+  test('Should still generate progress report if document editor processing throws', async () => {
+    const reportId = getUuid()
+    const summaryRow = buildProgressReportSummaryRow()
+    const conceptRow = buildProgressReportConceptRow()
+    const docEditorSession = buildUserSession({
+      studentId: userId,
+      volunteerId: getDbUlid(),
+      // Give a fake quill doc to cause a failure
+      quillDoc: 'Not a real quill doc',
+    })
+    const sessions = [docEditorSession]
+    const sessionsWithMessages = createSessionsWithMessages(sessions)
+    const student = buildStudent()
+    const mockActivePrompt = { id: 1, prompt: mockPrompt }
+
+    mockedStudentRepo.getStudentProfileByUserId.mockResolvedValueOnce({
+      ...student,
+      userId: student.id,
+    })
+    mockedSubjectRepo.getSubjectAndTopic.mockResolvedValueOnce(
+      buildSubjectAndTopic()
+    )
+    mockedSessionUtils.isSubjectUsingDocumentEditor.mockReturnValue(true)
+    mockedProgressReportsRepo.getActiveSubjectPromptBySubjectName.mockResolvedValueOnce(
+      mockActivePrompt
+    )
+    mockedProgressReportsRepo.getProgressReportSummariesForMany.mockResolvedValue(
+      [summaryRow]
+    )
+    mockedProgressReportsRepo.getProgressReportConceptsByReportId.mockResolvedValue(
+      [conceptRow]
+    )
+    mockedSessionRepo.getUserSessionsByUserId.mockResolvedValue(sessions)
+    mockedSessionRepo.getMessagesForFrontend.mockImplementation(
+      (sessionId: Ulid) => {
+        const found = sessionsWithMessages.find((s) => s.id === sessionId)
+        return Promise.resolve(found ? found.messages : [])
+      }
+    )
+
+    const { summary, concepts } =
+      await ProgressReportsService.getProgressReportSummaryAndConcepts(reportId)
+    const progressReport = buildProgressReport({
+      id: reportId,
+      summary,
+      concepts,
+    })
+
+    ;(invokeModel as jest.Mock).mockResolvedValue({
+      results: progressReport,
+      modelId: '',
+    })
+
+    mockedProgressReportsRepo.insertProgressReport.mockResolvedValue(reportId)
+    mockedProgressReportsRepo.getProgressReportByReportId.mockResolvedValueOnce(
+      progressReport
+    )
+
+    const report = await ProgressReportsService.generateProgressReportForUser(
+      userId,
+      {
+        sessionId: docEditorSession.id,
+        subject: docEditorSession.subjectName,
+        analysisType: 'single',
+      }
+    )
+
+    expect(report).toMatchObject(progressReport)
+    // First warning for failing to process editor content
+    expect(logger.warn).toHaveBeenCalledWith(
+      expect.objectContaining({
+        err: expect.anything(),
+        sessionId: docEditorSession.id,
+      }),
+      expect.stringContaining('Failed to process document editor content')
+    )
+    // Second warning for failing to process images
+    expect(logger.warn).toHaveBeenCalledWith(
+      expect.objectContaining({
+        err: expect.anything(),
+        sessionId: docEditorSession.id,
+      }),
+      expect.stringContaining('Failed to process document editor images')
+    )
+  })
+
+  test('Should still generate progress report if whiteboard snapshot processing throws', async () => {
+    const reportId = getUuid()
+    const summaryRow = buildProgressReportSummaryRow()
+    const conceptRow = buildProgressReportConceptRow()
+    const sessions = [session]
+    const sessionsWithMessages = createSessionsWithMessages(sessions)
+    const student = buildStudent()
+    const mockActivePrompt = { id: 1, prompt: mockPrompt }
+
+    mockedStudentRepo.getStudentProfileByUserId.mockResolvedValueOnce({
+      ...student,
+      userId: student.id,
+    })
+    mockedSubjectRepo.getSubjectAndTopic.mockResolvedValueOnce(
+      buildSubjectAndTopic()
+    )
+    mockedSessionUtils.isSubjectUsingDocumentEditor.mockReturnValue(false)
+    mockedEditorSnapshotService.getWhiteboardSnapshot.mockRejectedValueOnce(
+      new Error('Snapshot error')
+    )
+    mockedProgressReportsRepo.getActiveSubjectPromptBySubjectName.mockResolvedValueOnce(
+      mockActivePrompt
+    )
+    mockedProgressReportsRepo.getProgressReportSummariesForMany.mockResolvedValue(
+      [summaryRow]
+    )
+    mockedProgressReportsRepo.getProgressReportConceptsByReportId.mockResolvedValue(
+      [conceptRow]
+    )
+    mockedSessionRepo.getUserSessionsByUserId.mockResolvedValue(sessions)
+    mockedSessionRepo.getMessagesForFrontend.mockImplementation(
+      (sessionId: Ulid) => {
+        const found = sessionsWithMessages.find((s) => s.id === sessionId)
+        return Promise.resolve(found ? found.messages : [])
+      }
+    )
+
+    const { summary, concepts } =
+      await ProgressReportsService.getProgressReportSummaryAndConcepts(reportId)
+    const progressReport = buildProgressReport({
+      id: reportId,
+      summary,
+      concepts,
+    })
+
+    ;(invokeModel as jest.Mock).mockResolvedValue({
+      results: progressReport,
+      modelId: '',
+    })
+
+    mockedProgressReportsRepo.insertProgressReport.mockResolvedValue(reportId)
+    mockedProgressReportsRepo.getProgressReportByReportId.mockResolvedValueOnce(
+      progressReport
+    )
+
+    const report = await ProgressReportsService.generateProgressReportForUser(
+      userId,
+      {
+        sessionId: session.id,
+        subject: session.subjectName,
+        analysisType: 'single',
+      }
+    )
+
+    expect(report).toMatchObject(progressReport)
+    expect(logger.warn).toHaveBeenCalledWith(
+      expect.objectContaining({
+        err: expect.anything(),
+        sessionId: session.id,
+      }),
+      expect.stringContaining('Failed to process whiteboard snapshot')
+    )
+  })
 })
 
 describe('getActivePromptWithTemplateReplacement', () => {
@@ -509,5 +676,71 @@ describe('getActivePromptWithTemplateReplacement', () => {
         subject
       )
     expect(expectedPrompt).toBe(result.prompt)
+  })
+})
+
+describe('removeImageInsertsFromQuillDoc', () => {
+  test('Should remove image inserts and keep only string inserts', () => {
+    const quillDoc = JSON.stringify({
+      ops: [
+        { insert: 'Hello ' },
+        {
+          insert: {
+            image: base64Image,
+          },
+        },
+        { insert: 'world' },
+      ],
+    })
+
+    const result =
+      ProgressReportsService.removeImageInsertsFromQuillDoc(quillDoc)
+    const parsed = JSON.parse(result)
+    expect(parsed.ops).toEqual([{ insert: 'Hello ' }, { insert: 'world' }])
+  })
+
+  test('Should throw if quillDoc is invalid JSON', () => {
+    expect(() =>
+      ProgressReportsService.removeImageInsertsFromQuillDoc('not-json')
+    ).toThrow()
+  })
+})
+
+describe('getDocumentEditorImages', () => {
+  test('Should return image buffers for base64 images in the doc', async () => {
+    const quillDoc = JSON.stringify({
+      ops: [
+        {
+          insert: {
+            image: base64Image,
+          },
+        },
+      ],
+    })
+
+    const result =
+      await ProgressReportsService.getDocumentEditorImages(quillDoc)
+    expect(result).toHaveLength(1)
+    expect(Buffer.isBuffer(result[0])).toBe(true)
+  })
+
+  test('Should skip invalid base64 images and log a warning', async () => {
+    const invalidBase64 = 'data:image/png;base64'
+    const quillDoc = JSON.stringify({
+      ops: [{ insert: { image: invalidBase64 } }],
+    })
+
+    const result =
+      await ProgressReportsService.getDocumentEditorImages(quillDoc)
+    expect(result).toEqual([])
+    expect(logger.warn).toHaveBeenCalledWith(
+      expect.objectContaining({
+        err: expect.anything(),
+        imageType: 'base64',
+      }),
+      expect.stringContaining(
+        'Failed to create buffer for document editor image'
+      )
+    )
   })
 })
