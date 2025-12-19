@@ -64,6 +64,7 @@ import { PrimaryUserRole } from './UserRolesService'
 
 import { LangfuseGenerationClient } from 'langfuse'
 import { resize } from '../utils/image-utils'
+import * as ModerationConfidenceThresholdsRepo from '../models/ModerationConfidenceThresholds/queries'
 
 // EMAIL_REGEX checks for standard and complex email formats
 // Ex: yay-hoo@yahoo.hello.com
@@ -1367,14 +1368,15 @@ export async function moderateMessage({
     transcript,
     trace
   )
-  const uncleanDms = transcriptModerationResults.flaggedMessages.filter(
-    (message) => message.includes(DIRECT_MESSAGE_TAG)
+  const uncleanDms = transcriptModerationResults.filter((flagged) =>
+    flagged.message.includes(DIRECT_MESSAGE_TAG)
   )
   if (uncleanDms.length) {
     const failures = {} as Record<string, string[]>
-    transcriptModerationResults.reasons.forEach((reason) => {
-      failures[reason.toLowerCase().replace('_', ' ')] = []
-    })
+    transcriptModerationResults.forEach(
+      (flagged) =>
+        (failures[flagged.reason.toLowerCase().replace('_', ' ')] = [])
+    )
     return { failures }
   } else {
     return { failures: {} }
@@ -1799,14 +1801,16 @@ export type TranscriptChunkModerationResult = {
   reasons: ModerationSessionReviewFlagReason[]
   flaggedMessages: string[]
 }
+type FlaggedReason = {
+  reason: ModerationSessionReviewFlagReason | string
+  message: string
+  confidence: Number
+}
 export const moderateTranscript = async (
   transcript: SessionTranscript,
   trace: LangfuseTraceClient,
   extractedText?: string[]
-): Promise<{
-  reasons: ModerationSessionReviewFlagReason[]
-  flaggedMessages: string[]
-}> => {
+): Promise<FlaggedReason[]> => {
   const extractedTextItems: ExtractedTextItem[] =
     extractedText?.map((text) => {
       return {
@@ -1843,6 +1847,7 @@ export const moderateTranscript = async (
     [...transcript.messages, ...extractedTextItems],
     config.contextualModerationBatchSize
   )
+
   for (const chunk of chunks) {
     const message = getChunkAsString(chunk)
     const result = await getSessionTranscriptModerationResult(
@@ -1854,25 +1859,52 @@ export const moderateTranscript = async (
     )
     results.push(result)
   }
-  if (
-    results.some(
-      (r) => r.confidence >= config.contextualModerationConfidenceThreshold
+
+  const allReasons = results.flatMap((result) => result.reasons)
+
+  const confidenceThresholdMap = new Map<string, Number>()
+
+  const contextualThresholds =
+    await ModerationConfidenceThresholdsRepo.getContextualConfidenceThresholds()
+
+  for (const reason of allReasons) {
+    const thresholdObj = contextualThresholds.find(
+      (threshold) => threshold.name === reason
     )
-  ) {
-    trace.update({ tags: [LangfuseTraceTagEnum.FLAGGED_BY_MODERATION] })
+
+    if (thresholdObj) {
+      confidenceThresholdMap.set(reason, Number(thresholdObj.threshold))
+    } else {
+      confidenceThresholdMap.set(
+        reason,
+        config.contextualModerationConfidenceThreshold
+      )
+      logger.warn({ reason }, 'No confidence threshold set for reason')
+    }
   }
 
-  const confidenceThreshold = config.contextualModerationConfidenceThreshold
-  const flaggedChunks = results.filter(
-    (chunk) => chunk.confidence >= confidenceThreshold
-  )
-  const flagReasons = new Set<ModerationSessionReviewFlagReason>(
-    flaggedChunks.flatMap((chunk) => chunk.reasons)
-  )
-  return {
-    reasons: Array.from(flagReasons),
-    flaggedMessages: flaggedChunks.flatMap((chunk) => chunk.flaggedMessages),
+  let flaggedOutput: FlaggedReason[] = []
+
+  for (const result of results) {
+    for (const reason of result.reasons) {
+      const threshold =
+        confidenceThresholdMap.get(reason) ??
+        config.contextualModerationConfidenceThreshold
+
+      if (result.confidence >= Number(threshold)) {
+        trace.update({ tags: [LangfuseTraceTagEnum.FLAGGED_BY_MODERATION] })
+        for (const msg of result.flaggedMessages) {
+          flaggedOutput.push({
+            reason,
+            message: msg,
+            confidence: threshold,
+          })
+        }
+      }
+    }
   }
+
+  return flaggedOutput
 }
 
 export function getSessionFlagByModerationReason(
