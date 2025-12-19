@@ -421,7 +421,7 @@ export async function generateProgressReport(
     prompt: systemPrompt,
     userMessage: botPrompt,
     options: {
-      timeout: minutesInMs(1),
+      timeout: minutesInMs(10),
     },
   })
   gen.end({ output: result })
