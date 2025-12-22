@@ -5,9 +5,10 @@ import { CustomError } from 'ts-custom-error'
 import { Ulid } from '../models/pgUtils'
 import { Request, Response, NextFunction } from 'express'
 import config from '../config'
-import { getUserContactInfo, getUserForAuth } from '../services/UserService'
+import { getUserForAuth } from '../services/UserService'
 import { getUserIdByPhone } from '../models/User/queries'
 import { GRADES } from '../constants'
+import logger from '../logger'
 
 import {
   InputError,
@@ -382,6 +383,7 @@ export function verifyPassword(
 
 export function getApiKeyFromHeader(req: Request) {
   const apiKey = req.headers['x-api-key'] ?? null
+  logger.info({ apiKey }, 'Getting api key')
   return apiKey
 }
 
@@ -438,6 +440,7 @@ function isAuthenticated(req: Request, res: Response, next: NextFunction) {
   if (req.isAuthenticated()) {
     return next()
   }
+  logger.info({ req }, 'Login required')
   return res.status(401).json({ err: 'Not authenticated' })
 }
 
@@ -450,6 +453,7 @@ function isAdmin(req: Request, res: Response, next: NextFunction) {
 
 function isWorker(req: Request, res: Response, next: NextFunction) {
   const token = getApiKeyFromHeader(req)
+  logger.info({ token }, 'Testing webhook')
   if (token && token === config.subwayApiCredentials) {
     return next()
   }
@@ -461,6 +465,7 @@ function bypassMiddlewareForWebhooks(
 ) {
   return function (req: Request, res: Response, next: NextFunction) {
     if (req.path.includes('/webhooks/') && req.method === 'POST') {
+      logger.info({ req }, 'Bypass webhook')
       next()
     } else {
       fn(req, res, next)

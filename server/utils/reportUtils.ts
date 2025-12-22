@@ -324,7 +324,7 @@ export async function telecomHourSummaryStats(
         startDate: start,
         endDate: end,
       },
-      'Calculating volunteer hourly summay stats'
+      'Calculating volunteer hourly summary stats'
     )
 
     return stats
