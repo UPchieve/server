@@ -320,6 +320,7 @@ describe(Jobs.GenerateProgressReport, () => {
     const job = { data: { sessionId: session.id } }
     const singleProgressReport = null
     const groupProgressReport = buildProgressReport()
+    const error = 'Network error'
 
     mockedSessionRepo.getSessionById.mockResolvedValueOnce(session)
     mockedProgressReportsService.hasActiveSubjectPrompt.mockResolvedValueOnce(
@@ -332,10 +333,8 @@ describe(Jobs.GenerateProgressReport, () => {
     mockedProgressReportsService.generateProgressReportForUser.mockResolvedValueOnce(
       groupProgressReport
     )
-    ;(axios.post as jest.Mock).mockRejectedValueOnce(new Error('Network error'))
+    ;(axios.post as jest.Mock).mockRejectedValueOnce(new Error(error))
 
-    await expect(generateProgressReport(job as Job)).rejects.toThrow(
-      'Failed to send progress report via HTTP to user.'
-    )
+    await expect(generateProgressReport(job as Job)).rejects.toThrow(error)
   })
 })
