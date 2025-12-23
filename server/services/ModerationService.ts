@@ -267,7 +267,7 @@ async function detectPersonInImage(
     const labelResponse = await awsRekognitionClient.send(
       new DetectLabelsCommand({
         Image: {
-          Bytes: image as Uint8Array,
+          Bytes: new Uint8Array(image),
         },
         MinConfidence: config.imageModerationMinConfidence,
         Settings: {
@@ -283,13 +283,28 @@ async function detectPersonInImage(
     }
 
     const labels = labelResponse.Labels ?? []
-    const labelFailures = labels.map((label) => ({
-      reason: `Person detected in image`,
-      details: {
-        label: label.Name,
-        confidence: label.Confidence,
-      },
-    }))
+
+    const settings =
+      await ModerationConfidenceThresholdsRepo.getRealtimeConfidenceThresholds()
+    const thresholdByName = new Map(settings.map((s) => [s.name, s.threshold]))
+    const personConfidenceThreshold = thresholdByName.get('Person')
+    // Rekognition returns `Confidence` as a percentage from 0 to 100
+    // Our DB thresholds are stored as decimals from 0 to 1. We convert them to percentages below for comparison
+    const thresholdPercent = personConfidenceThreshold
+      ? personConfidenceThreshold * 100
+      : config.imageModerationMinConfidence
+
+    const labelFailures = labels
+      .filter(
+        (label) => label.Confidence && label.Confidence >= thresholdPercent
+      )
+      .map((label) => ({
+        reason: `Person detected in image`,
+        details: {
+          label: label.Name,
+          confidence: label.Confidence,
+        },
+      }))
 
     return labelFailures
   } catch (err) {
@@ -331,7 +346,7 @@ async function detectImageModerationFailures(
     const moderationLabelsResponse = await awsRekognitionClient.send(
       new DetectModerationLabelsCommand({
         Image: {
-          Bytes: image,
+          Bytes: new Uint8Array(image),
         },
         MinConfidence: config.imageModerationMinConfidence,
       })
@@ -339,9 +354,25 @@ async function detectImageModerationFailures(
     if (generation) {
       generation.end({ output: moderationLabelsResponse })
     }
+
+    const settings =
+      await ModerationConfidenceThresholdsRepo.getRealtimeConfidenceThresholds()
+    const thresholdByName = new Map(settings.map((s) => [s.name, s.threshold]))
     const moderationLabels = moderationLabelsResponse.ModerationLabels ?? []
     return moderationLabels
       .filter(topLevelCategoryFilter)
+      .filter((label) => {
+        const confidence = label.Confidence
+        if (!confidence) return false
+
+        const threshold = thresholdByName.get(label.Name ?? '')
+        // Rekognition returns `Confidence` as a percentage from 0 to 100
+        // Our DB thresholds are stored as decimals from 0 to 1. We convert them to percentages below for comparison
+        const thresholdPercent = threshold
+          ? threshold * 100
+          : config.imageModerationMinConfidence
+        return confidence >= thresholdPercent
+      })
       .map(moderationLabelToFailureReason)
   } catch (err) {
     logger.error({ sessionId, err }, 'Failed to moderate image')
@@ -363,7 +394,7 @@ export async function extractTextFromImage(
   const extractedText = await awsRekognitionClient.send(
     new DetectTextCommand({
       Image: {
-        Bytes: image,
+        Bytes: new Uint8Array(image),
       },
     })
   )
