@@ -20,14 +20,6 @@ interface GenerateProgressReport {
   sessionId: Ulid
 }
 
-type ProgressReportPayload = {
-  userId: Ulid
-  sessionId?: Ulid
-  subject: string
-  report: Partial<ProgressReport>
-  analysisType: ProgressReportAnalysisTypes
-}
-
 export default async (job: Job<GenerateProgressReport>): Promise<void> => {
   const sessionId = asUlid(job.data.sessionId)
   const session = await getSessionById(sessionId)
