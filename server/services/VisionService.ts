@@ -9,8 +9,8 @@ import logger from '../logger'
 import config from '../config'
 import { isValidConfigToken } from '../utils/environments'
 import * as LangfuseService from './LangfuseService'
-import { invokeVisionModel, MODEL_ID } from './OpenAIService'
 import { resize } from '../utils/image-utils'
+import { invokeModel } from './AwsBedrockService'
 
 const client: ImageAnalysisClient = isValidConfigToken(
   config.subwayAIVisionApiKey
@@ -138,15 +138,21 @@ export async function describeWhiteboardSnapshot(
       height: 1024,
       fit: 'inside',
     })
+    const model = config.awsBedrockSonnet4Id
     const { result: description } =
       await LangfuseService.runWithGeneration<string>(
         () => {
-          return invokeVisionModel(promptData.prompt, resizedImage)
+          return invokeModel({
+            modelId: model,
+            prompt: promptData.prompt,
+            text: WHITEBOARD_VISION_FALLBACK_PROMPT,
+            image: resizedImage,
+          })
         },
         {
           traceName: LF_TRACE_NAME_WHITEBOARD,
           generationName: LF_GENERATION_NAME_WHITEBOARD,
-          model: MODEL_ID,
+          model,
           input:
             typeof image === 'string'
               ? '[Whiteboard Image URL]'
