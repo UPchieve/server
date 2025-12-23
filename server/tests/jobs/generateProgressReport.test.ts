@@ -10,16 +10,19 @@ import { Job } from 'bull'
 import axios from 'axios'
 import config from '../../config'
 import logger from '../../logger'
+import * as sessionUtils from '../../utils/session-utils'
 
 jest.mock('axios')
 jest.mock('../../services/ProgressReportsService')
 jest.mock('../../services/FeatureFlagService')
 jest.mock('../../models/Session')
 jest.mock('../../logger')
+jest.mock('../../utils/session-utils')
 
 const mockedProgressReportsService = mocked(ProgressReportsService)
 const mockedFeatureFlagService = mocked(FeatureFlagService)
 const mockedSessionRepo = mocked(SessionRepo)
+const mockedSessionUtils = mocked(sessionUtils)
 
 describe(Jobs.GenerateProgressReport, () => {
   beforeEach(async () => {
@@ -44,6 +47,7 @@ describe(Jobs.GenerateProgressReport, () => {
     }
 
     mockedSessionRepo.getSessionById.mockResolvedValueOnce(session)
+    mockedSessionUtils.isSubjectUsingDocumentEditor.mockReturnValueOnce(true)
     mockedProgressReportsService.hasActiveSubjectPrompt.mockResolvedValueOnce(
       true
     )
@@ -68,18 +72,20 @@ describe(Jobs.GenerateProgressReport, () => {
         sessionId: session.id,
       },
     }
+    const singleProgressReport = buildProgressReport()
+    const groupProgressReport = buildProgressReport()
+    const url = `http://localhost:3000/api/webhooks/progress-reports/processed`
+
     mockedProgressReportsService.hasActiveSubjectPrompt.mockResolvedValueOnce(
       true
     )
-    const reportOne = buildProgressReport()
-    const reportTwo = buildProgressReport()
-    const url = `http://localhost:3000/api/webhooks/progress-reports/processed`
+    mockedSessionUtils.isSubjectUsingDocumentEditor.mockReturnValueOnce(true)
     // Mock the return value twice for double execution of a single and group analysis
     mockedProgressReportsService.generateProgressReportForUser.mockResolvedValueOnce(
-      reportOne
+      singleProgressReport
     )
     mockedProgressReportsService.generateProgressReportForUser.mockResolvedValueOnce(
-      reportTwo
+      groupProgressReport
     )
     mockedSessionRepo.getSessionById.mockResolvedValueOnce(session)
 
@@ -107,7 +113,7 @@ describe(Jobs.GenerateProgressReport, () => {
       {
         userId,
         subject: session.subject,
-        report: reportTwo,
+        report: groupProgressReport,
         analysisType: 'group',
         end: expect.anything(),
       },
@@ -218,5 +224,117 @@ describe(Jobs.GenerateProgressReport, () => {
     expect(
       mockedProgressReportsService.generateProgressReportForUser
     ).toHaveBeenCalledTimes(0)
+  })
+
+  test('Should generate reports if STEM subject is active and STEM processing is enabled', async () => {
+    const userId = getDbUlid()
+    const session = await buildSession({
+      studentId: userId,
+      subject: 'algebraOne',
+      timeTutored: 1000 * 60,
+      endedAt: new Date(),
+      toolType: 'whiteboard',
+    })
+    const job = { data: { sessionId: session.id } }
+    const singleProgressReport = null
+    const groupProgressReport = buildProgressReport()
+
+    mockedSessionRepo.getSessionById.mockResolvedValueOnce(session)
+    mockedProgressReportsService.hasActiveSubjectPrompt.mockResolvedValueOnce(
+      true
+    )
+    mockedFeatureFlagService.getStemProgressReportEnabled.mockResolvedValueOnce(
+      true
+    )
+    mockedSessionUtils.isSubjectUsingDocumentEditor.mockReturnValueOnce(false)
+    mockedProgressReportsService.generateProgressReportForUser.mockResolvedValueOnce(
+      singleProgressReport
+    )
+    mockedProgressReportsService.generateProgressReportForUser.mockResolvedValueOnce(
+      groupProgressReport
+    )
+
+    await generateProgressReport(job as Job)
+    expect(
+      mockedProgressReportsService.generateProgressReportForUser
+    ).toHaveBeenCalledTimes(2)
+    expect(
+      mockedProgressReportsService.generateProgressReportForUser
+    ).toHaveBeenNthCalledWith(1, session.studentId, {
+      subject: session.subject,
+      sessionId: session.id,
+      analysisType: 'single',
+    })
+    expect(
+      mockedProgressReportsService.generateProgressReportForUser
+    ).toHaveBeenNthCalledWith(2, session.studentId, {
+      subject: session.subject,
+      end: session.endedAt,
+      analysisType: 'group',
+    })
+  })
+
+  test('Should not send progress report via http if group report is null', async () => {
+    const userId = getDbUlid()
+    const session = buildSession({
+      studentId: userId,
+      subject: 'reading',
+      timeTutored: 1000 * 60,
+      endedAt: new Date(),
+      toolType: 'documenteditor',
+    })
+    const job = { data: { sessionId: session.id } }
+    const singleProgressReport = null
+    const groupProgressReport = null
+
+    mockedSessionRepo.getSessionById.mockResolvedValueOnce(session)
+    mockedProgressReportsService.hasActiveSubjectPrompt.mockResolvedValueOnce(
+      true
+    )
+    mockedSessionUtils.isSubjectUsingDocumentEditor.mockReturnValueOnce(true)
+    // Single analysis still runs, regardless of return value
+    mockedProgressReportsService.generateProgressReportForUser.mockResolvedValueOnce(
+      singleProgressReport
+    )
+    // Group analysis returns null
+    mockedProgressReportsService.generateProgressReportForUser.mockResolvedValueOnce(
+      groupProgressReport
+    )
+
+    await generateProgressReport(job as Job)
+    expect(
+      mockedProgressReportsService.generateProgressReportForUser
+    ).toHaveBeenCalledTimes(2)
+    expect(axios.post).toHaveBeenCalledTimes(0)
+  })
+
+  test('Should throw if sending the group progress report via http fails', async () => {
+    const userId = getDbUlid()
+    const session = buildSession({
+      studentId: userId,
+      subject: 'reading',
+      timeTutored: 1000 * 60,
+      endedAt: new Date(),
+      toolType: 'documenteditor',
+    })
+    const job = { data: { sessionId: session.id } }
+    const singleProgressReport = null
+    const groupProgressReport = buildProgressReport()
+    const error = 'Network error'
+
+    mockedSessionRepo.getSessionById.mockResolvedValueOnce(session)
+    mockedProgressReportsService.hasActiveSubjectPrompt.mockResolvedValueOnce(
+      true
+    )
+    mockedSessionUtils.isSubjectUsingDocumentEditor.mockReturnValueOnce(true)
+    mockedProgressReportsService.generateProgressReportForUser.mockResolvedValueOnce(
+      singleProgressReport
+    )
+    mockedProgressReportsService.generateProgressReportForUser.mockResolvedValueOnce(
+      groupProgressReport
+    )
+    ;(axios.post as jest.Mock).mockRejectedValueOnce(new Error(error))
+
+    await expect(generateProgressReport(job as Job)).rejects.toThrow(error)
   })
 })
