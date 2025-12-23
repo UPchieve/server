@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 14.19 (Debian 14.19-1.pgdg13+1)
--- Dumped by pg_dump version 14.13 (Homebrew)
+-- Dumped from database version 14.20 (Debian 14.20-1.pgdg13+1)
+-- Dumped by pg_dump version 14.17 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -86,6 +86,7 @@ COPY public.seed_migrations (version) FROM stdin;
 20251212055417
 20251205150822
 20251216235209
+20251222203825
 \.
 
 

@@ -5997,6 +5997,17 @@ COPY upchieve.moderation_categories (id, name) FROM stdin;
 3	PLATFORM_CIRCUMVENTION
 4	INAPPROPRIATE_CONTENT
 5	SAFETY
+6	Explicit
+7	Non-Explicit Nudity of Intimate parts and Kissing
+8	Swimwear or Underwear
+9	Violence
+10	Visually Disturbing
+11	Drugs & Tobacco
+12	Alcohol
+13	Rude Gestures
+14	Gambling
+15	Hate Symbols
+16	Person
 \.
 
 
@@ -6018,6 +6029,17 @@ contextual	2	0.75
 contextual	3	0.75
 contextual	4	0.75
 contextual	5	0.75
+realtime_image	6	0.75
+realtime_image	7	0.75
+realtime_image	8	0.75
+realtime_image	9	0.75
+realtime_image	10	0.75
+realtime_image	11	0.75
+realtime_image	12	0.75
+realtime_image	13	0.75
+realtime_image	14	0.75
+realtime_image	15	0.75
+realtime_image	16	0.75
 \.
 
 
@@ -8754,7 +8776,7 @@ SELECT pg_catalog.setval('upchieve.ip_addresses_id_seq', 1, true);
 -- Name: moderation_categories_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.moderation_categories_id_seq', 5, true);
+SELECT pg_catalog.setval('upchieve.moderation_categories_id_seq', 16, true);
 
 
 --
