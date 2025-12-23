@@ -21,9 +21,6 @@ const client: ImageAnalysisClient = isValidConfigToken(
     )
   : createMockImageAnalysisClient()
 
-const LF_TRACE_NAME_WHITEBOARD = 'whiteboardVision'
-const LF_GENERATION_NAME_WHITEBOARD = 'describeWhiteboardSnapshot'
-
 function createMockImageAnalysisClient(): ImageAnalysisClient {
   return {
     path: () => ({
@@ -50,7 +47,7 @@ async function analyzeImageBuffer(
 ): Promise<ImageAnalysisResultOutput> {
   const features: string[] = ['Read']
   const result = await client.path('/imageanalysis:analyze').post({
-    body: imageBuffer,
+    body: new Uint8Array(imageBuffer),
     queryParameters: { features },
     contentType: 'application/octet-stream',
   })
@@ -63,7 +60,7 @@ async function getTextFromImageReadResult(
   readResult?: ReadResultOutput
 ): Promise<string> {
   if (!readResult) return ''
-  const blocks = readResult.blocks
+  const blocks = readResult.blocks ?? []
   const lines: string[] = []
   for (const block of blocks) {
     for (const line of block.lines) {
@@ -118,6 +115,9 @@ Output:
 - First sentence: clearly state whether there is meaningful academic content on the board or not.
 - Remaining sentences: briefly describe the visible content on the board.
 `.trim()
+
+const LF_TRACE_NAME_WHITEBOARD = 'whiteboardVision'
+const LF_GENERATION_NAME_WHITEBOARD = 'describeWhiteboardSnapshot'
 
 export async function describeWhiteboardSnapshot(
   image: Buffer
