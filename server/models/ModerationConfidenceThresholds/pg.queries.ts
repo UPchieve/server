@@ -1,22 +1,26 @@
 /** Types generated for queries found in "server/models/ModerationConfidenceThresholds/confidence_thresholds.sql" */
 import { PreparedQuery } from '@pgtyped/runtime';
 
-/** 'GetContextualConfidenceThresholds' parameters type */
-export type IGetContextualConfidenceThresholdsParams = void;
+export type moderation_types = 'contextual' | 'realtime_image';
 
-/** 'GetContextualConfidenceThresholds' return type */
-export interface IGetContextualConfidenceThresholdsResult {
+/** 'GetConfidenceThresholdsByModerationType' parameters type */
+export interface IGetConfidenceThresholdsByModerationTypeParams {
+  moderationType: moderation_types;
+}
+
+/** 'GetConfidenceThresholdsByModerationType' return type */
+export interface IGetConfidenceThresholdsByModerationTypeResult {
   name: string;
   threshold: string | null;
 }
 
-/** 'GetContextualConfidenceThresholds' query type */
-export interface IGetContextualConfidenceThresholdsQuery {
-  params: IGetContextualConfidenceThresholdsParams;
-  result: IGetContextualConfidenceThresholdsResult;
+/** 'GetConfidenceThresholdsByModerationType' query type */
+export interface IGetConfidenceThresholdsByModerationTypeQuery {
+  params: IGetConfidenceThresholdsByModerationTypeParams;
+  result: IGetConfidenceThresholdsByModerationTypeResult;
 }
 
-const getContextualConfidenceThresholdsIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    mc.name,\n    ms.threshold\nFROM\n    upchieve.moderation_settings ms\n    JOIN upchieve.moderation_categories mc ON ms.moderation_category_id = mc.id\nWHERE\n    ms.moderation_type = 'contextual'"};
+const getConfidenceThresholdsByModerationTypeIR: any = {"usedParamSet":{"moderationType":true},"params":[{"name":"moderationType","required":true,"transform":{"type":"scalar"},"locs":[{"a":171,"b":186}]}],"statement":"SELECT\n    mc.name,\n    ms.threshold\nFROM\n    moderation_settings ms\n    JOIN moderation_categories mc ON ms.moderation_category_id = mc.id\nWHERE\n    ms.moderation_type = :moderationType!"};
 
 /**
  * Query generated from SQL:
@@ -25,12 +29,12 @@ const getContextualConfidenceThresholdsIR: any = {"usedParamSet":{},"params":[],
  *     mc.name,
  *     ms.threshold
  * FROM
- *     upchieve.moderation_settings ms
- *     JOIN upchieve.moderation_categories mc ON ms.moderation_category_id = mc.id
+ *     moderation_settings ms
+ *     JOIN moderation_categories mc ON ms.moderation_category_id = mc.id
  * WHERE
- *     ms.moderation_type = 'contextual'
+ *     ms.moderation_type = :moderationType!
  * ```
  */
-export const getContextualConfidenceThresholds = new PreparedQuery<IGetContextualConfidenceThresholdsParams,IGetContextualConfidenceThresholdsResult>(getContextualConfidenceThresholdsIR);
+export const getConfidenceThresholdsByModerationType = new PreparedQuery<IGetConfidenceThresholdsByModerationTypeParams,IGetConfidenceThresholdsByModerationTypeResult>(getConfidenceThresholdsByModerationTypeIR);
 
 
