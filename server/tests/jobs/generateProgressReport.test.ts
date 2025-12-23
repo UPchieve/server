@@ -1,3 +1,4 @@
+import { Job } from 'bull'
 import { mocked } from 'jest-mock'
 import generateProgressReport from '../../worker/jobs/generateProgressReport'
 import * as ProgressReportsService from '../../services/ProgressReportsService'
@@ -6,13 +7,9 @@ import { Jobs } from '../../worker/jobs'
 import * as SessionRepo from '../../models/Session'
 import { buildProgressReport, buildSession } from '../mocks/generate'
 import { getDbUlid } from '../../models/pgUtils'
-import { Job } from 'bull'
-import axios from 'axios'
-import config from '../../config'
 import logger from '../../logger'
 import * as sessionUtils from '../../utils/session-utils'
 
-jest.mock('axios')
 jest.mock('../../services/ProgressReportsService')
 jest.mock('../../services/FeatureFlagService')
 jest.mock('../../models/Session')
@@ -58,7 +55,7 @@ describe(Jobs.GenerateProgressReport, () => {
     await expect(generateProgressReport(job as Job)).rejects.toThrow(Error)
   })
 
-  test('Should generate and send progress report for a single session and an overview progress report via http', async () => {
+  test('Should generate progress report for a single session and an overview progress report', async () => {
     const userId = getDbUlid()
     const session = buildSession({
       studentId: userId,
@@ -74,7 +71,6 @@ describe(Jobs.GenerateProgressReport, () => {
     }
     const singleProgressReport = buildProgressReport()
     const groupProgressReport = buildProgressReport()
-    const url = `http://localhost:3000/api/webhooks/progress-reports/processed`
 
     mockedProgressReportsService.hasActiveSubjectPrompt.mockResolvedValueOnce(
       true
@@ -107,21 +103,6 @@ describe(Jobs.GenerateProgressReport, () => {
       end: session.endedAt,
       analysisType: 'group',
     })
-    expect(axios.post).toHaveBeenCalledTimes(1)
-    expect(axios.post).toHaveBeenCalledWith(
-      url,
-      {
-        userId,
-        subject: session.subject,
-        report: groupProgressReport,
-        analysisType: 'group',
-        end: expect.anything(),
-      },
-      {
-        headers: { 'x-api-key': config.subwayApiCredentials },
-        timeout: 3000,
-      }
-    )
   })
 
   test('Should early exit if no prompt for subject session', async () => {
@@ -305,36 +286,5 @@ describe(Jobs.GenerateProgressReport, () => {
     expect(
       mockedProgressReportsService.generateProgressReportForUser
     ).toHaveBeenCalledTimes(2)
-    expect(axios.post).toHaveBeenCalledTimes(0)
-  })
-
-  test('Should throw if sending the group progress report via http fails', async () => {
-    const userId = getDbUlid()
-    const session = buildSession({
-      studentId: userId,
-      subject: 'reading',
-      timeTutored: 1000 * 60,
-      endedAt: new Date(),
-      toolType: 'documenteditor',
-    })
-    const job = { data: { sessionId: session.id } }
-    const singleProgressReport = null
-    const groupProgressReport = buildProgressReport()
-    const error = 'Network error'
-
-    mockedSessionRepo.getSessionById.mockResolvedValueOnce(session)
-    mockedProgressReportsService.hasActiveSubjectPrompt.mockResolvedValueOnce(
-      true
-    )
-    mockedSessionUtils.isSubjectUsingDocumentEditor.mockReturnValueOnce(true)
-    mockedProgressReportsService.generateProgressReportForUser.mockResolvedValueOnce(
-      singleProgressReport
-    )
-    mockedProgressReportsService.generateProgressReportForUser.mockResolvedValueOnce(
-      groupProgressReport
-    )
-    ;(axios.post as jest.Mock).mockRejectedValueOnce(new Error(error))
-
-    await expect(generateProgressReport(job as Job)).rejects.toThrow(error)
   })
 })

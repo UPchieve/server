@@ -5,18 +5,15 @@ import {
   generateProgressReportForUser,
   hasActiveSubjectPrompt,
   ProgressReport,
-  ProgressReportSessionFilter,
 } from '../../services/ProgressReportsService'
 import {
   getStemProgressReportEnabled,
   getProgressReportsFeatureFlag,
 } from '../../services/FeatureFlagService'
 import config from '../../config'
-import axios from 'axios'
 import { ProgressReportAnalysisTypes } from '../../models/ProgressReports'
 import logger from '../../logger'
 import { asUlid } from '../../utils/type-utils'
-import { secondsInMs } from '../../utils/time-utils'
 import { isSubjectUsingDocumentEditor } from '../../utils/session-utils'
 
 interface GenerateProgressReport {
@@ -29,41 +26,6 @@ type ProgressReportPayload = {
   subject: string
   report: Partial<ProgressReport>
   analysisType: ProgressReportAnalysisTypes
-}
-
-async function sendProgressReport(userId: Ulid, data: ProgressReportPayload) {
-  const protocol = config.NODE_ENV === 'dev' ? 'http' : 'https'
-  const port = config.NODE_ENV === 'dev' ? `:${config.apiPort}` : ''
-  const url = `${protocol}://${config.clusterServerAddress}${port}/api/webhooks/progress-reports/processed`
-  try {
-    await axios.post(url, data, {
-      headers: {
-        'x-api-key': config.subwayApiCredentials,
-      },
-      timeout: secondsInMs(3),
-    })
-  } catch (error) {
-    logger.warn(
-      { err: error, userId },
-      'Failed to send progress report via HTTP to user.'
-    )
-    throw error
-  }
-}
-
-async function generateAndEmitProgressReport(
-  userId: Ulid,
-  reportOptions: ProgressReportSessionFilter
-) {
-  const report = await generateProgressReportForUser(userId, reportOptions)
-
-  if (report) {
-    await sendProgressReport(userId, {
-      userId: userId,
-      ...reportOptions,
-      report,
-    })
-  }
 }
 
 export default async (job: Job<GenerateProgressReport>): Promise<void> => {
@@ -118,7 +80,7 @@ export default async (job: Job<GenerateProgressReport>): Promise<void> => {
     analysisType: 'single',
   })
 
-  await generateAndEmitProgressReport(session.studentId, {
+  await generateProgressReportForUser(session.studentId, {
     subject: session.subject,
     end: session.endedAt,
     analysisType: 'group',
