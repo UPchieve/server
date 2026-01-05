@@ -182,16 +182,21 @@ export async function ensureDocumentUpdateExists(sessionId: Ulid) {
 }
 
 export async function deleteDoc(sessionId: Ulid): Promise<void> {
-  try {
-    ;(await cache.remove(sessionIdToKey(sessionId))) &&
-      logger.info({ sessionId }, 'Removed quill doc session key from cache')
-    ;(await cache.remove(getSessionDeltasKey(sessionId))) &&
-      logger.info({ sessionId }, 'Removing quill doc v1 delta key from cache')
-    ;(await cache.remove(getSessionDocumentUpdatesKey(sessionId))) &&
-      logger.info({ sessionId }, 'Removing quill doc updates from cache')
-  } catch (error) {
-    logger.warn({ err: error, sessionId }, "Couldn't remove all quill doc keys")
-  }
+  ;(await cache.remove(sessionIdToKey(sessionId)))
+    ? logger.info({ sessionId }, 'Removed quill doc session key from cache')
+    : logger.warn(
+        { sessionId },
+        'Quill doc session key was not removed from cache'
+      )
+  ;(await cache.remove(getSessionDeltasKey(sessionId)))
+    ? logger.info({ sessionId }, 'Removing quill doc v1 delta key from cache')
+    : logger.warn(
+        { sessionId },
+        'Quill doc v1 delta key was not removed from cache'
+      )
+  ;(await cache.remove(getSessionDocumentUpdatesKey(sessionId)))
+    ? logger.info({ sessionId }, 'Removing quill doc updates from cache')
+    : logger.warn({ sessionId }, 'Quill doc v2 updates not removed from cache')
 }
 
 export function parseQuillDoc(quillDoc: string): Delta {

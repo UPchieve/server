@@ -61,8 +61,9 @@ export const appendToDoc = (
 export async function deleteDoc(sessionId: Ulid) {
   try {
     const sessionKey = await getZwibserveOrCustomCollabKey(sessionId)
-    ;(await cache.remove(sessionKey)) &&
-      logger.info({ sessionId }, 'Removed whiteboard doc from cache')
+    ;(await cache.remove(sessionKey))
+      ? logger.info({ sessionId }, 'Removed whiteboard doc from cache')
+      : logger.warn({ sessionId }, "Didn't remove whiteboard doc from cache")
   } catch (error) {
     logger.warn(
       { err: error, sessionId },
