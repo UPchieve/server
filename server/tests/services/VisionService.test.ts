@@ -1,13 +1,13 @@
 import { mocked } from 'jest-mock'
 import logger from '../../logger'
 import * as LangfuseService from '../../services/LangfuseService'
-import * as OpenAIService from '../../services/OpenAIService'
+import * as AwsBedrockService from '../../services/AwsBedrockService'
 import * as VisionService from '../../services/VisionService'
 import * as imageUtils from '../../utils/image-utils'
 
 jest.mock('../../logger')
 jest.mock('../../services/LangfuseService')
-jest.mock('../../services/OpenAIService')
+jest.mock('../../services/AwsBedrockService')
 jest.mock('../../utils/image-utils')
 jest.mock('../../utils/environments')
 jest.mock('../../config')
@@ -16,7 +16,7 @@ jest.mock('@azure-rest/ai-vision-image-analysis')
 
 const mockedLogger = mocked(logger)
 const mockedLangfuseService = mocked(LangfuseService)
-const mockedOpenAIService = mocked(OpenAIService)
+const mockedAwsBedrockService = mocked(AwsBedrockService)
 const mockedImageUtils = mocked(imageUtils)
 
 beforeEach(() => {
@@ -40,9 +40,7 @@ describe('describeWhiteboardSnapshot', () => {
         return { result, traceId: '123' }
       }
     )
-    mockedOpenAIService.invokeVisionModel.mockResolvedValueOnce(
-      descriptionResult
-    )
+    mockedAwsBedrockService.invokeModel.mockResolvedValueOnce(descriptionResult)
 
     const result = await VisionService.describeWhiteboardSnapshot(
       Buffer.from('img')
@@ -51,7 +49,7 @@ describe('describeWhiteboardSnapshot', () => {
     expect(mockedLangfuseService.getPromptWithFallback).toHaveBeenCalled()
     expect(mockedImageUtils.resize).toHaveBeenCalled()
     expect(mockedLangfuseService.runWithGeneration).toHaveBeenCalled()
-    expect(mockedOpenAIService.invokeVisionModel).toHaveBeenCalled()
+    expect(mockedAwsBedrockService.invokeModel).toHaveBeenCalled()
   })
 
   test('Should return empty string and log error if a step in the analysis fails', async () => {

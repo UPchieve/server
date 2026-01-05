@@ -1,10 +1,10 @@
-/* @name getContextualConfidenceThresholds */
+/* @name getConfidenceThresholdsByModerationType */
 SELECT
     mc.name,
     ms.threshold
 FROM
-    upchieve.moderation_settings ms
-    JOIN upchieve.moderation_categories mc ON ms.moderation_category_id = mc.id
+    moderation_settings ms
+    JOIN moderation_categories mc ON ms.moderation_category_id = mc.id
 WHERE
-    ms.moderation_type = 'contextual';
+    ms.moderation_type = :moderationType!;
 
