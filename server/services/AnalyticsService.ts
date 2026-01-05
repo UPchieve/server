@@ -1,4 +1,4 @@
-import { client } from '../product-client'
+import { client } from '../clients/product-client'
 import { Ulid } from '../models/pgUtils'
 import { GRADES } from '../constants'
 import { UserRole } from '../models/User'
