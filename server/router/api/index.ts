@@ -23,7 +23,6 @@ import { routeSubjects } from './subjects'
 import { routeProgressReports } from './progress-reports'
 import { routeTeachers } from './teachers'
 import { routeAdmin } from './admin'
-import { routeWebhooks } from './webhooks'
 import { sendReferralProgramEmail } from '../../services/MailService'
 import { getUserReferralLink } from '../../models/User'
 import config from '../../config'
@@ -56,7 +55,6 @@ export function routes(app: Express, io: Server): void {
   routeStudents(router)
   routeSubjects(router)
   routeProgressReports(router)
-  routeWebhooks(router)
   routeAdmin(app, router)
   routeTutorBot(router)
   routeAssignments(router)
