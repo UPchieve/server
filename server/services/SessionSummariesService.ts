@@ -14,7 +14,11 @@ import { LangfusePromptNameEnum } from './LangfuseService'
 import { UserRole } from '../models/User'
 import { isStudentSessionSummaryEnabled } from './FeatureFlagService'
 import config from '../config'
-import { runWithGeneration } from '../clients/ai-observability'
+import {
+  runWithModelObservation,
+  runWithTrace,
+  Trace,
+} from '../clients/ai-observability'
 
 const responseInstructions =
   'Use whatever information is available to generate your summary. Respond in exactly one sentence that can be stored in a Postgres text column. If you are unable to generate a helpful or accurate summary based on the information provided, respond with nothing. Return a truly empty string (not in quotes, just no characters at all).'
@@ -146,25 +150,39 @@ export async function generateSessionSummaryForSession(sessionId: Uuid) {
     if (userType === USER_ROLES.STUDENT && !isSessionSummaryEnabledForStudent)
       continue
 
-    const rolePromptData = await getRolePrompt(userType)
-    if (!rolePromptData) continue
+    const { result: summary, traceId } = await runWithTrace(
+      async (trace) => {
+        const rolePromptData = await getRolePrompt(userType)
+        if (!rolePromptData) return
 
-    const toolPromptData = await getToolPrompt(session.toolType as TOOL_TYPES)
-    if (!toolPromptData) continue
+        const toolPromptData = await getToolPrompt(
+          session.toolType as TOOL_TYPES
+        )
+        if (!toolPromptData) return
 
-    const systemPrompt = createSystemPrompt(
-      rolePromptData.prompt,
-      toolPromptData.prompt
-    )
-    const { result: summary, traceId } = await generateSessionSummary(
-      systemPrompt,
-      userPrompt,
+        const systemPrompt = createSystemPrompt(
+          rolePromptData.prompt,
+          toolPromptData.prompt
+        )
+        return await generateSessionSummary(
+          systemPrompt,
+          userPrompt,
+          {
+            sessionId,
+            userType,
+          },
+          trace
+        )
+      },
       {
-        sessionId,
-        userType,
+        name: 'sessionSummary',
+        sessionId: session.id,
+        metadata: {
+          sessionId: session.id,
+          userType,
+        },
       }
     )
-
     // Sometimes the LLM will return a summary like "''" or '""'. We'll check for characters
     // to avoid storing empty summaries
     if (summary) {
@@ -196,10 +214,11 @@ export async function generateSessionSummary(
   metadata: {
     sessionId: Uuid
     userType: USER_ROLES_TYPE
-  }
+  },
+  trace: Trace
 ) {
   const modelId = config.awsBedrockSonnet4Id
-  const response = await runWithGeneration<string>(
+  const response = await runWithModelObservation<string>(
     () => {
       return invokeModel({
         modelId,
@@ -208,15 +227,20 @@ export async function generateSessionSummary(
       })
     },
     {
-      traceName: 'sessionSummary',
-      generationName: 'generateSessionSummary',
+      trace,
+      name: 'generateSessionSummary',
       model: modelId,
       metadata,
     }
   )
 
   logger.info(
-    `Session: ${metadata.sessionId} received session summary completion ${response.result} for userType ${metadata.userType} with response ${response}`
+    {
+      sessionId: metadata.sessionId,
+      userType: metadata.userType,
+      response,
+    },
+    `Received session summary completion`
   )
   return response
 }

@@ -1,5 +1,11 @@
+import {
+  ChatPromptClient,
+  LangfuseTraceClient,
+  TextPromptClient,
+} from 'langfuse-core'
 import { Langfuse } from 'langfuse-node'
 import config from '../config'
+import logger from '../logger'
 
 export const client = new Langfuse({
   secretKey: config.langfuseSecretKey,
@@ -7,46 +13,79 @@ export const client = new Langfuse({
   baseUrl: config.langfuseBaseUrl,
 })
 
+export type Trace = LangfuseTraceClient
 export type TraceName = 'progressReport' | 'whiteboardVision' | 'sessionSummary'
-export type GenerationName =
+export type ModelObservationName =
   | 'getProgressReportResult'
   | 'describeWhiteboardSnapshot'
   | 'generateSessionSummary'
 
-export type LangfuseGenerationOptions = {
-  traceName: TraceName
-  generationName: GenerationName
-  model: string
-  input?: any
-  metadata?: Record<string, any>
+export type TraceOptions = {
+  trace?: Trace
+  name: TraceName
+  userId?: string
+  sessionId?: string
+  input?: unknown
+  metadata?: Record<string, unknown>
+}
+export type ModelObservationOptions = {
+  trace?: Trace
+  name: ModelObservationName
+  model: string // TODO: Make type.
+  input?: unknown
+  prompt?: TextPromptClient | ChatPromptClient // TODO: Translate into our own type.
+  metadata?: Record<string, unknown>
 }
 
-export async function runWithGeneration<T>(
-  cb: () => Promise<T>,
-  options: LangfuseGenerationOptions
+export async function runWithTrace<T>(
+  cb: (trace: Trace) => Promise<T>,
+  options: TraceOptions
 ): Promise<{ result: T; traceId: string }> {
-  const { traceName, generationName, model, input, metadata } = options
-  const trace = client.trace({
-    name: traceName,
-    metadata,
-  })
-  const gen = trace.generation({
-    name: generationName,
-    model,
-    input,
-    metadata,
-  })
+  const trace = options.trace ?? client.trace(options)
+
+  try {
+    const result = await cb(trace)
+    trace.update({ output: result })
+    return { result, traceId: trace.id }
+  } catch (e) {
+    trace.update({
+      output: {
+        error: stringifyError(e),
+      },
+    })
+    throw e
+  }
+}
+
+export async function runWithModelObservation<T>(
+  cb: () => Promise<T>,
+  options: ModelObservationOptions
+): Promise<T> {
+  const { trace, ...generationOptions } = options
+  if (!trace) {
+    logger.info(
+      generationOptions,
+      'No trace found, continue callback execution'
+    )
+    return await cb()
+  }
+
+  const gen = trace.generation(generationOptions)
 
   try {
     const result = await cb()
     gen.end({ output: result })
-    return { result, traceId: trace.traceId }
-  } catch (error) {
+    return result
+  } catch (e) {
     gen.end({
       output: {
-        error: error instanceof Error ? error.message : String(error),
+        error: stringifyError(e),
       },
     })
-    throw error
+    throw e
   }
+}
+
+function stringifyError(e: unknown) {
+  return e instanceof Error ? e.message : String(e)
 }
