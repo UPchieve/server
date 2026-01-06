@@ -776,5 +776,10 @@ export function routeSockets(io: Server): void {
     socket.onAny((eventName, args) => {
       logSocketEvent(eventName, socket, args)
     })
+
+    // Log socket outgoing events
+    socket.onAnyOutgoing((eventName, args) => {
+      logSocketEvent(eventName, socket, args)
+    })
   })
 }
