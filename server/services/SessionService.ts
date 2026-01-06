@@ -47,7 +47,6 @@ import {
   createSessionAction,
   getSessionRequestedUserAgentFromSessionId,
 } from '../models/UserAction'
-import * as VolunteerRepo from '../models/Volunteer'
 import * as sessionUtils from '../utils/session-utils'
 import { asFactory, asOptional, asString } from '../utils/type-utils'
 import { Jobs } from '../worker/jobs'
@@ -206,6 +205,11 @@ export async function reportSession(user: UserContactInfo, data: unknown) {
       `${sessionId}-reported`,
       JSON.stringify(emailData)
     )
+}
+
+export async function didSessionEnd(sessionId: Uuid) {
+  const session = await SessionRepo.getSessionToEndById(sessionId)
+  return !!session.endedAt
 }
 
 export async function endSession(
