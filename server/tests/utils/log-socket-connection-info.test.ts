@@ -40,10 +40,9 @@ describe('logSocketEvent', () => {
     expect(logger.error).toHaveBeenCalledWith(
       {
         eventName: 'client_connect_error',
-        errorMessage: eventError,
+        err: eventError,
         disconnectIsError: undefined,
         disconnectReason: undefined,
-        error: eventError,
         user: {
           id: 'test-user-id-123',
           roles: undefined,
