@@ -12,6 +12,7 @@ import { TransactionClient } from '../db'
 import * as SessionService from '../services/SessionService'
 import { backOff } from 'exponential-backoff'
 import { UserContactInfo } from '../models/User'
+import { secondsInMs } from '../utils/time-utils'
 
 // TODO: Remove class wrapper.
 class SocketService {
@@ -118,7 +119,21 @@ class SocketService {
     if (session.volunteer?.id) {
       sessionParticipants.push(session.volunteer.id)
     }
-    this.io.in(sessionParticipants).emit('session-change', session)
+    this.io
+      .in(sessionParticipants)
+      .timeout(secondsInMs(5))
+      .emit(
+        'session-change',
+        session,
+        (err: Error | null, responses?: { userId: string }[]) => {
+          if (err) {
+            logger.warn(
+              { ackUsers: responses, sessionId },
+              'Some users may have not received a session-change event in time'
+            )
+          }
+        }
+      )
 
     await this.updateSessionList(tc)
   }
