@@ -164,7 +164,7 @@ new_relic_deploy_tracker:
 
 test_backend:
   stage: test
-  image: node:20.10.0-bullseye
+  image: node:24.12.0-bullseye
   variables:
     NODE_OPTIONS: --max_old_space_size=5120
   services:
@@ -181,7 +181,7 @@ test_backend:
 
 test_database:
   stage: test
-  image: node:20.10.0-bullseye
+  image: node:24.12.0-bullseye
   services:
     - name: postgres:14
       alias: postgres
@@ -218,7 +218,7 @@ test_database:
 
 lint:
   stage: test
-  image: node:20.10.0-bullseye
+  image: node:24.12.0-bullseye
   before_script:
     - npm ci --cache .npm --prefer-offline
   script:
@@ -231,7 +231,7 @@ lint:
 
 lint_sql:
   stage: test
-  image: node:20.10.0-bullseye
+  image: node:24.12.0-bullseye
   before_script:
     - npm ci --cache .npm --prefer-offline
   script:
@@ -244,7 +244,7 @@ lint_sql:
 
 lint_database:
   stage: test
-  image: node:20.10.0-bullseye
+  image: node:24.12.0-bullseye
   before_script:
     - npm ci --cache .npm --prefer-offline
   script:
