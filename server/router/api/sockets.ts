@@ -12,7 +12,6 @@ import logger from '../../logger'
 import { Ulid } from '../../models/pgUtils'
 import * as SessionRepo from '../../models/Session/queries'
 import { banUserById, UserContactInfo, UserRole } from '../../models/User'
-import * as UserService from '../../services/UserService'
 import { captureEvent } from '../../services/AnalyticsService'
 import QueueService from '../../services/QueueService'
 import * as QuillDocService from '../../services/QuillDocService'
@@ -432,6 +431,14 @@ export function routeSockets(io: Server): void {
     socket.on('requestQuillState', async ({ sessionId }) => {
       await observeWebTransaction('/socket-io/requestQuillState', async () => {
         try {
+          if (await SessionService.didSessionEnd(sessionId)) {
+            logger.warn(
+              { sessionId },
+              'Quill doc sent a requestQuillState event after the session ended already'
+            )
+            return
+          }
+
           const quillState =
             await QuillDocService.lockAndGetDocCacheState(sessionId)
           let doc = quillState?.doc
@@ -459,6 +466,13 @@ export function routeSockets(io: Server): void {
         '/socket-io/requestQuillStateV2',
         async () => {
           try {
+            if (await SessionService.didSessionEnd(sessionId)) {
+              logger.warn(
+                { sessionId },
+                'Quill doc sent a requestQuillStateV2 event after the session ended already'
+              )
+              return
+            }
             const updates = await QuillDocService.getDocumentUpdates(sessionId)
             socket.emit('quillStateV2', { updates })
           } catch (error) {
@@ -479,6 +493,14 @@ export function routeSockets(io: Server): void {
           '/socket-io/transmitQuillDeltaV2',
           async () => {
             try {
+              if (await SessionService.didSessionEnd(sessionId)) {
+                logger.warn(
+                  { sessionId },
+                  'Quill doc sent a transmitQuillDeltaV2 event after the session ended already'
+                )
+                return
+              }
+
               await QuillDocService.addDocumentUpdate(sessionId, update)
               io.to(getSessionRoom(sessionId)).emit('partnerQuillDeltaV2', {
                 update,
@@ -511,6 +533,13 @@ export function routeSockets(io: Server): void {
          */
         const userId = socket.request.user?.id
         try {
+          if (await SessionService.didSessionEnd(sessionId)) {
+            logger.warn(
+              { sessionId },
+              'Quill doc sent a transmitQuillDelta event after the session ended already'
+            )
+            return
+          }
           if (!userId) {
             logger.error(
               { sessionId },
@@ -745,6 +774,11 @@ export function routeSockets(io: Server): void {
 
     // Log socket connection-related events for analytics and debugging
     socket.onAny((eventName, args) => {
+      logSocketEvent(eventName, socket, args)
+    })
+
+    // Log socket outgoing events
+    socket.onAnyOutgoing((eventName, args) => {
       logSocketEvent(eventName, socket, args)
     })
   })

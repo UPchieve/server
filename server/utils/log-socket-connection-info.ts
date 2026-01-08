@@ -128,8 +128,7 @@ export const logSocketEvent = (
       eventName: event,
       disconnectReason: disconnectReason?.description,
       disconnectIsError: disconnectReason?.isError,
-      errorMessage: error,
-      error,
+      err: error,
       user: {
         id: userId,
         roles: socket.request.user?.roles,
