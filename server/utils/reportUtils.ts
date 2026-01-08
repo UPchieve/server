@@ -925,8 +925,7 @@ export interface StudentReportQuery extends SessionDateRanges {
 }
 
 export interface StudentUsageReportQuery
-  extends StudentReportQuery,
-    JoinedDateRanges {}
+  extends StudentReportQuery, JoinedDateRanges {}
 
 const studentReportValidators = {
   sessionRangeFrom: asString,

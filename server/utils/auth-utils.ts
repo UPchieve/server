@@ -104,19 +104,22 @@ export const registerStudentValidator = asFactory<RegisterStudentPayload>({
   zipCode: asOptional(asString),
   phId: asOptional(asString),
 })
-export interface RegisterStudentWithPasswordPayload
-  extends Omit<
-    RegisterStudentPayload,
-    'parentGuardianEmail' | 'issuer' | 'profileId'
-  > {
+export interface RegisterStudentWithPasswordPayload extends Omit<
+  RegisterStudentPayload,
+  'parentGuardianEmail' | 'issuer' | 'profileId'
+> {
   password: string
 }
-export interface RegisterStudentWithPGPayload
-  extends Omit<RegisterStudentPayload, 'password' | 'issuer' | 'profileId'> {
+export interface RegisterStudentWithPGPayload extends Omit<
+  RegisterStudentPayload,
+  'password' | 'issuer' | 'profileId'
+> {
   parentGuardianEmail: string
 }
-export interface RegisterStudentWithFedCredPayload
-  extends Omit<RegisterStudentPayload, 'password' | 'parentGuardianEmail'> {
+export interface RegisterStudentWithFedCredPayload extends Omit<
+  RegisterStudentPayload,
+  'password' | 'parentGuardianEmail'
+> {
   issuer: string
   profileId: string
 }
