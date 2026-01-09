@@ -1,20 +1,13 @@
 import * as SchoolRepo from '../models/School'
-import {
-  asString,
-  asBoolean,
-  asFactory,
-  asNumber,
-  asOptional,
-} from '../utils/type-utils'
+import { asString, asBoolean, asFactory } from '../utils/type-utils'
 import { Ulid } from '../models/pgUtils'
-import { PartnerSchool } from '../models/School'
 import { getClient, runInTransaction, TransactionClient } from '../db'
 import * as StudentPartnerOrgRepo from '../models/StudentPartnerOrg'
-
-// helper to escape regex special characters
-function escapeRegex(str: string) {
-  return str.replace(/[.*|\\+?{}()[^$]/g, (c) => '\\' + c)
-}
+import {
+  AdminPartnerSchoolPublic,
+  AdminSchoolPublic,
+  GetSchoolsPayload,
+} from '../contracts/schools'
 
 type SchoolForFrontend = {
   id: Ulid
@@ -23,6 +16,40 @@ type SchoolForFrontend = {
   districtName: string | undefined
   city: string | undefined
   state: string
+}
+
+export function toAdminSchoolPublic(
+  school: SchoolRepo.School
+): AdminSchoolPublic {
+  return {
+    id: school.id,
+    name: school.name,
+    city: school.city,
+    state: school.state,
+    ncesId: school.ncesId,
+    zip: school.zip,
+    district: school.district,
+    schoolYear: school.schoolYear,
+    isSchoolWideTitle1: school.isSchoolWideTitle1,
+    title1SchoolStatus: school.title1SchoolStatus,
+    nationalSchoolLunchProgram: school.nationalSchoolLunchProgram,
+    totalStudents: school.totalStudents,
+    nslpDirectCertification: school.nslpDirectCertification,
+    frlEligible: school.frlEligible,
+    isAdminApproved: school.isAdminApproved ?? false,
+    isPartner: school.isPartner ?? false,
+  }
+}
+
+export function toAdminPartnerSchoolPublic(
+  school: SchoolRepo.PartnerSchool
+): AdminPartnerSchoolPublic {
+  return {
+    schoolId: school.schoolId,
+    schoolName: school.schoolName,
+    partnerKey: school.partnerKey,
+    partnerSites: school.partnerSites,
+  }
 }
 
 // search for schools by name
@@ -57,25 +84,6 @@ export async function getSchool(schoolId: Ulid): Promise<SchoolRepo.School> {
 export async function getSchoolByNcesId(ncesId: string) {
   return SchoolRepo.getSchoolByNcesId(ncesId)
 }
-
-type GetSchoolsPayload = {
-  name?: string
-  state?: string
-  city?: string
-  ncesId?: string
-  isPartner?: boolean
-  limit?: number
-  page?: number
-}
-export const asGetSchoolsPayload = asFactory<GetSchoolsPayload>({
-  name: asOptional(asString),
-  state: asOptional(asString),
-  city: asOptional(asString),
-  ncesId: asOptional(asString),
-  isPartner: asOptional(asBoolean),
-  limit: asOptional(asNumber),
-  page: asOptional(asNumber),
-})
 
 export async function getSchools(data: GetSchoolsPayload) {
   const pageNum = data.page ?? 1
@@ -154,8 +162,6 @@ export async function titlecaseSchoolNames() {
   ])
 }
 
-export async function getPartnerSchools(): Promise<
-  PartnerSchool[] | undefined
-> {
+export async function getPartnerSchools(): Promise<SchoolRepo.PartnerSchool[]> {
   return SchoolRepo.getPartnerSchools(getClient())
 }
