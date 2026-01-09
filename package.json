@@ -140,7 +140,8 @@
     "uuid": "^8.3.2",
     "validator": "^13.6.0",
     "yaml": "^1.10.0",
-    "yjs": "^13.6.11"
+    "yjs": "^13.6.11",
+    "zod": "^4.3.5"
   },
   "devDependencies": {
     "@faker-js/faker": "^8.4.1",
