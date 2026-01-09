@@ -47,6 +47,7 @@ import {
 import * as VolunteerService from './VolunteerService'
 import * as ReferralService from './ReferralService'
 import * as NTHSGroupsService from './NTHSGroupsService'
+import { RosterStudentsResultPublic } from '../contracts/user-creation'
 
 export interface RosterStudentPayload {
   cleverId?: string
@@ -68,26 +69,50 @@ export interface CreateStudentFedCredPayload {
   issuer: string
 }
 
+export type RosterPartnerStudentCreated = {
+  id: string
+  email: string
+  firstName: string
+  passwordResetToken?: string
+  proxyEmail?: string
+}
+
+export type RosterPartnerStudentUpdated = {
+  id: string
+  email: string
+}
+
+export type RosterPartnerStudentFailed = {
+  email: string
+  firstName: string
+}
+
+export type RosterPartnerStudentsResult = {
+  failed: RosterPartnerStudentFailed[]
+  updated: RosterPartnerStudentUpdated[]
+  created: RosterPartnerStudentCreated[]
+}
+
+export function toRosterStudentsResultPublic(
+  result: RosterPartnerStudentsResult
+): RosterStudentsResultPublic {
+  return {
+    failed: result.failed.map((user) => ({
+      email: user.email,
+      firstName: user.firstName,
+    })),
+    updated: result.updated.map((user) => ({ id: user.id, email: user.email })),
+  }
+}
+
 export async function rosterPartnerStudents(
   students: RosterStudentPayload[],
   schoolId: string,
   shouldSendPasswordResetEmail = true
-) {
-  const newUsers: {
-    id: string
-    email: string
-    firstName: string
-    passwordResetToken?: string
-    proxyEmail?: string
-  }[] = []
-  const updatedUsers: {
-    id: string
-    email: string
-  }[] = []
-  const failedUsers: {
-    email: string
-    firstName: string
-  }[] = []
+): Promise<RosterPartnerStudentsResult> {
+  const newUsers: RosterPartnerStudentCreated[] = []
+  const updatedUsers: RosterPartnerStudentUpdated[] = []
+  const failedUsers: RosterPartnerStudentFailed[] = []
 
   const signUpSource = await SignUpSourceRepo.getSignUpSourceByName(
     'Roster',
