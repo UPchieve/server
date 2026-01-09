@@ -297,7 +297,7 @@ export async function updateSchoolMetadata(
 
 export async function getPartnerSchools(
   tc: TransactionClient
-): Promise<PartnerSchool[] | undefined> {
+): Promise<PartnerSchool[]> {
   try {
     const schools = await pgQueries.getPartnerSchools.run(undefined, tc)
     return schools.map((s) =>
