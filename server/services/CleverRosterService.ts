@@ -9,6 +9,81 @@ import * as StudentService from './StudentService'
 import * as SubjectsService from './SubjectsService'
 import * as TeacherService from './TeacherService'
 import * as UserCreationService from './UserCreationService'
+import {
+  CleverRosterReportPublic,
+  CleverRosterSchoolReportPublic,
+} from '../contracts/clever'
+
+export type UpsertReport = {
+  updatedSchools: {
+    [cleverSchoolId: string]: {
+      upchieveSchoolId: string
+      created: unknown[]
+      updated: unknown[]
+      skipped: unknown[]
+      failed: unknown[]
+    }
+  }
+  failedSchools: { [cleverSchoolId: string]: string }
+}
+
+type CleverSchoolId = string
+
+type SkippedUser = {
+  id: string
+  email: string
+  gradeLevel?: string
+  parsedGradeLevel?: number
+}
+
+type UpdatedSchool = {
+  upchieveSchoolId: string
+  created: UserCreationService.RosterPartnerStudentCreated[]
+  updated: UserCreationService.RosterPartnerStudentUpdated[]
+  failed: UserCreationService.RosterPartnerStudentFailed[]
+  skipped: SkippedUser[]
+}
+
+export type CleverRosterReport = {
+  updatedSchools: Record<CleverSchoolId, UpdatedSchool>
+  failedSchools: Record<CleverSchoolId, string>
+}
+
+export function toCleverRosterReportPublic(
+  report: CleverRosterReport
+): CleverRosterReportPublic {
+  const updatedSchools: Record<CleverSchoolId, CleverRosterSchoolReportPublic> =
+    {}
+
+  for (const [cleverSchoolId, school] of Object.entries(
+    report.updatedSchools
+  )) {
+    updatedSchools[cleverSchoolId] = {
+      upchieveSchoolId: school.upchieveSchoolId,
+      created: school.created.map((user) => ({
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+      })),
+      updated: school.updated.map((user) => ({
+        id: user.id,
+        email: user.email,
+      })),
+      failed: school.failed.map((user) => ({
+        email: user.email,
+        firstName: user.firstName,
+      })),
+      skipped: school.skipped.map((user) => ({
+        id: user.id,
+        email: user.email,
+        gradeLevel: user.gradeLevel,
+        parsedGradeLevel: user.parsedGradeLevel,
+      })),
+    }
+  }
+
+  return { updatedSchools, failedSchools: report.failedSchools }
+}
 
 /**
  * Clever Secure Sync Integration (i.e. rostering with Clever).
@@ -26,22 +101,12 @@ import * as UserCreationService from './UserCreationService'
  * are using Clever, but there is a lot more data we can pull from Clever that might
  * be useful to integrate with in the future.
  */
-export async function rosterDistrict(districtId: string) {
+export async function rosterDistrict(
+  districtId: string
+): Promise<CleverRosterReport> {
   const accessToken = await CleverAPIService.getDistrictAccessToken(districtId)
   const schools = await CleverAPIService.getSchoolsInDistrict(accessToken)
-
-  const upsertReport: {
-    updatedSchools: {
-      [cleverSchoolId: string]: {
-        upchieveSchoolId: string
-        created: unknown[]
-        updated: unknown[]
-        skipped: unknown[]
-        failed: unknown[]
-      }
-    }
-    failedSchools: { [cleverSchoolId: string]: string }
-  } = {
+  const upsertReport: CleverRosterReport = {
     updatedSchools: {},
     failedSchools: {},
   }
@@ -61,12 +126,7 @@ export async function rosterDistrict(districtId: string) {
         accessToken
       )
       while (cleverStudents.length) {
-        const filteredOut: {
-          id: string
-          email: string
-          gradeLevel?: string
-          parsedGradeLevel?: number
-        }[] = []
+        const filteredOut: SkippedUser[] = []
         const students = cleverStudents
           .filter((s) => {
             const grade = CleverAPIService.parseCleverGrade(
@@ -103,12 +163,13 @@ export async function rosterDistrict(districtId: string) {
           created = [],
           updated = [],
           failed = [],
+          skipped = [],
         } = upsertReport.updatedSchools[school.id] || {}
         upsertReport.updatedSchools[school.id] = {
           upchieveSchoolId: upchieveSchool.id,
           created: [...created, ...result.created],
           updated: [...updated, ...result.updated],
-          skipped: filteredOut,
+          skipped: [...skipped, ...filteredOut],
           failed: [...failed, ...result.failed],
         }
 
