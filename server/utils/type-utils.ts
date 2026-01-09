@@ -2,6 +2,7 @@ import Case from 'case'
 import { InputError } from '../models/Errors'
 import { Ulid } from '../models/pgUtils'
 import { Uuid4, Exception } from 'id128'
+import { z } from 'zod'
 
 // Typecheck framework taken from https://stackoverflow.com/a/58861766
 
@@ -172,3 +173,12 @@ export function isPgId(id: string): boolean {
 
 export type ExtractValues<T extends { readonly [k: string]: string }> =
   T[keyof T]
+
+// Note: We do not follow UUID standard formatting semantics.
+// We can't use Zod's `uuid` or `uuidv4` validators because our
+// database record IDs are not real RFC UUIDs. They're just UUID shaped
+export const PgUuidSchema = z
+  .string()
+  .regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, {
+    error: 'Invalid ID format',
+  })
