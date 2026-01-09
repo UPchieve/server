@@ -1,6 +1,7 @@
 import { CustomError } from 'ts-custom-error'
 import { Response } from 'express'
 import * as Sentry from '@sentry/node'
+import { ZodError } from 'zod'
 import {
   NotAllowedError,
   InputError,
@@ -43,8 +44,12 @@ export function resError(
       message = 'Email already in use'
     }
     // bad input
-    else if (err instanceof InputError) status = 422
-    else if (err instanceof AlreadyInUseError) status = 409
+    else if (err instanceof ZodError) {
+      status = 422
+      message = err.issues?.[0]?.message || 'Invalid input'
+    } else if (err instanceof InputError) {
+      status = 422
+    } else if (err instanceof AlreadyInUseError) status = 409
     // response timeout
     else if (err.message === 'Response timeout') status = 408
     // unknown error
