@@ -138,7 +138,7 @@ server.on('upgrade', (request, socket, head) => {
   const pathname = request.url
   if (pathname?.startsWith('/socket.io/')) {
     // Temporary workaround for `handleUpgrade` not existing on the type: https://github.com/socketio/socket.io/issues/4693#issuecomment-1529401350
-    ;(io.engine as Engine).handleUpgrade(request, socket, head)
+    ;(io.engine as Engine).handleUpgrade(request as any, socket, head)
   } else {
     const wss = wsInstance.getWss()
     wss.handleUpgrade(request, socket as Socket, head, (ws) => {
