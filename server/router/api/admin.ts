@@ -1,35 +1,37 @@
 import multer from 'multer'
 import { Express, Router } from 'express'
-import timeout from 'connect-timeout'
 import { authPassport } from '../../utils/auth-utils'
 import { resError } from '../res-error'
 import { readCsvFromBuffer } from '../../utils/file-utils'
 import * as CleverRosterService from '../../services/CleverRosterService'
 import * as SchoolService from '../../services/SchoolService'
-import { getPartnerSchools } from '../../services/SchoolService'
+import * as UserCreationService from '../../services/UserCreationService'
 import {
-  RosterStudentPayload,
-  rosterPartnerStudents,
-} from '../../services/UserCreationService'
-import { asBoolean, asNumber, asString, asUlid } from '../../utils/type-utils'
-import { minutesInMs } from '../../utils/time-utils'
+  GetSchoolsQuerySchema,
+  GetSchoolParamsSchema,
+  AdminSchoolPublic,
+  GetAdminSchoolsPublic,
+  AdminPartnerSchoolPublic,
+} from '../../contracts/schools'
+import {
+  CleverRosterBodySchema,
+  CleverRosterResponsePublic,
+  CleverSchoolBodySchema,
+} from '../../contracts/clever'
+import { RosterStudentsBodySchema } from '../../contracts/user-creation'
 
 export function routeAdmin(app: Express, router: Router): void {
   const upload = multer()
 
   router.get('/schools', async function (req, res) {
     try {
-      const payload = {
-        name: asString(req.query.name),
-        state: asString(req.query.state),
-        city: asString(req.query.city),
-        ncesId: asString(req.query.ncesId),
-        isPartner: req.query.isPartner
-          ? asBoolean(req.query.isPartner)
-          : undefined,
-        page: asNumber(req.query.page),
+      const query = GetSchoolsQuerySchema.parse(req.query)
+      const resultInternal = await SchoolService.getSchools(query)
+      const result: GetAdminSchoolsPublic = {
+        isLastPage: resultInternal.isLastPage,
+        totalCount: resultInternal.totalCount,
+        schools: resultInternal.schools.map(SchoolService.toAdminSchoolPublic),
       }
-      const result = await SchoolService.getSchools(payload)
       res.json(result)
     } catch (err) {
       resError(res, err)
@@ -38,8 +40,10 @@ export function routeAdmin(app: Express, router: Router): void {
 
   router.get('/school/:schoolId', async function (req, res) {
     try {
-      const schoolId = asUlid(req.params.schoolId)
-      const school = await SchoolService.getSchool(schoolId)
+      const { schoolId } = GetSchoolParamsSchema.parse(req.params)
+      const schoolInternal = await SchoolService.getSchool(schoolId)
+      const school: AdminSchoolPublic =
+        SchoolService.toAdminSchoolPublic(schoolInternal)
       res.json({ school })
     } catch (err) {
       resError(res, err)
@@ -48,8 +52,11 @@ export function routeAdmin(app: Express, router: Router): void {
 
   router.get('/schools/partner-schools', async function (_req, res) {
     try {
-      const schools = await getPartnerSchools()
-      res.send(schools)
+      const schoolsInternal = await SchoolService.getPartnerSchools()
+      const partnerSchools: AdminPartnerSchoolPublic[] = schoolsInternal.map(
+        SchoolService.toAdminPartnerSchoolPublic
+      )
+      res.send(partnerSchools)
     } catch (error) {
       resError(res, error)
     }
@@ -60,20 +67,24 @@ export function routeAdmin(app: Express, router: Router): void {
     upload.single('studentsFile'),
     async function (req, res) {
       try {
-        if (!req.body.schoolId || !req.file) {
+        const body = RosterStudentsBodySchema.parse(req.body)
+        if (!req.file) {
           res.status(500).json({
             err: 'Missing required data.',
           })
           return
         }
-        const students = readCsvFromBuffer<RosterStudentPayload>(
-          req.file.buffer,
-          ['firstName', 'lastName', 'email', 'gradeLevel']
-        )
-        const { failed, updated } = await rosterPartnerStudents(
+        const students =
+          readCsvFromBuffer<UserCreationService.RosterStudentPayload>(
+            req.file.buffer,
+            ['firstName', 'lastName', 'email', 'gradeLevel']
+          )
+        const dataInternal = await UserCreationService.rosterPartnerStudents(
           students,
-          req.body.schoolId
+          body.schoolId
         )
+        const { failed, updated } =
+          UserCreationService.toRosterStudentsResultPublic(dataInternal)
         res.json({ failed, updated })
       } catch (error) {
         resError(res, error)
@@ -83,17 +94,15 @@ export function routeAdmin(app: Express, router: Router): void {
 
   router.post('/clever/roster', async function (req, res) {
     req.clearTimeout()
-    const districtId = asString(req.body.districtId)
-
-    if (!districtId) {
-      res.status(422).json({
-        err: 'Missing district id.',
-      })
-    }
 
     try {
-      const report = await CleverRosterService.rosterDistrict(districtId)
-      res.json({ report })
+      const { districtId } = CleverRosterBodySchema.parse(req.body)
+      const reportInternal =
+        await CleverRosterService.rosterDistrict(districtId)
+      const report =
+        CleverRosterService.toCleverRosterReportPublic(reportInternal)
+      const response: CleverRosterResponsePublic = { report }
+      res.json(response)
     } catch (error) {
       resError(res, error)
     }
@@ -101,9 +110,10 @@ export function routeAdmin(app: Express, router: Router): void {
 
   router.post('/clever/school', async function (req, res) {
     try {
+      const body = CleverSchoolBodySchema.parse(req.body)
       await CleverRosterService.addCleverSchoolMapping(
-        asString(req.body.cleverSchoolId),
-        asString(req.body.upchieveSchoolId)
+        body.cleverSchoolId,
+        body.upchieveSchoolId
       )
       res.status(200).send()
     } catch (error) {
