@@ -79,7 +79,7 @@ import * as SurveyService from './SurveyService'
 import { SessionUserRole } from './UserRolesService'
 import * as FeatureFlagsService from './FeatureFlagService'
 import { createBlobSasUrl } from './AzureService'
-import { secondsInMs } from '../utils/time-utils'
+import { minutesInMs } from '../utils/time-utils'
 
 export async function reviewSession(data: unknown) {
   const { sessionId, reviewed, toReview } =
@@ -293,7 +293,7 @@ export async function endSession(
       sessionId,
     },
     {
-      delay: secondsInMs(5),
+      delay: minutesInMs(5),
     }
   )
 
