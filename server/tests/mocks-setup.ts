@@ -47,6 +47,9 @@ jest.mock('../config', () => {
     studentPartnerManifestPath: 'localManifests/student.yaml',
     sponsorOrgManifestPath: 'localManifests/sponsor-orgs.yaml',
     associatedPartnerManifestPath: 'localManifests/associated-partners.yaml',
+    azureClientId: 'bogus', // pragma: allowlist secret
+    azureTenantId: 'bogus', // pragma: allowlist secret
+    azureStorageSecret: 'bogus', // pragma: allowlist secret
     smtp: {
       host: 'smtp.mailtrap.io',
       port: 2525,
