@@ -13,7 +13,7 @@ async function sendToUser(
     return
   }
 
-  return await messaging().sendMulticast({
+  return await messaging().sendEachForMulticast({
     tokens, // can also send to a topic (group of people)
     // ios and android process data a little differently, so setup separate objects for each
     apns: {
