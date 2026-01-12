@@ -1,4 +1,4 @@
-import { logger } from '@sentry/utils'
+import { logger } from '@sentry/node'
 import { logError } from './logger'
 import { Pool, PoolClient } from 'pg'
 import config from './config'
