@@ -67,7 +67,7 @@ jest.mock('../config', () => {
       },
     },
     sendgrid: {
-      apiKey: process.env.SUBWAY_SENDGRID_API_KEY,
+      apiKey: process.env.SUBWAY_SENDGRID_API_KEY || 'SG.',
       failedFirstAttemptedQuizTemplate: 'd-447e43ee9746482ca308e05069ba2e00',
       studentAbsentWarningTemplate: 'd-f27a47f3875a4dfd9f07446219ecacfc',
       studentAbsentVolunteerApologyTemplate:
