@@ -47,6 +47,9 @@ jest.mock('../config', () => {
     studentPartnerManifestPath: 'localManifests/student.yaml',
     sponsorOrgManifestPath: 'localManifests/sponsor-orgs.yaml',
     associatedPartnerManifestPath: 'localManifests/associated-partners.yaml',
+    azureClientId: 'bogus', // pragma: allowlist secret
+    azureTenantId: 'bogus', // pragma: allowlist secret
+    azureStorageSecret: 'bogus', // pragma: allowlist secret
     smtp: {
       host: 'smtp.mailtrap.io',
       port: 2525,
@@ -67,7 +70,7 @@ jest.mock('../config', () => {
       },
     },
     sendgrid: {
-      apiKey: process.env.SUBWAY_SENDGRID_API_KEY,
+      apiKey: process.env.SUBWAY_SENDGRID_API_KEY || 'SG.',
       failedFirstAttemptedQuizTemplate: 'd-447e43ee9746482ca308e05069ba2e00',
       studentAbsentWarningTemplate: 'd-f27a47f3875a4dfd9f07446219ecacfc',
       studentAbsentVolunteerApologyTemplate:

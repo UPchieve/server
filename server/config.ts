@@ -40,7 +40,7 @@ const config: Static<typeof Config> = {
     password: process.env.SUBWAY_SMTP_PASSWORD || '',
   },
   sendgrid: {
-    apiKey: process.env.SUBWAY_SENDGRID_API_KEY || '',
+    apiKey: process.env.SUBWAY_SENDGRID_API_KEY || 'SG.',
     contactTemplate: 'd-e79546f380874c58965c163f45df2ef4',
     verifyTemplate: 'd-02281875a1cf4575bd3568e674faf147',
     resetTemplate: 'd-5005d2beb2ad49a883a10364f3e14b81',
