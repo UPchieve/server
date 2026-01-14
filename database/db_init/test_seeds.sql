@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 14.19 (Debian 14.19-1.pgdg13+1)
--- Dumped by pg_dump version 14.13 (Homebrew)
+-- Dumped from database version 14.15 (Debian 14.15-1.pgdg120+1)
+-- Dumped by pg_dump version 14.19 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -6128,6 +6128,14 @@ COPY upchieve.nths_group_members (nths_group_id, user_id, title, joined_at, upda
 
 
 --
+-- Data for Name: nths_group_roles; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.nths_group_roles (id, name) FROM stdin;
+\.
+
+
+--
 -- Data for Name: parents_guardians; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
@@ -8798,6 +8806,13 @@ SELECT pg_catalog.setval('upchieve.notification_priority_groups_id_seq', 22, tru
 --
 
 SELECT pg_catalog.setval('upchieve.notification_types_id_seq', 2, true);
+
+
+--
+-- Name: nths_group_roles_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
+--
+
+SELECT pg_catalog.setval('upchieve.nths_group_roles_id_seq', 1, false);
 
 
 --
