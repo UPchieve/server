@@ -1,3 +1,6 @@
+-- Dumped from database version 14.15 (Debian 14.15-1.pgdg120+1)
+-- Dumped by pg_dump version 14.19 (Homebrew)
+
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -6786,5 +6789,7 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20251121214549'),
     ('20251125134512'),
     ('20251201200733'),
+    ('20251202113843'),
+    ('20251202114139'),
     ('20251205231954'),
     ('20251215171217');
