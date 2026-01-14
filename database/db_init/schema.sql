@@ -924,6 +924,30 @@ CREATE TABLE upchieve.nths_group_members (
 
 
 --
+-- Name: nths_group_roles; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.nths_group_roles (
+    id integer NOT NULL,
+    name character varying(20)
+);
+
+
+--
+-- Name: nths_group_roles_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE upchieve.nths_group_roles ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME upchieve.nths_group_roles_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
 -- Name: nths_groups; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -3624,6 +3648,14 @@ ALTER TABLE ONLY upchieve.notifications
 
 ALTER TABLE ONLY upchieve.nths_group_members
     ADD CONSTRAINT nths_group_members_pkey PRIMARY KEY (nths_group_id, user_id);
+
+
+--
+-- Name: nths_group_roles nths_group_roles_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_group_roles
+    ADD CONSTRAINT nths_group_roles_pkey PRIMARY KEY (id);
 
 
 --
@@ -6792,4 +6824,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20251202113843'),
     ('20251202114139'),
     ('20251205231954'),
-    ('20251215171217');
+    ('20251215171217'),
+    ('20260114171204');
