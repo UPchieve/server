@@ -61,3 +61,37 @@ WHERE
 RETURNING
     *;
 
+
+/* @name upsertNthsGroupMemberRole */
+INSERT INTO nths_group_member_roles (user_id, nths_group_id, role_id)
+SELECT
+    :userId!,
+    :nthsGroupId!,
+    roles.id
+FROM
+    nths_group_roles roles
+WHERE
+    roles.name = :roleName!
+ON CONFLICT (user_id,
+    nths_group_id)
+    DO UPDATE SET
+        role_id = EXCLUDED.role_id,
+        updated_at = NOW()
+    RETURNING
+        *,
+        :roleName AS role_name;
+
+
+/* @name getGroupMember */
+SELECT
+    m.*,
+    roles.name AS role_name
+FROM
+    nths_group_members m
+    JOIN nths_group_member_roles member_roles ON member_roles.user_id = m.user_id
+        AND member_roles.nths_group_id = m.nths_group_id
+    JOIN nths_group_roles roles ON roles.id = member_roles.role_id
+WHERE
+    m.user_id = :userId!
+    AND m.nths_group_id = :nthsGroupId!;
+
