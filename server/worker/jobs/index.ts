@@ -70,6 +70,7 @@ import { clearBullJobByStatus } from './clearBullJobsByStatus'
 import updateCachedVolunteersForTextNotifications from './updateCachedVolunteersForTextNotifications'
 import backfillSessionEndedTasks from '../../scripts/backfill-sessionEndedTasks'
 import spawnDeidentifyUsers from './spawn-deidentify-users'
+import backfillNthsGroupMemberRoles from './backfillNthsGroupMemberRoles'
 
 export enum Jobs {
   AddScheduledJobs = 'AddScheduledJobs',
@@ -157,6 +158,7 @@ export enum Jobs {
   UpsertPostalCodes = 'UpsertPostalCodes',
   UpsertSchools = 'UpsertSchools',
   UpdateCachedVolunteersForTextNotifications = 'UpdateCachedVolunteersForTextNotifications',
+  BackfillNthsGroupMemberRoles = 'BackfillNthsGroupMemberRoles',
 }
 
 // register new job processors here
@@ -482,6 +484,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.UpdateCachedVolunteersForTextNotifications,
     processor: updateCachedVolunteersForTextNotifications,
+  },
+  {
+    name: Jobs.BackfillNthsGroupMemberRoles,
+    processor: backfillNthsGroupMemberRoles,
   },
 ]
 

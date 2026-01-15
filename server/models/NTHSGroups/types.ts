@@ -15,3 +15,20 @@ export type NTHSGroup = {
   key: string
   createdAt: Date
 }
+
+export type NTHSGroupMember = {
+  nthsGroupId: Ulid
+  userId: Ulid
+  title?: string
+  joinedAt: Date
+  updatedAt: Date
+  deactivatedAt?: Date
+}
+
+export type NTHSGroupMemberRole = {
+  userId: Ulid
+  nthsGroupId: Ulid
+  roleId: number
+  roleName: string
+  updatedAt: Date
+}
