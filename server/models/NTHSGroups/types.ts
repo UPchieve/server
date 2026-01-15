@@ -33,6 +33,10 @@ export type NTHSGroupMemberWithRole = NTHSGroupMember & {
   roleName: NTHSGroupRoleName
 }
 
+export type NTHSGroupMemberWithRole = NTHSGroupMember & {
+  roleName: NTHSGroupRoleName
+}
+
 export type NTHSGroupMemberRole = {
   userId: Ulid
   nthsGroupId: Ulid
