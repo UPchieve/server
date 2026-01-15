@@ -226,3 +226,96 @@ const insertNthsGroupMemberRoleIR: any = {"usedParamSet":{"userId":true,"nthsGro
 export const insertNthsGroupMemberRole = new PreparedQuery<IInsertNthsGroupMemberRoleParams,IInsertNthsGroupMemberRoleResult>(insertNthsGroupMemberRoleIR);
 
 
+/** 'UpsertNthsGroupMemberRole' parameters type */
+export interface IUpsertNthsGroupMemberRoleParams {
+  nthsGroupId: string;
+  roleName: string;
+  userId: string;
+}
+
+/** 'UpsertNthsGroupMemberRole' return type */
+export interface IUpsertNthsGroupMemberRoleResult {
+  nthsGroupId: string;
+  roleId: number | null;
+  roleName: string | null;
+  updatedAt: Date;
+  userId: string;
+}
+
+/** 'UpsertNthsGroupMemberRole' query type */
+export interface IUpsertNthsGroupMemberRoleQuery {
+  params: IUpsertNthsGroupMemberRoleParams;
+  result: IUpsertNthsGroupMemberRoleResult;
+}
+
+const upsertNthsGroupMemberRoleIR: any = {"usedParamSet":{"userId":true,"nthsGroupId":true,"roleName":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":81,"b":88}]},{"name":"nthsGroupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":95,"b":107}]},{"name":"roleName","required":true,"transform":{"type":"scalar"},"locs":[{"a":178,"b":187},{"a":344,"b":352}]}],"statement":"INSERT INTO nths_group_member_roles (user_id, nths_group_id, role_id)\nSELECT\n    :userId!,\n    :nthsGroupId!,\n    roles.id\nFROM\n    nths_group_roles roles\nWHERE\n    roles.name = :roleName!\nON CONFLICT (user_id,\n    nths_group_id)\n    DO UPDATE SET\n        role_id = EXCLUDED.role_id,\n        updated_at = NOW()\n    RETURNING\n        *,\n        :roleName AS role_name"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO nths_group_member_roles (user_id, nths_group_id, role_id)
+ * SELECT
+ *     :userId!,
+ *     :nthsGroupId!,
+ *     roles.id
+ * FROM
+ *     nths_group_roles roles
+ * WHERE
+ *     roles.name = :roleName!
+ * ON CONFLICT (user_id,
+ *     nths_group_id)
+ *     DO UPDATE SET
+ *         role_id = EXCLUDED.role_id,
+ *         updated_at = NOW()
+ *     RETURNING
+ *         *,
+ *         :roleName AS role_name
+ * ```
+ */
+export const upsertNthsGroupMemberRole = new PreparedQuery<IUpsertNthsGroupMemberRoleParams,IUpsertNthsGroupMemberRoleResult>(upsertNthsGroupMemberRoleIR);
+
+
+/** 'GetGroupMember' parameters type */
+export interface IGetGroupMemberParams {
+  nthsGroupId: string;
+  userId: string;
+}
+
+/** 'GetGroupMember' return type */
+export interface IGetGroupMemberResult {
+  deactivatedAt: Date | null;
+  joinedAt: Date;
+  nthsGroupId: string;
+  roleName: string | null;
+  title: string | null;
+  updatedAt: Date;
+  userId: string;
+}
+
+/** 'GetGroupMember' query type */
+export interface IGetGroupMemberQuery {
+  params: IGetGroupMemberParams;
+  result: IGetGroupMemberResult;
+}
+
+const getGroupMemberIR: any = {"usedParamSet":{"userId":true,"nthsGroupId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":302,"b":309}]},{"name":"nthsGroupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":337,"b":349}]}],"statement":"SELECT\n    m.*,\n    roles.name AS role_name\nFROM\n    nths_group_members m\n    JOIN nths_group_member_roles member_roles ON member_roles.user_id = m.user_id\n        AND member_roles.nths_group_id = m.nths_group_id\n    JOIN nths_group_roles roles ON roles.id = member_roles.role_id\nWHERE\n    m.user_id = :userId!\n    AND m.nths_group_id = :nthsGroupId!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     m.*,
+ *     roles.name AS role_name
+ * FROM
+ *     nths_group_members m
+ *     JOIN nths_group_member_roles member_roles ON member_roles.user_id = m.user_id
+ *         AND member_roles.nths_group_id = m.nths_group_id
+ *     JOIN nths_group_roles roles ON roles.id = member_roles.role_id
+ * WHERE
+ *     m.user_id = :userId!
+ *     AND m.nths_group_id = :nthsGroupId!
+ * ```
+ */
+export const getGroupMember = new PreparedQuery<IGetGroupMemberParams,IGetGroupMemberResult>(getGroupMemberIR);
+
+

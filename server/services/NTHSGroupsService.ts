@@ -1,9 +1,12 @@
 import { Ulid, Uuid } from '../models/pgUtils'
 import * as NTHSGroupsRepo from '../models/NTHSGroups'
 import config from '../config'
-import generateAlphanumericOfLength from '../utils/generate-alphanumeric'
-import { Transaction } from 'yjs'
 import { getClient, getRoClient, TransactionClient } from '../db'
+import {
+  NTHSGroupMemberRole,
+  NTHSGroupMemberWithRole,
+  NTHSGroupRoleName,
+} from '../models/NTHSGroups'
 
 export async function getGroups(userId: Ulid) {
   return await NTHSGroupsRepo.getGroupsByUser(userId)
@@ -34,4 +37,24 @@ export async function joinGroupAsMemberByGroupId(
     },
     tc
   )
+}
+
+export async function updateGroupMemberRole(
+  userId: Ulid,
+  nthsGroupId: Ulid,
+  role: NTHSGroupRoleName
+): Promise<NTHSGroupMemberRole> {
+  return await NTHSGroupsRepo.upsertNthsGroupMemberRole({
+    userId,
+    nthsGroupId,
+    roleName: role,
+  })
+}
+
+export async function getGroupMember(
+  userId: Ulid,
+  nthsGroupId: Ulid,
+  tc: TransactionClient = getRoClient()
+): Promise<NTHSGroupMemberWithRole | undefined> {
+  return await NTHSGroupsRepo.getNthsGroupMember(userId, nthsGroupId, tc)
 }

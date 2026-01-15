@@ -25,6 +25,10 @@ export type NTHSGroupMember = {
   deactivatedAt?: Date
 }
 
+export type NTHSGroupMemberWithRole = NTHSGroupMember & {
+  roleName: NTHSGroupRoleName
+}
+
 export type NTHSGroupMemberRole = {
   userId: Ulid
   nthsGroupId: Ulid
@@ -32,3 +36,5 @@ export type NTHSGroupMemberRole = {
   roleName: string
   updatedAt: Date
 }
+
+export type NTHSGroupRoleName = 'admin' | 'member'
