@@ -58,3 +58,9 @@ export async function getGroupMember(
 ): Promise<NTHSGroupMemberWithRole | undefined> {
   return await NTHSGroupsRepo.getNthsGroupMember(userId, nthsGroupId, tc)
 }
+
+export async function getGroupMembers(
+  nthsGroupId: Ulid
+): Promise<NTHSGroupMemberWithRole[]> {
+  return await NTHSGroupsRepo.getGroupMembers(nthsGroupId)
+}
