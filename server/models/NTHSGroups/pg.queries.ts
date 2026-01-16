@@ -14,6 +14,7 @@ export interface IGetGroupsByUserResult {
   inviteCode: string;
   joinedAt: Date;
   memberTitle: string | null;
+  roleName: string | null;
 }
 
 /** 'GetGroupsByUser' query type */
@@ -22,7 +23,7 @@ export interface IGetGroupsByUserQuery {
   result: IGetGroupsByUserResult;
 }
 
-const getGroupsByUserIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":266,"b":273}]}],"statement":"SELECT\n    ngm.title AS member_title,\n    ngm.joined_at,\n    ng.id AS group_id,\n    ng.name AS group_name,\n    ng.key AS group_key,\n    ng.invite_code\nFROM\n    nths_group_members ngm\n    INNER JOIN nths_groups ng ON ng.id = ngm.nths_group_id\nWHERE\n    ngm.user_id = :userId!"};
+const getGroupsByUserIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":349,"b":356},{"a":502,"b":509}]}],"statement":"SELECT\n    ngm.title AS member_title,\n    ngm.joined_at,\n    ng.id AS group_id,\n    ng.name AS group_name,\n    ng.key AS group_key,\n    ng.invite_code,\n    roles.name AS role_name\nFROM\n    nths_group_members ngm\n    INNER JOIN nths_groups ng ON ng.id = ngm.nths_group_id\n    INNER JOIN nths_group_member_roles member_roles ON member_roles.user_id = :userId!\n        AND member_roles.nths_group_id = ng.id\n    INNER JOIN nths_group_roles roles ON roles.id = member_roles.role_id\nWHERE\n    ngm.user_id = :userId!"};
 
 /**
  * Query generated from SQL:
@@ -33,10 +34,14 @@ const getGroupsByUserIR: any = {"usedParamSet":{"userId":true},"params":[{"name"
  *     ng.id AS group_id,
  *     ng.name AS group_name,
  *     ng.key AS group_key,
- *     ng.invite_code
+ *     ng.invite_code,
+ *     roles.name AS role_name
  * FROM
  *     nths_group_members ngm
  *     INNER JOIN nths_groups ng ON ng.id = ngm.nths_group_id
+ *     INNER JOIN nths_group_member_roles member_roles ON member_roles.user_id = :userId!
+ *         AND member_roles.nths_group_id = ng.id
+ *     INNER JOIN nths_group_roles roles ON roles.id = member_roles.role_id
  * WHERE
  *     ngm.user_id = :userId!
  * ```

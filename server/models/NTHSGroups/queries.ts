@@ -20,7 +20,20 @@ export async function getGroupsByUser(userId: Ulid): Promise<UserGroup[]> {
       },
       getRoClient()
     )
-    return results.map(makeRequired)
+    return results.map((row) => {
+      const camelCased = makeRequired(row)
+      return {
+        memberTitle: camelCased.memberTitle,
+        joinedAt: camelCased.joinedAt,
+        groupId: camelCased.groupId,
+        groupName: camelCased.groupName,
+        groupKey: camelCased.groupKey,
+        inviteCode: camelCased.inviteCode,
+        membershipInfo: {
+          roleName: camelCased.roleName as NTHSGroupRoleName,
+        },
+      }
+    })
   } catch (err) {
     throw new RepoReadError(err)
   }

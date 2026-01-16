@@ -5,10 +5,14 @@ SELECT
     ng.id AS group_id,
     ng.name AS group_name,
     ng.key AS group_key,
-    ng.invite_code
+    ng.invite_code,
+    roles.name AS role_name
 FROM
     nths_group_members ngm
     INNER JOIN nths_groups ng ON ng.id = ngm.nths_group_id
+    INNER JOIN nths_group_member_roles member_roles ON member_roles.user_id = :userId!
+        AND member_roles.nths_group_id = ng.id
+    INNER JOIN nths_group_roles roles ON roles.id = member_roles.role_id
 WHERE
     ngm.user_id = :userId!;
 
