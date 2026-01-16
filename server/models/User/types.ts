@@ -78,8 +78,8 @@ export type UserContactInfo = Pick<
   | 'proxyEmail'
 > & {
   approved?: boolean
+  /** @deprecated */
   isAdmin: boolean
-  isVolunteer: boolean
   referralCode: string
   /** @deprecated Use {@link roleContext} */
   roles: UserRole[]
@@ -90,7 +90,7 @@ export type UserContactInfo = Pick<
 
 export type UserForCreateSendGridContact = Omit<
   UserContactInfo,
-  'deactivated' | 'roles' | 'roleContext' | 'referralCode'
+  'isAdmin' | 'deactivated' | 'roles' | 'roleContext' | 'referralCode'
 > & {
   createdAt: Date
   lastName: string

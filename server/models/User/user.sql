@@ -72,18 +72,6 @@ SELECT
     email,
     proxy_email,
     ban_type,
-    (
-        CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
-            TRUE
-        ELSE
-            FALSE
-        END) AS is_volunteer,
-    (
-        CASE WHEN admin_profiles.user_id IS NOT NULL THEN
-            TRUE
-        ELSE
-            FALSE
-        END) AS is_admin,
     volunteer_partner_orgs.key AS volunteer_partner_org,
     student_partner_orgs.key AS student_partner_org,
     users.last_activity_at,
@@ -96,7 +84,6 @@ SELECT
     users.referral_code
 FROM
     users
-    LEFT JOIN admin_profiles ON admin_profiles.user_id = users.id
     LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
     LEFT JOIN student_profiles ON student_profiles.user_id = users.id
@@ -111,7 +98,6 @@ WHERE
 GROUP BY
     users.id,
     volunteer_profiles.user_id,
-    admin_profiles.user_id,
     volunteer_partner_orgs.id,
     student_partner_orgs.id
 LIMIT 1;
@@ -348,12 +334,6 @@ SELECT
     users.test_user AS is_test_user,
     users.verified,
     users.ban_type AS ban_type,
-    (
-        CASE WHEN admin_profiles.user_id IS NOT NULL THEN
-            TRUE
-        ELSE
-            FALSE
-        END) AS is_admin,
     session_count.total AS num_past_sessions,
     -- Volunteer specific fields:
     volunteer_profiles.approved AS is_approved,
@@ -386,7 +366,6 @@ FROM
     LEFT JOIN student_partner_orgs ON student_partner_orgs.id = student_profiles.student_partner_org_id
     LEFT JOIN student_partner_org_sites ON student_partner_org_sites.id = student_profiles.student_partner_org_site_id
     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
-    LEFT JOIN admin_profiles ON admin_profiles.user_id = users.id
     LEFT JOIN photo_id_statuses ON photo_id_statuses.id = volunteer_profiles.photo_id_status
     LEFT JOIN user_product_flags ON user_product_flags.user_id = users.id
     LEFT JOIN grade_levels ON grade_levels.id = student_profiles.grade_level_id
@@ -435,12 +414,6 @@ SELECT
         ELSE
             FALSE
         END) AS is_volunteer,
-    (
-        CASE WHEN admin_profiles.user_id IS NOT NULL THEN
-            TRUE
-        ELSE
-            FALSE
-        END) AS is_admin,
     users.ban_type AS ban_type,
     ban_reasons.name AS ban_reason,
     users.test_user AS is_test_user,
@@ -516,7 +489,6 @@ FROM
         WHERE
             user_id = :userId!) AS occupations ON TRUE
     LEFT JOIN student_profiles ON student_profiles.user_id = users.id
-    LEFT JOIN admin_profiles ON users.id = admin_profiles.user_id
     LEFT JOIN volunteer_profiles ON users.id = volunteer_profiles.user_id
     LEFT JOIN teacher_profiles ON users.id = teacher_profiles.user_id
     LEFT JOIN photo_id_statuses ON photo_id_statuses.id = volunteer_profiles.photo_id_status
@@ -635,12 +607,6 @@ SELECT
         ELSE
             FALSE
         END) AS is_volunteer,
-    (
-        CASE WHEN admin_profiles.user_id IS NOT NULL THEN
-            TRUE
-        ELSE
-            FALSE
-        END) AS is_admin,
     volunteer_partner_orgs.key AS volunteer_partner_org,
     volunteer_partner_orgs.name AS volunteer_partner_org_display,
     student_partner_orgs.key AS student_partner_org,
@@ -652,7 +618,6 @@ SELECT
     COALESCE(cgl.current_grade_name, grade_levels.name) AS student_grade_level
 FROM
     users
-    LEFT JOIN admin_profiles ON admin_profiles.user_id = users.id
     LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
     LEFT JOIN student_profiles ON student_profiles.user_id = users.id

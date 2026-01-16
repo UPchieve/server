@@ -1132,7 +1132,6 @@ export type CreatedVolunteer = Omit<VolunteerContactInfo, 'roleContext'> & {
   deactivated: boolean
   testUser: boolean
   createdAt: Date
-  isVolunteer: boolean
   isAdmin: boolean
   smsConsent: boolean
   userType: UserRole
@@ -1241,7 +1240,6 @@ export async function createVolunteer(
     return {
       ...user,
       volunteerPartnerOrg: volunteerData.volunteerPartnerOrg,
-      isVolunteer: true,
       userType: 'volunteer',
       isAdmin: false,
     }

@@ -432,7 +432,6 @@ describe('registerStudent', () => {
       code: 'A',
       deactivated: false,
       email: faker.internet.email(),
-      isVolunteer: false,
       isAdmin: false,
       firstName: faker.person.firstName(),
       lastName: faker.person.lastName(),
@@ -1043,6 +1042,5 @@ describe('registerTeacher', () => {
     expect(teacher.firstName).toBe(data.firstName)
     expect(teacher.userType).toBe('teacher')
     expect(teacher.isAdmin).toBe(false)
-    expect(teacher.isVolunteer).toBe(false)
   })
 })

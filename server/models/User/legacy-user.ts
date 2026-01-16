@@ -45,11 +45,7 @@ export type LegacyUserModel = {
   firstname: string
   phone?: string
   college?: string
-  /** @deprecated */
-  isVolunteer: boolean
   userType: UserRole
-  /** @deprecated */
-  isAdmin: boolean
   //leaving isBanned only to make this backwards-compatible with mobile
   isBanned: boolean
   banType?: USER_BAN_TYPES
@@ -128,8 +124,6 @@ export async function getLegacyUserObject(
         'createdAt',
         'email',
         'verified',
-        'isAdmin',
-        'isVolunteer',
         'isTestUser',
         'isDeactivated',
         'referralCode',
@@ -231,6 +225,12 @@ export async function getLegacyUserObject(
           baseUser.issuers?.some((issuer) => issuer.includes('classlink')) ??
           false
       }
+
+      // @ts-ignore
+      // TODO: Legacy for frontend, but do not use in backend anymore.
+      // Update references to `user.isAdmin` in high-line to check the `roles` instead.
+      baseUser.isAdmin = roleContext.isAdmin()
+
       const final = _.merge(
         {
           _id: baseUser.id,

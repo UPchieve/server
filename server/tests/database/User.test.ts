@@ -480,7 +480,7 @@ describe('ban type users tests', () => {
     )) as UserContactInfo
 
     await reportSession(
-      { ...upsertedVolunteerContactInfo, isVolunteer: true },
+      { ...upsertedVolunteerContactInfo },
       {
         sessionId,
         reportReason,

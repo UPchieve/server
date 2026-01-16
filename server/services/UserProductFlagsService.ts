@@ -40,9 +40,12 @@ export async function incentiveProgramEnrollmentEnroll(
 ) {
   // @TODO Run in transaction
   const isInIncentiveProgram = await isUserInIncentiveProgram(userId)
-  if (isInIncentiveProgram)
+  if (isInIncentiveProgram) {
     throw new Error(`You're already enrolled in the fall incentive program.`)
+  }
 
+  // TODO: We don't use anywhere close to the amount of fields returned from
+  // that query. Scope it down.
   const user = await getLegacyUserObject(userId)
   if (user.isSchoolPartner) {
     if (proxyEmail) await updateUserProxyEmail(userId, proxyEmail)

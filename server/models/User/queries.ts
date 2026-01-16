@@ -181,7 +181,11 @@ export async function getUserById(
       if (!roles.length) {
         logger.error(`User with id ${ret.id} has no user roles.`)
       }
-      return { ...ret, roles: roles as UserRole[] }
+      return {
+        ...ret,
+        isAdmin: roles.includes('admin'),
+        roles: roles as UserRole[],
+      }
     }
   } catch (err) {
     throw new RepoReadError(err)
@@ -490,7 +494,6 @@ export async function getUserForAdminDetail(
       'createdAt',
       'email',
       'firstName',
-      'isAdmin',
       'isDeactivated',
       'isDeleted',
       'isTestUser',

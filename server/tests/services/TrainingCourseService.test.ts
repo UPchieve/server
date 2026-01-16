@@ -29,7 +29,6 @@ describe('TrainingCourseService', () => {
     lastActivityAt: new Date(),
     smsConsent: true,
     isAdmin: false,
-    isVolunteer: true,
     roles: ['volunteer'],
   }
 
