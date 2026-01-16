@@ -26,6 +26,8 @@ export type NTHSGroupMember = {
   joinedAt: Date
   updatedAt: Date
   deactivatedAt?: Date
+  firstName: string
+  email: string
 }
 
 export type NTHSGroupMemberWithRole = NTHSGroupMember & {
