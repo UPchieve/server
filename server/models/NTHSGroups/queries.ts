@@ -185,3 +185,26 @@ export async function getNthsGroupMember(
     throw new RepoReadError(err)
   }
 }
+
+export async function getGroupMembers(
+  groupId: Ulid,
+  tc: TransactionClient = getRoClient()
+): Promise<NTHSGroupMemberWithRole[]> {
+  try {
+    const results = await pgQueries.getGroupMembers.run(
+      {
+        groupId,
+      },
+      tc
+    )
+    return results.map((row) => {
+      const camelCased = makeSomeOptional(row, ['title', 'deactivatedAt'])
+      return {
+        ...camelCased,
+        roleName: camelCased.roleName as NTHSGroupRoleName,
+      }
+    })
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}

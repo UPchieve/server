@@ -29,6 +29,19 @@ export function routeNTHSGroups(router: Router): void {
   })
 
   router
+    .route('/nths-groups/:groupId/members')
+    .get(async (req: Request, res: Response) => {
+      try {
+        const members = await NTHSGroupsService.getGroupMembers(
+          req.params.groupId
+        )
+        return res.json({ members })
+      } catch (err) {
+        resError(res, err)
+      }
+    })
+
+  router
     .route('/nths-groups/:groupId')
     .put(isGroupAdmin, async (req: Request, res: Response) => {
       try {

@@ -99,3 +99,16 @@ WHERE
     m.user_id = :userId!
     AND m.nths_group_id = :nthsGroupId!;
 
+
+/* @name getGroupMembers */
+SELECT
+    ngm.*,
+    roles.name AS role_name
+FROM
+    nths_group_members ngm
+    JOIN nths_group_member_roles member_roles ON member_roles.nths_group_id = :groupId!
+        AND member_roles.user_id = ngm.user_id
+    JOIN nths_group_roles roles ON roles.id = member_roles.role_id
+WHERE
+    ngm.nths_group_id = :groupId!;
+
