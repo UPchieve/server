@@ -24,6 +24,7 @@ import config from '../../config'
 import logger from '../../logger'
 import { Uuid } from '../../models/pgUtils'
 import { USER_ROLES_TYPE } from '../../constants'
+import { getRoleContext } from '../../services/UserRolesService'
 
 async function passportLoginUser(
   profile: passport.Profile,
@@ -281,6 +282,22 @@ export function addPassportAuthMiddleware() {
           const user = await UserRepo.getUserForPassport(email)
 
           if (!user) {
+            return done(null, false)
+          }
+
+          if (
+            (await getRoleContext(user.id, true)).isAdmin() &&
+            !isDevEnvironment()
+          ) {
+            const maskedEmail = email.replace(
+              /^(.)(.+)(.)(@.+)$/,
+              (_match, first, middle, last, domain) =>
+                first + '*'.repeat(middle.length) + last + domain
+            )
+            logger.info(
+              { email: maskedEmail },
+              'Admin tried to sign in with email/password.'
+            )
             return done(null, false)
           }
 
