@@ -55,7 +55,7 @@ export async function getGroupMember(
   userId: Ulid,
   nthsGroupId: Ulid,
   tc: TransactionClient = getRoClient()
-): Promise<NTHSGroupMemberWithRole | undefined> {
+): Promise<Omit<NTHSGroupMemberWithRole, 'firstName' | 'email'> | undefined> {
   return await NTHSGroupsRepo.getNthsGroupMember(userId, nthsGroupId, tc)
 }
 

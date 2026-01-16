@@ -2,6 +2,7 @@ import * as NthsRepo from '../../models/NTHSGroups'
 import { getClient, runInTransaction, TransactionClient } from '../../db'
 import logger from '../../logger'
 import { NTHSGroupMember } from '../../models/NTHSGroups'
+import { Ulid } from '../../models/pgUtils'
 
 const logPrefix = 'NTHSGroupMemberRolesBackfill: '
 export default async function (): Promise<void> {
@@ -21,7 +22,7 @@ export default async function (): Promise<void> {
         {
           userId: user.userId,
           nthsGroupId: user.nthsGroupId,
-          roleName: getRoleName(user),
+          roleName: getRoleName(user.userId, user.title),
         },
         tc
       )
@@ -40,10 +41,10 @@ export default async function (): Promise<void> {
   }, client)
 }
 
-function getRoleName(user: NTHSGroupMember): 'admin' | 'member' {
-  if (user.title) {
-    const lowercased = user.title.toLowerCase()
+function getRoleName(userId: Ulid, title?: string): 'admin' | 'member' {
+  if (title) {
+    const lowercased = title.toLowerCase()
     return lowercased.includes('president') ? 'admin' : 'member'
   }
-  throw new Error(`Cannot determine role name for user ${user.userId}`)
+  throw new Error(`Cannot determine role name for user ${userId}`)
 }

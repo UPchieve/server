@@ -99,11 +99,15 @@ export async function joinGroupById(
 
 export async function getAllNthsMembers(
   tc: TransactionClient = getRoClient()
-): Promise<NTHSGroupMember[]> {
+): Promise<Omit<NTHSGroupMember, 'firstName' | 'email'>[]> {
   try {
     const results = await pgQueries.getAllNthsUsers.run(undefined, tc)
     return results.map(
-      (row) => makeSomeOptional(row, ['deactivatedAt']) as NTHSGroupMember
+      (row) =>
+        makeSomeOptional(row, ['deactivatedAt']) as Omit<
+          NTHSGroupMember,
+          'firstName' | 'email'
+        >
     )
   } catch (err) {
     throw new RepoReadError(err)
@@ -117,7 +121,7 @@ export async function insertNthsMemberGroupRole(
     roleName: string
   },
   tc: TransactionClient = getClient()
-): Promise<NTHSGroupMemberRole> {
+): Promise<Omit<NTHSGroupMemberRole, 'firstName' | 'email'>> {
   try {
     const result = await pgQueries.insertNthsGroupMemberRole.run(
       {
@@ -166,7 +170,7 @@ export async function getNthsGroupMember(
   userId: Ulid,
   nthsGroupId: Ulid,
   tc: TransactionClient = getRoClient()
-): Promise<NTHSGroupMemberWithRole | undefined> {
+): Promise<Omit<NTHSGroupMemberWithRole, 'firstName' | 'email'> | undefined> {
   try {
     const results = await pgQueries.getGroupMember.run(
       {
