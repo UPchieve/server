@@ -1922,7 +1922,21 @@ export const moderateTranscript = async (
         confidenceThresholdMap.get(reason) ??
         config.contextualModerationConfidenceThreshold
 
-      if (result.confidence >= Number(threshold)) {
+      // OpenAI returns confidence as a percentage from 0 to 100
+      // Our DB thresholds are stored as decimals from 0 to 1. We convert them to percentages below for comparison
+      const thresholdPercent =
+        Number(threshold) <= 1 ? Number(threshold) * 100 : Number(threshold)
+
+      // Check for undefined confidence and handle gracefully
+      if (result.confidence == null) {
+        logger.warn(
+          { reason, result },
+          'Transcript moderation result missing confidence value'
+        )
+        continue
+      }
+
+      if (result.confidence >= thresholdPercent) {
         trace.update({ tags: [LangfuseTraceTagEnum.FLAGGED_BY_MODERATION] })
         for (const msg of result.flaggedMessages) {
           flaggedOutput.push({
