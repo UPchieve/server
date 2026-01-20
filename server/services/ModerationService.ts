@@ -1924,11 +1924,15 @@ export const moderateTranscript = async (
 
       // OpenAI returns confidence as a percentage from 0 to 100
       // Our DB thresholds are stored as decimals from 0 to 1. We convert them to percentages below for comparison
-      const thresholdPercent = Number(threshold) <= 1 ? Number(threshold) * 100 : Number(threshold)
-      
+      const thresholdPercent =
+        Number(threshold) <= 1 ? Number(threshold) * 100 : Number(threshold)
+
       // Check for undefined confidence and handle gracefully
       if (result.confidence == null) {
-        logger.warn({ reason, result }, 'Transcript moderation result missing confidence value')
+        logger.warn(
+          { reason, result },
+          'Transcript moderation result missing confidence value'
+        )
         continue
       }
 
