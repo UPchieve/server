@@ -16,11 +16,11 @@ import logger from '../logger'
 import { VERIFICATION_METHOD, SUBJECTS } from '../constants'
 import startsWithVowel from '../utils/starts-with-vowel'
 import { Ulid } from '../models/pgUtils'
-import { getSessionById, NotificationData } from '../models/Session'
-import { getSponsorOrgs } from '../models/SponsorOrg'
 import * as AssociatedPartnerService from './AssociatedPartnerService'
+import type { CreateSessionResult, NotificationData } from '../models/Session'
 import { Jobs } from '../worker/jobs'
 import { AssociatedPartner } from '../models/AssociatedPartner'
+import { secondsInMs } from '../utils/time-utils'
 
 const protocol = config.NODE_ENV === 'production' ? 'https' : 'http'
 const apiRoot = `${config.protocol}://${config.host}/twiml`
@@ -473,20 +473,28 @@ export async function confirmVerification(
 }
 
 export async function beginRegularNotifications(
-  sessionId: Ulid,
-  studentId: Ulid
+  session: CreateSessionResult
 ): Promise<void> {
-  const isTestUser = await StudentsRepo.isTestUser(studentId)
+  const student = await StudentsRepo.getStudentContactInfoById(
+    session.studentId
+  )
+  if (!student) return
 
-  if (isTestUser) return
-  // Delay initial wave of notifications by 1 min to give
-  // volunteers on the dashboard time to pick up the request
-  const notificationSchedule = config.notificationSchedule.slice()
-  const delay = notificationSchedule.shift()
+  // Delay initial wave of notifications by 30 seconds to give
+  // volunteers on the dashboard time to pick up the request.
   await QueueService.add(
-    Jobs.NotifyTutors,
-    { sessionId, notificationSchedule, currentNotificationRound: 1 },
-    { delay }
+    Jobs.TextVolunteers,
+    {
+      sessionId: session.id,
+      subject: session.subject,
+      subjectDisplayName: session.subjectDisplayName,
+      topic: session.topic,
+      studentId: session.studentId,
+      schoolId: student.schoolId,
+      studentPartnerOrg: student.studentPartnerOrg,
+      notificationRound: 1,
+    },
+    { delay: secondsInMs(30) }
   )
 }
 
