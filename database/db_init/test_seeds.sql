@@ -6112,6 +6112,16 @@ COPY upchieve.notifications (id, user_id, sent_at, type_id, method_id, priority_
 
 
 --
+-- Data for Name: nths_group_roles; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.nths_group_roles (id, name) FROM stdin;
+1	admin
+2	member
+\.
+
+
+--
 -- Data for Name: nths_groups; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
@@ -6120,20 +6130,18 @@ COPY upchieve.nths_groups (id, name, key, created_at, updated_at, invite_code) F
 
 
 --
--- Data for Name: nths_group_members; Type: TABLE DATA; Schema: upchieve; Owner: admin
+-- Data for Name: nths_group_member_roles; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.nths_group_members (nths_group_id, user_id, title, joined_at, updated_at, deactivated_at) FROM stdin;
+COPY upchieve.nths_group_member_roles (user_id, nths_group_id, role_id, updated_at) FROM stdin;
 \.
 
 
 --
--- Data for Name: nths_group_roles; Type: TABLE DATA; Schema: upchieve; Owner: admin
+-- Data for Name: nths_group_members; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.nths_group_roles (id, name) FROM stdin;
-1	admin
-2	member
+COPY upchieve.nths_group_members (nths_group_id, user_id, title, joined_at, updated_at, deactivated_at) FROM stdin;
 \.
 
 

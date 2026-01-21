@@ -910,6 +910,18 @@ CREATE TABLE upchieve.notifications (
 
 
 --
+-- Name: nths_group_member_roles; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.nths_group_member_roles (
+    user_id uuid NOT NULL,
+    nths_group_id uuid NOT NULL,
+    role_id integer,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
 -- Name: nths_group_members; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -3643,6 +3655,14 @@ ALTER TABLE ONLY upchieve.notifications
 
 
 --
+-- Name: nths_group_member_roles nths_group_member_roles_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_group_member_roles
+    ADD CONSTRAINT nths_group_member_roles_pkey PRIMARY KEY (user_id, nths_group_id);
+
+
+--
 -- Name: nths_group_members nths_group_members_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -5418,6 +5438,30 @@ ALTER TABLE ONLY upchieve.notifications
 
 
 --
+-- Name: nths_group_member_roles nths_group_member_roles_nths_group_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_group_member_roles
+    ADD CONSTRAINT nths_group_member_roles_nths_group_id_fkey FOREIGN KEY (nths_group_id) REFERENCES upchieve.nths_groups(id);
+
+
+--
+-- Name: nths_group_member_roles nths_group_member_roles_role_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_group_member_roles
+    ADD CONSTRAINT nths_group_member_roles_role_id_fkey FOREIGN KEY (role_id) REFERENCES upchieve.nths_group_roles(id);
+
+
+--
+-- Name: nths_group_member_roles nths_group_member_roles_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_group_member_roles
+    ADD CONSTRAINT nths_group_member_roles_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
+
+
+--
 -- Name: nths_group_members nths_group_members_nths_group_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -6825,4 +6869,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20251202114139'),
     ('20251205231954'),
     ('20251215171217'),
-    ('20260114171204');
+    ('20260114171204'),
+    ('20260114193023');
