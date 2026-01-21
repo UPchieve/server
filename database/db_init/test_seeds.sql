@@ -6132,6 +6132,8 @@ COPY upchieve.nths_group_members (nths_group_id, user_id, title, joined_at, upda
 --
 
 COPY upchieve.nths_group_roles (id, name) FROM stdin;
+1	admin
+2	member
 \.
 
 
@@ -8812,7 +8814,7 @@ SELECT pg_catalog.setval('upchieve.notification_types_id_seq', 2, true);
 -- Name: nths_group_roles_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.nths_group_roles_id_seq', 1, false);
+SELECT pg_catalog.setval('upchieve.nths_group_roles_id_seq', 2, true);
 
 
 --
