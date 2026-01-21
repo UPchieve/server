@@ -21,6 +21,7 @@ import {
 import { hasCompletedVolunteerTraining } from '../../services/VolunteerService'
 import { getUserSessionStats, UserSessionStats } from '../Session'
 import { getUsersLatestSubjectsByUserId } from './'
+import { getFavoriteVolunteersByUserId } from './'
 import * as UserRolesService from '../../services/UserRolesService'
 import * as SurveyService from '../../services/SurveyService'
 import { PostsessionSurveyRatingsMetric } from '../../services/SurveyService'
@@ -101,6 +102,7 @@ export type LegacyUserModel = {
   usesClassLink?: boolean
   studentAssignments?: StudentAssignment[]
   ratings?: PostsessionSurveyRatingsMetric
+  favoriteVolunteers?: Ulid[]
   // teacher
   lastSuccessfulCleverSync?: Date
 
@@ -158,6 +160,7 @@ export async function getLegacyUserObject(
       const studentUser: any = {}
       const teacherUser: { usesClever?: boolean; usesClassLink?: boolean } = {}
       const roleContext = await UserRolesService.getRoleContext(userId)
+      const favoriteVolunteers = await getFavoriteVolunteersByUserId(userId)
       const ratings =
         await SurveyService.getUserPostsessionGoalRatingsMetrics(userId)
       if (roleContext.isActiveRole('student')) {
@@ -242,7 +245,8 @@ export async function getLegacyUserObject(
           sessionStats,
         },
         { ratings },
-        { roleContext }
+        { roleContext },
+        { favoriteVolunteers }
       )
       return final as LegacyUserModel
     }, client)

@@ -912,3 +912,12 @@ SET
 WHERE
     id = :userId!;
 
+
+/* @name getFavoriteVolunteersByUserId */
+SELECT
+    volunteer_id
+FROM
+    student_favorite_volunteers
+WHERE
+    student_id = :userId!;
+

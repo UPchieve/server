@@ -845,3 +845,22 @@ export async function flagUserForDeletion(userId: Uuid) {
     throw new RepoUpdateError(err)
   }
 }
+
+export async function getFavoriteVolunteersByUserId(
+  userId: Ulid
+): Promise<Ulid[]> {
+  try {
+    const result = await pgQueries.getFavoriteVolunteersByUserId.run(
+      { userId },
+      getClient()
+    )
+
+    if (!result.length) {
+      return []
+    }
+
+    return result.map((row) => makeRequired(row).volunteerId)
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
