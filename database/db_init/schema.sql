@@ -1,3 +1,6 @@
+-- Dumped from database version 14.15 (Debian 14.15-1.pgdg120+1)
+-- Dumped by pg_dump version 14.19 (Homebrew)
+
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -917,6 +920,30 @@ CREATE TABLE upchieve.nths_group_members (
     joined_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     deactivated_at timestamp with time zone
+);
+
+
+--
+-- Name: nths_group_roles; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.nths_group_roles (
+    id integer NOT NULL,
+    name character varying(20)
+);
+
+
+--
+-- Name: nths_group_roles_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE upchieve.nths_group_roles ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME upchieve.nths_group_roles_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
 );
 
 
@@ -3621,6 +3648,14 @@ ALTER TABLE ONLY upchieve.notifications
 
 ALTER TABLE ONLY upchieve.nths_group_members
     ADD CONSTRAINT nths_group_members_pkey PRIMARY KEY (nths_group_id, user_id);
+
+
+--
+-- Name: nths_group_roles nths_group_roles_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_group_roles
+    ADD CONSTRAINT nths_group_roles_pkey PRIMARY KEY (id);
 
 
 --
@@ -6786,5 +6821,8 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20251121214549'),
     ('20251125134512'),
     ('20251201200733'),
+    ('20251202113843'),
+    ('20251202114139'),
     ('20251205231954'),
-    ('20251215171217');
+    ('20251215171217'),
+    ('20260114171204');
