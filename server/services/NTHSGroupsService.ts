@@ -1,7 +1,12 @@
 import { Ulid, Uuid } from '../models/pgUtils'
 import * as NTHSGroupsRepo from '../models/NTHSGroups'
 import config from '../config'
-import { getClient, getRoClient, TransactionClient } from '../db'
+import {
+  getClient,
+  getRoClient,
+  runInTransaction,
+  TransactionClient,
+} from '../db'
 import {
   NTHSGroupMemberRole,
   NTHSGroupMemberWithRole,
@@ -27,16 +32,27 @@ export async function getNTHSGroupByInviteCode(
 export async function joinGroupAsMemberByGroupId(
   userId: Ulid,
   groupId: Ulid,
+  roleName: NTHSGroupRoleName = 'member',
   tc: TransactionClient = getClient()
 ) {
-  return await NTHSGroupsRepo.joinGroupById(
-    {
-      userId,
-      groupId,
-      title: 'member',
-    },
-    tc
-  )
+  return await runInTransaction(async (client: TransactionClient) => {
+    await NTHSGroupsRepo.joinGroupById(
+      {
+        userId,
+        groupId,
+        title: 'member',
+      },
+      client
+    )
+    await NTHSGroupsRepo.insertNthsMemberGroupRole(
+      {
+        userId,
+        nthsGroupId: groupId,
+        roleName,
+      },
+      client
+    )
+  }, tc)
 }
 
 export async function updateGroupMemberRole(
