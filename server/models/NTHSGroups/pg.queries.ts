@@ -151,3 +151,78 @@ const joinGroupByIdIR: any = {"usedParamSet":{"groupId":true,"userId":true,"titl
 export const joinGroupById = new PreparedQuery<IJoinGroupByIdParams,IJoinGroupByIdResult>(joinGroupByIdIR);
 
 
+/** 'GetAllNthsUsers' parameters type */
+export type IGetAllNthsUsersParams = void;
+
+/** 'GetAllNthsUsers' return type */
+export interface IGetAllNthsUsersResult {
+  deactivatedAt: Date | null;
+  joinedAt: Date;
+  nthsGroupId: string;
+  title: string | null;
+  updatedAt: Date;
+  userId: string;
+}
+
+/** 'GetAllNthsUsers' query type */
+export interface IGetAllNthsUsersQuery {
+  params: IGetAllNthsUsersParams;
+  result: IGetAllNthsUsersResult;
+}
+
+const getAllNthsUsersIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    *\nFROM\n    nths_group_members"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     *
+ * FROM
+ *     nths_group_members
+ * ```
+ */
+export const getAllNthsUsers = new PreparedQuery<IGetAllNthsUsersParams,IGetAllNthsUsersResult>(getAllNthsUsersIR);
+
+
+/** 'InsertNthsGroupMemberRole' parameters type */
+export interface IInsertNthsGroupMemberRoleParams {
+  nthsGroupId: string;
+  roleName: string;
+  userId: string;
+}
+
+/** 'InsertNthsGroupMemberRole' return type */
+export interface IInsertNthsGroupMemberRoleResult {
+  nthsGroupId: string;
+  roleId: number | null;
+  updatedAt: Date;
+  userId: string;
+}
+
+/** 'InsertNthsGroupMemberRole' query type */
+export interface IInsertNthsGroupMemberRoleQuery {
+  params: IInsertNthsGroupMemberRoleParams;
+  result: IInsertNthsGroupMemberRoleResult;
+}
+
+const insertNthsGroupMemberRoleIR: any = {"usedParamSet":{"userId":true,"nthsGroupId":true,"roleName":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":81,"b":88}]},{"name":"nthsGroupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":95,"b":107}]},{"name":"roleName","required":true,"transform":{"type":"scalar"},"locs":[{"a":178,"b":187}]}],"statement":"INSERT INTO nths_group_member_roles (user_id, nths_group_id, role_id)\nSELECT\n    :userId!,\n    :nthsGroupId!,\n    roles.id\nFROM\n    nths_group_roles roles\nWHERE\n    roles.name = :roleName!\nRETURNING\n    *"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO nths_group_member_roles (user_id, nths_group_id, role_id)
+ * SELECT
+ *     :userId!,
+ *     :nthsGroupId!,
+ *     roles.id
+ * FROM
+ *     nths_group_roles roles
+ * WHERE
+ *     roles.name = :roleName!
+ * RETURNING
+ *     *
+ * ```
+ */
+export const insertNthsGroupMemberRole = new PreparedQuery<IInsertNthsGroupMemberRoleParams,IInsertNthsGroupMemberRoleResult>(insertNthsGroupMemberRoleIR);
+
+
