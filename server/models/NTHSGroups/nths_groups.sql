@@ -115,3 +115,8 @@ FROM
 WHERE
     ngm.nths_group_id = :groupId!;
 
+/* @name createGroup */
+INSERT INTO nths_groups (invite_code, name, key)
+    VALUES (:inviteCode!, :name!, :key!)
+RETURNING
+    *;

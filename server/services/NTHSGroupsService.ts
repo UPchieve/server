@@ -12,9 +12,36 @@ import {
   NTHSGroupMemberWithRole,
   NTHSGroupRoleName,
 } from '../models/NTHSGroups'
+import generateAlphanumericOfLength from '../utils/generate-alphanumeric'
 
 export async function getGroups(userId: Ulid) {
   return await NTHSGroupsRepo.getGroupsByUser(userId)
+}
+
+export async function createGroup(userId: Ulid) {
+  return runInTransaction(async (tc: TransactionClient) => {
+    const inviteCode = generateAlphanumericOfLength(6)
+    const number = await NTHSGroupsRepo.getNextChapterNumber(tc)
+    const name = `NTHS Chapter ${number}`
+    const key = name.split(' ').join('-').toLowerCase()
+    const group = await NTHSGroupsRepo.createGroup(
+      { inviteCode, name, key, chapterNumber: number },
+      tc
+    )
+    // TODO - need jamie's changes
+    const creator = await NTHSGroupsRepo.joinGroupById(
+      { groupId: group.id, userId, title: 'President' },
+      tc
+    )
+
+    return {
+      title: creator.title,
+      id: group.id,
+      name: group.name,
+      key: group.key,
+      inviteCode: group.inviteCode,
+    }
+  })
 }
 
 export async function getInviteLinkForGroup(groupId: Ulid) {

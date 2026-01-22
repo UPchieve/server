@@ -45,7 +45,7 @@ export async function getInviteCodeForGroup(groupId: Ulid) {
 }
 
 export async function getGroupByInviteCode(
-  inviteCode: Uuid,
+  inviteCode: string,
   tc: TransactionClient = getRoClient()
 ): Promise<NTHSGroup> {
   try {
@@ -203,5 +203,33 @@ export async function getGroupMembers(
     })
   } catch (err) {
     throw new RepoReadError(err)
+export async function createGroup(
+  {
+    inviteCode,
+    name,
+    key,
+    chapterNumber,
+  }: {
+    inviteCode: string
+    name: string
+    key: string
+    chapterNumber: number
+  },
+
+  tc: TransactionClient = getClient()
+) {
+  try {
+    const results = await pgQueries.createGroup.run(
+      {
+        inviteCode,
+        name,
+        key,
+      },
+      tc
+    )
+
+    return results.map((row) => makeSomeOptional(row, ['deactivatedAt']))
+  } catch (err) {
+    throw new RepoCreateError(err)
   }
 }

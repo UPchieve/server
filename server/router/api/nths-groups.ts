@@ -59,4 +59,14 @@ export function routeNTHSGroups(router: Router): void {
         resError(res, err)
       }
     })
+
+  router.route('/nths-groups/new').get(async (req, res) => {
+    try {
+      const user = extractUser(req)
+      const group = await NTHSGroupsService.createGroup(user.id)
+      res.json({ group })
+    } catch (error) {
+      resError(res, error)
+    }
+  })
 }

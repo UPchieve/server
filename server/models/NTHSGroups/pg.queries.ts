@@ -371,3 +371,40 @@ const getGroupMembersIR: any = {"usedParamSet":{"groupId":true},"params":[{"name
 export const getGroupMembers = new PreparedQuery<IGetGroupMembersParams,IGetGroupMembersResult>(getGroupMembersIR);
 
 
+/** 'CreateGroup' parameters type */
+export interface ICreateGroupParams {
+  inviteCode: string;
+  key: string;
+  name: string;
+}
+
+/** 'CreateGroup' return type */
+export interface ICreateGroupResult {
+  createdAt: Date;
+  id: string;
+  inviteCode: string;
+  key: string;
+  name: string;
+  updatedAt: Date;
+}
+
+/** 'CreateGroup' query type */
+export interface ICreateGroupQuery {
+  params: ICreateGroupParams;
+  result: ICreateGroupResult;
+}
+
+const createGroupIR: any = {"usedParamSet":{"inviteCode":true,"name":true,"key":true},"params":[{"name":"inviteCode","required":true,"transform":{"type":"scalar"},"locs":[{"a":61,"b":72}]},{"name":"name","required":true,"transform":{"type":"scalar"},"locs":[{"a":75,"b":80}]},{"name":"key","required":true,"transform":{"type":"scalar"},"locs":[{"a":83,"b":87}]}],"statement":"INSERT INTO nths_groups (invite_code, name, key)\n    VALUES (:inviteCode!, :name!, :key!)\nRETURNING\n    *"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO nths_groups (invite_code, name, key)
+ *     VALUES (:inviteCode!, :name!, :key!)
+ * RETURNING
+ *     *
+ * ```
+ */
+export const createGroup = new PreparedQuery<ICreateGroupParams,ICreateGroupResult>(createGroupIR);
+
+
