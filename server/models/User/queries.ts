@@ -855,10 +855,6 @@ export async function getFavoriteVolunteersByUserId(
       getClient()
     )
 
-    if (!result.length) {
-      return []
-    }
-
     return result.map((row) => makeRequired(row).volunteerId)
   } catch (err) {
     throw new RepoReadError(err)

@@ -160,7 +160,6 @@ export async function getLegacyUserObject(
       const studentUser: any = {}
       const teacherUser: { usesClever?: boolean; usesClassLink?: boolean } = {}
       const roleContext = await UserRolesService.getRoleContext(userId)
-      const favoriteVolunteers = await getFavoriteVolunteersByUserId(userId)
       const ratings =
         await SurveyService.getUserPostsessionGoalRatingsMetrics(userId)
       if (roleContext.isActiveRole('student')) {
@@ -176,6 +175,8 @@ export async function getLegacyUserObject(
         delete baseUser.issuers
         studentUser.studentAssignments =
           await AssignmentsService.getAssignmentsByStudentId(baseUser.id)
+        studentUser.favoriteVolunteers =
+          await getFavoriteVolunteersByUserId(userId)
       }
       if (roleContext.isActiveRole('volunteer')) {
         if (!baseUser.subjects) baseUser.subjects = []
@@ -245,8 +246,7 @@ export async function getLegacyUserObject(
           sessionStats,
         },
         { ratings },
-        { roleContext },
-        { favoriteVolunteers }
+        { roleContext }
       )
       return final as LegacyUserModel
     }, client)
