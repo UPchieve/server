@@ -183,6 +183,15 @@ export async function getNthsGroupMember(
   }
 }
 
+export async function groupsCount(tc: TransactionClient = getClient()) {
+  try {
+    const results = await pgQueries.groupsCount.run(undefined, tc)
+    return makeRequired(results[0].count)
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
 export async function getGroupMembers(
   groupId: Ulid,
   tc: TransactionClient = getRoClient()
@@ -208,12 +217,10 @@ export async function createGroup(
     inviteCode,
     name,
     key,
-    chapterNumber,
   }: {
     inviteCode: string
     name: string
     key: string
-    chapterNumber: number
   },
 
   tc: TransactionClient = getClient()

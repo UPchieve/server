@@ -371,6 +371,31 @@ const getGroupMembersIR: any = {"usedParamSet":{"groupId":true},"params":[{"name
 export const getGroupMembers = new PreparedQuery<IGetGroupMembersParams,IGetGroupMembersResult>(getGroupMembersIR);
 
 
+/** 'GroupsCount' parameters type */
+export type IGroupsCountParams = void;
+
+/** 'GroupsCount' return type */
+export interface IGroupsCountResult {
+  count: string | null;
+}
+
+/** 'GroupsCount' query type */
+export interface IGroupsCountQuery {
+  params: IGroupsCountParams;
+  result: IGroupsCountResult;
+}
+
+const groupsCountIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT count(*) FROM nths_groups"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT count(*) FROM nths_groups
+ * ```
+ */
+export const groupsCount = new PreparedQuery<IGroupsCountParams,IGroupsCountResult>(groupsCountIR);
+
+
 /** 'CreateGroup' parameters type */
 export interface ICreateGroupParams {
   inviteCode: string;

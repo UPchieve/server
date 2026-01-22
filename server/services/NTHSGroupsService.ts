@@ -18,14 +18,14 @@ export async function getGroups(userId: Ulid) {
   return await NTHSGroupsRepo.getGroupsByUser(userId)
 }
 
-export async function createGroup(userId: Ulid) {
+export async function foundGroup(userId: Ulid) {
   return runInTransaction(async (tc: TransactionClient) => {
     const inviteCode = generateAlphanumericOfLength(6)
-    const number = await NTHSGroupsRepo.getNextChapterNumber(tc)
-    const name = `NTHS Chapter ${number}`
+    const chapterNumber = (await NTHSGroupsRepo.groupsCount(tc)) + 1
+    const name = `NTHS Chapter ${chapterNumber}`
     const key = name.split(' ').join('-').toLowerCase()
     const group = await NTHSGroupsRepo.createGroup(
-      { inviteCode, name, key, chapterNumber: number },
+      { inviteCode, name, key },
       tc
     )
     // TODO - need jamie's changes
