@@ -3,8 +3,11 @@ import { extractUser } from '../extract-user'
 import { resError } from '../res-error'
 import * as NTHSGroupsService from '../../services/NTHSGroupsService'
 
-async function isGroupAdmin(req: Request, res: Response, next: NextFunction) {
-  // @TODO export me for testing.
+export async function isGroupAdmin(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
   if (req.user && req.user.id && req.params.groupId) {
     const groupMember = await NTHSGroupsService.getGroupMember(
       req.user?.id!,
