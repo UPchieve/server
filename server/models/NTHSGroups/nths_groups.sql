@@ -114,11 +114,17 @@ FROM
     JOIN users ON users.id = ngm.user_id
 WHERE
     ngm.nths_group_id = :groupId!;
+
 /* @name groupsCount */
-SELECT count(*) FROM nths_groups;
+SELECT
+    count(*)
+FROM
+    nths_groups;
+
 
 /* @name createGroup */
-INSERT INTO nths_groups (invite_code, name, key)
+INSERT INTO nths_groups (invite_code, name, KEY)
     VALUES (:inviteCode!, :name!, :key!)
 RETURNING
     *;
+

@@ -385,12 +385,15 @@ export interface IGroupsCountQuery {
   result: IGroupsCountResult;
 }
 
-const groupsCountIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT count(*) FROM nths_groups"};
+const groupsCountIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    count(*)\nFROM\n    nths_groups"};
 
 /**
  * Query generated from SQL:
  * ```
- * SELECT count(*) FROM nths_groups
+ * SELECT
+ *     count(*)
+ * FROM
+ *     nths_groups
  * ```
  */
 export const groupsCount = new PreparedQuery<IGroupsCountParams,IGroupsCountResult>(groupsCountIR);
@@ -419,12 +422,12 @@ export interface ICreateGroupQuery {
   result: ICreateGroupResult;
 }
 
-const createGroupIR: any = {"usedParamSet":{"inviteCode":true,"name":true,"key":true},"params":[{"name":"inviteCode","required":true,"transform":{"type":"scalar"},"locs":[{"a":61,"b":72}]},{"name":"name","required":true,"transform":{"type":"scalar"},"locs":[{"a":75,"b":80}]},{"name":"key","required":true,"transform":{"type":"scalar"},"locs":[{"a":83,"b":87}]}],"statement":"INSERT INTO nths_groups (invite_code, name, key)\n    VALUES (:inviteCode!, :name!, :key!)\nRETURNING\n    *"};
+const createGroupIR: any = {"usedParamSet":{"inviteCode":true,"name":true,"key":true},"params":[{"name":"inviteCode","required":true,"transform":{"type":"scalar"},"locs":[{"a":61,"b":72}]},{"name":"name","required":true,"transform":{"type":"scalar"},"locs":[{"a":75,"b":80}]},{"name":"key","required":true,"transform":{"type":"scalar"},"locs":[{"a":83,"b":87}]}],"statement":"INSERT INTO nths_groups (invite_code, name, KEY)\n    VALUES (:inviteCode!, :name!, :key!)\nRETURNING\n    *"};
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO nths_groups (invite_code, name, key)
+ * INSERT INTO nths_groups (invite_code, name, KEY)
  *     VALUES (:inviteCode!, :name!, :key!)
  * RETURNING
  *     *
