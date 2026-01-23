@@ -129,3 +129,14 @@ INSERT INTO nths_groups (id, invite_code, name, KEY)
 RETURNING
     *;
 
+
+/* @name deactivateGroupMember */
+UPDATE
+    nths_group_members
+SET
+    deactivated_at = NOW(),
+    updated_at = NOW()
+WHERE
+    user_id = :userId!
+    AND nths_group_id = :groupId!;
+

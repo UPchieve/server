@@ -102,7 +102,28 @@ export async function joinGroupAsMemberByGroupId(
   }, tc)
 }
 
-export async function updateGroupMemberRole(
+type UpdateGroupMemberRequest = {
+  role?: NTHSGroupRoleName
+  isActive?: boolean
+}
+
+export async function updateGroupMember(
+  userId: Ulid,
+  nthsGroupId: Ulid,
+  update: UpdateGroupMemberRequest
+) {
+  await runInTransaction(async (tc) => {
+    if (update.role) {
+      await updateGroupMemberRole(userId, nthsGroupId, update.role)
+    }
+    if (update.isActive === false) {
+      // For now, only DEactivating is possible, not reactivating.
+      await NTHSGroupsRepo.deactivateGroupMember(userId, nthsGroupId)
+    }
+  })
+}
+
+async function updateGroupMemberRole(
   userId: Ulid,
   nthsGroupId: Ulid,
   role: NTHSGroupRoleName

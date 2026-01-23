@@ -1,5 +1,5 @@
 import { getClient, getRoClient, TransactionClient } from '../../db'
-import { RepoCreateError, RepoReadError, RepoUpsertError } from '../Errors'
+import { RepoCreateError, RepoReadError, RepoUpsertError, RepoUpdateError } from '../Errors'
 import { makeRequired, makeSomeOptional, Ulid, Uuid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import type {
@@ -244,5 +244,23 @@ export async function createGroup(
     return makeRequired(results[0])
   } catch (err) {
     throw new RepoCreateError(err)
+  }
+}
+
+export async function deactivateGroupMember(
+  userId: Ulid,
+  nthsGroupId: Ulid,
+  tc: TransactionClient = getClient()
+) {
+  try {
+    await pgQueries.deactivateGroupMember.run(
+      {
+        userId,
+        groupId: nthsGroupId,
+      },
+      tc
+    )
+  } catch (err) {
+    throw new RepoUpdateError(err)
   }
 }

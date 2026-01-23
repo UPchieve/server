@@ -48,11 +48,10 @@ export function routeNTHSGroups(router: Router): void {
     .route('/nths-groups/:groupId/members/:memberId')
     .put(isGroupAdmin, async (req: Request, res: Response) => {
       try {
-        const user = extractUser(req)
-        await NTHSGroupsService.updateGroupMemberRole(
+        await NTHSGroupsService.updateGroupMember(
           req.params.memberId,
           req.params.groupId,
-          req.body.role
+          req.body
         )
         return res.sendStatus(204)
       } catch (err) {
