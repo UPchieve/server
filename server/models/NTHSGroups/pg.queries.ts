@@ -438,3 +438,36 @@ const createGroupIR: any = {"usedParamSet":{"inviteCode":true,"name":true,"key":
 export const createGroup = new PreparedQuery<ICreateGroupParams,ICreateGroupResult>(createGroupIR);
 
 
+/** 'DeactivateGroupMember' parameters type */
+export interface IDeactivateGroupMemberParams {
+  groupId: string;
+  userId: string;
+}
+
+/** 'DeactivateGroupMember' return type */
+export type IDeactivateGroupMemberResult = void;
+
+/** 'DeactivateGroupMember' query type */
+export interface IDeactivateGroupMemberQuery {
+  params: IDeactivateGroupMemberParams;
+  result: IDeactivateGroupMemberResult;
+}
+
+const deactivateGroupMemberIR: any = {"usedParamSet":{"userId":true,"groupId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":105,"b":112}]},{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":138,"b":146}]}],"statement":"UPDATE\n    nths_group_members\nSET\n    deactivated_at = NOW(),\n    updated_at = NOW()\nWHERE\n    user_id = :userId!\n    AND nths_group_id = :groupId!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE
+ *     nths_group_members
+ * SET
+ *     deactivated_at = NOW(),
+ *     updated_at = NOW()
+ * WHERE
+ *     user_id = :userId!
+ *     AND nths_group_id = :groupId!
+ * ```
+ */
+export const deactivateGroupMember = new PreparedQuery<IDeactivateGroupMemberParams,IDeactivateGroupMemberResult>(deactivateGroupMemberIR);
+
+
