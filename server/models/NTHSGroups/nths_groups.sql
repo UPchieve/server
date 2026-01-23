@@ -14,7 +14,8 @@ FROM
         AND member_roles.nths_group_id = ng.id
     INNER JOIN nths_group_roles roles ON roles.id = member_roles.role_id
 WHERE
-    ngm.user_id = :userId!;
+    ngm.user_id = :userId!
+    AND ngm.deactivated_at IS NULL;
 
 
 /* @name getInviteCodeForGroup */
@@ -113,7 +114,8 @@ FROM
     JOIN nths_group_roles roles ON roles.id = member_roles.role_id
     JOIN users ON users.id = ngm.user_id
 WHERE
-    ngm.nths_group_id = :groupId!;
+    ngm.nths_group_id = :groupId!
+    AND ngm.deactivated_at IS NULL;
 
 
 /* @name groupsCount */
