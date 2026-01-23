@@ -371,3 +371,68 @@ const getGroupMembersIR: any = {"usedParamSet":{"groupId":true},"params":[{"name
 export const getGroupMembers = new PreparedQuery<IGetGroupMembersParams,IGetGroupMembersResult>(getGroupMembersIR);
 
 
+/** 'GroupsCount' parameters type */
+export type IGroupsCountParams = void;
+
+/** 'GroupsCount' return type */
+export interface IGroupsCountResult {
+  count: string | null;
+}
+
+/** 'GroupsCount' query type */
+export interface IGroupsCountQuery {
+  params: IGroupsCountParams;
+  result: IGroupsCountResult;
+}
+
+const groupsCountIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    count(*)\nFROM\n    nths_groups"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     count(*)
+ * FROM
+ *     nths_groups
+ * ```
+ */
+export const groupsCount = new PreparedQuery<IGroupsCountParams,IGroupsCountResult>(groupsCountIR);
+
+
+/** 'CreateGroup' parameters type */
+export interface ICreateGroupParams {
+  inviteCode: string;
+  key: string;
+  name: string;
+}
+
+/** 'CreateGroup' return type */
+export interface ICreateGroupResult {
+  createdAt: Date;
+  id: string;
+  inviteCode: string;
+  key: string;
+  name: string;
+  updatedAt: Date;
+}
+
+/** 'CreateGroup' query type */
+export interface ICreateGroupQuery {
+  params: ICreateGroupParams;
+  result: ICreateGroupResult;
+}
+
+const createGroupIR: any = {"usedParamSet":{"inviteCode":true,"name":true,"key":true},"params":[{"name":"inviteCode","required":true,"transform":{"type":"scalar"},"locs":[{"a":83,"b":94}]},{"name":"name","required":true,"transform":{"type":"scalar"},"locs":[{"a":97,"b":102}]},{"name":"key","required":true,"transform":{"type":"scalar"},"locs":[{"a":105,"b":109}]}],"statement":"INSERT INTO nths_groups (id, invite_code, name, KEY)\n    VALUES (generate_ulid (), :inviteCode!, :name!, :key!)\nRETURNING\n    *"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO nths_groups (id, invite_code, name, KEY)
+ *     VALUES (generate_ulid (), :inviteCode!, :name!, :key!)
+ * RETURNING
+ *     *
+ * ```
+ */
+export const createGroup = new PreparedQuery<ICreateGroupParams,ICreateGroupResult>(createGroupIR);
+
+

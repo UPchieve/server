@@ -15,6 +15,7 @@ export type NTHSGroup = {
   name: string
   key: string
   createdAt: Date
+  inviteCode: string
 }
 
 export type NTHSGroupMember = {
