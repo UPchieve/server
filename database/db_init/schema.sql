@@ -4511,6 +4511,22 @@ ALTER TABLE ONLY upchieve.cities
 
 
 --
+-- Name: nths_groups unique_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_groups
+    ADD CONSTRAINT unique_key UNIQUE (key);
+
+
+--
+-- Name: nths_groups unique_name; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_groups
+    ADD CONSTRAINT unique_name UNIQUE (name);
+
+
+--
 -- Name: users_ip_addresses unique_user_id_ip_address_id; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -6870,4 +6886,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20251205231954'),
     ('20251215171217'),
     ('20260114171204'),
-    ('20260114193023');
+    ('20260114193023'),
+    ('20260122195918');

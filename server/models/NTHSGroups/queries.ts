@@ -12,13 +12,16 @@ import type {
 } from './types'
 import { camelCaseKeys } from '../../tests/db-utils'
 
-export async function getGroupsByUser(userId: Ulid): Promise<UserGroup[]> {
+export async function getGroupsByUser(
+  userId: Ulid,
+  tc: TransactionClient = getRoClient()
+): Promise<UserGroup[]> {
   try {
     const results = await pgQueries.getGroupsByUser.run(
       {
         userId,
       },
-      getRoClient()
+      tc
     )
     return results.map((row) => {
       const camelCased = makeRequired(row)
@@ -45,9 +48,9 @@ export async function getInviteCodeForGroup(groupId: Ulid) {
 }
 
 export async function getGroupByInviteCode(
-  inviteCode: Uuid,
+  inviteCode: string,
   tc: TransactionClient = getRoClient()
-): Promise<NTHSGroup> {
+): Promise<Omit<NTHSGroup, 'inviteCode'>> {
   try {
     const results = await pgQueries.getGroupByInviteCode.run(
       {
@@ -84,7 +87,7 @@ export async function joinGroupById(
       tc
     )
 
-    return results.map((row) => makeSomeOptional(row, ['deactivatedAt']))
+    return makeSomeOptional(results[0], ['deactivatedAt'])
   } catch (err) {
     throw new RepoCreateError(err)
   }
@@ -183,6 +186,15 @@ export async function getNthsGroupMember(
   }
 }
 
+export async function groupsCount(tc: TransactionClient = getClient()) {
+  try {
+    const results = await pgQueries.groupsCount.run(undefined, tc)
+    return results[0].count ?? 0
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
 export async function getGroupMembers(
   groupId: Ulid,
   tc: TransactionClient = getRoClient()
@@ -203,5 +215,34 @@ export async function getGroupMembers(
     })
   } catch (err) {
     throw new RepoReadError(err)
+  }
+}
+
+export async function createGroup(
+  {
+    inviteCode,
+    name,
+    key,
+  }: {
+    inviteCode: string
+    name: string
+    key: string
+  },
+
+  tc: TransactionClient = getClient()
+): Promise<NTHSGroup> {
+  try {
+    const results = await pgQueries.createGroup.run(
+      {
+        inviteCode,
+        name,
+        key,
+      },
+      tc
+    )
+
+    return makeRequired(results[0])
+  } catch (err) {
+    throw new RepoCreateError(err)
   }
 }
