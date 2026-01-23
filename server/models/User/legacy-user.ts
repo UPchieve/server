@@ -21,6 +21,7 @@ import {
 import { hasCompletedVolunteerTraining } from '../../services/VolunteerService'
 import { getUserSessionStats, UserSessionStats } from '../Session'
 import { getUsersLatestSubjectsByUserId } from './'
+import { getFavoriteVolunteersByUserId } from './'
 import * as UserRolesService from '../../services/UserRolesService'
 import * as SurveyService from '../../services/SurveyService'
 import { PostsessionSurveyRatingsMetric } from '../../services/SurveyService'
@@ -101,6 +102,7 @@ export type LegacyUserModel = {
   usesClassLink?: boolean
   studentAssignments?: StudentAssignment[]
   ratings?: PostsessionSurveyRatingsMetric
+  favoriteVolunteers?: Ulid[]
   // teacher
   lastSuccessfulCleverSync?: Date
 
@@ -173,6 +175,8 @@ export async function getLegacyUserObject(
         delete baseUser.issuers
         studentUser.studentAssignments =
           await AssignmentsService.getAssignmentsByStudentId(baseUser.id)
+        studentUser.favoriteVolunteers =
+          await getFavoriteVolunteersByUserId(userId)
       }
       if (roleContext.isActiveRole('volunteer')) {
         if (!baseUser.subjects) baseUser.subjects = []

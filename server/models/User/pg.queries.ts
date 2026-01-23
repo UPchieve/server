@@ -2059,3 +2059,35 @@ const flagUserForDeletionIR: any = {"usedParamSet":{"userId":true},"params":[{"n
 export const flagUserForDeletion = new PreparedQuery<IFlagUserForDeletionParams,IFlagUserForDeletionResult>(flagUserForDeletionIR);
 
 
+/** 'GetFavoriteVolunteersByUserId' parameters type */
+export interface IGetFavoriteVolunteersByUserIdParams {
+  userId: string;
+}
+
+/** 'GetFavoriteVolunteersByUserId' return type */
+export interface IGetFavoriteVolunteersByUserIdResult {
+  volunteerId: string;
+}
+
+/** 'GetFavoriteVolunteersByUserId' query type */
+export interface IGetFavoriteVolunteersByUserIdQuery {
+  params: IGetFavoriteVolunteersByUserIdParams;
+  result: IGetFavoriteVolunteersByUserIdResult;
+}
+
+const getFavoriteVolunteersByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":84,"b":91}]}],"statement":"SELECT\n    volunteer_id\nFROM\n    student_favorite_volunteers\nWHERE\n    student_id = :userId!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     volunteer_id
+ * FROM
+ *     student_favorite_volunteers
+ * WHERE
+ *     student_id = :userId!
+ * ```
+ */
+export const getFavoriteVolunteersByUserId = new PreparedQuery<IGetFavoriteVolunteersByUserIdParams,IGetFavoriteVolunteersByUserIdResult>(getFavoriteVolunteersByUserIdIR);
+
+
