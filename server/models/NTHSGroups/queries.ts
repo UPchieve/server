@@ -1,13 +1,16 @@
 import { getClient, getRoClient, TransactionClient } from '../../db'
-import { RepoCreateError, RepoReadError } from '../Errors'
+import { RepoCreateError, RepoReadError, RepoUpsertError } from '../Errors'
 import { makeRequired, makeSomeOptional, Ulid, Uuid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import type {
   NTHSGroup,
   NTHSGroupMember,
   NTHSGroupMemberRole,
+  NTHSGroupMemberWithRole,
+  NTHSGroupRoleName,
   UserGroup,
 } from './types'
+import { camelCaseKeys } from '../../tests/db-utils'
 
 export async function getGroupsByUser(userId: Ulid): Promise<UserGroup[]> {
   try {
@@ -17,7 +20,13 @@ export async function getGroupsByUser(userId: Ulid): Promise<UserGroup[]> {
       },
       getRoClient()
     )
-    return results.map(makeRequired)
+    return results.map((row) => {
+      const camelCased = makeRequired(row)
+      return {
+        ...camelCased,
+        roleName: camelCased.roleName as NTHSGroupRoleName,
+      }
+    })
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -83,11 +92,15 @@ export async function joinGroupById(
 
 export async function getAllNthsMembers(
   tc: TransactionClient = getRoClient()
-): Promise<NTHSGroupMember[]> {
+): Promise<Omit<NTHSGroupMember, 'firstName' | 'email'>[]> {
   try {
     const results = await pgQueries.getAllNthsUsers.run(undefined, tc)
     return results.map(
-      (row) => makeSomeOptional(row, ['deactivatedAt']) as NTHSGroupMember
+      (row) =>
+        makeSomeOptional(row, ['deactivatedAt']) as Omit<
+          NTHSGroupMember,
+          'firstName' | 'email'
+        >
     )
   } catch (err) {
     throw new RepoReadError(err)
@@ -98,10 +111,10 @@ export async function insertNthsMemberGroupRole(
   args: {
     userId: Ulid
     nthsGroupId: Ulid
-    roleName: string
+    roleName: NTHSGroupRoleName
   },
   tc: TransactionClient = getClient()
-): Promise<NTHSGroupMemberRole> {
+): Promise<Omit<NTHSGroupMemberRole, 'firstName' | 'email'>> {
   try {
     const result = await pgQueries.insertNthsGroupMemberRole.run(
       {
@@ -117,5 +130,78 @@ export async function insertNthsMemberGroupRole(
     return makeRequired(result[0]) as NTHSGroupMemberRole
   } catch (err) {
     throw new RepoCreateError(err)
+  }
+}
+
+export async function upsertNthsGroupMemberRole(
+  args: {
+    userId: Ulid
+    nthsGroupId: Ulid
+    roleName: NTHSGroupRoleName
+  },
+  tc: TransactionClient = getClient()
+): Promise<NTHSGroupMemberRole> {
+  try {
+    const results = await pgQueries.upsertNthsGroupMemberRole.run(
+      {
+        ...args,
+      },
+      tc
+    )
+    if (!results.length) {
+      throw new Error(
+        `Failed to insert or update user ${args.userId}'s role in group ${args.nthsGroupId} to ${args.roleName}`
+      )
+    }
+    return makeRequired(results[0])
+  } catch (err) {
+    throw new RepoUpsertError(err)
+  }
+}
+
+export async function getNthsGroupMember(
+  userId: Ulid,
+  nthsGroupId: Ulid,
+  tc: TransactionClient = getRoClient()
+): Promise<Omit<NTHSGroupMemberWithRole, 'firstName' | 'email'> | undefined> {
+  try {
+    const results = await pgQueries.getGroupMember.run(
+      {
+        userId,
+        nthsGroupId,
+      },
+      tc
+    )
+    if (results.length) {
+      return {
+        ...makeSomeOptional(results[0], ['deactivatedAt', 'title']),
+        roleName: camelCaseKeys(results[0]).roleName as NTHSGroupRoleName,
+      }
+    }
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getGroupMembers(
+  groupId: Ulid,
+  tc: TransactionClient = getRoClient()
+): Promise<NTHSGroupMemberWithRole[]> {
+  try {
+    const results = await pgQueries.getGroupMembers.run(
+      {
+        groupId,
+      },
+      tc
+    )
+    return results.map((row) => {
+      const camelCased = makeSomeOptional(row, ['title', 'deactivatedAt'])
+      return {
+        ...camelCased,
+        roleName: camelCased.roleName as NTHSGroupRoleName,
+      }
+    })
+  } catch (err) {
+    throw new RepoReadError(err)
   }
 }

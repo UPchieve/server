@@ -14,6 +14,7 @@ export interface IGetGroupsByUserResult {
   inviteCode: string;
   joinedAt: Date;
   memberTitle: string | null;
+  roleName: string | null;
 }
 
 /** 'GetGroupsByUser' query type */
@@ -22,7 +23,7 @@ export interface IGetGroupsByUserQuery {
   result: IGetGroupsByUserResult;
 }
 
-const getGroupsByUserIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":266,"b":273}]}],"statement":"SELECT\n    ngm.title AS member_title,\n    ngm.joined_at,\n    ng.id AS group_id,\n    ng.name AS group_name,\n    ng.key AS group_key,\n    ng.invite_code\nFROM\n    nths_group_members ngm\n    INNER JOIN nths_groups ng ON ng.id = ngm.nths_group_id\nWHERE\n    ngm.user_id = :userId!"};
+const getGroupsByUserIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":349,"b":356},{"a":502,"b":509}]}],"statement":"SELECT\n    ngm.title AS member_title,\n    ngm.joined_at,\n    ng.id AS group_id,\n    ng.name AS group_name,\n    ng.key AS group_key,\n    ng.invite_code,\n    roles.name AS role_name\nFROM\n    nths_group_members ngm\n    INNER JOIN nths_groups ng ON ng.id = ngm.nths_group_id\n    INNER JOIN nths_group_member_roles member_roles ON member_roles.user_id = :userId!\n        AND member_roles.nths_group_id = ng.id\n    INNER JOIN nths_group_roles roles ON roles.id = member_roles.role_id\nWHERE\n    ngm.user_id = :userId!"};
 
 /**
  * Query generated from SQL:
@@ -33,10 +34,14 @@ const getGroupsByUserIR: any = {"usedParamSet":{"userId":true},"params":[{"name"
  *     ng.id AS group_id,
  *     ng.name AS group_name,
  *     ng.key AS group_key,
- *     ng.invite_code
+ *     ng.invite_code,
+ *     roles.name AS role_name
  * FROM
  *     nths_group_members ngm
  *     INNER JOIN nths_groups ng ON ng.id = ngm.nths_group_id
+ *     INNER JOIN nths_group_member_roles member_roles ON member_roles.user_id = :userId!
+ *         AND member_roles.nths_group_id = ng.id
+ *     INNER JOIN nths_group_roles roles ON roles.id = member_roles.role_id
  * WHERE
  *     ngm.user_id = :userId!
  * ```
@@ -224,5 +229,145 @@ const insertNthsGroupMemberRoleIR: any = {"usedParamSet":{"userId":true,"nthsGro
  * ```
  */
 export const insertNthsGroupMemberRole = new PreparedQuery<IInsertNthsGroupMemberRoleParams,IInsertNthsGroupMemberRoleResult>(insertNthsGroupMemberRoleIR);
+
+
+/** 'UpsertNthsGroupMemberRole' parameters type */
+export interface IUpsertNthsGroupMemberRoleParams {
+  nthsGroupId: string;
+  roleName: string;
+  userId: string;
+}
+
+/** 'UpsertNthsGroupMemberRole' return type */
+export interface IUpsertNthsGroupMemberRoleResult {
+  nthsGroupId: string;
+  roleId: number | null;
+  roleName: string | null;
+  updatedAt: Date;
+  userId: string;
+}
+
+/** 'UpsertNthsGroupMemberRole' query type */
+export interface IUpsertNthsGroupMemberRoleQuery {
+  params: IUpsertNthsGroupMemberRoleParams;
+  result: IUpsertNthsGroupMemberRoleResult;
+}
+
+const upsertNthsGroupMemberRoleIR: any = {"usedParamSet":{"userId":true,"nthsGroupId":true,"roleName":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":81,"b":88}]},{"name":"nthsGroupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":95,"b":107}]},{"name":"roleName","required":true,"transform":{"type":"scalar"},"locs":[{"a":178,"b":187},{"a":344,"b":352}]}],"statement":"INSERT INTO nths_group_member_roles (user_id, nths_group_id, role_id)\nSELECT\n    :userId!,\n    :nthsGroupId!,\n    roles.id\nFROM\n    nths_group_roles roles\nWHERE\n    roles.name = :roleName!\nON CONFLICT (user_id,\n    nths_group_id)\n    DO UPDATE SET\n        role_id = EXCLUDED.role_id,\n        updated_at = NOW()\n    RETURNING\n        *,\n        :roleName AS role_name"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO nths_group_member_roles (user_id, nths_group_id, role_id)
+ * SELECT
+ *     :userId!,
+ *     :nthsGroupId!,
+ *     roles.id
+ * FROM
+ *     nths_group_roles roles
+ * WHERE
+ *     roles.name = :roleName!
+ * ON CONFLICT (user_id,
+ *     nths_group_id)
+ *     DO UPDATE SET
+ *         role_id = EXCLUDED.role_id,
+ *         updated_at = NOW()
+ *     RETURNING
+ *         *,
+ *         :roleName AS role_name
+ * ```
+ */
+export const upsertNthsGroupMemberRole = new PreparedQuery<IUpsertNthsGroupMemberRoleParams,IUpsertNthsGroupMemberRoleResult>(upsertNthsGroupMemberRoleIR);
+
+
+/** 'GetGroupMember' parameters type */
+export interface IGetGroupMemberParams {
+  nthsGroupId: string;
+  userId: string;
+}
+
+/** 'GetGroupMember' return type */
+export interface IGetGroupMemberResult {
+  deactivatedAt: Date | null;
+  joinedAt: Date;
+  nthsGroupId: string;
+  roleName: string | null;
+  title: string | null;
+  updatedAt: Date;
+  userId: string;
+}
+
+/** 'GetGroupMember' query type */
+export interface IGetGroupMemberQuery {
+  params: IGetGroupMemberParams;
+  result: IGetGroupMemberResult;
+}
+
+const getGroupMemberIR: any = {"usedParamSet":{"userId":true,"nthsGroupId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":302,"b":309}]},{"name":"nthsGroupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":337,"b":349}]}],"statement":"SELECT\n    m.*,\n    roles.name AS role_name\nFROM\n    nths_group_members m\n    JOIN nths_group_member_roles member_roles ON member_roles.user_id = m.user_id\n        AND member_roles.nths_group_id = m.nths_group_id\n    JOIN nths_group_roles roles ON roles.id = member_roles.role_id\nWHERE\n    m.user_id = :userId!\n    AND m.nths_group_id = :nthsGroupId!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     m.*,
+ *     roles.name AS role_name
+ * FROM
+ *     nths_group_members m
+ *     JOIN nths_group_member_roles member_roles ON member_roles.user_id = m.user_id
+ *         AND member_roles.nths_group_id = m.nths_group_id
+ *     JOIN nths_group_roles roles ON roles.id = member_roles.role_id
+ * WHERE
+ *     m.user_id = :userId!
+ *     AND m.nths_group_id = :nthsGroupId!
+ * ```
+ */
+export const getGroupMember = new PreparedQuery<IGetGroupMemberParams,IGetGroupMemberResult>(getGroupMemberIR);
+
+
+/** 'GetGroupMembers' parameters type */
+export interface IGetGroupMembersParams {
+  groupId: string;
+}
+
+/** 'GetGroupMembers' return type */
+export interface IGetGroupMembersResult {
+  deactivatedAt: Date | null;
+  email: string;
+  firstName: string;
+  joinedAt: Date;
+  nthsGroupId: string;
+  roleName: string | null;
+  title: string | null;
+  updatedAt: Date;
+  userId: string;
+}
+
+/** 'GetGroupMembers' query type */
+export interface IGetGroupMembersQuery {
+  params: IGetGroupMembersParams;
+  result: IGetGroupMembersResult;
+}
+
+const getGroupMembersIR: any = {"usedParamSet":{"groupId":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":195,"b":203},{"a":390,"b":398}]}],"statement":"SELECT\n    ngm.*,\n    roles.name AS role_name,\n    users.email,\n    users.first_name\nFROM\n    nths_group_members ngm\n    JOIN nths_group_member_roles member_roles ON member_roles.nths_group_id = :groupId!\n        AND member_roles.user_id = ngm.user_id\n    JOIN nths_group_roles roles ON roles.id = member_roles.role_id\n    JOIN users ON users.id = ngm.user_id\nWHERE\n    ngm.nths_group_id = :groupId!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     ngm.*,
+ *     roles.name AS role_name,
+ *     users.email,
+ *     users.first_name
+ * FROM
+ *     nths_group_members ngm
+ *     JOIN nths_group_member_roles member_roles ON member_roles.nths_group_id = :groupId!
+ *         AND member_roles.user_id = ngm.user_id
+ *     JOIN nths_group_roles roles ON roles.id = member_roles.role_id
+ *     JOIN users ON users.id = ngm.user_id
+ * WHERE
+ *     ngm.nths_group_id = :groupId!
+ * ```
+ */
+export const getGroupMembers = new PreparedQuery<IGetGroupMembersParams,IGetGroupMembersResult>(getGroupMembersIR);
 
 

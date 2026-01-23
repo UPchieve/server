@@ -1,9 +1,17 @@
 import { Ulid, Uuid } from '../models/pgUtils'
 import * as NTHSGroupsRepo from '../models/NTHSGroups'
 import config from '../config'
-import generateAlphanumericOfLength from '../utils/generate-alphanumeric'
-import { Transaction } from 'yjs'
-import { getClient, getRoClient, TransactionClient } from '../db'
+import {
+  getClient,
+  getRoClient,
+  runInTransaction,
+  TransactionClient,
+} from '../db'
+import {
+  NTHSGroupMemberRole,
+  NTHSGroupMemberWithRole,
+  NTHSGroupRoleName,
+} from '../models/NTHSGroups'
 
 export async function getGroups(userId: Ulid) {
   return await NTHSGroupsRepo.getGroupsByUser(userId)
@@ -24,14 +32,51 @@ export async function getNTHSGroupByInviteCode(
 export async function joinGroupAsMemberByGroupId(
   userId: Ulid,
   groupId: Ulid,
+  roleName: NTHSGroupRoleName = 'member',
   tc: TransactionClient = getClient()
 ) {
-  return await NTHSGroupsRepo.joinGroupById(
-    {
-      userId,
-      groupId,
-      title: 'member',
-    },
-    tc
-  )
+  return await runInTransaction(async (client: TransactionClient) => {
+    await NTHSGroupsRepo.joinGroupById(
+      {
+        userId,
+        groupId,
+        title: 'member',
+      },
+      client
+    )
+    await NTHSGroupsRepo.insertNthsMemberGroupRole(
+      {
+        userId,
+        nthsGroupId: groupId,
+        roleName,
+      },
+      client
+    )
+  }, tc)
+}
+
+export async function updateGroupMemberRole(
+  userId: Ulid,
+  nthsGroupId: Ulid,
+  role: NTHSGroupRoleName
+): Promise<NTHSGroupMemberRole> {
+  return await NTHSGroupsRepo.upsertNthsGroupMemberRole({
+    userId,
+    nthsGroupId,
+    roleName: role,
+  })
+}
+
+export async function getGroupMember(
+  userId: Ulid,
+  nthsGroupId: Ulid,
+  tc: TransactionClient = getRoClient()
+): Promise<Omit<NTHSGroupMemberWithRole, 'firstName' | 'email'> | undefined> {
+  return await NTHSGroupsRepo.getNthsGroupMember(userId, nthsGroupId, tc)
+}
+
+export async function getGroupMembers(
+  nthsGroupId: Ulid
+): Promise<NTHSGroupMemberWithRole[]> {
+  return await NTHSGroupsRepo.getGroupMembers(nthsGroupId)
 }
