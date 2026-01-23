@@ -118,7 +118,7 @@ export async function insertNthsMemberGroupRole(
   args: {
     userId: Ulid
     nthsGroupId: Ulid
-    roleName: string
+    roleName: NTHSGroupRoleName
   },
   tc: TransactionClient = getClient()
 ): Promise<Omit<NTHSGroupMemberRole, 'firstName' | 'email'>> {
