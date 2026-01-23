@@ -7,9 +7,7 @@ export type UserGroup = {
   groupName: string
   groupKey: string
   inviteCode: string
-  membershipInfo: {
-    roleName: NTHSGroupRoleName
-  }
+  roleName: NTHSGroupRoleName
 }
 
 export type NTHSGroup = {
