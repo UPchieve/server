@@ -4511,6 +4511,14 @@ ALTER TABLE ONLY upchieve.cities
 
 
 --
+-- Name: nths_groups unique_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_groups
+    ADD CONSTRAINT unique_key UNIQUE (key);
+
+
+--
 -- Name: nths_groups unique_name; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 

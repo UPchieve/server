@@ -50,7 +50,7 @@ export async function getInviteCodeForGroup(groupId: Ulid) {
 export async function getGroupByInviteCode(
   inviteCode: string,
   tc: TransactionClient = getRoClient()
-): Promise<NTHSGroup> {
+): Promise<Omit<NTHSGroup, 'inviteCode'>> {
   try {
     const results = await pgQueries.getGroupByInviteCode.run(
       {
