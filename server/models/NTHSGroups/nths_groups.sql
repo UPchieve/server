@@ -115,6 +115,7 @@ FROM
 WHERE
     ngm.nths_group_id = :groupId!;
 
+
 /* @name groupsCount */
 SELECT
     count(*)
@@ -123,8 +124,8 @@ FROM
 
 
 /* @name createGroup */
-INSERT INTO nths_groups (invite_code, name, KEY)
-    VALUES (:inviteCode!, :name!, :key!)
+INSERT INTO nths_groups (id, invite_code, name, KEY)
+    VALUES (generate_ulid (), :inviteCode!, :name!, :key!)
 RETURNING
     *;
 

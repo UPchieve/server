@@ -12,13 +12,16 @@ import type {
 } from './types'
 import { camelCaseKeys } from '../../tests/db-utils'
 
-export async function getGroupsByUser(userId: Ulid): Promise<UserGroup[]> {
+export async function getGroupsByUser(
+  userId: Ulid,
+  tc: TransactionClient = getRoClient()
+): Promise<UserGroup[]> {
   try {
     const results = await pgQueries.getGroupsByUser.run(
       {
         userId,
       },
-      getRoClient()
+      tc
     )
     return results.map((row) => {
       const camelCased = makeRequired(row)
@@ -84,7 +87,7 @@ export async function joinGroupById(
       tc
     )
 
-    return results.map((row) => makeSomeOptional(row, ['deactivatedAt']))
+    return makeSomeOptional(results[0], ['deactivatedAt'])
   } catch (err) {
     throw new RepoCreateError(err)
   }
@@ -186,7 +189,7 @@ export async function getNthsGroupMember(
 export async function groupsCount(tc: TransactionClient = getClient()) {
   try {
     const results = await pgQueries.groupsCount.run(undefined, tc)
-    return makeRequired(results[0].count)
+    return results[0].count ?? 0
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -212,6 +215,9 @@ export async function getGroupMembers(
     })
   } catch (err) {
     throw new RepoReadError(err)
+  }
+}
+
 export async function createGroup(
   {
     inviteCode,
@@ -224,7 +230,7 @@ export async function createGroup(
   },
 
   tc: TransactionClient = getClient()
-) {
+): Promise<NTHSGroup> {
   try {
     const results = await pgQueries.createGroup.run(
       {
@@ -235,7 +241,7 @@ export async function createGroup(
       tc
     )
 
-    return results.map((row) => makeSomeOptional(row, ['deactivatedAt']))
+    return makeRequired(results[0])
   } catch (err) {
     throw new RepoCreateError(err)
   }

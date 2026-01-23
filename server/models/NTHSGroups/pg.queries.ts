@@ -422,13 +422,13 @@ export interface ICreateGroupQuery {
   result: ICreateGroupResult;
 }
 
-const createGroupIR: any = {"usedParamSet":{"inviteCode":true,"name":true,"key":true},"params":[{"name":"inviteCode","required":true,"transform":{"type":"scalar"},"locs":[{"a":61,"b":72}]},{"name":"name","required":true,"transform":{"type":"scalar"},"locs":[{"a":75,"b":80}]},{"name":"key","required":true,"transform":{"type":"scalar"},"locs":[{"a":83,"b":87}]}],"statement":"INSERT INTO nths_groups (invite_code, name, KEY)\n    VALUES (:inviteCode!, :name!, :key!)\nRETURNING\n    *"};
+const createGroupIR: any = {"usedParamSet":{"inviteCode":true,"name":true,"key":true},"params":[{"name":"inviteCode","required":true,"transform":{"type":"scalar"},"locs":[{"a":83,"b":94}]},{"name":"name","required":true,"transform":{"type":"scalar"},"locs":[{"a":97,"b":102}]},{"name":"key","required":true,"transform":{"type":"scalar"},"locs":[{"a":105,"b":109}]}],"statement":"INSERT INTO nths_groups (id, invite_code, name, KEY)\n    VALUES (generate_ulid (), :inviteCode!, :name!, :key!)\nRETURNING\n    *"};
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO nths_groups (invite_code, name, KEY)
- *     VALUES (:inviteCode!, :name!, :key!)
+ * INSERT INTO nths_groups (id, invite_code, name, KEY)
+ *     VALUES (generate_ulid (), :inviteCode!, :name!, :key!)
  * RETURNING
  *     *
  * ```
