@@ -133,6 +133,17 @@ const moderationLabelToFailureReason = (
   }
 }
 
+/**
+ * Converts a threshold value to percentage (0-100) if it's in decimal format (0-1).
+ * This is needed because AWS Rekognition and OpenAI return confidence as percentages (0-100),
+ * while our database stores thresholds as decimals (0-1).
+ * @param threshold - The threshold value to convert
+ * @returns The threshold as a percentage (0-100)
+ */
+export function convertThresholdToPercentage(threshold: number): number {
+  return threshold <= 1 ? threshold * 100 : threshold
+}
+
 export type ModerationSource =
   | 'image_upload'
   | 'screenshare'
@@ -291,7 +302,7 @@ async function detectPersonInImage(
     // Rekognition returns `Confidence` as a percentage from 0 to 100
     // Our DB thresholds are stored as decimals from 0 to 1. We convert them to percentages below for comparison
     const thresholdPercent = personConfidenceThreshold
-      ? personConfidenceThreshold * 100
+      ? convertThresholdToPercentage(personConfidenceThreshold)
       : config.imageModerationMinConfidence
 
     const labelFailures = labels
@@ -369,7 +380,7 @@ async function detectImageModerationFailures(
         // Rekognition returns `Confidence` as a percentage from 0 to 100
         // Our DB thresholds are stored as decimals from 0 to 1. We convert them to percentages below for comparison
         const thresholdPercent = threshold
-          ? threshold * 100
+          ? convertThresholdToPercentage(threshold)
           : config.imageModerationMinConfidence
         return confidence >= thresholdPercent
       })
@@ -1924,8 +1935,7 @@ export const moderateTranscript = async (
 
       // OpenAI returns confidence as a percentage from 0 to 100
       // Our DB thresholds are stored as decimals from 0 to 1. We convert them to percentages below for comparison
-      const thresholdPercent =
-        Number(threshold) <= 1 ? Number(threshold) * 100 : Number(threshold)
+      const thresholdPercent = convertThresholdToPercentage(Number(threshold))
 
       // Check for undefined confidence and handle gracefully
       if (result.confidence == null) {
