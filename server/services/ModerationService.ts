@@ -65,6 +65,7 @@ import { PrimaryUserRole } from './UserRolesService'
 import { LangfuseGenerationClient } from 'langfuse'
 import { resize } from '../utils/image-utils'
 import * as ModerationConfidenceThresholdsRepo from '../models/ModerationConfidenceThresholds/queries'
+import { convertThresholdToPercentage } from '../utils/moderation-utils'
 
 // EMAIL_REGEX checks for standard and complex email formats
 // Ex: yay-hoo@yahoo.hello.com
@@ -131,17 +132,6 @@ const moderationLabelToFailureReason = (
     reason: label.Name ?? 'Unknown',
     details: { confidence: label.Confidence },
   }
-}
-
-/**
- * Converts a threshold value to percentage (0-100) if it's in decimal format (0-1).
- * This is needed because AWS Rekognition and OpenAI return confidence as percentages (0-100),
- * while our database stores thresholds as decimals (0-1).
- * @param threshold - The threshold value to convert
- * @returns The threshold as a percentage (0-100)
- */
-export function convertThresholdToPercentage(threshold: number): number {
-  return threshold <= 1 ? threshold * 100 : threshold
 }
 
 export type ModerationSource =
