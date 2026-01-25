@@ -791,6 +791,5 @@ describe('ModerationService', () => {
       expect(getSessionFlagByModerationReason(reason)).toEqual(expected)
     })
   })
-
-
 })
+
