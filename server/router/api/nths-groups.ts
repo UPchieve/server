@@ -2,6 +2,7 @@ import { NextFunction, Request, Response, Router } from 'express'
 import { extractUser } from '../extract-user'
 import { resError } from '../res-error'
 import * as NTHSGroupsService from '../../services/NTHSGroupsService'
+import { NotAuthenticatedError } from '../../models/Errors'
 
 export async function isGroupAdmin(
   req: Request,
@@ -53,6 +54,24 @@ export function routeNTHSGroups(router: Router): void {
           req.params.groupId,
           req.body
         )
+        return res.sendStatus(204)
+      } catch (err) {
+        resError(res, err)
+      }
+    })
+
+  router
+    .route('/nths-groups/:groupId/leave')
+    // This route is similar to the above, but is for a member removing **themselves** from a group
+    // whereas the above is a group admin action to update other members' settings.
+    .put(async (req: Request, res: Response) => {
+      console.log('Request object', req.user)
+      try {
+        const userId = req.user?.id
+        if (!userId) throw new NotAuthenticatedError()
+        await NTHSGroupsService.updateGroupMember(userId, req.params.groupId, {
+          isActive: false,
+        })
         return res.sendStatus(204)
       } catch (err) {
         resError(res, err)
