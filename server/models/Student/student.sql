@@ -322,6 +322,7 @@ ON CONFLICT (user_id)
     END,
     school_id = COALESCE(:schoolId, student_profiles.school_id),
     college = COALESCE(:college, student_profiles.college),
+    grade_level_id = COALESCE(EXCLUDED.grade_level_id, student_profiles.grade_level_id),
     updated_at = NOW()
 RETURNING
     user_id,

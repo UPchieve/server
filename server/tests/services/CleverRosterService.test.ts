@@ -461,7 +461,6 @@ describe('rosterTeacherClasses', () => {
       mockedUserCreationService.registerStudent.mockResolvedValue({
         id: 'uc-zzz',
         isAdmin: false,
-        isVolunteer: false,
         userType: 'student',
         firstName: 'any',
         proxyEmail: 'any',

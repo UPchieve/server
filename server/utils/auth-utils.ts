@@ -5,7 +5,7 @@ import { CustomError } from 'ts-custom-error'
 import { Ulid } from '../models/pgUtils'
 import { Request, Response, NextFunction } from 'express'
 import config from '../config'
-import { getUserContactInfo, getUserForAuth } from '../services/UserService'
+import { getUserForAuth } from '../services/UserService'
 import { getUserIdByPhone } from '../models/User/queries'
 import { GRADES } from '../constants'
 

@@ -1587,10 +1587,12 @@ export async function createContact(userIds: Ulid | Ulid[]): Promise<any> {
       ),
       [SG_CUSTOM_FIELDS.banType]: user.banType ? String(user.banType) : '',
       [SG_CUSTOM_FIELDS.isTestUser]: String(user.testUser),
-      [SG_CUSTOM_FIELDS.isVolunteer]: String(user.isVolunteer),
+      [SG_CUSTOM_FIELDS.isVolunteer]: String(
+        userRoleContext.hasRole('volunteer')
+      ),
       [SG_CUSTOM_FIELDS.isTeacher]: String(userRoleContext.hasRole('teacher')),
       [SG_CUSTOM_FIELDS.isStudent]: String(userRoleContext.hasRole('student')),
-      [SG_CUSTOM_FIELDS.isAdmin]: String(user.isAdmin),
+      [SG_CUSTOM_FIELDS.isAdmin]: String(userRoleContext.isAdmin()),
       [SG_CUSTOM_FIELDS.joined]: user.createdAt,
     }
 

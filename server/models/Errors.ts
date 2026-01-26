@@ -128,3 +128,9 @@ export class HttpError extends CustomError {
     this.httpStatus = httpStatus
   }
 }
+
+export class AlreadyInNTHSGroupError extends CustomError {
+  constructor() {
+    super('User already in a group')
+  }
+}

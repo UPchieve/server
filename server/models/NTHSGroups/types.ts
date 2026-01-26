@@ -7,6 +7,7 @@ export type UserGroup = {
   groupName: string
   groupKey: string
   inviteCode: string
+  roleName: NTHSGroupRoleName
 }
 
 export type NTHSGroup = {
@@ -14,4 +15,30 @@ export type NTHSGroup = {
   name: string
   key: string
   createdAt: Date
+  inviteCode: string
 }
+
+export type NTHSGroupMember = {
+  nthsGroupId: Ulid
+  userId: Ulid
+  title?: string
+  joinedAt: Date
+  updatedAt: Date
+  deactivatedAt?: Date
+  firstName: string
+  email: string
+}
+
+export type NTHSGroupMemberWithRole = NTHSGroupMember & {
+  roleName: NTHSGroupRoleName
+}
+
+export type NTHSGroupMemberRole = {
+  userId: Ulid
+  nthsGroupId: Ulid
+  roleId: number
+  roleName: string
+  updatedAt: Date
+}
+
+export type NTHSGroupRoleName = 'admin' | 'member'

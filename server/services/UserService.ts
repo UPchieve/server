@@ -300,9 +300,9 @@ export async function adminUpdateUser(data: unknown) {
     throw new UserNotFoundError('id', userId)
   }
 
-  const isVolunteer = userBeforeUpdate.roleContext.legacyRole === 'volunteer'
-  const isStudent = userBeforeUpdate.roleContext.legacyRole === 'student'
-  const isTeacher = userBeforeUpdate.roleContext.legacyRole === 'teacher'
+  const isVolunteer = userBeforeUpdate.roleContext.hasRole('volunteer')
+  const isStudent = userBeforeUpdate.roleContext.hasRole('student')
+  const isTeacher = userBeforeUpdate.roleContext.hasRole('teacher')
 
   const trimmedEmail = email.trim()
   const isUpdatedEmail = userBeforeUpdate.email !== trimmedEmail
@@ -388,11 +388,18 @@ export async function adminUpdateUser(data: unknown) {
       action: ACCOUNT_USER_ACTIONS.DEACTIVATED,
     })
 
+  // TODO: Clean-up: Users can have multiple roles now.
+  // Have a separate generic method for updating the user, then
+  // perform the role-specific update.
   if (isVolunteer) {
     await updateVolunteerForAdmin(userId, update)
-  } else if (isStudent) {
+  }
+
+  if (isStudent) {
     await adminUpdateStudent(userId, update)
-  } else if (isTeacher) {
+  }
+
+  if (isTeacher) {
     await TeacherService.adminUpdateTeacher(userId, update)
   }
 
@@ -527,12 +534,10 @@ export async function getUserForAdminDetail(
   offset: number
 ) {
   const user = await UserRepo.getUserForAdminDetail(userId, limit, offset)
-  if (user) {
-    const roleContext = await UserRolesService.getRoleContext(userId, false)
-    return {
-      ...user,
-      roleContext,
-    }
+  const roleContext = await UserRolesService.getRoleContext(userId, false)
+  return {
+    ...user,
+    roleContext,
   }
 }
 
