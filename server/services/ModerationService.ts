@@ -1898,6 +1898,11 @@ export const moderateTranscript = async (
   const contextualThresholds =
     await ModerationConfidenceThresholdsRepo.getContextualConfidenceThresholds()
 
+  // Get the UNKNOWN threshold from database, fallback to config if not found
+  const unknownThreshold =
+    contextualThresholds.find((t) => t.name === 'UNKNOWN')?.threshold ??
+    config.contextualModerationConfidenceThreshold
+
   for (const reason of allReasons) {
     const thresholdObj = contextualThresholds.find(
       (threshold) => threshold.name === reason
@@ -1906,11 +1911,11 @@ export const moderateTranscript = async (
     if (thresholdObj) {
       confidenceThresholdMap.set(reason, Number(thresholdObj.threshold))
     } else {
-      confidenceThresholdMap.set(
-        reason,
-        config.contextualModerationConfidenceThreshold
+      confidenceThresholdMap.set(reason, unknownThreshold)
+      logger.warn(
+        { reason },
+        'No confidence threshold set for reason, using UNKNOWN threshold'
       )
-      logger.warn({ reason }, 'No confidence threshold set for reason')
     }
   }
 
