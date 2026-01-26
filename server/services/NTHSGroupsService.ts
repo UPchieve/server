@@ -139,7 +139,9 @@ export async function getGroupMember(
   userId: Ulid,
   nthsGroupId: Ulid,
   tc: TransactionClient = getRoClient()
-): Promise<Omit<NTHSGroupMemberWithRole, 'firstName' | 'email'> | undefined> {
+): Promise<
+  Omit<NTHSGroupMemberWithRole, 'firstName' | 'lastInitial'> | undefined
+> {
   return await NTHSGroupsRepo.getNthsGroupMember(userId, nthsGroupId, tc)
 }
 

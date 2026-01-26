@@ -105,7 +105,8 @@ WHERE
 SELECT
     ngm.*,
     roles.name AS role_name,
-    users.email,
+    LEFT (users.last_name,
+        1) AS last_initial,
     users.first_name
 FROM
     nths_group_members ngm

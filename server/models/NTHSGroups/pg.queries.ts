@@ -333,9 +333,9 @@ export interface IGetGroupMembersParams {
 /** 'GetGroupMembers' return type */
 export interface IGetGroupMembersResult {
   deactivatedAt: Date | null;
-  email: string;
   firstName: string;
   joinedAt: Date;
+  lastInitial: string | null;
   nthsGroupId: string;
   roleName: string | null;
   title: string | null;
@@ -349,7 +349,7 @@ export interface IGetGroupMembersQuery {
   result: IGetGroupMembersResult;
 }
 
-const getGroupMembersIR: any = {"usedParamSet":{"groupId":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":195,"b":203},{"a":390,"b":398}]}],"statement":"SELECT\n    ngm.*,\n    roles.name AS role_name,\n    users.email,\n    users.first_name\nFROM\n    nths_group_members ngm\n    JOIN nths_group_member_roles member_roles ON member_roles.nths_group_id = :groupId!\n        AND member_roles.user_id = ngm.user_id\n    JOIN nths_group_roles roles ON roles.id = member_roles.role_id\n    JOIN users ON users.id = ngm.user_id\nWHERE\n    ngm.nths_group_id = :groupId!\n    AND ngm.deactivated_at IS NULL"};
+const getGroupMembersIR: any = {"usedParamSet":{"groupId":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":233,"b":241},{"a":428,"b":436}]}],"statement":"SELECT\n    ngm.*,\n    roles.name AS role_name,\n    LEFT (users.last_name,\n        1) AS last_initial,\n    users.first_name\nFROM\n    nths_group_members ngm\n    JOIN nths_group_member_roles member_roles ON member_roles.nths_group_id = :groupId!\n        AND member_roles.user_id = ngm.user_id\n    JOIN nths_group_roles roles ON roles.id = member_roles.role_id\n    JOIN users ON users.id = ngm.user_id\nWHERE\n    ngm.nths_group_id = :groupId!\n    AND ngm.deactivated_at IS NULL"};
 
 /**
  * Query generated from SQL:
@@ -357,7 +357,8 @@ const getGroupMembersIR: any = {"usedParamSet":{"groupId":true},"params":[{"name
  * SELECT
  *     ngm.*,
  *     roles.name AS role_name,
- *     users.email,
+ *     LEFT (users.last_name,
+ *         1) AS last_initial,
  *     users.first_name
  * FROM
  *     nths_group_members ngm

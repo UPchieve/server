@@ -100,14 +100,14 @@ export async function joinGroupById(
 
 export async function getAllNthsMembers(
   tc: TransactionClient = getRoClient()
-): Promise<Omit<NTHSGroupMember, 'firstName' | 'email'>[]> {
+): Promise<Omit<NTHSGroupMember, 'firstName' | 'lastInitial'>[]> {
   try {
     const results = await pgQueries.getAllNthsUsers.run(undefined, tc)
     return results.map(
       (row) =>
         makeSomeOptional(row, ['deactivatedAt']) as Omit<
           NTHSGroupMember,
-          'firstName' | 'email'
+          'firstName' | 'lastInitial'
         >
     )
   } catch (err) {
@@ -171,7 +171,9 @@ export async function getNthsGroupMember(
   userId: Ulid,
   nthsGroupId: Ulid,
   tc: TransactionClient = getRoClient()
-): Promise<Omit<NTHSGroupMemberWithRole, 'firstName' | 'email'> | undefined> {
+): Promise<
+  Omit<NTHSGroupMemberWithRole, 'firstName' | 'lastInitial'> | undefined
+> {
   try {
     const results = await pgQueries.getGroupMember.run(
       {
