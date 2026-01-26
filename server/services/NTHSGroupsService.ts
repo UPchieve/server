@@ -13,7 +13,10 @@ import {
   NTHSGroupRoleName,
 } from '../models/NTHSGroups'
 import generateAlphanumericOfLength from '../utils/generate-alphanumeric'
-import { AlreadyInNTHSGroupError } from '../models/Errors'
+import {
+  AlreadyInNTHSGroupError,
+  CannotRemoveSoleNTHSAdminError,
+} from '../models/Errors'
 
 export async function getGroups(userId: Ulid) {
   return await NTHSGroupsRepo.getGroupsByUser(userId)
@@ -112,6 +115,17 @@ export async function updateGroupMember(
   nthsGroupId: Ulid,
   update: UpdateGroupMemberRequest
 ) {
+  // Do not allow deactivating or demoting of the sole admin of the group
+  const client = getClient()
+  const members = await NTHSGroupsRepo.getGroupMembers(nthsGroupId, client)
+  const activeAdmins = members.filter(
+    (member) => member.roleName === 'admin' && !member.deactivatedAt
+  )
+  if (activeAdmins.length === 1 && userId === activeAdmins[0].userId) {
+    if (update.role !== 'admin' || update.isActive) {
+      throw new CannotRemoveSoleNTHSAdminError()
+    }
+  }
   await runInTransaction(async (tc) => {
     if (update.role) {
       await updateGroupMemberRole(userId, nthsGroupId, update.role, tc)
@@ -120,7 +134,7 @@ export async function updateGroupMember(
       // For now, only DEactivating is possible, not reactivating.
       await NTHSGroupsRepo.deactivateGroupMember(userId, nthsGroupId, tc)
     }
-  })
+  }, client)
 }
 
 async function updateGroupMemberRole(
