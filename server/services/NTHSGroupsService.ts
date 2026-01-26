@@ -114,11 +114,11 @@ export async function updateGroupMember(
 ) {
   await runInTransaction(async (tc) => {
     if (update.role) {
-      await updateGroupMemberRole(userId, nthsGroupId, update.role)
+      await updateGroupMemberRole(userId, nthsGroupId, update.role, tc)
     }
     if (update.isActive === false) {
       // For now, only DEactivating is possible, not reactivating.
-      await NTHSGroupsRepo.deactivateGroupMember(userId, nthsGroupId)
+      await NTHSGroupsRepo.deactivateGroupMember(userId, nthsGroupId, tc)
     }
   })
 }
@@ -126,13 +126,17 @@ export async function updateGroupMember(
 async function updateGroupMemberRole(
   userId: Ulid,
   nthsGroupId: Ulid,
-  role: NTHSGroupRoleName
+  role: NTHSGroupRoleName,
+  tc?: TransactionClient
 ): Promise<NTHSGroupMemberRole> {
-  return await NTHSGroupsRepo.upsertNthsGroupMemberRole({
-    userId,
-    nthsGroupId,
-    roleName: role,
-  })
+  return await NTHSGroupsRepo.upsertNthsGroupMemberRole(
+    {
+      userId,
+      nthsGroupId,
+      roleName: role,
+    },
+    tc
+  )
 }
 
 export async function getGroupMember(
