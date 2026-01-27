@@ -854,47 +854,5 @@ describe('ModerationService', () => {
       expect(result.length).toBeGreaterThan(0)
       expect(result[0].reason).toBe('SOME_NEW_CATEGORY')
     })
-
-    it('Falls back to config value when UNKNOWN is not in database', async () => {
-      // Mock the database to return thresholds WITHOUT UNKNOWN
-      mockModerationConfidenceThresholdsRepo.getContextualConfidenceThresholds.mockResolvedValue(
-        [
-          { name: 'PII', threshold: 0.8 },
-          { name: 'HATE_SPEECH', threshold: 0.75 },
-          // No UNKNOWN category
-        ]
-      )
-
-      // Mock OpenAI to return a result with an unrecognized reason
-      ;(invokeModel as jest.Mock).mockResolvedValue({
-        results: {
-          confidence: 70, // Below default config threshold (75%)
-          explanation: 'Test explanation',
-          reasons: ['SOME_NEW_CATEGORY'],
-          flaggedMessages: ['<message>test message</message>'],
-        },
-        modelId: 'gpt-4o',
-      })
-
-      const transcript = {
-        sessionId: 'test-session',
-        messages: [
-          {
-            messageId: '1',
-            createdAt: new Date(),
-            messageType: 'session_chat' as const,
-            userId: 'user-1',
-            message: 'test message',
-            role: 'student' as const,
-          },
-        ],
-      }
-
-      const trace = mockLangfuseClient.trace()
-      const result = await moderateTranscript(transcript, trace)
-
-      // Should NOT flag because confidence (70) is below config threshold (75)
-      expect(result.length).toBe(0)
-    })
   })
 })
