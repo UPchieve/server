@@ -44,7 +44,7 @@ export async function foundGroup(userId: Ulid) {
       { groupId: group.id, userId, title: 'President' },
       tc
     )
-    await NTHSGroupsRepo.insertNthsMemberGroupRole(
+    await NTHSGroupsRepo.upsertNthsGroupMemberRole(
       {
         userId: creator.userId,
         nthsGroupId: group.id,
@@ -94,7 +94,7 @@ export async function joinGroupAsMemberByGroupId(
       },
       client
     )
-    await NTHSGroupsRepo.insertNthsMemberGroupRole(
+    await NTHSGroupsRepo.upsertNthsGroupMemberRole(
       {
         userId,
         nthsGroupId: groupId,

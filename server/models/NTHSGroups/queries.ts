@@ -5,11 +5,10 @@ import {
   RepoUpsertError,
   RepoUpdateError,
 } from '../Errors'
-import { makeRequired, makeSomeOptional, Ulid, Uuid } from '../pgUtils'
+import { makeRequired, makeSomeOptional, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import type {
   NTHSGroup,
-  NTHSGroupMember,
   NTHSGroupMemberRole,
   NTHSGroupMemberWithRole,
   NTHSGroupRoleName,
@@ -93,49 +92,6 @@ export async function joinGroupById(
     )
 
     return makeSomeOptional(results[0], ['deactivatedAt'])
-  } catch (err) {
-    throw new RepoCreateError(err)
-  }
-}
-
-export async function getAllNthsMembers(
-  tc: TransactionClient = getRoClient()
-): Promise<Omit<NTHSGroupMember, 'firstName' | 'lastInitial'>[]> {
-  try {
-    const results = await pgQueries.getAllNthsUsers.run(undefined, tc)
-    return results.map(
-      (row) =>
-        makeSomeOptional(row, ['deactivatedAt']) as Omit<
-          NTHSGroupMember,
-          'firstName' | 'lastInitial'
-        >
-    )
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
-export async function insertNthsMemberGroupRole(
-  args: {
-    userId: Ulid
-    nthsGroupId: Ulid
-    roleName: NTHSGroupRoleName
-  },
-  tc: TransactionClient = getClient()
-): Promise<Omit<NTHSGroupMemberRole, 'firstName' | 'email'>> {
-  try {
-    const result = await pgQueries.insertNthsGroupMemberRole.run(
-      {
-        ...args,
-      },
-      tc
-    )
-    if (!result.length) {
-      throw new RepoCreateError(
-        `Did not get a result back after attempting to insert NTHS group member role for user ${args.userId} and group ${args.nthsGroupId} and role ${args.roleName}`
-      )
-    }
-    return makeRequired(result[0]) as NTHSGroupMemberRole
   } catch (err) {
     throw new RepoCreateError(err)
   }
