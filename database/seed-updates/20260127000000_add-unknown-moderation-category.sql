@@ -25,3 +25,4 @@ WHERE moderation_type = 'contextual'
 
 DELETE FROM upchieve.moderation_categories
 WHERE name = 'UNKNOWN';
+
