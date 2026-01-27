@@ -11,6 +11,7 @@ import {
   LiveMediaModerationCategories,
   getSessionFlagByModerationReason,
   isStreamStoppingReason,
+  moderateTranscript,
 } from '../../services/ModerationService'
 import { mocked } from 'jest-mock'
 import * as FeatureFlagsService from '../../services/FeatureFlagService'
@@ -26,6 +27,7 @@ import SocketService from '../../services/SocketService'
 import { UserSessionFlags } from '../../constants'
 import { ModerationInfraction } from '../../models/ModerationInfractions'
 import * as UserRepo from '../../models/User/queries'
+import * as ModerationConfidenceThresholdsRepo from '../../models/ModerationConfidenceThresholds/queries'
 
 jest.mock('../../models/Session')
 jest.mock('../../utils/time-limit')
@@ -47,6 +49,7 @@ jest.mock('../../services/SocketService', () => ({
 jest.mock('../../services/SessionService')
 
 jest.mock('../../models/User/queries')
+jest.mock('../../models/ModerationConfidenceThresholds/queries')
 
 describe('ModerationService', () => {
   const isVolunteer = true
@@ -801,6 +804,97 @@ describe('ModerationService', () => {
       const thresholdPercent = decimalThreshold * 100 // Convert to percentage
       expect(thresholdPercent).toBe(75)
       expect(openAIConfidence >= thresholdPercent).toBe(true)
+    })
+  })
+
+  describe('moderateTranscript - UNKNOWN threshold fallback', () => {
+    const mockModerationConfidenceThresholdsRepo = mocked(
+      ModerationConfidenceThresholdsRepo
+    )
+
+    it('Uses UNKNOWN threshold for unrecognized moderation categories', async () => {
+      // Mock the database to return thresholds including UNKNOWN
+      mockModerationConfidenceThresholdsRepo.getContextualConfidenceThresholds.mockResolvedValue(
+        [
+          { name: 'PII', threshold: 0.8 },
+          { name: 'HATE_SPEECH', threshold: 0.75 },
+          { name: 'UNKNOWN', threshold: 0.6 }, // UNKNOWN threshold from DB
+        ]
+      )
+
+      // Mock OpenAI to return a result with an unrecognized reason
+      ;(invokeModel as jest.Mock).mockResolvedValue({
+        results: {
+          confidence: 70, // Above UNKNOWN threshold (60%) but below default config (75%)
+          explanation: 'Test explanation',
+          reasons: ['SOME_NEW_CATEGORY'], // Not in our threshold list
+          flaggedMessages: ['<message>test message</message>'],
+        },
+        modelId: 'gpt-4o',
+      })
+
+      const transcript = {
+        sessionId: 'test-session',
+        messages: [
+          {
+            messageId: '1',
+            createdAt: new Date(),
+            messageType: 'session_chat' as const,
+            userId: 'user-1',
+            message: 'test message',
+            role: 'student' as const,
+          },
+        ],
+      }
+
+      const trace = mockLangfuseClient.trace()
+      const result = await moderateTranscript(transcript, trace)
+
+      // Should flag the message because confidence (70) exceeds UNKNOWN threshold (60)
+      expect(result.length).toBeGreaterThan(0)
+      expect(result[0].reason).toBe('SOME_NEW_CATEGORY')
+    })
+
+    it('Falls back to config value when UNKNOWN is not in database', async () => {
+      // Mock the database to return thresholds WITHOUT UNKNOWN
+      mockModerationConfidenceThresholdsRepo.getContextualConfidenceThresholds.mockResolvedValue(
+        [
+          { name: 'PII', threshold: 0.8 },
+          { name: 'HATE_SPEECH', threshold: 0.75 },
+          // No UNKNOWN category
+        ]
+      )
+
+      // Mock OpenAI to return a result with an unrecognized reason
+      ;(invokeModel as jest.Mock).mockResolvedValue({
+        results: {
+          confidence: 70, // Below default config threshold (75%)
+          explanation: 'Test explanation',
+          reasons: ['SOME_NEW_CATEGORY'],
+          flaggedMessages: ['<message>test message</message>'],
+        },
+        modelId: 'gpt-4o',
+      })
+
+      const transcript = {
+        sessionId: 'test-session',
+        messages: [
+          {
+            messageId: '1',
+            createdAt: new Date(),
+            messageType: 'session_chat' as const,
+            userId: 'user-1',
+            message: 'test message',
+            role: 'student' as const,
+          },
+        ],
+      }
+
+      const trace = mockLangfuseClient.trace()
+      const result = await moderateTranscript(transcript, trace)
+
+      // Should NOT flag because confidence (70) is below config threshold (75)
+      expect(result.length).toBe(0)
     })
   })
 })
