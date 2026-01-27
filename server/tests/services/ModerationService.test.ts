@@ -74,6 +74,7 @@ describe('ModerationService', () => {
     }
     mockTrace = {
       generation: jest.fn().mockReturnValue(mockGeneration),
+      update: jest.fn(),
     }
     mockLangfuseClient = {
       trace: jest.fn().mockReturnValue(mockTrace),
