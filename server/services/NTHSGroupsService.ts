@@ -13,7 +13,10 @@ import {
   NTHSGroupRoleName,
 } from '../models/NTHSGroups'
 import generateAlphanumericOfLength from '../utils/generate-alphanumeric'
-import { AlreadyInNTHSGroupError } from '../models/Errors'
+import {
+  AlreadyInNTHSGroupError,
+  CannotRemoveSoleNTHSAdminError,
+} from '../models/Errors'
 
 export async function getGroups(userId: Ulid) {
   return await NTHSGroupsRepo.getGroupsByUser(userId)
@@ -102,23 +105,61 @@ export async function joinGroupAsMemberByGroupId(
   }, tc)
 }
 
-export async function updateGroupMemberRole(
+type UpdateGroupMemberRequest = {
+  role?: NTHSGroupRoleName
+  isActive?: boolean
+}
+
+export async function updateGroupMember(
   userId: Ulid,
   nthsGroupId: Ulid,
-  role: NTHSGroupRoleName
+  update: UpdateGroupMemberRequest
+) {
+  // Do not allow deactivating or demoting of the sole admin of the group
+  const client = getClient()
+  const members = await NTHSGroupsRepo.getGroupMembers(nthsGroupId, client)
+  const activeAdmins = members.filter(
+    (member) => member.roleName === 'admin' && !member.deactivatedAt
+  )
+  if (activeAdmins.length === 1 && userId === activeAdmins[0].userId) {
+    if (update.role !== 'admin' || update.isActive) {
+      throw new CannotRemoveSoleNTHSAdminError()
+    }
+  }
+  await runInTransaction(async (tc) => {
+    if (update.role) {
+      await updateGroupMemberRole(userId, nthsGroupId, update.role, tc)
+    }
+    if (update.isActive === false) {
+      // For now, only DEactivating is possible, not reactivating.
+      await NTHSGroupsRepo.deactivateGroupMember(userId, nthsGroupId, tc)
+    }
+  }, client)
+}
+
+async function updateGroupMemberRole(
+  userId: Ulid,
+  nthsGroupId: Ulid,
+  role: NTHSGroupRoleName,
+  tc?: TransactionClient
 ): Promise<NTHSGroupMemberRole> {
-  return await NTHSGroupsRepo.upsertNthsGroupMemberRole({
-    userId,
-    nthsGroupId,
-    roleName: role,
-  })
+  return await NTHSGroupsRepo.upsertNthsGroupMemberRole(
+    {
+      userId,
+      nthsGroupId,
+      roleName: role,
+    },
+    tc
+  )
 }
 
 export async function getGroupMember(
   userId: Ulid,
   nthsGroupId: Ulid,
   tc: TransactionClient = getRoClient()
-): Promise<Omit<NTHSGroupMemberWithRole, 'firstName' | 'email'> | undefined> {
+): Promise<
+  Omit<NTHSGroupMemberWithRole, 'firstName' | 'lastInitial'> | undefined
+> {
   return await NTHSGroupsRepo.getNthsGroupMember(userId, nthsGroupId, tc)
 }
 

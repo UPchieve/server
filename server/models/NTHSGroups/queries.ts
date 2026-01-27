@@ -1,5 +1,10 @@
 import { getClient, getRoClient, TransactionClient } from '../../db'
-import { RepoCreateError, RepoReadError, RepoUpsertError } from '../Errors'
+import {
+  RepoCreateError,
+  RepoReadError,
+  RepoUpsertError,
+  RepoUpdateError,
+} from '../Errors'
 import { makeRequired, makeSomeOptional, Ulid, Uuid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import type {
@@ -95,14 +100,14 @@ export async function joinGroupById(
 
 export async function getAllNthsMembers(
   tc: TransactionClient = getRoClient()
-): Promise<Omit<NTHSGroupMember, 'firstName' | 'email'>[]> {
+): Promise<Omit<NTHSGroupMember, 'firstName' | 'lastInitial'>[]> {
   try {
     const results = await pgQueries.getAllNthsUsers.run(undefined, tc)
     return results.map(
       (row) =>
         makeSomeOptional(row, ['deactivatedAt']) as Omit<
           NTHSGroupMember,
-          'firstName' | 'email'
+          'firstName' | 'lastInitial'
         >
     )
   } catch (err) {
@@ -166,7 +171,9 @@ export async function getNthsGroupMember(
   userId: Ulid,
   nthsGroupId: Ulid,
   tc: TransactionClient = getRoClient()
-): Promise<Omit<NTHSGroupMemberWithRole, 'firstName' | 'email'> | undefined> {
+): Promise<
+  Omit<NTHSGroupMemberWithRole, 'firstName' | 'lastInitial'> | undefined
+> {
   try {
     const results = await pgQueries.getGroupMember.run(
       {
@@ -244,5 +251,23 @@ export async function createGroup(
     return makeRequired(results[0])
   } catch (err) {
     throw new RepoCreateError(err)
+  }
+}
+
+export async function deactivateGroupMember(
+  userId: Ulid,
+  nthsGroupId: Ulid,
+  tc: TransactionClient = getClient()
+) {
+  try {
+    await pgQueries.deactivateGroupMember.run(
+      {
+        userId,
+        groupId: nthsGroupId,
+      },
+      tc
+    )
+  } catch (err) {
+    throw new RepoUpdateError(err)
   }
 }

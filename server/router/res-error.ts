@@ -8,6 +8,7 @@ import {
   NotAuthenticatedError,
   AlreadyInUseError,
   AlreadyInNTHSGroupError,
+  CannotRemoveSoleNTHSAdminError,
 } from '../models/Errors'
 import { RegistrationError, ResetError } from '../utils/auth-utils'
 import config from '../config'
@@ -46,6 +47,7 @@ export function resError(
     // bad input
     else if (err instanceof InputError) status = 422
     else if (err instanceof AlreadyInNTHSGroupError) status = 422
+    else if (err instanceof CannotRemoveSoleNTHSAdminError) status = 422
     else if (err instanceof AlreadyInUseError) status = 409
     // response timeout
     else if (err.message === 'Response timeout') status = 408
