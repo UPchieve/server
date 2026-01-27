@@ -65,7 +65,6 @@ export function routeNTHSGroups(router: Router): void {
     // This route is similar to the above, but is for a member removing **themselves** from a group
     // whereas the above is a group admin action to update other members' settings.
     .put(async (req: Request, res: Response) => {
-      console.log('Request object', req.user)
       try {
         const userId = req.user?.id
         if (!userId) throw new NotAuthenticatedError()
