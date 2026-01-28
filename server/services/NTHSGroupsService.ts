@@ -22,7 +22,10 @@ export async function getGroups(userId: Ulid) {
   return await NTHSGroupsRepo.getGroupsByUser(userId)
 }
 
-export async function foundGroup(userId: Ulid) {
+export async function foundGroup(
+  userId: Ulid,
+  options: { teamName: string } = { teamName: '' }
+) {
   return runInTransaction(async (tc: TransactionClient) => {
     const groups = await NTHSGroupsRepo.getGroupsByUser(userId, tc)
 
@@ -32,8 +35,9 @@ export async function foundGroup(userId: Ulid) {
     }
 
     const inviteCode = generateAlphanumericOfLength(6)
-    const chapterNumber = Number(await NTHSGroupsRepo.groupsCount(tc)) + 1
-    const name = `NTHS Chapter ${chapterNumber}`
+    const name = options?.teamName.length
+      ? options.teamName
+      : `NTHS Chapter ${Number(await NTHSGroupsRepo.groupsCount(tc)) + 1}`
     const key = name.split(' ').join('-').toLowerCase()
     const group = await NTHSGroupsRepo.createGroup(
       { inviteCode, name, key },

@@ -2,7 +2,11 @@ import { NextFunction, Request, Response, Router } from 'express'
 import { extractUser } from '../extract-user'
 import { resError } from '../res-error'
 import * as NTHSGroupsService from '../../services/NTHSGroupsService'
-import { NotAuthenticatedError } from '../../models/Errors'
+import {
+  NotAuthenticatedError,
+  NTHSGroupNameTakenError,
+  RepoCreateError,
+} from '../../models/Errors'
 
 export async function isGroupAdmin(
   req: Request,
@@ -80,9 +84,22 @@ export function routeNTHSGroups(router: Router): void {
   router.route('/nths-groups/new').post(async (req, res) => {
     try {
       const user = extractUser(req)
-      const group = await NTHSGroupsService.foundGroup(user.id)
+      const group = await NTHSGroupsService.foundGroup(user.id, {
+        teamName: req.body.teamName,
+      })
       res.json({ group })
     } catch (error) {
+      if (
+        error instanceof RepoCreateError &&
+        error.message.includes('unique_name')
+      ) {
+        return resError(
+          res,
+          new NTHSGroupNameTakenError(
+            `Team name must be unique: ${req.body.teamName} is already taken`
+          )
+        )
+      }
       resError(res, error)
     }
   })
