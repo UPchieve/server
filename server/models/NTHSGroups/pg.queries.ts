@@ -157,39 +157,6 @@ const joinGroupByIdIR: any = {"usedParamSet":{"groupId":true,"userId":true,"titl
 export const joinGroupById = new PreparedQuery<IJoinGroupByIdParams,IJoinGroupByIdResult>(joinGroupByIdIR);
 
 
-/** 'GetAllNthsUsers' parameters type */
-export type IGetAllNthsUsersParams = void;
-
-/** 'GetAllNthsUsers' return type */
-export interface IGetAllNthsUsersResult {
-  deactivatedAt: Date | null;
-  joinedAt: Date;
-  nthsGroupId: string;
-  title: string | null;
-  updatedAt: Date;
-  userId: string;
-}
-
-/** 'GetAllNthsUsers' query type */
-export interface IGetAllNthsUsersQuery {
-  params: IGetAllNthsUsersParams;
-  result: IGetAllNthsUsersResult;
-}
-
-const getAllNthsUsersIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    *\nFROM\n    nths_group_members"};
-
-/**
- * Query generated from SQL:
- * ```
- * SELECT
- *     *
- * FROM
- *     nths_group_members
- * ```
- */
-export const getAllNthsUsers = new PreparedQuery<IGetAllNthsUsersParams,IGetAllNthsUsersResult>(getAllNthsUsersIR);
-
-
 /** 'InsertNthsGroupMemberRole' parameters type */
 export interface IInsertNthsGroupMemberRoleParams {
   nthsGroupId: string;

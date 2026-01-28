@@ -46,13 +46,6 @@ RETURNING
     *;
 
 
-/* @name getAllNthsUsers */
-SELECT
-    *
-FROM
-    nths_group_members;
-
-
 /* @name insertNthsGroupMemberRole */
 INSERT INTO nths_group_member_roles (user_id, nths_group_id, role_id)
 SELECT
