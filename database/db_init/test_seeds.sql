@@ -6116,6 +6116,9 @@ COPY upchieve.notifications (id, user_id, sent_at, type_id, method_id, priority_
 --
 
 COPY upchieve.nths_actions (id, name, created_at) FROM stdin;
+1	NAME YOUR TEAM	2026-01-29 19:15:23.170054+00
+2	REVIEW RESOURCES	2026-01-29 19:15:23.170054+00
+3	ATTEND ORIENTATION	2026-01-29 19:15:23.170054+00
 \.
 
 
@@ -8839,7 +8842,7 @@ SELECT pg_catalog.setval('upchieve.notification_types_id_seq', 2, true);
 -- Name: nths_actions_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.nths_actions_id_seq', 1, false);
+SELECT pg_catalog.setval('upchieve.nths_actions_id_seq', 3, true);
 
 
 --
