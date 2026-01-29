@@ -51,11 +51,24 @@ export function routes(app: Express) {
         throw new InputError('Invalid team invite code')
       }
 
-      if (authenticatedUser?.email.toLowerCase() === email) {
+      if (
+        authenticatedUser &&
+        authenticatedUser.email.toLowerCase() === email
+      ) {
+        const existingGroups = await NTHSGroupsService.getGroups(
+          authenticatedUser.id
+        )
+
+        // For now, we won't let you join multiple groups
+        if (existingGroups.length > 0) {
+          return res.json({ NTHSGroup: existingGroups[0] })
+        }
+
         const NTHSGroup = await NTHSGroupsService.joinGroupAsMemberByGroupId(
           authenticatedUser.id,
           group.id
         )
+
         return res.json({ NTHSGroup })
       }
 
