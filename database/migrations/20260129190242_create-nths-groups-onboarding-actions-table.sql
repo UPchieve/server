@@ -10,6 +10,9 @@ CREATE INDEX nths_group_actions_group_id ON upchieve.nths_group_actions (nths_gr
 
 CREATE INDEX nths_group_actions_action_id ON upchieve.nths_group_actions (nths_action_id);
 
+ALTER TABLE upchieve.nths_group_actions
+    ADD CONSTRAINT unique_action_per_group UNIQUE (nths_group_id, nths_action_id);
+
 -- migrate:down
 DROP TABLE upchieve.nths_group_actions;
 
