@@ -227,3 +227,26 @@ export async function deactivateGroupMember(
     throw new RepoUpdateError(err)
   }
 }
+
+export async function updateGroupName(
+  groupId: Ulid,
+  name: string,
+  tc: TransactionClient = getClient()
+): Promise<NTHSGroup | void> {
+  try {
+    const [result] = await pgQueries.updateGroupName.run(
+      {
+        groupId,
+        name,
+      },
+      tc
+    )
+    if (result) {
+      return makeRequired(result)
+    } else {
+      throw new RepoUpdateError(`Group id ${groupId} not found`)
+    }
+  } catch (err) {
+    throw new RepoUpdateError(err)
+  }
+}

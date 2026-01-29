@@ -136,3 +136,19 @@ WHERE
     user_id = :userId!
     AND nths_group_id = :groupId!;
 
+
+/* @name updateGroupName */
+UPDATE
+    nths_groups
+SET
+    name = :name!,
+    updated_at = NOW()
+WHERE
+    id = :groupId!
+RETURNING
+    id,
+    name,
+    KEY,
+    created_at,
+    invite_code;
+

@@ -439,3 +439,47 @@ const deactivateGroupMemberIR: any = {"usedParamSet":{"userId":true,"groupId":tr
 export const deactivateGroupMember = new PreparedQuery<IDeactivateGroupMemberParams,IDeactivateGroupMemberResult>(deactivateGroupMemberIR);
 
 
+/** 'UpdateGroupName' parameters type */
+export interface IUpdateGroupNameParams {
+  groupId: string;
+  name: string;
+}
+
+/** 'UpdateGroupName' return type */
+export interface IUpdateGroupNameResult {
+  createdAt: Date;
+  id: string;
+  inviteCode: string;
+  key: string;
+  name: string;
+}
+
+/** 'UpdateGroupName' query type */
+export interface IUpdateGroupNameQuery {
+  params: IUpdateGroupNameParams;
+  result: IUpdateGroupNameResult;
+}
+
+const updateGroupNameIR: any = {"usedParamSet":{"name":true,"groupId":true},"params":[{"name":"name","required":true,"transform":{"type":"scalar"},"locs":[{"a":38,"b":43}]},{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":84,"b":92}]}],"statement":"UPDATE\n    nths_groups\nSET\n    name = :name!,\n    updated_at = NOW()\nWHERE\n    id = :groupId!\nRETURNING\n    id,\n    name,\n    KEY,\n    created_at,\n    invite_code"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE
+ *     nths_groups
+ * SET
+ *     name = :name!,
+ *     updated_at = NOW()
+ * WHERE
+ *     id = :groupId!
+ * RETURNING
+ *     id,
+ *     name,
+ *     KEY,
+ *     created_at,
+ *     invite_code
+ * ```
+ */
+export const updateGroupName = new PreparedQuery<IUpdateGroupNameParams,IUpdateGroupNameResult>(updateGroupNameIR);
+
+
