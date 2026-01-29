@@ -1,6 +1,10 @@
 import { Ulid } from '../pgUtils'
 
-export type UserGroup = {
+export type NTHSGroupWithMemberInfo = {
+  // these top-level fields nest the below fields.
+  groupInfo: NTHSGroup
+  memberInfo: NTHSUserInfo
+  // TODO: remove all of the below fields after the frontend is pointing to these nested fields
   memberTitle: string
   joinedAt: Date
   groupId: Ulid
@@ -15,8 +19,14 @@ export type NTHSGroup = {
   id: Ulid
   name: string
   key: string
-  createdAt: Date
+  createdAt?: Date
   inviteCode: string
+}
+
+export type NTHSUserInfo = {
+  title: string
+  joinedAt: Date
+  roleName: NTHSGroupRoleName
 }
 
 export type NTHSGroupMember = {
