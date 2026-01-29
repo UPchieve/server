@@ -134,6 +134,11 @@ export class AlreadyInNTHSGroupError extends CustomError {
     super('User already in a group')
   }
 }
+export class NTHSGroupNameTakenError extends CustomError {
+  constructor(message: string) {
+    super(message)
+  }
+}
 
 export class CannotRemoveSoleNTHSAdminError extends CustomError {
   constructor() {

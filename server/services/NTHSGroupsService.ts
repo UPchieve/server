@@ -32,8 +32,7 @@ export async function foundGroup(userId: Ulid) {
     }
 
     const inviteCode = generateAlphanumericOfLength(6)
-    const chapterNumber = Number(await NTHSGroupsRepo.groupsCount(tc)) + 1
-    const name = `NTHS Chapter ${chapterNumber}`
+    const name = `NTHS Chapter ${Number(await NTHSGroupsRepo.groupsCount(tc)) + 1}`
     const key = name.split(' ').join('-').toLowerCase()
     const group = await NTHSGroupsRepo.createGroup(
       { inviteCode, name, key },
@@ -65,6 +64,11 @@ export async function foundGroup(userId: Ulid) {
 
     return result
   })
+}
+
+export async function updateGroupName(groupId: Ulid, name: string) {
+  const group = await NTHSGroupsRepo.updateGroupName(groupId, name)
+  return group
 }
 
 export async function getInviteLinkForGroup(groupId: Ulid) {
