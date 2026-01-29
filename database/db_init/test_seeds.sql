@@ -6112,12 +6112,10 @@ COPY upchieve.notifications (id, user_id, sent_at, type_id, method_id, priority_
 
 
 --
--- Data for Name: nths_group_roles; Type: TABLE DATA; Schema: upchieve; Owner: admin
+-- Data for Name: nths_actions; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.nths_group_roles (id, name) FROM stdin;
-1	admin
-2	member
+COPY upchieve.nths_actions (id, name, created_at) FROM stdin;
 \.
 
 
@@ -6126,6 +6124,24 @@ COPY upchieve.nths_group_roles (id, name) FROM stdin;
 --
 
 COPY upchieve.nths_groups (id, name, key, created_at, updated_at, invite_code) FROM stdin;
+\.
+
+
+--
+-- Data for Name: nths_group_actions; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.nths_group_actions (id, nths_group_id, nths_action_id, created_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: nths_group_roles; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.nths_group_roles (id, name) FROM stdin;
+1	admin
+2	member
 \.
 
 
@@ -8646,7 +8662,7 @@ COPY upchieve.users_roles (user_id, role_id, created_at, updated_at) FROM stdin;
 01919662-885c-a174-3088-998111f7cc80	1	2024-08-28 00:28:45.536315+00	2024-08-28 00:28:45.536315+00
 0198c4d0-34aa-ef79-20b5-f1c6245c0b7c	4	2025-08-20 00:10:36.035748+00	2025-08-20 00:10:36.035748+00
 0198c4d1-f405-a71a-931c-e94965191c0a	4	2025-08-20 00:12:30.562089+00	2025-08-20 00:12:30.562089+00
-01919662-8804-cc87-1ee3-90a35b65414d	3	2026-01-01 00:00:00.000000+00	2026-01-01 00:00:00.000000+00
+01919662-8804-cc87-1ee3-90a35b65414d	3	2026-01-01 00:00:00+00	2026-01-01 00:00:00+00
 \.
 
 
@@ -8817,6 +8833,20 @@ SELECT pg_catalog.setval('upchieve.notification_priority_groups_id_seq', 22, tru
 --
 
 SELECT pg_catalog.setval('upchieve.notification_types_id_seq', 2, true);
+
+
+--
+-- Name: nths_actions_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
+--
+
+SELECT pg_catalog.setval('upchieve.nths_actions_id_seq', 1, false);
+
+
+--
+-- Name: nths_group_actions_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
+--
+
+SELECT pg_catalog.setval('upchieve.nths_group_actions_id_seq', 1, false);
 
 
 --
