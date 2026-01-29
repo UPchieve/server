@@ -81,7 +81,7 @@ export function routeNTHSGroups(router: Router): void {
       }
     })
 
-  router.route('/nths-groups/new').post(async (req, res) => {
+  router.route('/nths-groups/new').post(async (req: Request, res: Response) => {
     try {
       const user = extractUser(req)
       const group = await NTHSGroupsService.foundGroup(user.id)
@@ -113,4 +113,17 @@ export function routeNTHSGroups(router: Router): void {
       resError(res, error)
     }
   })
+
+  router
+    .route('/nths-groups/:groupId/actions')
+    .post(isGroupAdmin, async (req: Request, res: Response) => {
+      try {
+        const groupId = req.body.groupId
+        const action = req.body.action
+        const created = await NTHSGroupsService.createAction(groupId, action)
+        res.json({ groupId, action: created })
+      } catch (err) {
+        resError(res, err)
+      }
+    })
 }

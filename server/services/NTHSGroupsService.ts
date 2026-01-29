@@ -8,6 +8,8 @@ import {
   TransactionClient,
 } from '../db'
 import {
+  NTHSActionName,
+  NTHSGroupAction,
   NTHSGroupMemberRole,
   NTHSGroupMemberWithRole,
   NTHSGroupRoleName,
@@ -171,4 +173,11 @@ export async function getGroupMembers(
   nthsGroupId: Ulid
 ): Promise<NTHSGroupMemberWithRole[]> {
   return await NTHSGroupsRepo.getGroupMembers(nthsGroupId)
+}
+
+export async function createAction(
+  nthsGroupId: Ulid,
+  action: NTHSActionName
+): Promise<NTHSGroupAction> {
+  return await NTHSGroupsRepo.insertNthsGroupAction(nthsGroupId, action)
 }
