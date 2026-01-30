@@ -17,6 +17,8 @@ import { v4 as uuidv4 } from 'uuid'
 import { getAllFlagsForId } from '../services/FeatureFlagService'
 import { extractUserIfExists } from './extract-user'
 import { getPersonPropertiesForAnalytics } from '../services/AnalyticsService'
+import axios from 'axios'
+import { header } from 'case'
 
 export default function (app: Express, io: Server) {
   logger.info('initializing server routing')
@@ -53,6 +55,45 @@ export default function (app: Express, io: Server) {
         userId: distinctId,
       })
       res.status(200).json({ id: distinctId })
+    }
+  })
+
+  app.get('/api-public/stt/token', async (req, res) => {
+    try {
+      if (!config.openAIApiKey)
+        return res.status(500).json({ error: 'Missing ASSEMBLYAI_API_KEY' })
+
+      const response: {
+        data: {
+          client_secret: {
+            value: string
+            expires_at: number
+          }
+        }
+        status: number
+      } = await axios.post(
+        'https://api.openai.com/v1/realtime/transcription_sessions',
+        {
+          input_audio_format: 'pcm16',
+          input_audio_transcription: {
+            model: 'gpt-4o-mini-transcribe',
+            language: 'en',
+            prompt: '',
+          },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${config.openAIApiKey}`,
+          },
+        }
+      )
+
+      res
+        .status(response.status)
+        .type('application/json')
+        .send({ token: response.data.client_secret.value })
+    } catch (err) {
+      res.status(500).json({ error: 'Token mint failed', details: String(err) })
     }
   })
 }
