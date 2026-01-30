@@ -126,14 +126,28 @@ export function routeNTHSGroups(router: Router): void {
         resError(res, err)
       }
     })
+  router
+    .route('/nths-groups/:groupId/actions/:actionId')
+    .delete(isGroupAdmin, async (req: Request, res: Response) => {
+      try {
+        const groupId = req.params.groupId
+        const actionId = Number(req.params.actionId)
+
+        await NTHSGroupsService.deleteAction(groupId, actionId)
+        return res.sendStatus(204)
+      } catch (err) {
+        resError(res, err)
+      }
+    })
 
   router
     .route('/nths-groups/:groupId/actions')
     .get(async (req: Request, res: Response) => {
       try {
         const groupId = req.params.groupId
-        const actions = await NTHSGroupsService.getActionsForGroup(groupId)
-        res.json({ groupId, actions })
+        const groupActions = await NTHSGroupsService.getActionsForGroup(groupId)
+        const actions = await NTHSGroupsService.getActions()
+        res.json({ groupId, actions, groupActions })
       } catch (err) {
         resError(res, err)
       }

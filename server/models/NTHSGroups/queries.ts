@@ -4,10 +4,12 @@ import {
   RepoReadError,
   RepoUpsertError,
   RepoUpdateError,
+  RepoDeleteError,
 } from '../Errors'
 import { makeRequired, makeSomeOptional, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import type {
+  NTHSAction,
   NTHSActionName,
   NTHSGroup,
   NTHSGroupAction,
@@ -279,6 +281,23 @@ export async function insertNthsGroupAction(
     throw new RepoCreateError(err)
   }
 }
+export async function deleteNthsGroupAction(
+  groupId: Ulid,
+  actionId: number,
+  tc: TransactionClient = getClient()
+) {
+  try {
+    await pgQueries.deleteNthsGroupAction.run(
+      {
+        groupId,
+        actionId,
+      },
+      tc
+    )
+  } catch (err) {
+    throw new RepoDeleteError(err)
+  }
+}
 
 export async function getNthsGroupActionsByGroupId(
   nthsGroupId: Ulid,
@@ -291,6 +310,17 @@ export async function getNthsGroupActionsByGroupId(
       },
       tc
     )
+    return results.map((row) => makeRequired(row))
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getNthsActions(
+  tc: TransactionClient = getRoClient()
+): Promise<NTHSAction[]> {
+  try {
+    const results = await pgQueries.getNthsActions.run(undefined, tc)
     return results.map((row) => makeRequired(row))
   } catch (err) {
     throw new RepoReadError(err)

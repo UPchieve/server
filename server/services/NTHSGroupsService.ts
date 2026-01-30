@@ -8,6 +8,7 @@ import {
   TransactionClient,
 } from '../db'
 import {
+  NTHSAction,
   NTHSActionName,
   NTHSGroupAction,
   NTHSGroupMemberRole,
@@ -182,8 +183,19 @@ export async function createAction(
   return await NTHSGroupsRepo.insertNthsGroupAction(nthsGroupId, action)
 }
 
+export async function deleteAction(
+  nthsGroupId: Ulid,
+  actionId: number
+): Promise<void> {
+  await NTHSGroupsRepo.deleteNthsGroupAction(nthsGroupId, actionId)
+}
+
 export async function getActionsForGroup(
   nthsGroupId: Ulid
 ): Promise<NTHSGroupAction[]> {
   return await NTHSGroupsRepo.getNthsGroupActionsByGroupId(nthsGroupId)
+}
+
+export async function getActions(): Promise<NTHSAction[]> {
+  return await NTHSGroupsRepo.getNthsActions()
 }

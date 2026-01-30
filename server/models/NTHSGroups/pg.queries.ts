@@ -569,3 +569,61 @@ const getAllNthsGroupActionsByGroupIdIR: any = {"usedParamSet":{"groupId":true},
 export const getAllNthsGroupActionsByGroupId = new PreparedQuery<IGetAllNthsGroupActionsByGroupIdParams,IGetAllNthsGroupActionsByGroupIdResult>(getAllNthsGroupActionsByGroupIdIR);
 
 
+/** 'GetNthsActions' parameters type */
+export type IGetNthsActionsParams = void;
+
+/** 'GetNthsActions' return type */
+export interface IGetNthsActionsResult {
+  id: number;
+  name: string;
+}
+
+/** 'GetNthsActions' query type */
+export interface IGetNthsActionsQuery {
+  params: IGetNthsActionsParams;
+  result: IGetNthsActionsResult;
+}
+
+const getNthsActionsIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    actions.id,\n    actions.name\nFROM\n    nths_actions actions"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     actions.id,
+ *     actions.name
+ * FROM
+ *     nths_actions actions
+ * ```
+ */
+export const getNthsActions = new PreparedQuery<IGetNthsActionsParams,IGetNthsActionsResult>(getNthsActionsIR);
+
+
+/** 'DeleteNthsGroupAction' parameters type */
+export interface IDeleteNthsGroupActionParams {
+  actionId: number;
+  groupId: string;
+}
+
+/** 'DeleteNthsGroupAction' return type */
+export type IDeleteNthsGroupActionResult = void;
+
+/** 'DeleteNthsGroupAction' query type */
+export interface IDeleteNthsGroupActionQuery {
+  params: IDeleteNthsGroupActionParams;
+  result: IDeleteNthsGroupActionResult;
+}
+
+const deleteNthsGroupActionIR: any = {"usedParamSet":{"groupId":true,"actionId":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":53,"b":61}]},{"name":"actionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":88,"b":97}]}],"statement":"DELETE FROM nths_group_actions\nWHERE nths_group_id = :groupId!\n    AND nths_action_id = :actionId!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * DELETE FROM nths_group_actions
+ * WHERE nths_group_id = :groupId!
+ *     AND nths_action_id = :actionId!
+ * ```
+ */
+export const deleteNthsGroupAction = new PreparedQuery<IDeleteNthsGroupActionParams,IDeleteNthsGroupActionResult>(deleteNthsGroupActionIR);
+
+

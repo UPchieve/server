@@ -55,3 +55,8 @@ export type NTHSGroupAction = {
   actionName: string
   createdAt: Date
 }
+
+export type NTHSAction = {
+  id: number
+  name: string
+}
