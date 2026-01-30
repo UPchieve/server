@@ -181,3 +181,9 @@ export async function createAction(
 ): Promise<NTHSGroupAction> {
   return await NTHSGroupsRepo.insertNthsGroupAction(nthsGroupId, action)
 }
+
+export async function getActionsForGroup(
+  nthsGroupId: Ulid
+): Promise<NTHSGroupAction[]> {
+  return await NTHSGroupsRepo.getNthsGroupActionsByGroupId(nthsGroupId)
+}

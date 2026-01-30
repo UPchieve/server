@@ -279,3 +279,20 @@ export async function insertNthsGroupAction(
     throw new RepoCreateError(err)
   }
 }
+
+export async function getNthsGroupActionsByGroupId(
+  nthsGroupId: Ulid,
+  tc: TransactionClient = getRoClient()
+): Promise<NTHSGroupAction[]> {
+  try {
+    const results = await pgQueries.getAllNthsGroupActionsByGroupId.run(
+      {
+        groupId: nthsGroupId,
+      },
+      tc
+    )
+    return results.map((row) => makeRequired(row))
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}

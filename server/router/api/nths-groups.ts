@@ -126,4 +126,16 @@ export function routeNTHSGroups(router: Router): void {
         resError(res, err)
       }
     })
+
+  router
+    .route('/nths-groups/:groupId/actions')
+    .get(async (req: Request, res: Response) => {
+      try {
+        const groupId = req.params.groupId
+        const actions = await NTHSGroupsService.getActionsForGroup(groupId)
+        res.json({ groupId, actions })
+      } catch (err) {
+        resError(res, err)
+      }
+    })
 }
