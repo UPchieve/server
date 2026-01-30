@@ -118,7 +118,7 @@ export function routeNTHSGroups(router: Router): void {
     .route('/nths-groups/:groupId/actions')
     .post(isGroupAdmin, async (req: Request, res: Response) => {
       try {
-        const groupId = req.body.groupId
+        const groupId = req.params.groupId
         const action = req.body.action
         const created = await NTHSGroupsService.createAction(groupId, action)
         res.json({ groupId, action: created })
