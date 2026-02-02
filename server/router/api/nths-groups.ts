@@ -132,8 +132,9 @@ export function routeNTHSGroups(router: Router): void {
     .get(async (req: Request, res: Response) => {
       try {
         const groupId = req.params.groupId
-        const actions = await NTHSGroupsService.getActionsForGroup(groupId)
-        res.json({ groupId, actions })
+        const groupActions = await NTHSGroupsService.getActionsForGroup(groupId)
+        const actions = await NTHSGroupsService.getActions()
+        res.json({ groupId, actions, groupActions })
       } catch (err) {
         resError(res, err)
       }

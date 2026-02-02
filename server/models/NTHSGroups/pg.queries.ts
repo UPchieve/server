@@ -569,3 +569,33 @@ const getAllNthsGroupActionsByGroupIdIR: any = {"usedParamSet":{"groupId":true},
 export const getAllNthsGroupActionsByGroupId = new PreparedQuery<IGetAllNthsGroupActionsByGroupIdParams,IGetAllNthsGroupActionsByGroupIdResult>(getAllNthsGroupActionsByGroupIdIR);
 
 
+/** 'GetNthsActions' parameters type */
+export type IGetNthsActionsParams = void;
+
+/** 'GetNthsActions' return type */
+export interface IGetNthsActionsResult {
+  id: number;
+  name: string;
+}
+
+/** 'GetNthsActions' query type */
+export interface IGetNthsActionsQuery {
+  params: IGetNthsActionsParams;
+  result: IGetNthsActionsResult;
+}
+
+const getNthsActionsIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    actions.id,\n    actions.name\nFROM\n    nths_actions actions"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     actions.id,
+ *     actions.name
+ * FROM
+ *     nths_actions actions
+ * ```
+ */
+export const getNthsActions = new PreparedQuery<IGetNthsActionsParams,IGetNthsActionsResult>(getNthsActionsIR);
+
+

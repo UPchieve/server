@@ -183,3 +183,11 @@ FROM
 WHERE
     nths_group_id = :groupId!;
 
+
+/* @name getNthsActions */
+SELECT
+    actions.id,
+    actions.name
+FROM
+    nths_actions actions;
+
