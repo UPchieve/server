@@ -4,17 +4,22 @@ import {
   RepoReadError,
   RepoUpsertError,
   RepoUpdateError,
+  RepoDeleteError,
 } from '../Errors'
 import { makeRequired, makeSomeOptional, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import type {
+  NTHSAction,
+  NTHSActionName,
   NTHSGroup,
+  NTHSGroupAction,
   NTHSGroupMemberRole,
   NTHSGroupMemberWithRole,
   NTHSGroupRoleName,
   UserGroup,
 } from './types'
 import { camelCaseKeys } from '../../tests/db-utils'
+import logger from '../../logger'
 
 export async function getGroupsByUser(
   userId: Ulid,
@@ -248,5 +253,59 @@ export async function updateGroupName(
     }
   } catch (err) {
     throw new RepoUpdateError(err)
+  }
+}
+
+export async function insertNthsGroupAction(
+  groupId: Ulid,
+  actionName: NTHSActionName,
+  tc: TransactionClient = getClient()
+): Promise<NTHSGroupAction> {
+  try {
+    const results = await pgQueries.insertNthsGroupAction.run(
+      {
+        groupId,
+        actionName,
+      },
+      tc
+    )
+    if (!results.length) {
+      logger.error(
+        { groupId, actionName },
+        'Failed to insert NTHS group action'
+      )
+      throw new Error('Failed to insert group action')
+    }
+    return makeRequired(results[0])
+  } catch (err) {
+    throw new RepoCreateError(err)
+  }
+}
+
+export async function getNthsGroupActionsByGroupId(
+  nthsGroupId: Ulid,
+  tc: TransactionClient = getRoClient()
+): Promise<NTHSGroupAction[]> {
+  try {
+    const results = await pgQueries.getAllNthsGroupActionsByGroupId.run(
+      {
+        groupId: nthsGroupId,
+      },
+      tc
+    )
+    return results.map((row) => makeRequired(row))
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getNthsActions(
+  tc: TransactionClient = getRoClient()
+): Promise<NTHSAction[]> {
+  try {
+    const results = await pgQueries.getNthsActions.run(undefined, tc)
+    return results.map((row) => makeRequired(row))
+  } catch (err) {
+    throw new RepoReadError(err)
   }
 }

@@ -152,3 +152,42 @@ RETURNING
     created_at,
     invite_code;
 
+
+/* @name insertNthsGroupAction */
+INSERT INTO nths_group_actions (nths_group_id, nths_action_id)
+SELECT
+    :groupId!,
+    actions.id
+FROM
+    nths_actions actions
+WHERE
+    actions.name = :actionName!
+RETURNING
+    id,
+    nths_group_id AS group_id,
+    nths_action_id AS action_id,
+    created_at,
+    :actionName! AS action_name;
+
+
+/* @name getAllNthsGroupActionsByGroupId */
+SELECT
+    nga.id,
+    nga.nths_group_id AS group_id,
+    nga.nths_action_id AS action_id,
+    nga.created_at,
+    actions.name AS action_name
+FROM
+    nths_group_actions nga
+    JOIN nths_actions actions ON actions.id = nga.nths_action_id
+WHERE
+    nths_group_id = :groupId!;
+
+
+/* @name getNthsActions */
+SELECT
+    actions.id,
+    actions.name
+FROM
+    nths_actions actions;
+
