@@ -191,9 +191,3 @@ SELECT
 FROM
     nths_actions actions;
 
-
-/* @name deleteNthsGroupAction */
-DELETE FROM nths_group_actions
-WHERE nths_group_id = :groupId!
-    AND nths_action_id = :actionId!;
-

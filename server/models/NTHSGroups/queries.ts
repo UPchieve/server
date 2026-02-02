@@ -281,23 +281,6 @@ export async function insertNthsGroupAction(
     throw new RepoCreateError(err)
   }
 }
-export async function deleteNthsGroupAction(
-  groupId: Ulid,
-  actionId: number,
-  tc: TransactionClient = getClient()
-) {
-  try {
-    await pgQueries.deleteNthsGroupAction.run(
-      {
-        groupId,
-        actionId,
-      },
-      tc
-    )
-  } catch (err) {
-    throw new RepoDeleteError(err)
-  }
-}
 
 export async function getNthsGroupActionsByGroupId(
   nthsGroupId: Ulid,

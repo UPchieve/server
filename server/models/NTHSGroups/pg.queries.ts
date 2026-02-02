@@ -599,31 +599,3 @@ const getNthsActionsIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT
 export const getNthsActions = new PreparedQuery<IGetNthsActionsParams,IGetNthsActionsResult>(getNthsActionsIR);
 
 
-/** 'DeleteNthsGroupAction' parameters type */
-export interface IDeleteNthsGroupActionParams {
-  actionId: number;
-  groupId: string;
-}
-
-/** 'DeleteNthsGroupAction' return type */
-export type IDeleteNthsGroupActionResult = void;
-
-/** 'DeleteNthsGroupAction' query type */
-export interface IDeleteNthsGroupActionQuery {
-  params: IDeleteNthsGroupActionParams;
-  result: IDeleteNthsGroupActionResult;
-}
-
-const deleteNthsGroupActionIR: any = {"usedParamSet":{"groupId":true,"actionId":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":53,"b":61}]},{"name":"actionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":88,"b":97}]}],"statement":"DELETE FROM nths_group_actions\nWHERE nths_group_id = :groupId!\n    AND nths_action_id = :actionId!"};
-
-/**
- * Query generated from SQL:
- * ```
- * DELETE FROM nths_group_actions
- * WHERE nths_group_id = :groupId!
- *     AND nths_action_id = :actionId!
- * ```
- */
-export const deleteNthsGroupAction = new PreparedQuery<IDeleteNthsGroupActionParams,IDeleteNthsGroupActionResult>(deleteNthsGroupActionIR);
-
-

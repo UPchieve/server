@@ -183,13 +183,6 @@ export async function createAction(
   return await NTHSGroupsRepo.insertNthsGroupAction(nthsGroupId, action)
 }
 
-export async function deleteAction(
-  nthsGroupId: Ulid,
-  actionId: number
-): Promise<void> {
-  await NTHSGroupsRepo.deleteNthsGroupAction(nthsGroupId, actionId)
-}
-
 export async function getActionsForGroup(
   nthsGroupId: Ulid
 ): Promise<NTHSGroupAction[]> {
