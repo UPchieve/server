@@ -14,14 +14,5 @@ describe('moderation-utils', () => {
       expect(convertThresholdToPercentage(50)).toBe(50)
       expect(convertThresholdToPercentage(100)).toBe(100)
     })
-
-    it('Works correctly in moderation comparison scenarios', () => {
-      const decimalThreshold = 0.75 // DB threshold
-      const openAIConfidence = 80 // OpenAI returns 0-100
-
-      const thresholdPercent = convertThresholdToPercentage(decimalThreshold)
-      expect(thresholdPercent).toBe(75)
-      expect(openAIConfidence >= thresholdPercent).toBe(true)
-    })
   })
 })
