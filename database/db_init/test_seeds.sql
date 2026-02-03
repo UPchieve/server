@@ -6200,6 +6200,18 @@ COPY upchieve.nths_group_members (nths_group_id, user_id, title, joined_at, upda
 
 
 --
+-- Data for Name: nths_school_affiliation_statuses; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.nths_school_affiliation_statuses (id, name, created_at) FROM stdin;
+1	PENDING_SCHOOL_AFFILIATION	2026-02-03 19:53:33.966404+00
+2	PENDING_UPCHIEVE_VERIFICATION	2026-02-03 19:53:33.966404+00
+3	AFFILIATED	2026-02-03 19:53:33.966404+00
+4	DENIED	2026-02-03 19:53:33.966404+00
+\.
+
+
+--
 -- Data for Name: parents_guardians; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
@@ -8899,6 +8911,13 @@ SELECT pg_catalog.setval('upchieve.nths_group_actions_id_seq', 1, false);
 --
 
 SELECT pg_catalog.setval('upchieve.nths_group_roles_id_seq', 2, true);
+
+
+--
+-- Name: nths_school_affiliation_statuses_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
+--
+
+SELECT pg_catalog.setval('upchieve.nths_school_affiliation_statuses_id_seq', 4, true);
 
 
 --

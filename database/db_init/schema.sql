@@ -1060,6 +1060,31 @@ CREATE TABLE upchieve.nths_groups (
 
 
 --
+-- Name: nths_school_affiliation_statuses; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.nths_school_affiliation_statuses (
+    id integer NOT NULL,
+    name text NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: nths_school_affiliation_statuses_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE upchieve.nths_school_affiliation_statuses ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME upchieve.nths_school_affiliation_statuses_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
 -- Name: parents_guardians; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -3818,6 +3843,22 @@ ALTER TABLE ONLY upchieve.nths_groups
 
 ALTER TABLE ONLY upchieve.nths_groups
     ADD CONSTRAINT nths_groups_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: nths_school_affiliation_statuses nths_school_affiliation_statuses_name_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_school_affiliation_statuses
+    ADD CONSTRAINT nths_school_affiliation_statuses_name_key UNIQUE (name);
+
+
+--
+-- Name: nths_school_affiliation_statuses nths_school_affiliation_statuses_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_school_affiliation_statuses
+    ADD CONSTRAINT nths_school_affiliation_statuses_pkey PRIMARY KEY (id);
 
 
 --
@@ -7055,3 +7096,4 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260129185914'),
     ('20260129190242'),
     ('20260204215802');
+    ('20260203194147');
