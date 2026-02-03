@@ -483,3 +483,119 @@ const updateGroupNameIR: any = {"usedParamSet":{"name":true,"groupId":true},"par
 export const updateGroupName = new PreparedQuery<IUpdateGroupNameParams,IUpdateGroupNameResult>(updateGroupNameIR);
 
 
+/** 'InsertNthsGroupAction' parameters type */
+export interface IInsertNthsGroupActionParams {
+  actionName: string;
+  groupId: string;
+}
+
+/** 'InsertNthsGroupAction' return type */
+export interface IInsertNthsGroupActionResult {
+  actionId: number | null;
+  actionName: string | null;
+  createdAt: Date;
+  groupId: string | null;
+  id: number;
+}
+
+/** 'InsertNthsGroupAction' query type */
+export interface IInsertNthsGroupActionQuery {
+  params: IInsertNthsGroupActionParams;
+  result: IInsertNthsGroupActionResult;
+}
+
+const insertNthsGroupActionIR: any = {"usedParamSet":{"groupId":true,"actionName":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":74,"b":82}]},{"name":"actionName","required":true,"transform":{"type":"scalar"},"locs":[{"a":155,"b":166},{"a":270,"b":281}]}],"statement":"INSERT INTO nths_group_actions (nths_group_id, nths_action_id)\nSELECT\n    :groupId!,\n    actions.id\nFROM\n    nths_actions actions\nWHERE\n    actions.name = :actionName!\nRETURNING\n    id,\n    nths_group_id AS group_id,\n    nths_action_id AS action_id,\n    created_at,\n    :actionName! AS action_name"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO nths_group_actions (nths_group_id, nths_action_id)
+ * SELECT
+ *     :groupId!,
+ *     actions.id
+ * FROM
+ *     nths_actions actions
+ * WHERE
+ *     actions.name = :actionName!
+ * RETURNING
+ *     id,
+ *     nths_group_id AS group_id,
+ *     nths_action_id AS action_id,
+ *     created_at,
+ *     :actionName! AS action_name
+ * ```
+ */
+export const insertNthsGroupAction = new PreparedQuery<IInsertNthsGroupActionParams,IInsertNthsGroupActionResult>(insertNthsGroupActionIR);
+
+
+/** 'GetAllNthsGroupActionsByGroupId' parameters type */
+export interface IGetAllNthsGroupActionsByGroupIdParams {
+  groupId: string;
+}
+
+/** 'GetAllNthsGroupActionsByGroupId' return type */
+export interface IGetAllNthsGroupActionsByGroupIdResult {
+  actionId: number | null;
+  actionName: string;
+  createdAt: Date;
+  groupId: string | null;
+  id: number;
+}
+
+/** 'GetAllNthsGroupActionsByGroupId' query type */
+export interface IGetAllNthsGroupActionsByGroupIdQuery {
+  params: IGetAllNthsGroupActionsByGroupIdParams;
+  result: IGetAllNthsGroupActionsByGroupIdResult;
+}
+
+const getAllNthsGroupActionsByGroupIdIR: any = {"usedParamSet":{"groupId":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":266,"b":274}]}],"statement":"SELECT\n    nga.id,\n    nga.nths_group_id AS group_id,\n    nga.nths_action_id AS action_id,\n    nga.created_at,\n    actions.name AS action_name\nFROM\n    nths_group_actions nga\n    JOIN nths_actions actions ON actions.id = nga.nths_action_id\nWHERE\n    nths_group_id = :groupId!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     nga.id,
+ *     nga.nths_group_id AS group_id,
+ *     nga.nths_action_id AS action_id,
+ *     nga.created_at,
+ *     actions.name AS action_name
+ * FROM
+ *     nths_group_actions nga
+ *     JOIN nths_actions actions ON actions.id = nga.nths_action_id
+ * WHERE
+ *     nths_group_id = :groupId!
+ * ```
+ */
+export const getAllNthsGroupActionsByGroupId = new PreparedQuery<IGetAllNthsGroupActionsByGroupIdParams,IGetAllNthsGroupActionsByGroupIdResult>(getAllNthsGroupActionsByGroupIdIR);
+
+
+/** 'GetNthsActions' parameters type */
+export type IGetNthsActionsParams = void;
+
+/** 'GetNthsActions' return type */
+export interface IGetNthsActionsResult {
+  id: number;
+  name: string;
+}
+
+/** 'GetNthsActions' query type */
+export interface IGetNthsActionsQuery {
+  params: IGetNthsActionsParams;
+  result: IGetNthsActionsResult;
+}
+
+const getNthsActionsIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    actions.id,\n    actions.name\nFROM\n    nths_actions actions"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     actions.id,
+ *     actions.name
+ * FROM
+ *     nths_actions actions
+ * ```
+ */
+export const getNthsActions = new PreparedQuery<IGetNthsActionsParams,IGetNthsActionsResult>(getNthsActionsIR);
+
+
