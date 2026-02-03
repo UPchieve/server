@@ -1046,6 +1046,18 @@ ALTER TABLE upchieve.nths_group_roles ALTER COLUMN id ADD GENERATED ALWAYS AS ID
 
 
 --
+-- Name: nths_group_school_affiliation; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.nths_group_school_affiliation (
+    nths_group_id uuid NOT NULL,
+    nths_school_affiliation_status_id integer NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
 -- Name: nths_groups; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -3830,6 +3842,14 @@ ALTER TABLE ONLY upchieve.nths_group_roles
 
 
 --
+-- Name: nths_group_school_affiliation nths_group_school_affiliation_nths_group_id_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_group_school_affiliation
+    ADD CONSTRAINT nths_group_school_affiliation_nths_group_id_key UNIQUE (nths_group_id);
+
+
+--
 -- Name: nths_groups nths_groups_invite_code_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -5699,6 +5719,22 @@ ALTER TABLE ONLY upchieve.nths_group_members
 
 
 --
+-- Name: nths_group_school_affiliation nths_group_school_affiliation_nths_group_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_group_school_affiliation
+    ADD CONSTRAINT nths_group_school_affiliation_nths_group_id_fkey FOREIGN KEY (nths_group_id) REFERENCES upchieve.nths_groups(id);
+
+
+--
+-- Name: nths_group_school_affiliation nths_group_school_affiliation_nths_school_affiliation_stat_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_group_school_affiliation
+    ADD CONSTRAINT nths_group_school_affiliation_nths_school_affiliation_stat_fkey FOREIGN KEY (nths_school_affiliation_status_id) REFERENCES upchieve.nths_school_affiliation_statuses(id);
+
+
+--
 -- Name: parents_guardians_students parents_guardians_students_parents_guardians_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -7095,5 +7131,6 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260122195918'),
     ('20260129185914'),
     ('20260129190242'),
-    ('20260204215802');
-    ('20260203194147');
+    ('20260204215802'),
+    ('20260203194147'),
+    ('20260203194734');

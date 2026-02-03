@@ -6212,6 +6212,14 @@ COPY upchieve.nths_school_affiliation_statuses (id, name, created_at) FROM stdin
 
 
 --
+-- Data for Name: nths_group_school_affiliation; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.nths_group_school_affiliation (nths_group_id, nths_school_affiliation_status_id, created_at, updated_at) FROM stdin;
+\.
+
+
+--
 -- Data for Name: parents_guardians; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
