@@ -6166,6 +6166,14 @@ COPY upchieve.nths_groups (id, name, key, created_at, updated_at, invite_code) F
 
 
 --
+-- Data for Name: nths_advisors; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.nths_advisors (id, nths_group_id, first_name, last_name, email, phone, phone_extension, title, verified, created_at, updated_at) FROM stdin;
+\.
+
+
+--
 -- Data for Name: nths_group_actions; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 

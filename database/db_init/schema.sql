@@ -970,6 +970,25 @@ ALTER TABLE upchieve.nths_actions ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTI
 
 
 --
+-- Name: nths_advisors; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.nths_advisors (
+    id uuid NOT NULL,
+    nths_group_id uuid NOT NULL,
+    first_name text NOT NULL,
+    last_name text NOT NULL,
+    email text NOT NULL,
+    phone text NOT NULL,
+    phone_extension text,
+    title text NOT NULL,
+    verified boolean DEFAULT false NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
 -- Name: nths_group_actions; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -3810,6 +3829,22 @@ ALTER TABLE ONLY upchieve.nths_actions
 
 
 --
+-- Name: nths_advisors nths_advisors_email_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_advisors
+    ADD CONSTRAINT nths_advisors_email_key UNIQUE (email);
+
+
+--
+-- Name: nths_advisors nths_advisors_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_advisors
+    ADD CONSTRAINT nths_advisors_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: nths_group_actions nths_group_actions_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -5097,6 +5132,13 @@ CREATE INDEX nths_group_actions_group_id ON upchieve.nths_group_actions USING bt
 
 
 --
+-- Name: nths_group_advisors_group_id; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX nths_group_advisors_group_id ON upchieve.nths_advisors USING btree (nths_group_id);
+
+
+--
 -- Name: nths_groups_invite_code_index; Type: INDEX; Schema: upchieve; Owner: -
 --
 
@@ -5660,6 +5702,14 @@ ALTER TABLE ONLY upchieve.notifications
 
 ALTER TABLE ONLY upchieve.notifications
     ADD CONSTRAINT notifications_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
+
+
+--
+-- Name: nths_advisors nths_advisors_nths_group_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_advisors
+    ADD CONSTRAINT nths_advisors_nths_group_id_fkey FOREIGN KEY (nths_group_id) REFERENCES upchieve.nths_groups(id);
 
 
 --
@@ -7133,4 +7183,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260129190242'),
     ('20260204215802'),
     ('20260203194147'),
-    ('20260203194734');
+    ('20260203194734'),
+    ('20260203200218');
