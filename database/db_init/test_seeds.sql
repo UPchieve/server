@@ -6150,6 +6150,10 @@ COPY upchieve.nths_actions (id, name, created_at) FROM stdin;
 1	NAMED YOUR TEAM	2026-01-29 20:30:00.05419+00
 2	REVIEWED RESOURCES	2026-01-29 20:30:00.05419+00
 3	ATTENDED ORIENTATION	2026-01-29 20:30:00.05419+00
+4	MARKED SCHOOL AFFILIATION IN PROGRESS	2026-02-03 19:39:46.025817+00
+5	SUBMITTED ADVISOR CONTACT INFO	2026-02-03 19:39:46.025817+00
+6	ADVISOR VERIFIED	2026-02-03 19:39:46.025817+00
+7	SCHOOL AFFILIATION DENIED	2026-02-03 19:39:46.025817+00
 \.
 
 
@@ -8880,7 +8884,7 @@ SELECT pg_catalog.setval('upchieve.notification_types_id_seq', 2, true);
 -- Name: nths_actions_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.nths_actions_id_seq', 3, true);
+SELECT pg_catalog.setval('upchieve.nths_actions_id_seq', 7, true);
 
 
 --
