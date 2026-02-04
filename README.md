@@ -45,10 +45,10 @@ This repository is the backend API server and queue worker only. To work on the 
 
 ### Local Dependencies
 
-The recommended tool for runtime version management is [`nvm`][nvm]. To use `nvm` on Windows, first install the appropriate Linux shell distribution using [`WSL`][wsl] (Windows Subsystem for Linux). We currently run on Node v24.12.0, you can switch to this using
+The recommended tool for runtime version management is [`nvm`][nvm]. To use `nvm` on Windows, first install the appropriate Linux shell distribution using [`WSL`][wsl] (Windows Subsystem for Linux). We currently run on Node v24.13.0, you can switch to this using
 
 ```shell
-$ nvm install v24.12.0 && nvm use v24.12.0
+$ nvm install v24.13.0 && nvm use v24.13.0
 ```
 
 After switching npm versions using nvm, you will need to run `$ npm install`. Next install [`Docker`][Docker] and start according to their instructions for your operating system.

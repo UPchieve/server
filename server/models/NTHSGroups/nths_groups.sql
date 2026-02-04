@@ -5,12 +5,17 @@ SELECT
     ng.id AS group_id,
     ng.name AS group_name,
     ng.key AS group_key,
-    ng.invite_code
+    ng.invite_code,
+    roles.name AS role_name
 FROM
     nths_group_members ngm
     INNER JOIN nths_groups ng ON ng.id = ngm.nths_group_id
+    INNER JOIN nths_group_member_roles member_roles ON member_roles.user_id = :userId!
+        AND member_roles.nths_group_id = ng.id
+    INNER JOIN nths_group_roles roles ON roles.id = member_roles.role_id
 WHERE
-    ngm.user_id = :userId!;
+    ngm.user_id = :userId!
+    AND ngm.deactivated_at IS NULL;
 
 
 /* @name getInviteCodeForGroup */
@@ -39,4 +44,150 @@ INSERT INTO nths_group_members ("nths_group_id", "user_id", "title")
     VALUES (:groupId!, :userId!, :title!)
 RETURNING
     *;
+
+
+/* @name insertNthsGroupMemberRole */
+INSERT INTO nths_group_member_roles (user_id, nths_group_id, role_id)
+SELECT
+    :userId!,
+    :nthsGroupId!,
+    roles.id
+FROM
+    nths_group_roles roles
+WHERE
+    roles.name = :roleName!
+RETURNING
+    *;
+
+
+/* @name upsertNthsGroupMemberRole */
+INSERT INTO nths_group_member_roles (user_id, nths_group_id, role_id)
+SELECT
+    :userId!,
+    :nthsGroupId!,
+    roles.id
+FROM
+    nths_group_roles roles
+WHERE
+    roles.name = :roleName!
+ON CONFLICT (user_id,
+    nths_group_id)
+    DO UPDATE SET
+        role_id = EXCLUDED.role_id,
+        updated_at = NOW()
+    RETURNING
+        *,
+        :roleName AS role_name;
+
+
+/* @name getGroupMember */
+SELECT
+    m.*,
+    roles.name AS role_name
+FROM
+    nths_group_members m
+    JOIN nths_group_member_roles member_roles ON member_roles.user_id = m.user_id
+        AND member_roles.nths_group_id = m.nths_group_id
+    JOIN nths_group_roles roles ON roles.id = member_roles.role_id
+WHERE
+    m.user_id = :userId!
+    AND m.nths_group_id = :nthsGroupId!;
+
+
+/* @name getGroupMembers */
+SELECT
+    ngm.*,
+    roles.name AS role_name,
+    LEFT (users.last_name,
+        1) AS last_initial,
+    users.first_name
+FROM
+    nths_group_members ngm
+    JOIN nths_group_member_roles member_roles ON member_roles.nths_group_id = :groupId!
+        AND member_roles.user_id = ngm.user_id
+    JOIN nths_group_roles roles ON roles.id = member_roles.role_id
+    JOIN users ON users.id = ngm.user_id
+WHERE
+    ngm.nths_group_id = :groupId!
+    AND ngm.deactivated_at IS NULL;
+
+
+/* @name groupsCount */
+SELECT
+    count(*)
+FROM
+    nths_groups;
+
+
+/* @name createGroup */
+INSERT INTO nths_groups (id, invite_code, name, KEY)
+    VALUES (generate_ulid (), :inviteCode!, :name!, :key!)
+RETURNING
+    *;
+
+
+/* @name deactivateGroupMember */
+UPDATE
+    nths_group_members
+SET
+    deactivated_at = NOW(),
+    updated_at = NOW()
+WHERE
+    user_id = :userId!
+    AND nths_group_id = :groupId!;
+
+
+/* @name updateGroupName */
+UPDATE
+    nths_groups
+SET
+    name = :name!,
+    updated_at = NOW()
+WHERE
+    id = :groupId!
+RETURNING
+    id,
+    name,
+    KEY,
+    created_at,
+    invite_code;
+
+
+/* @name insertNthsGroupAction */
+INSERT INTO nths_group_actions (nths_group_id, nths_action_id)
+SELECT
+    :groupId!,
+    actions.id
+FROM
+    nths_actions actions
+WHERE
+    actions.name = :actionName!
+RETURNING
+    id,
+    nths_group_id AS group_id,
+    nths_action_id AS action_id,
+    created_at,
+    :actionName! AS action_name;
+
+
+/* @name getAllNthsGroupActionsByGroupId */
+SELECT
+    nga.id,
+    nga.nths_group_id AS group_id,
+    nga.nths_action_id AS action_id,
+    nga.created_at,
+    actions.name AS action_name
+FROM
+    nths_group_actions nga
+    JOIN nths_actions actions ON actions.id = nga.nths_action_id
+WHERE
+    nths_group_id = :groupId!;
+
+
+/* @name getNthsActions */
+SELECT
+    actions.id,
+    actions.name
+FROM
+    nths_actions actions;
 

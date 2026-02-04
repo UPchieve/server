@@ -48,7 +48,7 @@ export function routeModeration(router: Router): void {
           image: imageToModerate.buffer,
           sessionId,
           userId: user.id,
-          isVolunteer: user.isVolunteer,
+          isVolunteer: user.roleContext.hasRole('volunteer'),
           source: 'image_upload',
           aggregateInfractions: true,
         })
@@ -75,7 +75,7 @@ export function routeModeration(router: Router): void {
           image: frameToModerate.buffer,
           sessionId,
           userId: user.id,
-          isVolunteer: user.isVolunteer,
+          isVolunteer: user.roleContext.hasRole('volunteer'),
           source: 'screenshare',
           aggregateInfractions: false,
         })

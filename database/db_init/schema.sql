@@ -1,3 +1,6 @@
+-- Dumped from database version 14.15 (Debian 14.15-1.pgdg120+1)
+-- Dumped by pg_dump version 14.19 (Homebrew)
+
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -907,6 +910,69 @@ CREATE TABLE upchieve.notifications (
 
 
 --
+-- Name: nths_actions; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.nths_actions (
+    id integer NOT NULL,
+    name text NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: nths_actions_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE upchieve.nths_actions ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME upchieve.nths_actions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: nths_group_actions; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.nths_group_actions (
+    id integer NOT NULL,
+    nths_group_id uuid,
+    nths_action_id integer,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: nths_group_actions_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE upchieve.nths_group_actions ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME upchieve.nths_group_actions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: nths_group_member_roles; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.nths_group_member_roles (
+    user_id uuid NOT NULL,
+    nths_group_id uuid NOT NULL,
+    role_id integer,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
 -- Name: nths_group_members; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -917,6 +983,30 @@ CREATE TABLE upchieve.nths_group_members (
     joined_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     deactivated_at timestamp with time zone
+);
+
+
+--
+-- Name: nths_group_roles; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.nths_group_roles (
+    id integer NOT NULL,
+    name character varying(20)
+);
+
+
+--
+-- Name: nths_group_roles_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE upchieve.nths_group_roles ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME upchieve.nths_group_roles_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
 );
 
 
@@ -3616,11 +3706,51 @@ ALTER TABLE ONLY upchieve.notifications
 
 
 --
+-- Name: nths_actions nths_actions_name_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_actions
+    ADD CONSTRAINT nths_actions_name_key UNIQUE (name);
+
+
+--
+-- Name: nths_actions nths_actions_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_actions
+    ADD CONSTRAINT nths_actions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: nths_group_actions nths_group_actions_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_group_actions
+    ADD CONSTRAINT nths_group_actions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: nths_group_member_roles nths_group_member_roles_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_group_member_roles
+    ADD CONSTRAINT nths_group_member_roles_pkey PRIMARY KEY (user_id, nths_group_id);
+
+
+--
 -- Name: nths_group_members nths_group_members_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
 ALTER TABLE ONLY upchieve.nths_group_members
     ADD CONSTRAINT nths_group_members_pkey PRIMARY KEY (nths_group_id, user_id);
+
+
+--
+-- Name: nths_group_roles nths_group_roles_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_group_roles
+    ADD CONSTRAINT nths_group_roles_pkey PRIMARY KEY (id);
 
 
 --
@@ -4448,11 +4578,35 @@ ALTER TABLE ONLY upchieve.tutor_bot_session_messages
 
 
 --
+-- Name: nths_group_actions unique_action_per_group; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_group_actions
+    ADD CONSTRAINT unique_action_per_group UNIQUE (nths_group_id, nths_action_id);
+
+
+--
 -- Name: cities unique_city_name_state; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
 ALTER TABLE ONLY upchieve.cities
     ADD CONSTRAINT unique_city_name_state UNIQUE (name, us_state_code);
+
+
+--
+-- Name: nths_groups unique_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_groups
+    ADD CONSTRAINT unique_key UNIQUE (key);
+
+
+--
+-- Name: nths_groups unique_name; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_groups
+    ADD CONSTRAINT unique_name UNIQUE (name);
 
 
 --
@@ -4814,6 +4968,20 @@ CREATE INDEX notifications_session_id ON upchieve.notifications USING btree (ses
 --
 
 CREATE INDEX notifications_user_id ON upchieve.notifications USING btree (user_id);
+
+
+--
+-- Name: nths_group_actions_action_id; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX nths_group_actions_action_id ON upchieve.nths_group_actions USING btree (nths_action_id);
+
+
+--
+-- Name: nths_group_actions_group_id; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX nths_group_actions_group_id ON upchieve.nths_group_actions USING btree (nths_group_id);
 
 
 --
@@ -5380,6 +5548,46 @@ ALTER TABLE ONLY upchieve.notifications
 
 ALTER TABLE ONLY upchieve.notifications
     ADD CONSTRAINT notifications_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
+
+
+--
+-- Name: nths_group_actions nths_group_actions_nths_action_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_group_actions
+    ADD CONSTRAINT nths_group_actions_nths_action_id_fkey FOREIGN KEY (nths_action_id) REFERENCES upchieve.nths_actions(id);
+
+
+--
+-- Name: nths_group_actions nths_group_actions_nths_group_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_group_actions
+    ADD CONSTRAINT nths_group_actions_nths_group_id_fkey FOREIGN KEY (nths_group_id) REFERENCES upchieve.nths_groups(id);
+
+
+--
+-- Name: nths_group_member_roles nths_group_member_roles_nths_group_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_group_member_roles
+    ADD CONSTRAINT nths_group_member_roles_nths_group_id_fkey FOREIGN KEY (nths_group_id) REFERENCES upchieve.nths_groups(id);
+
+
+--
+-- Name: nths_group_member_roles nths_group_member_roles_role_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_group_member_roles
+    ADD CONSTRAINT nths_group_member_roles_role_id_fkey FOREIGN KEY (role_id) REFERENCES upchieve.nths_group_roles(id);
+
+
+--
+-- Name: nths_group_member_roles nths_group_member_roles_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_group_member_roles
+    ADD CONSTRAINT nths_group_member_roles_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
 
 
 --
@@ -6786,5 +6994,12 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20251121214549'),
     ('20251125134512'),
     ('20251201200733'),
+    ('20251202113843'),
+    ('20251202114139'),
     ('20251205231954'),
-    ('20251215171217');
+    ('20251215171217'),
+    ('20260114171204'),
+    ('20260114193023'),
+    ('20260122195918'),
+    ('20260129185914'),
+    ('20260129190242');

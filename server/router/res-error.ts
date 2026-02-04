@@ -8,6 +8,9 @@ import {
   LookupError,
   NotAuthenticatedError,
   AlreadyInUseError,
+  AlreadyInNTHSGroupError,
+  CannotRemoveSoleNTHSAdminError,
+  NTHSGroupNameTakenError,
 } from '../models/Errors'
 import { RegistrationError, ResetError } from '../utils/auth-utils'
 import config from '../config'
@@ -47,9 +50,12 @@ export function resError(
     else if (err instanceof ZodError) {
       status = 422
       message = err.issues?.[0]?.message || 'Invalid input'
-    } else if (err instanceof InputError) {
-      status = 422
-    } else if (err instanceof AlreadyInUseError) status = 409
+    } 
+    else if (err instanceof InputError) status = 422
+    else if (err instanceof AlreadyInNTHSGroupError) status = 422
+    else if (err instanceof NTHSGroupNameTakenError) status = 422
+    else if (err instanceof CannotRemoveSoleNTHSAdminError) status = 422
+    else if (err instanceof AlreadyInUseError) status = 409
     // response timeout
     else if (err.message === 'Response timeout') status = 408
     // unknown error
@@ -60,7 +66,7 @@ export function resError(
     logError(err as Error)
 
     res.status(status).json({
-      err: message || err.message,
+      err: message.length ? message : err.message,
     })
   } else {
     logger.error(err, 'Unexpected non-error type thrown')

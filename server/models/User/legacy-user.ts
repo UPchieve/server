@@ -21,6 +21,7 @@ import {
 import { hasCompletedVolunteerTraining } from '../../services/VolunteerService'
 import { getUserSessionStats, UserSessionStats } from '../Session'
 import { getUsersLatestSubjectsByUserId } from './'
+import { getFavoriteVolunteersByUserId } from './'
 import * as UserRolesService from '../../services/UserRolesService'
 import * as SurveyService from '../../services/SurveyService'
 import { PostsessionSurveyRatingsMetric } from '../../services/SurveyService'
@@ -44,11 +45,7 @@ export type LegacyUserModel = {
   firstname: string
   phone?: string
   college?: string
-  /** @deprecated */
-  isVolunteer: boolean
   userType: UserRole
-  /** @deprecated */
-  isAdmin: boolean
   //leaving isBanned only to make this backwards-compatible with mobile
   isBanned: boolean
   banType?: USER_BAN_TYPES
@@ -101,6 +98,7 @@ export type LegacyUserModel = {
   usesClassLink?: boolean
   studentAssignments?: StudentAssignment[]
   ratings?: PostsessionSurveyRatingsMetric
+  favoriteVolunteers?: Ulid[]
   // teacher
   lastSuccessfulCleverSync?: Date
 
@@ -126,8 +124,6 @@ export async function getLegacyUserObject(
         'createdAt',
         'email',
         'verified',
-        'isAdmin',
-        'isVolunteer',
         'isTestUser',
         'isDeactivated',
         'referralCode',
@@ -157,7 +153,7 @@ export async function getLegacyUserObject(
       const volunteerUser: any = {}
       const studentUser: any = {}
       const teacherUser: { usesClever?: boolean; usesClassLink?: boolean } = {}
-      const roleContext = await UserRolesService.getRoleContext(userId)
+      const roleContext = await UserRolesService.getRoleContext(userId, true)
       const ratings =
         await SurveyService.getUserPostsessionGoalRatingsMetrics(userId)
       if (roleContext.isActiveRole('student')) {
@@ -173,6 +169,8 @@ export async function getLegacyUserObject(
         delete baseUser.issuers
         studentUser.studentAssignments =
           await AssignmentsService.getAssignmentsByStudentId(baseUser.id)
+        studentUser.favoriteVolunteers =
+          await getFavoriteVolunteersByUserId(userId)
       }
       if (roleContext.isActiveRole('volunteer')) {
         if (!baseUser.subjects) baseUser.subjects = []
@@ -227,6 +225,12 @@ export async function getLegacyUserObject(
           baseUser.issuers?.some((issuer) => issuer.includes('classlink')) ??
           false
       }
+
+      // @ts-ignore
+      // TODO: Legacy for frontend, but do not use in backend anymore.
+      // Update references to `user.isAdmin` in high-line to check the `roles` instead.
+      baseUser.isAdmin = roleContext.isAdmin()
+
       const final = _.merge(
         {
           _id: baseUser.id,

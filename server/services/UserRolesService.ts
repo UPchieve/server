@@ -52,13 +52,13 @@ export class RoleContext {
 export async function getRoleContext(
   userId: string,
   forceRefetch = false,
-  tc?: TransactionClient
+  tc: TransactionClient = getClient()
 ): Promise<RoleContext> {
   const key = getRoleContextCacheKey(userId)
   const roleContextStr = await CacheService.getIfExists(key)
   if (!roleContextStr || forceRefetch) {
     // On cache miss: Create RoleContext from DB and save to cache
-    const roles = await UserRepo.getUserRolesById(userId, tc ?? getClient())
+    const roles = await UserRepo.getUserRolesById(userId, tc)
     if (!roles.length) {
       throw new Error('User is missing roles')
     }

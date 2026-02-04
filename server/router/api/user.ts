@@ -5,14 +5,10 @@ import * as VolunteerService from '../../services/VolunteerService'
 import * as UserRolesService from '../../services/UserRolesService'
 import * as PresenceService from '../../services/PresenceService'
 import { updateUserProfile } from '../../services/UserProfileService'
-import {
-  getUserForAdminDetail,
-  getUserIdByEmail,
-  EditUserProfilePayload,
-} from '../../models/User/'
+import { getUserIdByEmail, EditUserProfilePayload } from '../../models/User/'
 import { authPassport } from '../../utils/auth-utils'
 import { resError } from '../res-error'
-import { asString, asBoolean, asUlid, asNumber } from '../../utils/type-utils'
+import { asString, asBoolean, asUlid } from '../../utils/type-utils'
 import { extractUser } from '../extract-user'
 import { InputError, NotAllowedError } from '../../models/Errors'
 
@@ -231,19 +227,15 @@ export function routeUser(router: Router): void {
     const skip = PAGE_SIZE * (page - 1)
 
     try {
-      const user = await getUserForAdminDetail(asUlid(userId), PAGE_SIZE, skip)
-      const roleContext = await UserRolesService.getRoleContext(userId)
-
-      let resUser: any = user
-      if (roleContext.hasRole('volunteer') && user.photoIdS3Key) {
-        const photoUrl = await AwsService.getPhotoIdUrl(user.photoIdS3Key)
-        resUser = Object.assign(resUser, { photoUrl })
-      }
-
+      const user = await UserService.getUserForAdminDetail(
+        asUlid(userId),
+        PAGE_SIZE,
+        skip
+      )
       res.json({
         ...user,
-        userType: roleContext.legacyRole,
-        roles: roleContext.roles,
+        userType: user.roleContext.legacyRole,
+        roles: user.roleContext.roles,
       })
     } catch (err) {
       resError(res, err)

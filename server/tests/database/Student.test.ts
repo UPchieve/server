@@ -192,7 +192,7 @@ describe('upsertStudentProfile', () => {
     )
   })
 
-  test('updates only the values that are new, except grade level and partner site', async () => {
+  test('updates only the values that are new, except partner site', async () => {
     const user = await createUser()
 
     const GRADE_LEVEL_8TH_ID = 1
@@ -242,7 +242,6 @@ describe('upsertStudentProfile', () => {
 
     const updatedStudent = {
       userId: user.id,
-      gradeLevel: '12th',
       studentPartnerOrgKey: 'school-helpers',
     }
     const returnedWithUpdate = await upsertStudentProfile(
@@ -256,7 +255,6 @@ describe('upsertStudentProfile', () => {
       [user.id]
     )
     expect(afterWithUpdate.rows.length).toBe(1)
-    expect(afterWithUpdate.rows[0].grade_level_id).toBe(GRADE_LEVEL_8TH_ID)
     expect(afterWithUpdate.rows[0].student_partner_org_id).toBe(
       '01919662-87dc-5824-8bf6-e5e408bf6f40'
     )

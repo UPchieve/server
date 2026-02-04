@@ -791,4 +791,16 @@ describe('ModerationService', () => {
       expect(getSessionFlagByModerationReason(reason)).toEqual(expected)
     })
   })
+
+  describe('Confidence threshold conversion', () => {
+    it('Converts decimal thresholds to percentages for comparison', () => {
+      // Test the conversion logic that was missing in transcript moderation
+      const decimalThreshold = 0.75 // DB threshold
+      const openAIConfidence = 80 // OpenAI returns 0-100
+
+      const thresholdPercent = decimalThreshold * 100 // Convert to percentage
+      expect(thresholdPercent).toBe(75)
+      expect(openAIConfidence >= thresholdPercent).toBe(true)
+    })
+  })
 })

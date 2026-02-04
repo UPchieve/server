@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 14.19 (Debian 14.19-1.pgdg13+1)
--- Dumped by pg_dump version 14.13 (Homebrew)
+-- Dumped from database version 14.15 (Debian 14.15-1.pgdg120+1)
+-- Dumped by pg_dump version 14.19 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -6112,10 +6112,47 @@ COPY upchieve.notifications (id, user_id, sent_at, type_id, method_id, priority_
 
 
 --
+-- Data for Name: nths_actions; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.nths_actions (id, name, created_at) FROM stdin;
+1	NAMED YOUR TEAM	2026-01-29 20:30:00.05419+00
+2	REVIEWED RESOURCES	2026-01-29 20:30:00.05419+00
+3	ATTENDED ORIENTATION	2026-01-29 20:30:00.05419+00
+\.
+
+
+--
 -- Data for Name: nths_groups; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
 COPY upchieve.nths_groups (id, name, key, created_at, updated_at, invite_code) FROM stdin;
+\.
+
+
+--
+-- Data for Name: nths_group_actions; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.nths_group_actions (id, nths_group_id, nths_action_id, created_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: nths_group_roles; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.nths_group_roles (id, name) FROM stdin;
+1	admin
+2	member
+\.
+
+
+--
+-- Data for Name: nths_group_member_roles; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.nths_group_member_roles (user_id, nths_group_id, role_id, updated_at) FROM stdin;
 \.
 
 
@@ -8628,6 +8665,7 @@ COPY upchieve.users_roles (user_id, role_id, created_at, updated_at) FROM stdin;
 01919662-885c-a174-3088-998111f7cc80	1	2024-08-28 00:28:45.536315+00	2024-08-28 00:28:45.536315+00
 0198c4d0-34aa-ef79-20b5-f1c6245c0b7c	4	2025-08-20 00:10:36.035748+00	2025-08-20 00:10:36.035748+00
 0198c4d1-f405-a71a-931c-e94965191c0a	4	2025-08-20 00:12:30.562089+00	2025-08-20 00:12:30.562089+00
+01919662-8804-cc87-1ee3-90a35b65414d	3	2026-01-01 00:00:00+00	2026-01-01 00:00:00+00
 \.
 
 
@@ -8798,6 +8836,27 @@ SELECT pg_catalog.setval('upchieve.notification_priority_groups_id_seq', 22, tru
 --
 
 SELECT pg_catalog.setval('upchieve.notification_types_id_seq', 2, true);
+
+
+--
+-- Name: nths_actions_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
+--
+
+SELECT pg_catalog.setval('upchieve.nths_actions_id_seq', 3, true);
+
+
+--
+-- Name: nths_group_actions_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
+--
+
+SELECT pg_catalog.setval('upchieve.nths_group_actions_id_seq', 1, false);
+
+
+--
+-- Name: nths_group_roles_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
+--
+
+SELECT pg_catalog.setval('upchieve.nths_group_roles_id_seq', 2, true);
 
 
 --

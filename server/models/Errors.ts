@@ -128,3 +128,20 @@ export class HttpError extends CustomError {
     this.httpStatus = httpStatus
   }
 }
+
+export class AlreadyInNTHSGroupError extends CustomError {
+  constructor() {
+    super('User already in a group')
+  }
+}
+export class NTHSGroupNameTakenError extends CustomError {
+  constructor(message: string) {
+    super(message)
+  }
+}
+
+export class CannotRemoveSoleNTHSAdminError extends CustomError {
+  constructor() {
+    super('Cannot remove the only existing admin of a group')
+  }
+}

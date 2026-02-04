@@ -30,7 +30,6 @@ import { GetStudentPartnerOrgResult } from '../models/StudentPartnerOrg'
 import { insertFederatedCredential } from '../models/FederatedCredential'
 import * as AuthService from './AuthService'
 import { verifyEligibility } from './EligibilityService'
-import * as FederatedCredentialService from './FederatedCredentialService'
 import * as TeacherService from './TeacherService'
 import {
   createParentGuardian,
@@ -204,7 +203,6 @@ export async function verifyStudentData(data: RegisterStudentPayload) {
     throw new InputError('No authentication method provided.')
   }
 }
-
 export async function registerStudent(
   data: RegisterStudentPayload,
   tc?: TransactionClient
@@ -289,7 +287,6 @@ export async function registerStudent(
   return {
     ...newStudent,
     isAdmin: false,
-    isVolunteer: false,
     userType: 'student',
   }
 }
@@ -359,7 +356,12 @@ export async function registerVolunteer(
         data.inviteCode,
         tc
       )
-      await NTHSGroupsService.joinGroupAsMemberByGroupId(user.id, group.id, tc)
+      await NTHSGroupsService.joinGroupAsMemberByGroupId(
+        user.id,
+        group.id,
+        'member',
+        tc
+      )
     }
 
     return user
@@ -378,7 +380,6 @@ export async function registerVolunteer(
   return {
     ...newVolunteer,
     isAdmin: false,
-    isVolunteer: true,
     userType: 'volunteer',
   }
 }
@@ -565,7 +566,6 @@ export async function registerTeacher(data: RegisterTeacherPayload) {
   return {
     ...newTeacher,
     isAdmin: false,
-    isVolunteer: false,
     userType: 'teacher',
   }
 }
