@@ -98,5 +98,4 @@ COPY public.seed_migrations (version) FROM stdin;
 -- PostgreSQL database dump complete
 --
 
-\unrestrict 5CSm0P1brQAkAddBNJehNFfuC0Gk8WVTZGtHRr6Ep1zxhjShhEx48jJtDd5HdtO
 
