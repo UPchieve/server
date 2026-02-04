@@ -1,0 +1,57 @@
+-- migrate:up
+INSERT INTO upchieve.moderation_penalty_config (min_weight, max_weight, moderation_type)
+    VALUES (0, 10, 'contextual'), (0, 10, 'realtime_image');
+
+UPDATE
+    upchieve.moderation_settings
+SET
+    penalty_weight = 0;
+
+UPDATE
+    upchieve.moderation_settings
+SET
+    penalty_weight = 10
+WHERE
+    moderation_category_id IN (
+        SELECT
+            id
+        FROM
+            upchieve.moderation_categories
+        WHERE
+            lower(name) IN ('violence', 'swimwear or underwear', 'explicit', 'non-explicit nudity of intimate parts and kissing', 'hate symbols', 'visually disturbing', 'graphic', 'harassment_or_abuse', 'sexual', 'violence_or_threat'));
+
+UPDATE
+    upchieve.moderation_settings
+SET
+    penalty_weight = 4
+WHERE
+    moderation_category_id IN (
+        SELECT
+            id
+        FROM
+            upchieve.moderation_categories
+        WHERE
+            lower(name) IN ('url', 'email', 'address', 'phone'));
+
+UPDATE
+    upchieve.moderation_settings
+SET
+    penalty_weight = 1
+WHERE
+    moderation_category_id IN (
+        SELECT
+            id
+        FROM
+            upchieve.moderation_categories
+        WHERE
+            lower(name) IN ('gambling', 'profanity', 'drugs & tobacco', 'alcohol', 'hate symbols', 'rude gestures', 'hate_speech_real_time', 'insult'));
+
+-- migrate:down
+DELETE FROM upchieve.moderation_penalty_config
+WHERE moderation_type IN ('contextual', 'realtime_image');
+
+UPDATE
+    upchieve.moderation_settings
+SET
+    penalty_weight = 0;
+
