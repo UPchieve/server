@@ -38,7 +38,9 @@ export async function getGroupsByUser(
       return {
         ...camelCased,
         roleName: camelCased.roleName as NTHSGroupRoleName,
-        schoolAffiliationStatus: camelCased.schoolAffiliationStatus ?? null,
+        schoolAffiliationStatus:
+          (camelCased.schoolAffiliationStatus as NTHSSchoolAffiliationStatus) ??
+          null,
       }
     })
   } catch (err) {
