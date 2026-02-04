@@ -8,6 +8,7 @@ export type UserGroup = {
   groupKey: string
   inviteCode: string
   roleName: NTHSGroupRoleName
+  schoolAffiliationStatus: NTHSSchoolAffiliationStatus | null
 }
 
 export type NTHSGroup = {

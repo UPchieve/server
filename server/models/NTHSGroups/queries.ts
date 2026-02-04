@@ -34,10 +34,11 @@ export async function getGroupsByUser(
       tc
     )
     return results.map((row) => {
-      const camelCased = makeRequired(row)
+      const camelCased = makeSomeOptional(row, ['schoolAffiliationStatus'])
       return {
         ...camelCased,
         roleName: camelCased.roleName as NTHSGroupRoleName,
+        schoolAffiliationStatus: camelCased.schoolAffiliationStatus ?? null,
       }
     })
   } catch (err) {
