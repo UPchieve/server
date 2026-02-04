@@ -599,3 +599,49 @@ const getNthsActionsIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT
 export const getNthsActions = new PreparedQuery<IGetNthsActionsParams,IGetNthsActionsResult>(getNthsActionsIR);
 
 
+/** 'UpsertSchoolAffiliationStatus' parameters type */
+export interface IUpsertSchoolAffiliationStatusParams {
+  nthsGroupId: string;
+  status: string;
+}
+
+/** 'UpsertSchoolAffiliationStatus' return type */
+export interface IUpsertSchoolAffiliationStatusResult {
+  createdAt: Date;
+  nthsGroupId: string;
+  nthsSchoolAffiliationStatusId: number;
+  status: string | null;
+  updatedAt: Date;
+}
+
+/** 'UpsertSchoolAffiliationStatus' query type */
+export interface IUpsertSchoolAffiliationStatusQuery {
+  params: IUpsertSchoolAffiliationStatusParams;
+  result: IUpsertSchoolAffiliationStatusResult;
+}
+
+const upsertSchoolAffiliationStatusIR: any = {"usedParamSet":{"nthsGroupId":true,"status":true},"params":[{"name":"nthsGroupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":104,"b":116}]},{"name":"status","required":true,"transform":{"type":"scalar"},"locs":[{"a":212,"b":219},{"a":415,"b":422}]}],"statement":"INSERT INTO nths_group_school_affiliation (nths_group_id, nths_school_affiliation_status_id)\nSELECT\n    :nthsGroupId!,\n    statuses.id\nFROM\n    nths_school_affiliation_statuses statuses\nWHERE\n    statuses.name = :status!\nON CONFLICT (nths_group_id)\n    DO UPDATE SET\n        nths_school_affiliation_status_id = EXCLUDED.nths_school_affiliation_status_id,\n        updated_at = NOW()\n    RETURNING\n        *,\n        :status! AS status"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO nths_group_school_affiliation (nths_group_id, nths_school_affiliation_status_id)
+ * SELECT
+ *     :nthsGroupId!,
+ *     statuses.id
+ * FROM
+ *     nths_school_affiliation_statuses statuses
+ * WHERE
+ *     statuses.name = :status!
+ * ON CONFLICT (nths_group_id)
+ *     DO UPDATE SET
+ *         nths_school_affiliation_status_id = EXCLUDED.nths_school_affiliation_status_id,
+ *         updated_at = NOW()
+ *     RETURNING
+ *         *,
+ *         :status! AS status
+ * ```
+ */
+export const upsertSchoolAffiliationStatus = new PreparedQuery<IUpsertSchoolAffiliationStatusParams,IUpsertSchoolAffiliationStatusResult>(upsertSchoolAffiliationStatusIR);
+
+

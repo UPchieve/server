@@ -16,6 +16,7 @@ import type {
   NTHSGroupMemberRole,
   NTHSGroupMemberWithRole,
   NTHSGroupRoleName,
+  NTHSSchoolAffiliationStatus,
   UserGroup,
 } from './types'
 import { camelCaseKeys } from '../../tests/db-utils'
@@ -307,5 +308,26 @@ export async function getNthsActions(
     return results.map((row) => makeRequired(row))
   } catch (err) {
     throw new RepoReadError(err)
+  }
+}
+
+export async function updateSchoolAffiliationStatus(
+  status: NTHSSchoolAffiliationStatus,
+  nthsGroupId: Ulid,
+  tc: TransactionClient = getClient()
+): Promise<NTHSSchoolAffiliationStatus> {
+  try {
+    const result = await pgQueries.upsertSchoolAffiliationStatus.run(
+      { status, nthsGroupId },
+      tc
+    )
+    if (!result.length) {
+      throw new Error(
+        `Failed to upsert school affiliation status for group ${nthsGroupId}`
+      )
+    }
+    return result[0].status! as NTHSSchoolAffiliationStatus
+  } catch (err) {
+    throw new RepoUpsertError(err)
   }
 }

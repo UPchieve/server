@@ -8,12 +8,14 @@ import {
   TransactionClient,
 } from '../db'
 import {
+  NTHS_ACTIONS_TO_SCHOOL_AFFILIATION_STATUS_MAPPING,
   NTHSAction,
   NTHSActionName,
   NTHSGroupAction,
   NTHSGroupMemberRole,
   NTHSGroupMemberWithRole,
   NTHSGroupRoleName,
+  NTHSSchoolAffiliationStatus,
 } from '../models/NTHSGroups'
 import generateAlphanumericOfLength from '../utils/generate-alphanumeric'
 import {
@@ -177,11 +179,36 @@ export async function getGroupMembers(
   return await NTHSGroupsRepo.getGroupMembers(nthsGroupId)
 }
 
+type CreateActionResponse = {
+  action: NTHSGroupAction
+  schoolAffiliationStatus?: NTHSSchoolAffiliationStatus
+}
 export async function createAction(
   nthsGroupId: Ulid,
   action: NTHSActionName
-): Promise<NTHSGroupAction> {
-  return await NTHSGroupsRepo.insertNthsGroupAction(nthsGroupId, action)
+): Promise<CreateActionResponse> {
+  return await runInTransaction(async (tc) => {
+    const createdAction = await NTHSGroupsRepo.insertNthsGroupAction(
+      nthsGroupId,
+      action,
+      tc
+    )
+    let retVal = { action: createdAction }
+    const status = NTHS_ACTIONS_TO_SCHOOL_AFFILIATION_STATUS_MAPPING[action]
+    if (status) {
+      const updatedStatus = await NTHSGroupsRepo.updateSchoolAffiliationStatus(
+        status,
+        nthsGroupId,
+        tc
+      )
+      retVal = {
+        ...retVal,
+        schoolAffiliationStatus: updatedStatus,
+      } as CreateActionResponse
+    }
+
+    return retVal
+  })
 }
 
 export async function getActionsForGroup(

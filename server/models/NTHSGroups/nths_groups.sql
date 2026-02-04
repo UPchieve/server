@@ -191,3 +191,21 @@ SELECT
 FROM
     nths_actions actions;
 
+
+/* @name upsertSchoolAffiliationStatus */
+INSERT INTO nths_group_school_affiliation (nths_group_id, nths_school_affiliation_status_id)
+SELECT
+    :nthsGroupId!,
+    statuses.id
+FROM
+    nths_school_affiliation_statuses statuses
+WHERE
+    statuses.name = :status!
+ON CONFLICT (nths_group_id)
+    DO UPDATE SET
+        nths_school_affiliation_status_id = EXCLUDED.nths_school_affiliation_status_id,
+        updated_at = NOW()
+    RETURNING
+        *,
+        :status! AS status;
+
