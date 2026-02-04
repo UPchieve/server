@@ -26,7 +26,7 @@ export type NTHSGroupMember = {
   updatedAt: Date
   deactivatedAt?: Date
   firstName: string
-  email: string
+  lastInitial: string
 }
 
 export type NTHSGroupMemberWithRole = NTHSGroupMember & {
@@ -42,3 +42,21 @@ export type NTHSGroupMemberRole = {
 }
 
 export type NTHSGroupRoleName = 'admin' | 'member'
+
+export type NTHSActionName =
+  | 'NAME YOUR TEAM'
+  | 'REVIEW RESOURCES'
+  | 'ATTEND ORIENTATION'
+
+export type NTHSGroupAction = {
+  id: number
+  groupId: Ulid
+  actionId: number
+  actionName: string
+  createdAt: Date
+}
+
+export type NTHSAction = {
+  id: number
+  name: string
+}

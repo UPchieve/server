@@ -14,7 +14,8 @@ FROM
         AND member_roles.nths_group_id = ng.id
     INNER JOIN nths_group_roles roles ON roles.id = member_roles.role_id
 WHERE
-    ngm.user_id = :userId!;
+    ngm.user_id = :userId!
+    AND ngm.deactivated_at IS NULL;
 
 
 /* @name getInviteCodeForGroup */
@@ -43,13 +44,6 @@ INSERT INTO nths_group_members ("nths_group_id", "user_id", "title")
     VALUES (:groupId!, :userId!, :title!)
 RETURNING
     *;
-
-
-/* @name getAllNthsUsers */
-SELECT
-    *
-FROM
-    nths_group_members;
 
 
 /* @name insertNthsGroupMemberRole */
@@ -104,7 +98,8 @@ WHERE
 SELECT
     ngm.*,
     roles.name AS role_name,
-    users.email,
+    LEFT (users.last_name,
+        1) AS last_initial,
     users.first_name
 FROM
     nths_group_members ngm
@@ -113,7 +108,8 @@ FROM
     JOIN nths_group_roles roles ON roles.id = member_roles.role_id
     JOIN users ON users.id = ngm.user_id
 WHERE
-    ngm.nths_group_id = :groupId!;
+    ngm.nths_group_id = :groupId!
+    AND ngm.deactivated_at IS NULL;
 
 
 /* @name groupsCount */
@@ -128,4 +124,70 @@ INSERT INTO nths_groups (id, invite_code, name, KEY)
     VALUES (generate_ulid (), :inviteCode!, :name!, :key!)
 RETURNING
     *;
+
+
+/* @name deactivateGroupMember */
+UPDATE
+    nths_group_members
+SET
+    deactivated_at = NOW(),
+    updated_at = NOW()
+WHERE
+    user_id = :userId!
+    AND nths_group_id = :groupId!;
+
+
+/* @name updateGroupName */
+UPDATE
+    nths_groups
+SET
+    name = :name!,
+    updated_at = NOW()
+WHERE
+    id = :groupId!
+RETURNING
+    id,
+    name,
+    KEY,
+    created_at,
+    invite_code;
+
+
+/* @name insertNthsGroupAction */
+INSERT INTO nths_group_actions (nths_group_id, nths_action_id)
+SELECT
+    :groupId!,
+    actions.id
+FROM
+    nths_actions actions
+WHERE
+    actions.name = :actionName!
+RETURNING
+    id,
+    nths_group_id AS group_id,
+    nths_action_id AS action_id,
+    created_at,
+    :actionName! AS action_name;
+
+
+/* @name getAllNthsGroupActionsByGroupId */
+SELECT
+    nga.id,
+    nga.nths_group_id AS group_id,
+    nga.nths_action_id AS action_id,
+    nga.created_at,
+    actions.name AS action_name
+FROM
+    nths_group_actions nga
+    JOIN nths_actions actions ON actions.id = nga.nths_action_id
+WHERE
+    nths_group_id = :groupId!;
+
+
+/* @name getNthsActions */
+SELECT
+    actions.id,
+    actions.name
+FROM
+    nths_actions actions;
 

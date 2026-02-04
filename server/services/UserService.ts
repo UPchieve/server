@@ -1,6 +1,7 @@
 import crypto from 'crypto'
-import { omit } from 'lodash'
+import { merge, omit } from 'lodash'
 import { Ulid, Uuid } from '../models/pgUtils'
+import { getPhotoIdUrl } from './AwsService'
 import {
   ACCOUNT_USER_ACTIONS,
   IP_ADDRESS_STATUS,
@@ -535,10 +536,18 @@ export async function getUserForAdminDetail(
 ) {
   const user = await UserRepo.getUserForAdminDetail(userId, limit, offset)
   const roleContext = await UserRolesService.getRoleContext(userId, false)
-  return {
+  let combinedUser: any = {
     ...user,
     roleContext,
   }
+  if (user.photoIdS3Key) {
+    const photoUrl = await getPhotoIdUrl(user.photoIdS3Key)
+    combinedUser = {
+      ...combinedUser,
+      photoUrl,
+    }
+  }
+  return combinedUser
 }
 
 export async function switchActiveRoleForUser(

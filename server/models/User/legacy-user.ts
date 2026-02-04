@@ -153,7 +153,7 @@ export async function getLegacyUserObject(
       const volunteerUser: any = {}
       const studentUser: any = {}
       const teacherUser: { usesClever?: boolean; usesClassLink?: boolean } = {}
-      const roleContext = await UserRolesService.getRoleContext(userId)
+      const roleContext = await UserRolesService.getRoleContext(userId, true)
       const ratings =
         await SurveyService.getUserPostsessionGoalRatingsMetrics(userId)
       if (roleContext.isActiveRole('student')) {

@@ -23,7 +23,7 @@ export interface IGetGroupsByUserQuery {
   result: IGetGroupsByUserResult;
 }
 
-const getGroupsByUserIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":349,"b":356},{"a":502,"b":509}]}],"statement":"SELECT\n    ngm.title AS member_title,\n    ngm.joined_at,\n    ng.id AS group_id,\n    ng.name AS group_name,\n    ng.key AS group_key,\n    ng.invite_code,\n    roles.name AS role_name\nFROM\n    nths_group_members ngm\n    INNER JOIN nths_groups ng ON ng.id = ngm.nths_group_id\n    INNER JOIN nths_group_member_roles member_roles ON member_roles.user_id = :userId!\n        AND member_roles.nths_group_id = ng.id\n    INNER JOIN nths_group_roles roles ON roles.id = member_roles.role_id\nWHERE\n    ngm.user_id = :userId!"};
+const getGroupsByUserIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":349,"b":356},{"a":502,"b":509}]}],"statement":"SELECT\n    ngm.title AS member_title,\n    ngm.joined_at,\n    ng.id AS group_id,\n    ng.name AS group_name,\n    ng.key AS group_key,\n    ng.invite_code,\n    roles.name AS role_name\nFROM\n    nths_group_members ngm\n    INNER JOIN nths_groups ng ON ng.id = ngm.nths_group_id\n    INNER JOIN nths_group_member_roles member_roles ON member_roles.user_id = :userId!\n        AND member_roles.nths_group_id = ng.id\n    INNER JOIN nths_group_roles roles ON roles.id = member_roles.role_id\nWHERE\n    ngm.user_id = :userId!\n    AND ngm.deactivated_at IS NULL"};
 
 /**
  * Query generated from SQL:
@@ -44,6 +44,7 @@ const getGroupsByUserIR: any = {"usedParamSet":{"userId":true},"params":[{"name"
  *     INNER JOIN nths_group_roles roles ON roles.id = member_roles.role_id
  * WHERE
  *     ngm.user_id = :userId!
+ *     AND ngm.deactivated_at IS NULL
  * ```
  */
 export const getGroupsByUser = new PreparedQuery<IGetGroupsByUserParams,IGetGroupsByUserResult>(getGroupsByUserIR);
@@ -154,39 +155,6 @@ const joinGroupByIdIR: any = {"usedParamSet":{"groupId":true,"userId":true,"titl
  * ```
  */
 export const joinGroupById = new PreparedQuery<IJoinGroupByIdParams,IJoinGroupByIdResult>(joinGroupByIdIR);
-
-
-/** 'GetAllNthsUsers' parameters type */
-export type IGetAllNthsUsersParams = void;
-
-/** 'GetAllNthsUsers' return type */
-export interface IGetAllNthsUsersResult {
-  deactivatedAt: Date | null;
-  joinedAt: Date;
-  nthsGroupId: string;
-  title: string | null;
-  updatedAt: Date;
-  userId: string;
-}
-
-/** 'GetAllNthsUsers' query type */
-export interface IGetAllNthsUsersQuery {
-  params: IGetAllNthsUsersParams;
-  result: IGetAllNthsUsersResult;
-}
-
-const getAllNthsUsersIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    *\nFROM\n    nths_group_members"};
-
-/**
- * Query generated from SQL:
- * ```
- * SELECT
- *     *
- * FROM
- *     nths_group_members
- * ```
- */
-export const getAllNthsUsers = new PreparedQuery<IGetAllNthsUsersParams,IGetAllNthsUsersResult>(getAllNthsUsersIR);
 
 
 /** 'InsertNthsGroupMemberRole' parameters type */
@@ -332,9 +300,9 @@ export interface IGetGroupMembersParams {
 /** 'GetGroupMembers' return type */
 export interface IGetGroupMembersResult {
   deactivatedAt: Date | null;
-  email: string;
   firstName: string;
   joinedAt: Date;
+  lastInitial: string | null;
   nthsGroupId: string;
   roleName: string | null;
   title: string | null;
@@ -348,7 +316,7 @@ export interface IGetGroupMembersQuery {
   result: IGetGroupMembersResult;
 }
 
-const getGroupMembersIR: any = {"usedParamSet":{"groupId":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":195,"b":203},{"a":390,"b":398}]}],"statement":"SELECT\n    ngm.*,\n    roles.name AS role_name,\n    users.email,\n    users.first_name\nFROM\n    nths_group_members ngm\n    JOIN nths_group_member_roles member_roles ON member_roles.nths_group_id = :groupId!\n        AND member_roles.user_id = ngm.user_id\n    JOIN nths_group_roles roles ON roles.id = member_roles.role_id\n    JOIN users ON users.id = ngm.user_id\nWHERE\n    ngm.nths_group_id = :groupId!"};
+const getGroupMembersIR: any = {"usedParamSet":{"groupId":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":233,"b":241},{"a":428,"b":436}]}],"statement":"SELECT\n    ngm.*,\n    roles.name AS role_name,\n    LEFT (users.last_name,\n        1) AS last_initial,\n    users.first_name\nFROM\n    nths_group_members ngm\n    JOIN nths_group_member_roles member_roles ON member_roles.nths_group_id = :groupId!\n        AND member_roles.user_id = ngm.user_id\n    JOIN nths_group_roles roles ON roles.id = member_roles.role_id\n    JOIN users ON users.id = ngm.user_id\nWHERE\n    ngm.nths_group_id = :groupId!\n    AND ngm.deactivated_at IS NULL"};
 
 /**
  * Query generated from SQL:
@@ -356,7 +324,8 @@ const getGroupMembersIR: any = {"usedParamSet":{"groupId":true},"params":[{"name
  * SELECT
  *     ngm.*,
  *     roles.name AS role_name,
- *     users.email,
+ *     LEFT (users.last_name,
+ *         1) AS last_initial,
  *     users.first_name
  * FROM
  *     nths_group_members ngm
@@ -366,6 +335,7 @@ const getGroupMembersIR: any = {"usedParamSet":{"groupId":true},"params":[{"name
  *     JOIN users ON users.id = ngm.user_id
  * WHERE
  *     ngm.nths_group_id = :groupId!
+ *     AND ngm.deactivated_at IS NULL
  * ```
  */
 export const getGroupMembers = new PreparedQuery<IGetGroupMembersParams,IGetGroupMembersResult>(getGroupMembersIR);
@@ -434,5 +404,198 @@ const createGroupIR: any = {"usedParamSet":{"inviteCode":true,"name":true,"key":
  * ```
  */
 export const createGroup = new PreparedQuery<ICreateGroupParams,ICreateGroupResult>(createGroupIR);
+
+
+/** 'DeactivateGroupMember' parameters type */
+export interface IDeactivateGroupMemberParams {
+  groupId: string;
+  userId: string;
+}
+
+/** 'DeactivateGroupMember' return type */
+export type IDeactivateGroupMemberResult = void;
+
+/** 'DeactivateGroupMember' query type */
+export interface IDeactivateGroupMemberQuery {
+  params: IDeactivateGroupMemberParams;
+  result: IDeactivateGroupMemberResult;
+}
+
+const deactivateGroupMemberIR: any = {"usedParamSet":{"userId":true,"groupId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":105,"b":112}]},{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":138,"b":146}]}],"statement":"UPDATE\n    nths_group_members\nSET\n    deactivated_at = NOW(),\n    updated_at = NOW()\nWHERE\n    user_id = :userId!\n    AND nths_group_id = :groupId!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE
+ *     nths_group_members
+ * SET
+ *     deactivated_at = NOW(),
+ *     updated_at = NOW()
+ * WHERE
+ *     user_id = :userId!
+ *     AND nths_group_id = :groupId!
+ * ```
+ */
+export const deactivateGroupMember = new PreparedQuery<IDeactivateGroupMemberParams,IDeactivateGroupMemberResult>(deactivateGroupMemberIR);
+
+
+/** 'UpdateGroupName' parameters type */
+export interface IUpdateGroupNameParams {
+  groupId: string;
+  name: string;
+}
+
+/** 'UpdateGroupName' return type */
+export interface IUpdateGroupNameResult {
+  createdAt: Date;
+  id: string;
+  inviteCode: string;
+  key: string;
+  name: string;
+}
+
+/** 'UpdateGroupName' query type */
+export interface IUpdateGroupNameQuery {
+  params: IUpdateGroupNameParams;
+  result: IUpdateGroupNameResult;
+}
+
+const updateGroupNameIR: any = {"usedParamSet":{"name":true,"groupId":true},"params":[{"name":"name","required":true,"transform":{"type":"scalar"},"locs":[{"a":38,"b":43}]},{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":84,"b":92}]}],"statement":"UPDATE\n    nths_groups\nSET\n    name = :name!,\n    updated_at = NOW()\nWHERE\n    id = :groupId!\nRETURNING\n    id,\n    name,\n    KEY,\n    created_at,\n    invite_code"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE
+ *     nths_groups
+ * SET
+ *     name = :name!,
+ *     updated_at = NOW()
+ * WHERE
+ *     id = :groupId!
+ * RETURNING
+ *     id,
+ *     name,
+ *     KEY,
+ *     created_at,
+ *     invite_code
+ * ```
+ */
+export const updateGroupName = new PreparedQuery<IUpdateGroupNameParams,IUpdateGroupNameResult>(updateGroupNameIR);
+
+
+/** 'InsertNthsGroupAction' parameters type */
+export interface IInsertNthsGroupActionParams {
+  actionName: string;
+  groupId: string;
+}
+
+/** 'InsertNthsGroupAction' return type */
+export interface IInsertNthsGroupActionResult {
+  actionId: number | null;
+  actionName: string | null;
+  createdAt: Date;
+  groupId: string | null;
+  id: number;
+}
+
+/** 'InsertNthsGroupAction' query type */
+export interface IInsertNthsGroupActionQuery {
+  params: IInsertNthsGroupActionParams;
+  result: IInsertNthsGroupActionResult;
+}
+
+const insertNthsGroupActionIR: any = {"usedParamSet":{"groupId":true,"actionName":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":74,"b":82}]},{"name":"actionName","required":true,"transform":{"type":"scalar"},"locs":[{"a":155,"b":166},{"a":270,"b":281}]}],"statement":"INSERT INTO nths_group_actions (nths_group_id, nths_action_id)\nSELECT\n    :groupId!,\n    actions.id\nFROM\n    nths_actions actions\nWHERE\n    actions.name = :actionName!\nRETURNING\n    id,\n    nths_group_id AS group_id,\n    nths_action_id AS action_id,\n    created_at,\n    :actionName! AS action_name"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO nths_group_actions (nths_group_id, nths_action_id)
+ * SELECT
+ *     :groupId!,
+ *     actions.id
+ * FROM
+ *     nths_actions actions
+ * WHERE
+ *     actions.name = :actionName!
+ * RETURNING
+ *     id,
+ *     nths_group_id AS group_id,
+ *     nths_action_id AS action_id,
+ *     created_at,
+ *     :actionName! AS action_name
+ * ```
+ */
+export const insertNthsGroupAction = new PreparedQuery<IInsertNthsGroupActionParams,IInsertNthsGroupActionResult>(insertNthsGroupActionIR);
+
+
+/** 'GetAllNthsGroupActionsByGroupId' parameters type */
+export interface IGetAllNthsGroupActionsByGroupIdParams {
+  groupId: string;
+}
+
+/** 'GetAllNthsGroupActionsByGroupId' return type */
+export interface IGetAllNthsGroupActionsByGroupIdResult {
+  actionId: number | null;
+  actionName: string;
+  createdAt: Date;
+  groupId: string | null;
+  id: number;
+}
+
+/** 'GetAllNthsGroupActionsByGroupId' query type */
+export interface IGetAllNthsGroupActionsByGroupIdQuery {
+  params: IGetAllNthsGroupActionsByGroupIdParams;
+  result: IGetAllNthsGroupActionsByGroupIdResult;
+}
+
+const getAllNthsGroupActionsByGroupIdIR: any = {"usedParamSet":{"groupId":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":266,"b":274}]}],"statement":"SELECT\n    nga.id,\n    nga.nths_group_id AS group_id,\n    nga.nths_action_id AS action_id,\n    nga.created_at,\n    actions.name AS action_name\nFROM\n    nths_group_actions nga\n    JOIN nths_actions actions ON actions.id = nga.nths_action_id\nWHERE\n    nths_group_id = :groupId!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     nga.id,
+ *     nga.nths_group_id AS group_id,
+ *     nga.nths_action_id AS action_id,
+ *     nga.created_at,
+ *     actions.name AS action_name
+ * FROM
+ *     nths_group_actions nga
+ *     JOIN nths_actions actions ON actions.id = nga.nths_action_id
+ * WHERE
+ *     nths_group_id = :groupId!
+ * ```
+ */
+export const getAllNthsGroupActionsByGroupId = new PreparedQuery<IGetAllNthsGroupActionsByGroupIdParams,IGetAllNthsGroupActionsByGroupIdResult>(getAllNthsGroupActionsByGroupIdIR);
+
+
+/** 'GetNthsActions' parameters type */
+export type IGetNthsActionsParams = void;
+
+/** 'GetNthsActions' return type */
+export interface IGetNthsActionsResult {
+  id: number;
+  name: string;
+}
+
+/** 'GetNthsActions' query type */
+export interface IGetNthsActionsQuery {
+  params: IGetNthsActionsParams;
+  result: IGetNthsActionsResult;
+}
+
+const getNthsActionsIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    actions.id,\n    actions.name\nFROM\n    nths_actions actions"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     actions.id,
+ *     actions.name
+ * FROM
+ *     nths_actions actions
+ * ```
+ */
+export const getNthsActions = new PreparedQuery<IGetNthsActionsParams,IGetNthsActionsResult>(getNthsActionsIR);
 
 

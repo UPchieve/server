@@ -910,6 +910,57 @@ CREATE TABLE upchieve.notifications (
 
 
 --
+-- Name: nths_actions; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.nths_actions (
+    id integer NOT NULL,
+    name text NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: nths_actions_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE upchieve.nths_actions ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME upchieve.nths_actions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: nths_group_actions; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.nths_group_actions (
+    id integer NOT NULL,
+    nths_group_id uuid,
+    nths_action_id integer,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: nths_group_actions_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE upchieve.nths_group_actions ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME upchieve.nths_group_actions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
 -- Name: nths_group_member_roles; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -3655,6 +3706,30 @@ ALTER TABLE ONLY upchieve.notifications
 
 
 --
+-- Name: nths_actions nths_actions_name_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_actions
+    ADD CONSTRAINT nths_actions_name_key UNIQUE (name);
+
+
+--
+-- Name: nths_actions nths_actions_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_actions
+    ADD CONSTRAINT nths_actions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: nths_group_actions nths_group_actions_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_group_actions
+    ADD CONSTRAINT nths_group_actions_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: nths_group_member_roles nths_group_member_roles_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -4503,6 +4578,14 @@ ALTER TABLE ONLY upchieve.tutor_bot_session_messages
 
 
 --
+-- Name: nths_group_actions unique_action_per_group; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_group_actions
+    ADD CONSTRAINT unique_action_per_group UNIQUE (nths_group_id, nths_action_id);
+
+
+--
 -- Name: cities unique_city_name_state; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -4885,6 +4968,20 @@ CREATE INDEX notifications_session_id ON upchieve.notifications USING btree (ses
 --
 
 CREATE INDEX notifications_user_id ON upchieve.notifications USING btree (user_id);
+
+
+--
+-- Name: nths_group_actions_action_id; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX nths_group_actions_action_id ON upchieve.nths_group_actions USING btree (nths_action_id);
+
+
+--
+-- Name: nths_group_actions_group_id; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX nths_group_actions_group_id ON upchieve.nths_group_actions USING btree (nths_group_id);
 
 
 --
@@ -5451,6 +5548,22 @@ ALTER TABLE ONLY upchieve.notifications
 
 ALTER TABLE ONLY upchieve.notifications
     ADD CONSTRAINT notifications_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
+
+
+--
+-- Name: nths_group_actions nths_group_actions_nths_action_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_group_actions
+    ADD CONSTRAINT nths_group_actions_nths_action_id_fkey FOREIGN KEY (nths_action_id) REFERENCES upchieve.nths_actions(id);
+
+
+--
+-- Name: nths_group_actions nths_group_actions_nths_group_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_group_actions
+    ADD CONSTRAINT nths_group_actions_nths_group_id_fkey FOREIGN KEY (nths_group_id) REFERENCES upchieve.nths_groups(id);
 
 
 --
@@ -6887,4 +7000,6 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20251215171217'),
     ('20260114171204'),
     ('20260114193023'),
-    ('20260122195918');
+    ('20260122195918'),
+    ('20260129185914'),
+    ('20260129190242');
