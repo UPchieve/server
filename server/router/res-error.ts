@@ -50,8 +50,7 @@ export function resError(
     else if (err instanceof ZodError) {
       status = 422
       message = err.issues?.[0]?.message || 'Invalid input'
-    } 
-    else if (err instanceof InputError) status = 422
+    } else if (err instanceof InputError) status = 422
     else if (err instanceof AlreadyInNTHSGroupError) status = 422
     else if (err instanceof NTHSGroupNameTakenError) status = 422
     else if (err instanceof CannotRemoveSoleNTHSAdminError) status = 422
