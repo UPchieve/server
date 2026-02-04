@@ -9103,5 +9103,4 @@ SELECT pg_catalog.setval('upchieve.weekdays_id_seq', 1, false);
 -- PostgreSQL database dump complete
 --
 
-\unrestrict luBxYahPF8lpiFq1j9eKWdb4gB8DcvO8BdDIKbmUJq44s1rgLgs1jWZe8duMBTj
 
