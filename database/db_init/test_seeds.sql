@@ -6216,6 +6216,7 @@ COPY upchieve.nths_school_affiliation_statuses (id, name, created_at) FROM stdin
 2	PENDING_UPCHIEVE_VERIFICATION	2026-02-03 19:53:33.966404+00
 3	AFFILIATED	2026-02-03 19:53:33.966404+00
 4	DENIED	2026-02-03 19:53:33.966404+00
+5	OPTED_OUT	2026-02-04 20:11:53.329958+00
 \.
 
 
@@ -8933,7 +8934,7 @@ SELECT pg_catalog.setval('upchieve.nths_group_roles_id_seq', 2, true);
 -- Name: nths_school_affiliation_statuses_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.nths_school_affiliation_statuses_id_seq', 4, true);
+SELECT pg_catalog.setval('upchieve.nths_school_affiliation_statuses_id_seq', 5, true);
 
 
 --
