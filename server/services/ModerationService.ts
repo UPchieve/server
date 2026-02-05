@@ -49,6 +49,7 @@ import {
   DetectToxicContentCommand,
 } from '@aws-sdk/client-comprehend'
 import crypto from 'crypto'
+import { LangfuseTraceClient } from 'langfuse-node'
 import { putObject } from './AwsService'
 import * as ShareableDomainsRepo from '../models/ShareableDomains/queries'
 import {
@@ -56,17 +57,15 @@ import {
   BedrockTools,
   invokeModel,
 } from './AwsBedrockService'
-import { LangfuseTraceClient } from 'langfuse-node'
 import { ModerationInfraction } from '../models/ModerationInfractions/types'
 import { getClient, runInTransaction, TransactionClient } from '../db'
 import { PrimaryUserRole } from './UserRolesService'
-
-import { LangfuseGenerationClient } from 'langfuse'
 import { resize } from '../utils/image-utils'
 import {
   ModerationSettingsType,
   getRealTimeSettings as getModerationRealTimeSettings,
-  getContextualSettings as getModerationContextSettings,
+  getContextualSettings as getModerationContextualSettings,
+  getRealTimeSettings,
 } from '../models/ModerationSettings/queries'
 
 // EMAIL_REGEX checks for standard and complex email formats
@@ -997,6 +996,7 @@ async function handleImageModerationFailure({
   failureReasons,
   image,
   source,
+  moderationSettings,
 }: {
   userId: string
   sessionId: string
@@ -1006,6 +1006,7 @@ async function handleImageModerationFailure({
     ModerationSource,
     'screenshare' | 'image_upload' | 'whiteboard'
   >
+  moderationSettings: ModerationSettingsType[]
 }) {
   const { location: imageUrl } = await saveImageToBucket({
     sessionId,
@@ -1031,7 +1032,13 @@ async function handleImageModerationFailure({
     >
   )
 
-  await handleModerationInfraction(userId, sessionId, { failures }, source)
+  await handleModerationInfraction(
+    userId,
+    sessionId,
+    { failures },
+    source,
+    moderationSettings
+  )
 }
 
 function maybeHandleImageModerationFailure(options: {
@@ -1042,6 +1049,7 @@ function maybeHandleImageModerationFailure(options: {
     ModerationSource,
     'screenshare' | 'image_upload' | 'whiteboard'
   >
+  moderationSettings: ModerationSettingsType[]
 }) {
   return function (failures: ImageModerationFailureReason[]) {
     if (failures.length > 0) {
@@ -1051,6 +1059,7 @@ function maybeHandleImageModerationFailure(options: {
         failureReasons: failures,
         image: options.image,
         source: options.source,
+        moderationSettings: options.moderationSettings,
       })
     }
   }
@@ -1071,12 +1080,12 @@ export async function moderateImageInBackground(options: {
     ModerationSource,
     'screenshare' | 'image_upload' | 'whiteboard'
   >
+  moderationSettings: ModerationSettingsType[]
   trace?: LangfuseTraceClient
 }) {
-  const moderationSettings = await getModerationRealTimeSettings()
   detectImageModerationFailures(
     options.image,
-    moderationSettings,
+    options.moderationSettings,
     options.trace,
     options.sessionId
   ).then(maybeHandleImageModerationFailure(options))
@@ -1084,7 +1093,7 @@ export async function moderateImageInBackground(options: {
   detectPersonInImage(
     options.image,
     options.sessionId,
-    moderationSettings,
+    options.moderationSettings,
     options.trace
   ).then(maybeHandleImageModerationFailure(options))
 
@@ -1092,7 +1101,7 @@ export async function moderateImageInBackground(options: {
     options.image,
     options.sessionId,
     options.isVolunteer,
-    moderationSettings,
+    options.moderationSettings,
     options.trace
   ).then(maybeHandleImageModerationFailure(options))
 }
@@ -1101,16 +1110,17 @@ async function getAllImageModerationFailures({
   image,
   sessionId,
   isVolunteer,
+  moderationSettings,
   trace,
 }: {
   image: Buffer
   sessionId: string
   isVolunteer: boolean
+  moderationSettings: ModerationSettingsType[]
   trace?: LangfuseTraceClient
 }): Promise<{
   failureReasons: ImageModerationFailureReason[]
 }> {
-  const moderationSettings = await getModerationRealTimeSettings()
   const [
     moderationFailureReasons,
     textModerationFailureReasons,
@@ -1443,6 +1453,7 @@ export const handleModerationInfraction = async (
         ImageModerationFailureReason['details']
       >,
   source: ModerationSource,
+  moderationSettings: ModerationSettingsType[],
   client = getClient()
 ) => {
   if (source === 'image_upload') {
@@ -1710,7 +1721,14 @@ export const moderateIndividualTranscription = async ({
   // @TODO - run through AI moderation
 
   // If the message is unclean, track it as an infraction against the user
-  await handleModerationInfraction(userId, sessionId, failures, source)
+  const moderationSettings = await getModerationRealTimeSettings()
+  await handleModerationInfraction(
+    userId,
+    sessionId,
+    failures,
+    source,
+    moderationSettings
+  )
   await createCensoredMessage({
     message: transcript,
     senderId: userId,
@@ -1767,11 +1785,14 @@ export const moderateImage = async ({
 
   const resizedImage = await resize(image)
 
+  const moderationSettings = await getModerationRealTimeSettings()
+
   if (aggregateInfractions) {
     const result = await getAllImageModerationFailures({
       image: resizedImage,
       sessionId,
       isVolunteer,
+      moderationSettings,
       trace: traceClient,
     })
     if (isEmpty(result.failureReasons)) return { isClean: true, failures: [] }
@@ -1783,6 +1804,7 @@ export const moderateImage = async ({
         failureReasons: result.failureReasons,
         image: resizedImage,
         source,
+        moderationSettings,
       })
     }
 
@@ -1802,6 +1824,7 @@ export const moderateImage = async ({
       userId,
       isVolunteer,
       source,
+      moderationSettings,
     })
   }
 }
@@ -1914,10 +1937,10 @@ export const moderateTranscript = async (
 
   const confidenceThresholdMap = new Map<string, Number>()
 
-  const contextualThresholds = await getModerationContextSettings()
+  const moderationSettings = await getModerationContextualSettings()
 
   for (const reason of allReasons) {
-    const thresholdObj = contextualThresholds.find(
+    const thresholdObj = moderationSettings.find(
       (threshold) => threshold.name === reason
     )
 
