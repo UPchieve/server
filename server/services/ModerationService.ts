@@ -37,7 +37,6 @@ import {
   UserSessionFlags,
 } from '../constants'
 import {
-  DetectFacesCommand,
   DetectLabelsCommand,
   DetectModerationLabelsCommand,
   DetectTextCommand,
@@ -64,7 +63,7 @@ import { PrimaryUserRole } from './UserRolesService'
 
 import { LangfuseGenerationClient } from 'langfuse'
 import { resize } from '../utils/image-utils'
-import * as ModerationConfidenceThresholdsRepo from '../models/ModerationConfidenceThresholds/queries'
+import * as ModerationSettingsRepo from '../models/ModerationSettings/queries'
 
 // EMAIL_REGEX checks for standard and complex email formats
 // Ex: yay-hoo@yahoo.hello.com
@@ -284,8 +283,7 @@ async function detectPersonInImage(
 
     const labels = labelResponse.Labels ?? []
 
-    const settings =
-      await ModerationConfidenceThresholdsRepo.getRealtimeConfidenceThresholds()
+    const settings = await ModerationSettingsRepo.getRealTimeSettings()
     const thresholdByName = new Map(settings.map((s) => [s.name, s.threshold]))
     const personConfidenceThreshold = thresholdByName.get('Person')
     // Rekognition returns `Confidence` as a percentage from 0 to 100
@@ -355,8 +353,7 @@ async function detectImageModerationFailures(
       generation.end({ output: moderationLabelsResponse })
     }
 
-    const settings =
-      await ModerationConfidenceThresholdsRepo.getRealtimeConfidenceThresholds()
+    const settings = await ModerationSettingsRepo.getRealTimeSettings()
     const thresholdByName = new Map(settings.map((s) => [s.name, s.threshold]))
     const moderationLabels = moderationLabelsResponse.ModerationLabels ?? []
     return moderationLabels
@@ -1896,7 +1893,7 @@ export const moderateTranscript = async (
   const confidenceThresholdMap = new Map<string, Number>()
 
   const contextualThresholds =
-    await ModerationConfidenceThresholdsRepo.getContextualConfidenceThresholds()
+    await ModerationSettingsRepo.getContextualSettings()
 
   for (const reason of allReasons) {
     const thresholdObj = contextualThresholds.find(
