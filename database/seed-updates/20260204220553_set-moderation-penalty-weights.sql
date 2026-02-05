@@ -12,7 +12,8 @@ UPDATE
 SET
     penalty_weight = 10
 WHERE
-    moderation_category_id IN (
+    moderation_type = 'realtime_image'
+    AND moderation_category_id IN (
         SELECT
             id
         FROM
@@ -25,7 +26,8 @@ UPDATE
 SET
     penalty_weight = 4
 WHERE
-    moderation_category_id IN (
+    moderation_type = 'realtime_image'
+    AND moderation_category_id IN (
         SELECT
             id
         FROM
@@ -38,13 +40,14 @@ UPDATE
 SET
     penalty_weight = 1
 WHERE
-    moderation_category_id IN (
+    moderation_type = 'realtime_image'
+    AND moderation_category_id IN (
         SELECT
             id
         FROM
             upchieve.moderation_categories
         WHERE
-            lower(name) IN ('gambling', 'profanity', 'drugs & tobacco', 'alcohol', 'hate symbols', 'rude gestures', 'hate_speech_real_time', 'insult'));
+            lower(name) IN ('gambling', 'profanity', 'drugs & tobacco', 'alcohol', 'hate symbols', 'rude gestures', 'hate_speech', 'insult'));
 
 -- migrate:down
 DELETE FROM upchieve.moderation_penalty_config
