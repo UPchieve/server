@@ -6009,16 +6009,16 @@ COPY upchieve.moderation_categories (id, name) FROM stdin;
 14	Gambling
 15	Hate Symbols
 16	Person
-38	GRAPHIC
-39	HARASSMENT_OR_ABUSE
-40	SEXUAL
-41	VIOLENCE_OR_THREAT
-42	INSULT
-43	PROFANITY
-44	EMAIL
-45	URL
-46	PHONE
-47	ADDRESS
+17	GRAPHIC
+18	HARASSMENT_OR_ABUSE
+19	SEXUAL
+20	VIOLENCE_OR_THREAT
+21	INSULT
+22	PROFANITY
+23	EMAIL
+24	URL
+25	PHONE
+26	ADDRESS
 \.
 
 
@@ -6052,16 +6052,16 @@ realtime_image	14	0.75
 realtime_image	15	0.75
 realtime_image	16	0.75
 realtime_image	2	0.85
-realtime_image	38	0.85
-realtime_image	39	0.85
-realtime_image	40	0.85
-realtime_image	41	0.85
-realtime_image	42	0.85
-realtime_image	43	0.85
-realtime_image	44	0.85
-realtime_image	45	0.85
-realtime_image	46	0.85
-realtime_image	47	0.85
+realtime_image	17	0.85
+realtime_image	18	0.85
+realtime_image	19	0.85
+realtime_image	20	0.85
+realtime_image	21	0.85
+realtime_image	22	0.85
+realtime_image	23	0.85
+realtime_image	24	0.85
+realtime_image	25	0.85
+realtime_image	26	0.85
 \.
 
 
@@ -8836,7 +8836,7 @@ SELECT pg_catalog.setval('upchieve.ip_addresses_id_seq', 1, true);
 -- Name: moderation_categories_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.moderation_categories_id_seq', 47, true);
+SELECT pg_catalog.setval('upchieve.moderation_categories_id_seq', 26, true);
 
 
 --
