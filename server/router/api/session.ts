@@ -24,7 +24,7 @@ import {
   SessionUserRole,
 } from '../../services/UserRolesService'
 import { getDocEditorSessionImageUrl } from '../../services/SessionService'
-import { getSessionSummaryByUserType } from '../../models/SessionSummaries'
+import { getSessionSummaryByUserType } from '../../services/SessionSummariesService'
 import { USER_ROLES } from '../../constants'
 
 export function routeSession(router: Router) {
