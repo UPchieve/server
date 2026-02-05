@@ -1,6 +1,6 @@
 -- migrate:up
 INSERT INTO upchieve.moderation_categories (name)
-    VALUES ('GRAPHIC'), ('HARASSMENT_OR_ABUSE'), ('HATE_SPEECH_REAL_TIME'), ('SEXUAL'), ('VIOLENCE_OR_THREAT'), ('INSULT'), ('PROFANITY'), ('EMAIL'), ('URL'), ('PHONE'), ('ADDRESS');
+    VALUES ('GRAPHIC'), ('HARASSMENT_OR_ABUSE'), ('SEXUAL'), ('VIOLENCE_OR_THREAT'), ('INSULT'), ('PROFANITY'), ('EMAIL'), ('URL'), ('PHONE'), ('ADDRESS');
 
 INSERT INTO upchieve.moderation_settings (moderation_type, moderation_category_id, threshold)
 SELECT
@@ -10,7 +10,7 @@ SELECT
 FROM
     upchieve.moderation_categories
 WHERE
-    name IN ('GRAPHIC', 'HARASSMENT_OR_ABUSE', 'HATE_SPEECH_REAL_TIME', 'SEXUAL', 'VIOLENCE_OR_THREAT', 'INSULT', 'PROFANITY', 'EMAIL', 'URL', 'PHONE', 'ADDRESS');
+    name IN ('GRAPHIC', 'HARASSMENT_OR_ABUSE', 'HATE_SPEECH', 'SEXUAL', 'VIOLENCE_OR_THREAT', 'INSULT', 'PROFANITY', 'EMAIL', 'URL', 'PHONE', 'ADDRESS');
 
 -- migrate:down
 DELETE FROM upchieve.moderation_settings
@@ -21,8 +21,8 @@ WHERE moderation_type = 'realtime_image'
         FROM
             upchieve.moderation_categories
         WHERE
-            name IN ('GRAPHIC', 'HARASSMENT_OR_ABUSE', 'SEXUAL', 'HATE_SPEECH_REAL_TIME', 'VIOLENCE_OR_THREAT', 'INSULT', 'PROFANITY', 'EMAIL', 'URL', 'PHONE', 'ADDRESS'));
+            name IN ('GRAPHIC', 'HARASSMENT_OR_ABUSE', 'SEXUAL', 'HATE_SPEECH', 'VIOLENCE_OR_THREAT', 'INSULT', 'PROFANITY', 'EMAIL', 'URL', 'PHONE', 'ADDRESS'));
 
 DELETE FROM upchieve.moderation_categories
-WHERE name IN ('GRAPHIC', 'HARASSMENT_OR_ABUSE', 'SEXUAL', 'HATE_SPEECH_REAL_TIME', 'VIOLENCE_OR_THREAT', 'INSULT', 'PROFANITY', 'EMAIL', 'URL', 'PHONE', 'ADDRESS');
+WHERE name IN ('GRAPHIC', 'HARASSMENT_OR_ABUSE', 'SEXUAL', 'VIOLENCE_OR_THREAT', 'INSULT', 'PROFANITY', 'EMAIL', 'URL', 'PHONE', 'ADDRESS');
 
