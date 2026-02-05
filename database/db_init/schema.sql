@@ -6747,7 +6747,6 @@ ALTER TABLE ONLY upchieve.volunteer_references
 --
 
 
-
 --
 -- Dbmate schema migrations
 --
