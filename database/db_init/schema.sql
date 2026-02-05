@@ -26,9 +26,6 @@ CREATE SCHEMA auth;
 CREATE SCHEMA basic_access;
 
 
-
-
-
 --
 -- Name: upchieve; Type: SCHEMA; Schema: -; Owner: -
 --
