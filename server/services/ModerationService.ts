@@ -63,7 +63,11 @@ import { PrimaryUserRole } from './UserRolesService'
 
 import { LangfuseGenerationClient } from 'langfuse'
 import { resize } from '../utils/image-utils'
-import * as ModerationSettingsRepo from '../models/ModerationSettings/queries'
+import {
+  ModerationSettingsType,
+  getRealTimeSettings as getModerationRealTimeSettings,
+  getContextualSettings as getModerationContextSettings,
+} from '../models/ModerationSettings/queries'
 
 // EMAIL_REGEX checks for standard and complex email formats
 // Ex: yay-hoo@yahoo.hello.com
@@ -252,6 +256,7 @@ async function detectImageEducationPurpose(
 async function detectPersonInImage(
   image: Buffer,
   sessionId: string,
+  moderationSettings: ModerationSettingsType[],
   trace?: LangfuseTraceClient
 ) {
   try {
@@ -283,8 +288,9 @@ async function detectPersonInImage(
 
     const labels = labelResponse.Labels ?? []
 
-    const settings = await ModerationSettingsRepo.getRealTimeSettings()
-    const thresholdByName = new Map(settings.map((s) => [s.name, s.threshold]))
+    const thresholdByName = new Map(
+      moderationSettings.map((s) => [s.name, s.threshold])
+    )
     const personConfidenceThreshold = thresholdByName.get('Person')
     // Rekognition returns `Confidence` as a percentage from 0 to 100
     // Our DB thresholds are stored as decimals from 0 to 1. We convert them to percentages below for comparison
@@ -330,6 +336,7 @@ async function detectPersonInImage(
 */
 async function detectImageModerationFailures(
   image: Buffer,
+  moderationSettings: ModerationSettingsType[],
   trace?: LangfuseTraceClient,
   sessionId?: string
 ) {
@@ -353,8 +360,9 @@ async function detectImageModerationFailures(
       generation.end({ output: moderationLabelsResponse })
     }
 
-    const settings = await ModerationSettingsRepo.getRealTimeSettings()
-    const thresholdByName = new Map(settings.map((s) => [s.name, s.threshold]))
+    const thresholdByName = new Map(
+      moderationSettings.map((s) => [s.name, s.threshold])
+    )
     const moderationLabels = moderationLabelsResponse.ModerationLabels ?? []
     return moderationLabels
       .filter(topLevelCategoryFilter)
@@ -933,6 +941,7 @@ async function detectTextModerationFailures(
   image: Buffer,
   sessionId: string,
   isVolunteer: boolean,
+  moderationSettings: ModerationSettingsType[],
   trace?: LangfuseTraceClient
 ) {
   const textSegments = await extractTextFromImage(image, trace)
@@ -1053,7 +1062,7 @@ function maybeHandleImageModerationFailure(options: {
   as they happen. By not waiting for all checks to complete, we can ensure that we
   turn the screen share off as soon as possible.
 */
-export function moderateImageInBackground(options: {
+export async function moderateImageInBackground(options: {
   image: Buffer
   sessionId: string
   userId: string
@@ -1063,21 +1072,27 @@ export function moderateImageInBackground(options: {
     'screenshare' | 'image_upload' | 'whiteboard'
   >
   trace?: LangfuseTraceClient
-}): void {
+}) {
+  const moderationSettings = await getModerationRealTimeSettings()
   detectImageModerationFailures(
     options.image,
+    moderationSettings,
     options.trace,
     options.sessionId
   ).then(maybeHandleImageModerationFailure(options))
 
-  detectPersonInImage(options.image, options.sessionId, options.trace).then(
-    maybeHandleImageModerationFailure(options)
-  )
+  detectPersonInImage(
+    options.image,
+    options.sessionId,
+    moderationSettings,
+    options.trace
+  ).then(maybeHandleImageModerationFailure(options))
 
   detectTextModerationFailures(
     options.image,
     options.sessionId,
     options.isVolunteer,
+    moderationSettings,
     options.trace
   ).then(maybeHandleImageModerationFailure(options))
 }
@@ -1095,14 +1110,21 @@ async function getAllImageModerationFailures({
 }): Promise<{
   failureReasons: ImageModerationFailureReason[]
 }> {
+  const moderationSettings = await getModerationRealTimeSettings()
   const [
     moderationFailureReasons,
     textModerationFailureReasons,
     detectPersonResponse,
   ] = await Promise.all([
-    detectImageModerationFailures(image, trace, sessionId),
-    detectTextModerationFailures(image, sessionId, isVolunteer, trace),
-    detectPersonInImage(image, sessionId, trace),
+    detectImageModerationFailures(image, moderationSettings, trace, sessionId),
+    detectTextModerationFailures(
+      image,
+      sessionId,
+      isVolunteer,
+      moderationSettings,
+      trace
+    ),
+    detectPersonInImage(image, sessionId, moderationSettings, trace),
   ])
 
   if (
@@ -1774,7 +1796,7 @@ export const moderateImage = async ({
 
     return { isClean: false, failures }
   } else {
-    moderateImageInBackground({
+    await moderateImageInBackground({
       image: resizedImage,
       sessionId,
       userId,
@@ -1892,8 +1914,7 @@ export const moderateTranscript = async (
 
   const confidenceThresholdMap = new Map<string, Number>()
 
-  const contextualThresholds =
-    await ModerationSettingsRepo.getContextualSettings()
+  const contextualThresholds = await getModerationContextSettings()
 
   for (const reason of allReasons) {
     const thresholdObj = contextualThresholds.find(

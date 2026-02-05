@@ -4,14 +4,16 @@ import { RepoReadError } from '../Errors'
 import { makeRequired } from '../pgUtils'
 
 export type ModerationType = 'contextual' | 'realtime_image'
-export type ModerationThreshold = {
+export type ModerationSettingsType = {
   name: string
   threshold: number
   penalty_weight: number
 }
 
-export function getSettings(moderationType: ModerationType) {
-  return async (client: TransactionClient = getClient()) => {
+function getSettings(moderationType: ModerationType) {
+  return async (
+    client: TransactionClient = getClient()
+  ): Promise<ModerationSettingsType[]> => {
     try {
       const result = await pgQueries.getModerationSettingsByType.run(
         {
