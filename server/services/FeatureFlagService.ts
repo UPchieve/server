@@ -188,3 +188,7 @@ export async function getStemProgressReportEnabled(userId: Ulid) {
     1000 * 5
   )
 }
+
+export async function isStudentSessionSummaryEnabled(userId: Ulid) {
+  return isFeatureEnabled(FEATURE_FLAGS.STUDENT_SESSION_SUMMARY, userId)
+}
