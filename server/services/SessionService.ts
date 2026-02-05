@@ -411,7 +411,7 @@ async function convertV2DocToV1(quillDoc: string[]) {
   }
   // Ensure viewing the document in a recap works by matching existing
   // sessions.quill_doc format.
-  return JSON.stringify({ ops: text.toDelta() })
+  return { ops: text.toDelta() }
 }
 
 export async function storeAndDeleteQuillDoc(sessionId: Ulid): Promise<void> {
