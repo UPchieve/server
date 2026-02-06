@@ -72,6 +72,7 @@ import { ModerationSettingsResult } from '../../models/ModerationSettings/types'
 import * as ModerationTypes from './types'
 import * as FallBackPrompts from './fallbackPrompts'
 import { weightModerationInfractions } from './ModerationPenaltyService'
+import * as Regex from './regex'
 
 // Image moderation
 const AWS_CONFIG = {
@@ -432,7 +433,7 @@ async function isLikelyToBeAnEmail({
 }) {
   const isMaybeEmail =
     entityConfidence >= config.emailModerationConfidenceThreshold &&
-    EMAIL_REGEX.test(entityText)
+    Regex.EMAIL_REGEX.test(entityText)
 
   if (!isMaybeEmail) {
     return false
@@ -469,7 +470,7 @@ async function isLikelyToBeAPhoneNumber({
   // and then through the false positive fallback
   const isMaybePhone =
     entityConfidence >= config.phoneNumberModerationConfidenceThreshold &&
-    PHONE_REGEX.test(entityText)
+    Regex.PHONE_REGEX.test(entityText)
 
   if (!isMaybePhone) {
     return false
@@ -1187,10 +1188,10 @@ const regexModerate = (
   message: string
 ): ModerationTypes.RegexModerationResult => {
   const failedTests = [
-    ['email', test({ regex: EMAIL_REGEX, message })],
-    ['phone', test({ regex: PHONE_REGEX, message })],
-    ['profanity', test({ regex: PROFANITY_REGEX, message })],
-    ['safety', test({ regex: SAFETY_RESTRICTION_REGEX, message })],
+    ['email', test({ regex: Regex.EMAIL_REGEX, message })],
+    ['phone', test({ regex: Regex.PHONE_REGEX, message })],
+    ['profanity', test({ regex: Regex.PROFANITY_REGEX, message })],
+    ['safety', test({ regex: Regex.SAFETY_RESTRICTION_REGEX, message })],
   ].filter(([, test]) => test.length > 0)
 
   const sanitize = (message: string): string => {
