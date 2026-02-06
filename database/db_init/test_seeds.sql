@@ -2,7 +2,6 @@
 -- PostgreSQL database dump
 --
 
-
 -- Dumped from database version 14.17 (Debian 14.17-1.pgdg120+1)
 -- Dumped by pg_dump version 15.15 (Homebrew)
 
@@ -6008,7 +6007,6 @@ COPY upchieve.moderation_categories (id, name) FROM stdin;
 13	Rude Gestures
 14	Gambling
 15	Hate Symbols
-16	Person
 17	GRAPHIC
 18	HARASSMENT_OR_ABUSE
 19	SEXUAL
@@ -6016,9 +6014,10 @@ COPY upchieve.moderation_categories (id, name) FROM stdin;
 21	INSULT
 22	PROFANITY
 23	EMAIL
-24	URL
+24	LINK
 25	PHONE
 26	ADDRESS
+16	Person detected in image
 \.
 
 
