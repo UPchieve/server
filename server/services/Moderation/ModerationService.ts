@@ -65,12 +65,13 @@ import { getClient, runInTransaction, TransactionClient } from '../../db'
 import { PrimaryUserRole } from '.././UserRolesService'
 import { resize } from '../../utils/image-utils'
 import {
-  ModerationSettingsType,
   getRealTimeSettings as getModerationRealTimeSettings,
   getContextualSettings as getModerationContextualSettings,
 } from '../../models/ModerationSettings/queries'
+import { ModerationSettingsResult } from '../../models/ModerationSettings/types'
 import * as ModerationTypes from './types'
 import * as FallBackPrompts from './fallbackPrompts'
+import { weightModerationInfractions } from './ModerationPenaltyService'
 
 // Image moderation
 const AWS_CONFIG = {
@@ -208,7 +209,7 @@ async function detectImageEducationPurpose(
 async function detectPersonInImage(
   image: Buffer,
   sessionId: string,
-  moderationSettings: ModerationSettingsType[],
+  moderationSettings: ModerationSettingsResult[],
   trace?: LangfuseTraceClient
 ) {
   try {
@@ -288,7 +289,7 @@ async function detectPersonInImage(
 */
 async function detectImageModerationFailures(
   image: Buffer,
-  moderationSettings: ModerationSettingsType[],
+  moderationSettings: ModerationSettingsResult[],
   trace?: LangfuseTraceClient,
   sessionId?: string
 ) {
@@ -849,7 +850,7 @@ async function detectTextModerationFailures(
   image: Buffer,
   sessionId: string,
   isVolunteer: boolean,
-  moderationSettings: ModerationSettingsType[],
+  moderationSettings: ModerationSettingsResult[],
   trace?: LangfuseTraceClient
 ) {
   const textSegments = await extractTextFromImage(image, trace)
@@ -915,7 +916,7 @@ async function handleImageModerationFailure({
     ModerationTypes.ModerationSource,
     'screenshare' | 'image_upload' | 'whiteboard'
   >
-  moderationSettings: ModerationSettingsType[]
+  moderationSettings: ModerationSettingsResult[]
 }) {
   const { location: imageUrl } = await saveImageToBucket({
     sessionId,
@@ -958,7 +959,7 @@ function maybeHandleImageModerationFailure(options: {
     ModerationTypes.ModerationSource,
     'screenshare' | 'image_upload' | 'whiteboard'
   >
-  moderationSettings: ModerationSettingsType[]
+  moderationSettings: ModerationSettingsResult[]
 }) {
   return function (failures: ModerationTypes.ImageModerationFailureReason[]) {
     if (failures.length > 0) {
@@ -989,7 +990,7 @@ export async function moderateImageInBackground(options: {
     ModerationTypes.ModerationSource,
     'screenshare' | 'image_upload' | 'whiteboard'
   >
-  moderationSettings: ModerationSettingsType[]
+  moderationSettings: ModerationSettingsResult[]
   trace?: LangfuseTraceClient
 }) {
   detectImageModerationFailures(
@@ -1025,7 +1026,7 @@ async function getAllImageModerationFailures({
   image: Buffer
   sessionId: string
   isVolunteer: boolean
-  moderationSettings: ModerationSettingsType[]
+  moderationSettings: ModerationSettingsResult[]
   trace?: LangfuseTraceClient
 }): Promise<{
   failureReasons: ModerationTypes.ImageModerationFailureReason[]
@@ -1351,7 +1352,7 @@ export const handleModerationInfraction = async (
         ModerationTypes.ImageModerationFailureReason['details']
       >,
   source: ModerationTypes.ModerationSource,
-  moderationSettings: ModerationSettingsType[],
+  moderationSettings: ModerationSettingsResult[],
   client = getClient()
 ) => {
   if (source === 'image_upload') {
@@ -1393,10 +1394,13 @@ export const handleModerationInfraction = async (
         client
       )
 
-    const infractionScore = weighSessionInfractions([
-      ...allInfractionResons,
-      ...getReasonsFromInfractions([insertedInfraction]),
-    ])
+    const infractionScore = weightModerationInfractions(
+      [
+        ...allInfractionResons,
+        ...getReasonsFromInfractions([insertedInfraction]),
+      ] as ModerationTypes.LiveMediaModerationCategories[],
+      moderationSettings
+    )
     const streamStoppingReasons = getStreamStoppingReasonsFromInfractions([
       insertedInfraction,
     ])
@@ -1510,13 +1514,6 @@ export function getReasonsFromInfractions(
   infractions: ModerationInfraction[]
 ): string[] {
   return infractions.flatMap((i) => Object.keys(i.reason))
-}
-
-export function weighSessionInfractions(reasons: string[]): number {
-  return reasons.reduce((acc, current) => {
-    const categoryScore = getScoreForCategory(current)
-    return acc + categoryScore
-  }, 0)
 }
 
 export function getStreamStoppingReasonsFromInfractions(
