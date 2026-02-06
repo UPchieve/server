@@ -83,7 +83,7 @@ export function routes(app: Express) {
 
   router.route('/sso').get((req, res) => {
     const provider = req.query.provider as string
-    const isLogin = req.query.isLogin === 'true' ?? true
+    const isLogin = req.query.isLogin ? req.query.isLogin === 'true' : true
     const errorRedirect = req.query.errorRedirect as string
     const accountType = req.query.accountType ?? 'student'
     if (!provider || !isSupportedSsoProvider(provider)) {

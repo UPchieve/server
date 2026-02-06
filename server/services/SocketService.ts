@@ -122,18 +122,7 @@ class SocketService {
     this.io
       .in(sessionParticipants)
       .timeout(secondsInMs(5))
-      .emit(
-        'session-change',
-        session,
-        (err: Error | null, responses?: { userId: string }[]) => {
-          if (err) {
-            logger.warn(
-              { ackUsers: responses, sessionId },
-              'Some users may have not received a session-change event in time'
-            )
-          }
-        }
-      )
+      .emit('session-change', session)
 
     await this.updateSessionList(tc)
   }
