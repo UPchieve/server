@@ -1,17 +1,18 @@
 import {
   getIndividualSessionMessageModerationResponse,
-  FALLBACK_MODERATION_PROMPT,
   moderateMessage,
   filterDisallowedDomains,
-  type ModeratedLink,
-  weighSessionInfractions,
   getReasonsFromInfractions,
   handleModerationInfraction,
-  getScoreForCategory,
-  LiveMediaModerationCategories,
   getSessionFlagByModerationReason,
   isStreamStoppingReason,
-} from '../../services/ModerationService'
+} from '../../services/Moderation/ModerationService'
+import {
+  type ModeratedLink,
+  type LiveMediaModerationCategories,
+} from '../../services/Moderation/types'
+import { weightModerationInfractions } from '../../services/Moderation/ModerationPenaltyService'
+import { FALLBACK_MODERATION_PROMPT } from '../../services/Moderation/fallbackPrompts'
 import { mocked } from 'jest-mock'
 import * as FeatureFlagsService from '../../services/FeatureFlagService'
 import * as SessionService from '../../services/SessionService'
@@ -481,7 +482,7 @@ describe('ModerationService', () => {
           )
 
           const reasons = getReasonsFromInfractions([moderationInfraction])
-          const actual = weighSessionInfractions(reasons)
+          const actual = weightModerationInfractions(reasons)
           expect(actual).toEqual(expectedScore)
         }
       )
@@ -495,7 +496,7 @@ describe('ModerationService', () => {
           buildModerationInfractionWithReason(explicitReason),
         ]
         const reasons = getReasonsFromInfractions(infractions)
-        const result = weighSessionInfractions(reasons)
+        const result = weightModerationInfractions(reasons)
         expect(result).toEqual(32)
       })
     })

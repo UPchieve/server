@@ -1,13 +1,13 @@
 import { Ulid } from '../../models/pgUtils'
 import { Job } from 'bull'
 import * as SessionService from '../../services/SessionService'
-import * as ModerationService from '../../services/ModerationService'
+import * as ModerationService from '../../services/Moderation/ModerationService'
 import * as WhiteboardService from '../../services/WhiteboardService'
 import * as LangfuseService from '../../services/LangfuseService'
 import config from '../../config'
 import { importFromStringSync } from 'module-from-string'
 import logger from '../../logger'
-import { LangfuseTraceName } from '../../services/ModerationService'
+import { LangfuseTraceName } from '../../services/Moderation/types'
 import { fetchRemoteJs } from '../../utils/fetch-remote-js'
 
 export interface ModerateSessionTranscriptJobData {
