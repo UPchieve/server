@@ -1,3 +1,5 @@
+import { jest, describe, beforeEach, test, expect, it } from '@jest/globals'
+import { mocked } from 'jest-mock'
 import {
   getIndividualSessionMessageModerationResponse,
   moderateMessage,
@@ -13,7 +15,6 @@ import {
 } from '../../services/Moderation/types'
 import { weightModerationInfractions } from '../../services/Moderation/ModerationPenaltyService'
 import { FALLBACK_MODERATION_PROMPT } from '../../services/Moderation/fallbackPrompts'
-import { mocked } from 'jest-mock'
 import * as FeatureFlagsService from '../../services/FeatureFlagService'
 import * as SessionService from '../../services/SessionService'
 import * as CensoredSessionMessage from '../../models/CensoredSessionMessage'
@@ -31,7 +32,7 @@ import * as UserRepo from '../../models/User/queries'
 jest.mock('../../models/Session')
 jest.mock('../../utils/time-limit')
 jest.mock('../../logger')
-jest.mock('../../models/CensoredSessionMessage')
+jest.mock('../../models/CensoredSessiotnMessage')
 jest.mock('../../services/OpenAIService', () => {
   return {
     invokeModel: jest.fn(),
