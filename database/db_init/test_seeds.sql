@@ -6007,7 +6007,6 @@ COPY upchieve.moderation_categories (id, name) FROM stdin;
 13	Rude Gestures
 14	Gambling
 15	Hate Symbols
-16	Person
 17	GRAPHIC
 18	HARASSMENT_OR_ABUSE
 19	SEXUAL
@@ -6015,9 +6014,10 @@ COPY upchieve.moderation_categories (id, name) FROM stdin;
 21	INSULT
 22	PROFANITY
 23	EMAIL
-24	URL
+24	LINK
 25	PHONE
 26	ADDRESS
+16	Person detected in image
 \.
 
 
@@ -6050,6 +6050,7 @@ contextual	3	0.75	0
 contextual	4	0.75	0
 contextual	5	0.75	0
 realtime_image	16	0.75	0
+realtime_image	24	0.85	0
 realtime_image	6	0.75	10
 realtime_image	7	0.75	10
 realtime_image	8	0.75	10
@@ -6060,7 +6061,6 @@ realtime_image	18	0.85	10
 realtime_image	19	0.85	10
 realtime_image	20	0.85	10
 realtime_image	23	0.85	4
-realtime_image	24	0.85	4
 realtime_image	25	0.85	4
 realtime_image	26	0.85	4
 realtime_image	11	0.75	1
@@ -9117,5 +9117,4 @@ SELECT pg_catalog.setval('upchieve.weekdays_id_seq', 1, false);
 --
 -- PostgreSQL database dump complete
 --
-
 
