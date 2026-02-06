@@ -2,7 +2,7 @@ import { Job } from 'bull'
 import { CensoredSessionMessage } from '../models/CensoredSessionMessage'
 import { getIndividualSessionMessageModerationResponse } from '../services/ModerationService'
 import { LangfuseTraceName } from '../services/ModerationService/types'
-import * as LangfuseService from '../services/LangfuseService'
+import { client as langfuseClient } from '../clients/langfuse'
 
 export interface ModerationSessionMessageJobData {
   censoredSessionMessage: CensoredSessionMessage
@@ -17,7 +17,7 @@ export interface ModerationSessionMessageJobData {
 export default async function moderateSessionMessage(
   job: Job<ModerationSessionMessageJobData>
 ) {
-  const trace = LangfuseService.getClient().trace({
+  const trace = langfuseClient.trace({
     name: LangfuseTraceName.MODERATE_SESSION_MESSAGE,
     metadata: {
       sessionId: job.data.censoredSessionMessage.sessionId,

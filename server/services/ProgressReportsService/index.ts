@@ -75,7 +75,7 @@ import { getDocEditorSessionImageUrl } from '../SessionService'
 import {
   runWithModelObservation,
   runWithTrace,
-} from '../../clients/ai-observability'
+} from '../AiObservabilityService'
 
 function formatTranscriptMessage(
   message: MessageForFrontend,

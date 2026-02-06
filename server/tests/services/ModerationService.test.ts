@@ -15,12 +15,11 @@ import {
 } from '../../services/ModerationService/types'
 import { type GetModerationSettingResult } from '../../models/ModerationSettings/types'
 import { weightModerationInfractions } from '../../services/ModerationService/ModerationPenaltyService'
-import { FALLBACK_MODERATION_PROMPT } from '../../services/ModerationService/fallbackPrompts'
 import * as FeatureFlagsService from '../../services/FeatureFlagService'
 import * as SessionService from '../../services/SessionService'
 import * as CensoredSessionMessage from '../../models/CensoredSessionMessage'
 import { invokeModel as invokeOpenAiModel } from '../../services/OpenAIService'
-import * as LangfuseService from '../../services/LangfuseService'
+import * as PromptService from '../../services/PromptService'
 import { timeLimit } from '../../utils/time-limit'
 import { buildModerationInfractionRow, buildSession } from '../mocks/generate'
 import * as ModerationInfractionsRepo from '../../models/ModerationInfractions'
@@ -45,11 +44,21 @@ jest.mock('../../services/OpenAIService', () => {
   }
 })
 const mockedInvokeOpenAiModel = jest.mocked(invokeOpenAiModel)
-jest.mock('../../services/LangfuseService')
+jest.mock('../../services/PromptService')
 jest.mock('../../models/ModerationInfractions')
-
 jest.mock('../../services/SocketService', () => ({
   getInstance: jest.fn(() => {}),
+}))
+jest.mock('../../clients/langfuse', () => ({
+  client: {
+    trace: jest.fn(),
+    getPrompt: jest.fn(),
+  },
+}))
+jest.mock('../../services/AiObservabilityService', () => ({
+  runWithModelObservation: jest.fn(),
+  runWithTrace: jest.fn(),
+  addTraceTags: jest.fn(),
 }))
 
 jest.mock('../../services/SessionService')
@@ -59,7 +68,7 @@ jest.mock('../../models/ModerationSettings/queries')
 
 describe('ModerationService', () => {
   const isVolunteer = true
-  const mockLangfuseService = mocked(LangfuseService)
+  const mockPromptService = mocked(PromptService)
   const mockModerationInfractionsRepo = mocked(ModerationInfractionsRepo)
   const mockSessionRepo = mocked(SessionRepo)
   const mockSocketService = mocked(SocketService)
@@ -85,8 +94,9 @@ describe('ModerationService', () => {
     mockLangfuseClient = {
       trace: jest.fn().mockReturnValue(mockTrace),
     }
-    mockLangfuseService.getPrompt.mockResolvedValue(undefined)
-    mockLangfuseService.getClient.mockReturnValue(mockLangfuseClient as any)
+    mockPromptService.getPromptWithFallback.mockResolvedValue(
+      {} as PromptService.PromptResponse
+    )
 
     mockSocketService.getInstance.mockReturnValue({
       emitModerationInfractionEvent: jest.fn(),
@@ -373,7 +383,7 @@ describe('ModerationService', () => {
         messages: [],
       })
       mockSessionRepo.getSessionById.mockResolvedValue(
-        await buildSession({ studentId: senderId })
+        buildSession({ studentId: senderId })
       )
 
       expect(
@@ -391,11 +401,11 @@ describe('ModerationService', () => {
         mockedFeatureFlagService.getAiModerationFeatureFlag.mockResolvedValue(
           FeatureFlagsService.AI_MODERATION_STATE.targeted
         )
-        mockLangfuseService.getPrompt.mockResolvedValue({
+        mockPromptService.getPromptWithFallback.mockResolvedValue({
+          isFallback: false,
           prompt: 'test-prompt-content',
-          name: 'moderation-prompt',
-          version: 1,
-        } as any)
+          version: '1',
+        })
         await getIndividualSessionMessageModerationResponse({
           censoredSessionMessage,
           isVolunteer,
@@ -409,14 +419,19 @@ describe('ModerationService', () => {
             ),
           })
         )
-        expect(LangfuseService.getPrompt).toHaveBeenCalled()
+        expect(PromptService.getPromptWithFallback).toHaveBeenCalled()
       })
 
       test('It calls OpenAI with the fallback prompt if it cannot be retrieved from LF', async () => {
         mockedFeatureFlagService.getAiModerationFeatureFlag.mockResolvedValue(
           FeatureFlagsService.AI_MODERATION_STATE.targeted
         )
-        mockLangfuseService.getPrompt.mockResolvedValue(undefined)
+        mockPromptService.getPromptWithFallback.mockResolvedValue({
+          prompt:
+            PromptService.fallbackPrompts[
+              PromptService.PromptName.SESSION_TRANSCRIPT_MODERATION
+            ],
+        } as PromptService.PromptResponse)
 
         await getIndividualSessionMessageModerationResponse({
           censoredSessionMessage,
@@ -425,13 +440,16 @@ describe('ModerationService', () => {
         })
         expect(invokeOpenAiModel).toHaveBeenCalledWith(
           expect.objectContaining({
-            prompt: FALLBACK_MODERATION_PROMPT,
+            prompt:
+              PromptService.fallbackPrompts[
+                PromptService.PromptName.SESSION_TRANSCRIPT_MODERATION
+              ],
             userMessage: expect.stringContaining(
               censoredSessionMessage.message
             ),
           })
         )
-        expect(LangfuseService.getPrompt).toHaveBeenCalled()
+        expect(PromptService.getPromptWithFallback).toHaveBeenCalled()
       })
 
       it('Associates the Langfuse prompt with the generation', async () => {
@@ -441,12 +459,14 @@ describe('ModerationService', () => {
           FeatureFlagsService.AI_MODERATION_STATE.targeted
         )
         const langfusePromptObject = {
+          isFallback: false,
           prompt: 'test-prompt-content',
           name: 'moderation-prompt',
-          version: 1,
+          version: '1',
+          promptObject: {},
         }
-        mockLangfuseService.getPrompt.mockResolvedValue(
-          langfusePromptObject as any
+        mockPromptService.getPromptWithFallback.mockResolvedValue(
+          langfusePromptObject as unknown as PromptService.PromptResponse
         )
         await getIndividualSessionMessageModerationResponse({
           censoredSessionMessage,
@@ -458,7 +478,7 @@ describe('ModerationService', () => {
           expect.objectContaining({
             name: 'getModerationDecision',
             input: { censoredSessionMessage, isVolunteer },
-            prompt: langfusePromptObject,
+            prompt: langfusePromptObject.promptObject,
           })
         )
         expect(mockGeneration.end).toHaveBeenCalled()
@@ -468,7 +488,9 @@ describe('ModerationService', () => {
         mockedFeatureFlagService.getAiModerationFeatureFlag.mockResolvedValue(
           FeatureFlagsService.AI_MODERATION_STATE.targeted
         )
-        mockLangfuseService.getPrompt.mockResolvedValue(undefined)
+        mockPromptService.getPromptWithFallback.mockResolvedValue(
+          {} as PromptService.PromptResponse
+        )
         await getIndividualSessionMessageModerationResponse({
           censoredSessionMessage,
           isVolunteer,

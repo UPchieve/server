@@ -11,13 +11,13 @@ import {
   updateTutorBotConversationSessionIdByConversationId,
 } from '../models/TutorBot'
 import { getDbUlid, Ulid } from '../models/pgUtils'
-import * as LangfuseService from './LangfuseService'
+import * as PromptService from './PromptService'
 import { getClient, runInTransaction, TransactionClient } from '../db'
+import { client as langfuseClient } from '../clients/langfuse'
 import * as SessionRepo from '../models/Session'
 import SocketService from './SocketService'
 import { BedrockToolChoice, invokeModel } from './AwsBedrockService'
 import { getSubjectNameIdMapping } from '../models/Subjects'
-import { TextPromptClient } from 'langfuse-core'
 import { COLLEGE_SUBJECTS } from '../constants'
 
 const NUM_OF_MESSAGES_TO_KEEP_IN_CONTEXT = 15
@@ -238,31 +238,20 @@ export const addMessageToConversation = async (
 async function getPromptData(
   subjectName: string,
   transcript: TutorBotConversationTranscript
-): Promise<{
-  isFallback: boolean
-  prompt: string
-  version: string
-  promptObject?: TextPromptClient
-}> {
+): Promise<PromptService.PromptResponse> {
   const promptName = Object.values<string>(COLLEGE_SUBJECTS).includes(
     subjectName
   )
-    ? LangfuseService.LangfusePromptNameEnum.TUTOR_BOT_COLLEGE_COUNSELING_PROMPT
-    : LangfuseService.LangfusePromptNameEnum.TUTOR_BOT_GENERIC_SUBJECT_PROMPT
-  const promptFromLangfuse = await LangfuseService.getPrompt(promptName)
-  const isFallback = promptFromLangfuse === undefined
-
-  const prompt = isFallback
-    ? TUTOR_BOT_GENERIC_SUBJECT_PROMPT_FALLBACK
-    : (promptFromLangfuse! as TextPromptClient).prompt
-
+    ? PromptService.PromptName.TUTOR_BOT_COLLEGE_COUNSELING_PROMPT
+    : PromptService.PromptName.TUTOR_BOT_GENERIC_SUBJECT_PROMPT
+  const promptData = await PromptService.getPromptWithFallback(promptName)
   const mostRecentMessages = transcript.messages
     .map(({ senderUserType, message }) => `<|${senderUserType}|>: ${message}`)
     .slice(-NUM_OF_MESSAGES_TO_KEEP_IN_CONTEXT)
     .join('<|end|>\n')
 
   const cleanedPrompt = interpolate({
-    text: prompt,
+    text: promptData.prompt,
     replacements: {
       '{{subject}}': subjectName,
       '{{conversation}}': mostRecentMessages,
@@ -270,14 +259,8 @@ async function getPromptData(
   })
 
   return {
-    isFallback,
+    ...promptData,
     prompt: cleanedPrompt,
-    version: isFallback
-      ? 'FALLBACK'
-      : `${promptFromLangfuse!.name}-${promptFromLangfuse!.version}`,
-    ...(!isFallback && {
-      promptObject: promptFromLangfuse as TextPromptClient,
-    }),
   }
 }
 
@@ -314,7 +297,7 @@ const getAwsBedRockResponse = async (
   | null
 > => {
   // Save the latest user message to DB and create the transcript of the conversation so far
-  const t = LangfuseService.getClient().trace({
+  const t = langfuseClient.trace({
     name: LF_TRACE_NAME,
     sessionId: conversationId,
   })
@@ -386,57 +369,6 @@ const getAwsBedRockResponse = async (
     observationId: gen.observationId,
   }
 }
-
-/* NOTE
- *
- * The prompt MUST contain the word 'json' in some form
- * and MUST return a json object with the bot's message in the key 'response'
- *
- * e.g. `Format your answer as a JSON object: {"response": "write out your response to the student's last message"}`
- */
-const TUTOR_BOT_GENERIC_SUBJECT_PROMPT_FALLBACK = `
-You are an experienced {{subject}} teacher. Your task is to participate in a tutoring session with a student and possibly a volunteer tutor. A conversation snippet
-will be provided for you, each message will start with an identifier (<|student|>, <|volunteer|>, or <|bot|> (you are the bot)) and end with '<|end|>'.
-You should then determine what strategy you want to use to assist the student in learning the subject and completing the problem or answering their questions.
-State your intention in using that strategy. We have a list of common strategies and intentions that teachers use, which you can pick from.
-We also give you the option to write in your own own strategy or intention if none of the options apply.
-
-Strategies:
-0. Explain a concept
-1. Ask a question
-2. Provide a hint
-3. Provide a strategy
-4. Provide a worked example
-5. Provide a minor correction
-6. Provide a similar problem
-7. Simplify the question
-8. Affirm the correct answer
-9. Encourage the student
-10. Other (please specify in your reasoning)
-
-Intentions:
-0. Motivate the student
-1. Get the student to elaborate their answer
-2. Correct the student's mistake
-3. Hint at the student's mistake
-4. Clarify a student's misunderstanding
-5. Help the student understand the lesson topic or solution strategy
-6. Diagnose the student's mistake
-7. Support the student in their thinking or problem-solving
-8. Explain the student's mistake (eg. what is wrong in their answer or why is it incorrect)
-9. Signal to the student that they have solved or not solved the problem
-10. Other (please specify in your reasoning)
-
-Here is the conversation snippet:
-Lesson topic: {{subject}}
-Conversation:
-{{conversation}}<|end|>
-
-How would you help the student understand and solve the problem and why? Pick the option number from the list of strategies and intentions and provide the reason behind your choices.
-Then, using your choices, respond to the student as an experienced math teacher and helpful tutor. Do not give them a direct answer but use your strategy and intentions to craft a concise, useful, and caring response
-to help the student with the next step in solving the given problem or better understanding the subject.
-Format your answer as a JSON object: {"strategy": #, "intention": #, "reason": "write out your reason for picking that strategy and intention", "response": "write out your response to the student's last message"}
-`
 
 const AWS_BEDROCK_TUTOR_ANSWER_FALLBACK = `
 Hi there! I noticed you seem to be trying to communicate, but the messages aren't clear.

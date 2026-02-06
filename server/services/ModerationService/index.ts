@@ -15,6 +15,8 @@ import { LangfuseTraceClient, LangfuseGenerationClient } from 'langfuse-node'
 import { chunk, isEmpty } from 'lodash'
 import { TextPromptClient } from 'langfuse-core'
 import logger from '../../logger'
+import { client as langfuseClient } from '../../clients/langfuse'
+import { addTraceTags, TraceTag } from '../AiObservabilityService'
 import {
   CENSORED_BY,
   CensoredSessionMessage,
@@ -39,7 +41,7 @@ import {
   getAiModerationFeatureFlag,
 } from '../FeatureFlagService'
 import { timeLimit } from '../../utils/time-limit'
-import * as LangfuseService from '../LangfuseService'
+import * as PromptService from '../PromptService'
 import * as SessionService from '../SessionService'
 import SocketService from '../SocketService'
 import config from '../../config'
@@ -66,7 +68,6 @@ import {
 } from '../../models/ModerationSettings/queries'
 import { GetModerationSettingResult } from '../../models/ModerationSettings/types'
 import * as ModerationTypes from './types'
-import * as FallBackPrompts from './fallbackPrompts'
 import { weightModerationInfractions } from './ModerationPenaltyService'
 import * as Regex from './regex'
 import { ModerationSource } from './types'
@@ -104,17 +105,16 @@ async function detectImageEducationPurpose(
   trace?: LangfuseTraceClient
 ): Promise<ModerationTypes.ImageModerationFailureReason | null> {
   try {
-    const prompt = await getPromptData(
-      LangfuseService.LangfusePromptNameEnum.IS_IMAGE_EDUCATIONAL,
-      ''
+    const promptData = await PromptService.getPromptWithFallback(
+      PromptService.PromptName.IS_IMAGE_EDUCATIONAL
     )
-    if (prompt.isFallback) throw Error("Couldn't get prompt")
+    if (promptData?.isFallback) throw Error("Couldn't get prompt")
 
     let generation: LangfuseGenerationClient | undefined = undefined
     if (trace) {
       generation = trace.generation({
         name: ModerationTypes.LangfuseGenerationName.IS_IMAGE_EDUCATIONAL,
-        prompt: prompt.promptObject,
+        prompt: promptData.promptObject,
         model: config.awsBedrockSonnet4Id,
       })
     }
@@ -159,7 +159,7 @@ async function detectImageEducationPurpose(
     } = await invokeModel({
       modelId: config.awsBedrockSonnet4Id,
       image,
-      prompt: prompt.prompt,
+      prompt: promptData.prompt,
       tools_option: {
         tool_choice: { type: BedrockToolChoice.TOOL, name: 'json_response' },
         tools: response_tool,
@@ -528,13 +528,11 @@ async function checkForFullAddresses({
 } | null> {
   const modelId = config.awsBedrockSonnet4Id
 
-  const promptData = await getPromptData(
-    LangfuseService.LangfusePromptNameEnum
-      .GET_ADDRESS_DETECTION_MODERATION_DECISION,
-    FallBackPrompts.ADDRESS_DETECTION_FALLBACK_MODERATION_PROMPT
+  const promptData = await PromptService.getPromptWithFallback(
+    PromptService.PromptName.GET_ADDRESS_DETECTION_MODERATION_DECISION
   )
 
-  const t = LangfuseService.getClient().trace({
+  const t = langfuseClient.trace({
     name: ModerationTypes.LangfuseTraceName.MODERATE_SESSION_MESSAGE,
     sessionId,
   })
@@ -611,13 +609,11 @@ async function checkForQuestionableLinks({
 }): Promise<ModerationTypes.ModeratedLinkResponse | null> {
   const modelId = config.awsBedrockHaikuId
 
-  const promptData = await getPromptData(
-    LangfuseService.LangfusePromptNameEnum
-      .GET_QUESTIONABLE_LINK_MODERATION_DECISION,
-    FallBackPrompts.QUESTIONABLE_LINK_FALLBACK_MODERATION_PROMPT
+  const promptData = await PromptService.getPromptWithFallback(
+    PromptService.PromptName.GET_QUESTIONABLE_LINK_MODERATION_DECISION
   )
 
-  const t = LangfuseService.getClient().trace({
+  const t = langfuseClient.trace({
     name: ModerationTypes.LangfuseTraceName.MODERATE_SESSION_MESSAGE,
     sessionId,
   })
@@ -1100,10 +1096,8 @@ export async function getIndividualSessionMessageModerationResponse({
   isVolunteer: boolean
   trace?: LangfuseTraceClient
 }) {
-  const promptData = await getPromptData(
-    LangfuseService.LangfusePromptNameEnum
-      .GET_SESSION_MESSAGE_MODERATION_DECISION,
-    FallBackPrompts.FALLBACK_MODERATION_PROMPT
+  const promptData = await PromptService.getPromptWithFallback(
+    PromptService.PromptName.GET_SESSION_MESSAGE_MODERATION_DECISION
   )
 
   let gen: LangfuseGenerationClient | undefined = undefined
@@ -1144,32 +1138,6 @@ export async function getIndividualSessionMessageModerationResponse({
       },
       `Error while moderating session message`
     )
-  }
-}
-
-const getPromptData = async (
-  promptName: LangfuseService.LangfusePromptNameEnum,
-  fallbackPrompt: string
-): Promise<{
-  isFallback: boolean
-  prompt: string
-  version: string
-  promptObject?: TextPromptClient
-}> => {
-  const promptFromLangfuse = await LangfuseService.getPrompt(promptName)
-  const isFallback = promptFromLangfuse === undefined
-
-  return {
-    isFallback,
-    prompt: isFallback
-      ? fallbackPrompt
-      : (promptFromLangfuse! as TextPromptClient).prompt,
-    version: isFallback
-      ? 'FALLBACK'
-      : `${promptFromLangfuse!.name}-${promptFromLangfuse!.version}`,
-    ...(!isFallback && {
-      promptObject: promptFromLangfuse as TextPromptClient,
-    }),
   }
 }
 
@@ -1299,7 +1267,7 @@ export async function moderateMessage(
       source === 'whiteboard-text-node'
         ? ModerationTypes.LangfuseTraceName.MODERATE_WHITEBOARD_TEXT_NODE
         : ModerationTypes.LangfuseTraceName.MODERATE_SESSION_MESSAGE
-    trace = LangfuseService.getClient().trace({
+    trace = langfuseClient.trace({
       name: traceName,
       metadata: { sessionId, userId: senderId },
       input: message,
@@ -1344,7 +1312,7 @@ export async function moderateMessage(
   const session = await SessionRepo.getSessionById(sessionId)
   const isDm = !!session.endedAt
   if (!isDm) return { failures: {} }
-  trace = LangfuseService.getClient().trace({
+  trace = langfuseClient.trace({
     name: ModerationTypes.LangfuseTraceName.MODERATE_SESSION_MESSAGE,
     metadata: { sessionId, userId: senderId },
     input: message,
@@ -1649,7 +1617,7 @@ export const moderateImage = async ({
 } | void> => {
   const traceClient =
     (trace ?? source !== 'screenshare')
-      ? LangfuseService.getClient().trace({
+      ? langfuseClient.trace({
           name: ModerationTypes.LangfuseTraceName.MODERATE_IMAGE,
           metadata: {
             sessionId,
@@ -1781,9 +1749,8 @@ export const moderateTranscript = async (
     }, '')
   }
 
-  const promptData = await getPromptData(
-    LangfuseService.LangfusePromptNameEnum.SESSION_TRANSCRIPT_MODERATION,
-    FallBackPrompts.FALLBACK_TRANSCRIPT_MODERATION_PROMPT
+  const promptData = await PromptService.getPromptWithFallback(
+    PromptService.PromptName.SESSION_TRANSCRIPT_MODERATION
   )
 
   const results: TranscriptChunkModerationResult[] = []
@@ -1847,9 +1814,7 @@ export const moderateTranscript = async (
       }
 
       if (result.confidence >= thresholdPercent) {
-        trace.update({
-          tags: [LangfuseService.LangfuseTraceTagEnum.FLAGGED_BY_MODERATION],
-        })
+        addTraceTags(trace, ['flagged-by-moderation'])
         for (const msg of result.flaggedMessages) {
           flaggedOutput.push({
             reason,

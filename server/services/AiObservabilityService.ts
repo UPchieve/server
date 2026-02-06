@@ -3,15 +3,8 @@ import {
   LangfuseTraceClient,
   TextPromptClient,
 } from 'langfuse-core'
-import { Langfuse } from 'langfuse-node'
-import config from '../config'
+import { client } from '../clients/langfuse'
 import logger from '../logger'
-
-export const client = new Langfuse({
-  secretKey: config.langfuseSecretKey,
-  publicKey: config.langfusePublicKey,
-  baseUrl: config.langfuseBaseUrl,
-})
 
 export type Trace = LangfuseTraceClient
 export type TraceName = 'progressReport' | 'whiteboardVision' | 'sessionSummary'
@@ -19,6 +12,7 @@ export type ModelObservationName =
   | 'getProgressReportResult'
   | 'describeWhiteboardSnapshot'
   | 'generateSessionSummary'
+export type TraceTag = 'flagged-by-moderation'
 
 export type TraceOptions = {
   trace?: Trace
@@ -31,7 +25,10 @@ export type TraceOptions = {
 export type ModelObservationOptions = {
   trace?: Trace
   name: ModelObservationName
-  model: string // TODO: Make type.
+  // TODO: I don't love that calling code needs to know what model to use.
+  // Option: Wrap `runWithGeneration` within the actual e.g. `invokeModel` code.
+  // This will require a much larger refactor to use a generic `AiService`.
+  model: string
   input?: unknown
   prompt?: TextPromptClient | ChatPromptClient // TODO: Translate into our own type.
   metadata?: Record<string, unknown>
@@ -84,6 +81,10 @@ export async function runWithModelObservation<T>(
     })
     throw e
   }
+}
+
+export function addTraceTags(trace: Trace, tags: TraceTag[]): void {
+  trace.update({ tags })
 }
 
 function stringifyError(e: unknown) {

@@ -1,15 +1,15 @@
 import { mocked } from 'jest-mock'
 import logger from '../../logger'
-import * as LangfuseService from '../../services/LangfuseService'
+import * as PromptService from '../../services/PromptService'
 import * as AwsBedrockService from '../../services/AwsBedrockService'
 import * as VisionService from '../../services/VisionService'
-import * as AiObservabilityClient from '../../clients/ai-observability'
+import * as AiObservabilityService from '../../services/AiObservabilityService'
 import * as imageUtils from '../../utils/image-utils'
 
 jest.mock('../../logger')
-jest.mock('../../services/LangfuseService')
+jest.mock('../../services/PromptService')
 jest.mock('../../services/AwsBedrockService')
-jest.mock('../../clients/ai-observability')
+jest.mock('../../services/AiObservabilityService')
 jest.mock('../../utils/image-utils')
 jest.mock('../../utils/environments')
 jest.mock('../../config')
@@ -17,15 +17,15 @@ jest.mock('@azure/core-auth')
 jest.mock('@azure-rest/ai-vision-image-analysis')
 
 const mockedLogger = mocked(logger)
-const mockedLangfuseService = mocked(LangfuseService)
-const mockedAiObservabilityClient = mocked(AiObservabilityClient)
+const mockedAiObservabilityService = mocked(AiObservabilityService)
+const mockedPromptService = mocked(PromptService)
 const mockedAwsBedrockService = mocked(AwsBedrockService)
 const mockedImageUtils = mocked(imageUtils)
 
 beforeEach(() => {
   jest.clearAllMocks()
   jest.resetAllMocks()
-  mockedAiObservabilityClient.runWithTrace.mockImplementation(async (cb) => {
+  mockedAiObservabilityService.runWithTrace.mockImplementation(async (cb) => {
     return { result: await cb({} as any), traceId: '' }
   })
   mockedImageUtils.resize.mockResolvedValue(Buffer.from('resized'))
@@ -35,13 +35,13 @@ describe('describeWhiteboardSnapshot', () => {
   test('Should return description from vision model', async () => {
     const descriptionResult = 'An image of a test file'
 
-    mockedLangfuseService.getPromptWithFallback.mockResolvedValueOnce({
+    mockedPromptService.getPromptWithFallback.mockResolvedValueOnce({
       isFallback: true,
       prompt: 'prompt',
       version: 'FALLBACK',
     })
     mockedImageUtils.resize.mockResolvedValueOnce(Buffer.from('resized'))
-    mockedAiObservabilityClient.runWithModelObservation.mockImplementationOnce(
+    mockedAiObservabilityService.runWithModelObservation.mockImplementationOnce(
       (cb) => {
         return cb()
       }
@@ -53,10 +53,10 @@ describe('describeWhiteboardSnapshot', () => {
       'sessionId'
     )
     expect(result).toBe(descriptionResult)
-    expect(mockedLangfuseService.getPromptWithFallback).toHaveBeenCalled()
+    expect(mockedPromptService.getPromptWithFallback).toHaveBeenCalled()
     expect(mockedImageUtils.resize).toHaveBeenCalled()
     expect(
-      mockedAiObservabilityClient.runWithModelObservation
+      mockedAiObservabilityService.runWithModelObservation
     ).toHaveBeenCalled()
     expect(mockedAwsBedrockService.invokeModel).toHaveBeenCalled()
   })
@@ -64,7 +64,7 @@ describe('describeWhiteboardSnapshot', () => {
   test('Should return empty string and log error if a step in the analysis fails', async () => {
     const err = new Error('fail')
 
-    mockedLangfuseService.getPromptWithFallback.mockRejectedValueOnce(err)
+    mockedPromptService.getPromptWithFallback.mockRejectedValueOnce(err)
 
     const result = await VisionService.describeWhiteboardSnapshot(
       Buffer.from('img'),

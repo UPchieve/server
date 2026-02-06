@@ -1,3 +1,5 @@
+// TODO: Start moving Langfuse specific to the Langfuse client
+// as typing is enforced.
 export enum LangfuseTraceName {
   MODERATE_SESSION_MESSAGE = 'moderateSessionMessage',
   MODERATE_SESSION_TRANSCRIPT = 'moderateSessionTranscript',
@@ -16,6 +18,9 @@ export enum LangfuseGenerationName {
   DETECT_FACES = 'detectFaces',
   DETECT_PERSON = 'detectPerson',
   IS_IMAGE_EDUCATIONAL = 'isImageEducational',
+}
+export enum LangfuseTraceTagEnum {
+  FLAGGED_BY_MODERATION = 'flagged-by-moderation',
 }
 
 export type ModerationSource =

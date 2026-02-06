@@ -3,7 +3,7 @@ import { Job } from 'bull'
 import * as SessionService from '../../services/SessionService'
 import * as ModerationService from '../../services/ModerationService'
 import * as WhiteboardService from '../../services/WhiteboardService'
-import * as LangfuseService from '../../services/LangfuseService'
+import { client as langfuseClient } from '../../clients/langfuse'
 import config from '../../config'
 import { importFromStringSync } from 'module-from-string'
 import logger from '../../logger'
@@ -17,7 +17,7 @@ export interface ModerateSessionTranscriptJobData {
 export default async function moderateSessionTranscript(
   job: Job<ModerateSessionTranscriptJobData>
 ) {
-  const trace = LangfuseService.getClient().trace({
+  const trace = langfuseClient.trace({
     name: LangfuseTraceName.MODERATE_SESSION_TRANSCRIPT,
     sessionId: job.data.sessionId,
     metadata: {
