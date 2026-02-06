@@ -106,3 +106,23 @@ export type ImageModerationFailureReason = {
   */
   details?: any
 }
+
+export enum LiveMediaModerationCategories {
+  PROFANITY = 'profanity',
+  VIOLENCE = 'violence',
+  LINK = 'link',
+  ADDRESS = 'address',
+  EMAIL = 'email',
+  PHONE = 'phone',
+  HIGH_TOXICITY = 'high toxicity',
+  SWIM_WEAR = 'swimwear or underwear',
+  EXPLICIT = 'explicit',
+  NON_EXPLICIT = 'non-explicit nudity of intimate parts and kissing',
+  DISTURBING = 'visually disturbing',
+  DRUGS = 'drugs & tobacco',
+  ALCOHOL = 'alcohol',
+  RUDE_GESTURES = 'rude gestures',
+  GAMBLING = 'gambling',
+  HATE_SYMBOLS = 'hate symbols',
+  PERSON_IN_IMAGE = 'person detected in image',
+}
