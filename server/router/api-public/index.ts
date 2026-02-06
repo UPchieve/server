@@ -69,7 +69,7 @@ export function routes(app: Express) {
           group.id
         )
 
-        return res.json({ NTHSGroup })
+        return res.json({ NTHSGroup: group })
       }
 
       const isExistingVolunteer =
