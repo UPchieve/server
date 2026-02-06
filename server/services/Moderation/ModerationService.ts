@@ -522,7 +522,7 @@ async function checkForFullAddresses({
   text: string
   sessionId: string
 }): Promise<{
-  reason: 'Address'
+  reason: ModerationTypes.LiveMediaModerationCategories.ADDRESS
   details: { text: string; confidence: number; explanation: string }
 } | null> {
   const modelId = config.awsBedrockSonnet4Id
@@ -584,7 +584,7 @@ async function checkForFullAddresses({
     })
     if (completion) {
       return {
-        reason: 'Address',
+        reason: ModerationTypes.LiveMediaModerationCategories.ADDRESS,
         details: {
           text,
           confidence: completion.confidence,
@@ -693,7 +693,7 @@ async function checkForQuestionableLinks({
     })
     if (completion) {
       return {
-        reason: 'Link',
+        reason: ModerationTypes.LiveMediaModerationCategories.LINK,
         details:
           completion satisfies ModerationTypes.ModeratedLinkResponse['details'],
       }
@@ -743,7 +743,7 @@ async function detectPii(
 
     if (entity.Type === 'URL' && !existsInArray(links, entityText)) {
       links.push({
-        reason: 'Link',
+        reason: ModerationTypes.LiveMediaModerationCategories.LINK,
         details: {
           text: entityText,
           confidence: entityConfidence,
@@ -761,7 +761,7 @@ async function detectPii(
       }))
     ) {
       emails.push({
-        reason: 'Email',
+        reason: ModerationTypes.LiveMediaModerationCategories.EMAIL,
         details: {
           text: entityText,
           confidence: entityConfidence,
@@ -779,7 +779,7 @@ async function detectPii(
       !existsInArray(phones, entityText)
     ) {
       phones.push({
-        reason: 'Phone',
+        reason: ModerationTypes.LiveMediaModerationCategories.PHONE,
         details: {
           text: entityText,
           confidence: entityConfidence,
@@ -790,7 +790,7 @@ async function detectPii(
       !existsInArray(addresses, entityText)
     ) {
       addresses.push({
-        reason: 'Address',
+        reason: ModerationTypes.LiveMediaModerationCategories.ADDRESS,
         details: {
           text: entityText,
           confidence: entityConfidence,
@@ -817,7 +817,7 @@ async function detectPii(
         .map(
           (link) =>
             ({
-              reason: 'Link',
+              reason: ModerationTypes.LiveMediaModerationCategories.LINK,
               details: {
                 text: link.link,
                 confidence: link.details.confidence,

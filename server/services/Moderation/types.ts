@@ -25,7 +25,7 @@ export type ModerationSource =
   | 'whiteboard'
 
 export type ModeratedLink = {
-  reason: 'Link'
+  reason: LiveMediaModerationCategories.LINK
   details: {
     text: string
     confidence: number
@@ -35,17 +35,17 @@ export type ModeratedLink = {
 }
 
 export type ModeratedAddress = {
-  reason: 'Address'
+  reason: LiveMediaModerationCategories.ADDRESS
   details: { text: string; confidence: number; explanation?: string }
 }
 
 export type ModeratedEmail = {
-  reason: 'Email'
+  reason: LiveMediaModerationCategories.EMAIL
   details: { text: string; confidence: number }
 }
 
 export type ModeratedPhone = {
-  reason: 'Phone'
+  reason: LiveMediaModerationCategories.PHONE
   details: { text: string; confidence: number }
 }
 
@@ -61,7 +61,7 @@ export type AddressDetectionModelResponse = {
 }
 
 export type ModeratedLinkResponse = {
-  reason: 'Link'
+  reason: LiveMediaModerationCategories.LINK
   details: {
     links: Array<{
       link: string
@@ -110,10 +110,10 @@ export type ImageModerationFailureReason = {
 export enum LiveMediaModerationCategories {
   PROFANITY = 'profanity',
   VIOLENCE = 'violence',
-  LINK = 'link',
-  ADDRESS = 'address',
-  EMAIL = 'email',
-  PHONE = 'phone',
+  LINK = 'LINK',
+  ADDRESS = 'ADDRESS',
+  EMAIL = 'EMAIL',
+  PHONE = 'PHONE',
   HIGH_TOXICITY = 'high toxicity',
   SWIM_WEAR = 'swimwear or underwear',
   EXPLICIT = 'explicit',
