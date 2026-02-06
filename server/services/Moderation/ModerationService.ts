@@ -257,7 +257,7 @@ async function detectPersonInImage(
         (label) => label.Confidence && label.Confidence >= thresholdPercent
       )
       .map((label) => ({
-        reason: `Person detected in image`,
+        reason: ModerationTypes.LiveMediaModerationCategories.PERSON_IN_IMAGE,
         details: {
           label: label.Name,
           confidence: label.Confidence,
@@ -1397,7 +1397,11 @@ export const handleModerationInfraction = async (
 
     const infractionScore = weightModerationInfractions(
       [
-        ...allInfractionResons,
+        ...allInfractionResons.filter(
+          (infractionReason) =>
+            infractionReason.toLocaleLowerCase() ===
+            ModerationTypes.LiveMediaModerationCategories.PERSON_IN_IMAGE
+        ),
         ...getReasonsFromInfractions([insertedInfraction]),
       ] as ModerationTypes.LiveMediaModerationCategories[],
       moderationSettings

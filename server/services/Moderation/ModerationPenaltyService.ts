@@ -19,7 +19,6 @@ function getModerationPenaltyWeight(
   infraction: LiveMediaModerationCategories,
   moderationSettings: ModerationSettingsResult[]
 ) {
-  //TODO: Not every moderation category maps 1:1 with database moderation categories
   const moderationSetting = moderationSettings.find(
     (moderationSetting) => moderationSetting.name === infraction
   )
