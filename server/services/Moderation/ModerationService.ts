@@ -1403,7 +1403,7 @@ export const handleModerationInfraction = async (
             ModerationTypes.LiveMediaModerationCategories.PERSON_IN_IMAGE
         ),
         ...getReasonsFromInfractions([insertedInfraction]),
-      ] as ModerationTypes.LiveMediaModerationCategories[],
+      ],
       moderationSettings
     )
     const streamStoppingReasons = getStreamStoppingReasonsFromInfractions([
@@ -1517,13 +1517,15 @@ export function isStreamStoppingReason(
 
 export function getReasonsFromInfractions(
   infractions: ModerationInfraction[]
-): string[] {
-  return infractions.flatMap((i) => Object.keys(i.reason))
+): ModerationTypes.LiveMediaModerationCategories[] {
+  return infractions.flatMap((i) =>
+    Object.keys(i.reason)
+  ) as ModerationTypes.LiveMediaModerationCategories[]
 }
 
 export function getStreamStoppingReasonsFromInfractions(
   infractions: ModerationInfraction[]
-): string[] {
+): ModerationTypes.LiveMediaModerationCategories[] {
   const reasons = getReasonsFromInfractions(infractions)
   return reasons.filter((reason) =>
     isStreamStoppingReason(
