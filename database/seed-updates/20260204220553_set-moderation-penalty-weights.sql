@@ -19,7 +19,7 @@ WHERE
         FROM
             upchieve.moderation_categories
         WHERE
-            lower(name) IN ('violence', 'swimwear or underwear', 'explicit', 'non-explicit nudity of intimate parts and kissing', 'hate symbols', 'visually disturbing', 'graphic', 'harassment_or_abuse', 'sexual', 'violence_or_threat'));
+            lower(name) IN ('violence', 'swimwear or underwear', 'explicit', 'non-explicit nudity of intimate parts and kissing', 'hate symbols', 'visually disturbing', 'graphic', 'harassment_or_abuse', 'sexual', 'violence_or_threat', 'person detected in image'));
 
 UPDATE
     upchieve.moderation_settings
@@ -33,7 +33,7 @@ WHERE
         FROM
             upchieve.moderation_categories
         WHERE
-            lower(name) IN ('url', 'email', 'address', 'phone'));
+            lower(name) IN ('link', 'email', 'address', 'phone'));
 
 UPDATE
     upchieve.moderation_settings
