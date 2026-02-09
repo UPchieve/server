@@ -22,15 +22,14 @@ function getModerationPenaltyWeight(
   const moderationSetting = moderationSettings.find(
     (moderationSetting) => moderationSetting.name === infraction
   )
-  let penaltyWeight = null
+
   if (!moderationSetting) {
     logger.warn(
       { moderationReason: infraction },
       `Missing score for infraction category. Defaulting to severe score.`
     )
-    penaltyWeight = 10
-  } else {
-    penaltyWeight = moderationSetting.penalty_weight
+    return 10
   }
-  return penaltyWeight
+
+  return moderationSetting.penalty_weight
 }
