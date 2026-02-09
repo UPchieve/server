@@ -245,7 +245,9 @@ async function detectPersonInImage(
     const thresholdByName = new Map(
       moderationSettings.map((s) => [s.name, s.threshold])
     )
-    const personConfidenceThreshold = thresholdByName.get('Person')
+    const personConfidenceThreshold = thresholdByName.get(
+      ModerationTypes.LiveMediaModerationCategories.PERSON_IN_IMAGE
+    )
     // Rekognition returns `Confidence` as a percentage from 0 to 100
     // Our DB thresholds are stored as decimals from 0 to 1. We convert them to percentages below for comparison
     const thresholdPercent = personConfidenceThreshold
@@ -370,6 +372,7 @@ export async function extractTextFromImage(
 
 const detectToxicContent = async (
   textSegments: string[],
+  moderationSettings: ModerationSettingsResult[],
   trace?: LangfuseTraceClient
 ) => {
   let generation: LangfuseGenerationClient | undefined = undefined
@@ -400,14 +403,19 @@ const detectToxicContent = async (
     )
   }
 
+  const rudeGesture = moderationSettings.find(
+    (setting) =>
+      setting.name ===
+      ModerationTypes.LiveMediaModerationCategories.RUDE_GESTURES
+  )
+  const threshold = rudeGesture
+    ? rudeGesture.threshold * 100
+    : config.toxicityModerationMinConfidence
+
   const highToxicity = toxicContent
-    .filter(
-      ({ result }) =>
-        result.Toxicity &&
-        result.Toxicity >= config.toxicityModerationMinConfidence
-    )
+    .filter(({ result }) => result.Toxicity && result.Toxicity >= threshold)
     .map(({ result, text }) => ({
-      reason: 'High Toxicity',
+      reason: ModerationTypes.LiveMediaModerationCategories.RUDE_GESTURES,
       details: {
         toxicity: result.Toxicity,
         text,
@@ -710,6 +718,7 @@ async function detectPii(
   text: string,
   sessionId: string,
   isVolunteer: boolean,
+  moderationSettings: ModerationSettingsResult[],
   trace?: LangfuseTraceClient
 ) {
   let generation: LangfuseGenerationClient | undefined = undefined
@@ -835,10 +844,18 @@ async function detectPii(
   if (addresses.length > 0) {
     const moderatedAddress = await checkForFullAddresses({ text, sessionId })
 
+    const addressSetting = moderationSettings.find(
+      (setting) =>
+        setting.name === ModerationTypes.LiveMediaModerationCategories.ADDRESS
+    )
+
+    const addressConfidenceThreshold = addressSetting
+      ? addressSetting.threshold * 100
+      : config.minimumModerationAddressConfidence
+
     if (
       moderatedAddress &&
-      moderatedAddress?.details?.confidence >=
-        config.minimumModerationAddressConfidence
+      moderatedAddress?.details?.confidence >= addressConfidenceThreshold
     ) {
       moderatedPII.push(moderatedAddress)
     }
@@ -861,8 +878,14 @@ async function detectTextModerationFailures(
   }
 
   const [toxicity, pii] = await Promise.all([
-    detectToxicContent(textSegments, trace),
-    detectPii(textSegments.join(' '), sessionId, isVolunteer, trace),
+    detectToxicContent(textSegments, moderationSettings, trace),
+    detectPii(
+      textSegments.join(' '),
+      sessionId,
+      isVolunteer,
+      moderationSettings,
+      trace
+    ),
   ])
 
   return [...toxicity, ...pii]
