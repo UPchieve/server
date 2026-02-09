@@ -6034,8 +6034,8 @@ COPY upchieve.moderation_infractions (id, user_id, session_id, reason, active, c
 --
 
 COPY upchieve.moderation_penalty_config (id, min_weight, max_weight, moderation_type) FROM stdin;
-5	0	10	contextual
-6	0	10	realtime_image
+1	0	10	contextual
+2	0	10	realtime_image
 \.
 
 
@@ -8852,7 +8852,7 @@ SELECT pg_catalog.setval('upchieve.moderation_categories_id_seq', 26, true);
 -- Name: moderation_penalty_config_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.moderation_penalty_config_id_seq', 6, true);
+SELECT pg_catalog.setval('upchieve.moderation_penalty_config_id_seq', 3, true);
 
 
 --
@@ -9117,4 +9117,5 @@ SELECT pg_catalog.setval('upchieve.weekdays_id_seq', 1, false);
 --
 -- PostgreSQL database dump complete
 --
+
 
