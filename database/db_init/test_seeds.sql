@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 14.15 (Debian 14.15-1.pgdg120+1)
--- Dumped by pg_dump version 14.19 (Homebrew)
+-- Dumped from database version 14.17 (Debian 14.17-1.pgdg120+1)
+-- Dumped by pg_dump version 15.15 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -6007,7 +6007,17 @@ COPY upchieve.moderation_categories (id, name) FROM stdin;
 13	Rude Gestures
 14	Gambling
 15	Hate Symbols
-16	Person
+17	GRAPHIC
+18	HARASSMENT_OR_ABUSE
+19	SEXUAL
+20	VIOLENCE_OR_THREAT
+21	INSULT
+22	PROFANITY
+23	EMAIL
+24	LINK
+25	PHONE
+26	ADDRESS
+16	Person detected in image
 \.
 
 
@@ -6040,6 +6050,17 @@ realtime_image	13	0.75
 realtime_image	14	0.75
 realtime_image	15	0.75
 realtime_image	16	0.75
+realtime_image	2	0.85
+realtime_image	17	0.85
+realtime_image	18	0.85
+realtime_image	19	0.85
+realtime_image	20	0.85
+realtime_image	21	0.85
+realtime_image	22	0.85
+realtime_image	23	0.85
+realtime_image	24	0.85
+realtime_image	25	0.85
+realtime_image	26	0.85
 \.
 
 
@@ -8814,7 +8835,7 @@ SELECT pg_catalog.setval('upchieve.ip_addresses_id_seq', 1, true);
 -- Name: moderation_categories_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.moderation_categories_id_seq', 16, true);
+SELECT pg_catalog.setval('upchieve.moderation_categories_id_seq', 26, true);
 
 
 --
@@ -9079,4 +9100,5 @@ SELECT pg_catalog.setval('upchieve.weekdays_id_seq', 1, false);
 --
 -- PostgreSQL database dump complete
 --
+
 
