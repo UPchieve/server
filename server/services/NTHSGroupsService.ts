@@ -109,6 +109,7 @@ export async function joinGroupAsMemberByGroupId(
       },
       client
     )
+    return await NTHSGroupsRepo.getGroupsByUser(userId, client)
   }, tc)
 }
 
