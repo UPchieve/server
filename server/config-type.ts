@@ -316,4 +316,10 @@ export const Config = Record({
   zwibblerNodeUrl: String,
 
   slackAlertWebHookUrl: String,
+
+  livekit: Record({
+    apiKey: String,
+    apiSecret: String,
+    url: String,
+  }),
 })

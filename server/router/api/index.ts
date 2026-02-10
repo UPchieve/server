@@ -1,5 +1,4 @@
 import { Express, RequestHandler, Router } from 'express'
-import { PGStore } from 'connect-pg-simple'
 import expressWs from 'express-ws'
 import { Server } from 'socket.io'
 import { authPassport } from '../../utils/auth-utils'
@@ -30,9 +29,10 @@ import { routeVoiceMessages } from './voice-messages'
 import { routeTutorBot } from './tutor-bot'
 import { routeAssignments } from './assignments'
 import { routeRewards } from './rewards'
+import { routeNTHSGroups } from './nths-groups'
+import { routeLiveMedia } from './live-media'
 import { sendTextMessage } from '../../services/TwilioService'
 import { asString } from '../../utils/type-utils'
-import { routeNTHSGroups } from './nths-groups'
 
 export function routes(app: Express, io: Server): void {
   const router: expressWs.Router = Router()
@@ -60,6 +60,7 @@ export function routes(app: Express, io: Server): void {
   routeAssignments(router)
   routeRewards(router)
   routeNTHSGroups(router)
+  routeLiveMedia(router)
 
   router.post('/send-referral-email', async function (req, res) {
     try {

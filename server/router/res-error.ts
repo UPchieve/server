@@ -10,6 +10,7 @@ import {
   AlreadyInNTHSGroupError,
   CannotRemoveSoleNTHSAdminError,
   NTHSGroupNameTakenError,
+  SessionJoinError,
 } from '../models/Errors'
 import { RegistrationError, ResetError } from '../utils/auth-utils'
 import config from '../config'
@@ -20,7 +21,7 @@ import { ExistingUserError } from '../services/EligibilityService'
 
 export function resError(
   res: Response,
-  err: unknown | Error | CustomError,
+  err?: unknown | Error | CustomError,
   status?: number
 ): void {
   let message = ''
@@ -51,6 +52,7 @@ export function resError(
     else if (err instanceof NTHSGroupNameTakenError) status = 422
     else if (err instanceof CannotRemoveSoleNTHSAdminError) status = 422
     else if (err instanceof AlreadyInUseError) status = 409
+    else if (err instanceof SessionJoinError) status = 403
     // response timeout
     else if (err.message === 'Response timeout') status = 408
     // unknown error

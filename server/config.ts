@@ -476,6 +476,12 @@ const config: Static<typeof Config> = {
   // Zwibbler
   zwibblerNodeUrl: process.env.ZWIBBLER_NODE_URL || 'bogus',
   slackAlertWebHookUrl: process.env.SUBWAY_SLACK_ALERT_WEBHOOK_URL || 'bogus',
+
+  livekit: {
+    apiKey: process.env.LIVEKIT_API_KEY || 'bogus',
+    apiSecret: process.env.LIVEKIT_API_SECRET || 'bogus',
+    url: process.env.LIVEKIT_URL || 'bogus',
+  },
 }
 module.exports = config
 export default config
