@@ -5,7 +5,8 @@ import { getVolunteersForWeeklyHourSummary } from '../../models/Volunteer/querie
 import logger from '../../logger'
 import QueueService from '../../services/QueueService'
 import { Job } from 'bull'
-import { ISOString, Ulid } from '../../constants'
+import { ISOString } from '../../constants'
+import { Ulid } from '../../models/pgUtils'
 
 interface SpawnEmailWeeklyHourSummaryJobsData {
   startDate?: ISOString
