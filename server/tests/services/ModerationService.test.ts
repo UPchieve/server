@@ -104,11 +104,6 @@ describe('ModerationService', () => {
         threshold: 0.75,
       },
       {
-        name: LiveMediaModerationCategories.HIGH_TOXICITY,
-        penalty_weight: 1,
-        threshold: 0.75,
-      },
-      {
         name: LiveMediaModerationCategories.DRUGS,
         penalty_weight: 1,
         threshold: 0.75,
@@ -534,9 +529,15 @@ describe('ModerationService', () => {
   })
 
   describe('Moderation infractions', () => {
-    const profanityReason = { failures: { profanity: [] } }
-    const violenceReason = { failures: { violence: [] } }
-    const explicitReason = { failures: { explicit: [] } }
+    const profanityReason = {
+      failures: { [LiveMediaModerationCategories.PROFANITY]: [] },
+    }
+    const violenceReason = {
+      failures: { [LiveMediaModerationCategories.VIOLENCE]: [] },
+    }
+    const explicitReason = {
+      failures: { [LiveMediaModerationCategories.EXPLICIT]: [] },
+    }
     const personInImageReason = {
       failures: { [LiveMediaModerationCategories.PERSON_IN_IMAGE]: [] },
     }
@@ -549,7 +550,6 @@ describe('ModerationService', () => {
     describe('weighModerationInfractions', () => {
       it.each([
         [LiveMediaModerationCategories.PROFANITY, 1],
-        [LiveMediaModerationCategories.HIGH_TOXICITY, 1],
         [LiveMediaModerationCategories.DRUGS, 1],
         [LiveMediaModerationCategories.ALCOHOL, 1],
         [LiveMediaModerationCategories.RUDE_GESTURES, 1],
@@ -610,7 +610,6 @@ describe('ModerationService', () => {
         [LiveMediaModerationCategories.VIOLENCE, true],
         [LiveMediaModerationCategories.SWIM_WEAR, true],
         [LiveMediaModerationCategories.PROFANITY, false],
-        [LiveMediaModerationCategories.HIGH_TOXICITY, false],
         [LiveMediaModerationCategories.DRUGS, false],
         [LiveMediaModerationCategories.ALCOHOL, false],
         [LiveMediaModerationCategories.RUDE_GESTURES, false],
@@ -777,13 +776,10 @@ describe('ModerationService', () => {
         [LiveMediaModerationCategories.ALCOHOL, 1],
         [LiveMediaModerationCategories.VIOLENCE, 10],
         [LiveMediaModerationCategories.HATE_SYMBOLS, 10],
-        ['unknown category', 10],
+        [LiveMediaModerationCategories.UNKNOWN, 10],
       ])(
         'Returns the correct score for each category',
-        (
-          category: string | LiveMediaModerationCategories,
-          expectedScore: number
-        ) => {
+        (category: LiveMediaModerationCategories, expectedScore: number) => {
           const actualScore = weightModerationInfractions(
             [category],
             moderationSettings

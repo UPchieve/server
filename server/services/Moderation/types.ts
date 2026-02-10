@@ -124,4 +124,5 @@ export enum LiveMediaModerationCategories {
   GAMBLING = 'Gambling',
   HATE_SYMBOLS = 'Hate Symbols',
   PERSON_IN_IMAGE = 'Person detected in image',
+  UNKNOWN = 'Unknown',
 }

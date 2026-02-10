@@ -92,7 +92,7 @@ const moderationLabelToFailureReason = (
   label: ModerationLabel
 ): ModerationTypes.ImageModerationFailureReason => {
   return {
-    reason: label.Name ?? 'Unknown',
+    reason: label.Name ?? ModerationTypes.LiveMediaModerationCategories.UNKNOWN,
     details: { confidence: label.Confidence },
   }
 }
@@ -1403,7 +1403,7 @@ export const handleModerationInfraction = async (
     isEmpty(
       failures.filter(
         (failure) =>
-          failure.toLocaleLowerCase() ===
+          failure ===
           ModerationTypes.LiveMediaModerationCategories.PERSON_IN_IMAGE
       )
     )
@@ -1422,7 +1422,7 @@ export const handleModerationInfraction = async (
       [
         ...allInfractionResons.filter(
           (infractionReason) =>
-            infractionReason.toLocaleLowerCase() ===
+            infractionReason ===
             ModerationTypes.LiveMediaModerationCategories.PERSON_IN_IMAGE
         ),
         ...getReasonsFromInfractions([insertedInfraction]),
@@ -1454,7 +1454,7 @@ export const handleModerationInfraction = async (
     isEmpty(
       allInfractionResons.filter(
         (infractionReason) =>
-          infractionReason.toLocaleLowerCase() ===
+          infractionReason ===
           ModerationTypes.LiveMediaModerationCategories.PERSON_IN_IMAGE
       )
     )
@@ -1541,9 +1541,10 @@ export function isStreamStoppingReason(
 export function getReasonsFromInfractions(
   infractions: ModerationInfraction[]
 ): ModerationTypes.LiveMediaModerationCategories[] {
-  return infractions.flatMap((i) =>
-    Object.keys(i.reason)
-  ) as ModerationTypes.LiveMediaModerationCategories[]
+  return infractions.flatMap((i) => {
+    debugger
+    return Object.keys(i.reason)
+  }) as ModerationTypes.LiveMediaModerationCategories[]
 }
 
 export function getStreamStoppingReasonsFromInfractions(
