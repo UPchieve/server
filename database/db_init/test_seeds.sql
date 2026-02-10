@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 14.17 (Debian 14.17-1.pgdg120+1)
--- Dumped by pg_dump version 15.15 (Homebrew)
+-- Dumped from database version 14.15 (Debian 14.15-1.pgdg120+1)
+-- Dumped by pg_dump version 14.19 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -6154,6 +6154,7 @@ COPY upchieve.nths_actions (id, name, created_at) FROM stdin;
 5	SUBMITTED ADVISOR CONTACT INFO	2026-02-03 19:39:46.025817+00
 6	ADVISOR VERIFIED	2026-02-03 19:39:46.025817+00
 7	SCHOOL AFFILIATION DENIED	2026-02-03 19:39:46.025817+00
+8	OPTED OUT	2026-02-10 19:55:37.065185+00
 \.
 
 
@@ -8913,7 +8914,7 @@ SELECT pg_catalog.setval('upchieve.notification_types_id_seq', 2, true);
 -- Name: nths_actions_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.nths_actions_id_seq', 7, true);
+SELECT pg_catalog.setval('upchieve.nths_actions_id_seq', 8, true);
 
 
 --
@@ -9157,5 +9158,4 @@ SELECT pg_catalog.setval('upchieve.weekdays_id_seq', 1, false);
 --
 -- PostgreSQL database dump complete
 --
-
 
