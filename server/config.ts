@@ -424,16 +424,12 @@ const config = {
   // Moderation
   liveMediaBanInfractionScoreThreshold:
     Number(process.env.SUBWAY_LIVE_MEDIA_BAN_INFRACTION_SCORE_THRESHOLD) || 10,
-  imageModerationMinConfidence:
-    Number(process.env.IMAGE_MODERATION_CONFIDENCE_THRESHOLD) || 70,
-  toxicityModerationMinConfidence:
-    Number(process.env.TOXICITY_MODERATION_CONFIDENCE_THRESHOLD) || 0.8,
-  phoneNumberModerationConfidenceThreshold:
-    Number(process.env.PHONE_NUMBER_MODERATION_CONFIDENCE_THRESHOLD) || 0.9,
+  imageModerationMinConfidence: 70,
+  toxicityModerationMinConfidence: 0.8,
+  phoneNumberModerationConfidenceThreshold: 0.9,
   contextualModerationConfidenceThreshold:
-    Number(process.env.CONTEXTUAL_MODERATION_CONFIDENCE_THRESHOLD) || 50,
-  emailModerationConfidenceThreshold:
-    Number(process.env.EMAIL_MODERATION_CONFIDENCE_THRESHOLD) || 0.8,
+    Number(process.env.CONTEXTUAL_MODERATION_CONFIDENCE_THRESHOLD) || 90,
+  emailModerationConfidenceThreshold: 0.8,
   moderateMessageTimeLimitMs:
     Number(process.env.MODERATE_MESSAGE_TIME_LIMIT_MS) || 5 * 1000,
   contextualModerationBatchSize:
