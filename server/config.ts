@@ -431,7 +431,7 @@ const config: Static<typeof Config> = {
   phoneNumberModerationConfidenceThreshold:
     Number(process.env.PHONE_NUMBER_MODERATION_CONFIDENCE_THRESHOLD) || 0.9,
   contextualModerationConfidenceThreshold:
-    Number(process.env.CONTEXTUAL_MODERATION_CONFIDENCE_THRESHOLD) || 50,
+    Number(process.env.CONTEXTUAL_MODERATION_CONFIDENCE_THRESHOLD) || 90,
   emailModerationConfidenceThreshold:
     Number(process.env.EMAIL_MODERATION_CONFIDENCE_THRESHOLD) || 0.8,
   moderateMessageTimeLimitMs:
