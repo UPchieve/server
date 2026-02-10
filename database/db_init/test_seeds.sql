@@ -6150,6 +6150,10 @@ COPY upchieve.nths_actions (id, name, created_at) FROM stdin;
 1	NAMED YOUR TEAM	2026-01-29 20:30:00.05419+00
 2	REVIEWED RESOURCES	2026-01-29 20:30:00.05419+00
 3	ATTENDED ORIENTATION	2026-01-29 20:30:00.05419+00
+4	MARKED SCHOOL AFFILIATION IN PROGRESS	2026-02-03 19:39:46.025817+00
+5	SUBMITTED ADVISOR CONTACT INFO	2026-02-03 19:39:46.025817+00
+6	ADVISOR VERIFIED	2026-02-03 19:39:46.025817+00
+7	SCHOOL AFFILIATION DENIED	2026-02-03 19:39:46.025817+00
 \.
 
 
@@ -6158,6 +6162,14 @@ COPY upchieve.nths_actions (id, name, created_at) FROM stdin;
 --
 
 COPY upchieve.nths_groups (id, name, key, created_at, updated_at, invite_code) FROM stdin;
+\.
+
+
+--
+-- Data for Name: nths_advisors; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.nths_advisors (id, nths_group_id, first_name, last_name, email, phone, phone_extension, title, verified, created_at, updated_at) FROM stdin;
 \.
 
 
@@ -6192,6 +6204,26 @@ COPY upchieve.nths_group_member_roles (user_id, nths_group_id, role_id, updated_
 --
 
 COPY upchieve.nths_group_members (nths_group_id, user_id, title, joined_at, updated_at, deactivated_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: nths_school_affiliation_statuses; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.nths_school_affiliation_statuses (id, name, created_at) FROM stdin;
+1	PENDING_SCHOOL_AFFILIATION	2026-02-03 19:53:33.966404+00
+2	PENDING_UPCHIEVE_VERIFICATION	2026-02-03 19:53:33.966404+00
+3	AFFILIATED	2026-02-03 19:53:33.966404+00
+4	DENIED	2026-02-03 19:53:33.966404+00
+\.
+
+
+--
+-- Data for Name: nths_group_school_affiliation; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.nths_group_school_affiliation (nths_group_id, nths_school_affiliation_status_id, created_at, updated_at) FROM stdin;
 \.
 
 
@@ -8880,7 +8912,7 @@ SELECT pg_catalog.setval('upchieve.notification_types_id_seq', 2, true);
 -- Name: nths_actions_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.nths_actions_id_seq', 3, true);
+SELECT pg_catalog.setval('upchieve.nths_actions_id_seq', 7, true);
 
 
 --
@@ -8895,6 +8927,13 @@ SELECT pg_catalog.setval('upchieve.nths_group_actions_id_seq', 1, false);
 --
 
 SELECT pg_catalog.setval('upchieve.nths_group_roles_id_seq', 2, true);
+
+
+--
+-- Name: nths_school_affiliation_statuses_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
+--
+
+SELECT pg_catalog.setval('upchieve.nths_school_affiliation_statuses_id_seq', 4, true);
 
 
 --
