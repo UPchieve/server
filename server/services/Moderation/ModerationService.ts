@@ -40,10 +40,6 @@ import {
 } from './../FeatureFlagService'
 import { timeLimit } from '../../utils/time-limit'
 import * as LangfuseService from './../LangfuseService'
-import {
-  LangfusePromptNameEnum,
-  LangfuseTraceTagEnum,
-} from '.././LangfuseService'
 import * as SessionService from '.././SessionService'
 import SocketService from '.././SocketService'
 import config from '../../config'
@@ -1770,7 +1766,7 @@ export const moderateTranscript = async (
   }
 
   const promptData = await getPromptData(
-    LangfusePromptNameEnum.SESSION_TRANSCRIPT_MODERATION,
+    LangfuseService.LangfusePromptNameEnum.SESSION_TRANSCRIPT_MODERATION,
     FallBackPrompts.FALLBACK_TRANSCRIPT_MODERATION_PROMPT
   )
 
@@ -1837,7 +1833,9 @@ export const moderateTranscript = async (
       }
 
       if (result.confidence >= thresholdPercent) {
-        trace.update({ tags: [LangfuseTraceTagEnum.FLAGGED_BY_MODERATION] })
+        trace.update({
+          tags: [LangfuseService.LangfuseTraceTagEnum.FLAGGED_BY_MODERATION],
+        })
         for (const msg of result.flaggedMessages) {
           flaggedOutput.push({
             reason,
