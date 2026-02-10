@@ -104,7 +104,7 @@ async function detectImageEducationPurpose(
 ): Promise<ModerationTypes.ImageModerationFailureReason | null> {
   try {
     const prompt = await getPromptData(
-      LangfusePromptNameEnum.IS_IMAGE_EDUCATIONAL,
+      LangfuseService.LangfusePromptNameEnum.IS_IMAGE_EDUCATIONAL,
       ''
     )
     if (prompt.isFallback) throw Error("Couldn't get prompt")
@@ -532,7 +532,8 @@ async function checkForFullAddresses({
   const modelId = config.awsBedrockSonnet4Id
 
   const promptData = await getPromptData(
-    LangfusePromptNameEnum.GET_ADDRESS_DETECTION_MODERATION_DECISION,
+    LangfuseService.LangfusePromptNameEnum
+      .GET_ADDRESS_DETECTION_MODERATION_DECISION,
     FallBackPrompts.ADDRESS_DETECTION_FALLBACK_MODERATION_PROMPT
   )
 
@@ -614,7 +615,8 @@ async function checkForQuestionableLinks({
   const modelId = config.awsBedrockHaikuId
 
   const promptData = await getPromptData(
-    LangfusePromptNameEnum.GET_QUESTIONABLE_LINK_MODERATION_DECISION,
+    LangfuseService.LangfusePromptNameEnum
+      .GET_QUESTIONABLE_LINK_MODERATION_DECISION,
     FallBackPrompts.QUESTIONABLE_LINK_FALLBACK_MODERATION_PROMPT
   )
 
@@ -1104,7 +1106,8 @@ export async function getIndividualSessionMessageModerationResponse({
   trace?: LangfuseTraceClient
 }) {
   const promptData = await getPromptData(
-    LangfusePromptNameEnum.GET_SESSION_MESSAGE_MODERATION_DECISION,
+    LangfuseService.LangfusePromptNameEnum
+      .GET_SESSION_MESSAGE_MODERATION_DECISION,
     FallBackPrompts.FALLBACK_MODERATION_PROMPT
   )
 
@@ -1150,7 +1153,7 @@ export async function getIndividualSessionMessageModerationResponse({
 }
 
 const getPromptData = async (
-  promptName: LangfusePromptNameEnum,
+  promptName: LangfuseService.LangfusePromptNameEnum,
   fallbackPrompt: string
 ): Promise<{
   isFallback: boolean
