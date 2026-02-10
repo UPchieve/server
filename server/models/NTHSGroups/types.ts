@@ -8,6 +8,7 @@ export type UserGroup = {
   groupKey: string
   inviteCode: string
   roleName: NTHSGroupRoleName
+  schoolAffiliationStatus: NTHSSchoolAffiliationStatus | null
 }
 
 export type NTHSGroup = {
@@ -44,9 +45,22 @@ export type NTHSGroupMemberRole = {
 export type NTHSGroupRoleName = 'admin' | 'member'
 
 export type NTHSActionName =
-  | 'NAME YOUR TEAM'
-  | 'REVIEW RESOURCES'
-  | 'ATTEND ORIENTATION'
+  | 'NAMED YOUR TEAM'
+  | 'REVIEWED RESOURCES'
+  | 'ATTENDED ORIENTATION'
+  | 'MARKED SCHOOL AFFILIATION IN PROGRESS'
+  | 'SUBMITTED ADVISOR CONTACT INFO'
+  | 'ADVISOR VERIFIED'
+  | 'SCHOOL AFFILIATION DENIED'
+
+export const NTHS_ACTIONS_TO_SCHOOL_AFFILIATION_STATUS_MAPPING: Partial<
+  Record<NTHSActionName, NTHSSchoolAffiliationStatus>
+> = {
+  'MARKED SCHOOL AFFILIATION IN PROGRESS': 'PENDING_SCHOOL_AFFILIATION',
+  'SUBMITTED ADVISOR CONTACT INFO': 'PENDING_UPCHIEVE_VERIFICATION',
+  'ADVISOR VERIFIED': 'AFFILIATED',
+  'SCHOOL AFFILIATION DENIED': 'DENIED',
+}
 
 export type NTHSGroupAction = {
   id: number
@@ -60,3 +74,9 @@ export type NTHSAction = {
   id: number
   name: string
 }
+
+export type NTHSSchoolAffiliationStatus =
+  | 'PENDING_SCHOOL_AFFILIATION'
+  | 'PENDING_UPCHIEVE_VERIFICATION'
+  | 'AFFILIATED'
+  | 'DENIED'

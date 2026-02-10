@@ -1,5 +1,5 @@
--- Dumped from database version 14.17 (Debian 14.17-1.pgdg120+1)
--- Dumped by pg_dump version 15.15 (Homebrew)
+-- Dumped from database version 14.15 (Debian 14.15-1.pgdg120+1)
+-- Dumped by pg_dump version 14.19 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -24,13 +24,6 @@ CREATE SCHEMA auth;
 --
 
 CREATE SCHEMA basic_access;
-
-
---
--- Name: public; Type: SCHEMA; Schema: -; Owner: -
---
-
--- *not* creating schema, since initdb creates it
 
 
 --
@@ -970,6 +963,25 @@ ALTER TABLE upchieve.nths_actions ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTI
 
 
 --
+-- Name: nths_advisors; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.nths_advisors (
+    id uuid NOT NULL,
+    nths_group_id uuid NOT NULL,
+    first_name text NOT NULL,
+    last_name text NOT NULL,
+    email text NOT NULL,
+    phone text NOT NULL,
+    phone_extension text,
+    title text NOT NULL,
+    verified boolean DEFAULT false NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
 -- Name: nths_group_actions; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -1046,6 +1058,18 @@ ALTER TABLE upchieve.nths_group_roles ALTER COLUMN id ADD GENERATED ALWAYS AS ID
 
 
 --
+-- Name: nths_group_school_affiliation; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.nths_group_school_affiliation (
+    nths_group_id uuid NOT NULL,
+    nths_school_affiliation_status_id integer NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
 -- Name: nths_groups; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -1056,6 +1080,31 @@ CREATE TABLE upchieve.nths_groups (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     invite_code character varying(6) NOT NULL
+);
+
+
+--
+-- Name: nths_school_affiliation_statuses; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.nths_school_affiliation_statuses (
+    id integer NOT NULL,
+    name text NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: nths_school_affiliation_statuses_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE upchieve.nths_school_affiliation_statuses ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME upchieve.nths_school_affiliation_statuses_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
 );
 
 
@@ -3773,6 +3822,22 @@ ALTER TABLE ONLY upchieve.nths_actions
 
 
 --
+-- Name: nths_advisors nths_advisors_email_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_advisors
+    ADD CONSTRAINT nths_advisors_email_key UNIQUE (email);
+
+
+--
+-- Name: nths_advisors nths_advisors_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_advisors
+    ADD CONSTRAINT nths_advisors_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: nths_group_actions nths_group_actions_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -3805,6 +3870,14 @@ ALTER TABLE ONLY upchieve.nths_group_roles
 
 
 --
+-- Name: nths_group_school_affiliation nths_group_school_affiliation_nths_group_id_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_group_school_affiliation
+    ADD CONSTRAINT nths_group_school_affiliation_nths_group_id_key UNIQUE (nths_group_id);
+
+
+--
 -- Name: nths_groups nths_groups_invite_code_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -3818,6 +3891,22 @@ ALTER TABLE ONLY upchieve.nths_groups
 
 ALTER TABLE ONLY upchieve.nths_groups
     ADD CONSTRAINT nths_groups_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: nths_school_affiliation_statuses nths_school_affiliation_statuses_name_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_school_affiliation_statuses
+    ADD CONSTRAINT nths_school_affiliation_statuses_name_key UNIQUE (name);
+
+
+--
+-- Name: nths_school_affiliation_statuses nths_school_affiliation_statuses_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_school_affiliation_statuses
+    ADD CONSTRAINT nths_school_affiliation_statuses_pkey PRIMARY KEY (id);
 
 
 --
@@ -5036,6 +5125,13 @@ CREATE INDEX nths_group_actions_group_id ON upchieve.nths_group_actions USING bt
 
 
 --
+-- Name: nths_group_advisors_group_id; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX nths_group_advisors_group_id ON upchieve.nths_advisors USING btree (nths_group_id);
+
+
+--
 -- Name: nths_groups_invite_code_index; Type: INDEX; Schema: upchieve; Owner: -
 --
 
@@ -5602,6 +5698,14 @@ ALTER TABLE ONLY upchieve.notifications
 
 
 --
+-- Name: nths_advisors nths_advisors_nths_group_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_advisors
+    ADD CONSTRAINT nths_advisors_nths_group_id_fkey FOREIGN KEY (nths_group_id) REFERENCES upchieve.nths_groups(id);
+
+
+--
 -- Name: nths_group_actions nths_group_actions_nths_action_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -5655,6 +5759,22 @@ ALTER TABLE ONLY upchieve.nths_group_members
 
 ALTER TABLE ONLY upchieve.nths_group_members
     ADD CONSTRAINT nths_group_members_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
+
+
+--
+-- Name: nths_group_school_affiliation nths_group_school_affiliation_nths_group_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_group_school_affiliation
+    ADD CONSTRAINT nths_group_school_affiliation_nths_group_id_fkey FOREIGN KEY (nths_group_id) REFERENCES upchieve.nths_groups(id);
+
+
+--
+-- Name: nths_group_school_affiliation nths_group_school_affiliation_nths_school_affiliation_stat_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_group_school_affiliation
+    ADD CONSTRAINT nths_group_school_affiliation_nths_school_affiliation_stat_fkey FOREIGN KEY (nths_school_affiliation_status_id) REFERENCES upchieve.nths_school_affiliation_statuses(id);
 
 
 --
@@ -7054,4 +7174,7 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260122195918'),
     ('20260129185914'),
     ('20260129190242'),
+    ('20260203194147'),
+    ('20260203194734'),
+    ('20260203200218'),
     ('20260204215802');
