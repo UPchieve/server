@@ -1,5 +1,5 @@
--- Dumped from database version 14.15 (Debian 14.15-1.pgdg120+1)
--- Dumped by pg_dump version 14.19 (Homebrew)
+-- Dumped from database version 14.17 (Debian 14.17-1.pgdg120+1)
+-- Dumped by pg_dump version 15.15 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -24,6 +24,13 @@ CREATE SCHEMA auth;
 --
 
 CREATE SCHEMA basic_access;
+
+
+--
+-- Name: public; Type: SCHEMA; Schema: -; Owner: -
+--
+
+-- *not* creating schema, since initdb creates it
 
 
 --
@@ -770,13 +777,41 @@ CREATE TABLE upchieve.moderation_infractions (
 
 
 --
+-- Name: moderation_penalty_config; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.moderation_penalty_config (
+    id integer NOT NULL,
+    min_weight integer NOT NULL,
+    max_weight integer NOT NULL,
+    moderation_type upchieve.moderation_types,
+    CONSTRAINT moderation_penalty_min_le_max CHECK ((min_weight <= max_weight))
+);
+
+
+--
+-- Name: moderation_penalty_config_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE upchieve.moderation_penalty_config ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME upchieve.moderation_penalty_config_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
 -- Name: moderation_settings; Type: TABLE; Schema: upchieve; Owner: -
 --
 
 CREATE TABLE upchieve.moderation_settings (
     moderation_type upchieve.moderation_types,
     moderation_category_id integer,
-    threshold numeric(3,2)
+    threshold numeric(3,2),
+    penalty_weight integer DEFAULT 0 NOT NULL
 );
 
 
@@ -3623,6 +3658,22 @@ ALTER TABLE ONLY upchieve.moderation_categories
 
 ALTER TABLE ONLY upchieve.moderation_infractions
     ADD CONSTRAINT moderation_infractions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: moderation_penalty_config moderation_penalty_config_moderation_type_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.moderation_penalty_config
+    ADD CONSTRAINT moderation_penalty_config_moderation_type_key UNIQUE (moderation_type);
+
+
+--
+-- Name: moderation_penalty_config moderation_penalty_config_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.moderation_penalty_config
+    ADD CONSTRAINT moderation_penalty_config_pkey PRIMARY KEY (id);
 
 
 --
@@ -7002,4 +7053,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260114193023'),
     ('20260122195918'),
     ('20260129185914'),
-    ('20260129190242');
+    ('20260129190242'),
+    ('20260204215802');
