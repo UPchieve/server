@@ -1,7 +1,7 @@
 import { Job } from 'bull'
 import { CensoredSessionMessage } from '../models/CensoredSessionMessage'
-import { getIndividualSessionMessageModerationResponse } from '../services/Moderation/ModerationService'
-import { LangfuseTraceName } from '../services/Moderation/types'
+import { getIndividualSessionMessageModerationResponse } from '../services/ModerationService'
+import { LangfuseTraceName } from '../services/ModerationService/types'
 import * as LangfuseService from '../services/LangfuseService'
 
 export interface ModerationSessionMessageJobData {
