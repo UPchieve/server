@@ -13,7 +13,7 @@ import {
   type ModeratedLink,
   LiveMediaModerationCategories,
 } from '../../services/ModerationService/types'
-import { type ModerationSettingsResult } from '../../models/ModerationSettings/types'
+import { type GetModerationSettingResult } from '../../models/ModerationSettings/types'
 import { weightModerationInfractions } from '../../services/ModerationService/ModerationPenaltyService'
 import { FALLBACK_MODERATION_PROMPT } from '../../services/ModerationService/fallbackPrompts'
 import * as FeatureFlagsService from '../../services/FeatureFlagService'
@@ -71,7 +71,7 @@ describe('ModerationService', () => {
   const badMessage = 'Call me at (555)555-5555'
   let mockGeneration: any, mockTrace: any, mockLangfuseClient: any
   const mockTimeLimit = jest.mocked(timeLimit)
-  let moderationSettings: ModerationSettingsResult[]
+  let moderationSettings: GetModerationSettingResult[]
 
   beforeEach(async () => {
     jest.resetAllMocks()
@@ -99,80 +99,80 @@ describe('ModerationService', () => {
     moderationSettings = [
       {
         name: LiveMediaModerationCategories.PROFANITY,
-        penalty_weight: 1,
+        penaltyWeight: 1,
         threshold: 0.75,
       },
       {
         name: LiveMediaModerationCategories.DRUGS,
-        penalty_weight: 1,
+        penaltyWeight: 1,
         threshold: 0.75,
       },
       {
         name: LiveMediaModerationCategories.ALCOHOL,
-        penalty_weight: 1,
+        penaltyWeight: 1,
         threshold: 0.75,
       },
       {
         name: LiveMediaModerationCategories.RUDE_GESTURES,
-        penalty_weight: 1,
+        penaltyWeight: 1,
         threshold: 0.75,
       },
       {
         name: LiveMediaModerationCategories.GAMBLING,
-        penalty_weight: 1,
+        penaltyWeight: 1,
         threshold: 0.75,
       },
 
       {
         name: LiveMediaModerationCategories.VIOLENCE,
-        penalty_weight: 10,
+        penaltyWeight: 10,
         threshold: 0.75,
       },
       {
         name: LiveMediaModerationCategories.SWIM_WEAR,
-        penalty_weight: 10,
+        penaltyWeight: 10,
         threshold: 0.75,
       },
 
       {
         name: LiveMediaModerationCategories.LINK,
-        penalty_weight: 4,
+        penaltyWeight: 4,
         threshold: 0.75,
       },
       {
         name: LiveMediaModerationCategories.EMAIL,
-        penalty_weight: 4,
+        penaltyWeight: 4,
         threshold: 0.75,
       },
       {
         name: LiveMediaModerationCategories.PHONE,
-        penalty_weight: 4,
+        penaltyWeight: 4,
         threshold: 0.75,
       },
       {
         name: LiveMediaModerationCategories.ADDRESS,
-        penalty_weight: 4,
+        penaltyWeight: 4,
         threshold: 0.75,
       },
 
       {
         name: LiveMediaModerationCategories.EXPLICIT,
-        penalty_weight: 10,
+        penaltyWeight: 10,
         threshold: 0.75,
       },
       {
         name: LiveMediaModerationCategories.NON_EXPLICIT,
-        penalty_weight: 10,
+        penaltyWeight: 10,
         threshold: 0.75,
       },
       {
         name: LiveMediaModerationCategories.HATE_SYMBOLS,
-        penalty_weight: 10,
+        penaltyWeight: 10,
         threshold: 0.75,
       },
       {
         name: LiveMediaModerationCategories.DISTURBING,
-        penalty_weight: 10,
+        penaltyWeight: 10,
         threshold: 0.75,
       },
     ]

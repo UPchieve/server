@@ -1,10 +1,11 @@
 import { LiveMediaModerationCategories } from './types'
 import logger from '../../logger'
-import { ModerationSettingsResult } from '../../models/ModerationSettings/types'
+import { GetModerationSettingResult } from '../../models/ModerationSettings/types'
+import config from '../../config'
 
 export function weightModerationInfractions(
   infractions: LiveMediaModerationCategories[],
-  moderationSettings: ModerationSettingsResult[]
+  moderationSettings: GetModerationSettingResult[]
 ): number {
   return infractions.reduce((acc, infraction) => {
     const penaltyWeight = getModerationPenaltyWeight(
@@ -17,7 +18,7 @@ export function weightModerationInfractions(
 
 function getModerationPenaltyWeight(
   infraction: LiveMediaModerationCategories,
-  moderationSettings: ModerationSettingsResult[]
+  moderationSettings: GetModerationSettingResult[]
 ) {
   const moderationSetting = moderationSettings.find(
     (moderationSetting) => moderationSetting.name === infraction
@@ -28,8 +29,9 @@ function getModerationPenaltyWeight(
       { moderationReason: infraction },
       `Missing score for infraction category. Defaulting to severe score.`
     )
-    return 10
+
+    return config.liveMediaBanInfractionScoreThreshold ?? 10
   }
 
-  return moderationSetting.penalty_weight
+  return moderationSetting.penaltyWeight
 }

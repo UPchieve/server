@@ -1,6 +1,6 @@
-export type ModerationSettingsType = 'contextual' | 'realtime_image'
-export type ModerationSettingsResult = {
+export type ModerationType = 'contextual' | 'realtime_image'
+export type GetModerationSettingResult = {
   name: string
   threshold: number
-  penalty_weight: number
+  penaltyWeight: number
 }

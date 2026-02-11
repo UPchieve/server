@@ -64,7 +64,7 @@ import {
   getRealTimeSettings as getModerationRealTimeSettings,
   getContextualSettings as getModerationContextualSettings,
 } from '../../models/ModerationSettings/queries'
-import { ModerationSettingsResult } from '../../models/ModerationSettings/types'
+import { GetModerationSettingResult } from '../../models/ModerationSettings/types'
 import * as ModerationTypes from './types'
 import * as FallBackPrompts from './fallbackPrompts'
 import { weightModerationInfractions } from './ModerationPenaltyService'
@@ -206,7 +206,7 @@ async function detectImageEducationPurpose(
 async function detectPersonInImage(
   image: Buffer,
   sessionId: string,
-  moderationSettings: ModerationSettingsResult[],
+  moderationSettings: GetModerationSettingResult[],
   trace?: LangfuseTraceClient
 ) {
   try {
@@ -288,7 +288,7 @@ async function detectPersonInImage(
 */
 async function detectImageModerationFailures(
   image: Buffer,
-  moderationSettings: ModerationSettingsResult[],
+  moderationSettings: GetModerationSettingResult[],
   trace?: LangfuseTraceClient,
   sessionId?: string
 ) {
@@ -368,7 +368,7 @@ export async function extractTextFromImage(
 
 const detectToxicContent = async (
   textSegments: string[],
-  moderationSettings: ModerationSettingsResult[],
+  moderationSettings: GetModerationSettingResult[],
   trace?: LangfuseTraceClient
 ) => {
   let generation: LangfuseGenerationClient | undefined = undefined
@@ -716,7 +716,7 @@ async function detectPii(
   text: string,
   sessionId: string,
   isVolunteer: boolean,
-  moderationSettings: ModerationSettingsResult[],
+  moderationSettings: GetModerationSettingResult[],
   trace?: LangfuseTraceClient
 ) {
   let generation: LangfuseGenerationClient | undefined = undefined
@@ -866,7 +866,7 @@ async function detectTextModerationFailures(
   image: Buffer,
   sessionId: string,
   isVolunteer: boolean,
-  moderationSettings: ModerationSettingsResult[],
+  moderationSettings: GetModerationSettingResult[],
   trace?: LangfuseTraceClient
 ) {
   const textSegments = await extractTextFromImage(image, trace)
@@ -938,7 +938,7 @@ async function handleImageModerationFailure({
     ModerationTypes.ModerationSource,
     'screenshare' | 'image_upload' | 'whiteboard'
   >
-  moderationSettings: ModerationSettingsResult[]
+  moderationSettings: GetModerationSettingResult[]
 }) {
   const { location: imageUrl } = await saveImageToBucket({
     sessionId,
@@ -981,7 +981,7 @@ function maybeHandleImageModerationFailure(options: {
     ModerationTypes.ModerationSource,
     'screenshare' | 'image_upload' | 'whiteboard'
   >
-  moderationSettings: ModerationSettingsResult[]
+  moderationSettings: GetModerationSettingResult[]
 }) {
   return function (failures: ModerationTypes.ImageModerationFailureReason[]) {
     if (failures.length > 0) {
@@ -1012,7 +1012,7 @@ export async function moderateImageInBackground(options: {
     ModerationTypes.ModerationSource,
     'screenshare' | 'image_upload' | 'whiteboard'
   >
-  moderationSettings: ModerationSettingsResult[]
+  moderationSettings: GetModerationSettingResult[]
   trace?: LangfuseTraceClient
 }) {
   detectImageModerationFailures(
@@ -1048,7 +1048,7 @@ async function getAllImageModerationFailures({
   image: Buffer
   sessionId: string
   isVolunteer: boolean
-  moderationSettings: ModerationSettingsResult[]
+  moderationSettings: GetModerationSettingResult[]
   trace?: LangfuseTraceClient
 }): Promise<{
   failureReasons: ModerationTypes.ImageModerationFailureReason[]
@@ -1375,7 +1375,7 @@ export const handleModerationInfraction = async (
         ModerationTypes.ImageModerationFailureReason['details']
       >,
   source: ModerationTypes.ModerationSource,
-  moderationSettings: ModerationSettingsResult[],
+  moderationSettings: GetModerationSettingResult[],
   client = getClient()
 ) => {
   if (source === 'image_upload') {

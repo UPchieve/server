@@ -2,12 +2,15 @@ import { getClient, TransactionClient } from '../../db'
 import * as pgQueries from './pg.queries'
 import { RepoReadError } from '../Errors'
 import { makeRequired } from '../pgUtils'
-import { ModerationSettingsType, ModerationSettingsResult } from './types'
+import { ModerationType, GetModerationSettingResult } from './types'
 
-function getSettings(moderationType: ModerationSettingsType) {
+export const getContextualSettings = getSettings('contextual')
+export const getRealTimeSettings = getSettings('realtime_image')
+
+function getSettings(moderationType: ModerationType) {
   return async (
     client: TransactionClient = getClient()
-  ): Promise<ModerationSettingsResult[]> => {
+  ): Promise<GetModerationSettingResult[]> => {
     try {
       const result = await pgQueries.getModerationSettingsByType.run(
         {
@@ -21,7 +24,7 @@ function getSettings(moderationType: ModerationSettingsType) {
         return {
           name: data.name,
           threshold: Number(data.threshold),
-          penalty_weight: Number(data.penaltyWeight),
+          penaltyWeight: Number(data.penaltyWeight),
         }
       })
     } catch (err) {
@@ -29,7 +32,3 @@ function getSettings(moderationType: ModerationSettingsType) {
     }
   }
 }
-
-export const getContextualSettings = getSettings('contextual')
-
-export const getRealTimeSettings = getSettings('realtime_image')
