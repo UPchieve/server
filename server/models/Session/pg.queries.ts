@@ -2554,7 +2554,7 @@ export interface ISessionHasBannedParticipantQuery {
   result: ISessionHasBannedParticipantResult;
 }
 
-const sessionHasBannedParticipantIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":366,"b":376}]}],"statement":"SELECT\n    sessions.id\nFROM\n    sessions\n    JOIN student_profiles ON student_profiles.user_id = sessions.student_id\n    JOIN users students ON student_profiles.user_id = students.id\n    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = sessions.volunteer_id\n    JOIN users volunteers ON volunteer_profiles.user_id = volunteers.id\nWHERE\n    sessions.id = :sessionId!\n    AND (students.ban_type = 'complete'\n        OR volunteers.ban_type = 'complete')\nLIMIT 1"};
+const sessionHasBannedParticipantIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":366,"b":376}]}],"statement":"SELECT\n    sessions.id\nFROM\n    sessions\n    JOIN student_profiles ON student_profiles.user_id = sessions.student_id\n    JOIN users students ON student_profiles.user_id = students.id\n    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = sessions.volunteer_id\n    JOIN users volunteers ON volunteer_profiles.user_id = volunteers.id\nWHERE\n    sessions.id = :sessionId!\n    AND (students.ban_type IN ('complete', 'shadow')\n        OR volunteers.ban_type IN ('complete', 'shadow'))\nLIMIT 1"};
 
 /**
  * Query generated from SQL:
@@ -2569,8 +2569,8 @@ const sessionHasBannedParticipantIR: any = {"usedParamSet":{"sessionId":true},"p
  *     JOIN users volunteers ON volunteer_profiles.user_id = volunteers.id
  * WHERE
  *     sessions.id = :sessionId!
- *     AND (students.ban_type = 'complete'
- *         OR volunteers.ban_type = 'complete')
+ *     AND (students.ban_type IN ('complete', 'shadow')
+ *         OR volunteers.ban_type IN ('complete', 'shadow'))
  * LIMIT 1
  * ```
  */
