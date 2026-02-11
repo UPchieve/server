@@ -20,13 +20,13 @@ import {
   CensoredSessionMessage,
   createCensoredMessage,
 } from '../../models/CensoredSessionMessage'
-import QueueService from '.././QueueService'
+import QueueService from '../QueueService'
 import { Jobs } from '../../worker/jobs'
 import {
   invokeModel as invokeOpenAI,
   MODEL_ID as OPENAI_MODEL_ID,
   OpenAiResults,
-} from './../OpenAIService'
+} from '../OpenAIService'
 import * as UsersRepo from '../../models/User'
 import * as SessionRepo from '../../models/Session'
 import {
@@ -37,11 +37,11 @@ import {
 import {
   AI_MODERATION_STATE,
   getAiModerationFeatureFlag,
-} from './../FeatureFlagService'
+} from '../FeatureFlagService'
 import { timeLimit } from '../../utils/time-limit'
-import * as LangfuseService from './../LangfuseService'
-import * as SessionService from '.././SessionService'
-import SocketService from '.././SocketService'
+import * as LangfuseService from '../LangfuseService'
+import * as SessionService from '../SessionService'
+import SocketService from '../SocketService'
 import config from '../../config'
 import * as ModerationInfractionsRepo from '../../models/ModerationInfractions'
 import {
@@ -49,16 +49,16 @@ import {
   USER_BAN_TYPES,
   UserSessionFlags,
 } from '../../constants'
-import { putObject } from '.././AwsService'
+import { putObject } from '../AwsService'
 import * as ShareableDomainsRepo from '../../models/ShareableDomains/queries'
 import {
   BedrockToolChoice,
   BedrockTools,
   invokeModel,
-} from '.././AwsBedrockService'
+} from '../AwsBedrockService'
 import { ModerationInfraction } from '../../models/ModerationInfractions/types'
 import { getClient, runInTransaction, TransactionClient } from '../../db'
-import { PrimaryUserRole } from '.././UserRolesService'
+import { PrimaryUserRole } from '../UserRolesService'
 import { resize } from '../../utils/image-utils'
 import {
   getRealTimeSettings as getModerationRealTimeSettings,

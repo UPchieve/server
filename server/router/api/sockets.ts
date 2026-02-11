@@ -25,7 +25,7 @@ import { SocketUser } from '../../types/socket-types'
 import {
   moderateIndividualTranscription,
   SanitizedTranscriptModerationResult,
-} from '../../services/Moderation/ModerationService'
+} from '../../services/ModerationService'
 import { createSessionAction } from '../../models/UserAction/queries'
 import { updateVolunteerSubjectPresence } from '../../services/VolunteerService'
 import { asJoinSessionData } from '../../utils/session-utils'

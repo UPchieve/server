@@ -8,15 +8,14 @@ import {
   handleModerationInfraction,
   getSessionFlagByModerationReason,
   isStreamStoppingReason,
-} from '../../services/Moderation/ModerationService'
+} from '../../services/ModerationService'
 import {
   type ModeratedLink,
   LiveMediaModerationCategories,
-} from '../../services/Moderation/types'
-import { getRealTimeSettings } from '../../models/ModerationSettings/queries'
+} from '../../services/ModerationService/types'
 import { type ModerationSettingsResult } from '../../models/ModerationSettings/types'
-import { weightModerationInfractions } from '../../services/Moderation/ModerationPenaltyService'
-import { FALLBACK_MODERATION_PROMPT } from '../../services/Moderation/fallbackPrompts'
+import { weightModerationInfractions } from '../../services/ModerationService/ModerationPenaltyService'
+import { FALLBACK_MODERATION_PROMPT } from '../../services/ModerationService/fallbackPrompts'
 import * as FeatureFlagsService from '../../services/FeatureFlagService'
 import * as SessionService from '../../services/SessionService'
 import * as CensoredSessionMessage from '../../models/CensoredSessionMessage'

@@ -1,4 +1,4 @@
-import * as ModerationService from '../../services/Moderation/ModerationService'
+import * as ModerationService from '../../services/ModerationService'
 import { resError } from '../res-error'
 import { Router } from 'express'
 import { asString } from '../../utils/type-utils'
