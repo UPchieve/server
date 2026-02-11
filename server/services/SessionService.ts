@@ -695,7 +695,9 @@ export async function startSession(
   const isNotifyTutorEnabled = await FeatureFlagsService.getNotifyTutorFlag(
     user.id
   )
-  if (!isUserBanned && isNotifyTutorEnabled) {
+
+  const isUserShadowBanned = user.banType === USER_BAN_TYPES.SHADOW
+  if (!isUserBanned && !isUserShadowBanned && isNotifyTutorEnabled) {
     await beginRegularNotifications(newSession)
   }
 
@@ -863,6 +865,12 @@ export async function ensureCanJoinSession(
   const session = await SessionRepo.getSessionById(sessionId)
   const isStudent = user.roleContext.isActiveRole('student')
   const isVolunteer = user.roleContext.isActiveRole('volunteer')
+
+  if (isVolunteer && session.shadowbanned) {
+    throw new SessionJoinError(
+      'Volunteer unable to join session. Student is shadow banned.'
+    )
+  }
 
   if (session.endedAt) {
     await SessionRepo.updateSessionFailedJoinsById(session.id, user.id)
