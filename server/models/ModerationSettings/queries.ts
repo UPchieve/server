@@ -1,3 +1,4 @@
+import _ from 'lodash'
 import { getClient, TransactionClient } from '../../db'
 import * as pgQueries from './pg.queries'
 import { RepoReadError } from '../Errors'
@@ -8,9 +9,7 @@ export const getContextualSettings = getSettings('contextual')
 export const getRealTimeSettings = getSettings('realtime_image')
 
 function getSettings(moderationType: ModerationType) {
-  return async (
-    client: TransactionClient = getClient()
-  ): Promise<GetModerationSettingResult[]> => {
+  return async (client: TransactionClient = getClient()) => {
     try {
       const result = await pgQueries.getModerationSettingsByType.run(
         {
@@ -19,7 +18,7 @@ function getSettings(moderationType: ModerationType) {
         client
       )
 
-      return result.map((row) => {
+      const results = result.map((row) => {
         const data = makeRequired(row)
         return {
           name: data.name,
@@ -27,6 +26,8 @@ function getSettings(moderationType: ModerationType) {
           penaltyWeight: Number(data.penaltyWeight),
         }
       })
+
+      return _.keyBy(results, 'name') as GetModerationSettingResult
     } catch (err) {
       throw new RepoReadError(err)
     }

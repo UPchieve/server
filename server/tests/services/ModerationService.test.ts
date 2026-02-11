@@ -71,7 +71,7 @@ describe('ModerationService', () => {
   const badMessage = 'Call me at (555)555-5555'
   let mockGeneration: any, mockTrace: any, mockLangfuseClient: any
   const mockTimeLimit = jest.mocked(timeLimit)
-  let moderationSettings: GetModerationSettingResult[]
+  let moderationSettings: GetModerationSettingResult
 
   beforeEach(async () => {
     jest.resetAllMocks()
@@ -96,86 +96,86 @@ describe('ModerationService', () => {
 
     mockUserRepo.banUserById.mockResolvedValue()
     mockSessionService.markSessionForReview.mockResolvedValue()
-    moderationSettings = [
-      {
+    moderationSettings = {
+      [LiveMediaModerationCategories.PROFANITY]: {
         name: LiveMediaModerationCategories.PROFANITY,
         penaltyWeight: 1,
         threshold: 0.75,
       },
-      {
+      [LiveMediaModerationCategories.DRUGS]: {
         name: LiveMediaModerationCategories.DRUGS,
         penaltyWeight: 1,
         threshold: 0.75,
       },
-      {
+      [LiveMediaModerationCategories.ALCOHOL]: {
         name: LiveMediaModerationCategories.ALCOHOL,
         penaltyWeight: 1,
         threshold: 0.75,
       },
-      {
+      [LiveMediaModerationCategories.RUDE_GESTURES]: {
         name: LiveMediaModerationCategories.RUDE_GESTURES,
         penaltyWeight: 1,
         threshold: 0.75,
       },
-      {
+      [LiveMediaModerationCategories.GAMBLING]: {
         name: LiveMediaModerationCategories.GAMBLING,
         penaltyWeight: 1,
         threshold: 0.75,
       },
 
-      {
+      [LiveMediaModerationCategories.VIOLENCE]: {
         name: LiveMediaModerationCategories.VIOLENCE,
         penaltyWeight: 10,
         threshold: 0.75,
       },
-      {
+      [LiveMediaModerationCategories.SWIM_WEAR]: {
         name: LiveMediaModerationCategories.SWIM_WEAR,
         penaltyWeight: 10,
         threshold: 0.75,
       },
 
-      {
+      [LiveMediaModerationCategories.LINK]: {
         name: LiveMediaModerationCategories.LINK,
         penaltyWeight: 4,
         threshold: 0.75,
       },
-      {
+      [LiveMediaModerationCategories.EMAIL]: {
         name: LiveMediaModerationCategories.EMAIL,
         penaltyWeight: 4,
         threshold: 0.75,
       },
-      {
+      [LiveMediaModerationCategories.PHONE]: {
         name: LiveMediaModerationCategories.PHONE,
         penaltyWeight: 4,
         threshold: 0.75,
       },
-      {
+      [LiveMediaModerationCategories.ADDRESS]: {
         name: LiveMediaModerationCategories.ADDRESS,
         penaltyWeight: 4,
         threshold: 0.75,
       },
 
-      {
+      [LiveMediaModerationCategories.EXPLICIT]: {
         name: LiveMediaModerationCategories.EXPLICIT,
         penaltyWeight: 10,
         threshold: 0.75,
       },
-      {
+      [LiveMediaModerationCategories.NON_EXPLICIT]: {
         name: LiveMediaModerationCategories.NON_EXPLICIT,
         penaltyWeight: 10,
         threshold: 0.75,
       },
-      {
+      [LiveMediaModerationCategories.HATE_SYMBOLS]: {
         name: LiveMediaModerationCategories.HATE_SYMBOLS,
         penaltyWeight: 10,
         threshold: 0.75,
       },
-      {
+      [LiveMediaModerationCategories.DISTURBING]: {
         name: LiveMediaModerationCategories.DISTURBING,
         penaltyWeight: 10,
         threshold: 0.75,
       },
-    ]
+    }
   })
 
   const userType = 'volunteer'

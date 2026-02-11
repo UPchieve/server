@@ -1375,7 +1375,7 @@ export const handleModerationInfraction = async (
         ModerationTypes.ImageModerationFailureReason['details']
       >,
   source: ModerationTypes.ModerationSource,
-  moderationSettings: GetModerationSettingResult[],
+  moderationSettings: GetModerationSettingResult,
   client = getClient()
 ) => {
   if (source === 'image_upload') {

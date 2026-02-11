@@ -5,7 +5,7 @@ import config from '../../config'
 
 export function weightModerationInfractions(
   infractions: LiveMediaModerationCategories[],
-  moderationSettings: GetModerationSettingResult[]
+  moderationSettings: GetModerationSettingResult
 ): number {
   return infractions.reduce((acc, infraction) => {
     const penaltyWeight = getModerationPenaltyWeight(
@@ -18,11 +18,9 @@ export function weightModerationInfractions(
 
 function getModerationPenaltyWeight(
   infraction: LiveMediaModerationCategories,
-  moderationSettings: GetModerationSettingResult[]
+  moderationSettings: GetModerationSettingResult
 ) {
-  const moderationSetting = moderationSettings.find(
-    (moderationSetting) => moderationSetting.name === infraction
-  )
+  const moderationSetting = moderationSettings[infraction]
 
   if (!moderationSetting) {
     logger.warn(
