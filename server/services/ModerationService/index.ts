@@ -238,12 +238,10 @@ async function detectPersonInImage(
 
     const labels = labelResponse.Labels ?? []
 
-    const thresholdByName = new Map(
-      moderationSettings.map((s) => [s.name, s.threshold])
-    )
-    const personConfidenceThreshold = thresholdByName.get(
-      ModerationTypes.LiveMediaModerationCategories.PERSON_IN_IMAGE
-    )
+    const personConfidenceThreshold =
+      moderationSettings[
+        ModerationTypes.LiveMediaModerationCategories.PERSON_IN_IMAGE
+      ].threshold
     // Rekognition returns `Confidence` as a percentage from 0 to 100
     // Our DB thresholds are stored as decimals from 0 to 1. We convert them to percentages below for comparison
     const thresholdPercent = personConfidenceThreshold
@@ -312,9 +310,6 @@ async function detectImageModerationFailures(
       generation.end({ output: moderationLabelsResponse })
     }
 
-    const thresholdByName = new Map(
-      moderationSettings.map((s) => [s.name, s.threshold])
-    )
     const moderationLabels = moderationLabelsResponse.ModerationLabels ?? []
     return moderationLabels
       .filter(topLevelCategoryFilter)
@@ -322,7 +317,9 @@ async function detectImageModerationFailures(
         const confidence = label.Confidence
         if (!confidence) return false
 
-        const threshold = thresholdByName.get(label.Name ?? '')
+        const threshold = label.Name
+          ? moderationSettings[label.Name].threshold
+          : 0
         // Rekognition returns `Confidence` as a percentage from 0 to 100
         // Our DB thresholds are stored as decimals from 0 to 1. We convert them to percentages below for comparison
         const thresholdPercent = threshold
@@ -399,11 +396,10 @@ const detectToxicContent = async (
     )
   }
 
-  const rudeGesture = moderationSettings.find(
-    (setting) =>
-      setting.name ===
+  const rudeGesture =
+    moderationSettings[
       ModerationTypes.LiveMediaModerationCategories.RUDE_GESTURES
-  )
+    ]
   const threshold = rudeGesture
     ? rudeGesture.threshold * 100
     : config.toxicityModerationMinConfidence
@@ -842,10 +838,8 @@ async function detectPii(
   if (addresses.length > 0) {
     const moderatedAddress = await checkForFullAddresses({ text, sessionId })
 
-    const addressSetting = moderationSettings.find(
-      (setting) =>
-        setting.name === ModerationTypes.LiveMediaModerationCategories.ADDRESS
-    )
+    const addressSetting =
+      moderationSettings[ModerationTypes.LiveMediaModerationCategories.ADDRESS]
 
     const addressConfidenceThreshold = addressSetting
       ? addressSetting.threshold * 100
@@ -1798,9 +1792,7 @@ export const moderateTranscript = async (
   const moderationSettings = await getModerationContextualSettings()
 
   for (const reason of allReasons) {
-    const thresholdObj = moderationSettings.find(
-      (threshold) => threshold.name === reason
-    )
+    const thresholdObj = moderationSettings[reason]
 
     if (thresholdObj) {
       confidenceThresholdMap.set(reason, Number(thresholdObj.threshold))
