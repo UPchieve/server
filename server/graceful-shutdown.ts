@@ -6,7 +6,7 @@ import { getConnections } from './server-setup'
 import { Server } from 'http'
 import { Server as SocketServer } from 'socket.io'
 import { Pool } from 'pg'
-import { client as productClient } from './product-client'
+import { client as productClient } from './clients/product-client'
 
 function gracefulShutdown(server: Server, pool: Pool, ioServer: SocketServer) {
   const shutDownSocketServer = promisify(ioServer.close).bind(ioServer)

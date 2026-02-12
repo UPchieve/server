@@ -14,9 +14,7 @@ import { LangfusePromptNameEnum } from './LangfuseService'
 import { UserRole } from '../models/User'
 import { isStudentSessionSummaryEnabled } from './FeatureFlagService'
 import config from '../config'
-
-const LF_SESSION_SUMMARY_TRACE_NAME = 'sessionSummary'
-const LF_SESSION_SUMMARY_GENERATION_NAME = 'generateSessionSummary'
+import { runWithGeneration } from '../clients/ai-observability'
 
 const responseInstructions =
   'Use whatever information is available to generate your summary. Respond in exactly one sentence that can be stored in a Postgres text column. If you are unable to generate a helpful or accurate summary based on the information provided, respond with nothing. Return a truly empty string (not in quotes, just no characters at all).'
@@ -26,7 +24,7 @@ const ROLE_PROMPT_FALLBACKS: Partial<Record<UserRole, string>> = {
 
     Based on the session transcript and, when available, collaborative editor content and image text or the content of the whiteboard,
     generate a single sentence summary that would be useful for the student's teacher to understand what happened in the session.
-    
+
     ${responseInstructions}`,
   [USER_ROLES.STUDENT]: `You are an assistant helping summarize a high school tutoring session for a student.
 
@@ -34,7 +32,7 @@ const ROLE_PROMPT_FALLBACKS: Partial<Record<UserRole, string>> = {
     generate a single sentence summary that would be useful for the student.
 
     Phrase the summary as if you are directly speaking to the student.
-    
+
     ${responseInstructions}`,
 }
 
@@ -54,9 +52,9 @@ function getToolPromptFallback(toolType: TOOL_TYPES) {
   if (toolType === TOOL_TYPES.DOCUMENT_EDITOR) {
     return `
 
-    Use only what is supported by the transcript, the editor content, and image text (if available). 
+    Use only what is supported by the transcript, the editor content, and image text (if available).
     Do not assume understanding beyond what is shown.
-    
+
     The format of the session data is:
 
     Session:
@@ -83,7 +81,7 @@ function getToolPromptFallback(toolType: TOOL_TYPES) {
   return `
 
     Use only what is supported by the transcript and the whiteboard content. Do not assume understanding beyond what is shown.
-    
+
     The format of the session data is:
 
     Session:
@@ -201,7 +199,7 @@ export async function generateSessionSummary(
   }
 ) {
   const modelId = config.awsBedrockSonnet4Id
-  const response = await LangfuseService.runWithGeneration<string>(
+  const response = await runWithGeneration<string>(
     () => {
       return invokeModel({
         modelId,
@@ -210,8 +208,8 @@ export async function generateSessionSummary(
       })
     },
     {
-      traceName: LF_SESSION_SUMMARY_TRACE_NAME,
-      generationName: LF_SESSION_SUMMARY_GENERATION_NAME,
+      traceName: 'sessionSummary',
+      generationName: 'generateSessionSummary',
       model: modelId,
       metadata,
     }

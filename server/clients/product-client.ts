@@ -1,6 +1,6 @@
-import config from './config'
 import { PostHog } from 'posthog-node'
-import { isValidConfigToken } from './utils/environments'
+import config from '../config'
+import { isValidConfigToken } from '../utils/environments'
 
 const ONE_MINUTE_IN_MS = 1000 * 60
 
