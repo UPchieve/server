@@ -64,12 +64,12 @@ export function routes(app: Express) {
           return res.json({ NTHSGroup: existingGroups[0] })
         }
 
-        const NTHSGroup = await NTHSGroupsService.joinGroupAsMemberByGroupId(
+        const groups = await NTHSGroupsService.joinGroupAsMemberByGroupId(
           authenticatedUser.id,
           group.id
         )
 
-        return res.json({ NTHSGroup })
+        return res.json({ groups })
       }
 
       const isExistingVolunteer =

@@ -7,7 +7,7 @@ import * as LangfuseService from '../../services/LangfuseService'
 import config from '../../config'
 import { importFromStringSync } from 'module-from-string'
 import logger from '../../logger'
-import { LangfuseTraceName } from '../../services/ModerationService'
+import { LangfuseTraceName } from '../../services/ModerationService/types'
 import { fetchRemoteJs } from '../../utils/fetch-remote-js'
 
 export interface ModerateSessionTranscriptJobData {

@@ -15,6 +15,7 @@ export interface IGetGroupsByUserResult {
   joinedAt: Date;
   memberTitle: string | null;
   roleName: string | null;
+  schoolAffiliationStatus: string;
 }
 
 /** 'GetGroupsByUser' query type */
@@ -23,7 +24,7 @@ export interface IGetGroupsByUserQuery {
   result: IGetGroupsByUserResult;
 }
 
-const getGroupsByUserIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":349,"b":356},{"a":502,"b":509}]}],"statement":"SELECT\n    ngm.title AS member_title,\n    ngm.joined_at,\n    ng.id AS group_id,\n    ng.name AS group_name,\n    ng.key AS group_key,\n    ng.invite_code,\n    roles.name AS role_name\nFROM\n    nths_group_members ngm\n    INNER JOIN nths_groups ng ON ng.id = ngm.nths_group_id\n    INNER JOIN nths_group_member_roles member_roles ON member_roles.user_id = :userId!\n        AND member_roles.nths_group_id = ng.id\n    INNER JOIN nths_group_roles roles ON roles.id = member_roles.role_id\nWHERE\n    ngm.user_id = :userId!\n    AND ngm.deactivated_at IS NULL"};
+const getGroupsByUserIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":401,"b":408},{"a":762,"b":769}]}],"statement":"SELECT\n    ngm.title AS member_title,\n    ngm.joined_at,\n    ng.id AS group_id,\n    ng.name AS group_name,\n    ng.key AS group_key,\n    ng.invite_code,\n    roles.name AS role_name,\n    aff_statuses.name AS school_affiliation_status\nFROM\n    nths_group_members ngm\n    INNER JOIN nths_groups ng ON ng.id = ngm.nths_group_id\n    INNER JOIN nths_group_member_roles member_roles ON member_roles.user_id = :userId!\n        AND member_roles.nths_group_id = ng.id\n    INNER JOIN nths_group_roles roles ON roles.id = member_roles.role_id\n    LEFT JOIN nths_group_school_affiliation aff ON aff.nths_group_id = ngm.nths_group_id\n    LEFT JOIN nths_school_affiliation_statuses aff_statuses ON aff_statuses.id = aff.nths_school_affiliation_status_id\nWHERE\n    ngm.user_id = :userId!\n    AND ngm.deactivated_at IS NULL"};
 
 /**
  * Query generated from SQL:
@@ -35,13 +36,16 @@ const getGroupsByUserIR: any = {"usedParamSet":{"userId":true},"params":[{"name"
  *     ng.name AS group_name,
  *     ng.key AS group_key,
  *     ng.invite_code,
- *     roles.name AS role_name
+ *     roles.name AS role_name,
+ *     aff_statuses.name AS school_affiliation_status
  * FROM
  *     nths_group_members ngm
  *     INNER JOIN nths_groups ng ON ng.id = ngm.nths_group_id
  *     INNER JOIN nths_group_member_roles member_roles ON member_roles.user_id = :userId!
  *         AND member_roles.nths_group_id = ng.id
  *     INNER JOIN nths_group_roles roles ON roles.id = member_roles.role_id
+ *     LEFT JOIN nths_group_school_affiliation aff ON aff.nths_group_id = ngm.nths_group_id
+ *     LEFT JOIN nths_school_affiliation_statuses aff_statuses ON aff_statuses.id = aff.nths_school_affiliation_status_id
  * WHERE
  *     ngm.user_id = :userId!
  *     AND ngm.deactivated_at IS NULL
@@ -597,5 +601,51 @@ const getNthsActionsIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT
  * ```
  */
 export const getNthsActions = new PreparedQuery<IGetNthsActionsParams,IGetNthsActionsResult>(getNthsActionsIR);
+
+
+/** 'UpsertSchoolAffiliationStatus' parameters type */
+export interface IUpsertSchoolAffiliationStatusParams {
+  nthsGroupId: string;
+  status: string;
+}
+
+/** 'UpsertSchoolAffiliationStatus' return type */
+export interface IUpsertSchoolAffiliationStatusResult {
+  createdAt: Date;
+  nthsGroupId: string;
+  nthsSchoolAffiliationStatusId: number;
+  status: string | null;
+  updatedAt: Date;
+}
+
+/** 'UpsertSchoolAffiliationStatus' query type */
+export interface IUpsertSchoolAffiliationStatusQuery {
+  params: IUpsertSchoolAffiliationStatusParams;
+  result: IUpsertSchoolAffiliationStatusResult;
+}
+
+const upsertSchoolAffiliationStatusIR: any = {"usedParamSet":{"nthsGroupId":true,"status":true},"params":[{"name":"nthsGroupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":104,"b":116}]},{"name":"status","required":true,"transform":{"type":"scalar"},"locs":[{"a":212,"b":219},{"a":415,"b":422}]}],"statement":"INSERT INTO nths_group_school_affiliation (nths_group_id, nths_school_affiliation_status_id)\nSELECT\n    :nthsGroupId!,\n    statuses.id\nFROM\n    nths_school_affiliation_statuses statuses\nWHERE\n    statuses.name = :status!\nON CONFLICT (nths_group_id)\n    DO UPDATE SET\n        nths_school_affiliation_status_id = EXCLUDED.nths_school_affiliation_status_id,\n        updated_at = NOW()\n    RETURNING\n        *,\n        :status! AS status"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO nths_group_school_affiliation (nths_group_id, nths_school_affiliation_status_id)
+ * SELECT
+ *     :nthsGroupId!,
+ *     statuses.id
+ * FROM
+ *     nths_school_affiliation_statuses statuses
+ * WHERE
+ *     statuses.name = :status!
+ * ON CONFLICT (nths_group_id)
+ *     DO UPDATE SET
+ *         nths_school_affiliation_status_id = EXCLUDED.nths_school_affiliation_status_id,
+ *         updated_at = NOW()
+ *     RETURNING
+ *         *,
+ *         :status! AS status
+ * ```
+ */
+export const upsertSchoolAffiliationStatus = new PreparedQuery<IUpsertSchoolAffiliationStatusParams,IUpsertSchoolAffiliationStatusResult>(upsertSchoolAffiliationStatusIR);
 
 

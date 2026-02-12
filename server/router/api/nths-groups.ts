@@ -121,7 +121,7 @@ export function routeNTHSGroups(router: Router): void {
         const groupId = req.params.groupId
         const action = req.body.action
         const created = await NTHSGroupsService.createAction(groupId, action)
-        res.json({ groupId, action: created })
+        res.json({ groupId, ...created })
       } catch (err) {
         resError(res, err)
       }
