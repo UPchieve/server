@@ -311,14 +311,10 @@ export async function hasActiveSubjectPrompt(
 export async function formatSessionsForBotPrompt(
   sessions: UserSessionsWithMessages[]
 ): Promise<string> {
-  const sessionIds = sessions.map((s) => s.id)
-
   const formattedSessions = await Promise.all(
     sessions.map((session) => formatTranscriptAndEditor(session))
   )
-
   const formattedTranscript = formattedSessions.join('\n')
-
   return formattedTranscript
 }
 

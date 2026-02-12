@@ -17,4 +17,5 @@ export enum FEATURE_FLAGS {
   NOTIFY_TUTOR = 'notify-tutor',
   ZWIBSERVE = 'zwibserve',
   STEM_PROGRESS_REPORT = 'stem-progress-report',
+  STUDENT_SESSION_SUMMARY = 'student-session-summary',
 }

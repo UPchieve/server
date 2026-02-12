@@ -27,9 +27,12 @@ export enum LangfusePromptNameEnum {
   SESSION_TRANSCRIPT_MODERATION = 'session-transcript-moderation',
   GET_ADDRESS_DETECTION_MODERATION_DECISION = 'get-address-detection-moderation-decision',
   SESSION_SUMMARY_TEACHER_PROMPT = 'session-summary-teacher-prompt',
+  SESSION_SUMMARY_STUDENT_PROMPT = 'session-summary-student-prompt',
   GET_QUESTIONABLE_LINK_MODERATION_DECISION = 'get-questionable-link-moderation-decision',
   IS_IMAGE_EDUCATIONAL = 'is-image-for-educational-use',
   WHITEBOARD_VISION_PROMPT = 'whiteboard-vision-prompt',
+  DOCUMENT_EDITOR_TOOL_PROMPT = 'document-editor-tool-prompt',
+  WHITEBOARD_TOOL_PROMPT = 'whiteboard-tool-prompt',
 }
 
 export enum LangfuseTraceTagEnum {
@@ -92,7 +95,7 @@ export type LangfuseGenerationOptions = {
   traceName: string
   generationName: string
   model: string
-  input: any
+  input?: any
   metadata?: Record<string, any>
 }
 
