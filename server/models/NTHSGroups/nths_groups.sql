@@ -6,13 +6,16 @@ SELECT
     ng.name AS group_name,
     ng.key AS group_key,
     ng.invite_code,
-    roles.name AS role_name
+    roles.name AS role_name,
+    aff_statuses.name AS school_affiliation_status
 FROM
     nths_group_members ngm
     INNER JOIN nths_groups ng ON ng.id = ngm.nths_group_id
     INNER JOIN nths_group_member_roles member_roles ON member_roles.user_id = :userId!
         AND member_roles.nths_group_id = ng.id
     INNER JOIN nths_group_roles roles ON roles.id = member_roles.role_id
+    LEFT JOIN nths_group_school_affiliation aff ON aff.nths_group_id = ngm.nths_group_id
+    LEFT JOIN nths_school_affiliation_statuses aff_statuses ON aff_statuses.id = aff.nths_school_affiliation_status_id
 WHERE
     ngm.user_id = :userId!
     AND ngm.deactivated_at IS NULL;
@@ -190,4 +193,22 @@ SELECT
     actions.name
 FROM
     nths_actions actions;
+
+
+/* @name upsertSchoolAffiliationStatus */
+INSERT INTO nths_group_school_affiliation (nths_group_id, nths_school_affiliation_status_id)
+SELECT
+    :nthsGroupId!,
+    statuses.id
+FROM
+    nths_school_affiliation_statuses statuses
+WHERE
+    statuses.name = :status!
+ON CONFLICT (nths_group_id)
+    DO UPDATE SET
+        nths_school_affiliation_status_id = EXCLUDED.nths_school_affiliation_status_id,
+        updated_at = NOW()
+    RETURNING
+        *,
+        :status! AS status;
 

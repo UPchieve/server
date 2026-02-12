@@ -4,22 +4,34 @@ import { Jobs } from '.'
 import { getVolunteersForWeeklyHourSummary } from '../../models/Volunteer/queries'
 import logger from '../../logger'
 import QueueService from '../../services/QueueService'
+import { Job } from 'bull'
+import { ISOString } from '../../constants'
+import { Ulid } from '../../models/pgUtils'
+
+interface SpawnEmailWeeklyHourSummaryJobsData {
+  startDate?: ISOString
+  endDate?: ISOString
+  volunteerIds?: Ulid[]
+}
 
 // Runs weekly at 6am EST on Monday
-export default async (): Promise<void> => {
-  //  Monday-Sunday
-  const lastMonday = moment()
-    .utc()
-    .subtract(1, 'weeks')
-    .startOf('isoWeek')
-    .toISOString()
-  const lastSunday = moment()
-    .utc()
-    .subtract(1, 'weeks')
-    .endOf('isoWeek')
-    .toISOString()
+export default async (
+  job?: Job<SpawnEmailWeeklyHourSummaryJobsData>
+): Promise<void> => {
+  const { startDate, endDate, volunteerIds } = job?.data || {}
 
-  const volunteers = await getVolunteersForWeeklyHourSummary(lastMonday)
+  //  Monday-Sunday
+  const lastMonday =
+    startDate ||
+    moment().utc().subtract(1, 'weeks').startOf('isoWeek').toISOString()
+  const lastSunday =
+    endDate ||
+    moment().utc().subtract(1, 'weeks').endOf('isoWeek').toISOString()
+
+  const allVolunteers = await getVolunteersForWeeklyHourSummary(lastMonday)
+  const volunteers = volunteerIds
+    ? allVolunteers.filter((v) => volunteerIds.includes(v.id))
+    : allVolunteers
   const errors: { userId: string; error: unknown }[] = []
   for (const volunteer of volunteers) {
     try {

@@ -423,7 +423,7 @@ const config: Static<typeof Config> = {
 
   // Moderation
   liveMediaBanInfractionScoreThreshold:
-    Number(process.env.LIVE_MEDIA_BAN_INFRACTION_SCORE_THRESHOLD) || 10,
+    Number(process.env.SUBWAY_LIVE_MEDIA_BAN_INFRACTION_SCORE_THRESHOLD) || 10,
   imageModerationMinConfidence:
     Number(process.env.IMAGE_MODERATION_CONFIDENCE_THRESHOLD) || 70,
   toxicityModerationMinConfidence:

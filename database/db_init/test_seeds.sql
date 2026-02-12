@@ -6007,7 +6007,17 @@ COPY upchieve.moderation_categories (id, name) FROM stdin;
 13	Rude Gestures
 14	Gambling
 15	Hate Symbols
-16	Person
+17	GRAPHIC
+18	HARASSMENT_OR_ABUSE
+19	SEXUAL
+20	VIOLENCE_OR_THREAT
+21	INSULT
+22	PROFANITY
+23	EMAIL
+24	LINK
+25	PHONE
+26	ADDRESS
+16	Person detected in image
 \.
 
 
@@ -6020,26 +6030,47 @@ COPY upchieve.moderation_infractions (id, user_id, session_id, reason, active, c
 
 
 --
+-- Data for Name: moderation_penalty_config; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.moderation_penalty_config (id, min_weight, max_weight, moderation_type) FROM stdin;
+1	0	10	contextual
+2	0	10	realtime_image
+\.
+
+
+--
 -- Data for Name: moderation_settings; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.moderation_settings (moderation_type, moderation_category_id, threshold) FROM stdin;
-contextual	1	0.75
-contextual	2	0.75
-contextual	3	0.75
-contextual	4	0.75
-contextual	5	0.75
-realtime_image	6	0.75
-realtime_image	7	0.75
-realtime_image	8	0.75
-realtime_image	9	0.75
-realtime_image	10	0.75
-realtime_image	11	0.75
-realtime_image	12	0.75
-realtime_image	13	0.75
-realtime_image	14	0.75
-realtime_image	15	0.75
-realtime_image	16	0.75
+COPY upchieve.moderation_settings (moderation_type, moderation_category_id, threshold, penalty_weight) FROM stdin;
+contextual	1	0.75	0
+contextual	2	0.75	0
+contextual	3	0.75	0
+contextual	4	0.75	0
+contextual	5	0.75	0
+realtime_image	6	0.75	10
+realtime_image	7	0.75	10
+realtime_image	8	0.75	10
+realtime_image	9	0.75	10
+realtime_image	10	0.75	10
+realtime_image	17	0.85	10
+realtime_image	18	0.85	10
+realtime_image	19	0.85	10
+realtime_image	20	0.85	10
+realtime_image	16	0.75	10
+realtime_image	23	0.85	4
+realtime_image	24	0.85	4
+realtime_image	25	0.85	4
+realtime_image	26	0.85	4
+realtime_image	2	0.85	1
+realtime_image	11	0.75	1
+realtime_image	12	0.75	1
+realtime_image	13	0.75	1
+realtime_image	14	0.75	1
+realtime_image	15	0.75	1
+realtime_image	21	0.85	1
+realtime_image	22	0.85	1
 \.
 
 
@@ -6119,6 +6150,11 @@ COPY upchieve.nths_actions (id, name, created_at) FROM stdin;
 1	NAMED YOUR TEAM	2026-01-29 20:30:00.05419+00
 2	REVIEWED RESOURCES	2026-01-29 20:30:00.05419+00
 3	ATTENDED ORIENTATION	2026-01-29 20:30:00.05419+00
+4	MARKED SCHOOL AFFILIATION IN PROGRESS	2026-02-03 19:39:46.025817+00
+5	SUBMITTED ADVISOR CONTACT INFO	2026-02-03 19:39:46.025817+00
+6	ADVISOR VERIFIED	2026-02-03 19:39:46.025817+00
+7	SCHOOL AFFILIATION DENIED	2026-02-03 19:39:46.025817+00
+8	OPTED OUT	2026-02-10 19:55:37.065185+00
 \.
 
 
@@ -6127,6 +6163,14 @@ COPY upchieve.nths_actions (id, name, created_at) FROM stdin;
 --
 
 COPY upchieve.nths_groups (id, name, key, created_at, updated_at, invite_code) FROM stdin;
+\.
+
+
+--
+-- Data for Name: nths_advisors; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.nths_advisors (id, nths_group_id, first_name, last_name, email, phone, phone_extension, title, verified, created_at, updated_at) FROM stdin;
 \.
 
 
@@ -6161,6 +6205,27 @@ COPY upchieve.nths_group_member_roles (user_id, nths_group_id, role_id, updated_
 --
 
 COPY upchieve.nths_group_members (nths_group_id, user_id, title, joined_at, updated_at, deactivated_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: nths_school_affiliation_statuses; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.nths_school_affiliation_statuses (id, name, created_at) FROM stdin;
+1	PENDING_SCHOOL_AFFILIATION	2026-02-03 19:53:33.966404+00
+2	PENDING_UPCHIEVE_VERIFICATION	2026-02-03 19:53:33.966404+00
+3	AFFILIATED	2026-02-03 19:53:33.966404+00
+4	DENIED	2026-02-03 19:53:33.966404+00
+5	OPTED_OUT	2026-02-04 20:11:53.329958+00
+\.
+
+
+--
+-- Data for Name: nths_group_school_affiliation; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.nths_group_school_affiliation (nths_group_id, nths_school_affiliation_status_id, created_at, updated_at) FROM stdin;
 \.
 
 
@@ -8814,7 +8879,14 @@ SELECT pg_catalog.setval('upchieve.ip_addresses_id_seq', 1, true);
 -- Name: moderation_categories_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.moderation_categories_id_seq', 16, true);
+SELECT pg_catalog.setval('upchieve.moderation_categories_id_seq', 26, true);
+
+
+--
+-- Name: moderation_penalty_config_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
+--
+
+SELECT pg_catalog.setval('upchieve.moderation_penalty_config_id_seq', 3, true);
 
 
 --
@@ -8842,7 +8914,7 @@ SELECT pg_catalog.setval('upchieve.notification_types_id_seq', 2, true);
 -- Name: nths_actions_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.nths_actions_id_seq', 3, true);
+SELECT pg_catalog.setval('upchieve.nths_actions_id_seq', 8, true);
 
 
 --
@@ -8857,6 +8929,13 @@ SELECT pg_catalog.setval('upchieve.nths_group_actions_id_seq', 1, false);
 --
 
 SELECT pg_catalog.setval('upchieve.nths_group_roles_id_seq', 2, true);
+
+
+--
+-- Name: nths_school_affiliation_statuses_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
+--
+
+SELECT pg_catalog.setval('upchieve.nths_school_affiliation_statuses_id_seq', 5, true);
 
 
 --

@@ -203,9 +203,12 @@ FROM
 WHERE
     partner IS TRUE
     AND id = :schoolId!
-ON CONFLICT (id)
+ON CONFLICT (KEY)
     DO UPDATE SET
-        updated_at = NOW();
+        school_id = EXCLUDED.school_id,
+        updated_at = NOW()
+    WHERE
+        student_partner_orgs.school_id IS NULL;
 
 
 /* @name deactivateStudentPartnerOrg */

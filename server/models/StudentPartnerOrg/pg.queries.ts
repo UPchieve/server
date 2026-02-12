@@ -460,7 +460,7 @@ export interface ICreateSchoolStudentPartnerOrgQuery {
   result: ICreateSchoolStudentPartnerOrgResult;
 }
 
-const createSchoolStudentPartnerOrgIR: any = {"usedParamSet":{"schoolId":true},"params":[{"name":"schoolId","required":true,"transform":{"type":"scalar"},"locs":[{"a":450,"b":459}]}],"statement":"INSERT INTO student_partner_orgs (id, KEY, name, signup_code, high_school_signup, college_signup, school_signup_required, school_id, created_at, updated_at)\nSELECT\n    generate_ulid (),\n    TRANSLATE(BTRIM(LOWER(schools.name)), ' ', '-'),\n    schools.name,\n    TRANSLATE(BTRIM(UPPER(schools.name)), ' ', '-'),\n    TRUE,\n    FALSE,\n    TRUE,\n    COALESCE(schools.id, NULL),\n    NOW(),\n    NOW()\nFROM\n    schools\nWHERE\n    partner IS TRUE\n    AND id = :schoolId!\nON CONFLICT (id)\n    DO UPDATE SET\n        updated_at = NOW()"};
+const createSchoolStudentPartnerOrgIR: any = {"usedParamSet":{"schoolId":true},"params":[{"name":"schoolId","required":true,"transform":{"type":"scalar"},"locs":[{"a":450,"b":459}]}],"statement":"INSERT INTO student_partner_orgs (id, KEY, name, signup_code, high_school_signup, college_signup, school_signup_required, school_id, created_at, updated_at)\nSELECT\n    generate_ulid (),\n    TRANSLATE(BTRIM(LOWER(schools.name)), ' ', '-'),\n    schools.name,\n    TRANSLATE(BTRIM(UPPER(schools.name)), ' ', '-'),\n    TRUE,\n    FALSE,\n    TRUE,\n    COALESCE(schools.id, NULL),\n    NOW(),\n    NOW()\nFROM\n    schools\nWHERE\n    partner IS TRUE\n    AND id = :schoolId!\nON CONFLICT (KEY)\n    DO UPDATE SET\n        school_id = EXCLUDED.school_id,\n        updated_at = NOW()\n    WHERE\n        student_partner_orgs.school_id IS NULL"};
 
 /**
  * Query generated from SQL:
@@ -482,9 +482,12 @@ const createSchoolStudentPartnerOrgIR: any = {"usedParamSet":{"schoolId":true},"
  * WHERE
  *     partner IS TRUE
  *     AND id = :schoolId!
- * ON CONFLICT (id)
+ * ON CONFLICT (KEY)
  *     DO UPDATE SET
+ *         school_id = EXCLUDED.school_id,
  *         updated_at = NOW()
+ *     WHERE
+ *         student_partner_orgs.school_id IS NULL
  * ```
  */
 export const createSchoolStudentPartnerOrg = new PreparedQuery<ICreateSchoolStudentPartnerOrgParams,ICreateSchoolStudentPartnerOrgResult>(createSchoolStudentPartnerOrgIR);
