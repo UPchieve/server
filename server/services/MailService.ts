@@ -112,6 +112,7 @@ async function sendEmail(
     },
     templateId: templateId,
     dynamic_template_data: dynamicData,
+    ipPoolName: 'Transactional',
     ...overrides,
   }
 
