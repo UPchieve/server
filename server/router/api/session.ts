@@ -24,6 +24,8 @@ import {
   SessionUserRole,
 } from '../../services/UserRolesService'
 import { getDocEditorSessionImageUrl } from '../../services/SessionService'
+import { getSessionSummaryByUserType } from '../../services/SessionSummariesService'
+import { USER_ROLES } from '../../constants'
 
 export function routeSession(router: Router) {
   // io is now passed to this module so that API events can trigger socket events as needed
@@ -420,7 +422,21 @@ export function routeSession(router: Router) {
         session.id,
         user.id
       )
-      res.json({ session, isRecapDmsAvailable: isRecapDmsAvailable.eligible })
+
+      let summary = ''
+      if (user.id === session.studentId) {
+        const sessionSummary = await getSessionSummaryByUserType(
+          session.id,
+          USER_ROLES.STUDENT
+        )
+        summary = sessionSummary?.summary ?? ''
+      }
+
+      res.json({
+        session,
+        isRecapDmsAvailable: isRecapDmsAvailable.eligible,
+        summary: summary ?? '',
+      })
     } catch (err) {
       resError(res, err)
     }
