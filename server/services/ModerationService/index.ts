@@ -1535,7 +1535,6 @@ export function getReasonsFromInfractions(
   infractions: ModerationInfraction[]
 ): ModerationTypes.LiveMediaModerationCategories[] {
   return infractions.flatMap((i) => {
-    debugger
     return Object.keys(i.reason)
   }) as ModerationTypes.LiveMediaModerationCategories[]
 }
