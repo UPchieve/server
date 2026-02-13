@@ -1,7 +1,7 @@
 /** Types generated for queries found in "server/models/ModerationSettings/moderation_settings.sql" */
 import { PreparedQuery } from '@pgtyped/runtime';
 
-export type moderation_types = 'contextual' | 'realtime_image';
+export type moderation_types = 'contextual' | 'realtime_image' | 'realtime_text';
 
 /** 'GetModerationSettingsByType' parameters type */
 export interface IGetModerationSettingsByTypeParams {

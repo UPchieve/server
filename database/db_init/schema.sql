@@ -125,7 +125,8 @@ CREATE TYPE upchieve.ban_types AS ENUM (
 
 CREATE TYPE upchieve.moderation_types AS ENUM (
     'contextual',
-    'realtime_image'
+    'realtime_image',
+    'realtime_text'
 );
 
 
@@ -7177,4 +7178,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260203194147'),
     ('20260203194734'),
     ('20260203200218'),
-    ('20260204215802');
+    ('20260204215802'),
+    ('20260213194153');

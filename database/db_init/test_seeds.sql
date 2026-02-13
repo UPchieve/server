@@ -6018,6 +6018,9 @@ COPY upchieve.moderation_categories (id, name) FROM stdin;
 25	PHONE
 26	ADDRESS
 16	Person detected in image
+27	RUDE
+28	OTHER_CONTACT_INFO
+29	OTHER
 \.
 
 
@@ -6036,6 +6039,7 @@ COPY upchieve.moderation_infractions (id, user_id, session_id, reason, active, c
 COPY upchieve.moderation_penalty_config (id, min_weight, max_weight, moderation_type) FROM stdin;
 1	0	10	contextual
 2	0	10	realtime_image
+4	0	10	realtime_text
 \.
 
 
@@ -6071,6 +6075,14 @@ realtime_image	14	0.75	1
 realtime_image	15	0.75	1
 realtime_image	21	0.85	1
 realtime_image	22	0.85	1
+realtime_text	22	0.85	1
+realtime_text	2	0.85	1
+realtime_text	27	0.85	1
+realtime_text	23	0.85	10
+realtime_text	25	0.85	4
+realtime_text	28	0.85	4
+realtime_text	5	0.75	0
+realtime_text	29	0.85	1
 \.
 
 
@@ -8879,14 +8891,14 @@ SELECT pg_catalog.setval('upchieve.ip_addresses_id_seq', 1, true);
 -- Name: moderation_categories_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.moderation_categories_id_seq', 26, true);
+SELECT pg_catalog.setval('upchieve.moderation_categories_id_seq', 29, true);
 
 
 --
 -- Name: moderation_penalty_config_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.moderation_penalty_config_id_seq', 3, true);
+SELECT pg_catalog.setval('upchieve.moderation_penalty_config_id_seq', 4, true);
 
 
 --
