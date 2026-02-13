@@ -1204,10 +1204,22 @@ const regexModerate = (
   message: string
 ): ModerationTypes.RegexModerationResult => {
   const failedTests = [
-    ['email', test({ regex: Regex.EMAIL_REGEX, message })],
-    ['phone', test({ regex: Regex.PHONE_REGEX, message })],
-    ['profanity', test({ regex: Regex.PROFANITY_REGEX, message })],
-    ['safety', test({ regex: Regex.SAFETY_RESTRICTION_REGEX, message })],
+    [
+      ModerationTypes.LiveMediaModerationCategories.EMAIL,
+      test({ regex: Regex.EMAIL_REGEX, message }),
+    ],
+    [
+      ModerationTypes.LiveMediaModerationCategories.PHONE,
+      test({ regex: Regex.PHONE_REGEX, message }),
+    ],
+    [
+      ModerationTypes.LiveMediaModerationCategories.PROFANITY,
+      test({ regex: Regex.PROFANITY_REGEX, message }),
+    ],
+    [
+      ModerationTypes.LiveMediaModerationCategories.LINK,
+      test({ regex: Regex.LINK_RESTRICTION_REGEX, message }),
+    ],
   ].filter(([, test]) => test.length > 0)
 
   const sanitize = (message: string): string => {
@@ -1415,7 +1427,7 @@ export const handleModerationInfraction = async (
       [
         ...allInfractionResons.filter(
           (infractionReason) =>
-            infractionReason ===
+            infractionReason !==
             ModerationTypes.LiveMediaModerationCategories.PERSON_IN_IMAGE
         ),
         ...getReasonsFromInfractions([insertedInfraction]),
@@ -1535,7 +1547,6 @@ export function getReasonsFromInfractions(
   infractions: ModerationInfraction[]
 ): ModerationTypes.LiveMediaModerationCategories[] {
   return infractions.flatMap((i) => {
-    debugger
     return Object.keys(i.reason)
   }) as ModerationTypes.LiveMediaModerationCategories[]
 }
