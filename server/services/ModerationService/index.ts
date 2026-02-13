@@ -1427,7 +1427,7 @@ export const handleModerationInfraction = async (
       [
         ...allInfractionResons.filter(
           (infractionReason) =>
-            infractionReason ===
+            infractionReason !==
             ModerationTypes.LiveMediaModerationCategories.PERSON_IN_IMAGE
         ),
         ...getReasonsFromInfractions([insertedInfraction]),
@@ -1547,7 +1547,6 @@ export function getReasonsFromInfractions(
   infractions: ModerationInfraction[]
 ): ModerationTypes.LiveMediaModerationCategories[] {
   return infractions.flatMap((i) => {
-    debugger
     return Object.keys(i.reason)
   }) as ModerationTypes.LiveMediaModerationCategories[]
 }
