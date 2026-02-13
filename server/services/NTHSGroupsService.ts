@@ -231,3 +231,20 @@ export async function getActionsForGroup(
 export async function getActions(): Promise<NTHSAction[]> {
   return await NTHSGroupsRepo.getNthsActions()
 }
+
+export async function addNTHSAdvisor(
+  args: {
+    nthsGroupId: Ulid
+    schoolId: string
+    firstName: string
+    lastName: string
+    email: string
+    phone: string
+    phoneExtension?: string
+    title: string
+  },
+  tc: TransactionClient = getClient()
+) {
+  console.log('1', args)
+  return await NTHSGroupsRepo.addNTHSAdvisor(args)
+}

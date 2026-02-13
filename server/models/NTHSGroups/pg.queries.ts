@@ -649,3 +649,49 @@ const upsertSchoolAffiliationStatusIR: any = {"usedParamSet":{"nthsGroupId":true
 export const upsertSchoolAffiliationStatus = new PreparedQuery<IUpsertSchoolAffiliationStatusParams,IUpsertSchoolAffiliationStatusResult>(upsertSchoolAffiliationStatusIR);
 
 
+/** 'InsertNthsAdvisor' parameters type */
+export interface IInsertNthsAdvisorParams {
+  email: string;
+  firstName: string;
+  lastName: string;
+  nthsGroupId: string;
+  phone: string;
+  phoneExtension?: string | null | void;
+  title: string;
+}
+
+/** 'InsertNthsAdvisor' return type */
+export interface IInsertNthsAdvisorResult {
+  createdAt: Date;
+  email: string;
+  firstName: string;
+  id: string;
+  lastName: string;
+  nthsGroupId: string;
+  phone: string;
+  phoneExtension: string | null;
+  title: string;
+  updatedAt: Date;
+  verified: boolean;
+}
+
+/** 'InsertNthsAdvisor' query type */
+export interface IInsertNthsAdvisorQuery {
+  params: IInsertNthsAdvisorParams;
+  result: IInsertNthsAdvisorResult;
+}
+
+const insertNthsAdvisorIR: any = {"usedParamSet":{"nthsGroupId":true,"firstName":true,"lastName":true,"email":true,"phone":true,"phoneExtension":true,"title":true},"params":[{"name":"nthsGroupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":137,"b":149}]},{"name":"firstName","required":true,"transform":{"type":"scalar"},"locs":[{"a":152,"b":162}]},{"name":"lastName","required":true,"transform":{"type":"scalar"},"locs":[{"a":165,"b":174}]},{"name":"email","required":true,"transform":{"type":"scalar"},"locs":[{"a":177,"b":183}]},{"name":"phone","required":true,"transform":{"type":"scalar"},"locs":[{"a":186,"b":192}]},{"name":"phoneExtension","required":false,"transform":{"type":"scalar"},"locs":[{"a":195,"b":209}]},{"name":"title","required":true,"transform":{"type":"scalar"},"locs":[{"a":212,"b":218}]}],"statement":"INSERT INTO nths_advisors (id, nths_group_id, first_name, last_name, email, phone, phone_extension, title)\n    VALUES (generate_ulid (), :nthsGroupId!, :firstName!, :lastName!, :email!, :phone!, :phoneExtension, :title!)\nRETURNING\n    *"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO nths_advisors (id, nths_group_id, first_name, last_name, email, phone, phone_extension, title)
+ *     VALUES (generate_ulid (), :nthsGroupId!, :firstName!, :lastName!, :email!, :phone!, :phoneExtension, :title!)
+ * RETURNING
+ *     *
+ * ```
+ */
+export const insertNthsAdvisor = new PreparedQuery<IInsertNthsAdvisorParams,IInsertNthsAdvisorResult>(insertNthsAdvisorIR);
+
+

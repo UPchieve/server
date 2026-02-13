@@ -345,3 +345,32 @@ export async function updateSchoolAffiliationStatus(
     throw new RepoUpsertError(err)
   }
 }
+
+type AdvisorArgs = {
+  nthsGroupId: Ulid
+  schoolId: string
+  firstName: string
+  lastName: string
+  email: string
+  phone: string
+  phoneExtension?: string
+  title: string
+}
+
+type Advisor = {
+  id: Ulid
+} & AdvisorArgs
+
+export async function addNTHSAdvisor(
+  args: AdvisorArgs,
+  tc: TransactionClient = getClient()
+): Promise<Advisor> {
+  try {
+    console.log('2', args)
+    const results = await pgQueries.insertNthsAdvisor.run(args, tc)
+    console.log('3', results)
+    return makeRequired(results[0])
+  } catch (err) {
+    throw new RepoCreateError(err)
+  }
+}

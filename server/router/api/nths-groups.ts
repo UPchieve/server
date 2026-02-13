@@ -139,4 +139,41 @@ export function routeNTHSGroups(router: Router): void {
         resError(res, err)
       }
     })
+
+  router
+    .route('/nths-groups/:groupId/add-advisor')
+    .post(isGroupAdmin, async (req: Request, res: Response) => {
+      try {
+        const nthsGroupId = req.params.groupId
+        const {
+          schoolId,
+          firstName,
+          lastName,
+          email,
+          phone,
+          phoneExtension,
+          title,
+        } = req.body
+
+        const NTHSAdvisor = await NTHSGroupsService.addNTHSAdvisor({
+          nthsGroupId,
+          schoolId,
+          firstName,
+          lastName,
+          email,
+          phone,
+          phoneExtension,
+          title,
+        })
+
+        const created = await NTHSGroupsService.createAction(
+          nthsGroupId,
+          'SUBMITTED ADVISOR CONTACT INFO'
+        )
+
+        res.json({ groupId: nthsGroupId, NTHSAdvisor, action: created })
+      } catch (err) {
+        resError(res, err)
+      }
+    })
 }
