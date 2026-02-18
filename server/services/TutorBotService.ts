@@ -308,7 +308,7 @@ const getAwsBedRockResponse = async (
 ): Promise<
   | (TutorBotConversationMessage & {
       traceId: string
-      obeservationId: string | null
+      observationId: string | null
       status: string
     })
   | null
@@ -383,7 +383,7 @@ const getAwsBedRockResponse = async (
       ? (botResponse as TutorBotModelResponse).intention
       : '1. Get the student to elaborate their answer',
     traceId: gen.traceId,
-    obeservationId: gen.observationId,
+    observationId: gen.observationId,
   }
 }
 

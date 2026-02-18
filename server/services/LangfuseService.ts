@@ -1,24 +1,11 @@
-import { Langfuse } from 'langfuse-node'
-import config from '../config'
-import { timeLimit } from '../utils/time-limit'
 import { ChatPromptClient, TextPromptClient } from 'langfuse-core'
+import { timeLimit } from '../utils/time-limit'
+import { client } from '../clients/ai-observability'
 
+// TODO: Remove in favour of just getting client from `/clients/langfuse.ts`.
 export function getClient() {
-  if (!client) {
-    client = createClient()
-  }
   return client
 }
-
-const createClient = (): Langfuse => {
-  return new Langfuse({
-    secretKey: config.langfuseSecretKey,
-    publicKey: config.langfusePublicKey,
-    baseUrl: config.langfuseBaseUrl,
-  })
-}
-
-let client = createClient()
 
 export enum LangfusePromptNameEnum {
   GET_SESSION_MESSAGE_MODERATION_DECISION = 'get-session-message-moderation-decision',
@@ -88,44 +75,5 @@ export async function getPromptWithFallback(
     ...(!isFallback && {
       promptObject: promptFromLangfuse,
     }),
-  }
-}
-
-export type LangfuseGenerationOptions = {
-  traceName: string
-  generationName: string
-  model: string
-  input?: any
-  metadata?: Record<string, any>
-}
-
-export async function runWithGeneration<T>(
-  cb: () => Promise<T>,
-  options: LangfuseGenerationOptions
-): Promise<{ result: T; traceId: string }> {
-  const { traceName, generationName, model, input, metadata } = options
-  const client = getClient()
-  const trace = client.trace({
-    name: traceName,
-    metadata,
-  })
-  const gen = trace.generation({
-    name: generationName,
-    model,
-    input,
-    metadata,
-  })
-
-  try {
-    const result = await cb()
-    gen.end({ output: result })
-    return { result, traceId: trace.traceId }
-  } catch (error) {
-    gen.end({
-      output: {
-        error: error instanceof Error ? error.message : String(error),
-      },
-    })
-    throw error
   }
 }

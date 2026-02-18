@@ -11,6 +11,7 @@ import { isValidConfigToken } from '../utils/environments'
 import * as LangfuseService from './LangfuseService'
 import { resize } from '../utils/image-utils'
 import { invokeModel } from './AwsBedrockService'
+import { runWithGeneration } from '../clients/ai-observability'
 
 const client: ImageAnalysisClient = isValidConfigToken(
   config.subwayAIVisionApiKey
@@ -116,9 +117,6 @@ Output:
 - Remaining sentences: briefly describe the visible content on the board.
 `.trim()
 
-const LF_TRACE_NAME_WHITEBOARD = 'whiteboardVision'
-const LF_GENERATION_NAME_WHITEBOARD = 'describeWhiteboardSnapshot'
-
 export async function describeWhiteboardSnapshot(
   image: Buffer
 ): Promise<string> {
@@ -139,29 +137,28 @@ export async function describeWhiteboardSnapshot(
       fit: 'inside',
     })
     const model = config.awsBedrockSonnet4Id
-    const { result: description } =
-      await LangfuseService.runWithGeneration<string>(
-        () => {
-          return invokeModel({
-            modelId: model,
-            prompt: promptData.prompt,
-            text: WHITEBOARD_VISION_FALLBACK_PROMPT,
-            image: resizedImage,
-          })
+    const { result: description } = await runWithGeneration<string>(
+      () => {
+        return invokeModel({
+          modelId: model,
+          prompt: promptData.prompt,
+          text: WHITEBOARD_VISION_FALLBACK_PROMPT,
+          image: resizedImage,
+        })
+      },
+      {
+        traceName: 'whiteboardVision',
+        generationName: 'describeWhiteboardSnapshot',
+        model,
+        input:
+          typeof image === 'string'
+            ? '[Whiteboard Image URL]'
+            : '[Whiteboard Image Buffer]',
+        metadata: {
+          promptVersion: promptData.version,
         },
-        {
-          traceName: LF_TRACE_NAME_WHITEBOARD,
-          generationName: LF_GENERATION_NAME_WHITEBOARD,
-          model,
-          input:
-            typeof image === 'string'
-              ? '[Whiteboard Image URL]'
-              : '[Whiteboard Image Buffer]',
-          metadata: {
-            promptVersion: promptData.version,
-          },
-        }
-      )
+      }
+    )
     return description
   } catch (error) {
     logger.error(

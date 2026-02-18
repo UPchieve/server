@@ -289,10 +289,15 @@ describe('ModerationService', () => {
         })
       ).toStrictEqual({
         failures: {
-          email: ['hi@email.com', 'bye@email.com'],
-          phone: [expect.stringContaining('(555)555-5555')],
-          profanity: ['azz'],
-          safety: ['zoom.us'],
+          [LiveMediaModerationCategories.EMAIL]: [
+            'hi@email.com',
+            'bye@email.com',
+          ],
+          [LiveMediaModerationCategories.PHONE]: [
+            expect.stringContaining('(555)555-5555'),
+          ],
+          [LiveMediaModerationCategories.PROFANITY]: ['azz'],
+          [LiveMediaModerationCategories.LINK]: ['zoom.us'],
         },
       })
     })
@@ -332,7 +337,11 @@ describe('ModerationService', () => {
           sessionId,
         })
       ).toStrictEqual({
-        failures: { phone: [expect.stringContaining('(555)555-5555')] },
+        failures: {
+          [LiveMediaModerationCategories.PHONE]: [
+            expect.stringContaining('(555)555-5555'),
+          ],
+        },
       })
     })
 
@@ -504,7 +513,7 @@ describe('ModerationService', () => {
 
       expect(result).toEqual({
         failures: {
-          phone: ['8608281234 '],
+          [LiveMediaModerationCategories.PHONE]: ['8608281234 '],
         },
       })
     })

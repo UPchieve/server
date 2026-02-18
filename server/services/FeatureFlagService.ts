@@ -1,5 +1,5 @@
 import { FEATURE_FLAGS } from '../constants'
-import { client as productClient } from '../product-client'
+import { client as productClient } from '../clients/product-client'
 import { Ulid, Uuid } from '../models/pgUtils'
 import { timeLimit } from '../utils/time-limit'
 import * as AnalyticsService from './AnalyticsService'

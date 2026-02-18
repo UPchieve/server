@@ -3,11 +3,13 @@ import logger from '../../logger'
 import * as LangfuseService from '../../services/LangfuseService'
 import * as AwsBedrockService from '../../services/AwsBedrockService'
 import * as VisionService from '../../services/VisionService'
+import * as AiObservabilityClient from '../../clients/ai-observability'
 import * as imageUtils from '../../utils/image-utils'
 
 jest.mock('../../logger')
 jest.mock('../../services/LangfuseService')
 jest.mock('../../services/AwsBedrockService')
+jest.mock('../../clients/ai-observability')
 jest.mock('../../utils/image-utils')
 jest.mock('../../utils/environments')
 jest.mock('../../config')
@@ -16,6 +18,7 @@ jest.mock('@azure-rest/ai-vision-image-analysis')
 
 const mockedLogger = mocked(logger)
 const mockedLangfuseService = mocked(LangfuseService)
+const mockedAiObservabilityClient = mocked(AiObservabilityClient)
 const mockedAwsBedrockService = mocked(AwsBedrockService)
 const mockedImageUtils = mocked(imageUtils)
 
@@ -34,7 +37,7 @@ describe('describeWhiteboardSnapshot', () => {
       version: 'FALLBACK',
     })
     mockedImageUtils.resize.mockResolvedValueOnce(Buffer.from('resized'))
-    mockedLangfuseService.runWithGeneration.mockImplementationOnce(
+    mockedAiObservabilityClient.runWithGeneration.mockImplementationOnce(
       async (cb) => {
         const result = await cb()
         return { result, traceId: '123' }
@@ -48,7 +51,7 @@ describe('describeWhiteboardSnapshot', () => {
     expect(result).toBe(descriptionResult)
     expect(mockedLangfuseService.getPromptWithFallback).toHaveBeenCalled()
     expect(mockedImageUtils.resize).toHaveBeenCalled()
-    expect(mockedLangfuseService.runWithGeneration).toHaveBeenCalled()
+    expect(mockedAiObservabilityClient.runWithGeneration).toHaveBeenCalled()
     expect(mockedAwsBedrockService.invokeModel).toHaveBeenCalled()
   })
 
