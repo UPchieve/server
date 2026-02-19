@@ -3021,3 +3021,35 @@ const getVolunteersInSessionsIR: any = {"usedParamSet":{},"params":[],"statement
 export const getVolunteersInSessions = new PreparedQuery<IGetVolunteersInSessionsParams,IGetVolunteersInSessionsResult>(getVolunteersInSessionsIR);
 
 
+/** 'GetSessionFlags' parameters type */
+export interface IGetSessionFlagsParams {
+  sessionId: string;
+}
+
+/** 'GetSessionFlags' return type */
+export interface IGetSessionFlagsResult {
+  sessionFlagId: number;
+}
+
+/** 'GetSessionFlags' query type */
+export interface IGetSessionFlagsQuery {
+  params: IGetSessionFlagsParams;
+  result: IGetSessionFlagsResult;
+}
+
+const getSessionFlagsIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":83,"b":93}]}],"statement":"SELECT\n    session_flag_id\nFROM \n    sessions_session_flags\nWHERE\n    session_id = :sessionId!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     session_flag_id
+ * FROM 
+ *     sessions_session_flags
+ * WHERE
+ *     session_id = :sessionId!
+ * ```
+ */
+export const getSessionFlags = new PreparedQuery<IGetSessionFlagsParams,IGetSessionFlagsResult>(getSessionFlagsIR);
+
+
