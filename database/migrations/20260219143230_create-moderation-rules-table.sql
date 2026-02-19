@@ -1,6 +1,6 @@
 -- migrate:up
 CREATE TABLE upchieve.moderation_rules (
-    id int PRIMARY KEY,
+    id serial PRIMARY KEY,
     name varchar(30),
     description varchar
 );

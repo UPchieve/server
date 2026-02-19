@@ -5988,6 +5988,14 @@ COPY upchieve.legacy_availability_histories (id, mongo_id, user_id, timezone, re
 
 
 --
+-- Data for Name: moderation_actions; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.moderation_actions (id, action_name, description) FROM stdin;
+\.
+
+
+--
 -- Data for Name: moderation_categories; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
@@ -8887,6 +8895,13 @@ SELECT pg_catalog.setval('upchieve.moderation_categories_id_seq', 26, true);
 --
 
 SELECT pg_catalog.setval('upchieve.moderation_penalty_config_id_seq', 3, true);
+
+
+--
+-- Name: moderation_rules_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
+--
+
+SELECT pg_catalog.setval('upchieve.moderation_rules_id_seq', 1, false);
 
 
 --
