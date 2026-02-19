@@ -733,6 +733,26 @@ CREATE TABLE upchieve.moderation_actions (
 
 
 --
+-- Name: moderation_actions_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+CREATE SEQUENCE upchieve.moderation_actions_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: moderation_actions_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
+--
+
+ALTER SEQUENCE upchieve.moderation_actions_id_seq OWNED BY upchieve.moderation_actions.id;
+
+
+--
 -- Name: moderation_categories; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -3278,6 +3298,13 @@ ALTER TABLE ONLY upchieve.grade_levels ALTER COLUMN id SET DEFAULT nextval('upch
 --
 
 ALTER TABLE ONLY upchieve.ip_addresses ALTER COLUMN id SET DEFAULT nextval('upchieve.ip_addresses_id_seq'::regclass);
+
+
+--
+-- Name: moderation_actions id; Type: DEFAULT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.moderation_actions ALTER COLUMN id SET DEFAULT nextval('upchieve.moderation_actions_id_seq'::regclass);
 
 
 --
