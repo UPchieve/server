@@ -25,6 +25,10 @@ const mockedImageUtils = mocked(imageUtils)
 beforeEach(() => {
   jest.clearAllMocks()
   jest.resetAllMocks()
+  mockedAiObservabilityClient.runWithTrace.mockImplementation(async (cb) => {
+    return { result: await cb({} as any), traceId: '' }
+  })
+  mockedImageUtils.resize.mockResolvedValue(Buffer.from('resized'))
 })
 
 describe('describeWhiteboardSnapshot', () => {
@@ -37,21 +41,23 @@ describe('describeWhiteboardSnapshot', () => {
       version: 'FALLBACK',
     })
     mockedImageUtils.resize.mockResolvedValueOnce(Buffer.from('resized'))
-    mockedAiObservabilityClient.runWithGeneration.mockImplementationOnce(
-      async (cb) => {
-        const result = await cb()
-        return { result, traceId: '123' }
+    mockedAiObservabilityClient.runWithModelObservation.mockImplementationOnce(
+      (cb) => {
+        return cb()
       }
     )
     mockedAwsBedrockService.invokeModel.mockResolvedValueOnce(descriptionResult)
 
     const result = await VisionService.describeWhiteboardSnapshot(
-      Buffer.from('img')
+      Buffer.from('img'),
+      'sessionId'
     )
     expect(result).toBe(descriptionResult)
     expect(mockedLangfuseService.getPromptWithFallback).toHaveBeenCalled()
     expect(mockedImageUtils.resize).toHaveBeenCalled()
-    expect(mockedAiObservabilityClient.runWithGeneration).toHaveBeenCalled()
+    expect(
+      mockedAiObservabilityClient.runWithModelObservation
+    ).toHaveBeenCalled()
     expect(mockedAwsBedrockService.invokeModel).toHaveBeenCalled()
   })
 
@@ -61,7 +67,8 @@ describe('describeWhiteboardSnapshot', () => {
     mockedLangfuseService.getPromptWithFallback.mockRejectedValueOnce(err)
 
     const result = await VisionService.describeWhiteboardSnapshot(
-      Buffer.from('img')
+      Buffer.from('img'),
+      'sessionId'
     )
     expect(result).toBe('')
     expect(mockedLogger.error).toHaveBeenCalledWith(

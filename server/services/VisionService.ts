@@ -11,7 +11,10 @@ import { isValidConfigToken } from '../utils/environments'
 import * as LangfuseService from './LangfuseService'
 import { resize } from '../utils/image-utils'
 import { invokeModel } from './AwsBedrockService'
-import { runWithGeneration } from '../clients/ai-observability'
+import {
+  runWithModelObservation,
+  runWithTrace,
+} from '../clients/ai-observability'
 
 const client: ImageAnalysisClient = isValidConfigToken(
   config.subwayAIVisionApiKey
@@ -118,48 +121,55 @@ Output:
 `.trim()
 
 export async function describeWhiteboardSnapshot(
-  image: Buffer
+  image: Buffer,
+  sessionId: string
 ): Promise<string> {
   try {
-    const promptData = await LangfuseService.getPromptWithFallback(
-      LangfuseService.LangfusePromptNameEnum.WHITEBOARD_VISION_PROMPT,
-      WHITEBOARD_VISION_FALLBACK_PROMPT,
-      {
-        cacheTtlSeconds: 120,
-        waitInMs: 5000,
-      }
-    )
-
     // Resize to a normalized portrait size for the vision model to keep whiteboard content legible
     // and avoid downscaling too much which could make symbols or drawings hard to read
     const resizedImage = await resize(image, {
       height: 1024,
       fit: 'inside',
     })
-    const model = config.awsBedrockSonnet4Id
-    const { result: description } = await runWithGeneration<string>(
-      () => {
-        return invokeModel({
-          modelId: model,
-          prompt: promptData.prompt,
-          text: WHITEBOARD_VISION_FALLBACK_PROMPT,
-          image: resizedImage,
-        })
+
+    const { result } = await runWithTrace<string>(
+      async (trace) => {
+        const promptData = await LangfuseService.getPromptWithFallback(
+          LangfuseService.LangfusePromptNameEnum.WHITEBOARD_VISION_PROMPT,
+          WHITEBOARD_VISION_FALLBACK_PROMPT,
+          {
+            cacheTtlSeconds: 120,
+            waitInMs: 5000,
+          }
+        )
+
+        const model = config.awsBedrockSonnet4Id
+        return await runWithModelObservation(
+          () =>
+            invokeModel({
+              modelId: model,
+              prompt: promptData.prompt,
+              text: WHITEBOARD_VISION_FALLBACK_PROMPT,
+              image: resizedImage,
+            }),
+          {
+            trace,
+            name: 'describeWhiteboardSnapshot',
+            model,
+            input:
+              typeof image === 'string'
+                ? '[Whiteboard Image URL]'
+                : '[Whiteboard Image Buffer]',
+            prompt: promptData.promptObject,
+          }
+        )
       },
       {
-        traceName: 'whiteboardVision',
-        generationName: 'describeWhiteboardSnapshot',
-        model,
-        input:
-          typeof image === 'string'
-            ? '[Whiteboard Image URL]'
-            : '[Whiteboard Image Buffer]',
-        metadata: {
-          promptVersion: promptData.version,
-        },
+        name: 'whiteboardVision',
+        sessionId,
       }
     )
-    return description
+    return result
   } catch (error) {
     logger.error(
       { err: error },

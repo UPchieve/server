@@ -63,7 +63,6 @@ import {
   describeWhiteboardSnapshot,
   getTextFromImageAnalysis,
 } from '../VisionService'
-import * as LangfuseService from '../LangfuseService'
 import { getWhiteboardSnapshot } from '../EditorSnapshotService'
 import { isSubjectUsingDocumentEditor } from '../../utils/session-utils'
 import { minutesInMs } from '../../utils/time-utils'
@@ -73,6 +72,10 @@ import {
   parseQuillDoc,
 } from '../QuillDocService'
 import { getDocEditorSessionImageUrl } from '../SessionService'
+import {
+  runWithModelObservation,
+  runWithTrace,
+} from '../../clients/ai-observability'
 
 function formatTranscriptMessage(
   message: MessageForFrontend,
@@ -89,7 +92,7 @@ async function formatTranscriptAndEditor(
   let transcript = ''
   for (const message of session.messages) {
     const userType = message.user === session.studentId ? 'Student' : 'Tutor'
-    transcript += await formatTranscriptMessage(message, userType)
+    transcript += formatTranscriptMessage(message, userType)
   }
 
   if (isSubjectUsingDocumentEditor(session.toolType))
@@ -158,7 +161,7 @@ async function formatWhiteboardPrompt(
   try {
     const snapshot = await getWhiteboardSnapshot(sessionId)
     if (snapshot) {
-      const description = await describeWhiteboardSnapshot(snapshot)
+      const description = await describeWhiteboardSnapshot(snapshot, sessionId)
       editorText = description
         ? `[Whiteboard content recognized from the student's and tutor's drawings]: ${description}`
         : '[Whiteboard snapshot was available, but its contents could not be interpreted.]'
@@ -444,41 +447,45 @@ export async function generateProgressReportForUser(
   return await getProgressReportForReport(reportId)
 }
 
-const LF_TRACE_NAME = 'progressReport'
-const LF_GENERATION_NAME = 'getProgressReportResult'
-
-export async function generateProgressReport(
+async function generateProgressReport(
   userId: Ulid,
   systemPrompt: string,
   botPrompt: string,
   sessionId?: Ulid
 ): Promise<ProgressReport> {
-  const t = LangfuseService.getClient().trace({
-    name: LF_TRACE_NAME,
-    userId,
-  })
-
-  const gen = t.generation({
-    name: LF_GENERATION_NAME,
-    model: OPENAI_MODELID,
-    input: botPrompt,
-    metadata: {
+  const { result } = await runWithTrace(
+    async (trace) => {
+      const result = await runWithModelObservation(
+        () =>
+          invokeModel({
+            prompt: systemPrompt,
+            userMessage: botPrompt,
+            options: {
+              timeout: minutesInMs(10),
+            },
+          }),
+        {
+          trace,
+          name: 'getProgressReportResult',
+          model: OPENAI_MODELID,
+          input: botPrompt,
+          metadata: {
+            userId,
+            sessionId,
+            systemPrompt,
+            formattedSessions: botPrompt,
+          },
+        }
+      )
+      return result.results as ProgressReport
+    },
+    {
+      name: 'progressReport',
       userId,
       sessionId,
-      systemPrompt,
-      formattedSessions: botPrompt,
-    },
-  })
-  const result = await invokeModel({
-    prompt: systemPrompt,
-    userMessage: botPrompt,
-    options: {
-      timeout: minutesInMs(10),
-    },
-  })
-  gen.end({ output: result })
-
-  return result.results as ProgressReport
+    }
+  )
+  return result
 }
 
 export async function queueGenerateProgressReportForUser(
