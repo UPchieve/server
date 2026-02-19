@@ -1420,10 +1420,12 @@ WHERE
     AND volunteer_id IS NOT NULL
     AND ended_at IS NULL;
 
+
 /* @name getSessionFlags */
 SELECT
     session_flag_id
-FROM 
+FROM
     sessions_session_flags
 WHERE
     session_id = :sessionId!;
+

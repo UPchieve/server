@@ -1,6 +1,6 @@
 export type Rule = {
   ruleId: number
-  name?: string
+  name: string
   description: string
 }
 
@@ -10,4 +10,9 @@ export type Action = {
   description: string
 }
 
-export type RulesActionsResult = Pick<Rule, 'ruleId' | 'name'> & Pick<Action, 'actionId' | 'actionName'>
+export type RulesActionsResult = {
+  ruleId: number
+  actionId: number
+  actionName: string
+  ruleName: string
+}

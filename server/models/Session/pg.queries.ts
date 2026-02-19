@@ -3037,14 +3037,14 @@ export interface IGetSessionFlagsQuery {
   result: IGetSessionFlagsResult;
 }
 
-const getSessionFlagsIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":83,"b":93}]}],"statement":"SELECT\n    session_flag_id\nFROM \n    sessions_session_flags\nWHERE\n    session_id = :sessionId!"};
+const getSessionFlagsIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":82,"b":92}]}],"statement":"SELECT\n    session_flag_id\nFROM\n    sessions_session_flags\nWHERE\n    session_id = :sessionId!"};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
  *     session_flag_id
- * FROM 
+ * FROM
  *     sessions_session_flags
  * WHERE
  *     session_id = :sessionId!
