@@ -6046,6 +6046,14 @@ COPY upchieve.moderation_rules (id, name, description) FROM stdin;
 
 
 --
+-- Data for Name: moderation_rule_actions; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.moderation_rule_actions (rule_id, action_id) FROM stdin;
+\.
+
+
+--
 -- Data for Name: session_flags; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
