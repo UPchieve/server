@@ -5762,6 +5762,22 @@ ALTER TABLE ONLY upchieve.moderation_infractions
 
 
 --
+-- Name: moderation_rules_flags moderation_rules_flags_flag_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.moderation_rules_flags
+    ADD CONSTRAINT moderation_rules_flags_flag_id_fkey FOREIGN KEY (flag_id) REFERENCES upchieve.session_flags(id);
+
+
+--
+-- Name: moderation_rules_flags moderation_rules_flags_rule_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.moderation_rules_flags
+    ADD CONSTRAINT moderation_rules_flags_rule_id_fkey FOREIGN KEY (rule_id) REFERENCES upchieve.moderation_rules(id);
+
+
+--
 -- Name: moderation_settings moderation_settings_moderation_category_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
