@@ -1,7 +1,7 @@
 -- migrate:up
 CREATE TABLE upchieve.moderation_rules (
     id int PRIMARY KEY,
-    action_name varchar(30),
+    name varchar(30),
     description varchar
 );
 
