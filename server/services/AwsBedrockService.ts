@@ -5,6 +5,7 @@ import {
 import config from '../config'
 import { getImageFileType } from '../utils/image-utils'
 import { secondsInMs } from '../utils/time-utils'
+import logger from '../logger'
 
 const ANTHROPIC_VERSION = 'bedrock-2023-05-31'
 
@@ -124,6 +125,10 @@ export async function invokeModel<T = string | ToolInput>({
   const response = getModelResponse(modelRes)
 
   if (!response) {
+    logger.error(
+      { response: jsonString, contentField: tools_option ? 'input' : 'text' },
+      'Did not receive expected Bedrock response'
+    )
     throw new Error('No expected Bedrock response')
   }
 
