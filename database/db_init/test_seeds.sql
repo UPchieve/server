@@ -5988,6 +5988,14 @@ COPY upchieve.legacy_availability_histories (id, mongo_id, user_id, timezone, re
 
 
 --
+-- Data for Name: moderation_actions; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.moderation_actions (id, action_name, description) FROM stdin;
+\.
+
+
+--
 -- Data for Name: moderation_categories; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
