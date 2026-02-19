@@ -2,6 +2,7 @@ export enum LangfuseTraceName {
   MODERATE_SESSION_MESSAGE = 'moderateSessionMessage',
   MODERATE_SESSION_TRANSCRIPT = 'moderateSessionTranscript',
   MODERATE_IMAGE = 'MODERATE_IMAGE',
+  MODERATE_WHITEBOARD_TEXT_NODE = 'moderateWhiteboardTextNode',
 }
 export enum LangfuseGenerationName {
   SESSION_MESSAGE_MODERATION_DECISION = 'getModerationDecision',
@@ -23,6 +24,7 @@ export type ModerationSource =
   | 'audio_transcription'
   | 'text_chat'
   | 'whiteboard'
+  | 'whiteboard-text-node'
 
 export type ModeratedLink = {
   reason: LiveMediaModerationCategories.LINK

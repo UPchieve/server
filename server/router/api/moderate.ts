@@ -26,7 +26,10 @@ export function routeModeration(router: Router): void {
             sessionId: req.body.sessionId,
             userType,
           }
-      const isClean = await ModerationService.moderateMessage(args)
+      const isClean = await ModerationService.moderateMessage(
+        args,
+        req.body?.source
+      )
       res.json({ isClean })
     } catch (error) {
       resError(res, error)

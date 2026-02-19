@@ -69,6 +69,7 @@ import * as ModerationTypes from './types'
 import * as FallBackPrompts from './fallbackPrompts'
 import { weightModerationInfractions } from './ModerationPenaltyService'
 import * as Regex from './regex'
+import { ModerationSource } from './types'
 
 // Image moderation
 const AWS_CONFIG = {
@@ -1265,17 +1266,20 @@ const getAiModerationResult = async (
 
 export type oldClientModerationResult = boolean
 
-export async function moderateMessage({
-  message,
-  senderId,
-  userType,
-  sessionId,
-}: {
-  message: string
-  senderId: string
-  userType: PrimaryUserRole
-  sessionId?: string
-}): Promise<
+export async function moderateMessage(
+  {
+    message,
+    senderId,
+    userType,
+    sessionId,
+  }: {
+    message: string
+    senderId: string
+    userType: PrimaryUserRole
+    sessionId?: string
+  },
+  source?: ModerationSource
+): Promise<
   oldClientModerationResult | ModerationTypes.ModerationFailureReasons
 > {
   let trace: LangfuseTraceClient | undefined = undefined
@@ -1291,8 +1295,12 @@ export async function moderateMessage({
 
   let result = failures
   if (!isClean) {
+    const traceName =
+      source === 'whiteboard-text-node'
+        ? ModerationTypes.LangfuseTraceName.MODERATE_WHITEBOARD_TEXT_NODE
+        : ModerationTypes.LangfuseTraceName.MODERATE_SESSION_MESSAGE
     trace = LangfuseService.getClient().trace({
-      name: ModerationTypes.LangfuseTraceName.MODERATE_SESSION_MESSAGE,
+      name: traceName,
       metadata: { sessionId, userId: senderId },
       input: message,
     })
