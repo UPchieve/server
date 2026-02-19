@@ -40,7 +40,7 @@ SELECT
     'realtime_text',
     moderation_categories.id,
     0.85,
-    10
+    4
 FROM
     upchieve.moderation_categories
 WHERE
