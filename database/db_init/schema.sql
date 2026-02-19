@@ -866,6 +866,17 @@ ALTER SEQUENCE upchieve.moderation_rules_id_seq OWNED BY upchieve.moderation_rul
 
 
 --
+-- Name: moderation_rules; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.moderation_rules (
+    id integer NOT NULL,
+    action_name character varying(30),
+    description character varying
+);
+
+
+--
 -- Name: moderation_settings; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -7321,6 +7332,7 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260114171204'),
     ('20260114193023'),
     ('20260122195918'),
+    ('20260219143230'),
     ('20260129185914'),
     ('20260129190242'),
     ('20260203194147'),
