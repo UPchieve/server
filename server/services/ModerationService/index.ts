@@ -22,8 +22,6 @@ import {
   CensoredSessionMessage,
   createCensoredMessage,
 } from '../../models/CensoredSessionMessage'
-import QueueService from '../QueueService'
-import { Jobs } from '../../worker/jobs'
 import {
   invokeModel as invokeOpenAI,
   MODEL_ID as OPENAI_MODEL_ID,
@@ -36,10 +34,6 @@ import {
   SessionTranscript,
   SessionTranscriptItem,
 } from '../../models/Session'
-import {
-  AI_MODERATION_STATE,
-  getAiModerationFeatureFlag,
-} from '../FeatureFlagService'
 import { timeLimit } from '../../utils/time-limit'
 import * as PromptService from '../PromptService'
 import * as SessionService from '../SessionService'
@@ -1141,23 +1135,29 @@ export async function getIndividualSessionMessageModerationResponse({
   }
 }
 
-async function createIndividualSessionMessageModerationJob({
-  censoredSessionMessage,
-  isVolunteer,
-}: {
-  censoredSessionMessage: CensoredSessionMessage
-  isVolunteer: boolean
-}) {
-  try {
-    await QueueService.add(Jobs.ModerateSessionMessage, {
-      censoredSessionMessage,
-      isVolunteer,
-    })
-  } catch (err) {
-    logger.error(
-      censoredSessionMessage,
-      `Failed to enqueue job ${Jobs.ModerateSessionMessage}`
-    )
+const getPromptData = async (
+  promptName: LangfuseService.LangfusePromptNameEnum,
+  fallbackPrompt: string
+): Promise<{
+  isFallback: boolean
+  prompt: string
+  version: string
+  promptObject?: TextPromptClient
+}> => {
+  const promptFromLangfuse = await LangfuseService.getPrompt(promptName)
+  const isFallback = promptFromLangfuse === undefined
+
+  return {
+    isFallback,
+    prompt: isFallback
+      ? fallbackPrompt
+      : (promptFromLangfuse! as TextPromptClient).prompt,
+    version: isFallback
+      ? 'FALLBACK'
+      : `${promptFromLangfuse!.name}-${promptFromLangfuse!.version}`,
+    ...(!isFallback && {
+      promptObject: promptFromLangfuse as TextPromptClient,
+    }),
   }
 }
 
@@ -1279,28 +1279,20 @@ export async function moderateMessage(
       censoredBy: CENSORED_BY.regex,
     })
 
-    const userTargetStatus = await getAiModerationFeatureFlag(senderId)
-    if (userTargetStatus === AI_MODERATION_STATE.targeted) {
-      const response: OpenAiResults | undefined = await getAiModerationResult(
-        censoredSessionMessage,
-        userType === 'volunteer',
-        trace
-      )
+    const response: OpenAiResults | undefined = await getAiModerationResult(
+      censoredSessionMessage,
+      userType === 'volunteer',
+      trace
+    )
 
-      const results: ModerationTypes.ModerationAIResult | undefined =
-        response?.results as ModerationTypes.ModerationAIResult
-      // Override the regex moderation decision with the AI one if it's available
-      result.failures = !results
-        ? result.failures
-        : results?.appropriate
-          ? {}
-          : results.reasons
-    } else if (userTargetStatus === AI_MODERATION_STATE.notTargeted) {
-      await createIndividualSessionMessageModerationJob({
-        censoredSessionMessage,
-        isVolunteer: userType === 'volunteer',
-      })
-    }
+    const results: ModerationTypes.ModerationAIResult | undefined =
+      response?.results as ModerationTypes.ModerationAIResult
+    // Override the regex moderation decision with the AI one if it's available
+    result.failures = !results
+      ? result.failures
+      : results?.appropriate
+        ? {}
+        : results.reasons
 
     logger.info(
       { censoredSessionMessage, reasons: result },
