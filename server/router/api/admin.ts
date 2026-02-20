@@ -1,5 +1,5 @@
 import multer from 'multer'
-import { Express, Router } from 'express'
+import { Router } from 'express'
 import timeout from 'connect-timeout'
 import { authPassport } from '../../utils/auth-utils'
 import { resError } from '../res-error'
@@ -14,7 +14,8 @@ import {
 import { asBoolean, asNumber, asString, asUlid } from '../../utils/type-utils'
 import { minutesInMs } from '../../utils/time-utils'
 
-export function routeAdmin(app: Express, router: Router): void {
+export function routeAdmin(apiRouter: Router): void {
+  const router = Router()
   const upload = multer()
 
   router.get('/schools', async function (req, res) {
@@ -111,5 +112,5 @@ export function routeAdmin(app: Express, router: Router): void {
     }
   })
 
-  app.use('/api/admin', authPassport.isAdmin, router)
+  apiRouter.use('/admin', authPassport.isAdmin, router)
 }
