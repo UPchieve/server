@@ -6046,7 +6046,7 @@ COPY upchieve.moderation_rules (id, name, description) FROM stdin;
 
 
 --
--- Data for Name: moderation_rules; Type: TABLE DATA; Schema: upchieve; Owner: admin
+-- Data for Name: session_flags; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
 COPY upchieve.moderation_rules (id, name, description) FROM stdin;
@@ -8883,13 +8883,6 @@ SELECT pg_catalog.setval('upchieve.moderation_categories_id_seq', 26, true);
 --
 
 SELECT pg_catalog.setval('upchieve.moderation_penalty_config_id_seq', 1, false);
-
-
---
--- Name: moderation_rules_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
---
-
-SELECT pg_catalog.setval('upchieve.moderation_rules_id_seq', 1, false);
 
 
 --
