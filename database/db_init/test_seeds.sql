@@ -5988,14 +5988,6 @@ COPY upchieve.legacy_availability_histories (id, mongo_id, user_id, timezone, re
 
 
 --
--- Data for Name: moderation_actions; Type: TABLE DATA; Schema: upchieve; Owner: admin
---
-
-COPY upchieve.moderation_actions (id, action_name, description) FROM stdin;
-\.
-
-
---
 -- Data for Name: moderation_categories; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
@@ -6042,8 +6034,6 @@ COPY upchieve.moderation_infractions (id, user_id, session_id, reason, active, c
 --
 
 COPY upchieve.moderation_penalty_config (id, min_weight, max_weight, moderation_type) FROM stdin;
-1	0	10	contextual
-2	0	10	realtime_image
 \.
 
 
