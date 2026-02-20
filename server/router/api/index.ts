@@ -37,7 +37,7 @@ export function routes(app: Express, io: Server): void {
   const router: expressWs.Router = Router()
 
   routeVolunteers(router)
-  routeTeachers(app, router)
+  routeTeachers(router)
   routeUser(router)
   routeVerify(router)
   routeSession(router)
