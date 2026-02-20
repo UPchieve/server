@@ -3835,14 +3835,6 @@ ALTER TABLE ONLY upchieve.moderation_rules
 
 
 --
--- Name: moderation_rules moderation_rules_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.moderation_rules
-    ADD CONSTRAINT moderation_rules_pkey PRIMARY KEY (id);
-
-
---
 -- Name: muted_users_subject_alerts muted_users_subject_alerts_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
