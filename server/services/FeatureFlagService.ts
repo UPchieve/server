@@ -68,34 +68,6 @@ export async function getProgressReportsFeatureFlag(userId: Ulid) {
   )
 }
 
-export enum AI_MODERATION_STATE {
-  disabled = 'disabled',
-  targeted = 'targeted',
-  notTargeted = 'notTargeted',
-}
-export async function getAiModerationFeatureFlag(
-  userId: Ulid
-): Promise<keyof typeof AI_MODERATION_STATE> {
-  return timeLimit({
-    promise: new Promise(async (r) => {
-      const result = await productClient.getFeatureFlag(
-        FEATURE_FLAGS.AI_MODERATION,
-        userId
-      )
-      if (result === 'targeted') {
-        r(AI_MODERATION_STATE.targeted)
-      } else if (result === 'notTargeted') {
-        r(AI_MODERATION_STATE.notTargeted)
-      } else {
-        r(AI_MODERATION_STATE.disabled)
-      }
-    }),
-    fallbackReturnValue: AI_MODERATION_STATE.disabled,
-    timeLimitReachedErrorMessage: `Posthog: 'getAllFlagsForId' did not receive response.`,
-    waitInMs: 2000,
-  })
-}
-
 export async function getCollegeListWorkSheetFlag(userId: Ulid) {
   return await isFeatureEnabled(FEATURE_FLAGS.COLLEGE_LIST_WORKSHEET, userId)
 }

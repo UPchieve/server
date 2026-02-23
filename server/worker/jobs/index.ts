@@ -48,7 +48,6 @@ import updateBasicAccessViews from '../../scripts/update-basic-access-views'
 import migrateProgressReportPromptIds from '../../scripts/migrate-progress-report-prompt-ids'
 import spawnEmailWeeklyHourSummaryJobs from './spawnEmailWeeklyHourSummaryJobs'
 import textVolunteers from './textVolunteers'
-import moderateSessionMessage from '../../scripts/moderate-session-message'
 import moderateSessionTranscript from '../jobs/moderate-session-transcript'
 import migrateBannedAndTestUsersToBanType from '../../scripts/migrate-banned-and-test-users-to-bantype'
 import updateSendGridGradeLevels from './updateSendGridGradeLevels'
@@ -134,7 +133,6 @@ export enum Jobs {
   MigrateBannedAndTestUsersToBanType = 'MigrateBannedAndTestUsersToBanType',
   MigrateHistoricalPartnerData = 'MigrateHistoricalPartnerData',
   MigrateProgressReportPromptIds = 'MigrateProgressReportPromptIds',
-  ModerateSessionMessage = 'ModerateSessionMessage',
   ModerateSessionTranscript = 'ModerateSessionTranscript',
   NotifyTutors = 'NotifyTutors',
   ProcessSessionEnded = 'ProcessSessionEnded',
@@ -393,10 +391,6 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.MigrateProgressReportPromptIds,
     processor: migrateProgressReportPromptIds,
-  },
-  {
-    name: Jobs.ModerateSessionMessage,
-    processor: moderateSessionMessage,
   },
   {
     name: Jobs.ModerateSessionTranscript,

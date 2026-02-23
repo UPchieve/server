@@ -15,7 +15,7 @@ import {
 } from '../../services/ModerationService/types'
 import { type GetModerationSettingResult } from '../../models/ModerationSettings/types'
 import { weightModerationInfractions } from '../../services/ModerationService/ModerationPenaltyService'
-import * as FeatureFlagsService from '../../services/FeatureFlagService'
+import { FALLBACK_MODERATION_PROMPT } from '../../services/ModerationService/fallbackPrompts'
 import * as SessionService from '../../services/SessionService'
 import * as CensoredSessionMessage from '../../models/CensoredSessionMessage'
 import { invokeModel as invokeOpenAiModel } from '../../services/OpenAIService'
@@ -79,7 +79,6 @@ describe('ModerationService', () => {
   const sessionId = '123'
   const badMessage = 'Call me at (555)555-5555'
   let mockGeneration: any, mockTrace: any, mockLangfuseClient: any
-  const mockTimeLimit = jest.mocked(timeLimit)
   let moderationSettings: GetModerationSettingResult
 
   beforeEach(async () => {
@@ -243,7 +242,6 @@ describe('ModerationService', () => {
   })
 
   describe('AI moderation', () => {
-    const mockedFeatureFlagService = mocked(FeatureFlagsService)
     const mockSessionService = mocked(SessionService)
     const mockedCensoredSessionMessage = mocked(CensoredSessionMessage)
     let censoredSessionMessage: any
@@ -273,10 +271,7 @@ describe('ModerationService', () => {
       })
     })
 
-    test('Check correct phone number fails when ai feature flag is off', async () => {
-      mockedFeatureFlagService.getAiModerationFeatureFlag.mockResolvedValue(
-        FeatureFlagsService.AI_MODERATION_STATE.disabled
-      )
+    test('Flags email, phone, zoom link, and profanity', async () => {
       const message =
         'a message including (555)555-5555 which is a phone number and hi@email.com and bye@email.com which are emails and some profanity: azz. finally a zoom link: https://us05web.zoom.us/j/0123456789'
 
@@ -312,53 +307,7 @@ describe('ModerationService', () => {
       })
     })
 
-    test('Check correct phone number fails when ai feature flag is on and user is in target group', async () => {
-      mockedFeatureFlagService.getAiModerationFeatureFlag.mockResolvedValue(
-        FeatureFlagsService.AI_MODERATION_STATE.targeted
-      )
-      mockedCensoredSessionMessage.createCensoredMessage.mockResolvedValue({
-        id: '123',
-        censoredBy: 'regex',
-        sentAt: new Date(),
-        senderId,
-        sessionId,
-        message: badMessage,
-        shown: false,
-      })
-      const mockAiDecision = {
-        appropriate: false,
-        reasons: {
-          phone: ['(555)555-5555'],
-        },
-      }
-      const mockAiResponse = {
-        results: mockAiDecision,
-        modelId: 'gpt-4o',
-      }
-
-      mockTimeLimit.mockResolvedValue(mockAiDecision)
-      mockedInvokeOpenAiModel.mockResolvedValue(mockAiResponse)
-
-      expect(
-        await moderateMessage({
-          message: badMessage,
-          senderId,
-          userType,
-          sessionId,
-        })
-      ).toStrictEqual({
-        failures: {
-          [LiveMediaModerationCategories.PHONE]: [
-            expect.stringContaining('(555)555-5555'),
-          ],
-        },
-      })
-    })
-
-    test('Check message is clean when ai feature flag is on and user is in target group', async () => {
-      mockedFeatureFlagService.getAiModerationFeatureFlag.mockResolvedValue(
-        FeatureFlagsService.AI_MODERATION_STATE.targeted
-      )
+    test('Check message is clean', async () => {
       const message = 'a message including nothing suspicious'
 
       mockedCensoredSessionMessage.createCensoredMessage.mockResolvedValue({
@@ -398,9 +347,6 @@ describe('ModerationService', () => {
 
     describe('createChatCompletion', () => {
       test('It calls OpenAI with the prompt from Langfuse', async () => {
-        mockedFeatureFlagService.getAiModerationFeatureFlag.mockResolvedValue(
-          FeatureFlagsService.AI_MODERATION_STATE.targeted
-        )
         mockPromptService.getPromptWithFallback.mockResolvedValue({
           isFallback: false,
           prompt: 'test-prompt-content',
@@ -423,9 +369,6 @@ describe('ModerationService', () => {
       })
 
       test('It calls OpenAI with the fallback prompt if it cannot be retrieved from LF', async () => {
-        mockedFeatureFlagService.getAiModerationFeatureFlag.mockResolvedValue(
-          FeatureFlagsService.AI_MODERATION_STATE.targeted
-        )
         mockPromptService.getPromptWithFallback.mockResolvedValue({
           prompt:
             PromptService.fallbackPrompts[
@@ -455,9 +398,6 @@ describe('ModerationService', () => {
       it('Associates the Langfuse prompt with the generation', async () => {
         // If we are able to retrieve a prompt from LF, it should be attached to the generation
         // to associate generations and their corresponding prompts
-        mockedFeatureFlagService.getAiModerationFeatureFlag.mockResolvedValue(
-          FeatureFlagsService.AI_MODERATION_STATE.targeted
-        )
         const langfusePromptObject = {
           isFallback: false,
           prompt: 'test-prompt-content',
@@ -485,9 +425,6 @@ describe('ModerationService', () => {
       })
 
       it('Does NOT associate the generation with a LF prompt if none could be retrieved', async () => {
-        mockedFeatureFlagService.getAiModerationFeatureFlag.mockResolvedValue(
-          FeatureFlagsService.AI_MODERATION_STATE.targeted
-        )
         mockPromptService.getPromptWithFallback.mockResolvedValue(
           {} as PromptService.PromptResponse
         )
@@ -524,7 +461,6 @@ describe('ModerationService', () => {
       }
 
       mockedInvokeOpenAiModel.mockResolvedValue(mockAiResponse)
-      mockTimeLimit.mockResolvedValue(null)
 
       const result = await moderateMessage({
         message,
