@@ -825,6 +825,16 @@ ALTER TABLE upchieve.moderation_penalty_config ALTER COLUMN id ADD GENERATED ALW
 
 
 --
+-- Name: moderation_rule_actions; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.moderation_rule_actions (
+    rule_id integer NOT NULL,
+    action_id integer NOT NULL
+);
+
+
+--
 -- Name: moderation_rules; Type: TABLE; Schema: upchieve; Owner: -
 --
 
