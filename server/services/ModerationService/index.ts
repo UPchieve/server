@@ -16,7 +16,7 @@ import { chunk, isEmpty } from 'lodash'
 import { TextPromptClient } from 'langfuse-core'
 import logger from '../../logger'
 import { client as langfuseClient } from '../../clients/langfuse'
-import { addTraceTags, TraceTag } from '../AiObservabilityService'
+import { addTraceTags } from '../AiObservabilityService'
 import {
   CENSORED_BY,
   CensoredSessionMessage,
@@ -1132,32 +1132,6 @@ export async function getIndividualSessionMessageModerationResponse({
       },
       `Error while moderating session message`
     )
-  }
-}
-
-const getPromptData = async (
-  promptName: LangfuseService.LangfusePromptNameEnum,
-  fallbackPrompt: string
-): Promise<{
-  isFallback: boolean
-  prompt: string
-  version: string
-  promptObject?: TextPromptClient
-}> => {
-  const promptFromLangfuse = await LangfuseService.getPrompt(promptName)
-  const isFallback = promptFromLangfuse === undefined
-
-  return {
-    isFallback,
-    prompt: isFallback
-      ? fallbackPrompt
-      : (promptFromLangfuse! as TextPromptClient).prompt,
-    version: isFallback
-      ? 'FALLBACK'
-      : `${promptFromLangfuse!.name}-${promptFromLangfuse!.version}`,
-    ...(!isFallback && {
-      promptObject: promptFromLangfuse as TextPromptClient,
-    }),
   }
 }
 
