@@ -8926,6 +8926,13 @@ SELECT pg_catalog.setval('upchieve.moderation_rules_id_seq', 1, false);
 
 
 --
+-- Name: moderation_rules_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
+--
+
+SELECT pg_catalog.setval('upchieve.moderation_rules_id_seq', 1, false);
+
+
+--
 -- Name: notification_methods_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
