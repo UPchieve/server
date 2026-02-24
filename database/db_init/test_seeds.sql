@@ -5994,6 +5994,7 @@ COPY upchieve.legacy_availability_histories (id, mongo_id, user_id, timezone, re
 --
 
 COPY upchieve.moderation_actions (id, action_name, description) FROM stdin;
+1	shadow_ban	Shadow bans student so they are not aware they have been banned from the platform. Volunteers will not see their requests.
 \.
 
 
@@ -8969,13 +8970,6 @@ SELECT pg_catalog.setval('upchieve.moderation_categories_id_seq', 26, true);
 --
 
 SELECT pg_catalog.setval('upchieve.moderation_penalty_config_id_seq', 1, false);
-
-
---
--- Name: moderation_rules_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
---
-
-SELECT pg_catalog.setval('upchieve.moderation_rules_id_seq', 1, false);
 
 
 --
