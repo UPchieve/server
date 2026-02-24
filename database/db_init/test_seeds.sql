@@ -8901,7 +8901,7 @@ SELECT pg_catalog.setval('upchieve.ip_addresses_id_seq', 1, true);
 -- Name: moderation_actions_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.moderation_actions_id_seq', 1, false);
+SELECT pg_catalog.setval('upchieve.moderation_actions_id_seq', 1, true);
 
 
 --
