@@ -16,7 +16,6 @@ import type {
   NTHSGroupMemberWithRole,
   NTHSGroupRoleName,
   NTHSSchoolAffiliationStatus,
-  UserGroup,
   NTHSGroupWithMemberInfo,
 } from './types'
 import { camelCaseKeys } from '../../tests/db-utils'
