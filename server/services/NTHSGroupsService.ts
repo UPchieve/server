@@ -15,6 +15,7 @@ import {
   NTHSGroupMemberRole,
   NTHSGroupMemberWithRole,
   NTHSGroupRoleName,
+  NTHSGroupWithMemberInfo,
   NTHSSchoolAffiliationStatus,
 } from '../models/NTHSGroups'
 import generateAlphanumericOfLength from '../utils/generate-alphanumeric'
@@ -27,7 +28,9 @@ export async function getGroups(userId: Ulid) {
   return await NTHSGroupsRepo.getGroupsByUser(userId)
 }
 
-export async function foundGroup(userId: Ulid) {
+export async function foundGroup(
+  userId: Ulid
+): Promise<NTHSGroupWithMemberInfo> {
   return runInTransaction(async (tc: TransactionClient) => {
     const groups = await NTHSGroupsRepo.getGroupsByUser(userId, tc)
 
@@ -58,6 +61,19 @@ export async function foundGroup(userId: Ulid) {
     )
 
     const result = {
+      groupInfo: {
+        id: group.id,
+        name: group.name,
+        key: group.key,
+        inviteCode: group.inviteCode,
+      },
+      memberInfo: {
+        title: creator.title,
+        joinedAt: creator.joinedAt,
+        roleName: 'admin',
+      },
+      schoolAffiliationStatus: null,
+      // @TODO Remove the fields below once we update the client to reference groupInfo and memberInfo instead
       memberTitle: creator.title,
       joinedAt: creator.joinedAt,
       groupId: group.id,
@@ -65,7 +81,7 @@ export async function foundGroup(userId: Ulid) {
       groupKey: group.key,
       inviteCode: group.inviteCode,
       roleName: 'admin',
-    }
+    } as NTHSGroupWithMemberInfo
 
     return result
   })
@@ -74,11 +90,6 @@ export async function foundGroup(userId: Ulid) {
 export async function updateGroupName(groupId: Ulid, name: string) {
   const group = await NTHSGroupsRepo.updateGroupName(groupId, name)
   return group
-}
-
-export async function getInviteLinkForGroup(groupId: Ulid) {
-  const code = await NTHSGroupsRepo.getInviteCodeForGroup(groupId)
-  return `https://${config.client.host}/join-group/${code}`
 }
 
 export async function getNTHSGroupByInviteCode(
