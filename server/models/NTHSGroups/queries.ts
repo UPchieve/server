@@ -4,7 +4,6 @@ import {
   RepoReadError,
   RepoUpsertError,
   RepoUpdateError,
-  RepoDeleteError,
 } from '../Errors'
 import { makeRequired, makeSomeOptional, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
@@ -17,7 +16,7 @@ import type {
   NTHSGroupMemberWithRole,
   NTHSGroupRoleName,
   NTHSSchoolAffiliationStatus,
-  UserGroup,
+  NTHSGroupWithMemberInfo,
 } from './types'
 import { camelCaseKeys } from '../../tests/db-utils'
 import logger from '../../logger'
@@ -25,7 +24,7 @@ import logger from '../../logger'
 export async function getGroupsByUser(
   userId: Ulid,
   tc: TransactionClient = getRoClient()
-): Promise<UserGroup[]> {
+): Promise<NTHSGroupWithMemberInfo[]> {
   try {
     const results = await pgQueries.getGroupsByUser.run(
       {
@@ -41,6 +40,18 @@ export async function getGroupsByUser(
         schoolAffiliationStatus:
           (camelCased.schoolAffiliationStatus as NTHSSchoolAffiliationStatus) ??
           null,
+        /// TODO: Simplify the return to just the below properties once the type of NTHSGroupWithUser is cleaned up
+        groupInfo: {
+          id: camelCased.groupId,
+          name: camelCased.groupName,
+          key: camelCased.groupKey,
+          inviteCode: camelCased.inviteCode,
+        },
+        memberInfo: {
+          joinedAt: camelCased.joinedAt,
+          title: camelCased.memberTitle,
+          roleName: camelCased.roleName as NTHSGroupRoleName,
+        },
       }
     })
   } catch (err) {
