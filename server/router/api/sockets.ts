@@ -772,6 +772,14 @@ export function routeSockets(io: Server): void {
       )
     })
 
+    socket.on('partner_joined_live_media', async ({ sessionId }) => {
+      const user = await extractSocketUser(socket)
+
+      io.to(getSessionRoom(sessionId))
+        .except(user.id)
+        .emit('partner_joined_live_media')
+    })
+
     // Log socket connection-related events for analytics and debugging
     socket.onAny((eventName, args) => {
       logSocketEvent(eventName, socket, args)
