@@ -53,6 +53,7 @@ export type ClientToServerEvents = {
     banType: USER_BAN_TYPES
   }) => void
   addPartnerLiveMediaBan: (data: { sessionId: string }) => void
+  partner_shared_screen: (data: { sessionId: string }) => void
 }
 
 export type ServerToClientEvents = {
@@ -90,6 +91,7 @@ export type ServerToClientEvents = {
   }) => void
   partnerImageUploadSuccess: () => void
   partnerAckLiveMediaBan: (data: { isBanned: boolean }) => void
+  partner_shared_screen: () => void
 }
 
 export type InterServerEvents = {}
