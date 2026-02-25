@@ -1098,6 +1098,42 @@ CREATE TABLE upchieve.nths_chapters_statuses (
 
 
 --
+-- Name: nths_chapter_statuses; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.nths_chapter_statuses (
+    id integer NOT NULL,
+    name text NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: nths_chapter_statuses_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE upchieve.nths_chapter_statuses ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME upchieve.nths_chapter_statuses_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: nths_chapters_statuses; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.nths_chapters_statuses (
+    nths_group_id uuid NOT NULL,
+    nths_chapter_status_id integer NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
 -- Name: nths_group_actions; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -5934,6 +5970,22 @@ ALTER TABLE ONLY upchieve.nths_advisors
 
 ALTER TABLE ONLY upchieve.nths_advisors
     ADD CONSTRAINT nths_advisors_school_id_fkey FOREIGN KEY (school_id) REFERENCES upchieve.schools(id);
+
+
+--
+-- Name: nths_chapters_statuses nths_chapters_statuses_nths_chapter_status_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_chapters_statuses
+    ADD CONSTRAINT nths_chapters_statuses_nths_chapter_status_id_fkey FOREIGN KEY (nths_chapter_status_id) REFERENCES upchieve.nths_chapter_statuses(id);
+
+
+--
+-- Name: nths_chapters_statuses nths_chapters_statuses_nths_group_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_chapters_statuses
+    ADD CONSTRAINT nths_chapters_statuses_nths_group_id_fkey FOREIGN KEY (nths_group_id) REFERENCES upchieve.nths_groups(id);
 
 
 --

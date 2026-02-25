@@ -6249,6 +6249,25 @@ COPY upchieve.nths_chapters_statuses (nths_group_id, nths_chapter_status_id, cre
 
 
 --
+-- Data for Name: nths_chapter_statuses; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.nths_chapter_statuses (id, name, created_at) FROM stdin;
+1	PENDING	2026-02-25 16:18:13.923783+00
+2	OFFICIAL	2026-02-25 16:18:13.923783+00
+3	FAILED	2026-02-25 16:18:13.923783+00
+\.
+
+
+--
+-- Data for Name: nths_chapters_statuses; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.nths_chapters_statuses (nths_group_id, nths_chapter_status_id, created_at) FROM stdin;
+\.
+
+
+--
 -- Data for Name: nths_group_actions; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
