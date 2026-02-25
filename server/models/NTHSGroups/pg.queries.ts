@@ -299,6 +299,7 @@ export const getGroupMember = new PreparedQuery<IGetGroupMemberParams,IGetGroupM
 /** 'GetGroupMembers' parameters type */
 export interface IGetGroupMembersParams {
   groupId: string;
+  includeDeactivated?: boolean | null | void;
 }
 
 /** 'GetGroupMembers' return type */
@@ -320,7 +321,7 @@ export interface IGetGroupMembersQuery {
   result: IGetGroupMembersResult;
 }
 
-const getGroupMembersIR: any = {"usedParamSet":{"groupId":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":233,"b":241},{"a":428,"b":436}]}],"statement":"SELECT\n    ngm.*,\n    roles.name AS role_name,\n    LEFT (users.last_name,\n        1) AS last_initial,\n    users.first_name\nFROM\n    nths_group_members ngm\n    JOIN nths_group_member_roles member_roles ON member_roles.nths_group_id = :groupId!\n        AND member_roles.user_id = ngm.user_id\n    JOIN nths_group_roles roles ON roles.id = member_roles.role_id\n    JOIN users ON users.id = ngm.user_id\nWHERE\n    ngm.nths_group_id = :groupId!\n    AND ngm.deactivated_at IS NULL"};
+const getGroupMembersIR: any = {"usedParamSet":{"groupId":true,"includeDeactivated":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":233,"b":241},{"a":428,"b":436}]},{"name":"includeDeactivated","required":false,"transform":{"type":"scalar"},"locs":[{"a":447,"b":465}]}],"statement":"SELECT\n    ngm.*,\n    roles.name AS role_name,\n    LEFT (users.last_name,\n        1) AS last_initial,\n    users.first_name\nFROM\n    nths_group_members ngm\n    JOIN nths_group_member_roles member_roles ON member_roles.nths_group_id = :groupId!\n        AND member_roles.user_id = ngm.user_id\n    JOIN nths_group_roles roles ON roles.id = member_roles.role_id\n    JOIN users ON users.id = ngm.user_id\nWHERE\n    ngm.nths_group_id = :groupId!\n    AND (:includeDeactivated IS TRUE\n        OR ngm.deactivated_at IS NULL)"};
 
 /**
  * Query generated from SQL:
@@ -339,7 +340,8 @@ const getGroupMembersIR: any = {"usedParamSet":{"groupId":true},"params":[{"name
  *     JOIN users ON users.id = ngm.user_id
  * WHERE
  *     ngm.nths_group_id = :groupId!
- *     AND ngm.deactivated_at IS NULL
+ *     AND (:includeDeactivated IS TRUE
+ *         OR ngm.deactivated_at IS NULL)
  * ```
  */
 export const getGroupMembers = new PreparedQuery<IGetGroupMembersParams,IGetGroupMembersResult>(getGroupMembersIR);

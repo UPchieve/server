@@ -17,6 +17,7 @@ import type {
   NTHSGroupRoleName,
   NTHSSchoolAffiliationStatus,
   NTHSGroupWithMemberInfo,
+  NTHSGroupMember,
 } from './types'
 import { camelCaseKeys } from '../../tests/db-utils'
 import logger from '../../logger'
@@ -178,14 +179,21 @@ export async function groupsCount(tc: TransactionClient = getClient()) {
   }
 }
 
+export type GetGroupMembersOptions = {
+  includeDeactivated: boolean
+}
 export async function getGroupMembers(
   groupId: Ulid,
-  tc: TransactionClient = getRoClient()
+  tc: TransactionClient = getRoClient(),
+  options: GetGroupMembersOptions = {
+    includeDeactivated: false,
+  }
 ): Promise<NTHSGroupMemberWithRole[]> {
   try {
     const results = await pgQueries.getGroupMembers.run(
       {
         groupId,
+        includeDeactivated: options.includeDeactivated,
       },
       tc
     )

@@ -93,3 +93,5 @@ export type NTHSSchoolAffiliationStatus =
   | 'AFFILIATED'
   | 'DENIED'
   | 'OPTED_OUT'
+
+export type NTHSChapterStatus = 'PENDING' | 'FAILED' | 'OFFICIAL'

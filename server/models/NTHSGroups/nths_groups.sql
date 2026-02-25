@@ -112,7 +112,8 @@ FROM
     JOIN users ON users.id = ngm.user_id
 WHERE
     ngm.nths_group_id = :groupId!
-    AND ngm.deactivated_at IS NULL;
+    AND (:includeDeactivated IS TRUE
+        OR ngm.deactivated_at IS NULL);
 
 
 /* @name groupsCount */

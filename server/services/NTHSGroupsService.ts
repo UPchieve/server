@@ -8,10 +8,12 @@ import {
   TransactionClient,
 } from '../db'
 import {
+  GetGroupMembersOptions,
   NTHS_ACTIONS_TO_SCHOOL_AFFILIATION_STATUS_MAPPING,
   NTHSAction,
   NTHSActionName,
   NTHSGroupAction,
+  NTHSGroupMember,
   NTHSGroupMemberRole,
   NTHSGroupMemberWithRole,
   NTHSGroupRoleName,
@@ -185,9 +187,11 @@ export async function getGroupMember(
 }
 
 export async function getGroupMembers(
-  nthsGroupId: Ulid
+  nthsGroupId: Ulid,
+  tc?: TransactionClient,
+  options?: GetGroupMembersOptions
 ): Promise<NTHSGroupMemberWithRole[]> {
-  return await NTHSGroupsRepo.getGroupMembers(nthsGroupId)
+  return await NTHSGroupsRepo.getGroupMembers(nthsGroupId, tc, options)
 }
 
 type CreateActionResponse = {
@@ -308,5 +312,13 @@ export async function submitSchoolAffilaiton({
     )
 
     return { groupId: nthsGroupId, NTHSAdvisor, action: created }
+  })
+}
+
+export async function getAlltimeMembersByGroupId(
+  nthsGroupId: Ulid
+): Promise<NTHSGroupMember[]> {
+  return await NTHSGroupsRepo.getGroupMembers(nthsGroupId, undefined, {
+    includeDeactivated: true,
   })
 }
