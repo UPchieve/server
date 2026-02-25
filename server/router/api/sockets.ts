@@ -772,12 +772,12 @@ export function routeSockets(io: Server): void {
       )
     })
 
-    socket.on('partner_shared_screen', async ({ sessionId }) => {
+    socket.on('partner_joined_live_media', async ({ sessionId }) => {
       const user = await extractSocketUser(socket)
 
       io.to(getSessionRoom(sessionId))
         .except(user.id)
-        .emit('partner_shared_screen')
+        .emit('partner_joined_live_media')
     })
 
     // Log socket connection-related events for analytics and debugging
