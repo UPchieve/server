@@ -6230,6 +6230,25 @@ COPY upchieve.nths_advisors (id, nths_group_id, first_name, last_name, email, ph
 
 
 --
+-- Data for Name: nths_chapter_statuses; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.nths_chapter_statuses (id, name, created_at) FROM stdin;
+1	PENDING	2026-02-25 16:18:13.923783+00
+2	OFFICIAL	2026-02-25 16:18:13.923783+00
+3	FAILED	2026-02-25 16:18:13.923783+00
+\.
+
+
+--
+-- Data for Name: nths_chapters_statuses; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.nths_chapters_statuses (nths_group_id, nths_chapter_status_id, created_at) FROM stdin;
+\.
+
+
+--
 -- Data for Name: nths_group_actions; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
@@ -8951,6 +8970,13 @@ SELECT pg_catalog.setval('upchieve.notification_types_id_seq', 2, true);
 --
 
 SELECT pg_catalog.setval('upchieve.nths_actions_id_seq', 8, true);
+
+
+--
+-- Name: nths_chapter_statuses_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
+--
+
+SELECT pg_catalog.setval('upchieve.nths_chapter_statuses_id_seq', 3, true);
 
 
 --
