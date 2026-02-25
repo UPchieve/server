@@ -4718,14 +4718,6 @@ ALTER TABLE ONLY upchieve.tutor_bot_session_messages
 
 
 --
--- Name: nths_group_actions unique_action_per_group; Type: CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.nths_group_actions
-    ADD CONSTRAINT unique_action_per_group UNIQUE (nths_group_id, nths_action_id);
-
-
---
 -- Name: cities unique_city_name_state; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -7177,4 +7169,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260203194147'),
     ('20260203194734'),
     ('20260203200218'),
-    ('20260204215802');
+    ('20260204215802'),
+    ('20260213143219');
