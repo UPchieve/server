@@ -245,6 +245,15 @@ export async function addNTHSAdvisor(
   },
   tc: TransactionClient = getClient()
 ) {
-  console.log('1', args)
-  return await NTHSGroupsRepo.addNTHSAdvisor(args)
+  return await NTHSGroupsRepo.addNTHSAdvisor(args, tc)
+}
+
+export async function addSchoolToSchoolAffiliation(
+  args: {
+    nthsGroupId: Ulid
+    schoolId: string
+  },
+  tc: TransactionClient = getClient()
+) {
+  return await NTHSGroupsRepo.addSchoolToSchoolAffiliation(args, tc)
 }

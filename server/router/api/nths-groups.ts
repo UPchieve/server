@@ -171,6 +171,11 @@ export function routeNTHSGroups(router: Router): void {
           'SUBMITTED ADVISOR CONTACT INFO'
         )
 
+        await NTHSGroupsService.addSchoolToSchoolAffiliation({
+          nthsGroupId,
+          schoolId,
+        })
+
         res.json({ groupId: nthsGroupId, NTHSAdvisor, action: created })
       } catch (err) {
         resError(res, err)
