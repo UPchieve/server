@@ -140,6 +140,29 @@ describe('deidentifyUserJob', () => {
     expect(ipAddressesAfter.rows.length).toBe(0)
   })
 
+  test('hard deletes records in totp', async () => {
+    const user = await createTestUser(client)
+    const userId = user.id
+
+    await client.query(
+      'INSERT INTO upchieve.totp (user_id, secret) VALUES ($1, $2)',
+      [userId, 'test-totp-secret']
+    )
+    const totpBefore = await client.query(
+      'SELECT * FROM upchieve.totp WHERE user_id = $1',
+      [userId]
+    )
+    expect(totpBefore.rowCount).toBe(1)
+
+    await deidentifyUserJob(createJob(userId))
+
+    const totpAfter = await client.query(
+      'SELECT * FROM upchieve.totp WHERE user_id = $1',
+      [userId]
+    )
+    expect(totpAfter.rowCount).toBe(0)
+  })
+
   test('deidentifies rows in contact_form_submissions', async () => {
     const user = await createTestUser(client)
     const userId = user.id

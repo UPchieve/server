@@ -2,10 +2,10 @@
 -- PostgreSQL database dump
 --
 
-\restrict baBGaSPC2FRtBcJ2zr7jQV4uJDBrepQalrWImqQmA4Nfvm5nlExROqIEP7M7XPK
+\restrict PHfOhHD1S5n75ipFqkEY1e3LSaspVbUpLLyh9bgqq0Z2WkPDoZ789hXArLg0xAl
 
 -- Dumped from database version 14.21 (Debian 14.21-1.pgdg13+1)
--- Dumped by pg_dump version 14.19 (Homebrew)
+-- Dumped by pg_dump version 14.22 (Ubuntu 14.22-0ubuntu0.22.04.1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -8579,6 +8579,14 @@ COPY upchieve.surveys_context (survey_id, subject_id, survey_type_id, created_at
 
 
 --
+-- Data for Name: totp; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.totp (user_id, secret, verified, last_used_counter, created_at, updated_at) FROM stdin;
+\.
+
+
+--
 -- Data for Name: training_courses; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
@@ -9239,5 +9247,5 @@ SELECT pg_catalog.setval('upchieve.weekdays_id_seq', 1, false);
 -- PostgreSQL database dump complete
 --
 
-\unrestrict baBGaSPC2FRtBcJ2zr7jQV4uJDBrepQalrWImqQmA4Nfvm5nlExROqIEP7M7XPK
+\unrestrict PHfOhHD1S5n75ipFqkEY1e3LSaspVbUpLLyh9bgqq0Z2WkPDoZ789hXArLg0xAl
 

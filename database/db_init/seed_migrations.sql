@@ -2,10 +2,10 @@
 -- PostgreSQL database dump
 --
 
-\restrict Vdco730xz4JLaWrBr1Rc8ujzMURNamCgVEpFfhrroAfcm8bfgaxbMLKI2TQVGWp
+\restrict Xe4ylUBZ7cs1J6bB5cHyb1BaNSGfBNQXkHtHtRugmCdAAEgBcpgZVg9HJSyX9R4
 
 -- Dumped from database version 14.21 (Debian 14.21-1.pgdg13+1)
--- Dumped by pg_dump version 14.19 (Homebrew)
+-- Dumped by pg_dump version 14.22 (Ubuntu 14.22-0ubuntu0.22.04.1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -106,5 +106,5 @@ COPY public.seed_migrations (version) FROM stdin;
 -- PostgreSQL database dump complete
 --
 
-\unrestrict Vdco730xz4JLaWrBr1Rc8ujzMURNamCgVEpFfhrroAfcm8bfgaxbMLKI2TQVGWp
+\unrestrict Xe4ylUBZ7cs1J6bB5cHyb1BaNSGfBNQXkHtHtRugmCdAAEgBcpgZVg9HJSyX9R4
 
