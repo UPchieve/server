@@ -18,6 +18,8 @@ import type {
   NTHSSchoolAffiliationStatus,
   NTHSGroupWithMemberInfo,
   NTHSGroupMember,
+  NTHSChapterStatus,
+  NTHSChapterStatusName,
 } from './types'
 import { camelCaseKeys } from '../../tests/db-utils'
 import logger from '../../logger'
@@ -392,5 +394,54 @@ export async function addSchoolToSchoolAffiliation(
     await pgQueries.addSchoolToSchoolAffiliation.run(args, tc)
   } catch (err) {
     throw new RepoUpdateError(err)
+  }
+}
+
+export async function getChapterStatus(
+  nthsGroupId: Ulid,
+  tc: TransactionClient = getRoClient()
+): Promise<NTHSChapterStatus | undefined> {
+  try {
+    const results = await pgQueries.getLatestNthsChapterStatus.run(
+      {
+        groupId: nthsGroupId,
+      },
+      tc
+    )
+    if (results) {
+      return makeRequired({
+        ...results[0],
+        statusName: results[0].statusName as NTHSChapterStatusName,
+      })
+    }
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function insertChapterStatus(
+  nthsGroupId: Ulid,
+  status: NTHSChapterStatusName,
+  tc: TransactionClient = getClient()
+): Promise<NTHSChapterStatus> {
+  try {
+    const results = await pgQueries.insertStatusForNthsChapter.run(
+      {
+        groupId: nthsGroupId,
+        statusName: status,
+      },
+      tc
+    )
+    if (!results.length) {
+      throw new Error(
+        'Did not get back insert results when inserting NTHS chapter status'
+      )
+    }
+    return makeRequired({
+      ...results[0],
+      statusName: results[0].statusName as NTHSChapterStatusName,
+    })
+  } catch (err) {
+    throw new RepoCreateError(err)
   }
 }

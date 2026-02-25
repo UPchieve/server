@@ -94,4 +94,11 @@ export type NTHSSchoolAffiliationStatus =
   | 'DENIED'
   | 'OPTED_OUT'
 
-export type NTHSChapterStatus = 'PENDING' | 'FAILED' | 'OFFICIAL'
+export type NTHSChapterStatusName = 'PENDING' | 'FAILED' | 'OFFICIAL'
+
+export type NTHSChapterStatus = {
+  nthsGroupId: Ulid
+  statusName: NTHSChapterStatusName
+  createdAt: Date
+  statusId: number
+}

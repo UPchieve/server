@@ -12,6 +12,8 @@ import {
   NTHS_ACTIONS_TO_SCHOOL_AFFILIATION_STATUS_MAPPING,
   NTHSAction,
   NTHSActionName,
+  NTHSChapterStatus,
+  NTHSChapterStatusName,
   NTHSGroupAction,
   NTHSGroupMember,
   NTHSGroupMemberRole,
@@ -321,4 +323,15 @@ export async function getAlltimeMembersByGroupId(
   return await NTHSGroupsRepo.getGroupMembers(nthsGroupId, undefined, {
     includeDeactivated: true,
   })
+export async function getLatestNthsChapterStatus(
+  groupId: Ulid
+): Promise<NTHSChapterStatus | undefined> {
+  return NTHSGroupsRepo.getChapterStatus(groupId)
+}
+
+export async function insertNthsChapterStatus(
+  groupId: Ulid,
+  status: NTHSChapterStatusName
+): Promise<NTHSChapterStatus> {
+  return NTHSGroupsRepo.insertChapterStatus(groupId, status)
 }

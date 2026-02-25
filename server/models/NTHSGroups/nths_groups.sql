@@ -230,3 +230,43 @@ SET
 WHERE
     nths_group_id = :nthsGroupId!;
 
+
+/* @name getLatestNthsChapterStatus */
+WITH ranked_by_timestamp AS (
+    SELECT
+        nths_group_id,
+        nths_chapter_status_id,
+        created_at,
+        ROW_NUMBER() OVER (ORDER BY created_at DESC) AS rn
+    FROM
+        nths_chapters_statuses
+    WHERE
+        nths_group_id = :groupId!
+)
+SELECT
+    cs.nths_group_id,
+    cs.nths_chapter_status_id AS status_id,
+    cs.created_at,
+    statuses.name AS status_name
+FROM
+    ranked_by_timestamp cs
+    JOIN nths_chapter_statuses statuses ON statuses.id = cs.nths_chapter_status_id
+WHERE
+    cs.rn = 1;
+
+
+/* @name insertStatusForNthsChapter */
+INSERT INTO nths_chapters_statuses (nths_group_id, nths_chapter_status_id)
+SELECT
+    :groupId!,
+    statuses.id
+FROM
+    nths_chapter_statuses statuses
+WHERE
+    statuses.name = :statusName!
+RETURNING
+    nths_group_id,
+    nths_chapter_status_id AS status_id,
+    created_at,
+    :statusName! AS status_name;
+
