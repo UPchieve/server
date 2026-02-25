@@ -141,7 +141,7 @@ export function routeNTHSGroups(router: Router): void {
     })
 
   router
-    .route('/nths-groups/:groupId/add-advisor')
+    .route('/nths-groups/:groupId/submit-school-affiliation')
     .post(isGroupAdmin, async (req: Request, res: Response) => {
       try {
         const nthsGroupId = req.params.groupId
@@ -154,8 +154,7 @@ export function routeNTHSGroups(router: Router): void {
           phoneExtension,
           title,
         } = req.body
-
-        const NTHSAdvisor = await NTHSGroupsService.addNTHSAdvisor({
+        const result = await NTHSGroupsService.submitSchoolAffilaiton({
           nthsGroupId,
           schoolId,
           firstName,
@@ -166,17 +165,7 @@ export function routeNTHSGroups(router: Router): void {
           title,
         })
 
-        const created = await NTHSGroupsService.createAction(
-          nthsGroupId,
-          'SUBMITTED ADVISOR CONTACT INFO'
-        )
-
-        await NTHSGroupsService.addSchoolToSchoolAffiliation({
-          nthsGroupId,
-          schoolId,
-        })
-
-        res.json({ groupId: nthsGroupId, NTHSAdvisor, action: created })
+        res.json(result)
       } catch (err) {
         resError(res, err)
       }

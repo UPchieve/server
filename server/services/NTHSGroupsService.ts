@@ -196,7 +196,8 @@ type CreateActionResponse = {
 }
 export async function createAction(
   nthsGroupId: Ulid,
-  action: NTHSActionName
+  action: NTHSActionName,
+  tc: TransactionClient = getClient()
 ): Promise<CreateActionResponse> {
   return await runInTransaction(async (tc) => {
     const createdAction = await NTHSGroupsRepo.insertNthsGroupAction(
@@ -219,7 +220,7 @@ export async function createAction(
     }
 
     return retVal
-  })
+  }, tc)
 }
 
 export async function getActionsForGroup(
@@ -256,4 +257,56 @@ export async function addSchoolToSchoolAffiliation(
   tc: TransactionClient = getClient()
 ) {
   return await NTHSGroupsRepo.addSchoolToSchoolAffiliation(args, tc)
+}
+
+export async function submitSchoolAffilaiton({
+  nthsGroupId,
+  schoolId,
+  firstName,
+  lastName,
+  email,
+  phone,
+  phoneExtension,
+  title,
+}: {
+  nthsGroupId: Ulid
+  schoolId: string
+  firstName: string
+  lastName: string
+  email: string
+  phone: string
+  phoneExtension?: string
+  title: string
+}) {
+  return runInTransaction(async (tc) => {
+    const NTHSAdvisor = await addNTHSAdvisor(
+      {
+        nthsGroupId,
+        schoolId,
+        firstName,
+        lastName,
+        email,
+        phone,
+        phoneExtension,
+        title,
+      },
+      tc
+    )
+
+    const created = await createAction(
+      nthsGroupId,
+      'SUBMITTED ADVISOR CONTACT INFO',
+      tc
+    )
+
+    await addSchoolToSchoolAffiliation(
+      {
+        nthsGroupId,
+        schoolId,
+      },
+      tc
+    )
+
+    return { groupId: nthsGroupId, NTHSAdvisor, action: created }
+  })
 }
