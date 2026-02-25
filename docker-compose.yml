@@ -5,7 +5,7 @@ services:
         hostname: postgres
         ports:
             - "5432:5432"
-        image: postgres:14
+        image: postgres:14.21
         environment:
             - POSTGRES_DB=upchieve
             - POSTGRES_USER=admin
