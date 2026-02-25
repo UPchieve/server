@@ -775,7 +775,6 @@ export function routeSockets(io: Server): void {
     socket.on('partner_shared_screen', async ({ sessionId }) => {
       const user = await extractSocketUser(socket)
 
-      console.log('here server event')
       io.to(getSessionRoom(sessionId))
         .except(user.id)
         .emit('partner_shared_screen')
