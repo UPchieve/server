@@ -19,11 +19,35 @@ import logger, { logError } from '../logger'
 import { ReportNoDataFoundError } from '../services/ReportService'
 import { ExistingUserError } from '../services/EligibilityService'
 
+export abstract class CaughtError extends CustomError {
+  abstract readonly httpStatus: number
+  abstract readonly clientMessage: string
+  readonly context: Record<string, unknown>
+  readonly cause?: unknown
+  constructor(
+    message: string,
+    context: Record<string, unknown> = {},
+    error?: unknown
+  ) {
+    super(message)
+    this.context = context
+    this.cause = error
+  }
+}
+
 export function resError(
   res: Response,
-  err: unknown | Error | CustomError,
+  err: unknown | Error | CustomError | CaughtError,
   status?: number
 ): void {
+  if (err instanceof CaughtError) {
+    err.cause
+      ? logger.error({ err: err.cause, ...err.context }, err.message)
+      : logger.warn(err.context, err.message)
+    res.status(status ?? err.httpStatus).json({ err: err.clientMessage })
+    return
+  }
+
   let message = ''
 
   if (err instanceof Error || err instanceof CustomError) {
@@ -58,9 +82,10 @@ export function resError(
     // unknown error
     else status = 500
 
-    if (config.NODE_ENV === 'production' && status === 500)
+    if (config.NODE_ENV === 'production' && status === 500) {
       Sentry.captureException(err)
-    logError(err as Error)
+      logError(err as Error)
+    }
 
     res.status(status).json({
       err: message.length ? message : err.message,
