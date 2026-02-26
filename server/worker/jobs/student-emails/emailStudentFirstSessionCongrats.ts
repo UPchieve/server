@@ -38,7 +38,8 @@ export default async (
       await MailService.sendStudentFirstSessionCongrats(
         student.id,
         email,
-        firstName
+        firstName,
+        emailTemplateId
       )
       await createEmailNotification({
         userId: student.id,
