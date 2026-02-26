@@ -2,6 +2,7 @@ import QueueService from '../../services/QueueService'
 import * as NTHSService from '../../services/NTHSGroupsService'
 import { Jobs } from './index'
 import { Job } from 'bull'
+import { UpdateNTHSChapterStatusJobData } from './updateNTHSChapterStatusForImpactPath'
 
 export type SpawnUpdateNTHSChapterStatusForImpactPathJobData = {
   periodStart: Date
@@ -22,8 +23,8 @@ export default async function (
     const chapter = notSchoolOfficialChapters[i]
     await QueueService.add(Jobs.UpdateNTHSChapterStatusForImpactPath, {
       nthsGroupId: chapter.groupId,
-      startDate: job.data.periodStart,
-      endDate: job.data.periodEnd,
-    })
+      periodStart: job.data.periodStart,
+      periodEnd: job.data.periodEnd,
+    } as UpdateNTHSChapterStatusJobData)
   }
 }
