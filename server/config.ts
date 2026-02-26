@@ -484,6 +484,13 @@ const config = {
 
   // used for retool apps that need to access the admin api
   retoolAdminEmail: process.env.SUBWAY_RETOOL_ADMIN_EMAIL,
+
+  // TOTP
+  // For local development, you can generate your own TOTP_ENCRYPTION_KEY to
+  // place into .env with the following:
+  // `require('crypto').randomBytes(32).toString('hex')`
+  totpEncryptionKey: process.env.TOTP_ENCRYPTION_KEY || 'bogus',
+  totpIssuer: process.env.TOTP_ISSUER || 'upchieve_bogus',
 } as const
 
 export default config

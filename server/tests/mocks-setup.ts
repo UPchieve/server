@@ -176,6 +176,10 @@ jest.mock('../config', () => {
     langfuseSecretKey: 'test-bogus', // pragma: allowlist secret
     langfusePublicKey: 'test-bogus', // pragma: allowlist secret
     langfuseBaseUrl: 'test-bogus', // pragma: allowlist secret
+
+    // TOTP
+    totpEncryptionKey: 'test-encryption-key',
+    totpIssuer: 'upchieve-test',
   }
 })
 
