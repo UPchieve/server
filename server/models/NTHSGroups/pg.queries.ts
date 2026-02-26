@@ -614,6 +614,7 @@ export interface IUpsertSchoolAffiliationStatusResult {
   createdAt: Date;
   nthsGroupId: string;
   nthsSchoolAffiliationStatusId: number;
+  schoolId: string | null;
   status: string | null;
   updatedAt: Date;
 }
@@ -647,5 +648,85 @@ const upsertSchoolAffiliationStatusIR: any = {"usedParamSet":{"nthsGroupId":true
  * ```
  */
 export const upsertSchoolAffiliationStatus = new PreparedQuery<IUpsertSchoolAffiliationStatusParams,IUpsertSchoolAffiliationStatusResult>(upsertSchoolAffiliationStatusIR);
+
+
+/** 'InsertNthsAdvisor' parameters type */
+export interface IInsertNthsAdvisorParams {
+  email: string;
+  firstName: string;
+  lastName: string;
+  nthsGroupId: string;
+  phone: string;
+  phoneExtension?: string | null | void;
+  schoolId: string;
+  title: string;
+}
+
+/** 'InsertNthsAdvisor' return type */
+export interface IInsertNthsAdvisorResult {
+  createdAt: Date;
+  email: string;
+  firstName: string;
+  id: string;
+  lastName: string;
+  nthsGroupId: string;
+  phone: string;
+  phoneExtension: string | null;
+  schoolId: string | null;
+  title: string;
+  updatedAt: Date;
+  verified: boolean;
+}
+
+/** 'InsertNthsAdvisor' query type */
+export interface IInsertNthsAdvisorQuery {
+  params: IInsertNthsAdvisorParams;
+  result: IInsertNthsAdvisorResult;
+}
+
+const insertNthsAdvisorIR: any = {"usedParamSet":{"nthsGroupId":true,"firstName":true,"lastName":true,"email":true,"phone":true,"phoneExtension":true,"title":true,"schoolId":true},"params":[{"name":"nthsGroupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":148,"b":160}]},{"name":"firstName","required":true,"transform":{"type":"scalar"},"locs":[{"a":163,"b":173}]},{"name":"lastName","required":true,"transform":{"type":"scalar"},"locs":[{"a":176,"b":185}]},{"name":"email","required":true,"transform":{"type":"scalar"},"locs":[{"a":188,"b":194}]},{"name":"phone","required":true,"transform":{"type":"scalar"},"locs":[{"a":197,"b":203}]},{"name":"phoneExtension","required":false,"transform":{"type":"scalar"},"locs":[{"a":206,"b":220}]},{"name":"title","required":true,"transform":{"type":"scalar"},"locs":[{"a":223,"b":229}]},{"name":"schoolId","required":true,"transform":{"type":"scalar"},"locs":[{"a":232,"b":241}]}],"statement":"INSERT INTO nths_advisors (id, nths_group_id, first_name, last_name, email, phone, phone_extension, title, school_id)\n    VALUES (generate_ulid (), :nthsGroupId!, :firstName!, :lastName!, :email!, :phone!, :phoneExtension, :title!, :schoolId!)\nRETURNING\n    *"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO nths_advisors (id, nths_group_id, first_name, last_name, email, phone, phone_extension, title, school_id)
+ *     VALUES (generate_ulid (), :nthsGroupId!, :firstName!, :lastName!, :email!, :phone!, :phoneExtension, :title!, :schoolId!)
+ * RETURNING
+ *     *
+ * ```
+ */
+export const insertNthsAdvisor = new PreparedQuery<IInsertNthsAdvisorParams,IInsertNthsAdvisorResult>(insertNthsAdvisorIR);
+
+
+/** 'AddSchoolToSchoolAffiliation' parameters type */
+export interface IAddSchoolToSchoolAffiliationParams {
+  nthsGroupId: string;
+  schoolId: string;
+}
+
+/** 'AddSchoolToSchoolAffiliation' return type */
+export type IAddSchoolToSchoolAffiliationResult = void;
+
+/** 'AddSchoolToSchoolAffiliation' query type */
+export interface IAddSchoolToSchoolAffiliationQuery {
+  params: IAddSchoolToSchoolAffiliationParams;
+  result: IAddSchoolToSchoolAffiliationResult;
+}
+
+const addSchoolToSchoolAffiliationIR: any = {"usedParamSet":{"schoolId":true,"nthsGroupId":true},"params":[{"name":"schoolId","required":true,"transform":{"type":"scalar"},"locs":[{"a":61,"b":70}]},{"name":"nthsGroupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":122,"b":134}]}],"statement":"UPDATE\n    nths_group_school_affiliation\nSET\n    school_id = :schoolId!,\n    updated_at = NOW()\nWHERE\n    nths_group_id = :nthsGroupId!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE
+ *     nths_group_school_affiliation
+ * SET
+ *     school_id = :schoolId!,
+ *     updated_at = NOW()
+ * WHERE
+ *     nths_group_id = :nthsGroupId!
+ * ```
+ */
+export const addSchoolToSchoolAffiliation = new PreparedQuery<IAddSchoolToSchoolAffiliationParams,IAddSchoolToSchoolAffiliationResult>(addSchoolToSchoolAffiliationIR);
 
 

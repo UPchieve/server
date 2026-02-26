@@ -139,4 +139,35 @@ export function routeNTHSGroups(router: Router): void {
         resError(res, err)
       }
     })
+
+  router
+    .route('/nths-groups/:groupId/submit-school-affiliation')
+    .post(isGroupAdmin, async (req: Request, res: Response) => {
+      try {
+        const nthsGroupId = req.params.groupId
+        const {
+          schoolId,
+          firstName,
+          lastName,
+          email,
+          phone,
+          phoneExtension,
+          title,
+        } = req.body
+        const result = await NTHSGroupsService.submitSchoolAffilaiton({
+          nthsGroupId,
+          schoolId,
+          firstName,
+          lastName,
+          email,
+          phone,
+          phoneExtension,
+          title,
+        })
+
+        res.json(result)
+      } catch (err) {
+        resError(res, err)
+      }
+    })
 }

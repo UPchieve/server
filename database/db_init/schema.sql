@@ -977,7 +977,8 @@ CREATE TABLE upchieve.nths_advisors (
     title text NOT NULL,
     verified boolean DEFAULT false NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    school_id uuid
 );
 
 
@@ -1065,7 +1066,8 @@ CREATE TABLE upchieve.nths_group_school_affiliation (
     nths_group_id uuid NOT NULL,
     nths_school_affiliation_status_id integer NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    school_id uuid
 );
 
 
@@ -4718,14 +4720,6 @@ ALTER TABLE ONLY upchieve.tutor_bot_session_messages
 
 
 --
--- Name: nths_group_actions unique_action_per_group; Type: CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.nths_group_actions
-    ADD CONSTRAINT unique_action_per_group UNIQUE (nths_group_id, nths_action_id);
-
-
---
 -- Name: cities unique_city_name_state; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -5706,6 +5700,14 @@ ALTER TABLE ONLY upchieve.nths_advisors
 
 
 --
+-- Name: nths_advisors nths_advisors_school_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_advisors
+    ADD CONSTRAINT nths_advisors_school_id_fkey FOREIGN KEY (school_id) REFERENCES upchieve.schools(id);
+
+
+--
 -- Name: nths_group_actions nths_group_actions_nths_action_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -5775,6 +5777,14 @@ ALTER TABLE ONLY upchieve.nths_group_school_affiliation
 
 ALTER TABLE ONLY upchieve.nths_group_school_affiliation
     ADD CONSTRAINT nths_group_school_affiliation_nths_school_affiliation_stat_fkey FOREIGN KEY (nths_school_affiliation_status_id) REFERENCES upchieve.nths_school_affiliation_statuses(id);
+
+
+--
+-- Name: nths_group_school_affiliation nths_group_school_affiliation_school_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_group_school_affiliation
+    ADD CONSTRAINT nths_group_school_affiliation_school_id_fkey FOREIGN KEY (school_id) REFERENCES upchieve.schools(id);
 
 
 --
@@ -7177,4 +7187,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260203194147'),
     ('20260203194734'),
     ('20260203200218'),
-    ('20260204215802');
+    ('20260204215802'),
+    ('20260213143219');
