@@ -151,6 +151,7 @@ async function generateSessionSummary(
       trace,
       name: 'generateSessionSummary',
       model: modelId,
+      input: userPrompt,
       metadata,
     }
   )
