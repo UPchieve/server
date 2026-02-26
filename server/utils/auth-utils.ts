@@ -440,9 +440,16 @@ function isAuthenticated(req: Request, res: Response, next: NextFunction) {
   return res.status(401).json({ err: 'Not authenticated' })
 }
 
-function isAdmin(req: Request, res: Response, next: NextFunction) {
+function isAdminOnly(req: Request, res: Response, next: NextFunction) {
   if (req.user && req.user.isAdmin) {
     return next()
+  }
+  return res.status(403).json({ err: 'Unauthorized' })
+}
+
+function isAdmin(req: Request, res: Response, next: NextFunction) {
+  if (req.user && req.user.isAdmin) {
+    return hasSecondFactor(req, res, next)
   }
   return res.status(403).json({ err: 'Unauthorized' })
 }
@@ -501,6 +508,7 @@ export const authPassport = {
   setupPassport,
   isAuthenticated,
   isAdmin,
+  isAdminOnly,
   isTotpSessionValid,
   isAuthenticatedRedirect,
   isAdminRedirect,
