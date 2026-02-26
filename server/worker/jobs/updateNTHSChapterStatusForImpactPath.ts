@@ -13,8 +13,8 @@ const logPrefix = `NTHS Impact Path Chapter Status: `
 
 export type UpdateNTHSChapterStatusJobData = {
   nthsGroupId: Ulid
-  startDate: Date
-  endDate: Date
+  periodStart: Date
+  periodEnd: Date
 }
 
 export default async function (job: Job<UpdateNTHSChapterStatusJobData>) {
@@ -44,13 +44,13 @@ export default async function (job: Job<UpdateNTHSChapterStatusJobData>) {
     const startDate = new Date(
       Math.max(
         user.joinedAt.getMilliseconds(),
-        job.data.startDate.getMilliseconds()
+        job.data.periodStart.getMilliseconds()
       )
     )
     const endDate = new Date(
       Math.min(
-        (user.deactivatedAt ?? job.data.endDate).getMilliseconds(),
-        job.data.endDate.getMilliseconds()
+        (user.deactivatedAt ?? job.data.periodEnd).getMilliseconds(),
+        job.data.periodEnd.getMilliseconds()
       )
     )
     const usersSessions = await SessionRepo.getUserSessionsByUserId(

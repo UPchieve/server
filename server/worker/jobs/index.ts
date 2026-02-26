@@ -69,6 +69,8 @@ import { clearBullJobByStatus } from './clearBullJobsByStatus'
 import updateCachedVolunteersForTextNotifications from './updateCachedVolunteersForTextNotifications'
 import backfillSessionEndedTasks from '../../scripts/backfill-sessionEndedTasks'
 import spawnDeidentifyUsers from './spawn-deidentify-users'
+import updateNthsChapterStatusForImpactPath from './updateNTHSChapterStatusForImpactPath'
+import spawnUpdateNthsChapterStatusForImpactPath from './spawnUpdateNTHSChapterStatusForImpactPath'
 
 export enum Jobs {
   AddScheduledJobs = 'AddScheduledJobs',
@@ -82,7 +84,6 @@ export enum Jobs {
   BackfillStudentUsersRoles = 'BackfillStudentUsersRoles',
   ClearBullJobsByStatus = 'ClearBullJobsByStatus',
   DeidentifyUser = 'DeidentifyUser',
-  DeleteDuplicateFeedbacks = 'DeleteDuplicateFeedbacks',
   DeleteDuplicateStudentFavoriteVolunteers = 'DeleteDuplicateStudentFavoriteVolunteers',
   DeleteDuplicateUserSurveys = 'DeleteDuplicateUserSurveys',
   DeleteSelfFavoritedVolunteers = 'DeleteSelfFavoritedVolunteers',
@@ -131,7 +132,6 @@ export enum Jobs {
   GenerateSessionSummary = 'GenerateSessionSummary',
   MaybeSendStudentFeedbackToVolunteer = 'MaybeSendStudentFeedbackToVolunteer',
   MigrateBannedAndTestUsersToBanType = 'MigrateBannedAndTestUsersToBanType',
-  MigrateHistoricalPartnerData = 'MigrateHistoricalPartnerData',
   MigrateProgressReportPromptIds = 'MigrateProgressReportPromptIds',
   ModerateSessionTranscript = 'ModerateSessionTranscript',
   NotifyTutors = 'NotifyTutors',
@@ -155,6 +155,8 @@ export enum Jobs {
   UpsertPostalCodes = 'UpsertPostalCodes',
   UpsertSchools = 'UpsertSchools',
   UpdateCachedVolunteersForTextNotifications = 'UpdateCachedVolunteersForTextNotifications',
+  UpdateNTHSChapterStatusForImpactPath = 'UpdateNTHSChapterStatusForImpactPath',
+  SpawnUpdateNTHSChapterStatusForImpactPath = 'SpawnUpdateNTHSChapterStatusForImpactPath',
 }
 
 // register new job processors here
@@ -476,6 +478,14 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.UpdateCachedVolunteersForTextNotifications,
     processor: updateCachedVolunteersForTextNotifications,
+  },
+  {
+    name: Jobs.UpdateNTHSChapterStatusForImpactPath,
+    processor: updateNthsChapterStatusForImpactPath,
+  },
+  {
+    name: Jobs.SpawnUpdateNTHSChapterStatusForImpactPath,
+    processor: spawnUpdateNthsChapterStatusForImpactPath,
   },
 ]
 

@@ -15,12 +15,13 @@ import {
   NTHSChapterStatus,
   NTHSChapterStatusName,
   NTHSGroupAction,
+  NTHSGroupChapterStatusInfo,
   NTHSGroupMember,
   NTHSGroupMemberRole,
   NTHSGroupMemberWithRole,
   NTHSGroupRoleName,
   NTHSGroupWithMemberInfo,
-  NTHSSchoolAffiliationStatus,
+  NTHSSchoolAffiliationStatusName,
 } from '../models/NTHSGroups'
 import generateAlphanumericOfLength from '../utils/generate-alphanumeric'
 import {
@@ -198,7 +199,7 @@ export async function getGroupMembers(
 
 type CreateActionResponse = {
   action: NTHSGroupAction
-  schoolAffiliationStatus?: NTHSSchoolAffiliationStatus
+  schoolAffiliationStatus?: NTHSSchoolAffiliationStatusName
 }
 export async function createAction(
   nthsGroupId: Ulid,
@@ -334,4 +335,10 @@ export async function insertNthsChapterStatus(
   status: NTHSChapterStatusName
 ): Promise<NTHSChapterStatus> {
   return NTHSGroupsRepo.insertChapterStatus(groupId, status)
+}
+
+export async function getAllNTHSGroupsChapterStatus(): Promise<
+  NTHSGroupChapterStatusInfo[]
+> {
+  return NTHSGroupsRepo.getAllNTHSGroupsChapterStatus()
 }

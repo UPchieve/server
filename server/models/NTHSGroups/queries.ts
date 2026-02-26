@@ -5,7 +5,12 @@ import {
   RepoUpsertError,
   RepoUpdateError,
 } from '../Errors'
-import { makeRequired, makeSomeOptional, Ulid } from '../pgUtils'
+import {
+  makeRequired,
+  makeSomeOptional,
+  makeSomeRequired,
+  Ulid,
+} from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import type {
   NTHSAction,
@@ -15,11 +20,11 @@ import type {
   NTHSGroupMemberRole,
   NTHSGroupMemberWithRole,
   NTHSGroupRoleName,
-  NTHSSchoolAffiliationStatus,
+  NTHSSchoolAffiliationStatusName,
   NTHSGroupWithMemberInfo,
-  NTHSGroupMember,
   NTHSChapterStatus,
   NTHSChapterStatusName,
+  NTHSGroupChapterStatusInfo,
 } from './types'
 import { camelCaseKeys } from '../../tests/db-utils'
 import logger from '../../logger'
@@ -41,7 +46,7 @@ export async function getGroupsByUser(
         ...camelCased,
         roleName: camelCased.roleName as NTHSGroupRoleName,
         schoolAffiliationStatus:
-          (camelCased.schoolAffiliationStatus as NTHSSchoolAffiliationStatus) ??
+          (camelCased.schoolAffiliationStatus as NTHSSchoolAffiliationStatusName) ??
           null,
         /// TODO: Simplify the return to just the below properties once the type of NTHSGroupWithUser is cleaned up
         groupInfo: {
@@ -336,10 +341,10 @@ export async function getNthsActions(
 }
 
 export async function updateSchoolAffiliationStatus(
-  status: NTHSSchoolAffiliationStatus,
+  status: NTHSSchoolAffiliationStatusName,
   nthsGroupId: Ulid,
   tc: TransactionClient = getClient()
-): Promise<NTHSSchoolAffiliationStatus> {
+): Promise<NTHSSchoolAffiliationStatusName> {
   try {
     const result = await pgQueries.upsertSchoolAffiliationStatus.run(
       { status, nthsGroupId },
@@ -350,7 +355,7 @@ export async function updateSchoolAffiliationStatus(
         `Failed to upsert school affiliation status for group ${nthsGroupId}`
       )
     }
-    return result[0].status! as NTHSSchoolAffiliationStatus
+    return result[0].status! as NTHSSchoolAffiliationStatusName
   } catch (err) {
     throw new RepoUpsertError(err)
   }
@@ -443,5 +448,27 @@ export async function insertChapterStatus(
     })
   } catch (err) {
     throw new RepoCreateError(err)
+  }
+}
+
+export async function getAllNTHSGroupsChapterStatus(
+  tc: TransactionClient = getRoClient()
+): Promise<NTHSGroupChapterStatusInfo[]> {
+  try {
+    const results = await pgQueries.getAllNthsGroupsWithStatus.run(
+      undefined,
+      tc
+    )
+    return results.map((row) => {
+      const camelCased = makeSomeRequired(row, ['groupId'])
+      return {
+        ...camelCased,
+        statusName: camelCased?.statusName as NTHSChapterStatusName,
+        schoolAffiliationStatusName:
+          camelCased?.schoolAffiliationStatusName as NTHSSchoolAffiliationStatusName,
+      }
+    })
+  } catch (err) {
+    throw new RepoReadError(err)
   }
 }
