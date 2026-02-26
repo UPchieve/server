@@ -19,9 +19,7 @@ import { getPublicUPFByUserId } from '../models/UserProductFlags'
 import { buildAppLink } from '../utils/link-builders'
 import { isDevEnvironment, isE2eEnvironment } from '../utils/environments'
 import logger from '../logger'
-import { FEATURE_FLAGS } from '../constants'
 import { isStudentFirstSessionInterviewEmailEnabled } from './FeatureFlagService'
-import { Uuid } from 'id128'
 
 sgMail.setApiKey(config.sendgrid.apiKey)
 

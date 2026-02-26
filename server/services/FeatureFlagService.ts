@@ -166,5 +166,8 @@ export async function isStudentSessionSummaryEnabled(userId: Ulid) {
 }
 
 export async function isStudentFirstSessionInterviewEmailEnabled(userId: Ulid) {
-  return isFeatureEnabled(FEATURE_FLAGS.FIRST_SESSION_EMAIL, userId)
+  return isFeatureEnabled(
+    FEATURE_FLAGS.FIRST_SESSION_EMAIL_FOR_INTERVIEW,
+    userId
+  )
 }
