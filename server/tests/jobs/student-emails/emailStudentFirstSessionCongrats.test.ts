@@ -86,7 +86,8 @@ describe(`${Jobs.EmailStudentFirstSessionCongrats}`, () => {
     expect(mockedSendStudentFirstSessionCongrats).toHaveBeenCalledWith(
       student.id,
       student.email,
-      student.firstName
+      student.firstName,
+      config.sendgrid.studentFirstSessionCongratsTemplate
     )
     expect(mockedCreateEmailNotification).toHaveBeenCalledWith({
       userId: student.id,
