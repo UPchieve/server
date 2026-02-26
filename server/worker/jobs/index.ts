@@ -128,6 +128,7 @@ export enum Jobs {
   EmailWeeklyHourSummary = 'EmailWeeklyHourSummary',
   EndStaleSessions = 'EndStaleSessions',
   EndUnmatchedSession = 'EndUnmatchedSession',
+  ExecuteModerationAction = 'ExecuteModerationAction',
   GenerateAndStoreWaitTimeHeatMap = 'GenerateAndStoreWaitTimeHeatMap',
   GenerateProgressReport = 'GenerateProgressReport',
   GenerateSessionSummary = 'GenerateSessionSummary',
@@ -371,6 +372,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.EndUnmatchedSession,
     processor: endUnmatchedSession,
+  },
+  {
+    name: Jobs.ExecuteModerationAction,
+    processor: executeModerationAction,
   },
   {
     name: Jobs.GenerateAndStoreWaitTimeHeatMap,

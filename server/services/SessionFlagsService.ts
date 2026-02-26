@@ -395,6 +395,8 @@ export async function processMetrics(
   const flags = await callbacks.computeSessionFlags(session)
   await updateSessionFlagsById(session.id, flags)
 
+  console.log('****updating session flags', flags)
+
   const studentUserSessionMetrics = await getUserSessionMetricsByUserId(
     session.studentId,
     'student'

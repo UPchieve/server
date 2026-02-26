@@ -12,3 +12,10 @@ FROM
 WHERE
     mrf.flag_id = :flagId!;
 
+/* @name shadowBanStudent */
+UPDATE
+    users
+SET
+    ban_type = 'shadow'
+WHERE
+    id = :studentId!;

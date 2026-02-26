@@ -1281,6 +1281,7 @@ export async function markSessionForReview(
   sessionFlags: UserSessionFlags[],
   tc: TransactionClient = getClient()
 ): Promise<void> {
+  console.log('*****marking session for review', sessionFlags)
   await runInTransaction(async (tc: TransactionClient) => {
     await updateSessionFlagsById(sessionId, sessionFlags, tc)
     await updateSessionReviewReasonsById(sessionId, sessionFlags, false, tc)
