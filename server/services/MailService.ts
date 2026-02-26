@@ -19,6 +19,9 @@ import { getPublicUPFByUserId } from '../models/UserProductFlags'
 import { buildAppLink } from '../utils/link-builders'
 import { isDevEnvironment, isE2eEnvironment } from '../utils/environments'
 import logger from '../logger'
+import { FEATURE_FLAGS } from '../constants'
+import { isStudentFirstSessionInterviewEmailEnabled } from './FeatureFlagService'
+import { Uuid } from 'id128'
 
 sgMail.setApiKey(config.sendgrid.apiKey)
 
@@ -374,6 +377,7 @@ export async function sendStudentOnboardingSurvey(
 }
 
 export async function sendStudentFirstSessionCongrats(
+  studentId: string,
   email: string,
   firstName: string
 ): Promise<void> {
@@ -388,7 +392,9 @@ export async function sendStudentFirstSessionCongrats(
     email,
     sender,
     `${config.mail.people.studentOutreachManager.firstName} ${config.mail.people.studentOutreachManager.lastName}`,
-    config.sendgrid.studentFirstSessionCongratsTemplate,
+    (await isStudentFirstSessionInterviewEmailEnabled(studentId))
+      ? config.sendgrid.studentFirstSessionInterviewTemplate
+      : config.sendgrid.studentFirstSessionCongratsTemplate,
     { firstName },
     overrides
   )

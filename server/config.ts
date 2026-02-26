@@ -82,6 +82,7 @@ const config: Static<typeof Config> = {
     studentOnboardingMissionTemplate: 'd-3167ea240a27471597d849cbae4b8437',
     studentOnboardingSurveyTemplate: 'd-c5671abc76884180b6912729190b7078',
     studentFirstSessionCongratsTemplate: 'd-8c54307ace4a498f800185f0e540b8ea',
+    studentFirstSessionInterviewTemplate: 'd-c1a5daddc1a842038ceed4c12a7d583c',
     studentReportedRudeTemplate: 'd-aa16bc7d750144f8b42d3db0bec051ca',
     studentReportedSafetyTemplate: 'd-c7caf6b302b94a08862652dcde06535f',
     studentAbsentWarningTemplate: 'd-f27a47f3875a4dfd9f07446219ecacfc',
