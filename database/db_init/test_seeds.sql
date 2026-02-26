@@ -6042,6 +6042,8 @@ COPY upchieve.moderation_infractions (id, user_id, session_id, reason, active, c
 --
 
 COPY upchieve.moderation_penalty_config (id, min_weight, max_weight, moderation_type) FROM stdin;
+1	0	10	contextual
+2	0	10	realtime_image
 \.
 
 
@@ -6112,28 +6114,28 @@ contextual	2	0.75	0
 contextual	3	0.75	0
 contextual	4	0.75	0
 contextual	5	0.75	0
-realtime_image	6	0.75	0
-realtime_image	7	0.75	0
-realtime_image	8	0.75	0
-realtime_image	9	0.75	0
-realtime_image	10	0.75	0
-realtime_image	17	0.85	0
-realtime_image	18	0.85	0
-realtime_image	19	0.85	0
-realtime_image	20	0.85	0
-realtime_image	16	0.75	0
-realtime_image	23	0.85	0
-realtime_image	24	0.85	0
-realtime_image	25	0.85	0
-realtime_image	26	0.85	0
-realtime_image	2	0.85	0
-realtime_image	11	0.75	0
-realtime_image	12	0.75	0
-realtime_image	13	0.75	0
-realtime_image	14	0.75	0
-realtime_image	15	0.75	0
-realtime_image	21	0.85	0
-realtime_image	22	0.85	0
+realtime_image	6	0.75	10
+realtime_image	7	0.75	10
+realtime_image	8	0.75	10
+realtime_image	9	0.75	10
+realtime_image	10	0.75	10
+realtime_image	17	0.85	10
+realtime_image	18	0.85	10
+realtime_image	19	0.85	10
+realtime_image	20	0.85	10
+realtime_image	16	0.75	10
+realtime_image	23	0.85	4
+realtime_image	24	0.85	4
+realtime_image	25	0.85	4
+realtime_image	26	0.85	4
+realtime_image	2	0.85	1
+realtime_image	11	0.75	1
+realtime_image	12	0.75	1
+realtime_image	13	0.75	1
+realtime_image	14	0.75	1
+realtime_image	15	0.75	1
+realtime_image	21	0.85	1
+realtime_image	22	0.85	1
 \.
 
 
@@ -8923,7 +8925,7 @@ SELECT pg_catalog.setval('upchieve.moderation_categories_id_seq', 26, true);
 -- Name: moderation_penalty_config_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.moderation_penalty_config_id_seq', 1, false);
+SELECT pg_catalog.setval('upchieve.moderation_penalty_config_id_seq', 3, true);
 
 
 --
