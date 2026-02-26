@@ -1,11 +1,13 @@
-import { Express, Router } from 'express'
+import { Router } from 'express'
 import { extractUser } from '../extract-user'
 import * as TeacherService from '../../services/TeacherService'
 import * as AssignmentsService from '../../services/AssignmentsService'
 import { resError } from '../res-error'
-import { asNumber, asString, asUlid } from '../../utils/type-utils'
+import { asNumber, asString } from '../../utils/type-utils'
 
-export function routeTeachers(app: Express, router: Router): void {
+export function routeTeachers(apiRouter: Router): void {
+  const router = Router()
+
   /* Classes */
   router.route('/class').post(async function (req, res) {
     try {
@@ -161,5 +163,5 @@ export function routeTeachers(app: Express, router: Router): void {
     }
   })
 
-  app.use('/api/teachers', router)
+  apiRouter.use('/teachers', router)
 }

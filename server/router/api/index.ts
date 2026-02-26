@@ -1,5 +1,4 @@
-import { Express, RequestHandler, Router } from 'express'
-import { PGStore } from 'connect-pg-simple'
+import { Express, Router } from 'express'
 import expressWs from 'express-ws'
 import { Server } from 'socket.io'
 import { authPassport } from '../../utils/auth-utils'
@@ -38,10 +37,10 @@ export function routes(app: Express, io: Server): void {
   const router: expressWs.Router = Router()
 
   routeVolunteers(router)
-  routeTeachers(app, router)
+  routeTeachers(router)
   routeUser(router)
   routeVerify(router)
-  routeSession(router as Router)
+  routeSession(router)
   routeVoiceMessages(router)
   routeCalendar(router)
   routeTraining(router)
@@ -55,7 +54,7 @@ export function routes(app: Express, io: Server): void {
   routeStudents(router)
   routeSubjects(router)
   routeProgressReports(router)
-  routeAdmin(app, router)
+  routeAdmin(router)
   routeTutorBot(router)
   routeAssignments(router)
   routeRewards(router)
