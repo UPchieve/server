@@ -727,8 +727,8 @@ CREATE TABLE upchieve.legacy_availability_histories (
 
 CREATE TABLE upchieve.moderation_actions (
     id integer NOT NULL,
-    action_name character varying(30),
-    description character varying
+    action_name text,
+    description text
 );
 
 
@@ -3766,6 +3766,14 @@ ALTER TABLE ONLY upchieve.ip_addresses
 
 ALTER TABLE ONLY upchieve.legacy_availability_histories
     ADD CONSTRAINT legacy_availability_histories_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: moderation_actions moderation_actions_action_name_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.moderation_actions
+    ADD CONSTRAINT moderation_actions_action_name_key UNIQUE (action_name);
 
 
 --
@@ -7286,4 +7294,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260203200218'),
     ('20260204215802'),
     ('20260213143219'),
-    ('20260219143230');
+    ('20260219143230'),
+    ('20260219151315');
