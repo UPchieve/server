@@ -1,7 +1,4 @@
 // Server configuration
-
-import { Static } from 'runtypes'
-import { Config } from './config-type'
 import { stringToBoolean } from './utils/string-to-boolean'
 
 let redisConnectionString: string
@@ -18,7 +15,7 @@ const bannedServiceProviderList =
   process.env.SUBWAY_BANNED_SERVICE_PROVIDERS || 'Example'
 const bannedServiceProviders = bannedServiceProviderList.split(',')
 
-const config: Static<typeof Config> = {
+const config = {
   NODE_ENV: process.env.NODE_ENV || 'dev',
   SSL_CERT_PATH: '',
   // set host to your public IP address to test Twilio voice calling
@@ -477,6 +474,6 @@ const config: Static<typeof Config> = {
   // Zwibbler
   zwibblerNodeUrl: process.env.ZWIBBLER_NODE_URL || 'bogus',
   slackAlertWebHookUrl: process.env.SUBWAY_SLACK_ALERT_WEBHOOK_URL || 'bogus',
-}
-module.exports = config
+} as const
+
 export default config
