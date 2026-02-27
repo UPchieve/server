@@ -722,6 +722,37 @@ CREATE TABLE upchieve.legacy_availability_histories (
 
 
 --
+-- Name: moderation_actions; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.moderation_actions (
+    id integer NOT NULL,
+    action_name text,
+    description text
+);
+
+
+--
+-- Name: moderation_actions_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+CREATE SEQUENCE upchieve.moderation_actions_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: moderation_actions_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
+--
+
+ALTER SEQUENCE upchieve.moderation_actions_id_seq OWNED BY upchieve.moderation_actions.id;
+
+
+--
 -- Name: moderation_categories; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -3270,6 +3301,13 @@ ALTER TABLE ONLY upchieve.ip_addresses ALTER COLUMN id SET DEFAULT nextval('upch
 
 
 --
+-- Name: moderation_actions id; Type: DEFAULT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.moderation_actions ALTER COLUMN id SET DEFAULT nextval('upchieve.moderation_actions_id_seq'::regclass);
+
+
+--
 -- Name: moderation_categories id; Type: DEFAULT; Schema: upchieve; Owner: -
 --
 
@@ -3728,6 +3766,22 @@ ALTER TABLE ONLY upchieve.ip_addresses
 
 ALTER TABLE ONLY upchieve.legacy_availability_histories
     ADD CONSTRAINT legacy_availability_histories_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: moderation_actions moderation_actions_action_name_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.moderation_actions
+    ADD CONSTRAINT moderation_actions_action_name_key UNIQUE (action_name);
+
+
+--
+-- Name: moderation_actions moderation_actions_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.moderation_actions
+    ADD CONSTRAINT moderation_actions_pkey PRIMARY KEY (id);
 
 
 --
@@ -7240,4 +7294,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260203200218'),
     ('20260204215802'),
     ('20260213143219'),
-    ('20260219143230');
+    ('20260219143230'),
+    ('20260219151315');
