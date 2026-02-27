@@ -4,6 +4,7 @@ import {
   PHOTO_ID_STATUS,
   STATUS,
   TRAINING_QUIZZES,
+  USER_BAN_TYPES,
 } from '../constants'
 import { Ulid, Uuid } from '../models/pgUtils'
 import { createAccountAction } from '../models/UserAction'
@@ -20,6 +21,7 @@ import {
   Sponsorship,
   TextableVolunteer,
   VolunteerForOnboarding,
+  VolunteerWithReadyToCoachInfo,
 } from '../models/Volunteer'
 import * as cache from '../cache'
 import { getSubjectsWithTopic } from './SubjectsService'
@@ -459,4 +461,17 @@ export async function hasCompletedVolunteerTraining(
 
 export async function doesVolunteerWithEmailExist(email: string) {
   return VolunteerRepo.doesVolunteerWithEmailExist(email)
+}
+
+export async function getVolunteersReadyToCoachStatus(
+  volunteerIds: Ulid[]
+): Promise<VolunteerWithReadyToCoachInfo[]> {
+  const volunteers =
+    await VolunteerRepo.getVolunteersReadyToCoachStatus(volunteerIds)
+  return volunteers.map((vol) => {
+    return {
+      ...vol,
+      isReadyToCoach: vol.isApproved && vol.isOnboarded,
+    }
+  })
 }

@@ -8,15 +8,20 @@ import {
   TransactionClient,
 } from '../db'
 import {
+  GetGroupMembersOptions,
   NTHS_ACTIONS_TO_SCHOOL_AFFILIATION_STATUS_MAPPING,
   NTHSAction,
   NTHSActionName,
+  NTHSChapterStatus,
+  NTHSChapterStatusName,
   NTHSGroupAction,
+  NTHSGroupChapterStatusInfo,
+  NTHSGroupMember,
   NTHSGroupMemberRole,
   NTHSGroupMemberWithRole,
   NTHSGroupRoleName,
   NTHSGroupWithMemberInfo,
-  NTHSSchoolAffiliationStatus,
+  NTHSSchoolAffiliationStatusName,
 } from '../models/NTHSGroups'
 import generateAlphanumericOfLength from '../utils/generate-alphanumeric'
 import {
@@ -185,14 +190,16 @@ export async function getGroupMember(
 }
 
 export async function getGroupMembers(
-  nthsGroupId: Ulid
+  nthsGroupId: Ulid,
+  tc?: TransactionClient,
+  options?: GetGroupMembersOptions
 ): Promise<NTHSGroupMemberWithRole[]> {
-  return await NTHSGroupsRepo.getGroupMembers(nthsGroupId)
+  return await NTHSGroupsRepo.getGroupMembers(nthsGroupId, tc, options)
 }
 
 type CreateActionResponse = {
   action: NTHSGroupAction
-  schoolAffiliationStatus?: NTHSSchoolAffiliationStatus
+  schoolAffiliationStatus?: NTHSSchoolAffiliationStatusName
 }
 export async function createAction(
   nthsGroupId: Ulid,
@@ -309,4 +316,31 @@ export async function submitSchoolAffilaiton({
 
     return { groupId: nthsGroupId, NTHSAdvisor, action: created }
   })
+}
+
+export async function getAlltimeMembersByGroupId(
+  nthsGroupId: Ulid
+): Promise<NTHSGroupMember[]> {
+  return await NTHSGroupsRepo.getGroupMembers(nthsGroupId, undefined, {
+    includeDeactivated: true,
+  })
+}
+
+export async function getLatestNthsChapterStatus(
+  groupId: Ulid
+): Promise<NTHSChapterStatus | undefined> {
+  return NTHSGroupsRepo.getChapterStatus(groupId)
+}
+
+export async function insertNthsChapterStatus(
+  groupId: Ulid,
+  status: NTHSChapterStatusName
+): Promise<NTHSChapterStatus> {
+  return NTHSGroupsRepo.insertChapterStatus(groupId, status)
+}
+
+export async function getAllNTHSGroupsChapterStatus(): Promise<
+  NTHSGroupChapterStatusInfo[]
+> {
+  return NTHSGroupsRepo.getAllNTHSGroupsChapterStatus()
 }

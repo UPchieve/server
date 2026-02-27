@@ -1355,12 +1355,12 @@ export type UserSessionsWithMessages = UserSessions & {
   messages: MessageForFrontend[]
 }
 
-export async function getUserSessionsByUserId(
+export async function getUserSessionsByUserId( // @TODO Make a service function and updated usages to call the service.
   userId: Ulid,
   filter: UserSessionsFilter = {
     start: undefined,
     end: undefined,
-    subject: '',
+    subject: undefined,
     topic: undefined,
     sessionId: undefined,
   }

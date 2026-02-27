@@ -5,7 +5,12 @@ import {
   RepoUpsertError,
   RepoUpdateError,
 } from '../Errors'
-import { makeRequired, makeSomeOptional, Ulid } from '../pgUtils'
+import {
+  makeRequired,
+  makeSomeOptional,
+  makeSomeRequired,
+  Ulid,
+} from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import type {
   NTHSAction,
@@ -15,8 +20,11 @@ import type {
   NTHSGroupMemberRole,
   NTHSGroupMemberWithRole,
   NTHSGroupRoleName,
-  NTHSSchoolAffiliationStatus,
+  NTHSSchoolAffiliationStatusName,
   NTHSGroupWithMemberInfo,
+  NTHSChapterStatus,
+  NTHSChapterStatusName,
+  NTHSGroupChapterStatusInfo,
 } from './types'
 import { camelCaseKeys } from '../../tests/db-utils'
 import logger from '../../logger'
@@ -38,7 +46,7 @@ export async function getGroupsByUser(
         ...camelCased,
         roleName: camelCased.roleName as NTHSGroupRoleName,
         schoolAffiliationStatus:
-          (camelCased.schoolAffiliationStatus as NTHSSchoolAffiliationStatus) ??
+          (camelCased.schoolAffiliationStatus as NTHSSchoolAffiliationStatusName) ??
           null,
         /// TODO: Simplify the return to just the below properties once the type of NTHSGroupWithUser is cleaned up
         groupInfo: {
@@ -178,14 +186,21 @@ export async function groupsCount(tc: TransactionClient = getClient()) {
   }
 }
 
+export type GetGroupMembersOptions = {
+  includeDeactivated: boolean
+}
 export async function getGroupMembers(
   groupId: Ulid,
-  tc: TransactionClient = getRoClient()
+  tc: TransactionClient = getRoClient(),
+  options: GetGroupMembersOptions = {
+    includeDeactivated: false,
+  }
 ): Promise<NTHSGroupMemberWithRole[]> {
   try {
     const results = await pgQueries.getGroupMembers.run(
       {
         groupId,
+        includeDeactivated: options.includeDeactivated,
       },
       tc
     )
@@ -326,10 +341,10 @@ export async function getNthsActions(
 }
 
 export async function updateSchoolAffiliationStatus(
-  status: NTHSSchoolAffiliationStatus,
+  status: NTHSSchoolAffiliationStatusName,
   nthsGroupId: Ulid,
   tc: TransactionClient = getClient()
-): Promise<NTHSSchoolAffiliationStatus> {
+): Promise<NTHSSchoolAffiliationStatusName> {
   try {
     const result = await pgQueries.upsertSchoolAffiliationStatus.run(
       { status, nthsGroupId },
@@ -340,7 +355,7 @@ export async function updateSchoolAffiliationStatus(
         `Failed to upsert school affiliation status for group ${nthsGroupId}`
       )
     }
-    return result[0].status! as NTHSSchoolAffiliationStatus
+    return result[0].status! as NTHSSchoolAffiliationStatusName
   } catch (err) {
     throw new RepoUpsertError(err)
   }
@@ -384,5 +399,78 @@ export async function addSchoolToSchoolAffiliation(
     await pgQueries.addSchoolToSchoolAffiliation.run(args, tc)
   } catch (err) {
     throw new RepoUpdateError(err)
+  }
+}
+
+export async function getChapterStatus(
+  nthsGroupId: Ulid,
+  tc: TransactionClient = getRoClient()
+): Promise<NTHSChapterStatus | undefined> {
+  try {
+    const results = await pgQueries.getLatestNthsChapterStatus.run(
+      {
+        groupId: nthsGroupId,
+      },
+      tc
+    )
+    if (results.length) {
+      const row = makeRequired(results[0])
+      return makeRequired({
+        ...row,
+        statusName: row.statusName as NTHSChapterStatusName,
+      })
+    }
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function insertChapterStatus(
+  nthsGroupId: Ulid,
+  status: NTHSChapterStatusName,
+  tc: TransactionClient = getClient()
+): Promise<NTHSChapterStatus> {
+  try {
+    const results = await pgQueries.insertStatusForNthsChapter.run(
+      {
+        groupId: nthsGroupId,
+        statusName: status,
+      },
+      tc
+    )
+    if (!results.length) {
+      throw new Error(
+        'Did not get back insert results when inserting NTHS chapter status'
+      )
+    }
+    const row = makeRequired(results[0])
+    return makeRequired({
+      ...row,
+      statusName: row.statusName as NTHSChapterStatusName,
+    })
+  } catch (err) {
+    throw new RepoCreateError(err)
+  }
+}
+
+export async function getAllNTHSGroupsChapterStatus(
+  tc: TransactionClient = getRoClient()
+): Promise<NTHSGroupChapterStatusInfo[]> {
+  try {
+    const results = await pgQueries.getAllNthsGroupsWithStatus.run(
+      undefined,
+      tc
+    )
+    return results.map((row) => {
+      const camelCased = makeSomeRequired(row, ['groupId'])
+      return {
+        ...camelCased,
+        statusName: camelCased?.statusName as NTHSChapterStatusName,
+        schoolAffiliationStatusName:
+          camelCased?.schoolAffiliationStatusName as NTHSSchoolAffiliationStatusName,
+      }
+    })
+  } catch (err) {
+    throw new RepoReadError(err)
   }
 }

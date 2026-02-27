@@ -112,7 +112,8 @@ FROM
     JOIN users ON users.id = ngm.user_id
 WHERE
     ngm.nths_group_id = :groupId!
-    AND ngm.deactivated_at IS NULL;
+    AND (:includeDeactivated IS TRUE
+        OR ngm.deactivated_at IS NULL);
 
 
 /* @name groupsCount */
@@ -228,4 +229,60 @@ SET
     updated_at = NOW()
 WHERE
     nths_group_id = :nthsGroupId!;
+
+
+/* @name getLatestNthsChapterStatus */
+WITH ranked_by_timestamp AS (
+    SELECT
+        nths_group_id AS group_id,
+        nths_chapter_status_id,
+        created_at,
+        ROW_NUMBER() OVER (ORDER BY created_at DESC) AS rn
+    FROM
+        nths_chapters_statuses
+    WHERE
+        nths_group_id = :groupId!
+    LIMIT 1
+)
+SELECT
+    cs.group_id,
+    cs.nths_chapter_status_id AS status_id,
+    cs.created_at,
+    statuses.name AS status_name
+FROM
+    ranked_by_timestamp cs
+    JOIN nths_chapter_statuses statuses ON statuses.id = cs.nths_chapter_status_id
+WHERE
+    cs.rn = 1;
+
+
+/* @name insertStatusForNthsChapter */
+INSERT INTO nths_chapters_statuses (nths_group_id, nths_chapter_status_id)
+SELECT
+    :groupId!,
+    statuses.id
+FROM
+    nths_chapter_statuses statuses
+WHERE
+    statuses.name = :statusName!
+RETURNING
+    nths_group_id AS group_id,
+    nths_chapter_status_id AS status_id,
+    created_at,
+    :statusName! AS status_name;
+
+
+/* @name getAllNthsGroupsWithStatus */
+SELECT
+    groups.id AS group_id,
+    chapter_status.nths_chapter_status_id AS status_id,
+    chapter_statuses.name AS status_name,
+    school_aff.nths_school_affiliation_status_id AS school_affiliation_status_id,
+    school_aff_statuses.name AS school_affiliation_status_name
+FROM
+    nths_groups GROUPS
+    LEFT JOIN nths_chapters_statuses chapter_status ON chapter_status.nths_group_id = groups.id
+    LEFT JOIN nths_chapter_statuses chapter_statuses ON chapter_statuses.id = chapter_status.nths_chapter_status_id
+    LEFT JOIN nths_group_school_affiliation school_aff ON school_aff.nths_group_id = groups.id
+    LEFT JOIN nths_school_affiliation_statuses school_aff_statuses ON school_aff_statuses.id = school_aff.nths_school_affiliation_status_id;
 

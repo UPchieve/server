@@ -6249,6 +6249,14 @@ COPY upchieve.nths_chapters_statuses (nths_group_id, nths_chapter_status_id, cre
 
 
 --
+-- Data for Name: nths_chapters_statuses; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.nths_chapters_statuses (nths_group_id, nths_chapter_status_id, created_at) FROM stdin;
+\.
+
+
+--
 -- Data for Name: nths_group_actions; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 

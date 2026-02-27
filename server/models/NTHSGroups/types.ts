@@ -12,7 +12,7 @@ export type NTHSGroupWithMemberInfo = {
   groupKey: string
   inviteCode: string
   roleName: NTHSGroupRoleName
-  schoolAffiliationStatus: NTHSSchoolAffiliationStatus | null
+  schoolAffiliationStatus: NTHSSchoolAffiliationStatusName | null
 }
 
 export type NTHSGroup = {
@@ -65,7 +65,7 @@ export type NTHSActionName =
   | 'OPTED OUT'
 
 export const NTHS_ACTIONS_TO_SCHOOL_AFFILIATION_STATUS_MAPPING: Partial<
-  Record<NTHSActionName, NTHSSchoolAffiliationStatus>
+  Record<NTHSActionName, NTHSSchoolAffiliationStatusName>
 > = {
   'MARKED SCHOOL AFFILIATION IN PROGRESS': 'PENDING_SCHOOL_AFFILIATION',
   'SUBMITTED ADVISOR CONTACT INFO': 'PENDING_UPCHIEVE_VERIFICATION',
@@ -87,9 +87,26 @@ export type NTHSAction = {
   name: string
 }
 
-export type NTHSSchoolAffiliationStatus =
+export type NTHSSchoolAffiliationStatusName =
   | 'PENDING_SCHOOL_AFFILIATION'
   | 'PENDING_UPCHIEVE_VERIFICATION'
   | 'AFFILIATED'
   | 'DENIED'
   | 'OPTED_OUT'
+
+export type NTHSChapterStatusName = 'PENDING' | 'FAILED' | 'OFFICIAL'
+
+export type NTHSChapterStatus = {
+  groupId: Ulid
+  statusName: NTHSChapterStatusName
+  createdAt: Date
+  statusId: number
+}
+
+export type NTHSGroupChapterStatusInfo = {
+  groupId: Ulid
+  statusName?: NTHSChapterStatusName
+  statusId?: number
+  schoolAffiliationStatusName?: NTHSSchoolAffiliationStatusName
+  schoolAffiliationStatusId?: number
+}

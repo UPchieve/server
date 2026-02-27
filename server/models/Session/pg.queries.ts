@@ -2582,7 +2582,7 @@ export interface IGetUserSessionsByUserIdParams {
   end?: DateOrString | null | void;
   sessionId?: string | null | void;
   start?: DateOrString | null | void;
-  subject: string;
+  subject?: string | null | void;
   topic?: string | null | void;
   userId: string;
 }
@@ -2605,7 +2605,7 @@ export interface IGetUserSessionsByUserIdQuery {
   result: IGetUserSessionsByUserIdResult;
 }
 
-const getUserSessionsByUserIdIR: any = {"usedParamSet":{"userId":true,"start":true,"end":true,"subject":true,"sessionId":true,"topic":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":427,"b":434},{"a":467,"b":474}]},{"name":"start","required":false,"transform":{"type":"scalar"},"locs":[{"a":483,"b":488},{"a":543,"b":548}]},{"name":"end","required":false,"transform":{"type":"scalar"},"locs":[{"a":571,"b":574},{"a":629,"b":632}]},{"name":"subject","required":true,"transform":{"type":"scalar"},"locs":[{"a":655,"b":662},{"a":703,"b":711}]},{"name":"sessionId","required":false,"transform":{"type":"scalar"},"locs":[{"a":726,"b":735},{"a":772,"b":781}]},{"name":"topic","required":false,"transform":{"type":"scalar"},"locs":[{"a":796,"b":801},{"a":840,"b":845}]}],"statement":"SELECT\n    sessions.id,\n    sessions.created_at,\n    subjects.name AS subject_name,\n    topics.name AS topic_name,\n    quill_doc,\n    sessions.student_id,\n    sessions.volunteer_id,\n    tool_types.name AS tool_type\nFROM\n    sessions\n    JOIN subjects ON subjects.id = sessions.subject_id\n    JOIN topics ON topics.id = subjects.topic_id\n    JOIN tool_types ON subjects.tool_type_id = tool_types.id\nWHERE (sessions.student_id = :userId!\n    OR sessions.volunteer_id = :userId!)\nAND ((:start)::timestamptz IS NULL\n    OR sessions.created_at >= (:start)::timestamptz)\nAND ((:end)::timestamptz IS NULL\n    OR sessions.created_at <= (:end)::timestamptz)\nAND ((:subject)::text IS NULL\n    OR subjects.name = (:subject!)::text)\nAND (:sessionId::uuid IS NULL\n    OR sessions.id = :sessionId::uuid)\nAND ((:topic)::text IS NULL\n    OR topics.name = (:topic)::text)\nORDER BY\n    sessions.created_at DESC"};
+const getUserSessionsByUserIdIR: any = {"usedParamSet":{"userId":true,"start":true,"end":true,"subject":true,"sessionId":true,"topic":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":427,"b":434},{"a":467,"b":474}]},{"name":"start","required":false,"transform":{"type":"scalar"},"locs":[{"a":483,"b":488},{"a":543,"b":548}]},{"name":"end","required":false,"transform":{"type":"scalar"},"locs":[{"a":571,"b":574},{"a":629,"b":632}]},{"name":"subject","required":false,"transform":{"type":"scalar"},"locs":[{"a":655,"b":662},{"a":703,"b":710}]},{"name":"sessionId","required":false,"transform":{"type":"scalar"},"locs":[{"a":725,"b":734},{"a":771,"b":780}]},{"name":"topic","required":false,"transform":{"type":"scalar"},"locs":[{"a":795,"b":800},{"a":839,"b":844}]}],"statement":"SELECT\n    sessions.id,\n    sessions.created_at,\n    subjects.name AS subject_name,\n    topics.name AS topic_name,\n    quill_doc,\n    sessions.student_id,\n    sessions.volunteer_id,\n    tool_types.name AS tool_type\nFROM\n    sessions\n    JOIN subjects ON subjects.id = sessions.subject_id\n    JOIN topics ON topics.id = subjects.topic_id\n    JOIN tool_types ON subjects.tool_type_id = tool_types.id\nWHERE (sessions.student_id = :userId!\n    OR sessions.volunteer_id = :userId!)\nAND ((:start)::timestamptz IS NULL\n    OR sessions.created_at >= (:start)::timestamptz)\nAND ((:end)::timestamptz IS NULL\n    OR sessions.created_at <= (:end)::timestamptz)\nAND ((:subject)::text IS NULL\n    OR subjects.name = (:subject)::text)\nAND (:sessionId::uuid IS NULL\n    OR sessions.id = :sessionId::uuid)\nAND ((:topic)::text IS NULL\n    OR topics.name = (:topic)::text)\nORDER BY\n    sessions.created_at DESC"};
 
 /**
  * Query generated from SQL:
@@ -2631,7 +2631,7 @@ const getUserSessionsByUserIdIR: any = {"usedParamSet":{"userId":true,"start":tr
  * AND ((:end)::timestamptz IS NULL
  *     OR sessions.created_at <= (:end)::timestamptz)
  * AND ((:subject)::text IS NULL
- *     OR subjects.name = (:subject!)::text)
+ *     OR subjects.name = (:subject)::text)
  * AND (:sessionId::uuid IS NULL
  *     OR sessions.id = :sessionId::uuid)
  * AND ((:topic)::text IS NULL

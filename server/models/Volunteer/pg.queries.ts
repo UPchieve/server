@@ -3570,3 +3570,40 @@ const doesVolunteerWithEmailExistIR: any = {"usedParamSet":{"email":true},"param
 export const doesVolunteerWithEmailExist = new PreparedQuery<IDoesVolunteerWithEmailExistParams,IDoesVolunteerWithEmailExistResult>(doesVolunteerWithEmailExistIR);
 
 
+/** 'GetVolunteersReadyToCoachStatus' parameters type */
+export interface IGetVolunteersReadyToCoachStatusParams {
+  volunteerIds: stringArray;
+}
+
+/** 'GetVolunteersReadyToCoachStatus' return type */
+export interface IGetVolunteersReadyToCoachStatusResult {
+  id: string;
+  isApproved: boolean;
+  isOnboarded: boolean;
+}
+
+/** 'GetVolunteersReadyToCoachStatus' query type */
+export interface IGetVolunteersReadyToCoachStatusQuery {
+  params: IGetVolunteersReadyToCoachStatusParams;
+  result: IGetVolunteersReadyToCoachStatusResult;
+}
+
+const getVolunteersReadyToCoachStatusIR: any = {"usedParamSet":{"volunteerIds":true},"params":[{"name":"volunteerIds","required":true,"transform":{"type":"scalar"},"locs":[{"a":173,"b":186}]}],"statement":"SELECT\n    u.id,\n    vp.onboarded AS is_onboarded,\n    vp.approved AS is_approved\nFROM\n    users u\n    JOIN volunteer_profiles vp ON vp.user_id = u.id\nWHERE\n    u.id = ANY (:volunteerIds!::uuid[])"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     u.id,
+ *     vp.onboarded AS is_onboarded,
+ *     vp.approved AS is_approved
+ * FROM
+ *     users u
+ *     JOIN volunteer_profiles vp ON vp.user_id = u.id
+ * WHERE
+ *     u.id = ANY (:volunteerIds!::uuid[])
+ * ```
+ */
+export const getVolunteersReadyToCoachStatus = new PreparedQuery<IGetVolunteersReadyToCoachStatusParams,IGetVolunteersReadyToCoachStatusResult>(getVolunteersReadyToCoachStatusIR);
+
+

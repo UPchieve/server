@@ -1763,3 +1763,20 @@ export async function doesVolunteerWithEmailExist(email: string) {
     throw new RepoReadError(err)
   }
 }
+
+export async function getVolunteersReadyToCoachStatus(
+  volunteerIds: Ulid[],
+  tc: TransactionClient = getRoClient()
+) {
+  try {
+    const results = await pgQueries.getVolunteersReadyToCoachStatus.run(
+      {
+        volunteerIds,
+      },
+      tc
+    )
+    return results.map((row) => makeRequired(row))
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
