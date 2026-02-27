@@ -414,9 +414,10 @@ export async function getChapterStatus(
       tc
     )
     if (results) {
+      const row = makeRequired(results[0])
       return makeRequired({
-        ...results[0],
-        statusName: results[0].statusName as NTHSChapterStatusName,
+        ...row,
+        statusName: row.statusName as NTHSChapterStatusName,
       })
     }
   } catch (err) {

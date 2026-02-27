@@ -12,6 +12,7 @@ export type SpawnUpdateNTHSChapterStatusForImpactPathJobData = {
 export default async function (
   job: Job<SpawnUpdateNTHSChapterStatusForImpactPathJobData>
 ) {
+  const { periodStart, periodEnd } = job.data
   // Get all chapters that are not already school-official...
   const allChapters = await NTHSService.getAllNTHSGroupsChapterStatus()
   const notSchoolOfficialChapters = allChapters.filter(
@@ -23,8 +24,8 @@ export default async function (
     const chapter = notSchoolOfficialChapters[i]
     await QueueService.add(Jobs.UpdateNTHSChapterStatusForImpactPath, {
       nthsGroupId: chapter.groupId,
-      periodStart: job.data.periodStart,
-      periodEnd: job.data.periodEnd,
+      periodStart,
+      periodEnd,
     } as UpdateNTHSChapterStatusJobData)
   }
 }

@@ -18,8 +18,13 @@ export type UpdateNTHSChapterStatusJobData = {
 }
 
 export default async function (job: Job<UpdateNTHSChapterStatusJobData>) {
+  // At compile time, these are dates, but they are date strings at runtime
+  // Convert back to dates here so we can make use of the Date APIs without throwing runtime errors.
+  const periodStart = new Date(job.data.periodStart)
+  const periodEnd = new Date(job.data.periodEnd)
+  const nthsGroupId = job.data.nthsGroupId
   // Get all-time members (including deactivated)
-  const alltimeMembers = await NTHSService.getGroupMembers(job.data.nthsGroupId)
+  const alltimeMembers = await NTHSService.getGroupMembers(nthsGroupId)
 
   // Filter down to those who are in ready to coach status
   const readyToCoachInfo =
@@ -42,15 +47,12 @@ export default async function (job: Job<UpdateNTHSChapterStatusJobData>) {
   for (let i = 0; i < readyToCoachMembers.length; i++) {
     const user = readyToCoachMembers[i]
     const startDate = new Date(
-      Math.max(
-        user.joinedAt.getMilliseconds(),
-        job.data.periodStart.getMilliseconds()
-      )
+      Math.max(user.joinedAt.getMilliseconds(), periodStart.getMilliseconds())
     )
     const endDate = new Date(
       Math.min(
-        (user.deactivatedAt ?? job.data.periodEnd).getMilliseconds(),
-        job.data.periodEnd.getMilliseconds()
+        (user.deactivatedAt ?? periodEnd).getMilliseconds(),
+        periodEnd.getMilliseconds()
       )
     )
     const usersSessions = await SessionRepo.getUserSessionsByUserId(
@@ -68,9 +70,8 @@ export default async function (job: Job<UpdateNTHSChapterStatusJobData>) {
 
   const newChapterStatusName: NTHSChapterStatusName =
     eligibleMembers.length >= 6 ? 'OFFICIAL' : 'PENDING'
-  const previousChapterStatus = await NTHSService.getLatestNthsChapterStatus(
-    job.data.nthsGroupId
-  )
+  const previousChapterStatus =
+    await NTHSService.getLatestNthsChapterStatus(nthsGroupId)
   if (
     previousChapterStatus &&
     previousChapterStatus.statusName === newChapterStatusName
@@ -78,15 +79,12 @@ export default async function (job: Job<UpdateNTHSChapterStatusJobData>) {
     logger.info(
       {
         status: newChapterStatusName,
-        groupId: job.data.nthsGroupId,
+        groupId: nthsGroupId,
       },
       `${logPrefix}Chapter status is unchanged`
     )
     return
   }
-  await NTHSService.insertNthsChapterStatus(
-    job.data.nthsGroupId,
-    newChapterStatusName
-  )
+  await NTHSService.insertNthsChapterStatus(nthsGroupId, newChapterStatusName)
   // @TODO Emit emails.
 }
