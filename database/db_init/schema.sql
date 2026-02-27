@@ -3835,14 +3835,6 @@ ALTER TABLE ONLY upchieve.moderation_rules
 
 
 --
--- Name: moderation_rules moderation_rules_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.moderation_rules
-    ADD CONSTRAINT moderation_rules_pkey PRIMARY KEY (id);
-
-
---
 -- Name: muted_users_subject_alerts muted_users_subject_alerts_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -5743,6 +5735,22 @@ ALTER TABLE ONLY upchieve.moderation_infractions
 
 
 --
+-- Name: moderation_rule_actions moderation_rule_actions_action_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.moderation_rule_actions
+    ADD CONSTRAINT moderation_rule_actions_action_id_fkey FOREIGN KEY (action_id) REFERENCES upchieve.moderation_actions(id);
+
+
+--
+-- Name: moderation_rule_actions moderation_rule_actions_rule_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.moderation_rule_actions
+    ADD CONSTRAINT moderation_rule_actions_rule_id_fkey FOREIGN KEY (rule_id) REFERENCES upchieve.moderation_rules(id);
+
+
+--
 -- Name: moderation_rules_flags moderation_rules_flags_flag_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -7322,4 +7330,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260213143219'),
     ('20260219143230'),
     ('20260219151315'),
-    ('20260219151836');
+    ('20260219151836'),
+    ('20260219154022');
