@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 14.15 (Debian 14.15-1.pgdg120+1)
--- Dumped by pg_dump version 14.19 (Homebrew)
+-- Dumped from database version 14.21 (Debian 14.21-1.pgdg13+1)
+-- Dumped by pg_dump version 14.13 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -6040,6 +6040,14 @@ COPY upchieve.moderation_penalty_config (id, min_weight, max_weight, moderation_
 
 
 --
+-- Data for Name: moderation_rules; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.moderation_rules (id, name, description) FROM stdin;
+\.
+
+
+--
 -- Data for Name: moderation_settings; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
@@ -6170,7 +6178,7 @@ COPY upchieve.nths_groups (id, name, key, created_at, updated_at, invite_code) F
 -- Data for Name: nths_advisors; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.nths_advisors (id, nths_group_id, first_name, last_name, email, phone, phone_extension, title, verified, created_at, updated_at) FROM stdin;
+COPY upchieve.nths_advisors (id, nths_group_id, first_name, last_name, email, phone, phone_extension, title, verified, created_at, updated_at, school_id) FROM stdin;
 \.
 
 
@@ -6225,7 +6233,7 @@ COPY upchieve.nths_school_affiliation_statuses (id, name, created_at) FROM stdin
 -- Data for Name: nths_group_school_affiliation; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.nths_group_school_affiliation (nths_group_id, nths_school_affiliation_status_id, created_at, updated_at) FROM stdin;
+COPY upchieve.nths_group_school_affiliation (nths_group_id, nths_school_affiliation_status_id, created_at, updated_at, school_id) FROM stdin;
 \.
 
 
@@ -8887,6 +8895,13 @@ SELECT pg_catalog.setval('upchieve.moderation_categories_id_seq', 26, true);
 --
 
 SELECT pg_catalog.setval('upchieve.moderation_penalty_config_id_seq', 3, true);
+
+
+--
+-- Name: moderation_rules_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
+--
+
+SELECT pg_catalog.setval('upchieve.moderation_rules_id_seq', 1, false);
 
 
 --

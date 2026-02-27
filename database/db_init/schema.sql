@@ -1,6 +1,3 @@
--- Dumped from database version 14.15 (Debian 14.15-1.pgdg120+1)
--- Dumped by pg_dump version 14.19 (Homebrew)
-
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -794,6 +791,37 @@ ALTER TABLE upchieve.moderation_penalty_config ALTER COLUMN id ADD GENERATED ALW
     NO MAXVALUE
     CACHE 1
 );
+
+
+--
+-- Name: moderation_rules; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.moderation_rules (
+    id integer NOT NULL,
+    name text,
+    description text
+);
+
+
+--
+-- Name: moderation_rules_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+CREATE SEQUENCE upchieve.moderation_rules_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: moderation_rules_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
+--
+
+ALTER SEQUENCE upchieve.moderation_rules_id_seq OWNED BY upchieve.moderation_rules.id;
 
 
 --
@@ -3249,6 +3277,13 @@ ALTER TABLE ONLY upchieve.moderation_categories ALTER COLUMN id SET DEFAULT next
 
 
 --
+-- Name: moderation_rules id; Type: DEFAULT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.moderation_rules ALTER COLUMN id SET DEFAULT nextval('upchieve.moderation_rules_id_seq'::regclass);
+
+
+--
 -- Name: notification_methods id; Type: DEFAULT; Schema: upchieve; Owner: -
 --
 
@@ -3725,6 +3760,22 @@ ALTER TABLE ONLY upchieve.moderation_penalty_config
 
 ALTER TABLE ONLY upchieve.moderation_penalty_config
     ADD CONSTRAINT moderation_penalty_config_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: moderation_rules moderation_rules_name_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.moderation_rules
+    ADD CONSTRAINT moderation_rules_name_key UNIQUE (name);
+
+
+--
+-- Name: moderation_rules moderation_rules_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.moderation_rules
+    ADD CONSTRAINT moderation_rules_pkey PRIMARY KEY (id);
 
 
 --
@@ -7188,4 +7239,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260203194734'),
     ('20260203200218'),
     ('20260204215802'),
-    ('20260213143219');
+    ('20260213143219'),
+    ('20260219143230');
