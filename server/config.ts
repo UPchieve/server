@@ -477,6 +477,9 @@ const config: Static<typeof Config> = {
   // Zwibbler
   zwibblerNodeUrl: process.env.ZWIBBLER_NODE_URL || 'bogus',
   slackAlertWebHookUrl: process.env.SUBWAY_SLACK_ALERT_WEBHOOK_URL || 'bogus',
+
+  //Assembly AI
+  assemblyAiApiKey: process.env.ASSEMBLY_AI_API_KEY || 'youHeard',
 }
 module.exports = config
 export default config

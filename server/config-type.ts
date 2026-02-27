@@ -317,4 +317,7 @@ export const Config = Record({
   zwibblerNodeUrl: String,
 
   slackAlertWebHookUrl: String,
+
+  //AssemblyAI
+  assemblyAiApiKey: String,
 })
