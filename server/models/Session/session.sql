@@ -1244,7 +1244,7 @@ AND ((:start)::timestamptz IS NULL
 AND ((:end)::timestamptz IS NULL
     OR sessions.created_at <= (:end)::timestamptz)
 AND ((:subject)::text IS NULL
-    OR subjects.name = (:subject!)::text)
+    OR subjects.name = (:subject)::text)
 AND (:sessionId::uuid IS NULL
     OR sessions.id = :sessionId::uuid)
 AND ((:topic)::text IS NULL

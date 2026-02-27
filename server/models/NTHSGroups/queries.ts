@@ -413,7 +413,7 @@ export async function getChapterStatus(
       },
       tc
     )
-    if (results) {
+    if (results.length) {
       const row = makeRequired(results[0])
       return makeRequired({
         ...row,
@@ -443,9 +443,10 @@ export async function insertChapterStatus(
         'Did not get back insert results when inserting NTHS chapter status'
       )
     }
+    const row = makeRequired(results[0])
     return makeRequired({
-      ...results[0],
-      statusName: results[0].statusName as NTHSChapterStatusName,
+      ...row,
+      statusName: row.statusName as NTHSChapterStatusName,
     })
   } catch (err) {
     throw new RepoCreateError(err)

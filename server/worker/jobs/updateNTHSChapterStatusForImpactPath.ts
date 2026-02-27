@@ -49,21 +49,16 @@ export default async function (job: Job<UpdateNTHSChapterStatusJobData>) {
   const eligibleMembers: NTHSGroupMemberWithRole[] = []
   for (let i = 0; i < readyToCoachMembers.length; i++) {
     const user = readyToCoachMembers[i]
-    const startDate = new Date(
-      Math.max(user.joinedAt.getMilliseconds(), periodStart.getMilliseconds())
-    )
-    const endDate = new Date(
-      Math.min(
-        (user.deactivatedAt ?? periodEnd).getMilliseconds(),
-        periodEnd.getMilliseconds()
-      )
-    )
+    const startDate = user.joinedAt > periodStart ? user.joinedAt : periodStart
+    const endDate =
+      user.deactivatedAt && user.deactivatedAt < periodEnd
+        ? user.deactivatedAt
+        : periodEnd
     const usersSessions = await SessionRepo.getUserSessionsByUserId(
       user.userId,
       {
         start: startDate,
         end: endDate,
-        subject: '',
       }
     )
     if (usersSessions.some((session) => session.volunteerId === user.userId)) {

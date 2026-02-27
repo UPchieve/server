@@ -64,7 +64,7 @@ export type UserSessionStats = {
 export type UserSessionsFilter = {
   start?: Date
   end?: Date
-  subject: string
+  subject?: string
   topic?: string
   sessionId?: Ulid
 }

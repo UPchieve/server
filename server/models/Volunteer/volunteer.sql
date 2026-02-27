@@ -1694,7 +1694,6 @@ SELECT
 /* @name getVolunteersReadyToCoachStatus */
 SELECT
     u.id,
-    u.ban_type,
     vp.onboarded AS is_onboarded,
     vp.approved AS is_approved
 FROM

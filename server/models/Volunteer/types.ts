@@ -118,5 +118,4 @@ export type VolunteerWithReadyToCoachInfo = {
   isApproved: boolean
   isOnboarded: boolean
   isReadyToCoach: boolean
-  banType: USER_BAN_TYPES | null
 }

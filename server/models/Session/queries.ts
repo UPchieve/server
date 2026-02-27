@@ -1360,7 +1360,7 @@ export async function getUserSessionsByUserId( // @TODO Make a service function 
   filter: UserSessionsFilter = {
     start: undefined,
     end: undefined,
-    subject: '',
+    subject: undefined,
     topic: undefined,
     sessionId: undefined,
   }

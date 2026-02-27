@@ -472,7 +472,6 @@ export async function getVolunteersReadyToCoachStatus(
     return {
       ...vol,
       isReadyToCoach: vol.isApproved && vol.isOnboarded,
-      banType: vol.banType ? (vol.banType as USER_BAN_TYPES) : null,
     }
   })
 }

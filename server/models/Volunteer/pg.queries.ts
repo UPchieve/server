@@ -3577,7 +3577,6 @@ export interface IGetVolunteersReadyToCoachStatusParams {
 
 /** 'GetVolunteersReadyToCoachStatus' return type */
 export interface IGetVolunteersReadyToCoachStatusResult {
-  banType: ban_types | null;
   id: string;
   isApproved: boolean;
   isOnboarded: boolean;
@@ -3589,14 +3588,13 @@ export interface IGetVolunteersReadyToCoachStatusQuery {
   result: IGetVolunteersReadyToCoachStatusResult;
 }
 
-const getVolunteersReadyToCoachStatusIR: any = {"usedParamSet":{"volunteerIds":true},"params":[{"name":"volunteerIds","required":true,"transform":{"type":"scalar"},"locs":[{"a":189,"b":202}]}],"statement":"SELECT\n    u.id,\n    u.ban_type,\n    vp.onboarded AS is_onboarded,\n    vp.approved AS is_approved\nFROM\n    users u\n    JOIN volunteer_profiles vp ON vp.user_id = u.id\nWHERE\n    u.id = ANY (:volunteerIds!::uuid[])"};
+const getVolunteersReadyToCoachStatusIR: any = {"usedParamSet":{"volunteerIds":true},"params":[{"name":"volunteerIds","required":true,"transform":{"type":"scalar"},"locs":[{"a":173,"b":186}]}],"statement":"SELECT\n    u.id,\n    vp.onboarded AS is_onboarded,\n    vp.approved AS is_approved\nFROM\n    users u\n    JOIN volunteer_profiles vp ON vp.user_id = u.id\nWHERE\n    u.id = ANY (:volunteerIds!::uuid[])"};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
  *     u.id,
- *     u.ban_type,
  *     vp.onboarded AS is_onboarded,
  *     vp.approved AS is_approved
  * FROM
