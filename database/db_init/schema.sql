@@ -1062,6 +1062,42 @@ CREATE TABLE upchieve.nths_advisors (
 
 
 --
+-- Name: nths_chapter_statuses; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.nths_chapter_statuses (
+    id integer NOT NULL,
+    name text NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: nths_chapter_statuses_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE upchieve.nths_chapter_statuses ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME upchieve.nths_chapter_statuses_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: nths_chapters_statuses; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.nths_chapters_statuses (
+    nths_group_id uuid NOT NULL,
+    nths_chapter_status_id integer NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
 -- Name: nths_group_actions; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -3963,6 +3999,30 @@ ALTER TABLE ONLY upchieve.nths_advisors
 
 
 --
+-- Name: nths_chapter_statuses nths_chapter_statuses_name_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_chapter_statuses
+    ADD CONSTRAINT nths_chapter_statuses_name_key UNIQUE (name);
+
+
+--
+-- Name: nths_chapter_statuses nths_chapter_statuses_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_chapter_statuses
+    ADD CONSTRAINT nths_chapter_statuses_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: nths_chapters_statuses nths_chapters_statuses_pk; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_chapters_statuses
+    ADD CONSTRAINT nths_chapters_statuses_pk PRIMARY KEY (nths_group_id, nths_chapter_status_id, created_at);
+
+
+--
 -- Name: nths_group_actions nths_group_actions_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -5228,6 +5288,20 @@ CREATE INDEX notifications_user_id ON upchieve.notifications USING btree (user_i
 
 
 --
+-- Name: nths_chapters_statuses_created_at_index; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX nths_chapters_statuses_created_at_index ON upchieve.nths_chapter_statuses USING btree (created_at);
+
+
+--
+-- Name: nths_chapters_statuses_group_id_index; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX nths_chapters_statuses_group_id_index ON upchieve.nths_chapters_statuses USING btree (nths_group_id);
+
+
+--
 -- Name: nths_group_actions_action_id; Type: INDEX; Schema: upchieve; Owner: -
 --
 
@@ -5860,6 +5934,22 @@ ALTER TABLE ONLY upchieve.nths_advisors
 
 ALTER TABLE ONLY upchieve.nths_advisors
     ADD CONSTRAINT nths_advisors_school_id_fkey FOREIGN KEY (school_id) REFERENCES upchieve.schools(id);
+
+
+--
+-- Name: nths_chapters_statuses nths_chapters_statuses_nths_chapter_status_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_chapters_statuses
+    ADD CONSTRAINT nths_chapters_statuses_nths_chapter_status_id_fkey FOREIGN KEY (nths_chapter_status_id) REFERENCES upchieve.nths_chapter_statuses(id);
+
+
+--
+-- Name: nths_chapters_statuses nths_chapters_statuses_nths_group_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_chapters_statuses
+    ADD CONSTRAINT nths_chapters_statuses_nths_group_id_fkey FOREIGN KEY (nths_group_id) REFERENCES upchieve.nths_groups(id);
 
 
 --
@@ -7347,4 +7437,6 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260219143230'),
     ('20260219151315'),
     ('20260219151836'),
-    ('20260219154022');
+    ('20260219154022'),
+    ('20260225150417'),
+    ('20260225150603');
