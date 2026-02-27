@@ -5,10 +5,21 @@ import { Job } from 'bull'
 import { UpdateNTHSChapterStatusJobData } from './updateNTHSChapterStatusForImpactPath'
 
 export type SpawnUpdateNTHSChapterStatusForImpactPathJobData = {
+  /**
+   * The beginning of the period in which the chapter's sessions should be counted toward the chapter's impact goals
+   */
   periodStart: Date
+  /**
+   * The end of the period in which the chapter's sessions should be counted toward the chapter's impact goals
+   */
   periodEnd: Date
 }
 
+/**
+ * Spawns a job for each NTHS chapter to check if its status has changed, i.e. due to meeting the chapter
+ * impact requirements.
+ * Exclude chapters which are school affiliated because these ones are "official" chapters regardless of impact stats.
+ */
 export default async function (
   job: Job<SpawnUpdateNTHSChapterStatusForImpactPathJobData>
 ) {

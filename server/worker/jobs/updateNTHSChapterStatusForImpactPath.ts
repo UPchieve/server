@@ -17,12 +17,15 @@ export type UpdateNTHSChapterStatusJobData = {
   periodEnd: Date
 }
 
+/**
+ * Calculate the NTHS chapter's status (i.e. "official" or "pending") based off of their group impact.
+ */
 export default async function (job: Job<UpdateNTHSChapterStatusJobData>) {
+  const nthsGroupId = job.data.nthsGroupId
   // At compile time, these are dates, but they are date strings at runtime
   // Convert back to dates here so we can make use of the Date APIs without throwing runtime errors.
   const periodStart = new Date(job.data.periodStart)
   const periodEnd = new Date(job.data.periodEnd)
-  const nthsGroupId = job.data.nthsGroupId
   // Get all-time members (including deactivated)
   const alltimeMembers = await NTHSService.getGroupMembers(nthsGroupId)
 
