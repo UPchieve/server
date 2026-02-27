@@ -1,7 +1,7 @@
-\restrict reXMdA5rDnJk1lrozHd2X0K4RBuOuarOzhqzIO9tifbzya8bW6TdTDYx7Ha9ZB7
+\restrict 2mfwTLROlq7tUpPn0jHFLrC71HpbsnnQ4i4kErS2dk8robt1Ei4yd9XKObovIoY
 
 -- Dumped from database version 14.21 (Debian 14.21-1.pgdg13+1)
--- Dumped by pg_dump version 14.20 (Ubuntu 14.20-0ubuntu0.22.04.1)
+-- Dumped by pg_dump version 14.19 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -5310,6 +5310,13 @@ CREATE INDEX nths_chapters_statuses_created_at_index ON upchieve.nths_chapter_st
 
 
 --
+-- Name: nths_chapters_statuses_group_createdat_idx; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX nths_chapters_statuses_group_createdat_idx ON upchieve.nths_chapters_statuses USING btree (nths_group_id, created_at);
+
+
+--
 -- Name: nths_chapters_statuses_group_id_index; Type: INDEX; Schema: upchieve; Owner: -
 --
 
@@ -7187,7 +7194,7 @@ ALTER TABLE ONLY upchieve.volunteer_references
 -- PostgreSQL database dump complete
 --
 
-\unrestrict reXMdA5rDnJk1lrozHd2X0K4RBuOuarOzhqzIO9tifbzya8bW6TdTDYx7Ha9ZB7
+\unrestrict 2mfwTLROlq7tUpPn0jHFLrC71HpbsnnQ4i4kErS2dk8robt1Ei4yd9XKObovIoY
 
 
 --
@@ -7458,4 +7465,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260225150417'),
     ('20260225150603'),
     ('20260227183500'),
-    ('20260302173903');
+    ('20260302173903'),
+    ('20260227182642');
