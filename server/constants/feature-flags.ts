@@ -17,4 +17,5 @@ export enum FEATURE_FLAGS {
   ZWIBSERVE = 'zwibserve',
   STEM_PROGRESS_REPORT = 'stem-progress-report',
   STUDENT_SESSION_SUMMARY = 'student-session-summary',
+  FIRST_SESSION_EMAIL_FOR_INTERVIEW = 'first-session-email-for-interview',
 }

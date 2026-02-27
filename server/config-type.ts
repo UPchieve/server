@@ -58,6 +58,7 @@ export const Config = Record({
     studentOnboardingMissionTemplate: String,
     studentOnboardingSurveyTemplate: String,
     studentFirstSessionCongratsTemplate: String,
+    studentFirstSessionInterviewTemplate: String,
     studentReportedRudeTemplate: String,
     studentReportedSafetyTemplate: String,
     studentAbsentWarningTemplate: String,

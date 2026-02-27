@@ -374,8 +374,10 @@ export async function sendStudentOnboardingSurvey(
 }
 
 export async function sendStudentFirstSessionCongrats(
+  studentId: string,
   email: string,
-  firstName: string
+  firstName: string,
+  emailTemplateId: string
 ): Promise<void> {
   const sender = config.mail.senders.studentOutreachManager
   const overrides = {
@@ -388,7 +390,7 @@ export async function sendStudentFirstSessionCongrats(
     email,
     sender,
     `${config.mail.people.studentOutreachManager.firstName} ${config.mail.people.studentOutreachManager.lastName}`,
-    config.sendgrid.studentFirstSessionCongratsTemplate,
+    emailTemplateId,
     { firstName },
     overrides
   )

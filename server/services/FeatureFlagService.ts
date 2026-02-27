@@ -164,3 +164,10 @@ export async function getStemProgressReportEnabled(userId: Ulid) {
 export async function isStudentSessionSummaryEnabled(userId: Ulid) {
   return isFeatureEnabled(FEATURE_FLAGS.STUDENT_SESSION_SUMMARY, userId)
 }
+
+export async function isStudentFirstSessionInterviewEmailEnabled(userId: Ulid) {
+  return isFeatureEnabled(
+    FEATURE_FLAGS.FIRST_SESSION_EMAIL_FOR_INTERVIEW,
+    userId
+  )
+}
