@@ -324,6 +324,8 @@ export async function getAlltimeMembersByGroupId(
   return await NTHSGroupsRepo.getGroupMembers(nthsGroupId, undefined, {
     includeDeactivated: true,
   })
+}
+
 export async function getLatestNthsChapterStatus(
   groupId: Ulid
 ): Promise<NTHSChapterStatus | undefined> {
