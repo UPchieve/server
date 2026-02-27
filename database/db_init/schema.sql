@@ -1,3 +1,8 @@
+\restrict reXMdA5rDnJk1lrozHd2X0K4RBuOuarOzhqzIO9tifbzya8bW6TdTDYx7Ha9ZB7
+
+-- Dumped from database version 14.21 (Debian 14.21-1.pgdg13+1)
+-- Dumped by pg_dump version 14.20 (Ubuntu 14.20-0ubuntu0.22.04.1)
+
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -3369,12 +3374,6 @@ ALTER TABLE ONLY upchieve.moderation_actions ALTER COLUMN id SET DEFAULT nextval
 
 ALTER TABLE ONLY upchieve.moderation_categories ALTER COLUMN id SET DEFAULT nextval('upchieve.moderation_categories_id_seq'::regclass);
 
---
--- Name: moderation_rules moderation_rules_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.moderation_rules
-    ADD CONSTRAINT moderation_rules_pkey PRIMARY KEY (id);
 
 --
 -- Name: moderation_rules id; Type: DEFAULT; Schema: upchieve; Owner: -
@@ -3884,6 +3883,14 @@ ALTER TABLE ONLY upchieve.moderation_penalty_config
 
 ALTER TABLE ONLY upchieve.moderation_rules
     ADD CONSTRAINT moderation_rules_name_key UNIQUE (name);
+
+
+--
+-- Name: moderation_rules moderation_rules_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.moderation_rules
+    ADD CONSTRAINT moderation_rules_pkey PRIMARY KEY (id);
 
 
 --
@@ -7171,6 +7178,8 @@ ALTER TABLE ONLY upchieve.volunteer_references
 --
 -- PostgreSQL database dump complete
 --
+
+\unrestrict reXMdA5rDnJk1lrozHd2X0K4RBuOuarOzhqzIO9tifbzya8bW6TdTDYx7Ha9ZB7
 
 
 --

@@ -2,8 +2,10 @@
 -- PostgreSQL database dump
 --
 
+\restrict FoOnSqcwEBifFbQCrxMd1p1ZjZizqa0OuZ5m2PXjEB16hHsTiDAof6MVfg0HfP9
+
 -- Dumped from database version 14.21 (Debian 14.21-1.pgdg13+1)
--- Dumped by pg_dump version 14.13 (Homebrew)
+-- Dumped by pg_dump version 14.20 (Ubuntu 14.20-0ubuntu0.22.04.1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -5988,6 +5990,14 @@ COPY upchieve.legacy_availability_histories (id, mongo_id, user_id, timezone, re
 
 
 --
+-- Data for Name: moderation_actions; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.moderation_actions (id, action_name, description) FROM stdin;
+\.
+
+
+--
 -- Data for Name: moderation_categories; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
@@ -6237,14 +6247,6 @@ COPY upchieve.nths_chapter_statuses (id, name, created_at) FROM stdin;
 1	PENDING	2026-02-25 16:18:13.923783+00
 2	OFFICIAL	2026-02-25 16:18:13.923783+00
 3	FAILED	2026-02-25 16:18:13.923783+00
-\.
-
-
---
--- Data for Name: nths_chapters_statuses; Type: TABLE DATA; Schema: upchieve; Owner: admin
---
-
-COPY upchieve.nths_chapters_statuses (nths_group_id, nths_chapter_status_id, created_at) FROM stdin;
 \.
 
 
@@ -9228,4 +9230,6 @@ SELECT pg_catalog.setval('upchieve.weekdays_id_seq', 1, false);
 --
 -- PostgreSQL database dump complete
 --
+
+\unrestrict FoOnSqcwEBifFbQCrxMd1p1ZjZizqa0OuZ5m2PXjEB16hHsTiDAof6MVfg0HfP9
 
