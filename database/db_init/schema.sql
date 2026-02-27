@@ -3333,6 +3333,12 @@ ALTER TABLE ONLY upchieve.moderation_actions ALTER COLUMN id SET DEFAULT nextval
 
 ALTER TABLE ONLY upchieve.moderation_categories ALTER COLUMN id SET DEFAULT nextval('upchieve.moderation_categories_id_seq'::regclass);
 
+--
+-- Name: moderation_rules moderation_rules_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.moderation_rules
+    ADD CONSTRAINT moderation_rules_pkey PRIMARY KEY (id);
 
 --
 -- Name: moderation_rules id; Type: DEFAULT; Schema: upchieve; Owner: -
