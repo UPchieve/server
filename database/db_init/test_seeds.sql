@@ -5988,6 +5988,14 @@ COPY upchieve.legacy_availability_histories (id, mongo_id, user_id, timezone, re
 
 
 --
+-- Data for Name: moderation_actions; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.moderation_actions (id, action_name, description) FROM stdin;
+\.
+
+
+--
 -- Data for Name: moderation_categories; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
@@ -6034,6 +6042,8 @@ COPY upchieve.moderation_infractions (id, user_id, session_id, reason, active, c
 --
 
 COPY upchieve.moderation_penalty_config (id, min_weight, max_weight, moderation_type) FROM stdin;
+1	0	10	contextual
+2	0	10	realtime_image
 \.
 
 
@@ -6049,15 +6059,40 @@ COPY upchieve.moderation_rules (id, name, description) FROM stdin;
 -- Data for Name: session_flags; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.moderation_rules (id, name, description) FROM stdin;
+COPY upchieve.session_flags (id, name, created_at, updated_at) FROM stdin;
+1	Absent student	2024-08-28 00:28:44.022047+00	2024-08-28 00:28:44.022047+00
+2	Absent volunteer	2024-08-28 00:28:44.022409+00	2024-08-28 00:28:44.022409+00
+3	Low session rating from coach	2024-08-28 00:28:44.022686+00	2024-08-28 00:28:44.022686+00
+4	Low session rating from student	2024-08-28 00:28:44.022924+00	2024-08-28 00:28:44.022924+00
+5	Low coach rating from student	2024-08-28 00:28:44.02329+00	2024-08-28 00:28:44.02329+00
+6	Reported	2024-08-28 00:28:44.023525+00	2024-08-28 00:28:44.023525+00
+9	Comment from student	2024-08-28 00:28:44.024253+00	2024-08-28 00:28:44.024253+00
+10	Comment from volunteer	2024-08-28 00:28:44.024522+00	2024-08-28 00:28:44.024522+00
+11	Has been unmatched	2024-08-28 00:28:44.024787+00	2024-08-28 00:28:44.024787+00
+12	Has had technical issues	2024-08-28 00:28:44.025073+00	2024-08-28 00:28:44.025073+00
+7	Pressuring coach	2024-08-28 00:28:44.023773+00	2024-08-28 00:28:44.143891+00
+8	Mean or inappropriate	2024-08-28 00:28:44.024009+00	2024-08-28 00:28:44.143891+00
+13	PII	2024-08-28 00:28:44.143891+00	2024-08-28 00:28:44.143891+00
+14	Graded assignment	2024-08-28 00:28:44.143891+00	2024-08-28 00:28:44.143891+00
+15	Coach uncomfortable	2024-08-28 00:28:44.143891+00	2024-08-28 00:28:44.143891+00
+16	Student in distress	2024-08-28 00:28:44.143891+00	2024-08-28 00:28:44.143891+00
+17	Coach reported student DM	2024-08-28 00:28:44.174187+00	2024-08-28 00:28:44.174187+00
+18	Student reported coach DM	2024-08-28 00:28:44.174187+00	2024-08-28 00:28:44.174187+00
+25	Hate speech	2025-03-26 22:14:09.855431+00	2025-03-26 22:14:09.855431+00
+26	Inappropriate conversation	2025-03-26 22:14:09.855431+00	2025-03-26 22:14:09.855431+00
+27	Platform circumvention	2025-03-26 22:14:09.855431+00	2025-03-26 22:14:09.855431+00
+28	Personally identifiable information	2025-03-26 22:14:09.855431+00	2025-03-26 22:14:09.855431+00
+29	Safety concern	2025-03-26 22:14:09.855431+00	2025-03-26 22:14:09.855431+00
+30	General moderation concern	2025-03-26 22:14:09.855431+00	2025-03-26 22:14:09.855431+00
+31	Live media ban	2025-09-09 15:16:33.85088+00	2025-09-09 15:16:33.85088+00
 \.
 
 
 --
--- Data for Name: moderation_rules; Type: TABLE DATA; Schema: upchieve; Owner: admin
+-- Data for Name: moderation_rules_flags; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.moderation_rules (id, name, description) FROM stdin;
+COPY upchieve.moderation_rules_flags (flag_id, rule_id) FROM stdin;
 \.
 
 
@@ -6071,28 +6106,28 @@ contextual	2	0.75	0
 contextual	3	0.75	0
 contextual	4	0.75	0
 contextual	5	0.75	0
-realtime_image	6	0.75	0
-realtime_image	7	0.75	0
-realtime_image	8	0.75	0
-realtime_image	9	0.75	0
-realtime_image	10	0.75	0
-realtime_image	17	0.85	0
-realtime_image	18	0.85	0
-realtime_image	19	0.85	0
-realtime_image	20	0.85	0
-realtime_image	16	0.75	0
-realtime_image	23	0.85	0
-realtime_image	24	0.85	0
-realtime_image	25	0.85	0
-realtime_image	26	0.85	0
-realtime_image	2	0.85	0
-realtime_image	11	0.75	0
-realtime_image	12	0.75	0
-realtime_image	13	0.75	0
-realtime_image	14	0.75	0
-realtime_image	15	0.75	0
-realtime_image	21	0.85	0
-realtime_image	22	0.85	0
+realtime_image	6	0.75	10
+realtime_image	7	0.75	10
+realtime_image	8	0.75	10
+realtime_image	9	0.75	10
+realtime_image	10	0.75	10
+realtime_image	17	0.85	10
+realtime_image	18	0.85	10
+realtime_image	19	0.85	10
+realtime_image	20	0.85	10
+realtime_image	16	0.75	10
+realtime_image	23	0.85	4
+realtime_image	24	0.85	4
+realtime_image	25	0.85	4
+realtime_image	26	0.85	4
+realtime_image	2	0.85	1
+realtime_image	11	0.75	1
+realtime_image	12	0.75	1
+realtime_image	13	0.75	1
+realtime_image	14	0.75	1
+realtime_image	15	0.75	1
+realtime_image	21	0.85	1
+realtime_image	22	0.85	1
 \.
 
 
@@ -8882,7 +8917,7 @@ SELECT pg_catalog.setval('upchieve.moderation_categories_id_seq', 26, true);
 -- Name: moderation_penalty_config_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.moderation_penalty_config_id_seq', 1, false);
+SELECT pg_catalog.setval('upchieve.moderation_penalty_config_id_seq', 3, true);
 
 
 --
