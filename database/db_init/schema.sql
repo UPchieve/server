@@ -1056,7 +1056,7 @@ CREATE TABLE upchieve.nths_advisors (
     first_name text NOT NULL,
     last_name text NOT NULL,
     email text NOT NULL,
-    phone text NOT NULL,
+    phone text,
     phone_extension text,
     title text NOT NULL,
     verified boolean DEFAULT false NOT NULL,
@@ -7448,4 +7448,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260219151836'),
     ('20260219154022'),
     ('20260225150417'),
-    ('20260225150603');
+    ('20260225150603'),
+    ('20260227183500');
