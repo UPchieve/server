@@ -31,8 +31,7 @@ export default async function (
   )
 
   // ... and spawn a job to check if they are official via the "Impact Path"
-  for (let i = 0; i < notSchoolOfficialChapters.length; i++) {
-    const chapter = notSchoolOfficialChapters[i]
+  for (const chapter of notSchoolOfficialChapters) {
     await QueueService.add(Jobs.UpdateNTHSChapterStatusForImpactPath, {
       nthsGroupId: chapter.groupId,
       periodStart,

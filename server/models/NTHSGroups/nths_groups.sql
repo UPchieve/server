@@ -242,6 +242,7 @@ WITH ranked_by_timestamp AS (
         nths_chapters_statuses
     WHERE
         nths_group_id = :groupId!
+    LIMIT 1
 )
 SELECT
     cs.group_id,

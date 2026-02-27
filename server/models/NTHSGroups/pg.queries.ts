@@ -751,7 +751,7 @@ export interface IGetLatestNthsChapterStatusQuery {
   result: IGetLatestNthsChapterStatusResult;
 }
 
-const getLatestNthsChapterStatusIR: any = {"usedParamSet":{"groupId":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":261,"b":269}]}],"statement":"WITH ranked_by_timestamp AS (\n    SELECT\n        nths_group_id AS group_id,\n        nths_chapter_status_id,\n        created_at,\n        ROW_NUMBER() OVER (ORDER BY created_at DESC) AS rn\n    FROM\n        nths_chapters_statuses\n    WHERE\n        nths_group_id = :groupId!\n)\nSELECT\n    cs.group_id,\n    cs.nths_chapter_status_id AS status_id,\n    cs.created_at,\n    statuses.name AS status_name\nFROM\n    ranked_by_timestamp cs\n    JOIN nths_chapter_statuses statuses ON statuses.id = cs.nths_chapter_status_id\nWHERE\n    cs.rn = 1"};
+const getLatestNthsChapterStatusIR: any = {"usedParamSet":{"groupId":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":261,"b":269}]}],"statement":"WITH ranked_by_timestamp AS (\n    SELECT\n        nths_group_id AS group_id,\n        nths_chapter_status_id,\n        created_at,\n        ROW_NUMBER() OVER (ORDER BY created_at DESC) AS rn\n    FROM\n        nths_chapters_statuses\n    WHERE\n        nths_group_id = :groupId!\n    LIMIT 1\n)\nSELECT\n    cs.group_id,\n    cs.nths_chapter_status_id AS status_id,\n    cs.created_at,\n    statuses.name AS status_name\nFROM\n    ranked_by_timestamp cs\n    JOIN nths_chapter_statuses statuses ON statuses.id = cs.nths_chapter_status_id\nWHERE\n    cs.rn = 1"};
 
 /**
  * Query generated from SQL:
@@ -766,6 +766,7 @@ const getLatestNthsChapterStatusIR: any = {"usedParamSet":{"groupId":true},"para
  *         nths_chapters_statuses
  *     WHERE
  *         nths_group_id = :groupId!
+ *     LIMIT 1
  * )
  * SELECT
  *     cs.group_id,
