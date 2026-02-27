@@ -836,6 +836,16 @@ CREATE TABLE upchieve.moderation_rules (
 
 
 --
+-- Name: moderation_rules_flags; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.moderation_rules_flags (
+    flag_id integer NOT NULL,
+    rule_id integer NOT NULL
+);
+
+
+--
 -- Name: moderation_rules_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
 --
 
@@ -5733,6 +5743,22 @@ ALTER TABLE ONLY upchieve.moderation_infractions
 
 
 --
+-- Name: moderation_rules_flags moderation_rules_flags_flag_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.moderation_rules_flags
+    ADD CONSTRAINT moderation_rules_flags_flag_id_fkey FOREIGN KEY (flag_id) REFERENCES upchieve.session_flags(id);
+
+
+--
+-- Name: moderation_rules_flags moderation_rules_flags_rule_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.moderation_rules_flags
+    ADD CONSTRAINT moderation_rules_flags_rule_id_fkey FOREIGN KEY (rule_id) REFERENCES upchieve.moderation_rules(id);
+
+
+--
 -- Name: moderation_settings moderation_settings_moderation_category_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -7295,4 +7321,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260204215802'),
     ('20260213143219'),
     ('20260219143230'),
-    ('20260219151315');
+    ('20260219151315'),
+    ('20260219151836');

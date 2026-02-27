@@ -6056,10 +6056,43 @@ COPY upchieve.moderation_rules (id, name, description) FROM stdin;
 
 
 --
--- Data for Name: moderation_rules; Type: TABLE DATA; Schema: upchieve; Owner: admin
+-- Data for Name: session_flags; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.moderation_rules (id, name, description) FROM stdin;
+COPY upchieve.session_flags (id, name, created_at, updated_at) FROM stdin;
+1	Absent student	2024-08-28 00:28:44.022047+00	2024-08-28 00:28:44.022047+00
+2	Absent volunteer	2024-08-28 00:28:44.022409+00	2024-08-28 00:28:44.022409+00
+3	Low session rating from coach	2024-08-28 00:28:44.022686+00	2024-08-28 00:28:44.022686+00
+4	Low session rating from student	2024-08-28 00:28:44.022924+00	2024-08-28 00:28:44.022924+00
+5	Low coach rating from student	2024-08-28 00:28:44.02329+00	2024-08-28 00:28:44.02329+00
+6	Reported	2024-08-28 00:28:44.023525+00	2024-08-28 00:28:44.023525+00
+9	Comment from student	2024-08-28 00:28:44.024253+00	2024-08-28 00:28:44.024253+00
+10	Comment from volunteer	2024-08-28 00:28:44.024522+00	2024-08-28 00:28:44.024522+00
+11	Has been unmatched	2024-08-28 00:28:44.024787+00	2024-08-28 00:28:44.024787+00
+12	Has had technical issues	2024-08-28 00:28:44.025073+00	2024-08-28 00:28:44.025073+00
+7	Pressuring coach	2024-08-28 00:28:44.023773+00	2024-08-28 00:28:44.143891+00
+8	Mean or inappropriate	2024-08-28 00:28:44.024009+00	2024-08-28 00:28:44.143891+00
+13	PII	2024-08-28 00:28:44.143891+00	2024-08-28 00:28:44.143891+00
+14	Graded assignment	2024-08-28 00:28:44.143891+00	2024-08-28 00:28:44.143891+00
+15	Coach uncomfortable	2024-08-28 00:28:44.143891+00	2024-08-28 00:28:44.143891+00
+16	Student in distress	2024-08-28 00:28:44.143891+00	2024-08-28 00:28:44.143891+00
+17	Coach reported student DM	2024-08-28 00:28:44.174187+00	2024-08-28 00:28:44.174187+00
+18	Student reported coach DM	2024-08-28 00:28:44.174187+00	2024-08-28 00:28:44.174187+00
+25	Hate speech	2025-03-26 22:14:09.855431+00	2025-03-26 22:14:09.855431+00
+26	Inappropriate conversation	2025-03-26 22:14:09.855431+00	2025-03-26 22:14:09.855431+00
+27	Platform circumvention	2025-03-26 22:14:09.855431+00	2025-03-26 22:14:09.855431+00
+28	Personally identifiable information	2025-03-26 22:14:09.855431+00	2025-03-26 22:14:09.855431+00
+29	Safety concern	2025-03-26 22:14:09.855431+00	2025-03-26 22:14:09.855431+00
+30	General moderation concern	2025-03-26 22:14:09.855431+00	2025-03-26 22:14:09.855431+00
+31	Live media ban	2025-09-09 15:16:33.85088+00	2025-09-09 15:16:33.85088+00
+\.
+
+
+--
+-- Data for Name: moderation_rules_flags; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.moderation_rules_flags (flag_id, rule_id) FROM stdin;
 \.
 
 
@@ -7532,39 +7565,6 @@ COPY upchieve.session_audio_transcript_messages (id, user_id, session_id, messag
 --
 
 COPY upchieve.session_failed_joins (session_id, user_id, created_at, updated_at) FROM stdin;
-\.
-
-
---
--- Data for Name: session_flags; Type: TABLE DATA; Schema: upchieve; Owner: admin
---
-
-COPY upchieve.session_flags (id, name, created_at, updated_at) FROM stdin;
-1	Absent student	2024-08-28 00:28:44.022047+00	2024-08-28 00:28:44.022047+00
-2	Absent volunteer	2024-08-28 00:28:44.022409+00	2024-08-28 00:28:44.022409+00
-3	Low session rating from coach	2024-08-28 00:28:44.022686+00	2024-08-28 00:28:44.022686+00
-4	Low session rating from student	2024-08-28 00:28:44.022924+00	2024-08-28 00:28:44.022924+00
-5	Low coach rating from student	2024-08-28 00:28:44.02329+00	2024-08-28 00:28:44.02329+00
-6	Reported	2024-08-28 00:28:44.023525+00	2024-08-28 00:28:44.023525+00
-9	Comment from student	2024-08-28 00:28:44.024253+00	2024-08-28 00:28:44.024253+00
-10	Comment from volunteer	2024-08-28 00:28:44.024522+00	2024-08-28 00:28:44.024522+00
-11	Has been unmatched	2024-08-28 00:28:44.024787+00	2024-08-28 00:28:44.024787+00
-12	Has had technical issues	2024-08-28 00:28:44.025073+00	2024-08-28 00:28:44.025073+00
-7	Pressuring coach	2024-08-28 00:28:44.023773+00	2024-08-28 00:28:44.143891+00
-8	Mean or inappropriate	2024-08-28 00:28:44.024009+00	2024-08-28 00:28:44.143891+00
-13	PII	2024-08-28 00:28:44.143891+00	2024-08-28 00:28:44.143891+00
-14	Graded assignment	2024-08-28 00:28:44.143891+00	2024-08-28 00:28:44.143891+00
-15	Coach uncomfortable	2024-08-28 00:28:44.143891+00	2024-08-28 00:28:44.143891+00
-16	Student in distress	2024-08-28 00:28:44.143891+00	2024-08-28 00:28:44.143891+00
-17	Coach reported student DM	2024-08-28 00:28:44.174187+00	2024-08-28 00:28:44.174187+00
-18	Student reported coach DM	2024-08-28 00:28:44.174187+00	2024-08-28 00:28:44.174187+00
-25	Hate speech	2025-03-26 22:14:09.855431+00	2025-03-26 22:14:09.855431+00
-26	Inappropriate conversation	2025-03-26 22:14:09.855431+00	2025-03-26 22:14:09.855431+00
-27	Platform circumvention	2025-03-26 22:14:09.855431+00	2025-03-26 22:14:09.855431+00
-28	Personally identifiable information	2025-03-26 22:14:09.855431+00	2025-03-26 22:14:09.855431+00
-29	Safety concern	2025-03-26 22:14:09.855431+00	2025-03-26 22:14:09.855431+00
-30	General moderation concern	2025-03-26 22:14:09.855431+00	2025-03-26 22:14:09.855431+00
-31	Live media ban	2025-09-09 15:16:33.85088+00	2025-09-09 15:16:33.85088+00
 \.
 
 
