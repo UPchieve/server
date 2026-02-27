@@ -5,5 +5,5 @@ CREATE TABLE IF NOT EXISTS upchieve.moderation_rule_actions (
 );
 
 -- migrate:down
-DROP TABLE moderation_rule_actions;
+DROP TABLE upchieve.moderation_rule_actions;
 
