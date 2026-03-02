@@ -113,8 +113,7 @@ class SocketService {
     sessionId: Ulid,
     tc?: TransactionClient
   ): Promise<void> {
-    const session = await SessionService.getSessionWithAllDetails(sessionId, tc)
-    await addDocEditorVersionTo(session)
+    const session = await SessionService.getCurrentSessionPublic(sessionId, tc)
     const sessionParticipants = [session.student.id]
     if (session.volunteer?.id) {
       sessionParticipants.push(session.volunteer.id)

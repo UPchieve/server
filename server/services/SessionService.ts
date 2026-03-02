@@ -29,11 +29,9 @@ import { PushToken } from '../models/PushToken'
 import { getPushTokensByUserId } from '../models/PushToken'
 import * as TranscriptMessagesRepo from '../models/SessionAudioTranscriptMessages/queries'
 import {
-  CurrentSession,
-  EndedSession,
   GetSessionByIdResult,
   LatestSession,
-  Session,
+  MessageForFrontend,
   SessionsToReview,
   SessionTranscript,
   updateSessionFlagsById,
@@ -79,6 +77,10 @@ import * as SurveyService from './SurveyService'
 import { SessionUserRole } from './UserRolesService'
 import * as FeatureFlagsService from './FeatureFlagService'
 import { createBlobSasUrl } from './AzureService'
+import type {
+  CurrentSessionPublic,
+  SessionUserInfoPublic,
+} from '../contracts/sessions'
 
 export async function reviewSession(data: unknown) {
   const { sessionId, reviewed, toReview } =
@@ -218,7 +220,7 @@ export async function endSession(
   isAdmin: boolean = false,
   socketService?: SocketService,
   identifiers?: sessionUtils.RequestIdentifier
-): Promise<EndedSession> {
+): Promise<CurrentSessionPublic> {
   const reqIdentifiers = identifiers
     ? sessionUtils.asRequestIdentifiers(identifiers)
     : undefined
@@ -290,19 +292,18 @@ export async function endSession(
     sessionId,
   })
 
-  return endedSession
+  return getCurrentSessionPublic(endedSession.id)
 }
 
-export async function getSessionWithAllDetails(
-  sessionId: Ulid,
+export async function getCurrentSessionPublic(
+  sessionId: Uuid,
   tc?: TransactionClient
-): Promise<CurrentSession> {
+): Promise<CurrentSessionPublic> {
   const session = await SessionRepo.getCurrentSessionBySessionId(sessionId, tc)
-  if (!session) {
-    throw new Error(`Session data for ${sessionId} not found`)
-  }
+  if (!session) throw new Error(`Session data for ${sessionId} not found`)
 
-  return session
+  await addDocEditorVersionTo(session)
+  return mapToCurrentSessionPublic(session)
 }
 
 export async function processSessionReported(sessionId: Ulid) {
@@ -598,7 +599,7 @@ export async function startSession(
   data: sessionUtils.StartSessionData & {
     presessionSurvey?: SurveyService.SaveSurveyAndSubmissions
   }
-) {
+): Promise<CurrentSessionPublic> {
   const {
     subject,
     topic,
@@ -709,10 +710,7 @@ export async function startSession(
     { delay }
   )
 
-  return {
-    ...newSession,
-    docEditorVersion,
-  }
+  return getCurrentSessionPublic(newSession.id)
 }
 
 // TODO: Remove after midtown clean-up.
@@ -726,6 +724,7 @@ export async function currentSession(userId: Ulid) {
   const session = await SessionRepo.getCurrentSessionByUserId(userId)
   if (session) {
     await addDocEditorVersionTo(session)
+    return mapToCurrentSessionPublic(session)
   }
   return session
 }
@@ -774,7 +773,7 @@ export async function joinSession(
     userAgent?: string
     joinedFrom?: string
   }
-): Promise<Session> {
+): Promise<CurrentSessionPublic> {
   const session = await ensureCanJoinSession(user, sessionId)
 
   const sessionAnalyticsData = {
@@ -789,7 +788,6 @@ export async function joinSession(
   if (isInitialVolunteerJoin) {
     try {
       await SessionRepo.updateSessionVolunteerById(session.id, user.id)
-      session.volunteerId = user.id
       await SocketService.getInstance().emitSessionChange(session.id)
     } catch (err) {
       throw new Error('A volunteer has already joined the session.')
@@ -834,8 +832,6 @@ export async function joinSession(
     }
   }
 
-  await addDocEditorVersionTo(session)
-
   const isStudent = user.roleContext.isActiveRole('student')
   if (!isInitialVolunteerJoin || isStudent) {
     try {
@@ -855,7 +851,7 @@ export async function joinSession(
     }
   }
 
-  return session
+  return getCurrentSessionPublic(session.id)
 }
 
 export async function ensureCanJoinSession(
@@ -1315,4 +1311,62 @@ export async function addSessionSmsNotification(
 export async function isZwibserveSession(sessionId: Uuid) {
   const members = await cache.smembers(config.cacheKeys.zwibserveSessions)
   return members.includes(sessionId)
+}
+
+function mapToSessionUserInfoPublic(data: {
+  id: string
+  firstName: string
+  gradeLevel?: number
+}): SessionUserInfoPublic {
+  return {
+    _id: data.id,
+    id: data.id,
+    firstname: data.firstName,
+    firstName: data.firstName,
+    gradeLevel: data.gradeLevel,
+  }
+}
+
+function mapToCurrentSessionPublic(session: {
+  id: Ulid
+  studentId: Ulid
+  volunteerId?: Ulid
+  student: SessionUserInfoPublic
+  volunteer?: SessionUserInfoPublic
+  volunteerJoinedAt?: Date
+  messages: MessageForFrontend[]
+  toolType: string
+  docEditorVersion?: number
+  studentBannedFromLiveMedia?: boolean
+  volunteerBannedFromLiveMedia?: boolean
+  volunteerLanguages?: string[]
+  type: string
+  subTopic: string
+  endedByUserId?: Ulid
+  createdAt: Date
+  endedAt?: Date
+  endedBy?: Uuid
+}): CurrentSessionPublic {
+  return {
+    _id: session.id,
+    id: session.id,
+    studentId: session.studentId,
+    volunteerId: session.volunteerId,
+    student: mapToSessionUserInfoPublic(session.student),
+    volunteer: session.volunteer
+      ? mapToSessionUserInfoPublic(session.volunteer)
+      : undefined,
+    volunteerJoinedAt: session.volunteerJoinedAt,
+    messages: session.messages ?? [],
+    toolType: session.toolType,
+    docEditorVersion: session.docEditorVersion,
+    studentBannedFromLiveMedia: session.studentBannedFromLiveMedia,
+    volunteerBannedFromLiveMedia: session.volunteerBannedFromLiveMedia,
+    volunteerLanguages: session.volunteerLanguages ?? [],
+    type: session.type,
+    subTopic: session.subTopic,
+    createdAt: session.createdAt,
+    endedAt: session.endedAt,
+    endedBy: session.endedBy,
+  }
 }
