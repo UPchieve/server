@@ -216,7 +216,7 @@ ON CONFLICT (nths_group_id)
 
 /* @name insertNthsAdvisor */
 INSERT INTO nths_advisors (id, nths_group_id, first_name, last_name, email, phone, phone_extension, title, school_id)
-    VALUES (generate_ulid (), :nthsGroupId!, :firstName!, :lastName!, :email!, :phone!, :phoneExtension, :title!, :schoolId!)
+    VALUES (generate_ulid (), :nthsGroupId!, :firstName!, :lastName!, :email!, :phone, :phoneExtension, :title!, :schoolId!)
 RETURNING
     *;
 

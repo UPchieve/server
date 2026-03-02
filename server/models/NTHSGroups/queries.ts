@@ -367,7 +367,7 @@ type AdvisorArgs = {
   firstName: string
   lastName: string
   email: string
-  phone: string
+  phone?: string
   phoneExtension?: string
   title: string
 }
@@ -382,7 +382,7 @@ export async function addNTHSAdvisor(
 ): Promise<Advisor> {
   try {
     const results = await pgQueries.insertNthsAdvisor.run(args, tc)
-    return makeRequired(results[0])
+    return makeSomeOptional(results[0], ['phone', 'phoneExtension'])
   } catch (err) {
     throw new RepoCreateError(err)
   }
