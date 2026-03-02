@@ -14,7 +14,6 @@ import {
 } from '../../services/SessionService'
 import { asString } from '../../utils/type-utils'
 import { queueGenerateSessionSummaryForSession } from '../../services/SessionSummariesService'
-import { getSessionFlagsBySessionId } from '../../models/Session'
 import logger from '../../logger'
 
 type ProcessSessionEndedJobData = {
@@ -38,9 +37,6 @@ export default async (job: Job<ProcessSessionEndedJobData>): Promise<void> => {
     await processSessionMetrics(sessionId)
     await processCalculateMetrics(sessionId)
     await processSessionEditors(sessionId)
-
-    const flags = await getSessionFlagsBySessionId(sessionId)
-    console.log('********flags', flags)
 
     // Dependent on metrics being calculated first
     for (const task of METRIC_TASKS) {

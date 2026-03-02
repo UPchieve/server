@@ -1523,7 +1523,10 @@ export async function getVolunteersInSessions(): Promise<Ulid[]> {
 }
 
 export async function getSessionFlagsBySessionId(sessionId: Uuid) {
-  const result = await pgQueries.getSessionFlagsBySessionId.run({ sessionId }, getClient())
+  const result = await pgQueries.getSessionFlagsBySessionId.run(
+    { sessionId },
+    getClient()
+  )
 
   return result.map((r) => makeRequired(r))
 }
