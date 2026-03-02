@@ -5994,7 +5994,6 @@ COPY upchieve.legacy_availability_histories (id, mongo_id, user_id, timezone, re
 --
 
 COPY upchieve.moderation_actions (id, action_name, description) FROM stdin;
-1	shadow_ban	Shadow bans student so they are not aware they have been banned from the platform. Volunteers will not see their requests.
 \.
 
 
