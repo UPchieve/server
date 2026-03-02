@@ -27,6 +27,7 @@ import generateAlphanumericOfLength from '../utils/generate-alphanumeric'
 import {
   AlreadyInNTHSGroupError,
   CannotRemoveSoleNTHSAdminError,
+  NTHSGroupAffiliationExistsError,
 } from '../models/Errors'
 
 export async function getGroups(userId: Ulid) {
@@ -286,35 +287,43 @@ export async function submitSchoolAffilaiton({
   title: string
 }) {
   return runInTransaction(async (tc) => {
-    const NTHSAdvisor = await addNTHSAdvisor(
-      {
+    try {
+      const NTHSAdvisor = await addNTHSAdvisor(
+        {
+          nthsGroupId,
+          schoolId,
+          firstName,
+          lastName,
+          email,
+          phone,
+          phoneExtension,
+          title,
+        },
+        tc
+      )
+
+      const created = await createAction(
         nthsGroupId,
-        schoolId,
-        firstName,
-        lastName,
-        email,
-        phone,
-        phoneExtension,
-        title,
-      },
-      tc
-    )
+        'SUBMITTED ADVISOR CONTACT INFO',
+        tc
+      )
 
-    const created = await createAction(
-      nthsGroupId,
-      'SUBMITTED ADVISOR CONTACT INFO',
-      tc
-    )
+      await addSchoolToSchoolAffiliation(
+        {
+          nthsGroupId,
+          schoolId,
+        },
+        tc
+      )
 
-    await addSchoolToSchoolAffiliation(
-      {
-        nthsGroupId,
-        schoolId,
-      },
-      tc
-    )
+      return { groupId: nthsGroupId, NTHSAdvisor, action: created }
+    } catch (err) {
+      if (err instanceof Error && err.message.includes('unique_school_id')) {
+        throw new NTHSGroupAffiliationExistsError()
+      }
 
-    return { groupId: nthsGroupId, NTHSAdvisor, action: created }
+      throw err
+    }
   })
 }
 
