@@ -247,7 +247,7 @@ export async function addNTHSAdvisor(
     firstName: string
     lastName: string
     email: string
-    phone: string
+    phone?: string
     phoneExtension?: string
     title: string
   },
@@ -281,7 +281,7 @@ export async function submitSchoolAffilaiton({
   firstName: string
   lastName: string
   email: string
-  phone: string
+  phone?: string
   phoneExtension?: string
   title: string
 }) {
