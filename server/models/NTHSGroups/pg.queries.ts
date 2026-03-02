@@ -124,6 +124,87 @@ const getGroupByInviteCodeIR: any = {"usedParamSet":{"inviteCode":true},"params"
 export const getGroupByInviteCode = new PreparedQuery<IGetGroupByInviteCodeParams,IGetGroupByInviteCodeResult>(getGroupByInviteCodeIR);
 
 
+/** 'GetGroupById' parameters type */
+export interface IGetGroupByIdParams {
+  groupId: string;
+}
+
+/** 'GetGroupById' return type */
+export interface IGetGroupByIdResult {
+  createdAt: Date;
+  id: string;
+  inviteCode: string;
+  key: string;
+  name: string;
+}
+
+/** 'GetGroupById' query type */
+export interface IGetGroupByIdQuery {
+  params: IGetGroupByIdParams;
+  result: IGetGroupByIdResult;
+}
+
+const getGroupByIdIR: any = {"usedParamSet":{"groupId":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":102,"b":110}]}],"statement":"SELECT\n    id,\n    name,\n    KEY,\n    created_at,\n    invite_code\nFROM\n    nths_groups\nWHERE\n    id = :groupId!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     id,
+ *     name,
+ *     KEY,
+ *     created_at,
+ *     invite_code
+ * FROM
+ *     nths_groups
+ * WHERE
+ *     id = :groupId!
+ * ```
+ */
+export const getGroupById = new PreparedQuery<IGetGroupByIdParams,IGetGroupByIdResult>(getGroupByIdIR);
+
+
+/** 'GetNthsGroupAdminsContactInfo' parameters type */
+export interface IGetNthsGroupAdminsContactInfoParams {
+  groupId: string;
+}
+
+/** 'GetNthsGroupAdminsContactInfo' return type */
+export interface IGetNthsGroupAdminsContactInfoResult {
+  email: string;
+  firstName: string;
+  id: string;
+  nthsGroupId: string | null;
+}
+
+/** 'GetNthsGroupAdminsContactInfo' query type */
+export interface IGetNthsGroupAdminsContactInfoQuery {
+  params: IGetNthsGroupAdminsContactInfoParams;
+  result: IGetNthsGroupAdminsContactInfoResult;
+}
+
+const getNthsGroupAdminsContactInfoIR: any = {"usedParamSet":{"groupId":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":52,"b":60},{"a":245,"b":253}]}],"statement":"SELECT\n    u.id,\n    u.first_name,\n    u.email,\n    :groupId!::uuid AS nths_group_id\nFROM\n    nths_group_member_roles mr\n    JOIN nths_group_roles roles ON roles.id = mr.role_id\n    JOIN users u ON U.id = mr.user_id\nWHERE\n    mr.nths_group_id = :groupId!::uuid\n    AND roles.name = 'admin'"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     u.id,
+ *     u.first_name,
+ *     u.email,
+ *     :groupId!::uuid AS nths_group_id
+ * FROM
+ *     nths_group_member_roles mr
+ *     JOIN nths_group_roles roles ON roles.id = mr.role_id
+ *     JOIN users u ON U.id = mr.user_id
+ * WHERE
+ *     mr.nths_group_id = :groupId!::uuid
+ *     AND roles.name = 'admin'
+ * ```
+ */
+export const getNthsGroupAdminsContactInfo = new PreparedQuery<IGetNthsGroupAdminsContactInfoParams,IGetNthsGroupAdminsContactInfoResult>(getNthsGroupAdminsContactInfoIR);
+
+
 /** 'JoinGroupById' parameters type */
 export interface IJoinGroupByIdParams {
   groupId: string;
@@ -672,7 +753,7 @@ export interface IInsertNthsAdvisorResult {
   id: string;
   lastName: string;
   nthsGroupId: string;
-  phone: string | null;
+  phone: string;
   phoneExtension: string | null;
   schoolId: string | null;
   title: string;

@@ -42,6 +42,34 @@ WHERE
     invite_code = :inviteCode!;
 
 
+/* @name getGroupById */
+SELECT
+    id,
+    name,
+    KEY,
+    created_at,
+    invite_code
+FROM
+    nths_groups
+WHERE
+    id = :groupId!;
+
+
+/* @name getNTHSGroupAdminsContactInfo */
+SELECT
+    u.id,
+    u.first_name,
+    u.email,
+    :groupId!::uuid AS nths_group_id
+FROM
+    nths_group_member_roles mr
+    JOIN nths_group_roles roles ON roles.id = mr.role_id
+    JOIN users u ON U.id = mr.user_id
+WHERE
+    mr.nths_group_id = :groupId!::uuid
+    AND roles.name = 'admin';
+
+
 /* @name joinGroupById */
 INSERT INTO nths_group_members ("nths_group_id", "user_id", "title")
     VALUES (:groupId!, :userId!, :title!)
