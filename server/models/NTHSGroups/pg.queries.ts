@@ -755,7 +755,7 @@ export interface IInsertNthsAdvisorResult {
   id: string;
   lastName: string;
   nthsGroupId: string;
-  phone: string;
+  phone: string | null;
   phoneExtension: string | null;
   schoolId: string | null;
   title: string;
@@ -815,13 +815,24 @@ const addSchoolToSchoolAffiliationIR: any = {"usedParamSet":{"schoolId":true,"nt
 export const addSchoolToSchoolAffiliation = new PreparedQuery<IAddSchoolToSchoolAffiliationParams,IAddSchoolToSchoolAffiliationResult>(addSchoolToSchoolAffiliationIR);
 
 
-/** Query 'GetLatestNthsChapterStatus' is invalid, so its result is assigned type 'never'.
- *  */
-export type IGetLatestNthsChapterStatusResult = never;
+/** 'GetLatestNthsChapterStatus' parameters type */
+export interface IGetLatestNthsChapterStatusParams {
+  groupId: string;
+}
 
-/** Query 'GetLatestNthsChapterStatus' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IGetLatestNthsChapterStatusParams = never;
+/** 'GetLatestNthsChapterStatus' return type */
+export interface IGetLatestNthsChapterStatusResult {
+  createdAt: Date;
+  groupId: string;
+  statusId: number;
+  statusName: string;
+}
+
+/** 'GetLatestNthsChapterStatus' query type */
+export interface IGetLatestNthsChapterStatusQuery {
+  params: IGetLatestNthsChapterStatusParams;
+  result: IGetLatestNthsChapterStatusResult;
+}
 
 const getLatestNthsChapterStatusIR: any = {"usedParamSet":{"groupId":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":261,"b":269}]}],"statement":"WITH ranked_by_timestamp AS (\n    SELECT\n        nths_group_id AS group_id,\n        nths_chapter_status_id,\n        created_at,\n        ROW_NUMBER() OVER (ORDER BY created_at DESC) AS rn\n    FROM\n        nths_chapters_statuses\n    WHERE\n        nths_group_id = :groupId!\n    LIMIT 1\n)\nSELECT\n    cs.group_id,\n    cs.nths_chapter_status_id AS status_id,\n    cs.created_at,\n    statuses.name AS status_name\nFROM\n    ranked_by_timestamp cs\n    JOIN nths_chapter_statuses statuses ON statuses.id = cs.nths_chapter_status_id\nWHERE\n    cs.rn = 1"};
 
@@ -855,13 +866,25 @@ const getLatestNthsChapterStatusIR: any = {"usedParamSet":{"groupId":true},"para
 export const getLatestNthsChapterStatus = new PreparedQuery<IGetLatestNthsChapterStatusParams,IGetLatestNthsChapterStatusResult>(getLatestNthsChapterStatusIR);
 
 
-/** Query 'InsertStatusForNthsChapter' is invalid, so its result is assigned type 'never'.
- *  */
-export type IInsertStatusForNthsChapterResult = never;
+/** 'InsertStatusForNthsChapter' parameters type */
+export interface IInsertStatusForNthsChapterParams {
+  groupId: string;
+  statusName: string;
+}
 
-/** Query 'InsertStatusForNthsChapter' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IInsertStatusForNthsChapterParams = never;
+/** 'InsertStatusForNthsChapter' return type */
+export interface IInsertStatusForNthsChapterResult {
+  createdAt: Date;
+  groupId: string;
+  statusId: number;
+  statusName: string | null;
+}
+
+/** 'InsertStatusForNthsChapter' query type */
+export interface IInsertStatusForNthsChapterQuery {
+  params: IInsertStatusForNthsChapterParams;
+  result: IInsertStatusForNthsChapterResult;
+}
 
 const insertStatusForNthsChapterIR: any = {"usedParamSet":{"groupId":true,"statusName":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":86,"b":94}]},{"name":"statusName","required":true,"transform":{"type":"scalar"},"locs":[{"a":179,"b":190},{"a":294,"b":305}]}],"statement":"INSERT INTO nths_chapters_statuses (nths_group_id, nths_chapter_status_id)\nSELECT\n    :groupId!,\n    statuses.id\nFROM\n    nths_chapter_statuses statuses\nWHERE\n    statuses.name = :statusName!\nRETURNING\n    nths_group_id AS group_id,\n    nths_chapter_status_id AS status_id,\n    created_at,\n    :statusName! AS status_name"};
 
@@ -886,13 +909,23 @@ const insertStatusForNthsChapterIR: any = {"usedParamSet":{"groupId":true,"statu
 export const insertStatusForNthsChapter = new PreparedQuery<IInsertStatusForNthsChapterParams,IInsertStatusForNthsChapterResult>(insertStatusForNthsChapterIR);
 
 
-/** Query 'GetAllNthsGroupsWithStatus' is invalid, so its result is assigned type 'never'.
- *  */
-export type IGetAllNthsGroupsWithStatusResult = never;
+/** 'GetAllNthsGroupsWithStatus' parameters type */
+export type IGetAllNthsGroupsWithStatusParams = void;
 
-/** Query 'GetAllNthsGroupsWithStatus' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IGetAllNthsGroupsWithStatusParams = never;
+/** 'GetAllNthsGroupsWithStatus' return type */
+export interface IGetAllNthsGroupsWithStatusResult {
+  groupId: string;
+  schoolAffiliationStatusId: number;
+  schoolAffiliationStatusName: string;
+  statusId: number;
+  statusName: string;
+}
+
+/** 'GetAllNthsGroupsWithStatus' query type */
+export interface IGetAllNthsGroupsWithStatusQuery {
+  params: IGetAllNthsGroupsWithStatusParams;
+  result: IGetAllNthsGroupsWithStatusResult;
+}
 
 const getAllNthsGroupsWithStatusIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    groups.id AS group_id,\n    chapter_status.nths_chapter_status_id AS status_id,\n    chapter_statuses.name AS status_name,\n    school_aff.nths_school_affiliation_status_id AS school_affiliation_status_id,\n    school_aff_statuses.name AS school_affiliation_status_name\nFROM\n    nths_groups GROUPS\n    LEFT JOIN nths_chapters_statuses chapter_status ON chapter_status.nths_group_id = groups.id\n    LEFT JOIN nths_chapter_statuses chapter_statuses ON chapter_statuses.id = chapter_status.nths_chapter_status_id\n    LEFT JOIN nths_group_school_affiliation school_aff ON school_aff.nths_group_id = groups.id\n    LEFT JOIN nths_school_affiliation_statuses school_aff_statuses ON school_aff_statuses.id = school_aff.nths_school_affiliation_status_id"};
 
