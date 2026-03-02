@@ -127,7 +127,6 @@
     "pino-http": "^8.2.0",
     "posthog-node": "^4.0.0",
     "quill-delta": "^4.2.2",
-    "runtypes": "^4.2.0",
     "sharp": "^0.33.3",
     "socket.io": "^4.7.5",
     "swagger-ui-express": "^4.1.6",
