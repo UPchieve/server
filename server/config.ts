@@ -313,8 +313,9 @@ const config = {
   },
   bannedServiceProviders: bannedServiceProviders,
   awsS3: {
-    accessKeyId: 'AKIAXEK7WV6VWW2ZVFQA',
-    secretAccessKey: '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',
+    accessKeyId: process.env.SUBWAY_AWS_ACCESSKEY || 'ACCESSKEY123',
+    secretAccessKey:
+      process.env.SUBWAY_SECRET_ACCESS_KEY || 'SECRETACCESSKEY789',
     region: process.env.SUBWAY_AWS_REGION || 'us-east-2',
     photoIdBucket: process.env.SUBWAY_PHOTO_ID_BUCKET || 'photo-id-bucket',
     sessionPhotoBucket:
@@ -406,19 +407,16 @@ const config = {
   totalQuizQuestions: Number(process.env.TOTAL_QUIZ_QUESTIONS) || 10,
   minSessionLength: Number(process.env.SUBWAY_SESSION_MIN_LENGTH) || 60000,
 
-  openAIModelId: 'gpt-5.1-2025-11-13',
-  openAIApiKey:
-    'sk-svcacct-OskF6IsfdefdubMOGn5ZxW_VocTbn1HoHno-2wbsfL0C7p6AZSgBm12JTJdWEbq6-jET3BlbkFJa46Oh-Q1mVKt-8D6MH5X9uNFt2n-N0OaJgQdnHPrC0vRozkDOmFzqtB-EIZkQ_aURZAA',
-  subwayApiCredentials:
-    'muCJznhW0DbNIkdH96mO4kPxzDLRMKUVJhDJOLD8wbtWzCukxz29hMa0RaHCQmvo',
-  subwayAIVisionEndpoint: 'https://aivisionworks.cognitiveservices.azure.com/',
-  subwayAIVisionApiKey: '65149d35e2a44834aafbe8bb47ff2687',
+  openAIModelId: process.env.SUBWAY_OPEN_AI_MODEL_ID || 'bogus',
+  openAIApiKey: process.env.SUBWAY_OPEN_AI_API_KEY || 'bogus',
+  subwayApiCredentials: process.env.SUBWAY_API_CREDENTIALS || 'bogus',
+  subwayAIVisionEndpoint: process.env.SUBWAY_VISION_AI_ENDPOINT || 'bogus',
+  subwayAIVisionApiKey: process.env.SUBWAY_VISION_AI_API_KEY || 'bogus',
 
   // Langfuse
-  langfuseSecretKey: 'sk-lf-11f46d5b-2c3b-49d2-894d-8fed795450ca',
-  langfusePublicKey: 'pk-lf-52109dcc-2467-42d1-8c27-50e1fc49b110',
-  langfuseBaseUrl:
-    'https://langfuse-3a4rkavt5lhq6-app.blackwave-abfc8d40.centralus.azurecontainerapps.io',
+  langfuseSecretKey: process.env.SUBWAY_LANGFUSE_SECRET_KEY || 'bogus',
+  langfusePublicKey: process.env.SUBWAY_LANGFUSE_PUBLIC_KEY || 'bogus',
+  langfuseBaseUrl: process.env.SUBWAY_LANGFUSE_BASEURL || 'bogus',
 
   // Azure Content Safety
   azureContentSafetyApiKey:
@@ -475,8 +473,7 @@ const config = {
   awsBedrockSonnet4Id: process.env.SUBWAY_AWS_BEDROCK_SONNET_4_ID || 'bogus',
 
   // Zwibbler
-  zwibblerNodeUrl:
-    'https://upchievecdn.blob.core.windows.net/zwibbler/march2024/zwibbler-node.js',
+  zwibblerNodeUrl: process.env.ZWIBBLER_NODE_URL || 'bogus',
   slackAlertWebHookUrl: process.env.SUBWAY_SLACK_ALERT_WEBHOOK_URL || 'bogus',
 
   //Assembly AI
