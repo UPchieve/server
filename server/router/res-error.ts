@@ -10,6 +10,7 @@ import {
   AlreadyInNTHSGroupError,
   CannotRemoveSoleNTHSAdminError,
   NTHSGroupNameTakenError,
+  NTHSGroupAffiliationExistsError,
 } from '../models/Errors'
 import { RegistrationError, ResetError } from '../utils/auth-utils'
 import config from '../config'
@@ -48,6 +49,7 @@ export function resError(
     // bad input
     else if (err instanceof InputError) status = 422
     else if (err instanceof AlreadyInNTHSGroupError) status = 422
+    else if (err instanceof NTHSGroupAffiliationExistsError) status = 422
     else if (err instanceof NTHSGroupNameTakenError) status = 422
     else if (err instanceof CannotRemoveSoleNTHSAdminError) status = 422
     else if (err instanceof AlreadyInUseError) status = 409
