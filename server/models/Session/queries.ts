@@ -667,8 +667,10 @@ export type CurrentSessionUser = {
   pastSessions: Ulid[]
 }
 export type CurrentSession = {
-  _id: Ulid
-  id: Ulid
+  _id: Uuid
+  id: Uuid
+  studentId: Uuid
+  volunteerId?: Uuid
   subTopic: string
   type: string
   student: CurrentSessionUser
@@ -676,12 +678,13 @@ export type CurrentSession = {
   volunteerJoinedAt?: Date
   messages: MessageForFrontend[]
   endedAt?: Date
-  endedBy?: Ulid
+  endedBy?: Uuid
   toolType: string
   docEditorVersion?: number
   studentBannedFromLiveMedia?: boolean
   volunteerBannedFromLiveMedia?: boolean
   volunteerLanguages?: string[]
+  createdAt: Date
 }
 
 export type SessionInfoForUser = {
