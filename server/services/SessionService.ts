@@ -29,8 +29,11 @@ import { PushToken } from '../models/PushToken'
 import { getPushTokensByUserId } from '../models/PushToken'
 import * as TranscriptMessagesRepo from '../models/SessionAudioTranscriptMessages/queries'
 import {
+  CurrentSession,
+  EndedSession,
   GetSessionByIdResult,
   LatestSession,
+  Session,
   MessageForFrontend,
   SessionsToReview,
   SessionTranscript,
@@ -220,7 +223,7 @@ export async function endSession(
   isAdmin: boolean = false,
   socketService?: SocketService,
   identifiers?: sessionUtils.RequestIdentifier
-): Promise<CurrentSessionPublic> {
+): Promise<EndedSession> {
   const reqIdentifiers = identifiers
     ? sessionUtils.asRequestIdentifiers(identifiers)
     : undefined
@@ -292,7 +295,7 @@ export async function endSession(
     sessionId,
   })
 
-  return getCurrentSessionPublic(endedSession.id)
+  return endedSession
 }
 
 export async function getCurrentSessionPublic(
@@ -599,7 +602,7 @@ export async function startSession(
   data: sessionUtils.StartSessionData & {
     presessionSurvey?: SurveyService.SaveSurveyAndSubmissions
   }
-): Promise<CurrentSessionPublic> {
+) {
   const {
     subject,
     topic,
@@ -710,7 +713,10 @@ export async function startSession(
     { delay }
   )
 
-  return getCurrentSessionPublic(newSession.id)
+  return {
+    ...newSession,
+    docEditorVersion,
+  }
 }
 
 // TODO: Remove after midtown clean-up.
@@ -724,7 +730,6 @@ export async function currentSession(userId: Ulid) {
   const session = await SessionRepo.getCurrentSessionByUserId(userId)
   if (session) {
     await addDocEditorVersionTo(session)
-    return mapToCurrentSessionPublic(session)
   }
   return session
 }
@@ -773,7 +778,7 @@ export async function joinSession(
     userAgent?: string
     joinedFrom?: string
   }
-): Promise<CurrentSessionPublic> {
+): Promise<Session> {
   const session = await ensureCanJoinSession(user, sessionId)
 
   const sessionAnalyticsData = {
@@ -788,6 +793,7 @@ export async function joinSession(
   if (isInitialVolunteerJoin) {
     try {
       await SessionRepo.updateSessionVolunteerById(session.id, user.id)
+      session.volunteerId = user.id
       await SocketService.getInstance().emitSessionChange(session.id)
     } catch (err) {
       throw new Error('A volunteer has already joined the session.')
@@ -851,7 +857,7 @@ export async function joinSession(
     }
   }
 
-  return getCurrentSessionPublic(session.id)
+  return session
 }
 
 export async function ensureCanJoinSession(
@@ -1314,7 +1320,7 @@ export async function isZwibserveSession(sessionId: Uuid) {
 }
 
 function mapToSessionUserInfoPublic(data: {
-  id: string
+  id: Uuid
   firstName: string
   gradeLevel?: number
 }): SessionUserInfoPublic {
@@ -1327,10 +1333,10 @@ function mapToSessionUserInfoPublic(data: {
   }
 }
 
-function mapToCurrentSessionPublic(session: {
-  id: Ulid
-  studentId: Ulid
-  volunteerId?: Ulid
+export function mapToCurrentSessionPublic(session: {
+  id: Uuid
+  studentId: Uuid
+  volunteerId?: Uuid
   student: SessionUserInfoPublic
   volunteer?: SessionUserInfoPublic
   volunteerJoinedAt?: Date
@@ -1342,7 +1348,7 @@ function mapToCurrentSessionPublic(session: {
   volunteerLanguages?: string[]
   type: string
   subTopic: string
-  endedByUserId?: Ulid
+  endedByUserId?: Uuid
   createdAt: Date
   endedAt?: Date
   endedBy?: Uuid
