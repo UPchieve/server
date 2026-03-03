@@ -145,3 +145,11 @@ export class CannotRemoveSoleNTHSAdminError extends CustomError {
     super('Cannot remove the only existing admin of a group')
   }
 }
+
+export class NTHSGroupAffiliationExistsError extends CustomError {
+  constructor() {
+    super(
+      'An NTHS Group is already affiliated with this school. Contact nths@upchieve.org for assistance.'
+    )
+  }
+}

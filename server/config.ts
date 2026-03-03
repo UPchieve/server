@@ -1,7 +1,4 @@
 // Server configuration
-
-import { Static } from 'runtypes'
-import { Config } from './config-type'
 import { stringToBoolean } from './utils/string-to-boolean'
 
 let redisConnectionString: string
@@ -18,7 +15,7 @@ const bannedServiceProviderList =
   process.env.SUBWAY_BANNED_SERVICE_PROVIDERS || 'Example'
 const bannedServiceProviders = bannedServiceProviderList.split(',')
 
-const config: Static<typeof Config> = {
+const config = {
   NODE_ENV: process.env.NODE_ENV || 'dev',
   SSL_CERT_PATH: '',
   // set host to your public IP address to test Twilio voice calling
@@ -265,6 +262,7 @@ const config: Static<typeof Config> = {
   twilioVerificationRateLimitIntervalSeconds:
     Number(process.env.SUBWAY_TWILIO_VERIFICATION_RATELIMIT_INTERVAL_SECONDS) ||
     60,
+  twilioMessageServiceId: process.env.SUBWAY_TWILIO_MESSAGE_SERVICE_ID || '',
   notificationSchedule: [
     // Minute 1 (the time after a session request is made)
     1 * 60 * 1000,
@@ -480,6 +478,6 @@ const config: Static<typeof Config> = {
 
   //Assembly AI
   assemblyAiApiKey: process.env.ASSEMBLY_AI_API_KEY || 'youHeard',
-}
-module.exports = config
+} as const
+
 export default config

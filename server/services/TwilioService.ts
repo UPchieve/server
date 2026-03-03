@@ -91,7 +91,7 @@ export async function sendTextMessage(
 
     const message = await twilioClient.messages.create({
       to: fullPhoneNumber,
-      from: config.sendingNumber,
+      from: config.twilioMessageServiceId,
       body: messageText,
     })
     return message.sid

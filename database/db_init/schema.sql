@@ -1,3 +1,8 @@
+\restrict reXMdA5rDnJk1lrozHd2X0K4RBuOuarOzhqzIO9tifbzya8bW6TdTDYx7Ha9ZB7
+
+-- Dumped from database version 14.21 (Debian 14.21-1.pgdg13+1)
+-- Dumped by pg_dump version 14.20 (Ubuntu 14.20-0ubuntu0.22.04.1)
+
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -1051,7 +1056,7 @@ CREATE TABLE upchieve.nths_advisors (
     first_name text NOT NULL,
     last_name text NOT NULL,
     email text NOT NULL,
-    phone text NOT NULL,
+    phone text,
     phone_extension text,
     title text NOT NULL,
     verified boolean DEFAULT false NOT NULL,
@@ -3369,12 +3374,6 @@ ALTER TABLE ONLY upchieve.moderation_actions ALTER COLUMN id SET DEFAULT nextval
 
 ALTER TABLE ONLY upchieve.moderation_categories ALTER COLUMN id SET DEFAULT nextval('upchieve.moderation_categories_id_seq'::regclass);
 
---
--- Name: moderation_rules moderation_rules_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.moderation_rules
-    ADD CONSTRAINT moderation_rules_pkey PRIMARY KEY (id);
 
 --
 -- Name: moderation_rules id; Type: DEFAULT; Schema: upchieve; Owner: -
@@ -3884,6 +3883,14 @@ ALTER TABLE ONLY upchieve.moderation_penalty_config
 
 ALTER TABLE ONLY upchieve.moderation_rules
     ADD CONSTRAINT moderation_rules_name_key UNIQUE (name);
+
+
+--
+-- Name: moderation_rules moderation_rules_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.moderation_rules
+    ADD CONSTRAINT moderation_rules_pkey PRIMARY KEY (id);
 
 
 --
@@ -4924,6 +4931,14 @@ ALTER TABLE ONLY upchieve.nths_groups
 
 ALTER TABLE ONLY upchieve.nths_groups
     ADD CONSTRAINT unique_name UNIQUE (name);
+
+
+--
+-- Name: nths_group_school_affiliation unique_school_id; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_group_school_affiliation
+    ADD CONSTRAINT unique_school_id UNIQUE (school_id);
 
 
 --
@@ -7172,6 +7187,8 @@ ALTER TABLE ONLY upchieve.volunteer_references
 -- PostgreSQL database dump complete
 --
 
+\unrestrict reXMdA5rDnJk1lrozHd2X0K4RBuOuarOzhqzIO9tifbzya8bW6TdTDYx7Ha9ZB7
+
 
 --
 -- Dbmate schema migrations
@@ -7439,4 +7456,6 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260219151836'),
     ('20260219154022'),
     ('20260225150417'),
-    ('20260225150603');
+    ('20260225150603'),
+    ('20260227183500'),
+    ('20260302173903');
