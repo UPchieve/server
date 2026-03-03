@@ -1,4 +1,4 @@
-\restrict 2mfwTLROlq7tUpPn0jHFLrC71HpbsnnQ4i4kErS2dk8robt1Ei4yd9XKObovIoY
+\restrict IlStJtVz02YZ2vnLPuKrC9s7UWYyOSpWH5cv2A0sRwalR6YdJngq4Qj7cBT0hrr
 
 -- Dumped from database version 14.21 (Debian 14.21-1.pgdg13+1)
 -- Dumped by pg_dump version 14.19 (Homebrew)
@@ -5313,7 +5313,7 @@ CREATE INDEX nths_chapters_statuses_created_at_index ON upchieve.nths_chapter_st
 -- Name: nths_chapters_statuses_group_createdat_idx; Type: INDEX; Schema: upchieve; Owner: -
 --
 
-CREATE INDEX nths_chapters_statuses_group_createdat_idx ON upchieve.nths_chapters_statuses USING btree (nths_group_id, created_at);
+CREATE INDEX nths_chapters_statuses_group_createdat_idx ON upchieve.nths_chapters_statuses USING btree (nths_group_id, created_at DESC);
 
 
 --
@@ -7194,7 +7194,7 @@ ALTER TABLE ONLY upchieve.volunteer_references
 -- PostgreSQL database dump complete
 --
 
-\unrestrict 2mfwTLROlq7tUpPn0jHFLrC71HpbsnnQ4i4kErS2dk8robt1Ei4yd9XKObovIoY
+\unrestrict IlStJtVz02YZ2vnLPuKrC9s7UWYyOSpWH5cv2A0sRwalR6YdJngq4Qj7cBT0hrr
 
 
 --
