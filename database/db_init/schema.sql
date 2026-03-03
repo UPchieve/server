@@ -4934,6 +4934,14 @@ ALTER TABLE ONLY upchieve.nths_groups
 
 
 --
+-- Name: nths_group_school_affiliation unique_school_id; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_group_school_affiliation
+    ADD CONSTRAINT unique_school_id UNIQUE (school_id);
+
+
+--
 -- Name: users_ip_addresses unique_user_id_ip_address_id; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -7449,4 +7457,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260219154022'),
     ('20260225150417'),
     ('20260225150603'),
-    ('20260227183500');
+    ('20260227183500'),
+    ('20260302173903');
