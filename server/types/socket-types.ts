@@ -53,7 +53,14 @@ export type ClientToServerEvents = {
     banType: USER_BAN_TYPES
   }) => void
   addPartnerLiveMediaBan: (data: { sessionId: string }) => void
-  partner_joined_live_media: (data: { sessionId: string }) => void
+  partnerJoinedLiveMedia: (data: { sessionId: string }) => void
+  partialAudioTranscription: (data: {
+    text: string
+    msgId: string
+    userType: string
+    user: Ulid
+    sessionId: Ulid
+  }) => void
 }
 
 export type ServerToClientEvents = {
@@ -91,7 +98,14 @@ export type ServerToClientEvents = {
   }) => void
   partnerImageUploadSuccess: () => void
   partnerAckLiveMediaBan: (data: { isBanned: boolean }) => void
-  partner_joined_live_media: () => void
+  partnerJoinedLiveMedia: () => void
+  partnerPartialAudioTranscription: (data: {
+    text: string
+    msgId: string
+    userType: string
+    user: Ulid
+    sessionId: Ulid
+  }) => void
 }
 
 export type InterServerEvents = {}
