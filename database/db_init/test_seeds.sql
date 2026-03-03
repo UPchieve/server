@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict CZ4Xfr0iJkUtVFCw7S1UyUW8bQZxGlN90PTWIkup2JWmQNtp5Qc6eyvTgbNyZQw
+\restrict baBGaSPC2FRtBcJ2zr7jQV4uJDBrepQalrWImqQmA4Nfvm5nlExROqIEP7M7XPK
 
 -- Dumped from database version 14.21 (Debian 14.21-1.pgdg13+1)
 -- Dumped by pg_dump version 14.19 (Homebrew)
@@ -8786,6 +8786,14 @@ COPY upchieve.users_roles (user_id, role_id, created_at, updated_at) FROM stdin;
 
 
 --
+-- Data for Name: users_schools; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.users_schools (user_id, school_id, association_type, created_at, updated_at) FROM stdin;
+\.
+
+
+--
 -- Data for Name: users_student_partner_orgs_instances; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
@@ -9231,5 +9239,5 @@ SELECT pg_catalog.setval('upchieve.weekdays_id_seq', 1, false);
 -- PostgreSQL database dump complete
 --
 
-\unrestrict CZ4Xfr0iJkUtVFCw7S1UyUW8bQZxGlN90PTWIkup2JWmQNtp5Qc6eyvTgbNyZQw
+\unrestrict baBGaSPC2FRtBcJ2zr7jQV4uJDBrepQalrWImqQmA4Nfvm5nlExROqIEP7M7XPK
 
