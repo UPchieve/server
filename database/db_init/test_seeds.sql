@@ -2,10 +2,10 @@
 -- PostgreSQL database dump
 --
 
-\restrict FoOnSqcwEBifFbQCrxMd1p1ZjZizqa0OuZ5m2PXjEB16hHsTiDAof6MVfg0HfP9
+\restrict CZ4Xfr0iJkUtVFCw7S1UyUW8bQZxGlN90PTWIkup2JWmQNtp5Qc6eyvTgbNyZQw
 
 -- Dumped from database version 14.21 (Debian 14.21-1.pgdg13+1)
--- Dumped by pg_dump version 14.20 (Ubuntu 14.20-0ubuntu0.22.04.1)
+-- Dumped by pg_dump version 14.19 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -9231,5 +9231,5 @@ SELECT pg_catalog.setval('upchieve.weekdays_id_seq', 1, false);
 -- PostgreSQL database dump complete
 --
 
-\unrestrict FoOnSqcwEBifFbQCrxMd1p1ZjZizqa0OuZ5m2PXjEB16hHsTiDAof6MVfg0HfP9
+\unrestrict CZ4Xfr0iJkUtVFCw7S1UyUW8bQZxGlN90PTWIkup2JWmQNtp5Qc6eyvTgbNyZQw
 
