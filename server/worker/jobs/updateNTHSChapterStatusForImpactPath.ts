@@ -105,7 +105,11 @@ export default async function (job: Job<UpdateNTHSChapterStatusJobData>) {
   }
   await NTHSService.insertNthsChapterStatus(nthsGroupId, newChapterStatusName)
   if (newChapterStatusName === 'OFFICIAL') {
-    const chapterName = (await NTHSService.getNTHSGroupByID(nthsGroupId)).name
+    const nthsChapter = await NTHSService.getNTHSGroupByID(nthsGroupId)
+    if (!nthsChapter) {
+      throw new Error(`Could not find NTHS group with ID ${nthsGroupId}`)
+    }
+    const chapterName = nthsChapter.name
     const emailRecipients = await getChapterAdminsContactInfo(nthsGroupId)
     await MailService.sendNTHSChapterOfficialStatusNotification(
       emailRecipients,

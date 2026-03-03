@@ -100,13 +100,12 @@ export async function getGroupByInviteCode(
 export async function getGroupById(
   groupId: Ulid,
   tc: TransactionClient = getRoClient()
-): Promise<NTHSGroup> {
+): Promise<NTHSGroup | undefined> {
   try {
     const results = await pgQueries.getGroupById.run({ groupId }, tc)
-    if (!results.length) {
-      throw new Error(`No NTHS group exists with the ID ${groupId}`)
+    if (results.length) {
+      return makeRequired(results[0])
     }
-    return makeRequired(results[0])
   } catch (err) {
     throw new RepoReadError(err)
   }

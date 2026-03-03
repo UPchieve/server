@@ -109,7 +109,7 @@ export async function getNTHSGroupByInviteCode(
 export async function getNTHSGroupByID(
   groupId: Ulid,
   tc: TransactionClient = getRoClient()
-): Promise<NTHSGroup> {
+): Promise<NTHSGroup | undefined> {
   return await NTHSGroupsRepo.getGroupById(groupId, tc)
 }
 
