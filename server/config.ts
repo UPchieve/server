@@ -262,6 +262,7 @@ const config = {
   twilioVerificationRateLimitIntervalSeconds:
     Number(process.env.SUBWAY_TWILIO_VERIFICATION_RATELIMIT_INTERVAL_SECONDS) ||
     60,
+  twilioMessageServiceId: process.env.SUBWAY_TWILIO_MESSAGE_SERVICE_ID || '',
   notificationSchedule: [
     // Minute 1 (the time after a session request is made)
     1 * 60 * 1000,
