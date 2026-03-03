@@ -31,13 +31,9 @@ const createClient = (): ChimeSDKMeetingsClient => {
 }
 
 let client: ChimeSDKMeetingsClient = createClient()
-
-export function getMediaPipelinesClient() {
-  if (!mediaPipelinesClient) mediaPipelinesClient = createMediaPipelinesClient()
-  return mediaPipelinesClient
-}
-
-const createMediaPipelinesClient = (): ChimeSDKMediaPipelinesClient => {
+const mediaPipelinesClient: ChimeSDKMediaPipelinesClient =
+  createMediaPipelinesClient()
+function createMediaPipelinesClient(): ChimeSDKMediaPipelinesClient {
   return new ChimeSDKMediaPipelinesClient({
     region: config.awsChimeRegion,
     credentials: {
@@ -45,56 +41,6 @@ const createMediaPipelinesClient = (): ChimeSDKMediaPipelinesClient => {
       secretAccessKey: config.awsChimeSecretAccessKey,
     },
   })
-}
-
-let mediaPipelinesClient: ChimeSDKMediaPipelinesClient =
-  createMediaPipelinesClient()
-
-async function startMediaConcatenation(
-  mediaCapturePipelineArn: string,
-  meetingId: string
-): Promise<string | false> {
-  const createConcatPipelineParams: CreateMediaConcatenationPipelineCommandInput =
-    {
-      Sinks: [
-        {
-          S3BucketSinkConfiguration: {
-            Destination: config.awsChimeMeetingRecordingBucketArn,
-          },
-          Type: 'S3Bucket',
-        },
-      ],
-      Sources: [
-        {
-          MediaCapturePipelineSourceConfiguration: {
-            ChimeSdkMeetingConfiguration: {
-              ArtifactsConfiguration: {
-                Audio: { State: 'Enabled' },
-                CompositedVideo: { State: 'Enabled' },
-                Content: { State: 'Disabled' },
-                DataChannel: { State: 'Enabled' },
-                MeetingEvents: { State: 'Enabled' },
-                TranscriptionMessages: { State: 'Enabled' },
-                Video: { State: 'Disabled' },
-              },
-            },
-            MediaPipelineArn: mediaCapturePipelineArn,
-          },
-          Type: 'MediaCapturePipeline',
-        },
-      ],
-    }
-  try {
-    const location = await getMediaPipelinesClient().send(
-      new CreateMediaConcatenationPipelineCommand(createConcatPipelineParams)
-    )
-    return location.MediaConcatenationPipeline?.MediaPipelineId ?? false
-  } catch (error) {
-    logger.error(
-      `Creating media pipeline failed for meetingId ${meetingId}: ${error}`
-    )
-    return false
-  }
 }
 
 export async function startRecording(meetingId: string): Promise<string> {
@@ -107,7 +53,7 @@ export async function startRecording(meetingId: string): Promise<string> {
             ContentShareLayout: 'PresenterOnly',
           },
           Layout: 'GridView',
-          Resolution: 'FHD',
+          Resolution: 'HD',
         },
         Content: { State: 'Disabled' },
         Video: { State: 'Disabled' },
@@ -120,33 +66,24 @@ export async function startRecording(meetingId: string): Promise<string> {
     Tags: [{ Key: 'transcription-for-comprehend', Value: 'true' }],
   }
   try {
-    const createMediaCapturePipelineResponse: CreateMediaCapturePipelineCommandOutput =
-      await getMediaPipelinesClient().send(
+    const response: CreateMediaCapturePipelineCommandOutput =
+      await mediaPipelinesClient.send(
         new CreateMediaCapturePipelineCommand(createPipelineParams)
       )
-    const mediaPipelineArn =
-      createMediaCapturePipelineResponse.MediaCapturePipeline?.MediaPipelineArn
-
-    if (mediaPipelineArn) {
-      const recordingId = await startMediaConcatenation(
-        mediaPipelineArn,
-        meetingId
-      )
-      if (!recordingId) throw new Error('Failed to start media concatenation')
-
-      return recordingId
-    } else {
-      logger.error(
-        'No media pipeline ARN returned from createMediaCapturePipeline'
-      )
-      throw 'No media pipeline ARN returned from createMediaCapturePipeline'
+    const mediaPipelineId = response.MediaCapturePipeline?.MediaPipelineId
+    if (!mediaPipelineId) {
+      throw new Error('Error starting recording for Chime Meeting')
     }
-  } catch (error) {
-    logger.error(`Error starting recording for meetingID: ${meetingId}:`, {
-      error,
-      meetingId,
-    })
-    throw error
+    return mediaPipelineId
+  } catch (err) {
+    logger.error(
+      {
+        err,
+        meetingId,
+      },
+      `Error starting recording for Chime meeting`
+    )
+    throw err
   }
 }
 

@@ -272,8 +272,9 @@ export async function startRecording(
   const existingMeeting =
     await SessionMeetingsRepo.getSessionMeetingBySessionId(sessionId, client)
 
-  if (!existingMeeting)
+  if (!existingMeeting) {
     throw new Error(`Meeting for session ${sessionId} not found`)
+  }
 
   if (existingMeeting?.recordingId) {
     return existingMeeting.recordingId
