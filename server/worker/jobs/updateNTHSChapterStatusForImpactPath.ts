@@ -8,6 +8,7 @@ import {
   NTHSGroupMemberWithRole,
 } from '../../models/NTHSGroups'
 import logger from '../../logger'
+import * as MailService from '../../services/MailService'
 
 const logPrefix = `NTHS Impact Path Chapter Status: `
 
@@ -22,6 +23,12 @@ export type UpdateNTHSChapterStatusJobData = {
  */
 export default async function (job: Job<UpdateNTHSChapterStatusJobData>) {
   const nthsGroupId = job.data.nthsGroupId
+  logger.info(
+    {
+      groupId: nthsGroupId,
+    },
+    `${logPrefix}Checking NTHS impact path status for chapter`
+  )
   // At compile time, these are dates, but they are date strings at runtime
   // Convert back to dates here so we can make use of the Date APIs without throwing runtime errors.
   const periodStart = new Date(job.data.periodStart)
@@ -41,6 +48,12 @@ export default async function (job: Job<UpdateNTHSChapterStatusJobData>) {
   )
   const readyToCoachMembers = alltimeMembers.filter((member) =>
     readyToCoachUserIds.has(member.userId)
+  )
+  logger.info(
+    {
+      groupId: nthsGroupId,
+    },
+    `${logPrefix}Found ${readyToCoachUserIds.size} ready-to-coach members of NTHS chapter`
   )
 
   // Check if at least 6 of them did 1 session during the period of [t1, t2]
@@ -68,6 +81,13 @@ export default async function (job: Job<UpdateNTHSChapterStatusJobData>) {
 
   const newChapterStatusName: NTHSChapterStatusName =
     eligibleMembers.length >= 6 ? 'OFFICIAL' : 'PENDING'
+  logger.info(
+    {
+      groupId: nthsGroupId,
+      newChapterStatus: newChapterStatusName,
+    },
+    `${logPrefix}Counted ${eligibleMembers.length} eligible members for impact path for NTHS chapter`
+  )
   const previousChapterStatus =
     await NTHSService.getLatestNthsChapterStatus(nthsGroupId)
   if (
@@ -84,5 +104,32 @@ export default async function (job: Job<UpdateNTHSChapterStatusJobData>) {
     return
   }
   await NTHSService.insertNthsChapterStatus(nthsGroupId, newChapterStatusName)
-  // @TODO Emit emails.
+  if (newChapterStatusName === 'OFFICIAL') {
+    const nthsChapter = await NTHSService.getNTHSGroupByID(nthsGroupId)
+    if (!nthsChapter) {
+      throw new Error(`Could not find NTHS group with ID ${nthsGroupId}`)
+    }
+    const chapterName = nthsChapter.name
+    const emailRecipients = await getChapterAdminsContactInfo(nthsGroupId)
+    await MailService.sendNTHSChapterOfficialStatusNotification(
+      emailRecipients,
+      chapterName
+    )
+    logger.info(
+      {
+        countUsersNotified: emailRecipients.length,
+        groupId: nthsGroupId,
+      },
+      `${logPrefix}Sent chapter official notification to NTHS chapter admins`
+    )
+  }
+}
+
+async function getChapterAdminsContactInfo(nthsGroupId: Ulid): Promise<
+  {
+    firstName: string
+    email: string
+  }[]
+> {
+  return await NTHSService.getNTHSGroupAdminsContactInfo(nthsGroupId)
 }

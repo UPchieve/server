@@ -28,6 +28,7 @@ import type {
 } from './types'
 import { camelCaseKeys } from '../../tests/db-utils'
 import logger from '../../logger'
+import { getNTHSGroupByID } from '../../services/NTHSGroupsService'
 
 export async function getGroupsByUser(
   userId: Ulid,
@@ -91,6 +92,46 @@ export async function getGroupByInviteCode(
       tc
     )
     return results.map(makeRequired)[0]
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getGroupById(
+  groupId: Ulid,
+  tc: TransactionClient = getRoClient()
+): Promise<NTHSGroup | undefined> {
+  try {
+    const results = await pgQueries.getGroupById.run({ groupId }, tc)
+    if (results.length) {
+      return makeRequired(results[0])
+    }
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getGroupAdminsContactInfo(
+  groupId: Ulid,
+  tc: TransactionClient = getRoClient()
+): Promise<
+  {
+    nthsGroupId: Ulid
+    firstName: string
+    email: string
+  }[]
+> {
+  try {
+    const results = await pgQueries.getNthsGroupAdminsContactInfo.run(
+      {
+        groupId,
+      },
+      tc
+    )
+    if (!results.length) {
+      throw new Error(`Missing admins for NTHS group ${groupId}`)
+    }
+    return results.map((row) => makeRequired(row))
   } catch (err) {
     throw new RepoReadError(err)
   }
