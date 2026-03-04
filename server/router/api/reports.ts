@@ -23,6 +23,7 @@ export function routeReports(router: expressWs.Router): void {
   router.get(
     '/reports/usage-report',
     authPassport.isAdmin,
+    timeout('90000'), // 90s — must stay under Cloudflare's 100s proxy limit
     async function (req, res) {
       try {
         const students = await ReportService.usageReport(req.query as unknown)
