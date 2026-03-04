@@ -49,6 +49,7 @@ import {
   TextableVolunteer,
   UserQuiz,
   VolunteersForAnalyticsReport,
+  VolunteerWithReadyToCoachInfo,
 } from '../../models/Volunteer'
 import { SubjectAndTopic } from '../../models/Subjects'
 import { UserProductFlags } from '../../models/UserProductFlags'
@@ -58,6 +59,7 @@ import { ModerationInfraction } from '../../models/ModerationInfractions/types'
 import { SessionAudioTranscriptMessage } from '../../models/SessionAudioTranscriptMessages/types'
 import { RoleContext } from '../../services/UserRolesService'
 import { UserSessionMetrics } from '../../models/UserSessionMetrics'
+import { NTHSGroup, NTHSGroupMemberWithRole } from '../../models/NTHSGroups'
 
 export function getEmail(): string {
   return faker.internet.email().toLowerCase()
@@ -934,5 +936,44 @@ export function buildUserQuiz(
     createdAt: new Date(),
     updatedAt: new Date(),
     ...overrides,
+  }
+}
+
+export function buildNTHSGroupMemberWithRole(
+  overrides: Partial<NTHSGroupMemberWithRole> = {}
+): NTHSGroupMemberWithRole {
+  return {
+    nthsGroupId: getDbUlid(),
+    userId: getDbUlid(),
+    title: 'Member',
+    joinedAt: new Date(),
+    updatedAt: new Date(),
+    firstName: faker.person.firstName(),
+    lastInitial: faker.person.lastName().charAt(0),
+    roleName: 'member',
+    ...overrides,
+  }
+}
+
+export function buildVolunteerWithReadyToCoachInfo(
+  overrides: Partial<VolunteerWithReadyToCoachInfo> = {}
+): VolunteerWithReadyToCoachInfo {
+  return {
+    id: getDbUlid(),
+    isApproved: true,
+    isOnboarded: true,
+    isReadyToCoach: true,
+    banType: null,
+    ...overrides,
+  }
+}
+
+export function buildNTHSGroup(overrides: Partial<NTHSGroup> = {}): NTHSGroup {
+  return {
+    id: getDbUlid(),
+    name: 'NTHS Test Chapter',
+    key: 'nths-test-chapter',
+    createdAt: new Date(),
+    inviteCode: faker.string.alpha({ length: 6 }),
   }
 }

@@ -113,6 +113,10 @@ export default async function (job: Job<UpdateNTHSChapterStatusJobData>) {
     return
   }
   await NTHSService.insertNthsChapterStatus(nthsGroupId, newChapterStatusName)
+  logger.info(
+    { groupId: nthsGroupId, status: newChapterStatusName },
+    `${logPrefix}Chapter status has been updated to ${newChapterStatusName}`
+  )
   if (newChapterStatusName === 'OFFICIAL') {
     const nthsChapter = await NTHSService.getNTHSGroupByID(nthsGroupId)
     if (!nthsChapter) {
@@ -130,14 +134,6 @@ export default async function (job: Job<UpdateNTHSChapterStatusJobData>) {
         groupId: nthsGroupId,
       },
       `${logPrefix}Sent chapter official notification to NTHS chapter admins`
-    )
-  } else {
-    logger.info(
-      {
-        groupId: nthsGroupId,
-        status: newChapterStatusName,
-      },
-      `${logPrefix}Chapter status has changed to ${newChapterStatusName}`
     )
   }
 }
