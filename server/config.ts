@@ -115,7 +115,8 @@ const config = {
     volunteerPositiveStudentFeedback: 'd-a8ebf5652afc4a6e97e8f582abc172e4',
     downloadCertificateTemplate: 'd-708608ba2c6c4e04a2b2902fdc5ecf50',
     ambassadorCongratsTemplate: 'd-1c344164434544e4962ec2a125d647cf',
-    onboardingBackfillReadyToCoachEmail: 'd-7cf98c7f80aa4a02b8cf96da19a73f36',
+    nthsChapterBecameOfficialImpactPathEmail:
+      'd-781878be86f94e6c9ce3fbc7d336d6bd',
     unsubscribeGroup: {
       newsletter: 12567,
       account: 12570,
@@ -423,16 +424,12 @@ const config = {
   // Moderation
   liveMediaBanInfractionScoreThreshold:
     Number(process.env.SUBWAY_LIVE_MEDIA_BAN_INFRACTION_SCORE_THRESHOLD) || 10,
-  imageModerationMinConfidence:
-    Number(process.env.IMAGE_MODERATION_CONFIDENCE_THRESHOLD) || 70,
-  toxicityModerationMinConfidence:
-    Number(process.env.TOXICITY_MODERATION_CONFIDENCE_THRESHOLD) || 0.8,
-  phoneNumberModerationConfidenceThreshold:
-    Number(process.env.PHONE_NUMBER_MODERATION_CONFIDENCE_THRESHOLD) || 0.9,
+  imageModerationMinConfidence: 70,
+  toxicityModerationMinConfidence: 0.8,
+  phoneNumberModerationConfidenceThreshold: 0.9,
   contextualModerationConfidenceThreshold:
-    Number(process.env.CONTEXTUAL_MODERATION_CONFIDENCE_THRESHOLD) || 50,
-  emailModerationConfidenceThreshold:
-    Number(process.env.EMAIL_MODERATION_CONFIDENCE_THRESHOLD) || 0.8,
+    Number(process.env.CONTEXTUAL_MODERATION_CONFIDENCE_THRESHOLD) || 90,
+  emailModerationConfidenceThreshold: 0.8,
   moderateMessageTimeLimitMs:
     Number(process.env.MODERATE_MESSAGE_TIME_LIMIT_MS) || 5 * 1000,
   contextualModerationBatchSize:
