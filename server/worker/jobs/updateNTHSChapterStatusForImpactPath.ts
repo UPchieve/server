@@ -47,7 +47,12 @@ export default async function (job: Job<UpdateNTHSChapterStatusJobData>) {
     )
   const readyToCoachUserIds = new Set<Ulid>(
     readyToCoachInfo
-      .filter((coach) => coach.isReadyToCoach)
+      .filter(
+        (coach) =>
+          coach.isReadyToCoach &&
+          coach.banType !== 'complete' &&
+          coach.banType !== 'shadow'
+      )
       .map((coach) => coach.id)
   )
   const readyToCoachMembers = alltimeMembers.filter((member) =>

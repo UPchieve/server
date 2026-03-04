@@ -1695,7 +1695,8 @@ SELECT
 SELECT
     u.id,
     vp.onboarded AS is_onboarded,
-    vp.approved AS is_approved
+    vp.approved AS is_approved,
+    u.ban_type
 FROM
     users u
     JOIN volunteer_profiles vp ON vp.user_id = u.id
