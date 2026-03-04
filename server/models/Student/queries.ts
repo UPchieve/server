@@ -394,7 +394,10 @@ async function adminUpdateStudentPartnerOrgInstance(
     /**
      *
      * TODO: Remove once the use of `student_partner_org_id` on the `student_profile` table
-     *       is no longer needed. This is legacy and is currently here to achieve dual writes
+     *       is no longer needed. This is legacy and is currently here to achieve dual writes.
+     *
+     *       Similarly, we should still set student_profile.school_id for now but eventually
+     *       the source of truth should be users_schools.
      *
      */
     await pgQueries.adminUpdateStudentProfile.run(
@@ -470,7 +473,7 @@ async function adminUpdateStudentPartnerOrgInstance(
   }
 }
 
-export async function adminUpdateStudent(
+export async function adminUpdateStudent( // @TODO users_schools migration: Move this into a service method, and update users_schools as needed
   studentId: Ulid,
   update: AdminUpdateStudent,
   tc?: TransactionClient
