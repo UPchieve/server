@@ -134,7 +134,6 @@ async function deidentifyRows(
     }
   }
 
-  // @TODO users_schools migration: Update me!
   await tc.query(
     `UPDATE student_profiles SET
     college = null,
@@ -166,6 +165,13 @@ async function deidentifyRows(
     `UPDATE teacher_profiles SET
     school_id = null,
     last_successful_clever_sync = null,
+    updated_at = NOW()
+    WHERE user_id = $1`,
+    [userId]
+  )
+  await tc.query(
+    `UPDATE users_schools SET
+    school_id = null,
     updated_at = NOW()
     WHERE user_id = $1`,
     [userId]

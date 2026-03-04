@@ -18,6 +18,7 @@ import {
   sendStudentParentGuardianCreatedAccountEmail,
 } from './MailService'
 import * as UserRepo from '../models/User'
+import * as UsersSchoolsRepo from '../models/UsersSchools'
 import * as StudentRepo from '../models/Student'
 import * as StudentPartnerOrgRepo from '../models/StudentPartnerOrg'
 import { createUPFByUserId } from '../models/UserProductFlags'
@@ -483,6 +484,14 @@ export async function upsertStudent(
     }
 
     await StudentRepo.upsertStudentProfile(studentData, tc)
+    if (studentData.schoolId) {
+      await UsersSchoolsRepo.upsertUsersSchool(
+        studentData.userId,
+        studentData.schoolId,
+        'student_at_school',
+        tc
+      )
+    }
 
     async function addUserStudentPartnerOrgInstance(
       spo: GetStudentPartnerOrgResult

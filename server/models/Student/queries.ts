@@ -546,12 +546,15 @@ export async function createStudentProfile(
   }
 }
 
+/**
+ * @important - When upserting the student's school, be sure to also upsert to users_schools.
+ * @deprecated student_profiles.school_id - We will eventually drop this column in favor of users_schools
+ */
 export async function upsertStudentProfile(
   studentData: CreateStudentProfilePayload,
   tc: TransactionClient
 ) {
   try {
-    // @TODO users_schools migration: Update me to also upsert to users_schools!
     const result = await pgQueries.upsertStudentProfile.run(
       {
         userId: studentData.userId,

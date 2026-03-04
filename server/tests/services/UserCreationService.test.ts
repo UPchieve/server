@@ -39,6 +39,7 @@ jest.mock('../../services/ReferralService')
 jest.mock('../../services/MailService')
 jest.mock('../../services/TeacherService')
 jest.mock('../../utils/auth-utils')
+jest.mock('../../models/UsersSchools')
 
 const mockedUserRepo = mocked(UserRepo)
 const mockedStudentRepo = mocked(StudentRepo)
