@@ -1,5 +1,5 @@
 import crypto from 'crypto'
-import { merge, omit } from 'lodash'
+import { omit } from 'lodash'
 import { Ulid, Uuid } from '../models/pgUtils'
 import { getPhotoIdUrl } from './AwsService'
 import {
@@ -62,6 +62,8 @@ import * as ImpactStatsService from './ImpactStatsService'
 import config from '../config'
 import { Jobs } from '../worker/jobs'
 import QueueService from './QueueService'
+import { UserSchoolAssociationType, UsersSchool } from '../models/UsersSchools'
+import * as UsersSchoolsRepo from '../models/UsersSchools'
 
 export async function parseUser(userId: Ulid) {
   const user = await getLegacyUserObject(userId)
@@ -585,4 +587,16 @@ export function getReferralSignUpLink(referralCode: string): string {
 
 export function getUserIdByPhone(phone: string): Promise<Ulid | undefined> {
   return UserRepo.getUserIdByPhone(phone)
+}
+
+export async function upsertUsersSchool(
+  userId: Ulid,
+  schoolId: Ulid,
+  associationType: UserSchoolAssociationType
+): Promise<UsersSchool> {
+  return await UsersSchoolsRepo.upsertUsersSchool(
+    userId,
+    schoolId,
+    associationType
+  )
 }
