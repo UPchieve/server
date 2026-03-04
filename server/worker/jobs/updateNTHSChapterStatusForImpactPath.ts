@@ -61,6 +61,7 @@ export default async function (job: Job<UpdateNTHSChapterStatusJobData>) {
   logger.info(
     {
       groupId: nthsGroupId,
+      userIds: Array.from(readyToCoachUserIds),
     },
     `${logPrefix}Found ${readyToCoachUserIds.size} ready-to-coach members of NTHS chapter`
   )
@@ -92,6 +93,7 @@ export default async function (job: Job<UpdateNTHSChapterStatusJobData>) {
     {
       groupId: nthsGroupId,
       newChapterStatus: newChapterStatusName,
+      userIds: eligibleMembers.map((member) => member.userId),
     },
     `${logPrefix}Counted ${eligibleMembers.length} eligible members for impact path for NTHS chapter`
   )
@@ -128,6 +130,14 @@ export default async function (job: Job<UpdateNTHSChapterStatusJobData>) {
         groupId: nthsGroupId,
       },
       `${logPrefix}Sent chapter official notification to NTHS chapter admins`
+    )
+  } else {
+    logger.info(
+      {
+        groupId: nthsGroupId,
+        status: newChapterStatusName,
+      },
+      `${logPrefix}Chapter status has changed to ${newChapterStatusName}`
     )
   }
 }
