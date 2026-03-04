@@ -467,7 +467,6 @@ export async function upsertStudentProfile(
   tc: TransactionClient
 ) {
   try {
-    // @TODO users_schools migration: Update me to also upsert to users_schools!
     const result = await pgQueries.upsertStudentProfile.run(
       {
         userId: studentData.userId,
