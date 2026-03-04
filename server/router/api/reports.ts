@@ -4,7 +4,6 @@ import { resError } from '../res-error'
 
 import { authPassport } from '../../utils/auth-utils'
 import * as ReportService from '../../services/ReportService'
-import { minutesInMs } from '../../utils/time-utils'
 
 export function routeReports(router: expressWs.Router): void {
   router.get(
