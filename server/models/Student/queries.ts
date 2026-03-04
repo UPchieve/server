@@ -454,6 +454,7 @@ async function adminUpdateStudentPartnerOrgInstance(
         )
 
       if (newSchoolOrg.schoolId) {
+        // @TODO users_school migration: Update me to also upsert to users_schools
         const updateSchoolResult = await pgQueries.updateStudentSchool.run(
           { userId: studentId, schoolId: newSchoolOrg.schoolId },
           client
@@ -550,6 +551,7 @@ export async function upsertStudentProfile(
   tc: TransactionClient
 ) {
   try {
+    // @TODO users_schools migration: Update me to also upsert to users_schools!
     const result = await pgQueries.upsertStudentProfile.run(
       {
         userId: studentData.userId,
@@ -856,6 +858,7 @@ export async function updateStudentSchool(
   tc: TransactionClient
 ) {
   try {
+    // @TODO users_school migration: Update me to also upsert to users_schools
     await pgQueries.updateStudentSchool.run(
       {
         userId: studentId,
