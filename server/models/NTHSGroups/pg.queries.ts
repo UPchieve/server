@@ -753,7 +753,7 @@ export interface IInsertNthsAdvisorResult {
   id: string;
   lastName: string;
   nthsGroupId: string;
-  phone: string;
+  phone: string | null;
   phoneExtension: string | null;
   schoolId: string | null;
   title: string;
