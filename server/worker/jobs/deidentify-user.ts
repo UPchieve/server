@@ -134,6 +134,7 @@ async function deidentifyRows(
     }
   }
 
+  // @TODO users_schools migration: Update me!
   await tc.query(
     `UPDATE student_profiles SET
     college = null,
