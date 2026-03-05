@@ -325,7 +325,7 @@ export async function deactivateStudentPartnershipInstance(
 }
 
 /**
- * @legacy
+ * @legacy Please also update users_schools, which will eventually become the source of truth.
  * @deprecated student_profiles should eventually drop SPO information
  * in favor of users_student_partner_orgs_instances. For now, we write to both
  * when student partnerships are de/activated.
