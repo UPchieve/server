@@ -156,6 +156,12 @@ export async function updateStudentSchool(
     if (newSchoolId === previousSchoolId) return
 
     await StudentRepo.updateStudentSchool(studentId, newSchoolId, tc)
+    await UsersSchoolsRepo.upsertUsersSchool(
+      studentId,
+      newSchoolId,
+      'student_at_school',
+      tc
+    )
 
     // Deactivate the previous school SPO instance if necessary.
     if (!previousSchoolId) return
