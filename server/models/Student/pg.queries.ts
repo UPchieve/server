@@ -451,9 +451,7 @@ export interface IAdminUpdateStudentParams {
 }
 
 /** 'AdminUpdateStudent' return type */
-export interface IAdminUpdateStudentResult {
-  ok: string;
-}
+export type IAdminUpdateStudentResult = void;
 
 /** 'AdminUpdateStudent' query type */
 export interface IAdminUpdateStudentQuery {
@@ -461,7 +459,7 @@ export interface IAdminUpdateStudentQuery {
   result: IAdminUpdateStudentResult;
 }
 
-const adminUpdateStudentIR: any = {"usedParamSet":{"firstName":true,"lastName":true,"email":true,"verified":true,"banType":true,"deactivated":true,"userId":true},"params":[{"name":"firstName","required":false,"transform":{"type":"scalar"},"locs":[{"a":47,"b":56}]},{"name":"lastName","required":false,"transform":{"type":"scalar"},"locs":[{"a":97,"b":105}]},{"name":"email","required":true,"transform":{"type":"scalar"},"locs":[{"a":132,"b":138}]},{"name":"verified","required":true,"transform":{"type":"scalar"},"locs":[{"a":156,"b":165}]},{"name":"banType","required":false,"transform":{"type":"scalar"},"locs":[{"a":183,"b":190}]},{"name":"deactivated","required":true,"transform":{"type":"scalar"},"locs":[{"a":211,"b":223}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":264,"b":271}]}],"statement":"UPDATE\n    users\nSET\n    first_name = COALESCE(:firstName, first_name),\n    last_name = COALESCE(:lastName, last_name),\n    email = :email!,\n    verified = :verified!,\n    ban_type = :banType,\n    deactivated = :deactivated!,\n    updated_at = NOW()\nWHERE\n    id = :userId!\nRETURNING\n    id AS ok"};
+const adminUpdateStudentIR: any = {"usedParamSet":{"firstName":true,"lastName":true,"email":true,"verified":true,"banType":true,"deactivated":true,"userId":true},"params":[{"name":"firstName","required":false,"transform":{"type":"scalar"},"locs":[{"a":47,"b":56}]},{"name":"lastName","required":false,"transform":{"type":"scalar"},"locs":[{"a":97,"b":105}]},{"name":"email","required":true,"transform":{"type":"scalar"},"locs":[{"a":132,"b":138}]},{"name":"verified","required":true,"transform":{"type":"scalar"},"locs":[{"a":156,"b":165}]},{"name":"banType","required":false,"transform":{"type":"scalar"},"locs":[{"a":183,"b":190}]},{"name":"deactivated","required":true,"transform":{"type":"scalar"},"locs":[{"a":211,"b":223}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":264,"b":271}]}],"statement":"UPDATE\n    users\nSET\n    first_name = COALESCE(:firstName, first_name),\n    last_name = COALESCE(:lastName, last_name),\n    email = :email!,\n    verified = :verified!,\n    ban_type = :banType,\n    deactivated = :deactivated!,\n    updated_at = NOW()\nWHERE\n    id = :userId!"};
 
 /**
  * Query generated from SQL:
@@ -478,8 +476,6 @@ const adminUpdateStudentIR: any = {"usedParamSet":{"firstName":true,"lastName":t
  *     updated_at = NOW()
  * WHERE
  *     id = :userId!
- * RETURNING
- *     id AS ok
  * ```
  */
 export const adminUpdateStudent = new PreparedQuery<IAdminUpdateStudentParams,IAdminUpdateStudentResult>(adminUpdateStudentIR);
@@ -692,9 +688,7 @@ export interface IUpdateStudentInGatesStudyParams {
 }
 
 /** 'UpdateStudentInGatesStudy' return type */
-export interface IUpdateStudentInGatesStudyResult {
-  ok: string;
-}
+export type IUpdateStudentInGatesStudyResult = void;
 
 /** 'UpdateStudentInGatesStudy' query type */
 export interface IUpdateStudentInGatesStudyQuery {
@@ -702,7 +696,7 @@ export interface IUpdateStudentInGatesStudyQuery {
   result: IUpdateStudentInGatesStudyResult;
 }
 
-const updateStudentInGatesStudyIR: any = {"usedParamSet":{"inGatesStudy":true,"userId":true},"params":[{"name":"inGatesStudy","required":false,"transform":{"type":"scalar"},"locs":[{"a":64,"b":76}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":115,"b":122}]}],"statement":"UPDATE\n    user_product_flags\nSET\n    in_gates_study = COALESCE(:inGatesStudy, in_gates_study)\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok"};
+const updateStudentInGatesStudyIR: any = {"usedParamSet":{"inGatesStudy":true,"userId":true},"params":[{"name":"inGatesStudy","required":false,"transform":{"type":"scalar"},"locs":[{"a":64,"b":76}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":115,"b":122}]}],"statement":"UPDATE\n    user_product_flags\nSET\n    in_gates_study = COALESCE(:inGatesStudy, in_gates_study)\nWHERE\n    user_id = :userId!"};
 
 /**
  * Query generated from SQL:
@@ -713,8 +707,6 @@ const updateStudentInGatesStudyIR: any = {"usedParamSet":{"inGatesStudy":true,"u
  *     in_gates_study = COALESCE(:inGatesStudy, in_gates_study)
  * WHERE
  *     user_id = :userId!
- * RETURNING
- *     user_id AS ok
  * ```
  */
 export const updateStudentInGatesStudy = new PreparedQuery<IUpdateStudentInGatesStudyParams,IUpdateStudentInGatesStudyResult>(updateStudentInGatesStudyIR);

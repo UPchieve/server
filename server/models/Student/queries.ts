@@ -282,23 +282,6 @@ export async function getPartnerOrgByKey(
   }
 }
 
-// if partnerOrg isnt provided then remove partnerOrg entirely
-// if parttnerSite isnt provided then remove partnerSite entirely
-// if gates study isnt provided then dont touch it
-// all other fields override
-export type AdminUpdateStudent = {
-  firstName: string | undefined
-  lastName: string | undefined
-  email: string
-  studentPartnerOrg: string | undefined
-  partnerSite: string | undefined
-  isVerified: boolean
-  banType?: USER_BAN_TYPES
-  isDeactivated: boolean
-  inGatesStudy: boolean | undefined
-  partnerSchool: string | undefined
-}
-
 export type StudentPartnerOrgInstance = {
   name: string
   id: Ulid
@@ -306,7 +289,7 @@ export type StudentPartnerOrgInstance = {
   siteName?: string
 }
 
-async function adminUpdateStudentPartnerOrgInstance(
+export async function adminUpdateStudentPartnerOrgInstance( // @TODO users_schools migration: Update me
   studentId: Ulid,
   newPartnerOrgKey: string | undefined,
   newPartnerSite: string | undefined,
@@ -473,54 +456,67 @@ async function adminUpdateStudentPartnerOrgInstance(
   }
 }
 
-export async function adminUpdateStudent( // @TODO users_schools migration: Move this into a service method, and update users_schools as needed
+// if partnerOrg isnt provided then remove partnerOrg entirely
+// if parttnerSite isnt provided then remove partnerSite entirely
+// if gates study isnt provided then dont touch it
+// all other fields override
+export type AdminUpdateStudent = {
+  firstName: string | undefined
+  lastName: string | undefined
+  email: string
+  studentPartnerOrg: string | undefined
+  partnerSite: string | undefined
+  isVerified: boolean
+  isDeactivated: boolean
+  inGatesStudy: boolean | undefined
+  partnerSchool: string | undefined
+  banType?: USER_BAN_TYPES | null
+}
+
+export async function adminUpdateStudentUser( // @TODO Unit test me
   studentId: Ulid,
-  update: AdminUpdateStudent,
-  tc?: TransactionClient
+  update: {
+    email: string
+    verified: boolean
+    banType?: USER_BAN_TYPES | null
+    deactivated: boolean
+    firstName?: string
+    lastName?: string
+  },
+  tc: TransactionClient = getClient()
 ) {
-  return runInTransaction(async (transactionClient) => {
-    try {
-      const updateStudentResult = await pgQueries.adminUpdateStudent.run(
-        {
-          userId: studentId,
-          firstName: update.firstName,
-          lastName: update.lastName,
-          email: update.email.toLowerCase(),
-          verified: update.isVerified,
-          banType: update.banType,
-          deactivated: update.isDeactivated,
-        },
-        transactionClient
-      )
+  try {
+    console.log(`TEST - banType is ${update.banType}`)
+    await pgQueries.adminUpdateStudent.run(
+      {
+        userId: studentId,
+        firstName: update.firstName ?? null,
+        lastName: update.lastName ?? null,
+        email: update.email.toLowerCase(),
+        verified: update.verified,
+        banType: update.banType,
+        deactivated: update.deactivated,
+      },
+      tc
+    )
+  } catch (err) {
+    throw new RepoUpdateError(err)
+  }
+}
 
-      const updateProductFlagsResult =
-        await pgQueries.updateStudentInGatesStudy.run(
-          { userId: studentId, inGatesStudy: update.inGatesStudy },
-          transactionClient
-        )
-
-      await adminUpdateStudentPartnerOrgInstance(
-        studentId,
-        update.studentPartnerOrg,
-        update.partnerSite,
-        update.partnerSchool,
-        transactionClient
-      )
-
-      if (
-        !(
-          updateStudentResult.length &&
-          updateProductFlagsResult.length &&
-          makeRequired(updateStudentResult[0]).ok &&
-          makeRequired(updateProductFlagsResult[0]).ok
-        )
-      )
-        throw new RepoUpdateError('Update query did not update the student')
-    } catch (err) {
-      if (err instanceof RepoUpdateError) throw err
-      throw new RepoTransactionError(err)
-    }
-  }, tc ?? getClient())
+export async function updateStudentInGatesStudy(
+  studentId: Ulid,
+  isInStudy: boolean | undefined,
+  tc: TransactionClient = getClient()
+) {
+  try {
+    await pgQueries.updateStudentInGatesStudy.run(
+      { userId: studentId, inGatesStudy: isInStudy },
+      tc
+    )
+  } catch (err) {
+    throw new RepoUpsertError(err)
+  }
 }
 
 // TODO: Remove: Only referenced in tests.

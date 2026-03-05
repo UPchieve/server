@@ -16,7 +16,6 @@ import {
   InputError,
 } from '../models/Errors'
 import { updateIpStatusByUserId } from '../models/IpAddress'
-import { adminUpdateStudent } from '../models/Student'
 import {
   UserContactInfo,
   getUsersForAdminSearch,
@@ -56,7 +55,7 @@ import { createAccountAction, createAdminAction } from '../models/UserAction'
 import { getLegacyUserObject } from '../models/User/legacy-user'
 import { PrimaryUserRole, RoleContext } from './UserRolesService'
 import * as ModerationInfractionsService from '../models/ModerationInfractions'
-import { TransactionClient } from '../db'
+import { getClient, runInTransaction, TransactionClient } from '../db'
 import * as VolunteerService from './VolunteerService'
 import * as ImpactStatsService from './ImpactStatsService'
 import config from '../config'
@@ -64,6 +63,12 @@ import { Jobs } from '../worker/jobs'
 import QueueService from './QueueService'
 import { UserSchoolAssociationType, UsersSchool } from '../models/UsersSchools'
 import * as UsersSchoolsRepo from '../models/UsersSchools'
+import {
+  AdminUpdateStudent,
+  adminUpdateStudentPartnerOrgInstance,
+  adminUpdateStudentUser,
+  updateStudentInGatesStudy,
+} from '../models/Student'
 
 export async function parseUser(userId: Ulid) {
   const user = await getLegacyUserObject(userId)
@@ -413,6 +418,33 @@ export async function adminUpdateUser(data: unknown) {
       await MailService.createContact(userId)
     }
   }
+}
+
+async function adminUpdateStudent(
+  userId: Ulid,
+  update: AdminUpdateStudent,
+  transactionClient: TransactionClient = getClient()
+) {
+  await runInTransaction(async (tc) => {
+    await adminUpdateStudentUser(userId, {
+      email: update.email,
+      verified: update.isVerified,
+      banType: update.banType,
+      deactivated: update.isDeactivated,
+      firstName: update.firstName,
+      lastName: update.lastName,
+    })
+
+    await updateStudentInGatesStudy(userId, update.inGatesStudy, tc)
+
+    await adminUpdateStudentPartnerOrgInstance(
+      userId,
+      update.studentPartnerOrg,
+      update.partnerSite,
+      update.partnerSchool,
+      tc
+    )
+  }, transactionClient)
 }
 
 interface UserQuery {

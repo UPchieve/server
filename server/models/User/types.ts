@@ -40,9 +40,9 @@ export type User = {
 
 export type CreateUserPayload = {
   email: string
-  emailVerified?: boolean
   firstName: string
   lastName: string
+  emailVerified?: boolean
   otherSignupSource?: string
   password?: string
   passwordResetToken?: string
