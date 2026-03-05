@@ -434,7 +434,7 @@ describe('adminUpdateStudentUser', () => {
       const updatedUser = makeSomeRequired(
         (await client.query(`SELECT * FROM users WHERE id = $1`, [userId]))
           .rows[0],
-        ['id', 'email', 'banType']
+        ['id', 'email']
       )
       expect(updatedUser.banType).toEqual('shadow')
     })
