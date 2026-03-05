@@ -363,7 +363,7 @@ describe('addStudentsToTeacherClass', () => {
   })
 })
 
-describe.skip('adminUpdateStudentUser', () => {
+describe('adminUpdateStudentUser', () => {
   it('Updates the expected fields', async () => {
     const { id: userId } = await createUser({
       email: faker.internet.email(),
@@ -433,7 +433,7 @@ describe.skip('adminUpdateStudentUser', () => {
       const updatedUser = makeSomeRequired(
         (await client.query(`SELECT * FROM users WHERE id = $1`, [userId]))
           .rows[0],
-        ['id', 'email', 'banType']
+        ['id', 'email']
       )
       expect(updatedUser.banType).toEqual('shadow')
     })
