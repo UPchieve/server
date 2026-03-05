@@ -387,7 +387,7 @@ export type AdminUpdateStudent = {
   banType?: USER_BAN_TYPES | null
 }
 
-export async function adminUpdateStudentUser( // @TODO Unit test me
+export async function adminUpdateStudentUser(
   studentId: Ulid,
   update: {
     email: string

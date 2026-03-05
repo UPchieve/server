@@ -452,7 +452,7 @@ async function adminUpdateStudent(
   }, transactionClient)
 }
 
-async function updateStudentPartnerOrgInstance( // @TODO: Unit test me to the ends of the earth
+export async function updateStudentPartnerOrgInstance( // Exported for testing
   userId: Ulid,
   newStudentPartnerOrgKey: string | undefined,
   newPartnerSite: string | undefined,
@@ -461,6 +461,7 @@ async function updateStudentPartnerOrgInstance( // @TODO: Unit test me to the en
 ) {
   await runInTransaction(async (transactionClient) => {
     const newPartnerOrg = await getPartnerOrgByKey(
+      // @TODO: Don't make this call if SPO is undefined in the args.
       newStudentPartnerOrgKey,
       newPartnerSite,
       transactionClient
@@ -481,7 +482,6 @@ async function updateStudentPartnerOrgInstance( // @TODO: Unit test me to the en
       userId,
       transactionClient
     )
-    console.log('TEST - activePartnerOrgs', { activePartnerOrgs })
     if (activePartnerOrgs.length > 2) {
       throw new Error(
         `Student ${userId} has more than 2 partner orgs; cannot update`
