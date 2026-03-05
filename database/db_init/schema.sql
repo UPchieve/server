@@ -1,4 +1,4 @@
-\restrict KcsK6MLFoe947lgH6VlkabaqEbwl0qNdCB9CeoboQH0FFBI8REfWo3RUPeJcXaP
+\restrict aVUPA1TWLD2gUTfQMmSYntBEEGTzvNsXt41mytly5BflUduvbosmiUqFKGauGcn
 
 -- Dumped from database version 14.21 (Debian 14.21-1.pgdg13+1)
 -- Dumped by pg_dump version 14.19 (Homebrew)
@@ -149,6 +149,16 @@ CREATE TYPE upchieve.tutor_bot_conversation_user_type AS ENUM (
 CREATE TYPE upchieve.tutor_bot_session_user_type AS ENUM (
     'student',
     'bot'
+);
+
+
+--
+-- Name: user_school_association_type; Type: TYPE; Schema: upchieve; Owner: -
+--
+
+CREATE TYPE upchieve.user_school_association_type AS ENUM (
+    'student_at_school',
+    'teacher_at_school'
 );
 
 
@@ -3052,6 +3062,19 @@ CREATE TABLE upchieve.users_roles (
 
 
 --
+-- Name: users_schools; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.users_schools (
+    user_id uuid NOT NULL,
+    school_id uuid NOT NULL,
+    association_type upchieve.user_school_association_type NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
 -- Name: users_student_partner_orgs_instances; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -4958,6 +4981,14 @@ ALTER TABLE ONLY upchieve.volunteer_occupations
 
 
 --
+-- Name: users_schools unique_user_school; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.users_schools
+    ADD CONSTRAINT unique_user_school UNIQUE (user_id, school_id);
+
+
+--
 -- Name: us_states us_states_name_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -5545,6 +5576,20 @@ CREATE INDEX user_actions_user_id ON upchieve.user_actions USING btree (user_id)
 --
 
 CREATE UNIQUE INDEX users_lower_case_email_key ON upchieve.users USING btree (lower(email));
+
+
+--
+-- Name: users_schools_school_id; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX users_schools_school_id ON upchieve.users_schools USING btree (school_id);
+
+
+--
+-- Name: users_schools_user_id; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX users_schools_user_id ON upchieve.users_schools USING btree (user_id);
 
 
 --
@@ -7023,6 +7068,22 @@ ALTER TABLE ONLY upchieve.users_roles
 
 
 --
+-- Name: users_schools users_schools_school_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.users_schools
+    ADD CONSTRAINT users_schools_school_id_fkey FOREIGN KEY (school_id) REFERENCES upchieve.schools(id);
+
+
+--
+-- Name: users_schools users_schools_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.users_schools
+    ADD CONSTRAINT users_schools_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
+
+
+--
 -- Name: users users_signup_source_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -7194,7 +7255,7 @@ ALTER TABLE ONLY upchieve.volunteer_references
 -- PostgreSQL database dump complete
 --
 
-\unrestrict KcsK6MLFoe947lgH6VlkabaqEbwl0qNdCB9CeoboQH0FFBI8REfWo3RUPeJcXaP
+\unrestrict aVUPA1TWLD2gUTfQMmSYntBEEGTzvNsXt41mytly5BflUduvbosmiUqFKGauGcn
 
 
 --
@@ -7466,4 +7527,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260225150603'),
     ('20260227182642'),
     ('20260227183500'),
-    ('20260302173903');
+    ('20260302173903'),
+    ('20260303184811');
