@@ -58,11 +58,3 @@ export type InsertTutorBotConversationMessagePayload = {
   senderUserType: TutorBotSenderType
   message: string
 }
-
-export type TutorBotCreateConversationResult = {
-  conversationId: Uuid
-  userId: Uuid
-  sessionId?: Uuid
-  subjectId: number
-  messages: [TutorBotMessage, TutorBotGeneratedMessage]
-}

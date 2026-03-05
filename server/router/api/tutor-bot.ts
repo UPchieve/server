@@ -70,20 +70,4 @@ export function routeTutorBot(router: Router) {
       }
     }
   )
-
-  router.post('/tutor-bot/conversations', async function (req, res) {
-    try {
-      const data = conversationValidator({
-        ...req.body,
-        userId: req.user?.id,
-      })
-      const conversation =
-        await TutorBotService.createTutorBotConversation(data)
-      const payload =
-        TutorBotService.toTutorBotCreateConversationResponsePublic(conversation)
-      return res.json(payload)
-    } catch (err) {
-      resError(res, err)
-    }
-  })
 }

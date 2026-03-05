@@ -14,14 +14,12 @@ import { client as langfuseClient } from '../clients/langfuse'
 import * as SessionRepo from '../models/Session'
 import SocketService from './SocketService'
 import { BedrockToolChoice, invokeModel } from './AwsBedrockService'
-import { getSubjectNameIdMapping } from '../models/Subjects'
 import { COLLEGE_SUBJECTS } from '../constants'
 import type {
   TutorBotAddMessageResponsePublic,
   TutorBotGeneratedMessagePublic,
   TutorBotMessagePublic,
   TutorBotTranscriptPublic,
-  TutorBotCreateConversationResponsePublic,
 } from '../contracts/tutor-bot'
 import {
   AddMessageToConversationPayload,
@@ -29,8 +27,6 @@ import {
   TutorBotModelResponse,
   TutorBotGeneratedMessage,
   TutorBotMessage,
-  TutorBotHumanSenderType,
-  TutorBotCreateConversationResult,
 } from '../types/tutor-bot'
 
 const NUM_OF_MESSAGES_TO_KEEP_IN_CONTEXT = 15
@@ -101,58 +97,6 @@ export async function getOrCreateConversationBySessionId({
       subjectId,
       sessionId,
       messages: [],
-    }
-  })
-}
-
-export async function createTutorBotConversation(data: {
-  userId: Uuid
-  sessionId?: Uuid
-  message: string
-  senderUserType: TutorBotHumanSenderType
-  subjectId: number
-}): Promise<TutorBotCreateConversationResult> {
-  const userId = data.userId
-  const sessionId = data.sessionId
-  const subjectId = data.subjectId
-
-  return await runInTransaction(async (tc: TransactionClient) => {
-    const conversationId = await insertTutorBotConversation(
-      {
-        subjectId,
-        userId,
-        sessionId,
-      },
-      tc
-    )
-
-    const subjectNameIds = await getSubjectNameIdMapping()
-    const [subjectName] =
-      Object.entries(subjectNameIds).find(
-        ([_key, value]) => value === subjectId
-      ) ?? []
-
-    if (!subjectName) {
-      throw new Error(`AI tutor: No subject found for id ${subjectId}`)
-    }
-
-    const { userMessage, botResponse } = await addMessageToConversation(
-      {
-        conversationId,
-        userId,
-        senderUserType: data.senderUserType,
-        message: data.message,
-        subjectName,
-      },
-      tc
-    )
-
-    return {
-      conversationId,
-      userId,
-      sessionId,
-      subjectId,
-      messages: [userMessage, botResponse],
     }
   })
 }
@@ -379,21 +323,5 @@ export function toTutorBotAddMessageResponsePublic(data: {
   return {
     userMessage: toTutorBotMessagePublic(data.userMessage),
     botResponse: toTutorBotGeneratedMessagePublic(data.botResponse),
-  }
-}
-
-export function toTutorBotCreateConversationResponsePublic(
-  data: TutorBotCreateConversationResult
-): TutorBotCreateConversationResponsePublic {
-  const [userMessage, botMessage] = data.messages
-  return {
-    conversationId: data.conversationId,
-    userId: data.userId,
-    sessionId: data.sessionId,
-    subjectId: data.subjectId,
-    messages: [
-      toTutorBotMessagePublic(userMessage),
-      toTutorBotGeneratedMessagePublic(botMessage),
-    ],
   }
 }
