@@ -474,7 +474,7 @@ const config = {
   slackAlertWebHookUrl: process.env.SUBWAY_SLACK_ALERT_WEBHOOK_URL || 'bogus',
 
   //Assembly AI
-  assemblyAiApiKey: process.env.ASSEMBLY_AI_API_KEY || 'youHeard',
+  assemblyAiApiKey: process.env.SUBWAY_ASSEMBLY_AI_API_KEY || 'youHeard',
 } as const
 
 export default config
