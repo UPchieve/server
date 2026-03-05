@@ -773,7 +773,6 @@ export async function updateStudentSchool(
   tc: TransactionClient
 ) {
   try {
-    // @TODO users_school migration: Update me to also upsert to users_schools
     await pgQueries.updateStudentSchool.run(
       {
         userId: studentId,
