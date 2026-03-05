@@ -384,7 +384,7 @@ export type AdminUpdateStudent = {
   isDeactivated: boolean
   inGatesStudy: boolean | undefined
   partnerSchool: string | undefined
-  banType?: USER_BAN_TYPES | null
+  banType: USER_BAN_TYPES | null
 }
 
 export async function adminUpdateStudentUser(
@@ -392,7 +392,7 @@ export async function adminUpdateStudentUser(
   update: {
     email: string
     verified: boolean
-    banType?: USER_BAN_TYPES | null
+    banType: USER_BAN_TYPES | null
     deactivated: boolean
     firstName?: string
     lastName?: string

@@ -416,7 +416,7 @@ describe('adminUpdateStudentUser', () => {
   })
 
   describe('user.ban_type', () => {
-    it('Does not change ban type if it is undefined in the request', async () => {
+    it('Does not change ban type', async () => {
       const { id: userId } = await createUser({
         email: faker.internet.email(),
         firstName: faker.person.firstName(),
@@ -429,11 +429,12 @@ describe('adminUpdateStudentUser', () => {
         email: faker.internet.email(),
         verified: false,
         deactivated: false,
+        banType: 'shadow',
       })
       const updatedUser = makeSomeRequired(
         (await client.query(`SELECT * FROM users WHERE id = $1`, [userId]))
           .rows[0],
-        ['id', 'email']
+        ['id', 'email', 'banType']
       )
       expect(updatedUser.banType).toEqual('shadow')
     })

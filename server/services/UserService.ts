@@ -409,7 +409,10 @@ export async function adminUpdateUser(data: unknown) {
   }
 
   if (isStudent) {
-    await adminUpdateStudent(userId, update)
+    await adminUpdateStudent(userId, {
+      ...update,
+      banType: banType === undefined ? userBeforeUpdate.banType : banType,
+    })
   }
 
   if (isTeacher) {
