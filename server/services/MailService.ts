@@ -1552,22 +1552,22 @@ export async function sendStudentFavoritedVolunteerEmail(
   )
 }
 
-export async function sendBackfillNowReadyToCoachEmail(
-  email: string,
-  volunteerFirstName: string
-) {
-  await sendEmail(
-    email,
-    config.mail.senders.support,
-    'UPchieve',
-    config.sendgrid.onboardingBackfillReadyToCoachEmail,
-    {
-      firstName: volunteerFirstName,
-    },
-    {
-      categories: ['onboarding-backfill-now-ready-to-coach-email'],
-    }
-  )
+export async function sendNTHSChapterOfficialStatusNotification(
+  recipients: { firstName: string; email: string }[],
+  chapterName: string
+): Promise<void> {
+  for (const recipient of recipients) {
+    await sendEmail(
+      recipient.email,
+      config.mail.senders.noreply,
+      'UPchieve',
+      config.sendgrid.nthsChapterBecameOfficialImpactPathEmail,
+      {
+        firstName: recipient.firstName,
+        chapterName,
+      }
+    )
+  }
 }
 
 export async function createContact(userIds: Ulid | Ulid[]): Promise<any> {

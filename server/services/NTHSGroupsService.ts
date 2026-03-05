@@ -14,6 +14,7 @@ import {
   NTHSActionName,
   NTHSChapterStatus,
   NTHSChapterStatusName,
+  NTHSGroup,
   NTHSGroupAction,
   NTHSGroupChapterStatusInfo,
   NTHSGroupMember,
@@ -103,6 +104,26 @@ export async function getNTHSGroupByInviteCode(
   tc: TransactionClient = getRoClient()
 ) {
   return await NTHSGroupsRepo.getGroupByInviteCode(inviteCode, tc)
+}
+
+export async function getNTHSGroupByID(
+  groupId: Ulid,
+  tc: TransactionClient = getRoClient()
+): Promise<NTHSGroup | undefined> {
+  return await NTHSGroupsRepo.getGroupById(groupId, tc)
+}
+
+export async function getNTHSGroupAdminsContactInfo(
+  groupId: Ulid,
+  tc: TransactionClient = getRoClient()
+): Promise<
+  {
+    nthsGroupId: Ulid
+    firstName: string
+    email: string
+  }[]
+> {
+  return await NTHSGroupsRepo.getGroupAdminsContactInfo(groupId, tc)
 }
 
 export async function joinGroupAsMemberByGroupId(
