@@ -481,25 +481,25 @@ const adminUpdateStudentIR: any = {"usedParamSet":{"firstName":true,"lastName":t
 export const adminUpdateStudent = new PreparedQuery<IAdminUpdateStudentParams,IAdminUpdateStudentResult>(adminUpdateStudentIR);
 
 
-/** 'AdminUpdateStudentProfile' parameters type */
-export interface IAdminUpdateStudentProfileParams {
+/** 'AdminUpdateStudentProfilePartnerOrg' parameters type */
+export interface IAdminUpdateStudentProfilePartnerOrgParams {
   partnerOrgId?: string | null | void;
   partnerOrgSiteId?: string | null | void;
   userId: string;
 }
 
-/** 'AdminUpdateStudentProfile' return type */
-export interface IAdminUpdateStudentProfileResult {
+/** 'AdminUpdateStudentProfilePartnerOrg' return type */
+export interface IAdminUpdateStudentProfilePartnerOrgResult {
   ok: string;
 }
 
-/** 'AdminUpdateStudentProfile' query type */
-export interface IAdminUpdateStudentProfileQuery {
-  params: IAdminUpdateStudentProfileParams;
-  result: IAdminUpdateStudentProfileResult;
+/** 'AdminUpdateStudentProfilePartnerOrg' query type */
+export interface IAdminUpdateStudentProfilePartnerOrgQuery {
+  params: IAdminUpdateStudentProfilePartnerOrgParams;
+  result: IAdminUpdateStudentProfilePartnerOrgResult;
 }
 
-const adminUpdateStudentProfileIR: any = {"usedParamSet":{"partnerOrgId":true,"partnerOrgSiteId":true,"userId":true},"params":[{"name":"partnerOrgId","required":false,"transform":{"type":"scalar"},"locs":[{"a":61,"b":73}]},{"name":"partnerOrgSiteId","required":false,"transform":{"type":"scalar"},"locs":[{"a":110,"b":126}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":172,"b":179}]}],"statement":"UPDATE\n    student_profiles\nSET\n    student_partner_org_id = :partnerOrgId,\n    student_partner_org_site_id = :partnerOrgSiteId,\n    updated_at = NOW()\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok"};
+const adminUpdateStudentProfilePartnerOrgIR: any = {"usedParamSet":{"partnerOrgId":true,"partnerOrgSiteId":true,"userId":true},"params":[{"name":"partnerOrgId","required":false,"transform":{"type":"scalar"},"locs":[{"a":61,"b":73}]},{"name":"partnerOrgSiteId","required":false,"transform":{"type":"scalar"},"locs":[{"a":110,"b":126}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":172,"b":179}]}],"statement":"UPDATE\n    student_profiles\nSET\n    student_partner_org_id = :partnerOrgId,\n    student_partner_org_site_id = :partnerOrgSiteId,\n    updated_at = NOW()\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok"};
 
 /**
  * Query generated from SQL:
@@ -516,7 +516,7 @@ const adminUpdateStudentProfileIR: any = {"usedParamSet":{"partnerOrgId":true,"p
  *     user_id AS ok
  * ```
  */
-export const adminUpdateStudentProfile = new PreparedQuery<IAdminUpdateStudentProfileParams,IAdminUpdateStudentProfileResult>(adminUpdateStudentProfileIR);
+export const adminUpdateStudentProfilePartnerOrg = new PreparedQuery<IAdminUpdateStudentProfilePartnerOrgParams,IAdminUpdateStudentProfilePartnerOrgResult>(adminUpdateStudentProfilePartnerOrgIR);
 
 
 /** 'GetPartnerOrgsByStudent' parameters type */

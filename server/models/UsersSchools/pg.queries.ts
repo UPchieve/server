@@ -39,3 +39,31 @@ const insertUsersSchoolIR: any = {"usedParamSet":{"userId":true,"schoolId":true,
 export const insertUsersSchool = new PreparedQuery<IInsertUsersSchoolParams,IInsertUsersSchoolResult>(insertUsersSchoolIR);
 
 
+/** 'DeleteUsersSchool' parameters type */
+export interface IDeleteUsersSchoolParams {
+  schoolId: string;
+  userId: string;
+}
+
+/** 'DeleteUsersSchool' return type */
+export type IDeleteUsersSchoolResult = void;
+
+/** 'DeleteUsersSchool' query type */
+export interface IDeleteUsersSchoolQuery {
+  params: IDeleteUsersSchoolParams;
+  result: IDeleteUsersSchoolResult;
+}
+
+const deleteUsersSchoolIR: any = {"usedParamSet":{"userId":true,"schoolId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":42,"b":49}]},{"name":"schoolId","required":true,"transform":{"type":"scalar"},"locs":[{"a":71,"b":80}]}],"statement":"DELETE FROM users_schools\nWHERE user_id = :userId!\n    AND school_id = :schoolId!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * DELETE FROM users_schools
+ * WHERE user_id = :userId!
+ *     AND school_id = :schoolId!
+ * ```
+ */
+export const deleteUsersSchool = new PreparedQuery<IDeleteUsersSchoolParams,IDeleteUsersSchoolResult>(deleteUsersSchoolIR);
+
+

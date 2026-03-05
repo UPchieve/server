@@ -4,3 +4,9 @@ INSERT INTO users_schools (user_id, school_id, association_type, updated_at)
 RETURNING
     *;
 
+
+/* @name deleteUsersSchool */
+DELETE FROM users_schools
+WHERE user_id = :userId!
+    AND school_id = :schoolId!;
+

@@ -155,7 +155,7 @@ WHERE
     id = :userId!;
 
 
-/* @name adminUpdateStudentProfile */
+/* @name adminUpdateStudentProfilePartnerOrg */
 UPDATE
     student_profiles
 SET

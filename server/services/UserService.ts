@@ -64,10 +64,15 @@ import QueueService from './QueueService'
 import { UserSchoolAssociationType, UsersSchool } from '../models/UsersSchools'
 import * as UsersSchoolsRepo from '../models/UsersSchools'
 import {
+  activateStudentPartnershipInstance,
   AdminUpdateStudent,
-  adminUpdateStudentPartnerOrgInstance,
   adminUpdateStudentUser,
+  deactivateStudentPartnershipInstance,
+  getPartnerOrgByKey,
+  getPartnerOrgsByStudent,
+  StudentPartnerOrgInstance,
   updateStudentInGatesStudy,
+  updateStudentProfilePartnerOrg,
 } from '../models/Student'
 
 export async function parseUser(userId: Ulid) {
@@ -437,7 +442,7 @@ async function adminUpdateStudent(
 
     await updateStudentInGatesStudy(userId, update.inGatesStudy, tc)
 
-    await adminUpdateStudentPartnerOrgInstance(
+    await updateStudentPartnerOrgInstance(
       userId,
       update.studentPartnerOrg,
       update.partnerSite,
@@ -445,6 +450,140 @@ async function adminUpdateStudent(
       tc
     )
   }, transactionClient)
+}
+
+async function updateStudentPartnerOrgInstance( // @TODO: Unit test me to the ends of the earth
+  userId: Ulid,
+  newStudentPartnerOrgKey: string | undefined,
+  newPartnerSite: string | undefined,
+  newSchoolPartnerKey: string | undefined,
+  tc: TransactionClient = getClient()
+) {
+  await runInTransaction(async (transactionClient) => {
+    const newPartnerOrg = await getPartnerOrgByKey(
+      newStudentPartnerOrgKey,
+      newPartnerSite,
+      transactionClient
+    )
+    if (newStudentPartnerOrgKey && !newPartnerOrg)
+      throw new Error(
+        `New partner org ${newStudentPartnerOrgKey} does not exist`
+      )
+    const newSchoolOrg = await getPartnerOrgByKey(
+      newSchoolPartnerKey,
+      undefined,
+      transactionClient
+    )
+    if (newSchoolPartnerKey && !newSchoolOrg)
+      throw new Error(`New school org ${newSchoolPartnerKey} does not exist`)
+
+    const activePartnerOrgs = await getPartnerOrgsByStudent(
+      userId,
+      transactionClient
+    )
+    console.log('TEST - activePartnerOrgs', { activePartnerOrgs })
+    if (activePartnerOrgs.length > 2) {
+      throw new Error(
+        `Student ${userId} has more than 2 partner orgs; cannot update`
+      )
+    }
+
+    let activePartnerInstance: StudentPartnerOrgInstance | undefined
+    let activeSchoolInstance: StudentPartnerOrgInstance | undefined
+
+    for (let org of activePartnerOrgs) {
+      if (org.schoolId) activeSchoolInstance = org
+      else activePartnerInstance = org
+    }
+
+    /*
+     * Check if we have to deactivate any existing partnerships
+     */
+    const isRemovingPartnership = activePartnerInstance && !newPartnerOrg
+    const isChangingPartnership =
+      activePartnerInstance &&
+      newPartnerOrg &&
+      (activePartnerInstance.name !== newPartnerOrg.partnerName ||
+        activePartnerInstance.siteName !== newPartnerOrg.siteName)
+    if (isRemovingPartnership || isChangingPartnership) {
+      await deactivateStudentPartnershipInstance(
+        userId,
+        activePartnerInstance!.id,
+        transactionClient
+      )
+    }
+
+    const isRemovingSchool = activeSchoolInstance && !newSchoolOrg
+    const isChangingSchoolPartner =
+      activeSchoolInstance &&
+      newSchoolOrg &&
+      activeSchoolInstance.name !== newSchoolOrg.partnerName
+    if (isRemovingSchool || isChangingSchoolPartner) {
+      await deactivateStudentPartnershipInstance(
+        userId,
+        activeSchoolInstance!.id,
+        transactionClient
+      )
+    }
+
+    /*
+     * @TODO: Drop student_partner_org_id and school_id from student_profiles.
+     *
+     * For now, update these columns until we're ready to get rid of them entirely as they have
+     * been replaced by the partnership instances table and users_schools.
+     */
+    await updateStudentProfilePartnerOrg(
+      userId,
+      newPartnerOrg?.partnerId,
+      newPartnerOrg?.siteId,
+      transactionClient
+    )
+
+    /*
+     * Now activate partnerships. This applies if the user has changed their SPO or their SPO site.
+     */
+    const isNewPartnership = !activePartnerInstance && newPartnerOrg
+    if (isNewPartnership || isChangingPartnership) {
+      await activateStudentPartnershipInstance(
+        userId,
+        newPartnerOrg!.partnerId,
+        newPartnerOrg?.siteId,
+        transactionClient
+      )
+    }
+
+    /*
+     * Do the same for the school partnership, if applicable.
+     */
+    const isNewSchoolPartnership = !activeSchoolInstance && newSchoolOrg
+    const isChangingSchoolPartnership =
+      activeSchoolInstance &&
+      newSchoolOrg &&
+      activeSchoolInstance.name !== newSchoolOrg.partnerName
+    if (isNewSchoolPartnership || isChangingSchoolPartnership) {
+      await activateStudentPartnershipInstance(
+        userId,
+        newSchoolOrg!.partnerId,
+        undefined,
+        transactionClient
+      )
+    }
+
+    if (isRemovingSchool) {
+      await UsersSchoolsRepo.deleteUsersSchool(
+        userId,
+        activeSchoolInstance!.schoolId!,
+        transactionClient
+      )
+    } else if (isChangingSchoolPartnership) {
+      await UsersSchoolsRepo.upsertUsersSchool(
+        userId,
+        newSchoolOrg!.schoolId!,
+        'student_at_school',
+        transactionClient
+      )
+    }
+  }, tc)
 }
 
 interface UserQuery {
