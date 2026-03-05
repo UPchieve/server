@@ -28,12 +28,13 @@ import {
 import validator from 'validator'
 import session from 'express-session'
 import { validateRequestRecaptcha } from '../services/RecaptchaService'
-import { isDisposableEmail } from './domain-utils'
+import { isBlockedEmailDomain } from './domain-utils'
 import { UserRole } from '../models/User'
 import {
   getVolunteerPartnerOrgForRegistrationByKey,
   VolunteerPartnerOrgForRegistration,
 } from '../models/VolunteerPartnerOrg'
+import logger from '../logger'
 // Custom errors
 export class RegistrationError extends CustomError {}
 export class ResetError extends CustomError {}
@@ -321,12 +322,15 @@ export function checkNames(first: string, last: string) {
     throw new InputError('Names can only contain letters, spaces and hyphens')
 }
 
-export function checkEmail(email: string) {
-  if (!validator.isEmail(email))
+export async function checkEmail(email: string) {
+  if (!validator.isEmail(email)) {
     throw new InputError('Email is not a valid email format')
+  }
 
-  if (isDisposableEmail(email))
-    throw new NotAllowedError('Email is from an invalid email provider')
+  if (await isBlockedEmailDomain(email)) {
+    logger.error({ email }, 'Email is from an invalid email provider')
+    throw new NotAllowedError('Something went wrong - please try again later')
+  }
 }
 
 export async function checkValidPartnerEmailAddress(

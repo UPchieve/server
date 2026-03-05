@@ -293,7 +293,7 @@ export async function adminUpdateUser(data: unknown) {
     schoolId,
   } = asAdminUpdate(data)
 
-  checkEmail(email)
+  await checkEmail(email)
 
   const userBeforeUpdate = await getUserForAdminDetail(userId, 0, 0)
 

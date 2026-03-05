@@ -61,7 +61,7 @@ services:
       hostname: postgres
       ports:
         - "5500:5432"
-      image: postgres:14
+      image: postgres:14.21
       environment:
         - POSTGRES_DB=upchieve
         - POSTGRES_USER=admin
@@ -90,7 +90,7 @@ services:
       image: redis:6.2.1
     database-ci:
       profiles: ["db-test"]
-      image: postgres:14
+      image: postgres:14.21
       container_name: database-ci
       hostname: postgres
       ports:

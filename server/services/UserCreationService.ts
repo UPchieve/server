@@ -97,8 +97,8 @@ export async function rosterPartnerStudents(
     try {
       await runInTransaction(async (tc: TransactionClient) => {
         checkNames(student.firstName, student.lastName)
-        checkEmail(student.email)
-        if (student.proxyEmail) checkEmail(student.proxyEmail)
+        await checkEmail(student.email)
+        if (student.proxyEmail) await checkEmail(student.proxyEmail)
         if (student.password) {
           student.password = await hashPassword(student.password)
         }
@@ -162,7 +162,7 @@ export async function rosterPartnerStudents(
 }
 
 export async function verifyStudentData(data: RegisterStudentPayload) {
-  checkEmail(data.email)
+  await checkEmail(data.email)
   checkNames(data.firstName, data.lastName)
   await AuthService.checkUser(data.email)
   if (usePassword(data)) {
@@ -271,7 +271,7 @@ export async function verifyVolunteerData(data: RegisterVolunteerPayload) {
     await checkValidPartnerEmailAddress(data.email, data.volunteerPartnerOrgKey)
   }
 
-  checkEmail(data.email)
+  await checkEmail(data.email)
   checkNames(data.firstName, data.lastName)
   await AuthService.checkUser(data.email)
   if (usePassword(data)) {
@@ -500,7 +500,7 @@ export async function upsertStudent(
 }
 
 export async function registerTeacher(data: RegisterTeacherPayload) {
-  checkEmail(data.email)
+  await checkEmail(data.email)
   checkNames(data.firstName, data.lastName)
   if (usePassword(data)) {
     checkPassword(data.password)
