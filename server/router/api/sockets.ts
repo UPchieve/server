@@ -772,7 +772,7 @@ export function routeSockets(io: Server): void {
       )
     })
 
-    socket.on('partnerJoinedLiveMedia', async ({ sessionId }) => {
+    socket.on('joinedLiveMedia', async ({ sessionId }) => {
       const user = await extractSocketUser(socket)
 
       try {
