@@ -53,7 +53,7 @@ export type ClientToServerEvents = {
     banType: USER_BAN_TYPES
   }) => void
   addPartnerLiveMediaBan: (data: { sessionId: string }) => void
-  partnerJoinedLiveMedia: (data: { sessionId: string }) => void
+  joinedLiveMedia: (data: { sessionId: string }) => void
   partialAudioTranscription: (data: {
     text: string
     msgId: string

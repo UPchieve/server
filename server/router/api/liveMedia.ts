@@ -15,7 +15,7 @@ export function routeLiveMedia(router: Router): void {
             Authorization: config.assemblyAiApiKey,
           },
         })
-        console.log({ response })
+
         res.json({ token: response.data.token })
       } catch (error) {
         resError(res, error)
