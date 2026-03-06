@@ -1775,7 +1775,7 @@ export async function getVolunteersReadyToCoachStatus(
       },
       tc
     )
-    return results.map((row) => makeRequired(row))
+    return results.map((row) => makeSomeOptional(row, ['banType']))
   } catch (err) {
     throw new RepoReadError(err)
   }

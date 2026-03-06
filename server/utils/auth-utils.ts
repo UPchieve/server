@@ -499,18 +499,9 @@ async function checkRecaptcha(req: Request, res: Response, next: NextFunction) {
     await validateRequestRecaptcha(req)
     return next()
   } catch (err) {
-    if (
-      err instanceof MissingRecaptchaTokenError ||
-      err instanceof LowRecaptchaScoreError
-    ) {
-      res.status(500).json({
-        err: err.message,
-      })
-    } else {
-      res.status(500).json({
-        err: 'Something went wrong. Please contact the UPchieve team at support@upchieve.org for help.',
-      })
-    }
+    res.status(500).json({
+      err: 'Something went wrong. Please contact the UPchieve team at support@upchieve.org for help.',
+    })
   }
 }
 

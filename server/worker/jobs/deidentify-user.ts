@@ -39,6 +39,8 @@ export default async (job: Job<DeidentifyUserJob>): Promise<void> => {
       JSON.stringify({ passport: { user: userId } }),
     ])
 
+    await tc.query(`DELETE FROM totp WHERE user_id = $1`, [userId])
+
     await MailService.deleteContactByEmail(user.email)
     const photoIdKeyResult = await tc.query(
       'SELECT photo_id_s3_key FROM volunteer_profiles WHERE user_id = $1',

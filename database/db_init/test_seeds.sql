@@ -2,10 +2,10 @@
 -- PostgreSQL database dump
 --
 
-\restrict CZ4Xfr0iJkUtVFCw7S1UyUW8bQZxGlN90PTWIkup2JWmQNtp5Qc6eyvTgbNyZQw
+\restrict PHfOhHD1S5n75ipFqkEY1e3LSaspVbUpLLyh9bgqq0Z2WkPDoZ789hXArLg0xAl
 
 -- Dumped from database version 14.21 (Debian 14.21-1.pgdg13+1)
--- Dumped by pg_dump version 14.19 (Homebrew)
+-- Dumped by pg_dump version 14.22 (Ubuntu 14.22-0ubuntu0.22.04.1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -8579,6 +8579,14 @@ COPY upchieve.surveys_context (survey_id, subject_id, survey_type_id, created_at
 
 
 --
+-- Data for Name: totp; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.totp (user_id, secret, verified, last_used_counter, created_at, updated_at) FROM stdin;
+\.
+
+
+--
 -- Data for Name: training_courses; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
@@ -8782,6 +8790,14 @@ COPY upchieve.users_roles (user_id, role_id, created_at, updated_at) FROM stdin;
 0198c4d0-34aa-ef79-20b5-f1c6245c0b7c	4	2025-08-20 00:10:36.035748+00	2025-08-20 00:10:36.035748+00
 0198c4d1-f405-a71a-931c-e94965191c0a	4	2025-08-20 00:12:30.562089+00	2025-08-20 00:12:30.562089+00
 01919662-8804-cc87-1ee3-90a35b65414d	3	2026-01-01 00:00:00+00	2026-01-01 00:00:00+00
+\.
+
+
+--
+-- Data for Name: users_schools; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.users_schools (user_id, school_id, association_type, created_at, updated_at) FROM stdin;
 \.
 
 
@@ -9231,5 +9247,5 @@ SELECT pg_catalog.setval('upchieve.weekdays_id_seq', 1, false);
 -- PostgreSQL database dump complete
 --
 
-\unrestrict CZ4Xfr0iJkUtVFCw7S1UyUW8bQZxGlN90PTWIkup2JWmQNtp5Qc6eyvTgbNyZQw
+\unrestrict PHfOhHD1S5n75ipFqkEY1e3LSaspVbUpLLyh9bgqq0Z2WkPDoZ789hXArLg0xAl
 

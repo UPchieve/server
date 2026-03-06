@@ -1,7 +1,7 @@
-\restrict KcsK6MLFoe947lgH6VlkabaqEbwl0qNdCB9CeoboQH0FFBI8REfWo3RUPeJcXaP
+\restrict WTmR3cBQkNfRuFY9qvRK3g4uJse3BAzpIj9gsKJ87fO8jzgmSiVQNkKjBEJszfo
 
 -- Dumped from database version 14.21 (Debian 14.21-1.pgdg13+1)
--- Dumped by pg_dump version 14.19 (Homebrew)
+-- Dumped by pg_dump version 14.22 (Ubuntu 14.22-0ubuntu0.22.04.1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -149,6 +149,16 @@ CREATE TYPE upchieve.tutor_bot_conversation_user_type AS ENUM (
 CREATE TYPE upchieve.tutor_bot_session_user_type AS ENUM (
     'student',
     'bot'
+);
+
+
+--
+-- Name: user_school_association_type; Type: TYPE; Schema: upchieve; Owner: -
+--
+
+CREATE TYPE upchieve.user_school_association_type AS ENUM (
+    'student_at_school',
+    'teacher_at_school'
 );
 
 
@@ -2698,6 +2708,20 @@ ALTER SEQUENCE upchieve.topics_id_seq OWNED BY upchieve.topics.id;
 
 
 --
+-- Name: totp; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.totp (
+    user_id uuid NOT NULL,
+    secret text NOT NULL,
+    verified boolean DEFAULT false NOT NULL,
+    last_used_counter integer,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
 -- Name: training_courses; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -3046,6 +3070,19 @@ CREATE TABLE upchieve.users_quizzes (
 CREATE TABLE upchieve.users_roles (
     user_id uuid NOT NULL,
     role_id integer NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: users_schools; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.users_schools (
+    user_id uuid NOT NULL,
+    school_id uuid NOT NULL,
+    association_type upchieve.user_school_association_type NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
@@ -4870,6 +4907,14 @@ ALTER TABLE ONLY upchieve.topics
 
 
 --
+-- Name: totp totp_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.totp
+    ADD CONSTRAINT totp_pkey PRIMARY KEY (user_id);
+
+
+--
 -- Name: training_courses training_courses_name_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -4955,6 +5000,14 @@ ALTER TABLE ONLY upchieve.users_ip_addresses
 
 ALTER TABLE ONLY upchieve.volunteer_occupations
     ADD CONSTRAINT unique_user_id_occupation UNIQUE (user_id, occupation);
+
+
+--
+-- Name: users_schools unique_user_school; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.users_schools
+    ADD CONSTRAINT unique_user_school UNIQUE (user_id, school_id);
 
 
 --
@@ -5545,6 +5598,20 @@ CREATE INDEX user_actions_user_id ON upchieve.user_actions USING btree (user_id)
 --
 
 CREATE UNIQUE INDEX users_lower_case_email_key ON upchieve.users USING btree (lower(email));
+
+
+--
+-- Name: users_schools_school_id; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX users_schools_school_id ON upchieve.users_schools USING btree (school_id);
+
+
+--
+-- Name: users_schools_user_id; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX users_schools_user_id ON upchieve.users_schools USING btree (user_id);
 
 
 --
@@ -6871,6 +6938,14 @@ ALTER TABLE ONLY upchieve.teacher_profiles
 
 
 --
+-- Name: totp totp_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.totp
+    ADD CONSTRAINT totp_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
+
+
+--
 -- Name: tutor_bot_conversation_messages tutor_bot_conversation_messages_tutor_bot_conversation_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -7020,6 +7095,22 @@ ALTER TABLE ONLY upchieve.users_quizzes
 
 ALTER TABLE ONLY upchieve.users_roles
     ADD CONSTRAINT users_roles_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
+
+
+--
+-- Name: users_schools users_schools_school_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.users_schools
+    ADD CONSTRAINT users_schools_school_id_fkey FOREIGN KEY (school_id) REFERENCES upchieve.schools(id);
+
+
+--
+-- Name: users_schools users_schools_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.users_schools
+    ADD CONSTRAINT users_schools_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
 
 
 --
@@ -7194,7 +7285,7 @@ ALTER TABLE ONLY upchieve.volunteer_references
 -- PostgreSQL database dump complete
 --
 
-\unrestrict KcsK6MLFoe947lgH6VlkabaqEbwl0qNdCB9CeoboQH0FFBI8REfWo3RUPeJcXaP
+\unrestrict WTmR3cBQkNfRuFY9qvRK3g4uJse3BAzpIj9gsKJ87fO8jzgmSiVQNkKjBEJszfo
 
 
 --
@@ -7466,4 +7557,6 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260225150603'),
     ('20260227182642'),
     ('20260227183500'),
-    ('20260302173903');
+    ('20260302173903'),
+    ('20260303184811'),
+    ('20260305204138');
