@@ -54,13 +54,6 @@ export type ClientToServerEvents = {
   }) => void
   addPartnerLiveMediaBan: (data: { sessionId: string }) => void
   joinedLiveMedia: (data: { sessionId: string }) => void
-  partialAudioTranscription: (data: {
-    text: string
-    msgId: string
-    userType: string
-    user: Ulid
-    sessionId: Ulid
-  }) => void
 }
 
 export type ServerToClientEvents = {
@@ -99,13 +92,6 @@ export type ServerToClientEvents = {
   partnerImageUploadSuccess: () => void
   partnerAckLiveMediaBan: (data: { isBanned: boolean }) => void
   partnerJoinedLiveMedia: () => void
-  partnerPartialAudioTranscription: (data: {
-    text: string
-    msgId: string
-    userType: string
-    user: Ulid
-    sessionId: Ulid
-  }) => void
 }
 
 export type InterServerEvents = {}

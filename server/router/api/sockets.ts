@@ -787,24 +787,6 @@ export function routeSockets(io: Server): void {
       }
     })
 
-    socket.on('partialAudioTranscription', async ({ sessionId, ...data }) => {
-      const user = await extractSocketUser(socket)
-
-      try {
-        io.to(getSessionRoom(sessionId))
-          .except(user.id)
-          .emit('partnerPartialAudioTranscription', {
-            sessionId,
-            ...data,
-          })
-      } catch (err) {
-        logger.error(
-          { err, sessionId },
-          'Failed to send partial audio transcription to partner'
-        )
-      }
-    })
-
     // Log socket connection-related events for analytics and debugging
     socket.onAny((eventName, args) => {
       logSocketEvent(eventName, socket, args)
