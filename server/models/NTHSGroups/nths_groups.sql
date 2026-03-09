@@ -57,7 +57,7 @@ WHERE
 
 /* @name getNTHSGroupAdminsContactInfo */
 SELECT
-    u.id,
+    u.id AS user_id,
     u.first_name,
     u.email,
     :groupId!::uuid AS nths_group_id

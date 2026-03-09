@@ -71,6 +71,7 @@ import backfillSessionEndedTasks from '../../scripts/backfill-sessionEndedTasks'
 import spawnDeidentifyUsers from './spawn-deidentify-users'
 import updateNthsChapterStatusForImpactPath from './updateNTHSChapterStatusForImpactPath'
 import spawnUpdateNthsChapterStatusForImpactPath from './spawnUpdateNTHSChapterStatusForImpactPath'
+import notifyNTHSChapterAdminsOfDeactivatedUser from './notifyNTHSChapterAdminsOfDeactivatedUser'
 
 export enum Jobs {
   AddScheduledJobs = 'AddScheduledJobs',
@@ -157,6 +158,7 @@ export enum Jobs {
   UpdateCachedVolunteersForTextNotifications = 'UpdateCachedVolunteersForTextNotifications',
   UpdateNTHSChapterStatusForImpactPath = 'UpdateNTHSChapterStatusForImpactPath',
   SpawnUpdateNTHSChapterStatusForImpactPath = 'SpawnUpdateNTHSChapterStatusForImpactPath',
+  NotifyNTHSChapterAdminsOfDeactivatedUser = 'NotifyNTHSChapterAdminsOfDeactivatedUser',
 }
 
 // register new job processors here
@@ -486,6 +488,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.SpawnUpdateNTHSChapterStatusForImpactPath,
     processor: spawnUpdateNthsChapterStatusForImpactPath,
+  },
+  {
+    name: Jobs.NotifyNTHSChapterAdminsOfDeactivatedUser,
+    processor: notifyNTHSChapterAdminsOfDeactivatedUser,
   },
 ]
 

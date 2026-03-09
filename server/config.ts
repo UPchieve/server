@@ -117,6 +117,7 @@ const config = {
     ambassadorCongratsTemplate: 'd-1c344164434544e4962ec2a125d647cf',
     nthsChapterBecameOfficialImpactPathEmail:
       'd-781878be86f94e6c9ce3fbc7d336d6bd',
+    nthsMemberDeactivationNoticeEmail: 'd-d4262bda50bb470abb770850d45cb083',
     unsubscribeGroup: {
       newsletter: 12567,
       account: 12570,
