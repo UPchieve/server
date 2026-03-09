@@ -9,13 +9,7 @@ import { getUserForAuth } from '../services/UserService'
 import { getUserIdByPhone } from '../models/User/queries'
 import { GRADES } from '../constants'
 
-import {
-  InputError,
-  LookupError,
-  LowRecaptchaScoreError,
-  MissingRecaptchaTokenError,
-  NotAllowedError,
-} from '../models/Errors'
+import { InputError, LookupError, NotAllowedError } from '../models/Errors'
 import isValidInternationalPhoneNumber from './is-valid-international-phone-number'
 import {
   asString,
@@ -28,7 +22,7 @@ import {
 import validator from 'validator'
 import session from 'express-session'
 import { validateRequestRecaptcha } from '../services/RecaptchaService'
-import { isBlockedEmailDomain } from './domain-utils'
+import { isBlockedEmailDomain } from './emailDomain-utils'
 import { UserRole } from '../models/User'
 import {
   getVolunteerPartnerOrgForRegistrationByKey,
