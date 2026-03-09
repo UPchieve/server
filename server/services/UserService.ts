@@ -1,5 +1,5 @@
 import crypto from 'crypto'
-import { merge, omit } from 'lodash'
+import { omit } from 'lodash'
 import { Ulid, Uuid } from '../models/pgUtils'
 import { getPhotoIdUrl } from './AwsService'
 import {
@@ -16,7 +16,6 @@ import {
   InputError,
 } from '../models/Errors'
 import { updateIpStatusByUserId } from '../models/IpAddress'
-import { adminUpdateStudent } from '../models/Student'
 import {
   UserContactInfo,
   getUsersForAdminSearch,
@@ -56,12 +55,25 @@ import { createAccountAction, createAdminAction } from '../models/UserAction'
 import { getLegacyUserObject } from '../models/User/legacy-user'
 import { PrimaryUserRole, RoleContext } from './UserRolesService'
 import * as ModerationInfractionsService from '../models/ModerationInfractions'
-import { TransactionClient } from '../db'
+import { getClient, runInTransaction, TransactionClient } from '../db'
 import * as VolunteerService from './VolunteerService'
 import * as ImpactStatsService from './ImpactStatsService'
 import config from '../config'
 import { Jobs } from '../worker/jobs'
 import QueueService from './QueueService'
+import { UserSchoolAssociationType, UsersSchool } from '../models/UsersSchools'
+import * as UsersSchoolsRepo from '../models/UsersSchools'
+import {
+  activateStudentPartnershipInstance,
+  AdminUpdateStudent,
+  adminUpdateStudentUser,
+  deactivateStudentPartnershipInstance,
+  getPartnerOrgByKey,
+  getPartnerOrgsByStudent,
+  StudentPartnerOrgInstance,
+  updateStudentInGatesStudy,
+  updateStudentProfilePartnerOrg,
+} from '../models/Student'
 
 export async function parseUser(userId: Ulid) {
   const user = await getLegacyUserObject(userId)
@@ -397,7 +409,10 @@ export async function adminUpdateUser(data: unknown) {
   }
 
   if (isStudent) {
-    await adminUpdateStudent(userId, update)
+    await adminUpdateStudent(userId, {
+      ...update,
+      banType: banType === undefined ? userBeforeUpdate.banType : banType,
+    })
   }
 
   if (isTeacher) {
@@ -411,6 +426,167 @@ export async function adminUpdateUser(data: unknown) {
       await MailService.createContact(userId)
     }
   }
+}
+
+async function adminUpdateStudent(
+  userId: Ulid,
+  update: AdminUpdateStudent,
+  transactionClient: TransactionClient = getClient()
+) {
+  await runInTransaction(async (tc) => {
+    await adminUpdateStudentUser(userId, {
+      email: update.email,
+      verified: update.isVerified,
+      banType: update.banType,
+      deactivated: update.isDeactivated,
+      firstName: update.firstName,
+      lastName: update.lastName,
+    })
+
+    await updateStudentInGatesStudy(userId, update.inGatesStudy, tc)
+
+    await updateStudentPartnerOrgInstance(
+      userId,
+      update.studentPartnerOrg,
+      update.partnerSite,
+      update.partnerSchool,
+      tc
+    )
+  }, transactionClient)
+}
+
+export async function updateStudentPartnerOrgInstance( // Exported for testing
+  userId: Ulid,
+  newStudentPartnerOrgKey: string | undefined,
+  newPartnerSite: string | undefined,
+  newSchoolPartnerKey: string | undefined,
+  tc: TransactionClient = getClient()
+) {
+  await runInTransaction(async (transactionClient) => {
+    const newPartnerOrg = await getPartnerOrgByKey(
+      // @TODO: Don't make this call if SPO is undefined in the args.
+      newStudentPartnerOrgKey,
+      newPartnerSite,
+      transactionClient
+    )
+    if (newStudentPartnerOrgKey && !newPartnerOrg)
+      throw new Error(
+        `New partner org ${newStudentPartnerOrgKey} does not exist`
+      )
+    const newSchoolOrg = await getPartnerOrgByKey(
+      newSchoolPartnerKey,
+      undefined,
+      transactionClient
+    )
+    if (newSchoolPartnerKey && !newSchoolOrg)
+      throw new Error(`New school org ${newSchoolPartnerKey} does not exist`)
+
+    const activePartnerOrgs = await getPartnerOrgsByStudent(
+      userId,
+      transactionClient
+    )
+    if (activePartnerOrgs.length > 2) {
+      throw new Error(
+        `Student ${userId} has more than 2 partner orgs; cannot update`
+      )
+    }
+
+    let activePartnerInstance: StudentPartnerOrgInstance | undefined
+    let activeSchoolInstance: StudentPartnerOrgInstance | undefined
+
+    for (let org of activePartnerOrgs) {
+      if (org.schoolId) activeSchoolInstance = org
+      else activePartnerInstance = org
+    }
+
+    /*
+     * Check if we have to deactivate any existing partnerships
+     */
+    const isRemovingPartnership = activePartnerInstance && !newPartnerOrg
+    const isChangingPartnership =
+      activePartnerInstance &&
+      newPartnerOrg &&
+      (activePartnerInstance.name !== newPartnerOrg.partnerName ||
+        activePartnerInstance.siteName !== newPartnerOrg.siteName)
+    if (isRemovingPartnership || isChangingPartnership) {
+      await deactivateStudentPartnershipInstance(
+        userId,
+        activePartnerInstance!.id,
+        transactionClient
+      )
+    }
+
+    const isRemovingSchool = activeSchoolInstance && !newSchoolOrg
+    const isChangingSchoolPartner =
+      activeSchoolInstance &&
+      newSchoolOrg &&
+      activeSchoolInstance.name !== newSchoolOrg.partnerName
+    if (isRemovingSchool || isChangingSchoolPartner) {
+      await deactivateStudentPartnershipInstance(
+        userId,
+        activeSchoolInstance!.id,
+        transactionClient
+      )
+    }
+
+    /*
+     * @TODO: Drop student_partner_org_id and school_id from student_profiles.
+     *
+     * For now, update these columns until we're ready to get rid of them entirely as they have
+     * been replaced by the partnership instances table and users_schools.
+     */
+    await updateStudentProfilePartnerOrg(
+      userId,
+      newPartnerOrg?.partnerId,
+      newPartnerOrg?.siteId,
+      transactionClient
+    )
+
+    /*
+     * Now activate partnerships. This applies if the user has changed their SPO or their SPO site.
+     */
+    const isNewPartnership = !activePartnerInstance && newPartnerOrg
+    if (isNewPartnership || isChangingPartnership) {
+      await activateStudentPartnershipInstance(
+        userId,
+        newPartnerOrg!.partnerId,
+        newPartnerOrg?.siteId,
+        transactionClient
+      )
+    }
+
+    /*
+     * Do the same for the school partnership, if applicable.
+     */
+    const isNewSchoolPartnership = !activeSchoolInstance && newSchoolOrg
+    const isChangingSchoolPartnership =
+      activeSchoolInstance &&
+      newSchoolOrg &&
+      activeSchoolInstance.name !== newSchoolOrg.partnerName
+    if (isNewSchoolPartnership || isChangingSchoolPartnership) {
+      await activateStudentPartnershipInstance(
+        userId,
+        newSchoolOrg!.partnerId,
+        undefined,
+        transactionClient
+      )
+    }
+
+    if (isRemovingSchool) {
+      await UsersSchoolsRepo.deleteUsersSchool(
+        userId,
+        activeSchoolInstance!.schoolId!,
+        transactionClient
+      )
+    } else if (isChangingSchoolPartnership) {
+      await UsersSchoolsRepo.upsertUsersSchool(
+        userId,
+        newSchoolOrg!.schoolId!,
+        'student_at_school',
+        transactionClient
+      )
+    }
+  }, tc)
 }
 
 interface UserQuery {
@@ -585,4 +761,16 @@ export function getReferralSignUpLink(referralCode: string): string {
 
 export function getUserIdByPhone(phone: string): Promise<Ulid | undefined> {
   return UserRepo.getUserIdByPhone(phone)
+}
+
+export async function upsertUsersSchool(
+  userId: Ulid,
+  schoolId: Ulid,
+  associationType: UserSchoolAssociationType
+): Promise<UsersSchool> {
+  return await UsersSchoolsRepo.upsertUsersSchool(
+    userId,
+    schoolId,
+    associationType
+  )
 }

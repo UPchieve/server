@@ -169,6 +169,13 @@ async function deidentifyRows(
     WHERE user_id = $1`,
     [userId]
   )
+  await tc.query(
+    `UPDATE users_schools SET
+    school_id = null,
+    updated_at = NOW()
+    WHERE user_id = $1`,
+    [userId]
+  )
 
   // If the user was a partner student, we still want to know that they _were_ a partner student, and we still
   // want to know the partner org _had_ a partner student, just remove reference to the specific student.

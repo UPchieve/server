@@ -152,12 +152,10 @@ SET
     deactivated = :deactivated!,
     updated_at = NOW()
 WHERE
-    id = :userId!
-RETURNING
-    id AS ok;
+    id = :userId!;
 
 
-/* @name adminUpdateStudentProfile */
+/* @name adminUpdateStudentProfilePartnerOrg */
 UPDATE
     student_profiles
 SET
@@ -234,9 +232,7 @@ UPDATE
 SET
     in_gates_study = COALESCE(:inGatesStudy, in_gates_study)
 WHERE
-    user_id = :userId!
-RETURNING
-    user_id AS ok;
+    user_id = :userId!;
 
 
 /* @name createStudentProfile */
