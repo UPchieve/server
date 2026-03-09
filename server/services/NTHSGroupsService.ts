@@ -387,7 +387,7 @@ export async function getAllNTHSGroupsChapterStatus(): Promise<
 
 export async function deactivateNonHighSchoolMember(
   userId: Ulid,
-  groups: NTHSGroupWithMemberInfo[],
+  groups: NTHSGroupWithMemberInfo[] | undefined,
   tc: TransactionClient = getClient()
 ) {
   const groupsToRemoveFrom: NTHSGroupWithMemberInfo[] =
@@ -412,7 +412,6 @@ export async function deactivateNonHighSchoolMember(
       )
     }, tc)
   } catch (err) {
-    // @TODO: Alert based off this
     logger.error(
       logData,
       'Failed to deactivate non-high school user from all NTHS chapters'

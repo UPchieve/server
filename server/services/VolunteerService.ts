@@ -22,6 +22,7 @@ import {
   Sponsorship,
   TextableVolunteer,
   VolunteerForOnboarding,
+  VolunteerOccupations,
   VolunteerWithReadyToCoachInfo,
 } from '../models/Volunteer'
 import * as cache from '../cache'
@@ -296,7 +297,8 @@ export async function addBackgroundInfo(
       // NTHS members have to be high schoolers. If this user is part of any NTHS chapters, and they are not in high school,
       // they must be removed from the group immediately.
       const isInHighSchool =
-        update.occupation && update.occupation.includes('A high school student') // @TODO: Enumify this
+        update.occupation &&
+        update.occupation.includes(VolunteerOccupations.HIGH_SCHOOL_STUDENT)
       if (!isInHighSchool) {
         await NTHSService.deactivateNonHighSchoolMember(
           volunteerId,
