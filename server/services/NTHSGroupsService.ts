@@ -31,6 +31,8 @@ import {
   NTHSGroupAffiliationExistsError,
 } from '../models/Errors'
 import logger from '../logger'
+import QueueService from './QueueService'
+import { Jobs } from '../worker/jobs'
 
 export async function getGroups(userId: Ulid) {
   return await NTHSGroupsRepo.getGroupsByUser(userId)
@@ -399,8 +401,10 @@ export async function deactivateNonHighSchoolMember(
           group.groupId,
           client
         )
-        // @TODO: Add a deactivate reason to the DB?
-        // @TODO: Queue up job to notify the group's admins via email
+        await QueueService.add(Jobs.NotifyNTHSChapterAdminsOfDeactivatedUser, {
+          deactivatedUserId: userId,
+          nthsGroupId: group.groupId,
+        })
       }
       logger.info(
         logData,
