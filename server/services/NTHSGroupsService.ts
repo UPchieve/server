@@ -30,6 +30,7 @@ import {
   CannotRemoveSoleNTHSAdminError,
   NTHSGroupAffiliationExistsError,
 } from '../models/Errors'
+import logger from '../logger'
 
 export async function getGroups(userId: Ulid) {
   return await NTHSGroupsRepo.getGroupsByUser(userId)
@@ -151,6 +152,13 @@ export async function joinGroupAsMemberByGroupId(
     )
     return await NTHSGroupsRepo.getGroupsByUser(userId, client)
   }, tc)
+}
+
+export async function getNTHSGroupsByMember(
+  userId: Ulid,
+  tc: TransactionClient = getRoClient()
+): Promise<NTHSGroupWithMemberInfo[]> {
+  return await NTHSGroupsRepo.getGroupsByUser(userId, tc)
 }
 
 type UpdateGroupMemberRequest = {
@@ -373,4 +381,37 @@ export async function getAllNTHSGroupsChapterStatus(): Promise<
   NTHSGroupChapterStatusInfo[]
 > {
   return NTHSGroupsRepo.getAllNTHSGroupsChapterStatus()
+}
+
+export async function deactivateNonHighSchoolMember(
+  userId: Ulid,
+  groups: NTHSGroupWithMemberInfo[],
+  tc: TransactionClient = getClient()
+) {
+  const groupsToRemoveFrom: NTHSGroupWithMemberInfo[] =
+    groups ?? (await NTHSGroupsRepo.getGroupsByUser(userId, tc))
+  const logData = { userId, groupIds: groupsToRemoveFrom.map((g) => g.groupId) }
+  try {
+    await runInTransaction(async (client) => {
+      for (const group of groupsToRemoveFrom) {
+        await NTHSGroupsRepo.deactivateGroupMember(
+          userId,
+          group.groupId,
+          client
+        )
+        // @TODO: Add a deactivate reason to the DB?
+        // @TODO: Queue up job to notify the group's admins via email
+      }
+      logger.info(
+        logData,
+        'Removed non-high school user from all NTHS chapters'
+      )
+    }, tc)
+  } catch (err) {
+    // @TODO: Alert based off this
+    logger.error(
+      logData,
+      'Failed to deactivate non-high school user from all NTHS chapters'
+    )
+  }
 }

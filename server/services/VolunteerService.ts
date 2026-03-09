@@ -11,6 +11,7 @@ import * as VolunteerRepo from '../models/Volunteer'
 import * as UsersSchoolsRepo from '../models/UsersSchools'
 import { Jobs } from '../worker/jobs'
 import * as AnalyticsService from './AnalyticsService'
+import * as NTHSService from './NTHSGroupsService'
 import { getTotalElapsedAvailabilityForDateRange } from './AvailabilityService'
 import * as MailService from './MailService'
 import QueueService from './QueueService'
@@ -289,6 +290,20 @@ export async function addBackgroundInfo(
         'student_at_school',
         tc
       )
+    }
+    const nthsGroups = await NTHSService.getNTHSGroupsByMember(volunteerId, tc)
+    if (nthsGroups.length) {
+      // NTHS members have to be high schoolers. If this user is part of any NTHS chapters, and they are not in high school,
+      // they must be removed from the group immediately.
+      const isInHighSchool =
+        update.occupation && update.occupation.includes('A high school student') // @TODO: Enumify this
+      if (!isInHighSchool) {
+        await NTHSService.deactivateNonHighSchoolMember(
+          volunteerId,
+          nthsGroups,
+          tc
+        )
+      }
     }
   })
 }
