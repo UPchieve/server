@@ -1,7 +1,7 @@
-\restrict hcb7Nt7OyKT1aGIjr49azdYo4te7BNfVvGK94hQuyvD4dgul9yzu8muNONZ30bf
+\restrict UJIYvWapzYSkShnvQzVzutiK2gjyDF0eInSUFENV8xdX8QghIFhhlmGoLSCm2GC
 
 -- Dumped from database version 14.21 (Debian 14.21-1.pgdg13+1)
--- Dumped by pg_dump version 14.19 (Homebrew)
+-- Dumped by pg_dump version 15.15 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -26,6 +26,13 @@ CREATE SCHEMA auth;
 --
 
 CREATE SCHEMA basic_access;
+
+
+--
+-- Name: public; Type: SCHEMA; Schema: -; Owner: -
+--
+
+-- *not* creating schema, since initdb creates it
 
 
 --
@@ -7285,7 +7292,7 @@ ALTER TABLE ONLY upchieve.volunteer_references
 -- PostgreSQL database dump complete
 --
 
-\unrestrict hcb7Nt7OyKT1aGIjr49azdYo4te7BNfVvGK94hQuyvD4dgul9yzu8muNONZ30bf
+\unrestrict UJIYvWapzYSkShnvQzVzutiK2gjyDF0eInSUFENV8xdX8QghIFhhlmGoLSCm2GC
 
 
 --
