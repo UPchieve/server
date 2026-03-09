@@ -173,8 +173,8 @@ export interface IGetNthsGroupAdminsContactInfoParams {
 export interface IGetNthsGroupAdminsContactInfoResult {
   email: string;
   firstName: string;
-  id: string;
   nthsGroupId: string | null;
+  userId: string;
 }
 
 /** 'GetNthsGroupAdminsContactInfo' query type */
@@ -183,13 +183,13 @@ export interface IGetNthsGroupAdminsContactInfoQuery {
   result: IGetNthsGroupAdminsContactInfoResult;
 }
 
-const getNthsGroupAdminsContactInfoIR: any = {"usedParamSet":{"groupId":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":52,"b":60},{"a":245,"b":253}]}],"statement":"SELECT\n    u.id,\n    u.first_name,\n    u.email,\n    :groupId!::uuid AS nths_group_id\nFROM\n    nths_group_member_roles mr\n    JOIN nths_group_roles roles ON roles.id = mr.role_id\n    JOIN users u ON U.id = mr.user_id\nWHERE\n    mr.nths_group_id = :groupId!::uuid\n    AND roles.name = 'admin'"};
+const getNthsGroupAdminsContactInfoIR: any = {"usedParamSet":{"groupId":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":63,"b":71},{"a":256,"b":264}]}],"statement":"SELECT\n    u.id AS user_id,\n    u.first_name,\n    u.email,\n    :groupId!::uuid AS nths_group_id\nFROM\n    nths_group_member_roles mr\n    JOIN nths_group_roles roles ON roles.id = mr.role_id\n    JOIN users u ON U.id = mr.user_id\nWHERE\n    mr.nths_group_id = :groupId!::uuid\n    AND roles.name = 'admin'"};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
- *     u.id,
+ *     u.id AS user_id,
  *     u.first_name,
  *     u.email,
  *     :groupId!::uuid AS nths_group_id

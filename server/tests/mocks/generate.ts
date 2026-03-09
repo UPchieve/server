@@ -48,6 +48,7 @@ import {
 import {
   TextableVolunteer,
   UserQuiz,
+  VolunteerContactInfo,
   VolunteersForAnalyticsReport,
   VolunteerWithReadyToCoachInfo,
 } from '../../models/Volunteer'
@@ -59,7 +60,12 @@ import { ModerationInfraction } from '../../models/ModerationInfractions/types'
 import { SessionAudioTranscriptMessage } from '../../models/SessionAudioTranscriptMessages/types'
 import { RoleContext } from '../../services/UserRolesService'
 import { UserSessionMetrics } from '../../models/UserSessionMetrics'
-import { NTHSGroup, NTHSGroupMemberWithRole } from '../../models/NTHSGroups'
+import {
+  NTHSGroup,
+  NTHSGroupMemberWithRole,
+  NTHSGroupRoleName,
+  NTHSGroupWithMemberInfo,
+} from '../../models/NTHSGroups'
 
 export function getEmail(): string {
   return faker.internet.email().toLowerCase()
@@ -975,5 +981,50 @@ export function buildNTHSGroup(overrides: Partial<NTHSGroup> = {}): NTHSGroup {
     key: 'nths-test-chapter',
     createdAt: new Date(),
     inviteCode: faker.string.alpha({ length: 6 }),
+    ...overrides,
+  }
+}
+
+export function buildNTHSGroupWithMemberInfo(
+  overrides: Partial<NTHSGroupWithMemberInfo> = {}
+): NTHSGroupWithMemberInfo {
+  const groupId = getDbUlid()
+  const groupName = 'NTHS Chapter'
+  const groupKey = 'nths-chapter'
+  const inviteCode = faker.string.hexadecimal({ length: 6 })
+  return {
+    groupInfo: {
+      id: groupId,
+      name: groupName,
+      key: groupKey,
+      createdAt: new Date(),
+      inviteCode,
+    },
+    memberInfo: {
+      title: 'Member',
+      joinedAt: new Date(),
+      roleName: 'member',
+    },
+    memberTitle: 'Member',
+    joinedAt: new Date(),
+    groupId,
+    groupName,
+    groupKey,
+    inviteCode,
+    roleName: 'member',
+    schoolAffiliationStatus: null,
+    ...overrides,
+  }
+}
+
+export function buildVolunteerContactInfo(
+  overrides: Partial<VolunteerContactInfo> = {}
+): VolunteerContactInfo {
+  return {
+    id: getDbUlid(),
+    email: faker.internet.email(),
+    firstName: faker.person.firstName(),
+    lastName: faker.person.lastName(),
+    ...overrides,
   }
 }

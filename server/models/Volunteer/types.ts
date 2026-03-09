@@ -120,3 +120,14 @@ export type VolunteerWithReadyToCoachInfo = {
   isReadyToCoach: boolean
   banType?: USER_BAN_TYPES
 }
+
+export enum VolunteerOccupations {
+  WORKING_PART_TIME = 'Working part-time',
+  WORKING_FULL_TIME = 'Working full-time',
+  UNDERGRAD_STUDENT = 'An undergraduate student',
+  GRAD_STUDENT = 'A graduate student',
+  RETIRED = 'Retired',
+  CAREGIVER = 'Caregiver',
+  HIGH_SCHOOL_STUDENT = 'A high school student',
+  UNEMPLOYED = 'Unemployed',
+}

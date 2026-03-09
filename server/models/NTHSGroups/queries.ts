@@ -116,6 +116,7 @@ export async function getGroupAdminsContactInfo(
   tc: TransactionClient = getRoClient()
 ): Promise<
   {
+    userId: Ulid
     nthsGroupId: Ulid
     firstName: string
     email: string
