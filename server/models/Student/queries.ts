@@ -400,7 +400,6 @@ export async function adminUpdateStudentUser(
   tc: TransactionClient = getClient()
 ) {
   try {
-    console.log(`TEST - banType is ${update.banType}`)
     await pgQueries.adminUpdateStudent.run(
       {
         userId: studentId,
