@@ -132,6 +132,17 @@ CREATE TYPE upchieve.moderation_types AS ENUM (
 
 
 --
+-- Name: nths_candidate_application_status; Type: TYPE; Schema: upchieve; Owner: -
+--
+
+CREATE TYPE upchieve.nths_candidate_application_status AS ENUM (
+    'applied',
+    'approved',
+    'denied'
+);
+
+
+--
 -- Name: tutor_bot_conversation_user_type; Type: TYPE; Schema: upchieve; Owner: -
 --
 
@@ -1073,6 +1084,44 @@ CREATE TABLE upchieve.nths_advisors (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     school_id uuid
+);
+
+
+--
+-- Name: nths_candidate_applications; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.nths_candidate_applications (
+    id integer NOT NULL,
+    user_id uuid NOT NULL,
+    status upchieve.nths_candidate_application_status NOT NULL,
+    denied_notes text,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT reason_must_be_null_when_not_denied CHECK (
+CASE
+    WHEN (status <> 'denied'::upchieve.nths_candidate_application_status) THEN (denied_notes IS NULL)
+    ELSE true
+END),
+    CONSTRAINT reason_required_when_denied CHECK (
+CASE
+    WHEN (status = 'denied'::upchieve.nths_candidate_application_status) THEN (denied_notes IS NOT NULL)
+    ELSE true
+END)
+);
+
+
+--
+-- Name: nths_candidate_applications_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE upchieve.nths_candidate_applications ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME upchieve.nths_candidate_applications_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
 );
 
 
@@ -4043,6 +4092,14 @@ ALTER TABLE ONLY upchieve.nths_advisors
 
 
 --
+-- Name: nths_candidate_applications nths_candidate_applications_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_candidate_applications
+    ADD CONSTRAINT nths_candidate_applications_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: nths_chapter_statuses nths_chapter_statuses_name_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -5356,6 +5413,13 @@ CREATE INDEX notifications_user_id ON upchieve.notifications USING btree (user_i
 
 
 --
+-- Name: nths_candidate_app_created_at_idx; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX nths_candidate_app_created_at_idx ON upchieve.nths_candidate_applications USING btree (user_id, created_at DESC);
+
+
+--
 -- Name: nths_chapters_statuses_created_at_index; Type: INDEX; Schema: upchieve; Owner: -
 --
 
@@ -6023,6 +6087,14 @@ ALTER TABLE ONLY upchieve.nths_advisors
 
 ALTER TABLE ONLY upchieve.nths_advisors
     ADD CONSTRAINT nths_advisors_school_id_fkey FOREIGN KEY (school_id) REFERENCES upchieve.schools(id);
+
+
+--
+-- Name: nths_candidate_applications nths_candidate_applications_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_candidate_applications
+    ADD CONSTRAINT nths_candidate_applications_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
 
 
 --
@@ -7559,4 +7631,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260227183500'),
     ('20260302173903'),
     ('20260303184811'),
-    ('20260305204138');
+    ('20260305204138'),
+    ('20260309135111');
