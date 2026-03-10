@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict EYhsNj6P4zjnWhEBy6FFrMfUhF8HeVnpXclfRC6atTRyViUZZMqLXfHevXobn6q
+\restrict hCtyqEH9AZOreVILmvmGXNi8eGqOMhxvTHdKiKXznnwypC6yhQYcoLzK5yUAXNb
 
 -- Dumped from database version 14.21 (Debian 14.21-1.pgdg13+1)
 -- Dumped by pg_dump version 14.19 (Homebrew)
@@ -6240,6 +6240,14 @@ COPY upchieve.nths_advisors (id, nths_group_id, first_name, last_name, email, ph
 
 
 --
+-- Data for Name: nths_candidate_applications; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.nths_candidate_applications (id, user_id, status, denied_notes, created_at, updated_at) FROM stdin;
+\.
+
+
+--
 -- Data for Name: nths_chapter_statuses; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
@@ -8999,6 +9007,13 @@ SELECT pg_catalog.setval('upchieve.nths_actions_id_seq', 8, true);
 
 
 --
+-- Name: nths_candidate_applications_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
+--
+
+SELECT pg_catalog.setval('upchieve.nths_candidate_applications_id_seq', 1, false);
+
+
+--
 -- Name: nths_chapter_statuses_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
@@ -9247,5 +9262,5 @@ SELECT pg_catalog.setval('upchieve.weekdays_id_seq', 1, false);
 -- PostgreSQL database dump complete
 --
 
-\unrestrict EYhsNj6P4zjnWhEBy6FFrMfUhF8HeVnpXclfRC6atTRyViUZZMqLXfHevXobn6q
+\unrestrict hCtyqEH9AZOreVILmvmGXNi8eGqOMhxvTHdKiKXznnwypC6yhQYcoLzK5yUAXNb
 

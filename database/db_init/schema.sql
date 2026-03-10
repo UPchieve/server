@@ -1,4 +1,4 @@
-\restrict hcb7Nt7OyKT1aGIjr49azdYo4te7BNfVvGK94hQuyvD4dgul9yzu8muNONZ30bf
+\restrict 9gFSpHHqGhQgH0VnMWD2SdZqAA1hvVoinAA8xPLL1dyiSxQocolKfhGZzuECPBp
 
 -- Dumped from database version 14.21 (Debian 14.21-1.pgdg13+1)
 -- Dumped by pg_dump version 14.19 (Homebrew)
@@ -5060,14 +5060,6 @@ ALTER TABLE ONLY upchieve.volunteer_occupations
 
 
 --
--- Name: users_schools unique_user_school; Type: CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.users_schools
-    ADD CONSTRAINT unique_user_school UNIQUE (user_id, school_id);
-
-
---
 -- Name: us_states us_states_name_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -5209,6 +5201,14 @@ ALTER TABLE ONLY upchieve.users
 
 ALTER TABLE ONLY upchieve.users_roles
     ADD CONSTRAINT users_roles_pkey PRIMARY KEY (user_id, role_id);
+
+
+--
+-- Name: users_schools users_schools_unique_user_id; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.users_schools
+    ADD CONSTRAINT users_schools_unique_user_id UNIQUE (user_id);
 
 
 --
@@ -7357,7 +7357,7 @@ ALTER TABLE ONLY upchieve.volunteer_references
 -- PostgreSQL database dump complete
 --
 
-\unrestrict hcb7Nt7OyKT1aGIjr49azdYo4te7BNfVvGK94hQuyvD4dgul9yzu8muNONZ30bf
+\unrestrict 9gFSpHHqGhQgH0VnMWD2SdZqAA1hvVoinAA8xPLL1dyiSxQocolKfhGZzuECPBp
 
 
 --
@@ -7632,4 +7632,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260302173903'),
     ('20260303184811'),
     ('20260305204138'),
-    ('20260309135111');
+    ('20260309135111'),
+    ('20260310141305');
