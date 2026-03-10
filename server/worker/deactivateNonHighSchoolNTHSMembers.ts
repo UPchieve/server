@@ -1,13 +1,13 @@
 import {
   getNonHighSchoolNTHSMembers,
   deactivateGroupMember,
+  getGroupAdminsContactInfo,
 } from '../models/NTHSGroups'
 import { getClient, runInTransaction } from '../db'
 import logger from '../logger'
 import { Ulid } from '../models/pgUtils'
 import QueueService from '../services/QueueService'
 import { Jobs } from './jobs'
-import { sendIndividualsDeactivationFromNTHSNotice } from '../services/MailService'
 
 const logPrefix = `NTHS Cleanup of Non-HS members: `
 export default async function () {
@@ -33,18 +33,13 @@ export default async function () {
         nthsGroupId: member.nthsGroupId,
         deactivatedUserId: member.userId,
       })
-      await sendIndividualsDeactivationFromNTHSNotice(
-        member.firstName,
-        member.email,
-        member.chapterName
-      )
 
       logger.info(
         {
           userId: member.userId,
           groupId: member.nthsGroupId,
         },
-        `${logPrefix}Removed a non-HS user from NTHS`
+        `${logPrefix}Deactivated a non-HS user and enqueued email to group admins`
       )
     }
   }, client)
