@@ -1,14 +1,14 @@
 import { ACCOUNT_USER_ACTIONS } from '../../constants'
 import { Uuid } from '../../models/pgUtils'
-import { shadowBanStudent } from '../../models/RulesActions/queries'
+import { shadowBanStudent } from '../../models/User/'
 import { createAccountAction } from '../../models/UserAction'
 
-export async function executeModerationActionById(
-  actionId: number,
+export async function executeModerationActionByName(
+  actionName: string,
   studentId: Uuid,
   sessionId: Uuid
 ) {
-  if (actionId === 1) {
+  if (actionName === 'shadowBan') {
     await shadowBanStudent(studentId)
 
     await createAccountAction({

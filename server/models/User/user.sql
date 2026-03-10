@@ -886,3 +886,12 @@ FROM
 WHERE
     student_id = :userId!;
 
+
+/* @name shadowBanStudent */
+UPDATE
+    users
+SET
+    ban_type = 'shadow'
+WHERE
+    id = :studentId!;
+
