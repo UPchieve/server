@@ -11,7 +11,7 @@ export async function upsertUsersSchool(
   tc: TransactionClient = getClient()
 ): Promise<UsersSchool> {
   try {
-    const results = await pgQueries.insertUsersSchool.run(
+    const results = await pgQueries.upsertUsersSchool.run(
       {
         userId,
         schoolId,
