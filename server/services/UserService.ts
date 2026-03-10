@@ -73,6 +73,7 @@ import {
   StudentPartnerOrgInstance,
   updateStudentInGatesStudy,
   updateStudentProfilePartnerOrg,
+  updateStudentSchool,
 } from '../models/Student'
 
 export async function parseUser(userId: Ulid) {
@@ -568,6 +569,11 @@ export async function updateStudentPartnerOrgInstance( // Exported for testing
         userId,
         newSchoolOrg!.partnerId,
         undefined,
+        transactionClient
+      )
+      await updateStudentSchool(
+        userId,
+        newSchoolOrg!.schoolId!,
         transactionClient
       )
     }
