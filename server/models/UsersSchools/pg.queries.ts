@@ -3,15 +3,15 @@ import { PreparedQuery } from '@pgtyped/runtime';
 
 export type user_school_association_type = 'student_at_school' | 'teacher_at_school';
 
-/** 'InsertUsersSchool' parameters type */
-export interface IInsertUsersSchoolParams {
+/** 'UpsertUsersSchool' parameters type */
+export interface IUpsertUsersSchoolParams {
   associationType: user_school_association_type;
   schoolId: string;
   userId: string;
 }
 
-/** 'InsertUsersSchool' return type */
-export interface IInsertUsersSchoolResult {
+/** 'UpsertUsersSchool' return type */
+export interface IUpsertUsersSchoolResult {
   associationType: user_school_association_type;
   createdAt: Date;
   schoolId: string;
@@ -19,24 +19,27 @@ export interface IInsertUsersSchoolResult {
   userId: string;
 }
 
-/** 'InsertUsersSchool' query type */
-export interface IInsertUsersSchoolQuery {
-  params: IInsertUsersSchoolParams;
-  result: IInsertUsersSchoolResult;
+/** 'UpsertUsersSchool' query type */
+export interface IUpsertUsersSchoolQuery {
+  params: IUpsertUsersSchoolParams;
+  result: IUpsertUsersSchoolResult;
 }
 
-const insertUsersSchoolIR: any = {"usedParamSet":{"userId":true,"schoolId":true,"associationType":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":89,"b":96}]},{"name":"schoolId","required":true,"transform":{"type":"scalar"},"locs":[{"a":99,"b":108}]},{"name":"associationType","required":true,"transform":{"type":"scalar"},"locs":[{"a":111,"b":127}]}],"statement":"INSERT INTO users_schools (user_id, school_id, association_type, updated_at)\n    VALUES (:userId!, :schoolId!, :associationType!, NOW())\nRETURNING\n    *"};
+const upsertUsersSchoolIR: any = {"usedParamSet":{"userId":true,"schoolId":true,"associationType":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":89,"b":96}]},{"name":"schoolId","required":true,"transform":{"type":"scalar"},"locs":[{"a":99,"b":108},{"a":197,"b":206}]},{"name":"associationType","required":true,"transform":{"type":"scalar"},"locs":[{"a":111,"b":127},{"a":228,"b":244}]}],"statement":"INSERT INTO users_schools (user_id, school_id, association_type, updated_at)\n    VALUES (:userId!, :schoolId!, :associationType!, NOW())\nON CONFLICT (user_id)\n    DO UPDATE SET\n        school_id = :schoolId!, association_type = :associationType!, updated_at = NOW()\n    RETURNING\n        *"};
 
 /**
  * Query generated from SQL:
  * ```
  * INSERT INTO users_schools (user_id, school_id, association_type, updated_at)
  *     VALUES (:userId!, :schoolId!, :associationType!, NOW())
- * RETURNING
- *     *
+ * ON CONFLICT (user_id)
+ *     DO UPDATE SET
+ *         school_id = :schoolId!, association_type = :associationType!, updated_at = NOW()
+ *     RETURNING
+ *         *
  * ```
  */
-export const insertUsersSchool = new PreparedQuery<IInsertUsersSchoolParams,IInsertUsersSchoolResult>(insertUsersSchoolIR);
+export const upsertUsersSchool = new PreparedQuery<IUpsertUsersSchoolParams,IUpsertUsersSchoolResult>(upsertUsersSchoolIR);
 
 
 /** 'DeleteUsersSchool' parameters type */
