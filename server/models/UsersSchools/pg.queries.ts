@@ -70,3 +70,62 @@ const deleteUsersSchoolIR: any = {"usedParamSet":{"userId":true,"schoolId":true}
 export const deleteUsersSchool = new PreparedQuery<IDeleteUsersSchoolParams,IDeleteUsersSchoolResult>(deleteUsersSchoolIR);
 
 
+/** 'BackfillStudentAndTeacherSchools' parameters type */
+export type IBackfillStudentAndTeacherSchoolsParams = void;
+
+/** 'BackfillStudentAndTeacherSchools' return type */
+export type IBackfillStudentAndTeacherSchoolsResult = void;
+
+/** 'BackfillStudentAndTeacherSchools' query type */
+export interface IBackfillStudentAndTeacherSchoolsQuery {
+  params: IBackfillStudentAndTeacherSchoolsParams;
+  result: IBackfillStudentAndTeacherSchoolsResult;
+}
+
+const backfillStudentAndTeacherSchoolsIR: any = {"usedParamSet":{},"params":[],"statement":"WITH students_to_backfill AS (\n    SELECT\n        sp.user_id,\n        sp.school_id\n    FROM\n        student_profiles sp\n        LEFT JOIN users_schools us ON us.user_id = sp.user_id\n    WHERE\n        us.user_id IS NULL\n        AND sp.school_id IS NOT NULL\n),\nteachers_to_backfill AS (\n    SELECT\n        tp.user_id,\n        tp.school_id\n    FROM\n        teacher_profiles tp\n        LEFT JOIN users_schools us ON us.user_id = tp.user_id\n    WHERE\n        us.user_id IS NULL\n        AND tp.school_id IS NOT NULL\n),\nstudent_insert AS (\nINSERT INTO users_schools (user_id, school_id, association_type)\n    SELECT\n        stb.user_id,\n        stb.school_id,\n        'student_at_school'\n    FROM\n        students_to_backfill stb)\n    INSERT INTO users_schools (user_id, school_id, association_type)\n    SELECT\n        ttb.user_id,\n        ttb.school_id,\n        'teacher_at_school'\n    FROM\n        teachers_to_backfill ttb"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * WITH students_to_backfill AS (
+ *     SELECT
+ *         sp.user_id,
+ *         sp.school_id
+ *     FROM
+ *         student_profiles sp
+ *         LEFT JOIN users_schools us ON us.user_id = sp.user_id
+ *     WHERE
+ *         us.user_id IS NULL
+ *         AND sp.school_id IS NOT NULL
+ * ),
+ * teachers_to_backfill AS (
+ *     SELECT
+ *         tp.user_id,
+ *         tp.school_id
+ *     FROM
+ *         teacher_profiles tp
+ *         LEFT JOIN users_schools us ON us.user_id = tp.user_id
+ *     WHERE
+ *         us.user_id IS NULL
+ *         AND tp.school_id IS NOT NULL
+ * ),
+ * student_insert AS (
+ * INSERT INTO users_schools (user_id, school_id, association_type)
+ *     SELECT
+ *         stb.user_id,
+ *         stb.school_id,
+ *         'student_at_school'
+ *     FROM
+ *         students_to_backfill stb)
+ *     INSERT INTO users_schools (user_id, school_id, association_type)
+ *     SELECT
+ *         ttb.user_id,
+ *         ttb.school_id,
+ *         'teacher_at_school'
+ *     FROM
+ *         teachers_to_backfill ttb
+ * ```
+ */
+export const backfillStudentAndTeacherSchools = new PreparedQuery<IBackfillStudentAndTeacherSchoolsParams,IBackfillStudentAndTeacherSchoolsResult>(backfillStudentAndTeacherSchoolsIR);
+
+

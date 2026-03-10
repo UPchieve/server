@@ -2,7 +2,7 @@ import { makeRequired, Ulid } from '../pgUtils'
 import { UserSchoolAssociationType, UsersSchool } from './types'
 import { RepoDeleteError, RepoUpsertError } from '../Errors'
 import * as pgQueries from './pg.queries'
-import { getClient, TransactionClient } from '../../db'
+import { getClient, runInTransaction, TransactionClient } from '../../db'
 
 export async function upsertUsersSchool(
   userId: Ulid,
@@ -40,4 +40,14 @@ export async function deleteUsersSchool(
   } catch (err) {
     throw new RepoDeleteError(err)
   }
+}
+
+export async function backfillStudentAndTeacherSchools() {
+  await runInTransaction(async (client) => {
+    try {
+      await pgQueries.backfillStudentAndTeacherSchools.run(undefined, tc)
+    } catch (err) {
+      throw new RepoUpsertError(err)
+    }
+  })
 }
