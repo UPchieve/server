@@ -9,13 +9,7 @@ import { getUserForAuth } from '../services/UserService'
 import { getUserIdByPhone } from '../models/User/queries'
 import { GRADES } from '../constants'
 
-import {
-  InputError,
-  LookupError,
-  LowRecaptchaScoreError,
-  MissingRecaptchaTokenError,
-  NotAllowedError,
-} from '../models/Errors'
+import { InputError, LookupError, NotAllowedError } from '../models/Errors'
 import isValidInternationalPhoneNumber from './is-valid-international-phone-number'
 import {
   asString,
@@ -28,7 +22,7 @@ import {
 import validator from 'validator'
 import session from 'express-session'
 import { validateRequestRecaptcha } from '../services/RecaptchaService'
-import { isBlockedEmailDomain } from './domain-utils'
+import { isBlockedEmailDomain } from './emailDomain-utils'
 import { UserRole } from '../models/User'
 import {
   getVolunteerPartnerOrgForRegistrationByKey,
@@ -499,18 +493,9 @@ async function checkRecaptcha(req: Request, res: Response, next: NextFunction) {
     await validateRequestRecaptcha(req)
     return next()
   } catch (err) {
-    if (
-      err instanceof MissingRecaptchaTokenError ||
-      err instanceof LowRecaptchaScoreError
-    ) {
-      res.status(500).json({
-        err: err.message,
-      })
-    } else {
-      res.status(500).json({
-        err: 'Something went wrong. Please contact the UPchieve team at support@upchieve.org for help.',
-      })
-    }
+    res.status(500).json({
+      err: 'Something went wrong. Please contact the UPchieve team at support@upchieve.org for help.',
+    })
   }
 }
 

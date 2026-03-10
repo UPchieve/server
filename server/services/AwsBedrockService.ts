@@ -47,6 +47,32 @@ export type BedrockToolsAttribute = {
   tool_choice: { type: BedrockToolChoice; name?: string }
 }
 
+type TextContent = {
+  type: 'text'
+  text: string
+}
+
+type ImageContent = {
+  type: 'image'
+  source: {
+    type: 'base64'
+    media_type?: string
+    data: string
+  }
+}
+
+type AnthropicMessagePayload = {
+  anthropic_version: string
+  max_tokens: number
+  system: string
+  messages: Array<{
+    role: 'user'
+    content: Array<TextContent | ImageContent>
+  }>
+  tools?: BedrockTools
+  tool_choice?: { type: BedrockToolChoice; name?: string }
+}
+
 type BedrockInvokeInput = {
   modelId: string
   text?: string
@@ -61,7 +87,7 @@ type BedrockInvokeResponse = {
   content: Array<{ input?: ToolInput; text?: string }>
 }
 
-function imageContentPayload(image: Buffer) {
+function imageContentPayload(image: Buffer): ImageContent {
   const imageFileType = getImageFileType(image)
 
   return {
@@ -74,7 +100,7 @@ function imageContentPayload(image: Buffer) {
   }
 }
 
-function textContextPayload(text: string) {
+function textContextPayload(text: string): TextContent {
   return { type: 'text', text: `<text>${text}</text>` }
 }
 
@@ -96,17 +122,21 @@ export async function invokeModel<T = string | ToolInput>({
     payLoadContent.push(imageContentPayload(image))
   }
 
-  const payload = {
+  const payload: AnthropicMessagePayload = {
     anthropic_version: ANTHROPIC_VERSION,
     max_tokens: 2000,
     system: prompt,
-    tools_option,
     messages: [
       {
         role: 'user',
         content: payLoadContent,
       },
     ],
+  }
+
+  if (tools_option) {
+    payload.tools = tools_option.tools
+    payload.tool_choice = tools_option.tool_choice
   }
 
   const command = new InvokeModelCommand({

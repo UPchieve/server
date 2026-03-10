@@ -1,5 +1,5 @@
 import { mocked } from 'jest-mock'
-import { isBlockedEmailDomain } from '../../utils/domain-utils'
+import { isBlockedEmailDomain } from '../../utils/emailDomain-utils'
 import * as EmailDomainBlocklistRepo from '../../models/EmailDomainBlocklist/queries'
 
 jest.mock('../../models/EmailDomainBlocklist/queries')

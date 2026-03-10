@@ -301,35 +301,39 @@ export function routes(app: Express) {
     }
   })
 
-  router.route('/register/volunteer/open').post(async function (req, res) {
-    try {
-      // TODO replace this with UserCreationService.regsterVolunteer?
-      const volunteer = await AuthService.registerVolunteer({
-        ...req.body,
-        ip: req.ip,
-      } as unknown)
-      await req.asyncLogin(volunteer)
-      await trackLoggedIn(volunteer.id, req.ip)
-      res.json({ user: volunteer })
-    } catch (err) {
-      resError(res, err)
-    }
-  })
+  router
+    .route('/register/volunteer/open')
+    .post(authPassport.checkRecaptcha, async function (req, res) {
+      try {
+        // TODO replace this with UserCreationService.regsterVolunteer?
+        const volunteer = await AuthService.registerVolunteer({
+          ...req.body,
+          ip: req.ip,
+        } as unknown)
+        await req.asyncLogin(volunteer)
+        await trackLoggedIn(volunteer.id, req.ip)
+        res.json({ user: volunteer })
+      } catch (err) {
+        resError(res, err)
+      }
+    })
 
-  router.route('/register/volunteer/partner').post(async function (req, res) {
-    try {
-      // TODO replace this with UserCreationService.regsterVolunteer?
-      const volunteer = await AuthService.registerPartnerVolunteer({
-        ...req.body,
-        ip: req.ip,
-      } as unknown)
-      await req.asyncLogin(volunteer)
-      await trackLoggedIn(volunteer.id, req.ip)
-      res.json({ user: volunteer })
-    } catch (err) {
-      resError(res, err)
-    }
-  })
+  router
+    .route('/register/volunteer/partner')
+    .post(authPassport.checkRecaptcha, async function (req, res) {
+      try {
+        // TODO replace this with UserCreationService.regsterVolunteer?
+        const volunteer = await AuthService.registerPartnerVolunteer({
+          ...req.body,
+          ip: req.ip,
+        } as unknown)
+        await req.asyncLogin(volunteer)
+        await trackLoggedIn(volunteer.id, req.ip)
+        res.json({ user: volunteer })
+      } catch (err) {
+        resError(res, err)
+      }
+    })
 
   router.route('/partner/volunteer').get(async function (req, res) {
     try {

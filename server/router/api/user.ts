@@ -165,6 +165,7 @@ export function routeUser(router: Router): void {
         phoneNumber,
         signupSourceId,
         otherSignupSource,
+        highSchoolId,
       } = req.body
 
       const update = {
@@ -180,6 +181,7 @@ export function routeUser(router: Router): void {
         phoneNumber,
         signupSourceId,
         otherSignupSource,
+        highSchoolId,
       }
 
       try {

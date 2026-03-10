@@ -1,10 +1,8 @@
 import expressWs from 'express-ws'
-import timeout from 'connect-timeout'
 import { resError } from '../res-error'
 
 import { authPassport } from '../../utils/auth-utils'
 import * as ReportService from '../../services/ReportService'
-import { minutesInMs } from '../../utils/time-utils'
 
 export function routeReports(router: expressWs.Router): void {
   router.get(
@@ -23,10 +21,9 @@ export function routeReports(router: expressWs.Router): void {
   router.get(
     '/reports/usage-report',
     authPassport.isAdmin,
-    timeout('90000'), // 90s — must stay under Cloudflare's 100s proxy limit
     async function (req, res) {
       try {
-        req.clearTimeout() // clear global 30s timeout first; route-level 90s applies
+        req.clearTimeout()
         const students = await ReportService.usageReport(req.query as unknown)
         res.json({ students })
       } catch (error) {

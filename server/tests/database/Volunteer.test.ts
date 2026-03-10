@@ -16,6 +16,7 @@ import {
   getNextVolunteerToNotify,
   getVolunteerContactInfoById,
   getVolunteersForTextNotifications,
+  getVolunteersReadyToCoachStatus,
   updateVolunteerForAdmin,
   updateVolunteerOnboarded,
   updateVolunteerTrainingById,
@@ -31,6 +32,7 @@ import {
 import { omit } from 'lodash'
 import { addFavoriteVolunteer } from '../../models/Student'
 import { createTestUser, createTestVolunteer } from './seed-utils'
+import { Ulid } from '../../models/pgUtils'
 
 const client = getClient()
 const TIMEZONE = 'EST'
@@ -623,6 +625,40 @@ describe('VolunteerRepo', () => {
         client
       )
       expect(result.smsConsent).toEqual(true)
+    })
+  })
+
+  describe('getVolunteersReadyToCoachStatus', () => {
+    it('Pulls the correct information', async () => {
+      const vol1 = await loadVolunteer({
+        banType: null,
+        approved: false,
+        onboarded: true,
+      })
+      const vol2 = await loadVolunteer({
+        banType: 'shadow',
+        approved: true,
+        onboarded: true,
+      })
+      const actual = await getVolunteersReadyToCoachStatus(
+        [vol1.id, vol2.id],
+        client
+      )
+      expect(actual.length).toEqual(2)
+      const vol1Actual = actual.find((vol) => vol.id === vol1.id)
+      const vol2Actual = actual.find((vol) => vol.id === vol2.id)
+      expect(vol1Actual).toEqual({
+        id: vol1.id,
+        isApproved: false,
+        isOnboarded: true,
+        banType: undefined,
+      })
+      expect(vol2Actual).toEqual({
+        id: vol2.id,
+        isApproved: true,
+        isOnboarded: true,
+        banType: 'shadow',
+      })
     })
   })
 })

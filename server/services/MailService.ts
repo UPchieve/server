@@ -1570,6 +1570,24 @@ export async function sendNTHSChapterOfficialStatusNotification(
   }
 }
 
+export async function sendNTHSChapterAdminsMemberDeactivationNotice(
+  recipients: { firstName: string; email: string }[],
+  deactivatedUserFirstName: string
+): Promise<void> {
+  for (const recipient of recipients) {
+    await sendEmail(
+      recipient.email,
+      config.mail.senders.noreply,
+      'UPchieve',
+      config.sendgrid.nthsMemberDeactivationNoticeEmail,
+      {
+        firstName: recipient.firstName,
+        deactivatedUserFirstName,
+      }
+    )
+  }
+}
+
 export async function createContact(userIds: Ulid | Ulid[]): Promise<any> {
   if (isDevEnvironment() || isE2eEnvironment()) {
     logger.debug('Skipping createContact: ' + userIds)

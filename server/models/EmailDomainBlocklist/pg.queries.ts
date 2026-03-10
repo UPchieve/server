@@ -18,18 +18,18 @@ export interface IGetEmailDomainBlocklistEntryQuery {
   result: IGetEmailDomainBlocklistEntryResult;
 }
 
-const getEmailDomainBlocklistEntryIR: any = {"usedParamSet":{"domain":true},"params":[{"name":"domain","required":true,"transform":{"type":"scalar"},"locs":[{"a":86,"b":93}]}],"statement":"SELECT\n    id,\n    domain\nFROM\n    upchieve.email_domain_blocklist\nWHERE\n    domain = :domain!"};
+const getEmailDomainBlocklistEntryIR: any = {"usedParamSet":{"domain":true},"params":[{"name":"domain","required":true,"transform":{"type":"scalar"},"locs":[{"a":86,"b":93}]}],"statement":"SELECT\n    id,\n    DOMAIN\nFROM\n    upchieve.email_domain_blocklist\nWHERE\n    DOMAIN = :domain!"};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
  *     id,
- *     domain
+ *     DOMAIN
  * FROM
  *     upchieve.email_domain_blocklist
  * WHERE
- *     domain = :domain!
+ *     DOMAIN = :domain!
  * ```
  */
 export const getEmailDomainBlocklistEntry = new PreparedQuery<IGetEmailDomainBlocklistEntryParams,IGetEmailDomainBlocklistEntryResult>(getEmailDomainBlocklistEntryIR);
