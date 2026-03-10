@@ -564,3 +564,27 @@ export async function createCandidateApplication(
     throw new RepoCreateError(err)
   }
 }
+
+// @TODO: Remove me after running the job once on production
+export async function getNonHighSchoolNTHSMembers(
+  tc: TransactionClient = getRoClient()
+): Promise<
+  {
+    userId: Ulid
+    chapterName: string
+    nthsGroupId: Ulid
+    firstName: string
+    email: string
+    occupations: string[]
+  }[]
+> {
+  try {
+    const results = await pgQueries.getNonHighSchoolNthsMembers.run(
+      undefined,
+      tc
+    )
+    return results.map((row) => makeRequired(row))
+  } catch (error) {
+    throw new RepoReadError(error)
+  }
+}
