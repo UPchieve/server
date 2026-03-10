@@ -7,6 +7,7 @@ import * as StudentService from './StudentService'
 import * as StudentRepo from '../models/Student'
 import * as SubjectsRepo from '../models/Subjects'
 import * as TeacherRepo from '../models/Teacher'
+import * as UsersSchoolsRepo from '../models/UsersSchools'
 import * as TeacherClassRepo from '../models/TeacherClass'
 import * as UserRepo from '../models/User'
 import generateAlphanumericOfLength from '../utils/generate-alphanumeric'
@@ -251,6 +252,12 @@ export async function adminUpdateTeacher(
 
     if (teacherBeforeUpdate.schoolId !== updateData.schoolId) {
       await TeacherRepo.updateTeacherSchool(teacherId, updateData.schoolId, tc)
+      await UsersSchoolsRepo.upsertUsersSchool(
+        teacherId,
+        updateData.schoolId!,
+        'teacher_at_school',
+        tc
+      )
 
       const teacherClasses = await getTeacherClasses(teacherId, tc)
       const allTeacherStudents = _.uniqBy(

@@ -186,6 +186,11 @@ export async function updateLastSuccessfulCleverSync(
   }
 }
 
+/**
+ * @TODO: If you're calling this, make sure you are also updating the school in the users_schools table.
+ * We are in the process of migrating user school data to users_schools and will eventually drop
+ * teacher_profiles.schoolId
+ */
 export async function updateTeacherSchool(
   teacherId: Ulid,
   schoolId: Uuid | undefined,
