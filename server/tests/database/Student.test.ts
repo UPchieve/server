@@ -4,6 +4,7 @@
 
 import {
   addStudentsToTeacherClass,
+  adminUpdateStudentUser,
   createStudentProfile,
   getFavoritedVolunteerIdsFromList,
   getStudentContactInfoById,
@@ -12,7 +13,7 @@ import {
 import { faker } from '@faker-js/faker'
 import { CreateUserPayload } from '../../models/User'
 import { getClient } from '../../db'
-import { getDbUlid, Ulid } from '../../models/pgUtils'
+import { getDbUlid, makeSomeRequired, Ulid } from '../../models/pgUtils'
 import {
   createTestStudent,
   createTestUser,
@@ -358,6 +359,127 @@ describe('addStudentsToTeacherClass', () => {
       expect(result).not.toContain(notFav2)
       expect(result).not.toContain(notFav3)
       expect(result).not.toContain(notFav4)
+    })
+  })
+})
+
+describe('adminUpdateStudentUser', () => {
+  it('Updates the expected fields', async () => {
+    const { id: userId } = await createUser({
+      email: faker.internet.email(),
+      firstName: faker.person.firstName(),
+      lastName: faker.person.lastName(),
+    })
+    const originalUser = makeSomeRequired(
+      (await client.query(`SELECT * FROM users WHERE id = $1`, [userId]))
+        .rows[0],
+      [
+        'id',
+        'email',
+        'firstName',
+        'lastName',
+        'emailVerified',
+        'verified',
+        'deactivated',
+      ]
+    )
+    await adminUpdateStudentUser(
+      userId,
+      {
+        email: faker.internet.email(),
+        verified: true,
+        banType: 'complete',
+        deactivated: true,
+      },
+      client
+    )
+    const updatedUser = makeSomeRequired(
+      (await client.query(`SELECT * FROM users WHERE id = $1`, [userId]))
+        .rows[0],
+      [
+        'id',
+        'email',
+        'firstName',
+        'lastName',
+        'emailVerified',
+        'verified',
+        'deactivated',
+      ]
+    )
+    expect(originalUser.id).toEqual(updatedUser.id)
+    expect(originalUser.email).not.toEqual(updatedUser.email)
+    expect(originalUser.firstName).toEqual(updatedUser.firstName)
+    expect(originalUser.lastName).toEqual(updatedUser.lastName)
+    expect(originalUser.verified).not.toEqual(updatedUser.verified)
+    expect(originalUser.banType).not.toEqual(updatedUser.banType)
+    expect(originalUser.deactivated).not.toEqual(updatedUser.deactivated)
+  })
+
+  describe('user.ban_type', () => {
+    it('Does not change ban type', async () => {
+      const { id: userId } = await createUser({
+        email: faker.internet.email(),
+        firstName: faker.person.firstName(),
+        lastName: faker.person.lastName(),
+      })
+      await client.query(`UPDATE users SET ban_type = 'shadow' WHERE id = $1`, [
+        userId,
+      ])
+      await adminUpdateStudentUser(userId, {
+        email: faker.internet.email(),
+        verified: false,
+        deactivated: false,
+        banType: 'shadow',
+      })
+      const updatedUser = makeSomeRequired(
+        (await client.query(`SELECT * FROM users WHERE id = $1`, [userId]))
+          .rows[0],
+        ['id', 'email', 'banType']
+      )
+      expect(updatedUser.banType).toEqual('shadow')
+    })
+
+    it('Nulls out ban type', async () => {
+      const { id: userId } = await createUser({
+        email: faker.internet.email(),
+        firstName: faker.person.firstName(),
+        lastName: faker.person.lastName(),
+      })
+      await client.query(`UPDATE users SET ban_type = 'shadow' WHERE id = $1`, [
+        userId,
+      ])
+      await adminUpdateStudentUser(userId, {
+        email: faker.internet.email(),
+        verified: false,
+        deactivated: false,
+        banType: null,
+      })
+      const updatedUser = makeSomeRequired(
+        (await client.query(`SELECT * FROM users WHERE id = $1`, [userId]))
+          .rows[0],
+        ['id', 'email']
+      )
+      expect(updatedUser.banType).not.toBeDefined()
+    })
+
+    it('Updates ban type', async () => {
+      const { id: userId } = await createUser({
+        email: faker.internet.email(),
+        firstName: faker.person.firstName(),
+        lastName: faker.person.lastName(),
+      })
+      await adminUpdateStudentUser(userId, {
+        email: faker.internet.email(),
+        verified: false,
+        deactivated: false,
+        banType: 'shadow',
+      })
+      const updatedUser = makeSomeRequired(
+        (await client.query(`SELECT * FROM users WHERE id = $1`, [userId]))
+          .rows[0],
+        ['id', 'email', 'banType']
+      )
+      expect(updatedUser.banType).toEqual('shadow')
     })
   })
 })

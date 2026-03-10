@@ -4,23 +4,25 @@ import {
   PHOTO_ID_STATUS,
   STATUS,
   TRAINING_QUIZZES,
-  USER_BAN_TYPES,
 } from '../constants'
 import { Ulid, Uuid } from '../models/pgUtils'
 import { createAccountAction } from '../models/UserAction'
 import * as VolunteerRepo from '../models/Volunteer'
+import * as UsersSchoolsRepo from '../models/UsersSchools'
 import { Jobs } from '../worker/jobs'
 import * as AnalyticsService from './AnalyticsService'
+import * as NTHSService from './NTHSGroupsService'
 import { getTotalElapsedAvailabilityForDateRange } from './AvailabilityService'
 import * as MailService from './MailService'
 import QueueService from './QueueService'
 import { getTimeTutoredForDateRange } from './SessionService'
 import { getQuizzesPassedForDateRangeById } from '../models/UserAction'
-import { getClient, TransactionClient } from '../db'
+import { getClient, runInTransaction, TransactionClient } from '../db'
 import {
   Sponsorship,
   TextableVolunteer,
   VolunteerForOnboarding,
+  VolunteerOccupations,
   VolunteerWithReadyToCoachInfo,
 } from '../models/Volunteer'
 import * as cache from '../cache'
@@ -238,37 +240,73 @@ export async function addBackgroundInfo(
   if (!volunteer) throw new Error('Volunteer for background info not found')
   const volunteerPartnerOrg = volunteer.volunteerPartnerOrg
   let approved: boolean | undefined
-  if (volunteerPartnerOrg) {
-    approved = true
-    await createAccountAction({
-      userId: volunteerId,
-      action: ACCOUNT_USER_ACTIONS.APPROVED,
-      ipAddress: ip,
-    })
-    // TODO: if not onboarded, send a partner-specific version of the "approved but not onboarded" email
-  }
 
-  // remove fields with empty strings and empty arrays from the update
-  for (const field in update) {
-    const tField = field as keyof typeof update
-    if (
-      (update &&
-        update[tField] &&
-        Array.isArray(update[tField]) &&
-        (update[tField] as Array<any>).length === 0) ||
-      update[tField] === ''
+  await runInTransaction(async (tc) => {
+    if (volunteerPartnerOrg) {
+      approved = true
+      await createAccountAction(
+        {
+          userId: volunteerId,
+          action: ACCOUNT_USER_ACTIONS.APPROVED,
+          ipAddress: ip,
+        },
+        tc
+      )
+      // TODO: if not onboarded, send a partner-specific version of the "approved but not onboarded" email
+    }
+
+    // remove fields with empty strings and empty arrays from the update
+    for (const field in update) {
+      const tField = field as keyof typeof update
+      if (
+        (update &&
+          update[tField] &&
+          Array.isArray(update[tField]) &&
+          (update[tField] as Array<any>).length === 0) ||
+        update[tField] === ''
+      )
+        update[tField] = undefined
+    }
+
+    await createAccountAction(
+      {
+        userId: volunteerId,
+        action: ACCOUNT_USER_ACTIONS.COMPLETED_BACKGROUND_INFO,
+        ipAddress: ip,
+      },
+      tc
     )
-      update[tField] = undefined
-  }
-
-  await createAccountAction({
-    userId: volunteerId,
-    action: ACCOUNT_USER_ACTIONS.COMPLETED_BACKGROUND_INFO,
-    ipAddress: ip,
-  })
-  await VolunteerRepo.updateVolunteerBackgroundInfo(volunteerId, {
-    ...update,
-    approved,
+    await VolunteerRepo.updateVolunteerBackgroundInfo(
+      volunteerId,
+      {
+        ...update,
+        approved,
+      },
+      tc
+    )
+    if (update.highSchoolId) {
+      await UsersSchoolsRepo.upsertUsersSchool(
+        volunteerId,
+        update.highSchoolId,
+        'student_at_school',
+        tc
+      )
+    }
+    const nthsGroups = await NTHSService.getNTHSGroupsByMember(volunteerId, tc)
+    if (nthsGroups.length) {
+      // NTHS members have to be high schoolers. If this user is part of any NTHS chapters, and they are not in high school,
+      // they must be removed from the group immediately.
+      const isInHighSchool =
+        update.occupation &&
+        update.occupation.includes(VolunteerOccupations.HIGH_SCHOOL_STUDENT)
+      if (!isInHighSchool) {
+        await NTHSService.deactivateNonHighSchoolMember(
+          volunteerId,
+          nthsGroups,
+          tc
+        )
+      }
+    }
   })
 }
 

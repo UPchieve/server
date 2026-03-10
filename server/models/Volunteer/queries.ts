@@ -1510,11 +1510,13 @@ export type BackgroundInfo = {
   phoneNumber: string | undefined
   signupSourceId: number | undefined
   otherSignupSource: string | undefined
+  highSchoolId?: string | null
 }
 
 export async function updateVolunteerBackgroundInfo(
   userId: Ulid,
-  backgroundInfo: BackgroundInfo
+  backgroundInfo: BackgroundInfo,
+  tc: TransactionClient = getClient()
 ): Promise<void> {
   try {
     const result = await pgQueries.updateVolunteerBackgroundInfo.run(
@@ -1530,7 +1532,7 @@ export async function updateVolunteerBackgroundInfo(
             }))
           : [],
       },
-      getClient()
+      tc
     )
     if (!result.length && makeRequired(result[0]).ok)
       throw new RepoUpdateError('update query did not return ok')
@@ -1775,7 +1777,7 @@ export async function getVolunteersReadyToCoachStatus(
       },
       tc
     )
-    return results.map((row) => makeRequired(row))
+    return results.map((row) => makeSomeOptional(row, ['banType']))
   } catch (err) {
     throw new RepoReadError(err)
   }

@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict CZ4Xfr0iJkUtVFCw7S1UyUW8bQZxGlN90PTWIkup2JWmQNtp5Qc6eyvTgbNyZQw
+\restrict hCtyqEH9AZOreVILmvmGXNi8eGqOMhxvTHdKiKXznnwypC6yhQYcoLzK5yUAXNb
 
 -- Dumped from database version 14.21 (Debian 14.21-1.pgdg13+1)
 -- Dumped by pg_dump version 14.19 (Homebrew)
@@ -6240,6 +6240,14 @@ COPY upchieve.nths_advisors (id, nths_group_id, first_name, last_name, email, ph
 
 
 --
+-- Data for Name: nths_candidate_applications; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.nths_candidate_applications (id, user_id, status, denied_notes, created_at, updated_at) FROM stdin;
+\.
+
+
+--
 -- Data for Name: nths_chapter_statuses; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
@@ -8579,6 +8587,14 @@ COPY upchieve.surveys_context (survey_id, subject_id, survey_type_id, created_at
 
 
 --
+-- Data for Name: totp; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.totp (user_id, secret, verified, last_used_counter, created_at, updated_at) FROM stdin;
+\.
+
+
+--
 -- Data for Name: training_courses; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
@@ -8786,6 +8802,14 @@ COPY upchieve.users_roles (user_id, role_id, created_at, updated_at) FROM stdin;
 
 
 --
+-- Data for Name: users_schools; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.users_schools (user_id, school_id, association_type, created_at, updated_at) FROM stdin;
+\.
+
+
+--
 -- Data for Name: users_student_partner_orgs_instances; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
@@ -8980,6 +9004,13 @@ SELECT pg_catalog.setval('upchieve.notification_types_id_seq', 2, true);
 --
 
 SELECT pg_catalog.setval('upchieve.nths_actions_id_seq', 8, true);
+
+
+--
+-- Name: nths_candidate_applications_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
+--
+
+SELECT pg_catalog.setval('upchieve.nths_candidate_applications_id_seq', 1, false);
 
 
 --
@@ -9231,5 +9262,5 @@ SELECT pg_catalog.setval('upchieve.weekdays_id_seq', 1, false);
 -- PostgreSQL database dump complete
 --
 
-\unrestrict CZ4Xfr0iJkUtVFCw7S1UyUW8bQZxGlN90PTWIkup2JWmQNtp5Qc6eyvTgbNyZQw
+\unrestrict hCtyqEH9AZOreVILmvmGXNi8eGqOMhxvTHdKiKXznnwypC6yhQYcoLzK5yUAXNb
 

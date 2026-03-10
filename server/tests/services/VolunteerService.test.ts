@@ -1,5 +1,6 @@
 import * as VolunteerService from '../../services/VolunteerService'
 import * as VolunteerRepo from '../../models/Volunteer'
+import * as NTHSService from '../../services/NTHSGroupsService'
 import QueueService from '../../services/QueueService'
 import * as AnalyticsService from '../../services/AnalyticsService'
 import { createAccountAction } from '../../models/UserAction'
@@ -13,8 +14,14 @@ import {
 import { mocked } from 'jest-mock'
 import { TrainingCourse } from '../../models/Volunteer'
 import { hasCompletedVolunteerTraining } from '../../services/VolunteerService'
+import {
+  buildNTHSGroupWithMemberInfo,
+  buildVolunteerContactInfo,
+} from '../mocks/generate'
 
+jest.mock('../../services/NTHSGroupsService')
 jest.mock('../../models/Volunteer')
+jest.mock('../../models/UsersSchools')
 jest.mock('../../services/QueueService', () => ({
   add: jest.fn(),
 }))
@@ -25,6 +32,7 @@ jest.mock('../../models/UserAction', () => ({
   createAccountAction: jest.fn(),
 }))
 
+const mockedNTHSService = mocked(NTHSService)
 const mockedVolunteerRepo = mocked(VolunteerRepo)
 const mockVolunteer = {
   id: 'volunteer123',
@@ -259,5 +267,61 @@ describe('onboardVolunteer', () => {
       EVENTS.ACCOUNT_ONBOARDED,
       expect.anything()
     )
+  })
+})
+
+describe('addBackgroundInfo', () => {
+  const update = {
+    approved: undefined,
+    occupation: ['Unemployed', 'Caretaker'],
+    languages: [],
+    city: 'Boston',
+    state: 'Massachusetts',
+    country: 'United States',
+    experience: { collegeCounseling: '1', mentoring: '1', tutoring: '1' },
+    company: undefined,
+    college: undefined,
+    linkedInUrl: undefined,
+    phoneNumber: undefined,
+    signupSourceId: undefined,
+    otherSignupSource: undefined,
+    highSchoolId: null,
+  }
+  it('Deactivates NTHS member if they are not a high schooler', async () => {
+    const volunteer = buildVolunteerContactInfo()
+    mockedVolunteerRepo.getVolunteerContactInfoById.mockResolvedValue(volunteer)
+    const nthsGroup = buildNTHSGroupWithMemberInfo()
+    mockedNTHSService.getNTHSGroupsByMember.mockResolvedValue([nthsGroup])
+    await VolunteerService.addBackgroundInfo(volunteer.id, update)
+    expect(
+      mockedNTHSService.deactivateNonHighSchoolMember
+    ).toHaveBeenCalledTimes(1)
+    expect(
+      mockedNTHSService.deactivateNonHighSchoolMember
+    ).toHaveBeenCalledWith(volunteer.id, [nthsGroup], expect.anything())
+  })
+
+  it('Does not deactivate NTHS member if they are a high schooler', async () => {
+    const volunteer = buildVolunteerContactInfo()
+    mockedVolunteerRepo.getVolunteerContactInfoById.mockResolvedValue(volunteer)
+    const nthsGroup = buildNTHSGroupWithMemberInfo()
+    mockedNTHSService.getNTHSGroupsByMember.mockResolvedValue([nthsGroup])
+    await VolunteerService.addBackgroundInfo(volunteer.id, {
+      ...update,
+      occupation: ['A high school student', 'Unemployed'],
+    })
+    expect(
+      mockedNTHSService.deactivateNonHighSchoolMember
+    ).not.toHaveBeenCalled()
+  })
+
+  it('Does not attempt to deactivate NTHS member if user is not in NTHS', async () => {
+    const volunteer = buildVolunteerContactInfo()
+    mockedVolunteerRepo.getVolunteerContactInfoById.mockResolvedValue(volunteer)
+    mockedNTHSService.getNTHSGroupsByMember.mockResolvedValue([])
+    await VolunteerService.addBackgroundInfo(volunteer.id, update)
+    expect(
+      mockedNTHSService.deactivateNonHighSchoolMember
+    ).not.toHaveBeenCalled()
   })
 })

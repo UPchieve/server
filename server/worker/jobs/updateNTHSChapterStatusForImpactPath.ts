@@ -22,17 +22,21 @@ export type UpdateNTHSChapterStatusJobData = {
  * Calculate the NTHS chapter's status (i.e. "official" or "pending") based off of their group impact.
  */
 export default async function (job: Job<UpdateNTHSChapterStatusJobData>) {
-  const nthsGroupId = job.data.nthsGroupId
-  logger.info(
-    {
-      groupId: nthsGroupId,
-    },
-    `${logPrefix}Checking NTHS impact path status for chapter`
-  )
   // At compile time, these are dates, but they are date strings at runtime
   // Convert back to dates here so we can make use of the Date APIs without throwing runtime errors.
   const periodStart = new Date(job.data.periodStart)
   const periodEnd = new Date(job.data.periodEnd)
+
+  const nthsGroupId = job.data.nthsGroupId
+  logger.info(
+    {
+      groupId: nthsGroupId,
+      periodStart,
+      periodEnd,
+    },
+    `${logPrefix}Checking NTHS impact path status for chapter`
+  )
+
   // Get all-time members (including deactivated)
   const alltimeMembers = await NTHSService.getGroupMembers(nthsGroupId)
 
@@ -43,7 +47,12 @@ export default async function (job: Job<UpdateNTHSChapterStatusJobData>) {
     )
   const readyToCoachUserIds = new Set<Ulid>(
     readyToCoachInfo
-      .filter((coach) => coach.isReadyToCoach)
+      .filter(
+        (coach) =>
+          coach.isReadyToCoach &&
+          coach.banType !== 'complete' &&
+          coach.banType !== 'shadow'
+      )
       .map((coach) => coach.id)
   )
   const readyToCoachMembers = alltimeMembers.filter((member) =>
@@ -52,17 +61,16 @@ export default async function (job: Job<UpdateNTHSChapterStatusJobData>) {
   logger.info(
     {
       groupId: nthsGroupId,
+      userIds: Array.from(readyToCoachUserIds),
     },
     `${logPrefix}Found ${readyToCoachUserIds.size} ready-to-coach members of NTHS chapter`
   )
 
   // Check if at least 6 of them did 1 session during the period of [t1, t2]
-  // where t1 = max(joinedAt, startDate)
+  // where t1 = startDate
   // and t2 = min(endDate, deactivatedAt)
   const eligibleMembers: NTHSGroupMemberWithRole[] = []
-  for (let i = 0; i < readyToCoachMembers.length; i++) {
-    const user = readyToCoachMembers[i]
-    const startDate = user.joinedAt > periodStart ? user.joinedAt : periodStart
+  for (const user of readyToCoachMembers) {
     const endDate =
       user.deactivatedAt && user.deactivatedAt < periodEnd
         ? user.deactivatedAt
@@ -70,7 +78,7 @@ export default async function (job: Job<UpdateNTHSChapterStatusJobData>) {
     const usersSessions = await SessionRepo.getUserSessionsByUserId(
       user.userId,
       {
-        start: startDate,
+        start: periodStart,
         end: endDate,
       }
     )
@@ -85,6 +93,7 @@ export default async function (job: Job<UpdateNTHSChapterStatusJobData>) {
     {
       groupId: nthsGroupId,
       newChapterStatus: newChapterStatusName,
+      userIds: eligibleMembers.map((member) => member.userId),
     },
     `${logPrefix}Counted ${eligibleMembers.length} eligible members for impact path for NTHS chapter`
   )
@@ -104,6 +113,10 @@ export default async function (job: Job<UpdateNTHSChapterStatusJobData>) {
     return
   }
   await NTHSService.insertNthsChapterStatus(nthsGroupId, newChapterStatusName)
+  logger.info(
+    { groupId: nthsGroupId, status: newChapterStatusName },
+    `${logPrefix}Chapter status has been updated to ${newChapterStatusName}`
+  )
   if (newChapterStatusName === 'OFFICIAL') {
     const nthsChapter = await NTHSService.getNTHSGroupByID(nthsGroupId)
     if (!nthsChapter) {
