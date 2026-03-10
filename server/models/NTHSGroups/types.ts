@@ -110,3 +110,5 @@ export type NTHSGroupChapterStatusInfo = {
   schoolAffiliationStatusName?: NTHSSchoolAffiliationStatusName
   schoolAffiliationStatusId?: number
 }
+
+export type NTHSCandidateApplicationStatus = 'applied' | 'approved' | 'denied'

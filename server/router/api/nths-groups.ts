@@ -30,7 +30,9 @@ export function routeNTHSGroups(router: Router): void {
     try {
       const user = extractUser(req)
       const groups = await NTHSGroupsService.getGroups(user.id)
-      res.json({ groups })
+      const candidateApplicationStatus =
+        await NTHSGroupsService.getLatestCandidateApplicationStatus(user.id)
+      res.json({ groups, candidateApplicationStatus })
     } catch (error) {
       resError(res, error)
     }
