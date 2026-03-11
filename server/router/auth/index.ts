@@ -29,7 +29,7 @@ import { AuthRedirect } from './auth-redirect'
 import { v4 as uuidv4 } from 'uuid'
 import { UserRole } from '../../models/User'
 import * as NTHSGroupsService from '../../services/NTHSGroupsService'
-import { NTHSCandidateApplicationStatus } from '../../models/NTHSGroups'
+import { isValidStatus } from '../../models/NTHSGroups'
 
 async function trackLoggedIn(userId: Ulid, ipAddress?: string) {
   await createAccountAction({
@@ -459,12 +459,6 @@ export function routes(app: Express) {
       }
     }
   )
-
-  function isValidStatus(
-    status: string
-  ): status is NTHSCandidateApplicationStatus {
-    return ['applied', 'denied', 'approved'].includes(status)
-  }
 
   router.post('/nths/candidate-applications', async function (req, res) {
     try {

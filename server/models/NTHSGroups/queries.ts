@@ -526,7 +526,7 @@ export async function getLatestCandidateApplicationStatus(
       { userId },
       tc
     )
-    return results[0]?.status
+    return results[0]?.status as NTHSCandidateApplicationStatus
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -549,7 +549,17 @@ export async function createCandidateApplication(
       { status, userId, deniedNotes },
       tc
     )
-    return results.map((row) => makeSomeOptional(row, ['deniedNotes']))
+    return results.map(
+      (row) =>
+        makeSomeOptional(row, ['deniedNotes']) as {
+          createdAt: Date
+          deniedNotes: string | null
+          id: number
+          status: NTHSCandidateApplicationStatus
+          updatedAt: Date
+          userId: Ulid
+        }
+    )
   } catch (err) {
     throw new RepoCreateError(err)
   }
