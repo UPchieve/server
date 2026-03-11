@@ -326,3 +326,10 @@ ORDER BY
     created_at DESC
 LIMIT 1;
 
+
+/* @name createCandidateApplication */
+INSERT INTO nths_candidate_applications (user_id, status, denied_notes)
+    VALUES (:userId!, :status!, :deniedNotes)
+RETURNING
+    *;
+

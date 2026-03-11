@@ -25,6 +25,7 @@ import type {
   NTHSChapterStatus,
   NTHSChapterStatusName,
   NTHSGroupChapterStatusInfo,
+  NTHSCandidateApplicationStatus,
 } from './types'
 import { camelCaseKeys } from '../../tests/db-utils'
 import logger from '../../logger'
@@ -525,8 +526,41 @@ export async function getLatestCandidateApplicationStatus(
       { userId },
       tc
     )
-    return results[0]?.status
+    return results[0]?.status as NTHSCandidateApplicationStatus
   } catch (err) {
     throw new RepoReadError(err)
+  }
+}
+
+export async function createCandidateApplication(
+  {
+    status,
+    userId,
+    deniedNotes,
+  }: {
+    status: NTHSCandidateApplicationStatus
+    userId: Ulid
+    deniedNotes?: string
+  },
+  tc: TransactionClient = getClient()
+) {
+  try {
+    const results = await pgQueries.createCandidateApplication.run(
+      { status, userId, deniedNotes },
+      tc
+    )
+    return results.map(
+      (row) =>
+        makeSomeOptional(row, ['deniedNotes']) as {
+          createdAt: Date
+          deniedNotes: string | null
+          id: number
+          status: NTHSCandidateApplicationStatus
+          updatedAt: Date
+          userId: Ulid
+        }
+    )
+  } catch (err) {
+    throw new RepoCreateError(err)
   }
 }

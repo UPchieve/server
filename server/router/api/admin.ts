@@ -12,7 +12,6 @@ import {
   rosterPartnerStudents,
 } from '../../services/UserCreationService'
 import { asBoolean, asNumber, asString, asUlid } from '../../utils/type-utils'
-import { minutesInMs } from '../../utils/time-utils'
 
 export function routeAdmin(apiRouter: Router): void {
   const router = Router()

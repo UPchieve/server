@@ -984,3 +984,40 @@ const latestCandidateApplicationStatusIR: any = {"usedParamSet":{"userId":true},
 export const latestCandidateApplicationStatus = new PreparedQuery<ILatestCandidateApplicationStatusParams,ILatestCandidateApplicationStatusResult>(latestCandidateApplicationStatusIR);
 
 
+/** 'CreateCandidateApplication' parameters type */
+export interface ICreateCandidateApplicationParams {
+  deniedNotes?: string | null | void;
+  status: nths_candidate_application_status;
+  userId: string;
+}
+
+/** 'CreateCandidateApplication' return type */
+export interface ICreateCandidateApplicationResult {
+  createdAt: Date;
+  deniedNotes: string | null;
+  id: number;
+  status: nths_candidate_application_status;
+  updatedAt: Date;
+  userId: string;
+}
+
+/** 'CreateCandidateApplication' query type */
+export interface ICreateCandidateApplicationQuery {
+  params: ICreateCandidateApplicationParams;
+  result: ICreateCandidateApplicationResult;
+}
+
+const createCandidateApplicationIR: any = {"usedParamSet":{"userId":true,"status":true,"deniedNotes":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":84,"b":91}]},{"name":"status","required":true,"transform":{"type":"scalar"},"locs":[{"a":94,"b":101}]},{"name":"deniedNotes","required":false,"transform":{"type":"scalar"},"locs":[{"a":104,"b":115}]}],"statement":"INSERT INTO nths_candidate_applications (user_id, status, denied_notes)\n    VALUES (:userId!, :status!, :deniedNotes)\nRETURNING\n    *"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO nths_candidate_applications (user_id, status, denied_notes)
+ *     VALUES (:userId!, :status!, :deniedNotes)
+ * RETURNING
+ *     *
+ * ```
+ */
+export const createCandidateApplication = new PreparedQuery<ICreateCandidateApplicationParams,ICreateCandidateApplicationResult>(createCandidateApplicationIR);
+
+
