@@ -516,3 +516,17 @@ export async function getAllNTHSGroupsChapterStatus(
     throw new RepoReadError(err)
   }
 }
+export async function getLatestCandidateApplicationStatus(
+  userId: Ulid,
+  tc: TransactionClient = getRoClient()
+) {
+  try {
+    const results = await pgQueries.latestCandidateApplicationStatus.run(
+      { userId },
+      tc
+    )
+    return results[0]?.status
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}

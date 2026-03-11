@@ -1,6 +1,8 @@
 /** Types generated for queries found in "server/models/NTHSGroups/nths_groups.sql" */
 import { PreparedQuery } from '@pgtyped/runtime';
 
+export type nths_candidate_application_status = 'applied' | 'approved' | 'denied';
+
 /** 'GetGroupsByUser' parameters type */
 export interface IGetGroupsByUserParams {
   userId: string;
@@ -945,5 +947,40 @@ const getAllNthsGroupsWithStatusIR: any = {"usedParamSet":{},"params":[],"statem
  * ```
  */
 export const getAllNthsGroupsWithStatus = new PreparedQuery<IGetAllNthsGroupsWithStatusParams,IGetAllNthsGroupsWithStatusResult>(getAllNthsGroupsWithStatusIR);
+
+
+/** 'LatestCandidateApplicationStatus' parameters type */
+export interface ILatestCandidateApplicationStatusParams {
+  userId: string;
+}
+
+/** 'LatestCandidateApplicationStatus' return type */
+export interface ILatestCandidateApplicationStatusResult {
+  status: nths_candidate_application_status;
+}
+
+/** 'LatestCandidateApplicationStatus' query type */
+export interface ILatestCandidateApplicationStatusQuery {
+  params: ILatestCandidateApplicationStatusParams;
+  result: ILatestCandidateApplicationStatusResult;
+}
+
+const latestCandidateApplicationStatusIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":75,"b":82}]}],"statement":"SELECT\n    status\nFROM\n    nths_candidate_applications\nWHERE\n    user_id = :userId!\nORDER BY\n    created_at DESC\nLIMIT 1"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     status
+ * FROM
+ *     nths_candidate_applications
+ * WHERE
+ *     user_id = :userId!
+ * ORDER BY
+ *     created_at DESC
+ * LIMIT 1
+ * ```
+ */
+export const latestCandidateApplicationStatus = new PreparedQuery<ILatestCandidateApplicationStatusParams,ILatestCandidateApplicationStatusResult>(latestCandidateApplicationStatusIR);
 
 

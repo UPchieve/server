@@ -418,3 +418,9 @@ export async function deactivateNonHighSchoolMember(
     )
   }
 }
+
+export async function getLatestCandidateApplicationStatus(
+  userId: Ulid
+): Promise<NTHSGroupsRepo.NTHSCandidateApplicationStatus> {
+  return NTHSGroupsRepo.getLatestCandidateApplicationStatus(userId)
+}
