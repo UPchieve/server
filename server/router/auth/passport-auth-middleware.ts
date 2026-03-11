@@ -285,8 +285,6 @@ export function addPassportAuthMiddleware() {
             return done(null, false)
           }
 
-          // Disabling this check for now as we need to email/pw to login for retool apps that need access to the admin endpoints
-          /*
           if (
             (await getRoleContext(user.id, true)).isAdmin() &&
             !isDevEnvironment() &&
@@ -303,7 +301,6 @@ export function addPassportAuthMiddleware() {
             )
             return done(null, false)
           }
-          */
 
           if (!user.password) {
             return done(null, false)
