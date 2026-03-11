@@ -45,7 +45,7 @@ export async function deleteUsersSchool(
 export async function backfillStudentAndTeacherSchools() {
   await runInTransaction(async (client) => {
     try {
-      await pgQueries.backfillStudentAndTeacherSchools.run(undefined, tc)
+      await pgQueries.backfillStudentAndTeacherSchools.run(undefined, client)
     } catch (err) {
       throw new RepoUpsertError(err)
     }
