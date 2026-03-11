@@ -1,6 +1,5 @@
 import { Ulid, Uuid } from '../models/pgUtils'
 import * as NTHSGroupsRepo from '../models/NTHSGroups'
-import config from '../config'
 import {
   getClient,
   getRoClient,
@@ -23,6 +22,7 @@ import {
   NTHSGroupRoleName,
   NTHSGroupWithMemberInfo,
   NTHSSchoolAffiliationStatusName,
+  NTHSCandidateApplicationStatus,
 } from '../models/NTHSGroups'
 import generateAlphanumericOfLength from '../utils/generate-alphanumeric'
 import {
@@ -421,6 +421,29 @@ export async function deactivateNonHighSchoolMember(
 
 export async function getLatestCandidateApplicationStatus(
   userId: Ulid
-): Promise<NTHSGroupsRepo.NTHSCandidateApplicationStatus> {
+): Promise<NTHSCandidateApplicationStatus> {
   return NTHSGroupsRepo.getLatestCandidateApplicationStatus(userId)
+}
+
+export async function createCandidateApplication({
+  status,
+  userId,
+  deniedNotes,
+}: {
+  status: NTHSCandidateApplicationStatus
+  userId: Ulid
+  deniedNotes?: string
+}): Promise<
+  {
+    id: number
+    userId: Ulid
+    status: NTHSCandidateApplicationStatus
+    createdAt: Date
+  }[]
+> {
+  return NTHSGroupsRepo.createCandidateApplication({
+    status,
+    userId,
+    deniedNotes,
+  })
 }
