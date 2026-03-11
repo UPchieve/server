@@ -1552,6 +1552,37 @@ export async function sendStudentFavoritedVolunteerEmail(
   )
 }
 
+export async function sendNTHSCandidateApplicationApproved(
+  recipients: { firstName: string; email: string }[]
+): Promise<void> {
+  for (const recipient of recipients) {
+    await sendEmail(
+      recipient.email,
+      config.mail.senders.noreply,
+      'UPchieve',
+      config.sendgrid.nthsCandidateApplicationApproved,
+      {
+        firstName: recipient.firstName,
+      }
+    )
+  }
+}
+export async function sendNTHSCandidateApplicationDenied(
+  recipients: { firstName: string; email: string }[]
+): Promise<void> {
+  for (const recipient of recipients) {
+    await sendEmail(
+      recipient.email,
+      config.mail.senders.noreply,
+      'UPchieve',
+      config.sendgrid.nthsCandidateApplicationDenied,
+      {
+        firstName: recipient.firstName,
+      }
+    )
+  }
+}
+
 export async function sendNTHSChapterOfficialStatusNotification(
   recipients: { firstName: string; email: string }[],
   chapterName: string

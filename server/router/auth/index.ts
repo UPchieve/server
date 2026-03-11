@@ -28,8 +28,6 @@ import { createAccountAction } from '../../models/UserAction'
 import { AuthRedirect } from './auth-redirect'
 import { v4 as uuidv4 } from 'uuid'
 import { UserRole } from '../../models/User'
-import * as NTHSGroupsService from '../../services/NTHSGroupsService'
-import { isValidStatus } from '../../models/NTHSGroups'
 
 async function trackLoggedIn(userId: Ulid, ipAddress?: string) {
   await createAccountAction({
@@ -459,28 +457,6 @@ export function routes(app: Express) {
       }
     }
   )
-
-  router.post('/nths/candidate-applications', async function (req, res) {
-    try {
-      const status = asString(req.body.status)
-      const userId = asString(req.body.userId)
-      const deniedNotes = asOptional(asString)(req.body.deniedNotes)
-      if (isValidStatus(status)) {
-        const result = await NTHSGroupsService.createCandidateApplication({
-          status,
-          userId,
-          deniedNotes,
-        })
-        res.json(result)
-      } else {
-        throw new InputError(
-          `Invalid NTHS Candidate status: ${status}. must be: 'applied', 'denied', or 'approved'`
-        )
-      }
-    } catch (err) {
-      resError(res, err)
-    }
-  })
 
   app.use('/auth', router)
 }

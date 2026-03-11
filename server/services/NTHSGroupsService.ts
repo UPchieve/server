@@ -33,6 +33,11 @@ import {
 import logger from '../logger'
 import QueueService from './QueueService'
 import { Jobs } from '../worker/jobs'
+import {
+  sendNTHSCandidateApplicationApproved,
+  sendNTHSCandidateApplicationDenied,
+} from './MailService'
+import { getUserContactInfo } from './UserService'
 
 export async function getGroups(userId: Ulid) {
   return await NTHSGroupsRepo.getGroupsByUser(userId)
@@ -433,17 +438,35 @@ export async function createCandidateApplication({
   status: NTHSCandidateApplicationStatus
   userId: Ulid
   deniedNotes?: string
-}): Promise<
-  {
-    id: number
-    userId: Ulid
-    status: NTHSCandidateApplicationStatus
-    createdAt: Date
-  }[]
-> {
-  return NTHSGroupsRepo.createCandidateApplication({
+}): Promise<{
+  id: number
+  userId: Ulid
+  status: NTHSCandidateApplicationStatus
+  createdAt: Date
+}> {
+  const application = await NTHSGroupsRepo.createCandidateApplication({
     status,
     userId,
     deniedNotes,
   })
+
+  if (application.status === NTHSCandidateApplicationStatus.approved) {
+    const contactInfo = await getUserContactInfo(application.userId)
+    if (contactInfo) {
+      await sendNTHSCandidateApplicationApproved([
+        { firstName: contactInfo.firstName, email: contactInfo.email },
+      ])
+    }
+  }
+
+  if (application.status === NTHSCandidateApplicationStatus.denied) {
+    const contactInfo = await getUserContactInfo(application.userId)
+    if (contactInfo) {
+      await sendNTHSCandidateApplicationDenied([
+        { firstName: contactInfo.firstName, email: contactInfo.email },
+      ])
+    }
+  }
+
+  return application
 }

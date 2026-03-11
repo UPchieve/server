@@ -559,7 +559,7 @@ export async function createCandidateApplication(
           updatedAt: Date
           userId: Ulid
         }
-    )
+    )[0]
   } catch (err) {
     throw new RepoCreateError(err)
   }

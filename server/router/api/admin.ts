@@ -11,7 +11,16 @@ import {
   RosterStudentPayload,
   rosterPartnerStudents,
 } from '../../services/UserCreationService'
-import { asBoolean, asNumber, asString, asUlid } from '../../utils/type-utils'
+import {
+  asBoolean,
+  asNumber,
+  asOptional,
+  asString,
+  asUlid,
+} from '../../utils/type-utils'
+import * as NTHSGroupsService from '../../services/NTHSGroupsService'
+import { isValidStatus } from '../../models/NTHSGroups'
+import { InputError } from '../../models/Errors'
 
 export function routeAdmin(apiRouter: Router): void {
   const router = Router()
@@ -108,6 +117,28 @@ export function routeAdmin(apiRouter: Router): void {
       res.status(200).send()
     } catch (error) {
       resError(res, error)
+    }
+  })
+
+  router.post('/nths/candidate-applications', async function (req, res) {
+    try {
+      const status = asString(req.body.status)
+      const userId = asString(req.body.userId)
+      const deniedNotes = asOptional(asString)(req.body.deniedNotes)
+      if (isValidStatus(status)) {
+        const result = await NTHSGroupsService.createCandidateApplication({
+          status,
+          userId,
+          deniedNotes,
+        })
+        res.json(result)
+      } else {
+        throw new InputError(
+          `Invalid NTHS Candidate status: ${status}. must be: 'applied', 'denied', or 'approved'`
+        )
+      }
+    } catch (err) {
+      resError(res, err)
     }
   })
 
