@@ -3609,3 +3609,37 @@ const getVolunteersReadyToCoachStatusIR: any = {"usedParamSet":{"volunteerIds":t
 export const getVolunteersReadyToCoachStatus = new PreparedQuery<IGetVolunteersReadyToCoachStatusParams,IGetVolunteersReadyToCoachStatusResult>(getVolunteersReadyToCoachStatusIR);
 
 
+/** 'GetVolunteerOccupations' parameters type */
+export interface IGetVolunteerOccupationsParams {
+  userId: string;
+}
+
+/** 'GetVolunteerOccupations' return type */
+export interface IGetVolunteerOccupationsResult {
+  occupation: string;
+  userId: string;
+}
+
+/** 'GetVolunteerOccupations' query type */
+export interface IGetVolunteerOccupationsQuery {
+  params: IGetVolunteerOccupationsParams;
+  result: IGetVolunteerOccupationsResult;
+}
+
+const getVolunteerOccupationsIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":86,"b":93}]}],"statement":"SELECT\n    user_id,\n    occupation\nFROM\n    volunteer_occupations\nWHERE\n    user_id = :userId!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     user_id,
+ *     occupation
+ * FROM
+ *     volunteer_occupations
+ * WHERE
+ *     user_id = :userId!
+ * ```
+ */
+export const getVolunteerOccupations = new PreparedQuery<IGetVolunteerOccupationsParams,IGetVolunteerOccupationsResult>(getVolunteerOccupationsIR);
+
+

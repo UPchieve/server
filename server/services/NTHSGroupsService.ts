@@ -1,16 +1,11 @@
 import { Ulid, Uuid } from '../models/pgUtils'
 import * as NTHSGroupsRepo from '../models/NTHSGroups'
 import {
-  getClient,
-  getRoClient,
-  runInTransaction,
-  TransactionClient,
-} from '../db'
-import {
   GetGroupMembersOptions,
   NTHS_ACTIONS_TO_SCHOOL_AFFILIATION_STATUS_MAPPING,
   NTHSAction,
   NTHSActionName,
+  NTHSCandidateApplicationStatus,
   NTHSChapterStatus,
   NTHSChapterStatusName,
   NTHSGroup,
@@ -22,13 +17,19 @@ import {
   NTHSGroupRoleName,
   NTHSGroupWithMemberInfo,
   NTHSSchoolAffiliationStatusName,
-  NTHSCandidateApplicationStatus,
 } from '../models/NTHSGroups'
+import {
+  getClient,
+  getRoClient,
+  runInTransaction,
+  TransactionClient,
+} from '../db'
 import generateAlphanumericOfLength from '../utils/generate-alphanumeric'
 import {
   AlreadyInNTHSGroupError,
   CannotRemoveSoleNTHSAdminError,
   NTHSGroupAffiliationExistsError,
+  NotAHighSchoolerNTHSJoinError,
 } from '../models/Errors'
 import logger from '../logger'
 import QueueService from './QueueService'
@@ -38,6 +39,10 @@ import {
   sendNTHSCandidateApplicationDenied,
 } from './MailService'
 import { getUserContactInfo } from './UserService'
+import {
+  getVolunteerOccupations,
+  VolunteerOccupations,
+} from '../models/Volunteer'
 
 export async function getGroups(userId: Ulid) {
   return await NTHSGroupsRepo.getGroupsByUser(userId)
@@ -141,6 +146,14 @@ export async function joinGroupAsMemberByGroupId(
   tc: TransactionClient = getClient()
 ) {
   return await runInTransaction(async (client: TransactionClient) => {
+    const occupations = await getVolunteerOccupations(userId, client)
+    if (
+      occupations.length &&
+      !occupations.includes(VolunteerOccupations.HIGH_SCHOOL_STUDENT)
+    ) {
+      throw new NotAHighSchoolerNTHSJoinError()
+    }
+
     await NTHSGroupsRepo.joinGroupById(
       {
         userId,
