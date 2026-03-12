@@ -13,6 +13,13 @@ export function asOptional<T>(as: (s: unknown, errMsg?: string) => T) {
   }
 }
 
+export function asNullable<T>(as: (s: unknown, errMsg?: string) => T) {
+  return function (s: unknown, errMsg?: string): T | null {
+    if (s === null) return null
+    return as(s, errMsg)
+  }
+}
+
 export function asUlid(s: unknown, errMsg = ''): Ulid {
   if (typeof s === 'string') return s as string
   throw new InputError(`${errMsg} ${s} is not a string`)

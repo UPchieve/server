@@ -45,6 +45,7 @@ import {
   asNumber,
   asOptional,
   asString,
+  asNullable,
 } from '../utils/type-utils'
 import * as AnalyticsService from './AnalyticsService'
 import * as MailService from './MailService'
@@ -265,7 +266,7 @@ const asAdminUpdate = asFactory<AdminUpdate>({
   partnerOrg: asOptional(asString),
   partnerSite: asOptional(asString),
   isVerified: asBoolean,
-  banType: asOptional(asEnum(USER_BAN_TYPES)),
+  banType: asNullable(asOptional(asEnum(USER_BAN_TYPES))),
   isDeactivated: asBoolean,
   isApproved: asOptional(asBoolean),
   inGatesStudy: asOptional(asBoolean),
