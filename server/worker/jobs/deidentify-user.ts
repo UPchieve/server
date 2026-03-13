@@ -170,9 +170,7 @@ async function deidentifyRows(
     [userId]
   )
   await tc.query(
-    `UPDATE users_schools SET
-    school_id = null,
-    updated_at = NOW()
+    `DELETE FROM users_schools
     WHERE user_id = $1`,
     [userId]
   )
