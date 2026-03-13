@@ -3,6 +3,8 @@ import { PreparedQuery } from '@pgtyped/runtime';
 
 export type nths_candidate_application_status = 'applied' | 'approved' | 'denied';
 
+export type stringArray = (string)[];
+
 /** 'GetGroupsByUser' parameters type */
 export interface IGetGroupsByUserParams {
   userId: string;
@@ -1019,5 +1021,64 @@ const createCandidateApplicationIR: any = {"usedParamSet":{"userId":true,"status
  * ```
  */
 export const createCandidateApplication = new PreparedQuery<ICreateCandidateApplicationParams,ICreateCandidateApplicationResult>(createCandidateApplicationIR);
+
+
+/** 'GetNonHighSchoolNthsMembers' parameters type */
+export type IGetNonHighSchoolNthsMembersParams = void;
+
+/** 'GetNonHighSchoolNthsMembers' return type */
+export interface IGetNonHighSchoolNthsMembersResult {
+  chapterName: string;
+  email: string;
+  firstName: string;
+  nthsGroupId: string;
+  occupations: stringArray | null;
+  userId: string;
+}
+
+/** 'GetNonHighSchoolNthsMembers' query type */
+export interface IGetNonHighSchoolNthsMembersQuery {
+  params: IGetNonHighSchoolNthsMembersParams;
+  result: IGetNonHighSchoolNthsMembersResult;
+}
+
+const getNonHighSchoolNthsMembersIR: any = {"usedParamSet":{},"params":[],"statement":"WITH members_occupations AS (\n    SELECT\n        ngm.user_id,\n        ARRAY_AGG(vo.occupation) AS occupations\n    FROM\n        nths_group_members ngm\n        JOIN volunteer_occupations vo ON vo.user_id = ngm.user_id\n    GROUP BY\n        ngm.user_id\n)\nSELECT\n    mo.user_id,\n    ng.name AS chapter_name,\n    ng.id AS nths_group_id,\n    u.first_name,\n    u.email,\n    mo.occupations\nFROM\n    members_occupations mo\n    JOIN nths_group_members ngm ON ngm.user_id = mo.user_id\n    JOIN nths_groups ng ON ng.id = ngm.nths_group_id\n    JOIN users u ON u.id = ngm.user_id\nWHERE\n    NOT 'A high school student' = ANY (occupations)\n    AND ngm.deactivated_at IS NULL\n    AND ng.name NOT IN ('NTHS of UPchieve HS', 'UPchieve Associate Board')\nORDER BY\n    ngm.nths_group_id,\n    ngm.user_id,\n    u.first_name"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * WITH members_occupations AS (
+ *     SELECT
+ *         ngm.user_id,
+ *         ARRAY_AGG(vo.occupation) AS occupations
+ *     FROM
+ *         nths_group_members ngm
+ *         JOIN volunteer_occupations vo ON vo.user_id = ngm.user_id
+ *     GROUP BY
+ *         ngm.user_id
+ * )
+ * SELECT
+ *     mo.user_id,
+ *     ng.name AS chapter_name,
+ *     ng.id AS nths_group_id,
+ *     u.first_name,
+ *     u.email,
+ *     mo.occupations
+ * FROM
+ *     members_occupations mo
+ *     JOIN nths_group_members ngm ON ngm.user_id = mo.user_id
+ *     JOIN nths_groups ng ON ng.id = ngm.nths_group_id
+ *     JOIN users u ON u.id = ngm.user_id
+ * WHERE
+ *     NOT 'A high school student' = ANY (occupations)
+ *     AND ngm.deactivated_at IS NULL
+ *     AND ng.name NOT IN ('NTHS of UPchieve HS', 'UPchieve Associate Board')
+ * ORDER BY
+ *     ngm.nths_group_id,
+ *     ngm.user_id,
+ *     u.first_name
+ * ```
+ */
+export const getNonHighSchoolNthsMembers = new PreparedQuery<IGetNonHighSchoolNthsMembersParams,IGetNonHighSchoolNthsMembersResult>(getNonHighSchoolNthsMembersIR);
 
 
