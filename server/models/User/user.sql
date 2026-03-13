@@ -873,7 +873,8 @@ RETURNING
 UPDATE
     users
 SET
-    email = :userId!
+    email = :userId!,
+    phone = NULL
 WHERE
     id = :userId!;
 

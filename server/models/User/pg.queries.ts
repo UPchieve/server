@@ -2003,7 +2003,7 @@ export interface IFlagUserForDeletionQuery {
   result: IFlagUserForDeletionResult;
 }
 
-const flagUserForDeletionIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":33,"b":40},{"a":57,"b":64}]}],"statement":"UPDATE\n    users\nSET\n    email = :userId!\nWHERE\n    id = :userId!"};
+const flagUserForDeletionIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":33,"b":40},{"a":75,"b":82}]}],"statement":"UPDATE\n    users\nSET\n    email = :userId!,\n    phone = NULL\nWHERE\n    id = :userId!"};
 
 /**
  * Query generated from SQL:
@@ -2011,7 +2011,8 @@ const flagUserForDeletionIR: any = {"usedParamSet":{"userId":true},"params":[{"n
  * UPDATE
  *     users
  * SET
- *     email = :userId!
+ *     email = :userId!,
+ *     phone = NULL
  * WHERE
  *     id = :userId!
  * ```
