@@ -23,6 +23,7 @@ import {
   Sponsorship,
   TextableVolunteer,
   UserTrainingCourse,
+  VolunteerOccupations,
   VolunteersForAnalyticsReport,
   VolunteerSubject,
 } from './types'
@@ -1780,5 +1781,19 @@ export async function getVolunteersReadyToCoachStatus(
     return results.map((row) => makeSomeOptional(row, ['banType']))
   } catch (err) {
     throw new RepoReadError(err)
+  }
+}
+
+export async function getVolunteerOccupations(
+  userId: Ulid,
+  tc: TransactionClient = getRoClient()
+): Promise<VolunteerOccupations[]> {
+  try {
+    const results = await pgQueries.getVolunteerOccupations.run({ userId }, tc)
+    return results.map(
+      (row) => makeRequired(row).occupation as VolunteerOccupations
+    )
+  } catch (error) {
+    throw new RepoReadError(error)
   }
 }
