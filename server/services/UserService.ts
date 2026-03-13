@@ -251,7 +251,7 @@ interface AdminUpdate {
   partnerOrg?: string
   partnerSite?: string
   isVerified: boolean
-  banType?: USER_BAN_TYPES
+  banType?: USER_BAN_TYPES | null
   isDeactivated: boolean
   isApproved?: boolean
   inGatesStudy?: boolean
