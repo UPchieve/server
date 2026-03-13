@@ -72,6 +72,7 @@ import spawnDeidentifyUsers from './spawn-deidentify-users'
 import updateNthsChapterStatusForImpactPath from './updateNTHSChapterStatusForImpactPath'
 import spawnUpdateNthsChapterStatusForImpactPath from './spawnUpdateNTHSChapterStatusForImpactPath'
 import notifyNTHSChapterAdminsOfDeactivatedUser from './notifyNTHSChapterAdminsOfDeactivatedUser'
+import deactivateNonHighSchoolNTHSMembers from '../deactivateNonHighSchoolNTHSMembers'
 
 export enum Jobs {
   AddScheduledJobs = 'AddScheduledJobs',
@@ -159,6 +160,7 @@ export enum Jobs {
   UpdateNTHSChapterStatusForImpactPath = 'UpdateNTHSChapterStatusForImpactPath',
   SpawnUpdateNTHSChapterStatusForImpactPath = 'SpawnUpdateNTHSChapterStatusForImpactPath',
   NotifyNTHSChapterAdminsOfDeactivatedUser = 'NotifyNTHSChapterAdminsOfDeactivatedUser',
+  DeactivateNonHighSchoolNTHSMembers = 'DeactivateNonHighSchoolNTHSMembers',
 }
 
 // register new job processors here
@@ -492,6 +494,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.NotifyNTHSChapterAdminsOfDeactivatedUser,
     processor: notifyNTHSChapterAdminsOfDeactivatedUser,
+  },
+  {
+    name: Jobs.DeactivateNonHighSchoolNTHSMembers,
+    processor: deactivateNonHighSchoolNTHSMembers,
   },
 ]
 

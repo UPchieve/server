@@ -1619,6 +1619,24 @@ export async function sendNTHSChapterAdminsMemberDeactivationNotice(
   }
 }
 
+// @TODO Delete after one-off job runs on production
+export async function sendIndividualsDeactivationFromNTHSNotice(
+  firstName: string,
+  email: string,
+  chapterName: string
+): Promise<void> {
+  await sendEmail(
+    email,
+    config.mail.senders.noreply,
+    'UPchieve',
+    config.sendgrid.nthsIndividualMemberDeactivationNoticeEmail,
+    {
+      firstName,
+      chapterName,
+    }
+  )
+}
+
 export async function createContact(userIds: Ulid | Ulid[]): Promise<any> {
   if (isDevEnvironment() || isE2eEnvironment()) {
     logger.debug('Skipping createContact: ' + userIds)

@@ -120,6 +120,8 @@ const config = {
     nthsMemberDeactivationNoticeEmail: 'd-d4262bda50bb470abb770850d45cb083',
     nthsCandidateApplicationApproved: 'd-7bb5abafa4d14d6cb53540bd514447a7',
     nthsCandidateApplicationDenied: 'd-0db5c4e5f4de45de9c8ce7106765f0e9',
+    nthsIndividualMemberDeactivationNoticeEmail:
+      'd-993db25921674dc2a76e9e65327a48bb',
     unsubscribeGroup: {
       newsletter: 12567,
       account: 12570,

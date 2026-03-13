@@ -333,3 +333,36 @@ INSERT INTO nths_candidate_applications (user_id, status, denied_notes)
 RETURNING
     *;
 
+
+/* @name getNonHighSchoolNTHSMembers */
+WITH members_occupations AS (
+    SELECT
+        ngm.user_id,
+        ARRAY_AGG(vo.occupation) AS occupations
+    FROM
+        nths_group_members ngm
+        JOIN volunteer_occupations vo ON vo.user_id = ngm.user_id
+    GROUP BY
+        ngm.user_id
+)
+SELECT
+    mo.user_id,
+    ng.name AS chapter_name,
+    ng.id AS nths_group_id,
+    u.first_name,
+    u.email,
+    mo.occupations
+FROM
+    members_occupations mo
+    JOIN nths_group_members ngm ON ngm.user_id = mo.user_id
+    JOIN nths_groups ng ON ng.id = ngm.nths_group_id
+    JOIN users u ON u.id = ngm.user_id
+WHERE
+    NOT 'A high school student' = ANY (occupations)
+    AND ngm.deactivated_at IS NULL
+    AND ng.name NOT IN ('NTHS of UPchieve HS', 'UPchieve Associate Board')
+ORDER BY
+    ngm.nths_group_id,
+    ngm.user_id,
+    u.first_name;
+
