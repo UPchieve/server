@@ -1,14 +1,10 @@
 import { Router } from 'express'
+import multer from 'multer'
 import * as TutorBotService from '../../services/TutorBotService'
 import { resError } from '../res-error'
-import {
-  asFactory,
-  asNumber,
-  asOptional,
-  asString,
-} from '../../utils/type-utils'
+import { asFactory, asString } from '../../utils/type-utils'
 import { InputError } from '../../models/Errors'
-import { ConversationPayload, MessagePayload } from '../../contracts/tutor-bot'
+import { MessagePayload } from '../../contracts/tutor-bot'
 import { TutorBotHumanSenderType } from '../../types/tutor-bot'
 
 function isSenderUserType(s: unknown): s is TutorBotHumanSenderType {
@@ -28,15 +24,9 @@ const messageValidator = asFactory<MessagePayload>({
   subjectName: asString,
 })
 
-const conversationValidator = asFactory<ConversationPayload>({
-  userId: asString,
-  sessionId: asOptional(asString),
-  message: asString,
-  senderUserType: asSenderUserType,
-  subjectId: asNumber,
-})
-
 export function routeTutorBot(router: Router) {
+  const upload = multer()
+
   router.get(
     '/tutor-bot/conversations/:conversationId',
     async function (req, res) {
@@ -54,6 +44,7 @@ export function routeTutorBot(router: Router) {
   )
   router.post(
     '/tutor-bot/conversations/:conversationId/message',
+    upload.single('snapshot'),
     async function (req, res) {
       try {
         const data = messageValidator({
@@ -61,7 +52,11 @@ export function routeTutorBot(router: Router) {
           ...req.params,
           userId: req.user?.id,
         })
-        const botResponse = await TutorBotService.addMessageToConversation(data)
+        const snapshotBuffer = req.file?.buffer
+        const botResponse = await TutorBotService.addMessageToConversation({
+          ...data,
+          snapshotBuffer,
+        })
         const payload =
           TutorBotService.toTutorBotAddMessageResponsePublic(botResponse)
         return res.status(200).json(payload)

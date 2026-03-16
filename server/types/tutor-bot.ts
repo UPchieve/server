@@ -38,6 +38,7 @@ export type AddMessageToConversationPayload = {
   message: string
   senderUserType: TutorBotSenderType
   subjectName: string
+  snapshotBuffer?: Buffer
 }
 
 export type TutorBotGeneratedMessage = TutorBotMessage & {
