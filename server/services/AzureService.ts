@@ -12,6 +12,7 @@ import {
 import config from '../config'
 import { secondsInMs } from '../utils/time-utils'
 import logger from '../logger'
+import type { Uuid } from '../types/shared'
 
 const azureStorageCredential = new ClientSecretCredential(
   config.azureTenantId,
@@ -289,4 +290,38 @@ export async function uploadBlobBuffer(
       blobContentType: contentType,
     },
   })
+}
+
+function buildSessionImagePath(sessionId: Uuid, fileName: string): string {
+  return `${sessionId}/images/${fileName}`
+}
+
+export function createDocEditorImageUploadUrl(
+  sessionId: Uuid,
+  fileName: string
+) {
+  const filePath = buildSessionImagePath(sessionId, fileName)
+  const uploadUrl = createBlobSasUrl(
+    config.appStorageAccountName,
+    config.appStorageAccountAccessKey,
+    config.sessionsStorageContainer,
+    filePath,
+    { expiresInSeconds: 10 * 60, permissions: ['c', 'w'] }
+  )
+
+  const imageUrl = `${config.apiOrigin}/api/sessions/${filePath}`
+  return { uploadUrl, imageUrl }
+}
+
+export function getDocEditorSessionImageUrl(sessionId: Uuid, fileName: string) {
+  const filePath = buildSessionImagePath(sessionId, fileName)
+  const blobUrl = createBlobSasUrl(
+    config.appStorageAccountName,
+    config.appStorageAccountAccessKey,
+    config.sessionsStorageContainer,
+    filePath,
+    // TTL of 2 hours
+    { expiresInSeconds: 2 * 60 * 60, permissions: ['r'] }
+  )
+  return blobUrl
 }

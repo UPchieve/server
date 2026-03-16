@@ -69,7 +69,6 @@ import {
   getSessionSummaryFeatureFlag,
 } from './FeatureFlagService'
 import { getStudentPartnerInfoById } from '../models/Student'
-import * as Y from 'yjs'
 import { TransactionClient, runInTransaction, getClient } from '../db'
 import * as SessionAudioRepo from '../models/SessionAudio'
 import { SessionMessageType } from '../router/api/sockets'
@@ -79,7 +78,7 @@ import { processReportMetrics } from './SessionFlagsService'
 import * as SurveyService from './SurveyService'
 import { SessionUserRole } from './UserRolesService'
 import * as FeatureFlagsService from './FeatureFlagService'
-import { createBlobSasUrl } from './AzureService'
+import { createDocEditorImageUploadUrl } from './AzureService'
 import type {
   CurrentSessionPublic,
   SessionUserInfoPublic,
@@ -407,31 +406,10 @@ export async function addDocEditorVersionTo(session: {
   }
 }
 
-async function convertV2DocToV1(quillDoc: string[]) {
-  const ydoc = new Y.Doc()
-  const text = ydoc.getText('quill')
-  for (const update of quillDoc) {
-    Y.applyUpdate(ydoc, Uint8Array.from(update.split(',').map(Number)))
-  }
-  // Ensure viewing the document in a recap works by matching existing
-  // sessions.quill_doc format.
-  return { ops: text.toDelta() }
-}
-
-export async function storeAndDeleteQuillDoc(sessionId: Ulid): Promise<void> {
-  const v2QuillDoc = await QuillDocService.getDocumentUpdates(sessionId)
-
-  const v1QuillDoc = v2QuillDoc.length
-    ? await convertV2DocToV1(v2QuillDoc)
-    : (await QuillDocService.getQuillDocV1(sessionId))?.doc
-
-  if (v1QuillDoc) {
-    await SessionRepo.updateSessionQuillDoc(
-      sessionId,
-      JSON.stringify(v1QuillDoc)
-    )
-  }
-
+export async function storeAndDeleteQuillDoc(sessionId: Uuid): Promise<void> {
+  const quillDoc = await QuillDocService.getCurrentSessionDocEditor(sessionId)
+  if (quillDoc)
+    await SessionRepo.updateSessionQuillDoc(sessionId, JSON.stringify(quillDoc))
   await QuillDocService.deleteDoc(sessionId)
 }
 
@@ -1242,40 +1220,6 @@ export async function getSessionTranscript(
     sessionId,
     messages,
   }
-}
-
-function buildSessionImagePath(sessionId: Uuid, fileName: string): string {
-  return `${sessionId}/images/${fileName}`
-}
-
-export function createDocEditorImageUploadUrl(
-  sessionId: Uuid,
-  fileName: string
-) {
-  const filePath = buildSessionImagePath(sessionId, fileName)
-  const uploadUrl = createBlobSasUrl(
-    config.appStorageAccountName,
-    config.appStorageAccountAccessKey,
-    config.sessionsStorageContainer,
-    filePath,
-    { expiresInSeconds: 10 * 60, permissions: ['c', 'w'] }
-  )
-
-  const imageUrl = `${config.apiOrigin}/api/sessions/${filePath}`
-  return { uploadUrl, imageUrl }
-}
-
-export function getDocEditorSessionImageUrl(sessionId: Uuid, fileName: string) {
-  const filePath = buildSessionImagePath(sessionId, fileName)
-  const blobUrl = createBlobSasUrl(
-    config.appStorageAccountName,
-    config.appStorageAccountAccessKey,
-    config.sessionsStorageContainer,
-    filePath,
-    // TTL of 2 hours
-    { expiresInSeconds: 2 * 60 * 60, permissions: ['r'] }
-  )
-  return blobUrl
 }
 
 export async function markSessionForReview(
