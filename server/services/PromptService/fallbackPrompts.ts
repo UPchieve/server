@@ -83,8 +83,23 @@ Lesson topic: {{subject}}
 Conversation:
 {{conversation}}<|end|>
 
+Additional editor context may also be provided.
+
+- Attached images may show the student's whiteboard work or images embedded in the document editor.
+- Editor content may be provided from a document editor.
+- If present, document editor content may be a Quill Delta JSON object representing text, formatting, and embedded content.
+
+Use any provided editor content or attached images as additional context for understanding what the student is working on.
+If that context is missing, incomplete, or unclear, rely on the conversation and do not assume details that are not supported.
+
+Editor type:
+{{editorType}}
+
+Editor content:
+{{editor}}
+
 How would you help the student understand and solve the problem and why? Pick the option number from the list of strategies and intentions and provide the reason behind your choices.
-Then, using your choices, respond to the student as an experienced math teacher and helpful tutor. Do not give them a direct answer but use your strategy and intentions to craft a concise, useful, and caring response
+Then, using your choices, respond to the student as an experienced {{subject}} teacher and helpful tutor. Do not give them a direct answer but use your strategy and intentions to craft a concise, useful, and caring response
 to help the student with the next step in solving the given problem or better understanding the subject.
 Format your answer as a JSON object: {"strategy": #, "intention": #, "reason": "write out your reason for picking that strategy and intention", "response": "write out your response to the student's last message"}
 `
