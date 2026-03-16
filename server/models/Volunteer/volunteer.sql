@@ -1690,3 +1690,26 @@ SELECT
             u.email = :email!
         LIMIT 1);
 
+
+/* @name getVolunteersReadyToCoachStatus */
+SELECT
+    u.id,
+    vp.onboarded AS is_onboarded,
+    vp.approved AS is_approved,
+    u.ban_type
+FROM
+    users u
+    JOIN volunteer_profiles vp ON vp.user_id = u.id
+WHERE
+    u.id = ANY (:volunteerIds!::uuid[]);
+
+
+/* @name getVolunteerOccupations */
+SELECT
+    user_id,
+    occupation
+FROM
+    volunteer_occupations
+WHERE
+    user_id = :userId!;
+

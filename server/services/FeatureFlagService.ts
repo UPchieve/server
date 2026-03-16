@@ -1,5 +1,5 @@
 import { FEATURE_FLAGS } from '../constants'
-import { client as productClient } from '../product-client'
+import { client as productClient } from '../clients/product-client'
 import { Ulid, Uuid } from '../models/pgUtils'
 import { timeLimit } from '../utils/time-limit'
 import * as AnalyticsService from './AnalyticsService'
@@ -66,34 +66,6 @@ export async function getProgressReportsFeatureFlag(userId: Ulid) {
     userId,
     1000 * 5
   )
-}
-
-export enum AI_MODERATION_STATE {
-  disabled = 'disabled',
-  targeted = 'targeted',
-  notTargeted = 'notTargeted',
-}
-export async function getAiModerationFeatureFlag(
-  userId: Ulid
-): Promise<keyof typeof AI_MODERATION_STATE> {
-  return timeLimit({
-    promise: new Promise(async (r) => {
-      const result = await productClient.getFeatureFlag(
-        FEATURE_FLAGS.AI_MODERATION,
-        userId
-      )
-      if (result === 'targeted') {
-        r(AI_MODERATION_STATE.targeted)
-      } else if (result === 'notTargeted') {
-        r(AI_MODERATION_STATE.notTargeted)
-      } else {
-        r(AI_MODERATION_STATE.disabled)
-      }
-    }),
-    fallbackReturnValue: AI_MODERATION_STATE.disabled,
-    timeLimitReachedErrorMessage: `Posthog: 'getAllFlagsForId' did not receive response.`,
-    waitInMs: 2000,
-  })
 }
 
 export async function getCollegeListWorkSheetFlag(userId: Ulid) {
@@ -186,5 +158,16 @@ export async function getStemProgressReportEnabled(userId: Ulid) {
     FEATURE_FLAGS.STEM_PROGRESS_REPORT,
     userId,
     1000 * 5
+  )
+}
+
+export async function isStudentSessionSummaryEnabled(userId: Ulid) {
+  return isFeatureEnabled(FEATURE_FLAGS.STUDENT_SESSION_SUMMARY, userId)
+}
+
+export async function isStudentFirstSessionInterviewEmailEnabled(userId: Ulid) {
+  return isFeatureEnabled(
+    FEATURE_FLAGS.FIRST_SESSION_EMAIL_FOR_INTERVIEW,
+    userId
   )
 }

@@ -1,23 +1,25 @@
+import { jest, describe, beforeEach, test, expect, it } from '@jest/globals'
+import { mocked } from 'jest-mock'
 import {
   getIndividualSessionMessageModerationResponse,
-  FALLBACK_MODERATION_PROMPT,
   moderateMessage,
   filterDisallowedDomains,
-  type ModeratedLink,
-  weighSessionInfractions,
   getReasonsFromInfractions,
   handleModerationInfraction,
-  getScoreForCategory,
-  LiveMediaModerationCategories,
   getSessionFlagByModerationReason,
   isStreamStoppingReason,
 } from '../../services/ModerationService'
-import { mocked } from 'jest-mock'
-import * as FeatureFlagsService from '../../services/FeatureFlagService'
+import {
+  type ModeratedLink,
+  LiveMediaModerationCategories,
+} from '../../services/ModerationService/types'
+import { type GetModerationSettingResult } from '../../models/ModerationSettings/types'
+import { weightModerationInfractions } from '../../services/ModerationService/ModerationPenaltyService'
+import { FALLBACK_MODERATION_PROMPT } from '../../services/ModerationService/fallbackPrompts'
 import * as SessionService from '../../services/SessionService'
 import * as CensoredSessionMessage from '../../models/CensoredSessionMessage'
-import { invokeModel } from '../../services/OpenAIService'
-import * as LangfuseService from '../../services/LangfuseService'
+import { invokeModel as invokeOpenAiModel } from '../../services/OpenAIService'
+import * as PromptService from '../../services/PromptService'
 import { timeLimit } from '../../utils/time-limit'
 import { buildModerationInfractionRow, buildSession } from '../mocks/generate'
 import * as ModerationInfractionsRepo from '../../models/ModerationInfractions'
@@ -32,25 +34,41 @@ jest.mock('../../utils/time-limit')
 jest.mock('../../logger')
 jest.mock('../../models/CensoredSessionMessage')
 jest.mock('../../services/OpenAIService', () => {
+  const actual = jest.requireActual<
+    typeof import('../../services/OpenAIService')
+  >('../../services/OpenAIService')
   return {
-    invokeModel: jest.fn(),
+    ...actual,
     MODEL_ID: 'gpt-4o',
+    invokeModel: jest.fn(),
   }
 })
-jest.mock('../../services/LangfuseService')
+const mockedInvokeOpenAiModel = jest.mocked(invokeOpenAiModel)
+jest.mock('../../services/PromptService')
 jest.mock('../../models/ModerationInfractions')
-
 jest.mock('../../services/SocketService', () => ({
   getInstance: jest.fn(() => {}),
+}))
+jest.mock('../../clients/langfuse', () => ({
+  client: {
+    trace: jest.fn(),
+    getPrompt: jest.fn(),
+  },
+}))
+jest.mock('../../services/AiObservabilityService', () => ({
+  runWithModelObservation: jest.fn(),
+  runWithTrace: jest.fn(),
+  addTraceTags: jest.fn(),
 }))
 
 jest.mock('../../services/SessionService')
 
 jest.mock('../../models/User/queries')
+jest.mock('../../models/ModerationSettings/queries')
 
 describe('ModerationService', () => {
   const isVolunteer = true
-  const mockLangfuseService = mocked(LangfuseService)
+  const mockPromptService = mocked(PromptService)
   const mockModerationInfractionsRepo = mocked(ModerationInfractionsRepo)
   const mockSessionRepo = mocked(SessionRepo)
   const mockSocketService = mocked(SocketService)
@@ -61,9 +79,9 @@ describe('ModerationService', () => {
   const sessionId = '123'
   const badMessage = 'Call me at (555)555-5555'
   let mockGeneration: any, mockTrace: any, mockLangfuseClient: any
-  const mockTimeLimit = jest.mocked(timeLimit)
+  let moderationSettings: GetModerationSettingResult
 
-  beforeEach(() => {
+  beforeEach(async () => {
     jest.resetAllMocks()
     mockGeneration = {
       end: jest.fn(),
@@ -75,8 +93,9 @@ describe('ModerationService', () => {
     mockLangfuseClient = {
       trace: jest.fn().mockReturnValue(mockTrace),
     }
-    mockLangfuseService.getPrompt.mockResolvedValue(undefined)
-    mockLangfuseService.getClient.mockReturnValue(mockLangfuseClient as any)
+    mockPromptService.getPromptWithFallback.mockResolvedValue(
+      {} as PromptService.PromptResponse
+    )
 
     mockSocketService.getInstance.mockReturnValue({
       emitModerationInfractionEvent: jest.fn(),
@@ -86,6 +105,86 @@ describe('ModerationService', () => {
 
     mockUserRepo.banUserById.mockResolvedValue()
     mockSessionService.markSessionForReview.mockResolvedValue()
+    moderationSettings = {
+      [LiveMediaModerationCategories.PROFANITY]: {
+        name: LiveMediaModerationCategories.PROFANITY,
+        penaltyWeight: 1,
+        threshold: 0.75,
+      },
+      [LiveMediaModerationCategories.DRUGS]: {
+        name: LiveMediaModerationCategories.DRUGS,
+        penaltyWeight: 1,
+        threshold: 0.75,
+      },
+      [LiveMediaModerationCategories.ALCOHOL]: {
+        name: LiveMediaModerationCategories.ALCOHOL,
+        penaltyWeight: 1,
+        threshold: 0.75,
+      },
+      [LiveMediaModerationCategories.RUDE_GESTURES]: {
+        name: LiveMediaModerationCategories.RUDE_GESTURES,
+        penaltyWeight: 1,
+        threshold: 0.75,
+      },
+      [LiveMediaModerationCategories.GAMBLING]: {
+        name: LiveMediaModerationCategories.GAMBLING,
+        penaltyWeight: 1,
+        threshold: 0.75,
+      },
+
+      [LiveMediaModerationCategories.VIOLENCE]: {
+        name: LiveMediaModerationCategories.VIOLENCE,
+        penaltyWeight: 10,
+        threshold: 0.75,
+      },
+      [LiveMediaModerationCategories.SWIM_WEAR]: {
+        name: LiveMediaModerationCategories.SWIM_WEAR,
+        penaltyWeight: 10,
+        threshold: 0.75,
+      },
+
+      [LiveMediaModerationCategories.LINK]: {
+        name: LiveMediaModerationCategories.LINK,
+        penaltyWeight: 4,
+        threshold: 0.75,
+      },
+      [LiveMediaModerationCategories.EMAIL]: {
+        name: LiveMediaModerationCategories.EMAIL,
+        penaltyWeight: 4,
+        threshold: 0.75,
+      },
+      [LiveMediaModerationCategories.PHONE]: {
+        name: LiveMediaModerationCategories.PHONE,
+        penaltyWeight: 4,
+        threshold: 0.75,
+      },
+      [LiveMediaModerationCategories.ADDRESS]: {
+        name: LiveMediaModerationCategories.ADDRESS,
+        penaltyWeight: 4,
+        threshold: 0.75,
+      },
+
+      [LiveMediaModerationCategories.EXPLICIT]: {
+        name: LiveMediaModerationCategories.EXPLICIT,
+        penaltyWeight: 10,
+        threshold: 0.75,
+      },
+      [LiveMediaModerationCategories.NON_EXPLICIT]: {
+        name: LiveMediaModerationCategories.NON_EXPLICIT,
+        penaltyWeight: 10,
+        threshold: 0.75,
+      },
+      [LiveMediaModerationCategories.HATE_SYMBOLS]: {
+        name: LiveMediaModerationCategories.HATE_SYMBOLS,
+        penaltyWeight: 10,
+        threshold: 0.75,
+      },
+      [LiveMediaModerationCategories.DISTURBING]: {
+        name: LiveMediaModerationCategories.DISTURBING,
+        penaltyWeight: 10,
+        threshold: 0.75,
+      },
+    }
   })
 
   const userType = 'volunteer'
@@ -143,7 +242,6 @@ describe('ModerationService', () => {
   })
 
   describe('AI moderation', () => {
-    const mockedFeatureFlagService = mocked(FeatureFlagsService)
     const mockSessionService = mocked(SessionService)
     const mockedCensoredSessionMessage = mocked(CensoredSessionMessage)
     let censoredSessionMessage: any
@@ -160,7 +258,8 @@ describe('ModerationService', () => {
       mockedCensoredSessionMessage.createCensoredMessage.mockResolvedValue(
         censoredSessionMessage
       )
-      ;(invokeModel as jest.Mock).mockResolvedValue({
+
+      mockedInvokeOpenAiModel.mockResolvedValue({
         results: {
           appropriate: true,
           reasons: {
@@ -172,10 +271,7 @@ describe('ModerationService', () => {
       })
     })
 
-    test('Check correct phone number fails when ai feature flag is off', async () => {
-      mockedFeatureFlagService.getAiModerationFeatureFlag.mockResolvedValue(
-        FeatureFlagsService.AI_MODERATION_STATE.disabled
-      )
+    test('Flags email, phone, zoom link, and profanity', async () => {
       const message =
         'a message including (555)555-5555 which is a phone number and hi@email.com and bye@email.com which are emails and some profanity: azz. finally a zoom link: https://us05web.zoom.us/j/0123456789'
 
@@ -198,57 +294,20 @@ describe('ModerationService', () => {
         })
       ).toStrictEqual({
         failures: {
-          email: ['hi@email.com', 'bye@email.com'],
-          phone: [expect.stringContaining('(555)555-5555')],
-          profanity: ['azz'],
-          safety: ['zoom.us'],
+          [LiveMediaModerationCategories.EMAIL]: [
+            'hi@email.com',
+            'bye@email.com',
+          ],
+          [LiveMediaModerationCategories.PHONE]: [
+            expect.stringContaining('(555)555-5555'),
+          ],
+          [LiveMediaModerationCategories.PROFANITY]: ['azz'],
+          [LiveMediaModerationCategories.LINK]: ['zoom.us'],
         },
       })
     })
 
-    test('Check correct phone number fails when ai feature flag is on and user is in target group', async () => {
-      mockedFeatureFlagService.getAiModerationFeatureFlag.mockResolvedValue(
-        FeatureFlagsService.AI_MODERATION_STATE.targeted
-      )
-      mockedCensoredSessionMessage.createCensoredMessage.mockResolvedValue({
-        id: '123',
-        censoredBy: 'regex',
-        sentAt: new Date(),
-        senderId,
-        sessionId,
-        message: badMessage,
-        shown: false,
-      })
-      const mockAiDecision = {
-        appropriate: false,
-        reasons: {
-          phone: ['(555)555-5555'],
-        },
-      }
-      const mockAiResponse = {
-        results: mockAiDecision,
-        modelId: 'gpt-4o',
-      }
-
-      mockTimeLimit.mockResolvedValue(mockAiDecision)
-      ;(invokeModel as jest.Mock).mockResolvedValue(mockAiResponse)
-
-      expect(
-        await moderateMessage({
-          message: badMessage,
-          senderId,
-          userType,
-          sessionId,
-        })
-      ).toStrictEqual({
-        failures: { phone: [expect.stringContaining('(555)555-5555')] },
-      })
-    })
-
-    test('Check message is clean when ai feature flag is on and user is in target group', async () => {
-      mockedFeatureFlagService.getAiModerationFeatureFlag.mockResolvedValue(
-        FeatureFlagsService.AI_MODERATION_STATE.targeted
-      )
+    test('Check message is clean', async () => {
       const message = 'a message including nothing suspicious'
 
       mockedCensoredSessionMessage.createCensoredMessage.mockResolvedValue({
@@ -260,7 +319,7 @@ describe('ModerationService', () => {
         message,
         shown: false,
       })
-      ;(invokeModel as jest.Mock).mockResolvedValue({
+      mockedInvokeOpenAiModel.mockResolvedValue({
         results: {
           appropriate: true,
           reasons: [],
@@ -273,7 +332,7 @@ describe('ModerationService', () => {
         messages: [],
       })
       mockSessionRepo.getSessionById.mockResolvedValue(
-        await buildSession({ studentId: senderId })
+        buildSession({ studentId: senderId })
       )
 
       expect(
@@ -288,20 +347,17 @@ describe('ModerationService', () => {
 
     describe('createChatCompletion', () => {
       test('It calls OpenAI with the prompt from Langfuse', async () => {
-        mockedFeatureFlagService.getAiModerationFeatureFlag.mockResolvedValue(
-          FeatureFlagsService.AI_MODERATION_STATE.targeted
-        )
-        mockLangfuseService.getPrompt.mockResolvedValue({
+        mockPromptService.getPromptWithFallback.mockResolvedValue({
+          isFallback: false,
           prompt: 'test-prompt-content',
-          name: 'moderation-prompt',
-          version: 1,
-        } as any)
+          version: '1',
+        })
         await getIndividualSessionMessageModerationResponse({
           censoredSessionMessage,
           isVolunteer,
           trace: mockLangfuseClient.trace(),
         })
-        expect(invokeModel).toHaveBeenCalledWith(
+        expect(invokeOpenAiModel).toHaveBeenCalledWith(
           expect.objectContaining({
             prompt: 'test-prompt-content',
             userMessage: expect.stringContaining(
@@ -309,44 +365,48 @@ describe('ModerationService', () => {
             ),
           })
         )
-        expect(LangfuseService.getPrompt).toHaveBeenCalled()
+        expect(PromptService.getPromptWithFallback).toHaveBeenCalled()
       })
 
       test('It calls OpenAI with the fallback prompt if it cannot be retrieved from LF', async () => {
-        mockedFeatureFlagService.getAiModerationFeatureFlag.mockResolvedValue(
-          FeatureFlagsService.AI_MODERATION_STATE.targeted
-        )
-        mockLangfuseService.getPrompt.mockResolvedValue(undefined)
+        mockPromptService.getPromptWithFallback.mockResolvedValue({
+          prompt:
+            PromptService.fallbackPrompts[
+              PromptService.PromptName.SESSION_TRANSCRIPT_MODERATION
+            ],
+        } as PromptService.PromptResponse)
 
         await getIndividualSessionMessageModerationResponse({
           censoredSessionMessage,
           isVolunteer,
           trace: mockLangfuseClient.trace(),
         })
-        expect(invokeModel).toHaveBeenCalledWith(
+        expect(invokeOpenAiModel).toHaveBeenCalledWith(
           expect.objectContaining({
-            prompt: FALLBACK_MODERATION_PROMPT,
+            prompt:
+              PromptService.fallbackPrompts[
+                PromptService.PromptName.SESSION_TRANSCRIPT_MODERATION
+              ],
             userMessage: expect.stringContaining(
               censoredSessionMessage.message
             ),
           })
         )
-        expect(LangfuseService.getPrompt).toHaveBeenCalled()
+        expect(PromptService.getPromptWithFallback).toHaveBeenCalled()
       })
 
       it('Associates the Langfuse prompt with the generation', async () => {
         // If we are able to retrieve a prompt from LF, it should be attached to the generation
         // to associate generations and their corresponding prompts
-        mockedFeatureFlagService.getAiModerationFeatureFlag.mockResolvedValue(
-          FeatureFlagsService.AI_MODERATION_STATE.targeted
-        )
         const langfusePromptObject = {
+          isFallback: false,
           prompt: 'test-prompt-content',
           name: 'moderation-prompt',
-          version: 1,
+          version: '1',
+          promptObject: {},
         }
-        mockLangfuseService.getPrompt.mockResolvedValue(
-          langfusePromptObject as any
+        mockPromptService.getPromptWithFallback.mockResolvedValue(
+          langfusePromptObject as unknown as PromptService.PromptResponse
         )
         await getIndividualSessionMessageModerationResponse({
           censoredSessionMessage,
@@ -358,17 +418,16 @@ describe('ModerationService', () => {
           expect.objectContaining({
             name: 'getModerationDecision',
             input: { censoredSessionMessage, isVolunteer },
-            prompt: langfusePromptObject,
+            prompt: langfusePromptObject.promptObject,
           })
         )
         expect(mockGeneration.end).toHaveBeenCalled()
       })
 
       it('Does NOT associate the generation with a LF prompt if none could be retrieved', async () => {
-        mockedFeatureFlagService.getAiModerationFeatureFlag.mockResolvedValue(
-          FeatureFlagsService.AI_MODERATION_STATE.targeted
+        mockPromptService.getPromptWithFallback.mockResolvedValue(
+          {} as PromptService.PromptResponse
         )
-        mockLangfuseService.getPrompt.mockResolvedValue(undefined)
         await getIndividualSessionMessageModerationResponse({
           censoredSessionMessage,
           isVolunteer,
@@ -401,8 +460,7 @@ describe('ModerationService', () => {
         modelId: 'gpt-4o',
       }
 
-      ;(invokeModel as jest.Mock).mockResolvedValue(mockAiResponse)
-      mockTimeLimit.mockResolvedValue(null)
+      mockedInvokeOpenAiModel.mockResolvedValue(mockAiResponse)
 
       const result = await moderateMessage({
         message,
@@ -413,7 +471,7 @@ describe('ModerationService', () => {
 
       expect(result).toEqual({
         failures: {
-          phone: ['8608281234 '],
+          [LiveMediaModerationCategories.PHONE]: ['8608281234 '],
         },
       })
     })
@@ -437,9 +495,15 @@ describe('ModerationService', () => {
   })
 
   describe('Moderation infractions', () => {
-    const profanityReason = { failures: { profanity: [] } }
-    const violenceReason = { failures: { violence: [] } }
-    const explicitReason = { failures: { explicit: [] } }
+    const profanityReason = {
+      failures: { [LiveMediaModerationCategories.PROFANITY]: [] },
+    }
+    const violenceReason = {
+      failures: { [LiveMediaModerationCategories.VIOLENCE]: [] },
+    }
+    const explicitReason = {
+      failures: { [LiveMediaModerationCategories.EXPLICIT]: [] },
+    }
     const personInImageReason = {
       failures: { [LiveMediaModerationCategories.PERSON_IN_IMAGE]: [] },
     }
@@ -451,22 +515,21 @@ describe('ModerationService', () => {
     }
     describe('weighModerationInfractions', () => {
       it.each([
-        ['profanity', 1],
-        ['high toxicity', 1],
-        ['drugs & tobacco', 1],
-        ['alcohol', 1],
-        ['rude gestures', 1],
-        ['gambling', 1],
-        ['violence', 10],
-        ['swimwear or underwear', 10],
-        ['link', 4],
-        ['email', 4],
-        ['phone', 4],
-        ['address', 4],
-        ['explicit', 10],
-        ['non-explicit nudity of intimate parts and kissing', 10],
-        ['hate symbols', 10],
-        ['visually disturbing', 10],
+        [LiveMediaModerationCategories.PROFANITY, 1],
+        [LiveMediaModerationCategories.DRUGS, 1],
+        [LiveMediaModerationCategories.ALCOHOL, 1],
+        [LiveMediaModerationCategories.RUDE_GESTURES, 1],
+        [LiveMediaModerationCategories.GAMBLING, 1],
+        [LiveMediaModerationCategories.VIOLENCE, 10],
+        [LiveMediaModerationCategories.SWIM_WEAR, 10],
+        [LiveMediaModerationCategories.LINK, 4],
+        [LiveMediaModerationCategories.EMAIL, 4],
+        [LiveMediaModerationCategories.PHONE, 4],
+        [LiveMediaModerationCategories.ADDRESS, 4],
+        [LiveMediaModerationCategories.EXPLICIT, 10],
+        [LiveMediaModerationCategories.NON_EXPLICIT, 10],
+        [LiveMediaModerationCategories.HATE_SYMBOLS, 10],
+        [LiveMediaModerationCategories.DISTURBING, 10],
       ])(
         'Calculates the correct score for each category of infraction',
         (category: string, expectedScore: number) => {
@@ -481,7 +544,10 @@ describe('ModerationService', () => {
           )
 
           const reasons = getReasonsFromInfractions([moderationInfraction])
-          const actual = weighSessionInfractions(reasons)
+          const actual = weightModerationInfractions(
+            reasons,
+            moderationSettings
+          )
           expect(actual).toEqual(expectedScore)
         }
       )
@@ -495,30 +561,29 @@ describe('ModerationService', () => {
           buildModerationInfractionWithReason(explicitReason),
         ]
         const reasons = getReasonsFromInfractions(infractions)
-        const result = weighSessionInfractions(reasons)
+        const result = weightModerationInfractions(reasons, moderationSettings)
         expect(result).toEqual(32)
       })
     })
 
     describe('isStreamStoppingReason', () => {
       it.each([
-        ['non-explicit nudity of intimate parts and kissing', true],
-        ['explicit', true],
-        ['hate symbols', true],
-        ['visually disturbing', true],
-        ['swimwear or underwear', true],
-        ['violence', true],
-        ['swimwear or underwear', true],
-        ['profanity', false],
-        ['high toxicity', false],
-        ['drugs & tobacco', false],
-        ['alcohol', false],
-        ['rude gestures', false],
-        ['gambling', false],
-        ['link', true],
-        ['email', true],
-        ['phone', true],
-        ['address', true],
+        [LiveMediaModerationCategories.NON_EXPLICIT, true],
+        [LiveMediaModerationCategories.EXPLICIT, true],
+        [LiveMediaModerationCategories.HATE_SYMBOLS, true],
+        [LiveMediaModerationCategories.DISTURBING, true],
+        [LiveMediaModerationCategories.SWIM_WEAR, true],
+        [LiveMediaModerationCategories.VIOLENCE, true],
+        [LiveMediaModerationCategories.SWIM_WEAR, true],
+        [LiveMediaModerationCategories.PROFANITY, false],
+        [LiveMediaModerationCategories.DRUGS, false],
+        [LiveMediaModerationCategories.ALCOHOL, false],
+        [LiveMediaModerationCategories.RUDE_GESTURES, false],
+        [LiveMediaModerationCategories.GAMBLING, false],
+        [LiveMediaModerationCategories.LINK, true],
+        [LiveMediaModerationCategories.EMAIL, true],
+        [LiveMediaModerationCategories.PHONE, true],
+        [LiveMediaModerationCategories.ADDRESS, true],
       ])(
         'Determines whether the reason is reason to immediately stop the stream (reason is %s)',
         async (reason: string, expectedValue: boolean) => {
@@ -554,7 +619,8 @@ describe('ModerationService', () => {
           userId,
           sessionId,
           profanityReason,
-          'screenshare'
+          'screenshare',
+          moderationSettings
         )
         expect(
           mockModerationInfractionsRepo.insertModerationInfraction
@@ -589,7 +655,8 @@ describe('ModerationService', () => {
           userId,
           sessionId,
           profanityReason,
-          'image_upload'
+          'image_upload',
+          moderationSettings
         )
         expect(
           mockModerationInfractionsRepo.insertModerationInfraction
@@ -617,7 +684,8 @@ describe('ModerationService', () => {
           userId,
           sessionId,
           personInImageReason,
-          'screenshare'
+          'screenshare',
+          moderationSettings
         )
         expect(
           mockModerationInfractionsRepo.insertModerationInfraction
@@ -643,7 +711,8 @@ describe('ModerationService', () => {
           userId,
           sessionId,
           personInImageReason,
-          'screenshare'
+          'screenshare',
+          moderationSettings
         )
         expect(
           mockModerationInfractionsRepo.insertModerationInfraction
@@ -667,22 +736,20 @@ describe('ModerationService', () => {
       })
     })
 
-    describe('getScoreForCategory', () => {
+    describe('Test getting correct moderation penalty weight', () => {
       it.each([
-        ['profanity', 1],
-        ['PROfanity', 1],
-        ['PROFANITY', 1],
-        ['alcohol', 1],
-        ['violence', 10],
-        ['hate symbols', 10],
-        ['some unknown thing that isnt in there', 10],
+        [LiveMediaModerationCategories.PROFANITY, 1],
+        [LiveMediaModerationCategories.ALCOHOL, 1],
+        [LiveMediaModerationCategories.VIOLENCE, 10],
+        [LiveMediaModerationCategories.HATE_SYMBOLS, 10],
+        [LiveMediaModerationCategories.UNKNOWN, 10],
       ])(
         'Returns the correct score for each category',
-        (
-          category: string | LiveMediaModerationCategories,
-          expectedScore: number
-        ) => {
-          const actualScore = getScoreForCategory(category)
+        (category: LiveMediaModerationCategories, expectedScore: number) => {
+          const actualScore = weightModerationInfractions(
+            [category],
+            moderationSettings
+          )
           expect(actualScore).toEqual(expectedScore)
         }
       )
@@ -690,15 +757,15 @@ describe('ModerationService', () => {
 
     describe('isStreamStoppingReason', () => {
       it.each([
-        ['swimwear or underwear', true],
-        ['link', true],
-        ['email', true],
-        ['phone', true],
-        ['address', true],
-        ['explicit', true],
-        ['non-explicit nudity of intimate parts and kissing', true],
-        ['profanity', false],
-        ['violence', true],
+        [LiveMediaModerationCategories.SWIM_WEAR, true],
+        [LiveMediaModerationCategories.LINK, true],
+        [LiveMediaModerationCategories.EMAIL, true],
+        [LiveMediaModerationCategories.PHONE, true],
+        [LiveMediaModerationCategories.ADDRESS, true],
+        [LiveMediaModerationCategories.EXPLICIT, true],
+        [LiveMediaModerationCategories.NON_EXPLICIT, true],
+        [LiveMediaModerationCategories.PROFANITY, false],
+        [LiveMediaModerationCategories.VIOLENCE, true],
       ])('Returns the correct value', (category: string, expected: boolean) => {
         expect(
           isStreamStoppingReason(category as LiveMediaModerationCategories)
@@ -709,25 +776,31 @@ describe('ModerationService', () => {
 
   describe('filterDisallowedDomains', () => {
     const allowedLinks: ModeratedLink[] = [
-      { reason: 'Link', details: { text: 'khanacademy.org', confidence: 0.9 } },
-      { reason: 'Link', details: { text: 'DeltaMath.com', confidence: 0.9 } },
       {
-        reason: 'Link',
+        reason: LiveMediaModerationCategories.LINK,
+        details: { text: 'khanacademy.org', confidence: 0.9 },
+      },
+      {
+        reason: LiveMediaModerationCategories.LINK,
+        details: { text: 'DeltaMath.com', confidence: 0.9 },
+      },
+      {
+        reason: LiveMediaModerationCategories.LINK,
         details: { text: 'cdn.assess.prod.mheducation.com', confidence: 0.9 },
       },
       {
-        reason: 'Link',
+        reason: LiveMediaModerationCategories.LINK,
         details: { text: 'my.hrw.com/assignments/1234567890', confidence: 0.9 },
       },
       {
-        reason: 'Link',
+        reason: LiveMediaModerationCategories.LINK,
         details: {
           text: 'https://g.myascendmath.com/Ascend/postAssessment.htm',
           confidence: 0.9,
         },
       },
       {
-        reason: 'Link',
+        reason: LiveMediaModerationCategories.LINK,
         details: {
           text: 'stem.acceleratelearning.com/mathnation/edgexl/assignment/8cbd10b8-f24b-4e69-8223-7357ffc8eb12/ab3d63bc-e9a4-4918-8412-0ea8c275f1ac',
           confidence: 0.9,
@@ -737,15 +810,15 @@ describe('ModerationService', () => {
 
     const disallowedLinks: ModeratedLink[] = [
       {
-        reason: 'Link',
+        reason: LiveMediaModerationCategories.LINK,
         details: { text: 'https://www.google.com', confidence: 0.9 },
       },
       {
-        reason: 'Link',
+        reason: LiveMediaModerationCategories.LINK,
         details: { text: 'facebook.com/user/123', confidence: 0.9 },
       },
       {
-        reason: 'Link',
+        reason: LiveMediaModerationCategories.LINK,
         details: { text: 'www.instagram.com', confidence: 0.9 },
       },
     ]
@@ -761,7 +834,7 @@ describe('ModerationService', () => {
 
     // all edu domains are allowed
     const anEduDomain: ModeratedLink = {
-      reason: 'Link',
+      reason: LiveMediaModerationCategories.LINK,
       details: { text: 'https://www.smell-u.edu', confidence: 0.9 },
     }
 

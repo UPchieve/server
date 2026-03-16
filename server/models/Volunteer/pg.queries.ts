@@ -3570,3 +3570,76 @@ const doesVolunteerWithEmailExistIR: any = {"usedParamSet":{"email":true},"param
 export const doesVolunteerWithEmailExist = new PreparedQuery<IDoesVolunteerWithEmailExistParams,IDoesVolunteerWithEmailExistResult>(doesVolunteerWithEmailExistIR);
 
 
+/** 'GetVolunteersReadyToCoachStatus' parameters type */
+export interface IGetVolunteersReadyToCoachStatusParams {
+  volunteerIds: stringArray;
+}
+
+/** 'GetVolunteersReadyToCoachStatus' return type */
+export interface IGetVolunteersReadyToCoachStatusResult {
+  banType: ban_types | null;
+  id: string;
+  isApproved: boolean;
+  isOnboarded: boolean;
+}
+
+/** 'GetVolunteersReadyToCoachStatus' query type */
+export interface IGetVolunteersReadyToCoachStatusQuery {
+  params: IGetVolunteersReadyToCoachStatusParams;
+  result: IGetVolunteersReadyToCoachStatusResult;
+}
+
+const getVolunteersReadyToCoachStatusIR: any = {"usedParamSet":{"volunteerIds":true},"params":[{"name":"volunteerIds","required":true,"transform":{"type":"scalar"},"locs":[{"a":189,"b":202}]}],"statement":"SELECT\n    u.id,\n    vp.onboarded AS is_onboarded,\n    vp.approved AS is_approved,\n    u.ban_type\nFROM\n    users u\n    JOIN volunteer_profiles vp ON vp.user_id = u.id\nWHERE\n    u.id = ANY (:volunteerIds!::uuid[])"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     u.id,
+ *     vp.onboarded AS is_onboarded,
+ *     vp.approved AS is_approved,
+ *     u.ban_type
+ * FROM
+ *     users u
+ *     JOIN volunteer_profiles vp ON vp.user_id = u.id
+ * WHERE
+ *     u.id = ANY (:volunteerIds!::uuid[])
+ * ```
+ */
+export const getVolunteersReadyToCoachStatus = new PreparedQuery<IGetVolunteersReadyToCoachStatusParams,IGetVolunteersReadyToCoachStatusResult>(getVolunteersReadyToCoachStatusIR);
+
+
+/** 'GetVolunteerOccupations' parameters type */
+export interface IGetVolunteerOccupationsParams {
+  userId: string;
+}
+
+/** 'GetVolunteerOccupations' return type */
+export interface IGetVolunteerOccupationsResult {
+  occupation: string;
+  userId: string;
+}
+
+/** 'GetVolunteerOccupations' query type */
+export interface IGetVolunteerOccupationsQuery {
+  params: IGetVolunteerOccupationsParams;
+  result: IGetVolunteerOccupationsResult;
+}
+
+const getVolunteerOccupationsIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":86,"b":93}]}],"statement":"SELECT\n    user_id,\n    occupation\nFROM\n    volunteer_occupations\nWHERE\n    user_id = :userId!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     user_id,
+ *     occupation
+ * FROM
+ *     volunteer_occupations
+ * WHERE
+ *     user_id = :userId!
+ * ```
+ */
+export const getVolunteerOccupations = new PreparedQuery<IGetVolunteerOccupationsParams,IGetVolunteerOccupationsResult>(getVolunteerOccupationsIR);
+
+

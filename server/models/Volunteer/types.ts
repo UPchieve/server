@@ -1,4 +1,4 @@
-import { REFERENCE_STATUS, TRAINING } from '../../constants'
+import { REFERENCE_STATUS, TRAINING, USER_BAN_TYPES } from '../../constants'
 import { Ulid, Uuid } from '../pgUtils'
 
 export interface Reference {
@@ -111,4 +111,23 @@ export type TextableVolunteer = {
   volunteerPartnerOrgKey?: string
   mutedSubjects: string[]
   unlockedSubjects: string[]
+}
+
+export type VolunteerWithReadyToCoachInfo = {
+  id: Ulid
+  isApproved: boolean
+  isOnboarded: boolean
+  isReadyToCoach: boolean
+  banType?: USER_BAN_TYPES
+}
+
+export enum VolunteerOccupations {
+  WORKING_PART_TIME = 'Working part-time',
+  WORKING_FULL_TIME = 'Working full-time',
+  UNDERGRAD_STUDENT = 'An undergraduate student',
+  GRAD_STUDENT = 'A graduate student',
+  RETIRED = 'Retired',
+  CAREGIVER = 'Caregiver',
+  HIGH_SCHOOL_STUDENT = 'A high school student',
+  UNEMPLOYED = 'Unemployed',
 }

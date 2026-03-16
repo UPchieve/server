@@ -9,13 +9,7 @@ import { getUserForAuth } from '../services/UserService'
 import { getUserIdByPhone } from '../models/User/queries'
 import { GRADES } from '../constants'
 
-import {
-  InputError,
-  LookupError,
-  LowRecaptchaScoreError,
-  MissingRecaptchaTokenError,
-  NotAllowedError,
-} from '../models/Errors'
+import { InputError, LookupError, NotAllowedError } from '../models/Errors'
 import isValidInternationalPhoneNumber from './is-valid-international-phone-number'
 import {
   asString,
@@ -28,12 +22,13 @@ import {
 import validator from 'validator'
 import session from 'express-session'
 import { validateRequestRecaptcha } from '../services/RecaptchaService'
-import { isDisposableEmail } from './domain-utils'
+import { isBlockedEmailDomain } from './emailDomain-utils'
 import { UserRole } from '../models/User'
 import {
   getVolunteerPartnerOrgForRegistrationByKey,
   VolunteerPartnerOrgForRegistration,
 } from '../models/VolunteerPartnerOrg'
+import logger from '../logger'
 // Custom errors
 export class RegistrationError extends CustomError {}
 export class ResetError extends CustomError {}
@@ -321,12 +316,15 @@ export function checkNames(first: string, last: string) {
     throw new InputError('Names can only contain letters, spaces and hyphens')
 }
 
-export function checkEmail(email: string) {
-  if (!validator.isEmail(email))
+export async function checkEmail(email: string) {
+  if (!validator.isEmail(email)) {
     throw new InputError('Email is not a valid email format')
+  }
 
-  if (isDisposableEmail(email))
-    throw new NotAllowedError('Email is from an invalid email provider')
+  if (await isBlockedEmailDomain(email)) {
+    logger.error({ email }, 'Email is from an invalid email provider')
+    throw new NotAllowedError('Something went wrong - please try again later')
+  }
 }
 
 export async function checkValidPartnerEmailAddress(
@@ -495,18 +493,9 @@ async function checkRecaptcha(req: Request, res: Response, next: NextFunction) {
     await validateRequestRecaptcha(req)
     return next()
   } catch (err) {
-    if (
-      err instanceof MissingRecaptchaTokenError ||
-      err instanceof LowRecaptchaScoreError
-    ) {
-      res.status(500).json({
-        err: err.message,
-      })
-    } else {
-      res.status(500).json({
-        err: 'Something went wrong. Please contact the UPchieve team at support@upchieve.org for help.',
-      })
-    }
+    res.status(500).json({
+      err: 'Something went wrong. Please contact the UPchieve team at support@upchieve.org for help.',
+    })
   }
 }
 

@@ -2,6 +2,8 @@ import { JobOptions as BullJobOptions } from 'bull'
 import logger from '../../logger'
 import { Jobs } from '.'
 import * as QueueService from '../../services/QueueService'
+import moment from 'moment'
+import 'moment-timezone'
 
 interface JobTemplate {
   name: Jobs
@@ -75,6 +77,14 @@ export default async function addScheduledJobs() {
       name: Jobs.ClearBullJobsByStatus,
       data: { statuses: ['completed', 'failed'], timeOffsetInMs: 0 },
       options: { repeat: { cron: '0 6 * * *', tz: 'America/New_York' } }, // each day at 6am
+    },
+    {
+      name: Jobs.SpawnUpdateNTHSChapterStatusForImpactPath,
+      data: {
+        periodStart: moment('2025-08-01').tz('America/New York').toDate(),
+        periodEnd: moment('2026-05-31').tz('America/New York').toDate(),
+      },
+      options: { repeat: { cron: '0 * * * *', tz: 'America/New York' } }, // Every hour at minute 0
     },
   ]
 

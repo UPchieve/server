@@ -1,7 +1,4 @@
 // Server configuration
-
-import { Static } from 'runtypes'
-import { Config } from './config-type'
 import { stringToBoolean } from './utils/string-to-boolean'
 
 let redisConnectionString: string
@@ -18,7 +15,7 @@ const bannedServiceProviderList =
   process.env.SUBWAY_BANNED_SERVICE_PROVIDERS || 'Example'
 const bannedServiceProviders = bannedServiceProviderList.split(',')
 
-const config: Static<typeof Config> = {
+const config = {
   NODE_ENV: process.env.NODE_ENV || 'dev',
   SSL_CERT_PATH: '',
   // set host to your public IP address to test Twilio voice calling
@@ -82,6 +79,7 @@ const config: Static<typeof Config> = {
     studentOnboardingMissionTemplate: 'd-3167ea240a27471597d849cbae4b8437',
     studentOnboardingSurveyTemplate: 'd-c5671abc76884180b6912729190b7078',
     studentFirstSessionCongratsTemplate: 'd-8c54307ace4a498f800185f0e540b8ea',
+    studentFirstSessionInterviewTemplate: 'd-c1a5daddc1a842038ceed4c12a7d583c',
     studentReportedRudeTemplate: 'd-aa16bc7d750144f8b42d3db0bec051ca',
     studentReportedSafetyTemplate: 'd-c7caf6b302b94a08862652dcde06535f',
     studentAbsentWarningTemplate: 'd-f27a47f3875a4dfd9f07446219ecacfc',
@@ -117,7 +115,11 @@ const config: Static<typeof Config> = {
     volunteerPositiveStudentFeedback: 'd-a8ebf5652afc4a6e97e8f582abc172e4',
     downloadCertificateTemplate: 'd-708608ba2c6c4e04a2b2902fdc5ecf50',
     ambassadorCongratsTemplate: 'd-1c344164434544e4962ec2a125d647cf',
-    onboardingBackfillReadyToCoachEmail: 'd-7cf98c7f80aa4a02b8cf96da19a73f36',
+    nthsChapterBecameOfficialImpactPathEmail:
+      'd-781878be86f94e6c9ce3fbc7d336d6bd',
+    nthsMemberDeactivationNoticeEmail: 'd-d4262bda50bb470abb770850d45cb083',
+    nthsCandidateApplicationApproved: 'd-7bb5abafa4d14d6cb53540bd514447a7',
+    nthsCandidateApplicationDenied: 'd-0db5c4e5f4de45de9c8ce7106765f0e9',
     unsubscribeGroup: {
       newsletter: 12567,
       account: 12570,
@@ -264,6 +266,7 @@ const config: Static<typeof Config> = {
   twilioVerificationRateLimitIntervalSeconds:
     Number(process.env.SUBWAY_TWILIO_VERIFICATION_RATELIMIT_INTERVAL_SECONDS) ||
     60,
+  twilioMessageServiceId: process.env.SUBWAY_TWILIO_MESSAGE_SERVICE_ID || '',
   notificationSchedule: [
     // Minute 1 (the time after a session request is made)
     1 * 60 * 1000,
@@ -423,17 +426,13 @@ const config: Static<typeof Config> = {
 
   // Moderation
   liveMediaBanInfractionScoreThreshold:
-    Number(process.env.LIVE_MEDIA_BAN_INFRACTION_SCORE_THRESHOLD) || 10,
-  imageModerationMinConfidence:
-    Number(process.env.IMAGE_MODERATION_CONFIDENCE_THRESHOLD) || 70,
-  toxicityModerationMinConfidence:
-    Number(process.env.TOXICITY_MODERATION_CONFIDENCE_THRESHOLD) || 0.8,
-  phoneNumberModerationConfidenceThreshold:
-    Number(process.env.PHONE_NUMBER_MODERATION_CONFIDENCE_THRESHOLD) || 0.9,
+    Number(process.env.SUBWAY_LIVE_MEDIA_BAN_INFRACTION_SCORE_THRESHOLD) || 10,
+  imageModerationMinConfidence: 70,
+  toxicityModerationMinConfidence: 0.8,
+  phoneNumberModerationConfidenceThreshold: 0.9,
   contextualModerationConfidenceThreshold:
-    Number(process.env.CONTEXTUAL_MODERATION_CONFIDENCE_THRESHOLD) || 50,
-  emailModerationConfidenceThreshold:
-    Number(process.env.EMAIL_MODERATION_CONFIDENCE_THRESHOLD) || 0.8,
+    Number(process.env.CONTEXTUAL_MODERATION_CONFIDENCE_THRESHOLD) || 90,
+  emailModerationConfidenceThreshold: 0.8,
   moderateMessageTimeLimitMs:
     Number(process.env.MODERATE_MESSAGE_TIME_LIMIT_MS) || 5 * 1000,
   contextualModerationBatchSize:
@@ -476,6 +475,12 @@ const config: Static<typeof Config> = {
   // Zwibbler
   zwibblerNodeUrl: process.env.ZWIBBLER_NODE_URL || 'bogus',
   slackAlertWebHookUrl: process.env.SUBWAY_SLACK_ALERT_WEBHOOK_URL || 'bogus',
-}
-module.exports = config
+
+  //Assembly AI
+  assemblyAiApiKey: process.env.SUBWAY_ASSEMBLY_AI_API_KEY || 'youHeard',
+
+  // used for retool apps that need to access the admin api
+  retoolAdminEmail: process.env.SUBWAY_RETOOL_ADMIN_EMAIL,
+} as const
+
 export default config

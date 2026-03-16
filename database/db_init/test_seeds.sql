@@ -2,7 +2,9 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 14.15 (Debian 14.15-1.pgdg120+1)
+\restrict hCtyqEH9AZOreVILmvmGXNi8eGqOMhxvTHdKiKXznnwypC6yhQYcoLzK5yUAXNb
+
+-- Dumped from database version 14.21 (Debian 14.21-1.pgdg13+1)
 -- Dumped by pg_dump version 14.19 (Homebrew)
 
 SET statement_timeout = 0;
@@ -5988,6 +5990,14 @@ COPY upchieve.legacy_availability_histories (id, mongo_id, user_id, timezone, re
 
 
 --
+-- Data for Name: moderation_actions; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.moderation_actions (id, action_name, description) FROM stdin;
+\.
+
+
+--
 -- Data for Name: moderation_categories; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
@@ -6007,7 +6017,17 @@ COPY upchieve.moderation_categories (id, name) FROM stdin;
 13	Rude Gestures
 14	Gambling
 15	Hate Symbols
-16	Person
+17	GRAPHIC
+18	HARASSMENT_OR_ABUSE
+19	SEXUAL
+20	VIOLENCE_OR_THREAT
+21	INSULT
+22	PROFANITY
+23	EMAIL
+24	LINK
+25	PHONE
+26	ADDRESS
+16	Person detected in image
 \.
 
 
@@ -6020,26 +6040,102 @@ COPY upchieve.moderation_infractions (id, user_id, session_id, reason, active, c
 
 
 --
+-- Data for Name: moderation_penalty_config; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.moderation_penalty_config (id, min_weight, max_weight, moderation_type) FROM stdin;
+\.
+
+
+--
+-- Data for Name: moderation_rules; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.moderation_rules (id, name, description) FROM stdin;
+\.
+
+
+--
+-- Data for Name: moderation_rule_actions; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.moderation_rule_actions (rule_id, action_id) FROM stdin;
+\.
+
+
+--
+-- Data for Name: session_flags; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.session_flags (id, name, created_at, updated_at) FROM stdin;
+1	Absent student	2024-08-28 00:28:44.022047+00	2024-08-28 00:28:44.022047+00
+2	Absent volunteer	2024-08-28 00:28:44.022409+00	2024-08-28 00:28:44.022409+00
+3	Low session rating from coach	2024-08-28 00:28:44.022686+00	2024-08-28 00:28:44.022686+00
+4	Low session rating from student	2024-08-28 00:28:44.022924+00	2024-08-28 00:28:44.022924+00
+5	Low coach rating from student	2024-08-28 00:28:44.02329+00	2024-08-28 00:28:44.02329+00
+6	Reported	2024-08-28 00:28:44.023525+00	2024-08-28 00:28:44.023525+00
+9	Comment from student	2024-08-28 00:28:44.024253+00	2024-08-28 00:28:44.024253+00
+10	Comment from volunteer	2024-08-28 00:28:44.024522+00	2024-08-28 00:28:44.024522+00
+11	Has been unmatched	2024-08-28 00:28:44.024787+00	2024-08-28 00:28:44.024787+00
+12	Has had technical issues	2024-08-28 00:28:44.025073+00	2024-08-28 00:28:44.025073+00
+7	Pressuring coach	2024-08-28 00:28:44.023773+00	2024-08-28 00:28:44.143891+00
+8	Mean or inappropriate	2024-08-28 00:28:44.024009+00	2024-08-28 00:28:44.143891+00
+13	PII	2024-08-28 00:28:44.143891+00	2024-08-28 00:28:44.143891+00
+14	Graded assignment	2024-08-28 00:28:44.143891+00	2024-08-28 00:28:44.143891+00
+15	Coach uncomfortable	2024-08-28 00:28:44.143891+00	2024-08-28 00:28:44.143891+00
+16	Student in distress	2024-08-28 00:28:44.143891+00	2024-08-28 00:28:44.143891+00
+17	Coach reported student DM	2024-08-28 00:28:44.174187+00	2024-08-28 00:28:44.174187+00
+18	Student reported coach DM	2024-08-28 00:28:44.174187+00	2024-08-28 00:28:44.174187+00
+25	Hate speech	2025-03-26 22:14:09.855431+00	2025-03-26 22:14:09.855431+00
+26	Inappropriate conversation	2025-03-26 22:14:09.855431+00	2025-03-26 22:14:09.855431+00
+27	Platform circumvention	2025-03-26 22:14:09.855431+00	2025-03-26 22:14:09.855431+00
+28	Personally identifiable information	2025-03-26 22:14:09.855431+00	2025-03-26 22:14:09.855431+00
+29	Safety concern	2025-03-26 22:14:09.855431+00	2025-03-26 22:14:09.855431+00
+30	General moderation concern	2025-03-26 22:14:09.855431+00	2025-03-26 22:14:09.855431+00
+31	Live media ban	2025-09-09 15:16:33.85088+00	2025-09-09 15:16:33.85088+00
+\.
+
+
+--
+-- Data for Name: moderation_rules_flags; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.moderation_rules_flags (flag_id, rule_id) FROM stdin;
+\.
+
+
+--
 -- Data for Name: moderation_settings; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.moderation_settings (moderation_type, moderation_category_id, threshold) FROM stdin;
-contextual	1	0.75
-contextual	2	0.75
-contextual	3	0.75
-contextual	4	0.75
-contextual	5	0.75
-realtime_image	6	0.75
-realtime_image	7	0.75
-realtime_image	8	0.75
-realtime_image	9	0.75
-realtime_image	10	0.75
-realtime_image	11	0.75
-realtime_image	12	0.75
-realtime_image	13	0.75
-realtime_image	14	0.75
-realtime_image	15	0.75
-realtime_image	16	0.75
+COPY upchieve.moderation_settings (moderation_type, moderation_category_id, threshold, penalty_weight) FROM stdin;
+contextual	1	0.75	0
+contextual	2	0.75	0
+contextual	3	0.75	0
+contextual	4	0.75	0
+contextual	5	0.75	0
+realtime_image	6	0.75	0
+realtime_image	7	0.75	0
+realtime_image	8	0.75	0
+realtime_image	9	0.75	0
+realtime_image	10	0.75	0
+realtime_image	17	0.85	0
+realtime_image	18	0.85	0
+realtime_image	19	0.85	0
+realtime_image	20	0.85	0
+realtime_image	16	0.75	0
+realtime_image	23	0.85	0
+realtime_image	24	0.85	0
+realtime_image	25	0.85	0
+realtime_image	26	0.85	0
+realtime_image	2	0.85	0
+realtime_image	11	0.75	0
+realtime_image	12	0.75	0
+realtime_image	13	0.75	0
+realtime_image	14	0.75	0
+realtime_image	15	0.75	0
+realtime_image	21	0.85	0
+realtime_image	22	0.85	0
 \.
 
 
@@ -6119,6 +6215,11 @@ COPY upchieve.nths_actions (id, name, created_at) FROM stdin;
 1	NAMED YOUR TEAM	2026-01-29 20:30:00.05419+00
 2	REVIEWED RESOURCES	2026-01-29 20:30:00.05419+00
 3	ATTENDED ORIENTATION	2026-01-29 20:30:00.05419+00
+4	MARKED SCHOOL AFFILIATION IN PROGRESS	2026-02-03 19:39:46.025817+00
+5	SUBMITTED ADVISOR CONTACT INFO	2026-02-03 19:39:46.025817+00
+6	ADVISOR VERIFIED	2026-02-03 19:39:46.025817+00
+7	SCHOOL AFFILIATION DENIED	2026-02-03 19:39:46.025817+00
+8	OPTED OUT	2026-02-10 19:55:37.065185+00
 \.
 
 
@@ -6127,6 +6228,41 @@ COPY upchieve.nths_actions (id, name, created_at) FROM stdin;
 --
 
 COPY upchieve.nths_groups (id, name, key, created_at, updated_at, invite_code) FROM stdin;
+\.
+
+
+--
+-- Data for Name: nths_advisors; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.nths_advisors (id, nths_group_id, first_name, last_name, email, phone, phone_extension, title, verified, created_at, updated_at, school_id) FROM stdin;
+\.
+
+
+--
+-- Data for Name: nths_candidate_applications; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.nths_candidate_applications (id, user_id, status, denied_notes, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: nths_chapter_statuses; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.nths_chapter_statuses (id, name, created_at) FROM stdin;
+1	PENDING	2026-02-25 16:18:13.923783+00
+2	OFFICIAL	2026-02-25 16:18:13.923783+00
+3	FAILED	2026-02-25 16:18:13.923783+00
+\.
+
+
+--
+-- Data for Name: nths_chapters_statuses; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.nths_chapters_statuses (nths_group_id, nths_chapter_status_id, created_at) FROM stdin;
 \.
 
 
@@ -6161,6 +6297,27 @@ COPY upchieve.nths_group_member_roles (user_id, nths_group_id, role_id, updated_
 --
 
 COPY upchieve.nths_group_members (nths_group_id, user_id, title, joined_at, updated_at, deactivated_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: nths_school_affiliation_statuses; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.nths_school_affiliation_statuses (id, name, created_at) FROM stdin;
+1	PENDING_SCHOOL_AFFILIATION	2026-02-03 19:53:33.966404+00
+2	PENDING_UPCHIEVE_VERIFICATION	2026-02-03 19:53:33.966404+00
+3	AFFILIATED	2026-02-03 19:53:33.966404+00
+4	DENIED	2026-02-03 19:53:33.966404+00
+5	OPTED_OUT	2026-02-04 20:11:53.329958+00
+\.
+
+
+--
+-- Data for Name: nths_group_school_affiliation; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.nths_group_school_affiliation (nths_group_id, nths_school_affiliation_status_id, created_at, updated_at, school_id) FROM stdin;
 \.
 
 
@@ -7447,39 +7604,6 @@ COPY upchieve.session_failed_joins (session_id, user_id, created_at, updated_at)
 
 
 --
--- Data for Name: session_flags; Type: TABLE DATA; Schema: upchieve; Owner: admin
---
-
-COPY upchieve.session_flags (id, name, created_at, updated_at) FROM stdin;
-1	Absent student	2024-08-28 00:28:44.022047+00	2024-08-28 00:28:44.022047+00
-2	Absent volunteer	2024-08-28 00:28:44.022409+00	2024-08-28 00:28:44.022409+00
-3	Low session rating from coach	2024-08-28 00:28:44.022686+00	2024-08-28 00:28:44.022686+00
-4	Low session rating from student	2024-08-28 00:28:44.022924+00	2024-08-28 00:28:44.022924+00
-5	Low coach rating from student	2024-08-28 00:28:44.02329+00	2024-08-28 00:28:44.02329+00
-6	Reported	2024-08-28 00:28:44.023525+00	2024-08-28 00:28:44.023525+00
-9	Comment from student	2024-08-28 00:28:44.024253+00	2024-08-28 00:28:44.024253+00
-10	Comment from volunteer	2024-08-28 00:28:44.024522+00	2024-08-28 00:28:44.024522+00
-11	Has been unmatched	2024-08-28 00:28:44.024787+00	2024-08-28 00:28:44.024787+00
-12	Has had technical issues	2024-08-28 00:28:44.025073+00	2024-08-28 00:28:44.025073+00
-7	Pressuring coach	2024-08-28 00:28:44.023773+00	2024-08-28 00:28:44.143891+00
-8	Mean or inappropriate	2024-08-28 00:28:44.024009+00	2024-08-28 00:28:44.143891+00
-13	PII	2024-08-28 00:28:44.143891+00	2024-08-28 00:28:44.143891+00
-14	Graded assignment	2024-08-28 00:28:44.143891+00	2024-08-28 00:28:44.143891+00
-15	Coach uncomfortable	2024-08-28 00:28:44.143891+00	2024-08-28 00:28:44.143891+00
-16	Student in distress	2024-08-28 00:28:44.143891+00	2024-08-28 00:28:44.143891+00
-17	Coach reported student DM	2024-08-28 00:28:44.174187+00	2024-08-28 00:28:44.174187+00
-18	Student reported coach DM	2024-08-28 00:28:44.174187+00	2024-08-28 00:28:44.174187+00
-25	Hate speech	2025-03-26 22:14:09.855431+00	2025-03-26 22:14:09.855431+00
-26	Inappropriate conversation	2025-03-26 22:14:09.855431+00	2025-03-26 22:14:09.855431+00
-27	Platform circumvention	2025-03-26 22:14:09.855431+00	2025-03-26 22:14:09.855431+00
-28	Personally identifiable information	2025-03-26 22:14:09.855431+00	2025-03-26 22:14:09.855431+00
-29	Safety concern	2025-03-26 22:14:09.855431+00	2025-03-26 22:14:09.855431+00
-30	General moderation concern	2025-03-26 22:14:09.855431+00	2025-03-26 22:14:09.855431+00
-31	Live media ban	2025-09-09 15:16:33.85088+00	2025-09-09 15:16:33.85088+00
-\.
-
-
---
 -- Data for Name: session_meetings; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
@@ -8463,6 +8587,14 @@ COPY upchieve.surveys_context (survey_id, subject_id, survey_type_id, created_at
 
 
 --
+-- Data for Name: totp; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.totp (user_id, secret, verified, last_used_counter, created_at, updated_at) FROM stdin;
+\.
+
+
+--
 -- Data for Name: training_courses; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
@@ -8670,6 +8802,14 @@ COPY upchieve.users_roles (user_id, role_id, created_at, updated_at) FROM stdin;
 
 
 --
+-- Data for Name: users_schools; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.users_schools (user_id, school_id, association_type, created_at, updated_at) FROM stdin;
+\.
+
+
+--
 -- Data for Name: users_student_partner_orgs_instances; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
@@ -8811,10 +8951,31 @@ SELECT pg_catalog.setval('upchieve.ip_addresses_id_seq', 1, true);
 
 
 --
+-- Name: moderation_actions_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
+--
+
+SELECT pg_catalog.setval('upchieve.moderation_actions_id_seq', 1, true);
+
+
+--
 -- Name: moderation_categories_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.moderation_categories_id_seq', 16, true);
+SELECT pg_catalog.setval('upchieve.moderation_categories_id_seq', 26, true);
+
+
+--
+-- Name: moderation_penalty_config_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
+--
+
+SELECT pg_catalog.setval('upchieve.moderation_penalty_config_id_seq', 1, false);
+
+
+--
+-- Name: moderation_rules_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
+--
+
+SELECT pg_catalog.setval('upchieve.moderation_rules_id_seq', 1, false);
 
 
 --
@@ -8842,7 +9003,21 @@ SELECT pg_catalog.setval('upchieve.notification_types_id_seq', 2, true);
 -- Name: nths_actions_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.nths_actions_id_seq', 3, true);
+SELECT pg_catalog.setval('upchieve.nths_actions_id_seq', 8, true);
+
+
+--
+-- Name: nths_candidate_applications_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
+--
+
+SELECT pg_catalog.setval('upchieve.nths_candidate_applications_id_seq', 1, false);
+
+
+--
+-- Name: nths_chapter_statuses_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
+--
+
+SELECT pg_catalog.setval('upchieve.nths_chapter_statuses_id_seq', 3, true);
 
 
 --
@@ -8857,6 +9032,13 @@ SELECT pg_catalog.setval('upchieve.nths_group_actions_id_seq', 1, false);
 --
 
 SELECT pg_catalog.setval('upchieve.nths_group_roles_id_seq', 2, true);
+
+
+--
+-- Name: nths_school_affiliation_statuses_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
+--
+
+SELECT pg_catalog.setval('upchieve.nths_school_affiliation_statuses_id_seq', 5, true);
 
 
 --
@@ -9079,4 +9261,6 @@ SELECT pg_catalog.setval('upchieve.weekdays_id_seq', 1, false);
 --
 -- PostgreSQL database dump complete
 --
+
+\unrestrict hCtyqEH9AZOreVILmvmGXNi8eGqOMhxvTHdKiKXznnwypC6yhQYcoLzK5yUAXNb
 

@@ -30,7 +30,11 @@ export function routeNTHSGroups(router: Router): void {
     try {
       const user = extractUser(req)
       const groups = await NTHSGroupsService.getGroups(user.id)
-      res.json({ groups })
+      const candidateApplicationStatus =
+        groups.length === 0
+          ? await NTHSGroupsService.getLatestCandidateApplicationStatus(user.id)
+          : undefined
+      res.json({ groups, candidateApplicationStatus })
     } catch (error) {
       resError(res, error)
     }
@@ -121,7 +125,7 @@ export function routeNTHSGroups(router: Router): void {
         const groupId = req.params.groupId
         const action = req.body.action
         const created = await NTHSGroupsService.createAction(groupId, action)
-        res.json({ groupId, action: created })
+        res.json({ groupId, ...created })
       } catch (err) {
         resError(res, err)
       }
@@ -135,6 +139,37 @@ export function routeNTHSGroups(router: Router): void {
         const groupActions = await NTHSGroupsService.getActionsForGroup(groupId)
         const actions = await NTHSGroupsService.getActions()
         res.json({ groupId, actions, groupActions })
+      } catch (err) {
+        resError(res, err)
+      }
+    })
+
+  router
+    .route('/nths-groups/:groupId/submit-school-affiliation')
+    .post(isGroupAdmin, async (req: Request, res: Response) => {
+      try {
+        const nthsGroupId = req.params.groupId
+        const {
+          schoolId,
+          firstName,
+          lastName,
+          email,
+          phone,
+          phoneExtension,
+          title,
+        } = req.body
+        const result = await NTHSGroupsService.submitSchoolAffilaiton({
+          nthsGroupId,
+          schoolId,
+          firstName,
+          lastName,
+          email,
+          phone,
+          phoneExtension,
+          title,
+        })
+
+        res.json(result)
       } catch (err) {
         resError(res, err)
       }

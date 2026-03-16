@@ -23,6 +23,7 @@ import {
   Sponsorship,
   TextableVolunteer,
   UserTrainingCourse,
+  VolunteerOccupations,
   VolunteersForAnalyticsReport,
   VolunteerSubject,
 } from './types'
@@ -1510,11 +1511,13 @@ export type BackgroundInfo = {
   phoneNumber: string | undefined
   signupSourceId: number | undefined
   otherSignupSource: string | undefined
+  highSchoolId?: string | null
 }
 
 export async function updateVolunteerBackgroundInfo(
   userId: Ulid,
-  backgroundInfo: BackgroundInfo
+  backgroundInfo: BackgroundInfo,
+  tc: TransactionClient = getClient()
 ): Promise<void> {
   try {
     const result = await pgQueries.updateVolunteerBackgroundInfo.run(
@@ -1530,7 +1533,7 @@ export async function updateVolunteerBackgroundInfo(
             }))
           : [],
       },
-      getClient()
+      tc
     )
     if (!result.length && makeRequired(result[0]).ok)
       throw new RepoUpdateError('update query did not return ok')
@@ -1761,5 +1764,36 @@ export async function doesVolunteerWithEmailExist(email: string) {
     return rawResults[0].exists
   } catch (err) {
     throw new RepoReadError(err)
+  }
+}
+
+export async function getVolunteersReadyToCoachStatus(
+  volunteerIds: Ulid[],
+  tc: TransactionClient = getRoClient()
+) {
+  try {
+    const results = await pgQueries.getVolunteersReadyToCoachStatus.run(
+      {
+        volunteerIds,
+      },
+      tc
+    )
+    return results.map((row) => makeSomeOptional(row, ['banType']))
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getVolunteerOccupations(
+  userId: Ulid,
+  tc: TransactionClient = getRoClient()
+): Promise<VolunteerOccupations[]> {
+  try {
+    const results = await pgQueries.getVolunteerOccupations.run({ userId }, tc)
+    return results.map(
+      (row) => makeRequired(row).occupation as VolunteerOccupations
+    )
+  } catch (error) {
+    throw new RepoReadError(error)
   }
 }

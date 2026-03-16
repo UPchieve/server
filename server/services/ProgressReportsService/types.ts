@@ -52,6 +52,7 @@ export type ProgressReport = ProgressReportInfo & {
 
 export type ProgressReportSessionFilter = UserSessionsFilter & {
   analysisType: ProgressReportAnalysisTypes
+  subject: string
 }
 
 export type ProgressReportOverviewSubjectStat =

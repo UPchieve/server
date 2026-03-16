@@ -64,12 +64,12 @@ export function routes(app: Express) {
           return res.json({ NTHSGroup: existingGroups[0] })
         }
 
-        const NTHSGroup = await NTHSGroupsService.joinGroupAsMemberByGroupId(
+        const groups = await NTHSGroupsService.joinGroupAsMemberByGroupId(
           authenticatedUser.id,
           group.id
         )
 
-        return res.json({ NTHSGroup })
+        return res.json({ groups })
       }
 
       const isExistingVolunteer =
@@ -85,7 +85,9 @@ export function routes(app: Express) {
       const group = await NTHSGroupsService.getNTHSGroupByInviteCode(inviteCode)
 
       if (!group) {
-        throw new InputError('Invalid team invite code')
+        throw new InputError(
+          'Invalid team invite code. Please double check the team code you have entered.'
+        )
       }
       return res.json({ NTHSGroup: group })
     } catch (err) {

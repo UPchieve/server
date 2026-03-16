@@ -18,6 +18,7 @@ import {
   sendStudentParentGuardianCreatedAccountEmail,
 } from './MailService'
 import * as UserRepo from '../models/User'
+import * as UsersSchoolsRepo from '../models/UsersSchools'
 import * as StudentRepo from '../models/Student'
 import * as StudentPartnerOrgRepo from '../models/StudentPartnerOrg'
 import { createUPFByUserId } from '../models/UserProductFlags'
@@ -122,8 +123,8 @@ export async function rosterPartnerStudents(
     try {
       await runInTransaction(async (tc: TransactionClient) => {
         checkNames(student.firstName, student.lastName)
-        checkEmail(student.email)
-        if (student.proxyEmail) checkEmail(student.proxyEmail)
+        await checkEmail(student.email)
+        if (student.proxyEmail) await checkEmail(student.proxyEmail)
         if (student.password) {
           student.password = await hashPassword(student.password)
         }
@@ -187,7 +188,7 @@ export async function rosterPartnerStudents(
 }
 
 export async function verifyStudentData(data: RegisterStudentPayload) {
-  checkEmail(data.email)
+  await checkEmail(data.email)
   checkNames(data.firstName, data.lastName)
   await AuthService.checkUser(data.email)
   if (usePassword(data)) {
@@ -296,7 +297,7 @@ export async function verifyVolunteerData(data: RegisterVolunteerPayload) {
     await checkValidPartnerEmailAddress(data.email, data.volunteerPartnerOrgKey)
   }
 
-  checkEmail(data.email)
+  await checkEmail(data.email)
   checkNames(data.firstName, data.lastName)
   await AuthService.checkUser(data.email)
   if (usePassword(data)) {
@@ -508,6 +509,14 @@ export async function upsertStudent(
     }
 
     await StudentRepo.upsertStudentProfile(studentData, tc)
+    if (studentData.schoolId) {
+      await UsersSchoolsRepo.upsertUsersSchool(
+        studentData.userId,
+        studentData.schoolId,
+        'student_at_school',
+        tc
+      )
+    }
 
     async function addUserStudentPartnerOrgInstance(
       spo: GetStudentPartnerOrgResult
@@ -525,7 +534,7 @@ export async function upsertStudent(
 }
 
 export async function registerTeacher(data: RegisterTeacherPayload) {
-  checkEmail(data.email)
+  await checkEmail(data.email)
   checkNames(data.firstName, data.lastName)
   if (usePassword(data)) {
     checkPassword(data.password)

@@ -36,7 +36,6 @@ export async function invokeModel({
   responseType = OpenAiResponseType.JSON,
   options = {},
 }: OpenAiInput): Promise<OpenAiResults> {
-  let results = null
   try {
     const response = await openai.chat.completions.create(
       {
@@ -53,31 +52,32 @@ export async function invokeModel({
       options
     )
 
-    results = getResults(response, responseType)
-    if (results == null)
+    const results = parseResponse(response, responseType)
+    if (results == null) {
       throw new Error("Didn't get an expected OpenAI chat response")
+    }
+
+    return {
+      modelId: MODEL_ID,
+      results,
+    }
   } catch (err) {
     logger.warn(err, 'An unexpected OpenAI error occurred')
     throw err
   }
-
-  return {
-    modelId: MODEL_ID,
-    results,
-  }
 }
 
-function getResults(
-  result: OpenAI.ChatCompletion,
+function parseResponse(
+  response: OpenAI.ChatCompletion,
   responseType: OpenAiResponseType
 ) {
-  if (result?.choices[0]?.message?.content == null) {
+  if (response?.choices[0]?.message?.content == null) {
     return null
   }
 
   return responseType === OpenAiResponseType.JSON
-    ? JSON.parse(result.choices[0].message.content)
-    : result.choices[0].message.content
+    ? JSON.parse(response.choices[0].message.content)
+    : response.choices[0].message.content
 }
 
 export async function invokeVisionModel(

@@ -1,4 +1,6 @@
--- Dumped from database version 14.15 (Debian 14.15-1.pgdg120+1)
+\restrict 9gFSpHHqGhQgH0VnMWD2SdZqAA1hvVoinAA8xPLL1dyiSxQocolKfhGZzuECPBp
+
+-- Dumped from database version 14.21 (Debian 14.21-1.pgdg13+1)
 -- Dumped by pg_dump version 14.19 (Homebrew)
 
 SET statement_timeout = 0;
@@ -130,6 +132,17 @@ CREATE TYPE upchieve.moderation_types AS ENUM (
 
 
 --
+-- Name: nths_candidate_application_status; Type: TYPE; Schema: upchieve; Owner: -
+--
+
+CREATE TYPE upchieve.nths_candidate_application_status AS ENUM (
+    'applied',
+    'approved',
+    'denied'
+);
+
+
+--
 -- Name: tutor_bot_conversation_user_type; Type: TYPE; Schema: upchieve; Owner: -
 --
 
@@ -147,6 +160,16 @@ CREATE TYPE upchieve.tutor_bot_conversation_user_type AS ENUM (
 CREATE TYPE upchieve.tutor_bot_session_user_type AS ENUM (
     'student',
     'bot'
+);
+
+
+--
+-- Name: user_school_association_type; Type: TYPE; Schema: upchieve; Owner: -
+--
+
+CREATE TYPE upchieve.user_school_association_type AS ENUM (
+    'student_at_school',
+    'teacher_at_school'
 );
 
 
@@ -725,6 +748,37 @@ CREATE TABLE upchieve.legacy_availability_histories (
 
 
 --
+-- Name: moderation_actions; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.moderation_actions (
+    id integer NOT NULL,
+    action_name text,
+    description text
+);
+
+
+--
+-- Name: moderation_actions_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+CREATE SEQUENCE upchieve.moderation_actions_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: moderation_actions_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
+--
+
+ALTER SEQUENCE upchieve.moderation_actions_id_seq OWNED BY upchieve.moderation_actions.id;
+
+
+--
 -- Name: moderation_categories; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -770,13 +824,92 @@ CREATE TABLE upchieve.moderation_infractions (
 
 
 --
+-- Name: moderation_penalty_config; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.moderation_penalty_config (
+    id integer NOT NULL,
+    min_weight integer NOT NULL,
+    max_weight integer NOT NULL,
+    moderation_type upchieve.moderation_types,
+    CONSTRAINT moderation_penalty_min_le_max CHECK ((min_weight <= max_weight))
+);
+
+
+--
+-- Name: moderation_penalty_config_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE upchieve.moderation_penalty_config ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME upchieve.moderation_penalty_config_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: moderation_rule_actions; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.moderation_rule_actions (
+    rule_id integer NOT NULL,
+    action_id integer NOT NULL
+);
+
+
+--
+-- Name: moderation_rules; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.moderation_rules (
+    id integer NOT NULL,
+    name text,
+    description text
+);
+
+
+--
+-- Name: moderation_rules_flags; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.moderation_rules_flags (
+    flag_id integer NOT NULL,
+    rule_id integer NOT NULL
+);
+
+
+--
+-- Name: moderation_rules_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+CREATE SEQUENCE upchieve.moderation_rules_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: moderation_rules_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
+--
+
+ALTER SEQUENCE upchieve.moderation_rules_id_seq OWNED BY upchieve.moderation_rules.id;
+
+
+--
 -- Name: moderation_settings; Type: TABLE; Schema: upchieve; Owner: -
 --
 
 CREATE TABLE upchieve.moderation_settings (
     moderation_type upchieve.moderation_types,
     moderation_category_id integer,
-    threshold numeric(3,2)
+    threshold numeric(3,2),
+    penalty_weight integer DEFAULT 0 NOT NULL
 );
 
 
@@ -935,6 +1068,100 @@ ALTER TABLE upchieve.nths_actions ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTI
 
 
 --
+-- Name: nths_advisors; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.nths_advisors (
+    id uuid NOT NULL,
+    nths_group_id uuid NOT NULL,
+    first_name text NOT NULL,
+    last_name text NOT NULL,
+    email text NOT NULL,
+    phone text,
+    phone_extension text,
+    title text NOT NULL,
+    verified boolean DEFAULT false NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    school_id uuid
+);
+
+
+--
+-- Name: nths_candidate_applications; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.nths_candidate_applications (
+    id integer NOT NULL,
+    user_id uuid NOT NULL,
+    status upchieve.nths_candidate_application_status NOT NULL,
+    denied_notes text,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT reason_must_be_null_when_not_denied CHECK (
+CASE
+    WHEN (status <> 'denied'::upchieve.nths_candidate_application_status) THEN (denied_notes IS NULL)
+    ELSE true
+END),
+    CONSTRAINT reason_required_when_denied CHECK (
+CASE
+    WHEN (status = 'denied'::upchieve.nths_candidate_application_status) THEN (denied_notes IS NOT NULL)
+    ELSE true
+END)
+);
+
+
+--
+-- Name: nths_candidate_applications_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE upchieve.nths_candidate_applications ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME upchieve.nths_candidate_applications_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: nths_chapter_statuses; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.nths_chapter_statuses (
+    id integer NOT NULL,
+    name text NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: nths_chapter_statuses_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE upchieve.nths_chapter_statuses ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME upchieve.nths_chapter_statuses_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: nths_chapters_statuses; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.nths_chapters_statuses (
+    nths_group_id uuid NOT NULL,
+    nths_chapter_status_id integer NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
 -- Name: nths_group_actions; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -1011,6 +1238,19 @@ ALTER TABLE upchieve.nths_group_roles ALTER COLUMN id ADD GENERATED ALWAYS AS ID
 
 
 --
+-- Name: nths_group_school_affiliation; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.nths_group_school_affiliation (
+    nths_group_id uuid NOT NULL,
+    nths_school_affiliation_status_id integer NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    school_id uuid
+);
+
+
+--
 -- Name: nths_groups; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -1021,6 +1261,31 @@ CREATE TABLE upchieve.nths_groups (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     invite_code character varying(6) NOT NULL
+);
+
+
+--
+-- Name: nths_school_affiliation_statuses; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.nths_school_affiliation_statuses (
+    id integer NOT NULL,
+    name text NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: nths_school_affiliation_statuses_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE upchieve.nths_school_affiliation_statuses ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME upchieve.nths_school_affiliation_statuses_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
 );
 
 
@@ -2492,6 +2757,20 @@ ALTER SEQUENCE upchieve.topics_id_seq OWNED BY upchieve.topics.id;
 
 
 --
+-- Name: totp; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.totp (
+    user_id uuid NOT NULL,
+    secret text NOT NULL,
+    verified boolean DEFAULT false NOT NULL,
+    last_used_counter integer,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
 -- Name: training_courses; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -2846,6 +3125,19 @@ CREATE TABLE upchieve.users_roles (
 
 
 --
+-- Name: users_schools; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.users_schools (
+    user_id uuid NOT NULL,
+    school_id uuid NOT NULL,
+    association_type upchieve.user_school_association_type NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
 -- Name: users_student_partner_orgs_instances; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -3156,10 +3448,24 @@ ALTER TABLE ONLY upchieve.ip_addresses ALTER COLUMN id SET DEFAULT nextval('upch
 
 
 --
+-- Name: moderation_actions id; Type: DEFAULT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.moderation_actions ALTER COLUMN id SET DEFAULT nextval('upchieve.moderation_actions_id_seq'::regclass);
+
+
+--
 -- Name: moderation_categories id; Type: DEFAULT; Schema: upchieve; Owner: -
 --
 
 ALTER TABLE ONLY upchieve.moderation_categories ALTER COLUMN id SET DEFAULT nextval('upchieve.moderation_categories_id_seq'::regclass);
+
+
+--
+-- Name: moderation_rules id; Type: DEFAULT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.moderation_rules ALTER COLUMN id SET DEFAULT nextval('upchieve.moderation_rules_id_seq'::regclass);
 
 
 --
@@ -3610,6 +3916,22 @@ ALTER TABLE ONLY upchieve.legacy_availability_histories
 
 
 --
+-- Name: moderation_actions moderation_actions_action_name_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.moderation_actions
+    ADD CONSTRAINT moderation_actions_action_name_key UNIQUE (action_name);
+
+
+--
+-- Name: moderation_actions moderation_actions_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.moderation_actions
+    ADD CONSTRAINT moderation_actions_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: moderation_categories moderation_categories_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -3623,6 +3945,38 @@ ALTER TABLE ONLY upchieve.moderation_categories
 
 ALTER TABLE ONLY upchieve.moderation_infractions
     ADD CONSTRAINT moderation_infractions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: moderation_penalty_config moderation_penalty_config_moderation_type_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.moderation_penalty_config
+    ADD CONSTRAINT moderation_penalty_config_moderation_type_key UNIQUE (moderation_type);
+
+
+--
+-- Name: moderation_penalty_config moderation_penalty_config_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.moderation_penalty_config
+    ADD CONSTRAINT moderation_penalty_config_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: moderation_rules moderation_rules_name_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.moderation_rules
+    ADD CONSTRAINT moderation_rules_name_key UNIQUE (name);
+
+
+--
+-- Name: moderation_rules moderation_rules_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.moderation_rules
+    ADD CONSTRAINT moderation_rules_pkey PRIMARY KEY (id);
 
 
 --
@@ -3722,6 +4076,54 @@ ALTER TABLE ONLY upchieve.nths_actions
 
 
 --
+-- Name: nths_advisors nths_advisors_email_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_advisors
+    ADD CONSTRAINT nths_advisors_email_key UNIQUE (email);
+
+
+--
+-- Name: nths_advisors nths_advisors_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_advisors
+    ADD CONSTRAINT nths_advisors_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: nths_candidate_applications nths_candidate_applications_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_candidate_applications
+    ADD CONSTRAINT nths_candidate_applications_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: nths_chapter_statuses nths_chapter_statuses_name_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_chapter_statuses
+    ADD CONSTRAINT nths_chapter_statuses_name_key UNIQUE (name);
+
+
+--
+-- Name: nths_chapter_statuses nths_chapter_statuses_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_chapter_statuses
+    ADD CONSTRAINT nths_chapter_statuses_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: nths_chapters_statuses nths_chapters_statuses_pk; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_chapters_statuses
+    ADD CONSTRAINT nths_chapters_statuses_pk PRIMARY KEY (nths_group_id, nths_chapter_status_id, created_at);
+
+
+--
 -- Name: nths_group_actions nths_group_actions_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -3754,6 +4156,14 @@ ALTER TABLE ONLY upchieve.nths_group_roles
 
 
 --
+-- Name: nths_group_school_affiliation nths_group_school_affiliation_nths_group_id_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_group_school_affiliation
+    ADD CONSTRAINT nths_group_school_affiliation_nths_group_id_key UNIQUE (nths_group_id);
+
+
+--
 -- Name: nths_groups nths_groups_invite_code_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -3767,6 +4177,22 @@ ALTER TABLE ONLY upchieve.nths_groups
 
 ALTER TABLE ONLY upchieve.nths_groups
     ADD CONSTRAINT nths_groups_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: nths_school_affiliation_statuses nths_school_affiliation_statuses_name_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_school_affiliation_statuses
+    ADD CONSTRAINT nths_school_affiliation_statuses_name_key UNIQUE (name);
+
+
+--
+-- Name: nths_school_affiliation_statuses nths_school_affiliation_statuses_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_school_affiliation_statuses
+    ADD CONSTRAINT nths_school_affiliation_statuses_pkey PRIMARY KEY (id);
 
 
 --
@@ -4538,6 +4964,14 @@ ALTER TABLE ONLY upchieve.topics
 
 
 --
+-- Name: totp totp_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.totp
+    ADD CONSTRAINT totp_pkey PRIMARY KEY (user_id);
+
+
+--
 -- Name: training_courses training_courses_name_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -4578,14 +5012,6 @@ ALTER TABLE ONLY upchieve.tutor_bot_session_messages
 
 
 --
--- Name: nths_group_actions unique_action_per_group; Type: CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.nths_group_actions
-    ADD CONSTRAINT unique_action_per_group UNIQUE (nths_group_id, nths_action_id);
-
-
---
 -- Name: cities unique_city_name_state; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -4607,6 +5033,14 @@ ALTER TABLE ONLY upchieve.nths_groups
 
 ALTER TABLE ONLY upchieve.nths_groups
     ADD CONSTRAINT unique_name UNIQUE (name);
+
+
+--
+-- Name: nths_group_school_affiliation unique_school_id; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_group_school_affiliation
+    ADD CONSTRAINT unique_school_id UNIQUE (school_id);
 
 
 --
@@ -4767,6 +5201,14 @@ ALTER TABLE ONLY upchieve.users
 
 ALTER TABLE ONLY upchieve.users_roles
     ADD CONSTRAINT users_roles_pkey PRIMARY KEY (user_id, role_id);
+
+
+--
+-- Name: users_schools users_schools_unique_user_id; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.users_schools
+    ADD CONSTRAINT users_schools_unique_user_id UNIQUE (user_id);
 
 
 --
@@ -4971,6 +5413,34 @@ CREATE INDEX notifications_user_id ON upchieve.notifications USING btree (user_i
 
 
 --
+-- Name: nths_candidate_app_created_at_idx; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX nths_candidate_app_created_at_idx ON upchieve.nths_candidate_applications USING btree (user_id, created_at DESC);
+
+
+--
+-- Name: nths_chapters_statuses_created_at_index; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX nths_chapters_statuses_created_at_index ON upchieve.nths_chapter_statuses USING btree (created_at);
+
+
+--
+-- Name: nths_chapters_statuses_group_createdat_idx; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX nths_chapters_statuses_group_createdat_idx ON upchieve.nths_chapters_statuses USING btree (nths_group_id, created_at DESC);
+
+
+--
+-- Name: nths_chapters_statuses_group_id_index; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX nths_chapters_statuses_group_id_index ON upchieve.nths_chapters_statuses USING btree (nths_group_id);
+
+
+--
 -- Name: nths_group_actions_action_id; Type: INDEX; Schema: upchieve; Owner: -
 --
 
@@ -4982,6 +5452,13 @@ CREATE INDEX nths_group_actions_action_id ON upchieve.nths_group_actions USING b
 --
 
 CREATE INDEX nths_group_actions_group_id ON upchieve.nths_group_actions USING btree (nths_group_id);
+
+
+--
+-- Name: nths_group_advisors_group_id; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX nths_group_advisors_group_id ON upchieve.nths_advisors USING btree (nths_group_id);
 
 
 --
@@ -5185,6 +5662,20 @@ CREATE INDEX user_actions_user_id ON upchieve.user_actions USING btree (user_id)
 --
 
 CREATE UNIQUE INDEX users_lower_case_email_key ON upchieve.users USING btree (lower(email));
+
+
+--
+-- Name: users_schools_school_id; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX users_schools_school_id ON upchieve.users_schools USING btree (school_id);
+
+
+--
+-- Name: users_schools_user_id; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX users_schools_user_id ON upchieve.users_schools USING btree (user_id);
 
 
 --
@@ -5487,6 +5978,38 @@ ALTER TABLE ONLY upchieve.moderation_infractions
 
 
 --
+-- Name: moderation_rule_actions moderation_rule_actions_action_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.moderation_rule_actions
+    ADD CONSTRAINT moderation_rule_actions_action_id_fkey FOREIGN KEY (action_id) REFERENCES upchieve.moderation_actions(id);
+
+
+--
+-- Name: moderation_rule_actions moderation_rule_actions_rule_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.moderation_rule_actions
+    ADD CONSTRAINT moderation_rule_actions_rule_id_fkey FOREIGN KEY (rule_id) REFERENCES upchieve.moderation_rules(id);
+
+
+--
+-- Name: moderation_rules_flags moderation_rules_flags_flag_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.moderation_rules_flags
+    ADD CONSTRAINT moderation_rules_flags_flag_id_fkey FOREIGN KEY (flag_id) REFERENCES upchieve.session_flags(id);
+
+
+--
+-- Name: moderation_rules_flags moderation_rules_flags_rule_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.moderation_rules_flags
+    ADD CONSTRAINT moderation_rules_flags_rule_id_fkey FOREIGN KEY (rule_id) REFERENCES upchieve.moderation_rules(id);
+
+
+--
 -- Name: moderation_settings moderation_settings_moderation_category_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -5551,6 +6074,46 @@ ALTER TABLE ONLY upchieve.notifications
 
 
 --
+-- Name: nths_advisors nths_advisors_nths_group_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_advisors
+    ADD CONSTRAINT nths_advisors_nths_group_id_fkey FOREIGN KEY (nths_group_id) REFERENCES upchieve.nths_groups(id);
+
+
+--
+-- Name: nths_advisors nths_advisors_school_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_advisors
+    ADD CONSTRAINT nths_advisors_school_id_fkey FOREIGN KEY (school_id) REFERENCES upchieve.schools(id);
+
+
+--
+-- Name: nths_candidate_applications nths_candidate_applications_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_candidate_applications
+    ADD CONSTRAINT nths_candidate_applications_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
+
+
+--
+-- Name: nths_chapters_statuses nths_chapters_statuses_nths_chapter_status_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_chapters_statuses
+    ADD CONSTRAINT nths_chapters_statuses_nths_chapter_status_id_fkey FOREIGN KEY (nths_chapter_status_id) REFERENCES upchieve.nths_chapter_statuses(id);
+
+
+--
+-- Name: nths_chapters_statuses nths_chapters_statuses_nths_group_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_chapters_statuses
+    ADD CONSTRAINT nths_chapters_statuses_nths_group_id_fkey FOREIGN KEY (nths_group_id) REFERENCES upchieve.nths_groups(id);
+
+
+--
 -- Name: nths_group_actions nths_group_actions_nths_action_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -5604,6 +6167,30 @@ ALTER TABLE ONLY upchieve.nths_group_members
 
 ALTER TABLE ONLY upchieve.nths_group_members
     ADD CONSTRAINT nths_group_members_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
+
+
+--
+-- Name: nths_group_school_affiliation nths_group_school_affiliation_nths_group_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_group_school_affiliation
+    ADD CONSTRAINT nths_group_school_affiliation_nths_group_id_fkey FOREIGN KEY (nths_group_id) REFERENCES upchieve.nths_groups(id);
+
+
+--
+-- Name: nths_group_school_affiliation nths_group_school_affiliation_nths_school_affiliation_stat_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_group_school_affiliation
+    ADD CONSTRAINT nths_group_school_affiliation_nths_school_affiliation_stat_fkey FOREIGN KEY (nths_school_affiliation_status_id) REFERENCES upchieve.nths_school_affiliation_statuses(id);
+
+
+--
+-- Name: nths_group_school_affiliation nths_group_school_affiliation_school_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_group_school_affiliation
+    ADD CONSTRAINT nths_group_school_affiliation_school_id_fkey FOREIGN KEY (school_id) REFERENCES upchieve.schools(id);
 
 
 --
@@ -6423,6 +7010,14 @@ ALTER TABLE ONLY upchieve.teacher_profiles
 
 
 --
+-- Name: totp totp_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.totp
+    ADD CONSTRAINT totp_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
+
+
+--
 -- Name: tutor_bot_conversation_messages tutor_bot_conversation_messages_tutor_bot_conversation_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -6572,6 +7167,22 @@ ALTER TABLE ONLY upchieve.users_quizzes
 
 ALTER TABLE ONLY upchieve.users_roles
     ADD CONSTRAINT users_roles_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
+
+
+--
+-- Name: users_schools users_schools_school_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.users_schools
+    ADD CONSTRAINT users_schools_school_id_fkey FOREIGN KEY (school_id) REFERENCES upchieve.schools(id);
+
+
+--
+-- Name: users_schools users_schools_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.users_schools
+    ADD CONSTRAINT users_schools_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
 
 
 --
@@ -6745,6 +7356,8 @@ ALTER TABLE ONLY upchieve.volunteer_references
 --
 -- PostgreSQL database dump complete
 --
+
+\unrestrict 9gFSpHHqGhQgH0VnMWD2SdZqAA1hvVoinAA8xPLL1dyiSxQocolKfhGZzuECPBp
 
 
 --
@@ -7002,4 +7615,22 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260114193023'),
     ('20260122195918'),
     ('20260129185914'),
-    ('20260129190242');
+    ('20260129190242'),
+    ('20260203194147'),
+    ('20260203194734'),
+    ('20260203200218'),
+    ('20260204215802'),
+    ('20260213143219'),
+    ('20260219143230'),
+    ('20260219151315'),
+    ('20260219151836'),
+    ('20260219154022'),
+    ('20260225150417'),
+    ('20260225150603'),
+    ('20260227182642'),
+    ('20260227183500'),
+    ('20260302173903'),
+    ('20260303184811'),
+    ('20260305204138'),
+    ('20260309135111'),
+    ('20260310141305');

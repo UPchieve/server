@@ -772,6 +772,21 @@ export function routeSockets(io: Server): void {
       )
     })
 
+    socket.on('joinedLiveMedia', async ({ sessionId }) => {
+      const user = await extractSocketUser(socket)
+
+      try {
+        io.to(getSessionRoom(sessionId))
+          .except(user.id)
+          .emit('partnerJoinedLiveMedia')
+      } catch (err) {
+        logger.error(
+          { err, sessionId },
+          'Failed to let partner know screen share initiated'
+        )
+      }
+    })
+
     // Log socket connection-related events for analytics and debugging
     socket.onAny((eventName, args) => {
       logSocketEvent(eventName, socket, args)

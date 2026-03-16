@@ -1,6 +1,10 @@
 import { Ulid } from '../pgUtils'
 
-export type UserGroup = {
+export type NTHSGroupWithMemberInfo = {
+  // these top-level fields nest the below fields.
+  groupInfo: NTHSGroup
+  memberInfo: NTHSUserInfo
+  // TODO: remove all of the below fields after the frontend is pointing to these nested fields
   memberTitle: string
   joinedAt: Date
   groupId: Ulid
@@ -8,14 +12,21 @@ export type UserGroup = {
   groupKey: string
   inviteCode: string
   roleName: NTHSGroupRoleName
+  schoolAffiliationStatus: NTHSSchoolAffiliationStatusName | null
 }
 
 export type NTHSGroup = {
   id: Ulid
   name: string
   key: string
-  createdAt: Date
+  createdAt?: Date
   inviteCode: string
+}
+
+export type NTHSUserInfo = {
+  title: string
+  joinedAt: Date
+  roleName: NTHSGroupRoleName
 }
 
 export type NTHSGroupMember = {
@@ -44,9 +55,24 @@ export type NTHSGroupMemberRole = {
 export type NTHSGroupRoleName = 'admin' | 'member'
 
 export type NTHSActionName =
-  | 'NAME YOUR TEAM'
-  | 'REVIEW RESOURCES'
-  | 'ATTEND ORIENTATION'
+  | 'NAMED YOUR TEAM'
+  | 'REVIEWED RESOURCES'
+  | 'ATTENDED ORIENTATION'
+  | 'MARKED SCHOOL AFFILIATION IN PROGRESS'
+  | 'SUBMITTED ADVISOR CONTACT INFO'
+  | 'ADVISOR VERIFIED'
+  | 'SCHOOL AFFILIATION DENIED'
+  | 'OPTED OUT'
+
+export const NTHS_ACTIONS_TO_SCHOOL_AFFILIATION_STATUS_MAPPING: Partial<
+  Record<NTHSActionName, NTHSSchoolAffiliationStatusName>
+> = {
+  'MARKED SCHOOL AFFILIATION IN PROGRESS': 'PENDING_SCHOOL_AFFILIATION',
+  'SUBMITTED ADVISOR CONTACT INFO': 'PENDING_UPCHIEVE_VERIFICATION',
+  'ADVISOR VERIFIED': 'AFFILIATED',
+  'SCHOOL AFFILIATION DENIED': 'DENIED',
+  'OPTED OUT': 'OPTED_OUT',
+}
 
 export type NTHSGroupAction = {
   id: number
@@ -59,4 +85,40 @@ export type NTHSGroupAction = {
 export type NTHSAction = {
   id: number
   name: string
+}
+
+export type NTHSSchoolAffiliationStatusName =
+  | 'PENDING_SCHOOL_AFFILIATION'
+  | 'PENDING_UPCHIEVE_VERIFICATION'
+  | 'AFFILIATED'
+  | 'DENIED'
+  | 'OPTED_OUT'
+
+export type NTHSChapterStatusName = 'PENDING' | 'FAILED' | 'OFFICIAL'
+
+export type NTHSChapterStatus = {
+  groupId: Ulid
+  statusName: NTHSChapterStatusName
+  createdAt: Date
+  statusId: number
+}
+
+export type NTHSGroupChapterStatusInfo = {
+  groupId: Ulid
+  statusName?: NTHSChapterStatusName
+  statusId?: number
+  schoolAffiliationStatusName?: NTHSSchoolAffiliationStatusName
+  schoolAffiliationStatusId?: number
+}
+
+export enum NTHSCandidateApplicationStatus {
+  applied = 'applied',
+  approved = 'approved',
+  denied = 'denied',
+}
+
+export function isValidStatus(
+  status: string
+): status is NTHSCandidateApplicationStatus {
+  return Object.hasOwn(NTHSCandidateApplicationStatus, status)
 }

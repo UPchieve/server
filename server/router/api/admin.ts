@@ -1,5 +1,5 @@
 import multer from 'multer'
-import { Express, Router } from 'express'
+import { Router } from 'express'
 import { authPassport } from '../../utils/auth-utils'
 import { resError } from '../res-error'
 import { readCsvFromBuffer } from '../../utils/file-utils'
@@ -19,8 +19,13 @@ import {
   CleverSchoolBodySchema,
 } from '../../contracts/clever'
 import { RosterStudentsBodySchema } from '../../contracts/user-creation'
+import { asOptional, asString } from '../../utils/type-utils'
+import * as NTHSGroupsService from '../../services/NTHSGroupsService'
+import { isValidStatus } from '../../models/NTHSGroups'
+import { InputError } from '../../models/Errors'
 
-export function routeAdmin(app: Express, router: Router): void {
+export function routeAdmin(apiRouter: Router): void {
+  const router = Router()
   const upload = multer()
 
   router.get('/schools', async function (req, res) {
@@ -121,5 +126,27 @@ export function routeAdmin(app: Express, router: Router): void {
     }
   })
 
-  app.use('/api/admin', authPassport.isAdmin, router)
+  router.post('/nths/candidate-applications', async function (req, res) {
+    try {
+      const status = asString(req.body.status)
+      const userId = asString(req.body.userId)
+      const deniedNotes = asOptional(asString)(req.body.deniedNotes)
+      if (isValidStatus(status)) {
+        const result = await NTHSGroupsService.createCandidateApplication({
+          status,
+          userId,
+          deniedNotes,
+        })
+        res.json(result)
+      } else {
+        throw new InputError(
+          `Invalid NTHS Candidate status: ${status}. must be: 'applied', 'denied', or 'approved'`
+        )
+      }
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
+  apiRouter.use('/admin', authPassport.isAdmin, router)
 }

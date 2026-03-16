@@ -2,7 +2,9 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 14.15 (Debian 14.15-1.pgdg120+1)
+\restrict GAfyIzRZcEuxUomQKf5rHLmcZBCuDaSqlDeP7hs3pOCZKPAW2K3sBOQQqxuiQWV
+
+-- Dumped from database version 14.21 (Debian 14.21-1.pgdg13+1)
 -- Dumped by pg_dump version 14.19 (Homebrew)
 
 SET statement_timeout = 0;
@@ -89,10 +91,20 @@ COPY public.seed_migrations (version) FROM stdin;
 20251222203825
 20260114192422
 20260129191219
+20260204162103
+20260204220553
+20260203193646
+20260203194241
+20260204201000
+20260210195455
+20260223191734
+20260225161628
 \.
 
 
 --
 -- PostgreSQL database dump complete
 --
+
+\unrestrict GAfyIzRZcEuxUomQKf5rHLmcZBCuDaSqlDeP7hs3pOCZKPAW2K3sBOQQqxuiQWV
 

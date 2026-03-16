@@ -48,7 +48,6 @@ import updateBasicAccessViews from '../../scripts/update-basic-access-views'
 import migrateProgressReportPromptIds from '../../scripts/migrate-progress-report-prompt-ids'
 import spawnEmailWeeklyHourSummaryJobs from './spawnEmailWeeklyHourSummaryJobs'
 import textVolunteers from './textVolunteers'
-import moderateSessionMessage from '../../scripts/moderate-session-message'
 import moderateSessionTranscript from '../jobs/moderate-session-transcript'
 import migrateBannedAndTestUsersToBanType from '../../scripts/migrate-banned-and-test-users-to-bantype'
 import updateSendGridGradeLevels from './updateSendGridGradeLevels'
@@ -70,6 +69,9 @@ import { clearBullJobByStatus } from './clearBullJobsByStatus'
 import updateCachedVolunteersForTextNotifications from './updateCachedVolunteersForTextNotifications'
 import backfillSessionEndedTasks from '../../scripts/backfill-sessionEndedTasks'
 import spawnDeidentifyUsers from './spawn-deidentify-users'
+import updateNthsChapterStatusForImpactPath from './updateNTHSChapterStatusForImpactPath'
+import spawnUpdateNthsChapterStatusForImpactPath from './spawnUpdateNTHSChapterStatusForImpactPath'
+import notifyNTHSChapterAdminsOfDeactivatedUser from './notifyNTHSChapterAdminsOfDeactivatedUser'
 
 export enum Jobs {
   AddScheduledJobs = 'AddScheduledJobs',
@@ -83,7 +85,6 @@ export enum Jobs {
   BackfillStudentUsersRoles = 'BackfillStudentUsersRoles',
   ClearBullJobsByStatus = 'ClearBullJobsByStatus',
   DeidentifyUser = 'DeidentifyUser',
-  DeleteDuplicateFeedbacks = 'DeleteDuplicateFeedbacks',
   DeleteDuplicateStudentFavoriteVolunteers = 'DeleteDuplicateStudentFavoriteVolunteers',
   DeleteDuplicateUserSurveys = 'DeleteDuplicateUserSurveys',
   DeleteSelfFavoritedVolunteers = 'DeleteSelfFavoritedVolunteers',
@@ -132,9 +133,7 @@ export enum Jobs {
   GenerateSessionSummary = 'GenerateSessionSummary',
   MaybeSendStudentFeedbackToVolunteer = 'MaybeSendStudentFeedbackToVolunteer',
   MigrateBannedAndTestUsersToBanType = 'MigrateBannedAndTestUsersToBanType',
-  MigrateHistoricalPartnerData = 'MigrateHistoricalPartnerData',
   MigrateProgressReportPromptIds = 'MigrateProgressReportPromptIds',
-  ModerateSessionMessage = 'ModerateSessionMessage',
   ModerateSessionTranscript = 'ModerateSessionTranscript',
   NotifyTutors = 'NotifyTutors',
   ProcessSessionEnded = 'ProcessSessionEnded',
@@ -157,6 +156,9 @@ export enum Jobs {
   UpsertPostalCodes = 'UpsertPostalCodes',
   UpsertSchools = 'UpsertSchools',
   UpdateCachedVolunteersForTextNotifications = 'UpdateCachedVolunteersForTextNotifications',
+  UpdateNTHSChapterStatusForImpactPath = 'UpdateNTHSChapterStatusForImpactPath',
+  SpawnUpdateNTHSChapterStatusForImpactPath = 'SpawnUpdateNTHSChapterStatusForImpactPath',
+  NotifyNTHSChapterAdminsOfDeactivatedUser = 'NotifyNTHSChapterAdminsOfDeactivatedUser',
 }
 
 // register new job processors here
@@ -395,10 +397,6 @@ const jobProcessors: JobProcessor[] = [
     processor: migrateProgressReportPromptIds,
   },
   {
-    name: Jobs.ModerateSessionMessage,
-    processor: moderateSessionMessage,
-  },
-  {
     name: Jobs.ModerateSessionTranscript,
     processor: moderateSessionTranscript,
   },
@@ -482,6 +480,18 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.UpdateCachedVolunteersForTextNotifications,
     processor: updateCachedVolunteersForTextNotifications,
+  },
+  {
+    name: Jobs.UpdateNTHSChapterStatusForImpactPath,
+    processor: updateNthsChapterStatusForImpactPath,
+  },
+  {
+    name: Jobs.SpawnUpdateNTHSChapterStatusForImpactPath,
+    processor: spawnUpdateNthsChapterStatusForImpactPath,
+  },
+  {
+    name: Jobs.NotifyNTHSChapterAdminsOfDeactivatedUser,
+    processor: notifyNTHSChapterAdminsOfDeactivatedUser,
   },
 ]
 

@@ -4,6 +4,7 @@ import QueueService from './QueueService'
 import * as AnalyticsService from './AnalyticsService'
 import * as FavoritingService from './FavoritingService'
 import * as StudentRepo from '../models/Student/queries'
+import * as UsersSchoolsRepo from '../models/UsersSchools'
 import * as StudentPartnerOrgRepo from '../models/StudentPartnerOrg/queries'
 import * as TeacherClassRepo from '../models/TeacherClass/queries'
 import config from '../config'
@@ -155,6 +156,12 @@ export async function updateStudentSchool(
     if (newSchoolId === previousSchoolId) return
 
     await StudentRepo.updateStudentSchool(studentId, newSchoolId, tc)
+    await UsersSchoolsRepo.upsertUsersSchool(
+      studentId,
+      newSchoolId,
+      'student_at_school',
+      tc
+    )
 
     // Deactivate the previous school SPO instance if necessary.
     if (!previousSchoolId) return

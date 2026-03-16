@@ -3,7 +3,6 @@ export enum FEATURE_FLAGS {
   SESSION_RECAP_DMS = 'session-recap-dms',
   ALLOW_DMS_TO_PARTNER_STUDENTS = 'allow-dms-to-partner-students',
   PROGRESS_REPORTS = 'progress-reports',
-  AI_MODERATION = 'ai-moderation',
   COLLEGE_LIST_WORKSHEET = 'college-list-worksheet',
   FALL_INCENTIVE_PROGRAM = 'fall-incentive-program',
   TEACHER_GETTING_STARTED_ASSIGNMENT = 'teacher-getting-started-assignment',
@@ -17,4 +16,6 @@ export enum FEATURE_FLAGS {
   NOTIFY_TUTOR = 'notify-tutor',
   ZWIBSERVE = 'zwibserve',
   STEM_PROGRESS_REPORT = 'stem-progress-report',
+  STUDENT_SESSION_SUMMARY = 'student-session-summary',
+  FIRST_SESSION_EMAIL_FOR_INTERVIEW = 'first-session-email-for-interview',
 }

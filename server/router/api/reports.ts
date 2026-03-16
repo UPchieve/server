@@ -1,10 +1,8 @@
 import expressWs from 'express-ws'
-import timeout from 'connect-timeout'
 import { resError } from '../res-error'
 
 import { authPassport } from '../../utils/auth-utils'
 import * as ReportService from '../../services/ReportService'
-import { minutesInMs } from '../../utils/time-utils'
 
 export function routeReports(router: expressWs.Router): void {
   router.get(
@@ -25,6 +23,7 @@ export function routeReports(router: expressWs.Router): void {
     authPassport.isAdmin,
     async function (req, res) {
       try {
+        req.clearTimeout()
         const students = await ReportService.usageReport(req.query as unknown)
         res.json({ students })
       } catch (error) {

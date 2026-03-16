@@ -165,6 +165,7 @@ export function routeUser(router: Router): void {
         phoneNumber,
         signupSourceId,
         otherSignupSource,
+        highSchoolId,
       } = req.body
 
       const update = {
@@ -180,11 +181,16 @@ export function routeUser(router: Router): void {
         phoneNumber,
         signupSourceId,
         otherSignupSource,
+        highSchoolId,
       }
 
       try {
-        await VolunteerService.addBackgroundInfo(user.id, update, ip)
-        res.sendStatus(200)
+        const { wasRemovedFromNTHS } = await VolunteerService.addBackgroundInfo(
+          user.id,
+          update,
+          ip
+        )
+        res.json({ wasRemovedFromNTHS })
       } catch (error) {
         resError(res, error)
       }

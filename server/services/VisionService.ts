@@ -8,9 +8,11 @@ import { AzureKeyCredential } from '@azure/core-auth'
 import logger from '../logger'
 import config from '../config'
 import { isValidConfigToken } from '../utils/environments'
-import * as LangfuseService from './LangfuseService'
+import * as PromptService from './PromptService'
+import { PromptName } from './PromptService'
 import { resize } from '../utils/image-utils'
 import { invokeModel } from './AwsBedrockService'
+import { runWithModelObservation, runWithTrace } from './AiObservabilityService'
 
 const client: ImageAnalysisClient = isValidConfigToken(
   config.subwayAIVisionApiKey
@@ -86,83 +88,54 @@ export async function getTextFromImageAnalysis(
   }
 }
 
-const WHITEBOARD_VISION_FALLBACK_PROMPT = `
-You are an assistant that describes the contents of a digital whiteboard image from an online tutoring session.
-
-The whiteboard may contain:
-- Academic work (in any school subject)
-- Jokes, doodles, or unrelated sketches
-- A mix of both
-
-Your job is to produce a short, honest description that can be used later in a progress report.
-
-Rules:
-1. First, state whether there is any clear academic or learning-related content on the board.
-   - If there is none, say that there is no meaningful academic work and briefly describe what is visible (for example: doodles, random words, jokes, etc.).
-   - If there is some academic work, say that academic content is present, but do not try to name or guess the subject.
-2. Describe only what is actually visible:
-   - Important words, phrases, or sentences
-   - Equations, expressions, diagrams, lists, tables, or worked examples
-   - Labels, titles, or symbols that appear on the board
-3. If drawings or symbols are ambiguous, say that they are unclear instead of guessing what they represent.
-4. Do not:
-   - Invent problem types, strategies, or learning goals that are not clearly shown.
-   - Assume that shapes or doodles are math or science diagrams unless they are clearly part of written work.
-   - Name or guess the school subject (for example: do not say "geometry", "trigonometry", "English", etc.).
-
-Output:
-- 3-6 plain English sentences.
-- First sentence: clearly state whether there is meaningful academic content on the board or not.
-- Remaining sentences: briefly describe the visible content on the board.
-`.trim()
-
-const LF_TRACE_NAME_WHITEBOARD = 'whiteboardVision'
-const LF_GENERATION_NAME_WHITEBOARD = 'describeWhiteboardSnapshot'
-
 export async function describeWhiteboardSnapshot(
-  image: Buffer
+  image: Buffer,
+  sessionId: string
 ): Promise<string> {
   try {
-    const promptData = await LangfuseService.getPromptWithFallback(
-      LangfuseService.LangfusePromptNameEnum.WHITEBOARD_VISION_PROMPT,
-      WHITEBOARD_VISION_FALLBACK_PROMPT,
-      {
-        cacheTtlSeconds: 120,
-        waitInMs: 5000,
-      }
-    )
-
     // Resize to a normalized portrait size for the vision model to keep whiteboard content legible
     // and avoid downscaling too much which could make symbols or drawings hard to read
     const resizedImage = await resize(image, {
       height: 1024,
       fit: 'inside',
     })
-    const model = config.awsBedrockSonnet4Id
-    const { result: description } =
-      await LangfuseService.runWithGeneration<string>(
-        () => {
-          return invokeModel({
-            modelId: model,
-            prompt: promptData.prompt,
-            text: WHITEBOARD_VISION_FALLBACK_PROMPT,
-            image: resizedImage,
-          })
-        },
-        {
-          traceName: LF_TRACE_NAME_WHITEBOARD,
-          generationName: LF_GENERATION_NAME_WHITEBOARD,
-          model,
-          input:
-            typeof image === 'string'
-              ? '[Whiteboard Image URL]'
-              : '[Whiteboard Image Buffer]',
-          metadata: {
-            promptVersion: promptData.version,
-          },
-        }
-      )
-    return description
+
+    const { result } = await runWithTrace<string>(
+      async (trace) => {
+        const promptData = await PromptService.getPromptWithFallback(
+          PromptName.WHITEBOARD_VISION_PROMPT,
+          {
+            cacheTtlSeconds: 120,
+            waitInMs: 5000,
+          }
+        )
+
+        const model = config.awsBedrockSonnet4Id
+        return await runWithModelObservation(
+          () =>
+            invokeModel({
+              modelId: model,
+              prompt: promptData.prompt,
+              image: resizedImage,
+            }),
+          {
+            trace,
+            name: 'describeWhiteboardSnapshot',
+            model,
+            input:
+              typeof image === 'string'
+                ? '[Whiteboard Image URL]'
+                : '[Whiteboard Image Buffer]',
+            prompt: promptData.promptObject,
+          }
+        )
+      },
+      {
+        name: 'whiteboardVision',
+        sessionId,
+      }
+    )
+    return result
   } catch (error) {
     logger.error(
       { err: error },

@@ -112,6 +112,7 @@ async function sendEmail(
     },
     templateId: templateId,
     dynamic_template_data: dynamicData,
+    ipPoolName: 'Transactional',
     ...overrides,
   }
 
@@ -373,8 +374,10 @@ export async function sendStudentOnboardingSurvey(
 }
 
 export async function sendStudentFirstSessionCongrats(
+  studentId: string,
   email: string,
-  firstName: string
+  firstName: string,
+  emailTemplateId: string
 ): Promise<void> {
   const sender = config.mail.senders.studentOutreachManager
   const overrides = {
@@ -387,7 +390,7 @@ export async function sendStudentFirstSessionCongrats(
     email,
     sender,
     `${config.mail.people.studentOutreachManager.firstName} ${config.mail.people.studentOutreachManager.lastName}`,
-    config.sendgrid.studentFirstSessionCongratsTemplate,
+    emailTemplateId,
     { firstName },
     overrides
   )
@@ -1549,22 +1552,71 @@ export async function sendStudentFavoritedVolunteerEmail(
   )
 }
 
-export async function sendBackfillNowReadyToCoachEmail(
-  email: string,
-  volunteerFirstName: string
-) {
-  await sendEmail(
-    email,
-    config.mail.senders.support,
-    'UPchieve',
-    config.sendgrid.onboardingBackfillReadyToCoachEmail,
-    {
-      firstName: volunteerFirstName,
-    },
-    {
-      categories: ['onboarding-backfill-now-ready-to-coach-email'],
-    }
-  )
+export async function sendNTHSCandidateApplicationApproved(
+  recipients: { firstName: string; email: string }[]
+): Promise<void> {
+  for (const recipient of recipients) {
+    await sendEmail(
+      recipient.email,
+      config.mail.senders.noreply,
+      'UPchieve',
+      config.sendgrid.nthsCandidateApplicationApproved,
+      {
+        firstName: recipient.firstName,
+      }
+    )
+  }
+}
+export async function sendNTHSCandidateApplicationDenied(
+  recipients: { firstName: string; email: string }[]
+): Promise<void> {
+  for (const recipient of recipients) {
+    await sendEmail(
+      recipient.email,
+      config.mail.senders.noreply,
+      'UPchieve',
+      config.sendgrid.nthsCandidateApplicationDenied,
+      {
+        firstName: recipient.firstName,
+      }
+    )
+  }
+}
+
+export async function sendNTHSChapterOfficialStatusNotification(
+  recipients: { firstName: string; email: string }[],
+  chapterName: string
+): Promise<void> {
+  for (const recipient of recipients) {
+    await sendEmail(
+      recipient.email,
+      config.mail.senders.noreply,
+      'UPchieve',
+      config.sendgrid.nthsChapterBecameOfficialImpactPathEmail,
+      {
+        firstName: recipient.firstName,
+        chapterName,
+      }
+    )
+  }
+}
+
+export async function sendNTHSChapterAdminsMemberDeactivationNotice(
+  recipients: { firstName: string; email: string }[],
+  deactivatedUserFirstName: string
+): Promise<void> {
+  for (const recipient of recipients) {
+    await sendEmail(
+      recipient.email,
+      config.mail.senders.noreply,
+      'UPchieve',
+      config.sendgrid.nthsMemberDeactivationNoticeEmail,
+      {
+        firstName: recipient.firstName,
+        deactivatedUserFirstName,
+      }
+    )
+  }
 }
 
 export async function createContact(userIds: Ulid | Ulid[]): Promise<any> {

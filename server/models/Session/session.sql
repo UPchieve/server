@@ -1217,8 +1217,8 @@ FROM
     JOIN users volunteers ON volunteer_profiles.user_id = volunteers.id
 WHERE
     sessions.id = :sessionId!
-    AND (students.ban_type = 'complete'
-        OR volunteers.ban_type = 'complete')
+    AND (students.ban_type IN ('complete', 'shadow')
+        OR volunteers.ban_type IN ('complete', 'shadow'))
 LIMIT 1;
 
 
@@ -1244,7 +1244,7 @@ AND ((:start)::timestamptz IS NULL
 AND ((:end)::timestamptz IS NULL
     OR sessions.created_at <= (:end)::timestamptz)
 AND ((:subject)::text IS NULL
-    OR subjects.name = (:subject!)::text)
+    OR subjects.name = (:subject)::text)
 AND (:sessionId::uuid IS NULL
     OR sessions.id = :sessionId::uuid)
 AND ((:topic)::text IS NULL
