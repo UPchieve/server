@@ -5,7 +5,6 @@ import {
   NTHS_ACTIONS_TO_SCHOOL_AFFILIATION_STATUS_MAPPING,
   NTHSAction,
   NTHSActionName,
-  NTHSCandidateApplicationStatus,
   NTHSChapterStatus,
   NTHSChapterStatusName,
   NTHSGroup,
@@ -43,6 +42,8 @@ import {
   getVolunteerOccupations,
   VolunteerOccupations,
 } from '../models/Volunteer'
+import { NTHSCandidateApplicationStatus } from '../types/nths'
+import { NTHSCreateCandidateApplicationPublic } from '../contracts/nths'
 
 export async function getGroups(userId: Ulid) {
   return await NTHSGroupsRepo.getGroupsByUser(userId)
@@ -482,4 +483,18 @@ export async function createCandidateApplication({
   }
 
   return application
+}
+
+export function toCreateApplicationPublic(data: {
+  id: number
+  userId: string
+  status: NTHSCandidateApplicationStatus
+  createdAt: Date
+}): NTHSCreateCandidateApplicationPublic {
+  return {
+    id: data.id,
+    userId: data.userId,
+    status: data.status,
+    createdAt: data.createdAt.toISOString(),
+  }
 }

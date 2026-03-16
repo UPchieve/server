@@ -1,3 +1,4 @@
+import { NTHSCandidateApplicationStatus } from '../../types/nths'
 import { Ulid } from '../pgUtils'
 
 export type NTHSGroupWithMemberInfo = {
@@ -109,12 +110,6 @@ export type NTHSGroupChapterStatusInfo = {
   statusId?: number
   schoolAffiliationStatusName?: NTHSSchoolAffiliationStatusName
   schoolAffiliationStatusId?: number
-}
-
-export enum NTHSCandidateApplicationStatus {
-  applied = 'applied',
-  approved = 'approved',
-  denied = 'denied',
 }
 
 export function isValidStatus(

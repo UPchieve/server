@@ -25,11 +25,10 @@ import type {
   NTHSChapterStatus,
   NTHSChapterStatusName,
   NTHSGroupChapterStatusInfo,
-  NTHSCandidateApplicationStatus,
 } from './types'
 import { camelCaseKeys } from '../../tests/db-utils'
 import logger from '../../logger'
-import { getNTHSGroupByID } from '../../services/NTHSGroupsService'
+import { NTHSCandidateApplicationStatus } from '../../types/nths'
 
 export async function getGroupsByUser(
   userId: Ulid,
