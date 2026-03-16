@@ -116,7 +116,7 @@ export async function describeWhiteboardSnapshot(
             invokeModel({
               modelId: model,
               prompt: promptData.prompt,
-              image: resizedImage,
+              images: [resizedImage],
             }),
           {
             trace,
