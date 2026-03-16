@@ -1703,3 +1703,13 @@ FROM
 WHERE
     u.id = ANY (:volunteerIds!::uuid[]);
 
+
+/* @name getVolunteerOccupations */
+SELECT
+    user_id,
+    occupation
+FROM
+    volunteer_occupations
+WHERE
+    user_id = :userId!;
+

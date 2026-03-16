@@ -287,7 +287,8 @@ export function addPassportAuthMiddleware() {
 
           if (
             (await getRoleContext(user.id, true)).isAdmin() &&
-            !isDevEnvironment()
+            !isDevEnvironment() &&
+            email !== config.retoolAdminEmail
           ) {
             const maskedEmail = email.replace(
               /^(.)(.+)(.)(@.+)$/,

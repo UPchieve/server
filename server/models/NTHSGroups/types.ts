@@ -110,3 +110,15 @@ export type NTHSGroupChapterStatusInfo = {
   schoolAffiliationStatusName?: NTHSSchoolAffiliationStatusName
   schoolAffiliationStatusId?: number
 }
+
+export enum NTHSCandidateApplicationStatus {
+  applied = 'applied',
+  approved = 'approved',
+  denied = 'denied',
+}
+
+export function isValidStatus(
+  status: string
+): status is NTHSCandidateApplicationStatus {
+  return Object.hasOwn(NTHSCandidateApplicationStatus, status)
+}

@@ -1,6 +1,8 @@
 /** Types generated for queries found in "server/models/NTHSGroups/nths_groups.sql" */
 import { PreparedQuery } from '@pgtyped/runtime';
 
+export type nths_candidate_application_status = 'applied' | 'approved' | 'denied';
+
 /** 'GetGroupsByUser' parameters type */
 export interface IGetGroupsByUserParams {
   userId: string;
@@ -945,5 +947,77 @@ const getAllNthsGroupsWithStatusIR: any = {"usedParamSet":{},"params":[],"statem
  * ```
  */
 export const getAllNthsGroupsWithStatus = new PreparedQuery<IGetAllNthsGroupsWithStatusParams,IGetAllNthsGroupsWithStatusResult>(getAllNthsGroupsWithStatusIR);
+
+
+/** 'LatestCandidateApplicationStatus' parameters type */
+export interface ILatestCandidateApplicationStatusParams {
+  userId: string;
+}
+
+/** 'LatestCandidateApplicationStatus' return type */
+export interface ILatestCandidateApplicationStatusResult {
+  status: nths_candidate_application_status;
+}
+
+/** 'LatestCandidateApplicationStatus' query type */
+export interface ILatestCandidateApplicationStatusQuery {
+  params: ILatestCandidateApplicationStatusParams;
+  result: ILatestCandidateApplicationStatusResult;
+}
+
+const latestCandidateApplicationStatusIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":75,"b":82}]}],"statement":"SELECT\n    status\nFROM\n    nths_candidate_applications\nWHERE\n    user_id = :userId!\nORDER BY\n    created_at DESC\nLIMIT 1"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     status
+ * FROM
+ *     nths_candidate_applications
+ * WHERE
+ *     user_id = :userId!
+ * ORDER BY
+ *     created_at DESC
+ * LIMIT 1
+ * ```
+ */
+export const latestCandidateApplicationStatus = new PreparedQuery<ILatestCandidateApplicationStatusParams,ILatestCandidateApplicationStatusResult>(latestCandidateApplicationStatusIR);
+
+
+/** 'CreateCandidateApplication' parameters type */
+export interface ICreateCandidateApplicationParams {
+  deniedNotes?: string | null | void;
+  status: nths_candidate_application_status;
+  userId: string;
+}
+
+/** 'CreateCandidateApplication' return type */
+export interface ICreateCandidateApplicationResult {
+  createdAt: Date;
+  deniedNotes: string | null;
+  id: number;
+  status: nths_candidate_application_status;
+  updatedAt: Date;
+  userId: string;
+}
+
+/** 'CreateCandidateApplication' query type */
+export interface ICreateCandidateApplicationQuery {
+  params: ICreateCandidateApplicationParams;
+  result: ICreateCandidateApplicationResult;
+}
+
+const createCandidateApplicationIR: any = {"usedParamSet":{"userId":true,"status":true,"deniedNotes":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":84,"b":91}]},{"name":"status","required":true,"transform":{"type":"scalar"},"locs":[{"a":94,"b":101}]},{"name":"deniedNotes","required":false,"transform":{"type":"scalar"},"locs":[{"a":104,"b":115}]}],"statement":"INSERT INTO nths_candidate_applications (user_id, status, denied_notes)\n    VALUES (:userId!, :status!, :deniedNotes)\nRETURNING\n    *"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO nths_candidate_applications (user_id, status, denied_notes)
+ *     VALUES (:userId!, :status!, :deniedNotes)
+ * RETURNING
+ *     *
+ * ```
+ */
+export const createCandidateApplication = new PreparedQuery<ICreateCandidateApplicationParams,ICreateCandidateApplicationResult>(createCandidateApplicationIR);
 
 

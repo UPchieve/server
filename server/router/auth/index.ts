@@ -17,7 +17,7 @@ import {
 import { InputError, LookupError } from '../../models/Errors'
 import { resError } from '../res-error'
 import { getUserIdByEmail } from '../../models/User/queries'
-import { asString } from '../../utils/type-utils'
+import { asOptional, asString } from '../../utils/type-utils'
 import { getUuid, Ulid } from '../../models/pgUtils'
 import logger from '../../logger'
 import { getLegacyUserObject } from '../../models/User/legacy-user'
