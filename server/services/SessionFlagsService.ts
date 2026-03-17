@@ -5,7 +5,6 @@ import { Uuid } from '../models/pgUtils'
 import {
   getMessagesForFrontend,
   getSessionById,
-  MessageForFrontend,
   GetSessionByIdResult,
   updateSessionFlagsById,
   updateSessionReviewReasonsById,
@@ -20,6 +19,7 @@ import {
 } from '../models/UserSessionMetrics'
 import { Jobs } from '../worker/jobs'
 import logger from '../logger'
+import type { MessageForFrontend } from '../types/session'
 
 export const VOLUNTEER_WAITING_PERIOD_MIN = 10
 export const STUDENT_WAITING_PERIOD_MIN = 5

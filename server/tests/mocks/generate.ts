@@ -25,7 +25,6 @@ import {
 import { Pool } from 'pg'
 import { getSubjectIdByName } from '../db-utils'
 import {
-  MessageForFrontend,
   GetSessionByIdResult,
   SessionMessage,
   SessionTranscriptItem,
@@ -66,6 +65,7 @@ import {
   NTHSGroupRoleName,
   NTHSGroupWithMemberInfo,
 } from '../../models/NTHSGroups'
+import type { MessageForFrontend } from '../../types/session'
 
 export function getEmail(): string {
   return faker.internet.email().toLowerCase()

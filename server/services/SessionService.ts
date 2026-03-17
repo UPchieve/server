@@ -29,12 +29,10 @@ import { PushToken } from '../models/PushToken'
 import { getPushTokensByUserId } from '../models/PushToken'
 import * as TranscriptMessagesRepo from '../models/SessionAudioTranscriptMessages/queries'
 import {
-  CurrentSession,
   EndedSession,
   GetSessionByIdResult,
   LatestSession,
   Session,
-  MessageForFrontend,
   SessionsToReview,
   SessionTranscript,
   updateSessionFlagsById,
@@ -84,6 +82,7 @@ import type {
   CurrentSessionPublic,
   SessionUserInfoPublic,
 } from '../contracts/sessions'
+import type { MessageForFrontend } from '../types/session'
 
 export async function reviewSession(data: unknown) {
   const { sessionId, reviewed, toReview } =

@@ -37,6 +37,7 @@ import {
   processMetrics,
 } from '../../services/SessionFlagsService'
 import { Jobs } from '../../worker/jobs'
+import type { MessageForFrontend } from '../../types/session'
 
 jest.mock('../../models/Session')
 jest.mock('../../models/Survey')
@@ -72,7 +73,7 @@ describe('SessionFlagsService', () => {
       const session = buildSession({
         studentId,
       })
-      const messages: SessionRepo.MessageForFrontend[] = []
+      const messages: MessageForFrontend[] = []
       mockedSessionRepo.getMessagesForFrontend.mockResolvedValueOnce(messages)
 
       const result = await computeSessionFlags(session)
@@ -90,7 +91,7 @@ describe('SessionFlagsService', () => {
           .add(STUDENT_WAITING_PERIOD_MIN, 'minutes')
           .toDate(),
       })
-      const messages: SessionRepo.MessageForFrontend[] = []
+      const messages: MessageForFrontend[] = []
       mockedSessionRepo.getMessagesForFrontend.mockResolvedValueOnce(messages)
 
       const result = await computeSessionFlags(session)
@@ -108,7 +109,7 @@ describe('SessionFlagsService', () => {
           .add(VOLUNTEER_WAITING_PERIOD_MIN + 10, 'minutes')
           .toDate(),
       })
-      const messages: SessionRepo.MessageForFrontend[] = [
+      const messages: MessageForFrontend[] = [
         buildMessageForFrontend({
           user: studentId,
           contents: getSentence(),
@@ -133,7 +134,7 @@ describe('SessionFlagsService', () => {
           .add(VOLUNTEER_WAITING_PERIOD_MIN + 10, 'minutes')
           .toDate(),
       })
-      const messages: SessionRepo.MessageForFrontend[] = []
+      const messages: MessageForFrontend[] = []
       mockedSessionRepo.getMessagesForFrontend.mockResolvedValueOnce(messages)
 
       const result = await computeSessionFlags(session)
@@ -145,7 +146,7 @@ describe('SessionFlagsService', () => {
       const session = buildSession({
         studentId,
       })
-      const messages: SessionRepo.MessageForFrontend[] = []
+      const messages: MessageForFrontend[] = []
       mockedSessionRepo.getMessagesForFrontend.mockResolvedValueOnce(messages)
 
       const result = await computeSessionFlags(session)
@@ -161,7 +162,7 @@ describe('SessionFlagsService', () => {
         volunteerJoinedAt,
         endedAt: moment(volunteerJoinedAt).add(3, 'minutes').toDate(),
       })
-      const messages: SessionRepo.MessageForFrontend[] = []
+      const messages: MessageForFrontend[] = []
       mockedSessionRepo.getMessagesForFrontend.mockResolvedValueOnce(messages)
 
       const result = await computeSessionFlags(session)
@@ -179,7 +180,7 @@ describe('SessionFlagsService', () => {
           .add(VOLUNTEER_WAITING_PERIOD_MIN + 10, 'minutes')
           .toDate(),
       })
-      const messages: SessionRepo.MessageForFrontend[] = [
+      const messages: MessageForFrontend[] = [
         buildMessageForFrontend({
           user: volunteerId,
           contents: getSentence(),
@@ -203,7 +204,7 @@ describe('SessionFlagsService', () => {
           .add(VOLUNTEER_WAITING_PERIOD_MIN + 10, 'minutes')
           .toDate(),
       })
-      const messages: SessionRepo.MessageForFrontend[] = []
+      const messages: MessageForFrontend[] = []
       mockedSessionRepo.getMessagesForFrontend.mockResolvedValueOnce(messages)
 
       const result = await computeSessionFlags(session)
@@ -217,7 +218,7 @@ describe('SessionFlagsService', () => {
         studentId,
         volunteerId,
       })
-      const messages: SessionRepo.MessageForFrontend[] = []
+      const messages: MessageForFrontend[] = []
       mockedSessionRepo.getMessagesForFrontend.mockResolvedValueOnce(messages)
 
       const result = await computeSessionFlags(session)
@@ -229,7 +230,7 @@ describe('SessionFlagsService', () => {
       const session = buildSession({
         studentId,
       })
-      const messages: SessionRepo.MessageForFrontend[] = []
+      const messages: MessageForFrontend[] = []
       mockedSessionRepo.getMessagesForFrontend.mockResolvedValueOnce(messages)
 
       const result = await computeSessionFlags(session)

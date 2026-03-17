@@ -3,6 +3,13 @@ import { Ulid as ULID } from 'id128'
 import { v4 as UUID } from 'uuid'
 import { CustomError } from 'ts-custom-error'
 import base64url from 'base64url'
+import type { Uuid, Ulid } from '../types/shared'
+
+// re-export to avoid breaking existing imports
+// TODO: Move imports of `Uuid` from this file to `server/types/shared`
+// TODO: Phase out `Ulid` in favor of `Uuid`. Our DB IDs are UUID-shaped
+// strings (not actual ULID strings and not standard UUID versions)
+export type { Uuid, Ulid } from '../types/shared'
 
 export function generateReferralCode(userId: Ulid): string {
   return base64url(Buffer.from(userId, 'hex'))
@@ -107,8 +114,6 @@ export function getPgid(): Pgid {
   return Math.floor(Math.random() * 8 ** 4) // int4
 }
 
-export type Uuid = string // UUID
-export type Ulid = string // ULID
 export type Pgid = number // int4/8
 
 export type Subject = string

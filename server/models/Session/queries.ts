@@ -49,6 +49,7 @@ import {
   PrimaryUserRole,
   SessionUserRole,
 } from '../../services/UserRolesService'
+import type { MessageForFrontend } from '../../types/session'
 
 export type NotificationData = {
   // old name for volunteerId for legacy compatibility
@@ -480,11 +481,6 @@ export async function getPublicSessionById(
   }
 }
 
-export type MessageForFrontend = {
-  user: Ulid
-  contents: string
-  createdAt: Date
-}
 export type SessionByIdWithStudentAndVolunteer = {
   createdAt: Date
   volunteerjoinedAt?: Date
