@@ -23,14 +23,17 @@ variables:
 
 .docker_service:
   services:
-    - docker:20.10.6-dind
+    - docker:29.0.3-dind
   variables:
-    DOCKER_TLS_CERTDIR: ''
+    DOCKER_HOST: tcp://docker:2376
+    DOCKER_TLS_CERTDIR: '/certs'
+    DOCKER_TLS_VERIFY: '1'
+    DOCKER_CERT_PATH: "$DOCKER_TLS_CERTDIR/client"
 
 .build_docker:
   extends: .docker_service
   stage: build
-  image: registry.gitlab.com/upchieve/subway/gitlab-ci-image
+  image: registry.gitlab.com/upchieve/subway/gitlab-ci-image:1.0.3
   cache: []
   id_tokens:
     GITLAB_OIDC_TOKEN:
@@ -52,12 +55,28 @@ variables:
 build_ci:
   extends: .docker_service
   stage: build
-  image: docker:20.10.6
+  image: docker:29.0.3
   cache: []
   script:
     - docker build .
   rules:
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event' # MR is created or updated.
+
+# If you want to build/deploy for dev on a feature branch from CI, you can do so by:
+# - changing the rule for `build_dev` and `deploy_dev`.
+# - updating the subject of the federated credential. See grand-central-station/new-environment/ci-configuration/README.md for more details.
+# For the vast majority of cases, it will be easier to simply deploy to dev from
+# your machine.
+build_dev:
+  extends: .build_docker
+  environment:
+    name: dev
+  variables:
+    AZURE_IDENTITY_CLIENT_ID: $AZURE_IDENTITY_CLIENT_ID_DEV
+    AZURE_CONTAINER_REGISTRY: $AZURE_CONTAINER_REGISTRY_DEV
+  rules:
+    - when: never
+    # - if: $CI_PIPELINE_SOURCE == 'merge_request_event' # MR is created or updated.
 
 # Build the application and push to staging registry.
 build_staging:
@@ -96,6 +115,24 @@ build_production:
   script:
     - az containerapp update --name $CONTAINER_APP --resource-group $RESOURCE_GROUP --image $IMAGE_TAG --revision-suffix $CI_COMMIT_SHORT_SHA
     - az containerapp update --name $CONTAINER_APP_WORKER --resource-group $RESOURCE_GROUP --image $IMAGE_TAG --revision-suffix $CI_COMMIT_SHORT_SHA
+
+deploy_dev:
+  extends: .deploy
+  environment:
+    name: dev
+  resource_group: development
+  variables:
+    CONTAINER_APP: development-container-app-subway
+    CONTAINER_APP_WORKER: development-container-app-worker
+    RESOURCE_GROUP: development-resource-group
+    AZURE_IDENTITY_CLIENT_ID: $AZURE_IDENTITY_CLIENT_ID_DEV
+    AZURE_CONTAINER_REGISTRY: $AZURE_CONTAINER_REGISTRY_DEV
+  needs:
+    - job: build_dev
+      artifacts: true
+  rules:
+    - when: never
+    # - if: $CI_PIPELINE_SOURCE == 'merge_request_event' # MR is created or updated.
 
 deploy_staging:
   extends: .deploy

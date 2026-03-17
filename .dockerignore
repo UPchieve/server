@@ -1,7 +1,45 @@
-node_modules
-npm-debug.log
-Dockerfile
-.dockerignore
-
+# Git
 .git
 .gitignore
+.github
+.gitlab
+.gitlab-ci.yml
+.jj
+
+# Editor/IDE
+.editorconfig
+.idea
+.vscode
+.nvmrc
+
+# Environment
+.env
+.env.*
+
+# Build artifacts
+build
+coverage
+node_modules
+npm-debug.log
+newrelic_agent.log
+
+# Documentation
+*.md
+LICENSE
+
+# Config files not needed for build
+.browserslistrc
+.dockerignore
+.prettierignore
+.prettierrc.json
+.secrets.baseline
+docker-compose.yml
+jest.config.*.js
+pgtyped.config.json
+
+# Other directories
+.storybook
+bin
+pgadmin
+redis-volume
+scripts
