@@ -7,7 +7,6 @@ export type SessionUserInfoPublic = {
   // TODO: remove `firstname` in favor of `firstName`. The frontend must be refactored first
   firstname: string
   firstName: string
-  gradeLevel?: number
 }
 
 export type SessionMessagePublic = {

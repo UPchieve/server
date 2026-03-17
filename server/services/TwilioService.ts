@@ -17,10 +17,11 @@ import { VERIFICATION_METHOD, SUBJECTS } from '../constants'
 import startsWithVowel from '../utils/starts-with-vowel'
 import { Ulid } from '../models/pgUtils'
 import * as AssociatedPartnerService from './AssociatedPartnerService'
-import type { CreateSessionResult, NotificationData } from '../models/Session'
+import type { NotificationData } from '../models/Session'
 import { Jobs } from '../worker/jobs'
 import { AssociatedPartner } from '../models/AssociatedPartner'
 import { secondsInMs } from '../utils/time-utils'
+import { CurrentSession } from '../types/session'
 
 const protocol = config.NODE_ENV === 'production' ? 'https' : 'http'
 const apiRoot = `${config.protocol}://${config.host}/twiml`
@@ -473,7 +474,7 @@ export async function confirmVerification(
 }
 
 export async function beginRegularNotifications(
-  session: CreateSessionResult
+  session: CurrentSession
 ): Promise<void> {
   const student = await StudentsRepo.getStudentContactInfoById(
     session.studentId

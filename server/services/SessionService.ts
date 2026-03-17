@@ -29,10 +29,7 @@ import { PushToken } from '../models/PushToken'
 import { getPushTokensByUserId } from '../models/PushToken'
 import * as TranscriptMessagesRepo from '../models/SessionAudioTranscriptMessages/queries'
 import {
-  EndedSession,
-  GetSessionByIdResult,
   LatestSession,
-  Session,
   SessionsToReview,
   SessionTranscript,
   updateSessionFlagsById,
@@ -82,7 +79,7 @@ import type {
   CurrentSessionPublic,
   SessionUserInfoPublic,
 } from '../contracts/sessions'
-import type { MessageForFrontend } from '../types/session'
+import type { MessageForFrontend, CurrentSession } from '../types/session'
 
 export async function reviewSession(data: unknown) {
   const { sessionId, reviewed, toReview } =
@@ -212,7 +209,7 @@ export async function reportSession(user: UserContactInfo, data: unknown) {
 }
 
 export async function didSessionEnd(sessionId: Uuid) {
-  const session = await SessionRepo.getSessionToEndById(sessionId)
+  const session = await SessionRepo.getSessionById(sessionId)
   return !!session.endedAt
 }
 
@@ -222,12 +219,12 @@ export async function endSession(
   isAdmin: boolean = false,
   socketService?: SocketService,
   identifiers?: sessionUtils.RequestIdentifier
-): Promise<EndedSession> {
+): Promise<CurrentSession> {
   const reqIdentifiers = identifiers
     ? sessionUtils.asRequestIdentifiers(identifiers)
     : undefined
 
-  const session = await SessionRepo.getSessionToEndById(sessionId)
+  const session = await getCurrentSessionById(sessionId)
   if (session.endedAt) {
     throw new sessionUtils.EndSessionError(
       `Can't end session: ${sessionId} b/c it ended already`
@@ -295,17 +292,6 @@ export async function endSession(
   })
 
   return endedSession
-}
-
-export async function getCurrentSessionPublic(
-  sessionId: Uuid,
-  tc?: TransactionClient
-): Promise<CurrentSessionPublic> {
-  const session = await SessionRepo.getCurrentSessionBySessionId(sessionId, tc)
-  if (!session) throw new Error(`Session data for ${sessionId} not found`)
-
-  await addDocEditorVersionTo(session)
-  return mapToCurrentSessionPublic(session)
 }
 
 export async function processSessionReported(sessionId: Ulid) {
@@ -458,8 +444,8 @@ export async function processSessionEditors(sessionId: Ulid) {
 }
 
 export async function processEmailVolunteer(sessionId: Ulid) {
-  const session = await SessionRepo.getSessionToEndById(sessionId)
-  if (session.volunteer?.numPastSessions === 10)
+  const session = await getCurrentSessionById(sessionId)
+  if (session.volunteer?.pastSessions.length === 10)
     await QueueService.add(Jobs.EmailVolunteerTenSessionMilestone, {
       volunteerId: session.volunteer.id,
     })
@@ -601,7 +587,7 @@ export async function startSession(
   data: sessionUtils.StartSessionData & {
     presessionSurvey?: SurveyService.SaveSurveyAndSubmissions
   }
-) {
+): Promise<CurrentSession> {
   const {
     subject,
     topic,
@@ -725,16 +711,24 @@ export async function checkSession(data: unknown) {
   return session.id
 }
 
-export async function currentSession(userId: Ulid) {
+export async function currentSession(userId: Uuid) {
   const session = await SessionRepo.getCurrentSessionByUserId(userId)
-  if (session) {
-    await addDocEditorVersionTo(session)
-  }
+  if (session) await addDocEditorVersionTo(session)
   return session
 }
 
-export async function getRecapSessionForDms(userId: Ulid) {
-  return await SessionRepo.getRecapSessionForDmsBySessionId(userId)
+export async function getCurrentSessionById(
+  sessionId: Uuid,
+  tc?: TransactionClient
+): Promise<CurrentSession> {
+  const session = await SessionRepo.getCurrentSessionBySessionId(sessionId, tc)
+  if (!session) throw new Error(`Session data for ${sessionId} not found`)
+  await addDocEditorVersionTo(session)
+  return session
+}
+
+export async function getRecapSessionForDms(sessionId: Uuid) {
+  return getCurrentSessionById(sessionId)
 }
 
 export async function getLatestSession(
@@ -777,7 +771,7 @@ export async function joinSession(
     userAgent?: string
     joinedFrom?: string
   }
-): Promise<Session> {
+): Promise<CurrentSession> {
   const session = await ensureCanJoinSession(user, sessionId)
 
   const sessionAnalyticsData = {
@@ -862,8 +856,8 @@ export async function joinSession(
 export async function ensureCanJoinSession(
   user: UserContactInfo,
   sessionId: Ulid
-): Promise<GetSessionByIdResult> {
-  const session = await SessionRepo.getSessionById(sessionId)
+): Promise<CurrentSession> {
+  const session = await getCurrentSessionById(sessionId)
   const isStudent = user.roleContext.isActiveRole('student')
   const isVolunteer = user.roleContext.isActiveRole('volunteer')
 
@@ -1318,48 +1312,29 @@ export async function isZwibserveSession(sessionId: Uuid) {
   return members.includes(sessionId)
 }
 
-function mapToSessionUserInfoPublic(data: {
+function toSessionUserInfoPublic(data: {
   id: Uuid
   firstName: string
-  gradeLevel?: number
 }): SessionUserInfoPublic {
   return {
     _id: data.id,
     id: data.id,
     firstname: data.firstName,
     firstName: data.firstName,
-    gradeLevel: data.gradeLevel,
   }
 }
 
-export function mapToCurrentSessionPublic(session: {
-  id: Uuid
-  studentId: Uuid
-  volunteerId?: Uuid
-  student: SessionUserInfoPublic
-  volunteer?: SessionUserInfoPublic
-  volunteerJoinedAt?: Date
-  messages: MessageForFrontend[]
-  toolType: string
-  docEditorVersion?: number
-  studentBannedFromLiveMedia?: boolean
-  volunteerBannedFromLiveMedia?: boolean
-  volunteerLanguages?: string[]
-  type: string
-  subTopic: string
-  endedByUserId?: Uuid
-  createdAt: Date
-  endedAt?: Date
-  endedBy?: Uuid
-}): CurrentSessionPublic {
+export function toCurrentSessionPublic(
+  session: CurrentSession
+): CurrentSessionPublic {
   return {
     _id: session.id,
     id: session.id,
     studentId: session.studentId,
     volunteerId: session.volunteerId,
-    student: mapToSessionUserInfoPublic(session.student),
+    student: toSessionUserInfoPublic(session.student),
     volunteer: session.volunteer
-      ? mapToSessionUserInfoPublic(session.volunteer)
+      ? toSessionUserInfoPublic(session.volunteer)
       : undefined,
     volunteerJoinedAt: session.volunteerJoinedAt,
     messages: session.messages ?? [],

@@ -155,58 +155,6 @@ RETURNING
     id AS ok;
 
 
-/* @name getSessionToEndById */
-SELECT
-    sessions.id,
-    student_id,
-    volunteer_id,
-    subjects.name AS subject,
-    topics.name AS topic,
-    volunteer_joined_at,
-    ended_at,
-    sessions.created_at,
-    sessions.updated_at,
-    students.first_name AS student_first_name,
-    students.email AS student_email,
-    student_sessions.total AS student_num_past_sessions,
-    volunteers.first_name AS volunteer_first_name,
-    volunteers.email AS volunteer_email,
-    volunteer_sessions.total AS volunteer_num_past_sessions,
-    volunteer_partner_orgs.key AS volunteer_partner_org,
-    session_reported_count.total <> 0 AS reported
-FROM
-    sessions
-    LEFT JOIN subjects ON subjects.id = sessions.subject_id
-    LEFT JOIN topics ON topics.id = subjects.topic_id
-    LEFT JOIN users students ON students.id = sessions.student_id
-    LEFT JOIN users volunteers ON volunteers.id = sessions.volunteer_id
-    LEFT JOIN LATERAL (
-        SELECT
-            COUNT(id)::int AS total
-        FROM
-            sessions
-        WHERE
-            sessions.student_id = students.id) AS student_sessions ON TRUE
-    LEFT JOIN LATERAL (
-        SELECT
-            COUNT(id)::int AS total
-        FROM
-            sessions
-        WHERE
-            sessions.volunteer_id = volunteers.id) AS volunteer_sessions ON TRUE
-    LEFT JOIN LATERAL (
-        SELECT
-            COUNT(id)::int AS total
-        FROM
-            session_reports
-        WHERE
-            session_reports.session_id = sessions.id) AS session_reported_count ON TRUE
-    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = volunteers.id
-    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
-WHERE
-    sessions.id = :sessionId!;
-
-
 /* @name getSessionsToReview */
 SELECT
     sessions.id,
@@ -359,18 +307,7 @@ SET
 WHERE
     sessions.id = :sessionId!
 RETURNING
-    sessions.id,
-    sessions.created_at,
-    sessions.ended_at,
-    sessions.volunteer_joined_at,
-    :endedBy::uuid AS ended_by,
-    CASE WHEN sessions.volunteer_id = :endedBy::uuid THEN
-        'volunteer'
-    WHEN sessions.student_id = :endedBy::uuid THEN
-        'student'
-    ELSE
-        'admin'
-    END AS ended_by_user_role;
+    sessions.id;
 
 
 /* @name getLongRunningSessions */
@@ -532,28 +469,35 @@ INSERT INTO sessions (id, student_id, subject_id, shadowbanned, created_at, upda
         *
 )
 SELECT
-    inserted_session.*,
-    subjects.name AS subject,
-    subjects.display_name AS subject_display_name,
-    topics.name AS topic
+    inserted_session.id
 FROM
-    inserted_session
-    JOIN subjects ON subjects.id = inserted_session.subject_id
-    JOIN topics ON topics.id = subjects.topic_id;
+    inserted_session;
 
 
 /* @name getCurrentSessionByUserId */
 SELECT
     sessions.id,
     subjects.name AS sub_topic,
+    subjects.name AS subject,
+    subjects.display_name AS subject_display_name,
     topics.name AS TYPE,
+    topics.name AS topic,
     sessions.created_at,
     sessions.volunteer_joined_at,
     sessions.volunteer_id,
     sessions.student_id,
     sessions.ended_at,
+    shadowbanned,
     tool_types.name AS tool_type,
     volunteer_profiles.languages AS volunteer_languages,
+    (
+        CASE WHEN user_roles.name = 'volunteer' THEN
+            sessions.volunteer_id
+        WHEN user_roles.name = 'student' THEN
+            sessions.student_id
+        ELSE
+            NULL
+        END) AS ended_by,
     CASE WHEN sessions.volunteer_id IS NULL THEN
         FALSE
     WHEN (
@@ -583,72 +527,28 @@ FROM
     LEFT JOIN subjects ON sessions.subject_id = subjects.id
     LEFT JOIN topics ON subjects.topic_id = topics.id
     JOIN tool_types ON subjects.tool_type_id = tool_types.id
+    LEFT JOIN user_roles ON user_roles.id = sessions.ended_by_role_id
     LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = sessions.volunteer_id
 WHERE (sessions.student_id = :userId!
     OR sessions.volunteer_id = :userId!)
 AND sessions.ended_at IS NULL;
 
 
-/* @name getRecapSessionForDmsBySessionId */
-SELECT
-    sessions.id,
-    subjects.name AS sub_topic,
-    topics.name AS TYPE,
-    sessions.created_at,
-    sessions.volunteer_joined_at,
-    sessions.volunteer_id,
-    sessions.student_id,
-    sessions.ended_at,
-    tool_types.name AS tool_type
-FROM
-    sessions
-    JOIN users ON sessions.student_id = users.id
-    LEFT JOIN subjects ON sessions.subject_id = subjects.id
-    LEFT JOIN topics ON subjects.topic_id = topics.id
-    JOIN tool_types ON subjects.tool_type_id = tool_types.id
-WHERE
-    sessions.id = :sessionId!
-    AND sessions.ended_at IS NOT NULL;
-
-
-/* @name getMessageInfoByMessageId */
-SELECT
-    sessions.id AS session_id,
-    sessions.ended_at AS session_ended_at,
-    students.id AS student_user_id,
-    students.first_name AS student_first_name,
-    students.email AS student_email,
-    volunteers.id AS volunteer_user_id,
-    volunteers.first_name AS volunteer_first_name,
-    volunteers.email AS volunteer_email,
-    session_messages.contents,
-    session_messages.created_at,
-    session_messages.sender_id,
-    CASE WHEN session_messages.created_at > sessions.ended_at THEN
-        TRUE
-    ELSE
-        FALSE
-    END AS sent_after_session
-FROM
-    session_messages
-    JOIN sessions ON session_messages.session_id = sessions.id
-    JOIN users students ON students.id = sessions.student_id
-    JOIN users volunteers ON volunteers.id = sessions.volunteer_id
-WHERE
-    session_messages.id = :messageId!
-    AND sessions.ended_at IS NOT NULL;
-
-
 /* @name getCurrentSessionBySessionId */
 SELECT
     sessions.id,
     subjects.name AS sub_topic,
+    subjects.name AS subject,
+    subjects.display_name AS subject_display_name,
     topics.name AS TYPE,
+    topics.name AS topic,
     sessions.created_at,
     sessions.volunteer_joined_at,
     sessions.volunteer_id,
     sessions.student_id,
     sessions.ended_at,
+    shadowbanned,
+    tool_types.name AS tool_type,
     volunteer_profiles.languages AS volunteer_languages,
     (
         CASE WHEN user_roles.name = 'volunteer' THEN
@@ -658,7 +558,6 @@ SELECT
         ELSE
             NULL
         END) AS ended_by,
-    tool_types.name AS tool_type,
     CASE WHEN sessions.volunteer_id IS NULL THEN
         FALSE
     WHEN (
@@ -692,6 +591,34 @@ FROM
     LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = sessions.volunteer_id
 WHERE
     sessions.id = :sessionId;
+
+
+/* @name getMessageInfoByMessageId */
+SELECT
+    sessions.id AS session_id,
+    sessions.ended_at AS session_ended_at,
+    students.id AS student_user_id,
+    students.first_name AS student_first_name,
+    students.email AS student_email,
+    volunteers.id AS volunteer_user_id,
+    volunteers.first_name AS volunteer_first_name,
+    volunteers.email AS volunteer_email,
+    session_messages.contents,
+    session_messages.created_at,
+    session_messages.sender_id,
+    CASE WHEN session_messages.created_at > sessions.ended_at THEN
+        TRUE
+    ELSE
+        FALSE
+    END AS sent_after_session
+FROM
+    session_messages
+    JOIN sessions ON session_messages.session_id = sessions.id
+    JOIN users students ON students.id = sessions.student_id
+    JOIN users volunteers ON volunteers.id = sessions.volunteer_id
+WHERE
+    session_messages.id = :messageId!
+    AND sessions.ended_at IS NOT NULL;
 
 
 /* @name getSessionUsers */
