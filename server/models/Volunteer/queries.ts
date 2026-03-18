@@ -1281,7 +1281,7 @@ export type AdminUpdateVolunteer = {
   email: string
   volunteerPartnerOrg: string | undefined
   isVerified: boolean
-  banType: USER_BAN_TYPES | undefined
+  banType: USER_BAN_TYPES | null
   isDeactivated: boolean
   isApproved: boolean | undefined
 }

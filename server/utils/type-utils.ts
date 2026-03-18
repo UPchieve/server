@@ -8,7 +8,14 @@ import { Uuid4, Exception } from 'id128'
 // Use via asOptional(asPrimitive)
 export function asOptional<T>(as: (s: unknown, errMsg?: string) => T) {
   return function (s: unknown, errMsg?: string): T | undefined {
-    if (s === undefined || s === null) return undefined
+    if (s === undefined || s === null || s === 'null') return undefined
+    return as(s, errMsg)
+  }
+}
+
+export function asNullable<T>(as: (s: unknown, errMsg?: string) => T) {
+  return function (s: unknown, errMsg?: string): T | null {
+    if (s === null || s === 'null') return null
     return as(s, errMsg)
   }
 }

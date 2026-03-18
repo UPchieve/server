@@ -163,6 +163,33 @@ describe('deidentifyUserJob', () => {
     expect(totpAfter.rowCount).toBe(0)
   })
 
+  test('hard deletes records in users_schools', async () => {
+    const user = await createTestUser(client)
+    const userId = user.id
+
+    const schoolResults = await client.query(
+      `INSERT INTO upchieve.schools (id, name, city_id) VALUES (gen_random_uuid(), 'Test School', 1) RETURNING id`
+    )
+    const schoolId = schoolResults.rows[0].id
+    await client.query(
+      'INSERT INTO upchieve.users_schools (user_id, school_id, association_type) VALUES ($1, $2, $3)',
+      [userId, schoolId, 'student_at_school']
+    )
+    const usersSchoolsBefore = await client.query(
+      'SELECT * FROM upchieve.users_schools WHERE user_id = $1',
+      [userId]
+    )
+    expect(usersSchoolsBefore.rowCount).toBe(1)
+
+    await deidentifyUserJob(createJob(userId))
+
+    const usersSchoolsAfter = await client.query(
+      'SELECT * FROM upchieve.users_schools WHERE user_id = $1',
+      [userId]
+    )
+    expect(usersSchoolsAfter.rowCount).toBe(0)
+  })
+
   test('deidentifies rows in contact_form_submissions', async () => {
     const user = await createTestUser(client)
     const userId = user.id

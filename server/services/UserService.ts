@@ -45,6 +45,7 @@ import {
   asNumber,
   asOptional,
   asString,
+  asNullable,
 } from '../utils/type-utils'
 import * as AnalyticsService from './AnalyticsService'
 import * as MailService from './MailService'
@@ -250,7 +251,7 @@ interface AdminUpdate {
   partnerOrg?: string
   partnerSite?: string
   isVerified: boolean
-  banType?: USER_BAN_TYPES
+  banType: USER_BAN_TYPES | null
   isDeactivated: boolean
   isApproved?: boolean
   inGatesStudy?: boolean
@@ -265,7 +266,7 @@ const asAdminUpdate = asFactory<AdminUpdate>({
   partnerOrg: asOptional(asString),
   partnerSite: asOptional(asString),
   isVerified: asBoolean,
-  banType: asOptional(asEnum(USER_BAN_TYPES)),
+  banType: asNullable(asEnum(USER_BAN_TYPES)),
   isDeactivated: asBoolean,
   isApproved: asOptional(asBoolean),
   inGatesStudy: asOptional(asBoolean),
@@ -412,7 +413,6 @@ export async function adminUpdateUser(data: unknown) {
   if (isStudent) {
     await adminUpdateStudent(userId, {
       ...update,
-      banType: banType === undefined ? userBeforeUpdate.banType : banType,
     })
   }
 

@@ -74,6 +74,7 @@ async function hardDeleteRows(userId: Ulid, tc: TransactionClient) {
     tc.query('DELETE FROM admin_profiles WHERE user_id = $1', [userId]),
     tc.query('DELETE FROM push_tokens WHERE user_id = $1', [userId]),
     tc.query('DELETE FROM users_ip_addresses WHERE user_id = $1', [userId]),
+    tc.query('DELETE FROM users_schools WHERE user_id = $1', [userId]),
   ])
 }
 
@@ -166,11 +167,6 @@ async function deidentifyRows(
     school_id = null,
     last_successful_clever_sync = null,
     updated_at = NOW()
-    WHERE user_id = $1`,
-    [userId]
-  )
-  await tc.query(
-    `DELETE FROM users_schools
     WHERE user_id = $1`,
     [userId]
   )

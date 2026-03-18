@@ -230,7 +230,7 @@ export async function adminUpdateTeacher(
     email: string
     isDeactivated: boolean
     isVerified: boolean
-    banType?: USER_BAN_TYPES
+    banType: USER_BAN_TYPES | null
     banReason?: USER_BAN_REASONS
     schoolId?: string
   },
