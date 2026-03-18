@@ -1,11 +1,12 @@
 import { Job } from 'bull'
 import { log } from '../logger'
 import { Uuid } from '../../models/pgUtils'
-import { getSessionById } from '../../models/Session'
-import { getSessionFlagsBySessionId } from '../../models/Session'
+import {
+  getSessionById,
+  getSessionFlagsBySessionId,
+} from '../../models/Session'
 import { getRulesActionsFromFlagId } from '../../models/RulesActions/queries'
 import { executeModerationActionByName } from '../../services/ModerationService/ModerationActionService'
-import { RulesActionsResult } from '../../models/RulesActions/types'
 
 type ExecuteModerationAction = {
   sessionId: Uuid
