@@ -1,4 +1,4 @@
-import { Uuid } from '../models/pgUtils'
+import { Uuid } from '../types/shared'
 
 export type SessionUserInfoPublic = {
   // TODO: migrate all uses of `_id` to `id`
