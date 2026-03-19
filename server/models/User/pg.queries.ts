@@ -2051,3 +2051,33 @@ const getFavoriteVolunteersByUserIdIR: any = {"usedParamSet":{"userId":true},"pa
 export const getFavoriteVolunteersByUserId = new PreparedQuery<IGetFavoriteVolunteersByUserIdParams,IGetFavoriteVolunteersByUserIdResult>(getFavoriteVolunteersByUserIdIR);
 
 
+/** 'ShadowBanStudent' parameters type */
+export interface IShadowBanStudentParams {
+  studentId: string;
+}
+
+/** 'ShadowBanStudent' return type */
+export type IShadowBanStudentResult = void;
+
+/** 'ShadowBanStudent' query type */
+export interface IShadowBanStudentQuery {
+  params: IShadowBanStudentParams;
+  result: IShadowBanStudentResult;
+}
+
+const shadowBanStudentIR: any = {"usedParamSet":{"studentId":true},"params":[{"name":"studentId","required":true,"transform":{"type":"scalar"},"locs":[{"a":60,"b":70}]}],"statement":"UPDATE\n    users\nSET\n    ban_type = 'shadow'\nWHERE\n    id = :studentId!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE
+ *     users
+ * SET
+ *     ban_type = 'shadow'
+ * WHERE
+ *     id = :studentId!
+ * ```
+ */
+export const shadowBanStudent = new PreparedQuery<IShadowBanStudentParams,IShadowBanStudentResult>(shadowBanStudentIR);
+
+

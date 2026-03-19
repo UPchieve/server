@@ -3021,3 +3021,38 @@ const getVolunteersInSessionsIR: any = {"usedParamSet":{},"params":[],"statement
 export const getVolunteersInSessions = new PreparedQuery<IGetVolunteersInSessionsParams,IGetVolunteersInSessionsResult>(getVolunteersInSessionsIR);
 
 
+/** 'GetSessionFlagsBySessionId' parameters type */
+export interface IGetSessionFlagsBySessionIdParams {
+  sessionId: string;
+}
+
+/** 'GetSessionFlagsBySessionId' return type */
+export interface IGetSessionFlagsBySessionIdResult {
+  name: string;
+  sessionFlagId: number;
+}
+
+/** 'GetSessionFlagsBySessionId' query type */
+export interface IGetSessionFlagsBySessionIdQuery {
+  params: IGetSessionFlagsBySessionIdParams;
+  result: IGetSessionFlagsBySessionIdResult;
+}
+
+const getSessionFlagsBySessionIdIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":164,"b":174}]}],"statement":"SELECT\n    ssf.session_flag_id,\n    sf.name\nFROM\n    sessions_session_flags ssf\n    JOIN session_flags sf ON ssf.session_flag_id = sf.id\nWHERE\n    ssf.session_id = :sessionId!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     ssf.session_flag_id,
+ *     sf.name
+ * FROM
+ *     sessions_session_flags ssf
+ *     JOIN session_flags sf ON ssf.session_flag_id = sf.id
+ * WHERE
+ *     ssf.session_id = :sessionId!
+ * ```
+ */
+export const getSessionFlagsBySessionId = new PreparedQuery<IGetSessionFlagsBySessionIdParams,IGetSessionFlagsBySessionIdResult>(getSessionFlagsBySessionIdIR);
+
+

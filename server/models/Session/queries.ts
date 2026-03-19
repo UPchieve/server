@@ -1521,3 +1521,12 @@ export async function getVolunteersInSessions(): Promise<Ulid[]> {
   )
   return result.map((r) => makeRequired(r).volunteerId)
 }
+
+export async function getSessionFlagsBySessionId(sessionId: Uuid) {
+  const result = await pgQueries.getSessionFlagsBySessionId.run(
+    { sessionId },
+    getClient()
+  )
+
+  return result.map((r) => makeRequired(r))
+}

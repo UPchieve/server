@@ -7,11 +7,11 @@ import { makeSomeRequired } from '../pgUtils'
 export async function getRulesActionsFromFlagId(
   flagId: number,
   tc: TransactionClient = getClient()
-): Promise<RulesActionsResult[] | void> {
+): Promise<RulesActionsResult[]> {
   try {
     const result = await pgQueries.getRulesActionsFromFlagId.run({ flagId }, tc)
 
-    if (!result.length) return
+    if (!result.length) return []
 
     return result.map((v) =>
       makeSomeRequired(v, ['ruleId', 'actionId', 'actionName', 'ruleName'])

@@ -1420,3 +1420,14 @@ WHERE
     AND volunteer_id IS NOT NULL
     AND ended_at IS NULL;
 
+
+/* @name getSessionFlagsBySessionId */
+SELECT
+    ssf.session_flag_id,
+    sf.name
+FROM
+    sessions_session_flags ssf
+    JOIN session_flags sf ON ssf.session_flag_id = sf.id
+WHERE
+    ssf.session_id = :sessionId!;
+

@@ -863,3 +863,14 @@ export async function getFavoriteVolunteersByUserId(
     throw new RepoReadError(err)
   }
 }
+
+export async function shadowBanStudent(
+  studentId: Uuid,
+  tc: TransactionClient = getClient()
+): Promise<void> {
+  try {
+    await pgQueries.shadowBanStudent.run({ studentId }, tc)
+  } catch (err) {
+    throw new RepoUpdateError(err)
+  }
+}
