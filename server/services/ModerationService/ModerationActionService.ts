@@ -1,5 +1,4 @@
 import { ACCOUNT_USER_ACTIONS } from '../../constants'
-import { RepoUpdateError } from '../../models/Errors'
 import { Uuid } from '../../models/pgUtils'
 import { shadowBanStudent } from '../../models/User/'
 import { createAccountAction } from '../../models/UserAction'
@@ -18,6 +17,6 @@ export async function executeModerationActionByName(
       action: ACCOUNT_USER_ACTIONS.SHADOW_BANNED,
     })
   } else {
-    throw new RepoUpdateError(`Unable to execute ${actionName}`)
+    throw new Error(`Unable to execute ${actionName}`)
   }
 }
