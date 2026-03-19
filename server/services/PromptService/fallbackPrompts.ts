@@ -129,7 +129,7 @@ Provide your response in this JSON format: "{ confidence: number, explanation: s
 `
 
 const SESSION_SUMMARY_RESPONSE_INSTRUCTIONS =
-  'Use whatever information is available to generate your summary. Respond in exactly one sentence that can be stored in a Postgres text column. If you are unable to generate a helpful or accurate summary based on the information provided, respond with nothing. Return a truly empty string (not in quotes, just no characters at all).'
+  'Use whatever information is available to generate your summary. Respond in exactly one sentence that can be stored in a Postgres text column. If you are unable to generate a helpful or accurate summary based on the information provided, respond with an empty string.'
 export const SESSION_SUMMARY_TEACHER_FALLBACK_PROMPT = `You are an assistant helping summarize high school tutoring sessions for teachers.
 
     Based on the session transcript and, when available, collaborative editor content and image text or the content of the whiteboard,
