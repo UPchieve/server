@@ -538,7 +538,8 @@ export async function getMessagesForFrontend(
         voiceResult.map((r) => ({
           ...r,
           type: 'voice',
-          contents: r.transcript ?? '',
+          // TODO: Voice messages should use `transcript` instead of ID for its content.
+          contents: r.id,
         }))
       )
       .concat(
