@@ -493,7 +493,6 @@ export async function makeChaptersSchoolOfficial(groupIds: Ulid[]) {
 }
 
 async function makeChapterSchoolOfficial(groupId: Ulid) {
-  console.log(`TEST - makeChapterSchoolOfficial for group ${groupId}`)
   await runInTransaction(async (tc) => {
     await NTHSGroupsRepo.updateSchoolAffiliationStatus(
       'AFFILIATED',
@@ -512,11 +511,6 @@ async function makeChapterSchoolOfficial(groupId: Ulid) {
       )
     }
     const recipients = [...chapterAdmins, ...chapterAdvisors]
-
-    console.log('TEST - going to send notifications to recipients', {
-      recipients,
-      chapterName: recipients[0].chapterName,
-    })
     await sendNTHSChapterSchoolAffiliationApprovedNotification(
       recipients,
       recipients[0].chapterName
