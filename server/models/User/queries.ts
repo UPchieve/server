@@ -874,3 +874,17 @@ export async function shadowBanStudent(
     throw new RepoUpdateError(err)
   }
 }
+
+export async function deleteProxyEmailsIdenticalToEmails(
+  tc: TransactionClient = getClient()
+): Promise<number> {
+  try {
+    const results = await pgQueries.deleteProxyEmailsIdenticalToEmails.run(
+      undefined,
+      tc
+    )
+    return results.length
+  } catch (err) {
+    throw new RepoUpdateError(err)
+  }
+}
