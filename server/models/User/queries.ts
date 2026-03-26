@@ -127,13 +127,13 @@ export async function getUserVerificationByEmail(email: string) {
 
 export async function getUserIdByEmail(
   email: string
-): Promise<Ulid | undefined> {
+): Promise<{ id: Ulid; email: string } | undefined> {
   try {
     const result = await pgQueries.getUserIdByEmail.run(
       { email: email.toLowerCase() },
       getClient()
     )
-    if (result.length) return makeRequired(result[0]).id
+    if (result.length) return makeRequired(result[0])
   } catch (err) {
     throw new RepoReadError(err)
   }

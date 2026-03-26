@@ -47,7 +47,8 @@ WHERE
 
 /* @name getUserIdByEmail */
 SELECT
-    id
+    id,
+    email
 FROM
     users
 WHERE

@@ -195,6 +195,7 @@ export interface IGetUserIdByEmailParams {
 
 /** 'GetUserIdByEmail' return type */
 export interface IGetUserIdByEmailResult {
+  email: string;
   id: string;
 }
 
@@ -204,13 +205,14 @@ export interface IGetUserIdByEmailQuery {
   result: IGetUserIdByEmailResult;
 }
 
-const getUserIdByEmailIR: any = {"usedParamSet":{"email":true},"params":[{"name":"email","required":true,"transform":{"type":"scalar"},"locs":[{"a":47,"b":53}]}],"statement":"SELECT\n    id\nFROM\n    users\nWHERE\n    email = :email!\nLIMIT 1"};
+const getUserIdByEmailIR: any = {"usedParamSet":{"email":true},"params":[{"name":"email","required":true,"transform":{"type":"scalar"},"locs":[{"a":58,"b":64}]}],"statement":"SELECT\n    id,\n    email\nFROM\n    users\nWHERE\n    email = :email!\nLIMIT 1"};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
- *     id
+ *     id,
+ *     email
  * FROM
  *     users
  * WHERE
