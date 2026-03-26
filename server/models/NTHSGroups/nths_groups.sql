@@ -60,14 +60,30 @@ SELECT
     u.id AS user_id,
     u.first_name,
     u.email,
+    g.name AS chapter_name,
     :groupId!::uuid AS nths_group_id
 FROM
     nths_group_member_roles mr
     JOIN nths_group_roles roles ON roles.id = mr.role_id
+    JOIN nths_groups g ON g.id = mr.nths_group_id
     JOIN users u ON U.id = mr.user_id
 WHERE
     mr.nths_group_id = :groupId!::uuid
     AND roles.name = 'admin';
+
+
+/* @name getAdvisorContactInfo */
+SELECT
+    first_name,
+    last_name,
+    email,
+    nths_group_id,
+    g.name AS chapter_name
+FROM
+    nths_advisors
+    JOIN nths_groups g ON g.id = nths_advisors.nths_group_id
+WHERE
+    nths_group_id = :groupId!;
 
 
 /* @name joinGroupById */

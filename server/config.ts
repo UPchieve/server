@@ -120,6 +120,7 @@ const config = {
     nthsMemberDeactivationNoticeEmail: 'd-d4262bda50bb470abb770850d45cb083',
     nthsCandidateApplicationApproved: 'd-7bb5abafa4d14d6cb53540bd514447a7',
     nthsCandidateApplicationDenied: 'd-0db5c4e5f4de45de9c8ce7106765f0e9',
+    nthsSchoolOfficialNotice: 'd-6f54afba78f84ae5b44b70a5d209e755',
     unsubscribeGroup: {
       newsletter: 12567,
       account: 12570,
@@ -163,6 +164,7 @@ const config = {
       supportApp:
         process.env.SUBWAY_SUPPORT_APP_EMAIL_SENDER || 'example@exampleapp.org',
       incentive: process.env.SUBWAY_INCENTIVE_SENDER || 'example@example.org',
+      nths: process.env.SUBWAY_NTHS_SENDER || 'example@upchieve.org',
     },
     receivers: {
       contact:

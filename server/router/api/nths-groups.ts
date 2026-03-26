@@ -158,7 +158,7 @@ export function routeNTHSGroups(router: Router): void {
           phoneExtension,
           title,
         } = req.body
-        const result = await NTHSGroupsService.submitSchoolAffilaiton({
+        const result = await NTHSGroupsService.submitSchoolAffiliation({
           nthsGroupId,
           schoolId,
           firstName,

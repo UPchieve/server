@@ -121,6 +121,7 @@ export async function getGroupAdminsContactInfo(
     nthsGroupId: Ulid
     firstName: string
     email: string
+    chapterName: string
   }[]
 > {
   try {
@@ -134,6 +135,28 @@ export async function getGroupAdminsContactInfo(
       throw new Error(`Missing admins for NTHS group ${groupId}`)
     }
     return results.map((row) => makeRequired(row))
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getAdvisorContactInfo(
+  groupId: Ulid,
+  tc: TransactionClient = getRoClient()
+): Promise<
+  | {
+      firstName: string
+      email: string
+      nthsGroupId: Ulid
+      chapterName: string
+    }[]
+  | undefined
+> {
+  try {
+    const results = await pgQueries.getAdvisorContactInfo.run({ groupId }, tc)
+    if (results.length) {
+      return results.map((row) => makeRequired(row))
+    }
   } catch (err) {
     throw new RepoReadError(err)
   }
