@@ -395,6 +395,10 @@ export async function processMetrics(
   const flags = await callbacks.computeSessionFlags(session)
   await updateSessionFlagsById(session.id, flags)
 
+  QueueService.add(Jobs.ExecuteModerationAction, {
+    sessionId,
+  })
+
   const studentUserSessionMetrics = await getUserSessionMetricsByUserId(
     session.studentId,
     'student'

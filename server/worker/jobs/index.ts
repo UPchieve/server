@@ -72,6 +72,7 @@ import spawnDeidentifyUsers from './spawn-deidentify-users'
 import updateNthsChapterStatusForImpactPath from './updateNTHSChapterStatusForImpactPath'
 import spawnUpdateNthsChapterStatusForImpactPath from './spawnUpdateNTHSChapterStatusForImpactPath'
 import notifyNTHSChapterAdminsOfDeactivatedUser from './notifyNTHSChapterAdminsOfDeactivatedUser'
+import executeModerationAction from './executeModerationAction'
 
 export enum Jobs {
   AddScheduledJobs = 'AddScheduledJobs',
@@ -128,6 +129,7 @@ export enum Jobs {
   EmailWeeklyHourSummary = 'EmailWeeklyHourSummary',
   EndStaleSessions = 'EndStaleSessions',
   EndUnmatchedSession = 'EndUnmatchedSession',
+  ExecuteModerationAction = 'ExecuteModerationAction',
   GenerateAndStoreWaitTimeHeatMap = 'GenerateAndStoreWaitTimeHeatMap',
   GenerateProgressReport = 'GenerateProgressReport',
   GenerateSessionSummary = 'GenerateSessionSummary',
@@ -371,6 +373,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.EndUnmatchedSession,
     processor: endUnmatchedSession,
+  },
+  {
+    name: Jobs.ExecuteModerationAction,
+    processor: executeModerationAction,
   },
   {
     name: Jobs.GenerateAndStoreWaitTimeHeatMap,

@@ -476,9 +476,6 @@ const config = {
   zwibblerNodeUrl: process.env.ZWIBBLER_NODE_URL || 'bogus',
   slackAlertWebHookUrl: process.env.SUBWAY_SLACK_ALERT_WEBHOOK_URL || 'bogus',
 
-  //Assembly AI
-  assemblyAiApiKey: process.env.SUBWAY_ASSEMBLY_AI_API_KEY || 'youHeard',
-
   // used for retool apps that need to access the admin api
   retoolAdminEmail: process.env.SUBWAY_RETOOL_ADMIN_EMAIL,
 } as const

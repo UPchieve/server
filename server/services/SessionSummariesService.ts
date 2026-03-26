@@ -102,6 +102,7 @@ export async function generateSessionSummaryForSession(sessionId: Uuid) {
           {
             sessionId,
             userType,
+            isFallbackPrompt: rolePromptData.isFallback,
           },
           trace
         )
@@ -135,6 +136,7 @@ async function generateSessionSummary(
   metadata: {
     sessionId: Uuid
     userType: USER_ROLES_TYPE
+    isFallbackPrompt: boolean
   },
   trace: Trace
 ) {
@@ -151,7 +153,7 @@ async function generateSessionSummary(
       trace,
       name: 'generateSessionSummary',
       model: modelId,
-      input: userPrompt,
+      input: systemPrompt + '\n' + userPrompt,
       metadata,
     }
   )
