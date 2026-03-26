@@ -515,5 +515,9 @@ async function makeChapterSchoolOfficial(groupId: Ulid) {
       recipients,
       recipients[0].chapterName
     )
+    logger.info(
+      { groupId },
+      'Sent official school affiliation email to chapter admins and advisors'
+    )
   })
 }
