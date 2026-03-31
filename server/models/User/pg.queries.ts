@@ -195,6 +195,7 @@ export interface IGetUserIdByEmailParams {
 
 /** 'GetUserIdByEmail' return type */
 export interface IGetUserIdByEmailResult {
+  email: string;
   id: string;
 }
 
@@ -204,13 +205,14 @@ export interface IGetUserIdByEmailQuery {
   result: IGetUserIdByEmailResult;
 }
 
-const getUserIdByEmailIR: any = {"usedParamSet":{"email":true},"params":[{"name":"email","required":true,"transform":{"type":"scalar"},"locs":[{"a":47,"b":53}]}],"statement":"SELECT\n    id\nFROM\n    users\nWHERE\n    email = :email!\nLIMIT 1"};
+const getUserIdByEmailIR: any = {"usedParamSet":{"email":true},"params":[{"name":"email","required":true,"transform":{"type":"scalar"},"locs":[{"a":58,"b":64}]}],"statement":"SELECT\n    id,\n    email\nFROM\n    users\nWHERE\n    email = :email!\nLIMIT 1"};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
- *     id
+ *     id,
+ *     email
  * FROM
  *     users
  * WHERE
@@ -2080,5 +2082,44 @@ const shadowBanStudentIR: any = {"usedParamSet":{"studentId":true},"params":[{"n
  * ```
  */
 export const shadowBanStudent = new PreparedQuery<IShadowBanStudentParams,IShadowBanStudentResult>(shadowBanStudentIR);
+
+
+/** 'DeleteProxyEmailsIdenticalToEmails' parameters type */
+export type IDeleteProxyEmailsIdenticalToEmailsParams = void;
+
+/** 'DeleteProxyEmailsIdenticalToEmails' return type */
+export interface IDeleteProxyEmailsIdenticalToEmailsResult {
+  email: string;
+  id: string;
+  proxyEmail: string | null;
+  updatedAt: Date;
+}
+
+/** 'DeleteProxyEmailsIdenticalToEmails' query type */
+export interface IDeleteProxyEmailsIdenticalToEmailsQuery {
+  params: IDeleteProxyEmailsIdenticalToEmailsParams;
+  result: IDeleteProxyEmailsIdenticalToEmailsResult;
+}
+
+const deleteProxyEmailsIdenticalToEmailsIR: any = {"usedParamSet":{},"params":[],"statement":"UPDATE\n    users\nSET\n    proxy_email = NULL,\n    updated_at = NOW()\nWHERE\n    lower(email) = lower(proxy_email)\nRETURNING\n    id,\n    email,\n    proxy_email,\n    updated_at"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE
+ *     users
+ * SET
+ *     proxy_email = NULL,
+ *     updated_at = NOW()
+ * WHERE
+ *     lower(email) = lower(proxy_email)
+ * RETURNING
+ *     id,
+ *     email,
+ *     proxy_email,
+ *     updated_at
+ * ```
+ */
+export const deleteProxyEmailsIdenticalToEmails = new PreparedQuery<IDeleteProxyEmailsIdenticalToEmailsParams,IDeleteProxyEmailsIdenticalToEmailsResult>(deleteProxyEmailsIdenticalToEmailsIR);
 
 

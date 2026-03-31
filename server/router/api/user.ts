@@ -217,7 +217,7 @@ export function routeUser(router: Router): void {
     async function (req, res) {
       const { userEmail } = req.params
       try {
-        const userId = await getUserIdByEmail(userEmail)
+        const userId = (await getUserIdByEmail(userEmail))?.id
         res.json({ userId: userId })
       } catch (err) {
         resError(res, err)

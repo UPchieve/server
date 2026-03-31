@@ -60,7 +60,7 @@ export async function checkEligibility(
   } = asCheckEligibilityPayload(payload)
 
   if (email) {
-    const existingUser = await getUserIdByEmail(email)
+    const existingUser = (await getUserIdByEmail(email))?.id
     if (existingUser) return { isExistingUser: true, isEligible: true }
   }
 

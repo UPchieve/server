@@ -446,7 +446,7 @@ export function routes(app: Express) {
       try {
         const data = asResetConfirmData(req.body)
         await AuthService.confirmReset(data)
-        const userId = await getUserIdByEmail(req.body.email)
+        const userId = (await getUserIdByEmail(req.body.email))?.id
         if (userId) {
           await AuthService.deleteAllUserSessions(userId)
           await req.asyncLogin({ id: userId, isAdmin: false })
