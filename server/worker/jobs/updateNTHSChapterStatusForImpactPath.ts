@@ -124,7 +124,7 @@ export default async function (job: Job<UpdateNTHSChapterStatusJobData>) {
     }
     const chapterName = nthsChapter.name
     const emailRecipients = await getChapterAdminsContactInfo(nthsGroupId)
-    await MailService.sendNTHSChapterOfficialStatusNotification(
+    await MailService.sendNTHSChapterImpactPathOfficialStatusNotification(
       emailRecipients,
       chapterName
     )

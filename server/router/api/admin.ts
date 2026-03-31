@@ -1,6 +1,5 @@
 import multer from 'multer'
 import { Router } from 'express'
-import timeout from 'connect-timeout'
 import { authPassport } from '../../utils/auth-utils'
 import { resError } from '../res-error'
 import { readCsvFromBuffer } from '../../utils/file-utils'
@@ -12,6 +11,7 @@ import {
   rosterPartnerStudents,
 } from '../../services/UserCreationService'
 import {
+  asArray,
   asBoolean,
   asNumber,
   asOptional,
@@ -137,6 +137,19 @@ export function routeAdmin(apiRouter: Router): void {
           `Invalid NTHS Candidate status: ${status}. must be: 'applied', 'denied', or 'approved'`
         )
       }
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
+  router.post('/nths/school-affiliation', async function (req, res) {
+    try {
+      const groupIds = asArray(asString)(req.body.chapterIds)
+      if (!groupIds.length) {
+        throw new InputError('No chapter IDs provided')
+      }
+      await NTHSGroupsService.makeChaptersSchoolOfficial(groupIds)
+      res.status(201).send()
     } catch (err) {
       resError(res, err)
     }

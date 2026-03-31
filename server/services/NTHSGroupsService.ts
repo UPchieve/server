@@ -1,5 +1,6 @@
 import { Ulid, Uuid } from '../models/pgUtils'
 import * as NTHSGroupsRepo from '../models/NTHSGroups'
+import { sendNTHSChapterSchoolAffiliationApprovedNotification } from './MailService'
 import {
   GetGroupMembersOptions,
   NTHS_ACTIONS_TO_SCHOOL_AFFILIATION_STATUS_MAPPING,
@@ -134,6 +135,7 @@ export async function getNTHSGroupAdminsContactInfo(
     nthsGroupId: Ulid
     firstName: string
     email: string
+    chapterName: string
   }[]
 > {
   return await NTHSGroupsRepo.getGroupAdminsContactInfo(groupId, tc)
@@ -316,7 +318,7 @@ export async function addSchoolToSchoolAffiliation(
   return await NTHSGroupsRepo.addSchoolToSchoolAffiliation(args, tc)
 }
 
-export async function submitSchoolAffilaiton({
+export async function submitSchoolAffiliation({
   nthsGroupId,
   schoolId,
   firstName,
@@ -482,4 +484,36 @@ export async function createCandidateApplication({
   }
 
   return application
+}
+
+export async function makeChaptersSchoolOfficial(groupIds: Ulid[]) {
+  for (const id of groupIds) {
+    await makeChapterSchoolOfficial(id)
+  }
+}
+
+async function makeChapterSchoolOfficial(groupId: Ulid) {
+  await runInTransaction(async (tc) => {
+    await NTHSGroupsRepo.updateSchoolAffiliationStatus(
+      'AFFILIATED',
+      groupId,
+      tc
+    )
+    const chapterAdmins = await getNTHSGroupAdminsContactInfo(groupId, tc)
+    const chapterAdvisors = await NTHSGroupsRepo.getAdvisorContactInfo(
+      groupId,
+      tc
+    )
+
+    if (!chapterAdmins.length || !chapterAdvisors?.length) {
+      throw new Error(
+        `Could not mark NTHS chapter ${groupId} as official: Missing chapter presidents or advisors`
+      )
+    }
+    const recipients = [...chapterAdmins, ...chapterAdvisors]
+    await sendNTHSChapterSchoolAffiliationApprovedNotification(
+      recipients,
+      recipients[0].chapterName
+    )
+  })
 }
