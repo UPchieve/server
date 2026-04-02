@@ -1,4 +1,4 @@
-\restrict 9gFSpHHqGhQgH0VnMWD2SdZqAA1hvVoinAA8xPLL1dyiSxQocolKfhGZzuECPBp
+\restrict GR61LryodSSEmuaoyPyZdGMkFoZx7C6qg58Ac8Wq4OXLSG63xskWs1H1T092uwO
 
 -- Dumped from database version 14.21 (Debian 14.21-1.pgdg13+1)
 -- Dumped by pg_dump version 14.19 (Homebrew)
@@ -3069,7 +3069,8 @@ CREATE TABLE upchieve.users (
     ban_type upchieve.ban_types,
     preferred_language_code text,
     preferred_language text,
-    deleted boolean DEFAULT false
+    deleted boolean DEFAULT false,
+    CONSTRAINT users_email_proxy_email_differ CHECK ((lower(email) <> lower(proxy_email)))
 );
 
 
@@ -7357,7 +7358,7 @@ ALTER TABLE ONLY upchieve.volunteer_references
 -- PostgreSQL database dump complete
 --
 
-\unrestrict 9gFSpHHqGhQgH0VnMWD2SdZqAA1hvVoinAA8xPLL1dyiSxQocolKfhGZzuECPBp
+\unrestrict GR61LryodSSEmuaoyPyZdGMkFoZx7C6qg58Ac8Wq4OXLSG63xskWs1H1T092uwO
 
 
 --
@@ -7633,4 +7634,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260303184811'),
     ('20260305204138'),
     ('20260309135111'),
-    ('20260310141305');
+    ('20260310141305'),
+    ('20260326212800');

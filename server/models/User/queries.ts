@@ -127,13 +127,13 @@ export async function getUserVerificationByEmail(email: string) {
 
 export async function getUserIdByEmail(
   email: string
-): Promise<Ulid | undefined> {
+): Promise<{ id: Ulid; email: string } | undefined> {
   try {
     const result = await pgQueries.getUserIdByEmail.run(
       { email: email.toLowerCase() },
       getClient()
     )
-    if (result.length) return makeRequired(result[0]).id
+    if (result.length) return makeRequired(result[0])
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -870,6 +870,20 @@ export async function shadowBanStudent(
 ): Promise<void> {
   try {
     await pgQueries.shadowBanStudent.run({ studentId }, tc)
+  } catch (err) {
+    throw new RepoUpdateError(err)
+  }
+}
+
+export async function deleteProxyEmailsIdenticalToEmails(
+  tc: TransactionClient = getClient()
+): Promise<number> {
+  try {
+    const results = await pgQueries.deleteProxyEmailsIdenticalToEmails.run(
+      undefined,
+      tc
+    )
+    return results.length
   } catch (err) {
     throw new RepoUpdateError(err)
   }

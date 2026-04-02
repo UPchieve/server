@@ -40,6 +40,22 @@ async function trackLoggedIn(userId: Ulid, ipAddress?: string) {
 export function routes(app: Express) {
   const router = Router()
 
+  router.route('/status').get(function (req, res) {
+    if (!req.user) {
+      return res.json({ authenticated: false })
+    }
+    if (req.user.isAdmin) {
+      return res.json({
+        authenticated: true,
+        isAdmin: true,
+        totpVerified: authPassport.isTotpSessionValid(
+          req.session.totpVerifiedAt
+        ),
+      })
+    }
+    return res.json({ authenticated: true })
+  })
+
   router.route('/logout').get(async function (req, res) {
     await req.asyncLogout()
 
@@ -446,7 +462,7 @@ export function routes(app: Express) {
       try {
         const data = asResetConfirmData(req.body)
         await AuthService.confirmReset(data)
-        const userId = await getUserIdByEmail(req.body.email)
+        const userId = (await getUserIdByEmail(req.body.email))?.id
         if (userId) {
           await AuthService.deleteAllUserSessions(userId)
           await req.asyncLogin({ id: userId, isAdmin: false })

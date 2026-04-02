@@ -1,7 +1,7 @@
 import * as UserRepo from '../../models/User/queries'
 import { mocked } from 'jest-mock'
 import * as VerificationService from '../../services/VerificationService'
-import { VERIFICATION_METHOD } from '../../constants'
+import { VERIFICATION_METHOD, VERIFICATION_TYPE } from '../../constants'
 import * as TwilioService from '../../services/TwilioService'
 import * as MailService from '../../services/MailService'
 import * as UserService from '../../services/UserService'
@@ -14,6 +14,8 @@ import {
 } from '../../models/Errors'
 import { buildUserContactInfo } from '../mocks/generate'
 import { RoleContext } from '../../services/UserRolesService'
+import { initiateVerification } from '../../services/VerificationService'
+import { faker } from '@faker-js/faker'
 
 jest.mock('../../models/User/queries')
 jest.mock('../../services/TwilioService')
@@ -33,7 +35,7 @@ describe('VerificationService', () => {
   beforeEach(async () => {
     jest.resetAllMocks()
     const userId = '123'
-    mockedUserRepo.getUserIdByEmail.mockResolvedValue(userId)
+    mockedUserRepo.getUserIdByEmail.mockResolvedValue({ id: userId, email: '' })
     mockedUserRepo.getUserIdByPhone.mockResolvedValue(userId)
   })
 
@@ -159,6 +161,28 @@ describe('VerificationService', () => {
           status: expectedErr.status,
         }),
         'Failed to send Twilio verification code.'
+      )
+    })
+
+    it('Should throw an InputError if doing proxy email verification and the proxy email is the same as the regular email', async () => {
+      const email = faker.internet.email()
+      const userId = '123'
+      mockedUserRepo.getUserIdByEmail.mockResolvedValue({
+        userId,
+        email: email.toUpperCase(),
+      })
+      await expect(() =>
+        initiateVerification({
+          userId,
+          sendTo: email,
+          verificationMethod: VERIFICATION_METHOD.EMAIL,
+          verificationType: VERIFICATION_TYPE.EMAIL_FOR_PROXY_EMAIL,
+          firstName: 'Tina',
+        })
+      ).rejects.toThrow(
+        new InputError(
+          'Your secondary email cannot be the same as your primary email'
+        )
       )
     })
 

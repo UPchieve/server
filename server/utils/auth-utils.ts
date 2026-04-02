@@ -29,6 +29,7 @@ import {
   VolunteerPartnerOrgForRegistration,
 } from '../models/VolunteerPartnerOrg'
 import logger from '../logger'
+import { hoursInMs } from './time-utils'
 // Custom errors
 export class RegistrationError extends CustomError {}
 export class ResetError extends CustomError {}
@@ -446,24 +447,21 @@ function isAdmin(req: Request, res: Response, next: NextFunction) {
   return res.status(403).json({ err: 'Unauthorized' })
 }
 
-function isWorker(req: Request, res: Response, next: NextFunction) {
-  const token = getApiKeyFromHeader(req)
-  if (token && token === config.subwayApiCredentials) {
+function hasSecondFactor(req: Request, res: Response, next: NextFunction) {
+  const verifiedAt = req.session.totpVerifiedAt
+  if (isTotpSessionValid(verifiedAt)) {
     return next()
+  } else if (req.user && req.user.isAdmin) {
+    return res.status(403).json({ redirect: '/totp' })
   }
-  return res.status(401).json({ err: 'Not authenticated' })
+  return res.status(403).json({ err: 'Unauthorized' })
 }
 
-function bypassMiddlewareForWebhooks(
-  fn: (req: Request, res: Response, next: NextFunction) => void
-) {
-  return function (req: Request, res: Response, next: NextFunction) {
-    if (req.path.includes('/webhooks/') && req.method === 'POST') {
-      next()
-    } else {
-      fn(req, res, next)
-    }
-  }
+const TOTP_SESSION_DURATION_MS = hoursInMs(24)
+function isTotpSessionValid(totpVerifiedAt?: number): boolean {
+  return (
+    !!totpVerifiedAt && Date.now() - totpVerifiedAt < TOTP_SESSION_DURATION_MS
+  )
 }
 
 function isAuthenticatedRedirect(
@@ -503,9 +501,8 @@ export const authPassport = {
   setupPassport,
   isAuthenticated,
   isAdmin,
-  isWorker,
+  isTotpSessionValid,
   isAuthenticatedRedirect,
   isAdminRedirect,
   checkRecaptcha,
-  bypassMiddlewareForWebhooks,
 }
