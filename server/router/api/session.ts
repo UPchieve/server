@@ -49,9 +49,7 @@ export function routeSession(router: Router) {
         ...sessionData,
         presessionSurvey,
       })
-      const currentSession = await SessionService.getCurrentSessionPublic(
-        session.id
-      )
+      const currentSession = SessionService.toCurrentSessionPublic(session)
       const isZwibserveSession = await SessionService.isZwibserveSession(
         session.id
       )
@@ -76,9 +74,7 @@ export function routeSession(router: Router) {
         userAgent: req.get('User-Agent'),
         joinedFrom,
       })
-      const currentSession = await SessionService.getCurrentSessionPublic(
-        session.id
-      )
+      const currentSession = SessionService.toCurrentSessionPublic(session)
       const isZwibserveSession = await SessionService.isZwibserveSession(
         session.id
       )
@@ -103,9 +99,8 @@ export function routeSession(router: Router) {
           ip: req.ip,
         }
       )
-      const currentSession = await SessionService.getCurrentSessionPublic(
-        endedSession.id
-      )
+      const currentSession = SessionService.toCurrentSessionPublic(endedSession)
+      await SessionService.addDocEditorVersionTo(currentSession)
       res.json({ sessionId: req.body.sessionId, session: currentSession })
     } catch (error) {
       resError(res, error)
@@ -136,7 +131,7 @@ export function routeSession(router: Router) {
       if (!session) {
         res.json(null)
       } else {
-        const currentSession = SessionService.mapToCurrentSessionPublic(session)
+        const currentSession = SessionService.toCurrentSessionPublic(session)
         res.json({
           sessionId: currentSession.id,
           data: currentSession,

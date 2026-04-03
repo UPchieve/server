@@ -60,14 +60,30 @@ SELECT
     u.id AS user_id,
     u.first_name,
     u.email,
+    g.name AS chapter_name,
     :groupId!::uuid AS nths_group_id
 FROM
     nths_group_member_roles mr
     JOIN nths_group_roles roles ON roles.id = mr.role_id
+    JOIN nths_groups g ON g.id = mr.nths_group_id
     JOIN users u ON U.id = mr.user_id
 WHERE
     mr.nths_group_id = :groupId!::uuid
     AND roles.name = 'admin';
+
+
+/* @name getAdvisorContactInfo */
+SELECT
+    first_name,
+    last_name,
+    email,
+    nths_group_id,
+    g.name AS chapter_name
+FROM
+    nths_advisors
+    JOIN nths_groups g ON g.id = nths_advisors.nths_group_id
+WHERE
+    nths_group_id = :groupId!;
 
 
 /* @name joinGroupById */
@@ -313,4 +329,23 @@ FROM
     LEFT JOIN nths_chapter_statuses chapter_statuses ON chapter_statuses.id = chapter_status.nths_chapter_status_id
     LEFT JOIN nths_group_school_affiliation school_aff ON school_aff.nths_group_id = groups.id
     LEFT JOIN nths_school_affiliation_statuses school_aff_statuses ON school_aff_statuses.id = school_aff.nths_school_affiliation_status_id;
+
+
+/* @name latestCandidateApplicationStatus */
+SELECT
+    status
+FROM
+    nths_candidate_applications
+WHERE
+    user_id = :userId!
+ORDER BY
+    created_at DESC
+LIMIT 1;
+
+
+/* @name createCandidateApplication */
+INSERT INTO nths_candidate_applications (user_id, status, denied_notes)
+    VALUES (:userId!, :status!, :deniedNotes)
+RETURNING
+    *;
 

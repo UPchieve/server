@@ -108,7 +108,10 @@ describe(ELIGIBILITY_CHECK_PATH, () => {
       referredBy,
     }
 
-    mockedUserRepo.getUserIdByEmail.mockResolvedValueOnce(student.id) // email belongs to user
+    mockedUserRepo.getUserIdByEmail.mockResolvedValueOnce({
+      id: student.id,
+      email: '',
+    }) // email belongs to user
 
     const response = await EligibilityService.checkEligibility(ip, payload)
 

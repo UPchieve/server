@@ -310,13 +310,16 @@ describe('Test simple routes hit AuthService', () => {
     const userId = 'test-user-id-123'
     const payload = {
       email: userEmail,
-      password: 'Password123!',
-      newpassword: 'Password123!',
-      token: '0123456789abcdef0123456789abcdef',
+      password: 'Password123!', // pragma: allowlist secret
+      newpassword: 'Password123!', // pragma: allowlist secret
+      token: '0123456789abcdef0123456789abcdef', // pragma: allowlist secret
     }
 
     mockedAuthService.confirmReset.mockResolvedValueOnce(undefined)
-    mockedUserQueries.getUserIdByEmail.mockResolvedValueOnce(userId)
+    mockedUserQueries.getUserIdByEmail.mockResolvedValueOnce({
+      id: userId,
+      email: '',
+    })
     mockedAuthService.deleteAllUserSessions.mockResolvedValueOnce()
 
     const response = await sendPost('/reset/confirm', payload)

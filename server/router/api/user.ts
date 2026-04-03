@@ -185,8 +185,12 @@ export function routeUser(router: Router): void {
       }
 
       try {
-        await VolunteerService.addBackgroundInfo(user.id, update, ip)
-        res.sendStatus(200)
+        const { wasRemovedFromNTHS } = await VolunteerService.addBackgroundInfo(
+          user.id,
+          update,
+          ip
+        )
+        res.json({ wasRemovedFromNTHS })
       } catch (error) {
         resError(res, error)
       }
@@ -213,7 +217,7 @@ export function routeUser(router: Router): void {
     async function (req, res) {
       const { userEmail } = req.params
       try {
-        const userId = await getUserIdByEmail(userEmail)
+        const userId = (await getUserIdByEmail(userEmail))?.id
         res.json({ userId: userId })
       } catch (err) {
         resError(res, err)

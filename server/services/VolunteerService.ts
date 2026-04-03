@@ -235,11 +235,14 @@ export async function addBackgroundInfo(
   volunteerId: Uuid,
   update: Omit<VolunteerRepo.BackgroundInfo, 'approved'>,
   ip?: string
-): Promise<void> {
+): Promise<{
+  wasRemovedFromNTHS: boolean
+}> {
   const volunteer = await VolunteerRepo.getVolunteerContactInfoById(volunteerId)
   if (!volunteer) throw new Error('Volunteer for background info not found')
   const volunteerPartnerOrg = volunteer.volunteerPartnerOrg
   let approved: boolean | undefined
+  let wasRemovedFromNTHS = false
 
   await runInTransaction(async (tc) => {
     if (volunteerPartnerOrg) {
@@ -300,6 +303,7 @@ export async function addBackgroundInfo(
         update.occupation &&
         update.occupation.includes(VolunteerOccupations.HIGH_SCHOOL_STUDENT)
       if (!isInHighSchool) {
+        wasRemovedFromNTHS = true
         await NTHSService.deactivateNonHighSchoolMember(
           volunteerId,
           nthsGroups,
@@ -308,6 +312,7 @@ export async function addBackgroundInfo(
       }
     }
   })
+  return { wasRemovedFromNTHS }
 }
 
 /**

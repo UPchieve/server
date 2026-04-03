@@ -1,4 +1,4 @@
-import { Uuid } from '../models/pgUtils'
+import { Uuid } from '../types/shared'
 
 export type SessionUserInfoPublic = {
   // TODO: migrate all uses of `_id` to `id`
@@ -7,7 +7,6 @@ export type SessionUserInfoPublic = {
   // TODO: remove `firstname` in favor of `firstName`. The frontend must be refactored first
   firstname: string
   firstName: string
-  gradeLevel?: number
 }
 
 export type SessionMessagePublic = {

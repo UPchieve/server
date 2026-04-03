@@ -33,7 +33,6 @@ import {
   UserSessionsWithMessages,
   getUserSessionsByUserId,
   getMessagesForFrontend,
-  MessageForFrontend,
   UserSessionsFilter,
   getSessionById,
 } from '../../models/Session'
@@ -76,6 +75,7 @@ import {
   runWithModelObservation,
   runWithTrace,
 } from '../AiObservabilityService'
+import type { MessageForFrontend } from '../../types/session'
 
 function formatTranscriptMessage(
   message: MessageForFrontend,

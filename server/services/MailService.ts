@@ -1552,16 +1552,65 @@ export async function sendStudentFavoritedVolunteerEmail(
   )
 }
 
-export async function sendNTHSChapterOfficialStatusNotification(
+export async function sendNTHSCandidateApplicationApproved(
+  recipients: { firstName: string; email: string }[]
+): Promise<void> {
+  for (const recipient of recipients) {
+    await sendEmail(
+      recipient.email,
+      config.mail.senders.nths,
+      'UPchieve',
+      config.sendgrid.nthsCandidateApplicationApproved,
+      {
+        firstName: recipient.firstName,
+      }
+    )
+  }
+}
+export async function sendNTHSCandidateApplicationDenied(
+  recipients: { firstName: string; email: string }[]
+): Promise<void> {
+  for (const recipient of recipients) {
+    await sendEmail(
+      recipient.email,
+      config.mail.senders.nths,
+      'UPchieve',
+      config.sendgrid.nthsCandidateApplicationDenied,
+      {
+        firstName: recipient.firstName,
+      }
+    )
+  }
+}
+
+export async function sendNTHSChapterImpactPathOfficialStatusNotification(
   recipients: { firstName: string; email: string }[],
   chapterName: string
 ): Promise<void> {
   for (const recipient of recipients) {
     await sendEmail(
       recipient.email,
-      config.mail.senders.noreply,
+      config.mail.senders.nths,
       'UPchieve',
       config.sendgrid.nthsChapterBecameOfficialImpactPathEmail,
+      {
+        firstName: recipient.firstName,
+        chapterName,
+      }
+    )
+  }
+}
+
+export async function sendNTHSChapterSchoolAffiliationApprovedNotification(
+  recipients: { firstName: string; email: string }[],
+  chapterName: string
+) {
+  for (const recipient of recipients) {
+    await sendEmail(
+      recipient.email,
+      config.mail.senders.nths,
+      'UPchieve',
+      config.sendgrid.nthsSchoolOfficialNotice,
       {
         firstName: recipient.firstName,
         chapterName,
@@ -1577,7 +1626,7 @@ export async function sendNTHSChapterAdminsMemberDeactivationNotice(
   for (const recipient of recipients) {
     await sendEmail(
       recipient.email,
-      config.mail.senders.noreply,
+      config.mail.senders.nths,
       'UPchieve',
       config.sendgrid.nthsMemberDeactivationNoticeEmail,
       {

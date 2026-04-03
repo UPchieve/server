@@ -32,7 +32,6 @@ import { routeRewards } from './rewards'
 import { sendTextMessage } from '../../services/TwilioService'
 import { asString } from '../../utils/type-utils'
 import { routeNTHSGroups } from './nths-groups'
-import { routeLiveMedia } from './liveMedia'
 
 export function routes(app: Express, io: Server): void {
   const router: expressWs.Router = Router()
@@ -60,7 +59,6 @@ export function routes(app: Express, io: Server): void {
   routeAssignments(router)
   routeRewards(router)
   routeNTHSGroups(router)
-  routeLiveMedia(router)
 
   router.post('/send-referral-email', async function (req, res) {
     try {
@@ -112,9 +110,5 @@ export function routes(app: Express, io: Server): void {
 
   app.use(addLastActivity)
   app.use(addUserAction)
-  app.use(
-    '/api',
-    authPassport.bypassMiddlewareForWebhooks(authPassport.isAuthenticated),
-    router as Router
-  )
+  app.use('/api', authPassport.isAuthenticated, router)
 }

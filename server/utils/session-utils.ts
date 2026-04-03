@@ -4,7 +4,6 @@ import { CustomError } from 'ts-custom-error'
 import { TOOL_TYPES } from '../constants'
 import { DAYS, HOURS } from '../constants'
 import { getMessagesForFrontend, GetSessionByIdResult } from '../models/Session'
-import { MessageForFrontend } from '../models/Session'
 import {
   asBoolean,
   asCamelCaseString,
@@ -14,7 +13,7 @@ import {
   asOptional,
   asString,
 } from './type-utils'
-import config from '../config'
+import type { MessageForFrontend } from '../types/session'
 
 export class StartSessionError extends CustomError {}
 export class EndSessionError extends CustomError {}

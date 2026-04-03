@@ -1,17 +1,12 @@
 import { Ulid, Uuid } from '../models/pgUtils'
 import * as NTHSGroupsRepo from '../models/NTHSGroups'
-import config from '../config'
-import {
-  getClient,
-  getRoClient,
-  runInTransaction,
-  TransactionClient,
-} from '../db'
+import { sendNTHSChapterSchoolAffiliationApprovedNotification } from './MailService'
 import {
   GetGroupMembersOptions,
   NTHS_ACTIONS_TO_SCHOOL_AFFILIATION_STATUS_MAPPING,
   NTHSAction,
   NTHSActionName,
+  NTHSCandidateApplicationStatus,
   NTHSChapterStatus,
   NTHSChapterStatusName,
   NTHSGroup,
@@ -24,15 +19,31 @@ import {
   NTHSGroupWithMemberInfo,
   NTHSSchoolAffiliationStatusName,
 } from '../models/NTHSGroups'
+import {
+  getClient,
+  getRoClient,
+  runInTransaction,
+  TransactionClient,
+} from '../db'
 import generateAlphanumericOfLength from '../utils/generate-alphanumeric'
 import {
   AlreadyInNTHSGroupError,
   CannotRemoveSoleNTHSAdminError,
   NTHSGroupAffiliationExistsError,
+  NotAHighSchoolerNTHSJoinError,
 } from '../models/Errors'
 import logger from '../logger'
 import QueueService from './QueueService'
 import { Jobs } from '../worker/jobs'
+import {
+  sendNTHSCandidateApplicationApproved,
+  sendNTHSCandidateApplicationDenied,
+} from './MailService'
+import { getUserContactInfo } from './UserService'
+import {
+  getVolunteerOccupations,
+  VolunteerOccupations,
+} from '../models/Volunteer'
 
 export async function getGroups(userId: Ulid) {
   return await NTHSGroupsRepo.getGroupsByUser(userId)
@@ -124,6 +135,7 @@ export async function getNTHSGroupAdminsContactInfo(
     nthsGroupId: Ulid
     firstName: string
     email: string
+    chapterName: string
   }[]
 > {
   return await NTHSGroupsRepo.getGroupAdminsContactInfo(groupId, tc)
@@ -136,6 +148,14 @@ export async function joinGroupAsMemberByGroupId(
   tc: TransactionClient = getClient()
 ) {
   return await runInTransaction(async (client: TransactionClient) => {
+    const occupations = await getVolunteerOccupations(userId, client)
+    if (
+      occupations.length &&
+      !occupations.includes(VolunteerOccupations.HIGH_SCHOOL_STUDENT)
+    ) {
+      throw new NotAHighSchoolerNTHSJoinError()
+    }
+
     await NTHSGroupsRepo.joinGroupById(
       {
         userId,
@@ -298,7 +318,7 @@ export async function addSchoolToSchoolAffiliation(
   return await NTHSGroupsRepo.addSchoolToSchoolAffiliation(args, tc)
 }
 
-export async function submitSchoolAffilaiton({
+export async function submitSchoolAffiliation({
   nthsGroupId,
   schoolId,
   firstName,
@@ -417,4 +437,83 @@ export async function deactivateNonHighSchoolMember(
       'Failed to deactivate non-high school user from all NTHS chapters'
     )
   }
+}
+
+export async function getLatestCandidateApplicationStatus(
+  userId: Ulid
+): Promise<NTHSCandidateApplicationStatus> {
+  return NTHSGroupsRepo.getLatestCandidateApplicationStatus(userId)
+}
+
+export async function createCandidateApplication({
+  status,
+  userId,
+  deniedNotes,
+}: {
+  status: NTHSCandidateApplicationStatus
+  userId: Ulid
+  deniedNotes?: string
+}): Promise<{
+  id: number
+  userId: Ulid
+  status: NTHSCandidateApplicationStatus
+  createdAt: Date
+}> {
+  const application = await NTHSGroupsRepo.createCandidateApplication({
+    status,
+    userId,
+    deniedNotes,
+  })
+
+  if (application.status === NTHSCandidateApplicationStatus.approved) {
+    const contactInfo = await getUserContactInfo(application.userId)
+    if (contactInfo) {
+      await sendNTHSCandidateApplicationApproved([
+        { firstName: contactInfo.firstName, email: contactInfo.email },
+      ])
+    }
+  }
+
+  if (application.status === NTHSCandidateApplicationStatus.denied) {
+    const contactInfo = await getUserContactInfo(application.userId)
+    if (contactInfo) {
+      await sendNTHSCandidateApplicationDenied([
+        { firstName: contactInfo.firstName, email: contactInfo.email },
+      ])
+    }
+  }
+
+  return application
+}
+
+export async function makeChaptersSchoolOfficial(groupIds: Ulid[]) {
+  for (const id of groupIds) {
+    await makeChapterSchoolOfficial(id)
+  }
+}
+
+async function makeChapterSchoolOfficial(groupId: Ulid) {
+  await runInTransaction(async (tc) => {
+    await NTHSGroupsRepo.updateSchoolAffiliationStatus(
+      'AFFILIATED',
+      groupId,
+      tc
+    )
+    const chapterAdmins = await getNTHSGroupAdminsContactInfo(groupId, tc)
+    const chapterAdvisors = await NTHSGroupsRepo.getAdvisorContactInfo(
+      groupId,
+      tc
+    )
+
+    if (!chapterAdmins.length || !chapterAdvisors?.length) {
+      throw new Error(
+        `Could not mark NTHS chapter ${groupId} as official: Missing chapter presidents or advisors`
+      )
+    }
+    const recipients = [...chapterAdmins, ...chapterAdvisors]
+    await sendNTHSChapterSchoolAffiliationApprovedNotification(
+      recipients,
+      recipients[0].chapterName
+    )
+  })
 }
