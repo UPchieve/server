@@ -1,4 +1,4 @@
-\restrict GR61LryodSSEmuaoyPyZdGMkFoZx7C6qg58Ac8Wq4OXLSG63xskWs1H1T092uwO
+\restrict pXfW93c8g6JUemb3A7VpsOX9nnmGShbLYH4MBPhhVRidIg6j2caNMCoxIyPnUf2
 
 -- Dumped from database version 14.21 (Debian 14.21-1.pgdg13+1)
 -- Dumped by pg_dump version 14.19 (Homebrew)
@@ -5037,6 +5037,14 @@ ALTER TABLE ONLY upchieve.nths_groups
 
 
 --
+-- Name: users unique_proxy_email; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.users
+    ADD CONSTRAINT unique_proxy_email UNIQUE (proxy_email);
+
+
+--
 -- Name: nths_group_school_affiliation unique_school_id; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -5663,6 +5671,13 @@ CREATE INDEX user_actions_user_id ON upchieve.user_actions USING btree (user_id)
 --
 
 CREATE UNIQUE INDEX users_lower_case_email_key ON upchieve.users USING btree (lower(email));
+
+
+--
+-- Name: users_lowercase_proxy_email; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE UNIQUE INDEX users_lowercase_proxy_email ON upchieve.users USING btree (lower(proxy_email));
 
 
 --
@@ -7358,7 +7373,7 @@ ALTER TABLE ONLY upchieve.volunteer_references
 -- PostgreSQL database dump complete
 --
 
-\unrestrict GR61LryodSSEmuaoyPyZdGMkFoZx7C6qg58Ac8Wq4OXLSG63xskWs1H1T092uwO
+\unrestrict pXfW93c8g6JUemb3A7VpsOX9nnmGShbLYH4MBPhhVRidIg6j2caNMCoxIyPnUf2
 
 
 --
@@ -7635,4 +7650,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260305204138'),
     ('20260309135111'),
     ('20260310141305'),
-    ('20260326212800');
+    ('20260326212800'),
+    ('20260402204418');
