@@ -386,9 +386,9 @@ export async function updateSessionHasWhiteboardDoc(
 }
 
 export async function updateSessionToEnd(
-  sessionId: Ulid,
+  sessionId: Uuid,
   endedAt: Date,
-  endedBy: Ulid | null,
+  endedBy: Uuid | null,
   tc: TransactionClient = getClient()
 ): Promise<CurrentSession> {
   try {
@@ -401,6 +401,8 @@ export async function updateSessionToEnd(
         'Failure in updateSessionToEnd: Did not get back updated session'
       )
 
+    // TODO: Remove this once the frontend no longer expects a session
+    // from the response
     const session = await getCurrentSessionBySessionId(updated.id, tc)
     if (!session)
       throw new Error(
