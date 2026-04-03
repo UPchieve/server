@@ -48,7 +48,7 @@ async function handleUser(socket: SocketUser, user: UserContactInfo) {
   if (latestSession && !latestSession.endedAt) {
     socket.emit(
       'session-change',
-      SessionService.mapToCurrentSessionPublic(latestSession)
+      SessionService.toCurrentSessionPublic(latestSession)
     )
   }
 

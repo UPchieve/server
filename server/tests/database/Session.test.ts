@@ -32,6 +32,10 @@ describe('Session repo', () => {
   const studentId = '01919662-885c-d39a-1749-5aaf18cf5d3b'
   const volunteerId = '01919662-8804-8772-ecf7-b08dfa28c6e4'
 
+  beforeAll(async () => {
+    await dbClient.query('REFRESH MATERIALIZED VIEW current_grade_levels_mview')
+  })
+
   describe('Session history', () => {
     describe('getTotalSessionHistory', () => {
       it('Reports the correct number of total sessions for the user', async () => {

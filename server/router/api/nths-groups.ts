@@ -30,7 +30,11 @@ export function routeNTHSGroups(router: Router): void {
     try {
       const user = extractUser(req)
       const groups = await NTHSGroupsService.getGroups(user.id)
-      res.json({ groups })
+      const candidateApplicationStatus =
+        groups.length === 0
+          ? await NTHSGroupsService.getLatestCandidateApplicationStatus(user.id)
+          : undefined
+      res.json({ groups, candidateApplicationStatus })
     } catch (error) {
       resError(res, error)
     }
@@ -154,7 +158,7 @@ export function routeNTHSGroups(router: Router): void {
           phoneExtension,
           title,
         } = req.body
-        const result = await NTHSGroupsService.submitSchoolAffilaiton({
+        const result = await NTHSGroupsService.submitSchoolAffiliation({
           nthsGroupId,
           schoolId,
           firstName,

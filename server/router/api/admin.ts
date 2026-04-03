@@ -1,6 +1,5 @@
 import multer from 'multer'
 import { Router } from 'express'
-import timeout from 'connect-timeout'
 import { authPassport } from '../../utils/auth-utils'
 import { resError } from '../res-error'
 import { readCsvFromBuffer } from '../../utils/file-utils'
@@ -11,8 +10,17 @@ import {
   RosterStudentPayload,
   rosterPartnerStudents,
 } from '../../services/UserCreationService'
-import { asBoolean, asNumber, asString, asUlid } from '../../utils/type-utils'
-import { minutesInMs } from '../../utils/time-utils'
+import {
+  asArray,
+  asBoolean,
+  asNumber,
+  asOptional,
+  asString,
+  asUlid,
+} from '../../utils/type-utils'
+import * as NTHSGroupsService from '../../services/NTHSGroupsService'
+import { isValidStatus } from '../../models/NTHSGroups'
+import { InputError } from '../../models/Errors'
 
 export function routeAdmin(apiRouter: Router): void {
   const router = Router()
@@ -109,6 +117,41 @@ export function routeAdmin(apiRouter: Router): void {
       res.status(200).send()
     } catch (error) {
       resError(res, error)
+    }
+  })
+
+  router.post('/nths/candidate-applications', async function (req, res) {
+    try {
+      const status = asString(req.body.status)
+      const userId = asString(req.body.userId)
+      const deniedNotes = asOptional(asString)(req.body.deniedNotes)
+      if (isValidStatus(status)) {
+        const result = await NTHSGroupsService.createCandidateApplication({
+          status,
+          userId,
+          deniedNotes,
+        })
+        res.json(result)
+      } else {
+        throw new InputError(
+          `Invalid NTHS Candidate status: ${status}. must be: 'applied', 'denied', or 'approved'`
+        )
+      }
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
+  router.post('/nths/school-affiliation', async function (req, res) {
+    try {
+      const groupIds = asArray(asString)(req.body.chapterIds)
+      if (!groupIds.length) {
+        throw new InputError('No chapter IDs provided')
+      }
+      await NTHSGroupsService.makeChaptersSchoolOfficial(groupIds)
+      res.status(201).send()
+    } catch (err) {
+      resError(res, err)
     }
   })
 

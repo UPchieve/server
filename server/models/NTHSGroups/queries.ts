@@ -25,6 +25,7 @@ import type {
   NTHSChapterStatus,
   NTHSChapterStatusName,
   NTHSGroupChapterStatusInfo,
+  NTHSCandidateApplicationStatus,
 } from './types'
 import { camelCaseKeys } from '../../tests/db-utils'
 import logger from '../../logger'
@@ -120,6 +121,7 @@ export async function getGroupAdminsContactInfo(
     nthsGroupId: Ulid
     firstName: string
     email: string
+    chapterName: string
   }[]
 > {
   try {
@@ -133,6 +135,28 @@ export async function getGroupAdminsContactInfo(
       throw new Error(`Missing admins for NTHS group ${groupId}`)
     }
     return results.map((row) => makeRequired(row))
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getAdvisorContactInfo(
+  groupId: Ulid,
+  tc: TransactionClient = getRoClient()
+): Promise<
+  | {
+      firstName: string
+      email: string
+      nthsGroupId: Ulid
+      chapterName: string
+    }[]
+  | undefined
+> {
+  try {
+    const results = await pgQueries.getAdvisorContactInfo.run({ groupId }, tc)
+    if (results.length) {
+      return results.map((row) => makeRequired(row))
+    }
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -514,5 +538,52 @@ export async function getAllNTHSGroupsChapterStatus(
     })
   } catch (err) {
     throw new RepoReadError(err)
+  }
+}
+export async function getLatestCandidateApplicationStatus(
+  userId: Ulid,
+  tc: TransactionClient = getRoClient()
+) {
+  try {
+    const results = await pgQueries.latestCandidateApplicationStatus.run(
+      { userId },
+      tc
+    )
+    return results[0]?.status as NTHSCandidateApplicationStatus
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function createCandidateApplication(
+  {
+    status,
+    userId,
+    deniedNotes,
+  }: {
+    status: NTHSCandidateApplicationStatus
+    userId: Ulid
+    deniedNotes?: string
+  },
+  tc: TransactionClient = getClient()
+) {
+  try {
+    const results = await pgQueries.createCandidateApplication.run(
+      { status, userId, deniedNotes },
+      tc
+    )
+    return results.map(
+      (row) =>
+        makeSomeOptional(row, ['deniedNotes']) as {
+          createdAt: Date
+          deniedNotes: string | null
+          id: number
+          status: NTHSCandidateApplicationStatus
+          updatedAt: Date
+          userId: Ulid
+        }
+    )[0]
+  } catch (err) {
+    throw new RepoCreateError(err)
   }
 }

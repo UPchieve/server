@@ -106,7 +106,7 @@ describe('updateNTHSChapterStatusForImpactPath', () => {
       'OFFICIAL'
     )
     expect(
-      mockedMailService.sendNTHSChapterOfficialStatusNotification
+      mockedMailService.sendNTHSChapterImpactPathOfficialStatusNotification
     ).toHaveBeenCalled()
   })
 
@@ -151,7 +151,7 @@ describe('updateNTHSChapterStatusForImpactPath', () => {
       'PENDING'
     )
     expect(
-      mockedMailService.sendNTHSChapterOfficialStatusNotification
+      mockedMailService.sendNTHSChapterImpactPathOfficialStatusNotification
     ).not.toHaveBeenCalled()
   })
 
@@ -197,7 +197,7 @@ describe('updateNTHSChapterStatusForImpactPath', () => {
       'PENDING'
     )
     expect(
-      mockedMailService.sendNTHSChapterOfficialStatusNotification
+      mockedMailService.sendNTHSChapterImpactPathOfficialStatusNotification
     ).not.toHaveBeenCalled()
   })
 
@@ -250,7 +250,7 @@ describe('updateNTHSChapterStatusForImpactPath', () => {
       'PENDING'
     )
     expect(
-      mockedMailService.sendNTHSChapterOfficialStatusNotification
+      mockedMailService.sendNTHSChapterImpactPathOfficialStatusNotification
     ).not.toHaveBeenCalled()
   })
   it('Does not count sessions happening before the start date of the job or after the end date of the job', async () => {
@@ -294,7 +294,7 @@ describe('updateNTHSChapterStatusForImpactPath', () => {
       'PENDING'
     )
     expect(
-      mockedMailService.sendNTHSChapterOfficialStatusNotification
+      mockedMailService.sendNTHSChapterImpactPathOfficialStatusNotification
     ).not.toHaveBeenCalled()
   })
 })

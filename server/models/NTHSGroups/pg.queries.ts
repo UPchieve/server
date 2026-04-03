@@ -1,6 +1,8 @@
 /** Types generated for queries found in "server/models/NTHSGroups/nths_groups.sql" */
 import { PreparedQuery } from '@pgtyped/runtime';
 
+export type nths_candidate_application_status = 'applied' | 'approved' | 'denied';
+
 /** 'GetGroupsByUser' parameters type */
 export interface IGetGroupsByUserParams {
   userId: string;
@@ -171,6 +173,7 @@ export interface IGetNthsGroupAdminsContactInfoParams {
 
 /** 'GetNthsGroupAdminsContactInfo' return type */
 export interface IGetNthsGroupAdminsContactInfoResult {
+  chapterName: string;
   email: string;
   firstName: string;
   nthsGroupId: string | null;
@@ -183,7 +186,7 @@ export interface IGetNthsGroupAdminsContactInfoQuery {
   result: IGetNthsGroupAdminsContactInfoResult;
 }
 
-const getNthsGroupAdminsContactInfoIR: any = {"usedParamSet":{"groupId":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":63,"b":71},{"a":256,"b":264}]}],"statement":"SELECT\n    u.id AS user_id,\n    u.first_name,\n    u.email,\n    :groupId!::uuid AS nths_group_id\nFROM\n    nths_group_member_roles mr\n    JOIN nths_group_roles roles ON roles.id = mr.role_id\n    JOIN users u ON U.id = mr.user_id\nWHERE\n    mr.nths_group_id = :groupId!::uuid\n    AND roles.name = 'admin'"};
+const getNthsGroupAdminsContactInfoIR: any = {"usedParamSet":{"groupId":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":91,"b":99},{"a":334,"b":342}]}],"statement":"SELECT\n    u.id AS user_id,\n    u.first_name,\n    u.email,\n    g.name AS chapter_name,\n    :groupId!::uuid AS nths_group_id\nFROM\n    nths_group_member_roles mr\n    JOIN nths_group_roles roles ON roles.id = mr.role_id\n    JOIN nths_groups g ON g.id = mr.nths_group_id\n    JOIN users u ON U.id = mr.user_id\nWHERE\n    mr.nths_group_id = :groupId!::uuid\n    AND roles.name = 'admin'"};
 
 /**
  * Query generated from SQL:
@@ -192,10 +195,12 @@ const getNthsGroupAdminsContactInfoIR: any = {"usedParamSet":{"groupId":true},"p
  *     u.id AS user_id,
  *     u.first_name,
  *     u.email,
+ *     g.name AS chapter_name,
  *     :groupId!::uuid AS nths_group_id
  * FROM
  *     nths_group_member_roles mr
  *     JOIN nths_group_roles roles ON roles.id = mr.role_id
+ *     JOIN nths_groups g ON g.id = mr.nths_group_id
  *     JOIN users u ON U.id = mr.user_id
  * WHERE
  *     mr.nths_group_id = :groupId!::uuid
@@ -203,6 +208,47 @@ const getNthsGroupAdminsContactInfoIR: any = {"usedParamSet":{"groupId":true},"p
  * ```
  */
 export const getNthsGroupAdminsContactInfo = new PreparedQuery<IGetNthsGroupAdminsContactInfoParams,IGetNthsGroupAdminsContactInfoResult>(getNthsGroupAdminsContactInfoIR);
+
+
+/** 'GetAdvisorContactInfo' parameters type */
+export interface IGetAdvisorContactInfoParams {
+  groupId: string;
+}
+
+/** 'GetAdvisorContactInfo' return type */
+export interface IGetAdvisorContactInfoResult {
+  chapterName: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  nthsGroupId: string;
+}
+
+/** 'GetAdvisorContactInfo' query type */
+export interface IGetAdvisorContactInfoQuery {
+  params: IGetAdvisorContactInfoParams;
+  result: IGetAdvisorContactInfoResult;
+}
+
+const getAdvisorContactInfoIR: any = {"usedParamSet":{"groupId":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":205,"b":213}]}],"statement":"SELECT\n    first_name,\n    last_name,\n    email,\n    nths_group_id,\n    g.name AS chapter_name\nFROM\n    nths_advisors\n    JOIN nths_groups g ON g.id = nths_advisors.nths_group_id\nWHERE\n    nths_group_id = :groupId!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     first_name,
+ *     last_name,
+ *     email,
+ *     nths_group_id,
+ *     g.name AS chapter_name
+ * FROM
+ *     nths_advisors
+ *     JOIN nths_groups g ON g.id = nths_advisors.nths_group_id
+ * WHERE
+ *     nths_group_id = :groupId!
+ * ```
+ */
+export const getAdvisorContactInfo = new PreparedQuery<IGetAdvisorContactInfoParams,IGetAdvisorContactInfoResult>(getAdvisorContactInfoIR);
 
 
 /** 'JoinGroupById' parameters type */
@@ -945,5 +991,77 @@ const getAllNthsGroupsWithStatusIR: any = {"usedParamSet":{},"params":[],"statem
  * ```
  */
 export const getAllNthsGroupsWithStatus = new PreparedQuery<IGetAllNthsGroupsWithStatusParams,IGetAllNthsGroupsWithStatusResult>(getAllNthsGroupsWithStatusIR);
+
+
+/** 'LatestCandidateApplicationStatus' parameters type */
+export interface ILatestCandidateApplicationStatusParams {
+  userId: string;
+}
+
+/** 'LatestCandidateApplicationStatus' return type */
+export interface ILatestCandidateApplicationStatusResult {
+  status: nths_candidate_application_status;
+}
+
+/** 'LatestCandidateApplicationStatus' query type */
+export interface ILatestCandidateApplicationStatusQuery {
+  params: ILatestCandidateApplicationStatusParams;
+  result: ILatestCandidateApplicationStatusResult;
+}
+
+const latestCandidateApplicationStatusIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":75,"b":82}]}],"statement":"SELECT\n    status\nFROM\n    nths_candidate_applications\nWHERE\n    user_id = :userId!\nORDER BY\n    created_at DESC\nLIMIT 1"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     status
+ * FROM
+ *     nths_candidate_applications
+ * WHERE
+ *     user_id = :userId!
+ * ORDER BY
+ *     created_at DESC
+ * LIMIT 1
+ * ```
+ */
+export const latestCandidateApplicationStatus = new PreparedQuery<ILatestCandidateApplicationStatusParams,ILatestCandidateApplicationStatusResult>(latestCandidateApplicationStatusIR);
+
+
+/** 'CreateCandidateApplication' parameters type */
+export interface ICreateCandidateApplicationParams {
+  deniedNotes?: string | null | void;
+  status: nths_candidate_application_status;
+  userId: string;
+}
+
+/** 'CreateCandidateApplication' return type */
+export interface ICreateCandidateApplicationResult {
+  createdAt: Date;
+  deniedNotes: string | null;
+  id: number;
+  status: nths_candidate_application_status;
+  updatedAt: Date;
+  userId: string;
+}
+
+/** 'CreateCandidateApplication' query type */
+export interface ICreateCandidateApplicationQuery {
+  params: ICreateCandidateApplicationParams;
+  result: ICreateCandidateApplicationResult;
+}
+
+const createCandidateApplicationIR: any = {"usedParamSet":{"userId":true,"status":true,"deniedNotes":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":84,"b":91}]},{"name":"status","required":true,"transform":{"type":"scalar"},"locs":[{"a":94,"b":101}]},{"name":"deniedNotes","required":false,"transform":{"type":"scalar"},"locs":[{"a":104,"b":115}]}],"statement":"INSERT INTO nths_candidate_applications (user_id, status, denied_notes)\n    VALUES (:userId!, :status!, :deniedNotes)\nRETURNING\n    *"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO nths_candidate_applications (user_id, status, denied_notes)
+ *     VALUES (:userId!, :status!, :deniedNotes)
+ * RETURNING
+ *     *
+ * ```
+ */
+export const createCandidateApplication = new PreparedQuery<ICreateCandidateApplicationParams,ICreateCandidateApplicationResult>(createCandidateApplicationIR);
 
 

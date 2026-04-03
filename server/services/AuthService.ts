@@ -93,7 +93,7 @@ export async function checkCredential(data: unknown): Promise<boolean> {
 }
 
 export async function checkUser(email: string) {
-  const user = await getUserIdByEmail(email)
+  const user = (await getUserIdByEmail(email))?.id
   if (user) {
     throw new LookupError('The email address you entered is already in use')
   }

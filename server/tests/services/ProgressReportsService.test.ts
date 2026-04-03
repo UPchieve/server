@@ -23,6 +23,7 @@ import logger, { logError } from '../../logger'
 import { EVENTS, PROGRESS_REPORT_JSON_INSTRUCTIONS } from '../../constants'
 import { invokeModel } from '../../services/OpenAIService'
 import * as sessionUtils from '../../utils/session-utils'
+import type { MessageForFrontend } from '../../types/session'
 
 jest.mock('../../services/OpenAIService', () => {
   return {
@@ -213,7 +214,7 @@ describe('saveProgressReport', () => {
 describe('getSessionsToAnalyzeForProgressReport', () => {
   function setupMocks(
     sessions: SessionRepo.UserSessions[],
-    messages: SessionRepo.MessageForFrontend[],
+    messages: MessageForFrontend[],
     error?: Error
   ) {
     mockedSessionRepo.getUserSessionsByUserId.mockResolvedValue(sessions)

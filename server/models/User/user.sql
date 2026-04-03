@@ -47,7 +47,8 @@ WHERE
 
 /* @name getUserIdByEmail */
 SELECT
-    id
+    id,
+    email
 FROM
     users
 WHERE
@@ -873,7 +874,8 @@ RETURNING
 UPDATE
     users
 SET
-    email = :userId!
+    email = :userId!,
+    phone = NULL
 WHERE
     id = :userId!;
 
@@ -885,4 +887,28 @@ FROM
     student_favorite_volunteers
 WHERE
     student_id = :userId!;
+
+
+/* @name shadowBanStudent */
+UPDATE
+    users
+SET
+    ban_type = 'shadow'
+WHERE
+    id = :studentId!;
+
+
+/* @name deleteProxyEmailsIdenticalToEmails */
+UPDATE
+    users
+SET
+    proxy_email = NULL,
+    updated_at = NOW()
+WHERE
+    lower(email) = lower(proxy_email)
+RETURNING
+    id,
+    email,
+    proxy_email,
+    updated_at;
 

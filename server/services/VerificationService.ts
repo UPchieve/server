@@ -118,7 +118,16 @@ export async function initiateVerification(data: unknown): Promise<void> {
       logger.warn(logData, 'Invalid email provided for verification.')
       throw new InputError('Must supply a valid email address')
     }
-    existingUserId = await getUserIdByEmail(sendTo)
+    const existingUser = await getUserIdByEmail(sendTo)
+    existingUserId = existingUser?.id
+    if (
+      verificationType === VERIFICATION_TYPE.EMAIL_FOR_PROXY_EMAIL &&
+      existingUser?.email.toLowerCase() === sendTo.toLowerCase()
+    ) {
+      throw new InputError(
+        'Your secondary email cannot be the same as your primary email'
+      )
+    }
 
     if (
       // TODO: Refactor so that we only need to check against EMAIL_FOR_SIGNUP

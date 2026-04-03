@@ -72,6 +72,8 @@ import spawnDeidentifyUsers from './spawn-deidentify-users'
 import updateNthsChapterStatusForImpactPath from './updateNTHSChapterStatusForImpactPath'
 import spawnUpdateNthsChapterStatusForImpactPath from './spawnUpdateNTHSChapterStatusForImpactPath'
 import notifyNTHSChapterAdminsOfDeactivatedUser from './notifyNTHSChapterAdminsOfDeactivatedUser'
+import executeModerationAction from './executeModerationAction'
+import deleteProxyEmailsIdenticalToEmails from './deleteProxyEmailsIdenticalToEmails'
 
 export enum Jobs {
   AddScheduledJobs = 'AddScheduledJobs',
@@ -128,6 +130,7 @@ export enum Jobs {
   EmailWeeklyHourSummary = 'EmailWeeklyHourSummary',
   EndStaleSessions = 'EndStaleSessions',
   EndUnmatchedSession = 'EndUnmatchedSession',
+  ExecuteModerationAction = 'ExecuteModerationAction',
   GenerateAndStoreWaitTimeHeatMap = 'GenerateAndStoreWaitTimeHeatMap',
   GenerateProgressReport = 'GenerateProgressReport',
   GenerateSessionSummary = 'GenerateSessionSummary',
@@ -159,6 +162,7 @@ export enum Jobs {
   UpdateNTHSChapterStatusForImpactPath = 'UpdateNTHSChapterStatusForImpactPath',
   SpawnUpdateNTHSChapterStatusForImpactPath = 'SpawnUpdateNTHSChapterStatusForImpactPath',
   NotifyNTHSChapterAdminsOfDeactivatedUser = 'NotifyNTHSChapterAdminsOfDeactivatedUser',
+  CleanUpProxyEmailsThatAreIdenticalToEmail = 'CleanUpProxyEmailsThatAreIdenticalToEmail',
 }
 
 // register new job processors here
@@ -373,6 +377,10 @@ const jobProcessors: JobProcessor[] = [
     processor: endUnmatchedSession,
   },
   {
+    name: Jobs.ExecuteModerationAction,
+    processor: executeModerationAction,
+  },
+  {
     name: Jobs.GenerateAndStoreWaitTimeHeatMap,
     processor: generateAndStoreWaitTimeHeatMap,
   },
@@ -492,6 +500,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.NotifyNTHSChapterAdminsOfDeactivatedUser,
     processor: notifyNTHSChapterAdminsOfDeactivatedUser,
+  },
+  {
+    name: Jobs.CleanUpProxyEmailsThatAreIdenticalToEmail,
+    processor: deleteProxyEmailsIdenticalToEmails,
   },
 ]
 

@@ -21,19 +21,19 @@ import type {
   TutorBotMessagePublic,
   TutorBotTranscriptPublic,
 } from '../contracts/tutor-bot'
-import {
+import type {
   AddMessageToConversationPayload,
   TutorBotTranscript,
-  TutorBotModelResponse,
   TutorBotGeneratedMessage,
   TutorBotMessage,
+  TutorBotAiResponse,
 } from '../types/tutor-bot'
 import { resize } from '../utils/image-utils'
 import {
   getCurrentSessionDocEditor,
   getDocEditorImages,
 } from './QuillDocService'
-import { getCurrentSessionPublic } from './SessionService'
+import { getSessionById } from './SessionService'
 import { isSubjectUsingDocumentEditor } from '../utils/session-utils'
 
 type EditorType = 'none' | 'quill'
@@ -122,7 +122,7 @@ export async function getOrCreateConversationBySessionId({
     const transcript = await getTutorBotTranscriptBySessionId(sessionId, tc)
     if (transcript) return transcript
 
-    const session = await SessionRepo.getSessionById(sessionId)
+    const session = await getSessionById(sessionId)
     const subjectId = session.subjectId
     const conversationId = await insertTutorBotConversation(
       {
@@ -234,9 +234,8 @@ export async function addMessageToConversation(
       })
     }
 
-    let session
-    // TODO: Change this into the non-public version
-    if (sessionId) session = await getCurrentSessionPublic(sessionId)
+    let session: SessionRepo.GetSessionByIdResult | undefined
+    if (sessionId) session = await getSessionById(sessionId)
     const editorContext = await getTutorBotContext({
       sessionId,
       toolType: session?.toolType,
@@ -340,7 +339,7 @@ async function getAwsBedRockResponse(
     input: promptData.prompt,
   })
 
-  let botResponse: TutorBotModelResponse | string
+  let botResponse: TutorBotAiResponse | string
 
   try {
     botResponse = await invokeModel({
