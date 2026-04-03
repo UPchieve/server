@@ -1,4 +1,4 @@
-import { Router, Send } from 'express'
+import { Router } from 'express'
 import * as TutorBotService from '../../services/TutorBotService'
 import { resError } from '../res-error'
 import {
@@ -8,30 +8,14 @@ import {
   asString,
 } from '../../utils/type-utils'
 import { InputError } from '../../models/Errors'
+import { ConversationPayload, MessagePayload } from '../../contracts/tutor-bot'
+import { TutorBotHumanSenderType } from '../../types/tutor-bot'
 
-type SenderUserType = 'student' | 'volunteer'
-
-interface MessagePayload {
-  userId: string
-  conversationId: string
-  message: string
-  senderUserType: SenderUserType
-  subjectName: string
-}
-
-interface ConversationPayload {
-  userId: string
-  message: string
-  senderUserType: SenderUserType
-  subjectId: number
-  sessionId?: string
-}
-
-function isSenderUserType(s: unknown): s is SenderUserType {
+function isSenderUserType(s: unknown): s is TutorBotHumanSenderType {
   return s === 'student' || s === 'volunteer'
 }
 
-function asSenderUserType(s: unknown, errMsg = ''): SenderUserType {
+function asSenderUserType(s: unknown, errMsg = ''): TutorBotHumanSenderType {
   if (isSenderUserType(s)) return s
   throw new InputError(`${errMsg} ${s} must be 'volunteer' or 'student'`)
 }
@@ -60,7 +44,9 @@ export function routeTutorBot(router: Router) {
         const botResponse = await TutorBotService.getTranscriptForConversation(
           req.params.conversationId
         )
-        return res.json(botResponse).status(200)
+        const transcript =
+          TutorBotService.toTutorBotTranscriptPublic(botResponse)
+        return res.status(200).json(transcript)
       } catch (err) {
         resError(res, err)
       }
@@ -76,51 +62,9 @@ export function routeTutorBot(router: Router) {
           userId: req.user?.id,
         })
         const botResponse = await TutorBotService.addMessageToConversation(data)
-        return res.json(botResponse).status(200)
-      } catch (err) {
-        resError(res, err)
-      }
-    }
-  )
-
-  router.patch(
-    '/tutor-bot/conversations/:conversationId',
-    async function (req, res) {
-      try {
-        await TutorBotService.updateTutorBotConversationSessionId(
-          req.params.conversationId,
-          req.body.sessionId
-        )
-        return res.sendStatus(204)
-      } catch (err) {
-        resError(res, err)
-      }
-    }
-  )
-
-  router.post('/tutor-bot/conversations', async function (req, res) {
-    try {
-      const data = conversationValidator({
-        ...req.body,
-        userId: req.user?.id,
-      })
-      const conversation =
-        await TutorBotService.createTutorBotConversation(data)
-      return res.json(conversation)
-    } catch (err) {
-      resError(res, err)
-    }
-  })
-
-  // TODO should probably just be a get to /tutor-bot/conversations
-  router.get(
-    '/tutor-bot/conversations/users/:userId',
-    async function (req, res) {
-      try {
-        const convos = await TutorBotService.getAllConversationsForUser(
-          req.params.userId
-        )
-        return res.json(convos)
+        const payload =
+          TutorBotService.toTutorBotAddMessageResponsePublic(botResponse)
+        return res.status(200).json(payload)
       } catch (err) {
         resError(res, err)
       }

@@ -1,100 +1,158 @@
-import { getClient, getRoClient, TransactionClient } from '../../db'
-import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
+import { getClient, TransactionClient } from '../../db'
+import { RepoCreateError, RepoReadError } from '../Errors'
+import * as pgQueries from './pg.queries'
+import { makeSomeOptional, makeRequired, getDbUlid } from '../pgUtils'
 import {
   InsertTutorBotConversationMessagePayload,
   InsertTutorBotConversationPayload,
-} from './types'
-import * as pgQueries from './pg.queries'
-import { makeSomeOptional, makeRequired, Ulid } from '../pgUtils'
-import { IUpdateTutorBotConversationSessionIdParams } from './pg.queries'
+  TutorBotMessage,
+  TutorBotSenderType,
+  TutorBotTranscript,
+  TutorBotConversation,
+} from '../../types/tutor-bot'
+import type { Uuid } from '../../types/shared'
 
-export async function getTutorBotConversationsByUserId(
-  userId: string,
-  client: TransactionClient = getRoClient()
-) {
-  try {
-    const results = await pgQueries.getTutorBotConversationsByUserId.run(
-      {
-        userId,
-      },
-      client
-    )
-    return results.map((row) => makeSomeOptional(row, ['sessionId']))
-  } catch (err) {
-    throw new RepoReadError(err)
+type TutorBotMessageRow = {
+  tutorBotConversationId: Uuid
+  userId: Uuid
+  createdAt: Date
+  senderUserType: TutorBotSenderType
+  message: string
+}
+
+function toTutorBotMessage(row: TutorBotMessageRow): TutorBotMessage {
+  return {
+    tutorBotConversationId: row.tutorBotConversationId,
+    userId: row.userId,
+    senderUserType: row.senderUserType,
+    message: row.message,
+    createdAt: row.createdAt,
+  }
+}
+
+type TutorBotConversationRow = {
+  id: Uuid
+  userId: Uuid
+  sessionId?: Uuid
+  subjectId: number
+  createdAt: Date
+}
+
+function toTutorBotConversation(
+  row: TutorBotConversationRow
+): TutorBotConversation {
+  return {
+    id: row.id,
+    userId: row.userId,
+    subjectId: row.subjectId,
+    sessionId: row.sessionId,
+    createdAt: row.createdAt,
   }
 }
 
 export async function getTutorBotConversationById(
-  conversationId: Ulid,
+  conversationId: Uuid,
   client: TransactionClient = getClient()
-) {
+): Promise<TutorBotConversation | undefined> {
   try {
-    const conversation = await pgQueries.getTutorBotConversationById.run(
+    const [row] = await pgQueries.getTutorBotConversationById.run(
       {
         conversationId,
       },
       client
     )
-    return makeSomeOptional(conversation[0], ['sessionId'])
+    return row
+      ? toTutorBotConversation(makeSomeOptional(row, ['sessionId']))
+      : undefined
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getTutorBotConversationBySessionId(
+  sessionId: Uuid,
+  client: TransactionClient = getClient()
+): Promise<TutorBotConversation | undefined> {
+  try {
+    const [row] = await pgQueries.getTutorBotConversationBySessionId.run(
+      {
+        sessionId,
+      },
+      client
+    )
+    return row
+      ? toTutorBotConversation(makeSomeOptional(row, ['sessionId']))
+      : undefined
   } catch (err) {
     throw new RepoReadError(err)
   }
 }
 
 export async function getTutorBotConversationMessagesById(
-  conversationId: string,
+  conversationId: Uuid,
   client: TransactionClient = getClient()
-) {
+): Promise<TutorBotMessage[]> {
   try {
-    const conversation = await pgQueries.getTutorBotConversationById.run(
+    const rows = await pgQueries.getTutorBotConversationMessagesById.run(
       {
         conversationId,
       },
       client
     )
-    const results = await pgQueries.getTutorBotConversationMessagesById.run(
-      {
-        conversationId,
-      },
+    return rows.map((row) => toTutorBotMessage(makeRequired(row)))
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getTutorBotTranscriptByConversationId(
+  conversationId: Uuid,
+  client: TransactionClient = getClient()
+): Promise<TutorBotTranscript | undefined> {
+  try {
+    const conversation = await getTutorBotConversationById(
+      conversationId,
       client
     )
-    const attrs = makeSomeOptional(conversation[0], ['sessionId'])
+    if (!conversation) return undefined
+
+    const messages = await getTutorBotConversationMessagesById(
+      conversationId,
+      client
+    )
+
     return {
-      subjectId: attrs.subjectId,
-      sessionId: attrs.sessionId,
-      messages: results.map(makeRequired),
+      conversationId: conversation.id,
+      subjectId: conversation.subjectId,
+      sessionId: conversation.sessionId,
+      messages,
     }
   } catch (err) {
     throw new RepoReadError(err)
   }
 }
-export async function getTutorBotConversationMessagesBySessionId(
-  sessionId: Ulid,
+
+export async function getTutorBotTranscriptBySessionId(
+  sessionId: Uuid,
   client: TransactionClient = getClient()
-) {
+): Promise<TutorBotTranscript | undefined> {
   try {
-    const [conversation] =
-      await pgQueries.getTutorBotConversationBySessionId.run(
-        {
-          sessionId,
-        },
-        client
-      )
-    if (conversation) {
-      const results = await pgQueries.getTutorBotConversationMessagesById.run(
-        {
-          conversationId: conversation.id,
-        },
-        client
-      )
-      const attrs = makeSomeOptional(conversation, ['sessionId'])
-      return {
-        conversationId: conversation.id,
-        subjectId: attrs.subjectId,
-        sessionId: attrs.sessionId,
-        messages: results.map(makeRequired),
-      }
+    const conversation = await getTutorBotConversationBySessionId(
+      sessionId,
+      client
+    )
+    if (!conversation) return undefined
+
+    const messages = await getTutorBotConversationMessagesById(
+      conversation.id,
+      client
+    )
+
+    return {
+      conversationId: conversation.id,
+      subjectId: conversation.subjectId,
+      sessionId: conversation.sessionId,
+      messages,
     }
   } catch (err) {
     throw new RepoReadError(err)
@@ -104,9 +162,13 @@ export async function getTutorBotConversationMessagesBySessionId(
 export async function insertTutorBotConversation(
   data: InsertTutorBotConversationPayload,
   client: TransactionClient = getClient()
-) {
+): Promise<Uuid> {
+  const input = {
+    ...data,
+    id: getDbUlid(),
+  }
   try {
-    const result = await pgQueries.insertTutorBotConversation.run(data, client)
+    const result = await pgQueries.insertTutorBotConversation.run(input, client)
     if (!result.length)
       throw new RepoCreateError('Failed to create conversation')
     return result[0].id
@@ -118,7 +180,7 @@ export async function insertTutorBotConversation(
 export async function insertTutorBotConversationMessage(
   data: InsertTutorBotConversationMessagePayload,
   client: TransactionClient = getClient()
-) {
+): Promise<TutorBotMessage> {
   try {
     const result = await pgQueries.insertTutorBotConversationMessage.run(
       {
@@ -126,23 +188,9 @@ export async function insertTutorBotConversationMessage(
       },
       client
     )
-    if (result.length) return makeRequired(result[0])
+    if (result.length) return toTutorBotMessage(makeRequired(result[0]))
     throw new RepoCreateError('Failed to insert tutor bot conversation message')
   } catch (err) {
     throw new RepoCreateError(err)
-  }
-}
-
-export async function updateTutorBotConversationSessionIdByConversationId(data: {
-  conversationId: string
-  sessionId: string
-}) {
-  try {
-    await pgQueries.updateTutorBotConversationSessionId.run(
-      data as IUpdateTutorBotConversationSessionIdParams,
-      getClient()
-    )
-  } catch (err) {
-    throw new RepoUpdateError(err)
   }
 }

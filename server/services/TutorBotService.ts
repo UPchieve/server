@@ -1,24 +1,33 @@
 import config from '../config'
 import logger from '../logger'
-import { tutor_bot_conversation_user_type } from '../models/TutorBot/pg.queries'
 import {
-  getTutorBotConversationMessagesById,
-  getTutorBotConversationMessagesBySessionId,
-  getTutorBotConversationsByUserId,
+  getTutorBotTranscriptBySessionId,
   getTutorBotConversationById,
   insertTutorBotConversation,
   insertTutorBotConversationMessage,
-  updateTutorBotConversationSessionIdByConversationId,
+  getTutorBotTranscriptByConversationId,
 } from '../models/TutorBot'
-import { getDbUlid, Ulid } from '../models/pgUtils'
+import { Uuid } from '../models/pgUtils'
 import * as PromptService from './PromptService'
 import { getClient, runInTransaction, TransactionClient } from '../db'
 import { client as langfuseClient } from '../clients/langfuse'
 import * as SessionRepo from '../models/Session'
 import SocketService from './SocketService'
 import { BedrockToolChoice, invokeModel } from './AwsBedrockService'
-import { getSubjectNameIdMapping } from '../models/Subjects'
 import { COLLEGE_SUBJECTS } from '../constants'
+import type {
+  TutorBotAddMessageResponsePublic,
+  TutorBotGeneratedMessagePublic,
+  TutorBotMessagePublic,
+  TutorBotTranscriptPublic,
+} from '../contracts/tutor-bot'
+import {
+  AddMessageToConversationPayload,
+  TutorBotTranscript,
+  TutorBotAiResponse,
+  TutorBotGeneratedMessage,
+  TutorBotMessage,
+} from '../types/tutor-bot'
 
 const NUM_OF_MESSAGES_TO_KEEP_IN_CONTEXT = 15
 const LF_TRACE_NAME = 'tutorBotSession'
@@ -49,157 +58,59 @@ const BED_ROCK_TOOL = [
   },
 ]
 
-type TutorBotModelResponse = {
-  strategy: string
-  intention: string
-  response: string
-}
-
-interface TutorBotConversationMessage {
-  tutorBotConversationId: string
-  userId: string
-  senderUserType: tutor_bot_conversation_user_type
-  message: string
-  createdAt: Date
-}
-
-interface TutorBotConversationTranscript {
-  conversationId: string
-  subjectId: number
-  messages: TutorBotConversationMessage[]
-  sessionId?: string
-}
-
-export const getTranscriptForConversation = async (
-  conversationId: string,
+export async function getTranscriptForConversation(
+  conversationId: Uuid,
   tc: TransactionClient = getClient()
-): Promise<TutorBotConversationTranscript> => {
-  const results = await getTutorBotConversationMessagesById(conversationId, tc)
-  return {
+): Promise<TutorBotTranscript> {
+  const transcript = await getTutorBotTranscriptByConversationId(
     conversationId,
-    subjectId: results.subjectId,
-    sessionId: results.sessionId,
-    messages: results.messages,
-  }
+    tc
+  )
+  if (!transcript)
+    throw new Error(
+      `Unable to find transcript for conversation id: ${conversationId}`
+    )
+  return transcript
 }
 
-export const getOrCreateConversationBySessionId = async ({
+export async function getOrCreateConversationBySessionId({
   sessionId,
 }: {
-  sessionId: Ulid
-}) => {
+  sessionId: Uuid
+}) {
   return await runInTransaction(async (tc: TransactionClient) => {
-    const results = await getTutorBotConversationMessagesBySessionId(
-      sessionId,
-      tc
-    )
-    if (results) {
-      return results
-    } else {
-      const session = await SessionRepo.getSessionById(sessionId)
-      const subjectId = session.subjectId
-      const conversationId = await insertTutorBotConversation(
-        {
-          subjectId,
-          userId: session.studentId, // always create chat under student's user id
-          sessionId,
-          id: getDbUlid(),
-        },
-        tc
-      )
-      return {
-        conversationId,
-        subjectId,
-        sessionId,
-        messages: [],
-      }
-    }
-  })
-}
+    const transcript = await getTutorBotTranscriptBySessionId(sessionId, tc)
+    if (transcript) return transcript
 
-export const createTutorBotConversation = async (data: {
-  userId: string
-  sessionId?: string
-  message: string
-  senderUserType: 'student' | 'volunteer'
-  subjectId: number
-}) => {
-  const userId = data.userId
-  const sessionId = data.sessionId
-  const subjectId = data.subjectId
-
-  return await runInTransaction(async (tc: TransactionClient) => {
+    const session = await SessionRepo.getSessionById(sessionId)
+    const subjectId = session.subjectId
     const conversationId = await insertTutorBotConversation(
       {
         subjectId,
-        userId,
+        userId: session.studentId, // always create chat under student's user id
         sessionId,
-        id: getDbUlid(),
       },
       tc
     )
-
-    const subjectNameIds = await getSubjectNameIdMapping()
-    const [subjectName] =
-      Object.entries(subjectNameIds).find(
-        ([_key, value]) => value === subjectId
-      ) ?? []
-
-    if (!subjectName) {
-      throw new Error(`AI tutor: No subject found for id ${subjectId}`)
-    }
-
-    const { userMessage, botResponse } = await addMessageToConversation(
-      {
-        conversationId,
-        userId,
-        senderUserType: data.senderUserType,
-        message: data.message,
-        subjectName,
-      },
-      tc
-    )
-
     return {
       conversationId,
-      userId,
-      sessionId,
       subjectId,
-      messages: [userMessage, botResponse],
+      sessionId,
+      messages: [],
     }
   })
 }
 
-export const updateTutorBotConversationSessionId = async (
-  conversationId: string,
-  sessionId: string
-) => {
-  await updateTutorBotConversationSessionIdByConversationId({
-    conversationId,
-    sessionId,
-  })
-}
-
-export const getAllConversationsForUser = async (userId: string) => {
-  return await getTutorBotConversationsByUserId(userId)
-}
-
-export const addMessageToConversation = async (
+export async function addMessageToConversation(
   {
     userId,
     conversationId,
     message,
     senderUserType,
     subjectName,
-  }: {
-    userId: string
-    conversationId: string
-    message: string
-    senderUserType: tutor_bot_conversation_user_type
-    subjectName: string
-  },
+  }: AddMessageToConversationPayload,
   parentTransaction?: TransactionClient
-) => {
+) {
   const socketService = SocketService.getInstance()
   return await runInTransaction(async (tc: TransactionClient) => {
     const userMessage = await insertTutorBotConversationMessage(
@@ -211,7 +122,14 @@ export const addMessageToConversation = async (
       },
       tc
     )
-    const { sessionId } = await getTutorBotConversationById(conversationId, tc)
+    const conversation = await getTutorBotConversationById(conversationId, tc)
+    if (!conversation) {
+      const errorMessage = `Unable to find tutor bot conversation by conversation id: ${conversationId}`
+      logger.error({ userId, conversationId }, errorMessage)
+      throw new Error(errorMessage)
+    }
+
+    const { sessionId } = conversation
     if (sessionId) {
       socketService.emitTutorBotMessage(sessionId, {
         ...userMessage,
@@ -237,7 +155,7 @@ export const addMessageToConversation = async (
 
 async function getPromptData(
   subjectName: string,
-  transcript: TutorBotConversationTranscript
+  transcript: TutorBotTranscript
 ): Promise<PromptService.PromptResponse> {
   const promptName = Object.values<string>(COLLEGE_SUBJECTS).includes(
     subjectName
@@ -277,25 +195,18 @@ function interpolate({
   }, text)
 }
 
-const getAwsBedRockResponse = async (
+async function getAwsBedRockResponse(
   {
     userId,
     conversationId,
     subjectName,
   }: {
-    userId: string
-    conversationId: string
+    userId: Uuid
+    conversationId: Uuid
     subjectName: string
   },
   tc: TransactionClient = getClient()
-): Promise<
-  | (TutorBotConversationMessage & {
-      traceId: string
-      observationId: string | null
-      status: string
-    })
-  | null
-> => {
+): Promise<TutorBotGeneratedMessage> {
   // Save the latest user message to DB and create the transcript of the conversation so far
   const t = langfuseClient.trace({
     name: LF_TRACE_NAME,
@@ -310,8 +221,7 @@ const getAwsBedRockResponse = async (
     input: promptData.prompt,
   })
 
-  let savedBotMessage: TutorBotConversationMessage | null = null
-  let botResponse: TutorBotModelResponse | string | null = null
+  let botResponse: TutorBotAiResponse | string
 
   try {
     botResponse = await invokeModel({
@@ -325,36 +235,34 @@ const getAwsBedRockResponse = async (
     })
   } catch (err) {
     // We could add a retry if we see this happening a fair amount
-    logger.error(err)
     botResponse = AWS_BEDROCK_TUTOR_ANSWER_FALLBACK
-    logger.error('AI tutor: Unprocessbable response from aws bedrock', {
-      messagePrompt: promptData,
-      traceName: LF_TRACE_NAME,
-    })
-  } finally {
-    const message =
-      typeof botResponse === 'string'
-        ? botResponse
-        : (botResponse?.response ?? AWS_BEDROCK_TUTOR_ANSWER_FALLBACK)
-    savedBotMessage = await insertTutorBotConversationMessage(
+    logger.error(
       {
-        conversationId,
-        userId,
-        message,
-        senderUserType: 'bot',
+        messagePrompt: promptData,
+        traceName: LF_TRACE_NAME,
+        err,
       },
-      tc
+      'AI tutor: Unprocessable response from aws bedrock'
     )
-
-    gen.end({
-      output: { botResponse: botResponse, responseDbo: savedBotMessage },
-    })
   }
 
   const message =
     typeof botResponse === 'string'
       ? botResponse
       : (botResponse?.response ?? AWS_BEDROCK_TUTOR_ANSWER_FALLBACK)
+  const savedBotMessage = await insertTutorBotConversationMessage(
+    {
+      conversationId,
+      userId,
+      message,
+      senderUserType: 'bot',
+    },
+    tc
+  )
+
+  gen.end({
+    output: { botResponse: botResponse, responseDbo: savedBotMessage },
+  })
 
   return {
     senderUserType: 'bot',
@@ -362,8 +270,8 @@ const getAwsBedRockResponse = async (
     createdAt: savedBotMessage.createdAt,
     tutorBotConversationId: conversationId,
     userId,
-    status: (botResponse as TutorBotModelResponse)?.intention
-      ? (botResponse as TutorBotModelResponse).intention
+    status: (botResponse as TutorBotAiResponse)?.intention
+      ? (botResponse as TutorBotAiResponse).intention
       : '1. Get the student to elaborate their answer',
     traceId: gen.traceId,
     observationId: gen.observationId,
@@ -373,3 +281,47 @@ const getAwsBedRockResponse = async (
 const AWS_BEDROCK_TUTOR_ANSWER_FALLBACK = `
 Hi there! I noticed you seem to be trying to communicate, but the messages aren't clear.
 Could you tell me more about what your problem?`
+
+export function toTutorBotMessagePublic(
+  data: TutorBotMessage
+): TutorBotMessagePublic {
+  return {
+    tutorBotConversationId: data.tutorBotConversationId,
+    userId: data.userId,
+    senderUserType: data.senderUserType,
+    message: data.message,
+    createdAt: data.createdAt.toISOString(),
+  }
+}
+
+export function toTutorBotTranscriptPublic(
+  data: TutorBotTranscript
+): TutorBotTranscriptPublic {
+  return {
+    conversationId: data.conversationId,
+    subjectId: data.subjectId,
+    sessionId: data.sessionId,
+    messages: data.messages.map(toTutorBotMessagePublic),
+  }
+}
+
+export function toTutorBotGeneratedMessagePublic(
+  data: TutorBotGeneratedMessage
+): TutorBotGeneratedMessagePublic {
+  return {
+    ...toTutorBotMessagePublic(data),
+    traceId: data.traceId,
+    observationId: data.observationId,
+    status: data.status,
+  }
+}
+
+export function toTutorBotAddMessageResponsePublic(data: {
+  userMessage: TutorBotMessage
+  botResponse: TutorBotGeneratedMessage
+}): TutorBotAddMessageResponsePublic {
+  return {
+    userMessage: toTutorBotMessagePublic(data.userMessage),
+    botResponse: toTutorBotGeneratedMessagePublic(data.botResponse),
+  }
+}
