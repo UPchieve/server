@@ -26,7 +26,7 @@ export type TutorBotConversation = {
   createdAt: Date
 }
 
-export type TutorBotModelResponse = {
+export type TutorBotAiResponse = {
   strategy: string
   intention: string
   response: string

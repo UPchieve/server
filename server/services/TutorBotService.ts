@@ -24,7 +24,7 @@ import type {
 import {
   AddMessageToConversationPayload,
   TutorBotTranscript,
-  TutorBotModelResponse,
+  TutorBotAiResponse,
   TutorBotGeneratedMessage,
   TutorBotMessage,
 } from '../types/tutor-bot'
@@ -221,7 +221,7 @@ async function getAwsBedRockResponse(
     input: promptData.prompt,
   })
 
-  let botResponse: TutorBotModelResponse | string
+  let botResponse: TutorBotAiResponse | string
 
   try {
     botResponse = await invokeModel({
@@ -270,8 +270,8 @@ async function getAwsBedRockResponse(
     createdAt: savedBotMessage.createdAt,
     tutorBotConversationId: conversationId,
     userId,
-    status: (botResponse as TutorBotModelResponse)?.intention
-      ? (botResponse as TutorBotModelResponse).intention
+    status: (botResponse as TutorBotAiResponse)?.intention
+      ? (botResponse as TutorBotAiResponse).intention
       : '1. Get the student to elaborate their answer',
     traceId: gen.traceId,
     observationId: gen.observationId,
