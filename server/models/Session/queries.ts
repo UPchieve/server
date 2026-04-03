@@ -6,7 +6,6 @@ import {
   Ulid,
   getDbUlid,
   makeSomeRequired,
-  Uuid,
 } from '../pgUtils'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import moment from 'moment'
@@ -15,10 +14,6 @@ import {
   UserSessionStats,
   UserSessionsFilter,
   MessageType,
-  Session,
-  SessionToEnd,
-  EndedSession,
-  CreateSessionResult,
 } from './types'
 import 'moment-timezone'
 import {
@@ -45,10 +40,13 @@ import {
 } from '../Survey'
 import config from '../../config'
 import type { SessionHistoryFilter } from '../../services/SessionService'
-import {
-  PrimaryUserRole,
-  SessionUserRole,
-} from '../../services/UserRolesService'
+import { SessionUserRole } from '../../services/UserRolesService'
+import type {
+  MessageForFrontend,
+  CurrentSession,
+  CurrentSessionUser,
+} from '../../types/session'
+import type { Uuid } from '../../types/shared'
 
 export type NotificationData = {
   // old name for volunteerId for legacy compatibility
@@ -93,6 +91,51 @@ export type UnfulfilledSessions = {
   type: string
   volunteer?: Ulid
   subjectDisplayName: string
+}
+
+type CurrentSessionRow = {
+  id: Uuid
+  studentId: Uuid
+  volunteerId?: Uuid
+  subTopic: string
+  subject: string
+  subjectDisplayName: string
+  type: string
+  topic: string
+  volunteerJoinedAt?: Date
+  endedAt?: Date
+  endedBy?: Uuid
+  shadowbanned?: boolean
+  toolType: string
+  studentBannedFromLiveMedia?: boolean
+  volunteerBannedFromLiveMedia?: boolean
+  volunteerLanguages?: string[]
+  createdAt: Date
+}
+
+function toCurrentSession(
+  row: CurrentSessionRow
+): Omit<CurrentSession, 'student' | 'volunteer' | 'messages'> {
+  return {
+    _id: row.id,
+    id: row.id,
+    studentId: row.studentId,
+    volunteerId: row.volunteerId ?? undefined,
+    subTopic: row.subTopic,
+    subject: row.subject,
+    subjectDisplayName: row.subjectDisplayName,
+    type: row.type,
+    topic: row.topic,
+    volunteerJoinedAt: row.volunteerJoinedAt ?? undefined,
+    endedAt: row.endedAt ?? undefined,
+    endedBy: row.endedBy ?? undefined,
+    shadowbanned: row.shadowbanned ?? undefined,
+    toolType: row.toolType,
+    studentBannedFromLiveMedia: row.studentBannedFromLiveMedia ?? false,
+    volunteerBannedFromLiveMedia: row.volunteerBannedFromLiveMedia ?? false,
+    volunteerLanguages: row.volunteerLanguages ?? undefined,
+    createdAt: row.createdAt,
+  }
 }
 
 // sessions that have not yet been fulfilled by a volunteer
@@ -187,62 +230,6 @@ export async function updateSessionReviewedStatusById(
       throw new RepoUpdateError('Update query was not acknowledged')
   } catch (err) {
     throw new RepoUpdateError(err)
-  }
-}
-
-export type SessionToEndUserInfo = {
-  id: Ulid
-  firstName: string
-  email: string
-  numPastSessions: number
-  volunteerPartnerOrg?: string
-}
-
-export async function getSessionToEndById(
-  sessionId: Ulid,
-  tc: TransactionClient = getClient()
-): Promise<SessionToEnd> {
-  try {
-    const result = await pgQueries.getSessionToEndById.run({ sessionId }, tc)
-    if (!result.length) throw new RepoReadError('Session not found')
-    const rawSession = makeSomeOptional(result[0], [
-      'volunteerJoinedAt',
-      'endedAt',
-      'volunteerEmail',
-      'volunteerId',
-      'volunteerFirstName',
-      'volunteerNumPastSessions',
-      'volunteerPartnerOrg',
-    ])
-
-    let volunteerValue: SessionToEndUserInfo | undefined = undefined
-    if (
-      rawSession.volunteerId &&
-      rawSession.volunteerFirstName &&
-      rawSession.volunteerEmail &&
-      !!rawSession.volunteerNumPastSessions
-    ) {
-      volunteerValue = {
-        id: rawSession.volunteerId,
-        firstName: rawSession.volunteerFirstName,
-        email: rawSession.volunteerEmail?.toLowerCase(),
-        numPastSessions: rawSession.volunteerNumPastSessions,
-        volunteerPartnerOrg: rawSession.volunteerPartnerOrg,
-      }
-    }
-
-    return {
-      ...rawSession,
-      student: {
-        id: rawSession.studentId,
-        firstName: rawSession.studentFirstName,
-        email: rawSession.studentEmail?.toLowerCase(),
-        numPastSessions: rawSession.studentNumPastSessions,
-      },
-      volunteer: volunteerValue,
-    }
-  } catch (err) {
-    throw new RepoReadError(err)
   }
 }
 
@@ -399,26 +386,30 @@ export async function updateSessionHasWhiteboardDoc(
 }
 
 export async function updateSessionToEnd(
-  sessionId: Ulid,
+  sessionId: Uuid,
   endedAt: Date,
-  endedBy: Ulid | null,
+  endedBy: Uuid | null,
   tc: TransactionClient = getClient()
-): Promise<EndedSession> {
+): Promise<CurrentSession> {
   try {
-    const result = await pgQueries.updateSessionToEnd.run(
+    const [updated] = await pgQueries.updateSessionToEnd.run(
       { sessionId, endedAt, endedBy },
       tc
     )
-    if (!result.length)
+    if (!updated.id)
       throw new Error(
         'Failure in updateSessionToEnd: Did not get back updated session'
       )
-    return makeSomeRequired(result[0], [
-      'id',
-      'createdAt',
-      'endedAt',
-      'endedByUserRole',
-    ])
+
+    // TODO: Remove this once the frontend no longer expects a session
+    // from the response
+    const session = await getCurrentSessionBySessionId(updated.id, tc)
+    if (!session)
+      throw new Error(
+        `Failed to find session ${updated.id} after updating to end`
+      )
+
+    return session
   } catch (err) {
     throw new RepoUpdateError(err)
   }
@@ -480,11 +471,6 @@ export async function getPublicSessionById(
   }
 }
 
-export type MessageForFrontend = {
-  user: Ulid
-  contents: string
-  createdAt: Date
-}
 export type SessionByIdWithStudentAndVolunteer = {
   createdAt: Date
   volunteerjoinedAt?: Date
@@ -515,6 +501,21 @@ export type SessionByIdWithStudentAndVolunteer = {
   toolType: string
 }
 
+type SessionMessageRow = {
+  user: Uuid
+  contents: string
+  createdAt: Date
+}
+
+function toSessionMessage(row: SessionMessageRow): MessageForFrontend {
+  return {
+    user: row.user,
+    contents: row.contents,
+    createdAt: row.createdAt,
+  }
+}
+
+// TODO: Change name to getSessionMessages
 export async function getMessagesForFrontend(
   sessionId: Ulid,
   tc: TransactionClient = getClient()
@@ -534,8 +535,15 @@ export async function getMessagesForFrontend(
     ).map((v) => makeRequired(v))
 
     // insert voice messages
-    const merged = result
-      .concat(voiceResult.map((r) => ({ ...r, type: 'voice', contents: r.id })))
+    const merged: SessionMessageRow[] = result
+      .concat(
+        voiceResult.map((r) => ({
+          ...r,
+          type: 'voice',
+          // TODO: Voice messages should use `transcript` instead of ID for its content.
+          contents: r.id,
+        }))
+      )
       .concat(
         transcriptResult.map((t) => ({
           ...t,
@@ -547,7 +555,7 @@ export async function getMessagesForFrontend(
         return Number(a.createdAt) - Number(b.createdAt)
       })
 
-    return merged
+    return merged.map(toSessionMessage)
   } catch (error) {
     throw new RepoReadError(error)
   }
@@ -625,99 +633,21 @@ export async function createSession(
   subject: string,
   isShadowBanned: boolean,
   tc: TransactionClient
-): Promise<CreateSessionResult> {
+): Promise<CurrentSession> {
   try {
-    const result = await pgQueries.createSession.run(
+    const [created] = await pgQueries.createSession.run(
       { id: getDbUlid(), studentId, subject, shadowbanned: isShadowBanned },
       tc
     )
-    if (!result.length) {
-      throw new RepoCreateError('Failed to create new session.')
-    }
-    const session = makeSomeRequired(result[0], [
-      'id',
-      'studentId',
-      'subjectId',
-      'hasWhiteboardDoc',
-      'reviewed',
-      'subject',
-      'subjectDisplayName',
-      'topic',
-      'toReview',
-      'timeTutored',
-      'createdAt',
-      'updatedAt',
-    ])
-    return {
-      ...session,
-      timeTutored: Number(session.timeTutored),
-    }
+    if (!created) throw new RepoCreateError('Failed to create new session.')
+
+    const session = await getCurrentSessionBySessionId(created.id, tc)
+    if (!session)
+      throw new Error(`Failed to find session ${created.id} after creation`)
+
+    return session
   } catch (err) {
     throw new RepoCreateError(err)
-  }
-}
-
-export type CurrentSessionUser = {
-  createdAt: Date
-  _id: Ulid
-  id: Ulid
-  // TODO: remove `firstname` in favor of `firstName`. The frontend must be refactored first
-  firstname: string
-  firstName: string
-  pastSessions: Ulid[]
-}
-export type CurrentSession = {
-  _id: Ulid
-  id: Ulid
-  subTopic: string
-  type: string
-  student: CurrentSessionUser
-  volunteer?: CurrentSessionUser
-  volunteerJoinedAt?: Date
-  messages: MessageForFrontend[]
-  endedAt?: Date
-  endedBy?: Ulid
-  toolType: string
-  docEditorVersion?: number
-  studentBannedFromLiveMedia?: boolean
-  volunteerBannedFromLiveMedia?: boolean
-  volunteerLanguages?: string[]
-}
-
-export type SessionInfoForUser = {
-  createdAt: Date
-  endedAt?: Date
-  id: string
-  studentId: string
-  subTopic: string
-  toolType: string
-  type: string
-  volunteerId?: string
-  volunteerJoinedAt?: Date
-}
-
-export async function handleSessionParsingForUser(
-  session: SessionInfoForUser,
-  tc?: TransactionClient
-): Promise<CurrentSession> {
-  const client = tc ?? getClient()
-  try {
-    const messages = await getMessagesForFrontend(session.id, client)
-    const { student, volunteer } = await getSessionUsers(
-      session.id,
-      session.studentId,
-      session.volunteerId,
-      client
-    )
-    return {
-      ...session,
-      student,
-      volunteer,
-      _id: session.id,
-      messages,
-    }
-  } catch (error) {
-    throw new RepoReadError(error)
   }
 }
 
@@ -726,37 +656,69 @@ export async function getCurrentSessionByUserId(
   tc: TransactionClient = getClient()
 ): Promise<CurrentSession | undefined> {
   try {
-    const result = await pgQueries.getCurrentSessionByUserId.run({ userId }, tc)
-    if (!result.length) return
-    else {
-      const session = makeSomeOptional(result[0], [
-        'volunteerId',
-        'endedAt',
-        'volunteerJoinedAt',
-        'volunteerBannedFromLiveMedia',
-        'studentBannedFromLiveMedia',
-        'volunteerLanguages',
-      ])
-      return handleSessionParsingForUser(session, tc)
+    const [row] = await pgQueries.getCurrentSessionByUserId.run({ userId }, tc)
+    if (!row) return undefined
+
+    const session = makeSomeOptional(row, [
+      'volunteerJoinedAt',
+      'volunteerId',
+      'endedAt',
+      'endedBy',
+      'volunteerBannedFromLiveMedia',
+      'studentBannedFromLiveMedia',
+      'volunteerLanguages',
+    ])
+    const messages = await getMessagesForFrontend(session.id, tc)
+    const { student, volunteer } = await getSessionUsers(
+      session.id,
+      session.studentId,
+      session.volunteerId,
+      tc
+    )
+    return {
+      ...toCurrentSession(session),
+      student,
+      volunteer,
+      messages,
     }
   } catch (error) {
     throw new RepoReadError(error)
   }
 }
 
-export async function getRecapSessionForDmsBySessionId(
-  sessionId: Ulid
+export async function getCurrentSessionBySessionId(
+  sessionId: Ulid,
+  tc: TransactionClient = getClient()
 ): Promise<CurrentSession | undefined> {
-  const client = getClient()
   try {
-    const result = await pgQueries.getRecapSessionForDmsBySessionId.run(
+    const [row] = await pgQueries.getCurrentSessionBySessionId.run(
       { sessionId },
-      client
+      tc
     )
-    if (!result.length) return
-    else {
-      const session = makeRequired(result[0])
-      return handleSessionParsingForUser(session, client)
+    if (!row) return undefined
+
+    const session = makeSomeOptional(row, [
+      'volunteerJoinedAt',
+      'volunteerId',
+      'endedAt',
+      'endedBy',
+      'volunteerBannedFromLiveMedia',
+      'studentBannedFromLiveMedia',
+      'volunteerLanguages',
+      'shadowbanned',
+    ])
+    const messages = await getMessagesForFrontend(session.id, tc)
+    const { student, volunteer } = await getSessionUsers(
+      session.id,
+      session.studentId,
+      session.volunteerId,
+      tc
+    )
+    return {
+      ...toCurrentSession(session),
+      student,
+      volunteer,
+      messages,
     }
   } catch (error) {
     throw new RepoReadError(error)
@@ -788,46 +750,6 @@ export async function getMessageInfoByMessageId(
       client
     )
     if (result.length) return makeRequired(result[0])
-  } catch (error) {
-    throw new RepoReadError(error)
-  }
-}
-
-// TODO: Rename method name. What does `current` have to do
-// with it?
-export async function getCurrentSessionBySessionId(
-  sessionId: Ulid,
-  tc: TransactionClient = getClient()
-): Promise<CurrentSession | undefined> {
-  try {
-    const result = await pgQueries.getCurrentSessionBySessionId.run(
-      { sessionId },
-      tc
-    )
-    const session = makeSomeOptional(result[0], [
-      'volunteerJoinedAt',
-      'volunteerId',
-      'endedAt',
-      'endedBy',
-      'volunteerBannedFromLiveMedia',
-      'studentBannedFromLiveMedia',
-      'volunteerLanguages',
-    ])
-    // TODO: Move to service.
-    const messages = await getMessagesForFrontend(session.id, tc)
-    const { student, volunteer } = await getSessionUsers(
-      session.id,
-      session.studentId,
-      session.volunteerId,
-      tc
-    )
-    return {
-      ...session,
-      student,
-      volunteer,
-      _id: session.id,
-      messages,
-    }
   } catch (error) {
     throw new RepoReadError(error)
   }
@@ -1409,6 +1331,26 @@ export async function getUserSessionStats(
   }
 }
 
+type SessionUserRow = {
+  id: Uuid
+  createdAt: Date
+  firstname: string
+  firstName: string
+  pastSessions: Uuid[]
+  gradeLevel?: string
+}
+
+function toCurrentSessionUser(row: SessionUserRow): CurrentSessionUser {
+  return {
+    _id: row.id,
+    id: row.id,
+    createdAt: row.createdAt,
+    firstname: row.firstname,
+    firstName: row.firstName,
+    pastSessions: row.pastSessions,
+  }
+}
+
 async function getSessionUsers(
   sessionId: Ulid,
   sessionStudentId: Ulid,
@@ -1426,8 +1368,8 @@ async function getSessionUsers(
     throw new RepoReadError(`Did not find student for session ${sessionId}`)
 
   return {
-    student: { _id: student.id, ...student },
-    volunteer: volunteer ? { _id: volunteer.id, ...volunteer } : undefined,
+    student: toCurrentSessionUser(student),
+    volunteer: volunteer ? toCurrentSessionUser(volunteer) : undefined,
   }
 }
 

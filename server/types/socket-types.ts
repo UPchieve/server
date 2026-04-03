@@ -1,10 +1,11 @@
 import { UserContactInfo } from '../models/User'
 import { Socket } from 'socket.io'
 import { Ulid } from '../models/pgUtils'
-import { CurrentSession, UnfulfilledSessions } from '../models/Session'
+import { UnfulfilledSessions } from '../models/Session'
 import Delta from 'quill-delta'
 import { SessionMessageType } from '../router/api/sockets'
 import { USER_BAN_TYPES } from '../constants'
+import { CurrentSessionPublic } from '../contracts/sessions'
 
 export type SocketDelta = Delta & {
   id?: string
@@ -76,7 +77,7 @@ export type ServerToClientEvents = {
   quillPartnerSelection: (data: {
     range: { index: number; length: number }
   }) => void
-  'session-change': (data: CurrentSession | undefined) => void
+  'session-change': (data: CurrentSessionPublic | undefined) => void
   'moderation-infraction': (data: {
     isBanned: boolean
     infraction: string[]

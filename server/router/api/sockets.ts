@@ -46,7 +46,10 @@ async function handleUser(socket: SocketUser, user: UserContactInfo) {
 
   // Show the user their latest session if it has not ended
   if (latestSession && !latestSession.endedAt) {
-    socket.emit('session-change', latestSession)
+    socket.emit(
+      'session-change',
+      SessionService.toCurrentSessionPublic(latestSession)
+    )
   }
 
   if (user.roleContext.isActiveRole('volunteer')) {

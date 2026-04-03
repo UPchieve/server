@@ -6,7 +6,6 @@ import { Ulid, Uuid } from '../models/pgUtils'
 import { getUnfulfilledSessions } from '../models/Session/queries'
 import getSessionRoom from '../utils/get-session-room'
 import { ProgressReport } from '../services/ProgressReportsService'
-import { addDocEditorVersionTo } from './SessionService'
 import { ProgressReportAnalysisTypes } from '../models/ProgressReports'
 import { TransactionClient } from '../db'
 import * as SessionService from '../services/SessionService'
@@ -113,8 +112,7 @@ class SocketService {
     sessionId: Ulid,
     tc?: TransactionClient
   ): Promise<void> {
-    const session = await SessionService.getSessionWithAllDetails(sessionId, tc)
-    await addDocEditorVersionTo(session)
+    const session = await SessionService.getCurrentSessionById(sessionId, tc)
     const sessionParticipants = [session.student.id]
     if (session.volunteer?.id) {
       sessionParticipants.push(session.volunteer.id)
@@ -122,7 +120,7 @@ class SocketService {
     this.io
       .in(sessionParticipants)
       .timeout(secondsInMs(5))
-      .emit('session-change', session)
+      .emit('session-change', SessionService.toCurrentSessionPublic(session))
 
     await this.updateSessionList(tc)
   }
