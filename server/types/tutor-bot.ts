@@ -1,4 +1,4 @@
-import { Uuid } from '../models/pgUtils'
+import type { Uuid } from './shared'
 
 export type TutorBotSenderType = 'student' | 'volunteer' | 'bot'
 export type TutorBotHumanSenderType = Exclude<TutorBotSenderType, 'bot'>

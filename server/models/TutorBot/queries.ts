@@ -1,7 +1,7 @@
 import { getClient, TransactionClient } from '../../db'
 import { RepoCreateError, RepoReadError } from '../Errors'
 import * as pgQueries from './pg.queries'
-import { makeSomeOptional, makeRequired, getDbUlid, Uuid } from '../pgUtils'
+import { makeSomeOptional, makeRequired, getDbUlid } from '../pgUtils'
 import {
   InsertTutorBotConversationMessagePayload,
   InsertTutorBotConversationPayload,
@@ -10,6 +10,7 @@ import {
   TutorBotTranscript,
   TutorBotConversation,
 } from '../../types/tutor-bot'
+import type { Uuid } from '../../types/shared'
 
 type TutorBotMessageRow = {
   tutorBotConversationId: Uuid

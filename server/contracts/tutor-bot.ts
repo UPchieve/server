@@ -1,4 +1,4 @@
-import type { Uuid } from '../models/pgUtils'
+import type { Uuid } from '../types/shared'
 import { TutorBotHumanSenderType, TutorBotSenderType } from '../types/tutor-bot'
 
 export type MessagePayload = {
