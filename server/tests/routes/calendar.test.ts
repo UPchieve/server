@@ -1,122 +1,88 @@
-test.todo('postgres migration')
-/*import mongoose from 'mongoose'
+import { mocked } from 'jest-mock'
 import request, { Test } from 'supertest'
 import { mockApp, mockPassportMiddleware, mockRouter } from '../mock-app'
-import { buildAvailability, buildVolunteer } from '../generate'
-import { Availability } from '../../models/Availability/types'
+import { buildAvailability, buildVolunteer } from '../mocks/generate'
 import { routeCalendar } from '../../router/api/calendar'
+import * as CalendarCtrl from '../../controllers/CalendarCtrl'
 
 jest.mock('../../controllers/CalendarCtrl')
 
-// mock app - passport should attach any user we need
-const app = mockApp()
-const mockGetUser = jest.fn()
-app.use(mockPassportMiddleware(mockGetUser))
+const mockedCalendarCtrl = mocked(CalendarCtrl)
+const mockUser = buildVolunteer()
 
-// use the calendar router
+function mockGetUser() {
+  return mockUser
+}
+
 const router = mockRouter()
 routeCalendar(router)
+
+const app = mockApp()
+app.use(mockPassportMiddleware(mockGetUser))
 app.use('/api', router)
 
 const agent = request.agent(app)
 
-interface Form {
-  tz?: string
-  availability?: Availability
-}
-
-const saveCalendar = async (form: Form): Promise<Test> =>
-  agent
+function sendPost(payload: object): Test {
+  return agent
     .post('/api/calendar/save')
     .set('Accept', 'application/json')
-    .send(form)
+    .send(payload)
+}
 
-const clearCalendar = async (form: Form): Promise<Test> =>
-  agent
-    .post('/api/calendar/clear')
-    .set('Accept', 'application/json')
-    .send(form)
-
-// db connection
-beforeAll(async () => {
-  await mongoose.connect(global.__MONGO_URI__)
-})
-
-afterAll(async () => {
-  await mongoose.connection.close()
-})
-
-describe('Calendar routes', () => {
-  const volunteer = buildVolunteer()
-  mockGetUser.mockReturnValue(volunteer)
-
-  test('Volunteer should see error when saving without availability object', async () => {
-    const input = {
-      tz: 'American/New York',
-    }
-
-    const response = await saveCalendar(input)
-
-    const {
-      body: { err },
-    } = response
-    const expected = 'No availability object specified'
-    expect(err).toEqual(expected)
+describe('POST /api/calendar/save', () => {
+  beforeEach(() => {
+    jest.resetAllMocks()
   })
 
-  // TODO: update calendar ctrl to follow new service pattern with proper typeguards
-  test.todo('Volunteer should see error when availability misses required keys')
-  test.todo('postgres migration')
-/*  async () => {
+  test('should save schedule successfully', async () => {
     const availability = buildAvailability()
-    availability.Saturday = undefined
-    const input = {
-      tz: 'American/New York',
-      availability
-    }
-
-    const response = await saveCalendar(input)
-
-    const {
-      body: { err }
-    } = response
-    const expected = 'Availability object missing required keys'
-    expect(err).toEqual(expected)
-  }
-  *
-
-  test('Volunteer should save schedule', async () => {
-    const availability = buildAvailability({
-      Saturday: { '1a': true },
-      Friday: { '11a': true },
-    })
-    const input = {
-      tz: 'American/New York',
+    availability.Monday['9a'] = true
+    availability.Wednesday['3p'] = true
+    const payload = {
       availability,
+      tz: 'America/New_York',
     }
 
-    const response = await saveCalendar(input)
+    mockedCalendarCtrl.updateSchedule.mockResolvedValueOnce()
 
-    const {
-      body: { msg, err },
-    } = response
-    expect(err).toBeUndefined()
-    const expected = 'Schedule saved'
-    expect(msg).toEqual(expected)
+    const response = await sendPost(payload)
+    expect(mockedCalendarCtrl.updateSchedule).toHaveBeenCalledWith({
+      ...payload,
+      user: mockUser,
+      ip: expect.any(String),
+    })
+    expect(response.status).toBe(200)
+    expect(response.body).toEqual({
+      msg: 'Schedule saved',
+    })
   })
 
-  test('Volunteer should be able to clear schedule', async () => {
-    const input = {
-      tz: 'American/New York',
+  test('should return 422 when availability is missing', async () => {
+    const payload = {
+      tz: 'America/New_York',
     }
 
-    const response = await clearCalendar(input)
+    const response = await sendPost(payload)
+    expect(mockedCalendarCtrl.updateSchedule).not.toHaveBeenCalled()
+    expect(response.status).toBe(422)
+  })
 
-    const {
-      body: { msg },
-    } = response
-    const expected = 'Schedule cleared'
-    expect(msg).toEqual(expected)
+  test('should return an error when updateSchedule throws', async () => {
+    const payload = {
+      availability: buildAvailability(true),
+      tz: 'America/New_York',
+    }
+    mockedCalendarCtrl.updateSchedule.mockRejectedValueOnce(
+      new Error('Unexpected failure')
+    )
+
+    const response = await sendPost(payload)
+    expect(mockedCalendarCtrl.updateSchedule).toHaveBeenCalledWith({
+      ...payload,
+      user: mockUser,
+      ip: expect.any(String),
+    })
+    expect(response.status).toBeGreaterThanOrEqual(400)
   })
 })
-*/
