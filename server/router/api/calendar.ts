@@ -1,8 +1,7 @@
-import { updateSchedule, clearSchedule } from '../../controllers/CalendarCtrl'
+import { updateSchedule } from '../../controllers/CalendarCtrl'
 import { resError } from '../res-error'
 import { InputError } from '../../models/Errors'
 import { Router } from 'express'
-import { asString } from '../../utils/type-utils'
 import { extractUser } from '../extract-user'
 
 export function routeCalendar(router: Router): void {
