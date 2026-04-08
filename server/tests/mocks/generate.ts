@@ -62,6 +62,7 @@ import {
   ProgressReportSummaryRow,
 } from '../../models/ProgressReports/'
 import {
+  CreatedVolunteer,
   TextableVolunteer,
   UserQuiz,
   VolunteerContactInfo,
@@ -126,6 +127,8 @@ import type {
   TutorBotMessagePublic,
   TutorBotTranscriptPublic,
 } from '../../contracts/tutor-bot'
+import { IneligibleStudentsWithSchoolInfo } from '../../models/IneligibleStudent/queries'
+import { ZipCode } from '../../models/ZipCode/types'
 
 export function getEmail(): string {
   return faker.internet.email().toLowerCase()
@@ -564,15 +567,18 @@ export function buildVolunteerPartnerOrg(
 
 export function buildStudentPartnerOrg(
   overrides: Partial<StudentPartnerOrg> & { id?: string | Ulid } = {}
-): Partial<StudentPartnerOrg> & { id: Ulid | string } {
+): StudentPartnerOrg {
   return {
-    id: getDbUlid(),
-    key: faker.string.uuid(),
-    name: faker.string.uuid(),
+    key: getUuid(),
+    name: getUuid(),
     highSchoolSignup: false,
     schoolSignupRequired: false,
     collegeSignup: false,
-    signupCode: faker.string.uuid(),
+    signupCode: getUuid(),
+    sites: [],
+    isSchool: true,
+    deactivated: false,
+    schoolId: getUuid(),
     ...overrides,
   }
 }
@@ -2248,5 +2254,81 @@ export function serializeRoleContext(roleContext: RoleContext) {
     roles: roleContext.roles,
     activeRole: roleContext.activeRole,
     legacyRole: roleContext.legacyRole,
+  }
+}
+
+export function buildRegisterUser(
+  overrides: Partial<{
+    id: Uuid
+    firstName: string
+    email: string
+    userType: string
+    isAdmin: boolean
+    proxyEmail?: string | undefined
+  }> = {}
+) {
+  const user = buildUser()
+  return {
+    id: user.id,
+    firstName: user.firstName,
+    email: user.email,
+    userType: 'student',
+    proxyEmail: user.proxyEmail,
+    isAdmin: false,
+    ...overrides,
+  }
+}
+
+export function buildCreatedVolunteer(
+  overrides: Partial<CreatedVolunteer> = {}
+): CreatedVolunteer {
+  const volunteer = buildVolunteer()
+  return {
+    id: volunteer.id,
+    email: volunteer.email,
+    phone: volunteer.phone,
+    firstName: volunteer.firstName,
+    lastName: volunteer.lastName,
+    volunteerPartnerOrg: volunteer.volunteerPartnerOrg,
+    deactivated: volunteer.deactivated,
+    testUser: volunteer.isTestUser,
+    isAdmin: volunteer.isAdmin,
+    smsConsent: true,
+    userType: 'volunteer',
+    banType: volunteer.banType,
+    signupSourceId: volunteer.signupSourceId,
+    createdAt: volunteer.createdAt,
+    ...overrides,
+  }
+}
+
+export function buildIneligibleStudent(
+  overrides: Partial<IneligibleStudentsWithSchoolInfo> = {}
+): IneligibleStudentsWithSchoolInfo {
+  return {
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    email: getEmail(),
+    zipCode: '11201',
+    medianIncome: 40000,
+    schoolId: getUuid(),
+    schoolName: 'Some School',
+    schoolState: 'NY',
+    schoolCity: 'Brooklyn',
+    schoolZipCode: '11201',
+    isApproved: false,
+    ipAddress: '',
+    ...overrides,
+  }
+}
+
+export function buildZipCode(overrides: Partial<ZipCode> = {}): ZipCode {
+  return {
+    zipCode: '11201',
+    medianIncome: 40000,
+    cbsaIncome: 42000,
+    stateIncome: 45000,
+    isEligible: true,
+    ...overrides,
   }
 }
