@@ -9,10 +9,11 @@ fi
 PROD_DB_URL="$1"
 OUT_FILE="$2"
 
-# Prevent accidental overwrite
 if [ -e "$OUT_FILE" ]; then
-  echo "❌ Refusing to overwrite existing file: $OUT_FILE"
-  exit 1
+  echo "ℹ️  Output file already exists: $OUT_FILE"
+  echo "   Skipping dump to avoid overwrite."
+  echo "   Delete the file first if you want a fresh prod pull."
+  exit 0
 fi
 
 echo "📦 Dumping reference data from prod..."
