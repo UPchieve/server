@@ -1,8 +1,23 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-PROD_DB_URL="${1:?Usage: $0 <prod_db_url> <output_file>}"
-OUT_FILE="${2:?Usage: $0 <prod_db_url> <output_file>}"
+if [ "$#" -lt 2 ]; then
+  echo "Usage: $0 <prod_db_url> <output_file>"
+  exit 1
+fi
+
+PROD_DB_URL="$1"
+OUT_FILE="$2"
+
+# Prevent accidental overwrite
+if [ -e "$OUT_FILE" ]; then
+  echo "❌ Refusing to overwrite existing file: $OUT_FILE"
+  exit 1
+fi
+
+echo "📦 Dumping reference data from prod..."
+echo "Output file: $OUT_FILE"
+echo ""
 
 pg_dump "$PROD_DB_URL" \
   --data-only \
@@ -20,4 +35,5 @@ pg_dump "$PROD_DB_URL" \
   --table=upchieve.quiz_certification_grants \
   > "$OUT_FILE"
 
-echo "Wrote $OUT_FILE"
+echo ""
+echo "✅ Dump complete: $OUT_FILE"
