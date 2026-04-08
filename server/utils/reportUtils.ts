@@ -192,7 +192,7 @@ function telecomTutorTime(
 
 const eventId = 4003 // telecom custom event id
 
-interface TelecomRow {
+export type TelecomRow = {
   name: string
   email: string
   eventId: number

@@ -40,13 +40,13 @@ export async function getVolunteersNotifiedSince(
   }
 }
 
-export type SessionNotification = {
+export type SessionNotification = Omit<Notification, 'volunteer'> & {
   volunteer: {
     // old firstName for legacy compatibility
     firstname: string
     volunteerPartnerOrg: string
   }
-} & Notification
+}
 
 export async function getSessionNotificationsWithSessionId(
   sessionId: Ulid,
@@ -72,7 +72,7 @@ export async function getSessionNotificationsWithSessionId(
       }
       delete row.firstName
       delete row.volunteerPartnerOrg
-      return row as SessionNotification
+      return row
     })
   } catch (err) {
     throw new RepoReadError(err)

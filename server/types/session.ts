@@ -43,3 +43,14 @@ export type CurrentSession = {
   shadowbanned?: boolean
   createdAt: Date
 }
+
+export type SessionDetail = {
+  id: string
+  firstName: string
+  lastName: string
+  name: string
+  messageCount?: string
+  volunteerId?: string
+  createdAt: Date
+  endedAt?: Date
+}
