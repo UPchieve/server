@@ -341,14 +341,14 @@ export interface IGetRequiredCertificationsByComputedSubjectUnlockQuery {
   result: IGetRequiredCertificationsByComputedSubjectUnlockResult;
 }
 
-const getRequiredCertificationsByComputedSubjectUnlockIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    s.name,\n    ARRAY_AGG(c.name) AS required_certifications\nFROM\n    computed_subject_unlocks csu\n    JOIN subjects s ON s.id = csu.subject_id\n    JOIN certifications c ON c.id = csu.certification_id\nGROUP BY\n    s.name"};
+const getRequiredCertificationsByComputedSubjectUnlockIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    s.name,\n    ARRAY_AGG(c.name ORDER BY c.name) AS required_certifications\nFROM\n    computed_subject_unlocks csu\n    JOIN subjects s ON s.id = csu.subject_id\n    JOIN certifications c ON c.id = csu.certification_id\nGROUP BY\n    s.name"};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
  *     s.name,
- *     ARRAY_AGG(c.name) AS required_certifications
+ *     ARRAY_AGG(c.name ORDER BY c.name) AS required_certifications
  * FROM
  *     computed_subject_unlocks csu
  *     JOIN subjects s ON s.id = csu.subject_id
