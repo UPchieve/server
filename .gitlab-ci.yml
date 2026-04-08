@@ -220,7 +220,7 @@ test_database:
   stage: test
   image: node:24.14.1-bullseye
   services:
-    - name: postgres:14
+    - name: postgres:15.17
       alias: postgres
       command:
         [
