@@ -1,180 +1,253 @@
-import request, { Test } from 'supertest'
+import request, { Response } from 'supertest'
 import { mocked } from 'jest-mock'
-import { SUBJECTS } from '../../constants'
-import { getDbUlid } from '../../models/pgUtils'
-import * as SurveyRepo from '../../models/Survey'
-import { routeSurvey } from '../../router/api/survey'
-import * as SurveyService from '../../services/SurveyService'
-import { authPassport } from '../../utils/auth-utils'
 import { mockApp, mockPassportMiddleware, mockRouter } from '../mock-app'
+import { routeSurvey } from '../../router/api/survey'
+import * as SurveyRepo from '../../models/Survey'
+import * as SurveyService from '../../services/SurveyService'
 import {
   buildSimpleSurveyResponse,
-  buildSimpleSurvey,
-  buildUserContactInfo,
-  buildUserSurvey,
-  buildUserSurveySubmission,
+  buildSurveyQueryResponse,
+  buildUserSurveySavePayload,
+  buildVolunteerContextSurveyResponse,
+  buildUser,
+  buildSurveyResponse,
 } from '../mocks/generate'
+import { getUuid } from '../../models/pgUtils'
 
-jest.mock('../../services/SurveyService')
 jest.mock('../../models/Survey')
-const mockedSurveyService = mocked(SurveyService)
-const mockedSurveyRepo = mocked(SurveyRepo)
+jest.mock('../../services/SurveyService')
 
-const US_IP_ADDRESS = '161.185.160.93'
-const API_ROUTE = '/api'
+const mockedSurveyRepo = mocked(SurveyRepo)
+const mockedSurveyService = mocked(SurveyService)
+
+let mockUser = buildUser()
+
+function mockGetUser() {
+  return mockUser
+}
 
 const app = mockApp()
-const mockGetUser = () => buildUserContactInfo()
-app.use(mockPassportMiddleware(mockGetUser))
-
 const router = mockRouter()
-routeSurvey(router)
 
-app.use('/api', authPassport.isAuthenticated, router)
+routeSurvey(router)
+app.use(mockPassportMiddleware(mockGetUser))
+app.use('/api', router)
 
 const agent = request.agent(app)
 
-async function sendGet(route: string, payload: any): Promise<Test> {
-  return agent
-    .get(API_ROUTE + route)
-    .set('X-Forwarded-For', US_IP_ADDRESS)
-    .set('Accept', 'application/json')
-    .send(payload)
+function sendGet(path: string): Promise<Response> {
+  return agent.get(path).set('Accept', 'application/json')
 }
 
-async function sendPost(route: string, payload: any): Promise<Test> {
-  return agent
-    .post(API_ROUTE + route)
-    .set('X-Forwarded-For', US_IP_ADDRESS)
-    .set('Accept', 'application/json')
-    .send(payload)
+function sendPost(
+  path: string,
+  payload?: Record<string, unknown>
+): Promise<Response> {
+  return agent.post(path).set('Accept', 'application/json').send(payload)
 }
 
-beforeEach(async () => {
-  jest.clearAllMocks()
-  jest.resetAllMocks()
-})
-
-const sessionId = getDbUlid()
-const progressReportId = getDbUlid()
-
-const GET_STUDENTS_PRESESSION_GOAL = `/survey/presession/${sessionId}/goal`
-describe('/survey/presession/:sessionId/goal', () => {
-  test('Should get the students presession goal', async () => {
-    const payload = {}
-    const mockedGoal = 'To get help with homework'
-    mockedSurveyRepo.getStudentsPresessionGoal.mockImplementationOnce(
-      async () => mockedGoal
-    )
-    const response = await sendGet(GET_STUDENTS_PRESESSION_GOAL, payload)
-    expect(mockedSurveyRepo.getStudentsPresessionGoal).toHaveBeenCalledTimes(1)
-    expect(mockedGoal).toEqual(response.body.goal)
-    expect(response.status).toBe(200)
-  })
-})
-
-const GET_PRESESSION_SURVEY = (subject: string) =>
-  `/survey/presession?subject=${subject}`
-describe('/survey/presession?subject=', () => {
-  test('Should get presession survey questions', async () => {
-    const payload = {}
-    const mockedSurvey = {
-      surveyId: 1,
-      surveyTypeId: 1,
-      survey: [buildSimpleSurvey()],
-    }
-    mockedSurveyRepo.getSimpleSurveyDefinition.mockImplementationOnce(
-      async () => mockedSurvey
-    )
-    const response = await sendGet(
-      GET_PRESESSION_SURVEY(SUBJECTS.ALGEBRA_ONE),
-      payload
-    )
-    expect(mockedSurveyRepo.getSimpleSurveyDefinition).toHaveBeenCalledTimes(1)
-    expect(response.body).toEqual(mockedSurvey)
-    expect(response.status).toBe(200)
-  })
-})
-
-const GET_PRESESSION_SURVEY_RESPONSE = `/survey/presession/response/${sessionId}`
-describe('/survey/presession/response/:sessionId', () => {
-  test('Should get presession survey responses', async () => {
-    const payload = {}
-    const mockedSurveyResponse = {
-      responses: [buildSimpleSurveyResponse()],
-      totalStudentSessions: 1,
-    }
-    mockedSurveyService.getContextSharingForVolunteer.mockImplementationOnce(
-      async () => mockedSurveyResponse
-    )
-    const response = await sendGet(GET_PRESESSION_SURVEY_RESPONSE, payload)
-    expect(
-      mockedSurveyService.getContextSharingForVolunteer
-    ).toHaveBeenCalledTimes(1)
-    expect(response.body).toEqual(mockedSurveyResponse)
-    expect(response.status).toBe(200)
-  })
-})
-
-const SAVE_USER_SURVEY = `/survey/save`
-describe(SAVE_USER_SURVEY, () => {
-  test('Should save user survey and submissions', async () => {
-    const userSurvey = buildUserSurvey()
-    const submissions = [buildUserSurveySubmission()]
-    const payload = { ...userSurvey, submissions }
-    mockedSurveyService.saveUserSurvey.mockResolvedValueOnce()
-    const response = await sendPost(SAVE_USER_SURVEY, payload)
-    expect(mockedSurveyService.saveUserSurvey).toHaveBeenCalledTimes(1)
-    expect(response.status).toBe(200)
+describe('routeSurvey', () => {
+  beforeEach(() => {
+    jest.resetAllMocks()
+    mockUser = buildUser()
   })
 
-  test('Should catch and send error when user survey and submissions validation errors', async () => {
-    const userSurvey = buildUserSurvey()
-    const submissions = [buildUserSurveySubmission()]
-    const payload = { ...userSurvey, submissions }
-    const testError = new Error('Test error')
-    mockedSurveyService.saveUserSurvey.mockRejectedValueOnce(testError)
-    const response = await sendPost(SAVE_USER_SURVEY, payload)
-    expect(mockedSurveyService.saveUserSurvey).toHaveBeenCalledTimes(1)
-    expect(response.status).toBe(500)
-  })
-})
+  describe('POST /api/survey/save', () => {
+    test('saves user survey', async () => {
+      const payload = buildUserSurveySavePayload()
+      mockedSurveyService.asSaveUserSurveyAndSubmissions.mockReturnValueOnce(
+        payload
+      )
+      mockedSurveyService.saveUserSurvey.mockResolvedValueOnce()
 
-const GET_PROGRESS_REPORT_SURVEY = `/survey/progress-report`
-describe(GET_PROGRESS_REPORT_SURVEY, () => {
-  test('Should get progress report survey questions', async () => {
-    const payload = {}
-    const mockedSurvey = {
-      surveyId: 1,
-      surveyTypeId: 1,
-      survey: [buildSimpleSurvey()],
-    }
-    mockedSurveyRepo.getSimpleSurveyDefinition.mockImplementationOnce(
-      async () => mockedSurvey
-    )
-    const response = await sendGet(GET_PROGRESS_REPORT_SURVEY, payload)
-    expect(mockedSurveyRepo.getSimpleSurveyDefinition).toHaveBeenCalledTimes(1)
-    expect(response.body.survey).toEqual(mockedSurvey)
-    expect(response.status).toBe(200)
+      const response = await sendPost('/api/survey/save', payload)
+      expect(response.status).toBe(200)
+      expect(
+        mockedSurveyService.asSaveUserSurveyAndSubmissions
+      ).toHaveBeenCalledWith(payload)
+      expect(mockedSurveyService.saveUserSurvey).toHaveBeenCalledWith(
+        mockUser.id,
+        payload
+      )
+    })
   })
-})
 
-const GET_PROGRESS_REPORT_SURVEY_RESPONSE = `/survey/progress-report/${progressReportId}/response`
-describe('/survey/progress-report/:progressReportId/response', () => {
-  test('Should get progress report survey responses', async () => {
-    const payload = {}
-    const mockedSurveyResponse = [
-      buildSimpleSurveyResponse(),
-      buildSimpleSurveyResponse(),
-    ]
-    mockedSurveyRepo.getProgressReportSurveyResponse.mockImplementationOnce(
-      async () => mockedSurveyResponse
-    )
-    const response = await sendGet(GET_PROGRESS_REPORT_SURVEY_RESPONSE, payload)
-    expect(
-      mockedSurveyRepo.getProgressReportSurveyResponse
-    ).toHaveBeenCalledTimes(1)
-    expect(response.body.survey).toEqual(mockedSurveyResponse)
-    expect(response.status).toBe(200)
+  describe('GET /api/survey/presession/:sessionId/goal', () => {
+    test('returns student presession goal', async () => {
+      const sessionId = getUuid()
+      const goal = 'To get help with homework'
+      mockedSurveyRepo.getStudentsPresessionGoal.mockResolvedValueOnce(goal)
+
+      const response = await sendGet(`/api/survey/presession/${sessionId}/goal`)
+      expect(response.status).toBe(200)
+      expect(mockedSurveyRepo.getStudentsPresessionGoal).toHaveBeenCalledWith(
+        sessionId
+      )
+      expect(response.body).toEqual({ goal })
+    })
+  })
+
+  describe('GET /api/survey/presession', () => {
+    test('returns presession survey definition', async () => {
+      const survey = buildSurveyQueryResponse()
+      const subject = 'algebraOne'
+      mockedSurveyRepo.getSimpleSurveyDefinition.mockResolvedValueOnce(survey)
+
+      const response = await sendGet(
+        `/api/survey/presession?subject=${subject}`
+      )
+      expect(response.status).toBe(200)
+      expect(mockedSurveyRepo.getSimpleSurveyDefinition).toHaveBeenCalledWith(
+        'presession',
+        subject
+      )
+      expect(response.body).toEqual({
+        ...survey,
+      })
+    })
+  })
+
+  describe('GET /api/survey/presession/response/:sessionId', () => {
+    test('returns volunteer context sharing response', async () => {
+      const sessionId = getUuid()
+      const surveyResponse = buildVolunteerContextSurveyResponse()
+      mockedSurveyService.getContextSharingForVolunteer.mockResolvedValueOnce(
+        surveyResponse
+      )
+
+      const response = await sendGet(
+        `/api/survey/presession/response/${sessionId}`
+      )
+      expect(response.status).toBe(200)
+      expect(
+        mockedSurveyService.getContextSharingForVolunteer
+      ).toHaveBeenCalledWith(sessionId)
+      expect(response.body).toEqual({
+        ...surveyResponse,
+      })
+    })
+  })
+
+  describe('GET /api/survey/postsession', () => {
+    test('returns postsession survey definition', async () => {
+      const sessionId = getUuid()
+      const survey = buildSurveyQueryResponse()
+      const role = 'student'
+      mockedSurveyService.parseUserRole.mockReturnValueOnce(role)
+      mockedSurveyService.getPostsessionSurveyDefinition.mockResolvedValueOnce(
+        survey
+      )
+
+      const response = await sendGet(
+        `/api/survey/postsession?sessionId=${sessionId}&role=${role}`
+      )
+      expect(response.status).toBe(200)
+      expect(mockedSurveyService.parseUserRole).toHaveBeenCalledWith(role)
+      expect(
+        mockedSurveyService.getPostsessionSurveyDefinition
+      ).toHaveBeenCalledWith(sessionId, role)
+      expect(response.body).toEqual({ survey })
+    })
+  })
+
+  describe('GET /api/survey/postsession/response', () => {
+    test('returns postsession survey response', async () => {
+      const sessionId = getUuid()
+      const role = 'volunteer'
+      const surveyResponse = [buildSurveyResponse()]
+      mockedSurveyService.parseUserRole.mockReturnValueOnce(role)
+      mockedSurveyRepo.getPostsessionSurveyResponse.mockResolvedValueOnce(
+        surveyResponse
+      )
+
+      const response = await sendGet(
+        `/api/survey/postsession/response?sessionId=${sessionId}&role=${role}`
+      )
+      expect(response.status).toBe(200)
+      expect(mockedSurveyService.parseUserRole).toHaveBeenCalledWith(role)
+      expect(
+        mockedSurveyRepo.getPostsessionSurveyResponse
+      ).toHaveBeenCalledWith(sessionId, role)
+      expect(response.body).toEqual(surveyResponse)
+    })
+  })
+
+  describe('GET /api/survey/progress-report', () => {
+    test('returns progress report survey definition', async () => {
+      const survey = buildSurveyQueryResponse()
+      mockedSurveyRepo.getSimpleSurveyDefinition.mockResolvedValueOnce(survey)
+
+      const response = await sendGet('/api/survey/progress-report')
+      expect(response.status).toBe(200)
+      expect(mockedSurveyRepo.getSimpleSurveyDefinition).toHaveBeenCalledWith(
+        'progress-report'
+      )
+      expect(response.body).toEqual({ survey })
+    })
+  })
+
+  describe('GET /api/survey/progress-report/:progressReportId/response', () => {
+    test('returns progress report survey response', async () => {
+      const progressReportId = getUuid()
+      const survey = buildSimpleSurveyResponse()
+      mockedSurveyRepo.getProgressReportSurveyResponse.mockResolvedValueOnce([
+        survey,
+      ])
+
+      const response = await sendGet(
+        `/api/survey/progress-report/${progressReportId}/response`
+      )
+      expect(response.status).toBe(200)
+      expect(
+        mockedSurveyRepo.getProgressReportSurveyResponse
+      ).toHaveBeenCalledWith(mockUser.id, progressReportId)
+      expect(response.body).toEqual({ survey: [survey] })
+    })
+  })
+
+  describe('GET /api/survey/impact-study', () => {
+    test('returns impact study survey definition', async () => {
+      const survey = buildSurveyQueryResponse()
+      mockedSurveyService.getImpactSurveyDefinition.mockResolvedValueOnce(
+        survey
+      )
+
+      const response = await sendGet('/api/survey/impact-study')
+      expect(response.status).toBe(200)
+      expect(mockedSurveyService.getImpactSurveyDefinition).toHaveBeenCalled()
+      expect(response.body).toEqual(survey)
+    })
+  })
+
+  describe('GET /api/survey/impact-study/responses', () => {
+    test('returns latest impact study survey responses', async () => {
+      const survey = buildSurveyQueryResponse()
+      mockedSurveyService.getLatestImpactStudySurveyResponses.mockResolvedValueOnce(
+        survey
+      )
+
+      const response = await sendGet('/api/survey/impact-study/responses')
+      expect(response.status).toBe(200)
+      expect(
+        mockedSurveyService.getLatestImpactStudySurveyResponses
+      ).toHaveBeenCalledWith(mockUser.id)
+      expect(response.body).toEqual(survey)
+    })
+  })
+
+  describe('GET /api/surveys/:surveyId', () => {
+    test('returns simple survey definition by survey id', async () => {
+      const survey = buildSurveyQueryResponse()
+      mockedSurveyRepo.getSimpleSurveyDefinitionBySurveyId.mockResolvedValueOnce(
+        survey
+      )
+
+      const response = await sendGet(`/api/surveys/${survey.surveyId}`)
+      expect(response.status).toBe(200)
+      expect(
+        mockedSurveyRepo.getSimpleSurveyDefinitionBySurveyId
+      ).toHaveBeenCalledWith(survey.surveyId)
+      expect(response.body).toEqual({ survey })
+    })
   })
 })
