@@ -40,7 +40,7 @@ const fsPromises = fs.promises
 const getReportFilePath = (fileName: string) =>
   `${config.fileWorkRootPath}/${uuidv4()}/${fileName}.xlsx`
 
-type SessionReport = {
+export type SessionReport = {
   Topic: string
   Subtopic: string
   'Created at': string | Date
@@ -55,7 +55,7 @@ type SessionReport = {
   'Session rating'?: string
 }
 
-type UsageReport = {
+export type UsageReport = {
   'First name': string
   'Last name': string
   Email: string

@@ -30,6 +30,7 @@ import { getPushTokensByUserId } from '../models/PushToken'
 import * as TranscriptMessagesRepo from '../models/SessionAudioTranscriptMessages/queries'
 import {
   LatestSession,
+  SessionByIdWithStudentAndVolunteer,
   SessionsToReview,
   SessionTranscript,
   updateSessionFlagsById,
@@ -545,7 +546,9 @@ export async function adminFilteredSessions(data: unknown) {
   return { sessions, isLastPage }
 }
 
-export async function adminSessionView(data: unknown) {
+export async function adminSessionView(
+  data: unknown
+): Promise<SessionByIdWithStudentAndVolunteer> {
   const sessionId = asString(data)
   const session =
     await SessionRepo.getSessionByIdWithStudentAndVolunteer(sessionId)
