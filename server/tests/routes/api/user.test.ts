@@ -1,25 +1,25 @@
 import request, { Response } from 'supertest'
 import { mocked } from 'jest-mock'
 import { Request as ExpressRequest, Response as ExpressResponse } from 'express'
-import { mockApp, mockPassportMiddleware, mockRouter } from '../mock-app'
-import { routeUser } from '../../router/api/user'
-import * as UserService from '../../services/UserService'
-import * as UserProfileService from '../../services/UserProfileService'
+import { mockApp, mockPassportMiddleware, mockRouter } from '../../mock-app'
+import { routeUser } from '../../../router/api/user'
+import * as UserService from '../../../services/UserService'
+import * as UserProfileService from '../../../services/UserProfileService'
 import {
   buildLegacyUser,
   buildUser,
   getPhoneNumber,
   serializeRoleContext,
-} from '../mocks/generate'
-import { getUuid } from '../../models/pgUtils'
-import { NotAllowedError } from '../../models/Errors'
-import * as AwsService from '../../services/AwsService'
-import * as VolunteerService from '../../services/VolunteerService'
-import * as UserRolesService from '../../services/UserRolesService'
-import * as PresenceService from '../../services/PresenceService'
-import * as UserModel from '../../models/User'
-import { RoleContext } from '../../services/UserRolesService'
-import { buildUserForAdmin } from '../mocks/generate'
+  buildUserForAdmin,
+} from '../../mocks/generate'
+import { getUuid } from '../../../models/pgUtils'
+import { NotAllowedError } from '../../../models/Errors'
+import * as AwsService from '../../../services/AwsService'
+import * as VolunteerService from '../../../services/VolunteerService'
+import * as UserRolesService from '../../../services/UserRolesService'
+import * as PresenceService from '../../../services/PresenceService'
+import * as UserModel from '../../../models/User'
+import { RoleContext } from '../../../services/UserRolesService'
 
 function isAdmin(
   _req: ExpressRequest<string, unknown>,
@@ -29,10 +29,10 @@ function isAdmin(
   next()
 }
 
-jest.mock('../../services/UserService')
-jest.mock('../../services/UserProfileService')
-jest.mock('../../utils/auth-utils', () => {
-  const actual = jest.requireActual('../../utils/auth-utils')
+jest.mock('../../../services/UserService')
+jest.mock('../../../services/UserProfileService')
+jest.mock('../../../utils/auth-utils', () => {
+  const actual = jest.requireActual('../../../utils/auth-utils')
   return {
     ...actual,
     authPassport: {
@@ -41,12 +41,12 @@ jest.mock('../../utils/auth-utils', () => {
     },
   }
 })
-jest.mock('../../services/AwsService')
-jest.mock('../../services/VolunteerService')
-jest.mock('../../services/UserRolesService')
-jest.mock('../../services/PresenceService')
-jest.mock('../../models/User')
-jest.mock('../../logger')
+jest.mock('../../../services/AwsService')
+jest.mock('../../../services/VolunteerService')
+jest.mock('../../../services/UserRolesService')
+jest.mock('../../../services/PresenceService')
+jest.mock('../../../models/User')
+jest.mock('../../../logger')
 
 const mockedUserService = mocked(UserService)
 const mockedUserProfileService = mocked(UserProfileService)

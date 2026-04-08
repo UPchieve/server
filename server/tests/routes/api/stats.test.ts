@@ -1,15 +1,15 @@
 import { mocked } from 'jest-mock'
 import request, { Response } from 'supertest'
-import { mockApp, mockPassportMiddleware, mockRouter } from '../mock-app'
+import { mockApp, mockPassportMiddleware, mockRouter } from '../../mock-app'
 import {
   buildHeatMap,
   buildUser,
   buildUserContactInfo,
-} from '../mocks/generate'
-import { routes as routeStats } from '../../router/api/stats'
-import * as SessionService from '../../services/SessionService'
+} from '../../mocks/generate'
+import { routes as routeStats } from '../../../router/api/stats'
+import * as SessionService from '../../../services/SessionService'
 
-jest.mock('../../services/SessionService')
+jest.mock('../../../services/SessionService')
 const mockedSessionService = mocked(SessionService)
 
 let mockUser = buildUserContactInfo()

@@ -1,7 +1,7 @@
 import { mocked } from 'jest-mock'
 import request, { Response } from 'supertest'
 import { Request as ExpressRequest, Response as ExpressResponse } from 'express'
-import { mockApp, mockPassportMiddleware, mockRouter } from '../mock-app'
+import { mockApp, mockPassportMiddleware, mockRouter } from '../../mock-app'
 import {
   buildAdminFilteredSession,
   buildAdminSessionView,
@@ -19,19 +19,19 @@ import {
   buildStudentAssignment,
   buildTutorBotTranscript,
   buildUser,
-} from '../mocks/generate'
-import { routeSession } from '../../router/api/session'
-import * as AssignmentsService from '../../services/AssignmentsService'
-import * as SessionMeetingService from '../../services/SessionMeetingService'
-import * as SessionService from '../../services/SessionService'
-import * as SessionSummariesService from '../../services/SessionSummariesService'
-import * as SocketServiceModule from '../../services/SocketService'
-import * as SurveyService from '../../services/SurveyService'
-import * as TutorBotService from '../../services/TutorBotService'
-import { ReportSessionError } from '../../utils/session-utils'
-import { getUuid } from '../../models/pgUtils'
-import { RoleContext } from '../../services/UserRolesService'
-import { USER_ROLES } from '../../constants'
+} from '../../mocks/generate'
+import { routeSession } from '../../../router/api/session'
+import * as AssignmentsService from '../../../services/AssignmentsService'
+import * as SessionMeetingService from '../../../services/SessionMeetingService'
+import * as SessionService from '../../../services/SessionService'
+import * as SessionSummariesService from '../../../services/SessionSummariesService'
+import * as SocketServiceModule from '../../../services/SocketService'
+import * as SurveyService from '../../../services/SurveyService'
+import * as TutorBotService from '../../../services/TutorBotService'
+import { ReportSessionError } from '../../../utils/session-utils'
+import { getUuid } from '../../../models/pgUtils'
+import { RoleContext } from '../../../services/UserRolesService'
+import { USER_ROLES } from '../../../constants'
 
 function isAdmin(
   req: ExpressRequest<string, unknown>,
@@ -46,19 +46,19 @@ const socketService = {
   emitSessionPresence: jest.fn(),
 }
 
-jest.mock('../../services/AssignmentsService')
-jest.mock('../../services/SessionMeetingService')
-jest.mock('../../services/SessionService')
-jest.mock('../../services/SessionSummariesService')
-jest.mock('../../services/SocketService', () => ({
+jest.mock('../../../services/AssignmentsService')
+jest.mock('../../../services/SessionMeetingService')
+jest.mock('../../../services/SessionService')
+jest.mock('../../../services/SessionSummariesService')
+jest.mock('../../../services/SocketService', () => ({
   __esModule: true,
   default: {
     getInstance: jest.fn(() => socketService),
   },
 }))
-jest.mock('../../services/SurveyService')
-jest.mock('../../services/TutorBotService')
-jest.mock('../../utils/auth-utils', () => ({
+jest.mock('../../../services/SurveyService')
+jest.mock('../../../services/TutorBotService')
+jest.mock('../../../utils/auth-utils', () => ({
   authPassport: {
     isAdmin,
   },

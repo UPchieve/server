@@ -1,9 +1,9 @@
 import request, { Response } from 'supertest'
 import { mocked } from 'jest-mock'
-import { mockApp, mockPassportMiddleware, mockRouter } from '../mock-app'
-import { routeSurvey } from '../../router/api/survey'
-import * as SurveyRepo from '../../models/Survey'
-import * as SurveyService from '../../services/SurveyService'
+import { mockApp, mockPassportMiddleware, mockRouter } from '../../mock-app'
+import { routeSurvey } from '../../../router/api/survey'
+import * as SurveyRepo from '../../../models/Survey'
+import * as SurveyService from '../../../services/SurveyService'
 import {
   buildSimpleSurveyResponse,
   buildSurveyQueryResponse,
@@ -11,11 +11,11 @@ import {
   buildVolunteerContextSurveyResponse,
   buildUser,
   buildSurveyResponse,
-} from '../mocks/generate'
-import { getUuid } from '../../models/pgUtils'
+} from '../../mocks/generate'
+import { getUuid } from '../../../models/pgUtils'
 
-jest.mock('../../models/Survey')
-jest.mock('../../services/SurveyService')
+jest.mock('../../../models/Survey')
+jest.mock('../../../services/SurveyService')
 
 const mockedSurveyRepo = mocked(SurveyRepo)
 const mockedSurveyService = mocked(SurveyService)

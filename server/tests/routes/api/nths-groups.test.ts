@@ -1,28 +1,28 @@
 import { mocked } from 'jest-mock'
 import request, { Response } from 'supertest'
-import { mockApp, mockPassportMiddleware, mockRouter } from '../mock-app'
+import { mockApp, mockPassportMiddleware, mockRouter } from '../../mock-app'
 import {
   buildNTHSGroup,
   buildNTHSGroupMemberWithRole,
   buildNTHSGroupWithMemberInfo,
   buildUser,
   buildVolunteer,
-} from '../mocks/generate'
-import { isGroupAdmin, routeNTHSGroups } from '../../router/api/nths-groups'
-import * as NTHSGroupsService from '../../services/NTHSGroupsService'
-import { RepoUpdateError } from '../../models/Errors'
+} from '../../mocks/generate'
+import { isGroupAdmin, routeNTHSGroups } from '../../../router/api/nths-groups'
+import * as NTHSGroupsService from '../../../services/NTHSGroupsService'
+import { RepoUpdateError } from '../../../models/Errors'
 import {
   NTHSCandidateApplicationStatus,
   NTHSSchoolAffiliationStatusName,
-} from '../../models/NTHSGroups/types'
-import { getUuid } from '../../models/pgUtils'
+} from '../../../models/NTHSGroups/types'
+import { getUuid } from '../../../models/pgUtils'
 import {
   Request as ExpressRequest,
   Response as ExpressResponse,
   NextFunction,
 } from 'express'
 
-jest.mock('../../services/NTHSGroupsService')
+jest.mock('../../../services/NTHSGroupsService')
 
 const mockedNTHSGroupsService = mocked(NTHSGroupsService)
 

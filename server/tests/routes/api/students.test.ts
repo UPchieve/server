@@ -1,23 +1,23 @@
 import { mocked } from 'jest-mock'
 import request, { Test } from 'supertest'
-import { mockApp, mockPassportMiddleware, mockRouter } from '../mock-app'
-import { routeStudents } from '../../router/api/students'
-import * as StudentRepo from '../../models/Student/queries'
-import * as AssignmentsService from '../../services/AssignmentsService'
-import * as StudentService from '../../services/StudentService'
-import config from '../../config'
-import { getDbUlid, getUuid } from '../../models/pgUtils'
-import { FavoriteLimitReachedError } from '../../services/Errors'
+import { mockApp, mockPassportMiddleware, mockRouter } from '../../mock-app'
+import { routeStudents } from '../../../router/api/students'
+import * as StudentRepo from '../../../models/Student/queries'
+import * as AssignmentsService from '../../../services/AssignmentsService'
+import * as StudentService from '../../../services/StudentService'
+import config from '../../../config'
+import { getDbUlid, getUuid } from '../../../models/pgUtils'
+import { FavoriteLimitReachedError } from '../../../services/Errors'
 import {
   buildStudent,
   buildStudentAssignment,
   buildTeacherClassResult,
   buildUser,
-} from '../mocks/generate'
+} from '../../mocks/generate'
 
-jest.mock('../../models/Student/queries')
-jest.mock('../../services/StudentService')
-jest.mock('../../services/AssignmentsService')
+jest.mock('../../../models/Student/queries')
+jest.mock('../../../services/StudentService')
+jest.mock('../../../services/AssignmentsService')
 const mockedStudentRepo = mocked(StudentRepo)
 const mockedAssignmentsService = mocked(AssignmentsService)
 const mockedStudentService = mocked(StudentService)

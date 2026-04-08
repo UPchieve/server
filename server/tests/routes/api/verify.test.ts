@@ -1,11 +1,11 @@
 import request, { Response } from 'supertest'
 import { mocked } from 'jest-mock'
 import { Request as ExpressRequest, Response as ExpressResponse } from 'express'
-import { mockApp, mockPassportMiddleware, mockRouter } from '../mock-app'
-import { routeVerify } from '../../router/api/verify'
-import * as VerificationService from '../../services/VerificationService'
-import { AlreadyInUseError, TwilioError } from '../../models/Errors'
-import { buildUser, getPhoneNumber } from '../mocks/generate'
+import { mockApp, mockPassportMiddleware, mockRouter } from '../../mock-app'
+import { routeVerify } from '../../../router/api/verify'
+import * as VerificationService from '../../../services/VerificationService'
+import { AlreadyInUseError, TwilioError } from '../../../models/Errors'
+import { buildUser, getPhoneNumber } from '../../mocks/generate'
 
 const addCustomAttribute = jest.fn()
 
@@ -17,8 +17,8 @@ function checkRecaptcha(
   next()
 }
 
-jest.mock('../../services/VerificationService')
-jest.mock('../../utils/auth-utils', () => ({
+jest.mock('../../../services/VerificationService')
+jest.mock('../../../utils/auth-utils', () => ({
   authPassport: {
     checkRecaptcha,
   },
@@ -29,7 +29,7 @@ jest.mock('newrelic', () => ({
     addCustomAttribute: (...args: unknown[]) => addCustomAttribute(...args),
   },
 }))
-jest.mock('../../logger')
+jest.mock('../../../logger')
 
 const mockedVerificationService = mocked(VerificationService)
 

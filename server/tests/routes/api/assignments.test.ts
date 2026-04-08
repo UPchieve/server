@@ -1,12 +1,12 @@
 import { mocked } from 'jest-mock'
 import request, { Test } from 'supertest'
-import { mockApp, mockRouter } from '../mock-app'
-import { routeAssignments } from '../../router/api/assignments'
-import * as AssignmentsService from '../../services/AssignmentsService'
-import { buildAssignment } from '../mocks/generate'
-import type { BlobDocument } from '../../services/AzureService'
+import { mockApp, mockRouter } from '../../mock-app'
+import { routeAssignments } from '../../../router/api/assignments'
+import * as AssignmentsService from '../../../services/AssignmentsService'
+import { buildAssignment } from '../../mocks/generate'
+import type { BlobDocument } from '../../../services/AzureService'
 
-jest.mock('../../services/AssignmentsService')
+jest.mock('../../../services/AssignmentsService')
 
 const mockedAssignmentsService = mocked(AssignmentsService)
 

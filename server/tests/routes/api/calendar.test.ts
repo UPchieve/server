@@ -1,11 +1,11 @@
 import { mocked } from 'jest-mock'
 import request, { Test } from 'supertest'
-import { mockApp, mockPassportMiddleware, mockRouter } from '../mock-app'
-import { buildAvailability, buildVolunteer } from '../mocks/generate'
-import { routeCalendar } from '../../router/api/calendar'
-import * as CalendarCtrl from '../../controllers/CalendarCtrl'
+import { mockApp, mockPassportMiddleware, mockRouter } from '../../mock-app'
+import { buildAvailability, buildVolunteer } from '../../mocks/generate'
+import { routeCalendar } from '../../../router/api/calendar'
+import * as CalendarCtrl from '../../../controllers/CalendarCtrl'
 
-jest.mock('../../controllers/CalendarCtrl')
+jest.mock('../../../controllers/CalendarCtrl')
 
 const mockedCalendarCtrl = mocked(CalendarCtrl)
 const mockUser = buildVolunteer()
