@@ -1,0 +1,2 @@
+DROP SCHEMA IF EXISTS import_upchieve CASCADE;
+DROP SCHEMA IF EXISTS backup_upchieve CASCADE;
