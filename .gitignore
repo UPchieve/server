@@ -256,3 +256,6 @@ __pycache__
 
 # Vendors
 vendors/
+
+scripts/prod_refresh/data/*
+scripts/prod_refresh/logs/*
