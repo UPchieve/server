@@ -137,6 +137,7 @@ import {
   AssignmentPublic,
   StudentAssignmentSubmissionPublic,
 } from '../../contracts/assignments'
+import { NTHSGroupMemberWithRolePublic } from '../../contracts/nths'
 
 export function getEmail(): string {
   return faker.internet.email().toLowerCase()
@@ -1128,8 +1129,8 @@ export function buildNTHSGroupMemberWithRole(
   overrides: Partial<NTHSGroupMemberWithRole> = {}
 ): NTHSGroupMemberWithRole {
   return {
-    nthsGroupId: getDbUlid(),
-    userId: getDbUlid(),
+    nthsGroupId: getUuid(),
+    userId: getUuid(),
     title: 'Member',
     joinedAt: new Date(),
     updatedAt: new Date(),
@@ -1137,6 +1138,21 @@ export function buildNTHSGroupMemberWithRole(
     lastInitial: faker.person.lastName().charAt(0),
     roleName: 'member',
     ...overrides,
+  }
+}
+
+export function buildNTHSGroupMemberWithRolePublic(
+  overrides: Partial<NTHSGroupMemberWithRole> = {}
+): NTHSGroupMemberWithRolePublic {
+  const member = buildNTHSGroupMemberWithRole(overrides)
+  return {
+    nthsGroupId: member.nthsGroupId,
+    userId: member.userId,
+    title: member.title,
+    joinedAt: member.joinedAt.toISOString(),
+    firstName: member.firstName,
+    lastInitial: member.lastInitial,
+    roleName: member.roleName,
   }
 }
 

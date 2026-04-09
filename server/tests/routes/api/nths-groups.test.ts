@@ -4,6 +4,7 @@ import { mockApp, mockPassportMiddleware, mockRouter } from '../../mock-app'
 import {
   buildNTHSGroup,
   buildNTHSGroupMemberWithRole,
+  buildNTHSGroupMemberWithRolePublic,
   buildNTHSGroupWithMemberInfo,
   buildUser,
   buildVolunteer,
@@ -170,6 +171,7 @@ describe('routeNTHSGroups', () => {
     test('returns group members', async () => {
       const member = buildNTHSGroupMemberWithRole()
       const members = [member]
+      const membersPublic = members.map(buildNTHSGroupMemberWithRolePublic)
       mockedNTHSGroupsService.getGroupMembers.mockResolvedValueOnce(members)
 
       const response = await sendGet(`/api/nths-groups/${groupId}/members`)
@@ -178,13 +180,7 @@ describe('routeNTHSGroups', () => {
         groupId
       )
       expect(response.body).toEqual({
-        members: [
-          {
-            ...member,
-            joinedAt: member.joinedAt.toISOString(),
-            updatedAt: member.joinedAt.toISOString(),
-          },
-        ],
+        members: membersPublic,
       })
     })
   })
