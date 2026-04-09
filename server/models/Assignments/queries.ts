@@ -12,6 +12,7 @@ import {
   CreateStudentAssignmentResult,
   EditAssignmentInput,
   StudentAssignment,
+  StudentAssignmentCompletionRow,
 } from './types'
 import * as pgQueries from './pg.queries'
 import {
@@ -244,11 +245,22 @@ export async function getAllAssignmentsForTeacher(
 export async function getStudentAssignmentCompletion(
   assignmentId: Ulid,
   tc: TransactionClient = getClient()
-) {
+): Promise<StudentAssignmentCompletionRow[]> {
   try {
     const studentAssignments =
       await pgQueries.getStudentAssignmentCompletion.run({ assignmentId }, tc)
-    return studentAssignments
+    return studentAssignments.map((assignment) => {
+      const data = makeSomeOptional(assignment, ['submittedAt'])
+      return {
+        ...data,
+        // The frontend currently uses the underscored column names instead of
+        // the camelcased names. Remove the underscored names once the frontend
+        // is refactored
+        first_name: data.firstName,
+        last_name: data.lastName,
+        submittedAt: data.submittedAt,
+      }
+    })
   } catch (err) {
     throw new RepoReadError(err)
   }
