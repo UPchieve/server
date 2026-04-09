@@ -1,7 +1,11 @@
 import { mocked } from 'jest-mock'
 import request, { Response } from 'supertest'
 import { mockApp, mockPassportMiddleware, mockRouter } from '../../mock-app'
-import { buildPublicProductFlags, buildVolunteer } from '../../mocks/generate'
+import {
+  buildUserProductFlags,
+  buildUserProductFlagsPublic,
+  buildVolunteer,
+} from '../../mocks/generate'
 import { routeProductFlags } from '../../../router/api/product-flags'
 import * as UserProductFlagsRepo from '../../../models/UserProductFlags/queries'
 import * as UserProductFlagsService from '../../../services/UserProductFlagsService'
@@ -46,19 +50,26 @@ describe('routeProductFlags', () => {
 
   describe('GET /api/product-flags', () => {
     test('returns product flags', async () => {
-      const flags = buildPublicProductFlags()
-      mockedRepo.getPublicUPFByUserId.mockResolvedValueOnce(flags)
+      const flags = buildUserProductFlags()
+      const flagsPublic = buildUserProductFlagsPublic(flags)
+      mockedRepo.getUPFByUserId.mockResolvedValueOnce(flags)
 
       const response = await sendGet('/api/product-flags')
       expect(response.status).toBe(200)
-      expect(mockedRepo.getPublicUPFByUserId).toHaveBeenCalledWith(mockUser.id)
+      expect(mockedRepo.getUPFByUserId).toHaveBeenCalledWith(mockUser.id)
       expect(response.body).toEqual({
-        flags: {
-          ...flags,
-          fallIncentiveEnrollmentAt:
-            flags.fallIncentiveEnrollmentAt?.toISOString(),
-          impactStudyEnrollmentAt: flags.impactStudyEnrollmentAt?.toISOString(),
-        },
+        flags: flagsPublic,
+      })
+    })
+
+    test('returns no product flags', async () => {
+      mockedRepo.getUPFByUserId.mockResolvedValueOnce(undefined)
+
+      const response = await sendGet('/api/product-flags')
+      expect(response.status).toBe(200)
+      expect(mockedRepo.getUPFByUserId).toHaveBeenCalledWith(mockUser.id)
+      expect(response.body).toEqual({
+        flags: undefined,
       })
     })
   })

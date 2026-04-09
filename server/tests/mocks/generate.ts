@@ -138,6 +138,7 @@ import {
   StudentAssignmentSubmissionPublic,
 } from '../../contracts/assignments'
 import { NTHSGroupMemberWithRolePublic } from '../../contracts/nths'
+import { UserProductFlagsPublic } from '../../contracts/product-flags'
 
 export function getEmail(): string {
   return faker.internet.email().toLowerCase()
@@ -955,16 +956,33 @@ export const buildUserProductFlags = (
   }
 }
 
-export function buildPublicProductFlags(
+export function buildUserProductFlagsPublic(
   overrides: Partial<UserProductFlags> = {}
-) {
+): UserProductFlagsPublic {
   const flags = buildUserProductFlags(overrides)
+
   return {
     userId: flags.userId,
     gatesQualified: flags.gatesQualified,
-    fallIncentiveEnrollmentAt: flags.fallIncentiveEnrollmentAt,
-    impactStudyEnrollmentAt: flags.impactStudyEnrollmentAt,
-    impactStudyCampaigns: flags.impactStudyCampaigns,
+    fallIncentiveEnrollmentAt: flags.fallIncentiveEnrollmentAt?.toISOString(),
+    impactStudyEnrollmentAt: flags.impactStudyEnrollmentAt?.toISOString(),
+    impactStudyCampaigns: flags.impactStudyCampaigns
+      ? Object.fromEntries(
+          Object.entries(flags.impactStudyCampaigns).map(([key, campaign]) => [
+            key,
+            {
+              id: campaign.id,
+              surveyId: campaign.surveyId,
+              viewCount: campaign.viewCount,
+              maxViewCount: campaign.maxViewCount,
+              rewardAmount: campaign.rewardAmount,
+              submittedAt: campaign.submittedAt?.toISOString(),
+              launchedAt: campaign.launchedAt?.toISOString(),
+              createdAt: campaign.createdAt.toISOString(),
+            },
+          ])
+        )
+      : undefined,
   }
 }
 
