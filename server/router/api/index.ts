@@ -1,4 +1,4 @@
-import { Express, Router } from 'express'
+import { Express, Response, Router } from 'express'
 import expressWs from 'express-ws'
 import { Server } from 'socket.io'
 import { authPassport } from '../../utils/auth-utils'
@@ -32,6 +32,7 @@ import { routeRewards } from './rewards'
 import { sendTextMessage } from '../../services/TwilioService'
 import { asString } from '../../utils/type-utils'
 import { routeNTHSGroups } from './nths-groups'
+import { SendReferralLinkResponse } from '../../contracts/referral'
 
 export function routes(app: Express, io: Server): void {
   const router: expressWs.Router = Router()
@@ -60,53 +61,59 @@ export function routes(app: Express, io: Server): void {
   routeRewards(router)
   routeNTHSGroups(router)
 
-  router.post('/send-referral-email', async function (req, res) {
-    try {
-      if (!req.user) {
-        res.json({ success: false })
-        return
-      }
-      const user = await getUserReferralLink(req.user.id)
-      if (!user) {
-        res.json({ success: false })
-        return
-      }
+  router.post(
+    '/send-referral-email',
+    async function (req, res: Response<SendReferralLinkResponse>) {
+      try {
+        if (!req.user) {
+          res.json({ success: false })
+          return
+        }
+        const user = await getUserReferralLink(req.user.id)
+        if (!user) {
+          res.json({ success: false })
+          return
+        }
 
-      const referralLink = `https://${config.client.host}/referral/${user.referralCode}`
-      await sendReferralProgramEmail(user.email, user.firstName, referralLink)
+        const referralLink = `https://${config.client.host}/referral/${user.referralCode}`
+        await sendReferralProgramEmail(user.email, user.firstName, referralLink)
 
-      res.json({ success: true })
-    } catch {
-      res.json({ success: false })
+        res.json({ success: true })
+      } catch {
+        res.json({ success: false })
+      }
     }
-  })
+  )
 
-  router.post('/send-referral-text', async function (req, res) {
-    try {
-      if (!req.user) {
-        res.json({ success: false })
-        return
-      }
+  router.post(
+    '/send-referral-text',
+    async function (req, res: Response<SendReferralLinkResponse>) {
+      try {
+        if (!req.user) {
+          res.json({ success: false })
+          return
+        }
 
-      const user = await getUserReferralLink(req.user.id)
-      if (!user) {
-        res.json({ success: false })
-        return
-      }
+        const user = await getUserReferralLink(req.user.id)
+        if (!user) {
+          res.json({ success: false })
+          return
+        }
 
-      const referralLink = `https://${config.client.host}/referral/${user.referralCode}`
-      const phoneNumber = asString(req.body.phoneNumber)
-      const message = `Hey! Want to change lives in your spare time? ✨
+        const referralLink = `https://${config.client.host}/referral/${user.referralCode}`
+        const phoneNumber = asString(req.body.phoneNumber)
+        const message = `Hey! Want to change lives in your spare time? ✨
         ${user.firstName} is volunteering online at UPchieve to tutor students at low-income schools and thought you'd enjoy it, too! 🍎
         💬 It's all chat & audio based and you can tutor as little or as much as you want. (Plus earn volunteer hours!)
         Sign up today to start making an impact! ${referralLink}`
 
-      await sendTextMessage(phoneNumber, message)
-      res.json({ success: true })
-    } catch {
-      res.json({ success: false })
+        await sendTextMessage(phoneNumber, message)
+        res.json({ success: true })
+      } catch {
+        res.json({ success: false })
+      }
     }
-  })
+  )
 
   app.use(addLastActivity)
   app.use(addUserAction)
