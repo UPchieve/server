@@ -3,7 +3,12 @@ import request, { Test } from 'supertest'
 import { mockApp, mockRouter } from '../../mock-app'
 import { routeAssignments } from '../../../router/api/assignments'
 import * as AssignmentsService from '../../../services/AssignmentsService'
-import { buildAssignment } from '../../mocks/generate'
+import {
+  buildAssignment,
+  buildAssignmentPublic,
+  buildStudentAssignmentCompletionRow,
+  buildStudentAssignmentSubmissionPublic,
+} from '../../mocks/generate'
 import type { BlobDocument } from '../../../services/AzureService'
 
 jest.mock('../../../services/AssignmentsService')
@@ -34,13 +39,14 @@ describe('routeAssignments', () => {
 
   describe('GET /api/assignment/:assignmentId', () => {
     test('returns assignment', async () => {
-      const assignment = buildAssignment()
-
+      const isGettingStartedAssignment = true
+      const assignment = buildAssignment({ isGettingStartedAssignment })
+      const assignmentPublic = buildAssignmentPublic(assignment)
       mockedAssignmentsService.getAssignmentById.mockResolvedValueOnce(
         assignment
       )
       mockedAssignmentsService.isGettingStartedAssignment.mockResolvedValueOnce(
-        true
+        isGettingStartedAssignment
       )
 
       const response = await sendGet(`/api/assignment/${assignment.id}`)
@@ -52,14 +58,7 @@ describe('routeAssignments', () => {
         mockedAssignmentsService.isGettingStartedAssignment
       ).toHaveBeenCalledWith(assignment.id)
       expect(response.body).toEqual({
-        assignment: {
-          ...assignment,
-          dueDate: assignment.dueDate?.toISOString(),
-          startDate: assignment.startDate?.toISOString(),
-          createdAt: assignment.createdAt.toISOString(),
-          updatedAt: assignment.updatedAt.toISOString(),
-          isGettingStartedAssignment: true,
-        },
+        assignment: assignmentPublic,
       })
     })
 
@@ -83,27 +82,14 @@ describe('routeAssignments', () => {
   })
 
   describe('GET /api/assignment/:assignmentId/students', () => {
-    type StudentAssignmentCompletionRow = {
-      firstName: string
-      lastName: string
-      submittedAt: Date | null
-    }
-
     test('returns student assignment completion details', async () => {
-      const submittedAt = new Date()
-      const studentAssignments: StudentAssignmentCompletionRow[] = [
-        {
-          firstName: 'Jane',
-          lastName: 'Doe',
-          submittedAt,
-        },
-        {
-          firstName: 'John',
-          lastName: 'Smith',
-          submittedAt: null,
-        },
+      const studentAssignments = [
+        buildStudentAssignmentCompletionRow(),
+        buildStudentAssignmentCompletionRow(),
       ]
-
+      const publicAssignments = studentAssignments.map(
+        buildStudentAssignmentSubmissionPublic
+      )
       mockedAssignmentsService.getStudentAssignmentCompletion.mockResolvedValueOnce(
         studentAssignments
       )
@@ -117,18 +103,7 @@ describe('routeAssignments', () => {
       ).toHaveBeenCalledWith(ASSIGNMENT_ID)
 
       expect(response.body).toEqual({
-        studentAssignments: [
-          {
-            firstName: 'Jane',
-            lastName: 'Doe',
-            submittedAt: submittedAt.toISOString(),
-          },
-          {
-            firstName: 'John',
-            lastName: 'Smith',
-            submittedAt: null,
-          },
-        ],
+        studentAssignments: publicAssignments,
       })
     })
   })
