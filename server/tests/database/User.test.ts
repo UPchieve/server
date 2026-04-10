@@ -21,7 +21,7 @@ import {
 import { reportSession } from '../../services/SessionService'
 import {
   buildSessionRow,
-  buildStudentPartnerOrg,
+  buildStudentPartnerOrgInsert,
   buildStudentPartnerOrgUpchieveInstance,
   buildStudentProfile,
   buildUserRow,
@@ -144,7 +144,7 @@ describe('getLegacyUser', () => {
     // Insert their related student_partner_orgs
     await insertSingleRow(
       'upchieve.student_partner_orgs',
-      buildStudentPartnerOrg({
+      buildStudentPartnerOrgInsert({
         id: partnerSchoolSpoId,
         key: 'partner school spo',
         name: 'partner school spo',
@@ -155,7 +155,7 @@ describe('getLegacyUser', () => {
     )
     await insertSingleRow(
       'upchieve.student_partner_orgs',
-      buildStudentPartnerOrg({
+      buildStudentPartnerOrgInsert({
         id: partnerSchoolWithNoInstancesSpoId,
         key: 'partner school spo 2',
         name: 'partner school spo 2',
