@@ -34,17 +34,6 @@ jest.mock('../../../utils/auth-utils', () => ({
   },
 }))
 
-// jest.mock('../../../utils/auth-utils', () => {
-//   const actual = jest.requireActual('../../../utils/auth-utils')
-//   return {
-//     ...actual,
-//     authPassport: {
-//       ...actual.authPassport,
-//       isAdmin,
-//     },
-//   }
-// })
-
 const mockedVolunteersCtrl = mocked(VolunteersCtrl)
 const mockedVolunteerService = mocked(VolunteerService)
 const mockedCache = mocked(cache)
