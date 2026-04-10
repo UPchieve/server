@@ -8,11 +8,12 @@ import { getDbUlid } from '../../models/pgUtils'
 import { insertSingleRow } from '../db-utils'
 import {
   buildSchool,
-  buildStudentPartnerOrg,
+  buildStudentPartnerOrgInsert,
   buildStudentPartnerOrgUpchieveInstance,
 } from '../mocks/generate'
 import * as SchoolService from '../../services/SchoolService'
 import { schoolSearch } from '../../models/School'
+import type { Uuid } from '../../types/shared'
 
 const client = getClient()
 
@@ -157,7 +158,7 @@ describe('getPartnerSchools', () => {
       const schoolId = await createSchoolForTest(true)
       const spo = await insertSingleRow(
         'student_partner_orgs',
-        buildStudentPartnerOrg({
+        buildStudentPartnerOrgInsert({
           schoolId,
         }),
         client
@@ -165,7 +166,7 @@ describe('getPartnerSchools', () => {
       await insertSingleRow(
         'student_partner_orgs_upchieve_instances',
         buildStudentPartnerOrgUpchieveInstance({
-          studentPartnerOrgId: spo.id,
+          studentPartnerOrgId: spo.id as Uuid,
         }),
         client
       )
@@ -190,14 +191,14 @@ describe('getPartnerSchools', () => {
       const schoolId = await createSchoolForTest(true)
       const spo1 = await insertSingleRow(
         'student_partner_orgs',
-        buildStudentPartnerOrg({
+        buildStudentPartnerOrgInsert({
           schoolId,
         }),
         client
       )
       const spo2 = await insertSingleRow(
         'student_partner_orgs',
-        buildStudentPartnerOrg({
+        buildStudentPartnerOrgInsert({
           schoolId,
         }),
         client
@@ -205,14 +206,14 @@ describe('getPartnerSchools', () => {
       await insertSingleRow(
         'student_partner_orgs_upchieve_instances',
         buildStudentPartnerOrgUpchieveInstance({
-          studentPartnerOrgId: spo1.id,
+          studentPartnerOrgId: spo1.id as Uuid,
         }),
         client
       )
       await insertSingleRow(
         'student_partner_orgs_upchieve_instances',
         buildStudentPartnerOrgUpchieveInstance({
-          studentPartnerOrgId: spo2.id,
+          studentPartnerOrgId: spo2.id as Uuid,
         }),
         client
       )
@@ -270,7 +271,7 @@ describe('getPartnerSchools', () => {
       const schoolId = await createSchoolForTest(true)
       const spo = await insertSingleRow(
         'student_partner_orgs',
-        buildStudentPartnerOrg({
+        buildStudentPartnerOrgInsert({
           schoolId,
         }),
         client
@@ -278,7 +279,7 @@ describe('getPartnerSchools', () => {
       await insertSingleRow(
         'student_partner_orgs_upchieve_instances',
         buildStudentPartnerOrgUpchieveInstance({
-          studentPartnerOrgId: spo.id,
+          studentPartnerOrgId: spo.id as Uuid,
           deactivatedOn: new Date(),
         }),
         client

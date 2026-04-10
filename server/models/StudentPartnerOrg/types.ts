@@ -1,10 +1,14 @@
+import { Uuid } from '../../types/shared'
+
 export type StudentPartnerOrgForRegistration = {
   key: string
   schoolSignupRequired: boolean
   sites?: string[]
 }
 
+// TODO: Normalize the StudentPartnerOrg shape
 export type StudentPartnerOrg = {
+  id?: Uuid
   collegeSignup: boolean
   highSchoolSignup: boolean
   key: string
