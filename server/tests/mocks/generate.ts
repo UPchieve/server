@@ -1599,7 +1599,7 @@ export function buildCurrentSessionPublic(
     volunteerBannedFromLiveMedia: session.volunteerBannedFromLiveMedia,
     volunteerLanguages: session.volunteerLanguages,
     type: session.type,
-    subTopic: session.subject,
+    subTopic: session.subTopic,
     createdAt: session.createdAt.toISOString(),
     endedAt: session.endedAt?.toISOString(),
     endedBy: session.endedBy,
