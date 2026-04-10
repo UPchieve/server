@@ -148,17 +148,6 @@ describe('AuthRouter.routes', () => {
     asyncLogout.mockReset()
     asyncLogin.mockResolvedValue(undefined)
     asyncLogout.mockResolvedValue(undefined)
-
-    // mockedPassport.authenticate.mockImplementation(
-    //   (_strategy: string, callback?: Function) => {
-    //     return (req: ExpressRequest, res: ExpressResponse, next?: Function) => {
-    //       if (typeof callback === 'function') {
-    //         return callback(null, req.user, undefined)
-    //       }
-    //       if (next) return next()
-    //     }
-    //   }
-    // )
   })
 
   describe('GET /auth/status', () => {

@@ -1,19 +1,23 @@
 import { Response, Router } from 'express'
 import * as AssignmentsService from '../../services/AssignmentsService'
-import * as mappers from '../../public/assignments'
+import {
+  toAssigmentPublic,
+  toAssignmentDocumentPublic,
+  toStudentAssignmentSubmissionPublic,
+} from '../../public/assignments'
 import { resError } from '../res-error'
 import multer from 'multer'
 import { asString } from '../../utils/type-utils'
 import {
-  GetAssignmentDocumentsResponse,
-  GetAssignmentResponse,
-  GetStudentAssignmentCompletionResponse,
+  AssignmentDocumentsResponse,
+  AssignmentResponse,
+  StudentAssignmentCompletionResponse,
 } from '../../contracts/assignments'
 
 export function routeAssignments(router: Router): void {
   router.get(
     '/assignment/:assignmentId',
-    async function (req, res: Response<GetAssignmentResponse>) {
+    async function (req, res: Response<AssignmentResponse>) {
       try {
         const assignmentId = req.params.assignmentId as string
         const assignment =
@@ -22,9 +26,7 @@ export function routeAssignments(router: Router): void {
           assignment.isGettingStartedAssignment =
             await AssignmentsService.isGettingStartedAssignment(assignment.id)
         res.json({
-          assignment: assignment
-            ? mappers.toAssigmentPublic(assignment)
-            : undefined,
+          assignment: assignment ? toAssigmentPublic(assignment) : undefined,
         })
       } catch (err) {
         resError(res, err)
@@ -34,17 +36,14 @@ export function routeAssignments(router: Router): void {
 
   router.get(
     '/assignment/:assignmentId/students',
-    async function (
-      req,
-      res: Response<GetStudentAssignmentCompletionResponse>
-    ) {
+    async function (req, res: Response<StudentAssignmentCompletionResponse>) {
       try {
         const assignmentId = req.params.assignmentId as string
         const studentAssignments =
           await AssignmentsService.getStudentAssignmentCompletion(assignmentId)
         res.json({
           studentAssignments: studentAssignments.map(
-            mappers.toStudentAssignmentSubmissionPublic
+            toStudentAssignmentSubmissionPublic
           ),
         })
       } catch (err) {
@@ -93,7 +92,7 @@ export function routeAssignments(router: Router): void {
 
   router.get(
     '/assignment/:assignmentId/documents',
-    async (req, res: Response<GetAssignmentDocumentsResponse>) => {
+    async (req, res: Response<AssignmentDocumentsResponse>) => {
       try {
         const assignmentId = asString(req.params.assignmentId)
         const assignmentDocuments =
@@ -101,7 +100,7 @@ export function routeAssignments(router: Router): void {
 
         res.json({
           assignmentDocuments: assignmentDocuments.map(
-            mappers.toAssignmentDocumentPublic
+            toAssignmentDocumentPublic
           ),
         })
       } catch (err) {

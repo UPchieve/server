@@ -22,7 +22,6 @@ const mockedStudentRepo = mocked(StudentRepo)
 const mockedAssignmentsService = mocked(AssignmentsService)
 const mockedStudentService = mocked(StudentService)
 
-// mock app - passport should attach any user we need
 const app = mockApp()
 
 let mockUser = buildUser()
