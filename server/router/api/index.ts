@@ -32,7 +32,7 @@ import { routeRewards } from './rewards'
 import { sendTextMessage } from '../../services/TwilioService'
 import { asString } from '../../utils/type-utils'
 import { routeNTHSGroups } from './nths-groups'
-import { SendReferralLinkResponse } from '../../contracts/referral'
+import type { SendReferralLinkResponse } from '../../contracts/referral'
 
 export function routes(app: Express, io: Server): void {
   const router: expressWs.Router = Router()

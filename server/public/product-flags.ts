@@ -1,9 +1,9 @@
-import {
+import type {
   ImpactStudyCampaignPublic,
   ImpactStudyCampaignsMapPublic,
   UserProductFlagsPublic,
 } from '../contracts/product-flags'
-import {
+import type {
   ImpactStudyCampaign,
   ImpactStudyCampaignsMap,
   UserProductFlags,

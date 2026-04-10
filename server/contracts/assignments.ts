@@ -33,14 +33,14 @@ export type AssignmentDocumentPublic = {
   url: string
 }
 
-export type GetAssignmentResponse = {
+export type AssignmentResponse = {
   assignment?: AssignmentPublic
 }
 
-export type GetStudentAssignmentCompletionResponse = {
+export type StudentAssignmentCompletionResponse = {
   studentAssignments: StudentAssignmentSubmissionPublic[]
 }
 
-export type GetAssignmentDocumentsResponse = {
+export type AssignmentDocumentsResponse = {
   assignmentDocuments: AssignmentDocumentPublic[]
 }

@@ -31,8 +31,8 @@ import {
   AssociatedPartnersAndSchools,
   getAssociatedPartnersAndSchools,
 } from '../models/AssociatedPartner'
-import { Uuid } from '../types/shared'
-import { SessionReportRow } from '../models/Student/queries'
+import type { Uuid } from '../types/shared'
+import type { SessionReportRow } from '../models/Student/queries'
 
 export class ReportNoDataFoundError extends CustomError {}
 
@@ -70,12 +70,6 @@ export type UsageReport = {
   'HS/College': string
   'Sponsor Org': string | undefined
   'Partner Org': string
-}
-
-// TODO: Move to the frontend and map report dates to this format
-const formatDate = (date: string | Date): string => {
-  if (!date) return '--'
-  return moment(date).tz('America/New_York').format('l h:mm a')
 }
 
 function dateStringToDateEST(dateString: string): Date {

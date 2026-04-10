@@ -34,6 +34,7 @@ import * as PresenceService from '../../services/PresenceService'
 import { observeWebTransaction } from '../../utils/newRelicUtil'
 import { extractSocketIp } from '../../utils/extract-socket-ip'
 import sessionMiddleware from '../middleware/session'
+import { toCurrentSessionPublic } from '../../public/sessions'
 
 export type SessionMessageType = 'audio-transcription' // todo - add 'chat' later
 
@@ -46,10 +47,7 @@ async function handleUser(socket: SocketUser, user: UserContactInfo) {
 
   // Show the user their latest session if it has not ended
   if (latestSession && !latestSession.endedAt) {
-    socket.emit(
-      'session-change',
-      SessionService.toCurrentSessionPublic(latestSession)
-    )
+    socket.emit('session-change', toCurrentSessionPublic(latestSession))
   }
 
   if (user.roleContext.isActiveRole('volunteer')) {

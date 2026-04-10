@@ -38,7 +38,6 @@ jest.mock('../../../cache', () => ({
 jest.mock('@sentry/node', () => ({
   captureException: jest.fn(),
 }))
-// jest.mock('../../../utils/auth-utils')
 jest.mock('../../../utils/auth-utils', () => {
   const actual = jest.requireActual('../../../utils/auth-utils')
   return {
