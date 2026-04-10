@@ -1,4 +1,4 @@
-import { ISODateString } from '../types/dates'
+import type { ISODateString } from '../types/dates'
 
 export type UserRewardPublic = {
   id: string

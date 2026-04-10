@@ -4,7 +4,7 @@ import { resError } from '../res-error'
 import { extractUser } from '../extract-user'
 import { asNumber } from '../../utils/type-utils'
 import { toUserRewardPublic } from '../../public/rewards'
-import { UserRewardResponse } from '../../contracts/rewards'
+import type { UserRewardResponse } from '../../contracts/rewards'
 
 export function routeRewards(router: Router): void {
   router.get(

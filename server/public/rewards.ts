@@ -1,5 +1,5 @@
-import { UserRewardPublic } from '../contracts/rewards'
-import { UserReward } from '../services/RewardsService'
+import type { UserRewardPublic } from '../contracts/rewards'
+import type { UserReward } from '../services/RewardsService'
 
 export function toUserRewardPublic(reward: UserReward): UserRewardPublic {
   return {
