@@ -1,4 +1,4 @@
-import { Ulid } from '../pgUtils'
+import type { Uuid } from '../../types/shared'
 
 export type ProgressReportStatuses =
   | 'pending'
@@ -13,36 +13,36 @@ export type ProgressReportFocusAreas = 'strength' | 'practiceArea'
 export type ProgressReportInfoTypes = 'recommendation' | 'reason'
 
 export type ProgressReportInfo = {
-  id: Ulid
+  id: Uuid
   status: ProgressReportStatuses
   createdAt: Date
   readAt?: Date
 }
 
 export type ProgressReportSummaryRow = {
-  id: Ulid
+  id: Uuid
   summary: string
   overallGrade: number
-  detailId: Ulid
+  detailId: Uuid
   content: string
   focusArea: string
   infoType: string
-  reportId: Ulid
+  reportId: Uuid
   reportReadAt?: Date
   createdAt: Date
   sessionCreatedAt: Date
 }
 
 export type ProgressReportConceptRow = {
-  id: Ulid
+  id: Uuid
   name: string
   description: string
   grade: number
-  detailId: Ulid
+  detailId: Uuid
   content: string
   focusArea: string
   infoType: string
-  reportId: Ulid
+  reportId: Uuid
   reportReadAt?: Date
   createdAt: Date
 }
@@ -65,7 +65,7 @@ export type ProgressReportDetailInsert = {
 }
 
 export type ProgressReportSessionPaginated = {
-  id: Ulid
+  id: Uuid
   topic: string
   topicIconLink: string
   subject: string
