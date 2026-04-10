@@ -31,7 +31,8 @@ import {
   AssociatedPartnersAndSchools,
   getAssociatedPartnersAndSchools,
 } from '../models/AssociatedPartner'
-import { Ulid } from '../models/pgUtils'
+import { Uuid } from '../types/shared'
+import { SessionReportRow } from '../models/Student/queries'
 
 export class ReportNoDataFoundError extends CustomError {}
 
@@ -71,7 +72,8 @@ export type UsageReport = {
   'Partner Org': string
 }
 
-const formatDate = (date: string | Date): Date | string => {
+// TODO: Move to the frontend and map report dates to this format
+const formatDate = (date: string | Date): string => {
   if (!date) return '--'
   return moment(date).tz('America/New_York').format('l h:mm a')
 }
@@ -92,7 +94,7 @@ function dateStringToDateEST(dateString: string): Date {
 
 export const sessionReport = async (
   data: unknown
-): Promise<SessionReport[]> => {
+): Promise<SessionReportRow[]> => {
   const {
     sessionRangeFrom,
     sessionRangeTo,
@@ -113,35 +115,12 @@ export const sessionReport = async (
     start: dateStringToDateEST(sessionRangeFrom),
     end: dateStringToDateEST(sessionRangeTo),
   })
-
-  if (report && report.length) {
-    const formattedSessions = report.map((row) => {
-      return {
-        Topic: row.topic,
-        Subtopic: row.subject,
-        'Created at': formatDate(row.createdAt),
-        Messages: String(row.totalMessages),
-        'First name': row.firstName,
-        'Last name': row.lastName,
-        Email: row.email,
-        'Partner site': row.partnerSite ? row.partnerSite : '-',
-        'Sponsor org': row.sponsorOrg ? row.sponsorOrg : '-',
-        Volunteer: row.volunteerJoined,
-        'Volunteer join date': row.volunteerJoinedAt
-          ? formatDate(row.volunteerJoinedAt)
-          : '',
-        'Ended at': formatDate(row.endedAt),
-        'Wait time': row.waitTimeMins ? `${row.waitTimeMins}mins` : '',
-        'Session rating': row.sessionRating ? String(row.sessionRating) : '',
-      }
-    })
-
-    return formattedSessions
-  }
-  return []
+  return report ?? []
 }
 
-export const usageReport = async (data: unknown): Promise<UsageReport[]> => {
+export const usageReport = async (
+  data: unknown
+): Promise<StudentRepo.UsageReportRow[]> => {
   const {
     joinedBefore,
     joinedAfter,
@@ -167,34 +146,7 @@ export const usageReport = async (data: unknown): Promise<UsageReport[]> => {
     sessionEnd: dateStringToDateEST(sessionRangeTo),
   })
 
-  if (report && report.length) {
-    const studentUsage = Promise.all(
-      report.map(async (student) => {
-        const dataFormat: UsageReport = {
-          'First name': student.firstName,
-          'Last name': student.lastName,
-          Email: student.email,
-          'Join date': formatDate(student.joinDate),
-          'Total sessions': student.totalSessions,
-          'Total minutes': student.totalSessionLengthMins,
-          'Sessions over date range': student.rangeTotalSessions,
-          'Minutes over date range': student.rangeSessionLengthMins,
-          'High school name': student.school ? student.school : '',
-          'Partner site': student.partnerSite ? student.partnerSite : '-',
-          'HS/College': student.school ? 'High school' : 'College',
-          'Sponsor Org': student.sponsorOrg ? student.sponsorOrg : undefined,
-          'Partner Org': student.studentPartnerOrg
-            ? student.studentPartnerOrg
-            : '',
-        }
-
-        return dataFormat
-      })
-    )
-
-    return studentUsage
-  }
-  return []
+  return report ?? []
 }
 
 interface TelecomReportPayload {
@@ -251,9 +203,9 @@ async function processBatch(
   end: Date,
   associatedPartners: AssociatedPartnersAndSchools,
   batchSize: number,
-  cursor: null | Ulid,
+  cursor: null | Uuid,
   report: AnalyticsReportRow[]
-): Promise<Ulid | null> {
+): Promise<Uuid | null> {
   const batch = await VolunteerRepo.getVolunteersForAnalyticsReport(
     partnerOrg,
     start,
@@ -306,7 +258,7 @@ export async function generatePartnerAnalyticsReport(
   const associatedPartners = await getAssociatedPartnersAndSchools(partnerOrg)
 
   let batchNum: number
-  let nextCursor: null | Ulid = null
+  let nextCursor: null | Uuid = null
   do {
     batchNum = report.length / batchSize + 1
     logger.info(

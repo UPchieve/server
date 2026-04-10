@@ -5,14 +5,16 @@ import { routeReports } from '../../../router/api/reports'
 import * as ReportService from '../../../services/ReportService'
 import { Request as ExpressRequest, Response as ExpressResponse } from 'express'
 import {
-  buildSessionReportFormattedRow,
+  buildSessionReportPublic,
+  buildSessionReportRow,
   buildTelecomReportRow,
-  buildUsageReportFormattedRow,
+  buildUsageReportRow,
+  buildUsageReportRowPublic,
 } from '../../mocks/generate'
 
 function isAdmin(
-  req: ExpressRequest<string, unknown>,
-  res: ExpressResponse,
+  _req: ExpressRequest<string, unknown>,
+  _res: ExpressResponse,
   next: () => void
 ): void {
   next()
@@ -54,7 +56,8 @@ describe('routeReports', () => {
 
   describe('GET /api/reports/session-report', () => {
     test('returns session report data', async () => {
-      const sessions = [buildSessionReportFormattedRow()]
+      const sessions = [buildSessionReportRow()]
+      const sessionReportPublic = sessions.map(buildSessionReportPublic)
       mockedReportService.sessionReport.mockResolvedValueOnce(sessions)
 
       const response = await sendGet(
@@ -66,14 +69,15 @@ describe('routeReports', () => {
         end,
       })
       expect(response.body).toEqual({
-        sessions,
+        sessions: sessionReportPublic,
       })
     })
   })
 
   describe('GET /api/reports/usage-report', () => {
     test('returns usage report data', async () => {
-      const usageReport = [buildUsageReportFormattedRow()]
+      const usageReport = [buildUsageReportRow()]
+      const usageReportPublic = usageReport.map(buildUsageReportRowPublic)
       mockedReportService.usageReport.mockResolvedValueOnce(usageReport)
 
       const response = await sendGet(
@@ -85,7 +89,7 @@ describe('routeReports', () => {
         end,
       })
       expect(response.body).toEqual({
-        students: usageReport,
+        students: usageReportPublic,
       })
     })
   })
