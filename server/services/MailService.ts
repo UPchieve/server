@@ -15,7 +15,7 @@ import { getUserToCreateSendGridContact } from '../models/User'
 import { VolunteerContactInfo, UnsentReference } from '../models/Volunteer'
 import { getFullVolunteerPartnerOrgByKey } from '../models/VolunteerPartnerOrg'
 import { getFullStudentPartnerOrgByKey } from '../models/StudentPartnerOrg'
-import { getPublicUPFByUserId } from '../models/UserProductFlags'
+import { getUPFByUserId } from '../models/UserProductFlags'
 import { buildAppLink } from '../utils/link-builders'
 import { isDevEnvironment, isE2eEnvironment } from '../utils/environments'
 import logger from '../logger'
@@ -1650,7 +1650,7 @@ export async function createContact(userIds: Ulid | Ulid[]): Promise<any> {
     const user = await getUserToCreateSendGridContact(userId)
     if (!user) continue
     const userRoleContext = await UserRolesService.getRoleContext(userId)
-    const productFlags = await getPublicUPFByUserId(userId)
+    const productFlags = await getUPFByUserId(userId)
     const customFields = {
       [SG_CUSTOM_FIELDS.isBanned]: String(
         user.banType === USER_BAN_TYPES.COMPLETE
