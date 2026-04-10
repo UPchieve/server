@@ -1,7 +1,7 @@
-\restrict GR61LryodSSEmuaoyPyZdGMkFoZx7C6qg58Ac8Wq4OXLSG63xskWs1H1T092uwO
+\restrict T6pGuxbO9oistRYrAJ23Oq1qmfbjkyCU08VNw1rltOMaHnU0TrRWp1b8Mb0iCE0
 
 -- Dumped from database version 14.21 (Debian 14.21-1.pgdg13+1)
--- Dumped by pg_dump version 14.19 (Homebrew)
+-- Dumped by pg_dump version 14.22 (Ubuntu 14.22-0ubuntu0.22.04.1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -92,25 +92,6 @@ COMMENT ON EXTENSION pgcrypto IS 'cryptographic functions';
 
 
 --
--- Name: moderation_system; Type: TYPE; Schema: public; Owner: -
---
-
-CREATE TYPE public.moderation_system AS ENUM (
-    'regex'
-);
-
-
---
--- Name: paid_tutors_pilot_groups; Type: TYPE; Schema: public; Owner: -
---
-
-CREATE TYPE public.paid_tutors_pilot_groups AS ENUM (
-    'control',
-    'test'
-);
-
-
---
 -- Name: ban_types; Type: TYPE; Schema: upchieve; Owner: -
 --
 
@@ -118,6 +99,15 @@ CREATE TYPE upchieve.ban_types AS ENUM (
     'shadow',
     'complete',
     'live_media'
+);
+
+
+--
+-- Name: moderation_system; Type: TYPE; Schema: upchieve; Owner: -
+--
+
+CREATE TYPE upchieve.moderation_system AS ENUM (
+    'regex'
 );
 
 
@@ -139,6 +129,16 @@ CREATE TYPE upchieve.nths_candidate_application_status AS ENUM (
     'applied',
     'approved',
     'denied'
+);
+
+
+--
+-- Name: paid_tutors_pilot_groups; Type: TYPE; Schema: upchieve; Owner: -
+--
+
+CREATE TYPE upchieve.paid_tutors_pilot_groups AS ENUM (
+    'control',
+    'test'
 );
 
 
@@ -397,7 +397,7 @@ CREATE TABLE upchieve.censored_session_messages (
     sender_id uuid NOT NULL,
     message text,
     session_id uuid NOT NULL,
-    censored_by public.moderation_system NOT NULL,
+    censored_by upchieve.moderation_system NOT NULL,
     sent_at timestamp with time zone NOT NULL,
     shown boolean NOT NULL
 );
@@ -2918,7 +2918,7 @@ CREATE TABLE upchieve.user_product_flags (
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     in_gates_study boolean DEFAULT false NOT NULL,
     fall_incentive_program boolean DEFAULT false NOT NULL,
-    paid_tutors_pilot_group public.paid_tutors_pilot_groups,
+    paid_tutors_pilot_group upchieve.paid_tutors_pilot_groups,
     fall_incentive_enrollment_at timestamp with time zone,
     impact_study_enrollment_at timestamp with time zone,
     impact_study_campaigns jsonb DEFAULT '{}'::jsonb
@@ -7358,7 +7358,7 @@ ALTER TABLE ONLY upchieve.volunteer_references
 -- PostgreSQL database dump complete
 --
 
-\unrestrict GR61LryodSSEmuaoyPyZdGMkFoZx7C6qg58Ac8Wq4OXLSG63xskWs1H1T092uwO
+\unrestrict T6pGuxbO9oistRYrAJ23Oq1qmfbjkyCU08VNw1rltOMaHnU0TrRWp1b8Mb0iCE0
 
 
 --
@@ -7635,4 +7635,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260305204138'),
     ('20260309135111'),
     ('20260310141305'),
-    ('20260326212800');
+    ('20260326212800'),
+    ('20260408183957');

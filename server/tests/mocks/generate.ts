@@ -580,11 +580,12 @@ export function buildVolunteerPartnerOrg(
 }
 
 export function buildStudentPartnerOrg(
-  overrides: Partial<StudentPartnerOrg> & { id?: string | Ulid } = {}
+  overrides: Partial<StudentPartnerOrg> = {}
 ): StudentPartnerOrg {
   return {
+    id: getUuid(),
     key: getUuid(),
-    name: getUuid(),
+    name: faker.word.noun(),
     highSchoolSignup: false,
     schoolSignupRequired: false,
     collegeSignup: false,
@@ -593,6 +594,22 @@ export function buildStudentPartnerOrg(
     isSchool: true,
     deactivated: false,
     schoolId: getUuid(),
+    ...overrides,
+  }
+}
+
+export function buildStudentPartnerOrgInsert(
+  overrides: Partial<StudentPartnerOrg> = {}
+): Partial<StudentPartnerOrg> {
+  const partner = buildStudentPartnerOrg()
+  return {
+    id: partner.id as Uuid,
+    key: partner.key,
+    name: partner.name,
+    highSchoolSignup: partner.highSchoolSignup,
+    schoolSignupRequired: partner.schoolSignupRequired,
+    collegeSignup: partner.collegeSignup,
+    signupCode: partner.signupCode,
     ...overrides,
   }
 }
@@ -1620,7 +1637,7 @@ export function buildCurrentSessionPublic(
     volunteerBannedFromLiveMedia: session.volunteerBannedFromLiveMedia,
     volunteerLanguages: session.volunteerLanguages,
     type: session.type,
-    subTopic: session.subject,
+    subTopic: session.subTopic,
     createdAt: session.createdAt.toISOString(),
     endedAt: session.endedAt?.toISOString(),
     endedBy: session.endedBy,

@@ -9,7 +9,7 @@ import {
   ModerateImageResultResponse,
   ModerateMessageResponse,
 } from '../../contracts/moderate'
-import { ErrorResponse } from '../../contracts/shared'
+import type { ErrorResponse } from '../../contracts/shared'
 import * as mappers from '../../public/moderate'
 
 export function routeModeration(router: Router): void {
