@@ -120,46 +120,6 @@ const getUpfByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":
 export const getUpfByUserId = new PreparedQuery<IGetUpfByUserIdParams,IGetUpfByUserIdResult>(getUpfByUserIdIR);
 
 
-/** 'GetPublicUpfByUserId' parameters type */
-export interface IGetPublicUpfByUserIdParams {
-  userId: string;
-}
-
-/** 'GetPublicUpfByUserId' return type */
-export interface IGetPublicUpfByUserIdResult {
-  fallIncentiveEnrollmentAt: Date | null;
-  gatesQualified: boolean;
-  impactStudyCampaigns: Json | null;
-  impactStudyEnrollmentAt: Date | null;
-  userId: string;
-}
-
-/** 'GetPublicUpfByUserId' query type */
-export interface IGetPublicUpfByUserIdQuery {
-  params: IGetPublicUpfByUserIdParams;
-  result: IGetPublicUpfByUserIdResult;
-}
-
-const getPublicUpfByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":182,"b":189}]}],"statement":"SELECT\n    user_id,\n    gates_qualified,\n    fall_incentive_enrollment_at,\n    impact_study_enrollment_at,\n    impact_study_campaigns\nFROM\n    user_product_flags\nWHERE\n    user_id = :userId!"};
-
-/**
- * Query generated from SQL:
- * ```
- * SELECT
- *     user_id,
- *     gates_qualified,
- *     fall_incentive_enrollment_at,
- *     impact_study_enrollment_at,
- *     impact_study_campaigns
- * FROM
- *     user_product_flags
- * WHERE
- *     user_id = :userId!
- * ```
- */
-export const getPublicUpfByUserId = new PreparedQuery<IGetPublicUpfByUserIdParams,IGetPublicUpfByUserIdResult>(getPublicUpfByUserIdIR);
-
-
 /** 'UpdateSentInactiveThirtyDayEmail' parameters type */
 export interface IUpdateSentInactiveThirtyDayEmailParams {
   sentInactiveThirtyDayEmail: boolean;

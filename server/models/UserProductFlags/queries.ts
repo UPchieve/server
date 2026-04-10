@@ -2,11 +2,7 @@ import { getClient, TransactionClient } from '../../db'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import { makeRequired, makeSomeOptional, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
-import {
-  ImpactStudyCampaign,
-  PublicUserProductFlags,
-  UserProductFlags,
-} from './types'
+import { ImpactStudyCampaign, UserProductFlags } from './types'
 
 export async function createUPFByUserId(
   userId: Ulid,
@@ -43,30 +39,6 @@ export async function getUPFByUserId(
         userId,
       },
       tc ?? getClient()
-    )
-
-    if (result.length) {
-      const upf = makeSomeOptional(result[0], [
-        'fallIncentiveEnrollmentAt',
-        'impactStudyEnrollmentAt',
-        'impactStudyCampaigns',
-      ])
-      return upf as UserProductFlags
-    }
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
-export async function getPublicUPFByUserId(
-  userId: Ulid
-): Promise<PublicUserProductFlags | undefined> {
-  try {
-    const result = await pgQueries.getPublicUpfByUserId.run(
-      {
-        userId,
-      },
-      getClient()
     )
 
     if (result.length) {

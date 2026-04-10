@@ -1,21 +1,30 @@
-import { Router } from 'express'
+import type { Router, Response } from 'express'
 import * as UserProductFlagsRepo from '../../models/UserProductFlags/queries'
 import { extractUser } from '../extract-user'
 import { resError } from '../res-error'
 import * as UserProductFlagsService from '../../services/UserProductFlagsService'
 import * as IncentiveProgramService from '../../services/IncentiveProgramService'
 import { asOptional, asString } from '../../utils/type-utils'
+import { toUserProductFlagsPublic } from '../../public/product-flags'
+import {
+  FallIncentiveEnrollmentResponse,
+  ImpactStudyEnrollmentResponse,
+  UserProductFlagsResponse,
+} from '../../contracts/product-flags'
 
 export interface TwilioError extends Error {
   message: string
   status: number
 }
 export function routeProductFlags(router: Router) {
-  router.route('/product-flags').get(async function (req, res) {
+  router.route('/product-flags').get(async function (
+    req,
+    res: Response<UserProductFlagsResponse>
+  ) {
     try {
       const user = extractUser(req)
-      const flags = await UserProductFlagsRepo.getPublicUPFByUserId(user.id)
-      res.json({ flags })
+      const flags = await UserProductFlagsRepo.getUPFByUserId(user.id)
+      res.json({ flags: flags ? toUserProductFlagsPublic(flags) : undefined })
     } catch (err) {
       resError(res, err)
     }
@@ -23,7 +32,7 @@ export function routeProductFlags(router: Router) {
 
   router
     .route('/product-flags/fall-incentive-enrollment/enroll')
-    .post(async function (req, res) {
+    .post(async function (req, res: Response<FallIncentiveEnrollmentResponse>) {
       const user = extractUser(req)
       const proxyEmail = asOptional(asString)(req.body.proxyEmail)
       try {
@@ -32,7 +41,9 @@ export function routeProductFlags(router: Router) {
             user.id,
             proxyEmail
           )
-        res.json({ fallIncentiveEnrollmentAt })
+        res.json({
+          fallIncentiveEnrollmentAt: fallIncentiveEnrollmentAt.toISOString(),
+        })
       } catch (err) {
         resError(res, err)
       }
@@ -40,7 +51,7 @@ export function routeProductFlags(router: Router) {
 
   router
     .route('/product-flags/fall-incentive-enrollment/denied')
-    .post(async function (req, res) {
+    .post(async function (req, res: Response<void>) {
       const user = extractUser(req)
       try {
         await IncentiveProgramService.queueIncentiveInvitedToEnrollReminderJob(
@@ -52,19 +63,22 @@ export function routeProductFlags(router: Router) {
       }
     })
 
-  router
-    .route('/product-flags/impact-study-campaigns')
-    .post(async function (req, res) {
-      try {
-        const user = extractUser(req)
-        const impactStudyEnrollmentAt =
-          await UserProductFlagsService.saveImpactStudyCampaign(
-            user.id,
-            UserProductFlagsService.asImpactStudyCampaignData(req.body.campaign)
-          )
-        res.json({ impactStudyEnrollmentAt })
-      } catch (err) {
-        resError(res, err)
-      }
-    })
+  router.route('/product-flags/impact-study-campaigns').post(async function (
+    req,
+    res: Response<ImpactStudyEnrollmentResponse>
+  ) {
+    try {
+      const user = extractUser(req)
+      const impactStudyEnrollmentAt =
+        await UserProductFlagsService.saveImpactStudyCampaign(
+          user.id,
+          UserProductFlagsService.asImpactStudyCampaignData(req.body.campaign)
+        )
+      res.json({
+        impactStudyEnrollmentAt: impactStudyEnrollmentAt?.toISOString(),
+      })
+    } catch (err) {
+      resError(res, err)
+    }
+  })
 }

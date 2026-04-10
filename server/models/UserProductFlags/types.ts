@@ -1,4 +1,4 @@
-import { Ulid } from '../pgUtils'
+import { Uuid } from '../../types/shared'
 
 export type ImpactStudyCampaign = {
   id: string
@@ -14,7 +14,7 @@ export type ImpactStudyCampaign = {
 export type ImpactStudyCampaignsMap = Record<string, ImpactStudyCampaign>
 
 export type UserProductFlags = {
-  userId: Ulid
+  userId: Uuid
   sentReadyToCoachEmail: boolean
   sentHourSummaryIntroEmail: boolean
   sentInactiveThirtyDayEmail: boolean
@@ -27,12 +27,3 @@ export type UserProductFlags = {
   createdAt: Date
   updatedAt: Date
 }
-
-export type PublicUserProductFlags = Pick<
-  UserProductFlags,
-  | 'userId'
-  | 'gatesQualified'
-  | 'fallIncentiveEnrollmentAt'
-  | 'impactStudyEnrollmentAt'
-  | 'impactStudyCampaigns'
->
