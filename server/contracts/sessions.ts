@@ -1,3 +1,4 @@
+import { ISODateString } from '../types/dates'
 import { Uuid } from '../types/shared'
 
 export type SessionUserInfoPublic = {
@@ -12,7 +13,7 @@ export type SessionUserInfoPublic = {
 export type SessionMessagePublic = {
   user: Uuid
   contents: string
-  createdAt: Date
+  createdAt: ISODateString
 }
 
 export type CurrentSessionPublic = {
@@ -22,7 +23,7 @@ export type CurrentSessionPublic = {
   volunteerId?: Uuid
   student: SessionUserInfoPublic
   volunteer?: SessionUserInfoPublic
-  volunteerJoinedAt?: Date
+  volunteerJoinedAt?: ISODateString
   messages: SessionMessagePublic[]
   toolType: string
   docEditorVersion?: number
@@ -32,7 +33,7 @@ export type CurrentSessionPublic = {
   // TODO: Rename this property, this refers to a topic's name
   type: string
   subTopic: string
-  createdAt: Date
-  endedAt?: Date
+  createdAt: ISODateString
+  endedAt?: ISODateString
   endedBy?: Uuid
 }
