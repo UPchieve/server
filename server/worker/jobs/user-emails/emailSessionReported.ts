@@ -1,5 +1,5 @@
 import { Job } from 'bull'
-import { USER_BAN_REASONS } from '../../../constants'
+import { USER_BAN_REASONS, SESSION_REPORT_REASON } from '../../../constants'
 import { getReportedUser } from '../../../models/User'
 import * as MailService from '../../../services/MailService'
 import { getSessionById } from '../../../models/Session'
@@ -7,6 +7,7 @@ import { safeAsync } from '../../../utils/safe-async'
 import { asString } from '../../../utils/type-utils'
 import { Uuid } from '../../../models/pgUtils'
 import { Jobs } from '..'
+import { getUserById } from '../../../services/UserService'
 
 export interface EmailSessionReportedJobData {
   userId: Uuid
@@ -85,6 +86,25 @@ async function emailReportedSession(
         errors.push(
           `Failed to send student ${user.id} email for report: ${studentEmail.error.message}`
         )
+    }
+
+    const volunteer = await getUserById(session.volunteerId!)
+    if (
+      reportedUserRole === 'volunteer' &&
+      reportReason === SESSION_REPORT_REASON.STUDENT_RUDE
+    ) {
+      MailService.sendVolunteerBanStudentApology(
+        volunteer!.email,
+        volunteer!.firstName
+      )
+    } else if (
+      reportedUserRole === 'volunteer' &&
+      reportReason === SESSION_REPORT_REASON.STUDENT_SAFETY
+    ) {
+      MailService.sendVolunteerThanksForReport(
+        volunteer!.email,
+        volunteer!.firstName
+      )
     }
   }
 
