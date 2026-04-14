@@ -79,8 +79,14 @@ import {
 
 export async function parseUser(userId: Ulid) {
   const user = await getLegacyUserObject(userId)
+  return parseUserFromLegacyObject(user)
+}
 
-  user.numReferredVolunteers = await countReferredUsers(user.id, {
+export async function parseUserFromLegacyObject(
+  user: Awaited<ReturnType<typeof getLegacyUserObject>>
+) {
+  const userId = user.id
+  user.numReferredVolunteers = await countReferredUsers(userId, {
     withRoles: ['volunteer'],
   })
 

@@ -2,7 +2,10 @@ import { client } from '../clients/product-client'
 import { Ulid } from '../models/pgUtils'
 import { GRADES } from '../constants'
 import { UserRole } from '../models/User'
-import { getLegacyUserObject } from '../models/User/legacy-user'
+import {
+  getLegacyUserObject,
+  LegacyUserModel,
+} from '../models/User/legacy-user'
 import { getUPFByUserId } from '../models/UserProductFlags'
 import { ISODateString } from '../types/dates'
 import logger from '../logger'
@@ -72,64 +75,7 @@ export async function getPersonPropertiesForAnalytics(userId?: Ulid) {
   try {
     const user = await getLegacyUserObject(userId)
     if (!user) return personProperties
-
-    const productFlags = await getUPFByUserId(userId)
-
-    personProperties = {
-      ucId: user.id,
-      userType: user.roleContext.activeRole,
-      createdAt: user.createdAt.toISOString(),
-      totalSessions: user.pastSessions.length,
-      banType: user.banType,
-      isTestUser: user.isTestUser,
-      hasStudentRole: user.roleContext.hasRole('student'),
-      hasVolunteerRole: user.roleContext.hasRole('volunteer'),
-      hasTeacherRole: user.roleContext.hasRole('teacher'),
-      signupSource: user.signupSource,
-      occupation: user.occupation,
-      usesClever: user.usesClever ?? false,
-    } as AnalyticPersonProperties
-
-    personProperties.partner =
-      user.studentPartnerOrg ?? user.volunteerPartnerOrg
-    if (!personProperties.partner) delete personProperties.partner
-
-    if (user.isSchoolPartner) {
-      personProperties.schoolPartner = user.schoolName ?? null
-    }
-
-    if (user.roleContext.hasRole('volunteer')) {
-      personProperties.onboarded = user.isOnboarded
-      personProperties.approved = user.isApproved
-      personProperties.partner = user.volunteerPartnerOrg ?? null
-
-      const certificationInfo = Object.entries(
-        user.certifications ?? {}
-      ).reduce<AnalyticCertificationStats>((acc, [subject, quizInfo]) => {
-        acc[subject] = quizInfo.passed
-        return acc
-      }, {})
-      personProperties = {
-        ...personProperties,
-        ...certificationInfo,
-      }
-      const hasSubjectCertification = Object.entries(certificationInfo).some(
-        ([cert, info]) => cert !== 'upchieve101' && info
-      )
-      personProperties.hasSubjectCertification = hasSubjectCertification
-    }
-
-    if (user.roleContext.hasRole('student')) {
-      personProperties.gradeLevel = user.gradeLevel ?? null
-      personProperties.fallIncentiveEnrollmentAt =
-        productFlags?.fallIncentiveEnrollmentAt?.toISOString() ?? null
-      personProperties.usesClever = user.usesClever
-      personProperties.usesGoogle = user.usesGoogle
-    }
-
-    if (user.roleContext.hasRole('teacher')) {
-      // TODO: TEACHER PROFILES.
-    }
+    personProperties = await getPersonPropertiesFromLegacyUser(user)
   } catch (error) {
     logger.error(
       `Failed to get person properties for analytics user ${
@@ -137,5 +83,69 @@ export async function getPersonPropertiesForAnalytics(userId?: Ulid) {
       } - error ${error}`
     )
   }
+  return personProperties
+}
+
+export async function getPersonPropertiesFromLegacyUser(user: LegacyUserModel) {
+  let personProperties = {} as AnalyticPersonProperties
+  const userId = user.id
+
+  const productFlags = await getUPFByUserId(userId)
+
+  personProperties = {
+    ucId: user.id,
+    userType: user.roleContext.activeRole,
+    createdAt: user.createdAt.toISOString(),
+    totalSessions: user.pastSessions.length,
+    banType: user.banType,
+    isTestUser: user.isTestUser,
+    hasStudentRole: user.roleContext.hasRole('student'),
+    hasVolunteerRole: user.roleContext.hasRole('volunteer'),
+    hasTeacherRole: user.roleContext.hasRole('teacher'),
+    signupSource: user.signupSource,
+    occupation: user.occupation,
+    usesClever: user.usesClever ?? false,
+  } as AnalyticPersonProperties
+
+  personProperties.partner = user.studentPartnerOrg ?? user.volunteerPartnerOrg
+  if (!personProperties.partner) delete personProperties.partner
+
+  if (user.isSchoolPartner) {
+    personProperties.schoolPartner = user.schoolName ?? null
+  }
+
+  if (user.roleContext.hasRole('volunteer')) {
+    personProperties.onboarded = user.isOnboarded
+    personProperties.approved = user.isApproved
+    personProperties.partner = user.volunteerPartnerOrg ?? null
+
+    const certificationInfo = Object.entries(
+      user.certifications ?? {}
+    ).reduce<AnalyticCertificationStats>((acc, [subject, quizInfo]) => {
+      acc[subject] = quizInfo.passed
+      return acc
+    }, {})
+    personProperties = {
+      ...personProperties,
+      ...certificationInfo,
+    }
+    const hasSubjectCertification = Object.entries(certificationInfo).some(
+      ([cert, info]) => cert !== 'upchieve101' && info
+    )
+    personProperties.hasSubjectCertification = hasSubjectCertification
+  }
+
+  if (user.roleContext.hasRole('student')) {
+    personProperties.gradeLevel = user.gradeLevel ?? null
+    personProperties.fallIncentiveEnrollmentAt =
+      productFlags?.fallIncentiveEnrollmentAt?.toISOString() ?? null
+    personProperties.usesClever = user.usesClever
+    personProperties.usesGoogle = user.usesGoogle
+  }
+
+  if (user.roleContext.hasRole('teacher')) {
+    // TODO: TEACHER PROFILES.
+  }
+
   return personProperties
 }
