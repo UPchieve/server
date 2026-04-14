@@ -105,11 +105,10 @@ async function emailReportedSession(
       }
     }
 
-  let errMsg = ''
-  for (const err of errors) {
-    if (err) errMsg += `${err}\n`
+    let errMsg = ''
+    for (const err of errors) {
+      if (err) errMsg += `${err}\n`
+    }
+    if (errMsg) throw new Error(`${Jobs.EmailSessionReported}: ${errMsg}`)
   }
-  if (errMsg) throw new Error(`${Jobs.EmailSessionReported}: ${errMsg}`)
 }
-
-export default emailReportedSession
