@@ -1583,7 +1583,7 @@ export async function sendNTHSCandidateApplicationDenied(
   }
 }
 
-export async function sendVolunteerBanStudentApology(
+export async function sendVolunteerApologyForBannnedStudent(
   email: string,
   firstName: string
 ) {

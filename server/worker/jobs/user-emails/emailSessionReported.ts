@@ -88,25 +88,22 @@ async function emailReportedSession(
         )
     }
 
-    const volunteer = await getUserById(session.volunteerId!)
-    if (
-      reportedUserRole === 'volunteer' &&
-      reportReason === SESSION_REPORT_REASON.STUDENT_RUDE
-    ) {
-      MailService.sendVolunteerBanStudentApology(
-        volunteer!.email,
-        volunteer!.firstName
-      )
-    } else if (
-      reportedUserRole === 'volunteer' &&
-      reportReason === SESSION_REPORT_REASON.STUDENT_SAFETY
-    ) {
-      MailService.sendVolunteerThanksForReport(
-        volunteer!.email,
-        volunteer!.firstName
-      )
+    if (reportedUserRole === 'volunteer' && session.volunteerId) {
+      const volunteer = await getUserById(session.volunteerId)
+      if (volunteer) {
+        if (reportReason === SESSION_REPORT_REASON.STUDENT_RUDE) {
+          MailService.sendVolunteerBanStudentApology(
+            volunteer.email,
+            volunteer.firstName
+          )
+        } else if (reportReason === SESSION_REPORT_REASON.STUDENT_SAFETY) {
+          MailService.sendVolunteerThanksForReport(
+            volunteer.email,
+            volunteer.firstName
+          )
+        }
+      }
     }
-  }
 
   let errMsg = ''
   for (const err of errors) {
