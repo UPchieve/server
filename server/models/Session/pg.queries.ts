@@ -2897,3 +2897,104 @@ const getSessionFlagsBySessionIdIR: any = {"usedParamSet":{"sessionId":true},"pa
 export const getSessionFlagsBySessionId = new PreparedQuery<IGetSessionFlagsBySessionIdParams,IGetSessionFlagsBySessionIdResult>(getSessionFlagsBySessionIdIR);
 
 
+/** 'GetSessionsToBackfillEndedByUserId' parameters type */
+export type IGetSessionsToBackfillEndedByUserIdParams = void;
+
+/** 'GetSessionsToBackfillEndedByUserId' return type */
+export interface IGetSessionsToBackfillEndedByUserIdResult {
+  endedAt: Date | null;
+  endedByRoleId: number | null;
+  endedByUserId: string | null;
+  id: string;
+  studentId: string;
+  updatedAt: Date;
+  volunteerId: string | null;
+}
+
+/** 'GetSessionsToBackfillEndedByUserId' query type */
+export interface IGetSessionsToBackfillEndedByUserIdQuery {
+  params: IGetSessionsToBackfillEndedByUserIdParams;
+  result: IGetSessionsToBackfillEndedByUserIdResult;
+}
+
+const getSessionsToBackfillEndedByUserIdIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    s.id,\n    s.student_id,\n    s.volunteer_id,\n    s.ended_at,\n    s.ended_by_role_id,\n    s.ended_by_user_id,\n    s.updated_at\nFROM\n    sessions s\n    JOIN user_roles roles ON roles.id = s.ended_by_role_id\nWHERE\n    s.ended_by_user_id IS NULL\n    AND roles.name IN ('student', 'volunteer')\nORDER BY\n    s.created_at DESC"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     s.id,
+ *     s.student_id,
+ *     s.volunteer_id,
+ *     s.ended_at,
+ *     s.ended_by_role_id,
+ *     s.ended_by_user_id,
+ *     s.updated_at
+ * FROM
+ *     sessions s
+ *     JOIN user_roles roles ON roles.id = s.ended_by_role_id
+ * WHERE
+ *     s.ended_by_user_id IS NULL
+ *     AND roles.name IN ('student', 'volunteer')
+ * ORDER BY
+ *     s.created_at DESC
+ * ```
+ */
+export const getSessionsToBackfillEndedByUserId = new PreparedQuery<IGetSessionsToBackfillEndedByUserIdParams,IGetSessionsToBackfillEndedByUserIdResult>(getSessionsToBackfillEndedByUserIdIR);
+
+
+/** 'BackfillEndedByUserId' parameters type */
+export type IBackfillEndedByUserIdParams = void;
+
+/** 'BackfillEndedByUserId' return type */
+export interface IBackfillEndedByUserIdResult {
+  createdAt: Date;
+  endedAt: Date | null;
+  endedByRoleId: number | null;
+  endedByUserId: string | null;
+  hasWhiteboardDoc: boolean;
+  id: string;
+  mongoId: string | null;
+  quillDoc: string | null;
+  reviewed: boolean;
+  shadowbanned: boolean | null;
+  studentBanned: boolean | null;
+  studentId: string;
+  subjectId: number;
+  timeTutored: string;
+  toReview: boolean;
+  updatedAt: Date;
+  volunteerId: string | null;
+  volunteerJoinedAt: Date | null;
+}
+
+/** 'BackfillEndedByUserId' query type */
+export interface IBackfillEndedByUserIdQuery {
+  params: IBackfillEndedByUserIdParams;
+  result: IBackfillEndedByUserIdResult;
+}
+
+const backfillEndedByUserIdIR: any = {"usedParamSet":{},"params":[],"statement":"UPDATE\n    sessions s\nSET\n    updated_at = NOW(),\n    ended_by_user_id = CASE WHEN s.ended_by_role_id = 1 THEN\n        s.student_id\n    WHEN s.ended_by_role_id = 2 THEN\n        s.volunteer_id\n    END\nWHERE\n    s.ended_by_role_id IN (1, 2)\n    AND s.ended_by_user_id IS NULL\nRETURNING\n    *"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE
+ *     sessions s
+ * SET
+ *     updated_at = NOW(),
+ *     ended_by_user_id = CASE WHEN s.ended_by_role_id = 1 THEN
+ *         s.student_id
+ *     WHEN s.ended_by_role_id = 2 THEN
+ *         s.volunteer_id
+ *     END
+ * WHERE
+ *     s.ended_by_role_id IN (1, 2)
+ *     AND s.ended_by_user_id IS NULL
+ * RETURNING
+ *     *
+ * ```
+ */
+export const backfillEndedByUserId = new PreparedQuery<IBackfillEndedByUserIdParams,IBackfillEndedByUserIdResult>(backfillEndedByUserIdIR);
+
+

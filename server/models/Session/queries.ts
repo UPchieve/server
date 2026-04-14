@@ -1475,3 +1475,28 @@ export async function getSessionFlagsBySessionId(sessionId: Uuid) {
 
   return result.map((r) => makeRequired(r))
 }
+
+export async function countSessionsToBackfillEndedByUserId(
+  tc: TransactionClient = getRoClient()
+): Promise<number> {
+  try {
+    const result = await pgQueries.getSessionsToBackfillEndedByUserId.run(
+      undefined,
+      tc
+    )
+    return result.length
+  } catch (error) {
+    throw new RepoReadError(error)
+  }
+}
+
+export async function backfillEndedByUserId(
+  tc: TransactionClient = getClient()
+): Promise<number> {
+  try {
+    const result = await pgQueries.backfillEndedByUserId.run(undefined, tc)
+    return result.length
+  } catch (error) {
+    throw new RepoUpdateError(error)
+  }
+}
