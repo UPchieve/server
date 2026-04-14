@@ -1,5 +1,4 @@
 import { Router } from 'express'
-import { KeyNotFoundError } from '../../cache'
 import * as SessionService from '../../services/SessionService'
 import { resError } from '../res-error'
 import { extractUser } from '../extract-user'

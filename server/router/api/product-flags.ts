@@ -4,7 +4,7 @@ import { extractUser } from '../extract-user'
 import { resError } from '../res-error'
 import * as UserProductFlagsService from '../../services/UserProductFlagsService'
 import * as IncentiveProgramService from '../../services/IncentiveProgramService'
-import { asNumber, asOptional, asString } from '../../utils/type-utils'
+import { asOptional, asString } from '../../utils/type-utils'
 
 export interface TwilioError extends Error {
   message: string

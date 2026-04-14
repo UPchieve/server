@@ -10,6 +10,7 @@ export type TeacherProfile = {
 
 export type CreateTeacherPayload = Pick<TeacherProfile, 'userId' | 'schoolId'>
 
+// TODO: Collapse the two TeacherClass types
 export type TeacherClass = {
   id: Ulid
   cleverId?: string
@@ -17,6 +18,7 @@ export type TeacherClass = {
   name: string
   code: string
   total_students?: Number
+  totalStudents?: Number
   topicId?: number
   createdAt: Date
   updatedAt: Date

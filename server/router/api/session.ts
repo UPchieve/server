@@ -152,7 +152,7 @@ export function routeSession(router: Router) {
       } else {
         res.json({
           sessionId: currentSession.id,
-          data: currentSession,
+          data: SessionService.toCurrentSessionPublic(currentSession),
         })
       }
     } catch (error) {

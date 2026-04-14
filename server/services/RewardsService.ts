@@ -53,7 +53,7 @@ type CreateGiftCardReward = {
   impactStudySurveyCampaignId?: string
 }
 
-type UserReward = {
+export type UserReward = {
   id: string
   rewardLink: string
   amount: number

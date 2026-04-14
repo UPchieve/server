@@ -7,6 +7,7 @@ export type TeacherClass = {
   name: string
   topicId?: number
   userId: Ulid
+  deactivatedOn?: Date
   createdAt: Date
   updatedAt: Date
 }

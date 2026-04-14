@@ -45,6 +45,7 @@ import type {
   MessageForFrontend,
   CurrentSession,
   CurrentSessionUser,
+  SessionDetail,
 } from '../../types/session'
 import type { Uuid } from '../../types/shared'
 
@@ -1373,7 +1374,9 @@ async function getSessionUsers(
   }
 }
 
-export async function getStudentSessionDetails(studentId: Ulid) {
+export async function getStudentSessionDetails(
+  studentId: Ulid
+): Promise<SessionDetail[]> {
   try {
     const sessionDetails = await pgQueries.getStudentSessionDetails.run(
       { studentId },

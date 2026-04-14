@@ -38,7 +38,8 @@ export type EditAssignmentInput = Omit<
 export type StudentAssignment = {
   id: Ulid
   assignedAt: Date
-  classId: Ulid
+  classId?: Ulid
+  className?: string
   description?: string
   title?: string
   numberOfSessions?: number

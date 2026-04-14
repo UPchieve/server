@@ -127,7 +127,7 @@ export async function getBlobBuffer(
   }
 }
 
-type BlobDocument = {
+export type BlobDocument = {
   name: string
   url: string
 }
