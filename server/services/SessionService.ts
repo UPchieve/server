@@ -53,10 +53,10 @@ import * as AssignmentsService from './AssignmentsService'
 import * as AwsService from './AwsService'
 import * as AzureService from './AzureService'
 import * as PushTokenService from './PushTokenService'
+import * as NotifyVolunteerService from './NotifyVolunteerService'
 import QueueService from './QueueService'
 import * as QuillDocService from './QuillDocService'
 import SocketService from './SocketService'
-import { beginRegularNotifications } from './TwilioService'
 import * as WhiteboardService from './WhiteboardService'
 import { getUserAgentInfo } from '../utils/parse-user-agent'
 import {
@@ -85,6 +85,7 @@ import type {
 } from '../contracts/sessions'
 import type { MessageForFrontend, CurrentSession } from '../types/session'
 import { hoursInSeconds } from '../utils/time-utils'
+import Case from 'case'
 
 export async function reviewSession(data: unknown) {
   const { sessionId, reviewed, toReview } =
@@ -680,7 +681,7 @@ export async function startSession(
 
   const isUserShadowBanned = user.banType === USER_BAN_TYPES.SHADOW
   if (!isUserBanned && !isUserShadowBanned && isNotifyTutorEnabled) {
-    await beginRegularNotifications(newSession)
+    await NotifyVolunteerService.beginRegularNotifications(newSession)
   }
 
   // Auto end the session after 45 minutes if the session is unmatched.

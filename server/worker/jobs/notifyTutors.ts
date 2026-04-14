@@ -3,7 +3,7 @@ import { Job } from 'bull'
 import { getSessionById } from '../../models/Session/queries'
 import * as sessionUtils from '../../utils/session-utils'
 import QueueService from '../../services/QueueService'
-import * as TwilioService from '../../services/TwilioService'
+import * as NotifyVolunteerService from '../../services/NotifyVolunteerService'
 import { log } from '../logger'
 import { Jobs } from '.'
 import { asString } from '../../utils/type-utils'
@@ -37,7 +37,8 @@ export default async (job: Job<NotifyTutorsJobData>): Promise<void> => {
     )
 
   try {
-    const volunteerNotified = await TwilioService.notifyVolunteer(session)
+    const volunteerNotified =
+      await NotifyVolunteerService.notifyVolunteer(session)
 
     if (volunteerNotified) {
       log(

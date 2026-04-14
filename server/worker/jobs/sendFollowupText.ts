@@ -2,7 +2,7 @@ import { Job } from 'bull'
 import { Jobs } from '.'
 import { getSessionById } from '../../models/Session'
 import { getVolunteerContactInfoById } from '../../models/Volunteer'
-import * as TwilioService from '../../services/TwilioService'
+import * as NotifyVolunteerService from '../../services/NotifyVolunteerService'
 import * as sessionUtils from '../../utils/session-utils'
 import { asString } from '../../utils/type-utils'
 import { log } from '../logger'
@@ -30,7 +30,7 @@ export default async (job: Job<SendFollowupTextData>): Promise<void> => {
   if (!volunteer) return
 
   try {
-    await TwilioService.sendFollowupText(
+    await NotifyVolunteerService.sendFollowupText(
       sessionId,
       volunteerId,
       volunteer.phone as string
