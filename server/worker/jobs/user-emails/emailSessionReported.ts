@@ -112,3 +112,5 @@ async function emailReportedSession(
     if (errMsg) throw new Error(`${Jobs.EmailSessionReported}: ${errMsg}`)
   }
 }
+
+export default emailReportedSession
