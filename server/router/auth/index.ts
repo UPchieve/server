@@ -17,7 +17,7 @@ import {
 import { InputError, LookupError } from '../../models/Errors'
 import { resError } from '../res-error'
 import { getUserIdByEmail } from '../../models/User/queries'
-import { asOptional, asString } from '../../utils/type-utils'
+import { asString } from '../../utils/type-utils'
 import { getUuid, Ulid } from '../../models/pgUtils'
 import logger from '../../logger'
 import { getLegacyUserObject } from '../../models/User/legacy-user'
@@ -74,9 +74,8 @@ export function routes(app: Express) {
   })
 
   router.route('/login').post(
-    // Delegate auth logic to passport middleware
     passport.authenticate('local'),
-    // If successfully authed, return user object (otherwise 401 is returned from middleware)
+    // If successfully authed, return user object (otherwise 401 is returned from middleware).
     async function (req: Request, res: Response) {
       const user = await getLegacyUserObject(extractUser(req).id)
 
@@ -205,53 +204,57 @@ export function routes(app: Express) {
     }
   })
 
-  router.route('/register/student').post(async function (req, res) {
-    try {
-      const { fedCredData } = (req.session as SessionWithSsoData).sso ?? {}
-      if (fedCredData && req.body.validator === fedCredData.validator) {
-        const existingStudent = await StudentService.getStudentByEmail(
-          req.body.email
-        )
-        if (existingStudent) {
-          await FedCredService.linkAccount(
-            fedCredData.profileId,
-            fedCredData.issuer,
-            existingStudent.id
+  router
+    .route('/register/student')
+    .post(authPassport.checkRecaptcha, async function (req, res) {
+      try {
+        const { fedCredData } = (req.session as SessionWithSsoData).sso ?? {}
+        if (fedCredData && req.body.validator === fedCredData.validator) {
+          const existingStudent = await StudentService.getStudentByEmail(
+            req.body.email
           )
-          await req.asyncLogin({ id: existingStudent.id, isAdmin: false })
+          if (existingStudent) {
+            await FedCredService.linkAccount(
+              fedCredData.profileId,
+              fedCredData.issuer,
+              existingStudent.id
+            )
+            await req.asyncLogin({ id: existingStudent.id, isAdmin: false })
+            delete (req.session as SessionWithSsoData).sso
+            return res.json({ user: existingStudent })
+          }
+        } else {
           delete (req.session as SessionWithSsoData).sso
-          return res.json({ user: existingStudent })
         }
-      } else {
+
+        const phCookie = config.posthogToken
+          ? req.cookies[`ph_${config.posthogToken}_posthog`]
+          : null
+
+        const distinctId = phCookie
+          ? JSON.parse(phCookie).distinct_id
+          : uuidv4()
+
+        const data = registerStudentValidator({
+          ...req.body,
+          ...((req.session as SessionWithSsoData).sso?.fedCredData ?? {}),
+          ...((req.session as SessionWithSsoData).sso?.userData ?? {}),
+          ip: req.ip,
+          phId: distinctId,
+        })
+        const student = await UserCreationService.registerStudent(data)
+        if (
+          data.password ||
+          (req.session as SessionWithSsoData).sso?.fedCredData
+        ) {
+          await req.asyncLogin(student)
+        }
         delete (req.session as SessionWithSsoData).sso
+        return res.json({ user: student })
+      } catch (e) {
+        resError(res, e)
       }
-
-      const phCookie = config.posthogToken
-        ? req.cookies[`ph_${config.posthogToken}_posthog`]
-        : null
-
-      const distinctId = phCookie ? JSON.parse(phCookie).distinct_id : uuidv4()
-
-      const data = registerStudentValidator({
-        ...req.body,
-        ...((req.session as SessionWithSsoData).sso?.fedCredData ?? {}),
-        ...((req.session as SessionWithSsoData).sso?.userData ?? {}),
-        ip: req.ip,
-        phId: distinctId,
-      })
-      const student = await UserCreationService.registerStudent(data)
-      if (
-        data.password ||
-        (req.session as SessionWithSsoData).sso?.fedCredData
-      ) {
-        await req.asyncLogin(student)
-      }
-      delete (req.session as SessionWithSsoData).sso
-      return res.json({ user: student })
-    } catch (e) {
-      resError(res, e)
-    }
-  })
+    })
 
   // == Remove once midtown clean-up.
   router.route('/register/student/open').post(async function (req, res) {
@@ -303,25 +306,28 @@ export function routes(app: Express) {
     }
   })
 
-  router.route('/register/teacher').post(async function (req, res) {
-    try {
-      const data = registerTeacherValidator({
-        ...req.body,
-        ip: req.ip,
-      })
-      const teacher = await UserCreationService.registerTeacher(data)
-      await req.asyncLogin(teacher)
-      return res.json({ user: teacher })
-    } catch (e) {
-      resError(res, e)
-    }
-  })
+  router
+    .route('/register/teacher')
+    .post(authPassport.checkRecaptcha, async function (req, res) {
+      try {
+        const data = registerTeacherValidator({
+          ...req.body,
+          ip: req.ip,
+        })
+        const teacher = await UserCreationService.registerTeacher(data)
+        await req.asyncLogin(teacher)
+        return res.json({ user: teacher })
+      } catch (e) {
+        resError(res, e)
+      }
+    })
 
+  // TODO: Replace with /register/volunteer.
   router
     .route('/register/volunteer/open')
     .post(authPassport.checkRecaptcha, async function (req, res) {
       try {
-        // TODO replace this with UserCreationService.regsterVolunteer?
+        // TODO replace this with UserCreationService.regsterVolunteer.
         const volunteer = await AuthService.registerVolunteer({
           ...req.body,
           ip: req.ip,
@@ -334,11 +340,11 @@ export function routes(app: Express) {
       }
     })
 
+  // TODO: Replace this with /register/volunteer.
   router
     .route('/register/volunteer/partner')
     .post(authPassport.checkRecaptcha, async function (req, res) {
       try {
-        // TODO replace this with UserCreationService.regsterVolunteer?
         const volunteer = await AuthService.registerPartnerVolunteer({
           ...req.body,
           ip: req.ip,
@@ -432,28 +438,30 @@ export function routes(app: Express) {
       }
     })
 
-  router.route('/reset/send').post(async function (req, res) {
-    try {
-      const reqEmail = asString(req.body.email)
-      const email = reqEmail.toLowerCase()
+  router
+    .route('/reset/send')
+    .post(authPassport.checkRecaptcha, async function (req, res) {
       try {
-        await AuthService.sendReset(email as unknown)
-      } catch (err) {
-        // do not respond with info about no email match
-        if (!(err instanceof LookupError)) return resError(res, err) // will handle sending response with status/error
-        logger.info(err) // log expected lookup errors
-      }
+        const reqEmail = asString(req.body.email)
+        const email = reqEmail.toLowerCase()
+        try {
+          await AuthService.sendReset(email as unknown)
+        } catch (err) {
+          // do not respond with info about no email match
+          if (!(err instanceof LookupError)) return resError(res, err) // will handle sending response with status/error
+          logger.info(err) // log expected lookup errors
+        }
 
-      if (req.user) {
-        await req.asyncLogout()
+        if (req.user) {
+          await req.asyncLogout()
+        }
+        res.status(200).json({
+          msg: 'If an account with this email address exists then we will send a password reset email',
+        })
+      } catch (err) {
+        resError(res, err)
       }
-      res.status(200).json({
-        msg: 'If an account with this email address exists then we will send a password reset email',
-      })
-    } catch (err) {
-      resError(res, err)
-    }
-  })
+    })
 
   router.post(
     '/reset/confirm',

@@ -1,5 +1,5 @@
 import { Job } from 'bull'
-import { USER_BAN_REASONS } from '../../../constants'
+import { USER_BAN_REASONS, SESSION_REPORT_REASON } from '../../../constants'
 import { getReportedUser } from '../../../models/User'
 import * as MailService from '../../../services/MailService'
 import { getSessionById } from '../../../models/Session'
@@ -7,6 +7,7 @@ import { safeAsync } from '../../../utils/safe-async'
 import { asString } from '../../../utils/type-utils'
 import { Uuid } from '../../../models/pgUtils'
 import { Jobs } from '..'
+import { getUserById } from '../../../services/UserService'
 
 export interface EmailSessionReportedJobData {
   userId: Uuid
@@ -34,8 +35,9 @@ async function emailReportedSession(
 
   const errors: string[] = []
 
-  if (!user) errors.push(`user ${userId} not found`)
-  else {
+  if (!user) {
+    errors.push(`user ${userId} not found`)
+  } else {
     const reportedUserRole =
       session.studentId === userId ? 'student' : 'volunteer'
 
@@ -86,13 +88,33 @@ async function emailReportedSession(
           `Failed to send student ${user.id} email for report: ${studentEmail.error.message}`
         )
     }
-  }
 
+    if (reportedUserRole === 'volunteer' && session.volunteerId) {
+      const volunteer = await getUserById(session.volunteerId)
+      if (volunteer) {
+        if (reportReason === SESSION_REPORT_REASON.STUDENT_RUDE) {
+          MailService.sendVolunteerBanStudentApology(
+            volunteer.email,
+            volunteer.firstName
+          )
+        } else if (reportReason === SESSION_REPORT_REASON.STUDENT_SAFETY) {
+          MailService.sendVolunteerThanksForReport(
+            volunteer.email,
+            volunteer.firstName
+          )
+        }
+      }
+    }
+  }
   let errMsg = ''
   for (const err of errors) {
-    if (err) errMsg += `${err}\n`
+    if (err) {
+      errMsg += `${err}\n`
+    }
   }
-  if (errMsg) throw new Error(`${Jobs.EmailSessionReported}: ${errMsg}`)
+  if (errMsg) {
+    throw new Error(`${Jobs.EmailSessionReported}: ${errMsg}`)
+  }
 }
 
 export default emailReportedSession
