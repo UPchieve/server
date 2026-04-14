@@ -1,5 +1,4 @@
 import twilio from 'twilio'
-import { getCurrentNewYorkTime } from '../utils/get-times'
 import config from '../config'
 import moment from 'moment'
 import * as StudentsRepo from '../models/Student'
@@ -24,7 +23,6 @@ import { secondsInMs } from '../utils/time-utils'
 import { CurrentSession } from '../types/session'
 
 const protocol = config.NODE_ENV === 'production' ? 'https' : 'http'
-const apiRoot = `${config.protocol}://${config.host}/twiml`
 
 const twilioClient =
   config.accountSid && config.authToken
@@ -34,38 +32,6 @@ const twilioClient =
 // See Twilio Verify error codes here: https://www.twilio.com/docs/api/errors#6-anchor
 enum TwilioErrorCodes {
   INVALID_PARAMETER = 60200,
-}
-
-// get the availability field to query for the current time
-export function getCurrentAvailabilityPath(): string {
-  const date = getCurrentNewYorkTime()
-  const day = date.isoWeekday() - 1
-  let baseHour = date.hour()
-  let hour: string
-
-  if (baseHour >= 12) {
-    if (baseHour > 12) {
-      baseHour -= 12
-    }
-    hour = `${baseHour}p`
-  } else {
-    if (baseHour === 0) {
-      baseHour = 12
-    }
-    hour = `${baseHour}a`
-  }
-
-  const days = [
-    'Monday',
-    'Tuesday',
-    'Wednesday',
-    'Thursday',
-    'Friday',
-    'Saturday',
-    'Sunday',
-  ]
-
-  return `availability.${days[day]}.${hour}`
 }
 
 export async function sendTextMessage(
@@ -106,36 +72,6 @@ export async function sendTextMessage(
   }
 }
 
-export async function sendVoiceMessage(
-  phoneNumber: string,
-  messageText: string
-): Promise<string> {
-  logger.info(`Sending voice message "${messageText}" to ${phoneNumber}`)
-
-  // URL for Twilio to retrieve the TwiML with the message text and voice
-  const url = apiRoot + '/message/' + encodeURIComponent(messageText)
-
-  // If stored phone number doesn't have international calling code (E.164 formatting)
-  // then default to US number
-  // TODO: normalize previously stored US phone numbers
-  const fullPhoneNumber =
-    phoneNumber[0] === '+' ? phoneNumber : `+1${phoneNumber}`
-
-  // initiate call, giving Twilio the aforementioned URL which Twilio
-  // opens when the call is answered to get the TwiML instructions
-  if (!twilioClient) {
-    logger.warn('Twilio client not loaded.')
-    return '0'
-  }
-  const call = await twilioClient.calls.create({
-    url: url,
-    to: fullPhoneNumber,
-    from: config.sendingNumber,
-  })
-  logger.info(`Voice call to ${phoneNumber} with id ${call.sid}`)
-  return call.sid
-}
-
 // the URL that the volunteer can use to join the session on the client
 type SessionForUrl = Pick<
   SessionRepo.GetSessionByIdResult,
@@ -150,10 +86,6 @@ export function getSessionUrl(session: SessionForUrl): string {
 export async function getActiveSessionVolunteers(): Promise<Ulid[]> {
   const volunteerIds = await SessionRepo.getActiveSessionsWithVolunteers()
   return volunteerIds
-}
-
-export function relativeDate(msAgo: number): Date {
-  return new Date(new Date().getTime() - msAgo)
 }
 
 export async function sendFollowupText(
