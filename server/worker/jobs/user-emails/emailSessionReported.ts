@@ -35,8 +35,9 @@ async function emailReportedSession(
 
   const errors: string[] = []
 
-  if (!user) errors.push(`user ${userId} not found`)
-  else {
+  if (!user) {
+    errors.push(`user ${userId} not found`)
+  } else {
     const reportedUserRole =
       session.studentId === userId ? 'student' : 'volunteer'
 
@@ -104,12 +105,15 @@ async function emailReportedSession(
         }
       }
     }
-
-    let errMsg = ''
-    for (const err of errors) {
-      if (err) errMsg += `${err}\n`
+  }
+  let errMsg = ''
+  for (const err of errors) {
+    if (err) {
+      errMsg += `${err}\n`
     }
-    if (errMsg) throw new Error(`${Jobs.EmailSessionReported}: ${errMsg}`)
+  }
+  if (errMsg) {
+    throw new Error(`${Jobs.EmailSessionReported}: ${errMsg}`)
   }
 }
 
