@@ -1374,6 +1374,7 @@ FROM
 WHERE
     s.ended_by_user_id IS NULL
     AND roles.name IN ('student', 'volunteer')
+    AND s.created_at >= :createdAfter!
 ORDER BY
     s.created_at DESC;
 
@@ -1391,6 +1392,7 @@ SET
 WHERE
     s.ended_by_role_id IN (1, 2)
     AND s.ended_by_user_id IS NULL
+    AND s.created_at >= :createdAfter!
 RETURNING
     *;
 

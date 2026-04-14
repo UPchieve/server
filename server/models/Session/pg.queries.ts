@@ -2898,7 +2898,9 @@ export const getSessionFlagsBySessionId = new PreparedQuery<IGetSessionFlagsBySe
 
 
 /** 'GetSessionsToBackfillEndedByUserId' parameters type */
-export type IGetSessionsToBackfillEndedByUserIdParams = void;
+export interface IGetSessionsToBackfillEndedByUserIdParams {
+  createdAfter: DateOrString;
+}
 
 /** 'GetSessionsToBackfillEndedByUserId' return type */
 export interface IGetSessionsToBackfillEndedByUserIdResult {
@@ -2917,7 +2919,7 @@ export interface IGetSessionsToBackfillEndedByUserIdQuery {
   result: IGetSessionsToBackfillEndedByUserIdResult;
 }
 
-const getSessionsToBackfillEndedByUserIdIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    s.id,\n    s.student_id,\n    s.volunteer_id,\n    s.ended_at,\n    s.ended_by_role_id,\n    s.ended_by_user_id,\n    s.updated_at\nFROM\n    sessions s\n    JOIN user_roles roles ON roles.id = s.ended_by_role_id\nWHERE\n    s.ended_by_user_id IS NULL\n    AND roles.name IN ('student', 'volunteer')\nORDER BY\n    s.created_at DESC"};
+const getSessionsToBackfillEndedByUserIdIR: any = {"usedParamSet":{"createdAfter":true},"params":[{"name":"createdAfter","required":true,"transform":{"type":"scalar"},"locs":[{"a":323,"b":336}]}],"statement":"SELECT\n    s.id,\n    s.student_id,\n    s.volunteer_id,\n    s.ended_at,\n    s.ended_by_role_id,\n    s.ended_by_user_id,\n    s.updated_at\nFROM\n    sessions s\n    JOIN user_roles roles ON roles.id = s.ended_by_role_id\nWHERE\n    s.ended_by_user_id IS NULL\n    AND roles.name IN ('student', 'volunteer')\n    AND s.created_at >= :createdAfter!\nORDER BY\n    s.created_at DESC"};
 
 /**
  * Query generated from SQL:
@@ -2936,6 +2938,7 @@ const getSessionsToBackfillEndedByUserIdIR: any = {"usedParamSet":{},"params":[]
  * WHERE
  *     s.ended_by_user_id IS NULL
  *     AND roles.name IN ('student', 'volunteer')
+ *     AND s.created_at >= :createdAfter!
  * ORDER BY
  *     s.created_at DESC
  * ```
@@ -2944,7 +2947,9 @@ export const getSessionsToBackfillEndedByUserId = new PreparedQuery<IGetSessions
 
 
 /** 'BackfillEndedByUserId' parameters type */
-export type IBackfillEndedByUserIdParams = void;
+export interface IBackfillEndedByUserIdParams {
+  createdAfter: DateOrString;
+}
 
 /** 'BackfillEndedByUserId' return type */
 export interface IBackfillEndedByUserIdResult {
@@ -2974,7 +2979,7 @@ export interface IBackfillEndedByUserIdQuery {
   result: IBackfillEndedByUserIdResult;
 }
 
-const backfillEndedByUserIdIR: any = {"usedParamSet":{},"params":[],"statement":"UPDATE\n    sessions s\nSET\n    updated_at = NOW(),\n    ended_by_user_id = CASE WHEN s.ended_by_role_id = 1 THEN\n        s.student_id\n    WHEN s.ended_by_role_id = 2 THEN\n        s.volunteer_id\n    END\nWHERE\n    s.ended_by_role_id IN (1, 2)\n    AND s.ended_by_user_id IS NULL\nRETURNING\n    *"};
+const backfillEndedByUserIdIR: any = {"usedParamSet":{"createdAfter":true},"params":[{"name":"createdAfter","required":true,"transform":{"type":"scalar"},"locs":[{"a":298,"b":311}]}],"statement":"UPDATE\n    sessions s\nSET\n    updated_at = NOW(),\n    ended_by_user_id = CASE WHEN s.ended_by_role_id = 1 THEN\n        s.student_id\n    WHEN s.ended_by_role_id = 2 THEN\n        s.volunteer_id\n    END\nWHERE\n    s.ended_by_role_id IN (1, 2)\n    AND s.ended_by_user_id IS NULL\n    AND s.created_at >= :createdAfter!\nRETURNING\n    *"};
 
 /**
  * Query generated from SQL:
@@ -2991,6 +2996,7 @@ const backfillEndedByUserIdIR: any = {"usedParamSet":{},"params":[],"statement":
  * WHERE
  *     s.ended_by_role_id IN (1, 2)
  *     AND s.ended_by_user_id IS NULL
+ *     AND s.created_at >= :createdAfter!
  * RETURNING
  *     *
  * ```

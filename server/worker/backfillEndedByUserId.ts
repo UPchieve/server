@@ -4,15 +4,26 @@ import {
 } from '../models/Session'
 import { getClient, runInTransaction } from '../db'
 import logger from '../logger'
+import { Job } from 'bull'
 
-export default async function () {
+export type BackfillEndedByUserIdJobData = {
+  createdAfter: Date
+}
+
+export default async function (job: Job<BackfillEndedByUserIdJobData>) {
   const tc = getClient()
   const logPrefix = 'EndedByUserId Backfill: '
-  const expectedUpdateCount = await countSessionsToBackfillEndedByUserId(tc)
+  const expectedUpdateCount = await countSessionsToBackfillEndedByUserId(
+    job.data.createdAfter,
+    tc
+  )
   logger.info(`${logPrefix}Expecting to update ${expectedUpdateCount} rows`)
 
   await runInTransaction(async (client) => {
-    const actualUpdateCount = await backfillEndedByUserId(client)
+    const actualUpdateCount = await backfillEndedByUserId(
+      job.data.createdAfter,
+      client
+    )
     logger.info(`${logPrefix}Updated ${actualUpdateCount} rows`)
 
     if (actualUpdateCount !== expectedUpdateCount) {
