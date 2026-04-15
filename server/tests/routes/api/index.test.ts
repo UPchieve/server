@@ -2,7 +2,7 @@ import request, { Response } from 'supertest'
 import { mockApp } from '../../mock-app'
 import { routes } from '../../../router/api'
 import * as UserModel from '../../../models/User'
-import * as TwilioService from '../../../services/TwilioService'
+import * as TwilioClient from '../../../clients/twilio'
 import config from '../../../config'
 import { buildVolunteer } from '../../mocks/generate'
 import { AppVolunteer } from '../../types'
@@ -111,10 +111,10 @@ jest.mock('../../../utils/auth-utils', () => ({
 }))
 jest.mock('../../../models/User')
 jest.mock('../../../services/MailService')
-jest.mock('../../../services/TwilioService')
+jest.mock('../../../clients/twilio')
 
 const mockedUserModel = jest.mocked(UserModel)
-const mockedTwilioService = jest.mocked(TwilioService)
+const mockedTwilioClient = jest.mocked(TwilioClient)
 
 const app = mockApp()
 routes(app, {} as never)
@@ -142,7 +142,7 @@ describe('routes defined in router/api/index', () => {
       expect(response.status).toBe(200)
       expect(response.body).toEqual({ success: false })
       expect(mockedUserModel.getUserReferralLink).not.toHaveBeenCalled()
-      expect(mockedTwilioService.sendTextMessage).not.toHaveBeenCalled()
+      expect(mockedTwilioClient.sendTextMessage).not.toHaveBeenCalled()
     })
 
     test('should return success false when no referral user is found', async () => {
@@ -157,7 +157,7 @@ describe('routes defined in router/api/index', () => {
       expect(mockedUserModel.getUserReferralLink).toHaveBeenCalledWith(
         volunteer.id
       )
-      expect(mockedTwilioService.sendTextMessage).not.toHaveBeenCalled()
+      expect(mockedTwilioClient.sendTextMessage).not.toHaveBeenCalled()
     })
 
     test('should send referral text and return success true', async () => {
@@ -176,7 +176,7 @@ describe('routes defined in router/api/index', () => {
       expect(mockedUserModel.getUserReferralLink).toHaveBeenCalledWith(
         volunteer.id
       )
-      expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
+      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
         volunteer.phone,
         `Hey! Want to change lives in your spare time? ✨
         ${volunteer.firstName} is volunteering online at UPchieve to tutor students at low-income schools and thought you'd enjoy it, too! 🍎
@@ -192,7 +192,7 @@ describe('routes defined in router/api/index', () => {
         firstName: volunteer.firstName,
         referralCode: volunteer.referralCode,
       })
-      mockedTwilioService.sendTextMessage.mockRejectedValueOnce(
+      mockedTwilioClient.sendTextMessage.mockRejectedValueOnce(
         new Error('Error')
       )
 
