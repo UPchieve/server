@@ -16,7 +16,7 @@ import {
 } from '../models/Errors'
 import * as StudentService from './StudentService'
 import * as MailService from './MailService'
-import * as TwilioService from './TwilioService'
+import * as AccountVerificationClient from '../clients/twilio'
 import {
   getUserIdByEmail,
   getUserIdByPhone,
@@ -157,7 +157,7 @@ export async function initiateVerification(data: unknown): Promise<void> {
   }
 
   try {
-    await TwilioService.sendVerification(
+    await AccountVerificationClient.sendVerification(
       sendTo,
       verificationMethod,
       firstName,
@@ -240,7 +240,7 @@ export async function confirmVerification(data: unknown): Promise<boolean> {
 
   let isVerified: boolean = false
   try {
-    isVerified = await TwilioService.confirmVerification(
+    isVerified = await AccountVerificationClient.confirmVerification(
       sendTo,
       verificationCode
     )

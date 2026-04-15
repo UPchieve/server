@@ -39,7 +39,8 @@ describe('Muted subjects tests', () => {
     mockedVolunteerRepo.getNextVolunteerToNotify.mockResolvedValueOnce(
       volunteer
     )
-    const notifiedVolunteerId = await NotifyVolunteerService.notifyVolunteer(session)
+    const notifiedVolunteerId =
+      await NotifyVolunteerService.notifyVolunteer(session)
 
     expect(notifiedVolunteerId!).toEqual(volunteer.id)
   })
@@ -51,7 +52,8 @@ describe('Muted subjects tests', () => {
       volunteer
     )
     mockedVolunteerRepo.checkIfVolunteerMutedSubject.mockResolvedValue(true)
-    const notifiedVolunteerId = await NotifyVolunteerService.notifyVolunteer(session)
+    const notifiedVolunteerId =
+      await NotifyVolunteerService.notifyVolunteer(session)
 
     expect(notifiedVolunteerId!).toBe(undefined)
   })
