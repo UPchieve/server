@@ -2,7 +2,7 @@ import * as UserRepo from '../../models/User/queries'
 import { mocked } from 'jest-mock'
 import * as VerificationService from '../../services/VerificationService'
 import { VERIFICATION_METHOD, VERIFICATION_TYPE } from '../../constants'
-import * as TwilioService from '../../services/TwilioService'
+import * as TwilioClient from '../../clients/twilio'
 import * as MailService from '../../services/MailService'
 import * as UserService from '../../services/UserService'
 import logger from '../../logger'
@@ -18,14 +18,14 @@ import { initiateVerification } from '../../services/VerificationService'
 import { faker } from '@faker-js/faker'
 
 jest.mock('../../models/User/queries')
-jest.mock('../../services/TwilioService')
+jest.mock('../../clients/twilio')
 jest.mock('../../services/MailService')
 jest.mock('../../services/StudentService')
 jest.mock('../../services/FeatureFlagService')
 jest.mock('../../services/UserService')
 jest.mock('../../logger')
 
-const mockedTwilioService = mocked(TwilioService)
+const mockedTwilioClient = mocked(TwilioClient)
 const mockedUserRepo = mocked(UserRepo)
 const mockedUserService = mocked(UserService)
 const mockedMailService = mocked(MailService)
@@ -59,7 +59,7 @@ describe('VerificationService', () => {
         }
 
         await VerificationService.initiateVerification(req)
-        expect(mockedTwilioService.sendVerification).toHaveBeenCalledWith(
+        expect(mockedTwilioClient.sendVerification).toHaveBeenCalledWith(
           data.sendTo,
           data.verificationMethod,
           req.firstName,
@@ -142,7 +142,7 @@ describe('VerificationService', () => {
 
     it('Should throw a TwilioError if one is thrown by the TwilioService', async () => {
       const expectedErr = new TwilioError('Too many requests', 429)
-      mockedTwilioService.sendVerification.mockRejectedValue(expectedErr)
+      mockedTwilioClient.sendVerification.mockRejectedValue(expectedErr)
       const req = {
         userId: '123',
         firstName: 'Louise',
@@ -202,14 +202,14 @@ describe('VerificationService', () => {
         req.sendTo = 'bobsburgers@burger.com'
         await expect(
           VerificationService.initiateVerification(req)
-        ).resolves.not.toThrowError()
+        ).resolves.not.toThrow()
       })
     })
   })
 
   describe('confirmVerification', () => {
     beforeEach(async () => {
-      mockedTwilioService.confirmVerification.mockResolvedValue(true)
+      mockedTwilioClient.confirmVerification.mockResolvedValue(true)
     })
 
     it("Should update the user's phone number if it has changed, and user is doing SMS verification", async () => {

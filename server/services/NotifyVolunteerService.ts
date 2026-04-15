@@ -5,7 +5,7 @@ import * as StudentsRepo from '../models/Student'
 import * as SessionRepo from '../models/Session'
 import type { NotificationData } from '../models/Session'
 import * as VolunteerRepo from '../models/Volunteer'
-import * as TwilioService from './TwilioService'
+import { sendTextMessage } from '../clients/twilio'
 import {
   VolunteerContactInfoWithPhoneRequired,
   getVolunteersNotifiedBySessionId,
@@ -241,10 +241,7 @@ export async function notifyVolunteer(
   }
 
   if (volunteer.phone) {
-    const messageId = await TwilioService.sendTextMessage(
-      volunteer.phone,
-      messageText
-    )
+    const messageId = await sendTextMessage(volunteer.phone, messageText)
 
     if (messageId) {
       notification.wasSuccessful = true
@@ -272,10 +269,7 @@ export async function sendFollowupText(
     method: 'sms',
     priorityGroup: 'follow-up',
   }
-  const messageId = await TwilioService.sendTextMessage(
-    volunteerPhone,
-    messageText
-  )
+  const messageId = await sendTextMessage(volunteerPhone, messageText)
   if (messageId) {
     notification.wasSuccessful = true
     notification.messageId = messageId
