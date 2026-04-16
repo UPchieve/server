@@ -14,7 +14,9 @@ export async function insertTextModerationPattern(
   await TextModerationPatternsRepo.insertTextModerationPattern(regex, rules)
 }
 
-async function getTextModerationPatterns(): Promise<TextModerationPattern[]> {
+export async function getTextModerationPatterns(): Promise<
+  TextModerationPattern[]
+> {
   const cacheResults = await getPatternsFromCache()
   if (cacheResults) {
     return cacheResults

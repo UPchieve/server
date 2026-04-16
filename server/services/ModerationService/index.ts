@@ -65,6 +65,7 @@ import * as ModerationTypes from './types'
 import { weightModerationInfractions } from './ModerationPenaltyService'
 import * as Regex from './regex'
 import { ModerationSource } from './types'
+import { getModerationRegexes } from './regex'
 
 // Image moderation
 const AWS_CONFIG = {
@@ -428,7 +429,7 @@ async function isLikelyToBeAnEmail({
 }) {
   const isMaybeEmail =
     entityConfidence >= config.emailModerationConfidenceThreshold &&
-    Regex.EMAIL_REGEX.test(entityText)
+    Regex.EMAIL_REGEX.regex.test(entityText)
 
   if (!isMaybeEmail) {
     return false
@@ -461,11 +462,11 @@ async function isLikelyToBeAPhoneNumber({
 }) {
   // Since many users will be sharing numbers that look like phone numbers,
   // we want to moderate them in similar way we moderate phone numbers in messages.
-  // PII is very permisive with what's a phone number, so let's run it through our regex
+  // PII is very permissive with what's a phone number, so let's run it through our regex
   // and then through the false positive fallback
   const isMaybePhone =
     entityConfidence >= config.phoneNumberModerationConfidenceThreshold &&
-    Regex.PHONE_REGEX.test(entityText)
+    Regex.PHONE_REGEX.regex.test(entityText)
 
   if (!isMaybePhone) {
     return false
@@ -1137,38 +1138,49 @@ export async function getIndividualSessionMessageModerationResponse({
 
 function test({ regex, message }: { regex: RegExp; message: string }) {
   const results: string[] = []
+  // @TODO: 'gi' -> const STANDARD_REGEX_FLAGS
   for (const [match] of message.matchAll(regex)) {
     results.push(match)
   }
   return results
 }
 
-const regexModerate = (
-  message: string
-): ModerationTypes.RegexModerationResult => {
-  const failedTests = [
-    [
-      ModerationTypes.LiveMediaModerationCategories.EMAIL,
-      test({ regex: Regex.EMAIL_REGEX, message }),
-    ],
-    [
-      ModerationTypes.LiveMediaModerationCategories.PHONE,
-      test({ regex: Regex.PHONE_REGEX, message }),
-    ],
-    [
-      ModerationTypes.LiveMediaModerationCategories.PROFANITY,
-      test({ regex: Regex.PROFANITY_REGEX, message }),
-    ],
-    [
-      ModerationTypes.LiveMediaModerationCategories.LINK,
-      test({ regex: Regex.LINK_RESTRICTION_REGEX, message }),
-    ],
-  ].filter(([, test]) => test.length > 0)
+const regexModerate = async (
+  message: string,
+  topicId?: number
+): Promise<ModerationTypes.RegexModerationResult> => {
+  // const failedTests = [
+  //   [
+  //     ModerationTypes.LiveMediaModerationCategories.EMAIL,
+  //     test({ regex: Regex.EMAIL_REGEX, message }),
+  //   ],
+  //   [
+  //     ModerationTypes.LiveMediaModerationCategories.PHONE,
+  //     test({ regex: Regex.PHONE_REGEX, message }),
+  //   ],
+  //   [
+  //     ModerationTypes.LiveMediaModerationCategories.PROFANITY,
+  //     test({ regex: Regex.PROFANITY_REGEX, message }),
+  //   ],
+  //   [
+  //     ModerationTypes.LiveMediaModerationCategories.LINK,
+  //     test({ regex: Regex.LINK_RESTRICTION_REGEX, message }),
+  //   ],
+  // ].filter(([, test]) => test.length > 0)
+
+  const tests = await getModerationRegexes(topicId)
+  // @TODO move me into a text moderation function
+  const failedTests = tests
+    .map((regexTest) => [
+      regexTest.name,
+      test({ regex: regexTest.regex, message }),
+    ])
+    .filter(([_testName, results]) => results.length > 0)
 
   const sanitize = (message: string): string => {
     let sanitizedMessage = message
-    failedTests.forEach(([testName, testMatches]) => {
-      ;(testMatches as string[]).forEach((match) => {
+    failedTests.forEach((testMatches) => {
+      testMatches.forEach((match) => {
         const stars = '*'.repeat(match.length)
         sanitizedMessage = sanitizedMessage.replace(
           new RegExp(match, 'g'),
@@ -1225,7 +1237,7 @@ export async function moderateMessage(
   oldClientModerationResult | ModerationTypes.ModerationFailureReasons
 > {
   let trace: LangfuseTraceClient | undefined = undefined
-  const { isClean, failures } = regexModerate(message)
+  const { isClean, failures } = await regexModerate(message)
 
   /*
    * Old high-line mid town clients will not send up sessionId
@@ -1527,7 +1539,8 @@ export const moderateIndividualTranscription = async ({
 }): Promise<
   CleanTranscriptModerationResult | SanitizedTranscriptModerationResult
 > => {
-  const { isClean, failures, sanitizedMessage } = regexModerate(transcript)
+  const { isClean, failures, sanitizedMessage } =
+    await regexModerate(transcript)
   if (isClean) return { isClean: true } as CleanTranscriptModerationResult
   // @TODO - run through AI moderation
 
