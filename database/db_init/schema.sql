@@ -1,4 +1,4 @@
-\restrict J3p4mK2H6XgDncOAeABfpIV5kpgFm3bTIyBtcRpe6OXPHUWoCWm5IjErTIwgorn
+\restrict vYarmNil1qEzrabtYdVBcqN11wQEECgoWfkewpsW3QwEvRMpgBkhz0wi5KaVbLX
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
 -- Dumped by pg_dump version 15.17 (Homebrew)
@@ -2694,6 +2694,7 @@ CREATE TABLE upchieve.teacher_profiles (
 CREATE TABLE upchieve.text_moderation_patterns (
     id integer NOT NULL,
     regex text NOT NULL,
+    flags character varying(8),
     rules json,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
@@ -7393,7 +7394,7 @@ ALTER TABLE ONLY upchieve.volunteer_references
 -- PostgreSQL database dump complete
 --
 
-\unrestrict J3p4mK2H6XgDncOAeABfpIV5kpgFm3bTIyBtcRpe6OXPHUWoCWm5IjErTIwgorn
+\unrestrict vYarmNil1qEzrabtYdVBcqN11wQEECgoWfkewpsW3QwEvRMpgBkhz0wi5KaVbLX
 
 
 --
