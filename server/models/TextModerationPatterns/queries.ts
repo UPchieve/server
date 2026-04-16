@@ -5,6 +5,7 @@ import { getClient, getRoClient } from '../../db'
 import { makeSomeRequired } from '../pgUtils'
 export async function insertTextModerationPattern(
   regex: RegExp,
+  flags: string,
   rules?: Rules
 ) {
   try {

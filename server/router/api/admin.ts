@@ -158,7 +158,11 @@ export function routeAdmin(apiRouter: Router): void {
 
   router.post('/moderation/text-patterns', async function (req, res) {
     try {
-      await insertTextModerationPattern(req.body.pattern, req.body.rules)
+      await insertTextModerationPattern(
+        req.body.regex,
+        req.body.flags,
+        req.body.rules
+      )
       res.status(201).send()
     } catch (err) {
       resError(res, err)
