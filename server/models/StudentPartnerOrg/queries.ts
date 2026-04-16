@@ -176,13 +176,15 @@ export async function deactivateSchoolStudentPartnerOrgs(
 export async function deactivateUserStudentPartnerOrgInstance(
   tc: TransactionClient,
   userId: Ulid,
-  studentPartnerOrgId: string
+  studentPartnerOrgId: string,
+  deactivatedOn?: Date
 ) {
   try {
     await pgQueries.deactivateUserStudentPartnerOrgInstance.run(
       {
         userId,
         spoId: studentPartnerOrgId,
+        deactivatedOn: deactivatedOn ?? null,
       },
       tc
     )

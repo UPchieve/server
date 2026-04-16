@@ -241,11 +241,12 @@ RETURNING
 UPDATE
     users_student_partner_orgs_instances
 SET
-    deactivated_on = NOW(),
+    deactivated_on = COALESCE(:deactivatedOn, NOW()),
     updated_at = NOW()
 WHERE
     user_id = :userId!
-    AND student_partner_org_id = :spoId!;
+    AND student_partner_org_id = :spoId!
+    AND deactivated_on IS NULL;
 
 
 /* @name migratePartnerSchoolsToPartnerOrgs */

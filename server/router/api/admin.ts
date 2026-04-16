@@ -11,6 +11,10 @@ import {
   rosterPartnerStudents,
 } from '../../services/UserCreationService'
 import {
+  DeactivationRosterPayload,
+  bulkDeactivatePartnerStudents,
+} from '../../services/PartnerStudentService'
+import {
   asArray,
   asBoolean,
   asNumber,
@@ -84,6 +88,32 @@ export function routeAdmin(apiRouter: Router): void {
           req.body.schoolId
         )
         res.json({ failed, updated })
+      } catch (error) {
+        resError(res, error)
+      }
+    }
+  )
+
+  router.post(
+    '/bulk-deactivate-partner-students',
+    upload.single('studentsFile'),
+    async function (req, res) {
+      try {
+        if (!req.body.partnerKey || !req.file) {
+          res.status(422).json({
+            err: 'Missing required data.',
+          })
+          return
+        }
+        const rows = readCsvFromBuffer<DeactivationRosterPayload>(
+          req.file.buffer,
+          ['email']
+        )
+        const { deactivated, skipped } = await bulkDeactivatePartnerStudents(
+          rows,
+          req.body.partnerKey
+        )
+        res.json({ deactivated, skipped })
       } catch (error) {
         resError(res, error)
       }
