@@ -3,34 +3,21 @@ import { PreparedQuery } from '@pgtyped/runtime';
 
 export type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
 
-/** 'InsertTextModerationPattern' parameters type */
-export interface IInsertTextModerationPatternParams {
-  regex: string;
-  rules?: Json | null | void;
-}
+/** Query 'InsertTextModerationPattern' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IInsertTextModerationPatternResult = never;
 
-/** 'InsertTextModerationPattern' return type */
-export interface IInsertTextModerationPatternResult {
-  createdAt: Date;
-  id: number;
-  regex: string;
-  rules: Json | null;
-  updatedAt: Date;
-}
+/** Query 'InsertTextModerationPattern' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IInsertTextModerationPatternParams = never;
 
-/** 'InsertTextModerationPattern' query type */
-export interface IInsertTextModerationPatternQuery {
-  params: IInsertTextModerationPatternParams;
-  result: IInsertTextModerationPatternResult;
-}
-
-const insertTextModerationPatternIR: any = {"usedParamSet":{"regex":true,"rules":true},"params":[{"name":"regex","required":true,"transform":{"type":"scalar"},"locs":[{"a":64,"b":70}]},{"name":"rules","required":false,"transform":{"type":"scalar"},"locs":[{"a":73,"b":78}]}],"statement":"INSERT INTO text_moderation_patterns (regex, rules)\n    VALUES (:regex!, :rules)\nRETURNING\n    *"};
+const insertTextModerationPatternIR: any = {"usedParamSet":{"regex":true,"flags":true,"rules":true},"params":[{"name":"regex","required":true,"transform":{"type":"scalar"},"locs":[{"a":71,"b":77}]},{"name":"flags","required":false,"transform":{"type":"scalar"},"locs":[{"a":80,"b":85}]},{"name":"rules","required":false,"transform":{"type":"scalar"},"locs":[{"a":88,"b":93}]}],"statement":"INSERT INTO text_moderation_patterns (regex, flags, rules)\n    VALUES (:regex!, :flags, :rules)\nRETURNING\n    *"};
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO text_moderation_patterns (regex, rules)
- *     VALUES (:regex!, :rules)
+ * INSERT INTO text_moderation_patterns (regex, flags, rules)
+ *     VALUES (:regex!, :flags, :rules)
  * RETURNING
  *     *
  * ```
