@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict xAjULjLVBllOZBT4aUp3RSzP8dsv1aRL6i7loIxso5WINgidnDabod4zEhzjIMW
+\restrict rO75CMbMZ6zGDl7xmqBE53miOeb35J22e7gWj3w0hMRK4cT55gfUgYObkXpZRr8
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
 -- Dumped by pg_dump version 15.17 (Homebrew)
@@ -8590,7 +8590,7 @@ COPY upchieve.surveys_context (survey_id, subject_id, survey_type_id, created_at
 -- Data for Name: text_moderation_patterns; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.text_moderation_patterns (id, regex, rules, created_at, updated_at) FROM stdin;
+COPY upchieve.text_moderation_patterns (id, regex, flags, rules, created_at, updated_at) FROM stdin;
 \.
 
 
@@ -9277,5 +9277,5 @@ SELECT pg_catalog.setval('upchieve.weekdays_id_seq', 1, false);
 -- PostgreSQL database dump complete
 --
 
-\unrestrict xAjULjLVBllOZBT4aUp3RSzP8dsv1aRL6i7loIxso5WINgidnDabod4zEhzjIMW
+\unrestrict rO75CMbMZ6zGDl7xmqBE53miOeb35J22e7gWj3w0hMRK4cT55gfUgYObkXpZRr8
 
