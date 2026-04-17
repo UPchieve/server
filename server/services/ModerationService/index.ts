@@ -12,7 +12,7 @@ import {
 } from '@aws-sdk/client-comprehend'
 import crypto from 'crypto'
 import { LangfuseTraceClient, LangfuseGenerationClient } from 'langfuse-node'
-import { chunk, isEmpty } from 'lodash'
+import { chunk, flatMap, isEmpty } from 'lodash'
 import { TextPromptClient } from 'langfuse-core'
 import logger from '../../logger'
 import { client as langfuseClient } from '../../clients/langfuse'
@@ -1166,28 +1166,28 @@ const regexModerate = async (
       ])
     }
   })
+  const failureSubstrings = [] // flatten the map into just the flagged substrings
+  Array.from(failedTests.values()).forEach((failure) =>
+    failureSubstrings.push(failure)
+  )
 
-  const sanitize = (message: string): string => {
-    let sanitizedMessage = message
-    failedTests.forEach((testMatches) => {
-      testMatches.forEach((match) => {
-        const stars = '*'.repeat(match.length)
-        sanitizedMessage = sanitizedMessage.replace(
-          new RegExp(match, 'g'),
-          stars
-        )
-      })
-    })
-
-    return sanitizedMessage
-  }
-
-  const isClean = failedTests.length === 0
+  const isClean = failureSubstrings.length === 0
   return {
     isClean,
     failures: { failures: Object.fromEntries(failedTests) }, // @TODO: Do not expose backend-specific non-display-ready failure keys to the FE
-    sanitizedMessage: isClean ? message : sanitize(message),
+    sanitizedMessage: isClean ? message : sanitize(message, failureSubstrings),
   }
+}
+
+function sanitize(message: string, toBeCensored: string[]): string {
+  let sanitizedMessage = message
+  // toBeCensored.forEach((testMatches) => {
+  toBeCensored.forEach((match) => {
+    const stars = '*'.repeat(match.length)
+    sanitizedMessage = sanitizedMessage.replace(new RegExp(match, 'g'), stars)
+  })
+  // })
+  return sanitizedMessage
 }
 
 const getAiModerationResult = async (
