@@ -429,7 +429,7 @@ async function isLikelyToBeAnEmail({
 }) {
   const isMaybeEmail =
     entityConfidence >= config.emailModerationConfidenceThreshold &&
-    Regex.EMAIL_REGEX.regex.test(entityText)
+    Regex.matchesEmailPattern(entityText)
 
   if (!isMaybeEmail) {
     return false
@@ -466,7 +466,7 @@ async function isLikelyToBeAPhoneNumber({
   // and then through the false positive fallback
   const isMaybePhone =
     entityConfidence >= config.phoneNumberModerationConfidenceThreshold &&
-    Regex.PHONE_REGEX.regex.test(entityText)
+    Regex.matchesPhoneNumberPattern(entityText)
 
   if (!isMaybePhone) {
     return false
@@ -1135,61 +1135,6 @@ export async function getIndividualSessionMessageModerationResponse({
     )
   }
 }
-
-function test({
-  regex,
-  message,
-}: {
-  regex: RegExp
-  message: string
-}): string[] {
-  const results: string[] = []
-  const matches: string[] = Array.from(message.match(regex) ?? [])
-  for (const match of matches) {
-    results.push(match)
-  }
-  return results
-}
-
-const regexModerate = async (
-  message: string,
-  topicId?: number
-): Promise<ModerationTypes.RegexModerationResult> => {
-  const tests = await getModerationRegexes(topicId)
-  const failedTests: Map<string, string[]> = new Map<string, string[]>()
-  tests.forEach((testToRun) => {
-    const results = test({ regex: testToRun.regex, message })
-    if (results.length) {
-      failedTests.set(testToRun.name, [
-        ...(failedTests.get(testToRun.name) ?? []),
-        ...results,
-      ])
-    }
-  })
-  const failureSubstrings = [] // flatten the map into just the flagged substrings
-  Array.from(failedTests.values()).forEach((failure) =>
-    failureSubstrings.push(failure)
-  )
-
-  const isClean = failureSubstrings.length === 0
-  return {
-    isClean,
-    failures: { failures: Object.fromEntries(failedTests) }, // @TODO: Do not expose backend-specific non-display-ready failure keys to the FE
-    sanitizedMessage: isClean ? message : sanitize(message, failureSubstrings),
-  }
-}
-
-function sanitize(message: string, toBeCensored: string[]): string {
-  let sanitizedMessage = message
-  // toBeCensored.forEach((testMatches) => {
-  toBeCensored.forEach((match) => {
-    const stars = '*'.repeat(match.length)
-    sanitizedMessage = sanitizedMessage.replace(new RegExp(match, 'g'), stars)
-  })
-  // })
-  return sanitizedMessage
-}
-
 const getAiModerationResult = async (
   censoredSessionMessage: Pick<CensoredSessionMessage, 'sessionId' | 'message'>,
   isVolunteer: boolean,
@@ -1227,7 +1172,7 @@ export async function moderateMessage(
   oldClientModerationResult | ModerationTypes.ModerationFailureReasons
 > {
   let trace: LangfuseTraceClient | undefined = undefined
-  const { isClean, failures } = await regexModerate(message)
+  const { isClean, failures } = await Regex.regexModerate(message)
 
   /*
    * Old high-line mid town clients will not send up sessionId
@@ -1530,7 +1475,7 @@ export const moderateIndividualTranscription = async ({
   CleanTranscriptModerationResult | SanitizedTranscriptModerationResult
 > => {
   const { isClean, failures, sanitizedMessage } =
-    await regexModerate(transcript)
+    await Regex.regexModerate(transcript)
   if (isClean) return { isClean: true } as CleanTranscriptModerationResult
 
   // If the message is unclean, track it as an infraction against the user
