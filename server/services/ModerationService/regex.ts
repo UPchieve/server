@@ -49,7 +49,7 @@ export async function getModerationRegexes(
   const customRegexes = (
     await TextModerationPatternService.getTextModerationPatterns()
   ).map((regex) => ({
-    name: ModerationTypes.LiveMediaModerationCategories.PROFANITY, // @TODO - make this configurable?
+    name: ModerationTypes.LiveMediaModerationCategories.PROFANITY,
     regex: regex.regex,
     rules: regex.rules,
   }))
@@ -106,16 +106,18 @@ export async function regexModerate(
   const isClean = failureSubstrings.length === 0
   return {
     isClean,
-    failures: { failures: Object.fromEntries(failedTests) }, // @TODO: Do not expose backend-specific non-display-ready failure keys to the FE
+    // @TODO: Remove duplicative property 'failures'
+    failures: { failures: Object.fromEntries(failedTests) },
     sanitizedMessage: isClean ? str : sanitize(str, failureSubstrings),
   }
 }
 
-function sanitize(message: string, toBeCensored: string[]): string {
+// exported for testing
+export function sanitize(message: string, toBeCensored: string[]): string {
   let sanitizedMessage = message
   toBeCensored.forEach((match) => {
     const stars = '*'.repeat(match.length)
-    sanitizedMessage = sanitizedMessage.replace(new RegExp(match, 'g'), stars)
+    sanitizedMessage = sanitizedMessage.replaceAll(match, stars)
   })
   return sanitizedMessage
 }
