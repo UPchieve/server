@@ -1,11 +1,6 @@
 import * as ModerationTypes from './types'
 import * as TextModerationPatternService from '../TextModerationPatternService'
 
-export type NamedRegex = {
-  regex: RegExp
-  name: string
-}
-
 // EMAIL_REGEX checks for standard and complex email formats
 // Ex: yay-hoo@yahoo.hello.com
 const EMAIL_REGEX = {
@@ -37,9 +32,12 @@ const LINK_RESTRICTION_REGEX = {
   name: ModerationTypes.LiveMediaModerationCategories.LINK,
 }
 
-export async function getModerationRegexes(
-  topicId?: number
-): Promise<NamedRegex[]> {
+export async function getModerationRegexes(topicId?: number): Promise<
+  {
+    regex: RegExp
+    name: string
+  }[]
+> {
   const regexes = [
     EMAIL_REGEX,
     PHONE_REGEX,
@@ -98,7 +96,8 @@ export async function regexModerate(
     }
   })
 
-  const failureSubstrings: string[] = [] // flatten the map into just the flagged substrings
+  // flatten the map into just the flagged substrings
+  const failureSubstrings: string[] = []
   Array.from(failedTests.values()).forEach((failure) =>
     failureSubstrings.push(...failure)
   )
