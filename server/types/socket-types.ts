@@ -73,6 +73,11 @@ export type ServerToClientEvents = {
   retryLoadingDoc: () => void
   quillStateV2: (data: { updates: string[] }) => void
   partnerQuillDeltaV2: (data: { update: string }) => void
+  quillDeltaRejectedV2: (data: {
+    reason: 'moderation'
+    failures: Record<string, string[] | never>
+    authoritativeUpdates: string[]
+  }) => void
   partnerQuillDelta: (data: { delta: SocketDelta }) => void
   quillPartnerSelection: (data: {
     range: { index: number; length: number }

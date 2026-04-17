@@ -15,6 +15,7 @@ import { banUserById, UserContactInfo, UserRole } from '../../models/User'
 import { captureEvent } from '../../services/AnalyticsService'
 import QueueService from '../../services/QueueService'
 import * as QuillDocService from '../../services/QuillDocService'
+import * as QuillDocStateService from '../../services/QuillDocStateService'
 import * as SessionService from '../../services/SessionService'
 import SocketService from '../../services/SocketService'
 import getSessionRoom from '../../utils/get-session-room'
@@ -34,6 +35,7 @@ import * as PresenceService from '../../services/PresenceService'
 import { observeWebTransaction } from '../../utils/newRelicUtil'
 import { extractSocketIp } from '../../utils/extract-socket-ip'
 import sessionMiddleware from '../middleware/session'
+import config from '../../config'
 
 export type SessionMessageType = 'audio-transcription' // todo - add 'chat' later
 
@@ -502,6 +504,24 @@ export function routeSockets(io: Server): void {
                   'Quill doc sent a transmitQuillDeltaV2 event after the session ended already'
                 )
                 return
+              }
+
+              if (config.documentEditorServerModerationEnabled) {
+                const user = await extractSocketUser(socket)
+                const decision = await QuillDocStateService.applyAndModerate({
+                  sessionId,
+                  update,
+                  senderId: user.id,
+                  userType: user.roleContext.activeRole,
+                })
+                if (!decision.clean) {
+                  socket.emit('quillDeltaRejectedV2', {
+                    reason: 'moderation',
+                    failures: decision.failures,
+                    authoritativeUpdates: decision.authoritativeUpdates,
+                  })
+                  return
+                }
               }
 
               await QuillDocService.addDocumentUpdate(sessionId, update)

@@ -30,6 +30,7 @@ export type ModerationSource =
   | 'text_chat'
   | 'whiteboard'
   | 'whiteboard-text-node'
+  | 'document-editor-text-node'
 
 export type ModeratedLink = {
   reason: LiveMediaModerationCategories.LINK
