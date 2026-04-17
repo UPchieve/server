@@ -50,7 +50,7 @@ export async function getModerationRegexes(
   const customRegexes = (
     await TextModerationPatternService.getTextModerationPatterns()
   ).map((regex) => ({
-    name: 'CUSTOM',
+    name: ModerationTypes.LiveMediaModerationCategories.PROFANITY, // @TODO - make this configurable?
     regex: regex.regex,
     rules: regex.rules,
   }))
@@ -64,5 +64,8 @@ export async function getModerationRegexes(
   }
 
   // Otherwise, just return them all
+  console.log('TEST - customRegexes', {
+    dbRegexes: customRegexes.map((c) => c.regex),
+  })
   return [...regexes, ...customRegexes]
 }

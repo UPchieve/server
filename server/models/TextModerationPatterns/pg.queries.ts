@@ -3,13 +3,28 @@ import { PreparedQuery } from '@pgtyped/runtime';
 
 export type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
 
-/** Query 'InsertTextModerationPattern' is invalid, so its result is assigned type 'never'.
- *  */
-export type IInsertTextModerationPatternResult = never;
+/** 'InsertTextModerationPattern' parameters type */
+export interface IInsertTextModerationPatternParams {
+  flags?: string | null | void;
+  regex: string;
+  rules?: Json | null | void;
+}
 
-/** Query 'InsertTextModerationPattern' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IInsertTextModerationPatternParams = never;
+/** 'InsertTextModerationPattern' return type */
+export interface IInsertTextModerationPatternResult {
+  createdAt: Date;
+  flags: string | null;
+  id: number;
+  regex: string;
+  rules: Json | null;
+  updatedAt: Date;
+}
+
+/** 'InsertTextModerationPattern' query type */
+export interface IInsertTextModerationPatternQuery {
+  params: IInsertTextModerationPatternParams;
+  result: IInsertTextModerationPatternResult;
+}
 
 const insertTextModerationPatternIR: any = {"usedParamSet":{"regex":true,"flags":true,"rules":true},"params":[{"name":"regex","required":true,"transform":{"type":"scalar"},"locs":[{"a":71,"b":77}]},{"name":"flags","required":false,"transform":{"type":"scalar"},"locs":[{"a":80,"b":85}]},{"name":"rules","required":false,"transform":{"type":"scalar"},"locs":[{"a":88,"b":93}]}],"statement":"INSERT INTO text_moderation_patterns (regex, flags, rules)\n    VALUES (:regex!, :flags, :rules)\nRETURNING\n    *"};
 
@@ -31,6 +46,7 @@ export type IGetTextModerationPatternsParams = void;
 /** 'GetTextModerationPatterns' return type */
 export interface IGetTextModerationPatternsResult {
   createdAt: Date;
+  flags: string | null;
   id: number;
   regex: string;
   rules: Json | null;

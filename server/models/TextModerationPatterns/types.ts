@@ -7,6 +7,11 @@ export type Rules = {
 }
 
 export type TextModerationPattern = {
+  id: number
   regex: RegExp
   rules: Rules | null
+}
+
+export type TextModerationPatternWithFlags = TextModerationPattern & {
+  flags?: string
 }
