@@ -8,35 +8,38 @@ import {
   handleModerationInfraction,
   getSessionFlagByModerationReason,
   isStreamStoppingReason,
-} from '../../services/ModerationService'
+} from '../../../services/ModerationService'
 import {
   type ModeratedLink,
   LiveMediaModerationCategories,
-} from '../../services/ModerationService/types'
-import { type GetModerationSettingResult } from '../../models/ModerationSettings/types'
-import { weightModerationInfractions } from '../../services/ModerationService/ModerationPenaltyService'
-import { FALLBACK_MODERATION_PROMPT } from '../../services/ModerationService/fallbackPrompts'
-import * as SessionService from '../../services/SessionService'
-import * as CensoredSessionMessage from '../../models/CensoredSessionMessage'
-import { invokeModel as invokeOpenAiModel } from '../../services/OpenAIService'
-import * as PromptService from '../../services/PromptService'
-import { timeLimit } from '../../utils/time-limit'
-import { buildModerationInfractionRow, buildSession } from '../mocks/generate'
-import * as ModerationInfractionsRepo from '../../models/ModerationInfractions'
-import * as SessionRepo from '../../models/Session'
-import SocketService from '../../services/SocketService'
-import { UserSessionFlags } from '../../constants'
-import { ModerationInfraction } from '../../models/ModerationInfractions'
-import * as UserRepo from '../../models/User/queries'
+} from '../../../services/ModerationService/types'
+import { type GetModerationSettingResult } from '../../../models/ModerationSettings/types'
+import { weightModerationInfractions } from '../../../services/ModerationService/ModerationPenaltyService'
+import * as SessionService from '../../../services/SessionService'
+import * as CensoredSessionMessage from '../../../models/CensoredSessionMessage'
+import { invokeModel as invokeOpenAiModel } from '../../../services/OpenAIService'
+import * as PromptService from '../../../services/PromptService'
+import {
+  buildModerationInfractionRow,
+  buildSession,
+} from '../../mocks/generate'
+import * as ModerationInfractionsRepo from '../../../models/ModerationInfractions'
+import * as SessionRepo from '../../../models/Session'
+import SocketService from '../../../services/SocketService'
+import { UserSessionFlags } from '../../../constants'
+import { ModerationInfraction } from '../../../models/ModerationInfractions'
+import * as UserRepo from '../../../models/User/queries'
+import * as Regex from '../../../services/ModerationService/regex'
 
-jest.mock('../../models/Session')
-jest.mock('../../utils/time-limit')
-jest.mock('../../logger')
-jest.mock('../../models/CensoredSessionMessage')
-jest.mock('../../services/OpenAIService', () => {
+jest.mock('../../../models/Session')
+jest.mock('../../../utils/time-limit')
+jest.mock('../../../logger')
+jest.mock('../../../models/CensoredSessionMessage')
+jest.mock('../../../services/ModerationService/regex')
+jest.mock('../../../services/OpenAIService', () => {
   const actual = jest.requireActual<
-    typeof import('../../services/OpenAIService')
-  >('../../services/OpenAIService')
+    typeof import('../../../services/OpenAIService')
+  >('../../../services/OpenAIService')
   return {
     ...actual,
     MODEL_ID: 'gpt-4o',
@@ -44,27 +47,27 @@ jest.mock('../../services/OpenAIService', () => {
   }
 })
 const mockedInvokeOpenAiModel = jest.mocked(invokeOpenAiModel)
-jest.mock('../../services/PromptService')
-jest.mock('../../models/ModerationInfractions')
-jest.mock('../../services/SocketService', () => ({
+jest.mock('../../../services/PromptService')
+jest.mock('../../../models/ModerationInfractions')
+jest.mock('../../../services/SocketService', () => ({
   getInstance: jest.fn(() => {}),
 }))
-jest.mock('../../clients/langfuse', () => ({
+jest.mock('../../../clients/langfuse', () => ({
   client: {
     trace: jest.fn(),
     getPrompt: jest.fn(),
   },
 }))
-jest.mock('../../services/AiObservabilityService', () => ({
+jest.mock('../../../services/AiObservabilityService', () => ({
   runWithModelObservation: jest.fn(),
   runWithTrace: jest.fn(),
   addTraceTags: jest.fn(),
 }))
 
-jest.mock('../../services/SessionService')
+jest.mock('../../../services/SessionService')
 
-jest.mock('../../models/User/queries')
-jest.mock('../../models/ModerationSettings/queries')
+jest.mock('../../../models/User/queries')
+jest.mock('../../../models/ModerationSettings/queries')
 
 describe('ModerationService', () => {
   const isVolunteer = true
@@ -74,10 +77,10 @@ describe('ModerationService', () => {
   const mockSocketService = mocked(SocketService)
   const mockUserRepo = mocked(UserRepo)
   const mockSessionService = mocked(SessionService)
+  const mockRegex = mocked(Regex)
 
   const senderId = '123'
   const sessionId = '123'
-  const badMessage = 'Call me at (555)555-5555'
   let mockGeneration: any, mockTrace: any, mockLangfuseClient: any
   let moderationSettings: GetModerationSettingResult
 
@@ -189,58 +192,6 @@ describe('ModerationService', () => {
 
   const userType = 'volunteer'
 
-  describe('Regex moderation', () => {
-    test('Check incorrect email succeeds', async () => {
-      const email = 'j.@serve1.proseware.com'
-      expect(
-        await moderateMessage({ message: email, senderId, userType })
-      ).toBeTruthy()
-    })
-
-    test('Check incorrect phone number succeeds', async () => {
-      const phoneNumber =
-        'a message including 0.001193067% which is not a phone number'
-      expect(
-        await moderateMessage({
-          message: phoneNumber,
-          senderId,
-          userType,
-        })
-      ).toBeTruthy()
-    })
-
-    test('Check correct email fails', async () => {
-      const email = 'student1@upchieve.com'
-      expect(
-        await moderateMessage({ message: email, senderId, userType })
-      ).toBeFalsy()
-    })
-
-    test('Check vulgar word fails', async () => {
-      const word = '5hit'
-      expect(
-        await moderateMessage({ message: word, senderId, userType })
-      ).toBeFalsy()
-    })
-
-    test('Check non-vulgar word succeeds', async () => {
-      const word = 'hello'
-      expect(
-        await moderateMessage({ message: word, senderId, userType })
-      ).toBeTruthy()
-    })
-
-    test('Check correct phone number fails', async () => {
-      expect(
-        await moderateMessage({
-          message: badMessage,
-          senderId,
-          userType,
-        })
-      ).toBeFalsy()
-    })
-  })
-
   describe('AI moderation', () => {
     const mockSessionService = mocked(SessionService)
     const mockedCensoredSessionMessage = mocked(CensoredSessionMessage)
@@ -274,7 +225,17 @@ describe('ModerationService', () => {
     test('Flags email, phone, zoom link, and profanity', async () => {
       const message =
         'a message including (555)555-5555 which is a phone number and hi@email.com and bye@email.com which are emails and some profanity: azz. finally a zoom link: https://us05web.zoom.us/j/0123456789'
-
+      const failures = {
+        [LiveMediaModerationCategories.EMAIL]: [
+          'hi@email.com',
+          'bye@email.com',
+        ],
+        [LiveMediaModerationCategories.PHONE]: [
+          expect.stringContaining('(555)555-5555'),
+        ],
+        [LiveMediaModerationCategories.PROFANITY]: ['azz'],
+        [LiveMediaModerationCategories.LINK]: ['zoom.us'],
+      }
       mockedCensoredSessionMessage.createCensoredMessage.mockResolvedValue({
         id: '123',
         censoredBy: 'regex',
@@ -283,6 +244,11 @@ describe('ModerationService', () => {
         sessionId,
         message,
         shown: false,
+      })
+      mockRegex.regexModerate.mockResolvedValue({
+        isClean: false,
+        failures: { failures },
+        sanitizedMessage: 'does not matter for this test',
       })
 
       expect(
@@ -293,17 +259,7 @@ describe('ModerationService', () => {
           sessionId,
         })
       ).toStrictEqual({
-        failures: {
-          [LiveMediaModerationCategories.EMAIL]: [
-            'hi@email.com',
-            'bye@email.com',
-          ],
-          [LiveMediaModerationCategories.PHONE]: [
-            expect.stringContaining('(555)555-5555'),
-          ],
-          [LiveMediaModerationCategories.PROFANITY]: ['azz'],
-          [LiveMediaModerationCategories.LINK]: ['zoom.us'],
-        },
+        failures,
       })
     })
 
@@ -318,6 +274,11 @@ describe('ModerationService', () => {
         sessionId,
         message,
         shown: false,
+      })
+      mockRegex.regexModerate.mockResolvedValue({
+        isClean: true,
+        sanitizedMessage: message,
+        failures: { failures: {} },
       })
       mockedInvokeOpenAiModel.mockResolvedValue({
         results: {
@@ -447,6 +408,14 @@ describe('ModerationService', () => {
 
   describe('Regex and AI moderation together', () => {
     it("Returns the regex moderation result if it can't get an AI moderation result in time", async () => {
+      const FAILURES = {
+        [LiveMediaModerationCategories.PHONE]: ['8608281234 '],
+      }
+      mockRegex.regexModerate.mockResolvedValue({
+        isClean: false,
+        sanitizedMessage: '***********',
+        failures: { failures: FAILURES },
+      })
       const message = '8608281234 is my phone number'
       const mockAiDecision = {
         appropriate: true,
@@ -470,9 +439,7 @@ describe('ModerationService', () => {
       })
 
       expect(result).toEqual({
-        failures: {
-          [LiveMediaModerationCategories.PHONE]: ['8608281234 '],
-        },
+        failures: FAILURES,
       })
     })
   })
@@ -484,6 +451,11 @@ describe('ModerationService', () => {
     ])(
       'Returns a boolean if no sessionId is provided',
       async (message: string, isClean: boolean) => {
+        mockRegex.regexModerate.mockResolvedValue({
+          isClean,
+          sanitizedMessage: 'canbeanything',
+          failures: { failures: {} },
+        })
         const result = await moderateMessage({
           message,
           senderId: 'sender-123',
