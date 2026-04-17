@@ -3,7 +3,7 @@ import {
   TextModerationPattern,
   TextModerationPatternWithFlags,
 } from '../models/TextModerationPatterns'
-import * as TextModerationPatternsRepo from '../models/TextModerationPatterns/queries'
+import * as TextModerationPatternsRepo from '../models/TextModerationPatterns'
 import * as CacheService from '../cache'
 import { minutesInSeconds } from '../utils/time-utils'
 import logger from '../logger'
@@ -69,8 +69,10 @@ async function savePatternsToCache(
     CACHE_KEY,
     JSON.stringify(
       patterns.map((p) => ({
-        ...p,
+        id: p.id,
         regex: p.regex.source,
+        flags: p.regex.flags || null,
+        rules: p.rules,
       }))
     ),
     CACHE_TTL_SECONDS
