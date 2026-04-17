@@ -41,7 +41,9 @@ async function getPatternsFromCache(): Promise<
   try {
     const cacheResults = await CacheService.getIfExists(CACHE_KEY)
     if (cacheResults) {
-      const parsed = JSON.parse(cacheResults)
+      const parsed = JSON.parse(
+        cacheResults
+      ) as TextModerationPatternWithFlags[]
       return parsed.map((pattern) => ({
         id: pattern.id,
         regex: new RegExp(pattern.regex, pattern.flags ?? ''),
