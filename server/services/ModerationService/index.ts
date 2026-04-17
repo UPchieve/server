@@ -1136,10 +1136,16 @@ export async function getIndividualSessionMessageModerationResponse({
   }
 }
 
-function test({ regex, message }: { regex: RegExp; message: string }) {
+function test({
+  regex,
+  message,
+}: {
+  regex: RegExp
+  message: string
+}): string[] {
   const results: string[] = []
-  // @TODO: 'gi' -> const STANDARD_REGEX_FLAGS
-  for (const [match] of message.matchAll(regex)) {
+  const matches: string[] = Array.from(message.match(regex) ?? [])
+  for (const match of matches) {
     results.push(match)
   }
   return results
@@ -1149,33 +1155,17 @@ const regexModerate = async (
   message: string,
   topicId?: number
 ): Promise<ModerationTypes.RegexModerationResult> => {
-  // const failedTests = [
-  //   [
-  //     ModerationTypes.LiveMediaModerationCategories.EMAIL,
-  //     test({ regex: Regex.EMAIL_REGEX, message }),
-  //   ],
-  //   [
-  //     ModerationTypes.LiveMediaModerationCategories.PHONE,
-  //     test({ regex: Regex.PHONE_REGEX, message }),
-  //   ],
-  //   [
-  //     ModerationTypes.LiveMediaModerationCategories.PROFANITY,
-  //     test({ regex: Regex.PROFANITY_REGEX, message }),
-  //   ],
-  //   [
-  //     ModerationTypes.LiveMediaModerationCategories.LINK,
-  //     test({ regex: Regex.LINK_RESTRICTION_REGEX, message }),
-  //   ],
-  // ].filter(([, test]) => test.length > 0)
-
   const tests = await getModerationRegexes(topicId)
-  // @TODO move me into a text moderation function
-  const failedTests = tests
-    .map((regexTest) => [
-      regexTest.name,
-      test({ regex: regexTest.regex, message }),
-    ])
-    .filter(([_testName, results]) => results.length > 0)
+  const failedTests: Map<string, string[]> = new Map<string, string[]>()
+  tests.forEach((testToRun) => {
+    const results = test({ regex: testToRun.regex, message })
+    if (results.length) {
+      failedTests.set(testToRun.name, [
+        ...(failedTests.get(testToRun.name) ?? []),
+        ...results,
+      ])
+    }
+  })
 
   const sanitize = (message: string): string => {
     let sanitizedMessage = message
@@ -1195,7 +1185,7 @@ const regexModerate = async (
   const isClean = failedTests.length === 0
   return {
     isClean,
-    failures: { failures: Object.fromEntries(failedTests) },
+    failures: { failures: Object.fromEntries(failedTests) }, // @TODO: Do not expose backend-specific non-display-ready failure keys to the FE
     sanitizedMessage: isClean ? message : sanitize(message),
   }
 }
@@ -1542,7 +1532,6 @@ export const moderateIndividualTranscription = async ({
   const { isClean, failures, sanitizedMessage } =
     await regexModerate(transcript)
   if (isClean) return { isClean: true } as CleanTranscriptModerationResult
-  // @TODO - run through AI moderation
 
   // If the message is unclean, track it as an infraction against the user
   const moderationSettings = await getModerationRealTimeSettings()

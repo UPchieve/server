@@ -1,4 +1,8 @@
-import { Rules, TextModerationPattern } from '../models/TextModerationPatterns'
+import {
+  Rules,
+  TextModerationPattern,
+  TextModerationPatternWithFlags,
+} from '../models/TextModerationPatterns'
 import * as TextModerationPatternsRepo from '../models/TextModerationPatterns/queries'
 import * as CacheService from '../cache'
 import { minutesInSeconds } from '../utils/time-utils'
@@ -9,9 +13,14 @@ const CACHE_TTL_SECONDS = minutesInSeconds(5)
 
 export async function insertTextModerationPattern(
   regex: RegExp,
+  flags?: string,
   rules?: Rules
 ) {
-  await TextModerationPatternsRepo.insertTextModerationPattern(regex, rules)
+  await TextModerationPatternsRepo.insertTextModerationPattern(
+    regex,
+    flags,
+    rules
+  )
 }
 
 export async function getTextModerationPatterns(): Promise<
@@ -32,7 +41,12 @@ async function getPatternsFromCache(): Promise<
   try {
     const cacheResults = await CacheService.getIfExists(CACHE_KEY)
     if (cacheResults) {
-      return JSON.parse(cacheResults) as TextModerationPattern[]
+      const parsed = JSON.parse(cacheResults)
+      return parsed.map((pattern) => ({
+        id: pattern.id,
+        regex: new RegExp(pattern.regex, pattern.flags ?? ''),
+        rules: pattern.rules,
+      }))
     }
   } catch (error) {
     logger.error(
@@ -47,11 +61,16 @@ async function getPatternsFromDb(): Promise<TextModerationPattern[]> {
 }
 
 async function savePatternsToCache(
-  patterns: TextModerationPattern[]
+  patterns: TextModerationPatternWithFlags[]
 ): Promise<void> {
   await CacheService.saveWithExpiration(
     CACHE_KEY,
-    JSON.stringify(patterns),
+    JSON.stringify(
+      patterns.map((p) => ({
+        ...p,
+        regex: p.regex.source,
+      }))
+    ),
     CACHE_TTL_SECONDS
   )
 }

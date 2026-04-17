@@ -5,13 +5,14 @@ import { getClient, getRoClient } from '../../db'
 import { makeSomeRequired } from '../pgUtils'
 export async function insertTextModerationPattern(
   regex: RegExp,
-  flags: string,
+  flags?: string,
   rules?: Rules
 ) {
   try {
     const result = await pgQueries.insertTextModerationPattern.run(
       {
         regex: regex.toString(),
+        flags,
         rules,
       },
       getClient()
@@ -33,10 +34,10 @@ export async function getTextModerationPatterns(): Promise<
       getRoClient()
     )
     return results.map((row) => {
-      const camelCased = makeSomeRequired(row, ['regex'])
+      const camelCased = makeSomeRequired(row, ['regex', 'id'])
       return {
         ...camelCased,
-        regex: new RegExp(camelCased.regex), // @TODO - Will this pull the flags out from the text correctly? Check later.
+        regex: new RegExp(camelCased.regex, camelCased.flags || ''),
         rules: (camelCased?.rules as Rules) ?? null,
       }
     })
