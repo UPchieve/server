@@ -1,7 +1,7 @@
 import * as ModerationTypes from './types'
 import * as TextModerationPatternService from '../TextModerationPatternService'
 
-export type RegexTest = {
+export type NamedRegex = {
   regex: RegExp
   name: string
 }
@@ -39,7 +39,7 @@ const LINK_RESTRICTION_REGEX = {
 
 export async function getModerationRegexes(
   topicId?: number
-): Promise<RegexTest[]> {
+): Promise<NamedRegex[]> {
   const regexes = [
     EMAIL_REGEX,
     PHONE_REGEX,
