@@ -62,10 +62,6 @@ export async function getModerationRegexes(
     )
     return [...regexes, ...filteredCustomRegexes]
   }
-
   // Otherwise, just return them all
-  console.log('TEST - customRegexes', {
-    dbRegexes: customRegexes.map((c) => c.regex),
-  })
   return [...regexes, ...customRegexes]
 }
