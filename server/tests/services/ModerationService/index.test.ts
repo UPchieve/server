@@ -476,6 +476,35 @@ describe('ModerationService', () => {
         failures: FAILURES,
       })
     })
+
+    // @TODO: Skipping this test because it's not actually testing the time limit aspect of this correctly.
+    it.skip('Defers to the AI response over regex if they conflict', async () => {
+      const message = 'The answer to this math problem is 8608811927'
+      mockRegex.regexModerate.mockResolvedValue({
+        isClean: false,
+        sanitizedMessage: 'The answer to this math problem is **********',
+        failures: { failures: { PHONE: ['8608811927'] } },
+      })
+      mockedInvokeOpenAiModel.mockResolvedValue({
+        results: {
+          appropriate: true,
+          reasons: {
+            failures: {},
+          },
+          message,
+        },
+        modelId: '',
+      })
+      const actual = await moderateMessage({
+        message,
+        senderId,
+        userType,
+        sessionId,
+      })
+      expect(actual).toEqual({
+        failures: {},
+      })
+    })
   })
 
   describe('moderateMessage - old clients', () => {
