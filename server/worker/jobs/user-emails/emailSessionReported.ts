@@ -89,7 +89,7 @@ async function emailReportedSession(
         )
     }
 
-    if (session.volunteerId) {
+    if (session.volunteerId && session.volunteerId === reportedBy) {
       const volunteer = await getUserById(session.volunteerId)
       if (volunteer) {
         if (reportReason === SESSION_REPORT_REASON.STUDENT_RUDE) {
