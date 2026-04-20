@@ -89,9 +89,9 @@ async function emailReportedSession(
         )
     }
 
-    if (session.volunteerId && session.volunteerId === reportedBy) {
+    if (session.volunteerId) {
       const volunteer = await getUserById(session.volunteerId)
-      if (volunteer) {
+      if (volunteer && volunteer.email === reportedBy) {
         if (reportReason === SESSION_REPORT_REASON.STUDENT_RUDE) {
           await MailService.sendVolunteerBanStudentApology(
             volunteer.email,
