@@ -60,12 +60,7 @@ import { GetModerationSettingResult } from '../../models/ModerationSettings/type
 import * as ModerationTypes from './types'
 import { weightModerationInfractions } from './ModerationPenaltyService'
 import * as Regex from './regex'
-import {
-  ModerationAIResult,
-  ModerationFailureReasons,
-  ModerationSource,
-} from './types'
-import { getModerationRegexes } from './regex'
+import { ModerationAIResult, ModerationSource } from './types'
 
 // Image moderation
 const AWS_CONFIG = {
