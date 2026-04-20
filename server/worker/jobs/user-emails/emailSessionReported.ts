@@ -89,16 +89,16 @@ async function emailReportedSession(
         )
     }
 
-    if (reportedUserRole === 'volunteer' && session.volunteerId) {
+    if (session.volunteerId) {
       const volunteer = await getUserById(session.volunteerId)
-      if (volunteer) {
+      if (volunteer && volunteer.email === reportedBy) {
         if (reportReason === SESSION_REPORT_REASON.STUDENT_RUDE) {
-          MailService.sendVolunteerBanStudentApology(
+          await MailService.sendVolunteerBanStudentApology(
             volunteer.email,
             volunteer.firstName
           )
         } else if (reportReason === SESSION_REPORT_REASON.STUDENT_SAFETY) {
-          MailService.sendVolunteerThanksForReport(
+          await MailService.sendVolunteerThanksForReport(
             volunteer.email,
             volunteer.firstName
           )
