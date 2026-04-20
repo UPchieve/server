@@ -12,7 +12,7 @@ import {
 } from '@aws-sdk/client-comprehend'
 import crypto from 'crypto'
 import { LangfuseTraceClient, LangfuseGenerationClient } from 'langfuse-node'
-import { chunk, flatMap, isEmpty } from 'lodash'
+import { chunk, isEmpty } from 'lodash'
 import { TextPromptClient } from 'langfuse-core'
 import logger from '../../logger'
 import { client as langfuseClient } from '../../clients/langfuse'
@@ -22,11 +22,7 @@ import {
   CensoredSessionMessage,
   createCensoredMessage,
 } from '../../models/CensoredSessionMessage'
-import {
-  invokeModel as invokeOpenAI,
-  MODEL_ID as OPENAI_MODEL_ID,
-  OpenAiResults,
-} from '../OpenAIService'
+import * as OpenAIService from '../OpenAIService'
 import * as UsersRepo from '../../models/User'
 import * as SessionRepo from '../../models/Session'
 import {
@@ -1100,7 +1096,7 @@ export async function getIndividualSessionMessageModerationResponse({
     gen = trace.generation({
       name: ModerationTypes.LangfuseGenerationName
         .SESSION_MESSAGE_MODERATION_DECISION,
-      model: OPENAI_MODEL_ID,
+      model: OpenAIService.MODEL_ID,
       input: { censoredSessionMessage, isVolunteer },
       // Attach prompt object, if it exists, in order to associate the generation with the prompt in LF
       ...(promptData.promptObject && { prompt: promptData.promptObject }),
@@ -1108,7 +1104,7 @@ export async function getIndividualSessionMessageModerationResponse({
   }
 
   try {
-    const response = await invokeOpenAI({
+    const response = await OpenAIService.invokeModel({
       prompt: promptData.prompt,
       userMessage: wrapMessageInXmlTags(
         censoredSessionMessage.message,
@@ -1140,7 +1136,7 @@ const getAiModerationResult = async (
   isVolunteer: boolean,
   trace?: LangfuseTraceClient
 ) => {
-  return await timeLimit({
+  const r = await timeLimit({
     promise: getIndividualSessionMessageModerationResponse({
       censoredSessionMessage,
       isVolunteer,
@@ -1151,6 +1147,7 @@ const getAiModerationResult = async (
       'AI Moderation time limit reached. Returning regex value',
     waitInMs: config.moderateMessageTimeLimitMs,
   })
+  return { results: r }
 }
 
 export type oldClientModerationResult = boolean
@@ -1172,18 +1169,18 @@ export async function moderateMessage(
   oldClientModerationResult | ModerationTypes.ModerationFailureReasons
 > {
   let trace: LangfuseTraceClient | undefined = undefined
-  const { isClean, failures } = await Regex.regexModerate(message)
+  const regexDecision = await Regex.regexModerate(message)
 
   /*
    * Old high-line mid town clients will not send up sessionId
    * return `true` or `false` for them
    */
   if (!sessionId) {
-    return isClean
+    return regexDecision.isClean
   }
 
-  let result = failures
-  if (!isClean) {
+  if (!regexDecision.isClean) {
+    // Consult AI
     const traceName =
       source === 'whiteboard-text-node'
         ? ModerationTypes.LangfuseTraceName.MODERATE_WHITEBOARD_TEXT_NODE
@@ -1200,26 +1197,28 @@ export async function moderateMessage(
       censoredBy: CENSORED_BY.regex,
     })
 
-    const response: OpenAiResults | undefined = await getAiModerationResult(
-      censoredSessionMessage,
-      userType === 'volunteer',
-      trace
-    )
+    const aiResponse: OpenAIService.OpenAiResults | null =
+      await getAiModerationResult(
+        censoredSessionMessage,
+        userType === 'volunteer',
+        trace
+      )
+    const aiDecision: ModerationTypes.ModerationAIResult | undefined =
+      aiResponse?.results as ModerationTypes.ModerationAIResult
 
-    const results: ModerationTypes.ModerationAIResult | undefined =
-      response?.results as ModerationTypes.ModerationAIResult
-    // Override the regex moderation decision with the AI one if it's available
-    result.failures = !results
-      ? result.failures
-      : results?.appropriate
-        ? {}
-        : results.reasons
-
-    logger.info(
-      { censoredSessionMessage, reasons: result },
-      'Session message was censored'
-    )
-    return result
+    // Defer to AI decision if it conflicts with regex decision
+    const isMessageAppropriate =
+      (aiDecision && aiDecision.appropriate) || regexDecision.isClean
+    if (isMessageAppropriate) {
+      return { failures: {} }
+    } else {
+      const failures = aiDecision?.reasons ?? regexDecision.failures.failures
+      logger.info(
+        { censoredSessionMessage, reasons: failures },
+        'Session message was censored'
+      )
+      return { failures }
+    }
   }
 
   const session = await SessionRepo.getSessionById(sessionId)
@@ -1612,7 +1611,10 @@ const getSessionTranscriptModerationResult = async (
     input: chunkAsString,
     ...(promptObject && { prompt: promptObject }),
   })
-  const result = await invokeOpenAI({ prompt, userMessage: chunkAsString })
+  const result = await OpenAIService.invokeModel({
+    prompt,
+    userMessage: chunkAsString,
+  })
   gen.end({
     output: result,
   })
@@ -1677,7 +1679,7 @@ export const moderateTranscript = async (
     const result = await getSessionTranscriptModerationResult(
       promptData.prompt,
       message,
-      OPENAI_MODEL_ID,
+      OpenAIService.MODEL_ID,
       trace,
       promptData?.promptObject
     )
