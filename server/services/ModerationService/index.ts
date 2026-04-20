@@ -1168,7 +1168,16 @@ export async function moderateMessage(
   oldClientModerationResult | ModerationTypes.ModerationFailureReasons
 > {
   let trace: LangfuseTraceClient | undefined = undefined
-  const regexDecision = await Regex.regexModerate(message)
+  let sessionInfo
+  if (sessionId) {
+    sessionInfo = await SessionService.getSessionInfo(sessionId)
+    if (!sessionInfo) {
+      throw new Error(
+        `Could not find session info for session with ID ${sessionId}`
+      )
+    }
+  }
+  const regexDecision = await Regex.regexModerate(message, sessionInfo?.topicId)
 
   /*
    * Old high-line mid town clients will not send up sessionId
