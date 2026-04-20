@@ -136,6 +136,17 @@ describe('regexModerate', () => {
     )
     expect(allowedDueToTopicFilter.isClean).toEqual(true)
     expect(allowedDueToTopicFilter.failures).toEqual({ failures: {} })
+
+    const forbiddenDueToOtherMatch = await Regex.regexModerate(
+      'This message will get flagged for email: email@upchieve.org apple banana',
+      topicId
+    )
+    expect(forbiddenDueToOtherMatch.isClean).toEqual(false)
+    expect(forbiddenDueToOtherMatch.failures).toEqual({
+      failures: {
+        EMAIL: ['email@upchieve.org'],
+      },
+    })
   })
 })
 
