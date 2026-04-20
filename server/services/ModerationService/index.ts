@@ -60,7 +60,11 @@ import { GetModerationSettingResult } from '../../models/ModerationSettings/type
 import * as ModerationTypes from './types'
 import { weightModerationInfractions } from './ModerationPenaltyService'
 import * as Regex from './regex'
-import { ModerationSource } from './types'
+import {
+  ModerationAIResult,
+  ModerationFailureReasons,
+  ModerationSource,
+} from './types'
 import { getModerationRegexes } from './regex'
 
 // Image moderation
@@ -440,7 +444,7 @@ async function isLikelyToBeAnEmail({
     trace
   )
 
-  return aiModerationResult?.reasons?.email ?? false
+  return aiModerationResult?.results.reasons?.email ?? false
 }
 
 async function isLikelyToBeAPhoneNumber({
@@ -477,7 +481,7 @@ async function isLikelyToBeAPhoneNumber({
     trace
   )
 
-  return aiModerationResult?.reasons?.phone ?? false
+  return aiModerationResult?.results?.reasons?.phone ?? false
 }
 
 function existsInArray(array: any[], item: any) {
@@ -1135,7 +1139,7 @@ const getAiModerationResult = async (
   censoredSessionMessage: Pick<CensoredSessionMessage, 'sessionId' | 'message'>,
   isVolunteer: boolean,
   trace?: LangfuseTraceClient
-) => {
+): Promise<null | { results: ModerationAIResult }> => {
   const r = await timeLimit({
     promise: getIndividualSessionMessageModerationResponse({
       censoredSessionMessage,
@@ -1197,7 +1201,7 @@ export async function moderateMessage(
       censoredBy: CENSORED_BY.regex,
     })
 
-    const aiResponse: OpenAIService.OpenAiResults | null =
+    const aiResponse: null | { results: ModerationAIResult } =
       await getAiModerationResult(
         censoredSessionMessage,
         userType === 'volunteer',
