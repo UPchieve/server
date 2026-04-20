@@ -8,6 +8,7 @@ const PgStore = CreatePgStore(session)
 const sessionMiddleware = session({
   resave: false,
   saveUninitialized: false,
+  rolling: true,
   secret: config.sessionSecret,
   store: new PgStore({
     pool: getClient(),
