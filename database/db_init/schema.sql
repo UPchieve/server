@@ -1,7 +1,7 @@
-\restrict fNaLiI9WLLN002fEutiAyjMsqfKng7pdpyO2y1S2VpvxnGE72xv4DoaKFgf2YoG
+\restrict vYarmNil1qEzrabtYdVBcqN11wQEECgoWfkewpsW3QwEvRMpgBkhz0wi5KaVbLX
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
--- Dumped by pg_dump version 15.17 (Ubuntu 15.17-1.pgdg22.04+1)
+-- Dumped by pg_dump version 15.17 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -2688,6 +2688,34 @@ CREATE TABLE upchieve.teacher_profiles (
 
 
 --
+-- Name: text_moderation_patterns; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.text_moderation_patterns (
+    id integer NOT NULL,
+    regex text NOT NULL,
+    flags character varying(8),
+    rules json,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: text_moderation_patterns_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE upchieve.text_moderation_patterns ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME upchieve.text_moderation_patterns_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
 -- Name: tool_types; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -4930,6 +4958,14 @@ ALTER TABLE ONLY upchieve.teacher_classes
 
 ALTER TABLE ONLY upchieve.teacher_profiles
     ADD CONSTRAINT teacher_profiles_pkey PRIMARY KEY (user_id);
+
+
+--
+-- Name: text_moderation_patterns text_moderation_patterns_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.text_moderation_patterns
+    ADD CONSTRAINT text_moderation_patterns_pkey PRIMARY KEY (id);
 
 
 --
@@ -7358,7 +7394,7 @@ ALTER TABLE ONLY upchieve.volunteer_references
 -- PostgreSQL database dump complete
 --
 
-\unrestrict fNaLiI9WLLN002fEutiAyjMsqfKng7pdpyO2y1S2VpvxnGE72xv4DoaKFgf2YoG
+\unrestrict vYarmNil1qEzrabtYdVBcqN11wQEECgoWfkewpsW3QwEvRMpgBkhz0wi5KaVbLX
 
 
 --
@@ -7636,4 +7672,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260309135111'),
     ('20260310141305'),
     ('20260326212800'),
-    ('20260408183957');
+    ('20260408183957'),
+    ('20260415134614');
