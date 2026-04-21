@@ -12,7 +12,7 @@ import {
   getStudentPartnerOrgBySchoolId,
 } from '../../models/StudentPartnerOrg'
 import { CreateUserPayload } from '../../models/User'
-import { buildStudentPartnerOrg } from '../mocks/generate'
+import { buildStudentPartnerOrgInsert } from '../mocks/generate'
 import { insertSingleRow } from '../db-utils'
 import { getDbUlid } from '../../models/pgUtils'
 
@@ -68,7 +68,7 @@ describe('getStudentPartnerOrgBySchoolId', () => {
     async (schoolIsPartner: boolean) => {
       const school = createSchool({ partner: schoolIsPartner })
       const insertedSchool = await insertSingleRow('schools', school, client)
-      const spo = buildStudentPartnerOrg({
+      const spo = buildStudentPartnerOrgInsert({
         schoolId: insertedSchool.id,
       })
       const insertedSpo = await insertSingleRow(

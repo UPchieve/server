@@ -11,6 +11,7 @@ import {
   CreateStudentAssignmentInput,
   CreateStudentAssignmentResult,
   EditAssignmentInput,
+  StudentAssignment,
 } from './types'
 import * as pgQueries from './pg.queries'
 import {
@@ -256,7 +257,7 @@ export async function getStudentAssignmentCompletion(
 export async function getStudentAssignmentForSession(
   sessionId: Ulid,
   tc: TransactionClient = getClient()
-) {
+): Promise<StudentAssignment | undefined> {
   try {
     const studentAssignment =
       await pgQueries.getStudentAssignmentForSession.run({ sessionId }, tc)

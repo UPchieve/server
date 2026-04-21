@@ -1,7 +1,7 @@
-\restrict GR61LryodSSEmuaoyPyZdGMkFoZx7C6qg58Ac8Wq4OXLSG63xskWs1H1T092uwO
+\restrict vYarmNil1qEzrabtYdVBcqN11wQEECgoWfkewpsW3QwEvRMpgBkhz0wi5KaVbLX
 
--- Dumped from database version 14.21 (Debian 14.21-1.pgdg13+1)
--- Dumped by pg_dump version 14.19 (Homebrew)
+-- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
+-- Dumped by pg_dump version 15.17 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -92,25 +92,6 @@ COMMENT ON EXTENSION pgcrypto IS 'cryptographic functions';
 
 
 --
--- Name: moderation_system; Type: TYPE; Schema: public; Owner: -
---
-
-CREATE TYPE public.moderation_system AS ENUM (
-    'regex'
-);
-
-
---
--- Name: paid_tutors_pilot_groups; Type: TYPE; Schema: public; Owner: -
---
-
-CREATE TYPE public.paid_tutors_pilot_groups AS ENUM (
-    'control',
-    'test'
-);
-
-
---
 -- Name: ban_types; Type: TYPE; Schema: upchieve; Owner: -
 --
 
@@ -118,6 +99,15 @@ CREATE TYPE upchieve.ban_types AS ENUM (
     'shadow',
     'complete',
     'live_media'
+);
+
+
+--
+-- Name: moderation_system; Type: TYPE; Schema: upchieve; Owner: -
+--
+
+CREATE TYPE upchieve.moderation_system AS ENUM (
+    'regex'
 );
 
 
@@ -139,6 +129,16 @@ CREATE TYPE upchieve.nths_candidate_application_status AS ENUM (
     'applied',
     'approved',
     'denied'
+);
+
+
+--
+-- Name: paid_tutors_pilot_groups; Type: TYPE; Schema: upchieve; Owner: -
+--
+
+CREATE TYPE upchieve.paid_tutors_pilot_groups AS ENUM (
+    'control',
+    'test'
 );
 
 
@@ -397,7 +397,7 @@ CREATE TABLE upchieve.censored_session_messages (
     sender_id uuid NOT NULL,
     message text,
     session_id uuid NOT NULL,
-    censored_by public.moderation_system NOT NULL,
+    censored_by upchieve.moderation_system NOT NULL,
     sent_at timestamp with time zone NOT NULL,
     shown boolean NOT NULL
 );
@@ -2688,6 +2688,34 @@ CREATE TABLE upchieve.teacher_profiles (
 
 
 --
+-- Name: text_moderation_patterns; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.text_moderation_patterns (
+    id integer NOT NULL,
+    regex text NOT NULL,
+    flags character varying(8),
+    rules json,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: text_moderation_patterns_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE upchieve.text_moderation_patterns ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME upchieve.text_moderation_patterns_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
 -- Name: tool_types; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -2918,7 +2946,7 @@ CREATE TABLE upchieve.user_product_flags (
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     in_gates_study boolean DEFAULT false NOT NULL,
     fall_incentive_program boolean DEFAULT false NOT NULL,
-    paid_tutors_pilot_group public.paid_tutors_pilot_groups,
+    paid_tutors_pilot_group upchieve.paid_tutors_pilot_groups,
     fall_incentive_enrollment_at timestamp with time zone,
     impact_study_enrollment_at timestamp with time zone,
     impact_study_campaigns jsonb DEFAULT '{}'::jsonb
@@ -4930,6 +4958,14 @@ ALTER TABLE ONLY upchieve.teacher_classes
 
 ALTER TABLE ONLY upchieve.teacher_profiles
     ADD CONSTRAINT teacher_profiles_pkey PRIMARY KEY (user_id);
+
+
+--
+-- Name: text_moderation_patterns text_moderation_patterns_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.text_moderation_patterns
+    ADD CONSTRAINT text_moderation_patterns_pkey PRIMARY KEY (id);
 
 
 --
@@ -7358,7 +7394,7 @@ ALTER TABLE ONLY upchieve.volunteer_references
 -- PostgreSQL database dump complete
 --
 
-\unrestrict GR61LryodSSEmuaoyPyZdGMkFoZx7C6qg58Ac8Wq4OXLSG63xskWs1H1T092uwO
+\unrestrict vYarmNil1qEzrabtYdVBcqN11wQEECgoWfkewpsW3QwEvRMpgBkhz0wi5KaVbLX
 
 
 --
@@ -7635,4 +7671,6 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260305204138'),
     ('20260309135111'),
     ('20260310141305'),
-    ('20260326212800');
+    ('20260326212800'),
+    ('20260408183957'),
+    ('20260415134614');

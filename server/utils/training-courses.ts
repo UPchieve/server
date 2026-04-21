@@ -21,7 +21,7 @@ interface TrainingModule {
   quizKey?: string
 }
 
-enum MaterialType {
+export enum MaterialType {
   VIDEO = 'video',
   DOCUMENT = 'document',
   LINK = 'link',
