@@ -22,11 +22,7 @@ import {
   CensoredSessionMessage,
   createCensoredMessage,
 } from '../../models/CensoredSessionMessage'
-import {
-  invokeModel as invokeOpenAI,
-  MODEL_ID as OPENAI_MODEL_ID,
-  OpenAiResults,
-} from '../OpenAIService'
+import * as OpenAIService from '../OpenAIService'
 import * as UsersRepo from '../../models/User'
 import * as SessionRepo from '../../models/Session'
 import {
@@ -64,7 +60,7 @@ import { GetModerationSettingResult } from '../../models/ModerationSettings/type
 import * as ModerationTypes from './types'
 import { weightModerationInfractions } from './ModerationPenaltyService'
 import * as Regex from './regex'
-import { ModerationSource } from './types'
+import { ModerationAIResult, ModerationSource } from './types'
 
 // Image moderation
 const AWS_CONFIG = {
@@ -428,7 +424,7 @@ async function isLikelyToBeAnEmail({
 }) {
   const isMaybeEmail =
     entityConfidence >= config.emailModerationConfidenceThreshold &&
-    Regex.EMAIL_REGEX.test(entityText)
+    Regex.matchesEmailPattern(entityText)
 
   if (!isMaybeEmail) {
     return false
@@ -443,7 +439,7 @@ async function isLikelyToBeAnEmail({
     trace
   )
 
-  return aiModerationResult?.reasons?.email ?? false
+  return aiModerationResult?.results.reasons?.email ?? false
 }
 
 async function isLikelyToBeAPhoneNumber({
@@ -461,11 +457,11 @@ async function isLikelyToBeAPhoneNumber({
 }) {
   // Since many users will be sharing numbers that look like phone numbers,
   // we want to moderate them in similar way we moderate phone numbers in messages.
-  // PII is very permisive with what's a phone number, so let's run it through our regex
+  // PII is very permissive with what's a phone number, so let's run it through our regex
   // and then through the false positive fallback
   const isMaybePhone =
     entityConfidence >= config.phoneNumberModerationConfidenceThreshold &&
-    Regex.PHONE_REGEX.test(entityText)
+    Regex.matchesPhoneNumberPattern(entityText)
 
   if (!isMaybePhone) {
     return false
@@ -480,7 +476,7 @@ async function isLikelyToBeAPhoneNumber({
     trace
   )
 
-  return aiModerationResult?.reasons?.phone ?? false
+  return aiModerationResult?.results?.reasons?.phone ?? false
 }
 
 function existsInArray(array: any[], item: any) {
@@ -1099,7 +1095,7 @@ export async function getIndividualSessionMessageModerationResponse({
     gen = trace.generation({
       name: ModerationTypes.LangfuseGenerationName
         .SESSION_MESSAGE_MODERATION_DECISION,
-      model: OPENAI_MODEL_ID,
+      model: OpenAIService.MODEL_ID,
       input: { censoredSessionMessage, isVolunteer },
       // Attach prompt object, if it exists, in order to associate the generation with the prompt in LF
       ...(promptData.promptObject && { prompt: promptData.promptObject }),
@@ -1107,7 +1103,7 @@ export async function getIndividualSessionMessageModerationResponse({
   }
 
   try {
-    const response = await invokeOpenAI({
+    const response = await OpenAIService.invokeModel({
       prompt: promptData.prompt,
       userMessage: wrapMessageInXmlTags(
         censoredSessionMessage.message,
@@ -1134,66 +1130,12 @@ export async function getIndividualSessionMessageModerationResponse({
     )
   }
 }
-
-function test({ regex, message }: { regex: RegExp; message: string }) {
-  const results: string[] = []
-  for (const [match] of message.matchAll(regex)) {
-    results.push(match)
-  }
-  return results
-}
-
-const regexModerate = (
-  message: string
-): ModerationTypes.RegexModerationResult => {
-  const failedTests = [
-    [
-      ModerationTypes.LiveMediaModerationCategories.EMAIL,
-      test({ regex: Regex.EMAIL_REGEX, message }),
-    ],
-    [
-      ModerationTypes.LiveMediaModerationCategories.PHONE,
-      test({ regex: Regex.PHONE_REGEX, message }),
-    ],
-    [
-      ModerationTypes.LiveMediaModerationCategories.PROFANITY,
-      test({ regex: Regex.PROFANITY_REGEX, message }),
-    ],
-    [
-      ModerationTypes.LiveMediaModerationCategories.LINK,
-      test({ regex: Regex.LINK_RESTRICTION_REGEX, message }),
-    ],
-  ].filter(([, test]) => test.length > 0)
-
-  const sanitize = (message: string): string => {
-    let sanitizedMessage = message
-    failedTests.forEach(([testName, testMatches]) => {
-      ;(testMatches as string[]).forEach((match) => {
-        const stars = '*'.repeat(match.length)
-        sanitizedMessage = sanitizedMessage.replace(
-          new RegExp(match, 'g'),
-          stars
-        )
-      })
-    })
-
-    return sanitizedMessage
-  }
-
-  const isClean = failedTests.length === 0
-  return {
-    isClean,
-    failures: { failures: Object.fromEntries(failedTests) },
-    sanitizedMessage: isClean ? message : sanitize(message),
-  }
-}
-
 const getAiModerationResult = async (
   censoredSessionMessage: Pick<CensoredSessionMessage, 'sessionId' | 'message'>,
   isVolunteer: boolean,
   trace?: LangfuseTraceClient
-) => {
-  return await timeLimit({
+): Promise<null | { results: ModerationAIResult }> => {
+  const r = await timeLimit({
     promise: getIndividualSessionMessageModerationResponse({
       censoredSessionMessage,
       isVolunteer,
@@ -1204,6 +1146,7 @@ const getAiModerationResult = async (
       'AI Moderation time limit reached. Returning regex value',
     waitInMs: config.moderateMessageTimeLimitMs,
   })
+  return { results: r }
 }
 
 export type oldClientModerationResult = boolean
@@ -1225,18 +1168,18 @@ export async function moderateMessage(
   oldClientModerationResult | ModerationTypes.ModerationFailureReasons
 > {
   let trace: LangfuseTraceClient | undefined = undefined
-  const { isClean, failures } = regexModerate(message)
+  const regexDecision = await Regex.regexModerate(message)
 
   /*
    * Old high-line mid town clients will not send up sessionId
    * return `true` or `false` for them
    */
   if (!sessionId) {
-    return isClean
+    return regexDecision.isClean
   }
 
-  let result = failures
-  if (!isClean) {
+  if (!regexDecision.isClean) {
+    // Consult AI
     const traceName =
       source === 'whiteboard-text-node'
         ? ModerationTypes.LangfuseTraceName.MODERATE_WHITEBOARD_TEXT_NODE
@@ -1253,26 +1196,28 @@ export async function moderateMessage(
       censoredBy: CENSORED_BY.regex,
     })
 
-    const response: OpenAiResults | undefined = await getAiModerationResult(
-      censoredSessionMessage,
-      userType === 'volunteer',
-      trace
-    )
+    const aiResponse: null | { results: ModerationAIResult } =
+      await getAiModerationResult(
+        censoredSessionMessage,
+        userType === 'volunteer',
+        trace
+      )
+    const aiDecision: ModerationTypes.ModerationAIResult | undefined =
+      aiResponse?.results as ModerationTypes.ModerationAIResult
 
-    const results: ModerationTypes.ModerationAIResult | undefined =
-      response?.results as ModerationTypes.ModerationAIResult
-    // Override the regex moderation decision with the AI one if it's available
-    result.failures = !results
-      ? result.failures
-      : results?.appropriate
-        ? {}
-        : results.reasons
-
-    logger.info(
-      { censoredSessionMessage, reasons: result },
-      'Session message was censored'
-    )
-    return result
+    // Defer to AI decision if it conflicts with regex decision
+    const isMessageAppropriate =
+      (aiDecision && aiDecision.appropriate) || regexDecision.isClean
+    if (isMessageAppropriate) {
+      return { failures: {} }
+    } else {
+      const failures = aiDecision?.reasons ?? regexDecision.failures.failures
+      logger.info(
+        { censoredSessionMessage, reasons: failures },
+        'Session message was censored'
+      )
+      return { failures }
+    }
   }
 
   const session = await SessionRepo.getSessionById(sessionId)
@@ -1527,9 +1472,9 @@ export const moderateIndividualTranscription = async ({
 }): Promise<
   CleanTranscriptModerationResult | SanitizedTranscriptModerationResult
 > => {
-  const { isClean, failures, sanitizedMessage } = regexModerate(transcript)
+  const { isClean, failures, sanitizedMessage } =
+    await Regex.regexModerate(transcript)
   if (isClean) return { isClean: true } as CleanTranscriptModerationResult
-  // @TODO - run through AI moderation
 
   // If the message is unclean, track it as an infraction against the user
   const moderationSettings = await getModerationRealTimeSettings()
@@ -1665,7 +1610,10 @@ const getSessionTranscriptModerationResult = async (
     input: chunkAsString,
     ...(promptObject && { prompt: promptObject }),
   })
-  const result = await invokeOpenAI({ prompt, userMessage: chunkAsString })
+  const result = await OpenAIService.invokeModel({
+    prompt,
+    userMessage: chunkAsString,
+  })
   gen.end({
     output: result,
   })
@@ -1730,7 +1678,7 @@ export const moderateTranscript = async (
     const result = await getSessionTranscriptModerationResult(
       promptData.prompt,
       message,
-      OPENAI_MODEL_ID,
+      OpenAIService.MODEL_ID,
       trace,
       promptData?.promptObject
     )
