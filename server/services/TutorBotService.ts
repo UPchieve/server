@@ -187,7 +187,7 @@ async function getTutorBotContext(data: {
   const resizedImages = await Promise.all(
     images.map(async (image) => {
       const resized = await resize(image)
-      return Buffer.isBuffer(resized) ? resized : Buffer.from(resized)
+      return resized
     })
   )
 
