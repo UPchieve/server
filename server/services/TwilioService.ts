@@ -356,7 +356,7 @@ export async function sendVerification(
     return
   }
 
-  await twilioClient.verify
+  await twilioClient.verify.v2
     .services(config.twilioAccountVerificationServiceSid)
     .verifications.create(
       {
@@ -399,7 +399,7 @@ export async function confirmVerification(
     logger.warn('Twilio client not loaded.')
     return true
   }
-  const result = await twilioClient.verify
+  const result = await twilioClient.verify.v2
     .services(config.twilioAccountVerificationServiceSid)
     .verificationChecks.create({ to, code })
   return result.valid
@@ -454,7 +454,7 @@ export async function fetchOrCreateRateLimit() {
   )
 
   // Fetch RateLimits and see if the one we want exists.
-  const rateLimits = await twilioClient.verify
+  const rateLimits = await twilioClient.verify.v2
     .services(config.twilioAccountVerificationServiceSid)
     .rateLimits.list()
 
@@ -473,7 +473,7 @@ export async function fetchOrCreateRateLimit() {
 
 async function createRateLimit(uniqueName: string): Promise<void> {
   // Create RateLimit
-  const rateLimit = await twilioClient?.verify
+  const rateLimit = await twilioClient?.verify.v2
     .services(config.twilioAccountVerificationServiceSid)
     .rateLimits.create({
       uniqueName,
@@ -488,7 +488,7 @@ async function createRateLimit(uniqueName: string): Promise<void> {
   const rateLimitSid = (await Promise.resolve(rateLimit)).sid
 
   // Create RateLimitBucket
-  const rateLimitBucket = await twilioClient?.verify
+  const rateLimitBucket = await twilioClient?.verify.v2
     .services(config.twilioAccountVerificationServiceSid)
     .rateLimits(rateLimitSid)
     .buckets.create({
