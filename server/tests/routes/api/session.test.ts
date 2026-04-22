@@ -22,6 +22,7 @@ import {
 } from '../../mocks/generate'
 import { routeSession } from '../../../router/api/session'
 import * as AssignmentsService from '../../../services/AssignmentsService'
+import * as AzureService from '../../../services/AzureService'
 import * as SessionMeetingService from '../../../services/SessionMeetingService'
 import * as SessionService from '../../../services/SessionService'
 import * as SessionSummariesService from '../../../services/SessionSummariesService'
@@ -47,6 +48,7 @@ const socketService = {
 }
 
 jest.mock('../../../services/AssignmentsService')
+jest.mock('../../../services/AzureService')
 jest.mock('../../../services/SessionMeetingService')
 jest.mock('../../../services/SessionService')
 jest.mock('../../../services/SessionSummariesService')
@@ -65,6 +67,7 @@ jest.mock('../../../utils/auth-utils', () => ({
 }))
 
 const mockedAssignmentsService = mocked(AssignmentsService)
+const mockedAzureService = mocked(AzureService)
 const mockedSessionMeetingService = mocked(SessionMeetingService)
 const mockedSessionService = mocked(SessionService)
 const mockedSocketServiceModule = mocked(SocketServiceModule)
@@ -915,7 +918,7 @@ describe('routeSession', () => {
     test('redirects to image url when found', async () => {
       const sessionId = getUuid()
       const imageUrl = 'https://example.com/image.png'
-      mockedSessionService.getDocEditorSessionImageUrl.mockReturnValue(imageUrl)
+      mockedAzureService.getDocEditorSessionImageUrl.mockReturnValue(imageUrl)
 
       const response = await sendGet(
         `/api/sessions/${sessionId}/images/test.png`
@@ -923,7 +926,7 @@ describe('routeSession', () => {
 
       expect(response.status).toBe(302)
       expect(
-        mockedSessionService.getDocEditorSessionImageUrl
+        mockedAzureService.getDocEditorSessionImageUrl
       ).toHaveBeenCalledWith(sessionId, 'test.png')
       expect(response.header.location).toBe(imageUrl)
       expect(response.header['cache-control']).toBe('private, max-age=300')
@@ -931,7 +934,7 @@ describe('routeSession', () => {
 
     test('returns 404 when image url is not found', async () => {
       const sessionId = getUuid()
-      mockedSessionService.getDocEditorSessionImageUrl.mockReturnValue('')
+      mockedAzureService.getDocEditorSessionImageUrl.mockReturnValue('')
 
       const response = await sendGet(
         `/api/sessions/${sessionId}/images/test.png`
