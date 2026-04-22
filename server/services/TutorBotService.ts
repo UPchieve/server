@@ -106,10 +106,11 @@ export async function getTranscriptForConversation(
     conversationId,
     tc
   )
-  if (!transcript)
+  if (!transcript) {
     throw new Error(
       `Unable to find transcript for conversation id: ${conversationId}`
     )
+  }
   return transcript
 }
 
@@ -235,7 +236,9 @@ export async function addMessageToConversation(
     }
 
     let session: SessionRepo.GetSessionByIdResult | undefined
-    if (sessionId) session = await getSessionById(sessionId)
+    if (sessionId) {
+      session = await getSessionById(sessionId)
+    }
     const editorContext = await getTutorBotContext({
       sessionId,
       toolType: session?.toolType,
