@@ -2,9 +2,14 @@ import { Router } from 'express'
 import multer from 'multer'
 import * as TutorBotService from '../../services/TutorBotService'
 import { resError } from '../res-error'
-import { asFactory, asString } from '../../utils/type-utils'
+import {
+  asFactory,
+  asNumber,
+  asOptional,
+  asString,
+} from '../../utils/type-utils'
 import { InputError } from '../../models/Errors'
-import { MessagePayload } from '../../contracts/tutor-bot'
+import { ConversationPayload, MessagePayload } from '../../contracts/tutor-bot'
 import { TutorBotHumanSenderType } from '../../types/tutor-bot'
 
 function isSenderUserType(s: unknown): s is TutorBotHumanSenderType {
@@ -22,6 +27,14 @@ const messageValidator = asFactory<MessagePayload>({
   message: asString,
   senderUserType: asSenderUserType,
   subjectName: asString,
+})
+
+const conversationValidator = asFactory<ConversationPayload>({
+  userId: asString,
+  sessionId: asOptional(asString),
+  message: asString,
+  senderUserType: asSenderUserType,
+  subjectId: asNumber,
 })
 
 export function routeTutorBot(router: Router) {
@@ -65,4 +78,33 @@ export function routeTutorBot(router: Router) {
       }
     }
   )
+
+  router.patch(
+    '/tutor-bot/conversations/:conversationId',
+    async function (req, res) {
+      try {
+        await TutorBotService.linkTutorBotConversationToSessionId(
+          req.params.conversationId,
+          req.body.sessionId
+        )
+        return res.sendStatus(204)
+      } catch (err) {
+        resError(res, err)
+      }
+    }
+  )
+
+  router.post('/tutor-bot/conversations', async (req, res) => {
+    try {
+      const data = conversationValidator({
+        ...req.body,
+        userId: req.user?.id,
+      })
+      const conversation =
+        await TutorBotService.createTutorBotConversation(data)
+      return res.json(TutorBotService.toNewConversationPublic(conversation))
+    } catch (err) {
+      resError(res, err)
+    }
+  })
 }
