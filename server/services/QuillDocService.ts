@@ -198,9 +198,13 @@ export async function deleteDoc(sessionId: Uuid): Promise<void> {
 
 export function parseQuillDoc(quillDoc: string): Delta {
   let document = quillDoc
-  if (typeof document === 'string') document = JSON.parse(document)
+  if (typeof document === 'string') {
+    document = JSON.parse(document)
+  }
   // If it was double-encoded, parse again
-  if (typeof document === 'string') document = JSON.parse(document)
+  if (typeof document === 'string') {
+    document = JSON.parse(document)
+  }
   // If it remains a string, it was encoded too many times and we're likely
   // storing the document editor incorrectly
   if (typeof document === 'string')
@@ -264,7 +268,9 @@ export function parseDocEditorImageRoute(
 
 async function getDocEditorImageBuffer(imageUrl: string): Promise<Buffer> {
   const parsed = parseDocEditorImageRoute(imageUrl)
-  if (!parsed) throw new Error('Invalid document editor image URL')
+  if (!parsed) {
+    throw new Error('Invalid document editor image URL')
+  }
 
   const { sessionId, fileName } = parsed
   const sasUrl = getDocEditorSessionImageUrl(sessionId, fileName)
