@@ -32,6 +32,14 @@ export type TutorBotAiResponse = {
   response: string
 }
 
+export type TutorBotNewConversation = {
+  conversationId: Uuid
+  userId: Uuid
+  sessionId?: Uuid
+  subjectId: number
+  messages: [TutorBotMessage, TutorBotGeneratedMessage]
+}
+
 export type AddMessageToConversationPayload = {
   userId: Uuid
   conversationId: Uuid

@@ -195,7 +195,7 @@ export async function insertTutorBotConversationMessage(
   }
 }
 
-export async function updateTutorBotConversationSessionIdByConversationId(
+export async function updateTutorBotConversationSessionId(
   data: {
     conversationId: Uuid
     sessionId: Uuid
