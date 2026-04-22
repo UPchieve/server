@@ -2,9 +2,14 @@ import { Router } from 'express'
 import multer from 'multer'
 import * as TutorBotService from '../../services/TutorBotService'
 import { resError } from '../res-error'
-import { asFactory, asString } from '../../utils/type-utils'
+import {
+  asFactory,
+  asNumber,
+  asOptional,
+  asString,
+} from '../../utils/type-utils'
 import { InputError } from '../../models/Errors'
-import { MessagePayload } from '../../contracts/tutor-bot'
+import { ConversationPayload, MessagePayload } from '../../contracts/tutor-bot'
 import { TutorBotHumanSenderType } from '../../types/tutor-bot'
 
 function isSenderUserType(s: unknown): s is TutorBotHumanSenderType {
@@ -22,6 +27,14 @@ const messageValidator = asFactory<MessagePayload>({
   message: asString,
   senderUserType: asSenderUserType,
   subjectName: asString,
+})
+
+const conversationValidator = asFactory<ConversationPayload>({
+  userId: asString,
+  sessionId: asOptional(asString),
+  message: asString,
+  senderUserType: asSenderUserType,
+  subjectId: asNumber,
 })
 
 export function routeTutorBot(router: Router) {
