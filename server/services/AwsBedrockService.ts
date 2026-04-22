@@ -78,7 +78,7 @@ type BedrockInvokeInput = {
   text?: string
   prompt: string
   tools_option?: BedrockToolsAttribute
-  image?: Buffer
+  images?: Array<Buffer>
 }
 
 type ToolInput = Record<string, any>
@@ -106,19 +106,18 @@ function textContextPayload(text: string): TextContent {
 
 export async function invokeModel<T = string | ToolInput>({
   modelId,
-  image,
+  images = [],
   text,
   prompt,
   tools_option,
 }: BedrockInvokeInput): Promise<T> {
   const client = getClient()
-
   const payLoadContent = []
 
   if (text != null && text != undefined) {
     payLoadContent.push(textContextPayload(text))
   }
-  if (image) {
+  for (const image of images) {
     payLoadContent.push(imageContentPayload(image))
   }
 

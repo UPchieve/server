@@ -21,13 +21,49 @@ import type {
   TutorBotMessagePublic,
   TutorBotTranscriptPublic,
 } from '../contracts/tutor-bot'
-import {
+import type {
   AddMessageToConversationPayload,
   TutorBotTranscript,
-  TutorBotAiResponse,
   TutorBotGeneratedMessage,
   TutorBotMessage,
+  TutorBotAiResponse,
 } from '../types/tutor-bot'
+import { resize } from '../utils/image-utils'
+import {
+  getCurrentSessionDocEditor,
+  getDocEditorImages,
+} from './QuillDocService'
+import { getSessionById } from './SessionService'
+import { isSubjectUsingDocumentEditor } from '../utils/session-utils'
+
+type EditorType = 'none' | 'quill'
+
+type TutorBotContext = {
+  editorType: EditorType
+  editorContent: string
+  images: Buffer[]
+}
+
+type DocumentEditorContext = {
+  quillDoc: string
+  images: Array<Buffer>
+}
+
+type PromptDataReplacements = {
+  '{{subject}}': string
+  '{{conversation}}': string
+  '{{editor}}': string
+  '{{editorType}}': string
+}
+
+type AwsBedrockResponseInput = {
+  userId: Uuid
+  conversationId: Uuid
+  subjectName: string
+  images: Array<Buffer>
+  editorContent: string
+  editorType: EditorType
+}
 
 const NUM_OF_MESSAGES_TO_KEEP_IN_CONTEXT = 15
 const LF_TRACE_NAME = 'tutorBotSession'
@@ -58,6 +94,10 @@ const BED_ROCK_TOOL = [
   },
 ]
 
+const AWS_BEDROCK_TUTOR_ANSWER_FALLBACK = `
+Hi there! I noticed you seem to be trying to communicate, but the messages aren't clear.
+Could you tell me more about your problem?`
+
 export async function getTranscriptForConversation(
   conversationId: Uuid,
   tc: TransactionClient = getClient()
@@ -66,10 +106,11 @@ export async function getTranscriptForConversation(
     conversationId,
     tc
   )
-  if (!transcript)
+  if (!transcript) {
     throw new Error(
       `Unable to find transcript for conversation id: ${conversationId}`
     )
+  }
   return transcript
 }
 
@@ -82,7 +123,7 @@ export async function getOrCreateConversationBySessionId({
     const transcript = await getTutorBotTranscriptBySessionId(sessionId, tc)
     if (transcript) return transcript
 
-    const session = await SessionRepo.getSessionById(sessionId)
+    const session = await getSessionById(sessionId)
     const subjectId = session.subjectId
     const conversationId = await insertTutorBotConversation(
       {
@@ -101,6 +142,62 @@ export async function getOrCreateConversationBySessionId({
   })
 }
 
+async function getDocumentEditorContext(
+  sessionId: Uuid
+): Promise<DocumentEditorContext> {
+  try {
+    const doc = await getCurrentSessionDocEditor(sessionId)
+    if (!doc) return { quillDoc: '', images: [] }
+
+    const quillDoc = JSON.stringify(doc)
+    const docImages = await getDocEditorImages(quillDoc)
+    return { quillDoc, images: docImages }
+  } catch (error) {
+    logger.warn(
+      {
+        err: error,
+        sessionId,
+      },
+      'Failed to process document editor context. Continuing without document editor context.'
+    )
+    return { quillDoc: '', images: [] }
+  }
+}
+
+async function getTutorBotContext(data: {
+  sessionId?: Uuid
+  toolType?: string
+  snapshotBuffer?: Buffer
+}): Promise<TutorBotContext> {
+  const { sessionId, toolType, snapshotBuffer } = data
+  const images: Buffer[] = []
+  let editorType: EditorType = 'none'
+  let editorContent = ''
+
+  if (sessionId && toolType && isSubjectUsingDocumentEditor(toolType)) {
+    const docContext = await getDocumentEditorContext(sessionId)
+    if (docContext.quillDoc) {
+      editorType = 'quill'
+      editorContent = docContext.quillDoc
+    }
+    images.push(...docContext.images)
+  }
+
+  if (snapshotBuffer) images.push(snapshotBuffer)
+  const resizedImages = await Promise.all(
+    images.map(async (image) => {
+      const resized = await resize(image)
+      return resized
+    })
+  )
+
+  return {
+    editorType,
+    editorContent,
+    images: resizedImages,
+  }
+}
+
 export async function addMessageToConversation(
   {
     userId,
@@ -108,6 +205,7 @@ export async function addMessageToConversation(
     message,
     senderUserType,
     subjectName,
+    snapshotBuffer,
   }: AddMessageToConversationPayload,
   parentTransaction?: TransactionClient
 ) {
@@ -137,8 +235,25 @@ export async function addMessageToConversation(
       })
     }
 
+    let session: SessionRepo.GetSessionByIdResult | undefined
+    if (sessionId) {
+      session = await getSessionById(sessionId)
+    }
+    const editorContext = await getTutorBotContext({
+      sessionId,
+      toolType: session?.toolType,
+      snapshotBuffer,
+    })
+
     const botResponse = await getAwsBedRockResponse(
-      { userId, conversationId, subjectName },
+      {
+        userId,
+        conversationId,
+        subjectName,
+        images: editorContext.images,
+        editorContent: editorContext.editorContent,
+        editorType: editorContext.editorType,
+      },
       tc
     )
 
@@ -155,7 +270,8 @@ export async function addMessageToConversation(
 
 async function getPromptData(
   subjectName: string,
-  transcript: TutorBotTranscript
+  transcript: TutorBotTranscript,
+  context: Pick<TutorBotContext, 'editorType' | 'editorContent'>
 ): Promise<PromptService.PromptResponse> {
   const promptName = Object.values<string>(COLLEGE_SUBJECTS).includes(
     subjectName
@@ -167,13 +283,16 @@ async function getPromptData(
     .map(({ senderUserType, message }) => `<|${senderUserType}|>: ${message}`)
     .slice(-NUM_OF_MESSAGES_TO_KEEP_IN_CONTEXT)
     .join('<|end|>\n')
+  const replacements: PromptDataReplacements = {
+    '{{subject}}': subjectName,
+    '{{conversation}}': mostRecentMessages,
+    '{{editor}}': context.editorContent,
+    '{{editorType}}': context.editorType,
+  }
 
   const cleanedPrompt = interpolate({
     text: promptData.prompt,
-    replacements: {
-      '{{subject}}': subjectName,
-      '{{conversation}}': mostRecentMessages,
-    },
+    replacements,
   })
 
   return {
@@ -200,11 +319,10 @@ async function getAwsBedRockResponse(
     userId,
     conversationId,
     subjectName,
-  }: {
-    userId: Uuid
-    conversationId: Uuid
-    subjectName: string
-  },
+    images,
+    editorContent,
+    editorType,
+  }: AwsBedrockResponseInput,
   tc: TransactionClient = getClient()
 ): Promise<TutorBotGeneratedMessage> {
   // Save the latest user message to DB and create the transcript of the conversation so far
@@ -214,7 +332,10 @@ async function getAwsBedRockResponse(
   })
   // NOTE these are ordered by created at ASC
   const transcript = await getTranscriptForConversation(conversationId, tc)
-  const promptData = await getPromptData(subjectName, transcript)
+  const promptData = await getPromptData(subjectName, transcript, {
+    editorContent,
+    editorType,
+  })
   const gen = t.generation({
     name: LF_GENERATION_NAME,
     metadata: { model: config.awsBedrockSonnet4Id },
@@ -228,6 +349,7 @@ async function getAwsBedRockResponse(
       modelId: config.awsBedrockSonnet4Id,
       text: '',
       prompt: promptData.prompt,
+      images,
       tools_option: {
         tool_choice: { type: BedrockToolChoice.TOOL, name: BED_ROCK_TOOL_NAME },
         tools: BED_ROCK_TOOL,
@@ -264,23 +386,23 @@ async function getAwsBedRockResponse(
     output: { botResponse: botResponse, responseDbo: savedBotMessage },
   })
 
+  const fallbackStatus = '1. Get the student to elaborate their answer'
+  const status =
+    typeof botResponse === 'string'
+      ? fallbackStatus
+      : (botResponse.intention ?? fallbackStatus)
+
   return {
     senderUserType: 'bot',
     message,
     createdAt: savedBotMessage.createdAt,
     tutorBotConversationId: conversationId,
     userId,
-    status: (botResponse as TutorBotAiResponse)?.intention
-      ? (botResponse as TutorBotAiResponse).intention
-      : '1. Get the student to elaborate their answer',
+    status,
     traceId: gen.traceId,
     observationId: gen.observationId,
   }
 }
-
-const AWS_BEDROCK_TUTOR_ANSWER_FALLBACK = `
-Hi there! I noticed you seem to be trying to communicate, but the messages aren't clear.
-Could you tell me more about what your problem?`
 
 export function toTutorBotMessagePublic(
   data: TutorBotMessage

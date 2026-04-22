@@ -148,7 +148,7 @@ async function detectImageEducationPurpose(
       reason: string
     } = await invokeModel({
       modelId: config.awsBedrockSonnet4Id,
-      image,
+      images: [image],
       prompt: promptData.prompt,
       tools_option: {
         tool_choice: { type: BedrockToolChoice.TOOL, name: 'json_response' },

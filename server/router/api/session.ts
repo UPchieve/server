@@ -23,7 +23,7 @@ import {
   PrimaryUserRole,
   SessionUserRole,
 } from '../../services/UserRolesService'
-import { getDocEditorSessionImageUrl } from '../../services/SessionService'
+import { getDocEditorSessionImageUrl } from '../../services/AzureService'
 import { getSessionSummaryByUserType } from '../../services/SessionSummariesService'
 import { USER_ROLES } from '../../constants'
 
