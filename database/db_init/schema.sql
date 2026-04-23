@@ -1,7 +1,7 @@
-\restrict vYarmNil1qEzrabtYdVBcqN11wQEECgoWfkewpsW3QwEvRMpgBkhz0wi5KaVbLX
+\restrict ro3hLUWq9lQD1lkxEFHlLkippcoZBzIigABBxCSbd0jNLushNd3AsF7jkHDscbz
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
--- Dumped by pg_dump version 15.17 (Homebrew)
+-- Dumped by pg_dump version 15.17 (Ubuntu 15.17-1.pgdg22.04+1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -3115,6 +3115,18 @@ CREATE TABLE upchieve.users_certifications (
 
 
 --
+-- Name: users_grade_levels; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.users_grade_levels (
+    user_id uuid NOT NULL,
+    signup_grade_level_id integer,
+    grade_level_id integer NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
 -- Name: users_ip_addresses; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -5193,6 +5205,14 @@ ALTER TABLE ONLY upchieve.users
 
 
 --
+-- Name: users_grade_levels users_grade_levels_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.users_grade_levels
+    ADD CONSTRAINT users_grade_levels_pkey PRIMARY KEY (user_id);
+
+
+--
 -- Name: users_ip_addresses users_ip_addresses_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -7167,6 +7187,30 @@ ALTER TABLE ONLY upchieve.users_certifications
 
 
 --
+-- Name: users_grade_levels users_grade_levels_grade_level_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.users_grade_levels
+    ADD CONSTRAINT users_grade_levels_grade_level_id_fkey FOREIGN KEY (grade_level_id) REFERENCES upchieve.grade_levels(id);
+
+
+--
+-- Name: users_grade_levels users_grade_levels_signup_grade_level_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.users_grade_levels
+    ADD CONSTRAINT users_grade_levels_signup_grade_level_id_fkey FOREIGN KEY (signup_grade_level_id) REFERENCES upchieve.grade_levels(id);
+
+
+--
+-- Name: users_grade_levels users_grade_levels_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.users_grade_levels
+    ADD CONSTRAINT users_grade_levels_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
+
+
+--
 -- Name: users_ip_addresses users_ip_addresses_ip_address_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -7394,7 +7438,7 @@ ALTER TABLE ONLY upchieve.volunteer_references
 -- PostgreSQL database dump complete
 --
 
-\unrestrict vYarmNil1qEzrabtYdVBcqN11wQEECgoWfkewpsW3QwEvRMpgBkhz0wi5KaVbLX
+\unrestrict ro3hLUWq9lQD1lkxEFHlLkippcoZBzIigABBxCSbd0jNLushNd3AsF7jkHDscbz
 
 
 --
@@ -7673,4 +7717,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260310141305'),
     ('20260326212800'),
     ('20260408183957'),
-    ('20260415134614');
+    ('20260415134614'),
+    ('20260423224528');

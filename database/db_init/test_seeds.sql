@@ -2,10 +2,10 @@
 -- PostgreSQL database dump
 --
 
-\restrict rO75CMbMZ6zGDl7xmqBE53miOeb35J22e7gWj3w0hMRK4cT55gfUgYObkXpZRr8
+\restrict 9EBkOWZdDhB9vIgk4CcbbssA6xUlipIqwUdwd1TQV0gMdfzRYYoECRngqKxW68v
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
--- Dumped by pg_dump version 15.17 (Homebrew)
+-- Dumped by pg_dump version 15.17 (Ubuntu 15.17-1.pgdg22.04+1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -8730,6 +8730,14 @@ COPY upchieve.users_certifications (user_id, certification_id, created_at, updat
 
 
 --
+-- Data for Name: users_grade_levels; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.users_grade_levels (user_id, signup_grade_level_id, grade_level_id, updated_at) FROM stdin;
+\.
+
+
+--
 -- Data for Name: users_ip_addresses; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
@@ -9277,5 +9285,5 @@ SELECT pg_catalog.setval('upchieve.weekdays_id_seq', 1, false);
 -- PostgreSQL database dump complete
 --
 
-\unrestrict rO75CMbMZ6zGDl7xmqBE53miOeb35J22e7gWj3w0hMRK4cT55gfUgYObkXpZRr8
+\unrestrict 9EBkOWZdDhB9vIgk4CcbbssA6xUlipIqwUdwd1TQV0gMdfzRYYoECRngqKxW68v
 
