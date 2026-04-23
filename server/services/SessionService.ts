@@ -1326,7 +1326,6 @@ function getSessionCacheKey(sessionId: Ulid) {
 async function saveSessionToCache(
   args: SessionWithSubjectAndTopic
 ): Promise<void> {
-  console.log('In saveSessionToCache', { args })
   const cacheKey = getSessionCacheKey(args.sessionId)
   const ttlSeconds = hoursInSeconds(2)
   await cache.saveWithExpiration(cacheKey, JSON.stringify(args), ttlSeconds)
