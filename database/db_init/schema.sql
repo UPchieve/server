@@ -1,4 +1,4 @@
-\restrict ro3hLUWq9lQD1lkxEFHlLkippcoZBzIigABBxCSbd0jNLushNd3AsF7jkHDscbz
+\restrict den2Bl7IVKstYiZCrsAAZlPdlbDUjSbFucFSRCPxlBEi23wtrta9hSnjaJoeo7r
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
 -- Dumped by pg_dump version 15.17 (Ubuntu 15.17-1.pgdg22.04+1)
@@ -171,6 +171,22 @@ CREATE TYPE upchieve.user_school_association_type AS ENUM (
     'student_at_school',
     'teacher_at_school'
 );
+
+
+--
+-- Name: freeze_signup_grade_level_id(); Type: FUNCTION; Schema: upchieve; Owner: -
+--
+
+CREATE FUNCTION upchieve.freeze_signup_grade_level_id() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    IF NEW.signup_grade_level_id IS DISTINCT FROM OLD.signup_grade_level_id THEN
+        RAISE EXCEPTION 'signup_grade_level_id cannot be changed after it is set';
+    END IF;
+    RETURN NEW;
+END;
+$$;
 
 
 --
@@ -5771,6 +5787,13 @@ CREATE INDEX volunteer_references_user_id_index ON upchieve.volunteer_references
 
 
 --
+-- Name: users_grade_levels trg_freeze_signup_grade_level_id; Type: TRIGGER; Schema: upchieve; Owner: -
+--
+
+CREATE TRIGGER trg_freeze_signup_grade_level_id BEFORE UPDATE OF signup_grade_level_id ON upchieve.users_grade_levels FOR EACH ROW EXECUTE FUNCTION upchieve.freeze_signup_grade_level_id();
+
+
+--
 -- Name: admin_profiles admin_profiles_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -7438,7 +7461,7 @@ ALTER TABLE ONLY upchieve.volunteer_references
 -- PostgreSQL database dump complete
 --
 
-\unrestrict ro3hLUWq9lQD1lkxEFHlLkippcoZBzIigABBxCSbd0jNLushNd3AsF7jkHDscbz
+\unrestrict den2Bl7IVKstYiZCrsAAZlPdlbDUjSbFucFSRCPxlBEi23wtrta9hSnjaJoeo7r
 
 
 --
@@ -7718,4 +7741,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260326212800'),
     ('20260408183957'),
     ('20260415134614'),
-    ('20260423224528');
+    ('20260423224528'),
+    ('20260423230129');
