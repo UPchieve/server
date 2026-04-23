@@ -432,32 +432,6 @@ export async function updateStudentInGatesStudy(
   }
 }
 
-// TODO: Remove: Only referenced in tests.
-export async function createStudentProfile(
-  studentData: CreateStudentProfilePayload,
-  tc: TransactionClient
-) {
-  try {
-    const result = await pgQueries.createStudentProfile.run(
-      {
-        userId: studentData.userId,
-        college: studentData.college,
-        schoolId: studentData.schoolId,
-        postalCode: studentData.zipCode,
-        gradeLevel: studentData.gradeLevel,
-        partnerOrg: studentData.studentPartnerOrgKey,
-        partnerSite: studentData.studentPartnerOrgSiteName,
-      },
-      tc
-    )
-    if (!result.length)
-      throw new RepoCreateError('createStudentProfile created 0 rows.')
-    return makeSomeRequired(result[0], ['createdAt', 'updatedAt', 'userId'])
-  } catch (err) {
-    throw new RepoCreateError(err)
-  }
-}
-
 /**
  * @important - When upserting the student's school, be sure to also upsert to users_schools.
  * @deprecated student_profiles.school_id - We will eventually drop this column in favor of users_schools
