@@ -91,6 +91,63 @@ describe('regexModerate', () => {
     })
     expect(!result.sanitizedMessage.includes(badMessage))
   })
+
+  test('Honors passthroughs', async () => {
+    const topicId = 1
+    mockedTextModerationPatternsService.getTextModerationPatterns.mockResolvedValue(
+      [
+        {
+          id: 1,
+          regex: /apple|banana/gi,
+          rules: {
+            allowForTopicIds: [topicId],
+          },
+        } as TextModerationPattern,
+      ]
+    )
+
+    const alwaysAppropriate = await Regex.regexModerate(
+      'This message is always appropriate',
+      topicId
+    )
+    expect(alwaysAppropriate.isClean).toEqual(true)
+    expect(alwaysAppropriate.failures).toEqual({ failures: {} })
+
+    const forbiddenDueToCustomPattern = await Regex.regexModerate(
+      'This message is forbidden bc apple and no topic ID provided'
+    )
+    expect(forbiddenDueToCustomPattern.isClean).toEqual(false)
+    expect(forbiddenDueToCustomPattern.failures).toEqual({
+      failures: { PROFANITY: ['apple'] },
+    })
+
+    const forbiddenDueToCustomPatternWrongTopic = await Regex.regexModerate(
+      'This is still flagged because a different topic ID is provided - apple',
+      2
+    )
+    expect(forbiddenDueToCustomPatternWrongTopic.isClean).toEqual(false)
+    expect(forbiddenDueToCustomPatternWrongTopic.failures).toEqual({
+      failures: { PROFANITY: ['apple'] },
+    })
+
+    const allowedDueToTopicFilter = await Regex.regexModerate(
+      'This message with apple is not flagged because of the topic passthrough apple apple apple',
+      topicId
+    )
+    expect(allowedDueToTopicFilter.isClean).toEqual(true)
+    expect(allowedDueToTopicFilter.failures).toEqual({ failures: {} })
+
+    const forbiddenDueToOtherMatch = await Regex.regexModerate(
+      'This message will get flagged for email: email@upchieve.org apple banana',
+      topicId
+    )
+    expect(forbiddenDueToOtherMatch.isClean).toEqual(false)
+    expect(forbiddenDueToOtherMatch.failures).toEqual({
+      failures: {
+        EMAIL: ['email@upchieve.org'],
+      },
+    })
+  })
 })
 
 describe('sanitize', () => {

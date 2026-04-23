@@ -1,8 +1,10 @@
 /* @name getSubjectAndTopic */
 SELECT
     subjects.name AS subject_name,
+    subjects.id AS subject_id,
     subjects.display_name AS subject_display_name,
     topics.name AS topic_name,
+    topics.id AS topic_id,
     topics.display_name AS topic_display_name,
     tool_types.name AS tool_type
 FROM
@@ -13,6 +15,21 @@ WHERE
     subjects.name = :subject!
     AND ((:topic)::text IS NULL
         OR topics.name = (:topic)::text);
+
+
+/* @name getSessionSubjectAndTopicBySessionId */
+SELECT
+    s.id AS session_id,
+    subjects.name AS subject_name,
+    subjects.id AS subject_id,
+    topics.name AS topic_name,
+    topics.id AS topic_id
+FROM
+    sessions s
+    JOIN subjects ON subjects.id = s.subject_id
+    JOIN topics ON topics.id = subjects.topic_id
+WHERE
+    s.id = :sessionId!;
 
 
 /* @name getSubjects */

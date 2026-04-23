@@ -59,7 +59,11 @@ import SocketService from './SocketService'
 import { beginRegularNotifications } from './TwilioService'
 import * as WhiteboardService from './WhiteboardService'
 import { getUserAgentInfo } from '../utils/parse-user-agent'
-import { getSubjectAndTopic } from '../models/Subjects'
+import {
+  getSessionSubjectAndTopic,
+  getSubjectAndTopic,
+  SessionWithSubjectAndTopic,
+} from '../models/Subjects'
 import {
   getAllowDmsToPartnerStudentsFeatureFlag,
   getSessionSummaryFeatureFlag,
@@ -80,6 +84,7 @@ import type {
   SessionUserInfoPublic,
 } from '../contracts/sessions'
 import type { MessageForFrontend, CurrentSession } from '../types/session'
+import { hoursInSeconds } from '../utils/time-utils'
 
 export async function reviewSession(data: unknown) {
   const { sessionId, reviewed, toReview } =
@@ -643,6 +648,13 @@ export async function startSession(
     )
 
     return newSession
+  })
+  await saveSessionToCache({
+    sessionId: newSession.id,
+    topicId: subjectAndTopic.topicId,
+    subjectId: subjectAndTopic.subjectId,
+    topicName: subjectAndTopic.topicName,
+    subjectName: subjectAndTopic.subjectName,
   })
 
   // TODO: Remove after midtown clean-up.
@@ -1304,5 +1316,46 @@ export function toCurrentSessionPublic(
     createdAt: session.createdAt,
     endedAt: session.endedAt,
     endedBy: session.endedBy,
+  }
+}
+
+function getSessionCacheKey(sessionId: Ulid) {
+  return `SESSION-INFO-${sessionId}`
+}
+
+async function saveSessionToCache(
+  args: SessionWithSubjectAndTopic
+): Promise<void> {
+  const cacheKey = getSessionCacheKey(args.sessionId)
+  const ttlSeconds = hoursInSeconds(2)
+  await cache.saveWithExpiration(cacheKey, JSON.stringify(args), ttlSeconds)
+}
+
+export async function getSessionInfo(
+  sessionId: Ulid
+): Promise<SessionWithSubjectAndTopic> {
+  const cachedSession = await getCachedSession(sessionId)
+  if (cachedSession) {
+    return cachedSession
+  }
+  const result = await getSessionSubjectAndTopic(sessionId)
+  if (result) {
+    return result
+  }
+  throw new Error(
+    `Could not find session info for session with ID ${sessionId}`
+  )
+}
+
+async function getCachedSession(
+  sessionId: Ulid
+): Promise<undefined | SessionWithSubjectAndTopic> {
+  try {
+    const cacheResults = await cache.getIfExists(getSessionCacheKey(sessionId))
+    if (cacheResults) {
+      return JSON.parse(cacheResults)
+    }
+  } catch (error) {
+    logger.error({ sessionId, error }, 'Failed to get session info from cache')
   }
 }
