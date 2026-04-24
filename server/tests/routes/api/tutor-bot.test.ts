@@ -9,6 +9,8 @@ import {
   buildTutorBotAddMessageResponsePublic,
   buildTutorBotTranscript,
   buildTutorBotTranscriptPublic,
+  buildTutorBotNewConversation,
+  buildTutorBotNewConversationPublic,
 } from '../../mocks/generate'
 import { getUuid } from '../../../models/pgUtils'
 import { TutorBotHumanSenderType } from '../../../types/tutor-bot'
@@ -36,8 +38,18 @@ function sendGet(path: string): Promise<Response> {
   return agent.get(path).set('Accept', 'application/json')
 }
 
-function sendPost(path: string, payload?: object): Promise<Response> {
+function sendPost(
+  path: string,
+  payload?: Record<string, unknown>
+): Promise<Response> {
   return agent.post(path).set('Accept', 'application/json').send(payload)
+}
+
+function sendPatch(
+  path: string,
+  payload?: Record<string, unknown>
+): Promise<Response> {
+  return agent.patch(path).set('Accept', 'application/json').send(payload)
 }
 
 describe('routeTutorBot', () => {
@@ -135,6 +147,132 @@ describe('routeTutorBot', () => {
       ).not.toHaveBeenCalled()
       expect(
         mockedTutorBotService.toTutorBotAddMessageResponsePublic
+      ).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('PATCH /api/tutor-bot/conversations/:conversationId', () => {
+    test('links a tutor bot conversation to a session id', async () => {
+      const conversationId = getUuid()
+      const sessionId = getUuid()
+      mockedTutorBotService.linkTutorBotConversationToSessionId.mockResolvedValueOnce()
+
+      const response = await sendPatch(
+        `/api/tutor-bot/conversations/${conversationId}`,
+        { sessionId }
+      )
+      expect(response.status).toBe(204)
+      expect(
+        mockedTutorBotService.linkTutorBotConversationToSessionId
+      ).toHaveBeenCalledWith(conversationId, sessionId)
+    })
+  })
+
+  describe('POST /api/tutor-bot/conversations', () => {
+    test('creates a new conversation', async () => {
+      const subjectId = 1
+      const sessionId = getUuid()
+      const newConversation = buildTutorBotNewConversation({
+        userId: mockUser.id,
+        subjectId,
+        sessionId,
+      })
+      const publicConversation =
+        buildTutorBotNewConversationPublic(newConversation)
+      mockedTutorBotService.createTutorBotConversation.mockResolvedValueOnce(
+        newConversation
+      )
+      mockedTutorBotService.toNewConversationPublic.mockReturnValueOnce(
+        publicConversation
+      )
+
+      const message = 'Can you help me get started?'
+      const response = await sendPost('/api/tutor-bot/conversations', {
+        message,
+        senderUserType: 'student',
+        subjectId,
+        sessionId,
+      })
+      expect(response.status).toBe(200)
+      expect(
+        mockedTutorBotService.createTutorBotConversation
+      ).toHaveBeenCalledWith({
+        userId: mockUser.id,
+        message,
+        senderUserType: 'student',
+        subjectId,
+        sessionId,
+      })
+      expect(
+        mockedTutorBotService.toNewConversationPublic
+      ).toHaveBeenCalledWith(newConversation)
+      expect(response.body).toEqual(publicConversation)
+    })
+
+    test('creates a new conversation without sessionId', async () => {
+      const subjectId = 1
+      const newConversation = buildTutorBotNewConversation({
+        userId: mockUser.id,
+        subjectId,
+        sessionId: undefined,
+      })
+      const publicConversation =
+        buildTutorBotNewConversationPublic(newConversation)
+      mockedTutorBotService.createTutorBotConversation.mockResolvedValueOnce(
+        newConversation
+      )
+      mockedTutorBotService.toNewConversationPublic.mockReturnValueOnce(
+        publicConversation
+      )
+      const message = 'I need help with this topic'
+      const response = await sendPost('/api/tutor-bot/conversations', {
+        message,
+        senderUserType: 'volunteer',
+        subjectId,
+      })
+
+      expect(response.status).toBe(200)
+      expect(
+        mockedTutorBotService.createTutorBotConversation
+      ).toHaveBeenCalledWith({
+        userId: mockUser.id,
+        message,
+        senderUserType: 'volunteer',
+        subjectId,
+      })
+      expect(
+        mockedTutorBotService.toNewConversationPublic
+      ).toHaveBeenCalledWith(newConversation)
+      expect(response.body).toEqual(publicConversation)
+    })
+
+    test('returns 422 for invalid senderUserType', async () => {
+      const response = await sendPost('/api/tutor-bot/conversations', {
+        message: 'Hello',
+        senderUserType: 'bot',
+        subjectId: 42,
+      })
+      expect(response.status).toBe(422)
+      expect(
+        mockedTutorBotService.createTutorBotConversation
+      ).not.toHaveBeenCalled()
+      expect(
+        mockedTutorBotService.toNewConversationPublic
+      ).not.toHaveBeenCalled()
+    })
+
+    test('returns 422 for invalid subjectId', async () => {
+      const response = await sendPost('/api/tutor-bot/conversations', {
+        message: 'Hello',
+        senderUserType: 'student',
+        subjectId: 'not-a-number',
+      })
+      expect(response.status).toBe(422)
+      expect(
+        mockedTutorBotService.createTutorBotConversation
+      ).not.toHaveBeenCalled()
+      expect(
+        mockedTutorBotService.toNewConversationPublic
       ).not.toHaveBeenCalled()
     })
   })

@@ -6,6 +6,7 @@ import {
   insertTutorBotConversation,
   insertTutorBotConversationMessage,
   getTutorBotTranscriptByConversationId,
+  updateTutorBotConversationSessionId,
 } from '../models/TutorBot'
 import { Uuid } from '../models/pgUtils'
 import * as PromptService from './PromptService'
@@ -17,6 +18,7 @@ import { BedrockToolChoice, invokeModel } from './AwsBedrockService'
 import { COLLEGE_SUBJECTS } from '../constants'
 import type {
   TutorBotAddMessageResponsePublic,
+  TutorBotNewConversationPublic,
   TutorBotGeneratedMessagePublic,
   TutorBotMessagePublic,
   TutorBotTranscriptPublic,
@@ -27,6 +29,8 @@ import type {
   TutorBotGeneratedMessage,
   TutorBotMessage,
   TutorBotAiResponse,
+  TutorBotNewConversation,
+  TutorBotHumanSenderType,
 } from '../types/tutor-bot'
 import { resize } from '../utils/image-utils'
 import {
@@ -35,6 +39,7 @@ import {
 } from './QuillDocService'
 import { getSessionById } from './SessionService'
 import { isSubjectUsingDocumentEditor } from '../utils/session-utils'
+import { getSubjectNameIdMapping } from '../models/Subjects'
 
 type EditorType = 'none' | 'quill'
 
@@ -404,6 +409,64 @@ async function getAwsBedRockResponse(
   }
 }
 
+export async function linkTutorBotConversationToSessionId(
+  conversationId: Uuid,
+  sessionId: Uuid
+) {
+  await updateTutorBotConversationSessionId({
+    conversationId,
+    sessionId,
+  })
+}
+
+export async function createTutorBotConversation(data: {
+  userId: Uuid
+  sessionId?: Uuid
+  message: string
+  senderUserType: TutorBotHumanSenderType
+  subjectId: number
+}): Promise<TutorBotNewConversation> {
+  const { userId, sessionId, subjectId } = data
+
+  return await runInTransaction(async (tc: TransactionClient) => {
+    const conversationId = await insertTutorBotConversation(
+      {
+        subjectId,
+        userId,
+        sessionId,
+      },
+      tc
+    )
+    const subjectNameIds = await getSubjectNameIdMapping()
+    const [subjectName] =
+      Object.entries(subjectNameIds).find(
+        ([_key, value]) => value === subjectId
+      ) ?? []
+
+    if (!subjectName) {
+      throw new Error(`AI tutor: No subject found for id ${subjectId}`)
+    }
+
+    const { userMessage, botResponse } = await addMessageToConversation(
+      {
+        conversationId,
+        userId,
+        senderUserType: data.senderUserType,
+        message: data.message,
+        subjectName,
+      },
+      tc
+    )
+    return {
+      conversationId,
+      userId,
+      sessionId,
+      subjectId,
+      messages: [userMessage, botResponse],
+    }
+  })
+}
+
 export function toTutorBotMessagePublic(
   data: TutorBotMessage
 ): TutorBotMessagePublic {
@@ -445,5 +508,21 @@ export function toTutorBotAddMessageResponsePublic(data: {
   return {
     userMessage: toTutorBotMessagePublic(data.userMessage),
     botResponse: toTutorBotGeneratedMessagePublic(data.botResponse),
+  }
+}
+
+export function toNewConversationPublic(
+  conversation: TutorBotNewConversation
+): TutorBotNewConversationPublic {
+  const [userMessage, botResponse] = conversation.messages
+  return {
+    conversationId: conversation.conversationId,
+    userId: conversation.userId,
+    sessionId: conversation.sessionId,
+    subjectId: conversation.subjectId,
+    messages: [
+      toTutorBotMessagePublic(userMessage),
+      toTutorBotGeneratedMessagePublic(botResponse),
+    ],
   }
 }
