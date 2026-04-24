@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import multer from 'multer'
 import * as TutorBotService from '../../services/TutorBotService'
 import { resError } from '../res-error'
 import {
@@ -37,6 +38,8 @@ const conversationValidator = asFactory<ConversationPayload>({
 })
 
 export function routeTutorBot(router: Router) {
+  const upload = multer()
+
   router.get(
     '/tutor-bot/conversations/:conversationId',
     async function (req, res) {
@@ -54,6 +57,7 @@ export function routeTutorBot(router: Router) {
   )
   router.post(
     '/tutor-bot/conversations/:conversationId/message',
+    upload.single('snapshot'),
     async function (req, res) {
       try {
         const data = messageValidator({
@@ -61,7 +65,11 @@ export function routeTutorBot(router: Router) {
           ...req.params,
           userId: req.user?.id,
         })
-        const botResponse = await TutorBotService.addMessageToConversation(data)
+        const snapshotBuffer = req.file?.buffer
+        const botResponse = await TutorBotService.addMessageToConversation({
+          ...data,
+          snapshotBuffer,
+        })
         const payload =
           TutorBotService.toTutorBotAddMessageResponsePublic(botResponse)
         return res.status(200).json(payload)
@@ -70,4 +78,33 @@ export function routeTutorBot(router: Router) {
       }
     }
   )
+
+  router.patch(
+    '/tutor-bot/conversations/:conversationId',
+    async function (req, res) {
+      try {
+        await TutorBotService.linkTutorBotConversationToSessionId(
+          req.params.conversationId,
+          req.body.sessionId
+        )
+        return res.sendStatus(204)
+      } catch (err) {
+        resError(res, err)
+      }
+    }
+  )
+
+  router.post('/tutor-bot/conversations', async (req, res) => {
+    try {
+      const data = conversationValidator({
+        ...req.body,
+        userId: req.user?.id,
+      })
+      const conversation =
+        await TutorBotService.createTutorBotConversation(data)
+      return res.json(TutorBotService.toNewConversationPublic(conversation))
+    } catch (err) {
+      resError(res, err)
+    }
+  })
 }

@@ -1583,6 +1583,36 @@ export async function sendNTHSCandidateApplicationDenied(
   }
 }
 
+export async function sendVolunteerBanStudentApology(
+  email: string,
+  firstName: string
+) {
+  await sendEmail(
+    email,
+    config.mail.senders.noreply,
+    'UPchieve',
+    config.sendgrid.volunteer.apologyForBannedStudent,
+    {
+      firstName: firstName,
+    }
+  )
+}
+
+export async function sendVolunteerThanksForReport(
+  email: string,
+  firstName: string
+) {
+  await sendEmail(
+    email,
+    config.mail.senders.noreply,
+    'UPchieve',
+    config.sendgrid.volunteer.thanksForReport,
+    {
+      firstName: firstName,
+    }
+  )
+}
+
 export async function sendNTHSChapterImpactPathOfficialStatusNotification(
   recipients: { firstName: string; email: string }[],
   chapterName: string

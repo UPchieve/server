@@ -2,10 +2,10 @@
 -- PostgreSQL database dump
 --
 
-\restrict 56zYTm25bi7KifFfVBegQ3QVtbH3GQe5w2JnUtg2ZmvSDjV35X9b66l7tP55wfN
+\restrict rO75CMbMZ6zGDl7xmqBE53miOeb35J22e7gWj3w0hMRK4cT55gfUgYObkXpZRr8
 
--- Dumped from database version 14.21 (Debian 14.21-1.pgdg13+1)
--- Dumped by pg_dump version 14.22 (Ubuntu 14.22-0ubuntu0.22.04.1)
+-- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
+-- Dumped by pg_dump version 15.17 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -8587,6 +8587,14 @@ COPY upchieve.surveys_context (survey_id, subject_id, survey_type_id, created_at
 
 
 --
+-- Data for Name: text_moderation_patterns; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.text_moderation_patterns (id, regex, flags, rules, created_at, updated_at) FROM stdin;
+\.
+
+
+--
 -- Data for Name: totp; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
@@ -9210,6 +9218,13 @@ SELECT pg_catalog.setval('upchieve.surveys_survey_questions_id_seq', 89, true);
 
 
 --
+-- Name: text_moderation_patterns_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
+--
+
+SELECT pg_catalog.setval('upchieve.text_moderation_patterns_id_seq', 1, false);
+
+
+--
 -- Name: tool_types_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
@@ -9262,5 +9277,5 @@ SELECT pg_catalog.setval('upchieve.weekdays_id_seq', 1, false);
 -- PostgreSQL database dump complete
 --
 
-\unrestrict 56zYTm25bi7KifFfVBegQ3QVtbH3GQe5w2JnUtg2ZmvSDjV35X9b66l7tP55wfN
+\unrestrict rO75CMbMZ6zGDl7xmqBE53miOeb35J22e7gWj3w0hMRK4cT55gfUgYObkXpZRr8
 
