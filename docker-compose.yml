@@ -5,7 +5,7 @@ services:
         hostname: postgres
         ports:
             - "5432:5432"
-        image: postgres:14.21
+        image: postgres:15.17
         environment:
             - POSTGRES_DB=upchieve
             - POSTGRES_USER=admin
@@ -61,7 +61,7 @@ services:
       hostname: postgres
       ports:
         - "5500:5432"
-      image: postgres:14.21
+      image: postgres:15.17
       environment:
         - POSTGRES_DB=upchieve
         - POSTGRES_USER=admin
@@ -90,7 +90,7 @@ services:
       image: redis:6.2.1
     database-ci:
       profiles: ["db-test"]
-      image: postgres:14.21
+      image: postgres:15.17
       container_name: database-ci
       hostname: postgres
       ports:
@@ -103,3 +103,9 @@ services:
         - ./database/db_init/schema.sql:/docker-entrypoint-initdb.d/a.sql
         - ./database/db_init/test_seeds.sql:/docker-entrypoint-initdb.d/d.sql
         - ./database/db_init/seed_migrations.sql:/docker-entrypoint-initdb.d/e.sql
+      healthcheck:
+          test: ["CMD", "pg_isready", "-h", "postgres"]
+          interval: 1m30s
+          timeout: 30s
+          retries: 5
+          start_period: 30s

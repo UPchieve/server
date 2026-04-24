@@ -6,6 +6,7 @@ import { readCsvFromBuffer } from '../../utils/file-utils'
 import * as CleverRosterService from '../../services/CleverRosterService'
 import * as SchoolService from '../../services/SchoolService'
 import { getPartnerSchools } from '../../services/SchoolService'
+import { insertTextModerationPattern } from '../../services/TextModerationPatternService'
 import {
   RosterStudentPayload,
   rosterPartnerStudents,
@@ -149,6 +150,19 @@ export function routeAdmin(apiRouter: Router): void {
         throw new InputError('No chapter IDs provided')
       }
       await NTHSGroupsService.makeChaptersSchoolOfficial(groupIds)
+      res.status(201).send()
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
+  router.post('/moderation/text-patterns', async function (req, res) {
+    try {
+      await insertTextModerationPattern(
+        req.body.regex,
+        req.body.flags,
+        req.body.rules
+      )
       res.status(201).send()
     } catch (err) {
       resError(res, err)

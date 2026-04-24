@@ -1,5 +1,5 @@
 import { getClient, TransactionClient } from '../../db'
-import { RepoCreateError, RepoReadError } from '../Errors'
+import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import * as pgQueries from './pg.queries'
 import { makeSomeOptional, makeRequired, getDbUlid } from '../pgUtils'
 import {
@@ -192,5 +192,19 @@ export async function insertTutorBotConversationMessage(
     throw new RepoCreateError('Failed to insert tutor bot conversation message')
   } catch (err) {
     throw new RepoCreateError(err)
+  }
+}
+
+export async function updateTutorBotConversationSessionId(
+  data: {
+    conversationId: Uuid
+    sessionId: Uuid
+  },
+  client: TransactionClient = getClient()
+) {
+  try {
+    await pgQueries.updateTutorBotConversationSessionId.run(data, client)
+  } catch (err) {
+    throw new RepoUpdateError(err)
   }
 }

@@ -429,7 +429,7 @@ export async function updateSchoolAffiliationStatus(
 
 type AdvisorArgs = {
   nthsGroupId: Ulid
-  schoolId: Ulid
+  schoolId?: Ulid
   firstName: string
   lastName: string
   email: string
@@ -448,7 +448,7 @@ export async function addNTHSAdvisor(
 ): Promise<Advisor> {
   try {
     const results = await pgQueries.insertNthsAdvisor.run(args, tc)
-    return makeSomeOptional(results[0], ['phone', 'phoneExtension'])
+    return makeSomeOptional(results[0], ['phone', 'phoneExtension', 'schoolId'])
   } catch (err) {
     throw new RepoCreateError(err)
   }
@@ -457,7 +457,7 @@ export async function addNTHSAdvisor(
 export async function addSchoolToSchoolAffiliation(
   args: {
     nthsGroupId: Ulid
-    schoolId: Ulid
+    schoolId?: Ulid
   },
   tc: TransactionClient = getClient()
 ): Promise<void> {

@@ -57,7 +57,6 @@ import { getProgressReportsFeatureFlag } from '../FeatureFlagService'
 import { PROGRESS_REPORT_JSON_INSTRUCTIONS } from '../../constants'
 import { Student, getStudentProfileByUserId } from '../../models/Student'
 import { SubjectAndTopic, getSubjectAndTopic } from '../../models/Subjects'
-import { convertBase64ToImage } from '../../utils/image-utils'
 import {
   describeWhiteboardSnapshot,
   getTextFromImageAnalysis,
@@ -66,11 +65,9 @@ import { getWhiteboardSnapshot } from '../EditorSnapshotService'
 import { isSubjectUsingDocumentEditor } from '../../utils/session-utils'
 import { minutesInMs } from '../../utils/time-utils'
 import {
-  extractImagesFromDoc,
-  parseDocEditorImageRoute,
-  parseQuillDoc,
+  getDocEditorImages,
+  removeImageInsertsFromQuillDoc,
 } from '../QuillDocService'
-import { getDocEditorSessionImageUrl } from '../SessionService'
 import {
   runWithModelObservation,
   runWithTrace,
@@ -126,7 +123,7 @@ async function formatDocumentEditorPrompt(
     }
 
     try {
-      const docImages = await getDocumentEditorImages(session.quillDoc)
+      const docImages = await getDocEditorImages(session.quillDoc)
       if (docImages.length > 0) {
         imageText = await getProgressReportImageText(docImages)
       }
@@ -181,58 +178,6 @@ async function formatWhiteboardPrompt(
     Editor:
     ${editorText}
   `.trim()
-}
-
-export function removeImageInsertsFromQuillDoc(quillDoc: string): string {
-  const document: Delta = parseQuillDoc(quillDoc)
-  if (!document.ops) return ''
-
-  const filteredOps = document.ops.filter(
-    (op) => op.insert && typeof op.insert === 'string'
-  )
-  document.ops = filteredOps
-  return JSON.stringify(document)
-}
-
-async function getDocEditorImageBuffer(imageUrl: string): Promise<Buffer> {
-  const parsed = parseDocEditorImageRoute(imageUrl)
-  if (!parsed) throw new Error('Invalid document editor image URL')
-
-  const { sessionId, fileName } = parsed
-  const sasUrl = getDocEditorSessionImageUrl(sessionId, fileName)
-  const res = await fetch(sasUrl)
-  if (!res.ok)
-    throw new Error(`Failed to fetch document editor image: ${imageUrl}`)
-
-  const arrayBuffer = await res.arrayBuffer()
-  return Buffer.from(arrayBuffer)
-}
-
-async function imageSourceToBuffer(src: string): Promise<Buffer> {
-  if (src.startsWith('data:image')) return convertBase64ToImage(src)
-  return getDocEditorImageBuffer(src)
-}
-
-export async function getDocumentEditorImages(
-  quillDoc: string
-): Promise<Buffer[]> {
-  const imageBuffers: Buffer[] = []
-  const allImages = extractImagesFromDoc(quillDoc)
-  for (const image of allImages) {
-    try {
-      const buffer = await imageSourceToBuffer(image)
-      imageBuffers.push(buffer)
-    } catch (error) {
-      logger.warn(
-        {
-          err: error,
-          imageType: image.startsWith('data:image') ? 'base64' : 'url',
-        },
-        'Failed to create buffer for document editor image. Skipping'
-      )
-    }
-  }
-  return imageBuffers
 }
 
 async function getProgressReportImageText(
