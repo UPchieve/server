@@ -102,7 +102,7 @@ export async function sendTextMessage(
     ) {
       await UserProfileService.optOutSmsConsentForPhoneNumber(phoneNumber)
     }
-    logger.error(err as Error)
+    logger.error(err, 'An expected error happened while sending a text message')
   }
 }
 
