@@ -12,9 +12,11 @@ export interface IGetSubjectAndTopicParams {
 /** 'GetSubjectAndTopic' return type */
 export interface IGetSubjectAndTopicResult {
   subjectDisplayName: string;
+  subjectId: number;
   subjectName: string;
   toolType: string;
   topicDisplayName: string;
+  topicId: number;
   topicName: string;
 }
 
@@ -24,15 +26,17 @@ export interface IGetSubjectAndTopicQuery {
   result: IGetSubjectAndTopicResult;
 }
 
-const getSubjectAndTopicIR: any = {"usedParamSet":{"subject":true,"topic":true},"params":[{"name":"subject","required":true,"transform":{"type":"scalar"},"locs":[{"a":358,"b":366}]},{"name":"topic","required":false,"transform":{"type":"scalar"},"locs":[{"a":378,"b":383},{"a":426,"b":431}]}],"statement":"SELECT\n    subjects.name AS subject_name,\n    subjects.display_name AS subject_display_name,\n    topics.name AS topic_name,\n    topics.display_name AS topic_display_name,\n    tool_types.name AS tool_type\nFROM\n    subjects\n    JOIN topics ON subjects.topic_id = topics.id\n    JOIN tool_types ON subjects.tool_type_id = tool_types.id\nWHERE\n    subjects.name = :subject!\n    AND ((:topic)::text IS NULL\n        OR topics.name = (:topic)::text)"};
+const getSubjectAndTopicIR: any = {"usedParamSet":{"subject":true,"topic":true},"params":[{"name":"subject","required":true,"transform":{"type":"scalar"},"locs":[{"a":416,"b":424}]},{"name":"topic","required":false,"transform":{"type":"scalar"},"locs":[{"a":436,"b":441},{"a":484,"b":489}]}],"statement":"SELECT\n    subjects.name AS subject_name,\n    subjects.id AS subject_id,\n    subjects.display_name AS subject_display_name,\n    topics.name AS topic_name,\n    topics.id AS topic_id,\n    topics.display_name AS topic_display_name,\n    tool_types.name AS tool_type\nFROM\n    subjects\n    JOIN topics ON subjects.topic_id = topics.id\n    JOIN tool_types ON subjects.tool_type_id = tool_types.id\nWHERE\n    subjects.name = :subject!\n    AND ((:topic)::text IS NULL\n        OR topics.name = (:topic)::text)"};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
  *     subjects.name AS subject_name,
+ *     subjects.id AS subject_id,
  *     subjects.display_name AS subject_display_name,
  *     topics.name AS topic_name,
+ *     topics.id AS topic_id,
  *     topics.display_name AS topic_display_name,
  *     tool_types.name AS tool_type
  * FROM
@@ -46,6 +50,48 @@ const getSubjectAndTopicIR: any = {"usedParamSet":{"subject":true,"topic":true},
  * ```
  */
 export const getSubjectAndTopic = new PreparedQuery<IGetSubjectAndTopicParams,IGetSubjectAndTopicResult>(getSubjectAndTopicIR);
+
+
+/** 'GetSessionSubjectAndTopicBySessionId' parameters type */
+export interface IGetSessionSubjectAndTopicBySessionIdParams {
+  sessionId: string;
+}
+
+/** 'GetSessionSubjectAndTopicBySessionId' return type */
+export interface IGetSessionSubjectAndTopicBySessionIdResult {
+  sessionId: string;
+  subjectId: number;
+  subjectName: string;
+  topicId: number;
+  topicName: string;
+}
+
+/** 'GetSessionSubjectAndTopicBySessionId' query type */
+export interface IGetSessionSubjectAndTopicBySessionIdQuery {
+  params: IGetSessionSubjectAndTopicBySessionIdParams;
+  result: IGetSessionSubjectAndTopicBySessionIdResult;
+}
+
+const getSessionSubjectAndTopicBySessionIdIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":288,"b":298}]}],"statement":"SELECT\n    s.id AS session_id,\n    subjects.name AS subject_name,\n    subjects.id AS subject_id,\n    topics.name AS topic_name,\n    topics.id AS topic_id\nFROM\n    sessions s\n    JOIN subjects ON subjects.id = s.subject_id\n    JOIN topics ON topics.id = subjects.topic_id\nWHERE\n    s.id = :sessionId!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     s.id AS session_id,
+ *     subjects.name AS subject_name,
+ *     subjects.id AS subject_id,
+ *     topics.name AS topic_name,
+ *     topics.id AS topic_id
+ * FROM
+ *     sessions s
+ *     JOIN subjects ON subjects.id = s.subject_id
+ *     JOIN topics ON topics.id = subjects.topic_id
+ * WHERE
+ *     s.id = :sessionId!
+ * ```
+ */
+export const getSessionSubjectAndTopicBySessionId = new PreparedQuery<IGetSessionSubjectAndTopicBySessionIdParams,IGetSessionSubjectAndTopicBySessionIdResult>(getSessionSubjectAndTopicBySessionIdIR);
 
 
 /** 'GetSubjects' parameters type */

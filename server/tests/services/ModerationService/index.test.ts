@@ -100,6 +100,13 @@ describe('ModerationService', () => {
 
     mockUserRepo.banUserById.mockResolvedValue()
     mockSessionService.markSessionForReview.mockResolvedValue()
+    mockSessionService.getSessionInfo.mockResolvedValue({
+      sessionId,
+      topicId: 1,
+      topicName: 'math',
+      subjectId: 1,
+      subjectName: 'prealgebra',
+    })
     moderationSettings = {
       [LiveMediaModerationCategories.PROFANITY]: {
         name: LiveMediaModerationCategories.PROFANITY,
