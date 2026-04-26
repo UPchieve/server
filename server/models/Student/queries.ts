@@ -434,7 +434,9 @@ export async function updateStudentInGatesStudy(
 
 /**
  * @important - When upserting the student's school, be sure to also upsert to users_schools.
- * @deprecated student_profiles.school_id - We will eventually drop this column in favor of users_schools
+ * @important - When upserting the student's grade level, be sure to also upsert to users_grade_levels.
+ * @deprecated student_profiles.school_id - we will eventually drop this column in favour of users_schools
+ * @deprecated student_profiles.grade_level_id - we will eventually drop this column in favour of users_grade_levels
  */
 export async function upsertStudentProfile(
   studentData: CreateStudentProfilePayload,
@@ -453,8 +455,9 @@ export async function upsertStudentProfile(
       },
       tc
     )
-    if (!result.length)
+    if (!result.length) {
       throw new RepoUpsertError('upsertStudentProfile returned 0 rows.')
+    }
     return makeSomeRequired(result[0], ['createdAt', 'updatedAt', 'userId'])
   } catch (err) {
     throw new RepoUpsertError(err)
