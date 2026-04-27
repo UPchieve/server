@@ -1601,34 +1601,6 @@ export async function updateSsoUserBackgroundInfo(
   }
 }
 
-export async function updateVolunteerBackgroundInfo(
-  userId: Ulid,
-  backgroundInfo: BackgroundInfo,
-  tc: TransactionClient = getClient()
-): Promise<void> {
-  try {
-    const result = await pgQueries.updateVolunteerBackgroundInfo.run(
-      {
-        userId,
-        ...backgroundInfo,
-        occupation: backgroundInfo.occupation
-          ? backgroundInfo.occupation.map((v) => ({
-              occupation: v,
-              userId,
-              createdAt: new Date(),
-              updatedAt: new Date(),
-            }))
-          : [],
-      },
-      tc
-    )
-    if (!result.length && makeRequired(result[0]).ok)
-      throw new RepoUpdateError('update query did not return ok')
-  } catch (err) {
-    throw new RepoUpdateError(err)
-  }
-}
-
 export async function getNextVolunteerToNotify(options: {
   subject: string
   lastNotified: Date
