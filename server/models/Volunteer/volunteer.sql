@@ -731,7 +731,7 @@ RETURNING
 UPDATE
     volunteer_profiles
 SET
-    approved = TRUE,
+    approved = :approved!,
     updated_at = NOW()
 WHERE
     volunteer_profiles.user_id = :userId!
@@ -956,6 +956,37 @@ WHERE
     AND volunteer_references.sent_at < :end!;
 
 
+/* @name deleteVolunteerOccupations */
+DELETE FROM volunteer_occupations
+WHERE user_id = :userId!;
+
+
+/* @name insertVolunteerOccupations */
+INSERT INTO volunteer_occupations (user_id, occupation)
+SELECT
+    :userId!,
+    UNNEST(:occupations!::text[]);
+
+
+/* @name updateVolunteerProfile */
+UPDATE
+    volunteer_profiles
+SET
+    experience = COALESCE(:experience, experience),
+    company = COALESCE(:company, company),
+    college = COALESCE(:college, college),
+    linkedin_url = COALESCE(:linkedInUrl, linkedin_url),
+    country = COALESCE(:country, country),
+    state = COALESCE(:state, state),
+    city = COALESCE(:city, city),
+    languages = COALESCE(:languages, languages),
+    updated_at = NOW()
+WHERE
+    user_id = :userId!
+RETURNING
+    user_id AS id;
+
+
 /*
  @name updateVolunteerBackgroundInfo
  @param occupation -> ((userId, occupation, createdAt, updatedAt)...)
@@ -1009,6 +1040,19 @@ SELECT
     user_id AS ok
 FROM
     upd_profile;
+
+
+/* @name updateSsoUserBackgroundInfo */
+UPDATE
+    users
+SET
+    phone = COALESCE(:phoneNumber, phone),
+    signup_source_id = COALESCE(:signupSourceId, signup_source_id),
+    other_signup_source = COALESCE(:otherSignupSource, other_signup_source)
+WHERE
+    id = :userId!
+RETURNING
+    id;
 
 
 /* @name getQuizzesPassedForDateRange */

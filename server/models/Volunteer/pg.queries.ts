@@ -1645,6 +1645,7 @@ export const updateVolunteerReferenceStatus = new PreparedQuery<IUpdateVolunteer
 
 /** 'UpdateVolunteerApproved' parameters type */
 export interface IUpdateVolunteerApprovedParams {
+  approved: boolean;
   userId: string;
 }
 
@@ -1659,7 +1660,7 @@ export interface IUpdateVolunteerApprovedQuery {
   result: IUpdateVolunteerApprovedResult;
 }
 
-const updateVolunteerApprovedIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":117,"b":124}]}],"statement":"UPDATE\n    volunteer_profiles\nSET\n    approved = TRUE,\n    updated_at = NOW()\nWHERE\n    volunteer_profiles.user_id = :userId!\nRETURNING\n    volunteer_profiles.user_id AS ok"};
+const updateVolunteerApprovedIR: any = {"usedParamSet":{"approved":true,"userId":true},"params":[{"name":"approved","required":true,"transform":{"type":"scalar"},"locs":[{"a":49,"b":58}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":123,"b":130}]}],"statement":"UPDATE\n    volunteer_profiles\nSET\n    approved = :approved!,\n    updated_at = NOW()\nWHERE\n    volunteer_profiles.user_id = :userId!\nRETURNING\n    volunteer_profiles.user_id AS ok"};
 
 /**
  * Query generated from SQL:
@@ -1667,7 +1668,7 @@ const updateVolunteerApprovedIR: any = {"usedParamSet":{"userId":true},"params":
  * UPDATE
  *     volunteer_profiles
  * SET
- *     approved = TRUE,
+ *     approved = :approved!,
  *     updated_at = NOW()
  * WHERE
  *     volunteer_profiles.user_id = :userId!
@@ -2137,6 +2138,111 @@ const getReferencesToFollowupIR: any = {"usedParamSet":{"start":true,"end":true}
 export const getReferencesToFollowup = new PreparedQuery<IGetReferencesToFollowupParams,IGetReferencesToFollowupResult>(getReferencesToFollowupIR);
 
 
+/** 'DeleteVolunteerOccupations' parameters type */
+export interface IDeleteVolunteerOccupationsParams {
+  userId: string;
+}
+
+/** 'DeleteVolunteerOccupations' return type */
+export type IDeleteVolunteerOccupationsResult = void;
+
+/** 'DeleteVolunteerOccupations' query type */
+export interface IDeleteVolunteerOccupationsQuery {
+  params: IDeleteVolunteerOccupationsParams;
+  result: IDeleteVolunteerOccupationsResult;
+}
+
+const deleteVolunteerOccupationsIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":50,"b":57}]}],"statement":"DELETE FROM volunteer_occupations\nWHERE user_id = :userId!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * DELETE FROM volunteer_occupations
+ * WHERE user_id = :userId!
+ * ```
+ */
+export const deleteVolunteerOccupations = new PreparedQuery<IDeleteVolunteerOccupationsParams,IDeleteVolunteerOccupationsResult>(deleteVolunteerOccupationsIR);
+
+
+/** 'InsertVolunteerOccupations' parameters type */
+export interface IInsertVolunteerOccupationsParams {
+  occupations: stringArray;
+  userId: string;
+}
+
+/** 'InsertVolunteerOccupations' return type */
+export type IInsertVolunteerOccupationsResult = void;
+
+/** 'InsertVolunteerOccupations' query type */
+export interface IInsertVolunteerOccupationsQuery {
+  params: IInsertVolunteerOccupationsParams;
+  result: IInsertVolunteerOccupationsResult;
+}
+
+const insertVolunteerOccupationsIR: any = {"usedParamSet":{"userId":true,"occupations":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":67,"b":74}]},{"name":"occupations","required":true,"transform":{"type":"scalar"},"locs":[{"a":88,"b":100}]}],"statement":"INSERT INTO volunteer_occupations (user_id, occupation)\nSELECT\n    :userId!,\n    UNNEST(:occupations!::text[])"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO volunteer_occupations (user_id, occupation)
+ * SELECT
+ *     :userId!,
+ *     UNNEST(:occupations!::text[])
+ * ```
+ */
+export const insertVolunteerOccupations = new PreparedQuery<IInsertVolunteerOccupationsParams,IInsertVolunteerOccupationsResult>(insertVolunteerOccupationsIR);
+
+
+/** 'UpdateVolunteerProfile' parameters type */
+export interface IUpdateVolunteerProfileParams {
+  city?: string | null | void;
+  college?: string | null | void;
+  company?: string | null | void;
+  country?: string | null | void;
+  experience?: Json | null | void;
+  languages?: stringArray | null | void;
+  linkedInUrl?: string | null | void;
+  state?: string | null | void;
+  userId: string;
+}
+
+/** 'UpdateVolunteerProfile' return type */
+export interface IUpdateVolunteerProfileResult {
+  id: string;
+}
+
+/** 'UpdateVolunteerProfile' query type */
+export interface IUpdateVolunteerProfileQuery {
+  params: IUpdateVolunteerProfileParams;
+  result: IUpdateVolunteerProfileResult;
+}
+
+const updateVolunteerProfileIR: any = {"usedParamSet":{"experience":true,"company":true,"college":true,"linkedInUrl":true,"country":true,"state":true,"city":true,"languages":true,"userId":true},"params":[{"name":"experience","required":false,"transform":{"type":"scalar"},"locs":[{"a":60,"b":70}]},{"name":"company","required":false,"transform":{"type":"scalar"},"locs":[{"a":109,"b":116}]},{"name":"college","required":false,"transform":{"type":"scalar"},"locs":[{"a":152,"b":159}]},{"name":"linkedInUrl","required":false,"transform":{"type":"scalar"},"locs":[{"a":200,"b":211}]},{"name":"country","required":false,"transform":{"type":"scalar"},"locs":[{"a":252,"b":259}]},{"name":"state","required":false,"transform":{"type":"scalar"},"locs":[{"a":293,"b":298}]},{"name":"city","required":false,"transform":{"type":"scalar"},"locs":[{"a":329,"b":333}]},{"name":"languages","required":false,"transform":{"type":"scalar"},"locs":[{"a":368,"b":377}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":435,"b":442}]}],"statement":"UPDATE\n    volunteer_profiles\nSET\n    experience = COALESCE(:experience, experience),\n    company = COALESCE(:company, company),\n    college = COALESCE(:college, college),\n    linkedin_url = COALESCE(:linkedInUrl, linkedin_url),\n    country = COALESCE(:country, country),\n    state = COALESCE(:state, state),\n    city = COALESCE(:city, city),\n    languages = COALESCE(:languages, languages),\n    updated_at = NOW()\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS id"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE
+ *     volunteer_profiles
+ * SET
+ *     experience = COALESCE(:experience, experience),
+ *     company = COALESCE(:company, company),
+ *     college = COALESCE(:college, college),
+ *     linkedin_url = COALESCE(:linkedInUrl, linkedin_url),
+ *     country = COALESCE(:country, country),
+ *     state = COALESCE(:state, state),
+ *     city = COALESCE(:city, city),
+ *     languages = COALESCE(:languages, languages),
+ *     updated_at = NOW()
+ * WHERE
+ *     user_id = :userId!
+ * RETURNING
+ *     user_id AS id
+ * ```
+ */
+export const updateVolunteerProfile = new PreparedQuery<IUpdateVolunteerProfileParams,IUpdateVolunteerProfileResult>(updateVolunteerProfileIR);
+
+
 /** 'UpdateVolunteerBackgroundInfo' parameters type */
 export interface IUpdateVolunteerBackgroundInfoParams {
   approved?: boolean | null | void;
@@ -2228,6 +2334,45 @@ const updateVolunteerBackgroundInfoIR: any = {"usedParamSet":{"userId":true,"occ
  * ```
  */
 export const updateVolunteerBackgroundInfo = new PreparedQuery<IUpdateVolunteerBackgroundInfoParams,IUpdateVolunteerBackgroundInfoResult>(updateVolunteerBackgroundInfoIR);
+
+
+/** 'UpdateSsoUserBackgroundInfo' parameters type */
+export interface IUpdateSsoUserBackgroundInfoParams {
+  otherSignupSource?: string | null | void;
+  phoneNumber?: string | null | void;
+  signupSourceId?: number | null | void;
+  userId: string;
+}
+
+/** 'UpdateSsoUserBackgroundInfo' return type */
+export interface IUpdateSsoUserBackgroundInfoResult {
+  id: string;
+}
+
+/** 'UpdateSsoUserBackgroundInfo' query type */
+export interface IUpdateSsoUserBackgroundInfoQuery {
+  params: IUpdateSsoUserBackgroundInfoParams;
+  result: IUpdateSsoUserBackgroundInfoResult;
+}
+
+const updateSsoUserBackgroundInfoIR: any = {"usedParamSet":{"phoneNumber":true,"signupSourceId":true,"otherSignupSource":true,"userId":true},"params":[{"name":"phoneNumber","required":false,"transform":{"type":"scalar"},"locs":[{"a":42,"b":53}]},{"name":"signupSourceId","required":false,"transform":{"type":"scalar"},"locs":[{"a":96,"b":110}]},{"name":"otherSignupSource","required":false,"transform":{"type":"scalar"},"locs":[{"a":167,"b":184}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":223,"b":230}]}],"statement":"UPDATE\n    users\nSET\n    phone = COALESCE(:phoneNumber, phone),\n    signup_source_id = COALESCE(:signupSourceId, signup_source_id),\n    other_signup_source = COALESCE(:otherSignupSource, other_signup_source)\nWHERE\n    id = :userId!\nRETURNING\n    id"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE
+ *     users
+ * SET
+ *     phone = COALESCE(:phoneNumber, phone),
+ *     signup_source_id = COALESCE(:signupSourceId, signup_source_id),
+ *     other_signup_source = COALESCE(:otherSignupSource, other_signup_source)
+ * WHERE
+ *     id = :userId!
+ * RETURNING
+ *     id
+ * ```
+ */
+export const updateSsoUserBackgroundInfo = new PreparedQuery<IUpdateSsoUserBackgroundInfoParams,IUpdateSsoUserBackgroundInfoResult>(updateSsoUserBackgroundInfoIR);
 
 
 /** 'GetQuizzesPassedForDateRange' parameters type */

@@ -15,7 +15,12 @@ import {
   makeSomeRequired,
   Uuid,
 } from '../pgUtils'
-import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
+import {
+  RepoCreateError,
+  RepoDeleteError,
+  RepoReadError,
+  RepoUpdateError,
+} from '../Errors'
 import { Availability } from '../Availability/types'
 import { getAvailabilityForVolunteer } from '../Availability'
 import {
@@ -24,6 +29,7 @@ import {
   TextableVolunteer,
   UserTrainingCourse,
   VolunteerOccupations,
+  VolunteerProfileUpdate,
   VolunteersForAnalyticsReport,
   VolunteerSubject,
 } from './types'
@@ -997,11 +1003,15 @@ export async function updateVolunteerReferenceStatus(
   }
 }
 
-export async function updateVolunteerApproved(userId: Ulid): Promise<void> {
+export async function updateVolunteerApproved(
+  userId: Ulid,
+  approved: boolean,
+  tc: TransactionClient = getClient()
+): Promise<void> {
   try {
     const result = await pgQueries.updateVolunteerApproved.run(
-      { userId },
-      getClient()
+      { userId, approved },
+      tc
     )
     if (!result.length && makeRequired(result[0]).ok)
       throw new RepoUpdateError('update query did not return ok')
@@ -1512,6 +1522,83 @@ export type BackgroundInfo = {
   signupSourceId: number | undefined
   otherSignupSource: string | undefined
   highSchoolId?: string | null
+}
+
+export async function deleteVolunteerOccupations(
+  userId: Ulid,
+  tc: TransactionClient = getClient()
+) {
+  try {
+    await pgQueries.deleteVolunteerOccupations.run({ userId }, tc)
+  } catch (err) {
+    throw new RepoDeleteError(err)
+  }
+}
+
+export async function insertVolunteerOccupations(
+  userId: Ulid,
+  occupations: string[],
+  tc: TransactionClient = getClient()
+) {
+  try {
+    await pgQueries.insertVolunteerOccupations.run({ userId, occupations }, tc)
+  } catch (err) {
+    throw new RepoCreateError(err)
+  }
+}
+
+export async function updateVolunteerProfile(
+  userId: Ulid,
+  update: VolunteerProfileUpdate,
+  tc: TransactionClient = getClient()
+): Promise<Ulid> {
+  try {
+    const updatedUserId = await pgQueries.updateVolunteerProfile.run(
+      {
+        userId,
+        ...update,
+      },
+      tc
+    )
+    if (!updatedUserId?.length || !updatedUserId[0].id) {
+      throw new Error(
+        'Did not get back user ID when updating volunteer profile'
+      )
+    }
+    return updatedUserId[0].id
+  } catch (err) {
+    throw new RepoUpdateError(err)
+  }
+}
+
+export async function updateSsoUserBackgroundInfo(
+  userId: Ulid,
+  update: {
+    phone: string | null
+    signupSourceId: number | null
+    otherSignupSource: string | null
+  },
+  tc: TransactionClient = getClient()
+): Promise<Ulid> {
+  try {
+    const updatedUserId = await pgQueries.updateSsoUserBackgroundInfo.run(
+      {
+        userId,
+        phoneNumber: update.phone,
+        signupSourceId: update.signupSourceId,
+        otherSignupSource: update.otherSignupSource,
+      },
+      tc
+    )
+    if (!updatedUserId.length || !updatedUserId[0].id) {
+      throw new Error(
+        'Did not get back user ID when updating SSO user volunteer background info'
+      )
+    }
+    return updatedUserId[0].id
+  } catch (err) {
+    throw new RepoUpdateError(err)
+  }
 }
 
 export async function updateVolunteerBackgroundInfo(
