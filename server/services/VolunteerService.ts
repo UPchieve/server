@@ -238,7 +238,7 @@ export async function submitVolunteerBackgroundInfo(
     phoneNumber?: string
     signupSourceId?: number
     otherSignupSource?: string
-    highSchoolId?: string | null
+    highSchoolId?: Ulid | null
   },
   ip?: string
 ) {
