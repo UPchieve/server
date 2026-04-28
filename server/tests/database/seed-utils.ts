@@ -39,12 +39,16 @@ export async function createTestTeacher(
   )
 }
 
-export async function createTestStudent(client: TransactionClient) {
-  const user = await createTestUser(client)
+export async function createTestStudent(
+  client: TransactionClient,
+  userOverrides?: { email?: string },
+  studentOverrides?: { gradeLevelId?: number }
+) {
+  const user = await createTestUser(client, userOverrides)
   return (
     await client.query(
-      'INSERT INTO student_profiles (user_id) VALUES ($1) RETURNING user_id',
-      [user.id]
+      'INSERT INTO student_profiles (user_id, grade_level_id) VALUES ($1, $2) RETURNING *',
+      [user.id, studentOverrides?.gradeLevelId]
     )
   ).rows[0]
 }
