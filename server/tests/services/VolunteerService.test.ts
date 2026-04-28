@@ -4,7 +4,7 @@ import * as UsersSchoolsRepo from '../../models/UsersSchools'
 import * as NTHSService from '../../services/NTHSGroupsService'
 import QueueService from '../../services/QueueService'
 import * as AnalyticsService from '../../services/AnalyticsService'
-import { createAccountAction } from '../../models/UserAction'
+import * as UserActionRepo from '../../models/UserAction'
 import { TransactionClient } from '../../db'
 import {
   ACCOUNT_USER_ACTIONS,
@@ -29,13 +29,12 @@ jest.mock('../../services/QueueService', () => ({
 jest.mock('../../services/AnalyticsService', () => ({
   captureEvent: jest.fn(),
 }))
-jest.mock('../../models/UserAction', () => ({
-  createAccountAction: jest.fn(),
-}))
+jest.mock('../../models/UserAction')
 
 const mockedNTHSService = mocked(NTHSService)
 const mockedVolunteerRepo = mocked(VolunteerRepo)
 const mockedUsersSchoolsRepo = mocked(UsersSchoolsRepo)
+const mockedUserActionsRepo = mocked(UserActionRepo)
 const mockVolunteer = {
   id: 'volunteer123',
   firstName: 'Volunteer',
@@ -185,7 +184,7 @@ describe('onboardVolunteer', () => {
       tc
     )
     expect(QueueService.add).toHaveBeenCalledTimes(1)
-    expect(createAccountAction).toHaveBeenCalledWith(
+    expect(mockedUserActionsRepo.createAccountAction).toHaveBeenCalledWith(
       {
         action: expect.any(String),
         userId: mockVolunteer.id,
@@ -211,7 +210,7 @@ describe('onboardVolunteer', () => {
 
     expect(VolunteerRepo.updateVolunteerOnboarded).not.toHaveBeenCalled()
     expect(QueueService.add).not.toHaveBeenCalled()
-    expect(createAccountAction).not.toHaveBeenCalled()
+    expect(mockedUserActionsRepo.createAccountAction).not.toHaveBeenCalled()
     expect(AnalyticsService.captureEvent).not.toHaveBeenCalled()
   })
 
@@ -232,7 +231,7 @@ describe('onboardVolunteer', () => {
 
     expect(VolunteerRepo.updateVolunteerOnboarded).not.toHaveBeenCalled()
     expect(QueueService.add).not.toHaveBeenCalled()
-    expect(createAccountAction).not.toHaveBeenCalled()
+    expect(mockedUserActionsRepo.createAccountAction).not.toHaveBeenCalled()
     expect(AnalyticsService.captureEvent).not.toHaveBeenCalled()
   })
 
@@ -256,7 +255,7 @@ describe('onboardVolunteer', () => {
       tc
     )
     expect(VolunteerRepo.updateVolunteerOnboarded).toHaveBeenCalled()
-    expect(createAccountAction).toHaveBeenCalledWith(
+    expect(mockedUserActionsRepo.createAccountAction).toHaveBeenCalledWith(
       expect.objectContaining({
         action: ACCOUNT_USER_ACTIONS.ONBOARDED,
         ipAddress: mockIp,
@@ -356,6 +355,14 @@ describe('submitBackgroundInfo', () => {
       true,
       expect.anything()
     )
+    expect(mockedUserActionsRepo.createAccountAction).toHaveBeenCalledWith(
+      {
+        userId: partnerVolunteer.id,
+        action: ACCOUNT_USER_ACTIONS.APPROVED,
+        ipAddress: undefined,
+      },
+      expect.anything()
+    )
 
     mockedVolunteerRepo.getVolunteerContactInfoById.mockResolvedValueOnce(
       nonPartnerVolunteer
@@ -365,6 +372,7 @@ describe('submitBackgroundInfo', () => {
       update
     )
     expect(mockedVolunteerRepo.updateVolunteerApproved).toHaveBeenCalledTimes(1) // Should not have been called again
+    expect(mockedUserActionsRepo.createAccountAction).toHaveBeenCalledTimes(1)
   })
 
   it('Upserts the high school if present, does not if no high school ID', async () => {

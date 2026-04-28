@@ -52,6 +52,7 @@ export type VolunteerContactInfo = {
   firstName: string
   lastName: string
   volunteerPartnerOrg?: string
+  approved?: boolean
 }
 
 export type VolunteerContactInfoWithPhoneRequired = Omit<
@@ -78,7 +79,11 @@ export async function getVolunteerContactInfoById(
       getClient()
     )
     if (!result.length) return
-    const ret = makeSomeOptional(result[0], ['volunteerPartnerOrg', 'phone'])
+    const ret = makeSomeOptional(result[0], [
+      'volunteerPartnerOrg',
+      'phone',
+      'approved',
+    ])
     ret.email = ret.email.toLowerCase()
     return ret
   } catch (err) {

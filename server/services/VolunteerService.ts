@@ -249,7 +249,7 @@ export async function submitVolunteerBackgroundInfo(
   let wasRemovedFromNTHS = false
 
   await runInTransaction(async (tc) => {
-    if (isPartnerVolunteer) {
+    if (isPartnerVolunteer && !volunteer.approved) {
       await VolunteerRepo.updateVolunteerApproved(userId, true, tc)
       await createAccountAction(
         {
