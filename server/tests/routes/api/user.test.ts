@@ -329,18 +329,30 @@ describe('routeUser', () => {
         otherSignupSource: 'Friend',
         highSchoolId: getUuid(),
       }
-      mockedVolunteerService.addBackgroundInfo.mockResolvedValueOnce({
-        wasRemovedFromNTHS,
-      })
+      mockedVolunteerService.submitVolunteerBackgroundInfo.mockResolvedValueOnce(
+        {
+          wasRemovedFromNTHS,
+        }
+      )
 
       const response = await sendPost(
         '/api/user/volunteer-approval/background-information',
         payload
       )
       expect(response.status).toBe(200)
-      expect(mockedVolunteerService.addBackgroundInfo).toHaveBeenCalledWith(
+      const payloadWithCorrectedOccupationField = {
+        // client sends occupations array as key 'occupation', but service function takes 'occupationS'
+        ...payload,
+      }
+      delete payloadWithCorrectedOccupationField.occupation
+      expect(
+        mockedVolunteerService.submitVolunteerBackgroundInfo
+      ).toHaveBeenCalledWith(
         mockUser.id,
-        payload,
+        {
+          ...payloadWithCorrectedOccupationField,
+          occupations: payload.occupation,
+        },
         expect.any(String)
       )
       expect(response.body).toEqual({ wasRemovedFromNTHS })

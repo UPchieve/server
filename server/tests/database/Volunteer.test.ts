@@ -23,7 +23,7 @@ import {
 } from '../../models/Volunteer'
 import moment from 'moment'
 import { getClient } from '../../db'
-import { insertSingleRow } from '../db-utils'
+import { camelCaseKeys, insertSingleRow } from '../db-utils'
 import {
   buildFullAvailability,
   buildNotification,
@@ -32,7 +32,8 @@ import {
 import { omit } from 'lodash'
 import { addFavoriteVolunteer } from '../../models/Student'
 import { createTestUser, createTestVolunteer } from './seed-utils'
-import { Ulid } from '../../models/pgUtils'
+import { getDbUlid, Ulid } from '../../models/pgUtils'
+import { submitVolunteerBackgroundInfo } from '../../services/VolunteerService'
 
 const client = getClient()
 const TIMEZONE = 'EST'
@@ -659,6 +660,115 @@ describe('VolunteerRepo', () => {
         isOnboarded: true,
         banType: 'shadow',
       })
+    })
+  })
+
+  describe('submitVolunteerBackgroundInfo', () => {
+    it.todo('Saves all the expected fields')
+    it('Does not overwrite fields when given null or undefined values', async () => {
+      const volunteer = await loadVolunteer()
+      const originalExperience = {
+        collegeCounseling: '0-1 years',
+        mentoring: '0-1 years',
+        tutoring: '0-1 years',
+      }
+      const company = 'test company'
+      const college = 'test college'
+      const originalLinkedInUrl = 'testlinkedinurl'
+      const originalLanguages = ['Spanish', 'German']
+      // Set profile
+      await client.query(
+        'UPDATE volunteer_profiles SET company = $1, college = $2, linkedin_url = $3, languages = $4, experience = $5 WHERE user_id = $6',
+        [
+          company,
+          college,
+          originalLinkedInUrl,
+          originalLanguages,
+          originalExperience,
+          volunteer.id,
+        ]
+      )
+      // Set occupations
+      await client.query(
+        'INSERT INTO volunteer_occupations (user_id, occupation) VALUES ($1, $2)',
+        [volunteer.id, 'High school student']
+      )
+      await client.query(
+        'INSERT INTO volunteer_occupations (user_id, occupation) VALUES ($1, $2)',
+        [volunteer.id, 'Working part-time']
+      )
+      // Set user
+      const phoneNumber = '+18608770029'
+      const signupSourceId = 1
+      const otherSignupSource = null
+      await client.query(
+        'UPDATE users SET phone = $1, signup_source_id = $2, other_signup_source = $3 where id = $4',
+        [phoneNumber, signupSourceId, otherSignupSource, volunteer.id]
+      )
+      const existingSchool = await client.query('SELECT * FROM schools LIMIT 1')
+      const update = {
+        highSchoolId: existingSchool.rows[0].id,
+        experience: {
+          collegeCounseling: '0-1 years',
+          mentoring: '1-2 years',
+          tutoring: '2-5 years',
+        },
+        languages: ['English', 'Cantonese'],
+        linkedInUrl: 'test-url',
+      }
+      await submitVolunteerBackgroundInfo(volunteer.id, update)
+      const volunteerUser = await client.query(
+        'SELECT * FROM users WHERE id = $1',
+        [volunteer.id]
+      )
+      const volunteerProfile = await client.query(
+        'SELECT * FROM volunteer_profiles WHERE user_id = $1',
+        [volunteer.id]
+      )
+      const volunteerOccupations = await client.query(
+        'SELECT * FROM volunteer_occupations WHERE user_id = $1',
+        [volunteer.id]
+      )
+      const volunteerSchool = await client.query(
+        'SELECT * FROM users_schools WHERE user_id = $1',
+        [volunteer.id]
+      )
+
+      // High school is added
+      expect(volunteerSchool.rowCount).toEqual(1)
+      expect(volunteerSchool.rows[0].school_id).toEqual(
+        existingSchool.rows[0].id
+      )
+      // LinkedIn URL, languages, and volunteer experience are updated
+      expect(volunteerProfile.rowCount).toEqual(1)
+      expect(camelCaseKeys(volunteerProfile.rows[0])).toEqual(
+        expect.objectContaining({
+          linkedinUrl: update.linkedInUrl,
+          languages: update.languages,
+          experience: update.experience,
+        })
+      )
+      // The rest are unchanged
+      expect(camelCaseKeys(volunteerProfile.rows[0])).toEqual(
+        expect.objectContaining({
+          company,
+          college,
+        })
+      )
+      expect(camelCaseKeys(volunteerUser.rows[0])).toEqual(
+        expect.objectContaining({
+          phone: phoneNumber,
+          signupSourceId,
+          otherSignupSource,
+        })
+      )
+      const finalOccupations = volunteerOccupations.rows.map(
+        (row) => row.occupation
+      )
+      expect(finalOccupations).toEqual([
+        'High school student',
+        'Working part-time',
+      ])
     })
   })
 })
