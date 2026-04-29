@@ -425,6 +425,7 @@ SELECT
     users.referred_by AS referred_by,
     users.preferred_language AS preferred_language,
     volunteer_profiles.languages AS tutoring_languages,
+    volunteer_profiles.experience,
     volunteer_profiles.onboarded AS is_onboarded,
     volunteer_profiles.approved AS is_approved,
     volunteer_partner_orgs.key AS volunteer_partner_org,
