@@ -960,12 +960,12 @@ export async function checkReferenceExistsBeforeAdding(
 }
 
 export type VolunteerForPendingStatus = VolunteerContactInfo & {
-  occupations: string[]
+  occupations?: string[]
   country?: string
-  photoIdStatus: string
+  photoIdStatus?: string
   approved: boolean
   onboarded: boolean
-  references: ReferenceContactInfo[]
+  references?: ReferenceContactInfo[]
 }
 
 export async function getVolunteerForPendingStatus(
@@ -977,9 +977,13 @@ export async function getVolunteerForPendingStatus(
       getClient()
     )
     if (!result.length) return
-    const volunteer = makeSomeOptional(result[0], [
-      'country',
-      'volunteerPartnerOrg',
+    const volunteer = makeSomeRequired(result[0], [
+      'id',
+      'firstName',
+      'lastName',
+      'email',
+      'approved',
+      'onboarded',
     ])
     volunteer.email = volunteer.email.toLowerCase()
     const references = await getReferencesByVolunteer(userId)
