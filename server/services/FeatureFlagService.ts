@@ -1,12 +1,12 @@
 import { FEATURE_FLAGS } from '../constants'
 import { client as productClient } from '../clients/product-client'
-import { Ulid, Uuid } from '../models/pgUtils'
 import { timeLimit } from '../utils/time-limit'
 import * as AnalyticsService from './AnalyticsService'
+import type { Uuid } from '../types/shared'
 
 async function isFeatureEnabled(
   featureFlagName: FEATURE_FLAGS,
-  userId: Ulid,
+  userId: Uuid,
   waitInMs?: number
 ): Promise<boolean | undefined> {
   return await timeLimit({
@@ -19,7 +19,7 @@ async function isFeatureEnabled(
 
 export async function getFeatureFlagPayload(
   featureFlagName: FEATURE_FLAGS,
-  userId: Ulid,
+  userId: Uuid,
   waitInMs?: number
 ) {
   return await timeLimit({
@@ -31,7 +31,7 @@ export async function getFeatureFlagPayload(
 }
 
 export async function getAllFlagsForId(
-  id: Ulid,
+  id: Uuid,
   personProperties: AnalyticsService.AnalyticPersonProperties,
   waitInMs?: number
 ) {
@@ -52,15 +52,15 @@ export async function getAllFlagsForId(
   })
 }
 
-export async function getUsingOurPlatformFlag(userId: Ulid) {
+export async function getUsingOurPlatformFlag(userId: Uuid) {
   return await isFeatureEnabled(FEATURE_FLAGS.USING_OUR_PLATFORM, userId)
 }
 
-export async function getAllowDmsToPartnerStudentsFeatureFlag(userId: Ulid) {
+export async function getAllowDmsToPartnerStudentsFeatureFlag(userId: Uuid) {
   return isFeatureEnabled(FEATURE_FLAGS.ALLOW_DMS_TO_PARTNER_STUDENTS, userId)
 }
 
-export async function getProgressReportsFeatureFlag(userId: Ulid) {
+export async function getProgressReportsFeatureFlag(userId: Uuid) {
   return await isFeatureEnabled(
     FEATURE_FLAGS.PROGRESS_REPORTS,
     userId,
@@ -68,7 +68,7 @@ export async function getProgressReportsFeatureFlag(userId: Ulid) {
   )
 }
 
-export async function getCollegeListWorkSheetFlag(userId: Ulid) {
+export async function getCollegeListWorkSheetFlag(userId: Uuid) {
   return await isFeatureEnabled(FEATURE_FLAGS.COLLEGE_LIST_WORKSHEET, userId)
 }
 
@@ -79,7 +79,7 @@ export type FallIncentiveFlagPayload = {
 }
 
 export async function getFallIncentiveProgramPayload(
-  userId: Ulid
+  userId: Uuid
 ): Promise<FallIncentiveFlagPayload | null> {
   const payload = await getFeatureFlagPayload(
     FEATURE_FLAGS.FALL_INCENTIVE_PROGRAM,
@@ -137,23 +137,23 @@ export async function getSendPositiveStudentFeedbackEmailFeatureFlag(
   )
 }
 
-export async function getStudentsInitiateDmsFeatureFlag(userId: Ulid) {
+export async function getStudentsInitiateDmsFeatureFlag(userId: Uuid) {
   return await isFeatureEnabled(FEATURE_FLAGS.STUDENTS_INITIATE_DMS, userId)
 }
 
-export async function getStudentCreationDisabledFeatureFlag(userId: Ulid) {
+export async function getStudentCreationDisabledFeatureFlag(userId: Uuid) {
   return await isFeatureEnabled(FEATURE_FLAGS.DISABLE_STUDENT_CREATION, userId)
 }
 
-export async function getNotifyTutorFlag(userId: Ulid) {
+export async function getNotifyTutorFlag(userId: Uuid) {
   return isFeatureEnabled(FEATURE_FLAGS.NOTIFY_TUTOR, userId)
 }
 
-export async function isZwibserveEnabled(userId: Ulid) {
+export async function isZwibserveEnabled(userId: Uuid) {
   return isFeatureEnabled(FEATURE_FLAGS.ZWIBSERVE, userId)
 }
 
-export async function getStemProgressReportEnabled(userId: Ulid) {
+export async function getStemProgressReportEnabled(userId: Uuid) {
   return await isFeatureEnabled(
     FEATURE_FLAGS.STEM_PROGRESS_REPORT,
     userId,
@@ -161,13 +161,22 @@ export async function getStemProgressReportEnabled(userId: Ulid) {
   )
 }
 
-export async function isStudentSessionSummaryEnabled(userId: Ulid) {
+export async function isStudentSessionSummaryEnabled(userId: Uuid) {
   return isFeatureEnabled(FEATURE_FLAGS.STUDENT_SESSION_SUMMARY, userId)
 }
 
-export async function isStudentFirstSessionInterviewEmailEnabled(userId: Ulid) {
+export async function isStudentFirstSessionInterviewEmailEnabled(userId: Uuid) {
   return isFeatureEnabled(
     FEATURE_FLAGS.FIRST_SESSION_EMAIL_FOR_INTERVIEW,
+    userId
+  )
+}
+
+export async function getStudentPostSessionSurveyNameVariant(
+  userId: Uuid
+): Promise<string | null> {
+  return getFeatureFlagPayload(
+    FEATURE_FLAGS.STUDENT_POST_SESSION_SURVEY_VARIANT,
     userId
   )
 }
