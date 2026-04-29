@@ -1,9 +1,10 @@
 import * as VolunteerService from '../../services/VolunteerService'
 import * as VolunteerRepo from '../../models/Volunteer'
+import * as UsersSchoolsRepo from '../../models/UsersSchools'
 import * as NTHSService from '../../services/NTHSGroupsService'
 import QueueService from '../../services/QueueService'
 import * as AnalyticsService from '../../services/AnalyticsService'
-import { createAccountAction } from '../../models/UserAction'
+import * as UserActionRepo from '../../models/UserAction'
 import { TransactionClient } from '../../db'
 import {
   ACCOUNT_USER_ACTIONS,
@@ -28,12 +29,12 @@ jest.mock('../../services/QueueService', () => ({
 jest.mock('../../services/AnalyticsService', () => ({
   captureEvent: jest.fn(),
 }))
-jest.mock('../../models/UserAction', () => ({
-  createAccountAction: jest.fn(),
-}))
+jest.mock('../../models/UserAction')
 
 const mockedNTHSService = mocked(NTHSService)
 const mockedVolunteerRepo = mocked(VolunteerRepo)
+const mockedUsersSchoolsRepo = mocked(UsersSchoolsRepo)
+const mockedUserActionsRepo = mocked(UserActionRepo)
 const mockVolunteer = {
   id: 'volunteer123',
   firstName: 'Volunteer',
@@ -183,7 +184,7 @@ describe('onboardVolunteer', () => {
       tc
     )
     expect(QueueService.add).toHaveBeenCalledTimes(1)
-    expect(createAccountAction).toHaveBeenCalledWith(
+    expect(mockedUserActionsRepo.createAccountAction).toHaveBeenCalledWith(
       {
         action: expect.any(String),
         userId: mockVolunteer.id,
@@ -209,7 +210,7 @@ describe('onboardVolunteer', () => {
 
     expect(VolunteerRepo.updateVolunteerOnboarded).not.toHaveBeenCalled()
     expect(QueueService.add).not.toHaveBeenCalled()
-    expect(createAccountAction).not.toHaveBeenCalled()
+    expect(mockedUserActionsRepo.createAccountAction).not.toHaveBeenCalled()
     expect(AnalyticsService.captureEvent).not.toHaveBeenCalled()
   })
 
@@ -230,7 +231,7 @@ describe('onboardVolunteer', () => {
 
     expect(VolunteerRepo.updateVolunteerOnboarded).not.toHaveBeenCalled()
     expect(QueueService.add).not.toHaveBeenCalled()
-    expect(createAccountAction).not.toHaveBeenCalled()
+    expect(mockedUserActionsRepo.createAccountAction).not.toHaveBeenCalled()
     expect(AnalyticsService.captureEvent).not.toHaveBeenCalled()
   })
 
@@ -254,7 +255,7 @@ describe('onboardVolunteer', () => {
       tc
     )
     expect(VolunteerRepo.updateVolunteerOnboarded).toHaveBeenCalled()
-    expect(createAccountAction).toHaveBeenCalledWith(
+    expect(mockedUserActionsRepo.createAccountAction).toHaveBeenCalledWith(
       expect.objectContaining({
         action: ACCOUNT_USER_ACTIONS.ONBOARDED,
         ipAddress: mockIp,
@@ -270,10 +271,10 @@ describe('onboardVolunteer', () => {
   })
 })
 
-describe('addBackgroundInfo', () => {
+describe('submitBackgroundInfo', () => {
   const update = {
     approved: undefined,
-    occupation: ['Unemployed', 'Caretaker'],
+    occupations: ['Unemployed', 'Caretaker'],
     languages: [],
     city: 'Boston',
     state: 'Massachusetts',
@@ -287,12 +288,13 @@ describe('addBackgroundInfo', () => {
     otherSignupSource: undefined,
     highSchoolId: null,
   }
+
   it('Deactivates NTHS member if they are not a high schooler', async () => {
     const volunteer = buildVolunteerContactInfo()
     mockedVolunteerRepo.getVolunteerContactInfoById.mockResolvedValue(volunteer)
     const nthsGroup = buildNTHSGroupWithMemberInfo()
     mockedNTHSService.getNTHSGroupsByMember.mockResolvedValue([nthsGroup])
-    await VolunteerService.addBackgroundInfo(volunteer.id, update)
+    await VolunteerService.submitVolunteerBackgroundInfo(volunteer.id, update)
     expect(
       mockedNTHSService.deactivateNonHighSchoolMember
     ).toHaveBeenCalledTimes(1)
@@ -306,9 +308,9 @@ describe('addBackgroundInfo', () => {
     mockedVolunteerRepo.getVolunteerContactInfoById.mockResolvedValue(volunteer)
     const nthsGroup = buildNTHSGroupWithMemberInfo()
     mockedNTHSService.getNTHSGroupsByMember.mockResolvedValue([nthsGroup])
-    await VolunteerService.addBackgroundInfo(volunteer.id, {
+    await VolunteerService.submitVolunteerBackgroundInfo(volunteer.id, {
       ...update,
-      occupation: ['A high school student', 'Unemployed'],
+      occupations: ['A high school student', 'Unemployed'],
     })
     expect(
       mockedNTHSService.deactivateNonHighSchoolMember
@@ -319,9 +321,98 @@ describe('addBackgroundInfo', () => {
     const volunteer = buildVolunteerContactInfo()
     mockedVolunteerRepo.getVolunteerContactInfoById.mockResolvedValue(volunteer)
     mockedNTHSService.getNTHSGroupsByMember.mockResolvedValue([])
-    await VolunteerService.addBackgroundInfo(volunteer.id, update)
+    await VolunteerService.submitVolunteerBackgroundInfo(volunteer.id, update)
     expect(
       mockedNTHSService.deactivateNonHighSchoolMember
     ).not.toHaveBeenCalled()
+  })
+
+  it('Throws an error if the volunteer cannot be found', async () => {
+    const volunteer = buildVolunteerContactInfo()
+    mockedVolunteerRepo.getVolunteerContactInfoById.mockResolvedValue(undefined)
+    await expect(() =>
+      VolunteerService.submitVolunteerBackgroundInfo(volunteer.id, update)
+    ).rejects.toThrow('Volunteer for background info not found')
+  })
+
+  it('Marks the volunteer as approved if they are a volunteer partner', async () => {
+    const partnerVolunteer = await buildVolunteerContactInfo({
+      volunteerPartnerOrg: 'some-vpo-id',
+    })
+    const nonPartnerVolunteer = await buildVolunteerContactInfo({
+      volunteerPartnerOrg: undefined,
+    })
+    mockedVolunteerRepo.getVolunteerContactInfoById.mockResolvedValueOnce(
+      partnerVolunteer
+    )
+    await VolunteerService.submitVolunteerBackgroundInfo(
+      partnerVolunteer.id,
+      update
+    )
+    expect(mockedVolunteerRepo.updateVolunteerApproved).toHaveBeenNthCalledWith(
+      1,
+      partnerVolunteer.id,
+      true,
+      expect.anything()
+    )
+    expect(mockedUserActionsRepo.createAccountAction).toHaveBeenCalledWith(
+      {
+        userId: partnerVolunteer.id,
+        action: ACCOUNT_USER_ACTIONS.APPROVED,
+        ipAddress: undefined,
+      },
+      expect.anything()
+    )
+
+    mockedVolunteerRepo.getVolunteerContactInfoById.mockResolvedValueOnce(
+      nonPartnerVolunteer
+    )
+    await VolunteerService.submitVolunteerBackgroundInfo(
+      nonPartnerVolunteer.id,
+      update
+    )
+    expect(mockedVolunteerRepo.updateVolunteerApproved).toHaveBeenCalledTimes(1) // Should not have been called again
+    expect(mockedUserActionsRepo.createAccountAction).toHaveBeenCalledTimes(1)
+  })
+
+  it('Upserts the high school if present, does not if no high school ID', async () => {
+    const volunteer = buildVolunteerContactInfo()
+    const updateNullHS = {
+      ...update,
+      highSchoolId: null,
+    }
+    const updateUndefinedHS = {
+      ...update,
+      highSchoolId: undefined,
+    }
+    const updateWithHS = {
+      ...update,
+      highSchoolId: '123',
+    }
+    mockedVolunteerRepo.getVolunteerContactInfoById.mockResolvedValue(volunteer)
+
+    await VolunteerService.submitVolunteerBackgroundInfo(
+      volunteer.id,
+      updateNullHS
+    )
+    expect(mockedUsersSchoolsRepo.upsertUsersSchool).not.toHaveBeenCalled()
+
+    await VolunteerService.submitVolunteerBackgroundInfo(
+      volunteer.id,
+      updateUndefinedHS
+    )
+    expect(mockedUsersSchoolsRepo.upsertUsersSchool).not.toHaveBeenCalled()
+
+    await VolunteerService.submitVolunteerBackgroundInfo(
+      volunteer.id,
+      updateWithHS
+    )
+    expect(mockedUsersSchoolsRepo.upsertUsersSchool).toHaveBeenCalledTimes(1)
+    expect(mockedUsersSchoolsRepo.upsertUsersSchool).toHaveBeenCalledWith(
+      volunteer.id,
+      updateWithHS.highSchoolId,
+      'student_at_school',
+      expect.anything()
+    )
   })
 })

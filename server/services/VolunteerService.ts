@@ -23,6 +23,7 @@ import {
   TextableVolunteer,
   VolunteerForOnboarding,
   VolunteerOccupations,
+  VolunteerProfileUpdate,
   VolunteerWithReadyToCoachInfo,
 } from '../models/Volunteer'
 import * as cache from '../cache'
@@ -231,87 +232,88 @@ export async function updatePendingVolunteerStatus(
     MailService.sendApprovedNotOnboardedEmail(volunteerBeforeUpdate)
 }
 
-export async function addBackgroundInfo(
-  volunteerId: Uuid,
-  update: Omit<VolunteerRepo.BackgroundInfo, 'approved'>,
+export async function submitVolunteerBackgroundInfo(
+  userId: Ulid,
+  update: VolunteerProfileUpdate & {
+    phoneNumber?: string
+    signupSourceId?: number
+    otherSignupSource?: string
+    highSchoolId?: Ulid | null
+  },
   ip?: string
-): Promise<{
-  wasRemovedFromNTHS: boolean
-}> {
-  const volunteer = await VolunteerRepo.getVolunteerContactInfoById(volunteerId)
+) {
+  const volunteer = await VolunteerRepo.getVolunteerContactInfoById(userId)
   if (!volunteer) throw new Error('Volunteer for background info not found')
-  const volunteerPartnerOrg = volunteer.volunteerPartnerOrg
-  let approved: boolean | undefined
+  const isPartnerVolunteer = !!volunteer.volunteerPartnerOrg
+  const nthsGroups = await NTHSService.getNTHSGroupsByMember(userId)
   let wasRemovedFromNTHS = false
 
   await runInTransaction(async (tc) => {
-    if (volunteerPartnerOrg) {
-      approved = true
+    if (isPartnerVolunteer && !volunteer.approved) {
+      await VolunteerRepo.updateVolunteerApproved(userId, true, tc)
       await createAccountAction(
         {
-          userId: volunteerId,
+          userId,
           action: ACCOUNT_USER_ACTIONS.APPROVED,
           ipAddress: ip,
         },
         tc
       )
-      // TODO: if not onboarded, send a partner-specific version of the "approved but not onboarded" email
     }
-
-    // remove fields with empty strings and empty arrays from the update
-    for (const field in update) {
-      const tField = field as keyof typeof update
-      if (
-        (update &&
-          update[tField] &&
-          Array.isArray(update[tField]) &&
-          (update[tField] as Array<any>).length === 0) ||
-        update[tField] === ''
+    if (update.occupations) {
+      await VolunteerRepo.deleteVolunteerOccupations(userId, tc)
+      await VolunteerRepo.insertVolunteerOccupations(
+        userId,
+        update.occupations,
+        tc
       )
-        update[tField] = undefined
     }
+    await VolunteerRepo.updateVolunteerProfile(
+      userId,
+      {
+        experience: update.experience,
+        company: update.company,
+        college: update.college,
+        linkedInUrl: update.linkedInUrl,
+        country: update.country,
+        state: update.state,
+        city: update.city,
+        languages: update.languages,
+      },
+      tc
+    )
+    await VolunteerRepo.updateSsoUserBackgroundInfo(
+      userId,
+      {
+        // @TODO: Update client to send these as nulls, not empty strings ''
+        phone: update.phoneNumber || null,
+        signupSourceId: update.signupSourceId || null,
+        otherSignupSource: update.otherSignupSource || null,
+      },
+      tc
+    )
 
-    await createAccountAction(
-      {
-        userId: volunteerId,
-        action: ACCOUNT_USER_ACTIONS.COMPLETED_BACKGROUND_INFO,
-        ipAddress: ip,
-      },
-      tc
-    )
-    await VolunteerRepo.updateVolunteerBackgroundInfo(
-      volunteerId,
-      {
-        ...update,
-        approved,
-      },
-      tc
-    )
     if (update.highSchoolId) {
       await UsersSchoolsRepo.upsertUsersSchool(
-        volunteerId,
+        userId,
         update.highSchoolId,
         'student_at_school',
         tc
       )
     }
-    const nthsGroups = await NTHSService.getNTHSGroupsByMember(volunteerId, tc)
     if (nthsGroups.length) {
       // NTHS members have to be high schoolers. If this user is part of any NTHS chapters, and they are not in high school,
       // they must be removed from the group immediately.
-      const isInHighSchool =
-        update.occupation &&
-        update.occupation.includes(VolunteerOccupations.HIGH_SCHOOL_STUDENT)
-      if (!isInHighSchool) {
+      const hasHighSchoolOccupation =
+        update.occupations?.length &&
+        update.occupations?.includes(VolunteerOccupations.HIGH_SCHOOL_STUDENT)
+      if (!hasHighSchoolOccupation) {
         wasRemovedFromNTHS = true
-        await NTHSService.deactivateNonHighSchoolMember(
-          volunteerId,
-          nthsGroups,
-          tc
-        )
+        await NTHSService.deactivateNonHighSchoolMember(userId, nthsGroups, tc)
       }
     }
   })
+
   return { wasRemovedFromNTHS }
 }
 

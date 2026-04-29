@@ -131,3 +131,19 @@ export enum VolunteerOccupations {
   HIGH_SCHOOL_STUDENT = 'A high school student',
   UNEMPLOYED = 'Unemployed',
 }
+
+export type VolunteerProfileUpdate = {
+  experience?: {
+    collegeCounseling: string
+    mentoring: string
+    tutoring: string
+  }
+  company?: string
+  college?: string
+  linkedInUrl?: string
+  country?: string
+  state?: string
+  city?: string
+  languages?: string[]
+  occupations?: string[]
+}
