@@ -36,6 +36,8 @@ import { processFeedbackMetrics } from './SessionFlagsService'
 import { TransactionClient } from '../db'
 import QueueService from './QueueService'
 import { Jobs } from '../worker/jobs'
+import { getStudentPostSessionSurveyNameVariant } from './FeatureFlagService'
+import { POST_SESSION_SURVEYS } from '../constants/surveys'
 
 export const asSurveySubmissions = asFactory<SaveUserSurveySubmission>({
   questionId: asNumber,
@@ -226,9 +228,22 @@ export async function getPostsessionSurveyDefinition(
   const studentGoal =
     (await SurveyRepo.getStudentsPresessionGoal(sessionId)) ?? ''
 
-  const postsessionSurveyDefinition =
-    (await SurveyRepo.getPostsessionSurveyDefinition(sessionId, userRole)) ?? []
+  let surveyId: number | null = null
 
+  if (userRole === 'student') {
+    const variantSurveyName = await getStudentPostSessionSurveyNameVariant(
+      session.studentId
+    )
+    const surveyName = variantSurveyName ?? POST_SESSION_SURVEYS.STUDENT_DEFAULT
+    surveyId = await SurveyRepo.getSurveyIdByName(surveyName)
+  }
+
+  const postsessionSurveyDefinition =
+    (await SurveyRepo.getPostsessionSurveyDefinition(
+      sessionId,
+      userRole,
+      surveyId
+    )) ?? []
   const survey: SurveyQuestionDefinition[] = []
   for (const question of postsessionSurveyDefinition ?? []) {
     if (
