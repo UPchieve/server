@@ -1215,7 +1215,7 @@ export interface IGetStudentsIdsForGradeLevelSgUpdateQuery {
   result: IGetStudentsIdsForGradeLevelSgUpdateResult;
 }
 
-const getStudentsIdsForGradeLevelSgUpdateIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    sp.user_id\nFROM\n    student_profiles sp\n    JOIN current_grade_levels_mview cgl ON cgl.user_id = sp.user_id\n    JOIN users u ON u.id = sp.user_id\nWHERE\n    u.deactivated IS FALSE\n    AND u.deleted IS FALSE\nORDER BY\n    sp.created_at DESC"};
+const getStudentsIdsForGradeLevelSgUpdateIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    sp.user_id\nFROM\n    student_profiles sp\n    JOIN current_grade_levels cgl ON cgl.user_id = sp.user_id\n    JOIN users u ON u.id = sp.user_id\nWHERE\n    u.deactivated IS FALSE\n    AND u.deleted IS FALSE\nORDER BY\n    sp.created_at DESC"};
 
 /**
  * Query generated from SQL:
@@ -1224,7 +1224,7 @@ const getStudentsIdsForGradeLevelSgUpdateIR: any = {"usedParamSet":{},"params":[
  *     sp.user_id
  * FROM
  *     student_profiles sp
- *     JOIN current_grade_levels_mview cgl ON cgl.user_id = sp.user_id
+ *     JOIN current_grade_levels cgl ON cgl.user_id = sp.user_id
  *     JOIN users u ON u.id = sp.user_id
  * WHERE
  *     u.deactivated IS FALSE
@@ -1364,7 +1364,7 @@ export interface IGetStudentProfilesByUserIdsQuery {
   result: IGetStudentProfilesByUserIdsResult;
 }
 
-const getStudentProfilesByUserIdsIR: any = {"usedParamSet":{"userIds":true},"params":[{"name":"userIds","required":true,"transform":{"type":"array_spread"},"locs":[{"a":508,"b":516}]}],"statement":"SELECT\n    student_profiles.user_id,\n    users.id,\n    first_name,\n    last_name,\n    email,\n    COALESCE(cgl.current_grade_name, grade_levels.name) AS grade_level,\n    users.created_at,\n    users.updated_at,\n    school_id\nFROM\n    student_profiles\n    JOIN users ON student_profiles.user_id = users.id\n    LEFT JOIN grade_levels ON student_profiles.grade_level_id = grade_levels.id\n    LEFT JOIN current_grade_levels_mview cgl ON cgl.user_id = student_profiles.user_id\nWHERE\n    student_profiles.user_id IN :userIds!"};
+const getStudentProfilesByUserIdsIR: any = {"usedParamSet":{"userIds":true},"params":[{"name":"userIds","required":true,"transform":{"type":"array_spread"},"locs":[{"a":393,"b":401}]}],"statement":"SELECT\n    student_profiles.user_id,\n    users.id,\n    first_name,\n    last_name,\n    email,\n    cgl.current_grade_name AS grade_level,\n    users.created_at,\n    users.updated_at,\n    school_id\nFROM\n    student_profiles\n    JOIN users ON student_profiles.user_id = users.id\n    LEFT JOIN current_grade_levels cgl ON cgl.user_id = student_profiles.user_id\nWHERE\n    student_profiles.user_id IN :userIds!"};
 
 /**
  * Query generated from SQL:
@@ -1375,15 +1375,14 @@ const getStudentProfilesByUserIdsIR: any = {"usedParamSet":{"userIds":true},"par
  *     first_name,
  *     last_name,
  *     email,
- *     COALESCE(cgl.current_grade_name, grade_levels.name) AS grade_level,
+ *     cgl.current_grade_name AS grade_level,
  *     users.created_at,
  *     users.updated_at,
  *     school_id
  * FROM
  *     student_profiles
  *     JOIN users ON student_profiles.user_id = users.id
- *     LEFT JOIN grade_levels ON student_profiles.grade_level_id = grade_levels.id
- *     LEFT JOIN current_grade_levels_mview cgl ON cgl.user_id = student_profiles.user_id
+ *     LEFT JOIN current_grade_levels cgl ON cgl.user_id = student_profiles.user_id
  * WHERE
  *     student_profiles.user_id IN :userIds!
  * ```

@@ -42,7 +42,6 @@ import emailVolunteerFirstSessionCongrats from './volunteer-emails/emailVoluntee
 import emailVolunteerInactive from './volunteer-emails/emailVolunteerInactive'
 import emailVolunteerInactiveBlackoutOver from './volunteer-emails/emailVolunteerInactiveBlackoutOver'
 import emailVolunteerSessionActions from './volunteer-emails/emailVolunteerSessionActions'
-import updateGradeLevel from './updateGradeLevel'
 import sendSessionRecapMessageNotification from './sendSessionRecapMessageNotification'
 import generateProgressReport from './generateProgressReport'
 import updateBasicAccessViews from '../../scripts/update-basic-access-views'
@@ -156,7 +155,6 @@ export enum Jobs {
   TitlecaseSchoolNames = 'TitlecaseSchoolNames',
   UpdateBasicAccessViews = 'UpdateBasicAccessViews',
   UpdateElapsedAvailability = 'UpdateElapsedAvailability',
-  UpdateGradeLevel = 'UpdateGradeLevel',
   UpdateSendGridGradeLevels = 'UpdateSendGridGradeLevels',
   UpdateTotalVolunteerHours = 'UpdateTotalVolunteerHours',
   UpsertPostalCodes = 'UpsertPostalCodes',
@@ -472,10 +470,6 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.UpdateElapsedAvailability,
     processor: updateElapsedAvailability,
-  },
-  {
-    name: Jobs.UpdateGradeLevel,
-    processor: updateGradeLevel,
   },
   {
     name: Jobs.UpdateSendGridGradeLevels,

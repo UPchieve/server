@@ -62,7 +62,7 @@ export default async function addScheduledJobs() {
       options: { repeat: { cron: '0 8 * * MON', tz: 'America/New_York' } }, // every Monday at 8am EST
     },
     {
-      name: Jobs.UpdateGradeLevel,
+      name: Jobs.UpdateSendGridGradeLevels,
       options: { repeat: { cron: '0 8 1 8 *', tz: 'America/New_York' } }, // On August 1st at 8am ET
     },
     {
