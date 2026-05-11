@@ -11,11 +11,9 @@ export type BackfillEndedByUserIdJobData = {
 }
 
 export default async function (job: Job<BackfillEndedByUserIdJobData>) {
-  const tc = getClient()
   const logPrefix = 'EndedByUserId Backfill: '
   const expectedUpdateCount = await countSessionsToBackfillEndedByUserId(
-    job.data.createdAfter,
-    tc
+    job.data.createdAfter
   )
   logger.info(`${logPrefix}Expecting to update ${expectedUpdateCount} rows`)
 
@@ -34,5 +32,5 @@ export default async function (job: Job<BackfillEndedByUserIdJobData>) {
     }
 
     logger.info(`${logPrefix}Finished backfill.`)
-  }, tc)
+  })
 }
