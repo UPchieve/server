@@ -185,7 +185,6 @@ export async function getSessionById(
       'quillDoc',
       'volunteerJoinedAt',
       'endedAt',
-      'endedByRole',
       'shadowbanned',
     ])
   } catch (err) {
