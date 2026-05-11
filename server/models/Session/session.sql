@@ -1358,3 +1358,41 @@ FROM
 WHERE
     ssf.session_id = :sessionId!;
 
+
+/* @name getSessionsToBackfillEndedByUserId */
+SELECT
+    s.id,
+    s.student_id,
+    s.volunteer_id,
+    s.ended_at,
+    s.ended_by_role_id,
+    s.ended_by_user_id,
+    s.updated_at
+FROM
+    sessions s
+    JOIN user_roles roles ON roles.id = s.ended_by_role_id
+WHERE
+    s.ended_by_user_id IS NULL
+    AND roles.name IN ('student', 'volunteer')
+    AND s.created_at >= :createdAfter!
+ORDER BY
+    s.created_at DESC;
+
+
+/* @name backfillEndedByUserId */
+UPDATE
+    sessions s
+SET
+    updated_at = NOW(),
+    ended_by_user_id = CASE WHEN s.ended_by_role_id = 1 THEN
+        s.student_id
+    WHEN s.ended_by_role_id = 2 THEN
+        s.volunteer_id
+    END
+WHERE
+    s.ended_by_role_id IN (1, 2)
+    AND s.ended_by_user_id IS NULL
+    AND s.created_at >= :createdAfter!
+RETURNING
+    *;
+

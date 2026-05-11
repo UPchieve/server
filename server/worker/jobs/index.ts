@@ -74,6 +74,7 @@ import spawnUpdateNthsChapterStatusForImpactPath from './spawnUpdateNTHSChapterS
 import notifyNTHSChapterAdminsOfDeactivatedUser from './notifyNTHSChapterAdminsOfDeactivatedUser'
 import executeModerationAction from './executeModerationAction'
 import deleteProxyEmailsIdenticalToEmails from './deleteProxyEmailsIdenticalToEmails'
+import backfillEndedByUserId from '../backfillEndedByUserId'
 
 export enum Jobs {
   AddScheduledJobs = 'AddScheduledJobs',
@@ -163,6 +164,7 @@ export enum Jobs {
   SpawnUpdateNTHSChapterStatusForImpactPath = 'SpawnUpdateNTHSChapterStatusForImpactPath',
   NotifyNTHSChapterAdminsOfDeactivatedUser = 'NotifyNTHSChapterAdminsOfDeactivatedUser',
   CleanUpProxyEmailsThatAreIdenticalToEmail = 'CleanUpProxyEmailsThatAreIdenticalToEmail',
+  BackfillEndedByUserId = 'BackfillEndedByUserId',
 }
 
 // register new job processors here
@@ -504,6 +506,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.CleanUpProxyEmailsThatAreIdenticalToEmail,
     processor: deleteProxyEmailsIdenticalToEmails,
+  },
+  {
+    name: Jobs.BackfillEndedByUserId,
+    processor: backfillEndedByUserId,
   },
 ]
 
