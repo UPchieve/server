@@ -301,13 +301,12 @@ export async function submitVolunteerBackgroundInfo(
         tc
       )
     }
-    if (nthsGroups.length) {
+    if (nthsGroups.length && update.occupations && update.occupations.length) {
       // NTHS members have to be high schoolers. If this user is part of any NTHS chapters, and they are not in high school,
       // they must be removed from the group immediately.
-      const hasHighSchoolOccupation =
-        update.occupations?.length &&
-        update.occupations?.includes(VolunteerOccupations.HIGH_SCHOOL_STUDENT)
-      if (!hasHighSchoolOccupation) {
+      if (
+        !update.occupations.includes(VolunteerOccupations.HIGH_SCHOOL_STUDENT)
+      ) {
         wasRemovedFromNTHS = true
         await NTHSService.deactivateNonHighSchoolMember(userId, nthsGroups, tc)
       }

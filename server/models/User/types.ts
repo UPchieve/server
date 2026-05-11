@@ -31,6 +31,8 @@ export type User = {
   testUser: boolean
   verified: boolean
   preferredLanguage: string
+  tutoringLanguages?: string[]
+  experience?: Record<string, string>
   createdAt: Date
   updatedAt: Date
   // Volunteer-only

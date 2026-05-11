@@ -2,10 +2,10 @@
 -- PostgreSQL database dump
 --
 
-\restrict rO75CMbMZ6zGDl7xmqBE53miOeb35J22e7gWj3w0hMRK4cT55gfUgYObkXpZRr8
+\restrict 4U8IyRAgmacbKnhTMLHc84x8Cpvdd0OMMqNxsfZTm9vRomD804nQg18M4MKQHqw
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
--- Dumped by pg_dump version 15.17 (Homebrew)
+-- Dumped by pg_dump version 15.17 (Ubuntu 15.17-1.pgdg22.04+1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -6345,9 +6345,9 @@ COPY upchieve.student_partner_org_sites (id, name, student_partner_org_id, creat
 --
 
 COPY upchieve.student_profiles (user_id, college, school_id, postal_code, grade_level_id, student_partner_org_user_id, student_partner_org_id, student_partner_org_site_id, created_at, updated_at) FROM stdin;
-01919662-885c-d39a-1749-5aaf18cf5d3b	\N	01919662-87fb-76b3-54f8-db306e73e181	\N	2	\N	\N	\N	2024-08-28 00:28:45.536635+00	2024-08-28 00:28:45.536635+00
+01919662-885c-d39a-1749-5aaf18cf5d3b	\N	01919662-87fb-76b3-54f8-db306e73e181	\N	1	\N	\N	\N	2024-08-28 00:28:45.536635+00	2024-08-28 00:28:45.536635+00
 01919662-885c-2fca-264b-9558f5b20fe4	\N	01919662-87fb-d63d-788d-7417e752f5d0	\N	2	\N	01919662-87dc-1b9c-e053-326c64a2edbc	\N	2024-08-28 00:28:45.537324+00	2024-08-28 00:28:45.537324+00
-01919662-885c-a174-3088-998111f7cc80	\N	\N	\N	2	\N	01919662-87dc-5824-8bf6-e5e408bf6f40	\N	2024-08-28 00:28:45.537793+00	2024-08-28 00:28:45.537793+00
+01919662-885c-a174-3088-998111f7cc80	\N	\N	\N	8	\N	01919662-87dc-5824-8bf6-e5e408bf6f40	\N	2024-08-28 00:28:45.537793+00	2024-08-28 00:28:45.537793+00
 \.
 
 
@@ -8730,6 +8730,17 @@ COPY upchieve.users_certifications (user_id, certification_id, created_at, updat
 
 
 --
+-- Data for Name: users_grade_levels; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.users_grade_levels (user_id, signup_grade_level_id, grade_level_id, updated_at) FROM stdin;
+01919662-885c-d39a-1749-5aaf18cf5d3b	1	1	2024-08-28 00:28:45.536635+00
+01919662-885c-2fca-264b-9558f5b20fe4	2	2	2024-08-28 00:28:45.537324+00
+01919662-885c-a174-3088-998111f7cc80	8	8	2024-08-28 00:28:45.537793+00
+\.
+
+
+--
 -- Data for Name: users_ip_addresses; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
@@ -9277,5 +9288,5 @@ SELECT pg_catalog.setval('upchieve.weekdays_id_seq', 1, false);
 -- PostgreSQL database dump complete
 --
 
-\unrestrict rO75CMbMZ6zGDl7xmqBE53miOeb35J22e7gWj3w0hMRK4cT55gfUgYObkXpZRr8
+\unrestrict 4U8IyRAgmacbKnhTMLHc84x8Cpvdd0OMMqNxsfZTm9vRomD804nQg18M4MKQHqw
 
