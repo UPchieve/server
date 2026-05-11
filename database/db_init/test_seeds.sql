@@ -6345,9 +6345,9 @@ COPY upchieve.student_partner_org_sites (id, name, student_partner_org_id, creat
 --
 
 COPY upchieve.student_profiles (user_id, college, school_id, postal_code, grade_level_id, student_partner_org_user_id, student_partner_org_id, student_partner_org_site_id, created_at, updated_at) FROM stdin;
-01919662-885c-d39a-1749-5aaf18cf5d3b	\N	01919662-87fb-76b3-54f8-db306e73e181	\N	2	\N	\N	\N	2024-08-28 00:28:45.536635+00	2024-08-28 00:28:45.536635+00
+01919662-885c-d39a-1749-5aaf18cf5d3b	\N	01919662-87fb-76b3-54f8-db306e73e181	\N	1	\N	\N	\N	2024-08-28 00:28:45.536635+00	2024-08-28 00:28:45.536635+00
 01919662-885c-2fca-264b-9558f5b20fe4	\N	01919662-87fb-d63d-788d-7417e752f5d0	\N	2	\N	01919662-87dc-1b9c-e053-326c64a2edbc	\N	2024-08-28 00:28:45.537324+00	2024-08-28 00:28:45.537324+00
-01919662-885c-a174-3088-998111f7cc80	\N	\N	\N	2	\N	01919662-87dc-5824-8bf6-e5e408bf6f40	\N	2024-08-28 00:28:45.537793+00	2024-08-28 00:28:45.537793+00
+01919662-885c-a174-3088-998111f7cc80	\N	\N	\N	8	\N	01919662-87dc-5824-8bf6-e5e408bf6f40	\N	2024-08-28 00:28:45.537793+00	2024-08-28 00:28:45.537793+00
 \.
 
 
@@ -8734,6 +8734,9 @@ COPY upchieve.users_certifications (user_id, certification_id, created_at, updat
 --
 
 COPY upchieve.users_grade_levels (user_id, signup_grade_level_id, grade_level_id, updated_at) FROM stdin;
+01919662-885c-d39a-1749-5aaf18cf5d3b	1	1	2024-08-28 00:28:45.536635+00
+01919662-885c-2fca-264b-9558f5b20fe4	2	2	2024-08-28 00:28:45.537324+00
+01919662-885c-a174-3088-998111f7cc80	8	8	2024-08-28 00:28:45.537793+00
 \.
 
 
