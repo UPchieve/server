@@ -101,6 +101,12 @@ jest.mock('../../../utils/auth-utils', () => ({
       req.user = mockUser
       next()
     },
+    isAdminOnly(_req: unknown, _res: unknown, next: () => void): void {
+      next()
+    },
+    isAdmin(_req: unknown, _res: unknown, next: () => void): void {
+      next()
+    },
   },
 }))
 jest.mock('../../../models/User')

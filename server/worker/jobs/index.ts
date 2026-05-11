@@ -8,6 +8,7 @@ import backfillEmailNiceToMeetYou from '../../scripts/backfill-email-nice-to-mee
 import backfillEmailVolunteerInactive from '../../scripts/backfill-email-volunteer-inactive'
 import backfillStudentPosthog from '../../scripts/backfill-student-posthog'
 import backfillStudentUsersRoles from '../../scripts/backfill-student-users-roles'
+import backfillUsersGradeLevels from '../../scripts/backfill-users-grade-levels'
 import deleteDuplicateUserSurveys from '../../scripts/delete-duplicate-user-surveys'
 import deleteSelfFavoritedVolunteers from '../../scripts/delete-self-favorited-volunteers'
 import deleteDuplicateStudentFavoriteVolunteers from '../../scripts/delete-duplicate-student-favorite-volunteers'
@@ -74,6 +75,7 @@ import spawnUpdateNthsChapterStatusForImpactPath from './spawnUpdateNTHSChapterS
 import notifyNTHSChapterAdminsOfDeactivatedUser from './notifyNTHSChapterAdminsOfDeactivatedUser'
 import executeModerationAction from './executeModerationAction'
 import deleteProxyEmailsIdenticalToEmails from './deleteProxyEmailsIdenticalToEmails'
+import backfillEndedByUserId from '../backfillEndedByUserId'
 
 export enum Jobs {
   AddScheduledJobs = 'AddScheduledJobs',
@@ -85,6 +87,7 @@ export enum Jobs {
   BackfillStudentAmbassadorRole = 'BackfillStudentAmbassadorRole',
   BackfillStudentPosthog = 'BackfillStudentPosthog',
   BackfillStudentUsersRoles = 'BackfillStudentUsersRoles',
+  BackfillUsersGradeLevels = 'BackfillUsersGradeLevels',
   ClearBullJobsByStatus = 'ClearBullJobsByStatus',
   DeidentifyUser = 'DeidentifyUser',
   DeleteDuplicateStudentFavoriteVolunteers = 'DeleteDuplicateStudentFavoriteVolunteers',
@@ -163,6 +166,7 @@ export enum Jobs {
   SpawnUpdateNTHSChapterStatusForImpactPath = 'SpawnUpdateNTHSChapterStatusForImpactPath',
   NotifyNTHSChapterAdminsOfDeactivatedUser = 'NotifyNTHSChapterAdminsOfDeactivatedUser',
   CleanUpProxyEmailsThatAreIdenticalToEmail = 'CleanUpProxyEmailsThatAreIdenticalToEmail',
+  BackfillEndedByUserId = 'BackfillEndedByUserId',
 }
 
 // register new job processors here
@@ -207,6 +211,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.BackfillStudentUsersRoles,
     processor: backfillStudentUsersRoles,
+  },
+  {
+    name: Jobs.BackfillUsersGradeLevels,
+    processor: backfillUsersGradeLevels,
   },
   {
     name: Jobs.ClearBullJobsByStatus,
@@ -504,6 +512,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.CleanUpProxyEmailsThatAreIdenticalToEmail,
     processor: deleteProxyEmailsIdenticalToEmails,
+  },
+  {
+    name: Jobs.BackfillEndedByUserId,
+    processor: backfillEndedByUserId,
   },
 ]
 

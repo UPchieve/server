@@ -19,6 +19,7 @@ import {
 } from './MailService'
 import * as UserRepo from '../models/User'
 import * as UsersSchoolsRepo from '../models/UsersSchools'
+import * as UsersGradeLevelsRepo from '../models/UsersGradeLevels'
 import * as StudentRepo from '../models/Student'
 import * as StudentPartnerOrgRepo from '../models/StudentPartnerOrg'
 import { createUPFByUserId } from '../models/UserProductFlags'
@@ -489,6 +490,13 @@ export async function upsertStudent(
         studentData.userId,
         studentData.schoolId,
         'student_at_school',
+        tc
+      )
+    }
+    if (studentData.gradeLevel) {
+      await UsersGradeLevelsRepo.upsertUserGradeLevel(
+        studentData.userId,
+        studentData.gradeLevel,
         tc
       )
     }

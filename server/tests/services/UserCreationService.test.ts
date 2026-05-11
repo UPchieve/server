@@ -1,11 +1,12 @@
 import { faker } from '@faker-js/faker'
 import { mocked } from 'jest-mock'
 import * as UserRepo from '../../models/User'
+import * as UsersSchoolsRepo from '../../models/UsersSchools'
+import * as UsersGradeLevelsRepo from '../../models/UsersGradeLevels'
 import * as StudentRepo from '../../models/Student'
 import * as TeacherRepo from '../../models/Teacher'
 import * as StudentPartnerOrgRepo from '../../models/StudentPartnerOrg'
 import * as SignUpSourceRepo from '../../models/SignUpSource'
-import * as USMRepo from '../../models/UserSessionMetrics'
 import * as UPFRepo from '../../models/UserProductFlags'
 import * as UserActionRepo from '../../models/UserAction'
 import * as FedCredRepo from '../../models/FederatedCredential'
@@ -40,6 +41,7 @@ jest.mock('../../services/MailService')
 jest.mock('../../services/TeacherService')
 jest.mock('../../utils/auth-utils')
 jest.mock('../../models/UsersSchools')
+jest.mock('../../models/UsersGradeLevels')
 
 const mockedUserRepo = mocked(UserRepo)
 const mockedStudentRepo = mocked(StudentRepo)
@@ -55,6 +57,8 @@ const mockedReferralService = mocked(ReferralService)
 const mockedMailService = mocked(MailService)
 const mockedTeacherService = mocked(TeacherService)
 const mockedAuthUtils = mocked(AuthUtils)
+const mockedUsersSchoolsRepo = mocked(UsersSchoolsRepo)
+const mockedUsersGradeLevelsRepo = mocked(UsersGradeLevelsRepo)
 
 const ROSTER_SIGNUP_SOURCE_ID = 7
 const OTHER_SIGNUP_SOURCE_ID = 6
@@ -688,6 +692,30 @@ describe('upsertStudent', () => {
 
     expect(mockedStudentRepo.upsertStudentProfile).toHaveBeenCalledWith(
       studentUpsertData,
+      expect.toBeTransactionClient()
+    )
+  })
+
+  test('upserts the school and grade level', async () => {
+    const data = {
+      gradeLevel: 'grade-level',
+      schoolId: 'school-id',
+      userId: 'student-id',
+    }
+
+    await upsertStudent(data)
+
+    expect(mockedUsersSchoolsRepo.upsertUsersSchool).toHaveBeenLastCalledWith(
+      data.userId,
+      data.schoolId,
+      'student_at_school',
+      expect.toBeTransactionClient()
+    )
+    expect(
+      mockedUsersGradeLevelsRepo.upsertUserGradeLevel
+    ).toHaveBeenCalledWith(
+      data.userId,
+      data.gradeLevel,
       expect.toBeTransactionClient()
     )
   })

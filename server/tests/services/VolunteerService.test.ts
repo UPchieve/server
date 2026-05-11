@@ -327,6 +327,25 @@ describe('submitBackgroundInfo', () => {
     ).not.toHaveBeenCalled()
   })
 
+  it('Does not attempt to deactivate NTHS member if occupations are not a part of the update', async () => {
+    const volunteer = buildVolunteerContactInfo()
+    mockedVolunteerRepo.getVolunteerContactInfoById.mockResolvedValue(volunteer)
+    const nthsGroup = buildNTHSGroupWithMemberInfo()
+    mockedNTHSService.getNTHSGroupsByMember.mockResolvedValue([nthsGroup])
+    const actual = await VolunteerService.submitVolunteerBackgroundInfo(
+      volunteer.id,
+      {
+        experience: {
+          tutoring: '0-1 years',
+        },
+      }
+    )
+    expect(
+      mockedNTHSService.deactivateNonHighSchoolMember
+    ).not.toHaveBeenCalled()
+    expect(actual.wasRemovedFromNTHS).toEqual(false)
+  })
+
   it('Throws an error if the volunteer cannot be found', async () => {
     const volunteer = buildVolunteerContactInfo()
     mockedVolunteerRepo.getVolunteerContactInfoById.mockResolvedValue(undefined)
