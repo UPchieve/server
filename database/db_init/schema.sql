@@ -1,4 +1,4 @@
-\restrict drsisnYfUg6Oj8RSCwjjJBJ6UdgIhd8CnSiv30zEbfpPxzD39SQl1KLFAFFifRX
+\restrict E7zoiec9aRBpBiRAwdNb3qvCbCLSgFhEW9HaekyeQMee9w1cxTx5yhBTn25zFyC
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
 -- Dumped by pg_dump version 15.17 (Ubuntu 15.17-1.pgdg22.04+1)
@@ -2392,7 +2392,6 @@ CREATE TABLE upchieve.student_profiles (
     college text,
     school_id uuid,
     postal_code text,
-    grade_level_id integer,
     student_partner_org_user_id text,
     student_partner_org_id uuid,
     student_partner_org_site_id uuid,
@@ -6850,14 +6849,6 @@ ALTER TABLE ONLY upchieve.student_partner_orgs_volunteer_partner_orgs_instances
 
 
 --
--- Name: student_profiles student_profiles_grade_level_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.student_profiles
-    ADD CONSTRAINT student_profiles_grade_level_id_fkey FOREIGN KEY (grade_level_id) REFERENCES upchieve.grade_levels(id);
-
-
---
 -- Name: student_profiles student_profiles_postal_code_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -7421,7 +7412,7 @@ ALTER TABLE ONLY upchieve.volunteer_references
 -- PostgreSQL database dump complete
 --
 
-\unrestrict drsisnYfUg6Oj8RSCwjjJBJ6UdgIhd8CnSiv30zEbfpPxzD39SQl1KLFAFFifRX
+\unrestrict E7zoiec9aRBpBiRAwdNb3qvCbCLSgFhEW9HaekyeQMee9w1cxTx5yhBTn25zFyC
 
 
 --
@@ -7707,4 +7698,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260515002920'),
     ('20260515214142'),
     ('20260521184444'),
-    ('20260602022152');
+    ('20260602022152'),
+    ('20260602031018');
