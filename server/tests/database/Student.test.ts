@@ -69,7 +69,6 @@ describe('upsertStudentProfile', () => {
     const COLLEGE_MENTORS_SPO_SITE_ID = '01919662-87f5-aa97-e107-b2e537409c85'
     const updatedStudent = {
       ...student,
-      gradeLevel: '10th',
       zipCode: '00000',
       schoolId: '01919662-87fb-76b3-54f8-db306e73e181',
       studentPartnerOrgKey: 'college-mentors',
@@ -95,18 +94,16 @@ describe('upsertStudentProfile', () => {
   test('updates only the values that are new, except partner site', async () => {
     const user = await createUser()
 
-    const GRADE_LEVEL_8TH_ID = 1
     const COLLEGE_MENTORS_SPO_ID = '01919662-87dc-1b9c-e053-326c64a2edbc'
     const COLLEGE_MENTORS_SPO_SITE_ID = '01919662-87f5-ff78-938f-0a96942eb02f'
     const UNAPPROVED_SCHOOL_ID = '01919662-87fb-9261-542c-58cbced78fc3'
     await client.query(
-      'INSERT INTO student_profiles (user_id, postal_code, student_partner_org_id, student_partner_org_site_id, grade_level_id, school_id, college, created_at, updated_at) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9)',
+      'INSERT INTO student_profiles (user_id, postal_code, student_partner_org_id, student_partner_org_site_id, school_id, college, created_at, updated_at) VALUES($1, $2, $3, $4, $5, $6, $7, $8)',
       [
         user.id,
         '00000',
         COLLEGE_MENTORS_SPO_ID,
         COLLEGE_MENTORS_SPO_SITE_ID,
-        GRADE_LEVEL_8TH_ID,
         UNAPPROVED_SCHOOL_ID,
         'some college',
         new Date(),
@@ -131,7 +128,6 @@ describe('upsertStudentProfile', () => {
     )
     expect(afterNoUpdate.rows.length).toBe(1)
     expect(afterNoUpdate.rows[0].postal_code).toBe('00000')
-    expect(afterNoUpdate.rows[0].grade_level_id).toBe(GRADE_LEVEL_8TH_ID)
     expect(afterNoUpdate.rows[0].school_id).toBe(UNAPPROVED_SCHOOL_ID)
     expect(afterNoUpdate.rows[0].student_partner_org_id).toBe(
       COLLEGE_MENTORS_SPO_ID

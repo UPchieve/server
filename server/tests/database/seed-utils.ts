@@ -55,12 +55,21 @@ export async function createTestStudent(
   studentOverrides?: { gradeLevelId?: number }
 ) {
   const user = await createTestUser(client, userOverrides)
-  return (
+  const student = (
     await client.query(
-      'INSERT INTO student_profiles (user_id, grade_level_id) VALUES ($1, $2) RETURNING *',
-      [user.id, studentOverrides?.gradeLevelId]
+      'INSERT INTO student_profiles (user_id) VALUES ($1) RETURNING *',
+      [user.id]
     )
   ).rows[0]
+
+  if (studentOverrides?.gradeLevelId) {
+    await client.query(
+      'INSERT INTO users_grade_levels (user_id, signup_grade_level_id, grade_level_id) VALUES($1, $2, $2)',
+      [user.id, studentOverrides?.gradeLevelId]
+    )
+  }
+
+  return student
 }
 
 export async function createTestVolunteer(
