@@ -8,7 +8,6 @@ import backfillEmailNiceToMeetYou from '../../scripts/backfill-email-nice-to-mee
 import backfillEmailVolunteerInactive from '../../scripts/backfill-email-volunteer-inactive'
 import backfillStudentPosthog from '../../scripts/backfill-student-posthog'
 import backfillStudentUsersRoles from '../../scripts/backfill-student-users-roles'
-import backfillUsersGradeLevels from '../../scripts/backfill-users-grade-levels'
 import deleteDuplicateUserSurveys from '../../scripts/delete-duplicate-user-surveys'
 import deleteSelfFavoritedVolunteers from '../../scripts/delete-self-favorited-volunteers'
 import deleteDuplicateStudentFavoriteVolunteers from '../../scripts/delete-duplicate-student-favorite-volunteers'
@@ -85,7 +84,6 @@ export enum Jobs {
   BackfillStudentAmbassadorRole = 'BackfillStudentAmbassadorRole',
   BackfillStudentPosthog = 'BackfillStudentPosthog',
   BackfillStudentUsersRoles = 'BackfillStudentUsersRoles',
-  BackfillUsersGradeLevels = 'BackfillUsersGradeLevels',
   ClearBullJobsByStatus = 'ClearBullJobsByStatus',
   DeidentifyUser = 'DeidentifyUser',
   DeleteDuplicateStudentFavoriteVolunteers = 'DeleteDuplicateStudentFavoriteVolunteers',
@@ -207,10 +205,6 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.BackfillStudentUsersRoles,
     processor: backfillStudentUsersRoles,
-  },
-  {
-    name: Jobs.BackfillUsersGradeLevels,
-    processor: backfillUsersGradeLevels,
   },
   {
     name: Jobs.ClearBullJobsByStatus,
