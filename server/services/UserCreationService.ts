@@ -179,65 +179,58 @@ export async function rosterPartnerStudents(
         reason: deactivationPlan.reason,
       })
     } else {
-      let upsertedUser: Awaited<ReturnType<typeof upsertUser>> | null = null
       try {
-        upsertedUser = await runInTransaction(async (tc: TransactionClient) => {
-          checkNames(student.firstName, student.lastName)
-          await checkEmail(student.email)
-          if (student.proxyEmail) await checkEmail(student.proxyEmail)
-          if (student.password) {
-            student.password = await hashPassword(student.password)
+        const upsertedUser = await runInTransaction(
+          async (tc: TransactionClient) => {
+            checkNames(student.firstName, student.lastName)
+            await checkEmail(student.email)
+            if (student.proxyEmail) await checkEmail(student.proxyEmail)
+            if (student.password) {
+              student.password = await hashPassword(student.password)
+            }
+
+            const passwordResetToken =
+              // we aren't going to deactivate them
+              deactivationPlan === null &&
+              !student.password &&
+              shouldSendPasswordResetEmail
+                ? createResetToken()
+                : undefined
+            const userData = {
+              email: student.email,
+              emailVerified: true,
+              firstName: student.firstName,
+              lastName: student.lastName,
+              password: student.password,
+              passwordResetToken,
+              proxyEmail: student.proxyEmail,
+              signupSourceId: signUpSource?.id,
+              verified: true,
+            }
+            const user = await upsertUser(
+              userData,
+              undefined,
+              USER_ROLES.STUDENT,
+              tc
+            )
+
+            const studentData = {
+              userId: user.id,
+              gradeLevel: parseInt(student.gradeLevel).toFixed(0) + 'th',
+              schoolId,
+            }
+            await upsertStudent(studentData, tc)
+
+            if (user.isCreated) {
+              newUsers.push({ passwordResetToken, ...user })
+            } else {
+              updatedUsers.push(user)
+            }
+
+            return user
           }
+        )
 
-          const passwordResetToken =
-            // we aren't going to deactivate them
-            deactivationPlan === null &&
-            !student.password &&
-            shouldSendPasswordResetEmail
-              ? createResetToken()
-              : undefined
-          const userData = {
-            email: student.email,
-            emailVerified: true,
-            firstName: student.firstName,
-            lastName: student.lastName,
-            password: student.password,
-            passwordResetToken,
-            proxyEmail: student.proxyEmail,
-            signupSourceId: signUpSource?.id,
-            verified: true,
-          }
-          const user = await upsertUser(
-            userData,
-            undefined,
-            USER_ROLES.STUDENT,
-            tc
-          )
-
-          const studentData = {
-            userId: user.id,
-            gradeLevel: parseInt(student.gradeLevel).toFixed(0) + 'th',
-            schoolId,
-          }
-          await upsertStudent(studentData, tc)
-
-          if (user.isCreated) {
-            newUsers.push({ passwordResetToken, ...user })
-          } else {
-            updatedUsers.push(user)
-          }
-
-          return user
-        })
-      } catch (err) {
-        failedUsers.push({
-          email: student.email,
-          firstName: student.firstName,
-          reason: err instanceof InputError ? err.message : undefined,
-        })
-      }
-
-      if (upsertedUser) {
         if (deactivationPlan?.kind === 'postUpsertFailure') {
           failedUsers.push({
             email: student.email,
@@ -261,10 +254,16 @@ export async function rosterPartnerStudents(
             failedUsers.push({
               email: student.email,
               firstName: student.firstName,
-              reason: `Cannot deactivate ${student.email}: no active student partner org instance for this user at school ${schoolId}.`,
+              reason: `Cannot deactivate ${student.email}: user is not a member of the student partner org for school ${schoolId}.`,
             })
           }
         }
+      } catch (err) {
+        failedUsers.push({
+          email: student.email,
+          firstName: student.firstName,
+          reason: err instanceof Error ? err.message : undefined,
+        })
       }
     }
   }

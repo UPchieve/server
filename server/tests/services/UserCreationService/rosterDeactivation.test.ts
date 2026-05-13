@@ -94,7 +94,7 @@ describe('rosterPartnerStudents deactivation rows', () => {
     ).not.toHaveBeenCalled()
   })
 
-  test('fails the row when the user has no active USPOI for the school', async () => {
+  test('fails the row when the user is not a member of the SPO', async () => {
     const rosterStudent = buildRosterStudent({ deactivatedOn: '2026-04-01' })
     setupExistingRosterStudent(rosterStudent, {
       userId: USER_ID,
@@ -114,7 +114,7 @@ describe('rosterPartnerStudents deactivation rows', () => {
         email: rosterStudent.email,
         firstName: rosterStudent.firstName,
         reason: expect.stringContaining(
-          'no active student partner org instance'
+          'not a member of the student partner org'
         ),
       },
     ])
