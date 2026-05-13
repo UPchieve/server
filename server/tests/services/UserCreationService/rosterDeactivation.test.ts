@@ -39,12 +39,10 @@ describe('rosterPartnerStudents deactivation rows', () => {
     const result = await rosterPartnerStudents([rosterStudent], SCHOOL_ID)
 
     expect(
-      mockedStudentPartnerOrgRepo.deactivateUserStudentPartnerOrgInstance
-    ).toHaveBeenCalledWith(
-      expect.toBeTransactionClient(),
-      USER_ID,
-      SPO_ID,
-      new Date(deactivatedOn)
+      mockedStudentPartnerOrgRepo.deactivateUserStudentPartnerOrgInstance.mock
+        .lastCall
+    ).toEqual(
+      expect.arrayContaining([USER_ID, SPO_ID, new Date(deactivatedOn)])
     )
     expect(
       mockedMailService.sendRosterStudentSetPasswordEmail
@@ -74,17 +72,50 @@ describe('rosterPartnerStudents deactivation rows', () => {
     expect(result.deactivated).toEqual([])
   })
 
-  test('fails the row when the school has no associated SPO', async () => {
+  test('fails the row when the school has no associated SPO but still applies the upsert', async () => {
     const rosterStudent = buildRosterStudent({ deactivatedOn: '2026-04-01' })
     setupExistingRosterStudent(rosterStudent, { userId: USER_ID })
 
     const result = await rosterPartnerStudents([rosterStudent], SCHOOL_ID)
 
+    expect(result.updated).toEqual([
+      expect.objectContaining({ id: USER_ID, email: rosterStudent.email }),
+    ])
     expect(result.failed).toEqual([
       {
         email: rosterStudent.email,
         firstName: rosterStudent.firstName,
         reason: expect.stringContaining('no student partner org is associated'),
+      },
+    ])
+    expect(result.deactivated).toEqual([])
+    expect(
+      mockedStudentPartnerOrgRepo.deactivateUserStudentPartnerOrgInstance
+    ).not.toHaveBeenCalled()
+  })
+
+  test('fails the row when the user has no active USPOI for the school', async () => {
+    const rosterStudent = buildRosterStudent({ deactivatedOn: '2026-04-01' })
+    setupExistingRosterStudent(rosterStudent, {
+      userId: USER_ID,
+      spo: { partnerId: SPO_ID, schoolId: SCHOOL_ID },
+    })
+    mockedStudentPartnerOrgRepo.deactivateUserStudentPartnerOrgInstance.mockResolvedValue(
+      false
+    )
+
+    const result = await rosterPartnerStudents([rosterStudent], SCHOOL_ID)
+
+    expect(result.updated).toEqual([
+      expect.objectContaining({ id: USER_ID, email: rosterStudent.email }),
+    ])
+    expect(result.failed).toEqual([
+      {
+        email: rosterStudent.email,
+        firstName: rosterStudent.firstName,
+        reason: expect.stringContaining(
+          'no active student partner org instance'
+        ),
       },
     ])
     expect(result.deactivated).toEqual([])

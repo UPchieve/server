@@ -178,9 +178,9 @@ export async function deactivateUserStudentPartnerOrgInstance(
   userId: Ulid,
   studentPartnerOrgId: string,
   deactivatedOn?: Date
-) {
+): Promise<boolean> {
   try {
-    await pgQueries.deactivateUserStudentPartnerOrgInstance.run(
+    const result = await pgQueries.deactivateUserStudentPartnerOrgInstance.run(
       {
         userId,
         spoId: studentPartnerOrgId,
@@ -188,6 +188,7 @@ export async function deactivateUserStudentPartnerOrgInstance(
       },
       tc
     )
+    return result.length > 0
   } catch (err) {
     throw new RepoUpdateError(
       `Failed to deactivate instance of user ${userId} with student partner org ${studentPartnerOrgId}: ${err}`

@@ -74,5 +74,8 @@ export function setupExistingRosterStudent(
       ReturnType<typeof StudentPartnerOrgRepo.getStudentPartnerOrgBySchoolId>
     >
   )
+  mockedStudentPartnerOrgRepo.deactivateUserStudentPartnerOrgInstance.mockResolvedValue(
+    true
+  )
   return { userId }
 }

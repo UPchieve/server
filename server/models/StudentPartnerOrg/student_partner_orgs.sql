@@ -245,7 +245,9 @@ SET
     updated_at = NOW()
 WHERE
     user_id = :userId!
-    AND student_partner_org_id = :spoId!;
+    AND student_partner_org_id = :spoId!
+RETURNING
+    user_id;
 
 
 /* @name migratePartnerSchoolsToPartnerOrgs */

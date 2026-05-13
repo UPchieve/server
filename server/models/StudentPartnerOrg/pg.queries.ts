@@ -550,7 +550,9 @@ export interface IDeactivateUserStudentPartnerOrgInstanceParams {
 }
 
 /** 'DeactivateUserStudentPartnerOrgInstance' return type */
-export type IDeactivateUserStudentPartnerOrgInstanceResult = void;
+export interface IDeactivateUserStudentPartnerOrgInstanceResult {
+  userId: string | null;
+}
 
 /** 'DeactivateUserStudentPartnerOrgInstance' query type */
 export interface IDeactivateUserStudentPartnerOrgInstanceQuery {
@@ -558,7 +560,7 @@ export interface IDeactivateUserStudentPartnerOrgInstanceQuery {
   result: IDeactivateUserStudentPartnerOrgInstanceResult;
 }
 
-const deactivateUserStudentPartnerOrgInstanceIR: any = {"usedParamSet":{"deactivatedOn":true,"userId":true,"spoId":true},"params":[{"name":"deactivatedOn","required":false,"transform":{"type":"scalar"},"locs":[{"a":82,"b":95}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":149,"b":156}]},{"name":"spoId","required":true,"transform":{"type":"scalar"},"locs":[{"a":191,"b":197}]}],"statement":"UPDATE\n    users_student_partner_orgs_instances\nSET\n    deactivated_on = COALESCE(:deactivatedOn, NOW()),\n    updated_at = NOW()\nWHERE\n    user_id = :userId!\n    AND student_partner_org_id = :spoId!"};
+const deactivateUserStudentPartnerOrgInstanceIR: any = {"usedParamSet":{"deactivatedOn":true,"userId":true,"spoId":true},"params":[{"name":"deactivatedOn","required":false,"transform":{"type":"scalar"},"locs":[{"a":82,"b":95}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":149,"b":156}]},{"name":"spoId","required":true,"transform":{"type":"scalar"},"locs":[{"a":191,"b":197}]}],"statement":"UPDATE\n    users_student_partner_orgs_instances\nSET\n    deactivated_on = COALESCE(:deactivatedOn, NOW()),\n    updated_at = NOW()\nWHERE\n    user_id = :userId!\n    AND student_partner_org_id = :spoId!\nRETURNING\n    user_id"};
 
 /**
  * Query generated from SQL:
@@ -571,6 +573,8 @@ const deactivateUserStudentPartnerOrgInstanceIR: any = {"usedParamSet":{"deactiv
  * WHERE
  *     user_id = :userId!
  *     AND student_partner_org_id = :spoId!
+ * RETURNING
+ *     user_id
  * ```
  */
 export const deactivateUserStudentPartnerOrgInstance = new PreparedQuery<IDeactivateUserStudentPartnerOrgInstanceParams,IDeactivateUserStudentPartnerOrgInstanceResult>(deactivateUserStudentPartnerOrgInstanceIR);
