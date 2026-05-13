@@ -1,7 +1,7 @@
-\restrict ug0xycSd2jvM84KTquxRUc9ndyiUkvUSMryxOcmANQOcU7CSlIevNOw0YlNOmdg
+\restrict J06Hbv49tYiQMvnbzYagF52rykmEwxmFdhtPAlmYHjCjXeBIcV9RooxjPwgDPk3
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
--- Dumped by pg_dump version 15.17 (Homebrew)
+-- Dumped by pg_dump version 15.17 (Ubuntu 15.17-1.pgdg22.04+1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -3128,7 +3128,6 @@ CREATE TABLE upchieve.users (
     deactivated boolean DEFAULT false NOT NULL,
     last_activity_at timestamp with time zone,
     referral_code text NOT NULL,
-    referred_by uuid,
     test_user boolean DEFAULT false NOT NULL,
     banned boolean DEFAULT false NOT NULL,
     ban_reason_id integer,
@@ -7472,7 +7471,7 @@ ALTER TABLE ONLY upchieve.volunteer_references
 -- PostgreSQL database dump complete
 --
 
-\unrestrict ug0xycSd2jvM84KTquxRUc9ndyiUkvUSMryxOcmANQOcU7CSlIevNOw0YlNOmdg
+\unrestrict J06Hbv49tYiQMvnbzYagF52rykmEwxmFdhtPAlmYHjCjXeBIcV9RooxjPwgDPk3
 
 
 --
@@ -7755,4 +7754,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260423224528'),
     ('20260423230129'),
     ('20260428230130'),
-    ('20260515002920');
+    ('20260515002920'),
+    ('20260515214142');
