@@ -115,10 +115,6 @@ describe('getLegacyUser', () => {
   const partnerSchoolWithNoInstancesSpoId = getDbUlid() as string
 
   beforeAll(async () => {
-    await client.query(
-      'REFRESH MATERIALIZED VIEW upchieve.current_grade_levels_mview'
-    )
-
     // Insert schools
     const insertSchoolSql =
       'INSERT INTO upchieve.schools (id, name, partner, city_id) VALUES ($1, $2, $3, $4)'

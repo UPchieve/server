@@ -6,6 +6,7 @@ import backfillAvailabilityHistories from '../../scripts/backfill-availability-h
 import backfillElapsedAvailability from '../../scripts/backfill-elapsed-availability'
 import backfillEmailNiceToMeetYou from '../../scripts/backfill-email-nice-to-meet-you'
 import backfillEmailVolunteerInactive from '../../scripts/backfill-email-volunteer-inactive'
+import backfillReferralsTable from '../../scripts/backfill-referrals-table'
 import backfillStudentPosthog from '../../scripts/backfill-student-posthog'
 import backfillStudentUsersRoles from '../../scripts/backfill-student-users-roles'
 import backfillUsersGradeLevels from '../../scripts/backfill-users-grade-levels'
@@ -42,7 +43,6 @@ import emailVolunteerFirstSessionCongrats from './volunteer-emails/emailVoluntee
 import emailVolunteerInactive from './volunteer-emails/emailVolunteerInactive'
 import emailVolunteerInactiveBlackoutOver from './volunteer-emails/emailVolunteerInactiveBlackoutOver'
 import emailVolunteerSessionActions from './volunteer-emails/emailVolunteerSessionActions'
-import updateGradeLevel from './updateGradeLevel'
 import sendSessionRecapMessageNotification from './sendSessionRecapMessageNotification'
 import generateProgressReport from './generateProgressReport'
 import updateBasicAccessViews from '../../scripts/update-basic-access-views'
@@ -83,6 +83,7 @@ export enum Jobs {
   BackfillElapsedAvailability = 'BackfillElapsedAvailability',
   BackfillEmailNiceToMeetYou = 'BackfillEmailNiceToMeetYou',
   BackfillEmailVolunteersInactive = 'BackfillEmailVolunteersInactive',
+  BackfillReferralsTable = 'BackfillReferralsTable',
   BackfillSessionEndedTasks = 'BackfillSessionEndedTasks',
   BackfillStudentAmbassadorRole = 'BackfillStudentAmbassadorRole',
   BackfillStudentPosthog = 'BackfillStudentPosthog',
@@ -156,7 +157,6 @@ export enum Jobs {
   TitlecaseSchoolNames = 'TitlecaseSchoolNames',
   UpdateBasicAccessViews = 'UpdateBasicAccessViews',
   UpdateElapsedAvailability = 'UpdateElapsedAvailability',
-  UpdateGradeLevel = 'UpdateGradeLevel',
   UpdateSendGridGradeLevels = 'UpdateSendGridGradeLevels',
   UpdateTotalVolunteerHours = 'UpdateTotalVolunteerHours',
   UpsertPostalCodes = 'UpsertPostalCodes',
@@ -195,6 +195,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.BackfillEmailVolunteersInactive,
     processor: backfillEmailVolunteerInactive,
+  },
+  {
+    name: Jobs.BackfillReferralsTable,
+    processor: backfillReferralsTable,
   },
   {
     name: Jobs.BackfillSessionEndedTasks,
@@ -472,10 +476,6 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.UpdateElapsedAvailability,
     processor: updateElapsedAvailability,
-  },
-  {
-    name: Jobs.UpdateGradeLevel,
-    processor: updateGradeLevel,
   },
   {
     name: Jobs.UpdateSendGridGradeLevels,
