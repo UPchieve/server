@@ -92,7 +92,7 @@ export interface IGetUnfilledSessionsQuery {
   result: IGetUnfilledSessionsResult;
 }
 
-const getUnfilledSessionsIR: any = {"usedParamSet":{"start":true},"params":[{"name":"start","required":true,"transform":{"type":"scalar"},"locs":[{"a":1192,"b":1198}]}],"statement":"SELECT\n    sessions.id,\n    subjects.name AS sub_topic,\n    topics.name AS TYPE,\n    sessions.volunteer_id AS volunteer,\n    sessions.created_at,\n    users.first_name AS student_first_name,\n    users.test_user AS student_test_user,\n    users.ban_type AS student_ban_type,\n    session_count.total = 1 AS is_first_time_student,\n    subjects.display_name AS subject_display_name,\n    coalesce(current_grade_levels_mview.current_grade_name, grade_levels.name) AS current_grade_name\nFROM\n    sessions\n    JOIN users ON sessions.student_id = users.id\n    JOIN student_profiles ON student_profiles.user_id = sessions.student_id\n    LEFT JOIN grade_levels ON grade_levels.id = student_profiles.grade_level_id\n    LEFT JOIN current_grade_levels_mview ON current_grade_levels_mview.user_id = sessions.student_id\n    LEFT JOIN subjects ON sessions.subject_id = subjects.id\n    LEFT JOIN topics ON subjects.topic_id = topics.id\n    JOIN LATERAL (\n        SELECT\n            COUNT(*) AS total\n        FROM\n            sessions\n        WHERE\n            student_id = users.id) AS session_count ON TRUE\nWHERE\n    sessions.volunteer_id IS NULL\n    AND sessions.ended_at IS NULL\n    AND sessions.created_at > :start!\n    AND users.ban_type IS DISTINCT FROM 'complete'\nORDER BY\n    sessions.created_at"};
+const getUnfilledSessionsIR: any = {"usedParamSet":{"start":true},"params":[{"name":"start","required":true,"transform":{"type":"scalar"},"locs":[{"a":1035,"b":1041}]}],"statement":"SELECT\n    sessions.id,\n    subjects.name AS sub_topic,\n    topics.name AS TYPE,\n    sessions.volunteer_id AS volunteer,\n    sessions.created_at,\n    users.first_name AS student_first_name,\n    users.test_user AS student_test_user,\n    users.ban_type AS student_ban_type,\n    session_count.total = 1 AS is_first_time_student,\n    subjects.display_name AS subject_display_name,\n    cgl.current_grade_name AS current_grade_name\nFROM\n    sessions\n    JOIN users ON sessions.student_id = users.id\n    JOIN student_profiles ON student_profiles.user_id = sessions.student_id\n    LEFT JOIN current_grade_levels cgl ON cgl.user_id = sessions.student_id\n    LEFT JOIN subjects ON sessions.subject_id = subjects.id\n    LEFT JOIN topics ON subjects.topic_id = topics.id\n    JOIN LATERAL (\n        SELECT\n            COUNT(*) AS total\n        FROM\n            sessions\n        WHERE\n            student_id = users.id) AS session_count ON TRUE\nWHERE\n    sessions.volunteer_id IS NULL\n    AND sessions.ended_at IS NULL\n    AND sessions.created_at > :start!\n    AND users.ban_type IS DISTINCT FROM 'complete'\nORDER BY\n    sessions.created_at"};
 
 /**
  * Query generated from SQL:
@@ -108,13 +108,12 @@ const getUnfilledSessionsIR: any = {"usedParamSet":{"start":true},"params":[{"na
  *     users.ban_type AS student_ban_type,
  *     session_count.total = 1 AS is_first_time_student,
  *     subjects.display_name AS subject_display_name,
- *     coalesce(current_grade_levels_mview.current_grade_name, grade_levels.name) AS current_grade_name
+ *     cgl.current_grade_name AS current_grade_name
  * FROM
  *     sessions
  *     JOIN users ON sessions.student_id = users.id
  *     JOIN student_profiles ON student_profiles.user_id = sessions.student_id
- *     LEFT JOIN grade_levels ON grade_levels.id = student_profiles.grade_level_id
- *     LEFT JOIN current_grade_levels_mview ON current_grade_levels_mview.user_id = sessions.student_id
+ *     LEFT JOIN current_grade_levels cgl ON cgl.user_id = sessions.student_id
  *     LEFT JOIN subjects ON sessions.subject_id = subjects.id
  *     LEFT JOIN topics ON subjects.topic_id = topics.id
  *     JOIN LATERAL (
@@ -1352,7 +1351,7 @@ export interface IGetSessionUsersQuery {
   result: IGetSessionUsersResult;
 }
 
-const getSessionUsersIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":758,"b":768}]}],"statement":"SELECT\n    users.created_at,\n    users.id,\n    users.first_name AS firstname,\n    users.first_name,\n    past_sessions.total AS past_sessions,\n    cgl.current_grade_name AS grade_level\nFROM\n    users\n    LEFT JOIN sessions ON sessions.student_id = users.id\n        OR sessions.volunteer_id = users.id\n    LEFT JOIN LATERAL (\n        SELECT\n            array_agg(sessions.id ORDER BY sessions.created_at) AS total\n        FROM\n            sessions\n        WHERE\n            sessions.student_id = users.id\n            OR sessions.volunteer_id = users.id) AS past_sessions ON TRUE\n    LEFT JOIN student_profiles ON student_profiles.user_id = users.id\n    LEFT JOIN current_grade_levels_mview cgl ON cgl.user_id = student_profiles.user_id\nWHERE\n    sessions.id = :sessionId!\nGROUP BY\n    users.id,\n    past_sessions.total,\n    cgl.current_grade_name"};
+const getSessionUsersIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":752,"b":762}]}],"statement":"SELECT\n    users.created_at,\n    users.id,\n    users.first_name AS firstname,\n    users.first_name,\n    past_sessions.total AS past_sessions,\n    cgl.current_grade_name AS grade_level\nFROM\n    users\n    LEFT JOIN sessions ON sessions.student_id = users.id\n        OR sessions.volunteer_id = users.id\n    LEFT JOIN LATERAL (\n        SELECT\n            array_agg(sessions.id ORDER BY sessions.created_at) AS total\n        FROM\n            sessions\n        WHERE\n            sessions.student_id = users.id\n            OR sessions.volunteer_id = users.id) AS past_sessions ON TRUE\n    LEFT JOIN student_profiles ON student_profiles.user_id = users.id\n    LEFT JOIN current_grade_levels cgl ON cgl.user_id = student_profiles.user_id\nWHERE\n    sessions.id = :sessionId!\nGROUP BY\n    users.id,\n    past_sessions.total,\n    cgl.current_grade_name"};
 
 /**
  * Query generated from SQL:
@@ -1377,7 +1376,7 @@ const getSessionUsersIR: any = {"usedParamSet":{"sessionId":true},"params":[{"na
  *             sessions.student_id = users.id
  *             OR sessions.volunteer_id = users.id) AS past_sessions ON TRUE
  *     LEFT JOIN student_profiles ON student_profiles.user_id = users.id
- *     LEFT JOIN current_grade_levels_mview cgl ON cgl.user_id = student_profiles.user_id
+ *     LEFT JOIN current_grade_levels cgl ON cgl.user_id = student_profiles.user_id
  * WHERE
  *     sessions.id = :sessionId!
  * GROUP BY

@@ -37,13 +37,12 @@ SELECT
     users.ban_type AS student_ban_type,
     session_count.total = 1 AS is_first_time_student,
     subjects.display_name AS subject_display_name,
-    coalesce(current_grade_levels_mview.current_grade_name, grade_levels.name) AS current_grade_name
+    cgl.current_grade_name AS current_grade_name
 FROM
     sessions
     JOIN users ON sessions.student_id = users.id
     JOIN student_profiles ON student_profiles.user_id = sessions.student_id
-    LEFT JOIN grade_levels ON grade_levels.id = student_profiles.grade_level_id
-    LEFT JOIN current_grade_levels_mview ON current_grade_levels_mview.user_id = sessions.student_id
+    LEFT JOIN current_grade_levels cgl ON cgl.user_id = sessions.student_id
     LEFT JOIN subjects ON sessions.subject_id = subjects.id
     LEFT JOIN topics ON subjects.topic_id = topics.id
     JOIN LATERAL (
@@ -642,7 +641,7 @@ FROM
             sessions.student_id = users.id
             OR sessions.volunteer_id = users.id) AS past_sessions ON TRUE
     LEFT JOIN student_profiles ON student_profiles.user_id = users.id
-    LEFT JOIN current_grade_levels_mview cgl ON cgl.user_id = student_profiles.user_id
+    LEFT JOIN current_grade_levels cgl ON cgl.user_id = student_profiles.user_id
 WHERE
     sessions.id = :sessionId!
 GROUP BY

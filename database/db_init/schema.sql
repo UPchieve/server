@@ -1,4 +1,4 @@
-\restrict den2Bl7IVKstYiZCrsAAZlPdlbDUjSbFucFSRCPxlBEi23wtrta9hSnjaJoeo7r
+\restrict OVfuQ4lgDy6o1oSJjAXne20gsEYzDa0c4h97XTTh79qfqyRcjE2YZUj44x0Dw63
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
 -- Dumped by pg_dump version 15.17 (Ubuntu 15.17-1.pgdg22.04+1)
@@ -544,6 +544,38 @@ CREATE TABLE upchieve.grade_levels (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
+
+
+--
+-- Name: users_grade_levels; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.users_grade_levels (
+    user_id uuid NOT NULL,
+    signup_grade_level_id integer,
+    grade_level_id integer NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: current_grade_levels; Type: VIEW; Schema: upchieve; Owner: -
+--
+
+CREATE VIEW upchieve.current_grade_levels AS
+ WITH grade_progression AS (
+         SELECT ugl.user_id,
+            ugl.grade_level_id,
+            GREATEST(0, ((EXTRACT(year FROM (CURRENT_DATE - '6 mons'::interval)))::integer - (EXTRACT(year FROM ((ugl.updated_at)::date - '6 mons'::interval)))::integer)) AS school_years_passed
+           FROM upchieve.users_grade_levels ugl
+        )
+ SELECT grade_progression.user_id,
+        CASE grade_levels.name
+            WHEN 'Other'::text THEN 'Other'::text
+            ELSE (ARRAY['6th'::text, '7th'::text, '8th'::text, '9th'::text, '10th'::text, '11th'::text, '12th'::text, 'College'::text])[LEAST((array_position(ARRAY['6th'::text, '7th'::text, '8th'::text, '9th'::text, '10th'::text, '11th'::text, '12th'::text, 'College'::text], grade_levels.name) + grade_progression.school_years_passed), 8)]
+        END AS current_grade_name
+   FROM (grade_progression
+     JOIN upchieve.grade_levels ON ((grade_progression.grade_level_id = grade_levels.id)));
 
 
 --
@@ -3126,18 +3158,6 @@ CREATE TABLE upchieve.users_certifications (
     user_id uuid NOT NULL,
     certification_id integer NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
-);
-
-
---
--- Name: users_grade_levels; Type: TABLE; Schema: upchieve; Owner: -
---
-
-CREATE TABLE upchieve.users_grade_levels (
-    user_id uuid NOT NULL,
-    signup_grade_level_id integer,
-    grade_level_id integer NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
@@ -7461,7 +7481,7 @@ ALTER TABLE ONLY upchieve.volunteer_references
 -- PostgreSQL database dump complete
 --
 
-\unrestrict den2Bl7IVKstYiZCrsAAZlPdlbDUjSbFucFSRCPxlBEi23wtrta9hSnjaJoeo7r
+\unrestrict OVfuQ4lgDy6o1oSJjAXne20gsEYzDa0c4h97XTTh79qfqyRcjE2YZUj44x0Dw63
 
 
 --
@@ -7742,4 +7762,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260408183957'),
     ('20260415134614'),
     ('20260423224528'),
-    ('20260423230129');
+    ('20260423230129'),
+    ('20260428230130');

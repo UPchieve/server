@@ -542,7 +542,7 @@ SELECT
     sp.user_id
 FROM
     student_profiles sp
-    JOIN current_grade_levels_mview cgl ON cgl.user_id = sp.user_id
+    JOIN current_grade_levels cgl ON cgl.user_id = sp.user_id
     JOIN users u ON u.id = sp.user_id
 WHERE
     u.deactivated IS FALSE
@@ -622,15 +622,14 @@ SELECT
     first_name,
     last_name,
     email,
-    COALESCE(cgl.current_grade_name, grade_levels.name) AS grade_level,
+    cgl.current_grade_name AS grade_level,
     users.created_at,
     users.updated_at,
     school_id
 FROM
     student_profiles
     JOIN users ON student_profiles.user_id = users.id
-    LEFT JOIN grade_levels ON student_profiles.grade_level_id = grade_levels.id
-    LEFT JOIN current_grade_levels_mview cgl ON cgl.user_id = student_profiles.user_id
+    LEFT JOIN current_grade_levels cgl ON cgl.user_id = student_profiles.user_id
 WHERE
     student_profiles.user_id IN :userIds!;
 
