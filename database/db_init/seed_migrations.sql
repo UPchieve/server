@@ -5,7 +5,7 @@
 \restrict 09SDZVIIBTmn479OOanj2S0KK8g14W6zGa6i36XveC4OexQ7dKoGM9lvEabqn7z
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
--- Dumped by pg_dump version 15.17 (Homebrew)
+-- Dumped by pg_dump version 15.17 (Ubuntu 15.17-1.pgdg22.04+1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -99,7 +99,6 @@ COPY public.seed_migrations (version) FROM stdin;
 20260210195455
 20260223191734
 20260225161628
-20260428034309
 \.
 
 
