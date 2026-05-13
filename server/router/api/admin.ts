@@ -80,11 +80,9 @@ export function routeAdmin(apiRouter: Router): void {
           req.file.buffer,
           ['firstName', 'lastName', 'email', 'gradeLevel']
         )
-        const { failed, updated } = await rosterPartnerStudents(
-          students,
-          req.body.schoolId
-        )
-        res.json({ failed, updated })
+        const { failed, updated, created, deactivated } =
+          await rosterPartnerStudents(students, req.body.schoolId)
+        res.json({ failed, updated, created, deactivated })
       } catch (error) {
         resError(res, error)
       }

@@ -57,6 +57,7 @@ export interface RosterStudentPayload {
   lastName: string
   password?: string
   proxyEmail?: string
+  deactivatedOn?: string
 }
 export interface CreateStudentFedCredPayload {
   email: string
@@ -69,6 +70,20 @@ export interface CreateStudentFedCredPayload {
   issuer: string
 }
 
+/**
+ * Process a CSV-driven roster upload for a partner school.
+ *
+ * A single row can land in multiple result arrays. The expected combinations:
+ *   - new student            → `created`
+ *   - existing student       → `updated`
+ *   - deactivation row       → `updated` + `deactivated` (the row may still
+ *                              correct fields like gradeLevel on the way out)
+ *   - row with an unparseable `deactivatedOn` → `updated` + `failed`
+ *     (upsert applied, but the deactivation portion is skipped and surfaced
+ *     as a row-level failure with a `reason`)
+ *   - row whose deactivation can't proceed (missing account, missing school
+ *     SPO) → `failed` only; the transaction is rolled back
+ */
 export async function rosterPartnerStudents(
   students: RosterStudentPayload[],
   schoolId: string,
@@ -85,9 +100,14 @@ export async function rosterPartnerStudents(
     id: string
     email: string
   }[] = []
+  const deactivatedUsers: {
+    id: string
+    email: string
+  }[] = []
   const failedUsers: {
     email: string
     firstName: string
+    reason?: string
   }[] = []
 
   const signUpSource = await SignUpSourceRepo.getSignUpSourceByName(
@@ -95,8 +115,41 @@ export async function rosterPartnerStudents(
     getClient()
   )
 
+  const anyDeactivation = students.some((s) => !!s.deactivatedOn?.trim())
+  const schoolSpo = anyDeactivation
+    ? await StudentPartnerOrgRepo.getStudentPartnerOrgBySchoolId(
+        getClient(),
+        schoolId
+      )
+    : undefined
+
   for (const student of students) {
+    const wantsDeactivation = !!student.deactivatedOn?.trim()
+    let parsedDeactivatedOn: Date | undefined
+    let parseError = false
+
+    if (wantsDeactivation) {
+      const d = new Date(student.deactivatedOn!)
+      if (Number.isNaN(d.getTime())) {
+        parseError = true
+      } else {
+        parsedDeactivatedOn = d
+      }
+    }
+
     try {
+      // Pre-flight guard: deactivation rows must reference an existing user.
+      // Block creation so we never silently create an account while trying to
+      // deactivate one.
+      if (wantsDeactivation) {
+        const existing = await UserRepo.getUserIdByEmail(student.email)
+        if (!existing) {
+          throw new InputError(
+            `Cannot deactivate ${student.email}: no existing account. To deactivate a student, the email must match an existing account. Remove the deactivatedOn value to create a new student.`
+          )
+        }
+      }
+
       await runInTransaction(async (tc: TransactionClient) => {
         checkNames(student.firstName, student.lastName)
         await checkEmail(student.email)
@@ -106,7 +159,9 @@ export async function rosterPartnerStudents(
         }
 
         const passwordResetToken =
-          !student.password && shouldSendPasswordResetEmail
+          !wantsDeactivation &&
+          !student.password &&
+          shouldSendPasswordResetEmail
             ? createResetToken()
             : undefined
         const userData = {
@@ -139,11 +194,35 @@ export async function rosterPartnerStudents(
         } else {
           updatedUsers.push(user)
         }
+
+        if (parsedDeactivatedOn) {
+          if (!schoolSpo) {
+            throw new InputError(
+              `Cannot deactivate ${student.email}: no student partner org is associated with school ${schoolId}.`
+            )
+          }
+          await StudentPartnerOrgRepo.deactivateUserStudentPartnerOrgInstance(
+            tc,
+            user.id,
+            schoolSpo.partnerId,
+            parsedDeactivatedOn
+          )
+          deactivatedUsers.push({ id: user.id, email: user.email })
+        }
       })
-    } catch {
+
+      if (parseError) {
+        failedUsers.push({
+          email: student.email,
+          firstName: student.firstName,
+          reason: `could not parse deactivatedOn value "${student.deactivatedOn}"`,
+        })
+      }
+    } catch (err) {
       failedUsers.push({
         email: student.email,
         firstName: student.firstName,
+        reason: err instanceof InputError ? err.message : undefined,
       })
     }
   }
@@ -160,7 +239,12 @@ export async function rosterPartnerStudents(
     }
   }
 
-  return { failed: failedUsers, updated: updatedUsers, created: newUsers }
+  return {
+    failed: failedUsers,
+    updated: updatedUsers,
+    created: newUsers,
+    deactivated: deactivatedUsers,
+  }
 }
 
 export async function verifyStudentData(data: RegisterStudentPayload) {
