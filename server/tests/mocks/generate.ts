@@ -469,7 +469,6 @@ export type SessionRow = {
   volunteerJoinedAt?: Date
   endedAt?: Date
   mongoId?: string
-  endedByRoleId?: string
   endedByUserId?: string
 }
 

@@ -74,7 +74,6 @@ SELECT
     quill_doc,
     volunteer_joined_at,
     ended_at,
-    user_roles.name AS ended_by_role,
     reviewed,
     to_review,
     shadowbanned,
@@ -88,7 +87,6 @@ FROM
     sessions
     LEFT JOIN subjects ON subjects.id = sessions.subject_id
     LEFT JOIN topics ON topics.id = subjects.topic_id
-    LEFT JOIN user_roles ON user_roles.id = sessions.ended_by_role_id
     LEFT JOIN session_reports ON session_reports.session_id = sessions.id
     LEFT JOIN LATERAL (
         SELECT
@@ -481,14 +479,7 @@ SELECT
     shadowbanned,
     tool_types.name AS tool_type,
     volunteer_profiles.languages AS volunteer_languages,
-    (
-        CASE WHEN user_roles.name = 'volunteer' THEN
-            sessions.volunteer_id
-        WHEN user_roles.name = 'student' THEN
-            sessions.student_id
-        ELSE
-            NULL
-        END) AS ended_by,
+    sessions.ended_by_user_id AS ended_by,
     CASE WHEN sessions.volunteer_id IS NULL THEN
         FALSE
     WHEN (
@@ -518,7 +509,6 @@ FROM
     LEFT JOIN subjects ON sessions.subject_id = subjects.id
     LEFT JOIN topics ON subjects.topic_id = topics.id
     JOIN tool_types ON subjects.tool_type_id = tool_types.id
-    LEFT JOIN user_roles ON user_roles.id = sessions.ended_by_role_id
     LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = sessions.volunteer_id
 WHERE (sessions.student_id = :userId!
     OR sessions.volunteer_id = :userId!)
@@ -541,14 +531,7 @@ SELECT
     shadowbanned,
     tool_types.name AS tool_type,
     volunteer_profiles.languages AS volunteer_languages,
-    (
-        CASE WHEN user_roles.name = 'volunteer' THEN
-            sessions.volunteer_id
-        WHEN user_roles.name = 'student' THEN
-            sessions.student_id
-        ELSE
-            NULL
-        END) AS ended_by,
+    sessions.ended_by_user_id AS ended_by,
     CASE WHEN sessions.volunteer_id IS NULL THEN
         FALSE
     WHEN (
@@ -578,7 +561,6 @@ FROM
     LEFT JOIN subjects ON sessions.subject_id = subjects.id
     LEFT JOIN topics ON subjects.topic_id = topics.id
     JOIN tool_types ON subjects.tool_type_id = tool_types.id
-    LEFT JOIN user_roles ON user_roles.id = sessions.ended_by_role_id
     LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = sessions.volunteer_id
 WHERE
     sessions.id = :sessionId;
@@ -1348,42 +1330,4 @@ FROM
     JOIN session_flags sf ON ssf.session_flag_id = sf.id
 WHERE
     ssf.session_id = :sessionId!;
-
-
-/* @name getSessionsToBackfillEndedByUserId */
-SELECT
-    s.id,
-    s.student_id,
-    s.volunteer_id,
-    s.ended_at,
-    s.ended_by_role_id,
-    s.ended_by_user_id,
-    s.updated_at
-FROM
-    sessions s
-    JOIN user_roles roles ON roles.id = s.ended_by_role_id
-WHERE
-    s.ended_by_user_id IS NULL
-    AND roles.name IN ('student', 'volunteer')
-    AND s.created_at >= :createdAfter!
-ORDER BY
-    s.created_at DESC;
-
-
-/* @name backfillEndedByUserId */
-UPDATE
-    sessions s
-SET
-    updated_at = NOW(),
-    ended_by_user_id = CASE WHEN s.ended_by_role_id = 1 THEN
-        s.student_id
-    WHEN s.ended_by_role_id = 2 THEN
-        s.volunteer_id
-    END
-WHERE
-    s.ended_by_role_id IN (1, 2)
-    AND s.ended_by_user_id IS NULL
-    AND s.created_at >= :createdAfter!
-RETURNING
-    *;
 

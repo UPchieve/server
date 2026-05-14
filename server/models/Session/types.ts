@@ -30,7 +30,6 @@ export type GetSessionByIdResult = {
   quillDoc?: string
   volunteerJoinedAt?: Date
   endedAt?: Date
-  endedByRole?: string
   endedByUserId?: Ulid
   reviewed: boolean
   toReview: boolean
