@@ -7,6 +7,7 @@ import * as TeacherService from '../../services/TeacherService'
 import * as NTHSGroupsService from '../../services/NTHSGroupsService'
 import { InputError } from '../../models/Errors'
 import { asString } from '../../utils/type-utils'
+import logger from '../../logger'
 
 export function routes(app: Express) {
   const router: Router = express.Router()
@@ -93,6 +94,11 @@ export function routes(app: Express) {
     } catch (err) {
       resError(res, err)
     }
+  })
+
+  router.post('/report/csp', async function (req, res) {
+    logger.info(req.body, 'Content Security Report')
+    return res.status(201).json({})
   })
 
   app.use('/api-public', router)

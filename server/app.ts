@@ -47,7 +47,11 @@ app.use(timeout(config.requestTimeout))
  */
 app.set('trust proxy', true)
 
-app.use(json() as express.RequestHandler)
+app.use(
+  json({
+    type: ['application/json', 'application/csp-report'],
+  })
+)
 app.use(cookieParser(config.sessionSecret))
 
 app.use(
@@ -74,7 +78,11 @@ app.use(
  */
 app.use((req, _res, next) => {
   const safeMethods = ['GET', 'HEAD', 'OPTIONS']
-  if (safeMethods.includes(req.method) || req.headers['x-csrf-token']) {
+  if (
+    safeMethods.includes(req.method) ||
+    req.headers['x-csrf-token'] ||
+    req.path.includes('/api-public/report/csp')
+  ) {
     next()
   } else {
     const error = new HttpError('Missing CSRF token.', 403)
