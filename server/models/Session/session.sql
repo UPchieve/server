@@ -351,14 +351,7 @@ SELECT
     sessions.volunteer_joined_at,
     sessions.quill_doc,
     sessions.time_tutored::int,
-    (
-        CASE WHEN user_roles.name = 'volunteer' THEN
-            sessions.volunteer_id
-        WHEN user_roles.name = 'student' THEN
-            sessions.student_id
-        ELSE
-            NULL
-        END) AS ended_by,
+    sessions.ended_by_user_id AS ended_by,
     session_reports.report_message,
     report_reasons.reason AS report_reason,
     session_review_reason.review_reasons,
@@ -372,7 +365,6 @@ FROM
     JOIN users ON sessions.student_id = users.id
     LEFT JOIN subjects ON sessions.subject_id = subjects.id
     LEFT JOIN topics ON subjects.topic_id = topics.id
-    LEFT JOIN user_roles ON user_roles.id = sessions.ended_by_role_id
     LEFT JOIN (
         SELECT
             report_reason_id,
