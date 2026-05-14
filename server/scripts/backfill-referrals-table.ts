@@ -20,10 +20,7 @@ export default async function backfillReferralsTable() {
       SELECT u.id, u.referred_by
       FROM upchieve.users u
       WHERE u.referred_by IS NOT NULL
-        AND NOT EXISTS (
-          SELECT 1 FROM upchieve.referrals r 
-          WHERE r.user_id = u.id AND r.referred_by = u.referred_by
-        )
+      ON CONFLICT (user_id) DO UPDATE SET referred_by = EXCLUDED.referred_by
     `)
 
     logger.info(`Total referrals created: ${insertResult.rowCount}`)

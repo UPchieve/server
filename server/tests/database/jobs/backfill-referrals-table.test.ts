@@ -76,7 +76,7 @@ describe('backfillReferralsTable', () => {
     expect(referrals.rows[0].referred_by).toBe(referrer.id)
   })
 
-  test('preserves existing referrals table data', async () => {
+  test('preserves existing referrals table data if no conflict', async () => {
     const referrer = await createTestUser(client)
     await createTestUser(client, { referredById: referrer.id })
 
@@ -97,5 +97,32 @@ describe('backfillReferralsTable', () => {
       'SELECT * FROM upchieve.referrals;'
     )
     expect(afterReferrals.rows.length).toBe(2)
+  })
+
+  test('takes users.referred_by as source of truth on conflict', async () => {
+    const oldReferrer = await createTestUser(client)
+    const newReferrer = await createTestUser(client)
+    const referred = await createTestUser(client, {
+      referredById: newReferrer.id,
+    })
+
+    await client.query(
+      'INSERT INTO upchieve.referrals (user_id, referred_by) VALUES ($1, $2);',
+      [referred.id, oldReferrer.id]
+    )
+
+    const beforeReferrals = await client.query(
+      'SELECT * FROM upchieve.referrals;'
+    )
+    expect(beforeReferrals.rows.length).toBe(1)
+
+    await backfillReferralsTable()
+
+    const afterReferrals = await client.query(
+      'SELECT * FROM upchieve.referrals;'
+    )
+    expect(afterReferrals.rows.length).toBe(1)
+    expect(afterReferrals.rows[0].user_id).toBe(referred.id)
+    expect(afterReferrals.rows[0].referred_by).toBe(newReferrer.id)
   })
 })
