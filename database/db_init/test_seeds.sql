@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict eLZB1cAowiqf6a5kvE5YVqjDTteAOqMSceJjtEGqiI6yCfSbDErtHGvgNmGEbdz
+\restrict T3VSto72bfov73xctmZHemHOn4ozugkofN38wzwfkoEZcxbZOcfr0njH9NKDE7b
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
 -- Dumped by pg_dump version 15.17 (Homebrew)
@@ -266,23 +266,10 @@ COPY upchieve.assignments (id, class_id, description, title, number_of_sessions,
 
 
 --
--- Data for Name: user_roles; Type: TABLE DATA; Schema: upchieve; Owner: admin
---
-
-COPY upchieve.user_roles (id, name, created_at, updated_at) FROM stdin;
-1	student	2024-08-28 00:28:43.726843+00	2024-08-28 00:28:43.726843+00
-2	volunteer	2024-08-28 00:28:43.727419+00	2024-08-28 00:28:43.727419+00
-3	admin	2024-08-28 00:28:43.727767+00	2024-08-28 00:28:43.727767+00
-4	teacher	2024-08-28 00:28:44.179217+00	2024-08-28 00:28:44.179217+00
-5	ambassador	2025-06-02 18:00:23.062561+00	2025-06-02 18:00:23.062561+00
-\.
-
-
---
 -- Data for Name: sessions; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.sessions (id, student_id, volunteer_id, subject_id, has_whiteboard_doc, quill_doc, volunteer_joined_at, ended_at, ended_by_role_id, reviewed, to_review, student_banned, time_tutored, created_at, updated_at, mongo_id, shadowbanned, ended_by_user_id) FROM stdin;
+COPY upchieve.sessions (id, student_id, volunteer_id, subject_id, has_whiteboard_doc, quill_doc, volunteer_joined_at, ended_at, reviewed, to_review, student_banned, time_tutored, created_at, updated_at, mongo_id, shadowbanned, ended_by_user_id) FROM stdin;
 \.
 
 
@@ -5071,6 +5058,19 @@ COPY upchieve.federated_credentials (id, issuer, user_id) FROM stdin;
 
 
 --
+-- Data for Name: user_roles; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.user_roles (id, name, created_at, updated_at) FROM stdin;
+1	student	2024-08-28 00:28:43.726843+00	2024-08-28 00:28:43.726843+00
+2	volunteer	2024-08-28 00:28:43.727419+00	2024-08-28 00:28:43.727419+00
+3	admin	2024-08-28 00:28:43.727767+00	2024-08-28 00:28:43.727767+00
+4	teacher	2024-08-28 00:28:44.179217+00	2024-08-28 00:28:44.179217+00
+5	ambassador	2025-06-02 18:00:23.062561+00	2025-06-02 18:00:23.062561+00
+\.
+
+
+--
 -- Data for Name: feedbacks; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
@@ -9414,5 +9414,5 @@ SELECT pg_catalog.setval('upchieve.weekdays_id_seq', 1, false);
 -- PostgreSQL database dump complete
 --
 
-\unrestrict eLZB1cAowiqf6a5kvE5YVqjDTteAOqMSceJjtEGqiI6yCfSbDErtHGvgNmGEbdz
+\unrestrict T3VSto72bfov73xctmZHemHOn4ozugkofN38wzwfkoEZcxbZOcfr0njH9NKDE7b
 
