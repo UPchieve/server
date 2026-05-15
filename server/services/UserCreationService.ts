@@ -561,6 +561,8 @@ export async function registerTeacher(data: RegisterTeacherPayload) {
     return user
   })
 
+  emitter.emit(USER_EVENTS.USER_CREATED, newTeacher.id)
+
   return {
     ...newTeacher,
     isAdmin: false,
