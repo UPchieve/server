@@ -441,7 +441,6 @@
     "quill_doc",
     "volunteer_joined_at",
     "ended_at",
-    "ended_by_role_id",
     "reviewed",
     "to_review",
     "student_banned",
