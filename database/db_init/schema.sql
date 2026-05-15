@@ -2222,7 +2222,8 @@ CREATE TABLE upchieve.sessions (
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     mongo_id character varying(24),
     shadowbanned boolean,
-    ended_by_user_id uuid
+    ended_by_user_id uuid,
+    ended_by_role_id integer
 );
 
 
@@ -6722,6 +6723,14 @@ ALTER TABLE ONLY upchieve.session_voice_messages
 
 ALTER TABLE ONLY upchieve.session_voice_messages
     ADD CONSTRAINT session_voice_messages_session_id_fkey FOREIGN KEY (session_id) REFERENCES upchieve.sessions(id);
+
+
+--
+-- Name: sessions sessions_ended_by_role_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.sessions
+    ADD CONSTRAINT sessions_ended_by_role_id_fkey FOREIGN KEY (ended_by_role_id) REFERENCES upchieve.user_roles(id);
 
 
 --
