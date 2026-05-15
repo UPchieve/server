@@ -3,6 +3,7 @@ import config from '../config'
 import logger from '../logger'
 import { optOutSmsConsentForPhoneNumber } from '../services/UserProfileService'
 import { VERIFICATION_METHOD } from '../constants'
+import { maskContact } from '../utils/mask-contact'
 
 const client =
   config.accountSid && config.authToken
@@ -12,6 +13,7 @@ const client =
 // See Twilio Verify error codes here: https://www.twilio.com/docs/api/errors#6-anchor
 enum TwilioErrorCodes {
   INVALID_PARAMETER = 60200,
+  DELIVERY_ATTEMPT_BLOCKED = 60410,
 }
 
 export async function sendTextMessage(
@@ -84,18 +86,25 @@ export async function sendVerification(
         },
       },
       async (error) => {
-        if (error) {
-          if (
-            'code' in error &&
-            error['code'] === TwilioErrorCodes.INVALID_PARAMETER
-          ) {
-            // Rate limit with that unique name does not exist.
-            // This should have been created during application startup.
-            logger.warn(
-              `Could not find Twilio rate limit with uniqueName=${config.twilioVerificationRateLimitUniqueName} while attempting to send a verification code. Will attempt to create it now.`
-            )
-            await createRateLimit(config.twilioVerificationRateLimitUniqueName)
-          }
+        // By having the callback, we end up failing silently.
+        // That's probably not what we want?
+        // TODO(alex.lindsay): Determine how we want to handle failures.
+        if (!error || 'code' in error === false) return
+
+        if (error['code'] === TwilioErrorCodes.INVALID_PARAMETER) {
+          // Rate limit with that unique name does not exist.
+          // This should have been created during application startup.
+          logger.warn(
+            `Could not find Twilio rate limit with uniqueName=${config.twilioVerificationRateLimitUniqueName} while attempting to send a verification code. Will attempt to create it now.`
+          )
+          await createRateLimit(config.twilioVerificationRateLimitUniqueName)
+        }
+
+        if (error['code'] === TwilioErrorCodes.DELIVERY_ATTEMPT_BLOCKED) {
+          logger.warn(
+            { userId, sendTo: maskContact(sendTo) },
+            `Twilio flagged message as potentially fraudulent`
+          )
         }
       }
     )
