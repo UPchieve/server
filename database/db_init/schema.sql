@@ -1,4 +1,4 @@
-\restrict OVfuQ4lgDy6o1oSJjAXne20gsEYzDa0c4h97XTTh79qfqyRcjE2YZUj44x0Dw63
+\restrict ug0xycSd2jvM84KTquxRUc9ndyiUkvUSMryxOcmANQOcU7CSlIevNOw0YlNOmdg
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
 -- Dumped by pg_dump version 15.17 (Homebrew)
@@ -2222,8 +2222,7 @@ CREATE TABLE upchieve.sessions (
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     mongo_id character varying(24),
     shadowbanned boolean,
-    ended_by_user_id uuid,
-    ended_by_role_id integer
+    ended_by_user_id uuid
 );
 
 
@@ -6726,14 +6725,6 @@ ALTER TABLE ONLY upchieve.session_voice_messages
 
 
 --
--- Name: sessions sessions_ended_by_role_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.sessions
-    ADD CONSTRAINT sessions_ended_by_role_id_fkey FOREIGN KEY (ended_by_role_id) REFERENCES upchieve.user_roles(id);
-
-
---
 -- Name: sessions sessions_ended_by_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -7481,7 +7472,7 @@ ALTER TABLE ONLY upchieve.volunteer_references
 -- PostgreSQL database dump complete
 --
 
-\unrestrict OVfuQ4lgDy6o1oSJjAXne20gsEYzDa0c4h97XTTh79qfqyRcjE2YZUj44x0Dw63
+\unrestrict ug0xycSd2jvM84KTquxRUc9ndyiUkvUSMryxOcmANQOcU7CSlIevNOw0YlNOmdg
 
 
 --
@@ -7764,4 +7755,4 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260423224528'),
     ('20260423230129'),
     ('20260428230130'),
-    ('20260511172624');
+    ('20260515002920');
