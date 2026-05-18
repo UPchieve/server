@@ -47,7 +47,11 @@ app.use(timeout(config.requestTimeout))
  */
 app.set('trust proxy', true)
 
-app.use(json() as express.RequestHandler)
+app.use(
+  json({
+    type: 'application/json',
+  })
+)
 app.use(cookieParser(config.sessionSecret))
 
 app.use(
@@ -55,6 +59,17 @@ app.use(
     origin: `${config.protocol}://${config.host}`,
     credentials: true,
   })
+)
+
+app.post(
+  '/api-public/report/csp',
+  express.json({
+    type: ['application/json', 'application/csp-report'],
+  }),
+  async function (req, res) {
+    logger.info(req.body, 'Content Security Report')
+    return res.sendStatus(201)
+  }
 )
 
 /*
