@@ -49,7 +49,7 @@ app.set('trust proxy', true)
 
 app.use(
   json({
-    type: ['application/json', 'application/csp-report'],
+    type: 'application/json',
   })
 )
 app.use(cookieParser(config.sessionSecret))
@@ -59,6 +59,17 @@ app.use(
     origin: `${config.protocol}://${config.host}`,
     credentials: true,
   })
+)
+
+app.post(
+  '/api-public/report/csp',
+  express.json({
+    type: ['application/json', 'application/csp-report'],
+  }),
+  async function (req, res) {
+    logger.info(req.body, 'Content Security Report')
+    return res.sendStatus(201)
+  }
 )
 
 /*
@@ -78,11 +89,7 @@ app.use(
  */
 app.use((req, _res, next) => {
   const safeMethods = ['GET', 'HEAD', 'OPTIONS']
-  if (
-    safeMethods.includes(req.method) ||
-    req.headers['x-csrf-token'] ||
-    req.path.includes('/api-public/report/csp')
-  ) {
+  if (safeMethods.includes(req.method) || req.headers['x-csrf-token']) {
     next()
   } else {
     const error = new HttpError('Missing CSRF token.', 403)

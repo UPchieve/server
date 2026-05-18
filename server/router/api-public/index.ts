@@ -96,10 +96,5 @@ export function routes(app: Express) {
     }
   })
 
-  router.post('/report/csp', async function (req, res) {
-    logger.info(req.body, 'Content Security Report')
-    return res.status(201).json({})
-  })
-
   app.use('/api-public', router)
 }
