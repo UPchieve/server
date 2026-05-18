@@ -12,8 +12,8 @@ ORDER BY
 
 
 /* @name createUser */
-INSERT INTO users (id, first_name, last_name, email, proxy_email, phone, sms_consent, PASSWORD, password_reset_token, verified, email_verified, phone_verified, referred_by, referral_code, signup_source_id, other_signup_source, last_activity_at)
-    VALUES (:id!, :firstName!, :lastName!, :email!, :proxyEmail, :phone, :smsConsent, :password, :passwordResetToken, :verified, :emailVerified, :phoneVerified, :referredBy, :referralCode!, :signupSourceId, :otherSignupSource, NOW())
+INSERT INTO users (id, first_name, last_name, email, proxy_email, phone, sms_consent, PASSWORD, password_reset_token, verified, email_verified, phone_verified, referral_code, signup_source_id, other_signup_source, last_activity_at)
+    VALUES (:id!, :firstName!, :lastName!, :email!, :proxyEmail, :phone, :smsConsent, :password, :passwordResetToken, :verified, :emailVerified, :phoneVerified, :referralCode!, :signupSourceId, :otherSignupSource, NOW())
 ON CONFLICT (email)
     DO NOTHING
 RETURNING
@@ -21,8 +21,8 @@ RETURNING
 
 
 /* @name upsertUser */
-INSERT INTO users (id, first_name, last_name, email, proxy_email, phone, PASSWORD, password_reset_token, verified, email_verified, phone_verified, referred_by, referral_code, signup_source_id, other_signup_source, last_activity_at)
-    VALUES (:id!, :firstName!, :lastName!, :email!, :proxyEmail, :phone, :password, :passwordResetToken, :verified, :emailVerified, :phoneVerified, :referredBy, :referralCode!, :signupSourceId, :otherSignupSource, NOW())
+INSERT INTO users (id, first_name, last_name, email, proxy_email, phone, PASSWORD, password_reset_token, verified, email_verified, phone_verified, referral_code, signup_source_id, other_signup_source, last_activity_at)
+    VALUES (:id!, :firstName!, :lastName!, :email!, :proxyEmail, :phone, :password, :passwordResetToken, :verified, :emailVerified, :phoneVerified, :referralCode!, :signupSourceId, :otherSignupSource, NOW())
 ON CONFLICT (email)
     DO UPDATE SET
         first_name = :firstName!, last_name = :lastName!, proxy_email = :proxyEmail, phone = :phone, PASSWORD = :password, password_reset_token = :passwordResetToken, verified = :verified, email_verified = :emailVerified, phone_verified = :phoneVerified, signup_source_id = :signupSourceId, other_signup_source = :otherSignupSource
@@ -160,25 +160,6 @@ FROM
 WHERE
     password_reset_token = :resetToken!
     AND deleted IS FALSE;
-
-
-/* @name countReferredUsersWithFilter */
-SELECT
-    u.id,
-    array_agg(roles.name)::text[] AS roles
-FROM
-    users u
-    JOIN users_roles ur ON ur.user_id = u.id
-    JOIN user_roles roles ON roles.id = ur.role_id
-WHERE
-    u.referred_by = :userId!::uuid
-    AND (:phoneOrEmailVerified::boolean IS NULL
-        OR u.phone_verified = :phoneOrEmailVerified::boolean
-        OR u.email_verified = :phoneOrEmailVerified::boolean)
-GROUP BY
-    u.id
-HAVING
-    array_agg(roles.name)::text[] @> COALESCE(:hasRoles::text[], ARRAY[]::text[]);
 
 
 /* @name updateUserResetTokenById */
@@ -352,7 +333,7 @@ SELECT
     volunteer_profiles.state,
     occupations.occupation,
     -- Student specific fields:
-    COALESCE(cgl.current_grade_name, grade_levels.name) AS current_grade,
+    cgl.current_grade_name AS current_grade,
     student_profiles.postal_code AS zip_code,
     student_partner_orgs.name AS student_partner_org,
     student_partner_org_sites.name AS partner_site,
@@ -369,8 +350,7 @@ FROM
     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
     LEFT JOIN photo_id_statuses ON photo_id_statuses.id = volunteer_profiles.photo_id_status
     LEFT JOIN user_product_flags ON user_product_flags.user_id = users.id
-    LEFT JOIN grade_levels ON grade_levels.id = student_profiles.grade_level_id
-    LEFT JOIN current_grade_levels_mview cgl ON cgl.user_id = student_profiles.user_id
+    LEFT JOIN current_grade_levels cgl ON cgl.user_id = student_profiles.user_id
     LEFT JOIN (
         SELECT
             COUNT(*) AS total
@@ -422,7 +402,7 @@ SELECT
     users.deactivated AS is_deactivated,
     users.last_activity_at AS last_activity_at,
     users.referral_code AS referral_code,
-    users.referred_by AS referred_by,
+    referrals.referred_by AS referred_by,
     users.preferred_language AS preferred_language,
     volunteer_profiles.languages AS tutoring_languages,
     volunteer_profiles.experience,
@@ -458,7 +438,7 @@ SELECT
         ELSE
             FALSE
         END) AS is_school_partner,
-COALESCE(cgl.current_grade_name, grade_levels.name) AS grade_level,
+cgl.current_grade_name AS grade_level,
 array_cat(total_subjects.active_subjects, computed_subjects.active_subjects) AS active_subjects,
 users_quizzes.total::int AS total_quizzes_passed,
 users_roles.role_id,
@@ -474,6 +454,7 @@ ELSE
 END AS signup_source
 FROM
     users
+    LEFT JOIN referrals ON users.id = referrals.user_id
     LEFT JOIN (
         SELECT
             updated_at
@@ -565,8 +546,7 @@ FROM
             user_id = :userId!
             AND passed IS TRUE) AS users_quizzes ON TRUE
     LEFT JOIN schools ON schools.id = COALESCE(student_profiles.school_id, teacher_profiles.school_id)
-    LEFT JOIN grade_levels ON student_profiles.grade_level_id = grade_levels.id
-    LEFT JOIN current_grade_levels_mview cgl ON cgl.user_id = student_profiles.user_id
+    LEFT JOIN current_grade_levels cgl ON cgl.user_id = student_profiles.user_id
     LEFT JOIN users_roles ON users_roles.user_id = users.id
     LEFT JOIN (
         SELECT
@@ -618,15 +598,14 @@ SELECT
     users.created_at,
     users.test_user,
     users.last_name,
-    COALESCE(cgl.current_grade_name, grade_levels.name) AS student_grade_level
+    cgl.current_grade_name AS student_grade_level
 FROM
     users
     LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
     LEFT JOIN student_profiles ON student_profiles.user_id = users.id
     LEFT JOIN student_partner_orgs ON student_partner_orgs.id = student_profiles.student_partner_org_id
-    LEFT JOIN grade_levels ON student_profiles.grade_level_id = grade_levels.id
-    LEFT JOIN current_grade_levels_mview cgl ON student_profiles.user_id = cgl.user_id
+    LEFT JOIN current_grade_levels cgl ON student_profiles.user_id = cgl.user_id
 WHERE
     users.id = :userId!
     AND users.deactivated IS FALSE

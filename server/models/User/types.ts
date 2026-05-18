@@ -26,7 +26,6 @@ export type User = {
   phoneVerified: boolean
   proxyEmail?: string
   referralCode: string
-  referredBy?: Ulid
   signupSourceId?: Pgid
   testUser: boolean
   verified: boolean
@@ -51,7 +50,7 @@ export type CreateUserPayload = {
   phone?: string
   phoneVerified?: boolean
   proxyEmail?: string
-  referredBy?: Ulid
+  referredByCode?: string
   signupSourceId?: number
   verified?: boolean
   smsConsent?: boolean

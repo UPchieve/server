@@ -67,6 +67,38 @@ const saveUserSurveyIR: any = {"usedParamSet":{"surveyId":true,"userId":true,"se
 export const saveUserSurvey = new PreparedQuery<ISaveUserSurveyParams,ISaveUserSurveyResult>(saveUserSurveyIR);
 
 
+/** 'GetSurveyIdByName' parameters type */
+export interface IGetSurveyIdByNameParams {
+  surveyName: string;
+}
+
+/** 'GetSurveyIdByName' return type */
+export interface IGetSurveyIdByNameResult {
+  id: number;
+}
+
+/** 'GetSurveyIdByName' query type */
+export interface IGetSurveyIdByNameQuery {
+  params: IGetSurveyIdByNameParams;
+  result: IGetSurveyIdByNameResult;
+}
+
+const getSurveyIdByNameIR: any = {"usedParamSet":{"surveyName":true},"params":[{"name":"surveyName","required":true,"transform":{"type":"scalar"},"locs":[{"a":48,"b":59}]}],"statement":"SELECT\n    id\nFROM\n    surveys\nWHERE\n    name = :surveyName!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     id
+ * FROM
+ *     surveys
+ * WHERE
+ *     name = :surveyName!
+ * ```
+ */
+export const getSurveyIdByName = new PreparedQuery<IGetSurveyIdByNameParams,IGetSurveyIdByNameResult>(getSurveyIdByNameIR);
+
+
 /** 'SaveUserSurveySubmissions' parameters type */
 export interface ISaveUserSurveySubmissionsParams {
   openResponse?: string | null | void;
@@ -245,6 +277,7 @@ export const getSimpleSurveyDefinition = new PreparedQuery<IGetSimpleSurveyDefin
 /** 'GetPostsessionSurveyDefinitionForSession' parameters type */
 export interface IGetPostsessionSurveyDefinitionForSessionParams {
   sessionId: string;
+  surveyId?: number | null | void;
   userRole: string;
 }
 
@@ -268,7 +301,7 @@ export interface IGetPostsessionSurveyDefinitionForSessionQuery {
   result: IGetPostsessionSurveyDefinitionForSessionResult;
 }
 
-const getPostsessionSurveyDefinitionForSessionIR: any = {"usedParamSet":{"sessionId":true,"userRole":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":1125,"b":1135}]},{"name":"userRole","required":true,"transform":{"type":"scalar"},"locs":[{"a":1155,"b":1164}]}],"statement":"SELECT\n    s.id AS survey_id,\n    st.id AS survey_type_id,\n    s.name,\n    sq.id AS question_id,\n    sq.question_text,\n    ssq.display_priority,\n    qt.name AS question_type,\n    sq.replacement_column_1 AS first_replacement_column,\n    sq.replacement_column_2 AS second_replacement_column,\n    array_agg(json_build_object('responseId', src.id, 'responseText', src.choice_text, 'responseDisplayPriority', sqrc.display_priority, 'responseDisplayImage', src.display_image)) AS responses\nFROM\n    surveys_context sc\n    JOIN surveys s ON s.id = sc.survey_id\n    JOIN survey_types st ON st.id = sc.survey_type_id\n    JOIN surveys_survey_questions ssq ON ssq.survey_id = s.id\n    JOIN survey_questions sq ON sq.id = ssq.survey_question_id\n    JOIN question_types qt ON qt.id = sq.question_type_id\n    JOIN survey_questions_response_choices sqrc ON sqrc.surveys_survey_question_id = ssq.id\n    JOIN survey_response_choices src ON src.id = sqrc.response_choice_id\n    JOIN subjects ON sc.subject_id = subjects.id\n    JOIN sessions sess ON sess.subject_id = subjects.id\n    JOIN user_roles ur ON ur.id = s.role_id\nWHERE\n    sess.id = :sessionId!\n    AND ur.name = :userRole!\n    AND st.name = 'postsession'\nGROUP BY\n    s.id,\n    st.id,\n    sq.id,\n    ssq.id,\n    qt.id\nORDER BY\n    ssq.display_priority ASC"};
+const getPostsessionSurveyDefinitionForSessionIR: any = {"usedParamSet":{"sessionId":true,"userRole":true,"surveyId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":1125,"b":1135}]},{"name":"userRole","required":true,"transform":{"type":"scalar"},"locs":[{"a":1155,"b":1164}]},{"name":"surveyId","required":false,"transform":{"type":"scalar"},"locs":[{"a":1207,"b":1215},{"a":1248,"b":1256}]}],"statement":"SELECT\n    s.id AS survey_id,\n    st.id AS survey_type_id,\n    s.name,\n    sq.id AS question_id,\n    sq.question_text,\n    ssq.display_priority,\n    qt.name AS question_type,\n    sq.replacement_column_1 AS first_replacement_column,\n    sq.replacement_column_2 AS second_replacement_column,\n    array_agg(json_build_object('responseId', src.id, 'responseText', src.choice_text, 'responseDisplayPriority', sqrc.display_priority, 'responseDisplayImage', src.display_image)) AS responses\nFROM\n    surveys_context sc\n    JOIN surveys s ON s.id = sc.survey_id\n    JOIN survey_types st ON st.id = sc.survey_type_id\n    JOIN surveys_survey_questions ssq ON ssq.survey_id = s.id\n    JOIN survey_questions sq ON sq.id = ssq.survey_question_id\n    JOIN question_types qt ON qt.id = sq.question_type_id\n    JOIN survey_questions_response_choices sqrc ON sqrc.surveys_survey_question_id = ssq.id\n    JOIN survey_response_choices src ON src.id = sqrc.response_choice_id\n    JOIN subjects ON sc.subject_id = subjects.id\n    JOIN sessions sess ON sess.subject_id = subjects.id\n    JOIN user_roles ur ON ur.id = s.role_id\nWHERE\n    sess.id = :sessionId!\n    AND ur.name = :userRole!\n    AND st.name = 'postsession'\n    AND (:surveyId::int IS NULL\n        OR s.id = :surveyId::int)\nGROUP BY\n    s.id,\n    st.id,\n    sq.id,\n    ssq.id,\n    qt.id\nORDER BY\n    ssq.display_priority ASC"};
 
 /**
  * Query generated from SQL:
@@ -300,6 +333,8 @@ const getPostsessionSurveyDefinitionForSessionIR: any = {"usedParamSet":{"sessio
  *     sess.id = :sessionId!
  *     AND ur.name = :userRole!
  *     AND st.name = 'postsession'
+ *     AND (:surveyId::int IS NULL
+ *         OR s.id = :surveyId::int)
  * GROUP BY
  *     s.id,
  *     st.id,

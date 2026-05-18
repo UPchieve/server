@@ -14,6 +14,7 @@ import * as AnalyticsService from './AnalyticsService'
 import * as NTHSService from './NTHSGroupsService'
 import { getTotalElapsedAvailabilityForDateRange } from './AvailabilityService'
 import * as MailService from './MailService'
+import * as ReferralService from './ReferralService'
 import QueueService from './QueueService'
 import { getTimeTutoredForDateRange } from './SessionService'
 import { getQuizzesPassedForDateRangeById } from '../models/UserAction'
@@ -28,7 +29,6 @@ import {
 } from '../models/Volunteer'
 import * as cache from '../cache'
 import { getSubjectsWithTopic } from './SubjectsService'
-import { countReferredUsers } from './UserService'
 import logger from '../logger'
 
 export interface HourSummaryStats {
@@ -47,9 +47,13 @@ type VolunteerSubjectProfile = {
   mutedSubjects: string[]
 }
 
-export function totalReferralMinutes(volunteerId: string) {
-  const totalReferredVolunteers = Number(countReferredUsers(volunteerId))
-  return totalReferredVolunteers * 12 // volunteer minutes earned per referral
+export const VOLUNTEER_MINUTES_EARNED_PER_REFERRAL = 12
+
+export async function totalReferralMinutes(volunteerId: string) {
+  const totalReferredVolunteers = Number(
+    await ReferralService.getReferredUsersCount(volunteerId)
+  )
+  return totalReferredVolunteers * VOLUNTEER_MINUTES_EARNED_PER_REFERRAL
 }
 
 export async function getHourSummaryStats(
@@ -93,7 +97,7 @@ export async function getHourSummaryStats(
     totalQuizzesPassed: quizzesPassed,
     totalElapsedAvailability: elapsedAvailability,
     totalVolunteerHours: totalVolunteerHours,
-    totalReferralMinutes: totalReferralMinutes(volunteerId),
+    totalReferralMinutes: await totalReferralMinutes(volunteerId),
   }
 }
 

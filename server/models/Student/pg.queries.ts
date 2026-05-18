@@ -715,7 +715,6 @@ export const updateStudentInGatesStudy = new PreparedQuery<IUpdateStudentInGates
 /** 'UpsertStudentProfile' parameters type */
 export interface IUpsertStudentProfileParams {
   college?: string | null | void;
-  gradeLevel?: string | null | void;
   postalCode?: string | null | void;
   schoolId?: string | null | void;
   studentPartnerOrgKey?: string | null | void;
@@ -727,7 +726,6 @@ export interface IUpsertStudentProfileParams {
 export interface IUpsertStudentProfileResult {
   college: string | null;
   createdAt: Date;
-  gradeLevel: string | null;
   isCreated: boolean | null;
   postalCode: string | null;
   schoolId: string | null;
@@ -743,12 +741,12 @@ export interface IUpsertStudentProfileQuery {
   result: IUpsertStudentProfileResult;
 }
 
-const upsertStudentProfileIR: any = {"usedParamSet":{"userId":true,"postalCode":true,"studentPartnerOrgKey":true,"studentPartnerOrgSiteName":true,"gradeLevel":true,"schoolId":true,"college":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":177,"b":184}]},{"name":"postalCode","required":false,"transform":{"type":"scalar"},"locs":[{"a":187,"b":197},{"a":942,"b":952}]},{"name":"studentPartnerOrgKey","required":false,"transform":{"type":"scalar"},"locs":[{"a":355,"b":375},{"a":1598,"b":1618}]},{"name":"studentPartnerOrgSiteName","required":false,"transform":{"type":"scalar"},"locs":[{"a":573,"b":598},{"a":1810,"b":1835}]},{"name":"gradeLevel","required":false,"transform":{"type":"scalar"},"locs":[{"a":770,"b":780},{"a":2044,"b":2054}]},{"name":"schoolId","required":false,"transform":{"type":"scalar"},"locs":[{"a":812,"b":820},{"a":1333,"b":1341}]},{"name":"college","required":false,"transform":{"type":"scalar"},"locs":[{"a":831,"b":838},{"a":1396,"b":1403}]}],"statement":"INSERT INTO student_profiles (user_id, postal_code, student_partner_org_id, student_partner_org_site_id, grade_level_id, school_id, college, created_at, updated_at)\n    VALUES (:userId!, :postalCode, (\n            SELECT\n                id\n            FROM\n                student_partner_orgs\n            WHERE\n                student_partner_orgs.key = :studentPartnerOrgKey\n            LIMIT 1),\n        (\n            SELECT\n                id\n            FROM\n                student_partner_org_sites\n            WHERE\n                student_partner_org_sites.name = :studentPartnerOrgSiteName\n            LIMIT 1),\n        (\n            SELECT\n                id\n            FROM\n                grade_levels\n            WHERE\n                grade_levels.name = :gradeLevel\n            LIMIT 1),\n        :schoolId,\n        :college,\n        NOW(),\n        NOW())\nON CONFLICT (user_id)\n    DO UPDATE SET\n        postal_code = COALESCE(:postalCode, student_profiles.postal_code),\n    student_partner_org_id = COALESCE(EXCLUDED.student_partner_org_id, student_profiles.student_partner_org_id),\n    student_partner_org_site_id = CASE WHEN EXCLUDED.student_partner_org_id IS NOT NULL THEN\n        EXCLUDED.student_partner_org_site_id\n    ELSE\n        student_profiles.student_partner_org_site_id\n    END,\n    school_id = COALESCE(:schoolId, student_profiles.school_id),\n    college = COALESCE(:college, student_profiles.college),\n    grade_level_id = COALESCE(EXCLUDED.grade_level_id, student_profiles.grade_level_id),\n    updated_at = NOW()\nRETURNING\n    user_id,\n    postal_code,\n    COALESCE(:studentPartnerOrgKey, (\n            SELECT\n                KEY FROM student_partner_orgs\n            WHERE\n                id = student_profiles.student_partner_org_id)) AS student_partner_org_key,\n    COALESCE(:studentPartnerOrgSiteName, (\n            SELECT\n                name FROM student_partner_org_sites\n            WHERE\n                id = student_profiles.student_partner_org_site_id)) AS student_partner_org_site_name,\n    COALESCE(:gradeLevel, (\n            SELECT\n                name FROM grade_levels\n            WHERE\n                id = student_profiles.grade_level_id)) AS grade_level,\n    school_id,\n    college,\n    created_at,\n    updated_at,\n    (xmax = 0) AS is_created"};
+const upsertStudentProfileIR: any = {"usedParamSet":{"userId":true,"postalCode":true,"studentPartnerOrgKey":true,"studentPartnerOrgSiteName":true,"schoolId":true,"college":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":161,"b":168}]},{"name":"postalCode","required":false,"transform":{"type":"scalar"},"locs":[{"a":171,"b":181},{"a":744,"b":754}]},{"name":"studentPartnerOrgKey","required":false,"transform":{"type":"scalar"},"locs":[{"a":339,"b":359},{"a":1363,"b":1383}]},{"name":"studentPartnerOrgSiteName","required":false,"transform":{"type":"scalar"},"locs":[{"a":557,"b":582},{"a":1595,"b":1620}]},{"name":"schoolId","required":false,"transform":{"type":"scalar"},"locs":[{"a":614,"b":622},{"a":1163,"b":1171}]},{"name":"college","required":false,"transform":{"type":"scalar"},"locs":[{"a":633,"b":640},{"a":1230,"b":1237}]}],"statement":"INSERT INTO student_profiles (user_id, postal_code, student_partner_org_id, student_partner_org_site_id, school_id, college, created_at, updated_at)\n    VALUES (:userId!, :postalCode, (\n            SELECT\n                id\n            FROM\n                student_partner_orgs\n            WHERE\n                student_partner_orgs.key = :studentPartnerOrgKey\n            LIMIT 1),\n        (\n            SELECT\n                id\n            FROM\n                student_partner_org_sites\n            WHERE\n                student_partner_org_sites.name = :studentPartnerOrgSiteName\n            LIMIT 1),\n        :schoolId,\n        :college,\n        NOW(),\n        NOW())\nON CONFLICT (user_id)\n    DO UPDATE SET\n        postal_code = COALESCE(:postalCode, student_profiles.postal_code),\n        student_partner_org_id = COALESCE(EXCLUDED.student_partner_org_id, student_profiles.student_partner_org_id),\n        student_partner_org_site_id = CASE WHEN EXCLUDED.student_partner_org_id IS NOT NULL THEN\n            EXCLUDED.student_partner_org_site_id\n        ELSE\n            student_profiles.student_partner_org_site_id\n        END,\n        school_id = COALESCE(:schoolId, student_profiles.school_id),\n        college = COALESCE(:college, student_profiles.college),\n        updated_at = NOW()\n    RETURNING\n        user_id,\n        postal_code,\n        COALESCE(:studentPartnerOrgKey, (\n                SELECT\n                    KEY FROM student_partner_orgs\n                WHERE\n                    id = student_profiles.student_partner_org_id)) AS student_partner_org_key,\n        COALESCE(:studentPartnerOrgSiteName, (\n                SELECT\n                    name FROM student_partner_org_sites\n                WHERE\n                    id = student_profiles.student_partner_org_site_id)) AS student_partner_org_site_name,\n        school_id,\n        college,\n        created_at,\n        updated_at,\n        (xmax = 0) AS is_created"};
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO student_profiles (user_id, postal_code, student_partner_org_id, student_partner_org_site_id, grade_level_id, school_id, college, created_at, updated_at)
+ * INSERT INTO student_profiles (user_id, postal_code, student_partner_org_id, student_partner_org_site_id, school_id, college, created_at, updated_at)
  *     VALUES (:userId!, :postalCode, (
  *             SELECT
  *                 id
@@ -765,14 +763,6 @@ const upsertStudentProfileIR: any = {"usedParamSet":{"userId":true,"postalCode":
  *             WHERE
  *                 student_partner_org_sites.name = :studentPartnerOrgSiteName
  *             LIMIT 1),
- *         (
- *             SELECT
- *                 id
- *             FROM
- *                 grade_levels
- *             WHERE
- *                 grade_levels.name = :gradeLevel
- *             LIMIT 1),
  *         :schoolId,
  *         :college,
  *         NOW(),
@@ -780,39 +770,33 @@ const upsertStudentProfileIR: any = {"usedParamSet":{"userId":true,"postalCode":
  * ON CONFLICT (user_id)
  *     DO UPDATE SET
  *         postal_code = COALESCE(:postalCode, student_profiles.postal_code),
- *     student_partner_org_id = COALESCE(EXCLUDED.student_partner_org_id, student_profiles.student_partner_org_id),
- *     student_partner_org_site_id = CASE WHEN EXCLUDED.student_partner_org_id IS NOT NULL THEN
- *         EXCLUDED.student_partner_org_site_id
- *     ELSE
- *         student_profiles.student_partner_org_site_id
- *     END,
- *     school_id = COALESCE(:schoolId, student_profiles.school_id),
- *     college = COALESCE(:college, student_profiles.college),
- *     grade_level_id = COALESCE(EXCLUDED.grade_level_id, student_profiles.grade_level_id),
- *     updated_at = NOW()
- * RETURNING
- *     user_id,
- *     postal_code,
- *     COALESCE(:studentPartnerOrgKey, (
- *             SELECT
- *                 KEY FROM student_partner_orgs
- *             WHERE
- *                 id = student_profiles.student_partner_org_id)) AS student_partner_org_key,
- *     COALESCE(:studentPartnerOrgSiteName, (
- *             SELECT
- *                 name FROM student_partner_org_sites
- *             WHERE
- *                 id = student_profiles.student_partner_org_site_id)) AS student_partner_org_site_name,
- *     COALESCE(:gradeLevel, (
- *             SELECT
- *                 name FROM grade_levels
- *             WHERE
- *                 id = student_profiles.grade_level_id)) AS grade_level,
- *     school_id,
- *     college,
- *     created_at,
- *     updated_at,
- *     (xmax = 0) AS is_created
+ *         student_partner_org_id = COALESCE(EXCLUDED.student_partner_org_id, student_profiles.student_partner_org_id),
+ *         student_partner_org_site_id = CASE WHEN EXCLUDED.student_partner_org_id IS NOT NULL THEN
+ *             EXCLUDED.student_partner_org_site_id
+ *         ELSE
+ *             student_profiles.student_partner_org_site_id
+ *         END,
+ *         school_id = COALESCE(:schoolId, student_profiles.school_id),
+ *         college = COALESCE(:college, student_profiles.college),
+ *         updated_at = NOW()
+ *     RETURNING
+ *         user_id,
+ *         postal_code,
+ *         COALESCE(:studentPartnerOrgKey, (
+ *                 SELECT
+ *                     KEY FROM student_partner_orgs
+ *                 WHERE
+ *                     id = student_profiles.student_partner_org_id)) AS student_partner_org_key,
+ *         COALESCE(:studentPartnerOrgSiteName, (
+ *                 SELECT
+ *                     name FROM student_partner_org_sites
+ *                 WHERE
+ *                     id = student_profiles.student_partner_org_site_id)) AS student_partner_org_site_name,
+ *         school_id,
+ *         college,
+ *         created_at,
+ *         updated_at,
+ *         (xmax = 0) AS is_created
  * ```
  */
 export const upsertStudentProfile = new PreparedQuery<IUpsertStudentProfileParams,IUpsertStudentProfileResult>(upsertStudentProfileIR);
@@ -1215,7 +1199,7 @@ export interface IGetStudentsIdsForGradeLevelSgUpdateQuery {
   result: IGetStudentsIdsForGradeLevelSgUpdateResult;
 }
 
-const getStudentsIdsForGradeLevelSgUpdateIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    sp.user_id\nFROM\n    student_profiles sp\n    JOIN current_grade_levels_mview cgl ON cgl.user_id = sp.user_id\n    JOIN users u ON u.id = sp.user_id\nWHERE\n    u.deactivated IS FALSE\n    AND u.deleted IS FALSE\nORDER BY\n    sp.created_at DESC"};
+const getStudentsIdsForGradeLevelSgUpdateIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    sp.user_id\nFROM\n    student_profiles sp\n    JOIN current_grade_levels cgl ON cgl.user_id = sp.user_id\n    JOIN users u ON u.id = sp.user_id\nWHERE\n    u.deactivated IS FALSE\n    AND u.deleted IS FALSE\nORDER BY\n    sp.created_at DESC"};
 
 /**
  * Query generated from SQL:
@@ -1224,7 +1208,7 @@ const getStudentsIdsForGradeLevelSgUpdateIR: any = {"usedParamSet":{},"params":[
  *     sp.user_id
  * FROM
  *     student_profiles sp
- *     JOIN current_grade_levels_mview cgl ON cgl.user_id = sp.user_id
+ *     JOIN current_grade_levels cgl ON cgl.user_id = sp.user_id
  *     JOIN users u ON u.id = sp.user_id
  * WHERE
  *     u.deactivated IS FALSE
@@ -1364,7 +1348,7 @@ export interface IGetStudentProfilesByUserIdsQuery {
   result: IGetStudentProfilesByUserIdsResult;
 }
 
-const getStudentProfilesByUserIdsIR: any = {"usedParamSet":{"userIds":true},"params":[{"name":"userIds","required":true,"transform":{"type":"array_spread"},"locs":[{"a":508,"b":516}]}],"statement":"SELECT\n    student_profiles.user_id,\n    users.id,\n    first_name,\n    last_name,\n    email,\n    COALESCE(cgl.current_grade_name, grade_levels.name) AS grade_level,\n    users.created_at,\n    users.updated_at,\n    school_id\nFROM\n    student_profiles\n    JOIN users ON student_profiles.user_id = users.id\n    LEFT JOIN grade_levels ON student_profiles.grade_level_id = grade_levels.id\n    LEFT JOIN current_grade_levels_mview cgl ON cgl.user_id = student_profiles.user_id\nWHERE\n    student_profiles.user_id IN :userIds!"};
+const getStudentProfilesByUserIdsIR: any = {"usedParamSet":{"userIds":true},"params":[{"name":"userIds","required":true,"transform":{"type":"array_spread"},"locs":[{"a":393,"b":401}]}],"statement":"SELECT\n    student_profiles.user_id,\n    users.id,\n    first_name,\n    last_name,\n    email,\n    cgl.current_grade_name AS grade_level,\n    users.created_at,\n    users.updated_at,\n    school_id\nFROM\n    student_profiles\n    JOIN users ON student_profiles.user_id = users.id\n    LEFT JOIN current_grade_levels cgl ON cgl.user_id = student_profiles.user_id\nWHERE\n    student_profiles.user_id IN :userIds!"};
 
 /**
  * Query generated from SQL:
@@ -1375,15 +1359,14 @@ const getStudentProfilesByUserIdsIR: any = {"usedParamSet":{"userIds":true},"par
  *     first_name,
  *     last_name,
  *     email,
- *     COALESCE(cgl.current_grade_name, grade_levels.name) AS grade_level,
+ *     cgl.current_grade_name AS grade_level,
  *     users.created_at,
  *     users.updated_at,
  *     school_id
  * FROM
  *     student_profiles
  *     JOIN users ON student_profiles.user_id = users.id
- *     LEFT JOIN grade_levels ON student_profiles.grade_level_id = grade_levels.id
- *     LEFT JOIN current_grade_levels_mview cgl ON cgl.user_id = student_profiles.user_id
+ *     LEFT JOIN current_grade_levels cgl ON cgl.user_id = student_profiles.user_id
  * WHERE
  *     student_profiles.user_id IN :userIds!
  * ```

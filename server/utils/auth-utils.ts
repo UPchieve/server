@@ -50,8 +50,10 @@ export interface SessionWithSsoData extends session.Session {
     provider?: string
     redirect?: string
     errorRedirect?: string
-    accountType?: Extract<UserRole, 'student' | 'teacher'>
-    userData?: Partial<RegisterStudentPayload | RegisterTeacherPayload>
+    accountType?: Extract<UserRole, 'student' | 'volunteer' | 'teacher'>
+    userData?: Partial<
+      RegisterStudentPayload | RegisterVolunteerPayload | RegisterTeacherPayload
+    >
     fedCredData?: {
       profileId: string
       issuer: string
@@ -494,14 +496,14 @@ function isAdminRedirect(
 }
 
 async function checkRecaptcha(req: Request, res: Response, next: NextFunction) {
-  try {
-    await validateRequestRecaptcha(req)
+  const passes = await validateRequestRecaptcha(req)
+  if (passes) {
     return next()
-  } catch (err) {
-    res.status(500).json({
-      err: 'Something went wrong. Please contact the UPchieve team at support@upchieve.org for help.',
-    })
   }
+
+  res.status(500).json({
+    err: 'Something went wrong. Please contact the UPchieve team at support@upchieve.org for help.',
+  })
 }
 
 export const authPassport = {

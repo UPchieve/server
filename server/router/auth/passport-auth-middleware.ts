@@ -156,7 +156,7 @@ async function handleSSOStrategy(
     if (existingFedCred) {
       if (userData && options.isStudent(profile.userType)) {
         const data = {
-          schoolId: userData.schoolId,
+          schoolId: (userData as RegisterStudentPayload).schoolId,
           studentPartnerOrgKey: (userData as RegisterStudentPayload)
             .studentPartnerOrgKey,
           studentPartnerOrgSiteName: (userData as RegisterStudentPayload)
@@ -210,7 +210,7 @@ async function handleSSOStrategy(
     if (existingUser && existingUser.emailVerified) {
       if (userData && options.isStudent(profile.userType)) {
         const data = {
-          schoolId: userData.schoolId,
+          schoolId: (userData as RegisterStudentPayload).schoolId,
           studentPartnerOrgKey: (userData as RegisterStudentPayload)
             .studentPartnerOrgKey,
           studentPartnerOrgSiteName: (userData as RegisterStudentPayload)

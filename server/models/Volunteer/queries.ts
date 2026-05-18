@@ -1142,7 +1142,7 @@ export type CreateVolunteerPayload = {
   firstName: string
   lastName: string
   password: string
-  referredBy: Ulid | undefined
+  referredByCode?: string
   volunteerPartnerOrg: string | undefined
   timezone: string | undefined
   signupSourceId?: number

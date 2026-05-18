@@ -8,7 +8,6 @@ import backfillEmailNiceToMeetYou from '../../scripts/backfill-email-nice-to-mee
 import backfillEmailVolunteerInactive from '../../scripts/backfill-email-volunteer-inactive'
 import backfillStudentPosthog from '../../scripts/backfill-student-posthog'
 import backfillStudentUsersRoles from '../../scripts/backfill-student-users-roles'
-import backfillUsersGradeLevels from '../../scripts/backfill-users-grade-levels'
 import deleteDuplicateUserSurveys from '../../scripts/delete-duplicate-user-surveys'
 import deleteSelfFavoritedVolunteers from '../../scripts/delete-self-favorited-volunteers'
 import deleteDuplicateStudentFavoriteVolunteers from '../../scripts/delete-duplicate-student-favorite-volunteers'
@@ -42,7 +41,6 @@ import emailVolunteerFirstSessionCongrats from './volunteer-emails/emailVoluntee
 import emailVolunteerInactive from './volunteer-emails/emailVolunteerInactive'
 import emailVolunteerInactiveBlackoutOver from './volunteer-emails/emailVolunteerInactiveBlackoutOver'
 import emailVolunteerSessionActions from './volunteer-emails/emailVolunteerSessionActions'
-import updateGradeLevel from './updateGradeLevel'
 import sendSessionRecapMessageNotification from './sendSessionRecapMessageNotification'
 import generateProgressReport from './generateProgressReport'
 import updateBasicAccessViews from '../../scripts/update-basic-access-views'
@@ -75,7 +73,6 @@ import spawnUpdateNthsChapterStatusForImpactPath from './spawnUpdateNTHSChapterS
 import notifyNTHSChapterAdminsOfDeactivatedUser from './notifyNTHSChapterAdminsOfDeactivatedUser'
 import executeModerationAction from './executeModerationAction'
 import deleteProxyEmailsIdenticalToEmails from './deleteProxyEmailsIdenticalToEmails'
-import backfillEndedByUserId from '../backfillEndedByUserId'
 
 export enum Jobs {
   AddScheduledJobs = 'AddScheduledJobs',
@@ -87,7 +84,6 @@ export enum Jobs {
   BackfillStudentAmbassadorRole = 'BackfillStudentAmbassadorRole',
   BackfillStudentPosthog = 'BackfillStudentPosthog',
   BackfillStudentUsersRoles = 'BackfillStudentUsersRoles',
-  BackfillUsersGradeLevels = 'BackfillUsersGradeLevels',
   ClearBullJobsByStatus = 'ClearBullJobsByStatus',
   DeidentifyUser = 'DeidentifyUser',
   DeleteDuplicateStudentFavoriteVolunteers = 'DeleteDuplicateStudentFavoriteVolunteers',
@@ -156,7 +152,6 @@ export enum Jobs {
   TitlecaseSchoolNames = 'TitlecaseSchoolNames',
   UpdateBasicAccessViews = 'UpdateBasicAccessViews',
   UpdateElapsedAvailability = 'UpdateElapsedAvailability',
-  UpdateGradeLevel = 'UpdateGradeLevel',
   UpdateSendGridGradeLevels = 'UpdateSendGridGradeLevels',
   UpdateTotalVolunteerHours = 'UpdateTotalVolunteerHours',
   UpsertPostalCodes = 'UpsertPostalCodes',
@@ -166,7 +161,6 @@ export enum Jobs {
   SpawnUpdateNTHSChapterStatusForImpactPath = 'SpawnUpdateNTHSChapterStatusForImpactPath',
   NotifyNTHSChapterAdminsOfDeactivatedUser = 'NotifyNTHSChapterAdminsOfDeactivatedUser',
   CleanUpProxyEmailsThatAreIdenticalToEmail = 'CleanUpProxyEmailsThatAreIdenticalToEmail',
-  BackfillEndedByUserId = 'BackfillEndedByUserId',
 }
 
 // register new job processors here
@@ -211,10 +205,6 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.BackfillStudentUsersRoles,
     processor: backfillStudentUsersRoles,
-  },
-  {
-    name: Jobs.BackfillUsersGradeLevels,
-    processor: backfillUsersGradeLevels,
   },
   {
     name: Jobs.ClearBullJobsByStatus,
@@ -474,10 +464,6 @@ const jobProcessors: JobProcessor[] = [
     processor: updateElapsedAvailability,
   },
   {
-    name: Jobs.UpdateGradeLevel,
-    processor: updateGradeLevel,
-  },
-  {
     name: Jobs.UpdateSendGridGradeLevels,
     processor: updateSendGridGradeLevels,
   },
@@ -512,10 +498,6 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.CleanUpProxyEmailsThatAreIdenticalToEmail,
     processor: deleteProxyEmailsIdenticalToEmails,
-  },
-  {
-    name: Jobs.BackfillEndedByUserId,
-    processor: backfillEndedByUserId,
   },
 ]
 

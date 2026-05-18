@@ -6,27 +6,37 @@ import { getDbUlid, Ulid, Uuid } from '../../models/pgUtils'
 export async function createTestUser(
   client: TransactionClient,
   overrides: {
+    id?: Ulid
     email?: string
     referredById?: Ulid
     banType?: USER_BAN_TYPES
   } = {}
 ): Promise<{ id: Ulid }> {
-  return (
+  const user = (
     await client.query(
-      `INSERT INTO users (id, first_name, last_name, email, referral_code, referred_by, ban_type)
-       VALUES($1, $2, $3, $4, $5, $6, $7)
+      `INSERT INTO users (id, first_name, last_name, email, referral_code, ban_type)
+       VALUES($1, $2, $3, $4, $5, $6)
        RETURNING *`,
       [
-        getDbUlid(),
+        overrides.id ?? getDbUlid(),
         faker.person.firstName(),
         faker.person.lastName(),
         overrides.email ?? faker.internet.email(),
         faker.string.alphanumeric(20),
-        overrides.referredById ?? null,
         overrides.banType ?? null,
       ]
     )
   ).rows[0]
+
+  if (overrides.referredById) {
+    await createTestUser(client, { id: overrides.referredById })
+    await client.query(
+      `INSERT INTO referrals (user_id, referred_by) VALUES($1, $2)`,
+      [user.id, overrides.referredById]
+    )
+  }
+
+  return user
 }
 
 export async function createTestTeacher(
@@ -45,12 +55,21 @@ export async function createTestStudent(
   studentOverrides?: { gradeLevelId?: number }
 ) {
   const user = await createTestUser(client, userOverrides)
-  return (
+  const student = (
     await client.query(
-      'INSERT INTO student_profiles (user_id, grade_level_id) VALUES ($1, $2) RETURNING *',
-      [user.id, studentOverrides?.gradeLevelId]
+      'INSERT INTO student_profiles (user_id) VALUES ($1) RETURNING *',
+      [user.id]
     )
   ).rows[0]
+
+  if (studentOverrides?.gradeLevelId) {
+    await client.query(
+      'INSERT INTO users_grade_levels (user_id, signup_grade_level_id, grade_level_id) VALUES($1, $2, $2)',
+      [user.id, studentOverrides?.gradeLevelId]
+    )
+  }
+
+  return student
 }
 
 export async function createTestVolunteer(

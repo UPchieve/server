@@ -619,7 +619,6 @@ describe('VolunteerRepo', () => {
           firstName: faker.string.alpha(),
           lastName: faker.string.alpha(),
           password: faker.internet.password(),
-          referredBy: undefined,
           volunteerPartnerOrg: undefined,
           timezone: undefined,
         },
@@ -796,7 +795,6 @@ const generateVolunteer = (): CreateVolunteerPayload => {
     terms: true,
     firstName,
     lastName,
-    referredBy: undefined,
     timezone: TIMEZONE,
     volunteerPartnerOrg: undefined,
   } as CreateVolunteerPayload

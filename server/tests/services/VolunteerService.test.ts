@@ -20,6 +20,9 @@ import {
   buildVolunteerContactInfo,
 } from '../mocks/generate'
 
+import * as ReferralService from '../../services/ReferralService'
+jest.mock('../../services/ReferralService')
+const mockedReferralService = mocked(ReferralService)
 jest.mock('../../services/NTHSGroupsService')
 jest.mock('../../models/Volunteer')
 jest.mock('../../models/UsersSchools')
@@ -432,6 +435,15 @@ describe('submitBackgroundInfo', () => {
       updateWithHS.highSchoolId,
       'student_at_school',
       expect.anything()
+    )
+  })
+
+  test('totalReferralMinutes calculate the number of minutes per referral', async () => {
+    const count = 2
+    mockedReferralService.getReferredUsersCount.mockResolvedValue(count)
+    const result = await VolunteerService.totalReferralMinutes('random-id')
+    expect(result).toBe(
+      count * VolunteerService.VOLUNTEER_MINUTES_EARNED_PER_REFERRAL
     )
   })
 })

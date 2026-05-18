@@ -686,7 +686,6 @@ describe('deidentifyUserJob', () => {
     expect(userBefore.rows[0].other_signup_source).toBe('other-source')
     expect(userBefore.rows[0].proxy_email).toBe('proxy@example.com')
     expect(userBefore.rows[0].referral_code).toBeDefined()
-    expect(userBefore.rows[0].referred_by).toBeNull()
 
     await deidentifyUserJob(createJob(userId))
 
@@ -705,7 +704,6 @@ describe('deidentifyUserJob', () => {
     expect(userAfter.rows[0].other_signup_source).toBeNull()
     expect(userAfter.rows[0].proxy_email).toBeNull()
     expect(userAfter.rows[0].referral_code).toBe(userId)
-    expect(userAfter.rows[0].referred_by).toBeNull()
   })
 
   test('adds DELETED user_action', async () => {

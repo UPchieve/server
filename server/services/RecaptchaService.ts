@@ -2,10 +2,6 @@ import axios from 'axios'
 import config from '../config'
 import { Request } from 'express'
 import logger from '../logger'
-import {
-  LowRecaptchaScoreError,
-  MissingRecaptchaTokenError,
-} from '../models/Errors'
 
 export interface RecaptchaScoreResponse {
   data: {
@@ -51,31 +47,47 @@ export async function getScore(
  * @throws Error
  * @param req
  */
-export async function validateRequestRecaptcha(req: Request): Promise<void> {
-  const token = req.headers['g-recaptcha-response']
-  if (!token) {
-    logger.info('unable to check grecaptcha: no token in request headers')
-    throw new MissingRecaptchaTokenError()
-  }
+export async function validateRequestRecaptcha(req: Request): Promise<boolean> {
+  try {
+    const token = req.headers['g-recaptcha-response']
+    if (!token) {
+      logger.info(
+        { userId: req.user?.id },
+        'unable to check grecaptcha: no token in request headers'
+      )
+      return false
+    }
 
-  const result = await getScore(token as string, req.ip)
-  if (!result.data || !result.data?.success) {
-    logger.error(
-      { data: JSON.stringify(result.data) },
-      `grecaptcha result failed`
-    )
-    throw new Error('Could not get recaptcha score for request')
-  }
+    const result = await getScore(token as string, req.ip)
+    // TODO: Check action as well?
+    if (!result.data || !result.data?.success) {
+      logger.error(
+        { data: JSON.stringify(result.data), userId: req.user?.id },
+        `failed to get grecaptcha score`
+      )
+      return false
+    }
 
-  if (result.data.score < config.googleRecaptchaThreshold) {
-    logger.warn({
-      message: `grecaptcha score is below threshold`,
+    const logMetadata = {
       score: result.data.score,
       action: result.data.action,
       threshold: config.googleRecaptchaThreshold,
       userId: req.user?.id,
       verificationMethod: req.body?.data?.verificationMethod,
-    })
-    throw new LowRecaptchaScoreError()
+    }
+
+    if (result.data.score < config.googleRecaptchaThreshold) {
+      logger.warn(logMetadata, `grecaptcha score is below threshold`)
+      return false
+    }
+
+    logger.info(logMetadata, 'grecaptcha score passes threshold')
+    return true
+  } catch (err) {
+    logger.error(
+      { userId: req.user?.id, err },
+      'unexpected error in grecaptcha validation'
+    )
+    return false
   }
 }
