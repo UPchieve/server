@@ -165,13 +165,6 @@ export async function isStudentSessionSummaryEnabled(userId: Uuid) {
   return isFeatureEnabled(FEATURE_FLAGS.STUDENT_SESSION_SUMMARY, userId)
 }
 
-export async function isStudentFirstSessionInterviewEmailEnabled(userId: Uuid) {
-  return isFeatureEnabled(
-    FEATURE_FLAGS.FIRST_SESSION_EMAIL_FOR_INTERVIEW,
-    userId
-  )
-}
-
 export async function getStudentPostSessionSurveyNameVariant(
   userId: Uuid
 ): Promise<string | null> {
