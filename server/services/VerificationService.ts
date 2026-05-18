@@ -218,7 +218,7 @@ export async function confirmVerification(data: unknown): Promise<boolean> {
     sendTo,
     verificationMethod: initialVerificationMethod,
     verificationCode,
-    forSignup,
+    forSignup = true,
     verificationType,
   } = asConfirmVerificationData(data)
 

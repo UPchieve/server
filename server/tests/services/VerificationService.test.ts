@@ -255,6 +255,19 @@ describe('VerificationService', () => {
         ).toHaveBeenCalled()
       })
 
+      it('Should default to forSignup = true if undefined', async () => {
+        const req = {
+          userId: '123',
+          sendTo: 'tinabelcher@bobsburgers.com',
+          verificationMethod: VERIFICATION_METHOD.EMAIL,
+          verificationCode: '123456',
+        }
+        await VerificationService.confirmVerification(req)
+        expect(
+          mockedMailService.sendStudentOnboardingWelcomeEmail
+        ).toHaveBeenCalled()
+      })
+
       it('Should send emails by default is forSignup is not present in the request', async () => {
         const req = {
           userId: '123',
