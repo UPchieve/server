@@ -264,5 +264,9 @@ export async function confirmVerification(data: unknown): Promise<boolean> {
     }
   }
 
+  if (isVerified && forSignup) {
+    logger.info({ userId }, 'Account verified')
+  }
+
   return isVerified
 }
