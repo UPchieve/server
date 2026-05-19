@@ -14,7 +14,7 @@ import * as CacheService from '../../cache'
 import * as FavoritingService from '../../services/FavoritingService'
 import * as NotificationService from '../../services/NotificationService'
 import * as SessionService from '../../services/SessionService'
-import * as TwilioService from '../../services/TwilioService'
+import { sendTextMessage } from '../../clients/twilio'
 import * as QueueService from '../../services/QueueService'
 import {
   TEXTABLE_VOLUNTEERS_CACHE_KEY,
@@ -310,7 +310,7 @@ export async function sendTextMessages(
           ? studentOrgDisplay
           : undefined
       )
-      const carrierMessageId = await TwilioService.sendTextMessage(
+      const carrierMessageId = await sendTextMessage(
         v.phone,
         content,
         session.sessionId

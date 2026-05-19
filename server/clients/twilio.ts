@@ -1,10 +1,11 @@
 import twilio from 'twilio'
 import config from '../config'
 import logger from '../logger'
+import { optOutSmsConsentForPhoneNumber } from '../services/UserProfileService'
 import { VERIFICATION_METHOD } from '../constants'
-import * as UserProfileService from './UserProfileService'
+import { maskContact } from '../utils/mask-contact'
 
-const twilioClient =
+const client =
   config.accountSid && config.authToken
     ? twilio(config.accountSid, config.authToken)
     : null
@@ -12,6 +13,7 @@ const twilioClient =
 // See Twilio Verify error codes here: https://www.twilio.com/docs/api/errors#6-anchor
 enum TwilioErrorCodes {
   INVALID_PARAMETER = 60200,
+  DELIVERY_ATTEMPT_BLOCKED = 60410,
 }
 
 export async function sendTextMessage(
@@ -31,12 +33,12 @@ export async function sendTextMessage(
     const fullPhoneNumber =
       phoneNumber[0] === '+' ? phoneNumber : `+1${phoneNumber}`
 
-    if (!twilioClient) {
+    if (!client) {
       logger.warn('Twilio client not loaded.')
       return
     }
 
-    const message = await twilioClient.messages.create({
+    const message = await client.messages.create({
       to: fullPhoneNumber,
       from: config.twilioMessageServiceId,
       body: messageText,
@@ -46,9 +48,12 @@ export async function sendTextMessage(
     if (
       (err as Error).message === 'Attempt to send to unsubscribed recipient'
     ) {
-      await UserProfileService.optOutSmsConsentForPhoneNumber(phoneNumber)
+      await optOutSmsConsentForPhoneNumber(phoneNumber)
     }
-    logger.error(err, 'An expected error happened while sending a text message')
+    logger.error(
+      { err },
+      'An unexpected error happened while sending a text message'
+    )
   }
 }
 
@@ -58,12 +63,12 @@ export async function sendVerification(
   firstName: string,
   userId: string
 ): Promise<void> {
-  if (!twilioClient) {
+  if (!client) {
     logger.warn('Twilio client not loaded.')
     return
   }
 
-  await twilioClient.verify.v2
+  await client.verify.v2
     .services(config.twilioAccountVerificationServiceSid)
     .verifications.create(
       {
@@ -80,19 +85,26 @@ export async function sendVerification(
           [config.twilioVerificationRateLimitUniqueName]: userId,
         },
       },
-      async (error, verificationInstance) => {
-        if (error) {
-          if (
-            'code' in error &&
-            error['code'] === TwilioErrorCodes.INVALID_PARAMETER
-          ) {
-            // Rate limit with that unique name does not exist.
-            // This should have been created during application startup.
-            logger.warn(
-              `Could not find Twilio rate limit with uniqueName=${config.twilioVerificationRateLimitUniqueName} while attempting to send a verification code. Will attempt to create it now.`
-            )
-            await createRateLimit(config.twilioVerificationRateLimitUniqueName)
-          }
+      async (error) => {
+        // By having the callback, we end up failing silently.
+        // That's probably not what we want?
+        // TODO(alex.lindsay): Determine how we want to handle failures.
+        if (!error || 'code' in error === false) return
+
+        if (error['code'] === TwilioErrorCodes.INVALID_PARAMETER) {
+          // Rate limit with that unique name does not exist.
+          // This should have been created during application startup.
+          logger.warn(
+            `Could not find Twilio rate limit with uniqueName=${config.twilioVerificationRateLimitUniqueName} while attempting to send a verification code. Will attempt to create it now.`
+          )
+          await createRateLimit(config.twilioVerificationRateLimitUniqueName)
+        }
+
+        if (error['code'] === TwilioErrorCodes.DELIVERY_ATTEMPT_BLOCKED) {
+          logger.warn(
+            { userId, sendTo: maskContact(sendTo) },
+            `Twilio flagged message as potentially fraudulent`
+          )
         }
       }
     )
@@ -102,11 +114,12 @@ export async function confirmVerification(
   to: string,
   code: string
 ): Promise<boolean> {
-  if (!twilioClient) {
+  if (!client) {
     logger.warn('Twilio client not loaded.')
-    return true
+    return false
   }
-  const result = await twilioClient.verify.v2
+
+  const result = await client.verify.v2
     .services(config.twilioAccountVerificationServiceSid)
     .verificationChecks.create({ to, code })
   return result.valid
@@ -125,7 +138,7 @@ export async function confirmVerification(
  * Learn more here: https://www.twilio.com/docs/verify/api/programmable-rate-limits
  */
 export async function fetchOrCreateRateLimit() {
-  if (!twilioClient) {
+  if (!client) {
     logger.warn('Twilio client not loaded')
     return
   }
@@ -135,7 +148,7 @@ export async function fetchOrCreateRateLimit() {
   )
 
   // Fetch RateLimits and see if the one we want exists.
-  const rateLimits = await twilioClient.verify.v2
+  const rateLimits = await client.verify.v2
     .services(config.twilioAccountVerificationServiceSid)
     .rateLimits.list()
 
@@ -153,23 +166,21 @@ export async function fetchOrCreateRateLimit() {
 }
 
 async function createRateLimit(uniqueName: string): Promise<void> {
-  // Create RateLimit
-  const rateLimit = await twilioClient?.verify.v2
+  const rateLimit = await client?.verify.v2
     .services(config.twilioAccountVerificationServiceSid)
     .rateLimits.create({
       uniqueName,
       description: `Rate limit on ${uniqueName}`,
     })
+
   if (!rateLimit) {
-    // It should throw an error in this case, but just to be safe
     throw new Error(`Could not create rate limit`)
   }
 
   logger.info(`Created RateLimit in Twilio with uniqueName=${uniqueName}`)
   const rateLimitSid = (await Promise.resolve(rateLimit)).sid
 
-  // Create RateLimitBucket
-  const rateLimitBucket = await twilioClient?.verify.v2
+  const rateLimitBucket = await client?.verify.v2
     .services(config.twilioAccountVerificationServiceSid)
     .rateLimits(rateLimitSid)
     .buckets.create({
@@ -178,8 +189,8 @@ async function createRateLimit(uniqueName: string): Promise<void> {
     })
 
   if (!rateLimitBucket) {
-    // It should throw an error in this case, but just to be safe
     throw new Error('Could not create rate limit bucket')
   }
+
   logger.info(`Created RateLimitBucket in Twilio`)
 }
