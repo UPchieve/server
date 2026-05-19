@@ -544,12 +544,15 @@ export const deactivateStudentPartnerOrg = new PreparedQuery<IDeactivateStudentP
 
 /** 'DeactivateUserStudentPartnerOrgInstance' parameters type */
 export interface IDeactivateUserStudentPartnerOrgInstanceParams {
+  deactivatedOn?: DateOrString | null | void;
   spoId: string;
   userId: string;
 }
 
 /** 'DeactivateUserStudentPartnerOrgInstance' return type */
-export type IDeactivateUserStudentPartnerOrgInstanceResult = void;
+export interface IDeactivateUserStudentPartnerOrgInstanceResult {
+  userId: string | null;
+}
 
 /** 'DeactivateUserStudentPartnerOrgInstance' query type */
 export interface IDeactivateUserStudentPartnerOrgInstanceQuery {
@@ -557,7 +560,7 @@ export interface IDeactivateUserStudentPartnerOrgInstanceQuery {
   result: IDeactivateUserStudentPartnerOrgInstanceResult;
 }
 
-const deactivateUserStudentPartnerOrgInstanceIR: any = {"usedParamSet":{"userId":true,"spoId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":123,"b":130}]},{"name":"spoId","required":true,"transform":{"type":"scalar"},"locs":[{"a":165,"b":171}]}],"statement":"UPDATE\n    users_student_partner_orgs_instances\nSET\n    deactivated_on = NOW(),\n    updated_at = NOW()\nWHERE\n    user_id = :userId!\n    AND student_partner_org_id = :spoId!"};
+const deactivateUserStudentPartnerOrgInstanceIR: any = {"usedParamSet":{"deactivatedOn":true,"userId":true,"spoId":true},"params":[{"name":"deactivatedOn","required":false,"transform":{"type":"scalar"},"locs":[{"a":82,"b":95}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":149,"b":156}]},{"name":"spoId","required":true,"transform":{"type":"scalar"},"locs":[{"a":191,"b":197}]}],"statement":"UPDATE\n    users_student_partner_orgs_instances\nSET\n    deactivated_on = COALESCE(:deactivatedOn, NOW()),\n    updated_at = NOW()\nWHERE\n    user_id = :userId!\n    AND student_partner_org_id = :spoId!\nRETURNING\n    user_id"};
 
 /**
  * Query generated from SQL:
@@ -565,11 +568,13 @@ const deactivateUserStudentPartnerOrgInstanceIR: any = {"usedParamSet":{"userId"
  * UPDATE
  *     users_student_partner_orgs_instances
  * SET
- *     deactivated_on = NOW(),
+ *     deactivated_on = COALESCE(:deactivatedOn, NOW()),
  *     updated_at = NOW()
  * WHERE
  *     user_id = :userId!
  *     AND student_partner_org_id = :spoId!
+ * RETURNING
+ *     user_id
  * ```
  */
 export const deactivateUserStudentPartnerOrgInstance = new PreparedQuery<IDeactivateUserStudentPartnerOrgInstanceParams,IDeactivateUserStudentPartnerOrgInstanceResult>(deactivateUserStudentPartnerOrgInstanceIR);

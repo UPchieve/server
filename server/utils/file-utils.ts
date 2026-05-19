@@ -22,6 +22,7 @@ function readCsv<T>(input: Buffer | string, requiredColumns: string[]): T[] {
     const contents = parse(input, {
       delimiter: ',',
       columns: true,
+      bom: true,
     })
 
     if (!contents.length) {
