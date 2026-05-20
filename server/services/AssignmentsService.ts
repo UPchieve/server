@@ -444,7 +444,7 @@ Good luck, and have fun!
     const subjects = await getSubjectsForTopicByTopicId(topicId, tc)
     if (subjects.length) subjectId = subjects[0].id
   }
-  const assignment = await createAssignment(
+  const assignment: Assignment = (await createAssignment(
     {
       classId,
       description: studentInstructions,
@@ -458,7 +458,7 @@ Good luck, and have fun!
       title: 'Getting Started on UPchieve',
     },
     tc
-  )
+  )) as Assignment
   // TODO: Remove if we decide to add teacher_notes for assignments in the DB
   cache.sadd('getting-started-assignments', assignment.id)
 }
