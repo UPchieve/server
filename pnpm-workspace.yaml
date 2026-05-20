@@ -1,0 +1,14 @@
+allowBuilds:
+  '@firebase/util': set this to true or false
+  '@newrelic/fn-inspect': set this to true or false
+  '@newrelic/native-metrics': set this to true or false
+  '@scarf/scarf': set this to true or false
+  '@sentry-internal/node-cpu-profiler': set this to true or false
+  bcrypt: set this to true or false
+  canvas: set this to true or false
+  esbuild: set this to true or false
+  pg-formatter: set this to true or false
+  pre-commit: set this to true or false
+  protobufjs: set this to true or false
+  sharp: set this to true or false
+  spawn-sync: set this to true or false
