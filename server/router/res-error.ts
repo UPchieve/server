@@ -12,7 +12,6 @@ import {
   NTHSGroupNameTakenError,
   NTHSGroupAffiliationExistsError,
   NotAHighSchoolerNTHSJoinError,
-  AssignmentModerationViolationError,
 } from '../models/Errors'
 import { RegistrationError, ResetError } from '../utils/auth-utils'
 import config from '../config'
@@ -51,7 +50,6 @@ export function resError(
   }
 
   let message = ''
-  let code = ''
 
   if (err instanceof Error || err instanceof CustomError) {
     logger.error(err as any)
@@ -80,10 +78,7 @@ export function resError(
     else if (err instanceof NTHSGroupNameTakenError) status = 422
     else if (err instanceof CannotRemoveSoleNTHSAdminError) status = 422
     else if (err instanceof NotAHighSchoolerNTHSJoinError) status = 422
-    else if (err instanceof AssignmentModerationViolationError) {
-      status = 422
-      code = 'MODERATION_VIOLATION'
-    } else if (err instanceof AlreadyInUseError) status = 409
+    else if (err instanceof AlreadyInUseError) status = 409
     // response timeout
     else if (err.message === 'Response timeout') status = 408
     // unknown error
@@ -96,7 +91,6 @@ export function resError(
 
     res.status(status).json({
       err: message.length ? message : err.message,
-      ...(code && { code }),
     })
   } else {
     logger.error(err, 'Unexpected non-error type thrown')
