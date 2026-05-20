@@ -11,14 +11,16 @@ RUN wget -q -t3 'https://packages.doppler.com/public/cli/rsa.8004D9FF50437357.ke
     echo 'https://packages.doppler.com/public/cli/alpine/any-version/main' | tee -a /etc/apk/repositories && \
     apk add doppler
 
-COPY package*.json ./
-RUN npm ci
+RUN corepack enable pnpm
+
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+RUN pnpm install --frozen-lockfile
 
 COPY tsconfig*.json ./
 COPY server ./server
 COPY database ./database
-RUN npm run build
+RUN pnpm run build
 
 ENTRYPOINT ["doppler", "run", "--"]
-CMD ["npm", "run", "start"]
+CMD ["pnpm", "run", "start"]
 
