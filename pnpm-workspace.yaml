@@ -1,14 +1,18 @@
 allowBuilds:
-  '@firebase/util': set this to true or false
-  '@newrelic/fn-inspect': set this to true or false
-  '@newrelic/native-metrics': set this to true or false
-  '@scarf/scarf': set this to true or false
-  '@sentry-internal/node-cpu-profiler': set this to true or false
-  bcrypt: set this to true or false
-  canvas: set this to true or false
-  esbuild: set this to true or false
-  pg-formatter: set this to true or false
-  pre-commit: set this to true or false
-  protobufjs: set this to true or false
-  sharp: set this to true or false
-  spawn-sync: set this to true or false
+  '@firebase/util': true
+  '@newrelic/fn-inspect': true
+  '@newrelic/native-metrics': true
+  '@scarf/scarf': true
+  '@sentry-internal/node-cpu-profiler': true
+  bcrypt: true
+  canvas: true
+  esbuild: true
+  pg-formatter: true
+  pre-commit: true
+  protobufjs: true
+  sharp: true
+  spawn-sync: true
+
+# blockExoticSubdeps: true
+# minimumReleaseAge: 10080
+# trustPolicy: no-downgrade
