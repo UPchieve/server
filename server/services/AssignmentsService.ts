@@ -4,10 +4,7 @@ import { Ulid, Uuid } from '../models/pgUtils'
 import * as AssignmentsRepo from '../models/Assignments'
 import * as TeacherRepo from '../models/Teacher'
 import * as TeacherClassRepo from '../models/TeacherClass'
-import {
-  AssignmentModerationViolationError,
-  InputError,
-} from '../models/Errors'
+import { InputError } from '../models/Errors'
 import {
   asDate,
   asBoolean,
@@ -29,6 +26,7 @@ import * as cache from '../cache'
 import { getSubjectsForTopicByTopicId } from './SubjectsService'
 import logger from '../logger'
 import { isEmpty } from 'lodash'
+import * as ModerationTypes from './ModerationService/types'
 
 export type CreateAssignmentPayload = {
   classId: string
@@ -84,14 +82,14 @@ export const asEditedAssignment = asFactory<EditAssignmentPayload>({
 export async function createAssignment(
   data: CreateAssignmentPayload,
   tc?: TransactionClient
-) {
+): Promise<Assignment | ModerationTypes.ModerationFailureReasons> {
   validateAssignmentData(data)
   const moderationResults = await ModerationService.moderateAssignmentInfo(
     `${data.title} ${data.description}`
   )
 
   if (!isEmpty(moderationResults.failures)) {
-    throw new AssignmentModerationViolationError()
+    return moderationResults
   }
 
   return runInTransaction(async (tc: TransactionClient) => {
@@ -120,13 +118,15 @@ export async function createAssignment(
   }, tc)
 }
 
-export async function editAssignment(data: EditAssignmentPayload) {
+export async function editAssignment(
+  data: EditAssignmentPayload
+): Promise<Assignment | ModerationTypes.ModerationFailureReasons> {
   validateAssignmentData(data)
   const moderationResults = await ModerationService.moderateAssignmentInfo(
     `${data.title} ${data.description}`
   )
   if (!isEmpty(moderationResults.failures)) {
-    throw new AssignmentModerationViolationError()
+    return moderationResults
   }
   return runInTransaction(async (tc: TransactionClient) => {
     const assignment = await AssignmentsRepo.editAssignment(

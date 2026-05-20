@@ -119,9 +119,12 @@ export function routeTeachers(apiRouter: Router): void {
         req.body.assignmentData,
         req.body.studentIds
       )
-      const assignment =
-        await AssignmentsService.createAssignment(assignmentData)
-      res.json({ assignment })
+      const result = await AssignmentsService.createAssignment(assignmentData)
+      if (Object.prototype.hasOwnProperty.call(result, 'failures')) {
+        res.json({ moderationFailures: result.failures })
+      } else {
+        res.json({ assignment: result })
+      }
     } catch (err) {
       resError(res, err)
     }
@@ -156,8 +159,12 @@ export function routeTeachers(apiRouter: Router): void {
         req.body.assignmentData
       )
 
-      const assignment = await AssignmentsService.editAssignment(assignmentData)
-      res.json({ assignment })
+      const result = await AssignmentsService.editAssignment(assignmentData)
+      if (Object.prototype.hasOwnProperty.call(result, 'failures')) {
+        res.json({ moderationFailures: result.failures })
+      } else {
+        res.json({ assignment: result })
+      }
     } catch (err) {
       resError(res, err)
     }
