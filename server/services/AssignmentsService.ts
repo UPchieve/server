@@ -121,9 +121,14 @@ export async function createAssignment(
 }
 
 export async function editAssignment(data: EditAssignmentPayload) {
+  validateAssignmentData(data)
+  const moderationResults = await ModerationService.moderateAssignmentInfo(
+    `${data.title} ${data.description}`
+  )
+  if (!isEmpty(moderationResults.failures)) {
+    throw new AssignmentModerationViolationError()
+  }
   return runInTransaction(async (tc: TransactionClient) => {
-    validateAssignmentData(data)
-
     const assignment = await AssignmentsRepo.editAssignment(
       {
         id: data.id,
