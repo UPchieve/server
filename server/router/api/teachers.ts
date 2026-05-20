@@ -121,9 +121,9 @@ export function routeTeachers(apiRouter: Router): void {
       )
       const result = await AssignmentsService.createAssignment(assignmentData)
       if (Object.prototype.hasOwnProperty.call(result, 'failures')) {
-        res.json({ moderationFailures: result.failures })
+        res.status(422).json({ moderationFailures: result.failures })
       } else {
-        res.json({ assignment: result })
+        res.status(201).json({ assignment: result })
       }
     } catch (err) {
       resError(res, err)
@@ -161,9 +161,9 @@ export function routeTeachers(apiRouter: Router): void {
 
       const result = await AssignmentsService.editAssignment(assignmentData)
       if (Object.prototype.hasOwnProperty.call(result, 'failures')) {
-        res.json({ moderationFailures: result.failures })
+        res.status(422).json({ moderationFailures: result.failures })
       } else {
-        res.json({ assignment: result })
+        res.status(200).json({ assignment: result })
       }
     } catch (err) {
       resError(res, err)
