@@ -165,7 +165,6 @@
     "@types/passport-local": "^1.0.34",
     "@types/passport-oauth2": "^1.4.15",
     "@types/pg": "^8.6.4",
-    "@types/qs": "^6.9.4",
     "@types/supertest": "^2.0.9",
     "@types/swagger-ui-express": "^4.1.2",
     "@types/ua-parser-js": "0.7.35",
