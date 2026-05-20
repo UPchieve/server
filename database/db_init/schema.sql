@@ -1,7 +1,7 @@
-\restrict ug0xycSd2jvM84KTquxRUc9ndyiUkvUSMryxOcmANQOcU7CSlIevNOw0YlNOmdg
+\restrict Paed918TywRBMKkrvxDodVtOrgTrf8Q54iSoAyv5EtcrNaym7vtaKipeXH9NgRS
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
--- Dumped by pg_dump version 15.17 (Homebrew)
+-- Dumped by pg_dump version 15.18 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -2128,7 +2128,8 @@ CREATE TABLE upchieve.session_messages (
     session_id uuid NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
-    mongo_id character varying(24)
+    mongo_id character varying(24),
+    read_at date
 );
 
 
@@ -7472,7 +7473,7 @@ ALTER TABLE ONLY upchieve.volunteer_references
 -- PostgreSQL database dump complete
 --
 
-\unrestrict ug0xycSd2jvM84KTquxRUc9ndyiUkvUSMryxOcmANQOcU7CSlIevNOw0YlNOmdg
+\unrestrict Paed918TywRBMKkrvxDodVtOrgTrf8Q54iSoAyv5EtcrNaym7vtaKipeXH9NgRS
 
 
 --
@@ -7755,4 +7756,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260423224528'),
     ('20260423230129'),
     ('20260428230130'),
-    ('20260515002920');
+    ('20260515002920'),
+    ('20260520210216');
