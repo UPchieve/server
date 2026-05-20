@@ -4,7 +4,10 @@ import { Ulid, Uuid } from '../models/pgUtils'
 import * as AssignmentsRepo from '../models/Assignments'
 import * as TeacherRepo from '../models/Teacher'
 import * as TeacherClassRepo from '../models/TeacherClass'
-import { InputError } from '../models/Errors'
+import {
+  AssignmentModerationViolationError,
+  InputError,
+} from '../models/Errors'
 import {
   asDate,
   asBoolean,
@@ -19,11 +22,13 @@ import {
   CreateStudentAssignmentResult,
   StudentAssignment,
 } from '../models/Assignments'
+import * as ModerationService from './ModerationService/index'
 import * as AzureService from './AzureService'
 import config from '../config'
 import * as cache from '../cache'
 import { getSubjectsForTopicByTopicId } from './SubjectsService'
 import logger from '../logger'
+import { isEmpty } from 'lodash'
 
 export type CreateAssignmentPayload = {
   classId: string
@@ -80,9 +85,16 @@ export async function createAssignment(
   data: CreateAssignmentPayload,
   tc?: TransactionClient
 ) {
-  return runInTransaction(async (tc: TransactionClient) => {
-    validateAssignmentData(data)
+  validateAssignmentData(data)
+  const moderationResults = await ModerationService.moderateAssignmentInfo(
+    `${data.title} ${data.description}`
+  )
 
+  if (!isEmpty(moderationResults.failures)) {
+    throw new AssignmentModerationViolationError()
+  }
+
+  return runInTransaction(async (tc: TransactionClient) => {
     const assignment = await AssignmentsRepo.createAssignment(
       {
         classId: data.classId,

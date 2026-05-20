@@ -11,7 +11,7 @@ import {
   DetectToxicContentCommand,
 } from '@aws-sdk/client-comprehend'
 import crypto from 'crypto'
-import { LangfuseTraceClient, LangfuseGenerationClient } from 'langfuse-node'
+import { LangfuseGenerationClient, LangfuseTraceClient } from 'langfuse-node'
 import { chunk, isEmpty } from 'lodash'
 import { TextPromptClient } from 'langfuse-core'
 import logger from '../../logger'
@@ -23,6 +23,7 @@ import {
   createCensoredMessage,
 } from '../../models/CensoredSessionMessage'
 import * as OpenAIService from '../OpenAIService'
+import { OpenAiResponseType } from '../OpenAIService'
 import * as UsersRepo from '../../models/User'
 import * as SessionRepo from '../../models/Session'
 import {
@@ -53,14 +54,20 @@ import { getClient, runInTransaction, TransactionClient } from '../../db'
 import { PrimaryUserRole } from '../UserRolesService'
 import { resize } from '../../utils/image-utils'
 import {
-  getRealTimeSettings as getModerationRealTimeSettings,
   getContextualSettings as getModerationContextualSettings,
+  getRealTimeSettings as getModerationRealTimeSettings,
 } from '../../models/ModerationSettings/queries'
 import { GetModerationSettingResult } from '../../models/ModerationSettings/types'
 import * as ModerationTypes from './types'
+import {
+  LangfuseGenerationName,
+  ModerationAIResult,
+  ModerationFailureReasons,
+  ModerationSource,
+} from './types'
 import { weightModerationInfractions } from './ModerationPenaltyService'
 import * as Regex from './regex'
-import { ModerationAIResult, ModerationSource } from './types'
+import { secondsInMs } from '../../utils/time-utils'
 
 // Image moderation
 const AWS_CONFIG = {
@@ -1147,6 +1154,48 @@ const getAiModerationResult = async (
     waitInMs: config.moderateMessageTimeLimitMs,
   })
   return { results: r }
+}
+
+export async function moderateAssignmentInfo(
+  text: string
+): Promise<ModerationTypes.ModerationFailureReasons> {
+  // Regex first
+  const regexDecision = await Regex.regexModerate(text)
+  if (regexDecision.isClean) {
+    return { failures: {} }
+  }
+
+  // Consult AI if regex comes back with a match
+  const prompt = await PromptService.getPromptWithFallback(
+    PromptService.PromptName.SESSION_TRANSCRIPT_MODERATION
+  )
+  const trace = langfuseClient.trace({
+    name: ModerationTypes.LangfuseTraceName.MODERATE_ASSIGNMENT_INFO,
+  })
+  const generation = trace.generation({
+    name: ModerationTypes.LangfuseGenerationName.MODERATE_ASSIGNMENT_INFO,
+    input: text,
+    ...(prompt.promptObject && { prompt: prompt.promptObject }),
+  })
+
+  const output = await timeLimit({
+    promise: OpenAIService.invokeModel({
+      prompt: prompt.prompt,
+      userMessage: text,
+      responseType: OpenAiResponseType.JSON,
+    }),
+    fallbackReturnValue: null,
+    timeLimitReachedErrorMessage:
+      'Could not get assignment info moderation decision in time',
+    waitInMs: secondsInMs(5),
+  })
+
+  generation.end({
+    output,
+  })
+
+  const aiDecision = { failures: output.results?.reasons ?? {} }
+  return aiDecision
 }
 
 export type oldClientModerationResult = boolean
