@@ -4,10 +4,7 @@ import { Ulid, Uuid } from '../models/pgUtils'
 import * as AssignmentsRepo from '../models/Assignments'
 import * as TeacherRepo from '../models/Teacher'
 import * as TeacherClassRepo from '../models/TeacherClass'
-import {
-  AssignmentModerationViolationError,
-  InputError,
-} from '../models/Errors'
+import { InputError } from '../models/Errors'
 import {
   asDate,
   asBoolean,

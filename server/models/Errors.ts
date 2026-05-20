@@ -145,11 +145,3 @@ export class NotAHighSchoolerNTHSJoinError extends CustomError {
     super('You must be a current high school student to join NTHS')
   }
 }
-
-export class AssignmentModerationViolationError extends CustomError {
-  constructor() {
-    super(
-      'The assignment could not be created or updated because it violates our content policy'
-    )
-  }
-}
