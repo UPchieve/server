@@ -7,19 +7,28 @@ import * as ModerationService from '../../services/ModerationService'
 import moment from 'moment'
 import { Assignment, StudentAssignment } from '../../models/Assignments'
 import { TransactionClient } from '../../db'
+import * as AzureService from '../../services/AzureService'
+import * as ImageUtils from '../../utils/image-utils'
 
 jest.mock('../../models/Assignments')
 jest.mock('../../models/Teacher')
 jest.mock('../../models/TeacherClass')
 jest.mock('../../services/ModerationService')
+jest.mock('../../services/AzureService')
+jest.mock('../../utils/image-utils')
 const mockedAssignmentRepo = mocked(AssignmentRepo)
 const mockedTeacherRepo = mocked(TeacherRepo)
 const mockedTeacherClassRepo = mocked(TeacherClassRepo)
 const mockedModerationService = mocked(ModerationService)
+const mockedAzureService = mocked(AzureService)
+const mockedImageUtils = mocked(ImageUtils)
+
+beforeEach(() => {
+  jest.resetAllMocks()
+})
 
 describe('createAssignment', () => {
   beforeEach(() => {
-    jest.resetAllMocks()
     mockedModerationService.moderateAssignmentInfo.mockResolvedValue({
       failures: {},
     })
@@ -485,3 +494,55 @@ describe('addStudentToClassAssignments', () => {
     ).not.toHaveBeenCalledWith()
   })
 })
+
+describe('uploadAssignmentFiles', () => {
+  const assignmentId = '123'
+  const files = [buildFile('file1', 'jpeg'), buildFile('file2', 'png')]
+
+  beforeEach(() => {
+    mockedImageUtils.isImageFile.mockReturnValue(true)
+  })
+
+  it('Does not upload any files if there is a moderation failure', async () => {
+    mockedModerationService.genericModerateImage.mockResolvedValueOnce([
+      { reason: 'VIOLENCE' },
+    ])
+    mockedModerationService.genericModerateImage.mockResolvedValueOnce([])
+    const actual = await AssignmentsService.uploadAssignmentFiles(
+      assignmentId,
+      files
+    )
+    expect(actual).toEqual({
+      file1: ['VIOLENCE'],
+    })
+    expect(mockedModerationService.genericModerateImage).toHaveBeenCalledTimes(
+      files.length
+    )
+    expect(mockedAzureService.uploadBlobFile).not.toHaveBeenCalled()
+  })
+
+  it('Uploads files if moderation comes back clean', async () => {
+    mockedModerationService.genericModerateImage.mockResolvedValue([])
+    const actual = await AssignmentsService.uploadAssignmentFiles(
+      assignmentId,
+      files
+    )
+    expect(actual).toEqual({})
+    expect(mockedModerationService.genericModerateImage).toHaveBeenCalledTimes(
+      files.length
+    )
+    expect(mockedAzureService.uploadBlobFile).toHaveBeenCalledTimes(
+      files.length
+    )
+  })
+})
+
+function buildFile(nameWithoutExtension: string, extension: string) {
+  return {
+    originalname: nameWithoutExtension,
+    buffer: {
+      name: nameWithoutExtension,
+      ext: extension,
+    },
+  }
+}
