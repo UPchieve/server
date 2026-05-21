@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
+    "preinstall": "npx only-allow pnpm",
     "build": "tsc --p tsconfig.server.json",
     "deploy:dev": "./bin/deploy.sh dev",
     "dev:revision": "az containerapp revision list --name development-container-app-subway --resource-group development-resource-group | jq -r '.[0] | \"\\(.name) - \\(.properties.runningState)\"'",
