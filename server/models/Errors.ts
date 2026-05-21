@@ -145,3 +145,9 @@ export class NotAHighSchoolerNTHSJoinError extends CustomError {
     super('You must be a current high school student to join NTHS')
   }
 }
+
+export class UnsupportedFileTypeError extends CustomError {
+  constructor(message: string) {
+    super(message)
+  }
+}

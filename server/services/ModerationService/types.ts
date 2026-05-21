@@ -28,6 +28,7 @@ export enum LangfuseTraceTagEnum {
 export type ModerationSource =
   | 'image_upload'
   | 'screenshare'
+  | 'assignment_image'
   | 'audio_transcription'
   | 'text_chat'
   | 'whiteboard'
