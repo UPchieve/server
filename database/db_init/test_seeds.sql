@@ -7604,6 +7604,14 @@ COPY upchieve.session_failed_joins (session_id, user_id, created_at, updated_at)
 
 
 --
+-- Data for Name: session_last_seen; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.session_last_seen (session_id, user_id, last_seen_at) FROM stdin;
+\.
+
+
+--
 -- Data for Name: session_meetings; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 

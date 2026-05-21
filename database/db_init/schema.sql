@@ -2103,6 +2103,17 @@ ALTER SEQUENCE upchieve.session_flags_id_seq OWNED BY upchieve.session_flags.id;
 
 
 --
+-- Name: session_last_seen; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.session_last_seen (
+    session_id uuid NOT NULL,
+    user_id uuid NOT NULL,
+    last_seen_at timestamp with time zone
+);
+
+
+--
 -- Name: session_meetings; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -4655,6 +4666,14 @@ ALTER TABLE ONLY upchieve.session_flags
 
 
 --
+-- Name: session_last_seen session_last_seen_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.session_last_seen
+    ADD CONSTRAINT session_last_seen_pkey PRIMARY KEY (session_id, user_id);
+
+
+--
 -- Name: session_meetings session_meetings_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -6609,6 +6628,22 @@ ALTER TABLE ONLY upchieve.session_failed_joins
 
 ALTER TABLE ONLY upchieve.session_failed_joins
     ADD CONSTRAINT session_failed_joins_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
+
+
+--
+-- Name: session_last_seen session_last_seen_session_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.session_last_seen
+    ADD CONSTRAINT session_last_seen_session_id_fkey FOREIGN KEY (session_id) REFERENCES upchieve.sessions(id);
+
+
+--
+-- Name: session_last_seen session_last_seen_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.session_last_seen
+    ADD CONSTRAINT session_last_seen_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
 
 
 --

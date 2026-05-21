@@ -1,8 +1,9 @@
 -- migrate:up
 CREATE TABLE upchieve.session_last_seen (
-    session_id uuid REFERENCES upchieve.session_messages (session_id),
+    session_id uuid REFERENCES upchieve.sessions (id),
     user_id uuid REFERENCES upchieve.users (id),
-    last_seen_at timestamptz
+    last_seen_at timestamptz,
+    PRIMARY KEY (session_id, user_id)
 );
 
 -- migrate:down
