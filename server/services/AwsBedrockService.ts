@@ -3,7 +3,7 @@ import {
   InvokeModelCommand,
 } from '@aws-sdk/client-bedrock-runtime'
 import config from '../config'
-import { getImageFileType } from '../utils/image-utils'
+import { getFileType } from '../utils/image-utils'
 import { secondsInMs } from '../utils/time-utils'
 import logger from '../logger'
 
@@ -88,7 +88,7 @@ type BedrockInvokeResponse = {
 }
 
 function imageContentPayload(image: Buffer): ImageContent {
-  const imageFileType = getImageFileType(image)
+  const imageFileType = getFileType(image)
 
   return {
     type: 'image',

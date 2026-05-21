@@ -1,10 +1,11 @@
 import moment from 'moment'
+import { getFileType, isImageFile, isPdf } from '../utils/image-utils'
 import { runInTransaction, TransactionClient } from '../db'
 import { Ulid, Uuid } from '../models/pgUtils'
 import * as AssignmentsRepo from '../models/Assignments'
 import * as TeacherRepo from '../models/Teacher'
 import * as TeacherClassRepo from '../models/TeacherClass'
-import { InputError } from '../models/Errors'
+import { InputError, UnsupportedFileTypeError } from '../models/Errors'
 import {
   asDate,
   asBoolean,
@@ -27,6 +28,7 @@ import { getSubjectsForTopicByTopicId } from './SubjectsService'
 import logger from '../logger'
 import { isEmpty } from 'lodash'
 import * as ModerationTypes from './ModerationService/types'
+import { ModerationSource } from './ModerationService/types'
 
 export type CreateAssignmentPayload = {
   classId: string
@@ -383,21 +385,52 @@ async function getClassAssignments(classId: Ulid, tc: TransactionClient) {
 
 /**
  * Upload and retrieve uploaded assignments to and from Azure.
+ *
+ * @return a map of file names to their moderation failure reasons
  */
-export async function uploadAssignment(
+export async function uploadAssignmentFiles(
   assignmentId: Ulid,
   files: Express.Multer.File[]
-) {
-  await Promise.all(
-    files.map((file) => {
-      AzureService.uploadBlobFile(
-        config.assignmentsStorageAccountName,
-        config.assignmentsStorageContainer,
-        `${assignmentId}/${file.originalname}`,
-        file
-      )
-    })
+): Promise<Record<string, string[]>> {
+  const incorrectFileTypes = files.filter(
+    (file) => !(isImageFile(file.buffer) || isPdf(file.buffer))
   )
+  if (incorrectFileTypes.length) {
+    throw new UnsupportedFileTypeError(
+      'Unsupported file type: Upload an image files or PDFs'
+    )
+  }
+
+  let fileNameToModerationFailures: Record<string, string[]> = {}
+  for (const file of files) {
+    if (isImageFile(file.buffer)) {
+      const moderationResult = await ModerationService.genericModerateImage({
+        image: file.buffer,
+      })
+      if (moderationResult.length) {
+        fileNameToModerationFailures[file.originalname] = moderationResult.map(
+          (failure) => failure.reason
+        )
+      }
+    } else {
+      // @TODO document moderation
+    }
+  }
+
+  if (isEmpty(fileNameToModerationFailures)) {
+    await Promise.all(
+      files.map((file) => {
+        AzureService.uploadBlobFile(
+          config.assignmentsStorageAccountName,
+          config.assignmentsStorageContainer,
+          `${assignmentId}/${file.originalname}`,
+          file
+        )
+      })
+    )
+  }
+
+  return fileNameToModerationFailures
 }
 
 export async function getAssignmentDocuments(assignmentId: Ulid) {
