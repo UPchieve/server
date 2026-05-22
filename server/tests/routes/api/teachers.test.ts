@@ -316,7 +316,7 @@ describe('routeTeachers', () => {
         assignmentData,
         studentIds: assignmentData.studentIds,
       })
-      expect(response.status).toBe(200)
+      expect(response.status).toBe(201)
       expect(mockedAssignmentsService.asAssignment).toHaveBeenCalledWith(
         {
           ...assignmentData,

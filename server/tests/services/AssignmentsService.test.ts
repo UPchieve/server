@@ -3,6 +3,7 @@ import * as AssignmentsService from '../../services/AssignmentsService'
 import * as AssignmentRepo from '../../models/Assignments'
 import * as TeacherRepo from '../../models/Teacher'
 import * as TeacherClassRepo from '../../models/TeacherClass'
+import * as ModerationService from '../../services/ModerationService'
 import moment from 'moment'
 import { Assignment, StudentAssignment } from '../../models/Assignments'
 import { TransactionClient } from '../../db'
@@ -10,13 +11,18 @@ import { TransactionClient } from '../../db'
 jest.mock('../../models/Assignments')
 jest.mock('../../models/Teacher')
 jest.mock('../../models/TeacherClass')
+jest.mock('../../services/ModerationService')
 const mockedAssignmentRepo = mocked(AssignmentRepo)
 const mockedTeacherRepo = mocked(TeacherRepo)
 const mockedTeacherClassRepo = mocked(TeacherClassRepo)
+const mockedModerationService = mocked(ModerationService)
 
 describe('createAssignment', () => {
   beforeEach(() => {
     jest.resetAllMocks()
+    mockedModerationService.moderateAssignmentInfo.mockResolvedValue({
+      failures: {},
+    })
   })
 
   test('throws an error if the minimum number of sessions is less than 0', async () => {

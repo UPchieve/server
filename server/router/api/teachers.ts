@@ -4,6 +4,7 @@ import * as TeacherService from '../../services/TeacherService'
 import * as AssignmentsService from '../../services/AssignmentsService'
 import { resError } from '../res-error'
 import { asNumber, asString } from '../../utils/type-utils'
+import * as ModerationTypes from '../../services/ModerationService/types'
 
 export function routeTeachers(apiRouter: Router): void {
   const router = Router()
@@ -119,9 +120,16 @@ export function routeTeachers(apiRouter: Router): void {
         req.body.assignmentData,
         req.body.studentIds
       )
-      const assignment =
-        await AssignmentsService.createAssignment(assignmentData)
-      res.json({ assignment })
+      const result = await AssignmentsService.createAssignment(assignmentData)
+      if (Object.prototype.hasOwnProperty.call(result, 'failures')) {
+        res.status(422).json({
+          moderationFailures: (
+            result as ModerationTypes.ModerationFailureReasons
+          ).failures,
+        })
+      } else {
+        res.status(201).json({ assignment: result })
+      }
     } catch (err) {
       resError(res, err)
     }
@@ -156,8 +164,16 @@ export function routeTeachers(apiRouter: Router): void {
         req.body.assignmentData
       )
 
-      const assignment = await AssignmentsService.editAssignment(assignmentData)
-      res.json({ assignment })
+      const result = await AssignmentsService.editAssignment(assignmentData)
+      if (Object.prototype.hasOwnProperty.call(result, 'failures')) {
+        res.status(422).json({
+          moderationFailures: (
+            result as ModerationTypes.ModerationFailureReasons
+          ).failures,
+        })
+      } else {
+        res.status(200).json({ assignment: result })
+      }
     } catch (err) {
       resError(res, err)
     }

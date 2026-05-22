@@ -5,6 +5,7 @@ export enum LangfuseTraceName {
   MODERATE_SESSION_TRANSCRIPT = 'moderateSessionTranscript',
   MODERATE_IMAGE = 'MODERATE_IMAGE',
   MODERATE_WHITEBOARD_TEXT_NODE = 'moderateWhiteboardTextNode',
+  MODERATE_ASSIGNMENT_INFO = 'moderateAssignmentInfo',
 }
 export enum LangfuseGenerationName {
   SESSION_MESSAGE_MODERATION_DECISION = 'getModerationDecision',
@@ -18,6 +19,7 @@ export enum LangfuseGenerationName {
   DETECT_FACES = 'detectFaces',
   DETECT_PERSON = 'detectPerson',
   IS_IMAGE_EDUCATIONAL = 'isImageEducational',
+  MODERATE_ASSIGNMENT_INFO = 'moderateAssignmentInfo',
 }
 export enum LangfuseTraceTagEnum {
   FLAGGED_BY_MODERATION = 'flagged-by-moderation',

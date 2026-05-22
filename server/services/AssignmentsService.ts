@@ -19,11 +19,14 @@ import {
   CreateStudentAssignmentResult,
   StudentAssignment,
 } from '../models/Assignments'
+import * as ModerationService from './ModerationService/index'
 import * as AzureService from './AzureService'
 import config from '../config'
 import * as cache from '../cache'
 import { getSubjectsForTopicByTopicId } from './SubjectsService'
 import logger from '../logger'
+import { isEmpty } from 'lodash'
+import * as ModerationTypes from './ModerationService/types'
 
 export type CreateAssignmentPayload = {
   classId: string
@@ -79,10 +82,17 @@ export const asEditedAssignment = asFactory<EditAssignmentPayload>({
 export async function createAssignment(
   data: CreateAssignmentPayload,
   tc?: TransactionClient
-) {
-  return runInTransaction(async (tc: TransactionClient) => {
-    validateAssignmentData(data)
+): Promise<Assignment | ModerationTypes.ModerationFailureReasons> {
+  validateAssignmentData(data)
+  const moderationResults = await ModerationService.moderateAssignmentInfo(
+    `${data.title} ${data.description}`
+  )
 
+  if (!isEmpty(moderationResults.failures)) {
+    return moderationResults
+  }
+
+  return runInTransaction(async (tc: TransactionClient) => {
     const assignment = await AssignmentsRepo.createAssignment(
       {
         classId: data.classId,
@@ -108,10 +118,17 @@ export async function createAssignment(
   }, tc)
 }
 
-export async function editAssignment(data: EditAssignmentPayload) {
+export async function editAssignment(
+  data: EditAssignmentPayload
+): Promise<Assignment | ModerationTypes.ModerationFailureReasons> {
+  validateAssignmentData(data)
+  const moderationResults = await ModerationService.moderateAssignmentInfo(
+    `${data.title} ${data.description}`
+  )
+  if (!isEmpty(moderationResults.failures)) {
+    return moderationResults
+  }
   return runInTransaction(async (tc: TransactionClient) => {
-    validateAssignmentData(data)
-
     const assignment = await AssignmentsRepo.editAssignment(
       {
         id: data.id,
@@ -427,7 +444,7 @@ Good luck, and have fun!
     const subjects = await getSubjectsForTopicByTopicId(topicId, tc)
     if (subjects.length) subjectId = subjects[0].id
   }
-  const assignment = await createAssignment(
+  const assignment: Assignment = (await createAssignment(
     {
       classId,
       description: studentInstructions,
@@ -441,7 +458,7 @@ Good luck, and have fun!
       title: 'Getting Started on UPchieve',
     },
     tc
-  )
+  )) as Assignment
   // TODO: Remove if we decide to add teacher_notes for assignments in the DB
   cache.sadd('getting-started-assignments', assignment.id)
 }
