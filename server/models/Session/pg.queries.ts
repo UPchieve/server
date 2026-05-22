@@ -2877,3 +2877,37 @@ const getSessionFlagsBySessionIdIR: any = {"usedParamSet":{"sessionId":true},"pa
 export const getSessionFlagsBySessionId = new PreparedQuery<IGetSessionFlagsBySessionIdParams,IGetSessionFlagsBySessionIdResult>(getSessionFlagsBySessionIdIR);
 
 
+/** 'UpdateSessionLastSeen' parameters type */
+export interface IUpdateSessionLastSeenParams {
+  sessionId: string;
+  userId: string;
+}
+
+/** 'UpdateSessionLastSeen' return type */
+export interface IUpdateSessionLastSeenResult {
+  ok: string;
+}
+
+/** 'UpdateSessionLastSeen' query type */
+export interface IUpdateSessionLastSeenQuery {
+  params: IUpdateSessionLastSeenParams;
+  result: IUpdateSessionLastSeenResult;
+}
+
+const updateSessionLastSeenIR: any = {"usedParamSet":{"sessionId":true,"userId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":87,"b":97}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":100,"b":107}]}],"statement":"INSERT INTO upchieve.session_last_seen (session_id, user_id, last_seen_at)\n    VALUES (:sessionId!, :userId!, NOW())\nON CONFLICT (session_id, user_id)\n    DO UPDATE SET\n        last_seen_at = NOW()\n    RETURNING\n        session_id AS ok"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO upchieve.session_last_seen (session_id, user_id, last_seen_at)
+ *     VALUES (:sessionId!, :userId!, NOW())
+ * ON CONFLICT (session_id, user_id)
+ *     DO UPDATE SET
+ *         last_seen_at = NOW()
+ *     RETURNING
+ *         session_id AS ok
+ * ```
+ */
+export const updateSessionLastSeen = new PreparedQuery<IUpdateSessionLastSeenParams,IUpdateSessionLastSeenResult>(updateSessionLastSeenIR);
+
+

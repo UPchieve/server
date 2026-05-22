@@ -526,4 +526,23 @@ export function routeSession(router: Router) {
     res.set('Cache-Control', 'private, max-age=300')
     res.redirect(302, imageUrl)
   })
+
+  router.post(
+    '/session/:sessionId/recap/:userId/update-last-seen',
+    async (req, res) => {
+      try {
+        const sessionId = req.params.sessionId
+        const userId = req.params.userId
+
+        const sessionLastSeenUpdated = SessionService.updateSessionLastSeen(
+          sessionId,
+          userId
+        )
+
+        return res.json({ sessionLastSeenUpdated })
+      } catch (err) {
+        resError(res, err)
+      }
+    }
+  )
 }

@@ -1474,3 +1474,13 @@ export async function getSessionFlagsBySessionId(sessionId: Uuid) {
 
   return result.map((r) => makeRequired(r))
 }
+
+export async function updateSessionLastSeen(sessionId: Uuid, userId: Uuid) {
+  const result = await pgQueries.updateSessionLastSeen.run(
+    { sessionId, userId },
+    getClient()
+  )
+
+  if (!result.length && makeRequired(result[0]).ok)
+    throw new RepoUpdateError('Did not update session last seen.')
+}

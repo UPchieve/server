@@ -1337,3 +1337,13 @@ FROM
 WHERE
     ssf.session_id = :sessionId!;
 
+
+/* @name updateSessionLastSeen */
+INSERT INTO upchieve.session_last_seen (session_id, user_id, last_seen_at)
+    VALUES (:sessionId!, :userId!, NOW())
+ON CONFLICT (session_id, user_id)
+    DO UPDATE SET
+        last_seen_at = NOW()
+    RETURNING
+        session_id AS ok;
+
