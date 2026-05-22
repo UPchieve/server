@@ -1073,6 +1073,8 @@ SELECT
     volunteers.id AS volunteer_id,
     students.id AS student_id,
     students.first_name AS student_first_name,
+    volunteer_last_seen.last_seen_at AS volunteer_last_seen_at,
+    student_last_seen.last_seen_at AS student_last_seen_at,
     (
         CASE WHEN favorited.volunteer_id = sessions.volunteer_id THEN
             TRUE
@@ -1089,6 +1091,10 @@ FROM
     LEFT JOIN users students ON sessions.student_id = students.id
     LEFT JOIN student_favorite_volunteers favorited ON students.id = favorited.student_id
         AND volunteers.id = favorited.volunteer_id
+    LEFT JOIN upchieve.session_last_seen volunteer_last_seen ON volunteer_last_seen.session_id = sessions.id
+        AND volunteer_last_seen.user_id = sessions.volunteer_id
+    LEFT JOIN upchieve.session_last_seen student_last_seen ON student_last_seen.session_id = sessions.id
+        AND student_last_seen.user_id = sessions.student_id
 WHERE
     sessions.id = :sessionId!;
 
