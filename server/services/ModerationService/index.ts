@@ -895,11 +895,11 @@ async function detectTextModerationFailures({
 }
 
 export async function saveImageToBucket({
-  sessionId,
+  locationPrefix,
   image,
   source,
 }: {
-  sessionId: string
+  locationPrefix: string
   image: Buffer
   source: Extract<
     ModerationTypes.ModerationSource,
@@ -918,14 +918,14 @@ export async function saveImageToBucket({
       bucketName = config.awsS3.moderatedSessionWhiteboardImageUploadBucket
       break
     case 'assignment_image':
-      bucketName = config.awsS3.moderatedAssignmentImageUploadBucket
+      bucketName = config.awsS3.moderatedAssignmentsBucket
       break
   }
   if (!bucketName)
     throw new Error(
       `Could not save moderated image to S3: No bucket registered for source ${source}`
     )
-  const s3Key = `${sessionId}-${crypto.randomBytes(8).toString('hex')}`
+  const s3Key = `${locationPrefix}-${crypto.randomBytes(8).toString('hex')}`
   const result = await putObject(bucketName, s3Key, image)
   return { location: result.location }
 }
@@ -951,7 +951,7 @@ async function handleImageModerationFailure({
   let imageUrl = ''
   if (sessionId) {
     const { location: url } = await saveImageToBucket({
-      sessionId,
+      locationPrefix: sessionId,
       image,
       source,
     })

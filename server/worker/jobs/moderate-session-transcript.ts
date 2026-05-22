@@ -84,7 +84,7 @@ export default async function moderateSessionTranscript(
             `6. saving whiteboard image to bucket, ${whiteboardImage}`
           )
           await ModerationService.saveImageToBucket({
-            sessionId: job.data.sessionId,
+            locationPrefix: job.data.sessionId,
             image: Buffer.from(whiteboardImage, 'binary'),
             source: 'whiteboard',
           })

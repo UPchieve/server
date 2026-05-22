@@ -411,6 +411,11 @@ export async function uploadAssignmentFiles(
         fileNameToModerationFailures[file.originalname] = moderationResult.map(
           (failure) => failure.reason
         )
+        await ModerationService.saveImageToBucket({
+          image: file.buffer,
+          source: 'assignment_image',
+          locationPrefix: assignmentId,
+        })
       }
     } else {
       // @TODO document moderation
