@@ -6,7 +6,7 @@ describe('extractPdfContent', () => {
   const mockedPDFParse = jest.mocked(PDFParse)
   let pdfParseObjectMock
   const image = {
-    data: new Buffer([1]),
+    data: Buffer.from([1]),
     dataUrl: '',
   }
   const mockGetText = jest.fn()
@@ -28,7 +28,7 @@ describe('extractPdfContent', () => {
     }
   })
   describe('Always destroys the parser (saves memory)', () => {
-    const pdfBuffer: Buffer = new Buffer([1])
+    const pdfBuffer: Buffer = Buffer.from([1])
 
     it('Destroys the parser on success', async () => {
       mockedPDFParse.mockReturnValueOnce(pdfParseObjectMock as PDFParse)

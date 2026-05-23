@@ -68,6 +68,7 @@ import {
 import { weightModerationInfractions } from './ModerationPenaltyService'
 import * as Regex from './regex'
 import { secondsInMs } from '../../utils/time-utils'
+import Logger from '../../logger'
 
 // Image moderation
 const AWS_CONFIG = {
@@ -1212,12 +1213,17 @@ export async function moderateAssignmentInfo(
     fallbackReturnValue: null,
     timeLimitReachedErrorMessage:
       'Could not get assignment info moderation decision in time',
-    waitInMs: secondsInMs(5),
+    waitInMs: secondsInMs(10),
   })
 
   generation.end({
     output,
   })
+
+  if (!output) {
+    Logger.warn('Could not get AI moderation decision about assignment in time')
+    throw new Error('Could not process assignment')
+  }
 
   const aiDecision = { failures: output.results?.reasons ?? {} }
   return aiDecision

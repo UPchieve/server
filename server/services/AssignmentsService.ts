@@ -32,6 +32,8 @@ import {
   ImageModerationFailureReason,
   ModerationSource,
 } from './ModerationService/types'
+import { extractPdfContent } from '../utils/file-utils'
+import { moderateAssignmentInfo } from './ModerationService/index'
 
 export type CreateAssignmentPayload = {
   classId: string
@@ -387,20 +389,49 @@ async function getClassAssignments(classId: Ulid, tc: TransactionClient) {
 }
 
 async function moderateAssignmentImage(
-  file: Express.Multer.File,
+  file: Buffer,
   assignmentId: string
 ): Promise<ImageModerationFailureReason[]> {
   const moderationResult = await ModerationService.genericModerateImage({
-    image: file.buffer,
+    image: file,
   })
   if (moderationResult.length) {
     await ModerationService.saveImageToBucket({
-      image: file.buffer,
+      image: file,
       source: 'assignment_image',
       locationPrefix: assignmentId,
     })
   }
   return moderationResult
+}
+
+async function moderateAssignmentPdf(
+  file: Express.Multer.File,
+  assignmentId: string
+): Promise<string[]> {
+  const moderationFailures: string[] = []
+  const extractedContent = await extractPdfContent(file.buffer)
+
+  const textModerationResults = await moderateAssignmentInfo(
+    extractedContent.text
+  )
+  if (!isEmpty(textModerationResults.failures)) {
+    moderationFailures.push(...(textModerationResults.failures as string[]))
+  }
+
+  for (const image of extractedContent.images) {
+    const imageModerationFailures = await moderateAssignmentImage(
+      Buffer.from(image.data),
+      assignmentId
+    )
+    if (imageModerationFailures.length) {
+      moderationFailures.push(
+        ...imageModerationFailures.map((failure) => failure.reason)
+      )
+    }
+  }
+
+  return moderationFailures
 }
 
 /**
@@ -411,7 +442,7 @@ async function moderateAssignmentImage(
 export async function uploadAssignmentFiles(
   assignmentId: Ulid,
   files: Express.Multer.File[]
-): Promise<Record<string, string[] | ImageModerationFailureReason[]>> {
+): Promise<Record<string, string[]>> {
   const incorrectFileTypes = files.filter(
     (file) => !(isImageFile(file.buffer) || isPdf(file.buffer))
   )
@@ -421,24 +452,29 @@ export async function uploadAssignmentFiles(
     )
   }
 
-  let fileNameToModerationFailures: Record<
-    string,
-    string[] | ImageModerationFailureReason[]
-  > = {}
+  let fileNameToModerationFailures: Record<string, string[]> = {}
   for (const file of files) {
     if (isImageFile(file.buffer)) {
       const moderationFailures = await moderateAssignmentImage(
-        file,
+        file.buffer,
         assignmentId
       )
+      console.log('TEST - image file moderation results', {
+        moderationFailures,
+      })
+      if (moderationFailures.length) {
+        fileNameToModerationFailures[file.originalname] =
+          moderationFailures.map((failure) => failure.reason)
+      }
+    } else {
+      const moderationFailures = await moderateAssignmentPdf(file, assignmentId)
       if (moderationFailures.length) {
         fileNameToModerationFailures[file.originalname] = moderationFailures
       }
-    } else {
-      // @TODO document moderation
     }
   }
 
+  // If all files are clean, upload them.
   if (isEmpty(fileNameToModerationFailures)) {
     await Promise.all(
       files.map((file) => {
