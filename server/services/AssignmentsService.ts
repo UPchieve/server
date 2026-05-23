@@ -28,7 +28,10 @@ import { getSubjectsForTopicByTopicId } from './SubjectsService'
 import logger from '../logger'
 import { isEmpty } from 'lodash'
 import * as ModerationTypes from './ModerationService/types'
-import { ModerationSource } from './ModerationService/types'
+import {
+  ImageModerationFailureReason,
+  ModerationSource,
+} from './ModerationService/types'
 
 export type CreateAssignmentPayload = {
   classId: string
@@ -383,6 +386,23 @@ async function getClassAssignments(classId: Ulid, tc: TransactionClient) {
   })
 }
 
+async function moderateAssignmentImage(
+  file: Express.Multer.File,
+  assignmentId: string
+): Promise<ImageModerationFailureReason[]> {
+  const moderationResult = await ModerationService.genericModerateImage({
+    image: file.buffer,
+  })
+  if (moderationResult.length) {
+    await ModerationService.saveImageToBucket({
+      image: file.buffer,
+      source: 'assignment_image',
+      locationPrefix: assignmentId,
+    })
+  }
+  return moderationResult
+}
+
 /**
  * Upload and retrieve uploaded assignments to and from Azure.
  *
@@ -391,7 +411,7 @@ async function getClassAssignments(classId: Ulid, tc: TransactionClient) {
 export async function uploadAssignmentFiles(
   assignmentId: Ulid,
   files: Express.Multer.File[]
-): Promise<Record<string, string[]>> {
+): Promise<Record<string, string[] | ImageModerationFailureReason[]>> {
   const incorrectFileTypes = files.filter(
     (file) => !(isImageFile(file.buffer) || isPdf(file.buffer))
   )
@@ -401,21 +421,18 @@ export async function uploadAssignmentFiles(
     )
   }
 
-  let fileNameToModerationFailures: Record<string, string[]> = {}
+  let fileNameToModerationFailures: Record<
+    string,
+    string[] | ImageModerationFailureReason[]
+  > = {}
   for (const file of files) {
     if (isImageFile(file.buffer)) {
-      const moderationResult = await ModerationService.genericModerateImage({
-        image: file.buffer,
-      })
-      if (moderationResult.length) {
-        fileNameToModerationFailures[file.originalname] = moderationResult.map(
-          (failure) => failure.reason
-        )
-        await ModerationService.saveImageToBucket({
-          image: file.buffer,
-          source: 'assignment_image',
-          locationPrefix: assignmentId,
-        })
+      const moderationFailures = await moderateAssignmentImage(
+        file,
+        assignmentId
+      )
+      if (moderationFailures.length) {
+        fileNameToModerationFailures[file.originalname] = moderationFailures
       }
     } else {
       // @TODO document moderation
