@@ -1,6 +1,7 @@
 import fs from 'fs'
 import { parse } from 'csv-parse/sync'
 import { InputError } from '../models/Errors'
+import { EmbeddedImage, PDFParse } from 'pdf-parse'
 
 export function readCsvFromBuffer<T>(
   buffer: Buffer,
@@ -53,4 +54,31 @@ function hasRequiredColumns(
     }
   }
   return true
+}
+
+export async function extractPdfContent(pdf: Buffer): Promise<{
+  text: string
+  images: EmbeddedImage[]
+}> {
+  const parser = new PDFParse({
+    data: pdf,
+  })
+
+  try {
+    const text = await parser.getText({
+      parsePageInfo: true,
+      parseHyperlinks: true,
+      includeMarkedContent: true,
+    })
+    const imageResult = await parser.getImage()
+    const allImages = imageResult.pages.flatMap(
+      (pageImages) => pageImages.images
+    )
+    return {
+      text: text.text,
+      images: allImages,
+    }
+  } finally {
+    await parser.destroy()
+  }
 }
