@@ -532,6 +532,8 @@ SELECT
     tool_types.name AS tool_type,
     volunteer_profiles.languages AS volunteer_languages,
     sessions.ended_by_user_id AS ended_by,
+    student_last_seen.last_seen_at AS student_last_seen_at,
+    volunteer_last_seen.last_seen_at AS volunteer_last_seen_at,
     CASE WHEN sessions.volunteer_id IS NULL THEN
         FALSE
     WHEN (
@@ -562,6 +564,10 @@ FROM
     LEFT JOIN topics ON subjects.topic_id = topics.id
     JOIN tool_types ON subjects.tool_type_id = tool_types.id
     LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = sessions.volunteer_id
+    LEFT JOIN session_last_seen student_last_seen ON sessions.id = student_last_seen.session_id
+        AND sessions.student_id = student_last_seen.user_id
+    LEFT JOIN session_last_seen volunteer_last_seen ON sessions.id = volunteer_last_seen.session_id
+        AND sessions.volunteer_id = volunteer_last_seen.user_id
 WHERE
     sessions.id = :sessionId;
 
@@ -1346,4 +1352,22 @@ ON CONFLICT (session_id, user_id)
         last_seen_at = NOW()
     RETURNING
         session_id AS ok;
+
+
+/* @name sessionsWithUnreadDMs */
+SELECT
+    s.id
+FROM
+    upchieve.session_messages sm
+    JOIN upchieve.sessions s ON sm.session_id = s.id
+    LEFT JOIN upchieve.session_last_seen sls ON sls.session_id = s.id
+        AND sls.user_id = :userId!
+WHERE (s.student_id = :userId!
+    OR s.volunteer_id = :userId!)
+AND sm.created_at > s.ended_at
+AND sm.sender_id != :userId!
+AND (sls.last_seen_at IS NULL
+    OR sm.created_at > sls.last_seen_at)
+GROUP BY
+    s.id;
 

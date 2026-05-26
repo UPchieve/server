@@ -1317,6 +1317,8 @@ export function toCurrentSessionPublic(
     createdAt: session.createdAt,
     endedAt: session.endedAt,
     endedBy: session.endedBy,
+    studentLastSeenAt: session.studentLastSeenAt,
+    volunteerLastSeenAt: session.volunteerLastSeenAt,
   }
 }
 
@@ -1367,4 +1369,8 @@ export async function updateSessionLastSeen(
 ): Promise<any> {
   const updated = await SessionRepo.updateSessionLastSeen(sessionId, userId)
   return updated
+}
+
+export async function sessionsWithUnreadDMs(userId: Ulid): Promise<string[]> {
+  return SessionRepo.sessionsWithUnreadDMs(userId)
 }

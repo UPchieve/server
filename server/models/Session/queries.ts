@@ -112,6 +112,8 @@ type CurrentSessionRow = {
   volunteerBannedFromLiveMedia?: boolean
   volunteerLanguages?: string[]
   createdAt: Date
+  studentLastSeenAt?: Date
+  volunteerLastSeenAt?: Date
 }
 
 function toCurrentSession(
@@ -136,6 +138,8 @@ function toCurrentSession(
     volunteerBannedFromLiveMedia: row.volunteerBannedFromLiveMedia ?? false,
     volunteerLanguages: row.volunteerLanguages ?? undefined,
     createdAt: row.createdAt,
+    studentLastSeenAt: row.studentLastSeenAt ?? undefined,
+    volunteerLastSeenAt: row.volunteerLastSeenAt ?? undefined,
   }
 }
 
@@ -706,6 +710,8 @@ export async function getCurrentSessionBySessionId(
       'studentBannedFromLiveMedia',
       'volunteerLanguages',
       'shadowbanned',
+      'studentLastSeenAt',
+      'volunteerLastSeenAt',
     ])
     const messages = await getMessagesForFrontend(session.id, tc)
     const { student, volunteer } = await getSessionUsers(
@@ -719,6 +725,8 @@ export async function getCurrentSessionBySessionId(
       student,
       volunteer,
       messages,
+      studentLastSeenAt: session.studentLastSeenAt,
+      volunteerLastSeenAt: session.volunteerLastSeenAt,
     }
   } catch (error) {
     throw new RepoReadError(error)
@@ -1207,7 +1215,11 @@ export async function getSessionRecap(
     )
     if (!sessionResult.length) throw new RepoReadError('Session not found')
 
-    const session = makeSomeOptional(sessionResult[0], ['quillDoc'])
+    const session = makeSomeOptional(sessionResult[0], [
+      'quillDoc',
+      'studentLastSeenAt',
+      'volunteerLastSeenAt',
+    ])
     const messages = await getMessagesForFrontend(sessionId, client)
 
     return { ...session, messages }
@@ -1483,4 +1495,16 @@ export async function updateSessionLastSeen(sessionId: Uuid, userId: Uuid) {
 
   if (!result.length && makeRequired(result[0]).ok)
     throw new RepoUpdateError('Did not update session last seen.')
+}
+
+export async function sessionsWithUnreadDMs(userId: Uuid): Promise<string[]> {
+  try {
+    const result = await pgQueries.sessionsWithUnreadDMs.run(
+      { userId },
+      getClient()
+    )
+    return result.map((r) => makeRequired(r).id)
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
 }

@@ -545,4 +545,16 @@ export function routeSession(router: Router) {
       }
     }
   )
+
+  router.get('/sessions/unread-dms', async function (req, res) {
+    try {
+      const user = extractUser(req)
+      const sessionsWithUnreadDMs = await SessionService.sessionsWithUnreadDMs(
+        user.id
+      )
+      res.json({ sessionsWithUnreadDMs })
+    } catch (err) {
+      resError(res, err)
+    }
+  })
 }
