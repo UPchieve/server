@@ -532,8 +532,6 @@ SELECT
     tool_types.name AS tool_type,
     volunteer_profiles.languages AS volunteer_languages,
     sessions.ended_by_user_id AS ended_by,
-    student_last_seen.last_seen_at AS student_last_seen_at,
-    volunteer_last_seen.last_seen_at AS volunteer_last_seen_at,
     CASE WHEN sessions.volunteer_id IS NULL THEN
         FALSE
     WHEN (
@@ -564,10 +562,6 @@ FROM
     LEFT JOIN topics ON subjects.topic_id = topics.id
     JOIN tool_types ON subjects.tool_type_id = tool_types.id
     LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = sessions.volunteer_id
-    LEFT JOIN session_last_seen student_last_seen ON sessions.id = student_last_seen.session_id
-        AND sessions.student_id = student_last_seen.user_id
-    LEFT JOIN session_last_seen volunteer_last_seen ON sessions.id = volunteer_last_seen.session_id
-        AND sessions.volunteer_id = volunteer_last_seen.user_id
 WHERE
     sessions.id = :sessionId;
 
@@ -1079,8 +1073,6 @@ SELECT
     volunteers.id AS volunteer_id,
     students.id AS student_id,
     students.first_name AS student_first_name,
-    volunteer_last_seen.last_seen_at AS volunteer_last_seen_at,
-    student_last_seen.last_seen_at AS student_last_seen_at,
     (
         CASE WHEN favorited.volunteer_id = sessions.volunteer_id THEN
             TRUE
@@ -1097,10 +1089,6 @@ FROM
     LEFT JOIN users students ON sessions.student_id = students.id
     LEFT JOIN student_favorite_volunteers favorited ON students.id = favorited.student_id
         AND volunteers.id = favorited.volunteer_id
-    LEFT JOIN upchieve.session_last_seen volunteer_last_seen ON volunteer_last_seen.session_id = sessions.id
-        AND volunteer_last_seen.user_id = sessions.volunteer_id
-    LEFT JOIN upchieve.session_last_seen student_last_seen ON student_last_seen.session_id = sessions.id
-        AND student_last_seen.user_id = sessions.student_id
 WHERE
     sessions.id = :sessionId!;
 

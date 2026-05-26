@@ -1317,8 +1317,6 @@ export function toCurrentSessionPublic(
     createdAt: session.createdAt,
     endedAt: session.endedAt,
     endedBy: session.endedBy,
-    studentLastSeenAt: session.studentLastSeenAt,
-    volunteerLastSeenAt: session.volunteerLastSeenAt,
   }
 }
 

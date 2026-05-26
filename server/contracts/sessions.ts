@@ -35,6 +35,4 @@ export type CurrentSessionPublic = {
   createdAt: Date
   endedAt?: Date
   endedBy?: Uuid
-  studentLastSeenAt?: Date
-  volunteerLastSeenAt?: Date
 }
