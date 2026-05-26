@@ -28,10 +28,7 @@ import { getSubjectsForTopicByTopicId } from './SubjectsService'
 import logger from '../logger'
 import { isEmpty } from 'lodash'
 import * as ModerationTypes from './ModerationService/types'
-import {
-  ImageModerationFailureReason,
-  ModerationSource,
-} from './ModerationService/types'
+import { ImageModerationFailureReason } from './ModerationService/types'
 import { extractPdfContent } from '../utils/file-utils'
 import { moderateAssignmentInfo } from './ModerationService/index'
 
@@ -89,13 +86,13 @@ export const asEditedAssignment = asFactory<EditAssignmentPayload>({
 export async function createAssignment(
   data: CreateAssignmentPayload,
   tc?: TransactionClient
-): Promise<Assignment | ModerationTypes.ModerationFailureReasons> {
+): Promise<Assignment | ModerationTypes.ModerationFailureCategories> {
   validateAssignmentData(data)
   const moderationResults = await ModerationService.moderateAssignmentInfo(
     `${data.title} ${data.description}`
   )
 
-  if (!isEmpty(moderationResults.failures)) {
+  if (!isEmpty(moderationResults)) {
     return moderationResults
   }
 
@@ -127,12 +124,12 @@ export async function createAssignment(
 
 export async function editAssignment(
   data: EditAssignmentPayload
-): Promise<Assignment | ModerationTypes.ModerationFailureReasons> {
+): Promise<Assignment | ModerationTypes.ModerationFailureCategories> {
   validateAssignmentData(data)
   const moderationResults = await ModerationService.moderateAssignmentInfo(
     `${data.title} ${data.description}`
   )
-  if (!isEmpty(moderationResults.failures)) {
+  if (!isEmpty(moderationResults)) {
     return moderationResults
   }
   return runInTransaction(async (tc: TransactionClient) => {
@@ -408,15 +405,15 @@ async function moderateAssignmentImage(
 async function moderateAssignmentPdf(
   file: Express.Multer.File,
   assignmentId: string
-): Promise<string[]> {
+): Promise<ModerationTypes.ModerationFailureCategories> {
   const moderationFailures: string[] = []
   const extractedContent = await extractPdfContent(file.buffer)
 
   const textModerationResults = await moderateAssignmentInfo(
     extractedContent.text
   )
-  if (!isEmpty(textModerationResults.failures)) {
-    moderationFailures.push(...(textModerationResults.failures as string[]))
+  if (!isEmpty(textModerationResults)) {
+    moderationFailures.push(...textModerationResults)
   }
 
   for (const image of extractedContent.images) {
@@ -459,9 +456,6 @@ export async function uploadAssignmentFiles(
         file.buffer,
         assignmentId
       )
-      console.log('TEST - image file moderation results', {
-        moderationFailures,
-      })
       if (moderationFailures.length) {
         fileNameToModerationFailures[file.originalname] =
           moderationFailures.map((failure) => failure.reason)

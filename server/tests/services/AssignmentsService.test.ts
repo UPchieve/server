@@ -29,9 +29,7 @@ beforeEach(() => {
 
 describe('createAssignment', () => {
   beforeEach(() => {
-    mockedModerationService.moderateAssignmentInfo.mockResolvedValue({
-      failures: {},
-    })
+    mockedModerationService.moderateAssignmentInfo.mockResolvedValue([])
   })
 
   test('throws an error if the minimum number of sessions is less than 0', async () => {

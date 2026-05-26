@@ -1182,13 +1182,11 @@ const getAiModerationResult = async (
   return { results: r }
 }
 
-export async function moderateAssignmentInfo(
-  text: string
-): Promise<ModerationTypes.ModerationFailureReasons> {
+export async function moderateAssignmentInfo(text: string): Promise<string[]> {
   // Regex first
   const regexDecision = await Regex.regexModerate(text)
   if (regexDecision.isClean) {
-    return { failures: {} }
+    return []
   }
 
   // Consult AI if regex comes back with a match
@@ -1225,8 +1223,7 @@ export async function moderateAssignmentInfo(
     throw new Error('Could not process assignment')
   }
 
-  const aiDecision = { failures: output.results?.reasons ?? {} }
-  return aiDecision
+  return output.results?.reasons ?? []
 }
 
 export type oldClientModerationResult = boolean
