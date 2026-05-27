@@ -1,9 +1,24 @@
 import newrelic from 'newrelic'
+import { Server as SocketIoServer } from 'socket.io'
+import { createAdapter } from '@socket.io/redis-streams-adapter'
 import * as db from '../db'
 import logger from '../logger'
 import { addJobProcessors } from './jobs'
 import { registerListeners } from '../services/listeners'
 import QueueService from '../services/QueueService'
+import { redisClient } from '../services/RedisService'
+import SocketService from '../services/SocketService'
+
+// Initialize a headless Socket.IO server in the worker process so jobs (e.g.
+// PromptStudentToBreakout, EndUnmatchedSession's exclusive-request cleanup) can
+// emit events to clients connected to the HTTP server. The Redis streams
+// adapter routes emits across processes — the HTTP server's Socket.IO instance
+// picks them up and delivers to actually-connected sockets.
+function initWorkerSocketService(): void {
+  const io = new SocketIoServer()
+  io.adapter(createAdapter(redisClient))
+  SocketService.getInstance(io)
+}
 
 const main = async (): Promise<void> => {
   try {
@@ -11,6 +26,7 @@ const main = async (): Promise<void> => {
     logger.info('Starting queue')
     const queue = QueueService.queue
 
+    initWorkerSocketService()
     addJobProcessors(queue)
     registerListeners()
   } catch (error) {
