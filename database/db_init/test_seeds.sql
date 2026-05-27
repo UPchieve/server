@@ -207,6 +207,7 @@ COPY upchieve.censored_session_messages (id, sender_id, message, session_id, cen
 --
 
 COPY upchieve.certifications (id, name, created_at, updated_at, active) FROM stdin;
+1	reading	2026-05-27 00:22:43.905569+00	2026-05-27 00:22:43.905569+00	f
 \.
 
 
@@ -415,6 +416,7 @@ COPY upchieve.notification_methods (id, method, created_at, updated_at) FROM std
 --
 
 COPY upchieve.notification_priority_groups (id, name, priority, created_at, updated_at) FROM stdin;
+1	Favorite volunteers - not notified in the last 15 mins	10	2026-05-27 00:22:43.894525+00	2026-05-27 00:22:43.894525+00
 \.
 
 
@@ -1237,7 +1239,7 @@ SELECT pg_catalog.setval('upchieve.ban_reasons_id_seq', 1, false);
 -- Name: certifications_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.certifications_id_seq', 1, false);
+SELECT pg_catalog.setval('upchieve.certifications_id_seq', 1, true);
 
 
 --
@@ -1307,7 +1309,7 @@ SELECT pg_catalog.setval('upchieve.notification_methods_id_seq', 1, false);
 -- Name: notification_priority_groups_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.notification_priority_groups_id_seq', 1, false);
+SELECT pg_catalog.setval('upchieve.notification_priority_groups_id_seq', 1, true);
 
 
 --
