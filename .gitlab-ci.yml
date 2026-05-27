@@ -1,3 +1,9 @@
+# Analytics post-deploy sync jobs live in their own file and are merged into
+# this pipeline at compile time. They reuse the `post-deploy` stage and the
+# `.node_setup` hidden job defined below.
+include:
+  - local: database/analytics/.gitlab-ci.yml
+
 stages:
   - build
   - test

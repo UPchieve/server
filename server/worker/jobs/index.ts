@@ -43,7 +43,6 @@ import emailVolunteerInactiveBlackoutOver from './volunteer-emails/emailVoluntee
 import emailVolunteerSessionActions from './volunteer-emails/emailVolunteerSessionActions'
 import sendSessionRecapMessageNotification from './sendSessionRecapMessageNotification'
 import generateProgressReport from './generateProgressReport'
-import updateBasicAccessViews from '../../scripts/update-basic-access-views'
 import migrateProgressReportPromptIds from '../../scripts/migrate-progress-report-prompt-ids'
 import spawnEmailWeeklyHourSummaryJobs from './spawnEmailWeeklyHourSummaryJobs'
 import textVolunteers from './textVolunteers'
@@ -150,7 +149,6 @@ export enum Jobs {
   SpawnEmailWeeklyHourSummaryJobs = 'SpawnEmailWeeklyHourSummaryJobs',
   TextVolunteers = 'TextVolunteers',
   TitlecaseSchoolNames = 'TitlecaseSchoolNames',
-  UpdateBasicAccessViews = 'UpdateBasicAccessViews',
   UpdateElapsedAvailability = 'UpdateElapsedAvailability',
   UpdateSendGridGradeLevels = 'UpdateSendGridGradeLevels',
   UpdateTotalVolunteerHours = 'UpdateTotalVolunteerHours',
@@ -454,10 +452,6 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.TitlecaseSchoolNames,
     processor: titlecaseSchoolNames,
-  },
-  {
-    name: Jobs.UpdateBasicAccessViews,
-    processor: updateBasicAccessViews,
   },
   {
     name: Jobs.UpdateElapsedAvailability,

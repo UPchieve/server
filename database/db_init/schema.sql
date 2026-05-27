@@ -22,13 +22,6 @@ CREATE SCHEMA auth;
 
 
 --
--- Name: basic_access; Type: SCHEMA; Schema: -; Owner: -
---
-
-CREATE SCHEMA basic_access;
-
-
---
 -- Name: upchieve; Type: SCHEMA; Schema: -; Owner: -
 --
 
@@ -247,35 +240,6 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
--- Name: session; Type: TABLE; Schema: auth; Owner: -
---
-
-CREATE TABLE auth.session (
-    sid character varying NOT NULL,
-    sess json NOT NULL,
-    expire timestamp(6) without time zone NOT NULL
-);
-
-
---
--- Name: schema_migrations; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.schema_migrations (
-    version character varying(255) NOT NULL
-);
-
-
---
--- Name: seed_migrations; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.seed_migrations (
-    version character varying(255) NOT NULL
-);
-
-
---
 -- Name: admin_profiles; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -385,26 +349,6 @@ CREATE TABLE upchieve.ban_reasons (
 
 
 --
--- Name: ban_reasons_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
---
-
-CREATE SEQUENCE upchieve.ban_reasons_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: ban_reasons_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
---
-
-ALTER SEQUENCE upchieve.ban_reasons_id_seq OWNED BY upchieve.ban_reasons.id;
-
-
---
 -- Name: censored_session_messages; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -445,26 +389,6 @@ CREATE TABLE upchieve.certifications (
 
 
 --
--- Name: certifications_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
---
-
-CREATE SEQUENCE upchieve.certifications_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: certifications_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
---
-
-ALTER SEQUENCE upchieve.certifications_id_seq OWNED BY upchieve.certifications.id;
-
-
---
 -- Name: cities; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -475,26 +399,6 @@ CREATE TABLE upchieve.cities (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
-
-
---
--- Name: cities_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
---
-
-CREATE SEQUENCE upchieve.cities_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: cities_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
---
-
-ALTER SEQUENCE upchieve.cities_id_seq OWNED BY upchieve.cities.id;
 
 
 --
@@ -535,105 +439,6 @@ CREATE TABLE upchieve.contact_form_submissions (
 
 
 --
--- Name: grade_levels; Type: TABLE; Schema: upchieve; Owner: -
---
-
-CREATE TABLE upchieve.grade_levels (
-    id integer NOT NULL,
-    name text NOT NULL,
-    created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
-);
-
-
---
--- Name: users_grade_levels; Type: TABLE; Schema: upchieve; Owner: -
---
-
-CREATE TABLE upchieve.users_grade_levels (
-    user_id uuid NOT NULL,
-    signup_grade_level_id integer,
-    grade_level_id integer NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
-);
-
-
---
--- Name: current_grade_levels; Type: VIEW; Schema: upchieve; Owner: -
---
-
-CREATE VIEW upchieve.current_grade_levels AS
- WITH grade_progression AS (
-         SELECT ugl.user_id,
-            ugl.grade_level_id,
-            GREATEST(0, ((EXTRACT(year FROM (CURRENT_DATE - '6 mons'::interval)))::integer - (EXTRACT(year FROM ((ugl.updated_at)::date - '6 mons'::interval)))::integer)) AS school_years_passed
-           FROM upchieve.users_grade_levels ugl
-        )
- SELECT grade_progression.user_id,
-        CASE grade_levels.name
-            WHEN 'Other'::text THEN 'Other'::text
-            ELSE (ARRAY['6th'::text, '7th'::text, '8th'::text, '9th'::text, '10th'::text, '11th'::text, '12th'::text, 'College'::text])[LEAST((array_position(ARRAY['6th'::text, '7th'::text, '8th'::text, '9th'::text, '10th'::text, '11th'::text, '12th'::text, 'College'::text], grade_levels.name) + grade_progression.school_years_passed), 8)]
-        END AS current_grade_name
-   FROM (grade_progression
-     JOIN upchieve.grade_levels ON ((grade_progression.grade_level_id = grade_levels.id)));
-
-
---
--- Name: student_profiles; Type: TABLE; Schema: upchieve; Owner: -
---
-
-CREATE TABLE upchieve.student_profiles (
-    user_id uuid NOT NULL,
-    college text,
-    school_id uuid,
-    postal_code text,
-    grade_level_id integer,
-    student_partner_org_user_id text,
-    student_partner_org_id uuid,
-    student_partner_org_site_id uuid,
-    created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
-);
-
-
---
--- Name: current_grade_levels_mview; Type: MATERIALIZED VIEW; Schema: upchieve; Owner: -
---
-
-CREATE MATERIALIZED VIEW upchieve.current_grade_levels_mview AS
- WITH base_dates AS (
-         SELECT student_profiles.user_id,
-            student_profiles.grade_level_id,
-                CASE
-                    WHEN (student_profiles.created_at < '2023-08-30'::date) THEN ('2023-08-30'::date)::timestamp with time zone
-                    ELSE student_profiles.created_at
-                END AS base_date
-           FROM upchieve.student_profiles
-        ), grade_progression AS (
-         SELECT base_dates.user_id,
-            base_dates.grade_level_id,
-            base_dates.base_date,
-            (
-                CASE
-                    WHEN (base_dates.base_date >= (date_trunc('year'::text, (CURRENT_DATE)::timestamp with time zone) + '6 mons'::interval)) THEN (0)::numeric
-                    ELSE (EXTRACT(year FROM age((CURRENT_DATE)::timestamp with time zone, base_dates.base_date)) + (
-                    CASE
-                        WHEN (CURRENT_DATE >= (date_trunc('year'::text, (CURRENT_DATE)::timestamp with time zone) + '6 mons'::interval)) THEN 1
-                        ELSE 0
-                    END)::numeric)
-                END)::integer AS school_years_passed
-           FROM base_dates
-        )
- SELECT grade_progression.user_id,
-    grade_progression.grade_level_id AS initial_grade_level_id,
-    grade_levels.name AS initial_grade_name,
-    upchieve.get_next_grade_name(grade_levels.name, grade_progression.school_years_passed) AS current_grade_name
-   FROM (grade_progression
-     JOIN upchieve.grade_levels ON ((grade_progression.grade_level_id = grade_levels.id)))
-  WITH NO DATA;
-
-
---
 -- Name: email_domain_blocklist; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -643,26 +448,6 @@ CREATE TABLE upchieve.email_domain_blocklist (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
-
-
---
--- Name: email_domain_blocklist_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
---
-
-CREATE SEQUENCE upchieve.email_domain_blocklist_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: email_domain_blocklist_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
---
-
-ALTER SEQUENCE upchieve.email_domain_blocklist_id_seq OWNED BY upchieve.email_domain_blocklist.id;
 
 
 --
@@ -709,23 +494,15 @@ CREATE TABLE upchieve.grade_level_sequence (
 
 
 --
--- Name: grade_levels_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+-- Name: grade_levels; Type: TABLE; Schema: upchieve; Owner: -
 --
 
-CREATE SEQUENCE upchieve.grade_levels_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: grade_levels_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
---
-
-ALTER SEQUENCE upchieve.grade_levels_id_seq OWNED BY upchieve.grade_levels.id;
+CREATE TABLE upchieve.grade_levels (
+    id integer NOT NULL,
+    name text NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
 
 
 --
@@ -761,25 +538,6 @@ CREATE TABLE upchieve.ip_addresses (
 
 
 --
--- Name: ip_addresses_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
---
-
-CREATE SEQUENCE upchieve.ip_addresses_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: ip_addresses_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
---
-
-ALTER SEQUENCE upchieve.ip_addresses_id_seq OWNED BY upchieve.ip_addresses.id;
-
-
---
 -- Name: legacy_availability_histories; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -807,26 +565,6 @@ CREATE TABLE upchieve.moderation_actions (
 
 
 --
--- Name: moderation_actions_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
---
-
-CREATE SEQUENCE upchieve.moderation_actions_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: moderation_actions_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
---
-
-ALTER SEQUENCE upchieve.moderation_actions_id_seq OWNED BY upchieve.moderation_actions.id;
-
-
---
 -- Name: moderation_categories; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -834,26 +572,6 @@ CREATE TABLE upchieve.moderation_categories (
     id integer NOT NULL,
     name text NOT NULL
 );
-
-
---
--- Name: moderation_categories_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
---
-
-CREATE SEQUENCE upchieve.moderation_categories_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: moderation_categories_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
---
-
-ALTER SEQUENCE upchieve.moderation_categories_id_seq OWNED BY upchieve.moderation_categories.id;
 
 
 --
@@ -881,20 +599,6 @@ CREATE TABLE upchieve.moderation_penalty_config (
     max_weight integer NOT NULL,
     moderation_type upchieve.moderation_types,
     CONSTRAINT moderation_penalty_min_le_max CHECK ((min_weight <= max_weight))
-);
-
-
---
--- Name: moderation_penalty_config_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
---
-
-ALTER TABLE upchieve.moderation_penalty_config ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
-    SEQUENCE NAME upchieve.moderation_penalty_config_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1
 );
 
 
@@ -927,26 +631,6 @@ CREATE TABLE upchieve.moderation_rules_flags (
     flag_id integer NOT NULL,
     rule_id integer NOT NULL
 );
-
-
---
--- Name: moderation_rules_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
---
-
-CREATE SEQUENCE upchieve.moderation_rules_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: moderation_rules_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
---
-
-ALTER SEQUENCE upchieve.moderation_rules_id_seq OWNED BY upchieve.moderation_rules.id;
 
 
 --
@@ -985,26 +669,6 @@ CREATE TABLE upchieve.notification_methods (
 
 
 --
--- Name: notification_methods_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
---
-
-CREATE SEQUENCE upchieve.notification_methods_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: notification_methods_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
---
-
-ALTER SEQUENCE upchieve.notification_methods_id_seq OWNED BY upchieve.notification_methods.id;
-
-
---
 -- Name: notification_priority_groups; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -1018,26 +682,6 @@ CREATE TABLE upchieve.notification_priority_groups (
 
 
 --
--- Name: notification_priority_groups_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
---
-
-CREATE SEQUENCE upchieve.notification_priority_groups_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: notification_priority_groups_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
---
-
-ALTER SEQUENCE upchieve.notification_priority_groups_id_seq OWNED BY upchieve.notification_priority_groups.id;
-
-
---
 -- Name: notification_types; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -1047,26 +691,6 @@ CREATE TABLE upchieve.notification_types (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
-
-
---
--- Name: notification_types_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
---
-
-CREATE SEQUENCE upchieve.notification_types_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: notification_types_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
---
-
-ALTER SEQUENCE upchieve.notification_types_id_seq OWNED BY upchieve.notification_types.id;
 
 
 --
@@ -1098,20 +722,6 @@ CREATE TABLE upchieve.nths_actions (
     id integer NOT NULL,
     name text NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL
-);
-
-
---
--- Name: nths_actions_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
---
-
-ALTER TABLE upchieve.nths_actions ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
-    SEQUENCE NAME upchieve.nths_actions_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1
 );
 
 
@@ -1160,20 +770,6 @@ END)
 
 
 --
--- Name: nths_candidate_applications_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
---
-
-ALTER TABLE upchieve.nths_candidate_applications ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
-    SEQUENCE NAME upchieve.nths_candidate_applications_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1
-);
-
-
---
 -- Name: nths_chapter_statuses; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -1181,20 +777,6 @@ CREATE TABLE upchieve.nths_chapter_statuses (
     id integer NOT NULL,
     name text NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL
-);
-
-
---
--- Name: nths_chapter_statuses_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
---
-
-ALTER TABLE upchieve.nths_chapter_statuses ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
-    SEQUENCE NAME upchieve.nths_chapter_statuses_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1
 );
 
 
@@ -1218,20 +800,6 @@ CREATE TABLE upchieve.nths_group_actions (
     nths_group_id uuid,
     nths_action_id integer,
     created_at timestamp with time zone DEFAULT now() NOT NULL
-);
-
-
---
--- Name: nths_group_actions_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
---
-
-ALTER TABLE upchieve.nths_group_actions ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
-    SEQUENCE NAME upchieve.nths_group_actions_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1
 );
 
 
@@ -1268,20 +836,6 @@ CREATE TABLE upchieve.nths_group_members (
 CREATE TABLE upchieve.nths_group_roles (
     id integer NOT NULL,
     name character varying(20)
-);
-
-
---
--- Name: nths_group_roles_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
---
-
-ALTER TABLE upchieve.nths_group_roles ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
-    SEQUENCE NAME upchieve.nths_group_roles_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1
 );
 
 
@@ -1324,20 +878,6 @@ CREATE TABLE upchieve.nths_school_affiliation_statuses (
 
 
 --
--- Name: nths_school_affiliation_statuses_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
---
-
-ALTER TABLE upchieve.nths_school_affiliation_statuses ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
-    SEQUENCE NAME upchieve.nths_school_affiliation_statuses_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1
-);
-
-
---
 -- Name: parents_guardians; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -1369,26 +909,6 @@ CREATE TABLE upchieve.photo_id_statuses (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
-
-
---
--- Name: photo_id_statuses_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
---
-
-CREATE SEQUENCE upchieve.photo_id_statuses_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: photo_id_statuses_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
---
-
-ALTER SEQUENCE upchieve.photo_id_statuses_id_seq OWNED BY upchieve.photo_id_statuses.id;
 
 
 --
@@ -1435,26 +955,6 @@ CREATE TABLE upchieve.progress_report_analysis_types (
 
 
 --
--- Name: progress_report_analysis_types_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
---
-
-CREATE SEQUENCE upchieve.progress_report_analysis_types_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: progress_report_analysis_types_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
---
-
-ALTER SEQUENCE upchieve.progress_report_analysis_types_id_seq OWNED BY upchieve.progress_report_analysis_types.id;
-
-
---
 -- Name: progress_report_concept_details; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -1498,26 +998,6 @@ CREATE TABLE upchieve.progress_report_focus_areas (
 
 
 --
--- Name: progress_report_focus_areas_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
---
-
-CREATE SEQUENCE upchieve.progress_report_focus_areas_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: progress_report_focus_areas_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
---
-
-ALTER SEQUENCE upchieve.progress_report_focus_areas_id_seq OWNED BY upchieve.progress_report_focus_areas.id;
-
-
---
 -- Name: progress_report_info_types; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -1527,26 +1007,6 @@ CREATE TABLE upchieve.progress_report_info_types (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
-
-
---
--- Name: progress_report_info_types_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
---
-
-CREATE SEQUENCE upchieve.progress_report_info_types_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: progress_report_info_types_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
---
-
-ALTER SEQUENCE upchieve.progress_report_info_types_id_seq OWNED BY upchieve.progress_report_info_types.id;
 
 
 --
@@ -1561,26 +1021,6 @@ CREATE TABLE upchieve.progress_report_prompts (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
-
-
---
--- Name: progress_report_prompts_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
---
-
-CREATE SEQUENCE upchieve.progress_report_prompts_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: progress_report_prompts_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
---
-
-ALTER SEQUENCE upchieve.progress_report_prompts_id_seq OWNED BY upchieve.progress_report_prompts.id;
 
 
 --
@@ -1606,26 +1046,6 @@ CREATE TABLE upchieve.progress_report_statuses (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
-
-
---
--- Name: progress_report_statuses_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
---
-
-CREATE SEQUENCE upchieve.progress_report_statuses_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: progress_report_statuses_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
---
-
-ALTER SEQUENCE upchieve.progress_report_statuses_id_seq OWNED BY upchieve.progress_report_statuses.id;
 
 
 --
@@ -1698,20 +1118,6 @@ CREATE TABLE upchieve.question_tags (
 
 
 --
--- Name: question_tags_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
---
-
-ALTER TABLE upchieve.question_tags ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
-    SEQUENCE NAME upchieve.question_tags_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1
-);
-
-
---
 -- Name: question_types; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -1720,20 +1126,6 @@ CREATE TABLE upchieve.question_types (
     name text NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
-);
-
-
---
--- Name: question_types_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
---
-
-ALTER TABLE upchieve.question_types ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
-    SEQUENCE NAME upchieve.question_types_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1
 );
 
 
@@ -1767,26 +1159,6 @@ CREATE TABLE upchieve.quiz_questions (
 
 
 --
--- Name: quiz_questions_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
---
-
-CREATE SEQUENCE upchieve.quiz_questions_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: quiz_questions_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
---
-
-ALTER SEQUENCE upchieve.quiz_questions_id_seq OWNED BY upchieve.quiz_questions.id;
-
-
---
 -- Name: quiz_review_materials; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -1798,20 +1170,6 @@ CREATE TABLE upchieve.quiz_review_materials (
     image text NOT NULL,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
-);
-
-
---
--- Name: quiz_review_materials_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
---
-
-ALTER TABLE upchieve.quiz_review_materials ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
-    SEQUENCE NAME upchieve.quiz_review_materials_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1
 );
 
 
@@ -1829,26 +1187,6 @@ CREATE TABLE upchieve.quiz_subcategories (
 
 
 --
--- Name: quiz_subcategories_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
---
-
-CREATE SEQUENCE upchieve.quiz_subcategories_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: quiz_subcategories_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
---
-
-ALTER SEQUENCE upchieve.quiz_subcategories_id_seq OWNED BY upchieve.quiz_subcategories.id;
-
-
---
 -- Name: quizzes; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -1863,26 +1201,6 @@ CREATE TABLE upchieve.quizzes (
 
 
 --
--- Name: quizzes_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
---
-
-CREATE SEQUENCE upchieve.quizzes_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: quizzes_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
---
-
-ALTER SEQUENCE upchieve.quizzes_id_seq OWNED BY upchieve.quizzes.id;
-
-
---
 -- Name: referrals; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -1891,26 +1209,6 @@ CREATE TABLE upchieve.referrals (
     referred_by uuid,
     user_id uuid
 );
-
-
---
--- Name: referrals_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
---
-
-CREATE SEQUENCE upchieve.referrals_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: referrals_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
---
-
-ALTER SEQUENCE upchieve.referrals_id_seq OWNED BY upchieve.referrals.id;
 
 
 --
@@ -1923,26 +1221,6 @@ CREATE TABLE upchieve.report_reasons (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
-
-
---
--- Name: report_reasons_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
---
-
-CREATE SEQUENCE upchieve.report_reasons_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: report_reasons_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
---
-
-ALTER SEQUENCE upchieve.report_reasons_id_seq OWNED BY upchieve.report_reasons.id;
 
 
 --
@@ -2083,26 +1361,6 @@ CREATE TABLE upchieve.session_flags (
 
 
 --
--- Name: session_flags_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
---
-
-CREATE SEQUENCE upchieve.session_flags_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: session_flags_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
---
-
-ALTER SEQUENCE upchieve.session_flags_id_seq OWNED BY upchieve.session_flags.id;
-
-
---
 -- Name: session_meetings; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -2214,6 +1472,7 @@ CREATE TABLE upchieve.sessions (
     quill_doc text,
     volunteer_joined_at timestamp with time zone,
     ended_at timestamp with time zone,
+    ended_by_role_id integer,
     reviewed boolean DEFAULT false NOT NULL,
     to_review boolean DEFAULT false NOT NULL,
     student_banned boolean,
@@ -2264,26 +1523,6 @@ CREATE TABLE upchieve.shareable_domains (
 
 
 --
--- Name: shareable_domains_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
---
-
-CREATE SEQUENCE upchieve.shareable_domains_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: shareable_domains_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
---
-
-ALTER SEQUENCE upchieve.shareable_domains_id_seq OWNED BY upchieve.shareable_domains.id;
-
-
---
 -- Name: signup_sources; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -2293,26 +1532,6 @@ CREATE TABLE upchieve.signup_sources (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
-
-
---
--- Name: signup_sources_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
---
-
-CREATE SEQUENCE upchieve.signup_sources_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: signup_sources_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
---
-
-ALTER SEQUENCE upchieve.signup_sources_id_seq OWNED BY upchieve.signup_sources.id;
 
 
 --
@@ -2461,6 +1680,24 @@ CREATE TABLE upchieve.student_partner_orgs_volunteer_partner_orgs_instances (
 
 
 --
+-- Name: student_profiles; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.student_profiles (
+    user_id uuid NOT NULL,
+    college text,
+    school_id uuid,
+    postal_code text,
+    grade_level_id integer,
+    student_partner_org_user_id text,
+    student_partner_org_id uuid,
+    student_partner_org_site_id uuid,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
 -- Name: students_assignments; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -2491,26 +1728,6 @@ CREATE TABLE upchieve.subjects (
 
 
 --
--- Name: subjects_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
---
-
-CREATE SEQUENCE upchieve.subjects_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: subjects_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
---
-
-ALTER SEQUENCE upchieve.subjects_id_seq OWNED BY upchieve.subjects.id;
-
-
---
 -- Name: survey_questions; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -2527,20 +1744,6 @@ CREATE TABLE upchieve.survey_questions (
 
 
 --
--- Name: survey_questions_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
---
-
-ALTER TABLE upchieve.survey_questions ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
-    SEQUENCE NAME upchieve.survey_questions_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1
-);
-
-
---
 -- Name: survey_questions_question_tags; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -2550,20 +1753,6 @@ CREATE TABLE upchieve.survey_questions_question_tags (
     question_tag_id integer NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
-);
-
-
---
--- Name: survey_questions_question_tags_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
---
-
-ALTER TABLE upchieve.survey_questions_question_tags ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
-    SEQUENCE NAME upchieve.survey_questions_question_tags_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1
 );
 
 
@@ -2595,20 +1784,6 @@ CREATE TABLE upchieve.survey_response_choices (
 
 
 --
--- Name: survey_response_choices_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
---
-
-ALTER TABLE upchieve.survey_response_choices ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
-    SEQUENCE NAME upchieve.survey_response_choices_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1
-);
-
-
---
 -- Name: survey_types; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -2617,20 +1792,6 @@ CREATE TABLE upchieve.survey_types (
     name text NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
-);
-
-
---
--- Name: survey_types_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
---
-
-ALTER TABLE upchieve.survey_types ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
-    SEQUENCE NAME upchieve.survey_types_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1
 );
 
 
@@ -2662,20 +1823,6 @@ CREATE TABLE upchieve.surveys_context (
 
 
 --
--- Name: surveys_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
---
-
-ALTER TABLE upchieve.surveys ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
-    SEQUENCE NAME upchieve.surveys_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1
-);
-
-
---
 -- Name: surveys_survey_questions; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -2686,20 +1833,6 @@ CREATE TABLE upchieve.surveys_survey_questions (
     display_priority smallint NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
-);
-
-
---
--- Name: surveys_survey_questions_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
---
-
-ALTER TABLE upchieve.surveys_survey_questions ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
-    SEQUENCE NAME upchieve.surveys_survey_questions_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1
 );
 
 
@@ -2749,20 +1882,6 @@ CREATE TABLE upchieve.text_moderation_patterns (
 
 
 --
--- Name: text_moderation_patterns_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
---
-
-ALTER TABLE upchieve.text_moderation_patterns ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
-    SEQUENCE NAME upchieve.text_moderation_patterns_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1
-);
-
-
---
 -- Name: tool_types; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -2772,26 +1891,6 @@ CREATE TABLE upchieve.tool_types (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
-
-
---
--- Name: tool_types_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
---
-
-CREATE SEQUENCE upchieve.tool_types_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: tool_types_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
---
-
-ALTER SEQUENCE upchieve.tool_types_id_seq OWNED BY upchieve.tool_types.id;
 
 
 --
@@ -2809,26 +1908,6 @@ CREATE TABLE upchieve.topics (
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     training_order smallint DEFAULT 0 NOT NULL
 );
-
-
---
--- Name: topics_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
---
-
-CREATE SEQUENCE upchieve.topics_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: topics_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
---
-
-ALTER SEQUENCE upchieve.topics_id_seq OWNED BY upchieve.topics.id;
 
 
 --
@@ -2856,26 +1935,6 @@ CREATE TABLE upchieve.training_courses (
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     display_name text
 );
-
-
---
--- Name: training_courses_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
---
-
-CREATE SEQUENCE upchieve.training_courses_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: training_courses_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
---
-
-ALTER SEQUENCE upchieve.training_courses_id_seq OWNED BY upchieve.training_courses.id;
 
 
 --
@@ -2959,25 +2018,6 @@ CREATE TABLE upchieve.user_actions (
 
 
 --
--- Name: user_actions_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
---
-
-CREATE SEQUENCE upchieve.user_actions_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: user_actions_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
---
-
-ALTER SEQUENCE upchieve.user_actions_id_seq OWNED BY upchieve.user_actions.id;
-
-
---
 -- Name: user_product_flags; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -3013,26 +2053,6 @@ CREATE TABLE upchieve.user_roles (
 
 
 --
--- Name: user_roles_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
---
-
-CREATE SEQUENCE upchieve.user_roles_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: user_roles_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
---
-
-ALTER SEQUENCE upchieve.user_roles_id_seq OWNED BY upchieve.user_roles.id;
-
-
---
 -- Name: user_session_metrics; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -3057,58 +2077,6 @@ CREATE TABLE upchieve.user_session_metrics (
     coach_uncomfortable integer DEFAULT 0 NOT NULL,
     student_crisis integer DEFAULT 0 NOT NULL
 );
-
-
---
--- Name: user_session_metrics_view; Type: VIEW; Schema: upchieve; Owner: -
---
-
-CREATE VIEW upchieve.user_session_metrics_view AS
- WITH flags_with_users AS (
-         SELECT sessions_session_flags.session_id,
-            session_flags.name AS flag_name,
-            sessions.student_id,
-            sessions.volunteer_id,
-            sessions_session_flags.created_at
-           FROM ((upchieve.sessions_session_flags
-             JOIN upchieve.session_flags ON ((sessions_session_flags.session_flag_id = session_flags.id)))
-             JOIN upchieve.sessions ON ((sessions.id = sessions_session_flags.session_id)))
-        ), flag_rows_by_user AS (
-         SELECT flags_with_users.student_id AS user_id,
-            'student'::text AS user_role,
-            flags_with_users.flag_name,
-            flags_with_users.created_at
-           FROM flags_with_users
-          WHERE (flags_with_users.student_id IS NOT NULL)
-        UNION ALL
-         SELECT flags_with_users.volunteer_id AS user_id,
-            'volunteer'::text AS user_role,
-            flags_with_users.flag_name,
-            flags_with_users.created_at
-           FROM flags_with_users
-          WHERE (flags_with_users.volunteer_id IS NOT NULL)
-        )
- SELECT flag_rows_by_user.user_id,
-    flag_rows_by_user.user_role,
-    count(*) FILTER (WHERE (flag_rows_by_user.flag_name = 'Absent student'::text)) AS absent_student,
-    count(*) FILTER (WHERE (flag_rows_by_user.flag_name = 'Absent volunteer'::text)) AS absent_volunteer,
-    count(*) FILTER (WHERE (flag_rows_by_user.flag_name = 'Low session rating from coach'::text)) AS low_session_rating_from_coach,
-    count(*) FILTER (WHERE (flag_rows_by_user.flag_name = 'Low session rating from student'::text)) AS low_session_rating_from_student,
-    count(*) FILTER (WHERE (flag_rows_by_user.flag_name = 'Low coach rating from student'::text)) AS low_coach_rating_from_student,
-    count(*) FILTER (WHERE (flag_rows_by_user.flag_name = 'Reported'::text)) AS reported,
-    count(*) FILTER (WHERE (flag_rows_by_user.flag_name = 'Pressuring coach'::text)) AS only_looking_for_answers,
-    count(*) FILTER (WHERE (flag_rows_by_user.flag_name = 'Mean or inappropriate'::text)) AS rude_or_inappropriate,
-    count(*) FILTER (WHERE (flag_rows_by_user.flag_name = 'Comment from student'::text)) AS comment_from_student,
-    count(*) FILTER (WHERE (flag_rows_by_user.flag_name = 'Comment from volunteer'::text)) AS comment_from_volunteer,
-    count(*) FILTER (WHERE (flag_rows_by_user.flag_name = 'Has been unmatched'::text)) AS has_been_unmatched,
-    count(*) FILTER (WHERE (flag_rows_by_user.flag_name = 'Has had technical issues'::text)) AS has_had_technical_issues,
-    count(*) FILTER (WHERE ((flag_rows_by_user.flag_name = 'Personally identifiable information'::text) OR (flag_rows_by_user.flag_name = 'PII'::text))) AS personal_identifying_info,
-    count(*) FILTER (WHERE (flag_rows_by_user.flag_name = 'Graded assignment'::text)) AS graded_assignment,
-    count(*) FILTER (WHERE (flag_rows_by_user.flag_name = 'Coach uncomfortable'::text)) AS coach_uncomfortable,
-    count(*) FILTER (WHERE (flag_rows_by_user.flag_name = 'Student in distress'::text)) AS student_crisis,
-    min(flag_rows_by_user.created_at) AS created_at
-   FROM flag_rows_by_user
-  GROUP BY flag_rows_by_user.user_id, flag_rows_by_user.user_role;
 
 
 --
@@ -3156,6 +2124,18 @@ CREATE TABLE upchieve.users_certifications (
     user_id uuid NOT NULL,
     certification_id integer NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: users_grade_levels; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.users_grade_levels (
+    user_id uuid NOT NULL,
+    signup_grade_level_id integer,
+    grade_level_id integer NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
@@ -3275,43 +2255,6 @@ CREATE TABLE upchieve.users_training_courses (
 
 
 --
--- Name: users_unlocked_subjects_view; Type: VIEW; Schema: upchieve; Owner: -
---
-
-CREATE VIEW upchieve.users_unlocked_subjects_view AS
- WITH certifications_by_user AS (
-         SELECT users_certifications.user_id,
-            array_agg(DISTINCT users_certifications.certification_id) AS certification_ids
-           FROM upchieve.users_certifications
-          GROUP BY users_certifications.user_id
-        ), direct_subject_unlocks AS (
-         SELECT uc.user_id,
-            csu.subject_id
-           FROM (upchieve.users_certifications uc
-             JOIN upchieve.certification_subject_unlocks csu ON ((csu.certification_id = uc.certification_id)))
-        ), computed_unlocks AS (
-         SELECT cbu.user_id,
-            comp_su.subject_id
-           FROM (certifications_by_user cbu
-             JOIN ( SELECT csu.subject_id,
-                    array_agg(DISTINCT csu.certification_id) AS required_certs
-                   FROM upchieve.computed_subject_unlocks csu
-                  GROUP BY csu.subject_id) comp_su ON ((cbu.certification_ids @> comp_su.required_certs)))
-        )
- SELECT all_unlocks.user_id,
-    array_agg(DISTINCT s.name) AS unlocked_subjects
-   FROM (( SELECT direct_subject_unlocks.user_id,
-            direct_subject_unlocks.subject_id
-           FROM direct_subject_unlocks
-        UNION ALL
-         SELECT computed_unlocks.user_id,
-            computed_unlocks.subject_id
-           FROM computed_unlocks) all_unlocks
-     JOIN upchieve.subjects s ON ((s.id = all_unlocks.subject_id)))
-  GROUP BY all_unlocks.user_id;
-
-
---
 -- Name: users_volunteer_partner_orgs_instances; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -3403,26 +2346,6 @@ CREATE TABLE upchieve.volunteer_reference_statuses (
 
 
 --
--- Name: volunteer_reference_statuses_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
---
-
-CREATE SEQUENCE upchieve.volunteer_reference_statuses_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: volunteer_reference_statuses_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
---
-
-ALTER SEQUENCE upchieve.volunteer_reference_statuses_id_seq OWNED BY upchieve.volunteer_reference_statuses.id;
-
-
---
 -- Name: volunteer_references; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -3458,6 +2381,1077 @@ CREATE TABLE upchieve.weekdays (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
+
+
+--
+-- Name: session; Type: TABLE; Schema: auth; Owner: -
+--
+
+CREATE TABLE auth.session (
+    sid character varying NOT NULL,
+    sess json NOT NULL,
+    expire timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: schema_migrations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.schema_migrations (
+    version character varying(255) NOT NULL
+);
+
+
+--
+-- Name: seed_migrations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.seed_migrations (
+    version character varying(255) NOT NULL
+);
+
+
+--
+-- Name: ban_reasons_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+CREATE SEQUENCE upchieve.ban_reasons_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: ban_reasons_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
+--
+
+ALTER SEQUENCE upchieve.ban_reasons_id_seq OWNED BY upchieve.ban_reasons.id;
+
+
+--
+-- Name: certifications_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+CREATE SEQUENCE upchieve.certifications_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: certifications_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
+--
+
+ALTER SEQUENCE upchieve.certifications_id_seq OWNED BY upchieve.certifications.id;
+
+
+--
+-- Name: cities_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+CREATE SEQUENCE upchieve.cities_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: cities_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
+--
+
+ALTER SEQUENCE upchieve.cities_id_seq OWNED BY upchieve.cities.id;
+
+
+--
+-- Name: current_grade_levels; Type: VIEW; Schema: upchieve; Owner: -
+--
+
+CREATE VIEW upchieve.current_grade_levels AS
+ WITH grade_progression AS (
+         SELECT ugl.user_id,
+            ugl.grade_level_id,
+            GREATEST(0, ((EXTRACT(year FROM (CURRENT_DATE - '6 mons'::interval)))::integer - (EXTRACT(year FROM ((ugl.updated_at)::date - '6 mons'::interval)))::integer)) AS school_years_passed
+           FROM upchieve.users_grade_levels ugl
+        )
+ SELECT grade_progression.user_id,
+        CASE grade_levels.name
+            WHEN 'Other'::text THEN 'Other'::text
+            ELSE (ARRAY['6th'::text, '7th'::text, '8th'::text, '9th'::text, '10th'::text, '11th'::text, '12th'::text, 'College'::text])[LEAST((array_position(ARRAY['6th'::text, '7th'::text, '8th'::text, '9th'::text, '10th'::text, '11th'::text, '12th'::text, 'College'::text], grade_levels.name) + grade_progression.school_years_passed), 8)]
+        END AS current_grade_name
+   FROM (grade_progression
+     JOIN upchieve.grade_levels ON ((grade_progression.grade_level_id = grade_levels.id)));
+
+
+--
+-- Name: current_grade_levels_mview; Type: MATERIALIZED VIEW; Schema: upchieve; Owner: -
+--
+
+CREATE MATERIALIZED VIEW upchieve.current_grade_levels_mview AS
+ WITH base_dates AS (
+         SELECT student_profiles.user_id,
+            student_profiles.grade_level_id,
+                CASE
+                    WHEN (student_profiles.created_at < '2023-08-30'::date) THEN ('2023-08-30'::date)::timestamp with time zone
+                    ELSE student_profiles.created_at
+                END AS base_date
+           FROM upchieve.student_profiles
+        ), grade_progression AS (
+         SELECT base_dates.user_id,
+            base_dates.grade_level_id,
+            base_dates.base_date,
+            (
+                CASE
+                    WHEN (base_dates.base_date >= (date_trunc('year'::text, (CURRENT_DATE)::timestamp with time zone) + '6 mons'::interval)) THEN (0)::numeric
+                    ELSE (EXTRACT(year FROM age((CURRENT_DATE)::timestamp with time zone, base_dates.base_date)) + (
+                    CASE
+                        WHEN (CURRENT_DATE >= (date_trunc('year'::text, (CURRENT_DATE)::timestamp with time zone) + '6 mons'::interval)) THEN 1
+                        ELSE 0
+                    END)::numeric)
+                END)::integer AS school_years_passed
+           FROM base_dates
+        )
+ SELECT grade_progression.user_id,
+    grade_progression.grade_level_id AS initial_grade_level_id,
+    grade_levels.name AS initial_grade_name,
+    upchieve.get_next_grade_name(grade_levels.name, grade_progression.school_years_passed) AS current_grade_name
+   FROM (grade_progression
+     JOIN upchieve.grade_levels ON ((grade_progression.grade_level_id = grade_levels.id)))
+  WITH NO DATA;
+
+
+--
+-- Name: email_domain_blocklist_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+CREATE SEQUENCE upchieve.email_domain_blocklist_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: email_domain_blocklist_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
+--
+
+ALTER SEQUENCE upchieve.email_domain_blocklist_id_seq OWNED BY upchieve.email_domain_blocklist.id;
+
+
+--
+-- Name: grade_levels_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+CREATE SEQUENCE upchieve.grade_levels_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: grade_levels_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
+--
+
+ALTER SEQUENCE upchieve.grade_levels_id_seq OWNED BY upchieve.grade_levels.id;
+
+
+--
+-- Name: ip_addresses_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+CREATE SEQUENCE upchieve.ip_addresses_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: ip_addresses_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
+--
+
+ALTER SEQUENCE upchieve.ip_addresses_id_seq OWNED BY upchieve.ip_addresses.id;
+
+
+--
+-- Name: moderation_actions_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+CREATE SEQUENCE upchieve.moderation_actions_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: moderation_actions_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
+--
+
+ALTER SEQUENCE upchieve.moderation_actions_id_seq OWNED BY upchieve.moderation_actions.id;
+
+
+--
+-- Name: moderation_categories_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+CREATE SEQUENCE upchieve.moderation_categories_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: moderation_categories_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
+--
+
+ALTER SEQUENCE upchieve.moderation_categories_id_seq OWNED BY upchieve.moderation_categories.id;
+
+
+--
+-- Name: moderation_penalty_config_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE upchieve.moderation_penalty_config ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME upchieve.moderation_penalty_config_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: moderation_rules_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+CREATE SEQUENCE upchieve.moderation_rules_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: moderation_rules_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
+--
+
+ALTER SEQUENCE upchieve.moderation_rules_id_seq OWNED BY upchieve.moderation_rules.id;
+
+
+--
+-- Name: notification_methods_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+CREATE SEQUENCE upchieve.notification_methods_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: notification_methods_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
+--
+
+ALTER SEQUENCE upchieve.notification_methods_id_seq OWNED BY upchieve.notification_methods.id;
+
+
+--
+-- Name: notification_priority_groups_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+CREATE SEQUENCE upchieve.notification_priority_groups_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: notification_priority_groups_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
+--
+
+ALTER SEQUENCE upchieve.notification_priority_groups_id_seq OWNED BY upchieve.notification_priority_groups.id;
+
+
+--
+-- Name: notification_types_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+CREATE SEQUENCE upchieve.notification_types_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: notification_types_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
+--
+
+ALTER SEQUENCE upchieve.notification_types_id_seq OWNED BY upchieve.notification_types.id;
+
+
+--
+-- Name: nths_actions_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE upchieve.nths_actions ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME upchieve.nths_actions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: nths_candidate_applications_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE upchieve.nths_candidate_applications ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME upchieve.nths_candidate_applications_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: nths_chapter_statuses_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE upchieve.nths_chapter_statuses ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME upchieve.nths_chapter_statuses_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: nths_group_actions_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE upchieve.nths_group_actions ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME upchieve.nths_group_actions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: nths_group_roles_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE upchieve.nths_group_roles ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME upchieve.nths_group_roles_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: nths_school_affiliation_statuses_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE upchieve.nths_school_affiliation_statuses ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME upchieve.nths_school_affiliation_statuses_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: photo_id_statuses_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+CREATE SEQUENCE upchieve.photo_id_statuses_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: photo_id_statuses_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
+--
+
+ALTER SEQUENCE upchieve.photo_id_statuses_id_seq OWNED BY upchieve.photo_id_statuses.id;
+
+
+--
+-- Name: progress_report_analysis_types_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+CREATE SEQUENCE upchieve.progress_report_analysis_types_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: progress_report_analysis_types_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
+--
+
+ALTER SEQUENCE upchieve.progress_report_analysis_types_id_seq OWNED BY upchieve.progress_report_analysis_types.id;
+
+
+--
+-- Name: progress_report_focus_areas_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+CREATE SEQUENCE upchieve.progress_report_focus_areas_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: progress_report_focus_areas_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
+--
+
+ALTER SEQUENCE upchieve.progress_report_focus_areas_id_seq OWNED BY upchieve.progress_report_focus_areas.id;
+
+
+--
+-- Name: progress_report_info_types_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+CREATE SEQUENCE upchieve.progress_report_info_types_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: progress_report_info_types_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
+--
+
+ALTER SEQUENCE upchieve.progress_report_info_types_id_seq OWNED BY upchieve.progress_report_info_types.id;
+
+
+--
+-- Name: progress_report_prompts_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+CREATE SEQUENCE upchieve.progress_report_prompts_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: progress_report_prompts_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
+--
+
+ALTER SEQUENCE upchieve.progress_report_prompts_id_seq OWNED BY upchieve.progress_report_prompts.id;
+
+
+--
+-- Name: progress_report_statuses_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+CREATE SEQUENCE upchieve.progress_report_statuses_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: progress_report_statuses_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
+--
+
+ALTER SEQUENCE upchieve.progress_report_statuses_id_seq OWNED BY upchieve.progress_report_statuses.id;
+
+
+--
+-- Name: question_tags_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE upchieve.question_tags ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME upchieve.question_tags_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: question_types_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE upchieve.question_types ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME upchieve.question_types_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: quiz_questions_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+CREATE SEQUENCE upchieve.quiz_questions_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: quiz_questions_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
+--
+
+ALTER SEQUENCE upchieve.quiz_questions_id_seq OWNED BY upchieve.quiz_questions.id;
+
+
+--
+-- Name: quiz_review_materials_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE upchieve.quiz_review_materials ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME upchieve.quiz_review_materials_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: quiz_subcategories_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+CREATE SEQUENCE upchieve.quiz_subcategories_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: quiz_subcategories_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
+--
+
+ALTER SEQUENCE upchieve.quiz_subcategories_id_seq OWNED BY upchieve.quiz_subcategories.id;
+
+
+--
+-- Name: quizzes_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+CREATE SEQUENCE upchieve.quizzes_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: quizzes_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
+--
+
+ALTER SEQUENCE upchieve.quizzes_id_seq OWNED BY upchieve.quizzes.id;
+
+
+--
+-- Name: referrals_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+CREATE SEQUENCE upchieve.referrals_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: referrals_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
+--
+
+ALTER SEQUENCE upchieve.referrals_id_seq OWNED BY upchieve.referrals.id;
+
+
+--
+-- Name: report_reasons_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+CREATE SEQUENCE upchieve.report_reasons_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: report_reasons_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
+--
+
+ALTER SEQUENCE upchieve.report_reasons_id_seq OWNED BY upchieve.report_reasons.id;
+
+
+--
+-- Name: session_flags_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+CREATE SEQUENCE upchieve.session_flags_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: session_flags_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
+--
+
+ALTER SEQUENCE upchieve.session_flags_id_seq OWNED BY upchieve.session_flags.id;
+
+
+--
+-- Name: shareable_domains_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+CREATE SEQUENCE upchieve.shareable_domains_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: shareable_domains_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
+--
+
+ALTER SEQUENCE upchieve.shareable_domains_id_seq OWNED BY upchieve.shareable_domains.id;
+
+
+--
+-- Name: signup_sources_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+CREATE SEQUENCE upchieve.signup_sources_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: signup_sources_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
+--
+
+ALTER SEQUENCE upchieve.signup_sources_id_seq OWNED BY upchieve.signup_sources.id;
+
+
+--
+-- Name: subjects_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+CREATE SEQUENCE upchieve.subjects_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: subjects_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
+--
+
+ALTER SEQUENCE upchieve.subjects_id_seq OWNED BY upchieve.subjects.id;
+
+
+--
+-- Name: survey_questions_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE upchieve.survey_questions ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME upchieve.survey_questions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: survey_questions_question_tags_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE upchieve.survey_questions_question_tags ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME upchieve.survey_questions_question_tags_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: survey_response_choices_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE upchieve.survey_response_choices ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME upchieve.survey_response_choices_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: survey_types_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE upchieve.survey_types ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME upchieve.survey_types_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: surveys_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE upchieve.surveys ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME upchieve.surveys_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: surveys_survey_questions_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE upchieve.surveys_survey_questions ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME upchieve.surveys_survey_questions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: text_moderation_patterns_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE upchieve.text_moderation_patterns ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME upchieve.text_moderation_patterns_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: tool_types_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+CREATE SEQUENCE upchieve.tool_types_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: tool_types_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
+--
+
+ALTER SEQUENCE upchieve.tool_types_id_seq OWNED BY upchieve.tool_types.id;
+
+
+--
+-- Name: topics_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+CREATE SEQUENCE upchieve.topics_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: topics_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
+--
+
+ALTER SEQUENCE upchieve.topics_id_seq OWNED BY upchieve.topics.id;
+
+
+--
+-- Name: training_courses_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+CREATE SEQUENCE upchieve.training_courses_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: training_courses_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
+--
+
+ALTER SEQUENCE upchieve.training_courses_id_seq OWNED BY upchieve.training_courses.id;
+
+
+--
+-- Name: user_actions_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+CREATE SEQUENCE upchieve.user_actions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: user_actions_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
+--
+
+ALTER SEQUENCE upchieve.user_actions_id_seq OWNED BY upchieve.user_actions.id;
+
+
+--
+-- Name: user_roles_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+CREATE SEQUENCE upchieve.user_roles_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: user_roles_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
+--
+
+ALTER SEQUENCE upchieve.user_roles_id_seq OWNED BY upchieve.user_roles.id;
+
+
+--
+-- Name: user_session_metrics_view; Type: VIEW; Schema: upchieve; Owner: -
+--
+
+CREATE VIEW upchieve.user_session_metrics_view AS
+ WITH flags_with_users AS (
+         SELECT sessions_session_flags.session_id,
+            session_flags.name AS flag_name,
+            sessions.student_id,
+            sessions.volunteer_id,
+            sessions_session_flags.created_at
+           FROM ((upchieve.sessions_session_flags
+             JOIN upchieve.session_flags ON ((sessions_session_flags.session_flag_id = session_flags.id)))
+             JOIN upchieve.sessions ON ((sessions.id = sessions_session_flags.session_id)))
+        ), flag_rows_by_user AS (
+         SELECT flags_with_users.student_id AS user_id,
+            'student'::text AS user_role,
+            flags_with_users.flag_name,
+            flags_with_users.created_at
+           FROM flags_with_users
+          WHERE (flags_with_users.student_id IS NOT NULL)
+        UNION ALL
+         SELECT flags_with_users.volunteer_id AS user_id,
+            'volunteer'::text AS user_role,
+            flags_with_users.flag_name,
+            flags_with_users.created_at
+           FROM flags_with_users
+          WHERE (flags_with_users.volunteer_id IS NOT NULL)
+        )
+ SELECT flag_rows_by_user.user_id,
+    flag_rows_by_user.user_role,
+    count(*) FILTER (WHERE (flag_rows_by_user.flag_name = 'Absent student'::text)) AS absent_student,
+    count(*) FILTER (WHERE (flag_rows_by_user.flag_name = 'Absent volunteer'::text)) AS absent_volunteer,
+    count(*) FILTER (WHERE (flag_rows_by_user.flag_name = 'Low session rating from coach'::text)) AS low_session_rating_from_coach,
+    count(*) FILTER (WHERE (flag_rows_by_user.flag_name = 'Low session rating from student'::text)) AS low_session_rating_from_student,
+    count(*) FILTER (WHERE (flag_rows_by_user.flag_name = 'Low coach rating from student'::text)) AS low_coach_rating_from_student,
+    count(*) FILTER (WHERE (flag_rows_by_user.flag_name = 'Reported'::text)) AS reported,
+    count(*) FILTER (WHERE (flag_rows_by_user.flag_name = 'Pressuring coach'::text)) AS only_looking_for_answers,
+    count(*) FILTER (WHERE (flag_rows_by_user.flag_name = 'Mean or inappropriate'::text)) AS rude_or_inappropriate,
+    count(*) FILTER (WHERE (flag_rows_by_user.flag_name = 'Comment from student'::text)) AS comment_from_student,
+    count(*) FILTER (WHERE (flag_rows_by_user.flag_name = 'Comment from volunteer'::text)) AS comment_from_volunteer,
+    count(*) FILTER (WHERE (flag_rows_by_user.flag_name = 'Has been unmatched'::text)) AS has_been_unmatched,
+    count(*) FILTER (WHERE (flag_rows_by_user.flag_name = 'Has had technical issues'::text)) AS has_had_technical_issues,
+    count(*) FILTER (WHERE ((flag_rows_by_user.flag_name = 'Personally identifiable information'::text) OR (flag_rows_by_user.flag_name = 'PII'::text))) AS personal_identifying_info,
+    count(*) FILTER (WHERE (flag_rows_by_user.flag_name = 'Graded assignment'::text)) AS graded_assignment,
+    count(*) FILTER (WHERE (flag_rows_by_user.flag_name = 'Coach uncomfortable'::text)) AS coach_uncomfortable,
+    count(*) FILTER (WHERE (flag_rows_by_user.flag_name = 'Student in distress'::text)) AS student_crisis,
+    min(flag_rows_by_user.created_at) AS created_at
+   FROM flag_rows_by_user
+  GROUP BY flag_rows_by_user.user_id, flag_rows_by_user.user_role;
+
+
+--
+-- Name: users_unlocked_subjects_view; Type: VIEW; Schema: upchieve; Owner: -
+--
+
+CREATE VIEW upchieve.users_unlocked_subjects_view AS
+ WITH certifications_by_user AS (
+         SELECT users_certifications.user_id,
+            array_agg(DISTINCT users_certifications.certification_id) AS certification_ids
+           FROM upchieve.users_certifications
+          GROUP BY users_certifications.user_id
+        ), direct_subject_unlocks AS (
+         SELECT uc.user_id,
+            csu.subject_id
+           FROM (upchieve.users_certifications uc
+             JOIN upchieve.certification_subject_unlocks csu ON ((csu.certification_id = uc.certification_id)))
+        ), computed_unlocks AS (
+         SELECT cbu.user_id,
+            comp_su.subject_id
+           FROM (certifications_by_user cbu
+             JOIN ( SELECT csu.subject_id,
+                    array_agg(DISTINCT csu.certification_id) AS required_certs
+                   FROM upchieve.computed_subject_unlocks csu
+                  GROUP BY csu.subject_id) comp_su ON ((cbu.certification_ids @> comp_su.required_certs)))
+        )
+ SELECT all_unlocks.user_id,
+    array_agg(DISTINCT s.name) AS unlocked_subjects
+   FROM (( SELECT direct_subject_unlocks.user_id,
+            direct_subject_unlocks.subject_id
+           FROM direct_subject_unlocks
+        UNION ALL
+         SELECT computed_unlocks.user_id,
+            computed_unlocks.subject_id
+           FROM computed_unlocks) all_unlocks
+     JOIN upchieve.subjects s ON ((s.id = all_unlocks.subject_id)))
+  GROUP BY all_unlocks.user_id;
+
+
+--
+-- Name: volunteer_reference_statuses_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+CREATE SEQUENCE upchieve.volunteer_reference_statuses_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: volunteer_reference_statuses_id_seq; Type: SEQUENCE OWNED BY; Schema: upchieve; Owner: -
+--
+
+ALTER SEQUENCE upchieve.volunteer_reference_statuses_id_seq OWNED BY upchieve.volunteer_reference_statuses.id;
 
 
 --
@@ -6724,6 +6718,14 @@ ALTER TABLE ONLY upchieve.session_voice_messages
 
 
 --
+-- Name: sessions sessions_ended_by_role_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.sessions
+    ADD CONSTRAINT sessions_ended_by_role_id_fkey FOREIGN KEY (ended_by_role_id) REFERENCES upchieve.user_roles(id);
+
+
+--
 -- Name: sessions sessions_ended_by_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -7755,4 +7757,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260423230129'),
     ('20260428230130'),
     ('20260515002920'),
+    ('20260515140600'),
     ('20260515214142');

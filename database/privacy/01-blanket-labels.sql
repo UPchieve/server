@@ -4,7 +4,7 @@
 -- Run by:
 --   * staging on its clone DB, before `anon.anonymize_database()`:
 --       psql -c "SET search_path = upchieve, public;" -f 01-blanket-labels.sql
---   * analytics: NOT executed directly. analytics/sync-masking-rules.sh
+--   * analytics: NOT executed directly. database/analytics/sync-masking-rules.sh
 --     extracts the BLANKET_QUERY block below and reinstalls it as the body
 --     of analytics._blanket_rules(); analytics.rebuild() then projects views
 --     from that function's output.

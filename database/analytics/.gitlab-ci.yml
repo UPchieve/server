@@ -1,0 +1,148 @@
+# Analytics post-deploy sync jobs. Merged into the root pipeline via
+# `include:` in /.gitlab-ci.yml — they run in the same pipeline, reuse the
+# root `post-deploy` stage, and (for the node-based job) the root
+# `.node_setup` hidden job. They only run on the default branch and are
+# scoped by `changes:` so they fire only when the relevant files change.
+
+# Syncs hand-written Layer 2 view files (database/analytics/views/*.sql) into the
+# analytics._layer_2_view_defs table, then calls analytics.rebuild() so
+# the views are applied. Layer 1 is handled separately by a Postgres
+# event trigger on upchieve.* DDL — see database/analytics/README.md.
+#
+# Runs only when view files change. Schema-change rebuilds happen
+# automatically via the event trigger inside the migration's transaction;
+# this job does NOT replace that.
+#
+# Required GitLab CI/CD variables (masked + protected):
+#   ANALYTICS_LAYER2_HOST_STAGING
+#   ANALYTICS_LAYER2_PASSWORD_STAGING
+#   ANALYTICS_LAYER2_HOST_PRODUCTION
+#   ANALYTICS_LAYER2_PASSWORD_PRODUCTION
+.sync_analytics_layer2_views:
+  stage: post-deploy
+  image: postgres:15-alpine
+  variables:
+    PGSSLMODE: require
+    PGPORT: '5432'
+    PGDATABASE: upchieve
+    PGUSER: analytics_layer2_admin
+  before_script:
+    - apk add --no-cache bash
+  script:
+    - bash database/analytics/sync-layer2-views.sh
+
+sync_analytics_layer2_staging:
+  extends: .sync_analytics_layer2_views
+  variables:
+    PGHOST: $ANALYTICS_LAYER2_HOST_STAGING
+    PGPASSWORD: $ANALYTICS_LAYER2_PASSWORD_STAGING
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      changes:
+        - database/analytics/views/**/*.sql
+
+sync_analytics_layer2_production:
+  extends: .sync_analytics_layer2_views
+  variables:
+    PGHOST: $ANALYTICS_LAYER2_HOST_PRODUCTION
+    PGPASSWORD: $ANALYTICS_LAYER2_PASSWORD_PRODUCTION
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      changes:
+        - database/analytics/views/**/*.sql
+      when: manual
+
+# Applies database/analytics/setup.sql — installs analytics tables + functions
+# (analytics._layer_2_view_defs, analytics._custom_rules, placeholder
+# analytics._blanket_rules(), analytics.rebuild(), analytics.on_upchieve_ddl()).
+# Roles and base grants live in dbmate migrations; this job is analytics
+# state only.
+#
+# Runs only when database/analytics/setup.sql itself changes — setup is one-time
+# per environment in practice; this CI job exists to re-apply when the
+# setup script is updated.
+#
+# Required GitLab CI/CD variables (masked + protected):
+#   ANALYTICS_PRIVACY_HOST_STAGING
+#   ANALYTICS_PRIVACY_PASSWORD_STAGING
+#   ANALYTICS_PRIVACY_HOST_PRODUCTION
+#   ANALYTICS_PRIVACY_PASSWORD_PRODUCTION
+.analytics_setup:
+  stage: post-deploy
+  image: postgres:15-alpine
+  variables:
+    PGSSLMODE: require
+    PGPORT: '5432'
+    PGDATABASE: upchieve
+    PGUSER: analytics_privacy_admin
+  before_script:
+    - apk add --no-cache bash
+  script:
+    - bash database/analytics/setup.sh
+
+analytics_setup_staging:
+  extends: .analytics_setup
+  variables:
+    PGHOST: $ANALYTICS_PRIVACY_HOST_STAGING
+    PGPASSWORD: $ANALYTICS_PRIVACY_PASSWORD_STAGING
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      changes:
+        - database/analytics/setup.sql
+
+analytics_setup_production:
+  extends: .analytics_setup
+  variables:
+    PGHOST: $ANALYTICS_PRIVACY_HOST_PRODUCTION
+    PGPASSWORD: $ANALYTICS_PRIVACY_PASSWORD_PRODUCTION
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      changes:
+        - database/analytics/setup.sql
+      when: manual
+
+# Syncs masking-rule files (database/privacy/01-blanket-labels.sql,
+# database/privacy/02-custom-labels.sql) into the analytics-side artifacts
+# that back them — analytics._blanket_rules() and analytics._custom_rules —
+# then calls analytics.rebuild(). One Postgres transaction.
+#
+# The parsing happens in database/analytics/sync-masking-rules.ts (pgsql-parser based), so
+# this job needs node + deps. It extends the root `.node_setup` (which pins
+# the node image and runs `pnpm install --frozen-lockfile`) and adds the
+# Postgres client on top.
+.sync_masking_rules:
+  stage: post-deploy
+  extends: .node_setup
+  variables:
+    PGSSLMODE: require
+    PGPORT: '5432'
+    PGDATABASE: upchieve
+    PGUSER: analytics_privacy_admin
+  before_script:
+    - !reference [.node_setup, before_script]
+    - apt-get update && apt-get install -y postgresql-client
+  script:
+    - bash database/analytics/sync-masking-rules.sh
+
+sync_masking_rules_staging:
+  extends: .sync_masking_rules
+  variables:
+    PGHOST: $ANALYTICS_PRIVACY_HOST_STAGING
+    PGPASSWORD: $ANALYTICS_PRIVACY_PASSWORD_STAGING
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      changes:
+        - database/privacy/**/*.sql
+        - database/analytics/sync-masking-rules.ts
+
+sync_masking_rules_production:
+  extends: .sync_masking_rules
+  variables:
+    PGHOST: $ANALYTICS_PRIVACY_HOST_PRODUCTION
+    PGPASSWORD: $ANALYTICS_PRIVACY_PASSWORD_PRODUCTION
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      changes:
+        - database/privacy/**/*.sql
+        - database/analytics/sync-masking-rules.ts
+      when: manual

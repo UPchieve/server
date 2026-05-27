@@ -4,7 +4,7 @@
 -- Run by:
 --   * staging on its clone DB, after 01-blanket-labels.sql:
 --       psql -c "SET search_path = upchieve, public;" -f 02-custom-labels.sql
---   * analytics: NOT executed directly. analytics/sync-masking-rules.sh
+--   * analytics: NOT executed directly. database/analytics/sync-masking-rules.sh
 --     uses pgsql-parser to find each SecLabelStmt and upserts
 --     (table_name, column_name, mask_value) tuples into analytics._custom_rules.
 --
