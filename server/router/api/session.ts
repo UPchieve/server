@@ -60,14 +60,12 @@ export function routeSession(router: Router) {
         session.id
       )
       // Look up exclusivity state from Redis so the waiting room can render
-      // the right banner after a page refresh (the URL ?requestedVolunteerId
-      // query string gets stripped by router.replace, so the FE can't rely
-      // on it).
+      // the right banner after a page refresh.
       const exclusiveVolunteerId =
         !session.volunteerId && !session.endedAt
           ? await cache
-              .hget('exclusiveRequestSessions', session.id)
-              .catch(() => undefined)
+            .hget('exclusiveRequestSessions', session.id)
+            .catch(() => undefined)
           : undefined
       // For legacy (mobile), we still need to just return the sessionId.
       res.json({
@@ -81,10 +79,7 @@ export function routeSession(router: Router) {
     }
   })
 
-  // Student-driven "open this exclusive session up to all tutors". Clears
-  // the Redis exclusivity state, kicks off the normal notification cascade,
-  // and re-broadcasts the unfulfilled-sessions list so every volunteer's
-  // dashboard picks up the now-public session.
+  // Student-driven "open this exclusive session up to all tutors".
   router.route('/session/:sessionId/breakout').post(async function (req, res) {
     try {
       const user = extractUser(req)
@@ -98,11 +93,7 @@ export function routeSession(router: Router) {
       if (isSessionFulfilled(session)) {
         throw new InputError('Session is already matched or ended.')
       }
-      // Atomically clear the exclusive entry + emit cleared event. Returns
-      // false if the entry was already gone (lost a race against another
-      // breakout call, an endSession, the EndUnmatchedSession safety net,
-      // or the opportunistic GC). Only the caller that actually flipped the
-      // state should kick off the regular cascade.
+      // Atomically clear the exclusive entry + emit cleared event. 
       const wasCleared =
         await NotifyVolunteerService.clearExclusiveRequest(sessionId)
       const currentSession = await SessionService.getCurrentSessionById(
@@ -146,13 +137,11 @@ export function routeSession(router: Router) {
       const isZwibserveSession = await SessionService.isZwibserveSession(
         session.id
       )
-      // See /session/new for rationale — surfaces exclusivity state across
-      // refresh / cold app load.
       const exclusiveVolunteerId =
         !session.volunteerId && !session.endedAt
           ? await cache
-              .hget('exclusiveRequestSessions', session.id)
-              .catch(() => undefined)
+            .hget('exclusiveRequestSessions', session.id)
+            .catch(() => undefined)
           : undefined
       res.json({
         session: currentSession,

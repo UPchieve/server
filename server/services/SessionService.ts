@@ -289,9 +289,6 @@ export async function endSession(
 
   await SessionmeetingsService.endMeeting(sessionId)
 
-  // Clean up any exclusive-request HASH entry. No-op for sessions that
-  // were never exclusive. Emits sessions:exclusive-request:cleared to the
-  // targeted volunteer's open dashboards.
   await NotifyVolunteerService.clearExclusiveRequest(sessionId)
 
   QueueService.add(Jobs.DetectSessionLanguages, {
@@ -619,13 +616,6 @@ export async function startSession(
     )
   }
 
-  // Resolve the exclusive-request branch. The frontend locks the subject to
-  // the past session's subject (where this tutor has already worked with this
-  // student), so we don't re-check certification here — only confirm the
-  // tutor is still reachable and not already mid-session. Frontend gates the
-  // affordance behind the student-request-specific-volunteer-sessions flag;
-  // we trust that and don't re-check on the backend (matches Trey's
-  // goalSettingSessions experiment pattern).
   let validatedRequestedVolunteerId: Ulid | undefined
   if (requestedVolunteerId) {
     const volunteer = await VolunteerRepo.getVolunteerContactInfoById(
@@ -637,10 +627,6 @@ export async function startSession(
         'Requested volunteer is not available right now.'
       )
     }
-    // Match the existing notification-cascade disqualification: don't
-    // route an exclusive request to a tutor who is currently in another
-    // session (they can't join, and the session would sit hidden from
-    // every other volunteer until 5-min breakout).
     const activeVolunteerIds =
       await SessionRepo.getActiveSessionsWithVolunteers()
     if (activeVolunteerIds.includes(requestedVolunteerId)) {
@@ -693,8 +679,7 @@ export async function startSession(
   // Hide the exclusive session from the volunteer broadcast as early as
   // possible — immediately after the transaction commits, before any other
   // awaits — to minimize the window in which a concurrent updateSessionList
-  // could broadcast it publicly. The remaining exclusive side-effects
-  // (notify, schedule prompt) run below in the gated block.
+  // could broadcast it publicly.
   const isUserShadowBanned = user.banType === USER_BAN_TYPES.SHADOW
   if (validatedRequestedVolunteerId && !isUserBanned && !isUserShadowBanned) {
     await cache.hset(
@@ -735,11 +720,6 @@ export async function startSession(
 
   if (!isUserBanned && !isUserShadowBanned) {
     if (validatedRequestedVolunteerId) {
-      // HSET was already done immediately after the transaction commit (see
-      // above) to minimize the broadcast-leak window. Fire the remaining
-      // side-effects here: direct notification + scheduled breakout prompt.
-      // Exclusive path runs independently of the notify-tutor flag (the
-      // requested tutor expects a ping).
       await NotifyVolunteerService.notifyExclusiveVolunteer(
         newSession,
         validatedRequestedVolunteerId
@@ -860,10 +840,6 @@ export async function joinSession(
     try {
       await SessionRepo.updateSessionVolunteerById(session.id, user.id)
       session.volunteerId = user.id
-      // If this session was exclusive (HASH entry exists), clear it now
-      // that a volunteer has joined. Emits sessions:exclusive-request:cleared
-      // to the targeted volunteer's open dashboards. No-op for sessions that
-      // were never exclusive.
       await NotifyVolunteerService.clearExclusiveRequest(session.id)
       await SocketService.getInstance().emitSessionChange(session.id)
     } catch (err) {

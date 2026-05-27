@@ -102,8 +102,7 @@ export function routeVolunteers(router: Router): void {
   })
 
   // Volunteer dashboard widget: list active student-initiated exclusive
-  // session requests targeting this volunteer. Opportunistically GCs any
-  // HASH entries that point to sessions which have since been matched or ended.
+  // session requests targeting this volunteer. 
   router.get('/volunteer/exclusive-requests', async function (req, res) {
     try {
       const user = extractUser(req)
@@ -121,21 +120,13 @@ export function routeVolunteers(router: Router): void {
       const liveSessions = await SessionRepo.getUnfulfilledSessions()
       const live = liveSessions.filter((s) => mySessionIds.has(s.id))
       const liveIds = new Set(live.map((s) => s.id))
-      // GC any of MY entries the HASH still has but the live query doesn't —
-      // those sessions are matched/ended/expired.
       for (const sid of mySessionIds) {
         if (!liveIds.has(sid)) {
-          // Atomic clear (HGET → HDEL → emit cleared); no-ops if another
-          // path raced us to the cleanup.
           await NotifyVolunteerService.clearExclusiveRequest(sid).catch(
             () => { }
           )
         }
       }
-      // Map to the same shape the 'sessions:exclusive-request' socket emits,
-      // so the widget + Vuex store can consume both paths identically
-      // (dedupe on sessionId, render studentFirstName / subjectDisplayName,
-      // build join URL from topic + subject).
       const requests = live.map((s) => ({
         sessionId: s.id,
         studentId: (s as any).studentId,

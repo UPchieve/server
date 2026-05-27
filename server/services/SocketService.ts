@@ -107,8 +107,6 @@ class SocketService {
   private async updateSessionList(tc?: TransactionClient): Promise<void> {
     const sessions = await getUnfulfilledSessions(tc)
     // Hide tutor-exclusive sessions from the global volunteer broadcast.
-    // Empty HASH (the dominant case) is one HKEYS returning [], identical
-    // shape to pre-experiment for the rest of the path.
     const excludedIds = await cache
       .hkeys('exclusiveRequestSessions')
       .catch(() => [] as string[])

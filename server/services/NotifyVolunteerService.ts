@@ -305,11 +305,6 @@ function buildNotificationContent(
 }
 
 // Notify a single volunteer that a student has specifically requested them.
-// Skips the normal priority cascade and Bull queue — fires SMS + audit row +
-// in-app socket event inline. The targeted addition to the volunteer's
-// session list (so the session appears in their dashboard) is handled by
-// the updateSessionList path, which broadcasts a filtered list to the
-// `'volunteers'` room plus a per-volunteer emit for exclusive sessions.
 export async function notifyExclusiveVolunteer(
   session: CurrentSession,
   volunteerId: Ulid
@@ -404,15 +399,7 @@ export async function notifyExclusiveRequestCleared(
 }
 
 // Atomically clear a session's exclusive-request state and notify the
-// targeted volunteer's open frontends. Returns true if this caller was the
-// one that cleared it (i.e. the HDEL removed a field), false if the entry
-// was already gone (no-op / lost a race against another caller). Callers
-// that need to gate a side effect (e.g. firing the broadcast cascade)
-// should branch on this return value.
-//
-// Wraps the HGET → HDEL → emit chain so every cleanup site (endSession,
-// joinSession, EndUnmatchedSession, breakout endpoint, opportunistic GC)
-// has identical semantics and the dashboard widget always gets notified.
+// targeted volunteer's open frontends. 
 export async function clearExclusiveRequest(
   sessionId: Ulid
 ): Promise<boolean> {

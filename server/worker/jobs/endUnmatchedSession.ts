@@ -16,9 +16,6 @@ export default async (job: Job<EndUnmatchedSessionJobData>): Promise<void> => {
   const session = await SessionRepo.getSessionById(sessionId)
   if (!session) return
 
-  // Safety net: sweep any leaked exclusive-request HASH entry regardless of
-  // fulfilled status. joinSession and endSession also clear it; this is the
-  // catch-all for any path that missed them (e.g. a crash mid-flow).
   await NotifyVolunteerService.clearExclusiveRequest(sessionId)
 
   const fulfilled = sessionUtils.isSessionFulfilled(session)

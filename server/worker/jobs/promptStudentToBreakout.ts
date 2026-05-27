@@ -11,11 +11,6 @@ export interface PromptStudentToBreakoutJobData {
   sessionId: string
 }
 
-// 5-minute UI nudge: if a student-initiated, tutor-exclusive session hasn't
-// matched yet, emit a socket event to the student so the waiting room can
-// surface the "Open this session to all tutors?" prompt. Breakout itself is
-// student-driven via POST /session/:sessionId/breakout; this job does NOT
-// flip exclusivity state.
 export default async (
   job: Job<PromptStudentToBreakoutJobData>
 ): Promise<void> => {
