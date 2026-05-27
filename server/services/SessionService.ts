@@ -623,9 +623,9 @@ export async function startSession(
   // the past session's subject (where this tutor has already worked with this
   // student), so we don't re-check certification here — only confirm the
   // tutor is still reachable and not already mid-session. Frontend gates the
-  // affordance behind the student-initiated-sessions flag; we trust that
-  // and don't re-check on the backend (matches Trey's goalSettingSessions
-  // experiment pattern).
+  // affordance behind the student-request-specific-volunteer-sessions flag;
+  // we trust that and don't re-check on the backend (matches Trey's
+  // goalSettingSessions experiment pattern).
   let validatedRequestedVolunteerId: Ulid | undefined
   if (requestedVolunteerId) {
     const volunteer = await VolunteerRepo.getVolunteerContactInfoById(
