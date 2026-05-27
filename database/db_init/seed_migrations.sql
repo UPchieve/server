@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict Yo4p1FgRAEfOJ8PgjSIwgHBORMMjCLdjaCOeZpnzaLIMocVJ78qkqTzIcDMd33O
+\restrict EcKSoGRievh0YX8BhRVTgIVgx0ogSfqQYQPuDi7rCC9eueuBYWgZbOA48LbTHoo
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
 -- Dumped by pg_dump version 15.18 (Homebrew)
@@ -23,6 +23,8 @@ SET row_security = off;
 --
 
 COPY public.seed_migrations (version) FROM stdin;
+20220414230259
+20220420175302
 \.
 
 
@@ -30,5 +32,5 @@ COPY public.seed_migrations (version) FROM stdin;
 -- PostgreSQL database dump complete
 --
 
-\unrestrict Yo4p1FgRAEfOJ8PgjSIwgHBORMMjCLdjaCOeZpnzaLIMocVJ78qkqTzIcDMd33O
+\unrestrict EcKSoGRievh0YX8BhRVTgIVgx0ogSfqQYQPuDi7rCC9eueuBYWgZbOA48LbTHoo
 
