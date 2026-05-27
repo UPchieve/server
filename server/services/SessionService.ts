@@ -293,9 +293,15 @@ export async function endSession(
     studentId: session.student.id,
   })
 
-  QueueService.add(Jobs.ProcessSessionEnded, {
-    sessionId,
-  })
+  QueueService.add(
+    Jobs.ProcessSessionEnded,
+    {
+      sessionId,
+    },
+    {
+      jobId: `${Jobs.ProcessSessionEnded}:${sessionId}`,
+    }
+  )
 
   return endedSession
 }
@@ -689,7 +695,7 @@ export async function startSession(
   await QueueService.add(
     Jobs.EndUnmatchedSession,
     { sessionId: newSession.id },
-    { delay }
+    { delay, jobId: `${Jobs.EndUnmatchedSession}:${newSession.id}` }
   )
 
   return {

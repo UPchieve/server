@@ -41,7 +41,10 @@ export async function beginRegularNotifications(
       studentPartnerOrg: student.studentPartnerOrg,
       notificationRound: 1,
     },
-    { delay: secondsInMs(30) }
+    {
+      delay: secondsInMs(30),
+      jobId: `${Jobs.TextVolunteers}:${session.id}`,
+    }
   )
 }
 
