@@ -175,6 +175,7 @@ export interface StartSessionData extends RequestIdentifier {
   topic: string
   assignmentId?: string
   docEditorVersion?: number
+  requestedVolunteerId?: string
 }
 export const asStartSessionData = asFactory<StartSessionData>({
   ...requestIdentifierValidators,
@@ -185,6 +186,7 @@ export const asStartSessionData = asFactory<StartSessionData>({
   topic: asCamelCaseString,
   assignmentId: asOptional(asString),
   docEditorVersion: asOptional(asNumber),
+  requestedVolunteerId: asOptional(asString),
 })
 
 export interface SessionsToReviewData {

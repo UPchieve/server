@@ -54,6 +54,7 @@ import * as AwsService from './AwsService'
 import * as AzureService from './AzureService'
 import * as PushTokenService from './PushTokenService'
 import * as NotifyVolunteerService from './NotifyVolunteerService'
+import * as VolunteerRepo from '../models/Volunteer'
 import QueueService from './QueueService'
 import * as QuillDocService from './QuillDocService'
 import SocketService from './SocketService'
@@ -287,6 +288,11 @@ export async function endSession(
   })
 
   await SessionmeetingsService.endMeeting(sessionId)
+
+  // Clean up any exclusive-request HASH entry. No-op for sessions that
+  // were never exclusive. Emits sessions:exclusive-request:cleared to the
+  // targeted volunteer's open dashboards.
+  await NotifyVolunteerService.clearExclusiveRequest(sessionId)
 
   QueueService.add(Jobs.DetectSessionLanguages, {
     sessionId,
@@ -583,6 +589,7 @@ export async function startSession(
     docEditorVersion,
     userAgent,
     ip,
+    requestedVolunteerId,
   } = data
 
   const subjectAndTopic = await getSubjectAndTopic(subject, topic)
@@ -610,6 +617,38 @@ export async function startSession(
     throw new sessionUtils.StartSessionError(
       'Student already has an active session.'
     )
+  }
+
+  // Resolve the exclusive-request branch. The frontend locks the subject to
+  // the past session's subject (where this tutor has already worked with this
+  // student), so we don't re-check certification here — only confirm the
+  // tutor is still reachable and not already mid-session. Frontend gates the
+  // affordance behind the student-initiated-sessions flag; we trust that
+  // and don't re-check on the backend (matches Trey's goalSettingSessions
+  // experiment pattern).
+  let validatedRequestedVolunteerId: Ulid | undefined
+  if (requestedVolunteerId) {
+    const volunteer = await VolunteerRepo.getVolunteerContactInfoById(
+      requestedVolunteerId,
+      { banned: false, deactivated: false, testUser: false }
+    )
+    if (!volunteer) {
+      throw new sessionUtils.StartSessionError(
+        'Requested volunteer is not available right now.'
+      )
+    }
+    // Match the existing notification-cascade disqualification: don't
+    // route an exclusive request to a tutor who is currently in another
+    // session (they can't join, and the session would sit hidden from
+    // every other volunteer until 5-min breakout).
+    const activeVolunteerIds =
+      await SessionRepo.getActiveSessionsWithVolunteers()
+    if (activeVolunteerIds.includes(requestedVolunteerId)) {
+      throw new sessionUtils.StartSessionError(
+        'Requested volunteer is currently in another session.'
+      )
+    }
+    validatedRequestedVolunteerId = requestedVolunteerId
   }
 
   const newSession = await runInTransaction(async (tc: TransactionClient) => {
@@ -650,6 +689,21 @@ export async function startSession(
 
     return newSession
   })
+
+  // Hide the exclusive session from the volunteer broadcast as early as
+  // possible — immediately after the transaction commits, before any other
+  // awaits — to minimize the window in which a concurrent updateSessionList
+  // could broadcast it publicly. The remaining exclusive side-effects
+  // (notify, schedule prompt) run below in the gated block.
+  const isUserShadowBanned = user.banType === USER_BAN_TYPES.SHADOW
+  if (validatedRequestedVolunteerId && !isUserBanned && !isUserShadowBanned) {
+    await cache.hset(
+      'exclusiveRequestSessions',
+      newSession.id,
+      validatedRequestedVolunteerId
+    )
+  }
+
   await saveSessionToCache({
     sessionId: newSession.id,
     topicId: subjectAndTopic.topicId,
@@ -679,9 +733,25 @@ export async function startSession(
     user.id
   )
 
-  const isUserShadowBanned = user.banType === USER_BAN_TYPES.SHADOW
-  if (!isUserBanned && !isUserShadowBanned && isNotifyTutorEnabled) {
-    await NotifyVolunteerService.beginRegularNotifications(newSession)
+  if (!isUserBanned && !isUserShadowBanned) {
+    if (validatedRequestedVolunteerId) {
+      // HSET was already done immediately after the transaction commit (see
+      // above) to minimize the broadcast-leak window. Fire the remaining
+      // side-effects here: direct notification + scheduled breakout prompt.
+      // Exclusive path runs independently of the notify-tutor flag (the
+      // requested tutor expects a ping).
+      await NotifyVolunteerService.notifyExclusiveVolunteer(
+        newSession,
+        validatedRequestedVolunteerId
+      )
+      await QueueService.add(
+        Jobs.PromptStudentToBreakout,
+        { sessionId: newSession.id },
+        { delay: 1000 * 60 * 5 }
+      )
+    } else if (isNotifyTutorEnabled) {
+      await NotifyVolunteerService.beginRegularNotifications(newSession)
+    }
   }
 
   // Auto end the session after 45 minutes if the session is unmatched.
@@ -790,6 +860,11 @@ export async function joinSession(
     try {
       await SessionRepo.updateSessionVolunteerById(session.id, user.id)
       session.volunteerId = user.id
+      // If this session was exclusive (HASH entry exists), clear it now
+      // that a volunteer has joined. Emits sessions:exclusive-request:cleared
+      // to the targeted volunteer's open dashboards. No-op for sessions that
+      // were never exclusive.
+      await NotifyVolunteerService.clearExclusiveRequest(session.id)
       await SocketService.getInstance().emitSessionChange(session.id)
     } catch (err) {
       throw new Error('A volunteer has already joined the session.')

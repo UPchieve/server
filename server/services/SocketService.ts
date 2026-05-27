@@ -9,6 +9,7 @@ import { ProgressReport } from '../services/ProgressReportsService'
 import { ProgressReportAnalysisTypes } from '../models/ProgressReports'
 import { TransactionClient } from '../db'
 import * as SessionService from '../services/SessionService'
+import * as cache from '../cache'
 import { backOff } from 'exponential-backoff'
 import { UserContactInfo } from '../models/User'
 import { secondsInMs } from '../utils/time-utils'
@@ -105,7 +106,16 @@ class SocketService {
 
   private async updateSessionList(tc?: TransactionClient): Promise<void> {
     const sessions = await getUnfulfilledSessions(tc)
-    this.io.in('volunteers').emit('sessions', sessions)
+    // Hide tutor-exclusive sessions from the global volunteer broadcast.
+    // Empty HASH (the dominant case) is one HKEYS returning [], identical
+    // shape to pre-experiment for the rest of the path.
+    const excludedIds = await cache
+      .hkeys('exclusiveRequestSessions')
+      .catch(() => [] as string[])
+    const filtered = excludedIds.length
+      ? sessions.filter((s) => !excludedIds.includes(s.id))
+      : sessions
+    this.io.in('volunteers').emit('sessions', filtered)
   }
 
   async emitSessionChange(
@@ -140,6 +150,36 @@ class SocketService {
     }
   ) {
     this.io.to(userId).emit('progress-report:processed:overview', data)
+  }
+
+  async emitExclusiveSessionRequest(
+    volunteerId: string,
+    data: {
+      sessionId: string
+      studentId: string
+      studentFirstName: string
+      subject: string
+      subjectDisplayName: string
+      topic: string
+    }
+  ): Promise<void> {
+    this.io.to(volunteerId).emit('sessions:exclusive-request', data)
+  }
+
+  async emitBreakoutPromptToStudent(
+    studentId: string,
+    sessionId: string
+  ): Promise<void> {
+    this.io.to(studentId).emit('session:breakout-prompt', { sessionId })
+  }
+
+  async emitExclusiveRequestCleared(
+    volunteerId: string,
+    sessionId: string
+  ): Promise<void> {
+    this.io
+      .to(volunteerId)
+      .emit('sessions:exclusive-request:cleared', { sessionId })
   }
 
   async emitUserLiveMediaBannedEvents(

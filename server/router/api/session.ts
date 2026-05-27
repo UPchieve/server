@@ -3,11 +3,17 @@ import SocketService from '../../services/SocketService'
 import * as TutorBotService from '../../services/TutorBotService'
 import * as AssignmentsService from '../../services/AssignmentsService'
 import * as SessionService from '../../services/SessionService'
+import * as NotifyVolunteerService from '../../services/NotifyVolunteerService'
+import * as FeatureFlagsService from '../../services/FeatureFlagService'
+import * as SessionRepo from '../../models/Session/queries'
+import * as cache from '../../cache'
+import { USER_BAN_TYPES } from '../../constants'
 import { authPassport } from '../../utils/auth-utils'
-import { InputError, LookupError } from '../../models/Errors'
+import { InputError, LookupError, NotAllowedError } from '../../models/Errors'
 import { resError } from '../res-error'
 import {
   asStartSessionData,
+  isSessionFulfilled,
   ReportSessionError,
 } from '../../utils/session-utils'
 import { extractUser } from '../extract-user'
@@ -53,12 +59,74 @@ export function routeSession(router: Router) {
       const isZwibserveSession = await SessionService.isZwibserveSession(
         session.id
       )
+      // Look up exclusivity state from Redis so the waiting room can render
+      // the right banner after a page refresh (the URL ?requestedVolunteerId
+      // query string gets stripped by router.replace, so the FE can't rely
+      // on it).
+      const exclusiveVolunteerId =
+        !session.volunteerId && !session.endedAt
+          ? await cache
+              .hget('exclusiveRequestSessions', session.id)
+              .catch(() => undefined)
+          : undefined
       // For legacy (mobile), we still need to just return the sessionId.
       res.json({
         sessionId: session.id,
         session: currentSession,
         isZwibserveSession,
+        exclusiveVolunteerId,
       })
+    } catch (error) {
+      resError(res, error)
+    }
+  })
+
+  // Student-driven "open this exclusive session up to all tutors". Clears
+  // the Redis exclusivity state, kicks off the normal notification cascade,
+  // and re-broadcasts the unfulfilled-sessions list so every volunteer's
+  // dashboard picks up the now-public session.
+  router.route('/session/:sessionId/breakout').post(async function (req, res) {
+    try {
+      const user = extractUser(req)
+      const sessionId = asUlid(req.params.sessionId)
+      const session = await SessionRepo.getSessionById(sessionId)
+      if (session.studentId !== user.id) {
+        throw new NotAllowedError(
+          'Only the student in this session can open it up.'
+        )
+      }
+      if (isSessionFulfilled(session)) {
+        throw new InputError('Session is already matched or ended.')
+      }
+      // Atomically clear the exclusive entry + emit cleared event. Returns
+      // false if the entry was already gone (lost a race against another
+      // breakout call, an endSession, the EndUnmatchedSession safety net,
+      // or the opportunistic GC). Only the caller that actually flipped the
+      // state should kick off the regular cascade.
+      const wasCleared =
+        await NotifyVolunteerService.clearExclusiveRequest(sessionId)
+      const currentSession = await SessionService.getCurrentSessionById(
+        sessionId
+      )
+      if (!wasCleared) {
+        // Either it was never exclusive, or another call already broke it
+        // out. The session is now either matched, ended, or already public —
+        // return current state without re-firing the cascade.
+        res.json({ sessionId, session: currentSession })
+        return
+      }
+      // Mirror the gating used by SessionService.startSession's regular path:
+      // a banned/shadow-banned student or a notify-tutor-disabled cohort
+      // shouldn't be able to trigger the cascade via the breakout endpoint.
+      const isUserBanned = user.banType === USER_BAN_TYPES.COMPLETE
+      const isUserShadowBanned = user.banType === USER_BAN_TYPES.SHADOW
+      const isNotifyTutorEnabled =
+        await FeatureFlagsService.getNotifyTutorFlag(user.id)
+      if (!isUserBanned && !isUserShadowBanned && isNotifyTutorEnabled) {
+        await NotifyVolunteerService.beginRegularNotifications(currentSession)
+      }
+      await socketService.emitSessionChange(sessionId)
+      res.json({ sessionId, session: currentSession })
     } catch (error) {
       resError(res, error)
     }
@@ -78,7 +146,19 @@ export function routeSession(router: Router) {
       const isZwibserveSession = await SessionService.isZwibserveSession(
         session.id
       )
-      res.json({ session: currentSession, isZwibserveSession })
+      // See /session/new for rationale — surfaces exclusivity state across
+      // refresh / cold app load.
+      const exclusiveVolunteerId =
+        !session.volunteerId && !session.endedAt
+          ? await cache
+              .hget('exclusiveRequestSessions', session.id)
+              .catch(() => undefined)
+          : undefined
+      res.json({
+        session: currentSession,
+        isZwibserveSession,
+        exclusiveVolunteerId,
+      })
     } catch (error) {
       resError(res, error)
     }

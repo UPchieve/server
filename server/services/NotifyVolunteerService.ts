@@ -18,6 +18,9 @@ import { Jobs } from '../worker/jobs'
 import { secondsInMs } from '../utils/time-utils'
 import { SUBJECTS } from '../constants'
 import { getSessionUrl } from '../utils/session-utils'
+import SocketService from './SocketService'
+import * as cache from '../cache'
+import logger from '../logger'
 
 export async function beginRegularNotifications(
   session: CurrentSession
@@ -105,9 +108,8 @@ export async function notifyVolunteer(
         }),
     },
     {
-      groupName: `${
-        associatedPartner ? 'Associated partner' : 'Partner'
-      } volunteers - not notified in the last 3 days AND they don\'t have "high level subjects"`,
+      groupName: `${associatedPartner ? 'Associated partner' : 'Partner'
+        } volunteers - not notified in the last 3 days AND they don\'t have "high level subjects"`,
       query: () =>
         VolunteerRepo.getNextVolunteerToNotify({
           subject: session.subject,
@@ -134,9 +136,8 @@ export async function notifyVolunteer(
         }),
     },
     {
-      groupName: `${
-        associatedPartner ? 'Associated partner' : 'Partner'
-      } volunteers - not notified in the last 24 hours AND they don\'t have "high level subjects"`,
+      groupName: `${associatedPartner ? 'Associated partner' : 'Partner'
+        } volunteers - not notified in the last 24 hours AND they don\'t have "high level subjects"`,
       query: () =>
         VolunteerRepo.getNextVolunteerToNotify({
           subject: session.subject,
@@ -301,4 +302,142 @@ function buildNotificationContent(
     volunteer,
     associatedPartner
   )} needs help in ${session.subjectDisplayName} on UPchieve! ${sessionUrl}`
+}
+
+// Notify a single volunteer that a student has specifically requested them.
+// Skips the normal priority cascade and Bull queue — fires SMS + audit row +
+// in-app socket event inline. The targeted addition to the volunteer's
+// session list (so the session appears in their dashboard) is handled by
+// the updateSessionList path, which broadcasts a filtered list to the
+// `'volunteers'` room plus a per-volunteer emit for exclusive sessions.
+export async function notifyExclusiveVolunteer(
+  session: CurrentSession,
+  volunteerId: Ulid
+): Promise<void> {
+  const volunteer = await VolunteerRepo.getVolunteerContactInfoById(
+    volunteerId,
+    { banned: false, deactivated: false, testUser: false }
+  )
+
+  let carrierMessageId: string | undefined
+  if (volunteer?.phone) {
+    const sessionUrl = getSessionUrl({
+      id: session.id,
+      subject: session.subject,
+      topic: session.topic,
+    })
+    const studentFirstName = session.student?.firstName ?? 'a student'
+    const content = `Hi ${volunteer.firstName}, ${studentFirstName} is specifically requesting your help on UPchieve for ${session.subjectDisplayName}! ${sessionUrl}`
+    try {
+      carrierMessageId = await sendTextMessage(
+        volunteer.phone,
+        content,
+        session.id
+      )
+    } catch (err) {
+      logger.error(
+        { sessionId: session.id, volunteerId, err },
+        'notifyExclusiveVolunteer: SMS send failed'
+      )
+    }
+  } else {
+    logger.warn(
+      { sessionId: session.id, volunteerId },
+      'notifyExclusiveVolunteer: volunteer has no phone or is not eligible; skipping SMS'
+    )
+  }
+
+  // Audit row — admin notifications panel + recently-notified guards depend
+  // on this. priorityGroup reuses the existing 'Favorite volunteers' enum
+  // value to avoid a DB schema change.
+  try {
+    await SessionRepo.addSessionNotification(session.id, {
+      wasSuccessful: !!carrierMessageId,
+      messageId: carrierMessageId,
+      volunteer: volunteerId,
+      type: 'initial',
+      method: 'sms',
+      priorityGroup: 'Favorite volunteers',
+    })
+  } catch (err) {
+    logger.error(
+      { sessionId: session.id, volunteerId, err },
+      'notifyExclusiveVolunteer: failed to write notification audit row'
+    )
+  }
+
+  try {
+    await SocketService.getInstance().emitExclusiveSessionRequest(volunteerId, {
+      sessionId: session.id,
+      studentId: session.studentId,
+      studentFirstName: session.student?.firstName ?? '',
+      subject: session.subject,
+      subjectDisplayName: session.subjectDisplayName,
+      topic: session.topic,
+    })
+  } catch (err) {
+    logger.error(
+      { sessionId: session.id, volunteerId, err },
+      'notifyExclusiveVolunteer: socket emit failed'
+    )
+  }
+}
+
+// Tell the requested volunteer's open frontends that the exclusive request
+// has been cleared (student broke out, session matched/ended, or GC swept
+// a stale entry) so their dashboard widget removes the card.
+export async function notifyExclusiveRequestCleared(
+  sessionId: Ulid,
+  volunteerId: Ulid
+): Promise<void> {
+  try {
+    await SocketService.getInstance().emitExclusiveRequestCleared(
+      volunteerId,
+      sessionId
+    )
+  } catch (err) {
+    logger.error(
+      { sessionId, volunteerId, err },
+      'notifyExclusiveRequestCleared: socket emit failed'
+    )
+  }
+}
+
+// Atomically clear a session's exclusive-request state and notify the
+// targeted volunteer's open frontends. Returns true if this caller was the
+// one that cleared it (i.e. the HDEL removed a field), false if the entry
+// was already gone (no-op / lost a race against another caller). Callers
+// that need to gate a side effect (e.g. firing the broadcast cascade)
+// should branch on this return value.
+//
+// Wraps the HGET → HDEL → emit chain so every cleanup site (endSession,
+// joinSession, EndUnmatchedSession, breakout endpoint, opportunistic GC)
+// has identical semantics and the dashboard widget always gets notified.
+export async function clearExclusiveRequest(
+  sessionId: Ulid
+): Promise<boolean> {
+  let volunteerId: string | undefined
+  try {
+    volunteerId = await cache.hget('exclusiveRequestSessions', sessionId)
+  } catch (err) {
+    logger.error(
+      { sessionId, err },
+      'clearExclusiveRequest: HGET failed; failing open (no cleanup)'
+    )
+    return false
+  }
+  if (!volunteerId) return false
+  let removed: number = 0
+  try {
+    removed = await cache.hdel('exclusiveRequestSessions', sessionId)
+  } catch (err) {
+    logger.error(
+      { sessionId, err },
+      'clearExclusiveRequest: HDEL failed'
+    )
+    return false
+  }
+  if (removed === 0) return false // raced — someone else already cleared it
+  await notifyExclusiveRequestCleared(sessionId, volunteerId)
+  return true
 }

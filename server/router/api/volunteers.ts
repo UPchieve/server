@@ -2,11 +2,14 @@ import moment from 'moment'
 import config from '../../config'
 import * as VolunteersCtrl from '../../controllers/VolunteersCtrl'
 import * as VolunteerService from '../../services/VolunteerService'
+import * as SessionRepo from '../../models/Session/queries'
+import * as NotifyVolunteerService from '../../services/NotifyVolunteerService'
 import { authPassport } from '../../utils/auth-utils'
 import * as cache from '../../cache'
 import { Router } from 'express'
 import { asNumber, asString } from '../../utils/type-utils'
 import { resError } from '../res-error'
+import { extractUser } from '../extract-user'
 
 export function routeVolunteers(router: Router): void {
   router.get(
@@ -93,6 +96,56 @@ export function routeVolunteers(router: Router): void {
     try {
       const presenceBySubject = await VolunteerService.getSubjectPresence()
       res.json({ presenceBySubject })
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
+  // Volunteer dashboard widget: list active student-initiated exclusive
+  // session requests targeting this volunteer. Opportunistically GCs any
+  // HASH entries that point to sessions which have since been matched or ended.
+  router.get('/volunteer/exclusive-requests', async function (req, res) {
+    try {
+      const user = extractUser(req)
+      const all = await cache
+        .hgetall('exclusiveRequestSessions')
+        .catch(() => ({} as Record<string, string>))
+      const myEntries = Object.entries(all).filter(
+        ([_sid, vid]) => vid === user.id
+      )
+      if (myEntries.length === 0) {
+        res.json({ requests: [] })
+        return
+      }
+      const mySessionIds = new Set(myEntries.map(([sid]) => sid))
+      const liveSessions = await SessionRepo.getUnfulfilledSessions()
+      const live = liveSessions.filter((s) => mySessionIds.has(s.id))
+      const liveIds = new Set(live.map((s) => s.id))
+      // GC any of MY entries the HASH still has but the live query doesn't —
+      // those sessions are matched/ended/expired.
+      for (const sid of mySessionIds) {
+        if (!liveIds.has(sid)) {
+          // Atomic clear (HGET → HDEL → emit cleared); no-ops if another
+          // path raced us to the cleanup.
+          await NotifyVolunteerService.clearExclusiveRequest(sid).catch(
+            () => { }
+          )
+        }
+      }
+      // Map to the same shape the 'sessions:exclusive-request' socket emits,
+      // so the widget + Vuex store can consume both paths identically
+      // (dedupe on sessionId, render studentFirstName / subjectDisplayName,
+      // build join URL from topic + subject).
+      const requests = live.map((s) => ({
+        sessionId: s.id,
+        studentId: (s as any).studentId,
+        studentFirstName:
+          (s as any).student?.firstname ?? (s as any).studentFirstName ?? '',
+        subject: s.subTopic,
+        subjectDisplayName: s.subjectDisplayName,
+        topic: s.type,
+      }))
+      res.json({ requests })
     } catch (err) {
       resError(res, err)
     }
