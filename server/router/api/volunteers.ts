@@ -102,13 +102,13 @@ export function routeVolunteers(router: Router): void {
   })
 
   // Volunteer dashboard widget: list active student-initiated exclusive
-  // session requests targeting this volunteer. 
+  // session requests targeting this volunteer.
   router.get('/volunteer/exclusive-requests', async function (req, res) {
     try {
       const user = extractUser(req)
       const all = await cache
         .hgetall('exclusiveRequestSessions')
-        .catch(() => ({} as Record<string, string>))
+        .catch(() => ({}) as Record<string, string>)
       const myEntries = Object.entries(all).filter(
         ([_sid, vid]) => vid === user.id
       )
@@ -123,7 +123,7 @@ export function routeVolunteers(router: Router): void {
       for (const sid of mySessionIds) {
         if (!liveIds.has(sid)) {
           await NotifyVolunteerService.clearExclusiveRequest(sid).catch(
-            () => { }
+            () => {}
           )
         }
       }

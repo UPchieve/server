@@ -64,8 +64,8 @@ export function routeSession(router: Router) {
       const exclusiveVolunteerId =
         !session.volunteerId && !session.endedAt
           ? await cache
-            .hget('exclusiveRequestSessions', session.id)
-            .catch(() => undefined)
+              .hget('exclusiveRequestSessions', session.id)
+              .catch(() => undefined)
           : undefined
       // For legacy (mobile), we still need to just return the sessionId.
       res.json({
@@ -93,12 +93,11 @@ export function routeSession(router: Router) {
       if (isSessionFulfilled(session)) {
         throw new InputError('Session is already matched or ended.')
       }
-      // Atomically clear the exclusive entry + emit cleared event. 
+      // Atomically clear the exclusive entry + emit cleared event.
       const wasCleared =
         await NotifyVolunteerService.clearExclusiveRequest(sessionId)
-      const currentSession = await SessionService.getCurrentSessionById(
-        sessionId
-      )
+      const currentSession =
+        await SessionService.getCurrentSessionById(sessionId)
       if (!wasCleared) {
         // Either it was never exclusive, or another call already broke it
         // out. The session is now either matched, ended, or already public —
@@ -111,8 +110,9 @@ export function routeSession(router: Router) {
       // shouldn't be able to trigger the cascade via the breakout endpoint.
       const isUserBanned = user.banType === USER_BAN_TYPES.COMPLETE
       const isUserShadowBanned = user.banType === USER_BAN_TYPES.SHADOW
-      const isNotifyTutorEnabled =
-        await FeatureFlagsService.getNotifyTutorFlag(user.id)
+      const isNotifyTutorEnabled = await FeatureFlagsService.getNotifyTutorFlag(
+        user.id
+      )
       if (!isUserBanned && !isUserShadowBanned && isNotifyTutorEnabled) {
         await NotifyVolunteerService.beginRegularNotifications(currentSession)
       }
@@ -140,8 +140,8 @@ export function routeSession(router: Router) {
       const exclusiveVolunteerId =
         !session.volunteerId && !session.endedAt
           ? await cache
-            .hget('exclusiveRequestSessions', session.id)
-            .catch(() => undefined)
+              .hget('exclusiveRequestSessions', session.id)
+              .catch(() => undefined)
           : undefined
       res.json({
         session: currentSession,

@@ -109,8 +109,9 @@ export async function notifyVolunteer(
         }),
     },
     {
-      groupName: `${associatedPartner ? 'Associated partner' : 'Partner'
-        } volunteers - not notified in the last 3 days AND they don\'t have "high level subjects"`,
+      groupName: `${
+        associatedPartner ? 'Associated partner' : 'Partner'
+      } volunteers - not notified in the last 3 days AND they don\'t have "high level subjects"`,
       query: () =>
         VolunteerRepo.getNextVolunteerToNotify({
           subject: session.subject,
@@ -137,8 +138,9 @@ export async function notifyVolunteer(
         }),
     },
     {
-      groupName: `${associatedPartner ? 'Associated partner' : 'Partner'
-        } volunteers - not notified in the last 24 hours AND they don\'t have "high level subjects"`,
+      groupName: `${
+        associatedPartner ? 'Associated partner' : 'Partner'
+      } volunteers - not notified in the last 24 hours AND they don\'t have "high level subjects"`,
       query: () =>
         VolunteerRepo.getNextVolunteerToNotify({
           subject: session.subject,
@@ -409,10 +411,8 @@ export async function notifyExclusiveRequestCleared(
 }
 
 // Atomically clear a session's exclusive-request state and notify the
-// targeted volunteer's open frontends. 
-export async function clearExclusiveRequest(
-  sessionId: Ulid
-): Promise<boolean> {
+// targeted volunteer's open frontends.
+export async function clearExclusiveRequest(sessionId: Ulid): Promise<boolean> {
   let volunteerId: string | undefined
   try {
     volunteerId = await cache.hget('exclusiveRequestSessions', sessionId)
@@ -428,10 +428,7 @@ export async function clearExclusiveRequest(
   try {
     removed = await cache.hdel('exclusiveRequestSessions', sessionId)
   } catch (err) {
-    logger.error(
-      { sessionId, err },
-      'clearExclusiveRequest: HDEL failed'
-    )
+    logger.error({ sessionId, err }, 'clearExclusiveRequest: HDEL failed')
     return false
   }
   if (removed === 0) return false // raced — someone else already cleared it

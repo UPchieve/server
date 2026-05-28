@@ -11,7 +11,7 @@ import SocketService from '../services/SocketService'
 
 // Initialize a headless Socket.IO server in the worker process so jobs (e.g.
 // PromptStudentToBreakout, EndUnmatchedSession's exclusive-request cleanup) can
-// emit events to clients connected to the HTTP server. 
+// emit events to clients connected to the HTTP server.
 function initWorkerSocketService(): void {
   const io = new SocketIoServer()
   io.adapter(createAdapter(redisClient))

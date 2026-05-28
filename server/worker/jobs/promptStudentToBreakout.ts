@@ -23,13 +23,12 @@ export default async (
     return
   }
   if (sessionUtils.isSessionFulfilled(session)) {
-    log(`${Jobs.PromptStudentToBreakout}: session ${sessionId} already fulfilled`)
+    log(
+      `${Jobs.PromptStudentToBreakout}: session ${sessionId} already fulfilled`
+    )
     return
   }
-  const exclusiveTo = await cache.hget(
-    'exclusiveRequestSessions',
-    sessionId
-  )
+  const exclusiveTo = await cache.hget('exclusiveRequestSessions', sessionId)
   if (!exclusiveTo) {
     log(
       `${Jobs.PromptStudentToBreakout}: session ${sessionId} no longer exclusive`
