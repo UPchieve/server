@@ -16,11 +16,12 @@ import { CurrentSession } from '../types/session'
 import QueueService from './QueueService'
 import { Jobs } from '../worker/jobs'
 import { secondsInMs } from '../utils/time-utils'
-import { SUBJECTS } from '../constants'
+import { EVENTS, SUBJECTS } from '../constants'
 import { getSessionUrl } from '../utils/session-utils'
 import SocketService from './SocketService'
 import * as cache from '../cache'
 import logger from '../logger'
+import { captureEvent } from './AnalyticsService'
 
 export async function beginRegularNotifications(
   session: CurrentSession
@@ -376,6 +377,15 @@ export async function notifyExclusiveVolunteer(
       'notifyExclusiveVolunteer: socket emit failed'
     )
   }
+
+  captureEvent(volunteerId, EVENTS.VOLUNTEER_RECEIVED_EXCLUSIVE_REQUEST, {
+    sessionId: session.id,
+    studentId: session.studentId,
+    subject: session.subject,
+    topic: session.topic,
+    volunteerId,
+    smsSent: !!carrierMessageId,
+  })
 }
 
 // Tell the requested volunteer's open frontends that the exclusive request

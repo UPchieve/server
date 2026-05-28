@@ -837,6 +837,16 @@ export async function joinSession(
   const isVolunteer = user.roleContext.isActiveRole('volunteer')
   const isInitialVolunteerJoin = isVolunteer && !session.volunteerId
   if (isInitialVolunteerJoin) {
+    // Peek at exclusivity state BEFORE clearExclusiveRequest wipes the HASH
+    // — we need to know whether this join converted an exclusive request,
+    // and if so, whether the joining volunteer is the one the student
+    // originally requested.
+    const exclusiveTo = await cache
+      .hget('exclusiveRequestSessions', session.id)
+      .catch(() => undefined)
+    const wasExclusiveRequest = !!exclusiveTo
+    const wasRequestedVolunteer = exclusiveTo === user.id
+
     try {
       await SessionRepo.updateSessionVolunteerById(session.id, user.id)
       session.volunteerId = user.id
@@ -851,12 +861,21 @@ export async function joinSession(
         ...sessionAnalyticsData,
         action: SESSION_USER_ACTIONS.JOINED,
       })
+      // Only attach exclusive metadata when this join actually converted an
+      // exclusive request. Keeps the regular SESSION_JOINED / SESSION_MATCHED
+      // event shape identical to pre-experiment so PostHog's property
+      // catalog doesn't get experiment-bloat on the broader events.
+      const exclusiveProps = wasExclusiveRequest
+        ? { wasExclusiveRequest: true, wasRequestedVolunteer }
+        : {}
       captureEvent(user.id, EVENTS.SESSION_JOINED, {
         sessionId: session.id,
         joinedFrom: data.joinedFrom || '',
+        ...exclusiveProps,
       })
       captureEvent(session.studentId, EVENTS.SESSION_MATCHED, {
         sessionId: session.id,
+        ...exclusiveProps,
       })
     } catch (error) {
       logger.error(error, `Failed to log session join actions.`, {
