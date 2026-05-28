@@ -418,7 +418,7 @@ async function moderateAssignmentPdf(
 
   for (const image of extractedContent.images) {
     const imageModerationFailures = await moderateAssignmentImage(
-      Buffer.from(image.data),
+      image,
       assignmentId
     )
     if (imageModerationFailures.length) {
