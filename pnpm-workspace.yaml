@@ -1,0 +1,18 @@
+allowBuilds:
+  '@firebase/util': true
+  '@newrelic/fn-inspect': true
+  '@newrelic/native-metrics': true
+  '@scarf/scarf': true
+  '@sentry-internal/node-cpu-profiler': true
+  bcrypt: true
+  canvas: true
+  esbuild: true
+  pg-formatter: true
+  pre-commit: true
+  protobufjs: true
+  sharp: true
+  spawn-sync: true
+
+# blockExoticSubdeps: true
+# minimumReleaseAge: 10080
+# trustPolicy: no-downgrade

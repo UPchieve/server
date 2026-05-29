@@ -1,24 +1,28 @@
-FROM node:24.15.0-alpine3.23
+FROM node:24.15.0-slim AS base
 
-WORKDIR app
+# Enable pnpm.
+RUN corepack enable pnpm
 
-# Install build dependencies
-# cairo-dev pango-dev for `canvas` node module used for rendering the zwibbler whiteboard in subway
-RUN apk add --no-cache python3 make g++ wget cairo-dev pango-dev
+WORKDIR /app
 
-# Install Doppler CLI
-RUN wget -q -t3 'https://packages.doppler.com/public/cli/rsa.8004D9FF50437357.key' -O /etc/apk/keys/cli@doppler-8004D9FF50437357.rsa.pub && \
-    echo 'https://packages.doppler.com/public/cli/alpine/any-version/main' | tee -a /etc/apk/repositories && \
-    apk add doppler
+# Install runtime dependencies.
+# cairo and pango are required for canvas, which is used to render Zwibbler whiteboard in subway.
+RUN apt-get update && apt-get install -y libcairo2-dev libpango1.0-dev
 
-COPY package*.json ./
-RUN npm ci
+# Install Doppler CLI.
+RUN apt-get update && apt-get install -y apt-transport-https ca-certificates curl gnupg && \
+    curl -sLf --retry 3 --tlsv1.2 --proto "=https" 'https://packages.doppler.com/public/cli/gpg.DE2A7741A397C129.key' | gpg --dearmor -o /usr/share/keyrings/doppler-archive-keyring.gpg && \
+    echo "deb [signed-by=/usr/share/keyrings/doppler-archive-keyring.gpg] https://packages.doppler.com/public/cli/deb/debian any-version main" | tee /etc/apt/sources.list.d/doppler-cli.list && \
+    apt-get update && \
+    apt-get -y install doppler
+
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+RUN pnpm install --frozen-lockfile
 
 COPY tsconfig*.json ./
 COPY server ./server
 COPY database ./database
-RUN npm run build
+RUN pnpm run build
 
 ENTRYPOINT ["doppler", "run", "--"]
-CMD ["npm", "run", "start"]
-
+CMD ["pnpm", "run", "start"]
