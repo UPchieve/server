@@ -100,6 +100,8 @@ export type ModerationFailureReasons = {
   failures: Record<string, string[] | never>
 }
 
+export type ModerationFailureCategories = string[]
+
 export type ModerationSessionReviewFlagReason =
   | 'PII'
   | 'HATE_SPEECH'

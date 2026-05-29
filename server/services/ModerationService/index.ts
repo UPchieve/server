@@ -68,6 +68,7 @@ import {
 import { weightModerationInfractions } from './ModerationPenaltyService'
 import * as Regex from './regex'
 import { secondsInMs } from '../../utils/time-utils'
+import Logger from '../../logger'
 
 // Image moderation
 const AWS_CONFIG = {
@@ -1181,13 +1182,11 @@ const getAiModerationResult = async (
   return { results: r }
 }
 
-export async function moderateAssignmentInfo(
-  text: string
-): Promise<ModerationTypes.ModerationFailureReasons> {
+export async function moderateAssignmentInfo(text: string): Promise<string[]> {
   // Regex first
   const regexDecision = await Regex.regexModerate(text)
   if (regexDecision.isClean) {
-    return { failures: {} }
+    return []
   }
 
   // Consult AI if regex comes back with a match
@@ -1212,15 +1211,19 @@ export async function moderateAssignmentInfo(
     fallbackReturnValue: null,
     timeLimitReachedErrorMessage:
       'Could not get assignment info moderation decision in time',
-    waitInMs: secondsInMs(5),
+    waitInMs: secondsInMs(10),
   })
 
   generation.end({
     output,
   })
 
-  const aiDecision = { failures: output.results?.reasons ?? {} }
-  return aiDecision
+  if (!output) {
+    Logger.warn('Could not get AI moderation decision about assignment in time')
+    throw new Error('Could not process assignment')
+  }
+
+  return output.results?.reasons ?? []
 }
 
 export type oldClientModerationResult = boolean

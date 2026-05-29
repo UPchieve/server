@@ -134,6 +134,7 @@
     "ts-custom-error": "^3.2.0",
     "twilio": "^5.13.1",
     "ua-parser-js": "^0.7.21",
+    "unpdf": "^1.6.2",
     "uuid": "^8.3.2",
     "validator": "^13.6.0",
     "yaml": "^1.10.0",

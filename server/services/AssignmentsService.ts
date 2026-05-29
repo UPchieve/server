@@ -28,7 +28,9 @@ import { getSubjectsForTopicByTopicId } from './SubjectsService'
 import logger from '../logger'
 import { isEmpty } from 'lodash'
 import * as ModerationTypes from './ModerationService/types'
-import { ModerationSource } from './ModerationService/types'
+import { ImageModerationFailureReason } from './ModerationService/types'
+import { extractPdfContent } from '../utils/file-utils'
+import { moderateAssignmentInfo } from './ModerationService/index'
 
 export type CreateAssignmentPayload = {
   classId: string
@@ -84,13 +86,13 @@ export const asEditedAssignment = asFactory<EditAssignmentPayload>({
 export async function createAssignment(
   data: CreateAssignmentPayload,
   tc?: TransactionClient
-): Promise<Assignment | ModerationTypes.ModerationFailureReasons> {
+): Promise<Assignment | ModerationTypes.ModerationFailureCategories> {
   validateAssignmentData(data)
   const moderationResults = await ModerationService.moderateAssignmentInfo(
     `${data.title} ${data.description}`
   )
 
-  if (!isEmpty(moderationResults.failures)) {
+  if (!isEmpty(moderationResults)) {
     return moderationResults
   }
 
@@ -122,12 +124,12 @@ export async function createAssignment(
 
 export async function editAssignment(
   data: EditAssignmentPayload
-): Promise<Assignment | ModerationTypes.ModerationFailureReasons> {
+): Promise<Assignment | ModerationTypes.ModerationFailureCategories> {
   validateAssignmentData(data)
   const moderationResults = await ModerationService.moderateAssignmentInfo(
     `${data.title} ${data.description}`
   )
-  if (!isEmpty(moderationResults.failures)) {
+  if (!isEmpty(moderationResults)) {
     return moderationResults
   }
   return runInTransaction(async (tc: TransactionClient) => {
@@ -383,6 +385,52 @@ async function getClassAssignments(classId: Ulid, tc: TransactionClient) {
   })
 }
 
+async function moderateAssignmentImage(
+  file: Buffer,
+  assignmentId: string
+): Promise<ImageModerationFailureReason[]> {
+  const moderationResult = await ModerationService.genericModerateImage({
+    image: file,
+  })
+  if (moderationResult.length) {
+    await ModerationService.saveImageToBucket({
+      image: file,
+      source: 'assignment_image',
+      locationPrefix: assignmentId,
+    })
+  }
+  return moderationResult
+}
+
+async function moderateAssignmentPdf(
+  file: Express.Multer.File,
+  assignmentId: string
+): Promise<ModerationTypes.ModerationFailureCategories> {
+  const moderationFailures: string[] = []
+  const extractedContent = await extractPdfContent(file.buffer)
+
+  const textModerationResults = await moderateAssignmentInfo(
+    extractedContent.text
+  )
+  if (!isEmpty(textModerationResults)) {
+    moderationFailures.push(...textModerationResults)
+  }
+
+  for (const image of extractedContent.images) {
+    const imageModerationFailures = await moderateAssignmentImage(
+      image,
+      assignmentId
+    )
+    if (imageModerationFailures.length) {
+      moderationFailures.push(
+        ...imageModerationFailures.map((failure) => failure.reason)
+      )
+    }
+  }
+
+  return moderationFailures
+}
+
 /**
  * Upload and retrieve uploaded assignments to and from Azure.
  *
@@ -404,24 +452,23 @@ export async function uploadAssignmentFiles(
   let fileNameToModerationFailures: Record<string, string[]> = {}
   for (const file of files) {
     if (isImageFile(file.buffer)) {
-      const moderationResult = await ModerationService.genericModerateImage({
-        image: file.buffer,
-      })
-      if (moderationResult.length) {
-        fileNameToModerationFailures[file.originalname] = moderationResult.map(
-          (failure) => failure.reason
-        )
-        await ModerationService.saveImageToBucket({
-          image: file.buffer,
-          source: 'assignment_image',
-          locationPrefix: assignmentId,
-        })
+      const moderationFailures = await moderateAssignmentImage(
+        file.buffer,
+        assignmentId
+      )
+      if (moderationFailures.length) {
+        fileNameToModerationFailures[file.originalname] =
+          moderationFailures.map((failure) => failure.reason)
       }
     } else {
-      // @TODO document moderation
+      const moderationFailures = await moderateAssignmentPdf(file, assignmentId)
+      if (moderationFailures.length) {
+        fileNameToModerationFailures[file.originalname] = moderationFailures
+      }
     }
   }
 
+  // If all files are clean, upload them.
   if (isEmpty(fileNameToModerationFailures)) {
     await Promise.all(
       files.map((file) => {
