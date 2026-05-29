@@ -14,5 +14,5 @@ allowBuilds:
   spawn-sync: true
 
 # blockExoticSubdeps: true
-# minimumReleaseAge: 10080
+minimumReleaseAge: 10080
 # trustPolicy: no-downgrade
