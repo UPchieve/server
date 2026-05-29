@@ -5,9 +5,10 @@ RUN corepack enable pnpm
 
 WORKDIR /app
 
-# Install runtime dependencies.
+# Install build and runtime dependencies.
+# make, g++, python3 are required if any packages require compiling native C/C++ addons.
 # cairo and pango are required for canvas, which is used to render Zwibbler whiteboard in subway.
-RUN apt-get update && apt-get install -y libcairo2-dev libpango1.0-dev
+RUN apt-get update && apt-get install -y make g++ python3 libcairo2-dev libpango1.0-dev
 
 # Install Doppler CLI.
 RUN apt-get update && apt-get install -y apt-transport-https ca-certificates curl gnupg && \

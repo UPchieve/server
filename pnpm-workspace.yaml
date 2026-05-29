@@ -13,6 +13,6 @@ allowBuilds:
   sharp: true
   spawn-sync: true
 
-# blockExoticSubdeps: true
+blockExoticSubdeps: true
 minimumReleaseAge: 10080
 # trustPolicy: no-downgrade
