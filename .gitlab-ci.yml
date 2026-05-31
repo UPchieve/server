@@ -212,6 +212,7 @@ test_backend:
     - redis:latest
   script:
     - pnpm run test:backend
+    - pnpm run test:privacy # privacy-guard unit tests (jest.config.privacy.js)
   rules:
     - if: '$TEST_DISABLED'
       when: never
@@ -277,9 +278,30 @@ lint_sql:
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event' # MR is created or updated.
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
 
+# Includes the diff-scoped pii-comment lint: lint:database:dry prettier-checks
+# database/{seeds,privacy}/**/*.ts, then runs
+# database/privacy/lint/check-column-pii-comments.ts, which fails if any column
+# added to upchieve.* on this branch lacks a COMMENT ON COLUMN ... IS 'pii' (or
+# 'not_pii'), or if such a comment has any other value. That check needs the
+# diff base fetched and CHECK_PII_BASE_REF set (otherwise it falls back to
+# staged-only mode, which is empty in CI). The lint's unit tests run with the
+# backend unit tests (test_backend job).
 lint_database:
   stage: test
   extends: .node_setup
+  variables:
+    GIT_STRATEGY: fetch
+    GIT_DEPTH: 50
+  before_script:
+    - !reference [.node_setup, before_script]
+    - |
+      if [ "$CI_PIPELINE_SOURCE" = 'merge_request_event' ]; then
+        git fetch origin "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME" --depth=50
+        export CHECK_PII_BASE_REF="origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME"
+      else
+        git fetch origin "$CI_DEFAULT_BRANCH" --depth=50
+        export CHECK_PII_BASE_REF="origin/$CI_DEFAULT_BRANCH"
+      fi
   script:
     - pnpm run lint:database:dry
   rules:
