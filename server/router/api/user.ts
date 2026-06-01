@@ -389,13 +389,13 @@ export function routeUser(router: Router): void {
   router.post('/user/coaching-invitation', async function (req, res) {
     try {
       const user = extractUser(req)
-      const personalization = {
-        // @TODO: read from req.body
-      }
       const invitedUserId = req.body.invitedUserId
-      UserService.queueInvitationToCoach(
+      const sessionId = req.body.sessionId
+      const personalization = req.body.coachingSkills
+      await UserService.queueInvitationToCoach(
         invitedUserId,
         user.id,
+        sessionId,
         personalization
       )
     } catch (err) {

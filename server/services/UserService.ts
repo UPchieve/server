@@ -778,14 +778,15 @@ export async function upsertUsersSchool(
 export async function queueInvitationToCoach(
   invitedUserId: Ulid,
   invitingUserId: Ulid,
-  personalization: any // @TODO type me
+  sessionId: Ulid,
+  coachingSkills: string[]
 ): Promise<void> {
   await QueueService.add(
     Jobs.SendInvitationToCoachEmail,
     {
       invitedUserId,
       invitingUserId,
-      personalization,
+      coachingSkills,
     },
     {
       delay: hoursInMs(24),

@@ -7,7 +7,7 @@ import { sendInvitationToCoachEmail } from '../../services/MailService'
 interface SendInvitationToCoachEmailJobData {
   invitingUserId: Ulid
   invitedUserId: Ulid
-  personalization: any // @TODO: skills, personal note, etc
+  coachingSkills: string[]
 }
 
 const logPrefix = `SendInvitationToCoachEmail job: `
@@ -29,7 +29,7 @@ export default async function (
     throw new Error('Could not find contact info for user invited to coach')
   }
 
-  await sendInvitationToCoachEmail(invitedUser.email, job.data.personalization)
+  await sendInvitationToCoachEmail(invitedUser.email, job.data.coachingSkills)
   logger.info(
     {
       invitedUserId: job.data.invitedUserId,
@@ -40,7 +40,7 @@ export default async function (
   if (invitedUser.proxyEmail && invitedUser.proxyEmail !== invitedUser.email) {
     await sendInvitationToCoachEmail(
       invitedUser.proxyEmail,
-      job.data.personalization
+      job.data.coachingSkills
     )
     logger.info(
       {
