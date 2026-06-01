@@ -15,4 +15,11 @@ allowBuilds:
 
 blockExoticSubdeps: true
 minimumReleaseAge: 10080
-# trustPolicy: no-downgrade
+trustPolicy: no-downgrade
+trustPolicyExclude:
+  # Released Dec 2024, required by @pgtyped/cli@2.4.3, which is currently at the latest version.
+  - 'chokidar@4.0.3'
+  # Released July 2024, required transitively by firebase-admin.
+  - 'jose@4.15.9'
+  # Released July 2023, required transitively by many dependencies for testing.
+  - 'semver@6.3.1'
