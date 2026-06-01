@@ -42,8 +42,6 @@ export type CurrentSession = {
   volunteerLanguages?: string[]
   shadowbanned?: boolean
   createdAt: Date
-  studentLastSeenAt?: Date
-  volunteerLastSeenAt?: Date
 }
 
 export type SessionDetail = {
