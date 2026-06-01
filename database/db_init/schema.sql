@@ -1,7 +1,7 @@
-\restrict J06Hbv49tYiQMvnbzYagF52rykmEwxmFdhtPAlmYHjCjXeBIcV9RooxjPwgDPk3
+\restrict ubhrXBzVzGugtsM4S6N6wtBSSTmcbaKtV5H4hpdspDIoHjwlk1dtFZkhCRDylwX
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
--- Dumped by pg_dump version 15.17 (Ubuntu 15.17-1.pgdg22.04+1)
+-- Dumped by pg_dump version 15.18 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -2100,6 +2100,17 @@ CREATE SEQUENCE upchieve.session_flags_id_seq
 --
 
 ALTER SEQUENCE upchieve.session_flags_id_seq OWNED BY upchieve.session_flags.id;
+
+
+--
+-- Name: session_last_seen; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.session_last_seen (
+    session_id uuid NOT NULL,
+    user_id uuid NOT NULL,
+    last_seen_at timestamp with time zone
+);
 
 
 --
@@ -4655,6 +4666,14 @@ ALTER TABLE ONLY upchieve.session_flags
 
 
 --
+-- Name: session_last_seen session_last_seen_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.session_last_seen
+    ADD CONSTRAINT session_last_seen_pkey PRIMARY KEY (session_id, user_id);
+
+
+--
 -- Name: session_meetings session_meetings_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -6612,6 +6631,22 @@ ALTER TABLE ONLY upchieve.session_failed_joins
 
 
 --
+-- Name: session_last_seen session_last_seen_session_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.session_last_seen
+    ADD CONSTRAINT session_last_seen_session_id_fkey FOREIGN KEY (session_id) REFERENCES upchieve.sessions(id);
+
+
+--
+-- Name: session_last_seen session_last_seen_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.session_last_seen
+    ADD CONSTRAINT session_last_seen_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
+
+
+--
 -- Name: session_meetings session_meetings_session_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -7471,7 +7506,7 @@ ALTER TABLE ONLY upchieve.volunteer_references
 -- PostgreSQL database dump complete
 --
 
-\unrestrict J06Hbv49tYiQMvnbzYagF52rykmEwxmFdhtPAlmYHjCjXeBIcV9RooxjPwgDPk3
+\unrestrict ubhrXBzVzGugtsM4S6N6wtBSSTmcbaKtV5H4hpdspDIoHjwlk1dtFZkhCRDylwX
 
 
 --
@@ -7755,4 +7790,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260423230129'),
     ('20260428230130'),
     ('20260515002920'),
-    ('20260515214142');
+    ('20260515214142'),
+    ('20260521184444');
