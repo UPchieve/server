@@ -398,6 +398,7 @@ export function routeUser(router: Router): void {
         sessionId,
         personalization
       )
+      return res.sendStatus(201)
     } catch (err) {
       resError(res, err)
     }
