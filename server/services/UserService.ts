@@ -781,6 +781,15 @@ export async function queueInvitationToCoach(
   sessionId: Ulid,
   coachingSkills: string[]
 ): Promise<void> {
+  logger.info(
+    {
+      invitingUserId,
+      invitedUserId,
+      sessionId,
+      coachingSkills,
+    },
+    'Queueing invitation to coach email'
+  )
   await QueueService.add(
     Jobs.SendInvitationToCoachEmail,
     {
