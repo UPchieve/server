@@ -28,8 +28,26 @@ export default async function (
     )
     throw new Error('Could not find contact info for user invited to coach')
   }
+  const invitingUser = await UserService.getUserContactInfo(
+    job.data.invitingUserId
+  )
+  if (!invitingUser) {
+    logger.error(
+      {
+        invitedUserId: job.data.invitedUserId,
+        invitingUserId: job.data.invitingUserId,
+      },
+      `${logPrefix}Could not find contact info for inviting user`
+    )
+    throw new Error('Could not find contact info for inviting user')
+  }
 
-  await sendInvitationToCoachEmail(invitedUser.email, job.data.coachingSkills)
+  const emailData = {
+    coachingSkills: job.data.coachingSkills,
+    inviterFirstName: invitingUser.firstName,
+  }
+
+  await sendInvitationToCoachEmail(invitedUser.email, emailData)
   logger.info(
     {
       invitedUserId: job.data.invitedUserId,
@@ -38,10 +56,7 @@ export default async function (
     `${logPrefix}Sent invitation to coach email to invitee's primary email`
   )
   if (invitedUser.proxyEmail && invitedUser.proxyEmail !== invitedUser.email) {
-    await sendInvitationToCoachEmail(
-      invitedUser.proxyEmail,
-      job.data.coachingSkills
-    )
+    await sendInvitationToCoachEmail(invitedUser.proxyEmail, emailData)
     logger.info(
       {
         invitedUserId: job.data.invitedUserId,

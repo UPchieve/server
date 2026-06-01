@@ -1667,7 +1667,10 @@ export async function sendNTHSChapterAdminsMemberDeactivationNotice(
 
 export async function sendInvitationToCoachEmail(
   recipientEmail: string,
-  customData: any // @TODO - this is the dynamic data passed to the template
+  customData: {
+    coachingSkills: string[]
+    inviterFirstName: string
+  }
 ): Promise<void> {
   const overrides = {
     categories: ['invitation to coach'],
