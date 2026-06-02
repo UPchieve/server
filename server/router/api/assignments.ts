@@ -3,6 +3,8 @@ import * as AssignmentsService from '../../services/AssignmentsService'
 import { resError } from '../res-error'
 import multer from 'multer'
 import { asString } from '../../utils/type-utils'
+import { isEmpty } from 'lodash'
+import { NotAuthenticatedError } from '../../models/Errors'
 
 export function routeAssignments(router: Router): void {
   router.get('/assignment/:assignmentId', async function (req, res) {
@@ -48,13 +50,24 @@ export function routeAssignments(router: Router): void {
 
   router.put('/assignment/upload', upload.array('files'), async (req, res) => {
     try {
+      const userId = req.user?.id
+      if (!userId) {
+        throw new NotAuthenticatedError()
+      }
       if (req.files) {
         const files = req.files as Express.Multer.File[]
         const assignmentId = req.body.assignmentId
 
-        await AssignmentsService.uploadAssignment(assignmentId, files)
+        const moderationFailures =
+          await AssignmentsService.uploadAssignmentFiles(assignmentId, files)
 
-        res.sendStatus(200)
+        if (isEmpty(moderationFailures)) {
+          res.sendStatus(200)
+        } else {
+          res.status(422).json({
+            moderationFailures,
+          })
+        }
       }
     } catch (err) {
       resError(res, err)

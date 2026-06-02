@@ -2,10 +2,10 @@
 -- PostgreSQL database dump
 --
 
-\restrict zChpG0DNvLIAZwlTui8KoDNTZ6wDVytodPOWo46mfCBLLb2mOc9ps1SLTB8CWNO
+\restrict Z4s2OD4t6fCbJXoaxw6DXfFdvgU0x6dLoEnpZCLy2ifNcVtsIvIwjKHogBHRIqP
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
--- Dumped by pg_dump version 15.17 (Ubuntu 15.17-1.pgdg22.04+1)
+-- Dumped by pg_dump version 15.18 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -7604,6 +7604,14 @@ COPY upchieve.session_failed_joins (session_id, user_id, created_at, updated_at)
 
 
 --
+-- Data for Name: session_last_seen; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.session_last_seen (session_id, user_id, last_seen_at) FROM stdin;
+\.
+
+
+--
 -- Data for Name: session_meetings; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
@@ -9414,5 +9422,5 @@ SELECT pg_catalog.setval('upchieve.weekdays_id_seq', 1, false);
 -- PostgreSQL database dump complete
 --
 
-\unrestrict zChpG0DNvLIAZwlTui8KoDNTZ6wDVytodPOWo46mfCBLLb2mOc9ps1SLTB8CWNO
+\unrestrict Z4s2OD4t6fCbJXoaxw6DXfFdvgU0x6dLoEnpZCLy2ifNcVtsIvIwjKHogBHRIqP
 
