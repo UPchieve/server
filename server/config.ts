@@ -334,6 +334,9 @@ const config = {
     moderatedSessionWhiteboardImageUploadBucket:
       process.env.SUBWAY_MODERATED_SESSION_WHITEBOARD_IMAGE_UPLOAD_BUCKET ||
       'moderated-session-whiteboard-images-bucket',
+    moderatedAssignmentsBucket:
+      process.env.SUBWAY_MODERATED_ASSIGNMENTS_BUCKET ||
+      'moderated-assignments-bucket',
   },
   awsModerationToolsRegion:
     process.env.SUBWAY_AWS_MODERATION_TOOLS_REGION || 'us-east-1',

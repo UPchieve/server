@@ -5,7 +5,8 @@ import { Jobs } from '../worker/jobs'
 import logger from '../logger'
 
 export const queue = new Queue(config.workerQueueName, {
-  createClient: () =>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  createClient: (() =>
     new Redis(config.redisConnectionString, {
       /**
        *
@@ -23,7 +24,7 @@ export const queue = new Queue(config.workerQueueName, {
        */
       enableReadyCheck: false,
       maxRetriesPerRequest: null,
-    }),
+    })) as any,
   settings: {
     // to prevent stalling long jobs
     stalledInterval: 1000 * 60 * 30,

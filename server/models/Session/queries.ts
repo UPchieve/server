@@ -1474,3 +1474,25 @@ export async function getSessionFlagsBySessionId(sessionId: Uuid) {
 
   return result.map((r) => makeRequired(r))
 }
+
+export async function updateSessionLastSeen(sessionId: Uuid, userId: Uuid) {
+  const result = await pgQueries.updateSessionLastSeen.run(
+    { sessionId, userId },
+    getClient()
+  )
+
+  if (!result.length && makeRequired(result[0]).ok)
+    throw new RepoUpdateError('Did not update session last seen.')
+}
+
+export async function sessionsWithUnreadDMs(userId: Uuid): Promise<string[]> {
+  try {
+    const result = await pgQueries.sessionsWithUnreadDMs.run(
+      { userId },
+      getClient()
+    )
+    return result.map((r) => makeRequired(r).id)
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}

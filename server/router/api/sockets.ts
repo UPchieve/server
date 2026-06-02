@@ -421,6 +421,19 @@ export function routeSockets(io: Server): void {
 
           const socketRoom = getSessionRoom(saveMessageData.sessionId)
           io.in(socketRoom).emit('messageSend', messageData)
+
+          // If it's a recap DM, also emit to the partner's user room so they get notified
+          // even if they're not on the recap page
+          if (source === 'recap') {
+            const session = await SessionRepo.getSessionById(sessionId)
+            const partnerId =
+              user.id === session.studentId
+                ? session.volunteerId
+                : session.studentId
+            if (partnerId) {
+              io.to(partnerId).emit('dm:received', { sessionId })
+            }
+          }
         } catch (error) {
           socket.emit('messageError', { sessionId: data.sessionId })
           logger.error(
