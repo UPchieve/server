@@ -1331,3 +1331,31 @@ FROM
 WHERE
     ssf.session_id = :sessionId!;
 
+
+/* @name updateSessionLastSeen */
+INSERT INTO upchieve.session_last_seen (session_id, user_id, last_seen_at)
+    VALUES (:sessionId!, :userId!, NOW())
+ON CONFLICT (session_id, user_id)
+    DO UPDATE SET
+        last_seen_at = NOW()
+    RETURNING
+        session_id AS ok;
+
+
+/* @name sessionsWithUnreadDMs */
+SELECT
+    s.id
+FROM
+    upchieve.session_messages sm
+    JOIN upchieve.sessions s ON sm.session_id = s.id
+    LEFT JOIN upchieve.session_last_seen sls ON sls.session_id = s.id
+        AND sls.user_id = :userId!
+WHERE (s.student_id = :userId!
+    OR s.volunteer_id = :userId!)
+AND sm.created_at > s.ended_at
+AND sm.sender_id != :userId!
+AND (sls.last_seen_at IS NULL
+    OR sm.created_at > sls.last_seen_at)
+GROUP BY
+    s.id;
+

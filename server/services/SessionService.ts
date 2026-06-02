@@ -1360,3 +1360,15 @@ async function getCachedSession(
     logger.error({ sessionId, error }, 'Failed to get session info from cache')
   }
 }
+
+export async function updateSessionLastSeen(
+  sessionId: Ulid,
+  userId: Ulid
+): Promise<any> {
+  const updated = await SessionRepo.updateSessionLastSeen(sessionId, userId)
+  return updated
+}
+
+export async function sessionsWithUnreadDMs(userId: Ulid): Promise<string[]> {
+  return SessionRepo.sessionsWithUnreadDMs(userId)
+}

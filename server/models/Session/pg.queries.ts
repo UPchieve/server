@@ -2869,3 +2869,78 @@ const getSessionFlagsBySessionIdIR: any = {"usedParamSet":{"sessionId":true},"pa
 export const getSessionFlagsBySessionId = new PreparedQuery<IGetSessionFlagsBySessionIdParams,IGetSessionFlagsBySessionIdResult>(getSessionFlagsBySessionIdIR);
 
 
+/** 'UpdateSessionLastSeen' parameters type */
+export interface IUpdateSessionLastSeenParams {
+  sessionId: string;
+  userId: string;
+}
+
+/** 'UpdateSessionLastSeen' return type */
+export interface IUpdateSessionLastSeenResult {
+  ok: string;
+}
+
+/** 'UpdateSessionLastSeen' query type */
+export interface IUpdateSessionLastSeenQuery {
+  params: IUpdateSessionLastSeenParams;
+  result: IUpdateSessionLastSeenResult;
+}
+
+const updateSessionLastSeenIR: any = {"usedParamSet":{"sessionId":true,"userId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":87,"b":97}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":100,"b":107}]}],"statement":"INSERT INTO upchieve.session_last_seen (session_id, user_id, last_seen_at)\n    VALUES (:sessionId!, :userId!, NOW())\nON CONFLICT (session_id, user_id)\n    DO UPDATE SET\n        last_seen_at = NOW()\n    RETURNING\n        session_id AS ok"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO upchieve.session_last_seen (session_id, user_id, last_seen_at)
+ *     VALUES (:sessionId!, :userId!, NOW())
+ * ON CONFLICT (session_id, user_id)
+ *     DO UPDATE SET
+ *         last_seen_at = NOW()
+ *     RETURNING
+ *         session_id AS ok
+ * ```
+ */
+export const updateSessionLastSeen = new PreparedQuery<IUpdateSessionLastSeenParams,IUpdateSessionLastSeenResult>(updateSessionLastSeenIR);
+
+
+/** 'SessionsWithUnreadDMs' parameters type */
+export interface ISessionsWithUnreadDMsParams {
+  userId: string;
+}
+
+/** 'SessionsWithUnreadDMs' return type */
+export interface ISessionsWithUnreadDMsResult {
+  id: string;
+}
+
+/** 'SessionsWithUnreadDMs' query type */
+export interface ISessionsWithUnreadDMsQuery {
+  params: ISessionsWithUnreadDMsParams;
+  result: ISessionsWithUnreadDMsResult;
+}
+
+const sessionsWithUnreadDMsIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":203,"b":210},{"a":234,"b":241},{"a":267,"b":274},{"a":328,"b":335}]}],"statement":"SELECT\n    s.id\nFROM\n    upchieve.session_messages sm\n    JOIN upchieve.sessions s ON sm.session_id = s.id\n    LEFT JOIN upchieve.session_last_seen sls ON sls.session_id = s.id\n        AND sls.user_id = :userId!\nWHERE (s.student_id = :userId!\n    OR s.volunteer_id = :userId!)\nAND sm.created_at > s.ended_at\nAND sm.sender_id != :userId!\nAND (sls.last_seen_at IS NULL\n    OR sm.created_at > sls.last_seen_at)\nGROUP BY\n    s.id"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     s.id
+ * FROM
+ *     upchieve.session_messages sm
+ *     JOIN upchieve.sessions s ON sm.session_id = s.id
+ *     LEFT JOIN upchieve.session_last_seen sls ON sls.session_id = s.id
+ *         AND sls.user_id = :userId!
+ * WHERE (s.student_id = :userId!
+ *     OR s.volunteer_id = :userId!)
+ * AND sm.created_at > s.ended_at
+ * AND sm.sender_id != :userId!
+ * AND (sls.last_seen_at IS NULL
+ *     OR sm.created_at > sls.last_seen_at)
+ * GROUP BY
+ *     s.id
+ * ```
+ */
+export const sessionsWithUnreadDMs = new PreparedQuery<ISessionsWithUnreadDMsParams,ISessionsWithUnreadDMsResult>(sessionsWithUnreadDMsIR);
+
+
