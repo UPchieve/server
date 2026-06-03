@@ -59,6 +59,7 @@ export function routeSession(router: Router) {
       const isZwibserveSession = await SessionService.isZwibserveSession(
         session.id
       )
+      // For legacy (mobile), we still need to just return the sessionId.
       res.json({
         sessionId: session.id,
         session: currentSession,

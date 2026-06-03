@@ -2,14 +2,11 @@ import moment from 'moment'
 import config from '../../config'
 import * as VolunteersCtrl from '../../controllers/VolunteersCtrl'
 import * as VolunteerService from '../../services/VolunteerService'
-import * as SessionRepo from '../../models/Session/queries'
-import * as NotifyVolunteerService from '../../services/NotifyVolunteerService'
 import { authPassport } from '../../utils/auth-utils'
 import * as cache from '../../cache'
 import { Router } from 'express'
 import { asNumber, asString } from '../../utils/type-utils'
 import { resError } from '../res-error'
-import { extractUser } from '../extract-user'
 
 export function routeVolunteers(router: Router): void {
   router.get(
