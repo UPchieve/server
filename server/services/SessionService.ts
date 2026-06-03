@@ -616,7 +616,6 @@ export async function startSession(
     )
   }
 
-  let validatedRequestedVolunteerId: Ulid | undefined
   if (requestedVolunteerId) {
     const volunteer = await VolunteerRepo.getVolunteerContactInfoById(
       requestedVolunteerId,
@@ -634,7 +633,6 @@ export async function startSession(
         'Requested volunteer is currently in another session.'
       )
     }
-    validatedRequestedVolunteerId = requestedVolunteerId
   }
 
   const newSession = await runInTransaction(async (tc: TransactionClient) => {
@@ -681,11 +679,11 @@ export async function startSession(
   // awaits — to minimize the window in which a concurrent updateSessionList
   // could broadcast it publicly.
   const isUserShadowBanned = user.banType === USER_BAN_TYPES.SHADOW
-  if (validatedRequestedVolunteerId && !isUserBanned && !isUserShadowBanned) {
+  if (requestedVolunteerId && !isUserShadowBanned) {
     await cache.hset(
       'exclusiveRequestSessions',
       newSession.id,
-      validatedRequestedVolunteerId
+      requestedVolunteerId
     )
   }
 
@@ -718,16 +716,11 @@ export async function startSession(
     user.id
   )
 
-  if (!isUserBanned && !isUserShadowBanned) {
-    if (validatedRequestedVolunteerId) {
+  if (!isUserShadowBanned) {
+    if (requestedVolunteerId) {
       await NotifyVolunteerService.notifyExclusiveVolunteer(
         newSession,
-        validatedRequestedVolunteerId
-      )
-      await QueueService.add(
-        Jobs.PromptStudentToBreakout,
-        { sessionId: newSession.id },
-        { delay: 1000 * 60 * 5 }
+        requestedVolunteerId
       )
     } else if (isNotifyTutorEnabled) {
       await NotifyVolunteerService.beginRegularNotifications(newSession)
