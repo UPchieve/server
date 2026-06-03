@@ -100,45 +100,4 @@ export function routeVolunteers(router: Router): void {
       resError(res, err)
     }
   })
-
-  // Volunteer dashboard widget: list active student-initiated exclusive
-  // session requests targeting this volunteer.
-  router.get('/volunteer/exclusive-requests', async function (req, res) {
-    try {
-      const user = extractUser(req)
-      const all = await cache
-        .hgetall('exclusiveRequestSessions')
-        .catch(() => ({}) as Record<string, string>)
-      const myEntries = Object.entries(all).filter(
-        ([_sid, vid]) => vid === user.id
-      )
-      if (myEntries.length === 0) {
-        res.json({ requests: [] })
-        return
-      }
-      const mySessionIds = new Set(myEntries.map(([sid]) => sid))
-      const liveSessions = await SessionRepo.getUnfulfilledSessions()
-      const live = liveSessions.filter((s) => mySessionIds.has(s.id))
-      const liveIds = new Set(live.map((s) => s.id))
-      for (const sid of mySessionIds) {
-        if (!liveIds.has(sid)) {
-          await NotifyVolunteerService.clearExclusiveRequest(sid).catch(
-            () => {}
-          )
-        }
-      }
-      const requests = live.map((s) => ({
-        sessionId: s.id,
-        studentId: (s as any).studentId,
-        studentFirstName:
-          (s as any).student?.firstname ?? (s as any).studentFirstName ?? '',
-        subject: s.subTopic,
-        subjectDisplayName: s.subjectDisplayName,
-        topic: s.type,
-      }))
-      res.json({ requests })
-    } catch (err) {
-      resError(res, err)
-    }
-  })
 }
