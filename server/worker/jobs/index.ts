@@ -23,7 +23,6 @@ import emailWaitingOnReferences from './emailWaitingOnReferences'
 import emailWeeklyHourSummary from './emailWeeklyHourSummary'
 import endStaleSessions from './endStaleSessions'
 import endUnmatchedSession from './endUnmatchedSession'
-import promptStudentToBreakout from './promptStudentToBreakout'
 import generateAndStoreWaitTimeHeatMap from './generateAndStoreWaitTimeHeatMap'
 import notifyTutors from './notifyTutors'
 import emailPartnerVolunteerLowHoursSelected from './partner-volunteer-emails/emailLowHoursSelected'
@@ -130,7 +129,6 @@ export enum Jobs {
   EmailWeeklyHourSummary = 'EmailWeeklyHourSummary',
   EndStaleSessions = 'EndStaleSessions',
   EndUnmatchedSession = 'EndUnmatchedSession',
-  PromptStudentToBreakout = 'PromptStudentToBreakout',
   ExecuteModerationAction = 'ExecuteModerationAction',
   GenerateAndStoreWaitTimeHeatMap = 'GenerateAndStoreWaitTimeHeatMap',
   GenerateProgressReport = 'GenerateProgressReport',
@@ -375,10 +373,6 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.EndUnmatchedSession,
     processor: endUnmatchedSession,
-  },
-  {
-    name: Jobs.PromptStudentToBreakout,
-    processor: promptStudentToBreakout,
   },
   {
     name: Jobs.ExecuteModerationAction,
