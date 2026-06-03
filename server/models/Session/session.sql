@@ -32,6 +32,7 @@ SELECT
     topics.name AS TYPE,
     sessions.volunteer_id AS volunteer,
     sessions.created_at,
+    users.id AS student_id,
     users.first_name AS student_first_name,
     users.test_user AS student_test_user,
     users.ban_type AS student_ban_type,
