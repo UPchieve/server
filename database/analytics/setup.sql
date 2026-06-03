@@ -9,7 +9,7 @@
 -- database/migrations/20260515140600_replace_basic_access_with_analytics_schema.sql.
 --
 -- Superuser-only steps (anon extension, REVOKEs, event trigger registration)
--- live in the manual avnadmin bootstrap — see TODO.analytics.md Phase 3.3.
+-- live in the manual avnadmin bootstrap — see README.md "Production bootstrap".
 
 -- ============================================================================
 -- analytics._layer_2_view_defs — Layer 2 view source-of-truth.
@@ -161,7 +161,12 @@ BEGIN
                 cols := cols || ', ';
             END IF;
 
-            IF col.column_comment NOT LIKE 'pii%' THEN
+            -- Case-insensitive: the pii-comment lint enforces lower-case
+            -- 'pii'/'not_pii' in migrations, but the event trigger also fires
+            -- on manual psql DDL (see README), where a stray 'PII' / 'Pii'
+            -- would otherwise pass through UNMASKED. Masking more is always
+            -- the safe direction here.
+            IF lower(col.column_comment) NOT LIKE 'pii%' THEN
                 -- not_pii / unlabeled: passthrough.
                 cols := cols || format('%I', col.column_name);
             ELSIF col.custom_mask IS NOT NULL THEN
@@ -233,7 +238,7 @@ GRANT EXECUTE ON FUNCTION analytics.rebuild ()
 -- upchieve.* and calls rebuild() if so. The trigger fires again on
 -- rebuild()'s own analytics.* DDL, but the schema check short-circuits —
 -- no recursion. The trigger itself is registered manually by avnadmin
--- (CREATE EVENT TRIGGER requires SUPERUSER); see TODO.analytics.md Phase 3.3.
+-- (CREATE EVENT TRIGGER requires SUPERUSER); see README.md "Production bootstrap".
 CREATE OR REPLACE FUNCTION analytics.on_upchieve_ddl ()
     RETURNS event_trigger
     LANGUAGE plpgsql

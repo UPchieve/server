@@ -4,7 +4,7 @@
 #
 # Run order on a fresh DB (once per environment):
 #   1. avnadmin runs the superuser bootstrap (anon extension, REVOKEs,
-#      event-trigger registration). See TODO.analytics.md Phase 3.3.
+#      event-trigger registration). See README.md "Production bootstrap".
 #   2. dbmate runs operational migrations (creates analytics schema +
 #      roles + base grants).
 #   3. bash database/analytics/setup.sh   ← this script

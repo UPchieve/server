@@ -34,10 +34,14 @@ for f in "${view_files[@]}"; do
     exit 1
   fi
   name="$(basename "$f" .sql)"
-  if ! [[ "$name" =~ ^[a-z][a-zA-Z0-9_]*$ ]]; then
+  if ! [[ "$name" =~ ^[a-z][a-z0-9_]*$ ]]; then
     echo "FAIL: $f has an invalid view name '$name'."
-    echo "      Names must match ^[a-z][a-zA-Z0-9_]*$ (lower-case start,"
-    echo "      no spaces, no quotes)."
+    echo "      Names must match ^[a-z][a-z0-9_]*$ (lower-case only, no"
+    echo "      spaces, no quotes). Uppercase is rejected because Postgres"
+    echo "      folds the unquoted relname to lower-case, so an override file"
+    echo "      named e.g. Users.sql would never match the upchieve.users"
+    echo "      table in rebuild() and would leave the default passthrough in"
+    echo "      place alongside the override."
     exit 1
   fi
 done

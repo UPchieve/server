@@ -19,8 +19,8 @@ END IF;
 END
 $$;
 
--- 2. Create the analytics schema. (Also created idempotently by
---    database/analytics/rebuild.sql if apply.sh runs against a fresh DB.)
+-- 2. Create the analytics schema. (Tables and functions are installed
+--    separately by database/analytics/setup.sql via setup.sh.)
 CREATE SCHEMA IF NOT EXISTS analytics;
 
 GRANT CREATE ON SCHEMA analytics TO subway;
@@ -38,8 +38,11 @@ GRANT SELECT ON ALL TABLES IN SCHEMA analytics TO analytics_ro;
 
 ALTER ROLE analytics_ro SET search_path = analytics;
 
--- Future views (created by analytics.rebuild() running as subway) auto-grant
--- SELECT to analytics_ro. apply.sh also runs a belt-and-suspenders GRANT.
+-- This DEFAULT PRIVILEGES rule only fires for views OWNED BY subway. Since
+-- analytics.rebuild() is SECURITY DEFINER, its views are owned by whoever owns
+-- the function -- so rebuild() must be owned by subway for analytics_ro to get
+-- SELECT automatically (see database/analytics/setup.sql). apply.sh also runs a
+-- belt-and-suspenders GRANT for the manual/recovery path.
 ALTER DEFAULT PRIVILEGES FOR ROLE subway IN SCHEMA analytics GRANT
 SELECT
     ON TABLES TO analytics_ro;

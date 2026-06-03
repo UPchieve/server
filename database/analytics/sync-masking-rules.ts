@@ -89,17 +89,22 @@ async function extractCustomRules(src: string): Promise<CustomRule[]> {
     })
     if (!secLabel) continue
     if (secLabel.provider && secLabel.provider !== 'anon') continue
+    // Only column labels define custom column rules. A table/schema-level
+    // label (objtype OBJECT_TABLE etc.) also carries an `object` list of
+    // String nodes, so without this guard a 2-part name like
+    // `ON TABLE upchieve.users` would be misread as table='upchieve',
+    // column='users' and upserted as a bogus rule.
+    if (secLabel.objtype !== 'OBJECT_COLUMN') continue
+    // A label reset (`... IS NULL`) carries no `label` string. It's the
+    // canonical way to clear an override (staging executes this file
+    // directly); for the analytics sync, dropping it from the desired set is
+    // enough — the UPSERT+DELETE below removes any stale _custom_rules row.
+    if (typeof secLabel.label !== 'string') continue
     const ref = columnRefFromSecLabel(secLabel)
     if (!ref) {
       throw new Error(
         `${CUSTOM_FILE}: SECURITY LABEL statement is not in the supported ` +
           `2-part 'ON COLUMN <table>.<column>' form: ${JSON.stringify(secLabel)}`
-      )
-    }
-    if (typeof secLabel.label !== 'string') {
-      throw new Error(
-        `${CUSTOM_FILE}: SECURITY LABEL on ${ref.table}.${ref.column} ` +
-          `has no label string`
       )
     }
     rules.push({ table: ref.table, column: ref.column, mask: secLabel.label })

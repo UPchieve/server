@@ -34,22 +34,28 @@ bootstrap, and recovery.
   and masking. Wraps everything in a transaction with ROLLBACK so DB
   state is unchanged.
 
-The `analytics.rebuild()` function itself lives in the migration
-`database/migrations/<ts>_add_analytics_event_trigger_and_layer_2.sql` —
-not in this folder.
+The `analytics.rebuild()` function itself lives in `setup.sql` (applied by
+`setup.sh`), alongside `_layer_2_view_defs`, `_custom_rules`,
+`_blanket_rules()`, and `on_upchieve_ddl()`. The roles, schema, and base
+grants live in the migration
+`database/migrations/20260515140600_replace_basic_access_with_analytics_schema.sql`.
 
 ## How it works
 
 `analytics.rebuild()` does two passes in one transaction:
 
-1. **Layer 1**: for every `upchieve.<table>`, emit `analytics._<table>`
-   (internal, PII-masked passthrough) and `analytics.<table>` (default
-   public passthrough). Uses `CREATE OR REPLACE VIEW` so that dependent
-   Layer 2 views are preserved when columns are only added / PII-tagged
-   (the common case). Falls back to `DROP CASCADE` only when columns
-   actually shrink, rename, or retype.
+1. **Layer 1**: drop every existing view in `analytics` (`DROP VIEW … CASCADE`),
+   then, for every `upchieve.<table>`, create `analytics._<table>` (internal,
+   PII-masked passthrough) and — unless a Layer 2 def of that name exists —
+   `analytics.<table>` (default public passthrough). It's an always-rebuild:
+   everything is dropped and recreated from scratch, and Layer 2 is always
+   re-applied at the end, so there's no need to preserve dependent views
+   during Layer 1.
 2. **Layer 2**: iterates `analytics._layer_2_view_defs` (which CI keeps
-   in sync with `views/*.sql`) and `EXECUTE`s each row's sql.
+   in sync with `views/*.sql`), ordered by name, and `EXECUTE`s each row's
+   sql. Note there is no dependency resolution: a Layer 2 view that
+   references another Layer 2 view (or an overridden public view) must sort
+   alphabetically *after* its dependency, or the rebuild fails.
 
 Two triggers, one execution path:
 
@@ -65,13 +71,18 @@ A column is treated as PII if its Postgres column comment starts with
 
 ```sql
 COMMENT ON COLUMN upchieve.users.email IS 'pii';
--- richer qualifiers (used by future mask variants) are fine too:
-COMMENT ON COLUMN upchieve.users.phone IS 'pii:phone';
 ```
+
+Today the only lint-accepted values are exactly `pii` and `not_pii` (see
+`database/privacy/lint/check-column-pii-comments.ts`). `rebuild()` matches
+the `pii` *prefix* (case-insensitively) so richer qualifiers like
+`pii:phone` would also be masked, but those are not yet accepted by the
+lint — don't use them in migrations until the lint allowlist is widened.
 
 The COMMENT itself is a DDL change, so adding a `pii` tag fires the event
 trigger and rebuilds analytics — masking takes effect on the next read.
-Tagged columns are projected as `NULL::<original_type>` in
+Tagged columns are projected with their mask value (custom rule → blanket
+rule → `NULL::<original_type>` as the safe fallback) in
 `analytics._<table>`, preserving column shape and order.
 
 ## Writing hand-written views
@@ -105,8 +116,10 @@ GROUP BY u.id;
 ```
 
 Hand-written views may reach into `upchieve.*` for non-PII derivations
-(like `email_domain` above). The `pii_review` CI job inspects these for
-leaks before merge.
+(like `email_domain` above). There is no automated PII check on `views/*.sql`
+today — reaching into `upchieve.*` bypasses Layer 1 masking, so a code
+reviewer must confirm by hand that each derivation exposes only non-PII
+(e.g. the email *domain*, never the address).
 
 ## Local usage
 
@@ -115,10 +128,12 @@ export PGHOST=localhost PGPORT=5432 \
        PGUSER=admin PGPASSWORD=Password123 \
        PGDATABASE=upchieve
 
-# Make sure migrations have run (which installs analytics.rebuild()).
+# Make sure migrations have run (creates the analytics schema + roles).
 pnpm run db:schema-up
 
 cd database/analytics
+./setup.sh               # installs analytics.rebuild() + tables (run once)
+./sync-masking-rules.sh  # installs the real _blanket_rules() + custom rules
 ./sync-layer2-views.sh   # picks up any view files you edited
 # or:
 ./apply.sh               # force a rebuild without touching Layer 2 defs
@@ -154,17 +169,16 @@ Store the password in GitLab CI/CD variables as
 `ANALYTICS_LAYER2_PASSWORD_{STAGING,PRODUCTION}`. Hosts go in
 `ANALYTICS_LAYER2_HOST_{STAGING,PRODUCTION}`.
 
-## When the cascade happens
+## When a column is dropped or renamed
 
-The rare case: an operational migration drops or renames a column in
-`upchieve.*`. `CREATE OR REPLACE VIEW` rejects the change → rebuild
-falls back to `DROP CASCADE + CREATE` → any Layer 2 view that referenced
-that column is dropped → rebuild then re-applies Layer 2 from
-`_layer_2_view_defs`, which (because the file references the now-gone
-column) fails on that single view → rebuild's transaction rolls back,
-restoring the prior analytics state. Operator sees the failed migration,
-updates the affected Layer 2 view file, pushes, CI re-syncs, rebuild
-succeeds.
+Layer 1 always drops and recreates every analytics view, so a dropped or
+renamed `upchieve.*` column needs no special handling there — the recreated
+`analytics._<table>` simply reflects the new shape. The risk is **Layer 2**:
+a hand-written view in `_layer_2_view_defs` that still references the now-gone
+column. When rebuild re-applies that view, the `EXECUTE` fails → the whole
+rebuild transaction (and the migration that triggered it) rolls back, leaving
+the prior analytics state intact. Operator sees the failed migration, updates
+the affected Layer 2 view file, pushes, CI re-syncs, rebuild succeeds.
 
 This is the dependent-view-cascade story. It's rare; the recovery is
 explicit.

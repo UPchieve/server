@@ -84,3 +84,12 @@ ALTER ROLE analytics_ro SET idle_in_transaction_session_timeout = '30s';
 -- and the function are owned by the migration that creates them.
 CREATE ROLE analytics_layer2_admin;
 GRANT usage ON SCHEMA analytics TO analytics_layer2_admin;
+
+-- Analytics Privacy Admin Role.
+-- Used by the sync_masking_rules CI job to reinstall analytics._blanket_rules()
+-- and upsert analytics._custom_rules from database/privacy/*.sql. Needs CREATE
+-- on the analytics schema to replace the _blanket_rules function. Object-level
+-- grants live alongside the table definitions in database/analytics/setup.sql.
+-- Mirrors the role created idempotently by the analytics migration.
+CREATE ROLE analytics_privacy_admin;
+GRANT usage, CREATE ON SCHEMA analytics TO analytics_privacy_admin;

@@ -23,6 +23,12 @@ set -eo pipefail
 psql --single-transaction --set ON_ERROR_STOP=on <<'SQL'
 SET client_min_messages = WARNING;
 SELECT analytics.rebuild();
+-- Belt-and-suspenders: rebuild() drops and recreates every analytics view,
+-- so any view owned by a role other than subway won't be covered by the
+-- `ALTER DEFAULT PRIVILEGES FOR ROLE subway` grant. Re-grant explicitly so
+-- the analytics_ro consumer can always read after a manual/recovery rebuild.
+-- (Requires the connecting role to own the views or be superuser.)
+GRANT SELECT ON ALL TABLES IN SCHEMA analytics TO analytics_ro;
 SQL
 
 echo "analytics.rebuild() complete."
