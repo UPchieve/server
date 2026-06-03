@@ -69,45 +69,6 @@ export function routeSession(router: Router) {
     }
   })
 
-  // Student-driven "open this exclusive session up to all tutors".
-  router.route('/session/:sessionId/breakout').post(async function (req, res) {
-    try {
-      const user = extractUser(req)
-      const sessionId = asUlid(req.params.sessionId)
-      const session = await SessionRepo.getSessionById(sessionId)
-      if (session.studentId !== user.id) {
-        throw new NotAllowedError(
-          'Only the student in this session can open it up.'
-        )
-      }
-      if (isSessionFulfilled(session)) {
-        throw new InputError('Session is already matched or ended.')
-      }
-      // Atomically clear the exclusive entry + emit cleared event.
-      const wasCleared =
-        await NotifyVolunteerService.clearExclusiveRequest(sessionId)
-      const currentSession =
-        await SessionService.getCurrentSessionById(sessionId)
-      if (wasCleared) {
-        // Mirror the gating used by SessionService.startSession's regular path:
-        // a banned/shadow-banned student or a notify-tutor-disabled cohort
-        // shouldn't be able to trigger the cascade via the breakout endpoint.
-        const isUserBanned = user.banType === USER_BAN_TYPES.COMPLETE
-        const isUserShadowBanned = user.banType === USER_BAN_TYPES.SHADOW
-        const isNotifyTutorEnabled =
-          await FeatureFlagsService.getNotifyTutorFlag(user.id)
-        if (!isUserBanned && !isUserShadowBanned && isNotifyTutorEnabled) {
-          await NotifyVolunteerService.beginRegularNotifications(currentSession)
-        }
-        await socketService.emitSessionChange(sessionId)
-      }
-
-      res.sendStatus(200)
-    } catch (error) {
-      resError(res, error)
-    }
-  })
-
   router.route('/session/join').post(async function (req, res) {
     try {
       const user = extractUser(req)
@@ -609,6 +570,45 @@ export function routeSession(router: Router) {
       res.json({ sessionsWithUnreadDMs })
     } catch (err) {
       resError(res, err)
+    }
+  })
+
+  // Student-driven "open this exclusive session up to all tutors".
+  router.route('/session/:sessionId/breakout').post(async function (req, res) {
+    try {
+      const user = extractUser(req)
+      const sessionId = asUlid(req.params.sessionId)
+      const session = await SessionRepo.getSessionById(sessionId)
+      if (session.studentId !== user.id) {
+        throw new NotAllowedError(
+          'Only the student in this session can open it up.'
+        )
+      }
+      if (isSessionFulfilled(session)) {
+        throw new InputError('Session is already matched or ended.')
+      }
+      // Atomically clear the exclusive entry + emit cleared event.
+      const wasCleared =
+        await NotifyVolunteerService.clearExclusiveRequest(sessionId)
+      const currentSession =
+        await SessionService.getCurrentSessionById(sessionId)
+      if (wasCleared) {
+        // Mirror the gating used by SessionService.startSession's regular path:
+        // a banned/shadow-banned student or a notify-tutor-disabled cohort
+        // shouldn't be able to trigger the cascade via the breakout endpoint.
+        const isUserBanned = user.banType === USER_BAN_TYPES.COMPLETE
+        const isUserShadowBanned = user.banType === USER_BAN_TYPES.SHADOW
+        const isNotifyTutorEnabled =
+          await FeatureFlagsService.getNotifyTutorFlag(user.id)
+        if (!isUserBanned && !isUserShadowBanned && isNotifyTutorEnabled) {
+          await NotifyVolunteerService.beginRegularNotifications(currentSession)
+        }
+        await socketService.emitSessionChange(sessionId)
+      }
+
+      res.sendStatus(200)
+    } catch (error) {
+      resError(res, error)
     }
   })
 }
