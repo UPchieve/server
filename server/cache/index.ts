@@ -121,11 +121,12 @@ export async function hset(key: string, field: string, value: string) {
   return await redisClient.hset(key, field, value)
 }
 
-export async function hget(
-  key: string,
-  field: string
-): Promise<string | undefined> {
-  return (await redisClient.hget(key, field)) ?? undefined
+export async function hget(key: string, field: string): Promise<string | null> {
+  try {
+    return (await redisClient.hget(key, field)) ?? null
+  } catch (error) {
+    return null
+  }
 }
 
 export async function hkeys(key: string): Promise<string[]> {

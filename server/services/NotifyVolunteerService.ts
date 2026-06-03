@@ -385,7 +385,7 @@ export async function notifyExclusiveVolunteer(
 // Atomically clear a session's exclusive-request state and notify the
 // targeted volunteer's open frontends.
 export async function clearExclusiveRequest(sessionId: Uuid): Promise<boolean> {
-  let volunteerId: Uuid | undefined
+  let volunteerId: Uuid | null
   try {
     volunteerId = await cache.hget('exclusiveRequestSessions', sessionId)
   } catch (err) {

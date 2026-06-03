@@ -834,9 +834,7 @@ export async function joinSession(
     // — we need to know whether this join converted an exclusive request,
     // and if so, whether the joining volunteer is the one the student
     // originally requested.
-    const exclusiveTo = await cache
-      .hget('exclusiveRequestSessions', session.id)
-      .catch(() => undefined)
+    const exclusiveTo = await cache.hget('exclusiveRequestSessions', session.id)
     const wasExclusiveRequest = !!exclusiveTo
     const wasRequestedVolunteer = exclusiveTo === user.id
 
