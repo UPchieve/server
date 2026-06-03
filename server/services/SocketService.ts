@@ -158,22 +158,6 @@ class SocketService {
     this.io.to(userId).emit('progress-report:processed:overview', data)
   }
 
-  async emitBreakoutPromptToStudent(
-    studentId: string,
-    sessionId: string
-  ): Promise<void> {
-    this.io.to(studentId).emit('session:breakout-prompt', { sessionId })
-  }
-
-  async emitExclusiveRequestCleared(
-    volunteerId: string,
-    sessionId: string
-  ): Promise<void> {
-    this.io
-      .to(volunteerId)
-      .emit('sessions:exclusive-request:cleared', { sessionId })
-  }
-
   async emitUserLiveMediaBannedEvents(
     userId: string,
     sessionId: string
