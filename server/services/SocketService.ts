@@ -3,7 +3,10 @@ import { difference, intersection } from 'lodash'
 import type { RemoteSocket } from 'socket.io'
 import logger from '../logger'
 import { Ulid, Uuid } from '../models/pgUtils'
-import { getUnfulfilledSessions } from '../models/Session/queries'
+import {
+  getUnfulfilledSessions,
+  UnfulfilledSessions,
+} from '../models/Session/queries'
 import getSessionRoom from '../utils/get-session-room'
 import { ProgressReport } from '../services/ProgressReportsService'
 import { ProgressReportAnalysisTypes } from '../models/ProgressReports'
@@ -106,14 +109,19 @@ class SocketService {
 
   private async updateSessionList(tc?: TransactionClient): Promise<void> {
     const sessions = await getUnfulfilledSessions(tc)
-    // Hide tutor-exclusive sessions from the global volunteer broadcast.
-    const excludedIds = await cache
-      .hkeys('exclusiveRequestSessions')
-      .catch(() => [] as string[])
-    const filtered = excludedIds.length
-      ? sessions.filter((s) => !excludedIds.includes(s.id))
-      : sessions
-    this.io.in('volunteers').emit('sessions', filtered)
+    const sessionsWithExclusiveMetadata =
+      await this.addExclusiveSessionMetadata(sessions)
+    this.io.in('volunteers').emit('sessions', sessionsWithExclusiveMetadata)
+  }
+
+  async addExclusiveSessionMetadata(allSessions: UnfulfilledSessions[]) {
+    const exclusiveSessions = await cache.hgetall('exclusiveRequestSessions')
+    return allSessions.map((session) => {
+      const requestedVolunteerId = exclusiveSessions[session.id]
+      return requestedVolunteerId
+        ? { ...session, isExclusive: true, requestedVolunteerId }
+        : session
+    })
   }
 
   async emitSessionChange(
@@ -148,20 +156,6 @@ class SocketService {
     }
   ) {
     this.io.to(userId).emit('progress-report:processed:overview', data)
-  }
-
-  async emitExclusiveSessionRequest(
-    volunteerId: string,
-    data: {
-      sessionId: string
-      studentId: string
-      studentFirstName: string
-      subject: string
-      subjectDisplayName: string
-      topic: string
-    }
-  ): Promise<void> {
-    this.io.to(volunteerId).emit('sessions:exclusive-request', data)
   }
 
   async emitBreakoutPromptToStudent(

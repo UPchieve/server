@@ -258,12 +258,8 @@ export function routeSockets(io: Server): void {
       await observeWebTransaction('/socket-io/list', async () => {
         try {
           const allSessions = await SessionRepo.getUnfulfilledSessions()
-          const excludedIds = await cache
-            .hkeys('exclusiveRequestSessions')
-            .catch(() => [] as string[])
-          const sessions = excludedIds.length
-            ? allSessions.filter((s) => !excludedIds.includes(s.id))
-            : allSessions
+          const sessions =
+            await socketService.addExclusiveSessionMetadata(allSessions)
           socket.emit('sessions', sessions)
           callback({
             status: 200,
