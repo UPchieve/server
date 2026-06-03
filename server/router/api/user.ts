@@ -385,4 +385,22 @@ export function routeUser(router: Router): void {
       resError(res, err)
     }
   })
+
+  router.post('/user/coaching-invitation', async function (req, res) {
+    try {
+      const user = extractUser(req)
+      const invitedUserId = req.body.invitedUserId
+      const sessionId = req.body.sessionId
+      const personalization = req.body.coachingSkills
+      await UserService.queueInvitationToCoach(
+        invitedUserId,
+        user.id,
+        sessionId,
+        personalization
+      )
+      return res.sendStatus(201)
+    } catch (err) {
+      resError(res, err)
+    }
+  })
 }
