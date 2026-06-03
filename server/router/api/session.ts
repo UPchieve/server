@@ -59,20 +59,10 @@ export function routeSession(router: Router) {
       const isZwibserveSession = await SessionService.isZwibserveSession(
         session.id
       )
-      // Look up exclusivity state from Redis so the waiting room can render
-      // the right banner after a page refresh.
-      const exclusiveVolunteerId =
-        !session.volunteerId && !session.endedAt
-          ? await cache
-              .hget('exclusiveRequestSessions', session.id)
-              .catch(() => undefined)
-          : undefined
-      // For legacy (mobile), we still need to just return the sessionId.
       res.json({
         sessionId: session.id,
         session: currentSession,
         isZwibserveSession,
-        exclusiveVolunteerId,
       })
     } catch (error) {
       resError(res, error)
@@ -98,26 +88,21 @@ export function routeSession(router: Router) {
         await NotifyVolunteerService.clearExclusiveRequest(sessionId)
       const currentSession =
         await SessionService.getCurrentSessionById(sessionId)
-      if (!wasCleared) {
-        // Either it was never exclusive, or another call already broke it
-        // out. The session is now either matched, ended, or already public —
-        // return current state without re-firing the cascade.
-        res.json({ sessionId, session: currentSession })
-        return
+      if (wasCleared) {
+        // Mirror the gating used by SessionService.startSession's regular path:
+        // a banned/shadow-banned student or a notify-tutor-disabled cohort
+        // shouldn't be able to trigger the cascade via the breakout endpoint.
+        const isUserBanned = user.banType === USER_BAN_TYPES.COMPLETE
+        const isUserShadowBanned = user.banType === USER_BAN_TYPES.SHADOW
+        const isNotifyTutorEnabled =
+          await FeatureFlagsService.getNotifyTutorFlag(user.id)
+        if (!isUserBanned && !isUserShadowBanned && isNotifyTutorEnabled) {
+          await NotifyVolunteerService.beginRegularNotifications(currentSession)
+        }
+        await socketService.emitSessionChange(sessionId)
       }
-      // Mirror the gating used by SessionService.startSession's regular path:
-      // a banned/shadow-banned student or a notify-tutor-disabled cohort
-      // shouldn't be able to trigger the cascade via the breakout endpoint.
-      const isUserBanned = user.banType === USER_BAN_TYPES.COMPLETE
-      const isUserShadowBanned = user.banType === USER_BAN_TYPES.SHADOW
-      const isNotifyTutorEnabled = await FeatureFlagsService.getNotifyTutorFlag(
-        user.id
-      )
-      if (!isUserBanned && !isUserShadowBanned && isNotifyTutorEnabled) {
-        await NotifyVolunteerService.beginRegularNotifications(currentSession)
-      }
-      await socketService.emitSessionChange(sessionId)
-      res.json({ sessionId, session: currentSession })
+
+      res.sendStatus(200)
     } catch (error) {
       resError(res, error)
     }
