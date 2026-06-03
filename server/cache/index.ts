@@ -122,27 +122,15 @@ export async function hset(key: string, field: string, value: string) {
 }
 
 export async function hget(key: string, field: string): Promise<string | null> {
-  try {
-    return (await redisClient.hget(key, field)) ?? null
-  } catch (error) {
-    return null
-  }
+  return await redisClient.hget(key, field)
 }
 
 export async function hkeys(key: string): Promise<string[]> {
-  try {
-    return await redisClient.hkeys(key)
-  } catch (error) {
-    return []
-  }
+  return await redisClient.hkeys(key)
 }
 
 export async function hgetall(key: string): Promise<Record<string, string>> {
-  try {
-    return await redisClient.hgetall(key)
-  } catch (error) {
-    return {}
-  }
+  return await redisClient.hgetall(key)
 }
 
 export async function hdel(key: string, ...fields: string[]) {

@@ -3,17 +3,12 @@ import SocketService from '../../services/SocketService'
 import * as TutorBotService from '../../services/TutorBotService'
 import * as AssignmentsService from '../../services/AssignmentsService'
 import * as SessionService from '../../services/SessionService'
-import * as NotifyVolunteerService from '../../services/NotifyVolunteerService'
-import * as FeatureFlagsService from '../../services/FeatureFlagService'
-import * as SessionRepo from '../../models/Session/queries'
 import * as cache from '../../cache'
-import { USER_BAN_TYPES } from '../../constants'
 import { authPassport } from '../../utils/auth-utils'
-import { InputError, LookupError, NotAllowedError } from '../../models/Errors'
+import { InputError, LookupError } from '../../models/Errors'
 import { resError } from '../res-error'
 import {
   asStartSessionData,
-  isSessionFulfilled,
   ReportSessionError,
 } from '../../utils/session-utils'
 import { extractUser } from '../extract-user'
@@ -579,34 +574,7 @@ export function routeSession(router: Router) {
     try {
       const user = extractUser(req)
       const sessionId = asUlid(req.params.sessionId)
-      const session = await SessionRepo.getSessionById(sessionId)
-      if (session.studentId !== user.id) {
-        throw new NotAllowedError(
-          'Only the student in this session can open it up.'
-        )
-      }
-      if (isSessionFulfilled(session)) {
-        throw new InputError('Session is already matched or ended.')
-      }
-      // Atomically clear the exclusive entry + emit cleared event.
-      const wasCleared =
-        await NotifyVolunteerService.clearExclusiveRequest(sessionId)
-      const currentSession =
-        await SessionService.getCurrentSessionById(sessionId)
-      if (wasCleared) {
-        // Mirror the gating used by SessionService.startSession's regular path:
-        // a banned/shadow-banned student or a notify-tutor-disabled cohort
-        // shouldn't be able to trigger the cascade via the breakout endpoint.
-        const isUserBanned = user.banType === USER_BAN_TYPES.COMPLETE
-        const isUserShadowBanned = user.banType === USER_BAN_TYPES.SHADOW
-        const isNotifyTutorEnabled =
-          await FeatureFlagsService.getNotifyTutorFlag(user.id)
-        if (!isUserBanned && !isUserShadowBanned && isNotifyTutorEnabled) {
-          await NotifyVolunteerService.beginRegularNotifications(currentSession)
-        }
-        await socketService.emitSessionChange(sessionId)
-      }
-
+      await SessionService.handleSessionBreakout(sessionId, user)
       res.sendStatus(200)
     } catch (error) {
       resError(res, error)

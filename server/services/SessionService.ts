@@ -1433,3 +1433,36 @@ export async function updateSessionLastSeen(
 export async function sessionsWithUnreadDMs(userId: Ulid): Promise<string[]> {
   return SessionRepo.sessionsWithUnreadDMs(userId)
 }
+
+export async function handleSessionBreakout(
+  sessionId: Uuid,
+  user: UserContactInfo
+) {
+  const session = await SessionRepo.getSessionById(sessionId)
+  if (session.studentId !== user.id) {
+    throw new NotAllowedError(
+      'Only the student in this session can open it up.'
+    )
+  }
+  if (sessionUtils.isSessionFulfilled(session)) {
+    throw new Error('Session is already matched or ended.')
+  }
+  const wasCleared =
+    await NotifyVolunteerService.clearExclusiveRequest(sessionId)
+  const currentSession = await getCurrentSessionById(sessionId)
+  if (wasCleared) {
+    // Only trigger tutor notifications for the session when the student
+    // is not banned or shadow-banned and the notifyTutor feature flag is enabled
+    const isNotifyTutorEnabled = await FeatureFlagsService.getNotifyTutorFlag(
+      user.id
+    )
+    if (
+      user.banType !== USER_BAN_TYPES.COMPLETE &&
+      user.banType !== USER_BAN_TYPES.SHADOW &&
+      isNotifyTutorEnabled
+    ) {
+      await NotifyVolunteerService.beginRegularNotifications(currentSession)
+    }
+    await SocketService.getInstance().emitSessionChange(session.id)
+  }
+}
