@@ -1348,7 +1348,7 @@ SELECT
 FROM
     upchieve.session_messages sm
     JOIN upchieve.sessions s ON sm.session_id = s.id
-    LEFT JOIN upchieve.session_last_seen sls ON sls.session_id = s.id
+    JOIN upchieve.session_last_seen sls ON sls.session_id = s.id
         AND sls.user_id = :userId!
 WHERE (s.student_id = :userId!
     OR s.volunteer_id = :userId!)

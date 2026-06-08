@@ -2919,7 +2919,7 @@ export interface ISessionsWithUnreadDMsQuery {
   result: ISessionsWithUnreadDMsResult;
 }
 
-const sessionsWithUnreadDMsIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":203,"b":210},{"a":234,"b":241},{"a":267,"b":274},{"a":328,"b":335}]}],"statement":"SELECT\n    s.id\nFROM\n    upchieve.session_messages sm\n    JOIN upchieve.sessions s ON sm.session_id = s.id\n    LEFT JOIN upchieve.session_last_seen sls ON sls.session_id = s.id\n        AND sls.user_id = :userId!\nWHERE (s.student_id = :userId!\n    OR s.volunteer_id = :userId!)\nAND sm.created_at > s.ended_at\nAND sm.sender_id != :userId!\nAND (sls.last_seen_at IS NULL\n    OR sm.created_at > sls.last_seen_at)\nGROUP BY\n    s.id"};
+const sessionsWithUnreadDMsIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":198,"b":205},{"a":229,"b":236},{"a":262,"b":269},{"a":323,"b":330}]}],"statement":"SELECT\n    s.id\nFROM\n    upchieve.session_messages sm\n    JOIN upchieve.sessions s ON sm.session_id = s.id\n    JOIN upchieve.session_last_seen sls ON sls.session_id = s.id\n        AND sls.user_id = :userId!\nWHERE (s.student_id = :userId!\n    OR s.volunteer_id = :userId!)\nAND sm.created_at > s.ended_at\nAND sm.sender_id != :userId!\nAND (sls.last_seen_at IS NULL\n    OR sm.created_at > sls.last_seen_at)\nGROUP BY\n    s.id"};
 
 /**
  * Query generated from SQL:
@@ -2929,7 +2929,7 @@ const sessionsWithUnreadDMsIR: any = {"usedParamSet":{"userId":true},"params":[{
  * FROM
  *     upchieve.session_messages sm
  *     JOIN upchieve.sessions s ON sm.session_id = s.id
- *     LEFT JOIN upchieve.session_last_seen sls ON sls.session_id = s.id
+ *     JOIN upchieve.session_last_seen sls ON sls.session_id = s.id
  *         AND sls.user_id = :userId!
  * WHERE (s.student_id = :userId!
  *     OR s.volunteer_id = :userId!)
