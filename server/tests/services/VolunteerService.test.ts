@@ -290,6 +290,7 @@ describe('submitBackgroundInfo', () => {
     signupSourceId: undefined,
     otherSignupSource: undefined,
     highSchoolId: null,
+    gradeLevel: '9th',
   }
 
   it('Deactivates NTHS member if they are not a high schooler', async () => {
@@ -298,6 +299,23 @@ describe('submitBackgroundInfo', () => {
     const nthsGroup = buildNTHSGroupWithMemberInfo()
     mockedNTHSService.getNTHSGroupsByMember.mockResolvedValue([nthsGroup])
     await VolunteerService.submitVolunteerBackgroundInfo(volunteer.id, update)
+    expect(
+      mockedNTHSService.deactivateNonHighSchoolMember
+    ).toHaveBeenCalledTimes(1)
+    expect(
+      mockedNTHSService.deactivateNonHighSchoolMember
+    ).toHaveBeenCalledWith(volunteer.id, [nthsGroup], expect.anything())
+  })
+
+  it('Deactivates NTHS member if they are a high schooler but select a non-HS grade', async () => {
+    const volunteer = buildVolunteerContactInfo()
+    mockedVolunteerRepo.getVolunteerContactInfoById.mockResolvedValue(volunteer)
+    const nthsGroup = buildNTHSGroupWithMemberInfo()
+    mockedNTHSService.getNTHSGroupsByMember.mockResolvedValue([nthsGroup])
+    await VolunteerService.submitVolunteerBackgroundInfo(volunteer.id, {
+      ...update,
+      gradeLevel: '7th',
+    })
     expect(
       mockedNTHSService.deactivateNonHighSchoolMember
     ).toHaveBeenCalledTimes(1)

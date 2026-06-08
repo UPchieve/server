@@ -1,4 +1,9 @@
-import { REFERENCE_STATUS, TRAINING, USER_BAN_TYPES } from '../../constants'
+import {
+  GRADES,
+  REFERENCE_STATUS,
+  TRAINING,
+  USER_BAN_TYPES,
+} from '../../constants'
 import { Ulid, Uuid } from '../pgUtils'
 
 export interface Reference {
@@ -146,4 +151,5 @@ export type VolunteerProfileUpdate = {
   city?: string
   languages?: string[]
   occupations?: string[]
+  gradeLevel?: GRADES
 }
