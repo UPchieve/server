@@ -1260,11 +1260,9 @@ export interface IGetMessageInfoByMessageIdResult {
   sessionId: string;
   studentEmail: string;
   studentFirstName: string;
-  /** {"pii": false, "desc": "the user id"} */
   studentUserId: string;
   volunteerEmail: string;
   volunteerFirstName: string;
-  /** {"pii": false, "desc": "the user id"} */
   volunteerUserId: string;
 }
 
@@ -1320,7 +1318,6 @@ export interface IGetSessionUsersResult {
   firstname: string;
   firstName: string;
   gradeLevel: string | null;
-  /** {"pii": false, "desc": "the user id"} */
   id: string;
   pastSessions: stringArray | null;
 }
@@ -1587,7 +1584,6 @@ export interface IGetStudentForEmailFirstSessionParams {
 export interface IGetStudentForEmailFirstSessionResult {
   email: string;
   firstName: string;
-  /** {"pii": false, "desc": "the user id"} */
   id: string;
 }
 
@@ -1633,7 +1629,6 @@ export interface IGetVolunteerForEmailFirstSessionParams {
 export interface IGetVolunteerForEmailFirstSessionResult {
   email: string;
   firstName: string;
-  /** {"pii": false, "desc": "the user id"} */
   id: string;
 }
 
@@ -2267,7 +2262,6 @@ export interface IGetSessionRecapResult {
   isFavorited: boolean | null;
   quillDoc: string | null;
   studentFirstName: string;
-  /** {"pii": false, "desc": "the user id"} */
   studentId: string;
   subject: string;
   subjectKey: string;
@@ -2275,7 +2269,6 @@ export interface IGetSessionRecapResult {
   topic: string;
   topicIconLink: string | null;
   volunteerFirstName: string;
-  /** {"pii": false, "desc": "the user id"} */
   volunteerId: string;
 }
 

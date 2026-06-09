@@ -177,7 +177,6 @@ export interface IGetNthsGroupAdminsContactInfoResult {
   email: string;
   firstName: string;
   nthsGroupId: string | null;
-  /** {"pii": false, "desc": "the user id"} */
   userId: string;
 }
 
