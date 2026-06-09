@@ -2,6 +2,7 @@ import { getClient, runInTransaction, TransactionClient } from '../db'
 import * as UserRepo from '../models/User'
 import { UserRole } from '../models/User'
 import * as VolunteerRepo from '../models/Volunteer'
+import * as VolunteerService from './VolunteerService'
 import * as CacheService from '../cache'
 import config from '../config'
 import { InputError } from '../models/Errors'
@@ -135,6 +136,7 @@ export async function addVolunteerRoleToUser(userId: string): Promise<void> {
       tc
     )
   })
+  await VolunteerService.queueOnboardingReminderOneEmail(userId)
   await updateRoleContextCache(
     userId,
     new RoleContext(

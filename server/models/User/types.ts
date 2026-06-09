@@ -1,4 +1,4 @@
-import { USER_BAN_TYPES } from '../../constants'
+import { GRADES, USER_BAN_TYPES } from '../../constants'
 import { Pgid, Ulid } from '../pgUtils'
 import { RoleContext } from '../../services/UserRolesService'
 
@@ -130,4 +130,5 @@ export type EditUserProfilePayload = {
   schoolId?: string
   signupSourceId?: number
   otherSignupSource?: string
+  gradeLevel?: GRADES
 }
