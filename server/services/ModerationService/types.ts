@@ -86,7 +86,7 @@ export type ModeratedLinkResponse = {
 
 export type RegexModerationResult = {
   isClean: boolean
-  failures: ModerationFailureReasons
+  failures: ModerationInfractionReasons
   sanitizedMessage: string
 }
 
@@ -96,11 +96,11 @@ export type ModerationAIResult = {
   reasons: Record<string, string[] | never>
 }
 
-export type ModerationFailureReasons = {
+export type ModerationInfractionReasons = {
   failures: Record<string, string[] | never>
 }
 
-export type ModerationFailureCategories = string[]
+export type ModerationInfractionCategories = string[]
 
 export type ModerationSessionReviewFlagReason =
   | 'PII'
@@ -110,7 +110,7 @@ export type ModerationSessionReviewFlagReason =
   | 'SAFETY'
   | 'N/A'
 
-export type ImageModerationFailureReason = {
+export type ImageModerationInfractionReason = {
   reason: string
   /*
     Moderation labels from AWS Rekognition,

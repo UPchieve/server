@@ -501,7 +501,7 @@ describe('uploadAssignmentFiles', () => {
     mockedImageUtils.isImageFile.mockReturnValue(true)
   })
 
-  it('Does not upload any files if there is a moderation failure', async () => {
+  it('Does not upload any files if there is a moderation infraction', async () => {
     mockedModerationService.genericModerateImage.mockResolvedValueOnce([
       { reason: 'VIOLENCE' },
     ])

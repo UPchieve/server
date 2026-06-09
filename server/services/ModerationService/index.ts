@@ -70,9 +70,9 @@ import { extractTextFromImage } from '../VisionService'
 const topLevelCategoryFilter = (label: ModerationLabel) =>
   label.TaxonomyLevel === 1
 
-const moderationLabelToFailureReason = (
+const moderationLabelToInfractionReason = (
   label: ModerationLabel
-): ModerationTypes.ImageModerationFailureReason => {
+): ModerationTypes.ImageModerationInfractionReason => {
   return {
     reason: label.Name ?? ModerationTypes.LiveMediaModerationCategories.UNKNOWN,
     details: { confidence: label.Confidence },
@@ -87,7 +87,7 @@ async function detectImageEducationPurpose(
   image: Buffer,
   sessionId?: string,
   trace?: LangfuseTraceClient
-): Promise<ModerationTypes.ImageModerationFailureReason | null> {
+): Promise<ModerationTypes.ImageModerationInfractionReason | null> {
   try {
     const promptData = await PromptService.getPromptWithFallback(
       PromptService.PromptName.IS_IMAGE_EDUCATIONAL
@@ -274,7 +274,7 @@ async function detectPersonInImage({
     - Hate Symbols
   full list of labels with categories can be found here: https://docs.aws.amazon.com/rekognition/latest/dg/samples/rekognition-moderation-labels.zip
 */
-async function detectImageModerationFailures(
+async function detectImageModerationInfractions(
   image: Buffer,
   moderationSettings: GetModerationSettingResult,
   trace?: LangfuseTraceClient,
@@ -317,7 +317,7 @@ async function detectImageModerationFailures(
           : config.imageModerationMinConfidence
         return confidence >= thresholdPercent
       })
-      .map(moderationLabelToFailureReason)
+      .map(moderationLabelToInfractionReason)
   } catch (err) {
     logger.error({ sessionId, err }, 'Failed to moderate image')
     throw new Error(`Failed to moderate image for session ${sessionId}`)
@@ -819,7 +819,7 @@ async function detectPii({
   return moderatedPII
 }
 
-async function detectTextModerationFailures({
+async function detectTextModerationInfractions({
   image,
   sessionId,
   isVolunteer,
@@ -888,17 +888,17 @@ export async function saveImageToBucket({
   return { location: result.location }
 }
 
-async function handleImageModerationFailure({
+async function handleImageModerationInfraction({
   userId,
   sessionId,
-  failureReasons,
+  infractionReasons,
   image,
   source,
   moderationSettings,
 }: {
   userId: string
   sessionId?: string
-  failureReasons: ModerationTypes.ImageModerationFailureReason[]
+  infractionReasons: ModerationTypes.ImageModerationInfractionReason[]
   image: Buffer
   source: Extract<
     ModerationTypes.ModerationSource,
@@ -917,10 +917,10 @@ async function handleImageModerationFailure({
   }
 
   logger.info(
-    { sessionId, reasons: failureReasons, imageUrl, source, userId },
+    { sessionId, reasons: infractionReasons, imageUrl, source, userId },
     'Image triggered moderation'
   )
-  const failures = failureReasons.reduce(
+  const infractions = infractionReasons.reduce(
     (acc, reason) => {
       acc[reason.reason] = {
         ...reason.details,
@@ -929,21 +929,21 @@ async function handleImageModerationFailure({
       return acc
     },
     {} as Record<
-      ModerationTypes.ImageModerationFailureReason['reason'],
-      ModerationTypes.ImageModerationFailureReason['details']
+      ModerationTypes.ImageModerationInfractionReason['reason'],
+      ModerationTypes.ImageModerationInfractionReason['details']
     >
   )
 
   await handleModerationInfraction(
     userId,
     sessionId!,
-    { failures },
+    { failures: infractions },
     source,
     moderationSettings
   )
 }
 
-function maybeHandleImageModerationFailure(options: {
+function maybeHandleImageModerationInfraction(options: {
   userId: string
   sessionId: string
   image: Buffer
@@ -953,12 +953,14 @@ function maybeHandleImageModerationFailure(options: {
   >
   moderationSettings: GetModerationSettingResult
 }) {
-  return function (failures: ModerationTypes.ImageModerationFailureReason[]) {
+  return function (
+    failures: ModerationTypes.ImageModerationInfractionReason[]
+  ) {
     if (failures.length > 0) {
-      handleImageModerationFailure({
+      handleImageModerationInfraction({
         userId: options.userId,
         sessionId: options.sessionId,
-        failureReasons: failures,
+        infractionReasons: failures,
         image: options.image,
         source: options.source,
         moderationSettings: options.moderationSettings,
@@ -985,30 +987,30 @@ export async function moderateImageInBackground(options: {
   moderationSettings: GetModerationSettingResult
   trace?: LangfuseTraceClient
 }) {
-  detectImageModerationFailures(
+  detectImageModerationInfractions(
     options.image,
     options.moderationSettings,
     options.trace,
     options.sessionId
-  ).then(maybeHandleImageModerationFailure(options))
+  ).then(maybeHandleImageModerationInfraction(options))
 
   detectPersonInImage({
     image: options.image,
     sessionId: options.sessionId,
     moderationSettings: options.moderationSettings,
     trace: options.trace,
-  }).then(maybeHandleImageModerationFailure(options))
+  }).then(maybeHandleImageModerationInfraction(options))
 
-  detectTextModerationFailures({
+  detectTextModerationInfractions({
     image: options.image,
     sessionId: options.sessionId,
     isVolunteer: options.isVolunteer,
     moderationSettings: options.moderationSettings,
     trace: options.trace,
-  }).then(maybeHandleImageModerationFailure(options))
+  }).then(maybeHandleImageModerationInfraction(options))
 }
 
-async function getAllImageModerationFailures({
+async function getAllImageModerationInfractions({
   image,
   sessionId,
   isVolunteer,
@@ -1021,15 +1023,20 @@ async function getAllImageModerationFailures({
   moderationSettings: GetModerationSettingResult
   trace?: LangfuseTraceClient
 }): Promise<{
-  failureReasons: ModerationTypes.ImageModerationFailureReason[]
+  failureReasons: ModerationTypes.ImageModerationInfractionReason[]
 }> {
   const [
-    moderationFailureReasons,
-    textModerationFailureReasons,
+    moderationInfractionReasons,
+    textModerationInfractionReasons,
     detectPersonResponse,
   ] = await Promise.all([
-    detectImageModerationFailures(image, moderationSettings, trace, sessionId),
-    detectTextModerationFailures({
+    detectImageModerationInfractions(
+      image,
+      moderationSettings,
+      trace,
+      sessionId
+    ),
+    detectTextModerationInfractions({
       image,
       sessionId,
       isVolunteer,
@@ -1040,8 +1047,8 @@ async function getAllImageModerationFailures({
   ])
 
   if (
-    isEmpty(moderationFailureReasons) &&
-    isEmpty(textModerationFailureReasons) &&
+    isEmpty(moderationInfractionReasons) &&
+    isEmpty(textModerationInfractionReasons) &&
     !isEmpty(detectPersonResponse)
   ) {
     const noEducationalContext = await detectImageEducationPurpose(
@@ -1057,8 +1064,8 @@ async function getAllImageModerationFailures({
 
   return {
     failureReasons: [
-      ...moderationFailureReasons,
-      ...textModerationFailureReasons,
+      ...moderationInfractionReasons,
+      ...textModerationInfractionReasons,
     ],
   }
 }
@@ -1199,7 +1206,7 @@ export async function moderateMessage(
   },
   source?: ModerationSource
 ): Promise<
-  oldClientModerationResult | ModerationTypes.ModerationFailureReasons
+  oldClientModerationResult | ModerationTypes.ModerationInfractionReasons
 > {
   let trace: LangfuseTraceClient | undefined = undefined
   let sessionInfo
@@ -1305,10 +1312,10 @@ export const handleModerationInfraction = async (
   userId: string,
   sessionId: string,
   reasons:
-    | ModerationTypes.ModerationFailureReasons
+    | ModerationTypes.ModerationInfractionReasons
     | Record<
-        ModerationTypes.ImageModerationFailureReason['reason'],
-        ModerationTypes.ImageModerationFailureReason['details']
+        ModerationTypes.ImageModerationInfractionReason['reason'],
+        ModerationTypes.ImageModerationInfractionReason['details']
       >,
   source: ModerationTypes.ModerationSource,
   moderationSettings: GetModerationSettingResult,
@@ -1549,19 +1556,19 @@ export const moderateIndividualTranscription = async ({
  * Does not attempt to perform any side effects, only report the failures.
  *
  * @param image - will be resized, see {@link resize}
- * @return an array of {@link ModerationTypes.ImageModerationFailureReason}
+ * @return an array of {@link ModerationTypes.ImageModerationInfractionReason}
  */
 export async function genericModerateImage({
   image,
 }: {
   image: Buffer
-}): Promise<ModerationTypes.ImageModerationFailureReason[]> {
+}): Promise<ModerationTypes.ImageModerationInfractionReason[]> {
   const trace = langfuseClient.trace({
     name: ModerationTypes.LangfuseTraceName.MODERATE_IMAGE,
   })
   const resizedImage = await resize(image)
   const moderationSettings = await getModerationRealTimeSettings()
-  const result = await getAllImageModerationFailures({
+  const result = await getAllImageModerationInfractions({
     image: resizedImage,
     trace,
     moderationSettings,
@@ -1612,7 +1619,7 @@ export const moderateImage = async ({
   const moderationSettings = await getModerationRealTimeSettings()
 
   if (aggregateInfractions) {
-    const result = await getAllImageModerationFailures({
+    const result = await getAllImageModerationInfractions({
       image: resizedImage,
       sessionId,
       isVolunteer,
@@ -1622,10 +1629,10 @@ export const moderateImage = async ({
     if (isEmpty(result.failureReasons)) return { isClean: true, failures: [] }
 
     if (recordInfractions) {
-      await handleImageModerationFailure({
+      await handleImageModerationInfraction({
         userId,
         sessionId,
-        failureReasons: result.failureReasons,
+        infractionReasons: result.failureReasons,
         image: resizedImage,
         source,
         moderationSettings,

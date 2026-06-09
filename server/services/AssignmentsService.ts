@@ -28,7 +28,7 @@ import { getSubjectsForTopicByTopicId } from './SubjectsService'
 import logger from '../logger'
 import { isEmpty } from 'lodash'
 import * as ModerationTypes from './ModerationService/types'
-import { ImageModerationFailureReason } from './ModerationService/types'
+import { ImageModerationInfractionReason } from './ModerationService/types'
 import { extractPdfContent } from '../utils/file-utils'
 import { moderateAssignmentInfo } from './ModerationService/index'
 
@@ -86,7 +86,7 @@ export const asEditedAssignment = asFactory<EditAssignmentPayload>({
 export async function createAssignment(
   data: CreateAssignmentPayload,
   tc?: TransactionClient
-): Promise<Assignment | ModerationTypes.ModerationFailureCategories> {
+): Promise<Assignment | ModerationTypes.ModerationInfractionCategories> {
   validateAssignmentData(data)
   const moderationResults = await ModerationService.moderateAssignmentInfo(
     `${data.title} ${data.description}`
@@ -124,7 +124,7 @@ export async function createAssignment(
 
 export async function editAssignment(
   data: EditAssignmentPayload
-): Promise<Assignment | ModerationTypes.ModerationFailureCategories> {
+): Promise<Assignment | ModerationTypes.ModerationInfractionCategories> {
   validateAssignmentData(data)
   const moderationResults = await ModerationService.moderateAssignmentInfo(
     `${data.title} ${data.description}`
@@ -388,7 +388,7 @@ async function getClassAssignments(classId: Ulid, tc: TransactionClient) {
 async function moderateAssignmentImage(
   file: Buffer,
   assignmentId: string
-): Promise<ImageModerationFailureReason[]> {
+): Promise<ImageModerationInfractionReason[]> {
   const moderationResult = await ModerationService.genericModerateImage({
     image: file,
   })
@@ -405,36 +405,36 @@ async function moderateAssignmentImage(
 async function moderateAssignmentPdf(
   file: Express.Multer.File,
   assignmentId: string
-): Promise<ModerationTypes.ModerationFailureCategories> {
-  const moderationFailures: string[] = []
+): Promise<ModerationTypes.ModerationInfractionCategories> {
+  const moderationInfractions: string[] = []
   const extractedContent = await extractPdfContent(file.buffer)
 
   const textModerationResults = await moderateAssignmentInfo(
     extractedContent.text
   )
   if (!isEmpty(textModerationResults)) {
-    moderationFailures.push(...textModerationResults)
+    moderationInfractions.push(...textModerationResults)
   }
 
   for (const image of extractedContent.images) {
-    const imageModerationFailures = await moderateAssignmentImage(
+    const imageModerationInfractions = await moderateAssignmentImage(
       image,
       assignmentId
     )
-    if (imageModerationFailures.length) {
-      moderationFailures.push(
-        ...imageModerationFailures.map((failure) => failure.reason)
+    if (imageModerationInfractions.length) {
+      moderationInfractions.push(
+        ...imageModerationInfractions.map((infraction) => infraction.reason)
       )
     }
   }
 
-  return moderationFailures
+  return moderationInfractions
 }
 
 /**
  * Upload and retrieve uploaded assignments to and from Azure.
  *
- * @return a map of file names to their moderation failure reasons
+ * @return a map of file names to their moderation infraction reasons
  */
 export async function uploadAssignmentFiles(
   assignmentId: Ulid,
@@ -449,27 +449,31 @@ export async function uploadAssignmentFiles(
     )
   }
 
-  let fileNameToModerationFailures: Record<string, string[]> = {}
+  let fileNameToModerationInfractions: Record<string, string[]> = {}
   for (const file of files) {
     if (isImageFile(file.buffer)) {
-      const moderationFailures = await moderateAssignmentImage(
+      const moderationInfractions = await moderateAssignmentImage(
         file.buffer,
         assignmentId
       )
-      if (moderationFailures.length) {
-        fileNameToModerationFailures[file.originalname] =
-          moderationFailures.map((failure) => failure.reason)
+      if (moderationInfractions.length) {
+        fileNameToModerationInfractions[file.originalname] =
+          moderationInfractions.map((infraction) => infraction.reason)
       }
     } else {
-      const moderationFailures = await moderateAssignmentPdf(file, assignmentId)
-      if (moderationFailures.length) {
-        fileNameToModerationFailures[file.originalname] = moderationFailures
+      const moderationInfractions = await moderateAssignmentPdf(
+        file,
+        assignmentId
+      )
+      if (moderationInfractions.length) {
+        fileNameToModerationInfractions[file.originalname] =
+          moderationInfractions
       }
     }
   }
 
   // If all files are clean, upload them.
-  if (isEmpty(fileNameToModerationFailures)) {
+  if (isEmpty(fileNameToModerationInfractions)) {
     await Promise.all(
       files.map((file) => {
         AzureService.uploadBlobFile(
@@ -482,7 +486,7 @@ export async function uploadAssignmentFiles(
     )
   }
 
-  return fileNameToModerationFailures
+  return fileNameToModerationInfractions
 }
 
 export async function getAssignmentDocuments(assignmentId: Ulid) {
