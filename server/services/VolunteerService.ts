@@ -1,6 +1,7 @@
 import {
   ACCOUNT_USER_ACTIONS,
   EVENTS,
+  GRADES,
   PHOTO_ID_STATUS,
   STATUS,
   TRAINING_QUIZZES,
@@ -9,6 +10,7 @@ import { Ulid, Uuid } from '../models/pgUtils'
 import { createAccountAction } from '../models/UserAction'
 import * as VolunteerRepo from '../models/Volunteer'
 import * as UsersSchoolsRepo from '../models/UsersSchools'
+import * as UsersGradeLevelRepo from '../models/UsersGradeLevels'
 import { Jobs } from '../worker/jobs'
 import * as AnalyticsService from './AnalyticsService'
 import * as NTHSService from './NTHSGroupsService'
@@ -319,6 +321,18 @@ export async function submitVolunteerBackgroundInfo(
         wasRemovedFromNTHS = true
         await NTHSService.deactivateNonHighSchoolMember(userId, nthsGroups, tc)
       }
+    }
+
+    if (update.gradeLevel) {
+      await UsersGradeLevelRepo.upsertUserGradeLevel(
+        userId,
+        update.gradeLevel,
+        tc
+      )
+    } else if (
+      update.occupations?.includes(VolunteerOccupations.UNDERGRAD_STUDENT)
+    ) {
+      await UsersGradeLevelRepo.upsertUserGradeLevel(userId, GRADES.COLLEGE, tc)
     }
   })
 

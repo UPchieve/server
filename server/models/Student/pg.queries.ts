@@ -16,6 +16,7 @@ export interface IGetStudentContactInfoByIdParams {
 export interface IGetStudentContactInfoByIdResult {
   email: string;
   firstName: string;
+  /** {"pii": false, "desc": "the user id"} */
   id: string;
   schoolId: string | null;
   studentPartnerOrg: string;
@@ -60,6 +61,7 @@ export interface IGetStudentByEmailParams {
 
 /** 'GetStudentByEmail' return type */
 export interface IGetStudentByEmailResult {
+  /** {"pii": false, "desc": "the user id"} */
   id: string;
 }
 
@@ -411,6 +413,7 @@ export interface IDeleteStudentParams {
 
 /** 'DeleteStudent' return type */
 export interface IDeleteStudentResult {
+  /** {"pii": false, "desc": "the user id"} */
   ok: string;
 }
 
@@ -975,6 +978,7 @@ export interface IGetUsageReportResult {
   studentPartnerOrg: string;
   totalSessionLengthMins: number | null;
   totalSessions: number | null;
+  /** {"pii": false, "desc": "the user id"} */
   userId: string;
 }
 
@@ -1335,6 +1339,7 @@ export interface IGetStudentProfilesByUserIdsResult {
   email: string;
   firstName: string;
   gradeLevel: string | null;
+  /** {"pii": false, "desc": "the user id"} */
   id: string;
   lastName: string;
   schoolId: string | null;

@@ -32,7 +32,6 @@ import {
 import { omit } from 'lodash'
 import { addFavoriteVolunteer } from '../../models/Student'
 import { createTestUser, createTestVolunteer } from './seed-utils'
-import { getDbUlid, Ulid } from '../../models/pgUtils'
 import { submitVolunteerBackgroundInfo } from '../../services/VolunteerService'
 
 const client = getClient()

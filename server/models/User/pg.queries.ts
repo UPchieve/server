@@ -68,6 +68,7 @@ export interface ICreateUserParams {
 export interface ICreateUserResult {
   email: string;
   firstName: string;
+  /** {"pii": false, "desc": "the user id"} */
   id: string;
   proxyEmail: string | null;
 }
@@ -116,6 +117,7 @@ export interface IUpsertUserParams {
 export interface IUpsertUserResult {
   email: string;
   firstName: string;
+  /** {"pii": false, "desc": "the user id"} */
   id: string;
   isCreated: boolean | null;
   proxyEmail: string | null;
@@ -153,6 +155,7 @@ export interface IGetUserVerificationByEmailParams {
 export interface IGetUserVerificationByEmailResult {
   email: string;
   emailVerified: boolean;
+  /** {"pii": false, "desc": "the user id"} */
   id: string;
   phoneVerified: boolean;
   verified: boolean;
@@ -194,6 +197,7 @@ export interface IGetUserIdByEmailParams {
 /** 'GetUserIdByEmail' return type */
 export interface IGetUserIdByEmailResult {
   email: string;
+  /** {"pii": false, "desc": "the user id"} */
   id: string;
 }
 
@@ -228,6 +232,7 @@ export interface IGetUserIdByPhoneParams {
 
 /** 'GetUserIdByPhone' return type */
 export interface IGetUserIdByPhoneResult {
+  /** {"pii": false, "desc": "the user id"} */
   id: string;
 }
 
@@ -267,6 +272,7 @@ export interface IGetUserByIdResult {
   deactivated: boolean;
   email: string;
   firstName: string;
+  /** {"pii": false, "desc": "the user id"} */
   id: string;
   lastActivityAt: Date | null;
   phone: string | null;
@@ -370,6 +376,7 @@ export interface IGetUserByReferralCodeParams {
 /** 'GetUserByReferralCode' return type */
 export interface IGetUserByReferralCodeResult {
   firstName: string;
+  /** {"pii": false, "desc": "the user id"} */
   id: string;
 }
 
@@ -443,6 +450,7 @@ export interface IGetUserForPassportParams {
 /** 'GetUserForPassport' return type */
 export interface IGetUserForPassportResult {
   email: string;
+  /** {"pii": false, "desc": "the user id"} */
   id: string;
   password: string | null;
   proxyEmail: string | null;
@@ -483,6 +491,7 @@ export interface IGetUserByResetTokenParams {
 /** 'GetUserByResetToken' return type */
 export interface IGetUserByResetTokenResult {
   email: string;
+  /** {"pii": false, "desc": "the user id"} */
   id: string;
 }
 
@@ -518,6 +527,7 @@ export interface IUpdateUserResetTokenByIdParams {
 
 /** 'UpdateUserResetTokenById' return type */
 export interface IUpdateUserResetTokenByIdResult {
+  /** {"pii": false, "desc": "the user id"} */
   id: string;
 }
 
@@ -554,6 +564,7 @@ export interface IUpdateUserPasswordByIdParams {
 
 /** 'UpdateUserPasswordById' return type */
 export interface IUpdateUserPasswordByIdResult {
+  /** {"pii": false, "desc": "the user id"} */
   ok: string;
 }
 
@@ -666,6 +677,7 @@ export interface IUpdateUserPhoneNumberByUserIdParams {
 
 /** 'UpdateUserPhoneNumberByUserId' return type */
 export interface IUpdateUserPhoneNumberByUserIdResult {
+  /** {"pii": false, "desc": "the user id"} */
   ok: string;
 }
 
@@ -702,6 +714,7 @@ export interface IUpdateUserLastActivityByIdParams {
 
 /** 'UpdateUserLastActivityById' return type */
 export interface IUpdateUserLastActivityByIdResult {
+  /** {"pii": false, "desc": "the user id"} */
   ok: string;
 }
 
@@ -739,6 +752,7 @@ export interface IUpdateUserBanByIdParams {
 
 /** 'UpdateUserBanById' return type */
 export interface IUpdateUserBanByIdResult {
+  /** {"pii": false, "desc": "the user id"} */
   ok: string;
 }
 
@@ -792,6 +806,7 @@ export interface IGetUsersForAdminSearchResult {
   createdAt: Date;
   email: string;
   firstName: string;
+  /** {"pii": false, "desc": "the user id"} */
   id: string;
   lastName: string | null;
 }
@@ -867,6 +882,7 @@ export interface IGetUserForAdminDetailResult {
   email: string;
   experience: Json | null;
   firstName: string;
+  /** {"pii": false, "desc": "the user id"} */
   id: string;
   isApproved: boolean;
   isDeactivated: boolean;
@@ -1000,6 +1016,7 @@ export interface IGetLegacyUserResult {
   firstName: string;
   gradeLevel: string | null;
   hoursTutored: number | null;
+  /** {"pii": false, "desc": "the user id"} */
   id: string;
   isApproved: boolean;
   isDeactivated: boolean;
@@ -1266,6 +1283,7 @@ export interface IGetUserToCreateSendGridContactResult {
   createdAt: Date;
   email: string;
   firstName: string;
+  /** {"pii": false, "desc": "the user id"} */
   id: string;
   isVolunteer: boolean | null;
   lastActivityAt: Date | null;
@@ -1517,6 +1535,7 @@ export interface IUpdateUserProfileByIdParams {
 
 /** 'UpdateUserProfileById' return type */
 export interface IUpdateUserProfileByIdResult {
+  /** {"pii": false, "desc": "the user id"} */
   ok: string;
 }
 
@@ -1588,6 +1607,7 @@ export interface IDeletePhoneParams {
 
 /** 'DeletePhone' return type */
 export interface IDeletePhoneResult {
+  /** {"pii": false, "desc": "the user id"} */
   ok: string;
 }
 
@@ -1730,6 +1750,7 @@ export interface IGetReportedUserResult {
   createdAt: Date;
   email: string;
   firstName: string;
+  /** {"pii": false, "desc": "the user id"} */
   id: string;
   isDeactivated: boolean;
   isTestUser: boolean;
@@ -1834,6 +1855,7 @@ export interface IUpdateUserProxyEmailParams {
 
 /** 'UpdateUserProxyEmail' return type */
 export interface IUpdateUserProxyEmailResult {
+  /** {"pii": false, "desc": "the user id"} */
   ok: string;
 }
 
@@ -1918,6 +1940,7 @@ export interface IUpdatePreferredLanguageToUserParams {
 
 /** 'UpdatePreferredLanguageToUser' return type */
 export interface IUpdatePreferredLanguageToUserResult {
+  /** {"pii": false, "desc": "the user id"} */
   ok: string;
 }
 
@@ -2045,6 +2068,7 @@ export type IDeleteProxyEmailsIdenticalToEmailsParams = void;
 /** 'DeleteProxyEmailsIdenticalToEmails' return type */
 export interface IDeleteProxyEmailsIdenticalToEmailsResult {
   email: string;
+  /** {"pii": false, "desc": "the user id"} */
   id: string;
   proxyEmail: string | null;
   updatedAt: Date;

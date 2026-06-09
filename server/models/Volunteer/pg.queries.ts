@@ -24,6 +24,7 @@ export interface IGetVolunteerContactInfoByIdResult {
   approved: boolean;
   email: string;
   firstName: string;
+  /** {"pii": false, "desc": "the user id"} */
   id: string;
   lastName: string;
   phone: string | null;
@@ -79,6 +80,7 @@ export interface IGetVolunteerContactInfoByIdsParams {
 export interface IGetVolunteerContactInfoByIdsResult {
   email: string;
   firstName: string;
+  /** {"pii": false, "desc": "the user id"} */
   id: string;
   lastName: string;
   phone: string | null;
@@ -128,6 +130,7 @@ export interface IGetVolunteersForBlackoutOverParams {
 export interface IGetVolunteersForBlackoutOverResult {
   email: string;
   firstName: string;
+  /** {"pii": false, "desc": "the user id"} */
   id: string;
   lastName: string;
   phone: string | null;
@@ -179,6 +182,7 @@ export interface IGetVolunteerForQuickTipsParams {
 export interface IGetVolunteerForQuickTipsResult {
   email: string;
   firstName: string;
+  /** {"pii": false, "desc": "the user id"} */
   id: string;
   lastName: string;
   phone: string | null;
@@ -229,6 +233,7 @@ export interface IGetPartnerVolunteerForLowHoursParams {
 export interface IGetPartnerVolunteerForLowHoursResult {
   email: string;
   firstName: string;
+  /** {"pii": false, "desc": "the user id"} */
   id: string;
   lastName: string;
   phone: string | null;
@@ -288,6 +293,7 @@ export interface IGetVolunteersForWeeklyHourSummaryParams {
 export interface IGetVolunteersForWeeklyHourSummaryResult {
   email: string;
   firstName: string;
+  /** {"pii": false, "desc": "the user id"} */
   id: string;
   lastName: string;
   sentHourSummaryIntroEmail: boolean;
@@ -454,6 +460,7 @@ export interface IGetVolunteersForTotalHoursParams {
 
 /** 'GetVolunteersForTotalHours' return type */
 export interface IGetVolunteersForTotalHoursResult {
+  /** {"pii": false, "desc": "the user id"} */
   id: string;
 }
 
@@ -504,6 +511,7 @@ export interface IGetVolunteerForOnboardingByIdResult {
   country: string | null;
   email: string;
   firstName: string;
+  /** {"pii": false, "desc": "the user id"} */
   id: string;
   onboarded: boolean;
   subjects: stringArray | null;
@@ -590,6 +598,7 @@ export interface IGetVolunteersForTelecomReportResult {
   createdAt: Date;
   email: string;
   firstName: string;
+  /** {"pii": false, "desc": "the user id"} */
   id: string;
   lastName: string;
   volunteerPartnerOrg: string;
@@ -827,6 +836,7 @@ export interface IGetInactiveVolunteersParams {
 export interface IGetInactiveVolunteersResult {
   email: string;
   firstName: string;
+  /** {"pii": false, "desc": "the user id"} */
   id: string;
   lastName: string;
   phone: string | null;
@@ -1551,6 +1561,7 @@ export interface IGetVolunteerForPendingStatusResult {
   country: string | null;
   email: string;
   firstName: string;
+  /** {"pii": false, "desc": "the user id"} */
   id: string;
   lastName: string;
   occupations: stringArray | null;
@@ -1771,6 +1782,7 @@ export interface IGetVolunteersForNiceToMeetYouParams {
 export interface IGetVolunteersForNiceToMeetYouResult {
   email: string;
   firstName: string;
+  /** {"pii": false, "desc": "the user id"} */
   id: string;
   lastName: string;
   phone: string | null;
@@ -1819,6 +1831,7 @@ export type IGetVolunteersForReadyToCoachParams = void;
 export interface IGetVolunteersForReadyToCoachResult {
   email: string;
   firstName: string;
+  /** {"pii": false, "desc": "the user id"} */
   id: string;
   lastName: string;
   phone: string | null;
@@ -1872,6 +1885,7 @@ export interface IGetVolunteersForWaitingReferencesParams {
 export interface IGetVolunteersForWaitingReferencesResult {
   email: string;
   firstName: string;
+  /** {"pii": false, "desc": "the user id"} */
   id: string;
   lastName: string;
   phone: string | null;
@@ -2028,6 +2042,7 @@ export interface IGetVolunteersToReviewResult {
   email: string;
   firstname: string;
   firstName: string;
+  /** {"pii": false, "desc": "the user id"} */
   id: string;
   lastname: string;
   lastName: string;
@@ -2098,6 +2113,7 @@ export interface IGetReferencesToFollowupResult {
   referenceId: string;
   referenceLastName: string;
   volunteerFirstName: string;
+  /** {"pii": false, "desc": "the user id"} */
   volunteerId: string;
   volunteerLastName: string;
 }
@@ -2255,6 +2271,7 @@ export interface IUpdateSsoUserBackgroundInfoParams {
 
 /** 'UpdateSsoUserBackgroundInfo' return type */
 export interface IUpdateSsoUserBackgroundInfoResult {
+  /** {"pii": false, "desc": "the user id"} */
   id: string;
 }
 
@@ -2334,6 +2351,7 @@ export interface IUpdateVolunteerUserForAdminParams {
 
 /** 'UpdateVolunteerUserForAdmin' return type */
 export interface IUpdateVolunteerUserForAdminResult {
+  /** {"pii": false, "desc": "the user id"} */
   ok: string;
 }
 
@@ -2425,6 +2443,7 @@ export interface ICreateVolunteerUserResult {
   deactivated: boolean;
   email: string;
   firstName: string;
+  /** {"pii": false, "desc": "the user id"} */
   id: string;
   lastName: string;
   phone: string | null;
@@ -2719,6 +2738,7 @@ export interface IGetNextVolunteerToNotifyParams {
 export interface IGetNextVolunteerToNotifyResult {
   email: string;
   firstName: string;
+  /** {"pii": false, "desc": "the user id"} */
   id: string;
   lastName: string;
   phone: string | null;
@@ -2953,6 +2973,7 @@ export interface IGetVolunteerForScheduleUpdateParams {
 
 /** 'GetVolunteerForScheduleUpdate' return type */
 export interface IGetVolunteerForScheduleUpdateResult {
+  /** {"pii": false, "desc": "the user id"} */
   id: string;
   onboarded: boolean;
   passedRequiredTraining: boolean | null;
@@ -3109,6 +3130,7 @@ export interface IGetVolunteersForAnalyticsReportResult {
   totalUniquePartnerStudentsHelpedWithinRange: number | null;
   totalUniqueStudentsHelped: number | null;
   totalUniqueStudentsHelpedWithinRange: number | null;
+  /** {"pii": false, "desc": "the user id"} */
   userId: string;
 }
 
@@ -3529,6 +3551,7 @@ export type IGetVolunteersForTextNotificationsInTheCurrentHourParams = void;
 /** 'GetVolunteersForTextNotificationsInTheCurrentHour' return type */
 export interface IGetVolunteersForTextNotificationsInTheCurrentHourResult {
   firstName: string;
+  /** {"pii": false, "desc": "the user id"} */
   id: string;
   mutedSubjects: stringArray | null;
   phone: string | null;
@@ -3631,6 +3654,7 @@ export interface IGetVolunteersReadyToCoachStatusParams {
 /** 'GetVolunteersReadyToCoachStatus' return type */
 export interface IGetVolunteersReadyToCoachStatusResult {
   banType: ban_types | null;
+  /** {"pii": false, "desc": "the user id"} */
   id: string;
   isApproved: boolean;
   isOnboarded: boolean;
