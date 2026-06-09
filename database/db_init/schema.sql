@@ -3090,13 +3090,6 @@ CREATE TABLE upchieve.users (
 
 
 --
--- Name: COLUMN users.id; Type: COMMENT; Schema: upchieve; Owner: -
---
-
-COMMENT ON COLUMN upchieve.users.id IS '{"pii": false, "desc": "the user id"}';
-
-
---
 -- Name: users_certifications; Type: TABLE; Schema: upchieve; Owner: -
 --
 
