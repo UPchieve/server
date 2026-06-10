@@ -1670,6 +1670,7 @@ export async function sendInvitationToCoachEmail(
   customData: {
     coachingSkills: string[]
     inviterFirstName: string
+    firstName: string
   }
 ): Promise<void> {
   const overrides = {

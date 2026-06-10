@@ -45,6 +45,7 @@ export default async function (
   const emailData = {
     coachingSkills: job.data.coachingSkills,
     inviterFirstName: invitingUser.firstName,
+    firstName: invitedUser.firstName,
   }
 
   await sendInvitationToCoachEmail(invitedUser.email, emailData)
