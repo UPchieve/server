@@ -48,7 +48,7 @@ export async function getScore(
  * @param req
  */
 export async function validateRequestRecaptcha(req: Request): Promise<boolean> {
-  if (req.headers['x-load-test-key'] === '') {
+  if (req.headers['x-load-test-key'] === 'some-key') {
     return true
   }
   try {
