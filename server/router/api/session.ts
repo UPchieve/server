@@ -3,6 +3,7 @@ import SocketService from '../../services/SocketService'
 import * as TutorBotService from '../../services/TutorBotService'
 import * as AssignmentsService from '../../services/AssignmentsService'
 import * as SessionService from '../../services/SessionService'
+import * as cache from '../../cache'
 import { authPassport } from '../../utils/auth-utils'
 import { InputError, LookupError } from '../../models/Errors'
 import { resError } from '../res-error'
@@ -78,7 +79,17 @@ export function routeSession(router: Router) {
       const isZwibserveSession = await SessionService.isZwibserveSession(
         session.id
       )
-      res.json({ session: currentSession, isZwibserveSession })
+      const exclusiveVolunteerId =
+        !session.volunteerId && !session.endedAt
+          ? await cache
+              .hget('exclusiveRequestSessions', session.id)
+              .catch(() => undefined)
+          : undefined
+      res.json({
+        session: currentSession,
+        isZwibserveSession,
+        exclusiveVolunteerId,
+      })
     } catch (error) {
       resError(res, error)
     }
@@ -555,6 +566,18 @@ export function routeSession(router: Router) {
       res.json({ sessionsWithUnreadDMs })
     } catch (err) {
       resError(res, err)
+    }
+  })
+
+  // Student-driven "open this exclusive session up to all tutors".
+  router.route('/session/:sessionId/breakout').post(async function (req, res) {
+    try {
+      const user = extractUser(req)
+      const sessionId = asUlid(req.params.sessionId)
+      await SessionService.handleSessionBreakout(sessionId, user)
+      res.sendStatus(200)
+    } catch (error) {
+      resError(res, error)
     }
   })
 }

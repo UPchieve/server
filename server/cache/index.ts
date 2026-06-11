@@ -116,3 +116,23 @@ export async function exists(key: string): Promise<boolean> {
   const result = await redisClient.exists(key)
   return result === 1
 }
+
+export async function hset(key: string, field: string, value: string) {
+  return await redisClient.hset(key, field, value)
+}
+
+export async function hget(key: string, field: string): Promise<string | null> {
+  return await redisClient.hget(key, field)
+}
+
+export async function hkeys(key: string): Promise<string[]> {
+  return await redisClient.hkeys(key)
+}
+
+export async function hgetall(key: string): Promise<Record<string, string>> {
+  return await redisClient.hgetall(key)
+}
+
+export async function hdel(key: string, ...fields: string[]) {
+  return await redisClient.hdel(key, ...fields)
+}

@@ -1,7 +1,7 @@
-\restrict ubhrXBzVzGugtsM4S6N6wtBSSTmcbaKtV5H4hpdspDIoHjwlk1dtFZkhCRDylwX
+\restrict E7zoiec9aRBpBiRAwdNb3qvCbCLSgFhEW9HaekyeQMee9w1cxTx5yhBTn25zFyC
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
--- Dumped by pg_dump version 15.18 (Homebrew)
+-- Dumped by pg_dump version 15.17 (Ubuntu 15.17-1.pgdg22.04+1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -216,29 +216,6 @@ BEGIN
 
   RETURN CAST( substring(CAST (ulid AS text) from 3) AS uuid);
 END
-$$;
-
-
---
--- Name: get_next_grade_name(text, integer); Type: FUNCTION; Schema: upchieve; Owner: -
---
-
-CREATE FUNCTION upchieve.get_next_grade_name(current_grade_name text, school_years_passed integer) RETURNS text
-    LANGUAGE plpgsql
-    AS $$
-DECLARE
-    next_grade text := current_grade_name;
-BEGIN
-    FOR i IN 1..school_years_passed LOOP
-        SELECT
-            next_grade_name INTO next_grade
-        FROM
-            upchieve.grade_level_sequence
-        WHERE
-            grade_name = next_grade;
-    END LOOP;
-    RETURN next_grade;
-END;
 $$;
 
 
@@ -579,61 +556,6 @@ CREATE VIEW upchieve.current_grade_levels AS
 
 
 --
--- Name: student_profiles; Type: TABLE; Schema: upchieve; Owner: -
---
-
-CREATE TABLE upchieve.student_profiles (
-    user_id uuid NOT NULL,
-    college text,
-    school_id uuid,
-    postal_code text,
-    grade_level_id integer,
-    student_partner_org_user_id text,
-    student_partner_org_id uuid,
-    student_partner_org_site_id uuid,
-    created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
-);
-
-
---
--- Name: current_grade_levels_mview; Type: MATERIALIZED VIEW; Schema: upchieve; Owner: -
---
-
-CREATE MATERIALIZED VIEW upchieve.current_grade_levels_mview AS
- WITH base_dates AS (
-         SELECT student_profiles.user_id,
-            student_profiles.grade_level_id,
-                CASE
-                    WHEN (student_profiles.created_at < '2023-08-30'::date) THEN ('2023-08-30'::date)::timestamp with time zone
-                    ELSE student_profiles.created_at
-                END AS base_date
-           FROM upchieve.student_profiles
-        ), grade_progression AS (
-         SELECT base_dates.user_id,
-            base_dates.grade_level_id,
-            base_dates.base_date,
-            (
-                CASE
-                    WHEN (base_dates.base_date >= (date_trunc('year'::text, (CURRENT_DATE)::timestamp with time zone) + '6 mons'::interval)) THEN (0)::numeric
-                    ELSE (EXTRACT(year FROM age((CURRENT_DATE)::timestamp with time zone, base_dates.base_date)) + (
-                    CASE
-                        WHEN (CURRENT_DATE >= (date_trunc('year'::text, (CURRENT_DATE)::timestamp with time zone) + '6 mons'::interval)) THEN 1
-                        ELSE 0
-                    END)::numeric)
-                END)::integer AS school_years_passed
-           FROM base_dates
-        )
- SELECT grade_progression.user_id,
-    grade_progression.grade_level_id AS initial_grade_level_id,
-    grade_levels.name AS initial_grade_name,
-    upchieve.get_next_grade_name(grade_levels.name, grade_progression.school_years_passed) AS current_grade_name
-   FROM (grade_progression
-     JOIN upchieve.grade_levels ON ((grade_progression.grade_level_id = grade_levels.id)))
-  WITH NO DATA;
-
-
---
 -- Name: email_domain_blocklist; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -695,16 +617,6 @@ CREATE TABLE upchieve.feedbacks (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     mongo_id character varying(24)
-);
-
-
---
--- Name: grade_level_sequence; Type: TABLE; Schema: upchieve; Owner: -
---
-
-CREATE TABLE upchieve.grade_level_sequence (
-    grade_name text NOT NULL,
-    next_grade_name text
 );
 
 
@@ -2472,6 +2384,23 @@ CREATE TABLE upchieve.student_partner_orgs_volunteer_partner_orgs_instances (
 
 
 --
+-- Name: student_profiles; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.student_profiles (
+    user_id uuid NOT NULL,
+    college text,
+    school_id uuid,
+    postal_code text,
+    student_partner_org_user_id text,
+    student_partner_org_id uuid,
+    student_partner_org_site_id uuid,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
 -- Name: students_assignments; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -3919,14 +3848,6 @@ ALTER TABLE ONLY upchieve.feedbacks
 
 ALTER TABLE ONLY upchieve.feedbacks
     ADD CONSTRAINT feedbacks_pkey PRIMARY KEY (id);
-
-
---
--- Name: grade_level_sequence grade_level_sequence_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.grade_level_sequence
-    ADD CONSTRAINT grade_level_sequence_pkey PRIMARY KEY (grade_name);
 
 
 --
@@ -5467,13 +5388,6 @@ CREATE INDEX censored_messages_session_id ON upchieve.censored_session_messages 
 
 
 --
--- Name: cgl_user_id_idx; Type: INDEX; Schema: upchieve; Owner: -
---
-
-CREATE INDEX cgl_user_id_idx ON upchieve.current_grade_levels_mview USING btree (user_id);
-
-
---
 -- Name: fed_creds_user_id_idx; Type: INDEX; Schema: upchieve; Owner: -
 --
 
@@ -6935,14 +6849,6 @@ ALTER TABLE ONLY upchieve.student_partner_orgs_volunteer_partner_orgs_instances
 
 
 --
--- Name: student_profiles student_profiles_grade_level_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.student_profiles
-    ADD CONSTRAINT student_profiles_grade_level_id_fkey FOREIGN KEY (grade_level_id) REFERENCES upchieve.grade_levels(id);
-
-
---
 -- Name: student_profiles student_profiles_postal_code_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -7506,7 +7412,7 @@ ALTER TABLE ONLY upchieve.volunteer_references
 -- PostgreSQL database dump complete
 --
 
-\unrestrict ubhrXBzVzGugtsM4S6N6wtBSSTmcbaKtV5H4hpdspDIoHjwlk1dtFZkhCRDylwX
+\unrestrict E7zoiec9aRBpBiRAwdNb3qvCbCLSgFhEW9HaekyeQMee9w1cxTx5yhBTn25zFyC
 
 
 --
@@ -7791,4 +7697,6 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260428230130'),
     ('20260515002920'),
     ('20260515214142'),
-    ('20260521184444');
+    ('20260521184444'),
+    ('20260602022152'),
+    ('20260602031018');

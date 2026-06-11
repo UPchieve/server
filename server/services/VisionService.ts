@@ -13,6 +13,7 @@ import { PromptName } from './PromptService'
 import { resize } from '../utils/image-utils'
 import { invokeModel } from './AwsBedrockService'
 import { runWithModelObservation, runWithTrace } from './AiObservabilityService'
+import { secondsInMs } from '../utils/time-utils'
 
 const client: ImageAnalysisClient = isValidConfigToken(
   config.subwayAIVisionApiKey
@@ -105,8 +106,7 @@ export async function describeWhiteboardSnapshot(
         const promptData = await PromptService.getPromptWithFallback(
           PromptName.WHITEBOARD_VISION_PROMPT,
           {
-            cacheTtlSeconds: 120,
-            waitInMs: 5000,
+            waitInMs: secondsInMs(5),
           }
         )
 

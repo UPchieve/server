@@ -3,12 +3,16 @@ import { difference, intersection } from 'lodash'
 import type { RemoteSocket } from 'socket.io'
 import logger from '../logger'
 import { Ulid, Uuid } from '../models/pgUtils'
-import { getUnfulfilledSessions } from '../models/Session/queries'
+import {
+  getUnfulfilledSessions,
+  UnfulfilledSessions,
+} from '../models/Session/queries'
 import getSessionRoom from '../utils/get-session-room'
 import { ProgressReport } from '../services/ProgressReportsService'
 import { ProgressReportAnalysisTypes } from '../models/ProgressReports'
 import { TransactionClient } from '../db'
 import * as SessionService from '../services/SessionService'
+import * as cache from '../cache'
 import { backOff } from 'exponential-backoff'
 import { UserContactInfo } from '../models/User'
 import { secondsInMs } from '../utils/time-utils'
@@ -105,7 +109,19 @@ class SocketService {
 
   private async updateSessionList(tc?: TransactionClient): Promise<void> {
     const sessions = await getUnfulfilledSessions(tc)
-    this.io.in('volunteers').emit('sessions', sessions)
+    const sessionsWithExclusiveMetadata =
+      await this.addExclusiveSessionMetadata(sessions)
+    this.io.in('volunteers').emit('sessions', sessionsWithExclusiveMetadata)
+  }
+
+  async addExclusiveSessionMetadata(allSessions: UnfulfilledSessions[]) {
+    const exclusiveSessions = await cache.hgetall('exclusiveRequestSessions')
+    return allSessions.map((session) => {
+      const requestedVolunteerId = exclusiveSessions[session.id]
+      return requestedVolunteerId
+        ? { ...session, isExclusive: true, requestedVolunteerId }
+        : session
+    })
   }
 
   async emitSessionChange(
