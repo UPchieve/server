@@ -3,6 +3,7 @@ import { timeLimit } from '../../utils/time-limit'
 import { client } from '../../clients/langfuse'
 import * as FallbackPrompts from './fallbackPrompts'
 import logger from '../../logger'
+import { secondsInMs, minutesInSeconds } from '../../utils/time-utils'
 
 export enum PromptName {
   GET_SESSION_MESSAGE_MODERATION_DECISION = 'get-session-message-moderation-decision',
@@ -61,8 +62,8 @@ export type PromptResponse =
 
 export async function getPrompt(
   promptName: PromptName,
-  cacheTtlSeconds = 120,
-  waitInMs = 1000
+  cacheTtlSeconds = minutesInSeconds(30),
+  waitInMs = secondsInMs(3)
 ): Promise<TextPromptClient | undefined> {
   return await timeLimit({
     promise: client.getPrompt(promptName, undefined, {
