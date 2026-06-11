@@ -11,29 +11,29 @@ import {
   USER_BAN_TYPES,
 } from '../constants'
 import {
-  UserNotFoundError,
-  NotAllowedError,
   InputError,
+  NotAllowedError,
+  UserNotFoundError,
 } from '../models/Errors'
 import { updateIpStatusByUserId } from '../models/IpAddress'
-import {
-  UserContactInfo,
-  getUsersForAdminSearch,
-  deleteUserPhoneInfo,
-  UserForAdmin,
-  updatePreferredLanguageToUser,
-} from '../models/User'
 import * as UserRepo from '../models/User'
 import {
-  UnsentReference,
-  VolunteerContactInfo,
+  deleteUserPhoneInfo,
+  getUsersForAdminSearch,
+  updatePreferredLanguageToUser,
+  UserContactInfo,
+  UserForAdmin,
+} from '../models/User'
+import {
   addVolunteerReferenceById,
+  checkReferenceExistsBeforeAdding,
+  UnsentReference,
+  updateVolunteerForAdmin,
   updateVolunteerPhotoIdById,
   updateVolunteerReferenceSentById,
-  updateVolunteerForAdmin,
-  updateVolunteerReferenceSubmission,
-  checkReferenceExistsBeforeAdding,
   updateVolunteerReferenceStatus,
+  updateVolunteerReferenceSubmission,
+  VolunteerContactInfo,
 } from '../models/Volunteer'
 import { asReferenceFormData } from '../utils/reference-utils'
 import { checkEmail } from '../utils/auth-utils'
@@ -41,19 +41,19 @@ import {
   asBoolean,
   asEnum,
   asFactory,
+  asNullable,
   asNumber,
   asOptional,
   asString,
-  asNullable,
 } from '../utils/type-utils'
 import * as AnalyticsService from './AnalyticsService'
 import * as MailService from './MailService'
 import * as UserRolesService from './UserRolesService'
+import { PrimaryUserRole, RoleContext } from './UserRolesService'
 import * as TeacherService from './TeacherService'
 import logger from '../logger'
 import { createAccountAction, createAdminAction } from '../models/UserAction'
 import { getLegacyUserObject } from '../models/User/legacy-user'
-import { PrimaryUserRole, RoleContext } from './UserRolesService'
 import * as ModerationInfractionsService from '../models/ModerationInfractions'
 import { getClient, runInTransaction, TransactionClient } from '../db'
 import * as VolunteerService from './VolunteerService'
@@ -62,8 +62,8 @@ import * as ReferralService from './ReferralService'
 import config from '../config'
 import { Jobs } from '../worker/jobs'
 import QueueService from './QueueService'
-import { UserSchoolAssociationType, UsersSchool } from '../models/UsersSchools'
 import * as UsersSchoolsRepo from '../models/UsersSchools'
+import { UserSchoolAssociationType, UsersSchool } from '../models/UsersSchools'
 import {
   activateStudentPartnershipInstance,
   AdminUpdateStudent,
@@ -76,6 +76,7 @@ import {
   updateStudentProfilePartnerOrg,
   updateStudentSchool,
 } from '../models/Student'
+import { hoursInMs } from '../utils/time-utils'
 
 export async function parseUser(userId: Ulid) {
   const user = await getLegacyUserObject(userId)
@@ -771,5 +772,40 @@ export async function upsertUsersSchool(
     userId,
     schoolId,
     associationType
+  )
+}
+
+export async function queueInvitationToCoach(
+  invitedUserId: Ulid,
+  invitingUserId: Ulid,
+  sessionId: Ulid,
+  coachingSkills: string[]
+): Promise<void> {
+  logger.info(
+    {
+      invitingUserId,
+      invitedUserId,
+      sessionId,
+      coachingSkills,
+    },
+    'Queueing invitation to coach email'
+  )
+  await QueueService.add(
+    Jobs.SendInvitationToCoachEmail,
+    {
+      invitedUserId,
+      invitingUserId,
+      coachingSkills,
+    },
+    {
+      delay: hoursInMs(24),
+    }
+  )
+  logger.info(
+    {
+      invitedUserId,
+      invitingUserId,
+    },
+    'Queued invitation to coach email job'
   )
 }

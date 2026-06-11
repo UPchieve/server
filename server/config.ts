@@ -120,6 +120,7 @@ const config = {
     nthsCandidateApplicationApproved: 'd-7bb5abafa4d14d6cb53540bd514447a7',
     nthsCandidateApplicationDenied: 'd-0db5c4e5f4de45de9c8ce7106765f0e9',
     nthsSchoolOfficialNotice: 'd-6f54afba78f84ae5b44b70a5d209e755',
+    invitationToCoachEmail: 'd-9c75785699494c40b2a1b86e6adf5532',
     volunteer: {
       thanksForReport: 'd-572e47e4f41d4db2ac855f42ac8ac11e',
       apologyForBannedStudent: 'd-c76691726c204dbb8643f38b2d1a4ed9',
