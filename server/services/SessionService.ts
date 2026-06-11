@@ -296,15 +296,9 @@ export async function endSession(
     studentId: session.student.id,
   })
 
-  QueueService.add(
-    Jobs.ProcessSessionEnded,
-    {
-      sessionId,
-    },
-    {
-      jobId: `${Jobs.ProcessSessionEnded}:${sessionId}`,
-    }
-  )
+  QueueService.add(Jobs.ProcessSessionEnded, {
+    sessionId,
+  })
 
   return endedSession
 }
@@ -735,11 +729,7 @@ export async function startSession(
 
   // Auto end the session after 45 minutes if the session is unmatched.
   const delay = 1000 * 60 * 45
-  await QueueService.add(
-    Jobs.EndUnmatchedSession,
-    { sessionId: newSession.id },
-    { delay, jobId: `${Jobs.EndUnmatchedSession}:${newSession.id}` }
-  )
+  await QueueService.add(Jobs.EndUnmatchedSession, { sessionId: newSession.id })
 
   return {
     ...newSession,
