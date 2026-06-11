@@ -83,6 +83,7 @@ export type UnfulfilledSessions = {
   id: Uuid
   _id: Ulid
   student: {
+    id: Uuid
     firstname: string
     isTestUser: boolean
     isShadowBanned: boolean
@@ -161,6 +162,7 @@ export async function getUnfulfilledSessions(
         ...s,
         _id: s.id,
         student: {
+          id: s.studentId,
           firstname: s.studentFirstName,
           isTestUser: s.studentTestUser,
           isShadowBanned: s.studentBanType === USER_BAN_TYPES.SHADOW,

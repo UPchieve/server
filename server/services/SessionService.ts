@@ -54,6 +54,7 @@ import * as AwsService from './AwsService'
 import * as AzureService from './AzureService'
 import * as PushTokenService from './PushTokenService'
 import * as NotifyVolunteerService from './NotifyVolunteerService'
+import * as VolunteerRepo from '../models/Volunteer'
 import QueueService from './QueueService'
 import * as QuillDocService from './QuillDocService'
 import SocketService from './SocketService'
@@ -287,6 +288,8 @@ export async function endSession(
   })
 
   await SessionmeetingsService.endMeeting(sessionId)
+
+  await NotifyVolunteerService.clearExclusiveRequest(sessionId)
 
   QueueService.add(Jobs.DetectSessionLanguages, {
     sessionId,
@@ -583,6 +586,7 @@ export async function startSession(
     docEditorVersion,
     userAgent,
     ip,
+    requestedVolunteerId,
   } = data
 
   const subjectAndTopic = await getSubjectAndTopic(subject, topic)
@@ -610,6 +614,25 @@ export async function startSession(
     throw new sessionUtils.StartSessionError(
       'Student already has an active session.'
     )
+  }
+
+  if (requestedVolunteerId) {
+    const volunteer = await VolunteerRepo.getVolunteerContactInfoById(
+      requestedVolunteerId,
+      { banned: false, deactivated: false, testUser: false }
+    )
+    if (!volunteer) {
+      throw new sessionUtils.StartSessionError(
+        'Requested volunteer is not available right now.'
+      )
+    }
+    const activeVolunteerIds =
+      await SessionRepo.getActiveSessionsWithVolunteers()
+    if (activeVolunteerIds.includes(requestedVolunteerId)) {
+      throw new sessionUtils.StartSessionError(
+        'Requested volunteer is currently in another session.'
+      )
+    }
   }
 
   const newSession = await runInTransaction(async (tc: TransactionClient) => {
@@ -650,6 +673,20 @@ export async function startSession(
 
     return newSession
   })
+
+  // Hide the exclusive session from the volunteer broadcast as early as
+  // possible — immediately after the transaction commits, before any other
+  // awaits — to minimize the window in which a concurrent updateSessionList
+  // could broadcast it publicly.
+  const isUserShadowBanned = user.banType === USER_BAN_TYPES.SHADOW
+  if (requestedVolunteerId && !isUserShadowBanned) {
+    await cache.hset(
+      'exclusiveRequestSessions',
+      newSession.id,
+      requestedVolunteerId
+    )
+  }
+
   await saveSessionToCache({
     sessionId: newSession.id,
     topicId: subjectAndTopic.topicId,
@@ -679,9 +716,15 @@ export async function startSession(
     user.id
   )
 
-  const isUserShadowBanned = user.banType === USER_BAN_TYPES.SHADOW
-  if (!isUserBanned && !isUserShadowBanned && isNotifyTutorEnabled) {
-    await NotifyVolunteerService.beginRegularNotifications(newSession)
+  if (!isUserShadowBanned) {
+    if (requestedVolunteerId) {
+      await NotifyVolunteerService.notifyExclusiveVolunteer(
+        newSession,
+        requestedVolunteerId
+      )
+    } else if (isNotifyTutorEnabled) {
+      await NotifyVolunteerService.beginRegularNotifications(newSession)
+    }
   }
 
   // Auto end the session after 45 minutes if the session is unmatched.
@@ -787,9 +830,18 @@ export async function joinSession(
   const isVolunteer = user.roleContext.isActiveRole('volunteer')
   const isInitialVolunteerJoin = isVolunteer && !session.volunteerId
   if (isInitialVolunteerJoin) {
+    // Peek at exclusivity state BEFORE clearExclusiveRequest wipes the HASH
+    // — we need to know whether this join converted an exclusive request,
+    // and if so, whether the joining volunteer is the one the student
+    // originally requested.
+    const exclusiveTo = await cache.hget('exclusiveRequestSessions', session.id)
+    const wasExclusiveRequest = !!exclusiveTo
+    const wasRequestedVolunteer = exclusiveTo === user.id
+
     try {
       await SessionRepo.updateSessionVolunteerById(session.id, user.id)
       session.volunteerId = user.id
+      await NotifyVolunteerService.clearExclusiveRequest(session.id)
       await SocketService.getInstance().emitSessionChange(session.id)
     } catch (err) {
       throw new Error('A volunteer has already joined the session.')
@@ -800,12 +852,21 @@ export async function joinSession(
         ...sessionAnalyticsData,
         action: SESSION_USER_ACTIONS.JOINED,
       })
+      // Only attach exclusive metadata when this join actually converted an
+      // exclusive request. Keeps the regular SESSION_JOINED / SESSION_MATCHED
+      // event shape identical to pre-experiment so PostHog's property
+      // catalog doesn't get experiment-bloat on the broader events.
+      const exclusiveProps = wasExclusiveRequest
+        ? { wasExclusiveRequest: true, wasRequestedVolunteer }
+        : {}
       captureEvent(user.id, EVENTS.SESSION_JOINED, {
         sessionId: session.id,
         joinedFrom: data.joinedFrom || '',
+        ...exclusiveProps,
       })
       captureEvent(session.studentId, EVENTS.SESSION_MATCHED, {
         sessionId: session.id,
+        ...exclusiveProps,
       })
     } catch (error) {
       logger.error(error, `Failed to log session join actions.`, {
@@ -1371,4 +1432,37 @@ export async function updateSessionLastSeen(
 
 export async function sessionsWithUnreadDMs(userId: Ulid): Promise<string[]> {
   return SessionRepo.sessionsWithUnreadDMs(userId)
+}
+
+export async function handleSessionBreakout(
+  sessionId: Uuid,
+  user: UserContactInfo
+) {
+  const session = await SessionRepo.getSessionById(sessionId)
+  if (session.studentId !== user.id) {
+    throw new NotAllowedError(
+      'Only the student in this session can open it up.'
+    )
+  }
+  if (sessionUtils.isSessionFulfilled(session)) {
+    throw new Error('Session is already matched or ended.')
+  }
+  const wasCleared =
+    await NotifyVolunteerService.clearExclusiveRequest(sessionId)
+  const currentSession = await getCurrentSessionById(sessionId)
+  if (wasCleared) {
+    // Only trigger tutor notifications for the session when the student
+    // is not banned or shadow-banned and the notifyTutor feature flag is enabled
+    const isNotifyTutorEnabled = await FeatureFlagsService.getNotifyTutorFlag(
+      user.id
+    )
+    if (
+      user.banType !== USER_BAN_TYPES.COMPLETE &&
+      user.banType !== USER_BAN_TYPES.SHADOW &&
+      isNotifyTutorEnabled
+    ) {
+      await NotifyVolunteerService.beginRegularNotifications(currentSession)
+    }
+    await SocketService.getInstance().emitSessionChange(session.id)
+  }
 }
