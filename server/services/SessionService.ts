@@ -1429,7 +1429,7 @@ export async function updateSessionLastSeen(
 export async function sessionsWithUnreadDMs(userId: Ulid): Promise<string[]> {
   const sessions = await SessionRepo.sessionsWithUnreadDMs(userId)
   return sessions
-    .filter((session) => session.timeTutored > config.minSessionLength)
+    .filter((session) => session.timeTutored >= config.minSessionLength)
     .map((session) => session.id)
 }
 
