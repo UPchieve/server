@@ -4,39 +4,34 @@ import * as PromptService from './PromptService'
 import { PromptName } from './PromptService'
 import { resize } from '../utils/image-utils'
 import { invokeModel } from './AwsBedrockService'
-import { runWithModelObservation, runWithTrace } from './AiObservabilityService'
+import {
+  runWithModelObservation,
+  runWithTrace,
+  Trace,
+} from './AiObservabilityService'
 import { secondsInMs } from '../utils/time-utils'
-import { LangfuseGenerationClient, LangfuseTraceClient } from 'langfuse-node'
-import { LangfuseGenerationName } from './ModerationService/types'
-import { extractText } from 'unpdf'
 import { AWSRekognitionClient } from './AwsService'
 import { DetectTextCommand } from '@aws-sdk/client-rekognition'
 
-const EXTRACT_TEXT_FROM_IMAGE_GENERATION_NAME =
-  LangfuseGenerationName.EXTRACT_TEXT_FROM_IMAGE
-
 export async function extractTextFromImage(
   image: Buffer,
-  trace?: LangfuseTraceClient
+  trace?: Trace
 ): Promise<string[]> {
-  let generation: LangfuseGenerationClient | undefined = undefined
-  if (trace) {
-    generation = trace.generation({
-      name: EXTRACT_TEXT_FROM_IMAGE_GENERATION_NAME,
-    })
-  }
-
-  const extractedText = await AWSRekognitionClient.send(
-    new DetectTextCommand({
-      Image: {
-        Bytes: new Uint8Array(image),
-      },
-    })
+  const extractedText = await runWithModelObservation(
+    () =>
+      AWSRekognitionClient.send(
+        new DetectTextCommand({
+          Image: {
+            Bytes: new Uint8Array(image),
+          },
+        })
+      ),
+    {
+      trace,
+      name: 'extractTextFromImage',
+      model: 'rekognition',
+    }
   )
-
-  if (generation) {
-    generation.end({ output: extractText })
-  }
 
   const detections = extractedText.TextDetections ?? []
   const textSegments = detections

@@ -12,13 +12,6 @@ export enum LangfuseGenerationName {
   SESSION_TRANSCRIPT_MODERATION_DECISION = 'getSessionTranscriptModerationDecision',
   GET_ADDRESS_DETECTION_MODERATION_DECISION = 'getAddressDetectionModerationDecision',
   GET_QUESTIONABLE_LINK_MODERATION_DECISION = 'getQuestionableLinkModerationDecision',
-  EXTRACT_TEXT_FROM_IMAGE = 'extractTextFromImage',
-  DETECT_PII_IN_TEXT = 'detectPiiInText',
-  DETECT_TOXICITY_IN_TEXT = 'detectToxicityInText',
-  DETECT_MODERATION_LABELS = 'detectModerationLabels',
-  DETECT_FACES = 'detectFaces',
-  DETECT_PERSON = 'detectPerson',
-  IS_IMAGE_EDUCATIONAL = 'isImageEducational',
   MODERATE_ASSIGNMENT_INFO = 'moderateAssignmentInfo',
 }
 export enum LangfuseTraceTagEnum {

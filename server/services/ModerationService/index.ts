@@ -13,7 +13,10 @@ import { chunk, isEmpty } from 'lodash'
 import { TextPromptClient } from 'langfuse-core'
 import logger from '../../logger'
 import { client as langfuseClient } from '../../clients/langfuse'
-import { addTraceTags } from '../AiObservabilityService'
+import {
+  addTraceTags,
+  runWithModelObservation,
+} from '../AiObservabilityService'
 import {
   CENSORED_BY,
   CensoredSessionMessage,
@@ -94,15 +97,6 @@ async function detectImageEducationPurpose(
     )
     if (promptData?.isFallback) throw Error("Couldn't get prompt")
 
-    let generation: LangfuseGenerationClient | undefined = undefined
-    if (trace) {
-      generation = trace.generation({
-        name: ModerationTypes.LangfuseGenerationName.IS_IMAGE_EDUCATIONAL,
-        prompt: promptData.promptObject,
-        model: config.awsBedrockSonnet4Id,
-      })
-    }
-
     const response_tool: BedrockTools = [
       {
         name: 'json_response',
@@ -140,19 +134,27 @@ async function detectImageEducationPurpose(
     const response: {
       detectedLabels: [{ label: string; confidence: number }]
       reason: string
-    } = await invokeModel({
-      modelId: config.awsBedrockSonnet4Id,
-      images: [image],
-      prompt: promptData.prompt,
-      tools_option: {
-        tool_choice: { type: BedrockToolChoice.TOOL, name: 'json_response' },
-        tools: response_tool,
-      },
-    })
-
-    if (generation) {
-      generation.end({ output: response })
-    }
+    } = await runWithModelObservation(
+      () =>
+        invokeModel({
+          modelId: config.awsBedrockSonnet4Id,
+          images: [image],
+          prompt: promptData.prompt,
+          tools_option: {
+            tool_choice: {
+              type: BedrockToolChoice.TOOL,
+              name: 'json_response',
+            },
+            tools: response_tool,
+          },
+        }),
+      {
+        trace,
+        name: 'isImageEducational',
+        model: config.awsBedrockSonnet4Id,
+        ...(promptData.promptObject && { prompt: promptData.promptObject }),
+      }
+    )
 
     const nonEducational = response.detectedLabels.find(
       (category) =>
@@ -200,31 +202,27 @@ async function detectPersonInImage({
   trace?: LangfuseTraceClient
 }) {
   try {
-    let generation: LangfuseGenerationClient | undefined = undefined
-
-    if (trace) {
-      generation = trace.generation({
-        name: ModerationTypes.LangfuseGenerationName.DETECT_PERSON,
-      })
-    }
-
-    const labelResponse = await AWSRekognitionClient.send(
-      new DetectLabelsCommand({
-        Image: {
-          Bytes: new Uint8Array(image),
-        },
-        MinConfidence: config.imageModerationMinConfidence,
-        Settings: {
-          GeneralLabels: {
-            LabelInclusionFilters: ['Person'],
-          },
-        },
-      })
+    const labelResponse = await runWithModelObservation(
+      () =>
+        AWSRekognitionClient.send(
+          new DetectLabelsCommand({
+            Image: {
+              Bytes: new Uint8Array(image),
+            },
+            MinConfidence: config.imageModerationMinConfidence,
+            Settings: {
+              GeneralLabels: {
+                LabelInclusionFilters: ['Person'],
+              },
+            },
+          })
+        ),
+      {
+        trace,
+        name: 'detectPerson',
+        model: 'rekognition',
+      }
     )
-
-    if (generation) {
-      generation.end({ output: labelResponse })
-    }
 
     const labels = labelResponse.Labels ?? []
 
@@ -260,8 +258,8 @@ async function detectPersonInImage({
 }
 
 /*
-  detect harmful content in the image
-  we are only looking at the top level categories for now:
+  Detect harmful content in the image.
+  We are only looking at the top level categories for now:
     - Explicit
     - Non-Explicit Nudity of Intimate parts and Kissing
     - Swimwear or Underwear
@@ -272,33 +270,31 @@ async function detectPersonInImage({
     - Rude Gestures
     - Gambling
     - Hate Symbols
-  full list of labels with categories can be found here: https://docs.aws.amazon.com/rekognition/latest/dg/samples/rekognition-moderation-labels.zip
+  Full list of labels with categories can be found here: https://docs.aws.amazon.com/rekognition/latest/dg/samples/rekognition-moderation-labels.zip
 */
 async function detectImageModerationInfractions(
   image: Buffer,
   moderationSettings: GetModerationSettingResult,
-  trace?: LangfuseTraceClient,
-  sessionId?: string
+  sessionId?: string,
+  trace?: LangfuseTraceClient
 ) {
   try {
-    let generation: LangfuseGenerationClient | undefined = undefined
-    if (trace) {
-      generation = trace.generation({
-        name: ModerationTypes.LangfuseGenerationName.DETECT_MODERATION_LABELS,
-      })
-    }
-
-    const moderationLabelsResponse = await AWSRekognitionClient.send(
-      new DetectModerationLabelsCommand({
-        Image: {
-          Bytes: new Uint8Array(image),
-        },
-        MinConfidence: config.imageModerationMinConfidence,
-      })
+    const moderationLabelsResponse = await runWithModelObservation(
+      () =>
+        AWSRekognitionClient.send(
+          new DetectModerationLabelsCommand({
+            Image: {
+              Bytes: new Uint8Array(image),
+            },
+            MinConfidence: config.imageModerationMinConfidence,
+          })
+        ),
+      {
+        trace,
+        name: 'detectModerationLabels',
+        model: 'rekognition',
+      }
     )
-    if (generation) {
-      generation.end({ output: moderationLabelsResponse })
-    }
 
     const moderationLabels = moderationLabelsResponse.ModerationLabels ?? []
     return moderationLabels
@@ -324,30 +320,29 @@ async function detectImageModerationInfractions(
   }
 }
 
-const detectToxicContent = async (
+async function detectToxicContent(
   textSegments: string[],
   moderationSettings: GetModerationSettingResult,
   trace?: LangfuseTraceClient
-) => {
-  let generation: LangfuseGenerationClient | undefined = undefined
-  if (trace) {
-    generation = trace.generation({
-      name: ModerationTypes.LangfuseGenerationName.DETECT_TOXICITY_IN_TEXT,
-      input: textSegments,
-    })
-  }
-
+) {
   const toxicContent = []
   const concatenatedText = textSegments.join(' ')
-  const result = await AWSComprehendClient.send(
-    new DetectToxicContentCommand({
-      TextSegments: [{ Text: concatenatedText }],
-      LanguageCode: 'en',
-    })
+  const result = await runWithModelObservation(
+    () =>
+      AWSComprehendClient.send(
+        new DetectToxicContentCommand({
+          TextSegments: [{ Text: concatenatedText }],
+          LanguageCode: 'en',
+        })
+      ),
+    {
+      trace,
+      name: 'detectToxicityInText',
+      model: 'comprehend',
+      input: textSegments,
+    }
   )
-  if (generation) {
-    generation.end({ output: result })
-  }
+
   if (result.ResultList) {
     toxicContent.push(
       ...result.ResultList.map((r) => ({
@@ -678,23 +673,22 @@ async function detectPii({
   moderationSettings: GetModerationSettingResult
   trace?: LangfuseTraceClient
 }) {
-  let generation: LangfuseGenerationClient | undefined = undefined
-  if (trace) {
-    generation = trace.generation({
-      name: ModerationTypes.LangfuseGenerationName.DETECT_PII_IN_TEXT,
+  const piiEntities = await runWithModelObservation(
+    () =>
+      AWSComprehendClient.send(
+        new DetectPiiEntitiesCommand({
+          Text: text,
+          LanguageCode: 'en',
+        })
+      ),
+    {
+      trace,
+      name: 'detectPiiInText',
+      model: 'comprehend',
       input: text,
-    })
-  }
-
-  const piiEntities = await AWSComprehendClient.send(
-    new DetectPiiEntitiesCommand({
-      Text: text,
-      LanguageCode: 'en',
-    })
+    }
   )
-  if (generation) {
-    generation.end({ output: piiEntities })
-  }
+
   const entities = piiEntities.Entities ?? []
 
   const links: ModerationTypes.ModeratedLink[] = []
@@ -990,8 +984,8 @@ export async function moderateImageInBackground(options: {
   detectImageModerationInfractions(
     options.image,
     options.moderationSettings,
-    options.trace,
-    options.sessionId
+    options.sessionId,
+    options.trace
   ).then(maybeHandleImageModerationInfraction(options))
 
   detectPersonInImage({
@@ -1033,8 +1027,8 @@ async function getAllImageModerationInfractions({
     detectImageModerationInfractions(
       image,
       moderationSettings,
-      trace,
-      sessionId
+      sessionId,
+      trace
     ),
     detectTextModerationInfractions({
       image,

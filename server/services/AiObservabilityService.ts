@@ -12,6 +12,12 @@ export type ModelObservationName =
   | 'getProgressReportResult'
   | 'describeWhiteboardSnapshot'
   | 'generateSessionSummary'
+  | 'detectModerationLabels'
+  | 'extractTextFromImage'
+  | 'detectToxicityInText'
+  | 'detectPerson'
+  | 'detectPiiInText'
+  | 'isImageEducational'
 export type TraceTag = 'flagged-by-moderation'
 
 export type TraceOptions = {
