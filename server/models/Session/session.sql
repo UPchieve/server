@@ -1345,7 +1345,8 @@ ON CONFLICT (session_id, user_id)
 
 /* @name sessionsWithUnreadDMs */
 SELECT
-    s.id
+    s.id,
+    s.time_tutored
 FROM
     upchieve.session_messages sm
     JOIN upchieve.sessions s ON sm.session_id = s.id
@@ -1358,5 +1359,6 @@ AND sm.sender_id != :userId!
 AND (sls.last_seen_at IS NULL
     OR sm.created_at > sls.last_seen_at)
 GROUP BY
-    s.id;
+    s.id,
+    s.time_tutored;
 
