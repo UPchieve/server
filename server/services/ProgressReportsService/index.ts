@@ -26,7 +26,7 @@ import {
   updateProgressReportsReadAtByReportIds,
   getAllProgressReportIdsByUserIdAndSubject,
   getLatestProgressReportOverviewSubjectByUserId,
-  getProgressReportOverviewUnreadStatsByUserId,
+  getUnreadSubjectReportsCountByUserId,
   getActiveSubjectPromptBySubjectName,
 } from '../../models/ProgressReports'
 import {
@@ -649,7 +649,7 @@ export async function getProgressReportOverviewSubjectStats(
   userId: Ulid
 ): Promise<ProgressReportOverviewSubjectStat[]> {
   const stats = []
-  const unreadStats = await getProgressReportOverviewUnreadStatsByUserId(userId)
+  const unreadStats = await getUnreadSubjectReportsCountByUserId(userId)
   for (const unread of unreadStats) {
     const report = await getLatestProgressReportIdBySubject(
       userId,

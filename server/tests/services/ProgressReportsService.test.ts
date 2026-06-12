@@ -410,7 +410,7 @@ describe('getProgressReportOverviewSubjectStats', () => {
     const summaryRow = buildProgressReportSummaryRow({
       overallGrade: data.overallGrade,
     })
-    mockedProgressReportsRepo.getProgressReportOverviewUnreadStatsByUserId.mockResolvedValueOnce(
+    mockedProgressReportsRepo.getUnreadSubjectReportsCountByUserId.mockResolvedValueOnce(
       [unreadStat]
     )
     mockedProgressReportsRepo.getLatestProgressReportIdBySubject.mockResolvedValueOnce(
@@ -424,10 +424,10 @@ describe('getProgressReportOverviewSubjectStats', () => {
 
     expect(mockedData).toMatchObject(result)
     expect(
-      mockedProgressReportsRepo.getProgressReportOverviewUnreadStatsByUserId
+      mockedProgressReportsRepo.getUnreadSubjectReportsCountByUserId
     ).toHaveBeenCalled()
     expect(
-      mockedProgressReportsRepo.getProgressReportOverviewUnreadStatsByUserId
+      mockedProgressReportsRepo.getUnreadSubjectReportsCountByUserId
     ).toHaveBeenCalledWith(userId)
     expect(
       mockedProgressReportsRepo.getLatestProgressReportIdBySubject

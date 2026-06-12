@@ -719,24 +719,24 @@ const updateProgressReportsReadAtByReportIdsIR: any = {"usedParamSet":{"reportId
 export const updateProgressReportsReadAtByReportIds = new PreparedQuery<IUpdateProgressReportsReadAtByReportIdsParams,IUpdateProgressReportsReadAtByReportIdsResult>(updateProgressReportsReadAtByReportIdsIR);
 
 
-/** 'GetProgressReportOverviewUnreadStatsByUserId' parameters type */
-export interface IGetProgressReportOverviewUnreadStatsByUserIdParams {
+/** 'GetUnreadSubjectReportsCountByUserId' parameters type */
+export interface IGetUnreadSubjectReportsCountByUserIdParams {
   userId: string;
 }
 
-/** 'GetProgressReportOverviewUnreadStatsByUserId' return type */
-export interface IGetProgressReportOverviewUnreadStatsByUserIdResult {
+/** 'GetUnreadSubjectReportsCountByUserId' return type */
+export interface IGetUnreadSubjectReportsCountByUserIdResult {
   subject: string;
   totalUnreadReports: number | null;
 }
 
-/** 'GetProgressReportOverviewUnreadStatsByUserId' query type */
-export interface IGetProgressReportOverviewUnreadStatsByUserIdQuery {
-  params: IGetProgressReportOverviewUnreadStatsByUserIdParams;
-  result: IGetProgressReportOverviewUnreadStatsByUserIdResult;
+/** 'GetUnreadSubjectReportsCountByUserId' query type */
+export interface IGetUnreadSubjectReportsCountByUserIdQuery {
+  params: IGetUnreadSubjectReportsCountByUserIdParams;
+  result: IGetUnreadSubjectReportsCountByUserIdResult;
 }
 
-const getProgressReportOverviewUnreadStatsByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":1044,"b":1051}]}],"statement":"SELECT\n    grouped_reports.subject,\n    COUNT(*) FILTER (WHERE grouped_reports.read_at IS NULL)::int AS total_unread_reports\nFROM (\n    SELECT\n        progress_reports.id,\n        progress_reports.read_at,\n        progress_reports.created_at,\n        subjects.name AS subject,\n        ROW_NUMBER() OVER (PARTITION BY STRING_AGG(progress_report_sessions.session_id::text, ',' ORDER BY progress_report_sessions.session_id) ORDER BY progress_reports.created_at DESC) AS row_num\n    FROM\n        progress_reports\n        JOIN progress_report_sessions ON progress_reports.id = progress_report_sessions.progress_report_id\n        JOIN progress_report_statuses ON progress_reports.status_id = progress_report_statuses.id\n        JOIN progress_report_analysis_types ON progress_report_sessions.progress_report_analysis_type_id = progress_report_analysis_types.id\n        LEFT JOIN sessions ON progress_report_sessions.session_id = sessions.id\n        LEFT JOIN subjects ON sessions.subject_id = subjects.id\n    WHERE\n        progress_reports.user_id = :userId!\n        AND progress_report_analysis_types.name = 'group'\n        AND progress_report_statuses.name = 'complete'\n    GROUP BY\n        progress_reports.id,\n        progress_reports.created_at,\n        subjects.name,\n        progress_reports.read_at) AS grouped_reports\nWHERE\n    grouped_reports.row_num = 1\nGROUP BY\n    grouped_reports.subject"};
+const getUnreadSubjectReportsCountByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":1044,"b":1051}]}],"statement":"SELECT\n    grouped_reports.subject,\n    COUNT(*) FILTER (WHERE grouped_reports.read_at IS NULL)::int AS total_unread_reports\nFROM (\n    SELECT\n        progress_reports.id,\n        progress_reports.read_at,\n        progress_reports.created_at,\n        subjects.name AS subject,\n        ROW_NUMBER() OVER (PARTITION BY STRING_AGG(progress_report_sessions.session_id::text, ',' ORDER BY progress_report_sessions.session_id) ORDER BY progress_reports.created_at DESC) AS row_num\n    FROM\n        progress_reports\n        JOIN progress_report_sessions ON progress_reports.id = progress_report_sessions.progress_report_id\n        JOIN progress_report_statuses ON progress_reports.status_id = progress_report_statuses.id\n        JOIN progress_report_analysis_types ON progress_report_sessions.progress_report_analysis_type_id = progress_report_analysis_types.id\n        LEFT JOIN sessions ON progress_report_sessions.session_id = sessions.id\n        LEFT JOIN subjects ON sessions.subject_id = subjects.id\n    WHERE\n        progress_reports.user_id = :userId!\n        AND progress_report_analysis_types.name = 'group'\n        AND progress_report_statuses.name = 'complete'\n    GROUP BY\n        progress_reports.id,\n        progress_reports.created_at,\n        subjects.name,\n        progress_reports.read_at) AS grouped_reports\nWHERE\n    grouped_reports.row_num = 1\nGROUP BY\n    grouped_reports.subject"};
 
 /**
  * Query generated from SQL:
@@ -773,7 +773,7 @@ const getProgressReportOverviewUnreadStatsByUserIdIR: any = {"usedParamSet":{"us
  *     grouped_reports.subject
  * ```
  */
-export const getProgressReportOverviewUnreadStatsByUserId = new PreparedQuery<IGetProgressReportOverviewUnreadStatsByUserIdParams,IGetProgressReportOverviewUnreadStatsByUserIdResult>(getProgressReportOverviewUnreadStatsByUserIdIR);
+export const getUnreadSubjectReportsCountByUserId = new PreparedQuery<IGetUnreadSubjectReportsCountByUserIdParams,IGetUnreadSubjectReportsCountByUserIdResult>(getUnreadSubjectReportsCountByUserIdIR);
 
 
 /** 'GetLatestProgressReportOverviewSubjectByUserId' parameters type */

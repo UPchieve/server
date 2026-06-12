@@ -305,7 +305,7 @@ RETURNING
     progress_reports.id AS ok;
 
 
-/* @name getProgressReportOverviewUnreadStatsByUserId */
+/* @name getUnreadSubjectReportsCountByUserId */
 SELECT
     grouped_reports.subject,
     COUNT(*) FILTER (WHERE grouped_reports.read_at IS NULL)::int AS total_unread_reports
