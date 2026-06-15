@@ -71,7 +71,6 @@ export default async function moderateSessionTranscript(
           userId: '',
           isVolunteer: false,
           source: 'whiteboard',
-          aggregateInfractions: true,
           recordInfractions: false,
           trace,
         })

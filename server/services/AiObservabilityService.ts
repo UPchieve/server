@@ -7,7 +7,11 @@ import { client } from '../clients/langfuse'
 import logger from '../logger'
 
 export type Trace = LangfuseTraceClient
-export type TraceName = 'progressReport' | 'whiteboardVision' | 'sessionSummary'
+export type TraceName =
+  | 'progressReport'
+  | 'whiteboardVision'
+  | 'sessionSummary'
+  | 'MODERATE_IMAGE'
 export type ModelObservationName =
   | 'getProgressReportResult'
   | 'describeWhiteboardSnapshot'

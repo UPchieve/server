@@ -53,7 +53,7 @@ export function routeModeration(router: Router): void {
           userId: user.id,
           isVolunteer: user.roleContext.hasRole('volunteer'),
           source: 'image_upload',
-          aggregateInfractions: true,
+          recordInfractions: true,
         })
         res.status(200).json(moderationResult)
       } catch (err) {
@@ -74,13 +74,11 @@ export function routeModeration(router: Router): void {
 
       logger.info(`Moderating video frame for session ${sessionId}`)
       try {
-        ModerationService.moderateImage({
+        ModerationService.moderateScreenshareImage({
           image: frameToModerate.buffer,
           sessionId,
           userId: user.id,
           isVolunteer: user.roleContext.hasRole('volunteer'),
-          source: 'screenshare',
-          aggregateInfractions: false,
         })
 
         res.status(201).send()

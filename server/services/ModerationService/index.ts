@@ -16,6 +16,7 @@ import { client as langfuseClient } from '../../clients/langfuse'
 import {
   addTraceTags,
   runWithModelObservation,
+  runWithTrace,
   Trace,
 } from '../AiObservabilityService'
 import {
@@ -938,73 +939,6 @@ async function handleImageModerationInfraction({
   )
 }
 
-function maybeHandleImageModerationInfraction(options: {
-  userId: string
-  sessionId: string
-  image: Buffer
-  source: Extract<
-    ModerationTypes.ModerationSource,
-    'screenshare' | 'image_upload' | 'whiteboard' | 'assignment_image'
-  >
-  moderationSettings: GetModerationSettingResult
-}) {
-  return function (
-    failures: ModerationTypes.ImageModerationInfractionReason[]
-  ) {
-    if (failures.length > 0) {
-      handleImageModerationInfraction({
-        userId: options.userId,
-        sessionId: options.sessionId,
-        infractionReasons: failures,
-        image: options.image,
-        source: options.source,
-        moderationSettings: options.moderationSettings,
-      })
-    }
-  }
-}
-
-/*
-  This function is designed to ban a user from live media as fast as possible.
-  To do that, we run each moderation check in parallel and issue moderation infractions
-  as they happen. By not waiting for all checks to complete, we can ensure that we
-  turn the screen share off as soon as possible.
-*/
-export async function moderateImageInBackground(options: {
-  image: Buffer
-  sessionId: string
-  userId: string
-  isVolunteer?: boolean
-  source: Extract<
-    ModerationTypes.ModerationSource,
-    'screenshare' | 'image_upload' | 'whiteboard' | 'assignment_image'
-  >
-  moderationSettings: GetModerationSettingResult
-  trace?: LangfuseTraceClient
-}) {
-  detectImageModerationInfractions(
-    options.image,
-    options.moderationSettings,
-    options.sessionId,
-    options.trace
-  ).then(maybeHandleImageModerationInfraction(options))
-
-  detectPersonInImage({
-    image: options.image,
-    sessionId: options.sessionId,
-    moderationSettings: options.moderationSettings,
-    trace: options.trace,
-  }).then(maybeHandleImageModerationInfraction(options))
-
-  detectTextModerationInfractions({
-    image: options.image,
-    sessionId: options.sessionId,
-    isVolunteer: options.isVolunteer,
-    moderationSettings: options.moderationSettings,
-    trace: options.trace,
-  }).then(maybeHandleImageModerationInfraction(options))
-}
-
 async function getAllImageModerationInfractions({
   image,
   sessionId,
@@ -1016,7 +950,7 @@ async function getAllImageModerationInfractions({
   sessionId?: string
   isVolunteer?: boolean
   moderationSettings: GetModerationSettingResult
-  trace?: LangfuseTraceClient
+  trace: LangfuseTraceClient
 }): Promise<{
   failureReasons: ModerationTypes.ImageModerationInfractionReason[]
 }> {
@@ -1577,79 +1511,133 @@ export async function moderateImage(options: {
   userId: string
   isVolunteer?: boolean
   source: ModerationTypes.ImageModerationSource
-  aggregateInfractions: boolean
   recordInfractions?: boolean
-  trace: Trace
+  trace?: Trace
 }): Promise<{
   isClean: boolean
   failures: string[]
-} | void> {
+}> {
   const {
     image,
     sessionId,
     userId,
     isVolunteer,
     source,
-    aggregateInfractions,
     recordInfractions,
     trace,
   } = options
-  const traceClient =
-    (trace ?? source !== 'screenshare')
-      ? langfuseClient.trace({
-          name: ModerationTypes.LangfuseTraceName.MODERATE_IMAGE,
-          metadata: {
-            sessionId,
-            isVolunteer,
-            source,
-            userId,
-          },
-        })
-      : undefined
+
   const resizedImage = await resize(image)
-
   const moderationSettings = await getModerationRealTimeSettings()
-
-  if (aggregateInfractions) {
-    const result = await getAllImageModerationInfractions({
-      image: resizedImage,
+  const { result } = await runWithTrace(
+    (trace) =>
+      getAllImageModerationInfractions({
+        image: resizedImage,
+        sessionId,
+        isVolunteer,
+        moderationSettings,
+        trace,
+      }),
+    {
+      trace,
+      name: 'MODERATE_IMAGE',
+      userId,
       sessionId,
-      isVolunteer,
-      moderationSettings,
-      trace: traceClient,
-    })
-    if (isEmpty(result.failureReasons)) return { isClean: true, failures: [] }
-
-    if (recordInfractions) {
-      await handleImageModerationInfraction({
+      metadata: {
         userId,
         sessionId,
-        infractionReasons: result.failureReasons,
-        image: resizedImage,
+        isVolunteer,
         source,
-        moderationSettings,
-      })
+      },
     }
+  )
+  if (isEmpty(result.failureReasons)) {
+    return { isClean: true, failures: [] }
+  }
 
-    // Duplicate moderation failures may be present
-    // if different objects in the image trigger it
-    const failures: string[] = [
-      ...new Set<string>(
-        result.failureReasons.map((failure) => failure.reason)
-      ),
-    ]
-
-    return { isClean: false, failures }
-  } else {
-    await moderateImageInBackground({
-      image: resizedImage,
-      sessionId: sessionId!,
+  if (recordInfractions) {
+    await handleImageModerationInfraction({
       userId,
-      isVolunteer,
+      sessionId,
+      infractionReasons: result.failureReasons,
+      image: resizedImage,
       source,
       moderationSettings,
     })
   }
+
+  // Duplicate moderation failures may be present
+  // if different objects in the image trigger it
+  const failures: string[] = [
+    ...new Set<string>(result.failureReasons.map((failure) => failure.reason)),
+  ]
+
+  return { isClean: false, failures }
+}
+
+/*
+  This function is designed to ban a user from live media as fast as possible.
+  To do that, we run each moderation check in parallel and issue moderation infractions
+  as they happen. By not waiting for all checks to complete, we can ensure that we
+  turn the screen share off as soon as possible.
+
+  NOTE: Due to high volume of screenshare images:
+    1. Do not run in trace.
+    2. Do not use LLM (cost).
+*/
+export async function moderateScreenshareImage(options: {
+  image: Buffer
+  sessionId: string
+  userId: string
+  isVolunteer?: boolean
+}) {
+  const { image, userId, sessionId, isVolunteer } = options
+  const resizedImage = await resize(image, {
+    width: 1000,
+  })
+  const moderationSettings = await getModerationRealTimeSettings()
+
+  const moderationChecks = [
+    detectImageModerationInfractions.bind(
+      null,
+      resizedImage,
+      moderationSettings,
+      sessionId
+    ),
+    detectPersonInImage.bind(null, {
+      image: resizedImage,
+      sessionId,
+      moderationSettings,
+    }),
+    detectTextModerationInfractions.bind(null, {
+      image: resizedImage,
+      sessionId: sessionId,
+      isVolunteer: isVolunteer,
+      moderationSettings: moderationSettings,
+    }),
+  ]
+
+  moderationChecks.forEach((checkFn) => {
+    checkFn()
+      .then((infractions) => {
+        if (!isEmpty(infractions)) {
+          handleImageModerationInfraction({
+            userId,
+            sessionId,
+            infractionReasons: infractions,
+            image: resizedImage,
+            source: 'screenshare',
+            moderationSettings,
+          })
+        }
+      })
+      .catch((err) => {
+        logger.error(
+          { sessionId, userId, err },
+          'Failed to process screenshare moderation check.'
+        )
+      })
+  })
 }
 
 /**
