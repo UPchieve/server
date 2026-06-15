@@ -84,9 +84,8 @@ import type {
   CurrentSessionPublic,
   SessionUserInfoPublic,
 } from '../contracts/sessions'
-import type { MessageForFrontend, CurrentSession } from '../types/session'
-import { hoursInSeconds } from '../utils/time-utils'
-import Case from 'case'
+import type { CurrentSession } from '../types/session'
+import { hoursInSeconds, minutesInMs } from '../utils/time-utils'
 
 export async function reviewSession(data: unknown) {
   const { sessionId, reviewed, toReview } =
@@ -727,13 +726,10 @@ export async function startSession(
     }
   }
 
-  // Auto end the session after 45 minutes if the session is unmatched.
-  const delay = 1000 * 60 * 45
-  await QueueService.add(
-    Jobs.EndUnmatchedSession,
-    { sessionId: newSession.id },
-    { delay }
-  )
+  await QueueService.add(Jobs.EndUnmatchedSession, {
+    sessionId: newSession.id,
+    delay: minutesInMs(45),
+  })
 
   return {
     ...newSession,
