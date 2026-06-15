@@ -1487,26 +1487,16 @@ export async function updateSessionLastSeen(sessionId: Uuid, userId: Uuid) {
     throw new RepoUpdateError('Did not update session last seen.')
 }
 
-export type SessionWithUnreadDMs = {
-  id: Ulid
-  timeTutored: number
-}
-
 export async function sessionsWithUnreadDMs(
-  userId: Uuid
-): Promise<SessionWithUnreadDMs[]> {
+  userId: Uuid,
+  minTimeTutored: number
+): Promise<string[]> {
   try {
     const result = await pgQueries.sessionsWithUnreadDMs.run(
-      { userId },
+      { userId, minTimeTutored },
       getClient()
     )
-    return result.map((r) => {
-      const row = makeRequired(r)
-      return {
-        id: row.id,
-        timeTutored: Number(row.timeTutored),
-      }
-    })
+    return result.map((r) => makeRequired(r).id)
   } catch (err) {
     throw new RepoReadError(err)
   }
