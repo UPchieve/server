@@ -1357,6 +1357,7 @@ AND sm.created_at > s.ended_at
 AND sm.sender_id != :userId!
 AND (sls.last_seen_at IS NULL
     OR sm.created_at > sls.last_seen_at)
+AND s.time_tutored >= :minTimeTutored!
 GROUP BY
     s.id;
 

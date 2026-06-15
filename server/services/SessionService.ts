@@ -1427,7 +1427,11 @@ export async function updateSessionLastSeen(
 }
 
 export async function sessionsWithUnreadDMs(userId: Ulid): Promise<string[]> {
-  return SessionRepo.sessionsWithUnreadDMs(userId)
+  const sessions = await SessionRepo.sessionsWithUnreadDMs(
+    userId,
+    config.minSessionLength
+  )
+  return sessions
 }
 
 export async function handleSessionBreakout(

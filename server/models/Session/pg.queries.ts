@@ -9,6 +9,8 @@ export type DateOrString = Date | string;
 
 export type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
 
+export type NumberOrString = number | string;
+
 export type stringArray = (string)[];
 
 /** 'AddNotification' parameters type */
@@ -2907,6 +2909,7 @@ export const updateSessionLastSeen = new PreparedQuery<IUpdateSessionLastSeenPar
 
 /** 'SessionsWithUnreadDMs' parameters type */
 export interface ISessionsWithUnreadDMsParams {
+  minTimeTutored: NumberOrString;
   userId: string;
 }
 
@@ -2921,7 +2924,7 @@ export interface ISessionsWithUnreadDMsQuery {
   result: ISessionsWithUnreadDMsResult;
 }
 
-const sessionsWithUnreadDMsIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":203,"b":210},{"a":234,"b":241},{"a":267,"b":274},{"a":328,"b":335}]}],"statement":"SELECT\n    s.id\nFROM\n    upchieve.session_messages sm\n    JOIN upchieve.sessions s ON sm.session_id = s.id\n    LEFT JOIN upchieve.session_last_seen sls ON sls.session_id = s.id\n        AND sls.user_id = :userId!\nWHERE (s.student_id = :userId!\n    OR s.volunteer_id = :userId!)\nAND sm.created_at > s.ended_at\nAND sm.sender_id != :userId!\nAND (sls.last_seen_at IS NULL\n    OR sm.created_at > sls.last_seen_at)\nGROUP BY\n    s.id"};
+const sessionsWithUnreadDMsIR: any = {"usedParamSet":{"userId":true,"minTimeTutored":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":203,"b":210},{"a":234,"b":241},{"a":267,"b":274},{"a":328,"b":335}]},{"name":"minTimeTutored","required":true,"transform":{"type":"scalar"},"locs":[{"a":430,"b":445}]}],"statement":"SELECT\n    s.id\nFROM\n    upchieve.session_messages sm\n    JOIN upchieve.sessions s ON sm.session_id = s.id\n    LEFT JOIN upchieve.session_last_seen sls ON sls.session_id = s.id\n        AND sls.user_id = :userId!\nWHERE (s.student_id = :userId!\n    OR s.volunteer_id = :userId!)\nAND sm.created_at > s.ended_at\nAND sm.sender_id != :userId!\nAND (sls.last_seen_at IS NULL\n    OR sm.created_at > sls.last_seen_at)\nAND s.time_tutored >= :minTimeTutored!\nGROUP BY\n    s.id"};
 
 /**
  * Query generated from SQL:
@@ -2939,6 +2942,7 @@ const sessionsWithUnreadDMsIR: any = {"usedParamSet":{"userId":true},"params":[{
  * AND sm.sender_id != :userId!
  * AND (sls.last_seen_at IS NULL
  *     OR sm.created_at > sls.last_seen_at)
+ * AND s.time_tutored >= :minTimeTutored!
  * GROUP BY
  *     s.id
  * ```
