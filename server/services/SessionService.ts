@@ -726,10 +726,15 @@ export async function startSession(
     }
   }
 
-  await QueueService.add(Jobs.EndUnmatchedSession, {
-    sessionId: newSession.id,
-    delay: minutesInMs(45),
-  })
+  await QueueService.add(
+    Jobs.EndUnmatchedSession,
+    {
+      sessionId: newSession.id,
+    },
+    {
+      delay: minutesInMs(45),
+    }
+  )
 
   return {
     ...newSession,
