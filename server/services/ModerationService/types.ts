@@ -26,6 +26,10 @@ export type ModerationSource =
   | 'text_chat'
   | 'whiteboard'
   | 'whiteboard-text-node'
+export type ImageModerationSource = Extract<
+  ModerationSource,
+  'image_upload' | 'screenshare' | 'assignment_image' | 'whiteboard'
+>
 
 export type ModeratedLink = {
   reason: LiveMediaModerationCategories.LINK

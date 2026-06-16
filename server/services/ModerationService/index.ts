@@ -16,6 +16,7 @@ import { client as langfuseClient } from '../../clients/langfuse'
 import {
   addTraceTags,
   runWithModelObservation,
+  Trace,
 } from '../AiObservabilityService'
 import {
   CENSORED_BY,
@@ -1570,31 +1571,29 @@ export async function genericModerateImage({
   return result.failureReasons
 }
 
-export const moderateImage = async ({
-  image,
-  sessionId,
-  userId,
-  isVolunteer,
-  source,
-  aggregateInfractions,
-  recordInfractions = true,
-  trace,
-}: {
+export async function moderateImage(options: {
   image: Buffer
   sessionId?: string
   userId: string
   isVolunteer?: boolean
+  source: ModerationTypes.ImageModerationSource
   aggregateInfractions: boolean
-  source: Extract<
-    ModerationTypes.ModerationSource,
-    'screenshare' | 'image_upload' | 'whiteboard' | 'assignment_image'
-  >
   recordInfractions?: boolean
-  trace?: LangfuseTraceClient
+  trace: Trace
 }): Promise<{
   isClean: boolean
   failures: string[]
-} | void> => {
+} | void> {
+  const {
+    image,
+    sessionId,
+    userId,
+    isVolunteer,
+    source,
+    aggregateInfractions,
+    recordInfractions,
+    trace,
+  } = options
   const traceClient =
     (trace ?? source !== 'screenshare')
       ? langfuseClient.trace({
@@ -1607,7 +1606,6 @@ export const moderateImage = async ({
           },
         })
       : undefined
-
   const resizedImage = await resize(image)
 
   const moderationSettings = await getModerationRealTimeSettings()
