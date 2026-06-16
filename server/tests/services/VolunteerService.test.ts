@@ -327,7 +327,7 @@ describe('submitBackgroundInfo', () => {
         mockedNTHSService.getNTHSGroupsByMember.mockResolvedValue([])
         await VolunteerService.submitVolunteerBackgroundInfo(volunteer.id, {
           ...update,
-          occupations: [VolunteerOccupations.UNDERGRAD_STUDENT],
+          occupations: [VolunteerOccupations.HIGH_SCHOOL_STUDENT],
           gradeLevel,
         })
         expect(
