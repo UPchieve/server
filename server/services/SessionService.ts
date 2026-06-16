@@ -733,6 +733,7 @@ export async function startSession(
     },
     {
       delay: minutesInMs(45),
+      jobId: `${Jobs.TextVolunteers}:${newSession.id}`,
     }
   )
 

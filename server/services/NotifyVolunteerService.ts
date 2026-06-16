@@ -46,6 +46,7 @@ export async function beginRegularNotifications(
     },
     {
       delay: secondsInMs(30),
+      jobId: `${Jobs.TextVolunteers}:${session.id}`,
     }
   )
 }
