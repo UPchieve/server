@@ -494,6 +494,10 @@ const config = {
   // `require('crypto').randomBytes(32).toString('hex')`
   totpEncryptionKey: process.env.TOTP_ENCRYPTION_KEY || 'bogus',
   totpIssuer: process.env.TOTP_ISSUER || 'upchieve_bogus',
+
+  //Load Test
+  loadTestBypassRecaptcha: process.env.LOAD_TEST_BYPASS_RECAPTCHA,
+  loadTestKey: process.env.LOAD_TEST_KEY,
 } as const
 
 export default config
