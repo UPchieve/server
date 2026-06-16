@@ -546,7 +546,7 @@ FROM
             user_id = :userId!
             AND passed IS TRUE) AS users_quizzes ON TRUE
     LEFT JOIN schools ON schools.id = COALESCE(student_profiles.school_id, teacher_profiles.school_id)
-    LEFT JOIN current_grade_levels cgl ON cgl.user_id = student_profiles.user_id
+    LEFT JOIN current_grade_levels cgl ON cgl.user_id = users.id
     LEFT JOIN users_roles ON users_roles.user_id = users.id
     LEFT JOIN (
         SELECT

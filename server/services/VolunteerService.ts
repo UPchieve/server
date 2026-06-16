@@ -1,6 +1,7 @@
 import {
   ACCOUNT_USER_ACTIONS,
   EVENTS,
+  GRADES,
   PHOTO_ID_STATUS,
   STATUS,
   TRAINING_QUIZZES,
@@ -9,6 +10,7 @@ import { Ulid, Uuid } from '../models/pgUtils'
 import { createAccountAction } from '../models/UserAction'
 import * as VolunteerRepo from '../models/Volunteer'
 import * as UsersSchoolsRepo from '../models/UsersSchools'
+import * as UsersGradeLevelRepo from '../models/UsersGradeLevels'
 import { Jobs } from '../worker/jobs'
 import * as AnalyticsService from './AnalyticsService'
 import * as NTHSService from './NTHSGroupsService'
@@ -30,6 +32,7 @@ import {
 import * as cache from '../cache'
 import { getSubjectsWithTopic } from './SubjectsService'
 import logger from '../logger'
+import { isHighSchoolGrade } from '../utils/grade-levels'
 
 export interface HourSummaryStats {
   totalCoachingHours: number
@@ -309,11 +312,27 @@ export async function submitVolunteerBackgroundInfo(
       // NTHS members have to be high schoolers. If this user is part of any NTHS chapters, and they are not in high school,
       // they must be removed from the group immediately.
       if (
-        !update.occupations.includes(VolunteerOccupations.HIGH_SCHOOL_STUDENT)
+        !update.occupations.includes(
+          VolunteerOccupations.HIGH_SCHOOL_STUDENT
+        ) ||
+        !update.gradeLevel ||
+        !isHighSchoolGrade(update.gradeLevel)
       ) {
         wasRemovedFromNTHS = true
         await NTHSService.deactivateNonHighSchoolMember(userId, nthsGroups, tc)
       }
+    }
+
+    if (update.gradeLevel) {
+      await UsersGradeLevelRepo.upsertUserGradeLevel(
+        userId,
+        update.gradeLevel,
+        tc
+      )
+    } else if (
+      update.occupations?.includes(VolunteerOccupations.UNDERGRAD_STUDENT)
+    ) {
+      await UsersGradeLevelRepo.upsertUserGradeLevel(userId, GRADES.COLLEGE, tc)
     }
   })
 
