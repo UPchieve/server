@@ -58,6 +58,37 @@ export type ImageModerationContext =
   | SessionContext
   | PostSessionContext
 
+export const IMAGE_MODERATION_CATEGORIES = [
+  'ADDRESS',
+  'Alcohol',
+  'Drugs & Tobacco',
+  'EMAIL',
+  'Explicit',
+  'Gambling',
+  'GRAPHIC',
+  'HARASSMENT_OR_ABUSE',
+  'HATE_SPEECH',
+  'Hate Symbols',
+  'INSULT',
+  'LINK',
+  'Non-Explicit Nudity of Intimate parts and Kissing',
+  'Person detected in image',
+  'PHONE',
+  'PROFANITY',
+  'Rude Gestures',
+  'SEXUAL',
+  'Swimwear or Underwear',
+  'Violence',
+  'VIOLENCE_OR_THREAT',
+  'Visually Disturbing',
+] as const
+export type ModerationCategory = (typeof IMAGE_MODERATION_CATEGORIES)[number]
+export type ImageModerationInfraction = {
+  category: ModerationCategory
+  confidence: number
+  text?: string
+}
+
 export type ModeratedLink = {
   reason: LiveMediaModerationCategories.LINK
   details: {

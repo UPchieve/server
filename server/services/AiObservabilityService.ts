@@ -22,6 +22,7 @@ export type ModelObservationName =
   | 'detectPerson'
   | 'detectPiiInText'
   | 'isImageEducational'
+  | 'moderateImage'
 export type TraceTag = 'flagged-by-moderation'
 
 export type TraceOptions = {

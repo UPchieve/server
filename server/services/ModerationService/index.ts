@@ -461,16 +461,17 @@ export function filterDisallowedDomains({
   allowedDomains: string[]
   links: ModerationTypes.ModeratedLink[]
 }): ModerationTypes.ModeratedLink[] {
-  const linksWithDisallowedDomain = (link: ModerationTypes.ModeratedLink) =>
-    allowedDomains.every(
-      // Check if the link contains any of the allowed domains
-      // if it does, filter it out of this set and do not moderate it
-      // allow all .edu domains
-      (allowed) =>
-        link.details.text.toLowerCase().indexOf(allowed) === -1 &&
-        link.details.text.indexOf('.edu') === -1
-    )
-  return links.filter(linksWithDisallowedDomain)
+  return links.filter(
+    (link) => !isAllowedUrl(allowedDomains, link.details.text)
+  )
+}
+
+function isAllowedUrl(allowedDomains: string[], url: string = '') {
+  const lowercased = url.toLowerCase()
+
+  if (lowercased.includes('.edu')) return true
+
+  return allowedDomains.some((domain) => lowercased.includes(domain))
 }
 
 async function checkForFullAddresses({
@@ -1417,7 +1418,7 @@ export async function moderateImage(
   trace?: Trace
 ): Promise<{
   isClean: boolean
-  failures: string[]
+  failures: ModerationTypes.ModerationCategory[]
 }> {
   const { userId, sessionId, assignmentId, isVolunteer, source } = context as {
     userId?: string
@@ -1429,15 +1430,74 @@ export async function moderateImage(
 
   const resizedImage = await resize(image)
   const moderationSettings = await getModerationRealTimeSettings()
+
+  const toolName = 'json_response'
+
   const { result } = await runWithTrace(
-    (trace) =>
-      getAllImageModerationInfractions({
-        image: resizedImage,
-        sessionId,
-        isVolunteer,
-        moderationSettings,
-        trace,
-      }),
+    async (trace) => {
+      const promptData = await PromptService.getPromptWithFallback(
+        PromptService.PromptName.MODERATE_IMAGE
+      )
+
+      return runWithModelObservation(
+        () =>
+          invokeModel<{
+            infractions: ModerationTypes.ImageModerationInfraction[]
+          }>({
+            modelId: config.awsBedrockSonnet4Id,
+            images: [resizedImage],
+            prompt: promptData.prompt,
+            tools_option: {
+              tool_choice: {
+                type: BedrockToolChoice.TOOL,
+                name: toolName,
+              },
+              tools: [
+                {
+                  name: toolName,
+                  description:
+                    'JSON response as type ImageModerationInfractions',
+                  input_schema: {
+                    type: 'object',
+                    properties: {
+                      infractions: {
+                        type: 'array',
+                        items: {
+                          type: 'object',
+                          properties: {
+                            category: {
+                              type: 'string',
+                              enum: [
+                                ...ModerationTypes.IMAGE_MODERATION_CATEGORIES,
+                              ],
+                            },
+                            confidence: {
+                              type: 'number',
+                              description: 'Confidence score from 0 to 1',
+                            },
+                            text: {
+                              type: 'string',
+                              description:
+                                'Text extracted from the image related to this infraction',
+                            },
+                          },
+                          required: ['category', 'confidence'],
+                        },
+                      },
+                    },
+                    required: ['infractions'],
+                  },
+                },
+              ],
+            },
+          }),
+        {
+          trace,
+          name: 'moderateImage',
+          model: config.awsBedrockSonnet4Id,
+        }
+      )
+    },
     {
       trace,
       name: 'MODERATE_IMAGE',
@@ -1452,7 +1512,23 @@ export async function moderateImage(
       },
     }
   )
-  if (isEmpty(result.failureReasons)) {
+
+  const allowedDomains = await ShareableDomainsRepo.getAllowedDomains()
+  const infractions = result.infractions
+    .filter((i) => {
+      const category = i.category
+      const confidence = i.confidence
+      if (category === 'LINK' && isAllowedUrl(allowedDomains, i.text)) {
+        return false
+      }
+      return (
+        moderationSettings[category] &&
+        confidence >= moderationSettings[category].threshold
+      )
+    })
+    .map((i) => i.category)
+
+  if (isEmpty(infractions)) {
     return { isClean: true, failures: [] }
   }
 
@@ -1466,13 +1542,9 @@ export async function moderateImage(
     source,
   })
 
-  // Duplicate moderation failures may be present
-  // if different objects in the image trigger it
-  const failures: string[] = [
-    ...new Set<string>(result.failureReasons.map((failure) => failure.reason)),
-  ]
-
-  return { isClean: false, failures }
+  // Duplicate moderation infractions might be present if different
+  // objects/text in the image trigger the same category.
+  return { isClean: false, failures: [...new Set(infractions)] }
 }
 
 /*

@@ -39,7 +39,8 @@ export enum BedrockToolChoice {
 export type BedrockTools = Array<{
   name: string
   description: string
-  input_schema: { type: string; properties: object; required: Array<string> }
+  strict?: boolean
+  input_schema: { type: string; properties: object; required?: Array<string> }
 }>
 
 export type BedrockToolsAttribute = {
