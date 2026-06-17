@@ -35,6 +35,8 @@ import * as PresenceService from '../../services/PresenceService'
 import { observeWebTransaction } from '../../utils/newRelicUtil'
 import { extractSocketIp } from '../../utils/extract-socket-ip'
 import sessionMiddleware from '../middleware/session'
+import * as DocEditorModerationService from '../../services/DocEditorModerationService'
+import type { Uuid } from '../../types/shared'
 
 export type SessionMessageType = 'audio-transcription' // todo - add 'chat' later
 
@@ -533,6 +535,95 @@ export function routeSockets(io: Server): void {
                 },
                 'Failed to transmit Quill v2 doc update.'
               )
+            }
+          }
+        )
+      }
+    )
+
+    socket.on(
+      'transmitQuillBufferV2',
+      async (
+        {
+          sessionId,
+          updates,
+        }: {
+          sessionId: Uuid
+          updates: string[]
+        },
+        ack: () => void
+      ) => {
+        await observeWebTransaction(
+          '/socket-io/transmitQuillBufferV2',
+          async () => {
+            const userId = socket.request.user?.id
+
+            try {
+              const user = await extractSocketUser(socket)
+              if (!user.id)
+                throw new Error('No user ID on socket in transmitQuillBufferV2')
+
+              if (await SessionService.didSessionEnd(sessionId)) {
+                logger.warn(
+                  { sessionId },
+                  'transmitQuillBufferV2 received after session ended'
+                )
+                return
+              }
+              if (!updates || updates.length === 0) return
+
+              const { result: regexResult, windowText } =
+                await DocEditorModerationService.regexCheckUpdates({
+                  sessionId,
+                  updates,
+                })
+
+              if (regexResult.isClean) {
+                for (const update of updates) {
+                  await QuillDocService.addDocumentUpdate(sessionId, update)
+                }
+                io.to(getSessionRoom(sessionId))
+                  .except(user.id)
+                  .emit('partnerQuillDeltaV2', { updates })
+                return
+              }
+
+              // Block client updates while AI moderation runs
+              socket.emit('quillModerationPending')
+
+              const aiResult =
+                await DocEditorModerationService.moderateDocumentEditorWindowText(
+                  {
+                    sessionId,
+                    senderId: user.id,
+                    userType: user.roleContext.activeRole,
+                    windowText: windowText!,
+                  }
+                )
+              if (aiResult.isClean) {
+                for (const update of updates) {
+                  await QuillDocService.addDocumentUpdate(sessionId, update)
+                }
+                io.to(getSessionRoom(sessionId))
+                  .except(user.id)
+                  .emit('partnerQuillDeltaV2', { updates })
+                socket.emit('quillModerationApproved')
+              } else {
+                // Send the last clean document state so the client can reset to it
+                const approvedUpdates =
+                  await QuillDocService.getDocumentUpdates(sessionId)
+                socket.emit('quillBufferRejected', {
+                  approvedUpdates,
+                  failures: aiResult.failures,
+                })
+              }
+            } catch (err) {
+              logger.error(
+                { err, sessionId, userId },
+                'Failed to process transmitQuillBufferV2'
+              )
+            } finally {
+              ack()
             }
           }
         )

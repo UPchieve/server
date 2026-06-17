@@ -6,6 +6,7 @@ export enum LangfuseTraceName {
   MODERATE_IMAGE = 'MODERATE_IMAGE',
   MODERATE_WHITEBOARD_TEXT_NODE = 'moderateWhiteboardTextNode',
   MODERATE_ASSIGNMENT_INFO = 'moderateAssignmentInfo',
+  MODERATE_DOC_EDITOR = 'moderateDocEditor',
 }
 export enum LangfuseGenerationName {
   SESSION_MESSAGE_MODERATION_DECISION = 'getModerationDecision',

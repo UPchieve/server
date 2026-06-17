@@ -69,6 +69,7 @@ import { weightModerationInfractions } from './ModerationPenaltyService'
 import * as Regex from './regex'
 import { secondsInMs } from '../../utils/time-utils'
 import Logger from '../../logger'
+import { Uuid } from '../../types/shared'
 
 // Image moderation
 const AWS_CONFIG = {
@@ -1871,5 +1872,53 @@ export function getSessionFlagByModerationReason(
       return UserSessionFlags.safetyConcern
     default:
       return UserSessionFlags.generalModerationIssue
+  }
+}
+
+export async function moderateDocEditor({
+  sessionId,
+  senderId,
+  userType,
+  text,
+}: {
+  sessionId: Uuid
+  senderId: Uuid
+  userType: PrimaryUserRole
+  text: string
+}) {
+  try {
+    const trace = langfuseClient.trace({
+      name: ModerationTypes.LangfuseTraceName.MODERATE_DOC_EDITOR,
+      metadata: { sessionId, userId: senderId },
+      input: text,
+    })
+
+    const censoredSessionMessage = await createCensoredMessage({
+      senderId,
+      message: text,
+      sessionId,
+      censoredBy: CENSORED_BY.regex,
+    })
+
+    const response: { results: ModerationAIResult } | null =
+      await getAiModerationResult(
+        censoredSessionMessage,
+        userType === 'volunteer',
+        trace
+      )
+
+    return {
+      isClean: response?.results.appropriate ?? false,
+      failures: response?.results.reasons ?? {},
+    }
+  } catch (err) {
+    logger.error(
+      { err, sessionId },
+      '[DOC_EDITOR_MODERATION] AI moderation failed'
+    )
+    return {
+      isClean: false,
+      failures: {},
+    }
   }
 }

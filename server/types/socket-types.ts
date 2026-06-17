@@ -1,6 +1,6 @@
 import { UserContactInfo } from '../models/User'
 import { Socket } from 'socket.io'
-import { Ulid } from '../models/pgUtils'
+import type { Uuid, Ulid } from '../types/shared'
 import { UnfulfilledSessions } from '../models/Session'
 import Delta from 'quill-delta'
 import { SessionMessageType } from '../router/api/sockets'
@@ -55,6 +55,10 @@ export type ClientToServerEvents = {
   }) => void
   addPartnerLiveMediaBan: (data: { sessionId: string }) => void
   joinedLiveMedia: (data: { sessionId: string }) => void
+  transmitQuillBufferV2: (
+    data: { sessionId: Uuid; updates: string[] },
+    ack: () => void
+  ) => void
 }
 
 export type ServerToClientEvents = {
@@ -93,6 +97,12 @@ export type ServerToClientEvents = {
   partnerImageUploadSuccess: () => void
   partnerAckLiveMediaBan: (data: { isBanned: boolean }) => void
   partnerJoinedLiveMedia: () => void
+  quillModerationPending: () => void
+  quillModerationApproved: () => void
+  quillBufferRejected: (data: {
+    approvedUpdates: string[]
+    failures?: Record<string, string[]>
+  }) => void
 }
 
 export type InterServerEvents = {}
