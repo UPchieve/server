@@ -125,7 +125,7 @@ async function formatDocumentEditorPrompt(
     try {
       const docImages = await getDocEditorImages(session.quillDoc)
       if (docImages.length > 0) {
-        imageText = await getProgressReportImageText(docImages)
+        imageText = await getProgressReportImageText(docImages, session.id)
       }
     } catch (error) {
       logger.warn(
@@ -181,12 +181,16 @@ async function formatWhiteboardPrompt(
 }
 
 async function getProgressReportImageText(
-  imageBuffers: Buffer[]
+  imageBuffers: Buffer[],
+  sessionId?: Ulid
 ): Promise<string> {
   if (!imageBuffers.length) return ''
   let imageText = ''
   const trace = traceClient.trace({
-    name: GET_PROGRESS_REPORT_IMAGE_TEXT_TRACE_NAME, // @TODO add sessionId in here under sessionId and metadata
+    name: GET_PROGRESS_REPORT_IMAGE_TEXT_TRACE_NAME,
+    metadata: {
+      sessionId,
+    },
   })
   for (const image of imageBuffers) {
     try {
