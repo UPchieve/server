@@ -14,7 +14,6 @@ export enum PromptName {
   SESSION_SUMMARY_TEACHER_PROMPT = 'session-summary-teacher-prompt',
   SESSION_SUMMARY_STUDENT_PROMPT = 'session-summary-student-prompt',
   GET_QUESTIONABLE_LINK_MODERATION_DECISION = 'get-questionable-link-moderation-decision',
-  IS_IMAGE_EDUCATIONAL = 'is-image-for-educational-use',
   MODERATE_IMAGE = 'moderate-image',
   WHITEBOARD_VISION_PROMPT = 'whiteboard-vision-prompt',
   DOCUMENT_EDITOR_TOOL_PROMPT = 'document-editor-tool-prompt',
@@ -38,7 +37,6 @@ export const fallbackPrompts: { [promptName in PromptName]: string } = {
     FallbackPrompts.SESSION_SUMMARY_STUDENT_FALLBACK_PROMPT,
   [PromptName.GET_QUESTIONABLE_LINK_MODERATION_DECISION]:
     FallbackPrompts.QUESTIONABLE_LINK_FALLBACK_MODERATION_PROMPT,
-  [PromptName.IS_IMAGE_EDUCATIONAL]: '', // TODO: Add fallback prompt instead of erroring.
   [PromptName.MODERATE_IMAGE]: FallbackPrompts.IMAGE_MODERATION_FALLBACK_PROMPT,
   [PromptName.WHITEBOARD_VISION_PROMPT]:
     FallbackPrompts.WHITEBOARD_VISION_FALLBACK_PROMPT,
