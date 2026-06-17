@@ -610,7 +610,7 @@ describe('ModerationService', () => {
       )
     })
 
-    describe('handleModerationInfraction', () => {
+    describe('handleLiveMediaModerationInfraction', () => {
       const userId = 'user-123'
       const sessionId = 'session-456'
 
@@ -630,7 +630,7 @@ describe('ModerationService', () => {
         mockModerationInfractionsRepo.getModerationInfractionsByUser.mockResolvedValue(
           []
         )
-        await ModerationService.handleModerationInfraction(
+        await ModerationService.handleLiveMediaModerationInfraction(
           userId,
           sessionId,
           profanityReason,
@@ -642,40 +642,17 @@ describe('ModerationService', () => {
         ).toHaveBeenCalledTimes(1)
         expect(
           mockModerationInfractionsRepo.insertModerationInfraction
-        ).toHaveBeenCalledWith(
-          {
-            userId,
-            sessionId,
-            reason: profanityReason.failures,
-          },
-          expect.anything()
-        )
-        expect(
-          mockModerationInfractionsRepo.getModerationInfractionsByUser
-        ).toHaveBeenCalledWith(
-          userId,
-          {
-            active: true,
-            sessionId,
-          },
-          expect.anything()
-        )
-      })
-
-      it('Does not write an infraction if the source is image_upload', async () => {
-        mockModerationInfractionsRepo.getModerationInfractionsByUser.mockResolvedValue(
-          []
-        )
-        await ModerationService.handleModerationInfraction(
+        ).toHaveBeenCalledWith({
           userId,
           sessionId,
-          profanityReason,
-          'image_upload',
-          moderationSettings
-        )
+          reason: profanityReason.failures,
+        })
         expect(
-          mockModerationInfractionsRepo.insertModerationInfraction
-        ).not.toHaveBeenCalled()
+          mockModerationInfractionsRepo.getModerationInfractionsByUser
+        ).toHaveBeenCalledWith(userId, {
+          active: true,
+          sessionId,
+        })
       })
 
       it('Skip handling infractions if user already has a person in image infraction', async () => {
@@ -695,7 +672,7 @@ describe('ModerationService', () => {
 
         const mockSocketServiceInstance = mockSocketService.getInstance()
 
-        await ModerationService.handleModerationInfraction(
+        await ModerationService.handleLiveMediaModerationInfraction(
           userId,
           sessionId,
           personInImageReason,
@@ -722,7 +699,7 @@ describe('ModerationService', () => {
 
         const mockSocketServiceInstance = mockSocketService.getInstance()
 
-        await ModerationService.handleModerationInfraction(
+        await ModerationService.handleLiveMediaModerationInfraction(
           userId,
           sessionId,
           personInImageReason,

@@ -367,7 +367,6 @@ export function routeSockets(io: Server): void {
               sessionId,
               userId: user.id,
               saidAt: saidAt!,
-              source: 'audio_transcription',
             })
             if (!result.isClean) {
               const sanitized = (result as SanitizedTranscriptModerationResult)

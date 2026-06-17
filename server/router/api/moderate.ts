@@ -47,14 +47,15 @@ export function routeModeration(router: Router): void {
       }
 
       try {
-        const moderationResult = await ModerationService.moderateImage({
-          image: imageToModerate.buffer,
-          sessionId,
-          userId: user.id,
-          isVolunteer: user.roleContext.hasRole('volunteer'),
-          source: 'image_upload',
-          recordInfractions: true,
-        })
+        const moderationResult = await ModerationService.moderateImage(
+          imageToModerate.buffer,
+          {
+            source: 'image_upload',
+            sessionId,
+            userId: user.id,
+            isVolunteer: user.roleContext.hasRole('volunteer'),
+          }
+        )
         res.status(200).json(moderationResult)
       } catch (err) {
         resError(res, err)

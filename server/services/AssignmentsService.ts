@@ -28,7 +28,6 @@ import { getSubjectsForTopicByTopicId } from './SubjectsService'
 import logger from '../logger'
 import { isEmpty } from 'lodash'
 import * as ModerationTypes from './ModerationService/types'
-import { ImageModerationInfractionReason } from './ModerationService/types'
 import { extractPdfContent } from '../utils/file-utils'
 import { moderateAssignmentInfo } from './ModerationService/index'
 
@@ -385,26 +384,10 @@ async function getClassAssignments(classId: Ulid, tc: TransactionClient) {
   })
 }
 
-async function moderateAssignmentImage(
-  file: Buffer,
-  assignmentId: string
-): Promise<ImageModerationInfractionReason[]> {
-  const moderationResult = await ModerationService.genericModerateImage({
-    image: file,
-  })
-  if (moderationResult.length) {
-    await ModerationService.saveImageToBucket({
-      image: file,
-      source: 'assignment_image',
-      locationPrefix: assignmentId,
-    })
-  }
-  return moderationResult
-}
-
 async function moderateAssignmentPdf(
   file: Express.Multer.File,
-  assignmentId: string
+  assignmentId: string,
+  userId: string
 ): Promise<ModerationTypes.ModerationInfractionCategories> {
   const moderationInfractions: string[] = []
   const extractedContent = await extractPdfContent(file.buffer)
@@ -417,15 +400,12 @@ async function moderateAssignmentPdf(
   }
 
   for (const image of extractedContent.images) {
-    const imageModerationInfractions = await moderateAssignmentImage(
-      image,
-      assignmentId
-    )
-    if (imageModerationInfractions.length) {
-      moderationInfractions.push(
-        ...imageModerationInfractions.map((infraction) => infraction.reason)
-      )
-    }
+    const { failures } = await ModerationService.moderateImage(image, {
+      source: 'assignment_image',
+      assignmentId,
+      userId,
+    })
+    moderationInfractions.push(...failures)
   }
 
   return moderationInfractions
@@ -438,7 +418,8 @@ async function moderateAssignmentPdf(
  */
 export async function uploadAssignmentFiles(
   assignmentId: Ulid,
-  files: Express.Multer.File[]
+  files: Express.Multer.File[],
+  userId: string
 ): Promise<Record<string, string[]>> {
   const incorrectFileTypes = files.filter(
     (file) => !(isImageFile(file.buffer) || isPdf(file.buffer))
@@ -452,18 +433,19 @@ export async function uploadAssignmentFiles(
   let fileNameToModerationInfractions: Record<string, string[]> = {}
   for (const file of files) {
     if (isImageFile(file.buffer)) {
-      const moderationInfractions = await moderateAssignmentImage(
-        file.buffer,
-        assignmentId
-      )
-      if (moderationInfractions.length) {
-        fileNameToModerationInfractions[file.originalname] =
-          moderationInfractions.map((infraction) => infraction.reason)
+      const { failures } = await ModerationService.moderateImage(file.buffer, {
+        source: 'assignment_image',
+        assignmentId,
+        userId,
+      })
+      if (failures.length) {
+        fileNameToModerationInfractions[file.originalname] = failures
       }
     } else {
       const moderationInfractions = await moderateAssignmentPdf(
         file,
-        assignmentId
+        assignmentId,
+        userId
       )
       if (moderationInfractions.length) {
         fileNameToModerationInfractions[file.originalname] =
