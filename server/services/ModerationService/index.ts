@@ -1498,23 +1498,25 @@ export async function moderateScreenshareImage(options: {
   const moderationSettings = await getModerationRealTimeSettings()
 
   const moderationChecks = [
-    detectImageModerationInfractions.bind(
-      null,
-      resizedImage,
-      moderationSettings,
-      sessionId
-    ),
-    detectPersonInImage.bind(null, {
-      image: resizedImage,
-      sessionId,
-      moderationSettings,
-    }),
-    detectTextModerationInfractions.bind(null, {
-      image: resizedImage,
-      sessionId: sessionId,
-      isVolunteer: isVolunteer,
-      moderationSettings: moderationSettings,
-    }),
+    () =>
+      detectImageModerationInfractions(
+        resizedImage,
+        moderationSettings,
+        sessionId
+      ),
+    () =>
+      detectPersonInImage({
+        image: resizedImage,
+        sessionId,
+        moderationSettings,
+      }),
+    () =>
+      detectTextModerationInfractions({
+        image: resizedImage,
+        sessionId,
+        isVolunteer,
+        moderationSettings,
+      }),
   ]
 
   moderationChecks.forEach((checkFn) => {
