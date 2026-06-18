@@ -281,7 +281,7 @@ Table student_partner_orgs_sponsor_orgs {
   sponsor_org_id uuid [not null, ref: > sponsor_orgs.id]
   created_at timestamp [not null]
   updated_at timestamp [not null]
-  
+
   indexes {
     (student_partner_org_id, sponsor_org_id) [pk]
   }
@@ -292,7 +292,6 @@ Table student_profiles as S {
   college text
   school_id uuid [ref: > schools.id, not null]
   postal_code varchar(2) [ref: > postal_codes.code]
-  grade_level_id int [ref: > grade_levels.id]
   student_partner_org_user_id text [note: 'this will only be on some students, retain as text']
   student_partner_org_id uuid [ref: > SPO.id, not null]
   student_partner_org_site_id uuid [ref: > SPOS.id]

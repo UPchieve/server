@@ -9,6 +9,8 @@ export type DateOrString = Date | string;
 
 export type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
 
+export type NumberOrString = number | string;
+
 export type stringArray = (string)[];
 
 /** 'AddNotification' parameters type */
@@ -79,6 +81,7 @@ export interface IGetUnfilledSessionsResult {
   isFirstTimeStudent: boolean | null;
   studentBanType: ban_types | null;
   studentFirstName: string;
+  studentId: string;
   studentTestUser: boolean;
   subjectDisplayName: string;
   subTopic: string;
@@ -92,7 +95,7 @@ export interface IGetUnfilledSessionsQuery {
   result: IGetUnfilledSessionsResult;
 }
 
-const getUnfilledSessionsIR: any = {"usedParamSet":{"start":true},"params":[{"name":"start","required":true,"transform":{"type":"scalar"},"locs":[{"a":1035,"b":1041}]}],"statement":"SELECT\n    sessions.id,\n    subjects.name AS sub_topic,\n    topics.name AS TYPE,\n    sessions.volunteer_id AS volunteer,\n    sessions.created_at,\n    users.first_name AS student_first_name,\n    users.test_user AS student_test_user,\n    users.ban_type AS student_ban_type,\n    session_count.total = 1 AS is_first_time_student,\n    subjects.display_name AS subject_display_name,\n    cgl.current_grade_name AS current_grade_name\nFROM\n    sessions\n    JOIN users ON sessions.student_id = users.id\n    JOIN student_profiles ON student_profiles.user_id = sessions.student_id\n    LEFT JOIN current_grade_levels cgl ON cgl.user_id = sessions.student_id\n    LEFT JOIN subjects ON sessions.subject_id = subjects.id\n    LEFT JOIN topics ON subjects.topic_id = topics.id\n    JOIN LATERAL (\n        SELECT\n            COUNT(*) AS total\n        FROM\n            sessions\n        WHERE\n            student_id = users.id) AS session_count ON TRUE\nWHERE\n    sessions.volunteer_id IS NULL\n    AND sessions.ended_at IS NULL\n    AND sessions.created_at > :start!\n    AND users.ban_type IS DISTINCT FROM 'complete'\nORDER BY\n    sessions.created_at"};
+const getUnfilledSessionsIR: any = {"usedParamSet":{"start":true},"params":[{"name":"start","required":true,"transform":{"type":"scalar"},"locs":[{"a":1063,"b":1069}]}],"statement":"SELECT\n    sessions.id,\n    subjects.name AS sub_topic,\n    topics.name AS TYPE,\n    sessions.volunteer_id AS volunteer,\n    sessions.created_at,\n    users.id AS student_id,\n    users.first_name AS student_first_name,\n    users.test_user AS student_test_user,\n    users.ban_type AS student_ban_type,\n    session_count.total = 1 AS is_first_time_student,\n    subjects.display_name AS subject_display_name,\n    cgl.current_grade_name AS current_grade_name\nFROM\n    sessions\n    JOIN users ON sessions.student_id = users.id\n    JOIN student_profiles ON student_profiles.user_id = sessions.student_id\n    LEFT JOIN current_grade_levels cgl ON cgl.user_id = sessions.student_id\n    LEFT JOIN subjects ON sessions.subject_id = subjects.id\n    LEFT JOIN topics ON subjects.topic_id = topics.id\n    JOIN LATERAL (\n        SELECT\n            COUNT(*) AS total\n        FROM\n            sessions\n        WHERE\n            student_id = users.id) AS session_count ON TRUE\nWHERE\n    sessions.volunteer_id IS NULL\n    AND sessions.ended_at IS NULL\n    AND sessions.created_at > :start!\n    AND users.ban_type IS DISTINCT FROM 'complete'\nORDER BY\n    sessions.created_at"};
 
 /**
  * Query generated from SQL:
@@ -103,6 +106,7 @@ const getUnfilledSessionsIR: any = {"usedParamSet":{"start":true},"params":[{"na
  *     topics.name AS TYPE,
  *     sessions.volunteer_id AS volunteer,
  *     sessions.created_at,
+ *     users.id AS student_id,
  *     users.first_name AS student_first_name,
  *     users.test_user AS student_test_user,
  *     users.ban_type AS student_ban_type,
@@ -2905,6 +2909,7 @@ export const updateSessionLastSeen = new PreparedQuery<IUpdateSessionLastSeenPar
 
 /** 'SessionsWithUnreadDMs' parameters type */
 export interface ISessionsWithUnreadDMsParams {
+  minTimeTutored: NumberOrString;
   userId: string;
 }
 
@@ -2919,7 +2924,7 @@ export interface ISessionsWithUnreadDMsQuery {
   result: ISessionsWithUnreadDMsResult;
 }
 
-const sessionsWithUnreadDMsIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":203,"b":210},{"a":234,"b":241},{"a":267,"b":274},{"a":328,"b":335}]}],"statement":"SELECT\n    s.id\nFROM\n    upchieve.session_messages sm\n    JOIN upchieve.sessions s ON sm.session_id = s.id\n    LEFT JOIN upchieve.session_last_seen sls ON sls.session_id = s.id\n        AND sls.user_id = :userId!\nWHERE (s.student_id = :userId!\n    OR s.volunteer_id = :userId!)\nAND sm.created_at > s.ended_at\nAND sm.sender_id != :userId!\nAND (sls.last_seen_at IS NULL\n    OR sm.created_at > sls.last_seen_at)\nGROUP BY\n    s.id"};
+const sessionsWithUnreadDMsIR: any = {"usedParamSet":{"userId":true,"minTimeTutored":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":203,"b":210},{"a":234,"b":241},{"a":267,"b":274},{"a":328,"b":335}]},{"name":"minTimeTutored","required":true,"transform":{"type":"scalar"},"locs":[{"a":430,"b":445}]}],"statement":"SELECT\n    s.id\nFROM\n    upchieve.session_messages sm\n    JOIN upchieve.sessions s ON sm.session_id = s.id\n    LEFT JOIN upchieve.session_last_seen sls ON sls.session_id = s.id\n        AND sls.user_id = :userId!\nWHERE (s.student_id = :userId!\n    OR s.volunteer_id = :userId!)\nAND sm.created_at > s.ended_at\nAND sm.sender_id != :userId!\nAND (sls.last_seen_at IS NULL\n    OR sm.created_at > sls.last_seen_at)\nAND s.time_tutored >= :minTimeTutored!\nGROUP BY\n    s.id"};
 
 /**
  * Query generated from SQL:
@@ -2937,6 +2942,7 @@ const sessionsWithUnreadDMsIR: any = {"usedParamSet":{"userId":true},"params":[{
  * AND sm.sender_id != :userId!
  * AND (sls.last_seen_at IS NULL
  *     OR sm.created_at > sls.last_seen_at)
+ * AND s.time_tutored >= :minTimeTutored!
  * GROUP BY
  *     s.id
  * ```

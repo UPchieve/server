@@ -32,6 +32,7 @@ SELECT
     topics.name AS TYPE,
     sessions.volunteer_id AS volunteer,
     sessions.created_at,
+    users.id AS student_id,
     users.first_name AS student_first_name,
     users.test_user AS student_test_user,
     users.ban_type AS student_ban_type,
@@ -1356,6 +1357,7 @@ AND sm.created_at > s.ended_at
 AND sm.sender_id != :userId!
 AND (sls.last_seen_at IS NULL
     OR sm.created_at > sls.last_seen_at)
+AND s.time_tutored >= :minTimeTutored!
 GROUP BY
     s.id;
 

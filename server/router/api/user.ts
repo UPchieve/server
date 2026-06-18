@@ -9,9 +9,10 @@ import { updateUserProfile } from '../../services/UserProfileService'
 import { getUserIdByEmail, EditUserProfilePayload } from '../../models/User/'
 import { authPassport } from '../../utils/auth-utils'
 import { resError } from '../res-error'
-import { asString, asBoolean, asUlid } from '../../utils/type-utils'
+import { asString, asBoolean, asUlid, asEnum } from '../../utils/type-utils'
 import { extractUser } from '../extract-user'
 import { InputError, NotAllowedError } from '../../models/Errors'
+import { GRADES } from '../../constants'
 
 export function routeUser(router: Router): void {
   router.route('/user').get(async function (req, res) {
@@ -57,6 +58,9 @@ export function routeUser(router: Router): void {
       if ('preferredLanguage' in req.body) {
         const preferredLanguage = asString(req.body.preferredLanguage)
         updateReq['preferredLanguage'] = preferredLanguage
+      }
+      if ('gradeLevel' in req.body) {
+        updateReq['gradeLevel'] = asEnum<GRADES>(GRADES)(req.body.gradeLevel)
       }
 
       await updateUserProfile(user, ip, updateReq)
@@ -167,6 +171,7 @@ export function routeUser(router: Router): void {
         signupSourceId,
         otherSignupSource,
         highSchoolId,
+        gradeLevel,
       } = req.body
 
       const update = {
@@ -183,6 +188,7 @@ export function routeUser(router: Router): void {
         signupSourceId,
         otherSignupSource,
         highSchoolId,
+        gradeLevel,
       }
 
       try {
@@ -380,6 +386,24 @@ export function routeUser(router: Router): void {
 
       await updateUserProfile(user, req.ip, attrs)
 
+      return res.sendStatus(201)
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
+  router.post('/user/coaching-invitation', async function (req, res) {
+    try {
+      const user = extractUser(req)
+      const invitedUserId = req.body.invitedUserId
+      const sessionId = req.body.sessionId
+      const personalization = req.body.coachingSkills
+      await UserService.queueInvitationToCoach(
+        invitedUserId,
+        user.id,
+        sessionId,
+        personalization
+      )
       return res.sendStatus(201)
     } catch (err) {
       resError(res, err)
