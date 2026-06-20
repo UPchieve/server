@@ -1,52 +1,42 @@
 #! /usr/bin/env bash
+#
+# Format ALL SQL files in the directories passed as arguments (configured in
+# package.json's lint:sql script). This is the on-demand whole-repo formatter
+# (pnpm run lint:sql / lint:write); it intentionally formats everything, unlike
+# the diff-scoped pre-commit/CI check in lint_sql_check.sh.
+#
+# bash 3.2-compatible (macOS ships 3.2): no mapfile/readarray.
 
-# collect sql files
-declare -a server_files=()
-for filename in $(find ./server -name "*.sql"); do
-    [ -e "$filename" ] || continue
-    server_files+=("$filename")
+DIRS=("$@")
+if [ ${#DIRS[@]} -eq 0 ]; then
+  echo "lint_sql: no directories given (configure them in package.json)." >&2
+  exit 2
+fi
+
+# Resolve against the git work-tree root so behavior is CWD-independent.
+ROOT="$(git rev-parse --show-toplevel)" || exit 2
+cd "$ROOT" || exit 2
+
+PGF="$ROOT/node_modules/.bin/pg-formatter"
+if [ ! -x "$PGF" ]; then
+  echo "lint_sql: pg-formatter not found at $PGF (run pnpm install)." >&2
+  exit 2
+fi
+
+for dir in "${DIRS[@]}"; do
+  [ -d "$dir" ] || continue
+  (
+    files=()
+    while IFS= read -r f; do
+      [ -n "$f" ] && files+=("$f")
+    done < <(find "$dir" -name "*.sql")
+    if [ ${#files[@]} -gt 0 ]; then
+      echo "linting files in $dir"
+      "$PGF" --keyword-case="uppercase" --inplace --placeholder=":\w+!" "${files[@]}"
+      echo "linting files in $dir done"
+    fi
+  ) &
 done
 
-declare -a migrations_files=()
-for filename in $(find ./database/migrations -name "*.sql"); do
-  [ -e "$filename" ] || continue
-  migrations_files+=("$filename")
-done
-
-declare -a seed_updates_files=()
-for filename in $(find ./database/seed-updates -name "*.sql"); do
-  [ -e "$filename" ] || continue
-  seed_updates_files+=("$filename")
-done
-
-declare -a seeds_files=()
-for filename in $(find ./database/seeds -name "*.sql"); do
-  [ -e "$filename" ] || continue
-  seeds_files+=("$filename")
-done
-
-# run formatter for each set of files in parallel
-(
-echo "linting files in server/"
-npx pg-formatter --keyword-case="uppercase" --inplace --placeholder=":\w+!" ${server_files[@]}
-echo "linting files in server/ done"
-) &
-
-(
-echo "linting files in database/migrations"
-npx pg-formatter --keyword-case="uppercase" --inplace --placeholder=":\w+!" ${migrations_files[@]}
-echo "linting files in database/migrations done"
-) &
-
-(
-echo "linting files in database/seed-updates"
-npx pg-formatter --keyword-case="uppercase" --inplace --placeholder=":\w+!" ${seed_updates_files[@]}
-echo "linting files in database/seed-updates done"
-
-echo "linting files in database/seeds"
-npx pg-formatter --keyword-case="uppercase" --inplace --placeholder=":\w+!" ${seeds_files[@]}
-echo "linting files in database/seeds done"
-) &
-
-# wait for the above background process to be complete
+# Wait for all directory formatters to finish.
 wait
