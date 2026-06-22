@@ -495,7 +495,7 @@ const config = {
   totpEncryptionKey: process.env.TOTP_ENCRYPTION_KEY || 'bogus',
   totpIssuer: process.env.TOTP_ISSUER || 'upchieve_bogus',
 
-  //Load Test
+  // Key used in load testing request headers to allow bypassing Recaptcha check.
   loadTestKey: process.env.LOAD_TEST_KEY,
 } as const
 
