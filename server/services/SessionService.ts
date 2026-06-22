@@ -295,9 +295,15 @@ export async function endSession(
     studentId: session.student.id,
   })
 
-  QueueService.add(Jobs.ProcessSessionEnded, {
-    sessionId,
-  })
+  QueueService.add(
+    Jobs.ProcessSessionEnded,
+    {
+      sessionId,
+    },
+    {
+      jobId: `${Jobs.ProcessSessionEnded}:${sessionId}`,
+    }
+  )
 
   return endedSession
 }
