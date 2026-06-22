@@ -91,13 +91,14 @@ export function routeAdmin(apiRouter: Router): void {
 
   router.post('/clever/roster', async function (req, res) {
     req.clearTimeout()
-    const districtId = asString(req.body.districtId)
 
-    if (!districtId) {
+    if (!req.body.districtId) {
       res.status(422).json({
         err: 'Missing district id.',
       })
+      return
     }
+    const districtId = asString(req.body.districtId)
 
     try {
       const report = await CleverRosterService.rosterDistrict(districtId)
