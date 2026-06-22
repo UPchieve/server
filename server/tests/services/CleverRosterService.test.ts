@@ -12,9 +12,10 @@ import * as UserCreationService from '../../services/UserCreationService'
 import { TeacherClass } from '../../models/Teacher'
 import { TransactionClient } from '../../db'
 import { CreateUserResult } from '../../models/User'
+import * as UserRepo from '../../models/User'
 
 jest.mock('../../services/FederatedCredentialService')
-const mockedFedCredService = FederatedCredentialService
+const mockedFedCredService = mocked(FederatedCredentialService)
 jest.mock('../../services/StudentService')
 const mockedStudentService = mocked(StudentService)
 jest.mock('../../services/SubjectsService')
@@ -23,6 +24,8 @@ jest.mock('../../services/TeacherService')
 const mockedTeacherService = mocked(TeacherService)
 jest.mock('../../services/UserCreationService')
 const mockedUserCreationService = mocked(UserCreationService)
+jest.mock('../../models/User')
+const mockedUserRepo = mocked(UserRepo)
 
 const TC = {} as TransactionClient
 
@@ -492,6 +495,112 @@ describe('rosterTeacherClasses', () => {
           schoolId: 'school-id',
         }),
         expect.anything()
+      )
+    })
+  })
+
+  describe('findOrCreateUpchieveTeacher', () => {
+    const cleverTeacher = {
+      id: 'ct-1',
+      email: 'teacher@up.org',
+      name: { first: 'Tee', last: 'Cher', middle: '' },
+      roles: { teacher: { school: 'cs-1' } },
+    } as unknown as CleverAPIService.TCleverTeacherData
+
+    test('returns the user from an existing Clever credential without further lookup', async () => {
+      mockedFedCredService.getFedCredForUser.mockResolvedValue({
+        id: cleverTeacher.id,
+        issuer: 'clever',
+        userId: 'uc-t1',
+      })
+
+      const teacher = await CleverRosterService.findOrCreateUpchieveTeacher(
+        cleverTeacher,
+        'school-id'
+      )
+
+      expect(teacher?.id).toBe('uc-t1')
+      expect(mockedUserRepo.getUserIdByEmail).not.toHaveBeenCalled()
+    })
+
+    test('returns undefined when there is no email', async () => {
+      mockedFedCredService.getFedCredForUser.mockResolvedValue(undefined)
+
+      const teacher = await CleverRosterService.findOrCreateUpchieveTeacher(
+        { ...cleverTeacher, email: undefined },
+        'school-id'
+      )
+
+      expect(teacher).toBe(undefined)
+    })
+
+    test('links an existing teacher matched by email', async () => {
+      mockedFedCredService.getFedCredForUser.mockResolvedValue(undefined)
+      mockedUserRepo.getUserIdByEmail.mockResolvedValue({
+        id: 'uc-t2',
+        email: cleverTeacher.email!,
+      })
+      mockedTeacherService.getTeacherById.mockResolvedValue({
+        userId: 'uc-t2',
+        schoolId: 'school-id',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+
+      const teacher = await CleverRosterService.findOrCreateUpchieveTeacher(
+        cleverTeacher,
+        'school-id'
+      )
+
+      expect(teacher?.id).toBe('uc-t2')
+      expect(mockedFedCredService.linkAccount).toHaveBeenCalledWith(
+        cleverTeacher.id,
+        expect.any(String),
+        'uc-t2'
+      )
+    })
+
+    test('does not link when the email belongs to a non-teacher account', async () => {
+      mockedFedCredService.getFedCredForUser.mockResolvedValue(undefined)
+      mockedUserRepo.getUserIdByEmail.mockResolvedValue({
+        id: 'uc-student',
+        email: cleverTeacher.email!,
+      })
+      mockedTeacherService.getTeacherById.mockResolvedValue(undefined)
+
+      const teacher = await CleverRosterService.findOrCreateUpchieveTeacher(
+        cleverTeacher,
+        'school-id'
+      )
+
+      expect(teacher).toBe(undefined)
+      expect(mockedFedCredService.linkAccount).not.toHaveBeenCalled()
+    })
+
+    test('creates a new pre-verified teacher when none exists', async () => {
+      mockedFedCredService.getFedCredForUser.mockResolvedValue(undefined)
+      mockedUserRepo.getUserIdByEmail.mockResolvedValue(undefined)
+      mockedUserCreationService.rosterTeacher.mockResolvedValue({
+        id: 'uc-t3',
+        firstName: cleverTeacher.name.first,
+        email: 'teacher@up.org',
+      })
+
+      const teacher = await CleverRosterService.findOrCreateUpchieveTeacher(
+        cleverTeacher,
+        'school-id'
+      )
+
+      expect(teacher?.id).toBe('uc-t3')
+      expect(mockedUserCreationService.rosterTeacher).toHaveBeenCalledWith(
+        expect.objectContaining({
+          email: cleverTeacher.email,
+          firstName: cleverTeacher.name.first,
+          issuer: expect.any(String),
+          lastName: cleverTeacher.name.last,
+          profileId: cleverTeacher.id,
+          schoolId: 'school-id',
+        })
       )
     })
   })

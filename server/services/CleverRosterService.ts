@@ -2,6 +2,7 @@ import { runInTransaction, TransactionClient } from '../db'
 import { Ulid, Uuid } from '../models/pgUtils'
 import { TeacherClass, TeacherClassWithStudents } from '../models/Teacher'
 import * as SchoolRepo from '../models/School'
+import * as UserRepo from '../models/User'
 import * as CleverAPIService from './CleverAPIService'
 import * as FederatedCredentialService from './FederatedCredentialService'
 import * as SchoolService from './SchoolService'
@@ -11,20 +12,17 @@ import * as TeacherService from './TeacherService'
 import * as UserCreationService from './UserCreationService'
 
 /**
- * Clever Secure Sync Integration (i.e. rostering with Clever).
+ * Clever Secure Sync rostering, triggered by admins via the "Clever Roster"
+ * option in the admin console (POST /clever/roster).
  *
- * Admins can perform this action through the "Clever Roster" option on the admin
- * console in app.
+ * With a district access token we pull each school's students and teachers and
+ * roster them. Teachers are rostered here, not at SSO login — a teacher signing
+ * in via any provider (Clever or ClassLink) matches their already-rostered
+ * account by email, which is how ClassLink teachers get classes with no
+ * ClassLink-specific code.
  *
- * First, we get the district's access token using the district's id and basic auth.
- *
- * With the district access token, we can then get the schools in the district and
- * the students within those schools. Once we have the students belonging to a school,
- * we can upsert the students.
- *
- * Right now, we are really just interested in getting the updated school for students who
- * are using Clever, but there is a lot more data we can pull from Clever that might
- * be useful to integrate with in the future.
+ * We use only a fraction of what Clever exposes today; there's a lot more data
+ * available that could power future features worth exploring.
  */
 export async function rosterDistrict(districtId: string) {
   const accessToken = await CleverAPIService.getDistrictAccessToken(districtId)
@@ -41,9 +39,16 @@ export async function rosterDistrict(districtId: string) {
       }
     }
     failedSchools: { [cleverSchoolId: string]: string }
+    rosteredTeachers: {
+      [cleverSchoolId: string]: {
+        rostered: string[]
+        failed: { id: string; email?: string; reason: string }[]
+      }
+    }
   } = {
     updatedSchools: {},
     failedSchools: {},
+    rosteredTeachers: {},
   }
 
   for (const school of schools) {
@@ -119,6 +124,15 @@ export async function rosterDistrict(districtId: string) {
           lastStudentCleverId
         )
       }
+
+      const teacherReport = await rosterSchoolTeachers(
+        school.id,
+        upchieveSchool.id,
+        accessToken
+      )
+      if (teacherReport.rostered.length || teacherReport.failed.length) {
+        upsertReport.rosteredTeachers[school.id] = teacherReport
+      }
     } catch (err) {
       upsertReport.failedSchools[school.id] = `Error: ${err}`
       continue
@@ -126,6 +140,80 @@ export async function rosterDistrict(districtId: string) {
   }
 
   return upsertReport
+}
+
+/**
+ * Rosters every teacher in a Clever school (paginated). One teacher failing is
+ * recorded and doesn't abort the rest.
+ */
+async function rosterSchoolTeachers(
+  cleverSchoolId: string,
+  upchieveSchoolId: Uuid,
+  accessToken: string
+): Promise<{
+  rostered: Ulid[]
+  failed: { id: string; email?: string; reason: string }[]
+}> {
+  const rostered: Ulid[] = []
+  const failed: { id: string; email?: string; reason: string }[] = []
+  let cleverTeachers = await CleverAPIService.getTeachersInSchool(
+    cleverSchoolId,
+    accessToken
+  )
+  while (cleverTeachers.length) {
+    for (const cleverTeacher of cleverTeachers) {
+      try {
+        rostered.push(
+          await rosterCleverTeacher(
+            cleverTeacher,
+            upchieveSchoolId,
+            accessToken
+          )
+        )
+      } catch (err) {
+        failed.push({
+          id: cleverTeacher.id,
+          email: cleverTeacher.email,
+          reason: `${err}`,
+        })
+      }
+    }
+    cleverTeachers = await CleverAPIService.getTeachersInSchool(
+      cleverSchoolId,
+      accessToken,
+      cleverTeachers[cleverTeachers.length - 1].id
+    )
+  }
+  return { rostered, failed }
+}
+
+/**
+ * Find-or-creates one teacher and syncs their classes. Throws when the teacher
+ * can't be resolved (no email, or the email belongs to a non-teacher account).
+ */
+async function rosterCleverTeacher(
+  cleverTeacher: CleverAPIService.TCleverTeacherData,
+  upchieveSchoolId: Uuid,
+  accessToken: string
+): Promise<Ulid> {
+  const teacher = await findOrCreateUpchieveTeacher(
+    cleverTeacher,
+    upchieveSchoolId
+  )
+  if (!teacher) {
+    throw new Error(
+      'could not resolve teacher (no email, or email belongs to a non-teacher account)'
+    )
+  }
+  // Account creation and class rostering are deliberately separate
+  // transactions: a class-sync failure leaves the created account intact (it
+  // re-syncs next run) rather than rolling back a successful signup.
+  const [classes, students] = await Promise.all([
+    CleverAPIService.getTeacherClasses(cleverTeacher.id, accessToken),
+    CleverAPIService.getTeacherStudents(cleverTeacher.id, accessToken),
+  ])
+  await rosterTeacherClasses(teacher.id, classes, students)
+  return teacher.id
 }
 
 type CleverId = string
@@ -138,9 +226,9 @@ type UcCleverClass = TeacherClassWithStudents & {
  * are new, update the students in whichever are the same, and archive the
  * ones that are no longer in Clever.
  *
- * We roster a teacher whenever they sign in with Clever. When they
- * do so, we are able to use their access token to get their classes (called
- * sections in Clever) and all their students.
+ * We roster a teacher during the batch district roster (rosterDistrict), using
+ * the district access token to get their classes (called sections in Clever)
+ * and all their students.
  *
  * The Clever sections only contain a list of ids of the students in the class,
  * which is why we also fetch all the students, so we have the
@@ -310,6 +398,57 @@ export async function findOrCreateUpchieveStudent(
     schoolId: schoolId,
   }
   return UserCreationService.registerStudent(data, tc)
+}
+
+/**
+ * Resolves the UPchieve teacher for a Clever record: existing Clever credential
+ * → existing teacher matched by email → create a new pre-verified teacher.
+ * Returns the user id, or `undefined` when unresolvable (no email, or the email
+ * belongs to a non-teacher account). Mirrors {@link findOrCreateUpchieveStudent}.
+ */
+export async function findOrCreateUpchieveTeacher(
+  cleverTeacher: CleverAPIService.TCleverTeacherData,
+  schoolId: Uuid | undefined
+): Promise<{ id: Ulid } | undefined> {
+  const existingFedCred = await FederatedCredentialService.getFedCredForUser(
+    cleverTeacher.id,
+    FederatedCredentialService.Issuer.CLEVER
+  )
+  if (existingFedCred?.userId) {
+    return { id: existingFedCred.userId }
+  }
+
+  if (!cleverTeacher.email) {
+    return
+  }
+
+  const existingUser = await UserRepo.getUserIdByEmail(cleverTeacher.email)
+  if (existingUser) {
+    // Only link to an account that is already a teacher; attaching a teacher's
+    // Clever id to a student/volunteer who shares the email would be wrong.
+    // TODO(future): consider adding the teacher role to the existing account
+    // instead, to support one person being both a teacher and a student.
+    const teacher = await TeacherService.getTeacherById(existingUser.id)
+    if (!teacher) {
+      return
+    }
+    await FederatedCredentialService.linkAccount(
+      cleverTeacher.id,
+      FederatedCredentialService.Issuer.CLEVER,
+      existingUser.id
+    )
+    return { id: existingUser.id }
+  }
+
+  const newTeacher = await UserCreationService.rosterTeacher({
+    email: cleverTeacher.email,
+    firstName: cleverTeacher.name.first,
+    issuer: FederatedCredentialService.Issuer.CLEVER,
+    lastName: cleverTeacher.name.last,
+    profileId: cleverTeacher.id,
+    schoolId,
+  })
+  return { id: newTeacher.id }
 }
 
 // Exported for testing.

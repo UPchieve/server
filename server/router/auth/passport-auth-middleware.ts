@@ -7,8 +7,6 @@ import ClassLinkStrategy, {
 } from './classlink-strategy'
 import CleverStrategy, { TCleverPassportProfile } from './clever-strategy'
 import * as UserRepo from '../../models/User/queries'
-import * as CleverAPIService from '../../services/CleverAPIService'
-import * as CleverRosterService from '../../services/CleverRosterService'
 import * as FedCredService from '../../services/FederatedCredentialService'
 import * as UserCreationService from '../../services/UserCreationService'
 import {
@@ -120,23 +118,12 @@ type SSOProfile = passport.Profile & {
   issuer: string
   userType: USER_ROLES_TYPE
   schoolId?: Uuid
-  // TODO: When including ClassLink rostering, normalize to a similar type
-  teacher?: {
-    classes: CleverAPIService.TCleverSectionData[]
-    students: CleverAPIService.TCleverStudentData[]
-  }
 }
 
 type SSOHandlerOptions = {
   providerName: SsoProviderNames.CLEVER | SsoProviderNames.CLASSLINK
   isStudent: (userType: USER_ROLES_TYPE) => boolean
   isTeacher: (userType: USER_ROLES_TYPE) => boolean
-  // TODO: When including ClassLink rostering, normalize to a similar type
-  rosterTeacherFn?: (
-    userId: Uuid,
-    classes: CleverAPIService.TCleverSectionData[],
-    students: CleverAPIService.TCleverStudentData[]
-  ) => Promise<void>
 }
 
 async function handleSSOStrategy(
@@ -165,17 +152,6 @@ async function handleSSOStrategy(
         }
         // Always upsert the student if there is data.
         await UserCreationService.upsertStudent(data)
-      } else if (
-        options.isTeacher(profile.userType) &&
-        profile.teacher &&
-        options.rosterTeacherFn
-      ) {
-        // Always update the teacher's classes whenever they sign in.
-        await options.rosterTeacherFn(
-          existingFedCred.userId,
-          profile.teacher.classes,
-          profile.teacher.students
-        )
       }
       return done(null, { id: existingFedCred.userId })
     }
@@ -218,16 +194,6 @@ async function handleSSOStrategy(
           userId: existingUser.id,
         }
         await UserCreationService.upsertStudent(data)
-      } else if (
-        options.isTeacher(profile.userType) &&
-        profile.teacher &&
-        options.rosterTeacherFn
-      ) {
-        await options.rosterTeacherFn(
-          existingUser.id,
-          profile.teacher.classes,
-          profile.teacher.students
-        )
       }
       await FedCredService.linkAccount(
         profile.id,
@@ -253,13 +219,6 @@ async function handleSSOStrategy(
       return done(null, student)
     } else if (options.isTeacher(profile.userType)) {
       const teacher = await UserCreationService.registerTeacher(data)
-      if (profile.teacher && options.rosterTeacherFn) {
-        await options.rosterTeacherFn(
-          teacher.id,
-          profile.teacher.classes,
-          profile.teacher.students
-        )
-      }
       return done(null, teacher)
     }
   } catch (err) {
@@ -370,7 +329,6 @@ export function addPassportAuthMiddleware() {
         providerName: SsoProviderNames.CLEVER,
         isStudent,
         isTeacher,
-        rosterTeacherFn: CleverRosterService.rosterTeacherClasses,
       })
     })
   )

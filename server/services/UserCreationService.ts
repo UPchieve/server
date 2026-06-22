@@ -695,6 +695,46 @@ export async function registerTeacher(data: RegisterTeacherPayload) {
   }
 }
 
+export interface RosterTeacherPayload {
+  email: string
+  firstName: string
+  issuer: string
+  lastName: string
+  profileId: string
+  schoolId?: string
+}
+
+/**
+ * Creates a pre-verified teacher for the batch roster. Unlike
+ * {@link registerTeacher}, it uses the 'Roster' signup source and skips the
+ * `USER_CREATED` event, so no welcome email or SendGrid contact fires for a bulk
+ * roster. Mirrors {@link rosterPartnerStudents}.
+ */
+export async function rosterTeacher(data: RosterTeacherPayload) {
+  await checkEmail(data.email)
+  checkNames(data.firstName, data.lastName)
+
+  return runInTransaction(async (tc: TransactionClient) => {
+    const signupSource = await SignUpSourceRepo.getSignUpSourceByName(
+      'Roster',
+      tc
+    )
+    const userData = {
+      email: data.email,
+      emailVerified: true,
+      firstName: data.firstName,
+      issuer: data.issuer,
+      lastName: data.lastName,
+      profileId: data.profileId,
+      signupSourceId: signupSource?.id,
+      verified: true,
+    }
+    const user = await createUser(userData, undefined, USER_ROLES.TEACHER, tc)
+    await createTeacher({ userId: user.id, schoolId: data.schoolId }, tc)
+    return user
+  })
+}
+
 function useFedCred(object: any): object is RegisterStudentWithFedCredPayload {
   return (
     'profileId' in object &&

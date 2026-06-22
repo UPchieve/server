@@ -186,6 +186,26 @@ export type TCleverSectionData = {
   id: string // This section (i.e. class) ID.
 }
 
+export type TCleverTeacherData = {
+  created: ISOString
+  district: string // District ID.
+  email?: string // Optional in Clever; needed to match a teacher to their SSO login.
+  last_modified: ISOString
+  name: { first: string; last: string; middle: string }
+  id: string // Teacher Clever ID.
+  roles: {
+    teacher?: {
+      credentials: { district_username: string }
+      school: string // Clever ID of the teacher's primary school.
+      schools: string[]
+      sis_id: string
+      state_id: string
+      teacher_number: string
+      title: string
+    }
+  }
+}
+
 export type UPchieveSchoolId = string
 
 export async function getDistrictAccessToken(
@@ -273,6 +293,25 @@ export async function getStudentsInSchool(
     '/users?primary=true&role=student&limit=500' +
     (startingAfterId ? `&starting_after=${startingAfterId}` : '')
   return cleverGetMany<TCleverStudentData>(url, accessToken)
+}
+
+/**
+ * Lists a Clever school's teachers (primary school = this school), paginated via
+ * `starting_after` — callers loop until an empty page. Works with a district
+ * access token. Mirrors {@link getStudentsInSchool}.
+ */
+export async function getTeachersInSchool(
+  cleverSchoolId: string,
+  accessToken: string,
+  startingAfterId?: string
+): Promise<TCleverTeacherData[]> {
+  const url =
+    API_BASE_URI +
+    '/schools/' +
+    cleverSchoolId +
+    '/users?primary=true&role=teacher&limit=500' +
+    (startingAfterId ? `&starting_after=${startingAfterId}` : '')
+  return cleverGetMany<TCleverTeacherData>(url, accessToken)
 }
 
 export async function getTeacherClasses(
