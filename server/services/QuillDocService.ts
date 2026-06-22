@@ -10,6 +10,12 @@ import { convertBase64ToImage } from '../utils/image-utils'
 import { getDocEditorSessionImageUrl } from './AzureService'
 import type { Uuid } from '../types/shared'
 
+const SET_EXISTS = 'SET_EXISTS'
+// How many stored updates trigger a merging. Above this threshold,
+// the updates are merged into a single update to keep
+// shadow doc construction fast during moderation checks
+const SNAPSHOT_THRESHOLD = 300
+
 // Used for v1.
 function sessionIdToKey(id: Uuid): string {
   return `quill-${id.toString()}`
@@ -170,14 +176,55 @@ export async function getDocumentUpdates(sessionId: Uuid): Promise<string[]> {
   return updates.filter((u) => u !== SET_EXISTS)
 }
 
+export function decodeUpdate(update: string): Uint8Array {
+  return Uint8Array.from(update.split(',').map(Number))
+}
+
+export function buildYDocFromUpdates(updates: string[]): Y.Doc {
+  const doc = new Y.Doc()
+  for (const update of updates) {
+    Y.applyUpdate(doc, decodeUpdate(update))
+  }
+  return doc
+}
+
+// Merges all updates into a single update and replaces them
+// in the set, leaving any updates that arrived during the merge untouched
+async function mergeDocumentUpdates(sessionId: Uuid): Promise<void> {
+  logger.info({ sessionId }, 'Merging document updates')
+
+  const key = getSessionDocumentUpdatesKey(sessionId)
+  const updates = (await cache.smembers(key)).filter((u) => u !== SET_EXISTS)
+  if (updates.length === 0) return
+
+  const doc = buildYDocFromUpdates(updates)
+  const snapshot = Array.from(Y.encodeStateAsUpdate(doc)).toString()
+  doc.destroy()
+
+  await cache.replaceSetMembers(key, snapshot, updates)
+
+  logger.info(
+    { sessionId, mergedCount: updates.length },
+    'Merged document updates'
+  )
+}
+
 export async function addDocumentUpdate(
   sessionId: Uuid,
   update: string
 ): Promise<void> {
   await cache.sadd(getSessionDocumentUpdatesKey(sessionId), update)
+
+  const count = await cache.getSetSize(getSessionDocumentUpdatesKey(sessionId))
+  if (count > SNAPSHOT_THRESHOLD) {
+    // Fire and forget because merging updates is an optimization, a failure here
+    // should never block an approved buffer from being stored
+    mergeDocumentUpdates(sessionId).catch((err) =>
+      logger.error({ err, sessionId }, 'Failed to merge document updates')
+    )
+  }
 }
 
-const SET_EXISTS = 'SET_EXISTS'
 export async function ensureDocumentUpdateExists(sessionId: Uuid) {
   const key = getSessionDocumentUpdatesKey(sessionId)
   await cache.sadd(key, SET_EXISTS)
@@ -311,7 +358,7 @@ async function convertV2DocToV1(quillDoc: string[]) {
   const ydoc = new Y.Doc()
   const text = ydoc.getText('quill')
   for (const update of quillDoc) {
-    Y.applyUpdate(ydoc, Uint8Array.from(update.split(',').map(Number)))
+    Y.applyUpdate(ydoc, decodeUpdate(update))
   }
   // Ensure viewing the document in a recap works by matching existing
   // sessions.quill_doc format.

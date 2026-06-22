@@ -136,3 +136,16 @@ export async function hgetall(key: string): Promise<Record<string, string>> {
 export async function hdel(key: string, ...fields: string[]) {
   return await redisClient.hdel(key, ...fields)
 }
+
+export async function replaceSetMembers(
+  key: string,
+  toAdd: string,
+  toRemove: string[]
+): Promise<void> {
+  if (toRemove.length === 0) return
+  await redisClient
+    .multi()
+    .sadd(key, toAdd)
+    .srem(key, ...toRemove)
+    .exec()
+}

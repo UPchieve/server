@@ -30,18 +30,6 @@ type TextDeltaOperation = {
   attributes?: Record<string, unknown>
 }
 
-function decodeUpdate(update: string): Uint8Array {
-  return Uint8Array.from(update.split(',').map(Number))
-}
-
-function buildYDocFromUpdates(updates: string[]): Y.Doc {
-  const doc = new Y.Doc()
-  for (const update of updates) {
-    Y.applyUpdate(doc, decodeUpdate(update))
-  }
-  return doc
-}
-
 // Walks a Quill delta to find which character positions in the document
 // were visibly changed. Returns the start/end range, or null if nothing
 // visible changed (e.g. formatting only)
@@ -119,7 +107,7 @@ async function extractModerationWindow(
   try {
     const approvedUpdates = await QuillDocService.getDocumentUpdates(sessionId)
     // Build a shadow doc from the last known committed state
-    doc = buildYDocFromUpdates(approvedUpdates)
+    doc = QuillDocService.buildYDocFromUpdates(approvedUpdates)
   } catch (err) {
     logger.error(
       { err, sessionId },
@@ -146,9 +134,10 @@ async function extractModerationWindow(
   yText.observe(handleTextChange)
 
   try {
-    // Apply the incoming buffer to the shadow doc so the observer can detect exactly what changed
+    // Apply the incoming buffer on top of the committed state so the
+    // observer can detect exactly what changed
     for (const update of updates) {
-      Y.applyUpdate(doc, decodeUpdate(update))
+      Y.applyUpdate(doc, QuillDocService.decodeUpdate(update))
     }
   } catch (err) {
     logger.error(
@@ -158,6 +147,7 @@ async function extractModerationWindow(
     return null
   } finally {
     yText.unobserve(handleTextChange)
+    doc.destroy()
   }
 
   // Nothing to moderate since no visible text changed
@@ -171,12 +161,7 @@ async function extractModerationWindow(
     combinedChangedRange
   )
 
-  if (!windowText.trim()) {
-    return null
-  }
-
-  doc.destroy()
-  return windowText
+  return windowText.trim() ? windowText : null
 }
 
 export async function regexCheckUpdates({
