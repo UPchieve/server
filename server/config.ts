@@ -496,7 +496,6 @@ const config = {
   totpIssuer: process.env.TOTP_ISSUER || 'upchieve_bogus',
 
   //Load Test
-  loadTestBypassRecaptcha: process.env.LOAD_TEST_BYPASS_RECAPTCHA,
   loadTestKey: process.env.LOAD_TEST_KEY,
 } as const
 
