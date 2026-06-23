@@ -39,7 +39,11 @@ import {
   USER_BAN_TYPES,
   UserSessionFlags,
 } from '../../constants'
-import { AWSRekognitionClient, putObject } from '../AwsService'
+import {
+  AWSRekognitionClient,
+  AWSComprehendClient,
+  putObject,
+} from '../AwsService'
 import * as ShareableDomainsRepo from '../../models/ShareableDomains/queries'
 import {
   BedrockToolChoice,
@@ -61,7 +65,6 @@ import { weightModerationInfractions } from './ModerationPenaltyService'
 import * as Regex from './regex'
 import { secondsInMs } from '../../utils/time-utils'
 import Logger from '../../logger'
-import { AWSComprehendClient } from '../AwsService'
 import { extractTextFromImage } from '../VisionService'
 
 const topLevelCategoryFilter = (label: ModerationLabel) =>
