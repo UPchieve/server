@@ -1,4 +1,4 @@
-\restrict K6PnTV62C3gA6oVKxHgPPCnp6PxAanc8EJH3RdnBlvrMvh9BwvUGI3u6RwDPC9N
+\restrict p3vmCkj9q8IbJPH7z1mjZ4BnxYnLKwZNf9twJXL6eKfOg5776bVC2yRjC6fsZ7u
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
 -- Dumped by pg_dump version 15.17 (Ubuntu 15.17-1.pgdg22.04+1)
@@ -1098,6 +1098,26 @@ COMMENT ON COLUMN upchieve.clever_school_mapping.clever_school_id IS 'not_pii: C
 --
 
 COMMENT ON COLUMN upchieve.clever_school_mapping.upchieve_school_id IS 'not_pii: Foreign key to upchieve.schools';
+
+
+--
+-- Name: column_descriptions; Type: VIEW; Schema: upchieve; Owner: -
+--
+
+CREATE VIEW upchieve.column_descriptions AS
+ SELECT c.table_name,
+    c.column_name,
+    (pg_description.description ~~ 'pii%'::text) AS is_pii,
+        CASE
+            WHEN (pg_description.description ~~ '%: %'::text) THEN SUBSTRING(pg_description.description FROM (POSITION((': '::text) IN (pg_description.description)) + 2))
+            ELSE ''::text
+        END AS description
+   FROM ((((information_schema.columns c
+     JOIN pg_class ON ((pg_class.relname = (c.table_name)::name)))
+     JOIN pg_namespace ON (((pg_namespace.nspname = (c.table_schema)::name) AND (pg_namespace.oid = pg_class.relnamespace))))
+     JOIN pg_attribute ON (((pg_attribute.attrelid = pg_class.oid) AND (pg_attribute.attname = (c.column_name)::name))))
+     LEFT JOIN pg_description ON (((pg_description.objoid = pg_class.oid) AND (pg_description.objsubid = pg_attribute.attnum))))
+  WHERE (((c.table_schema)::name = 'upchieve'::name) AND (pg_description.description IS NOT NULL) AND ((pg_description.description ~~ 'pii%'::text) OR (pg_description.description ~~ 'not_pii%'::text)));
 
 
 --
@@ -8062,6 +8082,19 @@ ALTER TABLE upchieve.surveys_survey_questions ALTER COLUMN id ADD GENERATED ALWA
 
 
 --
+-- Name: table_descriptions; Type: VIEW; Schema: upchieve; Owner: -
+--
+
+CREATE VIEW upchieve.table_descriptions AS
+ SELECT pg_class.relname AS table_name,
+    pg_description.description
+   FROM ((pg_class
+     JOIN pg_namespace ON ((pg_namespace.oid = pg_class.relnamespace)))
+     JOIN pg_description ON (((pg_description.objoid = pg_class.oid) AND (pg_description.objsubid = 0))))
+  WHERE ((pg_namespace.nspname = 'upchieve'::name) AND (pg_class.relkind = 'r'::"char"));
+
+
+--
 -- Name: teacher_classes; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -14930,7 +14963,7 @@ ALTER TABLE ONLY upchieve.volunteer_references
 -- PostgreSQL database dump complete
 --
 
-\unrestrict K6PnTV62C3gA6oVKxHgPPCnp6PxAanc8EJH3RdnBlvrMvh9BwvUGI3u6RwDPC9N
+\unrestrict p3vmCkj9q8IbJPH7z1mjZ4BnxYnLKwZNf9twJXL6eKfOg5776bVC2yRjC6fsZ7u
 
 
 --
@@ -15218,4 +15251,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260521184444'),
     ('20260602022152'),
     ('20260602031018'),
-    ('20260622211455');
+    ('20260622211455'),
+    ('20260623012028');
