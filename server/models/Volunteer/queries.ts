@@ -118,7 +118,7 @@ export async function getVolunteerContactInfoByIds(
       dbClient
     )
     return result.map((v) => {
-      const ret = makeSomeOptional(v, ['volunteerPartnerOrg'])
+      const ret = makeSomeOptional(v, ['volunteerPartnerOrg', 'phone'])
       ret.email = ret.email.toLowerCase()
       return ret
     })
@@ -136,7 +136,7 @@ export async function getVolunteersForBlackoutOver(
       getClient()
     )
     return result.map((v) => {
-      const ret = makeSomeOptional(v, ['volunteerPartnerOrg'])
+      const ret = makeSomeOptional(v, ['volunteerPartnerOrg', 'phone'])
       ret.email = ret.email.toLowerCase()
       return ret
     })
@@ -159,7 +159,10 @@ export async function getVolunteerForQuickTips(
       getClient()
     )
     if (!vResult.length) return
-    const volunteer = makeSomeOptional(vResult[0], ['volunteerPartnerOrg'])
+    const volunteer = makeSomeOptional(vResult[0], [
+      'volunteerPartnerOrg',
+      'phone',
+    ])
     const availability = await getAvailabilityForVolunteer(userId)
     volunteer.email = volunteer.email.toLowerCase()
     return {
@@ -182,7 +185,7 @@ export async function getPartnerVolunteerForLowHours(
       getClient()
     )
     if (!vResult.length) return
-    const volunteer = makeRequired(vResult[0]) // volunteerPartnerOrg must exist
+    const volunteer = makeSomeOptional(vResult[0], ['phone']) // volunteerPartnerOrg must exist
     volunteer.email = volunteer.email.toLowerCase()
     const availability = await getAvailabilityForVolunteer(userId)
     return {
@@ -550,21 +553,21 @@ export async function getInactiveVolunteers(
       getClient()
     )
     const thirties = thirtyResult.map((v) =>
-      makeSomeOptional(v, ['volunteerPartnerOrg'])
+      makeSomeOptional(v, ['volunteerPartnerOrg', 'phone'])
     )
     const sixtyResult = await pgQueries.getInactiveVolunteers.run(
       { start: sixtyDaysAgoStartOfDay, end: sixtyDaysAgoEndOfDay },
       getClient()
     )
     const sixties = sixtyResult.map((v) =>
-      makeSomeOptional(v, ['volunteerPartnerOrg'])
+      makeSomeOptional(v, ['volunteerPartnerOrg', 'phone'])
     )
     const ninetyResult = await pgQueries.getInactiveVolunteers.run(
       { start: ninetyDaysAgoStartOfDay, end: ninetyDaysAgoEndOfDay },
       getClient()
     )
     const nineties = ninetyResult.map((v) =>
-      makeSomeOptional(v, ['volunteerPartnerOrg'])
+      makeSomeOptional(v, ['volunteerPartnerOrg', 'phone'])
     )
 
     return {
@@ -1055,7 +1058,7 @@ export async function getVolunteersForNiceToMeetYou(
       getClient()
     )
     return result.map((v) => {
-      const ret = makeSomeOptional(v, ['volunteerPartnerOrg'])
+      const ret = makeSomeOptional(v, ['volunteerPartnerOrg', 'phone'])
       ret.email = ret.email.toLowerCase()
       return ret
     })
@@ -1073,7 +1076,7 @@ export async function getVolunteersForReadyToCoach(): Promise<
       getClient()
     )
     return result.map((v) => {
-      const ret = makeSomeOptional(v, ['volunteerPartnerOrg'])
+      const ret = makeSomeOptional(v, ['volunteerPartnerOrg', 'phone'])
       ret.email = ret.email.toLowerCase()
       return ret
     })
@@ -1092,7 +1095,7 @@ export async function getVolunteersForWaitingReferences(
       getClient()
     )
     return result.map((v) => {
-      const ret = makeSomeOptional(v, ['volunteerPartnerOrg'])
+      const ret = makeSomeOptional(v, ['volunteerPartnerOrg', 'phone'])
       ret.email = ret.email.toLowerCase()
       return ret
     })
