@@ -13,6 +13,7 @@ export interface IInsertProgressReportParams {
 
 /** 'InsertProgressReport' return type */
 export interface IInsertProgressReportResult {
+  /** not_pii: Primary key */
   id: string;
 }
 
@@ -56,6 +57,7 @@ export interface IInsertProgressReportSessionParams {
 
 /** 'InsertProgressReportSession' return type */
 export interface IInsertProgressReportSessionResult {
+  /** not_pii: Foreign key to upchieve.progress_reports */
   ok: string;
 }
 
@@ -99,6 +101,7 @@ export interface IInsertProgressReportSummaryParams {
 
 /** 'InsertProgressReportSummary' return type */
 export interface IInsertProgressReportSummaryResult {
+  /** not_pii: Primary key */
   id: string;
 }
 
@@ -133,6 +136,7 @@ export interface IInsertProgressReportConceptParams {
 
 /** 'InsertProgressReportConcept' return type */
 export interface IInsertProgressReportConceptResult {
+  /** not_pii: Primary key */
   id: string;
 }
 
@@ -167,6 +171,7 @@ export interface IInsertProgressReportSummaryDetailParams {
 
 /** 'InsertProgressReportSummaryDetail' return type */
 export interface IInsertProgressReportSummaryDetailResult {
+  /** not_pii: Primary key */
   id: string;
 }
 
@@ -217,6 +222,7 @@ export interface IInsertProgressReportConceptDetailParams {
 
 /** 'InsertProgressReportConceptDetail' return type */
 export interface IInsertProgressReportConceptDetailResult {
+  /** not_pii: Primary key */
   id: string;
 }
 
@@ -264,6 +270,7 @@ export interface IUpdateProgressReportStatusParams {
 
 /** 'UpdateProgressReportStatus' return type */
 export interface IUpdateProgressReportStatusResult {
+  /** not_pii: Primary key */
   ok: string;
 }
 
@@ -308,9 +315,13 @@ export interface IGetProgressReportInfoBySessionIdParams {
 
 /** 'GetProgressReportInfoBySessionId' return type */
 export interface IGetProgressReportInfoBySessionIdResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Timestamp when the user first read the report */
   readAt: Date | null;
+  /** not_pii: Human-readable name */
   status: string;
 }
 
@@ -354,9 +365,13 @@ export interface IGetProgressReportByReportIdParams {
 
 /** 'GetProgressReportByReportId' return type */
 export interface IGetProgressReportByReportIdResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Timestamp when the user first read the report */
   readAt: Date | null;
+  /** not_pii: Human-readable name */
   status: string;
 }
 
@@ -393,16 +408,26 @@ export interface IGetProgressReportSummariesForManyParams {
 
 /** 'GetProgressReportSummariesForMany' return type */
 export interface IGetProgressReportSummariesForManyResult {
+  /** not_pii: AI-generated summary detail text (may contain student context) */
   content: string;
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Primary key */
   detailId: string;
+  /** not_pii: Human-readable name */
   focusArea: string;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Human-readable name */
   infoType: string;
+  /** not_pii: Aggregate percentage performance grade */
   overallGrade: number;
+  /** not_pii: Foreign key to upchieve.progress_reports */
   reportId: string;
+  /** not_pii: Timestamp when the user first read the report */
   reportReadAt: Date | null;
   sessionCreatedAt: Date | null;
+  /** not_pii: AI-generated summary text (may contain student context) */
   summary: string;
 }
 
@@ -464,16 +489,27 @@ export interface IGetProgressReportConceptsByReportIdParams {
 
 /** 'GetProgressReportConceptsByReportId' return type */
 export interface IGetProgressReportConceptsByReportIdResult {
+  /** not_pii: AI-generated detail text (may contain student context) */
   content: string;
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: AI-generated description of the concept (may contain student context) */
   description: string;
+  /** not_pii: Primary key */
   detailId: string;
+  /** not_pii: Human-readable name */
   focusArea: string;
+  /** not_pii: Numeric performance grade (percentage) */
   grade: number;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Human-readable name */
   infoType: string;
+  /** not_pii: Name of the academic concept covered in the report */
   name: string;
+  /** not_pii: Foreign key to upchieve.progress_reports */
   reportId: string;
+  /** not_pii: Timestamp when the user first read the report */
   reportReadAt: Date | null;
 }
 
@@ -526,10 +562,15 @@ export interface IGetProgressReportSessionsForSubjectByPaginationParams {
 
 /** 'GetProgressReportSessionsForSubjectByPagination' return type */
 export interface IGetProgressReportSessionsForSubjectByPaginationResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: User-facing display name */
   subject: string;
+  /** not_pii: Human-readable name */
   topic: string;
+  /** not_pii: URL to the topic icon image */
   topicIconLink: string | null;
 }
 
@@ -587,6 +628,7 @@ export interface IGetAllProgressReportIdsByUserIdAndSubjectParams {
 
 /** 'GetAllProgressReportIdsByUserIdAndSubject' return type */
 export interface IGetAllProgressReportIdsByUserIdAndSubjectResult {
+  /** not_pii: Primary key */
   id: string;
 }
 
@@ -642,9 +684,13 @@ export interface IGetLatestProgressReportIdBySubjectParams {
 
 /** 'GetLatestProgressReportIdBySubject' return type */
 export interface IGetLatestProgressReportIdBySubjectResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Timestamp when the user first read the report */
   readAt: Date | null;
+  /** not_pii: Human-readable name */
   status: string;
 }
 
@@ -691,6 +737,7 @@ export interface IUpdateProgressReportsReadAtByReportIdsParams {
 
 /** 'UpdateProgressReportsReadAtByReportIds' return type */
 export interface IUpdateProgressReportsReadAtByReportIdsResult {
+  /** not_pii: Primary key */
   ok: string;
 }
 
@@ -726,6 +773,7 @@ export interface IGetUnreadSubjectReportsCountByUserIdParams {
 
 /** 'GetUnreadSubjectReportsCountByUserId' return type */
 export interface IGetUnreadSubjectReportsCountByUserIdResult {
+  /** not_pii: Human-readable name */
   subject: string;
   totalUnreadReports: number | null;
 }
@@ -783,6 +831,7 @@ export interface IGetLatestProgressReportOverviewSubjectByUserIdParams {
 
 /** 'GetLatestProgressReportOverviewSubjectByUserId' return type */
 export interface IGetLatestProgressReportOverviewSubjectByUserIdResult {
+  /** not_pii: Human-readable name */
   name: string;
 }
 
@@ -831,7 +880,9 @@ export interface IGetActiveSubjectPromptBySubjectNameParams {
 
 /** 'GetActiveSubjectPromptBySubjectName' return type */
 export interface IGetActiveSubjectPromptBySubjectNameResult {
+  /** not_pii: Primary key */
   id: number;
+  /** not_pii: Prompt text sent to the AI model */
   prompt: string;
 }
 

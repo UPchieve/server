@@ -16,6 +16,7 @@ export interface IGetUserRolesByIdParams {
 
 /** 'GetUserRolesById' return type */
 export interface IGetUserRolesByIdResult {
+  /** not_pii: Human-readable name */
   name: string;
 }
 
@@ -66,9 +67,13 @@ export interface ICreateUserParams {
 
 /** 'CreateUser' return type */
 export interface ICreateUserResult {
+  /** pii: User email address */
   email: string;
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
+  /** pii: Alternate email */
   proxyEmail: string | null;
 }
 
@@ -114,10 +119,14 @@ export interface IUpsertUserParams {
 
 /** 'UpsertUser' return type */
 export interface IUpsertUserResult {
+  /** pii: User email address */
   email: string;
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
   isCreated: boolean | null;
+  /** pii: Alternate email */
   proxyEmail: string | null;
 }
 
@@ -151,10 +160,15 @@ export interface IGetUserVerificationByEmailParams {
 
 /** 'GetUserVerificationByEmail' return type */
 export interface IGetUserVerificationByEmailResult {
+  /** pii: User email address */
   email: string;
+  /** not_pii: Whether the user has verified their email address */
   emailVerified: boolean;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Whether the user has verified their phone number */
   phoneVerified: boolean;
+  /** not_pii: Whether one of the user notification methods has been verified */
   verified: boolean;
 }
 
@@ -193,7 +207,9 @@ export interface IGetUserIdByEmailParams {
 
 /** 'GetUserIdByEmail' return type */
 export interface IGetUserIdByEmailResult {
+  /** pii: User email address */
   email: string;
+  /** not_pii: Primary key */
   id: string;
 }
 
@@ -228,6 +244,7 @@ export interface IGetUserIdByPhoneParams {
 
 /** 'GetUserIdByPhone' return type */
 export interface IGetUserIdByPhoneResult {
+  /** not_pii: Primary key */
   id: string;
 }
 
@@ -262,20 +279,34 @@ export interface IGetUserByIdParams {
 
 /** 'GetUserById' return type */
 export interface IGetUserByIdResult {
+  /** not_pii: Whether the volunteer application has been approved */
   approved: boolean;
+  /** not_pii: Type of ban (shadow, complete, live_media) */
   banType: ban_types | null;
+  /** not_pii: Whether the user account has been deactivated */
   deactivated: boolean;
+  /** pii: User email address */
   email: string;
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Timestamp of the most recent user activity */
   lastActivityAt: Date | null;
+  /** pii: Phone number */
   phone: string | null;
+  /** not_pii: Whether the user has verified their phone number */
   phoneVerified: boolean;
+  /** pii: Alternate email */
   proxyEmail: string | null;
+  /** not_pii: Unique code used to refer new users */
   referralCode: string;
   roles: stringArray | null;
+  /** not_pii: Whether the user has consented to receive SMS messages */
   smsConsent: boolean;
+  /** not_pii: Unique URL-safe slug */
   studentPartnerOrg: string;
+  /** not_pii: Unique URL-safe slug */
   volunteerPartnerOrg: string;
 }
 
@@ -337,6 +368,7 @@ export interface IGetUserBanStatusParams {
 
 /** 'GetUserBanStatus' return type */
 export interface IGetUserBanStatusResult {
+  /** not_pii: Type of ban (shadow, complete, live_media) */
   banType: ban_types | null;
 }
 
@@ -369,7 +401,9 @@ export interface IGetUserByReferralCodeParams {
 
 /** 'GetUserByReferralCode' return type */
 export interface IGetUserByReferralCodeResult {
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
 }
 
@@ -404,8 +438,11 @@ export interface IGetUserReferralLinkParams {
 
 /** 'GetUserReferralLink' return type */
 export interface IGetUserReferralLinkResult {
+  /** pii: User email address */
   email: string;
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Unique code used to refer new users */
   referralCode: string;
 }
 
@@ -442,9 +479,13 @@ export interface IGetUserForPassportParams {
 
 /** 'GetUserForPassport' return type */
 export interface IGetUserForPassportResult {
+  /** pii: User email address */
   email: string;
+  /** not_pii: Primary key */
   id: string;
+  /** pii: Hashed password */
   password: string | null;
+  /** pii: Alternate email */
   proxyEmail: string | null;
 }
 
@@ -482,7 +523,9 @@ export interface IGetUserByResetTokenParams {
 
 /** 'GetUserByResetToken' return type */
 export interface IGetUserByResetTokenResult {
+  /** pii: User email address */
   email: string;
+  /** not_pii: Primary key */
   id: string;
 }
 
@@ -518,6 +561,7 @@ export interface IUpdateUserResetTokenByIdParams {
 
 /** 'UpdateUserResetTokenById' return type */
 export interface IUpdateUserResetTokenByIdResult {
+  /** not_pii: Primary key */
   id: string;
 }
 
@@ -554,6 +598,7 @@ export interface IUpdateUserPasswordByIdParams {
 
 /** 'UpdateUserPasswordById' return type */
 export interface IUpdateUserPasswordByIdResult {
+  /** not_pii: Primary key */
   ok: string;
 }
 
@@ -590,6 +635,7 @@ export interface IUpdateUserVerifiedEmailByIdParams {
 
 /** 'UpdateUserVerifiedEmailById' return type */
 export interface IUpdateUserVerifiedEmailByIdResult {
+  /** pii: User email address */
   ok: string;
 }
 
@@ -628,6 +674,7 @@ export interface IUpdateUserVerifiedPhoneByIdParams {
 
 /** 'UpdateUserVerifiedPhoneById' return type */
 export interface IUpdateUserVerifiedPhoneByIdResult {
+  /** pii: Phone number */
   ok: string | null;
 }
 
@@ -666,6 +713,7 @@ export interface IUpdateUserPhoneNumberByUserIdParams {
 
 /** 'UpdateUserPhoneNumberByUserId' return type */
 export interface IUpdateUserPhoneNumberByUserIdResult {
+  /** not_pii: Primary key */
   ok: string;
 }
 
@@ -702,6 +750,7 @@ export interface IUpdateUserLastActivityByIdParams {
 
 /** 'UpdateUserLastActivityById' return type */
 export interface IUpdateUserLastActivityByIdResult {
+  /** not_pii: Primary key */
   ok: string;
 }
 
@@ -739,6 +788,7 @@ export interface IUpdateUserBanByIdParams {
 
 /** 'UpdateUserBanById' return type */
 export interface IUpdateUserBanByIdResult {
+  /** not_pii: Primary key */
   ok: string;
 }
 
@@ -789,9 +839,13 @@ export interface IGetUsersForAdminSearchParams {
 
 /** 'GetUsersForAdminSearch' return type */
 export interface IGetUsersForAdminSearchResult {
+  /** not_pii */
   createdAt: Date;
+  /** pii: User email address */
   email: string;
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
   lastName: string | null;
 }
@@ -857,36 +911,62 @@ export interface IGetUserForAdminDetailParams {
 
 /** 'GetUserForAdminDetail' return type */
 export interface IGetUserForAdminDetailResult {
+  /** not_pii: Type of ban (shadow, complete, live_media) */
   banType: ban_types | null;
+  /** pii: City of residence */
   city: string | null;
+  /** pii: College or university name */
   college: string | null;
+  /** pii: Volunteer employer company name */
   company: string | null;
+  /** pii: Country of residence */
   country: string | null;
+  /** not_pii */
   createdAt: Date;
   currentGrade: string | null;
+  /** pii: User email address */
   email: string;
+  /** not_pii: JSON blob of volunteer professional experience */
   experience: Json | null;
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Whether the volunteer application has been approved */
   isApproved: boolean;
+  /** not_pii: Whether the user account has been deactivated */
   isDeactivated: boolean;
+  /** not_pii: Soft-delete flag */
   isDeleted: boolean | null;
+  /** not_pii: Whether the volunteer has completed all onboarding steps */
   isOnboarded: boolean;
+  /** not_pii: Whether the account is a test or internal account */
   isTestUser: boolean;
+  /** not_pii: Languages the volunteer speaks */
   languages: stringArray | null;
   lastName: string | null;
+  /** pii: Volunteer LinkedIn profile URL */
   linkedinUrl: string | null;
   numPastSessions: string | null;
   occupation: stringArray | null;
+  /** not_pii: Human-readable name */
   partnerSite: string;
+  /** pii: S3 object key for the volunteer photo ID upload */
   photoIdS3Key: string | null;
+  /** not_pii: Human-readable name */
   photoIdStatus: string;
+  /** not_pii: Primary key */
   schoolId: string;
   schoolName: string | null;
+  /** pii: US state abbreviation */
   state: string | null;
+  /** not_pii: Human-readable name */
   studentPartnerOrg: string;
+  /** not_pii: Whether one of the user notification methods has been verified */
   verified: boolean;
+  /** not_pii: Human-readable name of the volunteer partner organization */
   volunteerPartnerOrg: string;
+  /** pii: US postal/ZIP code */
   zipCode: string | null;
 }
 
@@ -986,57 +1066,93 @@ export interface IGetLegacyUserParams {
 /** 'GetLegacyUser' return type */
 export interface IGetLegacyUserResult {
   activeSubjects: stringArray | null;
+  /** not_pii */
   availabilityLastModifiedAt: Date;
+  /** not_pii: Human-readable name of the ban reason */
   banReason: string;
+  /** not_pii: Type of ban (shadow, complete, live_media) */
   banType: ban_types | null;
+  /** pii: College or university name */
   college: string | null;
+  /** pii: Country of residence */
   country: string | null;
+  /** not_pii */
   createdAt: Date;
   elapsedAvailability: string | null;
+  /** pii: User email address */
   email: string;
+  /** not_pii: Whether the user has verified their email address */
   emailVerified: boolean;
+  /** not_pii: JSON blob of volunteer professional experience */
   experience: Json | null;
+  /** pii: First name */
   firstname: string;
+  /** pii: First name */
   firstName: string;
   gradeLevel: string | null;
   hoursTutored: number | null;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Whether the volunteer application has been approved */
   isApproved: boolean;
+  /** not_pii: Whether the user account has been deactivated */
   isDeactivated: boolean;
   isFakeUser: boolean | null;
+  /** not_pii: Whether the volunteer has completed all onboarding steps */
   isOnboarded: boolean;
   isSchoolPartner: boolean | null;
   issuers: stringArray | null;
+  /** not_pii: Whether the account is a test or internal account */
   isTestUser: boolean;
   isVolunteer: boolean | null;
+  /** not_pii: Timestamp of the most recent user activity */
   lastActivityAt: Date | null;
+  /** pii: Last name */
   lastName: string;
+  /** not_pii: Timestamp of the most recent successful Clever data sync */
   lastSuccessfulCleverSync: Date | null;
   mutedSubjectAlerts: stringArray | null;
   numberOfStudentClasses: string | null;
   occupation: stringArray | null;
+  /** not_pii: Human-readable name */
   partnerSite: string;
   pastSessions: stringArray | null;
+  /** pii: Phone number */
   phone: string | null;
+  /** not_pii: Whether the user has verified their phone number */
   phoneVerified: boolean;
+  /** not_pii: Human-readable name */
   photoIdStatus: string;
+  /** not_pii: Display name of the user preferred language */
   preferredLanguage: string | null;
+  /** pii: Alternate email */
   proxyEmail: string | null;
+  /** not_pii: Unique code used to refer new users */
   referralCode: string;
+  /** not_pii: Foreign key to upchieve.users who made the referral */
   referredBy: string | null;
+  /** not_pii: Foreign key to a roles lookup table */
   roleId: number;
+  /** not_pii: Human-readable name */
   schoolName: string;
   signupSource: string | null;
+  /** not_pii: Whether the user has consented to receive SMS messages */
   smsConsent: boolean;
+  /** not_pii: Human-readable name */
   studentPartnerOrg: string;
   subjects: stringArray | null;
+  /** pii: IANA timezone identifier */
   timezone: string | null;
   totalQuizzesPassed: number | null;
   totalTimeTutored: number | null;
   totalTutoredSessions: number | null;
+  /** not_pii: Cumulative tutoring hours logged by the volunteer, only calculated for config.customVolunteerPartnerOrgs */
   totalVolunteerHours: number | null;
+  /** not_pii: Languages the volunteer speaks */
   tutoringLanguages: stringArray | null;
+  /** not_pii: Whether one of the user notification methods has been verified */
   verified: boolean;
+  /** not_pii: Unique URL-safe slug */
   volunteerPartnerOrg: string;
 }
 
@@ -1262,21 +1378,35 @@ export interface IGetUserToCreateSendGridContactParams {
 
 /** 'GetUserToCreateSendGridContact' return type */
 export interface IGetUserToCreateSendGridContactResult {
+  /** not_pii: Type of ban (shadow, complete, live_media) */
   banType: ban_types | null;
+  /** not_pii */
   createdAt: Date;
+  /** pii: User email address */
   email: string;
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
   isVolunteer: boolean | null;
+  /** not_pii: Timestamp of the most recent user activity */
   lastActivityAt: Date | null;
+  /** pii: Last name */
   lastName: string;
+  /** not_pii: Whether the user has verified their phone number */
   phoneVerified: boolean;
+  /** not_pii: Whether the user has consented to receive SMS messages */
   smsConsent: boolean;
   studentGradeLevel: string | null;
+  /** not_pii: Unique URL-safe slug */
   studentPartnerOrg: string;
+  /** not_pii: Human-readable name */
   studentPartnerOrgDisplay: string;
+  /** not_pii: Whether the account is a test or internal account */
   testUser: boolean;
+  /** not_pii: Unique URL-safe slug */
   volunteerPartnerOrg: string;
+  /** not_pii: Human-readable name of the volunteer partner organization */
   volunteerPartnerOrgDisplay: string;
 }
 
@@ -1339,16 +1469,26 @@ export interface IGetPastSessionsForAdminDetailParams {
 
 /** 'GetPastSessionsForAdminDetail' return type */
 export interface IGetPastSessionsForAdminDetailResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Timestamp when the session ended */
   endedAt: Date | null;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Foreign key to upchieve.users (the student) */
   student: string;
+  /** pii: First name */
   studentFirstName: string;
+  /** not_pii: Human-readable name */
   subTopic: string;
   totalMessages: number | null;
+  /** not_pii: Human-readable name */
   type: string;
+  /** not_pii: Foreign key to upchieve.users (the volunteer) */
   volunteer: string | null;
+  /** pii: First name */
   volunteerFirstName: string;
+  /** not_pii: Timestamp when the volunteer joined the session */
   volunteerJoinedAt: Date | null;
 }
 
@@ -1404,6 +1544,7 @@ export type IGetLegacyCertificationsParams = void;
 
 /** 'GetLegacyCertifications' return type */
 export interface IGetLegacyCertificationsResult {
+  /** not_pii: Human-readable name */
   name: string;
 }
 
@@ -1468,6 +1609,7 @@ export interface IInsertUserRoleByUserIdParams {
 
 /** 'InsertUserRoleByUserId' return type */
 export interface IInsertUserRoleByUserIdResult {
+  /** not_pii: Foreign key to upchieve.users */
   ok: string;
 }
 
@@ -1517,6 +1659,7 @@ export interface IUpdateUserProfileByIdParams {
 
 /** 'UpdateUserProfileById' return type */
 export interface IUpdateUserProfileByIdResult {
+  /** not_pii: Primary key */
   ok: string;
 }
 
@@ -1588,6 +1731,7 @@ export interface IDeletePhoneParams {
 
 /** 'DeletePhone' return type */
 export interface IDeletePhoneResult {
+  /** not_pii: Primary key */
   ok: string;
 }
 
@@ -1627,6 +1771,7 @@ export interface IInsertMutedUserSubjectAlertsParams {
 
 /** 'InsertMutedUserSubjectAlerts' return type */
 export interface IInsertMutedUserSubjectAlertsResult {
+  /** not_pii: Foreign key to upchieve.users */
   ok: string;
 }
 
@@ -1660,6 +1805,7 @@ export interface IDeleteAllUserSubjectAlertsParams {
 
 /** 'DeleteAllUserSubjectAlerts' return type */
 export interface IDeleteAllUserSubjectAlertsResult {
+  /** not_pii: Foreign key to upchieve.users */
   ok: string;
 }
 
@@ -1690,8 +1836,11 @@ export interface IGetUserVerificationInfoByIdParams {
 
 /** 'GetUserVerificationInfoById' return type */
 export interface IGetUserVerificationInfoByIdResult {
+  /** not_pii: Whether the user has verified their email address */
   emailVerified: boolean;
+  /** not_pii: Whether the user has verified their phone number */
   phoneVerified: boolean;
+  /** not_pii: Whether one of the user notification methods has been verified */
   verified: boolean;
 }
 
@@ -1726,16 +1875,26 @@ export interface IGetReportedUserParams {
 
 /** 'GetReportedUser' return type */
 export interface IGetReportedUserResult {
+  /** not_pii: Type of ban (shadow, complete, live_media) */
   banType: ban_types | null;
+  /** not_pii */
   createdAt: Date;
+  /** pii: User email address */
   email: string;
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Whether the user account has been deactivated */
   isDeactivated: boolean;
+  /** not_pii: Whether the account is a test or internal account */
   isTestUser: boolean;
   isVolunteer: boolean | null;
+  /** pii: Last name */
   lastName: string;
+  /** not_pii: Unique URL-safe slug */
   studentPartnerOrg: string;
+  /** not_pii: Unique URL-safe slug */
   volunteerPartnerOrg: string;
 }
 
@@ -1790,6 +1949,7 @@ export interface IGetUsersLatestSubjectsByUserIdParams {
 
 /** 'GetUsersLatestSubjectsByUserId' return type */
 export interface IGetUsersLatestSubjectsByUserIdResult {
+  /** not_pii: Human-readable name */
   subject: string;
 }
 
@@ -1834,6 +1994,7 @@ export interface IUpdateUserProxyEmailParams {
 
 /** 'UpdateUserProxyEmail' return type */
 export interface IUpdateUserProxyEmailResult {
+  /** not_pii: Primary key */
   ok: string;
 }
 
@@ -1918,6 +2079,7 @@ export interface IUpdatePreferredLanguageToUserParams {
 
 /** 'UpdatePreferredLanguageToUser' return type */
 export interface IUpdatePreferredLanguageToUserResult {
+  /** not_pii: Primary key */
   ok: string;
 }
 
@@ -1984,6 +2146,7 @@ export interface IGetFavoriteVolunteersByUserIdParams {
 
 /** 'GetFavoriteVolunteersByUserId' return type */
 export interface IGetFavoriteVolunteersByUserIdResult {
+  /** not_pii: Foreign key to upchieve.users (the volunteer) */
   volunteerId: string;
 }
 
@@ -2044,9 +2207,13 @@ export type IDeleteProxyEmailsIdenticalToEmailsParams = void;
 
 /** 'DeleteProxyEmailsIdenticalToEmails' return type */
 export interface IDeleteProxyEmailsIdenticalToEmailsResult {
+  /** pii: User email address */
   email: string;
+  /** not_pii: Primary key */
   id: string;
+  /** pii: Alternate email */
   proxyEmail: string | null;
+  /** not_pii */
   updatedAt: Date;
 }
 

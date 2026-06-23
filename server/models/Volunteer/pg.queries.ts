@@ -21,12 +21,19 @@ export interface IGetVolunteerContactInfoByIdParams {
 
 /** 'GetVolunteerContactInfoById' return type */
 export interface IGetVolunteerContactInfoByIdResult {
+  /** not_pii: Whether the volunteer application has been approved */
   approved: boolean;
+  /** pii: User email address */
   email: string;
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
+  /** pii: Last name */
   lastName: string;
+  /** pii: Phone number */
   phone: string | null;
+  /** not_pii: Unique URL-safe slug */
   volunteerPartnerOrg: string;
 }
 
@@ -77,11 +84,17 @@ export interface IGetVolunteerContactInfoByIdsParams {
 
 /** 'GetVolunteerContactInfoByIds' return type */
 export interface IGetVolunteerContactInfoByIdsResult {
+  /** pii: User email address */
   email: string;
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
+  /** pii: Last name */
   lastName: string;
+  /** pii: Phone number */
   phone: string | null;
+  /** not_pii: Unique URL-safe slug */
   volunteerPartnerOrg: string;
 }
 
@@ -126,11 +139,17 @@ export interface IGetVolunteersForBlackoutOverParams {
 
 /** 'GetVolunteersForBlackoutOver' return type */
 export interface IGetVolunteersForBlackoutOverResult {
+  /** pii: User email address */
   email: string;
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
+  /** pii: Last name */
   lastName: string;
+  /** pii: Phone number */
   phone: string | null;
+  /** not_pii: Unique URL-safe slug */
   volunteerPartnerOrg: string;
 }
 
@@ -177,11 +196,17 @@ export interface IGetVolunteerForQuickTipsParams {
 
 /** 'GetVolunteerForQuickTips' return type */
 export interface IGetVolunteerForQuickTipsResult {
+  /** pii: User email address */
   email: string;
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
+  /** pii: Last name */
   lastName: string;
+  /** pii: Phone number */
   phone: string | null;
+  /** not_pii: Unique URL-safe slug */
   volunteerPartnerOrg: string;
 }
 
@@ -227,11 +252,17 @@ export interface IGetPartnerVolunteerForLowHoursParams {
 
 /** 'GetPartnerVolunteerForLowHours' return type */
 export interface IGetPartnerVolunteerForLowHoursResult {
+  /** pii: User email address */
   email: string;
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
+  /** pii: Last name */
   lastName: string;
+  /** pii: Phone number */
   phone: string | null;
+  /** not_pii: Unique URL-safe slug */
   volunteerPartnerOrg: string;
 }
 
@@ -286,11 +317,17 @@ export interface IGetVolunteersForWeeklyHourSummaryParams {
 
 /** 'GetVolunteersForWeeklyHourSummary' return type */
 export interface IGetVolunteersForWeeklyHourSummaryResult {
+  /** pii: User email address */
   email: string;
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
+  /** pii: Last name */
   lastName: string;
+  /** not_pii: Whether the hour summary intro email has been sent */
   sentHourSummaryIntroEmail: boolean;
+  /** not_pii: Unique URL-safe slug */
   volunteerPartnerOrg: string;
 }
 
@@ -348,6 +385,7 @@ export interface IUpdateVolunteerHourSummaryIntroByIdParams {
 
 /** 'UpdateVolunteerHourSummaryIntroById' return type */
 export interface IUpdateVolunteerHourSummaryIntroByIdResult {
+  /** not_pii: Foreign key to upchieve.users */
   ok: string;
 }
 
@@ -384,6 +422,7 @@ export interface IUpdateTimezoneByUserIdParams {
 
 /** 'UpdateTimezoneByUserId' return type */
 export interface IUpdateTimezoneByUserIdResult {
+  /** not_pii: Foreign key to upchieve.users */
   ok: string;
 }
 
@@ -417,6 +456,7 @@ export type IGetVolunteerIdsForElapsedAvailabilityParams = void;
 
 /** 'GetVolunteerIdsForElapsedAvailability' return type */
 export interface IGetVolunteerIdsForElapsedAvailabilityResult {
+  /** not_pii: Foreign key to upchieve.users */
   userId: string;
 }
 
@@ -454,6 +494,7 @@ export interface IGetVolunteersForTotalHoursParams {
 
 /** 'GetVolunteersForTotalHours' return type */
 export interface IGetVolunteersForTotalHoursResult {
+  /** not_pii: Primary key */
   id: string;
 }
 
@@ -499,14 +540,21 @@ export interface IGetVolunteerForOnboardingByIdParams {
 
 /** 'GetVolunteerForOnboardingById' return type */
 export interface IGetVolunteerForOnboardingByIdResult {
+  /** not_pii: Whether the volunteer application has been approved */
   approved: boolean;
   availabilityLastModifiedAt: Date | null;
+  /** pii: Country of residence */
   country: string | null;
+  /** pii: User email address */
   email: string;
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Whether the volunteer has completed all onboarding steps */
   onboarded: boolean;
   subjects: stringArray | null;
+  /** not_pii: Unique URL-safe slug */
   volunteerPartnerOrgKey: string;
 }
 
@@ -587,11 +635,17 @@ export interface IGetVolunteersForTelecomReportParams {
 
 /** 'GetVolunteersForTelecomReport' return type */
 export interface IGetVolunteersForTelecomReportResult {
+  /** not_pii */
   createdAt: Date;
+  /** pii: User email address */
   email: string;
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
+  /** pii: Last name */
   lastName: string;
+  /** not_pii: Unique URL-safe slug */
   volunteerPartnerOrg: string;
 }
 
@@ -641,6 +695,7 @@ export interface IGetVolunteersNotifiedBySessionIdParams {
 
 /** 'GetVolunteersNotifiedBySessionId' return type */
 export interface IGetVolunteersNotifiedBySessionIdResult {
+  /** not_pii: Foreign key to upchieve.users; who the notification was sent to */
   userId: string;
 }
 
@@ -673,7 +728,9 @@ export interface IGetVolunteerByReferenceParams {
 
 /** 'GetVolunteerByReference' return type */
 export interface IGetVolunteerByReferenceResult {
+  /** pii: User email address of the reference */
   referenceEmail: string;
+  /** not_pii: Foreign key to upchieve.users */
   volunteerId: string;
 }
 
@@ -714,6 +771,7 @@ export interface IAddVolunteerReferenceByIdParams {
 
 /** 'AddVolunteerReferenceById' return type */
 export interface IAddVolunteerReferenceByIdResult {
+  /** not_pii: Primary key */
   ok: string;
 }
 
@@ -765,6 +823,7 @@ export interface IUpdateVolunteerReferenceSubmissionParams {
 
 /** 'UpdateVolunteerReferenceSubmission' return type */
 export interface IUpdateVolunteerReferenceSubmissionResult {
+  /** not_pii: Primary key */
   ok: string;
 }
 
@@ -825,11 +884,17 @@ export interface IGetInactiveVolunteersParams {
 
 /** 'GetInactiveVolunteers' return type */
 export interface IGetInactiveVolunteersResult {
+  /** pii: User email address */
   email: string;
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
+  /** pii: Last name */
   lastName: string;
+  /** pii: Phone number */
   phone: string | null;
+  /** not_pii: Unique URL-safe slug */
   volunteerPartnerOrg: string;
 }
 
@@ -876,6 +941,7 @@ export interface IUpdateVolunteerReferenceSentByIdParams {
 
 /** 'UpdateVolunteerReferenceSentById' return type */
 export interface IUpdateVolunteerReferenceSentByIdResult {
+  /** not_pii: Primary key */
   ok: string;
 }
 
@@ -919,6 +985,7 @@ export interface IUpdateVolunteersReadyToCoachByIdsParams {
 
 /** 'UpdateVolunteersReadyToCoachByIds' return type */
 export interface IUpdateVolunteersReadyToCoachByIdsResult {
+  /** not_pii: Foreign key to upchieve.users */
   ok: string;
 }
 
@@ -955,6 +1022,7 @@ export interface IUpdateVolunteerElapsedAvailabilityByIdParams {
 
 /** 'UpdateVolunteerElapsedAvailabilityById' return type */
 export interface IUpdateVolunteerElapsedAvailabilityByIdResult {
+  /** not_pii: Foreign key to upchieve.users */
   ok: string;
 }
 
@@ -997,6 +1065,7 @@ export interface ISetVolunteerElapsedAvailabilityByIdParams {
 
 /** 'SetVolunteerElapsedAvailabilityById' return type */
 export interface ISetVolunteerElapsedAvailabilityByIdResult {
+  /** not_pii: Foreign key to upchieve.users */
   ok: string;
 }
 
@@ -1033,6 +1102,7 @@ export interface IUpdateVolunteerTotalHoursByIdParams {
 
 /** 'UpdateVolunteerTotalHoursById' return type */
 export interface IUpdateVolunteerTotalHoursByIdResult {
+  /** not_pii: Foreign key to upchieve.users */
   ok: string;
 }
 
@@ -1074,12 +1144,19 @@ export interface IGetVolunteerTrainingCoursesParams {
 
 /** 'GetVolunteerTrainingCourses' return type */
 export interface IGetVolunteerTrainingCoursesResult {
+  /** not_pii: Whether the training course has been completed */
   complete: boolean;
+  /** not_pii: Array of completed training material identifiers */
   completedMaterials: stringArray | null;
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Completion percentage of the training course (0-100) */
   progress: number;
+  /** not_pii: Human-readable name */
   trainingCourse: string;
+  /** not_pii */
   updatedAt: Date;
+  /** not_pii: Foreign key to upchieve.users */
   userId: string;
 }
 
@@ -1122,12 +1199,19 @@ export interface IUpdateVolunteerTrainingByIdParams {
 
 /** 'UpdateVolunteerTrainingById' return type */
 export interface IUpdateVolunteerTrainingByIdResult {
+  /** not_pii: Whether the training course has been completed */
   complete: boolean;
+  /** not_pii: Array of completed training material identifiers */
   completedMaterials: stringArray | null;
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Completion percentage of the training course (0-100) */
   progress: number;
+  /** not_pii: Foreign key to upchieve.training_courses */
   trainingCourseId: number;
+  /** not_pii */
   updatedAt: Date;
+  /** not_pii: Foreign key to upchieve.users */
   userId: string;
 }
 
@@ -1201,6 +1285,7 @@ export interface IUpdateVolunteerPhotoIdByIdParams {
 
 /** 'UpdateVolunteerPhotoIdById' return type */
 export interface IUpdateVolunteerPhotoIdByIdResult {
+  /** not_pii: Foreign key to upchieve.users */
   ok: string;
 }
 
@@ -1243,6 +1328,7 @@ export interface IUpdateVolunteerSentInactive30DayEmailParams {
 
 /** 'UpdateVolunteerSentInactive30DayEmail' return type */
 export interface IUpdateVolunteerSentInactive30DayEmailResult {
+  /** not_pii: Foreign key to upchieve.users */
   ok: string;
 }
 
@@ -1278,6 +1364,7 @@ export interface IUpdateVolunteerSentInactive60DayEmailParams {
 
 /** 'UpdateVolunteerSentInactive60DayEmail' return type */
 export interface IUpdateVolunteerSentInactive60DayEmailResult {
+  /** not_pii: Foreign key to upchieve.users */
   ok: string;
 }
 
@@ -1314,6 +1401,7 @@ export interface IUpdateVolunteerSentInactive90DayEmailParams {
 
 /** 'UpdateVolunteerSentInactive90DayEmail' return type */
 export interface IUpdateVolunteerSentInactive90DayEmailResult {
+  /** not_pii: Foreign key to upchieve.users */
   ok: string;
 }
 
@@ -1347,11 +1435,17 @@ export type IGetVolunteerUnsentReferencesParams = void;
 
 /** 'GetVolunteerUnsentReferences' return type */
 export interface IGetVolunteerUnsentReferencesResult {
+  /** pii: User email address of the reference */
   email: string;
+  /** pii: First name of the reference */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
+  /** pii: Last name of the reference */
   lastName: string;
+  /** not_pii: Human-readable name of the status of the reference */
   status: string;
+  /** not_pii: Foreign key to upchieve.users */
   userId: string;
 }
 
@@ -1392,10 +1486,15 @@ export interface IGetReferencesByVolunteerParams {
 
 /** 'GetReferencesByVolunteer' return type */
 export interface IGetReferencesByVolunteerResult {
+  /** pii: User email address of the reference */
   email: string;
+  /** pii: First name of the reference */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
+  /** pii: Last name of the reference */
   lastName: string;
+  /** not_pii: Human-readable name of the status of the reference */
   status: string;
 }
 
@@ -1436,10 +1535,15 @@ export interface ICheckReferenceExistsBeforeAddingParams {
 /** 'CheckReferenceExistsBeforeAdding' return type */
 export interface ICheckReferenceExistsBeforeAddingResult {
   actions: stringArray | null;
+  /** pii: User email address of the reference */
   email: string;
+  /** pii: First name of the reference */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
+  /** pii: Last name of the reference */
   lastName: string;
+  /** not_pii: Human-readable name of the status of the reference */
   status: string;
 }
 
@@ -1487,19 +1591,33 @@ export interface IGetReferencesByVolunteerForAdminDetailParams {
 
 /** 'GetReferencesByVolunteerForAdminDetail' return type */
 export interface IGetReferencesByVolunteerForAdminDetailResult {
+  /** pii: Additional notes provided by the reference */
   additionalInfo: string | null;
+  /** pii: Reference contact relationship to the volunteer (e.g. colleague, professor) */
   affiliation: string | null;
+  /** pii: Reference rating for agreeableness and approachability (1-5) */
   agreeableAndApproachable: number | null;
+  /** not_pii: Reference rating for communication effectiveness (1-5) */
   communicatesEffectively: number | null;
+  /** pii: User email address of the reference */
   email: string;
+  /** pii: First name of the reference */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
+  /** pii: Last name of the reference */
   lastName: string;
+  /** not_pii: Reference rating for patience (1-5) */
   patient: number | null;
+  /** not_pii: Reference rating for being a positive role model (1-5) */
   positiveRoleModel: number | null;
+  /** pii: Reason the reference submission was rejected */
   rejectionReason: string | null;
+  /** pii: How long the reference has known the volunteer */
   relationshipLength: string | null;
+  /** not_pii: Human-readable name of the status of the reference */
   status: string;
+  /** not_pii: Reference rating for trustworthiness with children (1-5) */
   trustworthyWithChildren: number | null;
 }
 
@@ -1547,16 +1665,26 @@ export interface IGetVolunteerForPendingStatusParams {
 
 /** 'GetVolunteerForPendingStatus' return type */
 export interface IGetVolunteerForPendingStatusResult {
+  /** not_pii: Whether the volunteer application has been approved */
   approved: boolean;
+  /** pii: Country of residence */
   country: string | null;
+  /** pii: User email address */
   email: string;
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
+  /** pii: Last name */
   lastName: string;
   occupations: stringArray | null;
+  /** not_pii: Whether the volunteer has completed all onboarding steps */
   onboarded: boolean;
+  /** pii: Phone number */
   phone: string | null;
+  /** not_pii: Human-readable name */
   photoIdStatus: string;
+  /** not_pii: Unique URL-safe slug */
   volunteerPartnerOrg: string;
 }
 
@@ -1610,6 +1738,7 @@ export interface IUpdateVolunteerReferenceStatusParams {
 
 /** 'UpdateVolunteerReferenceStatus' return type */
 export interface IUpdateVolunteerReferenceStatusResult {
+  /** not_pii: Primary key */
   ok: string;
 }
 
@@ -1653,6 +1782,7 @@ export interface IUpdateVolunteerApprovedParams {
 
 /** 'UpdateVolunteerApproved' return type */
 export interface IUpdateVolunteerApprovedResult {
+  /** not_pii: Foreign key to upchieve.users */
   ok: string;
 }
 
@@ -1690,6 +1820,7 @@ export interface IUpdateVolunteerPendingParams {
 
 /** 'UpdateVolunteerPending' return type */
 export interface IUpdateVolunteerPendingResult {
+  /** not_pii: Foreign key to upchieve.users */
   ok: string;
 }
 
@@ -1733,6 +1864,7 @@ export interface IUpdateVolunteerOnboardedParams {
 
 /** 'UpdateVolunteerOnboarded' return type */
 export interface IUpdateVolunteerOnboardedResult {
+  /** not_pii: Foreign key to upchieve.users */
   ok: string;
 }
 
@@ -1769,11 +1901,17 @@ export interface IGetVolunteersForNiceToMeetYouParams {
 
 /** 'GetVolunteersForNiceToMeetYou' return type */
 export interface IGetVolunteersForNiceToMeetYouResult {
+  /** pii: User email address */
   email: string;
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
+  /** pii: Last name */
   lastName: string;
+  /** pii: Phone number */
   phone: string | null;
+  /** not_pii: Unique URL-safe slug */
   volunteerPartnerOrg: string;
 }
 
@@ -1817,11 +1955,17 @@ export type IGetVolunteersForReadyToCoachParams = void;
 
 /** 'GetVolunteersForReadyToCoach' return type */
 export interface IGetVolunteersForReadyToCoachResult {
+  /** pii: User email address */
   email: string;
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
+  /** pii: Last name */
   lastName: string;
+  /** pii: Phone number */
   phone: string | null;
+  /** not_pii: Unique URL-safe slug */
   volunteerPartnerOrg: string;
 }
 
@@ -1870,11 +2014,17 @@ export interface IGetVolunteersForWaitingReferencesParams {
 
 /** 'GetVolunteersForWaitingReferences' return type */
 export interface IGetVolunteersForWaitingReferencesResult {
+  /** pii: User email address */
   email: string;
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
+  /** pii: Last name */
   lastName: string;
+  /** pii: Phone number */
   phone: string | null;
+  /** not_pii: Unique URL-safe slug */
   volunteerPartnerOrg: string;
 }
 
@@ -1927,6 +2077,7 @@ export interface IAddVolunteerCertificationParams {
 
 /** 'AddVolunteerCertification' return type */
 export interface IAddVolunteerCertificationResult {
+  /** not_pii: Foreign key to upchieve.users */
   ok: string;
 }
 
@@ -1974,6 +2125,7 @@ export interface IUpdateVolunteerQuizParams {
 
 /** 'UpdateVolunteerQuiz' return type */
 export interface IUpdateVolunteerQuizResult {
+  /** not_pii: Foreign key to upchieve.users */
   ok: string;
 }
 
@@ -2024,12 +2176,19 @@ export interface IGetVolunteersToReviewParams {
 
 /** 'GetVolunteersToReview' return type */
 export interface IGetVolunteersToReviewResult {
+  /** not_pii */
   createdAt: Date;
+  /** pii: User email address */
   email: string;
+  /** pii: First name */
   firstname: string;
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
+  /** pii: Last name */
   lastname: string;
+  /** pii: Last name */
   lastName: string;
   readyForReviewAt: Date | null;
 }
@@ -2093,12 +2252,19 @@ export interface IGetReferencesToFollowupParams {
 
 /** 'GetReferencesToFollowup' return type */
 export interface IGetReferencesToFollowupResult {
+  /** pii: User email address of the reference */
   referenceEmail: string;
+  /** pii: First name of the reference */
   referenceFirstName: string;
+  /** not_pii: Primary key */
   referenceId: string;
+  /** pii: Last name of the reference */
   referenceLastName: string;
+  /** pii: First name */
   volunteerFirstName: string;
+  /** not_pii: Primary key */
   volunteerId: string;
+  /** pii: Last name */
   volunteerLastName: string;
 }
 
@@ -2210,6 +2376,7 @@ export interface IUpdateVolunteerProfileParams {
 
 /** 'UpdateVolunteerProfile' return type */
 export interface IUpdateVolunteerProfileResult {
+  /** not_pii: Foreign key to upchieve.users */
   id: string;
 }
 
@@ -2255,6 +2422,7 @@ export interface IUpdateSsoUserBackgroundInfoParams {
 
 /** 'UpdateSsoUserBackgroundInfo' return type */
 export interface IUpdateSsoUserBackgroundInfoResult {
+  /** not_pii: Primary key */
   id: string;
 }
 
@@ -2334,6 +2502,7 @@ export interface IUpdateVolunteerUserForAdminParams {
 
 /** 'UpdateVolunteerUserForAdmin' return type */
 export interface IUpdateVolunteerUserForAdminResult {
+  /** not_pii: Primary key */
   ok: string;
 }
 
@@ -2375,6 +2544,7 @@ export interface IUpdateVolunteerProfilesForAdminParams {
 
 /** 'UpdateVolunteerProfilesForAdmin' return type */
 export interface IUpdateVolunteerProfilesForAdminResult {
+  /** not_pii: Foreign key to upchieve.users */
   ok: string;
 }
 
@@ -2419,16 +2589,27 @@ export interface ICreateVolunteerUserParams {
 
 /** 'CreateVolunteerUser' return type */
 export interface ICreateVolunteerUserResult {
+  /** not_pii: Whether the user has been banned */
   banned: boolean;
+  /** not_pii: Type of ban (shadow, complete, live_media) */
   banType: ban_types | null;
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Whether the user account has been deactivated */
   deactivated: boolean;
+  /** pii: User email address */
   email: string;
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
+  /** pii: Last name */
   lastName: string;
+  /** pii: Phone number */
   phone: string | null;
+  /** not_pii: Whether the user has consented to receive SMS messages */
   smsConsent: boolean;
+  /** not_pii: Whether the account is a test or internal account */
   testUser: boolean;
 }
 
@@ -2462,6 +2643,7 @@ export interface ICreateUserVolunteerPartnerOrgInstanceParams {
 
 /** 'CreateUserVolunteerPartnerOrgInstance' return type */
 export interface ICreateUserVolunteerPartnerOrgInstanceResult {
+  /** not_pii: Foreign key to upchieve.users */
   ok: string | null;
 }
 
@@ -2503,6 +2685,7 @@ export interface ICreateVolunteerProfileParams {
 
 /** 'CreateVolunteerProfile' return type */
 export interface ICreateVolunteerProfileResult {
+  /** not_pii: Foreign key to upchieve.users */
   ok: string;
 }
 
@@ -2533,11 +2716,17 @@ export interface IGetQuizzesForVolunteersParams {
 
 /** 'GetQuizzesForVolunteers' return type */
 export interface IGetQuizzesForVolunteersResult {
+  /** not_pii: Whether this quiz is currently available to volunteers */
   active: boolean;
+  /** not_pii */
   lastAttemptedAt: Date;
+  /** not_pii: Human-readable name */
   name: string;
+  /** not_pii: Whether the user has passed the quiz */
   passed: boolean;
+  /** not_pii: Number of quiz attempts by the user */
   tries: number;
+  /** not_pii: Foreign key to upchieve.users */
   userId: string;
 }
 
@@ -2576,9 +2765,13 @@ export interface IGetCertificationsForVolunteerParams {
 
 /** 'GetCertificationsForVolunteer' return type */
 export interface IGetCertificationsForVolunteerResult {
+  /** not_pii: Whether this certification is currently offered */
   active: boolean;
+  /** not_pii */
   lastAttemptedAt: Date;
+  /** not_pii: Human-readable name of the certification */
   name: string;
+  /** not_pii: Foreign key to upchieve.users */
   userId: string;
 }
 
@@ -2615,10 +2808,15 @@ export interface IGetActiveQuizzesForVolunteersParams {
 
 /** 'GetActiveQuizzesForVolunteers' return type */
 export interface IGetActiveQuizzesForVolunteersResult {
+  /** not_pii */
   lastAttemptedAt: Date;
+  /** not_pii: Human-readable name */
   name: string;
+  /** not_pii: Whether the user has passed the quiz */
   passed: boolean;
+  /** not_pii: Number of quiz attempts by the user */
   tries: number;
+  /** not_pii: Foreign key to upchieve.users */
   userId: string;
 }
 
@@ -2657,6 +2855,7 @@ export interface IGetSubjectsForVolunteerParams {
 
 /** 'GetSubjectsForVolunteer' return type */
 export interface IGetSubjectsForVolunteerResult {
+  /** not_pii: Human-readable name */
   subject: string;
 }
 
@@ -2717,12 +2916,18 @@ export interface IGetNextVolunteerToNotifyParams {
 
 /** 'GetNextVolunteerToNotify' return type */
 export interface IGetNextVolunteerToNotifyResult {
+  /** pii: User email address */
   email: string;
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
+  /** pii: Last name */
   lastName: string;
+  /** pii: Phone number */
   phone: string | null;
   rn: string | null;
+  /** not_pii: Unique URL-safe slug */
   volunteerPartnerOrg: string;
 }
 
@@ -2919,6 +3124,7 @@ export interface ICheckIfVolunteerMutedSubjectParams {
 
 /** 'CheckIfVolunteerMutedSubject' return type */
 export interface ICheckIfVolunteerMutedSubjectResult {
+  /** not_pii: Foreign key to upchieve.users */
   userId: string;
 }
 
@@ -2953,10 +3159,13 @@ export interface IGetVolunteerForScheduleUpdateParams {
 
 /** 'GetVolunteerForScheduleUpdate' return type */
 export interface IGetVolunteerForScheduleUpdateResult {
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Whether the volunteer has completed all onboarding steps */
   onboarded: boolean;
   passedRequiredTraining: boolean | null;
   subjects: stringArray | null;
+  /** not_pii: Unique URL-safe slug */
   volunteerPartnerOrg: string;
 }
 
@@ -3089,12 +3298,19 @@ export interface IGetVolunteersForAnalyticsReportParams {
 /** 'GetVolunteersForAnalyticsReport' return type */
 export interface IGetVolunteersForAnalyticsReportResult {
   availabilityLastModifiedAt: Date | null;
+  /** not_pii */
   createdAt: Date;
+  /** not_pii */
   dateOnboarded: Date;
+  /** pii: User email address */
   email: string;
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Whether the volunteer has completed all onboarding steps */
   isOnboarded: boolean;
+  /** pii: Last name */
   lastName: string;
+  /** pii: US state abbreviation */
   state: string | null;
   totalNotifications: number | null;
   totalNotificationsWithinRange: number | null;
@@ -3109,6 +3325,7 @@ export interface IGetVolunteersForAnalyticsReportResult {
   totalUniquePartnerStudentsHelpedWithinRange: number | null;
   totalUniqueStudentsHelped: number | null;
   totalUniqueStudentsHelpedWithinRange: number | null;
+  /** not_pii: Primary key */
   userId: string;
 }
 
@@ -3277,7 +3494,9 @@ export interface IGetPartnerOrgsByVolunteerParams {
 
 /** 'GetPartnerOrgsByVolunteer' return type */
 export interface IGetPartnerOrgsByVolunteerResult {
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Human-readable name of the volunteer partner organization */
   name: string;
 }
 
@@ -3314,6 +3533,7 @@ export interface IAdminDeactivateVolunteerPartnershipInstanceParams {
 
 /** 'AdminDeactivateVolunteerPartnershipInstance' return type */
 export interface IAdminDeactivateVolunteerPartnershipInstanceResult {
+  /** not_pii: Foreign key to upchieve.users */
   ok: string | null;
 }
 
@@ -3350,6 +3570,7 @@ export interface IAdminInsertVolunteerPartnershipInstanceParams {
 
 /** 'AdminInsertVolunteerPartnershipInstance' return type */
 export interface IAdminInsertVolunteerPartnershipInstanceResult {
+  /** not_pii: Foreign key to upchieve.users */
   ok: string | null;
 }
 
@@ -3380,8 +3601,11 @@ export interface IGetPartnerOrgByKeyParams {
 
 /** 'GetPartnerOrgByKey' return type */
 export interface IGetPartnerOrgByKeyResult {
+  /** not_pii: Primary key */
   partnerId: string;
+  /** not_pii: Unique URL-safe slug */
   partnerKey: string;
+  /** not_pii: Human-readable name of the volunteer partner organization */
   partnerName: string;
 }
 
@@ -3417,8 +3641,11 @@ export interface IGetActiveSponsorshipsByUserIdParams {
 
 /** 'GetActiveSponsorshipsByUserId' return type */
 export interface IGetActiveSponsorshipsByUserIdResult {
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Unique URL-safe slug */
   key: string;
+  /** not_pii: Human-readable name */
   name: string;
 }
 
@@ -3459,7 +3686,9 @@ export interface IGetVolunteerSubjectsParams {
 
 /** 'GetVolunteerSubjects' return type */
 export interface IGetVolunteerSubjectsResult {
+  /** not_pii: Whether the subject is currently active */
   active: boolean;
+  /** not_pii: Human-readable name */
   name: string;
 }
 
@@ -3495,7 +3724,9 @@ export interface IGetVolunteerMutedSubjectsParams {
 
 /** 'GetVolunteerMutedSubjects' return type */
 export interface IGetVolunteerMutedSubjectsResult {
+  /** not_pii: Whether the subject is currently active */
   active: boolean;
+  /** not_pii: Human-readable name */
   name: string;
 }
 
@@ -3528,11 +3759,15 @@ export type IGetVolunteersForTextNotificationsInTheCurrentHourParams = void;
 
 /** 'GetVolunteersForTextNotificationsInTheCurrentHour' return type */
 export interface IGetVolunteersForTextNotificationsInTheCurrentHourResult {
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
   mutedSubjects: stringArray | null;
+  /** pii: Phone number */
   phone: string | null;
   unlockedSubjects: stringArray | null;
+  /** not_pii: Unique URL-safe slug */
   volunteerPartnerOrgKey: string;
 }
 
@@ -3630,9 +3865,13 @@ export interface IGetVolunteersReadyToCoachStatusParams {
 
 /** 'GetVolunteersReadyToCoachStatus' return type */
 export interface IGetVolunteersReadyToCoachStatusResult {
+  /** not_pii: Type of ban (shadow, complete, live_media) */
   banType: ban_types | null;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Whether the volunteer application has been approved */
   isApproved: boolean;
+  /** not_pii: Whether the volunteer has completed all onboarding steps */
   isOnboarded: boolean;
 }
 
@@ -3669,7 +3908,9 @@ export interface IGetVolunteerOccupationsParams {
 
 /** 'GetVolunteerOccupations' return type */
 export interface IGetVolunteerOccupationsResult {
+  /** pii: Volunteer job title or occupation */
   occupation: string;
+  /** not_pii: Foreign key to upchieve.users */
   userId: string;
 }
 

@@ -27,6 +27,7 @@ export interface IAddNotificationParams {
 
 /** 'AddNotification' return type */
 export interface IAddNotificationResult {
+  /** not_pii: Primary key */
   ok: string;
 }
 
@@ -75,17 +76,27 @@ export interface IGetUnfilledSessionsParams {
 
 /** 'GetUnfilledSessions' return type */
 export interface IGetUnfilledSessionsResult {
+  /** not_pii */
   createdAt: Date;
   currentGradeName: string | null;
+  /** not_pii: Primary key */
   id: string;
   isFirstTimeStudent: boolean | null;
+  /** not_pii: Type of ban (shadow, complete, live_media) */
   studentBanType: ban_types | null;
+  /** pii: First name */
   studentFirstName: string;
+  /** not_pii: Primary key */
   studentId: string;
+  /** not_pii: Whether the account is a test or internal account */
   studentTestUser: boolean;
+  /** not_pii: User-facing display name */
   subjectDisplayName: string;
+  /** not_pii: Human-readable name */
   subTopic: string;
+  /** not_pii: Human-readable name */
   type: string;
+  /** not_pii: Foreign key to upchieve.users (the volunteer) */
   volunteer: string | null;
 }
 
@@ -146,25 +157,42 @@ export interface IGetSessionByIdParams {
 
 /** 'GetSessionById' return type */
 export interface IGetSessionByIdResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Timestamp when the session ended */
   endedAt: Date | null;
   flags: stringArray | null;
+  /** not_pii: Whether the session has an associated whiteboard document */
   hasWhiteboardDoc: boolean;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Quill.js shared document content (user-generated text) */
   quillDoc: string | null;
   reported: boolean | null;
+  /** not_pii: Whether the session has been reviewed by an admin */
   reviewed: boolean;
+  /** not_pii: Whether the student was shadow banned when requesting the session */
   shadowbanned: boolean | null;
+  /** not_pii: Foreign key to upchieve.users (the student) */
   studentId: string;
+  /** not_pii: Human-readable name */
   subject: string;
+  /** not_pii: User-facing display name */
   subjectDisplayName: string;
+  /** not_pii: Primary key */
   subjectId: number;
   timeTutored: number | null;
+  /** not_pii: Human-readable name */
   toolType: string;
+  /** not_pii: Human-readable name */
   topic: string;
+  /** not_pii: Whether the session has been flagged for admin review */
   toReview: boolean;
+  /** not_pii */
   updatedAt: Date;
+  /** not_pii: Foreign key to upchieve.users (the volunteer) */
   volunteerId: string | null;
+  /** not_pii: Timestamp when the volunteer joined the session */
   volunteerJoinedAt: Date | null;
 }
 
@@ -236,6 +264,7 @@ export interface IInsertSessionFlagsByIdParams {
 
 /** 'InsertSessionFlagsById' return type */
 export interface IInsertSessionFlagsByIdResult {
+  /** not_pii: Foreign key to upchieve.sessions */
   ok: string;
 }
 
@@ -279,6 +308,7 @@ export interface IUpdateSessionToReviewParams {
 
 /** 'UpdateSessionToReview' return type */
 export interface IUpdateSessionToReviewResult {
+  /** not_pii: Primary key */
   ok: string;
 }
 
@@ -316,6 +346,7 @@ export interface IUpdateSessionReviewedStatusByIdParams {
 
 /** 'UpdateSessionReviewedStatusById' return type */
 export interface IUpdateSessionReviewedStatusByIdResult {
+  /** not_pii: Primary key */
   ok: string;
 }
 
@@ -354,19 +385,29 @@ export interface IGetSessionsToReviewParams {
 
 /** 'GetSessionsToReview' return type */
 export interface IGetSessionsToReviewResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Timestamp when the session ended */
   endedAt: Date | null;
   flags: stringArray | null;
+  /** not_pii: Primary key */
   id: string;
   isReported: boolean | null;
   reviewReasons: stringArray | null;
+  /** not_pii: JSON feedback from the student about counseling */
   studentCounselingFeedback: Json | null;
+  /** pii: First name */
   studentFirstName: string;
+  /** not_pii: Human-readable name */
   subTopic: string;
+  /** not_pii: Whether the session has been flagged for admin review */
   toReview: boolean;
   totalMessages: number | null;
+  /** not_pii: Human-readable name */
   type: string;
+  /** not_pii: Foreign key to upchieve.users (the volunteer) */
   volunteer: string | null;
+  /** pii: First name */
   volunteerFirstName: string;
 }
 
@@ -489,6 +530,7 @@ export type IGetActiveSessionVolunteersParams = void;
 
 /** 'GetActiveSessionVolunteers' return type */
 export interface IGetActiveSessionVolunteersResult {
+  /** not_pii: Foreign key to upchieve.users (the volunteer) */
   volunteerId: string | null;
 }
 
@@ -525,6 +567,7 @@ export interface IUpdateSessionReportedParams {
 
 /** 'UpdateSessionReported' return type */
 export interface IUpdateSessionReportedResult {
+  /** not_pii: Primary key */
   ok: string;
 }
 
@@ -569,6 +612,7 @@ export interface IUpdateSessionTimeTutoredParams {
 
 /** 'UpdateSessionTimeTutored' return type */
 export interface IUpdateSessionTimeTutoredResult {
+  /** not_pii: Primary key */
   ok: string;
 }
 
@@ -605,6 +649,7 @@ export interface IUpdateSessionQuillDocParams {
 
 /** 'UpdateSessionQuillDoc' return type */
 export interface IUpdateSessionQuillDocResult {
+  /** not_pii: Primary key */
   ok: string;
 }
 
@@ -641,6 +686,7 @@ export interface IUpdateSessionHasWhiteboardDocParams {
 
 /** 'UpdateSessionHasWhiteboardDoc' return type */
 export interface IUpdateSessionHasWhiteboardDocResult {
+  /** not_pii: Primary key */
   ok: string;
 }
 
@@ -678,6 +724,7 @@ export interface IUpdateSessionToEndParams {
 
 /** 'UpdateSessionToEnd' return type */
 export interface IUpdateSessionToEndResult {
+  /** not_pii: Primary key */
   id: string;
 }
 
@@ -715,6 +762,7 @@ export interface IGetLongRunningSessionsParams {
 
 /** 'GetLongRunningSessions' return type */
 export interface IGetLongRunningSessionsResult {
+  /** not_pii: Primary key */
   id: string;
 }
 
@@ -749,14 +797,23 @@ export interface IGetPublicSessionByIdParams {
 
 /** 'GetPublicSessionById' return type */
 export interface IGetPublicSessionByIdResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Timestamp when the session ended */
   endedAt: Date | null;
+  /** not_pii: Primary key */
   id: string;
+  /** pii: First name */
   studentFirstName: string;
+  /** not_pii: Foreign key to upchieve.users (the student) */
   studentId: string;
+  /** not_pii: Human-readable name */
   subTopic: string;
+  /** not_pii: Human-readable name */
   type: string;
+  /** pii: First name */
   volunteerFirstName: string;
+  /** not_pii: Foreign key to upchieve.users (the volunteer) */
   volunteerId: string | null;
 }
 
@@ -801,22 +858,36 @@ export interface IGetSessionForAdminViewParams {
 
 /** 'GetSessionForAdminView' return type */
 export interface IGetSessionForAdminViewResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Timestamp when the session ended */
   endedAt: Date | null;
+  /** not_pii: Foreign key to upchieve.users who ended the session */
   endedBy: string | null;
+  /** not_pii: Primary key */
   id: string;
   photos: stringArray | null;
+  /** not_pii: Quill.js shared document content (user-generated text) */
   quillDoc: string | null;
+  /** not_pii: Free-text message submitted with the report (may contain user content) */
   reportMessage: string | null;
+  /** not_pii: Reason for the action (text or JSON) */
   reportReason: string;
   reviewReasons: stringArray | null;
+  /** not_pii: Foreign key to upchieve.users (the student) */
   studentId: string;
+  /** not_pii: Human-readable name */
   subTopic: string;
   timeTutored: number | null;
+  /** not_pii: Human-readable name */
   toolType: string;
+  /** not_pii: Whether the session has been flagged for admin review */
   toReview: boolean;
+  /** not_pii: Human-readable name */
   type: string;
+  /** not_pii: Foreign key to upchieve.users (the volunteer) */
   volunteerId: string | null;
+  /** not_pii: Timestamp when the volunteer joined the session */
   volunteerJoinedAt: Date | null;
 }
 
@@ -896,10 +967,15 @@ export interface IGetSessionMessagesForFrontendParams {
 
 /** 'GetSessionMessagesForFrontend' return type */
 export interface IGetSessionMessagesForFrontendResult {
+  /** not_pii: Text content of the chat message */
   contents: string;
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Foreign key to upchieve.sessions */
   sessionId: string;
+  /** not_pii: Foreign key to upchieve.users (the message sender) */
   user: string;
 }
 
@@ -938,10 +1014,15 @@ export interface IGetSessionVoiceMessagesForFrontendParams {
 
 /** 'GetSessionVoiceMessagesForFrontend' return type */
 export interface IGetSessionVoiceMessagesForFrontendResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Foreign key to upchieve.sessions */
   sessionId: string;
+  /** not_pii: Text transcript of the voice message */
   transcript: string | null;
+  /** not_pii: Foreign key to upchieve.users (the message sender) */
   user: string;
 }
 
@@ -980,10 +1061,15 @@ export interface IGetSessionAudioTranscriptMessagesForFrontendParams {
 
 /** 'GetSessionAudioTranscriptMessagesForFrontend' return type */
 export interface IGetSessionAudioTranscriptMessagesForFrontendResult {
+  /** not_pii: Timestamp when the audio transcript message was spoken */
   createdAt: Date;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Message text content */
   message: string;
+  /** not_pii: Foreign key to upchieve.sessions */
   sessionId: string;
+  /** not_pii: Foreign key to upchieve.users */
   user: string;
 }
 
@@ -1025,6 +1111,7 @@ export interface ICreateSessionParams {
 
 /** 'CreateSession' return type */
 export interface ICreateSessionResult {
+  /** not_pii: Primary key */
   id: string;
 }
 
@@ -1071,22 +1158,37 @@ export interface IGetCurrentSessionByUserIdParams {
 
 /** 'GetCurrentSessionByUserId' return type */
 export interface IGetCurrentSessionByUserIdResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Timestamp when the session ended */
   endedAt: Date | null;
+  /** not_pii: Foreign key to upchieve.users who ended the session */
   endedBy: string | null;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Whether the student was shadow banned when requesting the session */
   shadowbanned: boolean | null;
   studentBannedFromLiveMedia: boolean | null;
+  /** not_pii: Foreign key to upchieve.users (the student) */
   studentId: string;
+  /** not_pii: Human-readable name */
   subject: string;
+  /** not_pii: User-facing display name */
   subjectDisplayName: string;
+  /** not_pii: Human-readable name */
   subTopic: string;
+  /** not_pii: Human-readable name */
   toolType: string;
+  /** not_pii: Human-readable name */
   topic: string;
+  /** not_pii: Human-readable name */
   type: string;
   volunteerBannedFromLiveMedia: boolean | null;
+  /** not_pii: Foreign key to upchieve.users (the volunteer) */
   volunteerId: string | null;
+  /** not_pii: Timestamp when the volunteer joined the session */
   volunteerJoinedAt: Date | null;
+  /** not_pii: Languages the volunteer speaks */
   volunteerLanguages: stringArray | null;
 }
 
@@ -1162,22 +1264,37 @@ export interface IGetCurrentSessionBySessionIdParams {
 
 /** 'GetCurrentSessionBySessionId' return type */
 export interface IGetCurrentSessionBySessionIdResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Timestamp when the session ended */
   endedAt: Date | null;
+  /** not_pii: Foreign key to upchieve.users who ended the session */
   endedBy: string | null;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Whether the student was shadow banned when requesting the session */
   shadowbanned: boolean | null;
   studentBannedFromLiveMedia: boolean | null;
+  /** not_pii: Foreign key to upchieve.users (the student) */
   studentId: string;
+  /** not_pii: Human-readable name */
   subject: string;
+  /** not_pii: User-facing display name */
   subjectDisplayName: string;
+  /** not_pii: Human-readable name */
   subTopic: string;
+  /** not_pii: Human-readable name */
   toolType: string;
+  /** not_pii: Human-readable name */
   topic: string;
+  /** not_pii: Human-readable name */
   type: string;
   volunteerBannedFromLiveMedia: boolean | null;
+  /** not_pii: Foreign key to upchieve.users (the volunteer) */
   volunteerId: string | null;
+  /** not_pii: Timestamp when the volunteer joined the session */
   volunteerJoinedAt: Date | null;
+  /** not_pii: Languages the volunteer speaks */
   volunteerLanguages: stringArray | null;
 }
 
@@ -1252,17 +1369,28 @@ export interface IGetMessageInfoByMessageIdParams {
 
 /** 'GetMessageInfoByMessageId' return type */
 export interface IGetMessageInfoByMessageIdResult {
+  /** not_pii: Text content of the chat message */
   contents: string;
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Foreign key to upchieve.users (the message sender) */
   senderId: string;
   sentAfterSession: boolean | null;
+  /** not_pii: Timestamp when the session ended */
   sessionEndedAt: Date | null;
+  /** not_pii: Primary key */
   sessionId: string;
+  /** pii: User email address */
   studentEmail: string;
+  /** pii: First name */
   studentFirstName: string;
+  /** not_pii: Primary key */
   studentUserId: string;
+  /** pii: User email address */
   volunteerEmail: string;
+  /** pii: First name */
   volunteerFirstName: string;
+  /** not_pii: Primary key */
   volunteerUserId: string;
 }
 
@@ -1314,10 +1442,14 @@ export interface IGetSessionUsersParams {
 
 /** 'GetSessionUsers' return type */
 export interface IGetSessionUsersResult {
+  /** not_pii */
   createdAt: Date;
+  /** pii: First name */
   firstname: string;
+  /** pii: First name */
   firstName: string;
   gradeLevel: string | null;
+  /** not_pii: Primary key */
   id: string;
   pastSessions: stringArray | null;
 }
@@ -1373,13 +1505,20 @@ export interface IGetLatestSessionParams {
 
 /** 'GetLatestSession' return type */
 export interface IGetLatestSessionResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Timestamp when the session ended */
   endedAt: Date | null;
+  /** not_pii: Foreign key to upchieve.users who ended the session */
   endedByUserId: string | null;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Foreign key to upchieve.users (the student) */
   studentId: string;
+  /** not_pii: Human-readable name */
   subject: string;
   timeTutored: number | null;
+  /** not_pii: Foreign key to upchieve.users (the volunteer) */
   volunteerId: string | null;
 }
 
@@ -1462,6 +1601,7 @@ export interface IInsertNewMessageParams {
 
 /** 'InsertNewMessage' return type */
 export interface IInsertNewMessageResult {
+  /** not_pii: Primary key */
   id: string;
 }
 
@@ -1540,7 +1680,9 @@ export interface IGetSessionsForReferCoworkerParams {
 
 /** 'GetSessionsForReferCoworker' return type */
 export interface IGetSessionsForReferCoworkerResult {
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: JSON feedback from the volunteer about the session */
   volunteerFeedback: Json | null;
 }
 
@@ -1582,8 +1724,11 @@ export interface IGetStudentForEmailFirstSessionParams {
 
 /** 'GetStudentForEmailFirstSession' return type */
 export interface IGetStudentForEmailFirstSessionResult {
+  /** pii: User email address */
   email: string;
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
 }
 
@@ -1627,8 +1772,11 @@ export interface IGetVolunteerForEmailFirstSessionParams {
 
 /** 'GetVolunteerForEmailFirstSession' return type */
 export interface IGetVolunteerForEmailFirstSessionResult {
+  /** pii: User email address */
   email: string;
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
 }
 
@@ -1681,21 +1829,34 @@ export interface IGetSessionsForAdminFilterParams {
 
 /** 'GetSessionsForAdminFilter' return type */
 export interface IGetSessionsForAdminFilterResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Timestamp when the session ended */
   endedAt: Date | null;
+  /** not_pii: Primary key */
   id: string;
   reviewReasons: stringArray | null;
+  /** not_pii: Type of ban (shadow, complete, live_media) */
   studentBanType: ban_types | null;
+  /** pii: User email address */
   studentEmail: string;
+  /** pii: First name */
   studentFirstName: string;
+  /** not_pii: Whether the account is a test or internal account */
   studentTestUser: boolean;
   studentTotalPastSessions: number | null;
+  /** not_pii: Human-readable name */
   subTopic: string;
   totalMessages: number | null;
+  /** not_pii: Human-readable name */
   type: string;
+  /** not_pii: Type of ban (shadow, complete, live_media) */
   volunteerBanType: ban_types | null;
+  /** pii: User email address */
   volunteerEmail: string;
+  /** pii: First name */
   volunteerFirstName: string;
+  /** not_pii: Whether the account is a test or internal account */
   volunteerTestUser: boolean;
   volunteerTotalPastSessions: number | null;
 }
@@ -1839,6 +2000,7 @@ export interface IInsertSessionReviewReasonsParams {
 
 /** 'InsertSessionReviewReasons' return type */
 export interface IInsertSessionReviewReasonsResult {
+  /** not_pii: Foreign key to upchieve.sessions */
   ok: string;
 }
 
@@ -1882,6 +2044,7 @@ export interface IInsertSessionFailedJoinParams {
 
 /** 'InsertSessionFailedJoin' return type */
 export interface IInsertSessionFailedJoinResult {
+  /** not_pii: Foreign key to upchieve.sessions */
   ok: string;
 }
 
@@ -1913,6 +2076,7 @@ export interface IInsertSessionPhotoKeyParams {
 
 /** 'InsertSessionPhotoKey' return type */
 export interface IInsertSessionPhotoKeyResult {
+  /** not_pii: Foreign key to upchieve.sessions */
   ok: string;
 }
 
@@ -1945,12 +2109,18 @@ export interface IGetSessionsForVolunteerHourSummaryParams {
 
 /** 'GetSessionsForVolunteerHourSummary' return type */
 export interface IGetSessionsForVolunteerHourSummaryResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Timestamp when the session ended */
   endedAt: Date | null;
+  /** not_pii: Primary key */
   sessionId: string;
+  /** not_pii: Human-readable name */
   subject: string;
   timeTutored: number | null;
+  /** not_pii: Human-readable name */
   topic: string;
+  /** not_pii: Timestamp when the volunteer joined the session */
   volunteerJoinedAt: Date | null;
 }
 
@@ -2002,16 +2172,25 @@ export interface IGetFilteredSessionHistoryParams {
 
 /** 'GetFilteredSessionHistory' return type */
 export interface IGetFilteredSessionHistoryResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Primary key */
   id: string;
   isFavorited: boolean | null;
+  /** pii: First name */
   studentFirstName: string;
+  /** not_pii: Foreign key to upchieve.users (the student) */
   studentId: string;
+  /** not_pii: User-facing display name */
   subject: string;
   timeTutored: number | null;
+  /** not_pii: Human-readable name */
   topic: string;
+  /** not_pii: URL to the topic icon image */
   topicIconLink: string | null;
+  /** pii: First name */
   volunteerFirstName: string;
+  /** not_pii: Foreign key to upchieve.users (the volunteer) */
   volunteerId: string | null;
 }
 
@@ -2255,20 +2434,33 @@ export interface IGetSessionRecapParams {
 
 /** 'GetSessionRecap' return type */
 export interface IGetSessionRecapResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Timestamp when the session ended */
   endedAt: Date | null;
+  /** not_pii: Whether the session has an associated whiteboard document */
   hasWhiteboardDoc: boolean;
+  /** not_pii: Primary key */
   id: string;
   isFavorited: boolean | null;
+  /** not_pii: Quill.js shared document content (user-generated text) */
   quillDoc: string | null;
+  /** pii: First name */
   studentFirstName: string;
+  /** not_pii: Primary key */
   studentId: string;
+  /** not_pii: User-facing display name */
   subject: string;
+  /** not_pii: Human-readable name */
   subjectKey: string;
   timeTutored: number | null;
+  /** not_pii: Human-readable name */
   topic: string;
+  /** not_pii: URL to the topic icon image */
   topicIconLink: string | null;
+  /** pii: First name */
   volunteerFirstName: string;
+  /** not_pii: Primary key */
   volunteerId: string;
 }
 
@@ -2326,6 +2518,7 @@ export interface IVolunteerSentMessageAfterSessionEndedParams {
 
 /** 'VolunteerSentMessageAfterSessionEnded' return type */
 export interface IVolunteerSentMessageAfterSessionEndedResult {
+  /** not_pii: Primary key */
   id: string;
 }
 
@@ -2362,6 +2555,7 @@ export interface ISessionHasBannedParticipantParams {
 
 /** 'SessionHasBannedParticipant' return type */
 export interface ISessionHasBannedParticipantResult {
+  /** not_pii: Primary key */
   id: string;
 }
 
@@ -2406,13 +2600,21 @@ export interface IGetUserSessionsByUserIdParams {
 
 /** 'GetUserSessionsByUserId' return type */
 export interface IGetUserSessionsByUserIdResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Quill.js shared document content (user-generated text) */
   quillDoc: string | null;
+  /** not_pii: Foreign key to upchieve.users (the student) */
   studentId: string;
+  /** not_pii: Human-readable name */
   subjectName: string;
+  /** not_pii: Human-readable name */
   toolType: string;
+  /** not_pii: Human-readable name */
   topicName: string;
+  /** not_pii: Foreign key to upchieve.users (the volunteer) */
   volunteerId: string | null;
 }
 
@@ -2468,7 +2670,9 @@ export interface IGetUserSessionStatsParams {
 
 /** 'GetUserSessionStats' return type */
 export interface IGetUserSessionStatsResult {
+  /** not_pii: Human-readable name */
   subjectName: string;
+  /** not_pii: Human-readable name */
   topicName: string;
   totalHelped: number | null;
   totalRequested: number | null;
@@ -2518,13 +2722,20 @@ export interface IGetStudentSessionDetailsParams {
 
 /** 'GetStudentSessionDetails' return type */
 export interface IGetStudentSessionDetailsResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Timestamp when the session ended */
   endedAt: Date | null;
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
+  /** pii: Last name */
   lastName: string;
   messageCount: string | null;
+  /** not_pii: Human-readable name */
   name: string;
+  /** not_pii: Foreign key to upchieve.users (the volunteer) */
   volunteerId: string | null;
 }
 
@@ -2576,10 +2787,15 @@ export interface IGetTutorBotSessionMessagesBySessionIdParams {
 
 /** 'GetTutorBotSessionMessagesBySessionId' return type */
 export interface IGetTutorBotSessionMessagesBySessionIdResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Message text content */
   message: string | null;
+  /** not_pii: Foreign key to upchieve.sessions */
   sessionId: string;
+  /** not_pii: Whether the message was sent by the student or the bot */
   tutorBotSessionUserType: tutor_bot_session_user_type;
 }
 
@@ -2617,10 +2833,15 @@ export interface IInsertTutorBotSessionMessageParams {
 
 /** 'InsertTutorBotSessionMessage' return type */
 export interface IInsertTutorBotSessionMessageResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Message text content */
   message: string | null;
+  /** not_pii: Foreign key to upchieve.sessions */
   sessionId: string;
+  /** not_pii: Whether the message was sent by the student or the bot */
   tutorBotSessionUserType: tutor_bot_session_user_type;
 }
 
@@ -2811,6 +3032,7 @@ export type IGetVolunteersInSessionsParams = void;
 
 /** 'GetVolunteersInSessions' return type */
 export interface IGetVolunteersInSessionsResult {
+  /** not_pii: Foreign key to upchieve.users (the volunteer) */
   volunteerId: string | null;
 }
 
@@ -2845,7 +3067,9 @@ export interface IGetSessionFlagsBySessionIdParams {
 
 /** 'GetSessionFlagsBySessionId' return type */
 export interface IGetSessionFlagsBySessionIdResult {
+  /** not_pii: Human-readable name */
   name: string;
+  /** not_pii: Foreign key to upchieve.session_flags */
   sessionFlagId: number;
 }
 
@@ -2915,6 +3139,7 @@ export interface ISessionsWithUnreadDMsParams {
 
 /** 'SessionsWithUnreadDMs' return type */
 export interface ISessionsWithUnreadDMsResult {
+  /** not_pii: Primary key */
   id: string;
 }
 
