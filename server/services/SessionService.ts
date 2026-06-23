@@ -206,7 +206,7 @@ export async function reportSession(user: UserContactInfo, data: unknown) {
   }
 
   if (session.endedAt)
-    await QueueService.add(Jobs.EmailSessionReported, 0, emailData)
+    await QueueService.add(Jobs.EmailSessionReported, { delay: 0 }, emailData)
   else
     await cache.saveWithExpiration(
       `${sessionId}-reported`,
@@ -290,14 +290,22 @@ export async function endSession(
 
   await NotifyVolunteerService.clearExclusiveRequest(sessionId)
 
-  QueueService.add(Jobs.DetectSessionLanguages, 0, {
-    sessionId,
-    studentId: session.student.id,
-  })
+  QueueService.add(
+    Jobs.DetectSessionLanguages,
+    { delay: 0 },
+    {
+      sessionId,
+      studentId: session.student.id,
+    }
+  )
 
-  QueueService.add(Jobs.ProcessSessionEnded, 0, {
-    sessionId,
-  })
+  QueueService.add(
+    Jobs.ProcessSessionEnded,
+    { delay: 0 },
+    {
+      sessionId,
+    }
+  )
 
   return endedSession
 }
@@ -319,13 +327,13 @@ export async function processSessionTranscript(sessionId: Ulid) {
   try {
     await QueueService.add(
       Jobs.ModerateSessionTranscript,
-      minutesInMs(2),
-      { sessionId },
       {
+        delay: minutesInMs(2),
         /* attempt to delay until the whiteboard is uploaded to storage */
         attempts: 3,
         backoff: { type: 'exponential', delay: secondsInMs(15) },
-      }
+      },
+      { sessionId }
     )
   } catch (err) {
     throw new Error(
@@ -370,13 +378,21 @@ export async function processFirstSessionCongratsEmail(sessionId: Ulid) {
   const nowInMS = new Date().getTime()
   const delay = hourToSendTomorrowInMS - nowInMS
   if (sendStudentFirstSessionCongrats)
-    await QueueService.add(Jobs.EmailStudentFirstSessionCongrats, delay, {
-      sessionId: session.id,
-    })
+    await QueueService.add(
+      Jobs.EmailStudentFirstSessionCongrats,
+      { delay },
+      {
+        sessionId: session.id,
+      }
+    )
   if (sendVolunteerFirstSessionCongrats) {
-    await QueueService.add(Jobs.EmailVolunteerFirstSessionCongrats, delay, {
-      sessionId: session.id,
-    })
+    await QueueService.add(
+      Jobs.EmailVolunteerFirstSessionCongrats,
+      { delay },
+      {
+        sessionId: session.id,
+      }
+    )
   }
 }
 
@@ -425,9 +441,13 @@ export async function processSessionEditors(sessionId: Ulid) {
 export async function processEmailVolunteer(sessionId: Ulid) {
   const session = await getCurrentSessionById(sessionId)
   if (session.volunteer?.pastSessions.length === 10)
-    await QueueService.add(Jobs.EmailVolunteerTenSessionMilestone, 0, {
-      volunteerId: session.volunteer.id,
-    })
+    await QueueService.add(
+      Jobs.EmailVolunteerTenSessionMilestone,
+      { delay: 0 },
+      {
+        volunteerId: session.volunteer.id,
+      }
+    )
 }
 
 /**
@@ -718,9 +738,13 @@ export async function startSession(
     }
   }
 
-  await QueueService.add(Jobs.EndUnmatchedSession, minutesInMs(45), {
-    sessionId: newSession.id,
-  })
+  await QueueService.add(
+    Jobs.EndUnmatchedSession,
+    { delay: minutesInMs(45) },
+    {
+      sessionId: newSession.id,
+    }
+  )
 
   return {
     ...newSession,

@@ -1575,7 +1575,7 @@ describe('TextVolunteers job', () => {
       expect(mockedQueueService.add).toHaveBeenCalledTimes(1)
       expect(mockedQueueService.add).toHaveBeenCalledWith(
         expect.anything(),
-        30000,
+        { delay: 30000 },
         expect.objectContaining({
           ...job.data,
           notificationRound: 2,
@@ -1608,7 +1608,7 @@ describe('TextVolunteers job', () => {
       expect(mockedQueueService.add).toHaveBeenCalledTimes(1)
       expect(mockedQueueService.add).toHaveBeenCalledWith(
         expect.anything(),
-        30000,
+        { delay: 30000 },
         expect.objectContaining({
           ...job.data,
           notificationRound: 6,

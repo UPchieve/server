@@ -79,7 +79,7 @@ describe('queueIncentiveProgramEnrollmentWelcomeJob', () => {
     await queueIncentiveProgramEnrollmentWelcomeJob(userId)
     expect(mockedQueueService.add).toHaveBeenCalledWith(
       Jobs.EmailFallIncentiveEnrollmentWelcome,
-      0,
+      { delay: 0 },
       { userId }
     )
   })
@@ -96,7 +96,7 @@ describe('queueIncentiveInvitedToEnrollReminderJob', () => {
     await queueIncentiveInvitedToEnrollReminderJob(userId)
     expect(mockedQueueService.add).toHaveBeenCalledWith(
       Jobs.EmailFallIncentiveInvitedToEnrollReminder,
-      hoursInMs(12),
+      { delay: hoursInMs(12) },
       { userId }
     )
   })
@@ -130,7 +130,7 @@ describe('queueFallIncentiveSessionQualificationJob', () => {
     expect(mockedSessionRepo.getSessionById).toHaveBeenCalledWith(sessionId)
     expect(mockedQueueService.add).toHaveBeenCalledWith(
       Jobs.EmailFallIncentiveSessionQualification,
-      0,
+      { delay: 0 },
       { userId: studentId, sessionId }
     )
   })

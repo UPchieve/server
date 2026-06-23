@@ -108,9 +108,13 @@ export async function getHourSummaryStats(
 export async function queueOnboardingReminderOneEmail(
   volunteerId: Uuid
 ): Promise<void> {
-  await QueueService.add(Jobs.EmailOnboardingReminderOne, daysInMs(7), {
-    volunteerId,
-  })
+  await QueueService.add(
+    Jobs.EmailOnboardingReminderOne,
+    { delay: daysInMs(7) },
+    {
+      volunteerId,
+    }
+  )
 }
 
 export async function queueOnboardingEventEmails(
@@ -119,16 +123,14 @@ export async function queueOnboardingEventEmails(
 ): Promise<void> {
   await QueueService.add(
     Jobs.EmailVolunteerQuickTips,
-    daysInMs(5),
+    { delay: daysInMs(5) },
     { volunteerId }
-    // Process job 5 days after the volunteer is onboarded.
   )
   if (isPartnerVolunteer) {
     await QueueService.add(
       Jobs.EmailPartnerVolunteerLowHoursSelected,
-      daysInMs(10),
+      { delay: daysInMs(10) },
       { volunteerId }
-      // Process job 10 days after the volunteer is onboarded.
     )
   }
 }
@@ -139,12 +141,16 @@ export async function queueFailedFirstAttemptedQuizEmail(
   firstName: string,
   volunteerId: Uuid
 ) {
-  await QueueService.add(Jobs.EmailFailedFirstAttemptedQuiz, 0, {
-    category,
-    email,
-    firstName,
-    volunteerId,
-  })
+  await QueueService.add(
+    Jobs.EmailFailedFirstAttemptedQuiz,
+    { delay: 0 },
+    {
+      category,
+      email,
+      firstName,
+      volunteerId,
+    }
+  )
 }
 
 export async function getVolunteersToReview(page: number = 1): Promise<{
@@ -445,9 +451,13 @@ export async function getSubjectPresence(): Promise<VolunteerSubjectPresenceMap>
 export async function queueNationalTutorCertificateEmail(
   volunteerId: Uuid
 ): Promise<void> {
-  await QueueService.add(Jobs.SendNationalTutorCertificateEmail, 0, {
-    volunteerId,
-  })
+  await QueueService.add(
+    Jobs.SendNationalTutorCertificateEmail,
+    { delay: 0 },
+    {
+      volunteerId,
+    }
+  )
 }
 
 export async function getVolunteersForTextNotifications(): Promise<

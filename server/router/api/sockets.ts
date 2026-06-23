@@ -413,7 +413,7 @@ export function routeSockets(io: Server): void {
           if (source === 'recap') {
             await QueueService.add(
               Jobs.SendSessionRecapMessageNotification,
-              0,
+              { delay: 0 },
               {
                 messageId,
               }

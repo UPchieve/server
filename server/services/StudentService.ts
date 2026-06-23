@@ -20,18 +20,34 @@ import { runInTransaction, TransactionClient } from '../db'
 import { daysInMs } from '../utils/time-utils'
 
 export const queueOnboardingEmails = async (studentId: Ulid): Promise<void> => {
-  await QueueService.add(Jobs.EmailStudentOnboardingHowItWorks, daysInMs(1), {
-    studentId,
-  })
-  await QueueService.add(Jobs.EmailMeetOurVolunteers, daysInMs(3), {
-    studentId,
-  })
-  await QueueService.add(Jobs.EmailStudentOnboardingMission, daysInMs(10), {
-    studentId,
-  })
-  await QueueService.add(Jobs.EmailStudentOnboardingSurvey, daysInMs(14), {
-    studentId,
-  })
+  await QueueService.add(
+    Jobs.EmailStudentOnboardingHowItWorks,
+    { delay: daysInMs(1) },
+    {
+      studentId,
+    }
+  )
+  await QueueService.add(
+    Jobs.EmailMeetOurVolunteers,
+    { delay: daysInMs(3) },
+    {
+      studentId,
+    }
+  )
+  await QueueService.add(
+    Jobs.EmailStudentOnboardingMission,
+    { delay: daysInMs(10) },
+    {
+      studentId,
+    }
+  )
+  await QueueService.add(
+    Jobs.EmailStudentOnboardingSurvey,
+    { delay: daysInMs(14) },
+    {
+      studentId,
+    }
+  )
 }
 
 // registered as listener on student-created

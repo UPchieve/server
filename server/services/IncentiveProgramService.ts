@@ -17,15 +17,19 @@ export async function isUserInIncentiveProgram(userId: Ulid) {
 }
 
 export async function queueIncentiveProgramEnrollmentWelcomeJob(userId: Ulid) {
-  await QueueService.add(Jobs.EmailFallIncentiveEnrollmentWelcome, 0, {
-    userId,
-  })
+  await QueueService.add(
+    Jobs.EmailFallIncentiveEnrollmentWelcome,
+    { delay: 0 },
+    {
+      userId,
+    }
+  )
 }
 
 export async function queueIncentiveInvitedToEnrollReminderJob(userId: Ulid) {
   await QueueService.add(
     Jobs.EmailFallIncentiveInvitedToEnrollReminder,
-    hoursInMs(12),
+    { delay: hoursInMs(12) },
     { userId }
   )
 }
@@ -36,10 +40,14 @@ export async function queueFallIncentiveSessionQualificationJob(
   const session = await getSessionById(sessionId)
   // Do nothing if the session was not matched
   if (!session.volunteerId) return
-  await QueueService.add(Jobs.EmailFallIncentiveSessionQualification, 0, {
-    userId: session.studentId,
-    sessionId,
-  })
+  await QueueService.add(
+    Jobs.EmailFallIncentiveSessionQualification,
+    { delay: 0 },
+    {
+      userId: session.studentId,
+      sessionId,
+    }
+  )
 }
 
 type UserAndFallIncentiveData = {

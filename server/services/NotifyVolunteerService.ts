@@ -32,16 +32,20 @@ export async function beginRegularNotifications(
 
   // Delay initial wave of notifications by 30 seconds to give
   // volunteers on the dashboard time to pick up the request.
-  await QueueService.add(Jobs.TextVolunteers, secondsInMs(30), {
-    sessionId: session.id,
-    subject: session.subject,
-    subjectDisplayName: session.subjectDisplayName,
-    topic: session.topic,
-    studentId: session.studentId,
-    schoolId: student.schoolId,
-    studentPartnerOrg: student.studentPartnerOrg,
-    notificationRound: 1,
-  })
+  await QueueService.add(
+    Jobs.TextVolunteers,
+    { delay: secondsInMs(30) },
+    {
+      sessionId: session.id,
+      subject: session.subject,
+      subjectDisplayName: session.subjectDisplayName,
+      topic: session.topic,
+      studentId: session.studentId,
+      schoolId: student.schoolId,
+      studentPartnerOrg: student.studentPartnerOrg,
+      notificationRound: 1,
+    }
+  )
 }
 
 export async function notifyVolunteer(

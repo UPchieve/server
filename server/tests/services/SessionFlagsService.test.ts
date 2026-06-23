@@ -594,8 +594,8 @@ describe('SessionFlagsService', () => {
       await triggerSessionActions(sessionId, flags, studentUSM)
       expect(QueueService.add).not.toHaveBeenCalledWith(
         Jobs.EmailStudentAbsentWarning,
-        { sessionId },
-        expect.anything()
+        { delay: 0 },
+        { sessionId }
       )
     })
 
@@ -609,8 +609,8 @@ describe('SessionFlagsService', () => {
       await triggerSessionActions(sessionId, flags, studentUSM)
       expect(QueueService.add).not.toHaveBeenCalledWith(
         Jobs.EmailStudentAbsentWarning,
-        { sessionId },
-        expect.anything()
+        expect.anything(),
+        { sessionId }
       )
     })
 
@@ -624,7 +624,7 @@ describe('SessionFlagsService', () => {
       await triggerSessionActions(sessionId, flags, studentUSM)
       expect(QueueService.add).toHaveBeenCalledWith(
         Jobs.EmailStudentAbsentWarning,
-        0,
+        { delay: 0 },
         { sessionId }
       )
     })
@@ -639,8 +639,8 @@ describe('SessionFlagsService', () => {
       await triggerSessionActions(sessionId, flags, studentUSM)
       expect(QueueService.add).not.toHaveBeenCalledWith(
         Jobs.EmailVolunteerAbsentStudentApology,
-        { sessionId },
-        expect.anything()
+        expect.anything(),
+        { sessionId }
       )
     })
 
@@ -653,8 +653,8 @@ describe('SessionFlagsService', () => {
       await triggerSessionActions(sessionId, flags, studentUSM)
       expect(QueueService.add).not.toHaveBeenCalledWith(
         Jobs.EmailVolunteerAbsentStudentApology,
-        { sessionId },
-        expect.anything()
+        expect.anything(),
+        { sessionId }
       )
     })
 
@@ -671,8 +671,8 @@ describe('SessionFlagsService', () => {
       await triggerSessionActions(sessionId, flags, studentUSM, volunteerUSM)
       expect(QueueService.add).not.toHaveBeenCalledWith(
         Jobs.EmailVolunteerAbsentStudentApology,
-        { sessionId },
-        expect.anything()
+        expect.anything(),
+        { sessionId }
       )
     })
 
@@ -689,7 +689,7 @@ describe('SessionFlagsService', () => {
       await triggerSessionActions(sessionId, flags, studentUSM, volunteerUSM)
       expect(QueueService.add).toHaveBeenCalledWith(
         Jobs.EmailVolunteerAbsentStudentApology,
-        0,
+        { delay: 0 },
         { sessionId }
       )
     })
@@ -704,8 +704,8 @@ describe('SessionFlagsService', () => {
       await triggerSessionActions(sessionId, flags, studentUSM)
       expect(QueueService.add).not.toHaveBeenCalledWith(
         Jobs.EmailVolunteerAbsentWarning,
-        { sessionId },
-        expect.anything()
+        expect.anything(),
+        { sessionId }
       )
     })
 
@@ -718,8 +718,8 @@ describe('SessionFlagsService', () => {
       await triggerSessionActions(sessionId, flags, studentUSM)
       expect(QueueService.add).not.toHaveBeenCalledWith(
         Jobs.EmailVolunteerAbsentWarning,
-        { sessionId },
-        expect.anything()
+        expect.anything(),
+        { sessionId }
       )
     })
 
@@ -736,8 +736,8 @@ describe('SessionFlagsService', () => {
       await triggerSessionActions(sessionId, flags, studentUSM, volunteerUSM)
       expect(QueueService.add).not.toHaveBeenCalledWith(
         Jobs.EmailVolunteerAbsentWarning,
-        { sessionId },
-        expect.anything()
+        expect.anything(),
+        { sessionId }
       )
     })
 
@@ -754,7 +754,7 @@ describe('SessionFlagsService', () => {
       await triggerSessionActions(sessionId, flags, studentUSM, volunteerUSM)
       expect(QueueService.add).toHaveBeenCalledWith(
         Jobs.EmailVolunteerAbsentWarning,
-        0,
+        { delay: 0 },
         { sessionId }
       )
     })
@@ -769,8 +769,8 @@ describe('SessionFlagsService', () => {
       await triggerSessionActions(sessionId, flags, studentUSM)
       expect(QueueService.add).not.toHaveBeenCalledWith(
         Jobs.EmailStudentAbsentVolunteerApology,
-        { sessionId },
-        expect.anything()
+        expect.anything(),
+        { sessionId }
       )
     })
 
@@ -788,8 +788,8 @@ describe('SessionFlagsService', () => {
       await triggerSessionActions(sessionId, flags, studentUSM, volunteerUSM)
       expect(QueueService.add).not.toHaveBeenCalledWith(
         Jobs.EmailStudentAbsentVolunteerApology,
-        { sessionId },
-        expect.anything()
+        expect.anything(),
+        { sessionId }
       )
     })
 
@@ -806,7 +806,7 @@ describe('SessionFlagsService', () => {
       await triggerSessionActions(sessionId, flags, studentUSM, volunteerUSM)
       expect(QueueService.add).toHaveBeenCalledWith(
         Jobs.EmailStudentAbsentVolunteerApology,
-        0,
+        { delay: 0 },
         { sessionId }
       )
     })
@@ -821,8 +821,8 @@ describe('SessionFlagsService', () => {
       await triggerSessionActions(sessionId, flags, studentUSM)
       expect(QueueService.add).not.toHaveBeenCalledWith(
         Jobs.EmailStudentUnmatchedApology,
-        { sessionId },
-        expect.anything()
+        expect.anything(),
+        { sessionId }
       )
     })
 
@@ -836,8 +836,8 @@ describe('SessionFlagsService', () => {
       await triggerSessionActions(sessionId, flags, studentUSM)
       expect(QueueService.add).not.toHaveBeenCalledWith(
         Jobs.EmailStudentUnmatchedApology,
-        { sessionId },
-        expect.anything()
+        expect.anything(),
+        { sessionId }
       )
     })
 
@@ -851,7 +851,7 @@ describe('SessionFlagsService', () => {
       await triggerSessionActions(sessionId, flags, studentUSM)
       expect(QueueService.add).toHaveBeenCalledWith(
         Jobs.EmailStudentUnmatchedApology,
-        0,
+        { delay: 0 },
         { sessionId }
       )
     })
@@ -872,8 +872,8 @@ describe('SessionFlagsService', () => {
       await triggerFeedbackActions(sessionId, flags, studentUSM)
       expect(QueueService.add).not.toHaveBeenCalledWith(
         Jobs.EmailStudentOnlyLookingForAnswers,
-        { sessionId },
-        expect.anything()
+        expect.anything(),
+        { sessionId }
       )
     })
 
@@ -891,8 +891,8 @@ describe('SessionFlagsService', () => {
       await triggerFeedbackActions(sessionId, flags, studentUSM)
       expect(QueueService.add).not.toHaveBeenCalledWith(
         Jobs.EmailStudentOnlyLookingForAnswers,
-        { sessionId },
-        expect.anything()
+        expect.anything(),
+        { sessionId }
       )
     })
 
@@ -910,7 +910,7 @@ describe('SessionFlagsService', () => {
       await triggerFeedbackActions(sessionId, flags, studentUSM)
       expect(QueueService.add).toHaveBeenCalledWith(
         Jobs.EmailStudentOnlyLookingForAnswers,
-        0,
+        { delay: 0 },
         { sessionId }
       )
     })
@@ -929,14 +929,14 @@ describe('SessionFlagsService', () => {
       await triggerFeedbackActions(sessionId, flags, studentUSM)
       expect(QueueService.add).not.toHaveBeenCalledWith(
         Jobs.EmailSessionReported,
+        expect.anything(),
         {
           sessionId,
           isBanReason: false,
           reportReason: SESSION_REPORT_REASON.STUDENT_SAFETY,
           reportedBy: session.volunteerId,
           userId: session.studentId,
-        },
-        expect.anything()
+        }
       )
     })
 
@@ -954,14 +954,14 @@ describe('SessionFlagsService', () => {
       await triggerFeedbackActions(sessionId, flags, studentUSM)
       expect(QueueService.add).not.toHaveBeenCalledWith(
         Jobs.EmailSessionReported,
+        expect.anything(),
         {
           sessionId,
           isBanReason: false,
           reportReason: SESSION_REPORT_REASON.STUDENT_SAFETY,
           reportedBy: session.volunteerId,
           userId: session.studentId,
-        },
-        expect.anything()
+        }
       )
     })
 
@@ -979,7 +979,7 @@ describe('SessionFlagsService', () => {
       await triggerFeedbackActions(sessionId, flags, studentUSM)
       expect(QueueService.add).toHaveBeenCalledWith(
         Jobs.EmailSessionReported,
-        0,
+        { delay: 0 },
         {
           sessionId,
           isBanReason: false,

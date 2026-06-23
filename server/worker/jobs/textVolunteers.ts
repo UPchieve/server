@@ -139,7 +139,9 @@ export default async function textVolunteers(
   if (notificationRound < JOB_CONFIG.maxNotificationRounds) {
     await QueueService.add(
       Jobs.TextVolunteers,
-      secondsInMs(JOB_CONFIG.roundDelay),
+      {
+        delay: secondsInMs(JOB_CONFIG.roundDelay),
+      },
       {
         ...job.data,
         notificationRound: notificationRound + 1,

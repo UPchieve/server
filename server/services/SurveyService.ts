@@ -109,7 +109,7 @@ export async function saveUserSurvey(
       if (role.activeRole === USER_ROLES.STUDENT) {
         await QueueService.add(
           Jobs.MaybeSendStudentFeedbackToVolunteer,
-          FIVE_MINUTES,
+          { delay: FIVE_MINUTES },
           { sessionId: userSurvey.sessionId }
         )
       }

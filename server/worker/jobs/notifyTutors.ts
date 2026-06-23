@@ -29,13 +29,12 @@ export default async (job: Job<NotifyTutorsJobData>): Promise<void> => {
   if (delay)
     await QueueService.add(
       Jobs.NotifyTutors,
-      delay,
+      { delay, removeOnFail: true },
       {
         sessionId: sessionId.toString(),
         notificationSchedule,
         currentNotificationRound: currentNotificationRound + 1,
-      },
-      { removeOnFail: true }
+      }
     )
 
   try {
@@ -49,12 +48,11 @@ export default async (job: Job<NotifyTutorsJobData>): Promise<void> => {
       // send a followup text to the volunteer in 5 mins
       await QueueService.add(
         Jobs.SendFollowupText,
-        minutesInMs(5),
+        { delay: minutesInMs(5), removeOnFail: true },
         {
           sessionId: sessionId.toString(),
           volunteerId: volunteerNotified.toString(),
-        },
-        { removeOnFail: true }
+        }
       )
     } else {
       log(

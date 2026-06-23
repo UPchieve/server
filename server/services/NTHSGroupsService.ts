@@ -423,7 +423,7 @@ export async function deactivateNonHighSchoolMember(
         )
         await QueueService.add(
           Jobs.NotifyNTHSChapterAdminsOfDeactivatedUser,
-          0,
+          { delay: 0 },
           {
             deactivatedUserId: userId,
             nthsGroupId: group.groupId,
