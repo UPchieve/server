@@ -24,9 +24,7 @@ import emailWeeklyHourSummary from './emailWeeklyHourSummary'
 import endStaleSessions from './endStaleSessions'
 import endUnmatchedSession from './endUnmatchedSession'
 import generateAndStoreWaitTimeHeatMap from './generateAndStoreWaitTimeHeatMap'
-import notifyTutors from './notifyTutors'
 import emailPartnerVolunteerLowHoursSelected from './partner-volunteer-emails/emailLowHoursSelected'
-import sendFollowupText from './sendFollowupText'
 import emailSessionReported from './user-emails/emailSessionReported'
 import emailStudentFirstSessionCongrats from './student-emails/emailStudentFirstSessionCongrats'
 import emailStudentOnboardingSeries from './student-emails/emailStudentOnboardingSeries'
@@ -409,10 +407,6 @@ const jobProcessors: JobProcessor[] = [
     processor: moderateSessionTranscript,
   },
   {
-    name: Jobs.NotifyTutors,
-    processor: notifyTutors,
-  },
-  {
     name: Jobs.ProcessSessionEnded,
     processor: processSessionEnded,
   },
@@ -424,10 +418,6 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.SendBecomeAnAmbassadorEmail,
     processor: emailBecomeAnAmbassador,
-  },
-  {
-    name: Jobs.SendFollowupText,
-    processor: sendFollowupText,
   },
   {
     name: Jobs.SendNationalTutorCertificateEmail,

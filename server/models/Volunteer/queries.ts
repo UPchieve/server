@@ -1613,42 +1613,6 @@ export async function updateSsoUserBackgroundInfo(
   }
 }
 
-export async function getNextVolunteerToNotify(options: {
-  subject: string
-  lastNotified: Date
-  isPartner: boolean | undefined
-  highLevelSubjects: string[] | undefined
-  disqualifiedVolunteers: Ulid[] | undefined
-  specificPartner: string | undefined
-  favoriteVolunteers: Ulid[] | undefined
-}): Promise<VolunteerContactInfoWithPhoneRequired | undefined> {
-  try {
-    const result = await pgQueries.getNextVolunteerToNotify.run(
-      options,
-      getRoClient()
-    )
-    if (!result.length) return
-    return makeSomeOptional(result[0], ['volunteerPartnerOrg'])
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
-export async function checkIfVolunteerMutedSubject(
-  userId: Ulid,
-  subjectName: string
-): Promise<boolean | undefined> {
-  try {
-    const result = await pgQueries.checkIfVolunteerMutedSubject.run(
-      { userId, subjectName },
-      getClient()
-    )
-    return result.length ? true : false
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
 export type VolunteerForScheduleUpdate = {
   id: Ulid
   volunteerPartnerOrg?: string
