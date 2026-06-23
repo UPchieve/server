@@ -311,13 +311,13 @@ export async function triggerSessionActions(
   if (flags.includes(UserSessionFlags.absentStudent)) {
     // Send a warning email to the student about ghosting volunteers the first time the he or she is absent
     if (studentUSM.absentStudent === 1)
-      await QueueService.add(Jobs.EmailStudentAbsentWarning, {
+      await QueueService.add(Jobs.EmailStudentAbsentWarning, 0, {
         sessionId,
       })
 
     // Send an apology email to the volunteer the first time he or she encounters an absent student
     if (voluteerUSM?.absentStudent === 1)
-      await QueueService.add(Jobs.EmailVolunteerAbsentStudentApology, {
+      await QueueService.add(Jobs.EmailVolunteerAbsentStudentApology, 0, {
         sessionId,
       })
   }
@@ -325,12 +325,12 @@ export async function triggerSessionActions(
   if (flags.includes(UserSessionFlags.absentVolunteer)) {
     // Send a warning email to the volunteer about ghosting students the first time he or she is absent
     if (voluteerUSM?.absentVolunteer === 1)
-      await QueueService.add(Jobs.EmailVolunteerAbsentWarning, {
+      await QueueService.add(Jobs.EmailVolunteerAbsentWarning, 0, {
         sessionId,
       })
     // Send an apology email to the student the first time he or she encounters an absent volunteer
     if (studentUSM.absentVolunteer === 1)
-      await QueueService.add(Jobs.EmailStudentAbsentVolunteerApology, {
+      await QueueService.add(Jobs.EmailStudentAbsentVolunteerApology, 0, {
         sessionId,
       })
   }
@@ -338,7 +338,7 @@ export async function triggerSessionActions(
   if (flags.includes(UserSessionFlags.hasBeenUnmatched)) {
     // Send an apology email to the student the first time their session is unmatched
     if (studentUSM.hasBeenUnmatched === 1)
-      await QueueService.add(Jobs.EmailStudentUnmatchedApology, {
+      await QueueService.add(Jobs.EmailStudentUnmatchedApology, 0, {
         sessionId,
       })
   }
@@ -355,13 +355,13 @@ export async function triggerFeedbackActions(
     flags.includes(UserSessionFlags.onlyLookingForAnswers) &&
     studentUSM.onlyLookingForAnswers === 1
   )
-    await QueueService.add(Jobs.EmailStudentOnlyLookingForAnswers, {
+    await QueueService.add(Jobs.EmailStudentOnlyLookingForAnswers, 0, {
       sessionId,
     })
 
   // If session was not reported, follow report workflow for emotional distress
   if (flags.includes(UserSessionFlags.studentCrisis) && !session.reported) {
-    QueueService.add(Jobs.EmailSessionReported, {
+    QueueService.add(Jobs.EmailSessionReported, 0, {
       userId: session.studentId,
       reportedBy: session.volunteerId,
       reportReason: SESSION_REPORT_REASON.STUDENT_SAFETY,
@@ -395,7 +395,7 @@ export async function processMetrics(
   const flags = await callbacks.computeSessionFlags(session)
   await updateSessionFlagsById(session.id, flags)
 
-  QueueService.add(Jobs.ExecuteModerationAction, {
+  QueueService.add(Jobs.ExecuteModerationAction, 0, {
     sessionId,
   })
 

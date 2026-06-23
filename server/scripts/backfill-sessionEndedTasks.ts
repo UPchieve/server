@@ -13,13 +13,13 @@ export default async function (jobData: Job<BackFillSessionEndedData>) {
     const sessionId = jobData.data.sessionIds[idx]
     await QueueService.add(
       Jobs.ProcessSessionEnded,
+      minutesInMs((idx % 5) + 3),
       {
         sessionId,
       },
       {
         removeOnComplete: false,
         removeOnFail: false,
-        delay: minutesInMs((idx % 5) + 3),
         priority: 3,
       }
     )

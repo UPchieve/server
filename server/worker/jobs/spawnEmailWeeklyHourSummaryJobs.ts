@@ -37,6 +37,7 @@ export default async (
     try {
       await QueueService.add(
         Jobs.EmailWeeklyHourSummary,
+        0,
         {
           startDate: lastMonday,
           endDate: lastSunday,

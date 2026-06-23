@@ -45,11 +45,17 @@ queue.on('cleaned', (jobs, type) => {
   logger.info({ jobs, type }, 'Worker jobs cleaned from queue.')
 })
 
-export type AddJobOptions = JobOptions
-export async function add(job: Jobs, data?: any, options?: AddJobOptions) {
+export type AddJobOptions = Omit<JobOptions, 'delay'>
+export async function add(
+  job: Jobs,
+  delay: number,
+  data?: any,
+  options?: AddJobOptions
+) {
   await queue.add(job, data, {
     removeOnFail: false,
     removeOnComplete: false,
+    delay,
     ...(options ?? {}),
   })
 }

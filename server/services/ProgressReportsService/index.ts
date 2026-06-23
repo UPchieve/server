@@ -457,7 +457,7 @@ export async function queueGenerateProgressReportForUser(
     session.studentId
   )
   if (!isSubjectPromptActive || !isProgressReportsActive) return
-  await QueueService.add(Jobs.GenerateProgressReport, { sessionId })
+  await QueueService.add(Jobs.GenerateProgressReport, 0, { sessionId })
 }
 
 function transformProgressReportSummaryRows(

@@ -33,6 +33,7 @@ import * as cache from '../cache'
 import { getSubjectsWithTopic } from './SubjectsService'
 import logger from '../logger'
 import { isHighSchoolGrade } from '../utils/grade-levels'
+import { daysInMs } from '../utils/time-utils'
 
 export interface HourSummaryStats {
   totalCoachingHours: number
@@ -107,12 +108,9 @@ export async function getHourSummaryStats(
 export async function queueOnboardingReminderOneEmail(
   volunteerId: Uuid
 ): Promise<void> {
-  const sevenDaysInMs = 1000 * 60 * 60 * 24 * 7
-  await QueueService.add(
-    Jobs.EmailOnboardingReminderOne,
-    { volunteerId },
-    { delay: sevenDaysInMs }
-  )
+  await QueueService.add(Jobs.EmailOnboardingReminderOne, daysInMs(7), {
+    volunteerId,
+  })
 }
 
 export async function queueOnboardingEventEmails(
@@ -121,20 +119,16 @@ export async function queueOnboardingEventEmails(
 ): Promise<void> {
   await QueueService.add(
     Jobs.EmailVolunteerQuickTips,
-    { volunteerId },
+    daysInMs(5),
+    { volunteerId }
     // Process job 5 days after the volunteer is onboarded.
-    {
-      delay: 1000 * 60 * 60 * 24 * 5,
-    }
   )
   if (isPartnerVolunteer) {
     await QueueService.add(
       Jobs.EmailPartnerVolunteerLowHoursSelected,
-      { volunteerId },
+      daysInMs(10),
+      { volunteerId }
       // Process job 10 days after the volunteer is onboarded.
-      {
-        delay: 1000 * 60 * 60 * 24 * 10,
-      }
     )
   }
 }
@@ -145,7 +139,7 @@ export async function queueFailedFirstAttemptedQuizEmail(
   firstName: string,
   volunteerId: Uuid
 ) {
-  await QueueService.add(Jobs.EmailFailedFirstAttemptedQuiz, {
+  await QueueService.add(Jobs.EmailFailedFirstAttemptedQuiz, 0, {
     category,
     email,
     firstName,
@@ -451,7 +445,7 @@ export async function getSubjectPresence(): Promise<VolunteerSubjectPresenceMap>
 export async function queueNationalTutorCertificateEmail(
   volunteerId: Uuid
 ): Promise<void> {
-  await QueueService.add(Jobs.SendNationalTutorCertificateEmail, {
+  await QueueService.add(Jobs.SendNationalTutorCertificateEmail, 0, {
     volunteerId,
   })
 }

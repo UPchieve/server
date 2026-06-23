@@ -291,7 +291,7 @@ export async function deleteUser(user: UserContactInfo) {
 
   // Change their email so they can't log in before/while the job is completing.
   await UserRepo.flagUserForDeletion(user.id)
-  await QueueService.add(Jobs.DeidentifyUser, { userId: user.id })
+  await QueueService.add(Jobs.DeidentifyUser, 0, { userId: user.id })
 }
 
 export async function adminUpdateUser(data: unknown) {
@@ -790,17 +790,11 @@ export async function queueInvitationToCoach(
     },
     'Queueing invitation to coach email'
   )
-  await QueueService.add(
-    Jobs.SendInvitationToCoachEmail,
-    {
-      invitedUserId,
-      invitingUserId,
-      coachingSkills,
-    },
-    {
-      delay: hoursInMs(24),
-    }
-  )
+  await QueueService.add(Jobs.SendInvitationToCoachEmail, hoursInMs(24), {
+    invitedUserId,
+    invitingUserId,
+    coachingSkills,
+  })
   logger.info(
     {
       invitedUserId,

@@ -624,6 +624,7 @@ describe('SessionFlagsService', () => {
       await triggerSessionActions(sessionId, flags, studentUSM)
       expect(QueueService.add).toHaveBeenCalledWith(
         Jobs.EmailStudentAbsentWarning,
+        0,
         { sessionId }
       )
     })
@@ -688,6 +689,7 @@ describe('SessionFlagsService', () => {
       await triggerSessionActions(sessionId, flags, studentUSM, volunteerUSM)
       expect(QueueService.add).toHaveBeenCalledWith(
         Jobs.EmailVolunteerAbsentStudentApology,
+        0,
         { sessionId }
       )
     })
@@ -752,6 +754,7 @@ describe('SessionFlagsService', () => {
       await triggerSessionActions(sessionId, flags, studentUSM, volunteerUSM)
       expect(QueueService.add).toHaveBeenCalledWith(
         Jobs.EmailVolunteerAbsentWarning,
+        0,
         { sessionId }
       )
     })
@@ -803,6 +806,7 @@ describe('SessionFlagsService', () => {
       await triggerSessionActions(sessionId, flags, studentUSM, volunteerUSM)
       expect(QueueService.add).toHaveBeenCalledWith(
         Jobs.EmailStudentAbsentVolunteerApology,
+        0,
         { sessionId }
       )
     })
@@ -847,6 +851,7 @@ describe('SessionFlagsService', () => {
       await triggerSessionActions(sessionId, flags, studentUSM)
       expect(QueueService.add).toHaveBeenCalledWith(
         Jobs.EmailStudentUnmatchedApology,
+        0,
         { sessionId }
       )
     })
@@ -905,6 +910,7 @@ describe('SessionFlagsService', () => {
       await triggerFeedbackActions(sessionId, flags, studentUSM)
       expect(QueueService.add).toHaveBeenCalledWith(
         Jobs.EmailStudentOnlyLookingForAnswers,
+        0,
         { sessionId }
       )
     })
@@ -971,13 +977,17 @@ describe('SessionFlagsService', () => {
         userId: getUuid(),
       })
       await triggerFeedbackActions(sessionId, flags, studentUSM)
-      expect(QueueService.add).toHaveBeenCalledWith(Jobs.EmailSessionReported, {
-        sessionId,
-        isBanReason: false,
-        reportReason: SESSION_REPORT_REASON.STUDENT_SAFETY,
-        reportedBy: session.volunteerId,
-        userId: session.studentId,
-      })
+      expect(QueueService.add).toHaveBeenCalledWith(
+        Jobs.EmailSessionReported,
+        0,
+        {
+          sessionId,
+          isBanReason: false,
+          reportReason: SESSION_REPORT_REASON.STUDENT_SAFETY,
+          reportedBy: session.volunteerId,
+          userId: session.studentId,
+        }
+      )
     })
   })
 

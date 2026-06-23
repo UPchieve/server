@@ -77,7 +77,7 @@ export async function queueReferredByEmailsForVolunteer({
 }) {
   if (!referredBy) return
 
-  await QueueService.add(Jobs.SendReferralSignUpCelebrationEmail, {
+  await QueueService.add(Jobs.SendReferralSignUpCelebrationEmail, 0, {
     userId: referredBy,
     referredFirstName: firstName,
   })
@@ -96,7 +96,7 @@ export async function queueReferredByEmailsForVolunteer({
       referredUsersCount >= 5 &&
       !hasUserBeenSentCongratsEmail
     ) {
-      await QueueService.add(Jobs.SendAmbassadorCongratsEmail, {
+      await QueueService.add(Jobs.SendAmbassadorCongratsEmail, 0, {
         userId: referredBy,
         firstName: firstName,
         referralLink: UserService.getReferralSignUpLink(referredByCode),
