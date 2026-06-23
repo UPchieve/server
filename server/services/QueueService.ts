@@ -48,14 +48,14 @@ queue.on('cleaned', (jobs, type) => {
 export type AddJobOptions = Omit<JobOptions, 'delay'>
 export async function add(
   job: Jobs,
-  delay: number,
+  delayMs: number,
   data?: any,
   options?: AddJobOptions
 ) {
   await queue.add(job, data, {
     removeOnFail: false,
     removeOnComplete: false,
-    delay,
+    delay: delayMs,
     ...(options ?? {}),
   })
 }
