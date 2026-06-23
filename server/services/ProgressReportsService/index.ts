@@ -1,4 +1,5 @@
-import Delta from 'quill-delta'
+import * as VisionService from '../VisionService'
+import { client as traceClient } from '../../clients/langfuse'
 import moment from 'moment'
 import { Ulid } from '../../models/pgUtils'
 import logger, { logError } from '../../logger'
@@ -57,10 +58,7 @@ import { getProgressReportsFeatureFlag } from '../FeatureFlagService'
 import { PROGRESS_REPORT_JSON_INSTRUCTIONS } from '../../constants'
 import { Student, getStudentProfileByUserId } from '../../models/Student'
 import { SubjectAndTopic, getSubjectAndTopic } from '../../models/Subjects'
-import {
-  describeWhiteboardSnapshot,
-  getTextFromImageAnalysis,
-} from '../VisionService'
+import { describeWhiteboardSnapshot } from '../VisionService'
 import { getWhiteboardSnapshot } from '../EditorSnapshotService'
 import { isSubjectUsingDocumentEditor } from '../../utils/session-utils'
 import { minutesInMs } from '../../utils/time-utils'
@@ -73,6 +71,8 @@ import {
   runWithTrace,
 } from '../AiObservabilityService'
 import type { MessageForFrontend } from '../../types/session'
+
+const GET_PROGRESS_REPORT_IMAGE_TEXT_TRACE_NAME = 'getProgressReportImageText'
 
 function formatTranscriptMessage(
   message: MessageForFrontend,
@@ -125,7 +125,7 @@ async function formatDocumentEditorPrompt(
     try {
       const docImages = await getDocEditorImages(session.quillDoc)
       if (docImages.length > 0) {
-        imageText = await getProgressReportImageText(docImages)
+        imageText = await getProgressReportImageText(docImages, session.id)
       }
     } catch (error) {
       logger.warn(
@@ -181,12 +181,24 @@ async function formatWhiteboardPrompt(
 }
 
 async function getProgressReportImageText(
-  imageBuffers: Buffer[]
+  imageBuffers: Buffer[],
+  sessionId?: Ulid
 ): Promise<string> {
+  if (!imageBuffers.length) return ''
   let imageText = ''
+  const trace = traceClient.trace({
+    name: GET_PROGRESS_REPORT_IMAGE_TEXT_TRACE_NAME,
+    metadata: {
+      sessionId,
+    },
+  })
   for (const image of imageBuffers) {
     try {
-      imageText += await getTextFromImageAnalysis(image)
+      const textSegments = await VisionService.extractTextFromImage(
+        image,
+        trace
+      )
+      imageText += textSegments.join(' ')
     } catch (error) {
       logger.warn(
         { err: error },
@@ -194,6 +206,9 @@ async function getProgressReportImageText(
       )
     }
   }
+  trace.update({
+    output: imageText,
+  })
   return imageText
 }
 
