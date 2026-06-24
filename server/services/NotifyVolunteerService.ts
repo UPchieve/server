@@ -34,7 +34,7 @@ export async function beginRegularNotifications(
   // volunteers on the dashboard time to pick up the request.
   await QueueService.add(
     Jobs.TextVolunteers,
-    { delay: secondsInMs(30) },
+    { delay: secondsInMs(30), jobId: `${Jobs.TextVolunteers}:${session.id}` },
     {
       sessionId: session.id,
       subject: session.subject,
