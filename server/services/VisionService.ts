@@ -1,92 +1,49 @@
-import createImageAnalysisClient, {
-  ImageAnalysisClient,
-  isUnexpected,
-  ImageAnalysisResultOutput,
-  ReadResultOutput,
-} from '@azure-rest/ai-vision-image-analysis'
-import { AzureKeyCredential } from '@azure/core-auth'
 import logger from '../logger'
 import config from '../config'
-import { isValidConfigToken } from '../utils/environments'
 import * as PromptService from './PromptService'
 import { PromptName } from './PromptService'
 import { resize } from '../utils/image-utils'
 import { invokeModel } from './AwsBedrockService'
 import { runWithModelObservation, runWithTrace } from './AiObservabilityService'
 import { secondsInMs } from '../utils/time-utils'
+import { LangfuseGenerationClient, LangfuseTraceClient } from 'langfuse-node'
+import { LangfuseGenerationName } from './ModerationService/types'
+import { extractText } from 'unpdf'
+import { AWSRekognitionClient } from './AwsService'
+import { DetectTextCommand } from '@aws-sdk/client-rekognition'
 
-const client: ImageAnalysisClient = isValidConfigToken(
-  config.subwayAIVisionApiKey
-)
-  ? createImageAnalysisClient(
-      config.subwayAIVisionEndpoint,
-      new AzureKeyCredential(config.subwayAIVisionApiKey)
-    )
-  : createMockImageAnalysisClient()
+const EXTRACT_TEXT_FROM_IMAGE_GENERATION_NAME =
+  LangfuseGenerationName.EXTRACT_TEXT_FROM_IMAGE
 
-function createMockImageAnalysisClient(): ImageAnalysisClient {
-  return {
-    path: () => ({
-      post: async () => ({
-        status: '200',
-        body: {
-          captionResult: {},
-          denseCaptionsResult: {},
-          metadata: {},
-          modelVersion: '',
-          objectResult: {},
-          peopleResult: {},
-          readResult: {},
-          smartCropsResult: {},
-          tagsResult: {},
-        },
-      }),
-    }),
-  } as unknown as ImageAnalysisClient
-}
-
-async function analyzeImageBuffer(
-  imageBuffer: Buffer
-): Promise<ImageAnalysisResultOutput> {
-  const features: string[] = ['Read']
-  const result = await client.path('/imageanalysis:analyze').post({
-    body: new Uint8Array(imageBuffer),
-    queryParameters: { features },
-    contentType: 'application/octet-stream',
-  })
-
-  if (isUnexpected(result)) throw result.body.error
-  return result.body
-}
-
-async function getTextFromImageReadResult(
-  readResult?: ReadResultOutput
-): Promise<string> {
-  if (!readResult) return ''
-  const blocks = readResult.blocks ?? []
-  const lines: string[] = []
-  for (const block of blocks) {
-    for (const line of block.lines) {
-      lines.push(line.text)
-    }
+export async function extractTextFromImage(
+  image: Buffer,
+  trace?: LangfuseTraceClient
+): Promise<string[]> {
+  let generation: LangfuseGenerationClient | undefined = undefined
+  if (trace) {
+    generation = trace.generation({
+      name: EXTRACT_TEXT_FROM_IMAGE_GENERATION_NAME,
+    })
   }
-  return lines.join('\n')
-}
 
-export async function getTextFromImageAnalysis(
-  imageBuffer: Buffer
-): Promise<string> {
-  try {
-    const response = await analyzeImageBuffer(imageBuffer)
-    return getTextFromImageReadResult(response.readResult)
-  } catch (error) {
-    logger.error(
-      `getTextFromImageAnalysis error while generating Progress Report ${
-        (error as Error).message
-      })`
-    )
-    return ''
+  const extractedText = await AWSRekognitionClient.send(
+    new DetectTextCommand({
+      Image: {
+        Bytes: new Uint8Array(image),
+      },
+    })
+  )
+
+  if (generation) {
+    generation.end({ output: extractText })
   }
+
+  const detections = extractedText.TextDetections ?? []
+  const textSegments = detections
+    .filter(({ Type }) => Type === 'LINE')
+    .map((detection) => detection.DetectedText ?? '')
+
+  return textSegments
 }
 
 export async function describeWhiteboardSnapshot(

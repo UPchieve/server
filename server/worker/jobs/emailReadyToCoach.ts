@@ -19,10 +19,10 @@ export default async (): Promise<void> => {
       succeededVolunteers.push(volunteer.id)
       await QueueService.add(
         Jobs.SendBecomeAnAmbassadorEmail,
+        { delay: twoDaysInMs, removeOnComplete: true, removeOnFail: false },
         {
           userId: volunteer.id,
-        },
-        { removeOnComplete: true, removeOnFail: false, delay: twoDaysInMs }
+        }
       )
     } catch (error) {
       errors.push(`volunteer ${volunteer.id}: ${error}`)

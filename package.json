@@ -76,7 +76,6 @@
     "@aws-sdk/client-transcribe-streaming": "^3.744.0",
     "@aws-sdk/s3-request-presigner": "^3.965.0",
     "@azure-rest/ai-content-safety": "^1.0.0",
-    "@azure-rest/ai-vision-image-analysis": "^1.0.0-beta.2",
     "@azure/core-auth": "^1.7.2",
     "@azure/identity": "^4.13.0",
     "@azure/storage-blob": "^12.12.0",

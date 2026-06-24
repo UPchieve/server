@@ -1,12 +1,9 @@
 import {
   DetectLabelsCommand,
   DetectModerationLabelsCommand,
-  DetectTextCommand,
   ModerationLabel,
-  RekognitionClient,
 } from '@aws-sdk/client-rekognition'
 import {
-  ComprehendClient,
   DetectPiiEntitiesCommand,
   DetectToxicContentCommand,
 } from '@aws-sdk/client-comprehend'
@@ -42,7 +39,11 @@ import {
   USER_BAN_TYPES,
   UserSessionFlags,
 } from '../../constants'
-import { putObject } from '../AwsService'
+import {
+  AWSRekognitionClient,
+  AWSComprehendClient,
+  putObject,
+} from '../AwsService'
 import * as ShareableDomainsRepo from '../../models/ShareableDomains/queries'
 import {
   BedrockToolChoice,
@@ -59,27 +60,12 @@ import {
 } from '../../models/ModerationSettings/queries'
 import { GetModerationSettingResult } from '../../models/ModerationSettings/types'
 import * as ModerationTypes from './types'
-import {
-  LangfuseGenerationName,
-  ModerationAIResult,
-  ModerationFailureReasons,
-  ModerationSource,
-} from './types'
+import { ModerationAIResult, ModerationSource } from './types'
 import { weightModerationInfractions } from './ModerationPenaltyService'
 import * as Regex from './regex'
 import { secondsInMs } from '../../utils/time-utils'
 import Logger from '../../logger'
-
-// Image moderation
-const AWS_CONFIG = {
-  region: config.awsModerationToolsRegion,
-  credentials: {
-    accessKeyId: config.awsS3.accessKeyId,
-    secretAccessKey: config.awsS3.secretAccessKey,
-  },
-}
-const awsRekognitionClient = new RekognitionClient(AWS_CONFIG)
-const awsComprehendClient = new ComprehendClient(AWS_CONFIG)
+import { extractTextFromImage } from '../VisionService'
 
 const topLevelCategoryFilter = (label: ModerationLabel) =>
   label.TaxonomyLevel === 1
@@ -222,7 +208,7 @@ async function detectPersonInImage({
       })
     }
 
-    const labelResponse = await awsRekognitionClient.send(
+    const labelResponse = await AWSRekognitionClient.send(
       new DetectLabelsCommand({
         Image: {
           Bytes: new Uint8Array(image),
@@ -302,7 +288,7 @@ async function detectImageModerationFailures(
       })
     }
 
-    const moderationLabelsResponse = await awsRekognitionClient.send(
+    const moderationLabelsResponse = await AWSRekognitionClient.send(
       new DetectModerationLabelsCommand({
         Image: {
           Bytes: new Uint8Array(image),
@@ -338,35 +324,6 @@ async function detectImageModerationFailures(
   }
 }
 
-export async function extractTextFromImage(
-  image: Buffer,
-  trace?: LangfuseTraceClient
-) {
-  let generation: LangfuseGenerationClient | undefined = undefined
-  if (trace) {
-    generation = trace.generation({
-      name: ModerationTypes.LangfuseGenerationName.EXTRACT_TEXT_FROM_IMAGE,
-    })
-  }
-
-  const extractedText = await awsRekognitionClient.send(
-    new DetectTextCommand({
-      Image: {
-        Bytes: new Uint8Array(image),
-      },
-    })
-  )
-  if (generation) {
-    generation.end({ output: extractedText })
-  }
-  const detections = extractedText.TextDetections ?? []
-  const textSegments = detections
-    .filter(({ Type }) => Type === 'LINE')
-    .map((detection) => detection.DetectedText ?? '')
-
-  return textSegments
-}
-
 const detectToxicContent = async (
   textSegments: string[],
   moderationSettings: GetModerationSettingResult,
@@ -382,7 +339,7 @@ const detectToxicContent = async (
 
   const toxicContent = []
   const concatenatedText = textSegments.join(' ')
-  const result = await awsComprehendClient.send(
+  const result = await AWSComprehendClient.send(
     new DetectToxicContentCommand({
       TextSegments: [{ Text: concatenatedText }],
       LanguageCode: 'en',
@@ -729,7 +686,7 @@ async function detectPii({
     })
   }
 
-  const piiEntities = await awsComprehendClient.send(
+  const piiEntities = await AWSComprehendClient.send(
     new DetectPiiEntitiesCommand({
       Text: text,
       LanguageCode: 'en',

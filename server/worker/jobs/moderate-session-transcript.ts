@@ -2,6 +2,7 @@ import { Ulid } from '../../models/pgUtils'
 import { Job } from 'bull'
 import * as SessionService from '../../services/SessionService'
 import * as ModerationService from '../../services/ModerationService'
+import * as VisionService from '../../services/VisionService'
 import * as WhiteboardService from '../../services/WhiteboardService'
 import { client as langfuseClient } from '../../clients/langfuse'
 import config from '../../config'
@@ -90,7 +91,7 @@ export default async function moderateSessionTranscript(
           })
         }
 
-        extractedText = await ModerationService.extractTextFromImage(
+        extractedText = await VisionService.extractTextFromImage(
           Buffer.from(whiteboardImage, 'binary'),
           trace
         )
