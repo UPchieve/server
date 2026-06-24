@@ -31,9 +31,7 @@ import {
 import { getDocEditorSessionImageUrl } from '../../services/AzureService'
 import { getSessionSummaryByUserType } from '../../services/SessionSummariesService'
 import { USER_ROLES } from '../../constants'
-import { isEmpty } from 'lodash'
 import * as ModerationService from '../../services/ModerationService'
-import * as sessionUtils from '../../utils/session-utils'
 
 export function routeSession(router: Router) {
   // io is now passed to this module so that API events can trigger socket events as needed
