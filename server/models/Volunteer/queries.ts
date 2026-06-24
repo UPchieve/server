@@ -35,7 +35,12 @@ import {
 } from './types'
 import config from '../../config'
 import _ from 'lodash'
-import { PHOTO_ID_STATUS, USER_BAN_TYPES, USER_ROLES } from '../../constants'
+import {
+  ACCOUNT_USER_ACTIONS,
+  PHOTO_ID_STATUS,
+  USER_BAN_TYPES,
+  USER_ROLES,
+} from '../../constants'
 import {
   AssociatedPartnersAndSchools,
   getAssociatedPartnersAndSchools,
@@ -1830,5 +1835,47 @@ export async function getVolunteerOccupations(
     )
   } catch (error) {
     throw new RepoReadError(error)
+  }
+}
+
+export async function getVolunteersForBgInfoUserActionBackfill(): Promise<
+  {
+    id: Ulid
+    occupationFirstSetAt: Date | null
+  }[]
+> {
+  try {
+    const results = await pgQueries.getVolunteersToBackfillBgInfoUserAction.run(
+      undefined,
+      getRoClient()
+    )
+    return results.map((row) => makeRequired(row))
+  } catch (error) {
+    throw new RepoReadError(error)
+  }
+}
+
+export async function backfillVolunteersBgInfoUserAction(
+  tc: TransactionClient = getClient()
+): Promise<
+  {
+    userId: Ulid
+    action: ACCOUNT_USER_ACTIONS
+    createdAt: Date
+  }[]
+> {
+  try {
+    const results = await pgQueries.backfillBgInfoUserActionForVolunteers.run(
+      undefined,
+      tc
+    )
+    return results
+      .map((row) => makeSomeRequired(row, ['userId', 'action', 'createdAt']))
+      .map((row) => ({
+        ...row,
+        action: row.action as ACCOUNT_USER_ACTIONS,
+      }))
+  } catch (error) {
+    throw new RepoCreateError(error)
   }
 }

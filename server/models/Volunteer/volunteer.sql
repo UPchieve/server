@@ -1520,3 +1520,84 @@ FROM
 WHERE
     user_id = :userId!;
 
+
+/* @name getVolunteersToBackfillBgInfoUserAction */
+WITH volunteers_with_occupation AS (
+    SELECT
+        u.id,
+        vo.created_at AS occupation_set_at
+    FROM
+        users u
+        JOIN volunteer_occupations vo ON vo.user_id = u.id
+),
+volunteers_with_earliest_occupation AS (
+    SELECT
+        id,
+        min(occupation_set_at) AS occupation_first_set_at
+FROM
+    volunteers_with_occupation
+GROUP BY
+    id
+),
+volunteers_with_no_bg_info_user_action AS (
+    SELECT
+        u.id,
+        u.occupation_first_set_at
+    FROM
+        volunteers_with_earliest_occupation u
+        JOIN volunteer_profiles vp ON vp.user_id = u.id
+        LEFT JOIN user_actions ua ON ua.user_id = u.id
+            AND ua.action = 'COMPLETED BACKGROUND INFORMATION'
+    WHERE
+        ua.id IS NULL
+        AND u.occupation_first_set_at >= '2026-04-28'
+        AND u.occupation_first_set_at IS NOT NULL
+)
+SELECT DISTINCT ON (id)
+    u.id,
+    u.occupation_first_set_at
+FROM
+    volunteers_with_no_bg_info_user_action u;
+
+
+/* @name backfillBgInfoUserActionForVolunteers */
+WITH volunteers_with_occupation AS (
+    SELECT
+        u.id,
+        vo.created_at AS occupation_set_at
+    FROM
+        users u
+        JOIN volunteer_occupations vo ON vo.user_id = u.id
+),
+volunteers_with_earliest_occupation AS (
+    SELECT
+        id,
+        min(occupation_set_at) AS occupation_first_set_at
+FROM
+    volunteers_with_occupation
+GROUP BY
+    id
+),
+volunteers_with_no_bg_info_user_action AS (
+    SELECT
+        u.id,
+        u.occupation_first_set_at
+    FROM
+        volunteers_with_earliest_occupation u
+        JOIN volunteer_profiles vp ON vp.user_id = u.id
+        LEFT JOIN user_actions ua ON ua.user_id = u.id
+            AND ua.action = 'COMPLETED BACKGROUND INFORMATION'
+    WHERE
+        ua.id IS NULL
+        AND u.occupation_first_set_at >= '2026-04-28'
+        AND u.occupation_first_set_at IS NOT NULL)
+    INSERT INTO user_actions (user_id, action, created_at)
+    SELECT
+        u.id,
+        'COMPLETED BACKGROUND INFORMATION',
+        u.occupation_first_set_at
+    FROM
+        volunteers_with_no_bg_info_user_action u
+    RETURNING
+        *;
+

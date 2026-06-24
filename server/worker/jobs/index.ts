@@ -72,6 +72,7 @@ import notifyNTHSChapterAdminsOfDeactivatedUser from './notifyNTHSChapterAdminsO
 import executeModerationAction from './executeModerationAction'
 import deleteProxyEmailsIdenticalToEmails from './deleteProxyEmailsIdenticalToEmails'
 import sendInvitationToCoachEmail from './sendInvitationToCoachEmail'
+import backfillBgInfoUserAction from './backfillBgInfoUserAction'
 
 export enum Jobs {
   AddScheduledJobs = 'AddScheduledJobs',
@@ -161,6 +162,7 @@ export enum Jobs {
   NotifyNTHSChapterAdminsOfDeactivatedUser = 'NotifyNTHSChapterAdminsOfDeactivatedUser',
   CleanUpProxyEmailsThatAreIdenticalToEmail = 'CleanUpProxyEmailsThatAreIdenticalToEmail',
   SendInvitationToCoachEmail = 'SendInvitationToCoachEmail',
+  BackfillBgInfoUserAction = 'BackfillBgInfoUserAction',
 }
 
 // register new job processors here
@@ -494,6 +496,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.SendInvitationToCoachEmail,
     processor: sendInvitationToCoachEmail,
+  },
+  {
+    name: Jobs.BackfillBgInfoUserAction,
+    processor: backfillBgInfoUserAction,
   },
 ]
 
