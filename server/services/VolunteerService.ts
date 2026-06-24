@@ -334,6 +334,15 @@ export async function submitVolunteerBackgroundInfo(
     ) {
       await UsersGradeLevelRepo.upsertUserGradeLevel(userId, GRADES.COLLEGE, tc)
     }
+
+    await createAccountAction(
+      {
+        userId,
+        action: ACCOUNT_USER_ACTIONS.COMPLETED_BACKGROUND_INFO,
+        ipAddress: ip,
+      },
+      tc
+    )
   })
 
   return { wasRemovedFromNTHS }

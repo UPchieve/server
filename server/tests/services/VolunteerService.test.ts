@@ -297,6 +297,38 @@ describe('submitBackgroundInfo', () => {
     gradeLevel: '9th',
   }
 
+  describe('User action', () => {
+    test('Records a user action on success', async () => {
+      const volunteer = buildVolunteerContactInfo()
+      mockedVolunteerRepo.getVolunteerContactInfoById.mockResolvedValue(
+        volunteer
+      )
+      mockedNTHSService.getNTHSGroupsByMember.mockResolvedValue([])
+      await VolunteerService.submitVolunteerBackgroundInfo(volunteer.id, update)
+      expect(mockedUserActionsRepo.createAccountAction).toHaveBeenCalledWith(
+        {
+          userId: volunteer.id,
+          action: ACCOUNT_USER_ACTIONS.COMPLETED_BACKGROUND_INFO,
+          ipAddress: undefined,
+        },
+        expect.anything()
+      )
+    })
+
+    test('Does not record the user action on failure', async () => {
+      mockedVolunteerRepo.getVolunteerContactInfoById.mockResolvedValue(
+        undefined
+      )
+      await expect(() =>
+        VolunteerService.submitVolunteerBackgroundInfo(
+          'some volunteer id',
+          update
+        )
+      ).rejects.toThrow()
+      expect(mockedUserActionsRepo.createAccountAction).not.toHaveBeenCalled()
+    })
+  })
+
   describe('Records grade level', () => {
     it('Infers COLLEGE grade level based on occupation', async () => {
       const volunteer = buildVolunteerContactInfo()
@@ -471,7 +503,6 @@ describe('submitBackgroundInfo', () => {
       update
     )
     expect(mockedVolunteerRepo.updateVolunteerApproved).toHaveBeenCalledTimes(1) // Should not have been called again
-    expect(mockedUserActionsRepo.createAccountAction).toHaveBeenCalledTimes(1)
   })
 
   it('Upserts the high school if present, does not if no high school ID', async () => {
