@@ -5,7 +5,11 @@ import * as AssignmentsService from '../../services/AssignmentsService'
 import * as SessionService from '../../services/SessionService'
 import * as cache from '../../cache'
 import { authPassport } from '../../utils/auth-utils'
-import { InputError, LookupError } from '../../models/Errors'
+import {
+  InputError,
+  LookupError,
+  NotAuthenticatedError,
+} from '../../models/Errors'
 import { resError } from '../res-error'
 import {
   asStartSessionData,
@@ -27,6 +31,9 @@ import {
 import { getDocEditorSessionImageUrl } from '../../services/AzureService'
 import { getSessionSummaryByUserType } from '../../services/SessionSummariesService'
 import { USER_ROLES } from '../../constants'
+import { isEmpty } from 'lodash'
+import * as ModerationService from '../../services/ModerationService'
+import * as sessionUtils from '../../utils/session-utils'
 
 export function routeSession(router: Router) {
   // io is now passed to this module so that API events can trigger socket events as needed
@@ -198,6 +205,51 @@ export function routeSession(router: Router) {
       resError(res, error)
     }
   })
+
+  router.put(
+    '/session/uploadSessionImage',
+    upload.single('file'),
+    async function (req, res) {
+      if (!req.user?.id) {
+        throw new NotAuthenticatedError()
+      }
+
+      const sessionId = req.body.sessionId
+      const imageToModerate = req.file
+      const user = req.user.id
+      const roleContext = req.body.roleContext
+
+      if (!imageToModerate) {
+        return res.status(400).json({ err: 'No file was attached' })
+      }
+
+      const moderationResult = await ModerationService.moderateImage({
+        image: imageToModerate.buffer,
+        sessionId,
+        userId: user,
+        isVolunteer: roleContext == 'volunteer',
+        source: 'image_upload',
+        aggregateInfractions: true,
+      })
+
+      if (!moderationResult) {
+        return res.status(400).json({ err: 'Moderation failed' })
+      }
+
+      const isClean = moderationResult.isClean
+      const failures = moderationResult.failures
+
+      if (!moderationResult.isClean) {
+        return res.json({ isClean, failures })
+      } else {
+        const { imageUrl } = await SessionService.saveSessionImage({
+          sessionId,
+          image: imageToModerate,
+        })
+        return res.json({ isClean, imageUrl })
+      }
+    }
+  )
 
   router.get(
     '/session/review',

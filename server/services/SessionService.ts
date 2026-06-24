@@ -86,6 +86,7 @@ import type {
 } from '../contracts/sessions'
 import type { CurrentSession } from '../types/session'
 import { hoursInSeconds, minutesInMs, secondsInMs } from '../utils/time-utils'
+import crypto from 'crypto'
 
 export async function reviewSession(data: unknown) {
   const { sessionId, reviewed, toReview } =
@@ -1482,5 +1483,39 @@ export async function handleSessionBreakout(
       await NotifyVolunteerService.beginRegularNotifications(currentSession)
     }
     await SocketService.getInstance().emitSessionChange(session.id)
+  }
+}
+
+export async function saveSessionImage({
+  sessionId,
+  image,
+}: {
+  sessionId: string
+  image: Express.Multer.File
+}): Promise<{ imageUrl: string }> {
+  const session = await SessionRepo.getSessionById(sessionId)
+
+  if (sessionUtils.isSubjectUsingDocumentEditor(session.toolType)) {
+    const filePath = AzureService.buildSessionImagePath(
+      sessionId,
+      image.originalname
+    )
+    await AzureService.uploadBlobFile(
+      config.appStorageAccountName,
+      config.sessionsStorageContainer,
+      filePath,
+      image
+    )
+    const imageUrl = `${config.apiOrigin}/api/sessions/${filePath}`
+    return { imageUrl }
+  } else {
+    const bucketName = config.awsS3.sessionPhotoBucket
+    if (!bucketName)
+      throw new Error(
+        `Could not save moderated image to S3: No bucket registered for source whiteboard`
+      )
+    const s3Key = `${sessionId}-${crypto.randomBytes(8).toString('hex')}`
+    const result = await AwsService.putObject(bucketName, s3Key, image.buffer)
+    return { imageUrl: result.location }
   }
 }
