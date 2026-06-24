@@ -17,12 +17,13 @@ fi
 ROOT="$(git rev-parse --show-toplevel)" || exit 2
 cd "$ROOT" || exit 2
 
-PGF="$ROOT/node_modules/.bin/pg-formatter"
-if [ ! -x "$PGF" ]; then
-  echo "lint_sql: pg-formatter not found at $PGF (run pnpm install)." >&2
+PG_FORMATTER="$ROOT/node_modules/.bin/pg-formatter"
+if [ ! -x "$PG_FORMATTER" ]; then
+  echo "lint_sql: pg-formatter not found at $PG_FORMATTER (run pnpm install)." >&2
   exit 2
 fi
 
+pids=()
 for dir in "${DIRS[@]}"; do
   [ -d "$dir" ] || continue
   (
@@ -30,13 +31,20 @@ for dir in "${DIRS[@]}"; do
     while IFS= read -r f; do
       [ -n "$f" ] && files+=("$f")
     done < <(find "$dir" -name "*.sql")
-    if [ ${#files[@]} -gt 0 ]; then
-      echo "linting files in $dir"
-      "$PGF" --keyword-case="uppercase" --inplace --placeholder=":\w+!" "${files[@]}"
-      echo "linting files in $dir done"
-    fi
+    [ ${#files[@]} -eq 0 ] && exit 0
+    echo "linting files in $dir"
+    "$PG_FORMATTER" --keyword-case="uppercase" --inplace --placeholder=":\w+!" "${files[@]}"
+    rc=$? # exit the subshell with pg-formatter's status, not the trailing echo's
+    echo "linting files in $dir done"
+    exit "$rc"
   ) &
+  pids+=("$!")
 done
 
-# Wait for all directory formatters to finish.
-wait
+# Wait for all directory formatters; propagate a non-zero status if any failed
+# (bash 3.2 has no `wait -n`, so wait on each PID and keep the last failure).
+status=0
+for pid in "${pids[@]}"; do
+  wait "$pid" || status=$?
+done
+exit "$status"

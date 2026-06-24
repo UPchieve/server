@@ -14,9 +14,9 @@ fi
 ROOT="$(git rev-parse --show-toplevel)" || exit 2
 cd "$ROOT" || exit 2
 
-PGF="$ROOT/node_modules/.bin/pg-formatter"
-if [ ! -x "$PGF" ]; then
-  echo "lint_sql_check: pg-formatter not found at $PGF (run pnpm install)." >&2
+PG_FORMATTER="$ROOT/node_modules/.bin/pg-formatter"
+if [ ! -x "$PG_FORMATTER" ]; then
+  echo "lint_sql_check: pg-formatter not found at $PG_FORMATTER (run pnpm install)." >&2
   exit 2
 fi
 
@@ -33,35 +33,40 @@ else
   range=("--cached")
 fi
 
+# Capture first so a git diff failure fails the check instead of being swallowed.
+if ! diff_out="$(git diff --name-only --diff-filter=ACMR "${range[@]}" -- "${DIRS[@]}")"; then
+  echo "ERROR: 'git diff ${range[*]}' failed — cannot determine changed SQL files." >&2
+  exit 1
+fi
+
 changed_sql=()
 while IFS= read -r f; do
   [ -n "$f" ] && changed_sql+=("$f")
-done < <(git diff --name-only --diff-filter=ACMR "${range[@]}" -- "${DIRS[@]}" | grep -E '\.sql$')
+done < <(printf '%s\n' "$diff_out" | grep -E '\.sql$')
 
 if [ ${#changed_sql[@]} -eq 0 ]; then
   echo "No changed SQL files to lint."
   exit 0
 fi
 
-# perl's alarm survives exec, and perl is guaranteed present
-# (pg-formatter shells out to it).
+# pg-formatter occasionally hangs forever on a single file, so cap each call at
+# 120s with perl's alarm() (perl is always present — pg-formatter shells out to
+# it). A timed-out call is killed by SIGALRM, which a shell reports as exit 142;
+# we treat that as a retryable timeout, not a real formatting failure.
 TIMEOUT_SECS=120
+TIMEOUT_EXIT_CODE=142  # 128 + SIGALRM(14)
+
 with_timeout() {
-  if command -v timeout >/dev/null 2>&1; then
-    timeout "$TIMEOUT_SECS" "$@"
-  elif command -v gtimeout >/dev/null 2>&1; then
-    gtimeout "$TIMEOUT_SECS" "$@"
-  else
-    perl -e 'alarm shift; exec @ARGV' "$TIMEOUT_SECS" "$@"
-  fi
+  # `exec` replaces perl with the command; the alarm timer set above survives it.
+  perl -e 'alarm shift; exec @ARGV' "$TIMEOUT_SECS" "$@"
 }
 
 echo "Linting ${#changed_sql[@]} changed SQL file(s)..."
 for f in "${changed_sql[@]}"; do
   [ -e "$f" ] || continue
-  with_timeout "$PGF" --keyword-case="uppercase" --inplace --placeholder=":\w+!" "$f"
+  with_timeout "$PG_FORMATTER" --keyword-case="uppercase" --inplace --placeholder=":\w+!" "$f"
   rc=$?
-  if [ "$rc" -eq 124 ] || [ "$rc" -eq 142 ]; then # 124=GNU timeout, 142=128+SIGALRM(perl)
+  if [ "$rc" -eq "$TIMEOUT_EXIT_CODE" ]; then
     echo "ERROR: pg-formatter timed out (${TIMEOUT_SECS}s) on $f — aborting." >&2
     echo "       This is the known pg-formatter per-file spawn hang; retry the commit, or run 'pnpm run lint:sql' manually." >&2
     exit 1

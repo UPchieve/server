@@ -279,6 +279,7 @@ lint_sql:
         git fetch origin "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME" --depth=50
         export CHECK_SQL_BASE_REF="origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME"
       else
+        # Assumes the default branch is protected and all SQL lands via a merge request.
         git fetch origin "$CI_DEFAULT_BRANCH" --depth=50
         export CHECK_SQL_BASE_REF="origin/$CI_DEFAULT_BRANCH"
       fi
