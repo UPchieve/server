@@ -14,10 +14,15 @@ export interface IGetStudentContactInfoByIdParams {
 
 /** 'GetStudentContactInfoById' return type */
 export interface IGetStudentContactInfoByIdResult {
+  /** pii: User email address */
   email: string;
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
+  /** pii: Foreign key to upchieve.schools */
   schoolId: string | null;
+  /** not_pii: Unique URL-safe slug */
   studentPartnerOrg: string;
 }
 
@@ -60,6 +65,7 @@ export interface IGetStudentByEmailParams {
 
 /** 'GetStudentByEmail' return type */
 export interface IGetStudentByEmailResult {
+  /** not_pii: Primary key */
   id: string;
 }
 
@@ -93,6 +99,7 @@ export interface IIsTestUserParams {
 
 /** 'IsTestUser' return type */
 export interface IIsTestUserResult {
+  /** not_pii: Whether the account is a test or internal account */
   testUser: boolean;
 }
 
@@ -158,6 +165,7 @@ export interface IIsFavoriteVolunteerParams {
 
 /** 'IsFavoriteVolunteer' return type */
 export interface IIsFavoriteVolunteerResult {
+  /** not_pii: Foreign key to upchieve.users (the volunteer) */
   volunteerId: string;
 }
 
@@ -191,6 +199,7 @@ export interface IGetFavoriteVolunteersByStudentIdParams {
 
 /** 'GetFavoriteVolunteersByStudentId' return type */
 export interface IGetFavoriteVolunteersByStudentIdResult {
+  /** not_pii: Foreign key to upchieve.users (the volunteer) */
   id: string;
 }
 
@@ -226,8 +235,10 @@ export interface IGetFavoriteVolunteersPaginatedParams {
 
 /** 'GetFavoriteVolunteersPaginated' return type */
 export interface IGetFavoriteVolunteersPaginatedResult {
+  /** pii: First name */
   firstName: string;
   numSessions: number | null;
+  /** not_pii: Foreign key to upchieve.users (the volunteer) */
   volunteerId: string;
 }
 
@@ -306,7 +317,9 @@ export interface IAddFavoriteVolunteerParams {
 
 /** 'AddFavoriteVolunteer' return type */
 export interface IAddFavoriteVolunteerResult {
+  /** not_pii: Foreign key to upchieve.users (the student) */
   studentId: string;
+  /** not_pii: Foreign key to upchieve.users (the volunteer) */
   volunteerId: string;
 }
 
@@ -340,6 +353,7 @@ export interface IGetFavoritedVolunteerIdsFromListParams {
 
 /** 'GetFavoritedVolunteerIdsFromList' return type */
 export interface IGetFavoritedVolunteerIdsFromListResult {
+  /** not_pii: Foreign key to upchieve.users (the volunteer) */
   volunteerId: string;
 }
 
@@ -373,8 +387,11 @@ export interface IGetStudentPartnerInfoByIdParams {
 
 /** 'GetStudentPartnerInfoById' return type */
 export interface IGetStudentPartnerInfoByIdResult {
+  /** pii: Foreign key to upchieve.schools */
   approvedHighschool: string | null;
+  /** not_pii: Foreign key to upchieve.users */
   id: string;
+  /** not_pii: Unique URL-safe slug */
   studentPartnerOrg: string;
 }
 
@@ -411,6 +428,7 @@ export interface IDeleteStudentParams {
 
 /** 'DeleteStudent' return type */
 export interface IDeleteStudentResult {
+  /** not_pii: Primary key */
   ok: string;
 }
 
@@ -490,6 +508,7 @@ export interface IAdminUpdateStudentProfilePartnerOrgParams {
 
 /** 'AdminUpdateStudentProfilePartnerOrg' return type */
 export interface IAdminUpdateStudentProfilePartnerOrgResult {
+  /** not_pii: Foreign key to upchieve.users */
   ok: string;
 }
 
@@ -526,9 +545,13 @@ export interface IGetPartnerOrgsByStudentParams {
 
 /** 'GetPartnerOrgsByStudent' return type */
 export interface IGetPartnerOrgsByStudentResult {
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Human-readable name */
   name: string;
+  /** not_pii: Foreign key to upchieve.schools */
   schoolId: string | null;
+  /** not_pii: Human-readable name */
   siteName: string;
 }
 
@@ -568,6 +591,7 @@ export interface IAdminDeactivateStudentPartnershipInstanceParams {
 
 /** 'AdminDeactivateStudentPartnershipInstance' return type */
 export interface IAdminDeactivateStudentPartnershipInstanceResult {
+  /** not_pii: Foreign key to upchieve.users */
   ok: string | null;
 }
 
@@ -605,6 +629,7 @@ export interface IInsertStudentPartnershipInstanceParams {
 
 /** 'InsertStudentPartnershipInstance' return type */
 export interface IInsertStudentPartnershipInstanceResult {
+  /** not_pii: Foreign key to upchieve.users */
   ok: string | null;
 }
 
@@ -636,11 +661,17 @@ export interface IGetPartnerOrgByKeyParams {
 
 /** 'GetPartnerOrgByKey' return type */
 export interface IGetPartnerOrgByKeyResult {
+  /** not_pii: Primary key */
   partnerId: string;
+  /** not_pii: Unique URL-safe slug */
   partnerKey: string;
+  /** not_pii: Human-readable name */
   partnerName: string;
+  /** not_pii: Foreign key to upchieve.schools */
   schoolId: string | null;
+  /** not_pii: Primary key */
   siteId: string;
+  /** not_pii: Human-readable name */
   siteName: string;
 }
 
@@ -724,14 +755,20 @@ export interface IUpsertStudentProfileParams {
 
 /** 'UpsertStudentProfile' return type */
 export interface IUpsertStudentProfileResult {
+  /** pii: College or university name */
   college: string | null;
+  /** not_pii */
   createdAt: Date;
   isCreated: boolean | null;
+  /** pii: US postal/ZIP code */
   postalCode: string | null;
+  /** pii: Foreign key to upchieve.schools */
   schoolId: string | null;
   studentPartnerOrgKey: string | null;
   studentPartnerOrgSiteName: string | null;
+  /** not_pii */
   updatedAt: Date;
+  /** not_pii: Foreign key to upchieve.users */
   userId: string;
 }
 
@@ -814,19 +851,30 @@ export interface IGetSessionReportParams {
 
 /** 'GetSessionReport' return type */
 export interface IGetSessionReportResult {
+  /** not_pii */
   createdAt: Date;
+  /** pii: User email address */
   email: string;
+  /** not_pii: Timestamp when the session ended */
   endedAt: Date | null;
+  /** pii: First name */
   firstName: string;
+  /** pii: Last name */
   lastName: string;
+  /** not_pii: Human-readable name */
   partnerSite: string;
+  /** not_pii: Primary key */
   sessionId: string;
+  /** not_pii: Numeric score for the survey response choice */
   sessionRating: number;
   sponsorOrg: string | null;
+  /** not_pii: Human-readable name */
   subject: string;
+  /** not_pii: Human-readable name */
   topic: string;
   totalMessages: number | null;
   volunteerJoined: string | null;
+  /** not_pii: Timestamp when the volunteer joined the session */
   volunteerJoinedAt: Date | null;
   waitTimeMins: number | null;
 }
@@ -963,18 +1011,26 @@ export interface IGetUsageReportParams {
 
 /** 'GetUsageReport' return type */
 export interface IGetUsageReportResult {
+  /** pii: User email address */
   email: string;
+  /** pii: First name */
   firstName: string;
+  /** not_pii */
   joinDate: Date;
+  /** pii: Last name */
   lastName: string;
+  /** not_pii: Human-readable name */
   partnerSite: string;
   rangeSessionLengthMins: number | null;
   rangeTotalSessions: number | null;
+  /** not_pii: Human-readable name */
   school: string;
   sponsorOrg: string | null;
+  /** not_pii: Human-readable name */
   studentPartnerOrg: string;
   totalSessionLengthMins: number | null;
   totalSessions: number | null;
+  /** not_pii: Primary key */
   userId: string;
 }
 
@@ -1097,7 +1153,9 @@ export type IGetStudentSignupSourcesParams = void;
 
 /** 'GetStudentSignupSources' return type */
 export interface IGetStudentSignupSourcesResult {
+  /** not_pii: Primary key */
   id: number;
+  /** not_pii: Human-readable name */
   name: string;
 }
 
@@ -1158,6 +1216,7 @@ export interface IUpdateStudentSchoolParams {
 
 /** 'UpdateStudentSchool' return type */
 export interface IUpdateStudentSchoolResult {
+  /** not_pii: Foreign key to upchieve.users */
   ok: string;
 }
 
@@ -1190,6 +1249,7 @@ export type IGetStudentsIdsForGradeLevelSgUpdateParams = void;
 
 /** 'GetStudentsIdsForGradeLevelSgUpdate' return type */
 export interface IGetStudentsIdsForGradeLevelSgUpdateResult {
+  /** not_pii: Foreign key to upchieve.users */
   userId: string;
 }
 
@@ -1331,14 +1391,22 @@ export interface IGetStudentProfilesByUserIdsParams {
 
 /** 'GetStudentProfilesByUserIds' return type */
 export interface IGetStudentProfilesByUserIdsResult {
+  /** not_pii */
   createdAt: Date;
+  /** pii: User email address */
   email: string;
+  /** pii: First name */
   firstName: string;
   gradeLevel: string | null;
+  /** not_pii: Primary key */
   id: string;
+  /** pii: Last name */
   lastName: string;
+  /** pii: Foreign key to upchieve.schools */
   schoolId: string | null;
+  /** not_pii */
   updatedAt: Date;
+  /** not_pii: Foreign key to upchieve.users */
   userId: string;
 }
 
@@ -1412,6 +1480,7 @@ export interface IGetStudentByCleverIdParams {
 
 /** 'GetStudentByCleverId' return type */
 export interface IGetStudentByCleverIdResult {
+  /** not_pii: Foreign key to upchieve.users */
   id: string;
 }
 

@@ -11,12 +11,19 @@ export interface IGetSubjectAndTopicParams {
 
 /** 'GetSubjectAndTopic' return type */
 export interface IGetSubjectAndTopicResult {
+  /** not_pii: User-facing display name */
   subjectDisplayName: string;
+  /** not_pii: Primary key */
   subjectId: number;
+  /** not_pii: Human-readable name */
   subjectName: string;
+  /** not_pii: Human-readable name */
   toolType: string;
+  /** not_pii: User-facing display name */
   topicDisplayName: string;
+  /** not_pii: Primary key */
   topicId: number;
+  /** not_pii: Human-readable name */
   topicName: string;
 }
 
@@ -59,10 +66,15 @@ export interface IGetSessionSubjectAndTopicBySessionIdParams {
 
 /** 'GetSessionSubjectAndTopicBySessionId' return type */
 export interface IGetSessionSubjectAndTopicBySessionIdResult {
+  /** not_pii: Primary key */
   sessionId: string;
+  /** not_pii: Primary key */
   subjectId: number;
+  /** not_pii: Human-readable name */
   subjectName: string;
+  /** not_pii: Primary key */
   topicId: number;
+  /** not_pii: Human-readable name */
   topicName: string;
 }
 
@@ -99,18 +111,30 @@ export type IGetSubjectsParams = void;
 
 /** 'GetSubjects' return type */
 export interface IGetSubjectsResult {
+  /** not_pii: Whether the subject is currently active */
   active: boolean;
+  /** not_pii: User-facing display name */
   displayName: string;
+  /** not_pii: Sort order for UI display */
   displayOrder: number;
+  /** not_pii: Primary key */
   id: number;
   isComputedUnlock: boolean | null;
+  /** not_pii: Human-readable name */
   name: string;
+  /** not_pii: Hex color code associated with the topic */
   topicColor: string | null;
+  /** not_pii: Sort order on the student subject dashboard */
   topicDashboardOrder: number;
+  /** not_pii: User-facing display name */
   topicDisplayName: string;
+  /** not_pii: URL to the topic icon image */
   topicIconLink: string | null;
+  /** not_pii: Primary key */
   topicId: number;
+  /** not_pii: Human-readable name */
   topicName: string;
+  /** not_pii: Sort order in the volunteer training flow */
   topicTrainingOrder: number;
 }
 
@@ -164,11 +188,17 @@ export interface IGetTopicsParams {
 
 /** 'GetTopics' return type */
 export interface IGetTopicsResult {
+  /** not_pii: Sort order on the student subject dashboard */
   dashboardOrder: number;
+  /** not_pii: User-facing display name */
   displayName: string;
+  /** not_pii: URL to the topic icon image */
   iconLink: string | null;
+  /** not_pii: Primary key */
   id: number;
+  /** not_pii: Human-readable name */
   name: string;
+  /** not_pii: Sort order in the volunteer training flow */
   trainingOrder: number;
 }
 
@@ -204,8 +234,11 @@ export type IGetTrainingCoursesParams = void;
 
 /** 'GetTrainingCourses' return type */
 export interface IGetTrainingCoursesResult {
+  /** not_pii: User-facing display name */
   displayName: string | null;
+  /** not_pii: Primary key */
   id: number;
+  /** not_pii: Human-readable name */
   name: string;
 }
 
@@ -236,16 +269,27 @@ export type IGetQuizCertUnlocksParams = void;
 
 /** 'GetQuizCertUnlocks' return type */
 export interface IGetQuizCertUnlocksResult {
+  /** not_pii: User-facing display name */
   quizDisplayName: string;
+  /** not_pii: Sort order for UI display */
   quizDisplayOrder: number;
+  /** not_pii: Whether this quiz is currently available to volunteers */
   quizIsActive: boolean;
+  /** not_pii: Human-readable name */
   quizName: string;
+  /** not_pii: Sort order on the student subject dashboard */
   topicDashboardOrder: number;
+  /** not_pii: User-facing display name */
   topicDisplayName: string;
+  /** not_pii: Human-readable name */
   topicName: string;
+  /** not_pii: Sort order in the volunteer training flow */
   topicTrainingOrder: number;
+  /** not_pii: User-facing display name */
   unlockedCertDisplayName: string;
+  /** not_pii: Sort order for UI display */
   unlockedCertDisplayOrder: number;
+  /** not_pii: Human-readable name of the certification */
   unlockedCertName: string;
 }
 
@@ -289,12 +333,19 @@ export type IGetCertSubjectUnlocksParams = void;
 
 /** 'GetCertSubjectUnlocks' return type */
 export interface IGetCertSubjectUnlocksResult {
+  /** not_pii: User-facing display name */
   certDisplayName: string;
+  /** not_pii: Sort order for UI display */
   certDisplayOrder: number;
+  /** not_pii: Human-readable name of the certification */
   certName: string;
+  /** not_pii: Human-readable name */
   topicName: string;
+  /** not_pii: User-facing display name */
   unlockedSubjectDisplayName: string;
+  /** not_pii: Sort order for UI display */
   unlockedSubjectDisplayOrder: number;
+  /** not_pii: Human-readable name */
   unlockedSubjectName: string;
 }
 
@@ -333,12 +384,19 @@ export type IGetComputedSubjectUnlocksParams = void;
 
 /** 'GetComputedSubjectUnlocks' return type */
 export interface IGetComputedSubjectUnlocksResult {
+  /** not_pii: User-facing display name */
   certDisplayName: string;
+  /** not_pii: Sort order for UI display */
   certDisplayOrder: number;
+  /** not_pii: Human-readable name of the certification */
   certName: string;
+  /** not_pii: Human-readable name */
   topicName: string;
+  /** not_pii: User-facing display name */
   unlockedSubjectDisplayName: string;
+  /** not_pii: Sort order for UI display */
   unlockedSubjectDisplayOrder: number;
+  /** not_pii: Human-readable name */
   unlockedSubjectName: string;
 }
 
@@ -377,6 +435,7 @@ export type IGetRequiredCertificationsByComputedSubjectUnlockParams = void;
 
 /** 'GetRequiredCertificationsByComputedSubjectUnlock' return type */
 export interface IGetRequiredCertificationsByComputedSubjectUnlockResult {
+  /** not_pii: Human-readable name */
   name: string;
   requiredCertifications: stringArray | null;
 }
@@ -452,7 +511,9 @@ export type IGetSubjectNameIdMappingParams = void;
 
 /** 'GetSubjectNameIdMapping' return type */
 export interface IGetSubjectNameIdMappingResult {
+  /** not_pii: Primary key */
   id: number;
+  /** not_pii: Human-readable name */
   name: string;
 }
 
@@ -484,6 +545,7 @@ export interface IGetTopicIdFromNameParams {
 
 /** 'GetTopicIdFromName' return type */
 export interface IGetTopicIdFromNameResult {
+  /** not_pii: Primary key */
   id: number;
 }
 
@@ -516,18 +578,30 @@ export interface IGetSubjectsForTopicByTopicIdParams {
 
 /** 'GetSubjectsForTopicByTopicId' return type */
 export interface IGetSubjectsForTopicByTopicIdResult {
+  /** not_pii: Whether the subject is currently active */
   active: boolean;
+  /** not_pii: User-facing display name */
   displayName: string;
+  /** not_pii: Sort order for UI display */
   displayOrder: number;
+  /** not_pii: Primary key */
   id: number;
   isComputedUnlock: boolean | null;
+  /** not_pii: Human-readable name */
   name: string;
+  /** not_pii: Hex color code associated with the topic */
   topicColor: string | null;
+  /** not_pii: Sort order on the student subject dashboard */
   topicDashboardOrder: number;
+  /** not_pii: User-facing display name */
   topicDisplayName: string;
+  /** not_pii: URL to the topic icon image */
   topicIconLink: string | null;
+  /** not_pii: Primary key */
   topicId: number;
+  /** not_pii: Human-readable name */
   topicName: string;
+  /** not_pii: Sort order in the volunteer training flow */
   topicTrainingOrder: number;
 }
 

@@ -12,10 +12,15 @@ export interface IAddSessionSummaryParams {
 
 /** 'AddSessionSummary' return type */
 export interface IAddSessionSummaryResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Foreign key to upchieve.sessions */
   sessionId: string;
+  /** not_pii: AI-generated summary text */
   summary: string;
+  /** not_pii: Tracing ID for the AI summary generation request, used for user to provide feedback on the summary */
   traceId: string | null;
   userType: string | null;
 }
@@ -65,11 +70,17 @@ export interface IGetSessionSummaryBySessionIdParams {
 
 /** 'GetSessionSummaryBySessionId' return type */
 export interface IGetSessionSummaryBySessionIdResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Foreign key to upchieve.sessions */
   sessionId: string;
+  /** not_pii: AI-generated summary text */
   summary: string;
+  /** not_pii: Tracing ID for the AI summary generation request, used for user to provide feedback on the summary */
   traceId: string | null;
+  /** not_pii: Human-readable name */
   userType: string;
 }
 
