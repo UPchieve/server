@@ -13,8 +13,11 @@ import { asString, asBoolean, asUlid, asEnum } from '../../utils/type-utils'
 import { extractUser } from '../extract-user'
 import { InputError, NotAllowedError } from '../../models/Errors'
 import { GRADES } from '../../constants'
+import config from '../../config'
+import multer from 'multer'
 
 export function routeUser(router: Router): void {
+  const upload = multer()
   router.route('/user').get(async function (req, res) {
     const user = extractUser(req)
     const parsedUser = await UserService.parseUser(user.id)
@@ -124,6 +127,31 @@ export function routeUser(router: Router): void {
       } else resError(res, err)
     }
   })
+
+  router.put(
+    '/user/volunteer-approval/photo',
+    upload.single('file'),
+    async (req, res) => {
+      try {
+        const { ip } = req
+        const user = extractUser(req)
+        const photoIdS3Key = await UserService.addPhotoId(user.id, ip)
+        const image = req.file
+
+        if (!image) {
+          return res.status(400).json({ error: 'No file uploaded' })
+        }
+
+        const result = await UserService.uploadVolunteerPhoto(
+          photoIdS3Key,
+          image
+        )
+        res.json({ imageUrl: result.location })
+      } catch (err) {
+        resError(res, err)
+      }
+    }
+  )
 
   router.get('/user/volunteer-approval/photo-url', async (req, res) => {
     try {

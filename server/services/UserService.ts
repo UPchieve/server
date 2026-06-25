@@ -1,7 +1,7 @@
 import crypto from 'crypto'
 import { omit } from 'lodash'
 import { Ulid, Uuid } from '../models/pgUtils'
-import { getPhotoIdUrl } from './AwsService'
+import { getPhotoIdUrl, putObject } from './AwsService'
 import {
   ACCOUNT_USER_ACTIONS,
   IP_ADDRESS_STATUS,
@@ -806,4 +806,13 @@ export async function queueInvitationToCoach(
     },
     'Queued invitation to coach email job'
   )
+}
+
+export async function uploadVolunteerPhoto(
+  photoIdS3Key: string,
+  image: Express.Multer.File
+) {
+  const bucketName = config.awsS3.photoIdBucket
+  const result = await putObject(bucketName, photoIdS3Key, image.buffer)
+  return result
 }
