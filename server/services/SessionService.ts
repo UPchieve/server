@@ -997,6 +997,15 @@ export async function saveMessage(
   )
     throw new Error('Only session participants are allowed to send messages')
 
+  if (
+    user.roleContext.isActiveRole('volunteer') &&
+    data.type !== 'audio-transcription'
+  ) {
+    captureEvent(user.id, EVENTS.VOLUNTEER_SENT_SESSION_MESSAGE, {
+      sessionId,
+    })
+  }
+
   if (data.type === 'audio-transcription') {
     return await TranscriptMessagesRepo.insertSessionAudioTranscriptMessage({
       userId: user.id,

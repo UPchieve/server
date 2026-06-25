@@ -1546,7 +1546,7 @@ describe('saveMessage', () => {
       throw new LookupError(errorMessage)
     })
     try {
-      await SessionService.saveMessage(user._id, new Date(), input)
+      await SessionService.saveMessage(user, new Date(), input)
     } catch (error) {
       expect(error).toBeInstanceOf(LookupError)
       expect((error as LookupError).message).toBe(errorMessage)
@@ -1564,8 +1564,32 @@ describe('saveMessage', () => {
       async () => mockValue
     )
 
-    await SessionService.saveMessage(user._id, new Date(), input)
+    await SessionService.saveMessage(user, new Date(), input)
     expect(SessionRepo.addMessageToSessionById).toHaveBeenCalledTimes(1)
+    expect(AnalyticsService.captureEvent).not.toHaveBeenCalledWith(
+      expect.anything(),
+      EVENTS.VOLUNTEER_SENT_SESSION_MESSAGE,
+      expect.anything()
+    )
+  })
+
+  test('Should fire VOLUNTEER_SENT_SESSION_MESSAGE event when volunteer sends a message', async () => {
+    const volunteer = buildVolunteer()
+    const input = {
+      sessionId: getObjectId(),
+      message: 'test message',
+    }
+    const mockValue = mockedGetSessionById({ volunteer: volunteer._id })
+    mockedSessionRepo.getSessionById.mockImplementationOnce(
+      async () => mockValue
+    )
+
+    await SessionService.saveMessage(volunteer, new Date(), input)
+    expect(AnalyticsService.captureEvent).toHaveBeenCalledWith(
+      volunteer._id,
+      EVENTS.VOLUNTEER_SENT_SESSION_MESSAGE,
+      { sessionId: input.sessionId }
+    )
   })
 })
 
