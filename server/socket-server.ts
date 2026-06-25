@@ -16,7 +16,6 @@ import {
   SocketData,
 } from './types/socket-types'
 import logger from './logger'
-import { method } from 'lodash'
 
 export default function (server: http.Server) {
   const io = new Server<
