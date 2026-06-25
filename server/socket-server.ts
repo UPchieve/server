@@ -16,6 +16,7 @@ import {
   SocketData,
 } from './types/socket-types'
 import logger from './logger'
+import { method } from 'lodash'
 
 export default function (server: http.Server) {
   const io = new Server<
@@ -71,17 +72,13 @@ export default function (server: http.Server) {
 
   io.engine.on('connection_error', (err) => {
     logger.error(
+      err,
       {
+        method: err.req?.method,
         code: err.code,
-
-        message: err.message,
-
         type: err.type,
-
         url: err.req?.url,
-
         query: err.req?._query ?? err.req?.query,
-
         headers: {
           cookie: err.req?.headers?.cookie,
         },
