@@ -15,6 +15,7 @@ import {
   InterServerEvents,
   SocketData,
 } from './types/socket-types'
+import logger from './logger'
 
 export default function (server: http.Server) {
   const io = new Server<
@@ -57,5 +58,59 @@ export default function (server: http.Server) {
   io.adapter(createAdapter(redisClient))
   // Instantiate the SocketService singleton
   SocketService.getInstance(io)
+
+  io.engine.on('connection', (rawSocket) => {
+    logger.info(
+      {
+        engineSid: rawSocket.id,
+        transport: rawSocket.transport.name,
+      },
+      'Engine.IO connection'
+    )
+  })
+
+  io.engine.on('connection_error', (err) => {
+    logger.error(
+      {
+        code: err.code,
+
+        message: err.message,
+
+        type: err.type,
+
+        url: err.req?.url,
+
+        query: err.req?._query ?? err.req?.query,
+
+        headers: {
+          cookie: err.req?.headers?.cookie,
+        },
+      },
+
+      'Engine.IO connection error'
+    )
+  })
+
+  io.on('connection', (socket) => {
+    logger.info(
+      {
+        engineSid: (socket.conn as any).id,
+        socketId: socket.id,
+      },
+      'Socket.IO connection'
+    )
+
+    socket.on('disconnect', (reason) => {
+      logger.info(
+        {
+          engineSid: (socket.conn as any).id,
+          socketId: socket.id,
+          reason,
+        },
+        'Socket.IO disconnect'
+      )
+    })
+  })
+
   return io
 }
