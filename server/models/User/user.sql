@@ -296,6 +296,8 @@ AND ((:school)::text IS NULL
 GROUP BY
     users.id,
     student_profiles.user_id
+ORDER BY
+    users.last_activity_at DESC NULLS LAST
 LIMIT (:limit!)::int OFFSET (:offset!)::int;
 
 
