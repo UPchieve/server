@@ -65,16 +65,11 @@ export default async function moderateSessionTranscript(
       if (whiteboardImage) {
         const imageBuffer = Buffer.from(whiteboardImage, 'binary')
         logger.warn(`4.75 image buffer ${imageBuffer}`)
-        moderatedWhiteboardResults = await ModerationService.moderateImage({
-          image: imageBuffer,
-          sessionId: job.data.sessionId,
-          userId: '',
-          isVolunteer: false,
-          source: 'whiteboard',
-          aggregateInfractions: true,
-          recordInfractions: false,
-          trace,
-        })
+        moderatedWhiteboardResults = await ModerationService.moderateImage(
+          imageBuffer,
+          { source: 'whiteboard', sessionId: job.data.sessionId },
+          trace
+        )
 
         logger.warn(
           `5. moderatedWhiteboardResults, ${moderatedWhiteboardResults}`
@@ -84,7 +79,7 @@ export default async function moderateSessionTranscript(
           logger.warn(
             `6. saving whiteboard image to bucket, ${whiteboardImage}`
           )
-          await ModerationService.saveImageToBucket({
+          await ModerationService.saveInfractionImageToBucket({
             locationPrefix: job.data.sessionId,
             image: Buffer.from(whiteboardImage, 'binary'),
             source: 'whiteboard',

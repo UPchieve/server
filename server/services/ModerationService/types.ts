@@ -26,6 +26,37 @@ export type ModerationSource =
   | 'text_chat'
   | 'whiteboard'
   | 'whiteboard-text-node'
+export type ImageModerationSource = Extract<
+  ModerationSource,
+  'image_upload' | 'screenshare' | 'assignment_image' | 'whiteboard'
+>
+export type LiveMediaSource = Extract<
+  ModerationSource,
+  'screenshare' | 'audio_transcription'
+>
+
+type WithImageModerationSource<S extends ImageModerationSource> = { source: S }
+
+export type TeacherAssignmentContext =
+  WithImageModerationSource<'assignment_image'> & {
+    assignmentId: string
+    userId: string
+  }
+
+export type SessionContext = WithImageModerationSource<'image_upload'> & {
+  sessionId: string
+  userId: string
+  isVolunteer?: boolean
+}
+
+export type PostSessionContext = WithImageModerationSource<'whiteboard'> & {
+  sessionId: string
+}
+
+export type ImageModerationContext =
+  | TeacherAssignmentContext
+  | SessionContext
+  | PostSessionContext
 
 export type ModeratedLink = {
   reason: LiveMediaModerationCategories.LINK
