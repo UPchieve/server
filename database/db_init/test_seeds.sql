@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict x5BBCGCxycmbA75CGLaHsKJQgtuA2vjaOsgyih7u6gyxjOhqRzrUghWULPclXSk
+\restrict XumQrFybojYVjqsgq7j1IjWrKRwOwrxgShbgAT6gznDhX0naJZ4ZFjBMqIzhDu8
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
 -- Dumped by pg_dump version 15.18 (Homebrew)
@@ -9446,5 +9446,5 @@ SELECT pg_catalog.setval('upchieve.weekdays_id_seq', 1, false);
 -- PostgreSQL database dump complete
 --
 
-\unrestrict x5BBCGCxycmbA75CGLaHsKJQgtuA2vjaOsgyih7u6gyxjOhqRzrUghWULPclXSk
+\unrestrict XumQrFybojYVjqsgq7j1IjWrKRwOwrxgShbgAT6gznDhX0naJZ4ZFjBMqIzhDu8
 

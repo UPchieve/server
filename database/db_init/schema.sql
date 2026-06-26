@@ -1,4 +1,4 @@
-\restrict p3vmCkj9q8IbJPH7z1mjZ4BnxYnLKwZNf9twJXL6eKfOg5776bVC2yRjC6fsZ7u
+\restrict Y0lsiQl07xd1WXmemGyn22dvWgrvazV930l3VmLOgS51T5Ce1TtOrZiLOkkHl7M
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
 -- Dumped by pg_dump version 15.18 (Homebrew)
@@ -241,11 +241,13 @@ CREATE TABLE auth.session (
 CREATE TABLE public.photodna_quarantined_images (
     id uuid NOT NULL,
     sender_id uuid,
-    upload_type text,
+    upload_source text,
     created_at timestamp with time zone DEFAULT now(),
     session_id uuid,
     photodna_tracking_id text,
-    photodna_response text
+    photodna_violations text,
+    photodna_match_distance integer,
+    reported boolean
 );
 
 
@@ -14994,7 +14996,7 @@ ALTER TABLE ONLY upchieve.volunteer_references
 -- PostgreSQL database dump complete
 --
 
-\unrestrict p3vmCkj9q8IbJPH7z1mjZ4BnxYnLKwZNf9twJXL6eKfOg5776bVC2yRjC6fsZ7u
+\unrestrict Y0lsiQl07xd1WXmemGyn22dvWgrvazV930l3VmLOgS51T5Ce1TtOrZiLOkkHl7M
 
 
 --
