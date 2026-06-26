@@ -21,8 +21,10 @@ if [ ! -x "$PG_FORMATTER" ]; then
 fi
 
 # Scope:
-#   * CI (CHECK_SQL_BASE_REF set to the MR target / default branch): everything
-#     changed on this branch vs that ref — git diff <baseRef>..HEAD.
+#   * CI on an MR (CHECK_SQL_BASE_REF = MR target branch): everything changed on
+#     this branch vs the target — git diff <baseRef>..HEAD.
+#   * CI on a default-branch push (CHECK_SQL_BASE_REF = previous commit on the
+#     branch): just what this push introduced — git diff <baseRef>..HEAD.
 #   * pre-commit hook (CHECK_SQL_BASE_REF unset): only what's *staged* —
 #     git diff --cached.
 # Two-dot baseRef..HEAD compares the two commit trees directly, so it does not
