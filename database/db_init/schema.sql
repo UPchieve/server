@@ -1,7 +1,7 @@
 \restrict p3vmCkj9q8IbJPH7z1mjZ4BnxYnLKwZNf9twJXL6eKfOg5776bVC2yRjC6fsZ7u
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
--- Dumped by pg_dump version 15.17 (Ubuntu 15.17-1.pgdg22.04+1)
+-- Dumped by pg_dump version 15.18 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -231,6 +231,21 @@ CREATE TABLE auth.session (
     sid character varying NOT NULL,
     sess json NOT NULL,
     expire timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: photodna_quarantined_images; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.photodna_quarantined_images (
+    id uuid NOT NULL,
+    sender_id uuid,
+    upload_type text,
+    created_at timestamp with time zone DEFAULT now(),
+    session_id uuid,
+    photodna_tracking_id text,
+    photodna_response text
 );
 
 
@@ -11218,6 +11233,14 @@ ALTER TABLE ONLY auth.session
 
 
 --
+-- Name: photodna_quarantined_images photodna_quarantined_images_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.photodna_quarantined_images
+    ADD CONSTRAINT photodna_quarantined_images_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: schema_migrations schema_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -13293,6 +13316,14 @@ CREATE INDEX volunteer_references_user_id_index ON upchieve.volunteer_references
 --
 
 CREATE TRIGGER trg_freeze_signup_grade_level_id BEFORE UPDATE OF signup_grade_level_id ON upchieve.users_grade_levels FOR EACH ROW EXECUTE FUNCTION upchieve.freeze_signup_grade_level_id();
+
+
+--
+-- Name: photodna_quarantined_images photodna_quarantined_images_sender_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.photodna_quarantined_images
+    ADD CONSTRAINT photodna_quarantined_images_sender_id_fkey FOREIGN KEY (sender_id) REFERENCES upchieve.users(id) ON DELETE CASCADE;
 
 
 --

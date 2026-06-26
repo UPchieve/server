@@ -5,7 +5,7 @@
 \restrict x5BBCGCxycmbA75CGLaHsKJQgtuA2vjaOsgyih7u6gyxjOhqRzrUghWULPclXSk
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
--- Dumped by pg_dump version 15.17 (Ubuntu 15.17-1.pgdg22.04+1)
+-- Dumped by pg_dump version 15.18 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
