@@ -295,7 +295,7 @@ export function buildUserForAdmin(
     firstName: getFirstName(),
     lastName: getLastName(),
     email: getEmail(),
-    userType: 'student',
+    roles: ['student'],
     createdAt: new Date(),
     ...overrides,
   }

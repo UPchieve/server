@@ -106,7 +106,7 @@ export type UserForAdmin = {
   firstName: string
   lastName?: string
   email: string
-  userType: UserRole
+  roles: UserRole[]
   createdAt: Date
 }
 
