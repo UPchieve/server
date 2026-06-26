@@ -88,110 +88,6 @@ const DIRECT_MESSAGE_TAG = 'direct_message'
 const MESSAGE_TAG = 'session_chat'
 const WHITEBOARD_TEXT_TAG = 'whiteboard_text'
 
-async function detectImageEducationPurpose(
-  image: Buffer,
-  sessionId?: string,
-  trace?: LangfuseTraceClient
-): Promise<ModerationTypes.ImageModerationInfractionReason | null> {
-  try {
-    const promptData = await PromptService.getPromptWithFallback(
-      PromptService.PromptName.IS_IMAGE_EDUCATIONAL
-    )
-    if (promptData?.isFallback) throw Error("Couldn't get prompt")
-
-    const response_tool: BedrockTools = [
-      {
-        name: 'json_response',
-        description: 'Prints answer in json format',
-        input_schema: {
-          type: 'object',
-          properties: {
-            detectedLabels: {
-              type: 'array',
-              items: {
-                type: 'object',
-                properties: {
-                  label: {
-                    type: 'string',
-                    description: 'Educational subject detected',
-                  },
-                  confidence: {
-                    type: 'number',
-                    description: 'The confidence rating for the subject',
-                  },
-                },
-                required: ['label', 'confidence'],
-              },
-            },
-            reason: {
-              type: 'string',
-              description: 'The explanation of labels were chosen',
-            },
-          },
-          required: ['detectedLabels', 'reason'],
-        },
-      },
-    ]
-
-    const response: {
-      detectedLabels: [{ label: string; confidence: number }]
-      reason: string
-    } = await runWithModelObservation(
-      () =>
-        invokeModel({
-          modelId: config.awsBedrockSonnet4Id,
-          images: [image],
-          prompt: promptData.prompt,
-          tools_option: {
-            tool_choice: {
-              type: BedrockToolChoice.TOOL,
-              name: 'json_response',
-            },
-            tools: response_tool,
-          },
-        }),
-      {
-        trace,
-        name: 'isImageEducational',
-        model: config.awsBedrockSonnet4Id,
-        ...(promptData.promptObject && { prompt: promptData.promptObject }),
-      }
-    )
-
-    const nonEducational = response.detectedLabels.find(
-      (category) =>
-        category.label === 'NonEducational' &&
-        category.confidence >= config.imageModerationMinConfidence
-    )
-
-    const educationalLabels = response.detectedLabels.filter(
-      (category) =>
-        category.confidence >= config.imageModerationMinConfidence &&
-        category.label !== 'NonEducational'
-    )
-
-    if (
-      isEmpty(response.detectedLabels) ||
-      nonEducational ||
-      isEmpty(educationalLabels)
-    ) {
-      return {
-        reason: "The image doesn't serve any educational purpose",
-        details: response,
-      }
-    }
-
-    return null
-  } catch (err) {
-    logger.error(
-      { sessionId, err },
-      'Failed to detect if image is for educational purposes'
-    )
-    throw new Error(
-      `Failed to detect if image is for educational purposes ${sessionId}`
-    )
-  }
-}
 async function detectPersonInImage({
   image,
   moderationSettings,
@@ -461,16 +357,17 @@ export function filterDisallowedDomains({
   allowedDomains: string[]
   links: ModerationTypes.ModeratedLink[]
 }): ModerationTypes.ModeratedLink[] {
-  const linksWithDisallowedDomain = (link: ModerationTypes.ModeratedLink) =>
-    allowedDomains.every(
-      // Check if the link contains any of the allowed domains
-      // if it does, filter it out of this set and do not moderate it
-      // allow all .edu domains
-      (allowed) =>
-        link.details.text.toLowerCase().indexOf(allowed) === -1 &&
-        link.details.text.indexOf('.edu') === -1
-    )
-  return links.filter(linksWithDisallowedDomain)
+  return links.filter(
+    (link) => !isAllowedUrl(allowedDomains, link.details.text)
+  )
+}
+
+function isAllowedUrl(allowedDomains: string[], url: string = '') {
+  const lowercased = url.toLowerCase()
+
+  if (lowercased.includes('.edu')) return true
+
+  return allowedDomains.some((domain) => lowercased.includes(domain))
 }
 
 async function checkForFullAddresses({
@@ -882,66 +779,6 @@ export async function saveInfractionImageToBucket({
   const s3Key = `${locationPrefix}-${crypto.randomBytes(8).toString('hex')}`
   const result = await putObject(bucketName, s3Key, image)
   return { location: result.location }
-}
-
-async function getAllImageModerationInfractions({
-  image,
-  sessionId,
-  isVolunteer,
-  moderationSettings,
-  trace,
-}: {
-  image: Buffer
-  sessionId?: string
-  isVolunteer?: boolean
-  moderationSettings: GetModerationSettingResult
-  trace: LangfuseTraceClient
-}): Promise<{
-  failureReasons: ModerationTypes.ImageModerationInfractionReason[]
-}> {
-  const [
-    moderationInfractionReasons,
-    textModerationInfractionReasons,
-    detectPersonResponse,
-  ] = await Promise.all([
-    detectImageModerationInfractions(
-      image,
-      moderationSettings,
-      sessionId,
-      trace
-    ),
-    detectTextModerationInfractions({
-      image,
-      sessionId,
-      isVolunteer,
-      moderationSettings,
-      trace,
-    }),
-    detectPersonInImage({ image, sessionId, moderationSettings, trace }),
-  ])
-
-  if (
-    isEmpty(moderationInfractionReasons) &&
-    isEmpty(textModerationInfractionReasons) &&
-    !isEmpty(detectPersonResponse)
-  ) {
-    const noEducationalContext = await detectImageEducationPurpose(
-      image,
-      sessionId,
-      trace
-    )
-
-    if (noEducationalContext) {
-      return { failureReasons: [noEducationalContext] }
-    }
-  }
-
-  return {
-    failureReasons: [
-      ...moderationInfractionReasons,
-      ...textModerationInfractionReasons,
-    ],
-  }
 }
 
 export async function getIndividualSessionMessageModerationResponse({
@@ -1417,7 +1254,7 @@ export async function moderateImage(
   trace?: Trace
 ): Promise<{
   isClean: boolean
-  failures: string[]
+  failures: ModerationTypes.ModerationCategory[]
 }> {
   const { userId, sessionId, assignmentId, isVolunteer, source } = context as {
     userId?: string
@@ -1429,15 +1266,74 @@ export async function moderateImage(
 
   const resizedImage = await resize(image)
   const moderationSettings = await getModerationRealTimeSettings()
+
+  const toolName = 'json_response'
+
   const { result } = await runWithTrace(
-    (trace) =>
-      getAllImageModerationInfractions({
-        image: resizedImage,
-        sessionId,
-        isVolunteer,
-        moderationSettings,
-        trace,
-      }),
+    async (trace) => {
+      const promptData = await PromptService.getPromptWithFallback(
+        PromptService.PromptName.MODERATE_IMAGE
+      )
+
+      return runWithModelObservation(
+        () =>
+          invokeModel<{
+            infractions: ModerationTypes.ImageModerationInfraction[]
+          }>({
+            modelId: config.awsBedrockSonnet4Id,
+            images: [resizedImage],
+            prompt: promptData.prompt,
+            tools_option: {
+              tool_choice: {
+                type: BedrockToolChoice.TOOL,
+                name: toolName,
+              },
+              tools: [
+                {
+                  name: toolName,
+                  description:
+                    'JSON response as type ImageModerationInfractions',
+                  input_schema: {
+                    type: 'object',
+                    properties: {
+                      infractions: {
+                        type: 'array',
+                        items: {
+                          type: 'object',
+                          properties: {
+                            category: {
+                              type: 'string',
+                              enum: [
+                                ...ModerationTypes.IMAGE_MODERATION_CATEGORIES,
+                              ],
+                            },
+                            confidence: {
+                              type: 'number',
+                              description: 'Confidence score from 0 to 1',
+                            },
+                            text: {
+                              type: 'string',
+                              description:
+                                'Text extracted from the image related to this infraction',
+                            },
+                          },
+                          required: ['category', 'confidence'],
+                        },
+                      },
+                    },
+                    required: ['infractions'],
+                  },
+                },
+              ],
+            },
+          }),
+        {
+          trace,
+          name: 'moderateImage',
+          model: config.awsBedrockSonnet4Id,
+        }
+      )
+    },
     {
       trace,
       name: 'MODERATE_IMAGE',
@@ -1452,7 +1348,23 @@ export async function moderateImage(
       },
     }
   )
-  if (isEmpty(result.failureReasons)) {
+
+  const allowedDomains = await ShareableDomainsRepo.getAllowedDomains()
+  const infractions = result.infractions
+    .filter((i) => {
+      const category = i.category
+      const confidence = i.confidence
+      if (category === 'LINK' && isAllowedUrl(allowedDomains, i.text)) {
+        return false
+      }
+      return (
+        moderationSettings[category] &&
+        confidence >= moderationSettings[category].threshold
+      )
+    })
+    .map((i) => i.category)
+
+  if (isEmpty(infractions)) {
     return { isClean: true, failures: [] }
   }
 
@@ -1466,13 +1378,9 @@ export async function moderateImage(
     source,
   })
 
-  // Duplicate moderation failures may be present
-  // if different objects in the image trigger it
-  const failures: string[] = [
-    ...new Set<string>(result.failureReasons.map((failure) => failure.reason)),
-  ]
-
-  return { isClean: false, failures }
+  // Duplicate moderation infractions might be present if different
+  // objects/text in the image trigger the same category.
+  return { isClean: false, failures: [...new Set(infractions)] }
 }
 
 /*
