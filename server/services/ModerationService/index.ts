@@ -1264,6 +1264,8 @@ export async function moderateImage(
     source: ModerationTypes.ImageModerationSource
   }
 
+  console.log('****inside moderate')
+
   const resizedImage = await resize(image)
   const moderationSettings = await getModerationRealTimeSettings()
 

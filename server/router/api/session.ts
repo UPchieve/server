@@ -32,6 +32,7 @@ import { getDocEditorSessionImageUrl } from '../../services/AzureService'
 import { getSessionSummaryByUserType } from '../../services/SessionSummariesService'
 import { USER_ROLES } from '../../constants'
 import * as ModerationService from '../../services/ModerationService'
+import * as ModerationType from '../../services/ModerationService/types'
 
 export function routeSession(router: Router) {
   // io is now passed to this module so that API events can trigger socket events as needed
@@ -205,30 +206,46 @@ export function routeSession(router: Router) {
   })
 
   router.put(
-    '/session/uploadSessionImage',
-    upload.single('file'),
+    '/session/:sessionId/images/upload/:source',
+    upload.single('image'),
     async function (req, res) {
-      if (!req.user?.id) {
-        throw new NotAuthenticatedError()
-      }
+      const user = extractUser(req)
 
-      const sessionId = req.body.sessionId
+      const { sessionId } = req.params
+      const source = req.params.source as ModerationType.ImageModerationSource
       const imageToModerate = req.file
-      const user = req.user.id
-      const roleContext = req.body.roleContext
+      const userId = user.id
+      const roleContext = asString(req.body.roleContext)
 
       if (!imageToModerate) {
         return res.status(400).json({ err: 'No file was attached' })
       }
 
-      const moderationResult = await ModerationService.moderateImage({
-        image: imageToModerate.buffer,
-        sessionId,
-        userId: user,
-        isVolunteer: roleContext == 'volunteer',
-        source: 'image_upload',
-        aggregateInfractions: true,
-      })
+      let moderationResult
+
+      if (source == 'whiteboard') {
+        moderationResult = await ModerationService.moderateImage(
+          imageToModerate.buffer,
+          {
+            source,
+            sessionId,
+          }
+        )
+      } else if (source == 'image_upload') {
+        moderationResult = await ModerationService.moderateImage(
+          imageToModerate.buffer,
+          {
+            source,
+            sessionId,
+            userId,
+            isVolunteer: roleContext == 'volunteer',
+          }
+        )
+      } else {
+        return res.status(400).json({ err: 'Invalid source' })
+      }
+
+      console.log('****moderation result', moderationResult)
 
       if (!moderationResult) {
         return res.status(400).json({ err: 'Moderation failed' })
@@ -237,15 +254,15 @@ export function routeSession(router: Router) {
       const isClean = moderationResult.isClean
       const failures = moderationResult.failures
 
-      if (!moderationResult.isClean) {
-        return res.json({ isClean, failures })
-      } else {
+      if (isClean) {
         const { imageUrl } = await SessionService.saveSessionImage({
           sessionId,
           image: imageToModerate,
         })
         return res.json({ isClean, imageUrl })
       }
+
+      return res.json({ isClean, failures })
     }
   )
 
