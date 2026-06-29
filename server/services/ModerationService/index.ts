@@ -71,6 +71,7 @@ import * as Regex from './regex'
 import { secondsInMs } from '../../utils/time-utils'
 import Logger from '../../logger'
 import { extractTextFromImage } from '../VisionService'
+import type { Uuid } from '../../types/shared'
 
 const topLevelCategoryFilter = (label: ModerationLabel) =>
   label.TaxonomyLevel === 1
