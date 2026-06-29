@@ -190,6 +190,20 @@ The database is populated with the following users for local development:
 | `teacher1@upchieve.org`   | `Password123` | approved school                                        |
 | `teacher2@upchieve.org`   | `Password123` | partner school                                         |
 
+## Testing
+
+Unit tests run with `pnpm run test:backend`; database tests with `pnpm run test:database`.
+
+### Integration tests
+
+Integration tests live in `server/tests/integration/` and exercise real external services, so
+they require real credentials (provided via [Doppler](https://www.doppler.com/)) and network
+access. They are excluded from the default unit suite and are run on their own:
+
+```
+pnpm run test:integration
+```
+
 ## Structure
 
 The app is split into two components, the server/worker, and the frontend Vue SPA.

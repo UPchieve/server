@@ -12,7 +12,10 @@ module.exports = {
     '<rootDir>/database/seeds',
     '<rootDir>/server/constants',
   ],
-  testPathIgnorePatterns: ['<rootDir>/server/tests/database'],
+  testPathIgnorePatterns: [
+    '<rootDir>/server/tests/database',
+    '<rootDir>/server/tests/integration',
+  ],
 
   transform: {
     ...tsjPreset.transform,
