@@ -401,10 +401,8 @@ export async function findOrCreateUpchieveStudent(
 }
 
 /**
- * Resolves the UPchieve teacher for a Clever record: existing Clever credential
- * → existing teacher matched by email → create a new pre-verified teacher.
- * Returns the user id, or `undefined` when unresolvable (no email, or the email
- * belongs to a non-teacher account). Mirrors {@link findOrCreateUpchieveStudent}.
+ * Resolves the UPchieve teacher by fed cred, then by email, else creates a new
+ * one. Mirrors {@link findOrCreateUpchieveStudent}.
  */
 export async function findOrCreateUpchieveTeacher(
   cleverTeacher: CleverAPIService.TCleverTeacherData,
