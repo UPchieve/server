@@ -16,6 +16,7 @@ import {
   buildTeacherClassByClassCode,
 } from '../../mocks/generate'
 import { getUuid } from '../../../models/pgUtils'
+import { RoleContext } from '../../../services/UserRolesService'
 
 jest.mock('../../../services/TeacherService')
 jest.mock('../../../services/AssignmentsService')
@@ -23,8 +24,10 @@ jest.mock('../../../services/AssignmentsService')
 const mockedTeacherService = mocked(TeacherService)
 const mockedAssignmentsService = mocked(AssignmentsService)
 
-let mockUser = buildUser()
-
+let mockUser = buildUser({
+  roles: ['teacher'],
+  roleContext: new RoleContext(['teacher'], 'teacher', 'teacher'),
+})
 function mockGetUser() {
   return mockUser
 }
@@ -53,7 +56,10 @@ function sendDelete(path: string): Promise<Response> {
 describe('routeTeachers', () => {
   beforeEach(() => {
     jest.resetAllMocks()
-    mockUser = buildUser()
+    mockUser = buildUser({
+      roles: ['teacher'],
+      roleContext: new RoleContext(['teacher'], 'teacher', 'teacher'),
+    })
   })
 
   describe('POST /api/teachers/class', () => {

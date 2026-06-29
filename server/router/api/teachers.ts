@@ -1,11 +1,11 @@
 import { Router } from 'express'
+import { isArray } from 'lodash'
 import { extractUser } from '../extract-user'
 import * as TeacherService from '../../services/TeacherService'
 import * as AssignmentsService from '../../services/AssignmentsService'
 import { resError } from '../res-error'
 import { asNumber, asString } from '../../utils/type-utils'
-import * as ModerationTypes from '../../services/ModerationService/types'
-import { isArray } from 'lodash'
+import { authPassport } from '../../utils/auth-utils'
 
 export function routeTeachers(apiRouter: Router): void {
   const router = Router()
@@ -176,5 +176,5 @@ export function routeTeachers(apiRouter: Router): void {
     }
   })
 
-  apiRouter.use('/teachers', router)
+  apiRouter.use('/teachers', authPassport.isTeacher, router)
 }

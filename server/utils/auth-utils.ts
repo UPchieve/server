@@ -30,6 +30,7 @@ import {
 } from '../models/VolunteerPartnerOrg'
 import logger from '../logger'
 import { hoursInMs } from './time-utils'
+import { extractUser } from '../router/extract-user'
 // Custom errors
 export class RegistrationError extends CustomError {}
 export class ResetError extends CustomError {}
@@ -442,6 +443,14 @@ function isAuthenticated(req: Request, res: Response, next: NextFunction) {
   return res.status(401).json({ err: 'Not authenticated' })
 }
 
+function isTeacher(req: Request, res: Response, next: NextFunction) {
+  const user = extractUser(req)
+  if (user.roleContext.isActiveRole('teacher')) {
+    return next()
+  }
+  return res.status(403).json({ err: 'Unauthorized' })
+}
+
 function isAdminOnly(req: Request, res: Response, next: NextFunction) {
   if (req.user && req.user.isAdmin) {
     return next()
@@ -509,6 +518,7 @@ async function checkRecaptcha(req: Request, res: Response, next: NextFunction) {
 export const authPassport = {
   setupPassport,
   isAuthenticated,
+  isTeacher,
   isAdmin,
   isAdminOnly,
   isTotpSessionValid,
