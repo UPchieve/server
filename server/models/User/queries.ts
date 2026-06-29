@@ -400,7 +400,7 @@ export async function getUsersForAdminSearch(
   payload: UserQuery,
   limit: number,
   offset: number
-): Promise<Omit<UserForAdmin, 'userType'>[]> {
+): Promise<Omit<UserForAdmin, 'roles'>[]> {
   try {
     const client = getClient()
     const result = await pgQueries.getUsersForAdminSearch.run(
