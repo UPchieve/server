@@ -245,8 +245,6 @@ export function routeSession(router: Router) {
         return res.status(400).json({ err: 'Invalid source' })
       }
 
-      console.log('****moderation result', moderationResult)
-
       if (!moderationResult) {
         return res.status(400).json({ err: 'Moderation failed' })
       }
