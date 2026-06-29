@@ -10,14 +10,23 @@ export interface IGetTextNotificationsByVolunteerIdParams {
 
 /** 'GetTextNotificationsByVolunteerId' return type */
 export interface IGetTextNotificationsByVolunteerIdResult {
+  /** not_pii: Primary key */
   id: string;
+  /** pii: External carrier identifier (e.g. Twilio message SID) */
   messageId: string | null;
+  /** not_pii: Delivery method for the notification (e.g. email, sms, push) */
   method: string;
+  /** not_pii: Human-readable name */
   priorityGroup: string;
+  /** not_pii: Timestamp when the notification was sent */
   sentAt: Date | null;
+  /** not_pii: Foreign key to upchieve.sessions */
   sessionId: string | null;
+  /** not_pii: Notification type label */
   type: string;
+  /** not_pii: Foreign key to upchieve.users; who the notification was sent to */
   volunteer: string;
+  /** not_pii: Whether the notification was successfully delivered */
   wasSuccessful: boolean | null;
 }
 
@@ -63,6 +72,7 @@ export interface IGetVolunteersNotifiedSinceParams {
 
 /** 'GetVolunteersNotifiedSince' return type */
 export interface IGetVolunteersNotifiedSinceResult {
+  /** not_pii: Foreign key to upchieve.users; who the notification was sent to */
   id: string;
 }
 
@@ -97,15 +107,25 @@ export interface IGetSessionNotificationsWithSessionIdParams {
 
 /** 'GetSessionNotificationsWithSessionId' return type */
 export interface IGetSessionNotificationsWithSessionIdResult {
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
+  /** pii: External carrier identifier (e.g. Twilio message SID) */
   messageId: string | null;
+  /** not_pii: Delivery method for the notification (e.g. email, sms, push) */
   method: string;
+  /** not_pii: Human-readable name */
   priorityGroup: string;
+  /** not_pii: Timestamp when the notification was sent */
   sentAt: Date | null;
+  /** not_pii: Foreign key to upchieve.sessions */
   sessionId: string | null;
+  /** not_pii: Notification type label */
   type: string;
+  /** not_pii: Unique URL-safe slug */
   volunteerPartnerOrg: string;
+  /** not_pii: Whether the notification was successfully delivered */
   wasSuccessful: boolean | null;
 }
 
@@ -156,6 +176,7 @@ export interface ICreateEmailNotificationParams {
 
 /** 'CreateEmailNotification' return type */
 export interface ICreateEmailNotificationResult {
+  /** not_pii: Primary key */
   ok: string;
 }
 
@@ -200,9 +221,13 @@ export interface IGetEmailNotificationsByTemplateIdParams {
 
 /** 'GetEmailNotificationsByTemplateId' return type */
 export interface IGetEmailNotificationsByTemplateIdResult {
+  /** not_pii: Identifier of the email template used for the notification */
   emailTemplateId: string | null;
+  /** not_pii: Timestamp when the notification was sent */
   sentAt: Date | null;
+  /** not_pii: Foreign key to upchieve.sessions */
   sessionId: string | null;
+  /** not_pii: Foreign key to upchieve.users; who the notification was sent to */
   userId: string;
 }
 

@@ -9,9 +9,13 @@ export interface IUpsertUserGradeLevelParams {
 
 /** 'UpsertUserGradeLevel' return type */
 export interface IUpsertUserGradeLevelResult {
+  /** not_pii: Foreign key to upchieve.grade_levels; represents the last updated student grade level */
   gradeLevelId: number;
+  /** not_pii: Grade level reported at signup; immutable after first set */
   signupGradeLevelId: number | null;
+  /** not_pii: Timestamp when the record was last updated */
   updatedAt: Date;
+  /** not_pii: Foreign key to upchieve.users */
   userId: string;
 }
 

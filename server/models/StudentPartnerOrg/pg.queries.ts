@@ -12,8 +12,11 @@ export interface IGetStudentPartnerOrgForRegistrationByKeyParams {
 
 /** 'GetStudentPartnerOrgForRegistrationByKey' return type */
 export interface IGetStudentPartnerOrgForRegistrationByKeyResult {
+  /** not_pii: Unique URL-safe slug */
   key: string;
+  /** not_pii: Human-readable name */
   name: string;
+  /** not_pii: Whether students must select a school during registration */
   schoolSignupRequired: boolean;
   sites: stringArray | null;
 }
@@ -58,11 +61,17 @@ export interface IGetStudentPartnerOrgByKeyParams {
 
 /** 'GetStudentPartnerOrgByKey' return type */
 export interface IGetStudentPartnerOrgByKeyResult {
+  /** not_pii: Primary key */
   partnerId: string;
+  /** not_pii: Unique URL-safe slug */
   partnerKey: string;
+  /** not_pii: Human-readable name */
   partnerName: string;
+  /** not_pii: Foreign key to upchieve.schools */
   schoolId: string | null;
+  /** not_pii: Primary key */
   siteId: string;
+  /** not_pii: Human-readable name */
   siteName: string;
 }
 
@@ -103,11 +112,17 @@ export interface IGetStudentPartnerOrgBySchoolIdParams {
 
 /** 'GetStudentPartnerOrgBySchoolId' return type */
 export interface IGetStudentPartnerOrgBySchoolIdResult {
+  /** not_pii: Primary key */
   partnerId: string;
+  /** not_pii: Unique URL-safe slug */
   partnerKey: string;
+  /** not_pii: Human-readable name */
   partnerName: string;
+  /** not_pii: Foreign key to upchieve.schools */
   schoolId: string | null;
+  /** not_pii: Primary key */
   siteId: string;
+  /** not_pii: Human-readable name */
   siteName: string;
 }
 
@@ -147,13 +162,19 @@ export interface IGetFullStudentPartnerOrgByKeyParams {
 
 /** 'GetFullStudentPartnerOrgByKey' return type */
 export interface IGetFullStudentPartnerOrgByKeyResult {
+  /** not_pii: Whether college students may register with this org */
   collegeSignup: boolean;
   deactivated: boolean | null;
+  /** not_pii: Whether high school students may register with this org */
   highSchoolSignup: boolean;
   isSchool: boolean | null;
+  /** not_pii: Unique URL-safe slug */
   key: string;
+  /** not_pii: Human-readable name */
   name: string;
+  /** not_pii: Whether students must select a school during registration */
   schoolSignupRequired: boolean;
+  /** not_pii: Invite code required to register with this partner org */
   signupCode: string | null;
   sites: stringArray | null;
 }
@@ -218,13 +239,19 @@ export type IGetStudentPartnerOrgsParams = void;
 
 /** 'GetStudentPartnerOrgs' return type */
 export interface IGetStudentPartnerOrgsResult {
+  /** not_pii: Whether college students may register with this org */
   collegeSignup: boolean;
   deactivated: boolean | null;
+  /** not_pii: Whether high school students may register with this org */
   highSchoolSignup: boolean;
   isSchool: boolean | null;
+  /** not_pii: Unique URL-safe slug */
   key: string;
+  /** not_pii: Human-readable name */
   name: string;
+  /** not_pii: Whether students must select a school during registration */
   schoolSignupRequired: boolean;
+  /** not_pii: Invite code required to register with this partner org */
   signupCode: string | null;
   sites: stringArray | null;
 }
@@ -288,6 +315,7 @@ export interface IGetStudentPartnerOrgKeyByCodeParams {
 
 /** 'GetStudentPartnerOrgKeyByCode' return type */
 export interface IGetStudentPartnerOrgKeyByCodeResult {
+  /** not_pii: Unique URL-safe slug */
   key: string;
 }
 
@@ -380,6 +408,7 @@ export interface IBackfillStudentPartnerOrgStartDatesParams {
 
 /** 'BackfillStudentPartnerOrgStartDates' return type */
 export interface IBackfillStudentPartnerOrgStartDatesResult {
+  /** not_pii: Primary key */
   ok: string;
 }
 
@@ -500,6 +529,7 @@ export interface IDeactivateStudentPartnerOrgParams {
 
 /** 'DeactivateStudentPartnerOrg' return type */
 export interface IDeactivateStudentPartnerOrgResult {
+  /** not_pii: Primary key */
   ok: string;
 }
 
@@ -551,6 +581,7 @@ export interface IDeactivateUserStudentPartnerOrgInstanceParams {
 
 /** 'DeactivateUserStudentPartnerOrgInstance' return type */
 export interface IDeactivateUserStudentPartnerOrgInstanceResult {
+  /** not_pii: Foreign key to upchieve.users */
   userId: string | null;
 }
 

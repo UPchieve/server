@@ -16,13 +16,21 @@ export interface ISaveUserSurveyParams {
 
 /** 'SaveUserSurvey' return type */
 export interface ISaveUserSurveyResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Foreign key to upchieve.progress_reports */
   progressReportId: string | null;
+  /** not_pii: Foreign key to upchieve.sessions */
   sessionId: string | null;
+  /** not_pii: Foreign key to upchieve.surveys */
   surveyId: number;
+  /** not_pii: Foreign key to upchieve.survey_types */
   surveyTypeId: number;
+  /** not_pii */
   updatedAt: Date;
+  /** not_pii: Foreign key to upchieve.users */
   userId: string;
 }
 
@@ -74,6 +82,7 @@ export interface IGetSurveyIdByNameParams {
 
 /** 'GetSurveyIdByName' return type */
 export interface IGetSurveyIdByNameResult {
+  /** not_pii: Primary key */
   id: number;
 }
 
@@ -109,6 +118,7 @@ export interface ISaveUserSurveySubmissionsParams {
 
 /** 'SaveUserSurveySubmissions' return type */
 export interface ISaveUserSurveySubmissionsResult {
+  /** not_pii: Foreign key to upchieve.users_surveys */
   ok: string;
 }
 
@@ -188,16 +198,26 @@ export interface IGetSimpleSurveyDefinitionParams {
 
 /** 'GetSimpleSurveyDefinition' return type */
 export interface IGetSimpleSurveyDefinitionResult {
+  /** not_pii: Sort order for display in the UI */
   displayPriority: number;
+  /** not_pii: Primary key */
   questionId: number;
   questionText: string | null;
+  /** not_pii: Human-readable name */
   questionType: string;
+  /** not_pii: URL or path to an image displayed alongside the choice */
   responseDisplayImage: string | null;
+  /** not_pii: Sort order for display in the UI */
   responseDisplayPriority: number;
+  /** not_pii: Primary key */
   responseId: number;
+  /** not_pii: Display text for the survey response choice */
   responseText: string;
+  /** not_pii: Gift card reward in cents for completing the survey */
   rewardAmount: number | null;
+  /** not_pii: Primary key */
   surveyId: number;
+  /** not_pii: Foreign key to upchieve.survey_types */
   surveyTypeId: number;
 }
 
@@ -283,15 +303,24 @@ export interface IGetPostsessionSurveyDefinitionForSessionParams {
 
 /** 'GetPostsessionSurveyDefinitionForSession' return type */
 export interface IGetPostsessionSurveyDefinitionForSessionResult {
+  /** not_pii: Sort order for display in the UI */
   displayPriority: number;
+  /** not_pii: First dynamic replacement value for question text templating */
   firstReplacementColumn: string | null;
+  /** not_pii: Human-readable name */
   name: string;
+  /** not_pii: Primary key */
   questionId: number;
+  /** not_pii: Text of the quiz question */
   questionText: string;
+  /** not_pii: Human-readable name */
   questionType: string;
   responses: JsonArray | null;
+  /** not_pii: Second dynamic replacement value for question text templating */
   secondReplacementColumn: string | null;
+  /** not_pii: Primary key */
   surveyId: number;
+  /** not_pii: Primary key */
   surveyTypeId: number;
 }
 
@@ -355,11 +384,15 @@ export interface IGetPresessionSurveyResponseParams {
 
 /** 'GetPresessionSurveyResponse' return type */
 export interface IGetPresessionSurveyResponseResult {
+  /** not_pii: URL or path to an image displayed alongside the choice */
   displayImage: string | null;
   displayLabel: string | null;
+  /** not_pii: Sort order for display in the UI */
   displayOrder: number;
+  /** not_pii: Primary key */
   questionId: number;
   response: string | null;
+  /** not_pii: Primary key */
   responseId: number;
   score: number | null;
 }
@@ -420,7 +453,9 @@ export interface IGetStudentPostsessionSurveyResponseParams {
 /** 'GetStudentPostsessionSurveyResponse' return type */
 export interface IGetStudentPostsessionSurveyResponseResult {
   displayLabel: string | null;
+  /** not_pii: Sort order for display in the UI */
   displayOrder: number;
+  /** not_pii: Text of the quiz question */
   questionText: string;
   response: string | null;
   score: number | null;
@@ -528,7 +563,9 @@ export interface IGetVolunteerPostsessionSurveyResponseParams {
 /** 'GetVolunteerPostsessionSurveyResponse' return type */
 export interface IGetVolunteerPostsessionSurveyResponseResult {
   displayLabel: string | null;
+  /** not_pii: Sort order for display in the UI */
   displayOrder: number;
+  /** not_pii: Text of the quiz question */
   questionText: string;
   response: string | null;
   score: number | null;
@@ -635,6 +672,7 @@ export interface IGetStudentSessionRatingParams {
 
 /** 'GetStudentSessionRating' return type */
 export interface IGetStudentSessionRatingResult {
+  /** not_pii: Numeric score for the survey response choice */
   score: number;
 }
 
@@ -671,6 +709,7 @@ export interface IGetVolunteerSessionRatingParams {
 
 /** 'GetVolunteerSessionRating' return type */
 export interface IGetVolunteerSessionRatingResult {
+  /** not_pii: Numeric score for the survey response choice */
   score: number;
 }
 
@@ -743,13 +782,18 @@ export interface IGetProgressReportSurveyResponseParams {
 
 /** 'GetProgressReportSurveyResponse' return type */
 export interface IGetProgressReportSurveyResponseResult {
+  /** not_pii: URL or path to an image displayed alongside the choice */
   displayImage: string | null;
   displayLabel: string | null;
+  /** not_pii: Sort order for display in the UI */
   displayOrder: number;
+  /** not_pii: Primary key */
   questionId: number;
   response: string | null;
+  /** not_pii: Primary key */
   responseId: number;
   score: number | null;
+  /** not_pii: Primary key */
   userSurveyId: string;
 }
 
@@ -821,12 +865,18 @@ export interface IGetPostsessionSurveyResponsesForSessionsByUserIdParams {
 
 /** 'GetPostsessionSurveyResponsesForSessionsByUserId' return type */
 export interface IGetPostsessionSurveyResponsesForSessionsByUserIdResult {
+  /** not_pii: Display text for the survey response choice */
   choiceText: string;
+  /** not_pii */
   createdAt: Date;
   roleInSession: string | null;
+  /** not_pii: Numeric score for the survey response choice */
   score: number;
+  /** not_pii: Primary key */
   sessionId: string;
+  /** not_pii: Foreign key to upchieve.users */
   submitterUserId: string;
+  /** not_pii: Foreign key to upchieve.survey_response_choices */
   surveyResponseChoiceId: number | null;
 }
 
@@ -881,10 +931,14 @@ export interface IGetLatestUserSubmissionsForSurveyParams {
 
 /** 'GetLatestUserSubmissionsForSurvey' return type */
 export interface IGetLatestUserSubmissionsForSurveyResult {
+  /** not_pii: Text of the quiz question */
   displayLabel: string;
+  /** not_pii: Sort order for display in the UI */
   displayOrder: number;
+  /** not_pii: Primary key */
   questionId: number;
   response: string | null;
+  /** not_pii: Primary key */
   responseId: number;
   score: number | null;
 }
@@ -952,6 +1006,7 @@ export interface IGetSurveyIdForLatestImpactStudySurveySubmissionParams {
 
 /** 'GetSurveyIdForLatestImpactStudySurveySubmission' return type */
 export interface IGetSurveyIdForLatestImpactStudySurveySubmissionResult {
+  /** not_pii: Foreign key to upchieve.surveys */
   surveyId: number;
 }
 
@@ -989,6 +1044,7 @@ export interface IGetSurveyTypeFromSurveyTypeIdParams {
 
 /** 'GetSurveyTypeFromSurveyTypeId' return type */
 export interface IGetSurveyTypeFromSurveyTypeIdResult {
+  /** not_pii: Human-readable name */
   surveyType: string;
 }
 
@@ -1024,6 +1080,7 @@ export interface IGetStudentFeedbackForSessionResult {
   howMuchDidYourCoachPushYouToDoYourBestWorkToday: number | null;
   howSupportiveWasYourCoachToday: number | null;
   response: string | null;
+  /** not_pii: Foreign key to upchieve.sessions */
   sessionId: string | null;
 }
 

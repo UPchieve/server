@@ -369,7 +369,6 @@ export function routeSockets(io: Server): void {
               sessionId,
               userId: user.id,
               saidAt: saidAt!,
-              source: 'audio_transcription',
             })
             if (!result.isClean) {
               const sanitized = (result as SanitizedTranscriptModerationResult)
@@ -413,9 +412,13 @@ export function routeSockets(io: Server): void {
 
           // If the message is coming from the recap page, queue the message to send a notification
           if (source === 'recap') {
-            await QueueService.add(Jobs.SendSessionRecapMessageNotification, {
-              messageId,
-            })
+            await QueueService.add(
+              Jobs.SendSessionRecapMessageNotification,
+              { delay: 0 },
+              {
+                messageId,
+              }
+            )
             captureEvent(user.id, EVENTS.USER_SUBMITTED_SESSION_RECAP_DM, {
               sessionId: sessionId,
               message,

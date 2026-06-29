@@ -138,8 +138,8 @@ describe('saveUserSurvey', () => {
     ).toHaveBeenCalledWith(expectedUserSurvey.sessionId)
     expect(mockedQueueService.default.add).toHaveBeenCalledWith(
       Jobs.MaybeSendStudentFeedbackToVolunteer,
-      { sessionId: expectedUserSurvey.sessionId },
-      { delay: 300000 }
+      { delay: 300000 },
+      { sessionId: expectedUserSurvey.sessionId }
     )
   })
 
@@ -216,8 +216,8 @@ describe('saveUserSurvey', () => {
 
     expect(mockedQueueService.default.add).not.toHaveBeenCalledWith(
       Jobs.MaybeSendStudentFeedbackToVolunteer,
-      { sessionId: userSurvey.sessionId },
-      { delay: 300000, removeOnComplete: true, removeOnFail: false }
+      { delay: 300000, removeOnComplete: true, removeOnFail: false },
+      { sessionId: userSurvey.sessionId }
     )
   })
 })

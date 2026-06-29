@@ -8,10 +8,15 @@ export interface IGetPushTokensByUserIdParams {
 
 /** 'GetPushTokensByUserId' return type */
 export interface IGetPushTokensByUserIdResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Primary key */
   id: string;
+  /** pii: Push notification device token */
   token: string;
+  /** not_pii */
   updatedAt: Date;
+  /** not_pii: Foreign key to upchieve.users */
   user: string;
 }
 
@@ -50,10 +55,15 @@ export interface ICreatePushTokenByUserIdParams {
 
 /** 'CreatePushTokenByUserId' return type */
 export interface ICreatePushTokenByUserIdResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Primary key */
   id: string;
+  /** pii: Push notification device token */
   token: string;
+  /** not_pii */
   updatedAt: Date;
+  /** not_pii: Foreign key to upchieve.users */
   user: string;
 }
 

@@ -18,12 +18,19 @@ export interface ICreateCensoredMessageParams {
 
 /** 'CreateCensoredMessage' return type */
 export interface ICreateCensoredMessageResult {
+  /** not_pii: Moderation system that flagged the message */
   censoredBy: moderation_system;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Message text content */
   message: string | null;
+  /** not_pii: Foreign key to upchieve.users (the message sender) */
   senderId: string;
+  /** not_pii: Timestamp when the message was sent */
   sentAt: Date;
+  /** not_pii: Foreign key to upchieve.sessions */
   sessionId: string;
+  /** not_pii: Whether the non-censored message was shown to the recipient */
   shown: boolean;
 }
 

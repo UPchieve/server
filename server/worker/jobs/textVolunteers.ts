@@ -140,10 +140,12 @@ export default async function textVolunteers(
     await QueueService.add(
       Jobs.TextVolunteers,
       {
+        delay: secondsInMs(JOB_CONFIG.roundDelay),
+      },
+      {
         ...job.data,
         notificationRound: notificationRound + 1,
-      },
-      { delay: secondsInMs(JOB_CONFIG.roundDelay) }
+      }
     )
   }
 }

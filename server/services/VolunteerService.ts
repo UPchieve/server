@@ -33,6 +33,7 @@ import * as cache from '../cache'
 import { getSubjectsWithTopic } from './SubjectsService'
 import logger from '../logger'
 import { isHighSchoolGrade } from '../utils/grade-levels'
+import { daysInMs } from '../utils/time-utils'
 
 export interface HourSummaryStats {
   totalCoachingHours: number
@@ -107,11 +108,12 @@ export async function getHourSummaryStats(
 export async function queueOnboardingReminderOneEmail(
   volunteerId: Uuid
 ): Promise<void> {
-  const sevenDaysInMs = 1000 * 60 * 60 * 24 * 7
   await QueueService.add(
     Jobs.EmailOnboardingReminderOne,
-    { volunteerId },
-    { delay: sevenDaysInMs }
+    { delay: daysInMs(7) },
+    {
+      volunteerId,
+    }
   )
 }
 
@@ -121,20 +123,14 @@ export async function queueOnboardingEventEmails(
 ): Promise<void> {
   await QueueService.add(
     Jobs.EmailVolunteerQuickTips,
-    { volunteerId },
-    // Process job 5 days after the volunteer is onboarded.
-    {
-      delay: 1000 * 60 * 60 * 24 * 5,
-    }
+    { delay: daysInMs(5) },
+    { volunteerId }
   )
   if (isPartnerVolunteer) {
     await QueueService.add(
       Jobs.EmailPartnerVolunteerLowHoursSelected,
-      { volunteerId },
-      // Process job 10 days after the volunteer is onboarded.
-      {
-        delay: 1000 * 60 * 60 * 24 * 10,
-      }
+      { delay: daysInMs(10) },
+      { volunteerId }
     )
   }
 }
@@ -145,12 +141,16 @@ export async function queueFailedFirstAttemptedQuizEmail(
   firstName: string,
   volunteerId: Uuid
 ) {
-  await QueueService.add(Jobs.EmailFailedFirstAttemptedQuiz, {
-    category,
-    email,
-    firstName,
-    volunteerId,
-  })
+  await QueueService.add(
+    Jobs.EmailFailedFirstAttemptedQuiz,
+    { delay: 0 },
+    {
+      category,
+      email,
+      firstName,
+      volunteerId,
+    }
+  )
 }
 
 export async function getVolunteersToReview(page: number = 1): Promise<{
@@ -451,9 +451,13 @@ export async function getSubjectPresence(): Promise<VolunteerSubjectPresenceMap>
 export async function queueNationalTutorCertificateEmail(
   volunteerId: Uuid
 ): Promise<void> {
-  await QueueService.add(Jobs.SendNationalTutorCertificateEmail, {
-    volunteerId,
-  })
+  await QueueService.add(
+    Jobs.SendNationalTutorCertificateEmail,
+    { delay: 0 },
+    {
+      volunteerId,
+    }
+  )
 }
 
 export async function getVolunteersForTextNotifications(): Promise<

@@ -59,7 +59,11 @@ export function routeAssignments(router: Router): void {
         const assignmentId = req.body.assignmentId
 
         const moderationFailures =
-          await AssignmentsService.uploadAssignmentFiles(assignmentId, files)
+          await AssignmentsService.uploadAssignmentFiles(
+            assignmentId,
+            files,
+            userId
+          )
 
         if (isEmpty(moderationFailures)) {
           res.sendStatus(200)

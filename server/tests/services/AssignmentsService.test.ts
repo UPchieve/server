@@ -501,32 +501,41 @@ describe('uploadAssignmentFiles', () => {
     mockedImageUtils.isImageFile.mockReturnValue(true)
   })
 
-  it('Does not upload any files if there is a moderation failure', async () => {
-    mockedModerationService.genericModerateImage.mockResolvedValueOnce([
-      { reason: 'VIOLENCE' },
-    ])
-    mockedModerationService.genericModerateImage.mockResolvedValueOnce([])
+  it('Does not upload any files if there is a moderation infraction', async () => {
+    mockedModerationService.moderateImage.mockResolvedValueOnce({
+      isClean: false,
+      failures: ['VIOLENCE'],
+    })
+    mockedModerationService.moderateImage.mockResolvedValueOnce({
+      isClean: true,
+      failures: [],
+    })
     const actual = await AssignmentsService.uploadAssignmentFiles(
       assignmentId,
-      files
+      files,
+      'teacher-user-id'
     )
     expect(actual).toEqual({
       file1: ['VIOLENCE'],
     })
-    expect(mockedModerationService.genericModerateImage).toHaveBeenCalledTimes(
+    expect(mockedModerationService.moderateImage).toHaveBeenCalledTimes(
       files.length
     )
     expect(mockedAzureService.uploadBlobFile).not.toHaveBeenCalled()
   })
 
   it('Uploads files if moderation comes back clean', async () => {
-    mockedModerationService.genericModerateImage.mockResolvedValue([])
+    mockedModerationService.moderateImage.mockResolvedValue({
+      isClean: true,
+      failures: [],
+    })
     const actual = await AssignmentsService.uploadAssignmentFiles(
       assignmentId,
-      files
+      files,
+      'teacher-user-id'
     )
     expect(actual).toEqual({})
-    expect(mockedModerationService.genericModerateImage).toHaveBeenCalledTimes(
+    expect(mockedModerationService.moderateImage).toHaveBeenCalledTimes(
       files.length
     )
     expect(mockedAzureService.uploadBlobFile).toHaveBeenCalledTimes(

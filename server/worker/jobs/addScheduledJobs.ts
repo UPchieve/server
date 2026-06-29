@@ -99,10 +99,15 @@ export default async function addScheduledJobs() {
 
   for (const job of jobTemplates) {
     logger.info(`Adding scheduled job ${job.name}...`)
-    await QueueService.add(job.name, job.data, {
-      ...job.options,
-      removeOnComplete: false,
-      removeOnFail: false,
-    })
+    await QueueService.add(
+      job.name,
+      {
+        delay: 0,
+        removeOnComplete: false,
+        removeOnFail: false,
+        ...job.options,
+      },
+      job.data
+    )
   }
 }
