@@ -118,7 +118,7 @@ export async function getVolunteerContactInfoByIds(
       dbClient
     )
     return result.map((v) => {
-      const ret = makeSomeOptional(v, ['volunteerPartnerOrg'])
+      const ret = makeSomeOptional(v, ['volunteerPartnerOrg', 'phone'])
       ret.email = ret.email.toLowerCase()
       return ret
     })
@@ -136,7 +136,7 @@ export async function getVolunteersForBlackoutOver(
       getClient()
     )
     return result.map((v) => {
-      const ret = makeSomeOptional(v, ['volunteerPartnerOrg'])
+      const ret = makeSomeOptional(v, ['volunteerPartnerOrg', 'phone'])
       ret.email = ret.email.toLowerCase()
       return ret
     })
@@ -159,7 +159,10 @@ export async function getVolunteerForQuickTips(
       getClient()
     )
     if (!vResult.length) return
-    const volunteer = makeSomeOptional(vResult[0], ['volunteerPartnerOrg'])
+    const volunteer = makeSomeOptional(vResult[0], [
+      'volunteerPartnerOrg',
+      'phone',
+    ])
     const availability = await getAvailabilityForVolunteer(userId)
     volunteer.email = volunteer.email.toLowerCase()
     return {
@@ -182,7 +185,7 @@ export async function getPartnerVolunteerForLowHours(
       getClient()
     )
     if (!vResult.length) return
-    const volunteer = makeRequired(vResult[0]) // volunteerPartnerOrg must exist
+    const volunteer = makeSomeOptional(vResult[0], ['phone']) // volunteerPartnerOrg must exist
     volunteer.email = volunteer.email.toLowerCase()
     const availability = await getAvailabilityForVolunteer(userId)
     return {
@@ -550,21 +553,21 @@ export async function getInactiveVolunteers(
       getClient()
     )
     const thirties = thirtyResult.map((v) =>
-      makeSomeOptional(v, ['volunteerPartnerOrg'])
+      makeSomeOptional(v, ['volunteerPartnerOrg', 'phone'])
     )
     const sixtyResult = await pgQueries.getInactiveVolunteers.run(
       { start: sixtyDaysAgoStartOfDay, end: sixtyDaysAgoEndOfDay },
       getClient()
     )
     const sixties = sixtyResult.map((v) =>
-      makeSomeOptional(v, ['volunteerPartnerOrg'])
+      makeSomeOptional(v, ['volunteerPartnerOrg', 'phone'])
     )
     const ninetyResult = await pgQueries.getInactiveVolunteers.run(
       { start: ninetyDaysAgoStartOfDay, end: ninetyDaysAgoEndOfDay },
       getClient()
     )
     const nineties = ninetyResult.map((v) =>
-      makeSomeOptional(v, ['volunteerPartnerOrg'])
+      makeSomeOptional(v, ['volunteerPartnerOrg', 'phone'])
     )
 
     return {
@@ -1055,7 +1058,7 @@ export async function getVolunteersForNiceToMeetYou(
       getClient()
     )
     return result.map((v) => {
-      const ret = makeSomeOptional(v, ['volunteerPartnerOrg'])
+      const ret = makeSomeOptional(v, ['volunteerPartnerOrg', 'phone'])
       ret.email = ret.email.toLowerCase()
       return ret
     })
@@ -1073,7 +1076,7 @@ export async function getVolunteersForReadyToCoach(): Promise<
       getClient()
     )
     return result.map((v) => {
-      const ret = makeSomeOptional(v, ['volunteerPartnerOrg'])
+      const ret = makeSomeOptional(v, ['volunteerPartnerOrg', 'phone'])
       ret.email = ret.email.toLowerCase()
       return ret
     })
@@ -1092,7 +1095,7 @@ export async function getVolunteersForWaitingReferences(
       getClient()
     )
     return result.map((v) => {
-      const ret = makeSomeOptional(v, ['volunteerPartnerOrg'])
+      const ret = makeSomeOptional(v, ['volunteerPartnerOrg', 'phone'])
       ret.email = ret.email.toLowerCase()
       return ret
     })
@@ -1607,42 +1610,6 @@ export async function updateSsoUserBackgroundInfo(
     return updatedUserId[0].id
   } catch (err) {
     throw new RepoUpdateError(err)
-  }
-}
-
-export async function getNextVolunteerToNotify(options: {
-  subject: string
-  lastNotified: Date
-  isPartner: boolean | undefined
-  highLevelSubjects: string[] | undefined
-  disqualifiedVolunteers: Ulid[] | undefined
-  specificPartner: string | undefined
-  favoriteVolunteers: Ulid[] | undefined
-}): Promise<VolunteerContactInfoWithPhoneRequired | undefined> {
-  try {
-    const result = await pgQueries.getNextVolunteerToNotify.run(
-      options,
-      getRoClient()
-    )
-    if (!result.length) return
-    return makeSomeOptional(result[0], ['volunteerPartnerOrg'])
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
-export async function checkIfVolunteerMutedSubject(
-  userId: Ulid,
-  subjectName: string
-): Promise<boolean | undefined> {
-  try {
-    const result = await pgQueries.checkIfVolunteerMutedSubject.run(
-      { userId, subjectName },
-      getClient()
-    )
-    return result.length ? true : false
-  } catch (err) {
-    throw new RepoReadError(err)
   }
 }
 
