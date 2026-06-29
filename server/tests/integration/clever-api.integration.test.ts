@@ -2,9 +2,7 @@ import { z } from 'zod'
 import * as CleverAPIService from '../../services/CleverAPIService'
 
 /**
- * Contract test for the live Clever API our roster depends on. The roster logic
- * is unit-tested with Clever mocked; this is the piece mocks can't cover. See
- * README -> Testing -> Integration tests to run it.
+ * Contract test against the live Clever API the roster depends on.
  */
 
 // "#DEMO UPchieve (Dev) Sandbox" — viewable in the Clever developer dashboard (dev.clever.com).
@@ -14,9 +12,6 @@ const hasCleverCreds =
   !!process.env.CLEVER_CLIENT_ID && process.env.CLEVER_CLIENT_ID !== 'bogus'
 const describeWithCreds = hasCleverCreds ? describe : describe.skip
 
-// Each schema mirrors only the fields our roster code reads. Unknown keys Clever
-// also returns are ignored (zod strips them), so the contract breaks only when a
-// field we actually depend on changes type or disappears.
 const cleverSchool = z.object({ id: z.string() })
 
 const cleverStudent = z.object({
@@ -46,7 +41,6 @@ describeWithCreds('Clever API', () => {
     it('exchanges our credentials for a working district access token', async () => {
       const token =
         await CleverAPIService.getDistrictAccessToken(SANDBOX_DISTRICT_ID)
-      // The token is usable: an authenticated call succeeds.
       await expect(
         CleverAPIService.getSchoolsInDistrict(token)
       ).resolves.toEqual(expect.any(Array))

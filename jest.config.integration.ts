@@ -4,9 +4,9 @@ import { defaults as tsjPreset } from 'ts-jest/presets'
 const transformKey = Object.keys(tsjPreset.transform ?? {})[0]
 
 /**
- * Integration tests (server/tests/integration). Need real credentials via
- * Doppler: `pnpm run test:integration`. No mocks-setup, so the real
- * env-driven config.ts is used.
+ * Jest config for the integration test suite.
+ * @see package.json -> "test:integration"
+ * @see README.md -> Testing -> Integration tests
  */
 const config: Config = {
   roots: ['<rootDir>/server/tests/integration'],
