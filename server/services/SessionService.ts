@@ -77,7 +77,7 @@ import * as TeacherService from './TeacherService'
 import { getSessionSummaryByUserType } from './SessionSummariesService'
 import { processReportMetrics } from './SessionFlagsService'
 import * as SurveyService from './SurveyService'
-import { getRoleContext, SessionUserRole } from './UserRolesService'
+import { SessionUserRole } from './UserRolesService'
 import * as FeatureFlagsService from './FeatureFlagService'
 import { createDocEditorImageUploadUrl } from './AzureService'
 import type {
@@ -940,7 +940,7 @@ export async function ensureCanJoinSession(
   const isVolunteer = user.roleContext.isActiveRole('volunteer')
 
   if (isVolunteer && session.shadowbanned) {
-    const isAdmin = (await getRoleContext(user.id, true)).isAdmin()
+    const isAdmin = user.roleContext.isAdmin()
     // Allow admins to join shadowbanned students' sessions.
     if (!isAdmin) {
       throw new SessionJoinError(
