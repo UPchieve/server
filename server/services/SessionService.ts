@@ -940,9 +940,13 @@ export async function ensureCanJoinSession(
   const isVolunteer = user.roleContext.isActiveRole('volunteer')
 
   if (isVolunteer && session.shadowbanned) {
-    throw new SessionJoinError(
-      'Volunteer unable to join session. Student is shadow banned.'
-    )
+    const isAdmin = user.roleContext.isAdmin()
+    // Allow admins to join shadowbanned students' sessions.
+    if (!isAdmin) {
+      throw new SessionJoinError(
+        'Volunteer unable to join session. Student is shadow banned.'
+      )
+    }
   }
 
   if (session.endedAt) {
