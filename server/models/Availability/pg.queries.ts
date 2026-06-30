@@ -18,7 +18,7 @@ export interface IGetAvailabilityForVolunteerResult {
   availableStart: number;
   /** not_pii: Primary key */
   id: string;
-  /** pii: IANA timezone identifier */
+  /** not_pii: IANA timezone identifier */
   timezone: string;
   /** not_pii: Name of the weekday (e.g. Monday) */
   weekday: string;
@@ -65,7 +65,7 @@ export interface IGetAvailabilityForLegacyVolunteerResult {
   availableStart: number;
   /** not_pii: Primary key */
   id: string;
-  /** pii: IANA timezone identifier */
+  /** not_pii: IANA timezone identifier */
   timezone: string;
   /** not_pii: Name of the weekday (e.g. Monday) */
   weekday: string;
@@ -112,7 +112,7 @@ export interface IGetAvailabilityForVolunteerHeatmapResult {
   availableStart: number;
   /** not_pii: Primary key */
   id: string;
-  /** pii: IANA timezone identifier */
+  /** not_pii: IANA timezone identifier */
   timezone: string;
   /** not_pii: Foreign key to upchieve.users */
   userId: string;
@@ -221,7 +221,7 @@ export interface IGetAvailabilityHistoryForDatesByVolunteerIdResult {
   id: string;
   /** not_pii: Timestamp when the availability snapshot was taken */
   recordedAt: Date;
-  /** pii: IANA timezone identifier */
+  /** not_pii: IANA timezone identifier */
   timezone: string;
   /** not_pii: Name of the weekday (e.g. Monday) */
   weekday: string;

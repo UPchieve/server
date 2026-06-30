@@ -1595,7 +1595,7 @@ export interface IGetReferencesByVolunteerForAdminDetailResult {
   additionalInfo: string | null;
   /** pii: Reference contact relationship to the volunteer (e.g. colleague, professor) */
   affiliation: string | null;
-  /** not_pii: Reference rating for agreeableness and approachability (1-5) */
+  /** pii: Reference rating for agreeableness and approachability (1-5) */
   agreeableAndApproachable: number | null;
   /** not_pii: Reference rating for communication effectiveness (1-5) */
   communicatesEffectively: number | null;

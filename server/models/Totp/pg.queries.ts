@@ -10,7 +10,7 @@ export interface IGetSecretParams {
 export interface IGetSecretResult {
   /** not_pii */
   createdAt: Date;
-  /** not_pii: TOTP counter value from the most recent successful authentication */
+  /** pii: TOTP counter value from the most recent successful authentication */
   lastUsedCounter: number | null;
   /** pii: Encrypted TOTP shared secret used for two-factor authentication */
   secret: string;
