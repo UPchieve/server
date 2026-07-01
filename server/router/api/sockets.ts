@@ -593,9 +593,12 @@ export function routeSockets(io: Server): void {
         '/socket-io/transmitQuillSelection',
         async () => {
           try {
-            io.to(getSessionRoom(sessionId)).emit('quillPartnerSelection', {
-              range,
-            })
+            const user = await extractSocketUser(socket)
+            io.in(getSessionRoom(sessionId))
+              .except(user.id)
+              .emit('quillPartnerSelection', {
+                range,
+              })
           } catch (error) {
             logger.error(
               error,
