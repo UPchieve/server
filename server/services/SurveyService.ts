@@ -239,26 +239,12 @@ export async function getPostsessionSurveyDefinition(
     surveyId = await SurveyRepo.getSurveyIdByName(surveyName)
   }
 
-  logger.info(
-    {
-      sessionId,
-      userRole,
-      surveyId,
-    },
-    'Fetching postsession survey definition'
-  )
   const postsessionSurveyDefinitionRaw =
     await SurveyRepo.getPostsessionSurveyDefinition(
       sessionId,
       userRole,
       surveyId
     )
-  logger.info(
-    {
-      surveyDefinition: JSON.stringify(postsessionSurveyDefinitionRaw),
-    },
-    'Got postsession survey definition from repo'
-  )
   const postsessionSurveyDefinition = postsessionSurveyDefinitionRaw ?? []
   const survey: SurveyQuestionDefinition[] = []
   for (const question of postsessionSurveyDefinition ?? []) {
@@ -268,10 +254,6 @@ export async function getPostsessionSurveyDefinition(
         question.secondReplacementColumn
       )
     ) {
-      logger.info(
-        { sessionId, userRole, surveyId },
-        'Skipping question in survey definition'
-      )
       continue
     }
 
@@ -290,7 +272,6 @@ export async function getPostsessionSurveyDefinition(
     })
   }
 
-  logger.info({ survey: JSON.stringify(survey) }, 'Built survey')
   if (postsessionSurveyDefinition.length) {
     return {
       surveyId: postsessionSurveyDefinition[0].surveyId,
@@ -298,7 +279,7 @@ export async function getPostsessionSurveyDefinition(
       survey,
     }
   } else {
-    logger.info(
+    logger.warn(
       {
         surveyId,
         userRole,
