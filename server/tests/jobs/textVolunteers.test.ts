@@ -848,8 +848,8 @@ describe('TextVolunteers job', () => {
 
         // Mock coach getting banned after being cached
         mockedUserService.getUsersBanStatusesById.mockResolvedValueOnce([
-          { id: eligibleVolunteer1.id, banType: null },
-          { id: eligibleVolunteer2.id, banType: testBanType },
+          { id: eligibleVolunteer1.id, banType: null }, // textable user
+          { id: eligibleVolunteer2.id, banType: testBanType }, // not textable due to ban type
         ])
         mockedTwilioClient.sendTextMessage.mockResolvedValueOnce({
           sid: 'message-1-sid',
