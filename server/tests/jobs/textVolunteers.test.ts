@@ -830,7 +830,66 @@ describe('TextVolunteers job', () => {
       expect(mockedCacheService.getIfExists).not.toHaveBeenCalled()
     })
 
-    test('does not text volunteers who are shadow- or complete-banned', async () => {
+    test.each(['shadow', 'complete'])(
+      'does not text volunteers who are shadow-banned',
+      async (testBanType) => {
+        const studentId = getDbUlid()
+
+        // Volunteers are initially all unbanned.
+        const eligibleVolunteer1 = buildTextableVolunteer({
+          unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
+        })
+        const eligibleVolunteer2 = buildTextableVolunteer({
+          unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
+        })
+        mockedCacheService.getIfExists.mockResolvedValueOnce(
+          JSON.stringify([eligibleVolunteer1, eligibleVolunteer2])
+        )
+
+        // Mock coach getting banned after being cached
+        mockedUserService.getUsersBanStatusesById.mockResolvedValueOnce([
+          { id: eligibleVolunteer1.id, banType: null },
+          { id: eligibleVolunteer2.id, banType: testBanType },
+        ])
+        mockedTwilioClient.sendTextMessage.mockResolvedValueOnce({
+          sid: 'message-1-sid',
+        })
+
+        const sessionId = getDbUlid()
+        const job = {
+          data: {
+            sessionId,
+            subject: SUBJECTS.ALGEBRA_ONE,
+            subjectDisplayName: 'Algebra 1',
+            topic: SUBJECT_TYPES.MATH,
+            studentId,
+          },
+        }
+        await textVolunteers(job as Job)
+
+        expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledTimes(1)
+        expect(mockedTwilioClient.sendTextMessage).toHaveBeenNthCalledWith(
+          1,
+          eligibleVolunteer1.phone,
+          expect.any(String),
+          sessionId
+        )
+        expect(
+          mockedSessionService.addSessionSmsNotification
+        ).toHaveBeenCalledTimes(1)
+        expect(
+          mockedSessionService.addSessionSmsNotification
+        ).toHaveBeenNthCalledWith(
+          1,
+          sessionId,
+          eligibleVolunteer1.id,
+          expect.anything(),
+          { sid: 'message-1-sid' }
+        )
+      }
+    )
+
+    test('does text a live media-banned volunteer', async () => {
       const studentId = getDbUlid()
 
       // Volunteers are initially all unbanned.
@@ -840,22 +899,14 @@ describe('TextVolunteers job', () => {
       const eligibleVolunteer2 = buildTextableVolunteer({
         unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
       })
-      const eligibleVolunteer3 = buildTextableVolunteer({
-        unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
-      })
       mockedCacheService.getIfExists.mockResolvedValueOnce(
-        JSON.stringify([
-          eligibleVolunteer1,
-          eligibleVolunteer2,
-          eligibleVolunteer3,
-        ])
+        JSON.stringify([eligibleVolunteer1, eligibleVolunteer2])
       )
 
-      // Mock that 2 of the users are banned after being cached.
+      // Mock coach getting live media-banned after being cached
       mockedUserService.getUsersBanStatusesById.mockResolvedValueOnce([
-        { id: eligibleVolunteer1.id, banType: null }, // volunteer 1 is still eligible
-        { id: eligibleVolunteer2.id, banType: 'shadow' }, // volunteer 2 is shadow-banned
-        { id: eligibleVolunteer3.id, banType: 'complete' }, // volunteer 3 is complete-banned
+        { id: eligibleVolunteer1.id, banType: null },
+        { id: eligibleVolunteer2.id, banType: 'live_media' },
       ])
       mockedTwilioClient.sendTextMessage.mockResolvedValue({
         sid: 'message-1-sid',
@@ -873,24 +924,35 @@ describe('TextVolunteers job', () => {
       }
       await textVolunteers(job as Job)
 
-      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledTimes(1)
-      expect(mockedTwilioClient.sendTextMessage).toHaveBeenNthCalledWith(
-        1,
+      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledTimes(2)
+      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
         eligibleVolunteer1.phone,
+        expect.any(String),
+        sessionId
+      )
+      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
+        eligibleVolunteer2.phone,
         expect.any(String),
         sessionId
       )
       expect(
         mockedSessionService.addSessionSmsNotification
-      ).toHaveBeenCalledTimes(1)
+      ).toHaveBeenCalledTimes(2)
       expect(
         mockedSessionService.addSessionSmsNotification
-      ).toHaveBeenNthCalledWith(
-        1,
+      ).toHaveBeenCalledWith(
         sessionId,
         eligibleVolunteer1.id,
         expect.anything(),
-        { sid: 'message-1-sid' }
+        expect.objectContaining({ sid: expect.any(String) })
+      )
+      expect(
+        mockedSessionService.addSessionSmsNotification
+      ).toHaveBeenCalledWith(
+        sessionId,
+        eligibleVolunteer2.id,
+        expect.anything(),
+        expect.objectContaining({ sid: expect.any(String) })
       )
     })
 
