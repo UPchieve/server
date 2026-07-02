@@ -12,15 +12,23 @@ import {
   USER_BAN_REASONS,
 } from '../../constants'
 import { mocked } from 'jest-mock'
-import { buildSession, buildVolunteer } from '../mocks/generate'
+import {
+  buildSession,
+  buildUserContactInfo,
+  buildVolunteer,
+} from '../mocks/generate'
 import { LookupError } from '../../models/Errors'
-import { getDbUlid, Ulid } from '../../models/pgUtils'
+import { getDbUlid } from '../../models/pgUtils'
 import { GetSessionByIdResult } from '../../models/Session'
 import {
   DmIneligibilityReason,
+  ensureCanJoinSession,
   isEligibleForSessionRecap,
   isRecapDmsAvailable,
 } from '../../services/SessionService'
+import * as UserRepo from '../../models/User'
+import { CurrentSession } from '../../types/session'
+import { RoleContext } from '../../services/UserRolesService'
 
 jest.mock('../../models/Session/queries')
 jest.mock('../../models/User/queries')
@@ -29,6 +37,7 @@ jest.mock('../../models/SessionAudio')
 jest.mock('../../models/UserSessionMetrics/queries')
 jest.mock('../../models/Student/queries')
 jest.mock('../../services/FeatureFlagService')
+jest.mock('../../services/UserService')
 
 describe('SessionService', () => {
   beforeEach(() => {
@@ -41,6 +50,7 @@ describe('SessionService', () => {
   const mockedSessionAudioRepo = mocked(SessionAudioRepo)
   const mockFeatureFlagService = mocked(FeatureFlagService)
   const mockStudentRepo = mocked(StudentRepo)
+  const mockedUserRepo = mocked(UserRepo)
 
   describe('reportSession', () => {
     test('should ban the user with ban_type of COMPLETE when reported', async () => {
@@ -106,6 +116,126 @@ describe('SessionService', () => {
           volunteerJoinedAt,
         })
         expect(result).toEqual(sessionAudio)
+      })
+    })
+  })
+
+  describe('ensureCanJoinSession', () => {
+    describe('Complete bans', () => {
+      it('Throws an error if a volunteer is joining while the student is complete-banned', async () => {
+        const student = buildUserContactInfo()
+        const session = buildSession({
+          volunteerId: undefined,
+          studentId: student.id,
+        })
+        mockSessionRepo.getCurrentSessionBySessionId.mockResolvedValue(
+          session as CurrentSession
+        )
+        const joiningUser = buildUserContactInfo({
+          banType: null,
+          roleContext: new RoleContext(['volunteer', 'admin'], 'volunteer'),
+        })
+        mockedUserRepo.getUsersBanStatuses.mockResolvedValue([
+          { id: joiningUser.id, banType: null },
+          { id: student.id, banType: 'complete' },
+        ])
+
+        await expect(() =>
+          ensureCanJoinSession(joiningUser, session.id)
+        ).rejects.toThrow('Cannot join a session with a complete-banned user')
+      })
+
+      it('Throws an error if the volunteer joining the session is complete-banned', async () => {
+        const student = buildUserContactInfo()
+        const session = buildSession({
+          volunteerId: undefined,
+          studentId: student.id,
+        })
+        mockSessionRepo.getCurrentSessionBySessionId.mockResolvedValue(
+          session as CurrentSession
+        )
+        const joiningUser = buildUserContactInfo({
+          banType: 'complete',
+          roleContext: new RoleContext(['volunteer'], 'volunteer'),
+        })
+        mockedUserRepo.getUsersBanStatuses.mockResolvedValue([
+          { id: joiningUser.id, banType: 'complete' },
+          { id: student.id, banType: null },
+        ])
+
+        await expect(() =>
+          ensureCanJoinSession(joiningUser, session.id)
+        ).rejects.toThrow('Cannot join a session with a complete-banned user')
+      })
+    })
+
+    describe('Shadow bans', () => {
+      it('Throws an error if the volunteer is shadow-banned', async () => {
+        const student = buildUserContactInfo()
+        const session = buildSession({
+          volunteerId: undefined,
+          studentId: student.id,
+        })
+        mockSessionRepo.getCurrentSessionBySessionId.mockResolvedValue(
+          session as CurrentSession
+        )
+        const joiningUser = buildUserContactInfo({
+          banType: 'shadow',
+          roleContext: new RoleContext(['volunteer'], 'volunteer'),
+        })
+        mockedUserRepo.getUsersBanStatuses.mockResolvedValue([
+          { id: joiningUser.id, banType: 'shadow' },
+          { id: student.id, banType: null },
+        ])
+
+        await expect(() =>
+          ensureCanJoinSession(joiningUser, session.id)
+        ).rejects.toThrow('Shadow-banned volunteers may not join sessions')
+      })
+
+      it('Throws an error if the student is shadow-banned and the volunteer is NOT an admin', async () => {
+        const student = buildUserContactInfo()
+        const session = buildSession({
+          volunteerId: undefined,
+          studentId: student.id,
+        })
+        mockSessionRepo.getCurrentSessionBySessionId.mockResolvedValue(
+          session as CurrentSession
+        )
+        const joiningUser = buildUserContactInfo({
+          banType: null,
+          roleContext: new RoleContext(['volunteer'], 'volunteer'),
+        })
+        mockedUserRepo.getUsersBanStatuses.mockResolvedValue([
+          { id: joiningUser.id, banType: null },
+          { id: student.id, banType: 'shadow' },
+        ])
+
+        await expect(() =>
+          ensureCanJoinSession(joiningUser, session.id)
+        ).rejects.toThrow("Cannot join shadow-banned student's session")
+      })
+
+      it('Allows an admin volunteer to join even if the student is shadow-banned', async () => {
+        const student = buildUserContactInfo()
+        const session = buildSession({
+          volunteerId: undefined,
+          studentId: student.id,
+        })
+        mockSessionRepo.getCurrentSessionBySessionId.mockResolvedValue(
+          session as CurrentSession
+        )
+        const joiningUser = buildUserContactInfo({
+          banType: null,
+          roleContext: new RoleContext(['volunteer', 'admin'], 'volunteer'),
+        })
+        mockedUserRepo.getUsersBanStatuses.mockResolvedValue([
+          { id: joiningUser.id, banType: null },
+          { id: student.id, banType: 'shadow' },
+        ])
+
+        const actual = await ensureCanJoinSession(joiningUser, session.id)
+        expect(actual).toEqual(session)
       })
     })
   })
