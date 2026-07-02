@@ -85,13 +85,24 @@ export default async function textVolunteers(
   }
 
   const allTextableVolunteers = await getTextableVolunteers()
+  const banStatuses = await UserService.getUsersBanStatusesById(
+    allTextableVolunteers.map((vol) => vol.id)
+  )
+  const bannedVolunteerIds = banStatuses
+    .filter(
+      (status) => status.banType === 'complete' || status.banType === 'shadow'
+    )
+    .map((vol) => vol.id)
+  const unbannedVolunteers = allTextableVolunteers.filter(
+    (vol) => !bannedVolunteerIds.includes(vol.id)
+  )
 
   const computedSubjectRequirements =
     await SubjectsService.getCachedComputedSubjectUnlocks()
   const subjectRequiresHighLevelSubjectCerts =
     (subject as SUBJECTS) in computedSubjectRequirements
   const eligibleVolunteers = filterSubjectEligibleVolunteers(
-    allTextableVolunteers,
+    unbannedVolunteers,
     subject,
     subjectRequiresHighLevelSubjectCerts
   )
@@ -126,28 +137,8 @@ export default async function textVolunteers(
     return
   }
 
-  const banStatuses = await UserService.getUsersBanStatusesById(
-    selectedTutors.map((user) => user.id)
-  )
-  const bannedUserIds = banStatuses
-    .filter((user) => user.banType === 'complete' || user.banType === 'shadow')
-    .map((user) => user.id)
-  const textableTutors = selectedTutors.filter(
-    (tutor) => !bannedUserIds.includes(tutor.id)
-  )
-
-  if (!textableTutors.length) {
-    logger.warn(
-      {
-        sessionId,
-        subject,
-      },
-      'No non-banned volunteers found to text for session'
-    )
-  }
-
   await sendTextMessages(
-    textableTutors,
+    selectedTutors,
     {
       sessionId,
       subject,
