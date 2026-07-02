@@ -85,24 +85,13 @@ export default async function textVolunteers(
   }
 
   const allTextableVolunteers = await getTextableVolunteers()
-  const banStatuses = await UserService.getUsersBanStatusesById(
-    allTextableVolunteers.map((vol) => vol.id)
-  )
-  const bannedVolunteerIds = banStatuses
-    .filter(
-      (status) => status.banType === 'complete' || status.banType === 'shadow'
-    )
-    .map((vol) => vol.id)
-  const unbannedVolunteers = allTextableVolunteers.filter(
-    (vol) => !bannedVolunteerIds.includes(vol.id)
-  )
 
   const computedSubjectRequirements =
     await SubjectsService.getCachedComputedSubjectUnlocks()
   const subjectRequiresHighLevelSubjectCerts =
     (subject as SUBJECTS) in computedSubjectRequirements
   const eligibleVolunteers = filterSubjectEligibleVolunteers(
-    unbannedVolunteers,
+    allTextableVolunteers,
     subject,
     subjectRequiresHighLevelSubjectCerts
   )
@@ -166,7 +155,22 @@ async function getTextableVolunteers(): Promise<TextableVolunteer[]> {
   const cachedVolunteers = await CacheService.getIfExists(
     TEXTABLE_VOLUNTEERS_CACHE_KEY
   )
-  if (cachedVolunteers) return JSON.parse(cachedVolunteers)
+  if (cachedVolunteers) {
+    const cached = JSON.parse(cachedVolunteers) as TextableVolunteer[]
+    const banStatuses = await UserService.getUsersBanStatusesById(
+      cached.map((vol) => vol.id)
+    )
+    const bannedVolunteerIds: Set<Ulid> = new Set()
+    banStatuses
+      .filter(
+        (status) => status.banType === 'complete' || status.banType === 'shadow'
+      )
+      .forEach((vol) => bannedVolunteerIds.add(vol.id))
+    const unbannedVolunteers = cached.filter(
+      (vol) => !bannedVolunteerIds.has(vol.id)
+    )
+    return unbannedVolunteers
+  }
 
   logger.warn(`No cached ${TEXTABLE_VOLUNTEERS_CACHE_KEY}. Fetching now.`)
   return getAndCacheAvailableVolunteers()
