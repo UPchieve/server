@@ -16,6 +16,7 @@ import * as NotificationService from '../../services/NotificationService'
 import * as SessionService from '../../services/SessionService'
 import { sendTextMessage } from '../../clients/twilio'
 import * as QueueService from '../../services/QueueService'
+import * as UserService from '../../services/UserService'
 import {
   TEXTABLE_VOLUNTEERS_CACHE_KEY,
   getAndCacheAvailableVolunteers,
@@ -125,8 +126,28 @@ export default async function textVolunteers(
     return
   }
 
+  const banStatuses = await UserService.getUsersBanStatusesById(
+    selectedTutors.map((user) => user.id)
+  )
+  const bannedUserIds = banStatuses
+    .filter((user) => user.banType === 'complete' || user.banType === 'shadow')
+    .map((user) => user.id)
+  const textableTutors = selectedTutors.filter(
+    (tutor) => !bannedUserIds.includes(tutor.id)
+  )
+
+  if (!textableTutors.length) {
+    logger.warn(
+      {
+        sessionId,
+        subject,
+      },
+      'No non-banned volunteers found to text for session'
+    )
+  }
+
   await sendTextMessages(
-    selectedTutors,
+    textableTutors,
     {
       sessionId,
       subject,

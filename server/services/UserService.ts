@@ -705,13 +705,13 @@ export async function getUserById(
   }
 }
 
-export async function getUserBanStatus(
-  userId: Ulid
-): Promise<USER_BAN_TYPES | undefined> {
-  const user = await UserRepo.getUserBanStatus(userId)
-  if (user) {
-    return user.banType
-  }
+export async function getUsersBanStatusesById(userIds: Ulid[]): Promise<
+  {
+    id: Ulid
+    banType: USER_BAN_TYPES | null
+  }[]
+> {
+  return await UserRepo.getUsersBanStatuses(userIds)
 }
 
 export async function getUserForAdminDetail(
