@@ -78,14 +78,16 @@ export async function getSubjectsWithTopic(): Promise<AllSubjectsWithTopics> {
         undefined,
         getClient()
       )
-      const aliases = aliasRows.map((alias) => makeRequired(alias))
-      const quizzesBySubject = _.groupBy(aliases, (alias) => alias.subjectName)
+      const quizNameBySubject = new Map(
+        aliasRows.map((alias) => {
+          const row = makeRequired(alias)
+          return [row.subjectName, row.quizName]
+        })
+      )
       for (const subject of Object.values(subjects)) {
-        const aliasQuizzes = quizzesBySubject[subject.name]
-        // @TODO: multi-quiz aliases (subjects unlocked by multiple certs) are left
-        // unresolved here; handled by the multi-cert subjects follow-up task.
-        if (aliasQuizzes?.length === 1) {
-          subject.unlockQuizName = aliasQuizzes[0].quizName
+        const quizName = quizNameBySubject.get(subject.name)
+        if (quizName) {
+          subject.unlockQuizName = quizName
         }
       }
     } catch (err) {
