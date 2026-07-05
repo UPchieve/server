@@ -62,6 +62,31 @@ FROM
     JOIN topics ON subjects.topic_id = topics.id;
 
 
+/* @name getSubjectQuizAliases */
+SELECT
+    subjects.name AS subject_name,
+    certifications.name AS quiz_name
+FROM
+    certification_subject_unlocks csu
+    JOIN subjects ON subjects.id = csu.subject_id
+    JOIN certifications ON certifications.id = csu.certification_id
+WHERE
+    NOT EXISTS (
+        SELECT
+            1
+        FROM
+            quizzes
+        WHERE
+            quizzes.name = subjects.name)
+    AND EXISTS (
+        SELECT
+            1
+        FROM
+            quizzes
+        WHERE
+            quizzes.name = certifications.name);
+
+
 /* @name getTopics */
 SELECT
     id,
