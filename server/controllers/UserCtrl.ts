@@ -6,23 +6,27 @@ import * as ReferralService from '../services/ReferralService'
 import { createContact } from '../services/MailService'
 import { hashPassword } from '../utils/auth-utils'
 import { logError } from '../logger'
-import { ACCOUNT_USER_ACTIONS } from '../constants'
-import { getClient, runInTransaction } from '../db'
+import { ACCOUNT_USER_ACTIONS, USER_EVENTS } from '../constants'
+import { runInTransaction } from '../db'
+import { emitter } from '../services/EventsService'
 
 // TODO: Move to UserCreationService.
 export async function createVolunteer(
   volunteerData: VolunteerRepo.CreateVolunteerPayload,
   ip: string
 ): Promise<VolunteerRepo.CreatedVolunteer> {
-  const client = getClient()
   volunteerData.password = await hashPassword(volunteerData.password)
   const volunteer = await runInTransaction(async (tc) => {
-    const v = await VolunteerRepo.createVolunteer(volunteerData, tc)
-    if (volunteerData.referredBy) {
-      await ReferralService.addReferralFor(v.id, volunteerData.referredBy, tc)
+    const volunteer = await VolunteerRepo.createVolunteer(volunteerData, tc)
+    if (volunteerData.referredByCode) {
+      await ReferralService.addReferralForUserByCode(
+        volunteer.id,
+        volunteerData.referredByCode,
+        tc
+      )
     }
-    return v
-  }, client)
+    return volunteer
+  })
 
   // Create a UPF object for this new user
   try {
@@ -43,13 +47,7 @@ export async function createVolunteer(
     logError(err as Error)
   }
 
-  try {
-    // needs id, firstname, lastname, email, isvolunteer, ban type, testuser, admin, deactivated, createdat
-    await createContact(volunteer.id)
-  } catch (err) {
-    captureException(err)
-    logError(err as Error)
-  }
+  emitter.emit(USER_EVENTS.USER_CREATED, volunteer.id)
 
   return volunteer
 }

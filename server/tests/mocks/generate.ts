@@ -20,7 +20,13 @@ import {
   StudentPartnerOrg,
   StudentPartnerOrgUpchieveInstance,
 } from '../../models/StudentPartnerOrg'
-import { DAYS, GRADES, HOURS, TRAINING_QUIZZES } from '../../constants'
+import {
+  DAYS,
+  GRADES,
+  HOURS,
+  TRAINING_QUIZZES,
+  USER_BAN_TYPES,
+} from '../../constants'
 import { AppStudent, AppUser, AppVolunteer } from '../types'
 import {
   LegacySurvey,
@@ -355,7 +361,12 @@ export function buildVolunteer(
 }
 
 export function buildTextableVolunteer(
-  overrides: Partial<TextableVolunteer & { priorityGroupName?: string }> = {}
+  overrides: Partial<
+    TextableVolunteer & {
+      priorityGroupName?: string
+      banType?: USER_BAN_TYPES | null
+    }
+  > = {}
 ): TextableVolunteer {
   return {
     id: getDbUlid(),
@@ -477,7 +488,6 @@ export type SessionRow = {
   volunteerJoinedAt?: Date
   endedAt?: Date
   mongoId?: string
-  endedByRoleId?: string
   endedByUserId?: string
 }
 

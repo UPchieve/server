@@ -18,8 +18,9 @@ import * as FavoritingService from '../../services/FavoritingService'
 import * as NotificationService from '../../services/NotificationService'
 import * as QueueService from '../../services/QueueService'
 import * as SessionService from '../../services/SessionService'
-import * as TwilioService from '../../services/TwilioService'
+import * as TwilioClient from '../../clients/twilio'
 import * as SubjectService from '../../services/SubjectsService'
+import * as UserService from '../../services/UserService'
 import { AssociatedPartner } from '../../models/AssociatedPartner'
 import { buildTextableVolunteer } from '../mocks/generate'
 import { ComputedSubjectUnlocks } from '../../models/Subjects'
@@ -30,8 +31,9 @@ jest.mock('../../services/FavoritingService')
 jest.mock('../../services/NotificationService')
 jest.mock('../../services/QueueService')
 jest.mock('../../services/SessionService')
-jest.mock('../../services/TwilioService')
+jest.mock('../../clients/twilio')
 jest.mock('../../services/SubjectsService')
+jest.mock('../../services/UserService')
 jest.mock('../../logger')
 
 const mockedAssociatedPartnerService = mocked(AssociatedPartnerService)
@@ -40,9 +42,10 @@ const mockedFavoritingService = mocked(FavoritingService)
 const mockedNotificationService = mocked(NotificationService)
 const mockedQueueService = mocked(QueueService)
 const mockedSessionService = mocked(SessionService)
-const mockedTwilioService = mocked(TwilioService)
+const mockedTwilioClient = mocked(TwilioClient)
 const mockedLogger = mocked(logger)
 const mockedSubjectService = mocked(SubjectService)
+const mockedUserService = mocked(UserService)
 
 const COMPUTED_SUBJECT_UNLOCKS = {
   [SUBJECTS.INTEGRATED_MATH_ONE]: [
@@ -75,10 +78,11 @@ describe('TextVolunteers job', () => {
     )
     mockedQueueService.add.mockResolvedValue(undefined)
     mockedSessionService.getVolunteersInSessions.mockResolvedValue(new Set())
-    mockedTwilioService.sendTextMessage.mockResolvedValue(undefined)
+    mockedTwilioClient.sendTextMessage.mockResolvedValue(undefined)
     mockedSubjectService.getCachedComputedSubjectUnlocks.mockResolvedValue(
       COMPUTED_SUBJECT_UNLOCKS
     )
+    mockedUserService.getUsersBanStatusesById.mockResolvedValue([])
   })
 
   describe('filterSubjectEligibleVolunteers', () => {
@@ -632,8 +636,8 @@ describe('TextVolunteers job', () => {
         firstName: 'Bob',
       })
 
-      mockedTwilioService.sendTextMessage.mockResolvedValueOnce('msg-id-1')
-      mockedTwilioService.sendTextMessage.mockResolvedValueOnce('msg-id-2')
+      mockedTwilioClient.sendTextMessage.mockResolvedValueOnce('msg-id-1')
+      mockedTwilioClient.sendTextMessage.mockResolvedValueOnce('msg-id-2')
 
       await sendTextMessages([volunteer1, volunteer2], {
         sessionId: getDbUlid(),
@@ -642,13 +646,13 @@ describe('TextVolunteers job', () => {
         topic: SUBJECT_TYPES.MATH,
       })
 
-      expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledTimes(2)
-      expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
+      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledTimes(2)
+      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
         volunteer1.phone,
         expect.stringContaining('Hi Alice'),
         expect.any(String)
       )
-      expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
+      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
         volunteer2.phone,
         expect.stringContaining('Hi Bob'),
         expect.any(String)
@@ -664,8 +668,8 @@ describe('TextVolunteers job', () => {
       })
       const sessionId = getDbUlid()
 
-      mockedTwilioService.sendTextMessage.mockResolvedValueOnce('msg-id-a')
-      mockedTwilioService.sendTextMessage.mockResolvedValueOnce('msg-id-b')
+      mockedTwilioClient.sendTextMessage.mockResolvedValueOnce('msg-id-a')
+      mockedTwilioClient.sendTextMessage.mockResolvedValueOnce('msg-id-b')
 
       await sendTextMessages([volunteer1, volunteer2], {
         sessionId,
@@ -701,7 +705,7 @@ describe('TextVolunteers job', () => {
         priorityGroupName: 'Associated partner volunteers',
       })
 
-      mockedTwilioService.sendTextMessage.mockResolvedValueOnce('msg-id')
+      mockedTwilioClient.sendTextMessage.mockResolvedValueOnce('msg-id')
 
       await sendTextMessages(
         [volunteer],
@@ -714,12 +718,12 @@ describe('TextVolunteers job', () => {
         'Example School'
       )
 
-      expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
+      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
         volunteer.phone,
         expect.stringContaining('Hi Persephone'),
         expect.any(String)
       )
-      expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
+      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
         volunteer.phone,
         expect.stringContaining('an Example School student needs help'),
         expect.any(String)
@@ -731,7 +735,7 @@ describe('TextVolunteers job', () => {
         firstName: 'Hades',
       })
 
-      mockedTwilioService.sendTextMessage.mockResolvedValueOnce('msg-id')
+      mockedTwilioClient.sendTextMessage.mockResolvedValueOnce('msg-id')
 
       await sendTextMessages([volunteer], {
         sessionId: getDbUlid(),
@@ -740,12 +744,12 @@ describe('TextVolunteers job', () => {
         topic: SUBJECT_TYPES.MATH,
       })
 
-      expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
+      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
         volunteer.phone,
         expect.stringContaining('a student needs help'),
         expect.any(String)
       )
-      expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
+      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
         volunteer.phone,
         expect.stringContaining('Hi Hades'),
         expect.any(String)
@@ -758,7 +762,7 @@ describe('TextVolunteers job', () => {
         priorityGroupName: 'Associated partner volunteers',
       })
 
-      mockedTwilioService.sendTextMessage.mockResolvedValueOnce('msg-id')
+      mockedTwilioClient.sendTextMessage.mockResolvedValueOnce('msg-id')
 
       await sendTextMessages(
         [volunteer],
@@ -771,12 +775,12 @@ describe('TextVolunteers job', () => {
         'Awesome School'
       )
 
-      expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
+      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
         volunteer.phone,
         expect.stringContaining('Hi Hercules'),
         expect.any(String)
       )
-      expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
+      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
         volunteer.phone,
         expect.stringContaining('an Awesome School student'),
         expect.any(String)
@@ -787,7 +791,7 @@ describe('TextVolunteers job', () => {
       const volunteer = buildTextableVolunteer()
       const sessionId = getDbUlid()
 
-      mockedTwilioService.sendTextMessage.mockResolvedValueOnce(undefined)
+      mockedTwilioClient.sendTextMessage.mockResolvedValueOnce(undefined)
 
       await sendTextMessages([volunteer], {
         sessionId,
@@ -826,6 +830,132 @@ describe('TextVolunteers job', () => {
       expect(mockedCacheService.getIfExists).not.toHaveBeenCalled()
     })
 
+    test.each(['shadow', 'complete'])(
+      'does not text volunteers who are shadow-banned',
+      async (testBanType) => {
+        const studentId = getDbUlid()
+
+        // Volunteers are initially all unbanned.
+        const eligibleVolunteer1 = buildTextableVolunteer({
+          unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
+        })
+        const eligibleVolunteer2 = buildTextableVolunteer({
+          unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
+        })
+        mockedCacheService.getIfExists.mockResolvedValueOnce(
+          JSON.stringify([eligibleVolunteer1, eligibleVolunteer2])
+        )
+
+        // Mock coach getting banned after being cached
+        mockedUserService.getUsersBanStatusesById.mockResolvedValueOnce([
+          { id: eligibleVolunteer1.id, banType: null }, // textable user
+          { id: eligibleVolunteer2.id, banType: testBanType }, // not textable due to ban type
+        ])
+        mockedTwilioClient.sendTextMessage.mockResolvedValueOnce({
+          sid: 'message-1-sid',
+        })
+
+        const sessionId = getDbUlid()
+        const job = {
+          data: {
+            sessionId,
+            subject: SUBJECTS.ALGEBRA_ONE,
+            subjectDisplayName: 'Algebra 1',
+            topic: SUBJECT_TYPES.MATH,
+            studentId,
+          },
+        }
+        await textVolunteers(job as Job)
+
+        expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledTimes(1)
+        expect(mockedTwilioClient.sendTextMessage).toHaveBeenNthCalledWith(
+          1,
+          eligibleVolunteer1.phone,
+          expect.any(String),
+          sessionId
+        )
+        expect(
+          mockedSessionService.addSessionSmsNotification
+        ).toHaveBeenCalledTimes(1)
+        expect(
+          mockedSessionService.addSessionSmsNotification
+        ).toHaveBeenNthCalledWith(
+          1,
+          sessionId,
+          eligibleVolunteer1.id,
+          expect.anything(),
+          { sid: 'message-1-sid' }
+        )
+      }
+    )
+
+    test('does text a live media-banned volunteer', async () => {
+      const studentId = getDbUlid()
+
+      // Volunteers are initially all unbanned.
+      const eligibleVolunteer1 = buildTextableVolunteer({
+        unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
+      })
+      const eligibleVolunteer2 = buildTextableVolunteer({
+        unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
+      })
+      mockedCacheService.getIfExists.mockResolvedValueOnce(
+        JSON.stringify([eligibleVolunteer1, eligibleVolunteer2])
+      )
+
+      // Mock coach getting live media-banned after being cached
+      mockedUserService.getUsersBanStatusesById.mockResolvedValueOnce([
+        { id: eligibleVolunteer1.id, banType: null },
+        { id: eligibleVolunteer2.id, banType: 'live_media' },
+      ])
+      mockedTwilioClient.sendTextMessage.mockResolvedValue({
+        sid: 'message-1-sid',
+      })
+
+      const sessionId = getDbUlid()
+      const job = {
+        data: {
+          sessionId,
+          subject: SUBJECTS.ALGEBRA_ONE,
+          subjectDisplayName: 'Algebra 1',
+          topic: SUBJECT_TYPES.MATH,
+          studentId,
+        },
+      }
+      await textVolunteers(job as Job)
+
+      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledTimes(2)
+      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
+        eligibleVolunteer1.phone,
+        expect.any(String),
+        sessionId
+      )
+      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
+        eligibleVolunteer2.phone,
+        expect.any(String),
+        sessionId
+      )
+      expect(
+        mockedSessionService.addSessionSmsNotification
+      ).toHaveBeenCalledTimes(2)
+      expect(
+        mockedSessionService.addSessionSmsNotification
+      ).toHaveBeenCalledWith(
+        sessionId,
+        eligibleVolunteer1.id,
+        expect.anything(),
+        expect.objectContaining({ sid: expect.any(String) })
+      )
+      expect(
+        mockedSessionService.addSessionSmsNotification
+      ).toHaveBeenCalledWith(
+        sessionId,
+        eligibleVolunteer2.id,
+        expect.anything(),
+        expect.objectContaining({ sid: expect.any(String) })
+      )
+    })
+
     test('should prioritize favorited volunteers over partner and regular volunteers', async () => {
       const studentId = getDbUlid()
       const favoritedVol = buildTextableVolunteer({
@@ -854,7 +984,7 @@ describe('TextVolunteers job', () => {
           studentOrgDisplay: 'Example School',
         } as AssociatedPartner
       )
-      mockedTwilioService.sendTextMessage
+      mockedTwilioClient.sendTextMessage
         .mockResolvedValueOnce('msg-id-1')
         .mockResolvedValueOnce('msg-id-2')
 
@@ -871,20 +1001,20 @@ describe('TextVolunteers job', () => {
       }
       await textVolunteers(job as Job)
 
-      expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledTimes(2)
-      expect(mockedTwilioService.sendTextMessage).toHaveBeenNthCalledWith(
+      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledTimes(2)
+      expect(mockedTwilioClient.sendTextMessage).toHaveBeenNthCalledWith(
         1,
         favoritedVol.phone,
         expect.stringContaining(favoritedVol.firstName),
         expect.any(String)
       )
-      expect(mockedTwilioService.sendTextMessage).toHaveBeenNthCalledWith(
+      expect(mockedTwilioClient.sendTextMessage).toHaveBeenNthCalledWith(
         2,
         partnerVol.phone,
         expect.stringContaining(partnerVol.firstName),
         expect.any(String)
       )
-      expect(mockedTwilioService.sendTextMessage).toHaveBeenNthCalledWith(
+      expect(mockedTwilioClient.sendTextMessage).toHaveBeenNthCalledWith(
         2,
         partnerVol.phone,
         expect.stringContaining('Example School'),
@@ -928,7 +1058,7 @@ describe('TextVolunteers job', () => {
       mockedCacheService.getIfExists.mockResolvedValueOnce(
         JSON.stringify([algebraVol, chemistryVol, geometryVol])
       )
-      mockedTwilioService.sendTextMessage.mockResolvedValueOnce('msg-id')
+      mockedTwilioClient.sendTextMessage.mockResolvedValueOnce('msg-id')
 
       const sessionId = getDbUlid()
       const job = {
@@ -943,8 +1073,8 @@ describe('TextVolunteers job', () => {
 
       await textVolunteers(job as Job)
 
-      expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledTimes(1)
-      expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
+      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledTimes(1)
+      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
         algebraVol.phone,
         expect.stringContaining(algebraVol.firstName),
         expect.any(String)
@@ -977,7 +1107,7 @@ describe('TextVolunteers job', () => {
       mockedCacheService.getIfExists.mockResolvedValueOnce(
         JSON.stringify([highLevelVol, regularVol1, regularVol2])
       )
-      mockedTwilioService.sendTextMessage
+      mockedTwilioClient.sendTextMessage
         .mockResolvedValueOnce('msg-id-1')
         .mockResolvedValueOnce('msg-id-2')
 
@@ -994,18 +1124,18 @@ describe('TextVolunteers job', () => {
 
       await textVolunteers(job as Job)
 
-      expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledTimes(2)
-      expect(mockedTwilioService.sendTextMessage).not.toHaveBeenCalledWith(
+      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledTimes(2)
+      expect(mockedTwilioClient.sendTextMessage).not.toHaveBeenCalledWith(
         highLevelVol.phone,
         expect.anything(),
         expect.any(String)
       )
-      expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
+      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
         regularVol1.phone,
         expect.stringContaining(regularVol1.firstName),
         expect.any(String)
       )
-      expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
+      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
         regularVol2.phone,
         expect.stringContaining(regularVol2.firstName),
         expect.any(String)
@@ -1046,7 +1176,7 @@ describe('TextVolunteers job', () => {
       mockedCacheService.getIfExists.mockResolvedValueOnce(
         JSON.stringify([mutedVol, availableVol1, availableVol2])
       )
-      mockedTwilioService.sendTextMessage
+      mockedTwilioClient.sendTextMessage
         .mockResolvedValueOnce('msg-id-1')
         .mockResolvedValueOnce('msg-id-2')
 
@@ -1063,18 +1193,18 @@ describe('TextVolunteers job', () => {
 
       await textVolunteers(job as Job)
 
-      expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledTimes(2)
-      expect(mockedTwilioService.sendTextMessage).not.toHaveBeenCalledWith(
+      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledTimes(2)
+      expect(mockedTwilioClient.sendTextMessage).not.toHaveBeenCalledWith(
         mutedVol.phone,
         expect.anything(),
         expect.any(String)
       )
-      expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
+      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
         availableVol1.phone,
         expect.stringContaining(availableVol1.firstName),
         expect.any(String)
       )
-      expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
+      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
         availableVol2.phone,
         expect.stringContaining(availableVol2.firstName),
         expect.any(String)
@@ -1122,7 +1252,7 @@ describe('TextVolunteers job', () => {
       mockedSessionService.getVolunteersInSessions.mockResolvedValueOnce(
         new Set([busyVol.id])
       )
-      mockedTwilioService.sendTextMessage
+      mockedTwilioClient.sendTextMessage
         .mockResolvedValueOnce('msg-id-1')
         .mockResolvedValueOnce('msg-id-2')
 
@@ -1139,18 +1269,18 @@ describe('TextVolunteers job', () => {
 
       await textVolunteers(job as Job)
 
-      expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledTimes(2)
-      expect(mockedTwilioService.sendTextMessage).not.toHaveBeenCalledWith(
+      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledTimes(2)
+      expect(mockedTwilioClient.sendTextMessage).not.toHaveBeenCalledWith(
         busyVol.phone,
         expect.anything(),
         expect.any(String)
       )
-      expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
+      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
         availableVol1.phone,
         expect.stringContaining(availableVol1.firstName),
         expect.any(String)
       )
-      expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
+      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
         availableVol2.phone,
         expect.stringContaining(availableVol2.firstName),
         expect.any(String)
@@ -1193,7 +1323,7 @@ describe('TextVolunteers job', () => {
       mockedNotificationService.getVolunteersTextedSinceXMinutesAgo.mockResolvedValueOnce(
         new Set([recentlyTextedVol.id])
       )
-      mockedTwilioService.sendTextMessage
+      mockedTwilioClient.sendTextMessage
         .mockResolvedValueOnce('msg-id-1')
         .mockResolvedValueOnce('msg-id-2')
 
@@ -1210,18 +1340,18 @@ describe('TextVolunteers job', () => {
 
       await textVolunteers(job as Job)
 
-      expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledTimes(2)
-      expect(mockedTwilioService.sendTextMessage).not.toHaveBeenCalledWith(
+      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledTimes(2)
+      expect(mockedTwilioClient.sendTextMessage).not.toHaveBeenCalledWith(
         recentlyTextedVol.phone,
         expect.anything(),
         expect.any(String)
       )
-      expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
+      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
         availableVol1.phone,
         expect.stringContaining(availableVol1.firstName),
         expect.any(String)
       )
-      expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
+      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
         availableVol2.phone,
         expect.stringContaining(availableVol2.firstName),
         expect.any(String)
@@ -1265,7 +1395,7 @@ describe('TextVolunteers job', () => {
       mockedCacheService.getIfExists.mockResolvedValueOnce(
         JSON.stringify([vol1, vol2, vol3, vol4])
       )
-      mockedTwilioService.sendTextMessage
+      mockedTwilioClient.sendTextMessage
         .mockResolvedValueOnce('msg-id-1')
         .mockResolvedValueOnce('msg-id-2')
         .mockResolvedValueOnce('msg-id-3')
@@ -1282,7 +1412,7 @@ describe('TextVolunteers job', () => {
       }
       await textVolunteers(job as Job)
 
-      expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledTimes(3)
+      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledTimes(3)
 
       expect(
         mockedSessionService.addSessionSmsNotification
@@ -1304,7 +1434,7 @@ describe('TextVolunteers job', () => {
           studentOrgDisplay: 'Example School',
         } as AssociatedPartner
       )
-      mockedTwilioService.sendTextMessage.mockResolvedValueOnce('msg-id')
+      mockedTwilioClient.sendTextMessage.mockResolvedValueOnce('msg-id')
 
       const sessionId = getDbUlid()
       const job = {
@@ -1319,18 +1449,18 @@ describe('TextVolunteers job', () => {
       }
       await textVolunteers(job as Job)
 
-      expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledTimes(1)
-      expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
+      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledTimes(1)
+      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
         volunteer.phone,
         expect.stringContaining(volunteer.firstName),
         expect.any(String)
       )
-      expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
+      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
         volunteer.phone,
         expect.stringContaining('Example School student'),
         expect.any(String)
       )
-      expect(mockedTwilioService.sendTextMessage).not.toHaveBeenCalledWith(
+      expect(mockedTwilioClient.sendTextMessage).not.toHaveBeenCalledWith(
         volunteer.phone,
         expect.stringContaining('a student needs help'),
         expect.any(String)
@@ -1357,7 +1487,7 @@ describe('TextVolunteers job', () => {
       mockedCacheService.getIfExists.mockResolvedValueOnce(
         JSON.stringify([volunteer])
       )
-      mockedTwilioService.sendTextMessage.mockResolvedValueOnce('msg-id')
+      mockedTwilioClient.sendTextMessage.mockResolvedValueOnce('msg-id')
 
       const sessionId = getDbUlid()
       const job = {
@@ -1371,12 +1501,12 @@ describe('TextVolunteers job', () => {
       }
       await textVolunteers(job as Job)
 
-      expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
+      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
         volunteer.phone,
         expect.stringContaining(volunteer.firstName),
         expect.any(String)
       )
-      expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledWith(
+      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
         volunteer.phone,
         expect.stringContaining('a student needs help'),
         expect.any(String)
@@ -1416,7 +1546,7 @@ describe('TextVolunteers job', () => {
       }
       await textVolunteers(job as Job)
 
-      expect(mockedTwilioService.sendTextMessage).not.toHaveBeenCalled()
+      expect(mockedTwilioClient.sendTextMessage).not.toHaveBeenCalled()
       expect(mockedLogger.warn).toHaveBeenCalledWith(
         { sessionId, subject: SUBJECTS.ALGEBRA_ONE },
         'No volunteers found to text for session.'
@@ -1474,7 +1604,7 @@ describe('TextVolunteers job', () => {
       mockedNotificationService.getVolunteersTextedSinceXMinutesAgo.mockResolvedValueOnce(
         new Set([recentVol.id])
       )
-      mockedTwilioService.sendTextMessage
+      mockedTwilioClient.sendTextMessage
         .mockResolvedValueOnce('msg-id-1')
         .mockResolvedValueOnce('msg-id-2')
 
@@ -1491,38 +1621,38 @@ describe('TextVolunteers job', () => {
       }
       await textVolunteers(job as Job)
 
-      expect(mockedTwilioService.sendTextMessage).toHaveBeenCalledTimes(2)
-      expect(mockedTwilioService.sendTextMessage).toHaveBeenNthCalledWith(
+      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledTimes(2)
+      expect(mockedTwilioClient.sendTextMessage).toHaveBeenNthCalledWith(
         1,
         favoritedVol.phone,
         expect.stringContaining(favoritedVol.firstName),
         expect.any(String)
       )
-      expect(mockedTwilioService.sendTextMessage).toHaveBeenNthCalledWith(
+      expect(mockedTwilioClient.sendTextMessage).toHaveBeenNthCalledWith(
         1,
         favoritedVol.phone,
         expect.stringContaining('a student needs help'),
         expect.any(String)
       )
-      expect(mockedTwilioService.sendTextMessage).not.toHaveBeenNthCalledWith(
+      expect(mockedTwilioClient.sendTextMessage).not.toHaveBeenNthCalledWith(
         1,
         favoritedVol.phone,
         expect.stringContaining('Example School student'),
         expect.any(String)
       )
-      expect(mockedTwilioService.sendTextMessage).toHaveBeenNthCalledWith(
+      expect(mockedTwilioClient.sendTextMessage).toHaveBeenNthCalledWith(
         2,
         partnerVol.phone,
         expect.stringContaining(partnerVol.firstName),
         expect.any(String)
       )
-      expect(mockedTwilioService.sendTextMessage).toHaveBeenNthCalledWith(
+      expect(mockedTwilioClient.sendTextMessage).toHaveBeenNthCalledWith(
         2,
         partnerVol.phone,
         expect.stringContaining('Example School student'),
         expect.any(String)
       )
-      expect(mockedTwilioService.sendTextMessage).not.toHaveBeenNthCalledWith(
+      expect(mockedTwilioClient.sendTextMessage).not.toHaveBeenNthCalledWith(
         2,
         partnerVol.phone,
         expect.stringContaining('a student needs help')
@@ -1575,11 +1705,11 @@ describe('TextVolunteers job', () => {
       expect(mockedQueueService.add).toHaveBeenCalledTimes(1)
       expect(mockedQueueService.add).toHaveBeenCalledWith(
         expect.anything(),
+        { delay: 30000 },
         expect.objectContaining({
           ...job.data,
           notificationRound: 2,
-        }),
-        expect.objectContaining({ delay: 30000 })
+        })
       )
     })
 
@@ -1608,11 +1738,11 @@ describe('TextVolunteers job', () => {
       expect(mockedQueueService.add).toHaveBeenCalledTimes(1)
       expect(mockedQueueService.add).toHaveBeenCalledWith(
         expect.anything(),
+        { delay: 30000 },
         expect.objectContaining({
           ...job.data,
           notificationRound: 6,
-        }),
-        expect.objectContaining({ delay: 30000 })
+        })
       )
     })
 

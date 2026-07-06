@@ -1,4 +1,4 @@
-import { USER_BAN_TYPES } from '../../constants'
+import { GRADES, USER_BAN_TYPES } from '../../constants'
 import { Pgid, Ulid } from '../pgUtils'
 import { RoleContext } from '../../services/UserRolesService'
 
@@ -26,11 +26,12 @@ export type User = {
   phoneVerified: boolean
   proxyEmail?: string
   referralCode: string
-  referredBy?: Ulid
   signupSourceId?: Pgid
   testUser: boolean
   verified: boolean
   preferredLanguage: string
+  tutoringLanguages?: string[]
+  experience?: Record<string, string>
   createdAt: Date
   updatedAt: Date
   // Volunteer-only
@@ -49,7 +50,7 @@ export type CreateUserPayload = {
   phone?: string
   phoneVerified?: boolean
   proxyEmail?: string
-  referredBy?: Ulid
+  referredByCode?: string
   signupSourceId?: number
   verified?: boolean
   smsConsent?: boolean
@@ -129,4 +130,5 @@ export type EditUserProfilePayload = {
   schoolId?: string
   signupSourceId?: number
   otherSignupSource?: string
+  gradeLevel?: GRADES
 }

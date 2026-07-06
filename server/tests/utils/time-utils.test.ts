@@ -1,4 +1,5 @@
 import {
+  daysInMs,
   hoursInMs,
   hoursInSeconds,
   minutesInMs,
@@ -56,5 +57,16 @@ describe('hoursInSeconds', () => {
     [2, 2 * 60 * 60],
   ])('Gives the correct value', (hours, seconds) => {
     expect(hoursInSeconds(hours)).toEqual(seconds)
+  })
+})
+
+describe('daysInMs', () => {
+  it.each([
+    [1, 86_400_000],
+    [2, 86_400_000 * 2],
+    [0.5, 43_200_000],
+    [14, 1_209_600_000],
+  ])('Gives the correct value', (days, ms) => {
+    expect(daysInMs(days)).toEqual(ms)
   })
 })

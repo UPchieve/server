@@ -12,11 +12,17 @@ export interface IInsertTextModerationPatternParams {
 
 /** 'InsertTextModerationPattern' return type */
 export interface IInsertTextModerationPatternResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Regex flags applied to the pattern (e.g. i for case-insensitive) */
   flags: string | null;
+  /** not_pii: Primary key */
   id: number;
+  /** not_pii: Regular expression pattern used for text moderation matching */
   regex: string;
+  /** not_pii: JSON moderation rules associated with this pattern */
   rules: Json | null;
+  /** not_pii */
   updatedAt: Date;
 }
 
@@ -45,11 +51,17 @@ export type IGetTextModerationPatternsParams = void;
 
 /** 'GetTextModerationPatterns' return type */
 export interface IGetTextModerationPatternsResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Regex flags applied to the pattern (e.g. i for case-insensitive) */
   flags: string | null;
+  /** not_pii: Primary key */
   id: number;
+  /** not_pii: Regular expression pattern used for text moderation matching */
   regex: string;
+  /** not_pii: JSON moderation rules associated with this pattern */
   rules: Json | null;
+  /** not_pii */
   updatedAt: Date;
 }
 

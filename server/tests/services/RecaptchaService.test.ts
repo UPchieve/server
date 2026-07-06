@@ -1,8 +1,4 @@
 import { validateRequestRecaptcha } from '../../services/RecaptchaService'
-import {
-  LowRecaptchaScoreError,
-  MissingRecaptchaTokenError,
-} from '../../models/Errors'
 import axios from 'axios'
 
 jest.mock('axios')
@@ -19,37 +15,36 @@ describe('RecaptchaService', () => {
     })
   })
 
-  it('Successfully passes validations', async () => {
-    await validateRequestRecaptcha({
+  it('Should return true if successfully passes validations', async () => {
+    const result = await validateRequestRecaptcha({
       headers: {
         'g-recaptcha-response': 'testToken',
       },
     } as any)
+    expect(result).toBe(true)
   })
 
-  it('Should throw a MissingRecaptchaTokenError if the token is not present', async () => {
-    await expect(() =>
-      validateRequestRecaptcha({ headers: {} } as any)
-    ).rejects.toThrow(MissingRecaptchaTokenError)
+  it('Should return false if the token is not present', async () => {
+    const result = await validateRequestRecaptcha({ headers: {} } as any)
+    expect(result).toBe(false)
   })
 
-  it('Should throw an error if the score cannot be retrieved', async () => {
+  it('Should return false if the score cannot be retrieved', async () => {
     const axiosPostMock = axios.post as jest.Mock
     axiosPostMock.mockResolvedValue({
       data: {
         success: false,
       },
     })
-    await expect(() =>
-      validateRequestRecaptcha({
-        headers: {
-          'g-recaptcha-response': 'testToken',
-        },
-      } as any)
-    ).rejects.toThrow('Could not get recaptcha score for request')
+    const result = await validateRequestRecaptcha({
+      headers: {
+        'g-recaptcha-response': 'testToken',
+      },
+    } as any)
+    expect(result).toBe(false)
   })
 
-  it('Should throw a LowRecaptchaScoreError if the score is below threshold', async () => {
+  it('Should return false if the score is below threshold', async () => {
     const axiosPostMock = axios.post as jest.Mock
     axiosPostMock.mockResolvedValue({
       data: {
@@ -58,12 +53,11 @@ describe('RecaptchaService', () => {
         success: true,
       },
     })
-    await expect(() =>
-      validateRequestRecaptcha({
-        headers: {
-          'g-recaptcha-response': 'testToken',
-        },
-      } as any)
-    ).rejects.toThrow(LowRecaptchaScoreError)
+    const result = await validateRequestRecaptcha({
+      headers: {
+        'g-recaptcha-response': 'testToken',
+      },
+    } as any)
+    expect(result).toBe(false)
   })
 })

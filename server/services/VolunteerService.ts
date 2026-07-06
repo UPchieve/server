@@ -1,6 +1,7 @@
 import {
   ACCOUNT_USER_ACTIONS,
   EVENTS,
+  GRADES,
   PHOTO_ID_STATUS,
   STATUS,
   TRAINING_QUIZZES,
@@ -9,11 +10,13 @@ import { Ulid, Uuid } from '../models/pgUtils'
 import { createAccountAction } from '../models/UserAction'
 import * as VolunteerRepo from '../models/Volunteer'
 import * as UsersSchoolsRepo from '../models/UsersSchools'
+import * as UsersGradeLevelRepo from '../models/UsersGradeLevels'
 import { Jobs } from '../worker/jobs'
 import * as AnalyticsService from './AnalyticsService'
 import * as NTHSService from './NTHSGroupsService'
 import { getTotalElapsedAvailabilityForDateRange } from './AvailabilityService'
 import * as MailService from './MailService'
+import * as ReferralService from './ReferralService'
 import QueueService from './QueueService'
 import { getTimeTutoredForDateRange } from './SessionService'
 import { getQuizzesPassedForDateRangeById } from '../models/UserAction'
@@ -23,12 +26,14 @@ import {
   TextableVolunteer,
   VolunteerForOnboarding,
   VolunteerOccupations,
+  VolunteerProfileUpdate,
   VolunteerWithReadyToCoachInfo,
 } from '../models/Volunteer'
 import * as cache from '../cache'
 import { getSubjectsWithTopic } from './SubjectsService'
-import { countReferredUsers } from './UserService'
 import logger from '../logger'
+import { isHighSchoolGrade } from '../utils/grade-levels'
+import { daysInMs } from '../utils/time-utils'
 
 export interface HourSummaryStats {
   totalCoachingHours: number
@@ -46,9 +51,13 @@ type VolunteerSubjectProfile = {
   mutedSubjects: string[]
 }
 
-export function totalReferralMinutes(volunteerId: string) {
-  const totalReferredVolunteers = Number(countReferredUsers(volunteerId))
-  return totalReferredVolunteers * 12 // volunteer minutes earned per referral
+export const VOLUNTEER_MINUTES_EARNED_PER_REFERRAL = 12
+
+export async function totalReferralMinutes(volunteerId: string) {
+  const totalReferredVolunteers = Number(
+    await ReferralService.getReferredUsersCount(volunteerId)
+  )
+  return totalReferredVolunteers * VOLUNTEER_MINUTES_EARNED_PER_REFERRAL
 }
 
 export async function getHourSummaryStats(
@@ -92,18 +101,19 @@ export async function getHourSummaryStats(
     totalQuizzesPassed: quizzesPassed,
     totalElapsedAvailability: elapsedAvailability,
     totalVolunteerHours: totalVolunteerHours,
-    totalReferralMinutes: totalReferralMinutes(volunteerId),
+    totalReferralMinutes: await totalReferralMinutes(volunteerId),
   }
 }
 
 export async function queueOnboardingReminderOneEmail(
   volunteerId: Uuid
 ): Promise<void> {
-  const sevenDaysInMs = 1000 * 60 * 60 * 24 * 7
   await QueueService.add(
     Jobs.EmailOnboardingReminderOne,
-    { volunteerId },
-    { delay: sevenDaysInMs }
+    { delay: daysInMs(7) },
+    {
+      volunteerId,
+    }
   )
 }
 
@@ -113,20 +123,14 @@ export async function queueOnboardingEventEmails(
 ): Promise<void> {
   await QueueService.add(
     Jobs.EmailVolunteerQuickTips,
-    { volunteerId },
-    // Process job 5 days after the volunteer is onboarded.
-    {
-      delay: 1000 * 60 * 60 * 24 * 5,
-    }
+    { delay: daysInMs(5) },
+    { volunteerId }
   )
   if (isPartnerVolunteer) {
     await QueueService.add(
       Jobs.EmailPartnerVolunteerLowHoursSelected,
-      { volunteerId },
-      // Process job 10 days after the volunteer is onboarded.
-      {
-        delay: 1000 * 60 * 60 * 24 * 10,
-      }
+      { delay: daysInMs(10) },
+      { volunteerId }
     )
   }
 }
@@ -137,12 +141,16 @@ export async function queueFailedFirstAttemptedQuizEmail(
   firstName: string,
   volunteerId: Uuid
 ) {
-  await QueueService.add(Jobs.EmailFailedFirstAttemptedQuiz, {
-    category,
-    email,
-    firstName,
-    volunteerId,
-  })
+  await QueueService.add(
+    Jobs.EmailFailedFirstAttemptedQuiz,
+    { delay: 0 },
+    {
+      category,
+      email,
+      firstName,
+      volunteerId,
+    }
+  )
 }
 
 export async function getVolunteersToReview(page: number = 1): Promise<{
@@ -231,87 +239,112 @@ export async function updatePendingVolunteerStatus(
     MailService.sendApprovedNotOnboardedEmail(volunteerBeforeUpdate)
 }
 
-export async function addBackgroundInfo(
-  volunteerId: Uuid,
-  update: Omit<VolunteerRepo.BackgroundInfo, 'approved'>,
+export async function submitVolunteerBackgroundInfo(
+  userId: Ulid,
+  update: VolunteerProfileUpdate & {
+    phoneNumber?: string
+    signupSourceId?: number
+    otherSignupSource?: string
+    highSchoolId?: Ulid | null
+  },
   ip?: string
-): Promise<{
-  wasRemovedFromNTHS: boolean
-}> {
-  const volunteer = await VolunteerRepo.getVolunteerContactInfoById(volunteerId)
+) {
+  const volunteer = await VolunteerRepo.getVolunteerContactInfoById(userId)
   if (!volunteer) throw new Error('Volunteer for background info not found')
-  const volunteerPartnerOrg = volunteer.volunteerPartnerOrg
-  let approved: boolean | undefined
+  const isPartnerVolunteer = !!volunteer.volunteerPartnerOrg
+  const nthsGroups = await NTHSService.getNTHSGroupsByMember(userId)
   let wasRemovedFromNTHS = false
 
   await runInTransaction(async (tc) => {
-    if (volunteerPartnerOrg) {
-      approved = true
+    if (isPartnerVolunteer && !volunteer.approved) {
+      await VolunteerRepo.updateVolunteerApproved(userId, true, tc)
       await createAccountAction(
         {
-          userId: volunteerId,
+          userId,
           action: ACCOUNT_USER_ACTIONS.APPROVED,
           ipAddress: ip,
         },
         tc
       )
-      // TODO: if not onboarded, send a partner-specific version of the "approved but not onboarded" email
     }
-
-    // remove fields with empty strings and empty arrays from the update
-    for (const field in update) {
-      const tField = field as keyof typeof update
-      if (
-        (update &&
-          update[tField] &&
-          Array.isArray(update[tField]) &&
-          (update[tField] as Array<any>).length === 0) ||
-        update[tField] === ''
+    if (update.occupations) {
+      await VolunteerRepo.deleteVolunteerOccupations(userId, tc)
+      await VolunteerRepo.insertVolunteerOccupations(
+        userId,
+        update.occupations,
+        tc
       )
-        update[tField] = undefined
     }
+    await VolunteerRepo.updateVolunteerProfile(
+      userId,
+      {
+        experience: update.experience,
+        company: update.company,
+        college: update.college,
+        linkedInUrl: update.linkedInUrl,
+        country: update.country,
+        state: update.state,
+        city: update.city,
+        languages: update.languages,
+      },
+      tc
+    )
+    await VolunteerRepo.updateSsoUserBackgroundInfo(
+      userId,
+      {
+        // @TODO: Update client to send these as nulls, not empty strings ''
+        phone: update.phoneNumber || null,
+        signupSourceId: update.signupSourceId || null,
+        otherSignupSource: update.otherSignupSource || null,
+      },
+      tc
+    )
 
-    await createAccountAction(
-      {
-        userId: volunteerId,
-        action: ACCOUNT_USER_ACTIONS.COMPLETED_BACKGROUND_INFO,
-        ipAddress: ip,
-      },
-      tc
-    )
-    await VolunteerRepo.updateVolunteerBackgroundInfo(
-      volunteerId,
-      {
-        ...update,
-        approved,
-      },
-      tc
-    )
     if (update.highSchoolId) {
       await UsersSchoolsRepo.upsertUsersSchool(
-        volunteerId,
+        userId,
         update.highSchoolId,
         'student_at_school',
         tc
       )
     }
-    const nthsGroups = await NTHSService.getNTHSGroupsByMember(volunteerId, tc)
-    if (nthsGroups.length) {
+    if (nthsGroups.length && update.occupations && update.occupations.length) {
       // NTHS members have to be high schoolers. If this user is part of any NTHS chapters, and they are not in high school,
       // they must be removed from the group immediately.
-      const isInHighSchool =
-        update.occupation &&
-        update.occupation.includes(VolunteerOccupations.HIGH_SCHOOL_STUDENT)
-      if (!isInHighSchool) {
+      if (
+        !update.occupations.includes(
+          VolunteerOccupations.HIGH_SCHOOL_STUDENT
+        ) ||
+        !update.gradeLevel ||
+        !isHighSchoolGrade(update.gradeLevel)
+      ) {
         wasRemovedFromNTHS = true
-        await NTHSService.deactivateNonHighSchoolMember(
-          volunteerId,
-          nthsGroups,
-          tc
-        )
+        await NTHSService.deactivateNonHighSchoolMember(userId, nthsGroups, tc)
       }
     }
+
+    if (update.gradeLevel) {
+      await UsersGradeLevelRepo.upsertUserGradeLevel(
+        userId,
+        update.gradeLevel,
+        tc
+      )
+    } else if (
+      update.occupations?.includes(VolunteerOccupations.UNDERGRAD_STUDENT)
+    ) {
+      await UsersGradeLevelRepo.upsertUserGradeLevel(userId, GRADES.COLLEGE, tc)
+    }
+
+    await createAccountAction(
+      {
+        userId,
+        action: ACCOUNT_USER_ACTIONS.COMPLETED_BACKGROUND_INFO,
+        ipAddress: ip,
+      },
+      tc
+    )
   })
+
   return { wasRemovedFromNTHS }
 }
 
@@ -427,9 +460,13 @@ export async function getSubjectPresence(): Promise<VolunteerSubjectPresenceMap>
 export async function queueNationalTutorCertificateEmail(
   volunteerId: Uuid
 ): Promise<void> {
-  await QueueService.add(Jobs.SendNationalTutorCertificateEmail, {
-    volunteerId,
-  })
+  await QueueService.add(
+    Jobs.SendNationalTutorCertificateEmail,
+    { delay: 0 },
+    {
+      volunteerId,
+    }
+  )
 }
 
 export async function getVolunteersForTextNotifications(): Promise<

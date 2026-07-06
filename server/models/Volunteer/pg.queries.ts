@@ -21,11 +21,19 @@ export interface IGetVolunteerContactInfoByIdParams {
 
 /** 'GetVolunteerContactInfoById' return type */
 export interface IGetVolunteerContactInfoByIdResult {
+  /** not_pii: Whether the volunteer application has been approved */
+  approved: boolean;
+  /** pii: User email address */
   email: string;
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
+  /** pii: Last name */
   lastName: string;
+  /** pii: Phone number */
   phone: string | null;
+  /** not_pii: Unique URL-safe slug */
   volunteerPartnerOrg: string;
 }
 
@@ -35,7 +43,7 @@ export interface IGetVolunteerContactInfoByIdQuery {
   result: IGetVolunteerContactInfoByIdResult;
 }
 
-const getVolunteerContactInfoByIdIR: any = {"usedParamSet":{"userId":true,"banned":true,"deactivated":true,"testUser":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":352,"b":359}]},{"name":"banned","required":false,"transform":{"type":"scalar"},"locs":[{"a":370,"b":376},{"a":407,"b":413},{"a":489,"b":495}]},{"name":"deactivated","required":false,"transform":{"type":"scalar"},"locs":[{"a":585,"b":596},{"a":646,"b":657}]},{"name":"testUser","required":false,"transform":{"type":"scalar"},"locs":[{"a":703,"b":711},{"a":759,"b":767}]}],"statement":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    phone,\n    email,\n    volunteer_partner_orgs.key AS volunteer_partner_org\nFROM\n    users\n    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\nWHERE\n    users.id = :userId!\n    AND (:banned::boolean IS NULL\n        OR (:banned::boolean IS TRUE\n            AND users.ban_type = 'complete')\n        OR (:banned::boolean IS FALSE\n            AND users.ban_type IS DISTINCT FROM 'complete'))\n    AND (:deactivated::boolean IS NULL\n        OR users.deactivated = :deactivated::boolean)\n    AND deleted IS FALSE\n    AND (:testUser::boolean IS NULL\n        OR users.test_user = :testUser::boolean)"};
+const getVolunteerContactInfoByIdIR: any = {"usedParamSet":{"userId":true,"banned":true,"deactivated":true,"testUser":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":385,"b":392}]},{"name":"banned","required":false,"transform":{"type":"scalar"},"locs":[{"a":403,"b":409},{"a":440,"b":446},{"a":522,"b":528}]},{"name":"deactivated","required":false,"transform":{"type":"scalar"},"locs":[{"a":618,"b":629},{"a":679,"b":690}]},{"name":"testUser","required":false,"transform":{"type":"scalar"},"locs":[{"a":736,"b":744},{"a":792,"b":800}]}],"statement":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    phone,\n    email,\n    volunteer_partner_orgs.key AS volunteer_partner_org,\n    volunteer_profiles.approved\nFROM\n    users\n    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\nWHERE\n    users.id = :userId!\n    AND (:banned::boolean IS NULL\n        OR (:banned::boolean IS TRUE\n            AND users.ban_type = 'complete')\n        OR (:banned::boolean IS FALSE\n            AND users.ban_type IS DISTINCT FROM 'complete'))\n    AND (:deactivated::boolean IS NULL\n        OR users.deactivated = :deactivated::boolean)\n    AND deleted IS FALSE\n    AND (:testUser::boolean IS NULL\n        OR users.test_user = :testUser::boolean)"};
 
 /**
  * Query generated from SQL:
@@ -46,7 +54,8 @@ const getVolunteerContactInfoByIdIR: any = {"usedParamSet":{"userId":true,"banne
  *     last_name,
  *     phone,
  *     email,
- *     volunteer_partner_orgs.key AS volunteer_partner_org
+ *     volunteer_partner_orgs.key AS volunteer_partner_org,
+ *     volunteer_profiles.approved
  * FROM
  *     users
  *     LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
@@ -75,11 +84,17 @@ export interface IGetVolunteerContactInfoByIdsParams {
 
 /** 'GetVolunteerContactInfoByIds' return type */
 export interface IGetVolunteerContactInfoByIdsResult {
+  /** pii: User email address */
   email: string;
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
+  /** pii: Last name */
   lastName: string;
+  /** pii: Phone number */
   phone: string | null;
+  /** not_pii: Unique URL-safe slug */
   volunteerPartnerOrg: string;
 }
 
@@ -124,11 +139,17 @@ export interface IGetVolunteersForBlackoutOverParams {
 
 /** 'GetVolunteersForBlackoutOver' return type */
 export interface IGetVolunteersForBlackoutOverResult {
+  /** pii: User email address */
   email: string;
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
+  /** pii: Last name */
   lastName: string;
+  /** pii: Phone number */
   phone: string | null;
+  /** not_pii: Unique URL-safe slug */
   volunteerPartnerOrg: string;
 }
 
@@ -175,11 +196,17 @@ export interface IGetVolunteerForQuickTipsParams {
 
 /** 'GetVolunteerForQuickTips' return type */
 export interface IGetVolunteerForQuickTipsResult {
+  /** pii: User email address */
   email: string;
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
+  /** pii: Last name */
   lastName: string;
+  /** pii: Phone number */
   phone: string | null;
+  /** not_pii: Unique URL-safe slug */
   volunteerPartnerOrg: string;
 }
 
@@ -225,11 +252,17 @@ export interface IGetPartnerVolunteerForLowHoursParams {
 
 /** 'GetPartnerVolunteerForLowHours' return type */
 export interface IGetPartnerVolunteerForLowHoursResult {
+  /** pii: User email address */
   email: string;
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
+  /** pii: Last name */
   lastName: string;
+  /** pii: Phone number */
   phone: string | null;
+  /** not_pii: Unique URL-safe slug */
   volunteerPartnerOrg: string;
 }
 
@@ -284,11 +317,17 @@ export interface IGetVolunteersForWeeklyHourSummaryParams {
 
 /** 'GetVolunteersForWeeklyHourSummary' return type */
 export interface IGetVolunteersForWeeklyHourSummaryResult {
+  /** pii: User email address */
   email: string;
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
+  /** pii: Last name */
   lastName: string;
+  /** not_pii: Whether the hour summary intro email has been sent */
   sentHourSummaryIntroEmail: boolean;
+  /** not_pii: Unique URL-safe slug */
   volunteerPartnerOrg: string;
 }
 
@@ -346,6 +385,7 @@ export interface IUpdateVolunteerHourSummaryIntroByIdParams {
 
 /** 'UpdateVolunteerHourSummaryIntroById' return type */
 export interface IUpdateVolunteerHourSummaryIntroByIdResult {
+  /** not_pii: Foreign key to upchieve.users */
   ok: string;
 }
 
@@ -382,6 +422,7 @@ export interface IUpdateTimezoneByUserIdParams {
 
 /** 'UpdateTimezoneByUserId' return type */
 export interface IUpdateTimezoneByUserIdResult {
+  /** not_pii: Foreign key to upchieve.users */
   ok: string;
 }
 
@@ -415,6 +456,7 @@ export type IGetVolunteerIdsForElapsedAvailabilityParams = void;
 
 /** 'GetVolunteerIdsForElapsedAvailability' return type */
 export interface IGetVolunteerIdsForElapsedAvailabilityResult {
+  /** not_pii: Foreign key to upchieve.users */
   userId: string;
 }
 
@@ -452,6 +494,7 @@ export interface IGetVolunteersForTotalHoursParams {
 
 /** 'GetVolunteersForTotalHours' return type */
 export interface IGetVolunteersForTotalHoursResult {
+  /** not_pii: Primary key */
   id: string;
 }
 
@@ -497,14 +540,21 @@ export interface IGetVolunteerForOnboardingByIdParams {
 
 /** 'GetVolunteerForOnboardingById' return type */
 export interface IGetVolunteerForOnboardingByIdResult {
+  /** not_pii: Whether the volunteer application has been approved */
   approved: boolean;
   availabilityLastModifiedAt: Date | null;
+  /** pii: Country of residence */
   country: string | null;
+  /** pii: User email address */
   email: string;
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Whether the volunteer has completed all onboarding steps */
   onboarded: boolean;
   subjects: stringArray | null;
+  /** not_pii: Unique URL-safe slug */
   volunteerPartnerOrgKey: string;
 }
 
@@ -585,11 +635,17 @@ export interface IGetVolunteersForTelecomReportParams {
 
 /** 'GetVolunteersForTelecomReport' return type */
 export interface IGetVolunteersForTelecomReportResult {
+  /** not_pii */
   createdAt: Date;
+  /** pii: User email address */
   email: string;
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
+  /** pii: Last name */
   lastName: string;
+  /** not_pii: Unique URL-safe slug */
   volunteerPartnerOrg: string;
 }
 
@@ -639,6 +695,7 @@ export interface IGetVolunteersNotifiedBySessionIdParams {
 
 /** 'GetVolunteersNotifiedBySessionId' return type */
 export interface IGetVolunteersNotifiedBySessionIdResult {
+  /** not_pii: Foreign key to upchieve.users; who the notification was sent to */
   userId: string;
 }
 
@@ -671,7 +728,9 @@ export interface IGetVolunteerByReferenceParams {
 
 /** 'GetVolunteerByReference' return type */
 export interface IGetVolunteerByReferenceResult {
+  /** pii: User email address of the reference */
   referenceEmail: string;
+  /** not_pii: Foreign key to upchieve.users */
   volunteerId: string;
 }
 
@@ -712,6 +771,7 @@ export interface IAddVolunteerReferenceByIdParams {
 
 /** 'AddVolunteerReferenceById' return type */
 export interface IAddVolunteerReferenceByIdResult {
+  /** not_pii: Primary key */
   ok: string;
 }
 
@@ -763,6 +823,7 @@ export interface IUpdateVolunteerReferenceSubmissionParams {
 
 /** 'UpdateVolunteerReferenceSubmission' return type */
 export interface IUpdateVolunteerReferenceSubmissionResult {
+  /** not_pii: Primary key */
   ok: string;
 }
 
@@ -823,11 +884,17 @@ export interface IGetInactiveVolunteersParams {
 
 /** 'GetInactiveVolunteers' return type */
 export interface IGetInactiveVolunteersResult {
+  /** pii: User email address */
   email: string;
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
+  /** pii: Last name */
   lastName: string;
+  /** pii: Phone number */
   phone: string | null;
+  /** not_pii: Unique URL-safe slug */
   volunteerPartnerOrg: string;
 }
 
@@ -874,6 +941,7 @@ export interface IUpdateVolunteerReferenceSentByIdParams {
 
 /** 'UpdateVolunteerReferenceSentById' return type */
 export interface IUpdateVolunteerReferenceSentByIdResult {
+  /** not_pii: Primary key */
   ok: string;
 }
 
@@ -917,6 +985,7 @@ export interface IUpdateVolunteersReadyToCoachByIdsParams {
 
 /** 'UpdateVolunteersReadyToCoachByIds' return type */
 export interface IUpdateVolunteersReadyToCoachByIdsResult {
+  /** not_pii: Foreign key to upchieve.users */
   ok: string;
 }
 
@@ -953,6 +1022,7 @@ export interface IUpdateVolunteerElapsedAvailabilityByIdParams {
 
 /** 'UpdateVolunteerElapsedAvailabilityById' return type */
 export interface IUpdateVolunteerElapsedAvailabilityByIdResult {
+  /** not_pii: Foreign key to upchieve.users */
   ok: string;
 }
 
@@ -995,6 +1065,7 @@ export interface ISetVolunteerElapsedAvailabilityByIdParams {
 
 /** 'SetVolunteerElapsedAvailabilityById' return type */
 export interface ISetVolunteerElapsedAvailabilityByIdResult {
+  /** not_pii: Foreign key to upchieve.users */
   ok: string;
 }
 
@@ -1031,6 +1102,7 @@ export interface IUpdateVolunteerTotalHoursByIdParams {
 
 /** 'UpdateVolunteerTotalHoursById' return type */
 export interface IUpdateVolunteerTotalHoursByIdResult {
+  /** not_pii: Foreign key to upchieve.users */
   ok: string;
 }
 
@@ -1072,12 +1144,19 @@ export interface IGetVolunteerTrainingCoursesParams {
 
 /** 'GetVolunteerTrainingCourses' return type */
 export interface IGetVolunteerTrainingCoursesResult {
+  /** not_pii: Whether the training course has been completed */
   complete: boolean;
+  /** not_pii: Array of completed training material identifiers */
   completedMaterials: stringArray | null;
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Completion percentage of the training course (0-100) */
   progress: number;
+  /** not_pii: Human-readable name */
   trainingCourse: string;
+  /** not_pii */
   updatedAt: Date;
+  /** not_pii: Foreign key to upchieve.users */
   userId: string;
 }
 
@@ -1120,12 +1199,19 @@ export interface IUpdateVolunteerTrainingByIdParams {
 
 /** 'UpdateVolunteerTrainingById' return type */
 export interface IUpdateVolunteerTrainingByIdResult {
+  /** not_pii: Whether the training course has been completed */
   complete: boolean;
+  /** not_pii: Array of completed training material identifiers */
   completedMaterials: stringArray | null;
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Completion percentage of the training course (0-100) */
   progress: number;
+  /** not_pii: Foreign key to upchieve.training_courses */
   trainingCourseId: number;
+  /** not_pii */
   updatedAt: Date;
+  /** not_pii: Foreign key to upchieve.users */
   userId: string;
 }
 
@@ -1199,6 +1285,7 @@ export interface IUpdateVolunteerPhotoIdByIdParams {
 
 /** 'UpdateVolunteerPhotoIdById' return type */
 export interface IUpdateVolunteerPhotoIdByIdResult {
+  /** not_pii: Foreign key to upchieve.users */
   ok: string;
 }
 
@@ -1241,6 +1328,7 @@ export interface IUpdateVolunteerSentInactive30DayEmailParams {
 
 /** 'UpdateVolunteerSentInactive30DayEmail' return type */
 export interface IUpdateVolunteerSentInactive30DayEmailResult {
+  /** not_pii: Foreign key to upchieve.users */
   ok: string;
 }
 
@@ -1276,6 +1364,7 @@ export interface IUpdateVolunteerSentInactive60DayEmailParams {
 
 /** 'UpdateVolunteerSentInactive60DayEmail' return type */
 export interface IUpdateVolunteerSentInactive60DayEmailResult {
+  /** not_pii: Foreign key to upchieve.users */
   ok: string;
 }
 
@@ -1312,6 +1401,7 @@ export interface IUpdateVolunteerSentInactive90DayEmailParams {
 
 /** 'UpdateVolunteerSentInactive90DayEmail' return type */
 export interface IUpdateVolunteerSentInactive90DayEmailResult {
+  /** not_pii: Foreign key to upchieve.users */
   ok: string;
 }
 
@@ -1345,11 +1435,17 @@ export type IGetVolunteerUnsentReferencesParams = void;
 
 /** 'GetVolunteerUnsentReferences' return type */
 export interface IGetVolunteerUnsentReferencesResult {
+  /** pii: User email address of the reference */
   email: string;
+  /** pii: First name of the reference */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
+  /** pii: Last name of the reference */
   lastName: string;
+  /** not_pii: Human-readable name of the status of the reference */
   status: string;
+  /** not_pii: Foreign key to upchieve.users */
   userId: string;
 }
 
@@ -1390,10 +1486,15 @@ export interface IGetReferencesByVolunteerParams {
 
 /** 'GetReferencesByVolunteer' return type */
 export interface IGetReferencesByVolunteerResult {
+  /** pii: User email address of the reference */
   email: string;
+  /** pii: First name of the reference */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
+  /** pii: Last name of the reference */
   lastName: string;
+  /** not_pii: Human-readable name of the status of the reference */
   status: string;
 }
 
@@ -1434,10 +1535,15 @@ export interface ICheckReferenceExistsBeforeAddingParams {
 /** 'CheckReferenceExistsBeforeAdding' return type */
 export interface ICheckReferenceExistsBeforeAddingResult {
   actions: stringArray | null;
+  /** pii: User email address of the reference */
   email: string;
+  /** pii: First name of the reference */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
+  /** pii: Last name of the reference */
   lastName: string;
+  /** not_pii: Human-readable name of the status of the reference */
   status: string;
 }
 
@@ -1485,19 +1591,33 @@ export interface IGetReferencesByVolunteerForAdminDetailParams {
 
 /** 'GetReferencesByVolunteerForAdminDetail' return type */
 export interface IGetReferencesByVolunteerForAdminDetailResult {
+  /** pii: Additional notes provided by the reference */
   additionalInfo: string | null;
+  /** pii: Reference contact relationship to the volunteer (e.g. colleague, professor) */
   affiliation: string | null;
+  /** pii: Reference rating for agreeableness and approachability (1-5) */
   agreeableAndApproachable: number | null;
+  /** not_pii: Reference rating for communication effectiveness (1-5) */
   communicatesEffectively: number | null;
+  /** pii: User email address of the reference */
   email: string;
+  /** pii: First name of the reference */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
+  /** pii: Last name of the reference */
   lastName: string;
+  /** not_pii: Reference rating for patience (1-5) */
   patient: number | null;
+  /** not_pii: Reference rating for being a positive role model (1-5) */
   positiveRoleModel: number | null;
+  /** pii: Reason the reference submission was rejected */
   rejectionReason: string | null;
+  /** pii: How long the reference has known the volunteer */
   relationshipLength: string | null;
+  /** not_pii: Human-readable name of the status of the reference */
   status: string;
+  /** not_pii: Reference rating for trustworthiness with children (1-5) */
   trustworthyWithChildren: number | null;
 }
 
@@ -1545,16 +1665,26 @@ export interface IGetVolunteerForPendingStatusParams {
 
 /** 'GetVolunteerForPendingStatus' return type */
 export interface IGetVolunteerForPendingStatusResult {
+  /** not_pii: Whether the volunteer application has been approved */
   approved: boolean;
+  /** pii: Country of residence */
   country: string | null;
+  /** pii: User email address */
   email: string;
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
+  /** pii: Last name */
   lastName: string;
   occupations: stringArray | null;
+  /** not_pii: Whether the volunteer has completed all onboarding steps */
   onboarded: boolean;
+  /** pii: Phone number */
   phone: string | null;
+  /** not_pii: Human-readable name */
   photoIdStatus: string;
+  /** not_pii: Unique URL-safe slug */
   volunteerPartnerOrg: string;
 }
 
@@ -1608,6 +1738,7 @@ export interface IUpdateVolunteerReferenceStatusParams {
 
 /** 'UpdateVolunteerReferenceStatus' return type */
 export interface IUpdateVolunteerReferenceStatusResult {
+  /** not_pii: Primary key */
   ok: string;
 }
 
@@ -1645,11 +1776,13 @@ export const updateVolunteerReferenceStatus = new PreparedQuery<IUpdateVolunteer
 
 /** 'UpdateVolunteerApproved' parameters type */
 export interface IUpdateVolunteerApprovedParams {
+  approved: boolean;
   userId: string;
 }
 
 /** 'UpdateVolunteerApproved' return type */
 export interface IUpdateVolunteerApprovedResult {
+  /** not_pii: Foreign key to upchieve.users */
   ok: string;
 }
 
@@ -1659,7 +1792,7 @@ export interface IUpdateVolunteerApprovedQuery {
   result: IUpdateVolunteerApprovedResult;
 }
 
-const updateVolunteerApprovedIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":117,"b":124}]}],"statement":"UPDATE\n    volunteer_profiles\nSET\n    approved = TRUE,\n    updated_at = NOW()\nWHERE\n    volunteer_profiles.user_id = :userId!\nRETURNING\n    volunteer_profiles.user_id AS ok"};
+const updateVolunteerApprovedIR: any = {"usedParamSet":{"approved":true,"userId":true},"params":[{"name":"approved","required":true,"transform":{"type":"scalar"},"locs":[{"a":49,"b":58}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":123,"b":130}]}],"statement":"UPDATE\n    volunteer_profiles\nSET\n    approved = :approved!,\n    updated_at = NOW()\nWHERE\n    volunteer_profiles.user_id = :userId!\nRETURNING\n    volunteer_profiles.user_id AS ok"};
 
 /**
  * Query generated from SQL:
@@ -1667,7 +1800,7 @@ const updateVolunteerApprovedIR: any = {"usedParamSet":{"userId":true},"params":
  * UPDATE
  *     volunteer_profiles
  * SET
- *     approved = TRUE,
+ *     approved = :approved!,
  *     updated_at = NOW()
  * WHERE
  *     volunteer_profiles.user_id = :userId!
@@ -1687,6 +1820,7 @@ export interface IUpdateVolunteerPendingParams {
 
 /** 'UpdateVolunteerPending' return type */
 export interface IUpdateVolunteerPendingResult {
+  /** not_pii: Foreign key to upchieve.users */
   ok: string;
 }
 
@@ -1730,6 +1864,7 @@ export interface IUpdateVolunteerOnboardedParams {
 
 /** 'UpdateVolunteerOnboarded' return type */
 export interface IUpdateVolunteerOnboardedResult {
+  /** not_pii: Foreign key to upchieve.users */
   ok: string;
 }
 
@@ -1766,11 +1901,17 @@ export interface IGetVolunteersForNiceToMeetYouParams {
 
 /** 'GetVolunteersForNiceToMeetYou' return type */
 export interface IGetVolunteersForNiceToMeetYouResult {
+  /** pii: User email address */
   email: string;
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
+  /** pii: Last name */
   lastName: string;
+  /** pii: Phone number */
   phone: string | null;
+  /** not_pii: Unique URL-safe slug */
   volunteerPartnerOrg: string;
 }
 
@@ -1814,11 +1955,17 @@ export type IGetVolunteersForReadyToCoachParams = void;
 
 /** 'GetVolunteersForReadyToCoach' return type */
 export interface IGetVolunteersForReadyToCoachResult {
+  /** pii: User email address */
   email: string;
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
+  /** pii: Last name */
   lastName: string;
+  /** pii: Phone number */
   phone: string | null;
+  /** not_pii: Unique URL-safe slug */
   volunteerPartnerOrg: string;
 }
 
@@ -1867,11 +2014,17 @@ export interface IGetVolunteersForWaitingReferencesParams {
 
 /** 'GetVolunteersForWaitingReferences' return type */
 export interface IGetVolunteersForWaitingReferencesResult {
+  /** pii: User email address */
   email: string;
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
+  /** pii: Last name */
   lastName: string;
+  /** pii: Phone number */
   phone: string | null;
+  /** not_pii: Unique URL-safe slug */
   volunteerPartnerOrg: string;
 }
 
@@ -1924,6 +2077,7 @@ export interface IAddVolunteerCertificationParams {
 
 /** 'AddVolunteerCertification' return type */
 export interface IAddVolunteerCertificationResult {
+  /** not_pii: Foreign key to upchieve.users */
   ok: string;
 }
 
@@ -1971,6 +2125,7 @@ export interface IUpdateVolunteerQuizParams {
 
 /** 'UpdateVolunteerQuiz' return type */
 export interface IUpdateVolunteerQuizResult {
+  /** not_pii: Foreign key to upchieve.users */
   ok: string;
 }
 
@@ -2021,12 +2176,19 @@ export interface IGetVolunteersToReviewParams {
 
 /** 'GetVolunteersToReview' return type */
 export interface IGetVolunteersToReviewResult {
+  /** not_pii */
   createdAt: Date;
+  /** pii: User email address */
   email: string;
+  /** pii: First name */
   firstname: string;
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
+  /** pii: Last name */
   lastname: string;
+  /** pii: Last name */
   lastName: string;
   readyForReviewAt: Date | null;
 }
@@ -2090,12 +2252,19 @@ export interface IGetReferencesToFollowupParams {
 
 /** 'GetReferencesToFollowup' return type */
 export interface IGetReferencesToFollowupResult {
+  /** pii: User email address of the reference */
   referenceEmail: string;
+  /** pii: First name of the reference */
   referenceFirstName: string;
+  /** not_pii: Primary key */
   referenceId: string;
+  /** pii: Last name of the reference */
   referenceLastName: string;
+  /** pii: First name */
   volunteerFirstName: string;
+  /** not_pii: Primary key */
   volunteerId: string;
+  /** pii: Last name */
   volunteerLastName: string;
 }
 
@@ -2137,9 +2306,63 @@ const getReferencesToFollowupIR: any = {"usedParamSet":{"start":true,"end":true}
 export const getReferencesToFollowup = new PreparedQuery<IGetReferencesToFollowupParams,IGetReferencesToFollowupResult>(getReferencesToFollowupIR);
 
 
-/** 'UpdateVolunteerBackgroundInfo' parameters type */
-export interface IUpdateVolunteerBackgroundInfoParams {
-  approved?: boolean | null | void;
+/** 'DeleteVolunteerOccupations' parameters type */
+export interface IDeleteVolunteerOccupationsParams {
+  userId: string;
+}
+
+/** 'DeleteVolunteerOccupations' return type */
+export type IDeleteVolunteerOccupationsResult = void;
+
+/** 'DeleteVolunteerOccupations' query type */
+export interface IDeleteVolunteerOccupationsQuery {
+  params: IDeleteVolunteerOccupationsParams;
+  result: IDeleteVolunteerOccupationsResult;
+}
+
+const deleteVolunteerOccupationsIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":50,"b":57}]}],"statement":"DELETE FROM volunteer_occupations\nWHERE user_id = :userId!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * DELETE FROM volunteer_occupations
+ * WHERE user_id = :userId!
+ * ```
+ */
+export const deleteVolunteerOccupations = new PreparedQuery<IDeleteVolunteerOccupationsParams,IDeleteVolunteerOccupationsResult>(deleteVolunteerOccupationsIR);
+
+
+/** 'InsertVolunteerOccupations' parameters type */
+export interface IInsertVolunteerOccupationsParams {
+  occupations: stringArray;
+  userId: string;
+}
+
+/** 'InsertVolunteerOccupations' return type */
+export type IInsertVolunteerOccupationsResult = void;
+
+/** 'InsertVolunteerOccupations' query type */
+export interface IInsertVolunteerOccupationsQuery {
+  params: IInsertVolunteerOccupationsParams;
+  result: IInsertVolunteerOccupationsResult;
+}
+
+const insertVolunteerOccupationsIR: any = {"usedParamSet":{"userId":true,"occupations":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":67,"b":74}]},{"name":"occupations","required":true,"transform":{"type":"scalar"},"locs":[{"a":88,"b":100}]}],"statement":"INSERT INTO volunteer_occupations (user_id, occupation)\nSELECT\n    :userId!,\n    UNNEST(:occupations!::text[])"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO volunteer_occupations (user_id, occupation)
+ * SELECT
+ *     :userId!,
+ *     UNNEST(:occupations!::text[])
+ * ```
+ */
+export const insertVolunteerOccupations = new PreparedQuery<IInsertVolunteerOccupationsParams,IInsertVolunteerOccupationsResult>(insertVolunteerOccupationsIR);
+
+
+/** 'UpdateVolunteerProfile' parameters type */
+export interface IUpdateVolunteerProfileParams {
   city?: string | null | void;
   college?: string | null | void;
   company?: string | null | void;
@@ -2147,87 +2370,86 @@ export interface IUpdateVolunteerBackgroundInfoParams {
   experience?: Json | null | void;
   languages?: stringArray | null | void;
   linkedInUrl?: string | null | void;
-  occupation: readonly ({
-    userId: string | null | void,
-    occupation: string | null | void,
-    createdAt: DateOrString | null | void,
-    updatedAt: DateOrString | null | void
-  })[];
-  otherSignupSource?: string | null | void;
-  phoneNumber?: string | null | void;
-  signupSourceId?: number | null | void;
   state?: string | null | void;
   userId: string;
 }
 
-/** 'UpdateVolunteerBackgroundInfo' return type */
-export interface IUpdateVolunteerBackgroundInfoResult {
-  ok: string;
+/** 'UpdateVolunteerProfile' return type */
+export interface IUpdateVolunteerProfileResult {
+  /** not_pii: Foreign key to upchieve.users */
+  id: string;
 }
 
-/** 'UpdateVolunteerBackgroundInfo' query type */
-export interface IUpdateVolunteerBackgroundInfoQuery {
-  params: IUpdateVolunteerBackgroundInfoParams;
-  result: IUpdateVolunteerBackgroundInfoResult;
+/** 'UpdateVolunteerProfile' query type */
+export interface IUpdateVolunteerProfileQuery {
+  params: IUpdateVolunteerProfileParams;
+  result: IUpdateVolunteerProfileResult;
 }
 
-const updateVolunteerBackgroundInfoIR: any = {"usedParamSet":{"userId":true,"occupation":true,"approved":true,"experience":true,"company":true,"college":true,"linkedInUrl":true,"country":true,"state":true,"city":true,"languages":true,"phoneNumber":true,"signupSourceId":true,"otherSignupSource":true},"params":[{"name":"occupation","required":true,"transform":{"type":"pick_array_spread","keys":[{"name":"userId","required":false},{"name":"occupation","required":false},{"name":"createdAt","required":false},{"name":"updatedAt","required":false}]},"locs":[{"a":210,"b":221}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":78,"b":85},{"a":827,"b":834}]},{"name":"approved","required":false,"transform":{"type":"scalar"},"locs":[{"a":360,"b":368}]},{"name":"experience","required":false,"transform":{"type":"scalar"},"locs":[{"a":412,"b":422}]},{"name":"company","required":false,"transform":{"type":"scalar"},"locs":[{"a":465,"b":472}]},{"name":"college","required":false,"transform":{"type":"scalar"},"locs":[{"a":512,"b":519}]},{"name":"linkedInUrl","required":false,"transform":{"type":"scalar"},"locs":[{"a":564,"b":575}]},{"name":"country","required":false,"transform":{"type":"scalar"},"locs":[{"a":620,"b":627}]},{"name":"state","required":false,"transform":{"type":"scalar"},"locs":[{"a":665,"b":670}]},{"name":"city","required":false,"transform":{"type":"scalar"},"locs":[{"a":705,"b":709}]},{"name":"languages","required":false,"transform":{"type":"scalar"},"locs":[{"a":748,"b":757}]},{"name":"phoneNumber","required":false,"transform":{"type":"scalar"},"locs":[{"a":941,"b":952}]},{"name":"signupSourceId","required":false,"transform":{"type":"scalar"},"locs":[{"a":999,"b":1013}]},{"name":"otherSignupSource","required":false,"transform":{"type":"scalar"},"locs":[{"a":1074,"b":1091}]}],"statement":"WITH clear_occ AS (\n    DELETE FROM volunteer_occupations\n    WHERE user_id = :userId!\n),\nins_occ AS (\nINSERT INTO volunteer_occupations (user_id, occupation, created_at, updated_at)\n        VALUES\n            :occupation!\n        ON CONFLICT\n            DO NOTHING\n), upd_profile AS (\n    UPDATE\n        volunteer_profiles\n    SET\n        approved = COALESCE(:approved, approved),\n        experience = COALESCE(:experience, experience),\n        company = COALESCE(:company, company),\n        college = COALESCE(:college, college),\n        linkedin_url = COALESCE(:linkedInUrl, linkedin_url),\n        country = COALESCE(:country, country),\n        state = COALESCE(:state, state),\n        city = COALESCE(:city, city),\n        languages = COALESCE(:languages, languages),\n        updated_at = NOW()\n    WHERE\n        user_id = :userId!\n    RETURNING\n        user_id\n),\nupd_user AS (\n    UPDATE\n        users\n    SET\n        phone = COALESCE(:phoneNumber, phone),\n        signup_source_id = COALESCE(:signupSourceId, signup_source_id),\n        other_signup_source = COALESCE(:otherSignupSource, other_signup_source)\n    WHERE\n        id = (\n            SELECT\n                user_id\n            FROM\n                upd_profile)\n        RETURNING\n            id\n)\nSELECT\n    user_id AS ok\nFROM\n    upd_profile"};
+const updateVolunteerProfileIR: any = {"usedParamSet":{"experience":true,"company":true,"college":true,"linkedInUrl":true,"country":true,"state":true,"city":true,"languages":true,"userId":true},"params":[{"name":"experience","required":false,"transform":{"type":"scalar"},"locs":[{"a":60,"b":70}]},{"name":"company","required":false,"transform":{"type":"scalar"},"locs":[{"a":109,"b":116}]},{"name":"college","required":false,"transform":{"type":"scalar"},"locs":[{"a":152,"b":159}]},{"name":"linkedInUrl","required":false,"transform":{"type":"scalar"},"locs":[{"a":200,"b":211}]},{"name":"country","required":false,"transform":{"type":"scalar"},"locs":[{"a":252,"b":259}]},{"name":"state","required":false,"transform":{"type":"scalar"},"locs":[{"a":293,"b":298}]},{"name":"city","required":false,"transform":{"type":"scalar"},"locs":[{"a":329,"b":333}]},{"name":"languages","required":false,"transform":{"type":"scalar"},"locs":[{"a":368,"b":377}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":435,"b":442}]}],"statement":"UPDATE\n    volunteer_profiles\nSET\n    experience = COALESCE(:experience, experience),\n    company = COALESCE(:company, company),\n    college = COALESCE(:college, college),\n    linkedin_url = COALESCE(:linkedInUrl, linkedin_url),\n    country = COALESCE(:country, country),\n    state = COALESCE(:state, state),\n    city = COALESCE(:city, city),\n    languages = COALESCE(:languages, languages),\n    updated_at = NOW()\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS id"};
 
 /**
  * Query generated from SQL:
  * ```
- * WITH clear_occ AS (
- *     DELETE FROM volunteer_occupations
- *     WHERE user_id = :userId!
- * ),
- * ins_occ AS (
- * INSERT INTO volunteer_occupations (user_id, occupation, created_at, updated_at)
- *         VALUES
- *             :occupation!
- *         ON CONFLICT
- *             DO NOTHING
- * ), upd_profile AS (
- *     UPDATE
- *         volunteer_profiles
- *     SET
- *         approved = COALESCE(:approved, approved),
- *         experience = COALESCE(:experience, experience),
- *         company = COALESCE(:company, company),
- *         college = COALESCE(:college, college),
- *         linkedin_url = COALESCE(:linkedInUrl, linkedin_url),
- *         country = COALESCE(:country, country),
- *         state = COALESCE(:state, state),
- *         city = COALESCE(:city, city),
- *         languages = COALESCE(:languages, languages),
- *         updated_at = NOW()
- *     WHERE
- *         user_id = :userId!
- *     RETURNING
- *         user_id
- * ),
- * upd_user AS (
- *     UPDATE
- *         users
- *     SET
- *         phone = COALESCE(:phoneNumber, phone),
- *         signup_source_id = COALESCE(:signupSourceId, signup_source_id),
- *         other_signup_source = COALESCE(:otherSignupSource, other_signup_source)
- *     WHERE
- *         id = (
- *             SELECT
- *                 user_id
- *             FROM
- *                 upd_profile)
- *         RETURNING
- *             id
- * )
- * SELECT
- *     user_id AS ok
- * FROM
- *     upd_profile
+ * UPDATE
+ *     volunteer_profiles
+ * SET
+ *     experience = COALESCE(:experience, experience),
+ *     company = COALESCE(:company, company),
+ *     college = COALESCE(:college, college),
+ *     linkedin_url = COALESCE(:linkedInUrl, linkedin_url),
+ *     country = COALESCE(:country, country),
+ *     state = COALESCE(:state, state),
+ *     city = COALESCE(:city, city),
+ *     languages = COALESCE(:languages, languages),
+ *     updated_at = NOW()
+ * WHERE
+ *     user_id = :userId!
+ * RETURNING
+ *     user_id AS id
  * ```
  */
-export const updateVolunteerBackgroundInfo = new PreparedQuery<IUpdateVolunteerBackgroundInfoParams,IUpdateVolunteerBackgroundInfoResult>(updateVolunteerBackgroundInfoIR);
+export const updateVolunteerProfile = new PreparedQuery<IUpdateVolunteerProfileParams,IUpdateVolunteerProfileResult>(updateVolunteerProfileIR);
+
+
+/** 'UpdateSsoUserBackgroundInfo' parameters type */
+export interface IUpdateSsoUserBackgroundInfoParams {
+  otherSignupSource?: string | null | void;
+  phoneNumber?: string | null | void;
+  signupSourceId?: number | null | void;
+  userId: string;
+}
+
+/** 'UpdateSsoUserBackgroundInfo' return type */
+export interface IUpdateSsoUserBackgroundInfoResult {
+  /** not_pii: Primary key */
+  id: string;
+}
+
+/** 'UpdateSsoUserBackgroundInfo' query type */
+export interface IUpdateSsoUserBackgroundInfoQuery {
+  params: IUpdateSsoUserBackgroundInfoParams;
+  result: IUpdateSsoUserBackgroundInfoResult;
+}
+
+const updateSsoUserBackgroundInfoIR: any = {"usedParamSet":{"phoneNumber":true,"signupSourceId":true,"otherSignupSource":true,"userId":true},"params":[{"name":"phoneNumber","required":false,"transform":{"type":"scalar"},"locs":[{"a":42,"b":53}]},{"name":"signupSourceId","required":false,"transform":{"type":"scalar"},"locs":[{"a":96,"b":110}]},{"name":"otherSignupSource","required":false,"transform":{"type":"scalar"},"locs":[{"a":167,"b":184}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":223,"b":230}]}],"statement":"UPDATE\n    users\nSET\n    phone = COALESCE(:phoneNumber, phone),\n    signup_source_id = COALESCE(:signupSourceId, signup_source_id),\n    other_signup_source = COALESCE(:otherSignupSource, other_signup_source)\nWHERE\n    id = :userId!\nRETURNING\n    id"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE
+ *     users
+ * SET
+ *     phone = COALESCE(:phoneNumber, phone),
+ *     signup_source_id = COALESCE(:signupSourceId, signup_source_id),
+ *     other_signup_source = COALESCE(:otherSignupSource, other_signup_source)
+ * WHERE
+ *     id = :userId!
+ * RETURNING
+ *     id
+ * ```
+ */
+export const updateSsoUserBackgroundInfo = new PreparedQuery<IUpdateSsoUserBackgroundInfoParams,IUpdateSsoUserBackgroundInfoResult>(updateSsoUserBackgroundInfoIR);
 
 
 /** 'GetQuizzesPassedForDateRange' parameters type */
@@ -2280,6 +2502,7 @@ export interface IUpdateVolunteerUserForAdminParams {
 
 /** 'UpdateVolunteerUserForAdmin' return type */
 export interface IUpdateVolunteerUserForAdminResult {
+  /** not_pii: Primary key */
   ok: string;
 }
 
@@ -2321,6 +2544,7 @@ export interface IUpdateVolunteerProfilesForAdminParams {
 
 /** 'UpdateVolunteerProfilesForAdmin' return type */
 export interface IUpdateVolunteerProfilesForAdminResult {
+  /** not_pii: Foreign key to upchieve.users */
   ok: string;
 }
 
@@ -2358,7 +2582,6 @@ export interface ICreateVolunteerUserParams {
   password: string;
   phone: string;
   referralCode: string;
-  referredBy?: string | null | void;
   signupSourceId?: number | null | void;
   smsConsent: boolean;
   userId: string;
@@ -2366,16 +2589,27 @@ export interface ICreateVolunteerUserParams {
 
 /** 'CreateVolunteerUser' return type */
 export interface ICreateVolunteerUserResult {
+  /** not_pii: Whether the user has been banned */
   banned: boolean;
+  /** not_pii: Type of ban (shadow, complete, live_media) */
   banType: ban_types | null;
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Whether the user account has been deactivated */
   deactivated: boolean;
+  /** pii: User email address */
   email: string;
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
+  /** pii: Last name */
   lastName: string;
+  /** pii: Phone number */
   phone: string | null;
+  /** not_pii: Whether the user has consented to receive SMS messages */
   smsConsent: boolean;
+  /** not_pii: Whether the account is a test or internal account */
   testUser: boolean;
 }
 
@@ -2385,13 +2619,13 @@ export interface ICreateVolunteerUserQuery {
   result: ICreateVolunteerUserResult;
 }
 
-const createVolunteerUserIR: any = {"usedParamSet":{"userId":true,"email":true,"phone":true,"smsConsent":true,"firstName":true,"lastName":true,"password":true,"referredBy":true,"referralCode":true,"signupSourceId":true,"otherSignupSource":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":214,"b":221}]},{"name":"email","required":true,"transform":{"type":"scalar"},"locs":[{"a":224,"b":230}]},{"name":"phone","required":true,"transform":{"type":"scalar"},"locs":[{"a":233,"b":239}]},{"name":"smsConsent","required":true,"transform":{"type":"scalar"},"locs":[{"a":242,"b":253}]},{"name":"firstName","required":true,"transform":{"type":"scalar"},"locs":[{"a":256,"b":266}]},{"name":"lastName","required":true,"transform":{"type":"scalar"},"locs":[{"a":269,"b":278}]},{"name":"password","required":true,"transform":{"type":"scalar"},"locs":[{"a":281,"b":290}]},{"name":"referredBy","required":false,"transform":{"type":"scalar"},"locs":[{"a":300,"b":310}]},{"name":"referralCode","required":true,"transform":{"type":"scalar"},"locs":[{"a":313,"b":326}]},{"name":"signupSourceId","required":false,"transform":{"type":"scalar"},"locs":[{"a":329,"b":343}]},{"name":"otherSignupSource","required":false,"transform":{"type":"scalar"},"locs":[{"a":346,"b":363}]}],"statement":"INSERT INTO users (id, email, phone, sms_consent, first_name, last_name, PASSWORD, verified, referred_by, referral_code, signup_source_id, other_signup_source, last_activity_at, created_at, updated_at)\n    VALUES (:userId!, :email!, :phone!, :smsConsent!, :firstName!, :lastName!, :password!, FALSE, :referredBy, :referralCode!, :signupSourceId, :otherSignupSource, NOW(), NOW(), NOW())\nON CONFLICT (email)\n    DO NOTHING\nRETURNING\n    id, email, first_name, last_name, phone, sms_consent, banned, ban_type, test_user, deactivated, created_at"};
+const createVolunteerUserIR: any = {"usedParamSet":{"userId":true,"email":true,"phone":true,"smsConsent":true,"firstName":true,"lastName":true,"password":true,"referralCode":true,"signupSourceId":true,"otherSignupSource":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":201,"b":208}]},{"name":"email","required":true,"transform":{"type":"scalar"},"locs":[{"a":211,"b":217}]},{"name":"phone","required":true,"transform":{"type":"scalar"},"locs":[{"a":220,"b":226}]},{"name":"smsConsent","required":true,"transform":{"type":"scalar"},"locs":[{"a":229,"b":240}]},{"name":"firstName","required":true,"transform":{"type":"scalar"},"locs":[{"a":243,"b":253}]},{"name":"lastName","required":true,"transform":{"type":"scalar"},"locs":[{"a":256,"b":265}]},{"name":"password","required":true,"transform":{"type":"scalar"},"locs":[{"a":268,"b":277}]},{"name":"referralCode","required":true,"transform":{"type":"scalar"},"locs":[{"a":287,"b":300}]},{"name":"signupSourceId","required":false,"transform":{"type":"scalar"},"locs":[{"a":303,"b":317}]},{"name":"otherSignupSource","required":false,"transform":{"type":"scalar"},"locs":[{"a":320,"b":337}]}],"statement":"INSERT INTO users (id, email, phone, sms_consent, first_name, last_name, PASSWORD, verified, referral_code, signup_source_id, other_signup_source, last_activity_at, created_at, updated_at)\n    VALUES (:userId!, :email!, :phone!, :smsConsent!, :firstName!, :lastName!, :password!, FALSE, :referralCode!, :signupSourceId, :otherSignupSource, NOW(), NOW(), NOW())\nON CONFLICT (email)\n    DO NOTHING\nRETURNING\n    id, email, first_name, last_name, phone, sms_consent, banned, ban_type, test_user, deactivated, created_at"};
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO users (id, email, phone, sms_consent, first_name, last_name, PASSWORD, verified, referred_by, referral_code, signup_source_id, other_signup_source, last_activity_at, created_at, updated_at)
- *     VALUES (:userId!, :email!, :phone!, :smsConsent!, :firstName!, :lastName!, :password!, FALSE, :referredBy, :referralCode!, :signupSourceId, :otherSignupSource, NOW(), NOW(), NOW())
+ * INSERT INTO users (id, email, phone, sms_consent, first_name, last_name, PASSWORD, verified, referral_code, signup_source_id, other_signup_source, last_activity_at, created_at, updated_at)
+ *     VALUES (:userId!, :email!, :phone!, :smsConsent!, :firstName!, :lastName!, :password!, FALSE, :referralCode!, :signupSourceId, :otherSignupSource, NOW(), NOW(), NOW())
  * ON CONFLICT (email)
  *     DO NOTHING
  * RETURNING
@@ -2409,6 +2643,7 @@ export interface ICreateUserVolunteerPartnerOrgInstanceParams {
 
 /** 'CreateUserVolunteerPartnerOrgInstance' return type */
 export interface ICreateUserVolunteerPartnerOrgInstanceResult {
+  /** not_pii: Foreign key to upchieve.users */
   ok: string | null;
 }
 
@@ -2450,6 +2685,7 @@ export interface ICreateVolunteerProfileParams {
 
 /** 'CreateVolunteerProfile' return type */
 export interface ICreateVolunteerProfileResult {
+  /** not_pii: Foreign key to upchieve.users */
   ok: string;
 }
 
@@ -2480,11 +2716,17 @@ export interface IGetQuizzesForVolunteersParams {
 
 /** 'GetQuizzesForVolunteers' return type */
 export interface IGetQuizzesForVolunteersResult {
+  /** not_pii: Whether this quiz is currently available to volunteers */
   active: boolean;
+  /** not_pii */
   lastAttemptedAt: Date;
+  /** not_pii: Human-readable name */
   name: string;
+  /** not_pii: Whether the user has passed the quiz */
   passed: boolean;
+  /** not_pii: Number of quiz attempts by the user */
   tries: number;
+  /** not_pii: Foreign key to upchieve.users */
   userId: string;
 }
 
@@ -2523,9 +2765,13 @@ export interface IGetCertificationsForVolunteerParams {
 
 /** 'GetCertificationsForVolunteer' return type */
 export interface IGetCertificationsForVolunteerResult {
+  /** not_pii: Whether this certification is currently offered */
   active: boolean;
+  /** not_pii */
   lastAttemptedAt: Date;
+  /** not_pii: Human-readable name of the certification */
   name: string;
+  /** not_pii: Foreign key to upchieve.users */
   userId: string;
 }
 
@@ -2562,10 +2808,15 @@ export interface IGetActiveQuizzesForVolunteersParams {
 
 /** 'GetActiveQuizzesForVolunteers' return type */
 export interface IGetActiveQuizzesForVolunteersResult {
+  /** not_pii */
   lastAttemptedAt: Date;
+  /** not_pii: Human-readable name */
   name: string;
+  /** not_pii: Whether the user has passed the quiz */
   passed: boolean;
+  /** not_pii: Number of quiz attempts by the user */
   tries: number;
+  /** not_pii: Foreign key to upchieve.users */
   userId: string;
 }
 
@@ -2604,6 +2855,7 @@ export interface IGetSubjectsForVolunteerParams {
 
 /** 'GetSubjectsForVolunteer' return type */
 export interface IGetSubjectsForVolunteerResult {
+  /** not_pii: Human-readable name */
   subject: string;
 }
 
@@ -2651,248 +2903,6 @@ const getSubjectsForVolunteerIR: any = {"usedParamSet":{"userId":true},"params":
 export const getSubjectsForVolunteer = new PreparedQuery<IGetSubjectsForVolunteerParams,IGetSubjectsForVolunteerResult>(getSubjectsForVolunteerIR);
 
 
-/** 'GetNextVolunteerToNotify' parameters type */
-export interface IGetNextVolunteerToNotifyParams {
-  disqualifiedVolunteers?: stringArray | null | void;
-  favoriteVolunteers?: stringArray | null | void;
-  highLevelSubjects?: stringArray | null | void;
-  isPartner?: boolean | null | void;
-  lastNotified?: DateOrString | null | void;
-  specificPartner?: string | null | void;
-  subject?: string | null | void;
-}
-
-/** 'GetNextVolunteerToNotify' return type */
-export interface IGetNextVolunteerToNotifyResult {
-  email: string;
-  firstName: string;
-  id: string;
-  lastName: string;
-  phone: string | null;
-  rn: string | null;
-  volunteerPartnerOrg: string;
-}
-
-/** 'GetNextVolunteerToNotify' query type */
-export interface IGetNextVolunteerToNotifyQuery {
-  params: IGetNextVolunteerToNotifyParams;
-  result: IGetNextVolunteerToNotifyResult;
-}
-
-const getNextVolunteerToNotifyIR: any = {"usedParamSet":{"subject":true,"highLevelSubjects":true,"disqualifiedVolunteers":true,"favoriteVolunteers":true,"isPartner":true,"specificPartner":true,"lastNotified":true},"params":[{"name":"subject","required":false,"transform":{"type":"scalar"},"locs":[{"a":262,"b":269},{"a":613,"b":620},{"a":3288,"b":3295},{"a":3343,"b":3350}]},{"name":"highLevelSubjects","required":false,"transform":{"type":"scalar"},"locs":[{"a":284,"b":301},{"a":635,"b":652},{"a":3470,"b":3487},{"a":3518,"b":3535}]},{"name":"disqualifiedVolunteers","required":false,"transform":{"type":"scalar"},"locs":[{"a":1329,"b":1351},{"a":1405,"b":1427}]},{"name":"favoriteVolunteers","required":false,"transform":{"type":"scalar"},"locs":[{"a":4914,"b":4932},{"a":4980,"b":4998}]},{"name":"isPartner","required":false,"transform":{"type":"scalar"},"locs":[{"a":5048,"b":5057},{"a":5089,"b":5098},{"a":5190,"b":5199}]},{"name":"specificPartner","required":false,"transform":{"type":"scalar"},"locs":[{"a":5293,"b":5308},{"a":5365,"b":5380}]},{"name":"lastNotified","required":false,"transform":{"type":"scalar"},"locs":[{"a":5552,"b":5564}]}],"statement":"WITH subject_totals AS (\n    SELECT\n        subjects.name,\n        COUNT(*)::int AS total\n    FROM\n        certification_subject_unlocks\n        JOIN subjects ON subjects.id = certification_subject_unlocks.subject_id\n    WHERE\n        subjects.name = ANY (ARRAY[:subject] || COALESCE(:highLevelSubjects::text[], '{}'))\n    GROUP BY\n        subjects.name\n),\ncomputed_subject_totals AS (\n    SELECT\n        subjects.name,\n        COUNT(*)::int AS total\n    FROM\n        computed_subject_unlocks\n        JOIN subjects ON subjects.id = computed_subject_unlocks.subject_id\n    WHERE\n        subjects.name = ANY (ARRAY[:subject] || COALESCE(:highLevelSubjects::text[], '{}'))\n    GROUP BY\n        subjects.name\n),\nready_to_tutor_volunteers AS (\n    SELECT\n        users.id AS userId,\n        first_name,\n        last_name,\n        phone,\n        email\n    FROM\n        users\n        JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    WHERE\n        test_user IS FALSE\n        AND banned IS FALSE\n        AND ban_type IS DISTINCT FROM 'complete'\n        AND deactivated IS FALSE\n        AND deleted IS FALSE\n        AND volunteer_profiles.onboarded IS TRUE\n        AND volunteer_profiles.approved IS TRUE\n        AND ( -- user is not part of disqualified group (like active session volunteers) if provided\n            (:disqualifiedVolunteers)::uuid[] IS NULL\n            OR NOT users.id = ANY (:disqualifiedVolunteers))\n),\n-- The above volunteers, narrowed down to those who can tutor in the given subject\nvolunteers_with_needed_certification AS (\n    SELECT\n        userId,\n        first_name,\n        last_name,\n        phone,\n        email\n    FROM\n        ready_to_tutor_volunteers\n        LEFT JOIN LATERAL (\n            SELECT\n                array_agg(sub_unlocked.subject)::text[] AS subjects\n            FROM (\n                SELECT\n                    subjects.name AS subject\n                FROM\n                    users_certifications\n                    JOIN certification_subject_unlocks USING (certification_id)\n                    JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id\n                    JOIN subject_totals ON subject_totals.name = subjects.name\n                WHERE\n                    users_certifications.user_id = userId\n                GROUP BY\n                    user_id, subjects.name, subject_totals.total) AS sub_unlocked) AS subjects_unlocked ON TRUE\n        LEFT JOIN LATERAL (\n            SELECT\n                array_agg(sub_unlocked.subject)::text[] AS subjects\n            FROM (\n                SELECT\n                    subjects.name AS subject\n                FROM\n                    users_certifications\n                    JOIN computed_subject_unlocks USING (certification_id)\n                    JOIN subjects ON computed_subject_unlocks.subject_id = subjects.id\n                    JOIN computed_subject_totals ON computed_subject_totals.name = subjects.name\n                WHERE\n                    users_certifications.user_id = userId\n                GROUP BY\n                    user_id, subjects.name, computed_subject_totals.total\n                HAVING\n                    COUNT(*)::int >= computed_subject_totals.total) AS sub_unlocked) AS computed_subjects_unlocked ON TRUE\n    WHERE (:subject = ANY (subjects_unlocked.subjects)\n        OR :subject = ANY (computed_subjects_unlocked.subjects))\n    AND ( -- user does not have high level subjects if provided\n        (:highLevelSubjects)::text[] IS NULL\n        OR (:highLevelSubjects)::text[] && subjects_unlocked.subjects IS FALSE)\n),\n-- The above volunteers, narrowed down to those with availability\nvolunteers_with_availability AS (\n    SELECT\n        vwnc.userId,\n        vwnc.first_name,\n        vwnc.last_name,\n        vwnc.phone,\n        vwnc.email\n    FROM\n        volunteers_with_needed_certification vwnc\n        JOIN availabilities ON userId = availabilities.user_id\n        JOIN weekdays ON weekdays.id = availabilities.weekday_id\n    WHERE\n        -- availabilities are all stored in EST so convert server time to EST to be safe\n        TRIM(BOTH FROM to_char(NOW() at time zone 'America/New_York', 'Day')) = weekdays.day\n        AND extract(hour FROM (NOW() at time zone 'America/New_York')) >= availabilities.available_start\n        AND extract(hour FROM (NOW() at time zone 'America/New_York')) < availabilities.available_end\n),\ncandidates AS (\n    SELECT\n        vol.userId AS id,\n        vol.first_name,\n        vol.last_name,\n        vol.phone,\n        vol.email,\n        volunteer_partner_orgs.key AS volunteer_partner_org,\n        row_number() OVER () AS rn\nFROM\n    volunteers_with_availability vol\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = vol.userId\n        LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\n    WHERE ( -- user is a favorite volunteer\n        (:favoriteVolunteers)::uuid[] IS NULL\n        OR vol.userId = ANY (:favoriteVolunteers))\n    AND ( -- user is partner or open\n        (:isPartner)::boolean IS NULL\n        OR (:isPartner IS FALSE\n            AND volunteer_profiles.volunteer_partner_org_id IS NULL)\n        OR (:isPartner IS TRUE\n            AND NOT volunteer_profiles.volunteer_partner_org_id IS NULL))\n    AND ((:specificPartner)::text IS NULL\n        OR volunteer_partner_orgs.key = :specificPartner)\n    AND NOT EXISTS (\n        SELECT\n            user_id\n        FROM\n            notifications\n        WHERE\n            user_id = vol.userId\n            AND sent_at >= :lastNotified)\n),\nrow_count AS (\n    SELECT\n        max(rn) AS total_rows\nFROM\n    candidates\n),\nrandom_row AS (\n    SELECT\n        floor(random() * row_count.total_rows + 1) AS random_rn\nFROM\n    row_count\n)\nSELECT\n    *\nFROM\n    candidates\nWHERE\n    rn = (\n        SELECT\n            random_rn\n        FROM\n            random_row\n        LIMIT 1)\nLIMIT 1"};
-
-/**
- * Query generated from SQL:
- * ```
- * WITH subject_totals AS (
- *     SELECT
- *         subjects.name,
- *         COUNT(*)::int AS total
- *     FROM
- *         certification_subject_unlocks
- *         JOIN subjects ON subjects.id = certification_subject_unlocks.subject_id
- *     WHERE
- *         subjects.name = ANY (ARRAY[:subject] || COALESCE(:highLevelSubjects::text[], '{}'))
- *     GROUP BY
- *         subjects.name
- * ),
- * computed_subject_totals AS (
- *     SELECT
- *         subjects.name,
- *         COUNT(*)::int AS total
- *     FROM
- *         computed_subject_unlocks
- *         JOIN subjects ON subjects.id = computed_subject_unlocks.subject_id
- *     WHERE
- *         subjects.name = ANY (ARRAY[:subject] || COALESCE(:highLevelSubjects::text[], '{}'))
- *     GROUP BY
- *         subjects.name
- * ),
- * ready_to_tutor_volunteers AS (
- *     SELECT
- *         users.id AS userId,
- *         first_name,
- *         last_name,
- *         phone,
- *         email
- *     FROM
- *         users
- *         JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
- *     WHERE
- *         test_user IS FALSE
- *         AND banned IS FALSE
- *         AND ban_type IS DISTINCT FROM 'complete'
- *         AND deactivated IS FALSE
- *         AND deleted IS FALSE
- *         AND volunteer_profiles.onboarded IS TRUE
- *         AND volunteer_profiles.approved IS TRUE
- *         AND ( -- user is not part of disqualified group (like active session volunteers) if provided
- *             (:disqualifiedVolunteers)::uuid[] IS NULL
- *             OR NOT users.id = ANY (:disqualifiedVolunteers))
- * ),
- * -- The above volunteers, narrowed down to those who can tutor in the given subject
- * volunteers_with_needed_certification AS (
- *     SELECT
- *         userId,
- *         first_name,
- *         last_name,
- *         phone,
- *         email
- *     FROM
- *         ready_to_tutor_volunteers
- *         LEFT JOIN LATERAL (
- *             SELECT
- *                 array_agg(sub_unlocked.subject)::text[] AS subjects
- *             FROM (
- *                 SELECT
- *                     subjects.name AS subject
- *                 FROM
- *                     users_certifications
- *                     JOIN certification_subject_unlocks USING (certification_id)
- *                     JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id
- *                     JOIN subject_totals ON subject_totals.name = subjects.name
- *                 WHERE
- *                     users_certifications.user_id = userId
- *                 GROUP BY
- *                     user_id, subjects.name, subject_totals.total) AS sub_unlocked) AS subjects_unlocked ON TRUE
- *         LEFT JOIN LATERAL (
- *             SELECT
- *                 array_agg(sub_unlocked.subject)::text[] AS subjects
- *             FROM (
- *                 SELECT
- *                     subjects.name AS subject
- *                 FROM
- *                     users_certifications
- *                     JOIN computed_subject_unlocks USING (certification_id)
- *                     JOIN subjects ON computed_subject_unlocks.subject_id = subjects.id
- *                     JOIN computed_subject_totals ON computed_subject_totals.name = subjects.name
- *                 WHERE
- *                     users_certifications.user_id = userId
- *                 GROUP BY
- *                     user_id, subjects.name, computed_subject_totals.total
- *                 HAVING
- *                     COUNT(*)::int >= computed_subject_totals.total) AS sub_unlocked) AS computed_subjects_unlocked ON TRUE
- *     WHERE (:subject = ANY (subjects_unlocked.subjects)
- *         OR :subject = ANY (computed_subjects_unlocked.subjects))
- *     AND ( -- user does not have high level subjects if provided
- *         (:highLevelSubjects)::text[] IS NULL
- *         OR (:highLevelSubjects)::text[] && subjects_unlocked.subjects IS FALSE)
- * ),
- * -- The above volunteers, narrowed down to those with availability
- * volunteers_with_availability AS (
- *     SELECT
- *         vwnc.userId,
- *         vwnc.first_name,
- *         vwnc.last_name,
- *         vwnc.phone,
- *         vwnc.email
- *     FROM
- *         volunteers_with_needed_certification vwnc
- *         JOIN availabilities ON userId = availabilities.user_id
- *         JOIN weekdays ON weekdays.id = availabilities.weekday_id
- *     WHERE
- *         -- availabilities are all stored in EST so convert server time to EST to be safe
- *         TRIM(BOTH FROM to_char(NOW() at time zone 'America/New_York', 'Day')) = weekdays.day
- *         AND extract(hour FROM (NOW() at time zone 'America/New_York')) >= availabilities.available_start
- *         AND extract(hour FROM (NOW() at time zone 'America/New_York')) < availabilities.available_end
- * ),
- * candidates AS (
- *     SELECT
- *         vol.userId AS id,
- *         vol.first_name,
- *         vol.last_name,
- *         vol.phone,
- *         vol.email,
- *         volunteer_partner_orgs.key AS volunteer_partner_org,
- *         row_number() OVER () AS rn
- * FROM
- *     volunteers_with_availability vol
- *     JOIN volunteer_profiles ON volunteer_profiles.user_id = vol.userId
- *         LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
- *     WHERE ( -- user is a favorite volunteer
- *         (:favoriteVolunteers)::uuid[] IS NULL
- *         OR vol.userId = ANY (:favoriteVolunteers))
- *     AND ( -- user is partner or open
- *         (:isPartner)::boolean IS NULL
- *         OR (:isPartner IS FALSE
- *             AND volunteer_profiles.volunteer_partner_org_id IS NULL)
- *         OR (:isPartner IS TRUE
- *             AND NOT volunteer_profiles.volunteer_partner_org_id IS NULL))
- *     AND ((:specificPartner)::text IS NULL
- *         OR volunteer_partner_orgs.key = :specificPartner)
- *     AND NOT EXISTS (
- *         SELECT
- *             user_id
- *         FROM
- *             notifications
- *         WHERE
- *             user_id = vol.userId
- *             AND sent_at >= :lastNotified)
- * ),
- * row_count AS (
- *     SELECT
- *         max(rn) AS total_rows
- * FROM
- *     candidates
- * ),
- * random_row AS (
- *     SELECT
- *         floor(random() * row_count.total_rows + 1) AS random_rn
- * FROM
- *     row_count
- * )
- * SELECT
- *     *
- * FROM
- *     candidates
- * WHERE
- *     rn = (
- *         SELECT
- *             random_rn
- *         FROM
- *             random_row
- *         LIMIT 1)
- * LIMIT 1
- * ```
- */
-export const getNextVolunteerToNotify = new PreparedQuery<IGetNextVolunteerToNotifyParams,IGetNextVolunteerToNotifyResult>(getNextVolunteerToNotifyIR);
-
-
-/** 'CheckIfVolunteerMutedSubject' parameters type */
-export interface ICheckIfVolunteerMutedSubjectParams {
-  subjectName?: string | null | void;
-  userId?: string | null | void;
-}
-
-/** 'CheckIfVolunteerMutedSubject' return type */
-export interface ICheckIfVolunteerMutedSubjectResult {
-  userId: string;
-}
-
-/** 'CheckIfVolunteerMutedSubject' query type */
-export interface ICheckIfVolunteerMutedSubjectQuery {
-  params: ICheckIfVolunteerMutedSubjectParams;
-  result: ICheckIfVolunteerMutedSubjectResult;
-}
-
-const checkIfVolunteerMutedSubjectIR: any = {"usedParamSet":{"userId":true,"subjectName":true},"params":[{"name":"userId","required":false,"transform":{"type":"scalar"},"locs":[{"a":175,"b":181}]},{"name":"subjectName","required":false,"transform":{"type":"scalar"},"locs":[{"a":207,"b":218}]}],"statement":"SELECT\n    user_id\nFROM\n    muted_users_subject_alerts\n    JOIN subjects ON muted_users_subject_alerts.subject_id = subjects.id\nWHERE\n    muted_users_subject_alerts.user_id = :userId\n    AND subjects.name = :subjectName"};
-
-/**
- * Query generated from SQL:
- * ```
- * SELECT
- *     user_id
- * FROM
- *     muted_users_subject_alerts
- *     JOIN subjects ON muted_users_subject_alerts.subject_id = subjects.id
- * WHERE
- *     muted_users_subject_alerts.user_id = :userId
- *     AND subjects.name = :subjectName
- * ```
- */
-export const checkIfVolunteerMutedSubject = new PreparedQuery<ICheckIfVolunteerMutedSubjectParams,ICheckIfVolunteerMutedSubjectResult>(checkIfVolunteerMutedSubjectIR);
-
-
 /** 'GetVolunteerForScheduleUpdate' parameters type */
 export interface IGetVolunteerForScheduleUpdateParams {
   userId: string;
@@ -2900,10 +2910,13 @@ export interface IGetVolunteerForScheduleUpdateParams {
 
 /** 'GetVolunteerForScheduleUpdate' return type */
 export interface IGetVolunteerForScheduleUpdateResult {
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Whether the volunteer has completed all onboarding steps */
   onboarded: boolean;
   passedRequiredTraining: boolean | null;
   subjects: stringArray | null;
+  /** not_pii: Unique URL-safe slug */
   volunteerPartnerOrg: string;
 }
 
@@ -3036,12 +3049,19 @@ export interface IGetVolunteersForAnalyticsReportParams {
 /** 'GetVolunteersForAnalyticsReport' return type */
 export interface IGetVolunteersForAnalyticsReportResult {
   availabilityLastModifiedAt: Date | null;
+  /** not_pii */
   createdAt: Date;
+  /** not_pii */
   dateOnboarded: Date;
+  /** pii: User email address */
   email: string;
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Whether the volunteer has completed all onboarding steps */
   isOnboarded: boolean;
+  /** pii: Last name */
   lastName: string;
+  /** pii: US state abbreviation */
   state: string | null;
   totalNotifications: number | null;
   totalNotificationsWithinRange: number | null;
@@ -3056,6 +3076,7 @@ export interface IGetVolunteersForAnalyticsReportResult {
   totalUniquePartnerStudentsHelpedWithinRange: number | null;
   totalUniqueStudentsHelped: number | null;
   totalUniqueStudentsHelpedWithinRange: number | null;
+  /** not_pii: Primary key */
   userId: string;
 }
 
@@ -3224,7 +3245,9 @@ export interface IGetPartnerOrgsByVolunteerParams {
 
 /** 'GetPartnerOrgsByVolunteer' return type */
 export interface IGetPartnerOrgsByVolunteerResult {
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Human-readable name of the volunteer partner organization */
   name: string;
 }
 
@@ -3261,6 +3284,7 @@ export interface IAdminDeactivateVolunteerPartnershipInstanceParams {
 
 /** 'AdminDeactivateVolunteerPartnershipInstance' return type */
 export interface IAdminDeactivateVolunteerPartnershipInstanceResult {
+  /** not_pii: Foreign key to upchieve.users */
   ok: string | null;
 }
 
@@ -3297,6 +3321,7 @@ export interface IAdminInsertVolunteerPartnershipInstanceParams {
 
 /** 'AdminInsertVolunteerPartnershipInstance' return type */
 export interface IAdminInsertVolunteerPartnershipInstanceResult {
+  /** not_pii: Foreign key to upchieve.users */
   ok: string | null;
 }
 
@@ -3327,8 +3352,11 @@ export interface IGetPartnerOrgByKeyParams {
 
 /** 'GetPartnerOrgByKey' return type */
 export interface IGetPartnerOrgByKeyResult {
+  /** not_pii: Primary key */
   partnerId: string;
+  /** not_pii: Unique URL-safe slug */
   partnerKey: string;
+  /** not_pii: Human-readable name of the volunteer partner organization */
   partnerName: string;
 }
 
@@ -3364,8 +3392,11 @@ export interface IGetActiveSponsorshipsByUserIdParams {
 
 /** 'GetActiveSponsorshipsByUserId' return type */
 export interface IGetActiveSponsorshipsByUserIdResult {
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Unique URL-safe slug */
   key: string;
+  /** not_pii: Human-readable name */
   name: string;
 }
 
@@ -3406,7 +3437,9 @@ export interface IGetVolunteerSubjectsParams {
 
 /** 'GetVolunteerSubjects' return type */
 export interface IGetVolunteerSubjectsResult {
+  /** not_pii: Whether the subject is currently active */
   active: boolean;
+  /** not_pii: Human-readable name */
   name: string;
 }
 
@@ -3442,7 +3475,9 @@ export interface IGetVolunteerMutedSubjectsParams {
 
 /** 'GetVolunteerMutedSubjects' return type */
 export interface IGetVolunteerMutedSubjectsResult {
+  /** not_pii: Whether the subject is currently active */
   active: boolean;
+  /** not_pii: Human-readable name */
   name: string;
 }
 
@@ -3475,11 +3510,15 @@ export type IGetVolunteersForTextNotificationsInTheCurrentHourParams = void;
 
 /** 'GetVolunteersForTextNotificationsInTheCurrentHour' return type */
 export interface IGetVolunteersForTextNotificationsInTheCurrentHourResult {
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
   mutedSubjects: stringArray | null;
+  /** pii: Phone number */
   phone: string | null;
   unlockedSubjects: stringArray | null;
+  /** not_pii: Unique URL-safe slug */
   volunteerPartnerOrgKey: string;
 }
 
@@ -3577,9 +3616,13 @@ export interface IGetVolunteersReadyToCoachStatusParams {
 
 /** 'GetVolunteersReadyToCoachStatus' return type */
 export interface IGetVolunteersReadyToCoachStatusResult {
+  /** not_pii: Type of ban (shadow, complete, live_media) */
   banType: ban_types | null;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Whether the volunteer application has been approved */
   isApproved: boolean;
+  /** not_pii: Whether the volunteer has completed all onboarding steps */
   isOnboarded: boolean;
 }
 
@@ -3616,7 +3659,9 @@ export interface IGetVolunteerOccupationsParams {
 
 /** 'GetVolunteerOccupations' return type */
 export interface IGetVolunteerOccupationsResult {
+  /** pii: Volunteer job title or occupation */
   occupation: string;
+  /** not_pii: Foreign key to upchieve.users */
   userId: string;
 }
 

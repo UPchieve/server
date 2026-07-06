@@ -6,14 +6,22 @@ export type IGetAssociatedPartnersParams = void;
 
 /** 'GetAssociatedPartners' return type */
 export interface IGetAssociatedPartnersResult {
+  /** not_pii: Unique URL-safe slug */
   key: string;
   studentOrgDisplay: string | null;
+  /** not_pii: Unique URL-safe slug */
   studentPartnerOrg: string;
+  /** not_pii: Primary key */
   studentPartnerOrgId: string;
+  /** not_pii: Unique URL-safe slug */
   studentSponsorOrg: string;
+  /** not_pii: Primary key */
   studentSponsorOrgId: string;
+  /** not_pii: Human-readable name of the volunteer partner organization */
   volunteerOrgDisplay: string;
+  /** not_pii: Unique URL-safe slug */
   volunteerPartnerOrg: string;
+  /** not_pii: Primary key */
   volunteerPartnerOrgId: string;
 }
 
@@ -55,14 +63,22 @@ export interface IGetAssociatedPartnerByKeyParams {
 
 /** 'GetAssociatedPartnerByKey' return type */
 export interface IGetAssociatedPartnerByKeyResult {
+  /** not_pii: Unique URL-safe slug */
   key: string;
   studentOrgDisplay: string | null;
+  /** not_pii: Unique URL-safe slug */
   studentPartnerOrg: string;
+  /** not_pii: Primary key */
   studentPartnerOrgId: string;
+  /** not_pii: Unique URL-safe slug */
   studentSponsorOrg: string;
+  /** not_pii: Primary key */
   studentSponsorOrgId: string;
+  /** not_pii: Human-readable name of the volunteer partner organization */
   volunteerOrgDisplay: string;
+  /** not_pii: Unique URL-safe slug */
   volunteerPartnerOrg: string;
+  /** not_pii: Primary key */
   volunteerPartnerOrgId: string;
 }
 
@@ -106,14 +122,22 @@ export interface IGetAssociatedPartnerBySponsorOrgKeyParams {
 
 /** 'GetAssociatedPartnerBySponsorOrgKey' return type */
 export interface IGetAssociatedPartnerBySponsorOrgKeyResult {
+  /** not_pii: Unique URL-safe slug */
   key: string;
   studentOrgDisplay: string | null;
+  /** not_pii: Unique URL-safe slug */
   studentPartnerOrg: string;
+  /** not_pii: Primary key */
   studentPartnerOrgId: string;
+  /** not_pii: Unique URL-safe slug */
   studentSponsorOrg: string;
+  /** not_pii: Primary key */
   studentSponsorOrgId: string;
+  /** not_pii: Human-readable name of the volunteer partner organization */
   volunteerOrgDisplay: string;
+  /** not_pii: Unique URL-safe slug */
   volunteerPartnerOrg: string;
+  /** not_pii: Primary key */
   volunteerPartnerOrgId: string;
 }
 
@@ -157,14 +181,22 @@ export interface IGetAssociatedPartnerByStudentPartnerOrgKeyParams {
 
 /** 'GetAssociatedPartnerByStudentPartnerOrgKey' return type */
 export interface IGetAssociatedPartnerByStudentPartnerOrgKeyResult {
+  /** not_pii: Unique URL-safe slug */
   key: string;
   studentOrgDisplay: string | null;
+  /** not_pii: Unique URL-safe slug */
   studentPartnerOrg: string;
+  /** not_pii: Primary key */
   studentPartnerOrgId: string;
+  /** not_pii: Unique URL-safe slug */
   studentSponsorOrg: string;
+  /** not_pii: Primary key */
   studentSponsorOrgId: string;
+  /** not_pii: Human-readable name of the volunteer partner organization */
   volunteerOrgDisplay: string;
+  /** not_pii: Unique URL-safe slug */
   volunteerPartnerOrg: string;
+  /** not_pii: Primary key */
   volunteerPartnerOrgId: string;
 }
 
@@ -208,14 +240,22 @@ export interface IGetAssociatedPartnerByVolunteerPartnerKeyParams {
 
 /** 'GetAssociatedPartnerByVolunteerPartnerKey' return type */
 export interface IGetAssociatedPartnerByVolunteerPartnerKeyResult {
+  /** not_pii: Unique URL-safe slug */
   key: string;
   studentOrgDisplay: string | null;
+  /** not_pii: Unique URL-safe slug */
   studentPartnerOrg: string;
+  /** not_pii: Primary key */
   studentPartnerOrgId: string;
+  /** not_pii: Unique URL-safe slug */
   studentSponsorOrg: string;
+  /** not_pii: Primary key */
   studentSponsorOrgId: string;
+  /** not_pii: Human-readable name of the volunteer partner organization */
   volunteerOrgDisplay: string;
+  /** not_pii: Unique URL-safe slug */
   volunteerPartnerOrg: string;
+  /** not_pii: Primary key */
   volunteerPartnerOrgId: string;
 }
 

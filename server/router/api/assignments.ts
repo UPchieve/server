@@ -13,6 +13,8 @@ import {
   AssignmentResponse,
   StudentAssignmentCompletionResponse,
 } from '../../contracts/assignments'
+import { isEmpty } from 'lodash'
+import { NotAuthenticatedError } from '../../models/Errors'
 
 export function routeAssignments(router: Router): void {
   router.get(
@@ -71,24 +73,35 @@ export function routeAssignments(router: Router): void {
     limits: { fileSize: 20 * 1024 * 1024 },
   })
 
-  router.put(
-    '/assignment/upload',
-    upload.array('files'),
-    async (req, res: Response<void>) => {
-      try {
-        if (req.files) {
-          const files = req.files as Express.Multer.File[]
-          const assignmentId = req.body.assignmentId
-
-          await AssignmentsService.uploadAssignment(assignmentId, files)
-
-          res.sendStatus(200)
-        }
-      } catch (err) {
-        resError(res, err)
+  router.put('/assignment/upload', upload.array('files'), async (req, res) => {
+    try {
+      const userId = req.user?.id
+      if (!userId) {
+        throw new NotAuthenticatedError()
       }
+      if (req.files) {
+        const files = req.files as Express.Multer.File[]
+        const assignmentId = req.body.assignmentId
+
+        const moderationFailures =
+          await AssignmentsService.uploadAssignmentFiles(
+            assignmentId,
+            files,
+            userId
+          )
+
+        if (isEmpty(moderationFailures)) {
+          res.sendStatus(200)
+        } else {
+          res.status(422).json({
+            moderationFailures,
+          })
+        }
+      }
+    } catch (err) {
+      resError(res, err)
     }
-  )
+  })
 
   router.get(
     '/assignment/:assignmentId/documents',

@@ -5,7 +5,7 @@ async function main() {
   let exitCode = 0
   try {
     const jobToQueue = 'Some sample job' as Jobs // Jobs.EmailOnboardingReminderOne
-    await QueueService.add(jobToQueue, {})
+    await QueueService.add(jobToQueue, { delay: 0 })
     console.log('Added: ', jobToQueue)
   } catch (error) {
     console.log('Error: ', error)

@@ -1,4 +1,9 @@
-import { REFERENCE_STATUS, TRAINING, USER_BAN_TYPES } from '../../constants'
+import {
+  GRADES,
+  REFERENCE_STATUS,
+  TRAINING,
+  USER_BAN_TYPES,
+} from '../../constants'
 import { Ulid, Uuid } from '../pgUtils'
 
 export interface Reference {
@@ -130,4 +135,21 @@ export enum VolunteerOccupations {
   CAREGIVER = 'Caregiver',
   HIGH_SCHOOL_STUDENT = 'A high school student',
   UNEMPLOYED = 'Unemployed',
+}
+
+export type VolunteerProfileUpdate = {
+  experience?: {
+    collegeCounseling: string
+    mentoring: string
+    tutoring: string
+  }
+  company?: string
+  college?: string
+  linkedInUrl?: string
+  country?: string
+  state?: string
+  city?: string
+  languages?: string[]
+  occupations?: string[]
+  gradeLevel?: GRADES
 }

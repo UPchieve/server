@@ -117,7 +117,10 @@ export function routes(app: Express) {
         : undefined,
       provider,
       isLogin,
-      accountType: accountType as Extract<UserRole, 'student' | 'teacher'>,
+      accountType: accountType as Extract<
+        UserRole,
+        'student' | 'volunteer' | 'teacher'
+      >,
       redirect: req.query.redirect as string,
       errorRedirect,
     }

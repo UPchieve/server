@@ -256,3 +256,6 @@ __pycache__
 
 # Vendors
 vendors/
+
+# We no longer use npm.
+package-lock.json

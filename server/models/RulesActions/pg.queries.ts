@@ -8,9 +8,13 @@ export interface IGetRulesActionsFromFlagIdParams {
 
 /** 'GetRulesActionsFromFlagId' return type */
 export interface IGetRulesActionsFromFlagIdResult {
+  /** not_pii: Foreign key to upchieve.moderation_actions */
   actionId: number;
+  /** not_pii: Name of the moderation action */
   actionName: string | null;
+  /** not_pii: Foreign key to upchieve.moderation_rules */
   ruleId: number;
+  /** not_pii: Human-readable name */
   ruleName: string | null;
 }
 

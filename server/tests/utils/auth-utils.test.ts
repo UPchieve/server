@@ -6,12 +6,7 @@ import {
   RegistrationError,
   authPassport,
 } from '../../utils/auth-utils'
-import {
-  InputError,
-  LowRecaptchaScoreError,
-  MissingRecaptchaTokenError,
-  NotAllowedError,
-} from '../../models/Errors'
+import { InputError, NotAllowedError } from '../../models/Errors'
 import * as RecaptchaService from '../../services/RecaptchaService'
 import * as EmailDomainBlocklist from '../../models/EmailDomainBlocklist'
 
@@ -119,6 +114,9 @@ describe('authPassport', () => {
 
   describe('checkRecaptcha', () => {
     it('Should call next() if the request passes recaptcha validations', async () => {
+      ;(
+        RecaptchaService.validateRequestRecaptcha as jest.Mock
+      ).mockResolvedValue(true)
       const req = {
         headers: {
           'g-recaptcha-response': 'testToken',
@@ -131,30 +129,23 @@ describe('authPassport', () => {
       expect(nextMock).toHaveBeenCalled()
     })
 
-    it.each([
-      new LowRecaptchaScoreError(),
-      new MissingRecaptchaTokenError(),
-      new Error('Test'),
-    ])(
-      'Should not call next() if the request fails recaptcha validations due to %s',
-      async (err) => {
-        ;(
-          RecaptchaService.validateRequestRecaptcha as jest.Mock
-        ).mockRejectedValue(err)
-        const req = {
-          headers: {
-            'g-recaptcha-response': 'testToken',
-          },
-        } as any
-        const mockRes = {
-          status: jest.fn().mockReturnThis(),
-          json: jest.fn(),
-        }
-        const nextMock = jest.fn()
-        await authPassport.checkRecaptcha(req, mockRes as any, nextMock)
-        expect(nextMock).not.toHaveBeenCalled()
-        expect(mockRes.status).toHaveBeenCalledWith(500)
+    it('Should not call next() if the request fails recaptcha validations', async () => {
+      ;(
+        RecaptchaService.validateRequestRecaptcha as jest.Mock
+      ).mockResolvedValue(false)
+      const req = {
+        headers: {
+          'g-recaptcha-response': 'testToken',
+        },
+      } as any
+      const mockRes = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
       }
-    )
+      const nextMock = jest.fn()
+      await authPassport.checkRecaptcha(req, mockRes as any, nextMock)
+      expect(nextMock).not.toHaveBeenCalled()
+      expect(mockRes.status).toHaveBeenCalledWith(500)
+    })
   })
 })

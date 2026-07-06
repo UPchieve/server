@@ -10,10 +10,15 @@ export interface IGetTutorBotConversationByIdParams {
 
 /** 'GetTutorBotConversationById' return type */
 export interface IGetTutorBotConversationByIdResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Foreign key to upchieve.sessions */
   sessionId: string | null;
+  /** not_pii: Foreign key to upchieve.subjects */
   subjectId: number;
+  /** not_pii: Foreign key to upchieve.users */
   userId: string;
 }
 
@@ -50,10 +55,15 @@ export interface IGetTutorBotConversationBySessionIdParams {
 
 /** 'GetTutorBotConversationBySessionId' return type */
 export interface IGetTutorBotConversationBySessionIdResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Foreign key to upchieve.sessions */
   sessionId: string | null;
+  /** not_pii: Foreign key to upchieve.subjects */
   subjectId: number;
+  /** not_pii: Foreign key to upchieve.users */
   userId: string;
 }
 
@@ -90,10 +100,15 @@ export interface IGetTutorBotConversationMessagesByIdParams {
 
 /** 'GetTutorBotConversationMessagesById' return type */
 export interface IGetTutorBotConversationMessagesByIdResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Message text content */
   message: string;
+  /** not_pii: Role of the message sender (student, bot, or volunteer) */
   senderUserType: tutor_bot_conversation_user_type;
+  /** not_pii: Foreign key to upchieve.tutor_bot_conversations */
   tutorBotConversationId: string;
+  /** not_pii: Foreign key to upchieve.users */
   userId: string;
 }
 
@@ -135,6 +150,7 @@ export interface IInsertTutorBotConversationParams {
 
 /** 'InsertTutorBotConversation' return type */
 export interface IInsertTutorBotConversationResult {
+  /** not_pii: Primary key */
   id: string;
 }
 
@@ -168,10 +184,15 @@ export interface IInsertTutorBotConversationMessageParams {
 
 /** 'InsertTutorBotConversationMessage' return type */
 export interface IInsertTutorBotConversationMessageResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Message text content */
   message: string;
+  /** not_pii: Role of the message sender (student, bot, or volunteer) */
   senderUserType: tutor_bot_conversation_user_type;
+  /** not_pii: Foreign key to upchieve.tutor_bot_conversations */
   tutorBotConversationId: string;
+  /** not_pii: Foreign key to upchieve.users */
   userId: string;
 }
 

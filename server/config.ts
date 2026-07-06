@@ -79,7 +79,6 @@ const config = {
     studentOnboardingMissionTemplate: 'd-3167ea240a27471597d849cbae4b8437',
     studentOnboardingSurveyTemplate: 'd-c5671abc76884180b6912729190b7078',
     studentFirstSessionCongratsTemplate: 'd-8c54307ace4a498f800185f0e540b8ea',
-    studentFirstSessionInterviewTemplate: 'd-c1a5daddc1a842038ceed4c12a7d583c',
     studentReportedRudeTemplate: 'd-aa16bc7d750144f8b42d3db0bec051ca',
     studentReportedSafetyTemplate: 'd-c7caf6b302b94a08862652dcde06535f',
     studentAbsentWarningTemplate: 'd-f27a47f3875a4dfd9f07446219ecacfc',
@@ -121,6 +120,7 @@ const config = {
     nthsCandidateApplicationApproved: 'd-7bb5abafa4d14d6cb53540bd514447a7',
     nthsCandidateApplicationDenied: 'd-0db5c4e5f4de45de9c8ce7106765f0e9',
     nthsSchoolOfficialNotice: 'd-6f54afba78f84ae5b44b70a5d209e755',
+    invitationToCoachEmail: 'd-9c75785699494c40b2a1b86e6adf5532',
     volunteer: {
       thanksForReport: 'd-572e47e4f41d4db2ac855f42ac8ac11e',
       apologyForBannedStudent: 'd-c76691726c204dbb8643f38b2d1a4ed9',
@@ -335,6 +335,9 @@ const config = {
     moderatedSessionWhiteboardImageUploadBucket:
       process.env.SUBWAY_MODERATED_SESSION_WHITEBOARD_IMAGE_UPLOAD_BUCKET ||
       'moderated-session-whiteboard-images-bucket',
+    moderatedAssignmentsBucket:
+      process.env.SUBWAY_MODERATED_ASSIGNMENTS_BUCKET ||
+      'moderated-assignments-bucket',
   },
   awsModerationToolsRegion:
     process.env.SUBWAY_AWS_MODERATION_TOOLS_REGION || 'us-east-1',
@@ -491,6 +494,9 @@ const config = {
   // `require('crypto').randomBytes(32).toString('hex')`
   totpEncryptionKey: process.env.TOTP_ENCRYPTION_KEY || 'bogus',
   totpIssuer: process.env.TOTP_ISSUER || 'upchieve_bogus',
+
+  // Key used in load testing request headers to allow bypassing Recaptcha check.
+  loadTestKey: process.env.LOAD_TEST_KEY,
 } as const
 
 export default config

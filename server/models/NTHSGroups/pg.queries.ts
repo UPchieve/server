@@ -10,13 +10,21 @@ export interface IGetGroupsByUserParams {
 
 /** 'GetGroupsByUser' return type */
 export interface IGetGroupsByUserResult {
+  /** not_pii: Primary key */
   groupId: string;
+  /** not_pii: Unique URL-safe slug */
   groupKey: string;
+  /** not_pii: Human-readable name */
   groupName: string;
+  /** not_pii: Short invite code for joining the NTHS group */
   inviteCode: string;
+  /** not_pii: Timestamp when the member joined the group */
   joinedAt: Date;
+  /** not_pii: Title of the user in the NTHS group */
   memberTitle: string | null;
+  /** not_pii: Human-readable name */
   roleName: string | null;
+  /** not_pii: Human-readable name */
   schoolAffiliationStatus: string;
 }
 
@@ -63,6 +71,7 @@ export interface IGetInviteCodeForGroupParams {
 
 /** 'GetInviteCodeForGroup' return type */
 export interface IGetInviteCodeForGroupResult {
+  /** not_pii: Short invite code for joining the NTHS group */
   inviteCode: string;
 }
 
@@ -95,9 +104,13 @@ export interface IGetGroupByInviteCodeParams {
 
 /** 'GetGroupByInviteCode' return type */
 export interface IGetGroupByInviteCodeResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Unique URL-safe slug */
   key: string;
+  /** not_pii: Human-readable name */
   name: string;
 }
 
@@ -133,10 +146,15 @@ export interface IGetGroupByIdParams {
 
 /** 'GetGroupById' return type */
 export interface IGetGroupByIdResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Short invite code for joining the NTHS group */
   inviteCode: string;
+  /** not_pii: Unique URL-safe slug */
   key: string;
+  /** not_pii: Human-readable name */
   name: string;
 }
 
@@ -173,10 +191,14 @@ export interface IGetNthsGroupAdminsContactInfoParams {
 
 /** 'GetNthsGroupAdminsContactInfo' return type */
 export interface IGetNthsGroupAdminsContactInfoResult {
+  /** not_pii: Human-readable name */
   chapterName: string;
+  /** pii: User email address */
   email: string;
+  /** pii: First name */
   firstName: string;
   nthsGroupId: string | null;
+  /** not_pii: Primary key */
   userId: string;
 }
 
@@ -217,10 +239,15 @@ export interface IGetAdvisorContactInfoParams {
 
 /** 'GetAdvisorContactInfo' return type */
 export interface IGetAdvisorContactInfoResult {
+  /** not_pii: Human-readable name */
   chapterName: string;
+  /** pii: User email address */
   email: string;
+  /** pii: First name */
   firstName: string;
+  /** pii: Last name */
   lastName: string;
+  /** not_pii: Foreign key to upchieve.nths_groups */
   nthsGroupId: string;
 }
 
@@ -260,11 +287,17 @@ export interface IJoinGroupByIdParams {
 
 /** 'JoinGroupById' return type */
 export interface IJoinGroupByIdResult {
+  /** not_pii: Timestamp when the membership was deactivated */
   deactivatedAt: Date | null;
+  /** not_pii: Timestamp when the member joined the group */
   joinedAt: Date;
+  /** not_pii: Foreign key to upchieve.nths_groups */
   nthsGroupId: string;
+  /** not_pii: Title of the user in the NTHS group */
   title: string | null;
+  /** not_pii: Timestamp when the record was last updated */
   updatedAt: Date;
+  /** not_pii: Foreign key to upchieve.users */
   userId: string;
 }
 
@@ -297,9 +330,13 @@ export interface IInsertNthsGroupMemberRoleParams {
 
 /** 'InsertNthsGroupMemberRole' return type */
 export interface IInsertNthsGroupMemberRoleResult {
+  /** not_pii: Foreign key to upchieve.nths_groups */
   nthsGroupId: string;
+  /** not_pii: Foreign key to upchieve.nths_group_roles */
   roleId: number | null;
+  /** not_pii: Timestamp when the record was last updated */
   updatedAt: Date;
+  /** not_pii: Foreign key to upchieve.users */
   userId: string;
 }
 
@@ -339,10 +376,14 @@ export interface IUpsertNthsGroupMemberRoleParams {
 
 /** 'UpsertNthsGroupMemberRole' return type */
 export interface IUpsertNthsGroupMemberRoleResult {
+  /** not_pii: Foreign key to upchieve.nths_groups */
   nthsGroupId: string;
+  /** not_pii: Foreign key to upchieve.nths_group_roles */
   roleId: number | null;
   roleName: string | null;
+  /** not_pii: Timestamp when the record was last updated */
   updatedAt: Date;
+  /** not_pii: Foreign key to upchieve.users */
   userId: string;
 }
 
@@ -387,12 +428,19 @@ export interface IGetGroupMemberParams {
 
 /** 'GetGroupMember' return type */
 export interface IGetGroupMemberResult {
+  /** not_pii: Timestamp when the membership was deactivated */
   deactivatedAt: Date | null;
+  /** not_pii: Timestamp when the member joined the group */
   joinedAt: Date;
+  /** not_pii: Foreign key to upchieve.nths_groups */
   nthsGroupId: string;
+  /** not_pii: Human-readable name */
   roleName: string | null;
+  /** not_pii: Title of the user in the NTHS group */
   title: string | null;
+  /** not_pii: Timestamp when the record was last updated */
   updatedAt: Date;
+  /** not_pii: Foreign key to upchieve.users */
   userId: string;
 }
 
@@ -431,14 +479,22 @@ export interface IGetGroupMembersParams {
 
 /** 'GetGroupMembers' return type */
 export interface IGetGroupMembersResult {
+  /** not_pii: Timestamp when the membership was deactivated */
   deactivatedAt: Date | null;
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Timestamp when the member joined the group */
   joinedAt: Date;
   lastInitial: string | null;
+  /** not_pii: Foreign key to upchieve.nths_groups */
   nthsGroupId: string;
+  /** not_pii: Human-readable name */
   roleName: string | null;
+  /** not_pii: Title of the user in the NTHS group */
   title: string | null;
+  /** not_pii: Timestamp when the record was last updated */
   updatedAt: Date;
+  /** not_pii: Foreign key to upchieve.users */
   userId: string;
 }
 
@@ -511,11 +567,17 @@ export interface ICreateGroupParams {
 
 /** 'CreateGroup' return type */
 export interface ICreateGroupResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Short invite code for joining the NTHS group */
   inviteCode: string;
+  /** not_pii: Unique URL-safe slug */
   key: string;
+  /** not_pii: Human-readable name */
   name: string;
+  /** not_pii */
   updatedAt: Date;
 }
 
@@ -580,10 +642,15 @@ export interface IUpdateGroupNameParams {
 
 /** 'UpdateGroupName' return type */
 export interface IUpdateGroupNameResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Short invite code for joining the NTHS group */
   inviteCode: string;
+  /** not_pii: Unique URL-safe slug */
   key: string;
+  /** not_pii: Human-readable name */
   name: string;
 }
 
@@ -624,10 +691,14 @@ export interface IInsertNthsGroupActionParams {
 
 /** 'InsertNthsGroupAction' return type */
 export interface IInsertNthsGroupActionResult {
+  /** not_pii: Foreign key to upchieve.nths_actions */
   actionId: number | null;
   actionName: string | null;
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Foreign key to upchieve.nths_groups */
   groupId: string | null;
+  /** not_pii: Primary key */
   id: number;
 }
 
@@ -668,10 +739,15 @@ export interface IGetAllNthsGroupActionsByGroupIdParams {
 
 /** 'GetAllNthsGroupActionsByGroupId' return type */
 export interface IGetAllNthsGroupActionsByGroupIdResult {
+  /** not_pii: Foreign key to upchieve.nths_actions */
   actionId: number | null;
+  /** not_pii: Human-readable name */
   actionName: string;
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Foreign key to upchieve.nths_groups */
   groupId: string | null;
+  /** not_pii: Primary key */
   id: number;
 }
 
@@ -707,7 +783,9 @@ export type IGetNthsActionsParams = void;
 
 /** 'GetNthsActions' return type */
 export interface IGetNthsActionsResult {
+  /** not_pii: Primary key */
   id: number;
+  /** not_pii: Human-readable name */
   name: string;
 }
 
@@ -740,11 +818,16 @@ export interface IUpsertSchoolAffiliationStatusParams {
 
 /** 'UpsertSchoolAffiliationStatus' return type */
 export interface IUpsertSchoolAffiliationStatusResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Foreign key to upchieve.nths_groups */
   nthsGroupId: string;
+  /** not_pii: Foreign key to upchieve.nths_school_affiliation_statuses */
   nthsSchoolAffiliationStatusId: number;
+  /** not_pii: Foreign key to upchieve.schools */
   schoolId: string | null;
   status: string | null;
+  /** not_pii */
   updatedAt: Date;
 }
 
@@ -793,17 +876,29 @@ export interface IInsertNthsAdvisorParams {
 
 /** 'InsertNthsAdvisor' return type */
 export interface IInsertNthsAdvisorResult {
+  /** not_pii */
   createdAt: Date;
+  /** pii: User email address */
   email: string;
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
+  /** pii: Last name */
   lastName: string;
+  /** not_pii: Foreign key to upchieve.nths_groups */
   nthsGroupId: string;
+  /** pii: Phone number */
   phone: string | null;
+  /** pii: Phone extension for the contact */
   phoneExtension: string | null;
+  /** pii: Foreign key to upchieve.schools */
   schoolId: string | null;
+  /** pii: Professional title of the NTHS advisor */
   title: string;
+  /** not_pii */
   updatedAt: Date;
+  /** not_pii: Whether the advisor has been verified */
   verified: boolean;
 }
 
@@ -866,9 +961,13 @@ export interface IGetLatestNthsChapterStatusParams {
 
 /** 'GetLatestNthsChapterStatus' return type */
 export interface IGetLatestNthsChapterStatusResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Foreign key to upchieve.nths_groups */
   groupId: string;
+  /** not_pii: Foreign key to upchieve.nths_chapter_statuses */
   statusId: number;
+  /** not_pii: Human-readable name */
   statusName: string;
 }
 
@@ -918,8 +1017,11 @@ export interface IInsertStatusForNthsChapterParams {
 
 /** 'InsertStatusForNthsChapter' return type */
 export interface IInsertStatusForNthsChapterResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Foreign key to upchieve.nths_groups */
   groupId: string;
+  /** not_pii: Foreign key to upchieve.nths_chapter_statuses */
   statusId: number;
   statusName: string | null;
 }
@@ -958,10 +1060,15 @@ export type IGetAllNthsGroupsWithStatusParams = void;
 
 /** 'GetAllNthsGroupsWithStatus' return type */
 export interface IGetAllNthsGroupsWithStatusResult {
+  /** not_pii: Primary key */
   groupId: string;
+  /** not_pii: Foreign key to upchieve.nths_school_affiliation_statuses */
   schoolAffiliationStatusId: number;
+  /** not_pii: Human-readable name */
   schoolAffiliationStatusName: string;
+  /** not_pii: Foreign key to upchieve.nths_chapter_statuses */
   statusId: number;
+  /** not_pii: Human-readable name */
   statusName: string;
 }
 
@@ -1000,6 +1107,7 @@ export interface ILatestCandidateApplicationStatusParams {
 
 /** 'LatestCandidateApplicationStatus' return type */
 export interface ILatestCandidateApplicationStatusResult {
+  /** not_pii: Application status (applied, approved, or denied) */
   status: nths_candidate_application_status;
 }
 
@@ -1037,11 +1145,17 @@ export interface ICreateCandidateApplicationParams {
 
 /** 'CreateCandidateApplication' return type */
 export interface ICreateCandidateApplicationResult {
+  /** not_pii */
   createdAt: Date;
+  /** pii: Notes explaining why the application was denied */
   deniedNotes: string | null;
+  /** not_pii: Primary key */
   id: number;
+  /** not_pii: Application status (applied, approved, or denied) */
   status: nths_candidate_application_status;
+  /** not_pii */
   updatedAt: Date;
+  /** not_pii: Foreign key to upchieve.users */
   userId: string;
 }
 

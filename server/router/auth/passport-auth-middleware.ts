@@ -20,6 +20,7 @@ import {
   verifyPassword,
 } from '../../utils/auth-utils'
 import { isDevEnvironment } from '../../utils/environments'
+import { maskEmail } from '../../utils/mask-contact'
 import config from '../../config'
 import logger from '../../logger'
 import { Uuid } from '../../models/pgUtils'
@@ -155,7 +156,7 @@ async function handleSSOStrategy(
     if (existingFedCred) {
       if (userData && options.isStudent(profile.userType)) {
         const data = {
-          schoolId: userData.schoolId,
+          schoolId: (userData as RegisterStudentPayload).schoolId,
           studentPartnerOrgKey: (userData as RegisterStudentPayload)
             .studentPartnerOrgKey,
           studentPartnerOrgSiteName: (userData as RegisterStudentPayload)
@@ -209,7 +210,7 @@ async function handleSSOStrategy(
     if (existingUser && existingUser.emailVerified) {
       if (userData && options.isStudent(profile.userType)) {
         const data = {
-          schoolId: userData.schoolId,
+          schoolId: (userData as RegisterStudentPayload).schoolId,
           studentPartnerOrgKey: (userData as RegisterStudentPayload)
             .studentPartnerOrgKey,
           studentPartnerOrgSiteName: (userData as RegisterStudentPayload)
@@ -290,13 +291,8 @@ export function addPassportAuthMiddleware() {
             !isDevEnvironment() &&
             email !== config.retoolAdminEmail
           ) {
-            const maskedEmail = email.replace(
-              /^(.)(.+)(.)(@.+)$/,
-              (_match, first, middle, last, domain) =>
-                first + '*'.repeat(middle.length) + last + domain
-            )
             logger.info(
-              { email: maskedEmail },
+              { email: maskEmail(email) },
               'Admin tried to sign in with email/password.'
             )
             return done(null, false)
