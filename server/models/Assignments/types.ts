@@ -68,7 +68,4 @@ export type StudentAssignmentCompletionRow = {
   firstName: string
   lastName: string
   submittedAt?: Date
-  first_name: string
-  last_name: string
-  submitted_at?: Date
 }

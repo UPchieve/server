@@ -1,5 +1,5 @@
-import { ISODateString } from '../types/dates'
-import { Uuid } from '../types/shared'
+import type { ISODateString } from '../types/dates'
+import type { Uuid } from '../types/shared'
 
 export type AssignmentPublic = {
   id: Uuid
@@ -44,3 +44,8 @@ export type StudentAssignmentCompletionResponse = {
 export type AssignmentDocumentsResponse = {
   assignmentDocuments: AssignmentDocumentPublic[]
 }
+
+export type AssignmentUploadResponse = {
+  // TODO: move to a shared types with other moderation types?
+  moderationFailures: Record<string, string[]>
+} | void

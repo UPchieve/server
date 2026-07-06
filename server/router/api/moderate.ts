@@ -57,14 +57,15 @@ export function routeModeration(router: Router): void {
         }
 
         try {
-          const moderationResult = await ModerationService.moderateImage({
-            image: imageToModerate.buffer,
-            sessionId,
-            userId: user.id,
-            isVolunteer: user.roleContext.hasRole('volunteer'),
-            source: 'image_upload',
-            aggregateInfractions: true,
-          })
+          const moderationResult = await ModerationService.moderateImage(
+            imageToModerate.buffer,
+            {
+              source: 'image_upload',
+              sessionId,
+              userId: user.id,
+              isVolunteer: user.roleContext.hasRole('volunteer'),
+            }
+          )
           res
             .status(200)
             .json(
@@ -83,29 +84,31 @@ export function routeModeration(router: Router): void {
     .post(
       upload.single('frame'),
       (req, res: Response<ErrorResponse | void>) => {
-        const frameToModerate = req.file
-        const sessionId = req.body.sessionId
-        const user = extractUser(req)
+        router
+          .route('/moderate/video-frame')
+          .post(upload.single('frame'), (req, res) => {
+            const frameToModerate = req.file
+            const sessionId = req.body.sessionId
+            const user = extractUser(req)
 
-        if (!frameToModerate) {
-          return res.status(400).json({ err: 'No file was attached' })
-        }
+            if (!frameToModerate) {
+              return res.status(400).json({ err: 'No file was attached' })
+            }
 
-        logger.info(`Moderating video frame for session ${sessionId}`)
-        try {
-          ModerationService.moderateImage({
-            image: frameToModerate.buffer,
-            sessionId,
-            userId: user.id,
-            isVolunteer: user.roleContext.hasRole('volunteer'),
-            source: 'screenshare',
-            aggregateInfractions: false,
+            logger.info(`Moderating video frame for session ${sessionId}`)
+            try {
+              ModerationService.moderateScreenshareImage({
+                image: frameToModerate.buffer,
+                sessionId,
+                userId: user.id,
+                isVolunteer: user.roleContext.hasRole('volunteer'),
+              })
+
+              res.status(201).send()
+            } catch (err) {
+              resError(res, err)
+            }
           })
-
-          res.status(201).send()
-        } catch (err) {
-          resError(res, err)
-        }
       }
     )
 }

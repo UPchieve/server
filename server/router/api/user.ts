@@ -4,13 +4,15 @@ import * as AwsService from '../../services/AwsService'
 import * as VolunteerService from '../../services/VolunteerService'
 import * as UserRolesService from '../../services/UserRolesService'
 import * as PresenceService from '../../services/PresenceService'
+import * as ReferralService from '../../services/ReferralService'
 import { updateUserProfile } from '../../services/UserProfileService'
 import { getUserIdByEmail, EditUserProfilePayload } from '../../models/User/'
 import { authPassport } from '../../utils/auth-utils'
 import { resError } from '../res-error'
-import { asString, asBoolean, asUlid } from '../../utils/type-utils'
+import { asString, asBoolean, asUlid, asEnum } from '../../utils/type-utils'
 import { extractUser } from '../extract-user'
 import { InputError, NotAllowedError } from '../../models/Errors'
+import { GRADES } from '../../constants'
 
 export function routeUser(router: Router): void {
   router.route('/user').get(async function (req, res) {
@@ -56,6 +58,9 @@ export function routeUser(router: Router): void {
       if ('preferredLanguage' in req.body) {
         const preferredLanguage = asString(req.body.preferredLanguage)
         updateReq['preferredLanguage'] = preferredLanguage
+      }
+      if ('gradeLevel' in req.body) {
+        updateReq['gradeLevel'] = asEnum<GRADES>(GRADES)(req.body.gradeLevel)
       }
 
       await updateUserProfile(user, ip, updateReq)
@@ -166,10 +171,11 @@ export function routeUser(router: Router): void {
         signupSourceId,
         otherSignupSource,
         highSchoolId,
+        gradeLevel,
       } = req.body
 
       const update = {
-        occupation,
+        occupations: occupation,
         experience,
         company,
         college,
@@ -182,14 +188,16 @@ export function routeUser(router: Router): void {
         signupSourceId,
         otherSignupSource,
         highSchoolId,
+        gradeLevel,
       }
 
       try {
-        const { wasRemovedFromNTHS } = await VolunteerService.addBackgroundInfo(
-          user.id,
-          update,
-          ip
-        )
+        const { wasRemovedFromNTHS } =
+          await VolunteerService.submitVolunteerBackgroundInfo(
+            user.id,
+            update,
+            ip
+          )
         res.json({ wasRemovedFromNTHS })
       } catch (error) {
         resError(res, error)
@@ -200,9 +208,12 @@ export function routeUser(router: Router): void {
   router.get('/user/referred-friends', async (req, res) => {
     try {
       const user = extractUser(req)
-      const referredFriends = await UserService.countReferredUsers(user.id, {
-        withPhoneOrEmailVerifiedAs: true,
-      })
+      const referredFriends = await ReferralService.getReferredUsersCount(
+        user.id,
+        {
+          withPhoneOrEmailVerified: true,
+        }
+      )
       // the frontend is expecting to look at the length of an array, not a #
       const referredFriendsArr = Array(referredFriends)
       res.json({ referredFriendsArr })
@@ -375,6 +386,24 @@ export function routeUser(router: Router): void {
 
       await updateUserProfile(user, req.ip, attrs)
 
+      return res.sendStatus(201)
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
+  router.post('/user/coaching-invitation', async function (req, res) {
+    try {
+      const user = extractUser(req)
+      const invitedUserId = req.body.invitedUserId
+      const sessionId = req.body.sessionId
+      const personalization = req.body.coachingSkills
+      await UserService.queueInvitationToCoach(
+        invitedUserId,
+        user.id,
+        sessionId,
+        personalization
+      )
       return res.sendStatus(201)
     } catch (err) {
       resError(res, err)

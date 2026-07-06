@@ -159,10 +159,9 @@ describe('routeModeration', () => {
     })
 
     test('should moderate an uploaded video frame and return 201', async () => {
-      mockedModerationService.moderateImage.mockResolvedValueOnce({
-        isClean: true,
-        failures: [],
-      })
+      mockedModerationService.moderateScreenshareImage.mockResolvedValueOnce(
+        undefined
+      )
 
       const response = await agent
         .post('/api/moderate/video-frame')
@@ -170,13 +169,17 @@ describe('routeModeration', () => {
         .field('sessionId', sessionId)
         .attach('frame', Buffer.from('frame-bytes'), 'frame.png')
       expect(response.status).toBe(201)
-      expect(mockedModerationService.moderateImage).toHaveBeenCalledTimes(1)
+      expect(
+        mockedModerationService.moderateScreenshareImage
+      ).toHaveBeenCalledTimes(1)
     })
 
-    test('should return an error response when moderateImage throws', async () => {
-      mockedModerationService.moderateImage.mockImplementationOnce(() => {
-        throw new Error('Error')
-      })
+    test('should return an error response when moderateScreenshareImage throws', async () => {
+      mockedModerationService.moderateScreenshareImage.mockImplementationOnce(
+        () => {
+          throw new Error('Error')
+        }
+      )
 
       const response = await agent
         .post('/api/moderate/video-frame')
@@ -184,7 +187,9 @@ describe('routeModeration', () => {
         .field('sessionId', sessionId)
         .attach('frame', Buffer.from('frame-bytes'), 'frame.png')
       expect(response.status).toBeGreaterThanOrEqual(400)
-      expect(mockedModerationService.moderateImage).toHaveBeenCalledTimes(1)
+      expect(
+        mockedModerationService.moderateScreenshareImage
+      ).toHaveBeenCalledTimes(1)
     })
   })
 })

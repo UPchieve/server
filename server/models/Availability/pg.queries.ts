@@ -12,10 +12,15 @@ export interface IGetAvailabilityForVolunteerParams {
 
 /** 'GetAvailabilityForVolunteer' return type */
 export interface IGetAvailabilityForVolunteerResult {
+  /** not_pii: End hour of the availability window (0-23) */
   availableEnd: number;
+  /** not_pii: Start hour of the availability window (0-23) */
   availableStart: number;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: IANA timezone identifier */
   timezone: string;
+  /** not_pii: Name of the weekday (e.g. Monday) */
   weekday: string;
 }
 
@@ -54,10 +59,15 @@ export interface IGetAvailabilityForLegacyVolunteerParams {
 
 /** 'GetAvailabilityForLegacyVolunteer' return type */
 export interface IGetAvailabilityForLegacyVolunteerResult {
+  /** not_pii: End hour of the availability window (0-23) */
   availableEnd: number;
+  /** not_pii: Start hour of the availability window (0-23) */
   availableStart: number;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: IANA timezone identifier */
   timezone: string;
+  /** not_pii: Name of the weekday (e.g. Monday) */
   weekday: string;
 }
 
@@ -96,11 +106,17 @@ export interface IGetAvailabilityForVolunteerHeatmapParams {
 
 /** 'GetAvailabilityForVolunteerHeatmap' return type */
 export interface IGetAvailabilityForVolunteerHeatmapResult {
+  /** not_pii: End hour of the availability window (0-23) */
   availableEnd: number;
+  /** not_pii: Start hour of the availability window (0-23) */
   availableStart: number;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: IANA timezone identifier */
   timezone: string;
+  /** not_pii: Foreign key to upchieve.users */
   userId: string;
+  /** not_pii: Name of the weekday (e.g. Monday) */
   weekday: string;
 }
 
@@ -197,11 +213,17 @@ export interface IGetAvailabilityHistoryForDatesByVolunteerIdParams {
 
 /** 'GetAvailabilityHistoryForDatesByVolunteerId' return type */
 export interface IGetAvailabilityHistoryForDatesByVolunteerIdResult {
+  /** not_pii: End hour of the availability window (0-23) */
   availableEnd: number;
+  /** not_pii: Start hour of the availability window (0-23) */
   availableStart: number;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Timestamp when the availability snapshot was taken */
   recordedAt: Date;
+  /** not_pii: IANA timezone identifier */
   timezone: string;
+  /** not_pii: Name of the weekday (e.g. Monday) */
   weekday: string;
 }
 
@@ -246,9 +268,13 @@ export interface IGetLegacyAvailabilityHistoryForDatesByVolunteerIdParams {
 
 /** 'GetLegacyAvailabilityHistoryForDatesByVolunteerId' return type */
 export interface IGetLegacyAvailabilityHistoryForDatesByVolunteerIdResult {
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: JSON availability map imported from MongoDB */
   legacyAvailability: Json;
+  /** not_pii: Timestamp when the availability snapshot was taken */
   recordedAt: Date;
+  /** pii: IANA timezone identifier */
   timezone: string | null;
 }
 
@@ -288,6 +314,7 @@ export interface ISaveCurrentAvailabilityAsHistoryParams {
 
 /** 'SaveCurrentAvailabilityAsHistory' return type */
 export interface ISaveCurrentAvailabilityAsHistoryResult {
+  /** not_pii: Primary key */
   ok: string;
 }
 
@@ -336,6 +363,7 @@ export interface IInsertNewAvailabilityParams {
 
 /** 'InsertNewAvailability' return type */
 export interface IInsertNewAvailabilityResult {
+  /** not_pii: Primary key */
   ok: string;
 }
 
@@ -378,6 +406,7 @@ export interface IClearAvailabilityForVolunteerParams {
 
 /** 'ClearAvailabilityForVolunteer' return type */
 export interface IClearAvailabilityForVolunteerResult {
+  /** not_pii: Foreign key to upchieve.users */
   ok: string;
 }
 

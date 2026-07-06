@@ -38,19 +38,20 @@ export default async (
       await QueueService.add(
         Jobs.EmailWeeklyHourSummary,
         {
+          delay: 0,
+          /*
+              By default, all jobs have the highest priority of 1.
+              Since this job can spawn a few thousand jobs that aren't time sensitive,
+              we're setting priority to 3. That way, if we have 10,000 of these jobs
+              in the queue and a `NotifyTutors` job comes in, it can skip to the front
+              of the queue.
+            */
+          priority: 3,
+        },
+        {
           startDate: lastMonday,
           endDate: lastSunday,
           volunteer,
-        },
-        {
-          /*
-            By default, all jobs have the highest priority of 1.
-            Since this job can spawn a few thousand jobs that aren't time sensitive,
-            we're setting priority to 3. That way, if we have 10,000 of these jobs
-            in the queue and a `NotifyTutors` job comes in, it can skip to the front
-            of the queue.
-          */
-          priority: 3,
         }
       )
     } catch (error) {

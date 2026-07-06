@@ -8,11 +8,17 @@ export interface IGetTeacherClassesForStudentParams {
 
 /** 'GetTeacherClassesForStudent' return type */
 export interface IGetTeacherClassesForStudentResult {
+  /** not_pii: Whether the class is currently active */
   active: boolean;
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Name of the teacher class */
   name: string;
+  /** not_pii: Foreign key to upchieve.topics */
   topicId: number | null;
+  /** not_pii */
   updatedAt: Date;
 }
 
@@ -87,6 +93,7 @@ export interface IRemoveStudentsFromClassParams {
 
 /** 'RemoveStudentsFromClass' return type */
 export interface IRemoveStudentsFromClassResult {
+  /** not_pii: Foreign key to upchieve.users */
   studentid: string;
 }
 

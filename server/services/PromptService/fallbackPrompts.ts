@@ -238,6 +238,52 @@ export const DOCUMENT_EDITOR_TOOL_FALLBACK_PROMPT = `
     It may provide helpful context about diagrams, screenshots, or handwritten work that was shared.
     However, image text may not always be present.`.trim()
 
+export const IMAGE_MODERATION_FALLBACK_PROMPT = `
+You are a content moderator for an online tutoring platform. The image was shared during a live tutoring session between a student and an adult volunteer tutor. All images are expected to serve an educational purpose (e.g. math problems, diagrams, textbook pages, whiteboard notes, class presentations, etc.).
+
+You will evaluate both the image itself as well as the text in the image. The categories for visual content and text in image are listed below.
+
+Score the image against each category below with a confidence from 0 to 1. Only include categories with a confidence above 0.1. For text-based findings, also include the exact matched string in the text field. If no categories are detected, return an empty infractions array.
+
+VISUAL CONTENT:
+- Alcohol: alcoholic beverages being visibly consumed
+- Drugs & Tobacco: drug use, paraphernalia, or tobacco products
+- Explicit: explicit nudity or sexual acts
+- Gambling: gambling activities or casino imagery
+- Hate Symbols: hate group logos, slur-as-image, or extremist iconography
+- Non-Explicit Nudity of Intimate parts and Kissing: non-explicit nudity, intimate body parts exposed, or kissing
+- Person detected in image: any visible person or human face when the image does not serve an educational purpose (e.g. selfie, personal photo, content unrelated to tutoring)
+- Rude Gestures: offensive hand gestures (e.g. raised middle finger)
+- Swimwear or Underwear: revealing swimwear or undergarments
+- Violence: weapons, blood, physical harm, or depictions of violence
+- Visually Disturbing: gore, graphic injury, or deeply shocking images
+
+TEXT IN IMAGE:
+- ADDRESS: any physical street address
+- EMAIL: any email address
+- GRAPHIC: written descriptions of graphic violence, gore, or deeply disturbing content
+- HARASSMENT_OR_ABUSE: threatening, intimidating, or abusive language directed at a person
+- HATE_SPEECH: slurs, dehumanizing language, or content targeting people based on protected characteristics such as race, religion, gender, or sexual orientation
+- INSULT: demeaning or degrading language intended to belittle or humiliate someone
+- LINK: any URL or web address
+- PHONE: any phone number (including formatted variants like (555) 123-4567)
+- PROFANITY: any curse words or obscene language
+- SEXUAL: sexually explicit language, descriptions of sexual acts, or inappropriate sexual content
+- VIOLENCE_OR_THREAT: explicit threats of violence, instructions for causing harm, or descriptions of violent acts
+
+Respond with a \`ModerationResponse\` JSON object matching these types:
+
+type ModerationInfraction = {
+  category: string    // the category name exactly as listed above
+  confidence: number  // confidence the category is detected in the image on a score of 0 to 1
+  text?: string       // the matched string, for text-based findings only
+}
+
+type ModerationResponse = {
+  infractions: ModerationInfraction[]  // empty array if nothing detected
+}
+`.trim()
+
 export const WHITEBOARD_TOOL_FALLBACK_PROMPT = `
     Use only what is supported by the transcript and the whiteboard content. Do not assume understanding beyond what is shown.
 

@@ -9,10 +9,14 @@ export interface IGetZipCodeByZipCodeParams {
 
 /** 'GetZipCodeByZipCode' return type */
 export interface IGetZipCodeByZipCodeResult {
+  /** not_pii: Median income for the Core Based Statistical Area */
   cbsaIncome: number | null;
   isEligible: boolean | null;
+  /** not_pii: Median household income for the postal code area */
   medianIncome: number | null;
+  /** not_pii: Median income for the state */
   stateIncome: number | null;
+  /** not_pii: The US zipcode */
   zipCode: string;
 }
 
@@ -56,6 +60,7 @@ export interface IUpsertZipCodeParams {
 
 /** 'UpsertZipCode' return type */
 export interface IUpsertZipCodeResult {
+  /** not_pii: The US zipcode */
   ok: string;
 }
 

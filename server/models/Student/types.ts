@@ -26,34 +26,6 @@ export type StudentUserProfile = {
   updatedAt: Date
 }
 
-export type CreateStudentPayload = {
-  email: string
-  firstName: string
-  lastName: string
-  password?: string | undefined
-  referredBy: Ulid | undefined
-  studentPartnerOrg?: string | undefined
-  zipCode?: string | undefined
-  approvedHighschool: Ulid | undefined
-  currentGrade?: string
-  partnerSite?: string
-  partnerUserId?: string
-  college?: string
-  signupSourceId?: number
-  otherSignupSource?: string
-  verified?: boolean
-  emailVerified?: boolean
-}
-
-export type CreateStudentWithPasswordPayload = CreateStudentPayload & {
-  password: string
-}
-export type CreateStudentWithFedCredPayload = CreateStudentPayload & {
-  password?: string | undefined
-  verified: boolean
-  emailVerified: boolean
-}
-
 export type CreatedStudent = StudentContactInfo & {
   isDeactivated: boolean
   isTestUser: boolean

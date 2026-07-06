@@ -13,6 +13,7 @@ export interface IInsertProgressReportParams {
 
 /** 'InsertProgressReport' return type */
 export interface IInsertProgressReportResult {
+  /** not_pii: Primary key */
   id: string;
 }
 
@@ -56,6 +57,7 @@ export interface IInsertProgressReportSessionParams {
 
 /** 'InsertProgressReportSession' return type */
 export interface IInsertProgressReportSessionResult {
+  /** not_pii: Foreign key to upchieve.progress_reports */
   ok: string;
 }
 
@@ -99,6 +101,7 @@ export interface IInsertProgressReportSummaryParams {
 
 /** 'InsertProgressReportSummary' return type */
 export interface IInsertProgressReportSummaryResult {
+  /** not_pii: Primary key */
   id: string;
 }
 
@@ -133,6 +136,7 @@ export interface IInsertProgressReportConceptParams {
 
 /** 'InsertProgressReportConcept' return type */
 export interface IInsertProgressReportConceptResult {
+  /** not_pii: Primary key */
   id: string;
 }
 
@@ -167,6 +171,7 @@ export interface IInsertProgressReportSummaryDetailParams {
 
 /** 'InsertProgressReportSummaryDetail' return type */
 export interface IInsertProgressReportSummaryDetailResult {
+  /** not_pii: Primary key */
   id: string;
 }
 
@@ -217,6 +222,7 @@ export interface IInsertProgressReportConceptDetailParams {
 
 /** 'InsertProgressReportConceptDetail' return type */
 export interface IInsertProgressReportConceptDetailResult {
+  /** not_pii: Primary key */
   id: string;
 }
 
@@ -264,6 +270,7 @@ export interface IUpdateProgressReportStatusParams {
 
 /** 'UpdateProgressReportStatus' return type */
 export interface IUpdateProgressReportStatusResult {
+  /** not_pii: Primary key */
   ok: string;
 }
 
@@ -308,9 +315,13 @@ export interface IGetProgressReportInfoBySessionIdParams {
 
 /** 'GetProgressReportInfoBySessionId' return type */
 export interface IGetProgressReportInfoBySessionIdResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Timestamp when the user first read the report */
   readAt: Date | null;
+  /** not_pii: Human-readable name */
   status: string;
 }
 
@@ -354,9 +365,13 @@ export interface IGetProgressReportByReportIdParams {
 
 /** 'GetProgressReportByReportId' return type */
 export interface IGetProgressReportByReportIdResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Timestamp when the user first read the report */
   readAt: Date | null;
+  /** not_pii: Human-readable name */
   status: string;
 }
 
@@ -393,16 +408,26 @@ export interface IGetProgressReportSummariesForManyParams {
 
 /** 'GetProgressReportSummariesForMany' return type */
 export interface IGetProgressReportSummariesForManyResult {
+  /** not_pii: AI-generated summary detail text (may contain student context) */
   content: string;
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Primary key */
   detailId: string;
+  /** not_pii: Human-readable name */
   focusArea: string;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Human-readable name */
   infoType: string;
+  /** not_pii: Aggregate percentage performance grade */
   overallGrade: number;
+  /** not_pii: Foreign key to upchieve.progress_reports */
   reportId: string;
+  /** not_pii: Timestamp when the user first read the report */
   reportReadAt: Date | null;
   sessionCreatedAt: Date | null;
+  /** not_pii: AI-generated summary text (may contain student context) */
   summary: string;
 }
 
@@ -464,16 +489,27 @@ export interface IGetProgressReportConceptsByReportIdParams {
 
 /** 'GetProgressReportConceptsByReportId' return type */
 export interface IGetProgressReportConceptsByReportIdResult {
+  /** not_pii: AI-generated detail text (may contain student context) */
   content: string;
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: AI-generated description of the concept (may contain student context) */
   description: string;
+  /** not_pii: Primary key */
   detailId: string;
+  /** not_pii: Human-readable name */
   focusArea: string;
+  /** not_pii: Numeric performance grade (percentage) */
   grade: number;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Human-readable name */
   infoType: string;
+  /** not_pii: Name of the academic concept covered in the report */
   name: string;
+  /** not_pii: Foreign key to upchieve.progress_reports */
   reportId: string;
+  /** not_pii: Timestamp when the user first read the report */
   reportReadAt: Date | null;
 }
 
@@ -526,10 +562,15 @@ export interface IGetProgressReportSessionsForSubjectByPaginationParams {
 
 /** 'GetProgressReportSessionsForSubjectByPagination' return type */
 export interface IGetProgressReportSessionsForSubjectByPaginationResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: User-facing display name */
   subject: string;
+  /** not_pii: Human-readable name */
   topic: string;
+  /** not_pii: URL to the topic icon image */
   topicIconLink: string | null;
 }
 
@@ -587,6 +628,7 @@ export interface IGetAllProgressReportIdsByUserIdAndSubjectParams {
 
 /** 'GetAllProgressReportIdsByUserIdAndSubject' return type */
 export interface IGetAllProgressReportIdsByUserIdAndSubjectResult {
+  /** not_pii: Primary key */
   id: string;
 }
 
@@ -642,9 +684,13 @@ export interface IGetLatestProgressReportIdBySubjectParams {
 
 /** 'GetLatestProgressReportIdBySubject' return type */
 export interface IGetLatestProgressReportIdBySubjectResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Timestamp when the user first read the report */
   readAt: Date | null;
+  /** not_pii: Human-readable name */
   status: string;
 }
 
@@ -691,6 +737,7 @@ export interface IUpdateProgressReportsReadAtByReportIdsParams {
 
 /** 'UpdateProgressReportsReadAtByReportIds' return type */
 export interface IUpdateProgressReportsReadAtByReportIdsResult {
+  /** not_pii: Primary key */
   ok: string;
 }
 
@@ -719,49 +766,62 @@ const updateProgressReportsReadAtByReportIdsIR: any = {"usedParamSet":{"reportId
 export const updateProgressReportsReadAtByReportIds = new PreparedQuery<IUpdateProgressReportsReadAtByReportIdsParams,IUpdateProgressReportsReadAtByReportIdsResult>(updateProgressReportsReadAtByReportIdsIR);
 
 
-/** 'GetProgressReportOverviewUnreadStatsByUserId' parameters type */
-export interface IGetProgressReportOverviewUnreadStatsByUserIdParams {
+/** 'GetUnreadSubjectReportsCountByUserId' parameters type */
+export interface IGetUnreadSubjectReportsCountByUserIdParams {
   userId: string;
 }
 
-/** 'GetProgressReportOverviewUnreadStatsByUserId' return type */
-export interface IGetProgressReportOverviewUnreadStatsByUserIdResult {
+/** 'GetUnreadSubjectReportsCountByUserId' return type */
+export interface IGetUnreadSubjectReportsCountByUserIdResult {
+  /** not_pii: Human-readable name */
   subject: string;
   totalUnreadReports: number | null;
 }
 
-/** 'GetProgressReportOverviewUnreadStatsByUserId' query type */
-export interface IGetProgressReportOverviewUnreadStatsByUserIdQuery {
-  params: IGetProgressReportOverviewUnreadStatsByUserIdParams;
-  result: IGetProgressReportOverviewUnreadStatsByUserIdResult;
+/** 'GetUnreadSubjectReportsCountByUserId' query type */
+export interface IGetUnreadSubjectReportsCountByUserIdQuery {
+  params: IGetUnreadSubjectReportsCountByUserIdParams;
+  result: IGetUnreadSubjectReportsCountByUserIdResult;
 }
 
-const getProgressReportOverviewUnreadStatsByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":701,"b":708}]}],"statement":"SELECT\n    subjects.name AS subject,\n    COUNT(DISTINCT CASE WHEN progress_reports.read_at IS NULL THEN\n            progress_reports.id\n        END)::int AS total_unread_reports\nFROM\n    progress_reports\n    JOIN progress_report_statuses ON progress_reports.status_id = progress_report_statuses.id\n    JOIN progress_report_sessions ON progress_reports.id = progress_report_sessions.progress_report_id\n    JOIN progress_report_analysis_types ON progress_report_sessions.progress_report_analysis_type_id = progress_report_analysis_types.id\n    JOIN sessions ON progress_report_sessions.session_id = sessions.id\n    JOIN subjects ON sessions.subject_id = subjects.id\nWHERE\n    progress_reports.user_id = :userId!\n    AND progress_report_analysis_types.name = 'group'\n    AND progress_report_statuses.name = 'complete'\nGROUP BY\n    subjects.name"};
+const getUnreadSubjectReportsCountByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":1044,"b":1051}]}],"statement":"SELECT\n    grouped_reports.subject,\n    COUNT(*) FILTER (WHERE grouped_reports.read_at IS NULL)::int AS total_unread_reports\nFROM (\n    SELECT\n        progress_reports.id,\n        progress_reports.read_at,\n        progress_reports.created_at,\n        subjects.name AS subject,\n        ROW_NUMBER() OVER (PARTITION BY STRING_AGG(progress_report_sessions.session_id::text, ',' ORDER BY progress_report_sessions.session_id) ORDER BY progress_reports.created_at DESC) AS row_num\n    FROM\n        progress_reports\n        JOIN progress_report_sessions ON progress_reports.id = progress_report_sessions.progress_report_id\n        JOIN progress_report_statuses ON progress_reports.status_id = progress_report_statuses.id\n        JOIN progress_report_analysis_types ON progress_report_sessions.progress_report_analysis_type_id = progress_report_analysis_types.id\n        LEFT JOIN sessions ON progress_report_sessions.session_id = sessions.id\n        LEFT JOIN subjects ON sessions.subject_id = subjects.id\n    WHERE\n        progress_reports.user_id = :userId!\n        AND progress_report_analysis_types.name = 'group'\n        AND progress_report_statuses.name = 'complete'\n    GROUP BY\n        progress_reports.id,\n        progress_reports.created_at,\n        subjects.name,\n        progress_reports.read_at) AS grouped_reports\nWHERE\n    grouped_reports.row_num = 1\nGROUP BY\n    grouped_reports.subject"};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
- *     subjects.name AS subject,
- *     COUNT(DISTINCT CASE WHEN progress_reports.read_at IS NULL THEN
- *             progress_reports.id
- *         END)::int AS total_unread_reports
- * FROM
- *     progress_reports
- *     JOIN progress_report_statuses ON progress_reports.status_id = progress_report_statuses.id
- *     JOIN progress_report_sessions ON progress_reports.id = progress_report_sessions.progress_report_id
- *     JOIN progress_report_analysis_types ON progress_report_sessions.progress_report_analysis_type_id = progress_report_analysis_types.id
- *     JOIN sessions ON progress_report_sessions.session_id = sessions.id
- *     JOIN subjects ON sessions.subject_id = subjects.id
+ *     grouped_reports.subject,
+ *     COUNT(*) FILTER (WHERE grouped_reports.read_at IS NULL)::int AS total_unread_reports
+ * FROM (
+ *     SELECT
+ *         progress_reports.id,
+ *         progress_reports.read_at,
+ *         progress_reports.created_at,
+ *         subjects.name AS subject,
+ *         ROW_NUMBER() OVER (PARTITION BY STRING_AGG(progress_report_sessions.session_id::text, ',' ORDER BY progress_report_sessions.session_id) ORDER BY progress_reports.created_at DESC) AS row_num
+ *     FROM
+ *         progress_reports
+ *         JOIN progress_report_sessions ON progress_reports.id = progress_report_sessions.progress_report_id
+ *         JOIN progress_report_statuses ON progress_reports.status_id = progress_report_statuses.id
+ *         JOIN progress_report_analysis_types ON progress_report_sessions.progress_report_analysis_type_id = progress_report_analysis_types.id
+ *         LEFT JOIN sessions ON progress_report_sessions.session_id = sessions.id
+ *         LEFT JOIN subjects ON sessions.subject_id = subjects.id
+ *     WHERE
+ *         progress_reports.user_id = :userId!
+ *         AND progress_report_analysis_types.name = 'group'
+ *         AND progress_report_statuses.name = 'complete'
+ *     GROUP BY
+ *         progress_reports.id,
+ *         progress_reports.created_at,
+ *         subjects.name,
+ *         progress_reports.read_at) AS grouped_reports
  * WHERE
- *     progress_reports.user_id = :userId!
- *     AND progress_report_analysis_types.name = 'group'
- *     AND progress_report_statuses.name = 'complete'
+ *     grouped_reports.row_num = 1
  * GROUP BY
- *     subjects.name
+ *     grouped_reports.subject
  * ```
  */
-export const getProgressReportOverviewUnreadStatsByUserId = new PreparedQuery<IGetProgressReportOverviewUnreadStatsByUserIdParams,IGetProgressReportOverviewUnreadStatsByUserIdResult>(getProgressReportOverviewUnreadStatsByUserIdIR);
+export const getUnreadSubjectReportsCountByUserId = new PreparedQuery<IGetUnreadSubjectReportsCountByUserIdParams,IGetUnreadSubjectReportsCountByUserIdResult>(getUnreadSubjectReportsCountByUserIdIR);
 
 
 /** 'GetLatestProgressReportOverviewSubjectByUserId' parameters type */
@@ -771,6 +831,7 @@ export interface IGetLatestProgressReportOverviewSubjectByUserIdParams {
 
 /** 'GetLatestProgressReportOverviewSubjectByUserId' return type */
 export interface IGetLatestProgressReportOverviewSubjectByUserIdResult {
+  /** not_pii: Human-readable name */
   name: string;
 }
 
@@ -819,7 +880,9 @@ export interface IGetActiveSubjectPromptBySubjectNameParams {
 
 /** 'GetActiveSubjectPromptBySubjectName' return type */
 export interface IGetActiveSubjectPromptBySubjectNameResult {
+  /** not_pii: Primary key */
   id: number;
+  /** not_pii: Prompt text sent to the AI model */
   prompt: string;
 }
 

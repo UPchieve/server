@@ -52,6 +52,7 @@ export interface IGetQuizzesPassedForDateRangeForTelecomReportByVolunteerIdParam
 
 /** 'GetQuizzesPassedForDateRangeForTelecomReportByVolunteerId' return type */
 export interface IGetQuizzesPassedForDateRangeForTelecomReportByVolunteerIdResult {
+  /** not_pii */
   createdAt: Date;
 }
 
@@ -88,11 +89,17 @@ export interface IGetSessionRequestedUserAgentFromSessionIdParams {
 
 /** 'GetSessionRequestedUserAgentFromSessionId' return type */
 export interface IGetSessionRequestedUserAgentFromSessionIdResult {
+  /** pii: Browser name parsed from the user agent string */
   browser: string | null;
+  /** pii: Browser version string */
   browserVersion: string | null;
+  /** pii: Device type parsed from the user agent string */
   device: string | null;
+  /** not_pii: Primary key */
   id: string;
+  /** pii: Operating system name */
   operatingSystem: string | null;
+  /** pii: Operating system version string */
   operatingSystemVersion: string | null;
 }
 
@@ -132,6 +139,7 @@ export interface IGetIpAddressByIpParams {
 
 /** 'GetIpAddressByIp' return type */
 export interface IGetIpAddressByIpResult {
+  /** not_pii: Primary key */
   id: string;
 }
 
@@ -164,6 +172,7 @@ export interface IUpsertIpAddressParams {
 
 /** 'UpsertIpAddress' return type */
 export interface IUpsertIpAddressResult {
+  /** not_pii: Primary key */
   id: string;
 }
 
@@ -238,6 +247,7 @@ export interface ICreateQuizActionParams {
 
 /** 'CreateQuizAction' return type */
 export interface ICreateQuizActionResult {
+  /** not_pii: Primary key */
   ok: string;
 }
 
@@ -277,6 +287,7 @@ export interface ICreateSessionActionParams {
 
 /** 'CreateSessionAction' return type */
 export interface ICreateSessionActionResult {
+  /** not_pii: Primary key */
   ok: string;
 }
 
@@ -315,6 +326,7 @@ export interface ICreateAccountActionParams {
 
 /** 'CreateAccountAction' return type */
 export interface ICreateAccountActionResult {
+  /** not_pii: Primary key */
   ok: string;
 }
 
@@ -347,6 +359,7 @@ export interface ICreateAdminActionParams {
 
 /** 'CreateAdminAction' return type */
 export interface ICreateAdminActionResult {
+  /** not_pii: Primary key */
   ok: string;
 }
 

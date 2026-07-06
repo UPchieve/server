@@ -11,12 +11,19 @@ export interface IInsertContactFormSubmissionByUserParams {
 
 /** 'InsertContactFormSubmissionByUser' return type */
 export interface IInsertContactFormSubmissionByUserResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Message text content */
   message: string;
+  /** not_pii: Contact form topic category */
   topic: string;
+  /** not_pii */
   updatedAt: Date;
+  /** pii: Email address of the submitting user (may be unauthenticated) */
   userEmail: string | null;
+  /** not_pii: Foreign key to upchieve.users */
   userId: string | null;
 }
 
@@ -67,12 +74,19 @@ export interface IInsertContactFormSubmissionByEmailParams {
 
 /** 'InsertContactFormSubmissionByEmail' return type */
 export interface IInsertContactFormSubmissionByEmailResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Message text content */
   message: string;
+  /** not_pii: Contact form topic category */
   topic: string;
+  /** not_pii */
   updatedAt: Date;
+  /** pii: Email address of the submitting user (may be unauthenticated) */
   userEmail: string | null;
+  /** not_pii: Foreign key to upchieve.users */
   userId: string | null;
 }
 
