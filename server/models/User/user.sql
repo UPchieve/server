@@ -106,11 +106,12 @@ LIMIT 1;
 
 /* @name getUserBanStatus */
 SELECT
+    id,
     ban_type
 FROM
     users
 WHERE
-    id = :id!;
+    id = ANY (:userIds!);
 
 
 /* @name getUserByReferralCode */
