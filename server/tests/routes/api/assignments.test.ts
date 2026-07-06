@@ -148,6 +148,34 @@ describe('routeAssignments', () => {
       expect(files[0]?.originalname).toBe('first.jpg')
       expect(files[1]?.originalname).toBe('second.png')
     })
+
+    test('uploads files and returns 422 for moderation failures', async () => {
+      const moderationFailures = {
+        'file-one': ['failureOne', 'failureTwo'],
+      }
+      mockedAssignmentsService.uploadAssignmentFiles.mockResolvedValueOnce(
+        moderationFailures
+      )
+      const response = await agent
+        .put('/api/assignment/upload')
+        .field('assignmentId', ASSIGNMENT_ID)
+        .attach('files', Buffer.from('file-one'), 'first.jpg')
+        .attach('files', Buffer.from('file-two'), 'second.png')
+
+      expect(response.status).toBe(422)
+      expect(response.body).toEqual({ moderationFailures })
+      expect(
+        mockedAssignmentsService.uploadAssignmentFiles
+      ).toHaveBeenCalledTimes(1)
+
+      const [calledAssignmentId, files] =
+        mockedAssignmentsService.uploadAssignmentFiles.mock.calls[0]
+
+      expect(calledAssignmentId).toBe(ASSIGNMENT_ID)
+      expect(files).toHaveLength(2)
+      expect(files[0]?.originalname).toBe('first.jpg')
+      expect(files[1]?.originalname).toBe('second.png')
+    })
   })
 
   describe('GET /api/assignment/:assignmentId/documents', () => {
