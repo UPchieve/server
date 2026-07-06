@@ -27,6 +27,7 @@ import {
 import { getDocEditorSessionImageUrl } from '../../services/AzureService'
 import { getSessionSummaryByUserType } from '../../services/SessionSummariesService'
 import { USER_ROLES } from '../../constants'
+import { toCurrentSessionPublic } from '../../public/sessions'
 
 export function routeSession(router: Router) {
   // io is now passed to this module so that API events can trigger socket events as needed
@@ -50,7 +51,7 @@ export function routeSession(router: Router) {
         ...sessionData,
         presessionSurvey,
       })
-      const currentSession = SessionService.toCurrentSessionPublic(session)
+      const currentSession = toCurrentSessionPublic(session)
       const isZwibserveSession = await SessionService.isZwibserveSession(
         session.id
       )
@@ -75,7 +76,7 @@ export function routeSession(router: Router) {
         userAgent: req.get('User-Agent'),
         joinedFrom,
       })
-      const currentSession = SessionService.toCurrentSessionPublic(session)
+      const currentSession = toCurrentSessionPublic(session)
       const isZwibserveSession = await SessionService.isZwibserveSession(
         session.id
       )
@@ -110,7 +111,7 @@ export function routeSession(router: Router) {
           ip: req.ip,
         }
       )
-      const currentSession = SessionService.toCurrentSessionPublic(endedSession)
+      const currentSession = toCurrentSessionPublic(endedSession)
       await SessionService.addDocEditorVersionTo(currentSession)
       res.json({ sessionId: req.body.sessionId, session: currentSession })
     } catch (error) {
@@ -142,7 +143,7 @@ export function routeSession(router: Router) {
       if (!session) {
         res.json(null)
       } else {
-        const currentSession = SessionService.toCurrentSessionPublic(session)
+        const currentSession = toCurrentSessionPublic(session)
         res.json({
           sessionId: currentSession.id,
           data: currentSession,
@@ -163,7 +164,7 @@ export function routeSession(router: Router) {
       } else {
         res.json({
           sessionId: currentSession.id,
-          data: SessionService.toCurrentSessionPublic(currentSession),
+          data: toCurrentSessionPublic(currentSession),
         })
       }
     } catch (error) {

@@ -1360,45 +1360,6 @@ export async function isZwibserveSession(sessionId: Uuid) {
   return members.includes(sessionId)
 }
 
-function toSessionUserInfoPublic(data: {
-  id: Uuid
-  firstName: string
-}): SessionUserInfoPublic {
-  return {
-    _id: data.id,
-    id: data.id,
-    firstname: data.firstName,
-    firstName: data.firstName,
-  }
-}
-
-export function toCurrentSessionPublic(
-  session: CurrentSession
-): CurrentSessionPublic {
-  return {
-    _id: session.id,
-    id: session.id,
-    studentId: session.studentId,
-    volunteerId: session.volunteerId,
-    student: toSessionUserInfoPublic(session.student),
-    volunteer: session.volunteer
-      ? toSessionUserInfoPublic(session.volunteer)
-      : undefined,
-    volunteerJoinedAt: session.volunteerJoinedAt,
-    messages: session.messages ?? [],
-    toolType: session.toolType,
-    docEditorVersion: session.docEditorVersion,
-    studentBannedFromLiveMedia: session.studentBannedFromLiveMedia,
-    volunteerBannedFromLiveMedia: session.volunteerBannedFromLiveMedia,
-    volunteerLanguages: session.volunteerLanguages ?? [],
-    type: session.type,
-    subTopic: session.subTopic,
-    createdAt: session.createdAt,
-    endedAt: session.endedAt,
-    endedBy: session.endedBy,
-  }
-}
-
 function getSessionCacheKey(sessionId: Ulid) {
   return `SESSION-INFO-${sessionId}`
 }

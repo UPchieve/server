@@ -3,7 +3,13 @@ import request, { Test } from 'supertest'
 import { mockApp, mockPassportMiddleware, mockRouter } from '../../mock-app'
 import { routeAssignments } from '../../../router/api/assignments'
 import * as AssignmentsService from '../../../services/AssignmentsService'
-import { buildAssignment, buildUser } from '../../mocks/generate'
+import {
+  buildAssignment,
+  buildAssignmentPublic,
+  buildStudentAssignmentCompletionRow,
+  buildStudentAssignmentSubmissionPublic,
+  buildUser,
+} from '../../mocks/generate'
 import type { BlobDocument } from '../../../services/AzureService'
 
 jest.mock('../../../services/AssignmentsService')
@@ -39,13 +45,14 @@ describe('routeAssignments', () => {
 
   describe('GET /api/assignment/:assignmentId', () => {
     test('returns assignment', async () => {
-      const assignment = buildAssignment()
-
+      const isGettingStartedAssignment = true
+      const assignment = buildAssignment({ isGettingStartedAssignment })
+      const assignmentPublic = buildAssignmentPublic(assignment)
       mockedAssignmentsService.getAssignmentById.mockResolvedValueOnce(
         assignment
       )
       mockedAssignmentsService.isGettingStartedAssignment.mockResolvedValueOnce(
-        true
+        isGettingStartedAssignment
       )
 
       const response = await sendGet(`/api/assignment/${assignment.id}`)
@@ -57,14 +64,7 @@ describe('routeAssignments', () => {
         mockedAssignmentsService.isGettingStartedAssignment
       ).toHaveBeenCalledWith(assignment.id)
       expect(response.body).toEqual({
-        assignment: {
-          ...assignment,
-          dueDate: assignment.dueDate?.toISOString(),
-          startDate: assignment.startDate?.toISOString(),
-          createdAt: assignment.createdAt.toISOString(),
-          updatedAt: assignment.updatedAt.toISOString(),
-          isGettingStartedAssignment: true,
-        },
+        assignment: assignmentPublic,
       })
     })
 
@@ -88,27 +88,14 @@ describe('routeAssignments', () => {
   })
 
   describe('GET /api/assignment/:assignmentId/students', () => {
-    type StudentAssignmentCompletionRow = {
-      firstName: string
-      lastName: string
-      submittedAt: Date | null
-    }
-
     test('returns student assignment completion details', async () => {
-      const submittedAt = new Date()
-      const studentAssignments: StudentAssignmentCompletionRow[] = [
-        {
-          firstName: 'Jane',
-          lastName: 'Doe',
-          submittedAt,
-        },
-        {
-          firstName: 'John',
-          lastName: 'Smith',
-          submittedAt: null,
-        },
+      const studentAssignments = [
+        buildStudentAssignmentCompletionRow(),
+        buildStudentAssignmentCompletionRow(),
       ]
-
+      const publicAssignments = studentAssignments.map(
+        buildStudentAssignmentSubmissionPublic
+      )
       mockedAssignmentsService.getStudentAssignmentCompletion.mockResolvedValueOnce(
         studentAssignments
       )
@@ -122,18 +109,7 @@ describe('routeAssignments', () => {
       ).toHaveBeenCalledWith(ASSIGNMENT_ID)
 
       expect(response.body).toEqual({
-        studentAssignments: [
-          {
-            firstName: 'Jane',
-            lastName: 'Doe',
-            submittedAt: submittedAt.toISOString(),
-          },
-          {
-            firstName: 'John',
-            lastName: 'Smith',
-            submittedAt: null,
-          },
-        ],
+        studentAssignments: publicAssignments,
       })
     })
   })
@@ -160,6 +136,34 @@ describe('routeAssignments', () => {
         .attach('files', Buffer.from('file-two'), 'second.png')
 
       expect(response.status).toBe(200)
+      expect(
+        mockedAssignmentsService.uploadAssignmentFiles
+      ).toHaveBeenCalledTimes(1)
+
+      const [calledAssignmentId, files] =
+        mockedAssignmentsService.uploadAssignmentFiles.mock.calls[0]
+
+      expect(calledAssignmentId).toBe(ASSIGNMENT_ID)
+      expect(files).toHaveLength(2)
+      expect(files[0]?.originalname).toBe('first.jpg')
+      expect(files[1]?.originalname).toBe('second.png')
+    })
+
+    test('uploads files and returns 422 for moderation failures', async () => {
+      const moderationFailures = {
+        'file-one': ['failureOne', 'failureTwo'],
+      }
+      mockedAssignmentsService.uploadAssignmentFiles.mockResolvedValueOnce(
+        moderationFailures
+      )
+      const response = await agent
+        .put('/api/assignment/upload')
+        .field('assignmentId', ASSIGNMENT_ID)
+        .attach('files', Buffer.from('file-one'), 'first.jpg')
+        .attach('files', Buffer.from('file-two'), 'second.png')
+
+      expect(response.status).toBe(422)
+      expect(response.body).toEqual({ moderationFailures })
       expect(
         mockedAssignmentsService.uploadAssignmentFiles
       ).toHaveBeenCalledTimes(1)
