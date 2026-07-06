@@ -12,6 +12,7 @@ import {
   CreateStudentAssignmentResult,
   EditAssignmentInput,
   StudentAssignment,
+  StudentAssignmentCompletionRow,
 } from './types'
 import * as pgQueries from './pg.queries'
 import {
@@ -244,11 +245,13 @@ export async function getAllAssignmentsForTeacher(
 export async function getStudentAssignmentCompletion(
   assignmentId: Ulid,
   tc: TransactionClient = getClient()
-) {
+): Promise<StudentAssignmentCompletionRow[]> {
   try {
     const studentAssignments =
       await pgQueries.getStudentAssignmentCompletion.run({ assignmentId }, tc)
-    return studentAssignments
+    return studentAssignments.map((assignment) =>
+      makeSomeOptional(assignment, ['submittedAt'])
+    )
   } catch (err) {
     throw new RepoReadError(err)
   }

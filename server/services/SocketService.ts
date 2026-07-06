@@ -16,6 +16,7 @@ import * as cache from '../cache'
 import { backOff } from 'exponential-backoff'
 import { UserContactInfo } from '../models/User'
 import { secondsInMs } from '../utils/time-utils'
+import { toCurrentSessionPublic } from '../public/sessions'
 
 // TODO: Remove class wrapper.
 class SocketService {
@@ -136,7 +137,7 @@ class SocketService {
     this.io
       .in(sessionParticipants)
       .timeout(secondsInMs(5))
-      .emit('session-change', SessionService.toCurrentSessionPublic(session))
+      .emit('session-change', toCurrentSessionPublic(session))
 
     await this.updateSessionList(tc)
   }

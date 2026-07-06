@@ -127,14 +127,12 @@ describe('routeSession', () => {
       const session = buildCurrentSession({
         volunteer: undefined,
         volunteerJoinedAt: undefined,
+        volunteerId: undefined,
       })
       const currentSessionPublic = buildCurrentSessionPublic(session)
       const presessionSurvey = buildPresessionSurveyResponses()
       mockedSessionService.startSession.mockResolvedValueOnce(session)
       mockedSessionService.isZwibserveSession.mockResolvedValueOnce(true)
-      mockedSessionService.toCurrentSessionPublic.mockReturnValue(
-        currentSessionPublic
-      )
       mockedSurveyService.asSaveUserSurveyAndSubmissions.mockReturnValue(
         presessionSurvey
       )
@@ -176,9 +174,6 @@ describe('routeSession', () => {
       const currentSessionPublic = buildCurrentSessionPublic(session)
       mockedSessionService.joinSession.mockResolvedValueOnce(session)
       mockedSessionService.isZwibserveSession.mockResolvedValueOnce(false)
-      mockedSessionService.toCurrentSessionPublic.mockReturnValue(
-        currentSessionPublic
-      )
 
       const response = await sendPost('/api/session/join', {
         sessionId: session.id,
@@ -211,9 +206,6 @@ describe('routeSession', () => {
       })
       const currentSessionPublic = buildCurrentSessionPublic(endedSession)
       mockedSessionService.endSession.mockResolvedValueOnce(endedSession)
-      mockedSessionService.toCurrentSessionPublic.mockReturnValue(
-        currentSessionPublic
-      )
 
       const response = await sendPost('/api/session/end', {
         sessionId: endedSession.id,
@@ -268,9 +260,6 @@ describe('routeSession', () => {
       const currentSession = buildCurrentSession()
       const currentSessionPublic = buildCurrentSessionPublic(currentSession)
       mockedSessionService.currentSession.mockResolvedValueOnce(currentSession)
-      mockedSessionService.toCurrentSessionPublic.mockReturnValueOnce(
-        currentSessionPublic
-      )
 
       const response = await sendPost('/api/session/current')
       expect(response.status).toBe(200)
@@ -287,9 +276,6 @@ describe('routeSession', () => {
       const currentSessionPublic = buildCurrentSessionPublic(currentSession)
       mockedSessionService.getRecapSessionForDms.mockResolvedValueOnce(
         currentSession
-      )
-      mockedSessionService.toCurrentSessionPublic.mockReturnValueOnce(
-        currentSessionPublic
       )
 
       const response = await sendPost('/api/session/recap-dms', {

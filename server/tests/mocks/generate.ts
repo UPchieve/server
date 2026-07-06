@@ -94,7 +94,11 @@ import type {
   MessageForFrontend,
   SessionDetail,
 } from '../../types/session'
-import type { Assignment, StudentAssignment } from '../../models/Assignments'
+import type {
+  Assignment,
+  StudentAssignment,
+  StudentAssignmentCompletionRow,
+} from '../../models/Assignments'
 import { SessionReport, UsageReport } from '../../services/ReportService'
 import { TelecomRow } from '../../utils/reportUtils'
 import { UserReward } from '../../services/RewardsService'
@@ -137,6 +141,10 @@ import type {
 } from '../../contracts/tutor-bot'
 import { IneligibleStudentsWithSchoolInfo } from '../../models/IneligibleStudent/queries'
 import { ZipCode } from '../../models/ZipCode/types'
+import {
+  AssignmentPublic,
+  StudentAssignmentSubmissionPublic,
+} from '../../contracts/assignments'
 
 export function getEmail(): string {
   return faker.internet.email().toLowerCase()
@@ -1245,7 +1253,28 @@ export function buildAssignment(
     title: 'Homework 1',
     createdAt: new Date(),
     updatedAt: new Date(),
+    isGettingStartedAssignment: false,
     ...overrides,
+  }
+}
+
+export function buildAssignmentPublic(
+  overrides: Partial<Assignment> = {}
+): AssignmentPublic {
+  const assignment = buildAssignment(overrides)
+  return {
+    id: assignment.id,
+    classId: assignment.classId,
+    description: assignment.description,
+    dueDate: assignment.dueDate?.toISOString(),
+    isRequired: assignment.isRequired,
+    minDurationInMinutes: assignment.minDurationInMinutes,
+    numberOfSessions: assignment.numberOfSessions,
+    startDate: assignment.startDate?.toISOString(),
+    subjectId: assignment.subjectId,
+    title: assignment.title,
+    createdAt: assignment.createdAt?.toISOString(),
+    isGettingStartedAssignment: assignment.isGettingStartedAssignment,
   }
 }
 
@@ -1328,6 +1357,36 @@ export function buildStudentAssignment(
     subjectName: 'Algebra One',
     submittedAt: new Date(),
     ...overrides,
+  }
+}
+
+export function buildStudentAssignmentCompletionRow(
+  overrides: Partial<StudentAssignmentCompletionRow> = {}
+): StudentAssignmentCompletionRow {
+  const student = buildStudent()
+  const submittedAt = new Date()
+  return {
+    firstName: student.firstName,
+    lastName: student.firstName,
+    submittedAt,
+    first_name: student.firstName,
+    last_name: student.firstName,
+    submitted_at: submittedAt,
+    ...overrides,
+  }
+}
+
+export function buildStudentAssignmentSubmissionPublic(
+  overrides: Partial<StudentAssignmentCompletionRow> = {}
+): StudentAssignmentSubmissionPublic {
+  const assignment = buildStudentAssignmentCompletionRow(overrides)
+  return {
+    firstName: assignment.firstName,
+    lastName: assignment.lastName,
+    submittedAt: assignment.submittedAt?.toISOString(),
+    first_name: assignment.firstName,
+    last_name: assignment.lastName,
+    submitted_at: assignment.submittedAt?.toISOString(),
   }
 }
 
@@ -1552,7 +1611,7 @@ export function buildCurrentSessionPublic(
     volunteerBannedFromLiveMedia: session.volunteerBannedFromLiveMedia,
     volunteerLanguages: session.volunteerLanguages,
     type: session.type,
-    subTopic: session.subject,
+    subTopic: session.subTopic,
     createdAt: session.createdAt.toISOString(),
     endedAt: session.endedAt?.toISOString(),
     endedBy: session.endedBy,

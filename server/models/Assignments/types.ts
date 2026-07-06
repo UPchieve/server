@@ -62,3 +62,10 @@ export type CreateStudentAssignmentResult = {
   createdAt: Date
   updatedAt: Date
 }
+
+// TODO: Make into a domain type instead
+export type StudentAssignmentCompletionRow = {
+  firstName: string
+  lastName: string
+  submittedAt?: Date
+}
