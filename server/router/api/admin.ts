@@ -80,11 +80,9 @@ export function routeAdmin(apiRouter: Router): void {
           req.file.buffer,
           ['firstName', 'lastName', 'email', 'gradeLevel']
         )
-        const { failed, updated } = await rosterPartnerStudents(
-          students,
-          req.body.schoolId
-        )
-        res.json({ failed, updated })
+        const { failed, updated, created, deactivated } =
+          await rosterPartnerStudents(students, req.body.schoolId)
+        res.json({ failed, updated, created, deactivated })
       } catch (error) {
         resError(res, error)
       }
@@ -93,13 +91,14 @@ export function routeAdmin(apiRouter: Router): void {
 
   router.post('/clever/roster', async function (req, res) {
     req.clearTimeout()
-    const districtId = asString(req.body.districtId)
 
-    if (!districtId) {
+    if (!req.body.districtId) {
       res.status(422).json({
         err: 'Missing district id.',
       })
+      return
     }
+    const districtId = asString(req.body.districtId)
 
     try {
       const report = await CleverRosterService.rosterDistrict(districtId)

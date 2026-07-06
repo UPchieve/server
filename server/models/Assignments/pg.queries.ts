@@ -21,17 +21,29 @@ export interface ICreateAssignmentParams {
 
 /** 'CreateAssignment' return type */
 export interface ICreateAssignmentResult {
+  /** not_pii: Foreign key to upchieve.teacher_classes */
   classId: string;
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Free-text description of the assignment */
   description: string | null;
+  /** not_pii: Assignment due date */
   dueDate: Date | null;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Whether the assignment is required for the class */
   isRequired: boolean;
+  /** not_pii: Minimum session duration in minutes required by the assignment */
   minDurationInMinutes: number | null;
+  /** not_pii: Required number of tutoring sessions for the assignment */
   numberOfSessions: number | null;
+  /** not_pii: Assignment start date */
   startDate: Date | null;
+  /** not_pii: Foreign key to upchieve.subjects */
   subjectId: number | null;
+  /** not_pii: Title of the assignment */
   title: string | null;
+  /** not_pii */
   updatedAt: Date;
 }
 
@@ -62,18 +74,30 @@ export interface IGetAssignmentsByClassIdParams {
 
 /** 'GetAssignmentsByClassId' return type */
 export interface IGetAssignmentsByClassIdResult {
+  /** not_pii: Foreign key to upchieve.teacher_classes */
   classId: string;
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Free-text description of the assignment */
   description: string | null;
+  /** not_pii: Assignment due date */
   dueDate: Date | null;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Whether the assignment is required for the class */
   isRequired: boolean;
+  /** not_pii: Minimum session duration in minutes required by the assignment */
   minDurationInMinutes: number | null;
+  /** not_pii: Required number of tutoring sessions for the assignment */
   numberOfSessions: number | null;
+  /** not_pii: Assignment start date */
   startDate: Date | null;
   studentIds: stringArray | null;
+  /** not_pii: Foreign key to upchieve.subjects */
   subjectId: number | null;
+  /** not_pii: Title of the assignment */
   title: string | null;
+  /** not_pii */
   updatedAt: Date;
 }
 
@@ -111,18 +135,31 @@ export interface IGetAssignmentByIdParams {
 
 /** 'GetAssignmentById' return type */
 export interface IGetAssignmentByIdResult {
+  /** not_pii: Foreign key to upchieve.teacher_classes */
   classId: string;
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Free-text description of the assignment */
   description: string | null;
+  /** not_pii: Assignment due date */
   dueDate: Date | null;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Whether the assignment is required for the class */
   isRequired: boolean;
+  /** not_pii: Minimum session duration in minutes required by the assignment */
   minDurationInMinutes: number | null;
+  /** not_pii: Required number of tutoring sessions for the assignment */
   numberOfSessions: number | null;
+  /** not_pii: Assignment start date */
   startDate: Date | null;
+  /** not_pii: Foreign key to upchieve.subjects */
   subjectId: number | null;
+  /** not_pii: Human-readable name */
   subjectName: string;
+  /** not_pii: Title of the assignment */
   title: string | null;
+  /** not_pii */
   updatedAt: Date;
 }
 
@@ -158,9 +195,13 @@ export interface ICreateStudentsAssignmentsForAllParams {
 
 /** 'CreateStudentsAssignmentsForAll' return type */
 export interface ICreateStudentsAssignmentsForAllResult {
+  /** not_pii: Foreign key to upchieve.assignments */
   assignmentId: string;
+  /** not_pii */
   createdAt: Date;
+  /** not_pii */
   updatedAt: Date;
+  /** not_pii: Foreign key to upchieve.users */
   userId: string;
 }
 
@@ -233,18 +274,31 @@ export interface IGetAssignmentsByStudentIdParams {
 
 /** 'GetAssignmentsByStudentId' return type */
 export interface IGetAssignmentsByStudentIdResult {
+  /** not_pii */
   assignedAt: Date;
+  /** not_pii: Foreign key to upchieve.teacher_classes */
   classId: string;
+  /** not_pii: Free-text description of the assignment */
   description: string | null;
+  /** not_pii: Assignment due date */
   dueDate: Date | null;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Whether the assignment is required for the class */
   isRequired: boolean;
+  /** not_pii: Minimum session duration in minutes required by the assignment */
   minDurationInMinutes: number | null;
+  /** not_pii: Required number of tutoring sessions for the assignment */
   numberOfSessions: number | null;
+  /** not_pii: Assignment start date */
   startDate: Date | null;
+  /** not_pii: Foreign key to upchieve.subjects */
   subjectId: number | null;
+  /** not_pii: Human-readable name */
   subjectName: string;
+  /** not_pii: Timestamp when the student submitted the assignment */
   submittedAt: Date | null;
+  /** not_pii: Title of the assignment */
   title: string | null;
 }
 
@@ -291,17 +345,29 @@ export interface IGetAllAssignmentsForTeacherParams {
 
 /** 'GetAllAssignmentsForTeacher' return type */
 export interface IGetAllAssignmentsForTeacherResult {
+  /** not_pii: Foreign key to upchieve.teacher_classes */
   classId: string;
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Free-text description of the assignment */
   description: string | null;
+  /** not_pii: Assignment due date */
   dueDate: Date | null;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Whether the assignment is required for the class */
   isRequired: boolean;
+  /** not_pii: Minimum session duration in minutes required by the assignment */
   minDurationInMinutes: number | null;
+  /** not_pii: Required number of tutoring sessions for the assignment */
   numberOfSessions: number | null;
+  /** not_pii: Assignment start date */
   startDate: Date | null;
+  /** not_pii: Foreign key to upchieve.subjects */
   subjectId: number | null;
+  /** not_pii: Title of the assignment */
   title: string | null;
+  /** not_pii */
   updatedAt: Date;
 }
 
@@ -335,8 +401,11 @@ export interface IGetStudentAssignmentCompletionParams {
 
 /** 'GetStudentAssignmentCompletion' return type */
 export interface IGetStudentAssignmentCompletionResult {
+  /** pii: First name */
   firstName: string;
+  /** pii: Last name */
   lastName: string;
+  /** not_pii: Timestamp when the student submitted the assignment */
   submittedAt: Date | null;
 }
 
@@ -372,19 +441,33 @@ export interface IGetStudentAssignmentForSessionParams {
 
 /** 'GetStudentAssignmentForSession' return type */
 export interface IGetStudentAssignmentForSessionResult {
+  /** not_pii */
   assignedAt: Date;
+  /** not_pii: Foreign key to upchieve.teacher_classes */
   classId: string;
+  /** not_pii: Name of the teacher class */
   className: string;
+  /** not_pii: Free-text description of the assignment */
   description: string | null;
+  /** not_pii: Assignment due date */
   dueDate: Date | null;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Whether the assignment is required for the class */
   isRequired: boolean;
+  /** not_pii: Minimum session duration in minutes required by the assignment */
   minDurationInMinutes: number | null;
+  /** not_pii: Required number of tutoring sessions for the assignment */
   numberOfSessions: number | null;
+  /** not_pii: Assignment start date */
   startDate: Date | null;
+  /** not_pii: Foreign key to upchieve.subjects */
   subjectId: number | null;
+  /** not_pii: Human-readable name */
   subjectName: string;
+  /** not_pii: Timestamp when the student submitted the assignment */
   submittedAt: Date | null;
+  /** not_pii: Title of the assignment */
   title: string | null;
 }
 
@@ -466,8 +549,11 @@ export interface IGetSessionsForStudentAssignmentParams {
 
 /** 'GetSessionsForStudentAssignment' return type */
 export interface IGetSessionsForStudentAssignmentResult {
+  /** not_pii: Timestamp when the session ended */
   endedAt: Date | null;
+  /** not_pii: Duration of active tutoring in milliseconds */
   timeTutored: string;
+  /** not_pii: Timestamp when the volunteer joined the session */
   volunteerJoinedAt: Date | null;
 }
 
@@ -590,17 +676,29 @@ export interface IEditAssignmentByIdParams {
 
 /** 'EditAssignmentById' return type */
 export interface IEditAssignmentByIdResult {
+  /** not_pii: Foreign key to upchieve.teacher_classes */
   classId: string;
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Free-text description of the assignment */
   description: string | null;
+  /** not_pii: Assignment due date */
   dueDate: Date | null;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Whether the assignment is required for the class */
   isRequired: boolean;
+  /** not_pii: Minimum session duration in minutes required by the assignment */
   minDurationInMinutes: number | null;
+  /** not_pii: Required number of tutoring sessions for the assignment */
   numberOfSessions: number | null;
+  /** not_pii: Assignment start date */
   startDate: Date | null;
+  /** not_pii: Foreign key to upchieve.subjects */
   subjectId: number | null;
+  /** not_pii: Title of the assignment */
   title: string | null;
+  /** not_pii */
   updatedAt: Date;
 }
 

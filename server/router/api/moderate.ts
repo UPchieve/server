@@ -47,14 +47,15 @@ export function routeModeration(router: Router): void {
       }
 
       try {
-        const moderationResult = await ModerationService.moderateImage({
-          image: imageToModerate.buffer,
-          sessionId,
-          userId: user.id,
-          isVolunteer: user.roleContext.hasRole('volunteer'),
-          source: 'image_upload',
-          aggregateInfractions: true,
-        })
+        const moderationResult = await ModerationService.moderateImage(
+          imageToModerate.buffer,
+          {
+            source: 'image_upload',
+            sessionId,
+            userId: user.id,
+            isVolunteer: user.roleContext.hasRole('volunteer'),
+          }
+        )
         res.status(200).json(moderationResult)
       } catch (err) {
         resError(res, err)
@@ -74,13 +75,11 @@ export function routeModeration(router: Router): void {
 
       logger.info(`Moderating video frame for session ${sessionId}`)
       try {
-        ModerationService.moderateImage({
+        ModerationService.moderateScreenshareImage({
           image: frameToModerate.buffer,
           sessionId,
           userId: user.id,
           isVolunteer: user.roleContext.hasRole('volunteer'),
-          source: 'screenshare',
-          aggregateInfractions: false,
         })
 
         res.status(201).send()

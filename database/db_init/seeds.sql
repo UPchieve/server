@@ -42748,7 +42748,7 @@ COPY upchieve.student_partner_orgs_sponsor_orgs (student_partner_org_id, sponsor
 -- Data for Name: student_profiles; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.student_profiles (user_id, college, school_id, postal_code, grade_level_id, student_partner_org_user_id, student_partner_org_id, student_partner_org_site_id, created_at, updated_at) FROM stdin;
+COPY upchieve.student_profiles (user_id, college, school_id, postal_code, student_partner_org_user_id, student_partner_org_id, student_partner_org_site_id, created_at, updated_at) FROM stdin;
 \.
 
 

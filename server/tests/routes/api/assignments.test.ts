@@ -1,6 +1,6 @@
 import { mocked } from 'jest-mock'
 import request, { Test } from 'supertest'
-import { mockApp, mockRouter } from '../../mock-app'
+import { mockApp, mockPassportMiddleware, mockRouter } from '../../mock-app'
 import { routeAssignments } from '../../../router/api/assignments'
 import * as AssignmentsService from '../../../services/AssignmentsService'
 import {
@@ -8,6 +8,7 @@ import {
   buildAssignmentPublic,
   buildStudentAssignmentCompletionRow,
   buildStudentAssignmentSubmissionPublic,
+  buildUser,
 } from '../../mocks/generate'
 import type { BlobDocument } from '../../../services/AzureService'
 
@@ -19,6 +20,11 @@ const router = mockRouter()
 routeAssignments(router)
 
 const app = mockApp()
+const mockUser = buildUser()
+function mockGetUser() {
+  return mockUser
+}
+app.use(mockPassportMiddleware(mockGetUser))
 app.use('/api', router)
 
 const agent = request.agent(app)
@@ -122,24 +128,53 @@ describe('routeAssignments', () => {
 
   describe('PUT /api/assignment/upload', () => {
     test('uploads files and returns 200', async () => {
-      mockedAssignmentsService.uploadAssignment.mockResolvedValueOnce()
-
+      mockedAssignmentsService.uploadAssignmentFiles.mockResolvedValueOnce({})
       const response = await agent
         .put('/api/assignment/upload')
         .field('assignmentId', ASSIGNMENT_ID)
-        .attach('files', Buffer.from('file-one'), 'first.txt')
-        .attach('files', Buffer.from('file-two'), 'second.txt')
+        .attach('files', Buffer.from('file-one'), 'first.jpg')
+        .attach('files', Buffer.from('file-two'), 'second.png')
 
       expect(response.status).toBe(200)
-      expect(mockedAssignmentsService.uploadAssignment).toHaveBeenCalledTimes(1)
+      expect(
+        mockedAssignmentsService.uploadAssignmentFiles
+      ).toHaveBeenCalledTimes(1)
 
       const [calledAssignmentId, files] =
-        mockedAssignmentsService.uploadAssignment.mock.calls[0]
+        mockedAssignmentsService.uploadAssignmentFiles.mock.calls[0]
 
       expect(calledAssignmentId).toBe(ASSIGNMENT_ID)
       expect(files).toHaveLength(2)
-      expect(files[0]?.originalname).toBe('first.txt')
-      expect(files[1]?.originalname).toBe('second.txt')
+      expect(files[0]?.originalname).toBe('first.jpg')
+      expect(files[1]?.originalname).toBe('second.png')
+    })
+
+    test('uploads files and returns 422 for moderation failures', async () => {
+      const moderationFailures = {
+        'file-one': ['failureOne', 'failureTwo'],
+      }
+      mockedAssignmentsService.uploadAssignmentFiles.mockResolvedValueOnce(
+        moderationFailures
+      )
+      const response = await agent
+        .put('/api/assignment/upload')
+        .field('assignmentId', ASSIGNMENT_ID)
+        .attach('files', Buffer.from('file-one'), 'first.jpg')
+        .attach('files', Buffer.from('file-two'), 'second.png')
+
+      expect(response.status).toBe(422)
+      expect(response.body).toEqual({ moderationFailures })
+      expect(
+        mockedAssignmentsService.uploadAssignmentFiles
+      ).toHaveBeenCalledTimes(1)
+
+      const [calledAssignmentId, files] =
+        mockedAssignmentsService.uploadAssignmentFiles.mock.calls[0]
+
+      expect(calledAssignmentId).toBe(ASSIGNMENT_ID)
+      expect(files).toHaveLength(2)
+      expect(files[0]?.originalname).toBe('first.jpg')
+      expect(files[1]?.originalname).toBe('second.png')
     })
   })
 

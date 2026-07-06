@@ -374,10 +374,8 @@ export async function sendStudentOnboardingSurvey(
 }
 
 export async function sendStudentFirstSessionCongrats(
-  studentId: string,
   email: string,
-  firstName: string,
-  emailTemplateId: string
+  firstName: string
 ): Promise<void> {
   const sender = config.mail.senders.studentOutreachManager
   const overrides = {
@@ -390,7 +388,7 @@ export async function sendStudentFirstSessionCongrats(
     email,
     sender,
     `${config.mail.people.studentOutreachManager.firstName} ${config.mail.people.studentOutreachManager.lastName}`,
-    emailTemplateId,
+    config.sendgrid.studentFirstSessionCongratsTemplate,
     { firstName },
     overrides
   )
@@ -1665,6 +1663,27 @@ export async function sendNTHSChapterAdminsMemberDeactivationNotice(
       }
     )
   }
+}
+
+export async function sendInvitationToCoachEmail(
+  recipientEmail: string,
+  customData: {
+    coachingSkills: string[]
+    inviterFirstName: string
+    firstName: string
+  }
+): Promise<void> {
+  const overrides = {
+    categories: ['invitation to coach'],
+  }
+  await sendEmail(
+    recipientEmail,
+    config.mail.senders.noreply,
+    'UPchieve',
+    config.sendgrid.invitationToCoachEmail,
+    customData,
+    overrides
+  )
 }
 
 export async function createContact(userIds: Ulid | Ulid[]): Promise<any> {

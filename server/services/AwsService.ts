@@ -9,6 +9,8 @@ import {
 import * as Sentry from '@sentry/node'
 import config from '../config'
 import logger, { logError } from '../logger'
+import { RekognitionClient } from '@aws-sdk/client-rekognition'
+import { ComprehendClient } from '@aws-sdk/client-comprehend'
 
 const s3 = new S3({
   credentials: {
@@ -17,6 +19,17 @@ const s3 = new S3({
   },
   region: config.awsS3.region,
 })
+
+export const AWS_CONFIG = {
+  region: config.awsModerationToolsRegion,
+  credentials: {
+    accessKeyId: config.awsS3.accessKeyId,
+    secretAccessKey: config.awsS3.secretAccessKey,
+  },
+}
+
+export const AWSRekognitionClient = new RekognitionClient(AWS_CONFIG)
+export const AWSComprehendClient = new ComprehendClient(AWS_CONFIG)
 
 // TODO: we should error or return undefined instead of empty string on failure
 

@@ -305,25 +305,37 @@ RETURNING
     progress_reports.id AS ok;
 
 
-/* @name getProgressReportOverviewUnreadStatsByUserId */
+/* @name getUnreadSubjectReportsCountByUserId */
 SELECT
-    subjects.name AS subject,
-    COUNT(DISTINCT CASE WHEN progress_reports.read_at IS NULL THEN
-            progress_reports.id
-        END)::int AS total_unread_reports
-FROM
-    progress_reports
-    JOIN progress_report_statuses ON progress_reports.status_id = progress_report_statuses.id
-    JOIN progress_report_sessions ON progress_reports.id = progress_report_sessions.progress_report_id
-    JOIN progress_report_analysis_types ON progress_report_sessions.progress_report_analysis_type_id = progress_report_analysis_types.id
-    JOIN sessions ON progress_report_sessions.session_id = sessions.id
-    JOIN subjects ON sessions.subject_id = subjects.id
+    grouped_reports.subject,
+    COUNT(*) FILTER (WHERE grouped_reports.read_at IS NULL)::int AS total_unread_reports
+FROM (
+    SELECT
+        progress_reports.id,
+        progress_reports.read_at,
+        progress_reports.created_at,
+        subjects.name AS subject,
+        ROW_NUMBER() OVER (PARTITION BY STRING_AGG(progress_report_sessions.session_id::text, ',' ORDER BY progress_report_sessions.session_id) ORDER BY progress_reports.created_at DESC) AS row_num
+    FROM
+        progress_reports
+        JOIN progress_report_sessions ON progress_reports.id = progress_report_sessions.progress_report_id
+        JOIN progress_report_statuses ON progress_reports.status_id = progress_report_statuses.id
+        JOIN progress_report_analysis_types ON progress_report_sessions.progress_report_analysis_type_id = progress_report_analysis_types.id
+        LEFT JOIN sessions ON progress_report_sessions.session_id = sessions.id
+        LEFT JOIN subjects ON sessions.subject_id = subjects.id
+    WHERE
+        progress_reports.user_id = :userId!
+        AND progress_report_analysis_types.name = 'group'
+        AND progress_report_statuses.name = 'complete'
+    GROUP BY
+        progress_reports.id,
+        progress_reports.created_at,
+        subjects.name,
+        progress_reports.read_at) AS grouped_reports
 WHERE
-    progress_reports.user_id = :userId!
-    AND progress_report_analysis_types.name = 'group'
-    AND progress_report_statuses.name = 'complete'
+    grouped_reports.row_num = 1
 GROUP BY
-    subjects.name;
+    grouped_reports.subject;
 
 
 /* @name getLatestProgressReportOverviewSubjectByUserId */

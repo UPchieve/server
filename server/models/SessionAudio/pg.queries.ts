@@ -10,12 +10,19 @@ export interface IGetSessionAudioBySessionIdParams {
 
 /** 'GetSessionAudioBySessionId' return type */
 export interface IGetSessionAudioBySessionIdResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: ?? The column is always null, theoretically a link to the resource in cloud storage */
   resourceUri: string | null;
+  /** not_pii: Foreign key to upchieve.sessions */
   sessionId: string;
+  /** not_pii: Timestamp when the student joined the audio session */
   studentJoinedAt: Date | null;
+  /** not_pii */
   updatedAt: Date;
+  /** not_pii: Timestamp when the volunteer joined the session */
   volunteerJoinedAt: Date | null;
 }
 
@@ -52,12 +59,19 @@ export interface ICreateSessionAudioParams {
 
 /** 'CreateSessionAudio' return type */
 export interface ICreateSessionAudioResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: ?? The column is always null, theoretically a link to the resource in cloud storage */
   resourceUri: string | null;
+  /** not_pii: Foreign key to upchieve.sessions */
   sessionId: string;
+  /** not_pii: Timestamp when the student joined the audio session */
   studentJoinedAt: Date | null;
+  /** not_pii */
   updatedAt: Date;
+  /** not_pii: Timestamp when the volunteer joined the session */
   volunteerJoinedAt: Date | null;
 }
 
@@ -91,12 +105,19 @@ export interface IUpdateSessionAudioParams {
 
 /** 'UpdateSessionAudio' return type */
 export interface IUpdateSessionAudioResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: ?? The column is always null, theoretically a link to the resource in cloud storage */
   resourceUri: string | null;
+  /** not_pii: Foreign key to upchieve.sessions */
   sessionId: string;
+  /** not_pii: Timestamp when the student joined the audio session */
   studentJoinedAt: Date | null;
+  /** not_pii */
   updatedAt: Date;
+  /** not_pii: Timestamp when the volunteer joined the session */
   volunteerJoinedAt: Date | null;
 }
 

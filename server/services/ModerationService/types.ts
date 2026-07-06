@@ -5,19 +5,14 @@ export enum LangfuseTraceName {
   MODERATE_SESSION_TRANSCRIPT = 'moderateSessionTranscript',
   MODERATE_IMAGE = 'MODERATE_IMAGE',
   MODERATE_WHITEBOARD_TEXT_NODE = 'moderateWhiteboardTextNode',
+  MODERATE_ASSIGNMENT_INFO = 'moderateAssignmentInfo',
 }
 export enum LangfuseGenerationName {
   SESSION_MESSAGE_MODERATION_DECISION = 'getModerationDecision',
   SESSION_TRANSCRIPT_MODERATION_DECISION = 'getSessionTranscriptModerationDecision',
   GET_ADDRESS_DETECTION_MODERATION_DECISION = 'getAddressDetectionModerationDecision',
   GET_QUESTIONABLE_LINK_MODERATION_DECISION = 'getQuestionableLinkModerationDecision',
-  EXTRACT_TEXT_FROM_IMAGE = 'extractTextFromImage',
-  DETECT_PII_IN_TEXT = 'detectPiiInText',
-  DETECT_TOXICITY_IN_TEXT = 'detectToxicityInText',
-  DETECT_MODERATION_LABELS = 'detectModerationLabels',
-  DETECT_FACES = 'detectFaces',
-  DETECT_PERSON = 'detectPerson',
-  IS_IMAGE_EDUCATIONAL = 'isImageEducational',
+  MODERATE_ASSIGNMENT_INFO = 'moderateAssignmentInfo',
 }
 export enum LangfuseTraceTagEnum {
   FLAGGED_BY_MODERATION = 'flagged-by-moderation',
@@ -26,10 +21,73 @@ export enum LangfuseTraceTagEnum {
 export type ModerationSource =
   | 'image_upload'
   | 'screenshare'
+  | 'assignment_image'
   | 'audio_transcription'
   | 'text_chat'
   | 'whiteboard'
   | 'whiteboard-text-node'
+export type ImageModerationSource = Extract<
+  ModerationSource,
+  'image_upload' | 'screenshare' | 'assignment_image' | 'whiteboard'
+>
+export type LiveMediaSource = Extract<
+  ModerationSource,
+  'screenshare' | 'audio_transcription'
+>
+
+type WithImageModerationSource<S extends ImageModerationSource> = { source: S }
+
+export type TeacherAssignmentContext =
+  WithImageModerationSource<'assignment_image'> & {
+    assignmentId: string
+    userId: string
+  }
+
+export type SessionContext = WithImageModerationSource<'image_upload'> & {
+  sessionId: string
+  userId: string
+  isVolunteer?: boolean
+}
+
+export type PostSessionContext = WithImageModerationSource<'whiteboard'> & {
+  sessionId: string
+}
+
+export type ImageModerationContext =
+  | TeacherAssignmentContext
+  | SessionContext
+  | PostSessionContext
+
+export const IMAGE_MODERATION_CATEGORIES = [
+  'ADDRESS',
+  'Alcohol',
+  'Drugs & Tobacco',
+  'EMAIL',
+  'Explicit',
+  'Gambling',
+  'GRAPHIC',
+  'HARASSMENT_OR_ABUSE',
+  'HATE_SPEECH',
+  'Hate Symbols',
+  'INSULT',
+  'LINK',
+  'Non-Explicit Nudity of Intimate parts and Kissing',
+  'Person detected in image',
+  'PHONE',
+  'PROFANITY',
+  'Rude Gestures',
+  'SEXUAL',
+  'Swimwear or Underwear',
+  'Violence',
+  'VIOLENCE_OR_THREAT',
+  'Visually Disturbing',
+] as const
+export type ModerationCategory = (typeof IMAGE_MODERATION_CATEGORIES)[number]
+export type ImageModerationInfraction = {
+  category: ModerationCategory
+  confidence: number
+  text?: string
+}
 
 export type ModeratedLink = {
   reason: LiveMediaModerationCategories.LINK
@@ -83,7 +141,7 @@ export type ModeratedLinkResponse = {
 
 export type RegexModerationResult = {
   isClean: boolean
-  failures: ModerationFailureReasons
+  failures: ModerationInfractionReasons
   sanitizedMessage: string
 }
 
@@ -93,9 +151,11 @@ export type ModerationAIResult = {
   reasons: Record<string, string[] | never>
 }
 
-export type ModerationFailureReasons = {
+export type ModerationInfractionReasons = {
   failures: Record<string, string[] | never>
 }
+
+export type ModerationInfractionCategories = string[]
 
 export type ModerationSessionReviewFlagReason =
   | 'PII'
@@ -105,7 +165,7 @@ export type ModerationSessionReviewFlagReason =
   | 'SAFETY'
   | 'N/A'
 
-export type ImageModerationFailureReason = {
+export type ImageModerationInfractionReason = {
   reason: string
   /*
     Moderation labels from AWS Rekognition,

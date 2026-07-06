@@ -7,11 +7,22 @@ import { client } from '../clients/langfuse'
 import logger from '../logger'
 
 export type Trace = LangfuseTraceClient
-export type TraceName = 'progressReport' | 'whiteboardVision' | 'sessionSummary'
+export type TraceName =
+  | 'progressReport'
+  | 'whiteboardVision'
+  | 'sessionSummary'
+  | 'MODERATE_IMAGE'
 export type ModelObservationName =
   | 'getProgressReportResult'
   | 'describeWhiteboardSnapshot'
   | 'generateSessionSummary'
+  | 'detectModerationLabels'
+  | 'extractTextFromImage'
+  | 'detectToxicityInText'
+  | 'detectPerson'
+  | 'detectPiiInText'
+  | 'isImageEducational'
+  | 'moderateImage'
 export type TraceTag = 'flagged-by-moderation'
 
 export type TraceOptions = {

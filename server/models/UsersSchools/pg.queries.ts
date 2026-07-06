@@ -12,10 +12,15 @@ export interface IUpsertUsersSchoolParams {
 
 /** 'UpsertUsersSchool' return type */
 export interface IUpsertUsersSchoolResult {
+  /** not_pii: Type of user-school association (student_at_school or teacher_at_school) */
   associationType: user_school_association_type;
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Foreign key to upchieve.schools */
   schoolId: string;
+  /** not_pii */
   updatedAt: Date;
+  /** not_pii: Foreign key to upchieve.users */
   userId: string;
 }
 

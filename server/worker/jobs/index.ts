@@ -24,9 +24,7 @@ import emailWeeklyHourSummary from './emailWeeklyHourSummary'
 import endStaleSessions from './endStaleSessions'
 import endUnmatchedSession from './endUnmatchedSession'
 import generateAndStoreWaitTimeHeatMap from './generateAndStoreWaitTimeHeatMap'
-import notifyTutors from './notifyTutors'
 import emailPartnerVolunteerLowHoursSelected from './partner-volunteer-emails/emailLowHoursSelected'
-import sendFollowupText from './sendFollowupText'
 import emailSessionReported from './user-emails/emailSessionReported'
 import emailStudentFirstSessionCongrats from './student-emails/emailStudentFirstSessionCongrats'
 import emailStudentOnboardingSeries from './student-emails/emailStudentOnboardingSeries'
@@ -41,7 +39,6 @@ import emailVolunteerFirstSessionCongrats from './volunteer-emails/emailVoluntee
 import emailVolunteerInactive from './volunteer-emails/emailVolunteerInactive'
 import emailVolunteerInactiveBlackoutOver from './volunteer-emails/emailVolunteerInactiveBlackoutOver'
 import emailVolunteerSessionActions from './volunteer-emails/emailVolunteerSessionActions'
-import updateGradeLevel from './updateGradeLevel'
 import sendSessionRecapMessageNotification from './sendSessionRecapMessageNotification'
 import generateProgressReport from './generateProgressReport'
 import updateBasicAccessViews from '../../scripts/update-basic-access-views'
@@ -74,6 +71,7 @@ import spawnUpdateNthsChapterStatusForImpactPath from './spawnUpdateNTHSChapterS
 import notifyNTHSChapterAdminsOfDeactivatedUser from './notifyNTHSChapterAdminsOfDeactivatedUser'
 import executeModerationAction from './executeModerationAction'
 import deleteProxyEmailsIdenticalToEmails from './deleteProxyEmailsIdenticalToEmails'
+import sendInvitationToCoachEmail from './sendInvitationToCoachEmail'
 
 export enum Jobs {
   AddScheduledJobs = 'AddScheduledJobs',
@@ -153,7 +151,6 @@ export enum Jobs {
   TitlecaseSchoolNames = 'TitlecaseSchoolNames',
   UpdateBasicAccessViews = 'UpdateBasicAccessViews',
   UpdateElapsedAvailability = 'UpdateElapsedAvailability',
-  UpdateGradeLevel = 'UpdateGradeLevel',
   UpdateSendGridGradeLevels = 'UpdateSendGridGradeLevels',
   UpdateTotalVolunteerHours = 'UpdateTotalVolunteerHours',
   UpsertPostalCodes = 'UpsertPostalCodes',
@@ -163,6 +160,7 @@ export enum Jobs {
   SpawnUpdateNTHSChapterStatusForImpactPath = 'SpawnUpdateNTHSChapterStatusForImpactPath',
   NotifyNTHSChapterAdminsOfDeactivatedUser = 'NotifyNTHSChapterAdminsOfDeactivatedUser',
   CleanUpProxyEmailsThatAreIdenticalToEmail = 'CleanUpProxyEmailsThatAreIdenticalToEmail',
+  SendInvitationToCoachEmail = 'SendInvitationToCoachEmail',
 }
 
 // register new job processors here
@@ -409,10 +407,6 @@ const jobProcessors: JobProcessor[] = [
     processor: moderateSessionTranscript,
   },
   {
-    name: Jobs.NotifyTutors,
-    processor: notifyTutors,
-  },
-  {
     name: Jobs.ProcessSessionEnded,
     processor: processSessionEnded,
   },
@@ -424,10 +418,6 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.SendBecomeAnAmbassadorEmail,
     processor: emailBecomeAnAmbassador,
-  },
-  {
-    name: Jobs.SendFollowupText,
-    processor: sendFollowupText,
   },
   {
     name: Jobs.SendNationalTutorCertificateEmail,
@@ -466,10 +456,6 @@ const jobProcessors: JobProcessor[] = [
     processor: updateElapsedAvailability,
   },
   {
-    name: Jobs.UpdateGradeLevel,
-    processor: updateGradeLevel,
-  },
-  {
     name: Jobs.UpdateSendGridGradeLevels,
     processor: updateSendGridGradeLevels,
   },
@@ -504,6 +490,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.CleanUpProxyEmailsThatAreIdenticalToEmail,
     processor: deleteProxyEmailsIdenticalToEmails,
+  },
+  {
+    name: Jobs.SendInvitationToCoachEmail,
+    processor: sendInvitationToCoachEmail,
   },
 ]
 

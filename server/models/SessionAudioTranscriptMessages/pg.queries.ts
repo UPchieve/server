@@ -14,6 +14,7 @@ export interface IInsertSessionAudioTranscriptMessageParams {
 
 /** 'InsertSessionAudioTranscriptMessage' return type */
 export interface IInsertSessionAudioTranscriptMessageResult {
+  /** not_pii: Primary key */
   id: string;
 }
 

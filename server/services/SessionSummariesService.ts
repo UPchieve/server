@@ -191,7 +191,11 @@ export async function queueGenerateSessionSummaryForSession(sessionId: Uuid) {
   // or if the flag is enabled for the student to see their own session summary
   if (classes.length || isEnabledForStudent) {
     try {
-      await QueueService.add(Jobs.GenerateSessionSummary, { sessionId })
+      await QueueService.add(
+        Jobs.GenerateSessionSummary,
+        { delay: 0 },
+        { sessionId }
+      )
     } catch (error) {
       logger.error(
         `Failed to queue ${Jobs.GenerateSessionSummary} for session ${sessionId}`

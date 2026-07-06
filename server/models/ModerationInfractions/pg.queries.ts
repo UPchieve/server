@@ -13,12 +13,19 @@ export interface IInsertModerationInfractionParams {
 
 /** 'InsertModerationInfraction' return type */
 export interface IInsertModerationInfractionResult {
+  /** not_pii: ?? */
   active: boolean;
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: JSON describing the moderation infraction details */
   reason: Json;
+  /** not_pii: Foreign key to upchieve.sessions */
   sessionId: string;
+  /** not_pii */
   updatedAt: Date;
+  /** not_pii: Foreign key to upchieve.users */
   userId: string;
 }
 
@@ -112,12 +119,19 @@ export interface IGetModerationInfractionsByUserParams {
 
 /** 'GetModerationInfractionsByUser' return type */
 export interface IGetModerationInfractionsByUserResult {
+  /** not_pii: ?? */
   active: boolean;
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: JSON describing the moderation infraction details */
   reason: Json;
+  /** not_pii: Foreign key to upchieve.sessions */
   sessionId: string;
+  /** not_pii */
   updatedAt: Date;
+  /** not_pii: Foreign key to upchieve.users */
   userId: string;
 }
 

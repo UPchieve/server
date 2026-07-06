@@ -269,7 +269,7 @@ export function routes(app: Express): void {
     })
 
     wsClient.on('message', (rawMessage) => {
-      if (rawMessage === 'p1ng') {
+      if (rawMessage.toString() === 'p1ng') {
         // Respond to ping and exit early
         wsClient.send('p0ng')
         return
@@ -288,7 +288,7 @@ export function routes(app: Express): void {
             sessionId,
             wsClient,
           })
-        : wsClient.send({ error: 'unsupported message type' })
+        : wsClient.send(JSON.stringify({ error: 'unsupported message type' }))
     })
 
     next()
