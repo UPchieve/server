@@ -1,5 +1,5 @@
-import { ISODateString } from '../types/dates'
-import { Uuid } from '../types/shared'
+import type { ISODateString } from '../types/dates'
+import type { Uuid } from '../types/shared'
 
 export type AssignmentPublic = {
   id: Uuid
