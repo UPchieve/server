@@ -20,6 +20,7 @@ import * as QueueService from '../../services/QueueService'
 import * as SessionService from '../../services/SessionService'
 import * as TwilioClient from '../../clients/twilio'
 import * as SubjectService from '../../services/SubjectsService'
+import * as UserService from '../../services/UserService'
 import { AssociatedPartner } from '../../models/AssociatedPartner'
 import { buildTextableVolunteer } from '../mocks/generate'
 import { ComputedSubjectUnlocks } from '../../models/Subjects'
@@ -32,6 +33,7 @@ jest.mock('../../services/QueueService')
 jest.mock('../../services/SessionService')
 jest.mock('../../clients/twilio')
 jest.mock('../../services/SubjectsService')
+jest.mock('../../services/UserService')
 jest.mock('../../logger')
 
 const mockedAssociatedPartnerService = mocked(AssociatedPartnerService)
@@ -43,6 +45,7 @@ const mockedSessionService = mocked(SessionService)
 const mockedTwilioClient = mocked(TwilioClient)
 const mockedLogger = mocked(logger)
 const mockedSubjectService = mocked(SubjectService)
+const mockedUserService = mocked(UserService)
 
 const COMPUTED_SUBJECT_UNLOCKS = {
   [SUBJECTS.INTEGRATED_MATH_ONE]: [
@@ -79,6 +82,7 @@ describe('TextVolunteers job', () => {
     mockedSubjectService.getCachedComputedSubjectUnlocks.mockResolvedValue(
       COMPUTED_SUBJECT_UNLOCKS
     )
+    mockedUserService.getUsersBanStatusesById.mockResolvedValue([])
   })
 
   describe('filterSubjectEligibleVolunteers', () => {
@@ -824,6 +828,132 @@ describe('TextVolunteers job', () => {
         'Session fulfilled.'
       )
       expect(mockedCacheService.getIfExists).not.toHaveBeenCalled()
+    })
+
+    test.each(['shadow', 'complete'])(
+      'does not text volunteers who are shadow-banned',
+      async (testBanType) => {
+        const studentId = getDbUlid()
+
+        // Volunteers are initially all unbanned.
+        const eligibleVolunteer1 = buildTextableVolunteer({
+          unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
+        })
+        const eligibleVolunteer2 = buildTextableVolunteer({
+          unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
+        })
+        mockedCacheService.getIfExists.mockResolvedValueOnce(
+          JSON.stringify([eligibleVolunteer1, eligibleVolunteer2])
+        )
+
+        // Mock coach getting banned after being cached
+        mockedUserService.getUsersBanStatusesById.mockResolvedValueOnce([
+          { id: eligibleVolunteer1.id, banType: null }, // textable user
+          { id: eligibleVolunteer2.id, banType: testBanType }, // not textable due to ban type
+        ])
+        mockedTwilioClient.sendTextMessage.mockResolvedValueOnce({
+          sid: 'message-1-sid',
+        })
+
+        const sessionId = getDbUlid()
+        const job = {
+          data: {
+            sessionId,
+            subject: SUBJECTS.ALGEBRA_ONE,
+            subjectDisplayName: 'Algebra 1',
+            topic: SUBJECT_TYPES.MATH,
+            studentId,
+          },
+        }
+        await textVolunteers(job as Job)
+
+        expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledTimes(1)
+        expect(mockedTwilioClient.sendTextMessage).toHaveBeenNthCalledWith(
+          1,
+          eligibleVolunteer1.phone,
+          expect.any(String),
+          sessionId
+        )
+        expect(
+          mockedSessionService.addSessionSmsNotification
+        ).toHaveBeenCalledTimes(1)
+        expect(
+          mockedSessionService.addSessionSmsNotification
+        ).toHaveBeenNthCalledWith(
+          1,
+          sessionId,
+          eligibleVolunteer1.id,
+          expect.anything(),
+          { sid: 'message-1-sid' }
+        )
+      }
+    )
+
+    test('does text a live media-banned volunteer', async () => {
+      const studentId = getDbUlid()
+
+      // Volunteers are initially all unbanned.
+      const eligibleVolunteer1 = buildTextableVolunteer({
+        unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
+      })
+      const eligibleVolunteer2 = buildTextableVolunteer({
+        unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
+      })
+      mockedCacheService.getIfExists.mockResolvedValueOnce(
+        JSON.stringify([eligibleVolunteer1, eligibleVolunteer2])
+      )
+
+      // Mock coach getting live media-banned after being cached
+      mockedUserService.getUsersBanStatusesById.mockResolvedValueOnce([
+        { id: eligibleVolunteer1.id, banType: null },
+        { id: eligibleVolunteer2.id, banType: 'live_media' },
+      ])
+      mockedTwilioClient.sendTextMessage.mockResolvedValue({
+        sid: 'message-1-sid',
+      })
+
+      const sessionId = getDbUlid()
+      const job = {
+        data: {
+          sessionId,
+          subject: SUBJECTS.ALGEBRA_ONE,
+          subjectDisplayName: 'Algebra 1',
+          topic: SUBJECT_TYPES.MATH,
+          studentId,
+        },
+      }
+      await textVolunteers(job as Job)
+
+      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledTimes(2)
+      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
+        eligibleVolunteer1.phone,
+        expect.any(String),
+        sessionId
+      )
+      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
+        eligibleVolunteer2.phone,
+        expect.any(String),
+        sessionId
+      )
+      expect(
+        mockedSessionService.addSessionSmsNotification
+      ).toHaveBeenCalledTimes(2)
+      expect(
+        mockedSessionService.addSessionSmsNotification
+      ).toHaveBeenCalledWith(
+        sessionId,
+        eligibleVolunteer1.id,
+        expect.anything(),
+        expect.objectContaining({ sid: expect.any(String) })
+      )
+      expect(
+        mockedSessionService.addSessionSmsNotification
+      ).toHaveBeenCalledWith(
+        sessionId,
+        eligibleVolunteer2.id,
+        expect.anything(),
+        expect.objectContaining({ sid: expect.any(String) })
+      )
     })
 
     test('should prioritize favorited volunteers over partner and regular volunteers', async () => {

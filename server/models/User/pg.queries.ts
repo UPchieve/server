@@ -363,13 +363,15 @@ export const getUserById = new PreparedQuery<IGetUserByIdParams,IGetUserByIdResu
 
 /** 'GetUserBanStatus' parameters type */
 export interface IGetUserBanStatusParams {
-  id: string;
+  userIds: stringArray;
 }
 
 /** 'GetUserBanStatus' return type */
 export interface IGetUserBanStatusResult {
   /** not_pii: Type of ban (shadow, complete, live_media) */
   banType: ban_types | null;
+  /** not_pii: Primary key */
+  id: string;
 }
 
 /** 'GetUserBanStatus' query type */
@@ -378,17 +380,18 @@ export interface IGetUserBanStatusQuery {
   result: IGetUserBanStatusResult;
 }
 
-const getUserBanStatusIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":50,"b":53}]}],"statement":"SELECT\n    ban_type\nFROM\n    users\nWHERE\n    id = :id!"};
+const getUserBanStatusIR: any = {"usedParamSet":{"userIds":true},"params":[{"name":"userIds","required":true,"transform":{"type":"scalar"},"locs":[{"a":63,"b":71}]}],"statement":"SELECT\n    id,\n    ban_type\nFROM\n    users\nWHERE\n    id = ANY (:userIds!)"};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
+ *     id,
  *     ban_type
  * FROM
  *     users
  * WHERE
- *     id = :id!
+ *     id = ANY (:userIds!)
  * ```
  */
 export const getUserBanStatus = new PreparedQuery<IGetUserBanStatusParams,IGetUserBanStatusResult>(getUserBanStatusIR);

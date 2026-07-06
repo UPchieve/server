@@ -16,6 +16,7 @@ import * as NotificationService from '../../services/NotificationService'
 import * as SessionService from '../../services/SessionService'
 import { sendTextMessage } from '../../clients/twilio'
 import * as QueueService from '../../services/QueueService'
+import * as UserService from '../../services/UserService'
 import {
   TEXTABLE_VOLUNTEERS_CACHE_KEY,
   getAndCacheAvailableVolunteers,
@@ -154,7 +155,22 @@ async function getTextableVolunteers(): Promise<TextableVolunteer[]> {
   const cachedVolunteers = await CacheService.getIfExists(
     TEXTABLE_VOLUNTEERS_CACHE_KEY
   )
-  if (cachedVolunteers) return JSON.parse(cachedVolunteers)
+  if (cachedVolunteers) {
+    const cached = JSON.parse(cachedVolunteers) as TextableVolunteer[]
+    const banStatuses = await UserService.getUsersBanStatusesById(
+      cached.map((vol) => vol.id)
+    )
+    const bannedVolunteerIds: Set<Ulid> = new Set()
+    banStatuses
+      .filter(
+        (status) => status.banType === 'complete' || status.banType === 'shadow'
+      )
+      .forEach((vol) => bannedVolunteerIds.add(vol.id))
+    const unbannedVolunteers = cached.filter(
+      (vol) => !bannedVolunteerIds.has(vol.id)
+    )
+    return unbannedVolunteers
+  }
 
   logger.warn(`No cached ${TEXTABLE_VOLUNTEERS_CACHE_KEY}. Fetching now.`)
   return getAndCacheAvailableVolunteers()

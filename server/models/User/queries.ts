@@ -35,6 +35,7 @@ import {
   EditUserProfilePayload,
 } from './types'
 import { IDeletePhoneResult } from './pg.queries'
+import { camelCaseKeys } from '../../tests/db-utils'
 
 export async function createUser(
   user: CreateUserPayload,
@@ -191,14 +192,20 @@ export async function getUserById(
   }
 }
 
-export async function getUserBanStatus(userId: Ulid) {
-  const result = await pgQueries.getUserBanStatus.run(
-    { id: userId },
-    getClient()
-  )
-  if (result.length) {
-    return makeSomeOptional(result[0], ['banType'])
-  }
+export async function getUsersBanStatuses(userIds: Ulid[]): Promise<
+  {
+    id: Ulid
+    banType: USER_BAN_TYPES | null
+  }[]
+> {
+  const result = await pgQueries.getUserBanStatus.run({ userIds }, getClient())
+  return result.map((row) => {
+    const camelCased = camelCaseKeys(row)
+    return {
+      id: camelCased.id,
+      banType: camelCased.banType as USER_BAN_TYPES | null,
+    }
+  })
 }
 
 export async function getUserByReferralCode(
