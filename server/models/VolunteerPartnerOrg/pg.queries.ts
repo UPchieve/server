@@ -13,6 +13,7 @@ export interface IGetVolunteerPartnerOrgForRegistrationByKeyParams {
 /** 'GetVolunteerPartnerOrgForRegistrationByKey' return type */
 export interface IGetVolunteerPartnerOrgForRegistrationByKeyResult {
   domains: stringArray | null;
+  /** not_pii: Unique URL-safe slug */
   key: string;
 }
 
@@ -55,6 +56,7 @@ export interface IGetFullVolunteerPartnerOrgByKeyParams {
 export interface IGetFullVolunteerPartnerOrgByKeyResult {
   deactivated: boolean | null;
   domains: stringArray | null;
+  /** not_pii: Unique URL-safe slug */
   key: string;
   name: string | null;
   receiveWeeklyHourSummaryEmail: boolean | null;
@@ -109,6 +111,7 @@ export type IGetVolunteerPartnerOrgsParams = void;
 export interface IGetVolunteerPartnerOrgsResult {
   deactivated: boolean | null;
   domains: stringArray | null;
+  /** not_pii: Unique URL-safe slug */
   key: string;
   name: string | null;
   receiveWeeklyHourSummaryEmail: boolean | null;
@@ -191,6 +194,7 @@ export interface IGetVolunteerPartnerOrgIdByKeyParams {
 
 /** 'GetVolunteerPartnerOrgIdByKey' return type */
 export interface IGetVolunteerPartnerOrgIdByKeyResult {
+  /** not_pii: Primary key */
   id: string;
 }
 
@@ -258,6 +262,7 @@ export interface IBackfillVolunteerPartnerOrgStartDatesParams {
 
 /** 'BackfillVolunteerPartnerOrgStartDates' return type */
 export interface IBackfillVolunteerPartnerOrgStartDatesResult {
+  /** not_pii: Primary key */
   ok: string;
 }
 

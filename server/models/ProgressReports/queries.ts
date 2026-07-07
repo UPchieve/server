@@ -373,18 +373,17 @@ export async function updateProgressReportsReadAtByReportIds(
   }
 }
 
-export async function getProgressReportOverviewUnreadStatsByUserId(
+export async function getUnreadSubjectReportsCountByUserId(
   userId: Ulid,
   tc?: TransactionClient
 ): Promise<ProgressReportOverviewUnreadStat[]> {
   try {
-    const result =
-      await pgQueries.getProgressReportOverviewUnreadStatsByUserId.run(
-        {
-          userId,
-        },
-        tc ?? getClient()
-      )
+    const result = await pgQueries.getUnreadSubjectReportsCountByUserId.run(
+      {
+        userId,
+      },
+      tc ?? getClient()
+    )
     return result.map((row) => makeRequired(row))
   } catch (err) {
     throw new RepoReadError(err)

@@ -17,38 +17,35 @@ import {
 } from '../models/Student/queries'
 import { TeacherClassResult } from '../models/TeacherClass'
 import { runInTransaction, TransactionClient } from '../db'
+import { daysInMs } from '../utils/time-utils'
 
 export const queueOnboardingEmails = async (studentId: Ulid): Promise<void> => {
   await QueueService.add(
     Jobs.EmailStudentOnboardingHowItWorks,
-    { studentId },
-    // process job 1 day after the student account is created
+    { delay: daysInMs(1) },
     {
-      delay: 1000 * 60 * 60 * 24 * 1,
+      studentId,
     }
   )
   await QueueService.add(
     Jobs.EmailMeetOurVolunteers,
-    { studentId },
-    // process job 3 days after the student account is created
+    { delay: daysInMs(3) },
     {
-      delay: 1000 * 60 * 60 * 24 * 3,
+      studentId,
     }
   )
   await QueueService.add(
     Jobs.EmailStudentOnboardingMission,
-    { studentId },
-    // process job 10 days after the student account is created
+    { delay: daysInMs(10) },
     {
-      delay: 1000 * 60 * 60 * 24 * 10,
+      studentId,
     }
   )
   await QueueService.add(
     Jobs.EmailStudentOnboardingSurvey,
-    { studentId },
-    // process job 14 days after the student account is created
+    { delay: daysInMs(14) },
     {
-      delay: 1000 * 60 * 60 * 24 * 14,
+      studentId,
     }
   )
 }

@@ -11,10 +11,19 @@ export interface IGetSubjectAndTopicParams {
 
 /** 'GetSubjectAndTopic' return type */
 export interface IGetSubjectAndTopicResult {
+  /** not_pii: User-facing display name */
   subjectDisplayName: string;
+  /** not_pii: Primary key */
+  subjectId: number;
+  /** not_pii: Human-readable name */
   subjectName: string;
+  /** not_pii: Human-readable name */
   toolType: string;
+  /** not_pii: User-facing display name */
   topicDisplayName: string;
+  /** not_pii: Primary key */
+  topicId: number;
+  /** not_pii: Human-readable name */
   topicName: string;
 }
 
@@ -24,15 +33,17 @@ export interface IGetSubjectAndTopicQuery {
   result: IGetSubjectAndTopicResult;
 }
 
-const getSubjectAndTopicIR: any = {"usedParamSet":{"subject":true,"topic":true},"params":[{"name":"subject","required":true,"transform":{"type":"scalar"},"locs":[{"a":358,"b":366}]},{"name":"topic","required":false,"transform":{"type":"scalar"},"locs":[{"a":378,"b":383},{"a":426,"b":431}]}],"statement":"SELECT\n    subjects.name AS subject_name,\n    subjects.display_name AS subject_display_name,\n    topics.name AS topic_name,\n    topics.display_name AS topic_display_name,\n    tool_types.name AS tool_type\nFROM\n    subjects\n    JOIN topics ON subjects.topic_id = topics.id\n    JOIN tool_types ON subjects.tool_type_id = tool_types.id\nWHERE\n    subjects.name = :subject!\n    AND ((:topic)::text IS NULL\n        OR topics.name = (:topic)::text)"};
+const getSubjectAndTopicIR: any = {"usedParamSet":{"subject":true,"topic":true},"params":[{"name":"subject","required":true,"transform":{"type":"scalar"},"locs":[{"a":416,"b":424}]},{"name":"topic","required":false,"transform":{"type":"scalar"},"locs":[{"a":436,"b":441},{"a":484,"b":489}]}],"statement":"SELECT\n    subjects.name AS subject_name,\n    subjects.id AS subject_id,\n    subjects.display_name AS subject_display_name,\n    topics.name AS topic_name,\n    topics.id AS topic_id,\n    topics.display_name AS topic_display_name,\n    tool_types.name AS tool_type\nFROM\n    subjects\n    JOIN topics ON subjects.topic_id = topics.id\n    JOIN tool_types ON subjects.tool_type_id = tool_types.id\nWHERE\n    subjects.name = :subject!\n    AND ((:topic)::text IS NULL\n        OR topics.name = (:topic)::text)"};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
  *     subjects.name AS subject_name,
+ *     subjects.id AS subject_id,
  *     subjects.display_name AS subject_display_name,
  *     topics.name AS topic_name,
+ *     topics.id AS topic_id,
  *     topics.display_name AS topic_display_name,
  *     tool_types.name AS tool_type
  * FROM
@@ -48,23 +59,82 @@ const getSubjectAndTopicIR: any = {"usedParamSet":{"subject":true,"topic":true},
 export const getSubjectAndTopic = new PreparedQuery<IGetSubjectAndTopicParams,IGetSubjectAndTopicResult>(getSubjectAndTopicIR);
 
 
+/** 'GetSessionSubjectAndTopicBySessionId' parameters type */
+export interface IGetSessionSubjectAndTopicBySessionIdParams {
+  sessionId: string;
+}
+
+/** 'GetSessionSubjectAndTopicBySessionId' return type */
+export interface IGetSessionSubjectAndTopicBySessionIdResult {
+  /** not_pii: Primary key */
+  sessionId: string;
+  /** not_pii: Primary key */
+  subjectId: number;
+  /** not_pii: Human-readable name */
+  subjectName: string;
+  /** not_pii: Primary key */
+  topicId: number;
+  /** not_pii: Human-readable name */
+  topicName: string;
+}
+
+/** 'GetSessionSubjectAndTopicBySessionId' query type */
+export interface IGetSessionSubjectAndTopicBySessionIdQuery {
+  params: IGetSessionSubjectAndTopicBySessionIdParams;
+  result: IGetSessionSubjectAndTopicBySessionIdResult;
+}
+
+const getSessionSubjectAndTopicBySessionIdIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":288,"b":298}]}],"statement":"SELECT\n    s.id AS session_id,\n    subjects.name AS subject_name,\n    subjects.id AS subject_id,\n    topics.name AS topic_name,\n    topics.id AS topic_id\nFROM\n    sessions s\n    JOIN subjects ON subjects.id = s.subject_id\n    JOIN topics ON topics.id = subjects.topic_id\nWHERE\n    s.id = :sessionId!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     s.id AS session_id,
+ *     subjects.name AS subject_name,
+ *     subjects.id AS subject_id,
+ *     topics.name AS topic_name,
+ *     topics.id AS topic_id
+ * FROM
+ *     sessions s
+ *     JOIN subjects ON subjects.id = s.subject_id
+ *     JOIN topics ON topics.id = subjects.topic_id
+ * WHERE
+ *     s.id = :sessionId!
+ * ```
+ */
+export const getSessionSubjectAndTopicBySessionId = new PreparedQuery<IGetSessionSubjectAndTopicBySessionIdParams,IGetSessionSubjectAndTopicBySessionIdResult>(getSessionSubjectAndTopicBySessionIdIR);
+
+
 /** 'GetSubjects' parameters type */
 export type IGetSubjectsParams = void;
 
 /** 'GetSubjects' return type */
 export interface IGetSubjectsResult {
+  /** not_pii: Whether the subject is currently active */
   active: boolean;
+  /** not_pii: User-facing display name */
   displayName: string;
+  /** not_pii: Sort order for UI display */
   displayOrder: number;
+  /** not_pii: Primary key */
   id: number;
   isComputedUnlock: boolean | null;
+  /** not_pii: Human-readable name */
   name: string;
+  /** not_pii: Hex color code associated with the topic */
   topicColor: string | null;
+  /** not_pii: Sort order on the student subject dashboard */
   topicDashboardOrder: number;
+  /** not_pii: User-facing display name */
   topicDisplayName: string;
+  /** not_pii: URL to the topic icon image */
   topicIconLink: string | null;
+  /** not_pii: Primary key */
   topicId: number;
+  /** not_pii: Human-readable name */
   topicName: string;
+  /** not_pii: Sort order in the volunteer training flow */
   topicTrainingOrder: number;
 }
 
@@ -118,11 +188,17 @@ export interface IGetTopicsParams {
 
 /** 'GetTopics' return type */
 export interface IGetTopicsResult {
+  /** not_pii: Sort order on the student subject dashboard */
   dashboardOrder: number;
+  /** not_pii: User-facing display name */
   displayName: string;
+  /** not_pii: URL to the topic icon image */
   iconLink: string | null;
+  /** not_pii: Primary key */
   id: number;
+  /** not_pii: Human-readable name */
   name: string;
+  /** not_pii: Sort order in the volunteer training flow */
   trainingOrder: number;
 }
 
@@ -158,8 +234,11 @@ export type IGetTrainingCoursesParams = void;
 
 /** 'GetTrainingCourses' return type */
 export interface IGetTrainingCoursesResult {
+  /** not_pii: User-facing display name */
   displayName: string | null;
+  /** not_pii: Primary key */
   id: number;
+  /** not_pii: Human-readable name */
   name: string;
 }
 
@@ -190,16 +269,27 @@ export type IGetQuizCertUnlocksParams = void;
 
 /** 'GetQuizCertUnlocks' return type */
 export interface IGetQuizCertUnlocksResult {
+  /** not_pii: User-facing display name */
   quizDisplayName: string;
+  /** not_pii: Sort order for UI display */
   quizDisplayOrder: number;
+  /** not_pii: Whether this quiz is currently available to volunteers */
   quizIsActive: boolean;
+  /** not_pii: Human-readable name */
   quizName: string;
+  /** not_pii: Sort order on the student subject dashboard */
   topicDashboardOrder: number;
+  /** not_pii: User-facing display name */
   topicDisplayName: string;
+  /** not_pii: Human-readable name */
   topicName: string;
+  /** not_pii: Sort order in the volunteer training flow */
   topicTrainingOrder: number;
+  /** not_pii: User-facing display name */
   unlockedCertDisplayName: string;
+  /** not_pii: Sort order for UI display */
   unlockedCertDisplayOrder: number;
+  /** not_pii: Human-readable name of the certification */
   unlockedCertName: string;
 }
 
@@ -243,12 +333,19 @@ export type IGetCertSubjectUnlocksParams = void;
 
 /** 'GetCertSubjectUnlocks' return type */
 export interface IGetCertSubjectUnlocksResult {
+  /** not_pii: User-facing display name */
   certDisplayName: string;
+  /** not_pii: Sort order for UI display */
   certDisplayOrder: number;
+  /** not_pii: Human-readable name of the certification */
   certName: string;
+  /** not_pii: Human-readable name */
   topicName: string;
+  /** not_pii: User-facing display name */
   unlockedSubjectDisplayName: string;
+  /** not_pii: Sort order for UI display */
   unlockedSubjectDisplayOrder: number;
+  /** not_pii: Human-readable name */
   unlockedSubjectName: string;
 }
 
@@ -287,12 +384,19 @@ export type IGetComputedSubjectUnlocksParams = void;
 
 /** 'GetComputedSubjectUnlocks' return type */
 export interface IGetComputedSubjectUnlocksResult {
+  /** not_pii: User-facing display name */
   certDisplayName: string;
+  /** not_pii: Sort order for UI display */
   certDisplayOrder: number;
+  /** not_pii: Human-readable name of the certification */
   certName: string;
+  /** not_pii: Human-readable name */
   topicName: string;
+  /** not_pii: User-facing display name */
   unlockedSubjectDisplayName: string;
+  /** not_pii: Sort order for UI display */
   unlockedSubjectDisplayOrder: number;
+  /** not_pii: Human-readable name */
   unlockedSubjectName: string;
 }
 
@@ -331,6 +435,7 @@ export type IGetRequiredCertificationsByComputedSubjectUnlockParams = void;
 
 /** 'GetRequiredCertificationsByComputedSubjectUnlock' return type */
 export interface IGetRequiredCertificationsByComputedSubjectUnlockResult {
+  /** not_pii: Human-readable name */
   name: string;
   requiredCertifications: stringArray | null;
 }
@@ -341,14 +446,14 @@ export interface IGetRequiredCertificationsByComputedSubjectUnlockQuery {
   result: IGetRequiredCertificationsByComputedSubjectUnlockResult;
 }
 
-const getRequiredCertificationsByComputedSubjectUnlockIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    s.name,\n    ARRAY_AGG(c.name) AS required_certifications\nFROM\n    computed_subject_unlocks csu\n    JOIN subjects s ON s.id = csu.subject_id\n    JOIN certifications c ON c.id = csu.certification_id\nGROUP BY\n    s.name"};
+const getRequiredCertificationsByComputedSubjectUnlockIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    s.name,\n    ARRAY_AGG(c.name ORDER BY c.name) AS required_certifications\nFROM\n    computed_subject_unlocks csu\n    JOIN subjects s ON s.id = csu.subject_id\n    JOIN certifications c ON c.id = csu.certification_id\nGROUP BY\n    s.name"};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
  *     s.name,
- *     ARRAY_AGG(c.name) AS required_certifications
+ *     ARRAY_AGG(c.name ORDER BY c.name) AS required_certifications
  * FROM
  *     computed_subject_unlocks csu
  *     JOIN subjects s ON s.id = csu.subject_id
@@ -406,7 +511,9 @@ export type IGetSubjectNameIdMappingParams = void;
 
 /** 'GetSubjectNameIdMapping' return type */
 export interface IGetSubjectNameIdMappingResult {
+  /** not_pii: Primary key */
   id: number;
+  /** not_pii: Human-readable name */
   name: string;
 }
 
@@ -438,6 +545,7 @@ export interface IGetTopicIdFromNameParams {
 
 /** 'GetTopicIdFromName' return type */
 export interface IGetTopicIdFromNameResult {
+  /** not_pii: Primary key */
   id: number;
 }
 
@@ -470,18 +578,30 @@ export interface IGetSubjectsForTopicByTopicIdParams {
 
 /** 'GetSubjectsForTopicByTopicId' return type */
 export interface IGetSubjectsForTopicByTopicIdResult {
+  /** not_pii: Whether the subject is currently active */
   active: boolean;
+  /** not_pii: User-facing display name */
   displayName: string;
+  /** not_pii: Sort order for UI display */
   displayOrder: number;
+  /** not_pii: Primary key */
   id: number;
   isComputedUnlock: boolean | null;
+  /** not_pii: Human-readable name */
   name: string;
+  /** not_pii: Hex color code associated with the topic */
   topicColor: string | null;
+  /** not_pii: Sort order on the student subject dashboard */
   topicDashboardOrder: number;
+  /** not_pii: User-facing display name */
   topicDisplayName: string;
+  /** not_pii: URL to the topic icon image */
   topicIconLink: string | null;
+  /** not_pii: Primary key */
   topicId: number;
+  /** not_pii: Human-readable name */
   topicName: string;
+  /** not_pii: Sort order in the volunteer training flow */
   topicTrainingOrder: number;
 }
 

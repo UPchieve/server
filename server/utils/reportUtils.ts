@@ -12,10 +12,7 @@ import * as UserActionRepo from '../models/UserAction/queries'
 import * as SessionRepo from '../models/Session/queries'
 import logger from '../logger'
 import { VolunteersForAnalyticsReport } from '../models/Volunteer'
-import {
-  VolunteerForTotalHours,
-  VolunteerForTelecomReport,
-} from '../models/Volunteer/queries'
+import { VolunteerForTelecomReport } from '../models/Volunteer/queries'
 import * as VolunteerRepo from '../models/Volunteer/queries'
 import {
   HourSummaryStats,
@@ -31,7 +28,6 @@ import { AvailabilityHistory } from '../models/Availability/types'
 import { getElapsedAvailabilityForTelecomReport } from '../services/AvailabilityService'
 import * as VolunteerPartnerOrgRepo from '../models/VolunteerPartnerOrg/queries'
 import { ReportNoDataFoundError } from '../services/ReportService'
-import { countReferredUsers } from '../services/UserService'
 import { Ulid } from '../models/pgUtils'
 
 /**
@@ -39,7 +35,6 @@ import { Ulid } from '../models/pgUtils'
  * acc is also typed any due to issues with Availability type
  */
 
-const VOLUNTEER_MINUTES_EARNED_PER_REFERRAL = 12
 interface Stamp {
   day: string
   hour: string
@@ -314,7 +309,7 @@ export async function telecomHourSummaryStats(
       totalCoachingHours: sumHours(sessionTime),
       totalElapsedAvailability: sumHours(availabilityTime),
       totalQuizzesPassed: sumHours(certificationTime),
-      totalReferralMinutes: totalReferralMinutes(volunteerId),
+      totalReferralMinutes: await totalReferralMinutes(volunteerId),
     } as HourSummaryStats
 
     logger.info(

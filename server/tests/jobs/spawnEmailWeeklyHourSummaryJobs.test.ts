@@ -43,10 +43,10 @@ describe('spawnEmailWeeklyHourSummaryJobs', () => {
     expect(mockedQueueService.add).toHaveBeenCalledTimes(2)
     expect(mockedQueueService.add).toHaveBeenCalledWith(
       Jobs.EmailWeeklyHourSummary,
+      { delay: 0, priority: 3 },
       expect.objectContaining({
         volunteer: volunteer1,
-      }),
-      expect.objectContaining({ priority: 3 })
+      })
     )
   })
 
@@ -101,21 +101,21 @@ describe('spawnEmailWeeklyHourSummaryJobs', () => {
     expect(mockedQueueService.add).toHaveBeenCalledTimes(2)
     expect(mockedQueueService.add).toHaveBeenCalledWith(
       Jobs.EmailWeeklyHourSummary,
+      { delay: 0, priority: 3 },
       expect.objectContaining({
         startDate: customStartDate,
         endDate: customEndDate,
         volunteer: volunteer1,
-      }),
-      expect.objectContaining({ priority: 3 })
+      })
     )
     expect(mockedQueueService.add).toHaveBeenCalledWith(
       Jobs.EmailWeeklyHourSummary,
+      { delay: 0, priority: 3 },
       expect.objectContaining({
         startDate: customStartDate,
         endDate: customEndDate,
         volunteer: volunteer3,
-      }),
-      expect.objectContaining({ priority: 3 })
+      })
     )
   })
 })

@@ -10,10 +10,15 @@ export interface IGetIpByRawStringParams {
 
 /** 'GetIpByRawString' return type */
 export interface IGetIpByRawStringResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Primary key */
   id: string;
+  /** pii: IPv4 or IPv6 address */
   ip: string;
+  /** not_pii: Status label for the IP address (e.g. allowed, blocked) */
   status: string | null;
+  /** not_pii */
   updatedAt: Date;
 }
 
@@ -51,10 +56,15 @@ export interface IInsertIpByRawStringParams {
 
 /** 'InsertIpByRawString' return type */
 export interface IInsertIpByRawStringResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Primary key */
   id: string;
+  /** pii: IPv4 or IPv6 address */
   ip: string;
+  /** not_pii: Status label for the IP address (e.g. allowed, blocked) */
   status: string | null;
+  /** not_pii */
   updatedAt: Date;
 }
 
@@ -87,6 +97,7 @@ export interface IInsertUsersIpByIdParams {
 
 /** 'InsertUsersIpById' return type */
 export interface IInsertUsersIpByIdResult {
+  /** not_pii: Primary key */
   ok: string;
 }
 
@@ -118,6 +129,7 @@ export interface IUpdateIpStatusByUserIdParams {
 
 /** 'UpdateIpStatusByUserId' return type */
 export interface IUpdateIpStatusByUserIdResult {
+  /** not_pii: Primary key */
   ok: string;
 }
 

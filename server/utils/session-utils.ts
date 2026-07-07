@@ -1,5 +1,8 @@
-import { Ulid } from '../models/pgUtils'
+import Case from 'case'
 import { Socket } from 'socket.io'
+
+import config from '../config'
+import { Ulid } from '../models/pgUtils'
 import { CustomError } from 'ts-custom-error'
 import { TOOL_TYPES } from '../constants'
 import { DAYS, HOURS } from '../constants'
@@ -172,6 +175,7 @@ export interface StartSessionData extends RequestIdentifier {
   topic: string
   assignmentId?: string
   docEditorVersion?: number
+  requestedVolunteerId?: string
 }
 export const asStartSessionData = asFactory<StartSessionData>({
   ...requestIdentifierValidators,
@@ -182,6 +186,7 @@ export const asStartSessionData = asFactory<StartSessionData>({
   topic: asCamelCaseString,
   assignmentId: asOptional(asString),
   docEditorVersion: asOptional(asNumber),
+  requestedVolunteerId: asOptional(asString),
 })
 
 export interface SessionsToReviewData {
@@ -288,3 +293,10 @@ export const asSaveMessageData = asFactory<SaveMessageData>({
   message: asString,
   saidAt: asOptional(asDate),
 })
+
+type SessionForUrl = Pick<GetSessionByIdResult, 'subject' | 'topic' | 'id'>
+export function getSessionUrl(session: SessionForUrl): string {
+  return `${config.protocol}://${config.client.host}/session/${Case.kebab(
+    session.topic
+  )}/${Case.kebab(session.subject)}/${session.id}`
+}

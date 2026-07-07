@@ -9,8 +9,11 @@ export interface IGetFederatedCredentialParams {
 
 /** 'GetFederatedCredential' return type */
 export interface IGetFederatedCredentialResult {
+  /** pii: External provider subject identifier (sub claim) */
   id: string;
+  /** not_pii: OAuth 2.0 issuer URL for the federated credential */
   issuer: string;
+  /** not_pii: Foreign key to upchieve.users */
   userId: string | null;
 }
 
@@ -44,8 +47,11 @@ export interface IGetFederatedCredentialForUserParams {
 
 /** 'GetFederatedCredentialForUser' return type */
 export interface IGetFederatedCredentialForUserResult {
+  /** pii: External provider subject identifier (sub claim) */
   id: string;
+  /** not_pii: OAuth 2.0 issuer URL for the federated credential */
   issuer: string;
+  /** not_pii: Foreign key to upchieve.users */
   userId: string | null;
 }
 

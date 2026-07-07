@@ -3,17 +3,20 @@ import type {
   ModerateImageResultPublic,
 } from '../contracts/moderate'
 import { oldClientModerationResult } from '../services/ModerationService'
-import { ModerationFailureReasons } from '../services/ModerationService/types'
+import {
+  ModerationCategory,
+  ModerationInfractionReasons,
+} from '../services/ModerationService/types'
 
 export function toModerationResultPublic(
-  result: oldClientModerationResult | ModerationFailureReasons
+  result: oldClientModerationResult | ModerationInfractionReasons
 ): ModerationResultPublic {
   return result
 }
 
 export function toModerateImageResultPublic(result: {
   isClean: boolean
-  failures: string[]
+  failures: ModerationCategory[]
 }): ModerateImageResultPublic {
   return {
     isClean: result.isClean,

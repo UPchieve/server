@@ -13,20 +13,32 @@ export interface IGetSchoolByIdParams {
 /** 'GetSchoolById' return type */
 export interface IGetSchoolByIdResult {
   city: string | null;
+  /** not_pii: NCES district name */
   district: string | null;
+  /** not_pii: Number of students eligible for free or reduced-price lunch */
   frlEligible: number | null;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Whether the school has been approved for use on the platform */
   isAdminApproved: boolean;
   isPartner: boolean | null;
+  /** not_pii: Whether the school participates in school-wide Title I */
   isSchoolWideTitle1: boolean;
   name: string | null;
+  /** not_pii: National School Lunch Program participation status */
   nationalSchoolLunchProgram: string | null;
+  /** not_pii: NCES school id */
   ncesId: string | null;
+  /** not_pii: Number of students directly certified for National School Lunch Program */
   nslpDirectCertification: number | null;
+  /** not_pii: NCES school year label */
   schoolYear: string | null;
   state: string | null;
+  /** not_pii: Title I school status label */
   title1SchoolStatus: string | null;
+  /** not_pii: Total student enrollment */
   totalStudents: number | null;
+  /** not_pii: NCES location ZIP code */
   zip: string | null;
 }
 
@@ -88,6 +100,7 @@ export interface IGetSchoolByNcesIdParams {
 
 /** 'GetSchoolByNcesId' return type */
 export interface IGetSchoolByNcesIdResult {
+  /** not_pii: Foreign key to upchieve.schools */
   id: string;
 }
 
@@ -127,19 +140,30 @@ export interface IGetFilteredSchoolsParams {
 /** 'GetFilteredSchools' return type */
 export interface IGetFilteredSchoolsResult {
   city: string | null;
+  /** not_pii: NCES district name */
   district: string | null;
+  /** not_pii: Number of students eligible for free or reduced-price lunch */
   frlEligible: number | null;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Whether the school has been approved for use on the platform */
   isAdminApproved: boolean;
   isPartner: boolean | null;
+  /** not_pii: Whether the school participates in school-wide Title I */
   isSchoolWideTitle1: boolean;
   name: string | null;
+  /** not_pii: National School Lunch Program participation status */
   nationalSchoolLunchProgram: string | null;
+  /** not_pii: NCES school id */
   ncesId: string | null;
+  /** not_pii: Number of students directly certified for National School Lunch Program */
   nslpDirectCertification: number | null;
   state: string | null;
+  /** not_pii: Title I school status label */
   title1SchoolStatus: string | null;
+  /** not_pii: Total student enrollment */
   totalStudents: number | null;
+  /** not_pii: NCES location ZIP code */
   zip: string | null;
 }
 
@@ -277,7 +301,9 @@ export interface ISchoolSearchParams {
 /** 'SchoolSearch' return type */
 export interface ISchoolSearchResult {
   city: string | null;
+  /** not_pii: NCES district name */
   district: string | null;
+  /** not_pii: Primary key */
   id: string;
   name: string | null;
   similarityScore: number | null;
@@ -515,6 +541,7 @@ export interface ICreateSchoolParams {
 
 /** 'CreateSchool' return type */
 export interface ICreateSchoolResult {
+  /** not_pii: Primary key */
   id: string;
 }
 
@@ -641,9 +668,12 @@ export type IGetPartnerSchoolsParams = void;
 
 /** 'GetPartnerSchools' return type */
 export interface IGetPartnerSchoolsResult {
+  /** not_pii: Unique URL-safe slug */
   partnerKey: string;
   partnerSites: stringArray | null;
+  /** not_pii: Primary key */
   schoolId: string;
+  /** not_pii: Human-readable name */
   schoolName: string;
 }
 
@@ -714,6 +744,7 @@ export interface IGetUpchieveSchoolIdFromCleverIdParams {
 
 /** 'GetUpchieveSchoolIdFromCleverId' return type */
 export interface IGetUpchieveSchoolIdFromCleverIdResult {
+  /** not_pii: Foreign key to upchieve.schools */
   upchieveSchoolId: string;
 }
 

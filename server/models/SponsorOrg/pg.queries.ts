@@ -8,7 +8,9 @@ export type IGetSponsorOrgsParams = void;
 
 /** 'GetSponsorOrgs' return type */
 export interface IGetSponsorOrgsResult {
+  /** not_pii: Unique URL-safe slug */
   key: string;
+  /** not_pii: Human-readable name */
   name: string;
   schoolIds: stringArray | null;
   studentPartnerOrgIds: stringArray | null;
@@ -52,7 +54,9 @@ export interface IGetSponsorOrgsByKeyParams {
 
 /** 'GetSponsorOrgsByKey' return type */
 export interface IGetSponsorOrgsByKeyResult {
+  /** not_pii: Unique URL-safe slug */
   key: string;
+  /** not_pii: Human-readable name */
   name: string;
   schoolIds: stringArray | null;
   studentPartnerOrgIds: stringArray | null;

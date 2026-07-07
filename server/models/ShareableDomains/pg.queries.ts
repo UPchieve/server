@@ -6,6 +6,7 @@ export type IGetAllShareableDomainsParams = void;
 
 /** 'GetAllShareableDomains' return type */
 export interface IGetAllShareableDomainsResult {
+  /** not_pii: Domain allowed in session links */
   domain: string;
 }
 

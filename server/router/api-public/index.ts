@@ -7,6 +7,7 @@ import * as TeacherService from '../../services/TeacherService'
 import * as NTHSGroupsService from '../../services/NTHSGroupsService'
 import { InputError } from '../../models/Errors'
 import { asString } from '../../utils/type-utils'
+import logger from '../../logger'
 
 export function routes(app: Express) {
   const router: Router = express.Router()
