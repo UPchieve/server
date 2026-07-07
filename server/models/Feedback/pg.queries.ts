@@ -10,14 +10,23 @@ export interface IGetFeedbackBySessionIdParams {
 
 /** 'GetFeedbackBySessionId' return type */
 export interface IGetFeedbackBySessionIdResult {
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Foreign key to upchieve.sessions */
   sessionId: string;
+  /** not_pii: JSON feedback from the student about counseling */
   studentCounselingFeedback: Json | null;
+  /** not_pii: JSON feedback from the student about the tutoring session */
   studentTutoringFeedback: Json | null;
+  /** not_pii: Human-readable name */
   subTopic: string;
+  /** not_pii: Human-readable name */
   type: string;
+  /** not_pii: Foreign key to upchieve.users */
   userId: string;
+  /** not_pii: Human-readable name */
   userRole: string;
+  /** not_pii: JSON feedback from the volunteer about the session */
   volunteerFeedback: Json | null;
 }
 

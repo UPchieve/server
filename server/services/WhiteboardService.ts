@@ -113,10 +113,8 @@ export const getDocFromStorage = async (sessionId: Ulid): Promise<string> => {
       sessionId.toString()
     )
     return whiteboardDoc
-  } catch (error) {
-    logger.error(
-      `Getting the whiteboard failed ${sessionId}: ${(error as Error).message}`
-    )
+  } catch (err) {
+    logger.warn({ err, sessionId }, 'Getting the whiteboard failed')
     return ''
   }
 }

@@ -30,13 +30,14 @@ export function toStudentAssignmentSubmissionPublic(
   assignment: StudentAssignmentCompletionRow
 ): StudentAssignmentSubmissionPublic {
   return {
-    firstName: assignment.first_name,
-    lastName: assignment.last_name,
-    submittedAt: assignment.submitted_at?.toISOString(),
-    // Support camelcasing for current frontend
-    first_name: assignment.first_name,
-    last_name: assignment.last_name,
-    submitted_at: assignment.submitted_at?.toISOString(),
+    firstName: assignment.firstName,
+    lastName: assignment.lastName,
+    submittedAt: assignment.submittedAt?.toISOString(),
+    // Frontend currently uses the snake casing
+    // TODO: refactor frontend to use camel casing
+    first_name: assignment.firstName,
+    last_name: assignment.lastName,
+    submitted_at: assignment.submittedAt?.toISOString(),
   }
 }
 

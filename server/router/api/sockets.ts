@@ -11,6 +11,7 @@ import { EVENTS, SESSION_USER_ACTIONS, USER_BAN_REASONS } from '../../constants'
 import logger from '../../logger'
 import { Ulid } from '../../models/pgUtils'
 import * as SessionRepo from '../../models/Session/queries'
+import * as cache from '../../cache'
 import { banUserById, UserContactInfo, UserRole } from '../../models/User'
 import { captureEvent } from '../../services/AnalyticsService'
 import QueueService from '../../services/QueueService'
@@ -254,7 +255,9 @@ export function routeSockets(io: Server): void {
     socket.on('list', async (_data, callback) => {
       await observeWebTransaction('/socket-io/list', async () => {
         try {
-          const sessions = await SessionRepo.getUnfulfilledSessions()
+          const allSessions = await SessionRepo.getUnfulfilledSessions()
+          const sessions =
+            await socketService.addExclusiveSessionMetadata(allSessions)
           socket.emit('sessions', sessions)
           callback({
             status: 200,
@@ -362,7 +365,6 @@ export function routeSockets(io: Server): void {
               sessionId,
               userId: user.id,
               saidAt: saidAt!,
-              source: 'audio_transcription',
             })
             if (!result.isClean) {
               const sanitized = (result as SanitizedTranscriptModerationResult)
@@ -406,9 +408,13 @@ export function routeSockets(io: Server): void {
 
           // If the message is coming from the recap page, queue the message to send a notification
           if (source === 'recap') {
-            await QueueService.add(Jobs.SendSessionRecapMessageNotification, {
-              messageId,
-            })
+            await QueueService.add(
+              Jobs.SendSessionRecapMessageNotification,
+              { delay: 0 },
+              {
+                messageId,
+              }
+            )
             captureEvent(user.id, EVENTS.USER_SUBMITTED_SESSION_RECAP_DM, {
               sessionId: sessionId,
               message,
@@ -419,6 +425,19 @@ export function routeSockets(io: Server): void {
 
           const socketRoom = getSessionRoom(saveMessageData.sessionId)
           io.in(socketRoom).emit('messageSend', messageData)
+
+          // If it's a recap DM, also emit to the partner's user room so they get notified
+          // even if they're not on the recap page
+          if (source === 'recap') {
+            const session = await SessionRepo.getSessionById(sessionId)
+            const partnerId =
+              user.id === session.studentId
+                ? session.volunteerId
+                : session.studentId
+            if (partnerId) {
+              io.to(partnerId).emit('dm:received', { sessionId })
+            }
+          }
         } catch (error) {
           socket.emit('messageError', { sessionId: data.sessionId })
           logger.error(
@@ -572,9 +591,12 @@ export function routeSockets(io: Server): void {
         '/socket-io/transmitQuillSelection',
         async () => {
           try {
-            io.to(getSessionRoom(sessionId)).emit('quillPartnerSelection', {
-              range,
-            })
+            const user = await extractSocketUser(socket)
+            io.in(getSessionRoom(sessionId))
+              .except(user.id)
+              .emit('quillPartnerSelection', {
+                range,
+              })
           } catch (error) {
             logger.error(
               error,

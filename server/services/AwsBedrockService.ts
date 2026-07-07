@@ -3,7 +3,7 @@ import {
   InvokeModelCommand,
 } from '@aws-sdk/client-bedrock-runtime'
 import config from '../config'
-import { getImageFileType } from '../utils/image-utils'
+import { getFileType } from '../utils/image-utils'
 import { secondsInMs } from '../utils/time-utils'
 import logger from '../logger'
 
@@ -39,7 +39,8 @@ export enum BedrockToolChoice {
 export type BedrockTools = Array<{
   name: string
   description: string
-  input_schema: { type: string; properties: object; required: Array<string> }
+  strict?: boolean
+  input_schema: { type: string; properties: object; required?: Array<string> }
 }>
 
 export type BedrockToolsAttribute = {
@@ -78,7 +79,7 @@ type BedrockInvokeInput = {
   text?: string
   prompt: string
   tools_option?: BedrockToolsAttribute
-  image?: Buffer
+  images?: Array<Buffer>
 }
 
 type ToolInput = Record<string, any>
@@ -88,7 +89,7 @@ type BedrockInvokeResponse = {
 }
 
 function imageContentPayload(image: Buffer): ImageContent {
-  const imageFileType = getImageFileType(image)
+  const imageFileType = getFileType(image)
 
   return {
     type: 'image',
@@ -106,19 +107,18 @@ function textContextPayload(text: string): TextContent {
 
 export async function invokeModel<T = string | ToolInput>({
   modelId,
-  image,
+  images = [],
   text,
   prompt,
   tools_option,
 }: BedrockInvokeInput): Promise<T> {
   const client = getClient()
-
   const payLoadContent = []
 
   if (text != null && text != undefined) {
     payLoadContent.push(textContextPayload(text))
   }
-  if (image) {
+  for (const image of images) {
     payLoadContent.push(imageContentPayload(image))
   }
 

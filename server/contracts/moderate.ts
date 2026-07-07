@@ -1,7 +1,10 @@
-import type { ModerationFailureReasons } from '../services/ModerationService/types'
+import type {
+  ModerationCategory,
+  ModerationInfractionReasons,
+} from '../services/ModerationService/types'
 import { ErrorResponse } from './shared'
 
-export type ModerationResultPublic = boolean | ModerationFailureReasons
+export type ModerationResultPublic = boolean | ModerationInfractionReasons
 
 export type ModerateMessageResponse = {
   isClean: ModerationResultPublic
@@ -9,7 +12,7 @@ export type ModerateMessageResponse = {
 
 export type ModerateImageResultPublic = {
   isClean: boolean
-  failures: string[]
+  failures: ModerationCategory[]
 }
 
 export type ModerateImageResultResponse =

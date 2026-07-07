@@ -11,30 +11,29 @@ import {
   USER_BAN_TYPES,
 } from '../constants'
 import {
-  UserNotFoundError,
-  NotAllowedError,
   InputError,
+  NotAllowedError,
+  UserNotFoundError,
 } from '../models/Errors'
 import { updateIpStatusByUserId } from '../models/IpAddress'
-import {
-  UserContactInfo,
-  getUsersForAdminSearch,
-  deleteUserPhoneInfo,
-  UserForAdmin,
-  UserRole,
-  updatePreferredLanguageToUser,
-} from '../models/User'
 import * as UserRepo from '../models/User'
 import {
-  UnsentReference,
-  VolunteerContactInfo,
+  deleteUserPhoneInfo,
+  getUsersForAdminSearch,
+  updatePreferredLanguageToUser,
+  UserContactInfo,
+  UserForAdmin,
+} from '../models/User'
+import {
   addVolunteerReferenceById,
+  checkReferenceExistsBeforeAdding,
+  UnsentReference,
+  updateVolunteerForAdmin,
   updateVolunteerPhotoIdById,
   updateVolunteerReferenceSentById,
-  updateVolunteerForAdmin,
-  updateVolunteerReferenceSubmission,
-  checkReferenceExistsBeforeAdding,
   updateVolunteerReferenceStatus,
+  updateVolunteerReferenceSubmission,
+  VolunteerContactInfo,
 } from '../models/Volunteer'
 import { asReferenceFormData } from '../utils/reference-utils'
 import { checkEmail } from '../utils/auth-utils'
@@ -42,28 +41,29 @@ import {
   asBoolean,
   asEnum,
   asFactory,
+  asNullable,
   asNumber,
   asOptional,
   asString,
-  asNullable,
 } from '../utils/type-utils'
 import * as AnalyticsService from './AnalyticsService'
 import * as MailService from './MailService'
 import * as UserRolesService from './UserRolesService'
+import { PrimaryUserRole, RoleContext } from './UserRolesService'
 import * as TeacherService from './TeacherService'
 import logger from '../logger'
 import { createAccountAction, createAdminAction } from '../models/UserAction'
 import { getLegacyUserObject } from '../models/User/legacy-user'
-import { PrimaryUserRole, RoleContext } from './UserRolesService'
 import * as ModerationInfractionsService from '../models/ModerationInfractions'
 import { getClient, runInTransaction, TransactionClient } from '../db'
 import * as VolunteerService from './VolunteerService'
 import * as ImpactStatsService from './ImpactStatsService'
+import * as ReferralService from './ReferralService'
 import config from '../config'
 import { Jobs } from '../worker/jobs'
 import QueueService from './QueueService'
-import { UserSchoolAssociationType, UsersSchool } from '../models/UsersSchools'
 import * as UsersSchoolsRepo from '../models/UsersSchools'
+import { UserSchoolAssociationType, UsersSchool } from '../models/UsersSchools'
 import {
   activateStudentPartnershipInstance,
   AdminUpdateStudent,
@@ -76,13 +76,17 @@ import {
   updateStudentProfilePartnerOrg,
   updateStudentSchool,
 } from '../models/Student'
+import { hoursInMs } from '../utils/time-utils'
 
 export async function parseUser(userId: Ulid) {
   const user = await getLegacyUserObject(userId)
 
-  user.numReferredVolunteers = await countReferredUsers(user.id, {
-    withRoles: ['volunteer'],
-  })
+  user.numReferredVolunteers = await ReferralService.getReferredUsersCount(
+    user.id,
+    {
+      withRoles: ['volunteer'],
+    }
+  )
 
   // Approved volunteer
   if (user.roleContext.isActiveRole('volunteer') && user.isApproved) {
@@ -287,7 +291,7 @@ export async function deleteUser(user: UserContactInfo) {
 
   // Change their email so they can't log in before/while the job is completing.
   await UserRepo.flagUserForDeletion(user.id)
-  await QueueService.add(Jobs.DeidentifyUser, { userId: user.id })
+  await QueueService.add(Jobs.DeidentifyUser, { delay: 0 }, { userId: user.id })
 }
 
 export async function adminUpdateUser(data: unknown) {
@@ -701,13 +705,13 @@ export async function getUserById(
   }
 }
 
-export async function getUserBanStatus(
-  userId: Ulid
-): Promise<USER_BAN_TYPES | undefined> {
-  const user = await UserRepo.getUserBanStatus(userId)
-  if (user) {
-    return user.banType
-  }
+export async function getUsersBanStatusesById(userIds: Ulid[]): Promise<
+  {
+    id: Ulid
+    banType: USER_BAN_TYPES | null
+  }[]
+> {
+  return await UserRepo.getUsersBanStatuses(userIds)
 }
 
 export async function getUserForAdminDetail(
@@ -751,16 +755,6 @@ export async function updatePreferredLanguage(
   return await updatePreferredLanguageToUser(userId, languageCode)
 }
 
-export async function countReferredUsers(
-  referrerId: string,
-  filters?: {
-    withPhoneOrEmailVerifiedAs?: boolean
-    withRoles?: UserRole[]
-  }
-): Promise<number> {
-  return await UserRepo.countReferredUsers(referrerId, filters)
-}
-
 export function getReferralSignUpLink(referralCode: string): string {
   return `${config.protocol}://${config.host}/referral/${referralCode}`
 }
@@ -778,5 +772,38 @@ export async function upsertUsersSchool(
     userId,
     schoolId,
     associationType
+  )
+}
+
+export async function queueInvitationToCoach(
+  invitedUserId: Ulid,
+  invitingUserId: Ulid,
+  sessionId: Ulid,
+  coachingSkills: string[]
+): Promise<void> {
+  logger.info(
+    {
+      invitingUserId,
+      invitedUserId,
+      sessionId,
+      coachingSkills,
+    },
+    'Queueing invitation to coach email'
+  )
+  await QueueService.add(
+    Jobs.SendInvitationToCoachEmail,
+    { delay: hoursInMs(24) },
+    {
+      invitedUserId,
+      invitingUserId,
+      coachingSkills,
+    }
+  )
+  logger.info(
+    {
+      invitedUserId,
+      invitingUserId,
+    },
+    'Queued invitation to coach email job'
   )
 }

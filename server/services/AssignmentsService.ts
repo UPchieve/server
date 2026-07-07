@@ -1,10 +1,11 @@
 import moment from 'moment'
+import { getFileType, isImageFile, isPdf } from '../utils/image-utils'
 import { runInTransaction, TransactionClient } from '../db'
 import { Ulid, Uuid } from '../models/pgUtils'
 import * as AssignmentsRepo from '../models/Assignments'
 import * as TeacherRepo from '../models/Teacher'
 import * as TeacherClassRepo from '../models/TeacherClass'
-import { InputError } from '../models/Errors'
+import { InputError, UnsupportedFileTypeError } from '../models/Errors'
 import {
   asDate,
   asBoolean,
@@ -19,11 +20,16 @@ import {
   CreateStudentAssignmentResult,
   StudentAssignment,
 } from '../models/Assignments'
+import * as ModerationService from './ModerationService/index'
 import * as AzureService from './AzureService'
 import config from '../config'
 import * as cache from '../cache'
 import { getSubjectsForTopicByTopicId } from './SubjectsService'
 import logger from '../logger'
+import { isEmpty } from 'lodash'
+import * as ModerationTypes from './ModerationService/types'
+import { extractPdfContent } from '../utils/file-utils'
+import { moderateAssignmentInfo } from './ModerationService/index'
 
 export type CreateAssignmentPayload = {
   classId: string
@@ -79,10 +85,17 @@ export const asEditedAssignment = asFactory<EditAssignmentPayload>({
 export async function createAssignment(
   data: CreateAssignmentPayload,
   tc?: TransactionClient
-) {
-  return runInTransaction(async (tc: TransactionClient) => {
-    validateAssignmentData(data)
+): Promise<Assignment | ModerationTypes.ModerationInfractionCategories> {
+  validateAssignmentData(data)
+  const moderationResults = await ModerationService.moderateAssignmentInfo(
+    `${data.title} ${data.description}`
+  )
 
+  if (!isEmpty(moderationResults)) {
+    return moderationResults
+  }
+
+  return runInTransaction(async (tc: TransactionClient) => {
     const assignment = await AssignmentsRepo.createAssignment(
       {
         classId: data.classId,
@@ -108,10 +121,17 @@ export async function createAssignment(
   }, tc)
 }
 
-export async function editAssignment(data: EditAssignmentPayload) {
+export async function editAssignment(
+  data: EditAssignmentPayload
+): Promise<Assignment | ModerationTypes.ModerationInfractionCategories> {
+  validateAssignmentData(data)
+  const moderationResults = await ModerationService.moderateAssignmentInfo(
+    `${data.title} ${data.description}`
+  )
+  if (!isEmpty(moderationResults)) {
+    return moderationResults
+  }
   return runInTransaction(async (tc: TransactionClient) => {
-    validateAssignmentData(data)
-
     const assignment = await AssignmentsRepo.editAssignment(
       {
         id: data.id,
@@ -364,23 +384,91 @@ async function getClassAssignments(classId: Ulid, tc: TransactionClient) {
   })
 }
 
+async function moderateAssignmentPdf(
+  file: Express.Multer.File,
+  assignmentId: string,
+  userId: string
+): Promise<ModerationTypes.ModerationInfractionCategories> {
+  const moderationInfractions: string[] = []
+  const extractedContent = await extractPdfContent(file.buffer)
+
+  const textModerationResults = await moderateAssignmentInfo(
+    extractedContent.text
+  )
+  if (!isEmpty(textModerationResults)) {
+    moderationInfractions.push(...textModerationResults)
+  }
+
+  for (const image of extractedContent.images) {
+    const { failures } = await ModerationService.moderateImage(image, {
+      source: 'assignment_image',
+      assignmentId,
+      userId,
+    })
+    moderationInfractions.push(...failures)
+  }
+
+  return moderationInfractions
+}
+
 /**
  * Upload and retrieve uploaded assignments to and from Azure.
+ *
+ * @return a map of file names to their moderation infraction reasons
  */
-export async function uploadAssignment(
+export async function uploadAssignmentFiles(
   assignmentId: Ulid,
-  files: Express.Multer.File[]
-) {
-  await Promise.all(
-    files.map((file) => {
-      AzureService.uploadBlobFile(
-        config.assignmentsStorageAccountName,
-        config.assignmentsStorageContainer,
-        `${assignmentId}/${file.originalname}`,
-        file
-      )
-    })
+  files: Express.Multer.File[],
+  userId: string
+): Promise<Record<string, string[]>> {
+  const incorrectFileTypes = files.filter(
+    (file) => !(isImageFile(file.buffer) || isPdf(file.buffer))
   )
+  if (incorrectFileTypes.length) {
+    throw new UnsupportedFileTypeError(
+      'Unsupported file type: Upload an image files or PDFs'
+    )
+  }
+
+  let fileNameToModerationInfractions: Record<string, string[]> = {}
+  for (const file of files) {
+    if (isImageFile(file.buffer)) {
+      const { failures } = await ModerationService.moderateImage(file.buffer, {
+        source: 'assignment_image',
+        assignmentId,
+        userId,
+      })
+      if (failures.length) {
+        fileNameToModerationInfractions[file.originalname] = failures
+      }
+    } else {
+      const moderationInfractions = await moderateAssignmentPdf(
+        file,
+        assignmentId,
+        userId
+      )
+      if (moderationInfractions.length) {
+        fileNameToModerationInfractions[file.originalname] =
+          moderationInfractions
+      }
+    }
+  }
+
+  // If all files are clean, upload them.
+  if (isEmpty(fileNameToModerationInfractions)) {
+    await Promise.all(
+      files.map((file) => {
+        AzureService.uploadBlobFile(
+          config.assignmentsStorageAccountName,
+          config.assignmentsStorageContainer,
+          `${assignmentId}/${file.originalname}`,
+          file
+        )
+      })
+    )
+  }
+
+  return fileNameToModerationInfractions
 }
 
 export async function getAssignmentDocuments(assignmentId: Ulid) {
@@ -427,7 +515,7 @@ Good luck, and have fun!
     const subjects = await getSubjectsForTopicByTopicId(topicId, tc)
     if (subjects.length) subjectId = subjects[0].id
   }
-  const assignment = await createAssignment(
+  const assignment: Assignment = (await createAssignment(
     {
       classId,
       description: studentInstructions,
@@ -441,7 +529,7 @@ Good luck, and have fun!
       title: 'Getting Started on UPchieve',
     },
     tc
-  )
+  )) as Assignment
   // TODO: Remove if we decide to add teacher_notes for assignments in the DB
   cache.sadd('getting-started-assignments', assignment.id)
 }
