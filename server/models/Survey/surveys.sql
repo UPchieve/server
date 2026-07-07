@@ -26,6 +26,15 @@ ON CONFLICT (survey_id,
         updated_at;
 
 
+/* @name getSurveyIdByName */
+SELECT
+    id
+FROM
+    surveys
+WHERE
+    name = :surveyName!;
+
+
 /* @name saveUserSurveySubmissions */
 INSERT INTO users_surveys_submissions (user_survey_id, survey_question_id, survey_response_choice_id, open_response, created_at, updated_at)
 SELECT
@@ -145,6 +154,8 @@ WHERE
     sess.id = :sessionId!
     AND ur.name = :userRole!
     AND st.name = 'postsession'
+    AND (:surveyId::int IS NULL
+        OR s.id = :surveyId::int)
 GROUP BY
     s.id,
     st.id,

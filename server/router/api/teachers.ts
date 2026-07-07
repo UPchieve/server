@@ -1,9 +1,11 @@
 import { Router } from 'express'
+import { isArray } from 'lodash'
 import { extractUser } from '../extract-user'
 import * as TeacherService from '../../services/TeacherService'
 import * as AssignmentsService from '../../services/AssignmentsService'
 import { resError } from '../res-error'
 import { asNumber, asString } from '../../utils/type-utils'
+import { authPassport } from '../../utils/auth-utils'
 
 export function routeTeachers(apiRouter: Router): void {
   const router = Router()
@@ -119,9 +121,14 @@ export function routeTeachers(apiRouter: Router): void {
         req.body.assignmentData,
         req.body.studentIds
       )
-      const assignment =
-        await AssignmentsService.createAssignment(assignmentData)
-      res.json({ assignment })
+      const result = await AssignmentsService.createAssignment(assignmentData)
+      if (isArray(result) && result.length) {
+        res.status(422).json({
+          moderationFailures: result,
+        })
+      } else {
+        res.status(201).json({ assignment: result })
+      }
     } catch (err) {
       resError(res, err)
     }
@@ -156,12 +163,18 @@ export function routeTeachers(apiRouter: Router): void {
         req.body.assignmentData
       )
 
-      const assignment = await AssignmentsService.editAssignment(assignmentData)
-      res.json({ assignment })
+      const result = await AssignmentsService.editAssignment(assignmentData)
+      if (isArray(result) && result.length) {
+        res.status(422).json({
+          moderationFailures: result,
+        })
+      } else {
+        res.status(200).json({ assignment: result })
+      }
     } catch (err) {
       resError(res, err)
     }
   })
 
-  apiRouter.use('/teachers', router)
+  apiRouter.use('/teachers', authPassport.isTeacher, router)
 }

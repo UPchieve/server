@@ -21,6 +21,7 @@ This repository is the backend API server and queue worker only. To work on the 
   - [IMPORTANT: THE FRONTEND IS IN A SEPARATE REPOSITORY](#important-the-frontend-is-in-a-separate-repository)
   - [Local Development](#local-development)
     - [Local Dependencies](#local-dependencies)
+    - [Package Manager](#package-manager)
     - [App Dependencies](#app-dependencies)
     - [Prepare to run the server](#prepare-to-run-the-server)
     - [Run the app](#run-the-app)
@@ -51,11 +52,17 @@ The recommended tool for runtime version management is [`nvm`][nvm]. To use `nvm
 $ nvm install v24.13.0 && nvm use v24.13.0
 ```
 
-After switching npm versions using nvm, you will need to run `$ npm install`. Next install [`Docker`][Docker] and start according to their instructions for your operating system.
+After switching Node versions using nvm, you will need to run `$ pnpm install`. Next install [`Docker`][Docker] and start according to their instructions for your operating system.
 
-[wsl]: https://docs.microsoft.com/en-us/windows/wsl/install-win10
 [nvm]: https://github.com/nvm-sh/nvm
+[wsl]: https://docs.microsoft.com/en-us/windows/wsl/install-win10
 [Docker]: https://www.docker.com/products/docker-desktop
+
+### Package Manager
+
+This project uses [pnpm](https://pnpm.io/) instead of npm. Once [installed](https://pnpm.io/installation), use `pnpm install <dependency>` to install dependencies, and `pnpm run <script>` to run scripts.
+
+### Detecting Secrets Pre-Commit
 
 We use [Yelp's detect-secrets](https://github.com/Yelp/detect-secrets) Python module as a precommit step to unsure we are not accidentally pushing secrets to GitLab. This is run within a virtual env. For setup, run:
 
@@ -96,7 +103,7 @@ export SUBWAY_DB_HOST=localhost
 ```
 
 3. (optional) If you want to test Twilio voice calling functionality, set the `host` property to `[your public IP address]:3000` (minus the brackets), and configure your router/firewall to allow connections to port 3000 from the Internet. Twilio will need to connect to your system to obtain TwiML instructions.
-4. (optional) Run `npm run dev:worker` to start the worker process. The dev worker will automatically attempt to connect to your local Redis instance and read jobs from there. Additionally, you can run `npm run add-cron-jobs` to add all repeatable jobs to the job queue.
+4. (optional) Run `pnpm run dev:worker` to start the worker process. The dev worker will automatically attempt to connect to your local Redis instance and read jobs from there. Additionally, you can run `pnpm run add-cron-jobs` to add all repeatable jobs to the job queue.
 
 ### Run the app
 
@@ -107,14 +114,14 @@ This repository is the backend API server and queue worker only. To work on the 
 Once you have the dependencies running and installed, you can run the following
 
 ```
-$ npm run dev:backend
+$ pnpm run dev:backend
 ```
 
 to start the dev server and a watch for changes to the server code. Once you also have the frontend running you can visit http://localhost:8080 and you're good to go!
 
 ### Database updates
 
-If you change anything in the `.sql` files in `server/models`, run [`npm run pgtyped`](https://pgtyped.vercel.app/) to pick up the changes and regenerate the associated `.ts` files. This generates typescript versions of the queries that can be referenced in code, as well as entity types.
+If you change anything in the `.sql` files in `server/models`, run [`pnpm run pgtyped`](https://pgtyped.vercel.app/) to pick up the changes and regenerate the associated `.ts` files. This generates typescript versions of the queries that can be referenced in code, as well as entity types.
 
 #### Important files
 
@@ -155,12 +162,12 @@ ALTER TABLE upchieve.schools
   DROP COLUMN legacy_city_name;
 ```
 
-Test that the rollback script actually works by running `npm run db:schema-down`. Note that a `seeds-down` script does not exist because writing reversible seed migrations is often mroe trouble than it's worth.
+Test that the rollback script actually works by running `pnpm run db:schema-down`. Note that a `seeds-down` script does not exist because writing reversible seed migrations is often mroe trouble than it's worth.
 
 Notes:
 
-- If the database/schema end up in an irrecoverable state, you can drop everything with `npm run db:reset-seeds` to get the database to a fresh state (alternatively destroy and rebuild the container)
-- After verifying the migrations are good dump the schema and data for the next developer with `npm run db:dump`
+- If the database/schema end up in an irrecoverable state, you can drop everything with `pnpm run db:reset-seeds` to get the database to a fresh state (alternatively destroy and rebuild the container)
+- After verifying the migrations are good dump the schema and data for the next developer with `pnpm run db:dump`
 - Everything in `db_init` is programmatically generated and can be ignored in diff examinations
 - `dbmate` keeps track of migrations that have been run in the `schema_migrations` table. This ensures that migrations are only ever run once.
 - When writing migrations do not use `IF EXISTS` and `IF NOT EXISTS` checks, we want incorrect migrations explicitly fail. For example: running a migration that tries to create another `users` table should fail. With `IF EXISTS` it instead will run but silently do nothing.
@@ -245,10 +252,10 @@ There are three ways to enqueue jobs:
 
 You can run the worker queue locally as well as enqueue specific jobs:
 
-- To run the queue, do `npm run dev:worker`
+- To run the queue, do `pnpm run dev:worker`
 - To enqueue jobs locally, we use the script `server/scripts/testing-jobs.ts`
   - Simply edit the value of `jobToQueue` with the job you want
-- Then, in another terminal, run the script to enqueue the job: `npx ts-node server/scripts/testing-jobs.ts`
+- Then, in another terminal, run the script to enqueue the job: `pnpm exec ts-node server/scripts/testing-jobs.ts`
 - To connect your local Redis instance to Taskforce.sh, copy the [connection token here](https://taskforce.sh/account/token) then run the following command:
   `npx taskforce --team "Engineering" -n "<your name> local" -t connection-token-goes-here`
 

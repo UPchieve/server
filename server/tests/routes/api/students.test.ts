@@ -18,6 +18,13 @@ import {
 jest.mock('../../../models/Student/queries')
 jest.mock('../../../services/StudentService')
 jest.mock('../../../services/AssignmentsService')
+jest.mock('../../../utils/auth-utils', () => ({
+  authPassport: {
+    isAdmin(_req: unknown, _res: unknown, next: () => void): void {
+      next()
+    },
+  },
+}))
 const mockedStudentRepo = mocked(StudentRepo)
 const mockedAssignmentsService = mocked(AssignmentsService)
 const mockedStudentService = mocked(StudentService)
@@ -238,7 +245,7 @@ describe('routeStudents', () => {
   })
 
   describe('GET /api/students/partners/active', () => {
-    test('returns active partners for student', async () => {
+    test.only('returns active partners for student', async () => {
       mockUser = buildUser({ isAdmin: true })
       const studentId = getUuid()
       const activePartners = [

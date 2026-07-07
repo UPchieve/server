@@ -5,7 +5,8 @@ SELECT
     last_name,
     phone,
     email,
-    volunteer_partner_orgs.key AS volunteer_partner_org
+    volunteer_partner_orgs.key AS volunteer_partner_org,
+    volunteer_profiles.approved
 FROM
     users
     LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
@@ -731,7 +732,7 @@ RETURNING
 UPDATE
     volunteer_profiles
 SET
-    approved = TRUE,
+    approved = :approved!,
     updated_at = NOW()
 WHERE
     volunteer_profiles.user_id = :userId!
@@ -956,59 +957,48 @@ WHERE
     AND volunteer_references.sent_at < :end!;
 
 
-/*
- @name updateVolunteerBackgroundInfo
- @param occupation -> ((userId, occupation, createdAt, updatedAt)...)
- */
-WITH clear_occ AS (
-    DELETE FROM volunteer_occupations
-    WHERE user_id = :userId!
-),
-ins_occ AS (
-INSERT INTO volunteer_occupations (user_id, occupation, created_at, updated_at)
-        VALUES
-            :occupation!
-        ON CONFLICT
-            DO NOTHING
-), upd_profile AS (
-    UPDATE
-        volunteer_profiles
-    SET
-        approved = COALESCE(:approved, approved),
-        experience = COALESCE(:experience, experience),
-        company = COALESCE(:company, company),
-        college = COALESCE(:college, college),
-        linkedin_url = COALESCE(:linkedInUrl, linkedin_url),
-        country = COALESCE(:country, country),
-        state = COALESCE(:state, state),
-        city = COALESCE(:city, city),
-        languages = COALESCE(:languages, languages),
-        updated_at = NOW()
-    WHERE
-        user_id = :userId!
-    RETURNING
-        user_id
-),
-upd_user AS (
-    UPDATE
-        users
-    SET
-        phone = COALESCE(:phoneNumber, phone),
-        signup_source_id = COALESCE(:signupSourceId, signup_source_id),
-        other_signup_source = COALESCE(:otherSignupSource, other_signup_source)
-    WHERE
-        id = (
-            SELECT
-                user_id
-            FROM
-                upd_profile)
-        RETURNING
-            id
-)
+/* @name deleteVolunteerOccupations */
+DELETE FROM volunteer_occupations
+WHERE user_id = :userId!;
+
+
+/* @name insertVolunteerOccupations */
+INSERT INTO volunteer_occupations (user_id, occupation)
 SELECT
-    user_id AS ok
-FROM
-    upd_profile;
+    :userId!,
+    UNNEST(:occupations!::text[]);
+
+
+/* @name updateVolunteerProfile */
+UPDATE
+    volunteer_profiles
+SET
+    experience = COALESCE(:experience, experience),
+    company = COALESCE(:company, company),
+    college = COALESCE(:college, college),
+    linkedin_url = COALESCE(:linkedInUrl, linkedin_url),
+    country = COALESCE(:country, country),
+    state = COALESCE(:state, state),
+    city = COALESCE(:city, city),
+    languages = COALESCE(:languages, languages),
+    updated_at = NOW()
+WHERE
+    user_id = :userId!
+RETURNING
+    user_id AS id;
+
+
+/* @name updateSsoUserBackgroundInfo */
+UPDATE
+    users
+SET
+    phone = COALESCE(:phoneNumber, phone),
+    signup_source_id = COALESCE(:signupSourceId, signup_source_id),
+    other_signup_source = COALESCE(:otherSignupSource, other_signup_source)
+WHERE
+    id = :userId!
+RETURNING
+    id;
 
 
 /* @name getQuizzesPassedForDateRange */
@@ -1052,8 +1042,8 @@ RETURNING
 
 
 /* @name createVolunteerUser */
-INSERT INTO users (id, email, phone, sms_consent, first_name, last_name, PASSWORD, verified, referred_by, referral_code, signup_source_id, other_signup_source, last_activity_at, created_at, updated_at)
-    VALUES (:userId!, :email!, :phone!, :smsConsent!, :firstName!, :lastName!, :password!, FALSE, :referredBy, :referralCode!, :signupSourceId, :otherSignupSource, NOW(), NOW(), NOW())
+INSERT INTO users (id, email, phone, sms_consent, first_name, last_name, PASSWORD, verified, referral_code, signup_source_id, other_signup_source, last_activity_at, created_at, updated_at)
+    VALUES (:userId!, :email!, :phone!, :smsConsent!, :firstName!, :lastName!, :password!, FALSE, :referralCode!, :signupSourceId, :otherSignupSource, NOW(), NOW(), NOW())
 ON CONFLICT (email)
     DO NOTHING
 RETURNING
@@ -1155,189 +1145,6 @@ FROM (
         subjects.name, subject_cert_total.total
     HAVING
         COUNT(*)::int >= subject_cert_total.total) AS subjects_unlocked;
-
-
-/* @name getNextVolunteerToNotify */
-WITH subject_totals AS (
-    SELECT
-        subjects.name,
-        COUNT(*)::int AS total
-    FROM
-        certification_subject_unlocks
-        JOIN subjects ON subjects.id = certification_subject_unlocks.subject_id
-    WHERE
-        subjects.name = ANY (ARRAY[:subject] || COALESCE(:highLevelSubjects::text[], '{}'))
-    GROUP BY
-        subjects.name
-),
-computed_subject_totals AS (
-    SELECT
-        subjects.name,
-        COUNT(*)::int AS total
-    FROM
-        computed_subject_unlocks
-        JOIN subjects ON subjects.id = computed_subject_unlocks.subject_id
-    WHERE
-        subjects.name = ANY (ARRAY[:subject] || COALESCE(:highLevelSubjects::text[], '{}'))
-    GROUP BY
-        subjects.name
-),
-ready_to_tutor_volunteers AS (
-    SELECT
-        users.id AS userId,
-        first_name,
-        last_name,
-        phone,
-        email
-    FROM
-        users
-        JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
-    WHERE
-        test_user IS FALSE
-        AND banned IS FALSE
-        AND ban_type IS DISTINCT FROM 'complete'
-        AND deactivated IS FALSE
-        AND deleted IS FALSE
-        AND volunteer_profiles.onboarded IS TRUE
-        AND volunteer_profiles.approved IS TRUE
-        AND ( -- user is not part of disqualified group (like active session volunteers) if provided
-            (:disqualifiedVolunteers)::uuid[] IS NULL
-            OR NOT users.id = ANY (:disqualifiedVolunteers))
-),
--- The above volunteers, narrowed down to those who can tutor in the given subject
-volunteers_with_needed_certification AS (
-    SELECT
-        userId,
-        first_name,
-        last_name,
-        phone,
-        email
-    FROM
-        ready_to_tutor_volunteers
-        LEFT JOIN LATERAL (
-            SELECT
-                array_agg(sub_unlocked.subject)::text[] AS subjects
-            FROM (
-                SELECT
-                    subjects.name AS subject
-                FROM
-                    users_certifications
-                    JOIN certification_subject_unlocks USING (certification_id)
-                    JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id
-                    JOIN subject_totals ON subject_totals.name = subjects.name
-                WHERE
-                    users_certifications.user_id = userId
-                GROUP BY
-                    user_id, subjects.name, subject_totals.total) AS sub_unlocked) AS subjects_unlocked ON TRUE
-        LEFT JOIN LATERAL (
-            SELECT
-                array_agg(sub_unlocked.subject)::text[] AS subjects
-            FROM (
-                SELECT
-                    subjects.name AS subject
-                FROM
-                    users_certifications
-                    JOIN computed_subject_unlocks USING (certification_id)
-                    JOIN subjects ON computed_subject_unlocks.subject_id = subjects.id
-                    JOIN computed_subject_totals ON computed_subject_totals.name = subjects.name
-                WHERE
-                    users_certifications.user_id = userId
-                GROUP BY
-                    user_id, subjects.name, computed_subject_totals.total
-                HAVING
-                    COUNT(*)::int >= computed_subject_totals.total) AS sub_unlocked) AS computed_subjects_unlocked ON TRUE
-    WHERE (:subject = ANY (subjects_unlocked.subjects)
-        OR :subject = ANY (computed_subjects_unlocked.subjects))
-    AND ( -- user does not have high level subjects if provided
-        (:highLevelSubjects)::text[] IS NULL
-        OR (:highLevelSubjects)::text[] && subjects_unlocked.subjects IS FALSE)
-),
--- The above volunteers, narrowed down to those with availability
-volunteers_with_availability AS (
-    SELECT
-        vwnc.userId,
-        vwnc.first_name,
-        vwnc.last_name,
-        vwnc.phone,
-        vwnc.email
-    FROM
-        volunteers_with_needed_certification vwnc
-        JOIN availabilities ON userId = availabilities.user_id
-        JOIN weekdays ON weekdays.id = availabilities.weekday_id
-    WHERE
-        -- availabilities are all stored in EST so convert server time to EST to be safe
-        TRIM(BOTH FROM to_char(NOW() at time zone 'America/New_York', 'Day')) = weekdays.day
-        AND extract(hour FROM (NOW() at time zone 'America/New_York')) >= availabilities.available_start
-        AND extract(hour FROM (NOW() at time zone 'America/New_York')) < availabilities.available_end
-),
-candidates AS (
-    SELECT
-        vol.userId AS id,
-        vol.first_name,
-        vol.last_name,
-        vol.phone,
-        vol.email,
-        volunteer_partner_orgs.key AS volunteer_partner_org,
-        row_number() OVER () AS rn
-FROM
-    volunteers_with_availability vol
-    JOIN volunteer_profiles ON volunteer_profiles.user_id = vol.userId
-        LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
-    WHERE ( -- user is a favorite volunteer
-        (:favoriteVolunteers)::uuid[] IS NULL
-        OR vol.userId = ANY (:favoriteVolunteers))
-    AND ( -- user is partner or open
-        (:isPartner)::boolean IS NULL
-        OR (:isPartner IS FALSE
-            AND volunteer_profiles.volunteer_partner_org_id IS NULL)
-        OR (:isPartner IS TRUE
-            AND NOT volunteer_profiles.volunteer_partner_org_id IS NULL))
-    AND ((:specificPartner)::text IS NULL
-        OR volunteer_partner_orgs.key = :specificPartner)
-    AND NOT EXISTS (
-        SELECT
-            user_id
-        FROM
-            notifications
-        WHERE
-            user_id = vol.userId
-            AND sent_at >= :lastNotified)
-),
-row_count AS (
-    SELECT
-        max(rn) AS total_rows
-FROM
-    candidates
-),
-random_row AS (
-    SELECT
-        floor(random() * row_count.total_rows + 1) AS random_rn
-FROM
-    row_count
-)
-SELECT
-    *
-FROM
-    candidates
-WHERE
-    rn = (
-        SELECT
-            random_rn
-        FROM
-            random_row
-        LIMIT 1)
-LIMIT 1;
-
-
-/* @name checkIfVolunteerMutedSubject */
-SELECT
-    user_id
-FROM
-    muted_users_subject_alerts
-    JOIN subjects ON muted_users_subject_alerts.subject_id = subjects.id
-WHERE
-    muted_users_subject_alerts.user_id = :userId
-    AND subjects.name = :subjectName;
 
 
 /* @name getVolunteerForScheduleUpdate */

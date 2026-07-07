@@ -10,17 +10,29 @@ export interface ICreateUpfByUserIdParams {
 
 /** 'CreateUpfByUserId' return type */
 export interface ICreateUpfByUserIdResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Timestamp when the user enrolled in the fall incentive program */
   fallIncentiveEnrollmentAt: Date | null;
+  /** not_pii: Whether the user qualifies for the Gates Foundation study */
   gatesQualified: boolean;
+  /** not_pii: JSON map of impact study campaign assignments for the user */
   impactStudyCampaigns: Json | null;
+  /** not_pii: Timestamp when the user enrolled in the impact study */
   impactStudyEnrollmentAt: Date | null;
+  /** not_pii: Whether the hour summary intro email has been sent */
   sentHourSummaryIntroEmail: boolean;
+  /** not_pii: Whether the 90-day inactivity re-engagement email has been sent */
   sentInactiveNinetyDayEmail: boolean;
+  /** not_pii: Whether the 60-day inactivity re-engagement email has been sent */
   sentInactiveSixtyDayEmail: boolean;
+  /** not_pii: Whether the 30-day inactivity re-engagement email has been sent */
   sentInactiveThirtyDayEmail: boolean;
+  /** not_pii: Whether the ready-to-coach onboarding email has been sent */
   sentReadyToCoachEmail: boolean;
+  /** not_pii */
   updatedAt: Date;
+  /** not_pii: Foreign key to upchieve.users */
   userId: string;
 }
 
@@ -73,17 +85,29 @@ export interface IGetUpfByUserIdParams {
 
 /** 'GetUpfByUserId' return type */
 export interface IGetUpfByUserIdResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Timestamp when the user enrolled in the fall incentive program */
   fallIncentiveEnrollmentAt: Date | null;
+  /** not_pii: Whether the user qualifies for the Gates Foundation study */
   gatesQualified: boolean;
+  /** not_pii: JSON map of impact study campaign assignments for the user */
   impactStudyCampaigns: Json | null;
+  /** not_pii: Timestamp when the user enrolled in the impact study */
   impactStudyEnrollmentAt: Date | null;
+  /** not_pii: Whether the hour summary intro email has been sent */
   sentHourSummaryIntroEmail: boolean;
+  /** not_pii: Whether the 90-day inactivity re-engagement email has been sent */
   sentInactiveNinetyDayEmail: boolean;
+  /** not_pii: Whether the 60-day inactivity re-engagement email has been sent */
   sentInactiveSixtyDayEmail: boolean;
+  /** not_pii: Whether the 30-day inactivity re-engagement email has been sent */
   sentInactiveThirtyDayEmail: boolean;
+  /** not_pii: Whether the ready-to-coach onboarding email has been sent */
   sentReadyToCoachEmail: boolean;
+  /** not_pii */
   updatedAt: Date;
+  /** not_pii: Foreign key to upchieve.users */
   userId: string;
 }
 
@@ -128,6 +152,7 @@ export interface IUpdateSentInactiveThirtyDayEmailParams {
 
 /** 'UpdateSentInactiveThirtyDayEmail' return type */
 export interface IUpdateSentInactiveThirtyDayEmailResult {
+  /** not_pii: Foreign key to upchieve.users */
   ok: string;
 }
 
@@ -164,6 +189,7 @@ export interface IUpdateSentInactiveSixtyDayEmailParams {
 
 /** 'UpdateSentInactiveSixtyDayEmail' return type */
 export interface IUpdateSentInactiveSixtyDayEmailResult {
+  /** not_pii: Foreign key to upchieve.users */
   ok: string;
 }
 
@@ -200,6 +226,7 @@ export interface IUpdateSentInactiveNinetyDayEmailParams {
 
 /** 'UpdateSentInactiveNinetyDayEmail' return type */
 export interface IUpdateSentInactiveNinetyDayEmailResult {
+  /** not_pii: Foreign key to upchieve.users */
   ok: string;
 }
 
@@ -235,6 +262,7 @@ export interface IEnrollStudentToFallIncentiveProgramParams {
 
 /** 'EnrollStudentToFallIncentiveProgram' return type */
 export interface IEnrollStudentToFallIncentiveProgramResult {
+  /** not_pii: Timestamp when the user enrolled in the fall incentive program */
   fallIncentiveEnrollmentAt: Date | null;
 }
 
@@ -270,6 +298,7 @@ export interface IEnrollStudentToImpactStudyParams {
 
 /** 'EnrollStudentToImpactStudy' return type */
 export interface IEnrollStudentToImpactStudyResult {
+  /** not_pii: Timestamp when the user enrolled in the impact study */
   impactStudyEnrollmentAt: Date | null;
 }
 
@@ -307,6 +336,7 @@ export interface IUpsertImpactStudyCampaignParams {
 
 /** 'UpsertImpactStudyCampaign' return type */
 export interface IUpsertImpactStudyCampaignResult {
+  /** not_pii: Foreign key to upchieve.users */
   ok: string;
 }
 

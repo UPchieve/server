@@ -1,12 +1,19 @@
 import { SUBJECTS } from '../../constants'
+import { Ulid } from '../../types/shared'
 
 export type SubjectAndTopic = {
   subjectName: string
+  subjectId: number
   subjectDisplayName: string
   topicName: string
+  topicId: number
   topicDisplayName: string
   toolType: string
 }
+
+export type SessionWithSubjectAndTopic = {
+  sessionId: Ulid
+} & Pick<SubjectAndTopic, 'subjectName' | 'subjectId' | 'topicName' | 'topicId'>
 
 export type Topic = {
   id: number

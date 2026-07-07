@@ -83,6 +83,7 @@ export type UnfulfilledSessions = {
   id: Uuid
   _id: Ulid
   student: {
+    id: Uuid
     firstname: string
     isTestUser: boolean
     isShadowBanned: boolean
@@ -161,6 +162,7 @@ export async function getUnfulfilledSessions(
         ...s,
         _id: s.id,
         student: {
+          id: s.studentId,
           firstname: s.studentFirstName,
           isTestUser: s.studentTestUser,
           isShadowBanned: s.studentBanType === USER_BAN_TYPES.SHADOW,
@@ -185,7 +187,6 @@ export async function getSessionById(
       'quillDoc',
       'volunteerJoinedAt',
       'endedAt',
-      'endedByRole',
       'shadowbanned',
     ])
   } catch (err) {
@@ -1474,4 +1475,29 @@ export async function getSessionFlagsBySessionId(sessionId: Uuid) {
   )
 
   return result.map((r) => makeRequired(r))
+}
+
+export async function updateSessionLastSeen(sessionId: Uuid, userId: Uuid) {
+  const result = await pgQueries.updateSessionLastSeen.run(
+    { sessionId, userId },
+    getClient()
+  )
+
+  if (!result.length && makeRequired(result[0]).ok)
+    throw new RepoUpdateError('Did not update session last seen.')
+}
+
+export async function sessionsWithUnreadDMs(
+  userId: Uuid,
+  minTimeTutored: number
+): Promise<string[]> {
+  try {
+    const result = await pgQueries.sessionsWithUnreadDMs.run(
+      { userId, minTimeTutored },
+      getClient()
+    )
+    return result.map((r) => makeRequired(r).id)
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
 }

@@ -9,6 +9,8 @@ export type DateOrString = Date | string;
 
 export type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
 
+export type NumberOrString = number | string;
+
 export type stringArray = (string)[];
 
 /** 'AddNotification' parameters type */
@@ -25,6 +27,7 @@ export interface IAddNotificationParams {
 
 /** 'AddNotification' return type */
 export interface IAddNotificationResult {
+  /** not_pii: Primary key */
   ok: string;
 }
 
@@ -73,16 +76,27 @@ export interface IGetUnfilledSessionsParams {
 
 /** 'GetUnfilledSessions' return type */
 export interface IGetUnfilledSessionsResult {
+  /** not_pii */
   createdAt: Date;
   currentGradeName: string | null;
+  /** not_pii: Primary key */
   id: string;
   isFirstTimeStudent: boolean | null;
+  /** not_pii: Type of ban (shadow, complete, live_media) */
   studentBanType: ban_types | null;
+  /** pii: First name */
   studentFirstName: string;
+  /** not_pii: Primary key */
+  studentId: string;
+  /** not_pii: Whether the account is a test or internal account */
   studentTestUser: boolean;
+  /** not_pii: User-facing display name */
   subjectDisplayName: string;
+  /** not_pii: Human-readable name */
   subTopic: string;
+  /** not_pii: Human-readable name */
   type: string;
+  /** not_pii: Foreign key to upchieve.users (the volunteer) */
   volunteer: string | null;
 }
 
@@ -92,7 +106,7 @@ export interface IGetUnfilledSessionsQuery {
   result: IGetUnfilledSessionsResult;
 }
 
-const getUnfilledSessionsIR: any = {"usedParamSet":{"start":true},"params":[{"name":"start","required":true,"transform":{"type":"scalar"},"locs":[{"a":1192,"b":1198}]}],"statement":"SELECT\n    sessions.id,\n    subjects.name AS sub_topic,\n    topics.name AS TYPE,\n    sessions.volunteer_id AS volunteer,\n    sessions.created_at,\n    users.first_name AS student_first_name,\n    users.test_user AS student_test_user,\n    users.ban_type AS student_ban_type,\n    session_count.total = 1 AS is_first_time_student,\n    subjects.display_name AS subject_display_name,\n    coalesce(current_grade_levels_mview.current_grade_name, grade_levels.name) AS current_grade_name\nFROM\n    sessions\n    JOIN users ON sessions.student_id = users.id\n    JOIN student_profiles ON student_profiles.user_id = sessions.student_id\n    LEFT JOIN grade_levels ON grade_levels.id = student_profiles.grade_level_id\n    LEFT JOIN current_grade_levels_mview ON current_grade_levels_mview.user_id = sessions.student_id\n    LEFT JOIN subjects ON sessions.subject_id = subjects.id\n    LEFT JOIN topics ON subjects.topic_id = topics.id\n    JOIN LATERAL (\n        SELECT\n            COUNT(*) AS total\n        FROM\n            sessions\n        WHERE\n            student_id = users.id) AS session_count ON TRUE\nWHERE\n    sessions.volunteer_id IS NULL\n    AND sessions.ended_at IS NULL\n    AND sessions.created_at > :start!\n    AND users.ban_type IS DISTINCT FROM 'complete'\nORDER BY\n    sessions.created_at"};
+const getUnfilledSessionsIR: any = {"usedParamSet":{"start":true},"params":[{"name":"start","required":true,"transform":{"type":"scalar"},"locs":[{"a":1063,"b":1069}]}],"statement":"SELECT\n    sessions.id,\n    subjects.name AS sub_topic,\n    topics.name AS TYPE,\n    sessions.volunteer_id AS volunteer,\n    sessions.created_at,\n    users.id AS student_id,\n    users.first_name AS student_first_name,\n    users.test_user AS student_test_user,\n    users.ban_type AS student_ban_type,\n    session_count.total = 1 AS is_first_time_student,\n    subjects.display_name AS subject_display_name,\n    cgl.current_grade_name AS current_grade_name\nFROM\n    sessions\n    JOIN users ON sessions.student_id = users.id\n    JOIN student_profiles ON student_profiles.user_id = sessions.student_id\n    LEFT JOIN current_grade_levels cgl ON cgl.user_id = sessions.student_id\n    LEFT JOIN subjects ON sessions.subject_id = subjects.id\n    LEFT JOIN topics ON subjects.topic_id = topics.id\n    JOIN LATERAL (\n        SELECT\n            COUNT(*) AS total\n        FROM\n            sessions\n        WHERE\n            student_id = users.id) AS session_count ON TRUE\nWHERE\n    sessions.volunteer_id IS NULL\n    AND sessions.ended_at IS NULL\n    AND sessions.created_at > :start!\n    AND users.ban_type IS DISTINCT FROM 'complete'\nORDER BY\n    sessions.created_at"};
 
 /**
  * Query generated from SQL:
@@ -103,18 +117,18 @@ const getUnfilledSessionsIR: any = {"usedParamSet":{"start":true},"params":[{"na
  *     topics.name AS TYPE,
  *     sessions.volunteer_id AS volunteer,
  *     sessions.created_at,
+ *     users.id AS student_id,
  *     users.first_name AS student_first_name,
  *     users.test_user AS student_test_user,
  *     users.ban_type AS student_ban_type,
  *     session_count.total = 1 AS is_first_time_student,
  *     subjects.display_name AS subject_display_name,
- *     coalesce(current_grade_levels_mview.current_grade_name, grade_levels.name) AS current_grade_name
+ *     cgl.current_grade_name AS current_grade_name
  * FROM
  *     sessions
  *     JOIN users ON sessions.student_id = users.id
  *     JOIN student_profiles ON student_profiles.user_id = sessions.student_id
- *     LEFT JOIN grade_levels ON grade_levels.id = student_profiles.grade_level_id
- *     LEFT JOIN current_grade_levels_mview ON current_grade_levels_mview.user_id = sessions.student_id
+ *     LEFT JOIN current_grade_levels cgl ON cgl.user_id = sessions.student_id
  *     LEFT JOIN subjects ON sessions.subject_id = subjects.id
  *     LEFT JOIN topics ON subjects.topic_id = topics.id
  *     JOIN LATERAL (
@@ -143,26 +157,42 @@ export interface IGetSessionByIdParams {
 
 /** 'GetSessionById' return type */
 export interface IGetSessionByIdResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Timestamp when the session ended */
   endedAt: Date | null;
-  endedByRole: string;
   flags: stringArray | null;
+  /** not_pii: Whether the session has an associated whiteboard document */
   hasWhiteboardDoc: boolean;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Quill.js shared document content (user-generated text) */
   quillDoc: string | null;
   reported: boolean | null;
+  /** not_pii: Whether the session has been reviewed by an admin */
   reviewed: boolean;
+  /** not_pii: Whether the student was shadow banned when requesting the session */
   shadowbanned: boolean | null;
+  /** not_pii: Foreign key to upchieve.users (the student) */
   studentId: string;
+  /** not_pii: Human-readable name */
   subject: string;
+  /** not_pii: User-facing display name */
   subjectDisplayName: string;
+  /** not_pii: Primary key */
   subjectId: number;
   timeTutored: number | null;
+  /** not_pii: Human-readable name */
   toolType: string;
+  /** not_pii: Human-readable name */
   topic: string;
+  /** not_pii: Whether the session has been flagged for admin review */
   toReview: boolean;
+  /** not_pii */
   updatedAt: Date;
+  /** not_pii: Foreign key to upchieve.users (the volunteer) */
   volunteerId: string | null;
+  /** not_pii: Timestamp when the volunteer joined the session */
   volunteerJoinedAt: Date | null;
 }
 
@@ -172,7 +202,7 @@ export interface IGetSessionByIdQuery {
   result: IGetSessionByIdResult;
 }
 
-const getSessionByIdIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":1491,"b":1501}]}],"statement":"SELECT\n    sessions.id,\n    student_id,\n    volunteer_id,\n    subjects.id AS subject_id,\n    subjects.name AS subject,\n    subjects.display_name AS subject_display_name,\n    topics.name AS topic,\n    has_whiteboard_doc,\n    quill_doc,\n    volunteer_joined_at,\n    ended_at,\n    user_roles.name AS ended_by_role,\n    reviewed,\n    to_review,\n    shadowbanned,\n    (time_tutored)::float,\n    sessions.created_at,\n    sessions.updated_at,\n    session_reported_count.total <> 0 AS reported,\n    COALESCE(session_flag_array.flags, ARRAY[]::text[]) AS flags,\n    tool_types.name AS tool_type\nFROM\n    sessions\n    LEFT JOIN subjects ON subjects.id = sessions.subject_id\n    LEFT JOIN topics ON topics.id = subjects.topic_id\n    LEFT JOIN user_roles ON user_roles.id = sessions.ended_by_role_id\n    LEFT JOIN session_reports ON session_reports.session_id = sessions.id\n    LEFT JOIN LATERAL (\n        SELECT\n            COUNT(id)::int AS total\n        FROM\n            session_reports\n        WHERE\n            session_reports.session_id = sessions.id) AS session_reported_count ON TRUE\n    LEFT JOIN LATERAL (\n        SELECT\n            array_agg(name) AS flags\n        FROM\n            sessions_session_flags\n            LEFT JOIN session_flags ON session_flags.id = sessions_session_flags.session_flag_id\n        WHERE\n            sessions_session_flags.session_id = sessions.id) AS session_flag_array ON TRUE\n    JOIN tool_types ON subjects.tool_type_id = tool_types.id\nWHERE\n    sessions.id = :sessionId!"};
+const getSessionByIdIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":1383,"b":1393}]}],"statement":"SELECT\n    sessions.id,\n    student_id,\n    volunteer_id,\n    subjects.id AS subject_id,\n    subjects.name AS subject,\n    subjects.display_name AS subject_display_name,\n    topics.name AS topic,\n    has_whiteboard_doc,\n    quill_doc,\n    volunteer_joined_at,\n    ended_at,\n    reviewed,\n    to_review,\n    shadowbanned,\n    (time_tutored)::float,\n    sessions.created_at,\n    sessions.updated_at,\n    session_reported_count.total <> 0 AS reported,\n    COALESCE(session_flag_array.flags, ARRAY[]::text[]) AS flags,\n    tool_types.name AS tool_type\nFROM\n    sessions\n    LEFT JOIN subjects ON subjects.id = sessions.subject_id\n    LEFT JOIN topics ON topics.id = subjects.topic_id\n    LEFT JOIN session_reports ON session_reports.session_id = sessions.id\n    LEFT JOIN LATERAL (\n        SELECT\n            COUNT(id)::int AS total\n        FROM\n            session_reports\n        WHERE\n            session_reports.session_id = sessions.id) AS session_reported_count ON TRUE\n    LEFT JOIN LATERAL (\n        SELECT\n            array_agg(name) AS flags\n        FROM\n            sessions_session_flags\n            LEFT JOIN session_flags ON session_flags.id = sessions_session_flags.session_flag_id\n        WHERE\n            sessions_session_flags.session_id = sessions.id) AS session_flag_array ON TRUE\n    JOIN tool_types ON subjects.tool_type_id = tool_types.id\nWHERE\n    sessions.id = :sessionId!"};
 
 /**
  * Query generated from SQL:
@@ -189,7 +219,6 @@ const getSessionByIdIR: any = {"usedParamSet":{"sessionId":true},"params":[{"nam
  *     quill_doc,
  *     volunteer_joined_at,
  *     ended_at,
- *     user_roles.name AS ended_by_role,
  *     reviewed,
  *     to_review,
  *     shadowbanned,
@@ -203,7 +232,6 @@ const getSessionByIdIR: any = {"usedParamSet":{"sessionId":true},"params":[{"nam
  *     sessions
  *     LEFT JOIN subjects ON subjects.id = sessions.subject_id
  *     LEFT JOIN topics ON topics.id = subjects.topic_id
- *     LEFT JOIN user_roles ON user_roles.id = sessions.ended_by_role_id
  *     LEFT JOIN session_reports ON session_reports.session_id = sessions.id
  *     LEFT JOIN LATERAL (
  *         SELECT
@@ -236,6 +264,7 @@ export interface IInsertSessionFlagsByIdParams {
 
 /** 'InsertSessionFlagsById' return type */
 export interface IInsertSessionFlagsByIdResult {
+  /** not_pii: Foreign key to upchieve.sessions */
   ok: string;
 }
 
@@ -279,6 +308,7 @@ export interface IUpdateSessionToReviewParams {
 
 /** 'UpdateSessionToReview' return type */
 export interface IUpdateSessionToReviewResult {
+  /** not_pii: Primary key */
   ok: string;
 }
 
@@ -316,6 +346,7 @@ export interface IUpdateSessionReviewedStatusByIdParams {
 
 /** 'UpdateSessionReviewedStatusById' return type */
 export interface IUpdateSessionReviewedStatusByIdResult {
+  /** not_pii: Primary key */
   ok: string;
 }
 
@@ -354,19 +385,29 @@ export interface IGetSessionsToReviewParams {
 
 /** 'GetSessionsToReview' return type */
 export interface IGetSessionsToReviewResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Timestamp when the session ended */
   endedAt: Date | null;
   flags: stringArray | null;
+  /** not_pii: Primary key */
   id: string;
   isReported: boolean | null;
   reviewReasons: stringArray | null;
+  /** not_pii: JSON feedback from the student about counseling */
   studentCounselingFeedback: Json | null;
+  /** pii: First name */
   studentFirstName: string;
+  /** not_pii: Human-readable name */
   subTopic: string;
+  /** not_pii: Whether the session has been flagged for admin review */
   toReview: boolean;
   totalMessages: number | null;
+  /** not_pii: Human-readable name */
   type: string;
+  /** not_pii: Foreign key to upchieve.users (the volunteer) */
   volunteer: string | null;
+  /** pii: First name */
   volunteerFirstName: string;
 }
 
@@ -489,6 +530,7 @@ export type IGetActiveSessionVolunteersParams = void;
 
 /** 'GetActiveSessionVolunteers' return type */
 export interface IGetActiveSessionVolunteersResult {
+  /** not_pii: Foreign key to upchieve.users (the volunteer) */
   volunteerId: string | null;
 }
 
@@ -525,6 +567,7 @@ export interface IUpdateSessionReportedParams {
 
 /** 'UpdateSessionReported' return type */
 export interface IUpdateSessionReportedResult {
+  /** not_pii: Primary key */
   ok: string;
 }
 
@@ -569,6 +612,7 @@ export interface IUpdateSessionTimeTutoredParams {
 
 /** 'UpdateSessionTimeTutored' return type */
 export interface IUpdateSessionTimeTutoredResult {
+  /** not_pii: Primary key */
   ok: string;
 }
 
@@ -605,6 +649,7 @@ export interface IUpdateSessionQuillDocParams {
 
 /** 'UpdateSessionQuillDoc' return type */
 export interface IUpdateSessionQuillDocResult {
+  /** not_pii: Primary key */
   ok: string;
 }
 
@@ -641,6 +686,7 @@ export interface IUpdateSessionHasWhiteboardDocParams {
 
 /** 'UpdateSessionHasWhiteboardDoc' return type */
 export interface IUpdateSessionHasWhiteboardDocResult {
+  /** not_pii: Primary key */
   ok: string;
 }
 
@@ -678,6 +724,7 @@ export interface IUpdateSessionToEndParams {
 
 /** 'UpdateSessionToEnd' return type */
 export interface IUpdateSessionToEndResult {
+  /** not_pii: Primary key */
   id: string;
 }
 
@@ -715,6 +762,7 @@ export interface IGetLongRunningSessionsParams {
 
 /** 'GetLongRunningSessions' return type */
 export interface IGetLongRunningSessionsResult {
+  /** not_pii: Primary key */
   id: string;
 }
 
@@ -749,14 +797,23 @@ export interface IGetPublicSessionByIdParams {
 
 /** 'GetPublicSessionById' return type */
 export interface IGetPublicSessionByIdResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Timestamp when the session ended */
   endedAt: Date | null;
+  /** not_pii: Primary key */
   id: string;
+  /** pii: First name */
   studentFirstName: string;
+  /** not_pii: Foreign key to upchieve.users (the student) */
   studentId: string;
+  /** not_pii: Human-readable name */
   subTopic: string;
+  /** not_pii: Human-readable name */
   type: string;
+  /** pii: First name */
   volunteerFirstName: string;
+  /** not_pii: Foreign key to upchieve.users (the volunteer) */
   volunteerId: string | null;
 }
 
@@ -801,22 +858,36 @@ export interface IGetSessionForAdminViewParams {
 
 /** 'GetSessionForAdminView' return type */
 export interface IGetSessionForAdminViewResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Timestamp when the session ended */
   endedAt: Date | null;
+  /** not_pii: Foreign key to upchieve.users who ended the session */
   endedBy: string | null;
+  /** not_pii: Primary key */
   id: string;
   photos: stringArray | null;
+  /** not_pii: Quill.js shared document content (user-generated text) */
   quillDoc: string | null;
+  /** not_pii: Free-text message submitted with the report (may contain user content) */
   reportMessage: string | null;
+  /** not_pii: Reason for the action (text or JSON) */
   reportReason: string;
   reviewReasons: stringArray | null;
+  /** not_pii: Foreign key to upchieve.users (the student) */
   studentId: string;
+  /** not_pii: Human-readable name */
   subTopic: string;
   timeTutored: number | null;
+  /** not_pii: Human-readable name */
   toolType: string;
+  /** not_pii: Whether the session has been flagged for admin review */
   toReview: boolean;
+  /** not_pii: Human-readable name */
   type: string;
+  /** not_pii: Foreign key to upchieve.users (the volunteer) */
   volunteerId: string | null;
+  /** not_pii: Timestamp when the volunteer joined the session */
   volunteerJoinedAt: Date | null;
 }
 
@@ -826,7 +897,7 @@ export interface IGetSessionForAdminViewQuery {
   result: IGetSessionForAdminViewResult;
 }
 
-const getSessionForAdminViewIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":1122,"b":1132},{"a":1959,"b":1969}]}],"statement":"SELECT\n    sessions.id,\n    subjects.name AS sub_topic,\n    topics.name AS TYPE,\n    sessions.created_at,\n    sessions.ended_at,\n    sessions.volunteer_joined_at,\n    sessions.quill_doc,\n    sessions.time_tutored::int,\n    (\n        CASE WHEN user_roles.name = 'volunteer' THEN\n            sessions.volunteer_id\n        WHEN user_roles.name = 'student' THEN\n            sessions.student_id\n        ELSE\n            NULL\n        END) AS ended_by,\n    session_reports.report_message,\n    report_reasons.reason AS report_reason,\n    session_review_reason.review_reasons,\n    session_photo.photos,\n    sessions.to_review,\n    tool_types.name AS tool_type,\n    sessions.student_id,\n    sessions.volunteer_id\nFROM\n    sessions\n    JOIN users ON sessions.student_id = users.id\n    LEFT JOIN subjects ON sessions.subject_id = subjects.id\n    LEFT JOIN topics ON subjects.topic_id = topics.id\n    LEFT JOIN user_roles ON user_roles.id = sessions.ended_by_role_id\n    LEFT JOIN (\n        SELECT\n            report_reason_id,\n            report_message\n        FROM\n            session_reports\n        WHERE\n            session_id = :sessionId!\n        ORDER BY\n            created_at DESC\n        LIMIT 1) AS session_reports ON TRUE\n    LEFT JOIN report_reasons ON report_reasons.id = session_reports.report_reason_id\n    LEFT JOIN LATERAL (\n        SELECT\n            array_agg(session_flags.name) AS review_reasons\n        FROM\n            session_review_reasons\n            LEFT JOIN session_flags ON session_flags.id = session_review_reasons.session_flag_id\n        WHERE\n            session_review_reasons.session_id = sessions.id) AS session_review_reason ON TRUE\n    LEFT JOIN LATERAL (\n        SELECT\n            array_agg(photo_key) AS photos\n        FROM\n            session_photos\n        WHERE\n            session_photos.session_id = sessions.id) AS session_photo ON TRUE\n    JOIN tool_types ON subjects.tool_type_id = tool_types.id\nWHERE\n    sessions.id = :sessionId!"};
+const getSessionForAdminViewIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":868,"b":878},{"a":1705,"b":1715}]}],"statement":"SELECT\n    sessions.id,\n    subjects.name AS sub_topic,\n    topics.name AS TYPE,\n    sessions.created_at,\n    sessions.ended_at,\n    sessions.volunteer_joined_at,\n    sessions.quill_doc,\n    sessions.time_tutored::int,\n    sessions.ended_by_user_id AS ended_by,\n    session_reports.report_message,\n    report_reasons.reason AS report_reason,\n    session_review_reason.review_reasons,\n    session_photo.photos,\n    sessions.to_review,\n    tool_types.name AS tool_type,\n    sessions.student_id,\n    sessions.volunteer_id\nFROM\n    sessions\n    JOIN users ON sessions.student_id = users.id\n    LEFT JOIN subjects ON sessions.subject_id = subjects.id\n    LEFT JOIN topics ON subjects.topic_id = topics.id\n    LEFT JOIN (\n        SELECT\n            report_reason_id,\n            report_message\n        FROM\n            session_reports\n        WHERE\n            session_id = :sessionId!\n        ORDER BY\n            created_at DESC\n        LIMIT 1) AS session_reports ON TRUE\n    LEFT JOIN report_reasons ON report_reasons.id = session_reports.report_reason_id\n    LEFT JOIN LATERAL (\n        SELECT\n            array_agg(session_flags.name) AS review_reasons\n        FROM\n            session_review_reasons\n            LEFT JOIN session_flags ON session_flags.id = session_review_reasons.session_flag_id\n        WHERE\n            session_review_reasons.session_id = sessions.id) AS session_review_reason ON TRUE\n    LEFT JOIN LATERAL (\n        SELECT\n            array_agg(photo_key) AS photos\n        FROM\n            session_photos\n        WHERE\n            session_photos.session_id = sessions.id) AS session_photo ON TRUE\n    JOIN tool_types ON subjects.tool_type_id = tool_types.id\nWHERE\n    sessions.id = :sessionId!"};
 
 /**
  * Query generated from SQL:
@@ -840,14 +911,7 @@ const getSessionForAdminViewIR: any = {"usedParamSet":{"sessionId":true},"params
  *     sessions.volunteer_joined_at,
  *     sessions.quill_doc,
  *     sessions.time_tutored::int,
- *     (
- *         CASE WHEN user_roles.name = 'volunteer' THEN
- *             sessions.volunteer_id
- *         WHEN user_roles.name = 'student' THEN
- *             sessions.student_id
- *         ELSE
- *             NULL
- *         END) AS ended_by,
+ *     sessions.ended_by_user_id AS ended_by,
  *     session_reports.report_message,
  *     report_reasons.reason AS report_reason,
  *     session_review_reason.review_reasons,
@@ -861,7 +925,6 @@ const getSessionForAdminViewIR: any = {"usedParamSet":{"sessionId":true},"params
  *     JOIN users ON sessions.student_id = users.id
  *     LEFT JOIN subjects ON sessions.subject_id = subjects.id
  *     LEFT JOIN topics ON subjects.topic_id = topics.id
- *     LEFT JOIN user_roles ON user_roles.id = sessions.ended_by_role_id
  *     LEFT JOIN (
  *         SELECT
  *             report_reason_id,
@@ -904,10 +967,15 @@ export interface IGetSessionMessagesForFrontendParams {
 
 /** 'GetSessionMessagesForFrontend' return type */
 export interface IGetSessionMessagesForFrontendResult {
+  /** not_pii: Text content of the chat message */
   contents: string;
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Foreign key to upchieve.sessions */
   sessionId: string;
+  /** not_pii: Foreign key to upchieve.users (the message sender) */
   user: string;
 }
 
@@ -946,10 +1014,15 @@ export interface IGetSessionVoiceMessagesForFrontendParams {
 
 /** 'GetSessionVoiceMessagesForFrontend' return type */
 export interface IGetSessionVoiceMessagesForFrontendResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Foreign key to upchieve.sessions */
   sessionId: string;
+  /** not_pii: Text transcript of the voice message */
   transcript: string | null;
+  /** not_pii: Foreign key to upchieve.users (the message sender) */
   user: string;
 }
 
@@ -988,10 +1061,15 @@ export interface IGetSessionAudioTranscriptMessagesForFrontendParams {
 
 /** 'GetSessionAudioTranscriptMessagesForFrontend' return type */
 export interface IGetSessionAudioTranscriptMessagesForFrontendResult {
+  /** not_pii: Timestamp when the audio transcript message was spoken */
   createdAt: Date;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Message text content */
   message: string;
+  /** not_pii: Foreign key to upchieve.sessions */
   sessionId: string;
+  /** not_pii: Foreign key to upchieve.users */
   user: string;
 }
 
@@ -1033,6 +1111,7 @@ export interface ICreateSessionParams {
 
 /** 'CreateSession' return type */
 export interface ICreateSessionResult {
+  /** not_pii: Primary key */
   id: string;
 }
 
@@ -1079,22 +1158,37 @@ export interface IGetCurrentSessionByUserIdParams {
 
 /** 'GetCurrentSessionByUserId' return type */
 export interface IGetCurrentSessionByUserIdResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Timestamp when the session ended */
   endedAt: Date | null;
+  /** not_pii: Foreign key to upchieve.users who ended the session */
   endedBy: string | null;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Whether the student was shadow banned when requesting the session */
   shadowbanned: boolean | null;
   studentBannedFromLiveMedia: boolean | null;
+  /** not_pii: Foreign key to upchieve.users (the student) */
   studentId: string;
+  /** not_pii: Human-readable name */
   subject: string;
+  /** not_pii: User-facing display name */
   subjectDisplayName: string;
+  /** not_pii: Human-readable name */
   subTopic: string;
+  /** not_pii: Human-readable name */
   toolType: string;
+  /** not_pii: Human-readable name */
   topic: string;
+  /** not_pii: Human-readable name */
   type: string;
   volunteerBannedFromLiveMedia: boolean | null;
+  /** not_pii: Foreign key to upchieve.users (the volunteer) */
   volunteerId: string | null;
+  /** not_pii: Timestamp when the volunteer joined the session */
   volunteerJoinedAt: Date | null;
+  /** not_pii: Languages the volunteer speaks */
   volunteerLanguages: stringArray | null;
 }
 
@@ -1104,7 +1198,7 @@ export interface IGetCurrentSessionByUserIdQuery {
   result: IGetCurrentSessionByUserIdResult;
 }
 
-const getCurrentSessionByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":1629,"b":1636},{"a":1669,"b":1676}]}],"statement":"SELECT\n    sessions.id,\n    subjects.name AS sub_topic,\n    subjects.name AS subject,\n    subjects.display_name AS subject_display_name,\n    topics.name AS TYPE,\n    topics.name AS topic,\n    sessions.created_at,\n    sessions.volunteer_joined_at,\n    sessions.volunteer_id,\n    sessions.student_id,\n    sessions.ended_at,\n    shadowbanned,\n    tool_types.name AS tool_type,\n    volunteer_profiles.languages AS volunteer_languages,\n    (\n        CASE WHEN user_roles.name = 'volunteer' THEN\n            sessions.volunteer_id\n        WHEN user_roles.name = 'student' THEN\n            sessions.student_id\n        ELSE\n            NULL\n        END) AS ended_by,\n    CASE WHEN sessions.volunteer_id IS NULL THEN\n        FALSE\n    WHEN (\n        SELECT\n            ban_type\n        FROM\n            upchieve.users\n        WHERE\n            id = sessions.volunteer_id) = 'live_media' THEN\n        TRUE\n    ELSE\n        FALSE\n    END AS volunteer_banned_from_live_media, CASE WHEN (\n        SELECT\n            ban_type\n        FROM\n            upchieve.users\n        WHERE\n            id = sessions.student_id) = 'live_media' THEN\n        TRUE\n    ELSE\n        FALSE\n    END AS student_banned_from_live_media\nFROM\n    sessions\n    JOIN users ON sessions.student_id = users.id\n    LEFT JOIN subjects ON sessions.subject_id = subjects.id\n    LEFT JOIN topics ON subjects.topic_id = topics.id\n    JOIN tool_types ON subjects.tool_type_id = tool_types.id\n    LEFT JOIN user_roles ON user_roles.id = sessions.ended_by_role_id\n    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = sessions.volunteer_id\nWHERE (sessions.student_id = :userId!\n    OR sessions.volunteer_id = :userId!)\nAND sessions.ended_at IS NULL"};
+const getCurrentSessionByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":1375,"b":1382},{"a":1415,"b":1422}]}],"statement":"SELECT\n    sessions.id,\n    subjects.name AS sub_topic,\n    subjects.name AS subject,\n    subjects.display_name AS subject_display_name,\n    topics.name AS TYPE,\n    topics.name AS topic,\n    sessions.created_at,\n    sessions.volunteer_joined_at,\n    sessions.volunteer_id,\n    sessions.student_id,\n    sessions.ended_at,\n    shadowbanned,\n    tool_types.name AS tool_type,\n    volunteer_profiles.languages AS volunteer_languages,\n    sessions.ended_by_user_id AS ended_by,\n    CASE WHEN sessions.volunteer_id IS NULL THEN\n        FALSE\n    WHEN (\n        SELECT\n            ban_type\n        FROM\n            upchieve.users\n        WHERE\n            id = sessions.volunteer_id) = 'live_media' THEN\n        TRUE\n    ELSE\n        FALSE\n    END AS volunteer_banned_from_live_media, CASE WHEN (\n        SELECT\n            ban_type\n        FROM\n            upchieve.users\n        WHERE\n            id = sessions.student_id) = 'live_media' THEN\n        TRUE\n    ELSE\n        FALSE\n    END AS student_banned_from_live_media\nFROM\n    sessions\n    JOIN users ON sessions.student_id = users.id\n    LEFT JOIN subjects ON sessions.subject_id = subjects.id\n    LEFT JOIN topics ON subjects.topic_id = topics.id\n    JOIN tool_types ON subjects.tool_type_id = tool_types.id\n    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = sessions.volunteer_id\nWHERE (sessions.student_id = :userId!\n    OR sessions.volunteer_id = :userId!)\nAND sessions.ended_at IS NULL"};
 
 /**
  * Query generated from SQL:
@@ -1124,14 +1218,7 @@ const getCurrentSessionByUserIdIR: any = {"usedParamSet":{"userId":true},"params
  *     shadowbanned,
  *     tool_types.name AS tool_type,
  *     volunteer_profiles.languages AS volunteer_languages,
- *     (
- *         CASE WHEN user_roles.name = 'volunteer' THEN
- *             sessions.volunteer_id
- *         WHEN user_roles.name = 'student' THEN
- *             sessions.student_id
- *         ELSE
- *             NULL
- *         END) AS ended_by,
+ *     sessions.ended_by_user_id AS ended_by,
  *     CASE WHEN sessions.volunteer_id IS NULL THEN
  *         FALSE
  *     WHEN (
@@ -1161,7 +1248,6 @@ const getCurrentSessionByUserIdIR: any = {"usedParamSet":{"userId":true},"params
  *     LEFT JOIN subjects ON sessions.subject_id = subjects.id
  *     LEFT JOIN topics ON subjects.topic_id = topics.id
  *     JOIN tool_types ON subjects.tool_type_id = tool_types.id
- *     LEFT JOIN user_roles ON user_roles.id = sessions.ended_by_role_id
  *     LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = sessions.volunteer_id
  * WHERE (sessions.student_id = :userId!
  *     OR sessions.volunteer_id = :userId!)
@@ -1178,22 +1264,37 @@ export interface IGetCurrentSessionBySessionIdParams {
 
 /** 'GetCurrentSessionBySessionId' return type */
 export interface IGetCurrentSessionBySessionIdResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Timestamp when the session ended */
   endedAt: Date | null;
+  /** not_pii: Foreign key to upchieve.users who ended the session */
   endedBy: string | null;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Whether the student was shadow banned when requesting the session */
   shadowbanned: boolean | null;
   studentBannedFromLiveMedia: boolean | null;
+  /** not_pii: Foreign key to upchieve.users (the student) */
   studentId: string;
+  /** not_pii: Human-readable name */
   subject: string;
+  /** not_pii: User-facing display name */
   subjectDisplayName: string;
+  /** not_pii: Human-readable name */
   subTopic: string;
+  /** not_pii: Human-readable name */
   toolType: string;
+  /** not_pii: Human-readable name */
   topic: string;
+  /** not_pii: Human-readable name */
   type: string;
   volunteerBannedFromLiveMedia: boolean | null;
+  /** not_pii: Foreign key to upchieve.users (the volunteer) */
   volunteerId: string | null;
+  /** not_pii: Timestamp when the volunteer joined the session */
   volunteerJoinedAt: Date | null;
+  /** not_pii: Languages the volunteer speaks */
   volunteerLanguages: stringArray | null;
 }
 
@@ -1203,7 +1304,7 @@ export interface IGetCurrentSessionBySessionIdQuery {
   result: IGetCurrentSessionBySessionIdResult;
 }
 
-const getCurrentSessionBySessionIdIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":false,"transform":{"type":"scalar"},"locs":[{"a":1624,"b":1633}]}],"statement":"SELECT\n    sessions.id,\n    subjects.name AS sub_topic,\n    subjects.name AS subject,\n    subjects.display_name AS subject_display_name,\n    topics.name AS TYPE,\n    topics.name AS topic,\n    sessions.created_at,\n    sessions.volunteer_joined_at,\n    sessions.volunteer_id,\n    sessions.student_id,\n    sessions.ended_at,\n    shadowbanned,\n    tool_types.name AS tool_type,\n    volunteer_profiles.languages AS volunteer_languages,\n    (\n        CASE WHEN user_roles.name = 'volunteer' THEN\n            sessions.volunteer_id\n        WHEN user_roles.name = 'student' THEN\n            sessions.student_id\n        ELSE\n            NULL\n        END) AS ended_by,\n    CASE WHEN sessions.volunteer_id IS NULL THEN\n        FALSE\n    WHEN (\n        SELECT\n            ban_type\n        FROM\n            upchieve.users\n        WHERE\n            id = sessions.volunteer_id) = 'live_media' THEN\n        TRUE\n    ELSE\n        FALSE\n    END AS volunteer_banned_from_live_media, CASE WHEN (\n        SELECT\n            ban_type\n        FROM\n            upchieve.users\n        WHERE\n            id = sessions.student_id) = 'live_media' THEN\n        TRUE\n    ELSE\n        FALSE\n    END AS student_banned_from_live_media\nFROM\n    sessions\n    JOIN users ON sessions.student_id = users.id\n    LEFT JOIN subjects ON sessions.subject_id = subjects.id\n    LEFT JOIN topics ON subjects.topic_id = topics.id\n    JOIN tool_types ON subjects.tool_type_id = tool_types.id\n    LEFT JOIN user_roles ON user_roles.id = sessions.ended_by_role_id\n    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = sessions.volunteer_id\nWHERE\n    sessions.id = :sessionId"};
+const getCurrentSessionBySessionIdIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":false,"transform":{"type":"scalar"},"locs":[{"a":1370,"b":1379}]}],"statement":"SELECT\n    sessions.id,\n    subjects.name AS sub_topic,\n    subjects.name AS subject,\n    subjects.display_name AS subject_display_name,\n    topics.name AS TYPE,\n    topics.name AS topic,\n    sessions.created_at,\n    sessions.volunteer_joined_at,\n    sessions.volunteer_id,\n    sessions.student_id,\n    sessions.ended_at,\n    shadowbanned,\n    tool_types.name AS tool_type,\n    volunteer_profiles.languages AS volunteer_languages,\n    sessions.ended_by_user_id AS ended_by,\n    CASE WHEN sessions.volunteer_id IS NULL THEN\n        FALSE\n    WHEN (\n        SELECT\n            ban_type\n        FROM\n            upchieve.users\n        WHERE\n            id = sessions.volunteer_id) = 'live_media' THEN\n        TRUE\n    ELSE\n        FALSE\n    END AS volunteer_banned_from_live_media, CASE WHEN (\n        SELECT\n            ban_type\n        FROM\n            upchieve.users\n        WHERE\n            id = sessions.student_id) = 'live_media' THEN\n        TRUE\n    ELSE\n        FALSE\n    END AS student_banned_from_live_media\nFROM\n    sessions\n    JOIN users ON sessions.student_id = users.id\n    LEFT JOIN subjects ON sessions.subject_id = subjects.id\n    LEFT JOIN topics ON subjects.topic_id = topics.id\n    JOIN tool_types ON subjects.tool_type_id = tool_types.id\n    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = sessions.volunteer_id\nWHERE\n    sessions.id = :sessionId"};
 
 /**
  * Query generated from SQL:
@@ -1223,14 +1324,7 @@ const getCurrentSessionBySessionIdIR: any = {"usedParamSet":{"sessionId":true},"
  *     shadowbanned,
  *     tool_types.name AS tool_type,
  *     volunteer_profiles.languages AS volunteer_languages,
- *     (
- *         CASE WHEN user_roles.name = 'volunteer' THEN
- *             sessions.volunteer_id
- *         WHEN user_roles.name = 'student' THEN
- *             sessions.student_id
- *         ELSE
- *             NULL
- *         END) AS ended_by,
+ *     sessions.ended_by_user_id AS ended_by,
  *     CASE WHEN sessions.volunteer_id IS NULL THEN
  *         FALSE
  *     WHEN (
@@ -1260,7 +1354,6 @@ const getCurrentSessionBySessionIdIR: any = {"usedParamSet":{"sessionId":true},"
  *     LEFT JOIN subjects ON sessions.subject_id = subjects.id
  *     LEFT JOIN topics ON subjects.topic_id = topics.id
  *     JOIN tool_types ON subjects.tool_type_id = tool_types.id
- *     LEFT JOIN user_roles ON user_roles.id = sessions.ended_by_role_id
  *     LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = sessions.volunteer_id
  * WHERE
  *     sessions.id = :sessionId
@@ -1276,17 +1369,28 @@ export interface IGetMessageInfoByMessageIdParams {
 
 /** 'GetMessageInfoByMessageId' return type */
 export interface IGetMessageInfoByMessageIdResult {
+  /** not_pii: Text content of the chat message */
   contents: string;
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Foreign key to upchieve.users (the message sender) */
   senderId: string;
   sentAfterSession: boolean | null;
+  /** not_pii: Timestamp when the session ended */
   sessionEndedAt: Date | null;
+  /** not_pii: Primary key */
   sessionId: string;
+  /** pii: User email address */
   studentEmail: string;
+  /** pii: First name */
   studentFirstName: string;
+  /** not_pii: Primary key */
   studentUserId: string;
+  /** pii: User email address */
   volunteerEmail: string;
+  /** pii: First name */
   volunteerFirstName: string;
+  /** not_pii: Primary key */
   volunteerUserId: string;
 }
 
@@ -1338,10 +1442,14 @@ export interface IGetSessionUsersParams {
 
 /** 'GetSessionUsers' return type */
 export interface IGetSessionUsersResult {
+  /** not_pii */
   createdAt: Date;
+  /** pii: First name */
   firstname: string;
+  /** pii: First name */
   firstName: string;
   gradeLevel: string | null;
+  /** not_pii: Primary key */
   id: string;
   pastSessions: stringArray | null;
 }
@@ -1352,7 +1460,7 @@ export interface IGetSessionUsersQuery {
   result: IGetSessionUsersResult;
 }
 
-const getSessionUsersIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":758,"b":768}]}],"statement":"SELECT\n    users.created_at,\n    users.id,\n    users.first_name AS firstname,\n    users.first_name,\n    past_sessions.total AS past_sessions,\n    cgl.current_grade_name AS grade_level\nFROM\n    users\n    LEFT JOIN sessions ON sessions.student_id = users.id\n        OR sessions.volunteer_id = users.id\n    LEFT JOIN LATERAL (\n        SELECT\n            array_agg(sessions.id ORDER BY sessions.created_at) AS total\n        FROM\n            sessions\n        WHERE\n            sessions.student_id = users.id\n            OR sessions.volunteer_id = users.id) AS past_sessions ON TRUE\n    LEFT JOIN student_profiles ON student_profiles.user_id = users.id\n    LEFT JOIN current_grade_levels_mview cgl ON cgl.user_id = student_profiles.user_id\nWHERE\n    sessions.id = :sessionId!\nGROUP BY\n    users.id,\n    past_sessions.total,\n    cgl.current_grade_name"};
+const getSessionUsersIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":752,"b":762}]}],"statement":"SELECT\n    users.created_at,\n    users.id,\n    users.first_name AS firstname,\n    users.first_name,\n    past_sessions.total AS past_sessions,\n    cgl.current_grade_name AS grade_level\nFROM\n    users\n    LEFT JOIN sessions ON sessions.student_id = users.id\n        OR sessions.volunteer_id = users.id\n    LEFT JOIN LATERAL (\n        SELECT\n            array_agg(sessions.id ORDER BY sessions.created_at) AS total\n        FROM\n            sessions\n        WHERE\n            sessions.student_id = users.id\n            OR sessions.volunteer_id = users.id) AS past_sessions ON TRUE\n    LEFT JOIN student_profiles ON student_profiles.user_id = users.id\n    LEFT JOIN current_grade_levels cgl ON cgl.user_id = student_profiles.user_id\nWHERE\n    sessions.id = :sessionId!\nGROUP BY\n    users.id,\n    past_sessions.total,\n    cgl.current_grade_name"};
 
 /**
  * Query generated from SQL:
@@ -1377,7 +1485,7 @@ const getSessionUsersIR: any = {"usedParamSet":{"sessionId":true},"params":[{"na
  *             sessions.student_id = users.id
  *             OR sessions.volunteer_id = users.id) AS past_sessions ON TRUE
  *     LEFT JOIN student_profiles ON student_profiles.user_id = users.id
- *     LEFT JOIN current_grade_levels_mview cgl ON cgl.user_id = student_profiles.user_id
+ *     LEFT JOIN current_grade_levels cgl ON cgl.user_id = student_profiles.user_id
  * WHERE
  *     sessions.id = :sessionId!
  * GROUP BY
@@ -1397,13 +1505,20 @@ export interface IGetLatestSessionParams {
 
 /** 'GetLatestSession' return type */
 export interface IGetLatestSessionResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Timestamp when the session ended */
   endedAt: Date | null;
+  /** not_pii: Foreign key to upchieve.users who ended the session */
   endedByUserId: string | null;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Foreign key to upchieve.users (the student) */
   studentId: string;
+  /** not_pii: Human-readable name */
   subject: string;
   timeTutored: number | null;
+  /** not_pii: Foreign key to upchieve.users (the volunteer) */
   volunteerId: string | null;
 }
 
@@ -1486,6 +1601,7 @@ export interface IInsertNewMessageParams {
 
 /** 'InsertNewMessage' return type */
 export interface IInsertNewMessageResult {
+  /** not_pii: Primary key */
   id: string;
 }
 
@@ -1564,7 +1680,9 @@ export interface IGetSessionsForReferCoworkerParams {
 
 /** 'GetSessionsForReferCoworker' return type */
 export interface IGetSessionsForReferCoworkerResult {
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: JSON feedback from the volunteer about the session */
   volunteerFeedback: Json | null;
 }
 
@@ -1606,8 +1724,11 @@ export interface IGetStudentForEmailFirstSessionParams {
 
 /** 'GetStudentForEmailFirstSession' return type */
 export interface IGetStudentForEmailFirstSessionResult {
+  /** pii: User email address */
   email: string;
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
 }
 
@@ -1651,8 +1772,11 @@ export interface IGetVolunteerForEmailFirstSessionParams {
 
 /** 'GetVolunteerForEmailFirstSession' return type */
 export interface IGetVolunteerForEmailFirstSessionResult {
+  /** pii: User email address */
   email: string;
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
 }
 
@@ -1705,21 +1829,34 @@ export interface IGetSessionsForAdminFilterParams {
 
 /** 'GetSessionsForAdminFilter' return type */
 export interface IGetSessionsForAdminFilterResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Timestamp when the session ended */
   endedAt: Date | null;
+  /** not_pii: Primary key */
   id: string;
   reviewReasons: stringArray | null;
+  /** not_pii: Type of ban (shadow, complete, live_media) */
   studentBanType: ban_types | null;
+  /** pii: User email address */
   studentEmail: string;
+  /** pii: First name */
   studentFirstName: string;
+  /** not_pii: Whether the account is a test or internal account */
   studentTestUser: boolean;
   studentTotalPastSessions: number | null;
+  /** not_pii: Human-readable name */
   subTopic: string;
   totalMessages: number | null;
+  /** not_pii: Human-readable name */
   type: string;
+  /** not_pii: Type of ban (shadow, complete, live_media) */
   volunteerBanType: ban_types | null;
+  /** pii: User email address */
   volunteerEmail: string;
+  /** pii: First name */
   volunteerFirstName: string;
+  /** not_pii: Whether the account is a test or internal account */
   volunteerTestUser: boolean;
   volunteerTotalPastSessions: number | null;
 }
@@ -1863,6 +2000,7 @@ export interface IInsertSessionReviewReasonsParams {
 
 /** 'InsertSessionReviewReasons' return type */
 export interface IInsertSessionReviewReasonsResult {
+  /** not_pii: Foreign key to upchieve.sessions */
   ok: string;
 }
 
@@ -1906,6 +2044,7 @@ export interface IInsertSessionFailedJoinParams {
 
 /** 'InsertSessionFailedJoin' return type */
 export interface IInsertSessionFailedJoinResult {
+  /** not_pii: Foreign key to upchieve.sessions */
   ok: string;
 }
 
@@ -1937,6 +2076,7 @@ export interface IInsertSessionPhotoKeyParams {
 
 /** 'InsertSessionPhotoKey' return type */
 export interface IInsertSessionPhotoKeyResult {
+  /** not_pii: Foreign key to upchieve.sessions */
   ok: string;
 }
 
@@ -1969,12 +2109,18 @@ export interface IGetSessionsForVolunteerHourSummaryParams {
 
 /** 'GetSessionsForVolunteerHourSummary' return type */
 export interface IGetSessionsForVolunteerHourSummaryResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Timestamp when the session ended */
   endedAt: Date | null;
+  /** not_pii: Primary key */
   sessionId: string;
+  /** not_pii: Human-readable name */
   subject: string;
   timeTutored: number | null;
+  /** not_pii: Human-readable name */
   topic: string;
+  /** not_pii: Timestamp when the volunteer joined the session */
   volunteerJoinedAt: Date | null;
 }
 
@@ -2026,16 +2172,25 @@ export interface IGetFilteredSessionHistoryParams {
 
 /** 'GetFilteredSessionHistory' return type */
 export interface IGetFilteredSessionHistoryResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Primary key */
   id: string;
   isFavorited: boolean | null;
+  /** pii: First name */
   studentFirstName: string;
+  /** not_pii: Foreign key to upchieve.users (the student) */
   studentId: string;
+  /** not_pii: User-facing display name */
   subject: string;
   timeTutored: number | null;
+  /** not_pii: Human-readable name */
   topic: string;
+  /** not_pii: URL to the topic icon image */
   topicIconLink: string | null;
+  /** pii: First name */
   volunteerFirstName: string;
+  /** not_pii: Foreign key to upchieve.users (the volunteer) */
   volunteerId: string | null;
 }
 
@@ -2279,20 +2434,33 @@ export interface IGetSessionRecapParams {
 
 /** 'GetSessionRecap' return type */
 export interface IGetSessionRecapResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Timestamp when the session ended */
   endedAt: Date | null;
+  /** not_pii: Whether the session has an associated whiteboard document */
   hasWhiteboardDoc: boolean;
+  /** not_pii: Primary key */
   id: string;
   isFavorited: boolean | null;
+  /** not_pii: Quill.js shared document content (user-generated text) */
   quillDoc: string | null;
+  /** pii: First name */
   studentFirstName: string;
+  /** not_pii: Primary key */
   studentId: string;
+  /** not_pii: User-facing display name */
   subject: string;
+  /** not_pii: Human-readable name */
   subjectKey: string;
   timeTutored: number | null;
+  /** not_pii: Human-readable name */
   topic: string;
+  /** not_pii: URL to the topic icon image */
   topicIconLink: string | null;
+  /** pii: First name */
   volunteerFirstName: string;
+  /** not_pii: Primary key */
   volunteerId: string;
 }
 
@@ -2350,6 +2518,7 @@ export interface IVolunteerSentMessageAfterSessionEndedParams {
 
 /** 'VolunteerSentMessageAfterSessionEnded' return type */
 export interface IVolunteerSentMessageAfterSessionEndedResult {
+  /** not_pii: Primary key */
   id: string;
 }
 
@@ -2386,6 +2555,7 @@ export interface ISessionHasBannedParticipantParams {
 
 /** 'SessionHasBannedParticipant' return type */
 export interface ISessionHasBannedParticipantResult {
+  /** not_pii: Primary key */
   id: string;
 }
 
@@ -2430,13 +2600,21 @@ export interface IGetUserSessionsByUserIdParams {
 
 /** 'GetUserSessionsByUserId' return type */
 export interface IGetUserSessionsByUserIdResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Quill.js shared document content (user-generated text) */
   quillDoc: string | null;
+  /** not_pii: Foreign key to upchieve.users (the student) */
   studentId: string;
+  /** not_pii: Human-readable name */
   subjectName: string;
+  /** not_pii: Human-readable name */
   toolType: string;
+  /** not_pii: Human-readable name */
   topicName: string;
+  /** not_pii: Foreign key to upchieve.users (the volunteer) */
   volunteerId: string | null;
 }
 
@@ -2492,7 +2670,9 @@ export interface IGetUserSessionStatsParams {
 
 /** 'GetUserSessionStats' return type */
 export interface IGetUserSessionStatsResult {
+  /** not_pii: Human-readable name */
   subjectName: string;
+  /** not_pii: Human-readable name */
   topicName: string;
   totalHelped: number | null;
   totalRequested: number | null;
@@ -2542,13 +2722,20 @@ export interface IGetStudentSessionDetailsParams {
 
 /** 'GetStudentSessionDetails' return type */
 export interface IGetStudentSessionDetailsResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Timestamp when the session ended */
   endedAt: Date | null;
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
+  /** pii: Last name */
   lastName: string;
   messageCount: string | null;
+  /** not_pii: Human-readable name */
   name: string;
+  /** not_pii: Foreign key to upchieve.users (the volunteer) */
   volunteerId: string | null;
 }
 
@@ -2600,10 +2787,15 @@ export interface IGetTutorBotSessionMessagesBySessionIdParams {
 
 /** 'GetTutorBotSessionMessagesBySessionId' return type */
 export interface IGetTutorBotSessionMessagesBySessionIdResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Message text content */
   message: string | null;
+  /** not_pii: Foreign key to upchieve.sessions */
   sessionId: string;
+  /** not_pii: Whether the message was sent by the student or the bot */
   tutorBotSessionUserType: tutor_bot_session_user_type;
 }
 
@@ -2641,10 +2833,15 @@ export interface IInsertTutorBotSessionMessageParams {
 
 /** 'InsertTutorBotSessionMessage' return type */
 export interface IInsertTutorBotSessionMessageResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Message text content */
   message: string | null;
+  /** not_pii: Foreign key to upchieve.sessions */
   sessionId: string;
+  /** not_pii: Whether the message was sent by the student or the bot */
   tutorBotSessionUserType: tutor_bot_session_user_type;
 }
 
@@ -2835,6 +3032,7 @@ export type IGetVolunteersInSessionsParams = void;
 
 /** 'GetVolunteersInSessions' return type */
 export interface IGetVolunteersInSessionsResult {
+  /** not_pii: Foreign key to upchieve.users (the volunteer) */
   volunteerId: string | null;
 }
 
@@ -2869,7 +3067,9 @@ export interface IGetSessionFlagsBySessionIdParams {
 
 /** 'GetSessionFlagsBySessionId' return type */
 export interface IGetSessionFlagsBySessionIdResult {
+  /** not_pii: Human-readable name */
   name: string;
+  /** not_pii: Foreign key to upchieve.session_flags */
   sessionFlagId: number;
 }
 
@@ -2895,5 +3095,83 @@ const getSessionFlagsBySessionIdIR: any = {"usedParamSet":{"sessionId":true},"pa
  * ```
  */
 export const getSessionFlagsBySessionId = new PreparedQuery<IGetSessionFlagsBySessionIdParams,IGetSessionFlagsBySessionIdResult>(getSessionFlagsBySessionIdIR);
+
+
+/** 'UpdateSessionLastSeen' parameters type */
+export interface IUpdateSessionLastSeenParams {
+  sessionId: string;
+  userId: string;
+}
+
+/** 'UpdateSessionLastSeen' return type */
+export interface IUpdateSessionLastSeenResult {
+  ok: string;
+}
+
+/** 'UpdateSessionLastSeen' query type */
+export interface IUpdateSessionLastSeenQuery {
+  params: IUpdateSessionLastSeenParams;
+  result: IUpdateSessionLastSeenResult;
+}
+
+const updateSessionLastSeenIR: any = {"usedParamSet":{"sessionId":true,"userId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":87,"b":97}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":100,"b":107}]}],"statement":"INSERT INTO upchieve.session_last_seen (session_id, user_id, last_seen_at)\n    VALUES (:sessionId!, :userId!, NOW())\nON CONFLICT (session_id, user_id)\n    DO UPDATE SET\n        last_seen_at = NOW()\n    RETURNING\n        session_id AS ok"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO upchieve.session_last_seen (session_id, user_id, last_seen_at)
+ *     VALUES (:sessionId!, :userId!, NOW())
+ * ON CONFLICT (session_id, user_id)
+ *     DO UPDATE SET
+ *         last_seen_at = NOW()
+ *     RETURNING
+ *         session_id AS ok
+ * ```
+ */
+export const updateSessionLastSeen = new PreparedQuery<IUpdateSessionLastSeenParams,IUpdateSessionLastSeenResult>(updateSessionLastSeenIR);
+
+
+/** 'SessionsWithUnreadDMs' parameters type */
+export interface ISessionsWithUnreadDMsParams {
+  minTimeTutored: NumberOrString;
+  userId: string;
+}
+
+/** 'SessionsWithUnreadDMs' return type */
+export interface ISessionsWithUnreadDMsResult {
+  /** not_pii: Primary key */
+  id: string;
+}
+
+/** 'SessionsWithUnreadDMs' query type */
+export interface ISessionsWithUnreadDMsQuery {
+  params: ISessionsWithUnreadDMsParams;
+  result: ISessionsWithUnreadDMsResult;
+}
+
+const sessionsWithUnreadDMsIR: any = {"usedParamSet":{"userId":true,"minTimeTutored":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":203,"b":210},{"a":234,"b":241},{"a":267,"b":274},{"a":328,"b":335}]},{"name":"minTimeTutored","required":true,"transform":{"type":"scalar"},"locs":[{"a":430,"b":445}]}],"statement":"SELECT\n    s.id\nFROM\n    upchieve.session_messages sm\n    JOIN upchieve.sessions s ON sm.session_id = s.id\n    LEFT JOIN upchieve.session_last_seen sls ON sls.session_id = s.id\n        AND sls.user_id = :userId!\nWHERE (s.student_id = :userId!\n    OR s.volunteer_id = :userId!)\nAND sm.created_at > s.ended_at\nAND sm.sender_id != :userId!\nAND (sls.last_seen_at IS NULL\n    OR sm.created_at > sls.last_seen_at)\nAND s.time_tutored >= :minTimeTutored!\nGROUP BY\n    s.id"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     s.id
+ * FROM
+ *     upchieve.session_messages sm
+ *     JOIN upchieve.sessions s ON sm.session_id = s.id
+ *     LEFT JOIN upchieve.session_last_seen sls ON sls.session_id = s.id
+ *         AND sls.user_id = :userId!
+ * WHERE (s.student_id = :userId!
+ *     OR s.volunteer_id = :userId!)
+ * AND sm.created_at > s.ended_at
+ * AND sm.sender_id != :userId!
+ * AND (sls.last_seen_at IS NULL
+ *     OR sm.created_at > sls.last_seen_at)
+ * AND s.time_tutored >= :minTimeTutored!
+ * GROUP BY
+ *     s.id
+ * ```
+ */
+export const sessionsWithUnreadDMs = new PreparedQuery<ISessionsWithUnreadDMsParams,ISessionsWithUnreadDMsResult>(sessionsWithUnreadDMsIR);
 
 

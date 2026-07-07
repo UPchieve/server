@@ -314,7 +314,6 @@ async function deidentifyRows(
     first_name = '[Deleted User]',
     last_name = '[Deleted User]',
     referral_code = $1,
-    referred_by = null,
     phone = null,
     mongo_id = null,
     other_signup_source = null,

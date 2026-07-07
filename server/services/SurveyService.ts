@@ -36,6 +36,9 @@ import { processFeedbackMetrics } from './SessionFlagsService'
 import { TransactionClient } from '../db'
 import QueueService from './QueueService'
 import { Jobs } from '../worker/jobs'
+import { getStudentPostSessionSurveyNameVariant } from './FeatureFlagService'
+import { POST_SESSION_SURVEYS } from '../constants/surveys'
+import logger from '../logger'
 
 export const asSurveySubmissions = asFactory<SaveUserSurveySubmission>({
   questionId: asNumber,
@@ -107,8 +110,8 @@ export async function saveUserSurvey(
       if (role.activeRole === USER_ROLES.STUDENT) {
         await QueueService.add(
           Jobs.MaybeSendStudentFeedbackToVolunteer,
-          { sessionId: userSurvey.sessionId },
-          { delay: FIVE_MINUTES }
+          { delay: FIVE_MINUTES },
+          { sessionId: userSurvey.sessionId }
         )
       }
     }
@@ -226,9 +229,23 @@ export async function getPostsessionSurveyDefinition(
   const studentGoal =
     (await SurveyRepo.getStudentsPresessionGoal(sessionId)) ?? ''
 
-  const postsessionSurveyDefinition =
-    (await SurveyRepo.getPostsessionSurveyDefinition(sessionId, userRole)) ?? []
+  let surveyId: number | null = null
 
+  if (userRole === 'student') {
+    const variantSurveyName = await getStudentPostSessionSurveyNameVariant(
+      session.studentId
+    )
+    const surveyName = variantSurveyName ?? POST_SESSION_SURVEYS.STUDENT_DEFAULT
+    surveyId = await SurveyRepo.getSurveyIdByName(surveyName)
+  }
+
+  const postsessionSurveyDefinitionRaw =
+    await SurveyRepo.getPostsessionSurveyDefinition(
+      sessionId,
+      userRole,
+      surveyId
+    )
+  const postsessionSurveyDefinition = postsessionSurveyDefinitionRaw ?? []
   const survey: SurveyQuestionDefinition[] = []
   for (const question of postsessionSurveyDefinition ?? []) {
     if (
@@ -261,6 +278,15 @@ export async function getPostsessionSurveyDefinition(
       surveyTypeId: postsessionSurveyDefinition[0].surveyTypeId,
       survey,
     }
+  } else {
+    logger.warn(
+      {
+        surveyId,
+        userRole,
+        sessionId,
+      },
+      'Post-session survey is empty. Returning undefined'
+    )
   }
 
   function skipQuestion(first?: string, second?: string) {
