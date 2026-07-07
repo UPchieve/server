@@ -8,11 +8,17 @@ export interface IGetSecretParams {
 
 /** 'GetSecret' return type */
 export interface IGetSecretResult {
+  /** not_pii */
   createdAt: Date;
+  /** pii: TOTP counter value from the most recent successful authentication */
   lastUsedCounter: number | null;
+  /** pii: Encrypted TOTP shared secret used for two-factor authentication */
   secret: string;
+  /** not_pii */
   updatedAt: Date;
+  /** not_pii: Foreign key to upchieve.users */
   userId: string;
+  /** not_pii: Whether the TOTP authenticator has been verified by the user */
   verified: boolean;
 }
 

@@ -6,6 +6,7 @@ import { readCsvFromBuffer } from '../../utils/file-utils'
 import * as CleverRosterService from '../../services/CleverRosterService'
 import * as SchoolService from '../../services/SchoolService'
 import { getPartnerSchools } from '../../services/SchoolService'
+import { insertTextModerationPattern } from '../../services/TextModerationPatternService'
 import {
   RosterStudentPayload,
   rosterPartnerStudents,
@@ -79,11 +80,9 @@ export function routeAdmin(apiRouter: Router): void {
           req.file.buffer,
           ['firstName', 'lastName', 'email', 'gradeLevel']
         )
-        const { failed, updated } = await rosterPartnerStudents(
-          students,
-          req.body.schoolId
-        )
-        res.json({ failed, updated })
+        const { failed, updated, created, deactivated } =
+          await rosterPartnerStudents(students, req.body.schoolId)
+        res.json({ failed, updated, created, deactivated })
       } catch (error) {
         resError(res, error)
       }
@@ -92,13 +91,14 @@ export function routeAdmin(apiRouter: Router): void {
 
   router.post('/clever/roster', async function (req, res) {
     req.clearTimeout()
-    const districtId = asString(req.body.districtId)
 
-    if (!districtId) {
+    if (!req.body.districtId) {
       res.status(422).json({
         err: 'Missing district id.',
       })
+      return
     }
+    const districtId = asString(req.body.districtId)
 
     try {
       const report = await CleverRosterService.rosterDistrict(districtId)
@@ -149,6 +149,19 @@ export function routeAdmin(apiRouter: Router): void {
         throw new InputError('No chapter IDs provided')
       }
       await NTHSGroupsService.makeChaptersSchoolOfficial(groupIds)
+      res.status(201).send()
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
+  router.post('/moderation/text-patterns', async function (req, res) {
+    try {
+      await insertTextModerationPattern(
+        req.body.regex,
+        req.body.flags,
+        req.body.rules
+      )
       res.status(201).send()
     } catch (err) {
       resError(res, err)

@@ -5,7 +5,6 @@
 import {
   addStudentsToTeacherClass,
   adminUpdateStudentUser,
-  createStudentProfile,
   getFavoritedVolunteerIdsFromList,
   getStudentContactInfoById,
   upsertStudentProfile,
@@ -26,106 +25,6 @@ const client = getClient()
 test('Make a connection', async () => {
   const result = await getStudentContactInfoById(getDbUlid())
   expect(result).toBeUndefined()
-})
-
-describe('createStudentProfile', () => {
-  test('Only userId not null', async () => {
-    const user = await createUser()
-
-    const student = {
-      userId: user.id,
-    }
-    const result = await createStudentProfile(student, client)
-    expect(result.userId).toBe(user.id)
-    expect(result.createdAt).toBeTruthy()
-    expect(result.updatedAt).toBeTruthy()
-
-    const actual = await getStudentProfile(user.id)
-    expect(actual.rows.length).toBe(1)
-    const createdStudent = actual.rows[0]
-    expect(createdStudent.college).toBeFalsy()
-    expect(createdStudent.created_at).toBeTruthy()
-    expect(createdStudent.grade_level_id).toBeFalsy()
-    expect(createdStudent.postal_code).toBeFalsy()
-    expect(createdStudent.school_id).toBeFalsy()
-    expect(createdStudent.student_partner_org_id).toBeFalsy()
-    expect(createdStudent.student_partner_org_site_id).toBeFalsy()
-    expect(createdStudent.student_partner_org_user_id).toBeFalsy()
-    expect(createdStudent.updated_at).toBeTruthy()
-    expect(createdStudent.user_id).toBe(user.id)
-  })
-
-  test('Grade level not null', async () => {
-    const user = await createUser()
-
-    const student = {
-      userId: user.id,
-      gradeLevel: '9th',
-    }
-    const result = await createStudentProfile(student, client)
-    expect(result.userId).toBe(user.id)
-
-    const actual = await getStudentProfile(user.id)
-    expect(actual.rows.length).toBe(1)
-    const createdStudent = actual.rows[0]
-    expect(createdStudent.grade_level_id).toBe(2)
-  })
-
-  test('Partner key not null', async () => {
-    const user = await createUser()
-
-    const student = {
-      userId: user.id,
-      studentPartnerOrgKey: 'school-helpers',
-    }
-    const result = await createStudentProfile(student, client)
-    expect(result.userId).toBe(user.id)
-
-    const actual = await getStudentProfile(user.id)
-    expect(actual.rows.length).toBe(1)
-    const createdStudent = actual.rows[0]
-    expect(createdStudent.student_partner_org_id).toBe(
-      '01919662-87dc-5824-8bf6-e5e408bf6f40'
-    )
-  })
-
-  test('Partner key and site not null', async () => {
-    const user = await createUser()
-
-    const student = {
-      userId: user.id,
-      studentPartnerOrgKey: 'college-mentors',
-      studentPartnerOrgSiteName: 'Denver',
-    }
-    const result = await createStudentProfile(student, client)
-    expect(result.userId).toBe(user.id)
-
-    const actual = await getStudentProfile(user.id)
-    expect(actual.rows.length).toBe(1)
-    const createdStudent = actual.rows[0]
-    expect(createdStudent.student_partner_org_id).toBe(
-      '01919662-87dc-1b9c-e053-326c64a2edbc'
-    )
-    expect(createdStudent.student_partner_org_site_id).toBe(
-      '01919662-87f5-4c6a-507e-0887e65ba6c7'
-    )
-  })
-
-  test('Grade level not null', async () => {
-    const user = await createUser()
-
-    const student = {
-      userId: user.id,
-      gradeLevel: '8th',
-    }
-    const result = await createStudentProfile(student, client)
-    expect(result.userId).toBe(user.id)
-
-    const actual = await getStudentProfile(user.id)
-    expect(actual.rows.length).toBe(1)
-    const createdStudent = actual.rows[0]
-    expect(createdStudent.grade_level_id).toBe(1)
-  })
 })
 
 describe('upsertStudentProfile', () => {
@@ -170,7 +69,6 @@ describe('upsertStudentProfile', () => {
     const COLLEGE_MENTORS_SPO_SITE_ID = '01919662-87f5-aa97-e107-b2e537409c85'
     const updatedStudent = {
       ...student,
-      gradeLevel: '10th',
       zipCode: '00000',
       schoolId: '01919662-87fb-76b3-54f8-db306e73e181',
       studentPartnerOrgKey: 'college-mentors',
@@ -196,18 +94,16 @@ describe('upsertStudentProfile', () => {
   test('updates only the values that are new, except partner site', async () => {
     const user = await createUser()
 
-    const GRADE_LEVEL_8TH_ID = 1
     const COLLEGE_MENTORS_SPO_ID = '01919662-87dc-1b9c-e053-326c64a2edbc'
     const COLLEGE_MENTORS_SPO_SITE_ID = '01919662-87f5-ff78-938f-0a96942eb02f'
     const UNAPPROVED_SCHOOL_ID = '01919662-87fb-9261-542c-58cbced78fc3'
     await client.query(
-      'INSERT INTO student_profiles (user_id, postal_code, student_partner_org_id, student_partner_org_site_id, grade_level_id, school_id, college, created_at, updated_at) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9)',
+      'INSERT INTO student_profiles (user_id, postal_code, student_partner_org_id, student_partner_org_site_id, school_id, college, created_at, updated_at) VALUES($1, $2, $3, $4, $5, $6, $7, $8)',
       [
         user.id,
         '00000',
         COLLEGE_MENTORS_SPO_ID,
         COLLEGE_MENTORS_SPO_SITE_ID,
-        GRADE_LEVEL_8TH_ID,
         UNAPPROVED_SCHOOL_ID,
         'some college',
         new Date(),
@@ -232,7 +128,6 @@ describe('upsertStudentProfile', () => {
     )
     expect(afterNoUpdate.rows.length).toBe(1)
     expect(afterNoUpdate.rows[0].postal_code).toBe('00000')
-    expect(afterNoUpdate.rows[0].grade_level_id).toBe(GRADE_LEVEL_8TH_ID)
     expect(afterNoUpdate.rows[0].school_id).toBe(UNAPPROVED_SCHOOL_ID)
     expect(afterNoUpdate.rows[0].student_partner_org_id).toBe(
       COLLEGE_MENTORS_SPO_ID
@@ -265,26 +160,28 @@ describe('upsertStudentProfile', () => {
 
 describe('addStudentsToTeacherClass', () => {
   test('adds multiple students to the class', async () => {
-    const u1 = await createStudentProfile(
-      { userId: (await createUser()).id },
-      client
-    )
-    const u2 = await createStudentProfile(
-      { userId: (await createUser()).id },
-      client
-    )
-    const u3 = await createStudentProfile(
-      { userId: (await createUser()).id },
-      client
-    )
+    const u1 = (
+      await client.query(
+        'INSERT INTO student_profiles (user_id) VALUES ($1) RETURNING user_id',
+        [(await createUser()).id]
+      )
+    ).rows[0].user_id
+    const u2 = (
+      await client.query(
+        'INSERT INTO student_profiles (user_id) VALUES ($1) RETURNING user_id',
+        [(await createUser()).id]
+      )
+    ).rows[0].user_id
+    const u3 = (
+      await client.query(
+        'INSERT INTO student_profiles (user_id) VALUES ($1) RETURNING user_id',
+        [(await createUser()).id]
+      )
+    ).rows[0].user_id
 
     const c = await createTeacherClass()
 
-    await addStudentsToTeacherClass(
-      [u1.userId, u2.userId, u3.userId],
-      c.id,
-      client
-    )
+    await addStudentsToTeacherClass([u1, u2, u3], c.id, client)
 
     const actual = await client.query(
       'SELECT * FROM student_classes WHERE class_id = $1',
@@ -292,9 +189,9 @@ describe('addStudentsToTeacherClass', () => {
     )
     expect(actual.rows.length).toBe(3)
     const actualUserIds = new Set(actual.rows.map((r) => r.user_id))
-    expect(actualUserIds.has(u1.userId)).toBe(true)
-    expect(actualUserIds.has(u2.userId)).toBe(true)
-    expect(actualUserIds.has(u3.userId)).toBe(true)
+    expect(actualUserIds.has(u1)).toBe(true)
+    expect(actualUserIds.has(u2)).toBe(true)
+    expect(actualUserIds.has(u3)).toBe(true)
   })
 
   test('does not throw error if student ids array is empty', async () => {

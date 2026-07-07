@@ -1,8 +1,19 @@
 import { parse } from 'file-type-mime'
+import type { Result } from 'file-type-mime'
 import sharp from 'sharp'
 
-export function getImageFileType(image: Buffer) {
-  return parse(new Uint8Array(image).buffer)
+export function getFileType(file: Buffer): Result | undefined {
+  return parse(new Uint8Array(file).buffer)
+}
+
+export function isImageFile(image: Buffer) {
+  const result = getFileType(image)
+  return result && result.mime?.startsWith('image/')
+}
+
+export function isPdf(file: Buffer) {
+  const result = getFileType(file)
+  return result && result.mime === 'application/pdf'
 }
 
 export async function resize(image: Buffer, options?: sharp.ResizeOptions) {

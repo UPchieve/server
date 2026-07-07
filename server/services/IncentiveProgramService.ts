@@ -9,6 +9,7 @@ import {
   getFallIncentiveProgramPayload,
 } from './FeatureFlagService'
 import QueueService from './QueueService'
+import { hoursInMs } from '../utils/time-utils'
 
 export async function isUserInIncentiveProgram(userId: Ulid) {
   const flags = await getUPFByUserId(userId)
@@ -16,15 +17,20 @@ export async function isUserInIncentiveProgram(userId: Ulid) {
 }
 
 export async function queueIncentiveProgramEnrollmentWelcomeJob(userId: Ulid) {
-  await QueueService.add(Jobs.EmailFallIncentiveEnrollmentWelcome, { userId })
+  await QueueService.add(
+    Jobs.EmailFallIncentiveEnrollmentWelcome,
+    { delay: 0 },
+    {
+      userId,
+    }
+  )
 }
 
 export async function queueIncentiveInvitedToEnrollReminderJob(userId: Ulid) {
-  const twelveHoursInMs = 1000 * 60 * 60 * 12
   await QueueService.add(
     Jobs.EmailFallIncentiveInvitedToEnrollReminder,
-    { userId },
-    { delay: twelveHoursInMs }
+    { delay: hoursInMs(12) },
+    { userId }
   )
 }
 
@@ -34,10 +40,14 @@ export async function queueFallIncentiveSessionQualificationJob(
   const session = await getSessionById(sessionId)
   // Do nothing if the session was not matched
   if (!session.volunteerId) return
-  await QueueService.add(Jobs.EmailFallIncentiveSessionQualification, {
-    userId: session.studentId,
-    sessionId,
-  })
+  await QueueService.add(
+    Jobs.EmailFallIncentiveSessionQualification,
+    { delay: 0 },
+    {
+      userId: session.studentId,
+      sessionId,
+    }
+  )
 }
 
 type UserAndFallIncentiveData = {

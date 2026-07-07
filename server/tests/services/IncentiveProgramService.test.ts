@@ -18,6 +18,7 @@ import {
 } from '../mocks/generate'
 import { getDbUlid } from '../../models/pgUtils'
 import * as FeatureFlagsService from '../../services/FeatureFlagService'
+import { hoursInMs } from '../../utils/time-utils'
 
 jest.mock('../../services/UserService')
 jest.mock('../../models/Session')
@@ -78,6 +79,7 @@ describe('queueIncentiveProgramEnrollmentWelcomeJob', () => {
     await queueIncentiveProgramEnrollmentWelcomeJob(userId)
     expect(mockedQueueService.add).toHaveBeenCalledWith(
       Jobs.EmailFallIncentiveEnrollmentWelcome,
+      { delay: 0 },
       { userId }
     )
   })
@@ -90,13 +92,12 @@ describe('queueIncentiveInvitedToEnrollReminderJob', () => {
 
   test('Should queue the EmailFallIncentiveInvitedToEnrollmentReminder job', async () => {
     const userId = getDbUlid()
-    const twelveHoursInMs = 1000 * 60 * 60 * 12
 
     await queueIncentiveInvitedToEnrollReminderJob(userId)
     expect(mockedQueueService.add).toHaveBeenCalledWith(
       Jobs.EmailFallIncentiveInvitedToEnrollReminder,
-      { userId },
-      { delay: twelveHoursInMs }
+      { delay: hoursInMs(12) },
+      { userId }
     )
   })
 })
@@ -129,6 +130,7 @@ describe('queueFallIncentiveSessionQualificationJob', () => {
     expect(mockedSessionRepo.getSessionById).toHaveBeenCalledWith(sessionId)
     expect(mockedQueueService.add).toHaveBeenCalledWith(
       Jobs.EmailFallIncentiveSessionQualification,
+      { delay: 0 },
       { userId: studentId, sessionId }
     )
   })

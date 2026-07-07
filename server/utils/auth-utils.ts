@@ -30,6 +30,7 @@ import {
 } from '../models/VolunteerPartnerOrg'
 import logger from '../logger'
 import { hoursInMs } from './time-utils'
+import { extractUser } from '../router/extract-user'
 // Custom errors
 export class RegistrationError extends CustomError {}
 export class ResetError extends CustomError {}
@@ -50,8 +51,10 @@ export interface SessionWithSsoData extends session.Session {
     provider?: string
     redirect?: string
     errorRedirect?: string
-    accountType?: Extract<UserRole, 'student' | 'teacher'>
-    userData?: Partial<RegisterStudentPayload | RegisterTeacherPayload>
+    accountType?: Extract<UserRole, 'student' | 'volunteer' | 'teacher'>
+    userData?: Partial<
+      RegisterStudentPayload | RegisterVolunteerPayload | RegisterTeacherPayload
+    >
     fedCredData?: {
       profileId: string
       issuer: string
@@ -440,9 +443,24 @@ function isAuthenticated(req: Request, res: Response, next: NextFunction) {
   return res.status(401).json({ err: 'Not authenticated' })
 }
 
-function isAdmin(req: Request, res: Response, next: NextFunction) {
+function isTeacher(req: Request, res: Response, next: NextFunction) {
+  const user = extractUser(req)
+  if (user.roleContext.isActiveRole('teacher')) {
+    return next()
+  }
+  return res.status(403).json({ err: 'Unauthorized' })
+}
+
+function isAdminOnly(req: Request, res: Response, next: NextFunction) {
   if (req.user && req.user.isAdmin) {
     return next()
+  }
+  return res.status(403).json({ err: 'Unauthorized' })
+}
+
+function isAdmin(req: Request, res: Response, next: NextFunction) {
+  if (req.user && req.user.isAdmin) {
+    return hasSecondFactor(req, res, next)
   }
   return res.status(403).json({ err: 'Unauthorized' })
 }
@@ -487,20 +505,22 @@ function isAdminRedirect(
 }
 
 async function checkRecaptcha(req: Request, res: Response, next: NextFunction) {
-  try {
-    await validateRequestRecaptcha(req)
+  const passes = await validateRequestRecaptcha(req)
+  if (passes) {
     return next()
-  } catch (err) {
-    res.status(500).json({
-      err: 'Something went wrong. Please contact the UPchieve team at support@upchieve.org for help.',
-    })
   }
+
+  res.status(500).json({
+    err: 'Something went wrong. Please contact the UPchieve team at support@upchieve.org for help.',
+  })
 }
 
 export const authPassport = {
   setupPassport,
   isAuthenticated,
+  isTeacher,
   isAdmin,
+  isAdminOnly,
   isTotpSessionValid,
   isAuthenticatedRedirect,
   isAdminRedirect,

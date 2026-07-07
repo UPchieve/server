@@ -42,3 +42,11 @@ export type TutorBotAddMessageResponsePublic = {
   userMessage: TutorBotMessagePublic
   botResponse: TutorBotGeneratedMessagePublic
 }
+
+export type TutorBotNewConversationPublic = {
+  conversationId: Uuid
+  userId: Uuid
+  sessionId?: Uuid
+  subjectId: number
+  messages: [TutorBotMessagePublic, TutorBotGeneratedMessagePublic]
+}

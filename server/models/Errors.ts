@@ -105,20 +105,6 @@ export class TwilioError extends CustomError {
   }
 }
 
-export class LowRecaptchaScoreError extends CustomError {
-  constructor() {
-    super('Something went wrong. Please refresh the page and try again.')
-  }
-}
-
-export class MissingRecaptchaTokenError extends CustomError {
-  constructor() {
-    super(
-      'Something went wrong. Please contact the UPchieve team at support@upchieve.org for help.'
-    )
-  }
-}
-
 export class SessionJoinError extends CustomError {}
 
 export class HttpError extends CustomError {
@@ -157,5 +143,11 @@ export class NTHSGroupAffiliationExistsError extends CustomError {
 export class NotAHighSchoolerNTHSJoinError extends CustomError {
   constructor() {
     super('You must be a current high school student to join NTHS')
+  }
+}
+
+export class UnsupportedFileTypeError extends CustomError {
+  constructor(message: string) {
+    super(message)
   }
 }

@@ -6,8 +6,6 @@ import { asString } from '../../../utils/type-utils'
 import config from '../../../config'
 import { createEmailNotification } from '../../../models/Notification'
 import { hasUserBeenSentEmail } from '../../../services/NotificationService'
-import { FEATURE_FLAGS } from '../../../constants'
-import { isStudentFirstSessionInterviewEmailEnabled } from '../../../services/FeatureFlagService'
 
 interface EmailStudentFirstSessionJobData {
   sessionId: string
@@ -22,11 +20,7 @@ export default async (
 
   if (student) {
     const { id: studentId, firstName, email } = student
-    const emailTemplateId = (await isStudentFirstSessionInterviewEmailEnabled(
-      studentId
-    ))
-      ? config.sendgrid.studentFirstSessionInterviewTemplate
-      : config.sendgrid.studentFirstSessionCongratsTemplate
+    const emailTemplateId = config.sendgrid.studentFirstSessionCongratsTemplate
     try {
       const hasReceivedEmail = await hasUserBeenSentEmail({
         userId: student.id,
@@ -35,12 +29,7 @@ export default async (
       if (hasReceivedEmail)
         return log(`Student ${student.id} has already received ${currentJob}`)
 
-      await MailService.sendStudentFirstSessionCongrats(
-        student.id,
-        email,
-        firstName,
-        emailTemplateId
-      )
+      await MailService.sendStudentFirstSessionCongrats(email, firstName)
       await createEmailNotification({
         userId: student.id,
         emailTemplateId,

@@ -8,7 +8,9 @@ export interface IGetEmailDomainBlocklistEntryParams {
 
 /** 'GetEmailDomainBlocklistEntry' return type */
 export interface IGetEmailDomainBlocklistEntryResult {
+  /** not_pii: Email domain blocked from registration */
   domain: string;
+  /** not_pii: Primary key */
   id: number;
 }
 

@@ -8,7 +8,9 @@ export interface IGetSignUpSourceByNameParams {
 
 /** 'GetSignUpSourceByName' return type */
 export interface IGetSignUpSourceByNameResult {
+  /** not_pii: Primary key */
   id: number;
+  /** not_pii: Human-readable name */
   name: string;
 }
 

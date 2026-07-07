@@ -1,5 +1,5 @@
 import logger from '../../logger'
-import { getClient, getRoClient, TransactionClient } from '../../db'
+import { getClient, TransactionClient } from '../../db'
 import * as pgQueries from './pg.queries'
 import {
   makeRequired,
@@ -35,6 +35,7 @@ import {
   EditUserProfilePayload,
 } from './types'
 import { IDeletePhoneResult } from './pg.queries'
+import { camelCaseKeys } from '../../tests/db-utils'
 
 export async function createUser(
   user: CreateUserPayload,
@@ -56,7 +57,6 @@ export async function createUser(
         phoneVerified: user.phoneVerified ?? false,
         proxyEmail: user.proxyEmail?.toLowerCase(),
         referralCode: generateReferralCode(id),
-        referredBy: user.referredBy,
         signupSourceId: user.signupSourceId,
         verified: user.verified ?? false,
         smsConsent: user.smsConsent ?? false,
@@ -192,14 +192,20 @@ export async function getUserById(
   }
 }
 
-export async function getUserBanStatus(userId: Ulid) {
-  const result = await pgQueries.getUserBanStatus.run(
-    { id: userId },
-    getClient()
-  )
-  if (result.length) {
-    return makeSomeOptional(result[0], ['banType'])
-  }
+export async function getUsersBanStatuses(userIds: Ulid[]): Promise<
+  {
+    id: Ulid
+    banType: USER_BAN_TYPES | null
+  }[]
+> {
+  const result = await pgQueries.getUserBanStatus.run({ userIds }, getClient())
+  return result.map((row) => {
+    const camelCased = camelCaseKeys(row)
+    return {
+      id: camelCased.id,
+      banType: camelCased.banType as USER_BAN_TYPES | null,
+    }
+  })
 }
 
 export async function getUserByReferralCode(
@@ -274,29 +280,6 @@ export async function getUserByResetToken(
     if (result.length) {
       return makeRequired(result[0])
     }
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
-export async function countReferredUsers(
-  referrerId: Ulid,
-  filters?: {
-    withPhoneOrEmailVerifiedAs?: boolean
-    withRoles?: UserRole[]
-  }
-): Promise<number> {
-  try {
-    const result = await pgQueries.countReferredUsersWithFilter.run(
-      {
-        userId: referrerId,
-        phoneOrEmailVerified: filters?.withPhoneOrEmailVerifiedAs ?? null,
-        hasRoles: filters?.withRoles ?? null,
-      },
-      getRoClient()
-    )
-    result.map((row) => makeRequired(row))
-    return result.length
   } catch (err) {
     throw new RepoReadError(err)
   }

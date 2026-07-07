@@ -5,7 +5,6 @@ jest.mock('yjs')
 jest.mock('posthog-node')
 jest.mock('openai')
 jest.mock('yjs')
-jest.mock('@azure-rest/ai-vision-image-analysis')
 jest.mock('@azure/core-auth')
 jest.mock('../services/AnalyticsService')
 jest.mock('../services/FeatureFlagService')
@@ -176,6 +175,10 @@ jest.mock('../config', () => {
     langfuseSecretKey: 'test-bogus', // pragma: allowlist secret
     langfusePublicKey: 'test-bogus', // pragma: allowlist secret
     langfuseBaseUrl: 'test-bogus', // pragma: allowlist secret
+
+    // TOTP
+    totpEncryptionKey: 'test-encryption-key',
+    totpIssuer: 'upchieve-test',
   }
 })
 

@@ -33,11 +33,10 @@ const mockedUserRepo = mocked(UserRepo)
 jest.mock('../../models/School/queries')
 jest.mock('../../models/ZipCode/queries')
 jest.mock('../../models/StudentPartnerOrg/queries')
-jest.mock('../../models/VolunteerPartnerOrg/queries')
 const mockedVolunteerPartnerOrgRepo = mocked(VolunteerPartnerOrgRepo)
-jest.mock('../../controllers/UserCtrl')
+jest.mock('../../models/VolunteerPartnerOrg/queries')
 const mockedUserCtrl = mocked(UserCtrl)
-jest.mock('../../services/IpAddressService')
+jest.mock('../../controllers/UserCtrl')
 const mockedNotificationsRepo = mocked(NotificationsRepo)
 jest.mock('../../models/Notification/queries')
 const mockedReferralService = mocked(ReferralService)
@@ -272,21 +271,24 @@ describe('Registration tests', () => {
     mockedUserRepo.getUserIdByEmail.mockResolvedValue(undefined)
     mockedUserRepo.getUserIdByPhone.mockResolvedValue(undefined)
     const referrer = buildVolunteer()
-    const referree = buildVolunteer({ referredBy: referrer.id })
+    const referree = buildVolunteer()
     mockedReferralService.getReferrerIdByCode.mockResolvedValue(referrer.id)
     mockedUserCtrl.createVolunteer.mockResolvedValue({
       ...referree,
       userType: 'volunteer',
     })
-    mockedUserRepo.countReferredUsers.mockResolvedValue(0)
     mockedNotificationsRepo.getEmailNotificationsByTemplateId.mockResolvedValue(
       []
     )
+    mockedReferralService.getReferredUsersCount.mockResolvedValue(0)
 
     const serviceVolunteer = await AuthService.registerVolunteer(
       buildVolunteerRegistrationForm({
-        referredByCode: referrer.id,
+        referredByCode: referrer.referralCode,
       })
+    )
+    expect(mockedReferralService.getReferrerIdByCode).toHaveBeenCalledWith(
+      referrer.referralCode
     )
     expect(serviceVolunteer).toMatchObject(referree)
   })
@@ -304,30 +306,6 @@ describe('Registration tests', () => {
     await expect(t(payload)).rejects.toThrow(
       new RegistrationError('Must accept the user agreement')
     )
-  })
-
-  test('Register valid partner volunteer via working referral', async () => {
-    mockedUserRepo.getUserIdByEmail.mockResolvedValue(undefined)
-    mockedUserRepo.getUserIdByPhone.mockResolvedValue(undefined)
-    mockedVolunteerPartnerOrgRepo.getVolunteerPartnerOrgForRegistrationByKey.mockResolvedValueOnce(
-      mockedVolunteerPartnerOrg
-    )
-    const referrer = buildVolunteer()
-    const referree = buildVolunteer({ referredBy: referrer.id })
-    mockedReferralService.getReferrerIdByCode.mockResolvedValue(referrer.id)
-    mockedUserCtrl.createVolunteer.mockResolvedValue({
-      ...referree,
-      userType: 'volunteer',
-    })
-
-    const serviceVolunteer = await AuthService.registerPartnerVolunteer(
-      buildPartnerVolunteerRegistrationForm({
-        ...volunteerPartnerOverrides,
-        referredByCode: referrer.id,
-      })
-    )
-
-    expect(serviceVolunteer).toMatchObject(referree)
   })
 })
 

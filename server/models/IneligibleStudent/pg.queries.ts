@@ -8,13 +8,21 @@ export interface IGetIneligibleStudentByEmailParams {
 
 /** 'GetIneligibleStudentByEmail' return type */
 export interface IGetIneligibleStudentByEmailResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Human-readable name of the grade level */
   currentGrade: string;
+  /** pii: User email address */
   email: string;
+  /** not_pii: Primary key */
   id: string;
+  /** pii: IPv4 or IPv6 address */
   ipAddress: string;
+  /** pii: Foreign key to upchieve.schools */
   school: string | null;
+  /** not_pii */
   updatedAt: Date;
+  /** pii: US postal/ZIP code */
   zipCode: string | null;
 }
 
@@ -62,6 +70,7 @@ export interface IInsertIneligibleStudentParams {
 
 /** 'InsertIneligibleStudent' return type */
 export interface IInsertIneligibleStudentResult {
+  /** not_pii: Primary key */
   ok: string;
 }
 
@@ -112,17 +121,29 @@ export interface IGetIneligibleStudentsPaginatedParams {
 
 /** 'GetIneligibleStudentsPaginated' return type */
 export interface IGetIneligibleStudentsPaginatedResult {
+  /** not_pii */
   createdAt: Date;
+  /** pii: User email address */
   email: string;
+  /** pii: IPv4 or IPv6 address */
   ipAddress: string;
+  /** not_pii: Whether the school has been approved for use on the platform */
   isApproved: boolean;
+  /** not_pii: Median household income for the postal code area */
   medianIncome: number | null;
+  /** not_pii: Human-readable name */
   schoolCity: string;
+  /** pii: Foreign key to upchieve.schools */
   schoolId: string | null;
+  /** not_pii: Human-readable name */
   schoolName: string;
+  /** not_pii: Two-letter US state code */
   schoolState: string | null;
+  /** pii: US postal/ZIP code */
   schoolZipCode: string | null;
+  /** not_pii */
   updatedAt: Date;
+  /** pii: US postal/ZIP code */
   zipCode: string | null;
 }
 

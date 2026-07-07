@@ -1,4 +1,5 @@
-import Delta from 'quill-delta'
+import * as VisionService from '../VisionService'
+import { client as traceClient } from '../../clients/langfuse'
 import moment from 'moment'
 import { Ulid } from '../../models/pgUtils'
 import logger, { logError } from '../../logger'
@@ -26,7 +27,7 @@ import {
   updateProgressReportsReadAtByReportIds,
   getAllProgressReportIdsByUserIdAndSubject,
   getLatestProgressReportOverviewSubjectByUserId,
-  getProgressReportOverviewUnreadStatsByUserId,
+  getUnreadSubjectReportsCountByUserId,
   getActiveSubjectPromptBySubjectName,
 } from '../../models/ProgressReports'
 import {
@@ -57,25 +58,21 @@ import { getProgressReportsFeatureFlag } from '../FeatureFlagService'
 import { PROGRESS_REPORT_JSON_INSTRUCTIONS } from '../../constants'
 import { Student, getStudentProfileByUserId } from '../../models/Student'
 import { SubjectAndTopic, getSubjectAndTopic } from '../../models/Subjects'
-import { convertBase64ToImage } from '../../utils/image-utils'
-import {
-  describeWhiteboardSnapshot,
-  getTextFromImageAnalysis,
-} from '../VisionService'
+import { describeWhiteboardSnapshot } from '../VisionService'
 import { getWhiteboardSnapshot } from '../EditorSnapshotService'
 import { isSubjectUsingDocumentEditor } from '../../utils/session-utils'
 import { minutesInMs } from '../../utils/time-utils'
 import {
-  extractImagesFromDoc,
-  parseDocEditorImageRoute,
-  parseQuillDoc,
+  getDocEditorImages,
+  removeImageInsertsFromQuillDoc,
 } from '../QuillDocService'
-import { getDocEditorSessionImageUrl } from '../SessionService'
 import {
   runWithModelObservation,
   runWithTrace,
 } from '../AiObservabilityService'
 import type { MessageForFrontend } from '../../types/session'
+
+const GET_PROGRESS_REPORT_IMAGE_TEXT_TRACE_NAME = 'getProgressReportImageText'
 
 function formatTranscriptMessage(
   message: MessageForFrontend,
@@ -126,9 +123,9 @@ async function formatDocumentEditorPrompt(
     }
 
     try {
-      const docImages = await getDocumentEditorImages(session.quillDoc)
+      const docImages = await getDocEditorImages(session.quillDoc)
       if (docImages.length > 0) {
-        imageText = await getProgressReportImageText(docImages)
+        imageText = await getProgressReportImageText(docImages, session.id)
       }
     } catch (error) {
       logger.warn(
@@ -183,65 +180,25 @@ async function formatWhiteboardPrompt(
   `.trim()
 }
 
-export function removeImageInsertsFromQuillDoc(quillDoc: string): string {
-  const document: Delta = parseQuillDoc(quillDoc)
-  if (!document.ops) return ''
-
-  const filteredOps = document.ops.filter(
-    (op) => op.insert && typeof op.insert === 'string'
-  )
-  document.ops = filteredOps
-  return JSON.stringify(document)
-}
-
-async function getDocEditorImageBuffer(imageUrl: string): Promise<Buffer> {
-  const parsed = parseDocEditorImageRoute(imageUrl)
-  if (!parsed) throw new Error('Invalid document editor image URL')
-
-  const { sessionId, fileName } = parsed
-  const sasUrl = getDocEditorSessionImageUrl(sessionId, fileName)
-  const res = await fetch(sasUrl)
-  if (!res.ok)
-    throw new Error(`Failed to fetch document editor image: ${imageUrl}`)
-
-  const arrayBuffer = await res.arrayBuffer()
-  return Buffer.from(arrayBuffer)
-}
-
-async function imageSourceToBuffer(src: string): Promise<Buffer> {
-  if (src.startsWith('data:image')) return convertBase64ToImage(src)
-  return getDocEditorImageBuffer(src)
-}
-
-export async function getDocumentEditorImages(
-  quillDoc: string
-): Promise<Buffer[]> {
-  const imageBuffers: Buffer[] = []
-  const allImages = extractImagesFromDoc(quillDoc)
-  for (const image of allImages) {
-    try {
-      const buffer = await imageSourceToBuffer(image)
-      imageBuffers.push(buffer)
-    } catch (error) {
-      logger.warn(
-        {
-          err: error,
-          imageType: image.startsWith('data:image') ? 'base64' : 'url',
-        },
-        'Failed to create buffer for document editor image. Skipping'
-      )
-    }
-  }
-  return imageBuffers
-}
-
 async function getProgressReportImageText(
-  imageBuffers: Buffer[]
+  imageBuffers: Buffer[],
+  sessionId?: Ulid
 ): Promise<string> {
+  if (!imageBuffers.length) return ''
   let imageText = ''
+  const trace = traceClient.trace({
+    name: GET_PROGRESS_REPORT_IMAGE_TEXT_TRACE_NAME,
+    metadata: {
+      sessionId,
+    },
+  })
   for (const image of imageBuffers) {
     try {
-      imageText += await getTextFromImageAnalysis(image)
+      const textSegments = await VisionService.extractTextFromImage(
+        image,
+        trace
+      )
+      imageText += textSegments.join(' ')
     } catch (error) {
       logger.warn(
         { err: error },
@@ -249,6 +206,9 @@ async function getProgressReportImageText(
       )
     }
   }
+  trace.update({
+    output: imageText,
+  })
   return imageText
 }
 
@@ -497,7 +457,11 @@ export async function queueGenerateProgressReportForUser(
     session.studentId
   )
   if (!isSubjectPromptActive || !isProgressReportsActive) return
-  await QueueService.add(Jobs.GenerateProgressReport, { sessionId })
+  await QueueService.add(
+    Jobs.GenerateProgressReport,
+    { delay: 0 },
+    { sessionId }
+  )
 }
 
 function transformProgressReportSummaryRows(
@@ -704,7 +668,7 @@ export async function getProgressReportOverviewSubjectStats(
   userId: Ulid
 ): Promise<ProgressReportOverviewSubjectStat[]> {
   const stats = []
-  const unreadStats = await getProgressReportOverviewUnreadStatsByUserId(userId)
+  const unreadStats = await getUnreadSubjectReportsCountByUserId(userId)
   for (const unread of unreadStats) {
     const report = await getLatestProgressReportIdBySubject(
       userId,

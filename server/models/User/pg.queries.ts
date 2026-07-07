@@ -16,6 +16,7 @@ export interface IGetUserRolesByIdParams {
 
 /** 'GetUserRolesById' return type */
 export interface IGetUserRolesByIdResult {
+  /** not_pii: Human-readable name */
   name: string;
 }
 
@@ -59,7 +60,6 @@ export interface ICreateUserParams {
   phoneVerified?: boolean | null | void;
   proxyEmail?: string | null | void;
   referralCode: string;
-  referredBy?: string | null | void;
   signupSourceId?: number | null | void;
   smsConsent?: boolean | null | void;
   verified?: boolean | null | void;
@@ -67,9 +67,13 @@ export interface ICreateUserParams {
 
 /** 'CreateUser' return type */
 export interface ICreateUserResult {
+  /** pii: User email address */
   email: string;
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
+  /** pii: Alternate email */
   proxyEmail: string | null;
 }
 
@@ -79,13 +83,13 @@ export interface ICreateUserQuery {
   result: ICreateUserResult;
 }
 
-const createUserIR: any = {"usedParamSet":{"id":true,"firstName":true,"lastName":true,"email":true,"proxyEmail":true,"phone":true,"smsConsent":true,"password":true,"passwordResetToken":true,"verified":true,"emailVerified":true,"phoneVerified":true,"referredBy":true,"referralCode":true,"signupSourceId":true,"otherSignupSource":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":257,"b":260}]},{"name":"firstName","required":true,"transform":{"type":"scalar"},"locs":[{"a":263,"b":273}]},{"name":"lastName","required":true,"transform":{"type":"scalar"},"locs":[{"a":276,"b":285}]},{"name":"email","required":true,"transform":{"type":"scalar"},"locs":[{"a":288,"b":294}]},{"name":"proxyEmail","required":false,"transform":{"type":"scalar"},"locs":[{"a":297,"b":307}]},{"name":"phone","required":false,"transform":{"type":"scalar"},"locs":[{"a":310,"b":315}]},{"name":"smsConsent","required":false,"transform":{"type":"scalar"},"locs":[{"a":318,"b":328}]},{"name":"password","required":false,"transform":{"type":"scalar"},"locs":[{"a":331,"b":339}]},{"name":"passwordResetToken","required":false,"transform":{"type":"scalar"},"locs":[{"a":342,"b":360}]},{"name":"verified","required":false,"transform":{"type":"scalar"},"locs":[{"a":363,"b":371}]},{"name":"emailVerified","required":false,"transform":{"type":"scalar"},"locs":[{"a":374,"b":387}]},{"name":"phoneVerified","required":false,"transform":{"type":"scalar"},"locs":[{"a":390,"b":403}]},{"name":"referredBy","required":false,"transform":{"type":"scalar"},"locs":[{"a":406,"b":416}]},{"name":"referralCode","required":true,"transform":{"type":"scalar"},"locs":[{"a":419,"b":432}]},{"name":"signupSourceId","required":false,"transform":{"type":"scalar"},"locs":[{"a":435,"b":449}]},{"name":"otherSignupSource","required":false,"transform":{"type":"scalar"},"locs":[{"a":452,"b":469}]}],"statement":"INSERT INTO users (id, first_name, last_name, email, proxy_email, phone, sms_consent, PASSWORD, password_reset_token, verified, email_verified, phone_verified, referred_by, referral_code, signup_source_id, other_signup_source, last_activity_at)\n    VALUES (:id!, :firstName!, :lastName!, :email!, :proxyEmail, :phone, :smsConsent, :password, :passwordResetToken, :verified, :emailVerified, :phoneVerified, :referredBy, :referralCode!, :signupSourceId, :otherSignupSource, NOW())\nON CONFLICT (email)\n    DO NOTHING\nRETURNING\n    id, email, first_name, proxy_email"};
+const createUserIR: any = {"usedParamSet":{"id":true,"firstName":true,"lastName":true,"email":true,"proxyEmail":true,"phone":true,"smsConsent":true,"password":true,"passwordResetToken":true,"verified":true,"emailVerified":true,"phoneVerified":true,"referralCode":true,"signupSourceId":true,"otherSignupSource":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":244,"b":247}]},{"name":"firstName","required":true,"transform":{"type":"scalar"},"locs":[{"a":250,"b":260}]},{"name":"lastName","required":true,"transform":{"type":"scalar"},"locs":[{"a":263,"b":272}]},{"name":"email","required":true,"transform":{"type":"scalar"},"locs":[{"a":275,"b":281}]},{"name":"proxyEmail","required":false,"transform":{"type":"scalar"},"locs":[{"a":284,"b":294}]},{"name":"phone","required":false,"transform":{"type":"scalar"},"locs":[{"a":297,"b":302}]},{"name":"smsConsent","required":false,"transform":{"type":"scalar"},"locs":[{"a":305,"b":315}]},{"name":"password","required":false,"transform":{"type":"scalar"},"locs":[{"a":318,"b":326}]},{"name":"passwordResetToken","required":false,"transform":{"type":"scalar"},"locs":[{"a":329,"b":347}]},{"name":"verified","required":false,"transform":{"type":"scalar"},"locs":[{"a":350,"b":358}]},{"name":"emailVerified","required":false,"transform":{"type":"scalar"},"locs":[{"a":361,"b":374}]},{"name":"phoneVerified","required":false,"transform":{"type":"scalar"},"locs":[{"a":377,"b":390}]},{"name":"referralCode","required":true,"transform":{"type":"scalar"},"locs":[{"a":393,"b":406}]},{"name":"signupSourceId","required":false,"transform":{"type":"scalar"},"locs":[{"a":409,"b":423}]},{"name":"otherSignupSource","required":false,"transform":{"type":"scalar"},"locs":[{"a":426,"b":443}]}],"statement":"INSERT INTO users (id, first_name, last_name, email, proxy_email, phone, sms_consent, PASSWORD, password_reset_token, verified, email_verified, phone_verified, referral_code, signup_source_id, other_signup_source, last_activity_at)\n    VALUES (:id!, :firstName!, :lastName!, :email!, :proxyEmail, :phone, :smsConsent, :password, :passwordResetToken, :verified, :emailVerified, :phoneVerified, :referralCode!, :signupSourceId, :otherSignupSource, NOW())\nON CONFLICT (email)\n    DO NOTHING\nRETURNING\n    id, email, first_name, proxy_email"};
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO users (id, first_name, last_name, email, proxy_email, phone, sms_consent, PASSWORD, password_reset_token, verified, email_verified, phone_verified, referred_by, referral_code, signup_source_id, other_signup_source, last_activity_at)
- *     VALUES (:id!, :firstName!, :lastName!, :email!, :proxyEmail, :phone, :smsConsent, :password, :passwordResetToken, :verified, :emailVerified, :phoneVerified, :referredBy, :referralCode!, :signupSourceId, :otherSignupSource, NOW())
+ * INSERT INTO users (id, first_name, last_name, email, proxy_email, phone, sms_consent, PASSWORD, password_reset_token, verified, email_verified, phone_verified, referral_code, signup_source_id, other_signup_source, last_activity_at)
+ *     VALUES (:id!, :firstName!, :lastName!, :email!, :proxyEmail, :phone, :smsConsent, :password, :passwordResetToken, :verified, :emailVerified, :phoneVerified, :referralCode!, :signupSourceId, :otherSignupSource, NOW())
  * ON CONFLICT (email)
  *     DO NOTHING
  * RETURNING
@@ -109,17 +113,20 @@ export interface IUpsertUserParams {
   phoneVerified?: boolean | null | void;
   proxyEmail?: string | null | void;
   referralCode: string;
-  referredBy?: string | null | void;
   signupSourceId?: number | null | void;
   verified?: boolean | null | void;
 }
 
 /** 'UpsertUser' return type */
 export interface IUpsertUserResult {
+  /** pii: User email address */
   email: string;
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
   isCreated: boolean | null;
+  /** pii: Alternate email */
   proxyEmail: string | null;
 }
 
@@ -129,13 +136,13 @@ export interface IUpsertUserQuery {
   result: IUpsertUserResult;
 }
 
-const upsertUserIR: any = {"usedParamSet":{"id":true,"firstName":true,"lastName":true,"email":true,"proxyEmail":true,"phone":true,"password":true,"passwordResetToken":true,"verified":true,"emailVerified":true,"phoneVerified":true,"referredBy":true,"referralCode":true,"signupSourceId":true,"otherSignupSource":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":244,"b":247}]},{"name":"firstName","required":true,"transform":{"type":"scalar"},"locs":[{"a":250,"b":260},{"a":512,"b":522}]},{"name":"lastName","required":true,"transform":{"type":"scalar"},"locs":[{"a":263,"b":272},{"a":537,"b":546}]},{"name":"email","required":true,"transform":{"type":"scalar"},"locs":[{"a":275,"b":281}]},{"name":"proxyEmail","required":false,"transform":{"type":"scalar"},"locs":[{"a":284,"b":294},{"a":563,"b":573}]},{"name":"phone","required":false,"transform":{"type":"scalar"},"locs":[{"a":297,"b":302},{"a":584,"b":589}]},{"name":"password","required":false,"transform":{"type":"scalar"},"locs":[{"a":305,"b":313},{"a":603,"b":611}]},{"name":"passwordResetToken","required":false,"transform":{"type":"scalar"},"locs":[{"a":316,"b":334},{"a":637,"b":655}]},{"name":"verified","required":false,"transform":{"type":"scalar"},"locs":[{"a":337,"b":345},{"a":669,"b":677}]},{"name":"emailVerified","required":false,"transform":{"type":"scalar"},"locs":[{"a":348,"b":361},{"a":697,"b":710}]},{"name":"phoneVerified","required":false,"transform":{"type":"scalar"},"locs":[{"a":364,"b":377},{"a":730,"b":743}]},{"name":"referredBy","required":false,"transform":{"type":"scalar"},"locs":[{"a":380,"b":390}]},{"name":"referralCode","required":true,"transform":{"type":"scalar"},"locs":[{"a":393,"b":406}]},{"name":"signupSourceId","required":false,"transform":{"type":"scalar"},"locs":[{"a":409,"b":423},{"a":765,"b":779}]},{"name":"otherSignupSource","required":false,"transform":{"type":"scalar"},"locs":[{"a":426,"b":443},{"a":804,"b":821}]}],"statement":"INSERT INTO users (id, first_name, last_name, email, proxy_email, phone, PASSWORD, password_reset_token, verified, email_verified, phone_verified, referred_by, referral_code, signup_source_id, other_signup_source, last_activity_at)\n    VALUES (:id!, :firstName!, :lastName!, :email!, :proxyEmail, :phone, :password, :passwordResetToken, :verified, :emailVerified, :phoneVerified, :referredBy, :referralCode!, :signupSourceId, :otherSignupSource, NOW())\nON CONFLICT (email)\n    DO UPDATE SET\n        first_name = :firstName!, last_name = :lastName!, proxy_email = :proxyEmail, phone = :phone, PASSWORD = :password, password_reset_token = :passwordResetToken, verified = :verified, email_verified = :emailVerified, phone_verified = :phoneVerified, signup_source_id = :signupSourceId, other_signup_source = :otherSignupSource\n    RETURNING\n        id, email, first_name, proxy_email, (xmax = 0) AS is_created"};
+const upsertUserIR: any = {"usedParamSet":{"id":true,"firstName":true,"lastName":true,"email":true,"proxyEmail":true,"phone":true,"password":true,"passwordResetToken":true,"verified":true,"emailVerified":true,"phoneVerified":true,"referralCode":true,"signupSourceId":true,"otherSignupSource":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":231,"b":234}]},{"name":"firstName","required":true,"transform":{"type":"scalar"},"locs":[{"a":237,"b":247},{"a":486,"b":496}]},{"name":"lastName","required":true,"transform":{"type":"scalar"},"locs":[{"a":250,"b":259},{"a":511,"b":520}]},{"name":"email","required":true,"transform":{"type":"scalar"},"locs":[{"a":262,"b":268}]},{"name":"proxyEmail","required":false,"transform":{"type":"scalar"},"locs":[{"a":271,"b":281},{"a":537,"b":547}]},{"name":"phone","required":false,"transform":{"type":"scalar"},"locs":[{"a":284,"b":289},{"a":558,"b":563}]},{"name":"password","required":false,"transform":{"type":"scalar"},"locs":[{"a":292,"b":300},{"a":577,"b":585}]},{"name":"passwordResetToken","required":false,"transform":{"type":"scalar"},"locs":[{"a":303,"b":321},{"a":611,"b":629}]},{"name":"verified","required":false,"transform":{"type":"scalar"},"locs":[{"a":324,"b":332},{"a":643,"b":651}]},{"name":"emailVerified","required":false,"transform":{"type":"scalar"},"locs":[{"a":335,"b":348},{"a":671,"b":684}]},{"name":"phoneVerified","required":false,"transform":{"type":"scalar"},"locs":[{"a":351,"b":364},{"a":704,"b":717}]},{"name":"referralCode","required":true,"transform":{"type":"scalar"},"locs":[{"a":367,"b":380}]},{"name":"signupSourceId","required":false,"transform":{"type":"scalar"},"locs":[{"a":383,"b":397},{"a":739,"b":753}]},{"name":"otherSignupSource","required":false,"transform":{"type":"scalar"},"locs":[{"a":400,"b":417},{"a":778,"b":795}]}],"statement":"INSERT INTO users (id, first_name, last_name, email, proxy_email, phone, PASSWORD, password_reset_token, verified, email_verified, phone_verified, referral_code, signup_source_id, other_signup_source, last_activity_at)\n    VALUES (:id!, :firstName!, :lastName!, :email!, :proxyEmail, :phone, :password, :passwordResetToken, :verified, :emailVerified, :phoneVerified, :referralCode!, :signupSourceId, :otherSignupSource, NOW())\nON CONFLICT (email)\n    DO UPDATE SET\n        first_name = :firstName!, last_name = :lastName!, proxy_email = :proxyEmail, phone = :phone, PASSWORD = :password, password_reset_token = :passwordResetToken, verified = :verified, email_verified = :emailVerified, phone_verified = :phoneVerified, signup_source_id = :signupSourceId, other_signup_source = :otherSignupSource\n    RETURNING\n        id, email, first_name, proxy_email, (xmax = 0) AS is_created"};
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO users (id, first_name, last_name, email, proxy_email, phone, PASSWORD, password_reset_token, verified, email_verified, phone_verified, referred_by, referral_code, signup_source_id, other_signup_source, last_activity_at)
- *     VALUES (:id!, :firstName!, :lastName!, :email!, :proxyEmail, :phone, :password, :passwordResetToken, :verified, :emailVerified, :phoneVerified, :referredBy, :referralCode!, :signupSourceId, :otherSignupSource, NOW())
+ * INSERT INTO users (id, first_name, last_name, email, proxy_email, phone, PASSWORD, password_reset_token, verified, email_verified, phone_verified, referral_code, signup_source_id, other_signup_source, last_activity_at)
+ *     VALUES (:id!, :firstName!, :lastName!, :email!, :proxyEmail, :phone, :password, :passwordResetToken, :verified, :emailVerified, :phoneVerified, :referralCode!, :signupSourceId, :otherSignupSource, NOW())
  * ON CONFLICT (email)
  *     DO UPDATE SET
  *         first_name = :firstName!, last_name = :lastName!, proxy_email = :proxyEmail, phone = :phone, PASSWORD = :password, password_reset_token = :passwordResetToken, verified = :verified, email_verified = :emailVerified, phone_verified = :phoneVerified, signup_source_id = :signupSourceId, other_signup_source = :otherSignupSource
@@ -153,10 +160,15 @@ export interface IGetUserVerificationByEmailParams {
 
 /** 'GetUserVerificationByEmail' return type */
 export interface IGetUserVerificationByEmailResult {
+  /** pii: User email address */
   email: string;
+  /** not_pii: Whether the user has verified their email address */
   emailVerified: boolean;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Whether the user has verified their phone number */
   phoneVerified: boolean;
+  /** not_pii: Whether one of the user notification methods has been verified */
   verified: boolean;
 }
 
@@ -195,7 +207,9 @@ export interface IGetUserIdByEmailParams {
 
 /** 'GetUserIdByEmail' return type */
 export interface IGetUserIdByEmailResult {
+  /** pii: User email address */
   email: string;
+  /** not_pii: Primary key */
   id: string;
 }
 
@@ -230,6 +244,7 @@ export interface IGetUserIdByPhoneParams {
 
 /** 'GetUserIdByPhone' return type */
 export interface IGetUserIdByPhoneResult {
+  /** not_pii: Primary key */
   id: string;
 }
 
@@ -264,20 +279,34 @@ export interface IGetUserByIdParams {
 
 /** 'GetUserById' return type */
 export interface IGetUserByIdResult {
+  /** not_pii: Whether the volunteer application has been approved */
   approved: boolean;
+  /** not_pii: Type of ban (shadow, complete, live_media) */
   banType: ban_types | null;
+  /** not_pii: Whether the user account has been deactivated */
   deactivated: boolean;
+  /** pii: User email address */
   email: string;
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Timestamp of the most recent user activity */
   lastActivityAt: Date | null;
+  /** pii: Phone number */
   phone: string | null;
+  /** not_pii: Whether the user has verified their phone number */
   phoneVerified: boolean;
+  /** pii: Alternate email */
   proxyEmail: string | null;
+  /** not_pii: Unique code used to refer new users */
   referralCode: string;
   roles: stringArray | null;
+  /** not_pii: Whether the user has consented to receive SMS messages */
   smsConsent: boolean;
+  /** not_pii: Unique URL-safe slug */
   studentPartnerOrg: string;
+  /** not_pii: Unique URL-safe slug */
   volunteerPartnerOrg: string;
 }
 
@@ -334,12 +363,15 @@ export const getUserById = new PreparedQuery<IGetUserByIdParams,IGetUserByIdResu
 
 /** 'GetUserBanStatus' parameters type */
 export interface IGetUserBanStatusParams {
-  id: string;
+  userIds: stringArray;
 }
 
 /** 'GetUserBanStatus' return type */
 export interface IGetUserBanStatusResult {
+  /** not_pii: Type of ban (shadow, complete, live_media) */
   banType: ban_types | null;
+  /** not_pii: Primary key */
+  id: string;
 }
 
 /** 'GetUserBanStatus' query type */
@@ -348,17 +380,18 @@ export interface IGetUserBanStatusQuery {
   result: IGetUserBanStatusResult;
 }
 
-const getUserBanStatusIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":50,"b":53}]}],"statement":"SELECT\n    ban_type\nFROM\n    users\nWHERE\n    id = :id!"};
+const getUserBanStatusIR: any = {"usedParamSet":{"userIds":true},"params":[{"name":"userIds","required":true,"transform":{"type":"scalar"},"locs":[{"a":63,"b":71}]}],"statement":"SELECT\n    id,\n    ban_type\nFROM\n    users\nWHERE\n    id = ANY (:userIds!)"};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
+ *     id,
  *     ban_type
  * FROM
  *     users
  * WHERE
- *     id = :id!
+ *     id = ANY (:userIds!)
  * ```
  */
 export const getUserBanStatus = new PreparedQuery<IGetUserBanStatusParams,IGetUserBanStatusResult>(getUserBanStatusIR);
@@ -371,7 +404,9 @@ export interface IGetUserByReferralCodeParams {
 
 /** 'GetUserByReferralCode' return type */
 export interface IGetUserByReferralCodeResult {
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
 }
 
@@ -406,8 +441,11 @@ export interface IGetUserReferralLinkParams {
 
 /** 'GetUserReferralLink' return type */
 export interface IGetUserReferralLinkResult {
+  /** pii: User email address */
   email: string;
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Unique code used to refer new users */
   referralCode: string;
 }
 
@@ -444,9 +482,13 @@ export interface IGetUserForPassportParams {
 
 /** 'GetUserForPassport' return type */
 export interface IGetUserForPassportResult {
+  /** pii: User email address */
   email: string;
+  /** not_pii: Primary key */
   id: string;
+  /** pii: Hashed password */
   password: string | null;
+  /** pii: Alternate email */
   proxyEmail: string | null;
 }
 
@@ -484,7 +526,9 @@ export interface IGetUserByResetTokenParams {
 
 /** 'GetUserByResetToken' return type */
 export interface IGetUserByResetTokenResult {
+  /** pii: User email address */
   email: string;
+  /** not_pii: Primary key */
   id: string;
 }
 
@@ -512,51 +556,6 @@ const getUserByResetTokenIR: any = {"usedParamSet":{"resetToken":true},"params":
 export const getUserByResetToken = new PreparedQuery<IGetUserByResetTokenParams,IGetUserByResetTokenResult>(getUserByResetTokenIR);
 
 
-/** 'CountReferredUsersWithFilter' parameters type */
-export interface ICountReferredUsersWithFilterParams {
-  hasRoles?: stringArray | null | void;
-  phoneOrEmailVerified?: boolean | null | void;
-  userId: string;
-}
-
-/** 'CountReferredUsersWithFilter' return type */
-export interface ICountReferredUsersWithFilterResult {
-  id: string;
-  roles: stringArray | null;
-}
-
-/** 'CountReferredUsersWithFilter' query type */
-export interface ICountReferredUsersWithFilterQuery {
-  params: ICountReferredUsersWithFilterParams;
-  result: ICountReferredUsersWithFilterResult;
-}
-
-const countReferredUsersWithFilterIR: any = {"usedParamSet":{"userId":true,"phoneOrEmailVerified":true,"hasRoles":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":199,"b":206}]},{"name":"phoneOrEmailVerified","required":false,"transform":{"type":"scalar"},"locs":[{"a":223,"b":243},{"a":292,"b":312},{"a":353,"b":373}]},{"name":"hasRoles","required":false,"transform":{"type":"scalar"},"locs":[{"a":456,"b":464}]}],"statement":"SELECT\n    u.id,\n    array_agg(roles.name)::text[] AS roles\nFROM\n    users u\n    JOIN users_roles ur ON ur.user_id = u.id\n    JOIN user_roles roles ON roles.id = ur.role_id\nWHERE\n    u.referred_by = :userId!::uuid\n    AND (:phoneOrEmailVerified::boolean IS NULL\n        OR u.phone_verified = :phoneOrEmailVerified::boolean\n        OR u.email_verified = :phoneOrEmailVerified::boolean)\nGROUP BY\n    u.id\nHAVING\n    array_agg(roles.name)::text[] @> COALESCE(:hasRoles::text[], ARRAY[]::text[])"};
-
-/**
- * Query generated from SQL:
- * ```
- * SELECT
- *     u.id,
- *     array_agg(roles.name)::text[] AS roles
- * FROM
- *     users u
- *     JOIN users_roles ur ON ur.user_id = u.id
- *     JOIN user_roles roles ON roles.id = ur.role_id
- * WHERE
- *     u.referred_by = :userId!::uuid
- *     AND (:phoneOrEmailVerified::boolean IS NULL
- *         OR u.phone_verified = :phoneOrEmailVerified::boolean
- *         OR u.email_verified = :phoneOrEmailVerified::boolean)
- * GROUP BY
- *     u.id
- * HAVING
- *     array_agg(roles.name)::text[] @> COALESCE(:hasRoles::text[], ARRAY[]::text[])
- * ```
- */
-export const countReferredUsersWithFilter = new PreparedQuery<ICountReferredUsersWithFilterParams,ICountReferredUsersWithFilterResult>(countReferredUsersWithFilterIR);
-
-
 /** 'UpdateUserResetTokenById' parameters type */
 export interface IUpdateUserResetTokenByIdParams {
   token: string;
@@ -565,6 +564,7 @@ export interface IUpdateUserResetTokenByIdParams {
 
 /** 'UpdateUserResetTokenById' return type */
 export interface IUpdateUserResetTokenByIdResult {
+  /** not_pii: Primary key */
   id: string;
 }
 
@@ -601,6 +601,7 @@ export interface IUpdateUserPasswordByIdParams {
 
 /** 'UpdateUserPasswordById' return type */
 export interface IUpdateUserPasswordByIdResult {
+  /** not_pii: Primary key */
   ok: string;
 }
 
@@ -637,6 +638,7 @@ export interface IUpdateUserVerifiedEmailByIdParams {
 
 /** 'UpdateUserVerifiedEmailById' return type */
 export interface IUpdateUserVerifiedEmailByIdResult {
+  /** pii: User email address */
   ok: string;
 }
 
@@ -675,6 +677,7 @@ export interface IUpdateUserVerifiedPhoneByIdParams {
 
 /** 'UpdateUserVerifiedPhoneById' return type */
 export interface IUpdateUserVerifiedPhoneByIdResult {
+  /** pii: Phone number */
   ok: string | null;
 }
 
@@ -713,6 +716,7 @@ export interface IUpdateUserPhoneNumberByUserIdParams {
 
 /** 'UpdateUserPhoneNumberByUserId' return type */
 export interface IUpdateUserPhoneNumberByUserIdResult {
+  /** not_pii: Primary key */
   ok: string;
 }
 
@@ -749,6 +753,7 @@ export interface IUpdateUserLastActivityByIdParams {
 
 /** 'UpdateUserLastActivityById' return type */
 export interface IUpdateUserLastActivityByIdResult {
+  /** not_pii: Primary key */
   ok: string;
 }
 
@@ -786,6 +791,7 @@ export interface IUpdateUserBanByIdParams {
 
 /** 'UpdateUserBanById' return type */
 export interface IUpdateUserBanByIdResult {
+  /** not_pii: Primary key */
   ok: string;
 }
 
@@ -836,9 +842,13 @@ export interface IGetUsersForAdminSearchParams {
 
 /** 'GetUsersForAdminSearch' return type */
 export interface IGetUsersForAdminSearchResult {
+  /** not_pii */
   createdAt: Date;
+  /** pii: User email address */
   email: string;
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
   lastName: string | null;
 }
@@ -904,36 +914,62 @@ export interface IGetUserForAdminDetailParams {
 
 /** 'GetUserForAdminDetail' return type */
 export interface IGetUserForAdminDetailResult {
+  /** not_pii: Type of ban (shadow, complete, live_media) */
   banType: ban_types | null;
+  /** pii: City of residence */
   city: string | null;
+  /** pii: College or university name */
   college: string | null;
+  /** pii: Volunteer employer company name */
   company: string | null;
+  /** pii: Country of residence */
   country: string | null;
+  /** not_pii */
   createdAt: Date;
   currentGrade: string | null;
+  /** pii: User email address */
   email: string;
+  /** not_pii: JSON blob of volunteer professional experience */
   experience: Json | null;
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Whether the volunteer application has been approved */
   isApproved: boolean;
+  /** not_pii: Whether the user account has been deactivated */
   isDeactivated: boolean;
+  /** not_pii: Soft-delete flag */
   isDeleted: boolean | null;
+  /** not_pii: Whether the volunteer has completed all onboarding steps */
   isOnboarded: boolean;
+  /** not_pii: Whether the account is a test or internal account */
   isTestUser: boolean;
+  /** not_pii: Languages the volunteer speaks */
   languages: stringArray | null;
   lastName: string | null;
+  /** pii: Volunteer LinkedIn profile URL */
   linkedinUrl: string | null;
   numPastSessions: string | null;
   occupation: stringArray | null;
+  /** not_pii: Human-readable name */
   partnerSite: string;
+  /** pii: S3 object key for the volunteer photo ID upload */
   photoIdS3Key: string | null;
+  /** not_pii: Human-readable name */
   photoIdStatus: string;
+  /** not_pii: Primary key */
   schoolId: string;
   schoolName: string | null;
+  /** pii: US state abbreviation */
   state: string | null;
+  /** not_pii: Human-readable name */
   studentPartnerOrg: string;
+  /** not_pii: Whether one of the user notification methods has been verified */
   verified: boolean;
+  /** not_pii: Human-readable name of the volunteer partner organization */
   volunteerPartnerOrg: string;
+  /** pii: US postal/ZIP code */
   zipCode: string | null;
 }
 
@@ -943,7 +979,7 @@ export interface IGetUserForAdminDetailQuery {
   result: IGetUserForAdminDetailResult;
 }
 
-const getUserForAdminDetailIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":2446,"b":2453},{"a":2483,"b":2490},{"a":2865,"b":2872},{"a":2956,"b":2963}]}],"statement":"SELECT\n    users.id,\n    users.first_name AS first_name,\n    (\n        CASE WHEN student_profiles.user_id IS NOT NULL THEN\n            NULL\n        ELSE\n            users.last_name\n        END) AS last_name,\n    users.email,\n    users.created_at,\n    users.deactivated AS is_deactivated,\n    users.deleted AS is_deleted,\n    users.test_user AS is_test_user,\n    users.verified,\n    users.ban_type AS ban_type,\n    session_count.total AS num_past_sessions,\n    -- Volunteer specific fields:\n    volunteer_profiles.approved AS is_approved,\n    volunteer_profiles.onboarded AS is_onboarded,\n    volunteer_partner_orgs.name AS volunteer_partner_org,\n    volunteer_profiles.photo_id_s3_key,\n    photo_id_statuses.name AS photo_id_status,\n    volunteer_profiles.country,\n    volunteer_profiles.linkedin_url,\n    volunteer_profiles.college,\n    volunteer_profiles.company,\n    volunteer_profiles.languages,\n    volunteer_profiles.experience,\n    volunteer_profiles.city,\n    volunteer_profiles.state,\n    occupations.occupation,\n    -- Student specific fields:\n    COALESCE(cgl.current_grade_name, grade_levels.name) AS current_grade,\n    student_profiles.postal_code AS zip_code,\n    student_partner_orgs.name AS student_partner_org,\n    student_partner_org_sites.name AS partner_site,\n    -- Student/teacher field:\n    schools.id AS school_id,\n    COALESCE(schools.name, school_nces_metadata.sch_name) AS school_name\nFROM\n    users\n    LEFT JOIN student_profiles ON student_profiles.user_id = users.id\n    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN teacher_profiles ON teacher_profiles.user_id = users.id\n    LEFT JOIN student_partner_orgs ON student_partner_orgs.id = student_profiles.student_partner_org_id\n    LEFT JOIN student_partner_org_sites ON student_partner_org_sites.id = student_profiles.student_partner_org_site_id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\n    LEFT JOIN photo_id_statuses ON photo_id_statuses.id = volunteer_profiles.photo_id_status\n    LEFT JOIN user_product_flags ON user_product_flags.user_id = users.id\n    LEFT JOIN grade_levels ON grade_levels.id = student_profiles.grade_level_id\n    LEFT JOIN current_grade_levels_mview cgl ON cgl.user_id = student_profiles.user_id\n    LEFT JOIN (\n        SELECT\n            COUNT(*) AS total\n        FROM\n            sessions\n        WHERE\n            volunteer_id = :userId!\n            OR student_id = :userId!) AS session_count ON TRUE\n    LEFT JOIN schools ON schools.id = COALESCE(student_profiles.school_id, teacher_profiles.school_id)\n    LEFT JOIN school_nces_metadata ON school_nces_metadata.school_id = schools.id\n    LEFT JOIN (\n        SELECT\n            array_agg(occupation) AS occupation\n        FROM\n            volunteer_occupations\n        WHERE\n            user_id = :userId!\n        GROUP BY\n            user_id) AS occupations ON TRUE\nWHERE\n    users.id = :userId!"};
+const getUserForAdminDetailIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":2331,"b":2338},{"a":2368,"b":2375},{"a":2750,"b":2757},{"a":2841,"b":2848}]}],"statement":"SELECT\n    users.id,\n    users.first_name AS first_name,\n    (\n        CASE WHEN student_profiles.user_id IS NOT NULL THEN\n            NULL\n        ELSE\n            users.last_name\n        END) AS last_name,\n    users.email,\n    users.created_at,\n    users.deactivated AS is_deactivated,\n    users.deleted AS is_deleted,\n    users.test_user AS is_test_user,\n    users.verified,\n    users.ban_type AS ban_type,\n    session_count.total AS num_past_sessions,\n    -- Volunteer specific fields:\n    volunteer_profiles.approved AS is_approved,\n    volunteer_profiles.onboarded AS is_onboarded,\n    volunteer_partner_orgs.name AS volunteer_partner_org,\n    volunteer_profiles.photo_id_s3_key,\n    photo_id_statuses.name AS photo_id_status,\n    volunteer_profiles.country,\n    volunteer_profiles.linkedin_url,\n    volunteer_profiles.college,\n    volunteer_profiles.company,\n    volunteer_profiles.languages,\n    volunteer_profiles.experience,\n    volunteer_profiles.city,\n    volunteer_profiles.state,\n    occupations.occupation,\n    -- Student specific fields:\n    cgl.current_grade_name AS current_grade,\n    student_profiles.postal_code AS zip_code,\n    student_partner_orgs.name AS student_partner_org,\n    student_partner_org_sites.name AS partner_site,\n    -- Student/teacher field:\n    schools.id AS school_id,\n    COALESCE(schools.name, school_nces_metadata.sch_name) AS school_name\nFROM\n    users\n    LEFT JOIN student_profiles ON student_profiles.user_id = users.id\n    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN teacher_profiles ON teacher_profiles.user_id = users.id\n    LEFT JOIN student_partner_orgs ON student_partner_orgs.id = student_profiles.student_partner_org_id\n    LEFT JOIN student_partner_org_sites ON student_partner_org_sites.id = student_profiles.student_partner_org_site_id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\n    LEFT JOIN photo_id_statuses ON photo_id_statuses.id = volunteer_profiles.photo_id_status\n    LEFT JOIN user_product_flags ON user_product_flags.user_id = users.id\n    LEFT JOIN current_grade_levels cgl ON cgl.user_id = student_profiles.user_id\n    LEFT JOIN (\n        SELECT\n            COUNT(*) AS total\n        FROM\n            sessions\n        WHERE\n            volunteer_id = :userId!\n            OR student_id = :userId!) AS session_count ON TRUE\n    LEFT JOIN schools ON schools.id = COALESCE(student_profiles.school_id, teacher_profiles.school_id)\n    LEFT JOIN school_nces_metadata ON school_nces_metadata.school_id = schools.id\n    LEFT JOIN (\n        SELECT\n            array_agg(occupation) AS occupation\n        FROM\n            volunteer_occupations\n        WHERE\n            user_id = :userId!\n        GROUP BY\n            user_id) AS occupations ON TRUE\nWHERE\n    users.id = :userId!"};
 
 /**
  * Query generated from SQL:
@@ -981,7 +1017,7 @@ const getUserForAdminDetailIR: any = {"usedParamSet":{"userId":true},"params":[{
  *     volunteer_profiles.state,
  *     occupations.occupation,
  *     -- Student specific fields:
- *     COALESCE(cgl.current_grade_name, grade_levels.name) AS current_grade,
+ *     cgl.current_grade_name AS current_grade,
  *     student_profiles.postal_code AS zip_code,
  *     student_partner_orgs.name AS student_partner_org,
  *     student_partner_org_sites.name AS partner_site,
@@ -998,8 +1034,7 @@ const getUserForAdminDetailIR: any = {"usedParamSet":{"userId":true},"params":[{
  *     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
  *     LEFT JOIN photo_id_statuses ON photo_id_statuses.id = volunteer_profiles.photo_id_status
  *     LEFT JOIN user_product_flags ON user_product_flags.user_id = users.id
- *     LEFT JOIN grade_levels ON grade_levels.id = student_profiles.grade_level_id
- *     LEFT JOIN current_grade_levels_mview cgl ON cgl.user_id = student_profiles.user_id
+ *     LEFT JOIN current_grade_levels cgl ON cgl.user_id = student_profiles.user_id
  *     LEFT JOIN (
  *         SELECT
  *             COUNT(*) AS total
@@ -1034,55 +1069,93 @@ export interface IGetLegacyUserParams {
 /** 'GetLegacyUser' return type */
 export interface IGetLegacyUserResult {
   activeSubjects: stringArray | null;
+  /** not_pii */
   availabilityLastModifiedAt: Date;
+  /** not_pii: Human-readable name of the ban reason */
   banReason: string;
+  /** not_pii: Type of ban (shadow, complete, live_media) */
   banType: ban_types | null;
+  /** pii: College or university name */
   college: string | null;
+  /** pii: Country of residence */
   country: string | null;
+  /** not_pii */
   createdAt: Date;
   elapsedAvailability: string | null;
+  /** pii: User email address */
   email: string;
+  /** not_pii: Whether the user has verified their email address */
   emailVerified: boolean;
+  /** not_pii: JSON blob of volunteer professional experience */
+  experience: Json | null;
+  /** pii: First name */
   firstname: string;
+  /** pii: First name */
   firstName: string;
   gradeLevel: string | null;
   hoursTutored: number | null;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Whether the volunteer application has been approved */
   isApproved: boolean;
+  /** not_pii: Whether the user account has been deactivated */
   isDeactivated: boolean;
   isFakeUser: boolean | null;
+  /** not_pii: Whether the volunteer has completed all onboarding steps */
   isOnboarded: boolean;
   isSchoolPartner: boolean | null;
   issuers: stringArray | null;
+  /** not_pii: Whether the account is a test or internal account */
   isTestUser: boolean;
   isVolunteer: boolean | null;
+  /** not_pii: Timestamp of the most recent user activity */
   lastActivityAt: Date | null;
+  /** pii: Last name */
   lastName: string;
+  /** not_pii: Timestamp of the most recent successful Clever data sync */
   lastSuccessfulCleverSync: Date | null;
   mutedSubjectAlerts: stringArray | null;
   numberOfStudentClasses: string | null;
   occupation: stringArray | null;
+  /** not_pii: Human-readable name */
   partnerSite: string;
   pastSessions: stringArray | null;
+  /** pii: Phone number */
   phone: string | null;
+  /** not_pii: Whether the user has verified their phone number */
   phoneVerified: boolean;
+  /** not_pii: Human-readable name */
   photoIdStatus: string;
+  /** not_pii: Display name of the user preferred language */
   preferredLanguage: string | null;
+  /** pii: Alternate email */
   proxyEmail: string | null;
+  /** not_pii: Unique code used to refer new users */
   referralCode: string;
+  /** not_pii: Foreign key to upchieve.users who made the referral */
   referredBy: string | null;
+  /** not_pii: Foreign key to a roles lookup table */
   roleId: number;
+  /** not_pii: Human-readable name */
   schoolName: string;
   signupSource: string | null;
+  /** not_pii: Whether the user has consented to receive SMS messages */
   smsConsent: boolean;
+  /** not_pii: Human-readable name */
   studentPartnerOrg: string;
   subjects: stringArray | null;
+  /** pii: IANA timezone identifier */
   timezone: string | null;
   totalQuizzesPassed: number | null;
   totalTimeTutored: number | null;
   totalTutoredSessions: number | null;
+  /** not_pii: Cumulative tutoring hours logged by the volunteer, only calculated for config.customVolunteerPartnerOrgs */
   totalVolunteerHours: number | null;
+  /** not_pii: Languages the volunteer speaks */
+  tutoringLanguages: stringArray | null;
+  /** not_pii: Whether one of the user notification methods has been verified */
   verified: boolean;
+  /** not_pii: Unique URL-safe slug */
   volunteerPartnerOrg: string;
 }
 
@@ -1092,7 +1165,7 @@ export interface IGetLegacyUserQuery {
   result: IGetLegacyUserResult;
 }
 
-const getLegacyUserIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":3121,"b":3128},{"a":3381,"b":3388},{"a":4813,"b":4820},{"a":6092,"b":6099},{"a":6661,"b":6668},{"a":6700,"b":6707},{"a":6871,"b":6878},{"a":7555,"b":7562},{"a":7745,"b":7752},{"a":7969,"b":7976},{"a":8112,"b":8119}]}],"statement":"SELECT\n    users.id,\n    users.first_name,\n    users.last_name,\n    users.created_at,\n    users.email,\n    users.email_verified,\n    users.proxy_email,\n    users.verified,\n    users.first_name AS firstname,\n    users.phone,\n    users.phone_verified,\n    users.sms_consent,\n    volunteer_profiles.college,\n    (\n        CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN\n            TRUE\n        ELSE\n            FALSE\n        END) AS is_volunteer,\n    users.ban_type AS ban_type,\n    ban_reasons.name AS ban_reason,\n    users.test_user AS is_test_user,\n    FALSE AS is_fake_user,\n    users.deactivated AS is_deactivated,\n    users.last_activity_at AS last_activity_at,\n    users.referral_code AS referral_code,\n    users.referred_by AS referred_by,\n    users.preferred_language AS preferred_language,\n    volunteer_profiles.onboarded AS is_onboarded,\n    volunteer_profiles.approved AS is_approved,\n    volunteer_partner_orgs.key AS volunteer_partner_org,\n    volunteer_profiles.country,\n    volunteer_profiles.timezone,\n    photo_id_statuses.name AS photo_id_status,\n    COALESCE(past_sessions.sessions, '{}') AS past_sessions,\n    round(past_sessions.time_tutored / 3600000::numeric, 2)::float AS hours_tutored,\n    COALESCE(past_sessions.time_tutored::float, 0) AS total_time_tutored,\n    COALESCE(array_length(past_sessions.total_tutored_sessions, 1), 0) AS total_tutored_sessions,\n    array_cat(total_subjects.subjects, computed_subjects.subjects) AS subjects,\n    recent_availability.updated_at AS availability_last_modified_at,\n    occupations.occupations AS occupation,\n    student_partner_org_sites.name AS partner_site,\n    student_partner_orgs.name AS student_partner_org,\n    COALESCE(volunteer_profiles.elapsed_availability, 0) AS elapsed_availability,\n    volunteer_profiles.total_volunteer_hours,\n    schools.name AS school_name,\n    (\n        CASE WHEN EXISTS (\n            SELECT\n                1\n            FROM\n                student_partner_orgs\n            LEFT JOIN student_partner_orgs_upchieve_instances spoui ON spoui.student_partner_org_id = student_partner_orgs.id\n        WHERE\n            student_partner_orgs.school_id = COALESCE(student_profiles.school_id, teacher_profiles.school_id)\n            AND spoui.deactivated_on IS NULL) THEN\n            TRUE\n        ELSE\n            FALSE\n        END) AS is_school_partner,\nCOALESCE(cgl.current_grade_name, grade_levels.name) AS grade_level,\narray_cat(total_subjects.active_subjects, computed_subjects.active_subjects) AS active_subjects,\nusers_quizzes.total::int AS total_quizzes_passed,\nusers_roles.role_id,\nmuted_users_subject_alerts_agg.muted_subject_alerts,\nnumber_of_student_classes.count AS number_of_student_classes,\nfederated_credentials_agg.issuers,\nteacher_profiles.last_successful_clever_sync,\nCASE WHEN users.other_signup_source <> ''\n    AND users.other_signup_source IS NOT NULL THEN\n    users.other_signup_source\nELSE\n    signup_sources.name\nEND AS signup_source\nFROM\n    users\n    LEFT JOIN (\n        SELECT\n            updated_at\n        FROM\n            availabilities\n        WHERE\n            availabilities.user_id = :userId!\n        ORDER BY\n            updated_at\n        LIMIT 1) AS recent_availability ON TRUE\n    LEFT JOIN (\n        SELECT\n            array_agg(occupation) AS occupations\n        FROM\n            volunteer_occupations\n        WHERE\n            user_id = :userId!) AS occupations ON TRUE\n    LEFT JOIN student_profiles ON student_profiles.user_id = users.id\n    LEFT JOIN volunteer_profiles ON users.id = volunteer_profiles.user_id\n    LEFT JOIN teacher_profiles ON users.id = teacher_profiles.user_id\n    LEFT JOIN photo_id_statuses ON photo_id_statuses.id = volunteer_profiles.photo_id_status\n    LEFT JOIN volunteer_partner_orgs ON volunteer_profiles.volunteer_partner_org_id = volunteer_partner_orgs.id\n    LEFT JOIN ban_reasons ON users.ban_reason_id = ban_reasons.id\n    LEFT JOIN student_partner_orgs ON student_partner_orgs.id = student_profiles.student_partner_org_id\n    LEFT JOIN student_partner_org_sites ON student_partner_org_sites.id = student_profiles.student_partner_org_site_id\n    LEFT JOIN (\n        SELECT\n            array_agg(DISTINCT subjects_unlocked.subject) AS subjects,\n            array_agg(DISTINCT subjects_unlocked.subject) FILTER (WHERE subjects_unlocked.active_subject IS TRUE) AS active_subjects\n        FROM (\n            SELECT\n                subjects.name AS subject,\n                COUNT(*)::int AS earned_certs,\n                subjects.active AS active_subject\n            FROM\n                users_certifications\n                JOIN certification_subject_unlocks USING (certification_id)\n                JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id\n            WHERE\n                users_certifications.user_id = :userId!\n            GROUP BY\n                subjects.name, subjects.active) AS subjects_unlocked) AS total_subjects ON TRUE\n    LEFT JOIN (\n        SELECT\n            array_agg(DISTINCT computed_subjects_unlocked.subject) AS subjects,\n            array_agg(DISTINCT computed_subjects_unlocked.subject) FILTER (WHERE computed_subjects_unlocked.active_subject IS TRUE) AS active_subjects\n        FROM (\n            SELECT\n                subjects.name AS subject,\n                COUNT(*)::int AS earned_certs,\n                subject_certs.total,\n                subjects.active AS active_subject\n            FROM\n                users_certifications\n                JOIN computed_subject_unlocks USING (certification_id)\n                JOIN subjects ON computed_subject_unlocks.subject_id = subjects.id\n                JOIN (\n                    SELECT\n                        subjects.name, COUNT(*)::int AS total\n                    FROM\n                        computed_subject_unlocks\n                        JOIN subjects ON subjects.id = computed_subject_unlocks.subject_id\n                    GROUP BY\n                        subjects.name) AS subject_certs ON subject_certs.name = subjects.name\n                WHERE\n                    users_certifications.user_id = :userId!\n                GROUP BY\n                    subjects.name,\n                    subject_certs.total,\n                    subjects.active\n                HAVING\n                    COUNT(*)::int >= subject_certs.total) AS computed_subjects_unlocked) AS computed_subjects ON TRUE\n    LEFT JOIN (\n        SELECT\n            array_agg(id) AS sessions,\n            sum(time_tutored)::bigint AS time_tutored,\n            array_agg(id) FILTER (WHERE time_tutored > 0) AS total_tutored_sessions\n        FROM\n            sessions\n        WHERE\n            student_id = :userId!\n            OR volunteer_id = :userId!) AS past_sessions ON TRUE\n    LEFT JOIN (\n        SELECT\n            count(*) AS total\n        FROM\n            users_quizzes\n        WHERE\n            user_id = :userId!\n            AND passed IS TRUE) AS users_quizzes ON TRUE\n    LEFT JOIN schools ON schools.id = COALESCE(student_profiles.school_id, teacher_profiles.school_id)\n    LEFT JOIN grade_levels ON student_profiles.grade_level_id = grade_levels.id\n    LEFT JOIN current_grade_levels_mview cgl ON cgl.user_id = student_profiles.user_id\n    LEFT JOIN users_roles ON users_roles.user_id = users.id\n    LEFT JOIN (\n        SELECT\n            array_agg(subjects.name) AS muted_subject_alerts\n        FROM\n            muted_users_subject_alerts\n            JOIN subjects ON muted_users_subject_alerts.subject_id = subjects.id\n        WHERE\n            muted_users_subject_alerts.user_id = :userId!) AS muted_users_subject_alerts_agg ON TRUE\n    LEFT JOIN (\n        SELECT\n            COUNT(*) AS count\n        FROM\n            student_classes\n        WHERE\n            user_id = :userId!) AS number_of_student_classes ON TRUE\n    LEFT JOIN (\n        SELECT\n            array_agg(issuer) AS issuers\n        FROM\n            federated_credentials\n        WHERE\n            federated_credentials.user_id = :userId!) AS federated_credentials_agg ON TRUE\n    LEFT JOIN signup_sources ON signup_sources.id = users.signup_source_id\nWHERE\n    users.id = :userId!\n    AND users.deleted IS FALSE"};
+const getLegacyUserIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":3243,"b":3250},{"a":3503,"b":3510},{"a":4935,"b":4942},{"a":6214,"b":6221},{"a":6783,"b":6790},{"a":6822,"b":6829},{"a":6993,"b":7000},{"a":7575,"b":7582},{"a":7765,"b":7772},{"a":7989,"b":7996},{"a":8132,"b":8139}]}],"statement":"SELECT\n    users.id,\n    users.first_name,\n    users.last_name,\n    users.created_at,\n    users.email,\n    users.email_verified,\n    users.proxy_email,\n    users.verified,\n    users.first_name AS firstname,\n    users.phone,\n    users.phone_verified,\n    users.sms_consent,\n    volunteer_profiles.college,\n    (\n        CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN\n            TRUE\n        ELSE\n            FALSE\n        END) AS is_volunteer,\n    users.ban_type AS ban_type,\n    ban_reasons.name AS ban_reason,\n    users.test_user AS is_test_user,\n    FALSE AS is_fake_user,\n    users.deactivated AS is_deactivated,\n    users.last_activity_at AS last_activity_at,\n    users.referral_code AS referral_code,\n    referrals.referred_by AS referred_by,\n    users.preferred_language AS preferred_language,\n    volunteer_profiles.languages AS tutoring_languages,\n    volunteer_profiles.experience,\n    volunteer_profiles.onboarded AS is_onboarded,\n    volunteer_profiles.approved AS is_approved,\n    volunteer_partner_orgs.key AS volunteer_partner_org,\n    volunteer_profiles.country,\n    volunteer_profiles.timezone,\n    photo_id_statuses.name AS photo_id_status,\n    COALESCE(past_sessions.sessions, '{}') AS past_sessions,\n    round(past_sessions.time_tutored / 3600000::numeric, 2)::float AS hours_tutored,\n    COALESCE(past_sessions.time_tutored::float, 0) AS total_time_tutored,\n    COALESCE(array_length(past_sessions.total_tutored_sessions, 1), 0) AS total_tutored_sessions,\n    array_cat(total_subjects.subjects, computed_subjects.subjects) AS subjects,\n    recent_availability.updated_at AS availability_last_modified_at,\n    occupations.occupations AS occupation,\n    student_partner_org_sites.name AS partner_site,\n    student_partner_orgs.name AS student_partner_org,\n    COALESCE(volunteer_profiles.elapsed_availability, 0) AS elapsed_availability,\n    volunteer_profiles.total_volunteer_hours,\n    schools.name AS school_name,\n    (\n        CASE WHEN EXISTS (\n            SELECT\n                1\n            FROM\n                student_partner_orgs\n            LEFT JOIN student_partner_orgs_upchieve_instances spoui ON spoui.student_partner_org_id = student_partner_orgs.id\n        WHERE\n            student_partner_orgs.school_id = COALESCE(student_profiles.school_id, teacher_profiles.school_id)\n            AND spoui.deactivated_on IS NULL) THEN\n            TRUE\n        ELSE\n            FALSE\n        END) AS is_school_partner,\ncgl.current_grade_name AS grade_level,\narray_cat(total_subjects.active_subjects, computed_subjects.active_subjects) AS active_subjects,\nusers_quizzes.total::int AS total_quizzes_passed,\nusers_roles.role_id,\nmuted_users_subject_alerts_agg.muted_subject_alerts,\nnumber_of_student_classes.count AS number_of_student_classes,\nfederated_credentials_agg.issuers,\nteacher_profiles.last_successful_clever_sync,\nCASE WHEN users.other_signup_source <> ''\n    AND users.other_signup_source IS NOT NULL THEN\n    users.other_signup_source\nELSE\n    signup_sources.name\nEND AS signup_source\nFROM\n    users\n    LEFT JOIN referrals ON users.id = referrals.user_id\n    LEFT JOIN (\n        SELECT\n            updated_at\n        FROM\n            availabilities\n        WHERE\n            availabilities.user_id = :userId!\n        ORDER BY\n            updated_at\n        LIMIT 1) AS recent_availability ON TRUE\n    LEFT JOIN (\n        SELECT\n            array_agg(occupation) AS occupations\n        FROM\n            volunteer_occupations\n        WHERE\n            user_id = :userId!) AS occupations ON TRUE\n    LEFT JOIN student_profiles ON student_profiles.user_id = users.id\n    LEFT JOIN volunteer_profiles ON users.id = volunteer_profiles.user_id\n    LEFT JOIN teacher_profiles ON users.id = teacher_profiles.user_id\n    LEFT JOIN photo_id_statuses ON photo_id_statuses.id = volunteer_profiles.photo_id_status\n    LEFT JOIN volunteer_partner_orgs ON volunteer_profiles.volunteer_partner_org_id = volunteer_partner_orgs.id\n    LEFT JOIN ban_reasons ON users.ban_reason_id = ban_reasons.id\n    LEFT JOIN student_partner_orgs ON student_partner_orgs.id = student_profiles.student_partner_org_id\n    LEFT JOIN student_partner_org_sites ON student_partner_org_sites.id = student_profiles.student_partner_org_site_id\n    LEFT JOIN (\n        SELECT\n            array_agg(DISTINCT subjects_unlocked.subject) AS subjects,\n            array_agg(DISTINCT subjects_unlocked.subject) FILTER (WHERE subjects_unlocked.active_subject IS TRUE) AS active_subjects\n        FROM (\n            SELECT\n                subjects.name AS subject,\n                COUNT(*)::int AS earned_certs,\n                subjects.active AS active_subject\n            FROM\n                users_certifications\n                JOIN certification_subject_unlocks USING (certification_id)\n                JOIN subjects ON certification_subject_unlocks.subject_id = subjects.id\n            WHERE\n                users_certifications.user_id = :userId!\n            GROUP BY\n                subjects.name, subjects.active) AS subjects_unlocked) AS total_subjects ON TRUE\n    LEFT JOIN (\n        SELECT\n            array_agg(DISTINCT computed_subjects_unlocked.subject) AS subjects,\n            array_agg(DISTINCT computed_subjects_unlocked.subject) FILTER (WHERE computed_subjects_unlocked.active_subject IS TRUE) AS active_subjects\n        FROM (\n            SELECT\n                subjects.name AS subject,\n                COUNT(*)::int AS earned_certs,\n                subject_certs.total,\n                subjects.active AS active_subject\n            FROM\n                users_certifications\n                JOIN computed_subject_unlocks USING (certification_id)\n                JOIN subjects ON computed_subject_unlocks.subject_id = subjects.id\n                JOIN (\n                    SELECT\n                        subjects.name, COUNT(*)::int AS total\n                    FROM\n                        computed_subject_unlocks\n                        JOIN subjects ON subjects.id = computed_subject_unlocks.subject_id\n                    GROUP BY\n                        subjects.name) AS subject_certs ON subject_certs.name = subjects.name\n                WHERE\n                    users_certifications.user_id = :userId!\n                GROUP BY\n                    subjects.name,\n                    subject_certs.total,\n                    subjects.active\n                HAVING\n                    COUNT(*)::int >= subject_certs.total) AS computed_subjects_unlocked) AS computed_subjects ON TRUE\n    LEFT JOIN (\n        SELECT\n            array_agg(id) AS sessions,\n            sum(time_tutored)::bigint AS time_tutored,\n            array_agg(id) FILTER (WHERE time_tutored > 0) AS total_tutored_sessions\n        FROM\n            sessions\n        WHERE\n            student_id = :userId!\n            OR volunteer_id = :userId!) AS past_sessions ON TRUE\n    LEFT JOIN (\n        SELECT\n            count(*) AS total\n        FROM\n            users_quizzes\n        WHERE\n            user_id = :userId!\n            AND passed IS TRUE) AS users_quizzes ON TRUE\n    LEFT JOIN schools ON schools.id = COALESCE(student_profiles.school_id, teacher_profiles.school_id)\n    LEFT JOIN current_grade_levels cgl ON cgl.user_id = users.id\n    LEFT JOIN users_roles ON users_roles.user_id = users.id\n    LEFT JOIN (\n        SELECT\n            array_agg(subjects.name) AS muted_subject_alerts\n        FROM\n            muted_users_subject_alerts\n            JOIN subjects ON muted_users_subject_alerts.subject_id = subjects.id\n        WHERE\n            muted_users_subject_alerts.user_id = :userId!) AS muted_users_subject_alerts_agg ON TRUE\n    LEFT JOIN (\n        SELECT\n            COUNT(*) AS count\n        FROM\n            student_classes\n        WHERE\n            user_id = :userId!) AS number_of_student_classes ON TRUE\n    LEFT JOIN (\n        SELECT\n            array_agg(issuer) AS issuers\n        FROM\n            federated_credentials\n        WHERE\n            federated_credentials.user_id = :userId!) AS federated_credentials_agg ON TRUE\n    LEFT JOIN signup_sources ON signup_sources.id = users.signup_source_id\nWHERE\n    users.id = :userId!\n    AND users.deleted IS FALSE"};
 
 /**
  * Query generated from SQL:
@@ -1124,8 +1197,10 @@ const getLegacyUserIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"
  *     users.deactivated AS is_deactivated,
  *     users.last_activity_at AS last_activity_at,
  *     users.referral_code AS referral_code,
- *     users.referred_by AS referred_by,
+ *     referrals.referred_by AS referred_by,
  *     users.preferred_language AS preferred_language,
+ *     volunteer_profiles.languages AS tutoring_languages,
+ *     volunteer_profiles.experience,
  *     volunteer_profiles.onboarded AS is_onboarded,
  *     volunteer_profiles.approved AS is_approved,
  *     volunteer_partner_orgs.key AS volunteer_partner_org,
@@ -1158,7 +1233,7 @@ const getLegacyUserIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"
  *         ELSE
  *             FALSE
  *         END) AS is_school_partner,
- * COALESCE(cgl.current_grade_name, grade_levels.name) AS grade_level,
+ * cgl.current_grade_name AS grade_level,
  * array_cat(total_subjects.active_subjects, computed_subjects.active_subjects) AS active_subjects,
  * users_quizzes.total::int AS total_quizzes_passed,
  * users_roles.role_id,
@@ -1174,6 +1249,7 @@ const getLegacyUserIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"
  * END AS signup_source
  * FROM
  *     users
+ *     LEFT JOIN referrals ON users.id = referrals.user_id
  *     LEFT JOIN (
  *         SELECT
  *             updated_at
@@ -1265,8 +1341,7 @@ const getLegacyUserIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"
  *             user_id = :userId!
  *             AND passed IS TRUE) AS users_quizzes ON TRUE
  *     LEFT JOIN schools ON schools.id = COALESCE(student_profiles.school_id, teacher_profiles.school_id)
- *     LEFT JOIN grade_levels ON student_profiles.grade_level_id = grade_levels.id
- *     LEFT JOIN current_grade_levels_mview cgl ON cgl.user_id = student_profiles.user_id
+ *     LEFT JOIN current_grade_levels cgl ON cgl.user_id = users.id
  *     LEFT JOIN users_roles ON users_roles.user_id = users.id
  *     LEFT JOIN (
  *         SELECT
@@ -1306,21 +1381,35 @@ export interface IGetUserToCreateSendGridContactParams {
 
 /** 'GetUserToCreateSendGridContact' return type */
 export interface IGetUserToCreateSendGridContactResult {
+  /** not_pii: Type of ban (shadow, complete, live_media) */
   banType: ban_types | null;
+  /** not_pii */
   createdAt: Date;
+  /** pii: User email address */
   email: string;
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
   isVolunteer: boolean | null;
+  /** not_pii: Timestamp of the most recent user activity */
   lastActivityAt: Date | null;
+  /** pii: Last name */
   lastName: string;
+  /** not_pii: Whether the user has verified their phone number */
   phoneVerified: boolean;
+  /** not_pii: Whether the user has consented to receive SMS messages */
   smsConsent: boolean;
   studentGradeLevel: string | null;
+  /** not_pii: Unique URL-safe slug */
   studentPartnerOrg: string;
+  /** not_pii: Human-readable name */
   studentPartnerOrgDisplay: string;
+  /** not_pii: Whether the account is a test or internal account */
   testUser: boolean;
+  /** not_pii: Unique URL-safe slug */
   volunteerPartnerOrg: string;
+  /** not_pii: Human-readable name of the volunteer partner organization */
   volunteerPartnerOrgDisplay: string;
 }
 
@@ -1330,7 +1419,7 @@ export interface IGetUserToCreateSendGridContactQuery {
   result: IGetUserToCreateSendGridContactResult;
 }
 
-const getUserToCreateSendGridContactIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":1217,"b":1224}]}],"statement":"SELECT\n    users.id,\n    first_name,\n    email,\n    sms_consent,\n    phone_verified,\n    ban_type,\n    (\n        CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN\n            TRUE\n        ELSE\n            FALSE\n        END) AS is_volunteer,\n    volunteer_partner_orgs.key AS volunteer_partner_org,\n    volunteer_partner_orgs.name AS volunteer_partner_org_display,\n    student_partner_orgs.key AS student_partner_org,\n    student_partner_orgs.name AS student_partner_org_display,\n    users.last_activity_at,\n    users.created_at,\n    users.test_user,\n    users.last_name,\n    COALESCE(cgl.current_grade_name, grade_levels.name) AS student_grade_level\nFROM\n    users\n    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\n    LEFT JOIN student_profiles ON student_profiles.user_id = users.id\n    LEFT JOIN student_partner_orgs ON student_partner_orgs.id = student_profiles.student_partner_org_id\n    LEFT JOIN grade_levels ON student_profiles.grade_level_id = grade_levels.id\n    LEFT JOIN current_grade_levels_mview cgl ON student_profiles.user_id = cgl.user_id\nWHERE\n    users.id = :userId!\n    AND users.deactivated IS FALSE\n    AND users.deleted IS FALSE\nLIMIT 1"};
+const getUserToCreateSendGridContactIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":1102,"b":1109}]}],"statement":"SELECT\n    users.id,\n    first_name,\n    email,\n    sms_consent,\n    phone_verified,\n    ban_type,\n    (\n        CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN\n            TRUE\n        ELSE\n            FALSE\n        END) AS is_volunteer,\n    volunteer_partner_orgs.key AS volunteer_partner_org,\n    volunteer_partner_orgs.name AS volunteer_partner_org_display,\n    student_partner_orgs.key AS student_partner_org,\n    student_partner_orgs.name AS student_partner_org_display,\n    users.last_activity_at,\n    users.created_at,\n    users.test_user,\n    users.last_name,\n    cgl.current_grade_name AS student_grade_level\nFROM\n    users\n    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\n    LEFT JOIN student_profiles ON student_profiles.user_id = users.id\n    LEFT JOIN student_partner_orgs ON student_partner_orgs.id = student_profiles.student_partner_org_id\n    LEFT JOIN current_grade_levels cgl ON student_profiles.user_id = cgl.user_id\nWHERE\n    users.id = :userId!\n    AND users.deactivated IS FALSE\n    AND users.deleted IS FALSE\nLIMIT 1"};
 
 /**
  * Query generated from SQL:
@@ -1356,15 +1445,14 @@ const getUserToCreateSendGridContactIR: any = {"usedParamSet":{"userId":true},"p
  *     users.created_at,
  *     users.test_user,
  *     users.last_name,
- *     COALESCE(cgl.current_grade_name, grade_levels.name) AS student_grade_level
+ *     cgl.current_grade_name AS student_grade_level
  * FROM
  *     users
  *     LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
  *     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
  *     LEFT JOIN student_profiles ON student_profiles.user_id = users.id
  *     LEFT JOIN student_partner_orgs ON student_partner_orgs.id = student_profiles.student_partner_org_id
- *     LEFT JOIN grade_levels ON student_profiles.grade_level_id = grade_levels.id
- *     LEFT JOIN current_grade_levels_mview cgl ON student_profiles.user_id = cgl.user_id
+ *     LEFT JOIN current_grade_levels cgl ON student_profiles.user_id = cgl.user_id
  * WHERE
  *     users.id = :userId!
  *     AND users.deactivated IS FALSE
@@ -1384,16 +1472,26 @@ export interface IGetPastSessionsForAdminDetailParams {
 
 /** 'GetPastSessionsForAdminDetail' return type */
 export interface IGetPastSessionsForAdminDetailResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Timestamp when the session ended */
   endedAt: Date | null;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Foreign key to upchieve.users (the student) */
   student: string;
+  /** pii: First name */
   studentFirstName: string;
+  /** not_pii: Human-readable name */
   subTopic: string;
   totalMessages: number | null;
+  /** not_pii: Human-readable name */
   type: string;
+  /** not_pii: Foreign key to upchieve.users (the volunteer) */
   volunteer: string | null;
+  /** pii: First name */
   volunteerFirstName: string;
+  /** not_pii: Timestamp when the volunteer joined the session */
   volunteerJoinedAt: Date | null;
 }
 
@@ -1449,6 +1547,7 @@ export type IGetLegacyCertificationsParams = void;
 
 /** 'GetLegacyCertifications' return type */
 export interface IGetLegacyCertificationsResult {
+  /** not_pii: Human-readable name */
   name: string;
 }
 
@@ -1513,6 +1612,7 @@ export interface IInsertUserRoleByUserIdParams {
 
 /** 'InsertUserRoleByUserId' return type */
 export interface IInsertUserRoleByUserIdResult {
+  /** not_pii: Foreign key to upchieve.users */
   ok: string;
 }
 
@@ -1562,6 +1662,7 @@ export interface IUpdateUserProfileByIdParams {
 
 /** 'UpdateUserProfileById' return type */
 export interface IUpdateUserProfileByIdResult {
+  /** not_pii: Primary key */
   ok: string;
 }
 
@@ -1633,6 +1734,7 @@ export interface IDeletePhoneParams {
 
 /** 'DeletePhone' return type */
 export interface IDeletePhoneResult {
+  /** not_pii: Primary key */
   ok: string;
 }
 
@@ -1672,6 +1774,7 @@ export interface IInsertMutedUserSubjectAlertsParams {
 
 /** 'InsertMutedUserSubjectAlerts' return type */
 export interface IInsertMutedUserSubjectAlertsResult {
+  /** not_pii: Foreign key to upchieve.users */
   ok: string;
 }
 
@@ -1705,6 +1808,7 @@ export interface IDeleteAllUserSubjectAlertsParams {
 
 /** 'DeleteAllUserSubjectAlerts' return type */
 export interface IDeleteAllUserSubjectAlertsResult {
+  /** not_pii: Foreign key to upchieve.users */
   ok: string;
 }
 
@@ -1735,8 +1839,11 @@ export interface IGetUserVerificationInfoByIdParams {
 
 /** 'GetUserVerificationInfoById' return type */
 export interface IGetUserVerificationInfoByIdResult {
+  /** not_pii: Whether the user has verified their email address */
   emailVerified: boolean;
+  /** not_pii: Whether the user has verified their phone number */
   phoneVerified: boolean;
+  /** not_pii: Whether one of the user notification methods has been verified */
   verified: boolean;
 }
 
@@ -1771,16 +1878,26 @@ export interface IGetReportedUserParams {
 
 /** 'GetReportedUser' return type */
 export interface IGetReportedUserResult {
+  /** not_pii: Type of ban (shadow, complete, live_media) */
   banType: ban_types | null;
+  /** not_pii */
   createdAt: Date;
+  /** pii: User email address */
   email: string;
+  /** pii: First name */
   firstName: string;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Whether the user account has been deactivated */
   isDeactivated: boolean;
+  /** not_pii: Whether the account is a test or internal account */
   isTestUser: boolean;
   isVolunteer: boolean | null;
+  /** pii: Last name */
   lastName: string;
+  /** not_pii: Unique URL-safe slug */
   studentPartnerOrg: string;
+  /** not_pii: Unique URL-safe slug */
   volunteerPartnerOrg: string;
 }
 
@@ -1835,6 +1952,7 @@ export interface IGetUsersLatestSubjectsByUserIdParams {
 
 /** 'GetUsersLatestSubjectsByUserId' return type */
 export interface IGetUsersLatestSubjectsByUserIdResult {
+  /** not_pii: Human-readable name */
   subject: string;
 }
 
@@ -1879,6 +1997,7 @@ export interface IUpdateUserProxyEmailParams {
 
 /** 'UpdateUserProxyEmail' return type */
 export interface IUpdateUserProxyEmailResult {
+  /** not_pii: Primary key */
   ok: string;
 }
 
@@ -1963,6 +2082,7 @@ export interface IUpdatePreferredLanguageToUserParams {
 
 /** 'UpdatePreferredLanguageToUser' return type */
 export interface IUpdatePreferredLanguageToUserResult {
+  /** not_pii: Primary key */
   ok: string;
 }
 
@@ -2029,6 +2149,7 @@ export interface IGetFavoriteVolunteersByUserIdParams {
 
 /** 'GetFavoriteVolunteersByUserId' return type */
 export interface IGetFavoriteVolunteersByUserIdResult {
+  /** not_pii: Foreign key to upchieve.users (the volunteer) */
   volunteerId: string;
 }
 
@@ -2089,9 +2210,13 @@ export type IDeleteProxyEmailsIdenticalToEmailsParams = void;
 
 /** 'DeleteProxyEmailsIdenticalToEmails' return type */
 export interface IDeleteProxyEmailsIdenticalToEmailsResult {
+  /** pii: User email address */
   email: string;
+  /** not_pii: Primary key */
   id: string;
+  /** pii: Alternate email */
   proxyEmail: string | null;
+  /** not_pii */
   updatedAt: Date;
 }
 
