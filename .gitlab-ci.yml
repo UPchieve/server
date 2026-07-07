@@ -269,6 +269,27 @@ lint:
 lint_sql:
   stage: test
   extends: .node_setup
+  variables:
+    GIT_STRATEGY: fetch
+    GIT_DEPTH: 50
+  before_script:
+    - !reference [.node_setup, before_script]
+    - |
+      if [ "$CI_PIPELINE_SOURCE" = 'merge_request_event' ]; then
+        git fetch origin "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME" --depth=50
+        export CHECK_SQL_BASE_REF="origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME"
+      else
+        # Default-branch push: lint what this push added ($CI_COMMIT_BEFORE_SHA..HEAD).
+        # All-zeros is git's "no previous commit" sentinel (first push to the branch),
+        # so there's nothing to diff against.
+        if [ -z "$CI_COMMIT_BEFORE_SHA" ] || [ "$CI_COMMIT_BEFORE_SHA" = "0000000000000000000000000000000000000000" ]; then
+          echo "No previous commit on $CI_COMMIT_BRANCH to diff against; nothing to lint."
+          export CHECK_SQL_BASE_REF=""
+        else
+          git fetch origin "$CI_DEFAULT_BRANCH" --depth=50
+          export CHECK_SQL_BASE_REF="$CI_COMMIT_BEFORE_SHA"
+        fi
+      fi
   script:
     - pnpm run lint:sql:check
   rules:
