@@ -10,10 +10,15 @@ export interface IGetTutorBotConversationByIdParams {
 
 /** 'GetTutorBotConversationById' return type */
 export interface IGetTutorBotConversationByIdResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Foreign key to upchieve.sessions */
   sessionId: string | null;
+  /** not_pii: Foreign key to upchieve.subjects */
   subjectId: number;
+  /** not_pii: Foreign key to upchieve.users */
   userId: string;
 }
 
@@ -50,10 +55,15 @@ export interface IGetTutorBotConversationBySessionIdParams {
 
 /** 'GetTutorBotConversationBySessionId' return type */
 export interface IGetTutorBotConversationBySessionIdResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Foreign key to upchieve.sessions */
   sessionId: string | null;
+  /** not_pii: Foreign key to upchieve.subjects */
   subjectId: number;
+  /** not_pii: Foreign key to upchieve.users */
   userId: string;
 }
 
@@ -90,10 +100,15 @@ export interface IGetTutorBotConversationMessagesByIdParams {
 
 /** 'GetTutorBotConversationMessagesById' return type */
 export interface IGetTutorBotConversationMessagesByIdResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Message text content */
   message: string;
+  /** not_pii: Role of the message sender (student, bot, or volunteer) */
   senderUserType: tutor_bot_conversation_user_type;
+  /** not_pii: Foreign key to upchieve.tutor_bot_conversations */
   tutorBotConversationId: string;
+  /** not_pii: Foreign key to upchieve.users */
   userId: string;
 }
 
@@ -135,6 +150,7 @@ export interface IInsertTutorBotConversationParams {
 
 /** 'InsertTutorBotConversation' return type */
 export interface IInsertTutorBotConversationResult {
+  /** not_pii: Primary key */
   id: string;
 }
 
@@ -168,10 +184,15 @@ export interface IInsertTutorBotConversationMessageParams {
 
 /** 'InsertTutorBotConversationMessage' return type */
 export interface IInsertTutorBotConversationMessageResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Message text content */
   message: string;
+  /** not_pii: Role of the message sender (student, bot, or volunteer) */
   senderUserType: tutor_bot_conversation_user_type;
+  /** not_pii: Foreign key to upchieve.tutor_bot_conversations */
   tutorBotConversationId: string;
+  /** not_pii: Foreign key to upchieve.users */
   userId: string;
 }
 
@@ -193,5 +214,38 @@ const insertTutorBotConversationMessageIR: any = {"usedParamSet":{"conversationI
  * ```
  */
 export const insertTutorBotConversationMessage = new PreparedQuery<IInsertTutorBotConversationMessageParams,IInsertTutorBotConversationMessageResult>(insertTutorBotConversationMessageIR);
+
+
+/** 'UpdateTutorBotConversationSessionId' parameters type */
+export interface IUpdateTutorBotConversationSessionIdParams {
+  conversationId: string;
+  sessionId: string;
+}
+
+/** 'UpdateTutorBotConversationSessionId' return type */
+export type IUpdateTutorBotConversationSessionIdResult = void;
+
+/** 'UpdateTutorBotConversationSessionId' query type */
+export interface IUpdateTutorBotConversationSessionIdQuery {
+  params: IUpdateTutorBotConversationSessionIdParams;
+  result: IUpdateTutorBotConversationSessionIdResult;
+}
+
+const updateTutorBotConversationSessionIdIR: any = {"usedParamSet":{"sessionId":true,"conversationId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":56,"b":66}]},{"name":"conversationId","required":true,"transform":{"type":"scalar"},"locs":[{"a":107,"b":122}]}],"statement":"UPDATE\n    tutor_bot_conversations\nSET\n    session_id = :sessionId!,\n    updated_at = NOW()\nWHERE\n    id = :conversationId!::uuid\n    AND session_id IS NULL"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE
+ *     tutor_bot_conversations
+ * SET
+ *     session_id = :sessionId!,
+ *     updated_at = NOW()
+ * WHERE
+ *     id = :conversationId!::uuid
+ *     AND session_id IS NULL
+ * ```
+ */
+export const updateTutorBotConversationSessionId = new PreparedQuery<IUpdateTutorBotConversationSessionIdParams,IUpdateTutorBotConversationSessionIdResult>(updateTutorBotConversationSessionIdIR);
 
 

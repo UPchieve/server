@@ -8,12 +8,19 @@ export interface IGetSessionMeetingBySessionIdParams {
 
 /** 'GetSessionMeetingBySessionId' return type */
 export interface IGetSessionMeetingBySessionIdResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: External meeting provider identifier */
   externalId: string;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Audio/screenshare meeting provider name */
   provider: string;
+  /** not_pii: External identifier for the meeting recording */
   recordingId: string | null;
+  /** not_pii: Foreign key to upchieve.sessions */
   sessionId: string;
+  /** not_pii */
   updatedAt: Date;
 }
 
@@ -49,12 +56,19 @@ export interface IInsertSessionMeetingParams {
 
 /** 'InsertSessionMeeting' return type */
 export interface IInsertSessionMeetingResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: External meeting provider identifier */
   externalId: string;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Audio/screenshare meeting provider name */
   provider: string;
+  /** not_pii: External identifier for the meeting recording */
   recordingId: string | null;
+  /** not_pii: Foreign key to upchieve.sessions */
   sessionId: string;
+  /** not_pii */
   updatedAt: Date;
 }
 
@@ -86,12 +100,19 @@ export interface IAddRecordingIdToSessionMeetingParams {
 
 /** 'AddRecordingIdToSessionMeeting' return type */
 export interface IAddRecordingIdToSessionMeetingResult {
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: External meeting provider identifier */
   externalId: string;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Audio/screenshare meeting provider name */
   provider: string;
+  /** not_pii: External identifier for the meeting recording */
   recordingId: string | null;
+  /** not_pii: Foreign key to upchieve.sessions */
   sessionId: string;
+  /** not_pii */
   updatedAt: Date;
 }
 

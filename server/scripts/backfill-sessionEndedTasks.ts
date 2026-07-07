@@ -14,13 +14,13 @@ export default async function (jobData: Job<BackFillSessionEndedData>) {
     await QueueService.add(
       Jobs.ProcessSessionEnded,
       {
-        sessionId,
-      },
-      {
+        delay: minutesInMs((idx % 5) + 3),
         removeOnComplete: false,
         removeOnFail: false,
-        delay: minutesInMs((idx % 5) + 3),
         priority: 3,
+      },
+      {
+        sessionId,
       }
     )
     logger.info(`Queued ${sessionId} for session end tasks`)

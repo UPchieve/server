@@ -29,9 +29,10 @@ import { routeVoiceMessages } from './voice-messages'
 import { routeTutorBot } from './tutor-bot'
 import { routeAssignments } from './assignments'
 import { routeRewards } from './rewards'
-import { sendTextMessage } from '../../services/TwilioService'
+import { sendTextMessage } from '../../clients/twilio'
 import { asString } from '../../utils/type-utils'
 import { routeNTHSGroups } from './nths-groups'
+import { routeTotp } from './totp'
 import type { SendReferralLinkResponse } from '../../contracts/referral'
 
 export function routes(app: Express, io: Server): void {
@@ -60,6 +61,7 @@ export function routes(app: Express, io: Server): void {
   routeAssignments(router)
   routeRewards(router)
   routeNTHSGroups(router)
+  routeTotp(router)
 
   router.post(
     '/send-referral-email',

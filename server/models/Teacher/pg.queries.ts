@@ -40,13 +40,21 @@ export interface ICreateTeacherClassParams {
 
 /** 'CreateTeacherClass' return type */
 export interface ICreateTeacherClassResult {
+  /** not_pii: Clever LMS class identifier */
   cleverId: string | null;
+  /** not_pii: Student-facing join code for the teacher class */
   code: string;
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Name of the teacher class */
   name: string;
+  /** not_pii: Foreign key to upchieve.topics */
   topicId: number | null;
+  /** not_pii */
   updatedAt: Date;
+  /** not_pii: Foreign key to upchieve.users */
   userId: string | null;
 }
 
@@ -77,9 +85,13 @@ export interface IGetTeacherByIdParams {
 
 /** 'GetTeacherById' return type */
 export interface IGetTeacherByIdResult {
+  /** not_pii */
   createdAt: Date;
+  /** pii: Foreign key to upchieve.schools */
   schoolId: string | null;
+  /** not_pii */
   updatedAt: Date;
+  /** not_pii: Foreign key to upchieve.users */
   userId: string;
 }
 
@@ -115,16 +127,26 @@ export interface IGetTeacherClassesByUserIdParams {
 
 /** 'GetTeacherClassesByUserId' return type */
 export interface IGetTeacherClassesByUserIdResult {
+  /** not_pii: Whether the class is currently active */
   active: boolean;
+  /** not_pii: Clever LMS class identifier */
   cleverId: string | null;
+  /** not_pii: Student-facing join code for the teacher class */
   code: string;
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Date when the association was deactivated */
   deactivatedOn: Date | null;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Name of the teacher class */
   name: string;
+  /** not_pii: Foreign key to upchieve.topics */
   topicId: number | null;
   totalStudents: number | null;
+  /** not_pii */
   updatedAt: Date;
+  /** not_pii: Foreign key to upchieve.users */
   userId: string | null;
 }
 
@@ -170,15 +192,25 @@ export interface IGetTeacherClassByClassCodeParams {
 
 /** 'GetTeacherClassByClassCode' return type */
 export interface IGetTeacherClassByClassCodeResult {
+  /** not_pii: Whether the class is currently active */
   active: boolean;
+  /** not_pii: Clever LMS class identifier */
   cleverId: string | null;
+  /** not_pii: Student-facing join code for the teacher class */
   code: string;
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Date when the association was deactivated */
   deactivatedOn: Date | null;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Name of the teacher class */
   name: string;
+  /** not_pii: Foreign key to upchieve.topics */
   topicId: number | null;
+  /** not_pii */
   updatedAt: Date;
+  /** not_pii: Foreign key to upchieve.users */
   userId: string | null;
 }
 
@@ -220,15 +252,24 @@ export interface IGetTeacherClassByIdParams {
 
 /** 'GetTeacherClassById' return type */
 export interface IGetTeacherClassByIdResult {
+  /** not_pii: Whether the class is currently active */
   active: boolean;
+  /** not_pii: Clever LMS class identifier */
   cleverId: string | null;
+  /** not_pii: Student-facing join code for the teacher class */
   code: string;
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Name of the teacher class */
   name: string;
+  /** not_pii: Foreign key to upchieve.topics */
   topicId: number | null;
   totalStudents: number | null;
+  /** not_pii */
   updatedAt: Date;
+  /** not_pii: Foreign key to upchieve.users */
   userId: string | null;
 }
 
@@ -276,6 +317,7 @@ export interface IGetStudentIdsInTeacherClassParams {
 
 /** 'GetStudentIdsInTeacherClass' return type */
 export interface IGetStudentIdsInTeacherClassResult {
+  /** not_pii: Foreign key to upchieve.users */
   userId: string;
 }
 
@@ -310,13 +352,21 @@ export interface IUpdateTeacherClassParams {
 
 /** 'UpdateTeacherClass' return type */
 export interface IUpdateTeacherClassResult {
+  /** not_pii: Whether the class is currently active */
   active: boolean;
+  /** not_pii: Student-facing join code for the teacher class */
   code: string;
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Name of the teacher class */
   name: string;
+  /** not_pii: Foreign key to upchieve.topics */
   topicId: number | null;
+  /** not_pii */
   updatedAt: Date;
+  /** not_pii: Foreign key to upchieve.users */
   userId: string | null;
 }
 
@@ -360,13 +410,21 @@ export interface IDeactivateTeacherClassParams {
 
 /** 'DeactivateTeacherClass' return type */
 export interface IDeactivateTeacherClassResult {
+  /** not_pii: Whether the class is currently active */
   active: boolean;
+  /** not_pii: Student-facing join code for the teacher class */
   code: string;
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Primary key */
   id: string;
+  /** not_pii: Name of the teacher class */
   name: string;
+  /** not_pii: Foreign key to upchieve.topics */
   topicId: number | null;
+  /** not_pii */
   updatedAt: Date;
+  /** not_pii: Foreign key to upchieve.users */
   userId: string | null;
 }
 
@@ -469,6 +527,7 @@ export interface IGetAllStudentsForTeacherParams {
 
 /** 'GetAllStudentsForTeacher' return type */
 export interface IGetAllStudentsForTeacherResult {
+  /** not_pii: Foreign key to upchieve.users */
   userId: string;
 }
 

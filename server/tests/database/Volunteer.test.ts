@@ -13,7 +13,6 @@ import {
   CreatedVolunteer,
   createVolunteer,
   CreateVolunteerPayload,
-  getNextVolunteerToNotify,
   getVolunteerContactInfoById,
   getVolunteersForTextNotifications,
   getVolunteersReadyToCoachStatus,
@@ -23,7 +22,7 @@ import {
 } from '../../models/Volunteer'
 import moment from 'moment'
 import { getClient } from '../../db'
-import { insertSingleRow } from '../db-utils'
+import { camelCaseKeys, insertSingleRow } from '../db-utils'
 import {
   buildFullAvailability,
   buildNotification,
@@ -32,7 +31,7 @@ import {
 import { omit } from 'lodash'
 import { addFavoriteVolunteer } from '../../models/Student'
 import { createTestUser, createTestVolunteer } from './seed-utils'
-import { Ulid } from '../../models/pgUtils'
+import { submitVolunteerBackgroundInfo } from '../../services/VolunteerService'
 
 const client = getClient()
 const TIMEZONE = 'EST'
@@ -56,333 +55,6 @@ describe('VolunteerRepo', () => {
   beforeEach(async () => {
     await client.query(`DELETE FROM upchieve.availabilities;`)
     await client.query(`DELETE FROM upchieve.users_certifications;`)
-  })
-
-  describe('getNextVolunteerToNotify', () => {
-    it('Returns the volunteer who was not recently notified', async () => {
-      const recentlyNotifiedVolunteer = await loadVolunteer()
-      const expectedVolunteer = await loadVolunteer()
-      await loadNotification(
-        // 2 hours old notification
-        recentlyNotifiedVolunteer.id,
-        completedUnmatchedSession.id,
-        moment().subtract(2, 'hours').toDate()
-      )
-
-      const result = await getNextVolunteerToNotify({
-        subject: 'prealgebra',
-        lastNotified: moment().subtract(3, 'hours').toDate(),
-        isPartner: false,
-        highLevelSubjects: undefined,
-        disqualifiedVolunteers: undefined,
-        specificPartner: undefined,
-        favoriteVolunteers: undefined,
-      })
-      expect(result?.id).toEqual(expectedVolunteer.id)
-    })
-
-    it('Returns the volunteer who is not disqualified', async () => {
-      const v1 = await loadVolunteer()
-      const v2 = await loadVolunteer()
-
-      const result = await getNextVolunteerToNotify({
-        subject: 'prealgebra',
-        lastNotified: new Date(),
-        isPartner: false,
-        highLevelSubjects: undefined,
-        disqualifiedVolunteers: [v1.id],
-        specificPartner: undefined,
-        favoriteVolunteers: undefined,
-      })
-      expect(result?.email).toEqual(v2.email)
-      expect(result?.id).toEqual(v2.id)
-    })
-
-    it.each([
-      ['banType', { banType: 'complete' }],
-      ['unapproved', { approved: false }],
-      ['onboarded', { onboarded: false }],
-    ])('Returns the volunteer who is not %s', async (msg, opt) => {
-      const v1 = await loadVolunteer(opt)
-      const v2 = await loadVolunteer()
-
-      const result = await getNextVolunteerToNotify({
-        subject: 'prealgebra',
-        lastNotified: new Date(),
-        isPartner: false,
-        highLevelSubjects: undefined,
-        disqualifiedVolunteers: undefined,
-        specificPartner: undefined,
-        favoriteVolunteers: undefined,
-      })
-      expect(result?.email).toEqual(v2.email)
-      expect(result?.id).toEqual(v2.id)
-    })
-
-    it('Returns the volunteer with availability', async () => {
-      const v1 = await loadVolunteer({ withFullAvailability: false })
-      const v2 = await loadVolunteer()
-
-      const result = await getNextVolunteerToNotify({
-        subject: 'prealgebra',
-        lastNotified: new Date(),
-        isPartner: false,
-        highLevelSubjects: undefined,
-        disqualifiedVolunteers: undefined,
-        specificPartner: undefined,
-        favoriteVolunteers: undefined,
-      })
-      expect(result?.email).toEqual(v2.email)
-      expect(result?.id).toEqual(v2.id)
-
-      // Make volunteer1 available every day except today
-      const estDate = moment().tz('America/New_York')
-      const currentDayOfWeek = estDate.format('ddd') // i.e. Mon
-      const currentAvailabilityDay = DAYS.find(
-        (d) => d.toLowerCase().slice(0, 3) == currentDayOfWeek.toLowerCase()
-      )!
-      const availability = omit(buildFullAvailability(), currentAvailabilityDay)
-      await loadVolunteerAvailability(v1.id, availability as Availability)
-
-      const result2 = await getNextVolunteerToNotify({
-        subject: 'prealgebra',
-        lastNotified: new Date(),
-        isPartner: false,
-        highLevelSubjects: undefined,
-        disqualifiedVolunteers: undefined,
-        specificPartner: undefined,
-        favoriteVolunteers: undefined,
-      })
-      expect(result2?.email).toEqual(v2.email)
-      expect(result2?.id).toEqual(v2.id)
-    })
-
-    it('Returns the favorited volunteer', async () => {
-      const v1 = await loadVolunteer()
-      const v2 = await loadVolunteer()
-
-      await addFavoriteVolunteer(studentId, v2.id)
-
-      const result = await getNextVolunteerToNotify({
-        subject: 'prealgebra',
-        lastNotified: new Date(),
-        isPartner: false,
-        highLevelSubjects: undefined,
-        disqualifiedVolunteers: undefined,
-        specificPartner: undefined,
-        favoriteVolunteers: [v2.id],
-      })
-      expect(result?.email).toEqual(v2.email)
-      expect(result?.id).toEqual(v2.id)
-    })
-
-    it('Returns the favorited volunteer who is available', async () => {
-      const v1 = await loadVolunteer()
-      const v2 = await loadVolunteer()
-
-      await addFavoriteVolunteer(studentId, v1.id)
-      await addFavoriteVolunteer(studentId, v2.id)
-
-      const result = await getNextVolunteerToNotify({
-        subject: 'prealgebra',
-        lastNotified: new Date(),
-        isPartner: false,
-        highLevelSubjects: undefined,
-        disqualifiedVolunteers: [v2.id],
-        specificPartner: undefined,
-        favoriteVolunteers: [v1.id, v2.id],
-      })
-      expect(result?.email).toEqual(v1.email)
-      expect(result?.id).toEqual(v1.id)
-    })
-
-    it('Returns a partner volunteer when specificPartner is provided and isPartner=true', async () => {
-      const partnerKey = 'health-co'
-      const v1 = await loadVolunteer()
-      const v2 = await loadVolunteer({ partner: partnerKey })
-
-      const result = await getNextVolunteerToNotify({
-        subject: 'prealgebra',
-        lastNotified: new Date(),
-        isPartner: true,
-        highLevelSubjects: undefined,
-        disqualifiedVolunteers: undefined,
-        specificPartner: partnerKey,
-        favoriteVolunteers: undefined,
-      })
-      expect(result?.email).toEqual(v2.email)
-      expect(result?.id).toEqual(v2.id)
-    })
-
-    it.each([undefined, false])(
-      'Does not return a partner volunteer from `specificPartner` if isPartner=%s',
-      async (isPartner) => {
-        // If specificPartner is passed, it must be true that isPartner = true for it to return a volunteer.
-        const partnerOrg = 'health-co'
-        const vol = await loadVolunteer({ partner: partnerOrg })
-        const result = await getNextVolunteerToNotify({
-          subject: 'prealgebra',
-          lastNotified: new Date(),
-          isPartner,
-          highLevelSubjects: undefined,
-          disqualifiedVolunteers: undefined,
-          specificPartner: partnerOrg,
-          favoriteVolunteers: undefined,
-        })
-      }
-    )
-
-    it('Does not return a volunteer if their profile is not associated to the volunteer partner org', async () => {
-      const partnerOrg = 'health-co'
-      const vol = await loadVolunteer({ partner: partnerOrg })
-      await client.query(
-        `UPDATE volunteer_profiles SET volunteer_partner_org_id = NULL where user_id = $1`,
-        [vol.id]
-      )
-      const result = await getNextVolunteerToNotify({
-        subject: 'prealgebra',
-        lastNotified: new Date(),
-        isPartner: true,
-        highLevelSubjects: undefined,
-        disqualifiedVolunteers: undefined,
-        specificPartner: partnerOrg,
-        favoriteVolunteers: undefined,
-      })
-      expect(result).toBeUndefined()
-    })
-
-    it('Returns the volunteer with the correct certification', async () => {
-      const v1 = await loadVolunteer({ certificationSubjects: ['prealgebra'] })
-      const v2 = await loadVolunteer({ certificationSubjects: ['reading'] })
-      const result = await getNextVolunteerToNotify({
-        subject: 'prealgebra',
-        lastNotified: new Date(),
-        isPartner: false,
-        highLevelSubjects: undefined,
-        disqualifiedVolunteers: undefined,
-        specificPartner: undefined,
-        favoriteVolunteers: undefined,
-      })
-      expect(result?.email).toEqual(v1.email)
-      expect(result?.id).toEqual(v1.id)
-    })
-
-    it('Returns the volunteer without the higher-level subject when there are other volunteers available', async () => {
-      // calculusAB is the high level subject
-      const v1 = await loadVolunteer({
-        certificationSubjects: ['prealgebra', 'calculusAB'],
-      })
-      const v2 = await loadVolunteer()
-      const result = await getNextVolunteerToNotify({
-        subject: 'reading',
-        lastNotified: new Date(),
-        isPartner: false,
-        highLevelSubjects: undefined,
-        disqualifiedVolunteers: undefined,
-        specificPartner: undefined,
-        favoriteVolunteers: undefined,
-      })
-      expect(result).toBeUndefined()
-    })
-
-    it('Returns undefined when there is no suitable volunteer', async () => {
-      const opts = {
-        subject: 'reading',
-        lastNotified: new Date(),
-        isPartner: false,
-        highLevelSubjects: undefined,
-        disqualifiedVolunteers: undefined,
-        specificPartner: undefined,
-        favoriteVolunteers: undefined,
-      }
-      const runQuery = async (opts: any) => getNextVolunteerToNotify(opts)
-
-      // No certification in reading
-      await loadVolunteer()
-      // Certified but no availability
-      await loadVolunteer({
-        certificationSubjects: ['reading'],
-        withFullAvailability: false,
-      })
-      // Must be approved, onboarded, and not banned
-      await loadVolunteer({
-        approved: false,
-        certificationSubjects: ['reading'],
-      })
-      await loadVolunteer({
-        onboarded: false,
-        certificationSubjects: ['reading'],
-      })
-      await loadVolunteer({
-        banType: 'complete',
-        certificationSubjects: ['reading'],
-      })
-      expect(await runQuery(opts)).toBeUndefined()
-
-      // No eligible volunteer who is not disqualified
-      const volunteer = await loadVolunteer({
-        certificationSubjects: ['reading'],
-      })
-      expect(
-        await runQuery({ ...opts, disqualifiedVolunteers: [volunteer.id] })
-      ).toBeUndefined()
-    })
-
-    // TODO: Fix flaky test.
-    it.skip('Returns a random volunteer when there are multiple suitable candidates', async () => {
-      // Testing randomization here. There *is* a chance that the same volunteer is selected twice randomly,
-      // To mitigate the chances of that, this loads several volunteers and does multiple trials.
-      await loadVolunteer()
-      await loadVolunteer()
-      await loadVolunteer()
-      await loadVolunteer()
-      await loadVolunteer()
-      const runQuery = async () =>
-        await getNextVolunteerToNotify({
-          subject: 'prealgebra',
-          lastNotified: new Date(),
-          isPartner: false,
-          highLevelSubjects: undefined,
-          disqualifiedVolunteers: undefined,
-          specificPartner: undefined,
-          favoriteVolunteers: undefined,
-        })
-      const result1 = await runQuery()
-      const result2 = await runQuery()
-      expect(result1?.id).toBeDefined()
-      expect(result2?.id).toBeDefined()
-      expect(result1?.id).not.toEqual(result2?.id)
-    })
-
-    describe('Notifying for subjects with computed unlocks', () => {
-      it('Should return a user who has ALL OF the needed certs for the subject with computed unlocks', async () => {
-        // In computed_subject_unlocks, subject #21 (integratedMathOne) can be unlocked by having ALL OF
-        // certifications 2, 3, and 16 (statistics, geometry, and algebraOne).
-        // A user should have to have ALL OF these to be able to tutor in that subject.
-        const runQuery = async () => {
-          return await getNextVolunteerToNotify({
-            subject: 'integratedMathOne',
-            lastNotified: new Date(),
-            isPartner: false,
-            highLevelSubjects: undefined,
-            disqualifiedVolunteers: undefined,
-            specificPartner: undefined,
-            favoriteVolunteers: undefined,
-          })
-        }
-        const volWithOneCert = await loadVolunteer({
-          certificationSubjects: ['statistics'],
-        })
-        const res1 = await runQuery()
-        expect(res1).toBeUndefined()
-
-        const volWithAllCerts = await loadVolunteer({
-          certificationSubjects: ['statistics', 'geometry', 'algebraOne'],
-        })
-        const res2 = await runQuery()
-        expect(res2?.id).toEqual(volWithAllCerts.id)
-      })
-    })
   })
 
   describe('getVolunteerContactInfoById', () => {
@@ -618,7 +290,6 @@ describe('VolunteerRepo', () => {
           firstName: faker.string.alpha(),
           lastName: faker.string.alpha(),
           password: faker.internet.password(),
-          referredBy: undefined,
           volunteerPartnerOrg: undefined,
           timezone: undefined,
         },
@@ -661,6 +332,115 @@ describe('VolunteerRepo', () => {
       })
     })
   })
+
+  describe('submitVolunteerBackgroundInfo', () => {
+    it.todo('Saves all the expected fields')
+    it('Does not overwrite fields when given null or undefined values', async () => {
+      const volunteer = await loadVolunteer()
+      const originalExperience = {
+        collegeCounseling: '0-1 years',
+        mentoring: '0-1 years',
+        tutoring: '0-1 years',
+      }
+      const company = 'test company'
+      const college = 'test college'
+      const originalLinkedInUrl = 'testlinkedinurl'
+      const originalLanguages = ['Spanish', 'German']
+      // Set profile
+      await client.query(
+        'UPDATE volunteer_profiles SET company = $1, college = $2, linkedin_url = $3, languages = $4, experience = $5 WHERE user_id = $6',
+        [
+          company,
+          college,
+          originalLinkedInUrl,
+          originalLanguages,
+          originalExperience,
+          volunteer.id,
+        ]
+      )
+      // Set occupations
+      await client.query(
+        'INSERT INTO volunteer_occupations (user_id, occupation) VALUES ($1, $2)',
+        [volunteer.id, 'High school student']
+      )
+      await client.query(
+        'INSERT INTO volunteer_occupations (user_id, occupation) VALUES ($1, $2)',
+        [volunteer.id, 'Working part-time']
+      )
+      // Set user
+      const phoneNumber = '+18608770029'
+      const signupSourceId = 1
+      const otherSignupSource = null
+      await client.query(
+        'UPDATE users SET phone = $1, signup_source_id = $2, other_signup_source = $3 where id = $4',
+        [phoneNumber, signupSourceId, otherSignupSource, volunteer.id]
+      )
+      const existingSchool = await client.query('SELECT * FROM schools LIMIT 1')
+      const update = {
+        highSchoolId: existingSchool.rows[0].id,
+        experience: {
+          collegeCounseling: '0-1 years',
+          mentoring: '1-2 years',
+          tutoring: '2-5 years',
+        },
+        languages: ['English', 'Cantonese'],
+        linkedInUrl: 'test-url',
+      }
+      await submitVolunteerBackgroundInfo(volunteer.id, update)
+      const volunteerUser = await client.query(
+        'SELECT * FROM users WHERE id = $1',
+        [volunteer.id]
+      )
+      const volunteerProfile = await client.query(
+        'SELECT * FROM volunteer_profiles WHERE user_id = $1',
+        [volunteer.id]
+      )
+      const volunteerOccupations = await client.query(
+        'SELECT * FROM volunteer_occupations WHERE user_id = $1',
+        [volunteer.id]
+      )
+      const volunteerSchool = await client.query(
+        'SELECT * FROM users_schools WHERE user_id = $1',
+        [volunteer.id]
+      )
+
+      // High school is added
+      expect(volunteerSchool.rowCount).toEqual(1)
+      expect(volunteerSchool.rows[0].school_id).toEqual(
+        existingSchool.rows[0].id
+      )
+      // LinkedIn URL, languages, and volunteer experience are updated
+      expect(volunteerProfile.rowCount).toEqual(1)
+      expect(camelCaseKeys(volunteerProfile.rows[0])).toEqual(
+        expect.objectContaining({
+          linkedinUrl: update.linkedInUrl,
+          languages: update.languages,
+          experience: update.experience,
+        })
+      )
+      // The rest are unchanged
+      expect(camelCaseKeys(volunteerProfile.rows[0])).toEqual(
+        expect.objectContaining({
+          company,
+          college,
+        })
+      )
+      expect(camelCaseKeys(volunteerUser.rows[0])).toEqual(
+        expect.objectContaining({
+          phone: phoneNumber,
+          signupSourceId,
+          otherSignupSource,
+        })
+      )
+      const finalOccupations = volunteerOccupations.rows.map(
+        (row) => row.occupation
+      )
+      expect(finalOccupations).toEqual([
+        'High school student',
+        'Working part-time',
+      ])
+    })
+  })
 })
 
 const loadVolunteerAvailability = async (
@@ -686,7 +466,6 @@ const generateVolunteer = (): CreateVolunteerPayload => {
     terms: true,
     firstName,
     lastName,
-    referredBy: undefined,
     timezone: TIMEZONE,
     volunteerPartnerOrg: undefined,
   } as CreateVolunteerPayload

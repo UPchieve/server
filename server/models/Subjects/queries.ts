@@ -1,6 +1,6 @@
 import * as pgQueries from './pg.queries'
-import { getClient, TransactionClient } from '../../db'
-import { makeRequired, makeSomeOptional } from '../pgUtils'
+import { getClient, getRoClient, TransactionClient } from '../../db'
+import { makeRequired, makeSomeOptional, Ulid } from '../pgUtils'
 import { RepoReadError } from '../Errors'
 
 import {
@@ -19,6 +19,7 @@ import {
   GetTopicsResult,
   SubjectWithTopic,
   ComputedSubjectUnlocks,
+  SessionWithSubjectAndTopic,
 } from './types'
 import _ from 'lodash'
 import { asBoolean, asNumber, asString } from '../../utils/type-utils'
@@ -402,6 +403,22 @@ export async function getSubjectsForTopicByTopicId(
         makeSomeOptional(row, ['topicIconLink', 'topicColor'])
       )
     return []
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getSessionSubjectAndTopic(
+  sessionId: Ulid
+): Promise<SessionWithSubjectAndTopic | undefined> {
+  try {
+    const results = await pgQueries.getSessionSubjectAndTopicBySessionId.run(
+      { sessionId },
+      getRoClient()
+    )
+    if (results.length) {
+      return makeRequired(results[0])
+    }
   } catch (err) {
     throw new RepoReadError(err)
   }

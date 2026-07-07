@@ -1,5 +1,5 @@
 import { UserActionAgent } from '../models/UserAction'
-import UAParser from 'ua-parser-js'
+import { UAParser } from 'ua-parser-js'
 import getDeviceFromUserAgent from './getDeviceFromUserAgent'
 
 export function getUserAgentInfo(userAgent: string): UserActionAgent {

@@ -1,29 +1,31 @@
 import Delta from 'quill-delta'
 import * as cache from '../cache'
-import { Ulid } from '../models/pgUtils'
 import logger from '../logger'
 import { getSessionById } from '../models/Session'
 import { COLLEGE_LIST_DOC_WORKSHEET } from '../constants'
 import { getCollegeListWorkSheetFlag } from './FeatureFlagService'
 import * as Y from 'yjs'
 import { ResourceLockedError } from '@sesamecare-oss/redlock'
+import { convertBase64ToImage } from '../utils/image-utils'
+import { getDocEditorSessionImageUrl } from './AzureService'
+import type { Uuid } from '../types/shared'
 
 // Used for v1.
-function sessionIdToKey(id: Ulid): string {
+function sessionIdToKey(id: Uuid): string {
   return `quill-${id.toString()}`
 }
 
 // Used for v1.
-function getSessionDeltasKey(id: Ulid): string {
+function getSessionDeltasKey(id: Uuid): string {
   return `${sessionIdToKey(id)}-deltas`
 }
 
 // Used for v2.
-function getSessionDocumentUpdatesKey(id: Ulid): string {
+function getSessionDocumentUpdatesKey(id: Uuid): string {
   return `${sessionIdToKey(id)}-document-updates`
 }
 
-export async function createDoc(sessionId: Ulid): Promise<Delta> {
+export async function createDoc(sessionId: Uuid): Promise<Delta> {
   const session = await getSessionById(sessionId)
   const newDoc =
     session.subject === 'collegeList' &&
@@ -34,11 +36,11 @@ export async function createDoc(sessionId: Ulid): Promise<Delta> {
   return newDoc
 }
 
-export async function getDocEditorVersion(sessionId: Ulid): Promise<number> {
+export async function getDocEditorVersion(sessionId: Uuid): Promise<number> {
   return (await cache.exists(getSessionDocumentUpdatesKey(sessionId))) ? 2 : 1
 }
 
-export async function getDoc(sessionId: Ulid): Promise<Delta | undefined> {
+export async function getDoc(sessionId: Uuid): Promise<Delta | undefined> {
   try {
     const docString = await cache.get(sessionIdToKey(sessionId))
     return new Delta(JSON.parse(docString))
@@ -60,7 +62,7 @@ export type QuillCacheState = {
  *
  */
 export async function lockAndGetDocCacheState(
-  sessionId: Ulid
+  sessionId: Uuid
 ): Promise<QuillCacheState | undefined> {
   try {
     const sessionCacheKey = sessionIdToKey(sessionId)
@@ -78,7 +80,7 @@ export async function lockAndGetDocCacheState(
  * `lockAndGetDocCacheState` with retry
  */
 export async function getQuillDocV1(
-  sessionId: Ulid,
+  sessionId: Uuid,
   retries: number = 0
 ): Promise<QuillCacheState | undefined> {
   try {
@@ -104,7 +106,7 @@ export async function getQuillDocV1(
  *
  */
 export async function processDoc(
-  sessionId: Ulid,
+  sessionId: Uuid,
   docString: string
 ): Promise<QuillCacheState> {
   const deltasCacheKey = getSessionDeltasKey(sessionId)
@@ -127,7 +129,7 @@ export async function processDoc(
 }
 
 export async function appendToDoc(
-  sessionId: Ulid,
+  sessionId: Uuid,
   delta: Delta
 ): Promise<void> {
   await cache.rpush(getSessionDeltasKey(sessionId), JSON.stringify(delta))
@@ -149,7 +151,7 @@ export async function appendToDoc(
  * existence of the v2 doc in cache to know which version of the doc editor
  * to use - the dummy value just needs to be removed before using the doc.
  */
-export async function getDocumentUpdates(sessionId: Ulid): Promise<string[]> {
+export async function getDocumentUpdates(sessionId: Uuid): Promise<string[]> {
   const updates = await cache.smembers(getSessionDocumentUpdatesKey(sessionId))
   const session = await getSessionById(sessionId)
   if (
@@ -169,19 +171,19 @@ export async function getDocumentUpdates(sessionId: Ulid): Promise<string[]> {
 }
 
 export async function addDocumentUpdate(
-  sessionId: Ulid,
+  sessionId: Uuid,
   update: string
 ): Promise<void> {
   await cache.sadd(getSessionDocumentUpdatesKey(sessionId), update)
 }
 
 const SET_EXISTS = 'SET_EXISTS'
-export async function ensureDocumentUpdateExists(sessionId: Ulid) {
+export async function ensureDocumentUpdateExists(sessionId: Uuid) {
   const key = getSessionDocumentUpdatesKey(sessionId)
   await cache.sadd(key, SET_EXISTS)
 }
 
-export async function deleteDoc(sessionId: Ulid): Promise<void> {
+export async function deleteDoc(sessionId: Uuid): Promise<void> {
   try {
     ;(await cache.remove(sessionIdToKey(sessionId))) &&
       logger.info({ sessionId }, 'Removed quill doc session key from cache')
@@ -196,9 +198,13 @@ export async function deleteDoc(sessionId: Ulid): Promise<void> {
 
 export function parseQuillDoc(quillDoc: string): Delta {
   let document = quillDoc
-  if (typeof document === 'string') document = JSON.parse(document)
+  if (typeof document === 'string') {
+    document = JSON.parse(document)
+  }
   // If it was double-encoded, parse again
-  if (typeof document === 'string') document = JSON.parse(document)
+  if (typeof document === 'string') {
+    document = JSON.parse(document)
+  }
   // If it remains a string, it was encoded too many times and we're likely
   // storing the document editor incorrectly
   if (typeof document === 'string')
@@ -212,6 +218,17 @@ export function parseQuillDoc(quillDoc: string): Delta {
     )
 
   return document
+}
+
+export function removeImageInsertsFromQuillDoc(quillDoc: string): string {
+  const document: Delta = parseQuillDoc(quillDoc)
+  if (!document.ops) return ''
+
+  const filteredOps = document.ops.filter(
+    (op) => op.insert && typeof op.insert === 'string'
+  )
+  document.ops = filteredOps
+  return JSON.stringify(document)
 }
 
 export function extractImagesFromDoc(quillDoc: string): string[] {
@@ -247,4 +264,69 @@ export function parseDocEditorImageRoute(
   } catch (error) {
     return null
   }
+}
+
+async function getDocEditorImageBuffer(imageUrl: string): Promise<Buffer> {
+  const parsed = parseDocEditorImageRoute(imageUrl)
+  if (!parsed) {
+    throw new Error('Invalid document editor image URL')
+  }
+
+  const { sessionId, fileName } = parsed
+  const sasUrl = getDocEditorSessionImageUrl(sessionId, fileName)
+  const res = await fetch(sasUrl)
+  if (!res.ok)
+    throw new Error(`Failed to fetch document editor image: ${imageUrl}`)
+
+  const arrayBuffer = await res.arrayBuffer()
+  return Buffer.from(arrayBuffer)
+}
+
+async function imageSourceToBuffer(src: string): Promise<Buffer> {
+  if (src.startsWith('data:image')) return convertBase64ToImage(src)
+  return getDocEditorImageBuffer(src)
+}
+
+export async function getDocEditorImages(quillDoc: string): Promise<Buffer[]> {
+  const imageBuffers: Buffer[] = []
+  const allImages = extractImagesFromDoc(quillDoc)
+  for (const image of allImages) {
+    try {
+      const buffer = await imageSourceToBuffer(image)
+      imageBuffers.push(buffer)
+    } catch (error) {
+      logger.warn(
+        {
+          err: error,
+          imageType: image.startsWith('data:image') ? 'base64' : 'url',
+        },
+        'Failed to create buffer for document editor image. Skipping'
+      )
+    }
+  }
+  return imageBuffers
+}
+
+async function convertV2DocToV1(quillDoc: string[]) {
+  const ydoc = new Y.Doc()
+  const text = ydoc.getText('quill')
+  for (const update of quillDoc) {
+    Y.applyUpdate(ydoc, Uint8Array.from(update.split(',').map(Number)))
+  }
+  // Ensure viewing the document in a recap works by matching existing
+  // sessions.quill_doc format.
+  return { ops: text.toDelta() }
+}
+
+export async function getCurrentSessionDocEditor(
+  sessionId: Uuid
+): Promise<Delta | undefined> {
+  const v2Updates = await getDocumentUpdates(sessionId)
+
+  if (v2Updates.length > 0) {
+    const v2Doc = await convertV2DocToV1(v2Updates)
+    return new Delta(v2Doc)
+  }
+
+  return (await getQuillDocV1(sessionId))?.doc
 }

@@ -9,6 +9,7 @@ export interface ICreateParentGuardianParams {
 
 /** 'CreateParentGuardian' return type */
 export interface ICreateParentGuardianResult {
+  /** not_pii: Primary key */
   id: string;
 }
 
