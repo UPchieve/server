@@ -3,7 +3,6 @@ import * as pgQueries from './pg.queries'
 import {
   makeRequired,
   makeSomeOptional,
-  Ulid,
   getDbUlid,
   makeSomeRequired,
 } from '../pgUtils'
@@ -51,7 +50,7 @@ import type { Uuid } from '../../types/shared'
 
 export type NotificationData = {
   // old name for volunteerId for legacy compatibility
-  volunteer: Ulid
+  volunteer: Uuid
   type: string
   method: string
   wasSuccessful: boolean
@@ -59,7 +58,7 @@ export type NotificationData = {
   priorityGroup: string
 }
 export async function addSessionNotification(
-  sessionId: Ulid,
+  sessionId: Uuid,
   notification: NotificationData
 ): Promise<void> {
   try {
@@ -81,7 +80,7 @@ export async function addSessionNotification(
 
 export type UnfulfilledSessions = {
   id: Uuid
-  _id: Ulid
+  _id: Uuid
   student: {
     id: Uuid
     firstname: string
@@ -91,7 +90,7 @@ export type UnfulfilledSessions = {
   subTopic: string
   createdAt: Date
   type: string
-  volunteer?: Ulid
+  volunteer?: Uuid
   subjectDisplayName: string
 }
 
@@ -176,7 +175,7 @@ export async function getUnfulfilledSessions(
 }
 
 export async function getSessionById(
-  sessionId: Ulid,
+  sessionId: Uuid,
   tc: TransactionClient = getClient()
 ): Promise<GetSessionByIdResult> {
   try {
@@ -195,7 +194,7 @@ export async function getSessionById(
 }
 
 export async function updateSessionFlagsById(
-  sessionId: Ulid,
+  sessionId: Uuid,
   flags: (USER_SESSION_METRICS | UserSessionFlags)[],
   client: TransactionClient = getClient()
 ): Promise<void> {
@@ -215,7 +214,7 @@ export async function updateSessionFlagsById(
 }
 
 export async function updateSessionReviewedStatusById(
-  sessionId: Ulid,
+  sessionId: Uuid,
   reviewed: boolean,
   toReview: boolean
 ): Promise<void> {
@@ -236,11 +235,11 @@ export async function updateSessionReviewedStatusById(
 }
 
 export type SessionsToReview = {
-  id: Ulid
-  _id: Ulid
+  id: Uuid
+  _id: Uuid
   createdAt: Date
   endedAt?: Date
-  volunteer?: Ulid
+  volunteer?: Uuid
   volunteerFirstName?: string
   totalMessages: number
   type: string
@@ -292,7 +291,7 @@ export async function getSessionsToReview(
 }
 
 export async function getTotalTimeTutoredForDateRange(
-  volunteerId: Ulid,
+  volunteerId: Uuid,
   start: Date,
   end: Date,
   tc?: TransactionClient
@@ -310,7 +309,7 @@ export async function getTotalTimeTutoredForDateRange(
   }
 }
 
-export async function getActiveSessionsWithVolunteers(): Promise<Ulid[]> {
+export async function getActiveSessionsWithVolunteers(): Promise<Uuid[]> {
   try {
     const result = await pgQueries.getActiveSessionVolunteers.run(
       undefined,
@@ -323,7 +322,7 @@ export async function getActiveSessionsWithVolunteers(): Promise<Ulid[]> {
 }
 
 export async function updateSessionReported(
-  sessionId: Ulid,
+  sessionId: Uuid,
   reportReason: string,
   reportMessage: string
 ): Promise<void> {
@@ -340,7 +339,7 @@ export async function updateSessionReported(
 }
 
 export async function updateSessionTimeTutored(
-  sessionId: Ulid,
+  sessionId: Uuid,
   timeTutored: number
 ): Promise<void> {
   try {
@@ -356,7 +355,7 @@ export async function updateSessionTimeTutored(
 }
 
 export async function updateSessionQuillDoc(
-  sessionId: Ulid,
+  sessionId: Uuid,
   quillDoc: string
 ): Promise<void> {
   try {
@@ -372,7 +371,7 @@ export async function updateSessionQuillDoc(
 }
 
 export async function updateSessionHasWhiteboardDoc(
-  sessionId: Ulid,
+  sessionId: Uuid,
   hasWhiteboardDoc: boolean
 ): Promise<void> {
   try {
@@ -420,7 +419,7 @@ export async function updateSessionToEnd(
 export async function getLongRunningSessions(
   start: Date,
   end: Date
-): Promise<Ulid[]> {
+): Promise<Uuid[]> {
   try {
     const result = await pgQueries.getLongRunningSessions.run(
       { start, end },
@@ -433,11 +432,11 @@ export async function getLongRunningSessions(
 }
 
 export type PublicSessionUser = {
-  _id: Ulid
+  _id: Uuid
   firstName: string
 }
 export type PublicSession = {
-  _id: Ulid
+  _id: Uuid
   createdAt: Date
   endedAt: Date
   type: string
@@ -447,7 +446,7 @@ export type PublicSession = {
 }
 
 export async function getPublicSessionById(
-  sessionId: Ulid
+  sessionId: Uuid
 ): Promise<PublicSession | undefined> {
   try {
     const result = await pgQueries.getPublicSessionById.run(
@@ -477,7 +476,7 @@ export type SessionByIdWithStudentAndVolunteer = {
   createdAt: Date
   volunteerjoinedAt?: Date
   endedAt?: Date
-  endedBy?: Ulid
+  endedBy?: Uuid
   feedbacks?: Feedback // need this to display legacy feedback from before context sharing
   surveyResponses: {
     presessionSurvey: SimpleSurveyResponse[]
@@ -519,7 +518,7 @@ function toSessionMessage(row: SessionMessageRow): MessageForFrontend {
 
 // TODO: Change name to getSessionMessages
 export async function getMessagesForFrontend(
-  sessionId: Ulid,
+  sessionId: Uuid,
   tc: TransactionClient = getClient()
 ): Promise<MessageForFrontend[]> {
   try {
@@ -564,7 +563,7 @@ export async function getMessagesForFrontend(
 }
 
 export async function getSessionByIdWithStudentAndVolunteer(
-  sessionId: Ulid
+  sessionId: Uuid
 ): Promise<SessionByIdWithStudentAndVolunteer> {
   try {
     const client = getClient()
@@ -631,7 +630,7 @@ export async function getSessionByIdWithStudentAndVolunteer(
 }
 
 export async function createSession(
-  studentId: Ulid,
+  studentId: Uuid,
   subject: string,
   isShadowBanned: boolean,
   tc: TransactionClient
@@ -654,7 +653,7 @@ export async function createSession(
 }
 
 export async function getCurrentSessionByUserId(
-  userId: Ulid,
+  userId: Uuid,
   tc: TransactionClient = getClient()
 ): Promise<CurrentSession | undefined> {
   try {
@@ -689,7 +688,7 @@ export async function getCurrentSessionByUserId(
 }
 
 export async function getCurrentSessionBySessionId(
-  sessionId: Ulid,
+  sessionId: Uuid,
   tc: TransactionClient = getClient()
 ): Promise<CurrentSession | undefined> {
   try {
@@ -743,7 +742,7 @@ export type MessageInfoByMessageId = {
 }
 
 export async function getMessageInfoByMessageId(
-  messageId: Ulid
+  messageId: Uuid
 ): Promise<MessageInfoByMessageId | undefined> {
   const client = await getClient()
   try {
@@ -767,7 +766,7 @@ export type LatestSession = {
   endedAt?: Date
 }
 export async function getLatestSession(
-  userId: Ulid,
+  userId: Uuid,
   role: SessionUserRole
 ): Promise<LatestSession | undefined> {
   try {
@@ -783,8 +782,8 @@ export async function getLatestSession(
 }
 
 export async function updateSessionVolunteerById(
-  sessionId: Ulid,
-  volunteerId: Ulid,
+  sessionId: Uuid,
+  volunteerId: Uuid,
   tc?: TransactionClient
 ): Promise<void> {
   try {
@@ -798,8 +797,8 @@ export async function updateSessionVolunteerById(
 }
 
 export async function addMessageToSessionById(
-  sessionId: Ulid,
-  senderId: Ulid,
+  sessionId: Uuid,
+  senderId: Uuid,
   contents: string
 ): Promise<string> {
   try {
@@ -835,11 +834,11 @@ export async function getSessionsWithAvgWaitTimePerDayAndHour(
 }
 
 export type SessionVolunteerRating = {
-  id: Ulid
+  id: Uuid
   sessionRating?: number
 }
 export async function getSessionsVolunteerRating(
-  volunteerId: Ulid
+  volunteerId: Uuid
 ): Promise<SessionVolunteerRating[]> {
   try {
     const result = await pgQueries.getSessionsForReferCoworker.run(
@@ -869,12 +868,12 @@ export async function getSessionsVolunteerRating(
 }
 
 export type UserForFirstSession = {
-  id: Ulid
+  id: Uuid
   firstName: string
   email: string
 }
 export async function getStudentForEmailFirstSession(
-  sessionId: Ulid
+  sessionId: Uuid
 ): Promise<UserForFirstSession | undefined> {
   try {
     const result = await pgQueries.getStudentForEmailFirstSession.run(
@@ -894,7 +893,7 @@ export async function getStudentForEmailFirstSession(
 }
 
 export async function getVolunteerForEmailFirstSession(
-  sessionId: Ulid
+  sessionId: Uuid
 ): Promise<UserForFirstSession | undefined> {
   try {
     const result = await pgQueries.getVolunteerForEmailFirstSession.run(
@@ -920,8 +919,8 @@ export type AdminFilterUser = {
   totalPastSessions: number
 }
 export type AdminFilteredSessions = {
-  id: Ulid
-  _id: Ulid
+  id: Uuid
+  _id: Uuid
   createdAt: Date
   endedAt: Date
   volunteer?: AdminFilterUser
@@ -1020,7 +1019,7 @@ export async function getSessionsForAdminFilter(
 }
 
 export async function updateSessionReviewReasonsById(
-  sessionId: Ulid,
+  sessionId: Uuid,
   reviewReasons: UserSessionFlags[],
   // Use this property to override the reviewed status of a session
   reviewed?: boolean,
@@ -1052,8 +1051,8 @@ export async function updateSessionReviewReasonsById(
 }
 
 export async function updateSessionFailedJoinsById(
-  sessionId: Ulid,
-  userId: Ulid
+  sessionId: Uuid,
+  userId: Uuid
 ): Promise<void> {
   try {
     const result = await pgQueries.insertSessionFailedJoin.run(
@@ -1068,7 +1067,7 @@ export async function updateSessionFailedJoinsById(
 }
 
 export async function updateSessionPhotoKey(
-  sessionId: Ulid,
+  sessionId: Uuid,
   photoKey: string
 ): Promise<void> {
   try {
@@ -1084,7 +1083,7 @@ export async function updateSessionPhotoKey(
 }
 
 export type SessionsForVolunteerHourSummary = {
-  sessionId: Ulid
+  sessionId: Uuid
   createdAt: Date
   endedAt: Date
   timeTutored: number
@@ -1094,7 +1093,7 @@ export type SessionsForVolunteerHourSummary = {
 }
 
 export async function getSessionsForVolunteerHourSummary(
-  volunteerId: Ulid,
+  volunteerId: Uuid,
   start: Date,
   end: Date
 ): Promise<SessionsForVolunteerHourSummary[]> {
@@ -1111,20 +1110,20 @@ export async function getSessionsForVolunteerHourSummary(
 }
 
 export type SessionForSessionHistory = {
-  id: Ulid
+  id: Uuid
   topic: string
   topicIconLink: string
   subject: string
   createdAt: Date
   timeTutored: number
   isFavorited: boolean
-  studentId: Ulid
+  studentId: Uuid
   studentFirstName: string
-  volunteerId: Ulid
+  volunteerId: Uuid
   volunteerFirstName: string
 }
 export async function getFilteredSessionHistory(
-  userId: Ulid,
+  userId: Uuid,
   filter: SessionHistoryFilter = {}
 ): Promise<SessionForSessionHistory[]> {
   try {
@@ -1149,7 +1148,7 @@ export async function getFilteredSessionHistory(
 }
 
 export async function getFilteredSessionHistoryTotalCount(
-  userId: Ulid,
+  userId: Uuid,
   filter: SessionHistoryFilter = {}
 ): Promise<number> {
   try {
@@ -1176,7 +1175,7 @@ export async function getFilteredSessionHistoryTotalCount(
 }
 
 export type SessionForSessionRecap = {
-  id: Ulid
+  id: Uuid
   topic: string
   topicIconLink: string
   subject: string
@@ -1185,9 +1184,9 @@ export type SessionForSessionRecap = {
   endedAt: Date
   timeTutored: number
   isFavorited: boolean
-  studentId: Ulid
+  studentId: Uuid
   studentFirstName: string
-  volunteerId: Ulid
+  volunteerId: Uuid
   volunteerFirstName: string
   quillDoc?: string
   hasWhiteboardDoc: boolean
@@ -1199,7 +1198,7 @@ export type SessionForSessionRecap = {
 }
 
 export async function getSessionRecap(
-  sessionId: Ulid
+  sessionId: Uuid
 ): Promise<SessionForSessionRecap> {
   const client = await getRoClient()
   try {
@@ -1219,7 +1218,7 @@ export async function getSessionRecap(
 }
 
 export async function isEligibleForSessionRecap(
-  sessionId: Ulid
+  sessionId: Uuid
 ): Promise<boolean> {
   const client = await getClient()
   try {
@@ -1235,7 +1234,7 @@ export async function isEligibleForSessionRecap(
 }
 
 export async function volunteerSentMessageAfterSessionEnded(
-  sessionId: Ulid
+  sessionId: Uuid
 ): Promise<boolean> {
   const client = await getClient()
   try {
@@ -1250,7 +1249,7 @@ export async function volunteerSentMessageAfterSessionEnded(
 }
 
 export async function sessionHasBannedParticipant(
-  sessionId: Ulid
+  sessionId: Uuid
 ): Promise<boolean> {
   const client = await getClient()
   try {
@@ -1265,7 +1264,7 @@ export async function sessionHasBannedParticipant(
 }
 
 export type UserSessions = {
-  id: Ulid
+  id: Uuid
   createdAt: Date
   subjectName: string
   topicName: string
@@ -1280,7 +1279,7 @@ export type UserSessionsWithMessages = UserSessions & {
 }
 
 export async function getUserSessionsByUserId( // @TODO Make a service function and updated usages to call the service.
-  userId: Ulid,
+  userId: Uuid,
   filter: UserSessionsFilter = {
     start: undefined,
     end: undefined,
@@ -1308,7 +1307,7 @@ export async function getUserSessionsByUserId( // @TODO Make a service function 
 }
 
 export async function getUserSessionStats(
-  userId: Ulid
+  userId: Uuid
 ): Promise<UserSessionStats> {
   try {
     const result = await pgQueries.getUserSessionStats.run(
@@ -1338,7 +1337,7 @@ type SessionUserRow = {
   createdAt: Date
   firstname: string
   firstName: string
-  pastSessions: Uuid[]
+  pastSessions?: Uuid[]
   gradeLevel?: string
 }
 
@@ -1349,18 +1348,20 @@ function toCurrentSessionUser(row: SessionUserRow): CurrentSessionUser {
     createdAt: row.createdAt,
     firstname: row.firstname,
     firstName: row.firstName,
-    pastSessions: row.pastSessions,
+    pastSessions: row.pastSessions ?? [],
   }
 }
 
 async function getSessionUsers(
-  sessionId: Ulid,
-  sessionStudentId: Ulid,
-  sessionVolunteerId: Ulid = '',
+  sessionId: Uuid,
+  sessionStudentId: Uuid,
+  sessionVolunteerId: Uuid = '',
   tc: TransactionClient = getClient()
 ): Promise<{ student: CurrentSessionUser; volunteer?: CurrentSessionUser }> {
   const userResult = await pgQueries.getSessionUsers.run({ sessionId }, tc)
-  const users = userResult.map((v) => makeSomeOptional(v, ['gradeLevel']))
+  const users = userResult.map((v) =>
+    makeSomeOptional(v, ['gradeLevel', 'pastSessions'])
+  )
   let student, volunteer
   for (const u of users) {
     if (u.id === sessionStudentId) student = u
@@ -1376,7 +1377,7 @@ async function getSessionUsers(
 }
 
 export async function getStudentSessionDetails(
-  studentId: Ulid
+  studentId: Uuid
 ): Promise<SessionDetail[]> {
   try {
     const sessionDetails = await pgQueries.getStudentSessionDetails.run(
@@ -1390,7 +1391,7 @@ export async function getStudentSessionDetails(
 }
 
 export async function insertTutorBotSessionMessage(
-  sessionId: Ulid,
+  sessionId: Uuid,
   message: string,
   userType: 'student' | 'bot'
 ) {
@@ -1413,7 +1414,7 @@ export async function insertTutorBotSessionMessage(
   }
 }
 
-export async function getSessionTranscriptItems(sessionId: Ulid) {
+export async function getSessionTranscriptItems(sessionId: Uuid) {
   try {
     const result = await pgQueries.getSessionTranscript.run(
       {
@@ -1435,7 +1436,7 @@ export async function getSessionTranscriptItems(sessionId: Ulid) {
 }
 
 export async function getUniqueStudentsHelpedCount(
-  userId: Ulid,
+  userId: Uuid,
   minSessionLength: number
 ) {
   try {
@@ -1460,7 +1461,7 @@ export async function isSessionFulfilled(sessionId: Uuid): Promise<boolean> {
   return makeRequired(result[0]).isFulfilled
 }
 
-export async function getVolunteersInSessions(): Promise<Ulid[]> {
+export async function getVolunteersInSessions(): Promise<Uuid[]> {
   const result = await pgQueries.getVolunteersInSessions.run(
     undefined,
     getClient()
@@ -1490,7 +1491,7 @@ export async function updateSessionLastSeen(sessionId: Uuid, userId: Uuid) {
 export async function sessionsWithUnreadDMs(
   userId: Uuid,
   minTimeTutored: number
-): Promise<string[]> {
+): Promise<Uuid[]> {
   try {
     const result = await pgQueries.sessionsWithUnreadDMs.run(
       { userId, minTimeTutored },

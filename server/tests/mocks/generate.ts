@@ -103,6 +103,7 @@ import { SessionReport, UsageReport } from '../../services/ReportService'
 import { TelecomRow } from '../../utils/reportUtils'
 import { UserReward } from '../../services/RewardsService'
 import {
+  AdminSessionPublic,
   CurrentSessionPublic,
   SessionMessagePublic,
   SessionUserInfoPublic,
@@ -151,6 +152,11 @@ import type {
   SessionReportPublic,
   UsageReportPublic,
 } from '../../contracts/reports'
+import { SessionNotificationPublic } from '../../contracts/notifications'
+import {
+  PostsessionSurveyResponsePublic,
+  SimpleSurveyResponsePublic,
+} from '../../contracts/surveys'
 
 export function getEmail(): string {
   return faker.internet.email().toLowerCase()
@@ -716,6 +722,37 @@ export const buildSimpleSurveyResponse = (
   return survey
 }
 
+export function buildSimpleSurveyResponsePublic(
+  overrides: Partial<SimpleSurveyResponse> = {}
+): SimpleSurveyResponsePublic {
+  const survey = buildSimpleSurveyResponse(overrides)
+
+  return {
+    displayLabel: survey.displayLabel,
+    response: survey.response,
+    score: survey.score,
+    displayOrder: survey.displayOrder,
+    questionId: survey.questionId,
+    displayImage: survey.displayImage,
+    responseId: survey.responseId,
+  }
+}
+
+export function buildPostsessionSurveyResponsePublic(
+  overrides: Partial<PostsessionSurveyResponse> = {}
+): PostsessionSurveyResponsePublic {
+  const survey = buildSurveyResponse(overrides)
+
+  return {
+    userRole: survey.userRole,
+    questionText: survey.questionText,
+    displayLabel: survey.displayLabel,
+    response: survey.response,
+    displayOrder: survey.displayOrder,
+    score: survey.score,
+  }
+}
+
 export const buildUserSurveySubmission = (
   overrides: Partial<UserSurveySubmission> = {}
 ): UserSurveySubmission => {
@@ -961,6 +998,8 @@ export const buildSubjectAndTopic = (
   overrides: Partial<SubjectAndTopic> = {}
 ): SubjectAndTopic => {
   const subject = {
+    subjectId: 1,
+    topicId: 1,
     subjectName: 'algebraOne',
     subjectDisplayName: 'Algebra 1',
     topicName: 'math',
@@ -1407,9 +1446,6 @@ export function buildStudentAssignmentCompletionRow(
     firstName: student.firstName,
     lastName: student.firstName,
     submittedAt,
-    first_name: student.firstName,
-    last_name: student.firstName,
-    submitted_at: submittedAt,
     ...overrides,
   }
 }
@@ -1570,6 +1606,7 @@ export function buildCurrentSessionUserPublic(
     id: sessionUser.id,
     firstname: sessionUser.firstName,
     firstName: sessionUser.firstName,
+    pastSessions: sessionUser.pastSessions,
   }
 }
 
@@ -1770,6 +1807,47 @@ export function buildAdminSessionView(
   }
 }
 
+export function buildAdminSessionViewPublic(
+  overrides: Partial<SessionByIdWithStudentAndVolunteer> = {}
+): AdminSessionPublic {
+  const session = buildAdminSessionView(overrides)
+
+  return {
+    createdAt: session.createdAt.toISOString(),
+    volunteerjoinedAt: session.volunteerjoinedAt?.toISOString(),
+    endedAt: session.endedAt?.toISOString(),
+    endedBy: session.endedBy,
+    surveyResponses: {
+      presessionSurvey: session.surveyResponses.presessionSurvey.map(
+        buildSimpleSurveyResponsePublic
+      ),
+      studentPostsessionSurvey:
+        session.surveyResponses.studentPostsessionSurvey.map(
+          buildPostsessionSurveyResponsePublic
+        ),
+      volunteerPostsessionSurvey:
+        session.surveyResponses.volunteerPostsessionSurvey.map(
+          buildPostsessionSurveyResponsePublic
+        ),
+    },
+    type: session.type,
+    subTopic: session.subTopic,
+    _id: session._id,
+    id: session.id,
+    reviewReasons: session.reviewReasons,
+    timeTutored: session.timeTutored,
+    notifications: session.notifications?.map(buildSessionNotificationPublic),
+    photos: session.photos,
+    student: buildCurrentSessionUserPublic(session.student),
+    volunteer: session.volunteer
+      ? buildCurrentSessionUserPublic(session.volunteer)
+      : undefined,
+    messages: session.messages.map(buildSessionMessagePublic),
+    toReview: session.toReview,
+    toolType: session.toolType,
+  }
+}
+
 export type PublicSessionUser = {
   _id: Ulid
   firstName: string
@@ -1828,6 +1906,28 @@ export function buildSessionNotification(
   }
 }
 
+export function buildSessionNotificationPublic(
+  overrides: Partial<SessionNotification> = {}
+): SessionNotificationPublic {
+  const notification = buildSessionNotification(overrides)
+
+  return {
+    id: notification.id,
+    volunteer: {
+      firstname: notification.volunteer.firstname,
+      firstName: notification.volunteer.firstname,
+      volunteerPartnerOrg: notification.volunteer.volunteerPartnerOrg,
+    },
+    sentAt: notification.sentAt?.toISOString(),
+    type: notification.type,
+    method: notification.method,
+    wasSuccessful: notification.wasSuccessful,
+    messageId: notification.messageId,
+    priorityGroup: notification.priorityGroup,
+    sessionId: notification.sessionId,
+  }
+}
+
 export function buildTutorBotMessage(
   overrides: Partial<TutorBotMessage> = {}
 ): TutorBotMessage {
@@ -1846,7 +1946,10 @@ export function buildTutorBotMessagePublic(
 ): TutorBotMessagePublic {
   const message = buildTutorBotMessage(overrides)
   return {
-    ...message,
+    tutorBotConversationId: message.tutorBotConversationId,
+    userId: message.userId,
+    senderUserType: message.senderUserType,
+    message: message.message,
     createdAt: message.createdAt.toISOString(),
   }
 }
@@ -1888,14 +1991,14 @@ export function buildTutorBotTranscript(
 }
 
 export function buildTutorBotTranscriptPublic(
-  overrides: Partial<TutorBotTranscriptPublic> = {}
+  overrides: Partial<TutorBotTranscript> = {}
 ): TutorBotTranscriptPublic {
+  const transcript = buildTutorBotTranscript(overrides)
   return {
-    conversationId: getUuid(),
-    subjectId: 1,
-    sessionId: getUuid(),
-    messages: [buildTutorBotMessagePublic()],
-    ...overrides,
+    conversationId: transcript.conversationId,
+    subjectId: transcript.subjectId,
+    sessionId: transcript.sessionId,
+    messages: transcript.messages.map(buildTutorBotMessagePublic),
   }
 }
 

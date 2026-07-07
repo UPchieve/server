@@ -1401,12 +1401,8 @@ async function getCachedSession(
   }
 }
 
-export async function updateSessionLastSeen(
-  sessionId: Ulid,
-  userId: Ulid
-): Promise<any> {
-  const updated = await SessionRepo.updateSessionLastSeen(sessionId, userId)
-  return updated
+export async function updateSessionLastSeen(sessionId: Ulid, userId: Ulid) {
+  await SessionRepo.updateSessionLastSeen(sessionId, userId)
 }
 
 export async function sessionsWithUnreadDMs(userId: Ulid): Promise<string[]> {

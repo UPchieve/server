@@ -11,6 +11,11 @@ import {
 import { InputError } from '../../models/Errors'
 import { ConversationPayload, MessagePayload } from '../../contracts/tutor-bot'
 import { TutorBotHumanSenderType } from '../../types/tutor-bot'
+import {
+  toTutorBotTranscriptPublic,
+  toTutorBotAddMessageResponsePublic,
+  toNewConversationPublic,
+} from '../../public/tutor-bot'
 
 function isSenderUserType(s: unknown): s is TutorBotHumanSenderType {
   return s === 'student' || s === 'volunteer'
@@ -47,8 +52,7 @@ export function routeTutorBot(router: Router) {
         const botResponse = await TutorBotService.getTranscriptForConversation(
           req.params.conversationId
         )
-        const transcript =
-          TutorBotService.toTutorBotTranscriptPublic(botResponse)
+        const transcript = toTutorBotTranscriptPublic(botResponse)
         return res.status(200).json(transcript)
       } catch (err) {
         resError(res, err)
@@ -70,8 +74,7 @@ export function routeTutorBot(router: Router) {
           ...data,
           snapshotBuffer,
         })
-        const payload =
-          TutorBotService.toTutorBotAddMessageResponsePublic(botResponse)
+        const payload = toTutorBotAddMessageResponsePublic(botResponse)
         return res.status(200).json(payload)
       } catch (err) {
         resError(res, err)
@@ -102,7 +105,7 @@ export function routeTutorBot(router: Router) {
       })
       const conversation =
         await TutorBotService.createTutorBotConversation(data)
-      return res.json(TutorBotService.toNewConversationPublic(conversation))
+      return res.json(toNewConversationPublic(conversation))
     } catch (err) {
       resError(res, err)
     }

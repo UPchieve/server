@@ -1,3 +1,4 @@
+import type { ISODateString } from '../types/dates'
 import type { Uuid } from '../types/shared'
 import { TutorBotHumanSenderType, TutorBotSenderType } from '../types/tutor-bot'
 
@@ -22,7 +23,7 @@ export type TutorBotMessagePublic = {
   userId: Uuid
   senderUserType: TutorBotSenderType
   message: string
-  createdAt: string
+  createdAt: ISODateString
 }
 
 export type TutorBotTranscriptPublic = {

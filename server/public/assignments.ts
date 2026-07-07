@@ -1,10 +1,12 @@
 import {
   AssignmentDocumentPublic,
   AssignmentPublic,
+  StudentAssignmentPublic,
   StudentAssignmentSubmissionPublic,
 } from '../contracts/assignments'
 import {
   Assignment,
+  StudentAssignment,
   StudentAssignmentCompletionRow,
 } from '../models/Assignments'
 import { BlobDocument } from '../services/AzureService'
@@ -47,5 +49,26 @@ export function toAssignmentDocumentPublic(
   return {
     name: document.name,
     url: document.url,
+  }
+}
+
+export function toStudentAssignmentPublic(
+  assignment: StudentAssignment
+): StudentAssignmentPublic {
+  return {
+    id: assignment.id,
+    assignedAt: assignment.assignedAt.toISOString(),
+    classId: assignment.classId,
+    className: assignment.className,
+    description: assignment.description,
+    title: assignment.title,
+    numberOfSessions: assignment.numberOfSessions,
+    minDurationInMinutes: assignment.minDurationInMinutes,
+    isRequired: assignment.isRequired,
+    dueDate: assignment.dueDate?.toISOString(),
+    startDate: assignment.startDate?.toISOString(),
+    subjectId: assignment.subjectId,
+    subjectName: assignment.subjectName,
+    submittedAt: assignment.submittedAt?.toISOString(),
   }
 }
