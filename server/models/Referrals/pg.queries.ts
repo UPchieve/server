@@ -39,6 +39,7 @@ export interface IGetReferredUsersWithFilterParams {
 
 /** 'GetReferredUsersWithFilter' return type */
 export interface IGetReferredUsersWithFilterResult {
+  /** not_pii: Primary key */
   id: string;
   roles: stringArray | null;
 }

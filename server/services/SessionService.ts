@@ -53,19 +53,23 @@ import * as AssignmentsService from './AssignmentsService'
 import * as AwsService from './AwsService'
 import * as AzureService from './AzureService'
 import * as PushTokenService from './PushTokenService'
+import * as NotifyVolunteerService from './NotifyVolunteerService'
+import * as VolunteerRepo from '../models/Volunteer'
 import QueueService from './QueueService'
 import * as QuillDocService from './QuillDocService'
 import SocketService from './SocketService'
-import { beginRegularNotifications } from './TwilioService'
 import * as WhiteboardService from './WhiteboardService'
 import { getUserAgentInfo } from '../utils/parse-user-agent'
-import { getSubjectAndTopic } from '../models/Subjects'
+import {
+  getSessionSubjectAndTopic,
+  getSubjectAndTopic,
+  SessionWithSubjectAndTopic,
+} from '../models/Subjects'
 import {
   getAllowDmsToPartnerStudentsFeatureFlag,
   getSessionSummaryFeatureFlag,
 } from './FeatureFlagService'
 import { getStudentPartnerInfoById } from '../models/Student'
-import * as Y from 'yjs'
 import { TransactionClient, runInTransaction, getClient } from '../db'
 import * as SessionAudioRepo from '../models/SessionAudio'
 import { SessionMessageType } from '../router/api/sockets'
@@ -75,12 +79,13 @@ import { processReportMetrics } from './SessionFlagsService'
 import * as SurveyService from './SurveyService'
 import { SessionUserRole } from './UserRolesService'
 import * as FeatureFlagsService from './FeatureFlagService'
-import { createBlobSasUrl } from './AzureService'
+import { createDocEditorImageUploadUrl } from './AzureService'
 import type {
   CurrentSessionPublic,
   SessionUserInfoPublic,
 } from '../contracts/sessions'
-import type { MessageForFrontend, CurrentSession } from '../types/session'
+import type { CurrentSession } from '../types/session'
+import { hoursInSeconds, minutesInMs, secondsInMs } from '../utils/time-utils'
 
 export async function reviewSession(data: unknown) {
   const { sessionId, reviewed, toReview } =
@@ -201,7 +206,7 @@ export async function reportSession(user: UserContactInfo, data: unknown) {
   }
 
   if (session.endedAt)
-    await QueueService.add(Jobs.EmailSessionReported, emailData)
+    await QueueService.add(Jobs.EmailSessionReported, { delay: 0 }, emailData)
   else
     await cache.saveWithExpiration(
       `${sessionId}-reported`,
@@ -283,14 +288,24 @@ export async function endSession(
 
   await SessionmeetingsService.endMeeting(sessionId)
 
-  QueueService.add(Jobs.DetectSessionLanguages, {
-    sessionId,
-    studentId: session.student.id,
-  })
+  await NotifyVolunteerService.clearExclusiveRequest(sessionId)
 
-  QueueService.add(Jobs.ProcessSessionEnded, {
-    sessionId,
-  })
+  QueueService.add(
+    Jobs.DetectSessionLanguages,
+    { delay: 0 },
+    {
+      sessionId,
+      studentId: session.student.id,
+    }
+  )
+
+  QueueService.add(
+    Jobs.ProcessSessionEnded,
+    { delay: 0, jobId: `${Jobs.ProcessSessionEnded}:${sessionId}` },
+    {
+      sessionId,
+    }
+  )
 
   return endedSession
 }
@@ -312,13 +327,13 @@ export async function processSessionTranscript(sessionId: Ulid) {
   try {
     await QueueService.add(
       Jobs.ModerateSessionTranscript,
-      { sessionId },
       {
+        delay: minutesInMs(2),
         /* attempt to delay until the whiteboard is uploaded to storage */
-        delay: 2 * 60 * 1000,
         attempts: 3,
-        backoff: { type: 'exponential', delay: 15000 },
-      }
+        backoff: { type: 'exponential', delay: secondsInMs(15) },
+      },
+      { sessionId }
     )
   } catch (err) {
     throw new Error(
@@ -365,18 +380,18 @@ export async function processFirstSessionCongratsEmail(sessionId: Ulid) {
   if (sendStudentFirstSessionCongrats)
     await QueueService.add(
       Jobs.EmailStudentFirstSessionCongrats,
+      { delay },
       {
         sessionId: session.id,
-      },
-      { delay }
+      }
     )
   if (sendVolunteerFirstSessionCongrats) {
     await QueueService.add(
       Jobs.EmailVolunteerFirstSessionCongrats,
+      { delay },
       {
         sessionId: session.id,
-      },
-      { delay }
+      }
     )
   }
 }
@@ -393,31 +408,10 @@ export async function addDocEditorVersionTo(session: {
   }
 }
 
-async function convertV2DocToV1(quillDoc: string[]) {
-  const ydoc = new Y.Doc()
-  const text = ydoc.getText('quill')
-  for (const update of quillDoc) {
-    Y.applyUpdate(ydoc, Uint8Array.from(update.split(',').map(Number)))
-  }
-  // Ensure viewing the document in a recap works by matching existing
-  // sessions.quill_doc format.
-  return { ops: text.toDelta() }
-}
-
-export async function storeAndDeleteQuillDoc(sessionId: Ulid): Promise<void> {
-  const v2QuillDoc = await QuillDocService.getDocumentUpdates(sessionId)
-
-  const v1QuillDoc = v2QuillDoc.length
-    ? await convertV2DocToV1(v2QuillDoc)
-    : (await QuillDocService.getQuillDocV1(sessionId))?.doc
-
-  if (v1QuillDoc) {
-    await SessionRepo.updateSessionQuillDoc(
-      sessionId,
-      JSON.stringify(v1QuillDoc)
-    )
-  }
-
+export async function storeAndDeleteQuillDoc(sessionId: Uuid): Promise<void> {
+  const quillDoc = await QuillDocService.getCurrentSessionDocEditor(sessionId)
+  if (quillDoc)
+    await SessionRepo.updateSessionQuillDoc(sessionId, JSON.stringify(quillDoc))
   await QuillDocService.deleteDoc(sessionId)
 }
 
@@ -447,9 +441,13 @@ export async function processSessionEditors(sessionId: Ulid) {
 export async function processEmailVolunteer(sessionId: Ulid) {
   const session = await getCurrentSessionById(sessionId)
   if (session.volunteer?.pastSessions.length === 10)
-    await QueueService.add(Jobs.EmailVolunteerTenSessionMilestone, {
-      volunteerId: session.volunteer.id,
-    })
+    await QueueService.add(
+      Jobs.EmailVolunteerTenSessionMilestone,
+      { delay: 0 },
+      {
+        volunteerId: session.volunteer.id,
+      }
+    )
 }
 
 /**
@@ -599,6 +597,7 @@ export async function startSession(
     docEditorVersion,
     userAgent,
     ip,
+    requestedVolunteerId,
   } = data
 
   const subjectAndTopic = await getSubjectAndTopic(subject, topic)
@@ -626,6 +625,25 @@ export async function startSession(
     throw new sessionUtils.StartSessionError(
       'Student already has an active session.'
     )
+  }
+
+  if (requestedVolunteerId) {
+    const volunteer = await VolunteerRepo.getVolunteerContactInfoById(
+      requestedVolunteerId,
+      { banned: false, deactivated: false, testUser: false }
+    )
+    if (!volunteer) {
+      throw new sessionUtils.StartSessionError(
+        'Requested volunteer is not available right now.'
+      )
+    }
+    const activeVolunteerIds =
+      await SessionRepo.getActiveSessionsWithVolunteers()
+    if (activeVolunteerIds.includes(requestedVolunteerId)) {
+      throw new sessionUtils.StartSessionError(
+        'Requested volunteer is currently in another session.'
+      )
+    }
   }
 
   const newSession = await runInTransaction(async (tc: TransactionClient) => {
@@ -667,6 +685,27 @@ export async function startSession(
     return newSession
   })
 
+  // Hide the exclusive session from the volunteer broadcast as early as
+  // possible — immediately after the transaction commits, before any other
+  // awaits — to minimize the window in which a concurrent updateSessionList
+  // could broadcast it publicly.
+  const isUserShadowBanned = user.banType === USER_BAN_TYPES.SHADOW
+  if (requestedVolunteerId && !isUserShadowBanned) {
+    await cache.hset(
+      'exclusiveRequestSessions',
+      newSession.id,
+      requestedVolunteerId
+    )
+  }
+
+  await saveSessionToCache({
+    sessionId: newSession.id,
+    topicId: subjectAndTopic.topicId,
+    subjectId: subjectAndTopic.subjectId,
+    topicName: subjectAndTopic.topicName,
+    subjectName: subjectAndTopic.subjectName,
+  })
+
   // TODO: Remove after midtown clean-up.
   if (
     sessionUtils.isSubjectUsingDocumentEditor(subjectAndTopic.toolType) &&
@@ -688,17 +727,26 @@ export async function startSession(
     user.id
   )
 
-  const isUserShadowBanned = user.banType === USER_BAN_TYPES.SHADOW
-  if (!isUserBanned && !isUserShadowBanned && isNotifyTutorEnabled) {
-    await beginRegularNotifications(newSession)
+  if (!isUserShadowBanned) {
+    if (requestedVolunteerId) {
+      await NotifyVolunteerService.notifyExclusiveVolunteer(
+        newSession,
+        requestedVolunteerId
+      )
+    } else if (isNotifyTutorEnabled) {
+      await NotifyVolunteerService.beginRegularNotifications(newSession)
+    }
   }
 
-  // Auto end the session after 45 minutes if the session is unmatched.
-  const delay = 1000 * 60 * 45
   await QueueService.add(
     Jobs.EndUnmatchedSession,
-    { sessionId: newSession.id },
-    { delay }
+    {
+      delay: minutesInMs(45),
+      jobId: `${Jobs.EndUnmatchedSession}:${newSession.id}`,
+    },
+    {
+      sessionId: newSession.id,
+    }
   )
 
   return {
@@ -718,6 +766,15 @@ export async function currentSession(userId: Uuid) {
   const session = await SessionRepo.getCurrentSessionByUserId(userId)
   if (session) await addDocEditorVersionTo(session)
   return session
+}
+
+// TODO: Make sure all callers of SessionRepo.getSessionById call this function instead
+export async function getSessionById(
+  sessionId: Uuid,
+  tc?: TransactionClient
+  // TODO: Create a domain type for `Session` based on usage
+): Promise<SessionRepo.GetSessionByIdResult> {
+  return SessionRepo.getSessionById(sessionId, tc)
 }
 
 export async function getCurrentSessionById(
@@ -787,9 +844,18 @@ export async function joinSession(
   const isVolunteer = user.roleContext.isActiveRole('volunteer')
   const isInitialVolunteerJoin = isVolunteer && !session.volunteerId
   if (isInitialVolunteerJoin) {
+    // Peek at exclusivity state BEFORE clearExclusiveRequest wipes the HASH
+    // — we need to know whether this join converted an exclusive request,
+    // and if so, whether the joining volunteer is the one the student
+    // originally requested.
+    const exclusiveTo = await cache.hget('exclusiveRequestSessions', session.id)
+    const wasExclusiveRequest = !!exclusiveTo
+    const wasRequestedVolunteer = exclusiveTo === user.id
+
     try {
       await SessionRepo.updateSessionVolunteerById(session.id, user.id)
       session.volunteerId = user.id
+      await NotifyVolunteerService.clearExclusiveRequest(session.id)
       await SocketService.getInstance().emitSessionChange(session.id)
     } catch (err) {
       throw new Error('A volunteer has already joined the session.')
@@ -800,12 +866,21 @@ export async function joinSession(
         ...sessionAnalyticsData,
         action: SESSION_USER_ACTIONS.JOINED,
       })
+      // Only attach exclusive metadata when this join actually converted an
+      // exclusive request. Keeps the regular SESSION_JOINED / SESSION_MATCHED
+      // event shape identical to pre-experiment so PostHog's property
+      // catalog doesn't get experiment-bloat on the broader events.
+      const exclusiveProps = wasExclusiveRequest
+        ? { wasExclusiveRequest: true, wasRequestedVolunteer }
+        : {}
       captureEvent(user.id, EVENTS.SESSION_JOINED, {
         sessionId: session.id,
         joinedFrom: data.joinedFrom || '',
+        ...exclusiveProps,
       })
       captureEvent(session.studentId, EVENTS.SESSION_MATCHED, {
         sessionId: session.id,
+        ...exclusiveProps,
       })
     } catch (error) {
       logger.error(error, `Failed to log session join actions.`, {
@@ -865,9 +940,13 @@ export async function ensureCanJoinSession(
   const isVolunteer = user.roleContext.isActiveRole('volunteer')
 
   if (isVolunteer && session.shadowbanned) {
-    throw new SessionJoinError(
-      'Volunteer unable to join session. Student is shadow banned.'
-    )
+    const isAdmin = user.roleContext.isAdmin()
+    // Allow admins to join shadowbanned students' sessions.
+    if (!isAdmin) {
+      throw new SessionJoinError(
+        'Volunteer unable to join session. Student is shadow banned.'
+      )
+    }
   }
 
   if (session.endedAt) {
@@ -1240,40 +1319,6 @@ export async function getSessionTranscript(
   }
 }
 
-function buildSessionImagePath(sessionId: Uuid, fileName: string): string {
-  return `${sessionId}/images/${fileName}`
-}
-
-export function createDocEditorImageUploadUrl(
-  sessionId: Uuid,
-  fileName: string
-) {
-  const filePath = buildSessionImagePath(sessionId, fileName)
-  const uploadUrl = createBlobSasUrl(
-    config.appStorageAccountName,
-    config.appStorageAccountAccessKey,
-    config.sessionsStorageContainer,
-    filePath,
-    { expiresInSeconds: 10 * 60, permissions: ['c', 'w'] }
-  )
-
-  const imageUrl = `${config.apiOrigin}/api/sessions/${filePath}`
-  return { uploadUrl, imageUrl }
-}
-
-export function getDocEditorSessionImageUrl(sessionId: Uuid, fileName: string) {
-  const filePath = buildSessionImagePath(sessionId, fileName)
-  const blobUrl = createBlobSasUrl(
-    config.appStorageAccountName,
-    config.appStorageAccountAccessKey,
-    config.sessionsStorageContainer,
-    filePath,
-    // TTL of 2 hours
-    { expiresInSeconds: 2 * 60 * 60, permissions: ['r'] }
-  )
-  return blobUrl
-}
-
 export async function markSessionForReview(
   sessionId: string,
   sessionFlags: UserSessionFlags[],
@@ -1313,4 +1358,94 @@ export async function addSessionSmsNotification(
 export async function isZwibserveSession(sessionId: Uuid) {
   const members = await cache.smembers(config.cacheKeys.zwibserveSessions)
   return members.includes(sessionId)
+}
+
+function getSessionCacheKey(sessionId: Ulid) {
+  return `SESSION-INFO-${sessionId}`
+}
+
+async function saveSessionToCache(
+  args: SessionWithSubjectAndTopic
+): Promise<void> {
+  const cacheKey = getSessionCacheKey(args.sessionId)
+  const ttlSeconds = hoursInSeconds(2)
+  await cache.saveWithExpiration(cacheKey, JSON.stringify(args), ttlSeconds)
+}
+
+export async function getSessionInfo(
+  sessionId: Ulid
+): Promise<SessionWithSubjectAndTopic> {
+  const cachedSession = await getCachedSession(sessionId)
+  if (cachedSession) {
+    return cachedSession
+  }
+  const result = await getSessionSubjectAndTopic(sessionId)
+  if (result) {
+    return result
+  }
+  throw new Error(
+    `Could not find session info for session with ID ${sessionId}`
+  )
+}
+
+async function getCachedSession(
+  sessionId: Ulid
+): Promise<undefined | SessionWithSubjectAndTopic> {
+  try {
+    const cacheResults = await cache.getIfExists(getSessionCacheKey(sessionId))
+    if (cacheResults) {
+      return JSON.parse(cacheResults)
+    }
+  } catch (error) {
+    logger.error({ sessionId, error }, 'Failed to get session info from cache')
+  }
+}
+
+export async function updateSessionLastSeen(
+  sessionId: Ulid,
+  userId: Ulid
+): Promise<any> {
+  const updated = await SessionRepo.updateSessionLastSeen(sessionId, userId)
+  return updated
+}
+
+export async function sessionsWithUnreadDMs(userId: Ulid): Promise<string[]> {
+  const sessions = await SessionRepo.sessionsWithUnreadDMs(
+    userId,
+    config.minSessionLength
+  )
+  return sessions
+}
+
+export async function handleSessionBreakout(
+  sessionId: Uuid,
+  user: UserContactInfo
+) {
+  const session = await SessionRepo.getSessionById(sessionId)
+  if (session.studentId !== user.id) {
+    throw new NotAllowedError(
+      'Only the student in this session can open it up.'
+    )
+  }
+  if (sessionUtils.isSessionFulfilled(session)) {
+    throw new Error('Session is already matched or ended.')
+  }
+  const wasCleared =
+    await NotifyVolunteerService.clearExclusiveRequest(sessionId)
+  const currentSession = await getCurrentSessionById(sessionId)
+  if (wasCleared) {
+    // Only trigger tutor notifications for the session when the student
+    // is not banned or shadow-banned and the notifyTutor feature flag is enabled
+    const isNotifyTutorEnabled = await FeatureFlagsService.getNotifyTutorFlag(
+      user.id
+    )
+    if (
+      user.banType !== USER_BAN_TYPES.COMPLETE &&
+      user.banType !== USER_BAN_TYPES.SHADOW &&
+      isNotifyTutorEnabled
+    ) {
+      await NotifyVolunteerService.beginRegularNotifications(currentSession)
+    }
+    await SocketService.getInstance().emitSessionChange(session.id)
+  }
 }

@@ -1,6 +1,6 @@
 import { getClient, getRoClient, TransactionClient } from '../../db'
 import { RepoCreateError, RepoDeleteError, RepoReadError } from '../Errors'
-import { makeRequired, makeSomeOptional, Ulid } from '../pgUtils'
+import { makeRequired, makeSomeOptional } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import {
   SaveUserSurveySubmission,
@@ -14,9 +14,10 @@ import {
 import { USER_ROLES, USER_ROLES_TYPE } from '../../constants'
 import _ from 'lodash'
 import { asNumber } from '../../utils/type-utils'
+import type { Uuid } from '../../types/shared'
 
 export async function saveUserSurveyAndSubmissions(
-  userId: Ulid,
+  userId: Uuid,
   surveyData: SaveUserSurvey,
   submissions: SaveUserSurveySubmission[],
   tc: TransactionClient = getClient()
@@ -66,8 +67,24 @@ export async function saveUserSurveyAndSubmissions(
   }
 }
 
+export async function getSurveyIdByName(
+  surveyName: string
+): Promise<number | null> {
+  try {
+    const [row] = await pgQueries.getSurveyIdByName.run(
+      {
+        surveyName,
+      },
+      getClient()
+    )
+    return row.id ?? null
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
 export async function getStudentsPresessionGoal(
-  sessionId: Ulid
+  sessionId: Uuid
 ): Promise<string | undefined> {
   try {
     const result = await pgQueries.getStudentsPresessionGoal.run(
@@ -131,14 +148,16 @@ export async function getSimpleSurveyDefinitionBySurveyId(
 }
 
 export async function getPostsessionSurveyDefinition(
-  sessionId: Ulid,
-  userRole: USER_ROLES_TYPE
+  sessionId: Uuid,
+  userRole: USER_ROLES_TYPE,
+  surveyId: number | null = null
 ) {
   try {
     const result = await pgQueries.getPostsessionSurveyDefinitionForSession.run(
       {
         sessionId,
         userRole,
+        surveyId,
       },
       getClient()
     )
@@ -335,8 +354,8 @@ export async function deleteDuplicateUserSurveys(): Promise<void> {
 }
 
 export async function getProgressReportSurveyResponse(
-  userId: Ulid,
-  progressReportId: Ulid
+  userId: Uuid,
+  progressReportId: Uuid
 ): Promise<SimpleSurveyResponse[]> {
   try {
     const result = await pgQueries.getProgressReportSurveyResponse.run(
@@ -371,7 +390,7 @@ export const getUserPostsessionSurveyResponses = async (
 }
 
 export async function getLatestUserSubmissionsForSurveyBySurveyType(
-  userId: Ulid,
+  userId: Uuid,
   surveyType: SurveyType
 ): Promise<SimpleSurveyResponse[]> {
   try {
@@ -388,7 +407,7 @@ export async function getLatestUserSubmissionsForSurveyBySurveyType(
 }
 
 export async function getLatestUserSubmissionsForSurveyBySurveyId(
-  userId: Ulid,
+  userId: Uuid,
   surveyId: number,
   tc?: TransactionClient
 ): Promise<SimpleSurveyResponse[]> {
@@ -406,7 +425,7 @@ export async function getLatestUserSubmissionsForSurveyBySurveyId(
 }
 
 export async function getSurveyIdForLatestImpactStudySurveySubmission(
-  userId: Ulid
+  userId: Uuid
 ): Promise<number | undefined> {
   try {
     const result =
@@ -435,7 +454,7 @@ export async function getSurveyTypeFromSurveyTypeId(
 }
 
 export async function getStudentFeedbackForSession(
-  sessionId: Ulid,
+  sessionId: Uuid,
   tc?: TransactionClient
 ) {
   try {

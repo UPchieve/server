@@ -20,7 +20,13 @@ import {
   StudentPartnerOrg,
   StudentPartnerOrgUpchieveInstance,
 } from '../../models/StudentPartnerOrg'
-import { DAYS, GRADES, HOURS, TRAINING_QUIZZES } from '../../constants'
+import {
+  DAYS,
+  GRADES,
+  HOURS,
+  TRAINING_QUIZZES,
+  USER_BAN_TYPES,
+} from '../../constants'
 import { AppStudent, AppUser, AppVolunteer } from '../types'
 import {
   LegacySurvey,
@@ -105,6 +111,7 @@ import type {
   TutorBotMessage,
   TutorBotTranscript,
   TutorBotGeneratedMessage,
+  TutorBotNewConversation,
 } from '../../types/tutor-bot'
 import { SessionNotification } from '../../models/Notification'
 import { SessionSummary } from '../../models/SessionSummaries/types'
@@ -130,6 +137,7 @@ import type {
   TutorBotGeneratedMessagePublic,
   TutorBotMessagePublic,
   TutorBotTranscriptPublic,
+  TutorBotNewConversationPublic,
 } from '../../contracts/tutor-bot'
 import { IneligibleStudentsWithSchoolInfo } from '../../models/IneligibleStudent/queries'
 import { ZipCode } from '../../models/ZipCode/types'
@@ -355,7 +363,12 @@ export function buildVolunteer(
 }
 
 export function buildTextableVolunteer(
-  overrides: Partial<TextableVolunteer & { priorityGroupName?: string }> = {}
+  overrides: Partial<
+    TextableVolunteer & {
+      priorityGroupName?: string
+      banType?: USER_BAN_TYPES | null
+    }
+  > = {}
 ): TextableVolunteer {
   return {
     id: getDbUlid(),
@@ -477,7 +490,6 @@ export type SessionRow = {
   volunteerJoinedAt?: Date
   endedAt?: Date
   mongoId?: string
-  endedByRoleId?: string
   endedByUserId?: string
 }
 
@@ -1906,6 +1918,47 @@ export function buildTutorBotAddMessageResponsePublic(
   return {
     userMessage: buildTutorBotMessagePublic(response.userMessage),
     botResponse: buildTutorBotGeneratedMessagePublic(response.botResponse),
+  }
+}
+
+export function buildTutorBotNewConversation(
+  overrides: Partial<TutorBotNewConversation> = {}
+): TutorBotNewConversation {
+  const conversationId = overrides.conversationId ?? getUuid()
+  const userId = overrides.userId ?? getUuid()
+  return {
+    conversationId,
+    userId,
+    sessionId: getUuid(),
+    subjectId: 1,
+    messages: [
+      buildTutorBotMessage({
+        tutorBotConversationId: conversationId,
+        userId,
+        senderUserType: 'student',
+      }),
+      buildTutorBotGeneratedMessage({
+        tutorBotConversationId: conversationId,
+        userId,
+      }),
+    ],
+    ...overrides,
+  }
+}
+
+export function buildTutorBotNewConversationPublic(
+  overrides: Partial<TutorBotNewConversation> = {}
+): TutorBotNewConversationPublic {
+  const conversation = buildTutorBotNewConversation(overrides)
+  return {
+    conversationId: conversation.conversationId,
+    userId: conversation.userId,
+    sessionId: conversation.sessionId,
+    subjectId: conversation.subjectId,
+    messages: [
+      buildTutorBotMessagePublic(conversation.messages[0]),
+      buildTutorBotGeneratedMessagePublic(conversation.messages[1]),
+    ],
   }
 }
 

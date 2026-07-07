@@ -12,8 +12,8 @@ export async function addLastActivity(
     const { id, lastActivityAt } = extractUser(req)
     // Convert all times to UTC for consistency
     const today = moment().utc()
-    const lastActivityMoment = moment(lastActivityAt).utc()
-    if (today.isAfter(lastActivityMoment, 'day')) {
+    const lastActivityMoment = moment(lastActivityAt).utc() // if undefined, defaults to now
+    if (!lastActivityAt || today.isAfter(lastActivityMoment, 'day')) {
       try {
         await updateUserLastActivityById(id, today.toDate())
       } catch (err) {

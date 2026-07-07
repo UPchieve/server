@@ -295,7 +295,7 @@ export async function getActions(): Promise<NTHSAction[]> {
 export async function addNTHSAdvisor(
   args: {
     nthsGroupId: Ulid
-    schoolId: string
+    schoolId?: string
     firstName: string
     lastName: string
     email: string
@@ -311,7 +311,7 @@ export async function addNTHSAdvisor(
 export async function addSchoolToSchoolAffiliation(
   args: {
     nthsGroupId: Ulid
-    schoolId: string
+    schoolId?: string
   },
   tc: TransactionClient = getClient()
 ) {
@@ -329,7 +329,7 @@ export async function submitSchoolAffiliation({
   title,
 }: {
   nthsGroupId: Ulid
-  schoolId: string
+  schoolId?: string
   firstName: string
   lastName: string
   email: string
@@ -421,10 +421,14 @@ export async function deactivateNonHighSchoolMember(
           group.groupId,
           client
         )
-        await QueueService.add(Jobs.NotifyNTHSChapterAdminsOfDeactivatedUser, {
-          deactivatedUserId: userId,
-          nthsGroupId: group.groupId,
-        })
+        await QueueService.add(
+          Jobs.NotifyNTHSChapterAdminsOfDeactivatedUser,
+          { delay: 0 },
+          {
+            deactivatedUserId: userId,
+            nthsGroupId: group.groupId,
+          }
+        )
       }
       logger.info(
         logData,

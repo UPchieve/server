@@ -10,8 +10,11 @@ export interface IGetModerationSettingsByTypeParams {
 
 /** 'GetModerationSettingsByType' return type */
 export interface IGetModerationSettingsByTypeResult {
+  /** not_pii: Human-readable name */
   name: string;
+  /** not_pii: Penalty weight assigned to this moderation rule */
   penaltyWeight: number;
+  /** not_pii: Confidence score threshold for triggering moderation */
   threshold: string | null;
 }
 

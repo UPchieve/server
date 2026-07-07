@@ -13,11 +13,12 @@ export default async (job: Job<SpawnDeidentifyUsersJob>): Promise<void> => {
     await QueueService.add(
       Jobs.DeidentifyUser,
       {
-        userId,
-      },
-      {
         priority: 3,
         removeOnFail: false,
+        delay: 0,
+      },
+      {
+        userId,
       }
     )
   }

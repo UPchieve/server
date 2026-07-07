@@ -15,14 +15,23 @@ export interface IListParams {
 
 /** 'List' return type */
 export interface IListResult {
+  /** not_pii: Human-readable name */
   category: string;
+  /** not_pii: The correct answer text */
   correctAnswer: string;
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Primary key */
   id: number;
+  /** not_pii: URL or path to an image associated with the quiz question */
   imageSrc: string | null;
+  /** not_pii: JSON array of possible answer options */
   possibleAnswers: Json | null;
+  /** not_pii: Text of the quiz question */
   questionText: string;
+  /** not_pii: Human-readable name */
   subcategory: string;
+  /** not_pii */
   updatedAt: Date;
 }
 
@@ -70,12 +79,19 @@ export interface ICreateParams {
 
 /** 'Create' return type */
 export interface ICreateResult {
+  /** not_pii: The correct answer text */
   correctAnswer: string;
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Primary key */
   id: number;
+  /** not_pii: URL or path to an image associated with the quiz question */
   imageSrc: string | null;
+  /** not_pii: JSON array of possible answer options */
   possibleAnswers: Json | null;
+  /** not_pii: Text of the quiz question */
   questionText: string;
+  /** not_pii */
   updatedAt: Date;
 }
 
@@ -195,6 +211,7 @@ export interface IDestroyParams {
 
 /** 'Destroy' return type */
 export interface IDestroyResult {
+  /** not_pii: Primary key */
   ok: number;
 }
 
@@ -260,6 +277,7 @@ export interface IUpdateParams {
 
 /** 'Update' return type */
 export interface IUpdateResult {
+  /** not_pii: Primary key */
   ok: number;
 }
 
@@ -297,6 +315,7 @@ export type ICategoriesParams = void;
 
 /** 'Categories' return type */
 export interface ICategoriesResult {
+  /** not_pii: Human-readable name */
   categories: string;
   subcategories: stringArray | null;
 }
@@ -332,6 +351,7 @@ export interface IGetSubcategoriesForQuizParams {
 
 /** 'GetSubcategoriesForQuiz' return type */
 export interface IGetSubcategoriesForQuizResult {
+  /** not_pii: Human-readable name */
   name: string;
 }
 
@@ -365,14 +385,23 @@ export interface IGetMultipleQuestionsByIdParams {
 
 /** 'GetMultipleQuestionsById' return type */
 export interface IGetMultipleQuestionsByIdResult {
+  /** not_pii: Human-readable name */
   category: string;
+  /** not_pii: The correct answer text */
   correctAnswer: string;
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Primary key */
   id: number;
+  /** not_pii: URL or path to an image associated with the quiz question */
   imageSrc: string | null;
+  /** not_pii: JSON array of possible answer options */
   possibleAnswers: Json | null;
+  /** not_pii: Text of the quiz question */
   questionText: string;
+  /** not_pii: Human-readable name */
   subcategory: string;
+  /** not_pii */
   updatedAt: Date;
 }
 
@@ -417,14 +446,23 @@ export interface IGetQuestionsByCategoryParams {
 
 /** 'GetQuestionsByCategory' return type */
 export interface IGetQuestionsByCategoryResult {
+  /** not_pii: Human-readable name */
   category: string;
+  /** not_pii: The correct answer text */
   correctAnswer: string;
+  /** not_pii */
   createdAt: Date;
+  /** not_pii: Primary key */
   id: number;
+  /** not_pii: URL or path to an image associated with the quiz question */
   imageSrc: string | null;
+  /** not_pii: JSON array of possible answer options */
   possibleAnswers: Json | null;
+  /** not_pii: Text of the quiz question */
   questionText: string;
+  /** not_pii: Human-readable name */
   subcategory: string;
+  /** not_pii */
   updatedAt: Date;
 }
 
@@ -468,9 +506,13 @@ export interface IGetQuizReviewMaterialsParams {
 
 /** 'GetQuizReviewMaterials' return type */
 export interface IGetQuizReviewMaterialsResult {
+  /** not_pii: Human-readable name */
   category: string;
+  /** not_pii: URL or path to the review material cover image */
   image: string;
+  /** not_pii: URL or path to the review material PDF */
   pdf: string;
+  /** not_pii: Title of the record */
   title: string;
 }
 
@@ -508,15 +550,25 @@ export interface IGetQuizCertUnlocksByQuizNameParams {
 /** 'GetQuizCertUnlocksByQuizName' return type */
 export interface IGetQuizCertUnlocksByQuizNameResult {
   isSubjectCertification: boolean | null;
+  /** not_pii: User-facing display name */
   quizDisplayName: string;
+  /** not_pii: Sort order for UI display */
   quizDisplayOrder: number;
+  /** not_pii: Human-readable name */
   quizName: string;
+  /** not_pii: Sort order on the student subject dashboard */
   topicDashboardOrder: number;
+  /** not_pii: User-facing display name */
   topicDisplayName: string;
+  /** not_pii: Human-readable name */
   topicName: string;
+  /** not_pii: Sort order in the volunteer training flow */
   topicTrainingOrder: number;
+  /** not_pii: User-facing display name */
   unlockedCertDisplayName: string;
+  /** not_pii: Sort order for UI display */
   unlockedCertDisplayOrder: number;
+  /** not_pii: Human-readable name of the certification */
   unlockedCertName: string;
 }
 
@@ -568,9 +620,13 @@ export interface IGetQuizByNameParams {
 
 /** 'GetQuizByName' return type */
 export interface IGetQuizByNameResult {
+  /** not_pii: Whether this quiz is currently available to volunteers */
   active: boolean;
+  /** not_pii: Primary key */
   id: number;
+  /** not_pii: Human-readable name */
   name: string;
+  /** not_pii: Number of questions drawn per subcategory per quiz attempt */
   questionsPerSubcategory: number;
 }
 

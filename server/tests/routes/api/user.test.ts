@@ -3,6 +3,7 @@ import { mocked } from 'jest-mock'
 import { Request as ExpressRequest, Response as ExpressResponse } from 'express'
 import { mockApp, mockPassportMiddleware, mockRouter } from '../../mock-app'
 import { routeUser } from '../../../router/api/user'
+import * as ReferralService from '../../../services/ReferralService'
 import * as UserService from '../../../services/UserService'
 import * as UserProfileService from '../../../services/UserProfileService'
 import {
@@ -29,6 +30,7 @@ function isAdmin(
   next()
 }
 
+jest.mock('../../../services/ReferralService')
 jest.mock('../../../services/UserService')
 jest.mock('../../../services/UserProfileService')
 jest.mock('../../../utils/auth-utils', () => {
@@ -48,6 +50,7 @@ jest.mock('../../../services/PresenceService')
 jest.mock('../../../models/User')
 jest.mock('../../../logger')
 
+const mockedReferralService = mocked(ReferralService)
 const mockedUserService = mocked(UserService)
 const mockedUserProfileService = mocked(UserProfileService)
 const mockedAwsService = mocked(AwsService)
@@ -329,18 +332,30 @@ describe('routeUser', () => {
         otherSignupSource: 'Friend',
         highSchoolId: getUuid(),
       }
-      mockedVolunteerService.addBackgroundInfo.mockResolvedValueOnce({
-        wasRemovedFromNTHS,
-      })
+      mockedVolunteerService.submitVolunteerBackgroundInfo.mockResolvedValueOnce(
+        {
+          wasRemovedFromNTHS,
+        }
+      )
 
       const response = await sendPost(
         '/api/user/volunteer-approval/background-information',
         payload
       )
       expect(response.status).toBe(200)
-      expect(mockedVolunteerService.addBackgroundInfo).toHaveBeenCalledWith(
+      const payloadWithCorrectedOccupationField = {
+        // client sends occupations array as key 'occupation', but service function takes 'occupationS'
+        ...payload,
+      }
+      delete payloadWithCorrectedOccupationField.occupation
+      expect(
+        mockedVolunteerService.submitVolunteerBackgroundInfo
+      ).toHaveBeenCalledWith(
         mockUser.id,
-        payload,
+        {
+          ...payloadWithCorrectedOccupationField,
+          occupations: payload.occupation,
+        },
         expect.any(String)
       )
       expect(response.body).toEqual({ wasRemovedFromNTHS })
@@ -349,13 +364,13 @@ describe('routeUser', () => {
 
   describe('GET /api/user/referred-friends', () => {
     test('returns referred friends array sized by count', async () => {
-      mockedUserService.countReferredUsers.mockResolvedValueOnce(3)
+      mockedReferralService.getReferredUsersCount.mockResolvedValueOnce(3)
 
       const response = await sendGet('/api/user/referred-friends')
       expect(response.status).toBe(200)
-      expect(mockedUserService.countReferredUsers).toHaveBeenCalledWith(
+      expect(mockedReferralService.getReferredUsersCount).toHaveBeenCalledWith(
         mockUser.id,
-        { withPhoneOrEmailVerifiedAs: true }
+        { withPhoneOrEmailVerified: true }
       )
       expect(response.body.referredFriendsArr).toHaveLength(3)
     })

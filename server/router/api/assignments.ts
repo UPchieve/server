@@ -11,8 +11,11 @@ import { asString } from '../../utils/type-utils'
 import {
   AssignmentDocumentsResponse,
   AssignmentResponse,
+  AssignmentUploadResponse,
   StudentAssignmentCompletionResponse,
 } from '../../contracts/assignments'
+import { isEmpty } from 'lodash'
+import { extractUser } from '../extract-user'
 
 export function routeAssignments(router: Router): void {
   router.get(
@@ -74,15 +77,27 @@ export function routeAssignments(router: Router): void {
   router.put(
     '/assignment/upload',
     upload.array('files'),
-    async (req, res: Response<void>) => {
+    async (req, res: Response<AssignmentUploadResponse>) => {
       try {
+        const user = extractUser(req)
         if (req.files) {
           const files = req.files as Express.Multer.File[]
           const assignmentId = req.body.assignmentId
 
-          await AssignmentsService.uploadAssignment(assignmentId, files)
+          const moderationFailures =
+            await AssignmentsService.uploadAssignmentFiles(
+              assignmentId,
+              files,
+              user.id
+            )
 
-          res.sendStatus(200)
+          if (isEmpty(moderationFailures)) {
+            res.sendStatus(200)
+          } else {
+            res.status(422).json({
+              moderationFailures,
+            })
+          }
         }
       } catch (err) {
         resError(res, err)

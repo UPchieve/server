@@ -6,6 +6,7 @@ import {
 import { UserContactInfo, EditUserProfilePayload } from '../models/User/types'
 import { runInTransaction, TransactionClient } from '../db'
 import { createAccountAction } from '../models/UserAction'
+import * as UsersGradeLevelsRepo from '../models/UsersGradeLevels'
 import { ACCOUNT_USER_ACTIONS } from '../constants'
 import * as MailService from './MailService'
 import { upsertStudent } from './UserCreationService'
@@ -23,6 +24,14 @@ export async function updateUserProfile(
       await updateSubjectAlerts(user.id, data.mutedSubjectAlerts, tc)
     } else if (user.roleContext.isActiveRole('student')) {
       await upsertStudent({ userId: user.id, schoolId: data.schoolId }, tc)
+    }
+
+    if (data.gradeLevel) {
+      await UsersGradeLevelsRepo.upsertUserGradeLevel(
+        user.id,
+        data.gradeLevel,
+        tc
+      )
     }
   })
 
