@@ -39,8 +39,8 @@ export function routeModeration(router: Router): void {
           req.body?.source
         )
         res.json({ isClean: mappers.toModerationResultPublic(isClean) })
-      } catch (error) {
-        resError(res, error)
+      } catch (err) {
+        resError(res, err)
       }
     })
 
@@ -84,31 +84,27 @@ export function routeModeration(router: Router): void {
     .post(
       upload.single('frame'),
       (req, res: Response<ErrorResponse | void>) => {
-        router
-          .route('/moderate/video-frame')
-          .post(upload.single('frame'), (req, res) => {
-            const frameToModerate = req.file
-            const sessionId = req.body.sessionId
-            const user = extractUser(req)
+        const frameToModerate = req.file
+        const sessionId = req.body.sessionId
+        const user = extractUser(req)
 
-            if (!frameToModerate) {
-              return res.status(400).json({ err: 'No file was attached' })
-            }
+        if (!frameToModerate) {
+          return res.status(400).json({ err: 'No file was attached' })
+        }
 
-            logger.info(`Moderating video frame for session ${sessionId}`)
-            try {
-              ModerationService.moderateScreenshareImage({
-                image: frameToModerate.buffer,
-                sessionId,
-                userId: user.id,
-                isVolunteer: user.roleContext.hasRole('volunteer'),
-              })
-
-              res.status(201).send()
-            } catch (err) {
-              resError(res, err)
-            }
+        logger.info(`Moderating video frame for session ${sessionId}`)
+        try {
+          ModerationService.moderateScreenshareImage({
+            image: frameToModerate.buffer,
+            sessionId,
+            userId: user.id,
+            isVolunteer: user.roleContext.hasRole('volunteer'),
           })
+
+          res.status(201).send()
+        } catch (err) {
+          resError(res, err)
+        }
       }
     )
 }
