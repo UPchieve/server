@@ -37,6 +37,7 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA upchieve GRANT ALL PRIVILEGES ON tables TO re
 -- mat view owner role
 -- subway needs to be able to refresh mat views, which requires ownership,
 -- but admin/avnadmin needs superuser control over everything for down migrations to work correctly
+-- Is this actually used?
 CREATE ROLE mat_view_owners;
 GRANT CREATE ON SCHEMA upchieve to mat_view_owners;
 GRANT SELECT ON ALL tables IN SCHEMA upchieve to mat_view_owners;
@@ -68,3 +69,15 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA basic_access GRANT SELECT ON tables TO basic_
 GRANT CREATE ON SCHEMA basic_access TO subway;
 GRANT usage on SCHEMA basic_access to subway;
 ALTER DEFAULT PRIVILEGES FOR ROLE subway IN SCHEMA basic_access GRANT SELECT ON TABLES TO basic_access;
+
+------
+-- Used by the subscriber to establish a replication connection with publisher and extract logical changes.
+------
+-- After this role is created, we need to do two things:
+--   1. connect to the database and update the login with a secure password generated/stored in 1Password:
+--       `ALTER ROLE replicator WITH LOGIN PASSWORD '...'`.
+--   2. in Aiven UI, allow replication for the user.
+CREATE ROLE replicator WITH NOLOGIN NOSUPERUSER;
+GRANT USAGE ON SCHEMA upchieve TO replicator;
+GRANT SELECT ON ALL tables IN SCHEMA upchieve TO replicator;
+ALTER DEFAULT PRIVILEGES IN SCHEMA upchieve GRANT SELECT ON tables TO replicator;
