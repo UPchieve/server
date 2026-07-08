@@ -93,7 +93,7 @@ export function toNTHSAdvisorPublic(advisor: Advisor): AdvisorPublic {
   return {
     id: advisor.id,
     nthsGroupId: advisor.nthsGroupId,
-    schoolId: advisor.schoolId,
+    schoolId: advisor?.schoolId,
     firstName: advisor.firstName,
     lastName: advisor.lastName,
     email: advisor.email,
