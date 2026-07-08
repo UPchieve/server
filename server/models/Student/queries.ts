@@ -141,7 +141,7 @@ export async function isFavoriteVolunteer(
   }
 }
 
-type FavoriteVolunteer = {
+export type FavoriteVolunteer = {
   volunteerId: Ulid
   firstName: string
   numSessions: number

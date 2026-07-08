@@ -1,12 +1,12 @@
 import { mocked } from 'jest-mock'
-import request, { Test } from 'supertest'
+import request, { Response } from 'supertest'
 import { mockApp, mockPassportMiddleware, mockRouter } from '../../mock-app'
 import { routeStudents } from '../../../router/api/students'
 import * as StudentRepo from '../../../models/Student/queries'
 import * as AssignmentsService from '../../../services/AssignmentsService'
 import * as StudentService from '../../../services/StudentService'
 import config from '../../../config'
-import { getDbUlid, getUuid } from '../../../models/pgUtils'
+import { getUuid } from '../../../models/pgUtils'
 import { FavoriteLimitReachedError } from '../../../services/Errors'
 import {
   buildStudent,
@@ -18,13 +18,18 @@ import {
 jest.mock('../../../models/Student/queries')
 jest.mock('../../../services/StudentService')
 jest.mock('../../../services/AssignmentsService')
-jest.mock('../../../utils/auth-utils', () => ({
-  authPassport: {
-    isAdmin(_req: unknown, _res: unknown, next: () => void): void {
-      next()
+jest.mock('../../../utils/auth-utils', () => {
+  const actual = jest.requireActual('../../../utils/auth-utils')
+  return {
+    ...actual,
+    authPassport: {
+      ...actual.authPassport,
+      isAdmin(_req: unknown, _res: unknown, next: () => void): void {
+        next()
+      },
     },
-  },
-}))
+  }
+})
 const mockedStudentRepo = mocked(StudentRepo)
 const mockedAssignmentsService = mocked(AssignmentsService)
 const mockedStudentService = mocked(StudentService)
@@ -45,40 +50,26 @@ routeStudents(router)
 app.use('/api', router)
 
 const agent = request.agent(app)
-const API_ROUTE = '/api'
 
-async function sendGetQuery(
-  route: string,
-  payload: Record<string, unknown>
-): Promise<Test> {
-  return agent
-    .get(API_ROUTE + route)
-    .set('Accept', 'application/json')
-    .query(payload)
-    .send()
+function sendGet(path: string): Promise<Response> {
+  return agent.get(path).set('Accept', 'application/json')
 }
 
-async function sendGet(
-  route: string,
+function sendGetQuery(
+  path: string,
   payload?: Record<string, unknown>
-): Promise<Test> {
-  if (payload)
-    return agent
-      .get(API_ROUTE + route)
-      .set('Accept', 'application/json')
-      .send(payload)
-
-  return agent.get(route).set('Accept', 'application/json')
+): Promise<Response> {
+  return agent
+    .get(path)
+    .set('Accept', 'application/json')
+    .query(payload ?? {})
 }
 
-async function sendPost(
-  route: string,
+function sendPost(
+  path: string,
   payload?: Record<string, unknown>
-): Promise<Test> {
-  return agent
-    .post(API_ROUTE + route)
-    .set('Accept', 'application/json')
-    .send(payload)
+): Promise<Response> {
+  return agent.post(path).set('Accept', 'application/json').send(payload)
 }
 
 describe('routeStudents', () => {
@@ -87,123 +78,24 @@ describe('routeStudents', () => {
     mockUser = buildStudent()
   })
 
-  const REMAINING_FAVORITE_ROUTE = '/students/remaining-favorite-volunteers'
-  describe(REMAINING_FAVORITE_ROUTE, () => {
+  describe('GET /api/students/remaining-favorite-volunteers', () => {
     test('Students should see remaining number of volunteers they can favorite', async () => {
       const totalFavorited = 5
       mockedStudentRepo.getTotalFavoriteVolunteers.mockResolvedValueOnce(
         totalFavorited
       )
-      const response = await sendGet(REMAINING_FAVORITE_ROUTE, {})
-      const {
-        body: { remaining },
-      } = response
-      expect(remaining).toEqual(config.favoriteVolunteerLimit - totalFavorited)
-      expect(response.status).toBe(200)
-    })
-  })
 
-  function IS_FAVORITE_VOLUNTEER_PATH(volunteerId: string) {
-    return `/students/favorite-volunteers/${volunteerId}`
-  }
-  describe(IS_FAVORITE_VOLUNTEER_PATH(':volunteerId'), () => {
-    test('Students should see volunteer is favorited', async () => {
-      const volunteerId = getDbUlid()
-      const expectedIsFavorite = false
-      mockedStudentRepo.isFavoriteVolunteer.mockResolvedValueOnce(
-        expectedIsFavorite
-      )
       const response = await sendGet(
-        IS_FAVORITE_VOLUNTEER_PATH(volunteerId),
-        {}
+        '/api/students/remaining-favorite-volunteers'
       )
-      const {
-        body: { isFavorite },
-      } = response
-      expect(isFavorite).toEqual(expectedIsFavorite)
+      expect(response.body).toEqual({
+        remaining: config.favoriteVolunteerLimit - totalFavorited,
+      })
       expect(response.status).toBe(200)
-    })
-
-    test('Students should be able to favorite volunteer', async () => {
-      const volunteerId = getDbUlid()
-      const expectedIsFavorite = true
-      const payload = { isFavorite: expectedIsFavorite }
-      mockedStudentService.checkAndUpdateVolunteerFavoriting.mockResolvedValueOnce(
-        { isFavorite: true }
-      )
-      const response = await sendPost(
-        IS_FAVORITE_VOLUNTEER_PATH(volunteerId.toString()),
-        payload
-      )
-      const {
-        body: { isFavorite },
-      } = response
-
-      expect(isFavorite).toEqual(expectedIsFavorite)
-      expect(response.status).toBe(200)
-    })
-
-    test('Students should be able to favorite volunteer with sessionId in the payload', async () => {
-      const volunteerId = getDbUlid()
-      const expectedIsFavorite = true
-      const payload = { isFavorite: expectedIsFavorite, sessionId: getDbUlid() }
-      mockedStudentService.checkAndUpdateVolunteerFavoriting.mockResolvedValueOnce(
-        { isFavorite: true }
-      )
-      const response = await sendPost(
-        IS_FAVORITE_VOLUNTEER_PATH(volunteerId.toString()),
-        payload
-      )
-      const {
-        body: { isFavorite },
-      } = response
-
-      expect(isFavorite).toEqual(expectedIsFavorite)
-      expect(response.status).toBe(200)
-    })
-
-    test('Students should be able to unfavorite volunteer', async () => {
-      const volunteerId = getDbUlid()
-      const expectedIsFavorite = false
-      const payload = { isFavorite: expectedIsFavorite }
-      mockedStudentService.checkAndUpdateVolunteerFavoriting.mockResolvedValueOnce(
-        { isFavorite: false }
-      )
-      const response = await sendPost(
-        IS_FAVORITE_VOLUNTEER_PATH(volunteerId.toString()),
-        payload
-      )
-      const {
-        body: { isFavorite },
-      } = response
-
-      expect(isFavorite).toEqual(expectedIsFavorite)
-      expect(response.status).toBe(200)
-    })
-
-    test('Students should be not be able to favorite more than max volunteers', async () => {
-      const volunteerId = getDbUlid()
-      const expectedIsFavorite = true
-      const payload = { isFavorite: expectedIsFavorite }
-      mockedStudentService.checkAndUpdateVolunteerFavoriting.mockImplementationOnce(
-        async () => {
-          throw new FavoriteLimitReachedError(
-            'Favorite volunteer limit reached.'
-          )
-        }
-      )
-      const response = await sendPost(
-        IS_FAVORITE_VOLUNTEER_PATH(volunteerId.toString()),
-        payload
-      )
-
-      expect(response.status).toBe(422)
-      expect(response.body.message).toBe('Favorite volunteer limit reached.')
     })
   })
 
-  const FAVORITE_VOLUNTEERS_PATH = '/students/favorite-volunteers'
-  describe(FAVORITE_VOLUNTEERS_PATH, () => {
+  describe('GET /api/students/favorite-volunteers', () => {
     test('Students should get a list of favorited volunteers', async () => {
       const payload = {
         page: 2,
@@ -211,12 +103,12 @@ describe('routeStudents', () => {
       const expected = {
         favoriteVolunteers: [
           {
-            volunteerId: getDbUlid(),
+            volunteerId: getUuid(),
             firstName: 'Test 1',
             numSessions: 3,
           },
           {
-            volunteerId: getDbUlid(),
+            volunteerId: getUuid(),
             firstName: 'Test 2',
             numSessions: 0,
           },
@@ -226,12 +118,15 @@ describe('routeStudents', () => {
       mockedStudentService.getFavoriteVolunteersPaginated.mockResolvedValueOnce(
         expected
       )
-      const response = await sendGetQuery(FAVORITE_VOLUNTEERS_PATH, payload)
-      const {
-        body: { favoriteVolunteers, isLastPage },
-      } = response
-      expect(favoriteVolunteers).toEqual(expected.favoriteVolunteers)
-      expect(isLastPage).toEqual(expected.isLastPage)
+
+      const response = await sendGetQuery(
+        '/api/students/favorite-volunteers',
+        payload
+      )
+      expect(response.body).toEqual({
+        favoriteVolunteers: expected.favoriteVolunteers,
+        isLastPage: expected.isLastPage,
+      })
       expect(response.status).toBe(200)
     })
 
@@ -239,13 +134,105 @@ describe('routeStudents', () => {
       const payload = {
         page: 'test',
       }
-      const response = await sendGetQuery(FAVORITE_VOLUNTEERS_PATH, payload)
+      const response = await sendGetQuery(
+        '/api/students/favorite-volunteers',
+        payload
+      )
       expect(response.status).toBe(422)
     })
   })
 
+  describe('GET /api/students/favorite-volunteers/:volunteerId', () => {
+    test('Students should see volunteer is favorited', async () => {
+      const volunteerId = getUuid()
+      const expectedIsFavorite = false
+      mockedStudentRepo.isFavoriteVolunteer.mockResolvedValueOnce(
+        expectedIsFavorite
+      )
+
+      const response = await sendGet(
+        `/api/students/favorite-volunteers/${volunteerId}`
+      )
+      expect(response.body).toEqual({ isFavorite: expectedIsFavorite })
+      expect(response.status).toBe(200)
+    })
+  })
+
+  describe('POST /api/students/favorite-volunteers/:volunteerId', () => {
+    test('Students should be able to favorite volunteer', async () => {
+      const volunteerId = getUuid()
+      const expectedIsFavorite = true
+      const payload = { isFavorite: expectedIsFavorite }
+      mockedStudentService.checkAndUpdateVolunteerFavoriting.mockResolvedValueOnce(
+        { isFavorite: true }
+      )
+
+      const response = await sendPost(
+        `/api/students/favorite-volunteers/${volunteerId}`,
+        payload
+      )
+      expect(response.body).toEqual({ isFavorite: expectedIsFavorite })
+      expect(response.status).toBe(200)
+    })
+
+    test('Students should be able to favorite volunteer with sessionId in the payload', async () => {
+      const volunteerId = getUuid()
+      const expectedIsFavorite = true
+      const payload = { isFavorite: expectedIsFavorite, sessionId: getUuid() }
+      mockedStudentService.checkAndUpdateVolunteerFavoriting.mockResolvedValueOnce(
+        { isFavorite: true }
+      )
+
+      const response = await sendPost(
+        `/api/students/favorite-volunteers/${volunteerId}`,
+        payload
+      )
+      expect(response.body).toEqual({ isFavorite: expectedIsFavorite })
+      expect(response.status).toBe(200)
+    })
+
+    test('Students should be able to unfavorite volunteer', async () => {
+      const volunteerId = getUuid()
+      const expectedIsFavorite = false
+      const payload = { isFavorite: expectedIsFavorite }
+      mockedStudentService.checkAndUpdateVolunteerFavoriting.mockResolvedValueOnce(
+        { isFavorite: false }
+      )
+
+      const response = await sendPost(
+        `/api/students/favorite-volunteers/${volunteerId}`,
+        payload
+      )
+      expect(response.body).toEqual({ isFavorite: expectedIsFavorite })
+      expect(response.status).toBe(200)
+    })
+
+    test('Students should be not be able to favorite more than max volunteers', async () => {
+      const volunteerId = getUuid()
+      const expectedIsFavorite = true
+      const payload = { isFavorite: expectedIsFavorite }
+      mockedStudentService.checkAndUpdateVolunteerFavoriting.mockImplementationOnce(
+        async () => {
+          throw new FavoriteLimitReachedError(
+            'Favorite volunteer limit reached.'
+          )
+        }
+      )
+
+      const response = await sendPost(
+        `/api/students/favorite-volunteers/${volunteerId}`,
+        payload
+      )
+      expect(response.status).toBe(422)
+      expect(response.body).toEqual({
+        success: false,
+        message: 'Favorite volunteer limit reached.',
+      })
+    })
+  })
+
   describe('GET /api/students/partners/active', () => {
-    test.only('returns active partners for student', async () => {
+    test('returns active partners for student', async () => {
       mockUser = buildUser({ isAdmin: true })
       const studentId = getUuid()
       const activePartners = [
@@ -270,13 +257,12 @@ describe('routeStudents', () => {
       mockUser = buildUser({ isAdmin: true })
       const studentId = getUuid()
       mockedStudentService.adminGetActivePartnersForStudent.mockResolvedValueOnce(
-        undefined as never
+        undefined
       )
 
       const response = await sendGet(
         `/api/students/partners/active?student=${studentId}`
       )
-
       expect(response.status).toBe(200)
       expect(response.body).toEqual({ activePartners: [] })
     })
