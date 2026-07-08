@@ -1,10 +1,11 @@
-import type { Uuid } from '../types/shared'
 import type {
   StudentTutoringFeedback,
   StudentCounselingFeedback,
   VolunteerFeedback,
   ResponseData,
 } from '../models/Feedback'
+import type { ISODateString } from '../types/dates'
+import type { Uuid } from '../types/shared'
 
 // Legacy survey
 export type FeedbackPublic = {
@@ -95,4 +96,59 @@ export type PostsessionSurveyResponsePublic = {
   response?: string
   displayOrder: number
   score: number
+}
+
+export type SurveyResponseDefinitionPublic = {
+  responseId?: number
+  responseText?: string
+  responseDisplayPriority?: number
+  responseDisplayImage?: string
+}
+
+export type SurveyUserResponseDefinitionPublic = {
+  responseId?: number
+  response: string
+}
+
+export type SurveyQuestionDefinitionPublic = {
+  questionId: number
+  questionText: string
+  displayPriority: number
+  questionType: string
+  responses: SurveyResponseDefinitionPublic[]
+  userResponse?: SurveyUserResponseDefinitionPublic
+}
+
+export type SurveyQueryResponsePublic = {
+  surveyId: number
+  surveyTypeId: number
+  survey: SurveyQuestionDefinitionPublic[]
+  rewardAmount?: number
+}
+
+export type VolunteerContextResponsePublic = {
+  totalStudentSessions: number
+  responses: SimpleSurveyResponsePublic[]
+}
+
+export type PostsessionSurveyGoalResponsePublic = {
+  sessionId: string
+  roleInSession: string
+  submitterUserId: string
+  createdAt: ISODateString
+  surveyResponseChoiceId: number
+  score: number
+  choiceText: string
+}
+
+export type PresessionGoalResponse = {
+  goal: string | undefined
+}
+
+export type SurveyDefinitionResponse = {
+  survey: SurveyQueryResponsePublic | undefined
+}
+
+export type GetSimpleSurveyResponse = {
+  survey: SimpleSurveyResponsePublic[]
 }

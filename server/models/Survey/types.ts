@@ -66,7 +66,7 @@ export type SurveyResponseDefinition = {
   responseDisplayImage?: string
 }
 
-export type SurveryUserResponseDefinition = {
+export type SurveyUserResponseDefinition = {
   responseId?: number
   response: string
 }
@@ -79,7 +79,7 @@ export type SurveyQuestionDefinition = {
   responses: SurveyResponseDefinition[]
   // TODO: Refactor in favor of `SurveyResponseDefinition` after `SimpleSurveyResponse`
   // is refactored into `SurveyResponseDefinition` type
-  userResponse?: SurveryUserResponseDefinition
+  userResponse?: SurveyUserResponseDefinition
 }
 
 export type SurveyQueryResponse = {

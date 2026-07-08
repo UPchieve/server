@@ -11,7 +11,7 @@ import {
   getSimpleSurveyDefinition,
   getLatestUserSubmissionsForSurveyBySurveyType,
   getLatestUserSubmissionsForSurveyBySurveyId,
-  SurveryUserResponseDefinition,
+  SurveyUserResponseDefinition,
   getSurveyIdForLatestImpactStudySurveySubmission,
   getSimpleSurveyDefinitionBySurveyId,
   getSurveyTypeFromSurveyTypeId,
@@ -61,7 +61,7 @@ export const asSaveUserSurveyAndSubmissions =
     volunteerFeedbackForStudent: asOptional(asString),
   })
 
-type VolunteerContextResponse = {
+export type VolunteerContextResponse = {
   totalStudentSessions: number
   responses: SimpleSurveyResponse[]
 }
@@ -339,7 +339,7 @@ export async function getLatestImpactStudySurveyResponses(
       ? ({
           responseId: matchingSubmission.responseId,
           response: matchingSubmission.response,
-        } as SurveryUserResponseDefinition)
+        } as SurveyUserResponseDefinition)
       : undefined
 
     return {
