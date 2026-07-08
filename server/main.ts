@@ -18,7 +18,7 @@ async function main() {
   })
 
   // avoid conflict with development tools that allow for restarts when a file changes
-  if (config.NODE_ENV !== 'dev') {
+  if (config.NODE_ENV !== 'dev' && config.NODE_ENV !== 'test_e2e') {
     serverSetup(server)
     registerGracefulShutdownListeners(server, getClient(), io)
   }
