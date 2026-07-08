@@ -38,6 +38,47 @@ SELECT * FROM pg_publication;
 SELECT * FROM pg_publication_tables;
 ```
 
+### Subscription
+
+**Prerequisite**: Before setting up the subscription, you must do the following:
+1. Create the Postgres service that will be the replica from [`grand-central-station`](TODO: Add link).
+  - This will include creating the `upchieve` database.
+2. **Run the database migrations against the replica**. If the tables don't exist, the initial copy when creating the subscription will fail.
+
+Then you can continue with the following:
+1. `cd` into this directory:
+```bash
+cd subway/database/privacy/replication/setup
+```
+2. Double check the `subscription.sql` file looks sane.
+3. Connect to the **replica** (NOT read-replica) upchieve database as `avnadmin` with the following command:
+Note: Replace `<item>` with the name of the item in 1Password (e.g. `dev_postgres`, `staging_postgres`):
+```bash
+SUB_NAME="sub_masking" \
+PUB_NAME="pub_masking" \
+SLOT_NAME="masking_slot" \
+CREATE_SLOT=TRUE \
+COPY_DATA=TRUE \
+CONNECTION_STRING="$(op read 'op://engineering/<item>/admin/connection_string')" \
+PGPASSWORD=$(op read op://engineering/<item>/replica/admin_password) \
+psql --host $(op read op://engineering/<item>/replica/server) \
+  --port $(op read op://engineering/<item>/replica/port) \
+  --username avnadmin \
+  --dbname upchieve
+```
+4. In `psql`, run the following to create the subscription:
+```sql
+\i subscription.sql
+```
+5. While still in `psql`, verify creation of the subscription:
+```sql
+SELECT * FROM aiven_extras.pg_list_all_subscriptions();
+```
+6. Connect to the **primary** again (see step 3 above in Setup/Publication) and verify creation of the slot:
+```sql
+SELECT * FROM pg_replication_slots;
+```
+
 ## Maintenance
 The following scripts are executed automatically in our [migration script](https://gitlab.com/upchieve/grand-central-station/-/blob/main/marathon/ansible/roles/database/maintenance_scripts/templates/migrate_production.sh), **in the proper order**. You should not need to run these manually, but if you do, make sure to run in the following order:
 
