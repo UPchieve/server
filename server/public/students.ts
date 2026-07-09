@@ -1,10 +1,12 @@
 import type {
   FavoriteVolunteerPublic,
   StudentPartnerOrgInstancePublic,
+  StudentUserProfilePublic,
 } from '../contracts/students'
 import type {
   FavoriteVolunteer,
   StudentPartnerOrgInstance,
+  StudentUserProfile,
 } from '../models/Student'
 
 export function toFavoriteVolunteerPublic(
@@ -25,5 +27,19 @@ export function toStudentPartnerOrgInstancePublic(
     name: org.name,
     schoolId: org?.schoolId,
     siteName: org?.siteName,
+  }
+}
+
+export function toStudentProfilePublic(
+  student: StudentUserProfile
+): StudentUserProfilePublic {
+  return {
+    id: student.id,
+    email: student.email,
+    firstName: student.firstName,
+    gradeLevel: student.gradeLevel,
+    schoolId: student.schoolId,
+    lastName: student.lastName,
+    createdAt: student.createdAt.toISOString(),
   }
 }
