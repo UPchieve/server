@@ -54,7 +54,6 @@ describe('TrainingCourseService', () => {
           progress,
           completedMaterials: [materialKey],
           createdAt: new Date(),
-          updatedAt: new Date(),
           isComplete,
         },
       })
@@ -133,8 +132,6 @@ describe('TrainingCourseService', () => {
           progress: originalProgress,
           completedMaterials: [materialKey],
           createdAt: new Date(),
-          updatedAt: new Date(),
-          isComplete,
         },
       })
 

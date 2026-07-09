@@ -49,6 +49,7 @@ import { UniqueStudentsHelped } from '.'
 import { insertUserRoleByUserId, UserRole } from '../User'
 import { getVolunteerPartnerOrgIdByKey } from '../VolunteerPartnerOrg'
 import { ReportNoDataFoundError } from '../../services/ReportService'
+import { UserTrainingCourses } from '../../types/training'
 
 export type VolunteerContactInfo = {
   id: Ulid
@@ -705,34 +706,19 @@ export async function updateVolunteerTotalHoursById(
   }
 }
 
-export type TrainingCourse = {
-  userId: Ulid
-  complete: boolean
-  trainingCourse: string
-  progress: number
-  completedMaterials: string[]
-  createdAt: Date
-  updatedAt: Date
-  // legacy names for frontend
-  isComplete: boolean
-}
-type VolunteerTrainingCourses = { [key: string]: TrainingCourse }
 export async function getVolunteerTrainingCourses(
   userId: Ulid,
   tc?: TransactionClient
-): Promise<VolunteerTrainingCourses> {
+): Promise<UserTrainingCourses> {
   try {
     const result = await pgQueries.getVolunteerTrainingCourses.run(
       { userId },
       tc ?? getClient()
     )
-    const map: VolunteerTrainingCourses = {}
+    const map: UserTrainingCourses = {}
     for (const row of result) {
       const temp = { ...makeRequired(row) }
-      map[temp.trainingCourse] = {
-        ...temp,
-        isComplete: temp.complete,
-      }
+      map[temp.trainingCourse] = temp
     }
     return map
   } catch (err) {

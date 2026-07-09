@@ -196,11 +196,12 @@ export async function getLegacyUserObject(
             userId: baseUser.id,
             trainingCourse: 'upchieve101',
             complete: false,
-            isComplete: false,
+            // TODO: likely map this field to a public version within the auth router
+            // isComplete is a concern for the presentation layer
+            // isComplete: false,
             completedMaterials: [],
             progress: 0,
             createdAt: new Date(),
-            updatedAt: new Date(),
           }
         }
         // TODO: ask if we want to allow users to take quizzes in subjects they already unlocked
