@@ -15,9 +15,9 @@ import {
   StudentPartnerOrgInstance,
   StudentSignupSources,
 } from '../models/Student/queries'
-import { TeacherClassResult } from '../models/TeacherClass'
 import { runInTransaction, TransactionClient } from '../db'
 import { daysInMs } from '../utils/time-utils'
+import type { TeacherClass } from '../types/teachers'
 
 export const queueOnboardingEmails = async (studentId: Ulid): Promise<void> => {
   await QueueService.add(
@@ -137,7 +137,7 @@ export async function getStudentByEmail(
 
 export async function getActiveClassesForStudent(
   studentId: Ulid
-): Promise<TeacherClassResult[]> {
+): Promise<TeacherClass[]> {
   const teacherClasses =
     await TeacherClassRepo.getTeacherClassesForStudent(studentId)
   return teacherClasses.filter((c) => c.active)
