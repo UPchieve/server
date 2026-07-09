@@ -1,8 +1,7 @@
 -- migrate:up
-INSERT INTO upchieve.session_flags (name)
-    VALUES ('Hate speech'), ('Inappropriate conversation'), ('Platform circumvention'), ('Personally identifiable information'), ('Safety concern'), ('General moderation concern');
+-- DML moved to seed-update 20260709120002_add-session-flags-for-automated-moderation
+-- so this migration is safe to run on logical-replication subscribers.
+-- Left intentionally empty: already-applied environments never re-run this body,
+-- and a from-empty build picks up the rows from the seed-update.
 
 -- migrate:down
-DELETE FROM upchieve.session_flags
-WHERE name IN ('Hate speech', 'Inappropriate conversation', 'Platform circumvention', 'Personally identifiable information', 'Safety concern', 'General moderation concern');
-
