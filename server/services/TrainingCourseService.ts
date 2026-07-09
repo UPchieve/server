@@ -6,18 +6,16 @@ import {
 import * as TrainingUtils from '../utils/training-courses'
 import logger from '../logger'
 import { runInTransaction, TransactionClient } from '../db'
-import type { TrainingCourses, TrainingCourse } from '../types/training'
+import type {
+  TrainingCourses,
+  TrainingCourseWithUserProgress,
+  UserTrainingCourseProgressUpdate,
+} from '../types/training'
 
 export async function getCourse(
   volunteer: UserContactInfo,
   courseKey: keyof TrainingCourses
-): Promise<
-  TrainingCourse & {
-    isComplete: boolean
-    progress: number
-    completedMaterials: string[]
-  }
-> {
+): Promise<TrainingCourseWithUserProgress> {
   const userTrainingCourses = await getVolunteerTrainingCourses(volunteer.id)
   const foundCourse = userTrainingCourses[courseKey]
   // if the volunteer has no progress so far make a blank
@@ -39,23 +37,16 @@ export async function getCourse(
 
   return {
     ...course,
-    // TODO: `isComplete` will be projected by the public mapper instead
-    isComplete: userCourse.complete,
     progress: userCourse.progress,
     completedMaterials: userCourse.completedMaterials,
   }
 }
 
-interface CourseProgress {
-  progress: number
-  isComplete: boolean
-  completedMaterialKeys: string[]
-}
 export async function recordProgress(
   volunteer: UserContactInfo,
   courseKey: keyof TrainingCourses,
   materialKey: string
-): Promise<CourseProgress> {
+): Promise<UserTrainingCourseProgressUpdate> {
   return runInTransaction(async (tc: TransactionClient) => {
     const volunteerTrainingCourses = await getVolunteerTrainingCourses(
       volunteer.id,

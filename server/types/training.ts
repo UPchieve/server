@@ -74,3 +74,14 @@ export interface TrainingCourse {
   quizKey?: string
   quizName?: string
 }
+
+export type TrainingCourseWithUserProgress = TrainingCourse & {
+  progress: number
+  completedMaterials: string[]
+}
+
+export type UserTrainingCourseProgressUpdate = {
+  progress: number
+  isComplete: boolean
+  completedMaterialKeys: string[]
+}
