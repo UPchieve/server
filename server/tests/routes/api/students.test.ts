@@ -11,7 +11,8 @@ import { FavoriteLimitReachedError } from '../../../services/Errors'
 import {
   buildStudent,
   buildStudentAssignment,
-  buildTeacherClassResult,
+  buildTeacherClass,
+  buildTeacherClassForStudentPublic,
   buildUser,
 } from '../../mocks/generate'
 
@@ -270,7 +271,7 @@ describe('routeStudents', () => {
 
   describe('GET /api/students/classes', () => {
     test('returns active classes for student', async () => {
-      const classes = [buildTeacherClassResult(), buildTeacherClassResult()]
+      const classes = [buildTeacherClass(), buildTeacherClass()]
       mockedStudentService.getActiveClassesForStudent.mockResolvedValueOnce(
         classes
       )
@@ -281,11 +282,7 @@ describe('routeStudents', () => {
         mockedStudentService.getActiveClassesForStudent
       ).toHaveBeenCalledWith(mockUser.id)
       expect(response.body).toEqual({
-        classes: classes.map((teacherClass) => ({
-          ...teacherClass,
-          createdAt: teacherClass.createdAt.toISOString(),
-          updatedAt: teacherClass.updatedAt.toISOString(),
-        })),
+        classes: classes.map(buildTeacherClassForStudentPublic),
       })
     })
   })

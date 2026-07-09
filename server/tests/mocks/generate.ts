@@ -119,8 +119,9 @@ import { SessionSummary } from '../../models/SessionSummaries/types'
 import type { HeatMap } from '../../utils/session-utils'
 import type {
   TeacherClass,
-  TeacherClassResult,
-} from '../../models/TeacherClass'
+  TeacherClassForStudent,
+  TeacherClassWithStudents,
+} from '../../types/teachers'
 import type {
   GetTopicsResult,
   SubjectWithTopic,
@@ -130,7 +131,6 @@ import type {
 } from '../../models/Subjects'
 import type { SurveyQueryResponse } from '../../models/Survey'
 import type { SaveSurveyAndSubmissions } from '../../services/SurveyService'
-import { TeacherClassWithStudents } from '../../models/Teacher'
 import { Question } from '../../models/Question'
 import { MaterialType, TrainingCourse } from '../../utils/training-courses'
 import type {
@@ -157,6 +157,11 @@ import {
   PostsessionSurveyResponsePublic,
   SimpleSurveyResponsePublic,
 } from '../../contracts/surveys'
+import type { StudentUserProfilePublic } from '../../contracts/students'
+import type {
+  TeacherClassForStudentPublic,
+  TeacherClassPublic,
+} from '../../contracts/teachers'
 
 export function getEmail(): string {
   return faker.internet.email().toLowerCase()
@@ -337,6 +342,21 @@ export function buildStudentUserProfile(
     createdAt: student.createdAt,
     updatedAt: student.updatedAt,
     ...overrides,
+  }
+}
+
+export function buildStudentUserProfilePublic(
+  overrides: Partial<StudentUserProfile> = {}
+): StudentUserProfilePublic {
+  const student = buildStudent(overrides)
+  return {
+    id: student.id,
+    email: student.email,
+    firstName: student.firstName,
+    lastName: student.lastName,
+    gradeLevel: student.currentGrade,
+    schoolId: student.schoolId,
+    createdAt: student.createdAt.toISOString(),
   }
 }
 
@@ -2185,17 +2205,29 @@ export function buildHeatMap(overrides: Partial<HeatMap> = {}): HeatMap {
   }
 }
 
-export function buildTeacherClassResult(
-  overrides: Partial<TeacherClassResult> = {}
-): TeacherClassResult {
+export function buildTeacherClassForStudent(
+  overrides: Partial<TeacherClassForStudent> = {}
+): TeacherClassForStudent {
   return {
     id: getUuid(),
     name: 'Teacher Class',
     active: true,
     topicId: 1,
     createdAt: new Date(),
-    updatedAt: new Date(),
     ...overrides,
+  }
+}
+
+export function buildTeacherClassForStudentPublic(
+  overrides: Partial<TeacherClassForStudent> = {}
+): TeacherClassForStudentPublic {
+  const teacherClass = buildTeacherClassForStudent(overrides)
+  return {
+    id: teacherClass.id,
+    name: teacherClass.name,
+    active: teacherClass.active,
+    topicId: teacherClass.topicId,
+    createdAt: teacherClass.createdAt.toISOString(),
   }
 }
 
@@ -2347,52 +2379,30 @@ export function buildTeacherClass(
     id: getUuid(),
     userId: getUuid(),
     name: 'Algebra 1',
-    code: getUuid(),
-    topicId: 1,
-    active: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    ...overrides,
-  }
-}
-
-export function buildTeacherClassByClassCode(
-  overrides: Partial<{
-    id: string
-    userId?: string | undefined
-    name: string
-    active: boolean
-    cleverId?: string
-    code: string
-    topicId?: number
-    createdAt: Date
-    updatedAt: Date
-    deactivatedOn?: Date
-  }> = {}
-): {
-  id: string
-  userId: string
-  name: string
-  active: boolean
-  code: string
-  cleverId: string
-  topicId: number
-  createdAt: Date
-  updatedAt: Date
-  deactivatedOn: Date
-} {
-  return {
-    id: getUuid(),
-    userId: getUuid(),
-    name: 'Algebra 1',
     active: true,
     code: getUuid(),
     topicId: 1,
     cleverId: getUuid(),
     createdAt: new Date(),
-    updatedAt: new Date(),
     deactivatedOn: new Date(),
     ...overrides,
+  }
+}
+
+export function buildTeacherClassPublic(
+  overrides: Partial<TeacherClass> = {}
+): TeacherClassPublic {
+  const teacherClass = buildTeacherClass(overrides)
+  return {
+    id: teacherClass.id,
+    userId: teacherClass.userId,
+    name: teacherClass.name,
+    active: teacherClass.active,
+    code: teacherClass.code,
+    topicId: teacherClass.topicId,
+    cleverId: teacherClass.cleverId,
+    createdAt: teacherClass.createdAt.toISOString(),
+    deactivatedOn: teacherClass.deactivatedOn?.toISOString(),
   }
 }
 

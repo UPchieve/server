@@ -13,7 +13,9 @@ import {
   buildAssignmentPayload,
   buildUser,
   buildGetTopicsResult,
-  buildTeacherClassByClassCode,
+  buildStudentUserProfilePublic,
+  buildTeacherClassPublic,
+  buildAssignmentPublic,
 } from '../../mocks/generate'
 import { getUuid } from '../../../models/pgUtils'
 import { RoleContext } from '../../../services/UserRolesService'
@@ -65,13 +67,9 @@ describe('routeTeachers', () => {
   describe('POST /api/teachers/class', () => {
     test('creates teacher class', async () => {
       const teacherClass = buildTeacherClass()
-      const topic = buildGetTopicsResult()
-      const mockTeacherClass = {
-        ...teacherClass,
-        topic,
-      }
+      const topic = buildGetTopicsResult({ id: teacherClass.topicId })
       mockedTeacherService.createTeacherClass.mockResolvedValueOnce(
-        mockTeacherClass
+        teacherClass
       )
 
       const response = await sendPost('/api/teachers/class', {
@@ -85,24 +83,15 @@ describe('routeTeachers', () => {
         topic.id
       )
       expect(response.body).toEqual({
-        teacherClass: {
-          ...teacherClass,
-          topic,
-          createdAt: teacherClass.createdAt.toISOString(),
-          updatedAt: teacherClass.updatedAt.toISOString(),
-        },
+        teacherClass: buildTeacherClassPublic(teacherClass),
       })
     })
 
     test('creates teacher class with null topic id when omitted', async () => {
       const teacherClass = buildTeacherClass()
-      const mockTeacherClass = {
-        ...teacherClass,
-        topic: undefined,
-      }
       //   NOTE: topic is technically undefined when no topicId is provided
       mockedTeacherService.createTeacherClass.mockResolvedValueOnce(
-        mockTeacherClass
+        teacherClass
       )
 
       const response = await sendPost('/api/teachers/class', {
@@ -115,12 +104,7 @@ describe('routeTeachers', () => {
         null
       )
       expect(response.body).toEqual({
-        teacherClass: {
-          ...teacherClass,
-          topic: undefined,
-          createdAt: teacherClass.createdAt.toISOString(),
-          updatedAt: teacherClass.updatedAt.toISOString(),
-        },
+        teacherClass: buildTeacherClassPublic(teacherClass),
       })
     })
   })
@@ -143,15 +127,9 @@ describe('routeTeachers', () => {
       expect(response.body).toEqual({
         teacherClasses: teacherClasses.map((teacherClass) => ({
           ...teacherClass,
-          students: teacherClass.students.map((student) => {
-            return {
-              ...student,
-              createdAt: student.createdAt.toISOString(),
-              updatedAt: student.updatedAt.toISOString(),
-            }
-          }),
+          students: teacherClass.students.map(buildStudentUserProfilePublic),
           createdAt: teacherClass.createdAt.toISOString(),
-          updatedAt: teacherClass.updatedAt.toISOString(),
+          deactivatedOn: teacherClass.deactivatedOn?.toISOString(),
         })),
       })
     })
@@ -171,18 +149,14 @@ describe('routeTeachers', () => {
         mockedTeacherService.getStudentsInTeacherClass
       ).toHaveBeenCalledWith(classId)
       expect(response.body).toEqual({
-        students: students.map((student) => ({
-          ...student,
-          createdAt: student.createdAt.toISOString(),
-          updatedAt: student.updatedAt.toISOString(),
-        })),
+        students: students.map(buildStudentUserProfilePublic),
       })
     })
   })
 
   describe('GET /api/teachers/class', () => {
     test('returns teacher class by class code', async () => {
-      const teacherClass = buildTeacherClassByClassCode()
+      const teacherClass = buildTeacherClass()
       const classCode = teacherClass.code
       mockedTeacherService.getTeacherClassByClassCode.mockResolvedValueOnce(
         teacherClass
@@ -196,12 +170,7 @@ describe('routeTeachers', () => {
         mockedTeacherService.getTeacherClassByClassCode
       ).toHaveBeenCalledWith(classCode)
       expect(response.body).toEqual({
-        teacherClass: {
-          ...teacherClass,
-          createdAt: teacherClass.createdAt.toISOString(),
-          updatedAt: teacherClass.updatedAt.toISOString(),
-          deactivatedOn: teacherClass.deactivatedOn.toISOString(),
-        },
+        teacherClass: buildTeacherClassPublic(teacherClass),
       })
     })
   })
@@ -210,7 +179,6 @@ describe('routeTeachers', () => {
     test('returns teacher class by id', async () => {
       const classId = getUuid()
       const teacherClass = buildTeacherClass()
-      //   TODO: The underlying type must be updated first
       mockedTeacherService.getTeacherClassById.mockResolvedValueOnce(
         teacherClass
       )
@@ -221,11 +189,7 @@ describe('routeTeachers', () => {
         classId
       )
       expect(response.body).toEqual({
-        teacherClass: {
-          ...teacherClass,
-          createdAt: teacherClass.createdAt.toISOString(),
-          updatedAt: teacherClass.updatedAt.toISOString(),
-        },
+        teacherClass: buildTeacherClassPublic(teacherClass),
       })
     })
   })
@@ -236,7 +200,6 @@ describe('routeTeachers', () => {
       const topicId = 2
       const updatedClass = buildTeacherClass({ name: newClassName, topicId })
       const id = getUuid()
-      //   TODO: The underlying type must be updated first
       mockedTeacherService.updateTeacherClass.mockResolvedValueOnce(
         updatedClass
       )
@@ -254,11 +217,7 @@ describe('routeTeachers', () => {
         topicId
       )
       expect(response.body).toEqual({
-        updatedClass: {
-          ...updatedClass,
-          createdAt: updatedClass.createdAt.toISOString(),
-          updatedAt: updatedClass.updatedAt.toISOString(),
-        },
+        updatedClass: buildTeacherClassPublic(updatedClass),
       })
     })
   })
@@ -278,11 +237,7 @@ describe('routeTeachers', () => {
         id
       )
       expect(response.body).toEqual({
-        updatedClass: {
-          ...updatedClass,
-          createdAt: updatedClass.createdAt.toISOString(),
-          updatedAt: updatedClass.updatedAt.toISOString(),
-        },
+        updatedClass: buildTeacherClassPublic(updatedClass),
       })
     })
   })
@@ -305,15 +260,56 @@ describe('routeTeachers', () => {
         studentId,
         classId
       )
-      expect(response.body).toEqual({ removedId: removedList })
+      expect(response.body).toEqual({
+        removedId: removedList.map((student) => ({
+          studentId: student.studentId,
+          studentid: student.studentId,
+        })),
+      })
     })
   })
 
   describe('POST /api/teachers/assignment', () => {
+    test('moderation failure when creating an assignment', async () => {
+      const assignmentData = buildAssignmentPayload()
+      const moderationFailures = [
+        'moderation-failure-one',
+        'moderation-failure-two',
+      ]
+      mockedAssignmentsService.asAssignment.mockReturnValueOnce(assignmentData)
+      mockedAssignmentsService.moderateAssignment.mockResolvedValueOnce(
+        moderationFailures
+      )
+
+      const response = await sendPost('/api/teachers/assignment', {
+        assignmentData,
+        studentIds: assignmentData.studentIds,
+      })
+      expect(response.status).toBe(422)
+      expect(mockedAssignmentsService.asAssignment).toHaveBeenCalledWith(
+        {
+          ...assignmentData,
+          startDate: assignmentData.startDate.toISOString(),
+          dueDate: assignmentData.dueDate.toISOString(),
+        },
+        assignmentData.studentIds
+      )
+      expect(mockedAssignmentsService.moderateAssignment).toHaveBeenCalledWith(
+        assignmentData
+      )
+      expect(
+        mockedAssignmentsService.createAssignment
+      ).not.toHaveBeenCalledWith(assignmentData)
+      expect(response.body).toEqual({
+        moderationFailures,
+      })
+    })
+
     test('creates assignment', async () => {
       const assignmentData = buildAssignmentPayload()
       const assignment = buildAssignment()
       mockedAssignmentsService.asAssignment.mockReturnValueOnce(assignmentData)
+      mockedAssignmentsService.moderateAssignment.mockResolvedValueOnce(null)
       mockedAssignmentsService.createAssignment.mockResolvedValueOnce(
         assignment
       )
@@ -331,17 +327,14 @@ describe('routeTeachers', () => {
         },
         assignmentData.studentIds
       )
+      expect(mockedAssignmentsService.moderateAssignment).toHaveBeenCalledWith(
+        assignmentData
+      )
       expect(mockedAssignmentsService.createAssignment).toHaveBeenCalledWith(
         assignmentData
       )
       expect(response.body).toEqual({
-        assignment: {
-          ...assignment,
-          createdAt: assignment.createdAt.toISOString(),
-          updatedAt: assignment.updatedAt.toISOString(),
-          dueDate: assignment.dueDate?.toISOString(),
-          startDate: assignment.startDate?.toISOString(),
-        },
+        assignment: buildAssignmentPublic(assignment),
       })
     })
   })
@@ -362,13 +355,7 @@ describe('routeTeachers', () => {
         mockedAssignmentsService.getAssignmentsByClassId
       ).toHaveBeenCalledWith(classId)
       expect(response.body).toEqual({
-        assignments: assignments.map((assignment) => ({
-          ...assignment,
-          createdAt: assignment.createdAt.toISOString(),
-          updatedAt: assignment.updatedAt.toISOString(),
-          dueDate: assignment.dueDate?.toISOString(),
-          startDate: assignment.startDate?.toISOString(),
-        })),
+        assignments: assignments.map(buildAssignmentPublic),
       })
     })
   })
@@ -386,18 +373,45 @@ describe('routeTeachers', () => {
         mockedAssignmentsService.getAllAssignmentsForTeacher
       ).toHaveBeenCalledWith(mockUser.id)
       expect(response.body).toEqual({
-        assignments: assignments.map((assignment) => ({
-          ...assignment,
-          createdAt: assignment.createdAt.toISOString(),
-          updatedAt: assignment.updatedAt.toISOString(),
-          dueDate: assignment.dueDate?.toISOString(),
-          startDate: assignment.startDate?.toISOString(),
-        })),
+        assignments: assignments.map(buildAssignmentPublic),
       })
     })
   })
 
   describe('POST /api/teachers/assignment/edit', () => {
+    test('moderation failures when editing an assignment', async () => {
+      const assignmentData = buildEditedAssignmentPayload()
+      mockedAssignmentsService.asEditedAssignment.mockReturnValueOnce(
+        assignmentData
+      )
+      const moderationFailures = [
+        'moderation-failure-one',
+        'moderation-failure-two',
+      ]
+      mockedAssignmentsService.moderateAssignment.mockResolvedValueOnce(
+        moderationFailures
+      )
+
+      const response = await sendPost('/api/teachers/assignment/edit', {
+        assignmentData,
+      })
+      expect(response.status).toBe(422)
+      expect(mockedAssignmentsService.asEditedAssignment).toHaveBeenCalledWith({
+        ...assignmentData,
+        startDate: assignmentData.startDate.toISOString(),
+        dueDate: assignmentData.dueDate.toISOString(),
+      })
+      expect(mockedAssignmentsService.moderateAssignment).toHaveBeenCalledWith(
+        assignmentData
+      )
+      expect(mockedAssignmentsService.editAssignment).not.toHaveBeenCalledWith(
+        assignmentData
+      )
+      expect(response.body).toEqual({
+        moderationFailures,
+      })
+    })
+
     test('edits assignment', async () => {
       const assignmentData = buildEditedAssignmentPayload()
       const assignment = buildAssignment()
@@ -415,17 +429,14 @@ describe('routeTeachers', () => {
         startDate: assignmentData.startDate.toISOString(),
         dueDate: assignmentData.dueDate.toISOString(),
       })
+      expect(mockedAssignmentsService.moderateAssignment).toHaveBeenCalledWith(
+        assignmentData
+      )
       expect(mockedAssignmentsService.editAssignment).toHaveBeenCalledWith(
         assignmentData
       )
       expect(response.body).toEqual({
-        assignment: {
-          ...assignment,
-          createdAt: assignment.createdAt.toISOString(),
-          updatedAt: assignment.updatedAt.toISOString(),
-          dueDate: assignment.dueDate?.toISOString(),
-          startDate: assignment.startDate?.toISOString(),
-        },
+        assignment: buildAssignmentPublic(assignment),
       })
     })
   })
