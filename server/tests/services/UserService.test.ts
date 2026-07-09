@@ -5,12 +5,11 @@ import { buildStudent } from '../mocks/generate'
 import * as UserService from '../../services/UserService'
 import * as UserRolesService from '../../services/UserRolesService'
 import { getDbUlid, Ulid } from '../../models/pgUtils'
-import { UserRole } from '../../models/User'
-import { PrimaryUserRole } from '../../services/UserRolesService'
 import * as StudentRepo from '../../models/Student'
 import * as UsersSchoolsRepo from '../../models/UsersSchools'
 import { beforeEach } from '@jest/globals'
 import { getPartnerOrgsByStudent } from '../../models/Student'
+import type { PrimaryUserRole, UserRole } from '../../types/users'
 
 jest.mock('../../models/User/queries')
 jest.mock('../../services/UserRolesService')

@@ -12,7 +12,7 @@ import logger from '../../logger'
 import { Ulid } from '../../models/pgUtils'
 import * as SessionRepo from '../../models/Session/queries'
 import * as cache from '../../cache'
-import { banUserById, UserContactInfo, UserRole } from '../../models/User'
+import { banUserById, UserContactInfo } from '../../models/User'
 import { captureEvent } from '../../services/AnalyticsService'
 import QueueService from '../../services/QueueService'
 import * as QuillDocService from '../../services/QuillDocService'
@@ -36,6 +36,7 @@ import { observeWebTransaction } from '../../utils/newRelicUtil'
 import { extractSocketIp } from '../../utils/extract-socket-ip'
 import sessionMiddleware from '../middleware/session'
 import { toCurrentSessionPublic } from '../../public/sessions'
+import type { UserRole } from '../../types/users'
 
 export type SessionMessageType = 'audio-transcription' // todo - add 'chat' later
 

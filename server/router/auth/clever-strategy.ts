@@ -9,10 +9,10 @@ import {
 import config from '../../config'
 import logger from '../../logger'
 import { Uuid } from '../../models/pgUtils'
-import { UserRole } from '../../models/User'
 import * as CleverAPIService from '../../services/CleverAPIService'
 import * as CleverRosterService from '../../services/CleverRosterService'
 import * as SchoolService from '../../services/SchoolService'
+import type { UserRole } from '../../types/users'
 
 export type TCleverPassportProfile = passport.Profile & {
   issuer: string

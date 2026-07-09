@@ -2,20 +2,18 @@ import { USER_BAN_TYPES, USER_BAN_REASONS, GRADES } from '../constants'
 import type { StudentAssignment } from '../models/Assignments'
 import type { Availability } from '../models/Availability'
 import type { UserSessionStats } from '../models/Session'
-import type { UserRole } from '../models/User'
 import type {
   Certifications,
   Reference,
   Sponsorship,
 } from '../models/Volunteer'
 import type { PostsessionSurveyRatingsMetric } from '../services/SurveyService'
-import type { PrimaryUserRole } from '../services/UserRolesService'
 import type { ISODateString } from '../types/dates'
 import type { Uuid } from '../types/shared'
 import type { TrainingCourses } from '../types/training'
+import type { PrimaryUserRole, UserRole } from '../types/users'
 
 export type RoleContextPublic = {
-  // TODO: move types to a central place
   activeRole: PrimaryUserRole
   legacyRole: PrimaryUserRole
   roles: UserRole[]

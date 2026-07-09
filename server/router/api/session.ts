@@ -20,10 +20,6 @@ import {
   classifyFeedback,
   getStudentFeedbackForSession,
 } from '../../services/SurveyService'
-import {
-  PrimaryUserRole,
-  SessionUserRole,
-} from '../../services/UserRolesService'
 import { getDocEditorSessionImageUrl } from '../../services/AzureService'
 import { getSessionSummaryByUserType } from '../../services/SessionSummariesService'
 import { USER_ROLES } from '../../constants'
@@ -64,6 +60,7 @@ import type { TutorBotTranscriptPublic } from '../../contracts/tutor-bot'
 import { toSessionNotificationPublic } from '../../public/notifications'
 import type { StudentAssignmentResponse } from '../../contracts/assignments'
 import { toStudentAssignmentPublic } from '../../public/assignments'
+import type { PrimaryUserRole, SessionUserRole } from '../../types/users'
 
 export function routeSession(router: Router) {
   // io is now passed to this module so that API events can trigger socket events as needed

@@ -23,7 +23,6 @@ import validator from 'validator'
 import session from 'express-session'
 import { validateRequestRecaptcha } from '../services/RecaptchaService'
 import { isBlockedEmailDomain } from './emailDomain-utils'
-import { UserRole } from '../models/User'
 import {
   getVolunteerPartnerOrgForRegistrationByKey,
   VolunteerPartnerOrgForRegistration,
@@ -31,6 +30,7 @@ import {
 import logger from '../logger'
 import { hoursInMs } from './time-utils'
 import { extractUser } from '../router/extract-user'
+import type { UserRole } from '../types/users'
 // Custom errors
 export class RegistrationError extends CustomError {}
 export class ResetError extends CustomError {}

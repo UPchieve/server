@@ -39,7 +39,6 @@ import {
 } from '../Survey'
 import config from '../../config'
 import type { SessionHistoryFilter } from '../../services/SessionService'
-import { SessionUserRole } from '../../services/UserRolesService'
 import type {
   MessageForFrontend,
   CurrentSession,
@@ -47,6 +46,7 @@ import type {
   SessionDetail,
 } from '../../types/session'
 import type { Uuid } from '../../types/shared'
+import type { SessionUserRole } from '../../types/users'
 
 export type NotificationData = {
   // old name for volunteerId for legacy compatibility

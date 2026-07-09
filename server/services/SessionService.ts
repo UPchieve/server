@@ -77,15 +77,11 @@ import * as TeacherService from './TeacherService'
 import { getSessionSummaryByUserType } from './SessionSummariesService'
 import { processReportMetrics } from './SessionFlagsService'
 import * as SurveyService from './SurveyService'
-import { SessionUserRole } from './UserRolesService'
 import * as FeatureFlagsService from './FeatureFlagService'
 import { createDocEditorImageUploadUrl } from './AzureService'
-import type {
-  CurrentSessionPublic,
-  SessionUserInfoPublic,
-} from '../contracts/sessions'
 import type { CurrentSession } from '../types/session'
 import { hoursInSeconds, minutesInMs, secondsInMs } from '../utils/time-utils'
+import type { SessionUserRole } from '../types/users'
 
 export async function reviewSession(data: unknown) {
   const { sessionId, reviewed, toReview } =

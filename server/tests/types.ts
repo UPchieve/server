@@ -1,7 +1,8 @@
 import { GRADES } from '../constants'
 import { Ulid } from '../models/pgUtils'
-import { User, UserRole } from '../models/User'
+import { User } from '../models/User'
 import { RoleContext } from '../services/UserRolesService'
+import type { UserRole } from '../types/users'
 
 export interface RegistrationForm {
   firstName: string

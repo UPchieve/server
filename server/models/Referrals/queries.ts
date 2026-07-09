@@ -1,7 +1,7 @@
 import { getClient, getRoClient, TransactionClient } from '../../db'
+import type { UserRole } from '../../types/users'
 import { RepoCreateError, RepoReadError } from '../Errors'
 import { makeRequired, Ulid } from '../pgUtils'
-import { UserRole } from '../User'
 import * as pgQueries from './pg.queries'
 
 export async function addReferral(

@@ -5,7 +5,7 @@ import * as UserRepo from '../../models/User/queries'
 import * as CacheService from '../../cache'
 import { RoleContext } from '../../services/UserRolesService'
 import config from '../../config'
-import { UserRole } from '../../models/User'
+import type { UserRole } from '../../types/users'
 
 jest.mock('../../models/User/queries')
 jest.mock('../../cache')

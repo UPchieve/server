@@ -10,7 +10,6 @@ import * as SessionSummariesRepo from '../models/SessionSummaries/queries'
 import QueueService from './QueueService'
 import { Jobs } from '../worker/jobs'
 import { getActiveClassesForStudent } from './StudentService'
-import { UserRole } from '../models/User'
 import { isStudentSessionSummaryEnabled } from './FeatureFlagService'
 import config from '../config'
 import {
@@ -18,6 +17,7 @@ import {
   runWithTrace,
   Trace,
 } from './AiObservabilityService'
+import type { UserRole } from '../types/users'
 
 const LANGFUSE_ROLE_PROMPTS: Partial<
   Record<UserRole, PromptService.PromptName>

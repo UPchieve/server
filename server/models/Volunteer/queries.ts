@@ -40,13 +40,14 @@ import {
   getAssociatedPartnersAndSchools,
 } from '../AssociatedPartner'
 import { UniqueStudentsHelped } from '.'
-import { insertUserRoleByUserId, UserRole } from '../User'
+import { insertUserRoleByUserId } from '../User'
 import { getVolunteerPartnerOrgIdByKey } from '../VolunteerPartnerOrg'
 import { ReportNoDataFoundError } from '../../services/ReportService'
 import type {
   UserTrainingCourseProgressRow,
   UserTrainingCourses,
 } from '../../types/training'
+import type { UserRole } from '../../types/users'
 
 export type VolunteerContactInfo = {
   id: Ulid

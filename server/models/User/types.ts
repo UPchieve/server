@@ -1,13 +1,7 @@
 import { GRADES, USER_BAN_TYPES } from '../../constants'
 import { Pgid, Ulid } from '../pgUtils'
 import { RoleContext } from '../../services/UserRolesService'
-
-export type UserRole =
-  | 'volunteer'
-  | 'student'
-  | 'teacher'
-  | 'admin'
-  | 'ambassador'
+import type { UserRole } from '../../types/users'
 
 export type User = {
   id: Ulid

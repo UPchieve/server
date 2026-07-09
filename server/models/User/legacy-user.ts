@@ -24,13 +24,13 @@ import { getFavoriteVolunteersByUserId } from './'
 import * as UserRolesService from '../../services/UserRolesService'
 import * as SurveyService from '../../services/SurveyService'
 import { PostsessionSurveyRatingsMetric } from '../../services/SurveyService'
-import { UserRole } from './types'
 import * as AssignmentsService from '../../services/AssignmentsService'
 import { StudentAssignment } from '../Assignments/types'
 import { RoleContext } from '../../services/UserRolesService'
 import { runInTransaction, TransactionClient } from '../../db'
 import type { TrainingCourses } from '../../types/training'
 import type { Uuid } from '../../types/shared'
+import type { UserRole } from '../../types/users'
 
 export type LegacyUserModel = {
   // pg

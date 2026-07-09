@@ -57,7 +57,6 @@ import {
 } from '../AwsBedrockService'
 import { ModerationInfraction } from '../../models/ModerationInfractions/types'
 import { runInTransaction, TransactionClient } from '../../db'
-import { PrimaryUserRole } from '../UserRolesService'
 import { resize } from '../../utils/image-utils'
 import {
   getContextualSettings as getModerationContextualSettings,
@@ -71,6 +70,7 @@ import * as Regex from './regex'
 import { secondsInMs } from '../../utils/time-utils'
 import Logger from '../../logger'
 import { extractTextFromImage } from '../VisionService'
+import type { PrimaryUserRole } from '../../types/users'
 
 const topLevelCategoryFilter = (label: ModerationLabel) =>
   label.TaxonomyLevel === 1

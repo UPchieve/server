@@ -1,21 +1,11 @@
 import { getClient, runInTransaction, TransactionClient } from '../db'
 import * as UserRepo from '../models/User'
-import { UserRole } from '../models/User'
 import * as VolunteerRepo from '../models/Volunteer'
 import * as VolunteerService from './VolunteerService'
 import * as CacheService from '../cache'
 import config from '../config'
 import { InputError } from '../models/Errors'
-
-/*
- * - Right now, most of the app experience is driven by whether a user is a student, volunteer, or teacher, and
- * these are what we serve to the client to use as the userType/activeRole.
- * - But technically users can have other roles, like admin and ambassador, which don't dictate the overall in-app
- * experience like the other 3 do. Furthermore, admins and ambassadors are also both volunteers.
- * - So you can think of PrimaryUserRole as referring to the "main user types"
- */
-export type PrimaryUserRole = Exclude<UserRole, 'admin' | 'ambassador'>
-export type SessionUserRole = 'student' | 'volunteer'
+import type { UserRole, PrimaryUserRole } from '../types/users'
 
 export class RoleContext {
   readonly roles: UserRole[]

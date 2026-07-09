@@ -1,9 +1,9 @@
 import { getClient, TransactionClient } from '../../db'
+import type { UserRole } from '../../types/users'
 import { RepoReadError } from '../Errors'
 import { makeRequired, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import { UserSessionMetrics } from './types'
-import { UserRole } from '../User'
 
 export async function getUserSessionMetricsByUserId(
   userId: Ulid,

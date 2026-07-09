@@ -1,11 +1,11 @@
 import { client } from '../clients/product-client'
 import { Ulid } from '../models/pgUtils'
 import { GRADES } from '../constants'
-import { UserRole } from '../models/User'
 import { getLegacyUserObject } from '../models/User/legacy-user'
 import { getUPFByUserId } from '../models/UserProductFlags'
 import { ISODateString } from '../types/dates'
 import logger from '../logger'
+import type { UserRole } from '../types/users'
 
 export const captureEvent = (
   userId: Ulid,

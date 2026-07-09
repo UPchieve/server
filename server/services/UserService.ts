@@ -48,7 +48,7 @@ import {
 import * as AnalyticsService from './AnalyticsService'
 import * as MailService from './MailService'
 import * as UserRolesService from './UserRolesService'
-import { PrimaryUserRole, RoleContext } from './UserRolesService'
+import { RoleContext } from './UserRolesService'
 import * as TeacherService from './TeacherService'
 import logger from '../logger'
 import { createAccountAction, createAdminAction } from '../models/UserAction'
@@ -80,6 +80,7 @@ import {
 } from '../models/Student'
 import { hoursInMs } from '../utils/time-utils'
 import { Uuid } from '../types/shared'
+import type { PrimaryUserRole } from '../types/users'
 
 export async function parseUser(userId: Uuid) {
   const user = await getLegacyUserObject(userId)

@@ -28,7 +28,6 @@ import {
   CreateUserResult,
   ReportedUser,
   UpsertUserResult,
-  UserRole,
   UserContactInfo,
   UserForCreateSendGridContact,
   UserForAdmin,
@@ -36,6 +35,7 @@ import {
 } from './types'
 import { IDeletePhoneResult } from './pg.queries'
 import { camelCaseKeys } from '../../tests/db-utils'
+import type { UserRole } from '../../types/users'
 
 export async function createUser(
   user: CreateUserPayload,

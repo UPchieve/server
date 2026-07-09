@@ -7,10 +7,10 @@ import {
 import config from '../../config'
 import logger from '../../logger'
 import { Uuid } from '../../models/pgUtils'
-import { UserRole } from '../../models/User'
 import * as ClassLinkApiService from '../../services/ClassLinkApiService'
 import * as SchoolService from '../../services/SchoolService'
 import { SsoProvider } from '../../utils/auth-utils'
+import type { UserRole } from '../../types/users'
 
 export type ClassLinkPassportProfile = passport.Profile & {
   issuer: string

@@ -4,13 +4,13 @@ import logger from '../logger'
 import { Ulid } from '../models/pgUtils'
 import * as ReferralRepo from '../models/Referrals'
 import * as UserRepo from '../models/User'
-import { UserRole } from '../models/User'
 import * as AnalyticsService from './AnalyticsService'
 import { Jobs } from '../worker/jobs'
 import QueueService from './QueueService'
 import config from '../config'
 import * as UserService from './UserService'
 import * as NotificationService from './NotificationService'
+import type { UserRole } from '../types/users'
 
 export async function addReferralForUserByCode(
   userId: Ulid,
