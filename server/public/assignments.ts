@@ -11,7 +11,7 @@ import {
 } from '../models/Assignments'
 import { BlobDocument } from '../services/AzureService'
 
-export function toAssigmentPublic(assignment: Assignment): AssignmentPublic {
+export function toAssignmentPublic(assignment: Assignment): AssignmentPublic {
   return {
     id: assignment.id,
     classId: assignment.classId,

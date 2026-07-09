@@ -1,7 +1,7 @@
 import { Response, Router } from 'express'
 import * as AssignmentsService from '../../services/AssignmentsService'
 import {
-  toAssigmentPublic,
+  toAssignmentPublic,
   toAssignmentDocumentPublic,
   toStudentAssignmentSubmissionPublic,
 } from '../../public/assignments'
@@ -29,7 +29,7 @@ export function routeAssignments(router: Router): void {
           assignment.isGettingStartedAssignment =
             await AssignmentsService.isGettingStartedAssignment(assignment.id)
         res.json({
-          assignment: assignment ? toAssigmentPublic(assignment) : undefined,
+          assignment: assignment ? toAssignmentPublic(assignment) : undefined,
         })
       } catch (err) {
         resError(res, err)
