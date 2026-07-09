@@ -385,7 +385,6 @@ SELECT
     users.email_verified,
     users.proxy_email,
     users.verified,
-    users.first_name AS firstname,
     users.phone,
     users.phone_verified,
     users.sms_consent,

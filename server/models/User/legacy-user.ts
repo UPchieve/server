@@ -38,17 +38,13 @@ export type LegacyUserModel = {
   firstName: string
   lastName: string
   // mongo user
-  _id: Uuid
   createdAt: Date
   email: string
   proxyEmail?: string
   verified: boolean
-  firstname: string
   phone?: string
   college?: string
   userType: UserRole
-  //leaving isBanned only to make this backwards-compatible with mobile
-  isBanned: boolean
   banType?: USER_BAN_TYPES
   banReason?: USER_BAN_REASONS
   roleContext: RoleContext
@@ -120,7 +116,6 @@ export async function getLegacyUserObject(
       const baseUser = makeSomeRequired(baseResult[0], [
         'id',
         'firstName',
-        'firstname',
         'lastName',
         'createdAt',
         'email',
@@ -232,7 +227,6 @@ export async function getLegacyUserObject(
 
       const final = _.merge(
         {
-          _id: baseUser.id,
           userType: roleContext.activeRole,
           roles: roleContext.roles,
         },
@@ -240,7 +234,6 @@ export async function getLegacyUserObject(
         volunteerUser,
         studentUser,
         teacherUser,
-        { isBanned: baseUser.banType === 'complete' },
         {
           sessionStats,
         },
