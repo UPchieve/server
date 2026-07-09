@@ -24,8 +24,26 @@ import { authPassport } from './utils/auth-utils'
 import { addPassportAuthMiddleware } from './router/auth/passport-auth-middleware'
 import sessionMiddleware from './router/middleware/session'
 import { getUuid } from './models/pgUtils'
+import { isE2eEnvironment } from './utils/environments'
+import { buildScenario } from './services/E2EScenario'
 
 const app = express()
+
+// needs to be before CSRF stuff
+if (isE2eEnvironment()) {
+  app.post(
+    '/e2e/scenario',
+    express.json({
+      type: ['application/json'],
+    }),
+    async function (req, res) {
+      const { students = [], volunteers = [] } = req.body
+
+      const results = await buildScenario({ students, volunteers })
+      res.json(results)
+    }
+  )
+}
 
 // TODO: Figure out how much we should sample so we don't run into
 // NR data ingestion limits.
