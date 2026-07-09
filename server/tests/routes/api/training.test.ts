@@ -74,6 +74,7 @@ describe('routeTraining', () => {
         questions: questions.map((question) => {
           return {
             ...question,
+            _id: question.id,
             createdAt: question.createdAt.toISOString(),
           }
         }),
@@ -238,18 +239,6 @@ describe('routeTraining', () => {
         'upchieve101'
       )
       expect(response.body).toEqual({ course })
-    })
-
-    test('returns 404 when course is not found', async () => {
-      // TODO: Update the underlying type
-      mockedTrainingCourseService.getCourse.mockResolvedValueOnce(undefined)
-
-      const response = await sendGet('/api/training/course/upchieve101')
-      expect(response.status).toBe(404)
-      expect(mockedTrainingCourseService.getCourse).toHaveBeenCalledWith(
-        mockUser,
-        'upchieve101'
-      )
     })
   })
 

@@ -150,7 +150,6 @@ export function routeTraining(router: Router): void {
           user,
           courseKey as keyof TrainingCourses
         )
-        if (!course) return res.sendStatus(404)
         res
           .status(200)
           .json({ course: toTrainingCourseWithUserProgressPublic(course) })
