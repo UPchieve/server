@@ -38,12 +38,12 @@ export type TrainingCourses = {
   [TRAINING.SAT_STRATEGIES]: TrainingCourseProgressData
 }
 
-type TrainingMaterialLink = {
+export type TrainingMaterialLink = {
   displayName: string
   url: string
 }
 
-type TrainingCourseMaterial = {
+export type TrainingCourseMaterial = {
   name: string
   description?: string
   materialKey: string
@@ -57,7 +57,7 @@ type TrainingCourseMaterial = {
   linkLabel?: string
 }
 
-type TrainingCourseModule = {
+export type TrainingCourseModule = {
   name: string
   key?: string
   materials: TrainingCourseMaterial[]
@@ -77,6 +77,7 @@ export interface TrainingCourse {
 
 export type TrainingCourseWithUserProgress = TrainingCourse & {
   progress: number
+  isComplete: boolean
   completedMaterials: string[]
 }
 

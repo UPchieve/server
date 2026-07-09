@@ -29,15 +29,11 @@ export async function getCourse(
     {},
     await TrainingUtils.getCourse(courseKey, volunteer.id)
   )
-  course.modules.forEach((mod: any) => {
-    mod.materials.forEach((mat: any) => {
-      mat.isCompleted = userCourse.completedMaterials.includes(mat.materialKey)
-    })
-  })
 
   return {
     ...course,
     progress: userCourse.progress,
+    isComplete: userCourse.complete,
     completedMaterials: userCourse.completedMaterials,
   }
 }

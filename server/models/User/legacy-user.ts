@@ -196,9 +196,6 @@ export async function getLegacyUserObject(
             userId: baseUser.id,
             trainingCourse: 'upchieve101',
             complete: false,
-            // TODO: likely map this field to a public version within the auth router
-            // isComplete is a concern for the presentation layer
-            // isComplete: false,
             completedMaterials: [],
             progress: 0,
             createdAt: new Date(),
