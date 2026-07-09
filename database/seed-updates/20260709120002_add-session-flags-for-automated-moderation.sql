@@ -10,3 +10,4 @@ ON CONFLICT (name)
 -- migrate:down
 DELETE FROM upchieve.session_flags
 WHERE name IN ('Hate speech', 'Inappropriate conversation', 'Platform circumvention', 'Personally identifiable information', 'Safety concern', 'General moderation concern');
+

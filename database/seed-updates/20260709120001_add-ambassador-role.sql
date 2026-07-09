@@ -10,3 +10,4 @@ ON CONFLICT (name)
 -- migrate:down
 DELETE FROM upchieve.user_roles
 WHERE name = 'ambassador';
+

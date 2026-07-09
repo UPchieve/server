@@ -12,3 +12,4 @@ ALTER TABLE upchieve.survey_questions_response_choices
 ALTER TABLE upchieve.survey_questions_response_choices
     DROP COLUMN IF EXISTS surveys_survey_question_id,
     ADD COLUMN IF NOT EXISTS survey_question_id integer NOT NULL REFERENCES upchieve.survey_questions (id);
+

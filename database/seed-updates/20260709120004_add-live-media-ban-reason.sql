@@ -10,3 +10,4 @@ ON CONFLICT (name)
 -- migrate:down
 DELETE FROM upchieve.ban_reasons
 WHERE name = 'automated moderation';
+

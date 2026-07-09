@@ -3,5 +3,4 @@
 -- migration is safe to run on logical-replication subscribers.
 -- Left intentionally empty: already-applied environments never re-run this body,
 -- and a from-empty build applies the update from the seed-update.
-
 -- migrate:down

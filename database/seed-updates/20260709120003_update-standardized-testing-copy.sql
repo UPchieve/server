@@ -16,3 +16,4 @@ SET
     display_name = 'Standardized Testing'
 WHERE
     name = 'sat';
+
