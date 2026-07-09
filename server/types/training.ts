@@ -1,4 +1,4 @@
-import type { TRAINING } from '../constants'
+import type { MaterialType, TRAINING, TRAINING_QUIZZES } from '../constants'
 import type { Uuid } from './shared'
 
 export type UserTrainingCourseProgress = {
@@ -36,4 +36,41 @@ export type TrainingCourses = {
   [TRAINING.COLLEGE_COUNSELING]: TrainingCourseProgressData
   [TRAINING.COLLEGE_SKILLS]: TrainingCourseProgressData
   [TRAINING.SAT_STRATEGIES]: TrainingCourseProgressData
+}
+
+type TrainingMaterialLink = {
+  displayName: string
+  url: string
+}
+
+type TrainingCourseMaterial = {
+  name: string
+  description?: string
+  materialKey: string
+  isRequired: boolean
+  type: MaterialType
+  // the ID Vimeo gives a video when uploaded
+  resourceId?: string
+  linkUrl?: string
+  links?: TrainingMaterialLink[]
+  videoPDF?: string
+  linkLabel?: string
+}
+
+type TrainingCourseModule = {
+  name: string
+  key?: string
+  materials: TrainingCourseMaterial[]
+  quizKey?: string
+}
+
+export interface TrainingCourse {
+  name: string
+  courseKey: string
+  description: string
+  modules: TrainingCourseModule[]
+  requiredCertifications: TRAINING_QUIZZES[]
+  // @TODO After deprecating the legacy training course (upchieve101), remove these props
+  quizKey?: string
+  quizName?: string
 }

@@ -6,8 +6,7 @@ import {
 import * as TrainingUtils from '../utils/training-courses'
 import logger from '../logger'
 import { runInTransaction, TransactionClient } from '../db'
-import { TrainingCourse } from '../utils/training-courses'
-import { TrainingCourses } from '../types/training'
+import type { TrainingCourses, TrainingCourse } from '../types/training'
 
 export async function getCourse(
   volunteer: UserContactInfo,

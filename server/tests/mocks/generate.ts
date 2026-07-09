@@ -24,6 +24,7 @@ import {
   DAYS,
   GRADES,
   HOURS,
+  MaterialType,
   TRAINING_QUIZZES,
   USER_BAN_TYPES,
 } from '../../constants'
@@ -132,7 +133,6 @@ import type {
 import type { SurveyQueryResponse } from '../../models/Survey'
 import type { SaveSurveyAndSubmissions } from '../../services/SurveyService'
 import { Question } from '../../models/Question'
-import { MaterialType, TrainingCourse } from '../../utils/training-courses'
 import type {
   TutorBotAddMessageResponsePublic,
   TutorBotGeneratedMessagePublic,
@@ -162,6 +162,7 @@ import type {
   TeacherClassForStudentPublic,
   TeacherClassPublic,
 } from '../../contracts/teachers'
+import type { TrainingCourse } from '../../types/training'
 
 export function getEmail(): string {
   return faker.internet.email().toLowerCase()
