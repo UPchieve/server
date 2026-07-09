@@ -40,20 +40,22 @@ export interface ICreateTeacherClassParams {
 
 /** 'CreateTeacherClass' return type */
 export interface ICreateTeacherClassResult {
+  /** not_pii: Whether the class is currently active */
+  active: boolean;
   /** not_pii: Clever LMS class identifier */
   cleverId: string | null;
   /** not_pii: Student-facing join code for the teacher class */
   code: string;
   /** not_pii */
   createdAt: Date;
+  /** not_pii: Date when the association was deactivated */
+  deactivatedOn: Date | null;
   /** not_pii: Primary key */
   id: string;
   /** not_pii: Name of the teacher class */
   name: string;
   /** not_pii: Foreign key to upchieve.topics */
   topicId: number | null;
-  /** not_pii */
-  updatedAt: Date;
   /** not_pii: Foreign key to upchieve.users */
   userId: string | null;
 }
@@ -64,7 +66,7 @@ export interface ICreateTeacherClassQuery {
   result: ICreateTeacherClassResult;
 }
 
-const createTeacherClassIR: any = {"usedParamSet":{"id":true,"userId":true,"name":true,"code":true,"topicId":true,"cleverId":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":111,"b":114}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":117,"b":124}]},{"name":"name","required":true,"transform":{"type":"scalar"},"locs":[{"a":127,"b":132}]},{"name":"code","required":true,"transform":{"type":"scalar"},"locs":[{"a":135,"b":140}]},{"name":"topicId","required":false,"transform":{"type":"scalar"},"locs":[{"a":143,"b":150}]},{"name":"cleverId","required":false,"transform":{"type":"scalar"},"locs":[{"a":153,"b":161}]}],"statement":"INSERT INTO teacher_classes (id, user_id, name, code, topic_id, clever_id, created_at, updated_at)\n    VALUES (:id!, :userId!, :name!, :code!, :topicId, :cleverId, NOW(), NOW())\nRETURNING\n    id, user_id, name, code, topic_id, clever_id, created_at, updated_at"};
+const createTeacherClassIR: any = {"usedParamSet":{"id":true,"userId":true,"name":true,"code":true,"topicId":true,"cleverId":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":111,"b":114}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":117,"b":124}]},{"name":"name","required":true,"transform":{"type":"scalar"},"locs":[{"a":127,"b":132}]},{"name":"code","required":true,"transform":{"type":"scalar"},"locs":[{"a":135,"b":140}]},{"name":"topicId","required":false,"transform":{"type":"scalar"},"locs":[{"a":143,"b":150}]},{"name":"cleverId","required":false,"transform":{"type":"scalar"},"locs":[{"a":153,"b":161}]}],"statement":"INSERT INTO teacher_classes (id, user_id, name, code, topic_id, clever_id, created_at, updated_at)\n    VALUES (:id!, :userId!, :name!, :code!, :topicId, :cleverId, NOW(), NOW())\nRETURNING\n    id, user_id, name, code, active, topic_id, deactivated_on, clever_id, created_at"};
 
 /**
  * Query generated from SQL:
@@ -72,7 +74,7 @@ const createTeacherClassIR: any = {"usedParamSet":{"id":true,"userId":true,"name
  * INSERT INTO teacher_classes (id, user_id, name, code, topic_id, clever_id, created_at, updated_at)
  *     VALUES (:id!, :userId!, :name!, :code!, :topicId, :cleverId, NOW(), NOW())
  * RETURNING
- *     id, user_id, name, code, topic_id, clever_id, created_at, updated_at
+ *     id, user_id, name, code, active, topic_id, deactivated_on, clever_id, created_at
  * ```
  */
 export const createTeacherClass = new PreparedQuery<ICreateTeacherClassParams,ICreateTeacherClassResult>(createTeacherClassIR);
@@ -89,8 +91,6 @@ export interface IGetTeacherByIdResult {
   createdAt: Date;
   /** pii: Foreign key to upchieve.schools */
   schoolId: string | null;
-  /** not_pii */
-  updatedAt: Date;
   /** not_pii: Foreign key to upchieve.users */
   userId: string;
 }
@@ -101,7 +101,7 @@ export interface IGetTeacherByIdQuery {
   result: IGetTeacherByIdResult;
 }
 
-const getTeacherByIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":112,"b":119}]}],"statement":"SELECT\n    user_id,\n    school_id,\n    created_at,\n    updated_at\nFROM\n    teacher_profiles\nWHERE\n    user_id = :userId!"};
+const getTeacherByIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":96,"b":103}]}],"statement":"SELECT\n    user_id,\n    school_id,\n    created_at\nFROM\n    teacher_profiles\nWHERE\n    user_id = :userId!"};
 
 /**
  * Query generated from SQL:
@@ -109,8 +109,7 @@ const getTeacherByIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":
  * SELECT
  *     user_id,
  *     school_id,
- *     created_at,
- *     updated_at
+ *     created_at
  * FROM
  *     teacher_profiles
  * WHERE
@@ -144,8 +143,6 @@ export interface IGetTeacherClassesByUserIdResult {
   /** not_pii: Foreign key to upchieve.topics */
   topicId: number | null;
   totalStudents: number | null;
-  /** not_pii */
-  updatedAt: Date;
   /** not_pii: Foreign key to upchieve.users */
   userId: string | null;
 }
@@ -156,22 +153,21 @@ export interface IGetTeacherClassesByUserIdQuery {
   result: IGetTeacherClassesByUserIdResult;
 }
 
-const getTeacherClassesByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":403,"b":410}]}],"statement":"SELECT\n    id,\n    clever_id,\n    teacher_classes.user_id,\n    name,\n    code,\n    topic_id,\n    active,\n    COUNT(student_classes.user_id)::int AS total_students,\n    teacher_classes.created_at,\n    teacher_classes.updated_at,\n    teacher_classes.deactivated_on\nFROM\n    teacher_classes\n    LEFT JOIN student_classes ON teacher_classes.id = student_classes.class_id\nWHERE\n    teacher_classes.user_id = :userId!\nGROUP BY\n    id"};
+const getTeacherClassesByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":371,"b":378}]}],"statement":"SELECT\n    id,\n    teacher_classes.user_id,\n    name,\n    code,\n    topic_id,\n    active,\n    clever_id,\n    COUNT(student_classes.user_id)::int AS total_students,\n    teacher_classes.created_at,\n    teacher_classes.deactivated_on\nFROM\n    teacher_classes\n    LEFT JOIN student_classes ON teacher_classes.id = student_classes.class_id\nWHERE\n    teacher_classes.user_id = :userId!\nGROUP BY\n    id"};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
  *     id,
- *     clever_id,
  *     teacher_classes.user_id,
  *     name,
  *     code,
  *     topic_id,
  *     active,
+ *     clever_id,
  *     COUNT(student_classes.user_id)::int AS total_students,
  *     teacher_classes.created_at,
- *     teacher_classes.updated_at,
  *     teacher_classes.deactivated_on
  * FROM
  *     teacher_classes
@@ -208,8 +204,6 @@ export interface IGetTeacherClassByClassCodeResult {
   name: string;
   /** not_pii: Foreign key to upchieve.topics */
   topicId: number | null;
-  /** not_pii */
-  updatedAt: Date;
   /** not_pii: Foreign key to upchieve.users */
   userId: string | null;
 }
@@ -220,22 +214,21 @@ export interface IGetTeacherClassByClassCodeQuery {
   result: IGetTeacherClassByClassCodeResult;
 }
 
-const getTeacherClassByClassCodeIR: any = {"usedParamSet":{"code":true},"params":[{"name":"code","required":true,"transform":{"type":"scalar"},"locs":[{"a":182,"b":187}]}],"statement":"SELECT\n    id,\n    clever_id,\n    user_id,\n    name,\n    code,\n    active,\n    topic_id,\n    created_at,\n    updated_at,\n    deactivated_on\nFROM\n    teacher_classes\nWHERE\n    code = :code!"};
+const getTeacherClassByClassCodeIR: any = {"usedParamSet":{"code":true},"params":[{"name":"code","required":true,"transform":{"type":"scalar"},"locs":[{"a":166,"b":171}]}],"statement":"SELECT\n    id,\n    user_id,\n    name,\n    code,\n    active,\n    topic_id,\n    created_at,\n    deactivated_on,\n    clever_id\nFROM\n    teacher_classes\nWHERE\n    code = :code!"};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
  *     id,
- *     clever_id,
  *     user_id,
  *     name,
  *     code,
  *     active,
  *     topic_id,
  *     created_at,
- *     updated_at,
- *     deactivated_on
+ *     deactivated_on,
+ *     clever_id
  * FROM
  *     teacher_classes
  * WHERE
@@ -260,6 +253,8 @@ export interface IGetTeacherClassByIdResult {
   code: string;
   /** not_pii */
   createdAt: Date;
+  /** not_pii: Date when the association was deactivated */
+  deactivatedOn: Date | null;
   /** not_pii: Primary key */
   id: string;
   /** not_pii: Name of the teacher class */
@@ -267,8 +262,6 @@ export interface IGetTeacherClassByIdResult {
   /** not_pii: Foreign key to upchieve.topics */
   topicId: number | null;
   totalStudents: number | null;
-  /** not_pii */
-  updatedAt: Date;
   /** not_pii: Foreign key to upchieve.users */
   userId: string | null;
 }
@@ -279,21 +272,21 @@ export interface IGetTeacherClassByIdQuery {
   result: IGetTeacherClassByIdResult;
 }
 
-const getTeacherClassByIdIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":308,"b":311}]}],"statement":"SELECT\n    id,\n    clever_id,\n    user_id,\n    name,\n    code,\n    active,\n    topic_id,\n    created_at,\n    updated_at,\n    (\n        SELECT\n            COUNT(*)\n        FROM\n            student_classes\n        WHERE\n            class_id = id)::int AS total_students\nFROM\n    teacher_classes\nWHERE\n    id = :id!"};
+const getTeacherClassByIdIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":312,"b":315}]}],"statement":"SELECT\n    id,\n    user_id,\n    name,\n    code,\n    active,\n    topic_id,\n    created_at,\n    deactivated_on,\n    clever_id,\n    (\n        SELECT\n            COUNT(*)\n        FROM\n            student_classes\n        WHERE\n            class_id = id)::int AS total_students\nFROM\n    teacher_classes\nWHERE\n    id = :id!"};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
  *     id,
- *     clever_id,
  *     user_id,
  *     name,
  *     code,
  *     active,
  *     topic_id,
  *     created_at,
- *     updated_at,
+ *     deactivated_on,
+ *     clever_id,
  *     (
  *         SELECT
  *             COUNT(*)
@@ -354,18 +347,20 @@ export interface IUpdateTeacherClassParams {
 export interface IUpdateTeacherClassResult {
   /** not_pii: Whether the class is currently active */
   active: boolean;
+  /** not_pii: Clever LMS class identifier */
+  cleverId: string | null;
   /** not_pii: Student-facing join code for the teacher class */
   code: string;
   /** not_pii */
   createdAt: Date;
+  /** not_pii: Date when the association was deactivated */
+  deactivatedOn: Date | null;
   /** not_pii: Primary key */
   id: string;
   /** not_pii: Name of the teacher class */
   name: string;
   /** not_pii: Foreign key to upchieve.topics */
   topicId: number | null;
-  /** not_pii */
-  updatedAt: Date;
   /** not_pii: Foreign key to upchieve.users */
   userId: string | null;
 }
@@ -376,7 +371,7 @@ export interface IUpdateTeacherClassQuery {
   result: IUpdateTeacherClassResult;
 }
 
-const updateTeacherClassIR: any = {"usedParamSet":{"name":true,"topicId":true,"id":true},"params":[{"name":"name","required":true,"transform":{"type":"scalar"},"locs":[{"a":42,"b":47}]},{"name":"topicId","required":true,"transform":{"type":"scalar"},"locs":[{"a":65,"b":73}]},{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":114,"b":117}]}],"statement":"UPDATE\n    teacher_classes\nSET\n    name = :name!,\n    topic_id = :topicId!,\n    updated_at = NOW()\nWHERE\n    id = :id!\nRETURNING\n    id,\n    user_id,\n    name,\n    code,\n    topic_id,\n    active,\n    created_at,\n    updated_at"};
+const updateTeacherClassIR: any = {"usedParamSet":{"name":true,"topicId":true,"id":true},"params":[{"name":"name","required":true,"transform":{"type":"scalar"},"locs":[{"a":42,"b":47}]},{"name":"topicId","required":true,"transform":{"type":"scalar"},"locs":[{"a":65,"b":73}]},{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":114,"b":117}]}],"statement":"UPDATE\n    teacher_classes\nSET\n    name = :name!,\n    topic_id = :topicId!,\n    updated_at = NOW()\nWHERE\n    id = :id!\nRETURNING\n    id,\n    user_id,\n    name,\n    code,\n    active,\n    topic_id,\n    deactivated_on,\n    clever_id,\n    created_at"};
 
 /**
  * Query generated from SQL:
@@ -394,10 +389,11 @@ const updateTeacherClassIR: any = {"usedParamSet":{"name":true,"topicId":true,"i
  *     user_id,
  *     name,
  *     code,
- *     topic_id,
  *     active,
- *     created_at,
- *     updated_at
+ *     topic_id,
+ *     deactivated_on,
+ *     clever_id,
+ *     created_at
  * ```
  */
 export const updateTeacherClass = new PreparedQuery<IUpdateTeacherClassParams,IUpdateTeacherClassResult>(updateTeacherClassIR);
@@ -412,18 +408,20 @@ export interface IDeactivateTeacherClassParams {
 export interface IDeactivateTeacherClassResult {
   /** not_pii: Whether the class is currently active */
   active: boolean;
+  /** not_pii: Clever LMS class identifier */
+  cleverId: string | null;
   /** not_pii: Student-facing join code for the teacher class */
   code: string;
   /** not_pii */
   createdAt: Date;
+  /** not_pii: Date when the association was deactivated */
+  deactivatedOn: Date | null;
   /** not_pii: Primary key */
   id: string;
   /** not_pii: Name of the teacher class */
   name: string;
   /** not_pii: Foreign key to upchieve.topics */
   topicId: number | null;
-  /** not_pii */
-  updatedAt: Date;
   /** not_pii: Foreign key to upchieve.users */
   userId: string | null;
 }
@@ -434,7 +432,7 @@ export interface IDeactivateTeacherClassQuery {
   result: IDeactivateTeacherClassResult;
 }
 
-const deactivateTeacherClassIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":73,"b":76}]}],"statement":"UPDATE\n    teacher_classes\nSET\n    deactivated_on = NOW()\nWHERE\n    id = :id!\nRETURNING\n    id,\n    user_id,\n    name,\n    code,\n    topic_id,\n    active,\n    created_at,\n    updated_at"};
+const deactivateTeacherClassIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":73,"b":76}]}],"statement":"UPDATE\n    teacher_classes\nSET\n    deactivated_on = NOW()\nWHERE\n    id = :id!\nRETURNING\n    id,\n    user_id,\n    name,\n    code,\n    active,\n    topic_id,\n    deactivated_on,\n    clever_id,\n    created_at"};
 
 /**
  * Query generated from SQL:
@@ -450,10 +448,11 @@ const deactivateTeacherClassIR: any = {"usedParamSet":{"id":true},"params":[{"na
  *     user_id,
  *     name,
  *     code,
- *     topic_id,
  *     active,
- *     created_at,
- *     updated_at
+ *     topic_id,
+ *     deactivated_on,
+ *     clever_id,
+ *     created_at
  * ```
  */
 export const deactivateTeacherClass = new PreparedQuery<IDeactivateTeacherClassParams,IDeactivateTeacherClassResult>(deactivateTeacherClassIR);

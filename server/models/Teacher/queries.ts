@@ -1,23 +1,52 @@
 import { getClient, TransactionClient } from '../../db'
-import {
-  RepoCreateError,
-  RepoReadError,
-  RepoUpdateError,
-  RepoUpsertError,
-} from '../Errors'
-import {
-  CreateTeacherClassPayload,
-  CreateTeacherPayload,
-  TeacherClass,
-} from './types'
+import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
+import { CreateTeacherClassPayload, CreateTeacherPayload } from './types'
 import * as pgQueries from './pg.queries'
-import {
-  getDbUlid,
-  makeRequired,
-  makeSomeOptional,
-  Ulid,
-  Uuid,
-} from '../pgUtils'
+import { getDbUlid, makeRequired, makeSomeOptional } from '../pgUtils'
+import type { Uuid } from '../../types/shared'
+import type { TeacherClass, TeacherProfile } from '../../types/teachers'
+
+export type TeacherRow = {
+  userId: Uuid
+  schoolId?: Uuid
+  createdAt: Date
+}
+
+export function toTeacherProfile(row: TeacherRow): TeacherProfile {
+  return {
+    userId: row.userId,
+    schoolId: row.schoolId,
+    createdAt: row.createdAt,
+  }
+}
+
+export type TeacherClassRow = {
+  id: Uuid
+  userId: Uuid
+  name: string
+  code: string
+  active: boolean
+  deactivatedOn?: Date
+  totalStudents?: number
+  topicId?: number
+  cleverId?: string
+  createdAt: Date
+}
+
+export function toTeacherClass(row: TeacherClassRow): TeacherClass {
+  return {
+    id: row.id,
+    userId: row.userId,
+    name: row.name,
+    code: row.code,
+    active: row.active,
+    topicId: row.topicId,
+    deactivatedOn: row.deactivatedOn,
+    cleverId: row.cleverId,
+    totalStudents: row.totalStudents,
+    createdAt: row.createdAt,
+  }
+}
 
 export async function createTeacher(
   data: CreateTeacherPayload,
@@ -41,7 +70,7 @@ export async function createTeacherClass(
   tc: TransactionClient
 ): Promise<TeacherClass> {
   try {
-    const teacherClass = await pgQueries.createTeacherClass.run(
+    const [row] = await pgQueries.createTeacherClass.run(
       {
         id: getDbUlid(),
         userId: data.userId,
@@ -52,25 +81,31 @@ export async function createTeacherClass(
       },
       tc
     )
-    if (!teacherClass.length) {
+    if (!row) {
       throw new RepoCreateError('Unable to create teacher class.')
     }
-    return makeSomeOptional(teacherClass[0], ['topicId', 'cleverId'])
+
+    return toTeacherClass(
+      makeSomeOptional(row, ['topicId', 'cleverId', 'deactivatedOn'])
+    )
   } catch (err) {
     throw new RepoCreateError(err)
   }
 }
 
-export async function getTeacherById(userId: Ulid, tc: TransactionClient) {
+export async function getTeacherById(
+  userId: Uuid,
+  tc: TransactionClient
+): Promise<TeacherProfile | undefined> {
   try {
-    const teacher = await pgQueries.getTeacherById.run(
+    const [row] = await pgQueries.getTeacherById.run(
       {
         userId,
       },
       tc
     )
-    if (teacher.length) {
-      return makeSomeOptional(teacher[0], ['schoolId'])
+    if (row) {
+      return toTeacherProfile(makeSomeOptional(row, ['schoolId']))
     }
   } catch (err) {
     throw new RepoReadError(err)
@@ -78,16 +113,15 @@ export async function getTeacherById(userId: Ulid, tc: TransactionClient) {
 }
 
 export async function getTeacherClassesByUserId(
-  userId: Ulid,
+  userId: Uuid,
   tc: TransactionClient = getClient()
 ): Promise<TeacherClass[]> {
   try {
-    const classes = await pgQueries.getTeacherClassesByUserId.run(
-      { userId },
-      tc
-    )
-    return classes.map((c) =>
-      makeSomeOptional(c, ['topicId', 'deactivatedOn', 'cleverId'])
+    const rows = await pgQueries.getTeacherClassesByUserId.run({ userId }, tc)
+    return rows.map((row) =>
+      toTeacherClass(
+        makeSomeOptional(row, ['topicId', 'deactivatedOn', 'cleverId'])
+      )
     )
   } catch (err) {
     throw new RepoReadError(err)
@@ -97,29 +131,32 @@ export async function getTeacherClassesByUserId(
 export async function getTeacherClassByClassCode(
   classCode: string,
   tc: TransactionClient
-) {
+): Promise<TeacherClass | undefined> {
   try {
-    const teacherClass = await pgQueries.getTeacherClassByClassCode.run(
+    const [row] = await pgQueries.getTeacherClassByClassCode.run(
       { code: classCode.toUpperCase() },
       tc
     )
-    if (teacherClass.length) {
-      return makeSomeOptional(teacherClass[0], [
-        'cleverId',
-        'topicId',
-        'deactivatedOn',
-      ])
+    if (row) {
+      return toTeacherClass(
+        makeSomeOptional(row, ['cleverId', 'topicId', 'deactivatedOn'])
+      )
     }
   } catch (err) {
     throw new RepoReadError(err)
   }
 }
 
-export async function getTeacherClassById(id: Ulid, tc: TransactionClient) {
+export async function getTeacherClassById(
+  id: Uuid,
+  tc: TransactionClient
+): Promise<TeacherClass | undefined> {
   try {
     const teacherClass = await pgQueries.getTeacherClassById.run({ id }, tc)
     if (teacherClass.length) {
-      return makeSomeOptional(teacherClass[0], ['cleverId', 'topicId'])
+      return toTeacherClass(
+        makeSomeOptional(teacherClass[0], ['cleverId', 'topicId'])
+      )
     }
   } catch (err) {
     throw new RepoReadError(err)
@@ -128,8 +165,8 @@ export async function getTeacherClassById(id: Ulid, tc: TransactionClient) {
 
 export async function getStudentIdsInTeacherClass(
   tc: TransactionClient,
-  classId: Ulid
-): Promise<Ulid[]> {
+  classId: Uuid
+): Promise<Uuid[]> {
   try {
     const studentIds = await pgQueries.getStudentIdsInTeacherClass.run(
       { classId },
@@ -142,12 +179,12 @@ export async function getStudentIdsInTeacherClass(
 }
 
 export async function updateTeacherClass(data: {
-  id: Ulid
+  id: Uuid
   name: string
   topicId: number
-}) {
+}): Promise<TeacherClass | undefined> {
   try {
-    const updatedClass = await pgQueries.updateTeacherClass.run(
+    const [row] = await pgQueries.updateTeacherClass.run(
       {
         id: data.id,
         name: data.name,
@@ -155,28 +192,31 @@ export async function updateTeacherClass(data: {
       },
       getClient()
     )
-    return makeSomeOptional(updatedClass[0], ['topicId'])
+    return row ? toTeacherClass(makeSomeOptional(row, ['topicId'])) : undefined
   } catch (err) {
     throw new RepoUpdateError(err)
   }
 }
 
-export async function deactivateTeacherClass(id: Ulid, tc: TransactionClient) {
+export async function deactivateTeacherClass(
+  id: Uuid,
+  tc: TransactionClient
+): Promise<TeacherClass> {
   try {
-    const updatedClass = await pgQueries.deactivateTeacherClass.run(
+    const [row] = await pgQueries.deactivateTeacherClass.run(
       {
         id,
       },
       tc
     )
-    return makeSomeOptional(updatedClass[0], ['topicId'])
+    return toTeacherClass(makeSomeOptional(row, ['topicId']))
   } catch (err) {
     throw new RepoUpdateError(err)
   }
 }
 
 export async function updateLastSuccessfulCleverSync(
-  teacherId: Ulid,
+  teacherId: Uuid,
   tc: TransactionClient
 ) {
   try {
@@ -187,7 +227,7 @@ export async function updateLastSuccessfulCleverSync(
 }
 
 export async function updateTeacherSchool(
-  teacherId: Ulid,
+  teacherId: Uuid,
   schoolId: Uuid | undefined,
   tc: TransactionClient
 ) {
@@ -204,7 +244,9 @@ export async function updateTeacherSchool(
   }
 }
 
-export async function getAllStudentsForTeacher(teacherId: Ulid) {
+export async function getAllStudentsForTeacher(
+  teacherId: Uuid
+): Promise<Uuid[]> {
   try {
     const studentIds = await pgQueries.getAllStudentsForTeacher.run(
       { teacherId },

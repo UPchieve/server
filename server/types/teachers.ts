@@ -1,32 +1,38 @@
-import { Ulid, Uuid } from '../pgUtils'
-import { StudentUserProfile } from '../Student'
+import type { StudentUserProfile } from '../models/Student'
+import type { Uuid } from './shared'
 
 export type TeacherProfile = {
-  userId: Ulid
+  userId: Uuid
   schoolId?: Uuid
   createdAt: Date
-  updatedAt: Date
 }
 
-export type CreateTeacherPayload = Pick<TeacherProfile, 'userId' | 'schoolId'>
-
-// TODO: Collapse the two TeacherClass types
 export type TeacherClass = {
-  id: Ulid
-  cleverId?: string
-  userId: Ulid
+  id: Uuid
+  userId: Uuid
   name: string
   code: string
-  total_students?: Number
+  active: boolean
+  topicId?: number
+  deactivatedOn?: Date
+  cleverId?: string
   totalStudents?: Number
+  createdAt: Date
+}
+
+export type TeacherClassForStudent = {
+  id: Uuid
+  name: string
+  active: boolean
   topicId?: number
   createdAt: Date
-  updatedAt: Date
 }
 
 export type TeacherClassWithStudents = TeacherClass & {
   students: StudentUserProfile[]
 }
+
+export type CreateTeacherPayload = Pick<TeacherProfile, 'userId' | 'schoolId'>
 
 export type CreateTeacherClassPayload = Pick<
   TeacherClass,

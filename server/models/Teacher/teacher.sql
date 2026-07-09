@@ -7,15 +7,14 @@ INSERT INTO teacher_profiles (user_id, school_id, created_at, updated_at)
 INSERT INTO teacher_classes (id, user_id, name, code, topic_id, clever_id, created_at, updated_at)
     VALUES (:id!, :userId!, :name!, :code!, :topicId, :cleverId, NOW(), NOW())
 RETURNING
-    id, user_id, name, code, topic_id, clever_id, created_at, updated_at;
+    id, user_id, name, code, active, topic_id, deactivated_on, clever_id, created_at;
 
 
 /* @name getTeacherById */
 SELECT
     user_id,
     school_id,
-    created_at,
-    updated_at
+    created_at
 FROM
     teacher_profiles
 WHERE
@@ -25,15 +24,14 @@ WHERE
 /* @name getTeacherClassesByUserId */
 SELECT
     id,
-    clever_id,
     teacher_classes.user_id,
     name,
     code,
     topic_id,
     active,
+    clever_id,
     COUNT(student_classes.user_id)::int AS total_students,
     teacher_classes.created_at,
-    teacher_classes.updated_at,
     teacher_classes.deactivated_on
 FROM
     teacher_classes
@@ -47,15 +45,14 @@ GROUP BY
 /* @name getTeacherClassByClassCode */
 SELECT
     id,
-    clever_id,
     user_id,
     name,
     code,
     active,
     topic_id,
     created_at,
-    updated_at,
-    deactivated_on
+    deactivated_on,
+    clever_id
 FROM
     teacher_classes
 WHERE
@@ -65,14 +62,14 @@ WHERE
 /* @name getTeacherClassById */
 SELECT
     id,
-    clever_id,
     user_id,
     name,
     code,
     active,
     topic_id,
     created_at,
-    updated_at,
+    deactivated_on,
+    clever_id,
     (
         SELECT
             COUNT(*)
@@ -109,10 +106,11 @@ RETURNING
     user_id,
     name,
     code,
-    topic_id,
     active,
-    created_at,
-    updated_at;
+    topic_id,
+    deactivated_on,
+    clever_id,
+    created_at;
 
 
 /* @name deactivateTeacherClass */
@@ -127,10 +125,11 @@ RETURNING
     user_id,
     name,
     code,
-    topic_id,
     active,
-    created_at,
-    updated_at;
+    topic_id,
+    deactivated_on,
+    clever_id,
+    created_at;
 
 
 /* @name updateTeacherSchool */
