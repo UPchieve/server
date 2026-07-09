@@ -75,7 +75,6 @@ describe('routeTraining', () => {
           return {
             ...question,
             createdAt: question.createdAt.toISOString(),
-            updatedAt: question.updatedAt.toISOString(),
           }
         }),
       })

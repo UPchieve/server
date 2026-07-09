@@ -43,7 +43,7 @@ export async function getQuestions(
   return shuffledQuestions.slice(0, config.totalQuizQuestions)
 }
 
-type AnswerMap = { [k: number]: string }
+export type AnswerMap = Record<string, string>
 
 // TODO: duck type validation
 export interface GetQuizScoreOptions {

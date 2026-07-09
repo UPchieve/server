@@ -2497,10 +2497,8 @@ export function buildQuizScoreResult(
 export function buildTrainingQuestion(
   overrides: Partial<Question> = {}
 ): Question {
-  const id = 1
   return {
-    _id: id,
-    id,
+    id: 1,
     questionText: faker.lorem.sentence(),
     possibleAnswers: [
       {
@@ -2525,7 +2523,6 @@ export function buildTrainingQuestion(
     subcategory: 'test-subcategory',
     imageSrc: '',
     createdAt: new Date(),
-    updatedAt: new Date(),
     ...overrides,
   }
 }
