@@ -1,4 +1,4 @@
-import { makeRequired, makeSomeRequired, Ulid } from '../pgUtils'
+import { makeRequired, makeSomeRequired } from '../pgUtils'
 import { GRADES, USER_BAN_REASONS, USER_BAN_TYPES } from '../../constants'
 import {
   Certifications,
@@ -30,14 +30,15 @@ import { StudentAssignment } from '../Assignments/types'
 import { RoleContext } from '../../services/UserRolesService'
 import { runInTransaction, TransactionClient } from '../../db'
 import type { TrainingCourses } from '../../types/training'
+import type { Uuid } from '../../types/shared'
 
 export type LegacyUserModel = {
   // pg
-  id: Ulid
+  id: Uuid
   firstName: string
   lastName: string
   // mongo user
-  _id: Ulid
+  _id: Uuid
   createdAt: Date
   email: string
   proxyEmail?: string
@@ -54,11 +55,11 @@ export type LegacyUserModel = {
   isTestUser: boolean
   isFakeUser: boolean
   isDeactivated: boolean
-  pastSessions: Ulid[]
+  pastSessions: Uuid[]
   lastActivityAt?: Date
   referralCode: string
   numReferredVolunteers?: number
-  referredBy?: Ulid
+  referredBy?: Uuid
   sessionStats: UserSessionStats
   preferredLanguage: string
   signupSource?: string
@@ -98,7 +99,7 @@ export type LegacyUserModel = {
   usesClassLink?: boolean
   studentAssignments?: StudentAssignment[]
   ratings?: PostsessionSurveyRatingsMetric
-  favoriteVolunteers?: Ulid[]
+  favoriteVolunteers?: Uuid[]
   // teacher
   lastSuccessfulCleverSync?: Date
 
@@ -108,7 +109,7 @@ export type LegacyUserModel = {
 
 // TODO: Actually make this legacy and clean this up.
 export async function getLegacyUserObject(
-  userId: Ulid,
+  userId: Uuid,
   client?: TransactionClient
 ): Promise<LegacyUserModel> {
   try {

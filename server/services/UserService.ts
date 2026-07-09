@@ -1,6 +1,5 @@
 import crypto from 'crypto'
 import { omit } from 'lodash'
-import { Ulid, Uuid } from '../models/pgUtils'
 import { getPhotoIdUrl } from './AwsService'
 import {
   ACCOUNT_USER_ACTIONS,
@@ -77,8 +76,9 @@ import {
   updateStudentSchool,
 } from '../models/Student'
 import { hoursInMs } from '../utils/time-utils'
+import { Uuid } from '../types/shared'
 
-export async function parseUser(userId: Ulid) {
+export async function parseUser(userId: Uuid) {
   const user = await getLegacyUserObject(userId)
 
   user.numReferredVolunteers = await ReferralService.getReferredUsersCount(
@@ -106,7 +106,7 @@ export async function parseUser(userId: Ulid) {
   return user
 }
 
-export async function addPhotoId(userId: Ulid, ip?: string): Promise<string> {
+export async function addPhotoId(userId: Uuid, ip?: string): Promise<string> {
   const photoIdS3Key = crypto.randomBytes(32).toString('hex')
   await createAccountAction({
     userId,
@@ -122,7 +122,7 @@ export async function addPhotoId(userId: Ulid, ip?: string): Promise<string> {
 }
 
 interface AddReferencePayload {
-  userId: Ulid
+  userId: Uuid
   userEmail: string
   referenceFirstName: string
   referenceLastName: string
@@ -200,8 +200,8 @@ export async function addReference(data: unknown) {
 }
 
 export async function saveReferenceForm(
-  userId: Ulid,
-  referenceId: Ulid,
+  userId: Uuid,
+  referenceId: Uuid,
   referenceEmail: string,
   referenceFormData: unknown,
   ip?: string
@@ -248,7 +248,7 @@ export async function notifyReference(
 }
 
 interface AdminUpdate {
-  userId: Ulid
+  userId: Uuid
   firstName?: string
   lastName?: string
   email: string
@@ -434,7 +434,7 @@ export async function adminUpdateUser(data: unknown) {
 }
 
 async function adminUpdateStudent(
-  userId: Ulid,
+  userId: Uuid,
   update: AdminUpdateStudent,
   transactionClient: TransactionClient = getClient()
 ) {
@@ -461,7 +461,7 @@ async function adminUpdateStudent(
 }
 
 export async function updateStudentPartnerOrgInstance( // Exported for testing
-  userId: Ulid,
+  userId: Uuid,
   newStudentPartnerOrgKey: string | undefined,
   newPartnerSite: string | undefined,
   newSchoolPartnerKey: string | undefined,
@@ -659,7 +659,7 @@ export async function getUsers(
   }
 }
 
-export async function deletePhoneFromAccount(userId: Ulid) {
+export async function deletePhoneFromAccount(userId: Uuid) {
   const roleContext = await UserRolesService.getRoleContext(userId)
   if (roleContext.hasRole('volunteer')) {
     throw new InputError(
@@ -680,16 +680,16 @@ export async function getUserByReferralCode(referralCode: string) {
   }
 }
 
-export async function getUserContactInfo(userId: Ulid, tc?: TransactionClient) {
+export async function getUserContactInfo(userId: Uuid, tc?: TransactionClient) {
   return getUserById(userId, { includeDeactivated: false }, tc)
 }
 
-export async function getUserForAuth(userId: Ulid) {
+export async function getUserForAuth(userId: Uuid) {
   return getUserById(userId)
 }
 
 export async function getUserById(
-  userId: Ulid,
+  userId: Uuid,
   options: {
     includeDeactivated: boolean
   } = { includeDeactivated: true },
@@ -705,9 +705,9 @@ export async function getUserById(
   }
 }
 
-export async function getUsersBanStatusesById(userIds: Ulid[]): Promise<
+export async function getUsersBanStatusesById(userIds: Uuid[]): Promise<
   {
-    id: Ulid
+    id: Uuid
     banType: USER_BAN_TYPES | null
   }[]
 > {
@@ -715,7 +715,7 @@ export async function getUsersBanStatusesById(userIds: Ulid[]): Promise<
 }
 
 export async function getUserForAdminDetail(
-  userId: Ulid,
+  userId: Uuid,
   // TODO: Make these pagination parameters more clear.
   limit: number,
   offset: number
@@ -759,13 +759,13 @@ export function getReferralSignUpLink(referralCode: string): string {
   return `${config.protocol}://${config.host}/referral/${referralCode}`
 }
 
-export function getUserIdByPhone(phone: string): Promise<Ulid | undefined> {
+export function getUserIdByPhone(phone: string): Promise<Uuid | undefined> {
   return UserRepo.getUserIdByPhone(phone)
 }
 
 export async function upsertUsersSchool(
-  userId: Ulid,
-  schoolId: Ulid,
+  userId: Uuid,
+  schoolId: Uuid,
   associationType: UserSchoolAssociationType
 ): Promise<UsersSchool> {
   return await UsersSchoolsRepo.upsertUsersSchool(
@@ -776,9 +776,9 @@ export async function upsertUsersSchool(
 }
 
 export async function queueInvitationToCoach(
-  invitedUserId: Ulid,
-  invitingUserId: Ulid,
-  sessionId: Ulid,
+  invitedUserId: Uuid,
+  invitingUserId: Uuid,
+  sessionId: Uuid,
   coachingSkills: string[]
 ): Promise<void> {
   logger.info(
