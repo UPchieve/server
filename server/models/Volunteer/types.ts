@@ -48,28 +48,6 @@ export type UserQuiz = {
   updatedAt: Date
 }
 
-export type TrainingCourseData = {
-  complete: boolean
-  progress: number
-  completedMaterials: string[]
-}
-
-export type UserTrainingCourse = TrainingCourseData & {
-  userId: Uuid
-  trainingCourseId: number
-  createdAt: Date
-  updatedAt: Date
-}
-
-export type TrainingCourses = {
-  [TRAINING.UPCHIEVE_101]: TrainingCourseData
-  [TRAINING.UPCHIEVE_TRAINING]: TrainingCourseData
-  [TRAINING.TUTORING_SKILLS]: TrainingCourseData
-  [TRAINING.COLLEGE_COUNSELING]: TrainingCourseData
-  [TRAINING.COLLEGE_SKILLS]: TrainingCourseData
-  [TRAINING.SAT_STRATEGIES]: TrainingCourseData
-}
-
 export type UniqueStudentsHelped = {
   totalUniquePartnerStudentsHelped: number
   totalUniquePartnerStudentsHelpedWithinRange: number

@@ -1,5 +1,4 @@
 import { UserContactInfo } from '../models/User'
-import { TrainingCourses } from '../models/Volunteer'
 import {
   getVolunteerTrainingCourses,
   updateVolunteerTrainingById,
@@ -8,6 +7,7 @@ import * as TrainingUtils from '../utils/training-courses'
 import logger from '../logger'
 import { runInTransaction, TransactionClient } from '../db'
 import { TrainingCourse } from '../utils/training-courses'
+import { TrainingCourses } from '../types/training'
 
 export async function getCourse(
   volunteer: UserContactInfo,
@@ -40,6 +40,7 @@ export async function getCourse(
 
   return {
     ...course,
+    // TODO: `isComplete` will be projected by the public mapper instead
     isComplete: userCourse.complete,
     progress: userCourse.progress,
     completedMaterials: userCourse.completedMaterials,

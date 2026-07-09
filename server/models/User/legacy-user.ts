@@ -7,7 +7,6 @@ import {
   getVolunteerTrainingCourses,
   Reference,
   Sponsorship,
-  TrainingCourses,
 } from '../Volunteer'
 import { Availability } from '../Availability/types'
 import { RepoReadError } from '../Errors'
@@ -30,6 +29,7 @@ import * as AssignmentsService from '../../services/AssignmentsService'
 import { StudentAssignment } from '../Assignments/types'
 import { RoleContext } from '../../services/UserRolesService'
 import { runInTransaction, TransactionClient } from '../../db'
+import type { TrainingCourses } from '../../types/training'
 
 export type LegacyUserModel = {
   // pg

@@ -27,7 +27,6 @@ import {
   Quizzes,
   Sponsorship,
   TextableVolunteer,
-  UserTrainingCourse,
   VolunteerOccupations,
   VolunteerProfileUpdate,
   VolunteersForAnalyticsReport,
@@ -35,12 +34,7 @@ import {
 } from './types'
 import config from '../../config'
 import _ from 'lodash'
-import {
-  ACCOUNT_USER_ACTIONS,
-  PHOTO_ID_STATUS,
-  USER_BAN_TYPES,
-  USER_ROLES,
-} from '../../constants'
+import { PHOTO_ID_STATUS, USER_BAN_TYPES, USER_ROLES } from '../../constants'
 import {
   AssociatedPartnersAndSchools,
   getAssociatedPartnersAndSchools,
@@ -49,7 +43,10 @@ import { UniqueStudentsHelped } from '.'
 import { insertUserRoleByUserId, UserRole } from '../User'
 import { getVolunteerPartnerOrgIdByKey } from '../VolunteerPartnerOrg'
 import { ReportNoDataFoundError } from '../../services/ReportService'
-import { UserTrainingCourses } from '../../types/training'
+import type {
+  UserTrainingCourseProgressRow,
+  UserTrainingCourses,
+} from '../../types/training'
 
 export type VolunteerContactInfo = {
   id: Ulid
@@ -732,7 +729,7 @@ export async function updateVolunteerTrainingById(
   requiredMaterialKeys: string[],
   materialKey: string,
   tc?: TransactionClient
-): Promise<UserTrainingCourse> {
+): Promise<UserTrainingCourseProgressRow> {
   try {
     const results = await pgQueries.updateVolunteerTrainingById.run(
       {
