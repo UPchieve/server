@@ -12,6 +12,7 @@ import {
   getPhoneNumber,
   serializeRoleContext,
   buildUserForAdmin,
+  buildLegacyUserPublic,
 } from '../../mocks/generate'
 import { getUuid } from '../../../models/pgUtils'
 import { NotAllowedError } from '../../../models/Errors'
@@ -45,7 +46,15 @@ jest.mock('../../../utils/auth-utils', () => {
 })
 jest.mock('../../../services/AwsService')
 jest.mock('../../../services/VolunteerService')
-jest.mock('../../../services/UserRolesService')
+jest.mock('../../../services/UserRolesService', () => {
+  const actual = jest.requireActual('../../../services/UserRolesService')
+  return {
+    ...actual,
+    addVolunteerRoleToUser: jest.fn(),
+    getRoleContext: jest.fn(),
+    switchActiveRole: jest.fn(),
+  }
+})
 jest.mock('../../../services/PresenceService')
 jest.mock('../../../models/User')
 jest.mock('../../../logger')
@@ -121,12 +130,7 @@ describe('routeUser', () => {
       expect(response.status).toBe(200)
       expect(mockedUserService.parseUser).toHaveBeenCalledWith(mockUser.id)
       expect(response.body).toEqual({
-        user: {
-          ...parsedUser,
-          createdAt: parsedUser.createdAt.toISOString(),
-          lastActivityAt: parsedUser.lastActivityAt?.toISOString(),
-          roleContext: serializeRoleContext(parsedUser.roleContext),
-        },
+        user: buildLegacyUserPublic(parsedUser),
       })
     })
   })

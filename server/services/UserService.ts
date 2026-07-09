@@ -52,7 +52,10 @@ import { PrimaryUserRole, RoleContext } from './UserRolesService'
 import * as TeacherService from './TeacherService'
 import logger from '../logger'
 import { createAccountAction, createAdminAction } from '../models/UserAction'
-import { getLegacyUserObject } from '../models/User/legacy-user'
+import {
+  getLegacyUserObject,
+  LegacyUserModel,
+} from '../models/User/legacy-user'
 import * as ModerationInfractionsService from '../models/ModerationInfractions'
 import { getClient, runInTransaction, TransactionClient } from '../db'
 import * as VolunteerService from './VolunteerService'
@@ -100,7 +103,11 @@ export async function parseUser(userId: Uuid) {
 
     user.sponsorships =
       await VolunteerService.getActiveSponsorshipsByUserId(userId)
-    return omit(user, ['references', 'photoIdS3Key', 'photoIdStatus'])
+    return omit(user, [
+      'references',
+      'photoIdS3Key',
+      'photoIdStatus',
+    ]) as LegacyUserModel
   }
 
   return user

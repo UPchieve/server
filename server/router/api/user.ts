@@ -1,4 +1,4 @@
-import { Router } from 'express'
+import type { Router, Response } from 'express'
 import * as UserService from '../../services/UserService'
 import * as AwsService from '../../services/AwsService'
 import * as VolunteerService from '../../services/VolunteerService'
@@ -13,14 +13,19 @@ import { asString, asBoolean, asUlid, asEnum } from '../../utils/type-utils'
 import { extractUser } from '../extract-user'
 import { InputError, NotAllowedError } from '../../models/Errors'
 import { GRADES } from '../../constants'
+import type { LegacyUserResponse } from '../../contracts/users'
+import { toLegacyUserPublic } from '../../public/users'
 
 export function routeUser(router: Router): void {
-  router.route('/user').get(async function (req, res) {
+  router.route('/user').get(async function (
+    req,
+    res: Response<LegacyUserResponse>
+  ) {
     const user = extractUser(req)
     const parsedUser = await UserService.parseUser(user.id)
 
     res.cacheControl = { noStore: true }
-    return res.json({ user: parsedUser })
+    return res.json({ user: toLegacyUserPublic(parsedUser) })
   })
 
   // Note: Both students and volunteers can edit parts of their profile,
