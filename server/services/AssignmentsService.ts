@@ -82,19 +82,22 @@ export const asEditedAssignment = asFactory<EditAssignmentPayload>({
   studentsToAdd: asOptional(asArray(asString)),
 })
 
-export async function createAssignment(
-  data: CreateAssignmentPayload,
-  tc?: TransactionClient
-): Promise<Assignment | ModerationTypes.ModerationInfractionCategories> {
-  validateAssignmentData(data)
+export async function moderateAssignment(data: {
+  title?: string
+  description?: string
+}): Promise<ModerationTypes.ModerationInfractionCategories | null> {
   const moderationResults = await ModerationService.moderateAssignmentInfo(
     `${data.title} ${data.description}`
   )
 
-  if (!isEmpty(moderationResults)) {
-    return moderationResults
-  }
+  return isEmpty(moderationResults) ? null : moderationResults
+}
 
+export async function createAssignment(
+  data: CreateAssignmentPayload,
+  tc?: TransactionClient
+): Promise<Assignment> {
+  validateAssignmentData(data)
   return runInTransaction(async (tc: TransactionClient) => {
     const assignment = await AssignmentsRepo.createAssignment(
       {
@@ -123,14 +126,8 @@ export async function createAssignment(
 
 export async function editAssignment(
   data: EditAssignmentPayload
-): Promise<Assignment | ModerationTypes.ModerationInfractionCategories> {
+): Promise<Assignment> {
   validateAssignmentData(data)
-  const moderationResults = await ModerationService.moderateAssignmentInfo(
-    `${data.title} ${data.description}`
-  )
-  if (!isEmpty(moderationResults)) {
-    return moderationResults
-  }
   return runInTransaction(async (tc: TransactionClient) => {
     const assignment = await AssignmentsRepo.editAssignment(
       {
