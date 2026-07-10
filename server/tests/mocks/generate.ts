@@ -169,6 +169,7 @@ import type {
 import type {
   NewUser,
   UserAdminBackground,
+  UserByReferralCode,
   UserForAdminDetail,
   UserForAdminDetailWithRoleContext,
   UserRole,
@@ -288,6 +289,18 @@ export function buildUser(overrides: Partial<AppUser> = {}): AppUser {
       overrides?.isVolunteer ? 'volunteer' : 'student',
       overrides?.isVolunteer ? 'volunteer' : 'student'
     ),
+    ...overrides,
+  }
+}
+
+export function buildUserByReferralCode(
+  overrides: Partial<UserByReferralCode> = {}
+): UserByReferralCode {
+  const user = buildUser(overrides)
+  return {
+    id: user.id,
+    firstName: user.firstName,
+    userType: user.roleContext?.legacyRole,
     ...overrides,
   }
 }
