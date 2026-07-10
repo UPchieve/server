@@ -3,6 +3,8 @@ import type {
   ReviewMaterialPublic,
   TrainingCourseMaterialPublic,
   TrainingCourseModulePublic,
+  TrainingCourseProgressDataPublic,
+  TrainingCoursesPublic,
   TrainingCourseWithUserProgressPublic,
   TrainingMaterialLinkPublic,
   UserTrainingCourseProgressUpdatePublic,
@@ -11,6 +13,8 @@ import type { Question, ReviewMaterial } from '../models/Question'
 import type {
   TrainingCourseMaterial,
   TrainingCourseModule,
+  TrainingCourseProgressData,
+  TrainingCourses,
   TrainingCourseWithUserProgress,
   TrainingMaterialLink,
   UserTrainingCourseProgressUpdate,
@@ -106,4 +110,25 @@ export function toUserTrainingCourseProgressUpdatePublic(
     isComplete: progress.isComplete,
     completedMaterialKeys: progress.completedMaterialKeys,
   }
+}
+
+export function toTrainingCourseProgressDataPublic(
+  course: TrainingCourseProgressData
+): TrainingCourseProgressDataPublic {
+  return {
+    complete: course.complete,
+    progress: course.progress,
+    completedMaterials: course.completedMaterials,
+  }
+}
+
+export function toTrainingCoursesPublic(
+  trainingCourses: TrainingCourses
+): TrainingCoursesPublic {
+  return Object.fromEntries(
+    Object.entries(trainingCourses).map(([courseKey, course]) => [
+      courseKey,
+      toTrainingCourseProgressDataPublic(course),
+    ])
+  ) as TrainingCoursesPublic
 }

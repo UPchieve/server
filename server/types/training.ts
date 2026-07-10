@@ -12,7 +12,7 @@ export type UserTrainingCourseProgress = {
 
 export type UserTrainingCourses = Record<string, UserTrainingCourseProgress>
 
-type TrainingCourseProgressData = {
+export type TrainingCourseProgressData = {
   complete: boolean
   progress: number
   completedMaterials: string[]

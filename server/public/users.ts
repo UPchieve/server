@@ -1,12 +1,125 @@
-import type { LegacyUserPublic, RoleContextPublic } from '../contracts/users'
+import type {
+  CertificationsPublic,
+  LegacyUserPublic,
+  PostsessionSurveyRatingsMetricPublic,
+  QuizInfoPublic,
+  ReferencePublic,
+  RoleContextPublic,
+  SponsorshipPublic,
+  UserSessionStatsPublic,
+} from '../contracts/users'
+import type { UserSessionStats } from '../models/Session'
 import type { LegacyUserModel } from '../models/User/legacy-user'
+import {
+  QuizInfo,
+  Certifications,
+  Reference,
+  Sponsorship,
+} from '../models/Volunteer'
+import type { PostsessionSurveyRatingsMetric } from '../services/SurveyService'
 import type { RoleContext } from '../services/UserRolesService'
+import { toStudentAssignmentPublic } from './assignments'
+import { toTrainingCoursesPublic } from './training'
 
-export function toRoleContextPublic(role: RoleContext): RoleContextPublic {
+function toRoleContextPublic(role: RoleContext): RoleContextPublic {
   return {
     activeRole: role.activeRole,
     legacyRole: role.legacyRole,
     roles: role.roles,
+  }
+}
+
+function toUserSessionStatsPublic(
+  stats: UserSessionStats
+): UserSessionStatsPublic {
+  return Object.fromEntries(
+    Object.entries(stats).map(([subjectName, subjectStats]) => [
+      subjectName,
+      {
+        totalRequested: subjectStats.totalRequested,
+        totalHelped: subjectStats.totalHelped,
+        topicName: subjectStats.topicName,
+      },
+    ])
+  )
+}
+
+function toQuizInfoPublic(quiz: QuizInfo): QuizInfoPublic {
+  return {
+    passed: quiz.passed,
+    tries: quiz.tries,
+    lastAttemptedAt: quiz.lastAttemptedAt?.toISOString(),
+  }
+}
+
+function toCertificationsPublic(
+  certifications: Certifications
+): CertificationsPublic {
+  return Object.fromEntries(
+    Object.entries(certifications).map(([subject, quiz]) => [
+      subject,
+      toQuizInfoPublic(quiz),
+    ])
+  )
+}
+
+function toReferencePublic(reference: Reference): ReferencePublic {
+  return {
+    id: reference.id,
+    firstName: reference.firstName,
+    lastName: reference.lastName,
+    createdAt: reference.createdAt.toISOString(),
+    email: reference.email,
+    status: reference.status,
+    sentAt: reference.sentAt?.toISOString(),
+    affiliation: reference.affiliation,
+    relationshipLength: reference.relationshipLength,
+    patient: reference.patient,
+    positiveRoleModel: reference.positiveRoleModel,
+    agreeableAndApproachable: reference.agreeableAndApproachable,
+    communicatesEffectively: reference.communicatesEffectively,
+    trustworthyWithChildren: reference.trustworthyWithChildren,
+    rejectionReason: reference.rejectionReason,
+    additionalInfo: reference.additionalInfo,
+  }
+}
+
+export function toPostsessionSurveyRatingsMetricPublic(
+  ratings: PostsessionSurveyRatingsMetric
+): PostsessionSurveyRatingsMetricPublic {
+  return {
+    selfReportedStudentRating: {
+      total: ratings.selfReportedStudentRating.total,
+      average: ratings.selfReportedStudentRating.average,
+    },
+    selfReportedVolunteerRating: {
+      total: ratings.selfReportedVolunteerRating.total,
+      average: ratings.selfReportedVolunteerRating.average,
+    },
+    partnerReportedStudentRating: {
+      total: ratings.partnerReportedStudentRating.total,
+      average: ratings.partnerReportedStudentRating.average,
+    },
+    partnerReportedVolunteerRating: {
+      total: ratings.partnerReportedVolunteerRating.total,
+      average: ratings.partnerReportedVolunteerRating.average,
+    },
+    selfReportedRating: {
+      total: ratings.selfReportedRating.total,
+      average: ratings.selfReportedRating.average,
+    },
+    partnerReportedRating: {
+      total: ratings.partnerReportedRating.total,
+      average: ratings.partnerReportedRating.average,
+    },
+  }
+}
+
+function toSponsorshipPublic(sponsorship: Sponsorship): SponsorshipPublic {
+  return {
+    id: sponsorship.id,
+    name: sponsorship.name,
+    key: sponsorship.key,
   }
 }
 
@@ -36,7 +149,7 @@ export function toLegacyUserPublic(user: LegacyUserModel): LegacyUserPublic {
     referralCode: user.referralCode,
     numReferredVolunteers: user.numReferredVolunteers,
     referredBy: user.referredBy,
-    sessionStats: user.sessionStats,
+    sessionStats: toUserSessionStatsPublic(user.sessionStats),
     preferredLanguage: user.preferredLanguage,
     signupSource: user.signupSource,
     isOnboarded: user.isOnboarded,
@@ -47,9 +160,13 @@ export function toLegacyUserPublic(user: LegacyUserModel): LegacyUserPublic {
     mutedSubjectAlerts: user.mutedSubjectAlerts,
     totalActiveCertifications: user.totalActiveCertifications,
     availability: user.availability,
-    certifications: user.certifications,
+    certifications: user.certifications
+      ? toCertificationsPublic(user.certifications)
+      : undefined,
     availabilityLastModifiedAt: user.availabilityLastModifiedAt?.toISOString(),
-    trainingCourses: user.trainingCourses,
+    trainingCourses: user.trainingCourses
+      ? toTrainingCoursesPublic(user.trainingCourses)
+      : undefined,
     occupation: user.occupation,
     country: user.country,
     timezone: user.timezone,
@@ -57,7 +174,7 @@ export function toLegacyUserPublic(user: LegacyUserModel): LegacyUserPublic {
     hoursTutored: user.hoursTutored,
     hoursTutoredThisWeek: user.hoursTutoredThisWeek,
     elapsedAvailability: user.elapsedAvailability,
-    references: user.references,
+    references: user.references?.map(toReferencePublic),
     photoIdStatus: user.photoIdStatus,
     uniqueStudentsHelpedCount: user.uniqueStudentsHelpedCount,
     hasCompletedVolunteerTraining: user.hasCompletedVolunteerTraining,
@@ -71,10 +188,12 @@ export function toLegacyUserPublic(user: LegacyUserModel): LegacyUserPublic {
     usesClever: user.usesClever,
     usesGoogle: user.usesGoogle,
     usesClassLink: user.usesClassLink,
-    studentAssignments: user.studentAssignments,
-    ratings: user.ratings,
+    studentAssignments: user.studentAssignments?.map(toStudentAssignmentPublic),
+    ratings: user.ratings
+      ? toPostsessionSurveyRatingsMetricPublic(user.ratings)
+      : undefined,
     favoriteVolunteers: user.favoriteVolunteers,
     lastSuccessfulCleverSync: user.lastSuccessfulCleverSync?.toISOString(),
-    sponsorships: user.sponsorships,
+    sponsorships: user.sponsorships?.map(toSponsorshipPublic),
   }
 }
