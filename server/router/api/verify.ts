@@ -6,11 +6,12 @@ import { resError } from '../res-error'
 import { extractUser } from '../extract-user'
 import { AlreadyInUseError, TwilioError } from '../../models/Errors'
 import { authPassport } from '../../utils/auth-utils'
-import { Request, Response } from 'express'
+import type { Request, Response } from 'express'
+import type { ConfirmVerificationResponse } from '../../contracts/verify'
 
 const sendVerificationCommon = async (
   req: Request,
-  res: Response
+  res: Response<void>
 ): Promise<void> => {
   const user = extractUser(req)
   const payload = {
@@ -50,7 +51,7 @@ const sendVerificationCommon = async (
 export function routeVerify(router: Router) {
   router.route('/verify/send').post(async function (
     req: Request,
-    res: Response
+    res: Response<void>
   ) {
     await sendVerificationCommon(req, res)
   })
@@ -59,12 +60,15 @@ export function routeVerify(router: Router) {
     .route('/verify/v2/send')
     .post(
       authPassport.checkRecaptcha,
-      async function (req: Request, res: Response) {
+      async function (req: Request, res: Response<void>) {
         await sendVerificationCommon(req, res)
       }
     )
 
-  router.route('/verify/confirm').post(async function (req, res) {
+  router.route('/verify/confirm').post(async function (
+    req,
+    res: Response<ConfirmVerificationResponse>
+  ) {
     const user = extractUser(req)
     const payload = {
       userId: user.id,
