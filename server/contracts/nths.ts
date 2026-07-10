@@ -65,7 +65,7 @@ export type NTHSActionPublic = {
 export type AdvisorPublic = {
   id: Uuid
   nthsGroupId: Uuid
-  schoolId: Uuid
+  schoolId?: Uuid
   firstName: string
   lastName: string
   email: string
