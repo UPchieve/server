@@ -4,3 +4,7 @@ export type CheckEligibilityPublic = {
   isCollegeStudent?: boolean
   isExistingUser?: boolean
 }
+
+export type IsEligibleResponse = {
+  isEligible: boolean
+}

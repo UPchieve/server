@@ -15,7 +15,10 @@ import {
 import { getStudentSignupSources } from '../../services/StudentService'
 import { InputError } from '../../models/Errors'
 import { rpush } from '../../cache'
-import type { CheckEligibilityPublic } from '../../contracts/eligibility'
+import type {
+  CheckEligibilityPublic,
+  IsEligibleResponse,
+} from '../../contracts/eligibility'
 import { toCheckEligibilityPublic } from '../../public/eligibility'
 
 export function routes(app: Express) {
@@ -34,18 +37,23 @@ export function routes(app: Express) {
     }
   })
 
-  router.route('/check/teacher').get(async (req, res) => {
-    try {
-      const schoolId = req.query.schoolId
-      if (!schoolId) {
-        throw new InputError('School ID must be provided.')
+  router
+    .route('/check/teacher')
+    .get(async (req, res: Response<IsEligibleResponse>) => {
+      try {
+        const schoolId = req.query.schoolId
+        if (!schoolId) {
+          throw new InputError('School ID must be provided.')
+        }
+        const isEligible = await verifyEligibility(
+          undefined,
+          asString(schoolId)
+        )
+        return res.json({ isEligible })
+      } catch (err) {
+        resError(res, err)
       }
-      const isEligible = await verifyEligibility(undefined, asString(schoolId))
-      return res.json({ isEligible })
-    } catch (err) {
-      resError(res, err)
-    }
-  })
+    })
 
   router.route('/school/search').get(async (req, res) => {
     const { q } = req.query
