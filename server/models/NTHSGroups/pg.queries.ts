@@ -108,6 +108,8 @@ export interface IGetGroupByInviteCodeResult {
   createdAt: Date;
   /** not_pii: Primary key */
   id: string;
+  /** not_pii: Short invite code for joining the NTHS group */
+  inviteCode: string;
   /** not_pii: Unique URL-safe slug */
   key: string;
   /** not_pii: Human-readable name */
@@ -120,7 +122,7 @@ export interface IGetGroupByInviteCodeQuery {
   result: IGetGroupByInviteCodeResult;
 }
 
-const getGroupByInviteCodeIR: any = {"usedParamSet":{"inviteCode":true},"params":[{"name":"inviteCode","required":true,"transform":{"type":"scalar"},"locs":[{"a":94,"b":105}]}],"statement":"SELECT\n    id,\n    name,\n    KEY,\n    created_at\nFROM\n    nths_groups\nWHERE\n    invite_code = :inviteCode!"};
+const getGroupByInviteCodeIR: any = {"usedParamSet":{"inviteCode":true},"params":[{"name":"inviteCode","required":true,"transform":{"type":"scalar"},"locs":[{"a":111,"b":122}]}],"statement":"SELECT\n    id,\n    name,\n    KEY,\n    created_at,\n    invite_code\nFROM\n    nths_groups\nWHERE\n    invite_code = :inviteCode!"};
 
 /**
  * Query generated from SQL:
@@ -129,7 +131,8 @@ const getGroupByInviteCodeIR: any = {"usedParamSet":{"inviteCode":true},"params"
  *     id,
  *     name,
  *     KEY,
- *     created_at
+ *     created_at,
+ *     invite_code
  * FROM
  *     nths_groups
  * WHERE

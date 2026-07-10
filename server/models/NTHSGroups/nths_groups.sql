@@ -35,7 +35,8 @@ SELECT
     id,
     name,
     KEY,
-    created_at
+    created_at,
+    invite_code
 FROM
     nths_groups
 WHERE
