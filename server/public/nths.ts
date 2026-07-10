@@ -1,13 +1,14 @@
-import {
+import type {
   AdvisorPublic,
   NTHSActionPublic,
   NTHSGroupActionPublic,
+  NTHSGroupJoinPublic,
   NTHSGroupMemberWithRolePublic,
   NTHSGroupPublic,
   NTHSGroupWithMemberInfoPublic,
   NTHSUserInfoPublic,
 } from '../contracts/nths'
-import {
+import type {
   Advisor,
   NTHSAction,
   NTHSGroup,
@@ -23,6 +24,15 @@ export function toNTHSGroupPublic(group: NTHSGroup): NTHSGroupPublic {
     name: group.name,
     key: group.key,
     inviteCode: group.inviteCode,
+    createdAt: group.createdAt?.toISOString(),
+  }
+}
+
+export function toNTHSGroupJoinPublic(group: NTHSGroup): NTHSGroupJoinPublic {
+  return {
+    id: group.id,
+    name: group.name,
+    key: group.key,
     createdAt: group.createdAt?.toISOString(),
   }
 }

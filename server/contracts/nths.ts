@@ -14,6 +14,8 @@ export type NTHSGroupPublic = {
   createdAt?: ISODateString
 }
 
+export type NTHSGroupJoinPublic = Omit<NTHSGroupPublic, 'inviteCode'>
+
 export type NTHSUserInfoPublic = {
   title: string
   joinedAt: ISODateString
