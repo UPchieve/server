@@ -3,7 +3,7 @@ import { mocked } from 'jest-mock'
 import { mockApp } from '../../mock-app'
 import * as NTHSGroupInviteRouter from '../../../router/nths-group-invite'
 import * as NTHSGroupsService from '../../../services/NTHSGroupsService'
-import { buildNTHSGroup } from '../../mocks/generate'
+import { buildNTHSGroup, buildNTHSGroupJoinPublic } from '../../mocks/generate'
 import { getUuid } from '../../../models/pgUtils'
 
 jest.mock('../../../services/NTHSGroupsService')
@@ -41,7 +41,7 @@ describe('routeNTHSGroupInvite', () => {
         mockedNTHSGroupsService.getNTHSGroupByInviteCode
       ).toHaveBeenCalledWith(group.inviteCode)
       expect(response.body).toEqual({
-        NTHSgroup: { ...group, createdAt: group.createdAt?.toISOString() },
+        NTHSgroup: buildNTHSGroupJoinPublic(group),
       })
     })
 

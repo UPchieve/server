@@ -8,6 +8,7 @@ import * as TeacherService from '../../../services/TeacherService'
 import * as NTHSGroupsService from '../../../services/NTHSGroupsService'
 import {
   buildNTHSGroup,
+  buildNTHSGroupJoinPublic,
   buildNTHSGroupWithMemberInfo,
   buildTeacherClass,
   buildTeacherClassPublic,
@@ -329,9 +330,8 @@ describe('routeApiPublic', () => {
 
     test('returns 422 when invite code is invalid', async () => {
       const inviteCode = getUuid()
-      //   TODO: Fix return type of getNTHSGroupByInviteCode
       mockedNTHSGroupsService.getNTHSGroupByInviteCode.mockResolvedValueOnce(
-        undefined
+        null
       )
 
       const response = await sendPost('/api-public/nths-groups/join', {
@@ -368,14 +368,13 @@ describe('routeApiPublic', () => {
         mockedNTHSGroupsService.getNTHSGroupByInviteCode
       ).toHaveBeenCalledWith(group.inviteCode)
       expect(response.body).toEqual({
-        NTHSGroup: { ...group, createdAt: group.createdAt?.toISOString() },
+        NTHSGroup: buildNTHSGroupJoinPublic(group),
       })
     })
 
     test('returns 422 when invite code is invalid', async () => {
-      //   TODO: Fix return type of getNTHSGroupByInviteCode
       mockedNTHSGroupsService.getNTHSGroupByInviteCode.mockResolvedValueOnce(
-        undefined
+        null
       )
 
       const response = await sendGet('/api-public/nths-groups/BAD123')

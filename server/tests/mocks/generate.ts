@@ -141,7 +141,10 @@ import {
   AssignmentPublic,
   StudentAssignmentSubmissionPublic,
 } from '../../contracts/assignments'
-import { NTHSGroupMemberWithRolePublic } from '../../contracts/nths'
+import type {
+  NTHSGroupJoinPublic,
+  NTHSGroupMemberWithRolePublic,
+} from '../../contracts/nths'
 import { UserProductFlagsPublic } from '../../contracts/product-flags'
 import type {
   SessionReportPublic,
@@ -1513,6 +1516,18 @@ export function buildNTHSGroup(overrides: Partial<NTHSGroup> = {}): NTHSGroup {
     createdAt: new Date(),
     inviteCode: faker.string.alpha({ length: 6 }),
     ...overrides,
+  }
+}
+
+export function buildNTHSGroupJoinPublic(
+  overrides: Partial<NTHSGroup> = {}
+): NTHSGroupJoinPublic {
+  const group = buildNTHSGroup(overrides)
+  return {
+    id: group.id,
+    name: group.name,
+    key: group.key,
+    createdAt: group.createdAt?.toISOString(),
   }
 }
 
