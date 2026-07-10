@@ -20,10 +20,12 @@ import type {
   IneligibleStudentsResponse,
   IsEligibleResponse,
   SchoolSearchResponse,
+  ZipCodeResponse,
 } from '../../contracts/eligibility'
 import {
   toCheckEligibilityPublic,
   toIneligibleStudentsWithSchoolInfoPublic,
+  toZipCodePublic,
 } from '../../public/eligibility'
 import { toSchoolPublic } from '../../public/schools'
 
@@ -155,7 +157,7 @@ export function routes(app: Express) {
   router.get(
     '/zip-codes/:zipCode',
     authPassport.isAdmin,
-    async function (req, res) {
+    async function (req, res: Response<ZipCodeResponse>) {
       const zipCode = asString(req.params.zipCode)
 
       try {
@@ -163,7 +165,7 @@ export function routes(app: Express) {
         if (!result) res.sendStatus(404)
         else
           res.json({
-            zipCode: { ...result },
+            zipCode: toZipCodePublic({ ...result }),
           })
       } catch (err) {
         Sentry.captureException(err)

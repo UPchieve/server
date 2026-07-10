@@ -23,6 +23,14 @@ export type IneligibleStudentsWithSchoolInfoPublic = {
   createdAt: ISODateString
 }
 
+export type ZipCodePublic = {
+  zipCode: string
+  medianIncome: number
+  cbsaIncome?: number
+  stateIncome?: number
+  isEligible: boolean
+}
+
 export type IsEligibleResponse = {
   isEligible: boolean
 }
@@ -34,4 +42,8 @@ export type SchoolSearchResponse = {
 export type IneligibleStudentsResponse = {
   ineligibleStudents: IneligibleStudentsWithSchoolInfoPublic[]
   isLastPage: boolean
+}
+
+export type ZipCodeResponse = {
+  zipCode: ZipCodePublic
 }
