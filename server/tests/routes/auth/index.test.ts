@@ -1,12 +1,9 @@
 import request, { Response } from 'supertest'
 import { mocked } from 'jest-mock'
 import { Request as ExpressRequest, Response as ExpressResponse } from 'express'
-import passport from 'passport'
 import * as AuthRouter from '../../../router/auth'
 import * as AuthService from '../../../services/AuthService'
 import * as UserCreationService from '../../../services/UserCreationService'
-import * as StudentService from '../../../services/StudentService'
-import * as FedCredService from '../../../services/FederatedCredentialService'
 import * as UserRolesService from '../../../services/UserRolesService'
 import * as UserAction from '../../../models/UserAction'
 import * as UserQueries from '../../../models/User/queries'
@@ -14,16 +11,13 @@ import * as LegacyUser from '../../../models/User/legacy-user'
 import {
   buildCreatedVolunteer,
   buildLegacyUser,
-  buildRegisterUser,
-  buildStudent,
+  buildLegacyUserPublic,
+  buildNewUser,
   buildStudentPartnerOrg,
   buildUser,
-  buildVolunteer,
   buildVolunteerPartnerOrg,
   getEmail,
   getLastName,
-  getPhoneNumber,
-  serializeRoleContext,
 } from '../../mocks/generate'
 import { mockApp, mockPassportMiddleware } from '../../mock-app'
 import { ACCOUNT_USER_ACTIONS } from '../../../constants'
@@ -84,13 +78,10 @@ jest.mock('../../../utils/auth-utils', () => {
 
 const mockedAuthService = mocked(AuthService)
 const mockedUserCreationService = mocked(UserCreationService)
-const mockedStudentService = mocked(StudentService)
-const mockedFedCredService = mocked(FedCredService)
 const mockedUserRolesService = mocked(UserRolesService)
 const mockedUserAction = mocked(UserAction)
 const mockedUserQueries = mocked(UserQueries)
 const mockedLegacyUser = mocked(LegacyUser)
-const mockedPassport = mocked(passport)
 
 const US_IP_ADDRESS = '161.185.160.93'
 const AUTH_ROUTE = '/auth'
@@ -228,11 +219,7 @@ describe('AuthRouter.routes', () => {
         ipAddress: expect.any(String),
       })
       expect(response.body).toEqual({
-        user: {
-          ...user,
-          roleContext: serializeRoleContext(user.roleContext),
-          createdAt: user.createdAt.toISOString(),
-        },
+        user: buildLegacyUserPublic(user),
       })
     })
 
@@ -266,12 +253,7 @@ describe('AuthRouter.routes', () => {
         'volunteer'
       )
       expect(response.body).toEqual({
-        user: {
-          ...user,
-          roleContext: serializeRoleContext(newRoleContext),
-          userType: 'volunteer',
-          createdAt: user.createdAt.toISOString(),
-        },
+        user: buildLegacyUserPublic(user),
       })
     })
 
@@ -289,12 +271,7 @@ describe('AuthRouter.routes', () => {
       expect(response.status).toBe(200)
       expect(mockedUserRolesService.switchActiveRole).not.toHaveBeenCalled()
       expect(response.body).toEqual({
-        user: {
-          ...user,
-          roleContext: serializeRoleContext(user.roleContext),
-          userType: 'student',
-          createdAt: user.createdAt.toISOString(),
-        },
+        user: buildLegacyUserPublic(user),
       })
     })
   })
@@ -319,7 +296,7 @@ describe('AuthRouter.routes', () => {
 
   describe('POST /auth/register/student', () => {
     test('registers a student and logs them in when password is present', async () => {
-      const student = buildRegisterUser({ userType: 'student ' })
+      const student = buildNewUser({ userType: 'student' })
       mockedUserCreationService.registerStudent.mockResolvedValueOnce(student)
 
       const response = await sendPost('/register/student', {
@@ -339,7 +316,7 @@ describe('AuthRouter.routes', () => {
     )
 
     test('registers a student without login when password is not present', async () => {
-      const student = buildRegisterUser({ userType: 'student ' })
+      const student = buildNewUser({ userType: 'student' })
       mockedUserCreationService.registerStudent.mockResolvedValueOnce(student)
 
       const response = await sendPost('/register/student', {
@@ -356,7 +333,7 @@ describe('AuthRouter.routes', () => {
 
   describe('POST /auth/register/student/open', () => {
     test('registers legacy open student and logs them in', async () => {
-      const student = buildRegisterUser({ userType: 'student ' })
+      const student = buildNewUser({ userType: 'student' })
       mockedUserCreationService.registerStudent.mockResolvedValueOnce(student)
 
       const response = await sendPost('/register/student/open', {
@@ -376,7 +353,7 @@ describe('AuthRouter.routes', () => {
 
   describe('POST /auth/register/student/partner', () => {
     test('registers legacy partner student and logs them in', async () => {
-      const student = buildRegisterUser({ userType: 'student ' })
+      const student = buildNewUser({ userType: 'student' })
       mockedUserCreationService.registerStudent.mockResolvedValueOnce(student)
 
       const response = await sendPost('/register/student/partner', {
@@ -399,7 +376,7 @@ describe('AuthRouter.routes', () => {
 
   describe('POST /auth/register/teacher', () => {
     test('registers teacher and logs them in', async () => {
-      const teacher = buildRegisterUser({
+      const teacher = buildNewUser({
         userType: 'teacher',
       })
       mockedUserCreationService.registerTeacher.mockResolvedValueOnce(teacher)
