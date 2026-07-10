@@ -418,7 +418,6 @@ export async function getUsersForAdminSearch(
 
 export type PastSessionForAdmin = {
   id: Ulid
-  _id: Ulid
   type: string
   subTopic: string
   totalMessages: number
