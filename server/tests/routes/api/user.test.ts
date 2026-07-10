@@ -10,9 +10,10 @@ import {
   buildLegacyUser,
   buildUser,
   getPhoneNumber,
-  serializeRoleContext,
   buildUserForAdmin,
   buildLegacyUserPublic,
+  buildUserForAdminDetailWithRoleContext,
+  buildUserForAdminDetailWithRoleContextPublic,
 } from '../../mocks/generate'
 import { getUuid } from '../../../models/pgUtils'
 import { NotAllowedError } from '../../../models/Errors'
@@ -397,7 +398,7 @@ describe('routeUser', () => {
 
   describe('GET /api/user/:userId', () => {
     test('returns admin user detail with userType and roles', async () => {
-      const user = buildLegacyUser()
+      const user = buildUserForAdminDetailWithRoleContext()
       const userId = user.id
       mockedUserService.getUserForAdminDetail.mockResolvedValueOnce(user)
 
@@ -408,14 +409,9 @@ describe('routeUser', () => {
         10,
         0
       )
-      expect(response.body).toEqual({
-        ...user,
-        createdAt: user.createdAt.toISOString(),
-        lastActivityAt: user.lastActivityAt?.toISOString(),
-        userType: user.roleContext.activeRole,
-        roles: user.roleContext.roles,
-        roleContext: serializeRoleContext(user.roleContext),
-      })
+      expect(response.body).toEqual(
+        buildUserForAdminDetailWithRoleContextPublic(user)
+      )
     })
   })
 
@@ -460,7 +456,7 @@ describe('routeUser', () => {
 
   describe('PUT /api/user/roles/active', () => {
     test('switches active role for user', async () => {
-      const switchedUser = buildUser({
+      const switchedUser = buildLegacyUser({
         id: mockUser.id,
         roleContext: new RoleContext(
           ['student', 'volunteer'],
@@ -483,13 +479,7 @@ describe('routeUser', () => {
       )
       expect(response.body).toEqual({
         activeRole: 'volunteer',
-        user: {
-          ...switchedUser,
-          createdAt: switchedUser.createdAt.toISOString(),
-          updatedAt: switchedUser.updatedAt.toISOString(),
-          lastActivityAt: switchedUser.lastActivityAt?.toISOString(),
-          roleContext: serializeRoleContext(switchedUser.roleContext),
-        },
+        user: buildLegacyUserPublic(switchedUser),
       })
     })
   })

@@ -1,23 +1,36 @@
 import type {
   CertificationsPublic,
   LegacyUserPublic,
+  PastSessionForAdminPublic,
   PostsessionSurveyRatingsMetricPublic,
   QuizInfoPublic,
+  ReferenceContactInfoPublic,
   ReferencePublic,
   RoleContextPublic,
   SponsorshipPublic,
+  UserAdminBackgroundPublic,
+  UserForAdminDetailPublic,
+  UserForAdminDetailWithRoleContextPublic,
+  UserForAdminPublic,
   UserSessionStatsPublic,
 } from '../contracts/users'
 import type { UserSessionStats } from '../models/Session'
+import type { PastSessionForAdmin, UserForAdmin } from '../models/User'
 import type { LegacyUserModel } from '../models/User/legacy-user'
 import {
   QuizInfo,
   Certifications,
   Reference,
   Sponsorship,
+  ReferenceContactInfo,
 } from '../models/Volunteer'
 import type { PostsessionSurveyRatingsMetric } from '../services/SurveyService'
 import type { RoleContext } from '../services/UserRolesService'
+import {
+  UserAdminBackground,
+  UserForAdminDetail,
+  UserForAdminDetailWithRoleContext,
+} from '../types/users'
 import { toStudentAssignmentPublic } from './assignments'
 import { toTrainingCoursesPublic } from './training'
 
@@ -195,5 +208,114 @@ export function toLegacyUserPublic(user: LegacyUserModel): LegacyUserPublic {
     favoriteVolunteers: user.favoriteVolunteers,
     lastSuccessfulCleverSync: user.lastSuccessfulCleverSync?.toISOString(),
     sponsorships: user.sponsorships?.map(toSponsorshipPublic),
+  }
+}
+
+export function toReferenceContactInfoPublic(
+  reference: ReferenceContactInfo
+): ReferenceContactInfoPublic {
+  return {
+    id: reference.id,
+    status: reference.status,
+    email: reference.email,
+    firstName: reference.firstName,
+    lastName: reference.lastName,
+    affiliation: reference.affiliation,
+    additionalInfo: reference.additionalInfo,
+    agreeableAndApproachable: reference.agreeableAndApproachable,
+    communicatesEffectively: reference.communicatesEffectively,
+    patient: reference.patient,
+    positiveRoleModel: reference.positiveRoleModel,
+    rejectionReason: reference.rejectionReason,
+    relationshipLength: reference.relationshipLength,
+    trustworthyWithChildren: reference.trustworthyWithChildren,
+  }
+}
+
+export function toUserAdminBackgroundPublic(
+  background: UserAdminBackground
+): UserAdminBackgroundPublic {
+  return {
+    occupation: background.occupation,
+    experience: background.experience,
+    languages: background.languages,
+    linkedInUrl: background.linkedInUrl,
+    country: background.country,
+    state: background.state,
+    city: background.city,
+    college: background.college,
+    company: background.company,
+  }
+}
+
+export function toPastSessionForAdminPublic(
+  session: PastSessionForAdmin
+): PastSessionForAdminPublic {
+  return {
+    id: session.id,
+    _id: session.id,
+    type: session.type,
+    subTopic: session.subTopic,
+    totalMessages: session.totalMessages,
+    volunteer: session.volunteer,
+    student: session.student,
+    volunteerJoinedAt: session.volunteerJoinedAt?.toISOString(),
+    createdAt: session.createdAt.toISOString(),
+    endedAt: session.endedAt?.toISOString(),
+  }
+}
+
+export function toUserForAdminDetailPublic(
+  user: UserForAdminDetail
+): UserForAdminDetailPublic {
+  return {
+    id: user.id,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    email: user.email,
+    createdAt: user.createdAt.toISOString(),
+    isDeactivated: user.isDeactivated,
+    isDeleted: user.isDeleted,
+    isTestUser: user.isTestUser,
+    verified: user.verified,
+    banType: user.banType,
+    numPastSessions: user.numPastSessions,
+    isApproved: user.isApproved,
+    isOnboarded: user.isOnboarded,
+    volunteerPartnerOrg: user.volunteerPartnerOrg,
+    photoIdS3Key: user.photoIdS3Key,
+    photoIdStatus: user.photoIdStatus,
+    currentGrade: user.currentGrade,
+    zipCode: user.zipCode,
+    studentPartnerOrg: user.studentPartnerOrg,
+    partnerSite: user.partnerSite,
+    schoolId: user.schoolId,
+    schoolName: user.schoolName,
+    references: user.references.map(toReferenceContactInfoPublic),
+    pastSessions: user.pastSessions?.map(toPastSessionForAdminPublic),
+    background: toUserAdminBackgroundPublic(user.background),
+  }
+}
+
+export function toUserForAdminDetailWithRoleContextPublic(
+  user: UserForAdminDetailWithRoleContext
+): UserForAdminDetailWithRoleContextPublic {
+  return {
+    ...toUserForAdminDetailPublic(user),
+    roleContext: toRoleContextPublic(user.roleContext),
+    photoUrl: user.photoUrl,
+    userType: user.roleContext.legacyRole,
+    roles: user.roleContext.roles,
+  }
+}
+
+export function toUserForAdminPublic(user: UserForAdmin): UserForAdminPublic {
+  return {
+    id: user.id,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    email: user.email,
+    userType: user.userType,
+    createdAt: user.createdAt?.toISOString(),
   }
 }

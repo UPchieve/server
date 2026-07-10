@@ -95,7 +95,6 @@ import type {
   StudentAssignment,
   StudentAssignmentCompletionRow,
 } from '../../models/Assignments'
-import { SessionReport, UsageReport } from '../../services/ReportService'
 import { TelecomRow } from '../../utils/reportUtils'
 import { UserReward } from '../../services/RewardsService'
 import {
@@ -158,8 +157,17 @@ import type {
   TeacherClassPublic,
 } from '../../contracts/teachers'
 import type { TrainingCourse } from '../../types/training'
-import type { LegacyUserPublic } from '../../contracts/users'
-import type { UserRole } from '../../types/users'
+import type {
+  LegacyUserPublic,
+  UserForAdminDetailPublic,
+  UserForAdminDetailWithRoleContextPublic,
+} from '../../contracts/users'
+import type {
+  UserAdminBackground,
+  UserForAdminDetail,
+  UserForAdminDetailWithRoleContext,
+  UserRole,
+} from '../../types/users'
 
 export function getEmail(): string {
   return faker.internet.email().toLowerCase()
@@ -502,6 +510,128 @@ export function buildLegacyUserPublic(
     lastActivityAt: user.lastActivityAt?.toISOString(),
     availabilityLastModifiedAt: user.availabilityLastModifiedAt?.toISOString(),
     lastSuccessfulCleverSync: user.lastSuccessfulCleverSync?.toISOString(),
+    certifications: user.certifications
+      ? Object.fromEntries(
+          Object.entries(user.certifications).map(([subject, quiz]) => [
+            subject,
+            {
+              passed: quiz.passed,
+              tries: quiz.tries,
+              lastAttemptedAt: quiz.lastAttemptedAt?.toISOString(),
+            },
+          ])
+        )
+      : undefined,
+    references: user.references?.map((reference) => ({
+      ...reference,
+      createdAt: reference.createdAt.toISOString(),
+      sentAt: reference.sentAt?.toISOString(),
+    })),
+    studentAssignments: user.studentAssignments?.map((assignment) => ({
+      ...assignment,
+      assignedAt: assignment.assignedAt.toISOString(),
+      dueDate: assignment.dueDate?.toISOString(),
+      startDate: assignment.startDate?.toISOString(),
+      submittedAt: assignment.submittedAt?.toISOString(),
+    })),
+  }
+}
+
+export function buildAdminBackground(
+  overrides: Partial<UserAdminBackground> = {}
+): UserAdminBackground {
+  return {
+    occupation: ['Tester'],
+    experience: undefined,
+    languages: ['English', 'Spanish'],
+    linkedInUrl: undefined,
+    country: 'USA',
+    state: 'NY',
+    city: 'Brooklyn',
+    college: 'UPchieve University',
+    company: 'UPchieve',
+    ...overrides,
+  }
+}
+
+export function buildUserForAdminDetail(
+  overrides: Partial<UserForAdminDetail> = {}
+): UserForAdminDetail {
+  const user = buildUserRow()
+  return {
+    id: user.id,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    email: user.email,
+    createdAt: user.createdAt,
+    isDeactivated: user.deactivated,
+    isDeleted: false,
+    isTestUser: user.testUser,
+    verified: user.verified,
+    banType: user.banType,
+    numPastSessions: 5,
+    isApproved: false,
+    isOnboarded: false,
+    volunteerPartnerOrg: undefined,
+    photoIdS3Key: undefined,
+    photoIdStatus: undefined,
+    currentGrade: undefined,
+    zipCode: undefined,
+    studentPartnerOrg: undefined,
+    partnerSite: undefined,
+    schoolId: undefined,
+    schoolName: undefined,
+    references: [],
+    pastSessions: undefined,
+    background: buildAdminBackground(),
+    ...overrides,
+  }
+}
+
+export function serializeUserForAdminDetail(
+  user: UserForAdminDetail
+): UserForAdminDetailPublic {
+  return {
+    ...user,
+    createdAt: user.createdAt.toISOString(),
+    pastSessions: user.pastSessions?.map((session) => ({
+      ...session,
+      _id: session.id,
+      createdAt: session.createdAt.toISOString(),
+      endedAt: session.endedAt?.toISOString(),
+      volunteerJoinedAt: session.volunteerJoinedAt?.toISOString(),
+    })),
+  }
+}
+
+export function buildUserForAdminDetailPublic(
+  overrides: Partial<UserForAdminDetail> = {}
+): UserForAdminDetailPublic {
+  const user = buildUserForAdminDetail(overrides)
+  return serializeUserForAdminDetail(user)
+}
+
+export function buildUserForAdminDetailWithRoleContext(
+  overrides: Partial<UserForAdminDetailWithRoleContext> = {}
+): UserForAdminDetailWithRoleContext {
+  const user = buildUserForAdminDetail(overrides)
+  return {
+    ...user,
+    roleContext: new RoleContext(['student'], 'student', 'student'),
+    photoUrl: undefined,
+  }
+}
+
+export function buildUserForAdminDetailWithRoleContextPublic(
+  overrides: Partial<UserForAdminDetailWithRoleContext> = {}
+): UserForAdminDetailWithRoleContextPublic {
+  const user = buildUserForAdminDetailWithRoleContext(overrides)
+  return {
+    ...serializeUserForAdminDetail(user),
+    roleContext: serializeRoleContext(user.roleContext),
+    photoUrl: user.photoUrl,
+    userType: user.roleContext.legacyRole,
+    roles: user.roleContext.roles,
   }
 }
 

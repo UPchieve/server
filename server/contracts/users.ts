@@ -6,7 +6,7 @@ import {
 } from '../constants'
 import type { Availability } from '../models/Availability'
 import type { ISODateString } from '../types/dates'
-import type { Uuid } from '../types/shared'
+import type { Json, Uuid } from '../types/shared'
 import type { TrainingCoursesPublic } from '../contracts/training'
 import type { PrimaryUserRole, UserRole } from '../types/users'
 import type { StudentAssignmentPublic } from './assignments'
@@ -162,6 +162,132 @@ export type LegacyUserPublic = {
   sponsorships?: SponsorshipPublic[]
 }
 
+export type ReferenceContactInfoPublic = {
+  id: Uuid
+  status: string
+  email: string
+  firstName: string
+  lastName: string
+  affiliation?: string
+  additionalInfo?: string
+  agreeableAndApproachable?: number
+  communicatesEffectively?: number
+  patient?: number
+  positiveRoleModel?: number
+  rejectionReason?: string
+  relationshipLength?: string
+  trustworthyWithChildren?: number
+}
+
+export type UserAdminBackgroundPublic = {
+  occupation?: string[]
+  experience?: Json
+  languages?: string[]
+  linkedInUrl?: string
+  country?: string
+  state?: string
+  city?: string
+  college?: string
+  company?: string
+}
+
+export type PastSessionForAdminPublic = {
+  id: Uuid
+  _id: Uuid
+  type: string
+  subTopic: string
+  totalMessages: number
+  volunteer?: Uuid
+  student: Uuid
+  volunteerJoinedAt?: ISODateString
+  createdAt: ISODateString
+  endedAt?: ISODateString
+}
+
+export type UserForAdminDetailPublic = {
+  id: Uuid
+  firstName: string
+  lastName?: string
+  email: string
+  createdAt: ISODateString
+  isDeactivated: boolean
+  isDeleted: boolean
+  isTestUser: boolean
+  verified: boolean
+  banType?: USER_BAN_TYPES
+  numPastSessions: number
+
+  // Volunteer-specific fields
+  isApproved?: boolean
+  isOnboarded?: boolean
+  volunteerPartnerOrg?: string
+  photoIdS3Key?: string
+  photoIdStatus?: string
+
+  // Student-specific fields
+  currentGrade?: string
+  zipCode?: string
+  studentPartnerOrg?: string
+  partnerSite?: string
+
+  // Student/teacher fields
+  schoolId?: Uuid
+  schoolName?: string
+
+  references: ReferenceContactInfoPublic[]
+  pastSessions?: PastSessionForAdminPublic[]
+  background: UserAdminBackgroundPublic
+}
+
+export type UserForAdminDetailWithRoleContextPublic =
+  UserForAdminDetailPublic & {
+    roleContext: RoleContextPublic
+    photoUrl?: string
+    userType: UserRole
+    roles: UserRole[]
+  }
+
+export type UserForAdminPublic = {
+  id: Uuid
+  firstName: string
+  lastName?: string
+  email: string
+  userType: UserRole
+  createdAt: ISODateString
+}
+
 export type LegacyUserResponse = {
   user: LegacyUserPublic
+}
+
+export type VolunteeApprovalResponse = {
+  success: boolean
+  message: string
+  uploadUrl?: string
+}
+
+export type RemovedFromNTHSResponse = {
+  wasRemovedFromNTHS: boolean
+}
+
+export type ReferredFriendsTotalResponse = {
+  referredFriendsArr: number[]
+}
+
+export type UserIdByEmailResponse = {
+  userId: Uuid | undefined
+}
+
+export type UserAdminResponse = {
+  userId: Uuid | undefined
+}
+
+export type UsersForAdminResponse = {
+  users: UserForAdminPublic[]
+  isLastPage: boolean
+}
+
+export type SwitchActiveRoleResponse = {
+  user: LegacyUserPublic
+  activeRole: PrimaryUserRole
 }
