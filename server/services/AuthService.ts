@@ -157,7 +157,9 @@ export async function registerVolunteer(
 
   if (inviteCode) {
     const group = await NTHSGroupsService.getNTHSGroupByInviteCode(inviteCode)
-    await NTHSGroupsService.joinGroupAsMemberByGroupId(volunteer.id, group.id)
+    if (group) {
+      await NTHSGroupsService.joinGroupAsMemberByGroupId(volunteer.id, group.id)
+    }
   }
 
   return volunteer
@@ -238,7 +240,9 @@ export async function registerPartnerVolunteer(
 
   if (inviteCode) {
     const group = await NTHSGroupsService.getNTHSGroupByInviteCode(inviteCode)
-    await NTHSGroupsService.joinGroupAsMemberByGroupId(volunteer.id, group.id)
+    if (group) {
+      await NTHSGroupsService.joinGroupAsMemberByGroupId(volunteer.id, group.id)
+    }
   }
 
   return volunteer

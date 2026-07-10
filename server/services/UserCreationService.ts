@@ -457,12 +457,14 @@ export async function registerVolunteer(
         data.inviteCode,
         tc
       )
-      await NTHSGroupsService.joinGroupAsMemberByGroupId(
-        user.id,
-        group.id,
-        'member',
-        tc
-      )
+      if (group) {
+        await NTHSGroupsService.joinGroupAsMemberByGroupId(
+          user.id,
+          group.id,
+          'member',
+          tc
+        )
+      }
     }
 
     return user

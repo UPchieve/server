@@ -46,9 +46,8 @@ describe('routeNTHSGroupInvite', () => {
     })
 
     test('returns null nths group when invite code is not found', async () => {
-      // TODO: update return type from underlying function
       mockedNTHSGroupsService.getNTHSGroupByInviteCode.mockResolvedValueOnce(
-        undefined
+        null
       )
 
       const response = await sendGet(
@@ -59,7 +58,7 @@ describe('routeNTHSGroupInvite', () => {
         mockedNTHSGroupsService.getNTHSGroupByInviteCode
       ).toHaveBeenCalledWith(inviteCode)
       expect(response.body).toEqual({
-        NTHSgroup: undefined,
+        NTHSgroup: null,
       })
     })
 

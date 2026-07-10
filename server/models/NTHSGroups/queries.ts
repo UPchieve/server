@@ -84,7 +84,7 @@ export async function getInviteCodeForGroup(groupId: Ulid) {
 export async function getGroupByInviteCode(
   inviteCode: string,
   tc: TransactionClient = getRoClient()
-): Promise<NTHSGroup> {
+): Promise<NTHSGroup | null> {
   try {
     const results = await pgQueries.getGroupByInviteCode.run(
       {
@@ -92,7 +92,7 @@ export async function getGroupByInviteCode(
       },
       tc
     )
-    return results.map(makeRequired)[0]
+    return results.length ? results.map(makeRequired)[0] : null
   } catch (err) {
     throw new RepoReadError(err)
   }
