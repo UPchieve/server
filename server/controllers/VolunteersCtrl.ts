@@ -1,4 +1,3 @@
-import * as VolunteerRepo from '../models/Volunteer'
 import { DAYS, HOURS } from '../constants'
 import {
   Availability,
@@ -6,7 +5,7 @@ import {
 } from '../models/Availability'
 
 // TODO: refactor this to be more functional (testable)
-interface AvailabilityAggregation {
+export type AvailabilityAggregation = {
   daysOfWeek?: DAYS[]
   timesOfDay?: HOURS[]
   table: any[][]

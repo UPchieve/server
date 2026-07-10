@@ -154,7 +154,7 @@ export async function queueFailedFirstAttemptedQuizEmail(
 }
 
 export async function getVolunteersToReview(page: number = 1): Promise<{
-  volunteers: any[]
+  volunteers: VolunteerRepo.VolunteerToReview[]
   isLastPage: boolean
 }> {
   const pageNum = page

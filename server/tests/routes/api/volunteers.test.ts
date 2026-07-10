@@ -8,9 +8,9 @@ import * as VolunteerService from '../../../services/VolunteerService'
 import * as cache from '../../../cache'
 import config from '../../../config'
 import {
-  buildLegacyVolunteer,
   buildHeatMap,
-  serializeRoleContext,
+  buildVolunteerToReview,
+  buildVolunteerToReviewPublic,
 } from '../../mocks/generate'
 import { getUuid } from '../../../models/pgUtils'
 import { DAYS, HOURS } from '../../../constants'
@@ -93,7 +93,7 @@ describe('routeVolunteers', () => {
 
   describe('GET /api/volunteers/review', () => {
     test('returns volunteers to review', async () => {
-      const volunteers = [buildLegacyVolunteer()]
+      const volunteers = [buildVolunteerToReview()]
       const page = 1
       mockedVolunteerService.getVolunteersToReview.mockResolvedValueOnce({
         volunteers,
@@ -106,16 +106,7 @@ describe('routeVolunteers', () => {
         page
       )
       expect(response.body).toEqual({
-        volunteers: volunteers.map((volunteer) => {
-          return {
-            ...volunteer,
-            _id: volunteer.id,
-            firstname: volunteer.firstName,
-            lastname: volunteer.lastName,
-            roleContext: serializeRoleContext(volunteer.roleContext),
-            createdAt: volunteer.createdAt.toISOString(),
-          }
-        }),
+        volunteers: volunteers.map(buildVolunteerToReviewPublic),
         isLastPage: false,
       })
     })

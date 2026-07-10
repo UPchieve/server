@@ -69,6 +69,7 @@ import {
   UserQuiz,
   VolunteerContactInfo,
   VolunteersForAnalyticsReport,
+  VolunteerToReview,
   VolunteerWithReadyToCoachInfo,
 } from '../../models/Volunteer'
 import { SubjectAndTopic } from '../../models/Subjects'
@@ -168,6 +169,7 @@ import type {
   UserForAdminDetailWithRoleContext,
   UserRole,
 } from '../../types/users'
+import { VolunteerToReviewPublic } from '../../contracts/volunteers'
 
 export function getEmail(): string {
   return faker.internet.email().toLowerCase()
@@ -692,6 +694,38 @@ export function buildLegacyVolunteer(
     references: [],
     photoIdStatus: '',
     ...overrides,
+  }
+}
+
+export function buildVolunteerToReview(
+  overrides: Partial<VolunteerToReview> = {}
+): VolunteerToReview {
+  const user = buildUser()
+  return {
+    id: user.id,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    email: user.email,
+    createdAt: user.createdAt,
+    readyForReviewAt: new Date(),
+    ...overrides,
+  }
+}
+
+export function buildVolunteerToReviewPublic(
+  overrides: Partial<VolunteerToReview> = {}
+): VolunteerToReviewPublic {
+  const user = buildVolunteerToReview(overrides)
+  return {
+    id: user.id,
+    _id: user.id,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    firstname: user.firstName,
+    lastname: user.lastName,
+    email: user.email,
+    createdAt: user.createdAt.toISOString(),
+    readyForReviewAt: user.readyForReviewAt.toISOString(),
   }
 }
 
