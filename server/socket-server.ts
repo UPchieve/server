@@ -70,7 +70,7 @@ export default function (server: http.Server) {
   })
 
   io.engine.on('connection_error', (err) => {
-    logger.error(
+    logger.warn(
       {
         err: err,
         method: err.req?.method,
