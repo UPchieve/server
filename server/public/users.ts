@@ -9,6 +9,7 @@ import type {
   RoleContextPublic,
   SponsorshipPublic,
   UserAdminBackgroundPublic,
+  UserByReferralCodePublic,
   UserForAdminDetailPublic,
   UserForAdminDetailWithRoleContextPublic,
   UserForAdminPublic,
@@ -28,6 +29,7 @@ import type { PostsessionSurveyRatingsMetric } from '../services/SurveyService'
 import type { RoleContext } from '../services/UserRolesService'
 import {
   UserAdminBackground,
+  UserByReferralCode,
   UserForAdminDetail,
   UserForAdminDetailWithRoleContext,
 } from '../types/users'
@@ -317,5 +319,15 @@ export function toUserForAdminPublic(user: UserForAdmin): UserForAdminPublic {
     email: user.email,
     userType: user.userType,
     createdAt: user.createdAt?.toISOString(),
+  }
+}
+
+export function toUserByReferralCodePublic(
+  user: UserByReferralCode
+): UserByReferralCodePublic {
+  return {
+    id: user.id,
+    firstName: user.firstName,
+    userType: user.userType,
   }
 }

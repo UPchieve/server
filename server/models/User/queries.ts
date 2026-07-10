@@ -35,7 +35,11 @@ import {
 } from './types'
 import { IDeletePhoneResult } from './pg.queries'
 import { camelCaseKeys } from '../../tests/db-utils'
-import type { UserForAdminDetail, UserRole } from '../../types/users'
+import type {
+  UserByReferralCode,
+  UserForAdminDetail,
+  UserRole,
+} from '../../types/users'
 
 export async function createUser(
   user: CreateUserPayload,
@@ -211,7 +215,7 @@ export async function getUsersBanStatuses(userIds: Ulid[]): Promise<
 export async function getUserByReferralCode(
   referralCode: string,
   tc: TransactionClient = getClient()
-): Promise<{ id: Ulid; firstName: string } | undefined> {
+): Promise<UserByReferralCode | undefined> {
   try {
     const result = await pgQueries.getUserByReferralCode.run(
       { referralCode },

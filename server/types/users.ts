@@ -81,3 +81,9 @@ export type NewUser = {
   isAdmin: boolean
   proxyEmail?: string | undefined
 }
+
+export type UserByReferralCode = {
+  id: Uuid
+  firstName: string
+  userType?: PrimaryUserRole
+}

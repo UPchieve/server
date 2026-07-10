@@ -287,6 +287,12 @@ export type NewVolunteerPublic = VolunteerContactInfoPublic & {
   otherSignupSource?: string
 }
 
+export type UserByReferralCodePublic = {
+  id: Uuid
+  firstName: string
+  userType?: PrimaryUserRole
+}
+
 export type LegacyUserResponse = {
   user: LegacyUserPublic
 }
@@ -321,4 +327,8 @@ export type UsersForAdminResponse = {
 export type SwitchActiveRoleResponse = {
   user: LegacyUserPublic
   activeRole: PrimaryUserRole
+}
+
+export type UserByReferralCodeResponse = {
+  user: UserByReferralCodePublic | undefined
 }
