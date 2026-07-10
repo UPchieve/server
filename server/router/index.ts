@@ -1,4 +1,4 @@
-import { Express } from 'express'
+import { Express, Response } from 'express'
 import config from '../config'
 import logger, { logError } from '../logger'
 import * as ContactFormRouter from './contact'
@@ -17,6 +17,8 @@ import { v4 as uuidv4 } from 'uuid'
 import { getAllFlagsForId } from '../services/FeatureFlagService'
 import { extractUserIfExists } from './extract-user'
 import { getPersonPropertiesForAnalytics } from '../services/AnalyticsService'
+import { toAnalyticPersonPropertiesPublic } from '../public/analytics'
+import type { FeatureFlagResponse } from '../contracts/api-public'
 
 export default function (app: Express, io: Server) {
   logger.info('initializing server routing')
@@ -37,22 +39,34 @@ export default function (app: Express, io: Server) {
     res.status(200).json({ version: config.version })
   })
 
-  app.get('/api-public/feature-flags', async function (req, res) {
-    const user = extractUserIfExists(req)
-    const phCookie = req.cookies[`ph_${config.posthogToken}_posthog`]
-    const distinctId = phCookie ? JSON.parse(phCookie).distinct_id : uuidv4()
-    try {
-      const personProperties = await getPersonPropertiesForAnalytics(user?.id)
-      const flags: {
-        featureFlags: Record<string, boolean | string>
-        featureFlagPayloads: Record<string, unknown>
-      } = await getAllFlagsForId(distinctId, personProperties)
-      res.status(200).json({ id: distinctId, ...flags, personProperties })
-    } catch (e) {
-      logError(new Error(`Failed to bootstrap feature flags. ${e}`), {
-        userId: distinctId,
-      })
-      res.status(200).json({ id: distinctId })
+  app.get(
+    '/api-public/feature-flags',
+    async function (req, res: Response<FeatureFlagResponse>) {
+      const user = extractUserIfExists(req)
+      const phCookie = req.cookies[`ph_${config.posthogToken}_posthog`]
+      const distinctId = phCookie ? JSON.parse(phCookie).distinct_id : uuidv4()
+      try {
+        const analyticPersonProperties = await getPersonPropertiesForAnalytics(
+          user?.id
+        )
+        const personProperties = analyticPersonProperties
+          ? toAnalyticPersonPropertiesPublic(analyticPersonProperties)
+          : null
+        const flags: {
+          featureFlags: Record<string, boolean | string>
+          featureFlagPayloads: Record<string, unknown>
+        } = await getAllFlagsForId(distinctId, personProperties)
+        res.status(200).json({
+          id: distinctId,
+          ...flags,
+          personProperties,
+        })
+      } catch (e) {
+        logError(new Error(`Failed to bootstrap feature flags. ${e}`), {
+          userId: distinctId,
+        })
+        res.status(200).json({ id: distinctId })
+      }
     }
-  })
+  )
 }
