@@ -3,9 +3,9 @@ import { Ulid } from '../models/pgUtils'
 import { GRADES } from '../constants'
 import { getLegacyUserObject } from '../models/User/legacy-user'
 import { getUPFByUserId } from '../models/UserProductFlags'
-import { ISODateString } from '../types/dates'
 import logger from '../logger'
 import type { UserRole } from '../types/users'
+import type { Uuid } from '../types/shared'
 
 export const captureEvent = (
   userId: Ulid,
@@ -43,11 +43,11 @@ export type AnalyticCertificationStats = {
 }
 
 export type AnalyticPersonProperties = {
-  ucId: Ulid
+  ucId: Uuid
   userType: UserRole
-  createdAt: ISODateString
+  createdAt: Date
   totalSessions: number
-  banType: string
+  banType?: string
   isTestUser: boolean
   hasStudentRole: boolean
   hasVolunteerRole: boolean
@@ -57,28 +57,31 @@ export type AnalyticPersonProperties = {
   partner?: string | null
   schoolPartner?: string | null
   gradeLevel?: GRADES | null
-  fallIncentiveEnrollmentAt?: ISODateString | null
+  fallIncentiveEnrollmentAt?: Date | null
   usesClever?: boolean
   usesGoogle?: boolean
   hasSubjectCertification?: boolean
   signupSource?: string
-  occupation?: string
-} & AnalyticCertificationStats
+  occupation?: string[]
+  certificationStats: AnalyticCertificationStats
+}
 
-export async function getPersonPropertiesForAnalytics(userId?: Ulid) {
-  let personProperties = {} as AnalyticPersonProperties
-  if (!userId) return personProperties
+export async function getPersonPropertiesForAnalytics(
+  userId?: Uuid
+): Promise<AnalyticPersonProperties | null> {
+  if (!userId) return null
 
   try {
     const user = await getLegacyUserObject(userId)
-    if (!user) return personProperties
+    if (!user) return null
 
     const productFlags = await getUPFByUserId(userId)
 
-    personProperties = {
+    const certificationStats: AnalyticCertificationStats = {}
+    const personProperties: AnalyticPersonProperties = {
       ucId: user.id,
       userType: user.roleContext.activeRole,
-      createdAt: user.createdAt.toISOString(),
+      createdAt: user.createdAt,
       totalSessions: user.pastSessions.length,
       banType: user.banType,
       isTestUser: user.isTestUser,
@@ -88,11 +91,13 @@ export async function getPersonPropertiesForAnalytics(userId?: Ulid) {
       signupSource: user.signupSource,
       occupation: user.occupation,
       usesClever: user.usesClever ?? false,
-    } as AnalyticPersonProperties
+      certificationStats,
+    }
 
-    personProperties.partner =
-      user.studentPartnerOrg ?? user.volunteerPartnerOrg
-    if (!personProperties.partner) delete personProperties.partner
+    const partner = user.studentPartnerOrg ?? user.volunteerPartnerOrg
+    if (partner) {
+      personProperties.partner = partner
+    }
 
     if (user.isSchoolPartner) {
       personProperties.schoolPartner = user.schoolName ?? null
@@ -103,26 +108,21 @@ export async function getPersonPropertiesForAnalytics(userId?: Ulid) {
       personProperties.approved = user.isApproved
       personProperties.partner = user.volunteerPartnerOrg ?? null
 
-      const certificationInfo = Object.entries(
+      for (const [subject, quizInfo] of Object.entries(
         user.certifications ?? {}
-      ).reduce<AnalyticCertificationStats>((acc, [subject, quizInfo]) => {
-        acc[subject] = quizInfo.passed
-        return acc
-      }, {})
-      personProperties = {
-        ...personProperties,
-        ...certificationInfo,
+      )) {
+        certificationStats[subject] = quizInfo.passed
       }
-      const hasSubjectCertification = Object.entries(certificationInfo).some(
-        ([cert, info]) => cert !== 'upchieve101' && info
-      )
-      personProperties.hasSubjectCertification = hasSubjectCertification
+
+      personProperties.hasSubjectCertification = Object.entries(
+        certificationStats
+      ).some(([cert, passed]) => cert !== 'upchieve101' && passed)
     }
 
     if (user.roleContext.hasRole('student')) {
       personProperties.gradeLevel = user.gradeLevel ?? null
       personProperties.fallIncentiveEnrollmentAt =
-        productFlags?.fallIncentiveEnrollmentAt?.toISOString() ?? null
+        productFlags?.fallIncentiveEnrollmentAt ?? null
       personProperties.usesClever = user.usesClever
       personProperties.usesGoogle = user.usesGoogle
     }
@@ -130,6 +130,8 @@ export async function getPersonPropertiesForAnalytics(userId?: Ulid) {
     if (user.roleContext.hasRole('teacher')) {
       // TODO: TEACHER PROFILES.
     }
+
+    return personProperties
   } catch (error) {
     logger.error(
       `Failed to get person properties for analytics user ${
@@ -137,5 +139,5 @@ export async function getPersonPropertiesForAnalytics(userId?: Ulid) {
       } - error ${error}`
     )
   }
-  return personProperties
+  return null
 }
