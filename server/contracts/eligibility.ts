@@ -47,3 +47,7 @@ export type IneligibleStudentsResponse = {
 export type ZipCodeResponse = {
   zipCode: ZipCodePublic
 }
+
+export type CheckZipCodeResponse = {
+  isValidZipCode: boolean
+}
