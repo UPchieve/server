@@ -198,18 +198,21 @@ export interface IGetSubjectQuizAliasesQuery {
   result: IGetSubjectQuizAliasesResult;
 }
 
-const getSubjectQuizAliasesIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    subjects.name AS subject_name,\n    certifications.name AS quiz_name\nFROM\n    certification_subject_unlocks csu\n    JOIN subjects ON subjects.id = csu.subject_id\n    JOIN certifications ON certifications.id = csu.certification_id\nWHERE\n    NOT EXISTS (\n        SELECT\n            1\n        FROM\n            quizzes\n        WHERE\n            quizzes.name = subjects.name)\n    AND EXISTS (\n        SELECT\n            1\n        FROM\n            quizzes\n        WHERE\n            quizzes.name = certifications.name)"};
+const getSubjectQuizAliasesIR: any = {"usedParamSet":{},"params":[],"statement":"-- An alias subject has no quiz of its own; pick one default among the quizzes that unlock it,\n-- preferring a same-topic cert, then lowest display order.\nSELECT DISTINCT ON (subjects.name)\n    subjects.name AS subject_name,\n    certifications.name AS quiz_name\nFROM\n    certification_subject_unlocks csu\n    JOIN subjects ON subjects.id = csu.subject_id\n    JOIN certifications ON certifications.id = csu.certification_id\n    LEFT JOIN subjects cert_subject ON cert_subject.name = certifications.name\nWHERE\n    NOT EXISTS (\n        SELECT\n            1\n        FROM\n            quizzes\n        WHERE\n            quizzes.name = subjects.name)\n    AND EXISTS (\n        SELECT\n            1\n        FROM\n            quizzes\n        WHERE\n            quizzes.name = certifications.name)\nORDER BY\n    subjects.name,\n    (cert_subject.topic_id = subjects.topic_id) DESC NULLS LAST,\n    cert_subject.display_order ASC NULLS LAST,\n    certifications.name ASC"};
 
 /**
  * Query generated from SQL:
  * ```
- * SELECT
+ * -- An alias subject has no quiz of its own; pick one default among the quizzes that unlock it,
+ * -- preferring a same-topic cert, then lowest display order.
+ * SELECT DISTINCT ON (subjects.name)
  *     subjects.name AS subject_name,
  *     certifications.name AS quiz_name
  * FROM
  *     certification_subject_unlocks csu
  *     JOIN subjects ON subjects.id = csu.subject_id
  *     JOIN certifications ON certifications.id = csu.certification_id
+ *     LEFT JOIN subjects cert_subject ON cert_subject.name = certifications.name
  * WHERE
  *     NOT EXISTS (
  *         SELECT
@@ -225,6 +228,11 @@ const getSubjectQuizAliasesIR: any = {"usedParamSet":{},"params":[],"statement":
  *             quizzes
  *         WHERE
  *             quizzes.name = certifications.name)
+ * ORDER BY
+ *     subjects.name,
+ *     (cert_subject.topic_id = subjects.topic_id) DESC NULLS LAST,
+ *     cert_subject.display_order ASC NULLS LAST,
+ *     certifications.name ASC
  * ```
  */
 export const getSubjectQuizAliases = new PreparedQuery<IGetSubjectQuizAliasesParams,IGetSubjectQuizAliasesResult>(getSubjectQuizAliasesIR);

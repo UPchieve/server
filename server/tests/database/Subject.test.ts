@@ -43,6 +43,13 @@ describe('getSubjectsWithTopic - alias subjects', () => {
     expect(subjects.apCalculusAB.unlockQuizName).toEqual('calculusAB')
   })
 
+  it('resolves a single default quiz when an alias is unlocked by multiple certs', async () => {
+    const subjects = await SubjectRepo.getSubjectsWithTopic()
+    expect(subjects.apPhysics1.unlockQuizName).toEqual('physicsOne')
+    expect(subjects.apusHistory.unlockQuizName).toEqual('usHistory')
+    expect(subjects.apWorldHistory.unlockQuizName).toEqual('worldHistory')
+  })
+
   it('leaves unlockQuizName undefined for a subject with its own quiz', async () => {
     const subjects = await SubjectRepo.getSubjectsWithTopic()
     expect(subjects.algebraOne.unlockQuizName).toBeUndefined()
