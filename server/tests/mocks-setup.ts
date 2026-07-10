@@ -189,9 +189,15 @@ jest.mock('newrelic', () => {
     noticeError: jest.fn().mockImplementation(() => {
       return
     }),
-    startSegment: jest.fn().mockImplementation(() => {
-      return
-    }),
+    startSegment: jest
+      .fn()
+      .mockImplementation(
+        async (
+          _name: string,
+          _record: boolean,
+          handler: () => Promise<unknown>
+        ) => await handler()
+      ),
     addCustomAttribute: jest.fn().mockImplementation(() => {
       return
     }),
