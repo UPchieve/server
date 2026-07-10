@@ -174,6 +174,8 @@ import type {
   UserRole,
 } from '../../types/users'
 import { VolunteerToReviewPublic } from '../../contracts/volunteers'
+import type { School } from '../../models/School'
+import type { SchoolPublic } from '../../types/schools'
 
 export function getEmail(): string {
   return faker.internet.email().toLowerCase()
@@ -893,6 +895,7 @@ export function buildStudentPartnerOrgUpchieveInstance(
   } as StudentPartnerOrgUpchieveInstance
 }
 
+// TODO: Change to buildSchoolRow
 export function buildSchool(
   overrides: Partial<{ name: string; cityId: number }> = {}
 ) {
@@ -901,6 +904,44 @@ export function buildSchool(
     name: 'Approved School',
     cityId: 1,
     ...overrides,
+  }
+}
+
+// TODO: Change to buildSchool
+export function buildSchoolDomain(overrides: Partial<School> = {}): School {
+  return {
+    id: getUuid(),
+    name: 'Approved School',
+    ncesId: undefined,
+    city: 'Brooklyn',
+    state: 'NY',
+    zip: '11201',
+    district: 'District',
+    isAdminApproved: false,
+    isApproved: false,
+    isPartner: false,
+    schoolYear: '2026',
+    isSchoolWideTitle1: false,
+    title1SchoolStatus: undefined,
+    nationalSchoolLunchProgram: undefined,
+    totalStudents: 10,
+    nslpDirectCertification: undefined,
+    frlEligible: undefined,
+    ...overrides,
+  }
+}
+
+export function buildSchoolPublic(
+  overrides: Partial<School> = {}
+): SchoolPublic {
+  const school = buildSchoolDomain(overrides)
+  return {
+    id: school.id,
+    upchieveId: school.id,
+    name: school.name,
+    districtName: school.district,
+    city: school.city,
+    state: school.state,
   }
 }
 
@@ -2817,7 +2858,6 @@ export function buildIneligibleStudent(
 ): IneligibleStudentsWithSchoolInfo {
   return {
     createdAt: new Date(),
-    updatedAt: new Date(),
     email: getEmail(),
     zipCode: '11201',
     medianIncome: 40000,

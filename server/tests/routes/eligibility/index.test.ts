@@ -12,6 +12,8 @@ import * as IneligibleStudentRepo from '../../../models/IneligibleStudent/querie
 import {
   buildIneligibleStudent,
   buildSchool,
+  buildSchoolDomain,
+  buildSchoolPublic,
   buildZipCode,
   getEmail,
 } from '../../mocks/generate'
@@ -166,27 +168,19 @@ describe('routeSchool', () => {
 
   describe('GET /school/search', () => {
     test('returns school search results', async () => {
-      const school = buildSchool()
-      const results = [
-        {
-          id: school.id,
-          upchieveId: school.id,
-          name: school.name,
-          districtName: 'District 1',
-          city: 'Brooklyn',
-          state: 'NY',
-        },
-      ]
+      const school = buildSchoolDomain()
+      const results = [school]
+      const payload = { q: 'brooklyn' }
       mockedSchoolService.search.mockResolvedValueOnce(results)
 
       const response = await sendGetQuery(
         '/api-public/eligibility/school/search',
-        { q: 'brooklyn' }
+        payload
       )
       expect(response.status).toBe(200)
-      expect(mockedSchoolService.search).toHaveBeenCalledWith('brooklyn')
+      expect(mockedSchoolService.search).toHaveBeenCalledWith(payload.q)
       expect(response.body).toEqual({
-        results,
+        results: results.map(buildSchoolPublic),
       })
     })
   })
