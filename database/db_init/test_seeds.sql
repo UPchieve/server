@@ -2,10 +2,10 @@
 -- PostgreSQL database dump
 --
 
-\restrict x5BBCGCxycmbA75CGLaHsKJQgtuA2vjaOsgyih7u6gyxjOhqRzrUghWULPclXSk
+\restrict Zlcvu8FilhlLjwjzRzO8DiqqxfKWL9cXaGVkYAJaikjHX6oBqUzU42QzNdQ7Xwv
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
--- Dumped by pg_dump version 15.17 (Ubuntu 15.17-1.pgdg22.04+1)
+-- Dumped by pg_dump version 15.18 (Ubuntu 15.18-1.pgdg22.04+1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -191,9 +191,9 @@ COPY upchieve.topics (id, name, icon_link, color, dashboard_order, display_name,
 1	math	https://cdn.upchieve.org/site-images/topic-icons/math.svg	#E398E4	1	Math	2024-08-28 00:28:43.737968+00	2024-08-28 00:28:44.16707+00	1
 2	science	https://cdn.upchieve.org/site-images/topic-icons/science.svg	#9675CE	3	Science	2024-08-28 00:28:43.738456+00	2024-08-28 00:28:44.16707+00	2
 3	college	https://cdn.upchieve.org/site-images/topic-icons/college.svg	#F1C026	5	College Counseling	2024-08-28 00:28:43.73881+00	2024-08-28 00:28:44.16707+00	5
-4	sat	https://cdn.upchieve.org/site-images/topic-icons/sat.svg	#54DEFD	6	Standardized Testing	2024-08-28 00:28:43.739115+00	2024-08-28 00:28:44.16707+00	6
 5	readingWriting	https://cdn.upchieve.org/site-images/topic-icons/english.svg	#1855D1	2	English	2024-08-28 00:28:43.739385+00	2024-08-28 00:28:44.16707+00	3
 6	socialStudies	https://cdn.upchieve.org/site-images/topic-icons/social-studies.svg	#593C33	4	Social Studies	2024-08-28 00:28:44.11297+00	2024-08-28 00:28:44.16707+00	4
+4	sat	https://cdn.upchieve.org/site-images/topic-icons/sat.svg	#54DEFD	6	SAT & ACT Prep	2024-08-28 00:28:43.739115+00	2024-08-28 00:28:44.16707+00	6
 \.
 
 
@@ -9089,7 +9089,7 @@ COPY upchieve.volunteer_references (id, user_id, first_name, last_name, email, s
 -- Name: ban_reasons_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.ban_reasons_id_seq', 6, true);
+SELECT pg_catalog.setval('upchieve.ban_reasons_id_seq', 7, true);
 
 
 --
@@ -9320,7 +9320,7 @@ SELECT pg_catalog.setval('upchieve.report_reasons_id_seq', 9, true);
 -- Name: session_flags_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.session_flags_id_seq', 31, true);
+SELECT pg_catalog.setval('upchieve.session_flags_id_seq', 37, true);
 
 
 --
@@ -9425,7 +9425,7 @@ SELECT pg_catalog.setval('upchieve.user_actions_id_seq', 23, true);
 -- Name: user_roles_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.user_roles_id_seq', 5, true);
+SELECT pg_catalog.setval('upchieve.user_roles_id_seq', 6, true);
 
 
 --
@@ -9446,5 +9446,5 @@ SELECT pg_catalog.setval('upchieve.weekdays_id_seq', 1, false);
 -- PostgreSQL database dump complete
 --
 
-\unrestrict x5BBCGCxycmbA75CGLaHsKJQgtuA2vjaOsgyih7u6gyxjOhqRzrUghWULPclXSk
+\unrestrict Zlcvu8FilhlLjwjzRzO8DiqqxfKWL9cXaGVkYAJaikjHX6oBqUzU42QzNdQ7Xwv
 
