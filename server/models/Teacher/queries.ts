@@ -1,10 +1,14 @@
 import { getClient, TransactionClient } from '../../db'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
-import { CreateTeacherClassPayload, CreateTeacherPayload } from './types'
 import * as pgQueries from './pg.queries'
 import { getDbUlid, makeRequired, makeSomeOptional } from '../pgUtils'
 import type { Uuid } from '../../types/shared'
-import type { TeacherClass, TeacherProfile } from '../../types/teachers'
+import type {
+  CreateTeacherClassPayload,
+  CreateTeacherPayload,
+  TeacherClass,
+  TeacherProfile,
+} from '../../types/teachers'
 
 export type TeacherRow = {
   userId: Uuid
