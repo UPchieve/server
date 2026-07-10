@@ -17,10 +17,14 @@ import { InputError } from '../../models/Errors'
 import { rpush } from '../../cache'
 import type {
   CheckEligibilityPublic,
+  IneligibleStudentsResponse,
   IsEligibleResponse,
   SchoolSearchResponse,
 } from '../../contracts/eligibility'
-import { toCheckEligibilityPublic } from '../../public/eligibility'
+import {
+  toCheckEligibilityPublic,
+  toIneligibleStudentsWithSchoolInfoPublic,
+} from '../../public/eligibility'
 import { toSchoolPublic } from '../../public/schools'
 
 export function routes(app: Express) {
@@ -124,7 +128,7 @@ export function routes(app: Express) {
   router.get(
     '/ineligible-students',
     authPassport.isAdmin,
-    async function (req, res) {
+    async function (req, res: Response<IneligibleStudentsResponse>) {
       try {
         const PER_PAGE = 15
 
@@ -136,7 +140,12 @@ export function routes(app: Express) {
         )
         const isLastPage = ineligibleStudents.length < PER_PAGE
 
-        res.json({ ineligibleStudents, isLastPage })
+        res.json({
+          ineligibleStudents: ineligibleStudents.map(
+            toIneligibleStudentsWithSchoolInfoPublic
+          ),
+          isLastPage,
+        })
       } catch (err) {
         resError(res, err)
       }
