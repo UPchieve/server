@@ -24,3 +24,9 @@ export type NTHSInviteCodeResponse = {
 export type NTHSInviteCodeInvitationResponse = {
   NTHSgroup: NTHSGroupJoinPublic | null
 }
+
+export type ContactSubmissionResponse =
+  | {
+      message: 'contact form submission has been sent'
+    }
+  | { error: string }

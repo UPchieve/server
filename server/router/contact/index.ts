@@ -3,8 +3,12 @@ import nr from 'newrelic'
 import { saveContactFormSubmission } from '../../services/ContactFormService'
 import { RepoCreateError } from '../../models/Errors'
 import logger from '../../logger'
+import type { ContactSubmissionResponse } from '../../contracts/api-public'
 
-async function submissionHandler(req: Request, res: Response) {
+async function submissionHandler(
+  req: Request,
+  res: Response<ContactSubmissionResponse>
+) {
   const requestData = req.body as unknown
 
   logger.debug(requestData as any)
