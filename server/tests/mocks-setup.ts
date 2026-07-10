@@ -184,25 +184,7 @@ jest.mock('../config', () => {
 
 // TODO: have Jest automock.
 //       Jest default mock results in error like "newrelic_1.default.noticeError is not a function" for example
-jest.mock('newrelic', () => {
-  return {
-    noticeError: jest.fn().mockImplementation(() => {
-      return
-    }),
-    startSegment: jest
-      .fn()
-      .mockImplementation(
-        async (
-          _name: string,
-          _record: boolean,
-          handler: () => Promise<unknown>
-        ) => await handler()
-      ),
-    addCustomAttribute: jest.fn().mockImplementation(() => {
-      return
-    }),
-  }
-})
+jest.mock('newrelic')
 
 // initialize global postgres connection vars
 var __PG_HOST__: string
