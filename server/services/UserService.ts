@@ -746,7 +746,7 @@ export async function getUserForAdminDetail(
 export async function switchActiveRoleForUser(
   userId: string,
   role: PrimaryUserRole
-): Promise<{ activeRole: PrimaryUserRole; user: any }> {
+): Promise<{ activeRole: PrimaryUserRole; user: LegacyUserModel }> {
   const { newRoleContext } = await UserRolesService.switchActiveRole(
     userId,
     role
