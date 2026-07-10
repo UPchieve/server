@@ -63,13 +63,16 @@ FROM
 
 
 /* @name getSubjectQuizAliases */
-SELECT
+-- An alias subject has no quiz of its own; pick one default among the quizzes that unlock it,
+-- preferring a same-topic cert, then lowest display order.
+SELECT DISTINCT ON (subjects.name)
     subjects.name AS subject_name,
     certifications.name AS quiz_name
 FROM
     certification_subject_unlocks csu
     JOIN subjects ON subjects.id = csu.subject_id
     JOIN certifications ON certifications.id = csu.certification_id
+    LEFT JOIN subjects cert_subject ON cert_subject.name = certifications.name
 WHERE
     NOT EXISTS (
         SELECT
@@ -84,7 +87,12 @@ WHERE
         FROM
             quizzes
         WHERE
-            quizzes.name = certifications.name);
+            quizzes.name = certifications.name)
+ORDER BY
+    subjects.name,
+    (cert_subject.topic_id = subjects.topic_id) DESC NULLS LAST,
+    cert_subject.display_order ASC NULLS LAST,
+    certifications.name ASC;
 
 
 /* @name getTopics */

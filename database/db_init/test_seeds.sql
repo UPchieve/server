@@ -9456,3 +9456,110 @@ SELECT pg_catalog.setval('upchieve.weekdays_id_seq', 1, false);
 
 \unrestrict Zlcvu8FilhlLjwjzRzO8DiqqxfKWL9cXaGVkYAJaikjHX6oBqUzU42QzNdQ7Xwv
 
+
+
+-- Multi-cert AP subjects + worldHistory/usHistory quiz data backfilled from prod (issues#680).
+
+INSERT INTO upchieve.subjects (id, name, display_name, display_order, topic_id, tool_type_id, created_at, updated_at, active) VALUES
+    (38, 'worldHistory', 'World History', 4, 6, 1, NOW(), NOW(), true),
+    (39, 'apPhysics1', 'AP Physics 1', 7, 2, 1, NOW(), NOW(), true),
+    (40, 'apusHistory', 'AP U.S. History', 3, 6, 1, NOW(), NOW(), true),
+    (41, 'apWorldHistory', 'AP World History', 5, 6, 1, NOW(), NOW(), true);
+
+INSERT INTO upchieve.certifications (id, name, created_at, updated_at, active) VALUES
+    (35, 'worldHistory', NOW(), NOW(), true);
+
+INSERT INTO upchieve.quizzes (id, name, created_at, updated_at, active, questions_per_subcategory) VALUES
+    (37, 'worldHistory', NOW(), NOW(), true, 1);
+
+INSERT INTO upchieve.quiz_certification_grants (quiz_id, certification_id, created_at, updated_at) VALUES
+    (37, 35, NOW(), NOW());
+
+INSERT INTO upchieve.quiz_subcategories (id, name, quiz_id, created_at, updated_at) VALUES
+    (412, 'cultural developments', 37, NOW(), NOW()),
+    (413, 'civilizations in east asia', 37, NOW(), NOW()),
+    (414, 'islamic golden age', 37, NOW(), NOW()),
+    (415, 'europe late middle ages', 37, NOW(), NOW()),
+    (416, 'nomadic and traveling empires', 37, NOW(), NOW()),
+    (417, 'interregional economic and cultural exchange', 37, NOW(), NOW()),
+    (418, 'development global economy', 37, NOW(), NOW()),
+    (419, 'state building', 37, NOW(), NOW()),
+    (420, 'systems of forced labor', 37, NOW(), NOW()),
+    (421, 'intellectual changes', 37, NOW(), NOW()),
+    (422, 'revolutions and independence movements', 37, NOW(), NOW()),
+    (423, 'industrialization', 37, NOW(), NOW()),
+    (424, 'reactions to industrialization', 37, NOW(), NOW()),
+    (425, 'reform', 37, NOW(), NOW()),
+    (426, 'imperialism', 37, NOW(), NOW()),
+    (427, 'emancipation', 37, NOW(), NOW()),
+    (428, 'wwi', 37, NOW(), NOW()),
+    (429, 'facism', 37, NOW(), NOW()),
+    (430, 'revolutions', 37, NOW(), NOW()),
+    (431, 'cold war ', 37, NOW(), NOW()),
+    (432, 'nativeAmericanCulture', 32, NOW(), NOW()),
+    (433, 'thirteenColonies', 32, NOW(), NOW()),
+    (434, 'revolutionaryWar', 32, NOW(), NOW()),
+    (435, 'westwardExpansion', 32, NOW(), NOW()),
+    (436, 'civilWar', 32, NOW(), NOW()),
+    (437, 'changingIndustrialization', 32, NOW(), NOW()),
+    (438, 'worldWarI', 32, NOW(), NOW()),
+    (439, 'worldWarII', 32, NOW(), NOW()),
+    (440, 'postWarFifties', 32, NOW(), NOW()),
+    (441, 'postWarSixties', 32, NOW(), NOW()),
+    (442, 'civilRightsMovement', 32, NOW(), NOW()),
+    (443, 'postWarSeventies', 32, NOW(), NOW()),
+    (444, 'postWarEighties', 32, NOW(), NOW()),
+    (445, 'postWarNineties', 32, NOW(), NOW());
+
+INSERT INTO upchieve.quiz_questions (id, question_text, possible_answers, correct_answer, quiz_subcategory_id, image_source, created_at, updated_at, mongo_id) VALUES
+    (428, 'What religion is the largest of the three main branches of Christianity, centered in Rome and led by the pope and found most often in Europe, the Americas, sub-Saharan Africa, and parts of East Asia?', '[{"txt": "Protestantism ", "val": "a"}, {"txt": "Catholicism", "val": "b"}, {"txt": "Eastern Orthodoxy", "val": "c"}, {"txt": "Restorationism", "val": "d"}]'::jsonb, 'b', 412, NULL, NOW(), NOW(), NULL),
+    (429, 'What is the Mandate of Heaven?', '[{"txt": "A mandatory public service system in the Inca Empire requiring all people below the age of 50 to serve for two months out of the year.", "val": "a"}, {"txt": "It rejects the first three Sunni caliphs and regards Ali, the fourth caliph, as Muhammad’s first true successor.", "val": "b"}, {"txt": "Ancient Chinese concept stating that the right to rule was granted by the heavens. It was used to explain the rise of every Chinese dynasty, including the Qing in 1644. ", "val": "c"}, {"txt": "A political doctrine in defense of monarchical absolutism, which asserted that kings derived their authority from God and could not therefore be held accountable for their actions by any earthly authority such as a parliament.", "val": "d"}]'::jsonb, 'c', 413, NULL, NOW(), NOW(), NULL),
+    (430, 'This trade network started in the 400s and 500s. It thrived due to an organized network of camel caravans carrying gold, salt, cloth, slaves, and other valuables. It allowed the kingdoms of Ghana and Mali to thrive, and as Islam spread to Africa, allowed its teachings to impact the lives of kings and traders.', '[{"txt": "Trans-Saharan trade", "val": "a"}, {"txt": "The Tea Horse Road", "val": "b"}, {"txt": "Silk Road", "val": "c"}, {"txt": "The Salt Route", "val": "d"}]'::jsonb, 'a', 414, NULL, NOW(), NOW(), NULL),
+    (431, 'This political and economic system developed as a result of the decentralization and collapse of the Western Roman Empire. Under this system lords, usually noblemen, protected vassals in exchange for mandatory labor or military service. Vassals received a fief, or grant of land. ', '[{"txt": "Manorialism", "val": "a"}, {"txt": "Caste system", "val": "b"}, {"txt": "Popular sovereignty", "val": "c"}, {"txt": "Feudalism", "val": "d"}]'::jsonb, 'd', 415, NULL, NOW(), NOW(), NULL),
+    (432, 'This group of Anatolian Turks who, in their dedication to Islam, attacked the weakening Byzantine Empire and captured Constantinople in 1453. They also expanded to create an empire in the Middle East and Southeast Europe and ultimately collapsed after World War I.', '[{"txt": "Carthaginians", "val": "a"}, {"txt": "Tunisians", "val": "b"}, {"txt": "Ottomans", "val": "c"}, {"txt": "Moors", "val": "d"}]'::jsonb, 'c', 416, NULL, NOW(), NOW(), NULL),
+    (433, 'This disease spread from China to Europe through rats and decimated Europe’s population. It ended the feudal system and led many people to question religion.', '[{"txt": "Avian Flu", "val": "a"}, {"txt": "Bubonic plague", "val": "b"}, {"txt": "Tuberculosis", "val": "c"}, {"txt": "Rabies", "val": "d"}]'::jsonb, 'b', 417, NULL, NOW(), NOW(), NULL),
+    (434, 'These large, investor-backed companies sponsored European exploration and colonization in the seventeenth and eighteenth centuries. They are precursors to modern corporations and a famous example is the British East India Company.', '[{"txt": "Joint-stock companies", "val": "a"}, {"txt": "Government Company", "val": "b"}, {"txt": "Partnership companies", "val": "c"}, {"txt": "Limited Liability Company", "val": "d"}]'::jsonb, 'a', 418, NULL, NOW(), NOW(), NULL),
+    (435, 'Name the chemical explosive developed by the Chinese and spread along trade routes like the Silk Road. Europeans mixed this chemical with a slow-burning propellant to maximize its use in weapons.', '[{"txt": "Gunpowder", "val": "a"}, {"txt": "Acid", "val": "b"}, {"txt": "Mustard gas", "val": "c"}, {"txt": "Zinc Oxide", "val": "d"}]'::jsonb, 'a', 419, NULL, NOW(), NOW(), NULL),
+    (436, 'What was the trade route between Europe and Africa (manufactured goods), Africa and the New World (enslaved peoples), and the New World and Europe (raw materials like precious metals, sugar, and other agricultural products)?', '[{"txt": "Pre-Columbian trade", "val": "a"}, {"txt": "Triangular trade", "val": "b"}, {"txt": "Grand Trunk Road", "val": "c"}, {"txt": "Silk Road", "val": "d"}]'::jsonb, 'b', 420, NULL, NOW(), NOW(), NULL),
+    (437, 'Movement questioning the practices of the Catholic Church during a period of social upheaval, particularly the selling of indulgences.', '[{"txt": "Counter-Reformation", "val": "a"}, {"txt": "Quaker Reformation", "val": "b"}, {"txt": "Renaissance", "val": "c"}, {"txt": "Protestant Reformation", "val": "d"}]'::jsonb, 'd', 421, NULL, NOW(), NOW(), NULL),
+    (438, 'Name the conflict between American colonists and the British government, caused by growing resentments based on taxation and governing policies. This conflict ultimately ended in American independence and the first large-scale democracy since ancient Greece.', '[{"txt": "Haitian Revolution", "val": "a"}, {"txt": "Enlightenment", "val": "b"}, {"txt": "American Revolution", "val": "c"}, {"txt": "French Revolution", "val": "d"}]'::jsonb, 'c', 422, NULL, NOW(), NOW(), NULL),
+    (439, 'Who was the Scottish economist whose 1776 work The Wealth of Nations advocated a laissez-faire policy toward economics (minimal government interference), making him one of the fathers of modern capitalism. ', '[{"txt": "Alexander Hamilton", "val": "a"}, {"txt": "Adam Smith", "val": "b"}, {"txt": "John Locke", "val": "c"}, {"txt": "Thomas Hobbes", "val": "d"}]'::jsonb, 'b', 423, NULL, NOW(), NOW(), NULL),
+    (440, 'What is the political and economic ideology based on Enlightenment philosophies that advocated for constitutional government, separation of powers, and natural rights, as well as limited government involvement in the regulation of the new industrialized economy?', '[{"txt": "Liberalism", "val": "a"}, {"txt": "Socialism", "val": "b"}, {"txt": "Communism", "val": "c"}, {"txt": "Capitalism", "val": "d"}]'::jsonb, 'a', 424, NULL, NOW(), NOW(), NULL),
+    (441, 'What is the name of the conflict waged between China and Great Britain in 1839 after Chinese customs officials refused British imports of Indian opium due to the addictive effects it had on Chinese workers? This war weakened the Qing Dynasty and made China more vulnerable to unequal trade with the West. ', '[{"txt": "Second Opium War", "val": "a"}, {"txt": "Tanzimât Movement", "val": "b"}, {"txt": "Meiji Restoration", "val": "c"}, {"txt": "First Opium War", "val": "d"}]'::jsonb, 'd', 425, NULL, NOW(), NOW(), NULL),
+    (442, 'What is the policy of a country extending its rule over other countries, often by force?', '[{"txt": "Indentured servants", "val": "a"}, {"txt": "Nationalism", "val": "b"}, {"txt": "Imperialism", "val": "c"}, {"txt": "Social Darwinism", "val": "d"}]'::jsonb, 'c', 426, NULL, NOW(), NOW(), NULL),
+    (443, 'What was the process by which slavery was abolished and slaves were granted freedom? This was partly the result of a new political movement that found slavery to be incompatible with Enlightenment ideals.', '[{"txt": "Emancipation of slaves", "val": "a"}, {"txt": "Feminism", "val": "b"}, {"txt": "Communism", "val": "c"}, {"txt": "Due Process", "val": "d"}]'::jsonb, 'a', 427, NULL, NOW(), NOW(), NULL),
+    (444, 'A formal system of treaties binding participant states to mutual military aid in the case of attack by a third party. ', '[{"txt": "Alliances", "val": "a"}, {"txt": "Militarism", "val": "b"}, {"txt": "World War I", "val": "c"}, {"txt": "Total war", "val": "d"}]'::jsonb, 'a', 428, NULL, NOW(), NOW(), NULL),
+    (445, 'Select the governmental system organized around extreme nationalism, militarism, and consolidation of state power in a single charismatic leader. ', '[{"txt": "Dictatorship", "val": "a"}, {"txt": "Fascism", "val": "b"}, {"txt": "Socialism", "val": "c"}, {"txt": "Representative Democracy", "val": "d"}]'::jsonb, 'b', 429, NULL, NOW(), NOW(), NULL),
+    (446, 'Name the leader of the Bolsheviks in Russia during World War I. He seized power in 1917 and created the Union of Soviet Socialist Republics (USSR). ', '[{"txt": "Benito Mussolini", "val": "a"}, {"txt": "Joseph Stalin", "val": "b"}, {"txt": "Vladimir Lenin", "val": "c"}, {"txt": "Matteo Renzi", "val": "d"}]'::jsonb, 'c', 430, NULL, NOW(), NOW(), NULL),
+    (447, 'These regional conflicts typically involve tacit or hidden support from major powers who are antagonistic to one another but not openly at war. These conflicts were particularly common during the Cold War era.', '[{"txt": "Proxy wars", "val": "a"}, {"txt": "Warsaw Pact", "val": "b"}, {"txt": "Guerrilla warfare", "val": "c"}, {"txt": "Non-Aligned Movement", "val": "d"}]'::jsonb, 'a', 431, NULL, NOW(), NOW(), NULL),
+    (448, 'Which of the following had the greatest impact in shaping Native American Culture?', '[{"txt": "Tribal warfare", "val": "a"}, {"txt": "Northwest Passage", "val": "b"}, {"txt": "Middle Passage", "val": "c"}, {"txt": "Nature & Environment", "val": "d"}]'::jsonb, 'd', 432, '', NOW(), NOW(), NULL),
+    (449, 'What did Governor John Winthrop mean when he said that the Massachusetts Bay Colony  "shall be as a city upon a hill"?', '[{"txt": "That it made more economic sense to build towns and cities at higher elevations to avoid flooding damage", "val": "a"}, {"txt": "To build a model religious community based on Quaker beliefs and values", "val": "b"}, {"txt": "To build a model religious community based on Puritan beliefs and values", "val": "c"}, {"txt": "To build a city with strong defenses that could repel enemy attacks", "val": "d"}]'::jsonb, 'c', 433, '', NOW(), NOW(), NULL),
+    (450, 'Which of the following best describes the way in which the French and Indian War helped the American colonists in their pursuit of independence from the British Empire?', '[{"txt": "After the costly war Britain was less interested in maintaining a presence in the American colonies", "val": "a"}, {"txt": "The British military gained valuable experience fighting all over the world", "val": "b"}, {"txt": "Britain stopped trading with the American colonies immediately following the French and Indian War", "val": "c"}, {"txt": "The American colonial military gained valuable experience fighting alongside the British ", "val": "d"}]'::jsonb, 'd', 434, '', NOW(), NOW(), NULL),
+    (451, 'Which of the following best summarizes the results from the Election of 1800?', '[{"txt": "Thomas Jefferson won the presidency in a landslide", "val": "a"}, {"txt": "Thomas Jefferson and Aaron Burr tied in the Electoral College; the House of Representatives broke the tie and elected Thomas Jefferson", "val": "b"}, {"txt": "Thomas Jefferson and Aaron Burr tied in the Electoral College; the House of Representatives broke the tie and elected Aaron Burr", "val": "c"}, {"txt": "Thomas Jefferson and Aaron Burr tied in the popular vote, so the Electoral College had to be created to break the tie and eventually elect Thomas Jefferson", "val": "d"}]'::jsonb, 'b', 435, '', NOW(), NOW(), NULL),
+    (452, 'What was the main reason that Lincoln waged a war against the South?', '[{"txt": "To bring the Confederate States back under laws and control of the US", "val": "a"}, {"txt": "To wipe out the Confederacy and destroy the southern states", "val": "b"}, {"txt": "To abolish slavery throughout the United States", "val": "c"}, {"txt": "To defend the North from southern aggression", "val": "d"}]'::jsonb, 'a', 436, '', NOW(), NOW(), NULL),
+    (453, 'What did the Supreme Court hold in Plessy v. Ferguson (1896)?', '[{"txt": "Children were allowed to work late night hours in factories", "val": "a"}, {"txt": "Women not being able to vote was constitutional ", "val": "b"}, {"txt": "Racial segregation under the “separate but equal” doctrine was constitutional", "val": "c"}, {"txt": "Minimum wage laws were unconstitutional", "val": "d"}]'::jsonb, 'c', 437, '', NOW(), NOW(), NULL),
+    (454, 'What act is held responsible for starting World War I?', '[{"txt": "The spread of communism", "val": "a"}, {"txt": "The assassination of Archduke Franz Ferdinand", "val": "b"}, {"txt": "The bombing of Pearl Harbor", "val": "c"}, {"txt": "America''s political interventions in South America", "val": "d"}]'::jsonb, 'b', 438, '', NOW(), NOW(), NULL),
+    (455, 'Why did the Japanese attack Pearl Harbor?', '[{"txt": "They hoped to use the island as a base to invade the U.S. ", "val": "a"}, {"txt": "The attack was meant to cripple the U.S. fleet.", "val": "b"}, {"txt": "They were responding to the Battle of Midway in 1941.", "val": "c"}, {"txt": "The Japanese were reacting to the U.S. involvement in World War II.", "val": "d"}]'::jsonb, 'b', 439, '', NOW(), NOW(), NULL),
+    (456, 'What was the central fear that led to the Red Scare in the late 1940s and early 1950s?', '[{"txt": "The fear of a full-scale military conflict in China", "val": "a"}, {"txt": "The fear that the Republicans in Congress were going to impeach President Truman", "val": "b"}, {"txt": "The fear of a stock market crash followed by another depression", "val": "c"}, {"txt": "The fear that communists were infiltrating all areas of American society", "val": "d"}]'::jsonb, 'd', 440, '', NOW(), NOW(), NULL),
+    (457, 'What was the significance of the Supreme Court''s decision in the 1966 Miranda case?', '[{"txt": "Guaranteed certain rights to people being questioned by police.", "val": "a"}, {"txt": "Legalized abortion in the U.S.", "val": "b"}, {"txt": "Ended state-sanctioned prayer in the U.S.", "val": "c"}, {"txt": "Ended racial segregation in the U.S,.", "val": "d"}]'::jsonb, 'a', 441, '', NOW(), NOW(), NULL),
+    (458, 'The Supreme Court in Brown v. Board of Education (1954) held that', '[{"txt": "Separate but equal was unconstitutional", "val": "a"}, {"txt": "Public schools charging kids for books was unconstitutional", "val": "b"}, {"txt": "School prayer was no longer allowed in classrooms", "val": "c"}, {"txt": "Reading about communism in public schools was illegal", "val": "d"}]'::jsonb, 'a', 442, '', NOW(), NOW(), NULL),
+    (459, 'Why did Richard Nixon become the first president to resign?', '[{"txt": "He faced removal from office by Congress over his role covering up the Watergate break-in", "val": "a"}, {"txt": "He asked for a pardon from then-Vice President Ford", "val": "b"}, {"txt": "He sent troops into Cambodia without congressional approval", "val": "c"}, {"txt": "He approved wage and price controls on the U.S. economy", "val": "d"}]'::jsonb, 'a', 443, '', NOW(), NOW(), NULL),
+    (460, 'Who was the first woman Supreme Court justice and which president nominated her?', '[{"txt": "Ruth Bader Ginsburg and Bill Clinton ", "val": "a"}, {"txt": "Ruth Bader Ginsburg and Gerald Ford", "val": "b"}, {"txt": "Sandra Day O''Connor and Jimmy Carter", "val": "c"}, {"txt": "Sandra Day O''Connor and  Ronald Reagan", "val": "d"}]'::jsonb, 'd', 444, '', NOW(), NOW(), NULL),
+    (461, 'Why did the US get involved during Operation Desert Storm?', '[{"txt": "They wanted to provide reinforcements to Afghanistan", "val": "a"}, {"txt": "U.S. business interests especially in the Middle East were at risk", "val": "b"}, {"txt": "There were contrabands being shipped from Europe to the Middle East", "val": "c"}, {"txt": "The US led forces wanted to respond to the Iraqi invasion and the annexation of Kuwait.", "val": "d"}]'::jsonb, 'd', 445, '', NOW(), NOW(), NULL);
+
+INSERT INTO upchieve.quiz_review_materials (quiz_id, title, pdf, image, created_at, updated_at) VALUES
+    (37, 'World History Concept Review', 'https://cdn.upchieve.org/review-materials/worldhistory-concept-review.pdf', 'https://cdn.upchieve.org/review-materials/worldhistory-concept-review.png', NOW(), NOW());
+
+INSERT INTO upchieve.certification_subject_unlocks (subject_id, certification_id, created_at, updated_at) VALUES
+    (39, 6, NOW(), NOW()),   -- apPhysics1 -> physicsOne
+    (39, 7, NOW(), NOW()),   -- apPhysics1 -> physicsTwo
+    (40, 23, NOW(), NOW()),  -- apusHistory -> usHistory
+    (40, 22, NOW(), NOW()),  -- apusHistory -> reading
+    (41, 35, NOW(), NOW()),  -- apWorldHistory -> worldHistory
+    (41, 22, NOW(), NOW());  -- apWorldHistory -> reading
+
+SELECT pg_catalog.setval('upchieve.subjects_id_seq', 41, true);
+SELECT pg_catalog.setval('upchieve.certifications_id_seq', 35, true);
+SELECT pg_catalog.setval('upchieve.quizzes_id_seq', 37, true);
+SELECT pg_catalog.setval('upchieve.quiz_subcategories_id_seq', 445, true);
+SELECT pg_catalog.setval('upchieve.quiz_questions_id_seq', 461, true);

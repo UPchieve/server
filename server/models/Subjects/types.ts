@@ -50,8 +50,7 @@ export type SubjectWithTopic = {
   isComputedUnlock: boolean
   topicIconLink?: string
   topicColor?: string
-  // For an alias subject (no quiz of its own), the quiz it reuses (e.g. apChemistry ->
-  // chemistry). Undefined for normal subjects and unresolved multi-quiz aliases.
+  // For an alias subject (no quiz of its own), the quiz it reuses (e.g. apChemistry -> chemistry).
   unlockQuizName?: string
 }
 
