@@ -281,7 +281,6 @@ describe('routeSchool', () => {
           return {
             ...student,
             createdAt: student.createdAt.toISOString(),
-            updatedAt: student.updatedAt.toISOString(),
           }
         }),
         isLastPage,
