@@ -317,7 +317,7 @@ SELECT
     users.test_user AS is_test_user,
     users.verified,
     users.ban_type AS ban_type,
-    session_count.total AS num_past_sessions,
+    session_count.total::int AS num_past_sessions,
     -- Volunteer specific fields:
     volunteer_profiles.approved AS is_approved,
     volunteer_profiles.onboarded AS is_onboarded,

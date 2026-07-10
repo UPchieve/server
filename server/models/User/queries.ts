@@ -35,7 +35,7 @@ import {
 } from './types'
 import { IDeletePhoneResult } from './pg.queries'
 import { camelCaseKeys } from '../../tests/db-utils'
-import type { UserRole } from '../../types/users'
+import type { UserForAdminDetail, UserRole } from '../../types/users'
 
 export async function createUser(
   user: CreateUserPayload,
@@ -466,7 +466,7 @@ export async function getUserForAdminDetail(
   limit: number,
   offset: number,
   client: TransactionClient = getClient()
-) {
+): Promise<UserForAdminDetail> {
   try {
     const userResult = await pgQueries.getUserForAdminDetail.run(
       { userId },
