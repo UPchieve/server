@@ -1,6 +1,7 @@
 import { USER_BAN_TYPES } from '../constants'
 import type { PastSessionForAdmin } from '../models/User'
 import type { ReferenceContactInfo } from '../models/Volunteer'
+import type { RoleContext } from '../services/UserRolesService'
 import type { Uuid, Json } from './shared'
 
 export type UserRole =
@@ -65,4 +66,9 @@ export type UserForAdminDetail = {
   references: ReferenceContactInfo[]
   pastSessions?: PastSessionForAdmin[]
   background: UserAdminBackground
+}
+
+export type UserForAdminDetailWithRoleContext = UserForAdminDetail & {
+  roleContext: RoleContext
+  photoUrl?: string
 }

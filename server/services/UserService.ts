@@ -80,7 +80,10 @@ import {
 } from '../models/Student'
 import { hoursInMs } from '../utils/time-utils'
 import { Uuid } from '../types/shared'
-import type { PrimaryUserRole } from '../types/users'
+import type {
+  PrimaryUserRole,
+  UserForAdminDetailWithRoleContext,
+} from '../types/users'
 
 export async function parseUser(userId: Uuid) {
   const user = await getLegacyUserObject(userId)
@@ -727,21 +730,17 @@ export async function getUserForAdminDetail(
   // TODO: Make these pagination parameters more clear.
   limit: number,
   offset: number
-) {
+): Promise<UserForAdminDetailWithRoleContext> {
   const user = await UserRepo.getUserForAdminDetail(userId, limit, offset)
   const roleContext = await UserRolesService.getRoleContext(userId, false)
-  let combinedUser: any = {
+
+  return {
     ...user,
     roleContext,
+    photoUrl: user.photoIdS3Key
+      ? await getPhotoIdUrl(user.photoIdS3Key)
+      : undefined,
   }
-  if (user.photoIdS3Key) {
-    const photoUrl = await getPhotoIdUrl(user.photoIdS3Key)
-    combinedUser = {
-      ...combinedUser,
-      photoUrl,
-    }
-  }
-  return combinedUser
 }
 
 export async function switchActiveRoleForUser(
