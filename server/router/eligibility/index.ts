@@ -75,7 +75,7 @@ export function routes(app: Express) {
   router.put(
     '/school/:schoolId',
     authPassport.isAdmin,
-    async function (req, res) {
+    async function (req, res: Response<void>) {
       try {
         const schoolId = asUlid(req.params.schoolId)
         await SchoolService.adminUpdateSchool({
@@ -92,7 +92,7 @@ export function routes(app: Express) {
   router.post(
     '/school/approval',
     authPassport.isAdmin,
-    async function (req, res) {
+    async function (req, res: Response<void>) {
       try {
         const schoolId = asUlid(req.body.schoolId)
         const isApproved = asBoolean(req.body.isApproved)
@@ -108,7 +108,7 @@ export function routes(app: Express) {
   router.post(
     '/school/partner',
     authPassport.isAdmin,
-    async function (req, res) {
+    async function (req, res: Response<void>) {
       try {
         const schoolId = asUlid(req.body.schoolId)
         const isPartner = asBoolean(req.body.isPartner)
@@ -163,7 +163,7 @@ export function routes(app: Express) {
     }
   )
 
-  router.get('/ip-check', async function (req, res) {
+  router.get('/ip-check', async function (req, res: Response<void>) {
     try {
       await IpAddressService.checkIpAddress(req.ip)
       res.sendStatus(200)
@@ -191,7 +191,7 @@ export function routes(app: Express) {
     }
   })
 
-  router.post('/big-future/email', async function (req, res) {
+  router.post('/big-future/email', async function (req, res: Response<void>) {
     try {
       const email = asString(req.body.email)
       await rpush('big-future-emails', email)
