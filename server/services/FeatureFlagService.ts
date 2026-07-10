@@ -1,8 +1,8 @@
 import { FEATURE_FLAGS } from '../constants'
 import { client as productClient } from '../clients/product-client'
 import { timeLimit } from '../utils/time-limit'
-import * as AnalyticsService from './AnalyticsService'
 import type { Uuid } from '../types/shared'
+import type { AnalyticPersonPropertiesPublic } from '../contracts/analytics'
 
 async function isFeatureEnabled(
   featureFlagName: FEATURE_FLAGS,
@@ -32,16 +32,16 @@ export async function getFeatureFlagPayload(
 
 export async function getAllFlagsForId(
   id: Uuid,
-  personProperties: AnalyticsService.AnalyticPersonProperties,
+  personProperties: AnalyticPersonPropertiesPublic | null,
   waitInMs?: number
 ) {
-  return await timeLimit({
+  return timeLimit({
     promise: productClient.getAllFlagsAndPayloads(id, {
       // PostHog has the wrong type for this. It should be similar to their JS SDK
       // where the type should be Record<string, any>
       // https://github.com/PostHog/posthog-js-lite/issues/194
       // @ts-expect-error
-      personProperties,
+      personProperties: personProperties ?? undefined,
     }),
     fallbackReturnValue: {
       featureFlags: {},
