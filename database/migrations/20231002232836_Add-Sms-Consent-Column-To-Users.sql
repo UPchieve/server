@@ -1,55 +1,10 @@
 -- migrate:up
+-- The one-time backfill UPDATE of existing users' sms_consent was removed here so
+-- this migration is DDL-only and safe to run on logical-replication subscribers.
+-- The backfill was a no-op on a from-empty build (no users exist yet, and new rows
+-- get the DEFAULT FALSE below), so it was not recreated as a seed-update.
 ALTER TABLE upchieve.users
     ADD COLUMN IF NOT EXISTS sms_consent BOOLEAN NOT NULL DEFAULT FALSE;
-
-WITH student_user_ids AS (
-    SELECT
-        user_id
-    FROM
-        upchieve.users_roles
-    WHERE
-        role_id = 1
-),
-volunteer_user_ids AS (
-    SELECT
-        user_id
-    FROM
-        upchieve.users_roles
-    WHERE
-        role_id = 2
-),
-admin_user_ids AS (
-    SELECT
-        user_id
-    FROM
-        upchieve.users_roles
-    WHERE
-        role_id = 3)
-UPDATE
-    upchieve.users u
-SET
-    sms_consent = (
-        CASE WHEN u.id IN (
-            SELECT
-                user_id
-            FROM
-                student_user_ids) THEN
-            FALSE
-        WHEN u.id IN (
-            SELECT
-                user_id
-            FROM
-                volunteer_user_ids) THEN
-            TRUE
-        WHEN u.id IN (
-            SELECT
-                user_id
-            FROM
-                admin_user_ids) THEN
-            TRUE
-        ELSE
-            FALSE
-        END);
 
 -- migrate:down
 ALTER TABLE upchieve.users

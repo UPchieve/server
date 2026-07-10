@@ -1,16 +1,6 @@
 -- migrate:up
-UPDATE
-    upchieve.topics
-SET
-    display_name = 'SAT & ACT Prep'
-WHERE
-    name = 'sat';
-
+-- DML moved to seed-update 20260709120003_update-standardized-testing-copy so this
+-- migration is safe to run on logical-replication subscribers.
+-- Left intentionally empty: already-applied environments never re-run this body,
+-- and a from-empty build applies the update from the seed-update.
 -- migrate:down
-UPDATE
-    upchieve.topics
-SET
-    display_name = 'Standardized Testing'
-WHERE
-    name = 'sat';
-
