@@ -1,4 +1,4 @@
-import express, { Express, Router } from 'express'
+import express, { Express, Response, Router } from 'express'
 import * as Sentry from '@sentry/node'
 import { authPassport } from '../../utils/auth-utils'
 import * as SchoolService from '../../services/SchoolService'
@@ -15,15 +15,20 @@ import {
 import { getStudentSignupSources } from '../../services/StudentService'
 import { InputError } from '../../models/Errors'
 import { rpush } from '../../cache'
+import type { CheckEligibilityPublic } from '../../contracts/eligibility'
+import { toCheckEligibilityPublic } from '../../public/eligibility'
 
 export function routes(app: Express) {
   const router: Router = express.Router()
 
   // Check if a student is eligible
-  router.route('/check').post(async function (req, res) {
+  router.route('/check').post(async function (
+    req,
+    res: Response<CheckEligibilityPublic>
+  ) {
     try {
       const result = await checkEligibility(req.ip, req.body as unknown)
-      return res.json(result)
+      return res.json(toCheckEligibilityPublic(result))
     } catch (err) {
       resError(res, err)
     }

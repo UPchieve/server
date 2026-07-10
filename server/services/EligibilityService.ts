@@ -35,7 +35,7 @@ const asCheckEligibilityPayload = asFactory<CheckEligibilityPayload>({
   schoolUpchieveId: asOptional(asString),
 })
 
-type CheckEligibilityResponse = {
+export type CheckEligibility = {
   message?: string
   isEligible: boolean
   isCollegeStudent?: boolean
@@ -47,7 +47,7 @@ export class ExistingUserError extends CustomError {}
 export async function checkEligibility(
   ip: string = '',
   payload: unknown
-): Promise<CheckEligibilityResponse> {
+): Promise<CheckEligibility> {
   const {
     email,
     gradeLevel,
