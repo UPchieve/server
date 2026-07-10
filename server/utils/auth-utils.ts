@@ -31,6 +31,7 @@ import {
 import logger from '../logger'
 import { hoursInMs } from './time-utils'
 import { extractUser } from '../router/extract-user'
+import { isE2eEnvironment } from './environments'
 // Custom errors
 export class RegistrationError extends CustomError {}
 export class ResetError extends CustomError {}
@@ -505,6 +506,7 @@ function isAdminRedirect(
 }
 
 async function checkRecaptcha(req: Request, res: Response, next: NextFunction) {
+  if (isE2eEnvironment()) return next()
   const passes = await validateRequestRecaptcha(req)
   if (passes) {
     return next()
