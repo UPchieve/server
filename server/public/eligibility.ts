@@ -1,9 +1,11 @@
 import type {
   CheckEligibilityPublic,
   IneligibleStudentsWithSchoolInfoPublic,
+  StudentSignupSourcesPublic,
   ZipCodePublic,
 } from '../contracts/eligibility'
 import type { IneligibleStudentsWithSchoolInfo } from '../models/IneligibleStudent'
+import { StudentSignupSources } from '../models/Student'
 import type { ZipCode } from '../models/ZipCode'
 import type { CheckEligibility } from '../services/EligibilityService'
 
@@ -43,5 +45,14 @@ export function toZipCodePublic(zipCode: ZipCode): ZipCodePublic {
     cbsaIncome: zipCode.cbsaIncome,
     stateIncome: zipCode.stateIncome,
     isEligible: zipCode.isEligible,
+  }
+}
+
+export function toStudentSignupSourcePublic(
+  source: StudentSignupSources
+): StudentSignupSourcesPublic {
+  return {
+    id: source.id,
+    name: source.name,
   }
 }

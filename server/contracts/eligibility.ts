@@ -31,6 +31,11 @@ export type ZipCodePublic = {
   isEligible: boolean
 }
 
+export type StudentSignupSourcesPublic = {
+  id: number
+  name: string
+}
+
 export type IsEligibleResponse = {
   isEligible: boolean
 }
@@ -50,4 +55,8 @@ export type ZipCodeResponse = {
 
 export type CheckZipCodeResponse = {
   isValidZipCode: boolean
+}
+
+export type StudentSignupSourceResponse = {
+  signupSources: StudentSignupSourcesPublic[] | undefined
 }

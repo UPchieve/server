@@ -21,11 +21,13 @@ import type {
   IneligibleStudentsResponse,
   IsEligibleResponse,
   SchoolSearchResponse,
+  StudentSignupSourceResponse,
   ZipCodeResponse,
 } from '../../contracts/eligibility'
 import {
   toCheckEligibilityPublic,
   toIneligibleStudentsWithSchoolInfoPublic,
+  toStudentSignupSourcePublic,
   toZipCodePublic,
 } from '../../public/eligibility'
 import { toSchoolPublic } from '../../public/schools'
@@ -197,14 +199,21 @@ export function routes(app: Express) {
     }
   )
 
-  router.get('/signup-sources/students', async function (req, res) {
-    try {
-      const signupSources = await getStudentSignupSources()
-      res.json({ signupSources })
-    } catch (err) {
-      resError(res, err)
+  router.get(
+    '/signup-sources/students',
+    async function (req, res: Response<StudentSignupSourceResponse>) {
+      try {
+        const signupSources = await getStudentSignupSources()
+        res.json({
+          signupSources: signupSources?.length
+            ? signupSources.map(toStudentSignupSourcePublic)
+            : undefined,
+        })
+      } catch (err) {
+        resError(res, err)
+      }
     }
-  })
+  )
 
   router.post('/big-future/email', async function (req, res: Response<void>) {
     try {
