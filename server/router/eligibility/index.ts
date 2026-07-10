@@ -18,8 +18,10 @@ import { rpush } from '../../cache'
 import type {
   CheckEligibilityPublic,
   IsEligibleResponse,
+  SchoolSearchResponse,
 } from '../../contracts/eligibility'
 import { toCheckEligibilityPublic } from '../../public/eligibility'
+import { toSchoolPublic } from '../../public/schools'
 
 export function routes(app: Express) {
   const router: Router = express.Router()
@@ -55,18 +57,20 @@ export function routes(app: Express) {
       }
     })
 
-  router.route('/school/search').get(async (req, res) => {
-    const { q } = req.query
+  router
+    .route('/school/search')
+    .get(async (req, res: Response<SchoolSearchResponse>) => {
+      const { q } = req.query
 
-    try {
-      const results = await SchoolService.search(q as string)
-      res.json({
-        results: results,
-      })
-    } catch (error) {
-      resError(res, error)
-    }
-  })
+      try {
+        const results = await SchoolService.search(q as string)
+        res.json({
+          results: results.map(toSchoolPublic),
+        })
+      } catch (error) {
+        resError(res, error)
+      }
+    })
 
   router.put(
     '/school/:schoolId',

@@ -1,3 +1,5 @@
+import type { SchoolPublic } from '../types/schools'
+
 export type CheckEligibilityPublic = {
   message?: string
   isEligible: boolean
@@ -7,4 +9,8 @@ export type CheckEligibilityPublic = {
 
 export type IsEligibleResponse = {
   isEligible: boolean
+}
+
+export type SchoolSearchResponse = {
+  results: SchoolPublic[]
 }

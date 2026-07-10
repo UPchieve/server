@@ -16,30 +16,10 @@ function escapeRegex(str: string) {
   return str.replace(/[.*|\\+?{}()[^$]/g, (c) => '\\' + c)
 }
 
-type SchoolForFrontend = {
-  id: Ulid
-  upchieveId: Ulid
-  name: string
-  districtName: string | undefined
-  city: string | undefined
-  state: string
-}
-
 // search for schools by name
-export async function search(query: string): Promise<SchoolForFrontend[]> {
+export async function search(query: string) {
   const q = query.substring(0, 70) // avoid prohibitively long queries for performance reasons
-  const results = await SchoolRepo.schoolSearch(q)
-
-  return results.map((school) => {
-    return {
-      id: school.id,
-      upchieveId: school.id,
-      name: school.name,
-      districtName: school.district,
-      city: school.city,
-      state: school.state,
-    }
-  })
+  return SchoolRepo.schoolSearch(q)
 }
 
 export async function getSchool(schoolId: Ulid): Promise<SchoolRepo.School> {
