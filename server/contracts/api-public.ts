@@ -1,3 +1,4 @@
+import type { AnalyticPersonPropertiesPublic } from './analytics'
 import type { NTHSGroupJoinPublic, NTHSGroupWithMemberInfoPublic } from './nths'
 import type { TeacherClassPublic } from './teachers'
 
@@ -30,3 +31,14 @@ export type ContactSubmissionResponse =
       message: 'contact form submission has been sent'
     }
   | { error: string }
+
+export type FeatureFlagResponse =
+  | {
+      id: string
+      featureFlags: Record<string, string | boolean>
+      featureFlagPayloads: Record<string, unknown>
+      personProperties: AnalyticPersonPropertiesPublic | null
+    }
+  | {
+      id: string
+    }
