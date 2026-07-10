@@ -181,6 +181,55 @@ const getSubjectsIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n 
 export const getSubjects = new PreparedQuery<IGetSubjectsParams,IGetSubjectsResult>(getSubjectsIR);
 
 
+/** 'GetSubjectQuizAliases' parameters type */
+export type IGetSubjectQuizAliasesParams = void;
+
+/** 'GetSubjectQuizAliases' return type */
+export interface IGetSubjectQuizAliasesResult {
+  /** not_pii: Human-readable name of the certification */
+  quizName: string;
+  /** not_pii: Human-readable name */
+  subjectName: string;
+}
+
+/** 'GetSubjectQuizAliases' query type */
+export interface IGetSubjectQuizAliasesQuery {
+  params: IGetSubjectQuizAliasesParams;
+  result: IGetSubjectQuizAliasesResult;
+}
+
+const getSubjectQuizAliasesIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    subjects.name AS subject_name,\n    certifications.name AS quiz_name\nFROM\n    certification_subject_unlocks csu\n    JOIN subjects ON subjects.id = csu.subject_id\n    JOIN certifications ON certifications.id = csu.certification_id\nWHERE\n    NOT EXISTS (\n        SELECT\n            1\n        FROM\n            quizzes\n        WHERE\n            quizzes.name = subjects.name)\n    AND EXISTS (\n        SELECT\n            1\n        FROM\n            quizzes\n        WHERE\n            quizzes.name = certifications.name)"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     subjects.name AS subject_name,
+ *     certifications.name AS quiz_name
+ * FROM
+ *     certification_subject_unlocks csu
+ *     JOIN subjects ON subjects.id = csu.subject_id
+ *     JOIN certifications ON certifications.id = csu.certification_id
+ * WHERE
+ *     NOT EXISTS (
+ *         SELECT
+ *             1
+ *         FROM
+ *             quizzes
+ *         WHERE
+ *             quizzes.name = subjects.name)
+ *     AND EXISTS (
+ *         SELECT
+ *             1
+ *         FROM
+ *             quizzes
+ *         WHERE
+ *             quizzes.name = certifications.name)
+ * ```
+ */
+export const getSubjectQuizAliases = new PreparedQuery<IGetSubjectQuizAliasesParams,IGetSubjectQuizAliasesResult>(getSubjectQuizAliasesIR);
+
+
 /** 'GetTopics' parameters type */
 export interface IGetTopicsParams {
   topicId?: number | null | void;

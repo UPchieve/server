@@ -2,6 +2,7 @@ import * as pgQueries from './pg.queries'
 import { getClient, getRoClient, TransactionClient } from '../../db'
 import { makeRequired, makeSomeOptional, Ulid } from '../pgUtils'
 import { RepoReadError } from '../Errors'
+import logger from '../../logger'
 
 import {
   AllSubjectsWithTopics,
@@ -69,6 +70,28 @@ export async function getSubjectsWithTopic(): Promise<AllSubjectsWithTopics> {
     for (const row of mappedResult) {
       subjects[row.name] = row
     }
+
+    // Enrichment layered on the core subjects above; best-effort, so a failure here
+    // never fails the subjects list.
+    try {
+      const aliasRows = await pgQueries.getSubjectQuizAliases.run(
+        undefined,
+        getClient()
+      )
+      const aliases = aliasRows.map((alias) => makeRequired(alias))
+      const quizzesBySubject = _.groupBy(aliases, (alias) => alias.subjectName)
+      for (const subject of Object.values(subjects)) {
+        const aliasQuizzes = quizzesBySubject[subject.name]
+        // @TODO: multi-quiz aliases (subjects unlocked by multiple certs) are left
+        // unresolved here; handled by the multi-cert subjects follow-up task.
+        if (aliasQuizzes?.length === 1) {
+          subject.unlockQuizName = aliasQuizzes[0].quizName
+        }
+      }
+    } catch (err) {
+      logger.error(err, 'Failed to resolve subject quiz aliases')
+    }
+
     return subjects
   } catch (err) {
     throw new RepoReadError(err)

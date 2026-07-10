@@ -35,3 +35,16 @@ describe('getRequiredCertificationsByComputedSubjectUnlock', () => {
     expect(actual).toEqual(expectedMapping)
   })
 })
+
+describe('getSubjectsWithTopic - alias subjects', () => {
+  it('resolves the reused quiz for an alias subject', async () => {
+    const subjects = await SubjectRepo.getSubjectsWithTopic()
+    expect(subjects.apChemistry.unlockQuizName).toEqual('chemistry')
+    expect(subjects.apCalculusAB.unlockQuizName).toEqual('calculusAB')
+  })
+
+  it('leaves unlockQuizName undefined for a subject with its own quiz', async () => {
+    const subjects = await SubjectRepo.getSubjectsWithTopic()
+    expect(subjects.algebraOne.unlockQuizName).toBeUndefined()
+  })
+})
