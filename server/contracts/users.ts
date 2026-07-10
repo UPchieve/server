@@ -256,6 +256,37 @@ export type UserForAdminPublic = {
   createdAt: ISODateString
 }
 
+export type NewUserPublic = {
+  id: string
+  firstName: string
+  email: string
+  userType: 'student' | 'teacher'
+  isAdmin: boolean
+  proxyEmail?: string | undefined
+}
+
+export type VolunteerContactInfoPublic = {
+  id: Uuid
+  email: string
+  phone?: string
+  firstName: string
+  lastName: string
+  volunteerPartnerOrg?: string
+  approved?: boolean
+}
+
+export type NewVolunteerPublic = VolunteerContactInfoPublic & {
+  deactivated: boolean
+  testUser: boolean
+  createdAt: ISODateString
+  isAdmin: boolean
+  smsConsent: boolean
+  userType: UserRole
+  banType?: USER_BAN_TYPES
+  signupSourceId?: number
+  otherSignupSource?: string
+}
+
 export type LegacyUserResponse = {
   user: LegacyUserPublic
 }

@@ -48,6 +48,7 @@ import {
 import * as VolunteerService from './VolunteerService'
 import * as ReferralService from './ReferralService'
 import * as NTHSGroupsService from './NTHSGroupsService'
+import type { NewUser } from '../types/users'
 
 export interface RosterStudentPayload {
   cleverId?: string
@@ -308,7 +309,7 @@ export async function verifyStudentData(data: RegisterStudentPayload) {
 export async function registerStudent(
   data: RegisterStudentPayload,
   tc?: TransactionClient
-) {
+): Promise<NewUser> {
   const userId = data.phId
 
   const isDisableStudentCreationEnabled =
@@ -647,7 +648,9 @@ export async function upsertStudent(
   }, tc)
 }
 
-export async function registerTeacher(data: RegisterTeacherPayload) {
+export async function registerTeacher(
+  data: RegisterTeacherPayload
+): Promise<NewUser> {
   await checkEmail(data.email)
   checkNames(data.firstName, data.lastName)
   if (usePassword(data)) {

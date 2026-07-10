@@ -72,3 +72,12 @@ export type UserForAdminDetailWithRoleContext = UserForAdminDetail & {
   roleContext: RoleContext
   photoUrl?: string
 }
+
+export type NewUser = {
+  id: string
+  firstName: string
+  email: string
+  userType: 'student' | 'teacher'
+  isAdmin: boolean
+  proxyEmail?: string | undefined
+}
