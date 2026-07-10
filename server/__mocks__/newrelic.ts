@@ -1,27 +1,28 @@
 /**
  * NewRelic automocking does not prevent the real agent from being started so
  * we must implement our own manual mock.
+ *
+ * We also use nrelic.getTransaction and newrelic.startBackgroundTransaction
+ * but the files that use these are untested since they jsut set up the worker
+ * and listeners. So we only mock new relic functionality used in code
+ * that is actually tested.
  */
 
-const transaction = {
-  end: jest.fn(),
-}
-
 export default {
-  noticeError: jest.fn(),
-  startWebTransaction: jest.fn(
-    async (_url: string, handler: () => unknown) => await handler()
-  ),
-  startBackgroundTransaction: jest.fn(
-    async (_name: string, handler: () => unknown) => await handler()
-  ),
-  startSegment: jest.fn(
-    async (_name: string, _record: boolean, handler: () => unknown) =>
-      await handler()
-  ),
-  getTransaction: jest.fn(() => transaction),
-  addCustomAttribute: jest.fn(),
-  recordMetric: jest.fn(),
-  recordCustomEvent: jest.fn(),
-  recordLogEvent: jest.fn(),
+  startWebTransaction: (url: string, handler: () => void) => {
+    handler()
+  },
+  startSegment: async (
+    name: string,
+    record: boolean,
+    handler: () => Promise<void>
+  ) => {
+    await handler()
+  },
+  addCustomAttribute: (key: string, value: unknown) => {
+    return
+  },
+  recordMetric: (name: string, value: unknown) => {
+    return
+  },
 }
