@@ -1,4 +1,4 @@
-import { Express, Router } from 'express'
+import { Express, Router, Response } from 'express'
 import * as UserService from '../../services/UserService'
 import { getVolunteerByReference } from '../../models/Volunteer/queries'
 import { asUlid } from '../../utils/type-utils'
@@ -7,7 +7,7 @@ import { resError } from '../res-error'
 export function routes(app: Express): void {
   const router = Router()
 
-  router.post('/:referenceId/submit', async (req, res) => {
+  router.post('/:referenceId/submit', async (req, res: Response<void>) => {
     try {
       const referenceId = asUlid(req.params.referenceId)
       const { body: referenceFormData, ip } = req
@@ -28,7 +28,7 @@ export function routes(app: Express): void {
     }
   })
 
-  router.get('/:referenceId', async (req, res) => {
+  router.get('/:referenceId', async (req, res: Response<void>) => {
     try {
       const referenceId = asUlid(req.params.referenceId)
       const result = await getVolunteerByReference(referenceId)
