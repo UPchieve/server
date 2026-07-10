@@ -235,6 +235,10 @@ COPY upchieve.subjects (id, name, display_name, display_order, topic_id, tool_ty
 31	financialAid	Financial Aid	5	3	2	2024-08-28 00:28:44.14612+00	2024-08-28 00:28:44.165993+00	f
 32	essayPlanning	Essay Planning	2	5	2	2024-08-28 00:28:44.157676+00	2024-08-28 00:28:44.165993+00	f
 33	essayFeedback	Essay Feedback	3	5	2	2024-08-28 00:28:44.157676+00	2024-08-28 00:28:44.165993+00	f
+34	apCalculusAB	AP Calculus AB	13	1	1	2026-07-04 22:18:22.081914+00	2026-07-04 22:18:22.081914+00	t
+35	apStatistics	AP Statistics	10	1	1	2026-07-04 22:18:22.081914+00	2026-07-04 22:18:22.081914+00	t
+36	apEnvironmentalScience	AP Environmental Science	10	2	1	2026-07-04 22:18:22.081914+00	2026-07-04 22:18:22.081914+00	t
+37	apChemistry	AP Chemistry	5	2	1	2026-07-04 22:18:22.081914+00	2026-07-04 22:18:22.081914+00	t
 \.
 
 
@@ -446,6 +450,10 @@ COPY upchieve.certification_subject_unlocks (subject_id, certification_id, creat
 31	28	2024-08-28 00:28:44.14612+00	2024-08-28 00:28:44.14612+00
 32	29	2024-08-28 00:28:44.157676+00	2024-08-28 00:28:44.157676+00
 33	30	2024-08-28 00:28:44.157676+00	2024-08-28 00:28:44.157676+00
+35	2	2026-07-04 22:18:22.081914+00	2026-07-04 22:18:22.081914+00
+37	5	2026-07-04 22:18:22.081914+00	2026-07-04 22:18:22.081914+00
+36	8	2026-07-04 22:18:22.081914+00	2026-07-04 22:18:22.081914+00
+34	20	2026-07-04 22:18:22.081914+00	2026-07-04 22:18:22.081914+00
 \.
 
 
@@ -9341,7 +9349,7 @@ SELECT pg_catalog.setval('upchieve.signup_sources_id_seq', 11, true);
 -- Name: subjects_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.subjects_id_seq', 33, true);
+SELECT pg_catalog.setval('upchieve.subjects_id_seq', 37, true);
 
 
 --
