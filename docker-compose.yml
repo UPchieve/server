@@ -1,28 +1,38 @@
+x-pg-version: &pg-version "15.17"
+x-pg-image: &pg-image postgres:15.17
+x-pg-command: &pg-command postgres -c shared_preload_libraries=pg_stat_statements -c pg_stat_statements.track=all
+
+x-pg-env: &pg-env
+    POSTGRES_DB: upchieve
+    POSTGRES_USER: admin
+    POSTGRES_PASSWORD: Password123
+
+x-pg-healthcheck: &pg-healthcheck
+    test: ["CMD", "pg_isready", "-h", "postgres"]
+    interval: 3s
+    timeout: 30s
+    retries: 5
+    start_period: 2s
+
+# SQL files mounted to entrypoint folder are run in alphabetical order.
+x-pg-initdb-volumes: &pg-initdb-volumes
+    - ./database/db_init/schema.sql:/docker-entrypoint-initdb.d/a.sql
+    - ./database/db_init/auth.sql:/docker-entrypoint-initdb.d/b.sql
+    - ./database/db_init/local_auth.sql:/docker-entrypoint-initdb.d/c.sql
+    - ./database/db_init/test_seeds.sql:/docker-entrypoint-initdb.d/d.sql
+    - ./database/db_init/seed_migrations.sql:/docker-entrypoint-initdb.d/e.sql
+
 services:
     postgres:
         profiles: ["dev"]
         hostname: postgres
         ports:
             - "5432:5432"
-        image: postgres:15.17
-        environment:
-            - POSTGRES_DB=upchieve
-            - POSTGRES_USER=admin
-            - POSTGRES_PASSWORD=Password123
-        command: postgres -c shared_preload_libraries=pg_stat_statements -c pg_stat_statements.track=all
-        volumes:
-            # SQL files mounted to entrypoint folder are run in alphabetical order
-            - ./database/db_init/schema.sql:/docker-entrypoint-initdb.d/a.sql
-            - ./database/db_init/auth.sql:/docker-entrypoint-initdb.d/b.sql
-            - ./database/db_init/local_auth.sql:/docker-entrypoint-initdb.d/c.sql
-            - ./database/db_init/test_seeds.sql:/docker-entrypoint-initdb.d/d.sql
-            - ./database/db_init/seed_migrations.sql:/docker-entrypoint-initdb.d/e.sql
-        healthcheck:
-            test: ["CMD", "pg_isready", "-h", "postgres"]
-            interval: 1m30s
-            timeout: 30s
-            retries: 5
-            start_period: 30s
+        image: *pg-image
+        environment: *pg-env
+        command: *pg-command
+        volumes: *pg-initdb-volumes
+        healthcheck: *pg-healthcheck
     redis:
         profiles: ["dev"]
         hostname: redis
@@ -54,56 +64,53 @@ services:
             - ./pgadmin/pgpassfile:/pgpassfile
             - ./pgadmin/servers.json:/pgadmin4/servers.json
         restart: unless-stopped
+    postgres-anon:
+        profiles: ["anon"]
+        container_name: postgres-anon
+        hostname: postgres
+        build:
+            dockerfile: database/privacy/masking/Dockerfile-local-anon
+            args:
+                PG_VERSION: *pg-version
+        ports:
+            - "6543:5432"
+        environment: *pg-env
+        volumes:
+            - ./database/db_init/schema.sql:/docker-entrypoint-initdb.d/a.sql
+            - ./database/db_init/auth.sql:/docker-entrypoint-initdb.d/b.sql
+            - ./database/db_init/local_auth.sql:/docker-entrypoint-initdb.d/c.sql
+            - ./database/db_init/test_seeds.sql:/docker-entrypoint-initdb.d/d.sql
+            - ./database/db_init/seed_migrations.sql:/docker-entrypoint-initdb.d/e.sql
+            - ./database/db_init/local_anon.sql:/docker-entrypoint-initdb.d/f.sql
+        healthcheck: *pg-healthcheck
     postgres-e2e:
-      profiles: ["e2e"]
-      container_name: postgres-e2e
-      hostname: postgres
-      ports:
-        - "5500:5432"
-      image: postgres:15.17
-      environment:
-        - POSTGRES_DB=upchieve
-        - POSTGRES_USER=admin
-        - POSTGRES_PASSWORD=Password123
-      command: postgres -c shared_preload_libraries=pg_stat_statements -c pg_stat_statements.track=all
-      volumes:
-        # SQL files mounted to entrypoint folder are run in alphabetical order
-        - ./database/db_init/schema.sql:/docker-entrypoint-initdb.d/a.sql
-        - ./database/db_init/auth.sql:/docker-entrypoint-initdb.d/b.sql
-        - ./database/db_init/local_auth.sql:/docker-entrypoint-initdb.d/c.sql
-        - ./database/db_init/test_seeds.sql:/docker-entrypoint-initdb.d/d.sql
-        - ./database/db_init/seed_migrations.sql:/docker-entrypoint-initdb.d/e.sql
-      healthcheck:
-        test: [ "CMD", "pg_isready", "-h", "postgres" ]
-        interval: 3s
-        timeout: 30s
-        retries: 5
-        start_period: 2s
+        profiles: ["e2e"]
+        container_name: postgres-e2e
+        hostname: postgres
+        ports:
+            - "5500:5432"
+        image: *pg-image
+        environment: *pg-env
+        command: *pg-command
+        volumes: *pg-initdb-volumes
+        healthcheck: *pg-healthcheck
     redis-e2e:
-      profiles: ["e2e"]
-      container_name: redis-e2e
-      hostname: redis
-      command: redis-server --notify-keyspace-events Ex
-      ports:
-        - "5501:6379"
-      image: valkey/valkey:8.1.9
+        profiles: ["e2e"]
+        container_name: redis-e2e
+        hostname: redis
+        command: redis-server --notify-keyspace-events Ex
+        ports:
+            - "5501:6379"
+        image: valkey/valkey:8.1.9
     database-ci:
-      profiles: ["db-test"]
-      image: postgres:15.17
-      hostname: postgres
-      ports:
-        - "${DB_PORT:-5502}:5432"
-      environment:
-        - POSTGRES_DB=upchieve
-        - POSTGRES_USER=admin
-        - POSTGRES_PASSWORD=Password123
-      volumes:
-        - ./database/db_init/schema.sql:/docker-entrypoint-initdb.d/a.sql
-        - ./database/db_init/test_seeds.sql:/docker-entrypoint-initdb.d/d.sql
-        - ./database/db_init/seed_migrations.sql:/docker-entrypoint-initdb.d/e.sql
-      healthcheck:
-          test: ["CMD", "pg_isready", "-h", "postgres"]
-          interval: 1m30s
-          timeout: 30s
-          retries: 5
-          start_period: 30s
+        profiles: ["db-test"]
+        image: *pg-image
+        hostname: postgres
+        ports:
+            - "${DB_PORT:-5502}:5432"
+        environment: *pg-env
+        volumes:
+            - ./database/db_init/schema.sql:/docker-entrypoint-initdb.d/a.sql
+            - ./database/db_init/test_seeds.sql:/docker-entrypoint-initdb.d/d.sql
+            - ./database/db_init/seed_migrations.sql:/docker-entrypoint-initdb.d/e.sql
+        healthcheck: *pg-healthcheck

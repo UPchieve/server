@@ -1,0 +1,16 @@
+# Our Postgres version (right now, 15) and PostgreSQL Anonymizer, for testing security labels locally before deploying them.
+# 1. Use `docker compose --profile anon up -d` to start up the database, then
+# 2. To set the security labels, connect with admin role: `PGPASSWORD=Password123 psql --host 127.0.0.1 --port 6543 --username admin --dbname upchieve`.
+# 3. To verify the security labels, connect with masked role: `PGPASSWORD=Password123 psql --host 127.0.0.1 --port 6543 --username masked --dbname upchieve`.
+
+ARG PG_VERSION
+FROM postgres:${PG_VERSION}-bookworm
+
+RUN apt-get update && apt-get install -y curl lsb-release
+RUN echo "deb http://apt.dalibo.org/labs $(lsb_release -cs)-dalibo main" > /etc/apt/sources.list.d/dalibo-labs.list
+RUN curl -fsSL -o /etc/apt/trusted.gpg.d/dalibo-labs.gpg https://apt.dalibo.org/labs/debian-dalibo.gpg
+RUN apt-get update
+# PG_MAJOR is set by the postgres base image.
+RUN apt-get install -y postgresql_anonymizer_${PG_MAJOR}
+
+CMD ["postgres", "-c", "shared_preload_libraries=anon"]

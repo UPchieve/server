@@ -1,0 +1,14 @@
+CREATE EXTENSION IF NOT EXISTS anon CASCADE;
+
+SELECT anon.init();
+
+ALTER DATABASE upchieve SET anon.transparent_dynamic_masking TO true;
+
+CREATE ROLE masked WITH LOGIN PASSWORD 'Password123';
+ALTER ROLE masked SET search_path = upchieve;
+SECURITY LABEL FOR anon ON ROLE masked IS 'MASKED';
+GRANT USAGE ON SCHEMA upchieve TO masked;
+GRANT SELECT ON ALL TABLES IN SCHEMA upchieve TO masked;
+ALTER DEFAULT PRIVILEGES FOR ROLE admin IN SCHEMA upchieve GRANT SELECT ON TABLES TO masked;
+GRANT USAGE ON SCHEMA anon TO masked;
+GRANT SELECT ON ALL TABLES IN SCHEMA anon TO masked;
