@@ -1,4 +1,5 @@
 import { Job } from 'bull'
+import newrelic from 'newrelic'
 import { Jobs } from '.'
 import { Uuid } from '../../models/pgUtils'
 import { queueGenerateProgressReportForUser } from '../../services/ProgressReportsService'
@@ -34,20 +35,32 @@ export default async (job: Job<ProcessSessionEndedJobData>): Promise<void> => {
   const sessionId = asString(job.data.sessionId)
 
   try {
-    await processSessionMetrics(sessionId)
-    await processCalculateMetrics(sessionId)
-    await processSessionEditors(sessionId)
+    await newrelic.startSegment('processSessionMetrics', true, () =>
+      processSessionMetrics(sessionId)
+    )
+    await newrelic.startSegment('processCalculateMetrics', true, () =>
+      processCalculateMetrics(sessionId)
+    )
+    await newrelic.startSegment('processSessionEditors', true, () =>
+      processSessionEditors(sessionId)
+    )
 
     // Dependent on metrics being calculated first
     for (const task of METRIC_TASKS) {
       logger.info(`Starting metric task ${task.name}`)
-      await task(sessionId)
+      await newrelic.startSegment(`metricTask:${task.name}`, true, () =>
+        task(sessionId)
+      )
       logger.info(`Finished metric task ${task.name}`)
     }
 
     for (const afterMetricTask of AFTER_METRIC_TASK) {
       logger.info(`Starting after metric task ${afterMetricTask.name}`)
-      await afterMetricTask(sessionId)
+      await newrelic.startSegment(
+        `afterMetricTask:${afterMetricTask.name}`,
+        true,
+        () => afterMetricTask(sessionId)
+      )
       logger.info(`Finished after metric task ${afterMetricTask.name}`)
     }
   } catch (error) {
