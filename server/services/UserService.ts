@@ -63,7 +63,6 @@ import config from '../config'
 import { Jobs } from '../worker/jobs'
 import QueueService from './QueueService'
 import * as UsersSchoolsRepo from '../models/UsersSchools'
-import { UserSchoolAssociationType, UsersSchool } from '../models/UsersSchools'
 import {
   activateStudentPartnershipInstance,
   AdminUpdateStudent,
@@ -76,7 +75,6 @@ import {
   updateStudentProfilePartnerOrg,
   updateStudentSchool,
 } from '../models/Student'
-import { hoursInMs } from '../utils/time-utils'
 
 export async function parseUser(userId: Ulid) {
   const user = await getLegacyUserObject(userId)
@@ -761,49 +759,4 @@ export function getReferralSignUpLink(referralCode: string): string {
 
 export function getUserIdByPhone(phone: string): Promise<Ulid | undefined> {
   return UserRepo.getUserIdByPhone(phone)
-}
-
-export async function upsertUsersSchool(
-  userId: Ulid,
-  schoolId: Ulid,
-  associationType: UserSchoolAssociationType
-): Promise<UsersSchool> {
-  return await UsersSchoolsRepo.upsertUsersSchool(
-    userId,
-    schoolId,
-    associationType
-  )
-}
-
-export async function queueInvitationToCoach(
-  invitedUserId: Ulid,
-  invitingUserId: Ulid,
-  sessionId: Ulid,
-  coachingSkills: string[]
-): Promise<void> {
-  logger.info(
-    {
-      invitingUserId,
-      invitedUserId,
-      sessionId,
-      coachingSkills,
-    },
-    'Queueing invitation to coach email'
-  )
-  await QueueService.add(
-    Jobs.SendInvitationToCoachEmail,
-    { delay: hoursInMs(24) },
-    {
-      invitedUserId,
-      invitingUserId,
-      coachingSkills,
-    }
-  )
-  logger.info(
-    {
-      invitedUserId,
-      invitingUserId,
-    },
-    'Queued invitation to coach email job'
-  )
 }

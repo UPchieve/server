@@ -1664,28 +1664,6 @@ export async function sendNTHSChapterAdminsMemberDeactivationNotice(
     )
   }
 }
-
-export async function sendInvitationToCoachEmail(
-  recipientEmail: string,
-  customData: {
-    coachingSkills: string[]
-    inviterFirstName: string
-    firstName: string
-  }
-): Promise<void> {
-  const overrides = {
-    categories: ['invitation to coach'],
-  }
-  await sendEmail(
-    recipientEmail,
-    config.mail.senders.noreply,
-    'UPchieve',
-    config.sendgrid.invitationToCoachEmail,
-    customData,
-    overrides
-  )
-}
-
 export async function createContact(userIds: Ulid | Ulid[]): Promise<any> {
   if (isDevEnvironment() || isE2eEnvironment()) {
     logger.debug('Skipping createContact: ' + userIds)
