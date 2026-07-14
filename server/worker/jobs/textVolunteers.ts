@@ -85,13 +85,24 @@ export default async function textVolunteers(
   }
 
   const allTextableVolunteers = await getTextableVolunteers()
+  const banStatuses = await UserService.getUsersBanStatusesById(
+    allTextableVolunteers.map((vol) => vol.id)
+  )
+  const bannedVolunteerIds = banStatuses
+    .filter(
+      (status) => status.banType === 'complete' || status.banType === 'shadow'
+    )
+    .map((vol) => vol.id)
+  const unbannedVolunteers = allTextableVolunteers.filter(
+    (vol) => !bannedVolunteerIds.includes(vol.id)
+  )
 
   const computedSubjectRequirements =
     await SubjectsService.getCachedComputedSubjectUnlocks()
   const subjectRequiresHighLevelSubjectCerts =
     (subject as SUBJECTS) in computedSubjectRequirements
   const eligibleVolunteers = filterSubjectEligibleVolunteers(
-    allTextableVolunteers,
+    unbannedVolunteers,
     subject,
     subjectRequiresHighLevelSubjectCerts
   )

@@ -939,14 +939,48 @@ export async function ensureCanJoinSession(
   const isStudent = user.roleContext.isActiveRole('student')
   const isVolunteer = user.roleContext.isActiveRole('volunteer')
 
-  if (isVolunteer && session.shadowbanned) {
-    const isAdmin = user.roleContext.isAdmin()
-    // Allow admins to join shadowbanned students' sessions.
-    if (!isAdmin) {
-      throw new SessionJoinError(
-        'Volunteer unable to join session. Student is shadow banned.'
+  const sessionUserIds = [
+    session.studentId,
+    session.volunteerId,
+    user.id,
+  ].filter((id) => !!id) as Ulid[]
+  const banStatuses = await UserRepo.getUsersBanStatuses(sessionUserIds)
+
+  // Sessions containing complete-banned users may not be joined by anyone
+  if (banStatuses.some((status) => status.banType === 'complete')) {
+    logger.warn(
+      {
+        banStatuses,
+        sessionId,
+        joiningUserId: user.id,
+      },
+      'Attempted to join a session with a complete-banned user'
+    )
+    throw new SessionJoinError(
+      'Cannot join a session with a complete-banned user.'
+    )
+  }
+
+  const isShadowBanned = (id?: Ulid): boolean => {
+    return (
+      !!id &&
+      banStatuses.some(
+        (status) => status.id === id && status.banType === 'shadow'
       )
-    }
+    )
+  }
+
+  const hasShadowBannedVolunteer = isVolunteer && isShadowBanned(user.id)
+  // Only allow admins to join shadow-banned students' sessions.
+  if (hasShadowBannedVolunteer) {
+    throw new SessionJoinError('Shadow-banned volunteers may not join sessions')
+  }
+
+  // Allow shadow-banned students to create sessions.
+  // Only admins may join these sessions.
+  const hasShadowBannedStudent = isShadowBanned(session.studentId)
+  if (hasShadowBannedStudent && isVolunteer && !user.roleContext.isAdmin()) {
+    throw new SessionJoinError("Cannot join shadow-banned student's session")
   }
 
   if (session.endedAt) {
