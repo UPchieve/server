@@ -1,7 +1,7 @@
-\restrict w8vzLSojt3xmyCTV3fbZJY1YmD6bPaHJfQSzL6xMTM0IncCohRBLLBmcGkM2kG9
+\restrict meeGzRi7M1RwG1GYROpFTxit8abiYgvLVu47og7N775UxmZdKsItMndVT5MuItw
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
--- Dumped by pg_dump version 15.18 (Ubuntu 15.18-1.pgdg22.04+1)
+-- Dumped by pg_dump version 15.18 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -630,7 +630,7 @@ COMMENT ON COLUMN upchieve.availabilities.available_end IS 'not_pii: End hour of
 -- Name: COLUMN availabilities.timezone; Type: COMMENT; Schema: upchieve; Owner: -
 --
 
-COMMENT ON COLUMN upchieve.availabilities.timezone IS 'not_pii: IANA timezone identifier';
+COMMENT ON COLUMN upchieve.availabilities.timezone IS 'pii: IANA timezone identifier';
 
 
 --
@@ -710,7 +710,7 @@ COMMENT ON COLUMN upchieve.availability_histories.available_end IS 'not_pii: End
 -- Name: COLUMN availability_histories.timezone; Type: COMMENT; Schema: upchieve; Owner: -
 --
 
-COMMENT ON COLUMN upchieve.availability_histories.timezone IS 'not_pii: IANA timezone identifier';
+COMMENT ON COLUMN upchieve.availability_histories.timezone IS 'pii: IANA timezone identifier';
 
 
 --
@@ -2800,7 +2800,7 @@ COMMENT ON COLUMN upchieve.nths_advisors.updated_at IS 'not_pii';
 -- Name: COLUMN nths_advisors.school_id; Type: COMMENT; Schema: upchieve; Owner: -
 --
 
-COMMENT ON COLUMN upchieve.nths_advisors.school_id IS 'pii: Foreign key to upchieve.schools';
+COMMENT ON COLUMN upchieve.nths_advisors.school_id IS 'not_pii: Foreign key to upchieve.schools';
 
 
 --
@@ -7331,14 +7331,14 @@ COMMENT ON COLUMN upchieve.student_profiles.student_partner_org_user_id IS 'not_
 -- Name: COLUMN student_profiles.student_partner_org_id; Type: COMMENT; Schema: upchieve; Owner: -
 --
 
-COMMENT ON COLUMN upchieve.student_profiles.student_partner_org_id IS 'pii: Foreign key to upchieve.student_partner_orgs; the student partner org of the student';
+COMMENT ON COLUMN upchieve.student_profiles.student_partner_org_id IS 'not_pii: Foreign key to upchieve.student_partner_orgs; the student partner org of the student';
 
 
 --
 -- Name: COLUMN student_profiles.student_partner_org_site_id; Type: COMMENT; Schema: upchieve; Owner: -
 --
 
-COMMENT ON COLUMN upchieve.student_profiles.student_partner_org_site_id IS 'pii: Foreign key to upchieve.student_partner_org_sites; if applicable, the site of the student partner org for this student';
+COMMENT ON COLUMN upchieve.student_profiles.student_partner_org_site_id IS 'not_pii: Foreign key to upchieve.student_partner_org_sites; if applicable, the site of the student partner org for this student';
 
 
 --
@@ -8541,7 +8541,7 @@ COMMENT ON COLUMN upchieve.totp.verified IS 'not_pii: Whether the TOTP authentic
 -- Name: COLUMN totp.last_used_counter; Type: COMMENT; Schema: upchieve; Owner: -
 --
 
-COMMENT ON COLUMN upchieve.totp.last_used_counter IS 'pii: TOTP counter value from the most recent successful authentication';
+COMMENT ON COLUMN upchieve.totp.last_used_counter IS 'not_pii: TOTP counter value from the most recent successful authentication';
 
 
 --
@@ -9392,21 +9392,21 @@ COMMENT ON COLUMN upchieve.user_session_metrics.updated_at IS 'not_pii';
 -- Name: COLUMN user_session_metrics.personal_identifying_info; Type: COMMENT; Schema: upchieve; Owner: -
 --
 
-COMMENT ON COLUMN upchieve.user_session_metrics.personal_identifying_info IS 'pii: Count of PII session flags';
+COMMENT ON COLUMN upchieve.user_session_metrics.personal_identifying_info IS 'not_pii: Count of PII session flags';
 
 
 --
 -- Name: COLUMN user_session_metrics.coach_uncomfortable; Type: COMMENT; Schema: upchieve; Owner: -
 --
 
-COMMENT ON COLUMN upchieve.user_session_metrics.coach_uncomfortable IS 'pii: Count of coach-uncomfortable session flags';
+COMMENT ON COLUMN upchieve.user_session_metrics.coach_uncomfortable IS 'not_pii: Count of coach-uncomfortable session flags';
 
 
 --
 -- Name: COLUMN user_session_metrics.student_crisis; Type: COMMENT; Schema: upchieve; Owner: -
 --
 
-COMMENT ON COLUMN upchieve.user_session_metrics.student_crisis IS 'pii: Count of student-in-distress session flags';
+COMMENT ON COLUMN upchieve.user_session_metrics.student_crisis IS 'not_pii: Count of student-in-distress session flags';
 
 
 --
@@ -10859,7 +10859,7 @@ COMMENT ON COLUMN upchieve.volunteer_references.positive_role_model IS 'not_pii:
 -- Name: COLUMN volunteer_references.agreeable_and_approachable; Type: COMMENT; Schema: upchieve; Owner: -
 --
 
-COMMENT ON COLUMN upchieve.volunteer_references.agreeable_and_approachable IS 'pii: Reference rating for agreeableness and approachability (1-5)';
+COMMENT ON COLUMN upchieve.volunteer_references.agreeable_and_approachable IS 'not_pii: Reference rating for agreeableness and approachability (1-5)';
 
 
 --
@@ -14963,7 +14963,7 @@ ALTER TABLE ONLY upchieve.volunteer_references
 -- PostgreSQL database dump complete
 --
 
-\unrestrict w8vzLSojt3xmyCTV3fbZJY1YmD6bPaHJfQSzL6xMTM0IncCohRBLLBmcGkM2kG9
+\unrestrict meeGzRi7M1RwG1GYROpFTxit8abiYgvLVu47og7N775UxmZdKsItMndVT5MuItw
 
 
 --
