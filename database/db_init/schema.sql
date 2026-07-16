@@ -5694,7 +5694,8 @@ CREATE TABLE upchieve.session_failed_joins (
     session_id uuid NOT NULL,
     user_id uuid NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    reason text DEFAULT 'Unknown'::text NOT NULL
 );
 
 
@@ -5731,6 +5732,13 @@ COMMENT ON COLUMN upchieve.session_failed_joins.created_at IS 'not_pii';
 --
 
 COMMENT ON COLUMN upchieve.session_failed_joins.updated_at IS 'not_pii';
+
+
+--
+-- Name: COLUMN session_failed_joins.reason; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.session_failed_joins.reason IS 'not_pii';
 
 
 --
@@ -15252,4 +15260,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260602022152'),
     ('20260602031018'),
     ('20260622211455'),
-    ('20260623012028');
+    ('20260623012028'),
+    ('20260715155733');
