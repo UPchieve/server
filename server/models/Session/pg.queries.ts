@@ -2038,6 +2038,7 @@ export const insertSessionReviewReasons = new PreparedQuery<IInsertSessionReview
 
 /** 'InsertSessionFailedJoin' parameters type */
 export interface IInsertSessionFailedJoinParams {
+  reason: string;
   sessionId: string;
   userId: string;
 }
@@ -2054,13 +2055,13 @@ export interface IInsertSessionFailedJoinQuery {
   result: IInsertSessionFailedJoinResult;
 }
 
-const insertSessionFailedJoinIR: any = {"usedParamSet":{"sessionId":true,"userId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":91,"b":101}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":104,"b":111}]}],"statement":"INSERT INTO session_failed_joins (session_id, user_id, created_at, updated_at)\n    VALUES (:sessionId!, :userId!, NOW(), NOW())\nRETURNING\n    session_id AS ok"};
+const insertSessionFailedJoinIR: any = {"usedParamSet":{"sessionId":true,"userId":true,"reason":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":99,"b":109}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":112,"b":119}]},{"name":"reason","required":true,"transform":{"type":"scalar"},"locs":[{"a":136,"b":143}]}],"statement":"INSERT INTO session_failed_joins (session_id, user_id, created_at, updated_at, reason)\n    VALUES (:sessionId!, :userId!, NOW(), NOW(), :reason!)\nRETURNING\n    session_id AS ok"};
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO session_failed_joins (session_id, user_id, created_at, updated_at)
- *     VALUES (:sessionId!, :userId!, NOW(), NOW())
+ * INSERT INTO session_failed_joins (session_id, user_id, created_at, updated_at, reason)
+ *     VALUES (:sessionId!, :userId!, NOW(), NOW(), :reason!)
  * RETURNING
  *     session_id AS ok
  * ```

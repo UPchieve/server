@@ -12,6 +12,7 @@ import {
   NTHSGroupNameTakenError,
   NTHSGroupAffiliationExistsError,
   NotAHighSchoolerNTHSJoinError,
+  SessionJoinError,
 } from '../models/Errors'
 import { RegistrationError, ResetError } from '../utils/auth-utils'
 import config from '../config'
@@ -81,6 +82,7 @@ export function resError(
     else if (err instanceof AlreadyInUseError) status = 409
     // response timeout
     else if (err.message === 'Response timeout') status = 408
+    else if (err instanceof SessionJoinError) status = 422
     // unknown error
     else status = 500
 

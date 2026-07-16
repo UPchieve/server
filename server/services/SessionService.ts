@@ -931,6 +931,13 @@ export async function joinSession(
   return session
 }
 
+const FAILED_JOIN_REASONS = {
+  SESSION_HAS_ALREADY_ENDED: 'SESSION_HAS_ALREADY_ENDED',
+  STUDENT_CAN_NOT_BE_VOLUNTEER: 'STUDENT_CAN_NOT_BE_VOLUNTEER',
+  SESSION_ALREADY_HAS_A_VOLUNTEER: 'SESSION_ALREADY_HAS_A_VOLUNTEER',
+  CAN_NOT_BE_YOUR_OWN_VOLUNTEER: 'CAN_NOT_BE_YOUR_OWN_VOLUNTEER',
+} as const
+
 export async function ensureCanJoinSession(
   user: UserContactInfo,
   sessionId: Ulid
@@ -984,27 +991,43 @@ export async function ensureCanJoinSession(
   }
 
   if (session.endedAt) {
-    await SessionRepo.updateSessionFailedJoinsById(session.id, user.id)
+    await SessionRepo.updateSessionFailedJoinsById(
+      session.id,
+      user.id,
+      FAILED_JOIN_REASONS.SESSION_HAS_ALREADY_ENDED
+    )
 
     throw new SessionJoinError(
-      `User: ${user.id} with isActiveRoleVolunteer: ${isVolunteer} can't join session: ${sessionId}`
+      `User: ${user.id} tried to join an already ended session: ${sessionId}`
     )
   }
 
   if (isStudent && session.studentId !== user.id) {
-    await SessionRepo.updateSessionFailedJoinsById(session.id, user.id)
+    await SessionRepo.updateSessionFailedJoinsById(
+      session.id,
+      user.id,
+      FAILED_JOIN_REASONS.STUDENT_CAN_NOT_BE_VOLUNTEER
+    )
     throw new SessionJoinError(
       `A student cannot join another student's session.`
     )
   }
 
   if (isVolunteer && session.volunteerId && session.volunteerId !== user.id) {
-    await SessionRepo.updateSessionFailedJoinsById(session.id, user.id)
+    await SessionRepo.updateSessionFailedJoinsById(
+      session.id,
+      user.id,
+      FAILED_JOIN_REASONS.SESSION_ALREADY_HAS_A_VOLUNTEER
+    )
     throw new SessionJoinError('A volunteer has already joined the session.')
   }
 
   if (isVolunteer && session.studentId === user.id) {
-    await SessionRepo.updateSessionFailedJoinsById(session.id, user.id)
+    await SessionRepo.updateSessionFailedJoinsById(
+      session.id,
+      user.id,
+      FAILED_JOIN_REASONS.CAN_NOT_BE_YOUR_OWN_VOLUNTEER
+    )
     throw new SessionJoinError(
       'You may not join your own session as both student and coach.'
     )

@@ -881,8 +881,8 @@ ON CONFLICT (session_id,
 
 
 /* @name insertSessionFailedJoin */
-INSERT INTO session_failed_joins (session_id, user_id, created_at, updated_at)
-    VALUES (:sessionId!, :userId!, NOW(), NOW())
+INSERT INTO session_failed_joins (session_id, user_id, created_at, updated_at, reason)
+    VALUES (:sessionId!, :userId!, NOW(), NOW(), :reason!)
 RETURNING
     session_id AS ok;
 

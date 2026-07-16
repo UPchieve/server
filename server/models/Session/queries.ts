@@ -1053,11 +1053,12 @@ export async function updateSessionReviewReasonsById(
 
 export async function updateSessionFailedJoinsById(
   sessionId: Ulid,
-  userId: Ulid
+  userId: Ulid,
+  reason: string
 ): Promise<void> {
   try {
     const result = await pgQueries.insertSessionFailedJoin.run(
-      { sessionId, userId },
+      { sessionId, userId, reason },
       getClient()
     )
     if (!result.length && makeRequired(result[0]).ok)
