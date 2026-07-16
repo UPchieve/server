@@ -333,7 +333,7 @@ export async function updateGroupName(
   groupId: Ulid,
   name: string,
   tc: TransactionClient = getClient()
-): Promise<NTHSGroup | void> {
+): Promise<NTHSGroup> {
   try {
     const [result] = await pgQueries.updateGroupName.run(
       {
@@ -438,7 +438,7 @@ type AdvisorArgs = {
   title: string
 }
 
-type Advisor = {
+export type Advisor = {
   id: Ulid
 } & AdvisorArgs
 
