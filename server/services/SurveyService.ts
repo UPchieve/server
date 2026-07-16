@@ -1,4 +1,4 @@
-import { Ulid } from '../models/pgUtils'
+import type { Uuid } from '../types/shared'
 import {
   getPresessionSurveyResponse,
   getUserPostsessionSurveyResponses,
@@ -67,7 +67,7 @@ type VolunteerContextResponse = {
 }
 
 export async function getContextSharingForVolunteer(
-  sessionId: Ulid
+  sessionId: Uuid
 ): Promise<VolunteerContextResponse> {
   const responses = await getPresessionSurveyResponse(sessionId)
   const session = await SessionRepo.getSessionById(sessionId)
@@ -81,7 +81,7 @@ export async function getContextSharingForVolunteer(
 const FIVE_MINUTES = 1000 * 60 * 5
 
 export async function saveUserSurvey(
-  userId: Ulid,
+  userId: Uuid,
   data: SaveSurveyAndSubmissions,
   tc?: TransactionClient
 ): Promise<void> {
@@ -212,7 +212,7 @@ export function parseUserRole(param: string) {
 }
 
 export async function getPostsessionSurveyDefinition(
-  sessionId: Ulid,
+  sessionId: Uuid,
   userRole: USER_ROLES_TYPE
 ): Promise<SurveyQueryResponse | undefined> {
   // Get the replacement column options.
@@ -232,10 +232,10 @@ export async function getPostsessionSurveyDefinition(
   let surveyId: number | null = null
 
   if (userRole === 'student') {
-    const variantSurveyName = await getStudentPostSessionSurveyNameVariant(
+    const surveyName = await getStudentPostsessionSurveyName(
+      sessionId,
       session.studentId
     )
-    const surveyName = variantSurveyName ?? POST_SESSION_SURVEYS.STUDENT_DEFAULT
     surveyId = await SurveyRepo.getSurveyIdByName(surveyName)
   }
 
@@ -319,7 +319,7 @@ export async function getImpactSurveyDefinition() {
 }
 
 export async function getLatestImpactStudySurveyResponses(
-  userId: Ulid
+  userId: Uuid
 ): Promise<SurveyQueryResponse | undefined> {
   const latestImpactSurveyId =
     await getSurveyIdForLatestImpactStudySurveySubmission(userId)
@@ -355,7 +355,7 @@ export async function getLatestImpactStudySurveyResponses(
 }
 
 export async function getLatestUserSubmissionsForSurveyId(
-  userId: Ulid,
+  userId: Uuid,
   surveyId: number,
   tc?: TransactionClient
 ) {
@@ -363,7 +363,7 @@ export async function getLatestUserSubmissionsForSurveyId(
 }
 
 export async function getStudentFeedbackForSession(
-  sessionId: Ulid,
+  sessionId: Uuid,
   tc?: TransactionClient
 ) {
   return SurveyRepo.getStudentFeedbackForSession(sessionId, tc)
@@ -413,4 +413,21 @@ export function classifyFeedback(
   }
 
   return classifedFeedback
+}
+
+async function getStudentPostsessionSurveyName(
+  sessionId: Uuid,
+  studentId: Uuid
+): Promise<string> {
+  const variantSurveyName =
+    await getStudentPostSessionSurveyNameVariant(studentId)
+  if (!variantSurveyName) {
+    return POST_SESSION_SURVEYS.STUDENT_DEFAULT
+  }
+
+  const isSupported = await SurveyRepo.isSubjectSupportedBySurvey(
+    sessionId,
+    variantSurveyName
+  )
+  return isSupported ? variantSurveyName : POST_SESSION_SURVEYS.STUDENT_DEFAULT
 }

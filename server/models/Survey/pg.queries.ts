@@ -1125,3 +1125,43 @@ const getStudentFeedbackForSessionIR: any = {"usedParamSet":{"sessionId":true},"
 export const getStudentFeedbackForSession = new PreparedQuery<IGetStudentFeedbackForSessionParams,IGetStudentFeedbackForSessionResult>(getStudentFeedbackForSessionIR);
 
 
+/** 'IsSubjectSupportedBySurvey' parameters type */
+export interface IIsSubjectSupportedBySurveyParams {
+  sessionId: string;
+  surveyName: string;
+}
+
+/** 'IsSubjectSupportedBySurvey' return type */
+export interface IIsSubjectSupportedBySurveyResult {
+  isSupported: boolean | null;
+}
+
+/** 'IsSubjectSupportedBySurvey' query type */
+export interface IIsSubjectSupportedBySurveyQuery {
+  params: IIsSubjectSupportedBySurveyParams;
+  result: IIsSubjectSupportedBySurveyResult;
+}
+
+const isSubjectSupportedBySurveyIR: any = {"usedParamSet":{"sessionId":true,"surveyName":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":357,"b":367}]},{"name":"surveyName","required":true,"transform":{"type":"scalar"},"locs":[{"a":400,"b":411}]}],"statement":"SELECT\n    EXISTS (\n        SELECT\n            1\n        FROM\n            surveys\n            JOIN surveys_context ON surveys_context.survey_id = surveys.id\n            JOIN sessions ON sessions.subject_id = surveys_context.subject_id\n            JOIN survey_types ON survey_types.id = surveys_context.survey_type_id\n        WHERE\n            sessions.id = :sessionId!\n            AND surveys.name = :surveyName!\n            AND survey_types.name = 'postsession') AS is_supported"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     EXISTS (
+ *         SELECT
+ *             1
+ *         FROM
+ *             surveys
+ *             JOIN surveys_context ON surveys_context.survey_id = surveys.id
+ *             JOIN sessions ON sessions.subject_id = surveys_context.subject_id
+ *             JOIN survey_types ON survey_types.id = surveys_context.survey_type_id
+ *         WHERE
+ *             sessions.id = :sessionId!
+ *             AND surveys.name = :surveyName!
+ *             AND survey_types.name = 'postsession') AS is_supported
+ * ```
+ */
+export const isSubjectSupportedBySurvey = new PreparedQuery<IIsSubjectSupportedBySurveyParams,IIsSubjectSupportedBySurveyResult>(isSubjectSupportedBySurveyIR);
+
+

@@ -472,3 +472,21 @@ export async function getStudentFeedbackForSession(
     throw new RepoReadError(err)
   }
 }
+
+export async function isSubjectSupportedBySurvey(
+  sessionId: Uuid,
+  surveyName: string
+): Promise<boolean> {
+  try {
+    const [row] = await pgQueries.isSubjectSupportedBySurvey.run(
+      {
+        sessionId,
+        surveyName,
+      },
+      getClient()
+    )
+    return row ? makeRequired(row).isSupported : false
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}

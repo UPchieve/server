@@ -573,3 +573,19 @@ WHERE
 GROUP BY
     us.session_id;
 
+
+/* @name isSubjectSupportedBySurvey */
+SELECT
+    EXISTS (
+        SELECT
+            1
+        FROM
+            surveys
+            JOIN surveys_context ON surveys_context.survey_id = surveys.id
+            JOIN sessions ON sessions.subject_id = surveys_context.subject_id
+            JOIN survey_types ON survey_types.id = surveys_context.survey_type_id
+        WHERE
+            sessions.id = :sessionId!
+            AND surveys.name = :surveyName!
+            AND survey_types.name = 'postsession') AS is_supported;
+
