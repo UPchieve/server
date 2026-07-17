@@ -2,10 +2,10 @@
 -- PostgreSQL database dump
 --
 
-\restrict YFHvzkgbKJmtbBDd9oUrUdXOdeKWWa4pL52bPssanbeD6exFbe3NaPM9Lddtw1D
+\restrict Sjg8jsrJdNjd73MMJac5YEPGIa9BE6v0CtDFTDjHfPi9U15NOtzFbtAsCgFMJua
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
--- Dumped by pg_dump version 15.18 (Homebrew)
+-- Dumped by pg_dump version 15.15 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -7687,7 +7687,7 @@ COPY upchieve.session_audio_transcript_messages (id, user_id, session_id, messag
 -- Data for Name: session_failed_joins; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.session_failed_joins (session_id, user_id, created_at, updated_at) FROM stdin;
+COPY upchieve.session_failed_joins (session_id, user_id, created_at, updated_at, reason) FROM stdin;
 \.
 
 
@@ -9536,5 +9536,5 @@ SELECT pg_catalog.setval('upchieve.weekdays_id_seq', 1, false);
 -- PostgreSQL database dump complete
 --
 
-\unrestrict YFHvzkgbKJmtbBDd9oUrUdXOdeKWWa4pL52bPssanbeD6exFbe3NaPM9Lddtw1D
+\unrestrict Sjg8jsrJdNjd73MMJac5YEPGIa9BE6v0CtDFTDjHfPi9U15NOtzFbtAsCgFMJua
 

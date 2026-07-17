@@ -1,7 +1,7 @@
-\restrict meeGzRi7M1RwG1GYROpFTxit8abiYgvLVu47og7N775UxmZdKsItMndVT5MuItw
+\restrict y1dNgJkoc2ObPICNebfYvI3aYcjcXc2C4oNulWSK7DoDLJXWuYH5MLQQUEvKQtt
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
--- Dumped by pg_dump version 15.18 (Homebrew)
+-- Dumped by pg_dump version 15.15 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -11802,6 +11802,14 @@ ALTER TABLE ONLY upchieve.photo_id_statuses
 
 
 --
+-- Name: volunteer_occupations pk_user_id_occupation; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.volunteer_occupations
+    ADD CONSTRAINT pk_user_id_occupation PRIMARY KEY (user_id, occupation);
+
+
+--
 -- Name: postal_codes postal_codes_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -12631,14 +12639,6 @@ ALTER TABLE ONLY upchieve.nths_group_school_affiliation
 
 ALTER TABLE ONLY upchieve.users_ip_addresses
     ADD CONSTRAINT unique_user_id_ip_address_id UNIQUE (user_id, ip_address_id);
-
-
---
--- Name: volunteer_occupations unique_user_id_occupation; Type: CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.volunteer_occupations
-    ADD CONSTRAINT unique_user_id_occupation UNIQUE (user_id, occupation);
 
 
 --
@@ -14971,7 +14971,7 @@ ALTER TABLE ONLY upchieve.volunteer_references
 -- PostgreSQL database dump complete
 --
 
-\unrestrict meeGzRi7M1RwG1GYROpFTxit8abiYgvLVu47og7N775UxmZdKsItMndVT5MuItw
+\unrestrict y1dNgJkoc2ObPICNebfYvI3aYcjcXc2C4oNulWSK7DoDLJXWuYH5MLQQUEvKQtt
 
 
 --
@@ -15261,4 +15261,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260602031018'),
     ('20260622211455'),
     ('20260623012028'),
-    ('20260715155733');
+    ('20260715155733'),
+    ('20260717162214');

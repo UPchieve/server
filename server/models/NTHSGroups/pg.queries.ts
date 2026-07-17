@@ -892,7 +892,7 @@ export interface IInsertNthsAdvisorResult {
   phone: string | null;
   /** pii: Phone extension for the contact */
   phoneExtension: string | null;
-  /** pii: Foreign key to upchieve.schools */
+  /** not_pii: Foreign key to upchieve.schools */
   schoolId: string | null;
   /** pii: Professional title of the NTHS advisor */
   title: string;
