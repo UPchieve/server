@@ -5,8 +5,8 @@ export type DateOrString = Date | string;
 
 export type stringArray = (string)[];
 
-/** 'CreateAssignment' parameters type */
-export interface ICreateAssignmentParams {
+/** 'UpsertAssignment' parameters type */
+export interface IUpsertAssignmentParams {
   classId: string;
   description?: string | null | void;
   dueDate?: DateOrString | null | void;
@@ -19,8 +19,8 @@ export interface ICreateAssignmentParams {
   title?: string | null | void;
 }
 
-/** 'CreateAssignment' return type */
-export interface ICreateAssignmentResult {
+/** 'UpsertAssignment' return type */
+export interface IUpsertAssignmentResult {
   /** not_pii: Foreign key to upchieve.teacher_classes */
   classId: string;
   /** not_pii */
@@ -31,6 +31,7 @@ export interface ICreateAssignmentResult {
   dueDate: Date | null;
   /** not_pii: Primary key */
   id: string;
+  isCreated: boolean | null;
   /** not_pii: Whether the assignment is required for the class */
   isRequired: boolean;
   /** not_pii: Minimum session duration in minutes required by the assignment */
@@ -47,24 +48,27 @@ export interface ICreateAssignmentResult {
   updatedAt: Date;
 }
 
-/** 'CreateAssignment' query type */
-export interface ICreateAssignmentQuery {
-  params: ICreateAssignmentParams;
-  result: ICreateAssignmentResult;
+/** 'UpsertAssignment' query type */
+export interface IUpsertAssignmentQuery {
+  params: IUpsertAssignmentParams;
+  result: IUpsertAssignmentResult;
 }
 
-const createAssignmentIR: any = {"usedParamSet":{"id":true,"classId":true,"description":true,"title":true,"numberOfSessions":true,"minDurationInMinutes":true,"dueDate":true,"isRequired":true,"startDate":true,"subjectId":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":187,"b":190}]},{"name":"classId","required":true,"transform":{"type":"scalar"},"locs":[{"a":193,"b":201}]},{"name":"description","required":false,"transform":{"type":"scalar"},"locs":[{"a":204,"b":215}]},{"name":"title","required":false,"transform":{"type":"scalar"},"locs":[{"a":218,"b":223}]},{"name":"numberOfSessions","required":false,"transform":{"type":"scalar"},"locs":[{"a":226,"b":242}]},{"name":"minDurationInMinutes","required":false,"transform":{"type":"scalar"},"locs":[{"a":245,"b":265}]},{"name":"dueDate","required":false,"transform":{"type":"scalar"},"locs":[{"a":268,"b":275}]},{"name":"isRequired","required":false,"transform":{"type":"scalar"},"locs":[{"a":278,"b":288}]},{"name":"startDate","required":false,"transform":{"type":"scalar"},"locs":[{"a":291,"b":300}]},{"name":"subjectId","required":false,"transform":{"type":"scalar"},"locs":[{"a":303,"b":312}]}],"statement":"INSERT INTO assignments (id, class_id, description, title, number_of_sessions, min_duration_in_minutes, due_date, is_required, start_date, subject_id, created_at, updated_at)\n    VALUES (:id!, :classId!, :description, :title, :numberOfSessions, :minDurationInMinutes, :dueDate, :isRequired, :startDate, :subjectId, NOW(), NOW())\nRETURNING\n    id, class_id, description, title, number_of_sessions, min_duration_in_minutes, is_required, due_date, start_date, subject_id, created_at, updated_at"};
+const upsertAssignmentIR: any = {"usedParamSet":{"id":true,"classId":true,"description":true,"title":true,"numberOfSessions":true,"minDurationInMinutes":true,"dueDate":true,"isRequired":true,"startDate":true,"subjectId":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":187,"b":190}]},{"name":"classId","required":true,"transform":{"type":"scalar"},"locs":[{"a":193,"b":201}]},{"name":"description","required":false,"transform":{"type":"scalar"},"locs":[{"a":204,"b":215}]},{"name":"title","required":false,"transform":{"type":"scalar"},"locs":[{"a":218,"b":223}]},{"name":"numberOfSessions","required":false,"transform":{"type":"scalar"},"locs":[{"a":226,"b":242}]},{"name":"minDurationInMinutes","required":false,"transform":{"type":"scalar"},"locs":[{"a":245,"b":265}]},{"name":"dueDate","required":false,"transform":{"type":"scalar"},"locs":[{"a":268,"b":275}]},{"name":"isRequired","required":false,"transform":{"type":"scalar"},"locs":[{"a":278,"b":288}]},{"name":"startDate","required":false,"transform":{"type":"scalar"},"locs":[{"a":291,"b":300}]},{"name":"subjectId","required":false,"transform":{"type":"scalar"},"locs":[{"a":303,"b":312}]}],"statement":"INSERT INTO assignments (id, class_id, description, title, number_of_sessions, min_duration_in_minutes, due_date, is_required, start_date, subject_id, created_at, updated_at)\n    VALUES (:id!, :classId!, :description, :title, :numberOfSessions, :minDurationInMinutes, :dueDate, :isRequired, :startDate, :subjectId, NOW(), NOW())\nON CONFLICT (id)\n    DO UPDATE SET\n        description = COALESCE(EXCLUDED.description, assignments.description), title = COALESCE(EXCLUDED.title, assignments.title), number_of_sessions = COALESCE(EXCLUDED.number_of_sessions, assignments.number_of_sessions), min_duration_in_minutes = COALESCE(EXCLUDED.min_duration_in_minutes, assignments.min_duration_in_minutes), is_required = COALESCE(EXCLUDED.is_required, assignments.is_required), due_date = COALESCE(EXCLUDED.due_date, assignments.due_date), start_date = COALESCE(EXCLUDED.start_date, assignments.start_date), subject_id = COALESCE(EXCLUDED.subject_id, assignments.subject_id), updated_at = NOW()\n    RETURNING\n        id, class_id, description, title, number_of_sessions, min_duration_in_minutes, is_required, due_date, start_date, subject_id, created_at, updated_at, (xmax = 0) AS is_created"};
 
 /**
  * Query generated from SQL:
  * ```
  * INSERT INTO assignments (id, class_id, description, title, number_of_sessions, min_duration_in_minutes, due_date, is_required, start_date, subject_id, created_at, updated_at)
  *     VALUES (:id!, :classId!, :description, :title, :numberOfSessions, :minDurationInMinutes, :dueDate, :isRequired, :startDate, :subjectId, NOW(), NOW())
- * RETURNING
- *     id, class_id, description, title, number_of_sessions, min_duration_in_minutes, is_required, due_date, start_date, subject_id, created_at, updated_at
+ * ON CONFLICT (id)
+ *     DO UPDATE SET
+ *         description = COALESCE(EXCLUDED.description, assignments.description), title = COALESCE(EXCLUDED.title, assignments.title), number_of_sessions = COALESCE(EXCLUDED.number_of_sessions, assignments.number_of_sessions), min_duration_in_minutes = COALESCE(EXCLUDED.min_duration_in_minutes, assignments.min_duration_in_minutes), is_required = COALESCE(EXCLUDED.is_required, assignments.is_required), due_date = COALESCE(EXCLUDED.due_date, assignments.due_date), start_date = COALESCE(EXCLUDED.start_date, assignments.start_date), subject_id = COALESCE(EXCLUDED.subject_id, assignments.subject_id), updated_at = NOW()
+ *     RETURNING
+ *         id, class_id, description, title, number_of_sessions, min_duration_in_minutes, is_required, due_date, start_date, subject_id, created_at, updated_at, (xmax = 0) AS is_created
  * ```
  */
-export const createAssignment = new PreparedQuery<ICreateAssignmentParams,ICreateAssignmentResult>(createAssignmentIR);
+export const upsertAssignment = new PreparedQuery<IUpsertAssignmentParams,IUpsertAssignmentResult>(upsertAssignmentIR);
 
 
 /** 'GetAssignmentsByClassId' parameters type */

@@ -107,7 +107,7 @@ export async function createAssignment(
   }
 
   return runInTransaction(async (tc: TransactionClient) => {
-    const assignment = await AssignmentsRepo.createAssignment(
+    const assignment = await AssignmentsRepo.upsertAssignment(
       {
         classId: data.classId,
         description: data.description,
@@ -147,7 +147,7 @@ export async function createAssignmentForClasses(
     const assignments = []
 
     for (const classId of classIds) {
-      const assignment = await AssignmentsRepo.createAssignment(
+      const assignment = await AssignmentsRepo.upsertAssignment(
         {
           classId,
           description: data.description,

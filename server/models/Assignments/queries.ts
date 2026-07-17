@@ -3,15 +3,16 @@ import {
   RepoReadError,
   RepoCreateError,
   RepoUpdateError,
+  RepoUpsertError,
   RepoDeleteError,
 } from '../Errors'
 import {
   Assignment,
-  CreateAssignmentInput,
   CreateStudentAssignmentResult,
   EditAssignmentInput,
   StudentAssignment,
   StudentAssignmentCompletionRow,
+  UpsertAssignmentInput,
 } from './types'
 import * as pgQueries from './pg.queries'
 import {
@@ -23,14 +24,14 @@ import {
   makeRequired,
 } from '../pgUtils'
 
-export async function createAssignment(
-  data: CreateAssignmentInput,
+export async function upsertAssignment(
+  data: UpsertAssignmentInput,
   tc: TransactionClient = getClient()
-): Promise<Assignment> {
+): Promise<Assignment & { isCreated: boolean }> {
   try {
-    const assignment = await pgQueries.createAssignment.run(
+    const assignment = await pgQueries.upsertAssignment.run(
       {
-        id: getDbUlid(),
+        id: data.id ?? getDbUlid(),
         classId: data.classId,
         description: data.description,
         dueDate: data.dueDate,
@@ -44,7 +45,7 @@ export async function createAssignment(
       tc
     )
     if (!assignment.length) {
-      throw new RepoCreateError('Unable to create assignment.')
+      throw new RepoUpsertError('Unable to upsert assignment')
     }
     return makeSomeRequired(assignment[0], [
       'id',
@@ -52,9 +53,10 @@ export async function createAssignment(
       'isRequired',
       'createdAt',
       'updatedAt',
+      'isCreated',
     ])
   } catch (err) {
-    throw new RepoCreateError(err)
+    throw new RepoUpsertError(err)
   }
 }
 

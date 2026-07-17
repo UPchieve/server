@@ -17,7 +17,7 @@ export type Assignment = {
   isGettingStartedAssignment?: boolean
 }
 
-export type CreateAssignmentInput = Pick<
+export type UpsertAssignmentInput = Pick<
   Assignment,
   | 'classId'
   | 'description'
@@ -28,13 +28,14 @@ export type CreateAssignmentInput = Pick<
   | 'startDate'
   | 'subjectId'
   | 'title'
->
+> & {
+  id?: Ulid
+}
 
 export type EditAssignmentInput = Omit<
   Assignment,
   'classId' | 'createdAt' | 'updatedAt'
 >
-
 export type StudentAssignment = {
   id: Ulid
   assignedAt: Date

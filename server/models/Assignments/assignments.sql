@@ -1,8 +1,11 @@
-/* @name createAssignment */
+/* @name upsertAssignment */
 INSERT INTO assignments (id, class_id, description, title, number_of_sessions, min_duration_in_minutes, due_date, is_required, start_date, subject_id, created_at, updated_at)
     VALUES (:id!, :classId!, :description, :title, :numberOfSessions, :minDurationInMinutes, :dueDate, :isRequired, :startDate, :subjectId, NOW(), NOW())
-RETURNING
-    id, class_id, description, title, number_of_sessions, min_duration_in_minutes, is_required, due_date, start_date, subject_id, created_at, updated_at;
+ON CONFLICT (id)
+    DO UPDATE SET
+        description = COALESCE(EXCLUDED.description, assignments.description), title = COALESCE(EXCLUDED.title, assignments.title), number_of_sessions = COALESCE(EXCLUDED.number_of_sessions, assignments.number_of_sessions), min_duration_in_minutes = COALESCE(EXCLUDED.min_duration_in_minutes, assignments.min_duration_in_minutes), is_required = COALESCE(EXCLUDED.is_required, assignments.is_required), due_date = COALESCE(EXCLUDED.due_date, assignments.due_date), start_date = COALESCE(EXCLUDED.start_date, assignments.start_date), subject_id = COALESCE(EXCLUDED.subject_id, assignments.subject_id), updated_at = NOW()
+    RETURNING
+        id, class_id, description, title, number_of_sessions, min_duration_in_minutes, is_required, due_date, start_date, subject_id, created_at, updated_at, (xmax = 0) AS is_created;
 
 
 /* @name getAssignmentsByClassId */

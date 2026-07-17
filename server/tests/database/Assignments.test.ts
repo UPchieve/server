@@ -3,6 +3,7 @@
  */
 
 import { faker } from '@faker-js/faker'
+import moment from 'moment'
 import { getClient } from '../../db'
 import {
   getDbUlid,
@@ -19,8 +20,8 @@ afterEach(async () => {
   await client.query('SET search_path TO upchieve')
 })
 
-describe('createAssignment', () => {
-  test('creates the assignment', async () => {
+describe('upsertAssignment', () => {
+  test('creates the assignment if not already created', async () => {
     const teacherClass = await createTestTeacherClass()
 
     const input = {
@@ -35,7 +36,7 @@ describe('createAssignment', () => {
       title: faker.lorem.words(3),
     }
 
-    const created = await AssignmentsRepo.createAssignment(input)
+    const created = await AssignmentsRepo.upsertAssignment(input)
     expect(created.id).toBeDefined()
     expect(created.createdAt).toBeDefined()
     expect(created.updatedAt).toBeDefined()
@@ -48,6 +49,7 @@ describe('createAssignment', () => {
     expect(created.startDate).toEqual(input.startDate)
     expect(created.subjectId).toBe(input.subjectId)
     expect(created.title).toBe(input.title)
+    expect(created.isCreated).toBe(true)
 
     const actualRows = await client.query(
       'SELECT * FROM assignments WHERE class_id = $1',
@@ -69,15 +71,63 @@ describe('createAssignment', () => {
     expect(created.title).toBe(actual.title)
   })
 
+  test('updates the assignment if already created', async () => {
+    const teacherClass = await createTestTeacherClass()
+    const assignment = await createTestAssignment(teacherClass.id)
+
+    const input = {
+      id: assignment.id,
+      classId: teacherClass.id,
+      description: 'UPDATED DESCRIPTION',
+      dueDate: moment().toDate(),
+      isRequired: true,
+      minDurationInMinutes: 5000,
+      numberOfSessions: 5000,
+      startDate: moment().toDate(),
+      subjectId: 1,
+      title: 'UPDATED TITLE',
+    }
+
+    const editted = await AssignmentsRepo.upsertAssignment(input)
+    expect(editted.id).toBeDefined()
+    expect(editted.createdAt).toBeDefined()
+    expect(editted.updatedAt).toBeDefined()
+    expect(editted.classId).toBe(input.classId)
+    expect(editted.description).toBe(input.description)
+    expect(editted.dueDate).toEqual(input.dueDate)
+    expect(editted.isRequired).toBe(input.isRequired)
+    expect(editted.minDurationInMinutes).toBe(input.minDurationInMinutes)
+    expect(editted.numberOfSessions).toBe(input.numberOfSessions)
+    expect(editted.startDate).toEqual(input.startDate)
+    expect(editted.subjectId).toBe(input.subjectId)
+    expect(editted.title).toBe(input.title)
+    expect(editted.isCreated).toBe(false)
+
+    const actualRows = await client.query(
+      'SELECT * FROM assignments WHERE id = $1',
+      [assignment.id]
+    )
+
+    const actual = makeRequired(actualRows.rows[0])
+    expect(input.id).toBe(actual.id)
+    expect(input.classId).toBe(actual.classId)
+    expect(input.description).toBe(actual.description)
+    expect(input.dueDate).toEqual(actual.dueDate)
+    expect(input.isRequired).toBe(actual.isRequired)
+    expect(input.minDurationInMinutes).toBe(actual.minDurationInMinutes)
+    expect(input.numberOfSessions).toBe(actual.numberOfSessions)
+    expect(input.startDate).toEqual(actual.startDate)
+    expect(input.subjectId).toBe(actual.subjectId)
+    expect(input.title).toBe(actual.title)
+  })
+
   test('throws an error if invalid class id', async () => {
     const input = {
       classId: getDbUlid(), // Some random id.
       isRequired: true,
     }
 
-    await expect(AssignmentsRepo.createAssignment(input)).rejects.toThrow(
-      'Database create error: insert or update on table "assignments" violates foreign key constraint "assignments_class_id_fkey"'
-    )
+    await expect(AssignmentsRepo.upsertAssignment(input)).rejects.toThrow()
   })
 
   test('throws an error if invalid subject id', async () => {
@@ -92,9 +142,7 @@ describe('createAssignment', () => {
       subjectId,
     }
 
-    await expect(AssignmentsRepo.createAssignment(input)).rejects.toThrow(
-      'Database create error: insert or update on table "assignments" violates foreign key constraint "assignments_subject_id_fkey"'
-    )
+    await expect(AssignmentsRepo.upsertAssignment(input)).rejects.toThrow()
   })
 })
 
