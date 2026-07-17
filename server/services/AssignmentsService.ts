@@ -51,16 +51,13 @@ export type UpsertAssignmentPayload = {
   startDate?: Date
   subjectId?: number
   title?: string
-  // TODO: Remove in favour of `studentsToAdd`.
-  // Remove after high-line clean-up.
-  studentIds?: string[]
   studentsToAdd?: string[]
   studentsToRemove?: string[]
 }
 
 export type CreateMultipleAssignmentsPayload = Omit<
   UpsertAssignmentPayload,
-  'id' | 'classId' | 'studentIds' | 'studentsToAdd' | 'studentsToRemove'
+  'id' | 'classId' | 'studentsToAdd' | 'studentsToRemove'
 > & {
   classIds: string[]
 }
@@ -75,7 +72,6 @@ const assignmentValidators = {
   startDate: asOptional(asDate),
   subjectId: asOptional(asNumber),
   title: asOptional(asString),
-  studentIds: asOptional(asArray(asString)),
   studentsToAdd: asOptional(asArray(asString)),
   studentsToRemove: asOptional(asArray(asString)),
 }
@@ -86,7 +82,6 @@ export const asAssignment =
 const {
   id,
   classId,
-  studentIds,
   studentsToAdd,
   studentsToRemove,
   ...multipleAssignmentsValidators
@@ -143,11 +138,8 @@ export async function upsertAssignment(
       tc
     )
 
-    if (data.studentsToAdd?.length || data.studentIds?.length) {
-      const studentsToAdd = (data.studentIds ?? []).concat(
-        data.studentsToAdd ?? []
-      )
-      await addAssignmentForStudents(studentsToAdd, assignment.id, tc)
+    if (data.studentsToAdd?.length) {
+      await addAssignmentForStudents(data.studentsToAdd, assignment.id, tc)
     }
 
     if (data.studentsToRemove?.length) {
@@ -610,29 +602,6 @@ async function getClassAssignments(classId: Ulid, tc: TransactionClient) {
       )
     ).filter((a): a is Assignment => !!a)
   }, tc)
-}
-
-/**
- * TODO: Remove in clean-up when removing PUT /assignments/upload in favour
- * of PUT /assignments with file upload.
- */
-export async function uploadAssignmentFilesOld(
-  assignmentId: Ulid,
-  files: Express.Multer.File[],
-  userId: string
-): Promise<Record<string, string[]>> {
-  const fileNameToModerationInfractions = await moderateAssignmentFiles(
-    files,
-    assignmentId,
-    userId
-  )
-
-  // Only upload if every file is clean.
-  if (isEmpty(fileNameToModerationInfractions)) {
-    await uploadAssignmentFiles(assignmentId, files)
-  }
-
-  return fileNameToModerationInfractions
 }
 
 export async function getAssignmentDocuments(assignmentId: Ulid) {

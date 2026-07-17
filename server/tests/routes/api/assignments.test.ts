@@ -130,61 +130,6 @@ describe('routeAssignments', () => {
     })
   })
 
-  // TODO: Remove PUT /assignment/upload in clean-up.
-  describe('PUT /api/assignment/upload', () => {
-    test('uploads files and returns 200', async () => {
-      mockedAssignmentsService.uploadAssignmentFilesOld.mockResolvedValueOnce(
-        {}
-      )
-      const response = await agent
-        .put('/api/assignment/upload')
-        .field('assignmentId', ASSIGNMENT_ID)
-        .attach('files', Buffer.from('file-one'), 'first.jpg')
-        .attach('files', Buffer.from('file-two'), 'second.png')
-
-      expect(response.status).toBe(200)
-      expect(
-        mockedAssignmentsService.uploadAssignmentFilesOld
-      ).toHaveBeenCalledTimes(1)
-
-      const [calledAssignmentId, files] =
-        mockedAssignmentsService.uploadAssignmentFilesOld.mock.calls[0]
-
-      expect(calledAssignmentId).toBe(ASSIGNMENT_ID)
-      expect(files).toHaveLength(2)
-      expect(files[0]?.originalname).toBe('first.jpg')
-      expect(files[1]?.originalname).toBe('second.png')
-    })
-
-    test('uploads files and returns 422 for moderation failures', async () => {
-      const moderationFailures = {
-        'file-one': ['failureOne', 'failureTwo'],
-      }
-      mockedAssignmentsService.uploadAssignmentFilesOld.mockResolvedValueOnce(
-        moderationFailures
-      )
-      const response = await agent
-        .put('/api/assignment/upload')
-        .field('assignmentId', ASSIGNMENT_ID)
-        .attach('files', Buffer.from('file-one'), 'first.jpg')
-        .attach('files', Buffer.from('file-two'), 'second.png')
-
-      expect(response.status).toBe(422)
-      expect(response.body).toEqual({ moderationFailures })
-      expect(
-        mockedAssignmentsService.uploadAssignmentFilesOld
-      ).toHaveBeenCalledTimes(1)
-
-      const [calledAssignmentId, files] =
-        mockedAssignmentsService.uploadAssignmentFilesOld.mock.calls[0]
-
-      expect(calledAssignmentId).toBe(ASSIGNMENT_ID)
-      expect(files).toHaveLength(2)
-      expect(files[0]?.originalname).toBe('first.jpg')
-      expect(files[1]?.originalname).toBe('second.png')
-    })
-  })
-
   describe('GET /api/assignment/:assignmentId/documents', () => {
     test('returns assignment documents', async () => {
       const assignmentDocuments: BlobDocument[] = [

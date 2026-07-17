@@ -9,7 +9,6 @@ import {
 import {
   Assignment,
   CreateStudentAssignmentResult,
-  EditAssignmentInput,
   StudentAssignment,
   StudentAssignmentCompletionRow,
   UpsertAssignmentInput,
@@ -57,40 +56,6 @@ export async function upsertAssignment(
     ])
   } catch (err) {
     throw new RepoUpsertError(err)
-  }
-}
-
-export async function editAssignment(
-  data: EditAssignmentInput,
-  tc: TransactionClient = getClient()
-): Promise<Assignment> {
-  try {
-    const assignment = await pgQueries.editAssignmentById.run(
-      {
-        id: data.id,
-        description: data.description,
-        dueDate: data.dueDate,
-        isRequired: data.isRequired,
-        minDurationInMinutes: data.minDurationInMinutes,
-        numberOfSessions: data.numberOfSessions,
-        startDate: data.startDate,
-        subjectId: data.subjectId,
-        title: data.title,
-      },
-      tc
-    )
-    if (!assignment.length) {
-      throw new RepoCreateError('Unable to create assignment.')
-    }
-    return makeSomeRequired(assignment[0], [
-      'id',
-      'classId',
-      'isRequired',
-      'createdAt',
-      'updatedAt',
-    ])
-  } catch (err) {
-    throw new RepoUpdateError(err)
   }
 }
 

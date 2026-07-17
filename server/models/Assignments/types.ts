@@ -32,10 +32,6 @@ export type UpsertAssignmentInput = Pick<
   id?: Ulid
 }
 
-export type EditAssignmentInput = Omit<
-  Assignment,
-  'classId' | 'createdAt' | 'updatedAt'
->
 export type StudentAssignment = {
   id: Ulid
   assignedAt: Date

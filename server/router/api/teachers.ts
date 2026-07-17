@@ -120,30 +120,6 @@ export function routeTeachers(apiRouter: Router): void {
     limits: { fileSize: 20 * 1024 * 1024 },
   })
 
-  // TODO: Remove POST /assignment in clean-up.
-  router.route('/assignment').post(async function (req, res) {
-    try {
-      const user = extractUser(req)
-      const assignmentData = AssignmentsService.asAssignment(
-        req.body.assignmentData
-      )
-
-      const { assignment, moderationInfractions } =
-        await AssignmentsService.upsertAssignment(user.id, assignmentData)
-
-      if (moderationInfractions) {
-        return resSuccess(
-          res,
-          { moderationFailures: moderationInfractions },
-          422
-        )
-      }
-      resSuccess(res, { assignment }, 201)
-    } catch (err) {
-      resError(res, err)
-    }
-  })
-
   router
     .route('/assignment')
     .put(upload.array('files'), async function (req, res) {
@@ -226,30 +202,6 @@ export function routeTeachers(apiRouter: Router): void {
         user.id
       )
       res.json({ assignments })
-    } catch (err) {
-      resError(res, err)
-    }
-  })
-
-  // TODO: Remove POST /assignment/edit in clean-up.
-  router.route('/assignment/edit').post(async function (req, res) {
-    try {
-      const user = extractUser(req)
-      const assignmentData = AssignmentsService.asAssignment(
-        req.body.assignmentData
-      )
-
-      const { assignment, moderationInfractions } =
-        await AssignmentsService.upsertAssignment(user.id, assignmentData)
-
-      if (moderationInfractions) {
-        return resSuccess(
-          res,
-          { moderationFailures: moderationInfractions },
-          422
-        )
-      }
-      resSuccess(res, { assignment }, 200)
     } catch (err) {
       resError(res, err)
     }
