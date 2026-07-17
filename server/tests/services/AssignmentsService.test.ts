@@ -57,7 +57,7 @@ describe('createAssignment', () => {
       )
     ).rejects.toThrow('Number of sessions must be greater than 0.')
 
-    expect(mockedAssignmentRepo.createAssignment).not.toHaveBeenCalled()
+    expect(mockedAssignmentRepo.upsertAssignment).not.toHaveBeenCalled()
   })
 
   test('does not throw an error if the minimum number of session is 0', async () => {
@@ -66,12 +66,13 @@ describe('createAssignment', () => {
       numberOfSessions: 0,
     }
 
-    mockedAssignmentRepo.createAssignment.mockResolvedValue({
+    mockedAssignmentRepo.upsertAssignment.mockResolvedValue({
       id: 'assignment-id',
       classId: 'classId',
       isRequired: false,
       createdAt: new Date(),
       updatedAt: new Date(),
+      isCreated: true,
     })
 
     mockedTeacherRepo.getStudentIdsInTeacherClass.mockResolvedValue([
@@ -84,7 +85,7 @@ describe('createAssignment', () => {
       )
     ).resolves.not.toThrow('Number of sessions must be greater than 0.')
 
-    expect(mockedAssignmentRepo.createAssignment).toHaveBeenCalled()
+    expect(mockedAssignmentRepo.upsertAssignment).toHaveBeenCalled()
   })
 
   test('does not throw an error if the minimum number of session is greater than 0', async () => {
@@ -92,12 +93,13 @@ describe('createAssignment', () => {
       numberOfSessions: 1,
     }
 
-    mockedAssignmentRepo.createAssignment.mockResolvedValue({
+    mockedAssignmentRepo.upsertAssignment.mockResolvedValue({
       id: 'assignment-id',
       classId: 'classId',
       isRequired: false,
       createdAt: new Date(),
       updatedAt: new Date(),
+      isCreated: true,
       ...data,
     })
 
@@ -125,7 +127,7 @@ describe('createAssignment', () => {
       )
     ).resolves.not.toThrow('Number of sessions must be greater than 0.')
 
-    expect(mockedAssignmentRepo.createAssignment).toHaveBeenCalled()
+    expect(mockedAssignmentRepo.upsertAssignment).toHaveBeenCalled()
   })
 
   test('throws an error if the start date is after the due date', async () => {
@@ -156,7 +158,7 @@ describe('createAssignment', () => {
       )
     ).rejects.toThrow('Start date cannot be after the due date.')
 
-    expect(mockedAssignmentRepo.createAssignment).not.toHaveBeenCalled()
+    expect(mockedAssignmentRepo.upsertAssignment).not.toHaveBeenCalled()
   })
 
   test('does not throw an error if the start date is before the due date', async () => {
@@ -167,12 +169,13 @@ describe('createAssignment', () => {
       startDate: startDate.toDate(),
     }
 
-    mockedAssignmentRepo.createAssignment.mockResolvedValue({
+    mockedAssignmentRepo.upsertAssignment.mockResolvedValue({
       id: 'assignment-id',
       classId: 'classId',
       isRequired: false,
       createdAt: new Date(),
       updatedAt: new Date(),
+      isCreated: true,
       ...data,
     })
 
@@ -192,7 +195,7 @@ describe('createAssignment', () => {
       data as AssignmentsService.CreateAssignmentPayload
     )
 
-    expect(mockedAssignmentRepo.createAssignment).toHaveBeenCalledTimes(2)
+    expect(mockedAssignmentRepo.upsertAssignment).toHaveBeenCalledTimes(2)
   })
 
   test('creates assignment with `isRequired` as false as default', async () => {
@@ -200,11 +203,12 @@ describe('createAssignment', () => {
       classId: 'class-id123',
     }
 
-    mockedAssignmentRepo.createAssignment.mockResolvedValue({
+    mockedAssignmentRepo.upsertAssignment.mockResolvedValue({
       id: 'assignment-id',
       isRequired: false,
       createdAt: new Date(),
       updatedAt: new Date(),
+      isCreated: true,
       ...data,
     })
 
@@ -216,7 +220,7 @@ describe('createAssignment', () => {
       data as AssignmentsService.CreateAssignmentPayload
     )
 
-    expect(mockedAssignmentRepo.createAssignment).toHaveBeenCalledWith(
+    expect(mockedAssignmentRepo.upsertAssignment).toHaveBeenCalledWith(
       {
         classId: data.classId,
         isRequired: false,
@@ -226,18 +230,21 @@ describe('createAssignment', () => {
   })
 
   test('creates the assignment with correct parameters', async () => {
-    const data = buildAssignment({
-      classId: 'class-id123',
-      description: 'some description of the assignment',
-      dueDate: moment('2025-09-18').toDate(),
-      isRequired: true,
-      minDurationInMinutes: 30,
-      numberOfSessions: 2,
-      startDate: moment('2024-01-01').toDate(),
-      subjectId: 15,
-      title: 'the title of the assignment',
-    })
-    mockedAssignmentRepo.createAssignment.mockResolvedValue(data)
+    const data = {
+      ...buildAssignment({
+        classId: 'class-id123',
+        description: 'some description of the assignment',
+        dueDate: moment('2025-09-18').toDate(),
+        isRequired: true,
+        minDurationInMinutes: 30,
+        numberOfSessions: 2,
+        startDate: moment('2024-01-01').toDate(),
+        subjectId: 15,
+        title: 'the title of the assignment',
+      }),
+      isCreated: true,
+    }
+    mockedAssignmentRepo.upsertAssignment.mockResolvedValue(data)
 
     mockedTeacherRepo.getStudentIdsInTeacherClass.mockResolvedValue([
       'student-id-1',
@@ -248,7 +255,7 @@ describe('createAssignment', () => {
       studentIds: [],
     })
 
-    expect(mockedAssignmentRepo.createAssignment).toHaveBeenCalledWith(
+    expect(mockedAssignmentRepo.upsertAssignment).toHaveBeenCalledWith(
       {
         classId: data.classId,
         description: data.description,
@@ -285,7 +292,7 @@ describe('createAssignment', () => {
     expect(mockedModerationService.moderateAssignmentInfo).toHaveBeenCalledWith(
       'a BAD title a description'
     )
-    expect(mockedAssignmentRepo.createAssignment).not.toHaveBeenCalled()
+    expect(mockedAssignmentRepo.upsertAssignment).not.toHaveBeenCalled()
     expect(
       mockedAssignmentRepo.createStudentsAssignmentsForAll
     ).not.toHaveBeenCalled()
@@ -293,7 +300,10 @@ describe('createAssignment', () => {
 
   test('assigns the assignment to the selected students', async () => {
     const assignment = buildAssignment()
-    mockedAssignmentRepo.createAssignment.mockResolvedValue(assignment)
+    mockedAssignmentRepo.upsertAssignment.mockResolvedValue({
+      ...assignment,
+      isCreated: true,
+    })
 
     await AssignmentsService.createAssignment({
       classId: assignment.classId,
@@ -512,10 +522,11 @@ describe('createAssignmentForClasses', () => {
       ...buildAssignment(),
       classIds: ['a', 'b', 'c'],
     }
-    mockedAssignmentRepo.createAssignment.mockImplementation(async (input) => ({
+    mockedAssignmentRepo.upsertAssignment.mockImplementation(async (input) => ({
       id: `assignment-for-${input.classId}`,
       createdAt: new Date(),
       updatedAt: new Date(),
+      isCreated: true,
       ...input,
     }))
 
@@ -524,11 +535,11 @@ describe('createAssignmentForClasses', () => {
       data.classIds
     )
 
-    expect(mockedAssignmentRepo.createAssignment).toHaveBeenCalledTimes(
+    expect(mockedAssignmentRepo.upsertAssignment).toHaveBeenCalledTimes(
       data.classIds.length
     )
     for (const classId of data.classIds) {
-      expect(mockedAssignmentRepo.createAssignment).toHaveBeenCalledWith(
+      expect(mockedAssignmentRepo.upsertAssignment).toHaveBeenCalledWith(
         {
           classId,
           description: data.description,
@@ -553,13 +564,19 @@ describe('createAssignmentForClasses', () => {
       classIds: ['class-1', 'class-2'],
     }
 
-    mockedAssignmentRepo.createAssignment
-      .mockResolvedValueOnce(
-        buildAssignment({ id: 'assignment-1', classId: 'class-1' })
-      )
-      .mockResolvedValueOnce(
-        buildAssignment({ id: 'assignment-2', classId: 'class-2' })
-      )
+    mockedAssignmentRepo.upsertAssignment
+      .mockResolvedValueOnce({
+        ...data,
+        id: 'assignment-1',
+        classId: 'class-1',
+        isCreated: true,
+      })
+      .mockResolvedValueOnce({
+        ...data,
+        id: 'assignment-2',
+        classId: 'class-2',
+        isCreated: true,
+      })
     mockedTeacherRepo.getStudentIdsInTeacherClass
       .mockResolvedValueOnce(['student-1', 'student-2'])
       .mockResolvedValueOnce(['student-3'])
@@ -608,7 +625,7 @@ describe('createAssignmentForClasses', () => {
     expect(mockedModerationService.moderateAssignmentInfo).toHaveBeenCalledWith(
       `${data.title} ${data.description}`
     )
-    expect(mockedAssignmentRepo.createAssignment).not.toHaveBeenCalled()
+    expect(mockedAssignmentRepo.upsertAssignment).not.toHaveBeenCalled()
     expect(
       mockedAssignmentRepo.createStudentsAssignmentsForAll
     ).not.toHaveBeenCalled()
