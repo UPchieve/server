@@ -6,6 +6,8 @@ import * as VolunteerService from './VolunteerService'
 import * as CacheService from '../cache'
 import config from '../config'
 import { InputError } from '../models/Errors'
+import { captureEvent } from './AnalyticsService'
+import { EVENTS } from '../constants'
 
 /*
  * - Right now, most of the app experience is driven by whether a user is a student, volunteer, or teacher, and
@@ -136,6 +138,7 @@ export async function addVolunteerRoleToUser(userId: string): Promise<void> {
       tc
     )
   })
+  captureEvent(userId, EVENTS.ADDED_VOLUNTEER_ROLE)
   await VolunteerService.queueOnboardingReminderOneEmail(userId)
   await updateRoleContextCache(
     userId,
