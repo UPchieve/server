@@ -1,5 +1,5 @@
 import moment from 'moment'
-import { getFileType, isImageFile, isPdf } from '../utils/image-utils'
+import { isImageFile, isPdf } from '../utils/image-utils'
 import { runInTransaction, TransactionClient } from '../db'
 import { Ulid, Uuid } from '../models/pgUtils'
 import * as AssignmentsRepo from '../models/Assignments'
@@ -31,7 +31,8 @@ import * as ModerationTypes from './ModerationService/types'
 import { extractPdfContent } from '../utils/file-utils'
 import { moderateAssignmentInfo } from './ModerationService/index'
 
-export type CreateAssignmentPayload = {
+export type UpsertAssignmentPayload = {
+  id?: string
   classId: string
   description?: string
   dueDate?: Date
@@ -41,28 +42,21 @@ export type CreateAssignmentPayload = {
   startDate?: Date
   subjectId?: number
   title?: string
-  studentIds: Array<string>
+  // TODO: Remove in favour of `studentsToAdd`.
+  // Remove after high-line clean-up.
+  studentIds?: string[]
+  studentsToAdd?: string[]
+  studentsToRemove?: string[]
 }
+
 export type CreateMultipleAssignmentsPayload = Omit<
-  CreateAssignmentPayload,
-  'classId' | 'studentIds'
+  UpsertAssignmentPayload,
+  'id' | 'classId' | 'studentIds' | 'studentsToAdd' | 'studentsToRemove'
 > & {
   classIds: string[]
 }
-export type EditAssignmentPayload = {
-  id: string
-  description?: string
-  dueDate?: Date
-  isRequired?: boolean
-  minDurationInMinutes?: number
-  numberOfSessions?: number
-  startDate?: Date
-  subjectId?: number
-  title?: string
-  studentsToRemove?: Array<string>
-  studentsToAdd?: Array<string>
-}
 const assignmentValidators = {
+  id: asOptional(asString),
   classId: asString,
   description: asOptional(asString),
   dueDate: asOptional(asDate),
@@ -72,36 +66,43 @@ const assignmentValidators = {
   startDate: asOptional(asDate),
   subjectId: asOptional(asNumber),
   title: asOptional(asString),
-  studentIds: asArray(asString),
+  studentIds: asOptional(asArray(asString)),
+  studentsToAdd: asOptional(asArray(asString)),
+  studentsToRemove: asOptional(asArray(asString)),
 }
-export const asAssignment =
-  asFactory<CreateAssignmentPayload>(assignmentValidators)
 
-const { classId, studentIds, ...multipleAssignmentsValidators } =
-  assignmentValidators
+export const asAssignment =
+  asFactory<UpsertAssignmentPayload>(assignmentValidators)
+
+const {
+  id,
+  classId,
+  studentIds,
+  studentsToAdd,
+  studentsToRemove,
+  ...multipleAssignmentsValidators
+} = assignmentValidators
 export const asMultipleAssignments =
   asFactory<CreateMultipleAssignmentsPayload>({
     ...multipleAssignmentsValidators,
     classIds: asArray(asString),
   })
 
-const { classId: _unused2, ...editAssignmentValidators } = assignmentValidators
-export const asEditedAssignment = asFactory<EditAssignmentPayload>({
-  ...editAssignmentValidators,
-  id: asString,
-  studentsToRemove: asOptional(asArray(asString)),
-  studentsToAdd: asOptional(asArray(asString)),
-})
+export type AssignmentModerationResult = {
+  assignment?: Assignment & { isCreated: boolean }
+  moderationInfractions?: ModerationTypes.ModerationInfractionCategories
+  imageModerationInfractions?: Record<string, string[]>
+}
 
-export async function createAssignment(
-  data: CreateAssignmentPayload,
+export async function upsertAssignment(
+  data: UpsertAssignmentPayload,
   tc?: TransactionClient
-): Promise<{ assignment?: Assignment; moderationInfractions?: string[] }> {
+): Promise<AssignmentModerationResult> {
   validateAssignmentData(data)
+
   const moderationInfractions = await ModerationService.moderateAssignmentInfo(
     `${data.title} ${data.description}`
   )
-
   if (!isEmpty(moderationInfractions)) {
     return { moderationInfractions }
   }
@@ -109,6 +110,7 @@ export async function createAssignment(
   return runInTransaction(async (tc: TransactionClient) => {
     const assignment = await AssignmentsRepo.upsertAssignment(
       {
+        id: data.id,
         classId: data.classId,
         description: data.description,
         dueDate: data.dueDate,
@@ -122,8 +124,19 @@ export async function createAssignment(
       tc
     )
 
-    if (data.studentIds && data.studentIds.length > 0) {
-      await addAssignmentForStudents(data.studentIds, assignment.id, tc)
+    if (data.studentsToAdd?.length || data.studentIds?.length) {
+      const studentsToAdd = (data.studentIds ?? []).concat(
+        data.studentsToAdd ?? []
+      )
+      await addAssignmentForStudents(studentsToAdd, assignment.id, tc)
+    }
+
+    if (data.studentsToRemove?.length) {
+      await deleteAssignmentsForStudents(
+        data.studentsToRemove,
+        assignment.id,
+        tc
+      )
     }
 
     return { assignment }
@@ -131,7 +144,10 @@ export async function createAssignment(
 }
 
 export async function createAssignmentForClasses(
-  data: Omit<CreateAssignmentPayload, 'classId' | 'studentIds'>,
+  data: Omit<
+    UpsertAssignmentPayload,
+    'classId' | 'studentsToAdd' | 'studentsToRemove'
+  >,
   classIds: string[]
 ): Promise<{ assignments?: Assignment[]; moderationInfractions?: string[] }> {
   validateAssignmentData(data)
@@ -169,42 +185,25 @@ export async function createAssignmentForClasses(
   })
 }
 
-export async function editAssignment(
-  data: EditAssignmentPayload
-): Promise<Assignment | ModerationTypes.ModerationInfractionCategories> {
-  validateAssignmentData(data)
-  const moderationResults = await ModerationService.moderateAssignmentInfo(
-    `${data.title} ${data.description}`
-  )
-  if (!isEmpty(moderationResults)) {
-    return moderationResults
+function validateAssignmentData(data: {
+  numberOfSessions?: number
+  startDate?: Date
+  dueDate?: Date
+}) {
+  const numSessions = data.numberOfSessions
+  if (numSessions && numSessions <= 0) {
+    throw new InputError('Number of sessions must be greater than 0.')
   }
-  return runInTransaction(async (tc: TransactionClient) => {
-    const assignment = await AssignmentsRepo.editAssignment(
-      {
-        id: data.id,
-        description: data.description,
-        dueDate: data.dueDate,
-        isRequired: data.isRequired ?? false,
-        minDurationInMinutes: data.minDurationInMinutes,
-        numberOfSessions: data.numberOfSessions,
-        startDate: data.startDate,
-        subjectId: data.subjectId,
-        title: data.title,
-      },
-      tc
-    )
 
-    if (data.studentsToRemove && data.studentsToRemove.length) {
-      await deleteAssignmentsForStudents(data.studentsToRemove, data.id, tc)
-    }
-
-    if (data.studentsToAdd && data.studentsToAdd.length) {
-      await addAssignmentForStudents(data.studentsToAdd, data.id, tc)
-    }
-
-    return assignment
-  })
+  const startDate = data.startDate
+  const dueDate = data.dueDate
+  if (
+    startDate &&
+    dueDate &&
+    moment(startDate).isSameOrAfter(moment(dueDate))
+  ) {
+    throw new InputError('Start date cannot be after the due date.')
+  }
 }
 
 export async function getAssignmentsByClassId(
@@ -248,13 +247,8 @@ export async function addAssignmentForClass(
   assignmentId: Ulid,
   tc: TransactionClient
 ): Promise<CreateStudentAssignmentResult[]> {
-  return runInTransaction(async (tc: TransactionClient) => {
-    const studentIds = await TeacherRepo.getStudentIdsInTeacherClass(
-      tc,
-      classId
-    )
-    return addAssignmentForStudents(studentIds, assignmentId, tc)
-  }, tc)
+  const studentIds = await TeacherRepo.getStudentIdsInTeacherClass(tc, classId)
+  return addAssignmentForStudents(studentIds, assignmentId, tc)
 }
 
 /*
@@ -369,22 +363,6 @@ async function deleteAssignmentsForStudents(
   }, tc)
 }
 
-function validateAssignmentData(
-  data: Pick<
-    CreateAssignmentPayload,
-    'numberOfSessions' | 'startDate' | 'dueDate'
-  >
-) {
-  const numSessions = data.numberOfSessions
-  if (numSessions && numSessions <= 0)
-    throw new InputError('Number of sessions must be greater than 0.')
-
-  const startDate = data.startDate
-  const dueDate = data.dueDate
-  if (startDate && dueDate && moment(startDate).isSameOrAfter(moment(dueDate)))
-    throw new InputError('Start date cannot be after the due date.')
-}
-
 // Exported for testing.
 export function haveSessionsMetAssignmentRequirements(
   assignment: Omit<StudentAssignment, 'classId'>,
@@ -430,7 +408,7 @@ async function getClassAssignments(classId: Ulid, tc: TransactionClient) {
         })
       )
     ).filter((a): a is Assignment => !!a)
-  })
+  }, tc)
 }
 
 async function moderateAssignmentPdf(
@@ -543,9 +521,9 @@ export async function isGettingStartedAssignment(
 }
 
 export async function createGettingStartedAssignment(
+  userId: Ulid,
   classId: Uuid,
-  topicId?: number,
-  tc?: TransactionClient
+  topicId?: number
 ) {
   const studentInstructions = `Welcome to UPchieve!
 
@@ -561,24 +539,22 @@ Good luck, and have fun!
 `
   let subjectId
   if (topicId) {
-    const subjects = await getSubjectsForTopicByTopicId(topicId, tc)
+    const subjects = await getSubjectsForTopicByTopicId(topicId)
     if (subjects.length) subjectId = subjects[0].id
   }
-  const assignment: Assignment = (await createAssignment(
-    {
-      classId,
-      description: studentInstructions,
-      dueDate: moment().add(1, 'week').endOf('day').toDate(),
-      isRequired: false,
-      minDurationInMinutes: 10,
-      numberOfSessions: 1,
-      startDate: moment().startOf('day').toDate(),
-      studentIds: [],
-      subjectId,
-      title: 'Getting Started on UPchieve',
-    },
-    tc
-  )) as Assignment
+  const { assignment } = await upsertAssignment({
+    classId,
+    description: studentInstructions,
+    dueDate: moment().add(1, 'week').endOf('day').toDate(),
+    isRequired: false,
+    minDurationInMinutes: 10,
+    numberOfSessions: 1,
+    startDate: moment().startOf('day').toDate(),
+    subjectId,
+    title: 'Getting Started on UPchieve',
+  })
+
+  if (!assignment) return
   // TODO: Remove if we decide to add teacher_notes for assignments in the DB
   cache.sadd('getting-started-assignments', assignment.id)
 }

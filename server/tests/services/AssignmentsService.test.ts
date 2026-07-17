@@ -28,7 +28,7 @@ beforeEach(() => {
   jest.resetAllMocks()
 })
 
-describe('createAssignment', () => {
+describe('upsertAssignment', () => {
   beforeEach(() => {
     mockedModerationService.moderateAssignmentInfo.mockResolvedValue([])
   })
@@ -38,22 +38,22 @@ describe('createAssignment', () => {
       numberOfSessions: -1,
     }
     await expect(
-      AssignmentsService.createAssignment(
-        data as AssignmentsService.CreateAssignmentPayload
+      AssignmentsService.upsertAssignment(
+        data as AssignmentsService.UpsertAssignmentPayload
       )
     ).rejects.toThrow('Number of sessions must be greater than 0.')
 
     data.numberOfSessions = -5
     await expect(
-      AssignmentsService.createAssignment(
-        data as AssignmentsService.CreateAssignmentPayload
+      AssignmentsService.upsertAssignment(
+        data as AssignmentsService.UpsertAssignmentPayload
       )
     ).rejects.toThrow('Number of sessions must be greater than 0.')
 
     data.numberOfSessions = -5690
     await expect(
-      AssignmentsService.createAssignment(
-        data as AssignmentsService.CreateAssignmentPayload
+      AssignmentsService.upsertAssignment(
+        data as AssignmentsService.UpsertAssignmentPayload
       )
     ).rejects.toThrow('Number of sessions must be greater than 0.')
 
@@ -80,8 +80,8 @@ describe('createAssignment', () => {
     ])
 
     await expect(
-      AssignmentsService.createAssignment(
-        data as AssignmentsService.CreateAssignmentPayload
+      AssignmentsService.upsertAssignment(
+        data as AssignmentsService.UpsertAssignmentPayload
       )
     ).resolves.not.toThrow('Number of sessions must be greater than 0.')
 
@@ -108,22 +108,22 @@ describe('createAssignment', () => {
     ])
 
     await expect(
-      AssignmentsService.createAssignment(
-        data as AssignmentsService.CreateAssignmentPayload
+      AssignmentsService.upsertAssignment(
+        data as AssignmentsService.UpsertAssignmentPayload
       )
     ).resolves.not.toThrow('Number of sessions must be greater than 0.')
 
     data.numberOfSessions = 100
     await expect(
-      AssignmentsService.createAssignment(
-        data as AssignmentsService.CreateAssignmentPayload
+      AssignmentsService.upsertAssignment(
+        data as AssignmentsService.UpsertAssignmentPayload
       )
     ).resolves.not.toThrow('Number of sessions must be greater than 0.')
 
     data.numberOfSessions = 679834
     await expect(
-      AssignmentsService.createAssignment(
-        data as AssignmentsService.CreateAssignmentPayload
+      AssignmentsService.upsertAssignment(
+        data as AssignmentsService.UpsertAssignmentPayload
       )
     ).resolves.not.toThrow('Number of sessions must be greater than 0.')
 
@@ -143,8 +143,8 @@ describe('createAssignment', () => {
     ])
 
     await expect(
-      AssignmentsService.createAssignment(
-        data as AssignmentsService.CreateAssignmentPayload
+      AssignmentsService.upsertAssignment(
+        data as AssignmentsService.UpsertAssignmentPayload
       )
     ).rejects.toThrow('Start date cannot be after the due date.')
 
@@ -153,8 +153,8 @@ describe('createAssignment', () => {
     data.dueDate = dueDate.toDate()
     data.startDate = startDate.toDate()
     await expect(
-      AssignmentsService.createAssignment(
-        data as AssignmentsService.CreateAssignmentPayload
+      AssignmentsService.upsertAssignment(
+        data as AssignmentsService.UpsertAssignmentPayload
       )
     ).rejects.toThrow('Start date cannot be after the due date.')
 
@@ -183,16 +183,16 @@ describe('createAssignment', () => {
       'student-id-1',
     ])
 
-    await AssignmentsService.createAssignment(
-      data as AssignmentsService.CreateAssignmentPayload
+    await AssignmentsService.upsertAssignment(
+      data as AssignmentsService.UpsertAssignmentPayload
     )
 
     dueDate = moment()
     startDate = dueDate.clone().subtract('1', 'second')
     data.dueDate = dueDate.toDate()
     data.startDate = startDate.toDate()
-    await AssignmentsService.createAssignment(
-      data as AssignmentsService.CreateAssignmentPayload
+    await AssignmentsService.upsertAssignment(
+      data as AssignmentsService.UpsertAssignmentPayload
     )
 
     expect(mockedAssignmentRepo.upsertAssignment).toHaveBeenCalledTimes(2)
@@ -216,8 +216,8 @@ describe('createAssignment', () => {
       'student-id-1',
     ])
 
-    await AssignmentsService.createAssignment(
-      data as AssignmentsService.CreateAssignmentPayload
+    await AssignmentsService.upsertAssignment(
+      data as AssignmentsService.UpsertAssignmentPayload
     )
 
     expect(mockedAssignmentRepo.upsertAssignment).toHaveBeenCalledWith(
@@ -250,13 +250,11 @@ describe('createAssignment', () => {
       'student-id-1',
     ])
 
-    const { assignment } = await AssignmentsService.createAssignment({
-      ...data,
-      studentIds: [],
-    })
+    const { assignment } = await AssignmentsService.upsertAssignment(data)
 
     expect(mockedAssignmentRepo.upsertAssignment).toHaveBeenCalledWith(
       {
+        id: data.id,
         classId: data.classId,
         description: data.description,
         dueDate: data.dueDate,
@@ -278,11 +276,11 @@ describe('createAssignment', () => {
       'PROFANITY',
     ])
 
-    const actual = await AssignmentsService.createAssignment({
+    const actual = await AssignmentsService.upsertAssignment({
       classId: 'class-id123',
       description: 'a description',
       isRequired: false,
-      studentIds: ['student-id-1'],
+      studentsToAdd: ['student-id-1'],
       title: 'a BAD title',
     })
 
@@ -299,23 +297,23 @@ describe('createAssignment', () => {
   })
 
   test('assigns the assignment to the selected students', async () => {
-    const assignment = buildAssignment()
+    const data = buildAssignment()
     mockedAssignmentRepo.upsertAssignment.mockResolvedValue({
-      ...assignment,
+      ...data,
       isCreated: true,
     })
 
-    await AssignmentsService.createAssignment({
-      classId: assignment.classId,
+    await AssignmentsService.upsertAssignment({
+      classId: data.classId,
       isRequired: false,
-      studentIds: ['student-id-1', 'student-id-2'],
+      studentsToAdd: ['student-id-1', 'student-id-2'],
     })
 
     expect(
       mockedAssignmentRepo.createStudentsAssignmentsForAll
     ).toHaveBeenCalledWith(
       ['student-id-1', 'student-id-2'],
-      [assignment.id],
+      [data.id],
       expect.toBeTransactionClient()
     )
   })

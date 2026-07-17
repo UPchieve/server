@@ -5,7 +5,6 @@ import { routeAssignments } from '../../../router/api/assignments'
 import * as AssignmentsService from '../../../services/AssignmentsService'
 import {
   buildAssignment,
-  buildAssignmentPublic,
   buildStudentAssignmentCompletionRow,
   buildStudentAssignmentSubmissionPublic,
   buildUser,
@@ -47,7 +46,6 @@ describe('routeAssignments', () => {
     test('returns assignment', async () => {
       const isGettingStartedAssignment = true
       const assignment = buildAssignment({ isGettingStartedAssignment })
-      const assignmentPublic = buildAssignmentPublic(assignment)
       mockedAssignmentsService.getAssignmentById.mockResolvedValueOnce(
         assignment
       )
@@ -64,7 +62,13 @@ describe('routeAssignments', () => {
         mockedAssignmentsService.isGettingStartedAssignment
       ).toHaveBeenCalledWith(assignment.id)
       expect(response.body).toEqual({
-        assignment: assignmentPublic,
+        assignment: {
+          ...assignment,
+          startDate: assignment.startDate?.toISOString(),
+          dueDate: assignment.dueDate?.toISOString(),
+          createdAt: assignment.createdAt.toISOString(),
+          updatedAt: undefined,
+        },
       })
     })
 

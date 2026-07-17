@@ -1279,28 +1279,9 @@ export function buildAssignment(
   }
 }
 
-export function buildAssignmentPublic(
-  overrides: Partial<Assignment> = {}
-): AssignmentPublic {
-  const assignment = buildAssignment(overrides)
-  return {
-    id: assignment.id,
-    classId: assignment.classId,
-    description: assignment.description,
-    dueDate: assignment.dueDate?.toISOString(),
-    isRequired: assignment.isRequired,
-    minDurationInMinutes: assignment.minDurationInMinutes,
-    numberOfSessions: assignment.numberOfSessions,
-    startDate: assignment.startDate?.toISOString(),
-    subjectId: assignment.subjectId,
-    title: assignment.title,
-    createdAt: assignment.createdAt?.toISOString(),
-    isGettingStartedAssignment: assignment.isGettingStartedAssignment,
-  }
-}
-
 export function buildAssignmentPayload(
   overrides: Partial<{
+    id: string
     classId: string
     description?: string
     dueDate?: Date
@@ -1314,6 +1295,7 @@ export function buildAssignmentPayload(
   }> = {}
 ) {
   return {
+    id: undefined,
     classId: getUuid(),
     description: 'Practice problems',
     dueDate: new Date(),
@@ -1324,37 +1306,6 @@ export function buildAssignmentPayload(
     subjectId: 1,
     title: 'Homework 1',
     studentIds: [getUuid()],
-    ...overrides,
-  }
-}
-
-export function buildEditedAssignmentPayload(
-  overrides: Partial<{
-    id: string
-    description?: string
-    dueDate?: Date
-    isRequired?: boolean
-    minDurationInMinutes?: number
-    numberOfSessions?: number
-    startDate?: Date
-    subjectId?: number
-    title?: string
-    studentsToRemove?: string[]
-    studentsToAdd?: string[]
-  }> = {}
-) {
-  return {
-    id: getUuid(),
-    description: 'Updated practice problems',
-    dueDate: new Date(),
-    isRequired: true,
-    minDurationInMinutes: 20,
-    numberOfSessions: 3,
-    startDate: new Date(),
-    subjectId: 2,
-    title: 'Homework 1 Updated',
-    studentsToRemove: [getUuid()],
-    studentsToAdd: [getUuid()],
     ...overrides,
   }
 }
@@ -1390,9 +1341,6 @@ export function buildStudentAssignmentCompletionRow(
     firstName: student.firstName,
     lastName: student.firstName,
     submittedAt,
-    first_name: student.firstName,
-    last_name: student.firstName,
-    submitted_at: submittedAt,
     ...overrides,
   }
 }
