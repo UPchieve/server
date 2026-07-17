@@ -1,5 +1,4 @@
 import { Router } from 'express'
-import { isArray } from 'lodash'
 import { extractUser } from '../extract-user'
 import * as TeacherService from '../../services/TeacherService'
 import * as AssignmentsService from '../../services/AssignmentsService'
@@ -116,15 +115,15 @@ export function routeTeachers(apiRouter: Router): void {
     })
 
   /* Assignments */
+  // TODO: Remove POST /assignment in clean-up.
   router.route('/assignment').post(async function (req, res) {
     try {
       const assignmentData = AssignmentsService.asAssignment(
-        req.body.assignmentData,
-        req.body.studentIds
+        req.body.assignmentData
       )
 
       const { assignment, moderationInfractions } =
-        await AssignmentsService.createAssignment(assignmentData)
+        await AssignmentsService.upsertAssignment(assignmentData)
 
       if (moderationInfractions) {
         return resSuccess(
@@ -134,6 +133,24 @@ export function routeTeachers(apiRouter: Router): void {
         )
       }
       resSuccess(res, { assignment }, 201)
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
+  router.route('/assignment').put(async function (req, res) {
+    try {
+      const assignmentData = AssignmentsService.asAssignment(
+        req.body.assignmentData
+      )
+
+      const { assignment, moderationInfractions } =
+        await AssignmentsService.upsertAssignment(assignmentData)
+
+      if (moderationInfractions) {
+        return resSuccess(res, { moderationInfractions }, 422)
+      }
+      resSuccess(res, { assignment }, assignment?.isCreated ? 201 : 200)
     } catch (err) {
       resError(res, err)
     }
@@ -183,20 +200,24 @@ export function routeTeachers(apiRouter: Router): void {
     }
   })
 
+  // TODO: Remove POST /assignment/edit in clean-up.
   router.route('/assignment/edit').post(async function (req, res) {
     try {
-      const assignmentData = AssignmentsService.asEditedAssignment(
+      const assignmentData = AssignmentsService.asAssignment(
         req.body.assignmentData
       )
 
-      const result = await AssignmentsService.editAssignment(assignmentData)
-      if (isArray(result) && result.length) {
-        res.status(422).json({
-          moderationFailures: result,
-        })
-      } else {
-        res.status(200).json({ assignment: result })
+      const { assignment, moderationInfractions } =
+        await AssignmentsService.upsertAssignment(assignmentData)
+
+      if (moderationInfractions) {
+        return resSuccess(
+          res,
+          { moderationFailures: moderationInfractions },
+          422
+        )
       }
+      resSuccess(res, { assignment }, 200)
     } catch (err) {
       resError(res, err)
     }

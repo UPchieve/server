@@ -1,5 +1,6 @@
 import _ from 'lodash'
 import { getClient, runInTransaction, TransactionClient } from '../db'
+import logger from '../logger'
 import { InputError } from '../models/Errors'
 import { Ulid, Uuid } from '../models/pgUtils'
 import * as AssignmentsService from './AssignmentsService'
@@ -28,7 +29,7 @@ export async function createTeacherClass(
   cleverId?: string,
   tc?: TransactionClient
 ) {
-  return runInTransaction(async (tc: TransactionClient) => {
+  const newClass = await runInTransaction(async (tc: TransactionClient) => {
     const code = await generateUniqueClassCode(tc)
     const newClass = await TeacherRepo.createTeacherClass(
       {
@@ -41,15 +42,28 @@ export async function createTeacherClass(
       tc
     )
     const topic = topicId ? await SubjectsRepo.getTopics(topicId, tc) : []
-    if (await getTeacherGettingStartedAssignmentFlag(userId))
-      await AssignmentsService.createGettingStartedAssignment(
-        newClass.id,
-        topicId,
-        tc
-      )
 
     return { ...newClass, topic: topic[0] }
   }, tc)
+
+  // Don't fail the class creation for an experimental feature.
+  // If it works great, if not, just move on.
+  if (await getTeacherGettingStartedAssignmentFlag(userId)) {
+    try {
+      await AssignmentsService.createGettingStartedAssignment(
+        userId,
+        newClass.id,
+        topicId
+      )
+    } catch (err) {
+      logger.error(
+        { err, userId, classId: newClass.id },
+        'Unable to create getting started assignment for new class'
+      )
+    }
+  }
+
+  return newClass
 }
 
 export async function getTeacherClasses(

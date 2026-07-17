@@ -6,7 +6,6 @@ import * as TeacherService from '../../../services/TeacherService'
 import * as AssignmentsService from '../../../services/AssignmentsService'
 import {
   buildAssignment,
-  buildEditedAssignmentPayload,
   buildStudentUserProfile,
   buildTeacherClass,
   buildTeacherClassWithStudents,
@@ -47,6 +46,10 @@ function sendGet(path: string): Promise<Response> {
 
 function sendPost(path: string, payload?: object): Promise<Response> {
   return agent.post(path).set('Accept', 'application/json').send(payload)
+}
+
+function sendPut(path: string, payload?: object): Promise<Response> {
+  return agent.put(path).set('Accept', 'application/json').send(payload)
 }
 
 function sendDelete(path: string): Promise<Response> {
@@ -309,39 +312,79 @@ describe('routeTeachers', () => {
     })
   })
 
-  describe('POST /api/teachers/assignment', () => {
-    test('creates assignment', async () => {
+  describe('PUT /api/teachers/assignment', () => {
+    test('creates assignment if not already created', async () => {
       const assignmentData = buildAssignmentPayload()
       const assignment = buildAssignment()
       mockedAssignmentsService.asAssignment.mockReturnValueOnce(assignmentData)
-      mockedAssignmentsService.createAssignment.mockResolvedValueOnce({
-        assignment,
+      mockedAssignmentsService.upsertAssignment.mockResolvedValueOnce({
+        assignment: { ...assignment, isCreated: true },
       })
 
-      const response = await sendPost('/api/teachers/assignment', {
+      const response = await sendPut('/api/teachers/assignment', {
         assignmentData,
         studentIds: assignmentData.studentIds,
       })
       expect(response.status).toBe(201)
-      expect(mockedAssignmentsService.asAssignment).toHaveBeenCalledWith(
-        {
-          ...assignmentData,
-          startDate: assignmentData.startDate.toISOString(),
-          dueDate: assignmentData.dueDate.toISOString(),
-        },
-        assignmentData.studentIds
-      )
-      expect(mockedAssignmentsService.createAssignment).toHaveBeenCalledWith(
+      expect(mockedAssignmentsService.asAssignment).toHaveBeenCalledWith({
+        ...assignmentData,
+        startDate: assignmentData.startDate.toISOString(),
+        dueDate: assignmentData.dueDate.toISOString(),
+      })
+      expect(mockedAssignmentsService.upsertAssignment).toHaveBeenCalledWith(
         assignmentData
       )
       expect(response.body).toEqual({
         assignment: {
           ...assignment,
+          isCreated: true,
           createdAt: assignment.createdAt.toISOString(),
           updatedAt: assignment.updatedAt.toISOString(),
           dueDate: assignment.dueDate?.toISOString(),
           startDate: assignment.startDate?.toISOString(),
         },
+      })
+    })
+
+    test('edits assignment if already created', async () => {
+      const assignmentData = buildAssignmentPayload({ id: getUuid() })
+      const assignment = buildAssignment()
+      mockedAssignmentsService.asAssignment.mockReturnValueOnce(assignmentData)
+      mockedAssignmentsService.upsertAssignment.mockResolvedValueOnce({
+        assignment: { ...assignment, isCreated: false },
+      })
+
+      const response = await sendPut('/api/teachers/assignment', {
+        assignmentData,
+        studentIds: assignmentData.studentIds,
+      })
+      expect(response.status).toBe(200)
+      expect(response.body).toEqual({
+        assignment: {
+          ...assignment,
+          isCreated: false,
+          createdAt: assignment.createdAt.toISOString(),
+          updatedAt: assignment.updatedAt.toISOString(),
+          dueDate: assignment.dueDate?.toISOString(),
+          startDate: assignment.startDate?.toISOString(),
+        },
+      })
+    })
+
+    test('returns 422 when the title or description is flagged', async () => {
+      const assignmentData = buildAssignmentPayload()
+      const moderationInfractions = ['PROFANITY']
+      mockedAssignmentsService.asAssignment.mockReturnValueOnce(assignmentData)
+      mockedAssignmentsService.upsertAssignment.mockResolvedValueOnce({
+        moderationInfractions,
+      })
+
+      const response = await sendPost('/api/teachers/assignment', {
+        assignmentData,
+      })
+      expect(response.status).toBe(422)
+      expect(response.body).toEqual({
+        moderationFailures: moderationInfractions,
       })
     })
   })
@@ -393,39 +436,6 @@ describe('routeTeachers', () => {
           dueDate: assignment.dueDate?.toISOString(),
           startDate: assignment.startDate?.toISOString(),
         })),
-      })
-    })
-  })
-
-  describe('POST /api/teachers/assignment/edit', () => {
-    test('edits assignment', async () => {
-      const assignmentData = buildEditedAssignmentPayload()
-      const assignment = buildAssignment()
-      mockedAssignmentsService.asEditedAssignment.mockReturnValueOnce(
-        assignmentData
-      )
-      mockedAssignmentsService.editAssignment.mockResolvedValueOnce(assignment)
-
-      const response = await sendPost('/api/teachers/assignment/edit', {
-        assignmentData,
-      })
-      expect(response.status).toBe(200)
-      expect(mockedAssignmentsService.asEditedAssignment).toHaveBeenCalledWith({
-        ...assignmentData,
-        startDate: assignmentData.startDate.toISOString(),
-        dueDate: assignmentData.dueDate.toISOString(),
-      })
-      expect(mockedAssignmentsService.editAssignment).toHaveBeenCalledWith(
-        assignmentData
-      )
-      expect(response.body).toEqual({
-        assignment: {
-          ...assignment,
-          createdAt: assignment.createdAt.toISOString(),
-          updatedAt: assignment.updatedAt.toISOString(),
-          dueDate: assignment.dueDate?.toISOString(),
-          startDate: assignment.startDate?.toISOString(),
-        },
       })
     })
   })
