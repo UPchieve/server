@@ -408,27 +408,6 @@ describe('routeTeachers', () => {
       })
     })
 
-    // TODO: Remove with POST /assignment in clean-up.
-    test('returns 422 with `moderationFailures` from the legacy POST endpoint when the title or description is flagged', async () => {
-      const assignmentData = buildAssignmentPayload()
-      const moderationInfractions = ['PROFANITY']
-      mockedAssignmentsService.asAssignment.mockReturnValueOnce(assignmentData)
-      mockedAssignmentsService.upsertAssignment.mockResolvedValueOnce({
-        moderationInfractions,
-      })
-
-      const response = await sendPost('/api/teachers/assignment', {
-        assignmentData,
-      })
-      expect(response.status).toBe(422)
-      expect(response.body).toEqual({
-        moderationFailures: moderationInfractions,
-      })
-      expect(response.body).toEqual({
-        moderationFailures: moderationInfractions,
-      })
-    })
-
     test('passes the attached files along with the assignment', async () => {
       const assignmentData = buildAssignmentPayload()
       const assignment = buildAssignment(assignmentData)

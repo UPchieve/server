@@ -44,8 +44,3 @@ export type StudentAssignmentCompletionResponse = {
 export type AssignmentDocumentsResponse = {
   assignmentDocuments: AssignmentDocumentPublic[]
 }
-
-export type AssignmentUploadResponse = {
-  // TODO: move to a shared types with other moderation types?
-  moderationFailures: Record<string, string[]>
-} | void

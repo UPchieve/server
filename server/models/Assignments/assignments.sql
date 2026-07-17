@@ -171,36 +171,6 @@ DELETE FROM sessions_students_assignments
 WHERE assignment_id = :assignmentId!;
 
 
-/* @name editAssignmentById */
-UPDATE
-    assignments
-SET
-    description = COALESCE(:description, description),
-    title = COALESCE(:title, title),
-    number_of_sessions = COALESCE(:numberOfSessions, number_of_sessions),
-    min_duration_in_minutes = COALESCE(:minDurationInMinutes, min_duration_in_minutes),
-    is_required = COALESCE(:isRequired, is_required),
-    due_date = COALESCE(:dueDate, due_date),
-    start_date = COALESCE(:startDate, start_date),
-    subject_id = COALESCE(:subjectId, subject_id),
-    updated_at = NOW()
-WHERE
-    id = :id!
-RETURNING
-    id,
-    class_id,
-    description,
-    title,
-    number_of_sessions,
-    min_duration_in_minutes,
-    is_required,
-    due_date,
-    start_date,
-    subject_id,
-    created_at,
-    updated_at;
-
-
 /* @name deleteSessionForStudentAssignmentByStudentId */
 DELETE FROM sessions_students_assignments
 WHERE assignment_id = :assignmentId!

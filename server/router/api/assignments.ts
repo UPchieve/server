@@ -6,16 +6,12 @@ import {
   toStudentAssignmentSubmissionPublic,
 } from '../../public/assignments'
 import { resError } from '../res-error'
-import multer from 'multer'
 import { asString } from '../../utils/type-utils'
 import {
   AssignmentDocumentsResponse,
   AssignmentResponse,
-  AssignmentUploadResponse,
   StudentAssignmentCompletionResponse,
 } from '../../contracts/assignments'
-import { isEmpty } from 'lodash'
-import { extractUser } from '../extract-user'
 
 export function routeAssignments(router: Router): void {
   router.get(
@@ -63,42 +59,6 @@ export function routeAssignments(router: Router): void {
         if (assignmentId) {
           await AssignmentsService.deleteAssignment(assignmentId)
           res.sendStatus(200)
-        }
-      } catch (err) {
-        resError(res, err)
-      }
-    }
-  )
-
-  const upload = multer({
-    limits: { fileSize: 20 * 1024 * 1024 },
-  })
-
-  // TODO: Remove PUT /assignment/upload in clean-up.
-  router.put(
-    '/assignment/upload',
-    upload.array('files'),
-    async (req, res: Response<AssignmentUploadResponse>) => {
-      try {
-        const user = extractUser(req)
-        if (req.files) {
-          const files = req.files as Express.Multer.File[]
-          const assignmentId = req.body.assignmentId
-
-          const moderationFailures =
-            await AssignmentsService.uploadAssignmentFilesOld(
-              assignmentId,
-              files,
-              user.id
-            )
-
-          if (isEmpty(moderationFailures)) {
-            res.sendStatus(200)
-          } else {
-            res.status(422).json({
-              moderationFailures,
-            })
-          }
         }
       } catch (err) {
         resError(res, err)
