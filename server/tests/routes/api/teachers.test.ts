@@ -314,9 +314,9 @@ describe('routeTeachers', () => {
       const assignmentData = buildAssignmentPayload()
       const assignment = buildAssignment()
       mockedAssignmentsService.asAssignment.mockReturnValueOnce(assignmentData)
-      mockedAssignmentsService.createAssignment.mockResolvedValueOnce(
-        assignment
-      )
+      mockedAssignmentsService.createAssignment.mockResolvedValueOnce({
+        assignment,
+      })
 
       const response = await sendPost('/api/teachers/assignment', {
         assignmentData,

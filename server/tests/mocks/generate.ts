@@ -1,3 +1,4 @@
+import moment from 'moment'
 import { getDbUlid, getUuid, Ulid, Uuid } from '../../models/pgUtils'
 import {
   SessionReportRow,
@@ -1258,15 +1259,17 @@ export function buildVolunteerContactInfo(
 export function buildAssignment(
   overrides: Partial<Assignment> = {}
 ): Assignment {
+  const start = moment()
+  const due = start.clone().add(7, 'days')
   return {
     id: getUuid(),
     classId: getUuid(),
     description: 'Read chapter 1',
-    dueDate: new Date(),
+    dueDate: due.toDate(),
     isRequired: true,
     minDurationInMinutes: 15,
     numberOfSessions: 2,
-    startDate: new Date(),
+    startDate: start.toDate(),
     subjectId: 1,
     title: 'Homework 1',
     createdAt: new Date(),

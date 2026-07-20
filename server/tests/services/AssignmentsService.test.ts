@@ -9,6 +9,7 @@ import { Assignment, StudentAssignment } from '../../models/Assignments'
 import { TransactionClient } from '../../db'
 import * as AzureService from '../../services/AzureService'
 import * as ImageUtils from '../../utils/image-utils'
+import { buildAssignment } from '../mocks/generate'
 
 jest.mock('../../models/Assignments')
 jest.mock('../../models/Teacher')
@@ -225,7 +226,7 @@ describe('createAssignment', () => {
   })
 
   test('creates the assignment with correct parameters', async () => {
-    const data = {
+    const data = buildAssignment({
       classId: 'class-id123',
       description: 'some description of the assignment',
       dueDate: moment('2025-09-18').toDate(),
@@ -235,22 +236,76 @@ describe('createAssignment', () => {
       startDate: moment('2024-01-01').toDate(),
       subjectId: 15,
       title: 'the title of the assignment',
-    }
-    mockedAssignmentRepo.createAssignment.mockResolvedValue({
-      id: 'assignment-id',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      ...data,
     })
+    mockedAssignmentRepo.createAssignment.mockResolvedValue(data)
 
     mockedTeacherRepo.getStudentIdsInTeacherClass.mockResolvedValue([
       'student-id-1',
     ])
-    await AssignmentsService.createAssignment(
-      data as AssignmentsService.CreateAssignmentPayload
-    )
+
+    const { assignment } = await AssignmentsService.createAssignment({
+      ...data,
+      studentIds: [],
+    })
+
     expect(mockedAssignmentRepo.createAssignment).toHaveBeenCalledWith(
-      data,
+      {
+        classId: data.classId,
+        description: data.description,
+        dueDate: data.dueDate,
+        isRequired: data.isRequired,
+        minDurationInMinutes: data.minDurationInMinutes,
+        numberOfSessions: data.numberOfSessions,
+        startDate: data.startDate,
+        subjectId: data.subjectId,
+        title: data.title,
+      },
+      expect.toBeTransactionClient()
+    )
+    expect(assignment).toEqual(data)
+  })
+
+  test('returns the moderation infractions without creating the assignment when moderation fails', async () => {
+    mockedModerationService.moderateAssignmentInfo.mockResolvedValue([
+      'VIOLENCE',
+      'PROFANITY',
+    ])
+
+    const actual = await AssignmentsService.createAssignment({
+      classId: 'class-id123',
+      description: 'a description',
+      isRequired: false,
+      studentIds: ['student-id-1'],
+      title: 'a BAD title',
+    })
+
+    expect(actual).toEqual({
+      moderationInfractions: ['VIOLENCE', 'PROFANITY'],
+    })
+    expect(mockedModerationService.moderateAssignmentInfo).toHaveBeenCalledWith(
+      'a BAD title a description'
+    )
+    expect(mockedAssignmentRepo.createAssignment).not.toHaveBeenCalled()
+    expect(
+      mockedAssignmentRepo.createStudentsAssignmentsForAll
+    ).not.toHaveBeenCalled()
+  })
+
+  test('assigns the assignment to the selected students', async () => {
+    const assignment = buildAssignment()
+    mockedAssignmentRepo.createAssignment.mockResolvedValue(assignment)
+
+    await AssignmentsService.createAssignment({
+      classId: assignment.classId,
+      isRequired: false,
+      studentIds: ['student-id-1', 'student-id-2'],
+    })
+
+    expect(
+      mockedAssignmentRepo.createStudentsAssignmentsForAll
+    ).toHaveBeenCalledWith(
+      ['student-id-1', 'student-id-2'],
+      [assignment.id],
       expect.toBeTransactionClient()
     )
   })
@@ -444,6 +499,119 @@ describe('createAssignment', () => {
         )
       ).toBe(false)
     })
+  })
+})
+
+describe('createAssignmentForClasses', () => {
+  beforeEach(() => {
+    mockedModerationService.moderateAssignmentInfo.mockResolvedValue([])
+  })
+
+  test('creates an assignment for every class with the correct parameters', async () => {
+    const data = {
+      ...buildAssignment(),
+      classIds: ['a', 'b', 'c'],
+    }
+    mockedAssignmentRepo.createAssignment.mockImplementation(async (input) => ({
+      id: `assignment-for-${input.classId}`,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      ...input,
+    }))
+
+    const { assignments } = await AssignmentsService.createAssignmentForClasses(
+      data,
+      data.classIds
+    )
+
+    expect(mockedAssignmentRepo.createAssignment).toHaveBeenCalledTimes(
+      data.classIds.length
+    )
+    for (const classId of data.classIds) {
+      expect(mockedAssignmentRepo.createAssignment).toHaveBeenCalledWith(
+        {
+          classId,
+          description: data.description,
+          dueDate: data.dueDate,
+          isRequired: data.isRequired,
+          minDurationInMinutes: data.minDurationInMinutes,
+          numberOfSessions: data.numberOfSessions,
+          startDate: data.startDate,
+          subjectId: data.subjectId,
+          title: data.title,
+        },
+        expect.toBeTransactionClient()
+      )
+    }
+
+    expect(assignments?.length).toBe(data.classIds.length)
+  })
+
+  test('assigns the new assignment to every student in the classes', async () => {
+    const data = {
+      ...buildAssignment(),
+      classIds: ['class-1', 'class-2'],
+    }
+
+    mockedAssignmentRepo.createAssignment
+      .mockResolvedValueOnce(
+        buildAssignment({ id: 'assignment-1', classId: 'class-1' })
+      )
+      .mockResolvedValueOnce(
+        buildAssignment({ id: 'assignment-2', classId: 'class-2' })
+      )
+    mockedTeacherRepo.getStudentIdsInTeacherClass
+      .mockResolvedValueOnce(['student-1', 'student-2'])
+      .mockResolvedValueOnce(['student-3'])
+
+    await AssignmentsService.createAssignmentForClasses(data, data.classIds)
+
+    expect(mockedTeacherRepo.getStudentIdsInTeacherClass).toHaveBeenCalledWith(
+      expect.toBeTransactionClient(),
+      'class-1'
+    )
+    expect(mockedTeacherRepo.getStudentIdsInTeacherClass).toHaveBeenCalledWith(
+      expect.toBeTransactionClient(),
+      'class-2'
+    )
+    expect(
+      mockedAssignmentRepo.createStudentsAssignmentsForAll
+    ).toHaveBeenCalledWith(
+      ['student-1', 'student-2'],
+      ['assignment-1'],
+      expect.toBeTransactionClient()
+    )
+    expect(
+      mockedAssignmentRepo.createStudentsAssignmentsForAll
+    ).toHaveBeenCalledWith(
+      ['student-3'],
+      ['assignment-2'],
+      expect.toBeTransactionClient()
+    )
+  })
+
+  test('returns the moderation infractions without creating any assignments when moderation fails', async () => {
+    mockedModerationService.moderateAssignmentInfo.mockResolvedValue([
+      'VIOLENCE',
+    ])
+    const data = {
+      ...buildAssignment(),
+      classIds: ['meow', 'woof'],
+    }
+
+    const actual = await AssignmentsService.createAssignmentForClasses(
+      data,
+      data.classIds
+    )
+
+    expect(actual).toEqual({ moderationInfractions: ['VIOLENCE'] })
+    expect(mockedModerationService.moderateAssignmentInfo).toHaveBeenCalledWith(
+      `${data.title} ${data.description}`
+    )
+    expect(mockedAssignmentRepo.createAssignment).not.toHaveBeenCalled()
+    expect(
+      mockedAssignmentRepo.createStudentsAssignmentsForAll
+    ).not.toHaveBeenCalled()
   })
 })
 

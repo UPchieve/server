@@ -43,6 +43,12 @@ export type CreateAssignmentPayload = {
   title?: string
   studentIds: Array<string>
 }
+export type CreateMultipleAssignmentsPayload = Omit<
+  CreateAssignmentPayload,
+  'classId' | 'studentIds'
+> & {
+  classIds: string[]
+}
 export type EditAssignmentPayload = {
   id: string
   description?: string
@@ -56,7 +62,7 @@ export type EditAssignmentPayload = {
   studentsToRemove?: Array<string>
   studentsToAdd?: Array<string>
 }
-export const asAssignment = asFactory<CreateAssignmentPayload>({
+const assignmentValidators = {
   classId: asString,
   description: asOptional(asString),
   dueDate: asOptional(asDate),
@@ -67,17 +73,22 @@ export const asAssignment = asFactory<CreateAssignmentPayload>({
   subjectId: asOptional(asNumber),
   title: asOptional(asString),
   studentIds: asArray(asString),
-})
+}
+export const asAssignment =
+  asFactory<CreateAssignmentPayload>(assignmentValidators)
+
+const { classId, studentIds, ...multipleAssignmentsValidators } =
+  assignmentValidators
+export const asMultipleAssignments =
+  asFactory<CreateMultipleAssignmentsPayload>({
+    ...multipleAssignmentsValidators,
+    classIds: asArray(asString),
+  })
+
+const { classId: _unused2, ...editAssignmentValidators } = assignmentValidators
 export const asEditedAssignment = asFactory<EditAssignmentPayload>({
+  ...editAssignmentValidators,
   id: asString,
-  description: asOptional(asString),
-  dueDate: asOptional(asDate),
-  isRequired: asOptional(asBoolean),
-  minDurationInMinutes: asOptional(asNumber),
-  numberOfSessions: asOptional(asNumber),
-  startDate: asOptional(asDate),
-  subjectId: asOptional(asNumber),
-  title: asOptional(asString),
   studentsToRemove: asOptional(asArray(asString)),
   studentsToAdd: asOptional(asArray(asString)),
 })
@@ -85,14 +96,14 @@ export const asEditedAssignment = asFactory<EditAssignmentPayload>({
 export async function createAssignment(
   data: CreateAssignmentPayload,
   tc?: TransactionClient
-): Promise<Assignment | ModerationTypes.ModerationInfractionCategories> {
+): Promise<{ assignment?: Assignment; moderationInfractions?: string[] }> {
   validateAssignmentData(data)
-  const moderationResults = await ModerationService.moderateAssignmentInfo(
+  const moderationInfractions = await ModerationService.moderateAssignmentInfo(
     `${data.title} ${data.description}`
   )
 
-  if (!isEmpty(moderationResults)) {
-    return moderationResults
+  if (!isEmpty(moderationInfractions)) {
+    return { moderationInfractions }
   }
 
   return runInTransaction(async (tc: TransactionClient) => {
@@ -113,12 +124,49 @@ export async function createAssignment(
 
     if (data.studentIds && data.studentIds.length > 0) {
       await addAssignmentForStudents(data.studentIds, assignment.id, tc)
-    } else {
-      await addAssignmentForClass(data.classId, assignment.id, tc)
     }
 
-    return assignment
+    return { assignment }
   }, tc)
+}
+
+export async function createAssignmentForClasses(
+  data: Omit<CreateAssignmentPayload, 'classId' | 'studentIds'>,
+  classIds: string[]
+): Promise<{ assignments?: Assignment[]; moderationInfractions?: string[] }> {
+  validateAssignmentData(data)
+  const moderationInfractions = await ModerationService.moderateAssignmentInfo(
+    `${data.title} ${data.description}`
+  )
+
+  if (!isEmpty(moderationInfractions)) {
+    return { moderationInfractions }
+  }
+
+  return runInTransaction(async (tc: TransactionClient) => {
+    const assignments = []
+
+    for (const classId of classIds) {
+      const assignment = await AssignmentsRepo.createAssignment(
+        {
+          classId,
+          description: data.description,
+          dueDate: data.dueDate,
+          isRequired: data.isRequired ?? false,
+          minDurationInMinutes: data.minDurationInMinutes,
+          numberOfSessions: data.numberOfSessions,
+          startDate: data.startDate,
+          subjectId: data.subjectId,
+          title: data.title,
+        },
+        tc
+      )
+      assignments.push(assignment)
+      await addAssignmentForClass(classId, assignment.id, tc)
+    }
+
+    return { assignments }
+  })
 }
 
 export async function editAssignment(
@@ -148,7 +196,7 @@ export async function editAssignment(
     )
 
     if (data.studentsToRemove && data.studentsToRemove.length) {
-      await deleteStudentAssignmentsForStudents(data.studentsToRemove, data.id)
+      await deleteAssignmentsForStudents(data.studentsToRemove, data.id, tc)
     }
 
     if (data.studentsToAdd && data.studentsToAdd.length) {
@@ -299,12 +347,13 @@ export async function deleteAssignment(assignmentId: Uuid) {
   })
 }
 
-async function deleteStudentAssignmentsForStudents(
+async function deleteAssignmentsForStudents(
   studentsToRemove: Uuid[],
-  assignmentId: Uuid
+  assignmentId: Uuid,
+  tc: TransactionClient
 ) {
   return runInTransaction(async (tc: TransactionClient) => {
-    studentsToRemove.forEach(async (studentId) => {
+    for (const studentId of studentsToRemove) {
       await AssignmentsRepo.deleteSessionStudentAssignmentByStudentId(
         studentId,
         assignmentId,
@@ -316,8 +365,8 @@ async function deleteStudentAssignmentsForStudents(
         assignmentId,
         tc
       )
-    })
-  })
+    }
+  }, tc)
 }
 
 function validateAssignmentData(
