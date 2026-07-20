@@ -8,7 +8,6 @@ import {
 import {
   Assignment,
   CreateAssignmentInput,
-  CreateStudentAssignmentInput,
   CreateStudentAssignmentResult,
   EditAssignmentInput,
   StudentAssignment,
@@ -23,7 +22,6 @@ import {
   Uuid,
   makeRequired,
 } from '../pgUtils'
-import moment from 'moment'
 
 export async function createAssignment(
   data: CreateAssignmentInput,

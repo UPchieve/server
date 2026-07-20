@@ -6,6 +6,7 @@ import * as AssignmentsService from '../../services/AssignmentsService'
 import { resError } from '../res-error'
 import { asNumber, asString } from '../../utils/type-utils'
 import { authPassport } from '../../utils/auth-utils'
+import { resSuccess } from '../res-success'
 
 export function routeTeachers(apiRouter: Router): void {
   const router = Router()
@@ -121,14 +122,39 @@ export function routeTeachers(apiRouter: Router): void {
         req.body.assignmentData,
         req.body.studentIds
       )
-      const result = await AssignmentsService.createAssignment(assignmentData)
-      if (isArray(result) && result.length) {
-        res.status(422).json({
-          moderationFailures: result,
-        })
-      } else {
-        res.status(201).json({ assignment: result })
+
+      const { assignment, moderationInfractions } =
+        await AssignmentsService.createAssignment(assignmentData)
+
+      if (moderationInfractions) {
+        return resSuccess(
+          res,
+          { moderationFailures: moderationInfractions },
+          422
+        )
       }
+      resSuccess(res, { assignment }, 201)
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
+  router.route('/assignments').post(async function (req, res) {
+    try {
+      const assignmentData = AssignmentsService.asMultipleAssignments(
+        req.body.assignmentData
+      )
+
+      const { assignments, moderationInfractions } =
+        await AssignmentsService.createAssignmentForClasses(
+          assignmentData,
+          assignmentData.classIds
+        )
+      if (moderationInfractions) {
+        return resSuccess(res, { moderationInfractions }, 422)
+      }
+
+      return resSuccess(res, { assignments }, 201)
     } catch (err) {
       resError(res, err)
     }
