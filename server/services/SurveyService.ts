@@ -92,9 +92,11 @@ export async function saveUserSurvey(
     progressReportId: data.progressReportId,
   }
   // Filter out responses the user didn't answer.
-  const submissions = data.submissions.filter(
-    (resp) => resp.responseChoiceId !== null
-  )
+  const submissions = data.submissions.filter((submission) => {
+    const hasResponseChoice = !!submission.responseChoiceId
+    const hasOpenResponse = submission.openResponse.trim()
+    return hasResponseChoice || hasOpenResponse
+  })
   await saveUserSurveyAndSubmissions(userId, userSurvey, submissions, tc)
 
   // Only process feedback metrics for post-session surveys.
