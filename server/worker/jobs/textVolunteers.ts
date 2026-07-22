@@ -3,14 +3,16 @@ import Case from 'case'
 import { differenceBy, sampleSize } from 'lodash'
 import config from '../../config'
 import logger from '../../logger'
-import { SUBJECTS } from '../../constants'
+import { EVENTS, SUBJECTS } from '../../constants'
 import startsWithVowel from '../../utils/starts-with-vowel'
 import { Ulid, Uuid } from '../../models/pgUtils'
 import { Jobs } from './index'
 import type { TextableVolunteer as TextableVolunteerDbResult } from '../../models/Volunteer'
 import * as SubjectsService from '../../services/SubjectsService'
+import * as FeatureFlagsService from '../../services/FeatureFlagService'
 import * as AssociatedPartnerService from '../../services/AssociatedPartnerService'
 import * as CacheService from '../../cache'
+import { captureEvent } from '../../services/AnalyticsService'
 import * as FavoritingService from '../../services/FavoritingService'
 import * as NotificationService from '../../services/NotificationService'
 import * as SessionService from '../../services/SessionService'
@@ -22,6 +24,7 @@ import {
   getAndCacheAvailableVolunteers,
 } from './updateCachedVolunteersForTextNotifications'
 import { secondsInMs } from '../../utils/time-utils'
+import { VolunteerOccupations } from '../../models/Volunteer'
 
 const HIGH_LEVEL_SUBJECTS = new Set<SUBJECTS>([
   SUBJECTS.CALCULUS_AB,
@@ -85,35 +88,24 @@ export default async function textVolunteers(
   }
 
   const allTextableVolunteers = await getTextableVolunteers()
-  const banStatuses = await UserService.getUsersBanStatusesById(
-    allTextableVolunteers.map((vol) => vol.id)
-  )
-  const bannedVolunteerIds = banStatuses
-    .filter(
-      (status) => status.banType === 'complete' || status.banType === 'shadow'
-    )
-    .map((vol) => vol.id)
-  const unbannedVolunteers = allTextableVolunteers.filter(
-    (vol) => !bannedVolunteerIds.includes(vol.id)
-  )
 
   const computedSubjectRequirements =
     await SubjectsService.getCachedComputedSubjectUnlocks()
   const subjectRequiresHighLevelSubjectCerts =
     (subject as SUBJECTS) in computedSubjectRequirements
-  const eligibleVolunteers = filterSubjectEligibleVolunteers(
-    unbannedVolunteers,
+  const subjectEligibleVolunteers = filterSubjectEligibleVolunteers(
+    allTextableVolunteers,
     subject,
     subjectRequiresHighLevelSubjectCerts
   )
   const { volunteers: eligiblePartnerVolunteers, studentOrgDisplay } =
     (await filterPartnerVolunteers(
-      eligibleVolunteers,
+      subjectEligibleVolunteers,
       studentPartnerOrg,
       schoolId
     )) ?? { volunteers: [] }
   const eligibleFavoritedVolunteers = await filterFavoritedVolunteers(
-    eligibleVolunteers,
+    subjectEligibleVolunteers,
     studentId
   )
 
@@ -126,10 +118,17 @@ export default async function textVolunteers(
       name: PriorityGroupName.PARTNER,
       volunteers: eligiblePartnerVolunteers,
     },
-    { name: PriorityGroupName.REGULAR, volunteers: eligibleVolunteers },
+    { name: PriorityGroupName.REGULAR, volunteers: subjectEligibleVolunteers },
   ])
 
-  if (!selectedTutors.length) {
+  // TODO: Remove this filter after the experiment barring high school coaches
+  //  from picking up college sessions is over.
+  const finalCoaches =
+    job.data.topic === 'college'
+      ? await filterOutHighSchoolCoaches(selectedTutors)
+      : selectedTutors
+
+  if (!finalCoaches.length) {
     logger.warn(
       { sessionId, subject },
       'No volunteers found to text for session.'
@@ -138,7 +137,7 @@ export default async function textVolunteers(
   }
 
   await sendTextMessages(
-    selectedTutors,
+    finalCoaches,
     {
       sessionId,
       subject,
@@ -160,6 +159,35 @@ export default async function textVolunteers(
       }
     )
   }
+}
+
+async function filterOutHighSchoolCoaches(
+  coaches: TextableVolunteer[]
+): Promise<TextableVolunteer[]> {
+  const coachIdsWhoCantCoachCollegeSessions: Ulid[] = []
+  const highSchoolStudentCoaches = coaches.filter((coach) =>
+    (coach.occupations ?? []).includes(VolunteerOccupations.HIGH_SCHOOL_STUDENT)
+  )
+  for (const coach of highSchoolStudentCoaches) {
+    const flagResult =
+      await FeatureFlagsService.isBarHighSchoolerFromCoachingCollegeSessionsEnabled(
+        coach.id
+      )
+    if (flagResult) {
+      coachIdsWhoCantCoachCollegeSessions.push(coach.id)
+      captureEvent(
+        coach.id,
+        EVENTS.HIGH_SCHOOL_COACH_EXCLUDED_FROM_COLLEGE_SESSION_TEXT_NOTIFICATION
+      )
+    }
+  }
+  const filtered = coaches.filter(
+    (coach) => !coachIdsWhoCantCoachCollegeSessions.includes(coach.id)
+  )
+  logger.info(
+    `Filtered out ${coachIdsWhoCantCoachCollegeSessions.length} coaches from ${coaches.length} eligible coaches`
+  )
+  return filtered
 }
 
 async function getTextableVolunteers(): Promise<TextableVolunteer[]> {

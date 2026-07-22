@@ -1454,10 +1454,20 @@ SELECT DISTINCT ON (u.id)
     u.first_name,
     vpo.key AS volunteer_partner_org_key,
     muted_subject_alerts.muted_subject_names AS muted_subjects,
-    unlocked_subjects.unlocked_subjects
+    unlocked_subjects.unlocked_subjects,
+    COALESCE(occupations.occ, ARRAY[]::text[]) AS occupations
 FROM
     users u
     JOIN volunteer_profiles vp ON vp.user_id = u.id
+    LEFT JOIN LATERAL (
+        SELECT
+            array_agg(occupation) AS occ
+        FROM
+            volunteer_occupations
+        WHERE
+            user_id = u.id
+        GROUP BY
+            user_id) AS occupations ON TRUE
     LEFT JOIN volunteer_partner_orgs vpo ON vpo.id = vp.volunteer_partner_org_id
     JOIN availabilities a ON a.user_id = u.id
     JOIN weekdays ON weekdays.id = a.weekday_id

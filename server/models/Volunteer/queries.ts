@@ -1789,7 +1789,7 @@ export async function getVolunteersForTextNotifications(): Promise<
         getRoClient()
       )
     return rawResults.map((row) =>
-      makeSomeOptional(row, ['volunteerPartnerOrgKey'])
+      makeSomeOptional(row, ['volunteerPartnerOrgKey', 'occupations'])
     )
   } catch (err) {
     throw new RepoReadError(err)

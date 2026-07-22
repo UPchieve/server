@@ -21,9 +21,11 @@ import * as SessionService from '../../services/SessionService'
 import * as TwilioClient from '../../clients/twilio'
 import * as SubjectService from '../../services/SubjectsService'
 import * as UserService from '../../services/UserService'
+import * as FeatureFlagService from '../../services/FeatureFlagService'
 import { AssociatedPartner } from '../../models/AssociatedPartner'
 import { buildTextableVolunteer } from '../mocks/generate'
 import { ComputedSubjectUnlocks } from '../../models/Subjects'
+import { VolunteerOccupations } from '../../models/Volunteer'
 
 jest.mock('../../services/AssociatedPartnerService')
 jest.mock('../../cache')
@@ -34,6 +36,7 @@ jest.mock('../../services/SessionService')
 jest.mock('../../clients/twilio')
 jest.mock('../../services/SubjectsService')
 jest.mock('../../services/UserService')
+jest.mock('../../services/FeatureFlagService')
 jest.mock('../../logger')
 
 const mockedAssociatedPartnerService = mocked(AssociatedPartnerService)
@@ -46,6 +49,7 @@ const mockedTwilioClient = mocked(TwilioClient)
 const mockedLogger = mocked(logger)
 const mockedSubjectService = mocked(SubjectService)
 const mockedUserService = mocked(UserService)
+const mockedFeatureFlagService = mocked(FeatureFlagService)
 
 const COMPUTED_SUBJECT_UNLOCKS = {
   [SUBJECTS.INTEGRATED_MATH_ONE]: [
@@ -63,1780 +67,1792 @@ const COMPUTED_SUBJECT_UNLOCKS = {
   [SUBJECTS.INTEGRATED_MATH_FOUR]: [SUBJECTS.PRECALCULUS],
 } as ComputedSubjectUnlocks
 
-describe('TextVolunteers job', () => {
-  beforeEach(() => {
-    jest.resetAllMocks()
-    mockedCacheService.getIfExists.mockResolvedValue(undefined)
-    mockedAssociatedPartnerService.getAssociatedPartner.mockResolvedValue(
-      undefined
+beforeEach(() => {
+  jest.resetAllMocks()
+  mockedCacheService.getIfExists.mockResolvedValue(undefined)
+  mockedAssociatedPartnerService.getAssociatedPartner.mockResolvedValue(
+    undefined
+  )
+  mockedFavoritingService.getFavoritedVolunteerIdsFromList.mockResolvedValue(
+    new Set()
+  )
+  mockedNotificationService.getVolunteersTextedSinceXMinutesAgo.mockResolvedValue(
+    new Set()
+  )
+  mockedQueueService.add.mockResolvedValue(undefined)
+  mockedSessionService.getVolunteersInSessions.mockResolvedValue(new Set())
+  mockedTwilioClient.sendTextMessage.mockResolvedValue(undefined)
+  mockedSubjectService.getCachedComputedSubjectUnlocks.mockResolvedValue(
+    COMPUTED_SUBJECT_UNLOCKS
+  )
+  mockedUserService.getUsersBanStatusesById.mockResolvedValue([])
+  mockedFeatureFlagService.isBarHighSchoolerFromCoachingCollegeSessionsEnabled.mockResolvedValue(
+    false
+  )
+})
+
+describe('filterSubjectEligibleVolunteers', () => {
+  test('should include volunteers who have the subject unlocked', () => {
+    const volunteer1 = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.ALGEBRA_ONE, SUBJECTS.GEOMETRY],
+    })
+    const volunteer2 = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.CHEMISTRY],
+    })
+    const volunteer3 = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
+    })
+
+    const result = filterSubjectEligibleVolunteers(
+      [volunteer1, volunteer2, volunteer3],
+      SUBJECTS.ALGEBRA_ONE
     )
-    mockedFavoritingService.getFavoritedVolunteerIdsFromList.mockResolvedValue(
-      new Set()
+
+    expect(result).toHaveLength(2)
+    expect(result).toContainEqual(
+      expect.objectContaining({ id: volunteer1.id })
     )
-    mockedNotificationService.getVolunteersTextedSinceXMinutesAgo.mockResolvedValue(
-      new Set()
+    expect(result).toContainEqual(
+      expect.objectContaining({ id: volunteer3.id })
     )
-    mockedQueueService.add.mockResolvedValue(undefined)
-    mockedSessionService.getVolunteersInSessions.mockResolvedValue(new Set())
-    mockedTwilioClient.sendTextMessage.mockResolvedValue(undefined)
-    mockedSubjectService.getCachedComputedSubjectUnlocks.mockResolvedValue(
-      COMPUTED_SUBJECT_UNLOCKS
+    expect(result).not.toContainEqual(
+      expect.objectContaining({ id: volunteer2.id })
     )
-    mockedUserService.getUsersBanStatusesById.mockResolvedValue([])
   })
 
-  describe('filterSubjectEligibleVolunteers', () => {
-    test('should include volunteers who have the subject unlocked', () => {
-      const volunteer1 = buildTextableVolunteer({
-        unlockedSubjects: [SUBJECTS.ALGEBRA_ONE, SUBJECTS.GEOMETRY],
-      })
-      const volunteer2 = buildTextableVolunteer({
-        unlockedSubjects: [SUBJECTS.CHEMISTRY],
-      })
-      const volunteer3 = buildTextableVolunteer({
-        unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
-      })
-
-      const result = filterSubjectEligibleVolunteers(
-        [volunteer1, volunteer2, volunteer3],
-        SUBJECTS.ALGEBRA_ONE
-      )
-
-      expect(result).toHaveLength(2)
-      expect(result).toContainEqual(
-        expect.objectContaining({ id: volunteer1.id })
-      )
-      expect(result).toContainEqual(
-        expect.objectContaining({ id: volunteer3.id })
-      )
-      expect(result).not.toContainEqual(
-        expect.objectContaining({ id: volunteer2.id })
-      )
+  test('should exclude volunteers who have muted the subject', () => {
+    const volunteer1 = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
+      mutedSubjects: [SUBJECTS.ALGEBRA_ONE],
+    })
+    const volunteer2 = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
+      mutedSubjects: [],
     })
 
-    test('should exclude volunteers who have muted the subject', () => {
-      const volunteer1 = buildTextableVolunteer({
-        unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
-        mutedSubjects: [SUBJECTS.ALGEBRA_ONE],
-      })
-      const volunteer2 = buildTextableVolunteer({
-        unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
-        mutedSubjects: [],
-      })
+    const result = filterSubjectEligibleVolunteers(
+      [volunteer1, volunteer2],
+      SUBJECTS.ALGEBRA_ONE
+    )
 
-      const result = filterSubjectEligibleVolunteers(
-        [volunteer1, volunteer2],
-        SUBJECTS.ALGEBRA_ONE
-      )
+    expect(result).toHaveLength(1)
+    expect(result[0].id).toBe(volunteer2.id)
+  })
 
-      expect(result).toHaveLength(1)
-      expect(result[0].id).toBe(volunteer2.id)
+  test('should exclude volunteers without the subject unlocked', () => {
+    const volunteer1 = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.CHEMISTRY, SUBJECTS.BIOLOGY],
+    })
+    const volunteer2 = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.GEOMETRY],
     })
 
-    test('should exclude volunteers without the subject unlocked', () => {
-      const volunteer1 = buildTextableVolunteer({
-        unlockedSubjects: [SUBJECTS.CHEMISTRY, SUBJECTS.BIOLOGY],
-      })
-      const volunteer2 = buildTextableVolunteer({
-        unlockedSubjects: [SUBJECTS.GEOMETRY],
-      })
+    const result = filterSubjectEligibleVolunteers(
+      [volunteer1, volunteer2],
+      SUBJECTS.ALGEBRA_ONE
+    )
 
-      const result = filterSubjectEligibleVolunteers(
-        [volunteer1, volunteer2],
-        SUBJECTS.ALGEBRA_ONE
-      )
+    expect(result).toHaveLength(0)
+  })
 
-      expect(result).toHaveLength(0)
+  test('should include high-level volunteers for high-level subjects', () => {
+    const highLevelVolunteer = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.CALCULUS_AB, SUBJECTS.ALGEBRA_ONE],
+    })
+    const nonMatchingHighLevelVolunteer = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.PHYSICS_ONE],
+    })
+    const regularVolunteer = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
     })
 
-    test('should include high-level volunteers for high-level subjects', () => {
-      const highLevelVolunteer = buildTextableVolunteer({
-        unlockedSubjects: [SUBJECTS.CALCULUS_AB, SUBJECTS.ALGEBRA_ONE],
-      })
-      const nonMatchingHighLevelVolunteer = buildTextableVolunteer({
-        unlockedSubjects: [SUBJECTS.PHYSICS_ONE],
-      })
-      const regularVolunteer = buildTextableVolunteer({
-        unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
-      })
+    const result = filterSubjectEligibleVolunteers(
+      [highLevelVolunteer, nonMatchingHighLevelVolunteer, regularVolunteer],
+      SUBJECTS.CALCULUS_AB
+    )
 
-      const result = filterSubjectEligibleVolunteers(
-        [highLevelVolunteer, nonMatchingHighLevelVolunteer, regularVolunteer],
-        SUBJECTS.CALCULUS_AB
-      )
+    expect(result).toHaveLength(1)
+    expect(result[0].id).toBe(highLevelVolunteer.id)
+  })
 
-      expect(result).toHaveLength(1)
-      expect(result[0].id).toBe(highLevelVolunteer.id)
+  test('should exclude high-level volunteers from low-level subjects', () => {
+    const highLevelVolunteer = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.CALCULUS_AB, SUBJECTS.ALGEBRA_ONE],
+    })
+    const regularVolunteer = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
     })
 
-    test('should exclude high-level volunteers from low-level subjects', () => {
-      const highLevelVolunteer = buildTextableVolunteer({
-        unlockedSubjects: [SUBJECTS.CALCULUS_AB, SUBJECTS.ALGEBRA_ONE],
-      })
-      const regularVolunteer = buildTextableVolunteer({
-        unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
-      })
+    const result = filterSubjectEligibleVolunteers(
+      [highLevelVolunteer, regularVolunteer],
+      SUBJECTS.ALGEBRA_ONE
+    )
 
-      const result = filterSubjectEligibleVolunteers(
-        [highLevelVolunteer, regularVolunteer],
-        SUBJECTS.ALGEBRA_ONE
-      )
+    expect(result).toHaveLength(1)
+    expect(result[0].id).toBe(regularVolunteer.id)
+  })
 
-      expect(result).toHaveLength(1)
-      expect(result[0].id).toBe(regularVolunteer.id)
+  test('returns eligible high-level volunteers for subjects that require HLS to unlock', () => {
+    let allowHighLevelVolunteers = true
+    const subject = SUBJECTS.INTEGRATED_MATH_ONE // requires statistics, a high-level subject
+    const highLevelVolunteer = buildTextableVolunteer({
+      unlockedSubjects: [
+        SUBJECTS.GEOMETRY,
+        SUBJECTS.STATISTICS,
+        SUBJECTS.ALGEBRA_ONE,
+        SUBJECTS.INTEGRATED_MATH_ONE,
+      ],
     })
+    const subjectIneligibleVolunteer = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.GEOMETRY],
+    })
+    const result = filterSubjectEligibleVolunteers(
+      [highLevelVolunteer, subjectIneligibleVolunteer],
+      subject,
+      allowHighLevelVolunteers
+    )
+    expect(result).toHaveLength(1)
+    expect(result[0].id).toBe(highLevelVolunteer.id)
 
-    test('returns eligible high-level volunteers for subjects that require HLS to unlock', () => {
-      let allowHighLevelVolunteers = true
-      const subject = SUBJECTS.INTEGRATED_MATH_ONE // requires statistics, a high-level subject
-      const highLevelVolunteer = buildTextableVolunteer({
-        unlockedSubjects: [
-          SUBJECTS.GEOMETRY,
-          SUBJECTS.STATISTICS,
-          SUBJECTS.ALGEBRA_ONE,
-          SUBJECTS.INTEGRATED_MATH_ONE,
-        ],
-      })
-      const subjectIneligibleVolunteer = buildTextableVolunteer({
-        unlockedSubjects: [SUBJECTS.GEOMETRY],
-      })
-      const result = filterSubjectEligibleVolunteers(
+    allowHighLevelVolunteers = false
+    const resultWithoutAllowingHighLevelVolunteers =
+      filterSubjectEligibleVolunteers(
         [highLevelVolunteer, subjectIneligibleVolunteer],
         subject,
         allowHighLevelVolunteers
       )
-      expect(result).toHaveLength(1)
-      expect(result[0].id).toBe(highLevelVolunteer.id)
-
-      allowHighLevelVolunteers = false
-      const resultWithoutAllowingHighLevelVolunteers =
-        filterSubjectEligibleVolunteers(
-          [highLevelVolunteer, subjectIneligibleVolunteer],
-          subject,
-          allowHighLevelVolunteers
-        )
-      expect(resultWithoutAllowingHighLevelVolunteers).toHaveLength(0)
-    })
+    expect(resultWithoutAllowingHighLevelVolunteers).toHaveLength(0)
   })
+})
 
-  describe('filterFavoritedVolunteers', () => {
-    test('should return only favorited volunteers', async () => {
-      const studentId = getDbUlid()
-      const favoritedVolunteer = buildTextableVolunteer({
-        unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
-      })
-      const regularVolunteer = buildTextableVolunteer({
-        unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
-      })
-
-      mockedFavoritingService.getFavoritedVolunteerIdsFromList.mockResolvedValueOnce(
-        new Set([favoritedVolunteer.id])
-      )
-
-      const result = await filterFavoritedVolunteers(
-        [favoritedVolunteer, regularVolunteer],
-        studentId
-      )
-
-      expect(result).toHaveLength(1)
-      expect(result[0].id).toBe(favoritedVolunteer.id)
+describe('filterFavoritedVolunteers', () => {
+  test('should return only favorited volunteers', async () => {
+    const studentId = getDbUlid()
+    const favoritedVolunteer = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
+    })
+    const regularVolunteer = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
     })
 
-    test('should return empty array when no volunteers favorited', async () => {
-      const studentId = getDbUlid()
-      const volunteer1 = buildTextableVolunteer()
-      const volunteer2 = buildTextableVolunteer()
-
-      mockedFavoritingService.getFavoritedVolunteerIdsFromList.mockResolvedValueOnce(
-        new Set()
-      )
-
-      const result = await filterFavoritedVolunteers(
-        [volunteer1, volunteer2],
-        studentId
-      )
-
-      expect(result).toHaveLength(0)
-    })
-
-    test('should handle empty volunteer list', async () => {
-      const studentId = getDbUlid()
-
-      const result = await filterFavoritedVolunteers([], studentId)
-
-      expect(result).toHaveLength(0)
-      expect(
-        mockedFavoritingService.getFavoritedVolunteerIdsFromList
-      ).not.toHaveBeenCalled()
-    })
-  })
-
-  describe('filterPartnerVolunteers', () => {
-    test('should return volunteers from matching partner org with studentOrgDisplay', async () => {
-      const partnerVolunteer1 = buildTextableVolunteer({
-        volunteerPartnerOrgKey: 'example-partner',
-      })
-      const partnerVolunteer2 = buildTextableVolunteer({
-        volunteerPartnerOrgKey: 'example-partner',
-      })
-      const otherVolunteer = buildTextableVolunteer({
-        volunteerPartnerOrgKey: 'other-partner',
-      })
-
-      mockedAssociatedPartnerService.getAssociatedPartner.mockResolvedValueOnce(
-        {
-          volunteerPartnerOrg: 'example-partner',
-          studentOrgDisplay: 'Example Partner School',
-        } as AssociatedPartner
-      )
-
-      const result = await filterPartnerVolunteers(
-        [partnerVolunteer1, partnerVolunteer2, otherVolunteer],
-        'student-partner-org',
-        'school-id'
-      )
-
-      expect(result?.volunteers).toHaveLength(2)
-      expect(result?.volunteers).toContainEqual(
-        expect.objectContaining({
-          id: partnerVolunteer1.id,
-        })
-      )
-      expect(result?.volunteers).toContainEqual(
-        expect.objectContaining({
-          id: partnerVolunteer2.id,
-        })
-      )
-      expect(result?.studentOrgDisplay).toBe('Example Partner School')
-    })
-
-    test('should return undefined when no associated partner exists', async () => {
-      const volunteer1 = buildTextableVolunteer()
-      const volunteer2 = buildTextableVolunteer()
-
-      mockedAssociatedPartnerService.getAssociatedPartner.mockResolvedValueOnce(
-        undefined
-      )
-
-      const result = await filterPartnerVolunteers(
-        [volunteer1, volunteer2],
-        'student-partner-org',
-        'school-id'
-      )
-
-      expect(result).toBeUndefined()
-    })
-
-    test('should return empty array when no volunteers match partner org', async () => {
-      const volunteer1 = buildTextableVolunteer({
-        volunteerPartnerOrgKey: 'other-partner',
-      })
-      const volunteer2 = buildTextableVolunteer({
-        volunteerPartnerOrgKey: undefined,
-      })
-
-      mockedAssociatedPartnerService.getAssociatedPartner.mockResolvedValueOnce(
-        {
-          volunteerPartnerOrg: 'example-partner',
-          studentOrgDisplay: 'Example Partner School',
-        } as AssociatedPartner
-      )
-
-      const result = await filterPartnerVolunteers(
-        [volunteer1, volunteer2],
-        'student-partner-org',
-        'school-id'
-      )
-
-      expect(result?.volunteers).toHaveLength(0)
-    })
-
-    test('should handle volunteers without partner org key', async () => {
-      const partnerVolunteer = buildTextableVolunteer({
-        volunteerPartnerOrgKey: 'example-partner',
-      })
-      const volunteerWithoutPartner = buildTextableVolunteer({
-        volunteerPartnerOrgKey: undefined,
-      })
-
-      mockedAssociatedPartnerService.getAssociatedPartner.mockResolvedValueOnce(
-        {
-          volunteerPartnerOrg: 'example-partner',
-          studentOrgDisplay: 'Example Partner School',
-        } as AssociatedPartner
-      )
-
-      const result = await filterPartnerVolunteers(
-        [partnerVolunteer, volunteerWithoutPartner],
-        'student-partner-org',
-        'school-id'
-      )
-
-      expect(result?.volunteers).toHaveLength(1)
-      expect(result?.volunteers[0].id).toBe(partnerVolunteer.id)
-      expect(result?.studentOrgDisplay).toBe('Example Partner School')
-    })
-  })
-
-  describe('selectVolunteersByPriority', () => {
-    test('should select volunteers only from favorited volunteers group when sufficient', async () => {
-      const favoritedVol1 = buildTextableVolunteer()
-      const favoritedVol2 = buildTextableVolunteer()
-      const favoritedVol3 = buildTextableVolunteer()
-      const partnerVol = buildTextableVolunteer()
-      const regularVol = buildTextableVolunteer()
-
-      const result = await selectVolunteersByPriority(SUBJECTS.ALGEBRA_ONE, [
-        {
-          name: PriorityGroupName.FAVORITE,
-          volunteers: [favoritedVol1, favoritedVol2, favoritedVol3],
-        },
-        { name: PriorityGroupName.PARTNER, volunteers: [partnerVol] },
-        { name: PriorityGroupName.REGULAR, volunteers: [regularVol] },
-      ])
-
-      expect(result).toHaveLength(2)
-      expect(
-        result.every(
-          (v) =>
-            v.id === favoritedVol1.id ||
-            v.id === favoritedVol2.id ||
-            v.id === favoritedVol3.id
-        )
-      ).toBe(true)
-    })
-
-    test('should fall back to partner volunteers group when favorited group is insufficient', async () => {
-      const favoritedVol = buildTextableVolunteer()
-      const partnerVol1 = buildTextableVolunteer()
-      const partnerVol2 = buildTextableVolunteer()
-      const regularVol = buildTextableVolunteer()
-
-      const result = await selectVolunteersByPriority(SUBJECTS.ALGEBRA_ONE, [
-        { name: PriorityGroupName.FAVORITE, volunteers: [favoritedVol] },
-        {
-          name: PriorityGroupName.PARTNER,
-          volunteers: [partnerVol1, partnerVol2],
-        },
-        { name: PriorityGroupName.REGULAR, volunteers: [regularVol] },
-      ])
-
-      expect(result).toHaveLength(2)
-      expect(result[0].id).toBe(favoritedVol.id)
-      expect(
-        result[1].id === partnerVol1.id || result[1].id === partnerVol2.id
-      ).toBe(true)
-    })
-
-    test('should fall back to all volunteers when higher priority groups are insufficient', async () => {
-      const favoritedVol = buildTextableVolunteer()
-      const regularVol1 = buildTextableVolunteer()
-      const regularVol2 = buildTextableVolunteer()
-
-      const result = await selectVolunteersByPriority(SUBJECTS.ALGEBRA_ONE, [
-        { name: PriorityGroupName.FAVORITE, volunteers: [favoritedVol] },
-        { name: PriorityGroupName.PARTNER, volunteers: [] },
-        {
-          name: PriorityGroupName.REGULAR,
-          volunteers: [regularVol1, regularVol2],
-        },
-      ])
-
-      expect(result).toHaveLength(2)
-      expect(result[0].id).toBe(favoritedVol.id)
-      expect(
-        result[1].id === regularVol1.id || result[1].id === regularVol2.id
-      ).toBe(true)
-    })
-
-    test('should respect subject-specific text limits', async () => {
-      const vol1 = buildTextableVolunteer()
-      const vol2 = buildTextableVolunteer()
-      const vol3 = buildTextableVolunteer()
-      const vol4 = buildTextableVolunteer()
-
-      const result = await selectVolunteersByPriority(SUBJECTS.CALCULUS_AB, [
-        { name: PriorityGroupName.FAVORITE, volunteers: [] },
-        { name: PriorityGroupName.PARTNER, volunteers: [] },
-        {
-          name: PriorityGroupName.REGULAR,
-          volunteers: [vol1, vol2, vol3, vol4],
-        },
-      ])
-
-      expect(result).toHaveLength(3)
-    })
-
-    test('should default to 2 texts for subjects without specific limits', async () => {
-      const vol1 = buildTextableVolunteer()
-      const vol2 = buildTextableVolunteer()
-      const vol3 = buildTextableVolunteer()
-      const vol4 = buildTextableVolunteer()
-
-      const result = await selectVolunteersByPriority(SUBJECTS.GEOMETRY, [
-        { name: PriorityGroupName.FAVORITE, volunteers: [] },
-        { name: PriorityGroupName.PARTNER, volunteers: [] },
-        {
-          name: PriorityGroupName.REGULAR,
-          volunteers: [vol1, vol2, vol3, vol4],
-        },
-      ])
-
-      expect(result).toHaveLength(2)
-    })
-
-    test('should exclude volunteers currently in sessions', async () => {
-      const busyVol = buildTextableVolunteer()
-      const availableVol1 = buildTextableVolunteer()
-
-      mockedSessionService.getVolunteersInSessions.mockResolvedValueOnce(
-        new Set([busyVol.id])
-      )
-
-      const result = await selectVolunteersByPriority(SUBJECTS.ALGEBRA_ONE, [
-        {
-          name: PriorityGroupName.REGULAR,
-          volunteers: [busyVol, availableVol1],
-        },
-      ])
-
-      expect(result).toHaveLength(1)
-      expect(result).not.toContainEqual(
-        expect.objectContaining({ id: busyVol.id })
-      )
-      expect(result).toContainEqual(
-        expect.objectContaining({ id: availableVol1.id })
-      )
-    })
-
-    test('should exclude volunteers recently texted within the last x minutes', async () => {
-      const recentlyTextedVol = buildTextableVolunteer()
-      const availableVol1 = buildTextableVolunteer()
-      const availableVol2 = buildTextableVolunteer()
-      mockedNotificationService.getVolunteersTextedSinceXMinutesAgo.mockResolvedValueOnce(
-        new Set([recentlyTextedVol.id])
-      )
-
-      const result = await selectVolunteersByPriority(SUBJECTS.ALGEBRA_ONE, [
-        {
-          name: PriorityGroupName.REGULAR,
-          volunteers: [recentlyTextedVol, availableVol1, availableVol2],
-        },
-      ])
-
-      expect(result).toHaveLength(2)
-      expect(result).not.toContainEqual(
-        expect.objectContaining({ id: recentlyTextedVol.id })
-      )
-      expect(result.some((v) => v.id === availableVol1.id)).toBe(true)
-      expect(result.some((v) => v.id === availableVol2.id)).toBe(true)
-    })
-
-    test('should exclude volunteers who are either in a session or have recently been texted', async () => {
-      const busyVol = buildTextableVolunteer()
-      const recentlyTextedVol = buildTextableVolunteer()
-      const availableVol1 = buildTextableVolunteer()
-      const availableVol2 = buildTextableVolunteer()
-      mockedSessionService.getVolunteersInSessions.mockResolvedValueOnce(
-        new Set([busyVol.id])
-      )
-      mockedNotificationService.getVolunteersTextedSinceXMinutesAgo.mockResolvedValueOnce(
-        new Set([recentlyTextedVol.id])
-      )
-
-      const result = await selectVolunteersByPriority(SUBJECTS.ALGEBRA_ONE, [
-        {
-          name: PriorityGroupName.REGULAR,
-          volunteers: [
-            busyVol,
-            recentlyTextedVol,
-            availableVol1,
-            availableVol2,
-          ],
-        },
-      ])
-
-      expect(result).toHaveLength(2)
-      expect(result).not.toContainEqual(
-        expect.objectContaining({ id: busyVol.id })
-      )
-      expect(result).not.toContainEqual(
-        expect.objectContaining({ id: recentlyTextedVol.id })
-      )
-      expect(result.some((v) => v.id === availableVol1.id)).toBe(true)
-      expect(result.some((v) => v.id === availableVol2.id)).toBe(true)
-    })
-
-    test('should return fewer than limit when not enough volunteers available', async () => {
-      const vol1 = buildTextableVolunteer()
-
-      const result = await selectVolunteersByPriority(SUBJECTS.ALGEBRA_ONE, [
-        { name: PriorityGroupName.FAVORITE, volunteers: [] },
-        { name: PriorityGroupName.PARTNER, volunteers: [] },
-        { name: PriorityGroupName.REGULAR, volunteers: [vol1] },
-      ])
-
-      expect(result).toHaveLength(1)
-      expect(result[0].id).toBe(vol1.id)
-    })
-
-    test('should return empty array when no volunteers available', async () => {
-      const result = await selectVolunteersByPriority(SUBJECTS.ALGEBRA_ONE, [
-        { name: PriorityGroupName.FAVORITE, volunteers: [] },
-        { name: PriorityGroupName.PARTNER, volunteers: [] },
-        { name: PriorityGroupName.REGULAR, volunteers: [] },
-      ])
-
-      expect(result).toHaveLength(0)
-    })
-
-    test('should maintain priority order across groups', async () => {
-      const favoritedVol = buildTextableVolunteer()
-      const partnerVol = buildTextableVolunteer()
-      const regularVol1 = buildTextableVolunteer()
-      const regularVol2 = buildTextableVolunteer()
-
-      const result = await selectVolunteersByPriority(SUBJECTS.CALCULUS_AB, [
-        { name: PriorityGroupName.FAVORITE, volunteers: [favoritedVol] },
-        { name: PriorityGroupName.PARTNER, volunteers: [partnerVol] },
-        {
-          name: PriorityGroupName.REGULAR,
-          volunteers: [regularVol1, regularVol2],
-        },
-      ])
-
-      expect(result).toHaveLength(3)
-      expect(result[0].id).toBe(favoritedVol.id)
-      expect(result[1].id).toBe(partnerVol.id)
-      expect(
-        result[2].id === regularVol1.id || result[2].id === regularVol2.id
-      ).toBe(true)
-    })
-
-    test('should deduplicate volunteers appearing in multiple priority groups', async () => {
-      const partnerVol = buildTextableVolunteer()
-
-      const result = await selectVolunteersByPriority(SUBJECTS.ALGEBRA_ONE, [
-        { name: PriorityGroupName.FAVORITE, volunteers: [] },
-        { name: PriorityGroupName.PARTNER, volunteers: [partnerVol] },
-        { name: PriorityGroupName.REGULAR, volunteers: [partnerVol] },
-      ])
-
-      expect(result).toHaveLength(1)
-      expect(result[0].id).toBe(partnerVol.id)
-    })
-  })
-
-  describe('sendTextMessages', () => {
-    test('should send text messages to all volunteers', async () => {
-      const volunteer1 = buildTextableVolunteer({
-        firstName: 'Alice',
-      })
-      const volunteer2 = buildTextableVolunteer({
-        firstName: 'Bob',
-      })
-
-      mockedTwilioClient.sendTextMessage.mockResolvedValueOnce('msg-id-1')
-      mockedTwilioClient.sendTextMessage.mockResolvedValueOnce('msg-id-2')
-
-      await sendTextMessages([volunteer1, volunteer2], {
-        sessionId: getDbUlid(),
-        subject: SUBJECTS.ALGEBRA_ONE,
-        subjectDisplayName: 'Algebra 1',
-        topic: SUBJECT_TYPES.MATH,
-      })
-
-      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledTimes(2)
-      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
-        volunteer1.phone,
-        expect.stringContaining('Hi Alice'),
-        expect.any(String)
-      )
-      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
-        volunteer2.phone,
-        expect.stringContaining('Hi Bob'),
-        expect.any(String)
-      )
-    })
-
-    test('should add session notification for each volunteer with message carrier ID', async () => {
-      const volunteer1 = buildTextableVolunteer({
-        priorityGroupName: 'Favorite volunteers',
-      })
-      const volunteer2 = buildTextableVolunteer({
-        priorityGroupName: 'Associated partner volunteers',
-      })
-      const sessionId = getDbUlid()
-
-      mockedTwilioClient.sendTextMessage.mockResolvedValueOnce('msg-id-a')
-      mockedTwilioClient.sendTextMessage.mockResolvedValueOnce('msg-id-b')
-
-      await sendTextMessages([volunteer1, volunteer2], {
-        sessionId,
-        subject: SUBJECTS.ALGEBRA_ONE,
-        subjectDisplayName: 'Algebra 1',
-        topic: SUBJECT_TYPES.MATH,
-      })
-
-      expect(
-        mockedSessionService.addSessionSmsNotification
-      ).toHaveBeenCalledTimes(2)
-      expect(
-        mockedSessionService.addSessionSmsNotification
-      ).toHaveBeenCalledWith(
-        sessionId,
-        volunteer1.id,
-        'Favorite volunteers',
-        'msg-id-a'
-      )
-      expect(
-        mockedSessionService.addSessionSmsNotification
-      ).toHaveBeenCalledWith(
-        sessionId,
-        volunteer2.id,
-        'Associated partner volunteers',
-        'msg-id-b'
-      )
-    })
-
-    test('should include student org display in message when provided', async () => {
-      const volunteer = buildTextableVolunteer({
-        firstName: 'Persephone',
-        priorityGroupName: 'Associated partner volunteers',
-      })
-
-      mockedTwilioClient.sendTextMessage.mockResolvedValueOnce('msg-id')
-
-      await sendTextMessages(
-        [volunteer],
-        {
-          sessionId: getDbUlid(),
-          subject: SUBJECTS.ALGEBRA_ONE,
-          subjectDisplayName: 'Algebra 1',
-          topic: SUBJECT_TYPES.MATH,
-        },
-        'Example School'
-      )
-
-      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
-        volunteer.phone,
-        expect.stringContaining('Hi Persephone'),
-        expect.any(String)
-      )
-      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
-        volunteer.phone,
-        expect.stringContaining('an Example School student needs help'),
-        expect.any(String)
-      )
-    })
-
-    test('should use generic "a student" when no student org display', async () => {
-      const volunteer = buildTextableVolunteer({
-        firstName: 'Hades',
-      })
-
-      mockedTwilioClient.sendTextMessage.mockResolvedValueOnce('msg-id')
-
-      await sendTextMessages([volunteer], {
-        sessionId: getDbUlid(),
-        subject: SUBJECTS.ALGEBRA_ONE,
-        subjectDisplayName: 'Algebra 1',
-        topic: SUBJECT_TYPES.MATH,
-      })
-
-      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
-        volunteer.phone,
-        expect.stringContaining('a student needs help'),
-        expect.any(String)
-      )
-      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
-        volunteer.phone,
-        expect.stringContaining('Hi Hades'),
-        expect.any(String)
-      )
-    })
-
-    test('should use correct article ("an") for org names starting with vowels', async () => {
-      const volunteer = buildTextableVolunteer({
-        firstName: 'Hercules',
-        priorityGroupName: 'Associated partner volunteers',
-      })
-
-      mockedTwilioClient.sendTextMessage.mockResolvedValueOnce('msg-id')
-
-      await sendTextMessages(
-        [volunteer],
-        {
-          sessionId: getDbUlid(),
-          subject: SUBJECTS.ALGEBRA_ONE,
-          subjectDisplayName: 'Algebra 1',
-          topic: SUBJECT_TYPES.MATH,
-        },
-        'Awesome School'
-      )
-
-      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
-        volunteer.phone,
-        expect.stringContaining('Hi Hercules'),
-        expect.any(String)
-      )
-      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
-        volunteer.phone,
-        expect.stringContaining('an Awesome School student'),
-        expect.any(String)
-      )
-    })
-
-    test('should handle failed message sending (undefined message carrier ID)', async () => {
-      const volunteer = buildTextableVolunteer()
-      const sessionId = getDbUlid()
-
-      mockedTwilioClient.sendTextMessage.mockResolvedValueOnce(undefined)
-
-      await sendTextMessages([volunteer], {
-        sessionId,
-        subject: SUBJECTS.ALGEBRA_ONE,
-        subjectDisplayName: 'Algebra 1',
-        topic: SUBJECT_TYPES.MATH,
-      })
-
-      expect(
-        mockedSessionService.addSessionSmsNotification
-      ).toHaveBeenCalledWith(sessionId, volunteer.id, undefined, undefined)
-    })
-  })
-
-  describe('textVolunteers', () => {
-    test('should early exit when the session is already fulfilled', async () => {
-      mockedSessionService.isSessionFulfilled.mockResolvedValueOnce(true)
-
-      const job = {
-        data: {
-          sessionId: getDbUlid(),
-          subject: SUBJECTS.ALGEBRA_ONE,
-          subjectDisplayName: 'Algebra 1',
-          topic: SUBJECT_TYPES.MATH,
-          studentId: getDbUlid(),
-        },
-      }
-      await textVolunteers(job as Job)
-
-      expect(mockedLogger.info).toHaveBeenCalledWith(
-        {
-          sessionId: job.data.sessionId,
-        },
-        'Session fulfilled.'
-      )
-      expect(mockedCacheService.getIfExists).not.toHaveBeenCalled()
-    })
-
-    test.each(['shadow', 'complete'])(
-      'does not text volunteers who are shadow-banned',
-      async (testBanType) => {
-        const studentId = getDbUlid()
-
-        // Volunteers are initially all unbanned.
-        const eligibleVolunteer1 = buildTextableVolunteer({
-          unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
-        })
-        const eligibleVolunteer2 = buildTextableVolunteer({
-          unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
-        })
-        mockedCacheService.getIfExists.mockResolvedValueOnce(
-          JSON.stringify([eligibleVolunteer1, eligibleVolunteer2])
-        )
-
-        // Mock coach getting banned after being cached
-        mockedUserService.getUsersBanStatusesById.mockResolvedValueOnce([
-          { id: eligibleVolunteer1.id, banType: null }, // textable user
-          { id: eligibleVolunteer2.id, banType: testBanType }, // not textable due to ban type
-        ])
-        mockedTwilioClient.sendTextMessage.mockResolvedValueOnce({
-          sid: 'message-1-sid',
-        })
-
-        const sessionId = getDbUlid()
-        const job = {
-          data: {
-            sessionId,
-            subject: SUBJECTS.ALGEBRA_ONE,
-            subjectDisplayName: 'Algebra 1',
-            topic: SUBJECT_TYPES.MATH,
-            studentId,
-          },
-        }
-        await textVolunteers(job as Job)
-
-        expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledTimes(1)
-        expect(mockedTwilioClient.sendTextMessage).toHaveBeenNthCalledWith(
-          1,
-          eligibleVolunteer1.phone,
-          expect.any(String),
-          sessionId
-        )
-        expect(
-          mockedSessionService.addSessionSmsNotification
-        ).toHaveBeenCalledTimes(1)
-        expect(
-          mockedSessionService.addSessionSmsNotification
-        ).toHaveBeenNthCalledWith(
-          1,
-          sessionId,
-          eligibleVolunteer1.id,
-          expect.anything(),
-          { sid: 'message-1-sid' }
-        )
-      }
+    mockedFavoritingService.getFavoritedVolunteerIdsFromList.mockResolvedValueOnce(
+      new Set([favoritedVolunteer.id])
     )
 
-    test('does text a live media-banned volunteer', async () => {
-      const studentId = getDbUlid()
-
-      // Volunteers are initially all unbanned.
-      const eligibleVolunteer1 = buildTextableVolunteer({
-        unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
-      })
-      const eligibleVolunteer2 = buildTextableVolunteer({
-        unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
-      })
-      mockedCacheService.getIfExists.mockResolvedValueOnce(
-        JSON.stringify([eligibleVolunteer1, eligibleVolunteer2])
-      )
-
-      // Mock coach getting live media-banned after being cached
-      mockedUserService.getUsersBanStatusesById.mockResolvedValueOnce([
-        { id: eligibleVolunteer1.id, banType: null },
-        { id: eligibleVolunteer2.id, banType: 'live_media' },
-      ])
-      mockedTwilioClient.sendTextMessage.mockResolvedValue({
-        sid: 'message-1-sid',
-      })
-
-      const sessionId = getDbUlid()
-      const job = {
-        data: {
-          sessionId,
-          subject: SUBJECTS.ALGEBRA_ONE,
-          subjectDisplayName: 'Algebra 1',
-          topic: SUBJECT_TYPES.MATH,
-          studentId,
-        },
-      }
-      await textVolunteers(job as Job)
-
-      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledTimes(2)
-      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
-        eligibleVolunteer1.phone,
-        expect.any(String),
-        sessionId
-      )
-      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
-        eligibleVolunteer2.phone,
-        expect.any(String),
-        sessionId
-      )
-      expect(
-        mockedSessionService.addSessionSmsNotification
-      ).toHaveBeenCalledTimes(2)
-      expect(
-        mockedSessionService.addSessionSmsNotification
-      ).toHaveBeenCalledWith(
-        sessionId,
-        eligibleVolunteer1.id,
-        expect.anything(),
-        expect.objectContaining({ sid: expect.any(String) })
-      )
-      expect(
-        mockedSessionService.addSessionSmsNotification
-      ).toHaveBeenCalledWith(
-        sessionId,
-        eligibleVolunteer2.id,
-        expect.anything(),
-        expect.objectContaining({ sid: expect.any(String) })
-      )
-    })
-
-    test('does text a live media-banned volunteer', async () => {
-      const studentId = getDbUlid()
-
-      // Volunteers are initially all unbanned.
-      const eligibleVolunteer1 = buildTextableVolunteer({
-        unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
-      })
-      const eligibleVolunteer2 = buildTextableVolunteer({
-        unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
-      })
-      mockedCacheService.getIfExists.mockResolvedValueOnce(
-        JSON.stringify([eligibleVolunteer1, eligibleVolunteer2])
-      )
-
-      // Mock coach getting live media-banned after being cached
-      mockedUserService.getUsersBanStatusesById.mockResolvedValueOnce([
-        { id: eligibleVolunteer1.id, banType: null },
-        { id: eligibleVolunteer2.id, banType: 'live_media' },
-      ])
-      mockedTwilioClient.sendTextMessage.mockResolvedValue({
-        sid: 'message-1-sid',
-      })
-
-      const sessionId = getDbUlid()
-      const job = {
-        data: {
-          sessionId,
-          subject: SUBJECTS.ALGEBRA_ONE,
-          subjectDisplayName: 'Algebra 1',
-          topic: SUBJECT_TYPES.MATH,
-          studentId,
-        },
-      }
-      await textVolunteers(job as Job)
-
-      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledTimes(2)
-      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
-        eligibleVolunteer1.phone,
-        expect.any(String),
-        sessionId
-      )
-      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
-        eligibleVolunteer2.phone,
-        expect.any(String),
-        sessionId
-      )
-      expect(
-        mockedSessionService.addSessionSmsNotification
-      ).toHaveBeenCalledTimes(2)
-      expect(
-        mockedSessionService.addSessionSmsNotification
-      ).toHaveBeenCalledWith(
-        sessionId,
-        eligibleVolunteer1.id,
-        expect.anything(),
-        expect.objectContaining({ sid: expect.any(String) })
-      )
-      expect(
-        mockedSessionService.addSessionSmsNotification
-      ).toHaveBeenCalledWith(
-        sessionId,
-        eligibleVolunteer2.id,
-        expect.anything(),
-        expect.objectContaining({ sid: expect.any(String) })
-      )
-    })
-
-    test('should prioritize favorited volunteers over partner and regular volunteers', async () => {
-      const studentId = getDbUlid()
-      const favoritedVol = buildTextableVolunteer({
-        unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
-      })
-      const partnerVol = buildTextableVolunteer({
-        unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
-        volunteerPartnerOrgKey: 'example-partner',
-      })
-      const regularVol1 = buildTextableVolunteer({
-        unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
-      })
-      const regularVol2 = buildTextableVolunteer({
-        unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
-      })
-
-      mockedCacheService.getIfExists.mockResolvedValueOnce(
-        JSON.stringify([regularVol1, regularVol2, favoritedVol, partnerVol])
-      )
-      mockedFavoritingService.getFavoritedVolunteerIdsFromList.mockResolvedValueOnce(
-        new Set([favoritedVol.id])
-      )
-      mockedAssociatedPartnerService.getAssociatedPartner.mockResolvedValueOnce(
-        {
-          volunteerPartnerOrg: 'example-partner',
-          studentOrgDisplay: 'Example School',
-        } as AssociatedPartner
-      )
-      mockedTwilioClient.sendTextMessage
-        .mockResolvedValueOnce('msg-id-1')
-        .mockResolvedValueOnce('msg-id-2')
-
-      const sessionId = getDbUlid()
-      const job = {
-        data: {
-          sessionId,
-          subject: SUBJECTS.ALGEBRA_ONE,
-          subjectDisplayName: 'Algebra 1',
-          topic: SUBJECT_TYPES.MATH,
-          studentId,
-          studentPartnerOrg: 'student-partner-org',
-        },
-      }
-      await textVolunteers(job as Job)
-
-      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledTimes(2)
-      expect(mockedTwilioClient.sendTextMessage).toHaveBeenNthCalledWith(
-        1,
-        favoritedVol.phone,
-        expect.stringContaining(favoritedVol.firstName),
-        expect.any(String)
-      )
-      expect(mockedTwilioClient.sendTextMessage).toHaveBeenNthCalledWith(
-        2,
-        partnerVol.phone,
-        expect.stringContaining(partnerVol.firstName),
-        expect.any(String)
-      )
-      expect(mockedTwilioClient.sendTextMessage).toHaveBeenNthCalledWith(
-        2,
-        partnerVol.phone,
-        expect.stringContaining('Example School'),
-        expect.any(String)
-      )
-
-      expect(
-        mockedSessionService.addSessionSmsNotification
-      ).toHaveBeenCalledTimes(2)
-      expect(
-        mockedSessionService.addSessionSmsNotification
-      ).toHaveBeenNthCalledWith(
-        1,
-        sessionId,
-        favoritedVol.id,
-        'Favorite volunteers',
-        'msg-id-1'
-      )
-      expect(
-        mockedSessionService.addSessionSmsNotification
-      ).toHaveBeenNthCalledWith(
-        2,
-        sessionId,
-        partnerVol.id,
-        'Associated partner volunteers',
-        'msg-id-2'
-      )
-    })
-
-    test('should filter out volunteers who do not have subject unlocked', async () => {
-      const algebraVol = buildTextableVolunteer({
-        unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
-      })
-      const chemistryVol = buildTextableVolunteer({
-        unlockedSubjects: [SUBJECTS.CHEMISTRY],
-      })
-      const geometryVol = buildTextableVolunteer({
-        unlockedSubjects: [SUBJECTS.GEOMETRY],
-      })
-
-      mockedCacheService.getIfExists.mockResolvedValueOnce(
-        JSON.stringify([algebraVol, chemistryVol, geometryVol])
-      )
-      mockedTwilioClient.sendTextMessage.mockResolvedValueOnce('msg-id')
-
-      const sessionId = getDbUlid()
-      const job = {
-        data: {
-          sessionId,
-          subject: SUBJECTS.ALGEBRA_ONE,
-          subjectDisplayName: 'Algebra 1',
-          topic: SUBJECT_TYPES.MATH,
-          studentId: getDbUlid(),
-        },
-      }
-
-      await textVolunteers(job as Job)
-
-      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledTimes(1)
-      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
-        algebraVol.phone,
-        expect.stringContaining(algebraVol.firstName),
-        expect.any(String)
-      )
-
-      expect(
-        mockedSessionService.addSessionSmsNotification
-      ).toHaveBeenCalledTimes(1)
-      expect(
-        mockedSessionService.addSessionSmsNotification
-      ).toHaveBeenCalledWith(
-        sessionId,
-        algebraVol.id,
-        'Regular volunteers',
-        'msg-id'
-      )
-    })
-
-    test('should exclude high-level volunteers from low-level subjects', async () => {
-      const highLevelVol = buildTextableVolunteer({
-        unlockedSubjects: [SUBJECTS.CALCULUS_AB, SUBJECTS.ALGEBRA_ONE],
-      })
-      const regularVol1 = buildTextableVolunteer({
-        unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
-      })
-      const regularVol2 = buildTextableVolunteer({
-        unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
-      })
-
-      mockedCacheService.getIfExists.mockResolvedValueOnce(
-        JSON.stringify([highLevelVol, regularVol1, regularVol2])
-      )
-      mockedTwilioClient.sendTextMessage
-        .mockResolvedValueOnce('msg-id-1')
-        .mockResolvedValueOnce('msg-id-2')
-
-      const sessionId = getDbUlid()
-      const job = {
-        data: {
-          sessionId,
-          subject: SUBJECTS.ALGEBRA_ONE,
-          subjectDisplayName: 'Algebra 1',
-          topic: SUBJECT_TYPES.MATH,
-          studentId: getDbUlid(),
-        },
-      }
-
-      await textVolunteers(job as Job)
-
-      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledTimes(2)
-      expect(mockedTwilioClient.sendTextMessage).not.toHaveBeenCalledWith(
-        highLevelVol.phone,
-        expect.anything(),
-        expect.any(String)
-      )
-      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
-        regularVol1.phone,
-        expect.stringContaining(regularVol1.firstName),
-        expect.any(String)
-      )
-      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
-        regularVol2.phone,
-        expect.stringContaining(regularVol2.firstName),
-        expect.any(String)
-      )
-      expect(
-        mockedSessionService.addSessionSmsNotification
-      ).toHaveBeenCalledTimes(2)
-      expect(
-        mockedSessionService.addSessionSmsNotification
-      ).toHaveBeenCalledWith(
-        sessionId,
-        regularVol1.id,
-        'Regular volunteers',
-        expect.anything()
-      )
-      expect(
-        mockedSessionService.addSessionSmsNotification
-      ).toHaveBeenCalledWith(
-        sessionId,
-        regularVol2.id,
-        'Regular volunteers',
-        expect.anything()
-      )
-    })
-
-    test('should exclude volunteers who have muted the subject', async () => {
-      const mutedVol = buildTextableVolunteer({
-        unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
-        mutedSubjects: [SUBJECTS.ALGEBRA_ONE],
-      })
-      const availableVol1 = buildTextableVolunteer({
-        unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
-      })
-      const availableVol2 = buildTextableVolunteer({
-        unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
-      })
-
-      mockedCacheService.getIfExists.mockResolvedValueOnce(
-        JSON.stringify([mutedVol, availableVol1, availableVol2])
-      )
-      mockedTwilioClient.sendTextMessage
-        .mockResolvedValueOnce('msg-id-1')
-        .mockResolvedValueOnce('msg-id-2')
-
-      const sessionId = getDbUlid()
-      const job = {
-        data: {
-          sessionId,
-          subject: SUBJECTS.ALGEBRA_ONE,
-          subjectDisplayName: 'Algebra 1',
-          topic: SUBJECT_TYPES.MATH,
-          studentId: getDbUlid(),
-        },
-      }
-
-      await textVolunteers(job as Job)
-
-      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledTimes(2)
-      expect(mockedTwilioClient.sendTextMessage).not.toHaveBeenCalledWith(
-        mutedVol.phone,
-        expect.anything(),
-        expect.any(String)
-      )
-      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
-        availableVol1.phone,
-        expect.stringContaining(availableVol1.firstName),
-        expect.any(String)
-      )
-      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
-        availableVol2.phone,
-        expect.stringContaining(availableVol2.firstName),
-        expect.any(String)
-      )
-
-      expect(
-        mockedSessionService.addSessionSmsNotification
-      ).toHaveBeenCalledTimes(2)
-
-      expect(
-        mockedSessionService.addSessionSmsNotification
-      ).toHaveBeenCalledTimes(2)
-      expect(
-        mockedSessionService.addSessionSmsNotification
-      ).toHaveBeenCalledWith(
-        sessionId,
-        availableVol1.id,
-        'Regular volunteers',
-        expect.anything()
-      )
-      expect(
-        mockedSessionService.addSessionSmsNotification
-      ).toHaveBeenCalledWith(
-        sessionId,
-        availableVol2.id,
-        'Regular volunteers',
-        expect.anything()
-      )
-    })
-
-    test('should exclude volunteers currently in sessions', async () => {
-      const busyVol = buildTextableVolunteer({
-        unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
-      })
-      const availableVol1 = buildTextableVolunteer({
-        unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
-      })
-      const availableVol2 = buildTextableVolunteer({
-        unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
-      })
-
-      mockedCacheService.getIfExists.mockResolvedValueOnce(
-        JSON.stringify([busyVol, availableVol1, availableVol2])
-      )
-      mockedSessionService.getVolunteersInSessions.mockResolvedValueOnce(
-        new Set([busyVol.id])
-      )
-      mockedTwilioClient.sendTextMessage
-        .mockResolvedValueOnce('msg-id-1')
-        .mockResolvedValueOnce('msg-id-2')
-
-      const sessionId = getDbUlid()
-      const job = {
-        data: {
-          sessionId,
-          subject: SUBJECTS.ALGEBRA_ONE,
-          subjectDisplayName: 'Algebra 1',
-          topic: SUBJECT_TYPES.MATH,
-          studentId: getDbUlid(),
-        },
-      }
-
-      await textVolunteers(job as Job)
-
-      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledTimes(2)
-      expect(mockedTwilioClient.sendTextMessage).not.toHaveBeenCalledWith(
-        busyVol.phone,
-        expect.anything(),
-        expect.any(String)
-      )
-      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
-        availableVol1.phone,
-        expect.stringContaining(availableVol1.firstName),
-        expect.any(String)
-      )
-      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
-        availableVol2.phone,
-        expect.stringContaining(availableVol2.firstName),
-        expect.any(String)
-      )
-
-      expect(
-        mockedSessionService.addSessionSmsNotification
-      ).toHaveBeenCalledTimes(2)
-      expect(
-        mockedSessionService.addSessionSmsNotification
-      ).toHaveBeenCalledWith(
-        sessionId,
-        availableVol1.id,
-        'Regular volunteers',
-        expect.anything()
-      )
-      expect(
-        mockedSessionService.addSessionSmsNotification
-      ).toHaveBeenCalledWith(
-        sessionId,
-        availableVol2.id,
-        'Regular volunteers',
-        expect.anything()
-      )
-    })
-
-    test('should exclude volunteers texted within the last x minutes', async () => {
-      const recentlyTextedVol = buildTextableVolunteer({
-        unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
-      })
-      const availableVol1 = buildTextableVolunteer({
-        unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
-      })
-      const availableVol2 = buildTextableVolunteer({
-        unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
-      })
-      mockedCacheService.getIfExists.mockResolvedValueOnce(
-        JSON.stringify([recentlyTextedVol, availableVol1, availableVol2])
-      )
-      mockedNotificationService.getVolunteersTextedSinceXMinutesAgo.mockResolvedValueOnce(
-        new Set([recentlyTextedVol.id])
-      )
-      mockedTwilioClient.sendTextMessage
-        .mockResolvedValueOnce('msg-id-1')
-        .mockResolvedValueOnce('msg-id-2')
-
-      const sessionId = getDbUlid()
-      const job = {
-        data: {
-          sessionId,
-          subject: SUBJECTS.ALGEBRA_ONE,
-          subjectDisplayName: 'Algebra 1',
-          topic: SUBJECT_TYPES.MATH,
-          studentId: getDbUlid(),
-        },
-      }
-
-      await textVolunteers(job as Job)
-
-      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledTimes(2)
-      expect(mockedTwilioClient.sendTextMessage).not.toHaveBeenCalledWith(
-        recentlyTextedVol.phone,
-        expect.anything(),
-        expect.any(String)
-      )
-      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
-        availableVol1.phone,
-        expect.stringContaining(availableVol1.firstName),
-        expect.any(String)
-      )
-      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
-        availableVol2.phone,
-        expect.stringContaining(availableVol2.firstName),
-        expect.any(String)
-      )
-
-      expect(
-        mockedSessionService.addSessionSmsNotification
-      ).toHaveBeenCalledTimes(2)
-      expect(
-        mockedSessionService.addSessionSmsNotification
-      ).toHaveBeenCalledWith(
-        sessionId,
-        availableVol1.id,
-        'Regular volunteers',
-        expect.anything()
-      )
-      expect(
-        mockedSessionService.addSessionSmsNotification
-      ).toHaveBeenCalledWith(
-        sessionId,
-        availableVol2.id,
-        'Regular volunteers',
-        expect.anything()
-      )
-    })
-
-    test('should respect subject-specific text limits (Calculus AB = 3)', async () => {
-      const vol1 = buildTextableVolunteer({
-        unlockedSubjects: [SUBJECTS.CALCULUS_AB],
-      })
-      const vol2 = buildTextableVolunteer({
-        unlockedSubjects: [SUBJECTS.CALCULUS_AB],
-      })
-      const vol3 = buildTextableVolunteer({
-        unlockedSubjects: [SUBJECTS.CALCULUS_AB],
-      })
-      const vol4 = buildTextableVolunteer({
-        unlockedSubjects: [SUBJECTS.CALCULUS_AB],
-      })
-
-      mockedCacheService.getIfExists.mockResolvedValueOnce(
-        JSON.stringify([vol1, vol2, vol3, vol4])
-      )
-      mockedTwilioClient.sendTextMessage
-        .mockResolvedValueOnce('msg-id-1')
-        .mockResolvedValueOnce('msg-id-2')
-        .mockResolvedValueOnce('msg-id-3')
-
-      const sessionId = getDbUlid()
-      const job = {
-        data: {
-          sessionId,
-          subject: SUBJECTS.CALCULUS_AB,
-          subjectDisplayName: 'Calculus AB',
-          topic: SUBJECT_TYPES.MATH,
-          studentId: getDbUlid(),
-        },
-      }
-      await textVolunteers(job as Job)
-
-      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledTimes(3)
-
-      expect(
-        mockedSessionService.addSessionSmsNotification
-      ).toHaveBeenCalledTimes(3)
-    })
-
-    test('should include student org display in message when partner exists', async () => {
-      const volunteer = buildTextableVolunteer({
-        unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
-        volunteerPartnerOrgKey: 'example-partner',
-      })
-
-      mockedCacheService.getIfExists.mockResolvedValueOnce(
-        JSON.stringify([volunteer])
-      )
-      mockedAssociatedPartnerService.getAssociatedPartner.mockResolvedValueOnce(
-        {
-          volunteerPartnerOrg: 'example-partner',
-          studentOrgDisplay: 'Example School',
-        } as AssociatedPartner
-      )
-      mockedTwilioClient.sendTextMessage.mockResolvedValueOnce('msg-id')
-
-      const sessionId = getDbUlid()
-      const job = {
-        data: {
-          sessionId,
-          subject: SUBJECTS.ALGEBRA_ONE,
-          subjectDisplayName: 'Algebra 1',
-          topic: SUBJECT_TYPES.MATH,
-          studentId: getDbUlid(),
-          studentPartnerOrg: 'student-partner-org',
-        },
-      }
-      await textVolunteers(job as Job)
-
-      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledTimes(1)
-      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
-        volunteer.phone,
-        expect.stringContaining(volunteer.firstName),
-        expect.any(String)
-      )
-      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
-        volunteer.phone,
-        expect.stringContaining('Example School student'),
-        expect.any(String)
-      )
-      expect(mockedTwilioClient.sendTextMessage).not.toHaveBeenCalledWith(
-        volunteer.phone,
-        expect.stringContaining('a student needs help'),
-        expect.any(String)
-      )
-
-      expect(
-        mockedSessionService.addSessionSmsNotification
-      ).toHaveBeenCalledTimes(1)
-      expect(
-        mockedSessionService.addSessionSmsNotification
-      ).toHaveBeenCalledWith(
-        sessionId,
-        volunteer.id,
-        'Associated partner volunteers',
-        'msg-id'
-      )
-    })
-
-    test('should use generic "a student" when no partner org', async () => {
-      const volunteer = buildTextableVolunteer({
-        unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
-      })
-
-      mockedCacheService.getIfExists.mockResolvedValueOnce(
-        JSON.stringify([volunteer])
-      )
-      mockedTwilioClient.sendTextMessage.mockResolvedValueOnce('msg-id')
-
-      const sessionId = getDbUlid()
-      const job = {
-        data: {
-          sessionId,
-          subject: SUBJECTS.ALGEBRA_ONE,
-          subjectDisplayName: 'Algebra 1',
-          topic: SUBJECT_TYPES.MATH,
-          studentId: getDbUlid(),
-        },
-      }
-      await textVolunteers(job as Job)
-
-      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
-        volunteer.phone,
-        expect.stringContaining(volunteer.firstName),
-        expect.any(String)
-      )
-      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
-        volunteer.phone,
-        expect.stringContaining('a student needs help'),
-        expect.any(String)
-      )
-
-      expect(
-        mockedSessionService.addSessionSmsNotification
-      ).toHaveBeenCalledTimes(1)
-      expect(
-        mockedSessionService.addSessionSmsNotification
-      ).toHaveBeenCalledWith(
-        sessionId,
-        volunteer.id,
-        'Regular volunteers',
-        'msg-id'
-      )
-    })
-
-    test('should log warning when no eligible volunteers found', async () => {
-      const sessionId = getDbUlid()
-      const chemistryVol = buildTextableVolunteer({
-        unlockedSubjects: [SUBJECTS.CHEMISTRY],
-      })
-
-      mockedCacheService.getIfExists.mockResolvedValueOnce(
-        JSON.stringify([chemistryVol])
-      )
-
-      const job = {
-        data: {
-          sessionId,
-          subject: SUBJECTS.ALGEBRA_ONE,
-          subjectDisplayName: 'Algebra 1',
-          topic: SUBJECT_TYPES.MATH,
-          studentId: getDbUlid(),
-        },
-      }
-      await textVolunteers(job as Job)
-
-      expect(mockedTwilioClient.sendTextMessage).not.toHaveBeenCalled()
-      expect(mockedLogger.warn).toHaveBeenCalledWith(
-        { sessionId, subject: SUBJECTS.ALGEBRA_ONE },
-        'No volunteers found to text for session.'
-      )
-    })
-
-    test('should handle complex priority scenario with all filters applied', async () => {
-      const studentId = getDbUlid()
-      const favoritedVol = buildTextableVolunteer({
-        unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
-      })
-      const partnerVol = buildTextableVolunteer({
-        unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
-        volunteerPartnerOrgKey: 'example-partner',
-      })
-      const highLevelVol = buildTextableVolunteer({
-        unlockedSubjects: [SUBJECTS.CALCULUS_AB, SUBJECTS.ALGEBRA_ONE],
-      })
-      const mutedVol = buildTextableVolunteer({
-        unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
-        mutedSubjects: [SUBJECTS.ALGEBRA_ONE],
-      })
-      const busyVol = buildTextableVolunteer({
-        unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
-      })
-      const recentVol = buildTextableVolunteer({
-        unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
-      })
-      const chemistryVol = buildTextableVolunteer({
-        unlockedSubjects: [SUBJECTS.CHEMISTRY],
-      })
-
-      mockedCacheService.getIfExists.mockResolvedValueOnce(
-        JSON.stringify([
-          highLevelVol,
-          mutedVol,
-          busyVol,
-          chemistryVol,
-          partnerVol,
-          favoritedVol,
-        ])
-      )
-      mockedFavoritingService.getFavoritedVolunteerIdsFromList.mockResolvedValueOnce(
-        new Set([favoritedVol.id, busyVol.id])
-      )
-      mockedAssociatedPartnerService.getAssociatedPartner.mockResolvedValueOnce(
-        {
-          volunteerPartnerOrg: 'example-partner',
-          studentOrgDisplay: 'Example School',
-        } as AssociatedPartner
-      )
-      mockedSessionService.getVolunteersInSessions.mockResolvedValueOnce(
-        new Set([busyVol.id])
-      )
-      mockedNotificationService.getVolunteersTextedSinceXMinutesAgo.mockResolvedValueOnce(
-        new Set([recentVol.id])
-      )
-      mockedTwilioClient.sendTextMessage
-        .mockResolvedValueOnce('msg-id-1')
-        .mockResolvedValueOnce('msg-id-2')
-
-      const sessionId = getDbUlid()
-      const job = {
-        data: {
-          sessionId,
-          subject: SUBJECTS.ALGEBRA_ONE,
-          subjectDisplayName: 'Algebra 1',
-          topic: SUBJECT_TYPES.MATH,
-          studentId,
-          studentPartnerOrg: 'student-partner-org',
-        },
-      }
-      await textVolunteers(job as Job)
-
-      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledTimes(2)
-      expect(mockedTwilioClient.sendTextMessage).toHaveBeenNthCalledWith(
-        1,
-        favoritedVol.phone,
-        expect.stringContaining(favoritedVol.firstName),
-        expect.any(String)
-      )
-      expect(mockedTwilioClient.sendTextMessage).toHaveBeenNthCalledWith(
-        1,
-        favoritedVol.phone,
-        expect.stringContaining('a student needs help'),
-        expect.any(String)
-      )
-      expect(mockedTwilioClient.sendTextMessage).not.toHaveBeenNthCalledWith(
-        1,
-        favoritedVol.phone,
-        expect.stringContaining('Example School student'),
-        expect.any(String)
-      )
-      expect(mockedTwilioClient.sendTextMessage).toHaveBeenNthCalledWith(
-        2,
-        partnerVol.phone,
-        expect.stringContaining(partnerVol.firstName),
-        expect.any(String)
-      )
-      expect(mockedTwilioClient.sendTextMessage).toHaveBeenNthCalledWith(
-        2,
-        partnerVol.phone,
-        expect.stringContaining('Example School student'),
-        expect.any(String)
-      )
-      expect(mockedTwilioClient.sendTextMessage).not.toHaveBeenNthCalledWith(
-        2,
-        partnerVol.phone,
-        expect.stringContaining('a student needs help')
-      )
-
-      expect(
-        mockedSessionService.addSessionSmsNotification
-      ).toHaveBeenCalledTimes(2)
-      expect(
-        mockedSessionService.addSessionSmsNotification
-      ).toHaveBeenNthCalledWith(
-        1,
-        sessionId,
-        favoritedVol.id,
-        'Favorite volunteers',
-        'msg-id-1'
-      )
-      expect(
-        mockedSessionService.addSessionSmsNotification
-      ).toHaveBeenNthCalledWith(
-        2,
-        sessionId,
-        partnerVol.id,
-        'Associated partner volunteers',
-        'msg-id-2'
-      )
-    })
-
-    test('should queue another job when notificationRound is 1', async () => {
-      const volunteer = buildTextableVolunteer({
-        unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
-      })
-      mockedCacheService.getIfExists.mockResolvedValueOnce(
-        JSON.stringify([volunteer])
-      )
-      const sessionId = getDbUlid()
-      const studentId = getDbUlid()
-      const job = {
-        data: {
-          notificationRound: 1,
-          sessionId,
-          subject: SUBJECTS.ALGEBRA_ONE,
-          subjectDisplayName: 'Algebra 1',
-          topic: SUBJECT_TYPES.MATH,
-          studentId,
-        },
-      }
-      await textVolunteers(job as Job)
-
-      expect(mockedQueueService.add).toHaveBeenCalledTimes(1)
-      expect(mockedQueueService.add).toHaveBeenCalledWith(
-        expect.anything(),
-        { delay: 30000 },
-        expect.objectContaining({
-          ...job.data,
-          notificationRound: 2,
-        })
-      )
-    })
-
-    test('should queue another job when notificationRound is 5', async () => {
-      const volunteer = buildTextableVolunteer({
-        unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
-      })
-      mockedCacheService.getIfExists.mockResolvedValueOnce(
-        JSON.stringify([volunteer])
-      )
-
-      const sessionId = getDbUlid()
-      const studentId = getDbUlid()
-      const job = {
-        data: {
-          notificationRound: 5,
-          sessionId,
-          subject: SUBJECTS.ALGEBRA_ONE,
-          subjectDisplayName: 'Algebra 1',
-          topic: SUBJECT_TYPES.MATH,
-          studentId,
-        },
-      }
-      await textVolunteers(job as Job)
-
-      expect(mockedQueueService.add).toHaveBeenCalledTimes(1)
-      expect(mockedQueueService.add).toHaveBeenCalledWith(
-        expect.anything(),
-        { delay: 30000 },
-        expect.objectContaining({
-          ...job.data,
-          notificationRound: 6,
-        })
-      )
-    })
-
-    test('should not queue another job when notificationRound is above 5', async () => {
-      const volunteer = buildTextableVolunteer({
-        unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
-      })
-      mockedCacheService.getIfExists.mockResolvedValueOnce(
-        JSON.stringify([volunteer])
-      )
-
-      const job = {
-        data: {
-          notificationRound: 6,
-        },
-      }
-      await textVolunteers(job as Job)
-
-      expect(mockedQueueService.add).not.toHaveBeenCalled()
-    })
+    const result = await filterFavoritedVolunteers(
+      [favoritedVolunteer, regularVolunteer],
+      studentId
+    )
+
+    expect(result).toHaveLength(1)
+    expect(result[0].id).toBe(favoritedVolunteer.id)
   })
 
-  describe('JOB_CONFIG', () => {
-    test('should be configured so volunteers will not be texted more than once per session', () => {
-      expect(
-        (JOB_CONFIG.maxNotificationRounds * JOB_CONFIG.roundDelay) / 60
-      ).toBeLessThan(JOB_CONFIG.lastTextedInMinutes)
+  test('should return empty array when no volunteers favorited', async () => {
+    const studentId = getDbUlid()
+    const volunteer1 = buildTextableVolunteer()
+    const volunteer2 = buildTextableVolunteer()
+
+    mockedFavoritingService.getFavoritedVolunteerIdsFromList.mockResolvedValueOnce(
+      new Set()
+    )
+
+    const result = await filterFavoritedVolunteers(
+      [volunteer1, volunteer2],
+      studentId
+    )
+
+    expect(result).toHaveLength(0)
+  })
+
+  test('should handle empty volunteer list', async () => {
+    const studentId = getDbUlid()
+
+    const result = await filterFavoritedVolunteers([], studentId)
+
+    expect(result).toHaveLength(0)
+    expect(
+      mockedFavoritingService.getFavoritedVolunteerIdsFromList
+    ).not.toHaveBeenCalled()
+  })
+})
+
+describe('filterPartnerVolunteers', () => {
+  test('should return volunteers from matching partner org with studentOrgDisplay', async () => {
+    const partnerVolunteer1 = buildTextableVolunteer({
+      volunteerPartnerOrgKey: 'example-partner',
     })
+    const partnerVolunteer2 = buildTextableVolunteer({
+      volunteerPartnerOrgKey: 'example-partner',
+    })
+    const otherVolunteer = buildTextableVolunteer({
+      volunteerPartnerOrgKey: 'other-partner',
+    })
+
+    mockedAssociatedPartnerService.getAssociatedPartner.mockResolvedValueOnce({
+      volunteerPartnerOrg: 'example-partner',
+      studentOrgDisplay: 'Example Partner School',
+    } as AssociatedPartner)
+
+    const result = await filterPartnerVolunteers(
+      [partnerVolunteer1, partnerVolunteer2, otherVolunteer],
+      'student-partner-org',
+      'school-id'
+    )
+
+    expect(result?.volunteers).toHaveLength(2)
+    expect(result?.volunteers).toContainEqual(
+      expect.objectContaining({
+        id: partnerVolunteer1.id,
+      })
+    )
+    expect(result?.volunteers).toContainEqual(
+      expect.objectContaining({
+        id: partnerVolunteer2.id,
+      })
+    )
+    expect(result?.studentOrgDisplay).toBe('Example Partner School')
+  })
+
+  test('should return undefined when no associated partner exists', async () => {
+    const volunteer1 = buildTextableVolunteer()
+    const volunteer2 = buildTextableVolunteer()
+
+    mockedAssociatedPartnerService.getAssociatedPartner.mockResolvedValueOnce(
+      undefined
+    )
+
+    const result = await filterPartnerVolunteers(
+      [volunteer1, volunteer2],
+      'student-partner-org',
+      'school-id'
+    )
+
+    expect(result).toBeUndefined()
+  })
+
+  test('should return empty array when no volunteers match partner org', async () => {
+    const volunteer1 = buildTextableVolunteer({
+      volunteerPartnerOrgKey: 'other-partner',
+    })
+    const volunteer2 = buildTextableVolunteer({
+      volunteerPartnerOrgKey: undefined,
+    })
+
+    mockedAssociatedPartnerService.getAssociatedPartner.mockResolvedValueOnce({
+      volunteerPartnerOrg: 'example-partner',
+      studentOrgDisplay: 'Example Partner School',
+    } as AssociatedPartner)
+
+    const result = await filterPartnerVolunteers(
+      [volunteer1, volunteer2],
+      'student-partner-org',
+      'school-id'
+    )
+
+    expect(result?.volunteers).toHaveLength(0)
+  })
+
+  test('should handle volunteers without partner org key', async () => {
+    const partnerVolunteer = buildTextableVolunteer({
+      volunteerPartnerOrgKey: 'example-partner',
+    })
+    const volunteerWithoutPartner = buildTextableVolunteer({
+      volunteerPartnerOrgKey: undefined,
+    })
+
+    mockedAssociatedPartnerService.getAssociatedPartner.mockResolvedValueOnce({
+      volunteerPartnerOrg: 'example-partner',
+      studentOrgDisplay: 'Example Partner School',
+    } as AssociatedPartner)
+
+    const result = await filterPartnerVolunteers(
+      [partnerVolunteer, volunteerWithoutPartner],
+      'student-partner-org',
+      'school-id'
+    )
+
+    expect(result?.volunteers).toHaveLength(1)
+    expect(result?.volunteers[0].id).toBe(partnerVolunteer.id)
+    expect(result?.studentOrgDisplay).toBe('Example Partner School')
+  })
+})
+
+describe('selectVolunteersByPriority', () => {
+  test('should select volunteers only from favorited volunteers group when sufficient', async () => {
+    const favoritedVol1 = buildTextableVolunteer()
+    const favoritedVol2 = buildTextableVolunteer()
+    const favoritedVol3 = buildTextableVolunteer()
+    const partnerVol = buildTextableVolunteer()
+    const regularVol = buildTextableVolunteer()
+
+    const result = await selectVolunteersByPriority(SUBJECTS.ALGEBRA_ONE, [
+      {
+        name: PriorityGroupName.FAVORITE,
+        volunteers: [favoritedVol1, favoritedVol2, favoritedVol3],
+      },
+      { name: PriorityGroupName.PARTNER, volunteers: [partnerVol] },
+      { name: PriorityGroupName.REGULAR, volunteers: [regularVol] },
+    ])
+
+    expect(result).toHaveLength(2)
+    expect(
+      result.every(
+        (v) =>
+          v.id === favoritedVol1.id ||
+          v.id === favoritedVol2.id ||
+          v.id === favoritedVol3.id
+      )
+    ).toBe(true)
+  })
+
+  test('should fall back to partner volunteers group when favorited group is insufficient', async () => {
+    const favoritedVol = buildTextableVolunteer()
+    const partnerVol1 = buildTextableVolunteer()
+    const partnerVol2 = buildTextableVolunteer()
+    const regularVol = buildTextableVolunteer()
+
+    const result = await selectVolunteersByPriority(SUBJECTS.ALGEBRA_ONE, [
+      { name: PriorityGroupName.FAVORITE, volunteers: [favoritedVol] },
+      {
+        name: PriorityGroupName.PARTNER,
+        volunteers: [partnerVol1, partnerVol2],
+      },
+      { name: PriorityGroupName.REGULAR, volunteers: [regularVol] },
+    ])
+
+    expect(result).toHaveLength(2)
+    expect(result[0].id).toBe(favoritedVol.id)
+    expect(
+      result[1].id === partnerVol1.id || result[1].id === partnerVol2.id
+    ).toBe(true)
+  })
+
+  test('should fall back to all volunteers when higher priority groups are insufficient', async () => {
+    const favoritedVol = buildTextableVolunteer()
+    const regularVol1 = buildTextableVolunteer()
+    const regularVol2 = buildTextableVolunteer()
+
+    const result = await selectVolunteersByPriority(SUBJECTS.ALGEBRA_ONE, [
+      { name: PriorityGroupName.FAVORITE, volunteers: [favoritedVol] },
+      { name: PriorityGroupName.PARTNER, volunteers: [] },
+      {
+        name: PriorityGroupName.REGULAR,
+        volunteers: [regularVol1, regularVol2],
+      },
+    ])
+
+    expect(result).toHaveLength(2)
+    expect(result[0].id).toBe(favoritedVol.id)
+    expect(
+      result[1].id === regularVol1.id || result[1].id === regularVol2.id
+    ).toBe(true)
+  })
+
+  test('should respect subject-specific text limits', async () => {
+    const vol1 = buildTextableVolunteer()
+    const vol2 = buildTextableVolunteer()
+    const vol3 = buildTextableVolunteer()
+    const vol4 = buildTextableVolunteer()
+
+    const result = await selectVolunteersByPriority(SUBJECTS.CALCULUS_AB, [
+      { name: PriorityGroupName.FAVORITE, volunteers: [] },
+      { name: PriorityGroupName.PARTNER, volunteers: [] },
+      {
+        name: PriorityGroupName.REGULAR,
+        volunteers: [vol1, vol2, vol3, vol4],
+      },
+    ])
+
+    expect(result).toHaveLength(3)
+  })
+
+  test('should default to 2 texts for subjects without specific limits', async () => {
+    const vol1 = buildTextableVolunteer()
+    const vol2 = buildTextableVolunteer()
+    const vol3 = buildTextableVolunteer()
+    const vol4 = buildTextableVolunteer()
+
+    const result = await selectVolunteersByPriority(SUBJECTS.GEOMETRY, [
+      { name: PriorityGroupName.FAVORITE, volunteers: [] },
+      { name: PriorityGroupName.PARTNER, volunteers: [] },
+      {
+        name: PriorityGroupName.REGULAR,
+        volunteers: [vol1, vol2, vol3, vol4],
+      },
+    ])
+
+    expect(result).toHaveLength(2)
+  })
+
+  test('should exclude volunteers currently in sessions', async () => {
+    const busyVol = buildTextableVolunteer()
+    const availableVol1 = buildTextableVolunteer()
+
+    mockedSessionService.getVolunteersInSessions.mockResolvedValueOnce(
+      new Set([busyVol.id])
+    )
+
+    const result = await selectVolunteersByPriority(SUBJECTS.ALGEBRA_ONE, [
+      {
+        name: PriorityGroupName.REGULAR,
+        volunteers: [busyVol, availableVol1],
+      },
+    ])
+
+    expect(result).toHaveLength(1)
+    expect(result).not.toContainEqual(
+      expect.objectContaining({ id: busyVol.id })
+    )
+    expect(result).toContainEqual(
+      expect.objectContaining({ id: availableVol1.id })
+    )
+  })
+
+  test('should exclude volunteers recently texted within the last x minutes', async () => {
+    const recentlyTextedVol = buildTextableVolunteer()
+    const availableVol1 = buildTextableVolunteer()
+    const availableVol2 = buildTextableVolunteer()
+    mockedNotificationService.getVolunteersTextedSinceXMinutesAgo.mockResolvedValueOnce(
+      new Set([recentlyTextedVol.id])
+    )
+
+    const result = await selectVolunteersByPriority(SUBJECTS.ALGEBRA_ONE, [
+      {
+        name: PriorityGroupName.REGULAR,
+        volunteers: [recentlyTextedVol, availableVol1, availableVol2],
+      },
+    ])
+
+    expect(result).toHaveLength(2)
+    expect(result).not.toContainEqual(
+      expect.objectContaining({ id: recentlyTextedVol.id })
+    )
+    expect(result.some((v) => v.id === availableVol1.id)).toBe(true)
+    expect(result.some((v) => v.id === availableVol2.id)).toBe(true)
+  })
+
+  test('should exclude volunteers who are either in a session or have recently been texted', async () => {
+    const busyVol = buildTextableVolunteer()
+    const recentlyTextedVol = buildTextableVolunteer()
+    const availableVol1 = buildTextableVolunteer()
+    const availableVol2 = buildTextableVolunteer()
+    mockedSessionService.getVolunteersInSessions.mockResolvedValueOnce(
+      new Set([busyVol.id])
+    )
+    mockedNotificationService.getVolunteersTextedSinceXMinutesAgo.mockResolvedValueOnce(
+      new Set([recentlyTextedVol.id])
+    )
+
+    const result = await selectVolunteersByPriority(SUBJECTS.ALGEBRA_ONE, [
+      {
+        name: PriorityGroupName.REGULAR,
+        volunteers: [busyVol, recentlyTextedVol, availableVol1, availableVol2],
+      },
+    ])
+
+    expect(result).toHaveLength(2)
+    expect(result).not.toContainEqual(
+      expect.objectContaining({ id: busyVol.id })
+    )
+    expect(result).not.toContainEqual(
+      expect.objectContaining({ id: recentlyTextedVol.id })
+    )
+    expect(result.some((v) => v.id === availableVol1.id)).toBe(true)
+    expect(result.some((v) => v.id === availableVol2.id)).toBe(true)
+  })
+
+  test('should return fewer than limit when not enough volunteers available', async () => {
+    const vol1 = buildTextableVolunteer()
+
+    const result = await selectVolunteersByPriority(SUBJECTS.ALGEBRA_ONE, [
+      { name: PriorityGroupName.FAVORITE, volunteers: [] },
+      { name: PriorityGroupName.PARTNER, volunteers: [] },
+      { name: PriorityGroupName.REGULAR, volunteers: [vol1] },
+    ])
+
+    expect(result).toHaveLength(1)
+    expect(result[0].id).toBe(vol1.id)
+  })
+
+  test('should return empty array when no volunteers available', async () => {
+    const result = await selectVolunteersByPriority(SUBJECTS.ALGEBRA_ONE, [
+      { name: PriorityGroupName.FAVORITE, volunteers: [] },
+      { name: PriorityGroupName.PARTNER, volunteers: [] },
+      { name: PriorityGroupName.REGULAR, volunteers: [] },
+    ])
+
+    expect(result).toHaveLength(0)
+  })
+
+  test('should maintain priority order across groups', async () => {
+    const favoritedVol = buildTextableVolunteer()
+    const partnerVol = buildTextableVolunteer()
+    const regularVol1 = buildTextableVolunteer()
+    const regularVol2 = buildTextableVolunteer()
+
+    const result = await selectVolunteersByPriority(SUBJECTS.CALCULUS_AB, [
+      { name: PriorityGroupName.FAVORITE, volunteers: [favoritedVol] },
+      { name: PriorityGroupName.PARTNER, volunteers: [partnerVol] },
+      {
+        name: PriorityGroupName.REGULAR,
+        volunteers: [regularVol1, regularVol2],
+      },
+    ])
+
+    expect(result).toHaveLength(3)
+    expect(result[0].id).toBe(favoritedVol.id)
+    expect(result[1].id).toBe(partnerVol.id)
+    expect(
+      result[2].id === regularVol1.id || result[2].id === regularVol2.id
+    ).toBe(true)
+  })
+
+  test('should deduplicate volunteers appearing in multiple priority groups', async () => {
+    const partnerVol = buildTextableVolunteer()
+
+    const result = await selectVolunteersByPriority(SUBJECTS.ALGEBRA_ONE, [
+      { name: PriorityGroupName.FAVORITE, volunteers: [] },
+      { name: PriorityGroupName.PARTNER, volunteers: [partnerVol] },
+      { name: PriorityGroupName.REGULAR, volunteers: [partnerVol] },
+    ])
+
+    expect(result).toHaveLength(1)
+    expect(result[0].id).toBe(partnerVol.id)
+  })
+})
+
+describe('sendTextMessages', () => {
+  test('should send text messages to all volunteers', async () => {
+    const volunteer1 = buildTextableVolunteer({
+      firstName: 'Alice',
+    })
+    const volunteer2 = buildTextableVolunteer({
+      firstName: 'Bob',
+    })
+
+    mockedTwilioClient.sendTextMessage.mockResolvedValueOnce('msg-id-1')
+    mockedTwilioClient.sendTextMessage.mockResolvedValueOnce('msg-id-2')
+
+    await sendTextMessages([volunteer1, volunteer2], {
+      sessionId: getDbUlid(),
+      subject: SUBJECTS.ALGEBRA_ONE,
+      subjectDisplayName: 'Algebra 1',
+      topic: SUBJECT_TYPES.MATH,
+    })
+
+    expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledTimes(2)
+    expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
+      volunteer1.phone,
+      expect.stringContaining('Hi Alice'),
+      expect.any(String)
+    )
+    expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
+      volunteer2.phone,
+      expect.stringContaining('Hi Bob'),
+      expect.any(String)
+    )
+  })
+
+  test('should add session notification for each volunteer with message carrier ID', async () => {
+    const volunteer1 = buildTextableVolunteer({
+      priorityGroupName: 'Favorite volunteers',
+    })
+    const volunteer2 = buildTextableVolunteer({
+      priorityGroupName: 'Associated partner volunteers',
+    })
+    const sessionId = getDbUlid()
+
+    mockedTwilioClient.sendTextMessage.mockResolvedValueOnce('msg-id-a')
+    mockedTwilioClient.sendTextMessage.mockResolvedValueOnce('msg-id-b')
+
+    await sendTextMessages([volunteer1, volunteer2], {
+      sessionId,
+      subject: SUBJECTS.ALGEBRA_ONE,
+      subjectDisplayName: 'Algebra 1',
+      topic: SUBJECT_TYPES.MATH,
+    })
+
+    expect(
+      mockedSessionService.addSessionSmsNotification
+    ).toHaveBeenCalledTimes(2)
+    expect(mockedSessionService.addSessionSmsNotification).toHaveBeenCalledWith(
+      sessionId,
+      volunteer1.id,
+      'Favorite volunteers',
+      'msg-id-a'
+    )
+    expect(mockedSessionService.addSessionSmsNotification).toHaveBeenCalledWith(
+      sessionId,
+      volunteer2.id,
+      'Associated partner volunteers',
+      'msg-id-b'
+    )
+  })
+
+  test('should include student org display in message when provided', async () => {
+    const volunteer = buildTextableVolunteer({
+      firstName: 'Persephone',
+      priorityGroupName: 'Associated partner volunteers',
+    })
+
+    mockedTwilioClient.sendTextMessage.mockResolvedValueOnce('msg-id')
+
+    await sendTextMessages(
+      [volunteer],
+      {
+        sessionId: getDbUlid(),
+        subject: SUBJECTS.ALGEBRA_ONE,
+        subjectDisplayName: 'Algebra 1',
+        topic: SUBJECT_TYPES.MATH,
+      },
+      'Example School'
+    )
+
+    expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
+      volunteer.phone,
+      expect.stringContaining('Hi Persephone'),
+      expect.any(String)
+    )
+    expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
+      volunteer.phone,
+      expect.stringContaining('an Example School student needs help'),
+      expect.any(String)
+    )
+  })
+
+  test('should use generic "a student" when no student org display', async () => {
+    const volunteer = buildTextableVolunteer({
+      firstName: 'Hades',
+    })
+
+    mockedTwilioClient.sendTextMessage.mockResolvedValueOnce('msg-id')
+
+    await sendTextMessages([volunteer], {
+      sessionId: getDbUlid(),
+      subject: SUBJECTS.ALGEBRA_ONE,
+      subjectDisplayName: 'Algebra 1',
+      topic: SUBJECT_TYPES.MATH,
+    })
+
+    expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
+      volunteer.phone,
+      expect.stringContaining('a student needs help'),
+      expect.any(String)
+    )
+    expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
+      volunteer.phone,
+      expect.stringContaining('Hi Hades'),
+      expect.any(String)
+    )
+  })
+
+  test('should use correct article ("an") for org names starting with vowels', async () => {
+    const volunteer = buildTextableVolunteer({
+      firstName: 'Hercules',
+      priorityGroupName: 'Associated partner volunteers',
+    })
+
+    mockedTwilioClient.sendTextMessage.mockResolvedValueOnce('msg-id')
+
+    await sendTextMessages(
+      [volunteer],
+      {
+        sessionId: getDbUlid(),
+        subject: SUBJECTS.ALGEBRA_ONE,
+        subjectDisplayName: 'Algebra 1',
+        topic: SUBJECT_TYPES.MATH,
+      },
+      'Awesome School'
+    )
+
+    expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
+      volunteer.phone,
+      expect.stringContaining('Hi Hercules'),
+      expect.any(String)
+    )
+    expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
+      volunteer.phone,
+      expect.stringContaining('an Awesome School student'),
+      expect.any(String)
+    )
+  })
+
+  test('should handle failed message sending (undefined message carrier ID)', async () => {
+    const volunteer = buildTextableVolunteer()
+    const sessionId = getDbUlid()
+
+    mockedTwilioClient.sendTextMessage.mockResolvedValueOnce(undefined)
+
+    await sendTextMessages([volunteer], {
+      sessionId,
+      subject: SUBJECTS.ALGEBRA_ONE,
+      subjectDisplayName: 'Algebra 1',
+      topic: SUBJECT_TYPES.MATH,
+    })
+
+    expect(mockedSessionService.addSessionSmsNotification).toHaveBeenCalledWith(
+      sessionId,
+      volunteer.id,
+      undefined,
+      undefined
+    )
+  })
+})
+
+describe('textVolunteers', () => {
+  test('should early exit when the session is already fulfilled', async () => {
+    mockedSessionService.isSessionFulfilled.mockResolvedValueOnce(true)
+
+    const job = {
+      data: {
+        sessionId: getDbUlid(),
+        subject: SUBJECTS.ALGEBRA_ONE,
+        subjectDisplayName: 'Algebra 1',
+        topic: SUBJECT_TYPES.MATH,
+        studentId: getDbUlid(),
+      },
+    }
+    await textVolunteers(job as Job)
+
+    expect(mockedLogger.info).toHaveBeenCalledWith(
+      {
+        sessionId: job.data.sessionId,
+      },
+      'Session fulfilled.'
+    )
+    expect(mockedCacheService.getIfExists).not.toHaveBeenCalled()
+  })
+
+  test.each(['shadow', 'complete'])(
+    'does not text volunteers who are shadow-banned',
+    async (testBanType) => {
+      const studentId = getDbUlid()
+
+      // Volunteers are initially all unbanned.
+      const eligibleVolunteer1 = buildTextableVolunteer({
+        unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
+      })
+      const eligibleVolunteer2 = buildTextableVolunteer({
+        unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
+      })
+      mockedCacheService.getIfExists.mockResolvedValueOnce(
+        JSON.stringify([eligibleVolunteer1, eligibleVolunteer2])
+      )
+
+      // Mock coach getting banned after being cached
+      mockedUserService.getUsersBanStatusesById.mockResolvedValueOnce([
+        { id: eligibleVolunteer1.id, banType: null }, // textable user
+        { id: eligibleVolunteer2.id, banType: testBanType }, // not textable due to ban type
+      ])
+      mockedTwilioClient.sendTextMessage.mockResolvedValueOnce({
+        sid: 'message-1-sid',
+      })
+
+      const sessionId = getDbUlid()
+      const job = {
+        data: {
+          sessionId,
+          subject: SUBJECTS.ALGEBRA_ONE,
+          subjectDisplayName: 'Algebra 1',
+          topic: SUBJECT_TYPES.MATH,
+          studentId,
+        },
+      }
+      await textVolunteers(job as Job)
+
+      expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledTimes(1)
+      expect(mockedTwilioClient.sendTextMessage).toHaveBeenNthCalledWith(
+        1,
+        eligibleVolunteer1.phone,
+        expect.any(String),
+        sessionId
+      )
+      expect(
+        mockedSessionService.addSessionSmsNotification
+      ).toHaveBeenCalledTimes(1)
+      expect(
+        mockedSessionService.addSessionSmsNotification
+      ).toHaveBeenNthCalledWith(
+        1,
+        sessionId,
+        eligibleVolunteer1.id,
+        expect.anything(),
+        { sid: 'message-1-sid' }
+      )
+    }
+  )
+
+  test('does text a live media-banned volunteer', async () => {
+    const studentId = getDbUlid()
+
+    // Volunteers are initially all unbanned.
+    const eligibleVolunteer1 = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
+    })
+    const eligibleVolunteer2 = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
+    })
+    mockedCacheService.getIfExists.mockResolvedValueOnce(
+      JSON.stringify([eligibleVolunteer1, eligibleVolunteer2])
+    )
+
+    // Mock coach getting live media-banned after being cached
+    mockedUserService.getUsersBanStatusesById.mockResolvedValueOnce([
+      { id: eligibleVolunteer1.id, banType: null },
+      { id: eligibleVolunteer2.id, banType: 'live_media' },
+    ])
+    mockedTwilioClient.sendTextMessage.mockResolvedValue({
+      sid: 'message-1-sid',
+    })
+
+    const sessionId = getDbUlid()
+    const job = {
+      data: {
+        sessionId,
+        subject: SUBJECTS.ALGEBRA_ONE,
+        subjectDisplayName: 'Algebra 1',
+        topic: SUBJECT_TYPES.MATH,
+        studentId,
+      },
+    }
+    await textVolunteers(job as Job)
+
+    expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledTimes(2)
+    expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
+      eligibleVolunteer1.phone,
+      expect.any(String),
+      sessionId
+    )
+    expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
+      eligibleVolunteer2.phone,
+      expect.any(String),
+      sessionId
+    )
+    expect(
+      mockedSessionService.addSessionSmsNotification
+    ).toHaveBeenCalledTimes(2)
+    expect(mockedSessionService.addSessionSmsNotification).toHaveBeenCalledWith(
+      sessionId,
+      eligibleVolunteer1.id,
+      expect.anything(),
+      expect.objectContaining({ sid: expect.any(String) })
+    )
+    expect(mockedSessionService.addSessionSmsNotification).toHaveBeenCalledWith(
+      sessionId,
+      eligibleVolunteer2.id,
+      expect.anything(),
+      expect.objectContaining({ sid: expect.any(String) })
+    )
+  })
+
+  test('does text a live media-banned volunteer', async () => {
+    const studentId = getDbUlid()
+
+    // Volunteers are initially all unbanned.
+    const eligibleVolunteer1 = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
+    })
+    const eligibleVolunteer2 = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
+    })
+    mockedCacheService.getIfExists.mockResolvedValueOnce(
+      JSON.stringify([eligibleVolunteer1, eligibleVolunteer2])
+    )
+
+    // Mock coach getting live media-banned after being cached
+    mockedUserService.getUsersBanStatusesById.mockResolvedValueOnce([
+      { id: eligibleVolunteer1.id, banType: null },
+      { id: eligibleVolunteer2.id, banType: 'live_media' },
+    ])
+    mockedTwilioClient.sendTextMessage.mockResolvedValue({
+      sid: 'message-1-sid',
+    })
+
+    const sessionId = getDbUlid()
+    const job = {
+      data: {
+        sessionId,
+        subject: SUBJECTS.ALGEBRA_ONE,
+        subjectDisplayName: 'Algebra 1',
+        topic: SUBJECT_TYPES.MATH,
+        studentId,
+      },
+    }
+    await textVolunteers(job as Job)
+
+    expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledTimes(2)
+    expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
+      eligibleVolunteer1.phone,
+      expect.any(String),
+      sessionId
+    )
+    expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
+      eligibleVolunteer2.phone,
+      expect.any(String),
+      sessionId
+    )
+    expect(
+      mockedSessionService.addSessionSmsNotification
+    ).toHaveBeenCalledTimes(2)
+    expect(mockedSessionService.addSessionSmsNotification).toHaveBeenCalledWith(
+      sessionId,
+      eligibleVolunteer1.id,
+      expect.anything(),
+      expect.objectContaining({ sid: expect.any(String) })
+    )
+    expect(mockedSessionService.addSessionSmsNotification).toHaveBeenCalledWith(
+      sessionId,
+      eligibleVolunteer2.id,
+      expect.anything(),
+      expect.objectContaining({ sid: expect.any(String) })
+    )
+  })
+
+  test('should prioritize favorited volunteers over partner and regular volunteers', async () => {
+    const studentId = getDbUlid()
+    const favoritedVol = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
+    })
+    const partnerVol = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
+      volunteerPartnerOrgKey: 'example-partner',
+    })
+    const regularVol1 = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
+    })
+    const regularVol2 = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
+    })
+
+    mockedCacheService.getIfExists.mockResolvedValueOnce(
+      JSON.stringify([regularVol1, regularVol2, favoritedVol, partnerVol])
+    )
+    mockedFavoritingService.getFavoritedVolunteerIdsFromList.mockResolvedValueOnce(
+      new Set([favoritedVol.id])
+    )
+    mockedAssociatedPartnerService.getAssociatedPartner.mockResolvedValueOnce({
+      volunteerPartnerOrg: 'example-partner',
+      studentOrgDisplay: 'Example School',
+    } as AssociatedPartner)
+    mockedTwilioClient.sendTextMessage
+      .mockResolvedValueOnce('msg-id-1')
+      .mockResolvedValueOnce('msg-id-2')
+
+    const sessionId = getDbUlid()
+    const job = {
+      data: {
+        sessionId,
+        subject: SUBJECTS.ALGEBRA_ONE,
+        subjectDisplayName: 'Algebra 1',
+        topic: SUBJECT_TYPES.MATH,
+        studentId,
+        studentPartnerOrg: 'student-partner-org',
+      },
+    }
+    await textVolunteers(job as Job)
+
+    expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledTimes(2)
+    expect(mockedTwilioClient.sendTextMessage).toHaveBeenNthCalledWith(
+      1,
+      favoritedVol.phone,
+      expect.stringContaining(favoritedVol.firstName),
+      expect.any(String)
+    )
+    expect(mockedTwilioClient.sendTextMessage).toHaveBeenNthCalledWith(
+      2,
+      partnerVol.phone,
+      expect.stringContaining(partnerVol.firstName),
+      expect.any(String)
+    )
+    expect(mockedTwilioClient.sendTextMessage).toHaveBeenNthCalledWith(
+      2,
+      partnerVol.phone,
+      expect.stringContaining('Example School'),
+      expect.any(String)
+    )
+
+    expect(
+      mockedSessionService.addSessionSmsNotification
+    ).toHaveBeenCalledTimes(2)
+    expect(
+      mockedSessionService.addSessionSmsNotification
+    ).toHaveBeenNthCalledWith(
+      1,
+      sessionId,
+      favoritedVol.id,
+      'Favorite volunteers',
+      'msg-id-1'
+    )
+    expect(
+      mockedSessionService.addSessionSmsNotification
+    ).toHaveBeenNthCalledWith(
+      2,
+      sessionId,
+      partnerVol.id,
+      'Associated partner volunteers',
+      'msg-id-2'
+    )
+  })
+
+  test('should filter out volunteers who do not have subject unlocked', async () => {
+    const algebraVol = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
+    })
+    const chemistryVol = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.CHEMISTRY],
+    })
+    const geometryVol = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.GEOMETRY],
+    })
+
+    mockedCacheService.getIfExists.mockResolvedValueOnce(
+      JSON.stringify([algebraVol, chemistryVol, geometryVol])
+    )
+    mockedTwilioClient.sendTextMessage.mockResolvedValueOnce('msg-id')
+
+    const sessionId = getDbUlid()
+    const job = {
+      data: {
+        sessionId,
+        subject: SUBJECTS.ALGEBRA_ONE,
+        subjectDisplayName: 'Algebra 1',
+        topic: SUBJECT_TYPES.MATH,
+        studentId: getDbUlid(),
+      },
+    }
+
+    await textVolunteers(job as Job)
+
+    expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledTimes(1)
+    expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
+      algebraVol.phone,
+      expect.stringContaining(algebraVol.firstName),
+      expect.any(String)
+    )
+
+    expect(
+      mockedSessionService.addSessionSmsNotification
+    ).toHaveBeenCalledTimes(1)
+    expect(mockedSessionService.addSessionSmsNotification).toHaveBeenCalledWith(
+      sessionId,
+      algebraVol.id,
+      'Regular volunteers',
+      'msg-id'
+    )
+  })
+
+  test('should exclude high-level volunteers from low-level subjects', async () => {
+    const highLevelVol = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.CALCULUS_AB, SUBJECTS.ALGEBRA_ONE],
+    })
+    const regularVol1 = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
+    })
+    const regularVol2 = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
+    })
+
+    mockedCacheService.getIfExists.mockResolvedValueOnce(
+      JSON.stringify([highLevelVol, regularVol1, regularVol2])
+    )
+    mockedTwilioClient.sendTextMessage
+      .mockResolvedValueOnce('msg-id-1')
+      .mockResolvedValueOnce('msg-id-2')
+
+    const sessionId = getDbUlid()
+    const job = {
+      data: {
+        sessionId,
+        subject: SUBJECTS.ALGEBRA_ONE,
+        subjectDisplayName: 'Algebra 1',
+        topic: SUBJECT_TYPES.MATH,
+        studentId: getDbUlid(),
+      },
+    }
+
+    await textVolunteers(job as Job)
+
+    expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledTimes(2)
+    expect(mockedTwilioClient.sendTextMessage).not.toHaveBeenCalledWith(
+      highLevelVol.phone,
+      expect.anything(),
+      expect.any(String)
+    )
+    expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
+      regularVol1.phone,
+      expect.stringContaining(regularVol1.firstName),
+      expect.any(String)
+    )
+    expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
+      regularVol2.phone,
+      expect.stringContaining(regularVol2.firstName),
+      expect.any(String)
+    )
+    expect(
+      mockedSessionService.addSessionSmsNotification
+    ).toHaveBeenCalledTimes(2)
+    expect(mockedSessionService.addSessionSmsNotification).toHaveBeenCalledWith(
+      sessionId,
+      regularVol1.id,
+      'Regular volunteers',
+      expect.anything()
+    )
+    expect(mockedSessionService.addSessionSmsNotification).toHaveBeenCalledWith(
+      sessionId,
+      regularVol2.id,
+      'Regular volunteers',
+      expect.anything()
+    )
+  })
+
+  test('should exclude volunteers who have muted the subject', async () => {
+    const mutedVol = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
+      mutedSubjects: [SUBJECTS.ALGEBRA_ONE],
+    })
+    const availableVol1 = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
+    })
+    const availableVol2 = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
+    })
+
+    mockedCacheService.getIfExists.mockResolvedValueOnce(
+      JSON.stringify([mutedVol, availableVol1, availableVol2])
+    )
+    mockedTwilioClient.sendTextMessage
+      .mockResolvedValueOnce('msg-id-1')
+      .mockResolvedValueOnce('msg-id-2')
+
+    const sessionId = getDbUlid()
+    const job = {
+      data: {
+        sessionId,
+        subject: SUBJECTS.ALGEBRA_ONE,
+        subjectDisplayName: 'Algebra 1',
+        topic: SUBJECT_TYPES.MATH,
+        studentId: getDbUlid(),
+      },
+    }
+
+    await textVolunteers(job as Job)
+
+    expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledTimes(2)
+    expect(mockedTwilioClient.sendTextMessage).not.toHaveBeenCalledWith(
+      mutedVol.phone,
+      expect.anything(),
+      expect.any(String)
+    )
+    expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
+      availableVol1.phone,
+      expect.stringContaining(availableVol1.firstName),
+      expect.any(String)
+    )
+    expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
+      availableVol2.phone,
+      expect.stringContaining(availableVol2.firstName),
+      expect.any(String)
+    )
+
+    expect(
+      mockedSessionService.addSessionSmsNotification
+    ).toHaveBeenCalledTimes(2)
+
+    expect(
+      mockedSessionService.addSessionSmsNotification
+    ).toHaveBeenCalledTimes(2)
+    expect(mockedSessionService.addSessionSmsNotification).toHaveBeenCalledWith(
+      sessionId,
+      availableVol1.id,
+      'Regular volunteers',
+      expect.anything()
+    )
+    expect(mockedSessionService.addSessionSmsNotification).toHaveBeenCalledWith(
+      sessionId,
+      availableVol2.id,
+      'Regular volunteers',
+      expect.anything()
+    )
+  })
+
+  test('should exclude volunteers currently in sessions', async () => {
+    const busyVol = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
+    })
+    const availableVol1 = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
+    })
+    const availableVol2 = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
+    })
+
+    mockedCacheService.getIfExists.mockResolvedValueOnce(
+      JSON.stringify([busyVol, availableVol1, availableVol2])
+    )
+    mockedSessionService.getVolunteersInSessions.mockResolvedValueOnce(
+      new Set([busyVol.id])
+    )
+    mockedTwilioClient.sendTextMessage
+      .mockResolvedValueOnce('msg-id-1')
+      .mockResolvedValueOnce('msg-id-2')
+
+    const sessionId = getDbUlid()
+    const job = {
+      data: {
+        sessionId,
+        subject: SUBJECTS.ALGEBRA_ONE,
+        subjectDisplayName: 'Algebra 1',
+        topic: SUBJECT_TYPES.MATH,
+        studentId: getDbUlid(),
+      },
+    }
+
+    await textVolunteers(job as Job)
+
+    expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledTimes(2)
+    expect(mockedTwilioClient.sendTextMessage).not.toHaveBeenCalledWith(
+      busyVol.phone,
+      expect.anything(),
+      expect.any(String)
+    )
+    expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
+      availableVol1.phone,
+      expect.stringContaining(availableVol1.firstName),
+      expect.any(String)
+    )
+    expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
+      availableVol2.phone,
+      expect.stringContaining(availableVol2.firstName),
+      expect.any(String)
+    )
+
+    expect(
+      mockedSessionService.addSessionSmsNotification
+    ).toHaveBeenCalledTimes(2)
+    expect(mockedSessionService.addSessionSmsNotification).toHaveBeenCalledWith(
+      sessionId,
+      availableVol1.id,
+      'Regular volunteers',
+      expect.anything()
+    )
+    expect(mockedSessionService.addSessionSmsNotification).toHaveBeenCalledWith(
+      sessionId,
+      availableVol2.id,
+      'Regular volunteers',
+      expect.anything()
+    )
+  })
+
+  test('should exclude volunteers texted within the last x minutes', async () => {
+    const recentlyTextedVol = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
+    })
+    const availableVol1 = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
+    })
+    const availableVol2 = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
+    })
+    mockedCacheService.getIfExists.mockResolvedValueOnce(
+      JSON.stringify([recentlyTextedVol, availableVol1, availableVol2])
+    )
+    mockedNotificationService.getVolunteersTextedSinceXMinutesAgo.mockResolvedValueOnce(
+      new Set([recentlyTextedVol.id])
+    )
+    mockedTwilioClient.sendTextMessage
+      .mockResolvedValueOnce('msg-id-1')
+      .mockResolvedValueOnce('msg-id-2')
+
+    const sessionId = getDbUlid()
+    const job = {
+      data: {
+        sessionId,
+        subject: SUBJECTS.ALGEBRA_ONE,
+        subjectDisplayName: 'Algebra 1',
+        topic: SUBJECT_TYPES.MATH,
+        studentId: getDbUlid(),
+      },
+    }
+
+    await textVolunteers(job as Job)
+
+    expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledTimes(2)
+    expect(mockedTwilioClient.sendTextMessage).not.toHaveBeenCalledWith(
+      recentlyTextedVol.phone,
+      expect.anything(),
+      expect.any(String)
+    )
+    expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
+      availableVol1.phone,
+      expect.stringContaining(availableVol1.firstName),
+      expect.any(String)
+    )
+    expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
+      availableVol2.phone,
+      expect.stringContaining(availableVol2.firstName),
+      expect.any(String)
+    )
+
+    expect(
+      mockedSessionService.addSessionSmsNotification
+    ).toHaveBeenCalledTimes(2)
+    expect(mockedSessionService.addSessionSmsNotification).toHaveBeenCalledWith(
+      sessionId,
+      availableVol1.id,
+      'Regular volunteers',
+      expect.anything()
+    )
+    expect(mockedSessionService.addSessionSmsNotification).toHaveBeenCalledWith(
+      sessionId,
+      availableVol2.id,
+      'Regular volunteers',
+      expect.anything()
+    )
+  })
+
+  test('should respect subject-specific text limits (Calculus AB = 3)', async () => {
+    const vol1 = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.CALCULUS_AB],
+    })
+    const vol2 = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.CALCULUS_AB],
+    })
+    const vol3 = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.CALCULUS_AB],
+    })
+    const vol4 = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.CALCULUS_AB],
+    })
+
+    mockedCacheService.getIfExists.mockResolvedValueOnce(
+      JSON.stringify([vol1, vol2, vol3, vol4])
+    )
+    mockedTwilioClient.sendTextMessage
+      .mockResolvedValueOnce('msg-id-1')
+      .mockResolvedValueOnce('msg-id-2')
+      .mockResolvedValueOnce('msg-id-3')
+
+    const sessionId = getDbUlid()
+    const job = {
+      data: {
+        sessionId,
+        subject: SUBJECTS.CALCULUS_AB,
+        subjectDisplayName: 'Calculus AB',
+        topic: SUBJECT_TYPES.MATH,
+        studentId: getDbUlid(),
+      },
+    }
+    await textVolunteers(job as Job)
+
+    expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledTimes(3)
+
+    expect(
+      mockedSessionService.addSessionSmsNotification
+    ).toHaveBeenCalledTimes(3)
+  })
+
+  test('should include student org display in message when partner exists', async () => {
+    const volunteer = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
+      volunteerPartnerOrgKey: 'example-partner',
+    })
+
+    mockedCacheService.getIfExists.mockResolvedValueOnce(
+      JSON.stringify([volunteer])
+    )
+    mockedAssociatedPartnerService.getAssociatedPartner.mockResolvedValueOnce({
+      volunteerPartnerOrg: 'example-partner',
+      studentOrgDisplay: 'Example School',
+    } as AssociatedPartner)
+    mockedTwilioClient.sendTextMessage.mockResolvedValueOnce('msg-id')
+
+    const sessionId = getDbUlid()
+    const job = {
+      data: {
+        sessionId,
+        subject: SUBJECTS.ALGEBRA_ONE,
+        subjectDisplayName: 'Algebra 1',
+        topic: SUBJECT_TYPES.MATH,
+        studentId: getDbUlid(),
+        studentPartnerOrg: 'student-partner-org',
+      },
+    }
+    await textVolunteers(job as Job)
+
+    expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledTimes(1)
+    expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
+      volunteer.phone,
+      expect.stringContaining(volunteer.firstName),
+      expect.any(String)
+    )
+    expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
+      volunteer.phone,
+      expect.stringContaining('Example School student'),
+      expect.any(String)
+    )
+    expect(mockedTwilioClient.sendTextMessage).not.toHaveBeenCalledWith(
+      volunteer.phone,
+      expect.stringContaining('a student needs help'),
+      expect.any(String)
+    )
+
+    expect(
+      mockedSessionService.addSessionSmsNotification
+    ).toHaveBeenCalledTimes(1)
+    expect(mockedSessionService.addSessionSmsNotification).toHaveBeenCalledWith(
+      sessionId,
+      volunteer.id,
+      'Associated partner volunteers',
+      'msg-id'
+    )
+  })
+
+  test('should use generic "a student" when no partner org', async () => {
+    const volunteer = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
+    })
+
+    mockedCacheService.getIfExists.mockResolvedValueOnce(
+      JSON.stringify([volunteer])
+    )
+    mockedTwilioClient.sendTextMessage.mockResolvedValueOnce('msg-id')
+
+    const sessionId = getDbUlid()
+    const job = {
+      data: {
+        sessionId,
+        subject: SUBJECTS.ALGEBRA_ONE,
+        subjectDisplayName: 'Algebra 1',
+        topic: SUBJECT_TYPES.MATH,
+        studentId: getDbUlid(),
+      },
+    }
+    await textVolunteers(job as Job)
+
+    expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
+      volunteer.phone,
+      expect.stringContaining(volunteer.firstName),
+      expect.any(String)
+    )
+    expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledWith(
+      volunteer.phone,
+      expect.stringContaining('a student needs help'),
+      expect.any(String)
+    )
+
+    expect(
+      mockedSessionService.addSessionSmsNotification
+    ).toHaveBeenCalledTimes(1)
+    expect(mockedSessionService.addSessionSmsNotification).toHaveBeenCalledWith(
+      sessionId,
+      volunteer.id,
+      'Regular volunteers',
+      'msg-id'
+    )
+  })
+
+  test('should log warning when no eligible volunteers found', async () => {
+    const sessionId = getDbUlid()
+    const chemistryVol = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.CHEMISTRY],
+    })
+
+    mockedCacheService.getIfExists.mockResolvedValueOnce(
+      JSON.stringify([chemistryVol])
+    )
+
+    const job = {
+      data: {
+        sessionId,
+        subject: SUBJECTS.ALGEBRA_ONE,
+        subjectDisplayName: 'Algebra 1',
+        topic: SUBJECT_TYPES.MATH,
+        studentId: getDbUlid(),
+      },
+    }
+    await textVolunteers(job as Job)
+
+    expect(mockedTwilioClient.sendTextMessage).not.toHaveBeenCalled()
+    expect(mockedLogger.warn).toHaveBeenCalledWith(
+      { sessionId, subject: SUBJECTS.ALGEBRA_ONE },
+      'No volunteers found to text for session.'
+    )
+  })
+
+  test('should handle complex priority scenario with all filters applied', async () => {
+    const studentId = getDbUlid()
+    const favoritedVol = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
+    })
+    const partnerVol = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
+      volunteerPartnerOrgKey: 'example-partner',
+    })
+    const highLevelVol = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.CALCULUS_AB, SUBJECTS.ALGEBRA_ONE],
+    })
+    const mutedVol = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
+      mutedSubjects: [SUBJECTS.ALGEBRA_ONE],
+    })
+    const busyVol = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
+    })
+    const recentVol = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
+    })
+    const chemistryVol = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.CHEMISTRY],
+    })
+
+    mockedCacheService.getIfExists.mockResolvedValueOnce(
+      JSON.stringify([
+        highLevelVol,
+        mutedVol,
+        busyVol,
+        chemistryVol,
+        partnerVol,
+        favoritedVol,
+      ])
+    )
+    mockedFavoritingService.getFavoritedVolunteerIdsFromList.mockResolvedValueOnce(
+      new Set([favoritedVol.id, busyVol.id])
+    )
+    mockedAssociatedPartnerService.getAssociatedPartner.mockResolvedValueOnce({
+      volunteerPartnerOrg: 'example-partner',
+      studentOrgDisplay: 'Example School',
+    } as AssociatedPartner)
+    mockedSessionService.getVolunteersInSessions.mockResolvedValueOnce(
+      new Set([busyVol.id])
+    )
+    mockedNotificationService.getVolunteersTextedSinceXMinutesAgo.mockResolvedValueOnce(
+      new Set([recentVol.id])
+    )
+    mockedTwilioClient.sendTextMessage
+      .mockResolvedValueOnce('msg-id-1')
+      .mockResolvedValueOnce('msg-id-2')
+
+    const sessionId = getDbUlid()
+    const job = {
+      data: {
+        sessionId,
+        subject: SUBJECTS.ALGEBRA_ONE,
+        subjectDisplayName: 'Algebra 1',
+        topic: SUBJECT_TYPES.MATH,
+        studentId,
+        studentPartnerOrg: 'student-partner-org',
+      },
+    }
+    await textVolunteers(job as Job)
+
+    expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledTimes(2)
+    expect(mockedTwilioClient.sendTextMessage).toHaveBeenNthCalledWith(
+      1,
+      favoritedVol.phone,
+      expect.stringContaining(favoritedVol.firstName),
+      expect.any(String)
+    )
+    expect(mockedTwilioClient.sendTextMessage).toHaveBeenNthCalledWith(
+      1,
+      favoritedVol.phone,
+      expect.stringContaining('a student needs help'),
+      expect.any(String)
+    )
+    expect(mockedTwilioClient.sendTextMessage).not.toHaveBeenNthCalledWith(
+      1,
+      favoritedVol.phone,
+      expect.stringContaining('Example School student'),
+      expect.any(String)
+    )
+    expect(mockedTwilioClient.sendTextMessage).toHaveBeenNthCalledWith(
+      2,
+      partnerVol.phone,
+      expect.stringContaining(partnerVol.firstName),
+      expect.any(String)
+    )
+    expect(mockedTwilioClient.sendTextMessage).toHaveBeenNthCalledWith(
+      2,
+      partnerVol.phone,
+      expect.stringContaining('Example School student'),
+      expect.any(String)
+    )
+    expect(mockedTwilioClient.sendTextMessage).not.toHaveBeenNthCalledWith(
+      2,
+      partnerVol.phone,
+      expect.stringContaining('a student needs help')
+    )
+
+    expect(
+      mockedSessionService.addSessionSmsNotification
+    ).toHaveBeenCalledTimes(2)
+    expect(
+      mockedSessionService.addSessionSmsNotification
+    ).toHaveBeenNthCalledWith(
+      1,
+      sessionId,
+      favoritedVol.id,
+      'Favorite volunteers',
+      'msg-id-1'
+    )
+    expect(
+      mockedSessionService.addSessionSmsNotification
+    ).toHaveBeenNthCalledWith(
+      2,
+      sessionId,
+      partnerVol.id,
+      'Associated partner volunteers',
+      'msg-id-2'
+    )
+  })
+
+  test('should queue another job when notificationRound is 1', async () => {
+    const volunteer = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
+    })
+    mockedCacheService.getIfExists.mockResolvedValueOnce(
+      JSON.stringify([volunteer])
+    )
+    const sessionId = getDbUlid()
+    const studentId = getDbUlid()
+    const job = {
+      data: {
+        notificationRound: 1,
+        sessionId,
+        subject: SUBJECTS.ALGEBRA_ONE,
+        subjectDisplayName: 'Algebra 1',
+        topic: SUBJECT_TYPES.MATH,
+        studentId,
+      },
+    }
+    await textVolunteers(job as Job)
+
+    expect(mockedQueueService.add).toHaveBeenCalledTimes(1)
+    expect(mockedQueueService.add).toHaveBeenCalledWith(
+      expect.anything(),
+      { delay: 30000 },
+      expect.objectContaining({
+        ...job.data,
+        notificationRound: 2,
+      })
+    )
+  })
+
+  test('should queue another job when notificationRound is 5', async () => {
+    const volunteer = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
+    })
+    mockedCacheService.getIfExists.mockResolvedValueOnce(
+      JSON.stringify([volunteer])
+    )
+
+    const sessionId = getDbUlid()
+    const studentId = getDbUlid()
+    const job = {
+      data: {
+        notificationRound: 5,
+        sessionId,
+        subject: SUBJECTS.ALGEBRA_ONE,
+        subjectDisplayName: 'Algebra 1',
+        topic: SUBJECT_TYPES.MATH,
+        studentId,
+      },
+    }
+    await textVolunteers(job as Job)
+
+    expect(mockedQueueService.add).toHaveBeenCalledTimes(1)
+    expect(mockedQueueService.add).toHaveBeenCalledWith(
+      expect.anything(),
+      { delay: 30000 },
+      expect.objectContaining({
+        ...job.data,
+        notificationRound: 6,
+      })
+    )
+  })
+
+  test('should not queue another job when notificationRound is above 5', async () => {
+    const volunteer = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.ALGEBRA_ONE],
+    })
+    mockedCacheService.getIfExists.mockResolvedValueOnce(
+      JSON.stringify([volunteer])
+    )
+
+    const job = {
+      data: {
+        notificationRound: 6,
+      },
+    }
+    await textVolunteers(job as Job)
+
+    expect(mockedQueueService.add).not.toHaveBeenCalled()
+  })
+})
+
+describe('JOB_CONFIG', () => {
+  test('should be configured so volunteers will not be texted more than once per session', () => {
+    expect(
+      (JOB_CONFIG.maxNotificationRounds * JOB_CONFIG.roundDelay) / 60
+    ).toBeLessThan(JOB_CONFIG.lastTextedInMinutes)
+  })
+})
+
+describe('Feature flag excluding HS coaches from college sessions', () => {
+  it('Can text a high school coach if the feature flag is off', async () => {
+    const highSchoolVolunteer = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.COLLEGE_APPS],
+      occupations: [
+        VolunteerOccupations.HIGH_SCHOOL_STUDENT,
+        VolunteerOccupations.WORKING_PART_TIME,
+      ],
+    })
+    const otherVolunteer = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.COLLEGE_APPS],
+      occupations: [VolunteerOccupations.WORKING_PART_TIME],
+    })
+
+    mockedCacheService.getIfExists.mockResolvedValueOnce(
+      JSON.stringify([highSchoolVolunteer, otherVolunteer])
+    )
+
+    const job = {
+      data: {
+        topic: 'college',
+        subject: 'collegeApps',
+      },
+    }
+    await textVolunteers(job as Job)
+    expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledTimes(2)
+  })
+
+  it('Does not text a high school coach if the feature flag is on', async () => {
+    mockedFeatureFlagService.isBarHighSchoolerFromCoachingCollegeSessionsEnabled.mockResolvedValue(
+      true
+    )
+    const highSchoolVolunteer = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.COLLEGE_APPS],
+      occupations: [
+        VolunteerOccupations.HIGH_SCHOOL_STUDENT,
+        VolunteerOccupations.WORKING_PART_TIME,
+      ],
+    })
+    const otherVolunteer = buildTextableVolunteer({
+      unlockedSubjects: [SUBJECTS.COLLEGE_APPS],
+      occupations: [VolunteerOccupations.WORKING_PART_TIME],
+    })
+
+    mockedCacheService.getIfExists.mockResolvedValueOnce(
+      JSON.stringify([highSchoolVolunteer, otherVolunteer])
+    )
+
+    const job = {
+      data: {
+        topic: 'college',
+        subject: 'collegeApps',
+      },
+    }
+    await textVolunteers(job as Job)
+    expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledTimes(1)
   })
 })

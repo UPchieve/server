@@ -116,6 +116,8 @@ export type TextableVolunteer = {
   volunteerPartnerOrgKey?: string
   mutedSubjects: string[]
   unlockedSubjects: string[]
+  // delete the below property after the experiment hiding college sessions from high school coaches is over
+  occupations?: string[] | null // Can remove the ? once we flush the current cached value.
 }
 
 export type VolunteerWithReadyToCoachInfo = {

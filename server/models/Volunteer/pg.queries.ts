@@ -3515,6 +3515,7 @@ export interface IGetVolunteersForTextNotificationsInTheCurrentHourResult {
   /** not_pii: Primary key */
   id: string;
   mutedSubjects: stringArray | null;
+  occupations: stringArray | null;
   /** pii: Phone number */
   phone: string | null;
   unlockedSubjects: stringArray | null;
@@ -3528,7 +3529,7 @@ export interface IGetVolunteersForTextNotificationsInTheCurrentHourQuery {
   result: IGetVolunteersForTextNotificationsInTheCurrentHourResult;
 }
 
-const getVolunteersForTextNotificationsInTheCurrentHourIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT DISTINCT ON (u.id)\n    u.id,\n    u.phone,\n    u.first_name,\n    vpo.key AS volunteer_partner_org_key,\n    muted_subject_alerts.muted_subject_names AS muted_subjects,\n    unlocked_subjects.unlocked_subjects\nFROM\n    users u\n    JOIN volunteer_profiles vp ON vp.user_id = u.id\n    LEFT JOIN volunteer_partner_orgs vpo ON vpo.id = vp.volunteer_partner_org_id\n    JOIN availabilities a ON a.user_id = u.id\n    JOIN weekdays ON weekdays.id = a.weekday_id\n    LEFT JOIN LATERAL (\n        SELECT\n            COALESCE(array_agg(s.name), '{}') AS muted_subject_names\n        FROM\n            muted_users_subject_alerts muted_subjects\n            JOIN subjects s ON s.id = muted_subjects.subject_id\n        WHERE\n            muted_subjects.user_id = u.id) AS muted_subject_alerts ON TRUE\n    JOIN users_unlocked_subjects_view unlocked_subjects ON unlocked_subjects.user_id = u.id\nWHERE (u.ban_type IS NULL\n    OR (u.ban_type <> 'complete'::ban_types\n        AND u.ban_type <> 'shadow'::ban_types))\nAND u.deactivated IS FALSE\nAND u.deleted IS FALSE\nAND u.phone IS NOT NULL\nAND u.sms_consent IS TRUE\nAND u.test_user IS FALSE\nAND vp.onboarded IS TRUE\nAND vp.approved IS TRUE\nAND TRIM(BOTH FROM to_char(NOW() at time zone 'America/New_York', 'Day')) = weekdays.day\nAND extract(hour FROM (NOW() at time zone 'America/New_York')) >= a.available_start\nAND extract(hour FROM (NOW() at time zone 'America/New_York')) < a.available_end"};
+const getVolunteersForTextNotificationsInTheCurrentHourIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT DISTINCT ON (u.id)\n    u.id,\n    u.phone,\n    u.first_name,\n    vpo.key AS volunteer_partner_org_key,\n    muted_subject_alerts.muted_subject_names AS muted_subjects,\n    unlocked_subjects.unlocked_subjects,\n    COALESCE(occupations.occ, ARRAY[]::text[]) AS occupations\nFROM\n    users u\n    JOIN volunteer_profiles vp ON vp.user_id = u.id\n    LEFT JOIN LATERAL (\n        SELECT\n            array_agg(occupation) AS occ\n        FROM\n            volunteer_occupations\n        WHERE\n            user_id = u.id\n        GROUP BY\n            user_id) AS occupations ON TRUE\n    LEFT JOIN volunteer_partner_orgs vpo ON vpo.id = vp.volunteer_partner_org_id\n    JOIN availabilities a ON a.user_id = u.id\n    JOIN weekdays ON weekdays.id = a.weekday_id\n    LEFT JOIN LATERAL (\n        SELECT\n            COALESCE(array_agg(s.name), '{}') AS muted_subject_names\n        FROM\n            muted_users_subject_alerts muted_subjects\n            JOIN subjects s ON s.id = muted_subjects.subject_id\n        WHERE\n            muted_subjects.user_id = u.id) AS muted_subject_alerts ON TRUE\n    JOIN users_unlocked_subjects_view unlocked_subjects ON unlocked_subjects.user_id = u.id\nWHERE (u.ban_type IS NULL\n    OR (u.ban_type <> 'complete'::ban_types\n        AND u.ban_type <> 'shadow'::ban_types))\nAND u.deactivated IS FALSE\nAND u.deleted IS FALSE\nAND u.phone IS NOT NULL\nAND u.sms_consent IS TRUE\nAND u.test_user IS FALSE\nAND vp.onboarded IS TRUE\nAND vp.approved IS TRUE\nAND TRIM(BOTH FROM to_char(NOW() at time zone 'America/New_York', 'Day')) = weekdays.day\nAND extract(hour FROM (NOW() at time zone 'America/New_York')) >= a.available_start\nAND extract(hour FROM (NOW() at time zone 'America/New_York')) < a.available_end"};
 
 /**
  * Query generated from SQL:
@@ -3539,10 +3540,20 @@ const getVolunteersForTextNotificationsInTheCurrentHourIR: any = {"usedParamSet"
  *     u.first_name,
  *     vpo.key AS volunteer_partner_org_key,
  *     muted_subject_alerts.muted_subject_names AS muted_subjects,
- *     unlocked_subjects.unlocked_subjects
+ *     unlocked_subjects.unlocked_subjects,
+ *     COALESCE(occupations.occ, ARRAY[]::text[]) AS occupations
  * FROM
  *     users u
  *     JOIN volunteer_profiles vp ON vp.user_id = u.id
+ *     LEFT JOIN LATERAL (
+ *         SELECT
+ *             array_agg(occupation) AS occ
+ *         FROM
+ *             volunteer_occupations
+ *         WHERE
+ *             user_id = u.id
+ *         GROUP BY
+ *             user_id) AS occupations ON TRUE
  *     LEFT JOIN volunteer_partner_orgs vpo ON vpo.id = vp.volunteer_partner_org_id
  *     JOIN availabilities a ON a.user_id = u.id
  *     JOIN weekdays ON weekdays.id = a.weekday_id

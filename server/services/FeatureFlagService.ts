@@ -173,3 +173,12 @@ export async function getStudentPostSessionSurveyNameVariant(
     userId
   )
 }
+
+export async function isBarHighSchoolerFromCoachingCollegeSessionsEnabled(
+  userId: Uuid
+) {
+  return isFeatureEnabled(
+    FEATURE_FLAGS.HS_STUDENTS_BARRED_FROM_COACHING_COLLEGE_SUBJECTS,
+    userId
+  )
+}
