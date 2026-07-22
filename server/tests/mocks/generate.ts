@@ -958,6 +958,8 @@ export const buildSubjectAndTopic = (
   const subject = {
     subjectName: 'algebraOne',
     subjectDisplayName: 'Algebra 1',
+    subjectId: 1,
+    topicId: 1,
     topicName: 'math',
     topicDisplayName: 'Math',
     toolType: 'whiteboard',

@@ -73,6 +73,7 @@ WITH most_recent_survey AS (
         surveys_context.subject_id,
         surveys_context.survey_type_id,
         subjects.display_name AS subject_display_name,
+        topics.display_name AS topic_display_name,
         surveys.reward_amount,
         surveys.created_at
     FROM
@@ -80,6 +81,7 @@ WITH most_recent_survey AS (
         JOIN surveys_context ON surveys.id = surveys_context.survey_id
         JOIN survey_types ON surveys_context.survey_type_id = survey_types.id
         LEFT JOIN subjects ON surveys_context.subject_id = subjects.id
+        LEFT JOIN topics ON subjects.topic_id = topics.id
     WHERE (:surveyId::int IS NULL
         OR surveys.id = :surveyId::int)
     AND (:surveyType::text IS NULL
@@ -92,8 +94,10 @@ LIMIT 1
 )
 SELECT
     sq.id::int AS question_id,
-    CASE WHEN sq.replacement_column_1 IS NOT NULL THEN
+    CASE WHEN sq.replacement_column_1 = 'subject_name' THEN
         FORMAT(sq.question_text, most_recent_survey.subject_display_name)
+    WHEN sq.replacement_column_1 = 'topic_name' THEN
+        FORMAT(sq.question_text, most_recent_survey.topic_display_name)
     ELSE
         sq.question_text
     END AS question_text,
@@ -217,6 +221,8 @@ WITH replacement_column_cte AS (
             u_volunteer.first_name
         WHEN sq.replacement_column_1 = 'subject_name' THEN
             subjects.display_name
+        WHEN sq.replacement_column_1 = 'topic_name' THEN
+            topics.display_name
         END AS replacement_text_1,
         CASE WHEN sq.replacement_column_2 = 'student_goal'
             AND src.choice_text = 'Other' THEN
@@ -230,6 +236,7 @@ WITH replacement_column_cte AS (
     FROM
         upchieve.sessions s
         JOIN upchieve.subjects ON s.subject_id = subjects.id
+        JOIN upchieve.topics ON subjects.topic_id = topics.id
         JOIN upchieve.surveys_context sc ON sc.subject_id = s.subject_id
         JOIN upchieve.survey_types st ON st.id = sc.survey_type_id
         JOIN upchieve.surveys_survey_questions ssq ON ssq.survey_id = sc.survey_id
@@ -297,6 +304,8 @@ WITH replacement_column_cte AS (
             u_volunteer.first_name
         WHEN sq.replacement_column_1 = 'subject_name' THEN
             subjects.display_name
+        WHEN sq.replacement_column_1 = 'topic_name' THEN
+            topics.display_name
         END AS replacement_text_1,
         CASE WHEN sq.replacement_column_2 = 'student_goal'
             AND src.choice_text = 'Other' THEN

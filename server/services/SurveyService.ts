@@ -39,6 +39,7 @@ import { Jobs } from '../worker/jobs'
 import { getStudentPostSessionSurveyNameVariant } from './FeatureFlagService'
 import { POST_SESSION_SURVEYS } from '../constants/surveys'
 import logger from '../logger'
+import { getSubjectAndTopic } from '../models/Subjects'
 
 export const asSurveySubmissions = asFactory<SaveUserSurveySubmission>({
   questionId: asNumber,
@@ -227,7 +228,9 @@ export async function getPostsessionSurveyDefinition(
       (await UserService.getUserContactInfo(session.volunteerId))?.firstName ??
       ''
   }
-  const subjectName = session.subjectDisplayName
+  const subjectAndTopic = await getSubjectAndTopic(session.subject)
+  const subjectName = subjectAndTopic?.subjectDisplayName ?? ''
+  const topicName = subjectAndTopic?.topicDisplayName ?? ''
   const studentGoal =
     (await SurveyRepo.getStudentsPresessionGoal(sessionId)) ?? ''
 
@@ -308,6 +311,8 @@ export async function getPostsessionSurveyDefinition(
         return coachName
       case 'subject_name':
         return subjectName
+      case 'topic_name':
+        return topicName
       case 'student_goal':
         return studentGoal
       default:

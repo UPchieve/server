@@ -4,6 +4,7 @@ import * as UserService from '../../services/UserService'
 import * as UserRolesService from '../../services/UserRolesService'
 import * as SessionFlagsService from '../../services/SessionFlagsService'
 import * as SurveyRepo from '../../models/Survey/queries'
+import * as SubjectsRepo from '../../models/Subjects/queries'
 import * as UserRepo from '../../models/User/queries'
 import * as SessionRepo from '../../models/Session/queries'
 import * as QueueService from '../../services/QueueService'
@@ -11,6 +12,7 @@ import {
   buildPostsessionSurveyGoalResponse,
   buildSession,
   buildSimpleSurveyResponse,
+  buildSubjectAndTopic,
   buildUserSurvey,
   buildUserSurveySubmission,
 } from '../mocks/generate'
@@ -25,6 +27,7 @@ import { Jobs } from '../../worker/jobs'
 jest.mock('../../models/Survey/queries')
 jest.mock('../../models/User/queries')
 jest.mock('../../models/Session/queries')
+jest.mock('../../models/Subjects/queries')
 jest.mock('../../services/UserService')
 jest.mock('../../services/UserRolesService')
 jest.mock('../../services/SessionFlagsService')
@@ -33,6 +36,7 @@ jest.mock('../../services/QueueService')
 const mockedSurveyRepo = mocked(SurveyRepo)
 const mockedUserRepo = mocked(UserRepo)
 const mockedSessionRepo = mocked(SessionRepo)
+const mockedSubjectsRepo = mocked(SubjectsRepo)
 const mockedUserService = mocked(UserService)
 const mockedUserRolesService = mocked(UserRolesService)
 
@@ -224,11 +228,12 @@ describe('saveUserSurvey', () => {
 
 describe('getPostsessionSurveyDefinition', () => {
   test('returns the postsession survey definition', async () => {
+    const subjectAndTopic = buildSubjectAndTopic()
     mockedSessionRepo.getSessionById.mockResolvedValue({
       id: 'session-id',
       studentId: 'student-id',
       volunteerId: 'volunteer-id',
-      subjectDisplayName: 'Prealgebra',
+      subjectDisplayName: subjectAndTopic.subjectDisplayName,
     } as GetSessionByIdResult)
     mockedSurveyRepo.getStudentsPresessionGoal.mockResolvedValue('eat cake')
     mockedUserService.getUserContactInfo
@@ -242,6 +247,7 @@ describe('getPostsessionSurveyDefinition', () => {
         firstName: 'CoachName',
         roleContext: new RoleContext(['volunteer'], 'volunteer', 'volunteer'),
       } as UserContactInfo & { roleContext: RoleContext })
+    mockedSubjectsRepo.getSubjectAndTopic.mockResolvedValueOnce(subjectAndTopic)
 
     mockedSurveyRepo.getPostsessionSurveyDefinition.mockResolvedValue([
       {
@@ -321,7 +327,7 @@ describe('getPostsessionSurveyDefinition', () => {
       'This is the first question StudentName'
     )
     expect(actualSurveyDefinition?.survey[1].questionText).toBe(
-      'This is the second question Prealgebra eat cake'
+      `This is the second question ${subjectAndTopic.subjectDisplayName} eat cake`
     )
     expect(actualSurveyDefinition?.survey[2].questionText).toBe(
       'This is the third question'
@@ -329,11 +335,14 @@ describe('getPostsessionSurveyDefinition', () => {
   })
 
   test('skips the student goal question if no presession survey completed', async () => {
+    const subjectAndTopic = buildSubjectAndTopic({
+      subjectDisplayName: 'Reading',
+    })
     mockedSessionRepo.getSessionById.mockResolvedValue({
       id: 'session-id',
       studentId: 'student-id',
       volunteerId: 'volunteer-id',
-      subjectDisplayName: 'Reading',
+      subjectDisplayName: subjectAndTopic.subjectDisplayName,
     } as GetSessionByIdResult)
     mockedSurveyRepo.getStudentsPresessionGoal.mockResolvedValue(undefined)
     mockedUserService.getUserContactInfo
