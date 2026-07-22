@@ -137,7 +137,7 @@ SELECT
     qt.name AS question_type,
     sq.replacement_column_1 AS first_replacement_column,
     sq.replacement_column_2 AS second_replacement_column,
-    array_agg(json_build_object('responseId', src.id, 'responseText', src.choice_text, 'responseDisplayPriority', sqrc.display_priority, 'responseDisplayImage', src.display_image)) AS responses
+    COALESCE(array_agg(json_build_object('responseId', src.id, 'responseText', src.choice_text, 'responseDisplayPriority', sqrc.display_priority, 'responseDisplayImage', src.display_image)) FILTER (WHERE src.id IS NOT NULL), ARRAY[]::json[]) AS responses
 FROM
     surveys_context sc
     JOIN surveys s ON s.id = sc.survey_id
@@ -145,8 +145,8 @@ FROM
     JOIN surveys_survey_questions ssq ON ssq.survey_id = s.id
     JOIN survey_questions sq ON sq.id = ssq.survey_question_id
     JOIN question_types qt ON qt.id = sq.question_type_id
-    JOIN survey_questions_response_choices sqrc ON sqrc.surveys_survey_question_id = ssq.id
-    JOIN survey_response_choices src ON src.id = sqrc.response_choice_id
+    LEFT JOIN survey_questions_response_choices sqrc ON sqrc.surveys_survey_question_id = ssq.id
+    LEFT JOIN survey_response_choices src ON src.id = sqrc.response_choice_id
     JOIN subjects ON sc.subject_id = subjects.id
     JOIN sessions sess ON sess.subject_id = subjects.id
     JOIN user_roles ur ON ur.id = s.role_id

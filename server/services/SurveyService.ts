@@ -93,8 +93,8 @@ export async function saveUserSurvey(
   }
   // Filter out responses the user didn't answer.
   const submissions = data.submissions.filter((submission) => {
-    const hasResponseChoice = !!submission.responseChoiceId
-    const hasOpenResponse = submission.openResponse.trim()
+    const hasResponseChoice = submission.responseChoiceId !== null
+    const hasOpenResponse = submission.openResponse?.trim()
     return hasResponseChoice || hasOpenResponse
   })
   await saveUserSurveyAndSubmissions(userId, userSurvey, submissions, tc)
