@@ -131,4 +131,7 @@ export type EditUserProfilePayload = {
   signupSourceId?: number
   otherSignupSource?: string
   gradeLevel?: GRADES
+  company?: string
+  college?: string
+  occupation?: string[]
 }

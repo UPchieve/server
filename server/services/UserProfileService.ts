@@ -4,6 +4,7 @@ import {
   updateSmsConsentForPhoneNumber,
 } from '../models/User'
 import { UserContactInfo, EditUserProfilePayload } from '../models/User/types'
+import * as VolunteerRepo from '../models/Volunteer'
 import { runInTransaction, TransactionClient } from '../db'
 import { createAccountAction } from '../models/UserAction'
 import * as UsersGradeLevelsRepo from '../models/UsersGradeLevels'
@@ -21,7 +22,25 @@ export async function updateUserProfile(
     await updateUserProfileById(user.id, data, tc)
 
     if (user.roleContext.isActiveRole('volunteer')) {
+      //TODO: Think of way to move this code block to the VolunteerService if it gets any bigger
       await updateSubjectAlerts(user.id, data.mutedSubjectAlerts, tc)
+      if (data.occupation) {
+        await VolunteerRepo.deleteVolunteerOccupations(user.id, tc)
+        await VolunteerRepo.insertVolunteerOccupations(
+          user.id,
+          data.occupation,
+          tc
+        )
+      }
+      if (data.company || data.college)
+        await VolunteerRepo.updateVolunteerProfile(
+          user.id,
+          {
+            company: data.company,
+            college: data.college,
+          },
+          tc
+        )
     } else if (user.roleContext.isActiveRole('student')) {
       await upsertStudent({ userId: user.id, schoolId: data.schoolId }, tc)
     }

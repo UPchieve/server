@@ -9,10 +9,34 @@ import { updateUserProfile } from '../../services/UserProfileService'
 import { getUserIdByEmail, EditUserProfilePayload } from '../../models/User/'
 import { authPassport } from '../../utils/auth-utils'
 import { resError } from '../res-error'
-import { asString, asBoolean, asUlid, asEnum } from '../../utils/type-utils'
+import {
+  asBoolean,
+  asFactory,
+  asNumber,
+  asOptional,
+  asString,
+  asUlid,
+  asArray,
+  asEnum,
+} from '../../utils/type-utils'
 import { extractUser } from '../extract-user'
 import { InputError, NotAllowedError } from '../../models/Errors'
 import { GRADES } from '../../constants'
+
+export const asEditProfilePayload = asFactory<EditUserProfilePayload>({
+  smsConsent: asOptional(asBoolean),
+  deactivated: asOptional(asBoolean),
+  mutedSubjectAlerts: asOptional(asArray(asString)),
+  phone: asOptional(asString),
+  preferredLanguage: asOptional(asString),
+  schoolId: asOptional(asString),
+  signupSourceId: asOptional(asNumber),
+  otherSignupSource: asOptional(asString),
+  gradeLevel: asOptional(asEnum(GRADES)),
+  company: asOptional(asString),
+  college: asOptional(asString),
+  occupation: asOptional(asArray(asString)),
+})
 
 export function routeUser(router: Router): void {
   router.route('/user').get(async function (req, res) {
@@ -35,32 +59,14 @@ export function routeUser(router: Router): void {
         : false
 
       // Form request object
-      let updateReq: EditUserProfilePayload = {
+      const updateReq = {
+        ...asEditProfilePayload(req.body),
         deactivated: isDeactivated,
         ...(req.body?.schoolId ? { schoolId: req.body?.schoolId } : {}),
       }
 
-      // optional fields
-      if ('smsConsent' in req.body) {
-        updateReq['smsConsent'] = asBoolean(req.body.smsConsent)
-      }
-      if ('mutedSubjectAlerts' in req.body) {
-        updateReq['mutedSubjectAlerts'] = req.body
-          .mutedSubjectAlerts as string[]
-      }
-      if ('phone' in req.body) {
-        const phone = asString(req.body.phone)
-        if (phone.length === 0) {
-          throw new InputError('Phone number must be provided')
-        }
-        updateReq['phone'] = phone
-      }
-      if ('preferredLanguage' in req.body) {
-        const preferredLanguage = asString(req.body.preferredLanguage)
-        updateReq['preferredLanguage'] = preferredLanguage
-      }
-      if ('gradeLevel' in req.body) {
-        updateReq['gradeLevel'] = asEnum<GRADES>(GRADES)(req.body.gradeLevel)
+      if ('phone' in updateReq && updateReq.phone?.length === 0) {
+        throw new InputError("Phone number can't be empty if provided")
       }
 
       await updateUserProfile(user, ip, updateReq)

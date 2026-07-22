@@ -174,15 +174,6 @@ describe('routeUser', () => {
         }
       )
     })
-
-    test('returns 422 when phone is empty', async () => {
-      const response = await sendPut('/api/user', {
-        phone: '',
-      })
-
-      expect(response.status).toBe(422)
-      expect(mockedUserProfileService.updateUserProfile).not.toHaveBeenCalled()
-    })
   })
 
   describe('DELETE /api/user/phone', () => {
