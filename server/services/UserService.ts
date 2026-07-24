@@ -641,17 +641,17 @@ export async function getUsers(
       skip
     )
 
-    const withUserTypes = users.map(async (u) => {
+    const withRoles = users.map(async (u) => {
       const roleContext = await UserRolesService.getRoleContext(u.id)
       return {
         ...u,
-        userType: roleContext.legacyRole,
+        roles: roleContext.roles,
       }
     })
-    const usersWithUserType = await Promise.all(withUserTypes)
+    const usersWithRoles = await Promise.all(withRoles)
 
     const isLastPage = users.length < PER_PAGE
-    return { users: usersWithUserType, isLastPage }
+    return { users: usersWithRoles, isLastPage }
   } catch (error) {
     throw new Error((error as Error).message)
   }
