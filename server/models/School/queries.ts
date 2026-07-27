@@ -22,7 +22,7 @@ import {
   createStudentPartnerOrgUpchieveInstance,
   deactivateSchoolStudentPartnerOrgs,
 } from '../StudentPartnerOrg'
-import { FormattedSchoolNcesMetadataRecord } from '../../scripts/upsert-schools'
+import { type FormattedSchoolNcesMetadataRecord } from '../../types/school-csv-data'
 import { AdminUpdate } from '../../services/SchoolService'
 import { isSchoolApproved } from '../../services/EligibilityService'
 
