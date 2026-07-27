@@ -319,6 +319,7 @@ WITH replacement_column_cte AS (
     FROM
         upchieve.sessions s
         JOIN upchieve.subjects ON s.subject_id = subjects.id
+        JOIN upchieve.topics ON subjects.topic_id = topics.id
         JOIN upchieve.surveys_context sc ON sc.subject_id = s.subject_id
         JOIN upchieve.survey_types st ON st.id = sc.survey_type_id
         JOIN upchieve.surveys_survey_questions ssq ON ssq.survey_id = sc.survey_id
