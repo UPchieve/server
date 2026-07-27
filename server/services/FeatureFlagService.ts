@@ -165,15 +165,6 @@ export async function isStudentSessionSummaryEnabled(userId: Uuid) {
   return isFeatureEnabled(FEATURE_FLAGS.STUDENT_SESSION_SUMMARY, userId)
 }
 
-export async function getStudentPostSessionSurveyNameVariant(
-  userId: Uuid
-): Promise<string | null> {
-  return getFeatureFlagPayload(
-    FEATURE_FLAGS.STUDENT_POST_SESSION_SURVEY_VARIANT,
-    userId
-  )
-}
-
 export async function isBarHighSchoolerFromCoachingCollegeSessionsEnabled(
   userId: Uuid
 ) {

@@ -36,7 +36,6 @@ import { processFeedbackMetrics } from './SessionFlagsService'
 import { TransactionClient } from '../db'
 import QueueService from './QueueService'
 import { Jobs } from '../worker/jobs'
-import { getStudentPostSessionSurveyNameVariant } from './FeatureFlagService'
 import { POST_SESSION_SURVEYS } from '../constants/surveys'
 import logger from '../logger'
 import { getSubjectAndTopic } from '../models/Subjects'
@@ -237,10 +236,7 @@ export async function getPostsessionSurveyDefinition(
   let surveyId: number | null = null
 
   if (userRole === 'student') {
-    const surveyName = await getStudentPostsessionSurveyName(
-      sessionId,
-      session.studentId
-    )
+    const surveyName = await getStudentPostsessionSurveyName(sessionId)
     surveyId = await SurveyRepo.getSurveyIdByName(surveyName)
   }
 
@@ -423,18 +419,23 @@ export function classifyFeedback(
 }
 
 async function getStudentPostsessionSurveyName(
-  sessionId: Uuid,
-  studentId: Uuid
+  sessionId: Uuid
 ): Promise<string> {
-  const variantSurveyName =
-    await getStudentPostSessionSurveyNameVariant(studentId)
-  if (!variantSurveyName) {
-    return POST_SESSION_SURVEYS.STUDENT_DEFAULT
+  const supportsAcademics = await SurveyRepo.isSubjectSupportedBySurvey(
+    sessionId,
+    POST_SESSION_SURVEYS.STUDENT_ACADEMICS
+  )
+  if (supportsAcademics) {
+    return POST_SESSION_SURVEYS.STUDENT_ACADEMICS
   }
 
-  const isSupported = await SurveyRepo.isSubjectSupportedBySurvey(
+  const supportsCollegeCounseling = await SurveyRepo.isSubjectSupportedBySurvey(
     sessionId,
-    variantSurveyName
+    POST_SESSION_SURVEYS.STUDENT_COLLEGE_COUNSELING
   )
-  return isSupported ? variantSurveyName : POST_SESSION_SURVEYS.STUDENT_DEFAULT
+  if (supportsCollegeCounseling) {
+    return POST_SESSION_SURVEYS.STUDENT_COLLEGE_COUNSELING
+  }
+
+  return POST_SESSION_SURVEYS.STUDENT_DEFAULT
 }
