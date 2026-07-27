@@ -670,6 +670,37 @@ describe('routeSession', () => {
     })
   })
 
+  describe('GET /api/sessions/first-session-date', () => {
+    test('returns the volunteer first session date', async () => {
+      const firstSessionDate = new Date()
+      mockedSessionService.getVolunteerFirstSessionDate.mockResolvedValueOnce(
+        firstSessionDate
+      )
+
+      const response = await sendGet('/api/sessions/first-session-date')
+      expect(response.status).toBe(200)
+      expect(
+        mockedSessionService.getVolunteerFirstSessionDate
+      ).toHaveBeenCalledWith(mockUser.id)
+      expect(response.body).toEqual({
+        firstSessionDate: firstSessionDate.toISOString(),
+      })
+    })
+
+    test('returns undefined when there is no first session date', async () => {
+      mockedSessionService.getVolunteerFirstSessionDate.mockResolvedValueOnce(
+        undefined
+      )
+
+      const response = await sendGet('/api/sessions/first-session-date')
+      expect(response.status).toBe(200)
+      expect(
+        mockedSessionService.getVolunteerFirstSessionDate
+      ).toHaveBeenCalledWith(mockUser.id)
+      expect(response.body).toEqual({})
+    })
+  })
+
   describe('POST /api/sessions/history/:sessionId/eligible', () => {
     test('returns session recap eligibility', async () => {
       const sessionId = getUuid()

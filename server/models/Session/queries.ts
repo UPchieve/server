@@ -1176,6 +1176,26 @@ export async function getFilteredSessionHistoryTotalCount(
   }
 }
 
+export async function getVolunteerFirstSessionDate(
+  volunteerId: Ulid
+): Promise<Date | undefined> {
+  try {
+    const result = await pgQueries.getVolunteerFirstSessionDate.run(
+      {
+        volunteerId,
+        minSessionLength: config.minSessionLength,
+      },
+      getRoClient()
+    )
+    if (result.length) {
+      return makeSomeOptional(result[0], ['firstSessionDate']).firstSessionDate
+    }
+    return undefined
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
 export type SessionForSessionRecap = {
   id: Ulid
   topic: string

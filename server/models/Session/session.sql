@@ -229,6 +229,18 @@ WHERE
     AND created_at <= :end!;
 
 
+/* @name getVolunteerFirstSessionDate */
+SELECT
+    MIN(created_at) AS first_session_date
+FROM
+    sessions
+WHERE
+    volunteer_id = :volunteerId!
+    AND ended_at IS NOT NULL
+    AND time_tutored IS NOT NULL
+    AND time_tutored > :minSessionLength!::int;
+
+
 /* @name getActiveSessionVolunteers */
 SELECT
     volunteer_id

@@ -14,6 +14,7 @@ import {
   getLatestSession,
   getMessagesForFrontend,
   getSessionTranscriptItems,
+  getVolunteerFirstSessionDate,
   getVolunteersInSessions,
   isEligibleForSessionRecap,
   isSessionFulfilled,
@@ -26,6 +27,7 @@ import { range } from 'lodash'
 import moment from 'moment'
 import { USER_SESSION_METRICS, UserSessionFlags } from '../../constants'
 import { createTestUser, createTestVolunteer } from './seed-utils'
+import config from '../../config'
 
 describe('Session repo', () => {
   const dbClient = getClient()
@@ -751,6 +753,98 @@ describe('Session repo', () => {
 
       const result = await isSessionFulfilled(session.id)
       expect(result).toBe(true)
+    })
+  })
+
+  describe('getVolunteerFirstSessionDate', () => {
+    const longEnough = config.minSessionLength + 1
+
+    test('returns the earliest created_at of a qualifying session for the volunteer', async () => {
+      const testVolunteerId = (await createTestUser(getClient())).id
+      await createTestVolunteer(getClient(), testVolunteerId)
+
+      const earlier = moment().subtract(3, 'days').toDate()
+      const later = moment().subtract(1, 'day').toDate()
+
+      await insertSingleRow(
+        'sessions',
+        await buildSessionRow({
+          studentId,
+          volunteerId: testVolunteerId,
+          createdAt: earlier,
+          endedAt: earlier,
+          timeTutored: longEnough,
+        }),
+        getClient()
+      )
+      await insertSingleRow(
+        'sessions',
+        await buildSessionRow({
+          studentId,
+          volunteerId: testVolunteerId,
+          createdAt: later,
+          endedAt: later,
+          timeTutored: longEnough,
+        }),
+        getClient()
+      )
+
+      const result = await getVolunteerFirstSessionDate(testVolunteerId)
+      expect(result).toEqual(earlier)
+    })
+
+    test('ignores sessions that have not ended or are too short', async () => {
+      const testVolunteerId = (await createTestUser(getClient())).id
+      await createTestVolunteer(getClient(), testVolunteerId)
+
+      const notEnded = moment().subtract(5, 'days').toDate()
+      const tooShort = moment().subtract(4, 'days').toDate()
+      const qualifying = moment().subtract(2, 'days').toDate()
+
+      await insertSingleRow(
+        'sessions',
+        await buildSessionRow({
+          studentId,
+          volunteerId: testVolunteerId,
+          createdAt: notEnded,
+          endedAt: undefined,
+          timeTutored: longEnough,
+        }),
+        getClient()
+      )
+      await insertSingleRow(
+        'sessions',
+        await buildSessionRow({
+          studentId,
+          volunteerId: testVolunteerId,
+          createdAt: tooShort,
+          endedAt: new Date(),
+          timeTutored: config.minSessionLength,
+        }),
+        getClient()
+      )
+      await insertSingleRow(
+        'sessions',
+        await buildSessionRow({
+          studentId,
+          volunteerId: testVolunteerId,
+          createdAt: qualifying,
+          endedAt: new Date(),
+          timeTutored: longEnough,
+        }),
+        getClient()
+      )
+
+      const result = await getVolunteerFirstSessionDate(testVolunteerId)
+      expect(result).toEqual(qualifying)
+    })
+
+    test('returns undefined when the volunteer has no qualifying sessions', async () => {
+      const testVolunteerId = (await createTestUser(getClient())).id
+      await createTestVolunteer(getClient(), testVolunteerId)
+
+      const result = await getVolunteerFirstSessionDate(testVolunteerId)
+      expect(result).toBeUndefined()
     })
   })
 

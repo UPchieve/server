@@ -1161,6 +1161,10 @@ export async function getTotalSessionHistory(
   return SessionRepo.getFilteredSessionHistoryTotalCount(userId, filter)
 }
 
+export async function getVolunteerFirstSessionDate(volunteerId: Ulid) {
+  return SessionRepo.getVolunteerFirstSessionDate(volunteerId)
+}
+
 export async function getSessionRecap(
   sessionId: Ulid,
   userId: Ulid,

@@ -525,6 +525,42 @@ const getTotalTimeTutoredForDateRangeIR: any = {"usedParamSet":{"volunteerId":tr
 export const getTotalTimeTutoredForDateRange = new PreparedQuery<IGetTotalTimeTutoredForDateRangeParams,IGetTotalTimeTutoredForDateRangeResult>(getTotalTimeTutoredForDateRangeIR);
 
 
+/** 'GetVolunteerFirstSessionDate' parameters type */
+export interface IGetVolunteerFirstSessionDateParams {
+  minSessionLength: number;
+  volunteerId: string;
+}
+
+/** 'GetVolunteerFirstSessionDate' return type */
+export interface IGetVolunteerFirstSessionDateResult {
+  firstSessionDate: Date | null;
+}
+
+/** 'GetVolunteerFirstSessionDate' query type */
+export interface IGetVolunteerFirstSessionDateQuery {
+  params: IGetVolunteerFirstSessionDateParams;
+  result: IGetVolunteerFirstSessionDateResult;
+}
+
+const getVolunteerFirstSessionDateIR: any = {"usedParamSet":{"volunteerId":true,"minSessionLength":true},"params":[{"name":"volunteerId","required":true,"transform":{"type":"scalar"},"locs":[{"a":92,"b":104}]},{"name":"minSessionLength","required":true,"transform":{"type":"scalar"},"locs":[{"a":191,"b":208}]}],"statement":"SELECT\n    MIN(created_at) AS first_session_date\nFROM\n    sessions\nWHERE\n    volunteer_id = :volunteerId!\n    AND ended_at IS NOT NULL\n    AND time_tutored IS NOT NULL\n    AND time_tutored > :minSessionLength!::int"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     MIN(created_at) AS first_session_date
+ * FROM
+ *     sessions
+ * WHERE
+ *     volunteer_id = :volunteerId!
+ *     AND ended_at IS NOT NULL
+ *     AND time_tutored IS NOT NULL
+ *     AND time_tutored > :minSessionLength!::int
+ * ```
+ */
+export const getVolunteerFirstSessionDate = new PreparedQuery<IGetVolunteerFirstSessionDateParams,IGetVolunteerFirstSessionDateResult>(getVolunteerFirstSessionDateIR);
+
+
 /** 'GetActiveSessionVolunteers' parameters type */
 export type IGetActiveSessionVolunteersParams = void;
 

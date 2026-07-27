@@ -28,6 +28,7 @@ import { getDocEditorSessionImageUrl } from '../../services/AzureService'
 import { getSessionSummaryByUserType } from '../../services/SessionSummariesService'
 import { USER_ROLES } from '../../constants'
 import { toCurrentSessionPublic } from '../../public/sessions'
+import { resSuccess } from '../res-success'
 
 export function routeSession(router: Router) {
   // io is now passed to this module so that API events can trigger socket events as needed
@@ -388,6 +389,19 @@ export function routeSession(router: Router) {
       const total = await SessionService.getTotalSessionHistory(user.id, filter)
 
       res.json({ total })
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
+  router.get('/sessions/first-session-date', async function (req, res) {
+    try {
+      const user = extractUser(req)
+
+      const firstSessionDate =
+        await SessionService.getVolunteerFirstSessionDate(user.id)
+
+      resSuccess(res, { firstSessionDate })
     } catch (err) {
       resError(res, err)
     }
