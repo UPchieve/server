@@ -13059,6 +13059,13 @@ CREATE INDEX partial_session_id_idx ON upchieve.user_actions USING btree (sessio
 
 
 --
+-- Name: presence_actions_created_at_idx; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX presence_actions_created_at_idx ON upchieve.user_actions USING btree (created_at) INCLUDE (user_id, clientuuid, action, id) WHERE (action = ANY (ARRAY['ACTIVE_ON_SITE'::text, 'PASSIVE_ON_SITE'::text, 'INACTIVE_ON_SITE'::text]));
+
+
+--
 -- Name: progress_report_concept_details_concept_id; Type: INDEX; Schema: upchieve; Owner: -
 --
 
@@ -15262,4 +15269,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260622211455'),
     ('20260623012028'),
     ('20260715155733'),
-    ('20260717162214');
+    ('20260717162214'),
+    ('20260728183756');
