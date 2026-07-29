@@ -77,7 +77,10 @@ async function passportRegisterUser(
     const lastName = profile.name?.familyName
     const email = profile.emails?.[0]?.value
     if (!firstName || !lastName || !email) {
-      return done(null, false)
+      return done(null, false, {
+        errorMessage:
+          'Missing necessary data to create account (first name, last name, or email)',
+      })
     }
 
     const existingUser = await getUserVerificationByEmails(email, data?.email)
@@ -112,7 +115,8 @@ async function passportRegisterUser(
       return done(null, student)
     }
   } catch (err) {
-    return done(err)
+    logger.error({ err }, 'Error while registering user with SSO')
+    return done(err, false)
   }
 }
 
