@@ -115,7 +115,10 @@ export async function getTeacherClassByClassCode(
   }
 }
 
-export async function getTeacherClassById(id: Ulid, tc: TransactionClient) {
+export async function getTeacherClassById(
+  id: Ulid,
+  tc: TransactionClient = getClient()
+) {
   try {
     const teacherClass = await pgQueries.getTeacherClassById.run({ id }, tc)
     if (teacherClass.length) {
@@ -127,7 +130,7 @@ export async function getTeacherClassById(id: Ulid, tc: TransactionClient) {
 }
 
 export async function getStudentIdsInTeacherClass(
-  tc: TransactionClient,
+  tc: TransactionClient = getClient(),
   classId: Ulid
 ): Promise<Ulid[]> {
   try {

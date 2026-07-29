@@ -15,8 +15,11 @@ import { GRADES, USER_BAN_TYPES } from '../constants/user'
 import { US_STATE_CODES } from '../constants/geography'
 import { isHighSchoolGrade } from '../utils/grade-levels'
 import { getRoClient, runInTransaction, TransactionClient } from '../db'
-import { InputError, NTHSApplicationExistsError } from '../models/Errors'
-import { CaughtError } from '../router/res-error'
+import {
+  CaughtError,
+  InputError,
+  NTHSApplicationExistsError,
+} from '../models/Errors'
 import logger from '../logger'
 import {
   sendNTHSCandidateApplicationApproved,

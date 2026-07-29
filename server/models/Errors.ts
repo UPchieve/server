@@ -1,5 +1,21 @@
 import { CustomError } from 'ts-custom-error'
 
+export abstract class CaughtError extends CustomError {
+  abstract readonly httpStatus: number
+  abstract readonly clientMessage: string
+  readonly context: Record<string, unknown>
+  readonly cause?: unknown
+  constructor(
+    message: string,
+    context: Record<string, unknown> = {},
+    error?: unknown
+  ) {
+    super(message)
+    this.context = context
+    this.cause = error
+  }
+}
+
 export const DEFAULT_ERROR_MESSAGE =
   'Something went wrong. Please try again, or contact us at support@upchieve.org for help'
 export class UserNotFoundError extends CustomError {

@@ -14,6 +14,7 @@ import {
   NTHSApplicationExistsError,
   NotAHighSchoolerNTHSJoinError,
   SessionJoinError,
+  CaughtError,
 } from '../models/Errors'
 import { RegistrationError, ResetError } from '../utils/auth-utils'
 import config from '../config'
@@ -21,22 +22,6 @@ import { StartSessionError } from '../utils/session-utils'
 import logger, { logError } from '../logger'
 import { ReportNoDataFoundError } from '../services/ReportService'
 import { ExistingUserError } from '../services/EligibilityService'
-
-export abstract class CaughtError extends CustomError {
-  abstract readonly httpStatus: number
-  abstract readonly clientMessage: string
-  readonly context: Record<string, unknown>
-  readonly cause?: unknown
-  constructor(
-    message: string,
-    context: Record<string, unknown> = {},
-    error?: unknown
-  ) {
-    super(message)
-    this.context = context
-    this.cause = error
-  }
-}
 
 export function resError(
   res: Response,

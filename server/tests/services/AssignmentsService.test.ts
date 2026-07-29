@@ -9,7 +9,7 @@ import { Assignment, StudentAssignment } from '../../models/Assignments'
 import { TransactionClient } from '../../db'
 import * as AzureService from '../../services/AzureService'
 import * as ImageUtils from '../../utils/image-utils'
-import { buildAssignment } from '../mocks/generate'
+import { buildAssignment, buildTeacherClass } from '../mocks/generate'
 
 jest.mock('../../models/Assignments')
 jest.mock('../../models/Teacher')
@@ -31,6 +31,14 @@ beforeEach(() => {
 describe('upsertAssignment', () => {
   beforeEach(() => {
     mockedModerationService.moderateAssignmentInfo.mockResolvedValue([])
+    mockedTeacherRepo.getTeacherClassById.mockImplementation(
+      async (classId) => ({
+        ...buildTeacherClass({ id: classId, userId: 'teacher-id' }),
+        cleverId: undefined,
+        topicId: 1,
+        totalStudents: 1,
+      })
+    )
   })
 
   test('throws an error if the minimum number of sessions is less than 0', async () => {
@@ -39,6 +47,7 @@ describe('upsertAssignment', () => {
     }
     await expect(
       AssignmentsService.upsertAssignment(
+        'teacher-id',
         data as AssignmentsService.UpsertAssignmentPayload
       )
     ).rejects.toThrow('Number of sessions must be greater than 0.')
@@ -46,6 +55,7 @@ describe('upsertAssignment', () => {
     data.numberOfSessions = -5
     await expect(
       AssignmentsService.upsertAssignment(
+        'teacher-id',
         data as AssignmentsService.UpsertAssignmentPayload
       )
     ).rejects.toThrow('Number of sessions must be greater than 0.')
@@ -53,6 +63,7 @@ describe('upsertAssignment', () => {
     data.numberOfSessions = -5690
     await expect(
       AssignmentsService.upsertAssignment(
+        'teacher-id',
         data as AssignmentsService.UpsertAssignmentPayload
       )
     ).rejects.toThrow('Number of sessions must be greater than 0.')
@@ -81,6 +92,7 @@ describe('upsertAssignment', () => {
 
     await expect(
       AssignmentsService.upsertAssignment(
+        'teacher-id',
         data as AssignmentsService.UpsertAssignmentPayload
       )
     ).resolves.not.toThrow('Number of sessions must be greater than 0.')
@@ -109,6 +121,7 @@ describe('upsertAssignment', () => {
 
     await expect(
       AssignmentsService.upsertAssignment(
+        'teacher-id',
         data as AssignmentsService.UpsertAssignmentPayload
       )
     ).resolves.not.toThrow('Number of sessions must be greater than 0.')
@@ -116,6 +129,7 @@ describe('upsertAssignment', () => {
     data.numberOfSessions = 100
     await expect(
       AssignmentsService.upsertAssignment(
+        'teacher-id',
         data as AssignmentsService.UpsertAssignmentPayload
       )
     ).resolves.not.toThrow('Number of sessions must be greater than 0.')
@@ -123,6 +137,7 @@ describe('upsertAssignment', () => {
     data.numberOfSessions = 679834
     await expect(
       AssignmentsService.upsertAssignment(
+        'teacher-id',
         data as AssignmentsService.UpsertAssignmentPayload
       )
     ).resolves.not.toThrow('Number of sessions must be greater than 0.')
@@ -144,6 +159,7 @@ describe('upsertAssignment', () => {
 
     await expect(
       AssignmentsService.upsertAssignment(
+        'teacher-id',
         data as AssignmentsService.UpsertAssignmentPayload
       )
     ).rejects.toThrow('Start date cannot be after the due date.')
@@ -154,6 +170,7 @@ describe('upsertAssignment', () => {
     data.startDate = startDate.toDate()
     await expect(
       AssignmentsService.upsertAssignment(
+        'teacher-id',
         data as AssignmentsService.UpsertAssignmentPayload
       )
     ).rejects.toThrow('Start date cannot be after the due date.')
@@ -184,6 +201,7 @@ describe('upsertAssignment', () => {
     ])
 
     await AssignmentsService.upsertAssignment(
+      'teacher-id',
       data as AssignmentsService.UpsertAssignmentPayload
     )
 
@@ -192,6 +210,7 @@ describe('upsertAssignment', () => {
     data.dueDate = dueDate.toDate()
     data.startDate = startDate.toDate()
     await AssignmentsService.upsertAssignment(
+      'teacher-id',
       data as AssignmentsService.UpsertAssignmentPayload
     )
 
@@ -217,6 +236,7 @@ describe('upsertAssignment', () => {
     ])
 
     await AssignmentsService.upsertAssignment(
+      'teacher-id',
       data as AssignmentsService.UpsertAssignmentPayload
     )
 
@@ -245,12 +265,19 @@ describe('upsertAssignment', () => {
       isCreated: true,
     }
     mockedAssignmentRepo.upsertAssignment.mockResolvedValue(data)
+    mockedAssignmentRepo.getAssignmentById.mockResolvedValue({
+      teacherId: 'teacher-id',
+      classId: data.classId,
+    } as any)
 
     mockedTeacherRepo.getStudentIdsInTeacherClass.mockResolvedValue([
       'student-id-1',
     ])
 
-    const { assignment } = await AssignmentsService.upsertAssignment(data)
+    const { assignment } = await AssignmentsService.upsertAssignment(
+      'teacher-id',
+      data
+    )
 
     expect(mockedAssignmentRepo.upsertAssignment).toHaveBeenCalledWith(
       {
@@ -267,6 +294,10 @@ describe('upsertAssignment', () => {
       },
       expect.toBeTransactionClient()
     )
+    expect(mockedTeacherRepo.getTeacherClassById).toHaveBeenCalledWith(
+      data.classId
+    )
+    expect(mockedAssignmentRepo.getAssignmentById).toHaveBeenCalledWith(data.id)
     expect(assignment).toEqual(data)
   })
 
@@ -276,7 +307,7 @@ describe('upsertAssignment', () => {
       'PROFANITY',
     ])
 
-    const actual = await AssignmentsService.upsertAssignment({
+    const actual = await AssignmentsService.upsertAssignment('teacher-id', {
       classId: 'class-id123',
       description: 'a description',
       isRequired: false,
@@ -303,7 +334,7 @@ describe('upsertAssignment', () => {
       isCreated: true,
     })
 
-    await AssignmentsService.upsertAssignment({
+    await AssignmentsService.upsertAssignment('teacher-id', {
       classId: data.classId,
       isRequired: false,
       studentsToAdd: ['student-id-1', 'student-id-2'],
@@ -513,6 +544,14 @@ describe('upsertAssignment', () => {
 describe('createAssignmentForClasses', () => {
   beforeEach(() => {
     mockedModerationService.moderateAssignmentInfo.mockResolvedValue([])
+    mockedTeacherRepo.getTeacherClassById.mockImplementation(
+      async (classId) => ({
+        ...buildTeacherClass({ id: classId, userId: 'teacher-id' }),
+        cleverId: undefined,
+        topicId: 1,
+        totalStudents: 1,
+      })
+    )
   })
 
   test('creates an assignment for every class with the correct parameters', async () => {
@@ -529,6 +568,7 @@ describe('createAssignmentForClasses', () => {
     }))
 
     const { assignments } = await AssignmentsService.createAssignmentForClasses(
+      'teacher-id',
       data,
       data.classIds
     )
@@ -579,7 +619,11 @@ describe('createAssignmentForClasses', () => {
       .mockResolvedValueOnce(['student-1', 'student-2'])
       .mockResolvedValueOnce(['student-3'])
 
-    await AssignmentsService.createAssignmentForClasses(data, data.classIds)
+    await AssignmentsService.createAssignmentForClasses(
+      'teacher-id',
+      data,
+      data.classIds
+    )
 
     expect(mockedTeacherRepo.getStudentIdsInTeacherClass).toHaveBeenCalledWith(
       expect.toBeTransactionClient(),
@@ -615,6 +659,7 @@ describe('createAssignmentForClasses', () => {
     }
 
     const actual = await AssignmentsService.createAssignmentForClasses(
+      'teacher-id',
       data,
       data.classIds
     )
@@ -627,6 +672,119 @@ describe('createAssignmentForClasses', () => {
     expect(
       mockedAssignmentRepo.createStudentsAssignmentsForAll
     ).not.toHaveBeenCalled()
+  })
+})
+
+describe('ensureAuthorizedToUpsertAssignment', () => {
+  beforeEach(() => {
+    mockedTeacherRepo.getTeacherClassById.mockResolvedValue({
+      id: 'class-id',
+      userId: 'teacher-id',
+    } as any)
+    mockedAssignmentRepo.getAssignmentById.mockResolvedValue({
+      id: 'assignment-id',
+      classId: 'class-id',
+      teacherId: 'teacher-id',
+    } as any)
+  })
+
+  test('does not throw if the teacher owns the class and the assignment', async () => {
+    await AssignmentsService.ensureAuthorizedToUpsertAssignment(
+      'teacher-id',
+      'class-id',
+      'assignment-id'
+    )
+
+    expect(mockedTeacherRepo.getTeacherClassById).toHaveBeenCalledWith(
+      'class-id'
+    )
+    expect(mockedAssignmentRepo.getAssignmentById).toHaveBeenCalledWith(
+      'assignment-id'
+    )
+  })
+
+  test('does not look up the assignment if no assignment id is given', async () => {
+    await AssignmentsService.ensureAuthorizedToUpsertAssignment(
+      'teacher-id',
+      'class-id'
+    )
+
+    expect(mockedAssignmentRepo.getAssignmentById).not.toHaveBeenCalled()
+  })
+
+  test('throws an error if the class belongs to another teacher', async () => {
+    mockedTeacherRepo.getTeacherClassById.mockResolvedValue({
+      id: 'class-id',
+      userId: 'another-teacher-id',
+    } as any)
+
+    await expect(
+      AssignmentsService.ensureAuthorizedToUpsertAssignment(
+        'teacher-id',
+        'class-id'
+      )
+    ).rejects.toThrow(
+      'Teacher unable to edit assignment in class that is not theirs'
+    )
+
+    expect(mockedAssignmentRepo.getAssignmentById).not.toHaveBeenCalled()
+  })
+
+  test('throws an error if the class does not exist', async () => {
+    mockedTeacherRepo.getTeacherClassById.mockResolvedValue(undefined)
+
+    await expect(
+      AssignmentsService.ensureAuthorizedToUpsertAssignment(
+        'teacher-id',
+        'class-id'
+      )
+    ).rejects.toThrow(
+      'Teacher unable to edit assignment in class that is not theirs'
+    )
+  })
+
+  test('throws an error if the assignment belongs to another teacher', async () => {
+    mockedAssignmentRepo.getAssignmentById.mockResolvedValue({
+      id: 'assignment-id',
+      classId: 'class-id',
+      teacherId: 'another-teacher-id',
+    } as any)
+
+    await expect(
+      AssignmentsService.ensureAuthorizedToUpsertAssignment(
+        'teacher-id',
+        'class-id',
+        'assignment-id'
+      )
+    ).rejects.toThrow('Teacher unable to edit assignment that is not theirs')
+  })
+
+  test('throws an error if the assignment belongs to another class', async () => {
+    mockedAssignmentRepo.getAssignmentById.mockResolvedValue({
+      id: 'assignment-id',
+      classId: 'another-class-id',
+      teacherId: 'teacher-id',
+    } as any)
+
+    await expect(
+      AssignmentsService.ensureAuthorizedToUpsertAssignment(
+        'teacher-id',
+        'class-id',
+        'assignment-id'
+      )
+    ).rejects.toThrow('Teacher unable to edit assignment that is not theirs')
+  })
+
+  test('throws an error if the assignment does not exist', async () => {
+    mockedAssignmentRepo.getAssignmentById.mockResolvedValue(undefined)
+
+    await expect(
+      AssignmentsService.ensureAuthorizedToUpsertAssignment(
+        'teacher-id',
+        'class-id',
+        'assignment-id'
+      )
+    ).rejects.toThrow('Teacher unable to edit assignment that is not theirs')
   })
 })
 
