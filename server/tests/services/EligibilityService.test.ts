@@ -233,6 +233,52 @@ describe(ELIGIBILITY_CHECK_PATH, () => {
     expect(response.isCollegeStudent).toBe(true)
   })
 
+  test('Should send false when a fresh student selects Other as their grade level', async () => {
+    const payload = {
+      schoolId: school.id,
+      zipCode: '11201',
+      email: student.email,
+      gradeLevel: GRADES.OTHER,
+      referredBy,
+    }
+
+    mockedUserRepo.getUserIdByEmail.mockResolvedValueOnce(undefined) // email doesnt belong to user
+    mockedIneligibleStudentRepo.getIneligibleStudentByEmail.mockResolvedValue(
+      undefined
+    ) // email doesnt belong to ineligible student
+    mockedSchoolRepo.getSchoolById.mockResolvedValueOnce(school)
+    mockedZipCodeRepo.getZipCodeByZipCode.mockResolvedValueOnce(approvedZipCode)
+    mockedReferralService.getReferrerIdByCode.mockResolvedValueOnce(referredBy)
+
+    const response = await EligibilityService.checkEligibility(ip, payload)
+
+    expect(response.isEligible).toBe(false)
+    expect(response.isCollegeStudent).toBe(false)
+  })
+
+  test('Should send false when a fresh student has Other as their legacy current grade', async () => {
+    const payload = {
+      schoolUpchieveId: school.id,
+      zipCode: '11201',
+      email: student.email,
+      currentGrade: GRADES.OTHER,
+      referredBy,
+    }
+
+    mockedUserRepo.getUserIdByEmail.mockResolvedValueOnce(undefined) // email doesnt belong to user
+    mockedIneligibleStudentRepo.getIneligibleStudentByEmail.mockResolvedValue(
+      undefined
+    ) // email doesnt belong to ineligible student
+    mockedSchoolRepo.getSchoolById.mockResolvedValueOnce(school)
+    mockedZipCodeRepo.getZipCodeByZipCode.mockResolvedValueOnce(approvedZipCode)
+    mockedReferralService.getReferrerIdByCode.mockResolvedValueOnce(referredBy)
+
+    const response = await EligibilityService.checkEligibility(ip, payload)
+
+    expect(response.isEligible).toBe(false)
+    expect(response.isCollegeStudent).toBe(false)
+  })
+
   test('Should send false if is already ineligible with a school', async () => {
     const payload = {
       schoolId: school.id,

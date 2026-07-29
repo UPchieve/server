@@ -175,6 +175,16 @@ export enum GRADES {
   OTHER = 'Other',
 }
 
+export const ELIGIBLE_GRADE_LEVELS = new Set([
+  GRADES.SIXTH,
+  GRADES.SEVENTH,
+  GRADES.EIGHTH,
+  GRADES.NINTH,
+  GRADES.TENTH,
+  GRADES.ELEVENTH,
+  GRADES.TWELVETH,
+])
+
 // TODO: Just make this an enum instead.
 export const USER_ROLES = <const>{
   STUDENT: 'student',

@@ -6,7 +6,7 @@ import {
 } from '../models/IneligibleStudent/queries'
 import { getUserIdByEmail } from '../models/User/queries'
 import { asFactory, asString, asEnum, asOptional } from '../utils/type-utils'
-import { GRADES } from '../constants'
+import { ELIGIBLE_GRADE_LEVELS, GRADES } from '../constants'
 import { CustomError } from 'ts-custom-error'
 import { School } from '../models/School'
 import { ZipCode } from '../models/ZipCode'
@@ -58,6 +58,8 @@ export async function checkEligibility(
     currentGrade,
     schoolUpchieveId,
   } = asCheckEligibilityPayload(payload)
+  // == Remove after midtown clean-up
+  const grade = gradeLevel ?? currentGrade
 
   if (email) {
     const existingUser = (await getUserIdByEmail(email))?.id
@@ -65,8 +67,7 @@ export async function checkEligibility(
   }
 
   // == Remove after midtown clean-up.
-  const isCollegeStudent =
-    gradeLevel === GRADES.COLLEGE || currentGrade === GRADES.COLLEGE
+  const isCollegeStudent = grade === GRADES.COLLEGE
 
   if (email) {
     const existingIneligible = await getIneligibleStudentByEmail(email)
@@ -87,10 +88,11 @@ export async function checkEligibility(
     throw new InputError('You must enter a valid United States zip code.')
   }
 
+  const isEligibleGradeLevel = !grade || ELIGIBLE_GRADE_LEVELS.has(grade)
   const isEligibleBySchool = isSchoolApproved(school)
   const isEligibleByZipCode = isZipCodeEligible(zipCode)
   const isStudentEligible =
-    (isEligibleBySchool || isEligibleByZipCode) && !isCollegeStudent
+    (isEligibleBySchool || isEligibleByZipCode) && isEligibleGradeLevel
 
   if (!isStudentEligible) {
     const referredBy = await ReferralService.getReferrerIdByCode(referredByCode)
@@ -99,8 +101,7 @@ export async function checkEligibility(
         email,
         school?.id,
         zipCodeInput,
-        // == Remove after midtown clean-up
-        gradeLevel ?? currentGrade,
+        grade,
         referredBy,
         ip
       )
