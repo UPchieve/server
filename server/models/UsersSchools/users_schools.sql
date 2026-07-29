@@ -13,3 +13,8 @@ DELETE FROM users_schools
 WHERE user_id = :userId!
     AND school_id = :schoolId!;
 
+
+/* @name deleteUsersSchoolsByUserId */
+DELETE FROM users_schools
+WHERE user_id = :userId!;
+

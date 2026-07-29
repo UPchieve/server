@@ -75,3 +75,29 @@ const deleteUsersSchoolIR: any = {"usedParamSet":{"userId":true,"schoolId":true}
 export const deleteUsersSchool = new PreparedQuery<IDeleteUsersSchoolParams,IDeleteUsersSchoolResult>(deleteUsersSchoolIR);
 
 
+/** 'DeleteUsersSchoolsByUserId' parameters type */
+export interface IDeleteUsersSchoolsByUserIdParams {
+  userId: string;
+}
+
+/** 'DeleteUsersSchoolsByUserId' return type */
+export type IDeleteUsersSchoolsByUserIdResult = void;
+
+/** 'DeleteUsersSchoolsByUserId' query type */
+export interface IDeleteUsersSchoolsByUserIdQuery {
+  params: IDeleteUsersSchoolsByUserIdParams;
+  result: IDeleteUsersSchoolsByUserIdResult;
+}
+
+const deleteUsersSchoolsByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":42,"b":49}]}],"statement":"DELETE FROM users_schools\nWHERE user_id = :userId!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * DELETE FROM users_schools
+ * WHERE user_id = :userId!
+ * ```
+ */
+export const deleteUsersSchoolsByUserId = new PreparedQuery<IDeleteUsersSchoolsByUserIdParams,IDeleteUsersSchoolsByUserIdResult>(deleteUsersSchoolsByUserIdIR);
+
+

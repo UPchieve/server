@@ -12,6 +12,7 @@ import { resError } from '../res-error'
 import {
   asBoolean,
   asFactory,
+  asNullable,
   asNumber,
   asOptional,
   asString,
@@ -29,13 +30,17 @@ export const asEditProfilePayload = asFactory<EditUserProfilePayload>({
   mutedSubjectAlerts: asOptional(asArray(asString)),
   phone: asOptional(asString),
   preferredLanguage: asOptional(asString),
-  schoolId: asOptional(asString),
+  schoolId: (value) =>
+    value === undefined ? undefined : asNullable(asString)(value),
   signupSourceId: asOptional(asNumber),
   otherSignupSource: asOptional(asString),
   gradeLevel: asOptional(asEnum(GRADES)),
   company: asOptional(asString),
   college: asOptional(asString),
   occupation: asOptional(asArray(asString)),
+  city: asOptional(asString),
+  state: asOptional(asString),
+  country: asOptional(asString),
 })
 
 export function routeUser(router: Router): void {
@@ -47,8 +52,7 @@ export function routeUser(router: Router): void {
     return res.json({ user: parsedUser })
   })
 
-  // Note: Both students and volunteers can edit parts of their profile,
-  // but only volunteers can deactivate their accounts.
+  //TODO: We should have an read/create/update endpoint for each user type
   router.put('/user', async (req, res) => {
     try {
       const { ip } = req

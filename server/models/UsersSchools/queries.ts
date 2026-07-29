@@ -41,3 +41,14 @@ export async function deleteUsersSchool(
     throw new RepoDeleteError(err)
   }
 }
+
+export async function deleteUsersSchoolsByUserId(
+  userId: Ulid,
+  tc: TransactionClient = getClient()
+) {
+  try {
+    await pgQueries.deleteUsersSchoolsByUserId.run({ userId }, tc)
+  } catch (err) {
+    throw new RepoDeleteError(err)
+  }
+}

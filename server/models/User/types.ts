@@ -127,11 +127,14 @@ export type EditUserProfilePayload = {
   mutedSubjectAlerts?: string[]
   phone?: string
   preferredLanguage?: string
-  schoolId?: string
+  schoolId?: string | null
   signupSourceId?: number
   otherSignupSource?: string
   gradeLevel?: GRADES
   company?: string
   college?: string
   occupation?: string[]
+  country?: string
+  city?: string
+  state?: string
 }

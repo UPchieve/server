@@ -12,6 +12,10 @@ import { ACCOUNT_USER_ACTIONS } from '../constants'
 import * as MailService from './MailService'
 import { upsertStudent } from './UserCreationService'
 import { Ulid } from '../models/pgUtils'
+import {
+  deleteUsersSchoolsByUserId,
+  upsertUsersSchool,
+} from '../models/UsersSchools'
 
 export async function updateUserProfile(
   user: UserContactInfo,
@@ -22,7 +26,6 @@ export async function updateUserProfile(
     await updateUserProfileById(user.id, data, tc)
 
     if (user.roleContext.isActiveRole('volunteer')) {
-      //TODO: Think of way to move this code block to the VolunteerService if it gets any bigger
       await updateSubjectAlerts(user.id, data.mutedSubjectAlerts, tc)
       if (data.occupation) {
         await VolunteerRepo.deleteVolunteerOccupations(user.id, tc)
@@ -32,17 +35,31 @@ export async function updateUserProfile(
           tc
         )
       }
-      if (data.company || data.college)
+      if (data.company || data.college || data.country) {
         await VolunteerRepo.updateVolunteerProfile(
           user.id,
           {
             company: data.company,
             college: data.college,
+            country: data.country,
+            city: data.city,
+            state: data.state,
           },
           tc
         )
+      }
+      // Omitting schoolId preserves the existing association; high-line must send
+      // an explicit null to remove it.
+      if (data.schoolId === null) {
+        await deleteUsersSchoolsByUserId(user.id, tc)
+      } else if (data.schoolId) {
+        await upsertUsersSchool(user.id, data.schoolId, 'student_at_school', tc)
+      }
     } else if (user.roleContext.isActiveRole('student')) {
-      await upsertStudent({ userId: user.id, schoolId: data.schoolId }, tc)
+      await upsertStudent(
+        { userId: user.id, schoolId: data.schoolId ?? undefined },
+        tc
+      )
     }
 
     if (data.gradeLevel) {

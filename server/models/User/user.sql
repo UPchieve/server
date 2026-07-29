@@ -391,6 +391,8 @@ SELECT
     users.phone,
     users.phone_verified,
     users.sms_consent,
+    volunteer_profiles.state,
+    volunteer_profiles.city,
     volunteer_profiles.college,
     (
         CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
@@ -427,6 +429,7 @@ SELECT
     COALESCE(volunteer_profiles.elapsed_availability, 0) AS elapsed_availability,
     volunteer_profiles.total_volunteer_hours,
     schools.name AS school_name,
+    schools.id AS school_id,
     (
         CASE WHEN EXISTS (
             SELECT
@@ -477,6 +480,7 @@ FROM
             user_id = :userId!) AS occupations ON TRUE
     LEFT JOIN student_profiles ON student_profiles.user_id = users.id
     LEFT JOIN volunteer_profiles ON users.id = volunteer_profiles.user_id
+    LEFT JOIN users_schools ON users.id = users_schools.user_id
     LEFT JOIN teacher_profiles ON users.id = teacher_profiles.user_id
     LEFT JOIN photo_id_statuses ON photo_id_statuses.id = volunteer_profiles.photo_id_status
     LEFT JOIN volunteer_partner_orgs ON volunteer_profiles.volunteer_partner_org_id = volunteer_partner_orgs.id
@@ -548,7 +552,7 @@ FROM
         WHERE
             user_id = :userId!
             AND passed IS TRUE) AS users_quizzes ON TRUE
-    LEFT JOIN schools ON schools.id = COALESCE(student_profiles.school_id, teacher_profiles.school_id)
+    LEFT JOIN schools ON schools.id = COALESCE(student_profiles.school_id, teacher_profiles.school_id, users_schools.school_id)
     LEFT JOIN current_grade_levels cgl ON cgl.user_id = users.id
     LEFT JOIN users_roles ON users_roles.user_id = users.id
     LEFT JOIN (

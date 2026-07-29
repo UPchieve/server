@@ -45,6 +45,8 @@ export type LegacyUserModel = {
   firstname: string
   phone?: string
   college?: string
+  city?: string
+  state?: string
   userType: UserRole
   //leaving isBanned only to make this backwards-compatible with mobile
   isBanned: boolean
@@ -88,6 +90,7 @@ export type LegacyUserModel = {
   // student
   gradeLevel?: GRADES
   schoolName?: string
+  schoolId?: Ulid
   latestRequestedSubjects?: string[]
   numberOfStudentClasses?: number
   issuers?: string[]
@@ -128,6 +131,7 @@ export async function getLegacyUserObject(
         'isDeactivated',
         'referralCode',
       ])
+
       // manually parse out incoming bigint to number
       baseUser.hoursTutored =
         baseUser.hoursTutored || Number(baseUser.hoursTutored)

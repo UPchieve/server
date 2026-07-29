@@ -3,6 +3,7 @@ import * as UserRepo from '../../models/User/queries'
 import { buildStudent, buildVolunteer } from '../mocks/generate'
 import { updateUserProfile } from '../../services/UserProfileService'
 import * as StudentService from '../../services/UserCreationService'
+import * as UsersSchoolsRepo from '../../models/UsersSchools'
 import { createAccountAction } from '../../models/UserAction'
 import { ACCOUNT_USER_ACTIONS } from '../../constants'
 import { createContact, deleteContactByEmail } from '../../services/MailService'
@@ -11,6 +12,7 @@ jest.mock('../../models/User/queries')
 jest.mock('../../models/UserAction')
 jest.mock('../../services/MailService')
 jest.mock('../../services/UserCreationService')
+jest.mock('../../models/UsersSchools')
 
 const mockUserRepo = mocked(UserRepo)
 const mockedStudentService = mocked(StudentService)
@@ -84,6 +86,18 @@ describe('User Profile', () => {
     it("Volunteer shouldn't update school", async () => {
       await updateUserProfile(mockedVolunteer, '123', DEFAULT_REQUEST)
       expect(mockedStudentService.upsertStudent).toHaveBeenCalledTimes(0)
+    })
+
+    it('removes a school association when schoolId is null', async () => {
+      await updateUserProfile(mockedVolunteer, '123', {
+        ...DEFAULT_REQUEST,
+        schoolId: null,
+      })
+
+      expect(UsersSchoolsRepo.deleteUsersSchoolsByUserId).toHaveBeenCalledWith(
+        mockedVolunteer.id,
+        expect.anything()
+      )
     })
 
     it('deletes SendGrid contact when user is deactivated', async () => {
