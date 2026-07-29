@@ -5,7 +5,11 @@ import { Ulid, Uuid } from '../models/pgUtils'
 import * as AssignmentsRepo from '../models/Assignments'
 import * as TeacherRepo from '../models/Teacher'
 import * as TeacherClassRepo from '../models/TeacherClass'
-import { InputError, UnsupportedFileTypeError } from '../models/Errors'
+import {
+  CaughtError,
+  InputError,
+  UnsupportedFileTypeError,
+} from '../models/Errors'
 import {
   asDate,
   asBoolean,
@@ -30,6 +34,11 @@ import { isEmpty } from 'lodash'
 import * as ModerationTypes from './ModerationService/types'
 import { extractPdfContent } from '../utils/file-utils'
 import { moderateAssignmentInfo } from './ModerationService/index'
+
+export class UnauthorizedActionError extends CaughtError {
+  readonly httpStatus = 403
+  readonly clientMessage = 'You do not have permission to perform this action.'
+}
 
 export type UpsertAssignmentPayload = {
   id?: string
@@ -95,10 +104,12 @@ export type AssignmentModerationResult = {
 }
 
 export async function upsertAssignment(
+  userId: Uuid,
   data: UpsertAssignmentPayload,
   tc?: TransactionClient
 ): Promise<AssignmentModerationResult> {
   validateAssignmentData(data)
+  await ensureAuthorizedToUpsertAssignment(userId, data.classId, data.id)
 
   const moderationInfractions = await ModerationService.moderateAssignmentInfo(
     `${data.title} ${data.description}`
@@ -144,6 +155,7 @@ export async function upsertAssignment(
 }
 
 export async function createAssignmentForClasses(
+  userId: Uuid,
   data: Omit<
     UpsertAssignmentPayload,
     'classId' | 'studentsToAdd' | 'studentsToRemove'
@@ -151,6 +163,12 @@ export async function createAssignmentForClasses(
   classIds: string[]
 ): Promise<{ assignments?: Assignment[]; moderationInfractions?: string[] }> {
   validateAssignmentData(data)
+  await Promise.all(
+    classIds.map((classId) =>
+      ensureAuthorizedToUpsertAssignment(userId, classId)
+    )
+  )
+
   const moderationInfractions = await ModerationService.moderateAssignmentInfo(
     `${data.title} ${data.description}`
   )
@@ -163,6 +181,7 @@ export async function createAssignmentForClasses(
     const assignments = []
 
     for (const classId of classIds) {
+      await ensureAuthorizedToUpsertAssignment(userId, classId)
       const assignment = await AssignmentsRepo.upsertAssignment(
         {
           classId,
@@ -203,6 +222,41 @@ function validateAssignmentData(data: {
     moment(startDate).isSameOrAfter(moment(dueDate))
   ) {
     throw new InputError('Start date cannot be after the due date.')
+  }
+}
+
+// Exported for testing.
+export async function ensureAuthorizedToUpsertAssignment(
+  userId: Ulid,
+  classId: Ulid,
+  assignmentId?: Ulid
+): Promise<void> {
+  const teacherClass = await TeacherRepo.getTeacherClassById(classId)
+  if (teacherClass?.userId !== userId) {
+    throw new UnauthorizedActionError(
+      `Teacher unable to edit assignment in class that is not theirs`,
+      {
+        userId,
+        classId,
+      }
+    )
+  }
+
+  if (assignmentId) {
+    const existingAssignment =
+      await AssignmentsRepo.getAssignmentById(assignmentId)
+    if (
+      existingAssignment?.teacherId !== userId ||
+      existingAssignment.classId !== classId
+    ) {
+      throw new UnauthorizedActionError(
+        'Teacher unable to edit assignment that is not theirs',
+        {
+          userId,
+          assignmentId,
+        }
+      )
+    }
   }
 }
 
@@ -542,7 +596,7 @@ Good luck, and have fun!
     const subjects = await getSubjectsForTopicByTopicId(topicId)
     if (subjects.length) subjectId = subjects[0].id
   }
-  const { assignment } = await upsertAssignment({
+  const { assignment } = await upsertAssignment(userId, {
     classId,
     description: studentInstructions,
     dueDate: moment().add(1, 'week').endOf('day').toDate(),

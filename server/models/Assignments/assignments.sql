@@ -25,10 +25,12 @@ GROUP BY
 /* @name getAssignmentById */
 SELECT
     assignments.*,
-    subjects.name AS subject_name
+    subjects.name AS subject_name,
+    teacher_classes.user_id AS teacher_id
 FROM
     assignments
     LEFT JOIN subjects ON assignments.subject_id = subjects.id
+    JOIN teacher_classes ON assignments.class_id = teacher_classes.id
 WHERE
     assignments.id = :assignmentId!;
 

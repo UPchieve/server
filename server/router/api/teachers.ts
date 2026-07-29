@@ -118,12 +118,13 @@ export function routeTeachers(apiRouter: Router): void {
   // TODO: Remove POST /assignment in clean-up.
   router.route('/assignment').post(async function (req, res) {
     try {
+      const user = extractUser(req)
       const assignmentData = AssignmentsService.asAssignment(
         req.body.assignmentData
       )
 
       const { assignment, moderationInfractions } =
-        await AssignmentsService.upsertAssignment(assignmentData)
+        await AssignmentsService.upsertAssignment(user.id, assignmentData)
 
       if (moderationInfractions) {
         return resSuccess(
@@ -140,12 +141,12 @@ export function routeTeachers(apiRouter: Router): void {
 
   router.route('/assignment').put(async function (req, res) {
     try {
+      const user = extractUser(req)
       const assignmentData = AssignmentsService.asAssignment(
         req.body.assignmentData
       )
-
       const { assignment, moderationInfractions } =
-        await AssignmentsService.upsertAssignment(assignmentData)
+        await AssignmentsService.upsertAssignment(user.id, assignmentData)
 
       if (moderationInfractions) {
         return resSuccess(res, { moderationInfractions }, 422)
@@ -158,12 +159,14 @@ export function routeTeachers(apiRouter: Router): void {
 
   router.route('/assignments').post(async function (req, res) {
     try {
+      const user = extractUser(req)
       const assignmentData = AssignmentsService.asMultipleAssignments(
         req.body.assignmentData
       )
 
       const { assignments, moderationInfractions } =
         await AssignmentsService.createAssignmentForClasses(
+          user.id,
           assignmentData,
           assignmentData.classIds
         )
@@ -203,12 +206,13 @@ export function routeTeachers(apiRouter: Router): void {
   // TODO: Remove POST /assignment/edit in clean-up.
   router.route('/assignment/edit').post(async function (req, res) {
     try {
+      const user = extractUser(req)
       const assignmentData = AssignmentsService.asAssignment(
         req.body.assignmentData
       )
 
       const { assignment, moderationInfractions } =
-        await AssignmentsService.upsertAssignment(assignmentData)
+        await AssignmentsService.upsertAssignment(user.id, assignmentData)
 
       if (moderationInfractions) {
         return resSuccess(

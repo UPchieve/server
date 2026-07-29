@@ -315,7 +315,7 @@ describe('routeTeachers', () => {
   describe('PUT /api/teachers/assignment', () => {
     test('creates assignment if not already created', async () => {
       const assignmentData = buildAssignmentPayload()
-      const assignment = buildAssignment()
+      const assignment = buildAssignment(assignmentData)
       mockedAssignmentsService.asAssignment.mockReturnValueOnce(assignmentData)
       mockedAssignmentsService.upsertAssignment.mockResolvedValueOnce({
         assignment: { ...assignment, isCreated: true },
@@ -326,12 +326,8 @@ describe('routeTeachers', () => {
         studentIds: assignmentData.studentIds,
       })
       expect(response.status).toBe(201)
-      expect(mockedAssignmentsService.asAssignment).toHaveBeenCalledWith({
-        ...assignmentData,
-        startDate: assignmentData.startDate.toISOString(),
-        dueDate: assignmentData.dueDate.toISOString(),
-      })
       expect(mockedAssignmentsService.upsertAssignment).toHaveBeenCalledWith(
+        mockUser.id,
         assignmentData
       )
       expect(response.body).toEqual({

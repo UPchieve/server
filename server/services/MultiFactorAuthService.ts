@@ -1,14 +1,14 @@
 import crypto from 'crypto'
 import { totp } from 'notp'
 import * as base32 from 'thirty-two'
+import { CustomError } from 'ts-custom-error'
 import config from '../config'
+import logger from '../logger'
 import { Ulid } from '../models/pgUtils'
 import * as TotpRepo from '../models/Totp'
-import { decrypt, encrypt } from '../utils/encryption'
+import { CaughtError } from '../models/Errors'
 import type { UserContactInfo } from '../models/User'
-import logger from '../logger'
-import { CustomError } from 'ts-custom-error'
-import { CaughtError } from '../router/res-error'
+import { decrypt, encrypt } from '../utils/encryption'
 
 export class AlreadyEnrolledTotp extends CaughtError {
   readonly httpStatus = 422

@@ -161,6 +161,8 @@ export interface IGetAssignmentByIdResult {
   subjectId: number | null;
   /** not_pii: Human-readable name */
   subjectName: string;
+  /** not_pii: Foreign key to upchieve.users */
+  teacherId: string | null;
   /** not_pii: Title of the assignment */
   title: string | null;
   /** not_pii */
@@ -173,17 +175,19 @@ export interface IGetAssignmentByIdQuery {
   result: IGetAssignmentByIdResult;
 }
 
-const getAssignmentByIdIR: any = {"usedParamSet":{"assignmentId":true},"params":[{"name":"assignmentId","required":true,"transform":{"type":"scalar"},"locs":[{"a":171,"b":184}]}],"statement":"SELECT\n    assignments.*,\n    subjects.name AS subject_name\nFROM\n    assignments\n    LEFT JOIN subjects ON assignments.subject_id = subjects.id\nWHERE\n    assignments.id = :assignmentId!"};
+const getAssignmentByIdIR: any = {"usedParamSet":{"assignmentId":true},"params":[{"name":"assignmentId","required":true,"transform":{"type":"scalar"},"locs":[{"a":284,"b":297}]}],"statement":"SELECT\n    assignments.*,\n    subjects.name AS subject_name,\n    teacher_classes.user_id AS teacher_id\nFROM\n    assignments\n    LEFT JOIN subjects ON assignments.subject_id = subjects.id\n    JOIN teacher_classes ON assignments.class_id = teacher_classes.id\nWHERE\n    assignments.id = :assignmentId!"};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
  *     assignments.*,
- *     subjects.name AS subject_name
+ *     subjects.name AS subject_name,
+ *     teacher_classes.user_id AS teacher_id
  * FROM
  *     assignments
  *     LEFT JOIN subjects ON assignments.subject_id = subjects.id
+ *     JOIN teacher_classes ON assignments.class_id = teacher_classes.id
  * WHERE
  *     assignments.id = :assignmentId!
  * ```
