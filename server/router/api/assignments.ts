@@ -74,6 +74,7 @@ export function routeAssignments(router: Router): void {
     limits: { fileSize: 20 * 1024 * 1024 },
   })
 
+  // TODO: Remove PUT /assignment/upload in clean-up.
   router.put(
     '/assignment/upload',
     upload.array('files'),
@@ -85,7 +86,7 @@ export function routeAssignments(router: Router): void {
           const assignmentId = req.body.assignmentId
 
           const moderationFailures =
-            await AssignmentsService.uploadAssignmentFiles(
+            await AssignmentsService.uploadAssignmentFilesOld(
               assignmentId,
               files,
               user.id

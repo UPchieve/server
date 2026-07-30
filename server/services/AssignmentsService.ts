@@ -1,7 +1,7 @@
 import moment from 'moment'
 import { isImageFile, isPdf } from '../utils/image-utils'
 import { runInTransaction, TransactionClient } from '../db'
-import { Ulid, Uuid } from '../models/pgUtils'
+import { getCanonicalDbUlid, Ulid, Uuid } from '../models/pgUtils'
 import * as AssignmentsRepo from '../models/Assignments'
 import * as TeacherRepo from '../models/Teacher'
 import * as TeacherClassRepo from '../models/TeacherClass'
@@ -102,14 +102,22 @@ export type AssignmentModerationResult = {
   moderationInfractions?: ModerationTypes.ModerationInfractionCategories
   imageModerationInfractions?: Record<string, string[]>
 }
+export type MultipleAssignmentsModerationResult = Omit<
+  AssignmentModerationResult,
+  'assignment'
+> & {
+  assignments?: Assignment[]
+}
 
 export async function upsertAssignment(
   userId: Uuid,
   data: UpsertAssignmentPayload,
+  files: Express.Multer.File[] = [],
   tc?: TransactionClient
 ): Promise<AssignmentModerationResult> {
   validateAssignmentData(data)
   await ensureAuthorizedToUpsertAssignment(userId, data.classId, data.id)
+  validateSupportedFileTypes(files)
 
   const moderationInfractions = await ModerationService.moderateAssignmentInfo(
     `${data.title} ${data.description}`
@@ -118,7 +126,7 @@ export async function upsertAssignment(
     return { moderationInfractions }
   }
 
-  return runInTransaction(async (tc: TransactionClient) => {
+  const assignment = await runInTransaction(async (tc: TransactionClient) => {
     const assignment = await AssignmentsRepo.upsertAssignment(
       {
         id: data.id,
@@ -150,8 +158,24 @@ export async function upsertAssignment(
       )
     }
 
-    return { assignment }
+    return assignment
   }, tc)
+
+  // Order here does not matter like it does for `createAssignmentForClasses`.
+  // In the event of retry, uploading the same file simply overwrites the previous file.
+  // Do not run moderation/upload in a database transaction - would hold a
+  // pool connection while doing no database work and making (slow) external calls.
+  const imageModerationInfractions = await moderateAssignmentFiles(
+    files,
+    assignment.id,
+    userId
+  )
+  if (!isEmpty(imageModerationInfractions)) {
+    return { imageModerationInfractions, assignment }
+  }
+  await uploadAssignmentFiles(assignment.id, files)
+
+  return { assignment }
 }
 
 export async function createAssignmentForClasses(
@@ -160,31 +184,57 @@ export async function createAssignmentForClasses(
     UpsertAssignmentPayload,
     'classId' | 'studentsToAdd' | 'studentsToRemove'
   >,
-  classIds: string[]
-): Promise<{ assignments?: Assignment[]; moderationInfractions?: string[] }> {
+  classIds: string[],
+  files: Express.Multer.File[] = []
+): Promise<MultipleAssignmentsModerationResult> {
+  if (!classIds.length) return { assignments: [] }
+
   validateAssignmentData(data)
   await Promise.all(
     classIds.map((classId) =>
       ensureAuthorizedToUpsertAssignment(userId, classId)
     )
   )
+  validateSupportedFileTypes(files)
 
   const moderationInfractions = await ModerationService.moderateAssignmentInfo(
     `${data.title} ${data.description}`
   )
-
   if (!isEmpty(moderationInfractions)) {
     return { moderationInfractions }
   }
 
+  // Order here matters. We upload _first_, then create the assignments for better UX.
+  // If create assignment then upload fails, we have no way to add files currently for _all of the classes_.
+  // If upload succeeds then create fails, we simply have dead links, but the user can retry.
+  // Do not run moderation/upload in a database transaction - would hold a
+  // pool connection while doing no database work and making (slow) external calls.
+  const withAssignmentId = classIds.map((classId) => ({
+    assignmentId: getCanonicalDbUlid(),
+    classId,
+  }))
+  const imageModerationInfractions = await moderateAssignmentFiles(
+    files,
+    'not-yet-created-assignment',
+    userId
+  )
+  if (!isEmpty(imageModerationInfractions)) {
+    return { imageModerationInfractions }
+  }
+  // TODO: Instead of uploading the same files multiple times when used for multiple assignments,
+  // upload once and share between assignments.
+  await Promise.all(
+    withAssignmentId.map((w) => uploadAssignmentFiles(w.assignmentId, files))
+  )
+
   return runInTransaction(async (tc: TransactionClient) => {
     const assignments = []
 
-    for (const classId of classIds) {
-      await ensureAuthorizedToUpsertAssignment(userId, classId)
+    for (const w of withAssignmentId) {
       const assignment = await AssignmentsRepo.upsertAssignment(
         {
-          classId,
+          id: w.assignmentId,
+          classId: w.classId,
           description: data.description,
           dueDate: data.dueDate,
           isRequired: data.isRequired ?? false,
@@ -197,7 +247,7 @@ export async function createAssignmentForClasses(
         tc
       )
       assignments.push(assignment)
-      await addAssignmentForClass(classId, assignment.id, tc)
+      await addAssignmentForClass(w.classId, assignment.id, tc)
     }
 
     return { assignments }
@@ -258,6 +308,103 @@ export async function ensureAuthorizedToUpsertAssignment(
       )
     }
   }
+}
+
+function validateSupportedFileTypes(files: Express.Multer.File[]): void {
+  const incorrectFileTypes = files.filter(
+    (file) => !(isImageFile(file.buffer) || isPdf(file.buffer))
+  )
+  if (incorrectFileTypes.length) {
+    throw new UnsupportedFileTypeError(
+      'Unsupported file type: Upload an image files or PDFs'
+    )
+  }
+}
+
+/**
+ * @note do not run in database transaction since includes external call.
+ */
+async function moderateAssignmentFiles(
+  files: Express.Multer.File[],
+  assignmentId: Ulid,
+  userId: string
+): Promise<Record<string, string[]>> {
+  const fileNameToModerationInfractions: Record<string, string[]> = {}
+  if (!files.length) return fileNameToModerationInfractions
+
+  for (const file of files) {
+    if (isImageFile(file.buffer)) {
+      const { failures } = await ModerationService.moderateImage(file.buffer, {
+        source: 'assignment_image',
+        assignmentId,
+        userId,
+      })
+      if (failures.length) {
+        fileNameToModerationInfractions[file.originalname] = failures
+      }
+    } else {
+      const moderationInfractions = await moderateAssignmentPdf(
+        file,
+        assignmentId,
+        userId
+      )
+      if (moderationInfractions.length) {
+        fileNameToModerationInfractions[file.originalname] =
+          moderationInfractions
+      }
+    }
+  }
+
+  return fileNameToModerationInfractions
+}
+
+/**
+ * @note do not run in database transaction since includes external call.
+ */
+async function moderateAssignmentPdf(
+  file: Express.Multer.File,
+  assignmentId: string,
+  userId: string
+): Promise<ModerationTypes.ModerationInfractionCategories> {
+  const moderationInfractions: string[] = []
+  const extractedContent = await extractPdfContent(file.buffer)
+
+  const textModerationResults = await moderateAssignmentInfo(
+    extractedContent.text
+  )
+  if (!isEmpty(textModerationResults)) {
+    moderationInfractions.push(...textModerationResults)
+  }
+
+  for (const image of extractedContent.images) {
+    const { failures } = await ModerationService.moderateImage(image, {
+      source: 'assignment_image',
+      assignmentId,
+      userId,
+    })
+    moderationInfractions.push(...failures)
+  }
+
+  return moderationInfractions
+}
+
+/**
+ * @note do not run in database transaction since includes external call.
+ */
+async function uploadAssignmentFiles(
+  assignmentId: Ulid,
+  files: Express.Multer.File[]
+): Promise<void> {
+  await Promise.all(
+    files.map((file) =>
+      AzureService.uploadBlobFile(
+        config.assignmentsStorageAccountName,
+        config.assignmentsStorageContainer,
+        `${assignmentId}/${file.originalname}`,
+        file
+      )
+    )
+  )
 }
 
 export async function getAssignmentsByClassId(
@@ -465,88 +612,24 @@ async function getClassAssignments(classId: Ulid, tc: TransactionClient) {
   }, tc)
 }
 
-async function moderateAssignmentPdf(
-  file: Express.Multer.File,
-  assignmentId: string,
-  userId: string
-): Promise<ModerationTypes.ModerationInfractionCategories> {
-  const moderationInfractions: string[] = []
-  const extractedContent = await extractPdfContent(file.buffer)
-
-  const textModerationResults = await moderateAssignmentInfo(
-    extractedContent.text
-  )
-  if (!isEmpty(textModerationResults)) {
-    moderationInfractions.push(...textModerationResults)
-  }
-
-  for (const image of extractedContent.images) {
-    const { failures } = await ModerationService.moderateImage(image, {
-      source: 'assignment_image',
-      assignmentId,
-      userId,
-    })
-    moderationInfractions.push(...failures)
-  }
-
-  return moderationInfractions
-}
-
 /**
- * Upload and retrieve uploaded assignments to and from Azure.
- *
- * @return a map of file names to their moderation infraction reasons
+ * TODO: Remove in clean-up when removing PUT /assignments/upload in favour
+ * of PUT /assignments with file upload.
  */
-export async function uploadAssignmentFiles(
+export async function uploadAssignmentFilesOld(
   assignmentId: Ulid,
   files: Express.Multer.File[],
   userId: string
 ): Promise<Record<string, string[]>> {
-  const incorrectFileTypes = files.filter(
-    (file) => !(isImageFile(file.buffer) || isPdf(file.buffer))
+  const fileNameToModerationInfractions = await moderateAssignmentFiles(
+    files,
+    assignmentId,
+    userId
   )
-  if (incorrectFileTypes.length) {
-    throw new UnsupportedFileTypeError(
-      'Unsupported file type: Upload an image files or PDFs'
-    )
-  }
 
-  let fileNameToModerationInfractions: Record<string, string[]> = {}
-  for (const file of files) {
-    if (isImageFile(file.buffer)) {
-      const { failures } = await ModerationService.moderateImage(file.buffer, {
-        source: 'assignment_image',
-        assignmentId,
-        userId,
-      })
-      if (failures.length) {
-        fileNameToModerationInfractions[file.originalname] = failures
-      }
-    } else {
-      const moderationInfractions = await moderateAssignmentPdf(
-        file,
-        assignmentId,
-        userId
-      )
-      if (moderationInfractions.length) {
-        fileNameToModerationInfractions[file.originalname] =
-          moderationInfractions
-      }
-    }
-  }
-
-  // If all files are clean, upload them.
+  // Only upload if every file is clean.
   if (isEmpty(fileNameToModerationInfractions)) {
-    await Promise.all(
-      files.map((file) => {
-        AzureService.uploadBlobFile(
-          config.assignmentsStorageAccountName,
-          config.assignmentsStorageContainer,
-          `${assignmentId}/${file.originalname}`,
-          file
-        )
-      })
-    )
+    await uploadAssignmentFiles(assignmentId, files)
   }
 
   return fileNameToModerationInfractions

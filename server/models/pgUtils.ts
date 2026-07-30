@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import { Ulid as ULID } from 'id128'
+import { Ulid as ULID, Uuid as UUID_FORMAT } from 'id128'
 import { v4 as UUID } from 'uuid'
 import { CustomError } from 'ts-custom-error'
 import base64url from 'base64url'
@@ -106,6 +106,16 @@ export function makeSomeRequired<T extends ObjectLike, U extends keyof T>(
 
 export function getDbUlid(): Ulid {
   return ULID.generate().toRaw()
+}
+/**
+ * Same as `getDbUlid`, but formatted the way Postgres stores it in a `uuid`
+ * column: i.e. lower-case and dashed (`019fba88-9c11-e0b7-a5b6-5184b700e260` instead
+ * of `019FBA889C11E0B7A5B65184B700E260`).
+ */
+export function getCanonicalDbUlid(): Ulid {
+  return UUID_FORMAT.fromRaw(ULID.generate().toRaw())
+    .toCanonical()
+    .toLowerCase()
 }
 export function getUuid(): Uuid {
   return UUID().toString()
