@@ -25,7 +25,6 @@ import * as FeatureFlagService from '../../services/FeatureFlagService'
 import { AssociatedPartner } from '../../models/AssociatedPartner'
 import { buildTextableVolunteer } from '../mocks/generate'
 import { ComputedSubjectUnlocks } from '../../models/Subjects'
-import { VolunteerOccupations } from '../../models/Volunteer'
 
 jest.mock('../../services/AssociatedPartnerService')
 jest.mock('../../cache')
@@ -86,9 +85,6 @@ beforeEach(() => {
     COMPUTED_SUBJECT_UNLOCKS
   )
   mockedUserService.getUsersBanStatusesById.mockResolvedValue([])
-  mockedFeatureFlagService.isBarHighSchoolerFromCoachingCollegeSessionsEnabled.mockResolvedValue(
-    false
-  )
 })
 
 describe('filterSubjectEligibleVolunteers', () => {
@@ -1795,64 +1791,5 @@ describe('JOB_CONFIG', () => {
     expect(
       (JOB_CONFIG.maxNotificationRounds * JOB_CONFIG.roundDelay) / 60
     ).toBeLessThan(JOB_CONFIG.lastTextedInMinutes)
-  })
-})
-
-describe('Feature flag excluding HS coaches from college sessions', () => {
-  it('Can text a high school coach if the feature flag is off', async () => {
-    const highSchoolVolunteer = buildTextableVolunteer({
-      unlockedSubjects: [SUBJECTS.COLLEGE_APPS],
-      occupations: [
-        VolunteerOccupations.HIGH_SCHOOL_STUDENT,
-        VolunteerOccupations.WORKING_PART_TIME,
-      ],
-    })
-    const otherVolunteer = buildTextableVolunteer({
-      unlockedSubjects: [SUBJECTS.COLLEGE_APPS],
-      occupations: [VolunteerOccupations.WORKING_PART_TIME],
-    })
-
-    mockedCacheService.getIfExists.mockResolvedValueOnce(
-      JSON.stringify([highSchoolVolunteer, otherVolunteer])
-    )
-
-    const job = {
-      data: {
-        topic: 'college',
-        subject: 'collegeApps',
-      },
-    }
-    await textVolunteers(job as Job)
-    expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledTimes(2)
-  })
-
-  it('Does not text a high school coach if the feature flag is on', async () => {
-    mockedFeatureFlagService.isBarHighSchoolerFromCoachingCollegeSessionsEnabled.mockResolvedValue(
-      true
-    )
-    const highSchoolVolunteer = buildTextableVolunteer({
-      unlockedSubjects: [SUBJECTS.COLLEGE_APPS],
-      occupations: [
-        VolunteerOccupations.HIGH_SCHOOL_STUDENT,
-        VolunteerOccupations.WORKING_PART_TIME,
-      ],
-    })
-    const otherVolunteer = buildTextableVolunteer({
-      unlockedSubjects: [SUBJECTS.COLLEGE_APPS],
-      occupations: [VolunteerOccupations.WORKING_PART_TIME],
-    })
-
-    mockedCacheService.getIfExists.mockResolvedValueOnce(
-      JSON.stringify([highSchoolVolunteer, otherVolunteer])
-    )
-
-    const job = {
-      data: {
-        topic: 'college',
-        subject: 'collegeApps',
-      },
-    }
-    await textVolunteers(job as Job)
-    expect(mockedTwilioClient.sendTextMessage).toHaveBeenCalledTimes(1)
   })
 })

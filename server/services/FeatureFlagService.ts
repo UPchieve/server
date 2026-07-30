@@ -164,12 +164,3 @@ export async function getStemProgressReportEnabled(userId: Uuid) {
 export async function isStudentSessionSummaryEnabled(userId: Uuid) {
   return isFeatureEnabled(FEATURE_FLAGS.STUDENT_SESSION_SUMMARY, userId)
 }
-
-export async function isBarHighSchoolerFromCoachingCollegeSessionsEnabled(
-  userId: Uuid
-) {
-  return isFeatureEnabled(
-    FEATURE_FLAGS.HS_STUDENTS_BARRED_FROM_COACHING_COLLEGE_SUBJECTS,
-    userId
-  )
-}
