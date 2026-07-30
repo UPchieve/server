@@ -48,12 +48,52 @@ function sendPost(path: string, payload?: object): Promise<Response> {
   return agent.post(path).set('Accept', 'application/json').send(payload)
 }
 
-function sendPut(path: string, payload?: object): Promise<Response> {
-  return agent.put(path).set('Accept', 'application/json').send(payload)
-}
-
 function sendDelete(path: string): Promise<Response> {
   return agent.delete(path).set('Accept', 'application/json')
+}
+
+function sendPutAssignmentData(
+  path: string,
+  assignmentData: object
+): Promise<Response> {
+  return fieldAssignmentData(agent.put(path), assignmentData)
+}
+
+function sendPostAssignmentData(
+  path: string,
+  assignmentData: object
+): Promise<Response> {
+  return fieldAssignmentData(agent.post(path), assignmentData)
+}
+
+function sendPutWithFiles(
+  path: string,
+  assignmentData: object
+): Promise<Response> {
+  return attachFiles(agent.put(path), assignmentData)
+}
+
+function sendPostWithFiles(
+  path: string,
+  assignmentData: object
+): Promise<Response> {
+  return attachFiles(agent.post(path), assignmentData)
+}
+
+function fieldAssignmentData(
+  req: request.Test,
+  assignmentData: object
+): request.Test {
+  return req.field('assignmentData', JSON.stringify(assignmentData))
+}
+
+function attachFiles(
+  req: request.Test,
+  assignmentData: object
+): Promise<Response> {
+  return fieldAssignmentData(req, assignmentData)
+    .attach('files', Buffer.from('file-one'), 'first.jpg')
+    .attach('files', Buffer.from('file-two'), 'second.png')
 }
 
 describe('routeTeachers', () => {
@@ -105,7 +145,7 @@ describe('routeTeachers', () => {
       }
       //   NOTE: topic is technically undefined when no topicId is provided
       mockedTeacherService.createTeacherClass.mockResolvedValueOnce(
-        mockTeacherClass
+        mockTeacherClass as any
       )
 
       const response = await sendPost('/api/teachers/class', {
@@ -321,14 +361,15 @@ describe('routeTeachers', () => {
         assignment: { ...assignment, isCreated: true },
       })
 
-      const response = await sendPut('/api/teachers/assignment', {
-        assignmentData,
-        studentIds: assignmentData.studentIds,
-      })
+      const response = await sendPutAssignmentData(
+        '/api/teachers/assignment',
+        assignmentData
+      )
       expect(response.status).toBe(201)
       expect(mockedAssignmentsService.upsertAssignment).toHaveBeenCalledWith(
         mockUser.id,
-        assignmentData
+        assignmentData,
+        []
       )
       expect(response.body).toEqual({
         assignment: {
@@ -350,10 +391,10 @@ describe('routeTeachers', () => {
         assignment: { ...assignment, isCreated: false },
       })
 
-      const response = await sendPut('/api/teachers/assignment', {
-        assignmentData,
-        studentIds: assignmentData.studentIds,
-      })
+      const response = await sendPutAssignmentData(
+        '/api/teachers/assignment',
+        assignmentData
+      )
       expect(response.status).toBe(200)
       expect(response.body).toEqual({
         assignment: {
@@ -367,7 +408,8 @@ describe('routeTeachers', () => {
       })
     })
 
-    test('returns 422 when the title or description is flagged', async () => {
+    // TODO: Remove with POST /assignment in clean-up.
+    test('returns 422 with `moderationFailures` from the legacy POST endpoint when the title or description is flagged', async () => {
       const assignmentData = buildAssignmentPayload()
       const moderationInfractions = ['PROFANITY']
       mockedAssignmentsService.asAssignment.mockReturnValueOnce(assignmentData)
@@ -382,6 +424,193 @@ describe('routeTeachers', () => {
       expect(response.body).toEqual({
         moderationFailures: moderationInfractions,
       })
+      expect(response.body).toEqual({
+        moderationFailures: moderationInfractions,
+      })
+    })
+
+    test('passes the attached files along with the assignment', async () => {
+      const assignmentData = buildAssignmentPayload()
+      const assignment = buildAssignment(assignmentData)
+      mockedAssignmentsService.asAssignment.mockReturnValueOnce(assignmentData)
+      mockedAssignmentsService.upsertAssignment.mockResolvedValueOnce({
+        assignment: { ...assignment, isCreated: true },
+      })
+
+      const response = await sendPutWithFiles(
+        '/api/teachers/assignment',
+        assignmentData
+      )
+
+      expect(response.status).toBe(201)
+      const [calledUserId, calledData, files] =
+        mockedAssignmentsService.upsertAssignment.mock.calls[0]
+      expect(calledUserId).toBe(mockUser.id)
+      expect(calledData).toEqual(assignmentData)
+      expect(files?.map((file) => file.originalname)).toEqual([
+        'first.jpg',
+        'second.png',
+      ])
+    })
+
+    test('returns 422 when an attached file is flagged', async () => {
+      const assignmentData = buildAssignmentPayload()
+      const imageModerationInfractions = { 'first.jpg': ['GRAPHIC'] }
+      mockedAssignmentsService.asAssignment.mockReturnValueOnce(assignmentData)
+      mockedAssignmentsService.upsertAssignment.mockResolvedValueOnce({
+        imageModerationInfractions,
+      })
+
+      const response = await sendPutWithFiles(
+        '/api/teachers/assignment',
+        assignmentData
+      )
+
+      expect(response.status).toBe(422)
+      expect(response.body).toEqual({ imageModerationInfractions })
+    })
+
+    test('returns 422 when the title or description is flagged', async () => {
+      const assignmentData = buildAssignmentPayload()
+      const moderationInfractions = ['PROFANITY']
+      mockedAssignmentsService.asAssignment.mockReturnValueOnce(assignmentData)
+      mockedAssignmentsService.upsertAssignment.mockResolvedValueOnce({
+        moderationInfractions,
+      })
+
+      const response = await sendPutAssignmentData(
+        '/api/teachers/assignment',
+        assignmentData
+      )
+
+      expect(response.status).toBe(422)
+      expect(response.body).toEqual({ moderationInfractions })
+    })
+  })
+
+  describe('POST /api/teachers/assignments', () => {
+    test('creates an assignment for every class', async () => {
+      const assignmentData = {
+        ...buildAssignmentPayload(),
+        classIds: [getUuid(), getUuid()],
+      }
+      const assignments = assignmentData.classIds.map((classId) =>
+        buildAssignment({ classId })
+      )
+      mockedAssignmentsService.asMultipleAssignments.mockReturnValueOnce(
+        assignmentData
+      )
+      mockedAssignmentsService.createAssignmentForClasses.mockResolvedValueOnce(
+        {
+          assignments,
+        }
+      )
+
+      const response = await sendPostAssignmentData(
+        '/api/teachers/assignments',
+        assignmentData
+      )
+
+      expect(response.status).toBe(201)
+      expect(
+        mockedAssignmentsService.createAssignmentForClasses
+      ).toHaveBeenCalledWith(
+        mockUser.id,
+        assignmentData,
+        assignmentData.classIds,
+        []
+      )
+      expect(response.body).toEqual({
+        assignments: assignments.map((assignment) => ({
+          ...assignment,
+          createdAt: assignment.createdAt.toISOString(),
+          updatedAt: assignment.updatedAt.toISOString(),
+          dueDate: assignment.dueDate?.toISOString(),
+          startDate: assignment.startDate?.toISOString(),
+        })),
+      })
+    })
+
+    test('passes the attached files along with the assignments', async () => {
+      const assignmentData = {
+        ...buildAssignmentPayload(),
+        classIds: [getUuid()],
+      }
+      mockedAssignmentsService.asMultipleAssignments.mockReturnValueOnce(
+        assignmentData
+      )
+      mockedAssignmentsService.createAssignmentForClasses.mockResolvedValueOnce(
+        {
+          assignments: [buildAssignment()],
+        }
+      )
+
+      const response = await sendPostWithFiles(
+        '/api/teachers/assignments',
+        assignmentData
+      )
+
+      expect(response.status).toBe(201)
+      const [calledUserId, calledData, calledClassIds, files] =
+        mockedAssignmentsService.createAssignmentForClasses.mock.calls[0]
+      expect(calledUserId).toBe(mockUser.id)
+      expect(calledData).toEqual(assignmentData)
+      expect(calledClassIds).toEqual(assignmentData.classIds)
+      expect(files?.map((file) => file.originalname)).toEqual([
+        'first.jpg',
+        'second.png',
+      ])
+    })
+
+    test('returns 422 when the title or description is flagged', async () => {
+      const assignmentData = {
+        ...buildAssignmentPayload(),
+        classIds: [getUuid()],
+      }
+      const moderationInfractions = ['PROFANITY']
+      mockedAssignmentsService.asMultipleAssignments.mockReturnValueOnce(
+        assignmentData
+      )
+      mockedAssignmentsService.createAssignmentForClasses.mockResolvedValueOnce(
+        {
+          moderationInfractions,
+        }
+      )
+
+      const response = await sendPostAssignmentData(
+        '/api/teachers/assignments',
+        assignmentData
+      )
+
+      expect(response.status).toBe(422)
+      expect(response.body).toEqual({ moderationInfractions })
+      expect(
+        mockedAssignmentsService.createAssignmentForClasses
+      ).toHaveBeenCalled()
+    })
+
+    test('returns 422 when an attached file is flagged', async () => {
+      const assignmentData = {
+        ...buildAssignmentPayload(),
+        classIds: [getUuid()],
+      }
+      const imageModerationInfractions = { 'first.jpg': ['GRAPHIC'] }
+      mockedAssignmentsService.asMultipleAssignments.mockReturnValueOnce(
+        assignmentData
+      )
+      mockedAssignmentsService.createAssignmentForClasses.mockResolvedValueOnce(
+        {
+          imageModerationInfractions,
+        }
+      )
+
+      const response = await sendPostWithFiles(
+        '/api/teachers/assignments',
+        assignmentData
+      )
+
+      expect(response.status).toBe(422)
+      expect(response.body).toEqual({ imageModerationInfractions })
     })
   })
 

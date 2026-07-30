@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import multer from 'multer'
 import { extractUser } from '../extract-user'
 import * as TeacherService from '../../services/TeacherService'
 import * as AssignmentsService from '../../services/AssignmentsService'
@@ -115,6 +116,10 @@ export function routeTeachers(apiRouter: Router): void {
     })
 
   /* Assignments */
+  const upload = multer({
+    limits: { fileSize: 20 * 1024 * 1024 },
+  })
+
   // TODO: Remove POST /assignment in clean-up.
   router.route('/assignment').post(async function (req, res) {
     try {
@@ -139,46 +144,69 @@ export function routeTeachers(apiRouter: Router): void {
     }
   })
 
-  router.route('/assignment').put(async function (req, res) {
-    try {
-      const user = extractUser(req)
-      const assignmentData = AssignmentsService.asAssignment(
-        req.body.assignmentData
-      )
-      const { assignment, moderationInfractions } =
-        await AssignmentsService.upsertAssignment(user.id, assignmentData)
-
-      if (moderationInfractions) {
-        return resSuccess(res, { moderationInfractions }, 422)
-      }
-      resSuccess(res, { assignment }, assignment?.isCreated ? 201 : 200)
-    } catch (err) {
-      resError(res, err)
-    }
-  })
-
-  router.route('/assignments').post(async function (req, res) {
-    try {
-      const user = extractUser(req)
-      const assignmentData = AssignmentsService.asMultipleAssignments(
-        req.body.assignmentData
-      )
-
-      const { assignments, moderationInfractions } =
-        await AssignmentsService.createAssignmentForClasses(
+  router
+    .route('/assignment')
+    .put(upload.array('files'), async function (req, res) {
+      try {
+        const user = extractUser(req)
+        const assignmentData = AssignmentsService.asAssignment(
+          JSON.parse(req.body.assignmentData)
+        )
+        const {
+          assignment,
+          moderationInfractions,
+          imageModerationInfractions,
+        } = await AssignmentsService.upsertAssignment(
           user.id,
           assignmentData,
-          assignmentData.classIds
+          req.files as Express.Multer.File[]
         )
-      if (moderationInfractions) {
-        return resSuccess(res, { moderationInfractions }, 422)
-      }
 
-      return resSuccess(res, { assignments }, 201)
-    } catch (err) {
-      resError(res, err)
-    }
-  })
+        if (moderationInfractions || imageModerationInfractions) {
+          return resSuccess(
+            res,
+            { moderationInfractions, imageModerationInfractions, assignment },
+            422
+          )
+        }
+        resSuccess(res, { assignment }, assignment?.isCreated ? 201 : 200)
+      } catch (err) {
+        resError(res, err)
+      }
+    })
+
+  router
+    .route('/assignments')
+    .post(upload.array('files'), async function (req, res) {
+      try {
+        const user = extractUser(req)
+        const assignmentData = AssignmentsService.asMultipleAssignments(
+          JSON.parse(req.body.assignmentData)
+        )
+
+        const {
+          assignments,
+          moderationInfractions,
+          imageModerationInfractions,
+        } = await AssignmentsService.createAssignmentForClasses(
+          user.id,
+          assignmentData,
+          assignmentData.classIds,
+          req.files as Express.Multer.File[]
+        )
+        if (moderationInfractions || imageModerationInfractions) {
+          return resSuccess(
+            res,
+            { moderationInfractions, imageModerationInfractions, assignments },
+            422
+          )
+        }
+
+        return resSuccess(res, { assignments }, 201)
+      } catch (err) {
+        resError(res, err)
+      }
+    })
 
   router.route('/class/:classId/assignments').get(async function (req, res) {
     try {

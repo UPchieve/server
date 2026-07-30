@@ -24,6 +24,19 @@ const mockedModerationService = mocked(ModerationService)
 const mockedAzureService = mocked(AzureService)
 const mockedImageUtils = mocked(ImageUtils)
 
+function buildFile(
+  nameWithoutExtension: string,
+  extension: string
+): Express.Multer.File {
+  return {
+    originalname: nameWithoutExtension,
+    buffer: {
+      name: nameWithoutExtension,
+      ext: extension,
+    },
+  } as unknown as Express.Multer.File
+}
+
 beforeEach(() => {
   jest.resetAllMocks()
 })
@@ -349,6 +362,92 @@ describe('upsertAssignment', () => {
     )
   })
 
+  describe('with uploaded files', () => {
+    const files = [buildFile('file1', 'jpeg'), buildFile('file2', 'png')]
+    const data = {
+      classId: 'class-id',
+      isRequired: false,
+    } as AssignmentsService.UpsertAssignmentPayload
+
+    beforeEach(() => {
+      mockedImageUtils.isImageFile.mockReturnValue(true)
+      mockedAssignmentRepo.upsertAssignment.mockResolvedValue({
+        ...buildAssignment({ id: 'assignment-id', classId: data.classId }),
+        isCreated: true,
+      })
+    })
+
+    test('moderates and uploads the files for the saved assignment', async () => {
+      mockedModerationService.moderateImage.mockResolvedValue({
+        isClean: true,
+        failures: [],
+      })
+
+      const { assignment, imageModerationInfractions } =
+        await AssignmentsService.upsertAssignment('teacher-id', data, files)
+
+      expect(imageModerationInfractions).toBeUndefined()
+      expect(assignment?.id).toBe('assignment-id')
+      expect(mockedModerationService.moderateImage).toHaveBeenCalledTimes(
+        files.length
+      )
+      expect(mockedModerationService.moderateImage).toHaveBeenCalledWith(
+        files[0].buffer,
+        {
+          source: 'assignment_image',
+          assignmentId: 'assignment-id',
+          userId: 'teacher-id',
+        }
+      )
+      expect(
+        mockedAzureService.uploadBlobFile.mock.calls.map((call) => call[2])
+      ).toEqual(['assignment-id/file1', 'assignment-id/file2'])
+    })
+
+    test('returns the image moderation infractions without uploading any files when a file is flagged', async () => {
+      mockedModerationService.moderateImage
+        .mockResolvedValueOnce({ isClean: false, failures: ['Violence'] })
+        .mockResolvedValueOnce({ isClean: true, failures: [] })
+
+      const actual = await AssignmentsService.upsertAssignment(
+        'teacher-id',
+        data,
+        files
+      )
+
+      expect(actual.imageModerationInfractions).toEqual({
+        file1: ['Violence'],
+      })
+      // The assignment was already saved, so it is returned for the client to
+      // retry against instead of creating a duplicate.
+      expect(actual.assignment?.id).toBe('assignment-id')
+      expect(mockedAzureService.uploadBlobFile).not.toHaveBeenCalled()
+      expect(mockedAssignmentRepo.upsertAssignment).toHaveBeenCalled()
+    })
+
+    test('throws an error without saving the assignment or uploading any files for an unsupported file type', async () => {
+      mockedImageUtils.isImageFile.mockReturnValue(false)
+      mockedImageUtils.isPdf.mockReturnValue(false)
+
+      await expect(
+        AssignmentsService.upsertAssignment('teacher-id', data, files)
+      ).rejects.toThrow('Unsupported file type')
+
+      expect(mockedModerationService.moderateImage).not.toHaveBeenCalled()
+      expect(mockedAzureService.uploadBlobFile).not.toHaveBeenCalled()
+      // File types are checked up front, so nothing is written and the client
+      // can retry without leaving an orphaned assignment behind.
+      expect(mockedAssignmentRepo.upsertAssignment).not.toHaveBeenCalled()
+    })
+
+    test('does not moderate or upload anything when no files are given', async () => {
+      await AssignmentsService.upsertAssignment('teacher-id', data)
+
+      expect(mockedModerationService.moderateImage).not.toHaveBeenCalled()
+      expect(mockedAzureService.uploadBlobFile).not.toHaveBeenCalled()
+    })
+  })
+
   describe('haveSessionsMetAssignmentRequirements', () => {
     test('returns true if the sessions have met the assignment requirements', async () => {
       let assignment = {
@@ -579,6 +678,7 @@ describe('createAssignmentForClasses', () => {
     for (const classId of data.classIds) {
       expect(mockedAssignmentRepo.upsertAssignment).toHaveBeenCalledWith(
         {
+          id: expect.any(String),
           classId,
           description: data.description,
           dueDate: data.dueDate,
@@ -672,6 +772,169 @@ describe('createAssignmentForClasses', () => {
     expect(
       mockedAssignmentRepo.createStudentsAssignmentsForAll
     ).not.toHaveBeenCalled()
+  })
+
+  test('does nothing when there are no classes', async () => {
+    const actual = await AssignmentsService.createAssignmentForClasses(
+      'teacher-id',
+      buildAssignment(),
+      []
+    )
+
+    expect(actual).toEqual({ assignments: [] })
+    expect(
+      mockedModerationService.moderateAssignmentInfo
+    ).not.toHaveBeenCalled()
+    expect(mockedAssignmentRepo.upsertAssignment).not.toHaveBeenCalled()
+  })
+
+  test('creates no assignments if any of the classes belongs to another teacher', async () => {
+    const data = {
+      ...buildAssignment(),
+      classIds: ['my-class', 'not-my-class'],
+    }
+    mockedTeacherRepo.getTeacherClassById.mockImplementation(
+      async (classId) => ({
+        ...buildTeacherClass({
+          id: classId,
+          userId:
+            classId === 'not-my-class' ? 'another-teacher-id' : 'teacher-id',
+        }),
+        cleverId: undefined,
+        topicId: 1,
+        totalStudents: 1,
+      })
+    )
+
+    await expect(
+      AssignmentsService.createAssignmentForClasses(
+        'teacher-id',
+        data,
+        data.classIds,
+        [buildFile('file1', 'jpeg')]
+      )
+    ).rejects.toThrow(
+      'Teacher unable to edit assignment in class that is not theirs'
+    )
+
+    expect(mockedAssignmentRepo.upsertAssignment).not.toHaveBeenCalled()
+    expect(mockedAzureService.uploadBlobFile).not.toHaveBeenCalled()
+  })
+
+  describe('with uploaded files', () => {
+    const files = [buildFile('file1', 'jpeg'), buildFile('file2', 'png')]
+    const data = {
+      ...buildAssignment(),
+      classIds: ['class-1', 'class-2'],
+    }
+
+    beforeEach(() => {
+      mockedImageUtils.isImageFile.mockReturnValue(true)
+      mockedAssignmentRepo.upsertAssignment.mockImplementation(
+        async (input) => ({
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          isCreated: true,
+          ...input,
+          id: input.id!,
+        })
+      )
+    })
+
+    test('uploads the files for every assignment before creating them', async () => {
+      mockedModerationService.moderateImage.mockResolvedValue({
+        isClean: true,
+        failures: [],
+      })
+
+      const { assignments, imageModerationInfractions } =
+        await AssignmentsService.createAssignmentForClasses(
+          'teacher-id',
+          data,
+          data.classIds,
+          files
+        )
+
+      expect(imageModerationInfractions).toBeUndefined()
+      expect(mockedModerationService.moderateImage).toHaveBeenCalledTimes(
+        files.length
+      )
+      expect(mockedModerationService.moderateImage).toHaveBeenCalledWith(
+        files[0].buffer,
+        {
+          source: 'assignment_image',
+          assignmentId: 'not-yet-created-assignment',
+          userId: 'teacher-id',
+        }
+      )
+      const assignmentIds = assignments?.map((assignment) => assignment.id)
+      const BLOBNAME_ARG_INDEX = 2
+      expect(
+        mockedAzureService.uploadBlobFile.mock.calls
+          .map((call) => call[BLOBNAME_ARG_INDEX])
+          .sort()
+      ).toEqual(
+        assignmentIds
+          ?.flatMap((id) => files.map((file) => `${id}/${file.originalname}`))
+          .sort()
+      )
+      expect(
+        mockedAzureService.uploadBlobFile.mock.invocationCallOrder[0]
+      ).toBeLessThan(
+        mockedAssignmentRepo.upsertAssignment.mock.invocationCallOrder[0]
+      )
+    })
+
+    test('returns the image moderation infractions without creating any assignments when a file is flagged', async () => {
+      mockedModerationService.moderateImage
+        .mockResolvedValueOnce({ isClean: false, failures: ['Violence'] })
+        .mockResolvedValueOnce({ isClean: true, failures: [] })
+
+      const actual = await AssignmentsService.createAssignmentForClasses(
+        'teacher-id',
+        data,
+        data.classIds,
+        files
+      )
+
+      expect(actual).toEqual({
+        imageModerationInfractions: { file1: ['Violence'] },
+      })
+      expect(mockedAzureService.uploadBlobFile).not.toHaveBeenCalled()
+      expect(mockedAssignmentRepo.upsertAssignment).not.toHaveBeenCalled()
+    })
+
+    test('throws an error without creating any assignments for an unsupported file type', async () => {
+      mockedImageUtils.isImageFile.mockReturnValue(false)
+      mockedImageUtils.isPdf.mockReturnValue(false)
+
+      await expect(
+        AssignmentsService.createAssignmentForClasses(
+          'teacher-id',
+          data,
+          data.classIds,
+          files
+        )
+      ).rejects.toThrow('Unsupported file type')
+
+      expect(mockedModerationService.moderateImage).not.toHaveBeenCalled()
+      expect(mockedAzureService.uploadBlobFile).not.toHaveBeenCalled()
+      expect(mockedAssignmentRepo.upsertAssignment).not.toHaveBeenCalled()
+    })
+
+    test('does not moderate or upload anything when no files are given', async () => {
+      await AssignmentsService.createAssignmentForClasses(
+        'teacher-id',
+        data,
+        data.classIds
+      )
+
+      expect(mockedModerationService.moderateImage).not.toHaveBeenCalled()
+      expect(mockedAzureService.uploadBlobFile).not.toHaveBeenCalled()
+      expect(mockedAssignmentRepo.upsertAssignment).toHaveBeenCalledTimes(
+        data.classIds.length
+      )
+    })
   })
 })
 
@@ -834,7 +1097,9 @@ describe('addStudentToClassAssignments', () => {
   })
 })
 
-describe('uploadAssignmentFiles', () => {
+// TODO: Remove with `uploadAssignmentFilesOld` when PUT /assignment/upload is
+// removed in favour of file uploads on PUT /assignment.
+describe('uploadAssignmentFilesOld', () => {
   const assignmentId = '123'
   const files = [buildFile('file1', 'jpeg'), buildFile('file2', 'png')]
 
@@ -851,7 +1116,7 @@ describe('uploadAssignmentFiles', () => {
       isClean: true,
       failures: [],
     })
-    const actual = await AssignmentsService.uploadAssignmentFiles(
+    const actual = await AssignmentsService.uploadAssignmentFilesOld(
       assignmentId,
       files,
       'teacher-user-id'
@@ -870,7 +1135,7 @@ describe('uploadAssignmentFiles', () => {
       isClean: true,
       failures: [],
     })
-    const actual = await AssignmentsService.uploadAssignmentFiles(
+    const actual = await AssignmentsService.uploadAssignmentFilesOld(
       assignmentId,
       files,
       'teacher-user-id'
@@ -884,13 +1149,3 @@ describe('uploadAssignmentFiles', () => {
     )
   })
 })
-
-function buildFile(nameWithoutExtension: string, extension: string) {
-  return {
-    originalname: nameWithoutExtension,
-    buffer: {
-      name: nameWithoutExtension,
-      ext: extension,
-    },
-  }
-}

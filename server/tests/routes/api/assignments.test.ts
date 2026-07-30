@@ -130,9 +130,12 @@ describe('routeAssignments', () => {
     })
   })
 
+  // TODO: Remove PUT /assignment/upload in clean-up.
   describe('PUT /api/assignment/upload', () => {
     test('uploads files and returns 200', async () => {
-      mockedAssignmentsService.uploadAssignmentFiles.mockResolvedValueOnce({})
+      mockedAssignmentsService.uploadAssignmentFilesOld.mockResolvedValueOnce(
+        {}
+      )
       const response = await agent
         .put('/api/assignment/upload')
         .field('assignmentId', ASSIGNMENT_ID)
@@ -141,11 +144,11 @@ describe('routeAssignments', () => {
 
       expect(response.status).toBe(200)
       expect(
-        mockedAssignmentsService.uploadAssignmentFiles
+        mockedAssignmentsService.uploadAssignmentFilesOld
       ).toHaveBeenCalledTimes(1)
 
       const [calledAssignmentId, files] =
-        mockedAssignmentsService.uploadAssignmentFiles.mock.calls[0]
+        mockedAssignmentsService.uploadAssignmentFilesOld.mock.calls[0]
 
       expect(calledAssignmentId).toBe(ASSIGNMENT_ID)
       expect(files).toHaveLength(2)
@@ -157,7 +160,7 @@ describe('routeAssignments', () => {
       const moderationFailures = {
         'file-one': ['failureOne', 'failureTwo'],
       }
-      mockedAssignmentsService.uploadAssignmentFiles.mockResolvedValueOnce(
+      mockedAssignmentsService.uploadAssignmentFilesOld.mockResolvedValueOnce(
         moderationFailures
       )
       const response = await agent
@@ -169,11 +172,11 @@ describe('routeAssignments', () => {
       expect(response.status).toBe(422)
       expect(response.body).toEqual({ moderationFailures })
       expect(
-        mockedAssignmentsService.uploadAssignmentFiles
+        mockedAssignmentsService.uploadAssignmentFilesOld
       ).toHaveBeenCalledTimes(1)
 
       const [calledAssignmentId, files] =
-        mockedAssignmentsService.uploadAssignmentFiles.mock.calls[0]
+        mockedAssignmentsService.uploadAssignmentFilesOld.mock.calls[0]
 
       expect(calledAssignmentId).toBe(ASSIGNMENT_ID)
       expect(files).toHaveLength(2)
