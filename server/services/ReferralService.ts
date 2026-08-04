@@ -87,7 +87,9 @@ export async function queueReferredByEmailsForVolunteer({
   )
 
   if (sendAmbassadorEmail) {
-    const referredUsersCount = await getReferredUsersCount(referredBy)
+    const referredUsersCount = await getReferredUsersCount(referredBy, {
+      withRoles: ['volunteer'],
+    })
 
     const hasUserBeenSentCongratsEmail =
       await NotificationService.hasUserBeenSentEmail({
