@@ -98,7 +98,7 @@ export async function parseUser(userId: Ulid) {
 
     user.sponsorships =
       await VolunteerService.getActiveSponsorshipsByUserId(userId)
-    return omit(user, ['references', 'photoIdS3Key', 'photoIdStatus'])
+    return omit(user, ['references', 'photoIdS3Key'])
   }
 
   return user
