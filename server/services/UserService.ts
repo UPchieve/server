@@ -668,14 +668,7 @@ export async function deletePhoneFromAccount(userId: Ulid) {
 }
 
 export async function getUserByReferralCode(referralCode: string) {
-  const user = await UserRepo.getUserByReferralCode(referralCode)
-  if (user) {
-    const roleContext = await UserRolesService.getRoleContext(user.id)
-    return {
-      ...user,
-      userType: roleContext.legacyRole,
-    }
-  }
+  return await UserRepo.getUserByReferralCode(referralCode)
 }
 
 export async function getUserContactInfo(userId: Ulid, tc?: TransactionClient) {
