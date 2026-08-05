@@ -92,18 +92,13 @@ $ docker-compose --profile dev down
 
 ### Prepare to run the server
 
-The below steps are tested on a Macintosh.
+1. Set local environment variables by installing 1Password and Doppler CLIs.
+Instead of copying secrets to an unencrypted `.env` file, we inject the **dev** secrets when starting up the local Node server with `pnpm run dev:backend` using a Doppler service token (scoped to read-access of the dev secrets only) stored in 1Password engineering vault.
 
-1. Confirm the database container dependencies above are running with `docker ps`
-2. Custom properties are currently required for the server to connect data sources on a desktop computer, so run or add to your profile the below commands:
+You'll need read access to the `engineering` vault in 1Password, and to login to 1Password from the CLI before starting the server. Since we use a Doppler service token, you do **not** need to login to Doppler.
 
-```
-export SUBWAY_REDIS_HOST=localhost
-export SUBWAY_DB_HOST=localhost
-```
-
-3. (optional) If you want to test Twilio voice calling functionality, set the `host` property to `[your public IP address]:3000` (minus the brackets), and configure your router/firewall to allow connections to port 3000 from the Internet. Twilio will need to connect to your system to obtain TwiML instructions.
-4. (optional) Run `pnpm run dev:worker` to start the worker process. The dev worker will automatically attempt to connect to your local Redis instance and read jobs from there. Additionally, you can run `pnpm run add-cron-jobs` to add all repeatable jobs to the job queue.
+2. Confirm the database container dependencies above are running with `docker ps`.
+3. (optional) Run `pnpm run dev:worker` to start the worker process. The dev worker will automatically attempt to connect to your local Redis instance and read jobs from there. Additionally, you can run `pnpm run add-cron-jobs` to add all repeatable jobs to the job queue.
 
 ### Run the app
 

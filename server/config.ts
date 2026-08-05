@@ -246,9 +246,6 @@ const config = {
       Number(process.env.SUBWAY_CORPORATE_PARTNER_REPORTS_BATCH_SIZE) || 100,
   },
 
-  clusterServerAddress:
-    process.env.SUBWAY_CLUSTER_SERVER_ADDRESS || 'localhost',
-
   cacheKeys: {
     updateTotalVolunteerHoursLastRun: 'UPDATE_TOTAL_VOLUNTEERS_LAST_RUN',
     waitTimeHeatMapAllSubjects: 'WAIT_TIME_HEAT_MAP_ALL_SUBJECTS',

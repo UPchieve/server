@@ -169,7 +169,6 @@ jest.mock('../config', () => {
 
     subwayApiCredentials: 'bogus',
     apiPort: 3000,
-    clusterServerAddress: 'localhost',
 
     // Langfuse
     langfuseSecretKey: 'test-bogus', // pragma: allowlist secret
