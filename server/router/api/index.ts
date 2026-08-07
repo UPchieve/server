@@ -33,6 +33,7 @@ import { sendTextMessage } from '../../clients/twilio'
 import { asString } from '../../utils/type-utils'
 import { routeNTHSGroups } from './nths-groups'
 import { routeTotp } from './totp'
+import { routeEssayReviews } from './essay-reviews'
 
 export function routes(app: Express, io: Server): void {
   const router: expressWs.Router = Router()
@@ -61,6 +62,7 @@ export function routes(app: Express, io: Server): void {
   routeRewards(router)
   routeNTHSGroups(router)
   routeTotp(router)
+  routeEssayReviews(router)
 
   router.post('/send-referral-email', async function (req, res) {
     try {

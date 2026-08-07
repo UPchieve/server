@@ -22,6 +22,9 @@ import {
 import * as NTHSGroupsService from '../../services/NTHSGroupsService'
 import { isValidStatus } from '../../models/NTHSGroups'
 import { InputError } from '../../models/Errors'
+import * as EssayReviewService from '../../services/EssayReviewService'
+import { resSuccess } from '../res-success'
+import { extractUser } from '../extract-user'
 
 export function routeAdmin(apiRouter: Router): void {
   const router = Router()
@@ -165,6 +168,56 @@ export function routeAdmin(apiRouter: Router): void {
       res.status(201).send()
     } catch (err) {
       resError(res, err)
+    }
+  })
+
+  router.get('/essay-reviews', async function (_req, res) {
+    try {
+      const essayReviews = await EssayReviewService.getEssayReviewSubmissions()
+      resSuccess(res, { essayReviews })
+    } catch (error) {
+      resError(res, error)
+    }
+  })
+
+  router.get('/essay-reviews/:submissionId', async function (req, res) {
+    try {
+      const submissionId = asString(req.params.submissionId)
+      const essayReview =
+        await EssayReviewService.getEssayReviewSubmission(submissionId)
+      if (!essayReview) {
+        res.status(404).json({ err: 'Essay review not found' })
+        return
+      }
+
+      resSuccess(res, { essayReview })
+    } catch (error) {
+      resError(res, error)
+    }
+  })
+
+  router.post('/essay-reviews/:submissionId', async function (req, res) {
+    try {
+      const submissionId = asString(req.params.submissionId)
+      const status = asString(req.body.status)
+      if (status !== 'pending' && status !== 'reviewed') {
+        throw new InputError(`Invalid essay review status: ${status}`)
+      }
+
+      const user = extractUser(req)
+      const essayReview = await EssayReviewService.updateEssayReviewSubmission({
+        submissionId,
+        status,
+        reviewedBy: user.id,
+      })
+      if (!essayReview) {
+        res.status(404).json({ err: 'Essay review not found' })
+        return
+      }
+
+      resSuccess(res, { essayReview })
+    } catch (error) {
+      resError(res, error)
     }
   })
 
