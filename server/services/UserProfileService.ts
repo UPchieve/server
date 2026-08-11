@@ -12,6 +12,8 @@ import { ACCOUNT_USER_ACTIONS } from '../constants'
 import * as MailService from './MailService'
 import { upsertStudent } from './UserCreationService'
 import { Ulid } from '../models/pgUtils'
+import QueueService from './QueueService'
+import { Jobs } from '../worker/jobs'
 import {
   deleteUsersSchoolsByUserId,
   upsertUsersSchool,
@@ -68,6 +70,7 @@ export async function updateUserProfile(
         data.gradeLevel,
         tc
       )
+      await createOrUpdateSendGridContact(user.id)
     }
   })
 
@@ -75,7 +78,7 @@ export async function updateUserProfile(
     if (data.deactivated) {
       await MailService.deleteContactByEmail(user.email)
     } else {
-      await MailService.createContact(user.id)
+      await createOrUpdateSendGridContact(user.id)
     }
 
     await createAccountAction({
@@ -84,6 +87,10 @@ export async function updateUserProfile(
       ipAddress: ipAddress,
     })
   }
+}
+
+async function createOrUpdateSendGridContact(userId: Ulid) {
+  await QueueService.add(Jobs.SyncSendGridContact, { delay: 0 }, { userId })
 }
 
 export async function updateUserSmsConsent(

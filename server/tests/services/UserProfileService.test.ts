@@ -5,17 +5,22 @@ import { updateUserProfile } from '../../services/UserProfileService'
 import * as StudentService from '../../services/UserCreationService'
 import * as UsersSchoolsRepo from '../../models/UsersSchools'
 import { createAccountAction } from '../../models/UserAction'
-import { ACCOUNT_USER_ACTIONS } from '../../constants'
-import { createContact, deleteContactByEmail } from '../../services/MailService'
+import { ACCOUNT_USER_ACTIONS, GRADES } from '../../constants'
+import { deleteContactByEmail } from '../../services/MailService'
+import QueueService from '../../services/QueueService'
+import { Jobs } from '../../worker/jobs'
 
 jest.mock('../../models/User/queries')
 jest.mock('../../models/UserAction')
 jest.mock('../../services/MailService')
 jest.mock('../../services/UserCreationService')
 jest.mock('../../models/UsersSchools')
+jest.mock('../../models/UsersGradeLevels')
+jest.mock('../../services/QueueService')
 
 const mockUserRepo = mocked(UserRepo)
 const mockedStudentService = mocked(StudentService)
+const mockedQueueService = mocked(QueueService)
 const mockGetStudentUser = () => buildStudent()
 const mockedStudent = mockGetStudentUser()
 const mockedVolunteer = buildVolunteer()
@@ -112,6 +117,25 @@ describe('User Profile', () => {
         userId: mockedVolunteer.id,
         ipAddress: '123',
       })
+    })
+
+    it('queues a SendGrid contact sync job when gradeLevel is present in the update', async () => {
+      await updateUserProfile(mockedStudent, '123', {
+        ...DEFAULT_REQUEST,
+        gradeLevel: GRADES.NINTH,
+      })
+
+      expect(mockedQueueService.add).toHaveBeenCalledWith(
+        Jobs.SyncSendGridContact,
+        { delay: 0 },
+        { userId: mockedStudent.id }
+      )
+    })
+
+    it("doesn't queue a SendGrid sync job when gradeLevel is absent and user isn't (de)activating", async () => {
+      await updateUserProfile(mockedStudent, '123', DEFAULT_REQUEST)
+
+      expect(mockedQueueService.add).toHaveBeenCalledTimes(0)
     })
   })
 })

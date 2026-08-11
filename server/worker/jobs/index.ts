@@ -48,6 +48,7 @@ import textVolunteers from './textVolunteers'
 import moderateSessionTranscript from '../jobs/moderate-session-transcript'
 import migrateBannedAndTestUsersToBanType from '../../scripts/migrate-banned-and-test-users-to-bantype'
 import updateSendGridGradeLevels from './updateSendGridGradeLevels'
+import syncSendGridContact from './syncSendGridContact'
 import emailFallIncentiveEnrollmentWelcome from './student-emails/emailFallIncentiveEnrollmentWelcome'
 import emailFallIncentiveInvitedToEnrollReminder from './student-emails/emailFallIncentiveInvitedToEnrollReminder'
 import emailFallIncentiveSessionQualification from './student-emails/emailFallIncentiveSessionQualification'
@@ -151,6 +152,7 @@ export enum Jobs {
   UpdateBasicAccessViews = 'UpdateBasicAccessViews',
   UpdateElapsedAvailability = 'UpdateElapsedAvailability',
   UpdateSendGridGradeLevels = 'UpdateSendGridGradeLevels',
+  SyncSendGridContact = 'SyncSendGridContact',
   UpdateTotalVolunteerHours = 'UpdateTotalVolunteerHours',
   UpsertPostalCodes = 'UpsertPostalCodes',
   UpsertSchools = 'UpsertSchools',
@@ -456,6 +458,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.UpdateSendGridGradeLevels,
     processor: updateSendGridGradeLevels,
+  },
+  {
+    name: Jobs.SyncSendGridContact,
+    processor: syncSendGridContact,
   },
   {
     name: Jobs.UpdateTotalVolunteerHours,
