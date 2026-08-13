@@ -59,12 +59,14 @@
     "check:socket-address": "./bin/check_socket_address.sh"
   },
   "pre-commit": [
-    "secrets:check:staged",
     "pgtyped:check",
     "lint:backend:dry",
     "lint:database:dry",
     "lint:sql:check",
     "check:socket-address"
+  ],
+  "pre-push": [
+    "secrets:check"
   ],
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "^3.981.0",
