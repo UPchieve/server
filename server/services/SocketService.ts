@@ -17,6 +17,7 @@ import { backOff } from 'exponential-backoff'
 import { UserContactInfo } from '../models/User'
 import { secondsInMs } from '../utils/time-utils'
 import { toCurrentSessionPublic } from '../public/sessions'
+import { ShareInfoPayload } from '../types/socket-types'
 
 // TODO: Remove class wrapper.
 class SocketService {
@@ -106,6 +107,20 @@ class SocketService {
       .to(roomName)
       .except(userId)
       .emit('sessions/partner:in-session', !!userSocketsInSession.length)
+  }
+
+  // Relays the message a volunteer opted in to sharing to their session
+  // partner for experiment
+  async emitShareInfoOptIn(
+    userId: string,
+    sessionId: Ulid,
+    message: ShareInfoPayload
+  ): Promise<void> {
+    const sessionRoom = getSessionRoom(sessionId)
+    this.io
+      .to(sessionRoom)
+      .except(userId)
+      .emit('sessions/partner:share-info-opt-in', message)
   }
 
   private async updateSessionList(tc?: TransactionClient): Promise<void> {
