@@ -430,6 +430,43 @@ describe('deidentifyUserJob', () => {
     })
   })
 
+  test('deidentifies rows in nths_candidate_applications', async () => {
+    const user = await createTestUser(client)
+    const userId = user.id
+    const schoolResults = await client.query(
+      `INSERT INTO upchieve.schools (id, name, city_id) VALUES (gen_random_uuid(), 'Test School', 1) RETURNING id`
+    )
+    const schoolId = schoolResults.rows[0].id
+
+    await client.query(
+      `INSERT INTO upchieve.nths_candidate_applications (user_id, status, school_id, unlisted_school, responses)
+      VALUES ($1, 'applied', $2, '{"name": "Some High School", "city": "Boulder", "state": "CO", "website": "https://somehigh.org"}'::jsonb, '{"whyYou": "because I care deeply"}'::jsonb)`,
+      [userId, schoolId]
+    )
+    await client.query(
+      `INSERT INTO upchieve.nths_candidate_applications (user_id, status, denied_notes, responses)
+      VALUES ($1, 'denied', 'not enough sessions yet', '{"whyYou": "second try"}'::jsonb)`,
+      [userId]
+    )
+
+    await deidentifyUserJob(createJob(userId))
+
+    const after = await client.query(
+      'SELECT * FROM upchieve.nths_candidate_applications WHERE user_id = $1 ORDER BY id',
+      [userId]
+    )
+    expect(after.rowCount).toBe(2)
+    after.rows.forEach((r) => {
+      expect(r.responses).toEqual({})
+      expect(r.school_id).toBeNull()
+      expect(r.unlisted_school).toBeNull()
+    })
+    // The CHECK constraints require denied_notes to be non-null on a denied row
+    // and null on every other status, so the scrub has to differ per row.
+    expect(after.rows[0].denied_notes).toBeNull()
+    expect(after.rows[1].denied_notes).toBe('')
+  })
+
   test('deidentifies rows in parents_guardians if no other student referencing the pg', async () => {
     const user = await createTestStudent(client)
     const userId = user.user_id

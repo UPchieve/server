@@ -1,7 +1,7 @@
-\restrict y1dNgJkoc2ObPICNebfYvI3aYcjcXc2C4oNulWSK7DoDLJXWuYH5MLQQUEvKQtt
+\restrict dbmate
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
--- Dumped by pg_dump version 15.15 (Homebrew)
+-- Dumped by pg_dump version 15.18 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -2814,6 +2814,13 @@ CREATE TABLE upchieve.nths_candidate_applications (
     denied_notes text,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    school_id uuid,
+    unlisted_school jsonb,
+    form_version integer DEFAULT 1 NOT NULL,
+    responses jsonb DEFAULT '{}'::jsonb NOT NULL,
+    decided_at timestamp with time zone,
+    activated_at timestamp with time zone,
+    CONSTRAINT activation_requires_approval CHECK (((activated_at IS NULL) OR (status = 'approved'::upchieve.nths_candidate_application_status))),
     CONSTRAINT reason_must_be_null_when_not_denied CHECK (
 CASE
     WHEN (status <> 'denied'::upchieve.nths_candidate_application_status) THEN (denied_notes IS NULL)
@@ -2823,7 +2830,9 @@ END),
 CASE
     WHEN (status = 'denied'::upchieve.nths_candidate_application_status) THEN (denied_notes IS NOT NULL)
     ELSE true
-END)
+END),
+    CONSTRAINT responses_is_an_object CHECK ((jsonb_typeof(responses) = 'object'::text)),
+    CONSTRAINT unlisted_school_is_an_object CHECK (((unlisted_school IS NULL) OR (jsonb_typeof(unlisted_school) = 'object'::text)))
 );
 
 
@@ -2874,6 +2883,48 @@ COMMENT ON COLUMN upchieve.nths_candidate_applications.created_at IS 'not_pii';
 --
 
 COMMENT ON COLUMN upchieve.nths_candidate_applications.updated_at IS 'not_pii';
+
+
+--
+-- Name: COLUMN nths_candidate_applications.school_id; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.nths_candidate_applications.school_id IS 'pii: Foreign key to upchieve.schools';
+
+
+--
+-- Name: COLUMN nths_candidate_applications.unlisted_school; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.nths_candidate_applications.unlisted_school IS 'pii: Name, city, state, and website of the applicant''s school as they described it, when it could not be matched to upchieve.schools';
+
+
+--
+-- Name: COLUMN nths_candidate_applications.form_version; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.nths_candidate_applications.form_version IS 'not_pii: Version of the application form these responses were collected with; 0 means it predates the in-app form and has no responses';
+
+
+--
+-- Name: COLUMN nths_candidate_applications.responses; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.nths_candidate_applications.responses IS 'pii: Applicant answers to the NTHS president application form';
+
+
+--
+-- Name: COLUMN nths_candidate_applications.decided_at; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.nths_candidate_applications.decided_at IS 'not_pii: When the application was approved or denied';
+
+
+--
+-- Name: COLUMN nths_candidate_applications.activated_at; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.nths_candidate_applications.activated_at IS 'not_pii: When the approval was revealed to the applicant and chapter creation unlocked';
 
 
 --
@@ -13052,6 +13103,13 @@ CREATE UNIQUE INDEX nths_groups_invite_code_index ON upchieve.nths_groups USING 
 
 
 --
+-- Name: nths_one_pending_application_per_user; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE UNIQUE INDEX nths_one_pending_application_per_user ON upchieve.nths_candidate_applications USING btree (user_id) WHERE (status = 'applied'::upchieve.nths_candidate_application_status);
+
+
+--
 -- Name: partial_session_id_idx; Type: INDEX; Schema: upchieve; Owner: -
 --
 
@@ -13684,6 +13742,14 @@ ALTER TABLE ONLY upchieve.nths_advisors
 
 ALTER TABLE ONLY upchieve.nths_advisors
     ADD CONSTRAINT nths_advisors_school_id_fkey FOREIGN KEY (school_id) REFERENCES upchieve.schools(id);
+
+
+--
+-- Name: nths_candidate_applications nths_candidate_applications_school_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_candidate_applications
+    ADD CONSTRAINT nths_candidate_applications_school_id_fkey FOREIGN KEY (school_id) REFERENCES upchieve.schools(id);
 
 
 --
@@ -14978,7 +15044,7 @@ ALTER TABLE ONLY upchieve.volunteer_references
 -- PostgreSQL database dump complete
 --
 
-\unrestrict y1dNgJkoc2ObPICNebfYvI3aYcjcXc2C4oNulWSK7DoDLJXWuYH5MLQQUEvKQtt
+\unrestrict dbmate
 
 
 --
@@ -15270,4 +15336,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260623012028'),
     ('20260715155733'),
     ('20260717162214'),
-    ('20260728183756');
+    ('20260728183756'),
+    ('20260731181526');

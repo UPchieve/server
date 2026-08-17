@@ -116,6 +116,20 @@ async function deidentifyRows(
     [userId]
   )
 
+  // The application row stays so program counts remain accurate. denied_notes has
+  // to become '' rather than null on a denied row, since reason_required_when_denied
+  // forbids null there.
+  await tc.query(
+    `UPDATE nths_candidate_applications SET
+    responses = '{}'::jsonb,
+    school_id = null,
+    unlisted_school = null,
+    denied_notes = CASE WHEN status = 'denied' THEN '' ELSE null END,
+    updated_at = NOW()
+    WHERE user_id = $1`,
+    [userId]
+  )
+
   const parentsGuardiansResult = await tc.query(
     `SELECT parents_guardians_id FROM parents_guardians_students WHERE students_id = $1`,
     [userId]

@@ -2,10 +2,10 @@
 -- PostgreSQL database dump
 --
 
-\restrict Sjg8jsrJdNjd73MMJac5YEPGIa9BE6v0CtDFTDjHfPi9U15NOtzFbtAsCgFMJua
+\restrict 8ToFHJbOpdxVEXTMlSrAYav3ppZ1di15xSAZLyxLXoxYZ2EFpOUFTrBdirdgK2U
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
--- Dumped by pg_dump version 15.15 (Homebrew)
+-- Dumped by pg_dump version 15.18 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -6247,7 +6247,7 @@ COPY upchieve.nths_advisors (id, nths_group_id, first_name, last_name, email, ph
 -- Data for Name: nths_candidate_applications; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.nths_candidate_applications (id, user_id, status, denied_notes, created_at, updated_at) FROM stdin;
+COPY upchieve.nths_candidate_applications (id, user_id, status, denied_notes, created_at, updated_at, school_id, unlisted_school, form_version, responses, decided_at, activated_at) FROM stdin;
 \.
 
 
@@ -9536,5 +9536,5 @@ SELECT pg_catalog.setval('upchieve.weekdays_id_seq', 1, false);
 -- PostgreSQL database dump complete
 --
 
-\unrestrict Sjg8jsrJdNjd73MMJac5YEPGIa9BE6v0CtDFTDjHfPi9U15NOtzFbtAsCgFMJua
+\unrestrict 8ToFHJbOpdxVEXTMlSrAYav3ppZ1di15xSAZLyxLXoxYZ2EFpOUFTrBdirdgK2U
 
