@@ -29,7 +29,6 @@ import type {
 } from './types'
 import { camelCaseKeys } from '../../tests/db-utils'
 import logger from '../../logger'
-import { getNTHSGroupByID } from '../../services/NTHSGroupsService'
 
 export async function getGroupsByUser(
   userId: Ulid,
@@ -572,17 +571,19 @@ export async function createCandidateApplication(
       { status, userId, deniedNotes },
       tc
     )
-    return results.map(
-      (row) =>
-        makeSomeOptional(row, ['deniedNotes']) as {
-          createdAt: Date
-          deniedNotes: string | null
-          id: number
-          status: NTHSCandidateApplicationStatus
-          updatedAt: Date
-          userId: Ulid
-        }
-    )[0]
+    return results.map((row) => {
+      const application = makeSomeRequired(row, [
+        'createdAt',
+        'id',
+        'status',
+        'updatedAt',
+        'userId',
+      ])
+      return {
+        ...application,
+        status: application.status as NTHSCandidateApplicationStatus,
+      }
+    })[0]
   } catch (err) {
     throw new RepoCreateError(err)
   }
