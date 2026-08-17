@@ -143,6 +143,14 @@ All database administration files live in `/database`. The `db_init` directory h
 12. `db:schema-down`: rollsback the most recent applied schema migration without writing out the new schema
 13. `db:seeds-up` applies any pending seed migrations
 
+Every one of these talks to `localhost:5432` unless `PGHOST` or `PGPORT` says otherwise. Set them to point the whole set — dbmate, psql, pg_dump and pgtyped alike — at a different database:
+
+```bash
+PGPORT=5932 pnpm run db:schema-up
+```
+
+This matters when you run more than one stack at a time, since each gets its own postgres on its own port. Without it, a migration run from a second checkout silently lands in the first one's database.
+
 #### Migrations
 
 When writing a schema migration include both rollout and rollback instructions - for example:
