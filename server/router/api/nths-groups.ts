@@ -23,7 +23,7 @@ import type {
   NTHSGroupsResponse,
   NTHSNewGroupResponse,
   NTHSSchoolAffiliationResponse,
-} from '../../contracts/nths'
+} from '../../contracts/nths-group'
 
 export async function isGroupAdmin(
   req: Request,

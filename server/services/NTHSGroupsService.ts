@@ -1,5 +1,6 @@
 import { Ulid, Uuid } from '../models/pgUtils'
 import * as NTHSGroupsRepo from '../models/NTHSGroups'
+import * as NTHSApplicationRepo from '../models/NTHSApplication'
 import { sendNTHSChapterSchoolAffiliationApprovedNotification } from './MailService'
 import {
   GetGroupMembersOptions,
@@ -31,15 +32,11 @@ import {
   CannotRemoveSoleNTHSAdminError,
   NTHSGroupAffiliationExistsError,
   NotAHighSchoolerNTHSJoinError,
+  NotAllowedError,
 } from '../models/Errors'
 import logger from '../logger'
 import QueueService from './QueueService'
 import { Jobs } from '../worker/jobs'
-import {
-  sendNTHSCandidateApplicationApproved,
-  sendNTHSCandidateApplicationDenied,
-} from './MailService'
-import { getUserContactInfo } from './UserService'
 import {
   getVolunteerOccupations,
   VolunteerOccupations,
@@ -59,6 +56,17 @@ export async function foundGroup(
     if (groups.length > 0) {
       throw new AlreadyInNTHSGroupError()
     }
+
+    // The route only asks who you are, so without this any authenticated user
+    // could found a chapter and make themselves its admin. Read inside the
+    // transaction: the default read client is a replica, where lag would let a
+    // just-revoked approval through.
+    if (
+      !(await NTHSApplicationRepo.hasActivatedCandidateApplication(userId, tc))
+    )
+      throw new NotAllowedError(
+        'An approved NTHS application is needed to start a chapter'
+      )
 
     const inviteCode = generateAlphanumericOfLength(6)
     const name = `NTHS Chapter ${Number(await NTHSGroupsRepo.groupsCount(tc)) + 1}`
@@ -445,49 +453,8 @@ export async function deactivateNonHighSchoolMember(
 
 export async function getLatestCandidateApplicationStatus(
   userId: Ulid
-): Promise<NTHSCandidateApplicationStatus> {
-  return NTHSGroupsRepo.getLatestCandidateApplicationStatus(userId)
-}
-
-export async function createCandidateApplication({
-  status,
-  userId,
-  deniedNotes,
-}: {
-  status: NTHSCandidateApplicationStatus
-  userId: Ulid
-  deniedNotes?: string
-}): Promise<{
-  id: number
-  userId: Ulid
-  status: NTHSCandidateApplicationStatus
-  createdAt: Date
-}> {
-  const application = await NTHSGroupsRepo.createCandidateApplication({
-    status,
-    userId,
-    deniedNotes,
-  })
-
-  if (application.status === NTHSCandidateApplicationStatus.approved) {
-    const contactInfo = await getUserContactInfo(application.userId)
-    if (contactInfo) {
-      await sendNTHSCandidateApplicationApproved([
-        { firstName: contactInfo.firstName, email: contactInfo.email },
-      ])
-    }
-  }
-
-  if (application.status === NTHSCandidateApplicationStatus.denied) {
-    const contactInfo = await getUserContactInfo(application.userId)
-    if (contactInfo) {
-      await sendNTHSCandidateApplicationDenied([
-        { firstName: contactInfo.firstName, email: contactInfo.email },
-      ])
-    }
-  }
-
-  return application
+): Promise<NTHSCandidateApplicationStatus | undefined> {
+  return NTHSApplicationRepo.getLatestCandidateApplicationStatus(userId)
 }
 
 export async function makeChaptersSchoolOfficial(groupIds: Ulid[]) {

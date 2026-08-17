@@ -330,22 +330,3 @@ FROM
     LEFT JOIN nths_group_school_affiliation school_aff ON school_aff.nths_group_id = groups.id
     LEFT JOIN nths_school_affiliation_statuses school_aff_statuses ON school_aff_statuses.id = school_aff.nths_school_affiliation_status_id;
 
-
-/* @name latestCandidateApplicationStatus */
-SELECT
-    status
-FROM
-    nths_candidate_applications
-WHERE
-    user_id = :userId!
-ORDER BY
-    created_at DESC
-LIMIT 1;
-
-
-/* @name createCandidateApplication */
-INSERT INTO nths_candidate_applications (user_id, status, denied_notes)
-    VALUES (:userId!, :status!, :deniedNotes)
-RETURNING
-    id, user_id, status, denied_notes, created_at, updated_at;
-

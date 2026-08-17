@@ -11,6 +11,7 @@ import {
   CannotRemoveSoleNTHSAdminError,
   NTHSGroupNameTakenError,
   NTHSGroupAffiliationExistsError,
+  NTHSApplicationExistsError,
   NotAHighSchoolerNTHSJoinError,
   SessionJoinError,
 } from '../models/Errors'
@@ -80,6 +81,7 @@ export function resError(
     else if (err instanceof CannotRemoveSoleNTHSAdminError) status = 422
     else if (err instanceof NotAHighSchoolerNTHSJoinError) status = 422
     else if (err instanceof AlreadyInUseError) status = 409
+    else if (err instanceof NTHSApplicationExistsError) status = 409
     // response timeout
     else if (err.message === 'Response timeout') status = 408
     else if (err instanceof SessionJoinError) status = 422

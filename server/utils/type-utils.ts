@@ -1,6 +1,6 @@
 import Case from 'case'
 import { InputError } from '../models/Errors'
-import { Ulid } from '../models/pgUtils'
+import { Ulid, Uuid } from '../models/pgUtils'
 import { Uuid4, Exception } from 'id128'
 
 // Typecheck framework taken from https://stackoverflow.com/a/58861766
@@ -23,6 +23,16 @@ export function asNullable<T>(as: (s: unknown, errMsg?: string) => T) {
 export function asUlid(s: unknown, errMsg = ''): Ulid {
   if (typeof s === 'string') return s as string
   throw new InputError(`${errMsg} ${s} is not a string`)
+}
+
+const CANONICAL_UUID =
+  /^(?:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|[0-9a-f]{32})$/i
+
+// Accepts the dashed form Postgres renders and the undashed 32-hex form
+// getDbUlid produces, so a malformed id is a 422 instead of a driver 500.
+export function asUuid(s: unknown, errMsg = ''): Uuid {
+  if (typeof s === 'string' && CANONICAL_UUID.test(s)) return s as Uuid
+  throw new InputError(`${errMsg} ${s} is not a uuid`)
 }
 
 // Primitive typechecks
@@ -69,6 +79,12 @@ export function asArray<T>(as: (s: unknown, errMsg?: string) => T) {
     }
     throw new InputError(`${errMsg} : ${s} is not an array of the given type`)
   }
+}
+
+export function asObject(s: unknown, errMsg = ''): Record<string, unknown> {
+  if (typeof s === 'object' && s !== null && !Array.isArray(s))
+    return s as Record<string, unknown>
+  throw new InputError(`${errMsg} ${s} is not an object`)
 }
 
 export function asDate(s: unknown, errMsg?: string): Date {

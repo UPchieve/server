@@ -21,6 +21,8 @@ import {
 } from '../../utils/type-utils'
 import * as NTHSGroupsService from '../../services/NTHSGroupsService'
 import { isValidStatus } from '../../models/NTHSGroups'
+import * as NTHSApplicationService from '../../services/NTHSApplicationService'
+import { toNTHSCandidateApplicationPublic } from '../../public/nths'
 import { InputError } from '../../models/Errors'
 import * as EssayReviewService from '../../services/EssayReviewService'
 import { resSuccess } from '../res-success'
@@ -128,18 +130,23 @@ export function routeAdmin(apiRouter: Router): void {
       const status = asString(req.body.status)
       const userId = asString(req.body.userId)
       const deniedNotes = asOptional(asString)(req.body.deniedNotes)
-      if (isValidStatus(status)) {
-        const result = await NTHSGroupsService.createCandidateApplication({
-          status,
+      if (!isValidStatus(status))
+        throw new InputError(
+          `Invalid NTHS Candidate status: ${status}. must be: 'denied' or 'approved'`
+        )
+
+      const application =
+        await NTHSApplicationService.decideCandidateApplication({
           userId,
+          status,
           deniedNotes,
         })
-        res.json(result)
-      } else {
-        throw new InputError(
-          `Invalid NTHS Candidate status: ${status}. must be: 'applied', 'denied', or 'approved'`
-        )
-      }
+      res.json({
+        application: {
+          ...toNTHSCandidateApplicationPublic(application),
+          deniedNotes: application.deniedNotes,
+        },
+      })
     } catch (err) {
       resError(res, err)
     }

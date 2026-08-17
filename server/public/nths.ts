@@ -6,7 +6,8 @@ import {
   NTHSGroupPublic,
   NTHSGroupWithMemberInfoPublic,
   NTHSUserInfoPublic,
-} from '../contracts/nths'
+} from '../contracts/nths-group'
+import { NTHSCandidateApplicationPublic } from '../contracts/nths-application'
 import {
   Advisor,
   NTHSAction,
@@ -16,6 +17,7 @@ import {
   NTHSGroupWithMemberInfo,
   NTHSUserInfo,
 } from '../models/NTHSGroups'
+import { NTHSCandidateApplication } from '../models/NTHSApplication'
 
 export function toNTHSGroupPublic(group: NTHSGroup): NTHSGroupPublic {
   return {
@@ -86,6 +88,23 @@ export function toNTHSActionPublic(action: NTHSAction): NTHSActionPublic {
   return {
     id: action.id,
     name: action.name,
+  }
+}
+
+// deniedNotes is omitted: it is staff-authored and the applicant learns the
+// decision by email.
+export function toNTHSCandidateApplicationPublic(
+  application: NTHSCandidateApplication
+): NTHSCandidateApplicationPublic {
+  return {
+    id: application.id,
+    status: application.status,
+    schoolId: application.schoolId,
+    unlistedSchool: application.unlistedSchool,
+    formVersion: application.formVersion,
+    responses: application.responses,
+    decidedAt: application.decidedAt?.toISOString(),
+    createdAt: application.createdAt.toISOString(),
   }
 }
 

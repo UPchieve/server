@@ -32,6 +32,7 @@ import { routeRewards } from './rewards'
 import { sendTextMessage } from '../../clients/twilio'
 import { asString } from '../../utils/type-utils'
 import { routeNTHSGroups } from './nths-groups'
+import { routeNTHSApplication } from './nths-application'
 import { routeTotp } from './totp'
 import { routeEssayReviews } from './essay-reviews'
 
@@ -61,6 +62,7 @@ export function routes(app: Express, io: Server): void {
   routeAssignments(router)
   routeRewards(router)
   routeNTHSGroups(router)
+  routeNTHSApplication(router)
   routeTotp(router)
   routeEssayReviews(router)
 
