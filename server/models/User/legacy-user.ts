@@ -56,7 +56,11 @@ export type LegacyUserModel = {
   isTestUser: boolean
   isFakeUser: boolean
   isDeactivated: boolean
-  pastSessions: Ulid[]
+  pastSessions: Ulid[] // deprecated
+  pastSessionsByRole: {
+    asStudent: Ulid[]
+    asVolunteer: Ulid[]
+  }
   lastActivityAt?: Date
   referralCode: string
   numReferredVolunteers?: number
@@ -250,8 +254,17 @@ export async function getLegacyUserObject(
           sessionStats,
         },
         { ratings },
-        { roleContext }
+        { roleContext },
+        { pastSessions: baseUser.pastSessions ?? [] },
+        {
+          pastSessionsByRole: {
+            asStudent: baseUser.pastSessionsAsStudent ?? [],
+            asVolunteer: baseUser.pastSessionsAsVolunteer ?? [],
+          },
+        }
       )
+      delete final.pastSessionsAsStudent
+      delete final.pastSessionsAsVolunteer
       return final as LegacyUserModel
     }, client)
   } catch (err) {

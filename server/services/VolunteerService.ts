@@ -366,7 +366,9 @@ export async function onboardVolunteer(
     return
   }
   const isReadyToOnboard =
-    volunteer.subjects.length && volunteer.hasCompletedUpchieve101
+    volunteer.subjects.length &&
+    volunteer.hasCompletedUpchieve101 &&
+    !volunteer.onboarded
   if (isReadyToOnboard) {
     await VolunteerRepo.updateVolunteerOnboarded(volunteer.id, tc)
     await queueOnboardingEventEmails(
@@ -455,18 +457,6 @@ export async function getSubjectPresence(): Promise<VolunteerSubjectPresenceMap>
   }
 
   return subjectPresenceMap
-}
-
-export async function queueNationalTutorCertificateEmail(
-  volunteerId: Uuid
-): Promise<void> {
-  await QueueService.add(
-    Jobs.SendNationalTutorCertificateEmail,
-    { delay: 0 },
-    {
-      volunteerId,
-    }
-  )
 }
 
 export async function getVolunteersForTextNotifications(): Promise<

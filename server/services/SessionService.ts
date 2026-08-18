@@ -80,10 +80,6 @@ import * as SurveyService from './SurveyService'
 import { SessionUserRole } from './UserRolesService'
 import * as FeatureFlagsService from './FeatureFlagService'
 import { createDocEditorImageUploadUrl } from './AzureService'
-import type {
-  CurrentSessionPublic,
-  SessionUserInfoPublic,
-} from '../contracts/sessions'
 import type { CurrentSession } from '../types/session'
 import { hoursInSeconds, minutesInMs, secondsInMs } from '../utils/time-utils'
 
@@ -290,7 +286,7 @@ export async function endSession(
 
   await NotifyVolunteerService.clearExclusiveRequest(sessionId)
 
-  QueueService.add(
+  await QueueService.add(
     Jobs.DetectSessionLanguages,
     { delay: 0 },
     {
@@ -299,7 +295,7 @@ export async function endSession(
     }
   )
 
-  QueueService.add(
+  await QueueService.add(
     Jobs.ProcessSessionEnded,
     { delay: 0, jobId: `${Jobs.ProcessSessionEnded}:${sessionId}` },
     {
@@ -364,9 +360,10 @@ export async function processFirstSessionCongratsEmail(sessionId: Ulid) {
     ? session.timeTutored >= fifteenMinutes
     : false
   const sendStudentFirstSessionCongrats =
-    session.student.pastSessions.length === 1 && isLongSession
+    session.student.pastSessionsByRole.asStudent.length === 1 && isLongSession
   const sendVolunteerFirstSessionCongrats =
-    session.volunteer?.pastSessions.length === 1 && isLongSession
+    session.volunteer?.pastSessionsByRole.asVolunteer.length === 1 &&
+    isLongSession
   // send at 11 am EST tomorrow
   const hourToSendTomorrowInMS = moment()
     .utc()
@@ -440,7 +437,17 @@ export async function processSessionEditors(sessionId: Ulid) {
 
 export async function processEmailVolunteer(sessionId: Ulid) {
   const session = await getCurrentSessionById(sessionId)
-  if (session.volunteer?.pastSessions.length === 10)
+  if (session.volunteer?.pastSessionsByRole.asVolunteer.length === 1) {
+    await QueueService.add(
+      Jobs.SendNationalTutorCertificateEmail,
+      { delay: 0 },
+      {
+        userId: session.volunteer?.id,
+      }
+    )
+  }
+
+  if (session.volunteer?.pastSessionsByRole.asVolunteer.length === 10) {
     await QueueService.add(
       Jobs.EmailVolunteerTenSessionMilestone,
       { delay: 0 },
@@ -448,6 +455,7 @@ export async function processEmailVolunteer(sessionId: Ulid) {
         volunteerId: session.volunteer.id,
       }
     )
+  }
 }
 
 /**
