@@ -1360,6 +1360,10 @@ type SessionUserRow = {
   firstname: string
   firstName: string
   pastSessions: Uuid[]
+  pastSessionsByRole: {
+    asStudent: Uuid[]
+    asVolunteer: Uuid[]
+  }
   gradeLevel?: string
 }
 
@@ -1371,17 +1375,33 @@ function toCurrentSessionUser(row: SessionUserRow): CurrentSessionUser {
     firstname: row.firstname,
     firstName: row.firstName,
     pastSessions: row.pastSessions,
+    pastSessionsByRole: row.pastSessionsByRole,
   }
 }
 
-async function getSessionUsers(
+export async function getSessionUsers( // exported for testing
   sessionId: Ulid,
   sessionStudentId: Ulid,
   sessionVolunteerId: Ulid = '',
   tc: TransactionClient = getClient()
 ): Promise<{ student: CurrentSessionUser; volunteer?: CurrentSessionUser }> {
   const userResult = await pgQueries.getSessionUsers.run({ sessionId }, tc)
-  const users = userResult.map((v) => makeSomeOptional(v, ['gradeLevel']))
+  const users = userResult.map((v) => {
+    const camelCased = makeSomeRequired(v, [
+      'createdAt',
+      'firstname',
+      'firstName',
+      'id',
+    ])
+    return {
+      ...camelCased,
+      pastSessions: camelCased?.pastSessions ?? [],
+      pastSessionsByRole: {
+        asStudent: camelCased?.pastSessionsAsStudent ?? [],
+        asVolunteer: camelCased?.pastSessionsAsVolunteer ?? [],
+      },
+    }
+  })
   let student, volunteer
   for (const u of users) {
     if (u.id === sessionStudentId) student = u
