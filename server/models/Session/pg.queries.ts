@@ -1488,6 +1488,8 @@ export interface IGetSessionUsersResult {
   /** not_pii: Primary key */
   id: string;
   pastSessions: stringArray | null;
+  pastSessionsAsStudent: stringArray | null;
+  pastSessionsAsVolunteer: stringArray | null;
 }
 
 /** 'GetSessionUsers' query type */
@@ -1496,7 +1498,7 @@ export interface IGetSessionUsersQuery {
   result: IGetSessionUsersResult;
 }
 
-const getSessionUsersIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":752,"b":762}]}],"statement":"SELECT\n    users.created_at,\n    users.id,\n    users.first_name AS firstname,\n    users.first_name,\n    past_sessions.total AS past_sessions,\n    cgl.current_grade_name AS grade_level\nFROM\n    users\n    LEFT JOIN sessions ON sessions.student_id = users.id\n        OR sessions.volunteer_id = users.id\n    LEFT JOIN LATERAL (\n        SELECT\n            array_agg(sessions.id ORDER BY sessions.created_at) AS total\n        FROM\n            sessions\n        WHERE\n            sessions.student_id = users.id\n            OR sessions.volunteer_id = users.id) AS past_sessions ON TRUE\n    LEFT JOIN student_profiles ON student_profiles.user_id = users.id\n    LEFT JOIN current_grade_levels cgl ON cgl.user_id = student_profiles.user_id\nWHERE\n    sessions.id = :sessionId!\nGROUP BY\n    users.id,\n    past_sessions.total,\n    cgl.current_grade_name"};
+const getSessionUsersIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":1219,"b":1229}]}],"statement":"SELECT\n    users.created_at,\n    users.id,\n    users.first_name AS firstname,\n    users.first_name,\n    past_sessions_as_student.session_ids AS past_sessions_as_student,\n    past_sessions_as_volunteer.session_ids AS past_sessions_as_volunteer,\n    past_sessions_as_student.session_ids || past_sessions_as_volunteer.session_ids AS past_sessions, -- deprecated in favor of the above 2 values\n    cgl.current_grade_name AS grade_level\nFROM\n    users\n    LEFT JOIN sessions ON sessions.student_id = users.id\n        OR sessions.volunteer_id = users.id\n    LEFT JOIN LATERAL (\n        SELECT\n            array_agg(sessions.id ORDER BY sessions.created_at) AS session_ids\n        FROM\n            sessions\n        WHERE\n            sessions.volunteer_id = users.id) AS past_sessions_as_volunteer ON TRUE\n    LEFT JOIN LATERAL (\n        SELECT\n            array_agg(sessions.id ORDER BY sessions.created_at) AS session_ids\n        FROM\n            sessions\n        WHERE\n            sessions.student_id = users.id) AS past_sessions_as_student ON TRUE\n    LEFT JOIN student_profiles ON student_profiles.user_id = users.id\n    LEFT JOIN current_grade_levels cgl ON cgl.user_id = student_profiles.user_id\nWHERE\n    sessions.id = :sessionId!\nGROUP BY\n    users.id,\n    past_sessions_as_student.session_ids,\n    past_sessions_as_volunteer.session_ids,\n    cgl.current_grade_name"};
 
 /**
  * Query generated from SQL:
@@ -1506,7 +1508,9 @@ const getSessionUsersIR: any = {"usedParamSet":{"sessionId":true},"params":[{"na
  *     users.id,
  *     users.first_name AS firstname,
  *     users.first_name,
- *     past_sessions.total AS past_sessions,
+ *     past_sessions_as_student.session_ids AS past_sessions_as_student,
+ *     past_sessions_as_volunteer.session_ids AS past_sessions_as_volunteer,
+ *     past_sessions_as_student.session_ids || past_sessions_as_volunteer.session_ids AS past_sessions, -- deprecated in favor of the above 2 values
  *     cgl.current_grade_name AS grade_level
  * FROM
  *     users
@@ -1514,19 +1518,26 @@ const getSessionUsersIR: any = {"usedParamSet":{"sessionId":true},"params":[{"na
  *         OR sessions.volunteer_id = users.id
  *     LEFT JOIN LATERAL (
  *         SELECT
- *             array_agg(sessions.id ORDER BY sessions.created_at) AS total
+ *             array_agg(sessions.id ORDER BY sessions.created_at) AS session_ids
  *         FROM
  *             sessions
  *         WHERE
- *             sessions.student_id = users.id
- *             OR sessions.volunteer_id = users.id) AS past_sessions ON TRUE
+ *             sessions.volunteer_id = users.id) AS past_sessions_as_volunteer ON TRUE
+ *     LEFT JOIN LATERAL (
+ *         SELECT
+ *             array_agg(sessions.id ORDER BY sessions.created_at) AS session_ids
+ *         FROM
+ *             sessions
+ *         WHERE
+ *             sessions.student_id = users.id) AS past_sessions_as_student ON TRUE
  *     LEFT JOIN student_profiles ON student_profiles.user_id = users.id
  *     LEFT JOIN current_grade_levels cgl ON cgl.user_id = student_profiles.user_id
  * WHERE
  *     sessions.id = :sessionId!
  * GROUP BY
  *     users.id,
- *     past_sessions.total,
+ *     past_sessions_as_student.session_ids,
+ *     past_sessions_as_volunteer.session_ids,
  *     cgl.current_grade_name
  * ```
  */

@@ -14,7 +14,11 @@ export type CurrentSessionUser = {
   // TODO: remove `firstname` in favor of `firstName`. The frontend must be refactored first
   firstname: string
   firstName: string
-  pastSessions: Uuid[]
+  pastSessions: Uuid[] // @TODO: Remove me in favor of the below property once clients are no longer looking for this prop
+  pastSessionsByRole: {
+    asStudent: Uuid[]
+    asVolunteer: Uuid[]
+  }
 }
 
 // This type represents the user's in-progress tutoring session

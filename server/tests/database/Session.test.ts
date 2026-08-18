@@ -21,12 +21,17 @@ import {
   updateSessionFlagsById,
   updateSessionReviewReasonsById,
   updateSessionToEnd,
+  getSessionUsers,
 } from '../../models/Session'
 import { camelCaseKeys, insertSingleRow } from '../db-utils'
 import { range } from 'lodash'
 import moment from 'moment'
 import { USER_SESSION_METRICS, UserSessionFlags } from '../../constants'
-import { createTestUser, createTestVolunteer } from './seed-utils'
+import {
+  createTestStudent,
+  createTestUser,
+  createTestVolunteer,
+} from './seed-utils'
 import config from '../../config'
 
 describe('Session repo', () => {
@@ -255,6 +260,166 @@ describe('Session repo', () => {
           role: item.role,
         }))
       ).toEqual(expectedTranscript)
+    })
+  })
+
+  describe('getSessionUsers', () => {
+    const VOLUNTEER_ROLE_ID = 2
+
+    it('Returns sessions by the role the user took in each - S2V', async () => {
+      // A single role volunteer
+      const testVolunteer = await createTestUser(dbClient)
+      await createTestVolunteer(dbClient, testVolunteer.id)
+      // A student-volunteer
+      const studentVolunteer = await createTestStudent(dbClient)
+      // A single role student
+      const testStudent = await createTestStudent(dbClient)
+      const userId = studentVolunteer.user_id
+      await dbClient.query(
+        'INSERT INTO volunteer_profiles (user_id, photo_id_s3_key) VALUES ($1, $2)',
+        [studentVolunteer.user_id, null]
+      )
+      await dbClient.query(
+        'INSERT INTO users_roles (user_id, role_id) VALUES ($1, $2)',
+        [userId, VOLUNTEER_ROLE_ID]
+      )
+
+      // First check: No prior sessions exist
+      // Session where userId is the student
+      const firstSession = await insertSingleRow(
+        'sessions',
+        await buildSessionRow({
+          studentId: userId,
+          volunteerId: testVolunteer.id,
+        }),
+        dbClient
+      )
+      const actual1 = await getSessionUsers(
+        firstSession.id,
+        firstSession.studentId,
+        firstSession.volunteerId,
+        dbClient
+      )
+      expect(actual1.student.id).toEqual(userId)
+      expect(actual1.student.pastSessions).toEqual([firstSession.id])
+      expect(actual1.student.pastSessionsByRole).toEqual({
+        asStudent: [firstSession.id],
+        asVolunteer: [],
+      })
+
+      // Session where userId is the student (again)
+      const secondSession = await insertSingleRow(
+        'sessions',
+        await buildSessionRow({
+          studentId: userId,
+          volunteerId: testVolunteer.id,
+        }),
+        dbClient
+      )
+      const actual2 = await getSessionUsers(
+        secondSession.id,
+        secondSession.studentId,
+        secondSession.volunteerId,
+        dbClient
+      )
+      expect(actual2.student.id).toEqual(userId)
+      expect(actual2.student.pastSessions).toEqual([
+        firstSession.id,
+        secondSession.id,
+      ])
+      expect(actual2.student.pastSessionsByRole).toEqual({
+        asStudent: [firstSession.id, secondSession.id],
+        asVolunteer: [],
+      })
+
+      // Session where userId is the volunteer
+      const thirdSession = await insertSingleRow(
+        'sessions',
+        await buildSessionRow({
+          studentId: testStudent.user_id,
+          volunteerId: userId,
+        }),
+        dbClient
+      )
+      const actual3 = await getSessionUsers(
+        thirdSession.id,
+        thirdSession.studentId,
+        thirdSession.volunteerId,
+        dbClient
+      )
+      expect(actual3.student.id).toEqual(testStudent.user_id)
+      expect(actual3.volunteer.id).toEqual(userId)
+      expect(actual3.volunteer.pastSessions).toEqual([
+        firstSession.id,
+        secondSession.id,
+        thirdSession.id,
+      ])
+      expect(actual3.volunteer.pastSessionsByRole).toEqual({
+        asStudent: [firstSession.id, secondSession.id],
+        asVolunteer: [thirdSession.id],
+      })
+    })
+
+    it('Returns session by the role the user took in each - single role users', async () => {
+      const testStudent = await createTestStudent(dbClient)
+      const testVolunteer = await createTestUser(dbClient)
+      await createTestVolunteer(dbClient, testVolunteer.id)
+
+      const firstSession = await insertSingleRow(
+        'sessions',
+        await buildSessionRow({
+          studentId: testStudent.user_id,
+          volunteerId: testVolunteer.id,
+        }),
+        dbClient
+      )
+      const actual1 = await getSessionUsers(
+        firstSession.id,
+        firstSession.studentId,
+        firstSession.volunteerId,
+        dbClient
+      )
+      expect(actual1.student.pastSessions).toEqual([firstSession.id])
+      expect(actual1.volunteer.pastSessions).toEqual([firstSession.id])
+      expect(actual1.student.pastSessionsByRole).toEqual({
+        asStudent: [firstSession.id],
+        asVolunteer: [],
+      })
+      expect(actual1.volunteer.pastSessionsByRole).toEqual({
+        asStudent: [],
+        asVolunteer: [firstSession.id],
+      })
+
+      const secondSession = await insertSingleRow(
+        'sessions',
+        await buildSessionRow({
+          studentId: testStudent.user_id,
+          volunteerId: testVolunteer.id,
+        }),
+        dbClient
+      )
+      const actual2 = await getSessionUsers(
+        secondSession.id,
+        secondSession.studentId,
+        secondSession.volunteerId,
+        dbClient
+      )
+      expect(actual2.student.pastSessions).toEqual([
+        firstSession.id,
+        secondSession.id,
+      ])
+      expect(actual2.volunteer.pastSessions).toEqual([
+        firstSession.id,
+        secondSession.id,
+      ])
+      expect(actual2.student.pastSessionsByRole).toEqual({
+        asStudent: [firstSession.id, secondSession.id],
+        asVolunteer: [],
+      })
+      expect(actual2.volunteer.pastSessionsByRole).toEqual({
+        asStudent: [],
+        asVolunteer: [firstSession.id, secondSession.id],
+      })
     })
   })
 
