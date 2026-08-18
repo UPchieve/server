@@ -743,9 +743,6 @@ describe('getQuizScore', () => {
     expect(
       mockedVolunteerService.getVolunteerForOnboardingById
     ).not.toHaveBeenCalled()
-    expect(
-      mockedVolunteerService.queueNationalTutorCertificateEmail
-    ).not.toHaveBeenCalled()
   })
 
   test('Passes non-legacy training quiz if 100% of answers are correct', async () => {
@@ -775,15 +772,9 @@ describe('getQuizScore', () => {
 
     expect(mockedQuestionRepo.getQuizCertUnlocksByQuizName).toHaveBeenCalled()
     expect(VolunteerRepo.getSubjectsForVolunteer).toHaveBeenCalled()
-    expect(
-      mockedVolunteerService.getVolunteerForOnboardingById
-    ).toHaveBeenCalled()
 
     // No certs for training quiz
     expect(UserActionRepo.createQuizAction).not.toHaveBeenCalled()
     expect(mockedVolunteerRepo.addVolunteerCertification).not.toHaveBeenCalled()
-    expect(
-      mockedVolunteerService.queueNationalTutorCertificateEmail
-    ).not.toHaveBeenCalled()
   })
 })

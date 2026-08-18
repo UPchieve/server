@@ -1374,7 +1374,7 @@ function toCurrentSessionUser(row: SessionUserRow): CurrentSessionUser {
     createdAt: row.createdAt,
     firstname: row.firstname,
     firstName: row.firstName,
-    pastSessions: row.pastSessions,
+    pastSessions: row.pastSessions, // deprecated in favor of the below property
     pastSessionsByRole: row.pastSessionsByRole,
   }
 }

@@ -1487,6 +1487,10 @@ export function buildCurrentSessionUser(
     firstname: user.firstName,
     firstName: user.firstName,
     pastSessions: [],
+    pastSessionsByRole: {
+      asStudent: [],
+      asVolunteer: [],
+    },
     createdAt: new Date(),
     ...overrides,
   }

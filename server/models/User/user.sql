@@ -417,10 +417,10 @@ SELECT
     volunteer_profiles.country,
     volunteer_profiles.timezone,
     photo_id_statuses.name AS photo_id_status,
-    COALESCE(past_sessions.sessions, '{}') AS past_sessions,
-    round(past_sessions.time_tutored / 3600000::numeric, 2)::float AS hours_tutored,
-    COALESCE(past_sessions.time_tutored::float, 0) AS total_time_tutored,
-    COALESCE(array_length(past_sessions.total_tutored_sessions, 1), 0) AS total_tutored_sessions,
+    past_sessions_as_student.session_ids || past_sessions_as_volunteer.session_ids AS past_sessions, -- deprecated. prefer the next 2 properties instead
+    past_sessions_as_student.session_ids AS past_sessions_as_student,
+    past_sessions_as_volunteer.session_ids AS past_sessions_as_volunteer,
+    round(past_sessions_as_volunteer.time_tutored / 3600000::numeric, 2)::float AS hours_tutored,
     array_cat(total_subjects.subjects, computed_subjects.subjects) AS subjects,
     recent_availability.updated_at AS availability_last_modified_at,
     occupations.occupations AS occupation,
@@ -578,6 +578,21 @@ FROM
         WHERE
             federated_credentials.user_id = :userId!) AS federated_credentials_agg ON TRUE
     LEFT JOIN signup_sources ON signup_sources.id = users.signup_source_id
+    LEFT JOIN LATERAL (
+        SELECT
+            array_agg(sessions.id ORDER BY sessions.created_at) AS session_ids,
+            sum(time_tutored) AS time_tutored
+        FROM
+            sessions
+        WHERE
+            sessions.volunteer_id = :userId!) AS past_sessions_as_volunteer ON TRUE
+    LEFT JOIN LATERAL (
+        SELECT
+            array_agg(sessions.id ORDER BY sessions.created_at) AS session_ids
+        FROM
+            sessions
+        WHERE
+            sessions.student_id = :userId!) AS past_sessions_as_student ON TRUE
 WHERE
     users.id = :userId!
     AND users.deleted IS FALSE;

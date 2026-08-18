@@ -433,12 +433,12 @@ export async function getPastSessionsForAdminDetail(
   userId: Ulid,
   limit: number,
   offset: number,
-  client: TransactionClient
+  client: TransactionClient = getClient()
 ): Promise<PastSessionForAdmin[]> {
   try {
     const result = await pgQueries.getPastSessionsForAdminDetail.run(
       { userId, limit, offset },
-      getClient()
+      client
     )
     return result.map((v) => {
       const temp = makeSomeOptional(v, [
@@ -481,7 +481,6 @@ export async function getUserForAdminDetail(
       'isDeleted',
       'isTestUser',
       'verified',
-      'numPastSessions',
     ])
     if (user.email) {
       user.email = user.email.toLowerCase()

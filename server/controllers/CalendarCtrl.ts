@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import { DAYS, HOURS } from '../constants'
 import * as VolunteerService from '../services/VolunteerService'
 import {
