@@ -18,6 +18,7 @@ export type EssayReviewSubmission = {
   essayPrompt?: string
   additionalContext?: string
   reviewReasons: string[]
+  reviewEmail?: string
   wordCount: number
   characterCount: number
   status: EssayReviewStatus
@@ -35,6 +36,7 @@ export type CreateEssayReviewSubmission = {
   essayPrompt?: string
   additionalContext?: string
   reviewReasons?: string[]
+  reviewEmail: string
 }
 
 export type UpdateEssayReviewSubmission = {
@@ -66,6 +68,11 @@ export async function createEssayReviewSubmission(
     throw new InputError(`Essay must be ${maxEssayLength} characters or fewer`)
   }
 
+  const reviewEmail = payload.reviewEmail.trim()
+  if (!reviewEmail) {
+    throw new InputError('Review email is required')
+  }
+
   const submission: EssayReviewSubmission = {
     id: uuidv4(),
     userId: payload.userId,
@@ -76,6 +83,7 @@ export async function createEssayReviewSubmission(
     essayPrompt: cleanOptionalText(payload.essayPrompt),
     additionalContext: cleanOptionalText(payload.additionalContext),
     reviewReasons: payload.reviewReasons ?? [],
+    reviewEmail,
     wordCount: countWords(essay),
     characterCount: essay.length,
     status: 'pending',
