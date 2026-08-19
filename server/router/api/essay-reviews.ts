@@ -25,6 +25,7 @@ export function routeEssayReviews(apiRouter: Router): void {
         reviewReasons: req.body.reviewReasons
           ? asArray(asString)(req.body.reviewReasons)
           : [],
+        reviewEmail: asString(req.body.reviewEmail),
       })
 
       AnalyticsService.captureEvent(
