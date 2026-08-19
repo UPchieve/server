@@ -461,7 +461,7 @@ const generateVolunteer = (): CreateVolunteerPayload => {
   return {
     ip: '123',
     email: faker.internet.email(),
-    password: 'Password!123', // pragma: allowlist secret
+    password: 'Password!123',
     phone: faker.phone.number(),
     terms: true,
     firstName,

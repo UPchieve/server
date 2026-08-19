@@ -234,7 +234,7 @@ test_database:
         ]
   variables:
     POSTGRES_USER: admin
-    POSTGRES_PASSWORD: Password123 # pragma: allowlist secret
+    POSTGRES_PASSWORD: Password123
     POSTGRES_DB: upchieve
     CI: 'true'
     DB_PORT: 5432
