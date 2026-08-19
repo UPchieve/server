@@ -62,6 +62,11 @@ After switching Node versions using nvm, you will need to run `$ pnpm install`. 
 
 This project uses [pnpm](https://pnpm.io/) instead of npm. Once [installed](https://pnpm.io/installation), use `pnpm install <dependency>` to install dependencies, and `pnpm run <script>` to run scripts.
 
+### Git Hooks
+We have both pre-commit and pre-push Git hooks. When you first run `pn install`, Git will point to `.githooks` (which we do commit), via the `core.hooksPath` setting, when running hooks, instead of `.git/hooks` (which is not committed).
+
+NEVER skip pre-push hooks. This runs the local secret scanner, and will save you from pushing a secret to our public repository. Not that you should have a secret in your local files anyways!
+
 ### Detecting Secrets Pre-Commit
 
 We use [Yelp's detect-secrets](https://github.com/Yelp/detect-secrets) Python module as a precommit step to unsure we are not accidentally pushing secrets to GitLab. This is run within a virtual env. For setup, run:

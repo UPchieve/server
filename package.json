@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "preinstall": "npx only-allow pnpm",
+    "prepare": "if [ -x ./bin/install_git_hooks.sh ]; then ./bin/install_git_hooks.sh; fi",
     "build": "tsc --p tsconfig.server.json",
     "deploy:dev": "./bin/deploy.sh dev",
     "dev:revision": "az containerapp revision list --name development-container-app-subway --resource-group development-resource-group | jq -r '.[0] | \"\\(.name) - \\(.properties.runningState)\"'",
@@ -180,7 +181,6 @@
     "jest-runner-groups": "^2.2.0",
     "pg-formatter": "^1.3.0",
     "pino-pretty": "^10.3.1",
-    "pre-commit": "^1.0.10",
     "prettier": "^3.5.3",
     "supertest": "^4.0.2",
     "ts-jest": "^29.1.1",
