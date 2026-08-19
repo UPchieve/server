@@ -38,9 +38,9 @@ export const mockedAuthUtils = mocked(AuthUtils)
 
 export const ROSTER_SIGNUP_SOURCE_ID = 7
 export const OTHER_SIGNUP_SOURCE_ID = 6
-export const HASHED_PASSWORD_RESOLVED = 'iamnowhashedhehe' // pragma: allowlist secret
-export const DEFAULT_TEST_PASSWORD = 'Password123' // pragma: allowlist secret
-export const RESET_TOKEN = 'resettoken' // pragma: allowlist secret
+export const HASHED_PASSWORD_RESOLVED = 'iamnowhashedhehe'
+export const DEFAULT_TEST_PASSWORD = 'Password123'
+export const RESET_TOKEN = 'resettoken'
 
 export function buildRosterStudent(
   overrides: Partial<RosterStudentPayload> = {}

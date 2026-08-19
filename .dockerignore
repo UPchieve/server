@@ -32,7 +32,7 @@ LICENSE
 .dockerignore
 .prettierignore
 .prettierrc.json
-.secrets.baseline
+.secret-detection.toml
 docker-compose.yml
 jest.config.*.js
 pgtyped.config.json

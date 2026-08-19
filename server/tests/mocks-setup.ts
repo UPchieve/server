@@ -46,9 +46,9 @@ jest.mock('../config', () => {
     studentPartnerManifestPath: 'localManifests/student.yaml',
     sponsorOrgManifestPath: 'localManifests/sponsor-orgs.yaml',
     associatedPartnerManifestPath: 'localManifests/associated-partners.yaml',
-    azureClientId: 'bogus', // pragma: allowlist secret
-    azureTenantId: 'bogus', // pragma: allowlist secret
-    azureStorageSecret: 'bogus', // pragma: allowlist secret
+    azureClientId: 'bogus',
+    azureTenantId: 'bogus',
+    azureStorageSecret: 'bogus',
     smtp: {
       host: 'smtp.mailtrap.io',
       port: 2525,
@@ -171,9 +171,9 @@ jest.mock('../config', () => {
     apiPort: 3000,
 
     // Langfuse
-    langfuseSecretKey: 'test-bogus', // pragma: allowlist secret
-    langfusePublicKey: 'test-bogus', // pragma: allowlist secret
-    langfuseBaseUrl: 'test-bogus', // pragma: allowlist secret
+    langfuseSecretKey: 'test-bogus',
+    langfusePublicKey: 'test-bogus',
+    langfuseBaseUrl: 'test-bogus',
 
     // TOTP
     totpEncryptionKey: 'test-encryption-key',
