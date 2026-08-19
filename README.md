@@ -84,6 +84,11 @@ If the scanner detects a secret, don't just ignore or skip the command!
 1. Is it actually a secret? REMOVE IT, and ask yourself why you were copying secrets into your code in the first place. Is there a process to be improved?
 2. Is it not actually a secret? Add `// betterleaks:allow` as an in-line comment.
 
+#### Pre-Push with Alternative VCS
+**If you use an alternative VCS that does not support the Git pre-push hook, you are responsible for finding a solution.**
+
+If you use jj (the Right Choice 🌠), a solution has been created for you already! Check out `bin/jj_pre_push.sh` for the shim to add to your `.bashrc` or equivalent.
+
 ### App Dependencies
 
 On Linux systems you may need to install [`docker-compose` manually](https://docs.docker.com/compose/install/); on Windows and MacOS it ships with base docker. A docker-compose yaml specifies how to spin up Mongo, Redis, PostgreSQL, and PGAdmin containers to support the server, and also seeds the PostgreSQL database with test data.

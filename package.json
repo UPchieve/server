@@ -53,9 +53,9 @@
     "db:schema-down": "dbmate --no-dump-schema -d \"./database/migrations\" --url=\"postgres://admin:Password123@${PGHOST:-localhost}:${PGPORT:-5432}/upchieve?sslmode=disable\" --migrations-table=\"schema_migrations\" down",
     "db:seeds-up": "dbmate --no-dump-schema -d \"./database/seed-updates\" --url=\"postgres://admin:Password123@${PGHOST:-localhost}:${PGPORT:-5432}/upchieve?sslmode=disable\" --migrations-table=\"seed_migrations\" up",
     "db:seeds-down": "dbmate --no-dump-schema -d \"./database/seed-updates\" --url=\"postgres://admin:Password123@${PGHOST:-localhost}:${PGPORT:-5432}/upchieve?sslmode=disable\" --migrations-table=\"seed_migrations\" down",
-    "secrets:setup": "./bin/secret-detection.sh pull",
-    "secrets:check": "./bin/secret-detection.sh check-branch",
-    "secrets:check:staged": "./bin/secret-detection.sh check-staged",
+    "secrets:setup": "./bin/secret_detection.sh pull",
+    "secrets:check": "./bin/secret_detection.sh check-branch",
+    "secrets:check:staged": "./bin/secret_detection.sh check-staged",
     "check:socket-address": "./bin/check_socket_address.sh"
   },
   "pre-commit": [
