@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict 8ToFHJbOpdxVEXTMlSrAYav3ppZ1di15xSAZLyxLXoxYZ2EFpOUFTrBdirdgK2U
+\restrict KiBuNxvRXPE6ygDorTRJkvZ6d3zTLG7sn5RANlP6lVWQ5f9hSLWMldYjpXHP0bH
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
 -- Dumped by pg_dump version 15.18 (Homebrew)
@@ -6314,6 +6314,7 @@ COPY upchieve.nths_school_affiliation_statuses (id, name, created_at) FROM stdin
 3	AFFILIATED	2026-02-03 19:53:33.966404+00
 4	DENIED	2026-02-03 19:53:33.966404+00
 5	OPTED_OUT	2026-02-04 20:11:53.329958+00
+6	UNAFFILIATED	2026-08-19 10:55:28.804423+00
 \.
 
 
@@ -9305,7 +9306,7 @@ SELECT pg_catalog.setval('upchieve.nths_group_roles_id_seq', 2, true);
 -- Name: nths_school_affiliation_statuses_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.nths_school_affiliation_statuses_id_seq', 5, true);
+SELECT pg_catalog.setval('upchieve.nths_school_affiliation_statuses_id_seq', 6, true);
 
 
 --
@@ -9536,5 +9537,5 @@ SELECT pg_catalog.setval('upchieve.weekdays_id_seq', 1, false);
 -- PostgreSQL database dump complete
 --
 
-\unrestrict 8ToFHJbOpdxVEXTMlSrAYav3ppZ1di15xSAZLyxLXoxYZ2EFpOUFTrBdirdgK2U
+\unrestrict KiBuNxvRXPE6ygDorTRJkvZ6d3zTLG7sn5RANlP6lVWQ5f9hSLWMldYjpXHP0bH
 
