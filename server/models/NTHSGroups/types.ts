@@ -13,6 +13,7 @@ export type NTHSGroupWithMemberInfo = {
   inviteCode: string
   roleName: NTHSGroupRoleName
   schoolAffiliationStatus: NTHSSchoolAffiliationStatusName | null
+  hasSchoolOnRecord: boolean
 }
 
 export type NTHSGroup = {
@@ -87,12 +88,16 @@ export type NTHSAction = {
   name: string
 }
 
+// The UNAFFILIATED status will get applied when a new group is founded by an
+// applicant that had a valid school_id. This lets us guard against multiple
+// multiple NTHS chapters (officially affiliated or not) for a given school.
 export type NTHSSchoolAffiliationStatusName =
   | 'PENDING_SCHOOL_AFFILIATION'
   | 'PENDING_UPCHIEVE_VERIFICATION'
   | 'AFFILIATED'
   | 'DENIED'
   | 'OPTED_OUT'
+  | 'UNAFFILIATED'
 
 export type NTHSChapterStatusName = 'PENDING' | 'FAILED' | 'OFFICIAL'
 

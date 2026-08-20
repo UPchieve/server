@@ -7,7 +7,8 @@ SELECT
     ng.key AS group_key,
     ng.invite_code,
     roles.name AS role_name,
-    aff_statuses.name AS school_affiliation_status
+    aff_statuses.name AS school_affiliation_status,
+    aff.school_id IS NOT NULL AS has_school_on_record
 FROM
     nths_group_members ngm
     INNER JOIN nths_groups ng ON ng.id = ngm.nths_group_id
@@ -258,6 +259,20 @@ ON CONFLICT (nths_group_id)
         :status! AS status;
 
 
+/* @name insertSchoolAffiliation */
+INSERT INTO nths_group_school_affiliation (nths_group_id, nths_school_affiliation_status_id, school_id)
+SELECT
+    :nthsGroupId!,
+    statuses.id,
+    :schoolId!
+FROM
+    nths_school_affiliation_statuses statuses
+WHERE
+    statuses.name = :status!
+RETURNING
+    nths_group_id;
+
+
 /* @name insertNthsAdvisor */
 INSERT INTO nths_advisors (id, nths_group_id, first_name, last_name, email, phone, phone_extension, title, school_id)
     VALUES (generate_ulid (), :nthsGroupId!, :firstName!, :lastName!, :email!, :phone, :phoneExtension, :title!, :schoolId)
@@ -265,14 +280,21 @@ RETURNING
     *;
 
 
+/* Uses a COALESCE rather than a plain assignment to prevent "moving" a chapter
+ to another school than the one it was already associated with. Any mismatch is
+ reported from here for use by the calling method to respond appropriately */
 /* @name addSchoolToSchoolAffiliation */
 UPDATE
     nths_group_school_affiliation
 SET
-    school_id = :schoolId,
+    school_id = COALESCE(school_id, :schoolId),
     updated_at = NOW()
 WHERE
-    nths_group_id = :nthsGroupId!;
+    nths_group_id = :nthsGroupId!
+RETURNING
+    school_id,
+    :schoolId::uuid IS NOT NULL
+    AND school_id IS DISTINCT FROM :schoolId AS mismatched;
 
 
 /* @name getLatestNthsChapterStatus */

@@ -9,7 +9,11 @@ import {
   buildUser,
   buildVolunteer,
 } from '../../mocks/generate'
-import { isGroupAdmin, routeNTHSGroups } from '../../../router/api/nths-groups'
+import {
+  GROUP_ADMIN_ACTIONS,
+  isGroupAdmin,
+  routeNTHSGroups,
+} from '../../../router/api/nths-groups'
 import * as NTHSGroupsService from '../../../services/NTHSGroupsService'
 import { RepoUpdateError } from '../../../models/Errors'
 import {
@@ -60,7 +64,7 @@ function sendDelete(path: string): Promise<Response> {
 
 const groupId = getUuid()
 const memberId = getUuid()
-const actionName = 'Action'
+const actionName = 'NAMED YOUR TEAM'
 
 describe('isGroupAdmin', () => {
   const userId = getUuid()
@@ -345,6 +349,65 @@ describe('routeNTHSGroups', () => {
         groupId: member.nthsGroupId,
         action: { ...action, createdAt: action.createdAt.toISOString() },
       })
+    })
+
+    // A typo in GROUP_ADMIN_ACTIONS would silently lock presidents out of their
+    // own checklist and affiliation choice.
+    test.each([...GROUP_ADMIN_ACTIONS])(
+      'allows %s from a chapter admin',
+      async (allowed) => {
+        const member = buildNTHSGroupMemberWithRole({ roleName: 'admin' })
+        mockedNTHSGroupsService.getGroupMember.mockResolvedValueOnce(member)
+        mockedNTHSGroupsService.createAction.mockResolvedValueOnce({
+          action: {
+            id: 1,
+            groupId: member.nthsGroupId,
+            actionId: 2,
+            actionName: allowed,
+            createdAt: new Date(),
+          },
+        })
+
+        const response = await sendPost(
+          `/api/nths-groups/${member.nthsGroupId}/actions`,
+          { action: allowed }
+        )
+
+        expect(response.status).toBe(200)
+        expect(mockedNTHSGroupsService.createAction).toHaveBeenCalledWith(
+          member.nthsGroupId,
+          allowed
+        )
+      }
+    )
+
+    test.each([
+      'ADVISOR VERIFIED',
+      'SCHOOL AFFILIATION DENIED',
+      'SUBMITTED ADVISOR CONTACT INFO',
+      'NOT AN ACTION',
+    ])('refuses %s from a chapter admin', async (action) => {
+      const member = buildNTHSGroupMemberWithRole({ roleName: 'admin' })
+      mockedNTHSGroupsService.getGroupMember.mockResolvedValueOnce(member)
+      // Stubbed so that removing the guard shows up as a 200 rather than a
+      // crash on the auto-mock's undefined return.
+      mockedNTHSGroupsService.createAction.mockResolvedValueOnce({
+        action: {
+          id: 1,
+          groupId: member.nthsGroupId,
+          actionId: 2,
+          actionName,
+          createdAt: new Date(),
+        },
+      })
+
+      const response = await sendPost(
+        `/api/nths-groups/${member.nthsGroupId}/actions`,
+        { action }
+      )
+
+      expect(response.status).toBe(422)
+      expect(mockedNTHSGroupsService.createAction).not.toHaveBeenCalled()
     })
   })
 

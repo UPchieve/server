@@ -30,7 +30,8 @@ import generateAlphanumericOfLength from '../utils/generate-alphanumeric'
 import {
   AlreadyInNTHSGroupError,
   CannotRemoveSoleNTHSAdminError,
-  NTHSGroupAffiliationExistsError,
+  NTHSSchoolAlreadyClaimedError,
+  NTHSChapterSchoolFixedError,
   NotAHighSchoolerNTHSJoinError,
   NotAllowedError,
 } from '../models/Errors'
@@ -61,9 +62,9 @@ export async function foundGroup(
     // could found a chapter and make themselves its admin. Read inside the
     // transaction: the default read client is a replica, where lag would let a
     // just-revoked approval through.
-    if (
-      !(await NTHSApplicationRepo.hasActivatedCandidateApplication(userId, tc))
-    )
+    const application =
+      await NTHSApplicationRepo.getActivatedCandidateApplication(userId, tc)
+    if (!application)
       throw new NotAllowedError(
         'An approved NTHS application is needed to start a chapter'
       )
@@ -89,6 +90,29 @@ export async function foundGroup(
       tc
     )
 
+    // If the application has a valid school_id we can go ahead and "claim"
+    // the school via an UNAFFILIATED status in nths_group_school_affiliation
+    // table so we can enforce a 1-chapter-per-school policy.
+    let schoolAffiliationStatus: NTHSSchoolAffiliationStatusName | null = null
+    if (application.schoolId) {
+      try {
+        await NTHSGroupsRepo.insertSchoolAffiliation(
+          {
+            nthsGroupId: group.id,
+            schoolId: application.schoolId,
+            status: 'UNAFFILIATED',
+          },
+          tc
+        )
+        schoolAffiliationStatus = 'UNAFFILIATED'
+      } catch (err) {
+        if (err instanceof Error && err.message.includes('unique_school_id')) {
+          throw new NTHSSchoolAlreadyClaimedError()
+        }
+        throw err
+      }
+    }
+
     const result = {
       groupInfo: {
         id: group.id,
@@ -101,7 +125,8 @@ export async function foundGroup(
         joinedAt: creator.joinedAt,
         roleName: 'admin',
       },
-      schoolAffiliationStatus: null,
+      schoolAffiliationStatus,
+      hasSchoolOnRecord: !!application.schoolId,
       // @TODO Remove the fields below once we update the client to reference groupInfo and memberInfo instead
       memberTitle: creator.title,
       joinedAt: creator.joinedAt,
@@ -347,10 +372,34 @@ export async function submitSchoolAffiliation({
 }) {
   return runInTransaction(async (tc) => {
     try {
-      const NTHSAdvisor = await addNTHSAdvisor(
+      // Goes first because it is what creates the affiliation row: the action
+      // maps to PENDING_UPCHIEVE_VERIFICATION, which upserts. The update below
+      // only ever touches an existing row.
+      const created = await createAction(
+        nthsGroupId,
+        'SUBMITTED ADVISOR CONTACT INFO',
+        tc
+      )
+
+      // The update COALESCEs, so a missing schoolId leaves the affiliation
+      // untouched and still reports the school already on record. The advisor
+      // inherits that rather than being written with no school at all.
+      const affiliation = await addSchoolToSchoolAffiliation(
         {
           nthsGroupId,
           schoolId,
+        },
+        tc
+      )
+      // A school may already be claimed for this chapter, in which case we
+      // don't want to let them use this process to "move" the chapter to
+      // another school.
+      if (affiliation?.mismatched) throw new NTHSChapterSchoolFixedError()
+
+      const NTHSAdvisor = await addNTHSAdvisor(
+        {
+          nthsGroupId,
+          schoolId: affiliation?.schoolId,
           firstName,
           lastName,
           email,
@@ -361,24 +410,10 @@ export async function submitSchoolAffiliation({
         tc
       )
 
-      const created = await createAction(
-        nthsGroupId,
-        'SUBMITTED ADVISOR CONTACT INFO',
-        tc
-      )
-
-      await addSchoolToSchoolAffiliation(
-        {
-          nthsGroupId,
-          schoolId,
-        },
-        tc
-      )
-
       return { groupId: nthsGroupId, NTHSAdvisor, action: created }
     } catch (err) {
       if (err instanceof Error && err.message.includes('unique_school_id')) {
-        throw new NTHSGroupAffiliationExistsError()
+        throw new NTHSSchoolAlreadyClaimedError()
       }
 
       throw err

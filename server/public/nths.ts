@@ -54,6 +54,7 @@ export function toNTHSGroupWithMemberInfoPublic(
     inviteCode: group.inviteCode,
     roleName: group.roleName,
     schoolAffiliationStatus: group.schoolAffiliationStatus ?? null,
+    hasSchoolOnRecord: group.hasSchoolOnRecord,
   }
 }
 

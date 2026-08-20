@@ -130,18 +130,43 @@ RETURNING
     created_at;
 
 
-/* Activation, not the latest status, is what unlocks chapter creation. Asked as
- an existence check so a later application cannot revoke an approval already
- acted on, and activation_requires_approval means an activated row is approved by
- construction. */
-/* @name hasActivatedCandidateApplication */
+/* Founding needs the school off the approval it is acting on. Ordered by
+ activation so a later approval wins if a user somehow holds two. */
+/* @name activatedCandidateApplication */
 SELECT
-    EXISTS (
-        SELECT
-            1
-        FROM
-            nths_candidate_applications
-        WHERE
-            user_id = :userId!
-            AND activated_at IS NOT NULL) AS activated;
+    id,
+    school_id
+FROM
+    nths_candidate_applications
+WHERE
+    user_id = :userId!
+    AND activated_at IS NOT NULL
+ORDER BY
+    activated_at DESC,
+    id DESC
+LIMIT 1;
+
+
+/* A school can be claimed in 2 ways, it can either have a corresponding
+ nths_group_school_affiliation record for an existing nths_groups entry
+ or there can already be an approved application where the applicant
+ hasn't yet finished setting up the chapter. */
+/* @name isSchoolClaimedForNthsChapter */
+SELECT
+    (EXISTS (
+            SELECT
+                1
+            FROM
+                nths_group_school_affiliation
+            WHERE
+                school_id = :schoolId!)
+            OR EXISTS (
+                SELECT
+                    1
+                FROM
+                    nths_candidate_applications
+                WHERE
+                    school_id = :schoolId!
+                    AND activated_at IS NOT NULL
+                    AND user_id <> :userId!)) AS claimed;
 

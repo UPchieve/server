@@ -267,7 +267,7 @@ export interface IDecideCandidateApplicationQuery {
   result: IDecideCandidateApplicationResult;
 }
 
-const decideCandidateApplicationIR: any = {"usedParamSet":{"status":true,"deniedNotes":true,"userId":true},"params":[{"name":"status","required":true,"transform":{"type":"scalar"},"locs":[{"a":56,"b":63},{"a":152,"b":159}]},{"name":"deniedNotes","required":false,"transform":{"type":"scalar"},"locs":[{"a":85,"b":96}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":396,"b":403}]}],"statement":"UPDATE\n    nths_candidate_applications\nSET\n    status = :status!,\n    denied_notes = :deniedNotes,\n    decided_at = NOW(),\n    activated_at = CASE WHEN :status!::nths_candidate_application_status = 'approved' THEN\n        NOW()\n    END,\n    updated_at = NOW()\nWHERE\n    id = (\n        SELECT\n            id\n        FROM\n            nths_candidate_applications\n        WHERE\n            user_id = :userId!\n            AND status = 'applied'\n        ORDER BY\n            created_at DESC,\n            id DESC\n        LIMIT 1)\nAND status = 'applied'\nRETURNING\n    id,\n    user_id,\n    status,\n    school_id,\n    unlisted_school,\n    form_version,\n    responses,\n    denied_notes,\n    decided_at,\n    activated_at,\n    created_at                                                                                                                                                                                                                                                                 "};
+const decideCandidateApplicationIR: any = {"usedParamSet":{"status":true,"deniedNotes":true,"userId":true},"params":[{"name":"status","required":true,"transform":{"type":"scalar"},"locs":[{"a":56,"b":63},{"a":152,"b":159}]},{"name":"deniedNotes","required":false,"transform":{"type":"scalar"},"locs":[{"a":85,"b":96}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":396,"b":403}]}],"statement":"UPDATE\n    nths_candidate_applications\nSET\n    status = :status!,\n    denied_notes = :deniedNotes,\n    decided_at = NOW(),\n    activated_at = CASE WHEN :status!::nths_candidate_application_status = 'approved' THEN\n        NOW()\n    END,\n    updated_at = NOW()\nWHERE\n    id = (\n        SELECT\n            id\n        FROM\n            nths_candidate_applications\n        WHERE\n            user_id = :userId!\n            AND status = 'applied'\n        ORDER BY\n            created_at DESC,\n            id DESC\n        LIMIT 1)\nAND status = 'applied'\nRETURNING\n    id,\n    user_id,\n    status,\n    school_id,\n    unlisted_school,\n    form_version,\n    responses,\n    denied_notes,\n    decided_at,\n    activated_at,\n    created_at                                                                                                                                              "};
 
 /**
  * Query generated from SQL:
@@ -307,44 +307,94 @@ const decideCandidateApplicationIR: any = {"usedParamSet":{"status":true,"denied
  *     denied_notes,
  *     decided_at,
  *     activated_at,
- *     created_at                                                                                                                                                                                                                                                                 
+ *     created_at                                                                                                                                              
  * ```
  */
 export const decideCandidateApplication = new PreparedQuery<IDecideCandidateApplicationParams,IDecideCandidateApplicationResult>(decideCandidateApplicationIR);
 
 
-/** 'HasActivatedCandidateApplication' parameters type */
-export interface IHasActivatedCandidateApplicationParams {
+/** 'ActivatedCandidateApplication' parameters type */
+export interface IActivatedCandidateApplicationParams {
   userId: string;
 }
 
-/** 'HasActivatedCandidateApplication' return type */
-export interface IHasActivatedCandidateApplicationResult {
-  activated: boolean | null;
+/** 'ActivatedCandidateApplication' return type */
+export interface IActivatedCandidateApplicationResult {
+  /** not_pii: Primary key */
+  id: number;
+  /** pii: Foreign key to upchieve.schools */
+  schoolId: string | null;
 }
 
-/** 'HasActivatedCandidateApplication' query type */
-export interface IHasActivatedCandidateApplicationQuery {
-  params: IHasActivatedCandidateApplicationParams;
-  result: IHasActivatedCandidateApplicationResult;
+/** 'ActivatedCandidateApplication' query type */
+export interface IActivatedCandidateApplicationQuery {
+  params: IActivatedCandidateApplicationParams;
+  result: IActivatedCandidateApplicationResult;
 }
 
-const hasActivatedCandidateApplicationIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":138,"b":145}]}],"statement":"SELECT\n    EXISTS (\n        SELECT\n            1\n        FROM\n            nths_candidate_applications\n        WHERE\n            user_id = :userId!\n            AND activated_at IS NOT NULL) AS activated"};
+const activatedCandidateApplicationIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":86,"b":93}]}],"statement":"SELECT\n    id,\n    school_id\nFROM\n    nths_candidate_applications\nWHERE\n    user_id = :userId!\n    AND activated_at IS NOT NULL\nORDER BY\n    activated_at DESC,\n    id DESC\nLIMIT 1                                                                                                                                                                                                                                                                     "};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
- *     EXISTS (
- *         SELECT
- *             1
- *         FROM
- *             nths_candidate_applications
- *         WHERE
- *             user_id = :userId!
- *             AND activated_at IS NOT NULL) AS activated
+ *     id,
+ *     school_id
+ * FROM
+ *     nths_candidate_applications
+ * WHERE
+ *     user_id = :userId!
+ *     AND activated_at IS NOT NULL
+ * ORDER BY
+ *     activated_at DESC,
+ *     id DESC
+ * LIMIT 1                                                                                                                                                                                                                                                                     
  * ```
  */
-export const hasActivatedCandidateApplication = new PreparedQuery<IHasActivatedCandidateApplicationParams,IHasActivatedCandidateApplicationResult>(hasActivatedCandidateApplicationIR);
+export const activatedCandidateApplication = new PreparedQuery<IActivatedCandidateApplicationParams,IActivatedCandidateApplicationResult>(activatedCandidateApplicationIR);
+
+
+/** 'IsSchoolClaimedForNthsChapter' parameters type */
+export interface IIsSchoolClaimedForNthsChapterParams {
+  schoolId: string;
+  userId: string;
+}
+
+/** 'IsSchoolClaimedForNthsChapter' return type */
+export interface IIsSchoolClaimedForNthsChapterResult {
+  claimed: boolean | null;
+}
+
+/** 'IsSchoolClaimedForNthsChapter' query type */
+export interface IIsSchoolClaimedForNthsChapterQuery {
+  params: IIsSchoolClaimedForNthsChapterParams;
+  result: IIsSchoolClaimedForNthsChapterResult;
+}
+
+const isSchoolClaimedForNthsChapterIR: any = {"usedParamSet":{"schoolId":true,"userId":true},"params":[{"name":"schoolId","required":true,"transform":{"type":"scalar"},"locs":[{"a":167,"b":176},{"a":371,"b":380}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":466,"b":473}]}],"statement":"SELECT\n    (EXISTS (\n            SELECT\n                1\n            FROM\n                nths_group_school_affiliation\n            WHERE\n                school_id = :schoolId!)\n            OR EXISTS (\n                SELECT\n                    1\n                FROM\n                    nths_candidate_applications\n                WHERE\n                    school_id = :schoolId!\n                    AND activated_at IS NOT NULL\n                    AND user_id <> :userId!)) AS claimed"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     (EXISTS (
+ *             SELECT
+ *                 1
+ *             FROM
+ *                 nths_group_school_affiliation
+ *             WHERE
+ *                 school_id = :schoolId!)
+ *             OR EXISTS (
+ *                 SELECT
+ *                     1
+ *                 FROM
+ *                     nths_candidate_applications
+ *                 WHERE
+ *                     school_id = :schoolId!
+ *                     AND activated_at IS NOT NULL
+ *                     AND user_id <> :userId!)) AS claimed
+ * ```
+ */
+export const isSchoolClaimedForNthsChapter = new PreparedQuery<IIsSchoolClaimedForNthsChapterParams,IIsSchoolClaimedForNthsChapterResult>(isSchoolClaimedForNthsChapterIR);
 
 

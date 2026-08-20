@@ -19,6 +19,7 @@ import {
   CaughtError,
   InputError,
   NTHSApplicationExistsError,
+  NTHSSchoolAlreadyClaimedError,
 } from '../models/Errors'
 import logger from '../logger'
 import {
@@ -295,7 +296,7 @@ export async function submitCandidateApplication({
     // so reapplying after one stays open.
     const [groups, activated] = await Promise.all([
       NTHSGroupsRepo.getGroupsByUser(userId, tc),
-      NTHSApplicationRepo.hasActivatedCandidateApplication(userId, tc),
+      NTHSApplicationRepo.getActivatedCandidateApplication(userId, tc),
     ])
     if (groups.length || activated)
       throw new NTHSApplicationExistsError(
@@ -361,15 +362,38 @@ export async function decideCandidateApplication({
   if (isDenial && !deniedNotes?.trim())
     throw new InputError('A denied application needs a reason')
 
-  const application = await NTHSApplicationRepo.decideCandidateApplication({
-    userId,
-    status,
-    deniedNotes: isDenial ? deniedNotes : undefined,
-  })
-  if (!application)
-    throw new InputError(
-      `No NTHS application awaiting a decision for user ${userId}`
+  // Runs in a transaction: the UPDATE below executes first so decided.schoolId
+  // comes from the row it actually touched, rather than a separate lookup
+  // before deciding. A throw after the write still rolls it back cleanly.
+  const application = await runInTransaction(async (tc: TransactionClient) => {
+    const decided = await NTHSApplicationRepo.decideCandidateApplication(
+      {
+        userId,
+        status,
+        deniedNotes: isDenial ? deniedNotes : undefined,
+      },
+      tc
     )
+    if (!decided)
+      throw new InputError(
+        `No NTHS application awaiting a decision for user ${userId}`
+      )
+
+    // Excludes decided's own user_id since by this point this applicant's row
+    // is already activated, so without the exclusion it would always collide
+    // with itself.
+    if (
+      decided.status === NTHSCandidateApplicationStatus.approved &&
+      decided.schoolId &&
+      (await NTHSApplicationRepo.isSchoolClaimedForNTHSChapter(
+        { schoolId: decided.schoolId, userId },
+        tc
+      ))
+    )
+      throw new NTHSSchoolAlreadyClaimedError()
+
+    return decided
+  })
 
   const contactInfo = await getUserContactInfo(application.userId)
   if (contactInfo) {

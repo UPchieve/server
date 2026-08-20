@@ -33,6 +33,7 @@ export type NTHSGroupWithMemberInfoPublic = {
   inviteCode: string
   roleName: NTHSGroupRoleName
   schoolAffiliationStatus: NTHSSchoolAffiliationStatusName | null
+  hasSchoolOnRecord: boolean
 }
 
 export type NTHSGroupMemberPublic = {
