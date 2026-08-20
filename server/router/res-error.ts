@@ -10,7 +10,8 @@ import {
   AlreadyInNTHSGroupError,
   CannotRemoveSoleNTHSAdminError,
   NTHSGroupNameTakenError,
-  NTHSGroupAffiliationExistsError,
+  NTHSSchoolAlreadyClaimedError,
+  NTHSChapterSchoolFixedError,
   NTHSApplicationExistsError,
   NotAHighSchoolerNTHSJoinError,
   SessionJoinError,
@@ -61,7 +62,8 @@ export function resError(
     // bad input
     else if (err instanceof InputError) status = 422
     else if (err instanceof AlreadyInNTHSGroupError) status = 422
-    else if (err instanceof NTHSGroupAffiliationExistsError) status = 422
+    else if (err instanceof NTHSSchoolAlreadyClaimedError) status = 422
+    else if (err instanceof NTHSChapterSchoolFixedError) status = 422
     else if (err instanceof NTHSGroupNameTakenError) status = 422
     else if (err instanceof CannotRemoveSoleNTHSAdminError) status = 422
     else if (err instanceof NotAHighSchoolerNTHSJoinError) status = 422

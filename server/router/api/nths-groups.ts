@@ -3,6 +3,7 @@ import { extractUser } from '../extract-user'
 import { resError } from '../res-error'
 import * as NTHSGroupsService from '../../services/NTHSGroupsService'
 import {
+  InputError,
   NotAuthenticatedError,
   NTHSGroupNameTakenError,
   RepoUpdateError,
@@ -15,6 +16,7 @@ import {
   toNTHSGroupPublic,
   toNTHSGroupWithMemberInfoPublic,
 } from '../../public/nths'
+import type { NTHSActionName } from '../../models/NTHSGroups'
 import type {
   NTHSActionsAndGroupActionsResponse,
   NTHSCreateActionResponse,
@@ -41,6 +43,19 @@ export async function isGroupAdmin(
   }
   return res.status(403).json({ err: 'Unauthorized' })
 }
+
+// This lists out the subset of actions that a group admin is allowed
+// to take via the `/actions` endpoint so that we can guard other actions
+// that are intended to be set via other endpoints
+export const GROUP_ADMIN_ACTIONS: ReadonlySet<string> = new Set<NTHSActionName>(
+  [
+    'NAMED YOUR TEAM',
+    'REVIEWED RESOURCES',
+    'ATTENDED ORIENTATION',
+    'MARKED SCHOOL AFFILIATION IN PROGRESS',
+    'OPTED OUT',
+  ]
+)
 
 export function routeNTHSGroups(router: Router): void {
   router
@@ -156,6 +171,10 @@ export function routeNTHSGroups(router: Router): void {
         try {
           const groupId = req.params.groupId
           const action = req.body.action
+          if (!GROUP_ADMIN_ACTIONS.has(action))
+            throw new InputError(
+              `${action} is not an action a chapter can take`
+            )
           const created = await NTHSGroupsService.createAction(groupId, action)
           res.json({
             groupId,

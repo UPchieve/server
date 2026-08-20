@@ -14,6 +14,7 @@ export interface IGetGroupsByUserResult {
   groupKey: string;
   /** not_pii: Human-readable name */
   groupName: string;
+  hasSchoolOnRecord: boolean | null;
   /** not_pii: Short invite code for joining the NTHS group */
   inviteCode: string;
   /** not_pii: Timestamp when the member joined the group */
@@ -32,7 +33,7 @@ export interface IGetGroupsByUserQuery {
   result: IGetGroupsByUserResult;
 }
 
-const getGroupsByUserIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":401,"b":408},{"a":762,"b":769}]}],"statement":"SELECT\n    ngm.title AS member_title,\n    ngm.joined_at,\n    ng.id AS group_id,\n    ng.name AS group_name,\n    ng.key AS group_key,\n    ng.invite_code,\n    roles.name AS role_name,\n    aff_statuses.name AS school_affiliation_status\nFROM\n    nths_group_members ngm\n    INNER JOIN nths_groups ng ON ng.id = ngm.nths_group_id\n    INNER JOIN nths_group_member_roles member_roles ON member_roles.user_id = :userId!\n        AND member_roles.nths_group_id = ng.id\n    INNER JOIN nths_group_roles roles ON roles.id = member_roles.role_id\n    LEFT JOIN nths_group_school_affiliation aff ON aff.nths_group_id = ngm.nths_group_id\n    LEFT JOIN nths_school_affiliation_statuses aff_statuses ON aff_statuses.id = aff.nths_school_affiliation_status_id\nWHERE\n    ngm.user_id = :userId!\n    AND ngm.deactivated_at IS NULL"};
+const getGroupsByUserIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":456,"b":463},{"a":817,"b":824}]}],"statement":"SELECT\n    ngm.title AS member_title,\n    ngm.joined_at,\n    ng.id AS group_id,\n    ng.name AS group_name,\n    ng.key AS group_key,\n    ng.invite_code,\n    roles.name AS role_name,\n    aff_statuses.name AS school_affiliation_status,\n    aff.school_id IS NOT NULL AS has_school_on_record\nFROM\n    nths_group_members ngm\n    INNER JOIN nths_groups ng ON ng.id = ngm.nths_group_id\n    INNER JOIN nths_group_member_roles member_roles ON member_roles.user_id = :userId!\n        AND member_roles.nths_group_id = ng.id\n    INNER JOIN nths_group_roles roles ON roles.id = member_roles.role_id\n    LEFT JOIN nths_group_school_affiliation aff ON aff.nths_group_id = ngm.nths_group_id\n    LEFT JOIN nths_school_affiliation_statuses aff_statuses ON aff_statuses.id = aff.nths_school_affiliation_status_id\nWHERE\n    ngm.user_id = :userId!\n    AND ngm.deactivated_at IS NULL"};
 
 /**
  * Query generated from SQL:
@@ -45,7 +46,8 @@ const getGroupsByUserIR: any = {"usedParamSet":{"userId":true},"params":[{"name"
  *     ng.key AS group_key,
  *     ng.invite_code,
  *     roles.name AS role_name,
- *     aff_statuses.name AS school_affiliation_status
+ *     aff_statuses.name AS school_affiliation_status,
+ *     aff.school_id IS NOT NULL AS has_school_on_record
  * FROM
  *     nths_group_members ngm
  *     INNER JOIN nths_groups ng ON ng.id = ngm.nths_group_id
@@ -860,6 +862,46 @@ const upsertSchoolAffiliationStatusIR: any = {"usedParamSet":{"nthsGroupId":true
 export const upsertSchoolAffiliationStatus = new PreparedQuery<IUpsertSchoolAffiliationStatusParams,IUpsertSchoolAffiliationStatusResult>(upsertSchoolAffiliationStatusIR);
 
 
+/** 'InsertSchoolAffiliation' parameters type */
+export interface IInsertSchoolAffiliationParams {
+  nthsGroupId: string;
+  schoolId: string;
+  status: string;
+}
+
+/** 'InsertSchoolAffiliation' return type */
+export interface IInsertSchoolAffiliationResult {
+  /** not_pii: Foreign key to upchieve.nths_groups */
+  nthsGroupId: string;
+}
+
+/** 'InsertSchoolAffiliation' query type */
+export interface IInsertSchoolAffiliationQuery {
+  params: IInsertSchoolAffiliationParams;
+  result: IInsertSchoolAffiliationResult;
+}
+
+const insertSchoolAffiliationIR: any = {"usedParamSet":{"nthsGroupId":true,"schoolId":true,"status":true},"params":[{"name":"nthsGroupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":115,"b":127}]},{"name":"schoolId","required":true,"transform":{"type":"scalar"},"locs":[{"a":151,"b":160}]},{"name":"status","required":true,"transform":{"type":"scalar"},"locs":[{"a":239,"b":246}]}],"statement":"INSERT INTO nths_group_school_affiliation (nths_group_id, nths_school_affiliation_status_id, school_id)\nSELECT\n    :nthsGroupId!,\n    statuses.id,\n    :schoolId!\nFROM\n    nths_school_affiliation_statuses statuses\nWHERE\n    statuses.name = :status!\nRETURNING\n    nths_group_id"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO nths_group_school_affiliation (nths_group_id, nths_school_affiliation_status_id, school_id)
+ * SELECT
+ *     :nthsGroupId!,
+ *     statuses.id,
+ *     :schoolId!
+ * FROM
+ *     nths_school_affiliation_statuses statuses
+ * WHERE
+ *     statuses.name = :status!
+ * RETURNING
+ *     nths_group_id
+ * ```
+ */
+export const insertSchoolAffiliation = new PreparedQuery<IInsertSchoolAffiliationParams,IInsertSchoolAffiliationResult>(insertSchoolAffiliationIR);
+
+
 /** 'InsertNthsAdvisor' parameters type */
 export interface IInsertNthsAdvisorParams {
   email: string;
@@ -906,7 +948,7 @@ export interface IInsertNthsAdvisorQuery {
   result: IInsertNthsAdvisorResult;
 }
 
-const insertNthsAdvisorIR: any = {"usedParamSet":{"nthsGroupId":true,"firstName":true,"lastName":true,"email":true,"phone":true,"phoneExtension":true,"title":true,"schoolId":true},"params":[{"name":"nthsGroupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":148,"b":160}]},{"name":"firstName","required":true,"transform":{"type":"scalar"},"locs":[{"a":163,"b":173}]},{"name":"lastName","required":true,"transform":{"type":"scalar"},"locs":[{"a":176,"b":185}]},{"name":"email","required":true,"transform":{"type":"scalar"},"locs":[{"a":188,"b":194}]},{"name":"phone","required":false,"transform":{"type":"scalar"},"locs":[{"a":197,"b":202}]},{"name":"phoneExtension","required":false,"transform":{"type":"scalar"},"locs":[{"a":205,"b":219}]},{"name":"title","required":true,"transform":{"type":"scalar"},"locs":[{"a":222,"b":228}]},{"name":"schoolId","required":false,"transform":{"type":"scalar"},"locs":[{"a":231,"b":239}]}],"statement":"INSERT INTO nths_advisors (id, nths_group_id, first_name, last_name, email, phone, phone_extension, title, school_id)\n    VALUES (generate_ulid (), :nthsGroupId!, :firstName!, :lastName!, :email!, :phone, :phoneExtension, :title!, :schoolId)\nRETURNING\n    *"};
+const insertNthsAdvisorIR: any = {"usedParamSet":{"nthsGroupId":true,"firstName":true,"lastName":true,"email":true,"phone":true,"phoneExtension":true,"title":true,"schoolId":true},"params":[{"name":"nthsGroupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":148,"b":160}]},{"name":"firstName","required":true,"transform":{"type":"scalar"},"locs":[{"a":163,"b":173}]},{"name":"lastName","required":true,"transform":{"type":"scalar"},"locs":[{"a":176,"b":185}]},{"name":"email","required":true,"transform":{"type":"scalar"},"locs":[{"a":188,"b":194}]},{"name":"phone","required":false,"transform":{"type":"scalar"},"locs":[{"a":197,"b":202}]},{"name":"phoneExtension","required":false,"transform":{"type":"scalar"},"locs":[{"a":205,"b":219}]},{"name":"title","required":true,"transform":{"type":"scalar"},"locs":[{"a":222,"b":228}]},{"name":"schoolId","required":false,"transform":{"type":"scalar"},"locs":[{"a":231,"b":239}]}],"statement":"INSERT INTO nths_advisors (id, nths_group_id, first_name, last_name, email, phone, phone_extension, title, school_id)\n    VALUES (generate_ulid (), :nthsGroupId!, :firstName!, :lastName!, :email!, :phone, :phoneExtension, :title!, :schoolId)\nRETURNING\n    *                                                                                                                                                                                                                                             "};
 
 /**
  * Query generated from SQL:
@@ -914,7 +956,7 @@ const insertNthsAdvisorIR: any = {"usedParamSet":{"nthsGroupId":true,"firstName"
  * INSERT INTO nths_advisors (id, nths_group_id, first_name, last_name, email, phone, phone_extension, title, school_id)
  *     VALUES (generate_ulid (), :nthsGroupId!, :firstName!, :lastName!, :email!, :phone, :phoneExtension, :title!, :schoolId)
  * RETURNING
- *     *
+ *     *                                                                                                                                                                                                                                             
  * ```
  */
 export const insertNthsAdvisor = new PreparedQuery<IInsertNthsAdvisorParams,IInsertNthsAdvisorResult>(insertNthsAdvisorIR);
@@ -927,7 +969,11 @@ export interface IAddSchoolToSchoolAffiliationParams {
 }
 
 /** 'AddSchoolToSchoolAffiliation' return type */
-export type IAddSchoolToSchoolAffiliationResult = void;
+export interface IAddSchoolToSchoolAffiliationResult {
+  mismatched: boolean | null;
+  /** not_pii: Foreign key to upchieve.schools */
+  schoolId: string | null;
+}
 
 /** 'AddSchoolToSchoolAffiliation' query type */
 export interface IAddSchoolToSchoolAffiliationQuery {
@@ -935,7 +981,7 @@ export interface IAddSchoolToSchoolAffiliationQuery {
   result: IAddSchoolToSchoolAffiliationResult;
 }
 
-const addSchoolToSchoolAffiliationIR: any = {"usedParamSet":{"schoolId":true,"nthsGroupId":true},"params":[{"name":"schoolId","required":false,"transform":{"type":"scalar"},"locs":[{"a":61,"b":69}]},{"name":"nthsGroupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":121,"b":133}]}],"statement":"UPDATE\n    nths_group_school_affiliation\nSET\n    school_id = :schoolId,\n    updated_at = NOW()\nWHERE\n    nths_group_id = :nthsGroupId!"};
+const addSchoolToSchoolAffiliationIR: any = {"usedParamSet":{"schoolId":true,"nthsGroupId":true},"params":[{"name":"schoolId","required":false,"transform":{"type":"scalar"},"locs":[{"a":81,"b":89},{"a":185,"b":193},{"a":248,"b":256}]},{"name":"nthsGroupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":142,"b":154}]}],"statement":"UPDATE\n    nths_group_school_affiliation\nSET\n    school_id = COALESCE(school_id, :schoolId),\n    updated_at = NOW()\nWHERE\n    nths_group_id = :nthsGroupId!\nRETURNING\n    school_id,\n    :schoolId::uuid IS NOT NULL\n    AND school_id IS DISTINCT FROM :schoolId AS mismatched"};
 
 /**
  * Query generated from SQL:
@@ -943,10 +989,14 @@ const addSchoolToSchoolAffiliationIR: any = {"usedParamSet":{"schoolId":true,"nt
  * UPDATE
  *     nths_group_school_affiliation
  * SET
- *     school_id = :schoolId,
+ *     school_id = COALESCE(school_id, :schoolId),
  *     updated_at = NOW()
  * WHERE
  *     nths_group_id = :nthsGroupId!
+ * RETURNING
+ *     school_id,
+ *     :schoolId::uuid IS NOT NULL
+ *     AND school_id IS DISTINCT FROM :schoolId AS mismatched
  * ```
  */
 export const addSchoolToSchoolAffiliation = new PreparedQuery<IAddSchoolToSchoolAffiliationParams,IAddSchoolToSchoolAffiliationResult>(addSchoolToSchoolAffiliationIR);

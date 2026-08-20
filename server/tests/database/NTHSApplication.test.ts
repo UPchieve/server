@@ -17,6 +17,8 @@ import {
   InputError,
   NotAllowedError,
   NTHSApplicationExistsError,
+  NTHSSchoolAlreadyClaimedError,
+  NTHSChapterSchoolFixedError,
 } from '../../models/Errors'
 
 jest.mock('../../services/MailService')
@@ -130,6 +132,40 @@ async function submit(userId: Ulid, overrides: Record<string, unknown> = {}) {
     responses: RESPONSES,
     ...overrides,
   } as any)
+}
+
+async function affiliationOf(groupId: Ulid) {
+  const result = await client.query(
+    `SELECT statuses.name AS status, aff.school_id
+       FROM nths_group_school_affiliation aff
+       JOIN nths_school_affiliation_statuses statuses
+         ON statuses.id = aff.nths_school_affiliation_status_id
+      WHERE aff.nths_group_id = $1`,
+    [groupId]
+  )
+  return result.rows[0]
+}
+
+// Mirrors the rows approved in March 2026, before any of this existed: an
+// activated application the collision check never got to see.
+async function activateOutsideTheService(userId: Ulid) {
+  await client.query(
+    `UPDATE nths_candidate_applications
+        SET status = 'approved', decided_at = NOW(), activated_at = NOW()
+      WHERE user_id = $1`,
+    [userId]
+  )
+}
+
+// nths_advisors.email is UNIQUE, so a fixed address fails on any re-run against
+// a database that already holds one.
+function advisorDetails() {
+  return {
+    firstName: 'Dana',
+    lastName: 'Reyes',
+    email: `advisor.${getUuid()}@example.edu`,
+    title: 'Advisor',
+  }
 }
 
 describe('submitCandidateApplication', () => {
@@ -644,5 +680,219 @@ describe('foundGroup', () => {
     await expect(NTHSGroupsService.foundGroup(userId)).rejects.toThrow(
       NotAllowedError
     )
+  })
+
+  test('puts the school on record as UNAFFILIATED', async () => {
+    const userId = await createEligibleCoach()
+    const schoolId = await createSchool()
+    await submit(userId, { schoolId })
+    await NTHSApplicationService.decideCandidateApplication({
+      userId,
+      status: NTHSCandidateApplicationStatus.approved,
+    })
+
+    const group = await NTHSGroupsService.foundGroup(userId)
+
+    expect(group.schoolAffiliationStatus).toBe('UNAFFILIATED')
+    expect(await affiliationOf(group.groupInfo.id)).toEqual({
+      status: 'UNAFFILIATED',
+      school_id: schoolId,
+    })
+  })
+
+  test('leaves a manual-entry chapter with no affiliation row', async () => {
+    const userId = await createEligibleCoach()
+    await submit(userId)
+    await NTHSApplicationService.decideCandidateApplication({
+      userId,
+      status: NTHSCandidateApplicationStatus.approved,
+    })
+
+    const group = await NTHSGroupsService.foundGroup(userId)
+
+    expect(group.schoolAffiliationStatus).toBeNull()
+    expect(await affiliationOf(group.groupInfo.id)).toBeUndefined()
+  })
+
+  test('refuses a second chapter for a school another chapter holds', async () => {
+    const schoolId = await createSchool()
+    const first = await createEligibleCoach()
+    await submit(first, { schoolId })
+    await NTHSApplicationService.decideCandidateApplication({
+      userId: first,
+      status: NTHSCandidateApplicationStatus.approved,
+    })
+    await NTHSGroupsService.foundGroup(first)
+
+    const second = await createEligibleCoach()
+    await submit(second, { schoolId })
+    await activateOutsideTheService(second)
+
+    await expect(NTHSGroupsService.foundGroup(second)).rejects.toThrow(
+      NTHSSchoolAlreadyClaimedError
+    )
+  })
+
+  test('allows two manual-entry chapters, since neither names a school', async () => {
+    const first = await createEligibleCoach()
+    await submit(first)
+    await NTHSApplicationService.decideCandidateApplication({
+      userId: first,
+      status: NTHSCandidateApplicationStatus.approved,
+    })
+    await NTHSGroupsService.foundGroup(first)
+
+    const second = await createEligibleCoach()
+    await submit(second)
+    await NTHSApplicationService.decideCandidateApplication({
+      userId: second,
+      status: NTHSCandidateApplicationStatus.approved,
+    })
+
+    await expect(NTHSGroupsService.foundGroup(second)).resolves.toBeDefined()
+  })
+
+  test('refuses to move a chapter off the school founding claimed', async () => {
+    const userId = await createEligibleCoach()
+    const schoolId = await createSchool()
+    const otherSchoolId = await createSchool()
+    await submit(userId, { schoolId })
+    await NTHSApplicationService.decideCandidateApplication({
+      userId,
+      status: NTHSCandidateApplicationStatus.approved,
+    })
+    const group = await NTHSGroupsService.foundGroup(userId)
+
+    await expect(
+      NTHSGroupsService.submitSchoolAffiliation({
+        nthsGroupId: group.groupInfo.id,
+        schoolId: otherSchoolId,
+        ...advisorDetails(),
+      })
+    ).rejects.toThrow(NTHSChapterSchoolFixedError)
+
+    // Moving the school would release the old one for another chapter to take.
+    expect((await affiliationOf(group.groupInfo.id)).school_id).toBe(schoolId)
+  })
+
+  test('lets a school-less chapter name its school on the advisor form', async () => {
+    const userId = await createEligibleCoach()
+    const schoolId = await createSchool()
+    await submit(userId)
+    await NTHSApplicationService.decideCandidateApplication({
+      userId,
+      status: NTHSCandidateApplicationStatus.approved,
+    })
+    const group = await NTHSGroupsService.foundGroup(userId)
+
+    await NTHSGroupsService.submitSchoolAffiliation({
+      nthsGroupId: group.groupInfo.id,
+      schoolId,
+      ...advisorDetails(),
+    })
+
+    expect((await affiliationOf(group.groupInfo.id)).school_id).toBe(schoolId)
+  })
+
+  test('keeps the school when the advisor form is submitted without one', async () => {
+    const userId = await createEligibleCoach()
+    const schoolId = await createSchool()
+    await submit(userId, { schoolId })
+    await NTHSApplicationService.decideCandidateApplication({
+      userId,
+      status: NTHSCandidateApplicationStatus.approved,
+    })
+    const group = await NTHSGroupsService.foundGroup(userId)
+
+    // What the form's "(Skip) My school isn't listed" button posts.
+    await NTHSGroupsService.submitSchoolAffiliation({
+      nthsGroupId: group.groupInfo.id,
+      ...advisorDetails(),
+    })
+
+    expect((await affiliationOf(group.groupInfo.id)).school_id).toBe(schoolId)
+  })
+})
+
+describe('approving an application whose school is already claimed', () => {
+  test('refuses when another chapter already holds the school', async () => {
+    const schoolId = await createSchool()
+    const first = await createEligibleCoach()
+    await submit(first, { schoolId })
+    await NTHSApplicationService.decideCandidateApplication({
+      userId: first,
+      status: NTHSCandidateApplicationStatus.approved,
+    })
+    await NTHSGroupsService.foundGroup(first)
+
+    const second = await createEligibleCoach()
+    await submit(second, { schoolId })
+
+    await expect(
+      NTHSApplicationService.decideCandidateApplication({
+        userId: second,
+        status: NTHSCandidateApplicationStatus.approved,
+      })
+    ).rejects.toThrow(NTHSSchoolAlreadyClaimedError)
+  })
+
+  test('refuses when another applicant is approved but has not founded yet', async () => {
+    const schoolId = await createSchool()
+    const first = await createEligibleCoach()
+    await submit(first, { schoolId })
+    await NTHSApplicationService.decideCandidateApplication({
+      userId: first,
+      status: NTHSCandidateApplicationStatus.approved,
+    })
+
+    const second = await createEligibleCoach()
+    await submit(second, { schoolId })
+
+    await expect(
+      NTHSApplicationService.decideCandidateApplication({
+        userId: second,
+        status: NTHSCandidateApplicationStatus.approved,
+      })
+    ).rejects.toThrow(NTHSSchoolAlreadyClaimedError)
+  })
+
+  test('still denies an application for a claimed school', async () => {
+    const schoolId = await createSchool()
+    const first = await createEligibleCoach()
+    await submit(first, { schoolId })
+    await NTHSApplicationService.decideCandidateApplication({
+      userId: first,
+      status: NTHSCandidateApplicationStatus.approved,
+    })
+
+    const second = await createEligibleCoach()
+    await submit(second, { schoolId })
+
+    await expect(
+      NTHSApplicationService.decideCandidateApplication({
+        userId: second,
+        status: NTHSCandidateApplicationStatus.denied,
+        deniedNotes: 'Their school already has a chapter',
+      })
+    ).resolves.toBeDefined()
+  })
+
+  test('leaves manual-entry applications alone', async () => {
+    const first = await createEligibleCoach()
+    await submit(first)
+    await NTHSApplicationService.decideCandidateApplication({
+      userId: first,
+      status: NTHSCandidateApplicationStatus.approved,
+    })
+
+    const second = await createEligibleCoach()
+    await submit(second)
+
+    await expect(
+      NTHSApplicationService.decideCandidateApplication({
+        userId: second,
+        status: NTHSCandidateApplicationStatus.approved,
+      })
+    ).resolves.toBeDefined()
   })
 })

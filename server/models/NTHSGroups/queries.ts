@@ -10,6 +10,7 @@ import {
   makeSomeOptional,
   makeSomeRequired,
   Ulid,
+  Uuid,
 } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import type {
@@ -49,6 +50,7 @@ export async function getGroupsByUser(
         schoolAffiliationStatus:
           (camelCased.schoolAffiliationStatus as NTHSSchoolAffiliationStatusName) ??
           null,
+        hasSchoolOnRecord: !!camelCased.hasSchoolOnRecord,
         /// TODO: Simplify the return to just the below properties once the type of NTHSGroupWithUser is cleaned up
         groupInfo: {
           id: camelCased.groupId,
@@ -426,6 +428,29 @@ export async function updateSchoolAffiliationStatus(
   }
 }
 
+export async function insertSchoolAffiliation(
+  args: {
+    nthsGroupId: Ulid
+    schoolId: Uuid
+    status: NTHSSchoolAffiliationStatusName
+  },
+  tc: TransactionClient = getClient()
+): Promise<void> {
+  let result
+  try {
+    result = await pgQueries.insertSchoolAffiliation.run(args, tc)
+  } catch (err) {
+    throw new RepoCreateError(err)
+  }
+  // If the status name doesn't match an actual row, the INSERT ... SELECT
+  // silently inserts zero rows instead of erroring so this check is what
+  // turns that into a visible failure.
+  if (!result.length)
+    throw new Error(
+      `No ${args.status} school affiliation status to insert for group ${args.nthsGroupId}`
+    )
+}
+
 type AdvisorArgs = {
   nthsGroupId: Ulid
   schoolId?: Ulid
@@ -459,9 +484,11 @@ export async function addSchoolToSchoolAffiliation(
     schoolId?: Ulid
   },
   tc: TransactionClient = getClient()
-): Promise<void> {
+): Promise<{ schoolId?: Ulid; mismatched: boolean } | undefined> {
   try {
-    await pgQueries.addSchoolToSchoolAffiliation.run(args, tc)
+    const result = await pgQueries.addSchoolToSchoolAffiliation.run(args, tc)
+    if (!result.length) return
+    return makeSomeRequired(result[0], ['mismatched'])
   } catch (err) {
     throw new RepoUpdateError(err)
   }

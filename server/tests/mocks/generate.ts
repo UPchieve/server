@@ -1240,6 +1240,7 @@ export function buildNTHSGroupWithMemberInfo(
     inviteCode,
     roleName: 'member',
     schoolAffiliationStatus: null,
+    hasSchoolOnRecord: false,
     ...overrides,
   }
 }

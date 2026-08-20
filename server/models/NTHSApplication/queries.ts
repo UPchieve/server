@@ -106,16 +106,38 @@ export async function getCandidateApplicationEligibility(
   }
 }
 
-export async function hasActivatedCandidateApplication(
+export async function getActivatedCandidateApplication(
   userId: Ulid,
   tc: TransactionClient = getRoClient()
-): Promise<boolean> {
+): Promise<{ id: number; schoolId?: Uuid } | undefined> {
   try {
-    const results = await pgQueries.hasActivatedCandidateApplication.run(
+    const results = await pgQueries.activatedCandidateApplication.run(
       { userId },
       tc
     )
-    return !!results[0]?.activated
+    if (!results.length) return
+    return makeSomeRequired(results[0], ['id'])
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function isSchoolClaimedForNTHSChapter(
+  {
+    schoolId,
+    userId,
+  }: {
+    schoolId: Uuid
+    userId: Ulid
+  },
+  tc: TransactionClient = getRoClient()
+): Promise<boolean> {
+  try {
+    const results = await pgQueries.isSchoolClaimedForNthsChapter.run(
+      { schoolId, userId },
+      tc
+    )
+    return !!results[0]?.claimed
   } catch (err) {
     throw new RepoReadError(err)
   }
