@@ -39,7 +39,10 @@ queue.on('stalled', (job) => {
   logger.info({ job: job.name }, 'Worker job stalled.')
 })
 queue.on('lock-extension-failed', (job, error) => {
-  logger.error(error, { job: job.name }, 'Worker job failed to extend lock.')
+  logger.error(
+    { err: error, job: job.name },
+    'Worker job failed to extend lock.'
+  )
 })
 queue.on('cleaned', (jobs, type) => {
   logger.info({ jobs, type }, 'Worker jobs cleaned from queue.')

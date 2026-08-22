@@ -207,13 +207,11 @@ export async function reportSession(user: UserContactInfo, data: unknown) {
     sessionId,
   }
 
-  if (session.endedAt)
+  if (session.endedAt) {
     await QueueService.add(Jobs.EmailSessionReported, { delay: 0 }, emailData)
-  else
-    await cache.saveWithExpiration(
-      `${sessionId}-reported`,
-      JSON.stringify(emailData)
-    )
+  } else {
+    await cache.save(`${sessionId}-reported`, JSON.stringify(emailData))
+  }
 }
 
 export async function didSessionEnd(sessionId: Uuid) {
@@ -316,11 +314,13 @@ export async function processSessionReported(sessionId: Ulid) {
   try {
     await QueueService.add(
       Jobs.EmailSessionReported,
+      { delay: 0 },
       JSON.parse(await cache.get(`${sessionId}-reported`))
     )
     await cache.remove(`${sessionId}-reported`)
   } catch (err) {
-    // we don't care if the key is not found
+    // We don't care if the key is not found, since it means
+    // that the session wasn't reported.
     if (!(err instanceof cache.KeyNotFoundError)) throw err
   }
 }
