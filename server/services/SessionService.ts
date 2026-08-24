@@ -154,9 +154,11 @@ export async function reportSession(user: UserContactInfo, data: unknown) {
     reportMessage
   )
 
-  // Autoban users if a session is reported from the recap page
+  // Autoban users if a session is reported from the recap page (DMs),
+  // but never immediately ban for student safety concerns.
   const isBanReason =
-    reportReason === SESSION_REPORT_REASON.STUDENT_RUDE || source === 'recap'
+    reportReason !== SESSION_REPORT_REASON.STUDENT_SAFETY &&
+    (reportReason === SESSION_REPORT_REASON.STUDENT_RUDE || source === 'recap')
   const isSessionVolunteer = reportedBy.id === session.volunteerId
   const reportedUser = isSessionVolunteer
     ? session.studentId

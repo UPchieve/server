@@ -1,11 +1,9 @@
 import * as SessionService from '../../services/SessionService'
 import * as FeatureFlagService from '../../services/FeatureFlagService'
 import * as SessionRepo from '../../models/Session/queries'
-import * as UserSessionMetricsRepo from '../../models/UserSessionMetrics/queries'
-
+import * as SessionFlagsService from '../../services/SessionFlagsService'
 import * as SessionAudioRepo from '../../models/SessionAudio'
 import * as StudentRepo from '../../models/Student'
-import * as UserRepo from '../../models/User/queries'
 import {
   SESSION_REPORT_REASON,
   USER_BAN_TYPES,
@@ -34,10 +32,10 @@ jest.mock('../../models/Session/queries')
 jest.mock('../../models/User/queries')
 jest.mock('../../models/UserAction/queries')
 jest.mock('../../models/SessionAudio')
-jest.mock('../../models/UserSessionMetrics/queries')
 jest.mock('../../models/Student/queries')
 jest.mock('../../services/FeatureFlagService')
 jest.mock('../../services/UserService')
+jest.mock('../../services/SessionFlagsService')
 
 describe('SessionService', () => {
   beforeEach(() => {
@@ -46,14 +44,13 @@ describe('SessionService', () => {
   })
 
   const mockSessionRepo = mocked(SessionRepo)
-  const mockUSMRepo = mocked(UserSessionMetricsRepo)
   const mockedSessionAudioRepo = mocked(SessionAudioRepo)
   const mockFeatureFlagService = mocked(FeatureFlagService)
   const mockStudentRepo = mocked(StudentRepo)
   const mockedUserRepo = mocked(UserRepo)
 
   describe('reportSession', () => {
-    test('should ban the user with ban_type of COMPLETE when reported', async () => {
+    test('should ban the user with ban_type of COMPLETE when reported for STUDENT_RUDE', async () => {
       const reportReason = SESSION_REPORT_REASON.STUDENT_RUDE
       const reportMessage = 'User was rude'
       const source = 'recap'
@@ -67,9 +64,6 @@ describe('SessionService', () => {
       const sessionId = session.id
       mockSessionRepo.updateSessionReported.mockResolvedValue()
 
-      mockUSMRepo.getUserSessionMetricsByUserId.mockImplementation(
-        async () => undefined
-      )
       const data = {
         sessionId,
         reportReason,
@@ -86,6 +80,38 @@ describe('SessionService', () => {
         USER_BAN_REASONS.SESSION_REPORTED
       )
     })
+
+    test.each([
+      { source: 'recap' }, // DMs
+      { source: 'session' },
+    ])(
+      'should not ban the user if the ban reason is STUDENT_SAFETY',
+      async (args) => {
+        const reportReason = SESSION_REPORT_REASON.STUDENT_SAFETY
+        const reportMessage = 'Abc123'
+        const source = args.source
+        const user = buildVolunteer()
+        const session = buildSession({
+          studentId: 'studentId',
+          volunteerId: user.id,
+        })
+
+        mockSessionRepo.getSessionById.mockImplementation(async () => session)
+        const sessionId = session.id
+        mockSessionRepo.updateSessionReported.mockResolvedValue()
+
+        await SessionService.reportSession(user, {
+          sessionId,
+          reportReason,
+          reportMessage,
+          source,
+        })
+
+        // Student was NOT banned
+        expect(UserRepo.banUserById).not.toHaveBeenCalled()
+        expect(mockSessionRepo.updateSessionReported).toHaveBeenCalledTimes(1)
+      }
+    )
   })
 
   describe('Session audio', () => {
