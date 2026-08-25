@@ -2,8 +2,11 @@ import { v4 as uuidv4 } from 'uuid'
 import * as cache from '../cache'
 import { InputError } from '../models/Errors'
 import type { Uuid } from '../types/shared'
+import * as MailService from './MailService'
+import * as AnalyticsService from './AnalyticsService'
+import { EVENTS } from '../constants'
 import { hoursInMs } from '../utils/time-utils'
-import { ISODateString } from '../types/dates'
+import type { ISODateString } from '../types/dates'
 
 const essayReviewCacheKey = 'essay-review-submissions'
 const essayReviewEmailPreferencesCacheKey = 'essay-review-email-preferences'
@@ -29,8 +32,8 @@ export type EssayReviewSubmission = {
   characterCount: number
   status: EssayReviewStatus
   submittedAt: ISODateString
-  reviewedAt?: ISODateString
-  reviewedBy?: Uuid
+  staffReviewedAt?: ISODateString
+  staffReviewerId?: Uuid
   reviews: EssayReview[]
   finalReviews?: string[]
   emailSentAt?: ISODateString
@@ -58,7 +61,7 @@ export type CreateEssayReviewSubmission = {
 
 export type UpdateEssayReviewSubmission = {
   status: EssayReviewStatus
-  reviewedBy: Uuid
+  staffReviewerId: Uuid
 }
 
 function cleanOptionalText(value?: string): string | undefined {
@@ -71,9 +74,16 @@ function countWords(value: string): number {
 }
 
 function parseSubmission(value: string): EssayReviewSubmission {
-  const submission = JSON.parse(value) as EssayReviewSubmission
+  const { reviewedAt, reviewedBy, ...submission } = JSON.parse(
+    value
+  ) as EssayReviewSubmission & {
+    reviewedAt?: ISODateString
+    reviewedBy?: Uuid
+  }
   return {
     ...submission,
+    staffReviewedAt: submission.staffReviewedAt ?? reviewedAt,
+    staffReviewerId: submission.staffReviewerId ?? reviewedBy,
     reviews: submission.reviews ?? [],
   }
 }
@@ -130,9 +140,11 @@ export async function createTutorEssayReview({
   reviewerId: Uuid
   reviewerFirstName?: string
   review: string
-}): Promise<EssayReviewSubmission | null> {
+}): Promise<EssayReviewSubmission> {
   const submission = await getEssayReviewSubmission(submissionId)
-  if (!submission) return null
+  if (!submission) {
+    throw new Error('Unable to find the essay you are reviewing')
+  }
   if (submission.reviews.some((review) => review.reviewerId === reviewerId)) {
     throw new InputError('You already reviewed this essay')
   }
@@ -186,9 +198,12 @@ export async function setEssayReviewEmailPreference(
 
 export async function getEssayReviewSubmission(
   submissionId: Uuid
-): Promise<EssayReviewSubmission | undefined> {
+): Promise<EssayReviewSubmission> {
   const cachedSubmission = await cache.hget(essayReviewCacheKey, submissionId)
-  return cachedSubmission ? parseSubmission(cachedSubmission) : undefined
+  if (!cachedSubmission) {
+    throw new Error('Essay review not found')
+  }
+  return parseSubmission(cachedSubmission)
 }
 
 export async function getEssayReviewSubmissions(): Promise<
@@ -232,21 +247,72 @@ function isEssayAvailableForVolunteer(
   )
 }
 
+export async function sendEssayReviewsToStudent({
+  submissionId,
+  staffReviewerId,
+  finalReviews,
+}: {
+  submissionId: Uuid
+  staffReviewerId: Uuid
+  finalReviews: string[]
+}): Promise<EssayReviewSubmission> {
+  const submission = await getEssayReviewSubmission(submissionId)
+  if (!submission) {
+    throw new Error('Essay review not found')
+  }
+  if (submission.emailSentAt) {
+    throw new InputError('Reviews have already been emailed for this essay')
+  }
+
+  const cleanedReviews = finalReviews.map((review) => review.trim())
+  await MailService.sendEssayReviewsToStudent({
+    studentEmail: submission.studentEmail,
+    studentFirstName: submission.studentFirstName,
+    reviews: cleanedReviews,
+    essayPrompt: submission.essayPrompt,
+  })
+
+  const sentAt = new Date().toISOString()
+  const updatedSubmission: EssayReviewSubmission = {
+    ...submission,
+    finalReviews: cleanedReviews,
+    status: 'reviewed',
+    staffReviewedAt: sentAt,
+    staffReviewerId,
+    emailSentAt: sentAt,
+  }
+  await cache.hset(
+    essayReviewCacheKey,
+    submissionId,
+    JSON.stringify(updatedSubmission)
+  )
+
+  AnalyticsService.captureEvent(
+    staffReviewerId,
+    EVENTS.ADMIN_SENT_ESSAY_REVIEWS_TO_STUDENT,
+    { submissionId }
+  )
+  return updatedSubmission
+}
+
 export async function updateEssayReviewSubmission({
   submissionId,
   status,
-  reviewedBy,
+  staffReviewerId,
 }: UpdateEssayReviewSubmission & {
   submissionId: Uuid
-}): Promise<EssayReviewSubmission | undefined> {
+}): Promise<EssayReviewSubmission> {
   const submission = await getEssayReviewSubmission(submissionId)
-  if (!submission) return undefined
+  if (!submission) {
+    throw new Error('Essay review not found')
+  }
 
   const updatedSubmission: EssayReviewSubmission = {
     ...submission,
     status,
-    reviewedAt: status === 'reviewed' ? new Date().toISOString() : undefined,
-    reviewedBy: status === 'reviewed' ? reviewedBy : undefined,
+    staffReviewedAt:
+      status === 'reviewed' ? new Date().toISOString() : undefined,
+    staffReviewerId: status === 'reviewed' ? staffReviewerId : undefined,
   }
 
   await cache.hset(

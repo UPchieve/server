@@ -137,12 +137,6 @@ export function routeEssayReviews(apiRouter: Router): void {
         reviewerFirstName: user.firstName,
         review: asString(req.body.review),
       })
-      if (!submission) {
-        res.status(404).json({
-          err: 'Unable to find the essay you are reviewing',
-        })
-        return
-      }
 
       AnalyticsService.captureEvent(
         user.id,

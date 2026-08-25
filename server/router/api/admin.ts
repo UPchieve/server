@@ -192,11 +192,6 @@ export function routeAdmin(apiRouter: Router): void {
       const submissionId = asString(req.params.submissionId)
       const essayReview =
         await EssayReviewService.getEssayReviewSubmission(submissionId)
-      if (!essayReview) {
-        res.status(404).json({ err: 'Essay review not found' })
-        return
-      }
-
       resSuccess(res, { essayReview })
     } catch (error) {
       resError(res, error)
@@ -215,13 +210,24 @@ export function routeAdmin(apiRouter: Router): void {
       const essayReview = await EssayReviewService.updateEssayReviewSubmission({
         submissionId,
         status,
-        reviewedBy: user.id,
+        staffReviewerId: user.id,
       })
-      if (!essayReview) {
-        res.status(404).json({ err: 'Essay review not found' })
-        return
-      }
+      resSuccess(res, { essayReview })
+    } catch (error) {
+      resError(res, error)
+    }
+  })
 
+  router.post('/essay-reviews/:submissionId/send', async function (req, res) {
+    try {
+      const user = extractUser(req)
+      const submissionId = asString(req.params.submissionId)
+      const finalReviews = asArray(asString)(req.body.finalReviews)
+      const essayReview = await EssayReviewService.sendEssayReviewsToStudent({
+        submissionId,
+        staffReviewerId: user.id,
+        finalReviews,
+      })
       resSuccess(res, { essayReview })
     } catch (error) {
       resError(res, error)

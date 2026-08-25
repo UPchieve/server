@@ -1664,6 +1664,35 @@ export async function sendNTHSChapterAdminsMemberDeactivationNotice(
     )
   }
 }
+
+export async function sendEssayReviewsToStudent({
+  studentEmail,
+  studentFirstName,
+  reviews,
+  essayPrompt,
+}: {
+  studentEmail: string
+  studentFirstName?: string
+  reviews: string[]
+  essayPrompt?: string
+}): Promise<void> {
+  const [reviewOne, reviewTwo, reviewThree] = reviews
+
+  await sendEmail(
+    studentEmail,
+    config.mail.senders.support,
+    'UPchieve',
+    config.sendgrid.essayReviewSubmissionsToStudentTemplate,
+    {
+      studentFirstName,
+      reviewOne,
+      reviewTwo,
+      reviewThree,
+      essayPrompt,
+    }
+  )
+}
+
 export async function createContact(userIds: Ulid | Ulid[]): Promise<any> {
   if (isDevEnvironment() || isE2eEnvironment()) {
     logger.debug('Skipping createContact: ' + userIds)
