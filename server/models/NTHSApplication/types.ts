@@ -2,6 +2,17 @@ import { NTHSCandidateApplicationStatus } from '../NTHSGroups/types'
 import { USER_BAN_TYPES } from '../../constants/user'
 import { Ulid, Uuid } from '../pgUtils'
 
+export enum NTHSApplicationIneligibilityReason {
+  notAVolunteer = 'notAVolunteer',
+  notAHighSchoolStudent = 'notAHighSchoolStudent',
+  notOnboarded = 'notOnboarded',
+  notApproved = 'notApproved',
+  banned = 'banned',
+  noCompletedSessions = 'noCompletedSessions',
+  alreadyInChapter = 'alreadyInChapter',
+  alreadyApplied = 'alreadyApplied',
+}
+
 export type NTHSApplicationEligibilityFacts = {
   banType?: USER_BAN_TYPES
   onboarded: boolean

@@ -65,9 +65,14 @@ export function routeNTHSApplication(router: Router): void {
       ) => {
         try {
           const user = extractUser(req)
-          const { eligible, currentGradeName } =
+          const { eligible, reasons, currentGradeName } =
             await NTHSApplicationService.getApplicationEligibility(user.id)
-          res.json({ eligible, currentGradeName })
+          res.json({
+            eligible,
+            reasons:
+              NTHSApplicationService.clientSafeIneligibilityReasons(reasons),
+            currentGradeName,
+          })
         } catch (error) {
           resError(res, error)
         }

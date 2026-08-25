@@ -10,12 +10,13 @@ import { getName } from '../mocks/generate'
 import { createTestUser, createTestVolunteer } from './seed-utils'
 import * as NTHSApplicationService from '../../services/NTHSApplicationService'
 import * as NTHSGroupsService from '../../services/NTHSGroupsService'
+import * as AnalyticsService from '../../services/AnalyticsService'
 import {
   NTHSApplicationIneligibilityReason,
   NTHSApplicationNotEligibleError,
 } from '../../services/NTHSApplicationService'
 import { NTHSCandidateApplicationStatus } from '../../models/NTHSGroups'
-import { GRADES, USER_BAN_TYPES } from '../../constants/user'
+import { EVENTS, GRADES, USER_BAN_TYPES } from '../../constants/user'
 import {
   InputError,
   NotAllowedError,
@@ -770,6 +771,50 @@ describe('decideCandidateApplication', () => {
     const rows = await applicationRows(applicant)
     expect(rows).toHaveLength(1)
     expect(rows[0].status).toBe(NTHSCandidateApplicationStatus.approved)
+  })
+
+  test('captures the decision against the applicant, without the denial notes', async () => {
+    const schoolId = await createSchool()
+    const approved = await createEligibleCoach()
+    await submit(approved, { schoolId, unlistedSchool: undefined })
+    await NTHSApplicationService.decideCandidateApplication({
+      userId: approved,
+      status: NTHSCandidateApplicationStatus.approved,
+    })
+
+    const denied = await createEligibleCoach()
+    await submit(denied)
+    await NTHSApplicationService.decideCandidateApplication({
+      userId: denied,
+      status: NTHSCandidateApplicationStatus.denied,
+      deniedNotes: 'Not enough sessions yet',
+    })
+
+    const captureEvent = mocked(AnalyticsService).captureEvent
+    expect(captureEvent).toHaveBeenCalledWith(
+      approved,
+      EVENTS.NTHS_APPLICATION_APPROVED,
+      expect.objectContaining({
+        hadSchoolId: true,
+        wasUnlistedSchool: false,
+        formVersion:
+          NTHSApplicationService.CURRENT_NTHS_APPLICATION_FORM_VERSION,
+        decidedBy: 'staff',
+      })
+    )
+    expect(captureEvent).toHaveBeenCalledWith(
+      denied,
+      EVENTS.NTHS_APPLICATION_DENIED,
+      expect.objectContaining({
+        hadSchoolId: false,
+        wasUnlistedSchool: true,
+        hoursToDecision: expect.any(Number),
+      })
+    )
+    const denialCall = captureEvent.mock.calls.find(
+      ([userId]) => userId === denied
+    )
+    expect(JSON.stringify(denialCall)).not.toMatch(/sessions yet/)
   })
 
   test('refuses to decide an application back to applied', async () => {

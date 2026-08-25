@@ -1,3 +1,4 @@
+import { NTHSApplicationIneligibilityReason } from '../models/NTHSApplication/types'
 import { NTHSCandidateApplicationStatus } from '../models/NTHSGroups/types'
 import { ISODateString } from '../types/dates'
 import { Uuid } from '../types/shared'
@@ -30,6 +31,7 @@ export type NTHSLatestCandidateApplicationResponse = {
 
 export type NTHSApplicationEligibilityResponse = {
   eligible: boolean
+  reasons: NTHSApplicationIneligibilityReason[]
   // Advanced by academic year from the stored grade, so the form can preselect
   // it. Absent when the applicant has no grade on file.
   currentGradeName?: string

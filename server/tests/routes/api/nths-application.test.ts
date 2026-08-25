@@ -259,11 +259,13 @@ describe('GET /api/nths-application/eligibility', () => {
     mockUser = buildVolunteer()
   })
 
-  test('returns eligibility and the current grade without the reasons', async () => {
+  test('returns eligibility, the reasons, and the current grade', async () => {
     mockedService.getApplicationEligibility.mockResolvedValueOnce({
       eligible: false,
       reasons: [
-        NTHSApplicationService.NTHSApplicationIneligibilityReason.banned,
+        NTHSApplicationService.NTHSApplicationIneligibilityReason.notApproved,
+        NTHSApplicationService.NTHSApplicationIneligibilityReason
+          .noCompletedSessions,
       ],
       currentGradeName: '11th',
     })
@@ -271,7 +273,28 @@ describe('GET /api/nths-application/eligibility', () => {
     const response = await authedAgent.get('/api/nths-application/eligibility')
 
     expect(response.status).toBe(200)
-    expect(response.body).toEqual({ eligible: false, currentGradeName: '11th' })
+    expect(response.body).toEqual({
+      eligible: false,
+      reasons: ['notApproved', 'noCompletedSessions'],
+      currentGradeName: '11th',
+    })
+  })
+
+  test('never tells the applicant they are banned', async () => {
+    mockedService.getApplicationEligibility.mockResolvedValueOnce({
+      eligible: false,
+      reasons: [
+        NTHSApplicationService.NTHSApplicationIneligibilityReason.banned,
+        NTHSApplicationService.NTHSApplicationIneligibilityReason
+          .noCompletedSessions,
+      ],
+      currentGradeName: '11th',
+    })
+
+    const response = await authedAgent.get('/api/nths-application/eligibility')
+
+    expect(response.status).toBe(200)
+    expect(response.body.reasons).toEqual(['noCompletedSessions'])
     expect(JSON.stringify(response.body)).not.toMatch(/banned/)
   })
 

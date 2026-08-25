@@ -1,6 +1,7 @@
 import { Ulid, Uuid } from '../models/pgUtils'
 import * as NTHSApplicationRepo from '../models/NTHSApplication'
 import * as NTHSGroupsRepo from '../models/NTHSGroups'
+import { NTHSApplicationIneligibilityReason } from '../models/NTHSApplication'
 import type {
   NTHSApplicationResponses,
   NTHSCandidateApplication,
@@ -11,9 +12,10 @@ import { VolunteerOccupations } from '../models/Volunteer'
 import * as UsersGradeLevelsRepo from '../models/UsersGradeLevels'
 import * as UsersSchoolsRepo from '../models/UsersSchools'
 import { getSchoolById } from '../models/School'
-import { GRADES, USER_BAN_TYPES } from '../constants/user'
+import { EVENTS, GRADES, USER_BAN_TYPES } from '../constants/user'
 import { US_STATE_CODES } from '../constants/geography'
 import { isHighSchoolGrade } from '../utils/grade-levels'
+import { hoursInMs } from '../utils/time-utils'
 import { getRoClient, runInTransaction, TransactionClient } from '../db'
 import {
   CaughtError,
@@ -27,6 +29,9 @@ import {
   sendNTHSCandidateApplicationDenied,
 } from './MailService'
 import { getUserContactInfo } from './UserService'
+import * as AnalyticsService from './AnalyticsService'
+
+export { NTHSApplicationIneligibilityReason }
 
 export const CURRENT_NTHS_APPLICATION_FORM_VERSION = 1
 
@@ -180,24 +185,13 @@ function validateUnlistedSchool(value: unknown): NTHSUnlistedSchool {
   }
 }
 
-export enum NTHSApplicationIneligibilityReason {
-  notAVolunteer = 'notAVolunteer',
-  notAHighSchoolStudent = 'notAHighSchoolStudent',
-  notOnboarded = 'notOnboarded',
-  notApproved = 'notApproved',
-  banned = 'banned',
-  noCompletedSessions = 'noCompletedSessions',
-  alreadyInChapter = 'alreadyInChapter',
-  alreadyApplied = 'alreadyApplied',
-}
-
 export type NTHSApplicationEligibility = {
   eligible: boolean
   reasons: NTHSApplicationIneligibilityReason[]
   currentGradeName?: string
 }
 
-// The reasons stay in the log. Returning them would tell a shadow-banned user
+// The message stays generic: naming the reasons would tell a shadow-banned user
 // they are shadow banned.
 export class NTHSApplicationNotEligibleError extends CaughtError {
   readonly httpStatus = 403
@@ -250,6 +244,16 @@ export async function getApplicationEligibility(
     reasons,
     currentGradeName: facts.currentGradeName,
   }
+}
+
+// A shadow ban is only useful while the banned user does not know about it, so
+// the ban never travels to the applicant's browser.
+export function clientSafeIneligibilityReasons(
+  reasons: NTHSApplicationIneligibilityReason[]
+): NTHSApplicationIneligibilityReason[] {
+  return reasons.filter(
+    (reason) => reason !== NTHSApplicationIneligibilityReason.banned
+  )
 }
 
 export async function submitCandidateApplication({
@@ -405,6 +409,22 @@ export async function decideCandidateApplication({
 
     return decided
   })
+
+  AnalyticsService.captureEvent(
+    application.userId,
+    isDenial
+      ? EVENTS.NTHS_APPLICATION_DENIED
+      : EVENTS.NTHS_APPLICATION_APPROVED,
+    {
+      hoursToDecision:
+        (application.decidedAt!.getTime() - application.createdAt.getTime()) /
+        hoursInMs(1),
+      hadSchoolId: !!application.schoolId,
+      wasUnlistedSchool: !!application.unlistedSchool,
+      formVersion: application.formVersion,
+      decidedBy: 'staff',
+    }
+  )
 
   const contactInfo = await getUserContactInfo(application.userId)
   if (contactInfo) {
