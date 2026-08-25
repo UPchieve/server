@@ -72,6 +72,7 @@ import spawnUpdateNthsChapterStatusForImpactPath from './spawnUpdateNTHSChapterS
 import notifyNTHSChapterAdminsOfDeactivatedUser from './notifyNTHSChapterAdminsOfDeactivatedUser'
 import executeModerationAction from './executeModerationAction'
 import deleteProxyEmailsIdenticalToEmails from './deleteProxyEmailsIdenticalToEmails'
+import notifyVolunteersAboutEssayReviewSubmission from './volunteer-emails/notifyVolunteerAboutEssayReviewSubmission'
 
 export enum Jobs {
   AddScheduledJobs = 'AddScheduledJobs',
@@ -137,6 +138,7 @@ export enum Jobs {
   MigrateProgressReportPromptIds = 'MigrateProgressReportPromptIds',
   ModerateSessionTranscript = 'ModerateSessionTranscript',
   NotifyTutors = 'NotifyTutors',
+  NotifyVolunteersAboutEssayReviewSubmission = 'NotifyVolunteersAboutEssayReviewSubmission',
   ProcessSessionEnded = 'ProcessSessionEnded',
   RedisKeyMemStats = 'RedisKeyMemStats',
   SendAmbassadorCongratsEmail = 'SendAmbassadorCongratsEmail',
@@ -409,6 +411,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.ProcessSessionEnded,
     processor: processSessionEnded,
+  },
+  {
+    name: Jobs.NotifyVolunteersAboutEssayReviewSubmission,
+    processor: notifyVolunteersAboutEssayReviewSubmission,
   },
   { name: Jobs.RedisKeyMemStats, processor: logRedisKeyMemStats },
   {

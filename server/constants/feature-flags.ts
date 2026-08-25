@@ -17,4 +17,6 @@ export enum FEATURE_FLAGS {
   ZWIBSERVE = 'zwibserve',
   STEM_PROGRESS_REPORT = 'stem-progress-report',
   STUDENT_SESSION_SUMMARY = 'student-session-summary',
+  VOLUNTEER_ASYNC_ESSAY_REVIEW = 'volunteer-async-essay-review',
+  VOLUNTEER_ASYNC_ESSAY_REVIEW_EMAIL_NOTIFICATIONS = 'volunteer-async-essay-review-email-notifications',
 }

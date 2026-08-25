@@ -122,6 +122,8 @@ const config = {
     nthsSchoolOfficialNotice: 'd-6f54afba78f84ae5b44b70a5d209e755',
     essayReviewSubmissionsToStudentTemplate:
       'd-1cd98b566dc24ce1ae2ee3ab47511a41',
+    notifyVolunteerAboutEssayReviewSubmissionTemplate:
+      'd-b11b035ac7224443b0fb64fc61876e76',
     volunteer: {
       thanksForReport: 'd-572e47e4f41d4db2ac855f42ac8ac11e',
       apologyForBannedStudent: 'd-c76691726c204dbb8643f38b2d1a4ed9',

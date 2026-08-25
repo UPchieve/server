@@ -1670,12 +1670,19 @@ export async function sendEssayReviewsToStudent({
   studentFirstName,
   reviews,
   essayPrompt,
+  essayPurpose,
+  wordCount,
 }: {
   studentEmail: string
   studentFirstName?: string
   reviews: string[]
   essayPrompt?: string
+  essayPurpose?: string
+  wordCount: number
 }): Promise<void> {
+  const overrides = {
+    categories: ['student async essay review'],
+  }
   const [reviewOne, reviewTwo, reviewThree] = reviews
 
   await sendEmail(
@@ -1689,7 +1696,33 @@ export async function sendEssayReviewsToStudent({
       reviewTwo,
       reviewThree,
       essayPrompt,
-    }
+      essayPurpose,
+      wordCount,
+    },
+    overrides
+  )
+}
+
+export async function notifyVolunteerAboutEssayReviewSubmission({
+  volunteerEmail,
+  volunteerFirstName,
+}: {
+  volunteerEmail: string
+  volunteerFirstName: string
+}): Promise<void> {
+  const overrides = {
+    categories: ['notify volunteer about essay submission'],
+  }
+  await sendEmail(
+    volunteerEmail,
+    config.mail.senders.support,
+    'UPchieve',
+    config.sendgrid.notifyVolunteerAboutEssayReviewSubmissionTemplate,
+    {
+      firstName: volunteerFirstName,
+      essayReviewUrl: `https://${config.client.host}/volunteer/essay-reviews?source=email`,
+    },
+    overrides
   )
 }
 

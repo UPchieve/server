@@ -7,6 +7,9 @@ import * as AnalyticsService from './AnalyticsService'
 import { EVENTS } from '../constants'
 import { hoursInMs } from '../utils/time-utils'
 import type { ISODateString } from '../types/dates'
+import { Jobs } from '../worker/jobs'
+import QueueService from './QueueService'
+import * as FeatureFlagService from './FeatureFlagService'
 
 const essayReviewCacheKey = 'essay-review-submissions'
 const essayReviewEmailPreferencesCacheKey = 'essay-review-email-preferences'
@@ -127,6 +130,18 @@ export async function createEssayReviewSubmission(
     submission.id,
     JSON.stringify(submission)
   )
+
+  if (
+    await FeatureFlagService.isAsyncEssayReviewEmailNotificationsEnabled(
+      payload.userId
+    )
+  ) {
+    await QueueService.add(
+      Jobs.NotifyVolunteersAboutEssayReviewSubmission,
+      { delay: 0 },
+      { submissionId: submission.id }
+    )
+  }
   return submission
 }
 
@@ -183,6 +198,21 @@ export async function getEssayReviewEmailPreference(
     (await cache.hget(essayReviewEmailPreferencesCacheKey, volunteerId)) ===
     'true'
   )
+}
+
+export async function getEssayReviewEmailOptedInVolunteerIds(): Promise<
+  Uuid[]
+> {
+  const preferences = await cache.hgetall(essayReviewEmailPreferencesCacheKey)
+  const optedInVolunteerIds: Uuid[] = []
+
+  for (const [volunteerId, optedIn] of Object.entries(preferences)) {
+    if (optedIn === 'true') {
+      optedInVolunteerIds.push(volunteerId)
+    }
+  }
+
+  return optedInVolunteerIds
 }
 
 export async function setEssayReviewEmailPreference(
@@ -266,10 +296,12 @@ export async function sendEssayReviewsToStudent({
 
   const cleanedReviews = finalReviews.map((review) => review.trim())
   await MailService.sendEssayReviewsToStudent({
-    studentEmail: submission.studentEmail,
+    studentEmail: submission.reviewEmail ?? submission.studentEmail,
     studentFirstName: submission.studentFirstName,
     reviews: cleanedReviews,
     essayPrompt: submission.essayPrompt,
+    essayPurpose: submission.essayPurpose,
+    wordCount: submission.wordCount,
   })
 
   const sentAt = new Date().toISOString()
@@ -287,10 +319,24 @@ export async function sendEssayReviewsToStudent({
     JSON.stringify(updatedSubmission)
   )
 
+  const eventProperties = {
+    submissionId,
+    finalReviewCount: cleanedReviews.length,
+    volunteerReviewCount: submission.reviews.length,
+    turnaroundHours:
+      (new Date(sentAt).getTime() -
+        new Date(submission.submittedAt).getTime()) /
+      hoursInMs(1),
+  }
   AnalyticsService.captureEvent(
     staffReviewerId,
     EVENTS.ADMIN_SENT_ESSAY_REVIEWS_TO_STUDENT,
-    { submissionId }
+    eventProperties
+  )
+  AnalyticsService.captureEvent(
+    submission.userId,
+    EVENTS.STUDENT_ESSAY_REVIEWS_SENT,
+    eventProperties
   )
   return updatedSubmission
 }

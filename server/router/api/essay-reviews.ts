@@ -78,6 +78,7 @@ export function routeEssayReviews(apiRouter: Router): void {
         ({
           studentEmail,
           studentFirstName,
+          reviewEmail,
           userId,
           reviews,
           ...submission

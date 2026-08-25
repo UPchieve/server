@@ -164,3 +164,16 @@ export async function getStemProgressReportEnabled(userId: Uuid) {
 export async function isStudentSessionSummaryEnabled(userId: Uuid) {
   return isFeatureEnabled(FEATURE_FLAGS.STUDENT_SESSION_SUMMARY, userId)
 }
+
+export async function isVolunteerAsyncEssayReviewEnabled(userId: Uuid) {
+  return isFeatureEnabled(FEATURE_FLAGS.VOLUNTEER_ASYNC_ESSAY_REVIEW, userId)
+}
+
+export async function isAsyncEssayReviewEmailNotificationsEnabled(
+  userId: Uuid
+) {
+  return isFeatureEnabled(
+    FEATURE_FLAGS.VOLUNTEER_ASYNC_ESSAY_REVIEW_EMAIL_NOTIFICATIONS,
+    userId
+  )
+}
