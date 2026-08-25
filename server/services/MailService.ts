@@ -119,6 +119,51 @@ async function sendEmail(
   await sgMail.send(msg)
 }
 
+type BulkEmail = {
+  to: string
+  dynamicData: any
+  overrides?: Partial<sgMail.MailDataRequired>
+}
+
+async function sendBulkEmail(
+  emails: BulkEmail[],
+  fromEmail: string,
+  fromName: string,
+  templateId: string
+): Promise<void> {
+  if (isDevEnvironment() || isE2eEnvironment()) {
+    logger.debug(
+      {
+        emails,
+        fromEmail,
+        fromName,
+        templateId,
+      },
+      'sendBulkEmail: skipping email send'
+    )
+    return
+  }
+
+  const emailData: sgMail.MailDataRequired[] = emails.map(
+    ({ to, dynamicData, overrides }) => ({
+      to,
+      from: {
+        email: fromEmail,
+        name: fromName,
+      },
+      reply_to: {
+        email: config.mail.receivers.support,
+      },
+      templateId,
+      dynamic_template_data: dynamicData,
+      ipPoolName: 'Transactional',
+      ...overrides,
+    })
+  )
+
+  await sgMail.send(emailData, true)
+}
+
 function getFormattedHourSummaryTime(time: number): string {
   const hour = Math.floor(Math.abs(time))
   const minute = Math.floor((Math.abs(time) * 60) % 60)
