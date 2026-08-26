@@ -2,6 +2,7 @@ import { mocked } from 'jest-mock'
 import request, { Test } from 'supertest'
 import { mockApp, mockPassportMiddleware, mockRouter } from '../../mock-app'
 import { routeAssignments } from '../../../router/api/assignments'
+import { toAssigmentPublic } from '../../../public/assignments'
 import * as AssignmentsService from '../../../services/AssignmentsService'
 import {
   buildAssignment,
@@ -154,5 +155,79 @@ describe('routeAssignments', () => {
         assignmentDocuments,
       })
     })
+  })
+})
+
+describe('toAssigmentPublic', () => {
+  test('maps all fields and converts dates to ISO strings', () => {
+    const assignment = buildAssignment()
+
+    const result = toAssigmentPublic(assignment)
+
+    expect(result).toEqual({
+      id: assignment.id,
+      classId: assignment.classId,
+      description: assignment.description,
+      dueDate: assignment.dueDate?.toISOString(),
+      isRequired: assignment.isRequired,
+      minDurationInMinutes: assignment.minDurationInMinutes,
+      numberOfSessions: assignment.numberOfSessions,
+      startDate: assignment.startDate?.toISOString(),
+      subjectId: assignment.subjectId,
+      title: assignment.title,
+      isGettingStartedAssignment: assignment.isGettingStartedAssignment,
+      createdAt: assignment.createdAt.toISOString(),
+      subjectName: assignment.subjectName,
+    })
+  })
+
+  test('drops updatedAt', () => {
+    const assignment = buildAssignment({ updatedAt: new Date() })
+
+    const result = toAssigmentPublic(assignment)
+
+    expect(result).not.toHaveProperty('updatedAt')
+  })
+
+  test('omits dueDate and startDate when not present on the assignment', () => {
+    const assignment = buildAssignment({
+      dueDate: undefined,
+      startDate: undefined,
+    })
+
+    const result = toAssigmentPublic(assignment)
+
+    expect(result.dueDate).toBeUndefined()
+    expect(result.startDate).toBeUndefined()
+  })
+
+  test('passes through other optional fields as undefined when not present', () => {
+    const assignment = buildAssignment({
+      description: undefined,
+      minDurationInMinutes: undefined,
+      numberOfSessions: undefined,
+      subjectId: undefined,
+      title: undefined,
+      isGettingStartedAssignment: undefined,
+      subjectName: undefined,
+    })
+
+    const result = toAssigmentPublic(assignment)
+
+    expect(result.description).toBeUndefined()
+    expect(result.minDurationInMinutes).toBeUndefined()
+    expect(result.numberOfSessions).toBeUndefined()
+    expect(result.subjectId).toBeUndefined()
+    expect(result.title).toBeUndefined()
+    expect(result.isGettingStartedAssignment).toBeUndefined()
+    expect(result.subjectName).toBeUndefined()
+  })
+
+  test('preserves isRequired as false without coercion', () => {
+    const assignment = buildAssignment({ isRequired: false })
+
+    const result = toAssigmentPublic(assignment)
+
+    expect(result.isRequired).toBe(false)
   })
 })

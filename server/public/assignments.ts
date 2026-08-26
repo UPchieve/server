@@ -23,6 +23,7 @@ export function toAssigmentPublic(assignment: Assignment): AssignmentPublic {
     title: assignment.title,
     isGettingStartedAssignment: assignment.isGettingStartedAssignment,
     createdAt: assignment.createdAt.toISOString(),
+    subjectName: assignment.subjectName,
   }
 }
 

@@ -14,6 +14,7 @@ export type AssignmentPublic = {
   title?: string
   isGettingStartedAssignment?: boolean
   createdAt: ISODateString
+  subjectName?: string
 }
 
 // TODO: There's a mismatch between the data and the PgTyped type since the

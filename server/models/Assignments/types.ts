@@ -15,6 +15,7 @@ export type Assignment = {
   updatedAt: Date
   // TODO: Remove after experiment is done
   isGettingStartedAssignment?: boolean
+  subjectName?: string
 }
 
 export type UpsertAssignmentInput = Pick<
