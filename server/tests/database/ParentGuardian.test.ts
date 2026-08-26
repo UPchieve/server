@@ -2,19 +2,19 @@
  * @group database/parallel
  */
 
-import { faker } from '@faker-js/faker'
 import { getClient } from '../../db'
 import { getDbUlid } from '../../models/pgUtils'
 import {
   createParentGuardian,
   linkParentGuardianToStudent,
 } from '../../models/ParentGuardian'
+import { getEmail } from '../mocks/generate'
 
 const client = getClient()
 
 describe('createParentGuardian', () => {
   test('creates the parent/guardian', async () => {
-    const email = faker.internet.email()
+    const email = getEmail()
     await createParentGuardian(email, client)
 
     const actual = await client.query(
@@ -25,7 +25,7 @@ describe('createParentGuardian', () => {
   })
 
   test('does not create a duplicate parent/guardian if the email already exists', async () => {
-    const email = faker.internet.email()
+    const email = getEmail()
 
     await createParentGuardian(email, client)
     await createParentGuardian(email, client)
@@ -100,7 +100,7 @@ describe('linkParentGuardianToStudent', () => {
 })
 
 async function createTestParentGuardian() {
-  const email = faker.internet.email()
+  const email = getEmail()
   await client.query(
     'INSERT INTO parents_guardians (id, email) VALUES ($1, $2)',
     [getDbUlid(), email]

@@ -15,6 +15,7 @@ import {
 } from '../seed-utils'
 import { Job } from 'bull'
 import config from '../../../config'
+import { getEmail } from '../../mocks/generate'
 
 jest.mock('../../../services/MailService')
 jest.mock('../../../services/AwsService')
@@ -293,7 +294,7 @@ describe('deidentifyUserJob', () => {
   })
 
   test('deidentifies rows in ineligible_students', async () => {
-    const email = faker.internet.email()
+    const email = getEmail()
     const user = await createTestUser(client, { email })
 
     await client.query(
@@ -341,13 +342,13 @@ describe('deidentifyUserJob', () => {
         `INSERT INTO upchieve.user_actions (user_id, ip_address_id, reference_email)
         VALUES ($1, $2, $3)
         `,
-        [userId, id, faker.internet.email()]
+        [userId, id, getEmail()]
       )
       await client.query(
         `INSERT INTO upchieve.user_actions (user_id, ip_address_id, reference_email)
         VALUES ($1, $2, $3)
         `,
-        [userId, id, faker.internet.email()]
+        [userId, id, getEmail()]
       )
     }
     const actionsBefore = await client.query(
@@ -381,23 +382,13 @@ describe('deidentifyUserJob', () => {
       `INSERT INTO upchieve.volunteer_references (id, user_id, first_name, last_name, email, affiliation, relationship_length, rejection_reason, additional_info, created_at, updated_at)
       VALUES (gen_random_uuid(), $1, $2, $3, $4, 'we know each other from work', 'about 5 years', 'no rejection reason!', 'this person is great!', NOW(), NOW())
       `,
-      [
-        userId,
-        faker.person.firstName(),
-        faker.person.lastName(),
-        faker.internet.email(),
-      ]
+      [userId, faker.person.firstName(), faker.person.lastName(), getEmail()]
     )
     await client.query(
       `INSERT INTO upchieve.volunteer_references (id, user_id, first_name, last_name, email, affiliation, relationship_length, rejection_reason, additional_info, created_at, updated_at)
       VALUES (gen_random_uuid(), $1, $2, $3, $4, 'best buds', 'my entire life', 'only because they are too good', 'cannot go wrong with them', NOW(), NOW())
       `,
-      [
-        userId,
-        faker.person.firstName(),
-        faker.person.lastName(),
-        faker.internet.email(),
-      ]
+      [userId, faker.person.firstName(), faker.person.lastName(), getEmail()]
     )
     const referencesBefore = await client.query(
       'SELECT * FROM upchieve.volunteer_references'
@@ -692,7 +683,7 @@ describe('deidentifyUserJob', () => {
   })
 
   test('deidentifies rows in users', async () => {
-    const email = faker.internet.email()
+    const email = getEmail()
     const user = await createTestUser(client, { email })
     const userId = user.id
 

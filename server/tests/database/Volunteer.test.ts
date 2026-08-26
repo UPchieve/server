@@ -27,6 +27,7 @@ import {
   buildFullAvailability,
   buildNotification,
   buildSessionRow,
+  getEmail,
 } from '../mocks/generate'
 import { omit } from 'lodash'
 import { addFavoriteVolunteer } from '../../models/Student'
@@ -285,7 +286,7 @@ describe('VolunteerRepo', () => {
     it('Defaults sms_consent to true', async () => {
       const result = await createVolunteer(
         {
-          email: faker.internet.email(),
+          email: getEmail(),
           phone: faker.phone.number(),
           firstName: faker.string.alpha(),
           lastName: faker.string.alpha(),
@@ -460,7 +461,7 @@ const generateVolunteer = (): CreateVolunteerPayload => {
   const lastName = faker.person.lastName()
   return {
     ip: '123',
-    email: faker.internet.email(),
+    email: getEmail(),
     password: 'Password!123',
     phone: faker.phone.number(),
     terms: true,

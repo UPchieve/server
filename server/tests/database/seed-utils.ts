@@ -2,6 +2,7 @@ import { faker } from '@faker-js/faker'
 import { USER_BAN_TYPES } from '../../constants'
 import { TransactionClient } from '../../db'
 import { getDbUlid, Ulid, Uuid } from '../../models/pgUtils'
+import { getEmail } from '../mocks/generate'
 
 export async function createTestUser(
   client: TransactionClient,
@@ -21,7 +22,7 @@ export async function createTestUser(
         overrides.id ?? getDbUlid(),
         faker.person.firstName(),
         faker.person.lastName(),
-        overrides.email ?? faker.internet.email(),
+        overrides.email ?? getEmail(),
         faker.string.alphanumeric(20),
         overrides.banType ?? null,
       ]

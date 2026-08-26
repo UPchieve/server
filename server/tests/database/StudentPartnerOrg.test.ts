@@ -12,7 +12,11 @@ import {
   getStudentPartnerOrgBySchoolId,
 } from '../../models/StudentPartnerOrg'
 import { CreateUserPayload } from '../../models/User'
-import { buildStudentPartnerOrgInsert } from '../mocks/generate'
+import {
+  buildStudentPartnerOrgInsert,
+  getEmail,
+  getName,
+} from '../mocks/generate'
 import { insertSingleRow } from '../db-utils'
 import { getDbUlid } from '../../models/pgUtils'
 
@@ -53,7 +57,7 @@ describe('getStudentPartnerOrgBySchoolId', () => {
   const createSchool = (overrides = {}) => {
     return {
       id: getDbUlid(),
-      name: faker.company.name(),
+      name: getName(),
       approved: true,
       partner: true,
       cityId: 1,
@@ -199,7 +203,7 @@ async function createUser(
         Ulid.generate().toRaw(),
         userData.firstName ?? faker.person.firstName(),
         userData.lastName ?? faker.person.lastName(),
-        userData.email ?? faker.internet.email(),
+        userData.email ?? getEmail(),
         faker.string.alphanumeric(20),
       ]
     )

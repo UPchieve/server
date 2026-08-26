@@ -2,12 +2,13 @@ import { faker } from '@faker-js/faker'
 import { getDbUlid } from '../../../../database/seeds/utils'
 import { getClient } from '../../../db'
 import { migrateUsers } from '../../../scripts/migrate-banned-and-test-users-to-bantype'
+import { getEmail } from '../../mocks/generate'
 
 const client = getClient()
 
 describe('migrateBannedAndTestUsersToBanType', () => {
   test('banned users have a ban type of complete', async () => {
-    const bannedUser = await createUser(true, false, faker.internet.email())
+    const bannedUser = await createUser(true, false, getEmail())
     expect(bannedUser.banned).toBeTruthy()
     expect(bannedUser.ban_type).toEqual(null)
 
@@ -19,7 +20,7 @@ describe('migrateBannedAndTestUsersToBanType', () => {
   })
 
   test('test users without an upchieve email have ban type of shadow', async () => {
-    const testUser = await createUser(false, true, faker.internet.email())
+    const testUser = await createUser(false, true, getEmail())
     expect(testUser.test_user).toBeTruthy()
     expect(testUser.ban_type).toEqual(null)
 
@@ -43,7 +44,7 @@ describe('migrateBannedAndTestUsersToBanType', () => {
   })
 
   test('users that are not banned or test users keep ban type of null', async () => {
-    const testUser = await createUser(false, false, faker.internet.email())
+    const testUser = await createUser(false, false, getEmail())
     expect(testUser.test_user).toBeFalsy()
     expect(testUser.banned).toBeFalsy()
     expect(testUser.ban_type).toEqual(null)

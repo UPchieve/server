@@ -19,6 +19,7 @@ import {
   createTestVolunteer,
 } from './seed-utils'
 import { insertSingleRow } from '../db-utils'
+import { getEmail } from '../mocks/generate'
 
 const client = getClient()
 
@@ -263,7 +264,7 @@ describe('addStudentsToTeacherClass', () => {
 describe('adminUpdateStudentUser', () => {
   it('Updates the expected fields', async () => {
     const { id: userId } = await createUser({
-      email: faker.internet.email(),
+      email: getEmail(),
       firstName: faker.person.firstName(),
       lastName: faker.person.lastName(),
     })
@@ -283,7 +284,7 @@ describe('adminUpdateStudentUser', () => {
     await adminUpdateStudentUser(
       userId,
       {
-        email: faker.internet.email(),
+        email: getEmail(),
         verified: true,
         banType: 'complete',
         deactivated: true,
@@ -315,7 +316,7 @@ describe('adminUpdateStudentUser', () => {
   describe('user.ban_type', () => {
     it('Does not change ban type', async () => {
       const { id: userId } = await createUser({
-        email: faker.internet.email(),
+        email: getEmail(),
         firstName: faker.person.firstName(),
         lastName: faker.person.lastName(),
       })
@@ -323,7 +324,7 @@ describe('adminUpdateStudentUser', () => {
         userId,
       ])
       await adminUpdateStudentUser(userId, {
-        email: faker.internet.email(),
+        email: getEmail(),
         verified: false,
         deactivated: false,
         banType: 'shadow',
@@ -338,7 +339,7 @@ describe('adminUpdateStudentUser', () => {
 
     it('Nulls out ban type', async () => {
       const { id: userId } = await createUser({
-        email: faker.internet.email(),
+        email: getEmail(),
         firstName: faker.person.firstName(),
         lastName: faker.person.lastName(),
       })
@@ -346,7 +347,7 @@ describe('adminUpdateStudentUser', () => {
         userId,
       ])
       await adminUpdateStudentUser(userId, {
-        email: faker.internet.email(),
+        email: getEmail(),
         verified: false,
         deactivated: false,
         banType: null,
@@ -361,12 +362,12 @@ describe('adminUpdateStudentUser', () => {
 
     it('Updates ban type', async () => {
       const { id: userId } = await createUser({
-        email: faker.internet.email(),
+        email: getEmail(),
         firstName: faker.person.firstName(),
         lastName: faker.person.lastName(),
       })
       await adminUpdateStudentUser(userId, {
-        email: faker.internet.email(),
+        email: getEmail(),
         verified: false,
         deactivated: false,
         banType: 'shadow',
@@ -391,7 +392,7 @@ async function createUser(
         getDbUlid(),
         userData.firstName ?? faker.person.firstName(),
         userData.lastName ?? faker.person.lastName(),
-        userData.email ?? faker.internet.email(),
+        userData.email ?? getEmail(),
         faker.string.alphanumeric(20),
       ]
     )

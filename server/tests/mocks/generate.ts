@@ -148,8 +148,14 @@ import {
 } from '../../contracts/assignments'
 import { NTHSGroupMemberWithRolePublic } from '../../contracts/nths'
 
+/** Suffixed with a uuid because users.email and parents_guardians.email are UNIQUE. */
 export function getEmail(): string {
-  return faker.internet.email().toLowerCase()
+  const [local, domain] = faker.internet.email().toLowerCase().split('@')
+  return `${local}.${getUuid()}@${domain}`
+}
+/** Suffixed with a uuid because name columns like student_partner_orgs.name are UNIQUE. */
+export function getName(): string {
+  return `${faker.word.noun()}-${getUuid()}`
 }
 export function getPhoneNumber(): string {
   const phoneNumber = faker.string.numeric(9)
@@ -593,7 +599,7 @@ export function buildStudentPartnerOrg(
   return {
     id: getUuid(),
     key: getUuid(),
-    name: faker.word.noun(),
+    name: getName(),
     highSchoolSignup: false,
     schoolSignupRequired: false,
     collegeSignup: false,

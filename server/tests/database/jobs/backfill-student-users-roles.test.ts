@@ -2,6 +2,7 @@ import { faker } from '@faker-js/faker'
 import { getDbUlid } from '../../../../database/seeds/utils'
 import { getClient } from '../../../db'
 import { backfill } from '../../../scripts/backfill-student-users-roles'
+import { getEmail } from '../../mocks/generate'
 
 const client = getClient()
 const ROSTER_SIGNUP_SOURCE_ID = 7
@@ -90,7 +91,7 @@ describe('backfillStudentUsersRoles', () => {
         getDbUlid(),
         faker.person.firstName(),
         faker.person.lastName(),
-        faker.internet.email(),
+        getEmail(),
         ROSTER_SIGNUP_SOURCE_ID,
         faker.string.alphanumeric(6),
       ]

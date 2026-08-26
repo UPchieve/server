@@ -2,11 +2,11 @@
  * @group database/parallel
  */
 
-import { faker } from '@faker-js/faker'
 import { mocked } from 'jest-mock'
 import * as PgClient from '../../db'
 import { getClient } from '../../db'
 import { getUuid, Ulid } from '../../models/pgUtils'
+import { getName } from '../mocks/generate'
 import { createTestUser, createTestVolunteer } from './seed-utils'
 import * as NTHSApplicationService from '../../services/NTHSApplicationService'
 import * as NTHSGroupsService from '../../services/NTHSGroupsService'
@@ -54,7 +54,7 @@ type CoachOverrides = {
 async function createSchool(): Promise<Ulid> {
   const result = await client.query(
     `INSERT INTO schools (id, name, city_id) VALUES (gen_random_uuid(), $1, 1) RETURNING id`,
-    [faker.company.name()]
+    [getName()]
   )
   return result.rows[0].id
 }

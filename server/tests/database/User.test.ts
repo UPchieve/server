@@ -24,6 +24,7 @@ import {
   buildStudentPartnerOrgUpchieveInstance,
   buildStudentProfile,
   buildUserRole,
+  getEmail,
 } from '../mocks/generate'
 import { insertSingleRow } from '../db-utils'
 import { adminUpdateUser, getUserContactInfo } from '../../services/UserService'
@@ -52,7 +53,7 @@ test('createUser', async () => {
 
 test('deleteUserPhoneInfo', async () => {
   const user = {
-    email: faker.internet.email().toLowerCase(),
+    email: getEmail(),
     firstName: 'Test',
     lastName: 'McTest',
     phone: faker.phone.number(),
@@ -162,7 +163,7 @@ describe('getLegacyUser', () => {
 
   const saveUserToDb = async () => {
     const payload: CreateUserPayload = {
-      email: faker.internet.email(),
+      email: getEmail(),
       firstName: faker.person.firstName(),
       lastName: faker.person.lastName(),
     }

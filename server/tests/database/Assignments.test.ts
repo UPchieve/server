@@ -13,6 +13,7 @@ import {
   Uuid,
 } from '../../models/pgUtils'
 import * as AssignmentsRepo from '../../models/Assignments'
+import { getEmail } from '../mocks/generate'
 
 const client = getClient()
 
@@ -305,7 +306,7 @@ async function createTestUser(): Promise<{ id: string }> {
         getDbUlid(),
         faker.person.firstName(),
         faker.person.lastName(),
-        faker.internet.email(),
+        getEmail(),
         faker.string.alphanumeric(6),
       ]
     )
