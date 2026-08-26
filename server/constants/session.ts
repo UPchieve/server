@@ -43,6 +43,7 @@ export enum UserSessionFlags {
   safetyConcern = 'Safety concern',
   generalModerationIssue = 'General moderation concern',
   liveMediaBan = 'Live media ban',
+  whiteboardImageModeration = 'Whiteboard Image Moderation Concern',
 }
 
 export const SESSION_REPORT_REASON = {
