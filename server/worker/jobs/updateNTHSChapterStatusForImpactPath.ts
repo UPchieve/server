@@ -37,6 +37,9 @@ export default async function (job: Job<UpdateNTHSChapterStatusJobData>) {
     `${logPrefix}Checking NTHS impact path status for chapter`
   )
 
+  const previousChapterStatus =
+    await NTHSService.getLatestNthsChapterStatus(nthsGroupId)
+
   // Get all-time members (including deactivated)
   const alltimeMembers = await NTHSService.getGroupMembers(nthsGroupId)
 
@@ -66,7 +69,7 @@ export default async function (job: Job<UpdateNTHSChapterStatusJobData>) {
     `${logPrefix}Found ${readyToCoachUserIds.size} ready-to-coach members of NTHS chapter`
   )
 
-  // Check if at least 6 of them did 1 session during the period of [t1, t2]
+  // Check if at least  of them did 1 session during the period of [t1, t2]
   // where t1 = startDate
   // and t2 = min(endDate, deactivatedAt)
   const eligibleMembers: NTHSGroupMemberWithRole[] = []
@@ -87,8 +90,19 @@ export default async function (job: Job<UpdateNTHSChapterStatusJobData>) {
     }
   }
 
+  if (previousChapterStatus?.statusName == 'OFFICIAL') {
+    logger.info(
+      {
+        groupId: nthsGroupId,
+        eligibleMembers: eligibleMembers.length,
+      },
+      `${logPrefix} Will remain OFFICIAL until end of year`
+    )
+    return
+  }
+
   const newChapterStatusName: NTHSChapterStatusName =
-    eligibleMembers.length >= 6 ? 'OFFICIAL' : 'PENDING'
+    eligibleMembers.length >= 3 ? 'OFFICIAL' : 'PENDING'
   logger.info(
     {
       groupId: nthsGroupId,
@@ -97,8 +111,7 @@ export default async function (job: Job<UpdateNTHSChapterStatusJobData>) {
     },
     `${logPrefix}Counted ${eligibleMembers.length} eligible members for impact path for NTHS chapter`
   )
-  const previousChapterStatus =
-    await NTHSService.getLatestNthsChapterStatus(nthsGroupId)
+
   if (
     previousChapterStatus &&
     previousChapterStatus.statusName === newChapterStatusName
@@ -108,7 +121,7 @@ export default async function (job: Job<UpdateNTHSChapterStatusJobData>) {
         status: newChapterStatusName,
         groupId: nthsGroupId,
       },
-      `${logPrefix}Chapter status is unchanged`
+      `${logPrefix} unchanged`
     )
     return
   }

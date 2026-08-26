@@ -79,7 +79,7 @@ function buildGroupMembers(
 }
 describe('updateNTHSChapterStatusForImpactPath', () => {
   it('Happy path: eligible chapter', async () => {
-    const groupMembers = buildGroupMembers({ active: 6 })
+    const groupMembers = buildGroupMembers({ active: 3 })
     mockedNTHSService.getGroupMembers.mockResolvedValue(groupMembers)
     mockedVolunteersService.getVolunteersReadyToCoachStatus.mockResolvedValue(
       groupMembers.map((member) =>
@@ -156,7 +156,7 @@ describe('updateNTHSChapterStatusForImpactPath', () => {
   })
 
   it('Does not count ready to coach but not activated coaches', async () => {
-    const groupMembers = buildGroupMembers({ active: 6 })
+    const groupMembers = buildGroupMembers({ active: 3 })
     mockedNTHSService.getGroupMembers.mockResolvedValue(groupMembers)
     mockedVolunteersService.getVolunteersReadyToCoachStatus.mockResolvedValue(
       groupMembers.map((member) =>
@@ -186,7 +186,7 @@ describe('updateNTHSChapterStatusForImpactPath', () => {
         newChapterStatus: 'PENDING',
         userIds: expectedEligibleMemberIds,
       },
-      expect.stringContaining('Counted 5 eligible members for impact path')
+      expect.stringContaining('Counted 2 eligible members for impact path')
     )
     expect(mockedLogger.info).toHaveBeenCalledWith(
       expect.anything(),
@@ -202,7 +202,7 @@ describe('updateNTHSChapterStatusForImpactPath', () => {
   })
 
   it("Queries for sessions no older than the user's deactivatedAt", async () => {
-    const groupMembers = buildGroupMembers({ active: 5, deactivated: 1 })
+    const groupMembers = buildGroupMembers({ active: 2, deactivated: 1 })
     mockedNTHSService.getGroupMembers.mockResolvedValue(groupMembers)
     mockedVolunteersService.getVolunteersReadyToCoachStatus.mockResolvedValue(
       groupMembers.map((member) =>
@@ -211,8 +211,8 @@ describe('updateNTHSChapterStatusForImpactPath', () => {
         })
       )
     )
-    const deactivatedMemberId = groupMembers[5].userId
-    for (const member of groupMembers.slice(0, 5)) {
+    const deactivatedMemberId = groupMembers[2].userId
+    for (const member of groupMembers.slice(0, 2)) {
       const session = buildUserSession({
         volunteerId: member.userId,
       })
@@ -223,11 +223,11 @@ describe('updateNTHSChapterStatusForImpactPath', () => {
     await updateNTHSChapterStatusForImpactPath(DEFAULT_JOB)
 
     expect(mockedSessionRepo.getUserSessionsByUserId).toHaveBeenNthCalledWith(
-      6,
+      3,
       deactivatedMemberId,
       {
         start: DEFAULT_JOB.data.periodStart,
-        end: groupMembers[5].deactivatedAt,
+        end: groupMembers[2].deactivatedAt,
       }
     )
     const expectedEligibleMemberIds = groupMembers
@@ -239,7 +239,7 @@ describe('updateNTHSChapterStatusForImpactPath', () => {
         newChapterStatus: 'PENDING',
         userIds: expectedEligibleMemberIds,
       },
-      expect.stringContaining('Counted 5 eligible members for impact path')
+      expect.stringContaining('Counted 2 eligible members for impact path')
     )
     expect(mockedLogger.info).toHaveBeenCalledWith(
       expect.anything(),
@@ -254,7 +254,7 @@ describe('updateNTHSChapterStatusForImpactPath', () => {
     ).not.toHaveBeenCalled()
   })
   it('Does not count sessions happening before the start date of the job or after the end date of the job', async () => {
-    const groupMembers = buildGroupMembers({ active: 6 })
+    const groupMembers = buildGroupMembers({ active: 4 })
     mockedNTHSService.getGroupMembers.mockResolvedValue(groupMembers)
     mockedVolunteersService.getVolunteersReadyToCoachStatus.mockResolvedValue(
       groupMembers.map((member) =>
@@ -283,7 +283,7 @@ describe('updateNTHSChapterStatusForImpactPath', () => {
         newChapterStatus: 'PENDING',
         userIds: groupMembers.slice(2).map((member) => member.userId),
       },
-      expect.stringContaining('Counted 4 eligible members for impact path')
+      expect.stringContaining('Counted 2 eligible members for impact path')
     )
     expect(mockedLogger.info).toHaveBeenCalledWith(
       expect.anything(),
@@ -296,5 +296,43 @@ describe('updateNTHSChapterStatusForImpactPath', () => {
     expect(
       mockedMailService.sendNTHSChapterImpactPathOfficialStatusNotification
     ).not.toHaveBeenCalled()
+  })
+
+  it("Chapter doesn't lose their OFFICIAL status", async () => {
+    mockedNTHSService.getLatestNthsChapterStatus.mockResolvedValue({
+      groupId: 1,
+      statusName: 'OFFICIAL',
+      createdAt: null,
+      statusId: 2,
+    })
+    const groupMembers = buildGroupMembers({ active: 3 })
+    mockedNTHSService.getGroupMembers.mockResolvedValue(groupMembers)
+    mockedVolunteersService.getVolunteersReadyToCoachStatus.mockResolvedValue(
+      groupMembers.map((member) =>
+        buildVolunteerWithReadyToCoachInfo({
+          id: member.userId,
+        })
+      )
+    )
+    // All but 1 coach has a session
+    mockedSessionRepo.getUserSessionsByUserId.mockResolvedValueOnce([])
+    for (const member of groupMembers.slice(1)) {
+      const session = buildUserSession({
+        volunteerId: member.userId,
+      })
+      mockedSessionRepo.getUserSessionsByUserId.mockResolvedValueOnce([session])
+    }
+
+    await updateNTHSChapterStatusForImpactPath(DEFAULT_JOB)
+
+    expect(mockedLogger.info).toHaveBeenCalledWith(
+      {
+        groupId: DEFAULT_JOB.data.nthsGroupId,
+        eligibleMembers: 2,
+      },
+      expect.stringContaining(
+        `NTHS Impact Path Chapter Status:  Will remain OFFICIAL until end of year`
+      )
+    )
   })
 })
