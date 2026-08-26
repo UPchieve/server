@@ -2,10 +2,10 @@
 -- PostgreSQL database dump
 --
 
-\restrict KiBuNxvRXPE6ygDorTRJkvZ6d3zTLG7sn5RANlP6lVWQ5f9hSLWMldYjpXHP0bH
+\restrict ufH4Q9audicfzFem8npXuAhdBWhAidu4m46g9moge8f0cIdaAf9yMlpK5AtDptC
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
--- Dumped by pg_dump version 15.18 (Homebrew)
+-- Dumped by pg_dump version 15.15 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -6097,6 +6097,7 @@ COPY upchieve.session_flags (id, name, created_at, updated_at) FROM stdin;
 29	Safety concern	2025-03-26 22:14:09.855431+00	2025-03-26 22:14:09.855431+00
 30	General moderation concern	2025-03-26 22:14:09.855431+00	2025-03-26 22:14:09.855431+00
 31	Live media ban	2025-09-09 15:16:33.85088+00	2025-09-09 15:16:33.85088+00
+38	Whiteboard Image Moderation Concern	2026-08-25 18:19:12.477543+00	2026-08-25 18:19:12.477543+00
 \.
 
 
@@ -9411,7 +9412,7 @@ SELECT pg_catalog.setval('upchieve.report_reasons_id_seq', 9, true);
 -- Name: session_flags_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.session_flags_id_seq', 37, true);
+SELECT pg_catalog.setval('upchieve.session_flags_id_seq', 38, true);
 
 
 --
@@ -9537,5 +9538,5 @@ SELECT pg_catalog.setval('upchieve.weekdays_id_seq', 1, false);
 -- PostgreSQL database dump complete
 --
 
-\unrestrict KiBuNxvRXPE6ygDorTRJkvZ6d3zTLG7sn5RANlP6lVWQ5f9hSLWMldYjpXHP0bH
+\unrestrict ufH4Q9audicfzFem8npXuAhdBWhAidu4m46g9moge8f0cIdaAf9yMlpK5AtDptC
 

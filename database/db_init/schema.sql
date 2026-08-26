@@ -1,7 +1,7 @@
-\restrict dbmate
+\restrict 8TGUQdQDnpOKABaJJcD1KJA5dewbhoSnXNOHfVuj5TL0NWszHQvQM6UxkziRIzs
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
--- Dumped by pg_dump version 15.18 (Homebrew)
+-- Dumped by pg_dump version 15.15 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -15044,7 +15044,7 @@ ALTER TABLE ONLY upchieve.volunteer_references
 -- PostgreSQL database dump complete
 --
 
-\unrestrict dbmate
+\unrestrict 8TGUQdQDnpOKABaJJcD1KJA5dewbhoSnXNOHfVuj5TL0NWszHQvQM6UxkziRIzs
 
 
 --
