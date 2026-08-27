@@ -73,6 +73,7 @@ import notifyNTHSChapterAdminsOfDeactivatedUser from './notifyNTHSChapterAdminsO
 import executeModerationAction from './executeModerationAction'
 import deleteProxyEmailsIdenticalToEmails from './deleteProxyEmailsIdenticalToEmails'
 import notifyVolunteersAboutEssayReviewSubmission from './volunteer-emails/notifyVolunteerAboutEssayReviewSubmission'
+import applicationStatusNotification from './nths/applicationStatusNotification'
 
 export enum Jobs {
   AddScheduledJobs = 'AddScheduledJobs',
@@ -412,6 +413,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.ProcessSessionEnded,
     processor: processSessionEnded,
+  },
+  {
+    name: Jobs.NTHSApplicationStatus,
+    processor: applicationStatusNotification,
   },
   {
     name: Jobs.NotifyVolunteersAboutEssayReviewSubmission,

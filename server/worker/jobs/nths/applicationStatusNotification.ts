@@ -13,7 +13,7 @@ export type JobData = {
   periodEnd: Date
 }
 
-export async function notifyApplicants(job: Job<JobData>) {
+export default async function notifyApplicants(job: Job<JobData>) {
   const periodStart = new Date(job.data.periodStart)
   const periodEnd = new Date(job.data.periodEnd)
 
