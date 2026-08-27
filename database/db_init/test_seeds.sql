@@ -2,10 +2,10 @@
 -- PostgreSQL database dump
 --
 
-\restrict ufH4Q9audicfzFem8npXuAhdBWhAidu4m46g9moge8f0cIdaAf9yMlpK5AtDptC
+\restrict DUjifaiVK4I4ddZapqJWqlYJwndVW3uNidg47SYal62EGvkiVM7aqcPf15ifdBj
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
--- Dumped by pg_dump version 15.15 (Homebrew)
+-- Dumped by pg_dump version 15.18 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -6225,6 +6225,7 @@ COPY upchieve.nths_actions (id, name, created_at) FROM stdin;
 6	ADVISOR VERIFIED	2026-02-03 19:39:46.025817+00
 7	SCHOOL AFFILIATION DENIED	2026-02-03 19:39:46.025817+00
 8	OPTED OUT	2026-02-10 19:55:37.065185+00
+9	RECRUITMENT SPRINT	2026-08-27 14:52:12.275871+00
 \.
 
 
@@ -9272,7 +9273,7 @@ SELECT pg_catalog.setval('upchieve.notification_types_id_seq', 2, true);
 -- Name: nths_actions_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.nths_actions_id_seq', 8, true);
+SELECT pg_catalog.setval('upchieve.nths_actions_id_seq', 9, true);
 
 
 --
@@ -9538,5 +9539,5 @@ SELECT pg_catalog.setval('upchieve.weekdays_id_seq', 1, false);
 -- PostgreSQL database dump complete
 --
 
-\unrestrict ufH4Q9audicfzFem8npXuAhdBWhAidu4m46g9moge8f0cIdaAf9yMlpK5AtDptC
+\unrestrict DUjifaiVK4I4ddZapqJWqlYJwndVW3uNidg47SYal62EGvkiVM7aqcPf15ifdBj
 
