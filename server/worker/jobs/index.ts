@@ -139,6 +139,7 @@ export enum Jobs {
   ModerateSessionTranscript = 'ModerateSessionTranscript',
   NotifyTutors = 'NotifyTutors',
   NotifyVolunteersAboutEssayReviewSubmission = 'NotifyVolunteersAboutEssayReviewSubmission',
+  NTHSApplicationStatus = 'NTHSApplicationStatus',
   ProcessSessionEnded = 'ProcessSessionEnded',
   RedisKeyMemStats = 'RedisKeyMemStats',
   SendAmbassadorCongratsEmail = 'SendAmbassadorCongratsEmail',

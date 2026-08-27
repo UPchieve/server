@@ -12,8 +12,10 @@ import type {
   NTHSApplicationResponses,
   NTHSCandidateApplication,
   NTHSUnlistedSchool,
+  NTHSCandidate,
 } from './types'
 import { NTHSCandidateApplicationStatus } from '../NTHSGroups/types'
+import { USER_ACTION } from '../../constants/user'
 
 const NON_NULL_COLUMNS = [
   'id',
@@ -41,6 +43,15 @@ function asApplication(
     unlistedSchool: application.unlistedSchool as
       | NTHSUnlistedSchool
       | undefined,
+  }
+}
+
+function asApplicant(
+  row: pgQueries.INeedsApplicationStatusEmailResult
+): NTHSCandidate {
+  const applicant = makeSomeRequired(row, ['email', 'userId', 'firstName'])
+  return {
+    ...applicant,
   }
 }
 
@@ -217,5 +228,55 @@ export async function decideCandidateApplication(
     return asApplication(results[0])
   } catch (err) {
     throw new RepoUpdateError(err)
+  }
+}
+
+export async function needsDenialEmail(
+  cohortStartDate: Date,
+  cohortEndDate: Date,
+  templateId: string,
+  tc: TransactionClient = getClient()
+) {
+  try {
+    const results = await pgQueries.needsApplicationStatusEmail.run(
+      {
+        application_status: 'denied',
+        cohort_start: cohortStartDate,
+        cohort_end: cohortEndDate,
+        email_template_id: templateId,
+      },
+      tc
+    )
+    if (!results.length) {
+      return []
+    }
+    return results.map((v) => asApplicant(v))
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function needsApprovalEmail(
+  cohortStartDate: Date,
+  cohortEndDate: Date,
+  templateId: string,
+  tc: TransactionClient = getClient()
+) {
+  try {
+    const results = await pgQueries.needsApplicationStatusEmail.run(
+      {
+        application_status: 'approved',
+        cohort_start: cohortStartDate,
+        cohort_end: cohortEndDate,
+        email_template_id: templateId,
+      },
+      tc
+    )
+    if (!results.length) {
+      return []
+    }
+    return results.map((v) => asApplicant(v))
+  } catch (err) {
+    throw new RepoReadError(err)
   }
 }

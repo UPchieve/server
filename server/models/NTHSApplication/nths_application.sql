@@ -170,3 +170,26 @@ SELECT
                     AND activated_at IS NOT NULL
                     AND user_id <> :userId!)) AS claimed;
 
+
+/* @name needsApplicationStatusEmail */
+SELECT
+    nths.user_id,
+    u.email,
+    u.first_name
+FROM
+    nths_candidate_applications nths
+    JOIN users u ON u.id = nths.user_id
+WHERE
+    nths.status = :application_status!
+    AND nths.decided_at >= :cohort_start!
+    AND nths.decided_at < :cohort_end!
+    AND NOT EXISTS (
+        SELECT
+            1
+        FROM
+            notifications notifications
+        WHERE
+            notifications.user_id = nths.user_id
+            AND notifications.email_template_id = :email_template_id!
+            AND notifications.sent_at >= :cohort_start!);
+

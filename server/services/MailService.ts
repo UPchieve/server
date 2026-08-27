@@ -1598,32 +1598,33 @@ export async function sendStudentFavoritedVolunteerEmail(
 export async function sendNTHSCandidateApplicationApproved(
   recipients: { firstName: string; email: string }[]
 ): Promise<void> {
-  for (const recipient of recipients) {
-    await sendEmail(
-      recipient.email,
-      config.mail.senders.nths,
-      'UPchieve',
-      config.sendgrid.nthsCandidateApplicationApproved,
-      {
-        firstName: recipient.firstName,
-      }
-    )
-  }
+  const emailData: BulkEmail[] = recipients.map((recipient) => ({
+    to: recipient.email,
+    dynamicData: { firstName: recipient.firstName },
+  }))
+
+  await sendBulkEmail(
+    emailData,
+    config.mail.senders.nths,
+    'UPchieve',
+    config.sendgrid.nthsCandidateApplicationApproved
+  )
 }
+
 export async function sendNTHSCandidateApplicationDenied(
   recipients: { firstName: string; email: string }[]
 ): Promise<void> {
-  for (const recipient of recipients) {
-    await sendEmail(
-      recipient.email,
-      config.mail.senders.nths,
-      'UPchieve',
-      config.sendgrid.nthsCandidateApplicationDenied,
-      {
-        firstName: recipient.firstName,
-      }
-    )
-  }
+  const emailData: BulkEmail[] = recipients.map((recipient) => ({
+    to: recipient.email,
+    dynamicData: { firstName: recipient.firstName },
+  }))
+
+  await sendBulkEmail(
+    emailData,
+    config.mail.senders.nths,
+    'UPchieve',
+    config.sendgrid.nthsCandidateApplicationDenied
+  )
 }
 
 export async function sendVolunteerBanStudentApology(

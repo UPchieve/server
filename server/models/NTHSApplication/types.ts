@@ -37,3 +37,9 @@ export type NTHSCandidateApplication = {
   activatedAt?: Date
   createdAt: Date
 }
+
+export type NTHSCandidate = {
+  userId: string
+  email: string
+  firstName: string
+}

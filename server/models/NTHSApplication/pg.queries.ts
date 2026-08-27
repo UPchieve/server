@@ -5,6 +5,8 @@ export type ban_types = 'complete' | 'live_media' | 'shadow';
 
 export type nths_candidate_application_status = 'applied' | 'approved' | 'denied';
 
+export type DateOrString = Date | string;
+
 export type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
 
 /** 'LatestCandidateApplicationStatus' parameters type */
@@ -396,5 +398,59 @@ const isSchoolClaimedForNthsChapterIR: any = {"usedParamSet":{"schoolId":true,"u
  * ```
  */
 export const isSchoolClaimedForNthsChapter = new PreparedQuery<IIsSchoolClaimedForNthsChapterParams,IIsSchoolClaimedForNthsChapterResult>(isSchoolClaimedForNthsChapterIR);
+
+
+/** 'NeedsApplicationStatusEmail' parameters type */
+export interface INeedsApplicationStatusEmailParams {
+  application_status: nths_candidate_application_status;
+  cohort_end: DateOrString;
+  cohort_start: DateOrString;
+  email_template_id: string;
+}
+
+/** 'NeedsApplicationStatusEmail' return type */
+export interface INeedsApplicationStatusEmailResult {
+  /** pii: User email address */
+  email: string;
+  /** pii: First name */
+  firstName: string;
+  /** not_pii: Foreign key to upchieve.users */
+  userId: string;
+}
+
+/** 'NeedsApplicationStatusEmail' query type */
+export interface INeedsApplicationStatusEmailQuery {
+  params: INeedsApplicationStatusEmailParams;
+  result: INeedsApplicationStatusEmailResult;
+}
+
+const needsApplicationStatusEmailIR: any = {"usedParamSet":{"application_status":true,"cohort_start":true,"cohort_end":true,"email_template_id":true},"params":[{"name":"application_status","required":true,"transform":{"type":"scalar"},"locs":[{"a":161,"b":180}]},{"name":"cohort_start","required":true,"transform":{"type":"scalar"},"locs":[{"a":209,"b":222},{"a":540,"b":553}]},{"name":"cohort_end","required":true,"transform":{"type":"scalar"},"locs":[{"a":250,"b":261}]},{"name":"email_template_id","required":true,"transform":{"type":"scalar"},"locs":[{"a":479,"b":497}]}],"statement":"SELECT\n    nths.user_id,\n    u.email,\n    u.first_name\nFROM\n    nths_candidate_applications nths\n    JOIN users u ON u.id = nths.user_id\nWHERE\n    nths.status = :application_status!\n    AND nths.decided_at >= :cohort_start!\n    AND nths.decided_at < :cohort_end!\n    AND NOT EXISTS (\n        SELECT\n            1\n        FROM\n            notifications notifications\n        WHERE\n            notifications.user_id = nths.user_id\n            AND notifications.email_template_id = :email_template_id!\n            AND notifications.sent_at >= :cohort_start!)"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     nths.user_id,
+ *     u.email,
+ *     u.first_name
+ * FROM
+ *     nths_candidate_applications nths
+ *     JOIN users u ON u.id = nths.user_id
+ * WHERE
+ *     nths.status = :application_status!
+ *     AND nths.decided_at >= :cohort_start!
+ *     AND nths.decided_at < :cohort_end!
+ *     AND NOT EXISTS (
+ *         SELECT
+ *             1
+ *         FROM
+ *             notifications notifications
+ *         WHERE
+ *             notifications.user_id = nths.user_id
+ *             AND notifications.email_template_id = :email_template_id!
+ *             AND notifications.sent_at >= :cohort_start!)
+ * ```
+ */
+export const needsApplicationStatusEmail = new PreparedQuery<INeedsApplicationStatusEmailParams,INeedsApplicationStatusEmailResult>(needsApplicationStatusEmailIR);
 
 

@@ -86,6 +86,15 @@ export default async function addScheduledJobs() {
       },
       options: { repeat: { cron: '0 * * * *', tz: 'America/New_York' } }, // Every hour at minute 0
     },
+
+    {
+      name: Jobs.NTHSApplicationStatus,
+      data: {
+        periodStart: moment('2026-09-01').tz('America/New_York').toDate(),
+        periodEnd: moment('2026-12-31').tz('America/New_York').toDate(),
+      },
+      options: { repeat: { cron: '*/15 * * * *' } }, // every 15 minutes
+    },
   ]
 
   const repeatableJobs = await QueueService.queue.getRepeatableJobs()
