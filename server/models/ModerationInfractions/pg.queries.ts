@@ -19,10 +19,11 @@ export interface IInsertModerationInfractionResult {
   createdAt: Date;
   /** not_pii: Primary key */
   id: string;
+  quarantinedOn: Date | null;
   /** not_pii: JSON describing the moderation infraction details */
   reason: Json;
   /** not_pii: Foreign key to upchieve.sessions */
-  sessionId: string;
+  sessionId: string | null;
   /** not_pii */
   updatedAt: Date;
   /** not_pii: Foreign key to upchieve.users */
@@ -125,10 +126,11 @@ export interface IGetModerationInfractionsByUserResult {
   createdAt: Date;
   /** not_pii: Primary key */
   id: string;
+  quarantinedOn: Date | null;
   /** not_pii: JSON describing the moderation infraction details */
   reason: Json;
   /** not_pii: Foreign key to upchieve.sessions */
-  sessionId: string;
+  sessionId: string | null;
   /** not_pii */
   updatedAt: Date;
   /** not_pii: Foreign key to upchieve.users */

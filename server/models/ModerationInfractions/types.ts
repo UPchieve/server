@@ -16,6 +16,7 @@ export type ModerationInfraction = {
   sessionId: string
   reason: InfractionReasons
   active: boolean
+  quarantinedOn?: Date
   createdAt: Date
   updatedAt: Date
 }

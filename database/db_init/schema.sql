@@ -1982,7 +1982,8 @@ CREATE TABLE upchieve.moderation_infractions (
     reason json NOT NULL,
     active boolean DEFAULT true NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    quarantined_on timestamp with time zone
 );
 
 
@@ -15334,6 +15335,7 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260602031018'),
     ('20260622211455'),
     ('20260623012028'),
+    ('20260715134910'),
     ('20260715155733'),
     ('20260717162214'),
     ('20260728183756'),

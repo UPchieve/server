@@ -6039,7 +6039,7 @@ COPY upchieve.moderation_categories (id, name) FROM stdin;
 -- Data for Name: moderation_infractions; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.moderation_infractions (id, user_id, session_id, reason, active, created_at, updated_at) FROM stdin;
+COPY upchieve.moderation_infractions (id, user_id, session_id, reason, active, created_at, updated_at, quarantined_on) FROM stdin;
 \.
 
 

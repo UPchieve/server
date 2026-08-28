@@ -53,6 +53,7 @@ describe('ModerationInfractions', () => {
           userId,
           sessionId: session.id,
           reason: infractionReason,
+          quarantinedOn: null,
         })
       )
     })
