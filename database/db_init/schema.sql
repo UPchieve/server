@@ -1978,7 +1978,7 @@ ALTER SEQUENCE upchieve.moderation_categories_id_seq OWNED BY upchieve.moderatio
 CREATE TABLE upchieve.moderation_infractions (
     id uuid NOT NULL,
     user_id uuid NOT NULL,
-    session_id uuid NOT NULL,
+    session_id uuid,
     reason json NOT NULL,
     active boolean DEFAULT true NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
