@@ -1,3 +1,7 @@
+// DB_PORT decides which database the suite writes to, so it has to be read
+// before db-test-environment.js resolves its own default.
+require('dotenv').config()
+
 const { defaults: tsjPreset } = require('ts-jest/presets')
 
 const transformKey = Object.keys(tsjPreset.transform)[0]

@@ -89,10 +89,9 @@ services:
     database-ci:
       profiles: ["db-test"]
       image: postgres:15.17
-      container_name: database-ci
       hostname: postgres
       ports:
-        - "5500:5432"
+        - "${DB_PORT:-5502}:5432"
       environment:
         - POSTGRES_DB=upchieve
         - POSTGRES_USER=admin

@@ -10,7 +10,7 @@ class DbTestEnvironment extends NodeEnvironment {
   static POSTGRES_USER = process.env.POSTGRES_USER || 'admin'
   static POSTGRES_PASSWORD = process.env.POSTGRES_PASSWORD || 'Password123'
   static POSTGRES_HOST = process.env.CI ? 'postgres' : 'localhost'
-  static POSTGRES_PORT = process.env.DB_PORT || (process.env.CI ? 5432 : 5500)
+  static POSTGRES_PORT = process.env.DB_PORT || (process.env.CI ? 5432 : 5502)
   static DEFAULT_DB = process.env.POSTGRES_DB || 'upchieve'
 
   async setup() {
