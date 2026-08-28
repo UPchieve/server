@@ -1627,6 +1627,23 @@ export async function sendNTHSCandidateApplicationDenied(
   )
 }
 
+export async function sendNthsEngagementEmail(
+  recipients: { firstName: string; email: string }[],
+  templateId: string
+) {
+  const emailData: BulkEmail[] = recipients.map((recipient) => ({
+    to: recipient.email,
+    dynamicData: { firstName: recipient.firstName },
+  }))
+
+  await sendBulkEmail(
+    emailData,
+    config.mail.senders.nths,
+    'UPchieve',
+    templateId
+  )
+}
+
 export async function sendVolunteerBanStudentApology(
   email: string,
   firstName: string

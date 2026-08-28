@@ -193,3 +193,68 @@ WHERE
             AND notifications.email_template_id = :email_template_id!
             AND notifications.sent_at >= :cohort_start!);
 
+
+/* @name needsEngagementEmail */
+SELECT
+    nths_candidates.user_id,
+    users.email,
+    users.first_name,
+    nths_candidates.email_type
+FROM (
+    SELECT
+        ca.user_id,
+        CASE WHEN ca.activated_at <= NOW() - INTERVAL '12 days'
+            AND NOT EXISTS (
+                SELECT
+                    1
+                FROM
+                    notifications n
+                WHERE
+                    n.user_id = ca.user_id
+                    AND n.sent_at >= :cohort_start!
+                    AND n.email_template_id = :twelve_day_template_id!) THEN
+            '12_day'
+        WHEN ca.activated_at <= NOW() - INTERVAL '8 days'
+            AND NOT EXISTS (
+                SELECT
+                    1
+                FROM
+                    notifications n
+                WHERE
+                    n.user_id = ca.user_id
+                    AND n.sent_at >= :cohort_start!
+                    AND n.email_template_id IN (:twelve_day_template_id!, :eight_day_template_id!)) THEN
+            '8_day'
+        WHEN ca.activated_at <= NOW() - INTERVAL '5 days'
+            AND NOT EXISTS (
+                SELECT
+                    1
+                FROM
+                    notifications n
+                WHERE
+                    n.user_id = ca.user_id
+                    AND n.sent_at >= :cohort_start!
+                    AND n.email_template_id IN (:twelve_day_template_id!, :eight_day_template_id!, :five_day_template_id!)) THEN
+            '5_day'
+        WHEN ca.activated_at <= NOW() - INTERVAL '3 days'
+            AND NOT EXISTS (
+                SELECT
+                    1
+                FROM
+                    notifications n
+                WHERE
+                    n.user_id = ca.user_id
+                    AND n.sent_at >= :cohort_start!
+                    AND n.email_template_id IN (:twelve_day_template_id!, :eight_day_template_id!, :five_day_template_id!, :three_day_template_id!)) THEN
+            '3_day'
+        END AS email_type
+    FROM
+        nths_candidate_applications ca
+    WHERE
+        ca.activated_at <= NOW() - INTERVAL '3 days'
+        AND ca.activated_at >= :cohort_start!
+        AND ca.activated_at <= :cohort_end!) AS nths_candidates
+    JOIN users users ON users.id = nths_candidates.user_id
+WHERE
+    nths_candidates.email_type IS NOT NULL;
+

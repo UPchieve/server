@@ -280,3 +280,45 @@ export async function needsApprovalEmail(
     throw new RepoReadError(err)
   }
 }
+
+export async function needsEngagementEmail(
+  {
+    cohortStartDate,
+    cohortEndDate,
+    day3TemplateId: threeDayTemplatedId,
+    day5TemplateId: fiveDayTemplateId,
+    day8TemplateId: eightDayTemplateId,
+    day12TemplateId: twelveTemplateId,
+  }: {
+    cohortStartDate: Date
+    cohortEndDate: Date
+    day3TemplateId: string
+    day5TemplateId: string
+    day8TemplateId: string
+    day12TemplateId: string
+  },
+  tc: TransactionClient = getClient()
+) {
+  try {
+    const results = await pgQueries.needsEngagementEmail.run(
+      {
+        cohort_start: cohortStartDate,
+        cohort_end: cohortEndDate,
+        three_day_template_id: threeDayTemplatedId,
+        five_day_template_id: fiveDayTemplateId,
+        eight_day_template_id: eightDayTemplateId,
+        twelve_day_template_id: twelveTemplateId,
+      },
+      tc
+    )
+    if (!results.length) {
+      return []
+    }
+
+    return results.map((v) =>
+      makeSomeRequired(v, ['email', 'userId', 'firstName', 'emailType'])
+    )
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}

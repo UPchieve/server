@@ -73,6 +73,7 @@ import notifyNTHSChapterAdminsOfDeactivatedUser from './notifyNTHSChapterAdminsO
 import executeModerationAction from './executeModerationAction'
 import deleteProxyEmailsIdenticalToEmails from './deleteProxyEmailsIdenticalToEmails'
 import notifyVolunteersAboutEssayReviewSubmission from './volunteer-emails/notifyVolunteerAboutEssayReviewSubmission'
+import candidateEngagementCampaign from './nths/candidateEngagementCampaign'
 import applicationStatusNotification from './nths/applicationStatusNotification'
 
 export enum Jobs {
@@ -141,6 +142,7 @@ export enum Jobs {
   NotifyTutors = 'NotifyTutors',
   NotifyVolunteersAboutEssayReviewSubmission = 'NotifyVolunteersAboutEssayReviewSubmission',
   NTHSApplicationStatus = 'NTHSApplicationStatus',
+  NTHSCandidateEngagement = 'NTHSCandidateEngagement',
   ProcessSessionEnded = 'ProcessSessionEnded',
   RedisKeyMemStats = 'RedisKeyMemStats',
   SendAmbassadorCongratsEmail = 'SendAmbassadorCongratsEmail',
@@ -421,6 +423,10 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.NotifyVolunteersAboutEssayReviewSubmission,
     processor: notifyVolunteersAboutEssayReviewSubmission,
+  },
+  {
+    name: Jobs.NTHSCandidateEngagement,
+    processor: candidateEngagementCampaign,
   },
   { name: Jobs.RedisKeyMemStats, processor: logRedisKeyMemStats },
   {

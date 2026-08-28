@@ -119,6 +119,12 @@ const config = {
     nthsMemberDeactivationNoticeEmail: 'd-d4262bda50bb470abb770850d45cb083',
     nthsCandidateApplicationApproved: 'd-7bb5abafa4d14d6cb53540bd514447a7',
     nthsCandidateApplicationDenied: 'd-0db5c4e5f4de45de9c8ce7106765f0e9',
+    nthsCandidateEngagment: {
+      day3: 'd-9508e313abb74a919d0c56e3c0032e55',
+      day5: 'd-912e93e2b82347fca2348e8a8e80ba56',
+      day8: 'd-0fb72ec9549e4421b0fe2db907525bb8',
+      day12: 'd-da8969e7f8ac472dbc40bba661ac3a4c',
+    },
     nthsSchoolOfficialNotice: 'd-6f54afba78f84ae5b44b70a5d209e755',
     essayReviewSubmissionsToStudentTemplate:
       'd-1cd98b566dc24ce1ae2ee3ab47511a41',

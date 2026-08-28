@@ -454,3 +454,102 @@ const needsApplicationStatusEmailIR: any = {"usedParamSet":{"application_status"
 export const needsApplicationStatusEmail = new PreparedQuery<INeedsApplicationStatusEmailParams,INeedsApplicationStatusEmailResult>(needsApplicationStatusEmailIR);
 
 
+/** 'NeedsEngagementEmail' parameters type */
+export interface INeedsEngagementEmailParams {
+  cohort_end: DateOrString;
+  cohort_start: DateOrString;
+  eight_day_template_id: string;
+  five_day_template_id: string;
+  three_day_template_id: string;
+  twelve_day_template_id: string;
+}
+
+/** 'NeedsEngagementEmail' return type */
+export interface INeedsEngagementEmailResult {
+  /** pii: User email address */
+  email: string;
+  emailType: string | null;
+  /** pii: First name */
+  firstName: string;
+  /** not_pii: Foreign key to upchieve.users */
+  userId: string;
+}
+
+/** 'NeedsEngagementEmail' query type */
+export interface INeedsEngagementEmailQuery {
+  params: INeedsEngagementEmailParams;
+  result: INeedsEngagementEmailResult;
+}
+
+const needsEngagementEmailIR: any = {"usedParamSet":{"cohort_start":true,"twelve_day_template_id":true,"eight_day_template_id":true,"five_day_template_id":true,"three_day_template_id":true,"cohort_end":true},"params":[{"name":"cohort_start","required":true,"transform":{"type":"scalar"},"locs":[{"a":441,"b":454},{"a":845,"b":858},{"a":1276,"b":1289},{"a":1731,"b":1744},{"a":2088,"b":2101}]},{"name":"twelve_day_template_id","required":true,"transform":{"type":"scalar"},"locs":[{"a":502,"b":525},{"a":908,"b":931},{"a":1339,"b":1362},{"a":1794,"b":1817}]},{"name":"eight_day_template_id","required":true,"transform":{"type":"scalar"},"locs":[{"a":934,"b":956},{"a":1365,"b":1387},{"a":1820,"b":1842}]},{"name":"five_day_template_id","required":true,"transform":{"type":"scalar"},"locs":[{"a":1390,"b":1411},{"a":1845,"b":1866}]},{"name":"three_day_template_id","required":true,"transform":{"type":"scalar"},"locs":[{"a":1869,"b":1891}]},{"name":"cohort_end","required":true,"transform":{"type":"scalar"},"locs":[{"a":2134,"b":2145}]}],"statement":"SELECT\n    nths_candidates.user_id,\n    users.email,\n    users.first_name,\n    nths_candidates.email_type\nFROM (\n    SELECT\n        ca.user_id,\n        CASE WHEN ca.activated_at <= NOW() - INTERVAL '12 days'\n            AND NOT EXISTS (\n                SELECT\n                    1\n                FROM\n                    notifications n\n                WHERE\n                    n.user_id = ca.user_id\n                    AND n.sent_at >= :cohort_start!\n                    AND n.email_template_id = :twelve_day_template_id!) THEN\n            '12_day'\n        WHEN ca.activated_at <= NOW() - INTERVAL '8 days'\n            AND NOT EXISTS (\n                SELECT\n                    1\n                FROM\n                    notifications n\n                WHERE\n                    n.user_id = ca.user_id\n                    AND n.sent_at >= :cohort_start!\n                    AND n.email_template_id IN (:twelve_day_template_id!, :eight_day_template_id!)) THEN\n            '8_day'\n        WHEN ca.activated_at <= NOW() - INTERVAL '5 days'\n            AND NOT EXISTS (\n                SELECT\n                    1\n                FROM\n                    notifications n\n                WHERE\n                    n.user_id = ca.user_id\n                    AND n.sent_at >= :cohort_start!\n                    AND n.email_template_id IN (:twelve_day_template_id!, :eight_day_template_id!, :five_day_template_id!)) THEN\n            '5_day'\n        WHEN ca.activated_at <= NOW() - INTERVAL '3 days'\n            AND NOT EXISTS (\n                SELECT\n                    1\n                FROM\n                    notifications n\n                WHERE\n                    n.user_id = ca.user_id\n                    AND n.sent_at >= :cohort_start!\n                    AND n.email_template_id IN (:twelve_day_template_id!, :eight_day_template_id!, :five_day_template_id!, :three_day_template_id!)) THEN\n            '3_day'\n        END AS email_type\n    FROM\n        nths_candidate_applications ca\n    WHERE\n        ca.activated_at <= NOW() - INTERVAL '3 days'\n        AND ca.activated_at >= :cohort_start!\n        AND ca.activated_at <= :cohort_end!) AS nths_candidates\n    JOIN users users ON users.id = nths_candidates.user_id\nWHERE\n    nths_candidates.email_type IS NOT NULL"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     nths_candidates.user_id,
+ *     users.email,
+ *     users.first_name,
+ *     nths_candidates.email_type
+ * FROM (
+ *     SELECT
+ *         ca.user_id,
+ *         CASE WHEN ca.activated_at <= NOW() - INTERVAL '12 days'
+ *             AND NOT EXISTS (
+ *                 SELECT
+ *                     1
+ *                 FROM
+ *                     notifications n
+ *                 WHERE
+ *                     n.user_id = ca.user_id
+ *                     AND n.sent_at >= :cohort_start!
+ *                     AND n.email_template_id = :twelve_day_template_id!) THEN
+ *             '12_day'
+ *         WHEN ca.activated_at <= NOW() - INTERVAL '8 days'
+ *             AND NOT EXISTS (
+ *                 SELECT
+ *                     1
+ *                 FROM
+ *                     notifications n
+ *                 WHERE
+ *                     n.user_id = ca.user_id
+ *                     AND n.sent_at >= :cohort_start!
+ *                     AND n.email_template_id IN (:twelve_day_template_id!, :eight_day_template_id!)) THEN
+ *             '8_day'
+ *         WHEN ca.activated_at <= NOW() - INTERVAL '5 days'
+ *             AND NOT EXISTS (
+ *                 SELECT
+ *                     1
+ *                 FROM
+ *                     notifications n
+ *                 WHERE
+ *                     n.user_id = ca.user_id
+ *                     AND n.sent_at >= :cohort_start!
+ *                     AND n.email_template_id IN (:twelve_day_template_id!, :eight_day_template_id!, :five_day_template_id!)) THEN
+ *             '5_day'
+ *         WHEN ca.activated_at <= NOW() - INTERVAL '3 days'
+ *             AND NOT EXISTS (
+ *                 SELECT
+ *                     1
+ *                 FROM
+ *                     notifications n
+ *                 WHERE
+ *                     n.user_id = ca.user_id
+ *                     AND n.sent_at >= :cohort_start!
+ *                     AND n.email_template_id IN (:twelve_day_template_id!, :eight_day_template_id!, :five_day_template_id!, :three_day_template_id!)) THEN
+ *             '3_day'
+ *         END AS email_type
+ *     FROM
+ *         nths_candidate_applications ca
+ *     WHERE
+ *         ca.activated_at <= NOW() - INTERVAL '3 days'
+ *         AND ca.activated_at >= :cohort_start!
+ *         AND ca.activated_at <= :cohort_end!) AS nths_candidates
+ *     JOIN users users ON users.id = nths_candidates.user_id
+ * WHERE
+ *     nths_candidates.email_type IS NOT NULL
+ * ```
+ */
+export const needsEngagementEmail = new PreparedQuery<INeedsEngagementEmailParams,INeedsEngagementEmailResult>(needsEngagementEmailIR);
+
+
