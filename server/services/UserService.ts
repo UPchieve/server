@@ -1,7 +1,7 @@
 import crypto from 'crypto'
 import { omit } from 'lodash'
 import { Ulid, Uuid } from '../models/pgUtils'
-import { getPhotoIdUrl } from './AwsService'
+import { getPhotoIdUrl, putObject } from './AwsService'
 import {
   ACCOUNT_USER_ACTIONS,
   IP_ADDRESS_STATUS,
@@ -75,6 +75,7 @@ import {
   updateStudentProfilePartnerOrg,
   updateStudentSchool,
 } from '../models/Student'
+import * as AwsService from './AwsService'
 
 export async function parseUser(userId: Ulid) {
   const user = await getLegacyUserObject(userId)
@@ -104,8 +105,14 @@ export async function parseUser(userId: Ulid) {
   return user
 }
 
-export async function addPhotoId(userId: Ulid, ip?: string): Promise<string> {
-  const photoIdS3Key = crypto.randomBytes(32).toString('hex')
+export async function addPhotoId(
+  userId: Ulid,
+  ip?: string,
+  photoIdKey?: string
+): Promise<string> {
+  const photoIdS3Key = photoIdKey
+    ? photoIdKey
+    : crypto.randomBytes(32).toString('hex')
   await createAccountAction({
     userId,
     ipAddress: ip,
@@ -752,4 +759,23 @@ export function getReferralSignUpLink(referralCode: string): string {
 
 export function getUserIdByPhone(phone: string): Promise<Ulid | undefined> {
   return UserRepo.getUserIdByPhone(phone)
+}
+
+export async function uploadVolunteerPhoto(
+  userId: Ulid,
+  image: Express.Multer.File,
+  ip?: string
+) {
+  const photoIdS3Key = crypto.randomBytes(32).toString('hex')
+
+  const bucketName = config.awsS3.photoIdBucket
+  const result = await AwsService.putObject(
+    bucketName,
+    photoIdS3Key,
+    image.buffer
+  )
+
+  await addPhotoId(userId, ip)
+
+  return result
 }

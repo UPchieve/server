@@ -23,6 +23,8 @@ import {
 import { extractUser } from '../extract-user'
 import { InputError, NotAllowedError } from '../../models/Errors'
 import { GRADES } from '../../constants'
+import config from '../../config'
+import multer from 'multer'
 
 export const asEditProfilePayload = asFactory<EditUserProfilePayload>({
   smsConsent: asOptional(asBoolean),
@@ -44,6 +46,7 @@ export const asEditProfilePayload = asFactory<EditUserProfilePayload>({
 })
 
 export function routeUser(router: Router): void {
+  const upload = multer()
   router.route('/user').get(async function (req, res) {
     const user = extractUser(req)
     const parsedUser = await UserService.parseUser(user.id)
@@ -134,6 +137,31 @@ export function routeUser(router: Router): void {
       } else resError(res, err)
     }
   })
+
+  router.put(
+    '/user/volunteer-approval/photo',
+    upload.single('file'),
+    async (req, res) => {
+      try {
+        const { ip } = req
+        const user = extractUser(req)
+        const image = req.file
+
+        if (!image) {
+          return res.status(400).json({ error: 'No file uploaded' })
+        }
+
+        const result = await UserService.uploadVolunteerPhoto(
+          user.id,
+          image,
+          ip
+        )
+        res.json({ imageUrl: result.location })
+      } catch (err) {
+        resError(res, err)
+      }
+    }
+  )
 
   router.get('/user/volunteer-approval/photo-url', async (req, res) => {
     try {
