@@ -292,7 +292,10 @@ export async function uploadBlobBuffer(
   })
 }
 
-function buildSessionImagePath(sessionId: Uuid, fileName: string): string {
+export function buildSessionImagePath(
+  sessionId: Uuid,
+  fileName: string
+): string {
   return `${sessionId}/images/${fileName}`
 }
 

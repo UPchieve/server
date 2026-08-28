@@ -82,6 +82,8 @@ import * as FeatureFlagsService from './FeatureFlagService'
 import { createDocEditorImageUploadUrl } from './AzureService'
 import type { CurrentSession } from '../types/session'
 import { hoursInSeconds, minutesInMs, secondsInMs } from '../utils/time-utils'
+import crypto from 'crypto'
+import * as ModerationService from './ModerationService'
 
 export async function reviewSession(data: unknown) {
   const { sessionId, reviewed, toReview } =
@@ -1519,4 +1521,63 @@ export async function handleSessionBreakout(
     }
     await SocketService.getInstance().emitSessionChange(session.id)
   }
+}
+
+export async function saveSessionImage({
+  sessionId,
+  image,
+  userId,
+  isVolunteer,
+}: {
+  sessionId: string
+  image: Express.Multer.File
+  userId: Uuid
+  isVolunteer: boolean
+}): Promise<
+  | { isClean: true; imageUrl: string }
+  | { isClean: false; failures: string[] }
+  | { imageUrl: string }
+> {
+  const session = await SessionRepo.getSessionById(sessionId)
+
+  const { isClean, failures } = await ModerationService.moderateImage(
+    image.buffer,
+    {
+      source: 'image_upload',
+      sessionId,
+      userId,
+      isVolunteer,
+    }
+  )
+
+  if (isClean) {
+    if (sessionUtils.isSubjectUsingDocumentEditor(session.toolType)) {
+      const sessionPhotoKey = await storeSessionPhotoKey(sessionId)
+      const filePath = AzureService.buildSessionImagePath(
+        sessionId,
+        sessionPhotoKey
+      )
+
+      await AzureService.uploadBlobFile(
+        config.appStorageAccountName,
+        config.sessionsStorageContainer,
+        filePath,
+        image
+      )
+      const imageUrl = `${config.apiOrigin}/api/sessions/${filePath}`
+      return { isClean: true, imageUrl }
+    } else {
+      const bucketName = config.awsS3.sessionPhotoBucket
+      if (!bucketName)
+        throw new Error(
+          `Could not save moderated image to S3: No bucket registered for source whiteboard`
+        )
+      const s3Key = `${sessionId}-${crypto.randomBytes(8).toString('hex')}`
+      const result = await AwsService.putObject(bucketName, s3Key, image.buffer)
+
+      return { isClean: true, imageUrl: result.location }
+    }
+  }
+
+  return { isClean: false, failures }
 }

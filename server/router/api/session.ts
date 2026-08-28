@@ -201,6 +201,36 @@ export function routeSession(router: Router) {
     }
   })
 
+  router.put(
+    '/session/:sessionId/image',
+    upload.single('image'),
+    async function (req, res) {
+      try {
+        const user = extractUser(req)
+
+        const { sessionId } = req.params
+        const imageToModerate = req.file
+        const userId = user.id
+        const roleContext = user.roleContext
+
+        if (!imageToModerate) {
+          return resSuccess(res, { err: 'No file was attached' }, 400)
+        }
+
+        const data = await SessionService.saveSessionImage({
+          sessionId,
+          image: imageToModerate,
+          userId,
+          isVolunteer: roleContext.isActiveRole('volunteer'),
+        })
+
+        return resSuccess(res, data, 200)
+      } catch (err) {
+        resError(res, err)
+      }
+    }
+  )
+
   router.get(
     '/session/review',
     authPassport.isAdmin,

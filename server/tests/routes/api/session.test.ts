@@ -552,6 +552,46 @@ describe('routeSession', () => {
     })
   })
 
+  describe('PUT /api/session/:sessionId/image', () => {
+    test('saves a session image and returns the moderation result', async () => {
+      const sessionId = getUuid()
+      const result = {
+        isClean: true as const,
+        imageUrl: 'https://example.com/image.png',
+      }
+      mockedSessionService.saveSessionImage.mockResolvedValueOnce(result)
+
+      const response = await agent
+        .put(`/api/session/${sessionId}/image`)
+        .set('Accept', 'application/json')
+        .attach('image', Buffer.from('fake-image-data'), 'test.png')
+
+      expect(response.status).toBe(200)
+      expect(mockedSessionService.saveSessionImage).toHaveBeenCalledWith({
+        sessionId,
+        image: expect.objectContaining({
+          originalname: 'test.png',
+          buffer: expect.any(Buffer),
+        }),
+        userId: mockUser.id,
+        isVolunteer: mockUser.roleContext.isActiveRole('volunteer'),
+      })
+      expect(response.body).toEqual(result)
+    })
+
+    test('returns 400 when no file is attached', async () => {
+      const sessionId = getUuid()
+
+      const response = await agent
+        .put(`/api/session/${sessionId}/image`)
+        .set('Accept', 'application/json')
+
+      expect(response.status).toBe(400)
+      expect(response.body).toEqual({ err: 'No file was attached' })
+      expect(mockedSessionService.saveSessionImage).not.toHaveBeenCalled()
+    })
+  })
+
   describe('GET /api/session/:sessionId', () => {
     test('returns a public session', async () => {
       const session = buildPublicSession()
