@@ -7,8 +7,7 @@ import {
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import { getClient, TransactionClient } from '../../db'
 import * as pgQueries from './pg.queries'
-import { getDbUlid, makeRequired } from '../pgUtils'
-import { camelCaseKeys } from '../../tests/db-utils'
+import { getDbUlid, makeSomeRequired } from '../pgUtils'
 
 export async function insertModerationInfraction(
   data: InsertModerationInfractionArgs,
@@ -30,10 +29,16 @@ export async function insertModerationInfraction(
       )
     const inserted = result[0]
     const reason = inserted.reason as { [key: string]: any }
-    return makeRequired({
-      ...inserted,
-      reason,
-    })
+
+    return makeSomeRequired({ ...inserted, reason }, [
+      'id',
+      'userId',
+      'sessionId',
+      'reason',
+      'active',
+      'createdAt',
+      'updatedAt',
+    ])
   } catch (err) {
     throw new RepoCreateError(err)
   }
@@ -89,13 +94,17 @@ export async function getModerationInfractionsByUser(
       client ?? getClient()
     )
     if (!result.length) return []
-    return result.map((r) => {
-      const camelCase = camelCaseKeys(r)
-      return {
-        ...camelCase,
-        reason: camelCase.reason as InfractionReasons,
-      }
-    })
+    return result.map((r) =>
+      makeSomeRequired({ ...r, reason: r.reason as InfractionReasons }, [
+        'id',
+        'userId',
+        'sessionId',
+        'reason',
+        'active',
+        'createdAt',
+        'updatedAt',
+      ])
+    )
   } catch (err) {
     throw new RepoReadError(err)
   }
