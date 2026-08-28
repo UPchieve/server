@@ -207,7 +207,7 @@ ORDER BY
 
 /* @name getStudentPostsessionSurveyResponse */
 WITH replacement_column_cte AS (
-    SELECT
+    SELECT DISTINCT ON (sq.id)
         sq.id,
         CASE WHEN sq.replacement_column_1 = 'student_name' THEN
             u_student.first_name
@@ -290,7 +290,7 @@ ORDER BY
 
 /* @name getVolunteerPostsessionSurveyResponse */
 WITH replacement_column_cte AS (
-    SELECT
+    SELECT DISTINCT ON (sq.id)
         sq.id,
         CASE WHEN sq.replacement_column_1 = 'student_name' THEN
             u_student.first_name
