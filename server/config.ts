@@ -387,6 +387,10 @@ const config = {
   appStorageAccountName: process.env.SUBWAY_APP_STORAGE_ACCOUNT_NAME || 'bogus',
   appStorageAccountAccessKey:
     process.env.SUBWAY_APP_STORAGE_ACCOUNT_ACCESS_KEY || 'bogus',
+  photoDnaStorageAccountName:
+    process.env.SUBWAY_PHOTODNA_QUARANTINE_ACCOUNT_NAME || 'bogus',
+  photoDnaStorageContainer:
+    process.env.SUBWAY_PHOTODNA_QUARANTINE_STORAGE_CONTAINER || 'bogus',
   sessionsStorageContainer:
     process.env.SUBWAY_SESSIONS_STORAGE_CONTAINER || 'bogus',
   version: process.env.SUBWAY_VERSION || 'development',
@@ -503,6 +507,10 @@ const config = {
 
   // Key used in load testing request headers to allow bypassing Recaptcha check.
   loadTestKey: process.env.LOAD_TEST_KEY,
+
+  // PhotoDNA credentials
+  photoDnaKey: process.env.SUBWAY_PHOTODNA_APP_KEY || 'bogus',
+  photoDNABaseHost: process.env.SUBWAY_PHOTODNA_BASE_HOST || 'bogus',
 } as const
 
 export default config

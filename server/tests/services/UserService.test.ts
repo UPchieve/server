@@ -11,22 +11,36 @@ import * as StudentRepo from '../../models/Student'
 import * as UsersSchoolsRepo from '../../models/UsersSchools'
 import { beforeEach } from '@jest/globals'
 import { getPartnerOrgsByStudent } from '../../models/Student'
+import * as AwsService from '../../services/AwsService'
+import * as PhotoDnaService from '../../services/PhotoDnaService'
+import * as FeatureFlagService from '../../services/FeatureFlagService'
+import * as VolunteerModel from '../../models/Volunteer'
 
 jest.mock('../../models/User/queries')
 jest.mock('../../services/UserRolesService')
 jest.mock('../../models/Student/queries')
 jest.mock('../../models/UsersSchools/queries')
+jest.mock('../../models/UserAction')
+jest.mock('../../services/AwsService')
+jest.mock('../../services/PhotoDnaService')
+jest.mock('../../services/FeatureFlagService')
+jest.mock('../../models/Volunteer')
 
 const mockUserRepo = mocked(UserRepo)
 const mockedUserRolesService = mocked(UserRolesService)
 const mockedStudentRepo = jest.mocked(StudentRepo)
 const mockedUsersSchoolsRepo = jest.mocked(UsersSchoolsRepo)
+const mockedAwsService = jest.mocked(AwsService)
+const mockedPhotoDnaService = jest.mocked(PhotoDnaService)
+const mockedFeatureFlagService = jest.mocked(FeatureFlagService)
+const mockedVolunteerModel = jest.mocked(VolunteerModel)
 const mockGetUser = () => buildStudent()
 const app = mockApp()
 app.use(mockPassportMiddleware(mockGetUser))
 
 beforeEach(() => {
   jest.resetAllMocks()
+  mockedFeatureFlagService.getPhotoDnaMatchCheckFlag.mockResolvedValue(true)
 })
 
 describe('User Service', () => {
@@ -283,6 +297,62 @@ describe('User Service', () => {
         newPartnerOrg.siteId,
         expect.anything()
       )
+    })
+  })
+
+  describe('uploadVolunteerPhoto', () => {
+    const userId = getDbUlid()
+    const image = {
+      buffer: Buffer.from('fake-image-bytes'),
+      mimetype: 'image/png',
+    } as Express.Multer.File
+
+    test('stores the volunteer photo id under the same key the image was actually uploaded to', async () => {
+      mockedAwsService.putObject.mockResolvedValueOnce({
+        response: {} as any,
+        location: 'https://example.com/photo.png',
+      })
+
+      await UserService.uploadVolunteerPhoto(userId, image, '127.0.0.1')
+
+      const uploadedKey = mockedAwsService.putObject.mock.calls[0][1]
+      expect(
+        mockedVolunteerModel.updateVolunteerPhotoIdById
+      ).toHaveBeenCalledWith(userId, uploadedKey, expect.anything())
+    })
+
+    test('checks the image with PhotoDNA before uploading anything', async () => {
+      mockedPhotoDnaService.checkAgainstPhotoDNA.mockRejectedValueOnce(
+        new Error('PhotoDNA match')
+      )
+
+      await expect(
+        UserService.uploadVolunteerPhoto(userId, image, '127.0.0.1')
+      ).rejects.toThrow('PhotoDNA match')
+
+      expect(mockedPhotoDnaService.checkAgainstPhotoDNA).toHaveBeenCalledWith(
+        image,
+        userId
+      )
+      expect(mockedAwsService.putObject).not.toHaveBeenCalled()
+      expect(
+        mockedVolunteerModel.updateVolunteerPhotoIdById
+      ).not.toHaveBeenCalled()
+    })
+
+    test('skips the PhotoDNA check when the feature flag is disabled', async () => {
+      mockedFeatureFlagService.getPhotoDnaMatchCheckFlag.mockResolvedValue(
+        false
+      )
+      mockedAwsService.putObject.mockResolvedValueOnce({
+        response: {} as any,
+        location: 'https://example.com/photo.png',
+      })
+
+      await UserService.uploadVolunteerPhoto(userId, image, '127.0.0.1')
+
+      expect(mockedPhotoDnaService.checkAgainstPhotoDNA).not.toHaveBeenCalled()
+      expect(mockedAwsService.putObject).toHaveBeenCalled()
     })
   })
 })

@@ -177,3 +177,7 @@ export async function isAsyncEssayReviewEmailNotificationsEnabled(
     userId
   )
 }
+
+export async function getPhotoDnaMatchCheckFlag(userId: Uuid) {
+  return isFeatureEnabled(FEATURE_FLAGS.PHOTODNA_MATCH_CHECK, userId)
+}

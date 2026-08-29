@@ -42,6 +42,13 @@ const blobClients = new Map<string, BlobServiceClient>([
       azureStorageCredential
     ),
   ],
+  [
+    config.photoDnaStorageAccountName,
+    new BlobServiceClient(
+      `https://${config.photoDnaStorageAccountName}.blob.core.windows.net`,
+      azureStorageCredential
+    ),
+  ],
 ])
 
 // a helper method used to read a Node.js readable stream into a Buffer

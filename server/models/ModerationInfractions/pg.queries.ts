@@ -1,6 +1,8 @@
 /** Types generated for queries found in "server/models/ModerationInfractions/moderation_infractions.sql" */
 import { PreparedQuery } from '@pgtyped/runtime';
 
+export type DateOrString = Date | string;
+
 export type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
 
 /** 'InsertModerationInfraction' parameters type */
@@ -161,5 +163,50 @@ const getModerationInfractionsByUserIR: any = {"usedParamSet":{"userId":true,"se
  * ```
  */
 export const getModerationInfractionsByUser = new PreparedQuery<IGetModerationInfractionsByUserParams,IGetModerationInfractionsByUserResult>(getModerationInfractionsByUserIR);
+
+
+/** 'InsertQuarantinedPhotoInfraction' parameters type */
+export interface IInsertQuarantinedPhotoInfractionParams {
+  id: string;
+  quarantinedDate: DateOrString;
+  reason: Json;
+  sessionId?: string | null | void;
+  userId: string;
+}
+
+/** 'InsertQuarantinedPhotoInfraction' return type */
+export interface IInsertQuarantinedPhotoInfractionResult {
+  /** not_pii: ?? */
+  active: boolean;
+  /** not_pii */
+  createdAt: Date;
+  /** not_pii: Primary key */
+  id: string;
+  /** not_pii: JSON describing the moderation infraction details */
+  reason: Json;
+  /** not_pii */
+  updatedAt: Date;
+  /** not_pii: Foreign key to upchieve.users */
+  userId: string;
+}
+
+/** 'InsertQuarantinedPhotoInfraction' query type */
+export interface IInsertQuarantinedPhotoInfractionQuery {
+  params: IInsertQuarantinedPhotoInfractionParams;
+  result: IInsertQuarantinedPhotoInfractionResult;
+}
+
+const insertQuarantinedPhotoInfractionIR: any = {"usedParamSet":{"id":true,"userId":true,"sessionId":true,"reason":true,"quarantinedDate":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":105,"b":108}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":111,"b":118}]},{"name":"sessionId","required":false,"transform":{"type":"scalar"},"locs":[{"a":121,"b":130}]},{"name":"reason","required":true,"transform":{"type":"scalar"},"locs":[{"a":133,"b":140}]},{"name":"quarantinedDate","required":true,"transform":{"type":"scalar"},"locs":[{"a":149,"b":165}]}],"statement":"INSERT INTO moderation_infractions (id, user_id, session_id, reason, active, quarantined_on)\n    VALUES (:id!, :userId!, :sessionId, :reason!, TRUE, :quarantinedDate!)\nRETURNING\n    id, user_id, reason, active, created_at, updated_at"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO moderation_infractions (id, user_id, session_id, reason, active, quarantined_on)
+ *     VALUES (:id!, :userId!, :sessionId, :reason!, TRUE, :quarantinedDate!)
+ * RETURNING
+ *     id, user_id, reason, active, created_at, updated_at
+ * ```
+ */
+export const insertQuarantinedPhotoInfraction = new PreparedQuery<IInsertQuarantinedPhotoInfractionParams,IInsertQuarantinedPhotoInfractionResult>(insertQuarantinedPhotoInfractionIR);
 
 

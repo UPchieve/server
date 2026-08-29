@@ -19,4 +19,5 @@ export enum FEATURE_FLAGS {
   STUDENT_SESSION_SUMMARY = 'student-session-summary',
   VOLUNTEER_ASYNC_ESSAY_REVIEW = 'volunteer-async-essay-review',
   VOLUNTEER_ASYNC_ESSAY_REVIEW_EMAIL_NOTIFICATIONS = 'volunteer-async-essay-review-email-notifications',
+  PHOTODNA_MATCH_CHECK = 'photodna-match-check',
 }

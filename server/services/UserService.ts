@@ -76,6 +76,8 @@ import {
   updateStudentSchool,
 } from '../models/Student'
 import * as AwsService from './AwsService'
+import * as PhotoDnaService from './PhotoDnaService'
+import { getPhotoDnaMatchCheckFlag } from './FeatureFlagService'
 
 export async function parseUser(userId: Ulid) {
   const user = await getLegacyUserObject(userId)
@@ -766,6 +768,11 @@ export async function uploadVolunteerPhoto(
   image: Express.Multer.File,
   ip?: string
 ) {
+  const isPhotoDnaMatchCheckEnabled = await getPhotoDnaMatchCheckFlag(userId)
+  if (isPhotoDnaMatchCheckEnabled) {
+    await PhotoDnaService.checkAgainstPhotoDNA(image, userId)
+  }
+
   const photoIdS3Key = crypto.randomBytes(32).toString('hex')
 
   const bucketName = config.awsS3.photoIdBucket
@@ -775,7 +782,7 @@ export async function uploadVolunteerPhoto(
     image.buffer
   )
 
-  await addPhotoId(userId, ip)
+  await addPhotoId(userId, ip, photoIdS3Key)
 
   return result
 }

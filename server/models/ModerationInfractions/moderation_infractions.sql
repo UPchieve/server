@@ -35,3 +35,10 @@ WHERE
     AND (:active::boolean IS NULL
         OR active = :active);
 
+
+/* @name insertQuarantinedPhotoInfraction */
+INSERT INTO moderation_infractions (id, user_id, session_id, reason, active, quarantined_on)
+    VALUES (:id!, :userId!, :sessionId, :reason!, TRUE, :quarantinedDate!)
+RETURNING
+    id, user_id, reason, active, created_at, updated_at;
+

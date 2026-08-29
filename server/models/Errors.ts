@@ -177,3 +177,11 @@ export class UnsupportedFileTypeError extends CustomError {
     super(message)
   }
 }
+
+export class PhotoDnaMatchError extends CustomError {
+  constructor() {
+    super(
+      "This image can't be uploaded at this time. Please reach out to support at support@upchieve.org for assistance."
+    )
+  }
+}

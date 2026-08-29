@@ -26,6 +26,7 @@ import {
 } from '../models/Assignments'
 import * as ModerationService from './ModerationService/index'
 import * as AzureService from './AzureService'
+import * as PhotoDnaService from './PhotoDnaService'
 import config from '../config'
 import * as cache from '../cache'
 import { getSubjectsForTopicByTopicId } from './SubjectsService'
@@ -34,6 +35,7 @@ import { isEmpty } from 'lodash'
 import * as ModerationTypes from './ModerationService/types'
 import { extractPdfContent } from '../utils/file-utils'
 import { moderateAssignmentInfo } from './ModerationService/index'
+import { getPhotoDnaMatchCheckFlag } from './FeatureFlagService'
 
 export class UnauthorizedActionError extends CaughtError {
   readonly httpStatus = 403
@@ -114,6 +116,11 @@ export async function upsertAssignment(
   await ensureAuthorizedToUpsertAssignment(userId, data.classId, data.id)
   validateSupportedFileTypes(files)
 
+  const isPhotoDnaMatchCheckEnabled = await getPhotoDnaMatchCheckFlag(userId)
+  if (isPhotoDnaMatchCheckEnabled) {
+    await checkFilesForPhotoDna(files, userId)
+  }
+
   const moderationInfractions = await ModerationService.moderateAssignmentInfo(
     `${data.title} ${data.description}`
   )
@@ -188,6 +195,10 @@ export async function createAssignmentForClasses(
     )
   )
   validateSupportedFileTypes(files)
+  const isPhotoDnaMatchCheckEnabled = await getPhotoDnaMatchCheckFlag(userId)
+  if (isPhotoDnaMatchCheckEnabled) {
+    await checkFilesForPhotoDna(files, userId)
+  }
 
   const moderationInfractions = await ModerationService.moderateAssignmentInfo(
     `${data.title} ${data.description}`
@@ -311,6 +322,15 @@ function validateSupportedFileTypes(files: Express.Multer.File[]): void {
       'Unsupported file type: Upload an image files or PDFs'
     )
   }
+}
+
+async function checkFilesForPhotoDna(
+  files: Express.Multer.File[],
+  userId: Uuid
+): Promise<void> {
+  await Promise.all(
+    files.map((file) => PhotoDnaService.checkAgainstPhotoDNA(file, userId))
+  )
 }
 
 /**

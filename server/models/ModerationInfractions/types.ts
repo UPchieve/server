@@ -2,7 +2,7 @@ export type InfractionReasons = { [key: string]: string[] }
 
 export type InsertModerationInfractionArgs = {
   userId: string
-  sessionId: string
+  sessionId?: string
   reason: InfractionReasons
 }
 
@@ -13,7 +13,7 @@ export type UpdateModerationInfractionArgs = {
 export type ModerationInfraction = {
   id: string
   userId: string
-  sessionId: string
+  sessionId?: string
   reason: InfractionReasons
   active: boolean
   quarantinedOn?: Date

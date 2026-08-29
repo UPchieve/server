@@ -52,6 +52,7 @@ import { captureEvent } from './AnalyticsService'
 import * as AssignmentsService from './AssignmentsService'
 import * as AwsService from './AwsService'
 import * as AzureService from './AzureService'
+import * as PhotoDnaService from './PhotoDnaService'
 import * as PushTokenService from './PushTokenService'
 import * as NotifyVolunteerService from './NotifyVolunteerService'
 import * as VolunteerRepo from '../models/Volunteer'
@@ -84,6 +85,7 @@ import type { CurrentSession } from '../types/session'
 import { hoursInSeconds, minutesInMs, secondsInMs } from '../utils/time-utils'
 import crypto from 'crypto'
 import * as ModerationService from './ModerationService'
+import { getPhotoDnaMatchCheckFlag } from './FeatureFlagService'
 
 export async function reviewSession(data: unknown) {
   const { sessionId, reviewed, toReview } =
@@ -1539,6 +1541,10 @@ export async function saveSessionImage({
   | { imageUrl: string }
 > {
   const session = await SessionRepo.getSessionById(sessionId)
+  const isPhotoDnaMatchCheckEnabled = await getPhotoDnaMatchCheckFlag(userId)
+  if (isPhotoDnaMatchCheckEnabled) {
+    await PhotoDnaService.checkAgainstPhotoDNA(image, userId, sessionId)
+  }
 
   const { isClean, failures } = await ModerationService.moderateImage(
     image.buffer,
