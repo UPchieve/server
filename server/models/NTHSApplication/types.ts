@@ -8,6 +8,8 @@ export type NTHSApplicationEligibilityFacts = {
   approved: boolean
   isHighSchoolStudent: boolean
   hasCompletedSession: boolean
+  isActiveChapterMember: boolean
+  hasPreviousApplication: boolean
   currentGradeName?: string
 }
 

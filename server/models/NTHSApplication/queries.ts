@@ -103,6 +103,8 @@ export async function getCandidateApplicationEligibility(
       'approved',
       'isHighSchoolStudent',
       'hasCompletedSession',
+      'isActiveChapterMember',
+      'hasPreviousApplication',
     ])
     return {
       banType: row.banType,
@@ -110,6 +112,8 @@ export async function getCandidateApplicationEligibility(
       approved: row.approved,
       isHighSchoolStudent: !!row.isHighSchoolStudent,
       hasCompletedSession: !!row.hasCompletedSession,
+      isActiveChapterMember: !!row.isActiveChapterMember,
+      hasPreviousApplication: !!row.hasPreviousApplication,
       currentGradeName: row.currentGradeName,
     }
   } catch (err) {

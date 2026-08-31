@@ -10,7 +10,10 @@ import { getName } from '../mocks/generate'
 import { createTestUser, createTestVolunteer } from './seed-utils'
 import * as NTHSApplicationService from '../../services/NTHSApplicationService'
 import * as NTHSGroupsService from '../../services/NTHSGroupsService'
-import { NTHSApplicationNotEligibleError } from '../../services/NTHSApplicationService'
+import {
+  NTHSApplicationIneligibilityReason,
+  NTHSApplicationNotEligibleError,
+} from '../../services/NTHSApplicationService'
 import { NTHSCandidateApplicationStatus } from '../../models/NTHSGroups'
 import { GRADES, USER_BAN_TYPES } from '../../constants/user'
 import {
@@ -113,6 +116,24 @@ async function gradeLevelOf(userId: Ulid): Promise<string | undefined> {
     [userId]
   )
   return result.rows[0]?.name
+}
+
+async function deactivateMembership(userId: Ulid) {
+  await client.query(
+    `UPDATE nths_group_members SET deactivated_at = NOW() WHERE user_id = $1`,
+    [userId]
+  )
+}
+
+async function insertApplicationRow(
+  userId: Ulid,
+  status: NTHSCandidateApplicationStatus
+) {
+  await client.query(
+    `INSERT INTO nths_candidate_applications (user_id, status, form_version, responses, denied_notes)
+     VALUES ($1, $2, 1, '{}', $3)`,
+    [userId, status, status === 'denied' ? 'Not enough sessions yet' : null]
+  )
 }
 
 async function applicationRows(userId: Ulid) {
@@ -369,7 +390,8 @@ describe('submitCandidateApplication', () => {
         schoolId: await createSchool(),
         unlistedSchool: undefined,
       })
-    ).rejects.toThrow(NTHSApplicationExistsError)
+    ).rejects.toThrow('You already have an application being reviewed')
+    expect(await applicationRows(userId)).toHaveLength(1)
   })
 
   test('rejects a resubmission from an applicant holding an unused approval', async () => {
@@ -383,7 +405,9 @@ describe('submitCandidateApplication', () => {
     // The window before they found the chapter, when no group membership exists
     // to catch them. Unblocked, the new 'applied' row outranks the approval by
     // created_at and takes away the chapter they had just earned.
-    await expect(submit(userId)).rejects.toThrow(NTHSApplicationExistsError)
+    await expect(submit(userId)).rejects.toThrow(
+      'You have already been approved to start an NTHS chapter'
+    )
     expect(await applicationRows(userId)).toHaveLength(1)
   })
 
@@ -396,7 +420,9 @@ describe('submitCandidateApplication', () => {
     })
     await NTHSGroupsService.foundGroup(userId)
 
-    await expect(submit(userId)).rejects.toThrow(NTHSApplicationExistsError)
+    await expect(submit(userId)).rejects.toThrow(
+      'You have already been approved to start an NTHS chapter'
+    )
   })
 
   test('rejects an application from a member who joined someone else s chapter', async () => {
@@ -408,8 +434,8 @@ describe('submitCandidateApplication', () => {
     })
     const group = await NTHSGroupsService.foundGroup(president)
 
-    // A member who joined by invite code never applied, so they have no
-    // activation; membership is the only thing that catches them.
+    // A member who joined by invite code never applied, so membership is the
+    // only thing that catches them.
     const member = await createEligibleCoach()
     await NTHSGroupsService.joinGroupAsMemberByGroupId(
       member,
@@ -419,7 +445,9 @@ describe('submitCandidateApplication', () => {
     await expect(submit(member)).rejects.toThrow(NTHSApplicationExistsError)
   })
 
-  test('lets a denied applicant apply again right away', async () => {
+  // Staff reopen the door by hand rather than the applicant reapplying, so a
+  // denial has to be as final as an approval.
+  test('refuses a second application after a denial', async () => {
     const userId = await createEligibleCoach()
     await submit(userId)
     await NTHSApplicationService.decideCandidateApplication({
@@ -428,9 +456,29 @@ describe('submitCandidateApplication', () => {
       deniedNotes: 'Not enough sessions yet',
     })
 
-    // activation_requires_approval keeps activated_at null on a denial, and a
-    // denial joins no chapter, so neither half of the block sees them.
-    await expect(submit(userId)).resolves.toBeDefined()
+    await expect(submit(userId)).rejects.toThrow(
+      'You have already applied to start an NTHS chapter'
+    )
+    expect(await applicationRows(userId)).toHaveLength(1)
+  })
+
+  test('lets a former chapter member apply again', async () => {
+    const president = await createEligibleCoach()
+    await submit(president)
+    await NTHSApplicationService.decideCandidateApplication({
+      userId: president,
+      status: NTHSCandidateApplicationStatus.approved,
+    })
+    const group = await NTHSGroupsService.foundGroup(president)
+
+    const member = await createEligibleCoach()
+    await NTHSGroupsService.joinGroupAsMemberByGroupId(
+      member,
+      group.groupInfo.id
+    )
+    await deactivateMembership(member)
+
+    await expect(submit(member)).resolves.toBeDefined()
   })
 
   test('lets two unmatched-school applicants through', async () => {
@@ -446,7 +494,7 @@ describe('submitCandidateApplication', () => {
 
   test('rolls the grade level back when the insert is rejected', async () => {
     const userId = await createEligibleCoach()
-    await submit(userId, { gradeLevel: GRADES.NINTH })
+    await setGradeLevel(userId, GRADES.NINTH, new Date().toISOString())
     expect(await gradeLevelOf(userId)).toBe(GRADES.NINTH)
 
     // db-mocks-setup replaces runInTransaction with a passthrough that issues
@@ -454,9 +502,33 @@ describe('submitCandidateApplication', () => {
     // observed and the grade would survive the failed submit.
     mocked(PgClient).runInTransaction.mockImplementationOnce(async (cb) => {
       const tc = await (global as any).__TEST_DB_CLIENT__.connect()
+      // The competing row has to land after every read the submit does and
+      // before its own insert, which is the only window the unique index
+      // closes. Triggering off the insert statement itself rather than a
+      // statement count keeps that true if the reads are reordered.
+      let raced = false
+      const racing = {
+        query: async (...args: unknown[]) => {
+          const sql =
+            typeof args[0] === 'string'
+              ? args[0]
+              : ((args[0] as { text?: string })?.text ?? '')
+          if (
+            !raced &&
+            sql.includes('INSERT INTO nths_candidate_applications')
+          ) {
+            raced = true
+            await insertApplicationRow(
+              userId,
+              NTHSCandidateApplicationStatus.applied
+            )
+          }
+          return await tc.query(...args)
+        },
+      }
       try {
         await tc.query('BEGIN')
-        const result = await cb(tc)
+        const result = await cb(racing as any)
         await tc.query('COMMIT')
         return result
       } catch (err) {
@@ -491,6 +563,84 @@ describe('submitCandidateApplication', () => {
 
     expect(eligible).toBe(true)
     expect(currentGradeName).toBeUndefined()
+  })
+})
+
+describe('getApplicationEligibility', () => {
+  test.each([
+    NTHSCandidateApplicationStatus.applied,
+    NTHSCandidateApplicationStatus.approved,
+    NTHSCandidateApplicationStatus.denied,
+  ])('reports a coach with a %s application as ineligible', async (status) => {
+    const userId = await createEligibleCoach()
+    await insertApplicationRow(userId, status)
+
+    const { eligible, reasons } =
+      await NTHSApplicationService.getApplicationEligibility(userId)
+
+    expect(eligible).toBe(false)
+    expect(reasons).toEqual([NTHSApplicationIneligibilityReason.alreadyApplied])
+  })
+
+  // Reading only the latest row would hand a candidate whose history ends in a
+  // denial a second application.
+  test('keeps blocking a coach with several decided applications', async () => {
+    const userId = await createEligibleCoach()
+    await insertApplicationRow(userId, NTHSCandidateApplicationStatus.approved)
+    await insertApplicationRow(userId, NTHSCandidateApplicationStatus.denied)
+
+    const { eligible, reasons } =
+      await NTHSApplicationService.getApplicationEligibility(userId)
+
+    expect(eligible).toBe(false)
+    expect(reasons).toEqual([NTHSApplicationIneligibilityReason.alreadyApplied])
+  })
+
+  test('reports an active chapter member as ineligible', async () => {
+    const president = await createEligibleCoach()
+    await submit(president)
+    await NTHSApplicationService.decideCandidateApplication({
+      userId: president,
+      status: NTHSCandidateApplicationStatus.approved,
+    })
+    const group = await NTHSGroupsService.foundGroup(president)
+
+    const member = await createEligibleCoach()
+    await NTHSGroupsService.joinGroupAsMemberByGroupId(
+      member,
+      group.groupInfo.id
+    )
+
+    const { eligible, reasons } =
+      await NTHSApplicationService.getApplicationEligibility(member)
+
+    expect(eligible).toBe(false)
+    expect(reasons).toEqual([
+      NTHSApplicationIneligibilityReason.alreadyInChapter,
+    ])
+  })
+
+  test('reports a deactivated chapter member as eligible again', async () => {
+    const president = await createEligibleCoach()
+    await submit(president)
+    await NTHSApplicationService.decideCandidateApplication({
+      userId: president,
+      status: NTHSCandidateApplicationStatus.approved,
+    })
+    const group = await NTHSGroupsService.foundGroup(president)
+
+    const member = await createEligibleCoach()
+    await NTHSGroupsService.joinGroupAsMemberByGroupId(
+      member,
+      group.groupInfo.id
+    )
+    await deactivateMembership(member)
+
+    const { eligible, reasons } =
+      await NTHSApplicationService.getApplicationEligibility(member)
+
+    expect(eligible).toBe(true)
+    expect(reasons).toEqual([])
   })
 })
 

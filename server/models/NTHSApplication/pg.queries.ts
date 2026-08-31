@@ -127,6 +127,8 @@ export interface ICandidateApplicationEligibilityResult {
   banType: ban_types | null;
   currentGradeName: string | null;
   hasCompletedSession: boolean | null;
+  hasPreviousApplication: boolean | null;
+  isActiveChapterMember: boolean | null;
   isHighSchoolStudent: boolean | null;
   /** not_pii: Whether the volunteer has completed all onboarding steps */
   onboarded: boolean;
@@ -138,7 +140,7 @@ export interface ICandidateApplicationEligibilityQuery {
   result: ICandidateApplicationEligibilityResult;
 }
 
-const candidateApplicationEligibilityIR: any = {"usedParamSet":{"highSchoolOccupation":true,"userId":true},"params":[{"name":"highSchoolOccupation","required":true,"transform":{"type":"scalar"},"locs":[{"a":346,"b":367}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":783,"b":790}]}],"statement":"SELECT\n    users.ban_type,\n    volunteer_profiles.onboarded,\n    volunteer_profiles.approved,\n    current_grade_levels.current_grade_name,\n    EXISTS (\n        SELECT\n            1\n        FROM\n            volunteer_occupations\n        WHERE\n            volunteer_occupations.user_id = users.id\n            AND volunteer_occupations.occupation = :highSchoolOccupation!) AS is_high_school_student,\n    EXISTS (\n        SELECT\n            1\n        FROM\n            sessions\n        WHERE\n            sessions.volunteer_id = users.id\n            AND sessions.time_tutored > 0) AS has_completed_session\nFROM\n    users\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN current_grade_levels ON current_grade_levels.user_id = users.id\nWHERE\n    users.id = :userId!                                                                                                                                                                                              "};
+const candidateApplicationEligibilityIR: any = {"usedParamSet":{"highSchoolOccupation":true,"userId":true},"params":[{"name":"highSchoolOccupation","required":true,"transform":{"type":"scalar"},"locs":[{"a":346,"b":367}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":1219,"b":1226}]}],"statement":"SELECT\n    users.ban_type,\n    volunteer_profiles.onboarded,\n    volunteer_profiles.approved,\n    current_grade_levels.current_grade_name,\n    EXISTS (\n        SELECT\n            1\n        FROM\n            volunteer_occupations\n        WHERE\n            volunteer_occupations.user_id = users.id\n            AND volunteer_occupations.occupation = :highSchoolOccupation!) AS is_high_school_student,\n    EXISTS (\n        SELECT\n            1\n        FROM\n            sessions\n        WHERE\n            sessions.volunteer_id = users.id\n            AND sessions.time_tutored > 0) AS has_completed_session,\n    EXISTS (\n        SELECT\n            1\n        FROM\n            nths_group_members\n        WHERE\n            nths_group_members.user_id = users.id\n            AND nths_group_members.deactivated_at IS NULL) AS is_active_chapter_member,\n    EXISTS (\n        SELECT\n            1\n        FROM\n            nths_candidate_applications\n        WHERE\n            nths_candidate_applications.user_id = users.id) AS has_previous_application\nFROM\n    users\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN current_grade_levels ON current_grade_levels.user_id = users.id\nWHERE\n    users.id = :userId!                                                                                                                                                                                              "};
 
 /**
  * Query generated from SQL:
@@ -163,7 +165,22 @@ const candidateApplicationEligibilityIR: any = {"usedParamSet":{"highSchoolOccup
  *             sessions
  *         WHERE
  *             sessions.volunteer_id = users.id
- *             AND sessions.time_tutored > 0) AS has_completed_session
+ *             AND sessions.time_tutored > 0) AS has_completed_session,
+ *     EXISTS (
+ *         SELECT
+ *             1
+ *         FROM
+ *             nths_group_members
+ *         WHERE
+ *             nths_group_members.user_id = users.id
+ *             AND nths_group_members.deactivated_at IS NULL) AS is_active_chapter_member,
+ *     EXISTS (
+ *         SELECT
+ *             1
+ *         FROM
+ *             nths_candidate_applications
+ *         WHERE
+ *             nths_candidate_applications.user_id = users.id) AS has_previous_application
  * FROM
  *     users
  *     JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id

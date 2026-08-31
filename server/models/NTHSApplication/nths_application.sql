@@ -62,7 +62,22 @@ SELECT
             sessions
         WHERE
             sessions.volunteer_id = users.id
-            AND sessions.time_tutored > 0) AS has_completed_session
+            AND sessions.time_tutored > 0) AS has_completed_session,
+    EXISTS (
+        SELECT
+            1
+        FROM
+            nths_group_members
+        WHERE
+            nths_group_members.user_id = users.id
+            AND nths_group_members.deactivated_at IS NULL) AS is_active_chapter_member,
+    EXISTS (
+        SELECT
+            1
+        FROM
+            nths_candidate_applications
+        WHERE
+            nths_candidate_applications.user_id = users.id) AS has_previous_application
 FROM
     users
     JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id

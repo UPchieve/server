@@ -187,6 +187,8 @@ export enum NTHSApplicationIneligibilityReason {
   notApproved = 'notApproved',
   banned = 'banned',
   noCompletedSessions = 'noCompletedSessions',
+  alreadyInChapter = 'alreadyInChapter',
+  alreadyApplied = 'alreadyApplied',
 }
 
 export type NTHSApplicationEligibility = {
@@ -238,6 +240,10 @@ export async function getApplicationEligibility(
     reasons.push(NTHSApplicationIneligibilityReason.banned)
   if (!facts.hasCompletedSession)
     reasons.push(NTHSApplicationIneligibilityReason.noCompletedSessions)
+  if (facts.isActiveChapterMember)
+    reasons.push(NTHSApplicationIneligibilityReason.alreadyInChapter)
+  if (facts.hasPreviousApplication)
+    reasons.push(NTHSApplicationIneligibilityReason.alreadyApplied)
 
   return {
     eligible: reasons.length === 0,
@@ -277,23 +283,8 @@ export async function submitCandidateApplication({
   validateResponses(CURRENT_NTHS_APPLICATION_FORM_VERSION, responses)
 
   return await runInTransaction(async (tc: TransactionClient) => {
-    // Read inside the transaction so eligibility comes from the primary. The
-    // default read client is a replica, where lag can approve an applicant who
-    // was just banned.
-    const { eligible, reasons } = await getApplicationEligibility(userId, tc)
-    if (!eligible)
-      throw new NTHSApplicationNotEligibleError(
-        'Ineligible NTHS chapter application',
-        { userId, reasons }
-      )
-
-    // Nothing else stops a resubmission once an application is decided: the
-    // pending index does not cover an approved row, so the new 'applied' row
-    // outranks the approval by created_at and reports the applicant back to
-    // themselves as pending, taking away the chapter they had just earned.
-    // Someone still holding an unused approval is in that window; someone
-    // already in a chapter has used theirs. A denial leaves activated_at null,
-    // so reapplying after one stays open.
+    // Runs before the eligibility check so these two states get their own message
+    // instead of the generic "not eligible".
     const [groups, activated] = await Promise.all([
       NTHSGroupsRepo.getGroupsByUser(userId, tc),
       NTHSApplicationRepo.getActivatedCandidateApplication(userId, tc),
@@ -302,6 +293,26 @@ export async function submitCandidateApplication({
       throw new NTHSApplicationExistsError(
         'You have already been approved to start an NTHS chapter'
       )
+
+    const { eligible, reasons } = await getApplicationEligibility(userId, tc)
+    if (!eligible) {
+      if (reasons.includes(NTHSApplicationIneligibilityReason.alreadyApplied)) {
+        const status =
+          await NTHSApplicationRepo.getLatestCandidateApplicationStatus(
+            userId,
+            tc
+          )
+        throw new NTHSApplicationExistsError(
+          status === NTHSCandidateApplicationStatus.applied
+            ? 'You already have an application being reviewed'
+            : 'You have already applied to start an NTHS chapter'
+        )
+      }
+      throw new NTHSApplicationNotEligibleError(
+        'Ineligible NTHS chapter application',
+        { userId, reasons }
+      )
+    }
 
     // asUuid checks the shape only, so an id that is well formed but not a real
     // school would otherwise reach the users_schools and application foreign
