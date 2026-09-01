@@ -18,10 +18,14 @@ const maxReviewLength = 20000
 const maximumTutorReviews = 6
 const volunteerEssayReviewWindowHours = hoursInMs(24)
 
+export const asyncReviewSubjects = ['applicationEssays', 'collegeList'] as const
+export type AsyncReviewSubject = (typeof asyncReviewSubjects)[number]
+
 export type EssayReviewStatus = 'pending' | 'reviewed'
 
 export type EssayReviewSubmission = {
   id: string
+  subject: AsyncReviewSubject
   userId: Uuid
   studentEmail: string
   studentFirstName?: string
@@ -52,6 +56,7 @@ type EssayReview = {
 
 export type CreateEssayReviewSubmission = {
   userId: Uuid
+  subject: AsyncReviewSubject
   studentEmail: string
   studentFirstName?: string
   essay: string
@@ -85,6 +90,8 @@ function parseSubmission(value: string): EssayReviewSubmission {
   }
   return {
     ...submission,
+    // Submissions created before subject support were all Application Essays
+    subject: submission.subject ?? 'applicationEssays',
     staffReviewedAt: submission.staffReviewedAt ?? reviewedAt,
     staffReviewerId: submission.staffReviewerId ?? reviewedBy,
     reviews: submission.reviews ?? [],
@@ -96,7 +103,11 @@ export async function createEssayReviewSubmission(
 ): Promise<EssayReviewSubmission> {
   const essay = payload.essay.trim()
   if (!essay) {
-    throw new InputError('Essay is required')
+    throw new InputError(
+      payload.subject === 'collegeList'
+        ? 'College list is required'
+        : 'Essay is required'
+    )
   }
   if (essay.length > maxEssayLength) {
     throw new InputError(`Essay must be ${maxEssayLength} characters or fewer`)
@@ -109,6 +120,7 @@ export async function createEssayReviewSubmission(
 
   const submission: EssayReviewSubmission = {
     id: uuidv4(),
+    subject: payload.subject,
     userId: payload.userId,
     studentEmail: payload.studentEmail.trim(),
     studentFirstName: cleanOptionalText(payload.studentFirstName),
@@ -255,14 +267,16 @@ export async function getEssayReviewSubmissions(): Promise<
     })
 }
 
-export async function getAvailableEssayReviewSubmissions(): Promise<
-  EssayReviewSubmission[]
-> {
+export async function getAvailableEssayReviewSubmissions(
+  volunteerSubjects: AsyncReviewSubject[]
+): Promise<EssayReviewSubmission[]> {
   const submissions = await getEssayReviewSubmissions()
-  const avaibleSubmissionsForTutor = submissions.filter(
-    isEssayAvailableForVolunteer
+  const availableSubmissionsForTutor = submissions.filter(
+    (submission) =>
+      volunteerSubjects.includes(submission.subject) &&
+      isEssayAvailableForVolunteer(submission)
   )
-  return avaibleSubmissionsForTutor
+  return availableSubmissionsForTutor
 }
 
 function isEssayAvailableForVolunteer(
@@ -302,6 +316,7 @@ export async function sendEssayReviewsToStudent({
     essayPrompt: submission.essayPrompt,
     essayPurpose: submission.essayPurpose,
     wordCount: submission.wordCount,
+    subject: submission.subject,
   })
 
   const sentAt = new Date().toISOString()
@@ -321,6 +336,7 @@ export async function sendEssayReviewsToStudent({
 
   const eventProperties = {
     submissionId,
+    subject: submission.subject,
     finalReviewCount: cleanedReviews.length,
     volunteerReviewCount: submission.reviews.length,
     turnaroundHours:

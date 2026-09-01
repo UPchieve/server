@@ -2,7 +2,10 @@ import { Job } from 'bull'
 import { log } from '../../logger'
 import * as EssayReviewService from '../../../services/EssayReviewService'
 import * as MailService from '../../../services/MailService'
-import { getVolunteerContactInfoByIds } from '../../../models/Volunteer/queries'
+import {
+  getVolunteerContactInfoByIds,
+  getVolunteerSubjects,
+} from '../../../models/Volunteer/queries'
 import * as FeatureFlagService from '../../../services/FeatureFlagService'
 import * as AnalyticsService from '../../../services/AnalyticsService'
 import { EVENTS } from '../../../constants'
@@ -16,19 +19,27 @@ type NotifyVolunteersAboutEssayReviewSubmissionJobData = {
 export default async function notifyVolunteersAboutEssayReviewSubmission(
   job: Job<NotifyVolunteersAboutEssayReviewSubmissionJobData>
 ): Promise<void> {
+  const submission = await EssayReviewService.getEssayReviewSubmission(
+    job.data.submissionId
+  )
   const volunteerIds =
     await EssayReviewService.getEssayReviewEmailOptedInVolunteerIds()
   if (!volunteerIds.length) return
 
   const enabledVolunteerIds: Uuid[] = []
   for (const volunteerId of volunteerIds) {
-    const [reviewEnabled, notificationsEnabled] = await Promise.all([
+    const [reviewEnabled, notificationsEnabled, subjects] = await Promise.all([
       FeatureFlagService.isVolunteerAsyncEssayReviewEnabled(volunteerId),
       FeatureFlagService.isAsyncEssayReviewEmailNotificationsEnabled(
         volunteerId
       ),
+      getVolunteerSubjects(volunteerId),
     ])
-    if (reviewEnabled && notificationsEnabled) {
+    if (
+      reviewEnabled &&
+      notificationsEnabled &&
+      subjects.some((subject) => subject.name === submission.subject)
+    ) {
       enabledVolunteerIds.push(volunteerId)
     }
   }
@@ -43,11 +54,12 @@ export default async function notifyVolunteersAboutEssayReviewSubmission(
       await MailService.notifyVolunteerAboutEssayReviewSubmission({
         volunteerEmail: volunteer.email,
         volunteerFirstName: volunteer.firstName,
+        subject: submission.subject,
       })
       AnalyticsService.captureEvent(
         volunteer.id,
         EVENTS.VOLUNTEER_NOTIFIED_ABOUT_ESSAY_REVIEW_SUBMISSION,
-        { submissionId: job.data.submissionId }
+        { submissionId: job.data.submissionId, subject: submission.subject }
       )
       notifiedCount++
     } catch {
@@ -56,12 +68,12 @@ export default async function notifyVolunteersAboutEssayReviewSubmission(
   }
 
   log(
-    `${Jobs.NotifyVolunteersAboutEssayReviewSubmission}: Notified ${notifiedCount} volunteers about essay ${job.data.submissionId}`
+    `${Jobs.NotifyVolunteersAboutEssayReviewSubmission}: Notified ${notifiedCount} volunteers about submission ${job.data.submissionId}`
   )
 
   if (failedVolunteerIds.length) {
     log(
-      `${Jobs.NotifyVolunteersAboutEssayReviewSubmission}: Failed to notify ${failedVolunteerIds.length} opted-in volunteers about essay ${job.data.submissionId}: ${failedVolunteerIds.join(', ')}`
+      `${Jobs.NotifyVolunteersAboutEssayReviewSubmission}: Failed to notify ${failedVolunteerIds.length} opted-in volunteers about submission ${job.data.submissionId}: ${failedVolunteerIds.join(', ')}`
     )
   }
 }

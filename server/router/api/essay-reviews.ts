@@ -13,20 +13,44 @@ import * as AnalyticsService from '../../services/AnalyticsService'
 import { extractUser } from '../extract-user'
 import { resSuccess } from '../res-success'
 import { getLegacyUserObject } from '../../models/User/legacy-user'
-import { NotAllowedError } from '../../models/Errors'
+import { InputError, NotAllowedError } from '../../models/Errors'
 import type { Uuid } from '../../types/shared'
 
-async function requireApplicationEssayVolunteer(userId: Uuid): Promise<void> {
+async function requireAsyncReviewVolunteer(
+  userId: Uuid,
+  requiredSubject?: EssayReviewService.AsyncReviewSubject
+): Promise<EssayReviewService.AsyncReviewSubject[]> {
   const user = await getLegacyUserObject(userId)
   if (
     user.banType === USER_BAN_TYPES.COMPLETE ||
     user.banType === USER_BAN_TYPES.SHADOW
   ) {
-    throw new NotAllowedError('Banned volunteers cannot review essays')
+    throw new NotAllowedError('Banned volunteers cannot review submissions')
   }
-  if (!(user.subjects ?? []).includes('applicationEssays')) {
-    throw new NotAllowedError('Application Essays certification required')
+
+  const certifiedSubjects = EssayReviewService.asyncReviewSubjects.filter(
+    (subject) => (user.subjects ?? []).includes(subject)
+  )
+  if (
+    !certifiedSubjects.length ||
+    (requiredSubject && !certifiedSubjects.includes(requiredSubject))
+  ) {
+    throw new NotAllowedError('Required subject certification not found')
   }
+
+  // Return the subjects the volunteer is certified to review
+  return certifiedSubjects
+}
+
+function asAsyncReviewSubject(value: string) {
+  if (
+    !EssayReviewService.asyncReviewSubjects.includes(
+      value as EssayReviewService.AsyncReviewSubject
+    )
+  ) {
+    throw new InputError('Async review is not available for this subject')
+  }
+  return value as EssayReviewService.AsyncReviewSubject
 }
 
 export function routeEssayReviews(apiRouter: Router): void {
@@ -35,8 +59,10 @@ export function routeEssayReviews(apiRouter: Router): void {
   router.post('/', async function (req, res) {
     try {
       const user = extractUser(req)
+      const subject = asAsyncReviewSubject(asString(req.body.subject))
       const submission = await EssayReviewService.createEssayReviewSubmission({
         userId: user.id,
+        subject,
         studentEmail: user.email,
         studentFirstName: user.firstName,
         essay: asString(req.body.essay),
@@ -52,7 +78,7 @@ export function routeEssayReviews(apiRouter: Router): void {
       AnalyticsService.captureEvent(
         user.id,
         EVENTS.STUDENT_SUBMITTED_ESSAY_FOR_REVIEW,
-        { submissionId: submission.id }
+        { submissionId: submission.id, subject: submission.subject }
       )
 
       resSuccess(res, {
@@ -70,10 +96,12 @@ export function routeEssayReviews(apiRouter: Router): void {
   router.get('/list', async function (req, res) {
     try {
       const user = extractUser(req)
-      await requireApplicationEssayVolunteer(user.id)
+      const volunteerSubjects = await requireAsyncReviewVolunteer(user.id)
 
       const submissions =
-        await EssayReviewService.getAvailableEssayReviewSubmissions()
+        await EssayReviewService.getAvailableEssayReviewSubmissions(
+          volunteerSubjects
+        )
       const essayReviews = submissions.map(
         ({
           studentEmail,
@@ -97,7 +125,7 @@ export function routeEssayReviews(apiRouter: Router): void {
   router.get('/volunteer/email-preference', async function (req, res) {
     try {
       const user = extractUser(req)
-      await requireApplicationEssayVolunteer(user.id)
+      await requireAsyncReviewVolunteer(user.id)
 
       const optedIn = await EssayReviewService.getEssayReviewEmailPreference(
         user.id
@@ -111,7 +139,7 @@ export function routeEssayReviews(apiRouter: Router): void {
   router.post('/volunteer/email-preference', async function (req, res) {
     try {
       const user = extractUser(req)
-      await requireApplicationEssayVolunteer(user.id)
+      await requireAsyncReviewVolunteer(user.id)
 
       const optedIn = asBoolean(req.body.optedIn) === true
       await EssayReviewService.setEssayReviewEmailPreference(user.id, optedIn)
@@ -130,7 +158,9 @@ export function routeEssayReviews(apiRouter: Router): void {
     try {
       const user = extractUser(req)
       const submissionId = asString(req.params.submissionId)
-      await requireApplicationEssayVolunteer(user.id)
+      const existingSubmission =
+        await EssayReviewService.getEssayReviewSubmission(submissionId)
+      await requireAsyncReviewVolunteer(user.id, existingSubmission.subject)
 
       const submission = await EssayReviewService.createTutorEssayReview({
         submissionId,
@@ -144,6 +174,7 @@ export function routeEssayReviews(apiRouter: Router): void {
         EVENTS.VOLUNTEER_SUBMITTED_ESSAY_REVIEW,
         {
           submissionId,
+          subject: submission.subject,
           reviewCount: submission.reviews.length,
           turnaroundHours:
             (Date.now() - new Date(submission.submittedAt).getTime()) /

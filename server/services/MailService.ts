@@ -1735,6 +1735,7 @@ export async function sendEssayReviewsToStudent({
   essayPrompt,
   essayPurpose,
   wordCount,
+  subject,
 }: {
   studentEmail: string
   studentFirstName?: string
@@ -1742,6 +1743,7 @@ export async function sendEssayReviewsToStudent({
   essayPrompt?: string
   essayPurpose?: string
   wordCount: number
+  subject: 'applicationEssays' | 'collegeList'
 }): Promise<void> {
   const overrides = {
     categories: ['student async essay review'],
@@ -1761,6 +1763,8 @@ export async function sendEssayReviewsToStudent({
       essayPrompt,
       essayPurpose,
       wordCount,
+      subject,
+      isCollegeList: subject === 'collegeList',
     },
     overrides
   )
@@ -1769,9 +1773,11 @@ export async function sendEssayReviewsToStudent({
 export async function notifyVolunteerAboutEssayReviewSubmission({
   volunteerEmail,
   volunteerFirstName,
+  subject,
 }: {
   volunteerEmail: string
   volunteerFirstName: string
+  subject: 'applicationEssays' | 'collegeList'
 }): Promise<void> {
   const overrides = {
     categories: ['notify volunteer about essay submission'],
@@ -1783,6 +1789,9 @@ export async function notifyVolunteerAboutEssayReviewSubmission({
     config.sendgrid.notifyVolunteerAboutEssayReviewSubmissionTemplate,
     {
       firstName: volunteerFirstName,
+      reviewSubject: subject,
+      reviewSubjectName:
+        subject === 'collegeList' ? 'college list' : 'application essay',
       essayReviewUrl: `https://${config.client.host}/volunteer/essay-reviews?source=email`,
     },
     overrides
