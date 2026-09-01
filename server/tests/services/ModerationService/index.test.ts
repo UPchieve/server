@@ -23,6 +23,8 @@ import { ModerationInfraction } from '../../../models/ModerationInfractions'
 import * as UserRepo from '../../../models/User/queries'
 import * as Regex from '../../../services/ModerationService/regex'
 import * as AiObservabilityService from '../../../services/AiObservabilityService'
+import * as AwsBedrockService from '../../../services/AwsBedrockService'
+import { client as langfuseClient } from '../../../clients/langfuse'
 import {
   AWSComprehendClient,
   AWSRekognitionClient,
@@ -65,6 +67,7 @@ jest.mock('../../../services/AiObservabilityService', () => ({
   runWithTrace: jest.fn(),
   addTraceTags: jest.fn(),
 }))
+jest.mock('../../../services/AwsBedrockService')
 
 jest.mock('../../../services/SessionService')
 
@@ -83,6 +86,7 @@ describe('ModerationService', () => {
   const mockRegex = mocked(Regex)
   const mockedOpenAiService = jest.mocked(OpenAIService)
   const mockedAiObservabilityService = jest.mocked(AiObservabilityService)
+  const mockedAwsBedrockService = jest.mocked(AwsBedrockService)
 
   const senderId = '123'
   const sessionId = '123'
@@ -936,6 +940,77 @@ describe('ModerationService', () => {
         expect.objectContaining({
           reason: LiveMediaModerationCategories.RUDE_GESTURES,
           details: expect.objectContaining({ toxicity: 0.85 }),
+        })
+      )
+    })
+  })
+
+  describe('detectTextModerationInfractions - address confidence threshold', () => {
+    afterEach(() => {
+      jest.restoreAllMocks()
+    })
+
+    it('flags an address whose LLM confidence is above the ADDRESS threshold, both on a 0-1 scale', async () => {
+      mockedAiObservabilityService.runWithModelObservation.mockImplementation(
+        (cb) => cb()
+      )
+      jest.mocked(ShareableDomainsRepo).getAllowedDomains.mockResolvedValue([])
+      jest.mocked(langfuseClient).trace.mockReturnValue({
+        generation: jest.fn().mockReturnValue({ end: jest.fn() }),
+      } as any)
+      mockedAwsBedrockService.invokeModel.mockResolvedValue({
+        confidence: 0.85,
+        explanation: 'Contains a home address',
+      } as any)
+
+      jest.spyOn(AWSRekognitionClient, 'send').mockImplementation((command) => {
+        if (command instanceof DetectTextCommand) {
+          return Promise.resolve({
+            TextDetections: [
+              { Type: 'LINE', DetectedText: '123 Main St, Springfield' },
+            ],
+          }) as any
+        }
+        return Promise.resolve({}) as any
+      })
+
+      jest.spyOn(AWSComprehendClient, 'send').mockImplementation((command) => {
+        if (command instanceof DetectToxicContentCommand) {
+          return Promise.resolve({ ResultList: [] }) as any
+        }
+        if (command instanceof DetectPiiEntitiesCommand) {
+          return Promise.resolve({
+            Entities: [
+              {
+                Type: 'ADDRESS',
+                BeginOffset: 0,
+                EndOffset: 24,
+                Score: 0.99,
+              },
+            ],
+          }) as any
+        }
+        return Promise.resolve({}) as any
+      })
+
+      moderationSettings[LiveMediaModerationCategories.ADDRESS] = {
+        name: LiveMediaModerationCategories.ADDRESS,
+        penaltyWeight: 4,
+        threshold: 0.75,
+      }
+
+      const infractions =
+        await ModerationService.detectTextModerationInfractions({
+          image: Buffer.from('fake-image'),
+          sessionId,
+          isVolunteer,
+          moderationSettings,
+        })
+
+      expect(infractions).toContainEqual(
+        expect.objectContaining({
+          reason: LiveMediaModerationCategories.ADDRESS,
+          details: expect.objectContaining({ confidence: 0.85 }),
         })
       )
     })

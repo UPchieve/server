@@ -699,8 +699,11 @@ async function detectPii({
     const addressSetting =
       moderationSettings[ModerationTypes.LiveMediaModerationCategories.ADDRESS]
 
+    // The address-detection LLM is prompted for a 0-1 confidence rating (see
+    // ADDRESS_DETECTION_FALLBACK_MODERATION_PROMPT), so no percentage conversion here -
+    // unlike the Rekognition Confidence scores (0-100) converted elsewhere in this file.
     const addressConfidenceThreshold = addressSetting
-      ? addressSetting.threshold * 100
+      ? addressSetting.threshold
       : config.minimumModerationAddressConfidence
 
     if (
