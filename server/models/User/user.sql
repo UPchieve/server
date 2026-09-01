@@ -430,6 +430,7 @@ SELECT
     volunteer_profiles.total_volunteer_hours,
     schools.name AS school_name,
     schools.id AS school_id,
+    student_profiles.school_id AS student_school_id,
     (
         CASE WHEN EXISTS (
             SELECT

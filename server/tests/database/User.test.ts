@@ -277,6 +277,57 @@ describe('getLegacyUser', () => {
     )
     await testIsSchoolPartner(user.id, true)
   })
+
+  const normalizeUlid = (str: string) => str.toLowerCase().replace(/-/g, '')
+  const getLegacyUserRow = async (userId: string) => {
+    const legacyUser = await getLegacyUser.run({ userId }, client)
+    expect(legacyUser.length).toEqual(1)
+    return legacyUser[0] as any
+  }
+
+  it('gives student_school_id from the student profile', async () => {
+    const user = await saveUserToDb()
+    await insertSingleRow(
+      'student_profiles',
+      buildStudentProfile({
+        userId: user.id,
+        schoolId: nonPartnerSchool.id,
+      }),
+      client
+    )
+    const row = await getLegacyUserRow(user.id)
+    expect(normalizeUlid(row.student_school_id)).toEqual(
+      normalizeUlid(nonPartnerSchool.id)
+    )
+    expect(normalizeUlid(row.school_id)).toEqual(
+      normalizeUlid(nonPartnerSchool.id)
+    )
+  })
+
+  // users_schools is written by the volunteer background-info form with
+  // association_type='student_at_school', the same value the student path uses, so a
+  // school sitting there says nothing about whether the student role owns it. school_id
+  // coalesces it in and student_school_id must not.
+  it('gives student_school_id=null when the school only exists in users_schools', async () => {
+    const user = await saveUserToDb()
+    await insertSingleRow(
+      'student_profiles',
+      buildStudentProfile({
+        userId: user.id,
+      }),
+      client
+    )
+    await client.query(
+      `INSERT INTO upchieve.users_schools (user_id, school_id, association_type)
+         VALUES ($1, $2, 'student_at_school')`,
+      [user.id, nonPartnerSchool.id]
+    )
+    const row = await getLegacyUserRow(user.id)
+    expect(row.student_school_id).toBeNull()
+    expect(normalizeUlid(row.school_id)).toEqual(
+      normalizeUlid(nonPartnerSchool.id)
+    )
+  })
 })
 
 describe('upsertUser', () => {

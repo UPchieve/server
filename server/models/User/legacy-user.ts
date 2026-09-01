@@ -95,6 +95,9 @@ export type LegacyUserModel = {
   gradeLevel?: GRADES
   schoolName?: string
   schoolId?: Ulid
+  // set only from student_profiles, independent of active role or the
+  // possibly-different volunteer/teacher schoolId above
+  studentSchoolId?: Ulid
   latestRequestedSubjects?: string[]
   numberOfStudentClasses?: number
   issuers?: string[]
