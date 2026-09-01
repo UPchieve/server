@@ -22,6 +22,17 @@ import { UserSessionFlags } from '../../../constants'
 import { ModerationInfraction } from '../../../models/ModerationInfractions'
 import * as UserRepo from '../../../models/User/queries'
 import * as Regex from '../../../services/ModerationService/regex'
+import * as AiObservabilityService from '../../../services/AiObservabilityService'
+import {
+  AWSComprehendClient,
+  AWSRekognitionClient,
+} from '../../../services/AwsService'
+import {
+  DetectPiiEntitiesCommand,
+  DetectToxicContentCommand,
+} from '@aws-sdk/client-comprehend'
+import { DetectTextCommand } from '@aws-sdk/client-rekognition'
+import * as ShareableDomainsRepo from '../../../models/ShareableDomains/queries'
 
 jest.mock('../../../models/Session')
 jest.mock('../../../utils/time-limit')
@@ -59,6 +70,7 @@ jest.mock('../../../services/SessionService')
 
 jest.mock('../../../models/User/queries')
 jest.mock('../../../models/ModerationSettings/queries')
+jest.mock('../../../models/ShareableDomains/queries')
 
 describe('ModerationService', () => {
   const isVolunteer = true
@@ -70,6 +82,7 @@ describe('ModerationService', () => {
   const mockSessionService = mocked(SessionService)
   const mockRegex = mocked(Regex)
   const mockedOpenAiService = jest.mocked(OpenAIService)
+  const mockedAiObservabilityService = jest.mocked(AiObservabilityService)
 
   const senderId = '123'
   const sessionId = '123'
@@ -870,6 +883,61 @@ describe('ModerationService', () => {
       const thresholdPercent = decimalThreshold * 100 // Convert to percentage
       expect(thresholdPercent).toBe(75)
       expect(openAIConfidence >= thresholdPercent).toBe(true)
+    })
+  })
+
+  describe('detectTextModerationInfractions - toxicity threshold', () => {
+    afterEach(() => {
+      jest.restoreAllMocks()
+    })
+
+    it('flags text whose Toxicity score is above the RUDE_GESTURES threshold, both on a 0-1 scale', async () => {
+      mockedAiObservabilityService.runWithModelObservation.mockImplementation(
+        (cb) => cb()
+      )
+      jest.mocked(ShareableDomainsRepo).getAllowedDomains.mockResolvedValue([])
+
+      jest.spyOn(AWSRekognitionClient, 'send').mockImplementation((command) => {
+        if (command instanceof DetectTextCommand) {
+          return Promise.resolve({
+            TextDetections: [{ Type: 'LINE', DetectedText: 'toxic text' }],
+          }) as any
+        }
+        return Promise.resolve({}) as any
+      })
+
+      jest.spyOn(AWSComprehendClient, 'send').mockImplementation((command) => {
+        if (command instanceof DetectToxicContentCommand) {
+          return Promise.resolve({
+            ResultList: [{ Toxicity: 0.85, Labels: [] }],
+          }) as any
+        }
+        if (command instanceof DetectPiiEntitiesCommand) {
+          return Promise.resolve({ Entities: [] }) as any
+        }
+        return Promise.resolve({}) as any
+      })
+
+      moderationSettings[LiveMediaModerationCategories.RUDE_GESTURES] = {
+        name: LiveMediaModerationCategories.RUDE_GESTURES,
+        penaltyWeight: 1,
+        threshold: 0.75,
+      }
+
+      const infractions =
+        await ModerationService.detectTextModerationInfractions({
+          image: Buffer.from('fake-image'),
+          sessionId,
+          isVolunteer,
+          moderationSettings,
+        })
+
+      expect(infractions).toContainEqual(
+        expect.objectContaining({
+          reason: LiveMediaModerationCategories.RUDE_GESTURES,
+          details: expect.objectContaining({ toxicity: 0.85 }),
+        })
+      )
     })
   })
 })

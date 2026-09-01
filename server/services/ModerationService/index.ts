@@ -254,8 +254,10 @@ async function detectToxicContent(
     moderationSettings[
       ModerationTypes.LiveMediaModerationCategories.RUDE_GESTURES
     ]
+  // Comprehend's Toxicity score is 0-1, so no percentage conversion here -
+  // unlike the Rekognition Confidence scores (0-100) converted elsewhere in this file.
   const threshold = rudeGesture
-    ? rudeGesture.threshold * 100
+    ? rudeGesture.threshold
     : config.toxicityModerationMinConfidence
 
   const highToxicity = toxicContent
@@ -712,7 +714,7 @@ async function detectPii({
   return moderatedPII
 }
 
-async function detectTextModerationInfractions({
+export async function detectTextModerationInfractions({
   image,
   sessionId,
   isVolunteer,
