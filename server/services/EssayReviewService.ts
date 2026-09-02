@@ -172,7 +172,7 @@ export async function createTutorEssayReview({
   if (!submission) {
     throw new Error('Unable to find the essay you are reviewing')
   }
-  if (submission.reviews.some((review) => review.reviewerId === reviewerId)) {
+  if (hasVolunteerReviewedSubmission(submission, reviewerId)) {
     throw new InputError('You already reviewed this essay')
   }
 
@@ -277,6 +277,24 @@ export async function getAvailableEssayReviewSubmissions(
       isEssayAvailableForVolunteer(submission)
   )
   return availableSubmissionsForTutor
+}
+
+export async function getPendingAsyncReviewCount(
+  volunteerId: Uuid,
+  volunteerSubjects: AsyncReviewSubject[]
+): Promise<number> {
+  const submissions =
+    await getAvailableEssayReviewSubmissions(volunteerSubjects)
+  return submissions.filter(
+    (submission) => !hasVolunteerReviewedSubmission(submission, volunteerId)
+  ).length
+}
+
+function hasVolunteerReviewedSubmission(
+  submission: EssayReviewSubmission,
+  volunteerId: Uuid
+): boolean {
+  return submission.reviews.some((review) => review.reviewerId === volunteerId)
 }
 
 function isEssayAvailableForVolunteer(

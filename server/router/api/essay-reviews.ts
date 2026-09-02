@@ -122,6 +122,21 @@ export function routeEssayReviews(apiRouter: Router): void {
     }
   })
 
+  router.get('/count', async function (req, res) {
+    try {
+      const user = extractUser(req)
+      const volunteerSubjects = await requireAsyncReviewVolunteer(user.id)
+      const count = await EssayReviewService.getPendingAsyncReviewCount(
+        user.id,
+        volunteerSubjects
+      )
+
+      resSuccess(res, { count })
+    } catch (error) {
+      resError(res, error)
+    }
+  })
+
   router.get('/volunteer/email-preference', async function (req, res) {
     try {
       const user = extractUser(req)
