@@ -15,14 +15,10 @@ import {
   asArray,
   asBoolean,
   asNumber,
-  asOptional,
   asString,
   asUlid,
 } from '../../utils/type-utils'
 import * as NTHSGroupsService from '../../services/NTHSGroupsService'
-import { isValidStatus } from '../../models/NTHSGroups'
-import * as NTHSApplicationService from '../../services/NTHSApplicationService'
-import { toNTHSCandidateApplicationPublic } from '../../public/nths'
 import { InputError } from '../../models/Errors'
 import * as EssayReviewService from '../../services/EssayReviewService'
 import { resSuccess } from '../res-success'
@@ -122,33 +118,6 @@ export function routeAdmin(apiRouter: Router): void {
       res.status(200).send()
     } catch (error) {
       resError(res, error)
-    }
-  })
-
-  router.post('/nths/candidate-applications', async function (req, res) {
-    try {
-      const status = asString(req.body.status)
-      const userId = asString(req.body.userId)
-      const deniedNotes = asOptional(asString)(req.body.deniedNotes)
-      if (!isValidStatus(status))
-        throw new InputError(
-          `Invalid NTHS Candidate status: ${status}. must be: 'denied' or 'approved'`
-        )
-
-      const application =
-        await NTHSApplicationService.decideCandidateApplication({
-          userId,
-          status,
-          deniedNotes,
-        })
-      res.json({
-        application: {
-          ...toNTHSCandidateApplicationPublic(application),
-          deniedNotes: application.deniedNotes,
-        },
-      })
-    } catch (err) {
-      resError(res, err)
     }
   })
 

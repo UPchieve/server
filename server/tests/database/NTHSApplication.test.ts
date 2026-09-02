@@ -9,14 +9,14 @@ import { getUuid, Ulid } from '../../models/pgUtils'
 import { getName } from '../mocks/generate'
 import { createTestUser, createTestVolunteer } from './seed-utils'
 import * as NTHSApplicationService from '../../services/NTHSApplicationService'
+import * as NTHSApplicationRepo from '../../models/NTHSApplication'
 import * as NTHSGroupsService from '../../services/NTHSGroupsService'
-import * as AnalyticsService from '../../services/AnalyticsService'
 import {
   NTHSApplicationIneligibilityReason,
   NTHSApplicationNotEligibleError,
 } from '../../services/NTHSApplicationService'
 import { NTHSCandidateApplicationStatus } from '../../models/NTHSGroups'
-import { EVENTS, GRADES, USER_BAN_TYPES } from '../../constants/user'
+import { GRADES, USER_BAN_TYPES } from '../../constants/user'
 import {
   InputError,
   NotAllowedError,
@@ -154,6 +154,20 @@ async function submit(userId: Ulid, overrides: Record<string, unknown> = {}) {
     responses: RESPONSES,
     ...overrides,
   } as any)
+}
+
+// Deciding is no longer a service call: Retool updates the row directly for now,
+// so setup goes through the repo statement it mirrors.
+async function decide(
+  userId: Ulid,
+  status: NTHSCandidateApplicationStatus,
+  deniedNotes?: string
+) {
+  return NTHSApplicationRepo.decideCandidateApplication({
+    userId,
+    status,
+    deniedNotes,
+  })
 }
 
 async function affiliationOf(groupId: Ulid) {
@@ -398,10 +412,7 @@ describe('submitCandidateApplication', () => {
   test('rejects a resubmission from an applicant holding an unused approval', async () => {
     const userId = await createEligibleCoach()
     await submit(userId)
-    await NTHSApplicationService.decideCandidateApplication({
-      userId,
-      status: NTHSCandidateApplicationStatus.approved,
-    })
+    await decide(userId, NTHSCandidateApplicationStatus.approved)
 
     // The window before they found the chapter, when no group membership exists
     // to catch them. Unblocked, the new 'applied' row outranks the approval by
@@ -415,10 +426,7 @@ describe('submitCandidateApplication', () => {
   test('rejects a resubmission from someone already running a chapter', async () => {
     const userId = await createEligibleCoach()
     await submit(userId)
-    await NTHSApplicationService.decideCandidateApplication({
-      userId,
-      status: NTHSCandidateApplicationStatus.approved,
-    })
+    await decide(userId, NTHSCandidateApplicationStatus.approved)
     await NTHSGroupsService.foundGroup(userId)
 
     await expect(submit(userId)).rejects.toThrow(
@@ -429,10 +437,7 @@ describe('submitCandidateApplication', () => {
   test('rejects an application from a member who joined someone else s chapter', async () => {
     const president = await createEligibleCoach()
     await submit(president)
-    await NTHSApplicationService.decideCandidateApplication({
-      userId: president,
-      status: NTHSCandidateApplicationStatus.approved,
-    })
+    await decide(president, NTHSCandidateApplicationStatus.approved)
     const group = await NTHSGroupsService.foundGroup(president)
 
     // A member who joined by invite code never applied, so membership is the
@@ -451,11 +456,11 @@ describe('submitCandidateApplication', () => {
   test('refuses a second application after a denial', async () => {
     const userId = await createEligibleCoach()
     await submit(userId)
-    await NTHSApplicationService.decideCandidateApplication({
+    await decide(
       userId,
-      status: NTHSCandidateApplicationStatus.denied,
-      deniedNotes: 'Not enough sessions yet',
-    })
+      NTHSCandidateApplicationStatus.denied,
+      'Not enough sessions yet'
+    )
 
     await expect(submit(userId)).rejects.toThrow(
       'You have already applied to start an NTHS chapter'
@@ -466,10 +471,7 @@ describe('submitCandidateApplication', () => {
   test('lets a former chapter member apply again', async () => {
     const president = await createEligibleCoach()
     await submit(president)
-    await NTHSApplicationService.decideCandidateApplication({
-      userId: president,
-      status: NTHSCandidateApplicationStatus.approved,
-    })
+    await decide(president, NTHSCandidateApplicationStatus.approved)
     const group = await NTHSGroupsService.foundGroup(president)
 
     const member = await createEligibleCoach()
@@ -600,10 +602,7 @@ describe('getApplicationEligibility', () => {
   test('reports an active chapter member as ineligible', async () => {
     const president = await createEligibleCoach()
     await submit(president)
-    await NTHSApplicationService.decideCandidateApplication({
-      userId: president,
-      status: NTHSCandidateApplicationStatus.approved,
-    })
+    await decide(president, NTHSCandidateApplicationStatus.approved)
     const group = await NTHSGroupsService.foundGroup(president)
 
     const member = await createEligibleCoach()
@@ -624,10 +623,7 @@ describe('getApplicationEligibility', () => {
   test('reports a deactivated chapter member as eligible again', async () => {
     const president = await createEligibleCoach()
     await submit(president)
-    await NTHSApplicationService.decideCandidateApplication({
-      userId: president,
-      status: NTHSCandidateApplicationStatus.approved,
-    })
+    await decide(president, NTHSCandidateApplicationStatus.approved)
     const group = await NTHSGroupsService.foundGroup(president)
 
     const member = await createEligibleCoach()
@@ -665,171 +661,6 @@ describe('getLatestCandidateApplication', () => {
   })
 })
 
-describe('decideCandidateApplication', () => {
-  test('updates the row in place and frees the school', async () => {
-    const schoolId = await createSchool()
-    const applicant = await createEligibleCoach()
-    await submit(applicant, { schoolId, unlistedSchool: undefined })
-
-    const decided = await NTHSApplicationService.decideCandidateApplication({
-      userId: applicant,
-      status: NTHSCandidateApplicationStatus.approved,
-    })
-
-    expect(decided.status).toBe(NTHSCandidateApplicationStatus.approved)
-    expect(decided.decidedAt).toBeDefined()
-    expect(await applicationRows(applicant)).toHaveLength(1)
-
-    const next = await createEligibleCoach()
-    await expect(
-      submit(next, { schoolId, unlistedSchool: undefined })
-    ).resolves.toBeDefined()
-  })
-
-  test('stamps activated_at on an approval and leaves it null on a denial', async () => {
-    const approved = await createEligibleCoach()
-    await submit(approved)
-    const approval = await NTHSApplicationService.decideCandidateApplication({
-      userId: approved,
-      status: NTHSCandidateApplicationStatus.approved,
-    })
-
-    const denied = await createEligibleCoach()
-    await submit(denied)
-    const denial = await NTHSApplicationService.decideCandidateApplication({
-      userId: denied,
-      status: NTHSCandidateApplicationStatus.denied,
-      deniedNotes: 'Not enough sessions yet',
-    })
-
-    expect(approval.activatedAt).toBeDefined()
-    // activation_requires_approval rejects the row outright if this is set.
-    expect(denial.activatedAt).toBeUndefined()
-  })
-
-  test('records denial notes', async () => {
-    const applicant = await createEligibleCoach()
-    await submit(applicant)
-
-    const decided = await NTHSApplicationService.decideCandidateApplication({
-      userId: applicant,
-      status: NTHSCandidateApplicationStatus.denied,
-      deniedNotes: 'Not enough sessions yet',
-    })
-
-    expect(decided.status).toBe(NTHSCandidateApplicationStatus.denied)
-    const rows = await applicationRows(applicant)
-    expect(rows).toHaveLength(1)
-    expect(rows[0].denied_notes).toBe('Not enough sessions yet')
-  })
-
-  test('refuses to deny without a reason', async () => {
-    const applicant = await createEligibleCoach()
-    await submit(applicant)
-
-    // reason_required_when_denied would otherwise surface as a 500.
-    await expect(
-      NTHSApplicationService.decideCandidateApplication({
-        userId: applicant,
-        status: NTHSCandidateApplicationStatus.denied,
-        deniedNotes: '  ',
-      })
-    ).rejects.toThrow(InputError)
-  })
-
-  test('approves even when the caller passes denial notes', async () => {
-    const applicant = await createEligibleCoach()
-    await submit(applicant)
-
-    // reason_must_be_null_when_not_denied would otherwise surface as a 500.
-    const decided = await NTHSApplicationService.decideCandidateApplication({
-      userId: applicant,
-      status: NTHSCandidateApplicationStatus.approved,
-      deniedNotes: 'left over in the form',
-    })
-
-    expect(decided.status).toBe(NTHSCandidateApplicationStatus.approved)
-    expect(decided.deniedNotes).toBeUndefined()
-  })
-
-  test('refuses to decide an application twice', async () => {
-    const applicant = await createEligibleCoach()
-    await submit(applicant)
-    await NTHSApplicationService.decideCandidateApplication({
-      userId: applicant,
-      status: NTHSCandidateApplicationStatus.approved,
-    })
-
-    await expect(
-      NTHSApplicationService.decideCandidateApplication({
-        userId: applicant,
-        status: NTHSCandidateApplicationStatus.denied,
-        deniedNotes: 'changed my mind',
-      })
-    ).rejects.toThrow(InputError)
-
-    const rows = await applicationRows(applicant)
-    expect(rows).toHaveLength(1)
-    expect(rows[0].status).toBe(NTHSCandidateApplicationStatus.approved)
-  })
-
-  test('captures the decision against the applicant, without the denial notes', async () => {
-    const schoolId = await createSchool()
-    const approved = await createEligibleCoach()
-    await submit(approved, { schoolId, unlistedSchool: undefined })
-    await NTHSApplicationService.decideCandidateApplication({
-      userId: approved,
-      status: NTHSCandidateApplicationStatus.approved,
-    })
-
-    const denied = await createEligibleCoach()
-    await submit(denied)
-    await NTHSApplicationService.decideCandidateApplication({
-      userId: denied,
-      status: NTHSCandidateApplicationStatus.denied,
-      deniedNotes: 'Not enough sessions yet',
-    })
-
-    const captureEvent = mocked(AnalyticsService).captureEvent
-    expect(captureEvent).toHaveBeenCalledWith(
-      approved,
-      EVENTS.NTHS_APPLICATION_APPROVED,
-      expect.objectContaining({
-        hadSchoolId: true,
-        wasUnlistedSchool: false,
-        formVersion:
-          NTHSApplicationService.CURRENT_NTHS_APPLICATION_FORM_VERSION,
-        decidedBy: 'staff',
-      })
-    )
-    expect(captureEvent).toHaveBeenCalledWith(
-      denied,
-      EVENTS.NTHS_APPLICATION_DENIED,
-      expect.objectContaining({
-        hadSchoolId: false,
-        wasUnlistedSchool: true,
-        hoursToDecision: expect.any(Number),
-      })
-    )
-    const denialCall = captureEvent.mock.calls.find(
-      ([userId]) => userId === denied
-    )
-    expect(JSON.stringify(denialCall)).not.toMatch(/sessions yet/)
-  })
-
-  test('refuses to decide an application back to applied', async () => {
-    const applicant = await createEligibleCoach()
-    await submit(applicant)
-
-    await expect(
-      NTHSApplicationService.decideCandidateApplication({
-        userId: applicant,
-        status: NTHSCandidateApplicationStatus.applied,
-      })
-    ).rejects.toThrow(InputError)
-  })
-})
-
 describe('foundGroup', () => {
   test('refuses to create a chapter without an activated application', async () => {
     const userId = await createEligibleCoach()
@@ -853,10 +684,7 @@ describe('foundGroup', () => {
   test('allows a chapter once the application is approved', async () => {
     const userId = await createEligibleCoach()
     await submit(userId)
-    await NTHSApplicationService.decideCandidateApplication({
-      userId,
-      status: NTHSCandidateApplicationStatus.approved,
-    })
+    await decide(userId, NTHSCandidateApplicationStatus.approved)
 
     const group = await NTHSGroupsService.foundGroup(userId)
 
@@ -866,11 +694,11 @@ describe('foundGroup', () => {
   test('refuses after a denial', async () => {
     const userId = await createEligibleCoach()
     await submit(userId)
-    await NTHSApplicationService.decideCandidateApplication({
+    await decide(
       userId,
-      status: NTHSCandidateApplicationStatus.denied,
-      deniedNotes: 'Not enough sessions yet',
-    })
+      NTHSCandidateApplicationStatus.denied,
+      'Not enough sessions yet'
+    )
 
     await expect(NTHSGroupsService.foundGroup(userId)).rejects.toThrow(
       NotAllowedError
@@ -881,10 +709,7 @@ describe('foundGroup', () => {
     const userId = await createEligibleCoach()
     const schoolId = await createSchool()
     await submit(userId, { schoolId })
-    await NTHSApplicationService.decideCandidateApplication({
-      userId,
-      status: NTHSCandidateApplicationStatus.approved,
-    })
+    await decide(userId, NTHSCandidateApplicationStatus.approved)
 
     const group = await NTHSGroupsService.foundGroup(userId)
 
@@ -898,10 +723,7 @@ describe('foundGroup', () => {
   test('leaves a manual-entry chapter with no affiliation row', async () => {
     const userId = await createEligibleCoach()
     await submit(userId)
-    await NTHSApplicationService.decideCandidateApplication({
-      userId,
-      status: NTHSCandidateApplicationStatus.approved,
-    })
+    await decide(userId, NTHSCandidateApplicationStatus.approved)
 
     const group = await NTHSGroupsService.foundGroup(userId)
 
@@ -913,10 +735,7 @@ describe('foundGroup', () => {
     const schoolId = await createSchool()
     const first = await createEligibleCoach()
     await submit(first, { schoolId })
-    await NTHSApplicationService.decideCandidateApplication({
-      userId: first,
-      status: NTHSCandidateApplicationStatus.approved,
-    })
+    await decide(first, NTHSCandidateApplicationStatus.approved)
     await NTHSGroupsService.foundGroup(first)
 
     const second = await createEligibleCoach()
@@ -931,18 +750,12 @@ describe('foundGroup', () => {
   test('allows two manual-entry chapters, since neither names a school', async () => {
     const first = await createEligibleCoach()
     await submit(first)
-    await NTHSApplicationService.decideCandidateApplication({
-      userId: first,
-      status: NTHSCandidateApplicationStatus.approved,
-    })
+    await decide(first, NTHSCandidateApplicationStatus.approved)
     await NTHSGroupsService.foundGroup(first)
 
     const second = await createEligibleCoach()
     await submit(second)
-    await NTHSApplicationService.decideCandidateApplication({
-      userId: second,
-      status: NTHSCandidateApplicationStatus.approved,
-    })
+    await decide(second, NTHSCandidateApplicationStatus.approved)
 
     await expect(NTHSGroupsService.foundGroup(second)).resolves.toBeDefined()
   })
@@ -952,10 +765,7 @@ describe('foundGroup', () => {
     const schoolId = await createSchool()
     const otherSchoolId = await createSchool()
     await submit(userId, { schoolId })
-    await NTHSApplicationService.decideCandidateApplication({
-      userId,
-      status: NTHSCandidateApplicationStatus.approved,
-    })
+    await decide(userId, NTHSCandidateApplicationStatus.approved)
     const group = await NTHSGroupsService.foundGroup(userId)
 
     await expect(
@@ -974,10 +784,7 @@ describe('foundGroup', () => {
     const userId = await createEligibleCoach()
     const schoolId = await createSchool()
     await submit(userId)
-    await NTHSApplicationService.decideCandidateApplication({
-      userId,
-      status: NTHSCandidateApplicationStatus.approved,
-    })
+    await decide(userId, NTHSCandidateApplicationStatus.approved)
     const group = await NTHSGroupsService.foundGroup(userId)
 
     await NTHSGroupsService.submitSchoolAffiliation({
@@ -993,10 +800,7 @@ describe('foundGroup', () => {
     const userId = await createEligibleCoach()
     const schoolId = await createSchool()
     await submit(userId, { schoolId })
-    await NTHSApplicationService.decideCandidateApplication({
-      userId,
-      status: NTHSCandidateApplicationStatus.approved,
-    })
+    await decide(userId, NTHSCandidateApplicationStatus.approved)
     const group = await NTHSGroupsService.foundGroup(userId)
 
     // What the form's "(Skip) My school isn't listed" button posts.
@@ -1006,88 +810,5 @@ describe('foundGroup', () => {
     })
 
     expect((await affiliationOf(group.groupInfo.id)).school_id).toBe(schoolId)
-  })
-})
-
-describe('approving an application whose school is already claimed', () => {
-  test('refuses when another chapter already holds the school', async () => {
-    const schoolId = await createSchool()
-    const first = await createEligibleCoach()
-    await submit(first, { schoolId })
-    await NTHSApplicationService.decideCandidateApplication({
-      userId: first,
-      status: NTHSCandidateApplicationStatus.approved,
-    })
-    await NTHSGroupsService.foundGroup(first)
-
-    const second = await createEligibleCoach()
-    await submit(second, { schoolId })
-
-    await expect(
-      NTHSApplicationService.decideCandidateApplication({
-        userId: second,
-        status: NTHSCandidateApplicationStatus.approved,
-      })
-    ).rejects.toThrow(NTHSSchoolAlreadyClaimedError)
-  })
-
-  test('refuses when another applicant is approved but has not founded yet', async () => {
-    const schoolId = await createSchool()
-    const first = await createEligibleCoach()
-    await submit(first, { schoolId })
-    await NTHSApplicationService.decideCandidateApplication({
-      userId: first,
-      status: NTHSCandidateApplicationStatus.approved,
-    })
-
-    const second = await createEligibleCoach()
-    await submit(second, { schoolId })
-
-    await expect(
-      NTHSApplicationService.decideCandidateApplication({
-        userId: second,
-        status: NTHSCandidateApplicationStatus.approved,
-      })
-    ).rejects.toThrow(NTHSSchoolAlreadyClaimedError)
-  })
-
-  test('still denies an application for a claimed school', async () => {
-    const schoolId = await createSchool()
-    const first = await createEligibleCoach()
-    await submit(first, { schoolId })
-    await NTHSApplicationService.decideCandidateApplication({
-      userId: first,
-      status: NTHSCandidateApplicationStatus.approved,
-    })
-
-    const second = await createEligibleCoach()
-    await submit(second, { schoolId })
-
-    await expect(
-      NTHSApplicationService.decideCandidateApplication({
-        userId: second,
-        status: NTHSCandidateApplicationStatus.denied,
-        deniedNotes: 'Their school already has a chapter',
-      })
-    ).resolves.toBeDefined()
-  })
-
-  test('leaves manual-entry applications alone', async () => {
-    const first = await createEligibleCoach()
-    await submit(first)
-    await NTHSApplicationService.decideCandidateApplication({
-      userId: first,
-      status: NTHSCandidateApplicationStatus.approved,
-    })
-
-    const second = await createEligibleCoach()
-    await submit(second)
-
-    await expect(
-      NTHSApplicationService.decideCandidateApplication({
-        userId: second,
-        status: NTHSCandidateApplicationStatus.approved,
-      })
-    ).resolves.toBeDefined()
   })
 })

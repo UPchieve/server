@@ -12,24 +12,15 @@ import { VolunteerOccupations } from '../models/Volunteer'
 import * as UsersGradeLevelsRepo from '../models/UsersGradeLevels'
 import * as UsersSchoolsRepo from '../models/UsersSchools'
 import { getSchoolById } from '../models/School'
-import { EVENTS, GRADES, USER_BAN_TYPES } from '../constants/user'
+import { GRADES, USER_BAN_TYPES } from '../constants/user'
 import { US_STATE_CODES } from '../constants/geography'
 import { isHighSchoolGrade } from '../utils/grade-levels'
-import { hoursInMs } from '../utils/time-utils'
 import { getRoClient, runInTransaction, TransactionClient } from '../db'
 import {
   CaughtError,
   InputError,
   NTHSApplicationExistsError,
-  NTHSSchoolAlreadyClaimedError,
 } from '../models/Errors'
-import logger from '../logger'
-import {
-  sendNTHSCandidateApplicationApproved,
-  sendNTHSCandidateApplicationDenied,
-} from './MailService'
-import { getUserContactInfo } from './UserService'
-import * as AnalyticsService from './AnalyticsService'
 
 export { NTHSApplicationIneligibilityReason }
 
@@ -354,93 +345,4 @@ export async function getLatestCandidateApplication(
   userId: Ulid
 ): Promise<NTHSCandidateApplication | undefined> {
   return await NTHSApplicationRepo.getLatestCandidateApplication(userId)
-}
-
-export async function decideCandidateApplication({
-  userId,
-  status,
-  deniedNotes,
-}: {
-  userId: Ulid
-  status: NTHSCandidateApplicationStatus
-  deniedNotes?: string
-}): Promise<NTHSCandidateApplication> {
-  if (status === NTHSCandidateApplicationStatus.applied)
-    throw new InputError(
-      'An application can only be decided as approved or denied'
-    )
-
-  // Two CHECK constraints require denied_notes to be present on a denial and
-  // absent otherwise; without these guards either mistake reaches the client as
-  // a 500.
-  const isDenial = status === NTHSCandidateApplicationStatus.denied
-  if (isDenial && !deniedNotes?.trim())
-    throw new InputError('A denied application needs a reason')
-
-  // Runs in a transaction: the UPDATE below executes first so decided.schoolId
-  // comes from the row it actually touched, rather than a separate lookup
-  // before deciding. A throw after the write still rolls it back cleanly.
-  const application = await runInTransaction(async (tc: TransactionClient) => {
-    const decided = await NTHSApplicationRepo.decideCandidateApplication(
-      {
-        userId,
-        status,
-        deniedNotes: isDenial ? deniedNotes : undefined,
-      },
-      tc
-    )
-    if (!decided)
-      throw new InputError(
-        `No NTHS application awaiting a decision for user ${userId}`
-      )
-
-    // Excludes decided's own user_id since by this point this applicant's row
-    // is already activated, so without the exclusion it would always collide
-    // with itself.
-    if (
-      decided.status === NTHSCandidateApplicationStatus.approved &&
-      decided.schoolId &&
-      (await NTHSApplicationRepo.isSchoolClaimedForNTHSChapter(
-        { schoolId: decided.schoolId, userId },
-        tc
-      ))
-    )
-      throw new NTHSSchoolAlreadyClaimedError()
-
-    return decided
-  })
-
-  AnalyticsService.captureEvent(
-    application.userId,
-    isDenial
-      ? EVENTS.NTHS_APPLICATION_DENIED
-      : EVENTS.NTHS_APPLICATION_APPROVED,
-    {
-      hoursToDecision:
-        (application.decidedAt!.getTime() - application.createdAt.getTime()) /
-        hoursInMs(1),
-      hadSchoolId: !!application.schoolId,
-      wasUnlistedSchool: !!application.unlistedSchool,
-      formVersion: application.formVersion,
-      decidedBy: 'staff',
-    }
-  )
-
-  const contactInfo = await getUserContactInfo(application.userId)
-  if (contactInfo) {
-    const recipient = [
-      { firstName: contactInfo.firstName, email: contactInfo.email },
-    ]
-    if (application.status === NTHSCandidateApplicationStatus.approved)
-      await sendNTHSCandidateApplicationApproved(recipient)
-    if (application.status === NTHSCandidateApplicationStatus.denied)
-      await sendNTHSCandidateApplicationDenied(recipient)
-  } else {
-    logger.warn(
-      { userId: application.userId, status },
-      'Decided an NTHS application without notifying the applicant'
-    )
-  }
-
-  return application
 }
