@@ -126,6 +126,15 @@
     "created_at",
     "updated_at"
   ],
+  "moderation_infractions": [
+    "id",
+    "user_id",
+    "session_id",
+    "active",
+    "created_at",
+    "updated_at",
+    "quarantined_on"
+  ],
   "muted_users_subject_alerts": [
     "user_id",
     "subject_id",
