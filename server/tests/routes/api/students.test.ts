@@ -202,50 +202,34 @@ describe('routeStudents', () => {
     })
   })
 
-  const FAVORITE_VOLUNTEERS_PATH = '/students/favorite-volunteers'
-  describe(FAVORITE_VOLUNTEERS_PATH, () => {
-    test('Students should get a list of favorited volunteers', async () => {
-      const payload = {
-        page: 2,
-      }
-      const expected = {
-        favoriteVolunteers: [
-          {
-            volunteerId: getDbUlid(),
-            firstName: 'Test 1',
-            numSessions: 3,
-          },
-          {
-            volunteerId: getDbUlid(),
-            firstName: 'Test 2',
-            numSessions: 0,
-          },
-        ],
-        isLastPage: true,
-      }
-      mockedStudentService.getFavoriteVolunteersPaginated.mockResolvedValueOnce(
+  const PAST_VOLUNTEERS_PATH = '/students/past-volunteers'
+  describe(PAST_VOLUNTEERS_PATH, () => {
+    test('Students should get a list of past volunteers', async () => {
+      const expected = [
+        {
+          volunteerId: getDbUlid(),
+          firstName: 'Test 1',
+          numSessions: 3,
+          isFavorite: true,
+        },
+        {
+          volunteerId: getDbUlid(),
+          firstName: 'Test 2',
+          numSessions: 0,
+          isFavorite: false,
+        },
+      ]
+      mockedStudentService.getPastVolunteersByStudentId.mockResolvedValueOnce(
         expected
       )
-      const response = await sendGetQuery(FAVORITE_VOLUNTEERS_PATH, payload)
-      const {
-        body: { favoriteVolunteers, isLastPage },
-      } = response
-      expect(favoriteVolunteers).toEqual(expected.favoriteVolunteers)
-      expect(isLastPage).toEqual(expected.isLastPage)
+      const response = await sendGetQuery(PAST_VOLUNTEERS_PATH, {})
+      expect(response.body.pastVolunteers).toEqual(expected)
       expect(response.status).toBe(200)
-    })
-
-    test('Route should throw when page is not a number', async () => {
-      const payload = {
-        page: 'test',
-      }
-      const response = await sendGetQuery(FAVORITE_VOLUNTEERS_PATH, payload)
-      expect(response.status).toBe(422)
     })
   })
 
   describe('GET /api/students/partners/active', () => {
-    test.only('returns active partners for student', async () => {
+    test('returns active partners for student', async () => {
       mockUser = buildUser({ isAdmin: true })
       const studentId = getUuid()
       const activePartners = [

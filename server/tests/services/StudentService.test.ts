@@ -22,37 +22,33 @@ beforeEach(async () => {
   jest.resetAllMocks()
 })
 
-describe('getFavoriteVolunteersPaginated', () => {
-  test('Should retrieve a list of favorited volunteers and if is last page for data', async () => {
+describe('getPastVolunteers', () => {
+  test('Should retrieve a list of past volunteers', async () => {
     const page = 2
-    const expected = {
-      favoriteVolunteers: [
-        {
-          volunteerId: getDbUlid(),
-          firstName: getFirstName(),
-          numSessions: 3,
-        },
-        {
-          volunteerId: getDbUlid(),
-          firstName: getFirstName(),
-          numSessions: 0,
-        },
-        {
-          volunteerId: getDbUlid(),
-          firstName: getFirstName(),
-          numSessions: 10,
-        },
-      ],
-      isLastPage: true,
-    }
-    mockedStudentRepo.getFavoriteVolunteersPaginated.mockResolvedValueOnce(
+    const expected = [
+      {
+        volunteerId: getDbUlid(),
+        firstName: getFirstName(),
+        isFavorite: true,
+      },
+      {
+        volunteerId: getDbUlid(),
+        firstName: getFirstName(),
+        isFavorite: false,
+      },
+      {
+        volunteerId: getDbUlid(),
+        firstName: getFirstName(),
+        isFavorite: false,
+      },
+    ]
+
+    mockedStudentRepo.getPastVolunteersByStudentId.mockResolvedValueOnce(
       expected
     )
 
-    const result = await StudentService.getFavoriteVolunteersPaginated(
-      getDbUlid(),
-      page
-    )
+    const result =
+      await StudentService.getPastVolunteersByStudentId(getDbUlid())
 
     expect(result).toEqual(expected)
   })

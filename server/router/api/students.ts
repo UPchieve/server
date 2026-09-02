@@ -47,20 +47,6 @@ export function routeStudents(router: Router): void {
     }
   )
 
-  router.get('/students/favorite-volunteers', async function (req, res) {
-    try {
-      const user = extractUser(req)
-      const page = asNumber(req.query.page)
-      const result = await StudentService.getFavoriteVolunteersPaginated(
-        String(user.id),
-        page
-      )
-      res.json(result)
-    } catch (error) {
-      resError(res, error)
-    }
-  })
-
   router.post(
     '/students/favorite-volunteers/:volunteerId',
     async function (req, res) {
@@ -128,6 +114,18 @@ export function routeStudents(router: Router): void {
       res.json({ assignments })
     } catch (err) {
       resError(res, err)
+    }
+  })
+
+  router.get('/students/past-volunteers', async function (req, res) {
+    try {
+      const user = extractUser(req)
+      const pastVolunteers = await StudentService.getPastVolunteersByStudentId(
+        String(user.id)
+      )
+      res.json({ pastVolunteers })
+    } catch (error) {
+      resError(res, error)
     }
   })
 }

@@ -55,40 +55,29 @@ WHERE
     AND volunteer_id = :volunteerId!;
 
 
-/* @name getFavoriteVolunteersByStudentId */
+/* @name getPastVolunteersByStudentId */
 SELECT
-    student_favorite_volunteers.volunteer_id AS id
-FROM
-    student_favorite_volunteers
-    LEFT JOIN users ON student_favorite_volunteers.volunteer_id = users.id
-WHERE
-    student_favorite_volunteers.student_id = :studentId!;
-
-
-/* @name getFavoriteVolunteersPaginated */
-SELECT
-    student_favorite_volunteers.volunteer_id AS volunteer_id,
+    sessions.volunteer_id AS volunteer_id,
     users.first_name AS first_name,
-    COALESCE(sessions.total, 0)::int AS num_sessions
+    COUNT(*)::int AS num_sessions,
+    (student_favorite_volunteers.volunteer_id IS NOT NULL) AS is_favorite
 FROM
-    student_favorite_volunteers
-    LEFT JOIN users ON student_favorite_volunteers.volunteer_id = users.id
-    LEFT JOIN (
-        SELECT
-            count(*) AS total,
-            sessions.volunteer_id
-        FROM
-            sessions
-        WHERE
-            sessions.student_id = :studentId!
-        GROUP BY
-            sessions.student_id,
-            sessions.volunteer_id) AS sessions ON sessions.volunteer_id = student_favorite_volunteers.volunteer_id
+    sessions
+    JOIN users ON users.id = sessions.volunteer_id
+    LEFT JOIN student_favorite_volunteers ON student_favorite_volunteers.student_id = sessions.student_id
+        AND student_favorite_volunteers.volunteer_id = sessions.volunteer_id
 WHERE
-    student_favorite_volunteers.student_id = :studentId!
+    sessions.student_id = :studentId!
+    AND sessions.volunteer_id IS NOT NULL
+    AND sessions.ended_at IS NOT NULL
+    AND sessions.time_tutored IS NOT NULL
+    AND sessions.time_tutored > :minSessionLength
+GROUP BY
+    sessions.volunteer_id,
+    users.first_name,
+    student_favorite_volunteers.volunteer_id
 ORDER BY
-    student_favorite_volunteers.created_at DESC
-LIMIT (:limit!)::int OFFSET (:offset!)::int;
+    MAX(sessions.ended_at) DESC;
 
 
 /* @name deleteFavoriteVolunteer */

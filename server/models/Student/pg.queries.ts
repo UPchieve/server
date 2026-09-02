@@ -5,6 +5,8 @@ export type ban_types = 'complete' | 'live_media' | 'shadow';
 
 export type DateOrString = Date | string;
 
+export type NumberOrString = number | string;
+
 export type stringArray = (string)[];
 
 /** 'GetStudentContactInfoById' parameters type */
@@ -192,93 +194,58 @@ const isFavoriteVolunteerIR: any = {"usedParamSet":{"studentId":true,"volunteerI
 export const isFavoriteVolunteer = new PreparedQuery<IIsFavoriteVolunteerParams,IIsFavoriteVolunteerResult>(isFavoriteVolunteerIR);
 
 
-/** 'GetFavoriteVolunteersByStudentId' parameters type */
-export interface IGetFavoriteVolunteersByStudentIdParams {
+/** 'GetPastVolunteersByStudentId' parameters type */
+export interface IGetPastVolunteersByStudentIdParams {
+  minSessionLength?: NumberOrString | null | void;
   studentId: string;
 }
 
-/** 'GetFavoriteVolunteersByStudentId' return type */
-export interface IGetFavoriteVolunteersByStudentIdResult {
-  /** not_pii: Foreign key to upchieve.users (the volunteer) */
-  id: string;
-}
-
-/** 'GetFavoriteVolunteersByStudentId' query type */
-export interface IGetFavoriteVolunteersByStudentIdQuery {
-  params: IGetFavoriteVolunteersByStudentIdParams;
-  result: IGetFavoriteVolunteersByStudentIdResult;
-}
-
-const getFavoriteVolunteersByStudentIdIR: any = {"usedParamSet":{"studentId":true},"params":[{"name":"studentId","required":true,"transform":{"type":"scalar"},"locs":[{"a":221,"b":231}]}],"statement":"SELECT\n    student_favorite_volunteers.volunteer_id AS id\nFROM\n    student_favorite_volunteers\n    LEFT JOIN users ON student_favorite_volunteers.volunteer_id = users.id\nWHERE\n    student_favorite_volunteers.student_id = :studentId!"};
-
-/**
- * Query generated from SQL:
- * ```
- * SELECT
- *     student_favorite_volunteers.volunteer_id AS id
- * FROM
- *     student_favorite_volunteers
- *     LEFT JOIN users ON student_favorite_volunteers.volunteer_id = users.id
- * WHERE
- *     student_favorite_volunteers.student_id = :studentId!
- * ```
- */
-export const getFavoriteVolunteersByStudentId = new PreparedQuery<IGetFavoriteVolunteersByStudentIdParams,IGetFavoriteVolunteersByStudentIdResult>(getFavoriteVolunteersByStudentIdIR);
-
-
-/** 'GetFavoriteVolunteersPaginated' parameters type */
-export interface IGetFavoriteVolunteersPaginatedParams {
-  limit: number;
-  offset: number;
-  studentId: string;
-}
-
-/** 'GetFavoriteVolunteersPaginated' return type */
-export interface IGetFavoriteVolunteersPaginatedResult {
+/** 'GetPastVolunteersByStudentId' return type */
+export interface IGetPastVolunteersByStudentIdResult {
   /** pii: First name */
   firstName: string;
+  isFavorite: boolean | null;
   numSessions: number | null;
   /** not_pii: Foreign key to upchieve.users (the volunteer) */
-  volunteerId: string;
+  volunteerId: string | null;
 }
 
-/** 'GetFavoriteVolunteersPaginated' query type */
-export interface IGetFavoriteVolunteersPaginatedQuery {
-  params: IGetFavoriteVolunteersPaginatedParams;
-  result: IGetFavoriteVolunteersPaginatedResult;
+/** 'GetPastVolunteersByStudentId' query type */
+export interface IGetPastVolunteersByStudentIdQuery {
+  params: IGetPastVolunteersByStudentIdParams;
+  result: IGetPastVolunteersByStudentIdResult;
 }
 
-const getFavoriteVolunteersPaginatedIR: any = {"usedParamSet":{"studentId":true,"limit":true,"offset":true},"params":[{"name":"studentId","required":true,"transform":{"type":"scalar"},"locs":[{"a":448,"b":458},{"a":676,"b":686}]},{"name":"limit","required":true,"transform":{"type":"scalar"},"locs":[{"a":752,"b":758}]},{"name":"offset","required":true,"transform":{"type":"scalar"},"locs":[{"a":774,"b":781}]}],"statement":"SELECT\n    student_favorite_volunteers.volunteer_id AS volunteer_id,\n    users.first_name AS first_name,\n    COALESCE(sessions.total, 0)::int AS num_sessions\nFROM\n    student_favorite_volunteers\n    LEFT JOIN users ON student_favorite_volunteers.volunteer_id = users.id\n    LEFT JOIN (\n        SELECT\n            count(*) AS total,\n            sessions.volunteer_id\n        FROM\n            sessions\n        WHERE\n            sessions.student_id = :studentId!\n        GROUP BY\n            sessions.student_id,\n            sessions.volunteer_id) AS sessions ON sessions.volunteer_id = student_favorite_volunteers.volunteer_id\nWHERE\n    student_favorite_volunteers.student_id = :studentId!\nORDER BY\n    student_favorite_volunteers.created_at DESC\nLIMIT (:limit!)::int OFFSET (:offset!)::int"};
+const getPastVolunteersByStudentIdIR: any = {"usedParamSet":{"studentId":true,"minSessionLength":true},"params":[{"name":"studentId","required":true,"transform":{"type":"scalar"},"locs":[{"a":479,"b":489}]},{"name":"minSessionLength","required":false,"transform":{"type":"scalar"},"locs":[{"a":645,"b":661}]}],"statement":"SELECT\n    sessions.volunteer_id AS volunteer_id,\n    users.first_name AS first_name,\n    COUNT(*)::int AS num_sessions,\n    (student_favorite_volunteers.volunteer_id IS NOT NULL) AS is_favorite\nFROM\n    sessions\n    JOIN users ON users.id = sessions.volunteer_id\n    LEFT JOIN student_favorite_volunteers ON student_favorite_volunteers.student_id = sessions.student_id\n        AND student_favorite_volunteers.volunteer_id = sessions.volunteer_id\nWHERE\n    sessions.student_id = :studentId!\n    AND sessions.volunteer_id IS NOT NULL\n    AND sessions.ended_at IS NOT NULL\n    AND sessions.time_tutored IS NOT NULL\n    AND sessions.time_tutored > :minSessionLength\nGROUP BY\n    sessions.volunteer_id,\n    users.first_name,\n    student_favorite_volunteers.volunteer_id\nORDER BY\n    MAX(sessions.ended_at) DESC"};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
- *     student_favorite_volunteers.volunteer_id AS volunteer_id,
+ *     sessions.volunteer_id AS volunteer_id,
  *     users.first_name AS first_name,
- *     COALESCE(sessions.total, 0)::int AS num_sessions
+ *     COUNT(*)::int AS num_sessions,
+ *     (student_favorite_volunteers.volunteer_id IS NOT NULL) AS is_favorite
  * FROM
- *     student_favorite_volunteers
- *     LEFT JOIN users ON student_favorite_volunteers.volunteer_id = users.id
- *     LEFT JOIN (
- *         SELECT
- *             count(*) AS total,
- *             sessions.volunteer_id
- *         FROM
- *             sessions
- *         WHERE
- *             sessions.student_id = :studentId!
- *         GROUP BY
- *             sessions.student_id,
- *             sessions.volunteer_id) AS sessions ON sessions.volunteer_id = student_favorite_volunteers.volunteer_id
+ *     sessions
+ *     JOIN users ON users.id = sessions.volunteer_id
+ *     LEFT JOIN student_favorite_volunteers ON student_favorite_volunteers.student_id = sessions.student_id
+ *         AND student_favorite_volunteers.volunteer_id = sessions.volunteer_id
  * WHERE
- *     student_favorite_volunteers.student_id = :studentId!
+ *     sessions.student_id = :studentId!
+ *     AND sessions.volunteer_id IS NOT NULL
+ *     AND sessions.ended_at IS NOT NULL
+ *     AND sessions.time_tutored IS NOT NULL
+ *     AND sessions.time_tutored > :minSessionLength
+ * GROUP BY
+ *     sessions.volunteer_id,
+ *     users.first_name,
+ *     student_favorite_volunteers.volunteer_id
  * ORDER BY
- *     student_favorite_volunteers.created_at DESC
- * LIMIT (:limit!)::int OFFSET (:offset!)::int
+ *     MAX(sessions.ended_at) DESC
  * ```
  */
-export const getFavoriteVolunteersPaginated = new PreparedQuery<IGetFavoriteVolunteersPaginatedParams,IGetFavoriteVolunteersPaginatedResult>(getFavoriteVolunteersPaginatedIR);
+export const getPastVolunteersByStudentId = new PreparedQuery<IGetPastVolunteersByStudentIdParams,IGetPastVolunteersByStudentIdResult>(getPastVolunteersByStudentIdIR);
 
 
 /** 'DeleteFavoriteVolunteer' parameters type */

@@ -100,15 +100,6 @@ export async function checkAndUpdateVolunteerFavoriting(
   })
 }
 
-export async function getFavoriteVolunteersPaginated(
-  userId: Ulid,
-  page: number
-) {
-  const limit = 5
-  const offset = limit * (page - 1)
-  return await StudentRepo.getFavoriteVolunteersPaginated(userId, limit, offset)
-}
-
 export async function getStudentSignupSources(): Promise<
   StudentSignupSources[] | undefined
 > {
@@ -211,4 +202,8 @@ export async function getStudentByCleverId(
   tc: TransactionClient
 ) {
   return StudentRepo.getStudentByCleverId(cleverStudentId, tc)
+}
+
+export async function getPastVolunteersByStudentId(studentId: Ulid) {
+  return StudentRepo.getPastVolunteersByStudentId(studentId)
 }
