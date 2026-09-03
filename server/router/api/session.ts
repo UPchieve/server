@@ -264,18 +264,6 @@ export function routeSession(router: Router) {
     }
   )
 
-  router.get('/session/:sessionId/photo-url', async function (req, res) {
-    try {
-      const { sessionId } = req.params
-      const { uploadUrl, imageUrl } = await SessionService.getImageAndUploadUrl(
-        sessionId as unknown
-      )
-      res.json({ uploadUrl, imageUrl })
-    } catch (error) {
-      resError(res, error)
-    }
-  })
-
   router.post('/session/:sessionId/report', async function (req, res) {
     try {
       const { sessionId } = req.params

@@ -484,25 +484,6 @@ export async function storeSessionPhotoKey(sessionId: Uuid) {
   return sessionPhotoKey
 }
 
-export async function getImageAndUploadUrl(data: unknown) {
-  const sessionId = asString(data)
-  const session = await SessionRepo.getSessionById(sessionId)
-  const sessionPhotoKey = await storeSessionPhotoKey(sessionId)
-
-  if (sessionUtils.isSubjectUsingDocumentEditor(session.toolType)) {
-    const { uploadUrl, imageUrl } = await createDocEditorImageUploadUrl(
-      sessionId,
-      sessionPhotoKey
-    )
-    return { uploadUrl, imageUrl }
-  } else {
-    const uploadUrl = await AwsService.getSessionPhotoUploadUrl(sessionPhotoKey)
-    const bucketName = config.awsS3.sessionPhotoBucket
-    const imageUrl = `https://${bucketName}.s3.amazonaws.com/${sessionPhotoKey}`
-    return { uploadUrl, imageUrl }
-  }
-}
-
 export async function adminFilteredSessions(data: unknown) {
   const {
     showBannedUsers,

@@ -382,28 +382,6 @@ describe('routeSession', () => {
     })
   })
 
-  describe('GET /api/session/:sessionId/photo-url', () => {
-    test('returns upload and image urls', async () => {
-      const sessionId = getUuid()
-      const uploadUrl = 'https://example.com/upload'
-      const imageUrl = 'https://example.com/image'
-      mockedSessionService.getImageAndUploadUrl.mockResolvedValueOnce({
-        uploadUrl,
-        imageUrl,
-      })
-
-      const response = await sendGet(`/api/session/${sessionId}/photo-url`)
-      expect(response.status).toBe(200)
-      expect(mockedSessionService.getImageAndUploadUrl).toHaveBeenCalledWith(
-        sessionId
-      )
-      expect(response.body).toEqual({
-        uploadUrl,
-        imageUrl,
-      })
-    })
-  })
-
   describe('POST /api/session/:sessionId/report', () => {
     test('reports a session', async () => {
       const sessionId = getUuid()
