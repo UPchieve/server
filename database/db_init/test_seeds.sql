@@ -7687,6 +7687,14 @@ COPY upchieve.session_audio_transcript_messages (id, user_id, session_id, messag
 
 
 --
+-- Data for Name: session_editor_activity; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.session_editor_activity (id, session_id, user_id, source, created_at) FROM stdin;
+\.
+
+
+--
 -- Data for Name: session_failed_joins; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 

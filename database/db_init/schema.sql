@@ -5739,6 +5739,62 @@ COMMENT ON COLUMN upchieve.session_audio_transcript_messages.said_at IS 'not_pii
 
 
 --
+-- Name: session_editor_activity; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.session_editor_activity (
+    id uuid NOT NULL,
+    session_id uuid NOT NULL,
+    user_id uuid NOT NULL,
+    source text NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT session_editor_activity_source_check CHECK ((source = ANY (ARRAY['whiteboard'::text, 'quill'::text])))
+);
+
+
+--
+-- Name: TABLE session_editor_activity; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON TABLE upchieve.session_editor_activity IS 'An append only table used to track tool activity during a coaching session so that we can more accurately calculate time tutored';
+
+
+--
+-- Name: COLUMN session_editor_activity.id; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.session_editor_activity.id IS 'not_pii: Primary key';
+
+
+--
+-- Name: COLUMN session_editor_activity.session_id; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.session_editor_activity.session_id IS 'not_pii: Foreign key to upchieve.sessions';
+
+
+--
+-- Name: COLUMN session_editor_activity.user_id; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.session_editor_activity.user_id IS 'not_pii: Foreign key to upchieve.users';
+
+
+--
+-- Name: COLUMN session_editor_activity.source; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.session_editor_activity.source IS 'not_pii: An identifier for which tool was used';
+
+
+--
+-- Name: COLUMN session_editor_activity.created_at; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.session_editor_activity.created_at IS 'not_pii: Time of creation';
+
+
+--
 -- Name: session_failed_joins; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -12190,6 +12246,14 @@ ALTER TABLE ONLY upchieve.session_audio_transcript_messages
 
 
 --
+-- Name: session_editor_activity session_editor_activity_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.session_editor_activity
+    ADD CONSTRAINT session_editor_activity_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: session_flags session_flags_name_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -13223,6 +13287,20 @@ CREATE INDEX session_audio_transcript_messages_user_id_idx ON upchieve.users USI
 
 
 --
+-- Name: session_editor_activity_session_id_idx; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX session_editor_activity_session_id_idx ON upchieve.session_editor_activity USING btree (session_id);
+
+
+--
+-- Name: session_editor_activity_user_id_idx; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX session_editor_activity_user_id_idx ON upchieve.session_editor_activity USING btree (user_id);
+
+
+--
 -- Name: session_meetings_session_id_idx; Type: INDEX; Schema: upchieve; Owner: -
 --
 
@@ -14159,6 +14237,22 @@ ALTER TABLE ONLY upchieve.session_audio_transcript_messages
 
 ALTER TABLE ONLY upchieve.session_audio_transcript_messages
     ADD CONSTRAINT session_audio_transcript_messages_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
+
+
+--
+-- Name: session_editor_activity session_editor_activity_session_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.session_editor_activity
+    ADD CONSTRAINT session_editor_activity_session_id_fkey FOREIGN KEY (session_id) REFERENCES upchieve.sessions(id);
+
+
+--
+-- Name: session_editor_activity session_editor_activity_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.session_editor_activity
+    ADD CONSTRAINT session_editor_activity_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
 
 
 --
@@ -15340,4 +15434,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260717162214'),
     ('20260728183756'),
     ('20260730214144'),
-    ('20260731181526');
+    ('20260731181526'),
+    ('20260901134527');
