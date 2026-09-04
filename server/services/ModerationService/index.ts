@@ -1362,10 +1362,14 @@ export async function moderateImage(
       if (category === 'LINK' && isAllowedUrl(allowedDomains, i.text)) {
         return false
       }
-      return (
-        moderationSettings[category] &&
-        confidence >= moderationSettings[category].threshold
-      )
+      if (!moderationSettings[category]) {
+        logger.error(
+          { category, confidence, userId, sessionId, assignmentId, source },
+          `Missing moderation setting for moderation category. Infraction ignored.`
+        )
+        return confidence * 100 >= config.imageModerationMinConfidence
+      }
+      return confidence >= moderationSettings[category].threshold
     })
     .map((i) => i.category)
 
