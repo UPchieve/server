@@ -2,10 +2,10 @@
 -- PostgreSQL database dump
 --
 
-\restrict DUjifaiVK4I4ddZapqJWqlYJwndVW3uNidg47SYal62EGvkiVM7aqcPf15ifdBj
+\restrict P66nbOQbm5Ggy7KO0jBaxVgzDb7TMjeNwlqFQ4bc6KDhYylxtcDz2ZYDGlAAzMe
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
--- Dumped by pg_dump version 15.18 (Homebrew)
+-- Dumped by pg_dump version 15.18 (Ubuntu 15.18-1.pgdg22.04+1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -6032,6 +6032,7 @@ COPY upchieve.moderation_categories (id, name) FROM stdin;
 25	PHONE
 26	ADDRESS
 16	Person detected in image
+28	Low Confidence / Ambiguous Content
 \.
 
 
@@ -6141,6 +6142,7 @@ realtime_image	14	0.75	0
 realtime_image	15	0.75	0
 realtime_image	21	0.85	0
 realtime_image	22	0.85	0
+realtime_image	28	0.50	0
 \.
 
 
@@ -9239,7 +9241,7 @@ SELECT pg_catalog.setval('upchieve.moderation_actions_id_seq', 1, true);
 -- Name: moderation_categories_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.moderation_categories_id_seq', 26, true);
+SELECT pg_catalog.setval('upchieve.moderation_categories_id_seq', 28, true);
 
 
 --
@@ -9547,5 +9549,5 @@ SELECT pg_catalog.setval('upchieve.weekdays_id_seq', 1, false);
 -- PostgreSQL database dump complete
 --
 
-\unrestrict DUjifaiVK4I4ddZapqJWqlYJwndVW3uNidg47SYal62EGvkiVM7aqcPf15ifdBj
+\unrestrict P66nbOQbm5Ggy7KO0jBaxVgzDb7TMjeNwlqFQ4bc6KDhYylxtcDz2ZYDGlAAzMe
 
