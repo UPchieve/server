@@ -83,7 +83,6 @@ import * as FeatureFlagsService from './FeatureFlagService'
 import { createDocEditorImageUploadUrl } from './AzureService'
 import type { CurrentSession } from '../types/session'
 import { hoursInSeconds, minutesInMs, secondsInMs } from '../utils/time-utils'
-import crypto from 'crypto'
 import * as ModerationService from './ModerationService'
 import { getPhotoDnaMatchCheckFlag } from './FeatureFlagService'
 
@@ -1536,9 +1535,7 @@ export async function saveSessionImage({
   userId: Uuid
   isVolunteer: boolean
 }): Promise<
-  | { isClean: true; imageUrl: string }
-  | { isClean: false; failures: string[] }
-  | { imageUrl: string }
+  { isClean: true; imageUrl: string } | { isClean: false; failures: string[] }
 > {
   const session = await SessionRepo.getSessionById(sessionId)
   const isPhotoDnaMatchCheckEnabled = await getPhotoDnaMatchCheckFlag(userId)
@@ -1557,8 +1554,9 @@ export async function saveSessionImage({
   )
 
   if (isClean) {
+    const sessionPhotoKey = await storeSessionPhotoKey(sessionId)
+
     if (sessionUtils.isSubjectUsingDocumentEditor(session.toolType)) {
-      const sessionPhotoKey = await storeSessionPhotoKey(sessionId)
       const filePath = AzureService.buildSessionImagePath(
         sessionId,
         sessionPhotoKey
@@ -1576,10 +1574,13 @@ export async function saveSessionImage({
       const bucketName = config.awsS3.sessionPhotoBucket
       if (!bucketName)
         throw new Error(
-          `Could not save moderated image to S3: No bucket registered for source whiteboard`
+          `Could not save image to S3: No bucket registered for source whiteboard`
         )
-      const s3Key = `${sessionId}-${crypto.randomBytes(8).toString('hex')}`
-      const result = await AwsService.putObject(bucketName, s3Key, image.buffer)
+      const result = await AwsService.putObject(
+        bucketName,
+        sessionPhotoKey,
+        image.buffer
+      )
 
       return { isClean: true, imageUrl: result.location }
     }
