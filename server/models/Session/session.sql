@@ -615,8 +615,7 @@ SELECT
     users.first_name,
     past_sessions_as_student.session_ids AS past_sessions_as_student,
     past_sessions_as_volunteer.session_ids AS past_sessions_as_volunteer,
-    past_sessions_as_student.session_ids || past_sessions_as_volunteer.session_ids AS past_sessions, -- deprecated in favor of the above 2 values
-    cgl.current_grade_name AS grade_level
+    past_sessions_as_student.session_ids || past_sessions_as_volunteer.session_ids AS past_sessions -- deprecated in favor of the above 2 values
 FROM
     users
     LEFT JOIN sessions ON sessions.student_id = users.id
@@ -635,15 +634,12 @@ FROM
             sessions
         WHERE
             sessions.student_id = users.id) AS past_sessions_as_student ON TRUE
-    LEFT JOIN student_profiles ON student_profiles.user_id = users.id
-    LEFT JOIN current_grade_levels cgl ON cgl.user_id = student_profiles.user_id
 WHERE
     sessions.id = :sessionId!
 GROUP BY
     users.id,
     past_sessions_as_student.session_ids,
-    past_sessions_as_volunteer.session_ids,
-    cgl.current_grade_name;
+    past_sessions_as_volunteer.session_ids;
 
 
 /* @name getLatestSession */
