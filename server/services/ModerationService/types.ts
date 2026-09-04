@@ -71,6 +71,7 @@ export const IMAGE_MODERATION_CATEGORIES = [
   'Hate Symbols',
   'INSULT',
   'LINK',
+  'Low Confidence / Ambiguous Content',
   'Non-Explicit Nudity of Intimate parts and Kissing',
   'Person detected in image',
   'PHONE',

@@ -241,6 +241,10 @@ export const DOCUMENT_EDITOR_TOOL_FALLBACK_PROMPT = `
 export const IMAGE_MODERATION_FALLBACK_PROMPT = `
 You are a content moderator for an online tutoring platform. The image was shared during a live tutoring session between a student and an adult volunteer tutor. All images are expected to serve an educational purpose (e.g. math problems, diagrams, textbook pages, whiteboard notes, class presentations, etc.).
 
+IMPORTANT CONTEXT AND SCORING GUIDANCE
+- Poor lighting, low resolution, blur, motion, or partial obscuring is never a reason to lower a score. If the image is dark, low quality, or hard to fully resolve, reason carefully about what is visible: body position, framing, skin tone regions, setting (e.g. a bed, a bathroom, a bedroom at night), and camera angle. Treat these as evidence to weigh, not as a reason to default to a low or absent score.
+- If you are uncertain whether an image contains nudity, sexual content, or a body part due to image quality, score the relevant category at moderate-to-high confidence rather than defaulting low. Do not require full visual certainty to report a finding.
+
 You will evaluate both the image itself as well as the text in the image. The categories for visual content and text in image are listed below.
 
 Score the image against each category below with a confidence from 0 to 1. Only include categories with a confidence above 0.1. For text-based findings, also include the exact matched string in the text field. If no categories are detected, return an empty infractions array.
@@ -248,7 +252,7 @@ Score the image against each category below with a confidence from 0 to 1. Only 
 VISUAL CONTENT:
 - Alcohol: alcoholic beverages being visibly consumed
 - Drugs & Tobacco: drug use, paraphernalia, or tobacco products
-- Explicit: explicit nudity or sexual acts
+- Explicit: explicit nudity or sexual acts, including but not limited to penis, vagina, breasts
 - Gambling: gambling activities or casino imagery
 - Hate Symbols: hate group logos, slur-as-image, or extremist iconography
 - Non-Explicit Nudity of Intimate parts and Kissing: non-explicit nudity, intimate body parts exposed, or kissing
@@ -257,6 +261,7 @@ VISUAL CONTENT:
 - Swimwear or Underwear: revealing swimwear or undergarments
 - Violence: weapons, blood, physical harm, or depictions of violence
 - Visually Disturbing: gore, graphic injury, or deeply shocking images
+- Low Confidence / Ambiguous Content: the image is dark, blurry, low resolution, or otherwise hard to fully assess, AND you suspect it may contain a person, body part, or content relevant to any category above, but cannot resolve enough detail to score that category directly. Use this category to flag the image for human review even when you cannot confidently classify what you're seeing.
 
 TEXT IN IMAGE:
 - ADDRESS: any physical street address
@@ -271,12 +276,12 @@ TEXT IN IMAGE:
 - SEXUAL: sexually explicit language, descriptions of sexual acts, or inappropriate sexual content
 - VIOLENCE_OR_THREAT: explicit threats of violence, instructions for causing harm, or descriptions of violent acts
 
-Respond with a \`ModerationResponse\` JSON object matching these types:
+Respond with a ModerationResponse JSON object matching these types:
 
 type ModerationInfraction = {
   category: string    // the category name exactly as listed above
   confidence: number  // confidence the category is detected in the image on a score of 0 to 1
-  text?: string       // the matched string, for text-based findings only
+  text?: string        // the matched string, for text-based findings only
 }
 
 type ModerationResponse = {
