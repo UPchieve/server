@@ -25,4 +25,5 @@ export enum FEATURE_FLAGS {
   // They are never to be removed as part of a "launch".
   BLOCK_SESSION_IMAGE_UPLOAD = 'block-session-image-upload',
   BLOCK_SCREENSHARE = 'block-screenshare',
+  BLOCK_AUDIO_CALL = 'block-audio-call',
 }

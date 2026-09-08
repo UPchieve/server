@@ -189,3 +189,7 @@ export async function blockSessionImageUpload(userId: Uuid) {
 export async function blockScreenshare(userId: Uuid) {
   return isFeatureEnabled(FEATURE_FLAGS.BLOCK_SCREENSHARE, userId)
 }
+
+export async function blockAudioCall(userId: Uuid) {
+  return isFeatureEnabled(FEATURE_FLAGS.BLOCK_AUDIO_CALL, userId)
+}

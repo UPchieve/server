@@ -119,9 +119,19 @@ export async function getOrCreateSessionMeeting(
   sessionId: string,
   userId: string
 ): Promise<SessionMeetingWithAttendees> {
-  if (await FeatureFlagService.blockScreenshare(userId)) {
+  const [isScreenshareBlocked, isAudioCallBlocked] = await Promise.all([
+    FeatureFlagService.blockScreenshare(userId),
+    FeatureFlagService.blockAudioCall(userId),
+  ])
+  if (isScreenshareBlocked) {
     throw new UnauthorizedFeature(
       'User attempting to share screen while screenshare is blocked',
+      { userId, sessionId }
+    )
+  }
+  if (isAudioCallBlocked) {
+    throw new UnauthorizedFeature(
+      'User attempting to join audio call while audio call is blocked',
       { userId, sessionId }
     )
   }
