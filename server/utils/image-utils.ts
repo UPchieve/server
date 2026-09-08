@@ -16,9 +16,12 @@ export function isPdf(file: Buffer) {
   return result && result.mime === 'application/pdf'
 }
 
+export async function getImageDimensions(image: Buffer) {
+  const { width = 0, height = 0 } = await sharp(image).metadata()
+  return { width, height }
+}
+
 export async function resize(image: Buffer, options?: sharp.ResizeOptions) {
-  // Default to 224x224 for generic image moderation use cases
-  // Callers can override by providing width or height explicitly
   const hasExplicitSize = options?.width || options?.height
   const resizeOptions: sharp.ResizeOptions = {
     fit: 'contain',

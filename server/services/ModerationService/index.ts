@@ -58,7 +58,7 @@ import {
 import { ModerationInfraction } from '../../models/ModerationInfractions/types'
 import { runInTransaction, TransactionClient } from '../../db'
 import { PrimaryUserRole } from '../UserRolesService'
-import { resize } from '../../utils/image-utils'
+import { getImageDimensions, resize } from '../../utils/image-utils'
 import {
   getContextualSettings as getModerationContextualSettings,
   getRealTimeSettings as getModerationRealTimeSettings,
@@ -1269,7 +1269,25 @@ export async function moderateImage(
     source: ModerationTypes.ImageModerationSource
   }
 
-  const resizedImage = await resize(image)
+  // Well under the model's 1568 visual-token cap (1024x1024 is 1369), so Bedrock
+  // does not downscale it a second time.
+  const MAX_EDGE = 1024
+  // Floor so a tiny upload does not land under ~200px, where the model starts to
+  // misread; resize()'s old 224 default used to guarantee this by accident.
+  const MIN_EDGE = 256
+
+  const { width, height } = await getImageDimensions(image)
+  const isBelowFloor = Math.max(width, height) < MIN_EDGE
+  const edge = isBelowFloor ? MIN_EDGE : MAX_EDGE
+
+  // Known gap: resize() passes PNG through losslessly, so a ~1MP incompressible
+  // RGBA PNG can exceed Bedrock's 5MB base64 cap. Fails closed on the upload.
+  const resizedImage = await resize(image, {
+    width: edge,
+    height: edge,
+    fit: 'inside',
+    withoutEnlargement: !isBelowFloor,
+  })
   const moderationSettings = await getModerationRealTimeSettings()
 
   const toolName = 'json_response'
