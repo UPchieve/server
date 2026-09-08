@@ -163,6 +163,7 @@ async function expiredKeyListener(channel: string, expiredKey: string) {
             CacheKeys.key(userId, clientUUID, CACHE_KEY_TYPE.ACTIVE_TIMEOUT),
             CacheKeys.key(userId, clientUUID, CACHE_KEY_TYPE.MAYBE_INACTIVE),
           ])
+          await markOfflineIfNoPresence(userId, clientUUID)
         } else if (CacheKeys.isMaybeInactive(keyType)) {
           const passiveTimeoutKey = CacheKeys.key(
             userId,
@@ -179,6 +180,7 @@ async function expiredKeyListener(channel: string, expiredKey: string) {
             await CacheKeys.delete([
               CacheKeys.key(userId, clientUUID, CACHE_KEY_TYPE.PASSIVE_TIMEOUT),
             ])
+            await markOfflineIfNoPresence(userId, clientUUID)
           }
         } else {
           throw Error(`Unhandled ${PRESENCE_KEY_PREFIX} key: ${expiredKey}`)
@@ -208,10 +210,12 @@ export async function trackActivity({
   userId,
   ipAddress,
   clientUUID,
+  role,
 }: {
   userId: Ulid
   clientUUID: string
   ipAddress?: string
+  role: OnlineRole
 }) {
   /*
    * we're active now so delete all other keys if they exist
@@ -245,6 +249,8 @@ export async function trackActivity({
    * setting 1 as the value is arbitrary. we never read it but we need a value
    */
   await redisClient.set(key, 1, 'EX', PRESENCE_NO_ACTIVITY_IN_SECONDS)
+
+  await markOnline(userId, role, clientUUID)
 }
 
 /*
@@ -380,5 +386,135 @@ export async function trackInactivity({
       Since we're calling 'inactive' endpoint on log out, this can happen when the user logsout then closes the window (socket.io will send a 'disconnecting' event)
       Probably not anything to worry about but getting a lot of these it might mean something is broken`
     )
+  }
+
+  await markOfflineIfNoPresence(userId, clientUUID)
+}
+
+/*
+ * here we are tracking realtime "who is online" sets. A user is in
+ * at most one of these sets while they have any live `user-presence` key
+ * (active or passive).
+ *
+ * we separated this "realtime" tracking out from the existing presence so that
+ * we can have faster reads per user and device.
+ *
+ * these are sorted sets rather than plain sets so that each member can have its own expiration.
+ * the score is the epoch-seconds deadline after which teh membership is considered stale.
+ *
+ * members are normally removed by markOfflineIfNoPresence, driven by the
+ * key expiration listener. the scores are only used as a fallback for the case where those
+ * notifications are never delivered. This would only happen if all of our subway servers went offline
+ *
+ * @NOTE the mobile app does not send presence tracking so those students will
+ * not be shown as "online". if we want a fallback/to extend this to those users, we could also track via
+ * socket.io connections. Since this is for a quick study, we are ignoring them for now
+ */
+export type OnlineRole = 'student' | 'volunteer' | 'teacher'
+
+const ONLINE_KEY_PREFIX = 'presence:online'
+const CLIENT_INDEX_KEY_PREFIX = 'presence:clients'
+const ONLINE_ROLES: OnlineRole[] = ['student', 'volunteer', 'teacher']
+
+function onlineKey(role: OnlineRole) {
+  return `${ONLINE_KEY_PREFIX}:${role}`
+}
+
+function nowInSeconds() {
+  return Date.now() / 1000
+}
+
+/*
+ * sorted set of a user's live clientUUIDs. Lets us check whether a user still has
+ * any other live connection when marking them offline.
+ */
+function clientsKey(userId: Ulid) {
+  return `${CLIENT_INDEX_KEY_PREFIX}:${userId}`
+}
+
+/*
+ * entries are normally removed by markOfflineIfNoPresence, so this TTL is only
+ * a fallback for entries orphaned when a server dies mid-lifecycle.
+ */
+export const CLIENT_INDEX_TTL_IN_SECONDS =
+  ONE_MINUTE_IN_SECONDS + PRESENCE_PASSIVE_TIMEOUT_IN_SECONDS
+
+async function removeFromOnlineSets(userId: Ulid) {
+  const transaction = redisClient.multi()
+  for (const role of ONLINE_ROLES) {
+    transaction.zrem(onlineKey(role), userId)
+  }
+  await transaction.exec()
+}
+
+/*
+ * drops members whose deadline has already passed. reads already filter by score
+ * so this is only about keeping the sorted sets from growing forever
+ * with orphaned members.
+ */
+async function sweepOnline(role: OnlineRole) {
+  await redisClient.zremrangebyscore(onlineKey(role), '-inf', nowInSeconds())
+}
+
+/**
+ * this is idempotent, re-marking an already online user just pushes their
+ * staleness deadline out
+ */
+export async function markOnline(
+  userId: Ulid,
+  role: OnlineRole,
+  clientUUID: string
+) {
+  const deadline = nowInSeconds() + CLIENT_INDEX_TTL_IN_SECONDS
+  const transaction = redisClient.multi()
+
+  for (const onlineRole of ONLINE_ROLES) {
+    if (onlineRole === role) {
+      transaction.zadd(onlineKey(onlineRole), deadline, userId)
+    } else {
+      transaction.zrem(onlineKey(onlineRole), userId)
+    }
+  }
+
+  transaction.zadd(clientsKey(userId), deadline, clientUUID)
+  transaction.expire(clientsKey(userId), CLIENT_INDEX_TTL_IN_SECONDS)
+  await transaction.exec()
+}
+
+export async function markOffline(userId: Ulid) {
+  await removeFromOnlineSets(userId)
+}
+
+export async function getOnlineUserIds(): Promise<
+  Record<'students' | 'volunteers', Ulid[]>
+> {
+  await Promise.all([sweepOnline('student'), sweepOnline('volunteer')])
+  const now = nowInSeconds()
+  const [students, volunteers] = await Promise.all([
+    redisClient.zrangebyscore(onlineKey('student'), now, '+inf'),
+    redisClient.zrangebyscore(onlineKey('volunteer'), now, '+inf'),
+  ])
+  return { students, volunteers }
+}
+
+/*
+ * removes the user from the online sets only if they have no remaining live
+ * presence keys, so users with multiple devices/tabs stay online until their
+ * last connection goes inactive.
+ */
+export async function markOfflineIfNoPresence(
+  userId: Ulid,
+  clientUUID: string
+) {
+  const clientIndexKey = clientsKey(userId)
+  const transaction = redisClient.multi()
+  transaction.zrem(clientIndexKey, clientUUID)
+  transaction.zremrangebyscore(clientIndexKey, '-inf', nowInSeconds())
+  await transaction.exec()
+
+  const remainingClients = await redisClient.zcard(clientIndexKey)
+  if (remainingClients === 0) {
+    await removeFromOnlineSets(userId)
+    await redisClient.del(clientIndexKey)
   }
 }

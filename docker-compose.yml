@@ -30,6 +30,7 @@ services:
         ports:
             - "6379:6379"
         image: redis:6.2.1
+        command: redis-server --notify-keyspace-events Ex
         volumes:
             - ./redis-volume:/data
     pgadmin:
@@ -83,6 +84,7 @@ services:
       profiles: ["e2e"]
       container_name: redis-e2e
       hostname: redis
+      command: redis-server --notify-keyspace-events Ex
       ports:
         - "5501:6379"
       image: redis:6.2.1

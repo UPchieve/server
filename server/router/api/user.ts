@@ -357,6 +357,7 @@ export function routeUser(router: Router): void {
         userId: user.id,
         ipAddress,
         clientUUID,
+        role: user.roleContext.activeRole,
       })
       return res.sendStatus(200)
     } catch (err) {
@@ -385,7 +386,7 @@ export function routeUser(router: Router): void {
         const user = extractUser(req)
         const clientUUID = req.body.clientUUID
         if (user.id && typeof clientUUID === 'string') {
-          PresenceService.setInactivityCountdown({
+          await PresenceService.setInactivityCountdown({
             userId: user.id,
             clientUUID,
           })

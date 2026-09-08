@@ -45,7 +45,13 @@ jest.mock('../../../utils/auth-utils', () => {
 })
 jest.mock('../../../services/AwsService')
 jest.mock('../../../services/VolunteerService')
-jest.mock('../../../services/UserRolesService')
+jest.mock('../../../services/UserRolesService', () => {
+  const actual = jest.requireActual('../../../services/UserRolesService')
+  return {
+    ...actual,
+    addVolunteerRoleToUser: jest.fn(),
+  }
+})
 jest.mock('../../../services/PresenceService')
 jest.mock('../../../models/User')
 jest.mock('../../../logger')
@@ -522,6 +528,24 @@ describe('routeUser', () => {
         userId: mockUser.id,
         ipAddress: expect.any(String),
         clientUUID,
+        role: 'student',
+      })
+    })
+
+    test('tracks volunteer activity with the volunteers role', async () => {
+      mockUser = buildUser({ isVolunteer: true, roles: ['volunteer'] })
+      const clientUUID = getUuid()
+      mockedPresenceService.trackActivity.mockResolvedValueOnce()
+
+      const response = await sendPost('/api/user/track-presence/active', {
+        clientUUID,
+      })
+      expect(response.status).toBe(200)
+      expect(mockedPresenceService.trackActivity).toHaveBeenCalledWith({
+        userId: mockUser.id,
+        ipAddress: expect.any(String),
+        clientUUID,
+        role: 'volunteer',
       })
     })
   })
