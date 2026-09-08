@@ -185,3 +185,7 @@ export async function getPhotoDnaMatchCheckFlag(userId: Uuid) {
 export async function blockSessionImageUpload(userId: Uuid) {
   return isFeatureEnabled(FEATURE_FLAGS.BLOCK_SESSION_IMAGE_UPLOAD, userId)
 }
+
+export async function blockScreenshare(userId: Uuid) {
+  return isFeatureEnabled(FEATURE_FLAGS.BLOCK_SCREENSHARE, userId)
+}

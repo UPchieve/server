@@ -1,5 +1,6 @@
 import * as SessionMeetingsRepo from '../models/SessionMeeting/queries'
 import * as AwsChimeService from './AwsChimeService'
+import * as FeatureFlagService from './FeatureFlagService'
 import {
   Attendee,
   CreateAttendeeCommand,
@@ -21,7 +22,7 @@ import {
   Meeting,
 } from '@aws-sdk/client-chime-sdk-meetings'
 import { getClient, TransactionClient } from '../db'
-import { LookupError, RepoCreateError } from '../models/Errors'
+import { RepoCreateError, UnauthorizedFeature } from '../models/Errors'
 import logger from '../logger'
 import { SessionMeeting } from '../models/SessionMeeting'
 
@@ -56,16 +57,13 @@ async function handleExistingMeeting({
   return { meeting, attendee, partnerAttendee }
 }
 
-async function handleNoExistingMeeting(
-  tc: TransactionClient,
-  {
-    sessionId,
-    userId,
-  }: {
-    sessionId: string
-    userId: string
-  }
-): Promise<SessionMeetingWithAttendees> {
+async function handleNoExistingMeeting({
+  sessionId,
+  userId,
+}: {
+  sessionId: string
+  userId: string
+}): Promise<SessionMeetingWithAttendees> {
   const created = await createMeetingWithAttendee({ sessionId, userId })
   const meeting = created.meeting
   const attendee = created.attendee
@@ -74,14 +72,13 @@ async function handleNoExistingMeeting(
     await SessionMeetingsRepo.insertSessionMeeting(
       sessionId,
       meeting.MeetingId!,
-      'chime',
-      tc
+      'chime'
     )
 
     return { meeting, attendee, partnerAttendee: null }
   } catch (err) {
     if (err instanceof RepoCreateError) {
-      const sessionMeeting = await handleInsertSessionMeetingFailure(tc, {
+      const sessionMeeting = await handleInsertSessionMeetingFailure({
         sessionId,
         externalMeetingId: meeting.ExternalMeetingId!,
       })
@@ -97,26 +94,20 @@ async function handleNoExistingMeeting(
   }
 }
 
-async function handleInsertSessionMeetingFailure(
-  tc: TransactionClient,
-  {
-    externalMeetingId,
-    sessionId,
-  }: {
-    externalMeetingId: string
-    sessionId: string
-  }
-): Promise<SessionMeeting> {
+async function handleInsertSessionMeetingFailure({
+  externalMeetingId,
+  sessionId,
+}: {
+  externalMeetingId: string
+  sessionId: string
+}): Promise<SessionMeeting> {
   logger.warn(
     `Failed to create session_meeting for session ${sessionId}. Now attempting to fetch it`
   )
   // Sometimes the student and volunteer enter a race condition both trying to
   // create the meeting at the same time. If this happens, fetch the meeting again
   await deleteChimeMeeting(externalMeetingId)
-  const mtg = await SessionMeetingsRepo.getSessionMeetingBySessionId(
-    sessionId,
-    tc
-  )
+  const mtg = await SessionMeetingsRepo.getSessionMeetingBySessionId(sessionId)
   if (!mtg)
     throw new Error(
       `Failed to create or fetch session_meeting for session ${sessionId}`
@@ -126,19 +117,21 @@ async function handleInsertSessionMeetingFailure(
 
 export async function getOrCreateSessionMeeting(
   sessionId: string,
-  userId: string,
-  transactionClient?: TransactionClient
+  userId: string
 ): Promise<SessionMeetingWithAttendees> {
-  const client = transactionClient ?? getClient()
+  if (await FeatureFlagService.blockScreenshare(userId)) {
+    throw new UnauthorizedFeature(
+      'User attempting to share screen while screenshare is blocked',
+      { userId, sessionId }
+    )
+  }
   // Get existing meeting if it exists
-  let existingMeeting = await SessionMeetingsRepo.getSessionMeetingBySessionId(
-    sessionId,
-    client
-  )
+  const existingMeeting =
+    await SessionMeetingsRepo.getSessionMeetingBySessionId(sessionId)
   if (existingMeeting) {
     return await handleExistingMeeting({ existingMeeting, userId, sessionId })
   } else {
-    return await handleNoExistingMeeting(client, { sessionId, userId })
+    return await handleNoExistingMeeting({ sessionId, userId })
   }
 }
 async function getMeeting({
