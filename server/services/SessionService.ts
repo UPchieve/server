@@ -23,6 +23,7 @@ import {
   LookupError,
   NotAllowedError,
   SessionJoinError,
+  UnauthorizedFeature,
 } from '../models/Errors'
 import * as NotificationRepo from '../models/Notification'
 import { PushToken } from '../models/PushToken'
@@ -66,10 +67,6 @@ import {
   getSubjectAndTopic,
   SessionWithSubjectAndTopic,
 } from '../models/Subjects'
-import {
-  getAllowDmsToPartnerStudentsFeatureFlag,
-  getSessionSummaryFeatureFlag,
-} from './FeatureFlagService'
 import { getStudentPartnerInfoById } from '../models/Student'
 import { TransactionClient, runInTransaction, getClient } from '../db'
 import * as SessionAudioRepo from '../models/SessionAudio'
@@ -84,7 +81,6 @@ import { createDocEditorImageUploadUrl } from './AzureService'
 import type { CurrentSession } from '../types/session'
 import { hoursInSeconds, minutesInMs, secondsInMs } from '../utils/time-utils'
 import * as ModerationService from './ModerationService'
-import { getPhotoDnaMatchCheckFlag } from './FeatureFlagService'
 
 export async function reviewSession(data: unknown) {
   const { sessionId, reviewed, toReview } =
@@ -1217,7 +1213,9 @@ export async function isEligibleForSessionRecap(
   volunteerId: Ulid
 ): Promise<boolean> {
   const isAllowDmsToPartnerStudentsActive =
-    await getAllowDmsToPartnerStudentsFeatureFlag(volunteerId)
+    await FeatureFlagsService.getAllowDmsToPartnerStudentsFeatureFlag(
+      volunteerId
+    )
   if (!isAllowDmsToPartnerStudentsActive) {
     const student = await getStudentPartnerInfoById(studentId)
     if (student?.studentPartnerOrg) return false
@@ -1270,7 +1268,9 @@ export async function isRecapDmsAvailable(
   const isStudent = userId === studentId
 
   const isAllowDmsToPartnerStudentsActive =
-    await getAllowDmsToPartnerStudentsFeatureFlag(volunteerId)
+    await FeatureFlagsService.getAllowDmsToPartnerStudentsFeatureFlag(
+      volunteerId
+    )
   if (!isAllowDmsToPartnerStudentsActive) {
     const student = await getStudentPartnerInfoById(studentId)
     if (student?.studentPartnerOrg)
@@ -1307,7 +1307,7 @@ export async function getStudentSessionDetails(
 ) {
   const sessions = await SessionRepo.getStudentSessionDetails(studentId)
 
-  if (!(await getSessionSummaryFeatureFlag(teacherId))) {
+  if (!(await FeatureFlagsService.getSessionSummaryFeatureFlag(teacherId))) {
     return sessions
   } else {
     const sessionsWithSummaries = []
@@ -1537,8 +1537,16 @@ export async function saveSessionImage({
 }): Promise<
   { isClean: true; imageUrl: string } | { isClean: false; failures: string[] }
 > {
+  if (await FeatureFlagsService.blockSessionImageUpload(userId)) {
+    throw new UnauthorizedFeature(
+      'User attempting to upload image while session image upload is blocked',
+      { userId, sessionId, isVolunteer }
+    )
+  }
+
   const session = await SessionRepo.getSessionById(sessionId)
-  const isPhotoDnaMatchCheckEnabled = await getPhotoDnaMatchCheckFlag(userId)
+  const isPhotoDnaMatchCheckEnabled =
+    await FeatureFlagsService.getPhotoDnaMatchCheckFlag(userId)
   if (isPhotoDnaMatchCheckEnabled) {
     await PhotoDnaService.checkAgainstPhotoDNA(image, userId, sessionId)
   }

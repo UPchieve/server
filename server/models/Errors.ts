@@ -185,3 +185,8 @@ export class PhotoDnaMatchError extends CustomError {
     )
   }
 }
+
+export class UnauthorizedFeature extends CaughtError {
+  readonly httpStatus = 403
+  readonly clientMessage = 'You are not authorized to use this feature'
+}

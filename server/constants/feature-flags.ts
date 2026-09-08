@@ -20,4 +20,8 @@ export enum FEATURE_FLAGS {
   VOLUNTEER_ASYNC_ESSAY_REVIEW = 'volunteer-async-essay-review',
   VOLUNTEER_ASYNC_ESSAY_REVIEW_EMAIL_NOTIFICATIONS = 'volunteer-async-essay-review-email-notifications',
   PHOTODNA_MATCH_CHECK = 'photodna-match-check',
+  // The following flags are for gating risky features, NOT features being
+  // experimented/slowly rolled out.
+  // They are never to be removed as part of a "launch".
+  BLOCK_SESSION_IMAGE_UPLOAD = 'block-session-image-upload',
 }

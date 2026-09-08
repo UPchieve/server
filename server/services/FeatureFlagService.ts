@@ -181,3 +181,7 @@ export async function isAsyncEssayReviewEmailNotificationsEnabled(
 export async function getPhotoDnaMatchCheckFlag(userId: Uuid) {
   return isFeatureEnabled(FEATURE_FLAGS.PHOTODNA_MATCH_CHECK, userId)
 }
+
+export async function blockSessionImageUpload(userId: Uuid) {
+  return isFeatureEnabled(FEATURE_FLAGS.BLOCK_SESSION_IMAGE_UPLOAD, userId)
+}

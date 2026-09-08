@@ -15,7 +15,7 @@ import {
   buildUserContactInfo,
   buildVolunteer,
 } from '../mocks/generate'
-import { LookupError } from '../../models/Errors'
+import { LookupError, UnauthorizedFeature } from '../../models/Errors'
 import { getDbUlid } from '../../models/pgUtils'
 import { GetSessionByIdResult } from '../../models/Session'
 import {
@@ -482,6 +482,32 @@ describe('SessionService', () => {
       await expect(
         SessionService.processSessionReported(sessionId)
       ).rejects.toThrow('test error')
+    })
+  })
+
+  describe('saveSessionImage', () => {
+    test('should reject the upload when the blockSessionImageUpload flag is enabled', async () => {
+      const sessionId = getDbUlid()
+      const userId = getDbUlid()
+      mockFeatureFlagService.blockSessionImageUpload.mockResolvedValue(true)
+
+      await expect(
+        SessionService.saveSessionImage({
+          sessionId,
+          image: {
+            originalname: 'test.png',
+            buffer: Buffer.from('fake-image-data'),
+          } as unknown as Express.Multer.File,
+          userId,
+          isVolunteer: false,
+        })
+      ).rejects.toThrow(UnauthorizedFeature)
+
+      expect(
+        mockFeatureFlagService.blockSessionImageUpload
+      ).toHaveBeenCalledWith(userId)
+      expect(mockSessionRepo.getSessionById).not.toHaveBeenCalled()
+      expect(mockSessionRepo.updateSessionPhotoKey).not.toHaveBeenCalled()
     })
   })
 })
