@@ -197,7 +197,7 @@ new_relic_deploy_tracker:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
 
 .node_setup:
-  image: node:24.15.0-bullseye
+  image: node:24.15.0-trixie
   before_script:
     - corepack enable pnpm
     - pnpm config set store-dir .pnpm-store
