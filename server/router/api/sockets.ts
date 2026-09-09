@@ -116,11 +116,10 @@ export function routeSockets(io: Server): void {
             isZwibserveSession,
           })
         } catch (error) {
-          const isRetryable = !(error instanceof SessionJoinError)
           logger.error(error, 'Unable to join socket')
           callback({
             sessionId: data.sessionId,
-            retry: isRetryable,
+            reason: error instanceof Error ? error.message : 'unknown error',
             success: false,
           })
         }
