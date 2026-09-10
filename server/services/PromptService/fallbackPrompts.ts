@@ -178,7 +178,6 @@ Policies are listed below in <policy> tags and named in the <name> tag:
 The extracted links are delimited by <link> tags.
 
 Given the links, provide a confidence rating from 0 to 1 (to 3 decimal places) that the links are inappropriate to be shared, where 1 means maximally confident that the links is inappropriate to be shared.
-Provide your response in this JSON format: "{ links: [{ link: string, details: { confidence: number, policyNames: string[], explanation: string } }]"
 `
 
 export const WHITEBOARD_VISION_FALLBACK_PROMPT = `

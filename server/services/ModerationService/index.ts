@@ -505,23 +505,30 @@ async function checkForQuestionableLinks({
                   type: 'string',
                   description: 'The name of the extracted link',
                 },
-                confidence: {
-                  type: 'number',
-                  description:
-                    'The confidence rating that the link is inappropriate',
-                },
-                policyNames: {
-                  type: 'array',
-                  items: { type: 'string' },
-                  descrption: 'Array of the policy names the link violated',
-                },
-                explanation: {
-                  type: 'string',
-                  description:
-                    'The explanation why the confidence and policyNames were choosen',
+                details: {
+                  type: 'object',
+                  properties: {
+                    confidence: {
+                      type: 'number',
+                      description:
+                        'The confidence rating that the link is inappropriate',
+                    },
+                    policyNames: {
+                      type: 'array',
+                      items: { type: 'string' },
+                      description:
+                        'Array of the policy names the link violated',
+                    },
+                    explanation: {
+                      type: 'string',
+                      description:
+                        'The explanation why the confidence and policyNames were choosen',
+                    },
+                  },
+                  required: ['confidence', 'policyNames', 'explanation'],
                 },
               },
-              required: ['link', 'confidence', 'policyNames', 'explanation'],
+              required: ['link', 'details'],
             },
           },
         },

@@ -35,6 +35,7 @@ import {
 } from '@aws-sdk/client-comprehend'
 import { DetectTextCommand } from '@aws-sdk/client-rekognition'
 import * as ShareableDomainsRepo from '../../../models/ShareableDomains/queries'
+import config from '../../../config'
 
 jest.mock('../../../models/Session')
 jest.mock('../../../utils/time-limit')
@@ -1013,6 +1014,91 @@ describe('ModerationService', () => {
           details: expect.objectContaining({ confidence: 0.85 }),
         })
       )
+    })
+  })
+
+  describe('detectTextModerationInfractions - link confidence threshold', () => {
+    // Unlike the other categories the LINK threshold is read from config, not
+    // moderationSettings, and the global config mock omits it. Left undefined
+    // the comparison is against NaN, which drops every link and makes any test
+    // of this path pass on an empty result.
+    beforeEach(() => {
+      Object.assign(config, { minimumModerationLinkConfidence: 0.8 })
+    })
+
+    afterEach(() => {
+      delete (config as Partial<typeof config>).minimumModerationLinkConfidence
+      jest.restoreAllMocks()
+    })
+
+    it('flags a questionable link whose LLM confidence is above the LINK threshold', async () => {
+      const linkText = 'https://us05web.zoom.us/j/0123456789'
+
+      mockedAiObservabilityService.runWithModelObservation.mockImplementation(
+        (cb) => cb()
+      )
+      jest.mocked(ShareableDomainsRepo).getAllowedDomains.mockResolvedValue([])
+      jest.mocked(langfuseClient).trace.mockReturnValue({
+        generation: jest.fn().mockReturnValue({ end: jest.fn() }),
+      } as any)
+      mockedAwsBedrockService.invokeModel.mockResolvedValue({
+        links: [
+          {
+            link: linkText,
+            details: {
+              confidence: 0.95,
+              policyNames: ['PLATFORM_CIRCUMVENTION'],
+              explanation: 'Zoom link moves the conversation off platform',
+            },
+          },
+        ],
+      } as any)
+
+      jest.spyOn(AWSRekognitionClient, 'send').mockImplementation((command) => {
+        if (command instanceof DetectTextCommand) {
+          return Promise.resolve({
+            TextDetections: [{ Type: 'LINE', DetectedText: linkText }],
+          }) as any
+        }
+        return Promise.resolve({}) as any
+      })
+
+      jest.spyOn(AWSComprehendClient, 'send').mockImplementation((command) => {
+        if (command instanceof DetectToxicContentCommand) {
+          return Promise.resolve({ ResultList: [] }) as any
+        }
+        if (command instanceof DetectPiiEntitiesCommand) {
+          return Promise.resolve({
+            Entities: [
+              {
+                Type: 'URL',
+                BeginOffset: 0,
+                EndOffset: linkText.length,
+                Score: 0.99,
+              },
+            ],
+          }) as any
+        }
+        return Promise.resolve({}) as any
+      })
+
+      const infractions =
+        await ModerationService.detectTextModerationInfractions({
+          image: Buffer.from('fake-image'),
+          sessionId,
+          isVolunteer,
+          moderationSettings,
+        })
+
+      expect(infractions).toContainEqual({
+        reason: LiveMediaModerationCategories.LINK,
+        details: {
+          text: linkText,
+          confidence: 0.95,
+          policyNames: ['PLATFORM_CIRCUMVENTION'],
+          explanation: 'Zoom link moves the conversation off platform',
+        },
+      })
     })
   })
 })
