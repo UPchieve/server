@@ -1,7 +1,7 @@
-\restrict roFFyul7DJGrFkSqtUlt83OK1pX5e0EoXIhUPuKfv3LkCKz1h0gQhRyX0iPj8bG
+\restrict aaaTYfLoq7nHnkkxqxbIllRZ0XUilZs7StgZJ2lY4hlcCYg4nhkFhbf83Hfp4dz
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
--- Dumped by pg_dump version 15.15 (Homebrew)
+-- Dumped by pg_dump version 15.18 (Ubuntu 15.18-1.pgdg22.04+1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -2034,6 +2034,13 @@ COMMENT ON COLUMN upchieve.moderation_infractions.updated_at IS 'not_pii';
 
 
 --
+-- Name: COLUMN moderation_infractions.quarantined_on; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.moderation_infractions.quarantined_on IS 'not_pii: Timestamp when the image that triggered the infraction was quarantined';
+
+
+--
 -- Name: moderation_rule_actions; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -2162,7 +2169,8 @@ CREATE TABLE upchieve.moderation_settings (
     moderation_type text,
     moderation_category_id integer,
     threshold numeric(3,2),
-    penalty_weight integer DEFAULT 0 NOT NULL
+    penalty_weight integer DEFAULT 0 NOT NULL,
+    id integer NOT NULL
 );
 
 
@@ -2199,6 +2207,20 @@ COMMENT ON COLUMN upchieve.moderation_settings.threshold IS 'not_pii: Confidence
 --
 
 COMMENT ON COLUMN upchieve.moderation_settings.penalty_weight IS 'not_pii: Penalty weight assigned to this moderation rule';
+
+
+--
+-- Name: moderation_settings_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE upchieve.moderation_settings ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME upchieve.moderation_settings_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
 
 
 --
@@ -5547,7 +5569,8 @@ CREATE TABLE upchieve.schools_sponsor_orgs_instances (
     sponsor_org_id uuid,
     deactivated_on timestamp with time zone,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    id uuid DEFAULT upchieve.generate_ulid() NOT NULL
 );
 
 
@@ -5784,7 +5807,8 @@ CREATE TABLE upchieve.session_failed_joins (
     user_id uuid NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
-    reason text DEFAULT 'Unknown'::text NOT NULL
+    reason text DEFAULT 'Unknown'::text NOT NULL,
+    id uuid DEFAULT upchieve.generate_ulid() NOT NULL
 );
 
 
@@ -5906,6 +5930,27 @@ CREATE TABLE upchieve.session_last_seen (
     user_id uuid NOT NULL,
     last_seen_at timestamp with time zone
 );
+
+
+--
+-- Name: COLUMN session_last_seen.session_id; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.session_last_seen.session_id IS 'not_pii: Foreign key to upchieve.sessions';
+
+
+--
+-- Name: COLUMN session_last_seen.user_id; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.session_last_seen.user_id IS 'not_pii: Foreign key to upchieve.users';
+
+
+--
+-- Name: COLUMN session_last_seen.last_seen_at; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.session_last_seen.last_seen_at IS 'not_pii: Timestamp when the user last viewed the session''s messages';
 
 
 --
@@ -6863,7 +6908,8 @@ CREATE TABLE upchieve.sponsor_orgs_volunteer_partner_orgs_instances (
     volunteer_partner_org_id uuid,
     deactivated_on timestamp with time zone,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    id uuid DEFAULT upchieve.generate_ulid() NOT NULL
 );
 
 
@@ -7209,7 +7255,8 @@ CREATE TABLE upchieve.student_partner_orgs_sponsor_orgs_instances (
     sponsor_org_id uuid,
     deactivated_on timestamp with time zone,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    id uuid DEFAULT upchieve.generate_ulid() NOT NULL
 );
 
 
@@ -7319,7 +7366,8 @@ CREATE TABLE upchieve.student_partner_orgs_volunteer_partner_orgs_instances (
     volunteer_partner_org_id uuid,
     deactivated_on timestamp with time zone,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    id uuid DEFAULT upchieve.generate_ulid() NOT NULL
 );
 
 
@@ -8041,7 +8089,8 @@ CREATE TABLE upchieve.surveys_context (
     subject_id integer,
     survey_type_id integer NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    id integer NOT NULL
 );
 
 
@@ -8085,6 +8134,20 @@ COMMENT ON COLUMN upchieve.surveys_context.created_at IS 'not_pii';
 --
 
 COMMENT ON COLUMN upchieve.surveys_context.updated_at IS 'not_pii';
+
+
+--
+-- Name: surveys_context_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE upchieve.surveys_context ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME upchieve.surveys_context_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
 
 
 --
@@ -9493,6 +9556,13 @@ COMMENT ON COLUMN upchieve.user_session_metrics.personal_identifying_info IS 'no
 
 
 --
+-- Name: COLUMN user_session_metrics.graded_assignment; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.user_session_metrics.graded_assignment IS 'not_pii: Count of graded-assignment session flags';
+
+
+--
 -- Name: COLUMN user_session_metrics.coach_uncomfortable; Type: COMMENT; Schema: upchieve; Owner: -
 --
 
@@ -10076,7 +10146,8 @@ CREATE TABLE upchieve.users_student_partner_orgs_instances (
     deactivated_on timestamp with time zone,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
-    student_partner_org_user_id text
+    student_partner_org_user_id text,
+    id uuid DEFAULT upchieve.generate_ulid() NOT NULL
 );
 
 
@@ -10225,7 +10296,8 @@ CREATE TABLE upchieve.users_surveys_submissions (
     survey_response_choice_id integer,
     open_response text,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    id uuid DEFAULT upchieve.generate_ulid() NOT NULL
 );
 
 
@@ -10397,7 +10469,8 @@ CREATE TABLE upchieve.users_volunteer_partner_orgs_instances (
     volunteer_partner_org_id uuid,
     deactivated_on timestamp with time zone,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    id uuid DEFAULT upchieve.generate_ulid() NOT NULL
 );
 
 
@@ -11603,6 +11676,22 @@ ALTER TABLE ONLY upchieve.moderation_infractions
 
 
 --
+-- Name: moderation_rule_actions moderation_rule_actions_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.moderation_rule_actions
+    ADD CONSTRAINT moderation_rule_actions_pkey PRIMARY KEY (rule_id, action_id);
+
+
+--
+-- Name: moderation_rules_flags moderation_rules_flags_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.moderation_rules_flags
+    ADD CONSTRAINT moderation_rules_flags_pkey PRIMARY KEY (flag_id, rule_id);
+
+
+--
 -- Name: moderation_rules moderation_rules_name_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -11616,6 +11705,14 @@ ALTER TABLE ONLY upchieve.moderation_rules
 
 ALTER TABLE ONLY upchieve.moderation_rules
     ADD CONSTRAINT moderation_rules_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: moderation_settings moderation_settings_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.moderation_settings
+    ADD CONSTRAINT moderation_settings_pkey PRIMARY KEY (id);
 
 
 --
@@ -11811,11 +11908,11 @@ ALTER TABLE ONLY upchieve.nths_group_roles
 
 
 --
--- Name: nths_group_school_affiliation nths_group_school_affiliation_nths_group_id_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
+-- Name: nths_group_school_affiliation nths_group_school_affiliation_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
 ALTER TABLE ONLY upchieve.nths_group_school_affiliation
-    ADD CONSTRAINT nths_group_school_affiliation_nths_group_id_key UNIQUE (nths_group_id);
+    ADD CONSTRAINT nths_group_school_affiliation_pkey PRIMARY KEY (nths_group_id);
 
 
 --
@@ -12203,6 +12300,14 @@ ALTER TABLE ONLY upchieve.schools
 
 
 --
+-- Name: schools_sponsor_orgs_instances schools_sponsor_orgs_instances_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.schools_sponsor_orgs_instances
+    ADD CONSTRAINT schools_sponsor_orgs_instances_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: schools_sponsor_orgs schools_sponsor_orgs_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -12232,6 +12337,14 @@ ALTER TABLE ONLY upchieve.session_audio_transcript_messages
 
 ALTER TABLE ONLY upchieve.session_editor_activity
     ADD CONSTRAINT session_editor_activity_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: session_failed_joins session_failed_joins_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.session_failed_joins
+    ADD CONSTRAINT session_failed_joins_pkey PRIMARY KEY (id);
 
 
 --
@@ -12288,6 +12401,14 @@ ALTER TABLE ONLY upchieve.session_messages
 
 ALTER TABLE ONLY upchieve.session_messages
     ADD CONSTRAINT session_messages_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: session_photos session_photos_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.session_photos
+    ADD CONSTRAINT session_photos_pkey PRIMARY KEY (session_id, photo_key);
 
 
 --
@@ -12403,6 +12524,14 @@ ALTER TABLE ONLY upchieve.sponsor_orgs_upchieve_instances
 
 
 --
+-- Name: sponsor_orgs_volunteer_partner_orgs_instances sponsor_orgs_volunteer_partner_orgs_instances_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.sponsor_orgs_volunteer_partner_orgs_instances
+    ADD CONSTRAINT sponsor_orgs_volunteer_partner_orgs_instances_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: student_classes student_classes_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -12467,6 +12596,14 @@ ALTER TABLE ONLY upchieve.student_partner_orgs
 
 
 --
+-- Name: student_partner_orgs_sponsor_orgs_instances student_partner_orgs_sponsor_orgs_instances_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.student_partner_orgs_sponsor_orgs_instances
+    ADD CONSTRAINT student_partner_orgs_sponsor_orgs_instances_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: student_partner_orgs_sponsor_orgs student_partner_orgs_sponsor_orgs_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -12480,6 +12617,14 @@ ALTER TABLE ONLY upchieve.student_partner_orgs_sponsor_orgs
 
 ALTER TABLE ONLY upchieve.student_partner_orgs_upchieve_instances
     ADD CONSTRAINT student_partner_orgs_upchieve_instances_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: student_partner_orgs_volunteer_partner_orgs_instances student_partner_orgs_volunteer_partner_orgs_instances_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.student_partner_orgs_volunteer_partner_orgs_instances
+    ADD CONSTRAINT student_partner_orgs_volunteer_partner_orgs_instances_pkey PRIMARY KEY (id);
 
 
 --
@@ -12539,6 +12684,14 @@ ALTER TABLE ONLY upchieve.survey_questions_question_tags
 
 
 --
+-- Name: survey_questions_response_choices survey_questions_response_choices_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.survey_questions_response_choices
+    ADD CONSTRAINT survey_questions_response_choices_pkey PRIMARY KEY (response_choice_id, surveys_survey_question_id);
+
+
+--
 -- Name: survey_response_choices survey_response_choices_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -12560,6 +12713,14 @@ ALTER TABLE ONLY upchieve.survey_types
 
 ALTER TABLE ONLY upchieve.survey_types
     ADD CONSTRAINT survey_types_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: surveys_context surveys_context_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.surveys_context
+    ADD CONSTRAINT surveys_context_pkey PRIMARY KEY (id);
 
 
 --
@@ -12891,11 +13052,19 @@ ALTER TABLE ONLY upchieve.users_roles
 
 
 --
--- Name: users_schools users_schools_unique_user_id; Type: CONSTRAINT; Schema: upchieve; Owner: -
+-- Name: users_schools users_schools_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
 ALTER TABLE ONLY upchieve.users_schools
-    ADD CONSTRAINT users_schools_unique_user_id UNIQUE (user_id);
+    ADD CONSTRAINT users_schools_pkey PRIMARY KEY (user_id);
+
+
+--
+-- Name: users_student_partner_orgs_instances users_student_partner_orgs_instances_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.users_student_partner_orgs_instances
+    ADD CONSTRAINT users_student_partner_orgs_instances_pkey PRIMARY KEY (id);
 
 
 --
@@ -12907,11 +13076,27 @@ ALTER TABLE ONLY upchieve.users_surveys
 
 
 --
+-- Name: users_surveys_submissions users_surveys_submissions_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.users_surveys_submissions
+    ADD CONSTRAINT users_surveys_submissions_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: users_training_courses users_training_courses_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
 ALTER TABLE ONLY upchieve.users_training_courses
     ADD CONSTRAINT users_training_courses_pkey PRIMARY KEY (user_id, training_course_id);
+
+
+--
+-- Name: users_volunteer_partner_orgs_instances users_volunteer_partner_orgs_instances_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.users_volunteer_partner_orgs_instances
+    ADD CONSTRAINT users_volunteer_partner_orgs_instances_pkey PRIMARY KEY (id);
 
 
 --
@@ -13356,13 +13541,6 @@ CREATE INDEX sessions_volunteer_id ON upchieve.sessions USING btree (volunteer_i
 --
 
 CREATE INDEX student_classes_class_id_idx ON upchieve.student_classes USING btree (class_id);
-
-
---
--- Name: survey_questions_response_choices_response_survey_question; Type: INDEX; Schema: upchieve; Owner: -
---
-
-CREATE UNIQUE INDEX survey_questions_response_choices_response_survey_question ON upchieve.survey_questions_response_choices USING btree (response_choice_id, surveys_survey_question_id);
 
 
 --
@@ -15142,7 +15320,7 @@ ALTER TABLE ONLY upchieve.volunteer_references
 -- PostgreSQL database dump complete
 --
 
-\unrestrict roFFyul7DJGrFkSqtUlt83OK1pX5e0EoXIhUPuKfv3LkCKz1h0gQhRyX0iPj8bG
+\unrestrict aaaTYfLoq7nHnkkxqxbIllRZ0XUilZs7StgZJ2lY4hlcCYg4nhkFhbf83Hfp4dz
 
 
 --
@@ -15444,4 +15622,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260911141712'),
     ('20260911141713'),
     ('20260917202149'),
-    ('20260917202150');
+    ('20260917202150'),
+    ('20260918082750');

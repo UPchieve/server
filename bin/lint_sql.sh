@@ -13,8 +13,8 @@ if [ ${#DIRS[@]} -eq 0 ]; then
   exit 2
 fi
 
-# Resolve against the git work-tree root so behavior is CWD-independent.
-ROOT="$(git rev-parse --show-toplevel)" || exit 2
+# Resolve against the repo root so behavior is CWD-independent.
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)" || exit 2
 cd "$ROOT" || exit 2
 
 PG_FORMATTER="$ROOT/node_modules/.bin/pg-formatter"
