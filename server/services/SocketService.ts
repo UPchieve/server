@@ -13,7 +13,6 @@ import { ProgressReportAnalysisTypes } from '../models/ProgressReports'
 import { TransactionClient } from '../db'
 import * as SessionService from '../services/SessionService'
 import * as cache from '../cache'
-import { backOff } from 'exponential-backoff'
 import { UserContactInfo } from '../models/User'
 import { secondsInMs } from '../utils/time-utils'
 import { toCurrentSessionPublic } from '../public/sessions'
@@ -58,8 +57,22 @@ class SocketService {
     await socket.join(sessionRoom)
     socket.data.sessionId = sessionId
 
-    await this.emitSessionChange(sessionId)
-    await this.emitSessionPresence(user.id, sessionRoom, true)
+    /**
+     * @NOTE we want to get the user joined to the session as quick as possible
+     * so we purposely don't await here. they are fine to finish in the background
+     */
+    this.emitSessionChange(sessionId).catch((error) => {
+      logger.error(
+        { userId: user.id, sessionRoom, error },
+        'Failed to emit session change after join'
+      )
+    })
+    this.emitSessionPresence(user.id, sessionRoom, true).catch((error) => {
+      logger.error(
+        { userId: user.id, sessionRoom, error },
+        'Failed to emit session presence after join'
+      )
+    })
   }
 
   async leaveSession(socket: Socket, user: UserContactInfo, sessionId: Uuid) {
@@ -67,7 +80,12 @@ class SocketService {
     await socket.leave(sessionRoom)
     delete socket.data.sessionId
 
-    await this.emitSessionPresence(user.id, sessionRoom, false)
+    this.emitSessionPresence(user.id, sessionRoom, false).catch((error) => {
+      logger.error(
+        { userId: user.id, sessionRoom, error },
+        'Failed to emit session presence after leave'
+      )
+    })
   }
 
   async emitSessionPresence(
@@ -246,8 +264,7 @@ class SocketService {
     roomName: string
   ): Promise<RemoteSocket<any, any>[]> {
     try {
-      const sockets = await backOff(() => this.io.in(roomName).fetchSockets())
-      return sockets
+      return await this.io.in(roomName).timeout(2000).fetchSockets()
     } catch (error) {
       logger.error(
         `Failed to fetch sockets. ${JSON.stringify({ error, roomName })}`
