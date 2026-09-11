@@ -1484,6 +1484,7 @@ export interface IGetSessionUsersResult {
   firstname: string;
   /** pii: First name */
   firstName: string;
+  gradeLevel: string | null;
   /** not_pii: Primary key */
   id: string;
   pastSessions: stringArray | null;
@@ -1497,7 +1498,7 @@ export interface IGetSessionUsersQuery {
   result: IGetSessionUsersResult;
 }
 
-const getSessionUsersIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":1025,"b":1035}]}],"statement":"SELECT\n    users.created_at,\n    users.id,\n    users.first_name AS firstname,\n    users.first_name,\n    past_sessions_as_student.session_ids AS past_sessions_as_student,\n    past_sessions_as_volunteer.session_ids AS past_sessions_as_volunteer,\n    past_sessions_as_student.session_ids || past_sessions_as_volunteer.session_ids AS past_sessions -- deprecated in favor of the above 2 values\nFROM\n    users\n    LEFT JOIN sessions ON sessions.student_id = users.id\n        OR sessions.volunteer_id = users.id\n    LEFT JOIN LATERAL (\n        SELECT\n            array_agg(sessions.id ORDER BY sessions.created_at) AS session_ids\n        FROM\n            sessions\n        WHERE\n            sessions.volunteer_id = users.id) AS past_sessions_as_volunteer ON TRUE\n    LEFT JOIN LATERAL (\n        SELECT\n            array_agg(sessions.id ORDER BY sessions.created_at) AS session_ids\n        FROM\n            sessions\n        WHERE\n            sessions.student_id = users.id) AS past_sessions_as_student ON TRUE\nWHERE\n    sessions.id = :sessionId!\nGROUP BY\n    users.id,\n    past_sessions_as_student.session_ids,\n    past_sessions_as_volunteer.session_ids"};
+const getSessionUsersIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":1242,"b":1252}]}],"statement":"SELECT\n    users.created_at,\n    users.id,\n    users.first_name AS firstname,\n    users.first_name,\n    past_sessions_as_student.session_ids AS past_sessions_as_student,\n    past_sessions_as_volunteer.session_ids AS past_sessions_as_volunteer,\n    past_sessions_as_student.session_ids || past_sessions_as_volunteer.session_ids AS past_sessions, -- deprecated in favor of the above 2 values\n    (\n        SELECT\n            cgl.current_grade_name FROM current_grade_levels cgl\n            JOIN student_profiles sp ON sp.user_id = cgl.user_id\n        WHERE\n            cgl.user_id = users.id) AS grade_level\nFROM\n    users\n    LEFT JOIN sessions ON sessions.student_id = users.id\n        OR sessions.volunteer_id = users.id\n    LEFT JOIN LATERAL (\n        SELECT\n            array_agg(sessions.id ORDER BY sessions.created_at) AS session_ids\n        FROM\n            sessions\n        WHERE\n            sessions.volunteer_id = users.id) AS past_sessions_as_volunteer ON TRUE\n    LEFT JOIN LATERAL (\n        SELECT\n            array_agg(sessions.id ORDER BY sessions.created_at) AS session_ids\n        FROM\n            sessions\n        WHERE\n            sessions.student_id = users.id) AS past_sessions_as_student ON TRUE\nWHERE\n    sessions.id = :sessionId!\nGROUP BY\n    users.id,\n    past_sessions_as_student.session_ids,\n    past_sessions_as_volunteer.session_ids"};
 
 /**
  * Query generated from SQL:
@@ -1509,7 +1510,13 @@ const getSessionUsersIR: any = {"usedParamSet":{"sessionId":true},"params":[{"na
  *     users.first_name,
  *     past_sessions_as_student.session_ids AS past_sessions_as_student,
  *     past_sessions_as_volunteer.session_ids AS past_sessions_as_volunteer,
- *     past_sessions_as_student.session_ids || past_sessions_as_volunteer.session_ids AS past_sessions -- deprecated in favor of the above 2 values
+ *     past_sessions_as_student.session_ids || past_sessions_as_volunteer.session_ids AS past_sessions, -- deprecated in favor of the above 2 values
+ *     (
+ *         SELECT
+ *             cgl.current_grade_name FROM current_grade_levels cgl
+ *             JOIN student_profiles sp ON sp.user_id = cgl.user_id
+ *         WHERE
+ *             cgl.user_id = users.id) AS grade_level
  * FROM
  *     users
  *     LEFT JOIN sessions ON sessions.student_id = users.id

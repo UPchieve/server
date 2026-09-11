@@ -615,7 +615,13 @@ SELECT
     users.first_name,
     past_sessions_as_student.session_ids AS past_sessions_as_student,
     past_sessions_as_volunteer.session_ids AS past_sessions_as_volunteer,
-    past_sessions_as_student.session_ids || past_sessions_as_volunteer.session_ids AS past_sessions -- deprecated in favor of the above 2 values
+    past_sessions_as_student.session_ids || past_sessions_as_volunteer.session_ids AS past_sessions, -- deprecated in favor of the above 2 values
+    (
+        SELECT
+            cgl.current_grade_name FROM current_grade_levels cgl
+            JOIN student_profiles sp ON sp.user_id = cgl.user_id
+        WHERE
+            cgl.user_id = users.id) AS grade_level
 FROM
     users
     LEFT JOIN sessions ON sessions.student_id = users.id
