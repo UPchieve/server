@@ -12,11 +12,12 @@ import { decrypt, encrypt } from '../utils/encryption'
 
 export class AlreadyEnrolledTotp extends CaughtError {
   readonly httpStatus = 422
-  readonly clientMessage = 'TOTP is already enrolled for this account'
+  readonly defaultClientMessage = 'TOTP is already enrolled for this account'
 }
 export class TotpEnrollError extends CaughtError {
   readonly httpStatus = 500
-  readonly clientMessage = 'Failed to enroll TOTP. Please try again later.'
+  readonly defaultClientMessage =
+    'Failed to enroll TOTP. Please try again later.'
 }
 
 // Recommended TOTP key length from RFC.
@@ -32,8 +33,9 @@ export async function generateTotpSecret(
   try {
     const existingTotp = await TotpRepo.getSecretForUser(user.id)
     if (existingTotp?.verified) {
-      throw new AlreadyEnrolledTotp('TOTP already enrolled', {
-        userId: user.id,
+      throw new AlreadyEnrolledTotp({
+        message: 'TOTP already enrolled',
+        context: { userId: user.id },
       })
     }
 
@@ -50,7 +52,11 @@ export async function generateTotpSecret(
     if (err instanceof CustomError) {
       throw err
     }
-    throw new TotpEnrollError('TOTP enroll failed', { userId: user.id }, err)
+    throw new TotpEnrollError({
+      message: 'TOTP enroll failed',
+      context: { userId: user.id },
+      cause: err,
+    })
   }
 }
 

@@ -186,7 +186,7 @@ export type NTHSApplicationEligibility = {
 // they are shadow banned.
 export class NTHSApplicationNotEligibleError extends CaughtError {
   readonly httpStatus = 403
-  readonly clientMessage =
+  readonly defaultClientMessage =
     'You are not currently eligible to apply to start an NTHS chapter'
 }
 
@@ -303,10 +303,10 @@ export async function submitCandidateApplication({
             : 'You have already applied to start an NTHS chapter'
         )
       }
-      throw new NTHSApplicationNotEligibleError(
-        'Ineligible NTHS chapter application',
-        { userId, reasons }
-      )
+      throw new NTHSApplicationNotEligibleError({
+        message: 'Ineligible NTHS chapter application',
+        context: { userId, reasons },
+      })
     }
 
     // asUuid checks the shape only, so an id that is well formed but not a real

@@ -30,7 +30,6 @@ import {
 import { createSessionAction } from '../../models/UserAction/queries'
 import { updateVolunteerSubjectPresence } from '../../services/VolunteerService'
 import { asJoinSessionData } from '../../utils/session-utils'
-import { SessionJoinError } from '../../models/Errors'
 import * as PresenceService from '../../services/PresenceService'
 import { observeWebTransaction } from '../../utils/newRelicUtil'
 import { extractSocketIp } from '../../utils/extract-socket-ip'

@@ -174,7 +174,9 @@ describe('SessionService', () => {
 
         await expect(() =>
           ensureCanJoinSession(joiningUser, session.id)
-        ).rejects.toThrow('Cannot join a session with a complete-banned user')
+        ).rejects.toThrow(
+          'Attempting to join session with complete-banned user'
+        )
       })
 
       it('Throws an error if the volunteer joining the session is complete-banned', async () => {
@@ -197,7 +199,9 @@ describe('SessionService', () => {
 
         await expect(() =>
           ensureCanJoinSession(joiningUser, session.id)
-        ).rejects.toThrow('Cannot join a session with a complete-banned user')
+        ).rejects.toThrow(
+          'Attempting to join session with complete-banned user'
+        )
       })
     })
 
@@ -222,7 +226,7 @@ describe('SessionService', () => {
 
         await expect(() =>
           ensureCanJoinSession(joiningUser, session.id)
-        ).rejects.toThrow('Shadow-banned volunteers may not join sessions')
+        ).rejects.toThrow('Shadow-banned volunteer attempting to join session')
       })
 
       it('Throws an error if the student is shadow-banned and the volunteer is NOT an admin', async () => {
@@ -245,7 +249,9 @@ describe('SessionService', () => {
 
         await expect(() =>
           ensureCanJoinSession(joiningUser, session.id)
-        ).rejects.toThrow("Cannot join shadow-banned student's session")
+        ).rejects.toThrow(
+          'Volunteer attempting to join session of shadow-banned student'
+        )
       })
 
       it('Allows an admin volunteer to join even if the student is shadow-banned', async () => {
@@ -258,6 +264,7 @@ describe('SessionService', () => {
           session as CurrentSession
         )
         const joiningUser = buildUserContactInfo({
+          approved: true,
           banType: null,
           roleContext: new RoleContext(['volunteer', 'admin'], 'volunteer'),
         })

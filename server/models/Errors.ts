@@ -2,22 +2,32 @@ import { CustomError } from 'ts-custom-error'
 
 export abstract class CaughtError extends CustomError {
   abstract readonly httpStatus: number
-  abstract readonly clientMessage: string
+  abstract readonly defaultClientMessage: string
+  readonly clientMessage?: string
+  readonly clientTitle?: string
   readonly context: Record<string, unknown>
   readonly cause?: unknown
-  constructor(
-    message: string,
-    context: Record<string, unknown> = {},
-    error?: unknown
-  ) {
+  constructor({
+    message,
+    clientMessage,
+    clientTitle,
+    context = {},
+    cause,
+  }: {
+    message: string
+    clientMessage?: string
+    clientTitle?: string
+    context?: Record<string, unknown>
+    cause?: unknown
+  }) {
     super(message)
+    this.clientMessage = clientMessage
+    this.clientTitle = clientTitle
     this.context = context
-    this.cause = error
+    this.cause = cause
   }
 }
 
-export const DEFAULT_ERROR_MESSAGE =
-  'Something went wrong. Please try again, or contact us at support@upchieve.org for help'
 export class UserNotFoundError extends CustomError {
   constructor(attemptedParam: string, attemptedValue: string) {
     super(
@@ -121,7 +131,11 @@ export class TwilioError extends CustomError {
   }
 }
 
-export class SessionJoinError extends CustomError {}
+export class SessionJoinError extends CaughtError {
+  readonly httpStatus = 422
+  readonly defaultClientMessage =
+    'Something went wrong. Please try joining again or reaching out to support.'
+}
 
 export class HttpError extends CustomError {
   httpStatus: number
@@ -188,5 +202,5 @@ export class PhotoDnaMatchError extends CustomError {
 
 export class UnauthorizedFeature extends CaughtError {
   readonly httpStatus = 403
-  readonly clientMessage = 'You are not authorized to use this feature'
+  readonly defaultClientMessage = 'You are not authorized to use this feature'
 }

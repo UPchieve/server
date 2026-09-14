@@ -14,12 +14,10 @@ import {
   NTHSChapterSchoolFixedError,
   NTHSApplicationExistsError,
   NotAHighSchoolerNTHSJoinError,
-  SessionJoinError,
   CaughtError,
 } from '../models/Errors'
 import { RegistrationError, ResetError } from '../utils/auth-utils'
 import config from '../config'
-import { StartSessionError } from '../utils/session-utils'
 import logger, { logError } from '../logger'
 import { ReportNoDataFoundError } from '../services/ReportService'
 import { ExistingUserError } from '../services/EligibilityService'
@@ -33,7 +31,12 @@ export function resError(
     err.cause
       ? logger.error({ err: err.cause, ...err.context }, err.message)
       : logger.warn(err.context, err.message)
-    res.status(status ?? err.httpStatus).json({ err: err.clientMessage })
+    const clientMessage = err.clientMessage ?? err.defaultClientMessage
+    res.status(status ?? err.httpStatus).json({
+      err: clientMessage,
+      clientMessage,
+      clientTitle: err.clientTitle,
+    })
     return
   }
 
@@ -53,7 +56,6 @@ export function resError(
     // business logic errors
     else if (err instanceof RegistrationError) status = 422
     else if (err instanceof ResetError) status = 422
-    else if (err instanceof StartSessionError) status = 422
     else if (err instanceof ReportNoDataFoundError) status = 422
     else if (err instanceof ExistingUserError) {
       status = 422
@@ -71,7 +73,6 @@ export function resError(
     else if (err instanceof NTHSApplicationExistsError) status = 409
     // response timeout
     else if (err.message === 'Response timeout') status = 408
-    else if (err instanceof SessionJoinError) status = 422
     // unknown error
     else status = 500
 

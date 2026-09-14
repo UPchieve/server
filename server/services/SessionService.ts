@@ -592,29 +592,36 @@ export async function startSession(
 
   const subjectAndTopic = await getSubjectAndTopic(subject, topic)
   if (!subjectAndTopic) {
-    throw new sessionUtils.StartSessionError(
-      `Unable to start new session for the topic ${topic} and subject ${subject}.`
-    )
+    throw new sessionUtils.StartSessionError({
+      message: `Invalid topic and subject combination`,
+      clientMessage: 'Whoops, that subject and topic combination is wrong!',
+      context: { userId: user.id, topic, subject },
+    })
   }
 
   if (user.roleContext.isActiveRole('volunteer')) {
-    throw new sessionUtils.StartSessionError(
-      'Volunteers cannot create new sessions.'
-    )
+    throw new sessionUtils.StartSessionError({
+      message: 'Volunteer attempting to create session',
+      clientMessage: 'A coach cannot create a new session.',
+      context: { userId: user.id },
+    })
   }
 
   const isUserBanned = user.banType === USER_BAN_TYPES.COMPLETE
   if (isUserBanned) {
-    throw new sessionUtils.StartSessionError(
-      'Banned students cannot request a new session.'
-    )
+    throw new sessionUtils.StartSessionError({
+      message: 'Complete-banned student attempting to create session',
+      context: { userId: user.id },
+    })
   }
 
   const currentSession = await SessionRepo.getCurrentSessionByUserId(user.id)
   if (currentSession) {
-    throw new sessionUtils.StartSessionError(
-      'Student already has an active session.'
-    )
+    throw new sessionUtils.StartSessionError({
+      message: 'Student with active session attempting to create session',
+      clientMessage: 'You already have an active session!',
+      context: { userId: user.id, sessionId: currentSession.id },
+    })
   }
 
   if (requestedVolunteerId) {
@@ -623,16 +630,20 @@ export async function startSession(
       { banned: false, deactivated: false, testUser: false }
     )
     if (!volunteer) {
-      throw new sessionUtils.StartSessionError(
-        'Requested volunteer is not available right now.'
-      )
+      throw new sessionUtils.StartSessionError({
+        message: 'Requested volunteer unavailable',
+        clientMessage: 'Your requested coach is not available right now.',
+        context: { userId: user.id, requestedVolunteerId },
+      })
     }
     const activeVolunteerIds =
       await SessionRepo.getActiveSessionsWithVolunteers()
     if (activeVolunteerIds.includes(requestedVolunteerId)) {
-      throw new sessionUtils.StartSessionError(
-        'Requested volunteer is currently in another session.'
-      )
+      throw new sessionUtils.StartSessionError({
+        message: 'Requested volunteer in another session',
+        clientMessage: 'Your requested coach is currently in another session.',
+        context: { userId: user.id, requestedVolunteerId },
+      })
     }
   }
 
@@ -845,10 +856,24 @@ export async function joinSession(
     try {
       await SessionRepo.updateSessionVolunteerById(session.id, user.id)
       session.volunteerId = user.id
+    } catch (err) {
+      throw new SessionJoinError({
+        message: 'A volunteer has already joined the session',
+        clientMessage: VOLUNTEER_ALREADY_JOINED_MESSAGE,
+        clientTitle: VOLUNTEER_ALREADY_JOINED_TITLE,
+        context: { sessionId: session.id, joiningUserId: user.id },
+        cause: err,
+      })
+    }
+
+    try {
       await NotifyVolunteerService.clearExclusiveRequest(session.id)
       await SocketService.getInstance().emitSessionChange(session.id)
     } catch (err) {
-      throw new Error('A volunteer has already joined the session.')
+      logger.error(err, `Failed to emit session change after volunteer join`, {
+        userId: user.id,
+        sessionId: session.id,
+      })
     }
 
     try {
@@ -921,6 +946,10 @@ export async function joinSession(
   return session
 }
 
+const VOLUNTEER_ALREADY_JOINED_MESSAGE =
+  'Another volunteer has already joined this session. Thanks for trying, we really appreciate it!'
+const VOLUNTEER_ALREADY_JOINED_TITLE = 'Session Fulfilled'
+
 const FAILED_JOIN_REASONS = {
   SESSION_HAS_ALREADY_ENDED: 'SESSION_HAS_ALREADY_ENDED',
   STUDENT_CAN_NOT_BE_VOLUNTEER: 'STUDENT_CAN_NOT_BE_VOLUNTEER',
@@ -928,6 +957,7 @@ const FAILED_JOIN_REASONS = {
   CAN_NOT_BE_YOUR_OWN_VOLUNTEER: 'CAN_NOT_BE_YOUR_OWN_VOLUNTEER',
 } as const
 
+// TODO(alex.lindsay): Audit all these session join failure reasons and failure state.
 export async function ensureCanJoinSession(
   user: UserContactInfo,
   sessionId: Ulid
@@ -945,17 +975,10 @@ export async function ensureCanJoinSession(
 
   // Sessions containing complete-banned users may not be joined by anyone
   if (banStatuses.some((status) => status.banType === 'complete')) {
-    logger.warn(
-      {
-        banStatuses,
-        sessionId,
-        joiningUserId: user.id,
-      },
-      'Attempted to join a session with a complete-banned user'
-    )
-    throw new SessionJoinError(
-      'Cannot join a session with a complete-banned user.'
-    )
+    throw new SessionJoinError({
+      message: 'Attempting to join session with complete-banned user',
+      context: { banStatuses, sessionId, joiningUserId: user.id },
+    })
   }
 
   const isShadowBanned = (id?: Ulid): boolean => {
@@ -968,16 +991,21 @@ export async function ensureCanJoinSession(
   }
 
   const hasShadowBannedVolunteer = isVolunteer && isShadowBanned(user.id)
-  // Only allow admins to join shadow-banned students' sessions.
   if (hasShadowBannedVolunteer) {
-    throw new SessionJoinError('Shadow-banned volunteers may not join sessions')
+    throw new SessionJoinError({
+      message: 'Shadow-banned volunteer attempting to join session',
+      context: { sessionId, joiningUserId: user.id },
+    })
   }
 
   // Allow shadow-banned students to create sessions.
   // Only admins may join these sessions.
   const hasShadowBannedStudent = isShadowBanned(session.studentId)
   if (hasShadowBannedStudent && isVolunteer && !user.roleContext.isAdmin()) {
-    throw new SessionJoinError("Cannot join shadow-banned student's session")
+    throw new SessionJoinError({
+      message: 'Volunteer attempting to join session of shadow-banned student',
+      context: { sessionId, joiningUserId: user.id },
+    })
   }
 
   if (session.endedAt) {
@@ -987,9 +1015,14 @@ export async function ensureCanJoinSession(
       FAILED_JOIN_REASONS.SESSION_HAS_ALREADY_ENDED
     )
 
-    throw new SessionJoinError(
-      `User: ${user.id} tried to join an already ended session: ${sessionId}`
-    )
+    throw new SessionJoinError({
+      message: 'Attempting to join ended session',
+      clientMessage: isVolunteer
+        ? 'The student has already ended this session. Thanks for trying, we really appreciate it!'
+        : 'This session has ended. You can request a new session on the dashboard!',
+      clientTitle: 'Session Ended',
+      context: { sessionId, joiningUserId: user.id },
+    })
   }
 
   if (isStudent && session.studentId !== user.id) {
@@ -998,9 +1031,20 @@ export async function ensureCanJoinSession(
       user.id,
       FAILED_JOIN_REASONS.STUDENT_CAN_NOT_BE_VOLUNTEER
     )
-    throw new SessionJoinError(
-      `A student cannot join another student's session.`
-    )
+    throw new SessionJoinError({
+      message: "Student attempting to join session another student's session",
+      clientMessage: `Whoops! You can't join another student's session.`,
+      context: { sessionId, joiningUserId: user.id },
+    })
+  }
+
+  if (isVolunteer && !user.approved) {
+    throw new SessionJoinError({
+      message: 'Un-approved volunteer attempting to join session',
+      clientMessage:
+        'Your account must be approved before you can join a session.',
+      context: { sessionId, joiningUserId: user.id },
+    })
   }
 
   if (isVolunteer && session.volunteerId && session.volunteerId !== user.id) {
@@ -1009,7 +1053,12 @@ export async function ensureCanJoinSession(
       user.id,
       FAILED_JOIN_REASONS.SESSION_ALREADY_HAS_A_VOLUNTEER
     )
-    throw new SessionJoinError('A volunteer has already joined the session.')
+    throw new SessionJoinError({
+      message: 'A volunteer has already joined the session',
+      clientMessage: VOLUNTEER_ALREADY_JOINED_MESSAGE,
+      clientTitle: VOLUNTEER_ALREADY_JOINED_TITLE,
+      context: { sessionId, joiningUserId: user.id },
+    })
   }
 
   if (isVolunteer && session.studentId === user.id) {
@@ -1018,9 +1067,11 @@ export async function ensureCanJoinSession(
       user.id,
       FAILED_JOIN_REASONS.CAN_NOT_BE_YOUR_OWN_VOLUNTEER
     )
-    throw new SessionJoinError(
-      'You may not join your own session as both student and coach.'
-    )
+    throw new SessionJoinError({
+      message: 'User attempting to join own session as both student and coach',
+      clientMessage: 'You cannot join your own session!',
+      context: { sessionId, joiningUserId: user.id },
+    })
   }
 
   return session
@@ -1519,10 +1570,11 @@ export async function saveSessionImage({
   { isClean: true; imageUrl: string } | { isClean: false; failures: string[] }
 > {
   if (await FeatureFlagsService.blockSessionImageUpload(userId)) {
-    throw new UnauthorizedFeature(
-      'User attempting to upload image while session image upload is blocked',
-      { userId, sessionId, isVolunteer }
-    )
+    throw new UnauthorizedFeature({
+      message:
+        'User attempting to upload image while session image upload is blocked',
+      context: { userId, sessionId, isVolunteer },
+    })
   }
 
   const session = await SessionRepo.getSessionById(sessionId)

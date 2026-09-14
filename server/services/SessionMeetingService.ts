@@ -124,17 +124,18 @@ export async function getOrCreateSessionMeeting(
     FeatureFlagService.blockAudioCall(userId),
   ])
   if (isScreenshareBlocked) {
-    throw new UnauthorizedFeature(
-      'User attempting to share screen while screenshare is blocked',
-      { userId, sessionId }
-    )
+    throw new UnauthorizedFeature({
+      message: 'User attempting to share screen while screenshare is blocked',
+      context: { userId, sessionId },
+    })
   }
   if (isAudioCallBlocked) {
-    throw new UnauthorizedFeature(
-      'User attempting to join audio call while audio call is blocked',
-      { userId, sessionId }
-    )
+    throw new UnauthorizedFeature({
+      message: 'User attempting to share screen while screenshare is blocked',
+      context: { userId, sessionId },
+    })
   }
+
   // Get existing meeting if it exists
   const existingMeeting =
     await SessionMeetingsRepo.getSessionMeetingBySessionId(sessionId)

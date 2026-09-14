@@ -230,13 +230,13 @@ describe('POST /api/nths-application', () => {
 
   test('gives HTTP 403 without disclosing why an applicant is ineligible', async () => {
     mockedService.submitCandidateApplication.mockRejectedValueOnce(
-      new NTHSApplicationNotEligibleError(
-        'Ineligible NTHS chapter application',
-        {
+      new NTHSApplicationNotEligibleError({
+        message: 'Ineligible NTHS chapter application',
+        context: {
           userId: mockUser.id,
           reasons: ['banned'],
-        }
-      )
+        },
+      })
     )
 
     const response = await sendPost(authedAgent, {

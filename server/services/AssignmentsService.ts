@@ -39,7 +39,8 @@ import { getPhotoDnaMatchCheckFlag } from './FeatureFlagService'
 
 export class UnauthorizedActionError extends CaughtError {
   readonly httpStatus = 403
-  readonly clientMessage = 'You do not have permission to perform this action.'
+  readonly defaultClientMessage =
+    'You do not have permission to perform this action.'
 }
 
 export type UpsertAssignmentPayload = {
@@ -286,13 +287,13 @@ export async function ensureAuthorizedToUpsertAssignment(
 ): Promise<void> {
   const teacherClass = await TeacherRepo.getTeacherClassById(classId)
   if (teacherClass?.userId !== userId) {
-    throw new UnauthorizedActionError(
-      `Teacher unable to edit assignment in class that is not theirs`,
-      {
+    throw new UnauthorizedActionError({
+      message: `Teacher unable to edit assignment in class that is not theirs`,
+      context: {
         userId,
         classId,
-      }
-    )
+      },
+    })
   }
 
   if (assignmentId) {
@@ -302,13 +303,13 @@ export async function ensureAuthorizedToUpsertAssignment(
       existingAssignment?.teacherId !== userId ||
       existingAssignment.classId !== classId
     ) {
-      throw new UnauthorizedActionError(
-        'Teacher unable to edit assignment that is not theirs',
-        {
+      throw new UnauthorizedActionError({
+        message: 'Teacher unable to edit assignment that is not theirs',
+        context: {
           userId,
           assignmentId,
-        }
-      )
+        },
+      })
     }
   }
 }

@@ -4,6 +4,7 @@ import { Socket } from 'socket.io'
 import config from '../config'
 import { Ulid } from '../models/pgUtils'
 import { CustomError } from 'ts-custom-error'
+import { CaughtError } from '../models/Errors'
 import { TOOL_TYPES } from '../constants'
 import { DAYS, HOURS } from '../constants'
 import { getMessagesForFrontend, GetSessionByIdResult } from '../models/Session'
@@ -18,7 +19,11 @@ import {
 } from './type-utils'
 import type { MessageForFrontend } from '../types/session'
 
-export class StartSessionError extends CustomError {}
+export class StartSessionError extends CaughtError {
+  readonly httpStatus = 422
+  readonly defaultClientMessage =
+    'Something went wrong. Please try requesting a session again.'
+}
 export class EndSessionError extends CustomError {}
 export class ReportSessionError extends CustomError {}
 
