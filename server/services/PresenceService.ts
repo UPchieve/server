@@ -1,4 +1,8 @@
-import { Redlock } from '@sesamecare-oss/redlock'
+import {
+  Redlock,
+  ExecutionError,
+  ResourceLockedError,
+} from '@sesamecare-oss/redlock'
 import { ACCOUNT_USER_ACTIONS } from '../constants'
 import logger from '../logger'
 import { Ulid } from '../models/pgUtils'
@@ -187,19 +191,60 @@ async function expiredKeyListener(channel: string, expiredKey: string) {
         }
       })
     } catch (error) {
-      if (error instanceof Error && error.name === 'LockError') {
-        logger.info(
-          { expiredKey },
-          'Presence expiration already being processed by another server'
-        )
-      } else {
-        logger.error(
-          { error, expiredKey, userId },
-          'Error processing presence expiration.'
-        )
-      }
+      await logPresenceExpirationError(error, { expiredKey, userId })
     }
   }
+}
+
+async function logPresenceExpirationError(
+  error: unknown,
+  context: { expiredKey: string; userId: string }
+) {
+  if (error instanceof ResourceLockedError) {
+    logger.info(
+      context,
+      'Presence expiration already being processed by another server'
+    )
+    return
+  }
+
+  if (error instanceof ExecutionError) {
+    const attempts = await Promise.all(error.attempts)
+    const causes = attempts.flatMap((attempt) => [
+      ...attempt.votesAgainst.values(),
+    ])
+
+    const isContention =
+      causes.length > 0 &&
+      causes.every((cause) => cause instanceof ResourceLockedError)
+
+    if (isContention) {
+      logger.info(
+        context,
+        'Presence expiration already being processed by another server'
+      )
+      return
+    }
+
+    logger.error(
+      {
+        ...context,
+        err: error,
+        causes: causes.map((cause) => ({
+          name: cause.name,
+          message: cause.message,
+          stack: cause.stack,
+        })),
+      },
+      'Redlock failure details'
+    )
+    return
+  }
+
+  logger.error(
+    { err: error, ...context },
+    'Unknown error while processing presence expiration.'
+  )
 }
 
 /*
