@@ -1,4 +1,4 @@
-\restrict aaaTYfLoq7nHnkkxqxbIllRZ0XUilZs7StgZJ2lY4hlcCYg4nhkFhbf83Hfp4dz
+\restrict M3uupoNEQMcTSPqEpMBD2u634j4KeMmjjM9A2ESOdwNULXDbSCOlzr8szBbqBUd
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
 -- Dumped by pg_dump version 15.18 (Ubuntu 15.18-1.pgdg22.04+1)
@@ -2207,6 +2207,13 @@ COMMENT ON COLUMN upchieve.moderation_settings.threshold IS 'not_pii: Confidence
 --
 
 COMMENT ON COLUMN upchieve.moderation_settings.penalty_weight IS 'not_pii: Penalty weight assigned to this moderation rule';
+
+
+--
+-- Name: COLUMN moderation_settings.id; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.moderation_settings.id IS 'not_pii: Primary key';
 
 
 --
@@ -5617,6 +5624,13 @@ COMMENT ON COLUMN upchieve.schools_sponsor_orgs_instances.updated_at IS 'not_pii
 
 
 --
+-- Name: COLUMN schools_sponsor_orgs_instances.id; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.schools_sponsor_orgs_instances.id IS 'not_pii: Primary key';
+
+
+--
 -- Name: session_audio; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -5852,6 +5866,13 @@ COMMENT ON COLUMN upchieve.session_failed_joins.updated_at IS 'not_pii';
 --
 
 COMMENT ON COLUMN upchieve.session_failed_joins.reason IS 'not_pii';
+
+
+--
+-- Name: COLUMN session_failed_joins.id; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.session_failed_joins.id IS 'not_pii: Primary key';
 
 
 --
@@ -6956,6 +6977,13 @@ COMMENT ON COLUMN upchieve.sponsor_orgs_volunteer_partner_orgs_instances.updated
 
 
 --
+-- Name: COLUMN sponsor_orgs_volunteer_partner_orgs_instances.id; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.sponsor_orgs_volunteer_partner_orgs_instances.id IS 'not_pii: Primary key';
+
+
+--
 -- Name: student_classes; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -7303,6 +7331,13 @@ COMMENT ON COLUMN upchieve.student_partner_orgs_sponsor_orgs_instances.updated_a
 
 
 --
+-- Name: COLUMN student_partner_orgs_sponsor_orgs_instances.id; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.student_partner_orgs_sponsor_orgs_instances.id IS 'not_pii: Primary key';
+
+
+--
 -- Name: student_partner_orgs_upchieve_instances; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -7411,6 +7446,13 @@ COMMENT ON COLUMN upchieve.student_partner_orgs_volunteer_partner_orgs_instances
 --
 
 COMMENT ON COLUMN upchieve.student_partner_orgs_volunteer_partner_orgs_instances.updated_at IS 'not_pii';
+
+
+--
+-- Name: COLUMN student_partner_orgs_volunteer_partner_orgs_instances.id; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.student_partner_orgs_volunteer_partner_orgs_instances.id IS 'not_pii: Primary key';
 
 
 --
@@ -8134,6 +8176,13 @@ COMMENT ON COLUMN upchieve.surveys_context.created_at IS 'not_pii';
 --
 
 COMMENT ON COLUMN upchieve.surveys_context.updated_at IS 'not_pii';
+
+
+--
+-- Name: COLUMN surveys_context.id; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.surveys_context.id IS 'not_pii: Primary key';
 
 
 --
@@ -10208,6 +10257,13 @@ COMMENT ON COLUMN upchieve.users_student_partner_orgs_instances.student_partner_
 
 
 --
+-- Name: COLUMN users_student_partner_orgs_instances.id; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.users_student_partner_orgs_instances.id IS 'not_pii: Primary key';
+
+
+--
 -- Name: users_surveys; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -10348,6 +10404,13 @@ COMMENT ON COLUMN upchieve.users_surveys_submissions.created_at IS 'not_pii';
 --
 
 COMMENT ON COLUMN upchieve.users_surveys_submissions.updated_at IS 'not_pii';
+
+
+--
+-- Name: COLUMN users_surveys_submissions.id; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.users_surveys_submissions.id IS 'not_pii: Primary key';
 
 
 --
@@ -10514,6 +10577,13 @@ COMMENT ON COLUMN upchieve.users_volunteer_partner_orgs_instances.created_at IS 
 --
 
 COMMENT ON COLUMN upchieve.users_volunteer_partner_orgs_instances.updated_at IS 'not_pii';
+
+
+--
+-- Name: COLUMN users_volunteer_partner_orgs_instances.id; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.users_volunteer_partner_orgs_instances.id IS 'not_pii: Primary key';
 
 
 --
@@ -15320,7 +15390,7 @@ ALTER TABLE ONLY upchieve.volunteer_references
 -- PostgreSQL database dump complete
 --
 
-\unrestrict aaaTYfLoq7nHnkkxqxbIllRZ0XUilZs7StgZJ2lY4hlcCYg4nhkFhbf83Hfp4dz
+\unrestrict M3uupoNEQMcTSPqEpMBD2u634j4KeMmjjM9A2ESOdwNULXDbSCOlzr8szBbqBUd
 
 
 --
@@ -15623,4 +15693,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260911141713'),
     ('20260917202149'),
     ('20260917202150'),
-    ('20260918082750');
+    ('20260918082750'),
+    ('20260918161310');
