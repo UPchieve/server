@@ -10,7 +10,6 @@ import * as SubjectsService from '../../services/SubjectsService'
 import * as TeacherService from '../../services/TeacherService'
 import * as UserCreationService from '../../services/UserCreationService'
 import { TeacherClass } from '../../models/Teacher'
-import { TransactionClient } from '../../db'
 import { CreateUserResult } from '../../models/User'
 
 jest.mock('../../services/FederatedCredentialService')
@@ -23,8 +22,6 @@ jest.mock('../../services/TeacherService')
 const mockedTeacherService = mocked(TeacherService)
 jest.mock('../../services/UserCreationService')
 const mockedUserCreationService = mocked(UserCreationService)
-
-const TC = {} as TransactionClient
 
 describe('rosterTeacherClasses', () => {
   beforeEach(() => {
@@ -320,6 +317,90 @@ describe('rosterTeacherClasses', () => {
     ).toHaveBeenCalledWith(teacherId, expect.anything())
   })
 
+  describe('when one Clever student cannot be created', () => {
+    const teacherId = 't-4'
+    const cleverStudents = [
+      {
+        id: 'cs-a',
+        email: 'a@up.org',
+        name: { first: 'Ann', last: 'Adams' },
+        roles: { student: { grade: 9 } },
+      },
+      {
+        id: 'cs-b',
+        email: 'b@up.org',
+        name: { first: 'Bo', last: 'J.Bell' },
+        roles: { student: { grade: 9 } },
+      },
+      {
+        id: 'cs-c',
+        email: 'c@up.org',
+        name: { first: 'Cy', last: 'Cole' },
+        roles: { student: { grade: 9 } },
+      },
+    ] as unknown as CleverAPIService.TCleverStudentData[]
+
+    beforeEach(() => {
+      mockedTeacherService.getTeacherById.mockResolvedValue({
+        userId: teacherId,
+        schoolId: 's-4',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      mockedStudentService.getStudentByCleverId.mockResolvedValue(undefined)
+      mockedStudentService.getStudentByEmail.mockResolvedValue(undefined)
+      mockedTeacherService.getTeacherClasses.mockResolvedValue([])
+      mockedUserCreationService.registerStudent.mockImplementation(
+        async (data) => {
+          // Clever names like "J.Bell" fail name validation.
+          if (data.lastName?.includes('.'))
+            throw new Error('Names cannot contain a URL')
+          return {
+            id: `uc-${data.profileId}`,
+            isAdmin: false,
+            userType: 'student',
+            firstName: 'any',
+            proxyEmail: 'any',
+            email: 'any',
+          } as CreateUserResult
+        }
+      )
+    })
+
+    test('skips that student and rosters the rest', async () => {
+      const cleverClasses = [
+        {
+          id: 'cc-a',
+          name: 'CleverClassA',
+          subject: 'math',
+          students: ['cs-a', 'cs-b', 'cs-c'],
+        },
+      ]
+      mockedSubjectsService.getTopicIdFromName.mockResolvedValue(0)
+      // @ts-ignore
+      mockedTeacherService.createTeacherClass.mockResolvedValue({
+        id: 'newClassA',
+      })
+
+      await CleverRosterService.rosterTeacherClasses(
+        teacherId,
+        cleverClasses as unknown as CleverAPIService.TCleverSectionData[],
+        cleverStudents
+      )
+
+      expect(
+        mockedTeacherService.addStudentsToTeacherClassById
+      ).toHaveBeenCalledWith(
+        ['uc-cs-a', 'uc-cs-c'],
+        'newClassA',
+        expect.anything()
+      )
+      expect(
+        mockedTeacherService.updateLastSuccessfulCleverSync
+      ).toHaveBeenCalledWith(teacherId, expect.anything())
+    })
+  })
+
   describe('findOrCreateUpchieveStudent', () => {
     test('returns undefined if the student is not in a valid grade', async () => {
       const cleverStudent1 = {
@@ -332,8 +413,7 @@ describe('rosterTeacherClasses', () => {
 
       const ucStudent1 = await CleverRosterService.findOrCreateUpchieveStudent(
         cleverStudent1 as unknown as CleverAPIService.TCleverStudentData,
-        'school-id',
-        TC
+        'school-id'
       )
       expect(ucStudent1).toBe(undefined)
 
@@ -346,8 +426,7 @@ describe('rosterTeacherClasses', () => {
       }
       const ucStudent2 = await CleverRosterService.findOrCreateUpchieveStudent(
         cleverStudent2 as unknown as CleverAPIService.TCleverStudentData,
-        'school-id',
-        TC
+        'school-id'
       )
       expect(ucStudent2).toBe(undefined)
 
@@ -360,8 +439,7 @@ describe('rosterTeacherClasses', () => {
       }
       const ucStudent3 = await CleverRosterService.findOrCreateUpchieveStudent(
         cleverStudent3 as unknown as CleverAPIService.TCleverStudentData,
-        'school-id',
-        TC
+        'school-id'
       )
       expect(ucStudent3).toBe(undefined)
 
@@ -372,8 +450,7 @@ describe('rosterTeacherClasses', () => {
       }
       const ucStudent4 = await CleverRosterService.findOrCreateUpchieveStudent(
         cleverStudent4 as unknown as CleverAPIService.TCleverStudentData,
-        'school-id',
-        TC
+        'school-id'
       )
       expect(ucStudent4).toBe(undefined)
     })
@@ -393,14 +470,12 @@ describe('rosterTeacherClasses', () => {
 
       const ucStudent = await CleverRosterService.findOrCreateUpchieveStudent(
         cleverStudent as unknown as CleverAPIService.TCleverStudentData,
-        'school-id',
-        TC
+        'school-id'
       )
 
       expect(ucStudent?.id).toBe('uc-abc')
       expect(mockedStudentService.getStudentByCleverId).toHaveBeenCalledWith(
-        cleverStudent.id,
-        expect.anything()
+        cleverStudent.id
       )
     })
 
@@ -421,24 +496,20 @@ describe('rosterTeacherClasses', () => {
 
       const ucStudent = await CleverRosterService.findOrCreateUpchieveStudent(
         cleverStudent as unknown as CleverAPIService.TCleverStudentData,
-        'school-id',
-        TC
+        'school-id'
       )
 
       expect(ucStudent?.id).toBe('uc-123')
       expect(mockedStudentService.getStudentByCleverId).toHaveBeenCalledWith(
-        cleverStudent.id,
-        expect.anything()
+        cleverStudent.id
       )
       expect(mockedStudentService.getStudentByEmail).toHaveBeenCalledWith(
-        cleverStudent.email,
-        expect.anything()
+        cleverStudent.email
       )
       expect(mockedFedCredService.linkAccount).toHaveBeenCalledWith(
         cleverStudent.id,
         expect.any(String),
-        ucStudent?.id,
-        expect.anything()
+        ucStudent?.id
       )
     })
 
@@ -469,18 +540,15 @@ describe('rosterTeacherClasses', () => {
 
       const ucStudent = await CleverRosterService.findOrCreateUpchieveStudent(
         cleverStudent as unknown as CleverAPIService.TCleverStudentData,
-        'school-id',
-        TC
+        'school-id'
       )
 
       expect(ucStudent?.id).toBe('uc-zzz')
       expect(mockedStudentService.getStudentByCleverId).toHaveBeenCalledWith(
-        cleverStudent.id,
-        expect.anything()
+        cleverStudent.id
       )
       expect(mockedStudentService.getStudentByEmail).toHaveBeenCalledWith(
-        cleverStudent.email,
-        expect.anything()
+        cleverStudent.email
       )
       expect(mockedUserCreationService.registerStudent).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -490,8 +558,7 @@ describe('rosterTeacherClasses', () => {
           lastName: cleverStudent.name.last,
           profileId: cleverStudent.id,
           schoolId: 'school-id',
-        }),
-        expect.anything()
+        })
       )
     })
   })

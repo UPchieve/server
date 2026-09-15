@@ -143,7 +143,29 @@ type SSOHandlerOptions = {
   ) => Promise<void>
 }
 
-async function handleSSOStrategy(
+/** Roster the teacher's classes, logging any failure so it never refuses the sign-in. */
+async function rosterTeacher(
+  userId: Uuid,
+  profile: SSOProfile,
+  options: SSOHandlerOptions
+) {
+  if (!profile.teacher || !options.rosterTeacherFn) return
+  try {
+    await options.rosterTeacherFn(
+      userId,
+      profile.teacher.classes,
+      profile.teacher.students
+    )
+  } catch (err) {
+    logger.error(
+      { err, userId },
+      `Failed to roster teacher classes from ${options.providerName}.`
+    )
+  }
+}
+
+// Exported for testing.
+export async function handleSSOStrategy(
   req: Request,
   profile: SSOProfile,
   done: Function,
@@ -169,17 +191,9 @@ async function handleSSOStrategy(
         }
         // Always upsert the student if there is data.
         await UserCreationService.upsertStudent(data)
-      } else if (
-        options.isTeacher(profile.userType) &&
-        profile.teacher &&
-        options.rosterTeacherFn
-      ) {
+      } else if (options.isTeacher(profile.userType)) {
         // Always update the teacher's classes whenever they sign in.
-        await options.rosterTeacherFn(
-          existingFedCred.userId,
-          profile.teacher.classes,
-          profile.teacher.students
-        )
+        await rosterTeacher(existingFedCred.userId, profile, options)
       }
       return done(null, { id: existingFedCred.userId })
     }
@@ -222,16 +236,8 @@ async function handleSSOStrategy(
           userId: existingUser.id,
         }
         await UserCreationService.upsertStudent(data)
-      } else if (
-        options.isTeacher(profile.userType) &&
-        profile.teacher &&
-        options.rosterTeacherFn
-      ) {
-        await options.rosterTeacherFn(
-          existingUser.id,
-          profile.teacher.classes,
-          profile.teacher.students
-        )
+      } else if (options.isTeacher(profile.userType)) {
+        await rosterTeacher(existingUser.id, profile, options)
       }
       await FedCredService.linkAccount(
         profile.id,
@@ -257,13 +263,7 @@ async function handleSSOStrategy(
       return done(null, student)
     } else if (options.isTeacher(profile.userType)) {
       const teacher = await UserCreationService.registerTeacher(data)
-      if (profile.teacher && options.rosterTeacherFn) {
-        await options.rosterTeacherFn(
-          teacher.id,
-          profile.teacher.classes,
-          profile.teacher.students
-        )
-      }
+      await rosterTeacher(teacher.id, profile, options)
       return done(null, teacher)
     }
   } catch (err) {

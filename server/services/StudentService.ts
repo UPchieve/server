@@ -199,7 +199,7 @@ export async function addStudentsToTeacherClass(
 
 export async function getStudentByCleverId(
   cleverStudentId: Ulid,
-  tc: TransactionClient
+  tc?: TransactionClient
 ) {
   return StudentRepo.getStudentByCleverId(cleverStudentId, tc)
 }

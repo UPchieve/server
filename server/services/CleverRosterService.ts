@@ -1,4 +1,5 @@
 import { runInTransaction, TransactionClient } from '../db'
+import logger from '../logger'
 import { Ulid, Uuid } from '../models/pgUtils'
 import { TeacherClass, TeacherClassWithStudents } from '../models/Teacher'
 import * as SchoolRepo from '../models/School'
@@ -151,28 +152,18 @@ export async function rosterTeacherClasses(
   cleverClasses: CleverAPIService.TCleverSectionData[],
   cleverTeacherStudents: CleverAPIService.TCleverStudentData[]
 ) {
+  const teacher = await TeacherService.getTeacherById(teacherId)
+  if (!teacher) {
+    return
+  }
+
+  const cleverStudentIdToUcId = await resolveCleverStudents(
+    teacherId,
+    cleverTeacherStudents,
+    teacher.schoolId
+  )
+
   await runInTransaction(async (tc: TransactionClient) => {
-    const teacher = await TeacherService.getTeacherById(teacherId, tc)
-    if (!teacher) {
-      return
-    }
-
-    const cleverStudentIdToUcId = new Map<CleverId, UcId>(
-      (
-        await Promise.all(
-          cleverTeacherStudents.map(async (cleverStudent) => {
-            const ucStudent = await findOrCreateUpchieveStudent(
-              cleverStudent,
-              teacher.schoolId,
-              tc
-            )
-            if (!ucStudent) return
-            return [cleverStudent.id, ucStudent.id]
-          })
-        )
-      ).filter((s): s is [CleverId, UcId] => !!s)
-    )
-
     const cleverClassIdToUcClass = new Map<CleverId, UcCleverClass>(
       (await TeacherService.getTeacherClasses(teacherId, tc))
         .filter((ucClass): ucClass is UcCleverClass => !!ucClass.cleverId)
@@ -239,16 +230,43 @@ export async function rosterTeacherClasses(
     }
 
     // Archive any classes that are no longer in Clever.
-    await Promise.all(
-      classesToRemove.map(async (cleverId) => {
-        const ucClassId = cleverClassIdToUcClass.get(cleverId)?.id
-        if (!ucClassId) return
-        return TeacherService.deactivateTeacherClass(ucClassId, tc)
-      })
-    )
+    for (const cleverId of classesToRemove) {
+      const ucClassId = cleverClassIdToUcClass.get(cleverId)?.id
+      if (!ucClassId) continue
+      await TeacherService.deactivateTeacherClass(ucClassId, tc)
+    }
 
     await TeacherService.updateLastSuccessfulCleverSync(teacherId, tc)
   })
+}
+
+/**
+ * Map each Clever student to an UPchieve account.
+ *
+ * Skips any we can't create; creation is idempotent, so the next sign-in retries them.
+ */
+async function resolveCleverStudents(
+  teacherId: Ulid,
+  cleverTeacherStudents: CleverAPIService.TCleverStudentData[],
+  schoolId: Uuid | undefined
+) {
+  const cleverStudentIdToUcId = new Map<CleverId, UcId>()
+  for (const cleverStudent of cleverTeacherStudents) {
+    try {
+      const ucStudent = await findOrCreateUpchieveStudent(
+        cleverStudent,
+        schoolId
+      )
+      if (ucStudent) cleverStudentIdToUcId.set(cleverStudent.id, ucStudent.id)
+    } catch (err) {
+      // TODO: return a list of students that couldn't be rostered to the teacher
+      logger.warn(
+        { err, teacherId, cleverStudentId: cleverStudent.id },
+        'Skipped a Clever student while rostering a teacher.'
+      )
+    }
+  }
+  return cleverStudentIdToUcId
 }
 
 export async function addCleverSchoolMapping(
@@ -272,8 +290,7 @@ async function getUpchieveSchoolFromCleverId(cleverSchoolId: string) {
 // Exported for testing.
 export async function findOrCreateUpchieveStudent(
   cleverStudent: CleverAPIService.TCleverStudentData,
-  schoolId: Uuid | undefined,
-  tc: TransactionClient
+  schoolId: Uuid | undefined
 ) {
   if (
     !isStudentInValidGrade(
@@ -282,7 +299,7 @@ export async function findOrCreateUpchieveStudent(
   )
     return
 
-  let student = await StudentService.getStudentByCleverId(cleverStudent.id, tc)
+  let student = await StudentService.getStudentByCleverId(cleverStudent.id)
   if (student) {
     return student
   }
@@ -291,13 +308,12 @@ export async function findOrCreateUpchieveStudent(
     return
   }
 
-  student = await StudentService.getStudentByEmail(cleverStudent.email, tc)
+  student = await StudentService.getStudentByEmail(cleverStudent.email)
   if (student) {
     await FederatedCredentialService.linkAccount(
       cleverStudent.id,
       FederatedCredentialService.Issuer.CLEVER,
-      student.id,
-      tc
+      student.id
     )
     return student
   }
@@ -309,7 +325,7 @@ export async function findOrCreateUpchieveStudent(
     profileId: cleverStudent.id,
     schoolId: schoolId,
   }
-  return UserCreationService.registerStudent(data, tc)
+  return UserCreationService.registerStudent(data)
 }
 
 // Exported for testing.
