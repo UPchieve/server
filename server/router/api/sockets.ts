@@ -35,6 +35,7 @@ import { observeWebTransaction } from '../../utils/newRelicUtil'
 import { extractSocketIp } from '../../utils/extract-socket-ip'
 import sessionMiddleware from '../middleware/session'
 import { toCurrentSessionPublic } from '../../public/sessions'
+import { logThrottledEditorActivity } from '../../models/SessionEditorActivity/queries'
 
 export type SessionMessageType = 'audio-transcription' // todo - add 'chat' later
 
@@ -507,6 +508,7 @@ export function routeSockets(io: Server): void {
     socket.on(
       'transmitQuillDeltaV2',
       async ({ sessionId, update }: { sessionId: string; update: string }) => {
+        const userId = socket.request.user?.id
         await observeWebTransaction(
           '/socket-io/transmitQuillDeltaV2',
           async () => {
@@ -520,6 +522,9 @@ export function routeSockets(io: Server): void {
               }
 
               await QuillDocService.addDocumentUpdate(sessionId, update)
+              if (userId) {
+                await logThrottledEditorActivity(sessionId, userId, 'quill')
+              }
               io.to(getSessionRoom(sessionId)).emit('partnerQuillDeltaV2', {
                 update,
               })
@@ -569,6 +574,7 @@ export function routeSockets(io: Server): void {
           }
           delta.id = uuidv4()
           await QuillDocService.appendToDoc(sessionId, delta)
+          await logThrottledEditorActivity(sessionId, userId, 'quill')
           io.to(getSessionRoom(sessionId))
             .except(userId)
             .emit('partnerQuillDelta', {
@@ -583,6 +589,27 @@ export function routeSockets(io: Server): void {
         }
       })
     })
+
+    socket.on(
+      'transmitWhiteboardActivity',
+      async ({ sessionId }: { sessionId: string }) => {
+        await observeWebTransaction(
+          '/socket-io/transmitWhiteboardActivity',
+          async () => {
+            try {
+              const user = await extractSocketUser(socket)
+              await logThrottledEditorActivity(sessionId, user.id, 'whiteboard')
+            } catch (error) {
+              logger.error(
+                error,
+                { sessionId, userId: socket.request.user?.id },
+                'Failed logging whiteboard activity'
+              )
+            }
+          }
+        )
+      }
+    )
 
     socket.on('transmitQuillSelection', async ({ sessionId, range }) => {
       await observeWebTransaction(

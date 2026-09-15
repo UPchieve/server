@@ -1,5 +1,6 @@
 import { TransactionClient, getClient, getRoClient } from '../../db'
 import * as pgQueries from './pg.queries'
+import { getSessionEditorActivity } from '../SessionEditorActivity/queries'
 import {
   makeRequired,
   makeSomeOptional,
@@ -14,6 +15,7 @@ import {
   UserSessionStats,
   UserSessionsFilter,
   MessageType,
+  SessionActivity,
 } from './types'
 import 'moment-timezone'
 import {
@@ -558,6 +560,30 @@ export async function getMessagesForFrontend(
       })
 
     return merged.map(toSessionMessage)
+  } catch (error) {
+    throw new RepoReadError(error)
+  }
+}
+
+/**
+ * Returns an ordered array of session chat, audio, and transcript messages, as well as
+ * zwibbler and quill activity tracking entries. We use this to compute AbsentStudent and
+ * AbsentVolunteer session.flags and session.time_tutored.
+ */
+export async function getSessionActivity(
+  sessionId: Ulid,
+  tc: TransactionClient = getClient()
+): Promise<SessionActivity[]> {
+  try {
+    const messages = await getMessagesForFrontend(sessionId, tc)
+    const editorActivityResult = await getSessionEditorActivity(sessionId, tc)
+
+    return [
+      ...messages,
+      ...editorActivityResult.map((sa) => ({ ...sa, user: sa.userId })),
+    ].sort((a, b) => {
+      return Number(a.createdAt) - Number(b.createdAt)
+    })
   } catch (error) {
     throw new RepoReadError(error)
   }

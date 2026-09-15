@@ -3,9 +3,10 @@ import QueueService from './QueueService'
 import { SESSION_REPORT_REASON, UserSessionFlags } from '../constants'
 import { Uuid } from '../models/pgUtils'
 import {
-  getMessagesForFrontend,
+  getSessionActivity,
   getSessionById,
   GetSessionByIdResult,
+  SessionActivity,
   updateSessionFlagsById,
   updateSessionReviewReasonsById,
 } from '../models/Session'
@@ -26,7 +27,7 @@ export const STUDENT_WAITING_PERIOD_MIN = 5
 
 export function computeAbsentStudent(
   session: GetSessionByIdResult,
-  messages: MessageForFrontend[]
+  activity: SessionActivity[]
 ): boolean {
   if (session.volunteerJoinedAt) {
     const volunteerMaxWait = moment(session.volunteerJoinedAt).add(
@@ -37,7 +38,7 @@ export function computeAbsentStudent(
     // if volunteer waits for less than 10 minutes, do not flag student bc student did not get a chance to respond within wait period
     if (moment(session.endedAt).isSameOrBefore(volunteerMaxWait)) return false
 
-    for (const msg of messages) {
+    for (const msg of activity) {
       if (
         msg.user === session.studentId &&
         // if student sends message after volunteer joined, then don't flag student
@@ -52,7 +53,7 @@ export function computeAbsentStudent(
 
 export function computeAbsentVolunteer(
   session: GetSessionByIdResult,
-  messages: MessageForFrontend[]
+  activity: SessionActivity[]
 ): boolean {
   if (session.volunteerJoinedAt) {
     const studentMaxWait = moment(session.volunteerJoinedAt).add(
@@ -63,7 +64,7 @@ export function computeAbsentVolunteer(
     // If student waits for less than 5 minutes, then don't flag volunteer
     if (moment(session.endedAt).isSameOrBefore(studentMaxWait)) return false
 
-    for (const msg of messages) {
+    for (const msg of activity) {
       if (
         // If volunteer sends message, then don't flag volunteer
         msg.user === session.volunteerId
@@ -121,11 +122,11 @@ export function hasFeedbackMatch(
 export async function computeSessionFlags(
   session: GetSessionByIdResult
 ): Promise<UserSessionFlags[]> {
-  const messages = await getMessagesForFrontend(session.id)
+  const activity = await getSessionActivity(session.id)
   const flags = []
-  if (computeAbsentStudent(session, messages))
+  if (computeAbsentStudent(session, activity))
     flags.push(UserSessionFlags.absentStudent)
-  if (computeAbsentVolunteer(session, messages))
+  if (computeAbsentVolunteer(session, activity))
     flags.push(UserSessionFlags.absentVolunteer)
   if (computeHasBeenUnmatched(session))
     flags.push(UserSessionFlags.hasBeenUnmatched)

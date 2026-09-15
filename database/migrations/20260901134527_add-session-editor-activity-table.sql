@@ -1,5 +1,5 @@
 -- migrate:up
-CREATE TABLE IF NOT EXISTS upchieve.session_editor_activity (
+CREATE TABLE upchieve.session_editor_activity (
     id uuid PRIMARY KEY,
     session_id uuid NOT NULL REFERENCES upchieve.sessions (id),
     user_id uuid NOT NULL REFERENCES upchieve.users (id),
@@ -8,9 +8,9 @@ CREATE TABLE IF NOT EXISTS upchieve.session_editor_activity (
     CONSTRAINT session_editor_activity_source_check CHECK (source IN ('whiteboard', 'quill'))
 );
 
-CREATE INDEX IF NOT EXISTS session_editor_activity_session_id_idx ON upchieve.session_editor_activity (session_id);
+CREATE INDEX session_editor_activity_session_id_idx ON upchieve.session_editor_activity (session_id);
 
-CREATE INDEX IF NOT EXISTS session_editor_activity_user_id_idx ON upchieve.session_editor_activity (user_id);
+CREATE INDEX session_editor_activity_user_id_idx ON upchieve.session_editor_activity (user_id);
 
 COMMENT ON TABLE upchieve.session_editor_activity IS 'An append only table used to track tool activity during a coaching session so that we can more accurately calculate time tutored';
 
@@ -25,5 +25,5 @@ COMMENT ON COLUMN upchieve.session_editor_activity.source IS 'not_pii: An identi
 COMMENT ON COLUMN upchieve.session_editor_activity.created_at IS 'not_pii: Time of creation';
 
 -- migrate:down
-DROP TABLE IF EXISTS upchieve.session_editor_activity;
+DROP TABLE upchieve.session_editor_activity;
 

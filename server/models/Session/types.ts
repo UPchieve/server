@@ -1,5 +1,7 @@
 import { Ulid, Uuid } from '../pgUtils'
 import { USER_ROLES_TYPE } from '../../constants'
+import { SessionEditorActivity } from '../SessionEditorActivity/types'
+import { MessageForFrontend } from '../../types/session'
 
 export type Session = {
   id: Ulid
@@ -132,3 +134,9 @@ export type SessionMetrics = {
   studentCrisis: boolean
   createdAt: Date
 }
+
+export type SessionActivity =
+  | MessageForFrontend
+  | (SessionEditorActivity & {
+      user: SessionEditorActivity['userId']
+    })

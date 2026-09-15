@@ -41,6 +41,7 @@ export type ClientToServerEvents = {
     sessionId: Ulid
     range: { index: number; length: number }
   }) => void
+  transmitWhiteboardActivity: (data: { sessionId: Ulid }) => void
   'sessions:join': (data: { sessionId: Ulid }, callback: Function) => void
   'sessions:leave': (data: { sessionId: Ulid }) => void
   'sessions/recap:leave': (data: { sessionId: Ulid }) => void

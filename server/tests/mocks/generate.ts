@@ -1,5 +1,6 @@
 import moment from 'moment'
 import { getDbUlid, getUuid, Ulid, Uuid } from '../../models/pgUtils'
+import { SessionEditorActivity } from '../../models/SessionEditorActivity/types'
 import {
   SessionReportRow,
   Student,
@@ -578,6 +579,35 @@ export const buildMessageForFrontend = (
     ...overrides,
   }
   return message
+}
+
+export const buildSessionEditorActivity = (
+  overrides: Partial<SessionEditorActivity> = {}
+): SessionEditorActivity & { user: SessionEditorActivity['userId'] } => {
+  const editorActivity: SessionEditorActivity = {
+    id: getDbUlid(),
+    sessionId: getUuid(),
+    userId: getUuid(),
+    source: 'whiteboard',
+    createdAt: new Date(),
+    ...overrides,
+  }
+  return { ...editorActivity, user: editorActivity.userId }
+}
+
+export const buildSessionEditorActivityRow = (
+  userId: Uuid,
+  sessionId: Uuid,
+  overrides: Partial<SessionEditorActivity> = {}
+): SessionEditorActivity => {
+  return {
+    id: getDbUlid(),
+    sessionId,
+    userId,
+    source: 'whiteboard',
+    createdAt: new Date(),
+    ...overrides,
+  }
 }
 
 export function buildVolunteerPartnerOrg(

@@ -3,6 +3,7 @@ import moment from 'moment'
 import {
   buildMessageForFrontend,
   buildSession,
+  buildSessionEditorActivity,
   buildSurveyResponse,
   buildUserSessionMetrics,
   getSentence,
@@ -12,7 +13,7 @@ import {
   USER_SESSION_METRICS,
   UserSessionFlags,
 } from '../../constants'
-import { getUuid } from '../../models/pgUtils'
+import { getUuid, Uuid } from '../../models/pgUtils'
 import * as SessionRepo from '../../models/Session'
 import * as UserSessionMetricsRepo from '../../models/UserSessionMetrics'
 import {
@@ -38,6 +39,7 @@ import {
 } from '../../services/SessionFlagsService'
 import { Jobs } from '../../worker/jobs'
 import type { MessageForFrontend } from '../../types/session'
+import type { SessionActivity } from '../../models/Session'
 
 jest.mock('../../models/Session')
 jest.mock('../../models/Survey')
@@ -62,6 +64,39 @@ const mockedOnlyExcludedReviewReasons = jest.fn(() => [
   UserSessionFlags.absentStudent,
 ])
 
+const activityTypes: [
+  string,
+  (userId: Uuid, createdAt: Date) => SessionActivity,
+][] = [
+  [
+    'chat message',
+    (userId, createdAt) =>
+      buildMessageForFrontend({
+        user: userId,
+        contents: getSentence(),
+        createdAt,
+      }),
+  ],
+  [
+    'whiteboard activity',
+    (userId, createdAt) =>
+      buildSessionEditorActivity({
+        userId,
+        source: 'whiteboard',
+        createdAt,
+      }),
+  ],
+  [
+    'quill activity',
+    (userId, createdAt) =>
+      buildSessionEditorActivity({
+        userId,
+        source: 'quill',
+        createdAt,
+      }),
+  ],
+]
+
 describe('SessionFlagsService', () => {
   beforeEach(() => {
     jest.clearAllMocks()
@@ -74,7 +109,7 @@ describe('SessionFlagsService', () => {
         studentId,
       })
       const messages: MessageForFrontend[] = []
-      mockedSessionRepo.getMessagesForFrontend.mockResolvedValueOnce(messages)
+      mockedSessionRepo.getSessionActivity.mockResolvedValueOnce(messages)
 
       const result = await computeSessionFlags(session)
       expect(result).not.toContain(UserSessionFlags.absentStudent)
@@ -92,13 +127,91 @@ describe('SessionFlagsService', () => {
           .toDate(),
       })
       const messages: MessageForFrontend[] = []
-      mockedSessionRepo.getMessagesForFrontend.mockResolvedValueOnce(messages)
+      mockedSessionRepo.getSessionActivity.mockResolvedValueOnce(messages)
 
       const result = await computeSessionFlags(session)
       expect(result).not.toContain(UserSessionFlags.absentStudent)
     })
 
-    test(`Should not contain ${UserSessionFlags.absentStudent} if the student sent messages after the volunteer joined`, async () => {
+    test.each(activityTypes)(
+      `Should not contain ${UserSessionFlags.absentStudent} if the student's only activity after the volunteer joined was a %s`,
+      async (_activityName, buildActivity) => {
+        const studentId = getUuid()
+        const volunteerId = getUuid()
+        const session = buildSession({
+          studentId,
+          volunteerId,
+          volunteerJoinedAt,
+          endedAt: moment(volunteerJoinedAt)
+            .add(VOLUNTEER_WAITING_PERIOD_MIN + 10, 'minutes')
+            .toDate(),
+        })
+        const activity: SessionActivity[] = [
+          buildActivity(
+            studentId,
+            moment(volunteerJoinedAt).add(2, 'minutes').toDate()
+          ),
+        ]
+        mockedSessionRepo.getSessionActivity.mockResolvedValueOnce(activity)
+
+        const result = await computeSessionFlags(session)
+        expect(result).not.toContain(UserSessionFlags.absentStudent)
+      }
+    )
+
+    test.each(activityTypes)(
+      `Should contain ${UserSessionFlags.absentStudent} if the student's only activity was a %s sent before the volunteer joined`,
+      async (_activityName, buildActivity) => {
+        const studentId = getUuid()
+        const volunteerId = getUuid()
+        const session = buildSession({
+          studentId,
+          volunteerId,
+          volunteerJoinedAt,
+          endedAt: moment(volunteerJoinedAt)
+            .add(VOLUNTEER_WAITING_PERIOD_MIN + 10, 'minutes')
+            .toDate(),
+        })
+        const activity: SessionActivity[] = [
+          buildActivity(
+            studentId,
+            moment(volunteerJoinedAt).subtract(10, 'minutes').toDate()
+          ),
+        ]
+        mockedSessionRepo.getSessionActivity.mockResolvedValueOnce(activity)
+
+        const result = await computeSessionFlags(session)
+        expect(result).toContain(UserSessionFlags.absentStudent)
+      }
+    )
+
+    test.each(activityTypes)(
+      `Should contain ${UserSessionFlags.absentStudent} if only the volunteer had activity (%s) after joining`,
+      async (_activityName, buildActivity) => {
+        const studentId = getUuid()
+        const volunteerId = getUuid()
+        const session = buildSession({
+          studentId,
+          volunteerId,
+          volunteerJoinedAt,
+          endedAt: moment(volunteerJoinedAt)
+            .add(VOLUNTEER_WAITING_PERIOD_MIN + 10, 'minutes')
+            .toDate(),
+        })
+        const activity: SessionActivity[] = [
+          buildActivity(
+            volunteerId,
+            moment(volunteerJoinedAt).add(2, 'minutes').toDate()
+          ),
+        ]
+        mockedSessionRepo.getSessionActivity.mockResolvedValueOnce(activity)
+
+        const result = await computeSessionFlags(session)
+        expect(result).toContain(UserSessionFlags.absentStudent)
+      }
+    )
+
+    test(`Should not contain ${UserSessionFlags.absentStudent} or ${UserSessionFlags.absentVolunteer} when both participants had a mix of messages and editor activity`, async () => {
       const studentId = getUuid()
       const volunteerId = getUuid()
       const session = buildSession({
@@ -109,17 +222,28 @@ describe('SessionFlagsService', () => {
           .add(VOLUNTEER_WAITING_PERIOD_MIN + 10, 'minutes')
           .toDate(),
       })
-      const messages: MessageForFrontend[] = [
+      const activity: SessionActivity[] = [
         buildMessageForFrontend({
-          user: studentId,
+          user: volunteerId,
           contents: getSentence(),
+          createdAt: moment(volunteerJoinedAt).add(1, 'minutes').toDate(),
+        }),
+        buildSessionEditorActivity({
+          userId: studentId,
+          source: 'whiteboard',
           createdAt: moment(volunteerJoinedAt).add(2, 'minutes').toDate(),
         }),
+        buildSessionEditorActivity({
+          userId: volunteerId,
+          source: 'quill',
+          createdAt: moment(volunteerJoinedAt).add(3, 'minutes').toDate(),
+        }),
       ]
-      mockedSessionRepo.getMessagesForFrontend.mockResolvedValueOnce(messages)
+      mockedSessionRepo.getSessionActivity.mockResolvedValueOnce(activity)
 
       const result = await computeSessionFlags(session)
       expect(result).not.toContain(UserSessionFlags.absentStudent)
+      expect(result).not.toContain(UserSessionFlags.absentVolunteer)
     })
 
     test(`Should contain ${UserSessionFlags.absentStudent} if the student did not send messages after volunteer joined`, async () => {
@@ -135,7 +259,7 @@ describe('SessionFlagsService', () => {
           .toDate(),
       })
       const messages: MessageForFrontend[] = []
-      mockedSessionRepo.getMessagesForFrontend.mockResolvedValueOnce(messages)
+      mockedSessionRepo.getSessionActivity.mockResolvedValueOnce(messages)
 
       const result = await computeSessionFlags(session)
       expect(result).toContain(UserSessionFlags.absentStudent)
@@ -147,7 +271,7 @@ describe('SessionFlagsService', () => {
         studentId,
       })
       const messages: MessageForFrontend[] = []
-      mockedSessionRepo.getMessagesForFrontend.mockResolvedValueOnce(messages)
+      mockedSessionRepo.getSessionActivity.mockResolvedValueOnce(messages)
 
       const result = await computeSessionFlags(session)
       expect(result).not.toContain(UserSessionFlags.absentVolunteer)
@@ -163,35 +287,93 @@ describe('SessionFlagsService', () => {
         endedAt: moment(volunteerJoinedAt).add(3, 'minutes').toDate(),
       })
       const messages: MessageForFrontend[] = []
-      mockedSessionRepo.getMessagesForFrontend.mockResolvedValueOnce(messages)
+      mockedSessionRepo.getSessionActivity.mockResolvedValueOnce(messages)
 
       const result = await computeSessionFlags(session)
       expect(result).not.toContain(UserSessionFlags.absentVolunteer)
     })
 
-    test(`Should not contain ${UserSessionFlags.absentVolunteer} if volunteer sent messages after volunteer joined`, async () => {
-      const studentId = getUuid()
-      const volunteerId = getUuid()
-      const session = buildSession({
-        studentId,
-        volunteerId,
-        volunteerJoinedAt,
-        endedAt: moment(volunteerJoinedAt)
-          .add(VOLUNTEER_WAITING_PERIOD_MIN + 10, 'minutes')
-          .toDate(),
-      })
-      const messages: MessageForFrontend[] = [
-        buildMessageForFrontend({
-          user: volunteerId,
-          contents: getSentence(),
-          createdAt: moment(volunteerJoinedAt).add(2, 'minutes').toDate(),
-        }),
-      ]
-      mockedSessionRepo.getMessagesForFrontend.mockResolvedValueOnce(messages)
+    test.each(activityTypes)(
+      `Should not contain ${UserSessionFlags.absentVolunteer} if the volunteer's only activity after joining was a %s`,
+      async (_activityName, buildActivity) => {
+        const studentId = getUuid()
+        const volunteerId = getUuid()
+        const session = buildSession({
+          studentId,
+          volunteerId,
+          volunteerJoinedAt,
+          endedAt: moment(volunteerJoinedAt)
+            .add(VOLUNTEER_WAITING_PERIOD_MIN + 10, 'minutes')
+            .toDate(),
+        })
+        const activity: SessionActivity[] = [
+          buildActivity(
+            volunteerId,
+            moment(volunteerJoinedAt).add(2, 'minutes').toDate()
+          ),
+        ]
+        mockedSessionRepo.getSessionActivity.mockResolvedValueOnce(activity)
 
-      const result = await computeSessionFlags(session)
-      expect(result).not.toContain(UserSessionFlags.absentVolunteer)
-    })
+        const result = await computeSessionFlags(session)
+        expect(result).not.toContain(UserSessionFlags.absentVolunteer)
+      }
+    )
+
+    test.each(activityTypes)(
+      `Should contain ${UserSessionFlags.absentVolunteer} if only the student had activity (%s) after the volunteer joined`,
+      async (_activityName, buildActivity) => {
+        const studentId = getUuid()
+        const volunteerId = getUuid()
+        const session = buildSession({
+          studentId,
+          volunteerId,
+          volunteerJoinedAt,
+          endedAt: moment(volunteerJoinedAt)
+            .add(VOLUNTEER_WAITING_PERIOD_MIN + 10, 'minutes')
+            .toDate(),
+        })
+        const activity: SessionActivity[] = [
+          buildActivity(
+            studentId,
+            moment(volunteerJoinedAt).add(2, 'minutes').toDate()
+          ),
+        ]
+        mockedSessionRepo.getSessionActivity.mockResolvedValueOnce(activity)
+
+        const result = await computeSessionFlags(session)
+        expect(result).toContain(UserSessionFlags.absentVolunteer)
+      }
+    )
+
+    // NOTE: unlike computeAbsentStudent, computeAbsentVolunteer never inspects
+    // `createdAt` - any activity attributed to the volunteer clears the flag,
+    // even if it happened before they joined or after the session ended. These
+    // tests pin that existing asymmetry so a future change to it is deliberate.
+    test.each(activityTypes)(
+      `Should not contain ${UserSessionFlags.absentVolunteer} if the volunteer's only activity was a %s recorded before they joined`,
+      async (_activityName, buildActivity) => {
+        const studentId = getUuid()
+        const volunteerId = getUuid()
+        const session = buildSession({
+          studentId,
+          volunteerId,
+          volunteerJoinedAt,
+          endedAt: moment(volunteerJoinedAt)
+            .add(VOLUNTEER_WAITING_PERIOD_MIN + 10, 'minutes')
+            .toDate(),
+        })
+        const activity: SessionActivity[] = [
+          buildActivity(
+            volunteerId,
+            moment(volunteerJoinedAt).subtract(10, 'minutes').toDate()
+          ),
+        ]
+        mockedSessionRepo.getSessionActivity.mockResolvedValueOnce(activity)
+
+        const result = await computeSessionFlags(session)
+        expect(result).not.toContain(UserSessionFlags.absentVolunteer)
+      }
+    )
 
     test(`Should contain ${UserSessionFlags.absentVolunteer} if volunteer did not send messages after joining session`, async () => {
       const studentId = getUuid()
@@ -205,7 +387,7 @@ describe('SessionFlagsService', () => {
           .toDate(),
       })
       const messages: MessageForFrontend[] = []
-      mockedSessionRepo.getMessagesForFrontend.mockResolvedValueOnce(messages)
+      mockedSessionRepo.getSessionActivity.mockResolvedValueOnce(messages)
 
       const result = await computeSessionFlags(session)
       expect(result).toContain(UserSessionFlags.absentVolunteer)
@@ -219,7 +401,7 @@ describe('SessionFlagsService', () => {
         volunteerId,
       })
       const messages: MessageForFrontend[] = []
-      mockedSessionRepo.getMessagesForFrontend.mockResolvedValueOnce(messages)
+      mockedSessionRepo.getSessionActivity.mockResolvedValueOnce(messages)
 
       const result = await computeSessionFlags(session)
       expect(result).not.toContain(UserSessionFlags.hasBeenUnmatched)
@@ -231,7 +413,7 @@ describe('SessionFlagsService', () => {
         studentId,
       })
       const messages: MessageForFrontend[] = []
-      mockedSessionRepo.getMessagesForFrontend.mockResolvedValueOnce(messages)
+      mockedSessionRepo.getSessionActivity.mockResolvedValueOnce(messages)
 
       const result = await computeSessionFlags(session)
       expect(result).toContain(UserSessionFlags.hasBeenUnmatched)

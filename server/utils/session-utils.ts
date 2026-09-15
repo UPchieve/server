@@ -7,7 +7,7 @@ import { CustomError } from 'ts-custom-error'
 import { CaughtError } from '../models/Errors'
 import { TOOL_TYPES } from '../constants'
 import { DAYS, HOURS } from '../constants'
-import { getMessagesForFrontend, GetSessionByIdResult } from '../models/Session'
+import { getSessionActivity, GetSessionByIdResult } from '../models/Session'
 import {
   asBoolean,
   asCamelCaseString,
@@ -80,10 +80,10 @@ export async function calculateTimeTutored(
   const fifteenMinsMs = 1000 * 60 * 15
 
   const { volunteerJoinedAt, endedAt, volunteerId } = session
-  const messages = await getMessagesForFrontend(session.id)
+  const activities = await getSessionActivity(session.id)
   if (!volunteerId || !volunteerJoinedAt || !endedAt) return 0
-  // skip if no messages are sent
-  if (messages.length === 0) return 0
+  // skip if no messages or tool activity were recorded
+  if (activities.length === 0) return 0
 
   const volunteerJoinDate = new Date(volunteerJoinedAt)
   const sessionEndDate = new Date(endedAt)
@@ -92,37 +92,40 @@ export async function calculateTimeTutored(
   // skip if volunteer joined after the session ended
   if (sessionLengthMs < 0) return 0
 
-  let latestMessageIndex = messages.length - 1
-  let wasMessageSentAfterSessionEnded =
-    messages[latestMessageIndex].createdAt > sessionEndDate
+  let latestActivityIndex = activities.length - 1
+  let wasActivitySentAfterSessionEnded =
+    activities[latestActivityIndex].createdAt > sessionEndDate
 
   // TODO: refactor - Don't allow users to send a message once the sessions ends
   // get the latest message that was sent within a 15 minute window of the message prior.
   // Sometimes sessions are not ended by either participant and one of the participants may send
   // a message to see if the other participant is still active before ending the session.
   // Exclude these messages when getting the total session end time
-  if (sessionLengthMs > threeHoursMs || wasMessageSentAfterSessionEnded) {
+  if (sessionLengthMs > threeHoursMs || wasActivitySentAfterSessionEnded) {
     while (
-      latestMessageIndex > 0 &&
-      (wasMessageSentAfterSessionEnded ||
-        messages[latestMessageIndex].createdAt.getTime() -
-          messages[latestMessageIndex - 1].createdAt.getTime() >
+      latestActivityIndex > 0 &&
+      (wasActivitySentAfterSessionEnded ||
+        activities[latestActivityIndex].createdAt.getTime() -
+          activities[latestActivityIndex - 1].createdAt.getTime() >
           fifteenMinsMs)
     ) {
-      latestMessageIndex--
-      wasMessageSentAfterSessionEnded =
-        messages[latestMessageIndex].createdAt > sessionEndDate
+      latestActivityIndex--
+      wasActivitySentAfterSessionEnded =
+        activities[latestActivityIndex].createdAt > sessionEndDate
     }
   }
 
-  const latestMessageDate = new Date(messages[latestMessageIndex].createdAt)
+  const latestActivityDate = new Date(activities[latestActivityIndex].createdAt)
 
   // skip if the latest message was sent before a volunteer joined
   // or skip if the only messages that were sent were after a session has ended
-  if (latestMessageDate <= volunteerJoinDate || wasMessageSentAfterSessionEnded)
+  if (
+    latestActivityDate <= volunteerJoinDate ||
+    wasActivitySentAfterSessionEnded
+  )
     return 0
 
-  sessionLengthMs = latestMessageDate.getTime() - volunteerJoinDate.getTime()
+  sessionLengthMs = latestActivityDate.getTime() - volunteerJoinDate.getTime()
   return sessionLengthMs
 }
 

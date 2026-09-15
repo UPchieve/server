@@ -4,6 +4,7 @@
 
 import {
   buildSessionAudioTranscriptMessageRow,
+  buildSessionEditorActivityRow,
   buildSessionMessageRow,
   buildSessionRow,
   buildSessionVoiceMessage,
@@ -13,6 +14,7 @@ import {
   getFilteredSessionHistoryTotalCount,
   getLatestSession,
   getMessagesForFrontend,
+  getSessionActivity,
   getSessionTranscriptItems,
   getVolunteerFirstSessionDate,
   getVolunteersInSessions,
@@ -131,6 +133,104 @@ describe('Session repo', () => {
         '3',
         voiceMessageId, // for voice messages, the id is returned as the message
       ])
+    })
+  })
+
+  describe('getSessionActivity', () => {
+    let sessionId: string
+
+    beforeEach(async () => {
+      const sessionRow = await buildSessionRow(
+        {
+          studentId,
+          volunteerId,
+          volunteerJoinedAt: new Date(),
+        },
+        dbClient
+      )
+      sessionId = (await insertSingleRow('sessions', sessionRow, dbClient)).id
+    })
+
+    it('Returns messages and editor activity interleaved in chronological order', async () => {
+      const t1 = moment().subtract(5, 'minutes').toDate()
+      const t2 = moment().subtract(4, 'minutes').toDate()
+      const t3 = moment().subtract(3, 'minutes').toDate()
+      const t4 = moment().subtract(2, 'minutes').toDate()
+
+      await insertSingleRow(
+        'session_editor_activity',
+        buildSessionEditorActivityRow(volunteerId, sessionId, {
+          source: 'quill',
+          createdAt: t4,
+        }),
+        dbClient
+      )
+      await insertSingleRow(
+        'session_messages',
+        buildSessionMessageRow(studentId, sessionId, {
+          contents: 'first',
+          createdAt: t1,
+        }),
+        dbClient
+      )
+      await insertSingleRow(
+        'session_audio_transcript_messages',
+        buildSessionAudioTranscriptMessageRow(volunteerId, sessionId, {
+          message: 'third',
+          saidAt: t3,
+        }),
+        dbClient
+      )
+      await insertSingleRow(
+        'session_editor_activity',
+        buildSessionEditorActivityRow(studentId, sessionId, {
+          source: 'whiteboard',
+          createdAt: t2,
+        }),
+        dbClient
+      )
+
+      const activity = await getSessionActivity(sessionId, dbClient)
+
+      expect(activity.length).toEqual(4)
+      expect(activity.map((a) => a.createdAt)).toEqual([t1, t2, t3, t4])
+      expect(activity.map((a) => a.user)).toEqual([
+        studentId,
+        studentId,
+        volunteerId,
+        volunteerId,
+      ])
+    })
+
+    it('Returns editor activity with the source preserved', async () => {
+      await insertSingleRow(
+        'session_editor_activity',
+        buildSessionEditorActivityRow(studentId, sessionId, {
+          source: 'whiteboard',
+          createdAt: moment().subtract(2, 'minutes').toDate(),
+        }),
+        dbClient
+      )
+      await insertSingleRow(
+        'session_editor_activity',
+        buildSessionEditorActivityRow(volunteerId, sessionId, {
+          source: 'quill',
+          createdAt: moment().subtract(1, 'minutes').toDate(),
+        }),
+        dbClient
+      )
+
+      const activity = await getSessionActivity(sessionId, dbClient)
+
+      expect(activity.length).toEqual(2)
+      expect(
+        activity.map((a) => ('source' in a ? a.source : undefined))
+      ).toEqual(['whiteboard', 'quill'])
+    })
+
+    it('Returns an empty array for a session with no messages or editor activity', async () => {
+      const activity = await getSessionActivity(sessionId, dbClient)
+      expect(activity).toEqual([])
     })
   })
 
