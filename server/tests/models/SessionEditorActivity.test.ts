@@ -2,12 +2,10 @@ import * as cache from '../../cache'
 import * as db from '../../db'
 import logger from '../../logger'
 import * as pgQueries from '../../models/SessionEditorActivity/pg.queries'
-import {
-  insertSessionEditorActivity,
-  logThrottledEditorActivity,
-} from '../../models/SessionEditorActivity/queries'
+import { insertSessionEditorActivity } from '../../models/SessionEditorActivity/queries'
 import { getUuid } from '../../models/pgUtils'
 import { RepoCreateError } from '../../models/Errors'
+import { logThrottledEditorActivity } from '../../services/SessionEditorActivityService'
 
 jest.mock('../../cache')
 jest.mock('../../db')

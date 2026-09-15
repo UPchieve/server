@@ -35,7 +35,7 @@ import { observeWebTransaction } from '../../utils/newRelicUtil'
 import { extractSocketIp } from '../../utils/extract-socket-ip'
 import sessionMiddleware from '../middleware/session'
 import { toCurrentSessionPublic } from '../../public/sessions'
-import { logThrottledEditorActivity } from '../../models/SessionEditorActivity/queries'
+import { logThrottledEditorActivity } from '../../services/SessionEditorActivityService'
 
 export type SessionMessageType = 'audio-transcription' // todo - add 'chat' later
 
