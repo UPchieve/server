@@ -491,6 +491,11 @@ const config = {
   awsBedrockHaikuId: process.env.SUBWAY_AWS_BEDROCK_HAIKU_ID || 'bogus',
   awsBedrockSonnet4Id: process.env.SUBWAY_AWS_BEDROCK_SONNET_4_ID || 'bogus',
 
+  // Authenticates with the AZURE_* service principal above, so there is no key.
+  // No 'bogus' default: the resource name becomes the request hostname.
+  anthropicFoundryResource: process.env.SUBWAY_ANTHROPIC_FOUNDRY_RESOURCE,
+  anthropicFoundryModelId: process.env.SUBWAY_ANTHROPIC_FOUNDRY_MODEL_ID,
+
   // Zwibbler
   zwibblerNodeUrl: process.env.ZWIBBLER_NODE_URL || 'bogus',
   slackAlertWebHookUrl: process.env.SUBWAY_SLACK_ALERT_WEBHOOK_URL || 'bogus',

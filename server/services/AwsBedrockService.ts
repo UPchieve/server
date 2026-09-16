@@ -3,6 +3,7 @@ import {
   InvokeModelCommand,
 } from '@aws-sdk/client-bedrock-runtime'
 import config from '../config'
+import * as AnthropicFoundryService from './AnthropicFoundryService'
 import { getFileType } from '../utils/image-utils'
 import { secondsInMs } from '../utils/time-utils'
 import logger from '../logger'
@@ -24,6 +25,8 @@ const createClient = (): BedrockRuntimeClient => {
     requestHandler: {
       requestTimeout: secondsInMs(30),
     },
+    // Default is 3; retrying a dead region twice more just delays the fallback.
+    maxAttempts: 2,
   })
 }
 
@@ -144,9 +147,17 @@ export async function invokeModel<T = string | ToolInput>({
     body: JSON.stringify(payload),
     contentType: 'application/json',
   })
-  const initResponse = await client.send(command)
-  const jsonString = new TextDecoder().decode(initResponse.body)
-  const modelRes = JSON.parse(jsonString)
+
+  let modelRes
+  try {
+    const initResponse = await client.send(command)
+    modelRes = JSON.parse(new TextDecoder().decode(initResponse.body))
+  } catch (err) {
+    logger.warn({ modelId, err }, 'Bedrock failed, falling back to Foundry')
+    modelRes = await AnthropicFoundryService.invokeModel(payload)
+  }
+
+  const jsonString = JSON.stringify(modelRes)
 
   const getModelResponse = tools_option
     ? getResponseWithToolsOption

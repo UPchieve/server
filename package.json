@@ -69,6 +69,7 @@
     "secrets:check"
   ],
   "dependencies": {
+    "@anthropic-ai/foundry-sdk": "^0.4.5",
     "@aws-sdk/client-bedrock-runtime": "^3.981.0",
     "@aws-sdk/client-chime-sdk-media-pipelines": "^3.777.0",
     "@aws-sdk/client-chime-sdk-meetings": "^3.731.1",
