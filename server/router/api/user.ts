@@ -25,6 +25,7 @@ import { InputError, NotAllowedError } from '../../models/Errors'
 import { GRADES } from '../../constants'
 import config from '../../config'
 import multer from 'multer'
+import logger from '../../logger'
 
 export const asEditProfilePayload = asFactory<EditUserProfilePayload>({
   smsConsent: asOptional(asBoolean),
@@ -353,11 +354,13 @@ export function routeUser(router: Router): void {
       const user = extractUser(req)
       const ipAddress = req.ip
       const clientUUID = req.body.clientUUID
-      await PresenceService.trackActivity({
+      PresenceService.trackActivity({
         userId: user.id,
         ipAddress,
         clientUUID,
         role: user.roleContext.activeRole,
+      }).catch((err) => {
+        logger.error({ err: err.cause, ...err.context }, err.message)
       })
       return res.sendStatus(200)
     } catch (err) {
@@ -369,10 +372,12 @@ export function routeUser(router: Router): void {
       const user = extractUser(req)
       const ipAddress = req.ip
       const clientUUID = req.body.clientUUID
-      await PresenceService.trackPassivity({
+      PresenceService.trackPassivity({
         userId: user.id,
         ipAddress,
         clientUUID,
+      }).catch((err) => {
+        logger.error({ err: err.cause, ...err.context }, err.message)
       })
       return res.sendStatus(200)
     } catch (err) {
@@ -386,9 +391,11 @@ export function routeUser(router: Router): void {
         const user = extractUser(req)
         const clientUUID = req.body.clientUUID
         if (user.id && typeof clientUUID === 'string') {
-          await PresenceService.setInactivityCountdown({
+          PresenceService.setInactivityCountdown({
             userId: user.id,
             clientUUID,
+          }).catch((err) => {
+            logger.error({ err: err.cause, ...err.context }, err.message)
           })
         }
         return res.sendStatus(200)

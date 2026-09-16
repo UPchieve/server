@@ -671,6 +671,8 @@ export function routeSockets(io: Server): void {
               userId: user.id,
               clientUUID,
               ipAddress: extractSocketIp(socket),
+            }).catch((err) => {
+              logger.error({ err: err.cause, ...err.context }, err.message)
             })
           }
         } catch (error) {
