@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict vZVOyK94hQwjruDrgQXBXBclTapT2if0pgRCEXuaoQndcuFYiIpd1Y4Wfb6w82T
+\restrict MHHCpwwvB4NYLfSidNP8HkaU3uQmPZgJ22oaau14chHFEKSgpdHB6FR1TgpkziW
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
 -- Dumped by pg_dump version 15.15 (Homebrew)
@@ -119,5 +119,5 @@ COPY public.seed_migrations (version) FROM stdin;
 -- PostgreSQL database dump complete
 --
 
-\unrestrict vZVOyK94hQwjruDrgQXBXBclTapT2if0pgRCEXuaoQndcuFYiIpd1Y4Wfb6w82T
+\unrestrict MHHCpwwvB4NYLfSidNP8HkaU3uQmPZgJ22oaau14chHFEKSgpdHB6FR1TgpkziW
 

@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict DdpaVNvwXrBNyKLGORcaaHSh536rifc6f5bgrz09qKuV19ZplLCtZ2QjtMGwo8G
+\restrict NLw6nwWeYyd2IsOpEnHnuOUJHX4btOeiPAmgFaLicexfFEf48HxV8NgbeFUe1Vm
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
 -- Dumped by pg_dump version 15.15 (Homebrew)
@@ -6103,6 +6103,16 @@ COPY upchieve.moderation_rules_flags (flag_id, rule_id) FROM stdin;
 
 
 --
+-- Data for Name: moderation_type; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.moderation_type (id, name) FROM stdin;
+1	contextual
+2	realtime_image
+\.
+
+
+--
 -- Data for Name: moderation_settings; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
@@ -6135,16 +6145,6 @@ realtime_image	15	0.75	0
 realtime_image	21	0.85	0
 realtime_image	22	0.85	0
 realtime_image	28	0.50	0
-\.
-
-
---
--- Data for Name: moderation_type; Type: TABLE DATA; Schema: upchieve; Owner: admin
---
-
-COPY upchieve.moderation_type (id, name) FROM stdin;
-1	contextual
-2	realtime_image
 \.
 
 
@@ -9551,5 +9551,4 @@ SELECT pg_catalog.setval('upchieve.weekdays_id_seq', 1, false);
 -- PostgreSQL database dump complete
 --
 
-\unrestrict DdpaVNvwXrBNyKLGORcaaHSh536rifc6f5bgrz09qKuV19ZplLCtZ2QjtMGwo8G
-
+\unrestrict NLw6nwWeYyd2IsOpEnHnuOUJHX4btOeiPAmgFaLicexfFEf48HxV8NgbeFUe1Vm

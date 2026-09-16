@@ -1,4 +1,4 @@
-\restrict AKuvtJ8ASfEZr9dle4N53xIxKwrHQTkttcWvUGt5QNNQzv6AYq8vCR6vxXMFD5s
+\restrict ZBg0nl3jIpHOsDer5vLQYKpcXorGfD0s1p8m6k5bFLg3Rd6iRp3SEbrWjwJVBIQ
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
 -- Dumped by pg_dump version 15.15 (Homebrew)
@@ -108,16 +108,6 @@ CREATE TYPE upchieve.ban_types AS ENUM (
 
 CREATE TYPE upchieve.moderation_system AS ENUM (
     'regex'
-);
-
-
---
--- Name: moderation_types; Type: TYPE; Schema: upchieve; Owner: -
---
-
-CREATE TYPE upchieve.moderation_types AS ENUM (
-    'contextual',
-    'realtime_image'
 );
 
 
@@ -2169,7 +2159,7 @@ ALTER SEQUENCE upchieve.moderation_rules_id_seq OWNED BY upchieve.moderation_rul
 --
 
 CREATE TABLE upchieve.moderation_settings (
-    moderation_type upchieve.moderation_types,
+    moderation_type text,
     moderation_category_id integer,
     threshold numeric(3,2),
     penalty_weight integer DEFAULT 0 NOT NULL
@@ -13742,6 +13732,14 @@ ALTER TABLE ONLY upchieve.moderation_settings
 
 
 --
+-- Name: moderation_settings moderation_settings_moderation_type_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.moderation_settings
+    ADD CONSTRAINT moderation_settings_moderation_type_fkey FOREIGN KEY (moderation_type) REFERENCES upchieve.moderation_type(name);
+
+
+--
 -- Name: muted_users_subject_alerts muted_users_subject_alerts_subject_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -15129,7 +15127,7 @@ ALTER TABLE ONLY upchieve.volunteer_references
 -- PostgreSQL database dump complete
 --
 
-\unrestrict AKuvtJ8ASfEZr9dle4N53xIxKwrHQTkttcWvUGt5QNNQzv6AYq8vCR6vxXMFD5s
+\unrestrict ZBg0nl3jIpHOsDer5vLQYKpcXorGfD0s1p8m6k5bFLg3Rd6iRp3SEbrWjwJVBIQ
 
 
 --
@@ -15428,4 +15426,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260901134527'),
     ('20260911141710'),
     ('20260911141711'),
-    ('20260911141712');
+    ('20260911141712'),
+    ('20260911141713');
