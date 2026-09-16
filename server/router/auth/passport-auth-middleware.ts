@@ -54,7 +54,8 @@ async function passportLoginUser(
   }
 }
 
-async function passportRegisterUser(
+// Exported for testing.
+export async function passportRegisterUser(
   profile: passport.Profile,
   issuer: string,
   providerName: string,
@@ -83,7 +84,8 @@ async function passportRegisterUser(
       })
     }
 
-    const existingUser = await getUserVerificationByEmails(email, data?.email)
+    // Match only on the provider's email. data.email comes from the browser.
+    const existingUser = await getUserVerificationByEmails(email)
     if (existingUser) {
       // We will link this SSO account if the email matches an existing user
       // who has the same email and that email was verified.
@@ -96,13 +98,14 @@ async function passportRegisterUser(
       })
     }
 
+    // Spread the query first so the provider's identity wins over anything the browser sent.
     const userData = {
+      ...data,
       email,
       firstName,
       issuer,
       lastName,
       profileId: profile.id,
-      ...data,
     }
     if (accountType === 'teacher') {
       const teacher = await UserCreationService.registerTeacher(userData)
@@ -200,7 +203,7 @@ export async function handleSSOStrategy(
 
     const firstName = profile.name?.givenName
     const lastName = profile.name?.familyName
-    const email = profile.emails?.[0]?.value ?? userData?.email
+    const email = profile.emails?.[0]?.value
     if (!firstName || !lastName) {
       return done(null, false, {
         errorMessage: 'Missing required field in passport.Profile',
@@ -219,11 +222,9 @@ export async function handleSSOStrategy(
       })
     }
 
-    // Check if the user already exists, but just hadn't used SSO before.
-    const existingUser = await getUserVerificationByEmails(
-      email,
-      userData?.email
-    )
+    // Check if the user already exists, but just hadn't used SSO before. Match only on
+    // the provider's email: userData.email comes from the browser.
+    const existingUser = await getUserVerificationByEmails(email)
 
     if (existingUser && existingUser.emailVerified) {
       if (userData && options.isStudent(profile.userType)) {
