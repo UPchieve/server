@@ -2,10 +2,10 @@
 -- PostgreSQL database dump
 --
 
-\restrict P66nbOQbm5Ggy7KO0jBaxVgzDb7TMjeNwlqFQ4bc6KDhYylxtcDz2ZYDGlAAzMe
+\restrict DdpaVNvwXrBNyKLGORcaaHSh536rifc6f5bgrz09qKuV19ZplLCtZ2QjtMGwo8G
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
--- Dumped by pg_dump version 15.18 (Ubuntu 15.18-1.pgdg22.04+1)
+-- Dumped by pg_dump version 15.15 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -6045,14 +6045,6 @@ COPY upchieve.moderation_infractions (id, user_id, session_id, reason, active, c
 
 
 --
--- Data for Name: moderation_penalty_config; Type: TABLE DATA; Schema: upchieve; Owner: admin
---
-
-COPY upchieve.moderation_penalty_config (id, min_weight, max_weight, moderation_type) FROM stdin;
-\.
-
-
---
 -- Data for Name: moderation_rules; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
@@ -6143,6 +6135,16 @@ realtime_image	15	0.75	0
 realtime_image	21	0.85	0
 realtime_image	22	0.85	0
 realtime_image	28	0.50	0
+\.
+
+
+--
+-- Data for Name: moderation_type; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.moderation_type (id, name) FROM stdin;
+1	contextual
+2	realtime_image
 \.
 
 
@@ -9245,17 +9247,17 @@ SELECT pg_catalog.setval('upchieve.moderation_categories_id_seq', 28, true);
 
 
 --
--- Name: moderation_penalty_config_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
---
-
-SELECT pg_catalog.setval('upchieve.moderation_penalty_config_id_seq', 1, false);
-
-
---
 -- Name: moderation_rules_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
 SELECT pg_catalog.setval('upchieve.moderation_rules_id_seq', 1, false);
+
+
+--
+-- Name: moderation_type_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
+--
+
+SELECT pg_catalog.setval('upchieve.moderation_type_id_seq', 2, true);
 
 
 --
@@ -9549,5 +9551,5 @@ SELECT pg_catalog.setval('upchieve.weekdays_id_seq', 1, false);
 -- PostgreSQL database dump complete
 --
 
-\unrestrict P66nbOQbm5Ggy7KO0jBaxVgzDb7TMjeNwlqFQ4bc6KDhYylxtcDz2ZYDGlAAzMe
+\unrestrict DdpaVNvwXrBNyKLGORcaaHSh536rifc6f5bgrz09qKuV19ZplLCtZ2QjtMGwo8G
 

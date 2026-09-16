@@ -1,7 +1,7 @@
-\restrict a0Yhu4TMTrPhrwVEKfOhG8vjQJQyRc4oogLja9tNf2LAHRHgJWBCungFZbZfd8T
+\restrict AKuvtJ8ASfEZr9dle4N53xIxKwrHQTkttcWvUGt5QNNQzv6AYq8vCR6vxXMFD5s
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
--- Dumped by pg_dump version 15.18 (Ubuntu 15.18-1.pgdg22.04+1)
+-- Dumped by pg_dump version 15.15 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -2044,68 +2044,6 @@ COMMENT ON COLUMN upchieve.moderation_infractions.updated_at IS 'not_pii';
 
 
 --
--- Name: moderation_penalty_config; Type: TABLE; Schema: upchieve; Owner: -
---
-
-CREATE TABLE upchieve.moderation_penalty_config (
-    id integer NOT NULL,
-    min_weight integer NOT NULL,
-    max_weight integer NOT NULL,
-    moderation_type upchieve.moderation_types,
-    CONSTRAINT moderation_penalty_min_le_max CHECK ((min_weight <= max_weight))
-);
-
-
---
--- Name: TABLE moderation_penalty_config; Type: COMMENT; Schema: upchieve; Owner: -
---
-
-COMMENT ON TABLE upchieve.moderation_penalty_config IS 'Configuration mapping penalty weight ranges to moderation types';
-
-
---
--- Name: COLUMN moderation_penalty_config.id; Type: COMMENT; Schema: upchieve; Owner: -
---
-
-COMMENT ON COLUMN upchieve.moderation_penalty_config.id IS 'not_pii: Primary key';
-
-
---
--- Name: COLUMN moderation_penalty_config.min_weight; Type: COMMENT; Schema: upchieve; Owner: -
---
-
-COMMENT ON COLUMN upchieve.moderation_penalty_config.min_weight IS 'not_pii: Minimum penalty weight threshold for this config';
-
-
---
--- Name: COLUMN moderation_penalty_config.max_weight; Type: COMMENT; Schema: upchieve; Owner: -
---
-
-COMMENT ON COLUMN upchieve.moderation_penalty_config.max_weight IS 'not_pii: Maximum penalty weight for this config';
-
-
---
--- Name: COLUMN moderation_penalty_config.moderation_type; Type: COMMENT; Schema: upchieve; Owner: -
---
-
-COMMENT ON COLUMN upchieve.moderation_penalty_config.moderation_type IS 'not_pii: Moderation system type (contextual or realtime_image)';
-
-
---
--- Name: moderation_penalty_config_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
---
-
-ALTER TABLE upchieve.moderation_penalty_config ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
-    SEQUENCE NAME upchieve.moderation_penalty_config_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1
-);
-
-
---
 -- Name: moderation_rule_actions; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -2271,6 +2209,51 @@ COMMENT ON COLUMN upchieve.moderation_settings.threshold IS 'not_pii: Confidence
 --
 
 COMMENT ON COLUMN upchieve.moderation_settings.penalty_weight IS 'not_pii: Penalty weight assigned to this moderation rule';
+
+
+--
+-- Name: moderation_type; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.moderation_type (
+    id integer NOT NULL,
+    name text NOT NULL
+);
+
+
+--
+-- Name: TABLE moderation_type; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON TABLE upchieve.moderation_type IS 'Supported moderation system types';
+
+
+--
+-- Name: COLUMN moderation_type.id; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.moderation_type.id IS 'not_pii: Primary key';
+
+
+--
+-- Name: COLUMN moderation_type.name; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.moderation_type.name IS 'not_pii: Moderation system type name';
+
+
+--
+-- Name: moderation_type_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE upchieve.moderation_type ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME upchieve.moderation_type_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
 
 
 --
@@ -11622,22 +11605,6 @@ ALTER TABLE ONLY upchieve.moderation_infractions
 
 
 --
--- Name: moderation_penalty_config moderation_penalty_config_moderation_type_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.moderation_penalty_config
-    ADD CONSTRAINT moderation_penalty_config_moderation_type_key UNIQUE (moderation_type);
-
-
---
--- Name: moderation_penalty_config moderation_penalty_config_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.moderation_penalty_config
-    ADD CONSTRAINT moderation_penalty_config_pkey PRIMARY KEY (id);
-
-
---
 -- Name: moderation_rules moderation_rules_name_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -11651,6 +11618,22 @@ ALTER TABLE ONLY upchieve.moderation_rules
 
 ALTER TABLE ONLY upchieve.moderation_rules
     ADD CONSTRAINT moderation_rules_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: moderation_type moderation_type_name_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.moderation_type
+    ADD CONSTRAINT moderation_type_name_key UNIQUE (name);
+
+
+--
+-- Name: moderation_type moderation_type_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.moderation_type
+    ADD CONSTRAINT moderation_type_pkey PRIMARY KEY (id);
 
 
 --
@@ -15146,7 +15129,7 @@ ALTER TABLE ONLY upchieve.volunteer_references
 -- PostgreSQL database dump complete
 --
 
-\unrestrict a0Yhu4TMTrPhrwVEKfOhG8vjQJQyRc4oogLja9tNf2LAHRHgJWBCungFZbZfd8T
+\unrestrict AKuvtJ8ASfEZr9dle4N53xIxKwrHQTkttcWvUGt5QNNQzv6AYq8vCR6vxXMFD5s
 
 
 --
@@ -15443,4 +15426,6 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260730214144'),
     ('20260731181526'),
     ('20260901134527'),
-    ('20260911141710');
+    ('20260911141710'),
+    ('20260911141711'),
+    ('20260911141712');
