@@ -13,14 +13,10 @@ const sendVerificationCommon = async (
   res: Response
 ): Promise<void> => {
   const user = extractUser(req)
-  const payload = {
-    userId: user.id,
-    firstName: user.firstName,
-    ...req.body,
-  }
+  const data = VerificationService.asInitiateVerificationData(req.body)
 
   try {
-    await VerificationService.initiateVerification(payload as unknown)
+    await VerificationService.initiateVerification(user, data)
     res.sendStatus(200)
   } catch (err) {
     let message =
@@ -66,18 +62,17 @@ export function routeVerify(router: Router) {
 
   router.route('/verify/confirm').post(async function (req, res) {
     const user = extractUser(req)
-    const payload = {
-      userId: user.id,
-      ...req.body,
-    } as unknown
+    const data = VerificationService.asConfirmVerificationData(req.body)
 
     newrelic.addCustomAttribute('role', user.roles.toString())
 
     try {
-      const isVerified = await VerificationService.confirmVerification(payload)
+      const isVerified = await VerificationService.confirmVerification(
+        user,
+        data
+      )
       res.json({ success: isVerified })
     } catch (err) {
-      // custom logging for NR alerts
       logger.error(
         { 'error.name': 'twilio verification', error: err },
         (err as Error).message

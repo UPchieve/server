@@ -16,6 +16,7 @@ import { buildUserContactInfo } from '../mocks/generate'
 import { RoleContext } from '../../services/UserRolesService'
 import { initiateVerification } from '../../services/VerificationService'
 import { faker } from '@faker-js/faker'
+import { UserContactInfo } from '../../models/User'
 
 jest.mock('../../models/User/queries')
 jest.mock('../../clients/twilio')
@@ -32,9 +33,12 @@ const mockedMailService = mocked(MailService)
 const mockLogger = mocked(logger)
 
 describe('VerificationService', () => {
+  const userId = '123'
+  let user: UserContactInfo
+
   beforeEach(async () => {
     jest.resetAllMocks()
-    const userId = '123'
+    user = buildUserContactInfo({ id: userId, firstName: 'Louise' })
     mockedUserRepo.getUserIdByEmail.mockResolvedValue({ id: userId, email: '' })
     mockedUserRepo.getUserIdByPhone.mockResolvedValue(userId)
   })
@@ -52,18 +56,12 @@ describe('VerificationService', () => {
     ])(
       'Should call Twilio to initiate verification when given valid data',
       async (data) => {
-        const req = {
-          userId: '123',
-          firstName: 'Louise',
-          ...data,
-        }
-
-        await VerificationService.initiateVerification(req)
+        await VerificationService.initiateVerification(user, data)
         expect(mockedTwilioClient.sendVerification).toHaveBeenCalledWith(
           data.sendTo,
           data.verificationMethod,
-          req.firstName,
-          req.userId
+          user.firstName,
+          user.id
         )
       }
     )
@@ -79,19 +77,17 @@ describe('VerificationService', () => {
       async (phoneNumber) => {
         const expectedErrorMsg = 'Must supply a valid phone number'
         const req = {
-          userId: '123',
-          firstName: 'Louise',
           verificationMethod: VERIFICATION_METHOD.SMS,
           sendTo: phoneNumber,
         }
 
         await expect(async () =>
-          VerificationService.initiateVerification(req)
+          VerificationService.initiateVerification(user, req)
         ).rejects.toThrow(new InputError(expectedErrorMsg))
         expect(mockLogger.warn).toHaveBeenCalledWith(
           expect.objectContaining({
             sendTo: req.sendTo,
-            userId: req.userId,
+            userId: user.id,
             verificationMethod: req.verificationMethod,
           }),
           'Invalid phone number provided for verification.'
@@ -100,18 +96,17 @@ describe('VerificationService', () => {
     )
 
     it('Should throw an AlreadyInUseError if the user ID from in DB does not match the one in the request', async () => {
+      user = buildUserContactInfo({ id: '456', firstName: 'Louise' })
       const req = {
-        userId: '456',
-        firstName: 'Louise',
         verificationMethod: VERIFICATION_METHOD.EMAIL,
         sendTo: 'louisebelcher@bobsburgers.com',
       }
       await expect(async () =>
-        VerificationService.initiateVerification(req)
+        VerificationService.initiateVerification(user, req)
       ).rejects.toThrow(AlreadyInUseError)
       expect(mockLogger.warn).toHaveBeenCalledWith(
         expect.objectContaining({
-          userId: req.userId,
+          userId: user.id,
           verificationMethod: req.verificationMethod,
           sendTo: req.sendTo,
         }),
@@ -122,17 +117,15 @@ describe('VerificationService', () => {
     it('Should throw a LookupError if the sendTo email does not match the email in DB', async () => {
       mockedUserRepo.getUserIdByEmail.mockResolvedValue(undefined)
       const req = {
-        userId: '123',
-        firstName: 'Louise',
         verificationMethod: VERIFICATION_METHOD.EMAIL,
         sendTo: 'tinabelcher@bobsburgers.com',
       }
       await expect(async () =>
-        VerificationService.initiateVerification(req)
+        VerificationService.initiateVerification(user, req)
       ).rejects.toThrow(LookupError)
       expect(mockLogger.warn).toHaveBeenCalledWith(
         expect.objectContaining({
-          userId: req.userId,
+          userId: user.id,
           verificationMethod: req.verificationMethod,
           sendTo: req.sendTo,
         }),
@@ -144,17 +137,15 @@ describe('VerificationService', () => {
       const expectedErr = new TwilioError('Too many requests', 429)
       mockedTwilioClient.sendVerification.mockRejectedValue(expectedErr)
       const req = {
-        userId: '123',
-        firstName: 'Louise',
         verificationMethod: VERIFICATION_METHOD.SMS,
         sendTo: '+18187764450',
       }
       await expect(() =>
-        VerificationService.initiateVerification(req)
+        VerificationService.initiateVerification(user, req)
       ).rejects.toThrow(expectedErr)
       expect(mockLogger.error).toHaveBeenCalledWith(
         expect.objectContaining({
-          userId: req.userId,
+          userId: user.id,
           verificationMethod: req.verificationMethod,
           sendTo: req.sendTo,
           message: expectedErr.message,
@@ -166,18 +157,15 @@ describe('VerificationService', () => {
 
     it('Should throw an InputError if doing proxy email verification and the proxy email is the same as the regular email', async () => {
       const email = faker.internet.email()
-      const userId = '123'
       mockedUserRepo.getUserIdByEmail.mockResolvedValue({
-        userId,
+        id: userId,
         email: email.toUpperCase(),
       })
       await expect(() =>
-        initiateVerification({
-          userId,
+        initiateVerification(buildUserContactInfo({ id: userId }), {
           sendTo: email,
           verificationMethod: VERIFICATION_METHOD.EMAIL,
           verificationType: VERIFICATION_TYPE.EMAIL_FOR_PROXY_EMAIL,
-          firstName: 'Tina',
         })
       ).rejects.toThrow(
         new InputError(
@@ -190,8 +178,6 @@ describe('VerificationService', () => {
       let req: any
       beforeEach(() => {
         req = {
-          userId: '123',
-          firstName: 'Gene',
           verificationMethod: VERIFICATION_METHOD.SMS,
           sendTo: '+18187764450',
         }
@@ -201,7 +187,7 @@ describe('VerificationService', () => {
         req.verificationMethod = VERIFICATION_METHOD.EMAIL
         req.sendTo = 'bobsburgers@burger.com'
         await expect(
-          VerificationService.initiateVerification(req)
+          VerificationService.initiateVerification(user, req)
         ).resolves.not.toThrow()
       })
     })
@@ -214,7 +200,6 @@ describe('VerificationService', () => {
 
     it("Should update the user's phone number if it has changed, and user is doing SMS verification", async () => {
       const req = {
-        userId: '123',
         sendTo: '+18603334444',
         verificationMethod: VERIFICATION_METHOD.SMS,
         verificationCode: '123456',
@@ -224,9 +209,9 @@ describe('VerificationService', () => {
         contact: oldNumber,
       })
 
-      await VerificationService.confirmVerification(req)
+      await VerificationService.confirmVerification(user, req)
       expect(mockedUserRepo.updateUserVerifiedInfoById).toHaveBeenCalledWith(
-        req.userId,
+        user.id,
         req.sendTo,
         true
       )
@@ -243,13 +228,12 @@ describe('VerificationService', () => {
 
       it('Should send emails if forSignup = true', async () => {
         const req = {
-          userId: '123',
           sendTo: 'tinabelcher@bobsburgers.com',
           verificationMethod: VERIFICATION_METHOD.EMAIL,
           verificationCode: '123456',
           forSignup: true,
         }
-        await VerificationService.confirmVerification(req)
+        await VerificationService.confirmVerification(user, req)
         expect(
           mockedMailService.sendStudentOnboardingWelcomeEmail
         ).toHaveBeenCalled()
@@ -257,12 +241,12 @@ describe('VerificationService', () => {
 
       it('Should default to forSignup = true if undefined', async () => {
         const req = {
-          userId: '123',
           sendTo: 'tinabelcher@bobsburgers.com',
           verificationMethod: VERIFICATION_METHOD.EMAIL,
           verificationCode: '123456',
+          forSignup: undefined,
         }
-        await VerificationService.confirmVerification(req)
+        await VerificationService.confirmVerification(user, req)
         expect(
           mockedMailService.sendStudentOnboardingWelcomeEmail
         ).toHaveBeenCalled()
@@ -270,12 +254,11 @@ describe('VerificationService', () => {
 
       it('Should send emails by default is forSignup is not present in the request', async () => {
         const req = {
-          userId: '123',
           sendTo: 'tinabelcher@bobsburgers.com',
           verificationMethod: VERIFICATION_METHOD.EMAIL,
           verificationCode: '123456',
         }
-        await VerificationService.confirmVerification(req)
+        await VerificationService.confirmVerification(user, req)
         expect(
           mockedMailService.sendStudentOnboardingWelcomeEmail
         ).toHaveBeenCalled()
@@ -283,13 +266,12 @@ describe('VerificationService', () => {
 
       it('Should NOT send emails when forSignup = false', async () => {
         const req = {
-          userId: '123',
           sendTo: 'tinabelcher@bobsburgers.com',
           verificationMethod: VERIFICATION_METHOD.EMAIL,
           verificationCode: '123456',
           forSignup: false,
         }
-        await VerificationService.confirmVerification(req)
+        await VerificationService.confirmVerification(user, req)
         expect(
           mockedMailService.sendStudentOnboardingWelcomeEmail
         ).not.toHaveBeenCalled()
@@ -300,7 +282,6 @@ describe('VerificationService', () => {
       let req: any
       beforeEach(() => {
         req = {
-          userId: '123',
           sendTo: '+18603334444',
           verificationMethod: VERIFICATION_METHOD.SMS,
           verificationCode: '123456',
@@ -311,7 +292,7 @@ describe('VerificationService', () => {
         req.verificationMethod = VERIFICATION_METHOD.EMAIL
         req.sendTo = 'genesmusicshoppe@gene.org'
         await expect(
-          VerificationService.confirmVerification(req)
+          VerificationService.confirmVerification(user, req)
         ).resolves.not.toThrow()
       })
     })

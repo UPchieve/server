@@ -26,25 +26,21 @@ import {
 import isValidInternationalPhoneNumber from '../utils/is-valid-international-phone-number'
 import * as UserService from './UserService'
 import logger from '../logger'
+import { UserContactInfo } from '../models/User'
 
 export interface InitiateVerificationData {
-  userId: Ulid
   sendTo: string
   verificationMethod: VERIFICATION_METHOD
-  firstName: string
   verificationType?: VERIFICATION_TYPE
 }
 
-const asInitiateVerificationData = asFactory<InitiateVerificationData>({
-  userId: asString,
+export const asInitiateVerificationData = asFactory<InitiateVerificationData>({
   sendTo: asString,
   verificationMethod: asEnum(VERIFICATION_METHOD),
-  firstName: asString,
   verificationType: asOptional(asEnum(VERIFICATION_TYPE)),
 })
 
 export interface ConfirmVerificationData {
-  userId: Ulid
   sendTo: string
   verificationMethod: VERIFICATION_METHOD
   verificationCode: string
@@ -52,8 +48,7 @@ export interface ConfirmVerificationData {
   verificationType?: VERIFICATION_TYPE
 }
 
-const asConfirmVerificationData = asFactory<ConfirmVerificationData>({
-  userId: asString,
+export const asConfirmVerificationData = asFactory<ConfirmVerificationData>({
   sendTo: asString,
   verificationMethod: asEnum(VERIFICATION_METHOD),
   verificationCode: asString,
@@ -83,14 +78,16 @@ function getVerificationMethod(
   }
 }
 
-export async function initiateVerification(data: unknown): Promise<void> {
+export async function initiateVerification(
+  user: UserContactInfo,
+  data: InitiateVerificationData
+): Promise<void> {
+  const { id: userId, firstName } = user
   const {
-    userId,
     sendTo,
     verificationMethod: initialVerificationMethod,
     verificationType,
-    firstName,
-  } = asInitiateVerificationData(data)
+  } = data
 
   const verificationMethod = getVerificationMethod(
     verificationType,
@@ -212,15 +209,18 @@ async function sendOnboardingEmails(userId: Ulid): Promise<void> {
   }
 }
 
-export async function confirmVerification(data: unknown): Promise<boolean> {
+export async function confirmVerification(
+  user: UserContactInfo,
+  data: ConfirmVerificationData
+): Promise<boolean> {
+  const userId = user.id
   const {
-    userId,
     sendTo,
     verificationMethod: initialVerificationMethod,
     verificationCode,
     forSignup = true,
     verificationType,
-  } = asConfirmVerificationData(data)
+  } = data
 
   const verificationMethod = getVerificationMethod(
     verificationType,

@@ -32,6 +32,9 @@ jest.mock('newrelic', () => ({
 jest.mock('../../../logger')
 
 const mockedVerificationService = mocked(VerificationService)
+const actualVerificationService = jest.requireActual<
+  typeof VerificationService
+>('../../../services/VerificationService')
 
 let mockUser = buildUser()
 
@@ -63,6 +66,12 @@ describe('routeVerify', () => {
   beforeEach(() => {
     jest.resetAllMocks()
     mockUser = buildUser()
+    mockedVerificationService.asInitiateVerificationData.mockImplementation(
+      actualVerificationService.asInitiateVerificationData
+    )
+    mockedVerificationService.asConfirmVerificationData.mockImplementation(
+      actualVerificationService.asConfirmVerificationData
+    )
   })
 
   describe('POST /api/verify/send', () => {
@@ -76,9 +85,7 @@ describe('routeVerify', () => {
       expect(response.status).toBe(200)
       expect(
         mockedVerificationService.initiateVerification
-      ).toHaveBeenCalledWith({
-        userId: mockUser.id,
-        firstName: mockUser.firstName,
+      ).toHaveBeenCalledWith(mockUser, {
         sendTo: phoneNumber,
         verificationMethod: smsVerificationMethod,
       })
@@ -143,12 +150,9 @@ describe('routeVerify', () => {
       expect(response.status).toBe(200)
       expect(
         mockedVerificationService.initiateVerification
-      ).toHaveBeenCalledWith({
-        userId: mockUser.id,
-        firstName: mockUser.firstName,
+      ).toHaveBeenCalledWith(mockUser, {
         sendTo: phoneNumber,
         verificationMethod: smsVerificationMethod,
-        recaptchaToken: 'token',
       })
     })
 
@@ -207,6 +211,7 @@ describe('routeVerify', () => {
       )
 
       const response = await sendPost('/api/verify/confirm', {
+        sendTo: phoneNumber,
         verificationCode,
         verificationMethod: smsVerificationMethod,
       })
@@ -217,8 +222,8 @@ describe('routeVerify', () => {
       )
       expect(
         mockedVerificationService.confirmVerification
-      ).toHaveBeenCalledWith({
-        userId: mockUser.id,
+      ).toHaveBeenCalledWith(mockUser, {
+        sendTo: phoneNumber,
         verificationCode,
         verificationMethod: smsVerificationMethod,
       })
@@ -231,6 +236,7 @@ describe('routeVerify', () => {
       )
 
       const response = await sendPost('/api/verify/confirm', {
+        sendTo: phoneNumber,
         verificationCode,
         verificationMethod: smsVerificationMethod,
       })
@@ -246,6 +252,7 @@ describe('routeVerify', () => {
       )
 
       const response = await sendPost('/api/verify/confirm', {
+        sendTo: phoneNumber,
         verificationCode,
         verificationMethod: smsVerificationMethod,
       })
