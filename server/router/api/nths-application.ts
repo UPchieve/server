@@ -2,6 +2,7 @@ import { Request, Response, Router } from 'express'
 import { extractUser } from '../extract-user'
 import { resError } from '../res-error'
 import * as NTHSApplicationService from '../../services/NTHSApplicationService'
+import * as FeatureFlagService from '../../services/FeatureFlagService'
 import { toNTHSCandidateApplicationPublic } from '../../public/nths'
 import type {
   NTHSApplicationEligibilityResponse,
@@ -65,13 +66,19 @@ export function routeNTHSApplication(router: Router): void {
       ) => {
         try {
           const user = extractUser(req)
-          const { eligible, reasons, currentGradeName } =
+          const { eligible, reasons, currentGradeName, applyPreview } =
             await NTHSApplicationService.getApplicationEligibility(user.id)
+          // Every signed-in user hits this route at app load, so PostHog is only asked
+          // about coaches in the preview audience.
+          const previewEnabled = applyPreview
+            ? await FeatureFlagService.isNTHSApplyPreviewPageEnabled(user.id)
+            : false
           res.json({
             eligible,
             reasons:
               NTHSApplicationService.clientSafeIneligibilityReasons(reasons),
             currentGradeName,
+            applyPreview: previewEnabled ? applyPreview : undefined,
           })
         } catch (error) {
           resError(res, error)

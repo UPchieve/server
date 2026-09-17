@@ -14,7 +14,8 @@ export const client = isValidConfigToken(config.posthogToken)
       featureFlagsPollingInterval: ONE_MINUTE_IN_MS,
     })
   : {
-      isFeatureEnabled: async () => false,
+      isFeatureEnabled: async (flag: string) =>
+        config.posthogLocalFlags.includes(flag),
       getFeatureFlagPayload: async () => '',
       getFeatureFlag: async () => '',
       getAllFlagsAndPayloads: async () => {

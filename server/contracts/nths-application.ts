@@ -1,4 +1,7 @@
-import { NTHSApplicationIneligibilityReason } from '../models/NTHSApplication/types'
+import {
+  NTHSApplicationIneligibilityReason,
+  NTHSApplyPreview,
+} from '../models/NTHSApplication/types'
 import { NTHSCandidateApplicationStatus } from '../models/NTHSGroups/types'
 import { ISODateString } from '../types/dates'
 import { Uuid } from '../types/shared'
@@ -35,4 +38,6 @@ export type NTHSApplicationEligibilityResponse = {
   // Advanced by academic year from the stored grade, so the form can preselect
   // it. Absent when the applicant has no grade on file.
   currentGradeName?: string
+  // Present only for a coach in the preview audience while the preview switch is on.
+  applyPreview?: NTHSApplyPreview
 }

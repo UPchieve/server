@@ -353,6 +353,8 @@ const config = {
   posthogPersonalApiToken:
     process.env.SUBWAY_POSTHOG_PERSONAL_API_TOKEN || 'bogus',
   posthogProjectId: process.env.SUBWAY_POSTHOG_PROJECT_ID || 'bogus',
+  // Flags isFeatureEnabled reports as on when there is no real PostHog token.
+  posthogLocalFlags: (process.env.SUBWAY_POSTHOG_LOCAL_FLAGS || '').split(','),
 
   /**
    *

@@ -15,7 +15,7 @@ import type {
   NTHSCandidate,
 } from './types'
 import { NTHSCandidateApplicationStatus } from '../NTHSGroups/types'
-import { USER_ACTION } from '../../constants/user'
+import { PHOTO_ID_STATUS, USER_ACTION } from '../../constants/user'
 
 const NON_NULL_COLUMNS = [
   'id',
@@ -115,6 +115,7 @@ export async function getCandidateApplicationEligibility(
       isActiveChapterMember: !!row.isActiveChapterMember,
       hasPreviousApplication: !!row.hasPreviousApplication,
       currentGradeName: row.currentGradeName,
+      photoIdStatus: row.photoIdStatus as PHOTO_ID_STATUS | undefined,
     }
   } catch (err) {
     throw new RepoReadError(err)

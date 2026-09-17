@@ -10,13 +10,16 @@ import { getName } from '../mocks/generate'
 import { createTestUser, createTestVolunteer } from './seed-utils'
 import * as NTHSApplicationService from '../../services/NTHSApplicationService'
 import * as NTHSApplicationRepo from '../../models/NTHSApplication'
+import * as VolunteerRepo from '../../models/Volunteer'
 import * as NTHSGroupsService from '../../services/NTHSGroupsService'
 import {
   NTHSApplicationIneligibilityReason,
   NTHSApplicationNotEligibleError,
+  NTHSApplyRequirementStatus,
 } from '../../services/NTHSApplicationService'
+import type { NTHSApplyPreview } from '../../services/NTHSApplicationService'
 import { NTHSCandidateApplicationStatus } from '../../models/NTHSGroups'
-import { GRADES, USER_BAN_TYPES } from '../../constants/user'
+import { GRADES, PHOTO_ID_STATUS, USER_BAN_TYPES } from '../../constants/user'
 import {
   InputError,
   NotAllowedError,
@@ -638,6 +641,184 @@ describe('getApplicationEligibility', () => {
 
     expect(eligible).toBe(true)
     expect(reasons).toEqual([])
+  })
+
+  describe('apply preview', () => {
+    const { done, outstanding, inReview } = NTHSApplyRequirementStatus
+
+    const PREVIEW_AUDIENCE: CoachOverrides = {
+      onboarded: false,
+      withSession: false,
+    }
+
+    // Pinned before applications close, after which no coach gets a preview.
+    let clock: jest.SpyInstance<number, []>
+    beforeEach(() => {
+      clock = jest
+        .spyOn(Date, 'now')
+        .mockReturnValue(Date.parse('2026-09-15T12:00:00-04:00'))
+    })
+    afterEach(() => clock.mockRestore())
+
+    async function applyPreviewOf(userId: Ulid) {
+      const { applyPreview } =
+        await NTHSApplicationService.getApplicationEligibility(userId)
+      return applyPreview
+    }
+
+    async function joinAChapter(userId: Ulid) {
+      const president = await createEligibleCoach()
+      await submit(president)
+      await decide(president, NTHSCandidateApplicationStatus.approved)
+      const group = await NTHSGroupsService.foundGroup(president)
+      await NTHSGroupsService.joinGroupAsMemberByGroupId(
+        userId,
+        group.groupInfo.id
+      )
+    }
+
+    test.each<{
+      coach: string
+      overrides: CoachOverrides
+      prepare?: (userId: Ulid) => Promise<void>
+      requirements: NTHSApplyPreview['requirements']
+    }>([
+      {
+        coach: 'a high school coach who has done nothing yet',
+        overrides: { onboarded: false, approved: false, withSession: false },
+        requirements: {
+          training: outstanding,
+          safetyReview: outstanding,
+          firstSession: outstanding,
+        },
+      },
+      {
+        coach: 'a trained coach whose safety review is submitted',
+        overrides: { approved: false, withSession: false },
+        prepare: (userId) =>
+          VolunteerRepo.updateVolunteerPending(
+            userId,
+            false,
+            PHOTO_ID_STATUS.SUBMITTED
+          ),
+        requirements: {
+          training: done,
+          safetyReview: inReview,
+          firstSession: outstanding,
+        },
+      },
+      {
+        coach: 'an approved coach with no sessions',
+        overrides: { withSession: false },
+        requirements: {
+          training: done,
+          safetyReview: done,
+          firstSession: outstanding,
+        },
+      },
+      {
+        coach: 'an approved coach whose only session never ran',
+        overrides: { timeTutored: 0 },
+        requirements: {
+          training: done,
+          safetyReview: done,
+          firstSession: outstanding,
+        },
+      },
+      {
+        coach: 'a former chapter member who has not finished training',
+        overrides: { onboarded: false },
+        prepare: async (userId) => {
+          await joinAChapter(userId)
+          await deactivateMembership(userId)
+        },
+        requirements: {
+          training: outstanding,
+          safetyReview: done,
+          firstSession: done,
+        },
+      },
+    ])(
+      'gives a preview to $coach',
+      async ({ overrides, prepare, requirements }) => {
+        const userId = await createEligibleCoach(overrides)
+        await prepare?.(userId)
+
+        expect((await applyPreviewOf(userId))?.requirements).toEqual(
+          requirements
+        )
+      }
+    )
+
+    test.each<{
+      coach: string
+      overrides: CoachOverrides
+      prepare?: (userId: Ulid) => Promise<void>
+    }>([
+      { coach: 'a coach who meets every requirement', overrides: {} },
+      {
+        coach: 'a coach who is not in high school',
+        overrides: {
+          ...PREVIEW_AUDIENCE,
+          occupation: 'An undergraduate student',
+        },
+      },
+      {
+        coach: 'an active chapter member',
+        overrides: PREVIEW_AUDIENCE,
+        prepare: joinAChapter,
+      },
+    ])('withholds the preview from $coach', async ({ overrides, prepare }) => {
+      const userId = await createEligibleCoach(overrides)
+      await prepare?.(userId)
+
+      expect(await applyPreviewOf(userId)).toBeUndefined()
+    })
+
+    test.each([
+      NTHSCandidateApplicationStatus.applied,
+      NTHSCandidateApplicationStatus.approved,
+      NTHSCandidateApplicationStatus.denied,
+    ])(
+      'withholds the preview from a coach with a past %s application',
+      async (status) => {
+        const userId = await createEligibleCoach(PREVIEW_AUDIENCE)
+        await insertApplicationRow(userId, status)
+
+        expect(await applyPreviewOf(userId)).toBeUndefined()
+      }
+    )
+
+    test.each(Object.values(USER_BAN_TYPES))(
+      'withholds the preview from a coach with a %s ban',
+      async (banType) => {
+        const userId = await createEligibleCoach({
+          ...PREVIEW_AUDIENCE,
+          banType,
+        })
+
+        expect(await applyPreviewOf(userId)).toBeUndefined()
+      }
+    )
+
+    test('gives a preview a minute before applications close, with the close time', async () => {
+      const userId = await createEligibleCoach(PREVIEW_AUDIENCE)
+      clock.mockReturnValue(Date.parse('2026-09-30T23:58:00-04:00'))
+
+      expect((await applyPreviewOf(userId))?.closesAt).toBe(
+        '2026-10-01T03:59:00.000Z'
+      )
+    })
+
+    test.each([
+      ['the moment applications close', '2026-09-30T23:59:00-04:00'],
+      ['after applications have closed', '2026-10-15T12:00:00-04:00'],
+    ])('withholds the preview %s', async (_label, now) => {
+      const userId = await createEligibleCoach(PREVIEW_AUDIENCE)
+      clock.mockReturnValue(Date.parse(now))
+
+      expect(await applyPreviewOf(userId)).toBeUndefined()
+    })
   })
 })
 

@@ -1,5 +1,6 @@
 import { NTHSCandidateApplicationStatus } from '../NTHSGroups/types'
-import { USER_BAN_TYPES } from '../../constants/user'
+import { PHOTO_ID_STATUS, USER_BAN_TYPES } from '../../constants/user'
+import { ISODateString } from '../../types/dates'
 import { Ulid, Uuid } from '../pgUtils'
 
 export enum NTHSApplicationIneligibilityReason {
@@ -22,6 +23,22 @@ export type NTHSApplicationEligibilityFacts = {
   isActiveChapterMember: boolean
   hasPreviousApplication: boolean
   currentGradeName?: string
+  photoIdStatus?: PHOTO_ID_STATUS
+}
+
+export enum NTHSApplyRequirementStatus {
+  done = 'done',
+  outstanding = 'outstanding',
+  inReview = 'inReview',
+}
+
+export type NTHSApplyPreview = {
+  closesAt: ISODateString
+  requirements: {
+    training: NTHSApplyRequirementStatus
+    safetyReview: NTHSApplyRequirementStatus
+    firstSession: NTHSApplyRequirementStatus
+  }
 }
 
 export type NTHSApplicationResponses = Record<string, unknown>

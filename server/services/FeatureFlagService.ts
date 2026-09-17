@@ -182,6 +182,10 @@ export async function getPhotoDnaMatchCheckFlag(userId: Uuid) {
   return isFeatureEnabled(FEATURE_FLAGS.PHOTODNA_MATCH_CHECK, userId)
 }
 
+export async function isNTHSApplyPreviewPageEnabled(userId: Uuid) {
+  return isFeatureEnabled(FEATURE_FLAGS.NTHS_APPLY_PREVIEW_PAGE, userId)
+}
+
 export async function blockSessionImageUpload(userId: Uuid) {
   return isFeatureEnabled(FEATURE_FLAGS.BLOCK_SESSION_IMAGE_UPLOAD, userId)
 }

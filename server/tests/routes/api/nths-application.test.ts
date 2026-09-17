@@ -4,6 +4,7 @@ import { mockApp, mockPassportMiddleware, mockRouter } from '../../mock-app'
 import { buildVolunteer } from '../../mocks/generate'
 import { routeNTHSApplication } from '../../../router/api/nths-application'
 import * as NTHSApplicationService from '../../../services/NTHSApplicationService'
+import * as FeatureFlagService from '../../../services/FeatureFlagService'
 import { NTHSApplicationNotEligibleError } from '../../../services/NTHSApplicationService'
 import { NTHSCandidateApplication } from '../../../models/NTHSApplication'
 import { NTHSCandidateApplicationStatus } from '../../../models/NTHSGroups'
@@ -20,8 +21,10 @@ jest.mock('../../../services/NTHSApplicationService', () => {
     getLatestCandidateApplication: jest.fn(),
   }
 })
+jest.mock('../../../services/FeatureFlagService')
 
 const mockedService = mocked(NTHSApplicationService)
+const mockedFeatureFlagService = mocked(FeatureFlagService)
 
 let mockUser = buildVolunteer()
 
@@ -303,5 +306,70 @@ describe('GET /api/nths-application/eligibility', () => {
 
     expect(response.status).toBe(401)
     expect(mockedService.getApplicationEligibility).not.toHaveBeenCalled()
+  })
+
+  test('skips the preview switch lookup for a user without a preview', async () => {
+    mockedService.getApplicationEligibility.mockResolvedValueOnce({
+      eligible: true,
+      reasons: [],
+    })
+
+    await authedAgent.get('/api/nths-application/eligibility')
+
+    expect(
+      mockedFeatureFlagService.isNTHSApplyPreviewPageEnabled
+    ).not.toHaveBeenCalled()
+  })
+
+  describe('apply preview', () => {
+    const APPLY_PREVIEW = {
+      closesAt: '2026-10-01T03:59:00.000Z',
+      requirements: {
+        training: NTHSApplicationService.NTHSApplyRequirementStatus.done,
+        safetyReview:
+          NTHSApplicationService.NTHSApplyRequirementStatus.inReview,
+        firstSession:
+          NTHSApplicationService.NTHSApplyRequirementStatus.outstanding,
+      },
+    }
+
+    beforeEach(() => {
+      mockedService.getApplicationEligibility.mockResolvedValueOnce({
+        eligible: false,
+        reasons: [
+          NTHSApplicationService.NTHSApplicationIneligibilityReason.notApproved,
+          NTHSApplicationService.NTHSApplicationIneligibilityReason
+            .noCompletedSessions,
+        ],
+        currentGradeName: '11th',
+        applyPreview: APPLY_PREVIEW,
+      })
+    })
+
+    test('includes the apply preview while the preview switch is on', async () => {
+      mockedFeatureFlagService.isNTHSApplyPreviewPageEnabled.mockResolvedValue(
+        true
+      )
+
+      const response = await authedAgent.get(
+        '/api/nths-application/eligibility'
+      )
+
+      expect(response.status).toBe(200)
+      expect(response.body.applyPreview).toEqual(APPLY_PREVIEW)
+    })
+
+    test('leaves the apply preview out while the preview switch is off', async () => {
+      mockedFeatureFlagService.isNTHSApplyPreviewPageEnabled.mockResolvedValue(
+        false
+      )
+
+      const response = await authedAgent.get(
+        '/api/nths-application/eligibility'
+      )
+
+      expect(response.status).toBe(200)
+      expect(response.body).not.toHaveProperty('applyPreview')
+    })
   })
 })

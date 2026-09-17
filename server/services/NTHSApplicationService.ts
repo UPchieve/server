@@ -1,9 +1,14 @@
 import { Ulid, Uuid } from '../models/pgUtils'
 import * as NTHSApplicationRepo from '../models/NTHSApplication'
 import * as NTHSGroupsRepo from '../models/NTHSGroups'
-import { NTHSApplicationIneligibilityReason } from '../models/NTHSApplication'
+import {
+  NTHSApplicationIneligibilityReason,
+  NTHSApplyRequirementStatus,
+} from '../models/NTHSApplication'
 import type {
+  NTHSApplicationEligibilityFacts,
   NTHSApplicationResponses,
+  NTHSApplyPreview,
   NTHSCandidateApplication,
   NTHSUnlistedSchool,
 } from '../models/NTHSApplication'
@@ -12,7 +17,7 @@ import { VolunteerOccupations } from '../models/Volunteer'
 import * as UsersGradeLevelsRepo from '../models/UsersGradeLevels'
 import * as UsersSchoolsRepo from '../models/UsersSchools'
 import { getSchoolById } from '../models/School'
-import { GRADES, USER_BAN_TYPES } from '../constants/user'
+import { GRADES, PHOTO_ID_STATUS, USER_BAN_TYPES } from '../constants/user'
 import { US_STATE_CODES } from '../constants/geography'
 import { isHighSchoolGrade } from '../utils/grade-levels'
 import { getRoClient, runInTransaction, TransactionClient } from '../db'
@@ -22,7 +27,8 @@ import {
   NTHSApplicationExistsError,
 } from '../models/Errors'
 
-export { NTHSApplicationIneligibilityReason }
+export { NTHSApplicationIneligibilityReason, NTHSApplyRequirementStatus }
+export type { NTHSApplyPreview }
 
 export const CURRENT_NTHS_APPLICATION_FORM_VERSION = 1
 
@@ -180,6 +186,8 @@ export type NTHSApplicationEligibility = {
   eligible: boolean
   reasons: NTHSApplicationIneligibilityReason[]
   currentGradeName?: string
+  // The eligibility route applies the preview switch before this reaches a client.
+  applyPreview?: NTHSApplyPreview
 }
 
 // The message stays generic: naming the reasons would tell a shadow-banned user
@@ -188,6 +196,45 @@ export class NTHSApplicationNotEligibleError extends CaughtError {
   readonly httpStatus = 403
   readonly defaultClientMessage =
     'You are not currently eligible to apply to start an NTHS chapter'
+}
+
+// Reasons a candidate can still clear on their own.
+const APPLY_PREVIEW_REASONS = [
+  NTHSApplicationIneligibilityReason.notOnboarded,
+  NTHSApplicationIneligibilityReason.notApproved,
+  NTHSApplicationIneligibilityReason.noCompletedSessions,
+]
+
+const FOUNDING_PRESIDENT_APPLICATIONS_CLOSE_AT = new Date(
+  '2026-09-30T23:59:00-04:00'
+)
+
+function applyPreviewFor(
+  facts: NTHSApplicationEligibilityFacts,
+  reasons: NTHSApplicationIneligibilityReason[]
+): NTHSApplyPreview | undefined {
+  if (Date.now() >= FOUNDING_PRESIDENT_APPLICATIONS_CLOSE_AT.getTime()) return
+  // Any ban hides the preview, including live_media, which the banned reason skips.
+  if (facts.banType) return
+  if (!reasons.length) return
+  if (!reasons.every((reason) => APPLY_PREVIEW_REASONS.includes(reason))) return
+
+  return {
+    closesAt: FOUNDING_PRESIDENT_APPLICATIONS_CLOSE_AT.toISOString(),
+    requirements: {
+      training: facts.onboarded
+        ? NTHSApplyRequirementStatus.done
+        : NTHSApplyRequirementStatus.outstanding,
+      safetyReview: facts.approved
+        ? NTHSApplyRequirementStatus.done
+        : facts.photoIdStatus === PHOTO_ID_STATUS.SUBMITTED
+          ? NTHSApplyRequirementStatus.inReview
+          : NTHSApplyRequirementStatus.outstanding,
+      firstSession: facts.hasCompletedSession
+        ? NTHSApplyRequirementStatus.done
+        : NTHSApplyRequirementStatus.outstanding,
+    },
+  }
 }
 
 // TODO: block when the applicant's school already has an active chapter. The
@@ -234,6 +281,7 @@ export async function getApplicationEligibility(
     eligible: reasons.length === 0,
     reasons,
     currentGradeName: facts.currentGradeName,
+    applyPreview: applyPreviewFor(facts, reasons),
   }
 }
 
