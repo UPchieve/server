@@ -216,30 +216,62 @@ describe('registerStudent', () => {
 
   test('creates user with fed cred', async () => {
     const USER_ID = 'registerStudentWithFedCred'
-    const student = buildStudent({
-      password: undefined,
-      profileId: 'profile-id',
-      issuer: 'google',
-    })
+    const student = buildStudent({ password: undefined })
+    const fedCred = { profileId: 'profile-id', issuer: 'google' }
     mockCreatedUser(student, { id: USER_ID })
 
-    await registerStudent(student)
+    await registerStudent(student, fedCred)
 
     expect(mockedUserRepo.createUser).toHaveBeenCalledWith(
       expect.objectContaining({
-        issuer: student.issuer,
-        profileId: student.profileId,
         emailVerified: true,
         verified: true,
       }),
       expect.toBeTransactionClient()
     )
     expect(mockedFedCredRepo.insertFederatedCredential).toHaveBeenCalledWith(
-      student.profileId,
-      student.issuer,
+      fedCred.profileId,
+      fedCred.issuer,
       USER_ID,
       expect.toBeTransactionClient()
     )
+  })
+
+  test('ignores fed cred fields the user supplied in the  payload', async () => {
+    const USER_ID = 'registerStudentSmuggledFedCred'
+    const student = buildStudent({
+      profileId: 'attacker-supplied-profile-id',
+      issuer: 'https://accounts.google.com',
+    })
+    mockCreatedUser(student, { id: USER_ID })
+
+    await registerStudent(student)
+
+    expect(mockedUserRepo.createUser).toHaveBeenCalledWith(
+      {
+        email: student.email,
+        emailVerified: false,
+        firstName: student.firstName,
+        lastName: student.lastName,
+        password: HASHED_PASSWORD_RESOLVED,
+        verified: false,
+      },
+      expect.toBeTransactionClient()
+    )
+    expect(mockedFedCredRepo.insertFederatedCredential).not.toHaveBeenCalled()
+  })
+
+  test('throws if fed cred fields user-supplied payload are the only auth method', async () => {
+    await expect(
+      registerStudent(
+        buildStudent({
+          password: undefined,
+          profileId: 'attacker-supplied-profile-id',
+          issuer: 'https://accounts.google.com',
+        })
+      )
+    ).rejects.toThrow(new InputError('No authentication method provided.'))
+    expect(mockedUserRepo.createUser).not.toHaveBeenCalled()
   })
 
   test('creates user with linked class if class code available', async () => {
@@ -717,6 +749,31 @@ describe('registerTeacher', () => {
     )
     expect(mockedAuthUtils.checkPassword).toHaveBeenCalledWith(data.password)
     expect(mockedAuthService.checkUser).toHaveBeenCalledWith(data.email)
+  })
+
+  test('ignores fed cred fields the user supplied in the payload', async () => {
+    const data = buildTeacher({
+      profileId: 'attacker-supplied-profile-id',
+      issuer: 'https://accounts.google.com',
+    })
+    mockCreatedUser(data, { id: 'teacherSmuggledFedCred' })
+
+    await registerTeacher(data)
+
+    expect(mockedUserRepo.createUser).toHaveBeenCalledWith(
+      {
+        email: data.email,
+        emailVerified: false,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        otherSignupSource: undefined,
+        password: HASHED_PASSWORD_RESOLVED,
+        signupSourceId: OTHER_SIGNUP_SOURCE_ID,
+        verified: false,
+      },
+      expect.toBeTransactionClient()
+    )
+    expect(mockedFedCredRepo.insertFederatedCredential).not.toHaveBeenCalled()
   })
 
   test('creates teacher', async () => {

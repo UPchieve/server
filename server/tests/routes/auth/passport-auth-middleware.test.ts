@@ -196,11 +196,13 @@ describe('SSO signup takes the account identity from the provider', () => {
         email: PROVIDER_EMAIL,
         firstName: 'Ada',
         lastName: 'Lovelace',
-        issuer: CLEVER_STUDENT_PROFILE.issuer,
-        profileId: CLEVER_STUDENT_PROFILE.id,
         gradeLevel: '10th',
         studentPartnerOrgKey: 'partner-org',
-      })
+      }),
+      {
+        issuer: CLEVER_STUDENT_PROFILE.issuer,
+        profileId: CLEVER_STUDENT_PROFILE.id,
+      }
     )
     expect(done).toHaveBeenCalledWith(null, NEW_STUDENT)
   })
@@ -240,11 +242,10 @@ describe('SSO signup takes the account identity from the provider', () => {
         email: PROVIDER_EMAIL,
         firstName: 'Ada',
         lastName: 'Lovelace',
-        issuer: GOOGLE_ISSUER,
-        profileId: GOOGLE_PROFILE.id,
         gradeLevel: '10th',
         studentPartnerOrgKey: 'partner-org',
-      })
+      }),
+      { issuer: GOOGLE_ISSUER, profileId: GOOGLE_PROFILE.id }
     )
     expect(done).toHaveBeenCalledWith(null, NEW_STUDENT)
   })

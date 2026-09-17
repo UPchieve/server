@@ -15,14 +15,11 @@ import {
   buildCreatedVolunteer,
   buildLegacyUser,
   buildRegisterUser,
-  buildStudent,
   buildStudentPartnerOrg,
   buildUser,
-  buildVolunteer,
   buildVolunteerPartnerOrg,
   getEmail,
   getLastName,
-  getPhoneNumber,
   serializeRoleContext,
 } from '../../mocks/generate'
 import { mockApp, mockPassportMiddleware } from '../../mock-app'
@@ -352,6 +349,29 @@ describe('AuthRouter.routes', () => {
       expect(asyncLogin).not.toHaveBeenCalled()
       expect(response.body).toEqual({ user: student })
     })
+
+    test('does not forward request profileId/issuer to registerStudent', async () => {
+      const student = buildRegisterUser({ userType: 'student' })
+      mockedUserCreationService.registerStudent.mockResolvedValueOnce(student)
+
+      const response = await sendPost('/register/student', {
+        email: student.email,
+        firstName: student.firstName,
+        lastName: getLastName(),
+        password,
+        profileId: 'attacker-supplied-profile-id',
+        issuer: 'https://accounts.google.com',
+      })
+      expect(response.status).toBe(200)
+      expect(mockedUserCreationService.registerStudent).toHaveBeenCalledTimes(1)
+      const [data, fedCred] =
+        mockedUserCreationService.registerStudent.mock.calls[0]
+      // @ts-ignore
+      expect(data.profileId).toBeUndefined()
+      // @ts-ignore
+      expect(data.issuer).toBeUndefined()
+      expect(fedCred).toBeUndefined()
+    })
   })
 
   describe('POST /auth/register/student/open', () => {
@@ -416,6 +436,29 @@ describe('AuthRouter.routes', () => {
       expect(response.body).toEqual({
         user: teacher,
       })
+    })
+
+    test('does not forward request profileId/issuer to registerTeacher', async () => {
+      const teacher = buildRegisterUser({ userType: 'teacher' })
+      mockedUserCreationService.registerTeacher.mockResolvedValueOnce(teacher)
+
+      const response = await sendPost('/register/teacher', {
+        email: teacher.email,
+        firstName: teacher.firstName,
+        lastName: getLastName(),
+        password,
+        profileId: 'attacker-supplied-profile-id',
+        issuer: 'https://accounts.google.com',
+      })
+      expect(response.status).toBe(200)
+      expect(mockedUserCreationService.registerTeacher).toHaveBeenCalledTimes(1)
+      const [data, fedCred] =
+        mockedUserCreationService.registerTeacher.mock.calls[0]
+      // @ts-ignore
+      expect(data.profileId).toBeUndefined()
+      // @ts-ignore
+      expect(data.issuer).toBeUndefined()
+      expect(fedCred).toBeUndefined()
     })
   })
 

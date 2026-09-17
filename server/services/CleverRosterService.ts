@@ -320,12 +320,14 @@ export async function findOrCreateUpchieveStudent(
   const data = {
     email: cleverStudent.email,
     firstName: cleverStudent.name.first,
-    issuer: FederatedCredentialService.Issuer.CLEVER,
     lastName: cleverStudent.name.last,
-    profileId: cleverStudent.id,
     schoolId: schoolId,
   }
-  return UserCreationService.registerStudent(data)
+  const fedCred = {
+    profileId: cleverStudent.id,
+    issuer: FederatedCredentialService.Issuer.CLEVER,
+  }
+  return UserCreationService.registerStudent(data, fedCred)
 }
 
 // Exported for testing.

@@ -64,18 +64,24 @@ export interface SessionWithSsoData extends session.Session {
   }
 }
 
+// Use Federated Credentials to identify a user via an external provider (i.e. SSO).
+// These values should only ever come _from_ those providers, never the client
+// directly.
+export interface FedCred {
+  profileId: string
+  issuer: string
+}
+
 export interface RegisterStudentPayload {
   classCode?: string
   email: string
   firstName: string
   gradeLevel?: string
   ip?: string
-  issuer?: string
   lastName: string
   otherSignupSource?: string
   password?: string
   parentGuardianEmail?: string
-  profileId?: string
   referredByCode?: string
   signupSourceId?: number
   schoolId?: string
@@ -90,12 +96,10 @@ export const registerStudentValidator = asFactory<RegisterStudentPayload>({
   firstName: asString,
   gradeLevel: asOptional(asEnum(GRADES)),
   ip: asOptional(asString),
-  issuer: asOptional(asString),
   lastName: asString,
   otherSignupSource: asOptional(asString),
   password: asOptional(asString),
   parentGuardianEmail: asOptional(asString),
-  profileId: asOptional(asString),
   referredByCode: asOptional(asString),
   schoolId: asOptional(asString),
   signupSourceId: asOptional(asNumber),
@@ -105,20 +109,12 @@ export const registerStudentValidator = asFactory<RegisterStudentPayload>({
   phId: asOptional(asString),
 })
 export interface RegisterStudentWithPasswordPayload
-  extends Omit<
-    RegisterStudentPayload,
-    'parentGuardianEmail' | 'issuer' | 'profileId'
-  > {
+  extends Omit<RegisterStudentPayload, 'parentGuardianEmail'> {
   password: string
 }
 export interface RegisterStudentWithPGPayload
-  extends Omit<RegisterStudentPayload, 'password' | 'issuer' | 'profileId'> {
+  extends Omit<RegisterStudentPayload, 'password'> {
   parentGuardianEmail: string
-}
-export interface RegisterStudentWithFedCredPayload
-  extends Omit<RegisterStudentPayload, 'password' | 'parentGuardianEmail'> {
-  issuer: string
-  profileId: string
 }
 
 interface UserRegData {
@@ -207,10 +203,8 @@ export interface RegisterTeacherPayload {
   email: string
   firstName: string
   ip?: string
-  issuer?: string
   lastName: string
   password?: string
-  profileId?: string
   schoolId?: string
   signupSource?: string
 }
@@ -218,10 +212,8 @@ export const registerTeacherValidator = asFactory<RegisterTeacherPayload>({
   email: asString,
   firstName: asString,
   ip: asString,
-  issuer: asOptional(asString),
   lastName: asString,
   password: asString,
-  profileId: asOptional(asString),
   schoolId: asOptional(asString),
   signupSource: asOptional(asString),
 })
@@ -230,10 +222,8 @@ export interface RegisterVolunteerPayload {
   email: string
   firstName: string
   ip?: string
-  issuer?: string
   lastName: string
   password?: string
-  profileId?: string
   signupSourceId?: number
   otherSignupSource?: string
   referredByCode?: string
@@ -246,10 +236,8 @@ export const registerVolunteerValidator = asFactory<RegisterVolunteerPayload>({
   email: asString,
   firstName: asString,
   ip: asOptional(asString),
-  issuer: asOptional(asString),
   lastName: asString,
   password: asString,
-  profileId: asOptional(asString),
   signupSourceId: asOptional(asNumber),
   otherSignupSource: asOptional(asString),
   referredByCode: asOptional(asString),

@@ -351,12 +351,12 @@ describe('rosterTeacherClasses', () => {
       mockedStudentService.getStudentByEmail.mockResolvedValue(undefined)
       mockedTeacherService.getTeacherClasses.mockResolvedValue([])
       mockedUserCreationService.registerStudent.mockImplementation(
-        async (data) => {
+        async (data, fedCred) => {
           // Clever names like "J.Bell" fail name validation.
           if (data.lastName?.includes('.'))
             throw new Error('Names cannot contain a URL')
           return {
-            id: `uc-${data.profileId}`,
+            id: `uc-${fedCred?.profileId}`,
             isAdmin: false,
             userType: 'student',
             firstName: 'any',
@@ -554,11 +554,13 @@ describe('rosterTeacherClasses', () => {
         expect.objectContaining({
           email: cleverStudent.email,
           firstName: cleverStudent.name.first,
-          issuer: expect.any(String),
           lastName: cleverStudent.name.last,
-          profileId: cleverStudent.id,
           schoolId: 'school-id',
-        })
+        }),
+        {
+          issuer: FederatedCredentialService.Issuer.CLEVER,
+          profileId: cleverStudent.id,
+        }
       )
     })
   })

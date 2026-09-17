@@ -5,9 +5,9 @@ import {
   checkPassword,
   checkValidPartnerEmailAddress,
   createResetToken,
+  FedCred,
   hashPassword,
   RegisterStudentPayload,
-  RegisterStudentWithFedCredPayload,
   RegisterStudentWithPasswordPayload,
   RegisterStudentWithPGPayload,
   RegisterTeacherPayload,
@@ -288,7 +288,10 @@ export async function rosterPartnerStudents(
   }
 }
 
-export async function verifyStudentData(data: RegisterStudentPayload) {
+export async function verifyStudentData(
+  data: RegisterStudentPayload,
+  fedCred?: FedCred
+) {
   await checkEmail(data.email)
   checkNames(data.firstName, data.lastName)
   await AuthService.checkUser(data.email)
@@ -301,12 +304,13 @@ export async function verifyStudentData(data: RegisterStudentPayload) {
   if (data.ip && !data.studentPartnerOrgKey) {
     await AuthService.checkIpAddress(data.ip)
   }
-  if (!usePassword(data) && !useResetToken(data) && !useFedCred(data)) {
+  if (!usePassword(data) && !useResetToken(data) && !fedCred) {
     throw new InputError('No authentication method provided.')
   }
 }
 export async function registerStudent(
   data: RegisterStudentPayload,
+  fedCred?: FedCred,
   tc?: TransactionClient
 ) {
   const userId = data.phId
@@ -317,28 +321,34 @@ export async function registerStudent(
   if (isDisableStudentCreationEnabled)
     throw new Error(`Sorry, we can't create a new account right now.`)
 
-  await verifyStudentData(data)
+  await verifyStudentData(data, fedCred)
   const newStudent = await runInTransaction(async (tc: TransactionClient) => {
     const passwordResetToken = useResetToken(data)
       ? createResetToken()
       : undefined
     const userData = {
       email: data.email,
-      emailVerified: useFedCred(data),
+      emailVerified: !!fedCred,
       firstName: data.firstName,
-      issuer: data.issuer,
       lastName: data.lastName,
       otherSignupSource: data.otherSignupSource,
       password: usePassword(data)
         ? await hashPassword(data.password)
         : undefined,
       passwordResetToken,
-      profileId: data.profileId,
       referredByCode: data.referredByCode,
       signupSourceId: data.signupSourceId,
-      verified: useFedCred(data),
+      verified: !!fedCred,
     }
-    const user = await createUser(userData, data.ip, USER_ROLES.STUDENT, tc)
+    const user = await createUser(
+      {
+        userData,
+        fedCred,
+        ip: data.ip,
+        role: USER_ROLES.STUDENT,
+      },
+      tc
+    )
 
     let teacherSchoolId
     if (data.classCode) {
@@ -391,7 +401,10 @@ export async function registerStudent(
   }
 }
 
-export async function verifyVolunteerData(data: RegisterVolunteerPayload) {
+export async function verifyVolunteerData(
+  data: RegisterVolunteerPayload,
+  fedCred?: FedCred
+) {
   if (data.volunteerPartnerOrgKey) {
     await checkValidPartnerEmailAddress(data.email, data.volunteerPartnerOrgKey)
   }
@@ -405,37 +418,44 @@ export async function verifyVolunteerData(data: RegisterVolunteerPayload) {
   if (data.ip) {
     await AuthService.checkIpAddress(data.ip)
   }
-  if (!usePassword(data) && !useResetToken(data) && !useFedCred(data)) {
+  if (!usePassword(data) && !useResetToken(data) && !fedCred) {
     throw new InputError('No authentication method provided.')
   }
 }
 
 export async function registerVolunteer(
   data: RegisterVolunteerPayload,
+  fedCred?: FedCred,
   tc?: TransactionClient
 ) {
-  await verifyVolunteerData(data)
+  await verifyVolunteerData(data, fedCred)
   const passwordResetToken = useResetToken(data)
     ? createResetToken()
     : undefined
 
   const userData = {
     email: data.email,
-    emailVerified: useFedCred(data),
+    emailVerified: !!fedCred,
     firstName: data.firstName,
-    issuer: data.issuer,
     lastName: data.lastName,
     password: usePassword(data) ? await hashPassword(data.password) : undefined,
     passwordResetToken,
-    profileId: data.profileId,
     referredByCode: data.referredByCode,
     signupSourceId: data.signupSourceId,
     otherSignupSource: data.otherSignupSource,
-    verified: useFedCred(data),
+    verified: !!fedCred,
     smsConsent: true,
   }
   const newVolunteer = await runInTransaction(async (tc: TransactionClient) => {
-    const user = await createUser(userData, data.ip, USER_ROLES.VOLUNTEER, tc)
+    const user = await createUser(
+      {
+        userData,
+        fedCred,
+        ip: data.ip,
+        role: USER_ROLES.VOLUNTEER,
+      },
+      tc
+    )
 
     const partnerOrg = await getPartnerOrgByKey(data.volunteerPartnerOrgKey, tc)
     const volunteerData = {
@@ -489,14 +509,15 @@ export async function registerVolunteer(
 }
 
 async function createUser(
-  userData: UserRepo.CreateUserPayload & {
-    issuer?: string
-    profileId?: string
+  args: {
+    userData: UserRepo.CreateUserPayload
+    fedCred?: FedCred
+    ip?: string
+    role: USER_ROLES_TYPE
   },
-  ip: string | undefined,
-  role: USER_ROLES_TYPE,
   tc: TransactionClient
 ) {
+  const { userData, fedCred, ip, role } = args
   const user = await UserRepo.createUser(userData, tc)
   await createUserMetadata(user.id, ip, role, tc)
 
@@ -508,10 +529,10 @@ async function createUser(
     )
   }
 
-  if (useFedCred(userData)) {
+  if (fedCred) {
     await insertFederatedCredential(
-      userData.profileId,
-      userData.issuer,
+      fedCred.profileId,
+      fedCred.issuer,
       user.id,
       tc
     )
@@ -647,7 +668,10 @@ export async function upsertStudent(
   }, tc)
 }
 
-export async function registerTeacher(data: RegisterTeacherPayload) {
+export async function registerTeacher(
+  data: RegisterTeacherPayload,
+  fedCred?: FedCred
+) {
   await checkEmail(data.email)
   checkNames(data.firstName, data.lastName)
   if (usePassword(data)) {
@@ -663,19 +687,25 @@ export async function registerTeacher(data: RegisterTeacherPayload) {
 
     const userData = {
       email: data.email,
-      emailVerified: useFedCred(data),
+      emailVerified: !!fedCred,
       firstName: data.firstName,
-      issuer: data.issuer,
       lastName: data.lastName,
       password: usePassword(data)
         ? await hashPassword(data.password)
         : undefined,
-      profileId: data.profileId,
       signupSourceId: signupSource?.id,
       otherSignupSource: data.signupSource,
-      verified: useFedCred(data),
+      verified: !!fedCred,
     }
-    const user = await createUser(userData, data.ip, USER_ROLES.TEACHER, tc)
+    const user = await createUser(
+      {
+        userData,
+        fedCred,
+        ip: data.ip,
+        role: USER_ROLES.TEACHER,
+      },
+      tc
+    )
 
     const teacherData = {
       userId: user.id,
@@ -693,15 +723,6 @@ export async function registerTeacher(data: RegisterTeacherPayload) {
     isAdmin: false,
     userType: 'teacher',
   }
-}
-
-function useFedCred(object: any): object is RegisterStudentWithFedCredPayload {
-  return (
-    'profileId' in object &&
-    !!object.profileId &&
-    'issuer' in object &&
-    !!object.issuer
-  )
 }
 
 function usePassword(

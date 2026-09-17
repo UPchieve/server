@@ -211,8 +211,16 @@ export function routes(app: Express) {
     .route('/register/student')
     .post(authPassport.checkRecaptcha, async function (req, res) {
       try {
-        const { fedCredData } = (req.session as SessionWithSsoData).sso ?? {}
-        if (fedCredData && req.body.validator === fedCredData.validator) {
+        const sso = (req.session as SessionWithSsoData).sso
+        const fedCredData =
+          sso?.fedCredData && req.body.validator === sso.fedCredData.validator
+            ? {
+                profileId: sso.fedCredData.profileId,
+                issuer: sso.fedCredData.issuer,
+              }
+            : undefined
+
+        if (fedCredData) {
           const existingStudent = await StudentService.getStudentByEmail(
             req.body.email
           )
@@ -240,16 +248,15 @@ export function routes(app: Express) {
 
         const data = registerStudentValidator({
           ...req.body,
-          ...((req.session as SessionWithSsoData).sso?.fedCredData ?? {}),
           ...((req.session as SessionWithSsoData).sso?.userData ?? {}),
           ip: req.ip,
           phId: distinctId,
         })
-        const student = await UserCreationService.registerStudent(data)
-        if (
-          data.password ||
-          (req.session as SessionWithSsoData).sso?.fedCredData
-        ) {
+        const student = await UserCreationService.registerStudent(
+          data,
+          fedCredData
+        )
+        if (data.password || fedCredData) {
           await req.asyncLogin(student)
         }
         delete (req.session as SessionWithSsoData).sso

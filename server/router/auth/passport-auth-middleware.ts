@@ -60,7 +60,7 @@ export async function passportRegisterUser(
   issuer: string,
   providerName: string,
   accountType = 'student',
-  data: Partial<
+  userData: Partial<
     RegisterStudentPayload | RegisterTeacherPayload | RegisterVolunteerPayload
   > = {},
   done: Function
@@ -99,22 +99,24 @@ export async function passportRegisterUser(
     }
 
     // Spread the query first so the provider's identity wins over anything the browser sent.
-    const userData = {
-      ...data,
+    const data = {
+      ...userData,
       email,
       firstName,
-      issuer,
       lastName,
-      profileId: profile.id,
     }
+    const fedCred = { profileId: profile.id, issuer }
     if (accountType === 'teacher') {
-      const teacher = await UserCreationService.registerTeacher(userData)
+      const teacher = await UserCreationService.registerTeacher(data, fedCred)
       return done(null, teacher)
     } else if (accountType === 'volunteer') {
-      const volunteer = await UserCreationService.registerVolunteer(userData)
+      const volunteer = await UserCreationService.registerVolunteer(
+        data,
+        fedCred
+      )
       return done(null, volunteer)
     } else {
-      const student = await UserCreationService.registerStudent(userData)
+      const student = await UserCreationService.registerStudent(data, fedCred)
       return done(null, student)
     }
   } catch (err) {
@@ -253,17 +255,15 @@ export async function handleSSOStrategy(
       ...userData,
       email,
       firstName,
-      issuer: profile.issuer,
       lastName,
-      profileId: profile.id,
       schoolId: profile.schoolId,
     }
-
+    const fedCred = { profileId: profile.id, issuer: profile.issuer }
     if (options.isStudent(profile.userType)) {
-      const student = await UserCreationService.registerStudent(data)
+      const student = await UserCreationService.registerStudent(data, fedCred)
       return done(null, student)
     } else if (options.isTeacher(profile.userType)) {
-      const teacher = await UserCreationService.registerTeacher(data)
+      const teacher = await UserCreationService.registerTeacher(data, fedCred)
       await rosterTeacher(teacher.id, profile, options)
       return done(null, teacher)
     }

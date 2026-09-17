@@ -45,9 +45,7 @@ export class AuthRedirect {
     }
 
     delete userData.ip
-    delete userData.issuer
     delete userData.password
-    delete userData.profileId
 
     const params = new URLSearchParams({
       error: errorMessage ?? 'Unknown server error.',
