@@ -47,6 +47,19 @@ export default async function moderateSessionTranscript(
 
     let extractedText = undefined
     let moderatedWhiteboardResults = undefined
+    // The whiteboard steps below must not abort the job before the transcript
+    // is moderated, or the session ends up unexamined and unflagged, which
+    // reads as clean. We hold the first failure and rethrow it at the end.
+    //
+    // Held in an object because `throw ''` would be falsy, and a bare
+    // `if (whiteboardFailure)` would then skip the rethrow and pass the job.
+    let whiteboardFailure: { err: unknown } | undefined
+    const recordWhiteboardFailure = (err: unknown, message: string) => {
+      // ??= keeps the first failure if both steps fail.
+      whiteboardFailure ??= { err }
+      logger.error({ err, sessionId: job.data.sessionId }, message)
+    }
+
     if (whiteboardDoc.length > 0) {
       let whiteboardImage = null
       try {
@@ -60,24 +73,35 @@ export default async function moderateSessionTranscript(
       if (whiteboardImage) {
         const imageBuffer = Buffer.from(whiteboardImage, 'binary')
 
-        moderatedWhiteboardResults = await ModerationService.moderateImage(
-          imageBuffer,
-          { source: 'whiteboard', sessionId: job.data.sessionId },
-          trace
-        )
+        try {
+          moderatedWhiteboardResults = await ModerationService.moderateImage(
+            imageBuffer,
+            { source: 'whiteboard', sessionId: job.data.sessionId },
+            trace
+          )
 
-        if (moderatedWhiteboardResults?.failures.length) {
-          await ModerationService.saveInfractionImageToBucket({
-            locationPrefix: job.data.sessionId,
-            image: Buffer.from(whiteboardImage, 'binary'),
-            source: 'whiteboard',
-          })
+          if (moderatedWhiteboardResults?.failures.length) {
+            await ModerationService.saveInfractionImageToBucket({
+              locationPrefix: job.data.sessionId,
+              image: imageBuffer,
+              source: 'whiteboard',
+            })
+          }
+        } catch (err) {
+          recordWhiteboardFailure(err, 'Failed to moderate whiteboard image')
         }
 
-        extractedText = await VisionService.extractTextFromImage(
-          Buffer.from(whiteboardImage, 'binary'),
-          trace
-        )
+        try {
+          extractedText = await VisionService.extractTextFromImage(
+            imageBuffer,
+            trace
+          )
+        } catch (err) {
+          recordWhiteboardFailure(
+            err,
+            'Failed to extract text from whiteboard image'
+          )
+        }
       }
     }
 
@@ -111,9 +135,12 @@ export default async function moderateSessionTranscript(
         sessionFlags
       )
     }
+
+    if (whiteboardFailure) throw whiteboardFailure.err
   } catch (err) {
     throw new Error(
-      `Failed to moderate transcript for session ${job.data.sessionId}. Error: ${err}`
+      `Failed to moderate transcript for session ${job.data.sessionId}. Error: ${err}`,
+      { cause: err }
     )
   }
 }

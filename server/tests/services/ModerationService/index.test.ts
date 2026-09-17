@@ -1101,4 +1101,100 @@ describe('ModerationService', () => {
       })
     })
   })
+
+  describe('detectTextModerationInfractions - one failing detector', () => {
+    // Without this the LINK threshold is NaN, every link is dropped, and the
+    // link check under test is never reached. See the sibling describe above.
+    beforeEach(() => {
+      Object.assign(config, { minimumModerationLinkConfidence: 0.8 })
+    })
+
+    afterEach(() => {
+      delete (config as Partial<typeof config>).minimumModerationLinkConfidence
+      jest.restoreAllMocks()
+    })
+
+    const LINK = 'https://us05web.zoom.us/j/0123456789'
+    const IMAGE_TEXT = `toxic text ${LINK}`
+
+    /** Rekognition reads one line of text, containing a link, off the image. */
+    function imageContains(text: string) {
+      jest.spyOn(AWSRekognitionClient, 'send').mockImplementation((command) =>
+        command instanceof DetectTextCommand
+          ? (Promise.resolve({
+              TextDetections: [{ Type: 'LINE', DetectedText: text }],
+            }) as any)
+          : (Promise.resolve({}) as any)
+      )
+    }
+
+    /** Comprehend scores that text as toxic and spots the link in it. */
+    function comprehendFindsToxicityAndALink(toxicity: number) {
+      jest.spyOn(AWSComprehendClient, 'send').mockImplementation((command) => {
+        if (command instanceof DetectToxicContentCommand) {
+          return Promise.resolve({
+            ResultList: [{ Toxicity: toxicity, Labels: [] }],
+          }) as any
+        }
+        if (command instanceof DetectPiiEntitiesCommand) {
+          return Promise.resolve({
+            Entities: [
+              {
+                Type: 'URL',
+                BeginOffset: IMAGE_TEXT.indexOf(LINK),
+                EndOffset: IMAGE_TEXT.indexOf(LINK) + LINK.length,
+                Score: 0.99,
+              },
+            ],
+          }) as any
+        }
+        return Promise.resolve({}) as any
+      })
+    }
+
+    /**
+     * A shape production actually returned: `links` arrives as a JSON-encoded
+     * string, so the caller's .map() throws outside checkForQuestionableLinks'
+     * own try/catch, rejecting the whole PII detector.
+     */
+    function linkCheckReturnsDriftedShape() {
+      mockedAwsBedrockService.invokeModel.mockResolvedValue({
+        links: JSON.stringify({ links: [] }),
+      } as any)
+    }
+
+    it('still returns toxicity when the link check throws on a drifted response shape', async () => {
+      mockedAiObservabilityService.runWithModelObservation.mockImplementation(
+        (cb) => cb()
+      )
+      jest.mocked(ShareableDomainsRepo).getAllowedDomains.mockResolvedValue([])
+      jest.mocked(langfuseClient).trace.mockReturnValue({
+        generation: jest.fn().mockReturnValue({ end: jest.fn() }),
+      } as any)
+      moderationSettings[LiveMediaModerationCategories.RUDE_GESTURES] = {
+        name: LiveMediaModerationCategories.RUDE_GESTURES,
+        penaltyWeight: 1,
+        threshold: 0.75,
+      }
+
+      imageContains(IMAGE_TEXT)
+      comprehendFindsToxicityAndALink(0.85)
+      linkCheckReturnsDriftedShape()
+
+      const infractions =
+        await ModerationService.detectTextModerationInfractions({
+          image: Buffer.from('fake-image'),
+          sessionId,
+          isVolunteer,
+          moderationSettings,
+        })
+
+      expect(infractions).toContainEqual(
+        expect.objectContaining({
+          reason: LiveMediaModerationCategories.RUDE_GESTURES,
+          details: expect.objectContaining({ toxicity: 0.85 }),
+        })
+      )
+    })
+  })
 })

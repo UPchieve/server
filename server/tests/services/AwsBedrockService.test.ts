@@ -1,6 +1,7 @@
 import { mocked } from 'jest-mock'
 import * as AwsBedrockService from '../../services/AwsBedrockService'
 import * as AnthropicFoundryService from '../../services/AnthropicFoundryService'
+import logger from '../../logger'
 
 // Jest hoists the factory above this, so it forwards instead of capturing.
 const send = jest.fn()
@@ -67,5 +68,23 @@ describe('invokeModel', () => {
     mockedFoundry.invokeModel.mockRejectedValueOnce(new Error('foundry 503'))
 
     await expect(invoke()).rejects.toThrow('foundry 503')
+  })
+
+  it('keeps the response body out of the log when the content is unusable', async () => {
+    const readOffAStudentsImage = 'my tiktok is @tiktokofficial'
+    send.mockResolvedValueOnce({
+      body: new TextEncoder().encode(
+        JSON.stringify({
+          stop_reason: 'end_turn',
+          content: [{ type: 'text', other: readOffAStudentsImage }],
+        })
+      ),
+    })
+
+    await expect(invoke()).rejects.toThrow('No expected Bedrock response')
+
+    const [logged] = mocked(logger).error.mock.lastCall as any[]
+    expect(JSON.stringify(logged)).not.toContain(readOffAStudentsImage)
+    expect(logged).toMatchObject({ contentBlockTypes: ['text'] })
   })
 })

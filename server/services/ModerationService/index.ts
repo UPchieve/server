@@ -743,7 +743,7 @@ export async function detectTextModerationInfractions({
     return []
   }
 
-  const [toxicity, pii] = await Promise.all([
+  const [toxicity, pii] = await Promise.allSettled([
     detectToxicContent(textSegments, moderationSettings, trace),
     detectPii({
       text: textSegments.join(' '),
@@ -754,7 +754,27 @@ export async function detectTextModerationInfractions({
     }),
   ])
 
-  return [...toxicity, ...pii]
+  return [
+    ...settledInfractions(toxicity, 'detectToxicContent', sessionId),
+    ...settledInfractions(pii, 'detectPii', sessionId),
+  ]
+}
+
+/**
+ * Keeps a failed detector from discarding the other's infractions. Moderation
+ * fails open, so a rejection means that content went uninspected.
+ */
+function settledInfractions<T>(
+  settled: PromiseSettledResult<T[]>,
+  detector: string,
+  sessionId?: string
+): T[] {
+  if (settled.status === 'fulfilled') return settled.value
+  logger.error(
+    { sessionId, detector, err: settled.reason },
+    'Text moderation detector failed; its infractions are missing from this result'
+  )
+  return []
 }
 
 export async function saveInfractionImageToBucket({

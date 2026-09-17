@@ -88,7 +88,8 @@ type BedrockInvokeInput = {
 type ToolInput = Record<string, any>
 
 type BedrockInvokeResponse = {
-  content: Array<{ input?: ToolInput; text?: string }>
+  stop_reason?: string
+  content: Array<{ type?: string; input?: ToolInput; text?: string }>
 }
 
 function imageContentPayload(image: Buffer): ImageContent {
@@ -157,8 +158,6 @@ export async function invokeModel<T = string | ToolInput>({
     modelRes = await AnthropicFoundryService.invokeModel(payload)
   }
 
-  const jsonString = JSON.stringify(modelRes)
-
   const getModelResponse = tools_option
     ? getResponseWithToolsOption
     : getResponse
@@ -167,7 +166,17 @@ export async function invokeModel<T = string | ToolInput>({
 
   if (!response) {
     logger.error(
-      { response: jsonString, contentField: tools_option ? 'input' : 'text' },
+      {
+        // Shape only. Every moderation and vision call comes through here, so
+        // the body describes text read off a student's image or message, and
+        // logger.error forwards to Sentry and New Relic unredacted.
+        modelId,
+        contentField: tools_option ? 'input' : 'text',
+        stopReason: modelRes?.stop_reason,
+        contentBlockTypes: Array.isArray(modelRes?.content)
+          ? modelRes.content.map((block: { type?: string }) => block?.type)
+          : typeof modelRes?.content,
+      },
       'Did not receive expected Bedrock response'
     )
     throw new Error('No expected Bedrock response')

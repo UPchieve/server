@@ -365,7 +365,13 @@ async function getAwsBedRockResponse(
     botResponse = AWS_BEDROCK_TUTOR_ANSWER_FALLBACK
     logger.error(
       {
-        messagePrompt: promptData,
+        // Shape only. The interpolated prompt carries the student's
+        // conversation and the editor contents, and logger.error forwards to
+        // Sentry and New Relic unredacted.
+        promptVersion: promptData.version,
+        promptIsFallback: promptData.isFallback,
+        conversationId,
+        userId,
         traceName: LF_TRACE_NAME,
         err,
       },
