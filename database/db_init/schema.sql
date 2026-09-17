@@ -1,4 +1,4 @@
-\restrict ZBg0nl3jIpHOsDer5vLQYKpcXorGfD0s1p8m6k5bFLg3Rd6iRp3SEbrWjwJVBIQ
+\restrict roFFyul7DJGrFkSqtUlt83OK1pX5e0EoXIhUPuKfv3LkCKz1h0gQhRyX0iPj8bG
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
 -- Dumped by pg_dump version 15.15 (Homebrew)
@@ -3288,7 +3288,8 @@ CREATE TABLE upchieve.nths_groups (
     key text NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
-    invite_code character varying(6) NOT NULL
+    invite_code character varying(6) NOT NULL,
+    receiving_coordinator_support boolean DEFAULT false NOT NULL
 );
 
 
@@ -3339,6 +3340,13 @@ COMMENT ON COLUMN upchieve.nths_groups.updated_at IS 'not_pii';
 --
 
 COMMENT ON COLUMN upchieve.nths_groups.invite_code IS 'not_pii: Short invite code for joining the NTHS group';
+
+
+--
+-- Name: COLUMN nths_groups.receiving_coordinator_support; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.nths_groups.receiving_coordinator_support IS 'not_pii: Whether the NTHS chapter is receiving support from a partnership coordinator';
 
 
 --
@@ -15134,7 +15142,7 @@ ALTER TABLE ONLY upchieve.volunteer_references
 -- PostgreSQL database dump complete
 --
 
-\unrestrict ZBg0nl3jIpHOsDer5vLQYKpcXorGfD0s1p8m6k5bFLg3Rd6iRp3SEbrWjwJVBIQ
+\unrestrict roFFyul7DJGrFkSqtUlt83OK1pX5e0EoXIhUPuKfv3LkCKz1h0gQhRyX0iPj8bG
 
 
 --
@@ -15435,4 +15443,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260911141711'),
     ('20260911141712'),
     ('20260911141713'),
-    ('20260917202149');
+    ('20260917202149'),
+    ('20260917202150');

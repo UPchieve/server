@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict NLw6nwWeYyd2IsOpEnHnuOUJHX4btOeiPAmgFaLicexfFEf48HxV8NgbeFUe1Vm
+\restrict 4j5cgc7jxcfsD1RGL5Q3Y3GERf9NSAFt6FrfLtgD8jIFl2QmSepY2K8U2WHHwOn
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
 -- Dumped by pg_dump version 15.15 (Homebrew)
@@ -6237,7 +6237,7 @@ COPY upchieve.nths_actions (id, name, created_at) FROM stdin;
 -- Data for Name: nths_groups; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.nths_groups (id, name, key, created_at, updated_at, invite_code) FROM stdin;
+COPY upchieve.nths_groups (id, name, key, created_at, updated_at, invite_code, receiving_coordinator_support) FROM stdin;
 \.
 
 
@@ -9551,4 +9551,5 @@ SELECT pg_catalog.setval('upchieve.weekdays_id_seq', 1, false);
 -- PostgreSQL database dump complete
 --
 
-\unrestrict NLw6nwWeYyd2IsOpEnHnuOUJHX4btOeiPAmgFaLicexfFEf48HxV8NgbeFUe1Vm
+\unrestrict 4j5cgc7jxcfsD1RGL5Q3Y3GERf9NSAFt6FrfLtgD8jIFl2QmSepY2K8U2WHHwOn
+
