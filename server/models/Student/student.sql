@@ -604,7 +604,14 @@ SELECT
 FROM
     student_profiles
     JOIN users ON student_profiles.user_id = users.id
-    LEFT JOIN current_grade_levels cgl ON cgl.user_id = student_profiles.user_id
+    LEFT JOIN LATERAL (
+        SELECT
+            cgl.current_grade_name
+        FROM
+            current_grade_levels cgl
+        WHERE
+            cgl.user_id = student_profiles.user_id
+        LIMIT 1) cgl ON TRUE
 WHERE
     student_profiles.user_id IN :userIds!;
 

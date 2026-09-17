@@ -1383,7 +1383,7 @@ export interface IGetStudentProfilesByUserIdsQuery {
   result: IGetStudentProfilesByUserIdsResult;
 }
 
-const getStudentProfilesByUserIdsIR: any = {"usedParamSet":{"userIds":true},"params":[{"name":"userIds","required":true,"transform":{"type":"array_spread"},"locs":[{"a":393,"b":401}]}],"statement":"SELECT\n    student_profiles.user_id,\n    users.id,\n    first_name,\n    last_name,\n    email,\n    cgl.current_grade_name AS grade_level,\n    users.created_at,\n    users.updated_at,\n    school_id\nFROM\n    student_profiles\n    JOIN users ON student_profiles.user_id = users.id\n    LEFT JOIN current_grade_levels cgl ON cgl.user_id = student_profiles.user_id\nWHERE\n    student_profiles.user_id IN :userIds!"};
+const getStudentProfilesByUserIdsIR: any = {"usedParamSet":{"userIds":true},"params":[{"name":"userIds","required":true,"transform":{"type":"array_spread"},"locs":[{"a":530,"b":538}]}],"statement":"SELECT\n    student_profiles.user_id,\n    users.id,\n    first_name,\n    last_name,\n    email,\n    cgl.current_grade_name AS grade_level,\n    users.created_at,\n    users.updated_at,\n    school_id\nFROM\n    student_profiles\n    JOIN users ON student_profiles.user_id = users.id\n    LEFT JOIN LATERAL (\n        SELECT\n            cgl.current_grade_name\n        FROM\n            current_grade_levels cgl\n        WHERE\n            cgl.user_id = student_profiles.user_id\n        LIMIT 1) cgl ON TRUE\nWHERE\n    student_profiles.user_id IN :userIds!"};
 
 /**
  * Query generated from SQL:
@@ -1401,7 +1401,14 @@ const getStudentProfilesByUserIdsIR: any = {"usedParamSet":{"userIds":true},"par
  * FROM
  *     student_profiles
  *     JOIN users ON student_profiles.user_id = users.id
- *     LEFT JOIN current_grade_levels cgl ON cgl.user_id = student_profiles.user_id
+ *     LEFT JOIN LATERAL (
+ *         SELECT
+ *             cgl.current_grade_name
+ *         FROM
+ *             current_grade_levels cgl
+ *         WHERE
+ *             cgl.user_id = student_profiles.user_id
+ *         LIMIT 1) cgl ON TRUE
  * WHERE
  *     student_profiles.user_id IN :userIds!
  * ```
