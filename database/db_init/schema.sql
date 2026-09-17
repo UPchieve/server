@@ -13344,6 +13344,13 @@ CREATE INDEX sessions_volunteer_id ON upchieve.sessions USING btree (volunteer_i
 
 
 --
+-- Name: student_classes_class_id_idx; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX student_classes_class_id_idx ON upchieve.student_classes USING btree (class_id);
+
+
+--
 -- Name: survey_questions_response_choices_response_survey_question; Type: INDEX; Schema: upchieve; Owner: -
 --
 
@@ -15427,4 +15434,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260911141710'),
     ('20260911141711'),
     ('20260911141712'),
-    ('20260911141713');
+    ('20260911141713'),
+    ('20260917202149');
