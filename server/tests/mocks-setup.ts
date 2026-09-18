@@ -184,6 +184,18 @@ jest.mock('../config', () => {
     langfusePublicKey: 'test-bogus',
     langfuseBaseUrl: 'test-bogus',
 
+    // AWS Bedrock
+    awsBedrockAccessKey: 'test-bedrock-access-key',
+    awsBedrockSecretAccessKey: 'test-bedrock-secret-access-key',
+    awsBedrockRegion: 'us-east-1',
+    awsBedrockHaikuId: 'test-bedrock-haiku',
+    awsBedrockSonnet4Id: 'test-bedrock-sonnet',
+
+    // Claude on Microsoft Foundry (Bedrock fallback)
+    anthropicFoundryResource: 'test-foundry-resource',
+    anthropicFoundryStandardModelId: 'test-foundry-standard',
+    anthropicFoundryFastModelId: 'test-foundry-fast',
+
     // TOTP
     totpEncryptionKey: 'test-encryption-key',
     totpIssuer: 'upchieve-test',

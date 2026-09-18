@@ -35,6 +35,30 @@ const invoke = () =>
     text: STUDENT_QUESTION,
   })
 
+const bedrockRepliesWithTool = (input: object) =>
+  send.mockResolvedValueOnce({
+    body: new TextEncoder().encode(JSON.stringify({ content: [{ input }] })),
+  })
+
+/** The body this service actually put on the wire. */
+const sentBody = () => JSON.parse((send.mock.lastCall as any[])[0].body)
+
+const FORCED_TOOL = {
+  tool_choice: {
+    type: AwsBedrockService.BedrockToolChoice.TOOL,
+    name: 'json_response',
+  },
+  tools: [
+    {
+      name: 'json_response',
+      description: 'json',
+      input_schema: { type: 'object', properties: {} },
+    },
+  ],
+} as any
+
+const AN_IMAGE = Buffer.from('an-image')
+
 beforeEach(() => {
   jest.clearAllMocks()
   send.mockReset()
@@ -86,5 +110,85 @@ describe('invokeModel', () => {
     const [logged] = mocked(logger).error.mock.lastCall as any[]
     expect(JSON.stringify(logged)).not.toContain(readOffAStudentsImage)
     expect(logged).toMatchObject({ contentBlockTypes: ['text'] })
+  })
+})
+
+describe('the payload it builds', () => {
+  it('wraps the caller text in <text> tags', async () => {
+    bedrockReplies('a summary')
+
+    await AwsBedrockService.invokeModel<string>({
+      modelId: 'test-bedrock-sonnet',
+      prompt: 'a system prompt',
+      text: STUDENT_QUESTION,
+    })
+
+    expect(sentBody().messages[0].content).toEqual([
+      { type: 'text', text: `<text>${STUDENT_QUESTION}</text>` },
+    ])
+  })
+
+  it('still sends a text block when the text is empty, as the tutor bot does', async () => {
+    bedrockRepliesWithTool({ response: 'an answer' })
+
+    await AwsBedrockService.invokeModel({
+      modelId: 'test-bedrock-sonnet',
+      prompt: 'a system prompt',
+      text: '',
+      tools_option: FORCED_TOOL,
+    })
+
+    expect(sentBody().messages[0].content).toEqual([
+      { type: 'text', text: '<text></text>' },
+    ])
+  })
+
+  it('encodes an image as a base64 block', async () => {
+    bedrockRepliesWithTool({ infractions: [] })
+
+    await AwsBedrockService.invokeModel({
+      modelId: 'test-bedrock-sonnet',
+      prompt: 'a system prompt',
+      images: [AN_IMAGE],
+      tools_option: FORCED_TOOL,
+    })
+
+    expect(sentBody().messages[0].content).toEqual([
+      {
+        type: 'image',
+        source: {
+          type: 'base64',
+          media_type: undefined,
+          data: AN_IMAGE.toString('base64'),
+        },
+      },
+    ])
+  })
+})
+
+describe('what it reads back', () => {
+  it('returns the tool input when a tool was forced', async () => {
+    bedrockRepliesWithTool({ confidence: 0.9 })
+
+    const result = await AwsBedrockService.invokeModel<{ confidence: number }>({
+      modelId: 'test-bedrock-sonnet',
+      prompt: 'a system prompt',
+      text: STUDENT_QUESTION,
+      tools_option: FORCED_TOOL,
+    })
+
+    expect(result).toEqual({ confidence: 0.9 })
+  })
+
+  it('returns the text when no tool was forced', async () => {
+    bedrockReplies('a description')
+
+    const result = await AwsBedrockService.invokeModel<string>({
+      modelId: 'test-bedrock-sonnet',
+      prompt: 'a system prompt',
+      images: [AN_IMAGE],
+    })
+
+    expect(result).toBe('a description')
   })
 })

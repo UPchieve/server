@@ -36,6 +36,7 @@
     "test:database:parallel": "jest --group=database/parallel -c jest.config.database.js --max_old_space_size=1536 --maxWorkers=3",
     "test:database:sequential": "jest --group=database/sequential -c jest.config.database.js --max_old_space_size=1536 --runInBand",
     "test:database": "pnpm run test:database:parallel && pnpm run test:database:sequential",
+    "test:integration": "op run --env-file=./.env.integration.op -- doppler run -- jest -c jest.config.integration.js --runInBand",
     "pgtyped": "pgtyped -w -c pgtyped.config.json",
     "pgtyped:seeds": "pgtyped --config database/seeds/pgtyped.config.json --watch",
     "pgtyped:check": "./bin/pgtyped_check.sh",
