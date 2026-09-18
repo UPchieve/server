@@ -30,6 +30,7 @@ export type TutorBotAiResponse = {
   strategy: string
   intention: string
   response: string
+  reason?: string
 }
 
 export type TutorBotNewConversation = {

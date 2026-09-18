@@ -39,11 +39,36 @@ export enum BedrockToolChoice {
   TOOL = 'tool',
 }
 
+/**
+ * The JSON Schema subset we use, narrower than what Anthropic accepts. Strict
+ * tool use rejects schemas without `additionalProperties: false`, and omitting
+ * a property from `required` is the only way to make it optional.
+ * https://platform.claude.com/docs/en/agents-and-tools/tool-use/strict-tool-use
+ */
+export type BedrockToolSchema =
+  | {
+      type: 'object'
+      description?: string
+      properties: Record<string, BedrockToolSchema>
+      required: Array<string>
+      additionalProperties: false
+    }
+  | {
+      type: 'array'
+      description?: string
+      items: BedrockToolSchema
+    }
+  | {
+      type: 'string' | 'number' | 'integer' | 'boolean'
+      description?: string
+      enum?: Array<string>
+    }
+
 export type BedrockTools = Array<{
   name: string
   description: string
-  strict?: boolean
-  input_schema: { type: string; properties: object; required?: Array<string> }
+  strict: true
+  input_schema: Extract<BedrockToolSchema, { type: 'object' }>
 }>
 
 export type BedrockToolsAttribute = {

@@ -397,12 +397,13 @@ async function checkForFullAddresses({
     {
       name: 'json_response',
       description: 'Prints answer in json format',
+      strict: true,
       input_schema: {
         type: 'object',
         properties: {
           confidence: {
-            type: 'string',
-            description: 'The confidence rating',
+            type: 'number',
+            description: 'The confidence rating, from 0 to 1',
           },
           explanation: {
             type: 'string',
@@ -411,6 +412,7 @@ async function checkForFullAddresses({
           },
         },
         required: ['confidence', 'explanation'],
+        additionalProperties: false,
       },
     },
   ]
@@ -493,6 +495,7 @@ async function checkForQuestionableLinks({
     {
       name: 'json_response',
       description: 'Prints answer in json format',
+      strict: true,
       input_schema: {
         type: 'object',
         properties: {
@@ -526,13 +529,16 @@ async function checkForQuestionableLinks({
                     },
                   },
                   required: ['confidence', 'policyNames', 'explanation'],
+                  additionalProperties: false,
                 },
               },
               required: ['link', 'details'],
+              additionalProperties: false,
             },
           },
         },
         required: ['links'],
+        additionalProperties: false,
       },
     },
   ]
@@ -715,7 +721,7 @@ async function detectPii({
 
     if (
       moderatedAddress &&
-      moderatedAddress?.details?.confidence >= addressConfidenceThreshold
+      moderatedAddress.details.confidence >= addressConfidenceThreshold
     ) {
       moderatedPII.push(moderatedAddress)
     }
@@ -1343,6 +1349,7 @@ export async function moderateImage(
                   name: toolName,
                   description:
                     'JSON response as type ImageModerationInfractions',
+                  strict: true,
                   input_schema: {
                     type: 'object',
                     properties: {
@@ -1368,10 +1375,12 @@ export async function moderateImage(
                             },
                           },
                           required: ['category', 'confidence'],
+                          additionalProperties: false,
                         },
                       },
                     },
                     required: ['infractions'],
+                    additionalProperties: false,
                   },
                 },
               ],

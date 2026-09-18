@@ -14,7 +14,11 @@ import { getClient, runInTransaction, TransactionClient } from '../db'
 import { client as langfuseClient } from '../clients/langfuse'
 import * as SessionRepo from '../models/Session'
 import SocketService from './SocketService'
-import { BedrockToolChoice, invokeModel } from './AwsBedrockService'
+import {
+  BedrockToolChoice,
+  BedrockTools,
+  invokeModel,
+} from './AwsBedrockService'
 import { COLLEGE_SUBJECTS } from '../constants'
 import type {
   TutorBotAddMessageResponsePublic,
@@ -74,27 +78,60 @@ const NUM_OF_MESSAGES_TO_KEEP_IN_CONTEXT = 15
 const LF_TRACE_NAME = 'tutorBotSession'
 const LF_GENERATION_NAME = 'tutorBotSessionMessage'
 const BED_ROCK_TOOL_NAME = 'print_response'
-const BED_ROCK_TOOL = [
+const BED_ROCK_TOOL: BedrockTools = [
   {
     name: BED_ROCK_TOOL_NAME,
     description: 'Prints answer in json format',
+    strict: true,
     input_schema: {
       type: 'object',
       properties: {
         strategy: {
           type: 'string',
           description: 'The strategy used to assist the student',
+          enum: [
+            'Explain a concept',
+            'Ask a question',
+            'Provide a hint',
+            'Provide a strategy',
+            'Provide a worked example',
+            'Provide a minor correction',
+            'Provide a similar problem',
+            'Simplify the question',
+            'Affirm the correct answer',
+            'Encourage the student',
+            'Other (please specify in your reasoning)',
+          ],
         },
         intention: {
           type: 'string',
-          description: 'The intention of using the strategy',
+          description: 'The intention behind using the strategy',
+          enum: [
+            'Motivate the student',
+            'Get the student to elaborate their answer',
+            "Correct the student's mistake",
+            "Hint at the student's mistake",
+            "Clarify a student's misunderstanding",
+            'Help the student understand the lesson topic or solution strategy',
+            "Diagnose the student's mistake",
+            'Support the student in their thinking or problem-solving',
+            "Explain the student's mistake (eg. what is wrong in their answer or why is it incorrect)",
+            'Signal to the student that they have solved or not solved the problem',
+            'Other (please specify in your reasoning)',
+          ],
         },
         response: {
           type: 'string',
           description: "The response to the student's last message",
         },
+        reason: {
+          type: 'string',
+          description: 'Why this strategy and intention were chosen',
+        },
       },
+      // reason is omitted from required, which is how strict makes it optional.
       required: ['strategy', 'intention', 'response'],
+      additionalProperties: false,
     },
   },
 ]
@@ -397,7 +434,7 @@ async function getAwsBedRockResponse(
     output: { botResponse: botResponse, responseDbo: savedBotMessage },
   })
 
-  const fallbackStatus = '1. Get the student to elaborate their answer'
+  const fallbackStatus = 'Get the student to elaborate their answer'
   const status =
     typeof botResponse === 'string'
       ? fallbackStatus

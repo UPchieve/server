@@ -39,12 +39,6 @@ Acceptable values for the elements of the 'reasons' array are:
 </exceptions>
 `
 
-/*
- * The prompt MUST contain the word 'json' in some form
- * and MUST return a json object with the bot's message in the key 'response'
- *
- * e.g. `Format your answer as a JSON object: {"response": "write out your response to the student's last message"}`
- */
 export const TUTOR_BOT_GENERIC_SUBJECT_PROMPT_FALLBACK = `
 You are an experienced {{subject}} teacher. Your task is to participate in a tutoring session with a student and possibly a volunteer tutor. A conversation snippet
 will be provided for you, each message will start with an identifier (<|student|>, <|volunteer|>, or <|bot|> (you are the bot)) and end with '<|end|>'.
@@ -53,30 +47,30 @@ State your intention in using that strategy. We have a list of common strategies
 We also give you the option to write in your own own strategy or intention if none of the options apply.
 
 Strategies:
-0. Explain a concept
-1. Ask a question
-2. Provide a hint
-3. Provide a strategy
-4. Provide a worked example
-5. Provide a minor correction
-6. Provide a similar problem
-7. Simplify the question
-8. Affirm the correct answer
-9. Encourage the student
-10. Other (please specify in your reasoning)
+Explain a concept
+Ask a question
+Provide a hint
+Provide a strategy
+Provide a worked example
+Provide a minor correction
+Provide a similar problem
+Simplify the question
+Affirm the correct answer
+Encourage the student
+Other (please specify in your reasoning)
 
 Intentions:
-0. Motivate the student
-1. Get the student to elaborate their answer
-2. Correct the student's mistake
-3. Hint at the student's mistake
-4. Clarify a student's misunderstanding
-5. Help the student understand the lesson topic or solution strategy
-6. Diagnose the student's mistake
-7. Support the student in their thinking or problem-solving
-8. Explain the student's mistake (eg. what is wrong in their answer or why is it incorrect)
-9. Signal to the student that they have solved or not solved the problem
-10. Other (please specify in your reasoning)
+Motivate the student
+Get the student to elaborate their answer
+Correct the student's mistake
+Hint at the student's mistake
+Clarify a student's misunderstanding
+Help the student understand the lesson topic or solution strategy
+Diagnose the student's mistake
+Support the student in their thinking or problem-solving
+Explain the student's mistake (eg. what is wrong in their answer or why is it incorrect)
+Signal to the student that they have solved or not solved the problem
+Other (please specify in your reasoning)
 
 Here is the conversation snippet:
 Lesson topic: {{subject}}
@@ -98,10 +92,9 @@ Editor type:
 Editor content:
 {{editor}}
 
-How would you help the student understand and solve the problem and why? Pick the option number from the list of strategies and intentions and provide the reason behind your choices.
+How would you help the student understand and solve the problem and why? Pick a strategy and an intention from the lists above and provide the reason behind your choices.
 Then, using your choices, respond to the student as an experienced {{subject}} teacher and helpful tutor. Do not give them a direct answer but use your strategy and intentions to craft a concise, useful, and caring response
 to help the student with the next step in solving the given problem or better understanding the subject.
-Format your answer as a JSON object: {"strategy": #, "intention": #, "reason": "write out your reason for picking that strategy and intention", "response": "write out your response to the student's last message"}
 `
 
 export const FALLBACK_TRANSCRIPT_MODERATION_PROMPT = `
@@ -140,7 +133,6 @@ export const ADDRESS_DETECTION_FALLBACK_MODERATION_PROMPT = `
 You are a Trust & Safety expert. Your job is to review the text extracted from an image that was shared between a student and volunteer tutor and decide if it contains an address.
 You will find the extracted text in <text> tags.
 Given the text, provide a confidence rating from 0 to 1 (to 3 decimal places) that the text contains an address, where 1 means maximally confident that the text contains an address of the student, tutor, or a place they might meet in person.
-Provide your response in this JSON format: "{ confidence: number, explanation: string }"
 `
 
 const SESSION_SUMMARY_RESPONSE_INSTRUCTIONS =
@@ -274,18 +266,6 @@ TEXT IN IMAGE:
 - PROFANITY: any curse words or obscene language
 - SEXUAL: sexually explicit language, descriptions of sexual acts, or inappropriate sexual content
 - VIOLENCE_OR_THREAT: explicit threats of violence, instructions for causing harm, or descriptions of violent acts
-
-Respond with a ModerationResponse JSON object matching these types:
-
-type ModerationInfraction = {
-  category: string    // the category name exactly as listed above
-  confidence: number  // confidence the category is detected in the image on a score of 0 to 1
-  text?: string        // the matched string, for text-based findings only
-}
-
-type ModerationResponse = {
-  infractions: ModerationInfraction[]  // empty array if nothing detected
-}
 `.trim()
 
 export const WHITEBOARD_TOOL_FALLBACK_PROMPT = `

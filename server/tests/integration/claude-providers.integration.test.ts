@@ -2,26 +2,31 @@ import { readFileSync } from 'fs'
 import { join } from 'path'
 import config from '../../config'
 import * as AwsBedrockService from '../../services/AwsBedrockService'
-import { BedrockToolChoice } from '../../services/AwsBedrockService'
+import {
+  BedrockToolChoice,
+  BedrockToolsAttribute,
+} from '../../services/AwsBedrockService'
 
 // Only via `pnpm test:integration`: costs money and needs live credentials.
 // The unit tests pin the payload we build. These prove a provider accepts it
 // and that the caller gets usable data back.
 
 const TOOL_NAME = 'json_response'
-const FORCED_TOOL = {
+const FORCED_TOOL: BedrockToolsAttribute = {
   tools: [
     {
       name: TOOL_NAME,
       description: 'Structured response',
+      strict: true,
       input_schema: {
         type: 'object',
         properties: { answer: { type: 'string', description: 'The answer' } },
         required: ['answer'],
+        additionalProperties: false,
       },
     },
   ],
-  tool_choice: { type: BedrockToolChoice.TOOL as const, name: TOOL_NAME },
+  tool_choice: { type: BedrockToolChoice.TOOL, name: TOOL_NAME },
 }
 
 const fixture = (name: string) =>
