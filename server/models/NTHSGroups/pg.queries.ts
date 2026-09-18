@@ -577,6 +577,8 @@ export interface ICreateGroupResult {
   key: string;
   /** not_pii: Human-readable name */
   name: string;
+  /** not_pii: Whether the NTHS chapter is receiving support from a partnership coordinator */
+  receivingCoordinatorSupport: boolean;
   /** not_pii */
   updatedAt: Date;
 }

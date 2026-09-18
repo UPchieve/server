@@ -56,6 +56,8 @@ export type AnalyticPersonProperties = {
   approved?: boolean
   partner?: string | null
   schoolPartner?: string | null
+  partnerSchoolId?: Ulid | null
+  partnerSchoolName?: string | null
   gradeLevel?: GRADES | null
   fallIncentiveEnrollmentAt?: ISODateString | null
   usesClever?: boolean
@@ -95,7 +97,11 @@ export async function getPersonPropertiesForAnalytics(userId?: Ulid) {
     if (!personProperties.partner) delete personProperties.partner
 
     if (user.isSchoolPartner) {
+      // schoolPartner duplicates partnerSchoolName and stays only because existing PostHog
+      // flags, cohorts or insights may filter on it. Remove it once they've moved over.
       personProperties.schoolPartner = user.schoolName ?? null
+      personProperties.partnerSchoolId = user.schoolId ?? null
+      personProperties.partnerSchoolName = user.schoolName ?? null
     }
 
     if (user.roleContext.hasRole('volunteer')) {
