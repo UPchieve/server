@@ -21,7 +21,20 @@ export async function getImageDimensions(image: Buffer) {
   return { width, height }
 }
 
-export async function resize(image: Buffer, options?: sharp.ResizeOptions) {
+/**
+ * A resized image and the media type it was encoded as.
+ * An image content block needs that type, and re-sniffing the resized bytes
+ * returns undefined for anything file-type-mime does not recognise.
+ */
+export type TypedImage = {
+  data: Buffer
+  mediaType: 'image/png' | 'image/jpeg'
+}
+
+export async function resize(
+  image: Buffer,
+  options?: sharp.ResizeOptions
+): Promise<TypedImage> {
   const hasExplicitSize = options?.width || options?.height
   const resizeOptions: sharp.ResizeOptions = {
     fit: 'contain',
@@ -32,8 +45,9 @@ export async function resize(image: Buffer, options?: sharp.ResizeOptions) {
   const pipeline = sharp(image).resize(resizeOptions)
 
   // Preserve PNG when input is PNG, otherwise encode JPEG
-  if (meta.format === 'png') return pipeline.toBuffer()
-  return pipeline.jpeg().toBuffer()
+  if (meta.format === 'png')
+    return { data: await pipeline.toBuffer(), mediaType: 'image/png' }
+  return { data: await pipeline.jpeg().toBuffer(), mediaType: 'image/jpeg' }
 }
 
 export async function convertBase64ToImage(base64Data: string) {

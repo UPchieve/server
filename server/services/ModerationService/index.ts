@@ -50,11 +50,7 @@ import {
   putObject,
 } from '../AwsService'
 import * as ShareableDomainsRepo from '../../models/ShareableDomains/queries'
-import {
-  BedrockToolChoice,
-  BedrockTools,
-  invokeModel,
-} from '../AwsBedrockService'
+import { ClaudeToolChoice, ClaudeTools, invokeModel } from '../ClaudeService'
 import { ModerationInfraction } from '../../models/ModerationInfractions/types'
 import { runInTransaction, TransactionClient } from '../../db'
 import { PrimaryUserRole } from '../UserRolesService'
@@ -393,7 +389,7 @@ async function checkForFullAddresses({
     sessionId,
   })
 
-  const VERIFY_EMAIL_RESPONSE_TOOL: BedrockTools = [
+  const VERIFY_EMAIL_RESPONSE_TOOL: ClaudeTools = [
     {
       name: 'json_response',
       description: 'Prints answer in json format',
@@ -432,7 +428,7 @@ async function checkForFullAddresses({
         text,
         prompt: promptData.prompt,
         tools_option: {
-          tool_choice: { type: BedrockToolChoice.TOOL, name: 'json_response' },
+          tool_choice: { type: ClaudeToolChoice.TOOL, name: 'json_response' },
           tools: VERIFY_EMAIL_RESPONSE_TOOL,
         },
       })
@@ -491,7 +487,7 @@ async function checkForQuestionableLinks({
     ...(promptData.promptObject && { prompt: promptData.promptObject }),
   })
 
-  const QUESTIONABLE_LINKS_RESPONSE_TOOL: BedrockTools = [
+  const QUESTIONABLE_LINKS_RESPONSE_TOOL: ClaudeTools = [
     {
       name: 'json_response',
       description: 'Prints answer in json format',
@@ -551,7 +547,7 @@ async function checkForQuestionableLinks({
       text: formattedLinks,
       prompt: promptData.prompt,
       tools_option: {
-        tool_choice: { type: BedrockToolChoice.TOOL, name: 'json_response' },
+        tool_choice: { type: ClaudeToolChoice.TOOL, name: 'json_response' },
         tools: QUESTIONABLE_LINKS_RESPONSE_TOOL,
       },
     })
@@ -1341,7 +1337,7 @@ export async function moderateImage(
             prompt: promptData.prompt,
             tools_option: {
               tool_choice: {
-                type: BedrockToolChoice.TOOL,
+                type: ClaudeToolChoice.TOOL,
                 name: toolName,
               },
               tools: [
@@ -1437,7 +1433,7 @@ export async function moderateImage(
       : context.sessionId
   await saveInfractionImageToBucket({
     locationPrefix,
-    image: resizedImage,
+    image: resizedImage.data,
     source,
   })
 
@@ -1463,7 +1459,7 @@ export async function moderateScreenshareImage(options: {
   isVolunteer?: boolean
 }) {
   const { image, userId, sessionId, isVolunteer } = options
-  const resizedImage = await resize(image, {
+  const { data: resizedImage } = await resize(image, {
     width: 1000,
   })
   const moderationSettings = await getModerationRealTimeSettings()

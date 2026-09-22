@@ -1,24 +1,24 @@
 import { mocked } from 'jest-mock'
 import sharp from 'sharp'
 import * as ModerationService from '../../../services/ModerationService'
-import * as AwsBedrockService from '../../../services/AwsBedrockService'
+import * as ClaudeService from '../../../services/ClaudeService'
 import * as AiObservabilityService from '../../../services/AiObservabilityService'
 import * as PromptService from '../../../services/PromptService'
 
 jest.mock('../../../logger')
-jest.mock('../../../services/AwsBedrockService')
+jest.mock('../../../services/ClaudeService')
 jest.mock('../../../services/AiObservabilityService')
 jest.mock('../../../services/PromptService')
 jest.mock('../../../models/ShareableDomains/queries')
 jest.mock('../../../models/ModerationSettings/queries')
 
-const mockedAwsBedrockService = mocked(AwsBedrockService)
+const mockedClaudeService = mocked(ClaudeService)
 const mockedAiObservabilityService = mocked(AiObservabilityService)
 const mockedPromptService = mocked(PromptService)
 
 async function sentImageMetadata() {
-  const [payload] = mockedAwsBedrockService.invokeModel.mock.lastCall!
-  return sharp(payload.images![0]).metadata()
+  const [payload] = mockedClaudeService.invokeModel.mock.lastCall!
+  return sharp(payload.images![0].data).metadata()
 }
 
 beforeEach(() => {
@@ -34,7 +34,7 @@ beforeEach(() => {
   mockedPromptService.getPromptWithFallback.mockResolvedValue(
     {} as PromptService.PromptResponse
   )
-  mockedAwsBedrockService.invokeModel.mockResolvedValue({ infractions: [] })
+  mockedClaudeService.invokeModel.mockResolvedValue({ infractions: [] })
 })
 
 const jpeg = (width: number, height: number) =>

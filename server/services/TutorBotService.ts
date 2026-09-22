@@ -14,11 +14,7 @@ import { getClient, runInTransaction, TransactionClient } from '../db'
 import { client as langfuseClient } from '../clients/langfuse'
 import * as SessionRepo from '../models/Session'
 import SocketService from './SocketService'
-import {
-  BedrockToolChoice,
-  BedrockTools,
-  invokeModel,
-} from './AwsBedrockService'
+import { ClaudeToolChoice, ClaudeTools, invokeModel } from './ClaudeService'
 import { COLLEGE_SUBJECTS } from '../constants'
 import type {
   TutorBotAddMessageResponsePublic,
@@ -36,7 +32,7 @@ import type {
   TutorBotNewConversation,
   TutorBotHumanSenderType,
 } from '../types/tutor-bot'
-import { resize } from '../utils/image-utils'
+import { resize, TypedImage } from '../utils/image-utils'
 import {
   getCurrentSessionDocEditor,
   getDocEditorImages,
@@ -50,7 +46,7 @@ type EditorType = 'none' | 'quill'
 type TutorBotContext = {
   editorType: EditorType
   editorContent: string
-  images: Buffer[]
+  images: TypedImage[]
 }
 
 type DocumentEditorContext = {
@@ -69,7 +65,7 @@ type AwsBedrockResponseInput = {
   userId: Uuid
   conversationId: Uuid
   subjectName: string
-  images: Array<Buffer>
+  images: Array<TypedImage>
   editorContent: string
   editorType: EditorType
 }
@@ -78,7 +74,7 @@ const NUM_OF_MESSAGES_TO_KEEP_IN_CONTEXT = 15
 const LF_TRACE_NAME = 'tutorBotSession'
 const LF_GENERATION_NAME = 'tutorBotSessionMessage'
 const BED_ROCK_TOOL_NAME = 'print_response'
-const BED_ROCK_TOOL: BedrockTools = [
+const BED_ROCK_TOOL: ClaudeTools = [
   {
     name: BED_ROCK_TOOL_NAME,
     description: 'Prints answer in json format',
@@ -393,7 +389,7 @@ async function getAwsBedRockResponse(
       prompt: promptData.prompt,
       images,
       tools_option: {
-        tool_choice: { type: BedrockToolChoice.TOOL, name: BED_ROCK_TOOL_NAME },
+        tool_choice: { type: ClaudeToolChoice.TOOL, name: BED_ROCK_TOOL_NAME },
         tools: BED_ROCK_TOOL,
       },
     })

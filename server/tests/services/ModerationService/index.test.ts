@@ -23,7 +23,7 @@ import { ModerationInfraction } from '../../../models/ModerationInfractions'
 import * as UserRepo from '../../../models/User/queries'
 import * as Regex from '../../../services/ModerationService/regex'
 import * as AiObservabilityService from '../../../services/AiObservabilityService'
-import * as AwsBedrockService from '../../../services/AwsBedrockService'
+import * as ClaudeService from '../../../services/ClaudeService'
 import { client as langfuseClient } from '../../../clients/langfuse'
 import {
   AWSComprehendClient,
@@ -68,7 +68,7 @@ jest.mock('../../../services/AiObservabilityService', () => ({
   runWithTrace: jest.fn(),
   addTraceTags: jest.fn(),
 }))
-jest.mock('../../../services/AwsBedrockService')
+jest.mock('../../../services/ClaudeService')
 
 jest.mock('../../../services/SessionService')
 
@@ -87,7 +87,7 @@ describe('ModerationService', () => {
   const mockRegex = mocked(Regex)
   const mockedOpenAiService = jest.mocked(OpenAIService)
   const mockedAiObservabilityService = jest.mocked(AiObservabilityService)
-  const mockedAwsBedrockService = jest.mocked(AwsBedrockService)
+  const mockedClaudeService = jest.mocked(ClaudeService)
 
   const senderId = '123'
   const sessionId = '123'
@@ -959,7 +959,7 @@ describe('ModerationService', () => {
       jest.mocked(langfuseClient).trace.mockReturnValue({
         generation: jest.fn().mockReturnValue({ end: jest.fn() }),
       } as any)
-      mockedAwsBedrockService.invokeModel.mockResolvedValue({
+      mockedClaudeService.invokeModel.mockResolvedValue({
         confidence: 0.85,
         explanation: 'Contains a home address',
       } as any)
@@ -1041,7 +1041,7 @@ describe('ModerationService', () => {
       jest.mocked(langfuseClient).trace.mockReturnValue({
         generation: jest.fn().mockReturnValue({ end: jest.fn() }),
       } as any)
-      mockedAwsBedrockService.invokeModel.mockResolvedValue({
+      mockedClaudeService.invokeModel.mockResolvedValue({
         links: [
           {
             link: linkText,
@@ -1158,7 +1158,7 @@ describe('ModerationService', () => {
      * own try/catch, rejecting the whole PII detector.
      */
     function linkCheckReturnsDriftedShape() {
-      mockedAwsBedrockService.invokeModel.mockResolvedValue({
+      mockedClaudeService.invokeModel.mockResolvedValue({
         links: JSON.stringify({ links: [] }),
       } as any)
     }

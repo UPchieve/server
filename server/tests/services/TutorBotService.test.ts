@@ -1,6 +1,6 @@
 import { mocked } from 'jest-mock'
 import * as TutorBotService from '../../services/TutorBotService'
-import * as AwsBedrockService from '../../services/AwsBedrockService'
+import * as ClaudeService from '../../services/ClaudeService'
 import * as PromptService from '../../services/PromptService'
 import * as TutorBotRepo from '../../models/TutorBot'
 import * as QuillDocService from '../../services/QuillDocService'
@@ -8,7 +8,7 @@ import * as SessionService from '../../services/SessionService'
 import SocketService from '../../services/SocketService'
 
 jest.mock('../../logger')
-jest.mock('../../services/AwsBedrockService')
+jest.mock('../../services/ClaudeService')
 jest.mock('../../services/PromptService')
 jest.mock('../../models/TutorBot')
 jest.mock('../../services/QuillDocService')
@@ -29,7 +29,7 @@ jest.mock('../../db', () => ({
   runInTransaction: jest.fn(async (cb: any) => cb({})),
 }))
 
-const mockedBedrock = mocked(AwsBedrockService)
+const mockedClaude = mocked(ClaudeService)
 const mockedPromptService = mocked(PromptService)
 const mockedTutorBotRepo = mocked(TutorBotRepo)
 const mockedQuillDocService = mocked(QuillDocService)
@@ -72,7 +72,7 @@ beforeEach(() => {
     version: '1',
   } as any)
 
-  mockedBedrock.invokeModel.mockResolvedValue({
+  mockedClaude.invokeModel.mockResolvedValue({
     strategy: 'Provide a hint',
     intention: "Hint at the student's mistake",
     response: 'What do you get when you add two and two?',
@@ -104,7 +104,7 @@ describe('addMessageToConversation', () => {
   })
 
   test('answers with the canned apology when the model call fails', async () => {
-    mockedBedrock.invokeModel.mockRejectedValueOnce(new Error('bedrock down'))
+    mockedClaude.invokeModel.mockRejectedValueOnce(new Error('bedrock down'))
 
     const { botResponse } = await addStudentMessage()
 

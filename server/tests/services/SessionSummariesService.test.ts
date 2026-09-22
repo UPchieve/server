@@ -1,6 +1,6 @@
 import { mocked } from 'jest-mock'
 import * as SessionSummariesService from '../../services/SessionSummariesService'
-import * as AwsBedrockService from '../../services/AwsBedrockService'
+import * as ClaudeService from '../../services/ClaudeService'
 import * as AiObservabilityService from '../../services/AiObservabilityService'
 import * as PromptService from '../../services/PromptService'
 import * as ProgressReportsService from '../../services/ProgressReportsService'
@@ -11,7 +11,7 @@ import * as Subjects from '../../models/Subjects'
 import { isStudentSessionSummaryEnabled } from '../../services/FeatureFlagService'
 
 jest.mock('../../logger')
-jest.mock('../../services/AwsBedrockService')
+jest.mock('../../services/ClaudeService')
 jest.mock('../../services/AiObservabilityService')
 jest.mock('../../services/PromptService')
 jest.mock('../../services/ProgressReportsService')
@@ -22,7 +22,7 @@ jest.mock('../../models/Subjects')
 jest.mock('../../services/QueueService')
 jest.mock('../../config')
 
-const mockedBedrock = mocked(AwsBedrockService)
+const mockedClaude = mocked(ClaudeService)
 const mockedObservability = mocked(AiObservabilityService)
 const mockedPromptService = mocked(PromptService)
 const mockedProgressReports = mocked(ProgressReportsService)
@@ -66,7 +66,7 @@ beforeEach(() => {
     traceId: 'trace-id',
   }))
   mockedObservability.runWithModelObservation.mockImplementation((cb) => cb())
-  mockedBedrock.invokeModel.mockResolvedValue('a summary' as any)
+  mockedClaude.invokeModel.mockResolvedValue('a summary' as any)
 })
 
 describe('generateSessionSummaryForSession', () => {

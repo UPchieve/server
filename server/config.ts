@@ -496,7 +496,8 @@ const config = {
   // Authenticates with the AZURE_* service principal above, so there is no key.
   // No 'bogus' default: the resource name becomes the request hostname.
   anthropicFoundryResource: process.env.SUBWAY_ANTHROPIC_FOUNDRY_RESOURCE,
-  anthropicFoundryModelId: process.env.SUBWAY_ANTHROPIC_FOUNDRY_MODEL_ID,
+  anthropicFoundryModelId:
+    process.env.SUBWAY_ANTHROPIC_FOUNDRY_MODEL_ID || 'bogus',
 
   // Zwibbler
   zwibblerNodeUrl: process.env.ZWIBBLER_NODE_URL || 'bogus',

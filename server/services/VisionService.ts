@@ -3,7 +3,7 @@ import config from '../config'
 import * as PromptService from './PromptService'
 import { PromptName } from './PromptService'
 import { resize } from '../utils/image-utils'
-import { invokeModel } from './AwsBedrockService'
+import { invokeModel } from './ClaudeService'
 import {
   runWithModelObservation,
   runWithTrace,

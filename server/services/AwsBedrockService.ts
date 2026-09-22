@@ -3,216 +3,56 @@ import {
   InvokeModelCommand,
 } from '@aws-sdk/client-bedrock-runtime'
 import config from '../config'
-import * as AnthropicFoundryService from './AnthropicFoundryService'
-import { getFileType } from '../utils/image-utils'
 import { secondsInMs } from '../utils/time-utils'
-import logger from '../logger'
+import {
+  AnthropicMessagePayload,
+  ClaudeResponse,
+  ClaudeProvider,
+} from '../types/claude'
 
 const ANTHROPIC_VERSION = 'bedrock-2023-05-31'
 
-export function getClient() {
-  if (!client) client = createClient()
+let client: BedrockRuntimeClient | undefined
+
+function getClient(): BedrockRuntimeClient {
+  if (!client) {
+    client = new BedrockRuntimeClient({
+      region: config.awsBedrockRegion,
+      credentials: {
+        accessKeyId: config.awsBedrockAccessKey,
+        secretAccessKey: config.awsBedrockSecretAccessKey,
+      },
+      requestHandler: {
+        requestTimeout: secondsInMs(30),
+      },
+      // Default is 3, but we retry 2 more in Foundry.
+      maxAttempts: 2,
+    })
+  }
   return client
 }
 
-const createClient = (): BedrockRuntimeClient => {
-  return new BedrockRuntimeClient({
-    region: config.awsBedrockRegion,
-    credentials: {
-      accessKeyId: config.awsBedrockAccessKey,
-      secretAccessKey: config.awsBedrockSecretAccessKey,
-    },
-    requestHandler: {
-      requestTimeout: secondsInMs(30),
-    },
-    // Default is 3; retrying a dead region twice more just delays the fallback.
-    maxAttempts: 2,
-  })
-}
+export const provider: ClaudeProvider = {
+  name: 'bedrock',
 
-let client: BedrockRuntimeClient = createClient()
+  modelFor(modelId: string): string {
+    return modelId
+  },
 
-export enum BedrockToolChoice {
-  AUTO = 'auto',
-  ANY = 'any',
-  NONE = 'none',
-  TOOL = 'tool',
-}
-
-/**
- * The JSON Schema subset we use, narrower than what Anthropic accepts. Strict
- * tool use rejects schemas without `additionalProperties: false`, and omitting
- * a property from `required` is the only way to make it optional.
- * https://platform.claude.com/docs/en/agents-and-tools/tool-use/strict-tool-use
- */
-export type BedrockToolSchema =
-  | {
-      type: 'object'
-      description?: string
-      properties: Record<string, BedrockToolSchema>
-      required: Array<string>
-      additionalProperties: false
-    }
-  | {
-      type: 'array'
-      description?: string
-      items: BedrockToolSchema
-    }
-  | {
-      type: 'string' | 'number' | 'integer' | 'boolean'
-      description?: string
-      enum?: Array<string>
-    }
-
-export type BedrockTools = Array<{
-  name: string
-  description: string
-  strict: true
-  input_schema: Extract<BedrockToolSchema, { type: 'object' }>
-}>
-
-export type BedrockToolsAttribute = {
-  tools: BedrockTools
-  tool_choice: { type: BedrockToolChoice; name?: string }
-}
-
-type TextContent = {
-  type: 'text'
-  text: string
-}
-
-type ImageContent = {
-  type: 'image'
-  source: {
-    type: 'base64'
-    media_type?: string
-    data: string
-  }
-}
-
-type AnthropicMessagePayload = {
-  anthropic_version: string
-  max_tokens: number
-  system: string
-  messages: Array<{
-    role: 'user'
-    content: Array<TextContent | ImageContent>
-  }>
-  tools?: BedrockTools
-  tool_choice?: { type: BedrockToolChoice; name?: string }
-}
-
-type BedrockInvokeInput = {
-  modelId: string
-  text?: string
-  prompt: string
-  tools_option?: BedrockToolsAttribute
-  images?: Array<Buffer>
-}
-
-type ToolInput = Record<string, any>
-
-type BedrockInvokeResponse = {
-  stop_reason?: string
-  content: Array<{ type?: string; input?: ToolInput; text?: string }>
-}
-
-function imageContentPayload(image: Buffer): ImageContent {
-  const imageFileType = getFileType(image)
-
-  return {
-    type: 'image',
-    source: {
-      type: 'base64',
-      media_type: imageFileType?.mime,
-      data: image.toString('base64'),
-    },
-  }
-}
-
-function textContextPayload(text: string): TextContent {
-  return { type: 'text', text: `<text>${text}</text>` }
-}
-
-export async function invokeModel<T = string | ToolInput>({
-  modelId,
-  images = [],
-  text,
-  prompt,
-  tools_option,
-}: BedrockInvokeInput): Promise<T> {
-  const client = getClient()
-  const payLoadContent = []
-
-  if (text != null && text != undefined) {
-    payLoadContent.push(textContextPayload(text))
-  }
-  for (const image of images) {
-    payLoadContent.push(imageContentPayload(image))
-  }
-
-  const payload: AnthropicMessagePayload = {
-    anthropic_version: ANTHROPIC_VERSION,
-    max_tokens: 2000,
-    system: prompt,
-    messages: [
-      {
-        role: 'user',
-        content: payLoadContent,
-      },
-    ],
-  }
-
-  if (tools_option) {
-    payload.tools = tools_option.tools
-    payload.tool_choice = tools_option.tool_choice
-  }
-
-  const command = new InvokeModelCommand({
-    modelId,
-    body: JSON.stringify(payload),
-    contentType: 'application/json',
-  })
-
-  let modelRes
-  try {
-    const initResponse = await client.send(command)
-    modelRes = JSON.parse(new TextDecoder().decode(initResponse.body))
-  } catch (err) {
-    logger.warn({ modelId, err }, 'Bedrock failed, falling back to Foundry')
-    modelRes = await AnthropicFoundryService.invokeModel(payload)
-  }
-
-  const getModelResponse = tools_option
-    ? getResponseWithToolsOption
-    : getResponse
-
-  const response = getModelResponse(modelRes)
-
-  if (!response) {
-    logger.error(
-      {
-        // Shape only. Every moderation and vision call comes through here, so
-        // the body describes text read off a student's image or message, and
-        // logger.error forwards to Sentry and New Relic unredacted.
-        modelId,
-        contentField: tools_option ? 'input' : 'text',
-        stopReason: modelRes?.stop_reason,
-        contentBlockTypes: Array.isArray(modelRes?.content)
-          ? modelRes.content.map((block: { type?: string }) => block?.type)
-          : typeof modelRes?.content,
-      },
-      'Did not receive expected Bedrock response'
-    )
-    throw new Error('No expected Bedrock response')
-  }
-
-  return response as T
-}
-
-const getResponseWithToolsOption = (modelRes: BedrockInvokeResponse) => {
-  return modelRes?.content[0]?.input ?? null
-}
-const getResponse = (modelRes: BedrockInvokeResponse) => {
-  return modelRes?.content[0]?.text ?? null
+  async send(
+    payload: AnthropicMessagePayload,
+    model: string,
+    deadline: AbortSignal
+  ): Promise<ClaudeResponse> {
+    const command = new InvokeModelCommand({
+      modelId: model,
+      body: JSON.stringify({
+        ...payload,
+        anthropic_version: ANTHROPIC_VERSION,
+      }),
+      contentType: 'application/json',
+    })
+    const response = await getClient().send(command, { abortSignal: deadline })
+    return JSON.parse(new TextDecoder().decode(response.body))
+  },
 }
