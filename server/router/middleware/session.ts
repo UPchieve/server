@@ -9,6 +9,7 @@ const sessionMiddleware = session({
   resave: false,
   saveUninitialized: false,
   rolling: true,
+  name: config.sessionCookieName,
   secret: config.sessionSecret,
   store: new PgStore({
     pool: getClient(),

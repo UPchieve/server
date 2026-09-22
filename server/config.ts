@@ -27,6 +27,7 @@ const config = {
   sessionCookieMaxAge: parseInt(
     process.env.SUBWAY_SESSION_COOKIE_MAX_AGE || '5184000000'
   ),
+  sessionCookieName: process.env.SUBWAY_SESSION_COOKIE_NAME || 'connect.sid',
   requestTimeout: process.env.REQUEST_TIMEOUT || '30000',
   saltRounds: 10,
   smtp: {
