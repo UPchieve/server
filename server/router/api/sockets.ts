@@ -11,13 +11,14 @@ import { EVENTS, SESSION_USER_ACTIONS, USER_BAN_REASONS } from '../../constants'
 import logger from '../../logger'
 import { Ulid } from '../../models/pgUtils'
 import * as SessionRepo from '../../models/Session/queries'
-import * as cache from '../../cache'
 import { banUserById, UserContactInfo, UserRole } from '../../models/User'
 import { captureEvent } from '../../services/AnalyticsService'
 import QueueService from '../../services/QueueService'
 import * as QuillDocService from '../../services/QuillDocService'
 import * as SessionService from '../../services/SessionService'
-import SocketService from '../../services/SocketService'
+import SocketService, {
+  APPROVED_VOLUNTEERS_ROOM,
+} from '../../services/SocketService'
 import getSessionRoom from '../../utils/get-session-room'
 import { Jobs } from '../../worker/jobs'
 import { extractSocketUser } from '../extract-user'
@@ -36,8 +37,39 @@ import { extractSocketIp } from '../../utils/extract-socket-ip'
 import sessionMiddleware from '../middleware/session'
 import { toCurrentSessionPublic } from '../../public/sessions'
 import { logThrottledEditorActivity } from '../../services/SessionEditorActivityService'
+import { isPlatformBanType } from '../../utils/ban-utils'
 
 export type SessionMessageType = 'audio-transcription' // todo - add 'chat' later
+
+/**
+ * Adds or removes a socket from the `volunteers` room based on the
+ * user's current approval status, returning whether the user is allowed to be
+ * in that room (i.e. is a volunteer, is approved, and is not banned from the
+ * platform).
+ *
+ * Once authenticated, clients connect to the socket, but we don't want a volunteer
+ * to receive the session list (which they get from being in the `volunteers` room)
+ * until they have been approved. Once approved, we can simply emit('list') on
+ * the client, and the volunteer will be added to the room, without needing
+ * to disconnect and reconnect their socket.
+ */
+async function syncApprovedVolunteersRoom(
+  socket: SocketUser,
+  user: UserContactInfo
+): Promise<boolean> {
+  const isApprovedVolunteer =
+    user.roleContext.isActiveRole('volunteer') &&
+    !!user.approved &&
+    !isPlatformBanType(user.banType)
+
+  if (isApprovedVolunteer) {
+    await socket.join(APPROVED_VOLUNTEERS_ROOM)
+  } else {
+    await socket.leave(APPROVED_VOLUNTEERS_ROOM)
+  }
+
+  return isApprovedVolunteer
+}
 
 async function handleUser(socket: SocketUser, user: UserContactInfo) {
   // Join a user to their own room to handle the event where a user might have
@@ -51,8 +83,7 @@ async function handleUser(socket: SocketUser, user: UserContactInfo) {
     socket.emit('session-change', toCurrentSessionPublic(latestSession))
   }
 
-  if (user.roleContext.isActiveRole('volunteer')) {
-    await socket.join('volunteers')
+  if (await syncApprovedVolunteersRoom(socket, user)) {
     await updateVolunteerSubjectPresence(user.id, 'add')
   }
 }
@@ -254,6 +285,21 @@ export function routeSockets(io: Server): void {
     socket.on('list', async (_data, callback) => {
       await observeWebTransaction('/socket-io/list', async () => {
         try {
+          const user = await extractSocketUser(socket, true)
+
+          if (!(await syncApprovedVolunteersRoom(socket, user))) {
+            logger.warn(
+              {
+                userId: user.id,
+                role: user.roleContext.activeRole,
+                approved: user.approved,
+              },
+              'Unauthorized to view session list'
+            )
+            callback({ status: 403 })
+            return
+          }
+
           const allSessions = await SessionRepo.getUnfulfilledSessions()
           const sessions =
             await socketService.addExclusiveSessionMetadata(allSessions)

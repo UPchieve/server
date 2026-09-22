@@ -18,6 +18,12 @@ import { secondsInMs } from '../utils/time-utils'
 import { toCurrentSessionPublic } from '../public/sessions'
 import { ShareInfoPayload } from '../types/socket-types'
 
+/**
+ * This room receives broadcasts of unfulfilled sessions.
+ * Only allowed for approved volunteers.
+ */
+export const APPROVED_VOLUNTEERS_ROOM = 'volunteers'
+
 // TODO: Remove class wrapper.
 class SocketService {
   private static instance: SocketService
@@ -145,7 +151,9 @@ class SocketService {
     const sessions = await getUnfulfilledSessions(tc)
     const sessionsWithExclusiveMetadata =
       await this.addExclusiveSessionMetadata(sessions)
-    this.io.in('volunteers').emit('sessions', sessionsWithExclusiveMetadata)
+    this.io
+      .in(APPROVED_VOLUNTEERS_ROOM)
+      .emit('sessions', sessionsWithExclusiveMetadata)
   }
 
   async addExclusiveSessionMetadata(allSessions: UnfulfilledSessions[]) {
