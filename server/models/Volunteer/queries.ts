@@ -32,12 +32,14 @@ import {
   VolunteerProfileUpdate,
   VolunteersForAnalyticsReport,
   VolunteerSubject,
+  VolunteerSessionHoldEligibilityData,
 } from './types'
 import config from '../../config'
 import _ from 'lodash'
 import {
   ACCOUNT_USER_ACTIONS,
   PHOTO_ID_STATUS,
+  SUBJECTS,
   USER_BAN_TYPES,
   USER_ROLES,
 } from '../../constants'
@@ -1839,5 +1841,37 @@ export async function getVolunteerOccupations(
     )
   } catch (error) {
     throw new RepoReadError(error)
+  }
+}
+
+export async function getSubjectAndReadyToCoachInfoByUserIds(
+  userIds: Ulid[],
+  tc: TransactionClient = getRoClient()
+): Promise<VolunteerSessionHoldEligibilityData[]> {
+  try {
+    const results = await pgQueries.getSubjectAndReadyToCoachInfoByUserIds.run(
+      {
+        userIds,
+      },
+      tc
+    )
+    return results.map((row) => {
+      const camelCased = makeSomeRequired(row, [
+        'userId',
+        'isDeactivated',
+        'approved',
+        'onboarded',
+      ])
+      return {
+        userId: camelCased.userId,
+        isDeactivated: camelCased.isDeactivated,
+        mutedSubjects: (camelCased.mutedSubjects || []) as SUBJECTS[],
+        unlockedSubjects: (camelCased.unlockedSubjects || []) as SUBJECTS[],
+        banType: camelCased.banType || null,
+        isReadyToCoach: camelCased.approved && camelCased.onboarded,
+      }
+    })
+  } catch (err) {
+    throw new RepoReadError(err)
   }
 }

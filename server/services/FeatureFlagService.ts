@@ -197,3 +197,21 @@ export async function blockScreenshare(userId: Uuid) {
 export async function blockAudioCall(userId: Uuid) {
   return isFeatureEnabled(FEATURE_FLAGS.BLOCK_AUDIO_CALL, userId)
 }
+
+export async function getSessionHoldsCoachFeatureFlag(
+  coachId: Uuid
+): Promise<boolean> {
+  return (
+    (await isFeatureEnabled(FEATURE_FLAGS.SESSION_HOLDS_COACH, coachId)) ??
+    false
+  )
+}
+
+export async function getSessionHoldsStudentFeatureFlag(
+  studentId: Uuid
+): Promise<boolean> {
+  return (
+    (await isFeatureEnabled(FEATURE_FLAGS.SESSION_HOLDS_STUDENT, studentId)) ??
+    false
+  )
+}

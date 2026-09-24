@@ -1,4 +1,5 @@
 import * as SessionmeetingsService from '../services/SessionMeetingService'
+import * as SessionHoldsService from '../services/SessionHoldsService'
 import moment from 'moment'
 import { v4 as uuidv4 } from 'uuid'
 import * as cache from '../cache'
@@ -77,7 +78,6 @@ import { processReportMetrics } from './SessionFlagsService'
 import * as SurveyService from './SurveyService'
 import { SessionUserRole } from './UserRolesService'
 import * as FeatureFlagsService from './FeatureFlagService'
-import { createDocEditorImageUploadUrl } from './AzureService'
 import type { CurrentSession } from '../types/session'
 import { hoursInSeconds, minutesInMs, secondsInMs } from '../utils/time-utils'
 import * as ModerationService from './ModerationService'
@@ -282,8 +282,9 @@ export async function endSession(
   })
 
   await SessionmeetingsService.endMeeting(sessionId)
-
   await NotifyVolunteerService.clearExclusiveRequest(sessionId)
+  await SessionHoldsService.clearSessionHolds(sessionId)
+  await SocketService.getInstance().emitSessionChange(session.id)
 
   await QueueService.add(
     Jobs.DetectSessionLanguages,
@@ -876,6 +877,10 @@ export async function joinSession(
       })
     }
 
+    // Check if this session or this volunteer are part of any session holds, and clear them if so.
+    await SessionHoldsService.clearSessionHolds(session.id) // @TODO: Also emit events here.
+    await SocketService.getInstance().emitSessionChange(session.id)
+
     try {
       await createSessionAction({
         ...sessionAnalyticsData,
@@ -1380,28 +1385,6 @@ export async function isSessionQualifiedForFallIncentive(
   })
 }
 
-export async function getOrCreateSessionAudio(
-  sessionId: string,
-  {
-    resourceUri,
-    volunteerJoinedAt,
-    studentJoinedAt,
-  }: {
-    resourceUri?: string
-    volunteerJoinedAt?: Date
-    studentJoinedAt?: Date
-  }
-): Promise<SessionAudioRepo.SessionAudio> {
-  const maybeSessionAudio =
-    await SessionAudioRepo.getSessionAudioBySessionId(sessionId)
-  if (maybeSessionAudio) return maybeSessionAudio
-  return await SessionAudioRepo.createSessionAudio({
-    sessionId,
-    resourceUri,
-    volunteerJoinedAt,
-    studentJoinedAt,
-  })
-}
 export async function updateSessionAudio(
   sessionId: string,
   updates: SessionAudioRepo.UpdateSessionAudioPayload
@@ -1628,4 +1611,9 @@ export async function saveSessionImage({
   }
 
   return { isClean: false, failures }
+}
+
+export async function dismissSessionHold(coachId: Uuid, sessionId: Uuid) {
+  await SessionHoldsService.dismissHold(coachId, sessionId)
+  await SocketService.getInstance().emitSessionChange(sessionId)
 }

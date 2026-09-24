@@ -1,4 +1,5 @@
 import socketio, { Socket } from 'socket.io'
+import * as SessionHoldsService from './SessionHoldsService'
 import { difference, intersection } from 'lodash'
 import type { RemoteSocket } from 'socket.io'
 import logger from '../logger'
@@ -17,6 +18,7 @@ import { UserContactInfo } from '../models/User'
 import { secondsInMs } from '../utils/time-utils'
 import { toCurrentSessionPublic } from '../public/sessions'
 import { ShareInfoPayload } from '../types/socket-types'
+import { SUBJECTS } from '../constants'
 
 /**
  * This room receives broadcasts of unfulfilled sessions.
@@ -149,11 +151,27 @@ class SocketService {
 
   private async updateSessionList(tc?: TransactionClient): Promise<void> {
     const sessions = await getUnfulfilledSessions(tc)
+    const coachHoldEligibilities =
+      await SessionHoldsService.getEligibleOnlineCoaches()
     const sessionsWithExclusiveMetadata =
       await this.addExclusiveSessionMetadata(sessions)
-    this.io
-      .in(APPROVED_VOLUNTEERS_ROOM)
-      .emit('sessions', sessionsWithExclusiveMetadata)
+    const withHolds = []
+    for (const session of sessionsWithExclusiveMetadata) {
+      const s = await SessionHoldsService.attachHoldData(
+        {
+          id: session.id,
+          subject: session.subTopic as SUBJECTS,
+          createdAt: session.createdAt,
+          studentId: session.student.id,
+        },
+        coachHoldEligibilities
+      )
+      withHolds.push({
+        ...session,
+        ...s,
+      })
+    }
+    this.io.in(APPROVED_VOLUNTEERS_ROOM).emit('sessions', withHolds)
   }
 
   async addExclusiveSessionMetadata(allSessions: UnfulfilledSessions[]) {

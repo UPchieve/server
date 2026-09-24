@@ -136,3 +136,31 @@ export async function hgetall(key: string): Promise<Record<string, string>> {
 export async function hdel(key: string, ...fields: string[]) {
   return await redisClient.hdel(key, ...fields)
 }
+
+export async function addToSortedSet(
+  key: string,
+  value: string,
+  score: number
+) {
+  await redisClient.zadd(key, score, value)
+}
+
+export async function getFromSortedSetByRange(
+  key: string,
+  minScore: number | '-inf',
+  maxScore: number | '+inf'
+) {
+  return redisClient.zrangebyscore(key, minScore, maxScore)
+}
+
+export async function removeFromSortedSetByRange(
+  key: string,
+  minScore: number | '-inf',
+  maxScore: number | '+inf'
+) {
+  await redisClient.zremrangebyscore(key, minScore, maxScore)
+}
+
+export async function setExpiration(key: string, ttlSeconds: number) {
+  await redisClient.expire(key, ttlSeconds)
+}

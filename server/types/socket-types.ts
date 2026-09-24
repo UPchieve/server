@@ -59,6 +59,7 @@ export type ClientToServerEvents = {
   addPartnerLiveMediaBan: (data: { sessionId: string }) => void
   joinedLiveMedia: (data: { sessionId: string }) => void
   'sessions/share-info:opt-in': (message: ShareInfoPayload) => void
+  dismissSessionHold: (data: { sessionId: string }) => void
 }
 
 export type ServerToClientEvents = {

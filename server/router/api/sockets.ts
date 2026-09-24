@@ -7,10 +7,16 @@ import passport from 'passport'
 import { ResourceLockedError } from '@sesamecare-oss/redlock'
 import { Server, Socket } from 'socket.io'
 import { v4 as uuidv4 } from 'uuid'
-import { EVENTS, SESSION_USER_ACTIONS, USER_BAN_REASONS } from '../../constants'
+import {
+  EVENTS,
+  SESSION_USER_ACTIONS,
+  SUBJECTS,
+  USER_BAN_REASONS,
+} from '../../constants'
 import logger from '../../logger'
 import { Ulid } from '../../models/pgUtils'
 import * as SessionRepo from '../../models/Session/queries'
+import * as SessionHoldsService from '../../services/SessionHoldsService'
 import { banUserById, UserContactInfo, UserRole } from '../../models/User'
 import { captureEvent } from '../../services/AnalyticsService'
 import QueueService from '../../services/QueueService'
@@ -303,10 +309,28 @@ export function routeSockets(io: Server): void {
           const allSessions = await SessionRepo.getUnfulfilledSessions()
           const sessions =
             await socketService.addExclusiveSessionMetadata(allSessions)
-          socket.emit('sessions', sessions)
+          const coachHoldEligibilities =
+            await SessionHoldsService.getEligibleOnlineCoaches()
+          const withHolds = []
+          for (const session of sessions) {
+            const s = await SessionHoldsService.attachHoldData(
+              {
+                id: session.id,
+                subject: session.subTopic as SUBJECTS,
+                createdAt: session.createdAt,
+                studentId: session.student.id,
+              },
+              coachHoldEligibilities
+            )
+            withHolds.push({
+              ...session,
+              ...s,
+            })
+          }
+          socket.emit('sessions', withHolds)
           callback({
             status: 200,
-            sessions,
+            sessions: withHolds,
           })
         } catch (error) {
           logger.error(error, 'Failed getting unfulfilled sessions')
@@ -903,6 +927,22 @@ export function routeSockets(io: Server): void {
         logger.error(
           { err, sessionId },
           'Failed to let partner know screen share initiated'
+        )
+      }
+    })
+
+    socket.on('dismissSessionHold', async ({ sessionId }) => {
+      const user = await extractSocketUser(socket)
+      try {
+        await SessionService.dismissSessionHold(user.id, sessionId)
+      } catch (err) {
+        logger.error(
+          {
+            coachId: user.id,
+            sessionId,
+            err,
+          },
+          `Failed to dismiss session hold for user ${user.id} and session ${sessionId}`
         )
       }
     })

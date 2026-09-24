@@ -1,6 +1,7 @@
 import {
   GRADES,
   REFERENCE_STATUS,
+  SUBJECTS,
   TRAINING,
   USER_BAN_TYPES,
 } from '../../constants'
@@ -154,4 +155,13 @@ export type VolunteerProfileUpdate = {
   languages?: string[]
   occupations?: string[]
   gradeLevel?: GRADES
+}
+
+export type VolunteerSessionHoldEligibilityData = {
+  userId: Ulid
+  unlockedSubjects: SUBJECTS[]
+  mutedSubjects: SUBJECTS[]
+  isDeactivated: boolean
+  isReadyToCoach: boolean
+  banType: USER_BAN_TYPES | null
 }

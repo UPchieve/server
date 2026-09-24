@@ -1530,3 +1530,94 @@ FROM
 WHERE
     user_id = :userId!;
 
+
+/* @name getSubjectAndReadyToCoachInfoByUserIds */
+WITH muted_subjects AS (
+    SELECT
+        muted.user_id,
+        array_agg(subjects.name) AS muted_subjects
+    FROM
+        muted_users_subject_alerts muted
+        INNER JOIN subjects ON subjects.id = muted.subject_id
+    WHERE
+        muted.user_id = ANY (:userIds!::uuid[])
+    GROUP BY
+        muted.user_id
+),
+certs_by_user AS (
+    SELECT
+        uc.user_id,
+        array_agg(DISTINCT uc.certification_id) AS certification_ids
+    FROM
+        users_certifications uc
+    WHERE
+        uc.user_id = ANY (:userIds!::uuid[])
+    GROUP BY
+        uc.user_id
+),
+unlocks AS (
+    SELECT
+        uc.user_id,
+        csu.subject_id
+    FROM
+        users_certifications uc
+        INNER JOIN certification_subject_unlocks csu ON csu.certification_id = uc.certification_id
+    WHERE
+        uc.user_id = ANY (:userIds!::uuid[])
+),
+comp_subs AS (
+    SELECT
+        subject_id,
+        array_agg(DISTINCT certification_id) AS required_certs
+    FROM
+        computed_subject_unlocks
+    GROUP BY
+        subject_id
+),
+comp_unlocks AS (
+    SELECT
+        cbu.user_id,
+        comp_subs.subject_id
+    FROM
+        certs_by_user cbu
+        INNER JOIN comp_subs ON cbu.certification_ids @> comp_subs.required_certs
+),
+all_unlocked AS (
+    SELECT
+        user_id,
+        subject_id
+    FROM
+        unlocks
+UNION
+SELECT
+    user_id,
+    subject_id
+FROM
+    comp_unlocks
+),
+unlocked_subjects AS (
+    SELECT
+        au.user_id,
+        array_agg(DISTINCT s.name) AS unlocked_subjects
+    FROM
+        all_unlocked au
+        INNER JOIN subjects s ON s.id = au.subject_id
+    GROUP BY
+        au.user_id
+)
+SELECT
+    u.id AS user_id,
+    u.ban_type,
+    u.deactivated AS is_deactivated,
+    vp.onboarded,
+    vp.approved,
+    unlocked_subjects.unlocked_subjects,
+    muted_subjects.muted_subjects
+FROM
+    users u
+    INNER JOIN volunteer_profiles vp ON vp.user_id = u.id
+    LEFT JOIN unlocked_subjects ON unlocked_subjects.user_id = u.id
+    LEFT JOIN muted_subjects ON muted_subjects.user_id = u.id
+WHERE
+    u.id = ANY (:userIds!::uuid[]);
+

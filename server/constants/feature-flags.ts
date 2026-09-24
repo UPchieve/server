@@ -27,4 +27,6 @@ export enum FEATURE_FLAGS {
   BLOCK_SESSION_IMAGE_UPLOAD = 'block-session-image-upload',
   BLOCK_SCREENSHARE = 'block-screenshare',
   BLOCK_AUDIO_CALL = 'block-audio-call',
+  SESSION_HOLDS_COACH = 'session-holds-coach',
+  SESSION_HOLDS_STUDENT = 'session-holds-student',
 }

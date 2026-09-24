@@ -26,6 +26,7 @@ import {
   DAYS,
   GRADES,
   HOURS,
+  SUBJECTS,
   TRAINING_QUIZZES,
   USER_BAN_TYPES,
 } from '../../constants'
@@ -75,6 +76,7 @@ import {
   UserQuiz,
   VolunteerContactInfo,
   VolunteersForAnalyticsReport,
+  VolunteerSessionHoldEligibilityData,
   VolunteerWithReadyToCoachInfo,
 } from '../../models/Volunteer'
 import { SubjectAndTopic } from '../../models/Subjects'
@@ -148,10 +150,7 @@ import type {
 } from '../../contracts/tutor-bot'
 import { IneligibleStudentsWithSchoolInfo } from '../../models/IneligibleStudent/queries'
 import { ZipCode } from '../../models/ZipCode/types'
-import {
-  AssignmentPublic,
-  StudentAssignmentSubmissionPublic,
-} from '../../contracts/assignments'
+import { StudentAssignmentSubmissionPublic } from '../../contracts/assignments'
 import { NTHSGroupMemberWithRolePublic } from '../../contracts/nths'
 
 /** Suffixed with a uuid because users.email and parents_guardians.email are UNIQUE. */
@@ -2538,6 +2537,20 @@ export function buildZipCode(overrides: Partial<ZipCode> = {}): ZipCode {
     cbsaIncome: 42000,
     stateIncome: 45000,
     isEligible: true,
+    ...overrides,
+  }
+}
+
+export function buildVolunteerSessionHoldEligibilityData(
+  overrides: Partial<VolunteerSessionHoldEligibilityData> = {}
+): VolunteerSessionHoldEligibilityData {
+  return {
+    userId: getDbUlid(),
+    unlockedSubjects: ['prealgebra', 'algebraOne'] as SUBJECTS[],
+    mutedSubjects: [] as SUBJECTS[],
+    isDeactivated: false,
+    isReadyToCoach: true,
+    banType: null,
     ...overrides,
   }
 }

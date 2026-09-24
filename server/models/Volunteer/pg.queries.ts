@@ -3699,3 +3699,128 @@ const getVolunteerOccupationsIR: any = {"usedParamSet":{"userId":true},"params":
 export const getVolunteerOccupations = new PreparedQuery<IGetVolunteerOccupationsParams,IGetVolunteerOccupationsResult>(getVolunteerOccupationsIR);
 
 
+/** 'GetSubjectAndReadyToCoachInfoByUserIds' parameters type */
+export interface IGetSubjectAndReadyToCoachInfoByUserIdsParams {
+  userIds: stringArray;
+}
+
+/** 'GetSubjectAndReadyToCoachInfoByUserIds' return type */
+export interface IGetSubjectAndReadyToCoachInfoByUserIdsResult {
+  /** not_pii: Whether the volunteer application has been approved */
+  approved: boolean;
+  /** not_pii: Type of ban (shadow, complete, live_media) */
+  banType: ban_types | null;
+  /** not_pii: Whether the user account has been deactivated */
+  isDeactivated: boolean;
+  mutedSubjects: stringArray | null;
+  /** not_pii: Whether the volunteer has completed all onboarding steps */
+  onboarded: boolean;
+  unlockedSubjects: stringArray | null;
+  /** not_pii: Primary key */
+  userId: string;
+}
+
+/** 'GetSubjectAndReadyToCoachInfoByUserIds' query type */
+export interface IGetSubjectAndReadyToCoachInfoByUserIdsQuery {
+  params: IGetSubjectAndReadyToCoachInfoByUserIdsParams;
+  result: IGetSubjectAndReadyToCoachInfoByUserIdsResult;
+}
+
+const getSubjectAndReadyToCoachInfoByUserIdsIR: any = {"usedParamSet":{"userIds":true},"params":[{"name":"userIds","required":true,"transform":{"type":"scalar"},"locs":[{"a":261,"b":269},{"a":514,"b":522},{"a":811,"b":819},{"a":2023,"b":2031}]}],"statement":"WITH muted_subjects AS (\n    SELECT\n        muted.user_id,\n        array_agg(subjects.name) AS muted_subjects\n    FROM\n        muted_users_subject_alerts muted\n        INNER JOIN subjects ON subjects.id = muted.subject_id\n    WHERE\n        muted.user_id = ANY (:userIds!::uuid[])\n    GROUP BY\n        muted.user_id\n),\ncerts_by_user AS (\n    SELECT\n        uc.user_id,\n        array_agg(DISTINCT uc.certification_id) AS certification_ids\n    FROM\n        users_certifications uc\n    WHERE\n        uc.user_id = ANY (:userIds!::uuid[])\n    GROUP BY\n        uc.user_id\n),\nunlocks AS (\n    SELECT\n        uc.user_id,\n        csu.subject_id\n    FROM\n        users_certifications uc\n        INNER JOIN certification_subject_unlocks csu ON csu.certification_id = uc.certification_id\n    WHERE\n        uc.user_id = ANY (:userIds!::uuid[])\n),\ncomp_subs AS (\n    SELECT\n        subject_id,\n        array_agg(DISTINCT certification_id) AS required_certs\n    FROM\n        computed_subject_unlocks\n    GROUP BY\n        subject_id\n),\ncomp_unlocks AS (\n    SELECT\n        cbu.user_id,\n        comp_subs.subject_id\n    FROM\n        certs_by_user cbu\n        INNER JOIN comp_subs ON cbu.certification_ids @> comp_subs.required_certs\n),\nall_unlocked AS (\n    SELECT\n        user_id,\n        subject_id\n    FROM\n        unlocks\nUNION\nSELECT\n    user_id,\n    subject_id\nFROM\n    comp_unlocks\n),\nunlocked_subjects AS (\n    SELECT\n        au.user_id,\n        array_agg(DISTINCT s.name) AS unlocked_subjects\n    FROM\n        all_unlocked au\n        INNER JOIN subjects s ON s.id = au.subject_id\n    GROUP BY\n        au.user_id\n)\nSELECT\n    u.id AS user_id,\n    u.ban_type,\n    u.deactivated AS is_deactivated,\n    vp.onboarded,\n    vp.approved,\n    unlocked_subjects.unlocked_subjects,\n    muted_subjects.muted_subjects\nFROM\n    users u\n    INNER JOIN volunteer_profiles vp ON vp.user_id = u.id\n    LEFT JOIN unlocked_subjects ON unlocked_subjects.user_id = u.id\n    LEFT JOIN muted_subjects ON muted_subjects.user_id = u.id\nWHERE\n    u.id = ANY (:userIds!::uuid[])"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * WITH muted_subjects AS (
+ *     SELECT
+ *         muted.user_id,
+ *         array_agg(subjects.name) AS muted_subjects
+ *     FROM
+ *         muted_users_subject_alerts muted
+ *         INNER JOIN subjects ON subjects.id = muted.subject_id
+ *     WHERE
+ *         muted.user_id = ANY (:userIds!::uuid[])
+ *     GROUP BY
+ *         muted.user_id
+ * ),
+ * certs_by_user AS (
+ *     SELECT
+ *         uc.user_id,
+ *         array_agg(DISTINCT uc.certification_id) AS certification_ids
+ *     FROM
+ *         users_certifications uc
+ *     WHERE
+ *         uc.user_id = ANY (:userIds!::uuid[])
+ *     GROUP BY
+ *         uc.user_id
+ * ),
+ * unlocks AS (
+ *     SELECT
+ *         uc.user_id,
+ *         csu.subject_id
+ *     FROM
+ *         users_certifications uc
+ *         INNER JOIN certification_subject_unlocks csu ON csu.certification_id = uc.certification_id
+ *     WHERE
+ *         uc.user_id = ANY (:userIds!::uuid[])
+ * ),
+ * comp_subs AS (
+ *     SELECT
+ *         subject_id,
+ *         array_agg(DISTINCT certification_id) AS required_certs
+ *     FROM
+ *         computed_subject_unlocks
+ *     GROUP BY
+ *         subject_id
+ * ),
+ * comp_unlocks AS (
+ *     SELECT
+ *         cbu.user_id,
+ *         comp_subs.subject_id
+ *     FROM
+ *         certs_by_user cbu
+ *         INNER JOIN comp_subs ON cbu.certification_ids @> comp_subs.required_certs
+ * ),
+ * all_unlocked AS (
+ *     SELECT
+ *         user_id,
+ *         subject_id
+ *     FROM
+ *         unlocks
+ * UNION
+ * SELECT
+ *     user_id,
+ *     subject_id
+ * FROM
+ *     comp_unlocks
+ * ),
+ * unlocked_subjects AS (
+ *     SELECT
+ *         au.user_id,
+ *         array_agg(DISTINCT s.name) AS unlocked_subjects
+ *     FROM
+ *         all_unlocked au
+ *         INNER JOIN subjects s ON s.id = au.subject_id
+ *     GROUP BY
+ *         au.user_id
+ * )
+ * SELECT
+ *     u.id AS user_id,
+ *     u.ban_type,
+ *     u.deactivated AS is_deactivated,
+ *     vp.onboarded,
+ *     vp.approved,
+ *     unlocked_subjects.unlocked_subjects,
+ *     muted_subjects.muted_subjects
+ * FROM
+ *     users u
+ *     INNER JOIN volunteer_profiles vp ON vp.user_id = u.id
+ *     LEFT JOIN unlocked_subjects ON unlocked_subjects.user_id = u.id
+ *     LEFT JOIN muted_subjects ON muted_subjects.user_id = u.id
+ * WHERE
+ *     u.id = ANY (:userIds!::uuid[])
+ * ```
+ */
+export const getSubjectAndReadyToCoachInfoByUserIds = new PreparedQuery<IGetSubjectAndReadyToCoachInfoByUserIdsParams,IGetSubjectAndReadyToCoachInfoByUserIdsResult>(getSubjectAndReadyToCoachInfoByUserIdsIR);
+
+
