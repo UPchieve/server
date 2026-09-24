@@ -107,6 +107,16 @@ export async function getOrCreateSessionHolds( // exported for testing
   const coachIds = randomized.map((coach) => coach.userId)
   const holds = buildHolds(coachIds)
   await saveHoldsToCache(sessionData.id, holds)
+  logger.info(
+    {
+      sessionId: sessionData.id,
+      subject: sessionData.subject,
+      holdsCreated: holds.length,
+      forCoaches: holds.map((c) => c.coachId),
+      eligibleCoaches: coachData.length,
+    },
+    'Created holds for session'
+  )
   return holds
 }
 
