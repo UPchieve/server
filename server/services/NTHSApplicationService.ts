@@ -30,7 +30,11 @@ import {
 export { NTHSApplicationIneligibilityReason, NTHSApplyRequirementStatus }
 export type { NTHSApplyPreview }
 
-export const CURRENT_NTHS_APPLICATION_FORM_VERSION = 1
+// A submit with no formVersion comes from a tab opened before versions 2 and 3
+// shipped, which still shows the version 1 questions.
+const UNVERSIONED_SUBMIT_FORM_VERSION = 1
+export const SUBMITTABLE_FORM_VERSIONS = [2, 3] as const
+export type SubmittableFormVersion = (typeof SUBMITTABLE_FORM_VERSIONS)[number]
 
 const MAX_ANSWER_LENGTH = 2000
 
@@ -40,9 +44,22 @@ type NTHSFormField = {
   required: boolean
 }
 
+// The commitments are program policy, so every submittable version asks for them.
+const COMMITMENTS: NTHSFormField[] = [
+  { key: 'commitWeeklyHours', type: 'attestation', required: true },
+  { key: 'commitRecruitThreeTutors', type: 'attestation', required: true },
+  { key: 'commitHostFourMeetings', type: 'attestation', required: true },
+  { key: 'commitFortyTutoringHours', type: 'attestation', required: true },
+  {
+    key: 'commitRecruitKnownHighSchoolers',
+    type: 'attestation',
+    required: true,
+  },
+]
+
 // Keyed by form_version so an old row stays readable. A key's meaning must
 // never change; a changed question needs a new key and a new version.
-const NTHS_APPLICATION_FORMS: Record<number, NTHSFormField[]> = {
+export const NTHS_APPLICATION_FORMS: Record<number, NTHSFormField[]> = {
   1: [
     { key: 'whyStartChapter', type: 'text', required: true },
     { key: 'leadershipExperience', type: 'text', required: true },
@@ -57,6 +74,21 @@ const NTHS_APPLICATION_FORMS: Record<number, NTHSFormField[]> = {
       required: true,
     },
     { key: 'coPresidentEmail', type: 'text', required: false },
+    { key: 'howDidYouHear', type: 'text', required: false },
+  ],
+  2: [
+    { key: 'whyStartChapter', type: 'text', required: true },
+    { key: 'leadershipExperience', type: 'text', required: true },
+    { key: 'recruitmentIdea', type: 'text', required: true },
+    { key: 'motivatingCoaches', type: 'text', required: true },
+    ...COMMITMENTS,
+    { key: 'coPresidentEmail', type: 'text', required: false },
+    { key: 'howDidYouHear', type: 'text', required: false },
+  ],
+  3: [
+    { key: 'whyStartChapter', type: 'text', required: true },
+    { key: 'leadershipExperience', type: 'text', required: true },
+    ...COMMITMENTS,
     { key: 'howDidYouHear', type: 'text', required: false },
   ],
 }
@@ -300,12 +332,14 @@ export async function submitCandidateApplication({
   schoolId,
   unlistedSchool,
   gradeLevel,
+  formVersion,
   responses,
 }: {
   userId: Ulid
   schoolId?: Uuid
   unlistedSchool?: unknown
   gradeLevel: GRADES
+  formVersion?: SubmittableFormVersion
   responses: NTHSApplicationResponses
 }): Promise<NTHSCandidateApplication> {
   if (!isHighSchoolGrade(gradeLevel))
@@ -323,7 +357,8 @@ export async function submitCandidateApplication({
   if (!schoolId && !schoolDetails)
     throw new InputError('An application needs a school')
 
-  validateResponses(CURRENT_NTHS_APPLICATION_FORM_VERSION, responses)
+  const validatedFormVersion = formVersion ?? UNVERSIONED_SUBMIT_FORM_VERSION
+  validateResponses(validatedFormVersion, responses)
 
   return await runInTransaction(async (tc: TransactionClient) => {
     // Runs before the eligibility check so these two states get their own message
@@ -381,7 +416,7 @@ export async function submitCandidateApplication({
         userId,
         schoolId,
         unlistedSchool: schoolDetails,
-        formVersion: CURRENT_NTHS_APPLICATION_FORM_VERSION,
+        formVersion: validatedFormVersion,
         responses,
       },
       tc

@@ -5,7 +5,10 @@ import { buildVolunteer } from '../../mocks/generate'
 import { routeNTHSApplication } from '../../../router/api/nths-application'
 import * as NTHSApplicationService from '../../../services/NTHSApplicationService'
 import * as FeatureFlagService from '../../../services/FeatureFlagService'
-import { NTHSApplicationNotEligibleError } from '../../../services/NTHSApplicationService'
+import {
+  NTHSApplicationNotEligibleError,
+  SUBMITTABLE_FORM_VERSIONS,
+} from '../../../services/NTHSApplicationService'
 import { NTHSCandidateApplication } from '../../../models/NTHSApplication'
 import { NTHSCandidateApplicationStatus } from '../../../models/NTHSGroups'
 import { getUuid } from '../../../models/pgUtils'
@@ -89,6 +92,7 @@ describe('POST /api/nths-application', () => {
     const response = await sendPost(authedAgent, {
       schoolId: application.schoolId,
       gradeLevel: GRADES.ELEVENTH,
+      formVersion: SUBMITTABLE_FORM_VERSIONS[0],
       responses: RESPONSES,
     })
 
@@ -98,6 +102,7 @@ describe('POST /api/nths-application', () => {
       schoolId: application.schoolId,
       unlistedSchool: undefined,
       gradeLevel: GRADES.ELEVENTH,
+      formVersion: SUBMITTABLE_FORM_VERSIONS[0],
       responses: RESPONSES,
     })
     expect(response.body).toEqual({
@@ -197,6 +202,20 @@ describe('POST /api/nths-application', () => {
     expect(response.body.err).not.toMatch(/nths_candidate_applications/)
     expect(mockedService.submitCandidateApplication).not.toHaveBeenCalled()
   })
+
+  test.each([1, 4, 2.5, null, '3'])(
+    'gives HTTP 422 for form version %p',
+    async (formVersion) => {
+      const response = await sendPost(authedAgent, {
+        gradeLevel: GRADES.ELEVENTH,
+        formVersion,
+        responses: RESPONSES,
+      })
+
+      expect(response.status).toBe(422)
+      expect(mockedService.submitCandidateApplication).not.toHaveBeenCalled()
+    }
+  )
 
   test('gives HTTP 422 when the service rejects the submission', async () => {
     mockedService.submitCandidateApplication.mockRejectedValueOnce(

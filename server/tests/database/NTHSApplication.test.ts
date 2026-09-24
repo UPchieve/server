@@ -13,9 +13,11 @@ import * as NTHSApplicationRepo from '../../models/NTHSApplication'
 import * as VolunteerRepo from '../../models/Volunteer'
 import * as NTHSGroupsService from '../../services/NTHSGroupsService'
 import {
+  NTHS_APPLICATION_FORMS,
   NTHSApplicationIneligibilityReason,
   NTHSApplicationNotEligibleError,
   NTHSApplyRequirementStatus,
+  SUBMITTABLE_FORM_VERSIONS,
 } from '../../services/NTHSApplicationService'
 import type { NTHSApplyPreview } from '../../services/NTHSApplicationService'
 import { NTHSCandidateApplicationStatus } from '../../models/NTHSGroups'
@@ -147,6 +149,15 @@ async function applicationRows(userId: Ulid) {
       [userId]
     )
   ).rows
+}
+
+function completeResponses(formVersion: number) {
+  return Object.fromEntries(
+    NTHS_APPLICATION_FORMS[formVersion].map((field) => [
+      field.key,
+      field.type === 'attestation' ? true : `An answer to ${field.key}`,
+    ])
+  )
 }
 
 async function submit(userId: Ulid, overrides: Record<string, unknown> = {}) {
@@ -357,6 +368,62 @@ describe('submitCandidateApplication', () => {
 
     await expect(submit(userId, { responses })).rejects.toThrow(InputError)
     expect(await applicationRows(userId)).toHaveLength(0)
+  })
+
+  describe.each(SUBMITTABLE_FORM_VERSIONS)('form version %i', (formVersion) => {
+    const fields = NTHS_APPLICATION_FORMS[formVersion]
+    const responses = completeResponses(formVersion)
+
+    test('stores a complete application under its version', async () => {
+      const userId = await createEligibleCoach()
+
+      const application = await submit(userId, { formVersion, responses })
+
+      expect(application.formVersion).toBe(formVersion)
+      expect(application.responses).toEqual(responses)
+    })
+
+    // An attestation is checked whatever its required flag says, since every
+    // commitment has to be agreed to.
+    test.each(
+      fields
+        .filter((field) => field.required || field.type === 'attestation')
+        .map((field) => field.key)
+    )('rejects an application missing %s', async (key) => {
+      const userId = await createEligibleCoach()
+      const { [key]: _omitted, ...incomplete } = responses
+
+      await expect(
+        submit(userId, { formVersion, responses: incomplete })
+      ).rejects.toThrow(InputError)
+      expect(await applicationRows(userId)).toHaveLength(0)
+    })
+
+    test.each(
+      fields
+        .filter((field) => field.type === 'attestation')
+        .map((field) => field.key)
+    )('rejects an application that refuses %s', async (key) => {
+      const userId = await createEligibleCoach()
+      const refused = { ...responses, [key]: false }
+
+      await expect(
+        submit(userId, { formVersion, responses: refused })
+      ).rejects.toThrow(InputError)
+      expect(await applicationRows(userId)).toHaveLength(0)
+    })
+  })
+
+  test('validates a submit without a version against version 1', async () => {
+    const userId = await createEligibleCoach()
+
+    for (const formVersion of SUBMITTABLE_FORM_VERSIONS)
+      await expect(
+        submit(userId, { responses: completeResponses(formVersion) })
+      ).rejects.toThrow(InputError)
+    const application = await submit(userId)
+
+    expect(application.formVersion).toBe(1)
   })
 
   test('rejects an application with no school at all', async () => {

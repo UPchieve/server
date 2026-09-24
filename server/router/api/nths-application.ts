@@ -17,6 +17,10 @@ import {
 } from '../../utils/type-utils'
 import { GRADES } from '../../constants/user'
 
+const asFormVersion = asEnum<NTHSApplicationService.SubmittableFormVersion>(
+  NTHSApplicationService.SUBMITTABLE_FORM_VERSIONS
+)
+
 // An applicant whose school is not in the dropdown describes it under
 // unlistedSchool instead; the service requires one of the two and is what checks
 // the shape of the details.
@@ -24,11 +28,15 @@ export const asSubmitNTHSApplicationPayload = asFactory<{
   schoolId?: string
   unlistedSchool?: Record<string, unknown>
   gradeLevel: GRADES
+  formVersion?: NTHSApplicationService.SubmittableFormVersion
   responses: Record<string, unknown>
 }>({
   schoolId: asOptional(asUuid),
   unlistedSchool: asOptional(asObject),
   gradeLevel: asEnum(GRADES),
+  // asOptional would read a null formVersion as a submit from a pre-version tab.
+  formVersion: (value, errMsg) =>
+    value === undefined ? undefined : asFormVersion(value, errMsg),
   responses: asObject,
 })
 
@@ -46,6 +54,7 @@ export function routeNTHSApplication(router: Router): void {
               schoolId: payload.schoolId,
               unlistedSchool: payload.unlistedSchool,
               gradeLevel: payload.gradeLevel,
+              formVersion: payload.formVersion,
               responses: payload.responses,
             })
           res.json({
