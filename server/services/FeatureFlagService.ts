@@ -215,3 +215,19 @@ export async function getSessionHoldsStudentFeatureFlag(
     false
   )
 }
+
+type SessionHoldsStudentFlagPayload = {
+  subjects: string[]
+}
+export async function getSessionHoldsStudentFeatureFlagPayload(
+  studentId: Uuid
+): Promise<SessionHoldsStudentFlagPayload> {
+  const payload = await getFeatureFlagPayload(
+    FEATURE_FLAGS.SESSION_HOLDS_STUDENT,
+    studentId
+  )
+  if (!payload) {
+    return { subjects: [] }
+  }
+  return payload
+}

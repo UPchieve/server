@@ -216,6 +216,11 @@ describe('getOrCreateSessionHolds', () => {
     mockedFeatureFlagsService.getSessionHoldsStudentFeatureFlag.mockResolvedValue(
       true
     )
+    mockedFeatureFlagsService.getSessionHoldsStudentFeatureFlagPayload.mockResolvedValue(
+      {
+        subjects: [SUBJECTS.ALGEBRA_ONE, SUBJECTS.PREALGREBA],
+      }
+    )
   })
 
   it('Returns the cached holds if there are any', async () => {
@@ -261,6 +266,37 @@ describe('getOrCreateSessionHolds', () => {
     expect(actual).toEqual([])
     expect(
       mockedFeatureFlagsService.getSessionHoldsStudentFeatureFlag
+    ).toHaveBeenCalledTimes(1)
+    expect(
+      mockedFeatureFlagsService.getSessionHoldsStudentFeatureFlagPayload
+    ).not.toHaveBeenCalled()
+    expect(mockedCache.saveWithExpiration).toHaveBeenCalledTimes(1)
+    // Still saves [] to cache
+    expect(mockedCache.saveWithExpiration).toHaveBeenNthCalledWith(
+      1,
+      `SESSION_HOLD:${SESSION_DATA.id}`,
+      JSON.stringify([]),
+      HOLD_PARAMETERS.SESSION_TTL_SECONDS
+    )
+  })
+
+  it('Returns no holds if the subject is not enabled on the student feature flag', async () => {
+    mockedCache.getIfExists.mockResolvedValueOnce(undefined)
+    mockedFeatureFlagsService.getSessionHoldsStudentFeatureFlagPayload.mockResolvedValue(
+      {
+        subjects: [SUBJECTS.GEOMETRY],
+      }
+    )
+    const actual = await SessionHoldsService.getOrCreateSessionHolds(
+      SESSION_DATA,
+      ['coach-123']
+    )
+    expect(actual).toEqual([])
+    expect(
+      mockedFeatureFlagsService.getSessionHoldsStudentFeatureFlag
+    ).toHaveBeenCalledTimes(1)
+    expect(
+      mockedFeatureFlagsService.getSessionHoldsStudentFeatureFlagPayload
     ).toHaveBeenCalledTimes(1)
     expect(mockedCache.saveWithExpiration).toHaveBeenCalledTimes(1)
     // Still saves [] to cache

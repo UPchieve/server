@@ -79,6 +79,15 @@ export async function getOrCreateSessionHolds( // exported for testing
     await saveHoldsToCache(sessionData.id, [])
     return []
   }
+  const enabledSubjects = (
+    await FeatureFlagService.getSessionHoldsStudentFeatureFlagPayload(
+      sessionData.studentId
+    )
+  ).subjects
+  if (!enabledSubjects.includes(sessionData.subject)) {
+    await saveHoldsToCache(sessionData.id, [])
+    return []
+  }
 
   // Filter down to those who are certified in the subject _and_ don't have it muted
   const canTutor = coachData.filter((coach) => {
