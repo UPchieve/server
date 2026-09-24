@@ -1,6 +1,6 @@
 import socketio, { Socket } from 'socket.io'
 import * as SessionHoldsService from './SessionHoldsService'
-import { difference, intersection } from 'lodash'
+import { debounce, difference, intersection } from 'lodash'
 import type { RemoteSocket } from 'socket.io'
 import logger from '../logger'
 import { Ulid, Uuid } from '../models/pgUtils'
@@ -11,7 +11,6 @@ import {
 import getSessionRoom from '../utils/get-session-room'
 import { ProgressReport } from '../services/ProgressReportsService'
 import { ProgressReportAnalysisTypes } from '../models/ProgressReports'
-import { TransactionClient } from '../db'
 import * as SessionService from '../services/SessionService'
 import * as cache from '../cache'
 import { UserContactInfo } from '../models/User'
@@ -25,11 +24,15 @@ import { SUBJECTS } from '../constants'
  * Only allowed for approved volunteers.
  */
 export const APPROVED_VOLUNTEERS_ROOM = 'volunteers'
+const SESSION_LIST_DEBOUNCE_MS = 250
+const SESSION_LIST_MAX_WAIT_MS = 1000
 
 // TODO: Remove class wrapper.
 class SocketService {
   private static instance: SocketService
   private io: socketio.Server
+  private sessionListRun = 0
+  private lastSentSessionListRun = 0
 
   private constructor(io: socketio.Server) {
     this.io = io
@@ -149,8 +152,9 @@ class SocketService {
       .emit('sessions/partner:share-info-opt-in', message)
   }
 
-  private async updateSessionList(tc?: TransactionClient): Promise<void> {
-    const sessions = await getUnfulfilledSessions(tc)
+  private async broadcastSessionList(): Promise<void> {
+    const run = ++this.sessionListRun
+    const sessions = await getUnfulfilledSessions()
     const coachHoldEligibilities =
       await SessionHoldsService.getEligibleOnlineCoaches()
     const sessionsWithExclusiveMetadata =
@@ -171,8 +175,32 @@ class SocketService {
         ...s,
       })
     }
+    // abort if a newer run emitted while we were awaiting data
+    if (run < this.lastSentSessionListRun) return
+
     this.io.in(APPROVED_VOLUNTEERS_ROOM).emit('sessions', withHolds)
+    this.lastSentSessionListRun = run
   }
+
+  /**
+   * Debounce calls to broadcastSessionList per subway server to prevent hammering
+   * the db and rebuilding the list on every request. this should help when a bunch
+   * of requests come in all at once (e.g. class presentations).
+   *
+   * Broadcasts at most once per SESSION_LIST_DEBOUNCE_MS and at least once per
+   * SESSION_LIST_MAX_WAIT_MS per instance of subway
+   */
+  private updateSessionList = debounce(
+    () => {
+      // The rejection has no caller to propagate to once deferred, so it must
+      // be swallowed here or it becomes an unhandled rejection.
+      this.broadcastSessionList().catch((error) => {
+        logger.error({ error }, 'Failed to broadcast session list')
+      })
+    },
+    SESSION_LIST_DEBOUNCE_MS,
+    { maxWait: SESSION_LIST_MAX_WAIT_MS }
+  )
 
   async addExclusiveSessionMetadata(allSessions: UnfulfilledSessions[]) {
     const exclusiveSessions = await cache.hgetall('exclusiveRequestSessions')
@@ -184,11 +212,8 @@ class SocketService {
     })
   }
 
-  async emitSessionChange(
-    sessionId: Ulid,
-    tc?: TransactionClient
-  ): Promise<void> {
-    const session = await SessionService.getCurrentSessionById(sessionId, tc)
+  async emitSessionChange(sessionId: Ulid): Promise<void> {
+    const session = await SessionService.getCurrentSessionById(sessionId)
     const sessionParticipants = [session.student.id]
     if (session.volunteer?.id) {
       sessionParticipants.push(session.volunteer.id)
@@ -198,7 +223,7 @@ class SocketService {
       .timeout(secondsInMs(5))
       .emit('session-change', toCurrentSessionPublic(session))
 
-    await this.updateSessionList(tc)
+    this.updateSessionList()
   }
 
   async emitTutorBotMessage(sessionId: Ulid, messageData: any): Promise<void> {

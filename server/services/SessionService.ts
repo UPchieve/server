@@ -259,10 +259,6 @@ export async function endSession(
       tc
     )
 
-    if (socketService) {
-      await socketService.emitSessionChange(sessionId, tc)
-    }
-
     if (endedBy && reqIdentifiers)
       await createSessionAction(
         {
@@ -281,7 +277,24 @@ export async function endSession(
     }
   })
 
-  await SessionmeetingsService.endMeeting(sessionId)
+  if (socketService) {
+    try {
+      await socketService.emitSessionChange(sessionId)
+    } catch (err) {
+      logger.error(err, `Failed to emit session change after end session`, {
+        sessionId: session.id,
+      })
+    }
+  }
+
+  try {
+    await SessionmeetingsService.endMeeting(sessionId)
+  } catch (err) {
+    logger.error(err, `Failed to end session meeting`, {
+      sessionId: session.id,
+    })
+  }
+
   await NotifyVolunteerService.clearExclusiveRequest(sessionId)
   await SessionHoldsService.clearSessionHolds(sessionId)
   await SocketService.getInstance().emitSessionChange(session.id)
