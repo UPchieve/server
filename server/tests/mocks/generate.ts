@@ -86,10 +86,15 @@ import { SessionAudioTranscriptMessage } from '../../models/SessionAudioTranscri
 import { RoleContext } from '../../services/UserRolesService'
 import { UserSessionMetrics } from '../../models/UserSessionMetrics'
 import {
+  NTHSChapterImpact,
+  NTHSChapterRoster,
+  NTHSChapterRosterMember,
+  NTHSChapterTopTutor,
   NTHSGroup,
   NTHSGroupMemberWithRole,
   NTHSGroupWithMemberInfo,
 } from '../../models/NTHSGroups'
+import { schoolYearFor } from '../../utils/school-year'
 import type {
   CurrentSession,
   CurrentSessionUser,
@@ -1205,6 +1210,7 @@ export function buildNTHSGroupMemberWithRole(
     firstName: faker.person.firstName(),
     lastInitial: faker.person.lastName().charAt(0),
     roleName: 'member',
+    deleted: false,
     ...overrides,
   }
 }
@@ -1221,6 +1227,7 @@ export function buildNTHSGroupMemberWithRolePublic(
     firstName: member.firstName,
     lastInitial: member.lastInitial,
     roleName: member.roleName,
+    accountClosed: member.deleted,
   }
 }
 
@@ -1277,6 +1284,69 @@ export function buildNTHSGroupWithMemberInfo(
     roleName: 'member',
     schoolAffiliationStatus: null,
     hasSchoolOnRecord: false,
+    ...overrides,
+  }
+}
+
+export function buildNTHSChapterTopTutor(
+  overrides: Partial<NTHSChapterTopTutor> = {}
+): NTHSChapterTopTutor {
+  return {
+    userId: getUuid(),
+    firstName: faker.person.firstName(),
+    lastInitial: faker.person.lastName().charAt(0),
+    hoursTutored: 2.25,
+    sessionsCompleted: 3,
+    ...overrides,
+  }
+}
+
+export function buildNTHSChapterRosterMember(
+  overrides: Partial<NTHSChapterRosterMember> = {}
+): NTHSChapterRosterMember {
+  return {
+    userId: getUuid(),
+    firstName: faker.person.firstName(),
+    lastInitial: faker.person.lastName().charAt(0),
+    roleName: 'member',
+    title: 'Member',
+    joinedAt: new Date(),
+    trainingComplete: true,
+    safetyApproved: true,
+    accountClosed: false,
+    sessionsThisYear: 0,
+    hoursThisYear: 0,
+    periodHours: { thisWeek: 0, lastTwoWeeks: 0, thisMonth: 0 },
+    ...overrides,
+  }
+}
+
+export function buildNTHSChapterRoster(
+  overrides: Partial<NTHSChapterRoster> = {}
+): NTHSChapterRoster {
+  return {
+    groupId: getUuid(),
+    schoolYear: schoolYearFor(new Date()),
+    members: [],
+    ...overrides,
+  }
+}
+
+export function buildNTHSChapterImpact(
+  overrides: Partial<NTHSChapterImpact> = {}
+): NTHSChapterImpact {
+  return {
+    groupId: getUuid(),
+    schoolYear: schoolYearFor(new Date()),
+    schoolYearToDate: {
+      studentsHelped: 0,
+      sessionsCompleted: 0,
+      hoursTutored: 0,
+      membersTutoring: 0,
+    },
+    allTime: { studentsHelped: 0, sessionsCompleted: 0, hoursTutored: 0 },
+    goals: { hoursTutored: 40, membersTutoring: 3 },
+    viewerHoursThisMonth: 0,
     ...overrides,
   }
 }

@@ -25,13 +25,18 @@ export function asUlid(s: unknown, errMsg = ''): Ulid {
   throw new InputError(`${errMsg} ${s} is not a string`)
 }
 
+// Accepts the dashed form Postgres renders and the undashed 32-hex form
+// getDbUlid produces.
 const CANONICAL_UUID =
   /^(?:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|[0-9a-f]{32})$/i
 
-// Accepts the dashed form Postgres renders and the undashed 32-hex form
-// getDbUlid produces, so a malformed id is a 422 instead of a driver 500.
+export function isUuid(s: unknown): s is Uuid {
+  return typeof s === 'string' && CANONICAL_UUID.test(s)
+}
+
+// A malformed id becomes a 422 here instead of a 500 from the driver.
 export function asUuid(s: unknown, errMsg = ''): Uuid {
-  if (typeof s === 'string' && CANONICAL_UUID.test(s)) return s as Uuid
+  if (isUuid(s)) return s
   throw new InputError(`${errMsg} ${s} is not a uuid`)
 }
 

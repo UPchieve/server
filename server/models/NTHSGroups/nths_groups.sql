@@ -56,6 +56,8 @@ WHERE
     id = :groupId!;
 
 
+/* Leaving a chapter keeps the nths_group_member_roles row, so without the
+ nths_group_members join a departed admin still reads as an admin contact. */
 /* @name getNTHSGroupAdminsContactInfo */
 SELECT
     u.id AS user_id,
@@ -68,9 +70,13 @@ FROM
     JOIN nths_group_roles roles ON roles.id = mr.role_id
     JOIN nths_groups g ON g.id = mr.nths_group_id
     JOIN users u ON U.id = mr.user_id
+    JOIN nths_group_members ngm ON ngm.user_id = mr.user_id
+        AND ngm.nths_group_id = mr.nths_group_id
+        AND ngm.deactivated_at IS NULL
 WHERE
     mr.nths_group_id = :groupId!::uuid
-    AND roles.name = 'admin';
+    AND roles.name = 'admin'
+    AND u.deleted IS NOT TRUE;
 
 
 /* @name getAdvisorContactInfo */
@@ -128,7 +134,9 @@ ON CONFLICT (user_id,
         :roleName AS role_name;
 
 
-/* @name getGroupMember */
+/* Leaving a chapter keeps the nths_group_member_roles row, so without the
+ deactivated_at predicate a departed admin still reads as an admin. */
+/* @name getActiveGroupMember */
 SELECT
     m.*,
     roles.name AS role_name
@@ -139,7 +147,8 @@ FROM
     JOIN nths_group_roles roles ON roles.id = member_roles.role_id
 WHERE
     m.user_id = :userId!
-    AND m.nths_group_id = :nthsGroupId!;
+    AND m.nths_group_id = :nthsGroupId!
+    AND m.deactivated_at IS NULL;
 
 
 /* @name getGroupMembers */
@@ -148,7 +157,8 @@ SELECT
     roles.name AS role_name,
     LEFT (users.last_name,
         1) AS last_initial,
-    users.first_name
+    users.first_name,
+    users.deleted IS TRUE AS deleted
 FROM
     nths_group_members ngm
     JOIN nths_group_member_roles member_roles ON member_roles.nths_group_id = :groupId!
@@ -158,7 +168,9 @@ FROM
 WHERE
     ngm.nths_group_id = :groupId!
     AND (:includeDeactivated IS TRUE
-        OR ngm.deactivated_at IS NULL);
+        OR ngm.deactivated_at IS NULL)
+    AND (:excludeClosedAccounts IS NOT TRUE
+        OR users.deleted IS NOT TRUE);
 
 
 /* @name groupsCount */
@@ -175,6 +187,8 @@ RETURNING
     *;
 
 
+/* Removing someone who already left keeps their original departure time, which
+ bounds the sessions their chapter counts. */
 /* @name deactivateGroupMember */
 UPDATE
     nths_group_members
@@ -183,7 +197,8 @@ SET
     updated_at = NOW()
 WHERE
     user_id = :userId!
-    AND nths_group_id = :groupId!;
+    AND nths_group_id = :groupId!
+    AND deactivated_at IS NULL;
 
 
 /* @name updateGroupName */
@@ -217,6 +232,20 @@ RETURNING
     nths_action_id AS action_id,
     created_at,
     :actionName! AS action_name;
+
+
+/* No unique_action_per_group constraint since 20260213143219, so an action
+ recorded twice has two rows and this deletes both. */
+/* @name deleteNthsGroupAction */
+DELETE FROM nths_group_actions
+WHERE nths_group_id = :groupId!
+    AND nths_action_id IN (
+        SELECT
+            id
+        FROM
+            nths_actions
+        WHERE
+            name = :actionName!);
 
 
 /* @name getAllNthsGroupActionsByGroupId */
@@ -351,4 +380,171 @@ FROM
     LEFT JOIN nths_chapter_statuses chapter_statuses ON chapter_statuses.id = chapter_status.nths_chapter_status_id
     LEFT JOIN nths_group_school_affiliation school_aff ON school_aff.nths_group_id = groups.id
     LEFT JOIN nths_school_affiliation_statuses school_aff_statuses ON school_aff_statuses.id = school_aff.nths_school_affiliation_status_id;
+
+
+/* Hours stay counted for a member later banned, deleted or departed, since
+ dropping a banned member would disclose the ban to their peers.
+ users.deactivated is the notifications opt-out, so members_tutoring_this_year
+ does not check it. The official-status job does not yet apply the same
+ counted-session and test-student filters as this query. */
+/* @name getNthsChapterImpact */
+SELECT
+    count(*) FILTER (WHERE s.volunteer_joined_at >= :startsAt!
+        AND s.volunteer_joined_at < :endsAt!)::int AS sessions_completed_this_year,
+    count(*)::int AS sessions_completed_all_time,
+    count(DISTINCT s.student_id) FILTER (WHERE s.volunteer_joined_at >= :startsAt!
+        AND s.volunteer_joined_at < :endsAt!)::int AS students_helped_this_year,
+    count(DISTINCT s.student_id)::int AS students_helped_all_time,
+    round(COALESCE(sum(s.time_tutored) FILTER (WHERE s.volunteer_joined_at >= :startsAt!
+                AND s.volunteer_joined_at < :endsAt!), 0) / 3600000::numeric, 2)::float AS hours_tutored_this_year,
+    round(COALESCE(sum(s.time_tutored), 0) / 3600000::numeric, 2)::float AS hours_tutored_all_time,
+    count(DISTINCT m.user_id) FILTER (WHERE s.volunteer_joined_at >= :startsAt!
+        AND s.volunteer_joined_at < :endsAt!
+        AND m.deactivated_at IS NULL
+        AND u.deleted IS NOT TRUE)::int AS members_tutoring_this_year
+FROM
+    nths_group_members m
+    JOIN users u ON u.id = m.user_id
+    JOIN sessions s ON s.volunteer_id = m.user_id
+        AND s.ended_at IS NOT NULL
+        AND s.time_tutored > :minSessionLength!::int
+        AND s.volunteer_joined_at >= m.joined_at
+        AND (m.deactivated_at IS NULL
+            OR s.volunteer_joined_at < m.deactivated_at)
+    JOIN users student ON student.id = s.student_id
+        AND student.test_user IS FALSE
+WHERE
+    m.nths_group_id = :groupId!
+    AND u.test_user IS FALSE;
+
+
+/* users.deactivated is the notifications opt-out, so it leaves account_closed
+ false. Some members have no volunteer_profiles row. */
+/* @name getNthsChapterRoster */
+SELECT
+    m.user_id,
+    m.title,
+    m.joined_at,
+    u.first_name,
+    LEFT (u.last_name,
+        1) AS last_initial,
+    roles.name AS role_name,
+    COALESCE(vp.onboarded, FALSE) AS training_complete,
+    COALESCE(vp.approved, FALSE) AS safety_approved,
+    u.deleted IS TRUE AS account_closed,
+    act.sessions_this_year,
+    act.hours_this_year,
+    act.hours_this_week,
+    act.hours_last_two_weeks,
+    act.hours_this_month,
+    act.last_active_at
+FROM
+    nths_group_members m
+    JOIN users u ON u.id = m.user_id
+    JOIN nths_group_member_roles member_roles ON member_roles.user_id = m.user_id
+        AND member_roles.nths_group_id = m.nths_group_id
+    JOIN nths_group_roles roles ON roles.id = member_roles.role_id
+    LEFT JOIN volunteer_profiles vp ON vp.user_id = m.user_id
+    LEFT JOIN LATERAL (
+        SELECT
+            count(*) FILTER (WHERE s.volunteer_joined_at >= :startsAt!
+                    AND s.volunteer_joined_at < :endsAt!)::int AS sessions_this_year,
+                round(COALESCE(sum(s.time_tutored) FILTER (WHERE s.volunteer_joined_at >= :startsAt!
+                            AND s.volunteer_joined_at < :endsAt!), 0) / 3600000::numeric, 2)::float AS hours_this_year,
+                round(COALESCE(sum(s.time_tutored) FILTER (WHERE s.volunteer_joined_at >= :weekStartsAt!
+                            AND s.volunteer_joined_at < :periodEndsAt!), 0) / 3600000::numeric, 2)::float AS hours_this_week,
+                round(COALESCE(sum(s.time_tutored) FILTER (WHERE s.volunteer_joined_at >= :lastTwoWeeksStartsAt!
+                            AND s.volunteer_joined_at < :periodEndsAt!), 0) / 3600000::numeric, 2)::float AS hours_last_two_weeks,
+                round(COALESCE(sum(s.time_tutored) FILTER (WHERE s.volunteer_joined_at >= :monthStartsAt!
+                            AND s.volunteer_joined_at < :periodEndsAt!), 0) / 3600000::numeric, 2)::float AS hours_this_month,
+                max(s.volunteer_joined_at) AS last_active_at
+            FROM
+                sessions s
+            JOIN users student ON student.id = s.student_id
+                AND student.test_user IS FALSE
+        WHERE
+            s.volunteer_id = m.user_id
+            AND s.ended_at IS NOT NULL
+            AND s.time_tutored > :minSessionLength!::int
+            AND s.volunteer_joined_at >= m.joined_at
+            AND (m.deactivated_at IS NULL
+                OR s.volunteer_joined_at < m.deactivated_at)) act ON TRUE
+WHERE
+    m.nths_group_id = :groupId!
+    AND m.deactivated_at IS NULL
+    AND u.test_user IS FALSE
+ORDER BY
+    u.first_name,
+    m.user_id;
+
+
+/* Leaves out the president, who recognizes the top tutor each month. A
+ demoted founder keeps the 'President' title, so the president is the titled
+ member who still holds the admin role. */
+/* @name getNthsChapterTopTutor */
+SELECT
+    m.user_id,
+    u.first_name,
+    LEFT (u.last_name,
+        1) AS last_initial,
+    count(*)::int AS sessions_completed,
+    round(sum(s.time_tutored) / 3600000::numeric, 2)::float AS hours_tutored
+FROM
+    nths_group_members m
+    JOIN users u ON u.id = m.user_id
+    JOIN sessions s ON s.volunteer_id = m.user_id
+        AND s.ended_at IS NOT NULL
+        AND s.time_tutored > :minSessionLength!::int
+        AND s.volunteer_joined_at >= m.joined_at
+        AND (m.deactivated_at IS NULL
+            OR s.volunteer_joined_at < m.deactivated_at)
+        AND s.volunteer_joined_at >= :startsAt!
+        AND s.volunteer_joined_at < :endsAt!
+    JOIN users student ON student.id = s.student_id
+        AND student.test_user IS FALSE
+WHERE
+    m.nths_group_id = :groupId!
+    AND m.deactivated_at IS NULL
+    AND (m.title IS DISTINCT FROM 'President'
+        OR NOT EXISTS (
+            SELECT
+                1
+            FROM
+                nths_group_member_roles member_roles
+                JOIN nths_group_roles roles ON roles.id = member_roles.role_id
+            WHERE
+                member_roles.user_id = m.user_id
+                AND member_roles.nths_group_id = m.nths_group_id
+                AND roles.name = 'admin'))
+    AND u.test_user IS FALSE
+    AND u.deleted IS NOT TRUE
+GROUP BY
+    m.user_id,
+    u.first_name,
+    u.last_name
+ORDER BY
+    sum(s.time_tutored) DESC,
+    sessions_completed DESC,
+    m.user_id
+LIMIT 1;
+
+
+/* @name getNthsChapterMemberHoursTutored */
+SELECT
+    round(COALESCE(sum(s.time_tutored), 0) / 3600000::numeric, 2)::float AS hours_tutored
+FROM
+    nths_group_members m
+    JOIN sessions s ON s.volunteer_id = m.user_id
+        AND s.ended_at IS NOT NULL
+        AND s.time_tutored > :minSessionLength!::int
+        AND s.volunteer_joined_at >= m.joined_at
+        AND (m.deactivated_at IS NULL
+            OR s.volunteer_joined_at < m.deactivated_at)
+        AND s.volunteer_joined_at >= :startsAt!
+        AND s.volunteer_joined_at < :endsAt!
+    JOIN users student ON student.id = s.student_id
+        AND student.test_user IS FALSE
+WHERE
+    m.nths_group_id = :groupId!
+    AND m.user_id = :userId!;
 

@@ -2,30 +2,32 @@ import { mocked } from 'jest-mock'
 import request, { Response } from 'supertest'
 import { mockApp, mockPassportMiddleware, mockRouter } from '../../mock-app'
 import {
+  buildNTHSChapterImpact,
+  buildNTHSChapterRoster,
   buildNTHSGroup,
   buildNTHSGroupMemberWithRole,
   buildNTHSGroupMemberWithRolePublic,
   buildNTHSGroupWithMemberInfo,
+  buildNTHSChapterRosterMember,
+  buildNTHSChapterTopTutor,
   buildUser,
   buildVolunteer,
 } from '../../mocks/generate'
 import {
   GROUP_ADMIN_ACTIONS,
-  isGroupAdmin,
+  GROUP_ADMIN_REMOVABLE_ACTIONS,
   routeNTHSGroups,
 } from '../../../router/api/nths-groups'
 import * as NTHSGroupsService from '../../../services/NTHSGroupsService'
 import { RepoUpdateError } from '../../../models/Errors'
 import {
   NTHSCandidateApplicationStatus,
+  NTHSChapterImpact,
+  NTHSChapterRoster,
+  NTHSGroupRoleName,
   NTHSSchoolAffiliationStatusName,
 } from '../../../models/NTHSGroups/types'
 import { getUuid } from '../../../models/pgUtils'
-import {
-  Request as ExpressRequest,
-  Response as ExpressResponse,
-  NextFunction,
-} from 'express'
 
 jest.mock('../../../services/NTHSGroupsService')
 
@@ -65,57 +67,27 @@ function sendDelete(path: string): Promise<Response> {
 const groupId = getUuid()
 const memberId = getUuid()
 const actionName = 'NAMED YOUR TEAM'
-
-describe('isGroupAdmin', () => {
-  const userId = getUuid()
-
-  beforeEach(() => {
-    jest.resetAllMocks()
-    mockUser = buildVolunteer()
-  })
-
-  test('Gives HTTP 403 if the requesting user is not an admin', async () => {
-    const member = buildNTHSGroupMemberWithRole()
-    mockedNTHSGroupsService.getGroupMember.mockResolvedValueOnce(member)
-
-    const mockNextFunction = jest.fn()
-    const mockStatus = jest.fn().mockReturnThis()
-    const mockJson = jest.fn()
-    const request = {
-      user: { id: mockUser.id },
-      params: { groupId: groupId },
-    } as unknown as ExpressRequest
-    const mockResponse = {
-      status: mockStatus,
-      json: mockJson,
-    } as unknown as ExpressResponse
-
-    await isGroupAdmin(request, mockResponse, mockNextFunction)
-    expect(mockNextFunction).not.toHaveBeenCalled()
-    expect(mockStatus).toHaveBeenCalledWith(403)
-    expect(mockJson).toHaveBeenCalledWith({ err: 'Unauthorized' })
-  })
-
-  test('Passes the middleware if the user is an admin of this group', async () => {
-    const member = buildNTHSGroupMemberWithRole({ roleName: 'admin' })
-    mockedNTHSGroupsService.getGroupMember.mockResolvedValueOnce(member)
-
-    const request = {
-      user: { id: userId },
-      params: { groupId },
-    } as unknown as ExpressRequest
-    const mockResponse = {} as unknown as ExpressResponse
-    const nextFunctionMock: NextFunction = jest.fn()
-
-    await isGroupAdmin(request, mockResponse, nextFunctionMock)
-    expect(nextFunctionMock).toHaveBeenCalledTimes(1)
-  })
-})
+const DAY_MS = 24 * 60 * 60 * 1000
+const daysAgo = (days: number) => new Date(Date.now() - days * DAY_MS)
+const schoolYear = {
+  label: '2026–27',
+  startsAt: new Date('2026-07-01T00:00:00.000Z'),
+  endsAt: new Date('2027-07-01T00:00:00.000Z'),
+}
+const schoolYearPublic = {
+  label: '2026–27',
+  startsAt: '2026-07-01T00:00:00.000Z',
+  endsAt: '2027-07-01T00:00:00.000Z',
+}
 
 describe('routeNTHSGroups', () => {
   beforeEach(() => {
     jest.resetAllMocks()
     mockUser = buildVolunteer()
+    // Cleared by default; the gate's own tests override it.
+    mockedNTHSGroupsService.isClearedToViewChapterMemberInfo.mockResolvedValue(
+      true
+    )
   })
 
   describe('GET /api/nths-groups', () => {
@@ -172,21 +144,33 @@ describe('routeNTHSGroups', () => {
   })
 
   describe('GET /api/nths-groups/:groupId/members', () => {
-    test('returns group members', async () => {
-      const member = buildNTHSGroupMemberWithRole()
-      const members = [member]
-      const membersPublic = members.map(buildNTHSGroupMemberWithRolePublic)
-      mockedNTHSGroupsService.getGroupMembers.mockResolvedValueOnce(members)
+    test.each([
+      ['member', true],
+      ['admin', false],
+    ] as const)(
+      'returns group members to a current %s, with excludeClosedAccounts %s',
+      async (roleName, excludeClosedAccounts) => {
+        mockedNTHSGroupsService.getActiveGroupMember.mockResolvedValueOnce(
+          buildNTHSGroupMemberWithRole({ roleName })
+        )
+        const members = [
+          buildNTHSGroupMemberWithRole(),
+          buildNTHSGroupMemberWithRole({ deleted: true }),
+        ]
+        mockedNTHSGroupsService.getGroupMembers.mockResolvedValueOnce(members)
 
-      const response = await sendGet(`/api/nths-groups/${groupId}/members`)
-      expect(response.status).toBe(200)
-      expect(mockedNTHSGroupsService.getGroupMembers).toHaveBeenCalledWith(
-        groupId
-      )
-      expect(response.body).toEqual({
-        members: membersPublic,
-      })
-    })
+        const response = await sendGet(`/api/nths-groups/${groupId}/members`)
+        expect(response.status).toBe(200)
+        expect(mockedNTHSGroupsService.getGroupMembers).toHaveBeenCalledWith(
+          groupId,
+          undefined,
+          { excludeClosedAccounts }
+        )
+        expect(response.body).toEqual({
+          members: members.map(buildNTHSGroupMemberWithRolePublic),
+        })
+      }
+    )
   })
 
   describe('PUT /api/nths-groups/:groupId/members/:memberId', () => {
@@ -194,7 +178,7 @@ describe('routeNTHSGroups', () => {
       const member = buildNTHSGroupMemberWithRole({
         roleName: 'admin',
       })
-      mockedNTHSGroupsService.getGroupMember.mockResolvedValueOnce(member)
+      mockedNTHSGroupsService.getActiveGroupMember.mockResolvedValueOnce(member)
       mockedNTHSGroupsService.updateGroupMember.mockResolvedValueOnce()
       const payload = {
         role: 'admin',
@@ -213,16 +197,15 @@ describe('routeNTHSGroups', () => {
       )
     })
 
-    test('returns 403 when requester is not group admin', async () => {
-      const member = buildNTHSGroupMemberWithRole()
-      mockedNTHSGroupsService.getGroupMember.mockResolvedValueOnce(member)
+    test('gives HTTP 422 for a malformed memberId instead of a driver error', async () => {
+      const member = buildNTHSGroupMemberWithRole({ roleName: 'admin' })
+      mockedNTHSGroupsService.getActiveGroupMember.mockResolvedValueOnce(member)
 
       const response = await sendPut(
-        `/api/nths-groups/${groupId}/members/${memberId}`,
-        { title: 'Treasurer' }
+        `/api/nths-groups/${groupId}/members/not-a-uuid`,
+        { role: 'admin' }
       )
-      expect(response.status).toBe(403)
-      expect(response.body).toEqual({ err: 'Unauthorized' })
+      expect(response.status).toBe(422)
       expect(mockedNTHSGroupsService.updateGroupMember).not.toHaveBeenCalled()
     })
   })
@@ -249,6 +232,12 @@ describe('routeNTHSGroups', () => {
 
       const response = await sendDelete(`/api/nths-groups/${groupId}/leave`)
       expect(response.status).toBeGreaterThanOrEqual(400)
+      expect(mockedNTHSGroupsService.updateGroupMember).not.toHaveBeenCalled()
+    })
+
+    test('gives HTTP 422 for a malformed groupId instead of a driver error', async () => {
+      const response = await sendDelete('/api/nths-groups/not-a-uuid/leave')
+      expect(response.status).toBe(422)
       expect(mockedNTHSGroupsService.updateGroupMember).not.toHaveBeenCalled()
     })
   })
@@ -285,7 +274,7 @@ describe('routeNTHSGroups', () => {
       const group = buildNTHSGroup()
       const member = buildNTHSGroupMemberWithRole({ roleName: 'admin' })
       const teamName = 'UPchieve'
-      mockedNTHSGroupsService.getGroupMember.mockResolvedValueOnce(member)
+      mockedNTHSGroupsService.getActiveGroupMember.mockResolvedValueOnce(member)
       mockedNTHSGroupsService.updateGroupName.mockResolvedValueOnce(group)
 
       const response = await sendPut(`/api/nths-groups/${group.id}`, {
@@ -306,7 +295,7 @@ describe('routeNTHSGroups', () => {
 
     test('sends group name taken error response', async () => {
       const member = buildNTHSGroupMemberWithRole({ roleName: 'admin' })
-      mockedNTHSGroupsService.getGroupMember.mockResolvedValueOnce(member)
+      mockedNTHSGroupsService.getActiveGroupMember.mockResolvedValueOnce(member)
       mockedNTHSGroupsService.updateGroupName.mockRejectedValueOnce(
         new RepoUpdateError('unique_name')
       )
@@ -329,7 +318,7 @@ describe('routeNTHSGroups', () => {
         actionName,
         createdAt,
       }
-      mockedNTHSGroupsService.getGroupMember.mockResolvedValueOnce(member)
+      mockedNTHSGroupsService.getActiveGroupMember.mockResolvedValueOnce(member)
       mockedNTHSGroupsService.createAction.mockResolvedValueOnce({
         action,
       })
@@ -357,7 +346,9 @@ describe('routeNTHSGroups', () => {
       'allows %s from a chapter admin',
       async (allowed) => {
         const member = buildNTHSGroupMemberWithRole({ roleName: 'admin' })
-        mockedNTHSGroupsService.getGroupMember.mockResolvedValueOnce(member)
+        mockedNTHSGroupsService.getActiveGroupMember.mockResolvedValueOnce(
+          member
+        )
         mockedNTHSGroupsService.createAction.mockResolvedValueOnce({
           action: {
             id: 1,
@@ -388,7 +379,7 @@ describe('routeNTHSGroups', () => {
       'NOT AN ACTION',
     ])('refuses %s from a chapter admin', async (action) => {
       const member = buildNTHSGroupMemberWithRole({ roleName: 'admin' })
-      mockedNTHSGroupsService.getGroupMember.mockResolvedValueOnce(member)
+      mockedNTHSGroupsService.getActiveGroupMember.mockResolvedValueOnce(member)
       // Stubbed so that removing the guard shows up as a 200 rather than a
       // crash on the auto-mock's undefined return.
       mockedNTHSGroupsService.createAction.mockResolvedValueOnce({
@@ -411,8 +402,53 @@ describe('routeNTHSGroups', () => {
     })
   })
 
+  describe('DELETE /api/nths-groups/:groupId/actions/:actionName', () => {
+    test.each([...GROUP_ADMIN_REMOVABLE_ACTIONS])(
+      'allows unchecking %s from a chapter admin',
+      async (allowed) => {
+        const member = buildNTHSGroupMemberWithRole({ roleName: 'admin' })
+        mockedNTHSGroupsService.getActiveGroupMember.mockResolvedValueOnce(
+          member
+        )
+        mockedNTHSGroupsService.deleteAction.mockResolvedValueOnce()
+
+        const response = await sendDelete(
+          `/api/nths-groups/${member.nthsGroupId}/actions/${encodeURIComponent(allowed)}`
+        )
+
+        expect(response.status).toBe(204)
+        expect(mockedNTHSGroupsService.deleteAction).toHaveBeenCalledWith(
+          member.nthsGroupId,
+          allowed
+        )
+      }
+    )
+
+    test.each([
+      'MARKED SCHOOL AFFILIATION IN PROGRESS',
+      'OPTED OUT',
+      'ADVISOR VERIFIED',
+      'SCHOOL AFFILIATION DENIED',
+      'SUBMITTED ADVISOR CONTACT INFO',
+      'NOT AN ACTION',
+    ])('refuses to uncheck %s from a chapter admin', async (action) => {
+      const member = buildNTHSGroupMemberWithRole({ roleName: 'admin' })
+      mockedNTHSGroupsService.getActiveGroupMember.mockResolvedValueOnce(member)
+
+      const response = await sendDelete(
+        `/api/nths-groups/${member.nthsGroupId}/actions/${encodeURIComponent(action)}`
+      )
+
+      expect(response.status).toBe(422)
+      expect(mockedNTHSGroupsService.deleteAction).not.toHaveBeenCalled()
+    })
+  })
+
   describe('GET /api/nths-groups/:groupId/actions', () => {
-    test('returns actions and groupActions', async () => {
+    test('returns actions and groupActions to a current member who is not an admin', async () => {
+      mockedNTHSGroupsService.getActiveGroupMember.mockResolvedValueOnce(
+        buildNTHSGroupMemberWithRole({ roleName: 'member' })
+      )
       const createdAt = new Date()
       const groupActions = [
         {
@@ -454,10 +490,70 @@ describe('routeNTHSGroups', () => {
     })
   })
 
+  // getActiveGroupMember finds nobody for someone outside the chapter or for a
+  // member who left it.
+  test.each([
+    ['/api/nths-groups/:groupId/members', 'getGroupMembers'],
+    ['/api/nths-groups/:groupId/actions', 'getActionsForGroup'],
+    ['/api/nths-groups/:groupId/impact', 'getChapterImpact'],
+    ['/api/nths-groups/:groupId/roster', 'getChapterRoster'],
+  ] as const)(
+    'GET %s gives HTTP 403 to a non-member or departed member',
+    async (route, read) => {
+      mockedNTHSGroupsService.getActiveGroupMember.mockResolvedValueOnce(
+        undefined
+      )
+
+      const response = await sendGet(route.replace(':groupId', groupId))
+
+      expect(response.status).toBe(403)
+      expect(mockedNTHSGroupsService.getActiveGroupMember).toHaveBeenCalledWith(
+        mockUser.id,
+        groupId
+      )
+      expect(mockedNTHSGroupsService[read]).not.toHaveBeenCalled()
+    }
+  )
+
+  // A plain member passes the membership check, so this exercises the admin
+  // role check.
+  test.each([
+    ['PUT', '/api/nths-groups/:groupId', 'updateGroupName'],
+    ['PUT', '/api/nths-groups/:groupId/members/:memberId', 'updateGroupMember'],
+    ['POST', '/api/nths-groups/:groupId/actions', 'createAction'],
+    ['DELETE', '/api/nths-groups/:groupId/actions/:actionName', 'deleteAction'],
+    [
+      'POST',
+      '/api/nths-groups/:groupId/submit-school-affiliation',
+      'submitSchoolAffiliation',
+    ],
+  ] as const)(
+    '%s %s gives HTTP 403 to a plain member',
+    async (method, route, write) => {
+      mockedNTHSGroupsService.getActiveGroupMember.mockResolvedValueOnce(
+        buildNTHSGroupMemberWithRole({ roleName: 'member' })
+      )
+      const path = route
+        .replace(':groupId', groupId)
+        .replace(':memberId', memberId)
+        .replace(':actionName', encodeURIComponent(actionName))
+
+      const response =
+        method === 'PUT'
+          ? await sendPut(path, { name: 'Renamed', role: 'admin' })
+          : method === 'DELETE'
+            ? await sendDelete(path)
+            : await sendPost(path, { action: 'OPTED OUT' })
+
+      expect(response.status).toBe(403)
+      expect(mockedNTHSGroupsService[write]).not.toHaveBeenCalled()
+    }
+  )
+
   describe('POST /api/nths-groups/:groupId/submit-school-affiliation', () => {
     test('submits school affiliation when requester is admin', async () => {
       const member = buildNTHSGroupMemberWithRole({ roleName: 'admin' })
-      mockedNTHSGroupsService.getGroupMember.mockResolvedValueOnce(member)
+      mockedNTHSGroupsService.getActiveGroupMember.mockResolvedValueOnce(member)
       const user = buildUser()
       const schoolId = getUuid()
       const payload = {
@@ -525,5 +621,281 @@ describe('routeNTHSGroups', () => {
         },
       })
     })
+  })
+
+  describe('GET /api/nths-groups/:groupId/impact', () => {
+    function sendImpactGet(
+      query: Record<string, string> = {},
+      overrides: {
+        roleName?: NTHSGroupRoleName
+        impact?: Partial<NTHSChapterImpact>
+      } = {}
+    ) {
+      mockedNTHSGroupsService.getActiveGroupMember.mockResolvedValueOnce(
+        buildNTHSGroupMemberWithRole({
+          roleName: overrides.roleName ?? 'member',
+        })
+      )
+      mockedNTHSGroupsService.getChapterImpact.mockResolvedValueOnce(
+        buildNTHSChapterImpact({ groupId, schoolYear, ...overrides.impact })
+      )
+      return sendGet(
+        `/api/nths-groups/${groupId}/impact?${new URLSearchParams(query)}`
+      )
+    }
+
+    test('serializes the impact for the response body', async () => {
+      const topTutorThisMonth = buildNTHSChapterTopTutor({ userId: memberId })
+      const schoolYearToDate = {
+        studentsHelped: 4,
+        sessionsCompleted: 6,
+        hoursTutored: 8,
+        membersTutoring: 2,
+      }
+      const allTime = {
+        studentsHelped: 40,
+        sessionsCompleted: 60,
+        hoursTutored: 80,
+      }
+      const goals = { hoursTutored: 40, membersTutoring: 3 }
+
+      const response = await sendImpactGet(
+        {},
+        {
+          impact: {
+            topTutorThisMonth,
+            viewerHoursThisMonth: 1.5,
+            schoolYearToDate,
+            allTime,
+            goals,
+          },
+        }
+      )
+      expect(response.status).toBe(200)
+      expect(response.body.impact).toEqual({
+        groupId,
+        schoolYear: schoolYearPublic,
+        schoolYearToDate,
+        allTime,
+        goals,
+        topTutorThisMonth,
+        viewerHoursThisMonth: 1.5,
+      })
+    })
+
+    describe('monthStartsAt', () => {
+      test('counts the signed-in member from the month start the browser sent', async () => {
+        const monthStartsAt = new Date(Date.now() - 14 * DAY_MS)
+
+        const response = await sendImpactGet({
+          monthStartsAt: monthStartsAt.toISOString(),
+        })
+
+        expect(response.status).toBe(200)
+        expect(mockedNTHSGroupsService.getChapterImpact).toHaveBeenCalledWith(
+          groupId,
+          mockUser.id,
+          expect.any(Date),
+          monthStartsAt
+        )
+      })
+    })
+
+    test('gives HTTP 403 for a malformed group id without querying membership', async () => {
+      const response = await sendGet('/api/nths-groups/not-a-uuid/impact')
+      expect(response.status).toBe(403)
+      expect(
+        mockedNTHSGroupsService.getActiveGroupMember
+      ).not.toHaveBeenCalled()
+      expect(mockedNTHSGroupsService.getChapterImpact).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('GET /api/nths-groups/:groupId/roster', () => {
+    function sendRosterGet(
+      query: Record<string, string> = {},
+      overrides: {
+        roleName?: NTHSGroupRoleName
+        roster?: Partial<NTHSChapterRoster>
+      } = {}
+    ) {
+      mockedNTHSGroupsService.getActiveGroupMember.mockResolvedValueOnce(
+        buildNTHSGroupMemberWithRole({
+          roleName: overrides.roleName ?? 'admin',
+        })
+      )
+      mockedNTHSGroupsService.getChapterRoster.mockResolvedValueOnce(
+        buildNTHSChapterRoster({ groupId, schoolYear, ...overrides.roster })
+      )
+      return sendGet(
+        `/api/nths-groups/${groupId}/roster?${new URLSearchParams(query)}`
+      )
+    }
+
+    test('returns training, safety, account and activity fields per member, and the top tutor', async () => {
+      const joinedAt = new Date('2026-08-01T00:00:00.000Z')
+      const lastActiveAt = new Date('2026-09-11T00:00:00.000Z')
+      const member = buildNTHSChapterRosterMember({
+        userId: memberId,
+        firstName: 'Jordan',
+        lastInitial: 'N',
+        joinedAt,
+        accountClosed: true,
+        sessionsThisYear: 2,
+        hoursThisYear: 1.5,
+        periodHours: { thisWeek: 0.75, lastTwoWeeks: 1.5, thisMonth: 1.5 },
+        lastActiveAt,
+      })
+      const topTutorThisMonth = buildNTHSChapterTopTutor({ userId: memberId })
+
+      const response = await sendRosterGet(
+        {},
+        { roster: { members: [member], topTutorThisMonth } }
+      )
+      expect(response.status).toBe(200)
+      expect(response.body).toEqual({
+        roster: {
+          groupId,
+          schoolYear: schoolYearPublic,
+          topTutorThisMonth,
+          members: [
+            {
+              ...member,
+              joinedAt: joinedAt.toISOString(),
+              lastActiveAt: lastActiveAt.toISOString(),
+            },
+          ],
+        },
+      })
+    })
+
+    describe('period start params', () => {
+      test('passes the period starts the browser sent to the service', async () => {
+        const weekStartsAt = daysAgo(3)
+        const lastTwoWeeksStartsAt = daysAgo(10)
+        const monthStartsAt = daysAgo(61)
+
+        const response = await sendRosterGet({
+          weekStartsAt: weekStartsAt.toISOString(),
+          lastTwoWeeksStartsAt: lastTwoWeeksStartsAt.toISOString(),
+          monthStartsAt: monthStartsAt.toISOString(),
+        })
+
+        expect(response.status).toBe(200)
+        expect(mockedNTHSGroupsService.getChapterRoster).toHaveBeenCalledWith(
+          groupId,
+          expect.any(Date),
+          { weekStartsAt, lastTwoWeeksStartsAt, monthStartsAt },
+          { includeClosedAccounts: true }
+        )
+      })
+
+      test.each([
+        ['malformed', { weekStartsAt: 'last monday' }],
+        ['empty', { lastTwoWeeksStartsAt: '' }],
+        [
+          'well beyond a clock-skew tolerance in the future',
+          { monthStartsAt: new Date(Date.now() + 10 * 60_000).toISOString() },
+        ],
+        ['older than 62 days', { monthStartsAt: daysAgo(63).toISOString() }],
+      ])('gives HTTP 422 for a period start that is %s', async (_, query) => {
+        const response = await sendRosterGet(query)
+
+        expect(response.status).toBe(422)
+        expect(mockedNTHSGroupsService.getChapterRoster).not.toHaveBeenCalled()
+      })
+
+      test('clamps a start that is only slightly ahead of server time instead of rejecting it', async () => {
+        const monthStartsAt = new Date(Date.now() + 60_000)
+
+        const response = await sendRosterGet({
+          monthStartsAt: monthStartsAt.toISOString(),
+        })
+
+        expect(response.status).toBe(200)
+        const [, now, periodStarts] =
+          mockedNTHSGroupsService.getChapterRoster.mock.calls[0]
+        expect(periodStarts.monthStartsAt.getTime()).toBeLessThanOrEqual(
+          now.getTime()
+        )
+      })
+    })
+
+    test.each([
+      ['member', false],
+      ['admin', true],
+    ] as const)(
+      'asks the service for closed accounts only for an admin (%s -> %s)',
+      async (roleName, includeClosedAccounts) => {
+        const response = await sendRosterGet({}, { roleName })
+        expect(response.status).toBe(200)
+        expect(mockedNTHSGroupsService.getChapterRoster).toHaveBeenCalledWith(
+          groupId,
+          expect.any(Date),
+          {},
+          { includeClosedAccounts }
+        )
+      }
+    )
+  })
+
+  describe('the member-info gate', () => {
+    test.each([
+      [
+        '/api/nths-groups/:groupId/members',
+        'getGroupMembers',
+        () => {
+          mockedNTHSGroupsService.getGroupMembers.mockResolvedValueOnce([])
+        },
+      ],
+      [
+        '/api/nths-groups/:groupId/impact',
+        'getChapterImpact',
+        () => {
+          mockedNTHSGroupsService.getChapterImpact.mockResolvedValueOnce(
+            buildNTHSChapterImpact({ groupId, schoolYear })
+          )
+        },
+      ],
+      [
+        '/api/nths-groups/:groupId/roster',
+        'getChapterRoster',
+        () => {
+          mockedNTHSGroupsService.getChapterRoster.mockResolvedValueOnce(
+            buildNTHSChapterRoster({ groupId, schoolYear })
+          )
+        },
+      ],
+    ] as const)(
+      '%s gates a member on isClearedToViewChapterMemberInfo, exempts an admin',
+      async (route, read, mockRead) => {
+        mockedNTHSGroupsService.getActiveGroupMember.mockResolvedValueOnce(
+          buildNTHSGroupMemberWithRole({ roleName: 'member' })
+        )
+        mockedNTHSGroupsService.isClearedToViewChapterMemberInfo.mockResolvedValueOnce(
+          false
+        )
+
+        const memberResponse = await sendGet(route.replace(':groupId', groupId))
+        expect(memberResponse.status).toBe(403)
+        expect(memberResponse.body).toEqual({ err: 'Unauthorized' })
+        expect(
+          mockedNTHSGroupsService.isClearedToViewChapterMemberInfo
+        ).toHaveBeenCalledWith(mockUser.id)
+        expect(mockedNTHSGroupsService[read]).not.toHaveBeenCalled()
+
+        mockedNTHSGroupsService.getActiveGroupMember.mockResolvedValueOnce(
+          buildNTHSGroupMemberWithRole({ roleName: 'admin' })
+        )
+        mockedNTHSGroupsService.isClearedToViewChapterMemberInfo.mockResolvedValueOnce(
+          false
+        )
+        mockRead()
+
+        const adminResponse = await sendGet(route.replace(':groupId', groupId))
+        expect(adminResponse.status).toBe(200)
+        expect(mockedNTHSGroupsService[read]).toHaveBeenCalled()
+      }
+    )
   })
 })

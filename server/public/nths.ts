@@ -6,6 +6,11 @@ import {
   NTHSGroupPublic,
   NTHSGroupWithMemberInfoPublic,
   NTHSUserInfoPublic,
+  NTHSChapterImpactPublic,
+  NTHSChapterRosterMemberPublic,
+  NTHSChapterRosterPublic,
+  NTHSChapterTopTutorPublic,
+  NTHSSchoolYearPublic,
 } from '../contracts/nths-group'
 import { NTHSCandidateApplicationPublic } from '../contracts/nths-application'
 import {
@@ -16,8 +21,13 @@ import {
   NTHSGroupMemberWithRole,
   NTHSGroupWithMemberInfo,
   NTHSUserInfo,
+  NTHSChapterImpact,
+  NTHSChapterRoster,
+  NTHSChapterRosterMember,
+  NTHSChapterTopTutor,
 } from '../models/NTHSGroups'
 import { NTHSCandidateApplication } from '../models/NTHSApplication'
+import { SchoolYear } from '../utils/school-year'
 
 export function toNTHSGroupPublic(group: NTHSGroup): NTHSGroupPublic {
   return {
@@ -70,6 +80,7 @@ export function toNTHSGroupMemberWithRolePublic(
     firstName: member.firstName,
     lastInitial: member.lastInitial,
     roleName: member.roleName,
+    accountClosed: member.deleted,
   }
 }
 
@@ -120,5 +131,76 @@ export function toNTHSAdvisorPublic(advisor: Advisor): AdvisorPublic {
     title: advisor.title,
     phone: advisor.phone,
     phoneExtension: advisor.phoneExtension,
+  }
+}
+
+export function toNTHSSchoolYearPublic(
+  schoolYear: SchoolYear
+): NTHSSchoolYearPublic {
+  return {
+    label: schoolYear.label,
+    startsAt: schoolYear.startsAt.toISOString(),
+    endsAt: schoolYear.endsAt.toISOString(),
+  }
+}
+
+export function toNTHSChapterImpactPublic(
+  impact: NTHSChapterImpact
+): NTHSChapterImpactPublic {
+  return {
+    groupId: impact.groupId,
+    schoolYear: toNTHSSchoolYearPublic(impact.schoolYear),
+    schoolYearToDate: impact.schoolYearToDate,
+    allTime: impact.allTime,
+    goals: impact.goals,
+    topTutorThisMonth:
+      impact.topTutorThisMonth &&
+      toNTHSChapterTopTutorPublic(impact.topTutorThisMonth),
+    viewerHoursThisMonth: impact.viewerHoursThisMonth,
+  }
+}
+
+export function toNTHSChapterRosterMemberPublic(
+  member: NTHSChapterRosterMember
+): NTHSChapterRosterMemberPublic {
+  return {
+    userId: member.userId,
+    firstName: member.firstName,
+    lastInitial: member.lastInitial,
+    roleName: member.roleName,
+    title: member.title,
+    joinedAt: member.joinedAt.toISOString(),
+    trainingComplete: member.trainingComplete,
+    safetyApproved: member.safetyApproved,
+    accountClosed: member.accountClosed,
+    sessionsThisYear: member.sessionsThisYear,
+    hoursThisYear: member.hoursThisYear,
+    periodHours: member.periodHours,
+    lastActiveAt: member.lastActiveAt?.toISOString(),
+  }
+}
+
+export function toNTHSChapterTopTutorPublic(
+  topTutor: NTHSChapterTopTutor
+): NTHSChapterTopTutorPublic {
+  return {
+    userId: topTutor.userId,
+    firstName: topTutor.firstName,
+    lastInitial: topTutor.lastInitial,
+    hoursTutored: topTutor.hoursTutored,
+    sessionsCompleted: topTutor.sessionsCompleted,
+  }
+}
+
+export function toNTHSChapterRosterPublic(
+  roster: NTHSChapterRoster
+): NTHSChapterRosterPublic {
+  return {
+    groupId: roster.groupId,
+    schoolYear: toNTHSSchoolYearPublic(roster.schoolYear),
+    members: roster.members.map(toNTHSChapterRosterMemberPublic),
+    topTutorThisMonth:
+      roster.topTutorThisMonth &&
+      toNTHSChapterTopTutorPublic(roster.topTutorThisMonth),
   }
 }

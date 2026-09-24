@@ -21,7 +21,7 @@ export default async function (
     job.data.nthsGroupId
   )
   if (!adminsContactInfo.length) {
-    log('NTHS chapter has no admins', logData, true)
+    logger.warn(logData, 'NTHS chapter has no current admins to notify')
     return
   }
   const deactivatedUser = await UserService.getUserContactInfo(

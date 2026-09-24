@@ -1,5 +1,6 @@
 import { UserContactInfo } from '../models/User'
 import { Ulid } from '../models/pgUtils'
+import type { NTHSActiveGroupMember } from '../models/NTHSGroups'
 
 declare global {
   namespace Express {
@@ -13,6 +14,9 @@ declare global {
       // and logout. See app.ts.
       asyncLogin: (user: User) => Promise<void>
       asyncLogout: () => Promise<unknown>
+    }
+    export interface Locals {
+      groupMember?: NTHSActiveGroupMember
     }
   }
 }

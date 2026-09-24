@@ -1,4 +1,5 @@
 import { Ulid } from '../pgUtils'
+import { SchoolYear } from '../../utils/school-year'
 
 export type NTHSGroupWithMemberInfo = {
   // these top-level fields nest the below fields.
@@ -39,11 +40,17 @@ export type NTHSGroupMember = {
   deactivatedAt?: Date
   firstName: string
   lastInitial: string
+  deleted: boolean
 }
 
 export type NTHSGroupMemberWithRole = NTHSGroupMember & {
   roleName: NTHSGroupRoleName
 }
+
+export type NTHSActiveGroupMember = Omit<
+  NTHSGroupMemberWithRole,
+  'firstName' | 'lastInitial' | 'deleted'
+>
 
 export type NTHSGroupMemberRole = {
   userId: Ulid
@@ -127,4 +134,68 @@ export function isValidStatus(
   status: string
 ): status is NTHSCandidateApplicationStatus {
   return Object.hasOwn(NTHSCandidateApplicationStatus, status)
+}
+
+export type NTHSChapterPeriodStarts = {
+  weekStartsAt: Date
+  lastTwoWeeksStartsAt: Date
+  monthStartsAt: Date
+}
+
+export type NTHSPeriodHours = {
+  thisWeek: number
+  lastTwoWeeks: number
+  thisMonth: number
+}
+
+export type NTHSChapterGoals = {
+  hoursTutored: number
+  membersTutoring: number
+}
+
+export type NTHSChapterImpactTotals = {
+  studentsHelped: number
+  sessionsCompleted: number
+  hoursTutored: number
+}
+
+export type NTHSChapterTopTutor = {
+  userId: Ulid
+  firstName: string
+  lastInitial: string
+  sessionsCompleted: number
+  hoursTutored: number
+}
+
+export type NTHSChapterImpact = {
+  groupId: Ulid
+  schoolYear: SchoolYear
+  schoolYearToDate: NTHSChapterImpactTotals & { membersTutoring: number }
+  allTime: NTHSChapterImpactTotals
+  goals: NTHSChapterGoals
+  topTutorThisMonth?: NTHSChapterTopTutor
+  viewerHoursThisMonth: number
+}
+
+export type NTHSChapterRosterMember = {
+  userId: Ulid
+  firstName: string
+  lastInitial: string
+  roleName: NTHSGroupRoleName
+  title?: string
+  joinedAt: Date
+  trainingComplete: boolean
+  safetyApproved: boolean
+  accountClosed: boolean
+  sessionsThisYear: number
+  hoursThisYear: number
+  periodHours: NTHSPeriodHours
+  lastActiveAt?: Date
+}
+
+export type NTHSChapterRoster = {
+  groupId: Ulid
+  schoolYear: SchoolYear
+  members: NTHSChapterRosterMember[]
+  topTutorThisMonth?: NTHSChapterTopTutor
 }

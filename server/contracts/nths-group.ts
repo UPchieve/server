@@ -48,6 +48,7 @@ export type NTHSGroupMemberPublic = {
 
 export type NTHSGroupMemberWithRolePublic = NTHSGroupMemberPublic & {
   roleName: NTHSGroupRoleName
+  accountClosed: boolean
 }
 
 export type NTHSGroupActionPublic = {
@@ -109,4 +110,82 @@ export type NTHSSchoolAffiliationResponse = {
   groupId: string
   NTHSAdvisor: AdvisorPublic
   action: Omit<NTHSCreateActionResponse, 'groupId'>
+}
+
+export type NTHSSchoolYearPublic = {
+  label: string
+  startsAt: ISODateString
+  endsAt: ISODateString
+}
+
+export type NTHSChapterImpactTotalsPublic = {
+  studentsHelped: number
+  sessionsCompleted: number
+  hoursTutored: number
+}
+
+// Each period runs from the start the browser sent (or its UTC equivalent) to
+// the moment of the request.
+export type NTHSPeriodHoursPublic = {
+  thisWeek: number
+  lastTwoWeeks: number
+  thisMonth: number
+}
+
+export type NTHSChapterTopTutorPublic = {
+  userId: Uuid
+  firstName: string
+  lastInitial: string
+  hoursTutored: number
+  sessionsCompleted: number
+}
+
+export type NTHSChapterImpactPublic = {
+  groupId: Uuid
+  schoolYear: NTHSSchoolYearPublic
+  schoolYearToDate: NTHSChapterImpactTotalsPublic & { membersTutoring: number }
+  allTime: NTHSChapterImpactTotalsPublic
+  goals: {
+    hoursTutored: number
+    membersTutoring: number
+  }
+  // This month's fields run from monthStartsAt (or the UTC 1st of the month) to now.
+  topTutorThisMonth?: NTHSChapterTopTutorPublic
+  // Only ever the requester's own hours.
+  viewerHoursThisMonth: number
+}
+
+export type NTHSChapterImpactResponse = {
+  impact: NTHSChapterImpactPublic
+}
+
+export type NTHSChapterRosterMemberPublic = {
+  userId: Uuid
+  firstName: string
+  lastInitial: string
+  roleName: NTHSGroupRoleName
+  title?: string
+  joinedAt: ISODateString
+  trainingComplete: boolean
+  safetyApproved: boolean
+  accountClosed: boolean
+  sessionsThisYear: number
+  hoursThisYear: number
+  periodHours: NTHSPeriodHoursPublic
+  // The member's most recent counted session, with no school-year bound, so it
+  // can predate the year the counts above cover.
+  lastActiveAt?: ISODateString
+}
+
+export type NTHSChapterRosterPublic = {
+  groupId: Uuid
+  schoolYear: NTHSSchoolYearPublic
+  members: NTHSChapterRosterMemberPublic[]
+  // From monthStartsAt (or the UTC 1st of the month) to now. Omitted when no
+  // member qualifies.
+  topTutorThisMonth?: NTHSChapterTopTutorPublic
+}
+
+export type NTHSChapterRosterResponse = {
+  roster: NTHSChapterRosterPublic
 }

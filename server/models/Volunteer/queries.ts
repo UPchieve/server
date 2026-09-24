@@ -1818,7 +1818,9 @@ export async function getVolunteersReadyToCoachStatus(
       },
       tc
     )
-    return results.map((row) => makeSomeOptional(row, ['banType']))
+    return results.map((row) =>
+      makeSomeRequired(row, ['id', 'isOnboarded', 'isApproved'])
+    )
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -1831,7 +1833,9 @@ export async function getVolunteerOccupations(
   try {
     const results = await pgQueries.getVolunteerOccupations.run({ userId }, tc)
     return results.map(
-      (row) => makeRequired(row).occupation as VolunteerOccupations
+      (row) =>
+        makeSomeRequired(row, ['occupation', 'userId'])
+          .occupation as VolunteerOccupations
     )
   } catch (error) {
     throw new RepoReadError(error)

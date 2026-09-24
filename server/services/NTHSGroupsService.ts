@@ -7,6 +7,7 @@ import {
   NTHS_ACTIONS_TO_SCHOOL_AFFILIATION_STATUS_MAPPING,
   NTHSAction,
   NTHSActionName,
+  NTHSActiveGroupMember,
   NTHSCandidateApplicationStatus,
   NTHSChapterStatus,
   NTHSChapterStatusName,
@@ -19,6 +20,10 @@ import {
   NTHSGroupRoleName,
   NTHSGroupWithMemberInfo,
   NTHSSchoolAffiliationStatusName,
+  NTHSChapterGoals,
+  NTHSChapterImpact,
+  NTHSChapterPeriodStarts,
+  NTHSChapterRoster,
 } from '../models/NTHSGroups'
 import {
   getClient,
@@ -27,9 +32,12 @@ import {
   TransactionClient,
 } from '../db'
 import generateAlphanumericOfLength from '../utils/generate-alphanumeric'
+import { schoolYearFor } from '../utils/school-year'
 import {
   AlreadyInNTHSGroupError,
   CannotRemoveSoleNTHSAdminError,
+  InputError,
+  LookupError,
   NTHSSchoolAlreadyClaimedError,
   NTHSChapterSchoolFixedError,
   NotAHighSchoolerNTHSJoinError,
@@ -40,8 +48,10 @@ import QueueService from './QueueService'
 import { Jobs } from '../worker/jobs'
 import {
   getVolunteerOccupations,
+  getVolunteersReadyToCoachStatus,
   VolunteerOccupations,
 } from '../models/Volunteer'
+import { isReadyToCoach } from './VolunteerService'
 
 export async function getGroups(userId: Ulid) {
   return await NTHSGroupsRepo.getGroupsByUser(userId)
@@ -226,14 +236,26 @@ export async function updateGroupMember(
   nthsGroupId: Ulid,
   update: UpdateGroupMemberRequest
 ) {
-  // Do not allow deactivating or demoting of the sole admin of the group
   const client = getClient()
-  const members = await NTHSGroupsRepo.getGroupMembers(nthsGroupId, client)
+  const members = await NTHSGroupsRepo.getGroupMembers(nthsGroupId, client, {
+    includeDeactivated: true,
+  })
+  // Departed members remain valid targets; anyone with no membership row is
+  // rejected so a role can't be granted to an outsider.
+  const targetMember = members.find((member) => member.userId === userId)
+  if (!targetMember) {
+    throw new LookupError('User is not a member of this NTHS group')
+  }
+  if (update.role === 'admin' && targetMember.deleted) {
+    throw new InputError('Cannot make a deleted account an admin')
+  }
+  // Do not allow deactivating or demoting of the sole admin of the group
   const activeAdmins = members.filter(
-    (member) => member.roleName === 'admin' && !member.deactivatedAt
+    (member) =>
+      member.roleName === 'admin' && !member.deactivatedAt && !member.deleted
   )
   if (activeAdmins.length === 1 && userId === activeAdmins[0].userId) {
-    if (update.role !== 'admin' || update.isActive) {
+    if ((update.role && update.role !== 'admin') || update.isActive === false) {
       throw new CannotRemoveSoleNTHSAdminError()
     }
   }
@@ -264,14 +286,14 @@ async function updateGroupMemberRole(
   )
 }
 
-export async function getGroupMember(
+// Reads the primary: a replica lag window would let a just-revoked admin, or
+// a just-founded member, get the wrong side of this check.
+export async function getActiveGroupMember(
   userId: Ulid,
   nthsGroupId: Ulid,
-  tc: TransactionClient = getRoClient()
-): Promise<
-  Omit<NTHSGroupMemberWithRole, 'firstName' | 'lastInitial'> | undefined
-> {
-  return await NTHSGroupsRepo.getNthsGroupMember(userId, nthsGroupId, tc)
+  tc: TransactionClient = getClient()
+): Promise<NTHSActiveGroupMember | undefined> {
+  return await NTHSGroupsRepo.getActiveNthsGroupMember(userId, nthsGroupId, tc)
 }
 
 export async function getGroupMembers(
@@ -313,6 +335,14 @@ export async function createAction(
 
     return retVal
   }, tc)
+}
+
+export async function deleteAction(
+  nthsGroupId: Ulid,
+  action: NTHSActionName,
+  tc: TransactionClient = getClient()
+): Promise<void> {
+  return await NTHSGroupsRepo.deleteNthsGroupAction(nthsGroupId, action, tc)
 }
 
 export async function getActionsForGroup(
@@ -511,9 +541,15 @@ async function makeChapterSchoolOfficial(groupId: Ulid) {
       tc
     )
 
-    if (!chapterAdmins.length || !chapterAdvisors?.length) {
+    if (!chapterAdvisors?.length) {
       throw new Error(
-        `Could not mark NTHS chapter ${groupId} as official: Missing chapter presidents or advisors`
+        `Could not mark NTHS chapter ${groupId} as official: Missing chapter advisors`
+      )
+    }
+    if (!chapterAdmins.length) {
+      logger.warn(
+        { groupId },
+        'NTHS chapter has no current admins; sending the school affiliation notice to advisors only'
       )
     }
     const recipients = [...chapterAdmins, ...chapterAdvisors]
@@ -522,4 +558,128 @@ async function makeChapterSchoolOfficial(groupId: Ulid) {
       recipients[0].chapterName
     )
   })
+}
+
+export const CHAPTER_GOALS: NTHSChapterGoals = {
+  hoursTutored: 40,
+  membersTutoring: 3,
+}
+
+// The browser sends period starts in its local time. These UTC
+// starts are for a client that sends none.
+function utcPeriodStartsFor(instant: Date): NTHSChapterPeriodStarts {
+  const year = instant.getUTCFullYear()
+  const month = instant.getUTCMonth()
+  const daysSinceMonday = (instant.getUTCDay() + 6) % 7
+  const date = instant.getUTCDate()
+  return {
+    weekStartsAt: new Date(Date.UTC(year, month, date - daysSinceMonday)),
+    lastTwoWeeksStartsAt: new Date(
+      Date.UTC(year, month, date - daysSinceMonday - 7)
+    ),
+    monthStartsAt: new Date(Date.UTC(year, month, 1)),
+  }
+}
+
+// Mirrors the chapter page's member-info gate (high-line src/store/modules/
+// volunteer.js isReadyToTutor + NTHSGroupsView.vue hidePageContentReason), so
+// a member the page shows content to never gets a 403 here.
+export async function isClearedToViewChapterMemberInfo(
+  userId: Ulid,
+  tc: TransactionClient = getClient()
+): Promise<boolean> {
+  const [[readyToCoachStatus], occupations] = await Promise.all([
+    getVolunteersReadyToCoachStatus([userId], tc),
+    getVolunteerOccupations(userId, tc),
+  ])
+  const isHighSchoolStudent = occupations.includes(
+    VolunteerOccupations.HIGH_SCHOOL_STUDENT
+  )
+  return (
+    !!readyToCoachStatus &&
+    isReadyToCoach(readyToCoachStatus) &&
+    isHighSchoolStudent
+  )
+}
+
+export async function getChapterImpact(
+  groupId: Ulid,
+  viewerId: Ulid,
+  at: Date,
+  monthStartsAt?: Date,
+  tc: TransactionClient = getRoClient()
+): Promise<NTHSChapterImpact> {
+  const schoolYear = schoolYearFor(at)
+  const monthStart = monthStartsAt ?? utcPeriodStartsFor(at).monthStartsAt
+  const [totals, topTutorThisMonth, viewerHoursThisMonth] = await Promise.all([
+    NTHSGroupsRepo.getNthsChapterImpact(
+      groupId,
+      schoolYear.startsAt,
+      schoolYear.endsAt,
+      tc
+    ),
+    NTHSGroupsRepo.getNthsChapterTopTutor(groupId, monthStart, at, tc),
+    NTHSGroupsRepo.getNthsChapterMemberHoursTutored(
+      groupId,
+      viewerId,
+      monthStart,
+      at,
+      tc
+    ),
+  ])
+  return {
+    groupId,
+    schoolYear,
+    schoolYearToDate: totals.schoolYearToDate,
+    allTime: totals.allTime,
+    goals: CHAPTER_GOALS,
+    topTutorThisMonth,
+    viewerHoursThisMonth,
+  }
+}
+
+type GetChapterRosterOptions = {
+  includeClosedAccounts?: boolean
+}
+
+export async function getChapterRoster(
+  groupId: Ulid,
+  at: Date,
+  periodStarts: Partial<NTHSChapterPeriodStarts> = {},
+  options: GetChapterRosterOptions = {},
+  tc: TransactionClient = getRoClient()
+): Promise<NTHSChapterRoster> {
+  const { includeClosedAccounts = false } = options
+  const schoolYear = schoolYearFor(at)
+  const utcStarts = utcPeriodStartsFor(at)
+  const starts: NTHSChapterPeriodStarts = {
+    weekStartsAt: periodStarts.weekStartsAt ?? utcStarts.weekStartsAt,
+    lastTwoWeeksStartsAt:
+      periodStarts.lastTwoWeeksStartsAt ?? utcStarts.lastTwoWeeksStartsAt,
+    monthStartsAt: periodStarts.monthStartsAt ?? utcStarts.monthStartsAt,
+  }
+  const [rows, topTutorThisMonth] = await Promise.all([
+    NTHSGroupsRepo.getNthsChapterRoster(
+      groupId,
+      schoolYear.startsAt,
+      schoolYear.endsAt,
+      starts,
+      at,
+      tc
+    ),
+    NTHSGroupsRepo.getNthsChapterTopTutor(
+      groupId,
+      starts.monthStartsAt,
+      at,
+      tc
+    ),
+  ])
+  return {
+    groupId,
+    schoolYear,
+    members: includeClosedAccounts
+      ? rows
+      : rows.filter((row) => !row.accountClosed),
+    topTutorThisMonth,
+  }
 }

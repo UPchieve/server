@@ -5,6 +5,7 @@ import {
   PHOTO_ID_STATUS,
   STATUS,
   TRAINING_QUIZZES,
+  USER_BAN_TYPES,
 } from '../constants'
 import { Ulid, Uuid } from '../models/pgUtils'
 import { createAccountAction } from '../models/UserAction'
@@ -33,6 +34,7 @@ import * as cache from '../cache'
 import { getSubjectsWithTopic } from './SubjectsService'
 import logger from '../logger'
 import { isHighSchoolGrade } from '../utils/grade-levels'
+import { isPlatformBanType } from '../utils/ban-utils'
 import { daysInMs } from '../utils/time-utils'
 
 export interface HourSummaryStats {
@@ -541,7 +543,19 @@ export async function getVolunteersReadyToCoachStatus(
   return volunteers.map((vol) => {
     return {
       ...vol,
-      isReadyToCoach: vol.isApproved && vol.isOnboarded,
+      isReadyToCoach: isReadyToCoach(vol),
     }
   })
+}
+
+export function isReadyToCoach(status: {
+  isOnboarded: boolean
+  isApproved: boolean
+  banType?: USER_BAN_TYPES
+}): boolean {
+  return (
+    status.isOnboarded &&
+    status.isApproved &&
+    !isPlatformBanType(status.banType)
+  )
 }

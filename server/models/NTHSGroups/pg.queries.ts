@@ -1,6 +1,8 @@
 /** Types generated for queries found in "server/models/NTHSGroups/nths_groups.sql" */
 import { PreparedQuery } from '@pgtyped/runtime';
 
+export type DateOrString = Date | string;
+
 /** 'GetGroupsByUser' parameters type */
 export interface IGetGroupsByUserParams {
   userId: string;
@@ -164,7 +166,7 @@ export interface IGetGroupByIdQuery {
   result: IGetGroupByIdResult;
 }
 
-const getGroupByIdIR: any = {"usedParamSet":{"groupId":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":102,"b":110}]}],"statement":"SELECT\n    id,\n    name,\n    KEY,\n    created_at,\n    invite_code\nFROM\n    nths_groups\nWHERE\n    id = :groupId!"};
+const getGroupByIdIR: any = {"usedParamSet":{"groupId":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":102,"b":110}]}],"statement":"SELECT\n    id,\n    name,\n    KEY,\n    created_at,\n    invite_code\nFROM\n    nths_groups\nWHERE\n    id = :groupId!                                                                                                                                                        "};
 
 /**
  * Query generated from SQL:
@@ -178,7 +180,7 @@ const getGroupByIdIR: any = {"usedParamSet":{"groupId":true},"params":[{"name":"
  * FROM
  *     nths_groups
  * WHERE
- *     id = :groupId!
+ *     id = :groupId!                                                                                                                                                        
  * ```
  */
 export const getGroupById = new PreparedQuery<IGetGroupByIdParams,IGetGroupByIdResult>(getGroupByIdIR);
@@ -208,7 +210,7 @@ export interface IGetNthsGroupAdminsContactInfoQuery {
   result: IGetNthsGroupAdminsContactInfoResult;
 }
 
-const getNthsGroupAdminsContactInfoIR: any = {"usedParamSet":{"groupId":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":91,"b":99},{"a":334,"b":342}]}],"statement":"SELECT\n    u.id AS user_id,\n    u.first_name,\n    u.email,\n    g.name AS chapter_name,\n    :groupId!::uuid AS nths_group_id\nFROM\n    nths_group_member_roles mr\n    JOIN nths_group_roles roles ON roles.id = mr.role_id\n    JOIN nths_groups g ON g.id = mr.nths_group_id\n    JOIN users u ON U.id = mr.user_id\nWHERE\n    mr.nths_group_id = :groupId!::uuid\n    AND roles.name = 'admin'"};
+const getNthsGroupAdminsContactInfoIR: any = {"usedParamSet":{"groupId":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":91,"b":99},{"a":482,"b":490}]}],"statement":"SELECT\n    u.id AS user_id,\n    u.first_name,\n    u.email,\n    g.name AS chapter_name,\n    :groupId!::uuid AS nths_group_id\nFROM\n    nths_group_member_roles mr\n    JOIN nths_group_roles roles ON roles.id = mr.role_id\n    JOIN nths_groups g ON g.id = mr.nths_group_id\n    JOIN users u ON U.id = mr.user_id\n    JOIN nths_group_members ngm ON ngm.user_id = mr.user_id\n        AND ngm.nths_group_id = mr.nths_group_id\n        AND ngm.deactivated_at IS NULL\nWHERE\n    mr.nths_group_id = :groupId!::uuid\n    AND roles.name = 'admin'\n    AND u.deleted IS NOT TRUE"};
 
 /**
  * Query generated from SQL:
@@ -224,9 +226,13 @@ const getNthsGroupAdminsContactInfoIR: any = {"usedParamSet":{"groupId":true},"p
  *     JOIN nths_group_roles roles ON roles.id = mr.role_id
  *     JOIN nths_groups g ON g.id = mr.nths_group_id
  *     JOIN users u ON U.id = mr.user_id
+ *     JOIN nths_group_members ngm ON ngm.user_id = mr.user_id
+ *         AND ngm.nths_group_id = mr.nths_group_id
+ *         AND ngm.deactivated_at IS NULL
  * WHERE
  *     mr.nths_group_id = :groupId!::uuid
  *     AND roles.name = 'admin'
+ *     AND u.deleted IS NOT TRUE
  * ```
  */
 export const getNthsGroupAdminsContactInfo = new PreparedQuery<IGetNthsGroupAdminsContactInfoParams,IGetNthsGroupAdminsContactInfoResult>(getNthsGroupAdminsContactInfoIR);
@@ -393,7 +399,7 @@ export interface IUpsertNthsGroupMemberRoleQuery {
   result: IUpsertNthsGroupMemberRoleResult;
 }
 
-const upsertNthsGroupMemberRoleIR: any = {"usedParamSet":{"userId":true,"nthsGroupId":true,"roleName":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":81,"b":88}]},{"name":"nthsGroupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":95,"b":107}]},{"name":"roleName","required":true,"transform":{"type":"scalar"},"locs":[{"a":178,"b":187},{"a":344,"b":352}]}],"statement":"INSERT INTO nths_group_member_roles (user_id, nths_group_id, role_id)\nSELECT\n    :userId!,\n    :nthsGroupId!,\n    roles.id\nFROM\n    nths_group_roles roles\nWHERE\n    roles.name = :roleName!\nON CONFLICT (user_id,\n    nths_group_id)\n    DO UPDATE SET\n        role_id = EXCLUDED.role_id,\n        updated_at = NOW()\n    RETURNING\n        *,\n        :roleName AS role_name"};
+const upsertNthsGroupMemberRoleIR: any = {"usedParamSet":{"userId":true,"nthsGroupId":true,"roleName":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":81,"b":88}]},{"name":"nthsGroupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":95,"b":107}]},{"name":"roleName","required":true,"transform":{"type":"scalar"},"locs":[{"a":178,"b":187},{"a":344,"b":352}]}],"statement":"INSERT INTO nths_group_member_roles (user_id, nths_group_id, role_id)\nSELECT\n    :userId!,\n    :nthsGroupId!,\n    roles.id\nFROM\n    nths_group_roles roles\nWHERE\n    roles.name = :roleName!\nON CONFLICT (user_id,\n    nths_group_id)\n    DO UPDATE SET\n        role_id = EXCLUDED.role_id,\n        updated_at = NOW()\n    RETURNING\n        *,\n        :roleName AS role_name                                                                                                                                                 "};
 
 /**
  * Query generated from SQL:
@@ -414,20 +420,20 @@ const upsertNthsGroupMemberRoleIR: any = {"usedParamSet":{"userId":true,"nthsGro
  *         updated_at = NOW()
  *     RETURNING
  *         *,
- *         :roleName AS role_name
+ *         :roleName AS role_name                                                                                                                                                 
  * ```
  */
 export const upsertNthsGroupMemberRole = new PreparedQuery<IUpsertNthsGroupMemberRoleParams,IUpsertNthsGroupMemberRoleResult>(upsertNthsGroupMemberRoleIR);
 
 
-/** 'GetGroupMember' parameters type */
-export interface IGetGroupMemberParams {
+/** 'GetActiveGroupMember' parameters type */
+export interface IGetActiveGroupMemberParams {
   nthsGroupId: string;
   userId: string;
 }
 
-/** 'GetGroupMember' return type */
-export interface IGetGroupMemberResult {
+/** 'GetActiveGroupMember' return type */
+export interface IGetActiveGroupMemberResult {
   /** not_pii: Timestamp when the membership was deactivated */
   deactivatedAt: Date | null;
   /** not_pii: Timestamp when the member joined the group */
@@ -444,13 +450,13 @@ export interface IGetGroupMemberResult {
   userId: string;
 }
 
-/** 'GetGroupMember' query type */
-export interface IGetGroupMemberQuery {
-  params: IGetGroupMemberParams;
-  result: IGetGroupMemberResult;
+/** 'GetActiveGroupMember' query type */
+export interface IGetActiveGroupMemberQuery {
+  params: IGetActiveGroupMemberParams;
+  result: IGetActiveGroupMemberResult;
 }
 
-const getGroupMemberIR: any = {"usedParamSet":{"userId":true,"nthsGroupId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":302,"b":309}]},{"name":"nthsGroupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":337,"b":349}]}],"statement":"SELECT\n    m.*,\n    roles.name AS role_name\nFROM\n    nths_group_members m\n    JOIN nths_group_member_roles member_roles ON member_roles.user_id = m.user_id\n        AND member_roles.nths_group_id = m.nths_group_id\n    JOIN nths_group_roles roles ON roles.id = member_roles.role_id\nWHERE\n    m.user_id = :userId!\n    AND m.nths_group_id = :nthsGroupId!"};
+const getActiveGroupMemberIR: any = {"usedParamSet":{"userId":true,"nthsGroupId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":302,"b":309}]},{"name":"nthsGroupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":337,"b":349}]}],"statement":"SELECT\n    m.*,\n    roles.name AS role_name\nFROM\n    nths_group_members m\n    JOIN nths_group_member_roles member_roles ON member_roles.user_id = m.user_id\n        AND member_roles.nths_group_id = m.nths_group_id\n    JOIN nths_group_roles roles ON roles.id = member_roles.role_id\nWHERE\n    m.user_id = :userId!\n    AND m.nths_group_id = :nthsGroupId!\n    AND m.deactivated_at IS NULL"};
 
 /**
  * Query generated from SQL:
@@ -466,13 +472,15 @@ const getGroupMemberIR: any = {"usedParamSet":{"userId":true,"nthsGroupId":true}
  * WHERE
  *     m.user_id = :userId!
  *     AND m.nths_group_id = :nthsGroupId!
+ *     AND m.deactivated_at IS NULL
  * ```
  */
-export const getGroupMember = new PreparedQuery<IGetGroupMemberParams,IGetGroupMemberResult>(getGroupMemberIR);
+export const getActiveGroupMember = new PreparedQuery<IGetActiveGroupMemberParams,IGetActiveGroupMemberResult>(getActiveGroupMemberIR);
 
 
 /** 'GetGroupMembers' parameters type */
 export interface IGetGroupMembersParams {
+  excludeClosedAccounts?: boolean | null | void;
   groupId: string;
   includeDeactivated?: boolean | null | void;
 }
@@ -481,6 +489,7 @@ export interface IGetGroupMembersParams {
 export interface IGetGroupMembersResult {
   /** not_pii: Timestamp when the membership was deactivated */
   deactivatedAt: Date | null;
+  deleted: boolean | null;
   /** pii: First name */
   firstName: string;
   /** not_pii: Timestamp when the member joined the group */
@@ -504,7 +513,7 @@ export interface IGetGroupMembersQuery {
   result: IGetGroupMembersResult;
 }
 
-const getGroupMembersIR: any = {"usedParamSet":{"groupId":true,"includeDeactivated":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":233,"b":241},{"a":428,"b":436}]},{"name":"includeDeactivated","required":false,"transform":{"type":"scalar"},"locs":[{"a":447,"b":465}]}],"statement":"SELECT\n    ngm.*,\n    roles.name AS role_name,\n    LEFT (users.last_name,\n        1) AS last_initial,\n    users.first_name\nFROM\n    nths_group_members ngm\n    JOIN nths_group_member_roles member_roles ON member_roles.nths_group_id = :groupId!\n        AND member_roles.user_id = ngm.user_id\n    JOIN nths_group_roles roles ON roles.id = member_roles.role_id\n    JOIN users ON users.id = ngm.user_id\nWHERE\n    ngm.nths_group_id = :groupId!\n    AND (:includeDeactivated IS TRUE\n        OR ngm.deactivated_at IS NULL)"};
+const getGroupMembersIR: any = {"usedParamSet":{"groupId":true,"includeDeactivated":true,"excludeClosedAccounts":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":271,"b":279},{"a":466,"b":474}]},{"name":"includeDeactivated","required":false,"transform":{"type":"scalar"},"locs":[{"a":485,"b":503}]},{"name":"excludeClosedAccounts","required":false,"transform":{"type":"scalar"},"locs":[{"a":561,"b":582}]}],"statement":"SELECT\n    ngm.*,\n    roles.name AS role_name,\n    LEFT (users.last_name,\n        1) AS last_initial,\n    users.first_name,\n    users.deleted IS TRUE AS deleted\nFROM\n    nths_group_members ngm\n    JOIN nths_group_member_roles member_roles ON member_roles.nths_group_id = :groupId!\n        AND member_roles.user_id = ngm.user_id\n    JOIN nths_group_roles roles ON roles.id = member_roles.role_id\n    JOIN users ON users.id = ngm.user_id\nWHERE\n    ngm.nths_group_id = :groupId!\n    AND (:includeDeactivated IS TRUE\n        OR ngm.deactivated_at IS NULL)\n    AND (:excludeClosedAccounts IS NOT TRUE\n        OR users.deleted IS NOT TRUE)"};
 
 /**
  * Query generated from SQL:
@@ -514,7 +523,8 @@ const getGroupMembersIR: any = {"usedParamSet":{"groupId":true,"includeDeactivat
  *     roles.name AS role_name,
  *     LEFT (users.last_name,
  *         1) AS last_initial,
- *     users.first_name
+ *     users.first_name,
+ *     users.deleted IS TRUE AS deleted
  * FROM
  *     nths_group_members ngm
  *     JOIN nths_group_member_roles member_roles ON member_roles.nths_group_id = :groupId!
@@ -525,6 +535,8 @@ const getGroupMembersIR: any = {"usedParamSet":{"groupId":true,"includeDeactivat
  *     ngm.nths_group_id = :groupId!
  *     AND (:includeDeactivated IS TRUE
  *         OR ngm.deactivated_at IS NULL)
+ *     AND (:excludeClosedAccounts IS NOT TRUE
+ *         OR users.deleted IS NOT TRUE)
  * ```
  */
 export const getGroupMembers = new PreparedQuery<IGetGroupMembersParams,IGetGroupMembersResult>(getGroupMembersIR);
@@ -589,7 +601,7 @@ export interface ICreateGroupQuery {
   result: ICreateGroupResult;
 }
 
-const createGroupIR: any = {"usedParamSet":{"inviteCode":true,"name":true,"key":true},"params":[{"name":"inviteCode","required":true,"transform":{"type":"scalar"},"locs":[{"a":83,"b":94}]},{"name":"name","required":true,"transform":{"type":"scalar"},"locs":[{"a":97,"b":102}]},{"name":"key","required":true,"transform":{"type":"scalar"},"locs":[{"a":105,"b":109}]}],"statement":"INSERT INTO nths_groups (id, invite_code, name, KEY)\n    VALUES (generate_ulid (), :inviteCode!, :name!, :key!)\nRETURNING\n    *"};
+const createGroupIR: any = {"usedParamSet":{"inviteCode":true,"name":true,"key":true},"params":[{"name":"inviteCode","required":true,"transform":{"type":"scalar"},"locs":[{"a":83,"b":94}]},{"name":"name","required":true,"transform":{"type":"scalar"},"locs":[{"a":97,"b":102}]},{"name":"key","required":true,"transform":{"type":"scalar"},"locs":[{"a":105,"b":109}]}],"statement":"INSERT INTO nths_groups (id, invite_code, name, KEY)\n    VALUES (generate_ulid (), :inviteCode!, :name!, :key!)\nRETURNING\n    *                                                                                                                             "};
 
 /**
  * Query generated from SQL:
@@ -597,7 +609,7 @@ const createGroupIR: any = {"usedParamSet":{"inviteCode":true,"name":true,"key":
  * INSERT INTO nths_groups (id, invite_code, name, KEY)
  *     VALUES (generate_ulid (), :inviteCode!, :name!, :key!)
  * RETURNING
- *     *
+ *     *                                                                                                                             
  * ```
  */
 export const createGroup = new PreparedQuery<ICreateGroupParams,ICreateGroupResult>(createGroupIR);
@@ -618,7 +630,7 @@ export interface IDeactivateGroupMemberQuery {
   result: IDeactivateGroupMemberResult;
 }
 
-const deactivateGroupMemberIR: any = {"usedParamSet":{"userId":true,"groupId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":105,"b":112}]},{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":138,"b":146}]}],"statement":"UPDATE\n    nths_group_members\nSET\n    deactivated_at = NOW(),\n    updated_at = NOW()\nWHERE\n    user_id = :userId!\n    AND nths_group_id = :groupId!"};
+const deactivateGroupMemberIR: any = {"usedParamSet":{"userId":true,"groupId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":105,"b":112}]},{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":138,"b":146}]}],"statement":"UPDATE\n    nths_group_members\nSET\n    deactivated_at = NOW(),\n    updated_at = NOW()\nWHERE\n    user_id = :userId!\n    AND nths_group_id = :groupId!\n    AND deactivated_at IS NULL"};
 
 /**
  * Query generated from SQL:
@@ -631,6 +643,7 @@ const deactivateGroupMemberIR: any = {"usedParamSet":{"userId":true,"groupId":tr
  * WHERE
  *     user_id = :userId!
  *     AND nths_group_id = :groupId!
+ *     AND deactivated_at IS NULL
  * ```
  */
 export const deactivateGroupMember = new PreparedQuery<IDeactivateGroupMemberParams,IDeactivateGroupMemberResult>(deactivateGroupMemberIR);
@@ -710,7 +723,7 @@ export interface IInsertNthsGroupActionQuery {
   result: IInsertNthsGroupActionResult;
 }
 
-const insertNthsGroupActionIR: any = {"usedParamSet":{"groupId":true,"actionName":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":74,"b":82}]},{"name":"actionName","required":true,"transform":{"type":"scalar"},"locs":[{"a":155,"b":166},{"a":270,"b":281}]}],"statement":"INSERT INTO nths_group_actions (nths_group_id, nths_action_id)\nSELECT\n    :groupId!,\n    actions.id\nFROM\n    nths_actions actions\nWHERE\n    actions.name = :actionName!\nRETURNING\n    id,\n    nths_group_id AS group_id,\n    nths_action_id AS action_id,\n    created_at,\n    :actionName! AS action_name"};
+const insertNthsGroupActionIR: any = {"usedParamSet":{"groupId":true,"actionName":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":74,"b":82}]},{"name":"actionName","required":true,"transform":{"type":"scalar"},"locs":[{"a":155,"b":166},{"a":270,"b":281}]}],"statement":"INSERT INTO nths_group_actions (nths_group_id, nths_action_id)\nSELECT\n    :groupId!,\n    actions.id\nFROM\n    nths_actions actions\nWHERE\n    actions.name = :actionName!\nRETURNING\n    id,\n    nths_group_id AS group_id,\n    nths_action_id AS action_id,\n    created_at,\n    :actionName! AS action_name                                                                                                                                  "};
 
 /**
  * Query generated from SQL:
@@ -728,10 +741,44 @@ const insertNthsGroupActionIR: any = {"usedParamSet":{"groupId":true,"actionName
  *     nths_group_id AS group_id,
  *     nths_action_id AS action_id,
  *     created_at,
- *     :actionName! AS action_name
+ *     :actionName! AS action_name                                                                                                                                  
  * ```
  */
 export const insertNthsGroupAction = new PreparedQuery<IInsertNthsGroupActionParams,IInsertNthsGroupActionResult>(insertNthsGroupActionIR);
+
+
+/** 'DeleteNthsGroupAction' parameters type */
+export interface IDeleteNthsGroupActionParams {
+  actionName: string;
+  groupId: string;
+}
+
+/** 'DeleteNthsGroupAction' return type */
+export type IDeleteNthsGroupActionResult = void;
+
+/** 'DeleteNthsGroupAction' query type */
+export interface IDeleteNthsGroupActionQuery {
+  params: IDeleteNthsGroupActionParams;
+  result: IDeleteNthsGroupActionResult;
+}
+
+const deleteNthsGroupActionIR: any = {"usedParamSet":{"groupId":true,"actionName":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":53,"b":61}]},{"name":"actionName","required":true,"transform":{"type":"scalar"},"locs":[{"a":192,"b":203}]}],"statement":"DELETE FROM nths_group_actions\nWHERE nths_group_id = :groupId!\n    AND nths_action_id IN (\n        SELECT\n            id\n        FROM\n            nths_actions\n        WHERE\n            name = :actionName!)"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * DELETE FROM nths_group_actions
+ * WHERE nths_group_id = :groupId!
+ *     AND nths_action_id IN (
+ *         SELECT
+ *             id
+ *         FROM
+ *             nths_actions
+ *         WHERE
+ *             name = :actionName!)
+ * ```
+ */
+export const deleteNthsGroupAction = new PreparedQuery<IDeleteNthsGroupActionParams,IDeleteNthsGroupActionResult>(deleteNthsGroupActionIR);
 
 
 /** 'GetAllNthsGroupActionsByGroupId' parameters type */
@@ -1128,7 +1175,7 @@ export interface IGetAllNthsGroupsWithStatusQuery {
   result: IGetAllNthsGroupsWithStatusResult;
 }
 
-const getAllNthsGroupsWithStatusIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    groups.id AS group_id,\n    chapter_status.nths_chapter_status_id AS status_id,\n    chapter_statuses.name AS status_name,\n    school_aff.nths_school_affiliation_status_id AS school_affiliation_status_id,\n    school_aff_statuses.name AS school_affiliation_status_name\nFROM\n    nths_groups GROUPS\n    LEFT JOIN nths_chapters_statuses chapter_status ON chapter_status.nths_group_id = groups.id\n    LEFT JOIN nths_chapter_statuses chapter_statuses ON chapter_statuses.id = chapter_status.nths_chapter_status_id\n    LEFT JOIN nths_group_school_affiliation school_aff ON school_aff.nths_group_id = groups.id\n    LEFT JOIN nths_school_affiliation_statuses school_aff_statuses ON school_aff_statuses.id = school_aff.nths_school_affiliation_status_id"};
+const getAllNthsGroupsWithStatusIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    groups.id AS group_id,\n    chapter_status.nths_chapter_status_id AS status_id,\n    chapter_statuses.name AS status_name,\n    school_aff.nths_school_affiliation_status_id AS school_affiliation_status_id,\n    school_aff_statuses.name AS school_affiliation_status_name\nFROM\n    nths_groups GROUPS\n    LEFT JOIN nths_chapters_statuses chapter_status ON chapter_status.nths_group_id = groups.id\n    LEFT JOIN nths_chapter_statuses chapter_statuses ON chapter_statuses.id = chapter_status.nths_chapter_status_id\n    LEFT JOIN nths_group_school_affiliation school_aff ON school_aff.nths_group_id = groups.id\n    LEFT JOIN nths_school_affiliation_statuses school_aff_statuses ON school_aff_statuses.id = school_aff.nths_school_affiliation_status_id                                                                                                                                                                                                                                                                                                                                                               "};
 
 /**
  * Query generated from SQL:
@@ -1144,9 +1191,306 @@ const getAllNthsGroupsWithStatusIR: any = {"usedParamSet":{},"params":[],"statem
  *     LEFT JOIN nths_chapters_statuses chapter_status ON chapter_status.nths_group_id = groups.id
  *     LEFT JOIN nths_chapter_statuses chapter_statuses ON chapter_statuses.id = chapter_status.nths_chapter_status_id
  *     LEFT JOIN nths_group_school_affiliation school_aff ON school_aff.nths_group_id = groups.id
- *     LEFT JOIN nths_school_affiliation_statuses school_aff_statuses ON school_aff_statuses.id = school_aff.nths_school_affiliation_status_id
+ *     LEFT JOIN nths_school_affiliation_statuses school_aff_statuses ON school_aff_statuses.id = school_aff.nths_school_affiliation_status_id                                                                                                                                                                                                                                                                                                                                                               
  * ```
  */
 export const getAllNthsGroupsWithStatus = new PreparedQuery<IGetAllNthsGroupsWithStatusParams,IGetAllNthsGroupsWithStatusResult>(getAllNthsGroupsWithStatusIR);
+
+
+/** 'GetNthsChapterImpact' parameters type */
+export interface IGetNthsChapterImpactParams {
+  endsAt: DateOrString;
+  groupId: string;
+  minSessionLength: number;
+  startsAt: DateOrString;
+}
+
+/** 'GetNthsChapterImpact' return type */
+export interface IGetNthsChapterImpactResult {
+  hoursTutoredAllTime: number | null;
+  hoursTutoredThisYear: number | null;
+  membersTutoringThisYear: number | null;
+  sessionsCompletedAllTime: number | null;
+  sessionsCompletedThisYear: number | null;
+  studentsHelpedAllTime: number | null;
+  studentsHelpedThisYear: number | null;
+}
+
+/** 'GetNthsChapterImpact' query type */
+export interface IGetNthsChapterImpactQuery {
+  params: IGetNthsChapterImpactParams;
+  result: IGetNthsChapterImpactResult;
+}
+
+const getNthsChapterImpactIR: any = {"usedParamSet":{"startsAt":true,"endsAt":true,"minSessionLength":true,"groupId":true},"params":[{"name":"startsAt","required":true,"transform":{"type":"scalar"},"locs":[{"a":59,"b":68},{"a":276,"b":285},{"a":513,"b":522},{"a":809,"b":818}]},{"name":"endsAt","required":true,"transform":{"type":"scalar"},"locs":[{"a":106,"b":113},{"a":323,"b":330},{"a":568,"b":575},{"a":856,"b":863}]},{"name":"minSessionLength","required":true,"transform":{"type":"scalar"},"locs":[{"a":1153,"b":1170}]},{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":1440,"b":1448}]}],"statement":"SELECT\n    count(*) FILTER (WHERE s.volunteer_joined_at >= :startsAt!\n        AND s.volunteer_joined_at < :endsAt!)::int AS sessions_completed_this_year,\n    count(*)::int AS sessions_completed_all_time,\n    count(DISTINCT s.student_id) FILTER (WHERE s.volunteer_joined_at >= :startsAt!\n        AND s.volunteer_joined_at < :endsAt!)::int AS students_helped_this_year,\n    count(DISTINCT s.student_id)::int AS students_helped_all_time,\n    round(COALESCE(sum(s.time_tutored) FILTER (WHERE s.volunteer_joined_at >= :startsAt!\n                AND s.volunteer_joined_at < :endsAt!), 0) / 3600000::numeric, 2)::float AS hours_tutored_this_year,\n    round(COALESCE(sum(s.time_tutored), 0) / 3600000::numeric, 2)::float AS hours_tutored_all_time,\n    count(DISTINCT m.user_id) FILTER (WHERE s.volunteer_joined_at >= :startsAt!\n        AND s.volunteer_joined_at < :endsAt!\n        AND m.deactivated_at IS NULL\n        AND u.deleted IS NOT TRUE)::int AS members_tutoring_this_year\nFROM\n    nths_group_members m\n    JOIN users u ON u.id = m.user_id\n    JOIN sessions s ON s.volunteer_id = m.user_id\n        AND s.ended_at IS NOT NULL\n        AND s.time_tutored > :minSessionLength!::int\n        AND s.volunteer_joined_at >= m.joined_at\n        AND (m.deactivated_at IS NULL\n            OR s.volunteer_joined_at < m.deactivated_at)\n    JOIN users student ON student.id = s.student_id\n        AND student.test_user IS FALSE\nWHERE\n    m.nths_group_id = :groupId!\n    AND u.test_user IS FALSE                                                                                                                                      "};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     count(*) FILTER (WHERE s.volunteer_joined_at >= :startsAt!
+ *         AND s.volunteer_joined_at < :endsAt!)::int AS sessions_completed_this_year,
+ *     count(*)::int AS sessions_completed_all_time,
+ *     count(DISTINCT s.student_id) FILTER (WHERE s.volunteer_joined_at >= :startsAt!
+ *         AND s.volunteer_joined_at < :endsAt!)::int AS students_helped_this_year,
+ *     count(DISTINCT s.student_id)::int AS students_helped_all_time,
+ *     round(COALESCE(sum(s.time_tutored) FILTER (WHERE s.volunteer_joined_at >= :startsAt!
+ *                 AND s.volunteer_joined_at < :endsAt!), 0) / 3600000::numeric, 2)::float AS hours_tutored_this_year,
+ *     round(COALESCE(sum(s.time_tutored), 0) / 3600000::numeric, 2)::float AS hours_tutored_all_time,
+ *     count(DISTINCT m.user_id) FILTER (WHERE s.volunteer_joined_at >= :startsAt!
+ *         AND s.volunteer_joined_at < :endsAt!
+ *         AND m.deactivated_at IS NULL
+ *         AND u.deleted IS NOT TRUE)::int AS members_tutoring_this_year
+ * FROM
+ *     nths_group_members m
+ *     JOIN users u ON u.id = m.user_id
+ *     JOIN sessions s ON s.volunteer_id = m.user_id
+ *         AND s.ended_at IS NOT NULL
+ *         AND s.time_tutored > :minSessionLength!::int
+ *         AND s.volunteer_joined_at >= m.joined_at
+ *         AND (m.deactivated_at IS NULL
+ *             OR s.volunteer_joined_at < m.deactivated_at)
+ *     JOIN users student ON student.id = s.student_id
+ *         AND student.test_user IS FALSE
+ * WHERE
+ *     m.nths_group_id = :groupId!
+ *     AND u.test_user IS FALSE                                                                                                                                      
+ * ```
+ */
+export const getNthsChapterImpact = new PreparedQuery<IGetNthsChapterImpactParams,IGetNthsChapterImpactResult>(getNthsChapterImpactIR);
+
+
+/** 'GetNthsChapterRoster' parameters type */
+export interface IGetNthsChapterRosterParams {
+  endsAt: DateOrString;
+  groupId: string;
+  lastTwoWeeksStartsAt: DateOrString;
+  minSessionLength: number;
+  monthStartsAt: DateOrString;
+  periodEndsAt: DateOrString;
+  startsAt: DateOrString;
+  weekStartsAt: DateOrString;
+}
+
+/** 'GetNthsChapterRoster' return type */
+export interface IGetNthsChapterRosterResult {
+  accountClosed: boolean | null;
+  /** pii: First name */
+  firstName: string;
+  hoursLastTwoWeeks: number | null;
+  hoursThisMonth: number | null;
+  hoursThisWeek: number | null;
+  hoursThisYear: number | null;
+  /** not_pii: Timestamp when the member joined the group */
+  joinedAt: Date;
+  lastActiveAt: Date | null;
+  lastInitial: string | null;
+  /** not_pii: Human-readable name */
+  roleName: string | null;
+  safetyApproved: boolean | null;
+  sessionsThisYear: number | null;
+  /** not_pii: Title of the user in the NTHS group */
+  title: string | null;
+  trainingComplete: boolean | null;
+  /** not_pii: Foreign key to upchieve.users */
+  userId: string;
+}
+
+/** 'GetNthsChapterRoster' query type */
+export interface IGetNthsChapterRosterQuery {
+  params: IGetNthsChapterRosterParams;
+  result: IGetNthsChapterRosterResult;
+}
+
+const getNthsChapterRosterIR: any = {"usedParamSet":{"startsAt":true,"endsAt":true,"weekStartsAt":true,"periodEndsAt":true,"lastTwoWeeksStartsAt":true,"monthStartsAt":true,"minSessionLength":true,"groupId":true},"params":[{"name":"startsAt","required":true,"transform":{"type":"scalar"},"locs":[{"a":891,"b":900},{"a":1078,"b":1087}]},{"name":"endsAt","required":true,"transform":{"type":"scalar"},"locs":[{"a":950,"b":957},{"a":1145,"b":1152}]},{"name":"weekStartsAt","required":true,"transform":{"type":"scalar"},"locs":[{"a":1299,"b":1312}]},{"name":"periodEndsAt","required":true,"transform":{"type":"scalar"},"locs":[{"a":1370,"b":1383},{"a":1609,"b":1622},{"a":1846,"b":1859}]},{"name":"lastTwoWeeksStartsAt","required":true,"transform":{"type":"scalar"},"locs":[{"a":1530,"b":1551}]},{"name":"monthStartsAt","required":true,"transform":{"type":"scalar"},"locs":[{"a":1774,"b":1788}]},{"name":"minSessionLength","required":true,"transform":{"type":"scalar"},"locs":[{"a":2254,"b":2271}]},{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":2475,"b":2483}]}],"statement":"SELECT\n    m.user_id,\n    m.title,\n    m.joined_at,\n    u.first_name,\n    LEFT (u.last_name,\n        1) AS last_initial,\n    roles.name AS role_name,\n    COALESCE(vp.onboarded, FALSE) AS training_complete,\n    COALESCE(vp.approved, FALSE) AS safety_approved,\n    u.deleted IS TRUE AS account_closed,\n    act.sessions_this_year,\n    act.hours_this_year,\n    act.hours_this_week,\n    act.hours_last_two_weeks,\n    act.hours_this_month,\n    act.last_active_at\nFROM\n    nths_group_members m\n    JOIN users u ON u.id = m.user_id\n    JOIN nths_group_member_roles member_roles ON member_roles.user_id = m.user_id\n        AND member_roles.nths_group_id = m.nths_group_id\n    JOIN nths_group_roles roles ON roles.id = member_roles.role_id\n    LEFT JOIN volunteer_profiles vp ON vp.user_id = m.user_id\n    LEFT JOIN LATERAL (\n        SELECT\n            count(*) FILTER (WHERE s.volunteer_joined_at >= :startsAt!\n                    AND s.volunteer_joined_at < :endsAt!)::int AS sessions_this_year,\n                round(COALESCE(sum(s.time_tutored) FILTER (WHERE s.volunteer_joined_at >= :startsAt!\n                            AND s.volunteer_joined_at < :endsAt!), 0) / 3600000::numeric, 2)::float AS hours_this_year,\n                round(COALESCE(sum(s.time_tutored) FILTER (WHERE s.volunteer_joined_at >= :weekStartsAt!\n                            AND s.volunteer_joined_at < :periodEndsAt!), 0) / 3600000::numeric, 2)::float AS hours_this_week,\n                round(COALESCE(sum(s.time_tutored) FILTER (WHERE s.volunteer_joined_at >= :lastTwoWeeksStartsAt!\n                            AND s.volunteer_joined_at < :periodEndsAt!), 0) / 3600000::numeric, 2)::float AS hours_last_two_weeks,\n                round(COALESCE(sum(s.time_tutored) FILTER (WHERE s.volunteer_joined_at >= :monthStartsAt!\n                            AND s.volunteer_joined_at < :periodEndsAt!), 0) / 3600000::numeric, 2)::float AS hours_this_month,\n                max(s.volunteer_joined_at) AS last_active_at\n            FROM\n                sessions s\n            JOIN users student ON student.id = s.student_id\n                AND student.test_user IS FALSE\n        WHERE\n            s.volunteer_id = m.user_id\n            AND s.ended_at IS NOT NULL\n            AND s.time_tutored > :minSessionLength!::int\n            AND s.volunteer_joined_at >= m.joined_at\n            AND (m.deactivated_at IS NULL\n                OR s.volunteer_joined_at < m.deactivated_at)) act ON TRUE\nWHERE\n    m.nths_group_id = :groupId!\n    AND m.deactivated_at IS NULL\n    AND u.test_user IS FALSE\nORDER BY\n    u.first_name,\n    m.user_id                                                                                                                                                                                               "};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     m.user_id,
+ *     m.title,
+ *     m.joined_at,
+ *     u.first_name,
+ *     LEFT (u.last_name,
+ *         1) AS last_initial,
+ *     roles.name AS role_name,
+ *     COALESCE(vp.onboarded, FALSE) AS training_complete,
+ *     COALESCE(vp.approved, FALSE) AS safety_approved,
+ *     u.deleted IS TRUE AS account_closed,
+ *     act.sessions_this_year,
+ *     act.hours_this_year,
+ *     act.hours_this_week,
+ *     act.hours_last_two_weeks,
+ *     act.hours_this_month,
+ *     act.last_active_at
+ * FROM
+ *     nths_group_members m
+ *     JOIN users u ON u.id = m.user_id
+ *     JOIN nths_group_member_roles member_roles ON member_roles.user_id = m.user_id
+ *         AND member_roles.nths_group_id = m.nths_group_id
+ *     JOIN nths_group_roles roles ON roles.id = member_roles.role_id
+ *     LEFT JOIN volunteer_profiles vp ON vp.user_id = m.user_id
+ *     LEFT JOIN LATERAL (
+ *         SELECT
+ *             count(*) FILTER (WHERE s.volunteer_joined_at >= :startsAt!
+ *                     AND s.volunteer_joined_at < :endsAt!)::int AS sessions_this_year,
+ *                 round(COALESCE(sum(s.time_tutored) FILTER (WHERE s.volunteer_joined_at >= :startsAt!
+ *                             AND s.volunteer_joined_at < :endsAt!), 0) / 3600000::numeric, 2)::float AS hours_this_year,
+ *                 round(COALESCE(sum(s.time_tutored) FILTER (WHERE s.volunteer_joined_at >= :weekStartsAt!
+ *                             AND s.volunteer_joined_at < :periodEndsAt!), 0) / 3600000::numeric, 2)::float AS hours_this_week,
+ *                 round(COALESCE(sum(s.time_tutored) FILTER (WHERE s.volunteer_joined_at >= :lastTwoWeeksStartsAt!
+ *                             AND s.volunteer_joined_at < :periodEndsAt!), 0) / 3600000::numeric, 2)::float AS hours_last_two_weeks,
+ *                 round(COALESCE(sum(s.time_tutored) FILTER (WHERE s.volunteer_joined_at >= :monthStartsAt!
+ *                             AND s.volunteer_joined_at < :periodEndsAt!), 0) / 3600000::numeric, 2)::float AS hours_this_month,
+ *                 max(s.volunteer_joined_at) AS last_active_at
+ *             FROM
+ *                 sessions s
+ *             JOIN users student ON student.id = s.student_id
+ *                 AND student.test_user IS FALSE
+ *         WHERE
+ *             s.volunteer_id = m.user_id
+ *             AND s.ended_at IS NOT NULL
+ *             AND s.time_tutored > :minSessionLength!::int
+ *             AND s.volunteer_joined_at >= m.joined_at
+ *             AND (m.deactivated_at IS NULL
+ *                 OR s.volunteer_joined_at < m.deactivated_at)) act ON TRUE
+ * WHERE
+ *     m.nths_group_id = :groupId!
+ *     AND m.deactivated_at IS NULL
+ *     AND u.test_user IS FALSE
+ * ORDER BY
+ *     u.first_name,
+ *     m.user_id                                                                                                                                                                                               
+ * ```
+ */
+export const getNthsChapterRoster = new PreparedQuery<IGetNthsChapterRosterParams,IGetNthsChapterRosterResult>(getNthsChapterRosterIR);
+
+
+/** 'GetNthsChapterTopTutor' parameters type */
+export interface IGetNthsChapterTopTutorParams {
+  endsAt: DateOrString;
+  groupId: string;
+  minSessionLength: number;
+  startsAt: DateOrString;
+}
+
+/** 'GetNthsChapterTopTutor' return type */
+export interface IGetNthsChapterTopTutorResult {
+  /** pii: First name */
+  firstName: string;
+  hoursTutored: number | null;
+  lastInitial: string | null;
+  sessionsCompleted: number | null;
+  /** not_pii: Foreign key to upchieve.users */
+  userId: string;
+}
+
+/** 'GetNthsChapterTopTutor' query type */
+export interface IGetNthsChapterTopTutorQuery {
+  params: IGetNthsChapterTopTutorParams;
+  result: IGetNthsChapterTopTutorResult;
+}
+
+const getNthsChapterTopTutorIR: any = {"usedParamSet":{"minSessionLength":true,"startsAt":true,"endsAt":true,"groupId":true},"params":[{"name":"minSessionLength","required":true,"transform":{"type":"scalar"},"locs":[{"a":390,"b":407}]},{"name":"startsAt","required":true,"transform":{"type":"scalar"},"locs":[{"a":595,"b":604}]},{"name":"endsAt","required":true,"transform":{"type":"scalar"},"locs":[{"a":642,"b":649}]},{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":770,"b":778}]}],"statement":"SELECT\n    m.user_id,\n    u.first_name,\n    LEFT (u.last_name,\n        1) AS last_initial,\n    count(*)::int AS sessions_completed,\n    round(sum(s.time_tutored) / 3600000::numeric, 2)::float AS hours_tutored\nFROM\n    nths_group_members m\n    JOIN users u ON u.id = m.user_id\n    JOIN sessions s ON s.volunteer_id = m.user_id\n        AND s.ended_at IS NOT NULL\n        AND s.time_tutored > :minSessionLength!::int\n        AND s.volunteer_joined_at >= m.joined_at\n        AND (m.deactivated_at IS NULL\n            OR s.volunteer_joined_at < m.deactivated_at)\n        AND s.volunteer_joined_at >= :startsAt!\n        AND s.volunteer_joined_at < :endsAt!\n    JOIN users student ON student.id = s.student_id\n        AND student.test_user IS FALSE\nWHERE\n    m.nths_group_id = :groupId!\n    AND m.deactivated_at IS NULL\n    AND (m.title IS DISTINCT FROM 'President'\n        OR NOT EXISTS (\n            SELECT\n                1\n            FROM\n                nths_group_member_roles member_roles\n                JOIN nths_group_roles roles ON roles.id = member_roles.role_id\n            WHERE\n                member_roles.user_id = m.user_id\n                AND member_roles.nths_group_id = m.nths_group_id\n                AND roles.name = 'admin'))\n    AND u.test_user IS FALSE\n    AND u.deleted IS NOT TRUE\nGROUP BY\n    m.user_id,\n    u.first_name,\n    u.last_name\nORDER BY\n    sum(s.time_tutored) DESC,\n    sessions_completed DESC,\n    m.user_id\nLIMIT 1"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     m.user_id,
+ *     u.first_name,
+ *     LEFT (u.last_name,
+ *         1) AS last_initial,
+ *     count(*)::int AS sessions_completed,
+ *     round(sum(s.time_tutored) / 3600000::numeric, 2)::float AS hours_tutored
+ * FROM
+ *     nths_group_members m
+ *     JOIN users u ON u.id = m.user_id
+ *     JOIN sessions s ON s.volunteer_id = m.user_id
+ *         AND s.ended_at IS NOT NULL
+ *         AND s.time_tutored > :minSessionLength!::int
+ *         AND s.volunteer_joined_at >= m.joined_at
+ *         AND (m.deactivated_at IS NULL
+ *             OR s.volunteer_joined_at < m.deactivated_at)
+ *         AND s.volunteer_joined_at >= :startsAt!
+ *         AND s.volunteer_joined_at < :endsAt!
+ *     JOIN users student ON student.id = s.student_id
+ *         AND student.test_user IS FALSE
+ * WHERE
+ *     m.nths_group_id = :groupId!
+ *     AND m.deactivated_at IS NULL
+ *     AND (m.title IS DISTINCT FROM 'President'
+ *         OR NOT EXISTS (
+ *             SELECT
+ *                 1
+ *             FROM
+ *                 nths_group_member_roles member_roles
+ *                 JOIN nths_group_roles roles ON roles.id = member_roles.role_id
+ *             WHERE
+ *                 member_roles.user_id = m.user_id
+ *                 AND member_roles.nths_group_id = m.nths_group_id
+ *                 AND roles.name = 'admin'))
+ *     AND u.test_user IS FALSE
+ *     AND u.deleted IS NOT TRUE
+ * GROUP BY
+ *     m.user_id,
+ *     u.first_name,
+ *     u.last_name
+ * ORDER BY
+ *     sum(s.time_tutored) DESC,
+ *     sessions_completed DESC,
+ *     m.user_id
+ * LIMIT 1
+ * ```
+ */
+export const getNthsChapterTopTutor = new PreparedQuery<IGetNthsChapterTopTutorParams,IGetNthsChapterTopTutorResult>(getNthsChapterTopTutorIR);
+
+
+/** 'GetNthsChapterMemberHoursTutored' parameters type */
+export interface IGetNthsChapterMemberHoursTutoredParams {
+  endsAt: DateOrString;
+  groupId: string;
+  minSessionLength: number;
+  startsAt: DateOrString;
+  userId: string;
+}
+
+/** 'GetNthsChapterMemberHoursTutored' return type */
+export interface IGetNthsChapterMemberHoursTutoredResult {
+  hoursTutored: number | null;
+}
+
+/** 'GetNthsChapterMemberHoursTutored' query type */
+export interface IGetNthsChapterMemberHoursTutoredQuery {
+  params: IGetNthsChapterMemberHoursTutoredParams;
+  result: IGetNthsChapterMemberHoursTutoredResult;
+}
+
+const getNthsChapterMemberHoursTutoredIR: any = {"usedParamSet":{"minSessionLength":true,"startsAt":true,"endsAt":true,"groupId":true,"userId":true},"params":[{"name":"minSessionLength","required":true,"transform":{"type":"scalar"},"locs":[{"a":241,"b":258}]},{"name":"startsAt","required":true,"transform":{"type":"scalar"},"locs":[{"a":446,"b":455}]},{"name":"endsAt","required":true,"transform":{"type":"scalar"},"locs":[{"a":493,"b":500}]},{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":621,"b":629}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":651,"b":658}]}],"statement":"SELECT\n    round(COALESCE(sum(s.time_tutored), 0) / 3600000::numeric, 2)::float AS hours_tutored\nFROM\n    nths_group_members m\n    JOIN sessions s ON s.volunteer_id = m.user_id\n        AND s.ended_at IS NOT NULL\n        AND s.time_tutored > :minSessionLength!::int\n        AND s.volunteer_joined_at >= m.joined_at\n        AND (m.deactivated_at IS NULL\n            OR s.volunteer_joined_at < m.deactivated_at)\n        AND s.volunteer_joined_at >= :startsAt!\n        AND s.volunteer_joined_at < :endsAt!\n    JOIN users student ON student.id = s.student_id\n        AND student.test_user IS FALSE\nWHERE\n    m.nths_group_id = :groupId!\n    AND m.user_id = :userId!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     round(COALESCE(sum(s.time_tutored), 0) / 3600000::numeric, 2)::float AS hours_tutored
+ * FROM
+ *     nths_group_members m
+ *     JOIN sessions s ON s.volunteer_id = m.user_id
+ *         AND s.ended_at IS NOT NULL
+ *         AND s.time_tutored > :minSessionLength!::int
+ *         AND s.volunteer_joined_at >= m.joined_at
+ *         AND (m.deactivated_at IS NULL
+ *             OR s.volunteer_joined_at < m.deactivated_at)
+ *         AND s.volunteer_joined_at >= :startsAt!
+ *         AND s.volunteer_joined_at < :endsAt!
+ *     JOIN users student ON student.id = s.student_id
+ *         AND student.test_user IS FALSE
+ * WHERE
+ *     m.nths_group_id = :groupId!
+ *     AND m.user_id = :userId!
+ * ```
+ */
+export const getNthsChapterMemberHoursTutored = new PreparedQuery<IGetNthsChapterMemberHoursTutoredParams,IGetNthsChapterMemberHoursTutoredResult>(getNthsChapterMemberHoursTutoredIR);
 
 

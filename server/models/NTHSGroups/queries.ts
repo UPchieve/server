@@ -1,6 +1,7 @@
 import { getClient, getRoClient, TransactionClient } from '../../db'
 import {
   RepoCreateError,
+  RepoDeleteError,
   RepoReadError,
   RepoUpsertError,
   RepoUpdateError,
@@ -16,6 +17,7 @@ import * as pgQueries from './pg.queries'
 import type {
   NTHSAction,
   NTHSActionName,
+  NTHSActiveGroupMember,
   NTHSGroup,
   NTHSGroupAction,
   NTHSGroupMemberRole,
@@ -27,9 +29,14 @@ import type {
   NTHSChapterStatusName,
   NTHSGroupChapterStatusInfo,
   NTHSCandidateApplicationStatus,
+  NTHSChapterImpact,
+  NTHSChapterPeriodStarts,
+  NTHSChapterRosterMember,
+  NTHSChapterTopTutor,
 } from './types'
 import { camelCaseKeys } from '../../tests/db-utils'
 import logger from '../../logger'
+import config from '../../config'
 
 export async function getGroupsByUser(
   userId: Ulid,
@@ -132,10 +139,15 @@ export async function getGroupAdminsContactInfo(
       },
       tc
     )
-    if (!results.length) {
-      throw new Error(`Missing admins for NTHS group ${groupId}`)
-    }
-    return results.map((row) => makeRequired(row))
+    return results.map((row) =>
+      makeSomeRequired(row, [
+        'userId',
+        'nthsGroupId',
+        'firstName',
+        'email',
+        'chapterName',
+      ])
+    )
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -212,21 +224,25 @@ export async function upsertNthsGroupMemberRole(
         `Failed to insert or update user ${args.userId}'s role in group ${args.nthsGroupId} to ${args.roleName}`
       )
     }
-    return makeRequired(results[0])
+    return makeSomeRequired(results[0], [
+      'userId',
+      'nthsGroupId',
+      'roleId',
+      'roleName',
+      'updatedAt',
+    ])
   } catch (err) {
     throw new RepoUpsertError(err)
   }
 }
 
-export async function getNthsGroupMember(
+export async function getActiveNthsGroupMember(
   userId: Ulid,
   nthsGroupId: Ulid,
   tc: TransactionClient = getRoClient()
-): Promise<
-  Omit<NTHSGroupMemberWithRole, 'firstName' | 'lastInitial'> | undefined
-> {
+): Promise<NTHSActiveGroupMember | undefined> {
   try {
-    const results = await pgQueries.getGroupMember.run(
+    const results = await pgQueries.getActiveGroupMember.run(
       {
         userId,
         nthsGroupId,
@@ -235,7 +251,12 @@ export async function getNthsGroupMember(
     )
     if (results.length) {
       return {
-        ...makeSomeOptional(results[0], ['deactivatedAt', 'title']),
+        ...makeSomeRequired(results[0], [
+          'nthsGroupId',
+          'userId',
+          'joinedAt',
+          'updatedAt',
+        ]),
         roleName: camelCaseKeys(results[0]).roleName as NTHSGroupRoleName,
       }
     }
@@ -254,25 +275,34 @@ export async function groupsCount(tc: TransactionClient = getClient()) {
 }
 
 export type GetGroupMembersOptions = {
-  includeDeactivated: boolean
+  includeDeactivated?: boolean
+  excludeClosedAccounts?: boolean
 }
 export async function getGroupMembers(
   groupId: Ulid,
   tc: TransactionClient = getRoClient(),
-  options: GetGroupMembersOptions = {
-    includeDeactivated: false,
-  }
+  options: GetGroupMembersOptions = {}
 ): Promise<NTHSGroupMemberWithRole[]> {
   try {
     const results = await pgQueries.getGroupMembers.run(
       {
         groupId,
         includeDeactivated: options.includeDeactivated,
+        excludeClosedAccounts: options.excludeClosedAccounts,
       },
       tc
     )
     return results.map((row) => {
-      const camelCased = makeSomeOptional(row, ['title', 'deactivatedAt'])
+      const camelCased = makeSomeRequired(row, [
+        'nthsGroupId',
+        'userId',
+        'joinedAt',
+        'updatedAt',
+        'firstName',
+        'lastInitial',
+        'roleName',
+        'deleted',
+      ])
       return {
         ...camelCased,
         roleName: camelCased.roleName as NTHSGroupRoleName,
@@ -344,7 +374,13 @@ export async function updateGroupName(
       tc
     )
     if (result) {
-      return makeRequired(result)
+      return makeSomeRequired(result, [
+        'id',
+        'name',
+        'key',
+        'createdAt',
+        'inviteCode',
+      ])
     } else {
       throw new RepoUpdateError(`Group id ${groupId} not found`)
     }
@@ -373,9 +409,33 @@ export async function insertNthsGroupAction(
       )
       throw new Error('Failed to insert group action')
     }
-    return makeRequired(results[0])
+    return makeSomeRequired(results[0], [
+      'id',
+      'groupId',
+      'actionId',
+      'actionName',
+      'createdAt',
+    ])
   } catch (err) {
     throw new RepoCreateError(err)
+  }
+}
+
+export async function deleteNthsGroupAction(
+  groupId: Ulid,
+  actionName: NTHSActionName,
+  tc: TransactionClient = getClient()
+): Promise<void> {
+  try {
+    await pgQueries.deleteNthsGroupAction.run(
+      {
+        groupId,
+        actionName,
+      },
+      tc
+    )
+  } catch (err) {
+    throw new RepoDeleteError(err)
   }
 }
 
@@ -390,7 +450,15 @@ export async function getNthsGroupActionsByGroupId(
       },
       tc
     )
-    return results.map((row) => makeRequired(row))
+    return results.map((row) =>
+      makeSomeRequired(row, [
+        'id',
+        'groupId',
+        'actionId',
+        'actionName',
+        'createdAt',
+      ])
+    )
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -401,7 +469,7 @@ export async function getNthsActions(
 ): Promise<NTHSAction[]> {
   try {
     const results = await pgQueries.getNthsActions.run(undefined, tc)
-    return results.map((row) => makeRequired(row))
+    return results.map((row) => makeSomeRequired(row, ['id', 'name']))
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -562,6 +630,144 @@ export async function getAllNTHSGroupsChapterStatus(
           camelCased?.schoolAffiliationStatusName as NTHSSchoolAffiliationStatusName,
       }
     })
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getNthsChapterImpact(
+  groupId: Ulid,
+  startsAt: Date,
+  endsAt: Date,
+  tc: TransactionClient = getRoClient()
+): Promise<Pick<NTHSChapterImpact, 'schoolYearToDate' | 'allTime'>> {
+  try {
+    const results = await pgQueries.getNthsChapterImpact.run(
+      { groupId, startsAt, endsAt, minSessionLength: config.minSessionLength },
+      tc
+    )
+    const row = makeSomeRequired(results[0], [
+      'sessionsCompletedThisYear',
+      'studentsHelpedThisYear',
+      'hoursTutoredThisYear',
+      'membersTutoringThisYear',
+      'sessionsCompletedAllTime',
+      'studentsHelpedAllTime',
+      'hoursTutoredAllTime',
+    ])
+    return {
+      schoolYearToDate: {
+        studentsHelped: row.studentsHelpedThisYear,
+        sessionsCompleted: row.sessionsCompletedThisYear,
+        hoursTutored: row.hoursTutoredThisYear,
+        membersTutoring: row.membersTutoringThisYear,
+      },
+      allTime: {
+        studentsHelped: row.studentsHelpedAllTime,
+        sessionsCompleted: row.sessionsCompletedAllTime,
+        hoursTutored: row.hoursTutoredAllTime,
+      },
+    }
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getNthsChapterRoster(
+  groupId: Ulid,
+  startsAt: Date,
+  endsAt: Date,
+  periodStarts: NTHSChapterPeriodStarts,
+  periodEndsAt: Date,
+  tc: TransactionClient = getRoClient()
+): Promise<NTHSChapterRosterMember[]> {
+  try {
+    const results = await pgQueries.getNthsChapterRoster.run(
+      {
+        groupId,
+        startsAt,
+        endsAt,
+        ...periodStarts,
+        periodEndsAt,
+        minSessionLength: config.minSessionLength,
+      },
+      tc
+    )
+    return results.map((row) => {
+      const { hoursThisWeek, hoursLastTwoWeeks, hoursThisMonth, ...member } =
+        makeSomeRequired(row, [
+          'userId',
+          'firstName',
+          'lastInitial',
+          'joinedAt',
+          'roleName',
+          'trainingComplete',
+          'safetyApproved',
+          'accountClosed',
+          'sessionsThisYear',
+          'hoursThisYear',
+          'hoursThisWeek',
+          'hoursLastTwoWeeks',
+          'hoursThisMonth',
+        ])
+      return {
+        ...member,
+        roleName: member.roleName as NTHSGroupRoleName,
+        periodHours: {
+          thisWeek: hoursThisWeek,
+          lastTwoWeeks: hoursLastTwoWeeks,
+          thisMonth: hoursThisMonth,
+        },
+      }
+    })
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getNthsChapterTopTutor(
+  groupId: Ulid,
+  startsAt: Date,
+  endsAt: Date,
+  tc: TransactionClient = getRoClient()
+): Promise<NTHSChapterTopTutor | undefined> {
+  try {
+    const results = await pgQueries.getNthsChapterTopTutor.run(
+      { groupId, startsAt, endsAt, minSessionLength: config.minSessionLength },
+      tc
+    )
+    if (!results.length) return
+    return makeSomeRequired(results[0], [
+      'userId',
+      'firstName',
+      'lastInitial',
+      'sessionsCompleted',
+      'hoursTutored',
+    ])
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getNthsChapterMemberHoursTutored(
+  groupId: Ulid,
+  userId: Ulid,
+  startsAt: Date,
+  endsAt: Date,
+  tc: TransactionClient = getRoClient()
+): Promise<number> {
+  try {
+    const results = await pgQueries.getNthsChapterMemberHoursTutored.run(
+      {
+        groupId,
+        userId,
+        startsAt,
+        endsAt,
+        minSessionLength: config.minSessionLength,
+      },
+      tc
+    )
+    return makeSomeRequired(results[0], ['hoursTutored']).hoursTutored
   } catch (err) {
     throw new RepoReadError(err)
   }

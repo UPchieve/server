@@ -110,41 +110,67 @@ describe('updateNTHSChapterStatusForImpactPath', () => {
     ).toHaveBeenCalled()
   })
 
-  it('Does not count banned coaches', async () => {
-    const groupMembers = buildGroupMembers({ active: 6 })
+  it('Sets OFFICIAL and skips the email when the chapter has no current admin', async () => {
+    const groupMembers = buildGroupMembers({ active: 3 })
+    mockedNTHSService.getGroupMembers.mockResolvedValue(groupMembers)
+    mockedVolunteersService.getVolunteersReadyToCoachStatus.mockResolvedValue(
+      groupMembers.map((member) =>
+        buildVolunteerWithReadyToCoachInfo({ id: member.userId })
+      )
+    )
+    for (const member of groupMembers) {
+      mockedSessionRepo.getUserSessionsByUserId.mockResolvedValueOnce([
+        buildUserSession({ volunteerId: member.userId }),
+      ])
+    }
+    mockedNTHSService.getNTHSGroupAdminsContactInfo.mockResolvedValue([])
+
+    await updateNTHSChapterStatusForImpactPath(DEFAULT_JOB)
+
+    expect(NTHSService.insertNthsChapterStatus).toHaveBeenCalledWith(
+      DEFAULT_JOB.data.nthsGroupId,
+      'OFFICIAL'
+    )
+    expect(mockedLogger.warn).toHaveBeenCalledWith(
+      { groupId: DEFAULT_JOB.data.nthsGroupId },
+      expect.any(String)
+    )
+    expect(
+      mockedMailService.sendNTHSChapterImpactPathOfficialStatusNotification
+    ).not.toHaveBeenCalled()
+  })
+
+  it('Does not count coaches who are not ready to coach', async () => {
+    const groupMembers = buildGroupMembers({ active: 3 })
     mockedNTHSService.getGroupMembers.mockResolvedValue(groupMembers)
     const readyToCoachInfo = groupMembers.map((member) =>
       buildVolunteerWithReadyToCoachInfo({
         id: member.userId,
       })
     )
-    // One coach is banned
-    const bannedCoachId = readyToCoachInfo[0].id
+    const notReadyCoachId = readyToCoachInfo[0].id
     readyToCoachInfo[0] = {
       ...readyToCoachInfo[0],
-      banType: 'complete',
+      isReadyToCoach: false,
     }
     mockedVolunteersService.getVolunteersReadyToCoachStatus.mockResolvedValue(
       readyToCoachInfo
     )
-    for (const member of groupMembers) {
-      const session = buildUserSession({
-        volunteerId: member.userId,
-      })
-      mockedSessionRepo.getUserSessionsByUserId.mockResolvedValueOnce([session])
-    }
+    mockedSessionRepo.getUserSessionsByUserId.mockImplementation(
+      async (userId) => [buildUserSession({ volunteerId: userId })]
+    )
 
     await updateNTHSChapterStatusForImpactPath(DEFAULT_JOB)
 
     const readyToCoachIds = groupMembers
       .map((member) => member.userId)
-      .filter((id) => id !== bannedCoachId)
+      .filter((id) => id !== notReadyCoachId)
     expect(mockedLogger.info).toHaveBeenCalledWith(
       {
         groupId: DEFAULT_JOB.data.nthsGroupId,
         userIds: readyToCoachIds,
       },
-      expect.stringContaining('Found 5 ready-to-coach members of NTHS chapter')
+      expect.stringContaining('Found 2 ready-to-coach members of NTHS chapter')
     )
     expect(NTHSService.insertNthsChapterStatus).toHaveBeenCalledWith(
       DEFAULT_JOB.data.nthsGroupId,

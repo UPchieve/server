@@ -12,6 +12,7 @@ import {
   GRADES,
   TRAINING,
   TRAINING_QUIZZES,
+  USER_BAN_TYPES,
 } from '../../constants'
 import { mocked } from 'jest-mock'
 import { TrainingCourse, VolunteerOccupations } from '../../models/Volunteer'
@@ -85,6 +86,59 @@ beforeEach(() => {
         tries: 1,
       },
     },
+  })
+})
+
+describe('isReadyToCoach', () => {
+  const readyStatus = {
+    isOnboarded: true,
+    isApproved: true,
+    banType: undefined,
+  }
+
+  it.each([
+    ['unbanned', undefined],
+    ['a ban type that is not complete or shadow', USER_BAN_TYPES.LIVE_MEDIA],
+  ])('is true when onboarded, approved, and %s', (_label, banType) => {
+    expect(VolunteerService.isReadyToCoach({ ...readyStatus, banType })).toBe(
+      true
+    )
+  })
+
+  it.each([
+    ['not onboarded', { ...readyStatus, isOnboarded: false }],
+    ['not approved', { ...readyStatus, isApproved: false }],
+    ['complete-banned', { ...readyStatus, banType: USER_BAN_TYPES.COMPLETE }],
+    ['shadow-banned', { ...readyStatus, banType: USER_BAN_TYPES.SHADOW }],
+  ])('is false when %s', (_label, status) => {
+    expect(VolunteerService.isReadyToCoach(status)).toBe(false)
+  })
+})
+
+describe('getVolunteersReadyToCoachStatus', () => {
+  it('marks a banned volunteer not ready to coach', async () => {
+    mockedVolunteerRepo.getVolunteersReadyToCoachStatus.mockResolvedValue([
+      {
+        id: mockVolunteer.id,
+        isOnboarded: true,
+        isApproved: true,
+        banType: USER_BAN_TYPES.COMPLETE,
+      },
+    ])
+
+    const result = await VolunteerService.getVolunteersReadyToCoachStatus([
+      mockVolunteer.id,
+    ])
+
+    expect(result).toEqual([
+      {
+        id: mockVolunteer.id,
+        isOnboarded: true,
+        isApproved: true,
+        banType: USER_BAN_TYPES.COMPLETE,
+        isReadyToCoach: false,
+      },
+    ])
   })
 })
 

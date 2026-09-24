@@ -40,7 +40,7 @@ export default async function (job: Job<UpdateNTHSChapterStatusJobData>) {
   const previousChapterStatus =
     await NTHSService.getLatestNthsChapterStatus(nthsGroupId)
 
-  // Get all-time members (including deactivated)
+  // Current members only; getGroupMembers excludes deactivated by default.
   const alltimeMembers = await NTHSService.getGroupMembers(nthsGroupId)
 
   // Filter down to those who are in ready to coach status
@@ -50,12 +50,7 @@ export default async function (job: Job<UpdateNTHSChapterStatusJobData>) {
     )
   const readyToCoachUserIds = new Set<Ulid>(
     readyToCoachInfo
-      .filter(
-        (coach) =>
-          coach.isReadyToCoach &&
-          coach.banType !== 'complete' &&
-          coach.banType !== 'shadow'
-      )
+      .filter((coach) => coach.isReadyToCoach)
       .map((coach) => coach.id)
   )
   const readyToCoachMembers = alltimeMembers.filter((member) =>
@@ -137,6 +132,13 @@ export default async function (job: Job<UpdateNTHSChapterStatusJobData>) {
     }
     const chapterName = nthsChapter.name
     const emailRecipients = await getChapterAdminsContactInfo(nthsGroupId)
+    if (!emailRecipients.length) {
+      logger.warn(
+        { groupId: nthsGroupId },
+        `${logPrefix}NTHS chapter has no current admins to notify of official status`
+      )
+      return
+    }
     await MailService.sendNTHSChapterImpactPathOfficialStatusNotification(
       emailRecipients,
       chapterName
