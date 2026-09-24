@@ -743,7 +743,13 @@ describe('routeNTHSGroups', () => {
         accountClosed: true,
         sessionsThisYear: 2,
         hoursThisYear: 1.5,
-        periodHours: { thisWeek: 0.75, lastTwoWeeks: 1.5, thisMonth: 1.5 },
+        periodHours: {
+          thisWeek: 0.75,
+          lastTwoWeeks: 1.5,
+          thisMonth: 1.5,
+          thisSchoolYear: 1.5,
+          allTime: 2.25,
+        },
         lastActiveAt,
       })
       const topTutorThisMonth = buildNTHSChapterTopTutor({ userId: memberId })

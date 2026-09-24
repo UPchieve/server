@@ -124,13 +124,17 @@ export type NTHSChapterImpactTotalsPublic = {
   hoursTutored: number
 }
 
-// Each period runs from the start the browser sent (or its UTC equivalent) to
-// the moment of the request.
+// thisWeek, lastTwoWeeks and thisMonth run from the start the browser sent (or
+// its UTC equivalent) to the moment of the request.
 export type NTHSPeriodHoursPublic = {
   thisWeek: number
   lastTwoWeeks: number
   thisMonth: number
+  thisSchoolYear: number
+  allTime: number
 }
+
+export type NTHSPeriodSessionsPublic = NTHSPeriodHoursPublic
 
 export type NTHSChapterTopTutorPublic = {
   userId: Uuid
@@ -172,6 +176,7 @@ export type NTHSChapterRosterMemberPublic = {
   sessionsThisYear: number
   hoursThisYear: number
   periodHours: NTHSPeriodHoursPublic
+  periodSessions: NTHSPeriodSessionsPublic
   // The member's most recent counted session, with no school-year bound, so it
   // can predate the year the counts above cover.
   lastActiveAt?: ISODateString

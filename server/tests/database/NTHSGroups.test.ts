@@ -363,7 +363,7 @@ describe('getChapterRoster', () => {
     expect(byId[profilelessId].safetyApproved).toBe(false)
   })
 
-  test('counts this year per member, reports last active with no year bound, and leaves it unset for a member who never tutored', async () => {
+  test('counts this year and all time per member, reports last active with no year bound, and leaves it unset for a member who never tutored', async () => {
     const groupId = await createChapter()
     const memberId = await addMember(groupId, {
       joinedAt: '2026-01-01T00:00:00.000Z',
@@ -388,11 +388,17 @@ describe('getChapterRoster', () => {
 
     expect(byId[memberId].sessionsThisYear).toBe(2)
     expect(byId[memberId].hoursThisYear).toBe(1.5)
+    expect(byId[memberId].periodSessions.thisSchoolYear).toBe(2)
+    expect(byId[memberId].periodHours.thisSchoolYear).toBe(1.5)
+    expect(byId[memberId].periodHours.allTime).toBe(2.25)
+    expect(byId[memberId].periodSessions.allTime).toBe(3)
     expect(byId[memberId].lastActiveAt?.toISOString()).toBe(
       '2026-10-05T00:00:00.000Z'
     )
     expect(byId[neverTutoredId].sessionsThisYear).toBe(0)
     expect(byId[neverTutoredId].hoursThisYear).toBe(0)
+    expect(byId[neverTutoredId].periodHours.allTime).toBe(0)
+    expect(byId[neverTutoredId].periodSessions.allTime).toBe(0)
     expect(byId[neverTutoredId].lastActiveAt).toBeUndefined()
   })
 })
@@ -431,6 +437,15 @@ describe('getChapterRoster periodHours', () => {
       thisWeek: 1.5,
       lastTwoWeeks: 3,
       thisMonth: 3.75,
+      thisSchoolYear: 4.5,
+      allTime: 4.5,
+    })
+    expect(roster.members[0].periodSessions).toEqual({
+      thisWeek: 2,
+      lastTwoWeeks: 4,
+      thisMonth: 5,
+      thisSchoolYear: 6,
+      allTime: 6,
     })
     expect(roster.members[0].hoursThisYear).toBe(4.5)
   })
@@ -641,6 +656,17 @@ describe('the counted-session rule, across every reader', () => {
         return {
           sessions: member?.sessionsThisYear,
           hours: member?.hoursThisYear ?? -1,
+        }
+      },
+    ],
+    [
+      'roster allTime periodHours and periodSessions',
+      async (groupId, memberId) => {
+        const roster = await NTHSGroupsService.getChapterRoster(groupId, NOW)
+        const member = roster.members.find((m) => m.userId === memberId)
+        return {
+          sessions: member?.periodSessions.allTime,
+          hours: member?.periodHours.allTime ?? -1,
         }
       },
     ],

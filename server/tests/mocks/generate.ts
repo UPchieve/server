@@ -1315,7 +1315,20 @@ export function buildNTHSChapterRosterMember(
     accountClosed: false,
     sessionsThisYear: 0,
     hoursThisYear: 0,
-    periodHours: { thisWeek: 0, lastTwoWeeks: 0, thisMonth: 0 },
+    periodHours: {
+      thisWeek: 0,
+      lastTwoWeeks: 0,
+      thisMonth: 0,
+      thisSchoolYear: 0,
+      allTime: 0,
+    },
+    periodSessions: {
+      thisWeek: 0,
+      lastTwoWeeks: 0,
+      thisMonth: 0,
+      thisSchoolYear: 0,
+      allTime: 0,
+    },
     ...overrides,
   }
 }

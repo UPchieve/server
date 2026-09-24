@@ -694,22 +694,36 @@ export async function getNthsChapterRoster(
       tc
     )
     return results.map((row) => {
-      const { hoursThisWeek, hoursLastTwoWeeks, hoursThisMonth, ...member } =
-        makeSomeRequired(row, [
-          'userId',
-          'firstName',
-          'lastInitial',
-          'joinedAt',
-          'roleName',
-          'trainingComplete',
-          'safetyApproved',
-          'accountClosed',
-          'sessionsThisYear',
-          'hoursThisYear',
-          'hoursThisWeek',
-          'hoursLastTwoWeeks',
-          'hoursThisMonth',
-        ])
+      const {
+        hoursThisWeek,
+        hoursLastTwoWeeks,
+        hoursThisMonth,
+        hoursAllTime,
+        sessionsThisWeek,
+        sessionsLastTwoWeeks,
+        sessionsThisMonth,
+        sessionsAllTime,
+        ...member
+      } = makeSomeRequired(row, [
+        'userId',
+        'firstName',
+        'lastInitial',
+        'joinedAt',
+        'roleName',
+        'trainingComplete',
+        'safetyApproved',
+        'accountClosed',
+        'sessionsThisYear',
+        'hoursThisYear',
+        'hoursThisWeek',
+        'hoursLastTwoWeeks',
+        'hoursThisMonth',
+        'hoursAllTime',
+        'sessionsThisWeek',
+        'sessionsLastTwoWeeks',
+        'sessionsThisMonth',
+        'sessionsAllTime',
+      ])
       return {
         ...member,
         roleName: member.roleName as NTHSGroupRoleName,
@@ -717,6 +731,15 @@ export async function getNthsChapterRoster(
           thisWeek: hoursThisWeek,
           lastTwoWeeks: hoursLastTwoWeeks,
           thisMonth: hoursThisMonth,
+          thisSchoolYear: member.hoursThisYear,
+          allTime: hoursAllTime,
+        },
+        periodSessions: {
+          thisWeek: sessionsThisWeek,
+          lastTwoWeeks: sessionsLastTwoWeeks,
+          thisMonth: sessionsThisMonth,
+          thisSchoolYear: member.sessionsThisYear,
+          allTime: sessionsAllTime,
         },
       }
     })

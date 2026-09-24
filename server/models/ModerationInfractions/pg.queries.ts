@@ -21,6 +21,7 @@ export interface IInsertModerationInfractionResult {
   createdAt: Date;
   /** not_pii: Primary key */
   id: string;
+  /** not_pii: Timestamp when the image that triggered the infraction was quarantined */
   quarantinedOn: Date | null;
   /** not_pii: JSON describing the moderation infraction details */
   reason: Json;
@@ -128,6 +129,7 @@ export interface IGetModerationInfractionsByUserResult {
   createdAt: Date;
   /** not_pii: Primary key */
   id: string;
+  /** not_pii: Timestamp when the image that triggered the infraction was quarantined */
   quarantinedOn: Date | null;
   /** not_pii: JSON describing the moderation infraction details */
   reason: Json;

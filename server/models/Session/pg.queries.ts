@@ -3160,6 +3160,7 @@ export interface IUpdateSessionLastSeenParams {
 
 /** 'UpdateSessionLastSeen' return type */
 export interface IUpdateSessionLastSeenResult {
+  /** not_pii: Foreign key to upchieve.sessions */
   ok: string;
 }
 

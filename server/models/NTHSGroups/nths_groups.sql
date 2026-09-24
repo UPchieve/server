@@ -437,6 +437,11 @@ SELECT
     act.hours_this_week,
     act.hours_last_two_weeks,
     act.hours_this_month,
+    act.hours_all_time,
+    act.sessions_this_week,
+    act.sessions_last_two_weeks,
+    act.sessions_this_month,
+    act.sessions_all_time,
     act.last_active_at
 FROM
     nths_group_members m
@@ -457,6 +462,14 @@ FROM
                             AND s.volunteer_joined_at < :periodEndsAt!), 0) / 3600000::numeric, 2)::float AS hours_last_two_weeks,
                 round(COALESCE(sum(s.time_tutored) FILTER (WHERE s.volunteer_joined_at >= :monthStartsAt!
                             AND s.volunteer_joined_at < :periodEndsAt!), 0) / 3600000::numeric, 2)::float AS hours_this_month,
+                round(COALESCE(sum(s.time_tutored), 0) / 3600000::numeric, 2)::float AS hours_all_time,
+                count(*) FILTER (WHERE s.volunteer_joined_at >= :weekStartsAt!
+                    AND s.volunteer_joined_at < :periodEndsAt!)::int AS sessions_this_week,
+                count(*) FILTER (WHERE s.volunteer_joined_at >= :lastTwoWeeksStartsAt!
+                    AND s.volunteer_joined_at < :periodEndsAt!)::int AS sessions_last_two_weeks,
+                count(*) FILTER (WHERE s.volunteer_joined_at >= :monthStartsAt!
+                    AND s.volunteer_joined_at < :periodEndsAt!)::int AS sessions_this_month,
+                count(*)::int AS sessions_all_time,
                 max(s.volunteer_joined_at) AS last_active_at
             FROM
                 sessions s

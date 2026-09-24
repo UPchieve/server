@@ -146,7 +146,11 @@ export type NTHSPeriodHours = {
   thisWeek: number
   lastTwoWeeks: number
   thisMonth: number
+  thisSchoolYear: number
+  allTime: number
 }
+
+export type NTHSPeriodSessions = NTHSPeriodHours
 
 export type NTHSChapterGoals = {
   hoursTutored: number
@@ -190,6 +194,7 @@ export type NTHSChapterRosterMember = {
   sessionsThisYear: number
   hoursThisYear: number
   periodHours: NTHSPeriodHours
+  periodSessions: NTHSPeriodSessions
   lastActiveAt?: Date
 }
 

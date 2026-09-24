@@ -176,6 +176,7 @@ export function toNTHSChapterRosterMemberPublic(
     sessionsThisYear: member.sessionsThisYear,
     hoursThisYear: member.hoursThisYear,
     periodHours: member.periodHours,
+    periodSessions: member.periodSessions,
     lastActiveAt: member.lastActiveAt?.toISOString(),
   }
 }
