@@ -1,11 +1,12 @@
-\restrict M3uupoNEQMcTSPqEpMBD2u634j4KeMmjjM9A2ESOdwNULXDbSCOlzr8szBbqBUd
+\restrict dbmate
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
--- Dumped by pg_dump version 15.18 (Ubuntu 15.18-1.pgdg22.04+1)
+-- Dumped by pg_dump version 18.6
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
+SET transaction_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
 SELECT pg_catalog.set_config('search_path', '', false);
@@ -160,6 +161,18 @@ CREATE TYPE upchieve.tutor_bot_session_user_type AS ENUM (
 CREATE TYPE upchieve.user_school_association_type AS ENUM (
     'student_at_school',
     'teacher_at_school'
+);
+
+
+--
+-- Name: volunteer_info_type; Type: TYPE; Schema: upchieve; Owner: -
+--
+
+CREATE TYPE upchieve.volunteer_info_type AS ENUM (
+    'occupation',
+    'totalVolunteerHours',
+    'numStudentsHelped',
+    'numSessionsTutored'
 );
 
 
@@ -10774,7 +10787,8 @@ CREATE TABLE upchieve.volunteer_profiles (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     total_volunteer_hours double precision,
-    elapsed_availability bigint
+    elapsed_availability bigint,
+    info_shared_with_students upchieve.volunteer_info_type[]
 );
 
 
@@ -10916,6 +10930,13 @@ COMMENT ON COLUMN upchieve.volunteer_profiles.total_volunteer_hours IS 'not_pii:
 --
 
 COMMENT ON COLUMN upchieve.volunteer_profiles.elapsed_availability IS 'not_pii: Cumulative hours the volunteer was marked available on their calendar';
+
+
+--
+-- Name: COLUMN volunteer_profiles.info_shared_with_students; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.volunteer_profiles.info_shared_with_students IS 'not_pii: Data the volunteer has chosen to share with the student. Empty array means they chose to share nothing; null means they have not yet made a choice.';
 
 
 --
@@ -15390,7 +15411,7 @@ ALTER TABLE ONLY upchieve.volunteer_references
 -- PostgreSQL database dump complete
 --
 
-\unrestrict M3uupoNEQMcTSPqEpMBD2u634j4KeMmjjM9A2ESOdwNULXDbSCOlzr8szBbqBUd
+\unrestrict dbmate
 
 
 --
@@ -15687,6 +15708,7 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260730214144'),
     ('20260731181526'),
     ('20260901134527'),
+    ('20260904173347'),
     ('20260911141710'),
     ('20260911141711'),
     ('20260911141712'),

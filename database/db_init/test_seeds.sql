@@ -2,14 +2,15 @@
 -- PostgreSQL database dump
 --
 
-\restrict XhK6hJeX8NF0j5SJLfvMekC0a8ZiDC08ZYmwyShel0U0GyYRgOqPu6ms06pn7Ai
+\restrict Dl8VYiHEvrpvruFxagz9xOaWqNEWRlZWbTArYZubvU1mILE1e7PJc8JUR5SdT5o
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
--- Dumped by pg_dump version 15.18 (Ubuntu 15.18-1.pgdg22.04+1)
+-- Dumped by pg_dump version 18.6
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
+SET transaction_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
 SELECT pg_catalog.set_config('search_path', '', false);
@@ -9158,13 +9159,13 @@ COPY upchieve.volunteer_partner_orgs_upchieve_instances (id, volunteer_partner_o
 -- Data for Name: volunteer_profiles; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.volunteer_profiles (user_id, volunteer_partner_org_id, timezone, approved, onboarded, photo_id_s3_key, photo_id_status, linkedin_url, college, company, languages, experience, city, state, country, created_at, updated_at, total_volunteer_hours, elapsed_availability) FROM stdin;
-01919662-8804-8772-ecf7-b08dfa28c6e4	01919662-87f7-e08c-976a-8abd40c8fd45	America/New_York	t	t	\N	\N	\N	Volunteer College	\N	\N	\N	\N	\N	\N	2024-08-28 00:28:45.454635+00	2024-08-28 00:28:45.454635+00	\N	\N
-01919662-8804-ad82-c517-37eaab0e19c2	01919662-87f7-ecae-08ec-2d9b6c13ba3c	America/New_York	t	t	\N	\N	\N	Volunteer College	\N	\N	\N	\N	\N	\N	2024-08-28 00:28:45.455158+00	2024-08-28 00:28:45.455158+00	\N	\N
-01919662-8804-9ccc-4601-1e98c09c946b	\N	America/Denver	t	t	\N	\N	\N	Volunteer College	\N	\N	\N	\N	\N	\N	2024-08-28 00:28:45.455493+00	2024-08-28 00:28:45.455493+00	\N	\N
-01919662-8804-29c4-5ff7-cb6803c09fa6	\N	America/New_York	t	f	\N	\N	\N	Volunteer College	\N	\N	\N	\N	\N	\N	2024-08-28 00:28:45.455818+00	2024-08-28 00:28:45.455818+00	\N	\N
-01919662-8804-9826-da53-f1b2a1e53205	\N	America/New_York	f	f	\N	\N	\N	Volunteer College	\N	\N	\N	\N	\N	\N	2024-08-28 00:28:45.456156+00	2024-08-28 00:28:45.456156+00	\N	\N
-01919662-8804-cc87-1ee3-90a35b65414d	\N	America/New_York	t	t	\N	\N	\N		\N	\N	\N	\N	\N	\N	2024-08-28 00:28:45.456518+00	2024-08-28 00:28:45.456518+00	\N	\N
+COPY upchieve.volunteer_profiles (user_id, volunteer_partner_org_id, timezone, approved, onboarded, photo_id_s3_key, photo_id_status, linkedin_url, college, company, languages, experience, city, state, country, created_at, updated_at, total_volunteer_hours, elapsed_availability, info_shared_with_students) FROM stdin;
+01919662-8804-8772-ecf7-b08dfa28c6e4	01919662-87f7-e08c-976a-8abd40c8fd45	America/New_York	t	t	\N	\N	\N	Volunteer College	\N	\N	\N	\N	\N	\N	2024-08-28 00:28:45.454635+00	2024-08-28 00:28:45.454635+00	\N	\N	\N
+01919662-8804-ad82-c517-37eaab0e19c2	01919662-87f7-ecae-08ec-2d9b6c13ba3c	America/New_York	t	t	\N	\N	\N	Volunteer College	\N	\N	\N	\N	\N	\N	2024-08-28 00:28:45.455158+00	2024-08-28 00:28:45.455158+00	\N	\N	\N
+01919662-8804-9ccc-4601-1e98c09c946b	\N	America/Denver	t	t	\N	\N	\N	Volunteer College	\N	\N	\N	\N	\N	\N	2024-08-28 00:28:45.455493+00	2024-08-28 00:28:45.455493+00	\N	\N	\N
+01919662-8804-29c4-5ff7-cb6803c09fa6	\N	America/New_York	t	f	\N	\N	\N	Volunteer College	\N	\N	\N	\N	\N	\N	2024-08-28 00:28:45.455818+00	2024-08-28 00:28:45.455818+00	\N	\N	\N
+01919662-8804-9826-da53-f1b2a1e53205	\N	America/New_York	f	f	\N	\N	\N	Volunteer College	\N	\N	\N	\N	\N	\N	2024-08-28 00:28:45.456156+00	2024-08-28 00:28:45.456156+00	\N	\N	\N
+01919662-8804-cc87-1ee3-90a35b65414d	\N	America/New_York	t	t	\N	\N	\N		\N	\N	\N	\N	\N	\N	2024-08-28 00:28:45.456518+00	2024-08-28 00:28:45.456518+00	\N	\N	\N
 \.
 
 
@@ -9565,5 +9566,5 @@ SELECT pg_catalog.setval('upchieve.weekdays_id_seq', 1, false);
 -- PostgreSQL database dump complete
 --
 
-\unrestrict XhK6hJeX8NF0j5SJLfvMekC0a8ZiDC08ZYmwyShel0U0GyYRgOqPu6ms06pn7Ai
+\unrestrict Dl8VYiHEvrpvruFxagz9xOaWqNEWRlZWbTArYZubvU1mILE1e7PJc8JUR5SdT5o
 
