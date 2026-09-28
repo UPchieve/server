@@ -18,7 +18,7 @@ import * as UsersGradeLevelsRepo from '../models/UsersGradeLevels'
 import * as UsersSchoolsRepo from '../models/UsersSchools'
 import { getSchoolById } from '../models/School'
 import { GRADES, PHOTO_ID_STATUS, USER_BAN_TYPES } from '../constants/user'
-import { US_STATE_CODES } from '../constants/geography'
+import { US_COUNTRY, US_STATE_CODES } from '../constants/geography'
 import { isHighSchoolGrade } from '../utils/grade-levels'
 import { getRoClient, runInTransaction, TransactionClient } from '../db'
 import {
@@ -138,7 +138,14 @@ function validateResponses(
 
 const MAX_SCHOOL_FIELD_LENGTH = 200
 
-const UNLISTED_SCHOOL_FIELDS = ['name', 'city', 'state', 'website'] as const
+const UNLISTED_SCHOOL_FIELDS = [
+  'name',
+  'city',
+  'country',
+  'state',
+  'region',
+  'website',
+] as const
 
 // Applicants type bare domains, so a missing scheme is assumed rather than
 // rejected. Staff open this straight from the admin panel, which is why any
@@ -174,8 +181,24 @@ function requiredSchoolText(
   return value.trim()
 }
 
-// Name, city, and state are the filters getFilteredSchools takes, so together
-// they narrow NCES to the handful of rows staff pick the real school from.
+function optionalSchoolText(
+  details: Record<string, unknown>,
+  key: 'country' | 'region'
+): string | undefined {
+  const value = details[key]
+  if (value === undefined || value === null) return undefined
+  if (typeof value !== 'string')
+    throw new InputError(`The school ${key} has to be text`)
+  if (value.length > MAX_SCHOOL_FIELD_LENGTH)
+    throw new InputError(
+      `The school ${key} is longer than ${MAX_SCHOOL_FIELD_LENGTH} characters`
+    )
+  return value.trim() || undefined
+}
+
+// For a US school, name, city, and state are the filters getFilteredSchools
+// takes, so together they narrow NCES to the handful of rows staff pick the
+// real school from.
 function validateUnlistedSchool(value: unknown): NTHSUnlistedSchool {
   if (typeof value !== 'object' || value === null || Array.isArray(value))
     throw new InputError('The school details have to be an object')
@@ -185,13 +208,27 @@ function validateUnlistedSchool(value: unknown): NTHSUnlistedSchool {
     (key) => !UNLISTED_SCHOOL_FIELDS.includes(key as never)
   )
   if (unknownKeys.length)
-    throw new InputError(
-      `Unexpected school details: ${unknownKeys.join(', ')}. International schools are not supported yet.`
-    )
+    throw new InputError(`Unexpected school details: ${unknownKeys.join(', ')}`)
 
-  const state = details.state
-  if (typeof state !== 'string' || !US_STATE_CODES.has(state.toUpperCase()))
-    throw new InputError('The school details need a US state')
+  const country = optionalSchoolText(details, 'country')
+  const region = optionalSchoolText(details, 'region')
+
+  // Forms opened before the country field existed send no country and always
+  // carry a US state.
+  const isUS = !country || country === US_COUNTRY
+  let state: string | undefined
+  if (isUS) {
+    if (
+      typeof details.state !== 'string' ||
+      !US_STATE_CODES.has(details.state.toUpperCase())
+    )
+      throw new InputError('The school details need a US state')
+    if (region)
+      throw new InputError('A US school takes a state instead of a region')
+    state = details.state.toUpperCase()
+  } else if (typeof details.state === 'string' && details.state.trim() !== '') {
+    throw new InputError('Only a US school takes a state')
+  }
 
   const website = details.website
   if (website !== undefined && website !== null && website !== '') {
@@ -206,7 +243,9 @@ function validateUnlistedSchool(value: unknown): NTHSUnlistedSchool {
   return {
     name: requiredSchoolText(details, 'name'),
     city: requiredSchoolText(details, 'city'),
-    state: state.toUpperCase(),
+    country,
+    state,
+    region,
     website:
       typeof website === 'string' && website.trim()
         ? normalizeSchoolWebsite(website.trim())

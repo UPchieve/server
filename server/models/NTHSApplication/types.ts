@@ -49,7 +49,9 @@ export type NTHSApplicationResponses = Record<string, unknown>
 export type NTHSUnlistedSchool = {
   name: string
   city: string
-  state: string
+  country?: string
+  state?: string
+  region?: string
   website?: string
 }
 

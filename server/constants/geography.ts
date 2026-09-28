@@ -1,3 +1,6 @@
+// Matches the COUNTRIES display string in high-line's src/consts.ts.
+export const US_COUNTRY = 'United States of America'
+
 // Mirrors STATES_WITH_ABBREVIATIONS in high-line and the range of NCES `st`
 // values, so it covers DC, the territories, and the freely associated states
 // alongside the fifty states.

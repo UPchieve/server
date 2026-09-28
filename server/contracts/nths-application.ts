@@ -9,7 +9,9 @@ import { Uuid } from '../types/shared'
 export type NTHSUnlistedSchoolPublic = {
   name: string
   city: string
-  state: string
+  country?: string
+  state?: string
+  region?: string
   website?: string
 }
 

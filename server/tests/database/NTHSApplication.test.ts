@@ -258,6 +258,50 @@ describe('submitCandidateApplication', () => {
     })
   })
 
+  test.each([
+    [
+      'a US school named by country',
+      { ...UNLISTED_SCHOOL, country: ' United States of America ' },
+      { ...UNLISTED_SCHOOL, country: 'United States of America' },
+    ],
+    [
+      'a school outside the US without a region',
+      { name: 'Lakeside Secondary', city: 'Toronto', country: 'Canada' },
+      { name: 'Lakeside Secondary', city: 'Toronto', country: 'Canada' },
+    ],
+    [
+      'a school outside the US with a region',
+      {
+        name: 'Lakeside Secondary',
+        city: 'Toronto',
+        country: 'Canada',
+        region: '  Ontario ',
+      },
+      {
+        name: 'Lakeside Secondary',
+        city: 'Toronto',
+        country: 'Canada',
+        region: 'Ontario',
+      },
+    ],
+    [
+      'a school outside the US sent with a blank state',
+      {
+        name: 'Lakeside Secondary',
+        city: 'Toronto',
+        country: 'Canada',
+        state: '',
+      },
+      { name: 'Lakeside Secondary', city: 'Toronto', country: 'Canada' },
+    ],
+  ])('keeps %s', async (_label, unlistedSchool, stored) => {
+    const userId = await createEligibleCoach()
+
+    const application = await submit(userId, { unlistedSchool })
+
+    expect(application.unlistedSchool).toEqual(stored)
+  })
+
   test('drops the described school when a real one was matched', async () => {
     const userId = await createEligibleCoach()
     const schoolId = await createSchool()
@@ -290,11 +334,32 @@ describe('submitCandidateApplication', () => {
     ],
     [
       'an unexpected field',
+      { name: 'Somewhere High', city: 'Denver', state: 'CO', zip: '80202' },
+    ],
+    [
+      'a US country and no state',
+      {
+        name: 'Somewhere High',
+        city: 'Denver',
+        country: 'United States of America',
+      },
+    ],
+    [
+      'a US school with a region',
       {
         name: 'Somewhere High',
         city: 'Denver',
         state: 'CO',
+        region: 'Front Range',
+      },
+    ],
+    [
+      'a state for a school outside the US',
+      {
+        name: 'Lakeside Secondary',
+        city: 'Toronto',
         country: 'Canada',
+        state: 'ON',
       },
     ],
     ['a non-object', ['Somewhere High']],
