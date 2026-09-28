@@ -191,7 +191,7 @@ RETURNING
     user_id AS ok;
 
 
-/* @name getPartnerOrgByKey */
+/* @name getStudentPartnerOrgByKey */
 SELECT
     student_partner_orgs.id AS partner_id,
     student_partner_orgs.key AS partner_key,

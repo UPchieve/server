@@ -43,7 +43,7 @@ import { getStudentCreationDisabledFeatureFlag } from './FeatureFlagService'
 import {
   createUserVolunteerPartnerOrgInstance,
   createVolunteerProfile,
-  getPartnerOrgByKey,
+  getVolunteerPartnerOrgByKey,
 } from '../models/Volunteer'
 import * as VolunteerService from './VolunteerService'
 import * as ReferralService from './ReferralService'
@@ -457,7 +457,10 @@ export async function registerVolunteer(
       tc
     )
 
-    const partnerOrg = await getPartnerOrgByKey(data.volunteerPartnerOrgKey, tc)
+    const partnerOrg = await getVolunteerPartnerOrgByKey(
+      data.volunteerPartnerOrgKey,
+      tc
+    )
     const volunteerData = {
       partnerOrgId: partnerOrg?.partnerId ?? null,
       timezone: data.timezone ?? null,

@@ -1,7 +1,7 @@
 import crypto from 'crypto'
 import { omit } from 'lodash'
 import { Ulid, Uuid } from '../models/pgUtils'
-import { getPhotoIdUrl, putObject } from './AwsService'
+import { getPhotoIdUrl } from './AwsService'
 import {
   ACCOUNT_USER_ACTIONS,
   IP_ADDRESS_STATUS,
@@ -17,24 +17,7 @@ import {
 } from '../models/Errors'
 import { updateIpStatusByUserId } from '../models/IpAddress'
 import * as UserRepo from '../models/User'
-import {
-  deleteUserPhoneInfo,
-  getUsersForAdminSearch,
-  updatePreferredLanguageToUser,
-  UserContactInfo,
-  UserForAdmin,
-} from '../models/User'
-import {
-  addVolunteerReferenceById,
-  checkReferenceExistsBeforeAdding,
-  UnsentReference,
-  updateVolunteerForAdmin,
-  updateVolunteerPhotoIdById,
-  updateVolunteerReferenceSentById,
-  updateVolunteerReferenceStatus,
-  updateVolunteerReferenceSubmission,
-  VolunteerContactInfo,
-} from '../models/Volunteer'
+import * as VolunteerRepo from '../models/Volunteer'
 import { asReferenceFormData } from '../utils/reference-utils'
 import { checkEmail } from '../utils/auth-utils'
 import {
@@ -63,18 +46,7 @@ import config from '../config'
 import { Jobs } from '../worker/jobs'
 import QueueService from './QueueService'
 import * as UsersSchoolsRepo from '../models/UsersSchools'
-import {
-  activateStudentPartnershipInstance,
-  AdminUpdateStudent,
-  adminUpdateStudentUser,
-  deactivateStudentPartnershipInstance,
-  getPartnerOrgByKey,
-  getPartnerOrgsByStudent,
-  StudentPartnerOrgInstance,
-  updateStudentInGatesStudy,
-  updateStudentProfilePartnerOrg,
-  updateStudentSchool,
-} from '../models/Student'
+import * as StudentRepo from '../models/Student'
 import * as AwsService from './AwsService'
 import * as PhotoDnaService from './PhotoDnaService'
 import { getPhotoDnaMatchCheckFlag } from './FeatureFlagService'
@@ -120,7 +92,7 @@ export async function addPhotoId(
     ipAddress: ip,
     action: ACCOUNT_USER_ACTIONS.ADDED_PHOTO_ID,
   })
-  await updateVolunteerPhotoIdById(
+  await VolunteerRepo.updateVolunteerPhotoIdById(
     userId,
     photoIdS3Key,
     PHOTO_ID_STATUS.SUBMITTED
@@ -166,10 +138,8 @@ export async function addReference(data: unknown) {
     )
   }
 
-  const isExistingReference = await checkReferenceExistsBeforeAdding(
-    userId,
-    referenceEmail
-  )
+  const isExistingReference =
+    await VolunteerRepo.checkReferenceExistsBeforeAdding(userId, referenceEmail)
   if (
     isExistingReference &&
     isExistingReference.email.toLowerCase() === referenceEmail.toLowerCase() &&
@@ -177,7 +147,7 @@ export async function addReference(data: unknown) {
       ACCOUNT_USER_ACTIONS.REJECTED_REFERENCE
     )
   ) {
-    await updateVolunteerReferenceStatus(
+    await VolunteerRepo.updateVolunteerReferenceStatus(
       isExistingReference.id,
       REFERENCE_STATUS.UNSENT
     )
@@ -197,7 +167,7 @@ export async function addReference(data: unknown) {
     throw new NotAllowedError('You cannot re-add a rejected reference.')
   }
 
-  await addVolunteerReferenceById(userId, referenceData)
+  await VolunteerRepo.addVolunteerReferenceById(userId, referenceData)
   await createAccountAction({
     userId,
     ipAddress: ip,
@@ -232,7 +202,7 @@ export async function saveReferenceForm(
     referenceEmail,
   })
 
-  await updateVolunteerReferenceSubmission(referenceId, {
+  await VolunteerRepo.updateVolunteerReferenceSubmission(referenceId, {
     affiliation,
     relationshipLength,
     patient,
@@ -246,12 +216,12 @@ export async function saveReferenceForm(
 }
 
 export async function notifyReference(
-  reference: UnsentReference,
-  volunteer: VolunteerContactInfo
+  reference: VolunteerRepo.UnsentReference,
+  volunteer: VolunteerRepo.VolunteerContactInfo
 ) {
   // TODO: error handling - these need to be 'atomic'
   await MailService.sendReferenceForm(reference, volunteer)
-  await updateVolunteerReferenceSentById(reference.id)
+  await VolunteerRepo.updateVolunteerReferenceSentById(reference.id)
 }
 
 interface AdminUpdate {
@@ -285,7 +255,7 @@ const asAdminUpdate = asFactory<AdminUpdate>({
   schoolId: asOptional(asString),
 })
 
-export async function deleteUser(user: UserContactInfo) {
+export async function deleteUser(user: UserRepo.UserContactInfo) {
   if (user.banType) {
     logger.warn(
       { userId: user.id, banType: user.banType },
@@ -325,7 +295,6 @@ export async function adminUpdateUser(data: unknown) {
   if (!userBeforeUpdate) {
     throw new UserNotFoundError('id', userId)
   }
-
   const isVolunteer = userBeforeUpdate.roleContext.hasRole('volunteer')
   const isStudent = userBeforeUpdate.roleContext.hasRole('student')
   const isTeacher = userBeforeUpdate.roleContext.hasRole('teacher')
@@ -390,8 +359,15 @@ export async function adminUpdateUser(data: unknown) {
     banType,
     isDeactivated,
     isApproved,
-    volunteerPartnerOrg: isVolunteer && partnerOrg ? partnerOrg : undefined,
-    studentPartnerOrg: isStudent && partnerOrg ? partnerOrg : undefined,
+    // For S2Vs, partner orgs belong to the user's legacy/original role.
+    volunteerPartnerOrg:
+      userBeforeUpdate.roleContext.legacyRole === 'volunteer' && partnerOrg
+        ? partnerOrg
+        : undefined,
+    studentPartnerOrg:
+      userBeforeUpdate.roleContext.legacyRole === 'student' && partnerOrg
+        ? partnerOrg
+        : undefined,
     partnerSite: isStudent && partnerSite ? partnerSite : undefined,
     inGatesStudy: isStudent && inGatesStudy ? inGatesStudy : undefined,
     banReason: banType ? ('admin' as USER_BAN_REASONS) : undefined,
@@ -418,7 +394,7 @@ export async function adminUpdateUser(data: unknown) {
   // Have a separate generic method for updating the user, then
   // perform the role-specific update.
   if (isVolunteer) {
-    await updateVolunteerForAdmin(userId, update)
+    await VolunteerRepo.updateVolunteerForAdmin(userId, update)
   }
 
   if (isStudent) {
@@ -442,11 +418,11 @@ export async function adminUpdateUser(data: unknown) {
 
 async function adminUpdateStudent(
   userId: Ulid,
-  update: AdminUpdateStudent,
+  update: StudentRepo.AdminUpdateStudent,
   transactionClient: TransactionClient = getClient()
 ) {
   await runInTransaction(async (tc) => {
-    await adminUpdateStudentUser(userId, {
+    await StudentRepo.adminUpdateStudentUser(userId, {
       email: update.email,
       verified: update.isVerified,
       banType: update.banType,
@@ -455,7 +431,7 @@ async function adminUpdateStudent(
       lastName: update.lastName,
     })
 
-    await updateStudentInGatesStudy(userId, update.inGatesStudy, tc)
+    await StudentRepo.updateStudentInGatesStudy(userId, update.inGatesStudy, tc)
 
     await updateStudentPartnerOrgInstance(
       userId,
@@ -475,7 +451,7 @@ export async function updateStudentPartnerOrgInstance( // Exported for testing
   tc: TransactionClient = getClient()
 ) {
   await runInTransaction(async (transactionClient) => {
-    const newPartnerOrg = await getPartnerOrgByKey(
+    const newPartnerOrg = await StudentRepo.getStudentPartnerOrgByKey(
       // @TODO: Don't make this call if SPO is undefined in the args.
       newStudentPartnerOrgKey,
       newPartnerSite,
@@ -485,7 +461,7 @@ export async function updateStudentPartnerOrgInstance( // Exported for testing
       throw new Error(
         `New partner org ${newStudentPartnerOrgKey} does not exist`
       )
-    const newSchoolOrg = await getPartnerOrgByKey(
+    const newSchoolOrg = await StudentRepo.getStudentPartnerOrgByKey(
       newSchoolPartnerKey,
       undefined,
       transactionClient
@@ -493,7 +469,7 @@ export async function updateStudentPartnerOrgInstance( // Exported for testing
     if (newSchoolPartnerKey && !newSchoolOrg)
       throw new Error(`New school org ${newSchoolPartnerKey} does not exist`)
 
-    const activePartnerOrgs = await getPartnerOrgsByStudent(
+    const activePartnerOrgs = await StudentRepo.getPartnerOrgsByStudent(
       userId,
       transactionClient
     )
@@ -503,8 +479,8 @@ export async function updateStudentPartnerOrgInstance( // Exported for testing
       )
     }
 
-    let activePartnerInstance: StudentPartnerOrgInstance | undefined
-    let activeSchoolInstance: StudentPartnerOrgInstance | undefined
+    let activePartnerInstance: StudentRepo.StudentPartnerOrgInstance | undefined
+    let activeSchoolInstance: StudentRepo.StudentPartnerOrgInstance | undefined
 
     for (let org of activePartnerOrgs) {
       if (org.schoolId) activeSchoolInstance = org
@@ -521,7 +497,7 @@ export async function updateStudentPartnerOrgInstance( // Exported for testing
       (activePartnerInstance.name !== newPartnerOrg.partnerName ||
         activePartnerInstance.siteName !== newPartnerOrg.siteName)
     if (isRemovingPartnership || isChangingPartnership) {
-      await deactivateStudentPartnershipInstance(
+      await StudentRepo.deactivateStudentPartnershipInstance(
         userId,
         activePartnerInstance!.id,
         transactionClient
@@ -534,7 +510,7 @@ export async function updateStudentPartnerOrgInstance( // Exported for testing
       newSchoolOrg &&
       activeSchoolInstance.name !== newSchoolOrg.partnerName
     if (isRemovingSchool || isChangingSchoolPartner) {
-      await deactivateStudentPartnershipInstance(
+      await StudentRepo.deactivateStudentPartnershipInstance(
         userId,
         activeSchoolInstance!.id,
         transactionClient
@@ -547,7 +523,7 @@ export async function updateStudentPartnerOrgInstance( // Exported for testing
      * For now, update these columns until we're ready to get rid of them entirely as they have
      * been replaced by the partnership instances table and users_schools.
      */
-    await updateStudentProfilePartnerOrg(
+    await StudentRepo.updateStudentProfilePartnerOrg(
       userId,
       newPartnerOrg?.partnerId,
       newPartnerOrg?.siteId,
@@ -559,7 +535,7 @@ export async function updateStudentPartnerOrgInstance( // Exported for testing
      */
     const isNewPartnership = !activePartnerInstance && newPartnerOrg
     if (isNewPartnership || isChangingPartnership) {
-      await activateStudentPartnershipInstance(
+      await StudentRepo.activateStudentPartnershipInstance(
         userId,
         newPartnerOrg!.partnerId,
         newPartnerOrg?.siteId,
@@ -576,13 +552,13 @@ export async function updateStudentPartnerOrgInstance( // Exported for testing
       newSchoolOrg &&
       activeSchoolInstance.name !== newSchoolOrg.partnerName
     if (isNewSchoolPartnership || isChangingSchoolPartnership) {
-      await activateStudentPartnershipInstance(
+      await StudentRepo.activateStudentPartnershipInstance(
         userId,
         newSchoolOrg!.partnerId,
         undefined,
         transactionClient
       )
-      await updateStudentSchool(
+      await StudentRepo.updateStudentSchool(
         userId,
         newSchoolOrg!.schoolId!,
         transactionClient
@@ -629,7 +605,7 @@ const asUserQuery = asFactory<UserQuery>({
 // getUsersForAdmin with a typed interface for these query params
 export async function getUsers(
   data: unknown
-): Promise<{ users: UserForAdmin[]; isLastPage: boolean }> {
+): Promise<{ users: UserRepo.UserForAdmin[]; isLastPage: boolean }> {
   const { userId, firstName, lastName, email, partnerOrg, school, page } =
     asUserQuery(data)
   const pageNum = page || 1
@@ -637,7 +613,7 @@ export async function getUsers(
   const skip = (pageNum - 1) * PER_PAGE
 
   try {
-    const users = await getUsersForAdminSearch(
+    const users = await UserRepo.getUsersForAdminSearch(
       {
         userId,
         firstName,
@@ -673,7 +649,7 @@ export async function deletePhoneFromAccount(userId: Ulid) {
       'Phone information is required for UPchieve volunteers'
     )
   }
-  await deleteUserPhoneInfo(userId)
+  await UserRepo.deleteUserPhoneInfo(userId)
 }
 
 export async function getUserByReferralCode(referralCode: string) {
@@ -694,7 +670,9 @@ export async function getUserById(
     includeDeactivated: boolean
   } = { includeDeactivated: true },
   tc?: TransactionClient
-): Promise<(UserContactInfo & { roleContext: RoleContext }) | undefined> {
+): Promise<
+  (UserRepo.UserContactInfo & { roleContext: RoleContext }) | undefined
+> {
   const baseUserInfo = await UserRepo.getUserById(userId, options, tc)
   if (baseUserInfo) {
     const roleContext = await UserRolesService.getRoleContext(userId, false, tc)
@@ -752,7 +730,7 @@ export async function updatePreferredLanguage(
   userId: Uuid,
   languageCode: string
 ): Promise<void> {
-  return await updatePreferredLanguageToUser(userId, languageCode)
+  return await UserRepo.updatePreferredLanguageToUser(userId, languageCode)
 }
 
 export function getReferralSignUpLink(referralCode: string): string {

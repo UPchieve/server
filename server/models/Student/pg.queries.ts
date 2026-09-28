@@ -620,14 +620,14 @@ const insertStudentPartnershipInstanceIR: any = {"usedParamSet":{"userId":true,"
 export const insertStudentPartnershipInstance = new PreparedQuery<IInsertStudentPartnershipInstanceParams,IInsertStudentPartnershipInstanceResult>(insertStudentPartnershipInstanceIR);
 
 
-/** 'GetPartnerOrgByKey' parameters type */
-export interface IGetPartnerOrgByKeyParams {
+/** 'GetStudentPartnerOrgByKey' parameters type */
+export interface IGetStudentPartnerOrgByKeyParams {
   partnerOrgKey?: string | null | void;
   partnerOrgSiteName?: string | null | void;
 }
 
-/** 'GetPartnerOrgByKey' return type */
-export interface IGetPartnerOrgByKeyResult {
+/** 'GetStudentPartnerOrgByKey' return type */
+export interface IGetStudentPartnerOrgByKeyResult {
   /** not_pii: Primary key */
   partnerId: string;
   /** not_pii: Unique URL-safe slug */
@@ -642,13 +642,13 @@ export interface IGetPartnerOrgByKeyResult {
   siteName: string;
 }
 
-/** 'GetPartnerOrgByKey' query type */
-export interface IGetPartnerOrgByKeyQuery {
-  params: IGetPartnerOrgByKeyParams;
-  result: IGetPartnerOrgByKeyResult;
+/** 'GetStudentPartnerOrgByKey' query type */
+export interface IGetStudentPartnerOrgByKeyQuery {
+  params: IGetStudentPartnerOrgByKeyParams;
+  result: IGetStudentPartnerOrgByKeyResult;
 }
 
-const getPartnerOrgByKeyIR: any = {"usedParamSet":{"partnerOrgSiteName":true,"partnerOrgKey":true},"params":[{"name":"partnerOrgSiteName","required":false,"transform":{"type":"scalar"},"locs":[{"a":524,"b":542}]},{"name":"partnerOrgKey","required":false,"transform":{"type":"scalar"},"locs":[{"a":689,"b":702}]}],"statement":"SELECT\n    student_partner_orgs.id AS partner_id,\n    student_partner_orgs.key AS partner_key,\n    student_partner_orgs.name AS partner_name,\n    student_partner_orgs.school_id AS school_id,\n    student_partner_org_sites.id AS site_id,\n    student_partner_org_sites.name AS site_name\nFROM\n    student_partner_orgs\n    LEFT JOIN (\n        SELECT\n            name,\n            id,\n            student_partner_org_id\n        FROM\n            student_partner_org_sites\n        WHERE\n            student_partner_org_sites.name = :partnerOrgSiteName) AS student_partner_org_sites ON student_partner_orgs.id = student_partner_org_sites.student_partner_org_id\nWHERE\n    student_partner_orgs.key = :partnerOrgKey\nLIMIT 1"};
+const getStudentPartnerOrgByKeyIR: any = {"usedParamSet":{"partnerOrgSiteName":true,"partnerOrgKey":true},"params":[{"name":"partnerOrgSiteName","required":false,"transform":{"type":"scalar"},"locs":[{"a":524,"b":542}]},{"name":"partnerOrgKey","required":false,"transform":{"type":"scalar"},"locs":[{"a":689,"b":702}]}],"statement":"SELECT\n    student_partner_orgs.id AS partner_id,\n    student_partner_orgs.key AS partner_key,\n    student_partner_orgs.name AS partner_name,\n    student_partner_orgs.school_id AS school_id,\n    student_partner_org_sites.id AS site_id,\n    student_partner_org_sites.name AS site_name\nFROM\n    student_partner_orgs\n    LEFT JOIN (\n        SELECT\n            name,\n            id,\n            student_partner_org_id\n        FROM\n            student_partner_org_sites\n        WHERE\n            student_partner_org_sites.name = :partnerOrgSiteName) AS student_partner_org_sites ON student_partner_orgs.id = student_partner_org_sites.student_partner_org_id\nWHERE\n    student_partner_orgs.key = :partnerOrgKey\nLIMIT 1"};
 
 /**
  * Query generated from SQL:
@@ -676,7 +676,7 @@ const getPartnerOrgByKeyIR: any = {"usedParamSet":{"partnerOrgSiteName":true,"pa
  * LIMIT 1
  * ```
  */
-export const getPartnerOrgByKey = new PreparedQuery<IGetPartnerOrgByKeyParams,IGetPartnerOrgByKeyResult>(getPartnerOrgByKeyIR);
+export const getStudentPartnerOrgByKey = new PreparedQuery<IGetStudentPartnerOrgByKeyParams,IGetStudentPartnerOrgByKeyResult>(getStudentPartnerOrgByKeyIR);
 
 
 /** 'UpdateStudentInGatesStudy' parameters type */

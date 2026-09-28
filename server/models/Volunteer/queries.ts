@@ -1231,7 +1231,10 @@ export async function createVolunteer(
   try {
     volunteerData.email = volunteerData.email.toLowerCase()
     const partnerOrg = volunteerData.volunteerPartnerOrg
-      ? await getPartnerOrgByKey(volunteerData.volunteerPartnerOrg, client)
+      ? await getVolunteerPartnerOrgByKey(
+          volunteerData.volunteerPartnerOrg,
+          client
+        )
       : undefined
     const userId = getDbUlid()
     const userResult = await pgQueries.createVolunteerUser.run(
@@ -1284,13 +1287,13 @@ export type VolunteerPartnerOrgByKey = {
   partnerName: string
 }
 
-export async function getPartnerOrgByKey(
+export async function getVolunteerPartnerOrgByKey(
   partnerKey: string | undefined,
   client: TransactionClient
 ): Promise<VolunteerPartnerOrgByKey | undefined> {
   if (!partnerKey) return
   try {
-    const result = await pgQueries.getPartnerOrgByKey.run(
+    const result = await pgQueries.getVolunteerPartnerOrgByKey.run(
       {
         partnerOrgKey: partnerKey,
       },
@@ -1321,7 +1324,10 @@ async function adminUpdateVolunteerPartnerOrgInstance(
   client: TransactionClient
 ) {
   try {
-    const newPartnerOrg = await getPartnerOrgByKey(newPartnerOrgKey, client)
+    const newPartnerOrg = await getVolunteerPartnerOrgByKey(
+      newPartnerOrgKey,
+      client
+    )
     if (newPartnerOrgKey && !newPartnerOrg)
       throw new Error(`New partner org ${newPartnerOrgKey} does not exist`)
 
@@ -1390,7 +1396,7 @@ async function adminUpdateVolunteerPartnerOrgInstance(
         )
     }
   } catch (err) {
-    throw new RepoReadError(`Could not update volunteer partner org: ${err}`)
+    throw new RepoUpdateError(`Could not update volunteer partner org: ${err}`)
   }
 }
 

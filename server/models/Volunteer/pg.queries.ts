@@ -3345,13 +3345,13 @@ const adminInsertVolunteerPartnershipInstanceIR: any = {"usedParamSet":{"userId"
 export const adminInsertVolunteerPartnershipInstance = new PreparedQuery<IAdminInsertVolunteerPartnershipInstanceParams,IAdminInsertVolunteerPartnershipInstanceResult>(adminInsertVolunteerPartnershipInstanceIR);
 
 
-/** 'GetPartnerOrgByKey' parameters type */
-export interface IGetPartnerOrgByKeyParams {
+/** 'GetVolunteerPartnerOrgByKey' parameters type */
+export interface IGetVolunteerPartnerOrgByKeyParams {
   partnerOrgKey?: string | null | void;
 }
 
-/** 'GetPartnerOrgByKey' return type */
-export interface IGetPartnerOrgByKeyResult {
+/** 'GetVolunteerPartnerOrgByKey' return type */
+export interface IGetVolunteerPartnerOrgByKeyResult {
   /** not_pii: Primary key */
   partnerId: string;
   /** not_pii: Unique URL-safe slug */
@@ -3360,13 +3360,13 @@ export interface IGetPartnerOrgByKeyResult {
   partnerName: string;
 }
 
-/** 'GetPartnerOrgByKey' query type */
-export interface IGetPartnerOrgByKeyQuery {
-  params: IGetPartnerOrgByKeyParams;
-  result: IGetPartnerOrgByKeyResult;
+/** 'GetVolunteerPartnerOrgByKey' query type */
+export interface IGetVolunteerPartnerOrgByKeyQuery {
+  params: IGetVolunteerPartnerOrgByKeyParams;
+  result: IGetVolunteerPartnerOrgByKeyResult;
 }
 
-const getPartnerOrgByKeyIR: any = {"usedParamSet":{"partnerOrgKey":true},"params":[{"name":"partnerOrgKey","required":false,"transform":{"type":"scalar"},"locs":[{"a":218,"b":231}]}],"statement":"SELECT\n    volunteer_partner_orgs.id AS partner_id,\n    volunteer_partner_orgs.key AS partner_key,\n    volunteer_partner_orgs.name AS partner_name\nFROM\n    volunteer_partner_orgs\nWHERE\n    volunteer_partner_orgs.key = :partnerOrgKey\nLIMIT 1"};
+const getVolunteerPartnerOrgByKeyIR: any = {"usedParamSet":{"partnerOrgKey":true},"params":[{"name":"partnerOrgKey","required":false,"transform":{"type":"scalar"},"locs":[{"a":218,"b":231}]}],"statement":"SELECT\n    volunteer_partner_orgs.id AS partner_id,\n    volunteer_partner_orgs.key AS partner_key,\n    volunteer_partner_orgs.name AS partner_name\nFROM\n    volunteer_partner_orgs\nWHERE\n    volunteer_partner_orgs.key = :partnerOrgKey\nLIMIT 1"};
 
 /**
  * Query generated from SQL:
@@ -3382,7 +3382,7 @@ const getPartnerOrgByKeyIR: any = {"usedParamSet":{"partnerOrgKey":true},"params
  * LIMIT 1
  * ```
  */
-export const getPartnerOrgByKey = new PreparedQuery<IGetPartnerOrgByKeyParams,IGetPartnerOrgByKeyResult>(getPartnerOrgByKeyIR);
+export const getVolunteerPartnerOrgByKey = new PreparedQuery<IGetVolunteerPartnerOrgByKeyParams,IGetVolunteerPartnerOrgByKeyResult>(getVolunteerPartnerOrgByKeyIR);
 
 
 /** 'GetActiveSponsorshipsByUserId' parameters type */

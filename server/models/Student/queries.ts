@@ -228,13 +228,13 @@ export type StudentPartnerOrgByKey = {
   schoolId?: Ulid
 }
 
-export async function getPartnerOrgByKey(
+export async function getStudentPartnerOrgByKey(
   partnerKey: string | undefined,
   partnerSite: string | undefined,
   client: TransactionClient
 ): Promise<StudentPartnerOrgByKey | undefined> {
   try {
-    const result = await pgQueries.getPartnerOrgByKey.run(
+    const result = await pgQueries.getStudentPartnerOrgByKey.run(
       {
         partnerOrgKey: partnerKey,
         partnerOrgSiteName: partnerSite,

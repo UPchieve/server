@@ -23,9 +23,7 @@ export class RoleContext {
   readonly roles: UserRole[]
   readonly activeRole: PrimaryUserRole
   /**
-   * @deprecated Use activeRole instead. Before users were allowed to have multiple user types/roles (i.e. student
-   * AND volunteer), they had just one role. legacyRole is here just for backwards compatibility with clients, and we
-   * should rip it out once all clients are updated.
+   * The original {@link PrimaryUserRole} on the account
    * */
   readonly legacyRole: PrimaryUserRole
 

@@ -1395,7 +1395,7 @@ RETURNING
     user_id AS ok;
 
 
-/* @name getPartnerOrgByKey */
+/* @name getVolunteerPartnerOrgByKey */
 SELECT
     volunteer_partner_orgs.id AS partner_id,
     volunteer_partner_orgs.key AS partner_key,

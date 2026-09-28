@@ -4,17 +4,16 @@ import * as UserRepo from '../../models/User/queries'
 import { buildStudent } from '../mocks/generate'
 import * as UserService from '../../services/UserService'
 import * as UserRolesService from '../../services/UserRolesService'
-import { getDbUlid, Ulid } from '../../models/pgUtils'
-import { UserRole } from '../../models/User'
+import { getDbUlid } from '../../models/pgUtils'
 import { PrimaryUserRole } from '../../services/UserRolesService'
 import * as StudentRepo from '../../models/Student'
 import * as UsersSchoolsRepo from '../../models/UsersSchools'
 import { beforeEach } from '@jest/globals'
-import { getPartnerOrgsByStudent } from '../../models/Student'
 import * as AwsService from '../../services/AwsService'
 import * as PhotoDnaService from '../../services/PhotoDnaService'
 import * as FeatureFlagService from '../../services/FeatureFlagService'
 import * as VolunteerModel from '../../models/Volunteer'
+import { updateStudentPartnerOrgInstance } from '../../services/UserService'
 
 jest.mock('../../models/User/queries')
 jest.mock('../../services/UserRolesService')
@@ -25,6 +24,9 @@ jest.mock('../../services/AwsService')
 jest.mock('../../services/PhotoDnaService')
 jest.mock('../../services/FeatureFlagService')
 jest.mock('../../models/Volunteer')
+jest.mock('../../models/EmailDomainBlocklist', () => ({
+  getEmailDomainBlocklistEntry: jest.fn().mockResolvedValue(undefined),
+}))
 
 const mockUserRepo = mocked(UserRepo)
 const mockedUserRolesService = mocked(UserRolesService)
@@ -48,7 +50,7 @@ describe('User Service', () => {
     it('Should throw an error if it is a volunteer account', async () => {
       const userId = getDbUlid()
       const mockRoleContext = {
-        roles: ['volunteer'] as UserRole[],
+        roles: ['volunteer'] as UserRepo.UserRole[],
         activeRole: 'volunteer' as PrimaryUserRole,
         legacyRole: 'volunteer' as PrimaryUserRole,
         hasRole: jest.fn().mockReturnValue(true),
@@ -64,7 +66,7 @@ describe('User Service', () => {
     it('Should throw an error if the account has the volunteer role', async () => {
       const userId = getDbUlid()
       const mockRoleContext = {
-        roles: ['volunteer'] as UserRole[],
+        roles: ['volunteer'] as UserRepo.UserRole[],
         activeRole: 'volunteer' as PrimaryUserRole,
         legacyRole: 'volunteer' as PrimaryUserRole,
         hasRole: jest.fn().mockReturnValue(true),
@@ -80,7 +82,7 @@ describe('User Service', () => {
     it('Should call deleteUserPhoneInfo', async () => {
       const userId = getDbUlid()
       const mockRoleContext = {
-        roles: ['student'] as UserRole[],
+        roles: ['student'] as UserRepo.UserRole[],
         activeRole: 'student' as PrimaryUserRole,
         legacyRole: 'student' as PrimaryUserRole,
         hasRole: jest.fn().mockReturnValue(false),
@@ -119,15 +121,19 @@ describe('User Service', () => {
       }
 
       // Throws if the partner org does not exist
-      mockedStudentRepo.getPartnerOrgByKey.mockResolvedValue(undefined)
+      mockedStudentRepo.getStudentPartnerOrgByKey.mockResolvedValue(undefined)
       await expect(() => test()).rejects.toThrow(
         `New partner org ${newStudentPartnerOrgKey} does not exist`
       )
 
       // Throws if the school org does not exist
       jest.resetAllMocks()
-      mockedStudentRepo.getPartnerOrgByKey.mockResolvedValueOnce(mockPartnerOrg)
-      mockedStudentRepo.getPartnerOrgByKey.mockResolvedValueOnce(undefined)
+      mockedStudentRepo.getStudentPartnerOrgByKey.mockResolvedValueOnce(
+        mockPartnerOrg
+      )
+      mockedStudentRepo.getStudentPartnerOrgByKey.mockResolvedValueOnce(
+        undefined
+      )
       await expect(() => test()).rejects.toThrow(
         `New school org ${newSchoolPartnerOrgKey} does not exist`
       )
@@ -142,8 +148,10 @@ describe('User Service', () => {
         schoolId: 'school-1',
         siteName: 'Boston',
       }
-      mockedStudentRepo.getPartnerOrgByKey.mockResolvedValueOnce(undefined)
-      mockedStudentRepo.getPartnerOrgByKey.mockResolvedValueOnce({
+      mockedStudentRepo.getStudentPartnerOrgByKey.mockResolvedValueOnce(
+        undefined
+      )
+      mockedStudentRepo.getStudentPartnerOrgByKey.mockResolvedValueOnce({
         partnerId: newPartnerSchool.id,
         partnerKey: 'school key',
         partnerName: newPartnerSchool.name,
@@ -203,10 +211,10 @@ describe('User Service', () => {
     })
 
     it('Activates new partnerships', async () => {
-      mockedStudentRepo.getPartnerOrgByKey.mockResolvedValueOnce({
+      mockedStudentRepo.getStudentPartnerOrgByKey.mockResolvedValueOnce({
         ...mockPartnerOrg,
       })
-      mockedStudentRepo.getPartnerOrgByKey.mockResolvedValueOnce({
+      mockedStudentRepo.getStudentPartnerOrgByKey.mockResolvedValueOnce({
         ...mockPartnerSchool,
       })
       mockedStudentRepo.getPartnerOrgsByStudent.mockResolvedValue([])
@@ -257,8 +265,12 @@ describe('User Service', () => {
         siteName: 'site-2',
       }
 
-      mockedStudentRepo.getPartnerOrgByKey.mockResolvedValueOnce(newPartnerOrg)
-      mockedStudentRepo.getPartnerOrgByKey.mockResolvedValueOnce(undefined)
+      mockedStudentRepo.getStudentPartnerOrgByKey.mockResolvedValueOnce(
+        newPartnerOrg
+      )
+      mockedStudentRepo.getStudentPartnerOrgByKey.mockResolvedValueOnce(
+        undefined
+      )
       mockedStudentRepo.getPartnerOrgsByStudent.mockResolvedValue([
         {
           id: existingPartnerOrg.partnerId,
@@ -353,6 +365,84 @@ describe('User Service', () => {
 
       expect(mockedPhotoDnaService.checkAgainstPhotoDNA).not.toHaveBeenCalled()
       expect(mockedAwsService.putObject).toHaveBeenCalled()
+    })
+  })
+
+  describe('adminUpdateUser', () => {
+    const update = {
+      userId: '123',
+      email: 'user@email.org',
+      isVerified: true,
+      isDeactivated: false,
+      banType: null,
+      partnerOrg: 'Partner',
+    }
+
+    let mockRoleContext
+
+    const baseUser = {
+      id: '123',
+      createdAt: new Date(),
+      email: update.email,
+      firstName: 'Test',
+      isDeactivated: false,
+      isDeleted: false,
+      isTestUser: false,
+      verified: true,
+    }
+
+    beforeEach(() => {
+      mockUserRepo.getUserForAdminDetail.mockResolvedValue(baseUser)
+      mockedStudentRepo.getPartnerOrgsByStudent.mockResolvedValue([
+        {
+          name: 'spo',
+          id: '123',
+        },
+      ])
+    })
+
+    it('Updates the partner org for single role users', async () => {
+      mockRoleContext = {
+        roles: ['volunteer'] as UserRepo.UserRole[],
+        activeRole: 'volunteer' as PrimaryUserRole,
+        legacyRole: 'volunteer' as PrimaryUserRole,
+        hasRole: (role: string) => role === 'volunteer',
+        isActiveRole: jest.fn(),
+        isAdmin: jest.fn(),
+      }
+      mockedUserRolesService.getRoleContext.mockReturnValue(mockRoleContext)
+      await UserService.adminUpdateUser(update)
+      expect(VolunteerModel.updateVolunteerForAdmin).toHaveBeenCalledTimes(1)
+      expect(mockedVolunteerModel.updateVolunteerForAdmin).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          volunteerPartnerOrg: 'Partner',
+        })
+      )
+    })
+
+    it("Updates S2V's partner org based off the oldest role", async () => {
+      mockedStudentRepo.getStudentPartnerOrgByKey.mockResolvedValueOnce({
+        name: 'spo',
+        id: '123',
+      })
+      const roleContext = {
+        roles: ['student', 'volunteer'] as UserRepo.UserRole[],
+        activeRole: 'volunteer' as PrimaryUserRole,
+        legacyRole: 'student' as PrimaryUserRole,
+        hasRole: (role) => ['student', 'volunteer'].includes(role),
+        isActiveRole: jest.fn(),
+        isAdmin: jest.fn(),
+      }
+      mockedUserRolesService.getRoleContext.mockReturnValue(roleContext)
+      await UserService.adminUpdateUser(update)
+      expect(VolunteerModel.updateVolunteerForAdmin).toHaveBeenCalledTimes(1)
+      expect(mockedVolunteerModel.updateVolunteerForAdmin).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          studentPartnerOrg: 'Partner',
+        })
+      )
     })
   })
 })
