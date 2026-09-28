@@ -13,6 +13,7 @@ export type Assignment = {
   title?: string
   createdAt: Date
   updatedAt: Date
+  studentIds?: Ulid[]
   // TODO: Remove after experiment is done
   isGettingStartedAssignment?: boolean
   subjectName?: string

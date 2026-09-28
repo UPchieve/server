@@ -68,18 +68,21 @@ export async function getAssignmentsByClassId(
       { classId },
       tc
     )
-    return assignments.map((a) =>
-      makeSomeOptional(a, [
-        'description',
-        'title',
-        'numberOfSessions',
-        'minDurationInMinutes',
-        'dueDate',
-        'startDate',
-        'subjectId',
-        'studentIds',
+    return assignments.map((a) => {
+      const assignment = makeSomeRequired(a, [
+        'id',
+        'classId',
+        'isRequired',
+        'createdAt',
+        'updatedAt',
       ])
-    )
+      return {
+        ...assignment,
+        studentIds: (assignment.studentIds ?? []).filter(
+          (id): id is string => id !== null
+        ),
+      }
+    })
   } catch (err) {
     throw new RepoReadError(err)
   }

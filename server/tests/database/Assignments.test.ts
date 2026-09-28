@@ -235,6 +235,22 @@ describe('getAssignmentsByClassId', () => {
       })
     }
   })
+
+  test('When there are no students assigned, returns an empty array for studentIds', async () => {
+    const teacherClass = await createTestTeacherClass()
+    const student = await createTestStudent()
+
+    // Three assignments for `teacherClass`.
+    await createTestAssignment(teacherClass.id) // no students assigned
+    await createTestAssignment(teacherClass.id, student.id)
+
+    const actual = await AssignmentsRepo.getAssignmentsByClassId(
+      teacherClass.id
+    )
+    expect(actual.length).toEqual(2)
+    expect(actual[0].studentIds).toEqual([])
+    expect(actual[1].studentIds).toEqual([student.id])
+  })
 })
 
 describe('getAssignmentById', () => {
