@@ -106,7 +106,7 @@ $ docker-compose --profile dev up -d
 When you want to stop and remove the containers, run:
 
 ```shell
-$ docker-compose --profile dev down
+$ docker-compose --profile dev down -v
 ```
 
 ### Prepare to run the server
