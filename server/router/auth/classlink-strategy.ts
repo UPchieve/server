@@ -35,7 +35,6 @@ export default class ClassLinkStrategy extends OAuth2Strategy {
     options.clientSecret = config.classlinkClientSecret
     options.passReqToCallback = true
     options.scope = 'full,profile,oneroster,openid'
-    options.state = true
 
     super(options as StrategyOptionsWithRequest, verify)
   }
