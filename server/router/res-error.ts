@@ -86,6 +86,6 @@ export function resError(
     })
   } else {
     logger.error(err, 'Unexpected non-error type thrown')
-    res.status(500)
+    res.status(500).json({ err: 'An unexpected error occurred.' })
   }
 }
