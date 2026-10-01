@@ -1,20 +1,25 @@
-import type { Server } from 'socket.io'
+import type { Server, Socket } from 'socket.io'
 import * as cache from '../../cache'
 import {
   getUnfulfilledSessions,
   UnfulfilledSessions,
 } from '../../models/Session/queries'
-import { getCurrentSessionById } from '../../services/SessionService'
+import type { UserContactInfo } from '../../models/User'
+import {
+  ensureCanJoinSession,
+  getCurrentSessionById,
+} from '../../services/SessionService'
 import * as SessionHoldsService from '../../services/SessionHoldsService'
 import type SocketService from '../../services/SocketService'
 import { buildCurrentSession } from '../mocks/generate'
 
 jest.mock('../../cache', () => ({ hgetall: jest.fn() }))
-jest.mock('../../logger', () => ({ error: jest.fn() }))
+jest.mock('../../logger', () => ({ error: jest.fn(), info: jest.fn() }))
 jest.mock('../../models/Session/queries', () => ({
   getUnfulfilledSessions: jest.fn(),
 }))
 jest.mock('../../services/SessionService', () => ({
+  ensureCanJoinSession: jest.fn(),
   getCurrentSessionById: jest.fn(),
 }))
 jest.mock('../../services/SessionHoldsService', () => ({
@@ -137,5 +142,48 @@ describe('SocketService session list broadcasts', () => {
     olderQuery.resolve(sessions)
     await jest.advanceTimersByTimeAsync(0)
     expect(volunteers.emit).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('SocketService.joinSession', () => {
+  const user = { id: 'user-id' } as UserContactInfo
+  let service: SocketService
+  let refusal: Error
+
+  beforeEach(() => {
+    jest.resetAllMocks()
+    jest.isolateModules(() => {
+      const { default: SocketService } =
+        require('../../services/SocketService') as typeof import('../../services/SocketService')
+      const { SessionJoinError } =
+        require('../../models/Errors') as typeof import('../../models/Errors')
+      service = SocketService.getInstance({} as Server)
+      refusal = new SessionJoinError({ message: 'Session has ended' })
+    })
+  })
+
+  test.each([
+    ['refused while holding the same session', true, 'session-a', undefined],
+    ['refused while holding another session', true, 'session-b', 'session-b'],
+    [
+      'failed transiently while holding the same session',
+      false,
+      'session-a',
+      'session-a',
+    ],
+  ])('on a join that is %s', async (_, isRefusal, current, expected) => {
+    jest
+      .mocked(ensureCanJoinSession)
+      .mockRejectedValue(isRefusal ? refusal : new Error('db down'))
+    const socket = { data: { sessionId: current }, leave: jest.fn() }
+
+    await expect(
+      service.joinSession(socket as unknown as Socket, user, 'session-a')
+    ).rejects.toThrow()
+
+    expect(socket.leave.mock.calls).toEqual(
+      isRefusal ? [['sessions-session-a']] : []
+    )
+    expect(socket.data.sessionId).toBe(expected)
   })
 })

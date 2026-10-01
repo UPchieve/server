@@ -120,25 +120,6 @@ export function routeSockets(io: Server): void {
       request: { user },
     } = socket
 
-    if (user) {
-      await handleUser(socket, user)
-      logSocketEvent('connection', socket) // Log the initial connection
-    }
-
-    if (socket.recovered) {
-      logSocketEvent('recovered', socket)
-      if (user && socket.data.sessionId) {
-        try {
-          await socketService.joinSession(socket, user, socket.data.sessionId)
-        } catch (error) {
-          logger.error(
-            error,
-            `Unable to join socket session on socket recovery`
-          )
-        }
-      }
-    }
-
     socket.on('sessions:join', async (data, callback) => {
       await observeWebTransaction('/socket-io/sessions:join', async () => {
         try {
@@ -956,5 +937,15 @@ export function routeSockets(io: Server): void {
     socket.onAnyOutgoing((eventName, args) => {
       logSocketEvent(eventName, socket, args)
     })
+
+    // Socket.IO drops a client event that arrives while no listener is
+    // registered, and the client may emit as soon as it sees 'connect', so this
+    // setup runs only after every handler above exists.
+    if (user) {
+      await handleUser(socket, user)
+      logSocketEvent('connection', socket) // Log the initial connection
+    }
+
+    if (socket.recovered) logSocketEvent('recovered', socket)
   })
 }

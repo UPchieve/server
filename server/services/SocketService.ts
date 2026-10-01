@@ -18,6 +18,7 @@ import { secondsInMs } from '../utils/time-utils'
 import { toCurrentSessionPublic } from '../public/sessions'
 import { ShareInfoPayload } from '../types/socket-types'
 import { SUBJECTS } from '../constants'
+import { SessionJoinError } from '../models/Errors'
 
 /**
  * This room receives broadcasts of unfulfilled sessions.
@@ -56,7 +57,14 @@ class SocketService {
         { userId: user.id, sessionId, error: JSON.stringify(error) },
         'User cannot join session'
       )
-      delete socket.data.sessionId
+      // A transient failure changes nothing: a concurrent join of this session
+      // may have succeeded, and the client retries.
+      if (error instanceof SessionJoinError) {
+        // A recovered socket is restored into its old room before this join runs.
+        await socket.leave(getSessionRoom(sessionId))
+        // The client may have joined another session while this join was pending.
+        if (socket.data.sessionId === sessionId) delete socket.data.sessionId
+      }
       throw error
     }
 
