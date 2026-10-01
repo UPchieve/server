@@ -342,7 +342,6 @@ describe('GET /api/nths-application/eligibility', () => {
 
   describe('apply preview', () => {
     const APPLY_PREVIEW = {
-      closesAt: '2026-10-01T03:59:00.000Z',
       requirements: {
         training: NTHSApplicationService.NTHSApplyRequirementStatus.done,
         safetyReview:

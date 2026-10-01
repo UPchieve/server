@@ -1,6 +1,5 @@
 import { NTHSCandidateApplicationStatus } from '../NTHSGroups/types'
 import { PHOTO_ID_STATUS, USER_BAN_TYPES } from '../../constants/user'
-import { ISODateString } from '../../types/dates'
 import { Ulid, Uuid } from '../pgUtils'
 
 export enum NTHSApplicationIneligibilityReason {
@@ -33,7 +32,6 @@ export enum NTHSApplyRequirementStatus {
 }
 
 export type NTHSApplyPreview = {
-  closesAt: ISODateString
   requirements: {
     training: NTHSApplyRequirementStatus
     safetyReview: NTHSApplyRequirementStatus

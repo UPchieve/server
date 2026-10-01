@@ -276,22 +276,16 @@ const APPLY_PREVIEW_REASONS = [
   NTHSApplicationIneligibilityReason.noCompletedSessions,
 ]
 
-const FOUNDING_PRESIDENT_APPLICATIONS_CLOSE_AT = new Date(
-  '2026-09-30T23:59:00-04:00'
-)
-
 function applyPreviewFor(
   facts: NTHSApplicationEligibilityFacts,
   reasons: NTHSApplicationIneligibilityReason[]
 ): NTHSApplyPreview | undefined {
-  if (Date.now() >= FOUNDING_PRESIDENT_APPLICATIONS_CLOSE_AT.getTime()) return
   // Any ban hides the preview, including live_media, which the banned reason skips.
   if (facts.banType) return
   if (!reasons.length) return
   if (!reasons.every((reason) => APPLY_PREVIEW_REASONS.includes(reason))) return
 
   return {
-    closesAt: FOUNDING_PRESIDENT_APPLICATIONS_CLOSE_AT.toISOString(),
     requirements: {
       training: facts.onboarded
         ? NTHSApplyRequirementStatus.done

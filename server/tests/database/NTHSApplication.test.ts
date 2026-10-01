@@ -783,15 +783,6 @@ describe('getApplicationEligibility', () => {
       withSession: false,
     }
 
-    // Pinned before applications close, after which no coach gets a preview.
-    let clock: jest.SpyInstance<number, []>
-    beforeEach(() => {
-      clock = jest
-        .spyOn(Date, 'now')
-        .mockReturnValue(Date.parse('2026-09-15T12:00:00-04:00'))
-    })
-    afterEach(() => clock.mockRestore())
-
     async function applyPreviewOf(userId: Ulid) {
       const { applyPreview } =
         await NTHSApplicationService.getApplicationEligibility(userId)
@@ -932,25 +923,6 @@ describe('getApplicationEligibility', () => {
         expect(await applyPreviewOf(userId)).toBeUndefined()
       }
     )
-
-    test('gives a preview a minute before applications close, with the close time', async () => {
-      const userId = await createEligibleCoach(PREVIEW_AUDIENCE)
-      clock.mockReturnValue(Date.parse('2026-09-30T23:58:00-04:00'))
-
-      expect((await applyPreviewOf(userId))?.closesAt).toBe(
-        '2026-10-01T03:59:00.000Z'
-      )
-    })
-
-    test.each([
-      ['the moment applications close', '2026-09-30T23:59:00-04:00'],
-      ['after applications have closed', '2026-10-15T12:00:00-04:00'],
-    ])('withholds the preview %s', async (_label, now) => {
-      const userId = await createEligibleCoach(PREVIEW_AUDIENCE)
-      clock.mockReturnValue(Date.parse(now))
-
-      expect(await applyPreviewOf(userId)).toBeUndefined()
-    })
   })
 })
 
