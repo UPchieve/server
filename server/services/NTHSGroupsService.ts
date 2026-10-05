@@ -52,6 +52,7 @@ import {
   VolunteerOccupations,
 } from '../models/Volunteer'
 import { isReadyToCoach } from './VolunteerService'
+import { LEADERSHIP_TITLES, NTHSTitle } from '../constants/nths-titles'
 
 export async function getGroups(userId: Ulid) {
   return await NTHSGroupsRepo.getGroupsByUser(userId)
@@ -203,7 +204,7 @@ export async function joinGroupAsMemberByGroupId(
       {
         userId,
         groupId,
-        title: 'member',
+        title: 'Member',
       },
       client
     )
@@ -226,9 +227,10 @@ export async function getNTHSGroupsByMember(
   return await NTHSGroupsRepo.getGroupsByUser(userId, tc)
 }
 
-type UpdateGroupMemberRequest = {
+export type UpdateGroupMemberRequest = {
   role?: NTHSGroupRoleName
-  isActive?: boolean
+  title?: NTHSTitle
+  isActive?: false
 }
 
 export async function updateGroupMember(
@@ -259,15 +261,44 @@ export async function updateGroupMember(
       throw new CannotRemoveSoleNTHSAdminError()
     }
   }
+  const title = titleToWrite(targetMember, update)
   await runInTransaction(async (tc) => {
     if (update.role) {
       await updateGroupMemberRole(userId, nthsGroupId, update.role, tc)
+    }
+    if (title) {
+      await NTHSGroupsRepo.updateNthsGroupMemberTitle(
+        { userId, nthsGroupId, title },
+        tc
+      )
     }
     if (update.isActive === false) {
       // For now, only DEactivating is possible, not reactivating.
       await NTHSGroupsRepo.deactivateGroupMember(userId, nthsGroupId, tc)
     }
-  }, client)
+  })
+}
+
+function titleToWrite(
+  member: NTHSGroupMemberWithRole,
+  update: UpdateGroupMemberRequest
+): NTHSTitle | undefined {
+  if (update.title) {
+    if (member.deactivatedAt || member.deleted) {
+      throw new InputError('A title can only be set on a current member')
+    }
+    if (
+      LEADERSHIP_TITLES.includes(update.title) &&
+      (update.role ?? member.roleName) !== 'admin'
+    ) {
+      throw new InputError(`${update.title} is a title only an admin can hold`)
+    }
+    return update.title
+  }
+  // A demotion sent without a title still clears a leadership title, since
+  // only an admin can hold one.
+  if (update.role === 'member' && LEADERSHIP_TITLES.includes(member.title))
+    return 'Member'
 }
 
 async function updateGroupMemberRole(

@@ -2,6 +2,8 @@
  * @group database/parallel
  */
 
+import { mocked } from 'jest-mock'
+import * as PgClient from '../../db'
 import { getClient } from '../../db'
 import { getDbUlid, Ulid } from '../../models/pgUtils'
 import { getName } from '../mocks/generate'
@@ -289,6 +291,32 @@ describe('updateGroupMember', () => {
     )
     expect(rows[0].deactivated_at.toISOString()).toBe(departedAt)
   })
+
+  test('writes the role and title in a transaction it starts itself', async () => {
+    const groupId = await createChapter()
+    await addMember(groupId, { roleName: 'admin' })
+    const memberId = await addMember(groupId)
+    mocked(PgClient).runInTransaction.mockClear()
+
+    await NTHSGroupsService.updateGroupMember(memberId, groupId, {
+      role: 'admin',
+      title: 'President',
+    })
+
+    // A client passed in is used as-is with no BEGIN, so the writes would commit one by one.
+    expect(mocked(PgClient).runInTransaction.mock.calls).toEqual([
+      [expect.any(Function)],
+    ])
+    const { rows } = await client.query(
+      `SELECT m.title, roles.name AS role_name FROM nths_group_members m
+       JOIN nths_group_member_roles member_roles
+         ON member_roles.nths_group_id = m.nths_group_id AND member_roles.user_id = m.user_id
+       JOIN nths_group_roles roles ON roles.id = member_roles.role_id
+       WHERE m.nths_group_id = $1 AND m.user_id = $2`,
+      [groupId, memberId]
+    )
+    expect(rows[0]).toEqual({ title: 'President', role_name: 'admin' })
+  })
 })
 
 describe('getChapterRoster', () => {
@@ -510,40 +538,27 @@ describe('getChapterRoster topTutorThisMonth', () => {
     }
   )
 
-  test('skips the chapter president even with the most hours, and keeps another admin', async () => {
+  test('counts presidents, so a co-president with the most hours is the top tutor', async () => {
     const groupId = await createChapter()
     const presidentId = await addMember(groupId, {
       roleName: 'admin',
       title: 'President',
     })
-    const adminId = await addMember(groupId, { roleName: 'admin' })
+    const otherPresidentId = await addMember(groupId, {
+      roleName: 'admin',
+      title: 'President',
+    })
     await addSession(presidentId, {
       volunteerJoinedAt: '2026-11-05T00:00:00.000Z',
       timeTutoredMs: 5_400_000,
     })
-    await addSession(adminId, {
+    await addSession(otherPresidentId, {
       volunteerJoinedAt: '2026-11-05T00:00:00.000Z',
     })
 
     const roster = await NTHSGroupsService.getChapterRoster(groupId, NOW)
 
-    expect(roster.topTutorThisMonth?.userId).toBe(adminId)
-  })
-
-  test('counts a member titled President who no longer holds the admin role', async () => {
-    const groupId = await createChapter()
-    await addMember(groupId, { roleName: 'admin' })
-    const demotedId = await addMember(groupId, {
-      roleName: 'member',
-      title: 'President',
-    })
-    await addSession(demotedId, {
-      volunteerJoinedAt: '2026-11-05T00:00:00.000Z',
-    })
-
-    const roster = await NTHSGroupsService.getChapterRoster(groupId, NOW)
-
-    expect(roster.topTutorThisMonth?.userId).toBe(demotedId)
+    expect(roster.topTutorThisMonth?.userId).toBe(presidentId)
   })
 
   test('breaks a tie on hours by more sessions, then by the lower user id', async () => {

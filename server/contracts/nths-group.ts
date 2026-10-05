@@ -3,6 +3,7 @@ import {
   NTHSGroupRoleName,
   NTHSSchoolAffiliationStatusName,
 } from '../models/NTHSGroups/types'
+import type { NTHSTitle } from '../constants/nths-titles'
 import { ISODateString } from '../types/dates'
 import { Uuid } from '../types/shared'
 
@@ -15,7 +16,7 @@ export type NTHSGroupPublic = {
 }
 
 export type NTHSUserInfoPublic = {
-  title: string
+  title: NTHSTitle
   joinedAt: ISODateString
   roleName: NTHSGroupRoleName
 }
@@ -25,7 +26,7 @@ export type NTHSGroupWithMemberInfoPublic = {
   groupInfo: NTHSGroupPublic
   memberInfo: NTHSUserInfoPublic
   // TODO: remove all of the below fields after the frontend is pointing to these nested fields
-  memberTitle: string
+  memberTitle: NTHSTitle
   joinedAt: ISODateString
   groupId: Uuid
   groupName: string
@@ -39,7 +40,7 @@ export type NTHSGroupWithMemberInfoPublic = {
 export type NTHSGroupMemberPublic = {
   nthsGroupId: Uuid
   userId: Uuid
-  title?: string
+  title: NTHSTitle
   joinedAt: ISODateString
   deactivatedAt?: ISODateString
   firstName: string
@@ -168,7 +169,7 @@ export type NTHSChapterRosterMemberPublic = {
   firstName: string
   lastInitial: string
   roleName: NTHSGroupRoleName
-  title?: string
+  title: NTHSTitle
   joinedAt: ISODateString
   trainingComplete: boolean
   safetyApproved: boolean

@@ -1,12 +1,13 @@
 import { Ulid } from '../pgUtils'
 import { SchoolYear } from '../../utils/school-year'
+import type { NTHSTitle } from '../../constants/nths-titles'
 
 export type NTHSGroupWithMemberInfo = {
   // these top-level fields nest the below fields.
   groupInfo: NTHSGroup
   memberInfo: NTHSUserInfo
   // TODO: remove all of the below fields after the frontend is pointing to these nested fields
-  memberTitle: string
+  memberTitle: NTHSTitle
   joinedAt: Date
   groupId: Ulid
   groupName: string
@@ -26,7 +27,7 @@ export type NTHSGroup = {
 }
 
 export type NTHSUserInfo = {
-  title: string
+  title: NTHSTitle
   joinedAt: Date
   roleName: NTHSGroupRoleName
 }
@@ -34,7 +35,7 @@ export type NTHSUserInfo = {
 export type NTHSGroupMember = {
   nthsGroupId: Ulid
   userId: Ulid
-  title?: string
+  title: NTHSTitle
   joinedAt: Date
   updatedAt: Date
   deactivatedAt?: Date
@@ -186,7 +187,7 @@ export type NTHSChapterRosterMember = {
   firstName: string
   lastInitial: string
   roleName: NTHSGroupRoleName
-  title?: string
+  title: NTHSTitle
   joinedAt: Date
   trainingComplete: boolean
   safetyApproved: boolean

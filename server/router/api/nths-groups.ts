@@ -23,6 +23,8 @@ import type {
   NTHSChapterPeriodStarts,
   NTHSGroupRoleName,
 } from '../../models/NTHSGroups'
+import { isNthsTitle, NTHS_TITLES } from '../../constants/nths-titles'
+import type { UpdateGroupMemberRequest } from '../../services/NTHSGroupsService'
 import { asDate, asUuid, isUuid } from '../../utils/type-utils'
 import { ONE_DAY_ELAPSED_MILLISECONDS } from '../../constants/time'
 import type {
@@ -130,6 +132,20 @@ function asPeriodStart(
   return startsAt > now ? now : startsAt
 }
 
+function asGroupMemberUpdate(body: unknown): UpdateGroupMemberRequest {
+  const { role, title, isActive } = (body ?? {}) as Record<string, unknown>
+  if (role !== undefined && role !== 'admin' && role !== 'member') {
+    throw new InputError('role must be admin or member')
+  }
+  if (title !== undefined && !isNthsTitle(title)) {
+    throw new InputError(`title must be one of ${NTHS_TITLES.join(', ')}`)
+  }
+  if (isActive !== undefined && isActive !== false) {
+    throw new InputError('isActive can only be false')
+  }
+  return { role, title, isActive }
+}
+
 export function routeNTHSGroups(router: Router): void {
   router
     .route('/nths-groups')
@@ -183,7 +199,7 @@ export function routeNTHSGroups(router: Router): void {
         await NTHSGroupsService.updateGroupMember(
           memberId,
           req.params.groupId,
-          req.body
+          asGroupMemberUpdate(req.body)
         )
         return res.sendStatus(204)
       } catch (err) {

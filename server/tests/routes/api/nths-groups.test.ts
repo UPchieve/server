@@ -182,7 +182,7 @@ describe('routeNTHSGroups', () => {
       mockedNTHSGroupsService.updateGroupMember.mockResolvedValueOnce()
       const payload = {
         role: 'admin',
-        isActive: true,
+        title: 'Vice President',
       }
 
       const response = await sendPut(
@@ -195,6 +195,24 @@ describe('routeNTHSGroups', () => {
         groupId,
         payload
       )
+    })
+
+    test.each([
+      [{ title: 'president' }],
+      [{ title: 3 }],
+      [{ role: 'owner' }],
+      [{ isActive: true }],
+    ])('gives HTTP 422 for the body %j', async (body) => {
+      mockedNTHSGroupsService.getActiveGroupMember.mockResolvedValueOnce(
+        buildNTHSGroupMemberWithRole({ roleName: 'admin' })
+      )
+
+      const response = await sendPut(
+        `/api/nths-groups/${groupId}/members/${memberId}`,
+        body
+      )
+      expect(response.status).toBe(422)
+      expect(mockedNTHSGroupsService.updateGroupMember).not.toHaveBeenCalled()
     })
 
     test('gives HTTP 422 for a malformed memberId instead of a driver error', async () => {

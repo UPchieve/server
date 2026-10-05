@@ -34,6 +34,7 @@ import type {
   NTHSChapterRosterMember,
   NTHSChapterTopTutor,
 } from './types'
+import type { NTHSTitle } from '../../constants/nths-titles'
 import { camelCaseKeys } from '../../tests/db-utils'
 import logger from '../../logger'
 import config from '../../config'
@@ -50,9 +51,20 @@ export async function getGroupsByUser(
       tc
     )
     return results.map((row) => {
-      const camelCased = makeSomeOptional(row, ['schoolAffiliationStatus'])
+      const camelCased = makeSomeRequired(row, [
+        'groupId',
+        'groupKey',
+        'groupName',
+        'hasSchoolOnRecord',
+        'inviteCode',
+        'joinedAt',
+        'memberTitle',
+        'roleName',
+      ])
+      const memberTitle = camelCased.memberTitle as NTHSTitle
       return {
         ...camelCased,
+        memberTitle,
         roleName: camelCased.roleName as NTHSGroupRoleName,
         schoolAffiliationStatus:
           (camelCased.schoolAffiliationStatus as NTHSSchoolAffiliationStatusName) ??
@@ -67,7 +79,7 @@ export async function getGroupsByUser(
         },
         memberInfo: {
           joinedAt: camelCased.joinedAt,
-          title: camelCased.memberTitle,
+          title: memberTitle,
           roleName: camelCased.roleName as NTHSGroupRoleName,
         },
       }
@@ -183,7 +195,7 @@ export async function joinGroupById(
   }: {
     userId: Ulid
     groupId: Ulid
-    title: string
+    title: NTHSTitle
   },
 
   tc: TransactionClient = getClient()
@@ -198,9 +210,31 @@ export async function joinGroupById(
       tc
     )
 
-    return makeSomeOptional(results[0], ['deactivatedAt'])
+    const row = makeSomeRequired(results[0], [
+      'nthsGroupId',
+      'userId',
+      'title',
+      'joinedAt',
+      'updatedAt',
+    ])
+    return { ...row, title: row.title as NTHSTitle }
   } catch (err) {
     throw new RepoCreateError(err)
+  }
+}
+
+export async function updateNthsGroupMemberTitle(
+  args: {
+    userId: Ulid
+    nthsGroupId: Ulid
+    title: NTHSTitle
+  },
+  tc: TransactionClient = getClient()
+) {
+  try {
+    await pgQueries.updateNthsGroupMemberTitle.run(args, tc)
+  } catch (err) {
+    throw new RepoUpdateError(err)
   }
 }
 
@@ -250,13 +284,15 @@ export async function getActiveNthsGroupMember(
       tc
     )
     if (results.length) {
+      const member = makeSomeRequired(results[0], [
+        'nthsGroupId',
+        'userId',
+        'joinedAt',
+        'updatedAt',
+      ])
       return {
-        ...makeSomeRequired(results[0], [
-          'nthsGroupId',
-          'userId',
-          'joinedAt',
-          'updatedAt',
-        ]),
+        ...member,
+        title: member.title as NTHSTitle,
         roleName: camelCaseKeys(results[0]).roleName as NTHSGroupRoleName,
       }
     }
@@ -305,6 +341,7 @@ export async function getGroupMembers(
       ])
       return {
         ...camelCased,
+        title: camelCased.title as NTHSTitle,
         roleName: camelCased.roleName as NTHSGroupRoleName,
       }
     })
@@ -726,6 +763,7 @@ export async function getNthsChapterRoster(
       ])
       return {
         ...member,
+        title: member.title as NTHSTitle,
         roleName: member.roleName as NTHSGroupRoleName,
         periodHours: {
           thisWeek: hoursThisWeek,

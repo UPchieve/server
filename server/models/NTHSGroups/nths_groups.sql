@@ -173,6 +173,18 @@ WHERE
         OR users.deleted IS NOT TRUE);
 
 
+/* @name updateNthsGroupMemberTitle */
+UPDATE
+    nths_group_members
+SET
+    title = :title!,
+    updated_at = NOW()
+WHERE
+    user_id = :userId!
+    AND nths_group_id = :nthsGroupId!
+    AND deactivated_at IS NULL;
+
+
 /* @name groupsCount */
 SELECT
     count(*)
@@ -491,9 +503,6 @@ ORDER BY
     m.user_id;
 
 
-/* Leaves out the president, who recognizes the top tutor each month. A
- demoted founder keeps the 'President' title, so the president is the titled
- member who still holds the admin role. */
 /* @name getNthsChapterTopTutor */
 SELECT
     m.user_id,
@@ -518,17 +527,6 @@ FROM
 WHERE
     m.nths_group_id = :groupId!
     AND m.deactivated_at IS NULL
-    AND (m.title IS DISTINCT FROM 'President'
-        OR NOT EXISTS (
-            SELECT
-                1
-            FROM
-                nths_group_member_roles member_roles
-                JOIN nths_group_roles roles ON roles.id = member_roles.role_id
-            WHERE
-                member_roles.user_id = m.user_id
-                AND member_roles.nths_group_id = m.nths_group_id
-                AND roles.name = 'admin'))
     AND u.test_user IS FALSE
     AND u.deleted IS NOT TRUE
 GROUP BY
