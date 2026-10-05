@@ -802,8 +802,14 @@ export async function getCurrentSessionById(
   return session
 }
 
-export async function getRecapSessionForDms(sessionId: Uuid) {
-  return getCurrentSessionById(sessionId)
+export async function getRecapSessionForDms(
+  sessionId: Uuid,
+  userId: Ulid,
+  isTeacher: boolean
+) {
+  const session = await getCurrentSessionById(sessionId)
+  await ensureCanViewSessionRecap(session, userId, isTeacher)
+  return session
 }
 
 export async function getLatestSession(
@@ -1224,13 +1230,11 @@ export async function getVolunteerFirstSessionDate(volunteerId: Ulid) {
   return SessionRepo.getVolunteerFirstSessionDate(volunteerId)
 }
 
-export async function getSessionRecap(
-  sessionId: Ulid,
+async function ensureCanViewSessionRecap(
+  session: { studentId: Ulid; volunteerId?: Ulid },
   userId: Ulid,
   isTeacher: boolean
-): Promise<SessionRepo.SessionForSessionRecap> {
-  const session = await SessionRepo.getSessionRecap(sessionId)
-
+): Promise<void> {
   if (!isTeacher) {
     if (
       !sessionUtils.isSessionParticipant(
@@ -1253,6 +1257,15 @@ export async function getSessionRecap(
       )
     }
   }
+}
+
+export async function getSessionRecap(
+  sessionId: Ulid,
+  userId: Ulid,
+  isTeacher: boolean
+): Promise<SessionRepo.SessionForSessionRecap> {
+  const session = await SessionRepo.getSessionRecap(sessionId)
+  await ensureCanViewSessionRecap(session, userId, isTeacher)
 
   return session
 }

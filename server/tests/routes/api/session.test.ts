@@ -33,6 +33,7 @@ import { ReportSessionError } from '../../../utils/session-utils'
 import { getUuid } from '../../../models/pgUtils'
 import { RoleContext } from '../../../services/UserRolesService'
 import { USER_ROLES } from '../../../constants'
+import { NotAllowedError } from '../../../models/Errors'
 
 function isAdmin(
   req: ExpressRequest<string, unknown>,
@@ -271,24 +272,45 @@ describe('routeSession', () => {
   })
 
   describe('POST /api/session/recap-dms', () => {
-    test('returns recap session dms session', async () => {
-      const currentSession = buildCurrentSession()
-      const currentSessionPublic = buildCurrentSessionPublic(currentSession)
-      mockedSessionService.getRecapSessionForDms.mockResolvedValueOnce(
-        currentSession
+    test.each([
+      ['a non-teacher', undefined, false],
+      ['a teacher', new RoleContext(['teacher'], 'teacher', 'teacher'), true],
+    ] as const)(
+      'returns recap session dms session for %s',
+      async (_, roleContext, isTeacher) => {
+        if (roleContext) mockUser = buildUser({ roleContext })
+        const currentSession = buildCurrentSession()
+        const currentSessionPublic = buildCurrentSessionPublic(currentSession)
+        mockedSessionService.getRecapSessionForDms.mockResolvedValueOnce(
+          currentSession
+        )
+
+        const response = await sendPost('/api/session/recap-dms', {
+          sessionId: currentSession.id,
+        })
+        expect(response.status).toBe(200)
+        expect(mockedSessionService.getRecapSessionForDms).toHaveBeenCalledWith(
+          currentSession.id,
+          mockUser.id,
+          isTeacher
+        )
+        expect(response.body).toEqual({
+          sessionId: currentSession.id,
+          data: currentSessionPublic,
+        })
+      }
+    )
+
+    test('refuses a user who is not allowed to view the session', async () => {
+      mockedSessionService.getRecapSessionForDms.mockRejectedValueOnce(
+        new NotAllowedError('Only session participants are allowed')
       )
 
       const response = await sendPost('/api/session/recap-dms', {
-        sessionId: currentSession.id,
+        sessionId: getUuid(),
       })
-      expect(response.status).toBe(200)
-      expect(mockedSessionService.getRecapSessionForDms).toHaveBeenCalledWith(
-        currentSession.id
-      )
-      expect(response.body).toEqual({
-        sessionId: currentSession.id,
-        data: currentSessionPublic,
-      })
+      expect(response.status).toBe(403)
+      expect(response.body.data).toBeUndefined()
     })
   })
 

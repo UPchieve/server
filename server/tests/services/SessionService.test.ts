@@ -3,6 +3,7 @@ import * as FeatureFlagService from '../../services/FeatureFlagService'
 import * as SessionRepo from '../../models/Session/queries'
 import * as SessionAudioRepo from '../../models/SessionAudio'
 import * as StudentRepo from '../../models/Student'
+import * as TeacherRepo from '../../models/Teacher'
 import * as UserRepo from '../../models/User'
 import {
   SESSION_REPORT_REASON,
@@ -11,11 +12,17 @@ import {
 } from '../../constants'
 import { mocked } from 'jest-mock'
 import {
+  buildCurrentSession,
+  buildRecapSession,
   buildSession,
   buildUserContactInfo,
   buildVolunteer,
 } from '../mocks/generate'
-import { LookupError, UnauthorizedFeature } from '../../models/Errors'
+import {
+  LookupError,
+  NotAllowedError,
+  UnauthorizedFeature,
+} from '../../models/Errors'
 import { getDbUlid } from '../../models/pgUtils'
 import { GetSessionByIdResult } from '../../models/Session'
 import {
@@ -35,6 +42,7 @@ jest.mock('../../models/User/queries')
 jest.mock('../../models/UserAction/queries')
 jest.mock('../../models/SessionAudio')
 jest.mock('../../models/Student/queries')
+jest.mock('../../models/Teacher')
 jest.mock('../../services/FeatureFlagService')
 jest.mock('../../services/UserService')
 jest.mock('../../services/SessionFlagsService')
@@ -51,6 +59,7 @@ describe('SessionService', () => {
   const mockedSessionAudioRepo = mocked(SessionAudioRepo)
   const mockFeatureFlagService = mocked(FeatureFlagService)
   const mockStudentRepo = mocked(StudentRepo)
+  const mockedTeacherRepo = mocked(TeacherRepo)
   const mockedUserRepo = mocked(UserRepo)
   const mockedCache = mocked(cache)
   const mockedQueueService = mocked(QueueService)
@@ -516,5 +525,106 @@ describe('SessionService', () => {
       expect(mockSessionRepo.getSessionById).not.toHaveBeenCalled()
       expect(mockSessionRepo.updateSessionPhotoKey).not.toHaveBeenCalled()
     })
+  })
+
+  describe('session recap access', () => {
+    const studentId = getDbUlid()
+    const volunteerId = getDbUlid()
+    const otherId = getDbUlid()
+
+    const cases = [
+      {
+        who: 'a participant',
+        userId: studentId,
+        isTeacher: false,
+        classStudents: [],
+        allowed: true,
+      },
+      {
+        who: 'the volunteer participant',
+        userId: volunteerId,
+        isTeacher: false,
+        classStudents: [],
+        allowed: true,
+      },
+      {
+        who: 'a non-participant',
+        userId: otherId,
+        isTeacher: false,
+        classStudents: [],
+        allowed: false,
+      },
+      {
+        who: 'a teacher of the student',
+        userId: otherId,
+        isTeacher: true,
+        classStudents: [studentId],
+        allowed: true,
+      },
+      {
+        who: 'a teacher of another student',
+        userId: otherId,
+        isTeacher: true,
+        classStudents: [getDbUlid()],
+        allowed: false,
+      },
+    ]
+
+    test.each(cases)(
+      'getSessionRecap for $who, allowed is $allowed',
+      async ({ userId, isTeacher, classStudents, allowed }) => {
+        mockedTeacherRepo.getAllStudentsForTeacher.mockResolvedValue(
+          classStudents
+        )
+        mockSessionRepo.getSessionRecap.mockResolvedValue(
+          buildRecapSession({ studentId, volunteerId })
+        )
+        const result = SessionService.getSessionRecap(
+          getDbUlid(),
+          userId,
+          isTeacher
+        )
+        if (allowed) await expect(result).resolves.toBeDefined()
+        else await expect(result).rejects.toThrow(NotAllowedError)
+      }
+    )
+
+    test.each([
+      {
+        who: 'a participant',
+        userId: studentId,
+        isTeacher: false,
+        allowed: true,
+      },
+      {
+        who: 'a non-participant',
+        userId: otherId,
+        isTeacher: false,
+        allowed: false,
+      },
+      {
+        who: 'a teacher of the student',
+        userId: otherId,
+        isTeacher: true,
+        allowed: true,
+      },
+    ])(
+      'getRecapSessionForDms for $who, allowed is $allowed',
+      async ({ userId, isTeacher, allowed }) => {
+        mockedTeacherRepo.getAllStudentsForTeacher.mockResolvedValue([
+          studentId,
+        ])
+        mockSessionRepo.getCurrentSessionBySessionId.mockResolvedValue(
+          buildCurrentSession({ studentId, volunteerId })
+        )
+        const result = SessionService.getRecapSessionForDms(
+          getDbUlid(),
+          userId,
+          isTeacher
+        )
+        if (allowed) await expect(result).resolves.toBeDefined()
+        else await expect(result).rejects.toThrow(NotAllowedError)
+      }
+    )
   })
 })

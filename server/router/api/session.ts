@@ -157,9 +157,13 @@ export function routeSession(router: Router) {
 
   router.route('/session/recap-dms').post(async function (req, res) {
     try {
+      const user = extractUser(req)
       const sessionId = asString(req.body.sessionId)
-      const currentSession =
-        await SessionService.getRecapSessionForDms(sessionId)
+      const currentSession = await SessionService.getRecapSessionForDms(
+        sessionId,
+        user.id,
+        user.roleContext.isActiveRole('teacher')
+      )
       if (!currentSession) {
         resError(res, new LookupError('No current session'), 404)
       } else {
