@@ -96,12 +96,14 @@ export default function (server: http.Server) {
       'Socket.IO connection'
     )
 
-    socket.on('disconnect', (reason) => {
+    socket.on('disconnect', (reason, description) => {
       logger.info(
         {
           engineSid: (socket.conn as any).id,
           socketId: socket.id,
           reason,
+          // Only 'transport error' comes with a cause, e.g. 'overlap from client'.
+          cause: description?.message,
         },
         'Socket.IO disconnect'
       )
