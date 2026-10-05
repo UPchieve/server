@@ -36,6 +36,7 @@ import { RoleContext } from '../../services/UserRolesService'
 import * as cache from '../../cache'
 import QueueService from '../../services/QueueService'
 import { Jobs } from '../../worker/jobs'
+import * as PhotoDnaService from '../../services/PhotoDnaService'
 
 jest.mock('../../models/Session/queries')
 jest.mock('../../models/User/queries')
@@ -47,6 +48,7 @@ jest.mock('../../services/FeatureFlagService')
 jest.mock('../../services/UserService')
 jest.mock('../../services/SessionFlagsService')
 jest.mock('../../services/QueueService')
+jest.mock('../../services/PhotoDnaService')
 jest.mock('../../cache')
 
 describe('SessionService', () => {
@@ -63,6 +65,7 @@ describe('SessionService', () => {
   const mockedUserRepo = mocked(UserRepo)
   const mockedCache = mocked(cache)
   const mockedQueueService = mocked(QueueService)
+  const mockedPhotoDnaService = mocked(PhotoDnaService)
 
   describe('reportSession', () => {
     test('should ban the user with ban_type of COMPLETE when reported for STUDENT_RUDE', async () => {
@@ -538,6 +541,33 @@ describe('SessionService', () => {
   })
 
   describe('saveSessionImage', () => {
+    test('does not save a session image rejected by PhotoDNA', async () => {
+      const sessionId = getDbUlid()
+      const userId = getDbUlid()
+      const image = {
+        buffer: Buffer.from('fake-image-data'),
+        mimetype: 'image/png',
+      } as Express.Multer.File
+      mockedPhotoDnaService.checkAgainstPhotoDNA.mockRejectedValueOnce(
+        new Error('PhotoDNA match')
+      )
+
+      await expect(
+        SessionService.saveSessionImage({
+          sessionId,
+          userId,
+          isVolunteer: false,
+          image,
+        })
+      ).rejects.toThrow('PhotoDNA match')
+      expect(mockedPhotoDnaService.checkAgainstPhotoDNA).toHaveBeenCalledWith(
+        image,
+        userId,
+        sessionId
+      )
+      expect(mockSessionRepo.updateSessionPhotoKey).not.toHaveBeenCalled()
+    })
+
     test('should reject the upload when the blockSessionImageUpload flag is enabled', async () => {
       const sessionId = getDbUlid()
       const userId = getDbUlid()

@@ -46,7 +46,7 @@ export async function insertModerationInfraction(
         `Failed to insert moderation infraction for user ${data.userId}, session ${data.sessionId}`
       )
     const inserted = result[0]
-    const reason = inserted.reason as { [key: string]: any }
+    const reason = inserted.reason as InfractionReasons
 
     return makeSomeRequired({ ...inserted, reason }, [
       'id',

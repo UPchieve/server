@@ -9,6 +9,10 @@ import {
 } from 'unpdf'
 import sharp from 'sharp'
 
+export const kiloToBytes = (kilobytes: number) => kilobytes * 1000
+export const mbToBytes = (megabytes: number) => megabytes * kiloToBytes(1000)
+export const gigaToBytes = (gigabytes: number) => gigabytes * mbToBytes(1000)
+
 export function readCsvFromBuffer<T>(
   buffer: Buffer,
   requiredColumns: string[]

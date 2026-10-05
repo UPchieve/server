@@ -196,10 +196,16 @@ export class UnsupportedFileTypeError extends CustomError {
   }
 }
 
+export class PhotoDnaServiceError extends CaughtError {
+  readonly httpStatus = 503
+  readonly defaultClientMessage =
+    "Your image can't be uploaded at this time. Please reach out to support at support@upchieve.org for assistance."
+}
+
 export class PhotoDnaMatchError extends CustomError {
   constructor() {
     super(
-      "This image can't be uploaded at this time. Please reach out to support at support@upchieve.org for assistance."
+      "Your image can't be uploaded at this time. Please reach out to support at support@upchieve.org for assistance."
     )
   }
 }

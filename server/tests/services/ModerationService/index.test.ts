@@ -545,6 +545,35 @@ describe('ModerationService', () => {
       })
     }
     describe('weighModerationInfractions', () => {
+      it('reads categories from both legacy and structured PhotoDNA reasons', () => {
+        const infractions = [
+          buildModerationInfractionRow('userId', 'sessionId', {
+            reason: { photoDna: ['trackingId:old', '[object Object]'] },
+          }),
+          buildModerationInfractionRow('userId', 'sessionId', {
+            reason: {
+              photoDna: {
+                contentId: null,
+                trackingId: 'new',
+                matchFlags: [],
+              },
+            },
+          }),
+          buildModerationInfractionWithReason(violenceReason),
+        ]
+
+        expect(
+          ModerationService.getReasonsFromInfractions(infractions)
+        ).toEqual([
+          'photoDna',
+          'photoDna',
+          LiveMediaModerationCategories.VIOLENCE,
+        ])
+        expect(
+          ModerationService.getStreamStoppingReasonsFromInfractions(infractions)
+        ).toEqual([LiveMediaModerationCategories.VIOLENCE])
+      })
+
       it.each([
         [LiveMediaModerationCategories.PROFANITY, 1],
         [LiveMediaModerationCategories.DRUGS, 1],

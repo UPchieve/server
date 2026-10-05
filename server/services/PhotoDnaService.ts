@@ -2,10 +2,13 @@ import axios from 'axios'
 import * as AzureService from './AzureService'
 import * as ModerationRepo from '../models/ModerationInfractions'
 import config from '../config'
-import { InfractionReasons } from '../models/ModerationInfractions'
-import { PhotoDnaMatchError } from '../models/Errors'
+import {
+  PhotoDnaInfractionReason,
+  PhotoDnaMatchFlag,
+} from '../models/ModerationInfractions'
+import { PhotoDnaMatchError, PhotoDnaServiceError } from '../models/Errors'
 import { getFileType } from '../utils/image-utils'
-import logger from '../logger'
+import { getPhotoDnaMatchCheckFlag } from './FeatureFlagService'
 
 const SUPPORTED_MIME_TYPES = new Set([
   'image/jpeg',
@@ -20,12 +23,7 @@ function getEndpoint(): string {
   return `https://${host}/photodna/v1.0/Match`
 }
 
-export interface PhotoDnaMatchFlag {
-  Source: string
-  Violations: string[]
-  MatchDistance: number
-  AdvancedInfo: Array<{ Key: string; Value: string }>
-}
+export type { PhotoDnaMatchFlag } from '../models/ModerationInfractions'
 
 export interface PhotoDnaMatchResponse {
   Status: { Code: number; Description: string; Exception: string | null }
@@ -38,19 +36,18 @@ export interface PhotoDnaMatchResponse {
   TrackingId: string
 }
 
-export function photoDnaMatchToInfractionReasons(
-  res: PhotoDnaMatchResponse
-): InfractionReasons {
-  const reasons: string[] = []
+export type PhotoDnaCheckResult = 'disabled' | 'unsupported' | 'clean'
 
-  if (res.ContentId) reasons.push(`contentId:${res.ContentId}`)
-  reasons.push(`trackingId:${res.TrackingId}`)
-
-  for (const flag of res.MatchDetails?.MatchFlags ?? []) {
-    reasons.push(String(flag))
+export function photoDnaMatchToInfractionReasons(res: PhotoDnaMatchResponse): {
+  photoDna: PhotoDnaInfractionReason
+} {
+  return {
+    photoDna: {
+      contentId: res.ContentId,
+      trackingId: res.TrackingId,
+      matchFlags: res.MatchDetails?.MatchFlags ?? [],
+    },
   }
-
-  return { photoDna: reasons }
 }
 
 export async function scanImage(
@@ -58,70 +55,78 @@ export async function scanImage(
   mimeType: string,
   userId: string,
   sessionId?: string
-): Promise<any> {
-  if (!SUPPORTED_MIME_TYPES.has(mimeType)) {
-    return
-  }
-
-  const key = config.photoDnaKey
-
+): Promise<PhotoDnaMatchResponse> {
+  let data: PhotoDnaMatchResponse
   try {
     const response = await axios.post<PhotoDnaMatchResponse>(
       getEndpoint(),
       image.buffer,
       {
         headers: {
-          'Ocp-Apim-Subscription-Key': key,
+          'Ocp-Apim-Subscription-Key': config.photoDnaKey,
           'Content-Type': mimeType,
         },
       }
     )
-
-    const data = response.data
-
-    if (data.Status?.Code !== 3000) {
-      logger.error(
-        `PhotoDNA returned non-success status code ${data.Status?.Code}: ${data.Status?.Description}`
-      )
-      throw new PhotoDnaMatchError()
-    }
-
-    if (data.IsMatch) {
-      const reasons = photoDnaMatchToInfractionReasons(data)
-      const quarantinedOn = new Date()
-      const result = await ModerationRepo.insertModerationInfraction(
-        { userId, reason: reasons, sessionId },
-        undefined,
-        quarantinedOn
-      )
-
-      const moderationInfractionId = result.id
-
-      await AzureService.uploadBlobFile(
-        config.photoDnaStorageAccountName,
-        config.photoDnaStorageContainer,
-        moderationInfractionId,
-        image
-      )
-    }
-
-    return data
+    data = response.data
   } catch (err) {
-    logger.error(err)
-    throw new PhotoDnaMatchError()
+    throw new PhotoDnaServiceError({
+      message: 'PhotoDNA request failed',
+      context: {
+        userId,
+        sessionId,
+        ...(axios.isAxiosError(err)
+          ? { code: err.code, httpStatus: err.response?.status }
+          : {}),
+      },
+    })
   }
+
+  if (data?.Status?.Code !== 3000 || typeof data?.IsMatch !== 'boolean') {
+    throw new PhotoDnaServiceError({
+      message: 'PhotoDNA returned an unsuccessful or invalid response',
+      context: {
+        userId,
+        sessionId,
+        statusCode: data?.Status?.Code,
+        trackingId: data?.TrackingId,
+      },
+    })
+  }
+
+  if (data.IsMatch) {
+    const reasons = photoDnaMatchToInfractionReasons(data)
+    const quarantinedOn = new Date()
+    const result = await ModerationRepo.insertModerationInfraction(
+      { userId, reason: reasons, sessionId },
+      undefined,
+      quarantinedOn
+    )
+
+    await AzureService.uploadBlobFile(
+      config.photoDnaStorageAccountName,
+      config.photoDnaStorageContainer,
+      result.id,
+      image
+    )
+  }
+
+  return data
 }
 
 export async function checkAgainstPhotoDNA(
   file: Express.Multer.File,
   userId: string,
   sessionId?: string
-): Promise<void> {
-  const sniffed = getFileType(file.buffer)?.mime
-  if (!sniffed?.startsWith('image/')) return
+): Promise<PhotoDnaCheckResult> {
+  if (!(await getPhotoDnaMatchCheckFlag(userId))) return 'disabled'
 
-  const result = await scanImage(file, file.mimetype, userId, sessionId)
-  if (result?.IsMatch) {
+  const sniffed = getFileType(file.buffer)?.mime
+  if (!sniffed || !SUPPORTED_MIME_TYPES.has(sniffed)) return 'unsupported'
+
+  const result = await scanImage(file, sniffed, userId, sessionId)
+  if (result.IsMatch) {
     throw new PhotoDnaMatchError()
   }
+  return 'clean'
 }

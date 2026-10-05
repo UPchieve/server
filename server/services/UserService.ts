@@ -1,4 +1,5 @@
 import crypto from 'crypto'
+import { mbToBytes } from '../utils/file-utils'
 import { omit } from 'lodash'
 import { Ulid, Uuid } from '../models/pgUtils'
 import { getPhotoIdUrl } from './AwsService'
@@ -49,7 +50,6 @@ import * as UsersSchoolsRepo from '../models/UsersSchools'
 import * as StudentRepo from '../models/Student'
 import * as AwsService from './AwsService'
 import * as PhotoDnaService from './PhotoDnaService'
-import { getPhotoDnaMatchCheckFlag } from './FeatureFlagService'
 
 export async function parseUser(userId: Ulid) {
   const user = await getLegacyUserObject(userId)
@@ -741,14 +741,23 @@ export function getUserIdByPhone(phone: string): Promise<Ulid | undefined> {
   return UserRepo.getUserIdByPhone(phone)
 }
 
+const MAX_ID_PHOTO_SIZE_BYTES = mbToBytes(4)
+
 export async function uploadVolunteerPhoto(
   userId: Ulid,
   image: Express.Multer.File,
   ip?: string
 ) {
-  const isPhotoDnaMatchCheckEnabled = await getPhotoDnaMatchCheckFlag(userId)
-  if (isPhotoDnaMatchCheckEnabled) {
-    await PhotoDnaService.checkAgainstPhotoDNA(image, userId)
+  if (image.buffer.length > MAX_ID_PHOTO_SIZE_BYTES) {
+    throw new InputError('Photo must be 4 MB or smaller.')
+  }
+
+  const photoDnaCheck = await PhotoDnaService.checkAgainstPhotoDNA(
+    image,
+    userId
+  )
+  if (photoDnaCheck === 'unsupported') {
+    throw new InputError('Please upload a JPEG, PNG, GIF, BMP, or TIFF image.')
   }
 
   const photoIdS3Key = crypto.randomBytes(32).toString('hex')

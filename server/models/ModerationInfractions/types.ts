@@ -1,4 +1,20 @@
-export type InfractionReasons = { [key: string]: string[] }
+export type PhotoDnaMatchFlag = {
+  Source: string
+  Violations: string[]
+  MatchDistance: number
+  AdvancedInfo: Array<{ Key: string; Value: string }>
+}
+
+export type PhotoDnaInfractionReason = {
+  contentId: string | null
+  trackingId: string
+  matchFlags: PhotoDnaMatchFlag[]
+}
+
+// String arrays also cover PhotoDNA records saved before structured details.
+export type InfractionReasons =
+  | { [key: string]: string[] }
+  | { photoDna: PhotoDnaInfractionReason }
 
 export type InsertModerationInfractionArgs = {
   userId: string

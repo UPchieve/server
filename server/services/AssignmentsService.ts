@@ -35,7 +35,6 @@ import { isEmpty } from 'lodash'
 import * as ModerationTypes from './ModerationService/types'
 import { extractPdfContent } from '../utils/file-utils'
 import { moderateAssignmentInfo } from './ModerationService/index'
-import { getPhotoDnaMatchCheckFlag } from './FeatureFlagService'
 
 export class UnauthorizedActionError extends CaughtError {
   readonly httpStatus = 403
@@ -117,10 +116,7 @@ export async function upsertAssignment(
   await ensureAuthorizedToUpsertAssignment(userId, data.classId, data.id)
   validateSupportedFileTypes(files)
 
-  const isPhotoDnaMatchCheckEnabled = await getPhotoDnaMatchCheckFlag(userId)
-  if (isPhotoDnaMatchCheckEnabled) {
-    await checkFilesForPhotoDna(files, userId)
-  }
+  await checkFilesForPhotoDna(files, userId)
 
   const moderationInfractions = await ModerationService.moderateAssignmentInfo(
     `${data.title} ${data.description}`
@@ -196,10 +192,7 @@ export async function createAssignmentForClasses(
     )
   )
   validateSupportedFileTypes(files)
-  const isPhotoDnaMatchCheckEnabled = await getPhotoDnaMatchCheckFlag(userId)
-  if (isPhotoDnaMatchCheckEnabled) {
-    await checkFilesForPhotoDna(files, userId)
-  }
+  await checkFilesForPhotoDna(files, userId)
 
   const moderationInfractions = await ModerationService.moderateAssignmentInfo(
     `${data.title} ${data.description}`

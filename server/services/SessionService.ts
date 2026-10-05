@@ -1598,11 +1598,7 @@ export async function saveSessionImage({
   }
 
   const session = await SessionRepo.getSessionById(sessionId)
-  const isPhotoDnaMatchCheckEnabled =
-    await FeatureFlagsService.getPhotoDnaMatchCheckFlag(userId)
-  if (isPhotoDnaMatchCheckEnabled) {
-    await PhotoDnaService.checkAgainstPhotoDNA(image, userId, sessionId)
-  }
+  await PhotoDnaService.checkAgainstPhotoDNA(image, userId, sessionId)
 
   const { isClean, failures } = await ModerationService.moderateImage(
     image.buffer,

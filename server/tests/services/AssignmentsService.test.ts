@@ -9,7 +9,6 @@ import { Assignment, StudentAssignment } from '../../models/Assignments'
 import { TransactionClient } from '../../db'
 import * as AzureService from '../../services/AzureService'
 import * as PhotoDnaService from '../../services/PhotoDnaService'
-import * as FeatureFlagService from '../../services/FeatureFlagService'
 import * as ImageUtils from '../../utils/image-utils'
 import { buildAssignment, buildTeacherClass } from '../mocks/generate'
 
@@ -19,7 +18,6 @@ jest.mock('../../models/TeacherClass')
 jest.mock('../../services/ModerationService')
 jest.mock('../../services/AzureService')
 jest.mock('../../services/PhotoDnaService')
-jest.mock('../../services/FeatureFlagService')
 jest.mock('../../utils/image-utils')
 const mockedAssignmentRepo = mocked(AssignmentRepo)
 const mockedTeacherRepo = mocked(TeacherRepo)
@@ -27,7 +25,6 @@ const mockedTeacherClassRepo = mocked(TeacherClassRepo)
 const mockedModerationService = mocked(ModerationService)
 const mockedAzureService = mocked(AzureService)
 const mockedPhotoDnaService = mocked(PhotoDnaService)
-const mockedFeatureFlagService = mocked(FeatureFlagService)
 const mockedImageUtils = mocked(ImageUtils)
 
 function buildFile(
@@ -45,7 +42,6 @@ function buildFile(
 
 beforeEach(() => {
   jest.resetAllMocks()
-  mockedFeatureFlagService.getPhotoDnaMatchCheckFlag.mockResolvedValue(true)
 })
 
 describe('upsertAssignment', () => {
@@ -451,21 +447,6 @@ describe('upsertAssignment', () => {
       expect(mockedModerationService.moderateImage).not.toHaveBeenCalled()
       expect(mockedAssignmentRepo.upsertAssignment).not.toHaveBeenCalled()
       expect(mockedAzureService.uploadBlobFile).not.toHaveBeenCalled()
-    })
-
-    test('skips the PhotoDNA check when the feature flag is disabled', async () => {
-      mockedFeatureFlagService.getPhotoDnaMatchCheckFlag.mockResolvedValue(
-        false
-      )
-      mockedModerationService.moderateImage.mockResolvedValue({
-        isClean: true,
-        failures: [],
-      })
-
-      await AssignmentsService.upsertAssignment('teacher-id', data, files)
-
-      expect(mockedPhotoDnaService.checkAgainstPhotoDNA).not.toHaveBeenCalled()
-      expect(mockedAssignmentRepo.upsertAssignment).toHaveBeenCalled()
     })
 
     test('throws an error without saving the assignment or uploading any files for an unsupported file type', async () => {
