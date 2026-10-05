@@ -981,6 +981,10 @@ const FAILED_JOIN_REASONS = {
   CAN_NOT_BE_YOUR_OWN_VOLUNTEER: 'CAN_NOT_BE_YOUR_OWN_VOLUNTEER',
 } as const
 
+const SESSION_JOIN_ERROR_CODES = {
+  SESSION_ENDED: 'SESSION_ENDED',
+} as const
+
 // TODO(alex.lindsay): Audit all these session join failure reasons and failure state.
 export async function ensureCanJoinSession(
   user: UserContactInfo,
@@ -1045,6 +1049,13 @@ export async function ensureCanJoinSession(
         ? 'The student has already ended this session. Thanks for trying, we really appreciate it!'
         : 'This session has ended. You can request a new session on the dashboard!',
       clientTitle: 'Session Ended',
+      code: sessionUtils.isSessionParticipant(
+        session.studentId,
+        session.volunteerId,
+        user.id
+      )
+        ? SESSION_JOIN_ERROR_CODES.SESSION_ENDED
+        : undefined,
       context: { sessionId, joiningUserId: user.id },
     })
   }

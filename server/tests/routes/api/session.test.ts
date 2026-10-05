@@ -33,7 +33,7 @@ import { ReportSessionError } from '../../../utils/session-utils'
 import { getUuid } from '../../../models/pgUtils'
 import { RoleContext } from '../../../services/UserRolesService'
 import { USER_ROLES } from '../../../constants'
-import { NotAllowedError } from '../../../models/Errors'
+import { NotAllowedError, SessionJoinError } from '../../../models/Errors'
 
 function isAdmin(
   req: ExpressRequest<string, unknown>,
@@ -196,6 +196,29 @@ describe('routeSession', () => {
       expect(response.body).toEqual({
         session: currentSessionPublic,
         isZwibserveSession: false,
+      })
+    })
+
+    test('returns the join refusal code', async () => {
+      mockedSessionService.joinSession.mockRejectedValueOnce(
+        new SessionJoinError({
+          message: 'Attempting to join ended session',
+          clientMessage: 'This session has ended.',
+          clientTitle: 'Session Ended',
+          code: 'SESSION_ENDED',
+        })
+      )
+
+      const response = await sendPost('/api/session/join', {
+        sessionId: getUuid(),
+        joinedFrom: 'dashboard',
+      })
+      expect(response.status).toBe(422)
+      expect(response.body).toEqual({
+        err: 'This session has ended.',
+        clientMessage: 'This session has ended.',
+        clientTitle: 'Session Ended',
+        code: 'SESSION_ENDED',
       })
     })
   })

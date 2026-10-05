@@ -286,6 +286,42 @@ describe('SessionService', () => {
         expect(actual).toEqual(session)
       })
     })
+
+    describe('Ended sessions', () => {
+      const studentId = getDbUlid()
+      const volunteerId = getDbUlid()
+
+      it.each([
+        ['student', studentId, 'student', 'SESSION_ENDED'],
+        ['volunteer', volunteerId, 'volunteer', 'SESSION_ENDED'],
+        ['another student', getDbUlid(), 'student', undefined],
+        ['another volunteer', getDbUlid(), 'volunteer', undefined],
+      ] as const)(
+        'Refuses the %s with code %s',
+        async (_, joiningUserId, role, code) => {
+          const session = buildSession({
+            studentId,
+            volunteerId,
+            endedAt: new Date(),
+          })
+          mockSessionRepo.getCurrentSessionBySessionId.mockResolvedValue(
+            session as CurrentSession
+          )
+          mockedUserRepo.getUsersBanStatuses.mockResolvedValue([])
+          const joiningUser = buildUserContactInfo({
+            id: joiningUserId,
+            roleContext: new RoleContext([role], role),
+          })
+
+          const error = await ensureCanJoinSession(
+            joiningUser,
+            session.id
+          ).catch((e) => e)
+          expect(error.message).toBe('Attempting to join ended session')
+          expect(error.code).toBe(code)
+        }
+      )
+    })
   })
 
   describe('isRecapDmsAvailable', () => {

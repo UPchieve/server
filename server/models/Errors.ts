@@ -5,24 +5,28 @@ export abstract class CaughtError extends CustomError {
   abstract readonly defaultClientMessage: string
   readonly clientMessage?: string
   readonly clientTitle?: string
+  readonly code?: string
   readonly context: Record<string, unknown>
   readonly cause?: unknown
   constructor({
     message,
     clientMessage,
     clientTitle,
+    code,
     context = {},
     cause,
   }: {
     message: string
     clientMessage?: string
     clientTitle?: string
+    code?: string
     context?: Record<string, unknown>
     cause?: unknown
   }) {
     super(message)
     this.clientMessage = clientMessage
     this.clientTitle = clientTitle
+    this.code = code
     this.context = context
     this.cause = cause
   }

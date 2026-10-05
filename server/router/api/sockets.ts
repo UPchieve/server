@@ -14,6 +14,7 @@ import {
   USER_BAN_REASONS,
 } from '../../constants'
 import logger from '../../logger'
+import { CaughtError } from '../../models/Errors'
 import { Ulid } from '../../models/pgUtils'
 import * as SessionRepo from '../../models/Session/queries'
 import * as SessionHoldsService from '../../services/SessionHoldsService'
@@ -138,6 +139,7 @@ export function routeSockets(io: Server): void {
           callback({
             sessionId: data.sessionId,
             reason: error instanceof Error ? error.message : 'unknown error',
+            code: error instanceof CaughtError ? error.code : undefined,
             success: false,
           })
         }

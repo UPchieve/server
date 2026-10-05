@@ -36,6 +36,7 @@ export function resError(
       err: clientMessage,
       clientMessage,
       clientTitle: err.clientTitle,
+      code: err.code,
     })
     return
   }
