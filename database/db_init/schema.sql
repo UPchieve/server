@@ -221,6 +221,23 @@ END
 $$;
 
 
+--
+-- Name: record_nths_group_member_title(); Type: FUNCTION; Schema: upchieve; Owner: -
+--
+
+CREATE FUNCTION upchieve.record_nths_group_member_title() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    IF TG_OP = 'INSERT' OR NEW.title IS DISTINCT FROM OLD.title THEN
+        INSERT INTO upchieve.nths_group_member_title_histories (nths_group_id, user_id, title)
+            VALUES (NEW.nths_group_id, NEW.user_id, NEW.title);
+    END IF;
+    RETURN NULL;
+END;
+$$;
+
+
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
@@ -3154,6 +3171,61 @@ COMMENT ON COLUMN upchieve.nths_group_member_roles.role_id IS 'not_pii: Foreign 
 --
 
 COMMENT ON COLUMN upchieve.nths_group_member_roles.updated_at IS 'not_pii: Timestamp when the record was last updated';
+
+
+--
+-- Name: nths_group_member_title_histories; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.nths_group_member_title_histories (
+    id uuid DEFAULT upchieve.generate_ulid() NOT NULL,
+    nths_group_id uuid NOT NULL,
+    user_id uuid NOT NULL,
+    title text,
+    recorded_at timestamp with time zone DEFAULT clock_timestamp() NOT NULL
+);
+
+
+--
+-- Name: TABLE nths_group_member_title_histories; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON TABLE upchieve.nths_group_member_title_histories IS 'Append only log of every title given to an NTHS group member, written by a trigger on upchieve.nths_group_members and seeded once with the titles held when it was created';
+
+
+--
+-- Name: COLUMN nths_group_member_title_histories.id; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.nths_group_member_title_histories.id IS 'not_pii: Primary key';
+
+
+--
+-- Name: COLUMN nths_group_member_title_histories.nths_group_id; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.nths_group_member_title_histories.nths_group_id IS 'not_pii: ID of the upchieve.nths_groups row';
+
+
+--
+-- Name: COLUMN nths_group_member_title_histories.user_id; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.nths_group_member_title_histories.user_id IS 'not_pii: ID of the upchieve.users row';
+
+
+--
+-- Name: COLUMN nths_group_member_title_histories.title; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.nths_group_member_title_histories.title IS 'not_pii: Title the member was given';
+
+
+--
+-- Name: COLUMN nths_group_member_title_histories.recorded_at; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.nths_group_member_title_histories.recorded_at IS 'not_pii: When the title was recorded; rows from the one-off seed hold the seed time';
 
 
 --
@@ -11982,6 +12054,14 @@ ALTER TABLE ONLY upchieve.nths_group_member_roles
 
 
 --
+-- Name: nths_group_member_title_histories nths_group_member_title_histories_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_group_member_title_histories
+    ADD CONSTRAINT nths_group_member_title_histories_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: nths_group_members nths_group_members_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -13417,6 +13497,13 @@ CREATE INDEX nths_group_advisors_group_id ON upchieve.nths_advisors USING btree 
 
 
 --
+-- Name: nths_group_member_title_histories_nths_group_id_user_id_idx; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX nths_group_member_title_histories_nths_group_id_user_id_idx ON upchieve.nths_group_member_title_histories USING btree (nths_group_id, user_id);
+
+
+--
 -- Name: nths_groups_invite_code_index; Type: INDEX; Schema: upchieve; Owner: -
 --
 
@@ -13708,6 +13795,13 @@ CREATE INDEX volunteer_references_user_id_index ON upchieve.volunteer_references
 --
 
 CREATE TRIGGER trg_freeze_signup_grade_level_id BEFORE UPDATE OF signup_grade_level_id ON upchieve.users_grade_levels FOR EACH ROW EXECUTE FUNCTION upchieve.freeze_signup_grade_level_id();
+
+
+--
+-- Name: nths_group_members trg_record_nths_group_member_title; Type: TRIGGER; Schema: upchieve; Owner: -
+--
+
+CREATE TRIGGER trg_record_nths_group_member_title AFTER INSERT OR UPDATE OF title ON upchieve.nths_group_members FOR EACH ROW EXECUTE FUNCTION upchieve.record_nths_group_member_title();
 
 
 --
@@ -15715,4 +15809,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260917202149'),
     ('20260917202150'),
     ('20260918082750'),
-    ('20260918161310');
+    ('20260918161310'),
+    ('20261001122732');

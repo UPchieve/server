@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict Dl8VYiHEvrpvruFxagz9xOaWqNEWRlZWbTArYZubvU1mILE1e7PJc8JUR5SdT5o
+\restrict bPQhSKOVar3w9LENPfN0TbralXBaP73cV0LPCHCy83QLIp1lsrGeWgwYkTPRnMZ
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
 -- Dumped by pg_dump version 18.6
@@ -6303,6 +6303,14 @@ COPY upchieve.nths_group_member_roles (user_id, nths_group_id, role_id, updated_
 
 
 --
+-- Data for Name: nths_group_member_title_histories; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.nths_group_member_title_histories (id, nths_group_id, user_id, title, recorded_at) FROM stdin;
+\.
+
+
+--
 -- Data for Name: nths_group_members; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
@@ -9565,5 +9573,5 @@ SELECT pg_catalog.setval('upchieve.weekdays_id_seq', 1, false);
 -- PostgreSQL database dump complete
 --
 
-\unrestrict Dl8VYiHEvrpvruFxagz9xOaWqNEWRlZWbTArYZubvU1mILE1e7PJc8JUR5SdT5o
+\unrestrict bPQhSKOVar3w9LENPfN0TbralXBaP73cV0LPCHCy83QLIp1lsrGeWgwYkTPRnMZ
 
