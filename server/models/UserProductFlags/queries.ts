@@ -2,11 +2,79 @@ import { getClient, TransactionClient } from '../../db'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import { makeRequired, makeSomeOptional, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
-import {
-  ImpactStudyCampaign,
-  PublicUserProductFlags,
-  UserProductFlags,
-} from './types'
+import { ImpactStudyCampaign, UserProductFlags } from './types'
+import type { Json, Uuid } from '../../types/shared'
+
+type UserProductFlagsRow = {
+  userId: Uuid
+  sentReadyToCoachEmail: boolean
+  sentHourSummaryIntroEmail: boolean
+  sentInactiveThirtyDayEmail: boolean
+  sentInactiveSixtyDayEmail: boolean
+  sentInactiveNinetyDayEmail: boolean
+  gatesQualified: boolean
+  fallIncentiveEnrollmentAt: Date | null
+  impactStudyEnrollmentAt: Date | null
+  impactStudyCampaigns: Json | null
+  createdAt: Date
+  updatedAt: Date
+}
+
+function toImpactStudyCampaign(
+  value: ImpactStudyCampaignJson
+): ImpactStudyCampaign {
+  const { id, surveyId, viewCount, maxViewCount, rewardAmount } = value
+  return {
+    id,
+    surveyId,
+    viewCount,
+    maxViewCount,
+    rewardAmount: rewardAmount ?? undefined,
+    createdAt: new Date(value.createdAt),
+    submittedAt:
+      value.submittedAt != null ? new Date(value.submittedAt) : undefined,
+    launchedAt:
+      value.launchedAt != null ? new Date(value.launchedAt) : undefined,
+  }
+}
+
+function toImpactStudyCampaignsMap(
+  value: Record<string, ImpactStudyCampaignJson>
+) {
+  return Object.fromEntries(
+    Object.entries(value).map(([key, campaign]) => [
+      key,
+      toImpactStudyCampaign(campaign),
+    ])
+  )
+}
+
+function toUserProductFlags(row: UserProductFlagsRow): UserProductFlags {
+  const flags = makeSomeOptional(row, [
+    'fallIncentiveEnrollmentAt',
+    'impactStudyEnrollmentAt',
+    'impactStudyCampaigns',
+  ])
+  return {
+    userId: flags.userId,
+    sentReadyToCoachEmail: flags.sentReadyToCoachEmail,
+    sentHourSummaryIntroEmail: flags.sentHourSummaryIntroEmail,
+    sentInactiveThirtyDayEmail: flags.sentInactiveThirtyDayEmail,
+    sentInactiveSixtyDayEmail: flags.sentInactiveSixtyDayEmail,
+    sentInactiveNinetyDayEmail: flags.sentInactiveNinetyDayEmail,
+    gatesQualified: flags.gatesQualified,
+    fallIncentiveEnrollmentAt: flags.fallIncentiveEnrollmentAt,
+    impactStudyEnrollmentAt: flags.impactStudyEnrollmentAt,
+    createdAt: flags.createdAt,
+    updatedAt: flags.updatedAt,
+    impactStudyCampaigns:
+      row.impactStudyCampaigns != null
+        ? toImpactStudyCampaignsMap(
+            row.impactStudyCampaigns as Record<string, ImpactStudyCampaignJson>
+          )
+        : undefined,
+  }
+}
 
 export async function createUPFByUserId(
   userId: Ulid,
@@ -20,12 +88,7 @@ export async function createUPFByUserId(
       tc ?? getClient()
     )
     if (result.length) {
-      const upf = makeSomeOptional(result[0], [
-        'fallIncentiveEnrollmentAt',
-        'impactStudyEnrollmentAt',
-        'impactStudyCampaigns',
-      ])
-      return upf as UserProductFlags
+      return toUserProductFlags(result[0])
     }
     throw new RepoCreateError('Insert did not return new row')
   } catch (err) {
@@ -46,36 +109,7 @@ export async function getUPFByUserId(
     )
 
     if (result.length) {
-      const upf = makeSomeOptional(result[0], [
-        'fallIncentiveEnrollmentAt',
-        'impactStudyEnrollmentAt',
-        'impactStudyCampaigns',
-      ])
-      return upf as UserProductFlags
-    }
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
-export async function getPublicUPFByUserId(
-  userId: Ulid
-): Promise<PublicUserProductFlags | undefined> {
-  try {
-    const result = await pgQueries.getPublicUpfByUserId.run(
-      {
-        userId,
-      },
-      getClient()
-    )
-
-    if (result.length) {
-      const upf = makeSomeOptional(result[0], [
-        'fallIncentiveEnrollmentAt',
-        'impactStudyEnrollmentAt',
-        'impactStudyCampaigns',
-      ])
-      return upf as UserProductFlags
+      return toUserProductFlags(result[0])
     }
   } catch (err) {
     throw new RepoReadError(err)

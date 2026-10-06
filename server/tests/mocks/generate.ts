@@ -151,7 +151,8 @@ import type {
 import { IneligibleStudentsWithSchoolInfo } from '../../models/IneligibleStudent/queries'
 import { ZipCode } from '../../models/ZipCode/types'
 import { StudentAssignmentSubmissionPublic } from '../../contracts/assignments'
-import { NTHSGroupMemberWithRolePublic } from '../../contracts/nths'
+import { NTHSGroupMemberWithRolePublic } from '../../contracts/nths-group'
+import { UserProductFlagsPublic } from '../../contracts/product-flags'
 
 /** Suffixed with a uuid because users.email and parents_guardians.email are UNIQUE. */
 export function getEmail(): string {
@@ -1028,16 +1029,33 @@ export const buildUserProductFlags = (
   }
 }
 
-export function buildPublicProductFlags(
+export function buildUserProductFlagsPublic(
   overrides: Partial<UserProductFlags> = {}
-) {
+): UserProductFlagsPublic {
   const flags = buildUserProductFlags(overrides)
+
   return {
     userId: flags.userId,
     gatesQualified: flags.gatesQualified,
-    fallIncentiveEnrollmentAt: flags.fallIncentiveEnrollmentAt,
-    impactStudyEnrollmentAt: flags.impactStudyEnrollmentAt,
-    impactStudyCampaigns: flags.impactStudyCampaigns,
+    fallIncentiveEnrollmentAt: flags.fallIncentiveEnrollmentAt?.toISOString(),
+    impactStudyEnrollmentAt: flags.impactStudyEnrollmentAt?.toISOString(),
+    impactStudyCampaigns: flags.impactStudyCampaigns
+      ? Object.fromEntries(
+          Object.entries(flags.impactStudyCampaigns).map(([key, campaign]) => [
+            key,
+            {
+              id: campaign.id,
+              surveyId: campaign.surveyId,
+              viewCount: campaign.viewCount,
+              maxViewCount: campaign.maxViewCount,
+              rewardAmount: campaign.rewardAmount,
+              submittedAt: campaign.submittedAt?.toISOString(),
+              launchedAt: campaign.launchedAt?.toISOString(),
+              createdAt: campaign.createdAt.toISOString(),
+            },
+          ])
+        )
+      : undefined,
   }
 }
 

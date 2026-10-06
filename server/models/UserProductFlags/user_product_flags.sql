@@ -47,19 +47,6 @@ WHERE
     user_id = :userId!;
 
 
-/* @name getPublicUpfByUserId */
-SELECT
-    user_id,
-    gates_qualified,
-    fall_incentive_enrollment_at,
-    impact_study_enrollment_at,
-    impact_study_campaigns
-FROM
-    user_product_flags
-WHERE
-    user_id = :userId!;
-
-
 /* @name updateSentInactiveThirtyDayEmail */
 UPDATE
     user_product_flags
