@@ -9,7 +9,6 @@ import logger from '../../logger'
 import { Uuid } from '../../models/pgUtils'
 import { UserRole } from '../../models/User'
 import * as ClassLinkApiService from '../../services/ClassLinkApiService'
-import * as SchoolService from '../../services/SchoolService'
 import { SsoProvider } from '../../utils/auth-utils'
 
 export type ClassLinkPassportProfile = passport.Profile & {
@@ -35,6 +34,7 @@ export default class ClassLinkStrategy extends OAuth2Strategy {
     options.clientSecret = config.classlinkClientSecret
     options.passReqToCallback = true
     options.scope = 'full,profile,oneroster,openid'
+    options.state = true
 
     super(options as StrategyOptionsWithRequest, verify)
   }

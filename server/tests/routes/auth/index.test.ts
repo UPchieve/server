@@ -296,6 +296,51 @@ describe('AuthRouter.routes', () => {
     })
   })
 
+  describe('GET /auth/oauth2/redirect', () => {
+    function mockEndingAuthenticate() {
+      mockedPassport.authenticate.mockReturnValueOnce(((
+        _req: ExpressRequest,
+        res: ExpressResponse
+      ) => res.end()) as ReturnType<typeof passport.authenticate>)
+    }
+
+    test.each(['clever', 'classlink'])(
+      'restarts %s login through /auth/sso when state is missing',
+      async (provider) => {
+        const response = await sendGetQuery('/oauth2/redirect', {
+          provider,
+          code: 'provider-code',
+        })
+        expect(response.status).toBe(302)
+        expect(response.header.location).toBe(`/auth/sso?provider=${provider}`)
+        expect(mockedPassport.authenticate).not.toHaveBeenCalled()
+      }
+    )
+
+    test('restarts Clever Instant Login identified by referer', async () => {
+      const response = await agent
+        .get(AUTH_ROUTE + '/oauth2/redirect')
+        .set('Referer', 'https://clever.com/')
+        .query({ code: 'provider-code' })
+      expect(response.status).toBe(302)
+      expect(response.header.location).toBe('/auth/sso?provider=clever')
+      expect(mockedPassport.authenticate).not.toHaveBeenCalled()
+    })
+
+    test('authenticates when state is present', async () => {
+      mockEndingAuthenticate()
+      await sendGetQuery('/oauth2/redirect', {
+        provider: 'clever',
+        code: 'provider-code',
+        state: 'state',
+      })
+      expect(mockedPassport.authenticate).toHaveBeenCalledWith(
+        'clever',
+        expect.any(Function)
+      )
+    })
+  })
+
   describe('POST /auth/register/checkcred', () => {
     test('checks credentials', async () => {
       const email = getEmail()

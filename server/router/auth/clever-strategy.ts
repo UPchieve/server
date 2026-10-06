@@ -37,6 +37,7 @@ export default class CleverStrategy extends OAuth2Strategy {
     options.clientID = config.cleverClientId
     options.clientSecret = config.cleverClientSecret
     options.passReqToCallback = true
+    options.state = true
     options.customHeaders = {
       Authorization:
         'Basic ' +

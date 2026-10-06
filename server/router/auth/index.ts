@@ -149,6 +149,21 @@ export function routes(app: Express) {
       )
       return
     }
+
+    // Logins that come directly from the SSO provider instead of our
+    // platform (e.g. Clever Instant Login) arrive without a
+    // `state` parameter, so they can't be verified.
+    // Restart the login through our own flow, so the `state` can
+    // be added to the session.
+    if (
+      (provider === 'clever' || provider === 'classlink') &&
+      req.query.code &&
+      !req.query.state
+    ) {
+      res.redirect(`/auth/sso?${new URLSearchParams({ provider })}`)
+      return
+    }
+
     const strategy = provider
     passport.authenticate(
       strategy,
