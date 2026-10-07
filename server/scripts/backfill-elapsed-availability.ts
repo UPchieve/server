@@ -1,3 +1,4 @@
+import { Job } from 'bull'
 import moment from 'moment'
 import 'moment-timezone'
 import {
@@ -5,16 +6,13 @@ import {
   setVolunteerElapsedAvailabilityById,
 } from '../models/Volunteer/queries'
 import { getTotalElapsedAvailabilityForDateRange } from '../services/AvailabilityService'
-import { Jobs } from '../worker/jobs'
 import logger from '../logger'
 
-export default async function backfillElapsedAvailability() {
+export default async function backfillElapsedAvailability(job: Job<undefined>) {
   // Don't run before the daily 4:00 AM ET cron job
   const nowEt = moment.tz('America/New_York')
   if (nowEt.hour() < 5) {
-    logger.warn(
-      `${Jobs.BackfillElapsedAvailability}: exiting — must run after 8:00 AM ET`
-    )
+    logger.warn(`${job.name}: exiting — must run after 8:00 AM ET`)
     return
   }
 
@@ -45,13 +43,9 @@ export default async function backfillElapsedAvailability() {
     }
   }
 
-  logger.info(
-    `Successfully ${Jobs.BackfillElapsedAvailability}: ${totalUpdated} volunteers`
-  )
+  logger.info(`Successfully ${job.name}: ${totalUpdated} volunteers`)
 
   if (errors.length) {
-    throw new Error(
-      `${Jobs.BackfillElapsedAvailability}: has errors ${errors.join('\n')}`
-    )
+    throw new Error(`${job.name}: has errors ${errors.join('\n')}`)
   }
 }

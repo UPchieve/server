@@ -10,7 +10,6 @@ import * as FeatureFlagService from '../../../services/FeatureFlagService'
 import * as AnalyticsService from '../../../services/AnalyticsService'
 import { EVENTS } from '../../../constants'
 import type { Uuid } from '../../../types/shared'
-import { Jobs } from '..'
 
 type NotifyVolunteersAboutEssayReviewSubmissionJobData = {
   submissionId: Uuid
@@ -68,12 +67,12 @@ export default async function notifyVolunteersAboutEssayReviewSubmission(
   }
 
   logger.info(
-    `${Jobs.NotifyVolunteersAboutEssayReviewSubmission}: Notified ${notifiedCount} volunteers about submission ${job.data.submissionId}`
+    `${job.name}: Notified ${notifiedCount} volunteers about submission ${job.data.submissionId}`
   )
 
   if (failedVolunteerIds.length) {
     logger.warn(
-      `${Jobs.NotifyVolunteersAboutEssayReviewSubmission}: Failed to notify ${failedVolunteerIds.length} opted-in volunteers about submission ${job.data.submissionId}: ${failedVolunteerIds.join(', ')}`
+      `${job.name}: Failed to notify ${failedVolunteerIds.length} opted-in volunteers about submission ${job.data.submissionId}: ${failedVolunteerIds.join(', ')}`
     )
   }
 }

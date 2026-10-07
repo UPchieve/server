@@ -14,7 +14,6 @@ import startsWithVowel from '../utils/starts-with-vowel'
 import { AssociatedPartner } from '../models/AssociatedPartner'
 import { CurrentSession } from '../types/session'
 import QueueService from './QueueService'
-import { Jobs } from '../worker/jobs'
 import { secondsInMs } from '../utils/time-utils'
 import { EVENTS, SUBJECTS } from '../constants'
 import { getSessionUrl } from '../utils/session-utils'
@@ -33,8 +32,8 @@ export async function beginRegularNotifications(
   // Delay initial wave of notifications by 30 seconds to give
   // volunteers on the dashboard time to pick up the request.
   await QueueService.add(
-    Jobs.TextVolunteers,
-    { delay: secondsInMs(30), jobId: `${Jobs.TextVolunteers}:${session.id}` },
+    'TextVolunteers',
+    { delay: secondsInMs(30), jobId: `TextVolunteers:${session.id}` },
     {
       sessionId: session.id,
       subject: session.subject,

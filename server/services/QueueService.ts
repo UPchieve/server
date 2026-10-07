@@ -1,7 +1,7 @@
 import Queue, { JobOptions } from 'bull'
 import Redis from 'ioredis'
 import config from '../config'
-import { Jobs } from '../worker/jobs'
+import type { JobData, JobName } from '../worker/jobs'
 import logger from '../logger'
 
 export const queue = new Queue(config.workerQueueName, {
@@ -49,7 +49,11 @@ queue.on('cleaned', (jobs, type) => {
 })
 
 export type AddJobOptions = JobOptions & { delay: number }
-export async function add(job: Jobs, options: AddJobOptions, data?: any) {
+export async function add<N extends JobName>(
+  job: N,
+  options: AddJobOptions,
+  ...[data]: JobData<N> extends undefined ? [] : [JobData<N>]
+) {
   await queue.add(job, data, {
     removeOnFail: false,
     removeOnComplete: false,

@@ -3,7 +3,6 @@ import logger from '../../../logger'
 import * as MailService from '../../../services/MailService'
 import { asString } from '../../../utils/type-utils'
 import { Ulid } from '../../../models/pgUtils'
-import { Jobs } from '..'
 import { getUserContactInfo } from '../../../services/UserService'
 
 export type EmailFallIncentiveEnrollmentWelcomeJobData = {
@@ -23,12 +22,8 @@ export default async (
       proxyEmail ?? email,
       firstName
     )
-    logger.info(
-      `Sent ${Jobs.EmailFallIncentiveEnrollmentWelcome} to student ${userId}`
-    )
+    logger.info(`Sent ${job.name} to student ${userId}`)
   } catch (error) {
-    throw new Error(
-      `Failed to send ${Jobs.EmailFallIncentiveEnrollmentWelcome} to student ${userId}: ${error}`
-    )
+    throw new Error(`Failed to send ${job.name} to student ${userId}: ${error}`)
   }
 }

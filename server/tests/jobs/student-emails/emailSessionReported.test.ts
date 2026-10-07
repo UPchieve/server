@@ -5,7 +5,6 @@ import { buildSession, buildUser } from '../../mocks/generate'
 import * as SessionModel from '../../../models/Session'
 import * as UserModel from '../../../models/User'
 import * as MailService from '../../../services/MailService'
-import { Jobs } from '../../../worker/jobs'
 import emailReportedSession, {
   EmailSessionReportedJobData,
 } from '../../../worker/jobs/user-emails/emailSessionReported'
@@ -30,7 +29,10 @@ const reportMessage = 'Report message'
 function makeJob(
   data: EmailSessionReportedJobData
 ): Job<EmailSessionReportedJobData> {
-  return { data } as Job<EmailSessionReportedJobData>
+  return {
+    name: 'EmailSessionReported',
+    data,
+  } as Job<EmailSessionReportedJobData>
 }
 
 describe('emailReportedSession', () => {
@@ -315,7 +317,7 @@ describe('emailReportedSession', () => {
       new Error(studentReportedAlertError)
     )
 
-    const errorMessage = `${Jobs.EmailSessionReported}: ${[
+    const errorMessage = `EmailSessionReported: ${[
       `Failed to send ban alert email: ${bannedStaffAlertError}`,
       `Failed to add user ${reportedUser.id} to ban email group: ${createContactError}`,
       `Failed to send report alert email: ${reportedStaffAlertError}`,

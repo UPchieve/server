@@ -6,7 +6,6 @@ import logger from '../../logger'
 import { SUBJECTS } from '../../constants'
 import startsWithVowel from '../../utils/starts-with-vowel'
 import { Ulid, Uuid } from '../../models/pgUtils'
-import { Jobs } from './index'
 import type { TextableVolunteer as TextableVolunteerDbResult } from '../../models/Volunteer'
 import * as SubjectsService from '../../services/SubjectsService'
 import * as AssociatedPartnerService from '../../services/AssociatedPartnerService'
@@ -137,7 +136,7 @@ export default async function textVolunteers(
 
   if (notificationRound < JOB_CONFIG.maxNotificationRounds) {
     await QueueService.add(
-      Jobs.TextVolunteers,
+      'TextVolunteers',
       {
         delay: secondsInMs(JOB_CONFIG.roundDelay),
       },

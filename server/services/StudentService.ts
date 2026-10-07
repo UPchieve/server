@@ -1,5 +1,4 @@
 import { ACCOUNT_USER_ACTIONS, EVENTS } from '../constants'
-import { Jobs } from '../worker/jobs'
 import QueueService from './QueueService'
 import * as AnalyticsService from './AnalyticsService'
 import * as FavoritingService from './FavoritingService'
@@ -21,28 +20,28 @@ import { daysInMs } from '../utils/time-utils'
 
 export const queueOnboardingEmails = async (studentId: Ulid): Promise<void> => {
   await QueueService.add(
-    Jobs.EmailStudentOnboardingHowItWorks,
+    'EmailStudentOnboardingHowItWorks',
     { delay: daysInMs(1) },
     {
       studentId,
     }
   )
   await QueueService.add(
-    Jobs.EmailMeetOurVolunteers,
+    'EmailMeetOurVolunteers',
     { delay: daysInMs(3) },
     {
       studentId,
     }
   )
   await QueueService.add(
-    Jobs.EmailStudentOnboardingMission,
+    'EmailStudentOnboardingMission',
     { delay: daysInMs(10) },
     {
       studentId,
     }
   )
   await QueueService.add(
-    Jobs.EmailStudentOnboardingSurvey,
+    'EmailStudentOnboardingSurvey',
     { delay: daysInMs(14) },
     {
       studentId,

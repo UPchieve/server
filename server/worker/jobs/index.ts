@@ -1,4 +1,4 @@
-import { ProcessPromiseFunction, Queue } from 'bull'
+import { Job, ProcessPromiseFunction, Queue } from 'bull'
 import EventEmitter from 'events'
 import newrelic from 'newrelic'
 import logger from '../../logger'
@@ -75,443 +75,111 @@ import notifyVolunteersAboutEssayReviewSubmission from './volunteer-emails/notif
 import candidateEngagementCampaign from './nths/candidateEngagementCampaign'
 import applicationStatusNotification from './nths/applicationStatusNotification'
 
-export enum Jobs {
-  AddScheduledJobs = 'AddScheduledJobs',
-  BackfillAvailabilityHistories = 'BackfillAvailabilityHistories',
-  BackfillElapsedAvailability = 'BackfillElapsedAvailability',
-  BackfillEmailNiceToMeetYou = 'BackfillEmailNiceToMeetYou',
-  BackfillEmailVolunteersInactive = 'BackfillEmailVolunteersInactive',
-  BackfillSessionEndedTasks = 'BackfillSessionEndedTasks',
-  BackfillStudentAmbassadorRole = 'BackfillStudentAmbassadorRole',
-  BackfillStudentPosthog = 'BackfillStudentPosthog',
-  BackfillStudentUsersRoles = 'BackfillStudentUsersRoles',
-  ClearBullJobsByStatus = 'ClearBullJobsByStatus',
-  DeidentifyUser = 'DeidentifyUser',
-  DeleteDuplicateStudentFavoriteVolunteers = 'DeleteDuplicateStudentFavoriteVolunteers',
-  DeleteDuplicateUserSurveys = 'DeleteDuplicateUserSurveys',
-  DeleteSelfFavoritedVolunteers = 'DeleteSelfFavoritedVolunteers',
-  DetectSessionLanguages = 'DetectSessionLanguages',
-  EmailFallIncentiveEnrollmentWelcome = 'EmailFallIncentiveEnrollmentWelcome',
-  EmailFallIncentiveInvitedToEnrollReminder = 'EmailFallIncentiveInvitedToEnrollReminder',
-  EmailFallIncentiveSessionQualification = 'EmailFallIncentiveSessionQualification',
-  EmailFailedFirstAttemptedQuiz = 'EmailFailedFirstAttemptedQuiz',
-  EmailIndependentLearning = 'EmailIndependentLearning',
-  EmailMeetOurVolunteers = 'EmailMeetOurVolunteers',
-  EmailNiceToMeetYou = 'EmailNiceToMeetYou',
-  EmailOnboardingReminderOne = 'EmailOnboardingReminderOne',
-  EmailOnboardingReminderThree = 'EmailOnboardingReminderThree',
-  EmailOnboardingReminderTwo = 'EmailOnboardingReminderTwo',
-  EmailPartnerVolunteerLowHoursSelected = 'EmailPartnerVolunteerLowHoursSelected',
-  EmailReadyToCoach = 'EmailReadyToCoach',
-  EmailReferenceFollowup = 'EmailReferenceFollowup',
-  EmailReferences = 'EmailReferences',
-  EmailSessionReported = 'EmailSessionReported',
-  EmailStudentAbsentVolunteerApology = 'EmailStudentAbsentVolunteerApology',
-  EmailStudentAbsentWarning = 'EmailStudentAbsentWarning',
-  EmailStudentFirstSessionCongrats = 'EmailStudentFirstSessionCongrats',
-  EmailStudentGoalSetting = 'EmailStudentGoalSetting',
-  EmailStudentOnboardingHowItWorks = 'EmailStudentOnboardingHowItWorks',
-  EmailStudentOnboardingMission = 'EmailStudentOnboardingMission',
-  EmailStudentOnboardingSurvey = 'EmailStudentOnboardingSurvey',
-  EmailStudentOnlyLookingForAnswers = 'EmailStudentOnlyLookingForAnswers',
-  EmailStudentUnmatchedApology = 'EmailStudentUnmatchedApology',
-  EmailStudentUseCases = 'EmailStudentUseCases',
-  EmailVolunteerAbsentStudentApology = 'EmailVolunteerAbsentStudentApology',
-  EmailVolunteerAbsentWarning = 'EmailVolunteerAbsentWarning',
-  EmailVolunteerFirstSessionCongrats = 'EmailVolunteerFirstSessionCongrats',
-  EmailVolunteerInactive = 'EmailVolunteerInactive',
-  EmailVolunteerInactiveBlackoutOver = 'EmailVolunteerInactiveBlackoutOver',
-  EmailVolunteerInactiveNinetyDays = 'EmailVolunteerInactiveNinetyDays',
-  EmailVolunteerInactiveSixtyDays = 'EmailVolunteerInactiveSixtyDays',
-  EmailVolunteerInactiveThirtyDays = 'EmailVolunteerInactiveThirtyDays',
-  EmailVolunteerQuickTips = 'EmailVolunteerQuickTips',
-  EmailVolunteerTenSessionMilestone = 'EmailVolunteerTenSessionMilestone',
-  EmailWaitingOnReferences = 'EmailWaitingOnReferences',
-  EmailWeeklyHourSummary = 'EmailWeeklyHourSummary',
-  EndStaleSessions = 'EndStaleSessions',
-  EndUnmatchedSession = 'EndUnmatchedSession',
-  ExecuteModerationAction = 'ExecuteModerationAction',
-  GenerateAndStoreWaitTimeHeatMap = 'GenerateAndStoreWaitTimeHeatMap',
-  GenerateProgressReport = 'GenerateProgressReport',
-  GenerateSessionSummary = 'GenerateSessionSummary',
-  MaybeSendStudentFeedbackToVolunteer = 'MaybeSendStudentFeedbackToVolunteer',
-  MigrateBannedAndTestUsersToBanType = 'MigrateBannedAndTestUsersToBanType',
-  MigrateProgressReportPromptIds = 'MigrateProgressReportPromptIds',
-  ModerateSessionTranscript = 'ModerateSessionTranscript',
-  NotifyTutors = 'NotifyTutors',
-  NotifyVolunteersAboutEssayReviewSubmission = 'NotifyVolunteersAboutEssayReviewSubmission',
-  NTHSApplicationStatus = 'NTHSApplicationStatus',
-  NTHSCandidateEngagement = 'NTHSCandidateEngagement',
-  ProcessSessionEnded = 'ProcessSessionEnded',
-  RedisKeyMemStats = 'RedisKeyMemStats',
-  SendAmbassadorCongratsEmail = 'SendAmbassadorCongratsEmail',
-  SendBecomeAnAmbassadorEmail = 'SendBecomeAnAmbassadorEmail',
-  SendFollowupText = 'SendFollowupText',
-  SendNationalTutorCertificateEmail = 'SendNationalTutorCertificateEmail',
-  SendReferralSignUpCelebrationEmail = 'SendReferralSignUpCelebrationEmail',
-  SendSessionRecapMessageNotification = 'SendSessionRecapMessageNotification',
-  SpawnDeidentifyUsers = 'SpawnDeidentifyUsers',
-  SpawnEmailWeeklyHourSummaryJobs = 'SpawnEmailWeeklyHourSummaryJobs',
-  TextVolunteers = 'TextVolunteers',
-  TitlecaseSchoolNames = 'TitlecaseSchoolNames',
-  UpdateBasicAccessViews = 'UpdateBasicAccessViews',
-  UpdateElapsedAvailability = 'UpdateElapsedAvailability',
-  UpdateSendGridGradeLevels = 'UpdateSendGridGradeLevels',
-  SyncSendGridContact = 'SyncSendGridContact',
-  UpdateTotalVolunteerHours = 'UpdateTotalVolunteerHours',
-  UpsertPostalCodes = 'UpsertPostalCodes',
-  UpsertSchools = 'UpsertSchools',
-  UpdateCachedVolunteersForTextNotifications = 'UpdateCachedVolunteersForTextNotifications',
-  UpdateNTHSChapterStatusForImpactPath = 'UpdateNTHSChapterStatusForImpactPath',
-  SpawnUpdateNTHSChapterStatusForImpactPath = 'SpawnUpdateNTHSChapterStatusForImpactPath',
-  CleanUpProxyEmailsThatAreIdenticalToEmail = 'CleanUpProxyEmailsThatAreIdenticalToEmail',
-}
+type JobProcessor = ProcessPromiseFunction<any>
+export type JobName = keyof typeof jobProcessors
+export type JobData<N extends JobName> =
+  Parameters<(typeof jobProcessors)[N]> extends []
+    ? undefined
+    : NonNullable<Parameters<(typeof jobProcessors)[N]>[0]> extends Job<infer D>
+      ? D
+      : never
 
-// register new job processors here
-interface JobProcessor {
-  name: Jobs
-  processor: ProcessPromiseFunction<any>
-}
-
-const jobProcessors: JobProcessor[] = [
-  {
-    name: Jobs.AddScheduledJobs,
-    processor: addScheduledJobs,
-  },
-  {
-    name: Jobs.BackfillAvailabilityHistories,
-    processor: backfillAvailabilityHistories,
-  },
-  {
-    name: Jobs.BackfillElapsedAvailability,
-    processor: backfillElapsedAvailability,
-  },
-  {
-    name: Jobs.BackfillEmailNiceToMeetYou,
-    processor: backfillEmailNiceToMeetYou,
-  },
-  {
-    name: Jobs.BackfillEmailVolunteersInactive,
-    processor: backfillEmailVolunteerInactive,
-  },
-  {
-    name: Jobs.BackfillSessionEndedTasks,
-    processor: backfillSessionEndedTasks,
-  },
-  {
-    name: Jobs.BackfillStudentAmbassadorRole,
-    processor: backfillStudentAmbassadorRole,
-  },
-  {
-    name: Jobs.BackfillStudentPosthog,
-    processor: backfillStudentPosthog,
-  },
-  {
-    name: Jobs.BackfillStudentUsersRoles,
-    processor: backfillStudentUsersRoles,
-  },
-  {
-    name: Jobs.ClearBullJobsByStatus,
-    processor: clearBullJobByStatus,
-  },
-  {
-    name: Jobs.DeidentifyUser,
-    processor: deidentifyUser,
-  },
-  {
-    name: Jobs.DeleteDuplicateStudentFavoriteVolunteers,
-    processor: deleteDuplicateStudentFavoriteVolunteers,
-  },
-  {
-    name: Jobs.DeleteDuplicateUserSurveys,
-    processor: deleteDuplicateUserSurveys,
-  },
-  {
-    name: Jobs.DeleteSelfFavoritedVolunteers,
-    processor: deleteSelfFavoritedVolunteers,
-  },
-  {
-    name: Jobs.DetectSessionLanguages,
-    processor: detectSessionLanguages,
-  },
-  {
-    name: Jobs.EmailFailedFirstAttemptedQuiz,
-    processor: emailFailedFirstAttemptedQuiz,
-  },
-  {
-    name: Jobs.EmailFallIncentiveEnrollmentWelcome,
-    processor: emailFallIncentiveEnrollmentWelcome,
-  },
-  {
-    name: Jobs.EmailFallIncentiveInvitedToEnrollReminder,
-    processor: emailFallIncentiveInvitedToEnrollReminder,
-  },
-  {
-    name: Jobs.EmailFallIncentiveSessionQualification,
-    processor: emailFallIncentiveSessionQualification,
-  },
-  {
-    name: Jobs.EmailIndependentLearning,
-    processor: emailStudentOnboardingSeries,
-  },
-  {
-    name: Jobs.EmailMeetOurVolunteers,
-    processor: emailStudentOnboardingSeries,
-  },
-  {
-    name: Jobs.EmailNiceToMeetYou,
-    processor: emailNiceToMeetYou,
-  },
-  {
-    name: Jobs.EmailOnboardingReminderOne,
-    processor: emailOnboardingReminder,
-  },
-  {
-    name: Jobs.EmailOnboardingReminderThree,
-    processor: emailOnboardingReminder,
-  },
-  {
-    name: Jobs.EmailOnboardingReminderTwo,
-    processor: emailOnboardingReminder,
-  },
-  {
-    name: Jobs.EmailPartnerVolunteerLowHoursSelected,
-    processor: emailPartnerVolunteerLowHoursSelected,
-  },
-  {
-    name: Jobs.EmailReadyToCoach,
-    processor: emailReadyToCoach,
-  },
-  {
-    name: Jobs.EmailReferenceFollowup,
-    processor: emailReferenceFollowup,
-  },
-  {
-    name: Jobs.EmailReferences,
-    processor: emailReferences,
-  },
-  {
-    name: Jobs.EmailSessionReported,
-    processor: emailSessionReported,
-  },
-  {
-    name: Jobs.EmailStudentAbsentVolunteerApology,
-    processor: emailStudentSessionActions,
-  },
-  {
-    name: Jobs.EmailStudentAbsentWarning,
-    processor: emailStudentSessionActions,
-  },
-  {
-    name: Jobs.EmailStudentFirstSessionCongrats,
-    processor: emailStudentFirstSessionCongrats,
-  },
-  {
-    name: Jobs.EmailStudentGoalSetting,
-    processor: emailStudentOnboardingSeries,
-  },
-  {
-    name: Jobs.EmailStudentOnboardingHowItWorks,
-    processor: emailStudentOnboardingSeries,
-  },
-  {
-    name: Jobs.EmailStudentOnboardingMission,
-    processor: emailStudentOnboardingSeries,
-  },
-  {
-    name: Jobs.EmailStudentOnboardingSurvey,
-    processor: emailStudentOnboardingSeries,
-  },
-  {
-    name: Jobs.EmailStudentOnlyLookingForAnswers,
-    processor: emailStudentSessionActions,
-  },
-  {
-    name: Jobs.EmailStudentUnmatchedApology,
-    processor: emailStudentSessionActions,
-  },
-  {
-    name: Jobs.EmailStudentUseCases,
-    processor: emailStudentOnboardingSeries,
-  },
-  {
-    name: Jobs.EmailVolunteerAbsentStudentApology,
-    processor: emailVolunteerSessionActions,
-  },
-  {
-    name: Jobs.EmailVolunteerAbsentWarning,
-    processor: emailVolunteerSessionActions,
-  },
-  {
-    name: Jobs.EmailVolunteerFirstSessionCongrats,
-    processor: emailVolunteerFirstSessionCongrats,
-  },
-  {
-    name: Jobs.EmailVolunteerInactive,
-    processor: emailVolunteerInactive,
-  },
-  {
-    name: Jobs.EmailVolunteerInactiveBlackoutOver,
-    processor: emailVolunteerInactiveBlackoutOver,
-  },
-  {
-    name: Jobs.EmailVolunteerQuickTips,
-    processor: emailQuickTips,
-  },
-  {
-    name: Jobs.EmailVolunteerTenSessionMilestone,
-    processor: emailVolunteerTenSessionMilestone,
-  },
-  {
-    name: Jobs.EmailWaitingOnReferences,
-    processor: emailWaitingOnReferences,
-  },
-  {
-    name: Jobs.EmailWeeklyHourSummary,
-    processor: emailWeeklyHourSummary,
-  },
-  {
-    name: Jobs.EndStaleSessions,
-    processor: endStaleSessions,
-  },
-  {
-    name: Jobs.EndUnmatchedSession,
-    processor: endUnmatchedSession,
-  },
-  {
-    name: Jobs.ExecuteModerationAction,
-    processor: executeModerationAction,
-  },
-  {
-    name: Jobs.GenerateAndStoreWaitTimeHeatMap,
-    processor: generateAndStoreWaitTimeHeatMap,
-  },
-  {
-    name: Jobs.GenerateProgressReport,
-    processor: generateProgressReport,
-  },
-  {
-    name: Jobs.GenerateSessionSummary,
-    processor: generateSessionSummary,
-  },
-  {
-    name: Jobs.MaybeSendStudentFeedbackToVolunteer,
-    processor: maybeSendStudentFeedbackToVolunteer,
-  },
-  {
-    name: Jobs.MigrateBannedAndTestUsersToBanType,
-    processor: migrateBannedAndTestUsersToBanType,
-  },
-  {
-    name: Jobs.MigrateProgressReportPromptIds,
-    processor: migrateProgressReportPromptIds,
-  },
-  {
-    name: Jobs.ModerateSessionTranscript,
-    processor: moderateSessionTranscript,
-  },
-  {
-    name: Jobs.ProcessSessionEnded,
-    processor: processSessionEnded,
-  },
-  {
-    name: Jobs.NTHSApplicationStatus,
-    processor: applicationStatusNotification,
-  },
-  {
-    name: Jobs.NotifyVolunteersAboutEssayReviewSubmission,
-    processor: notifyVolunteersAboutEssayReviewSubmission,
-  },
-  {
-    name: Jobs.NTHSCandidateEngagement,
-    processor: candidateEngagementCampaign,
-  },
-  { name: Jobs.RedisKeyMemStats, processor: logRedisKeyMemStats },
-  {
-    name: Jobs.SendAmbassadorCongratsEmail,
-    processor: emailAmbassadorCongrats,
-  },
-  {
-    name: Jobs.SendBecomeAnAmbassadorEmail,
-    processor: emailBecomeAnAmbassador,
-  },
-  {
-    name: Jobs.SendNationalTutorCertificateEmail,
-    processor: emailNationalTutorCertificate,
-  },
-  {
-    name: Jobs.SendReferralSignUpCelebrationEmail,
-    processor: emailReferralSignUpCelebration,
-  },
-  {
-    name: Jobs.SendSessionRecapMessageNotification,
-    processor: sendSessionRecapMessageNotification,
-  },
-  {
-    name: Jobs.SpawnDeidentifyUsers,
-    processor: spawnDeidentifyUsers,
-  },
-  {
-    name: Jobs.SpawnEmailWeeklyHourSummaryJobs,
-    processor: spawnEmailWeeklyHourSummaryJobs,
-  },
-  {
-    name: Jobs.TextVolunteers,
-    processor: textVolunteers,
-  },
-  {
-    name: Jobs.TitlecaseSchoolNames,
-    processor: titlecaseSchoolNames,
-  },
-  {
-    name: Jobs.UpdateBasicAccessViews,
-    processor: updateBasicAccessViews,
-  },
-  {
-    name: Jobs.UpdateElapsedAvailability,
-    processor: updateElapsedAvailability,
-  },
-  {
-    name: Jobs.UpdateSendGridGradeLevels,
-    processor: updateSendGridGradeLevels,
-  },
-  {
-    name: Jobs.SyncSendGridContact,
-    processor: syncSendGridContact,
-  },
-  {
-    name: Jobs.UpdateTotalVolunteerHours,
-    processor: updateTotalVolunteerHours,
-  },
-  {
-    name: Jobs.UpsertPostalCodes,
-    processor: upsertPostalCodes,
-  },
-  {
-    name: Jobs.UpsertSchools,
-    processor: upsertSchools,
-  },
-  {
-    name: Jobs.UpdateCachedVolunteersForTextNotifications,
-    processor: updateCachedVolunteersForTextNotifications,
-  },
-  {
-    name: Jobs.UpdateNTHSChapterStatusForImpactPath,
-    processor: updateNthsChapterStatusForImpactPath,
-  },
-  {
-    name: Jobs.SpawnUpdateNTHSChapterStatusForImpactPath,
-    processor: spawnUpdateNthsChapterStatusForImpactPath,
-  },
-  {
-    name: Jobs.CleanUpProxyEmailsThatAreIdenticalToEmail,
-    processor: deleteProxyEmailsIdenticalToEmails,
-  },
-]
+export const jobProcessors = {
+  AddScheduledJobs: addScheduledJobs,
+  BackfillAvailabilityHistories: backfillAvailabilityHistories,
+  BackfillElapsedAvailability: backfillElapsedAvailability,
+  BackfillEmailNiceToMeetYou: backfillEmailNiceToMeetYou,
+  BackfillEmailVolunteersInactive: backfillEmailVolunteerInactive,
+  BackfillSessionEndedTasks: backfillSessionEndedTasks,
+  BackfillStudentAmbassadorRole: backfillStudentAmbassadorRole,
+  BackfillStudentPosthog: backfillStudentPosthog,
+  BackfillStudentUsersRoles: backfillStudentUsersRoles,
+  ClearBullJobsByStatus: clearBullJobByStatus,
+  DeidentifyUser: deidentifyUser,
+  DeleteDuplicateStudentFavoriteVolunteers:
+    deleteDuplicateStudentFavoriteVolunteers,
+  DeleteDuplicateUserSurveys: deleteDuplicateUserSurveys,
+  DeleteSelfFavoritedVolunteers: deleteSelfFavoritedVolunteers,
+  DetectSessionLanguages: detectSessionLanguages,
+  EmailFailedFirstAttemptedQuiz: emailFailedFirstAttemptedQuiz,
+  EmailFallIncentiveEnrollmentWelcome: emailFallIncentiveEnrollmentWelcome,
+  EmailFallIncentiveInvitedToEnrollReminder:
+    emailFallIncentiveInvitedToEnrollReminder,
+  EmailFallIncentiveSessionQualification:
+    emailFallIncentiveSessionQualification,
+  EmailIndependentLearning: emailStudentOnboardingSeries,
+  EmailMeetOurVolunteers: emailStudentOnboardingSeries,
+  EmailNiceToMeetYou: emailNiceToMeetYou,
+  EmailOnboardingReminderOne: emailOnboardingReminder,
+  EmailOnboardingReminderThree: emailOnboardingReminder,
+  EmailOnboardingReminderTwo: emailOnboardingReminder,
+  EmailPartnerVolunteerLowHoursSelected: emailPartnerVolunteerLowHoursSelected,
+  EmailReadyToCoach: emailReadyToCoach,
+  EmailReferenceFollowup: emailReferenceFollowup,
+  EmailReferences: emailReferences,
+  EmailSessionReported: emailSessionReported,
+  EmailStudentAbsentVolunteerApology: emailStudentSessionActions,
+  EmailStudentAbsentWarning: emailStudentSessionActions,
+  EmailStudentFirstSessionCongrats: emailStudentFirstSessionCongrats,
+  EmailStudentGoalSetting: emailStudentOnboardingSeries,
+  EmailStudentOnboardingHowItWorks: emailStudentOnboardingSeries,
+  EmailStudentOnboardingMission: emailStudentOnboardingSeries,
+  EmailStudentOnboardingSurvey: emailStudentOnboardingSeries,
+  EmailStudentOnlyLookingForAnswers: emailStudentSessionActions,
+  EmailStudentUnmatchedApology: emailStudentSessionActions,
+  EmailStudentUseCases: emailStudentOnboardingSeries,
+  EmailVolunteerAbsentStudentApology: emailVolunteerSessionActions,
+  EmailVolunteerAbsentWarning: emailVolunteerSessionActions,
+  EmailVolunteerFirstSessionCongrats: emailVolunteerFirstSessionCongrats,
+  EmailVolunteerInactive: emailVolunteerInactive,
+  EmailVolunteerInactiveBlackoutOver: emailVolunteerInactiveBlackoutOver,
+  EmailVolunteerQuickTips: emailQuickTips,
+  EmailVolunteerTenSessionMilestone: emailVolunteerTenSessionMilestone,
+  EmailWaitingOnReferences: emailWaitingOnReferences,
+  EmailWeeklyHourSummary: emailWeeklyHourSummary,
+  EndStaleSessions: endStaleSessions,
+  EndUnmatchedSession: endUnmatchedSession,
+  ExecuteModerationAction: executeModerationAction,
+  GenerateAndStoreWaitTimeHeatMap: generateAndStoreWaitTimeHeatMap,
+  GenerateProgressReport: generateProgressReport,
+  GenerateSessionSummary: generateSessionSummary,
+  MaybeSendStudentFeedbackToVolunteer: maybeSendStudentFeedbackToVolunteer,
+  MigrateBannedAndTestUsersToBanType: migrateBannedAndTestUsersToBanType,
+  MigrateProgressReportPromptIds: migrateProgressReportPromptIds,
+  ModerateSessionTranscript: moderateSessionTranscript,
+  ProcessSessionEnded: processSessionEnded,
+  NTHSApplicationStatus: applicationStatusNotification,
+  NotifyVolunteersAboutEssayReviewSubmission:
+    notifyVolunteersAboutEssayReviewSubmission,
+  NTHSCandidateEngagement: candidateEngagementCampaign,
+  RedisKeyMemStats: logRedisKeyMemStats,
+  SendAmbassadorCongratsEmail: emailAmbassadorCongrats,
+  SendBecomeAnAmbassadorEmail: emailBecomeAnAmbassador,
+  SendNationalTutorCertificateEmail: emailNationalTutorCertificate,
+  SendReferralSignUpCelebrationEmail: emailReferralSignUpCelebration,
+  SendSessionRecapMessageNotification: sendSessionRecapMessageNotification,
+  SpawnDeidentifyUsers: spawnDeidentifyUsers,
+  SpawnEmailWeeklyHourSummaryJobs: spawnEmailWeeklyHourSummaryJobs,
+  TextVolunteers: textVolunteers,
+  TitlecaseSchoolNames: titlecaseSchoolNames,
+  UpdateBasicAccessViews: updateBasicAccessViews,
+  UpdateElapsedAvailability: updateElapsedAvailability,
+  UpdateSendGridGradeLevels: updateSendGridGradeLevels,
+  SyncSendGridContact: syncSendGridContact,
+  UpdateTotalVolunteerHours: updateTotalVolunteerHours,
+  UpsertPostalCodes: upsertPostalCodes,
+  UpsertSchools: upsertSchools,
+  UpdateCachedVolunteersForTextNotifications:
+    updateCachedVolunteersForTextNotifications,
+  UpdateNTHSChapterStatusForImpactPath: updateNthsChapterStatusForImpactPath,
+  SpawnUpdateNTHSChapterStatusForImpactPath:
+    spawnUpdateNthsChapterStatusForImpactPath,
+  CleanUpProxyEmailsThatAreIdenticalToEmail: deleteProxyEmailsIdenticalToEmails,
+} satisfies Record<string, JobProcessor>
 
 // Each Bull processor needs at least one listener per thread - https://github.com/OptimalBits/bull/issues/615
 // TODO: determine concurrency at runtime
-EventEmitter.defaultMaxListeners = jobProcessors.length * 8
+EventEmitter.defaultMaxListeners = Object.keys(jobProcessors).length * 8
 
 /**
  * Job processors should throw an error when they fail perform an expected action.
@@ -525,8 +193,10 @@ EventEmitter.defaultMaxListeners = jobProcessors.length * 8
 
 export const addJobProcessors = (queue: Queue): void => {
   try {
-    for (const jobProcessor of jobProcessors) {
-      queue.process(jobProcessor.name, async (job) => {
+    for (const [name, processor] of Object.entries<JobProcessor>(
+      jobProcessors
+    )) {
+      queue.process(name, async (job) => {
         const loggingContext = {
           sessionId: job.data?.sessionId,
           userId: job.data?.userId,
@@ -538,7 +208,7 @@ export const addJobProcessors = (queue: Queue): void => {
           async () => {
             const transaction = newrelic.getTransaction()
             try {
-              await jobProcessor.processor(job)
+              await processor(job)
               logger.info(`Completed job: ${job.name}`, loggingContext)
             } catch (error) {
               logger.error(`Error processing job: ${job.name}`, {

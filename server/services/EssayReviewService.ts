@@ -7,7 +7,6 @@ import * as AnalyticsService from './AnalyticsService'
 import { EVENTS } from '../constants'
 import { hoursInMs } from '../utils/time-utils'
 import type { ISODateString } from '../types/dates'
-import { Jobs } from '../worker/jobs'
 import QueueService from './QueueService'
 import * as FeatureFlagService from './FeatureFlagService'
 
@@ -149,7 +148,7 @@ export async function createEssayReviewSubmission(
     )
   ) {
     await QueueService.add(
-      Jobs.NotifyVolunteersAboutEssayReviewSubmission,
+      'NotifyVolunteersAboutEssayReviewSubmission',
       { delay: 0 },
       { submissionId: submission.id }
     )

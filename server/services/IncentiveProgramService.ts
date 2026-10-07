@@ -3,7 +3,6 @@ import { getSessionById } from '../models/Session'
 import { UserContactInfo } from '../models/User'
 import * as UserService from '../services/UserService'
 import { getUPFByUserId, UserProductFlags } from '../models/UserProductFlags'
-import { Jobs } from '../worker/jobs'
 import {
   FallIncentiveFlagPayload,
   getFallIncentiveProgramPayload,
@@ -18,7 +17,7 @@ export async function isUserInIncentiveProgram(userId: Ulid) {
 
 export async function queueIncentiveProgramEnrollmentWelcomeJob(userId: Ulid) {
   await QueueService.add(
-    Jobs.EmailFallIncentiveEnrollmentWelcome,
+    'EmailFallIncentiveEnrollmentWelcome',
     { delay: 0 },
     {
       userId,
@@ -28,7 +27,7 @@ export async function queueIncentiveProgramEnrollmentWelcomeJob(userId: Ulid) {
 
 export async function queueIncentiveInvitedToEnrollReminderJob(userId: Ulid) {
   await QueueService.add(
-    Jobs.EmailFallIncentiveInvitedToEnrollReminder,
+    'EmailFallIncentiveInvitedToEnrollReminder',
     { delay: hoursInMs(12) },
     { userId }
   )
@@ -41,7 +40,7 @@ export async function queueFallIncentiveSessionQualificationJob(
   // Do nothing if the session was not matched
   if (!session.volunteerId) return
   await QueueService.add(
-    Jobs.EmailFallIncentiveSessionQualification,
+    'EmailFallIncentiveSessionQualification',
     { delay: 0 },
     {
       userId: session.studentId,

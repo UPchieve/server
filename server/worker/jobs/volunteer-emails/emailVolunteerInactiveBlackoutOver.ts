@@ -1,5 +1,5 @@
+import { Job } from 'bull'
 import moment from 'moment'
-import { Jobs } from '../index'
 import {
   clearAvailabilityForVolunteer,
   saveCurrentAvailabilityAsHistory,
@@ -40,7 +40,7 @@ export async function processVolunteer(
   return errors
 }
 
-export default async (): Promise<void> => {
+export default async (job: Job<undefined>): Promise<void> => {
   const ninetyDaysAgoStartOfDay = moment()
     .utc()
     .subtract(90, 'days')
@@ -55,7 +55,7 @@ export default async (): Promise<void> => {
       errors.push(...(await processVolunteer(volunteer)))
     }
     if (errors.length) {
-      let errMsg = `Failed to fully process ${Jobs.EmailVolunteerInactiveBlackoutOver}:\n`
+      let errMsg = `Failed to fully process ${job.name}:\n`
       for (const err of errors) {
         errMsg += `${err}\n`
       }

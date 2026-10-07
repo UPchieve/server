@@ -2,7 +2,6 @@ import { Job } from 'bull'
 import logger from '../../../logger'
 import * as MailService from '../../../services/MailService'
 import { getVolunteerForOnboardingById } from '../../../services/VolunteerService'
-import { Jobs } from '../index'
 import { asString } from '../../../utils/type-utils'
 
 interface OnboardingReminder {
@@ -19,7 +18,7 @@ export default async (job: Job<OnboardingReminder>): Promise<void> => {
       let delay = 0
       let nextJob = ''
       const { firstName, email } = volunteer
-      if (currentJob === Jobs.EmailOnboardingReminderOne) {
+      if (currentJob === 'EmailOnboardingReminderOne') {
         const hasUnlockedASubject = volunteer.subjects.length > 0
         const hasCompletedBackgroundInfo = !!volunteer.country
 
@@ -32,17 +31,17 @@ export default async (job: Job<OnboardingReminder>): Promise<void> => {
           hasUnlockedASubject
         )
         delay = 1000 * 60 * 60 * 24 * 7
-        nextJob = Jobs.EmailOnboardingReminderTwo
+        nextJob = 'EmailOnboardingReminderTwo'
       }
 
-      if (currentJob === Jobs.EmailOnboardingReminderTwo) {
+      if (currentJob === 'EmailOnboardingReminderTwo') {
         // Volunteer has not completed onboarding 7 days after sending onboarding reminder one
         await MailService.sendOnboardingReminderTwo(email, firstName)
         delay = 1000 * 60 * 60 * 24 * 10
-        nextJob = Jobs.EmailOnboardingReminderThree
+        nextJob = 'EmailOnboardingReminderThree'
       }
 
-      if (currentJob === Jobs.EmailOnboardingReminderThree) {
+      if (currentJob === 'EmailOnboardingReminderThree') {
         // Volunteer has not completed onboarding 10 days after sending onboarding reminder two
         await MailService.sendOnboardingReminderThree(email, firstName)
       }

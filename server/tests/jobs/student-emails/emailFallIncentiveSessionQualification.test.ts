@@ -11,7 +11,6 @@ import * as IncentiveProgramService from '../../../services/IncentiveProgramServ
 import { Job } from 'bull'
 import { buildUser, buildUserProductFlags } from '../../mocks/generate'
 import logger from '../../../logger'
-import { Jobs } from '../../../worker/jobs'
 import config from '../../../config'
 import { EVENTS } from '../../../constants'
 
@@ -36,6 +35,7 @@ describe('emailFallIncentiveSessionQualification', () => {
       undefined
     )
     const jobData: Job<EmailFallIncentiveSessionQualificationJobData> = {
+      name: 'EmailFallIncentiveSessionQualification',
       data: {
         userId: getDbUlid(),
         sessionId: getDbUlid(),
@@ -72,6 +72,7 @@ describe('emailFallIncentiveSessionQualification', () => {
     mockedNotificationService.hasUserBeenSentEmail.mockResolvedValueOnce(true)
 
     const jobData: Job<EmailFallIncentiveSessionQualificationJobData> = {
+      name: 'EmailFallIncentiveSessionQualification',
       data: {
         userId: user.id,
         sessionId,
@@ -80,7 +81,7 @@ describe('emailFallIncentiveSessionQualification', () => {
 
     await emailFallIncentiveSessionQualification(jobData)
     expect(logger.info).toHaveBeenCalledWith(
-      `${Jobs.EmailFallIncentiveSessionQualification} User ${user.id} has reached the maximum number of qualification for gift cards (10)`
+      `EmailFallIncentiveSessionQualification User ${user.id} has reached the maximum number of qualification for gift cards (10)`
     )
     expect(
       MailService.sendFallIncentiveCompletedChallengeEmail
@@ -111,6 +112,7 @@ describe('emailFallIncentiveSessionQualification', () => {
     mockedNotificationService.hasUserBeenSentEmail.mockResolvedValueOnce(false)
 
     const jobData: Job<EmailFallIncentiveSessionQualificationJobData> = {
+      name: 'EmailFallIncentiveSessionQualification',
       data: {
         userId: user.id,
         sessionId,
@@ -119,7 +121,7 @@ describe('emailFallIncentiveSessionQualification', () => {
 
     await emailFallIncentiveSessionQualification(jobData)
     expect(logger.info).toHaveBeenCalledWith(
-      `${Jobs.EmailFallIncentiveSessionQualification} User ${user.id} has reached the maximum number of qualification for gift cards (10)`
+      `EmailFallIncentiveSessionQualification User ${user.id} has reached the maximum number of qualification for gift cards (10)`
     )
     expect(
       MailService.sendFallIncentiveCompletedChallengeEmail
@@ -166,6 +168,7 @@ describe('emailFallIncentiveSessionQualification', () => {
     mockedNotificationService.getTotalEmailsSentToUser.mockResolvedValueOnce(3)
 
     const jobData: Job<EmailFallIncentiveSessionQualificationJobData> = {
+      name: 'EmailFallIncentiveSessionQualification',
       data: {
         userId: user.id,
         sessionId,
@@ -208,6 +211,7 @@ describe('emailFallIncentiveSessionQualification', () => {
     )
 
     const jobData: Job<EmailFallIncentiveSessionQualificationJobData> = {
+      name: 'EmailFallIncentiveSessionQualification',
       data: {
         userId: user.id,
         sessionId,
@@ -225,7 +229,7 @@ describe('emailFallIncentiveSessionQualification', () => {
       emailTemplateId: config.sendgrid.qualifiedForGiftCardTemplate,
     })
     expect(logger.info).toHaveBeenCalledWith(
-      `Sent ${Jobs.EmailFallIncentiveSessionQualification} to student ${user.id} gift card qualified email`
+      `Sent EmailFallIncentiveSessionQualification to student ${user.id} gift card qualified email`
     )
     expect(
       MailService.sendFallIncentiveCompletedChallengeEmail
@@ -273,6 +277,7 @@ describe('emailFallIncentiveSessionQualification', () => {
     )
 
     const jobData: Job<EmailFallIncentiveSessionQualificationJobData> = {
+      name: 'EmailFallIncentiveSessionQualification',
       data: {
         userId: user.id,
         sessionId,
@@ -290,7 +295,7 @@ describe('emailFallIncentiveSessionQualification', () => {
       emailTemplateId: config.sendgrid.qualifiedForGiftCardTemplate,
     })
     expect(logger.info).toHaveBeenCalledWith(
-      `Sent ${Jobs.EmailFallIncentiveSessionQualification} to student ${user.id} gift card qualified email`
+      `Sent EmailFallIncentiveSessionQualification to student ${user.id} gift card qualified email`
     )
     expect(
       MailService.sendFallIncentiveCompletedChallengeEmail
@@ -338,6 +343,7 @@ describe('emailFallIncentiveSessionQualification', () => {
     )
 
     const jobData: Job<EmailFallIncentiveSessionQualificationJobData> = {
+      name: 'EmailFallIncentiveSessionQualification',
       data: {
         userId: user.id,
         sessionId,
@@ -379,6 +385,7 @@ describe('emailFallIncentiveSessionQualification', () => {
     )
 
     const jobData: Job<EmailFallIncentiveSessionQualificationJobData> = {
+      name: 'EmailFallIncentiveSessionQualification',
       data: {
         userId: user.id,
         sessionId,
@@ -396,7 +403,7 @@ describe('emailFallIncentiveSessionQualification', () => {
       emailTemplateId: config.sendgrid.qualifiedForGiftCardTemplate,
     })
     expect(logger.info).toHaveBeenCalledWith(
-      `Sent ${Jobs.EmailFallIncentiveSessionQualification} to student ${user.id} gift card qualified email`
+      `Sent EmailFallIncentiveSessionQualification to student ${user.id} gift card qualified email`
     )
   })
 
@@ -427,6 +434,7 @@ describe('emailFallIncentiveSessionQualification', () => {
     )
 
     const jobData: Job<EmailFallIncentiveSessionQualificationJobData> = {
+      name: 'EmailFallIncentiveSessionQualification',
       data: {
         userId: user.id,
         sessionId,
@@ -467,6 +475,7 @@ describe('emailFallIncentiveSessionQualification', () => {
     )
 
     const jobData: Job<EmailFallIncentiveSessionQualificationJobData> = {
+      name: 'EmailFallIncentiveSessionQualification',
       data: {
         userId: user.id,
         sessionId,
@@ -516,6 +525,7 @@ describe('emailFallIncentiveSessionQualification', () => {
     )
 
     const jobData: Job<EmailFallIncentiveSessionQualificationJobData> = {
+      name: 'EmailFallIncentiveSessionQualification',
       data: {
         userId: user.id,
         sessionId,
@@ -532,7 +542,7 @@ describe('emailFallIncentiveSessionQualification', () => {
       emailTemplateId: config.sendgrid.stillTimeForQualifyingSessionTemplate,
     })
     expect(logger.info).toHaveBeenCalledWith(
-      `${Jobs.EmailFallIncentiveSessionQualification} sent student ${user.id} session did not qualify email`
+      `EmailFallIncentiveSessionQualification sent student ${user.id} session did not qualify email`
     )
   })
 
@@ -566,6 +576,7 @@ describe('emailFallIncentiveSessionQualification', () => {
     mockedMailService.sendQualifiedForGiftCardEmail.mockRejectedValueOnce(error)
 
     const jobData: Job<EmailFallIncentiveSessionQualificationJobData> = {
+      name: 'EmailFallIncentiveSessionQualification',
       data: {
         userId: user.id,
         sessionId,
@@ -575,7 +586,7 @@ describe('emailFallIncentiveSessionQualification', () => {
     await expect(
       emailFallIncentiveSessionQualification(jobData)
     ).rejects.toThrow(
-      `Failed to send ${Jobs.EmailFallIncentiveSessionQualification} to student ${user.id}: ${error}`
+      `Failed to send EmailFallIncentiveSessionQualification to student ${user.id}: ${error}`
     )
     expect(MailService.sendQualifiedForGiftCardEmail).toHaveBeenCalled()
     expect(NotificationService.createEmailNotification).not.toHaveBeenCalled()
@@ -613,6 +624,7 @@ describe('emailFallIncentiveSessionQualification', () => {
     )
 
     const jobData: Job<EmailFallIncentiveSessionQualificationJobData> = {
+      name: 'EmailFallIncentiveSessionQualification',
       data: {
         userId: user.id,
         sessionId,
@@ -622,7 +634,7 @@ describe('emailFallIncentiveSessionQualification', () => {
     await expect(
       emailFallIncentiveSessionQualification(jobData)
     ).rejects.toThrow(
-      `Failed to send ${Jobs.EmailFallIncentiveSessionQualification} to student ${user.id}: ${error}`
+      `Failed to send EmailFallIncentiveSessionQualification to student ${user.id}: ${error}`
     )
     expect(
       MailService.sendStillTimeToHaveQualifyingSessionEmail

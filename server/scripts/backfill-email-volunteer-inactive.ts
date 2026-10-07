@@ -1,6 +1,5 @@
 import moment from 'moment'
 import 'moment-timezone'
-import { Jobs } from '../worker/jobs'
 import {
   VolunteerContactInfo,
   updateVolunteerSentInactive30DayEmail,
@@ -32,8 +31,8 @@ export default async function BackfillEmailVolunteerInactive(
 
   const todaysDate = new Date(start).getTime()
   if (todaysDate >= blackoutPeriodStart && todaysDate <= blackoutPeriodEnd) {
-    console.log(
-      `Skipping ${Jobs.EmailVolunteerInactive} because today's date, ${new Date(
+    logger.info(
+      `Skipping ${job.name} because today's date, ${new Date(
         todaysDate
       ).toISOString()}, is within the blackout period: ${new Date(
         blackoutPeriodStart
@@ -65,7 +64,7 @@ export default async function BackfillEmailVolunteerInactive(
     try {
       await sendEmailToInactiveVolunteers(
         inactiveThirtyDays,
-        Jobs.EmailVolunteerInactiveThirtyDays,
+        'EmailVolunteerInactiveThirtyDays',
         MailService.sendVolunteerInactiveThirtyDays,
         InactiveGroup.inactiveThirtyDays
       )
@@ -75,7 +74,7 @@ export default async function BackfillEmailVolunteerInactive(
     try {
       await sendEmailToInactiveVolunteers(
         inactiveSixtyDays,
-        Jobs.EmailVolunteerInactiveSixtyDays,
+        'EmailVolunteerInactiveSixtyDays',
         MailService.sendVolunteerInactiveSixtyDays,
         InactiveGroup.inactiveSixtyDays
       )
@@ -85,7 +84,7 @@ export default async function BackfillEmailVolunteerInactive(
     try {
       await sendEmailToInactiveVolunteers(
         inactiveNinetyDays,
-        Jobs.EmailVolunteerInactiveNinetyDays,
+        'EmailVolunteerInactiveNinetyDays',
         MailService.sendVolunteerInactiveNinetyDays,
         InactiveGroup.inactiveNinetyDays
       )
@@ -106,7 +105,7 @@ enum InactiveGroup {
 
 async function sendEmailToInactiveVolunteers(
   volunteers: VolunteerContactInfo[],
-  currentJob: Jobs,
+  currentJob: string,
   mailHandler: Function,
   group: InactiveGroup
 ) {

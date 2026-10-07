@@ -13,7 +13,6 @@ import * as SessionRepo from '../models/Session'
 import * as VolunteerRepo from '../models/Volunteer'
 import * as UsersSchoolsRepo from '../models/UsersSchools'
 import * as UsersGradeLevelRepo from '../models/UsersGradeLevels'
-import { Jobs } from '../worker/jobs'
 import * as AnalyticsService from './AnalyticsService'
 import { getTotalElapsedAvailabilityForDateRange } from './AvailabilityService'
 import * as MailService from './MailService'
@@ -112,7 +111,7 @@ export async function queueOnboardingReminderOneEmail(
   volunteerId: Uuid
 ): Promise<void> {
   await QueueService.add(
-    Jobs.EmailOnboardingReminderOne,
+    'EmailOnboardingReminderOne',
     { delay: daysInMs(7) },
     {
       volunteerId,
@@ -125,13 +124,13 @@ export async function queueOnboardingEventEmails(
   isPartnerVolunteer: boolean = false
 ): Promise<void> {
   await QueueService.add(
-    Jobs.EmailVolunteerQuickTips,
+    'EmailVolunteerQuickTips',
     { delay: daysInMs(5) },
     { volunteerId }
   )
   if (isPartnerVolunteer) {
     await QueueService.add(
-      Jobs.EmailPartnerVolunteerLowHoursSelected,
+      'EmailPartnerVolunteerLowHoursSelected',
       { delay: daysInMs(10) },
       { volunteerId }
     )
@@ -145,7 +144,7 @@ export async function queueFailedFirstAttemptedQuizEmail(
   volunteerId: Uuid
 ) {
   await QueueService.add(
-    Jobs.EmailFailedFirstAttemptedQuiz,
+    'EmailFailedFirstAttemptedQuiz',
     { delay: 0 },
     {
       category,

@@ -47,7 +47,6 @@ import * as VolunteerService from './VolunteerService'
 import * as ImpactStatsService from './ImpactStatsService'
 import * as ReferralService from './ReferralService'
 import config from '../config'
-import { Jobs } from '../worker/jobs'
 import QueueService from './QueueService'
 import * as UsersSchoolsRepo from '../models/UsersSchools'
 import * as StudentRepo from '../models/Student'
@@ -279,7 +278,7 @@ export async function deleteUser(user: UserRepo.UserContactInfo) {
 
   // Change their email so they can't log in before/while the job is completing.
   await UserRepo.flagUserForDeletion(user.id)
-  await QueueService.add(Jobs.DeidentifyUser, { delay: 0 }, { userId: user.id })
+  await QueueService.add('DeidentifyUser', { delay: 0 }, { userId: user.id })
 }
 
 export async function adminUpdateUser(data: unknown) {

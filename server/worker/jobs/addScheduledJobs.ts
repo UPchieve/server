@@ -1,85 +1,91 @@
 import { JobOptions as BullJobOptions } from 'bull'
 import logger from '../../logger'
-import { Jobs } from '.'
+import type { JobData, JobName } from '.'
 import * as QueueService from '../../services/QueueService'
 import moment from 'moment'
 import 'moment-timezone'
 
-interface JobTemplate {
-  name: Jobs
-  data?: any
-  options?: BullJobOptions
-}
+type JobTemplate = {
+  [N in JobName]: {
+    name: N
+    options?: BullJobOptions
+  } & (JobData<N> extends undefined
+    ? { data?: JobData<N> }
+    : { data: JobData<N> })
+}[JobName]
 
 export default async function addScheduledJobs() {
   const jobTemplates: JobTemplate[] = [
     {
-      name: Jobs.UpdateElapsedAvailability,
+      name: 'UpdateElapsedAvailability',
       options: { repeat: { cron: '0 4 * * *', tz: 'America/New_York' } }, // each day at 4am
     },
     {
-      name: Jobs.EndStaleSessions,
+      name: 'EndStaleSessions',
       options: { repeat: { cron: '0 */2 * * *' } }, // every 2 hours at minute 0
     },
     {
-      name: Jobs.EmailReferences,
+      name: 'EmailReferences',
       options: { repeat: { cron: '*/15 * * * *' } }, // every 15 minutes
     },
     {
-      name: Jobs.EmailReadyToCoach,
+      name: 'EmailReadyToCoach',
       options: { repeat: { cron: '30 * * * *' } }, // every hour at minute 30
     },
     {
-      name: Jobs.EmailReferenceFollowup,
+      name: 'EmailReferenceFollowup',
       options: { repeat: { cron: '0 10 * * *', tz: 'America/New_York' } }, // each day at 10am
     },
     {
-      name: Jobs.EmailWaitingOnReferences,
+      name: 'EmailWaitingOnReferences',
       options: { repeat: { cron: '0 11 * * *', tz: 'America/New_York' } }, // each day at 11am
     },
     {
-      name: Jobs.EmailNiceToMeetYou,
+      name: 'EmailNiceToMeetYou',
       options: { repeat: { cron: '0 10 * * *', tz: 'America/New_York' } }, // each day at 10am
     },
     {
-      name: Jobs.UpdateTotalVolunteerHours,
+      name: 'UpdateTotalVolunteerHours',
+      data: {},
       options: { repeat: { cron: '0 6 * * MON', tz: 'America/New_York' } }, // every Monday at 6am EST
     },
     {
-      name: Jobs.SpawnEmailWeeklyHourSummaryJobs,
+      name: 'SpawnEmailWeeklyHourSummaryJobs',
+      data: {},
       options: { repeat: { cron: '0 6 * * MON', tz: 'America/New_York' } }, // every Monday at 6am EST
     },
     {
-      name: Jobs.EmailVolunteerInactive,
+      name: 'EmailVolunteerInactive',
       options: { repeat: { cron: '0 9 * * *', tz: 'America/New_York' } }, // each day at 9am
     },
     {
-      name: Jobs.EmailVolunteerInactiveBlackoutOver,
+      name: 'EmailVolunteerInactiveBlackoutOver',
       options: { repeat: { cron: '0 9 2 9 *', tz: 'America/New_York' } }, // On Septempber 2nd at 9am
     },
     {
-      name: Jobs.GenerateAndStoreWaitTimeHeatMap,
+      name: 'GenerateAndStoreWaitTimeHeatMap',
       options: { repeat: { cron: '0 8 * * MON', tz: 'America/New_York' } }, // every Monday at 8am EST
     },
     {
-      name: Jobs.UpdateSendGridGradeLevels,
+      name: 'UpdateSendGridGradeLevels',
       options: { repeat: { cron: '0 8 1 8 *', tz: 'America/New_York' } }, // On August 1st at 8am ET
     },
     {
-      name: Jobs.RedisKeyMemStats,
+      name: 'RedisKeyMemStats',
+      data: { keyPatterns: [] },
       options: { repeat: { cron: '0 5 * * *', tz: 'America/New_York' } }, // each day at 5am
     },
     {
-      name: Jobs.UpdateCachedVolunteersForTextNotifications,
+      name: 'UpdateCachedVolunteersForTextNotifications',
       options: { repeat: { cron: '0 * * * *', tz: 'America/New_York' } }, // Every hour at minute 0
     },
     {
-      name: Jobs.ClearBullJobsByStatus,
+      name: 'ClearBullJobsByStatus',
       data: { statuses: ['completed', 'failed'], timeOffsetInMs: 0 },
       options: { repeat: { cron: '0 6 * * *', tz: 'America/New_York' } }, // each day at 6am
     },
     {
-      name: Jobs.SpawnUpdateNTHSChapterStatusForImpactPath,
+      name: 'SpawnUpdateNTHSChapterStatusForImpactPath',
       data: {
         periodStart: moment('2026-09-01').tz('America/New_York').toDate(),
         periodEnd: moment('2026-12-31').tz('America/New_York').toDate(),
@@ -88,7 +94,7 @@ export default async function addScheduledJobs() {
     },
 
     {
-      name: Jobs.NTHSApplicationStatus,
+      name: 'NTHSApplicationStatus',
       data: {
         periodStart: moment('2026-09-01').tz('America/New_York').toDate(),
         periodEnd: moment('2026-12-31').tz('America/New_York').toDate(),
@@ -97,7 +103,7 @@ export default async function addScheduledJobs() {
     },
 
     {
-      name: Jobs.NTHSCandidateEngagement,
+      name: 'NTHSCandidateEngagement',
       data: {
         cohortStartDate: moment('2026-09-01').tz('America/New_York').toDate(),
         cohortEndDate: moment('2026-12-31').tz('America/New_York').toDate(),

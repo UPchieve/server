@@ -1,9 +1,9 @@
+import { Job } from 'bull'
 import moment from 'moment'
 import * as SessionService from '../../services/SessionService'
 import logger from '../../logger'
-import { Jobs } from '.'
 
-export default async (): Promise<void> => {
+export default async (job: Job<undefined>): Promise<void> => {
   const lastMonday = moment()
     .utc()
     .subtract(1, 'weeks')
@@ -15,9 +15,7 @@ export default async (): Promise<void> => {
     .endOf('isoWeek')
     .toDate()
 
-  logger.info(
-    `Executing ${Jobs.GenerateAndStoreWaitTimeHeatMap} for ${lastMonday} to ${lastSunday}.`
-  )
+  logger.info(`Executing ${job.name} for ${lastMonday} to ${lastSunday}.`)
   try {
     await SessionService.generateAndStoreWaitTimeHeatMap(lastMonday, lastSunday)
   } catch (error) {

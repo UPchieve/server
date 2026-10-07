@@ -1,4 +1,4 @@
-import { Jobs } from '.'
+import { Job } from 'bull'
 import 'moment-timezone'
 import logger from '../../logger'
 import { getStudentIdsForGradeLevelSgUpdate } from '../../models/Student'
@@ -10,6 +10,7 @@ import { backOff } from 'exponential-backoff'
 import { AxiosError } from 'axios'
 
 async function pollContactJobStatus(
+  jobName: string,
   jobId: string,
   startBatchSize: number,
   endBatchSize: number
@@ -21,22 +22,20 @@ async function pollContactJobStatus(
 
       if (status.status === 'completed')
         logger.info(
-          `${Jobs.UpdateSendGridGradeLevels} - SendGrid job ${jobId} completed successfully for ${batchSize}`
+          `${jobName} - SendGrid job ${jobId} completed successfully for ${batchSize}`
         )
       else if (
         status.status === 'failed' ||
         (status.errors && status.errors.length > 0)
       )
         throw new Error(
-          `${
-            Jobs.UpdateSendGridGradeLevels
-          } - SendGrid job ${jobId} failed with errors for ${batchSize}: ${JSON.stringify(
+          `${jobName} - SendGrid job ${jobId} failed with errors for ${batchSize}: ${JSON.stringify(
             status.errors
           )}`
         )
       else
         throw new Error(
-          `${Jobs.UpdateSendGridGradeLevels} - SendGrid job ${jobId} is still processing for ${batchSize}.`
+          `${jobName} - SendGrid job ${jobId} is still processing for ${batchSize}.`
         )
     },
     {
@@ -47,7 +46,7 @@ async function pollContactJobStatus(
       numOfAttempts: 20,
       retry: (error: Error, attemptNumber: number) => {
         logger.info(
-          `${Jobs.UpdateSendGridGradeLevels} - Checking SendGrid job status ${jobId} on attempt ${attemptNumber}`
+          `${jobName} - Checking SendGrid job status ${jobId} on attempt ${attemptNumber}`
         )
         return true
       },
@@ -55,7 +54,7 @@ async function pollContactJobStatus(
   )
 }
 
-export default async (): Promise<void> => {
+export default async (job: Job<undefined>): Promise<void> => {
   const errors: string[] = []
   const BATCH_SIZE = 5000
   const studentIds = await getStudentIdsForGradeLevelSgUpdate()
@@ -72,7 +71,7 @@ export default async (): Promise<void> => {
         retry: (error: AxiosError, attemptNumber: number) => {
           if (error.response && error.response.status === 429) {
             logger.warn(
-              `${Jobs.UpdateSendGridGradeLevels} - Rate limit exceeded on attempt ${attemptNumber}. Retrying...`
+              `${job.name} - Rate limit exceeded on attempt ${attemptNumber}. Retrying...`
             )
             // Retry if rate-limit error
             return true
@@ -83,23 +82,17 @@ export default async (): Promise<void> => {
       })
 
       // Ensure the batch contact update with SendGrid actually succeeds
-      await pollContactJobStatus(jobId, i, i + BATCH_SIZE)
+      await pollContactJobStatus(job.name, jobId, i, i + BATCH_SIZE)
       totalUpdated += batch.length
     } catch (error) {
       errors.push(
-        `${
-          Jobs.UpdateSendGridGradeLevels
-        } - Failed to process batch ${i} + ${i + BATCH_SIZE}: ${error}\n`
+        `${job.name} - Failed to process batch ${i} + ${i + BATCH_SIZE}: ${error}\n`
       )
     }
   }
 
-  logger.info(
-    `Successfully ${Jobs.UpdateSendGridGradeLevels} for ${totalUpdated} students`
-  )
+  logger.info(`Successfully ${job.name} for ${totalUpdated} students`)
   if (errors.length) {
-    throw new Error(
-      `Failed to ${Jobs.UpdateSendGridGradeLevels} for students:\n${errors}`
-    )
+    throw new Error(`Failed to ${job.name} for students:\n${errors}`)
   }
 }

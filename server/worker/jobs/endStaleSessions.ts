@@ -1,8 +1,8 @@
+import { Job } from 'bull'
 import * as SessionService from '../../services/SessionService'
 import logger from '../../logger'
-import { Jobs } from '.'
 
-export default async (): Promise<void> => {
+export default async (job: Job<undefined>): Promise<void> => {
   const staleSessions = await SessionService.getStaleSessions()
   let totalEnded = 0
   const errors: string[] = []
@@ -20,10 +20,8 @@ export default async (): Promise<void> => {
       errors.push(`session ${sessionId}: ${error}`)
     }
   }
-  logger.info(
-    `Successfuly ${Jobs.EndStaleSessions} for ${totalEnded} sessions.`
-  )
+  logger.info(`Successfuly ${job.name} for ${totalEnded} sessions.`)
   if (errors.length) {
-    throw new Error(`Failed to ${Jobs.EndStaleSessions} for: ${errors}`)
+    throw new Error(`Failed to ${job.name} for: ${errors}`)
   }
 }

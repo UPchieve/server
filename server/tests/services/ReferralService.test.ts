@@ -3,7 +3,6 @@ import * as ReferralService from '../../services/ReferralService'
 import * as QueueService from '../../services/QueueService'
 import * as NotificationsService from '../../services/NotificationService'
 import { mocked } from 'jest-mock'
-import { Jobs } from '../../worker/jobs'
 import { jest, describe, beforeEach, expect, it } from '@jest/globals'
 
 jest.mock('../../models/Referrals')
@@ -50,7 +49,7 @@ describe('queueReferredByEmailsForVolunteer', () => {
       expect(QueueService.add).toHaveBeenCalledTimes(2)
       expect(QueueService.add).toHaveBeenNthCalledWith(
         2,
-        Jobs.SendAmbassadorCongratsEmail,
+        'SendAmbassadorCongratsEmail',
         expect.anything(),
         expect.anything()
       )
@@ -66,12 +65,12 @@ describe('queueReferredByEmailsForVolunteer', () => {
       expect(QueueService.add).toHaveBeenCalledTimes(1)
       expect(QueueService.add).toHaveBeenNthCalledWith(
         1,
-        Jobs.SendReferralSignUpCelebrationEmail,
+        'SendReferralSignUpCelebrationEmail',
         expect.anything(),
         expect.anything()
       )
       expect(QueueService.add).not.toHaveBeenCalledWith(
-        Jobs.SendAmbassadorCongratsEmail
+        'SendAmbassadorCongratsEmail'
       )
     })
 
@@ -88,12 +87,12 @@ describe('queueReferredByEmailsForVolunteer', () => {
       expect(QueueService.add).toHaveBeenCalledTimes(1)
       expect(QueueService.add).toHaveBeenNthCalledWith(
         1,
-        Jobs.SendReferralSignUpCelebrationEmail,
+        'SendReferralSignUpCelebrationEmail',
         expect.anything(),
         expect.anything()
       )
       expect(QueueService.add).not.toHaveBeenCalledWith(
-        Jobs.SendAmbassadorCongratsEmail
+        'SendAmbassadorCongratsEmail'
       )
     })
   })

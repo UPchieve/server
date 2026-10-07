@@ -7,7 +7,6 @@ import * as UserService from '../../../services/UserService'
 import { Job } from 'bull'
 import { getDbUlid } from '../../../models/pgUtils'
 import { buildUser } from '../../mocks/generate'
-import { Jobs } from '../../../worker/jobs'
 import logger from '../../../logger'
 
 jest.mock('../../../services/MailService')
@@ -25,6 +24,7 @@ describe('EmailFallIncentiveEnrollmentWelcome', () => {
   test('Should do nothing if there is no user', async () => {
     mockedUserService.getUserContactInfo.mockResolvedValueOnce(undefined)
     const jobData: Job<EmailFallIncentiveEnrollmentWelcomeJobData> = {
+      name: 'EmailFallIncentiveEnrollmentWelcome',
       data: {
         userId: getDbUlid(),
       },
@@ -43,6 +43,7 @@ describe('EmailFallIncentiveEnrollmentWelcome', () => {
       undefined
     )
     const jobData: Job<EmailFallIncentiveEnrollmentWelcomeJobData> = {
+      name: 'EmailFallIncentiveEnrollmentWelcome',
       data: {
         userId: user.id,
       },
@@ -53,7 +54,7 @@ describe('EmailFallIncentiveEnrollmentWelcome', () => {
       MailService.sendFallIncentiveEnrollmentWelcomeEmail
     ).toHaveBeenCalledWith(user.email, user.firstName)
     expect(logger.info).toHaveBeenCalledWith(
-      `Sent ${Jobs.EmailFallIncentiveEnrollmentWelcome} to student ${user.id}`
+      `Sent EmailFallIncentiveEnrollmentWelcome to student ${user.id}`
     )
   })
 
@@ -65,6 +66,7 @@ describe('EmailFallIncentiveEnrollmentWelcome', () => {
       error
     )
     const jobData: Job<EmailFallIncentiveEnrollmentWelcomeJobData> = {
+      name: 'EmailFallIncentiveEnrollmentWelcome',
       data: {
         userId: user.id,
       },
@@ -73,7 +75,7 @@ describe('EmailFallIncentiveEnrollmentWelcome', () => {
     await expect(async () => {
       await emailFallIncentiveEnrollmentWelcome(jobData)
     }).rejects.toThrow(
-      `Failed to send ${Jobs.EmailFallIncentiveEnrollmentWelcome} to student ${user.id}: ${error}`
+      `Failed to send EmailFallIncentiveEnrollmentWelcome to student ${user.id}: ${error}`
     )
 
     expect(

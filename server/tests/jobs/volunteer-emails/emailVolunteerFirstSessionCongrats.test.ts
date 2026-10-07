@@ -10,7 +10,6 @@ import { hasUserBeenSentEmail } from '../../../services/NotificationService'
 import logger from '../../../logger'
 import emailVolunteerFirstSessionCongrats from '../../../worker/jobs/volunteer-emails/emailVolunteerFirstSessionCongrats'
 import { asString } from '../../../utils/type-utils'
-import { Jobs } from '../../../worker/jobs'
 
 jest.mock('../../../models/Session')
 jest.mock('../../../services/NotificationService')
@@ -26,7 +25,7 @@ const mockedSendVolunteerFirstSessionCongrats = mocked(
   MailService.sendVolunteerFirstSessionCongrats
 )
 
-describe(`${Jobs.EmailVolunteerFirstSessionCongrats}`, () => {
+describe(`EmailVolunteerFirstSessionCongrats`, () => {
   beforeEach(() => {
     jest.clearAllMocks()
   })
@@ -37,7 +36,7 @@ describe(`${Jobs.EmailVolunteerFirstSessionCongrats}`, () => {
 
     const job = {
       data: { sessionId },
-      name: Jobs.EmailVolunteerFirstSessionCongrats,
+      name: 'EmailVolunteerFirstSessionCongrats',
     } as Job<{ sessionId: string }>
     await emailVolunteerFirstSessionCongrats(job)
 
@@ -56,7 +55,7 @@ describe(`${Jobs.EmailVolunteerFirstSessionCongrats}`, () => {
 
     const job = {
       data: { sessionId },
-      name: Jobs.EmailVolunteerFirstSessionCongrats,
+      name: 'EmailVolunteerFirstSessionCongrats',
     } as Job<{ sessionId: string }>
     await emailVolunteerFirstSessionCongrats(job)
 
@@ -65,13 +64,13 @@ describe(`${Jobs.EmailVolunteerFirstSessionCongrats}`, () => {
       emailTemplateId: config.sendgrid.volunteerFirstSessionCongratsTemplate,
     })
     expect(logger.info).toHaveBeenCalledWith(
-      `Volunteer ${volunteer.id} has already received ${Jobs.EmailVolunteerFirstSessionCongrats}`
+      `Volunteer ${volunteer.id} has already received EmailVolunteerFirstSessionCongrats`
     )
     expect(mockedSendVolunteerFirstSessionCongrats).not.toHaveBeenCalled()
     expect(mockedCreateEmailNotification).not.toHaveBeenCalled()
   })
 
-  test(`Should send ${Jobs.EmailVolunteerFirstSessionCongrats}`, async () => {
+  test(`Should send EmailVolunteerFirstSessionCongrats`, async () => {
     const volunteer = buildVolunteer()
     const sessionId = getUuid()
     mockedGetVolunteerForEmailFirstSession.mockResolvedValueOnce(volunteer)
@@ -81,7 +80,7 @@ describe(`${Jobs.EmailVolunteerFirstSessionCongrats}`, () => {
 
     const job = {
       data: { sessionId },
-      name: Jobs.EmailVolunteerFirstSessionCongrats,
+      name: 'EmailVolunteerFirstSessionCongrats',
     } as Job<{ sessionId: string }>
     await emailVolunteerFirstSessionCongrats(job)
 
@@ -94,7 +93,7 @@ describe(`${Jobs.EmailVolunteerFirstSessionCongrats}`, () => {
       emailTemplateId: config.sendgrid.volunteerFirstSessionCongratsTemplate,
     })
     expect(logger.info).toHaveBeenCalledWith(
-      `Sent ${Jobs.EmailVolunteerFirstSessionCongrats} to volunteer ${volunteer.id}`
+      `Sent EmailVolunteerFirstSessionCongrats to volunteer ${volunteer.id}`
     )
   })
 
@@ -110,10 +109,10 @@ describe(`${Jobs.EmailVolunteerFirstSessionCongrats}`, () => {
 
     const job = {
       data: { sessionId },
-      name: Jobs.EmailVolunteerFirstSessionCongrats,
+      name: 'EmailVolunteerFirstSessionCongrats',
     } as Job<{ sessionId: string }>
     await expect(emailVolunteerFirstSessionCongrats(job)).rejects.toThrow(
-      `Failed to send ${Jobs.EmailVolunteerFirstSessionCongrats} to volunteer ${volunteer.id}: Error: ${errorMessage}`
+      `Failed to send EmailVolunteerFirstSessionCongrats to volunteer ${volunteer.id}: Error: ${errorMessage}`
     )
   })
 })

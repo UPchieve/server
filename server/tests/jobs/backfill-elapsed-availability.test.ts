@@ -1,10 +1,10 @@
+import { Job } from 'bull'
 import { mocked } from 'jest-mock'
 import { getUuid } from '../../models/pgUtils'
 import * as VolunteerRepo from '../../models/Volunteer/queries'
 import backfillElapsedAvailability from '../../scripts/backfill-elapsed-availability'
 import * as AvailabilityService from '../../services/AvailabilityService'
 import logger from '../../logger'
-import { Jobs } from '../../worker/jobs'
 
 jest.mock('../../models/Volunteer/queries')
 jest.mock('../../services/AvailabilityService')
@@ -12,6 +12,7 @@ jest.mock('../../logger')
 
 const mockedAvailabilityService = mocked(AvailabilityService)
 const mockedVolunteerRepo = mocked(VolunteerRepo)
+const job = { name: 'BackfillElapsedAvailability' } as Job<undefined>
 
 function setSystemTimeTo(dateIso: string) {
   jest.useFakeTimers()
@@ -26,10 +27,10 @@ describe('backfillElapsedAvailability', () => {
 
   test('should early exit if ran before 5:00 AM ET', async () => {
     setSystemTimeTo('2025-01-01T06:00:00Z')
-    await backfillElapsedAvailability()
+    await backfillElapsedAvailability(job)
 
     expect(logger.warn).toHaveBeenCalledWith(
-      `${Jobs.BackfillElapsedAvailability}: exiting — must run after 8:00 AM ET`
+      `BackfillElapsedAvailability: exiting — must run after 8:00 AM ET`
     )
     expect(
       mockedVolunteerRepo.getVolunteerIdsForElapsedAvailability
@@ -48,14 +49,14 @@ describe('backfillElapsedAvailability', () => {
       []
     )
 
-    await backfillElapsedAvailability()
+    await backfillElapsedAvailability(job)
 
     expect(
       mockedVolunteerRepo.getVolunteerIdsForElapsedAvailability
     ).toHaveBeenCalled()
     expect(logger.info).toHaveBeenCalledWith(
       expect.stringContaining(
-        `Successfully ${Jobs.BackfillElapsedAvailability}: 0 volunteers`
+        `Successfully BackfillElapsedAvailability: 0 volunteers`
       )
     )
     expect(
@@ -80,7 +81,7 @@ describe('backfillElapsedAvailability', () => {
       .mockResolvedValueOnce(3)
     mockedVolunteerRepo.setVolunteerElapsedAvailabilityById.mockResolvedValue()
 
-    await backfillElapsedAvailability()
+    await backfillElapsedAvailability(job)
 
     expect(
       mockedAvailabilityService.getTotalElapsedAvailabilityForDateRange
@@ -95,7 +96,7 @@ describe('backfillElapsedAvailability', () => {
       mockedVolunteerRepo.setVolunteerElapsedAvailabilityById
     ).toHaveBeenNthCalledWith(2, volThreeId, 3)
     expect(logger.info).toHaveBeenCalledWith(
-      `Successfully ${Jobs.BackfillElapsedAvailability}: 2 volunteers`
+      `Successfully BackfillElapsedAvailability: 2 volunteers`
     )
   })
 
@@ -114,9 +115,9 @@ describe('backfillElapsedAvailability', () => {
       .mockResolvedValueOnce()
       .mockRejectedValueOnce(new Error('Failed to set elapsed availability'))
 
-    await expect(backfillElapsedAvailability()).rejects.toMatchObject({
+    await expect(backfillElapsedAvailability(job)).rejects.toMatchObject({
       message: expect.stringContaining(
-        `${Jobs.BackfillElapsedAvailability}: has errors`
+        `BackfillElapsedAvailability: has errors`
       ),
     })
   })

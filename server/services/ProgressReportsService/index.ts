@@ -51,7 +51,6 @@ import {
 } from './types'
 import { invokeModel, MODEL_ID as OPENAI_MODELID } from '../OpenAIService'
 import QueueService from '../QueueService'
-import { Jobs } from '../../worker/jobs'
 export * from './types'
 import { ProgressReportNotFoundError } from '../Errors'
 import { PROGRESS_REPORT_JSON_INSTRUCTIONS } from '../../constants'
@@ -460,11 +459,7 @@ export async function queueGenerateProgressReportForUser(
   const session = await getSessionById(sessionId)
   const isSubjectPromptActive = await hasActiveSubjectPrompt(session.subject)
   if (!isSubjectPromptActive) return
-  await QueueService.add(
-    Jobs.GenerateProgressReport,
-    { delay: 0 },
-    { sessionId }
-  )
+  await QueueService.add('GenerateProgressReport', { delay: 0 }, { sessionId })
 }
 
 function transformProgressReportSummaryRows(

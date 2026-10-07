@@ -1,13 +1,14 @@
+import { Job } from 'bull'
 import { mocked } from 'jest-mock'
 import generateAndStoreWaitTimeHeatMap from '../../worker/jobs/generateAndStoreWaitTimeHeatMap'
 import * as SessionService from '../../services/SessionService'
-import { Jobs } from '../../worker/jobs'
 import * as SessionUtils from '../../utils/session-utils'
 jest.mock('../../services/SessionService')
 
 const mockedSessionService = mocked(SessionService)
+const job = { name: 'GenerateAndStoreWaitTimeHeatMap' } as Job<undefined>
 
-describe(Jobs.GenerateAndStoreWaitTimeHeatMap, () => {
+describe('GenerateAndStoreWaitTimeHeatMap', () => {
   beforeEach(async () => {
     jest.resetAllMocks()
   })
@@ -16,7 +17,7 @@ describe(Jobs.GenerateAndStoreWaitTimeHeatMap, () => {
     mockedSessionService.generateAndStoreWaitTimeHeatMap.mockResolvedValueOnce(
       SessionUtils.createEmptyHeatMap()
     )
-    expect(() => generateAndStoreWaitTimeHeatMap()).not.toThrow()
+    expect(() => generateAndStoreWaitTimeHeatMap(job)).not.toThrow()
   })
 
   test('Should let error bubble up if failed to generate or store the heat map', async () => {
@@ -25,6 +26,6 @@ describe(Jobs.GenerateAndStoreWaitTimeHeatMap, () => {
         throw new Error('Unable to store heat map')
       }
     )
-    await expect(generateAndStoreWaitTimeHeatMap()).rejects.toThrow()
+    await expect(generateAndStoreWaitTimeHeatMap(job)).rejects.toThrow()
   })
 })

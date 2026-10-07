@@ -27,7 +27,6 @@ import SocketService, {
   APPROVED_VOLUNTEERS_ROOM,
 } from '../../services/SocketService'
 import getSessionRoom from '../../utils/get-session-room'
-import { Jobs } from '../../worker/jobs'
 import { extractSocketUser } from '../extract-user'
 import { logSocketEvent } from '../../utils/log-socket-connection-info'
 import { SocketUser } from '../../types/socket-types'
@@ -470,7 +469,7 @@ export function routeSockets(io: Server): void {
           // If the message is coming from the recap page, queue the message to send a notification
           if (source === 'recap') {
             await QueueService.add(
-              Jobs.SendSessionRecapMessageNotification,
+              'SendSessionRecapMessageNotification',
               { delay: 0 },
               {
                 messageId,

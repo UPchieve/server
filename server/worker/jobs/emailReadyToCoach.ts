@@ -1,14 +1,14 @@
+import { Job } from 'bull'
 import {
   getVolunteersForReadyToCoach,
   updateVolunteersReadyToCoachByIds,
 } from '../../models/Volunteer/queries'
 import * as MailService from '../../services/MailService'
 import logger from '../../logger'
-import { Jobs } from '.'
 import QueueService from '../../services/QueueService'
 
 const twoDaysInMs = 2 * 24 * 60 * 60 * 1000
-export default async (): Promise<void> => {
+export default async (job: Job<undefined>): Promise<void> => {
   const volunteers = await getVolunteersForReadyToCoach()
 
   const errors: string[] = []
@@ -18,7 +18,7 @@ export default async (): Promise<void> => {
       await MailService.sendReadyToCoachEmail(volunteer)
       succeededVolunteers.push(volunteer.id)
       await QueueService.add(
-        Jobs.SendBecomeAnAmbassadorEmail,
+        'SendBecomeAnAmbassadorEmail',
         { delay: twoDaysInMs, removeOnComplete: true, removeOnFail: false },
         {
           userId: volunteer.id,
@@ -31,11 +31,9 @@ export default async (): Promise<void> => {
 
   await updateVolunteersReadyToCoachByIds(succeededVolunteers)
 
-  logger.info(
-    `Sent ${Jobs.EmailReadyToCoach} to ${succeededVolunteers.length} volunteers`
-  )
+  logger.info(`Sent ${job.name} to ${succeededVolunteers.length} volunteers`)
 
   if (errors.length) {
-    throw new Error(`Failed to send ${Jobs.EmailReadyToCoach} to ${errors}`)
+    throw new Error(`Failed to send ${job.name} to ${errors}`)
   }
 }

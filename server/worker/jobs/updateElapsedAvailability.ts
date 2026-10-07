@@ -1,3 +1,4 @@
+import { Job } from 'bull'
 import moment from 'moment'
 import 'moment-timezone'
 import {
@@ -11,10 +12,9 @@ import {
   getAvailabilityForVolunteer,
   saveCurrentAvailabilityAsHistory,
 } from '../../models/Availability'
-import { Jobs } from '.'
 import countAvailabilitySelected from '../../utils/count-availability-selected'
 
-export default async (): Promise<void> => {
+export default async (job: Job<undefined>): Promise<void> => {
   const volunteerIds = await getVolunteerIdsForElapsedAvailability()
 
   let totalUpdated = 0
@@ -50,12 +50,8 @@ export default async (): Promise<void> => {
     }
     totalUpdated += 1
   }
-  logger.info(
-    `Successfully ${Jobs.UpdateElapsedAvailability} for ${totalUpdated} volunteers`
-  )
+  logger.info(`Successfully ${job.name} for ${totalUpdated} volunteers`)
   if (errors.length) {
-    throw new Error(
-      `Failed to ${Jobs.UpdateElapsedAvailability} for volunteers ${errors}`
-    )
+    throw new Error(`Failed to ${job.name} for volunteers ${errors}`)
   }
 }

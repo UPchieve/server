@@ -2,7 +2,7 @@ import { Job } from 'bull'
 import moment from 'moment'
 import logger from '../../../logger'
 import * as MailService from '../../../services/MailService'
-import { Jobs } from '../index'
+import type { JobName } from '../index'
 import {
   getVolunteerContactInfoById,
   VolunteerContactInfo,
@@ -21,24 +21,23 @@ type VolunteerSessionActionsJobData = {
   sessionId: Uuid
 }
 
-function getSendGridTemplate(currentJob: Jobs): string | undefined {
-  const sendGridTemplates: Partial<Record<Jobs, string>> = {
-    [Jobs.EmailVolunteerAbsentWarning]:
-      config.sendgrid.volunteerAbsentWarningTemplate,
-    [Jobs.EmailVolunteerAbsentStudentApology]:
+function getSendGridTemplate(currentJob: JobName): string | undefined {
+  const sendGridTemplates: Partial<Record<JobName, string>> = {
+    EmailVolunteerAbsentWarning: config.sendgrid.volunteerAbsentWarningTemplate,
+    EmailVolunteerAbsentStudentApology:
       config.sendgrid.volunteerAbsentStudentApologyTemplate,
   }
   return sendGridTemplates[currentJob]
 }
 
 function getEmailForJob(
-  jobName: Jobs,
+  jobName: JobName,
   session: GetSessionByIdResult,
   student: StudentContactInfo,
   volunteer: VolunteerContactInfo
 ): (() => Promise<void>) | undefined {
-  const emailMapForJob: Partial<Record<Jobs, () => Promise<void>>> = {
-    [Jobs.EmailVolunteerAbsentWarning]: () =>
+  const emailMapForJob: Partial<Record<JobName, () => Promise<void>>> = {
+    EmailVolunteerAbsentWarning: () =>
       MailService.sendVolunteerAbsentWarning(
         volunteer.firstName,
         volunteer.email,
@@ -47,7 +46,7 @@ function getEmailForJob(
         moment(session.createdAt).format('MMMM Do')
       ),
 
-    [Jobs.EmailVolunteerAbsentStudentApology]: () =>
+    EmailVolunteerAbsentStudentApology: () =>
       MailService.sendVolunteerAbsentStudentApology(
         volunteer.firstName,
         volunteer.email,
@@ -75,7 +74,7 @@ export default async (
   if (!volunteer)
     return logger.info(`No volunteer found with id ${session.volunteerId}`)
 
-  const emailTemplateId = getSendGridTemplate(currentJob as Jobs)
+  const emailTemplateId = getSendGridTemplate(currentJob as JobName)
   if (!emailTemplateId)
     return logger.warn(`No email template id found for ${currentJob}`)
 
@@ -94,7 +93,7 @@ export default async (
 
   try {
     const emailForJob = getEmailForJob(
-      currentJob as Jobs,
+      currentJob as JobName,
       session,
       student,
       volunteer

@@ -22,7 +22,6 @@ import { GetSessionByIdResult } from '../../models/Session'
 import { UserContactInfo } from '../../models/User'
 import { RoleContext } from '../../services/UserRolesService'
 import { PostsessionSurveyGoalResponse } from '../../models/Survey'
-import { Jobs } from '../../worker/jobs'
 
 jest.mock('../../models/Survey/queries')
 jest.mock('../../models/User/queries')
@@ -141,7 +140,7 @@ describe('saveUserSurvey', () => {
       mockedSessionFlagsService.processFeedbackMetrics
     ).toHaveBeenCalledWith(expectedUserSurvey.sessionId)
     expect(mockedQueueService.default.add).toHaveBeenCalledWith(
-      Jobs.MaybeSendStudentFeedbackToVolunteer,
+      'MaybeSendStudentFeedbackToVolunteer',
       { delay: 300000 },
       { sessionId: expectedUserSurvey.sessionId }
     )
@@ -219,7 +218,7 @@ describe('saveUserSurvey', () => {
     await SurveyService.saveUserSurvey(userId, data)
 
     expect(mockedQueueService.default.add).not.toHaveBeenCalledWith(
-      Jobs.MaybeSendStudentFeedbackToVolunteer,
+      'MaybeSendStudentFeedbackToVolunteer',
       { delay: 300000, removeOnComplete: true, removeOnFail: false },
       { sessionId: userSurvey.sessionId }
     )

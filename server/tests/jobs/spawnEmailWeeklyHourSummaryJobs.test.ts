@@ -3,7 +3,6 @@ import moment from 'moment'
 import spawnEmailWeeklyHourSummaryJobs from '../../worker/jobs/spawnEmailWeeklyHourSummaryJobs'
 import * as VolunteerQueries from '../../models/Volunteer/queries'
 import QueueService from '../../services/QueueService'
-import { Jobs } from '../../worker/jobs'
 import { getDbUlid } from '../../models/pgUtils'
 
 jest.mock('../../models/Volunteer/queries')
@@ -42,7 +41,7 @@ describe('spawnEmailWeeklyHourSummaryJobs', () => {
 
     expect(mockedQueueService.add).toHaveBeenCalledTimes(2)
     expect(mockedQueueService.add).toHaveBeenCalledWith(
-      Jobs.EmailWeeklyHourSummary,
+      'EmailWeeklyHourSummary',
       { delay: 0, priority: 3 },
       expect.objectContaining({
         volunteer: volunteer1,
@@ -100,7 +99,7 @@ describe('spawnEmailWeeklyHourSummaryJobs', () => {
 
     expect(mockedQueueService.add).toHaveBeenCalledTimes(2)
     expect(mockedQueueService.add).toHaveBeenCalledWith(
-      Jobs.EmailWeeklyHourSummary,
+      'EmailWeeklyHourSummary',
       { delay: 0, priority: 3 },
       expect.objectContaining({
         startDate: customStartDate,
@@ -109,7 +108,7 @@ describe('spawnEmailWeeklyHourSummaryJobs', () => {
       })
     )
     expect(mockedQueueService.add).toHaveBeenCalledWith(
-      Jobs.EmailWeeklyHourSummary,
+      'EmailWeeklyHourSummary',
       { delay: 0, priority: 3 },
       expect.objectContaining({
         startDate: customStartDate,

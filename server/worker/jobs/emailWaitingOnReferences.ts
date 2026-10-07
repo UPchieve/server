@@ -1,10 +1,10 @@
+import { Job } from 'bull'
 import logger from '../../logger'
 import { getVolunteersForWaitingReferences } from '../../models/Volunteer/queries'
 import * as MailService from '../../services/MailService'
-import { Jobs } from '.'
 
 // Runs every day at 11am EST
-export default async (): Promise<void> => {
+export default async (job: Job<undefined>): Promise<void> => {
   const oneDay = 1000 * 60 * 60 * 24 * 1
   const fiveDaysAgo = Date.now() - oneDay * 5
   const sixDaysAgo = fiveDaysAgo - oneDay
@@ -25,10 +25,8 @@ export default async (): Promise<void> => {
     }
   }
 
-  logger.info(`Sent ${Jobs.EmailWaitingOnReferences} to ${totalEmailed}`)
+  logger.info(`Sent ${job.name} to ${totalEmailed}`)
   if (errors.length) {
-    throw new Error(
-      `Failed to send ${Jobs.EmailWaitingOnReferences} to: ${errors}`
-    )
+    throw new Error(`Failed to send ${job.name} to: ${errors}`)
   }
 }

@@ -1,6 +1,5 @@
 import { Job } from 'bull'
 import newrelic from 'newrelic'
-import { Jobs } from '.'
 import { Uuid } from '../../models/pgUtils'
 import { queueGenerateProgressReportForUser } from '../../services/ProgressReportsService'
 import { queueFallIncentiveSessionQualificationJob } from '../../services/IncentiveProgramService'
@@ -70,12 +69,12 @@ export default async (job: Job<ProcessSessionEndedJobData>): Promise<void> => {
       logger.info(`Finished after metric task ${afterMetricTask.name}`)
     }
   } catch (error) {
-    logger.error(`Failed to complete ${Jobs.ProcessSessionEnded}`, {
+    logger.error(`Failed to complete ${job.name}`, {
       err: error,
       sessionId,
     })
     throw new Error(
-      `Failed to complete ${Jobs.ProcessSessionEnded} for session ${sessionId}: ${error}`
+      `Failed to complete ${job.name} for session ${sessionId}: ${error}`
     )
   }
 }

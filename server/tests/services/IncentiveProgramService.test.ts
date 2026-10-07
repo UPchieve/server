@@ -10,7 +10,6 @@ import {
   queueFallIncentiveSessionQualificationJob,
   getUserFallIncentiveData,
 } from '../../services/IncentiveProgramService'
-import { Jobs } from '../../worker/jobs'
 import {
   buildSession,
   buildUser,
@@ -77,7 +76,7 @@ describe('queueIncentiveProgramEnrollmentWelcomeJob', () => {
 
     await queueIncentiveProgramEnrollmentWelcomeJob(userId)
     expect(mockedQueueService.add).toHaveBeenCalledWith(
-      Jobs.EmailFallIncentiveEnrollmentWelcome,
+      'EmailFallIncentiveEnrollmentWelcome',
       { delay: 0 },
       { userId }
     )
@@ -94,7 +93,7 @@ describe('queueIncentiveInvitedToEnrollReminderJob', () => {
 
     await queueIncentiveInvitedToEnrollReminderJob(userId)
     expect(mockedQueueService.add).toHaveBeenCalledWith(
-      Jobs.EmailFallIncentiveInvitedToEnrollReminder,
+      'EmailFallIncentiveInvitedToEnrollReminder',
       { delay: hoursInMs(12) },
       { userId }
     )
@@ -128,7 +127,7 @@ describe('queueFallIncentiveSessionQualificationJob', () => {
     await queueFallIncentiveSessionQualificationJob(sessionId)
     expect(mockedSessionRepo.getSessionById).toHaveBeenCalledWith(sessionId)
     expect(mockedQueueService.add).toHaveBeenCalledWith(
-      Jobs.EmailFallIncentiveSessionQualification,
+      'EmailFallIncentiveSessionQualification',
       { delay: 0 },
       { userId: studentId, sessionId }
     )

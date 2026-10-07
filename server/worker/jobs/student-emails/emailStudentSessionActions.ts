@@ -8,7 +8,7 @@ import {
   getVolunteerContactInfoById,
   VolunteerContactInfo,
 } from '../../../models/Volunteer/queries'
-import { Jobs } from '../index'
+import type { JobName } from '../index'
 import { getSessionById, GetSessionByIdResult } from '../../../models/Session'
 import {
   createEmailNotification,
@@ -21,15 +21,14 @@ type StudentSessionActionsJobData = {
   sessionId: Uuid
 }
 
-function getSendGridTemplate(currentJob: Jobs): string | undefined {
-  const sendGridTemplates: Partial<Record<Jobs, string>> = {
-    [Jobs.EmailStudentAbsentWarning]:
-      config.sendgrid.studentAbsentWarningTemplate,
-    [Jobs.EmailStudentAbsentVolunteerApology]:
+function getSendGridTemplate(currentJob: JobName): string | undefined {
+  const sendGridTemplates: Partial<Record<JobName, string>> = {
+    EmailStudentAbsentWarning: config.sendgrid.studentAbsentWarningTemplate,
+    EmailStudentAbsentVolunteerApology:
       config.sendgrid.studentAbsentVolunteerApologyTemplate,
-    [Jobs.EmailStudentUnmatchedApology]:
+    EmailStudentUnmatchedApology:
       config.sendgrid.studentUnmatchedApologyTemplate,
-    [Jobs.EmailStudentOnlyLookingForAnswers]:
+    EmailStudentOnlyLookingForAnswers:
       config.sendgrid.studentOnlyLookingForAnswersTemplate,
   }
 
@@ -37,16 +36,16 @@ function getSendGridTemplate(currentJob: Jobs): string | undefined {
 }
 
 function getEmailForJob(
-  jobName: Jobs,
+  jobName: JobName,
   session: GetSessionByIdResult,
   student: StudentContactInfo,
   volunteer?: VolunteerContactInfo
 ): (() => Promise<void>) | undefined {
-  const emailMapForJob: Partial<Record<Jobs, () => Promise<void>>> = {
-    [Jobs.EmailStudentAbsentWarning]: () =>
+  const emailMapForJob: Partial<Record<JobName, () => Promise<void>>> = {
+    EmailStudentAbsentWarning: () =>
       MailService.sendStudentAbsentWarning(student.email, student.firstName),
 
-    [Jobs.EmailStudentAbsentVolunteerApology]: async () =>
+    EmailStudentAbsentVolunteerApology: async () =>
       volunteer
         ? MailService.sendStudentAbsentVolunteerApology(
             student.firstName,
@@ -57,7 +56,7 @@ function getEmailForJob(
           )
         : undefined,
 
-    [Jobs.EmailStudentUnmatchedApology]: () =>
+    EmailStudentUnmatchedApology: () =>
       MailService.sendStudentUnmatchedApology(
         student.firstName,
         student.email,
@@ -65,7 +64,7 @@ function getEmailForJob(
         moment(session.createdAt).format('MMMM Do')
       ),
 
-    [Jobs.EmailStudentOnlyLookingForAnswers]: () =>
+    EmailStudentOnlyLookingForAnswers: () =>
       MailService.sendOnlyLookingForAnswersWarning(
         student.firstName,
         student.email
@@ -83,7 +82,7 @@ export default async (
   if (!student)
     return logger.info(`No student found with id ${session.studentId}`)
 
-  const emailTemplateId = getSendGridTemplate(currentJob as Jobs)
+  const emailTemplateId = getSendGridTemplate(currentJob as JobName)
   if (!emailTemplateId)
     return logger.warn(`No email template id found for ${currentJob}`)
 
@@ -101,7 +100,7 @@ export default async (
     : undefined
   try {
     const emailForJob = getEmailForJob(
-      currentJob as Jobs,
+      currentJob as JobName,
       session,
       student,
       volunteer

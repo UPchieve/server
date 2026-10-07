@@ -1,10 +1,10 @@
+import { Job } from 'bull'
 import logger from '../../logger'
 import { getVolunteersForNiceToMeetYou } from '../../models/Volunteer/queries'
 import * as MailService from '../../services/MailService'
-import { Jobs } from '.'
 
 // Runs every day at 10am EST
-export default async (): Promise<void> => {
+export default async (job: Job<undefined>): Promise<void> => {
   const oneDay = 1000 * 60 * 60 * 24 * 1
   const oneDayAgo = new Date(Date.now() - oneDay).setHours(0, 0, 0, 0)
   const todaysDate = new Date()
@@ -27,8 +27,8 @@ export default async (): Promise<void> => {
       errors.push(`volunteer ${volunteer.id}: ${error}`)
     }
   }
-  logger.info(`Sent ${Jobs.EmailNiceToMeetYou} to ${totalEmailed} volunteers`)
+  logger.info(`Sent ${job.name} to ${totalEmailed} volunteers`)
   if (errors.length) {
-    throw new Error(`Failed to send ${Jobs.EmailNiceToMeetYou} to: ${errors}`)
+    throw new Error(`Failed to send ${job.name} to: ${errors}`)
   }
 }

@@ -1,6 +1,6 @@
+import { Job } from 'bull'
 import moment from 'moment'
 import 'moment-timezone'
-import { Jobs } from '..'
 import logger from '../../../logger'
 import {
   VolunteerContactInfo,
@@ -24,7 +24,7 @@ enum InactiveGroup {
 
 async function sendEmailToInactiveVolunteers(
   volunteers: VolunteerContactInfo[],
-  currentJob: Jobs,
+  currentJob: string,
   mailHandler: Function,
   group: InactiveGroup
 ) {
@@ -61,14 +61,14 @@ function getEndOfDayFromDaysAgo(daysAgo: number): Date {
   return moment().utc().subtract(daysAgo, 'days').endOf('day').toDate()
 }
 
-export default async (): Promise<void> => {
+export default async (job: Job<undefined>): Promise<void> => {
   const blackoutPeriodStart = BLACKOUT_PERIOD_START.getTime()
   const blackoutPeriodEnd = BLACKOUT_PERIOD_END.getTime()
 
   const todaysDate = new Date().getTime()
   if (todaysDate >= blackoutPeriodStart && todaysDate <= blackoutPeriodEnd) {
     logger.info(
-      `Skipping ${Jobs.EmailVolunteerInactive} because today's date, ${new Date(
+      `Skipping ${job.name} because today's date, ${new Date(
         todaysDate
       ).toISOString()}, is within the blackout period: ${new Date(
         blackoutPeriodStart
@@ -100,7 +100,7 @@ export default async (): Promise<void> => {
     try {
       await sendEmailToInactiveVolunteers(
         inactiveThirtyDays,
-        Jobs.EmailVolunteerInactiveThirtyDays,
+        'EmailVolunteerInactiveThirtyDays',
         MailService.sendVolunteerInactiveThirtyDays,
         InactiveGroup.inactiveThirtyDays
       )
@@ -110,7 +110,7 @@ export default async (): Promise<void> => {
     try {
       await sendEmailToInactiveVolunteers(
         inactiveSixtyDays,
-        Jobs.EmailVolunteerInactiveSixtyDays,
+        'EmailVolunteerInactiveSixtyDays',
         MailService.sendVolunteerInactiveSixtyDays,
         InactiveGroup.inactiveSixtyDays
       )
@@ -120,7 +120,7 @@ export default async (): Promise<void> => {
     try {
       await sendEmailToInactiveVolunteers(
         inactiveNinetyDays,
-        Jobs.EmailVolunteerInactiveNinetyDays,
+        'EmailVolunteerInactiveNinetyDays',
         MailService.sendVolunteerInactiveNinetyDays,
         InactiveGroup.inactiveNinetyDays
       )

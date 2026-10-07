@@ -37,7 +37,6 @@ import {
   STUDENT_WAITING_PERIOD_MIN,
   processMetrics,
 } from '../../services/SessionFlagsService'
-import { Jobs } from '../../worker/jobs'
 import type { MessageForFrontend } from '../../types/session'
 import type { SessionActivity } from '../../models/Session'
 
@@ -766,7 +765,7 @@ describe('SessionFlagsService', () => {
   })
 
   describe('triggerSessionActions', () => {
-    test(`Should not queue ${Jobs.EmailStudentAbsentWarning} if no ${UserSessionFlags.absentStudent} flag`, async () => {
+    test(`Should not queue EmailStudentAbsentWarning if no ${UserSessionFlags.absentStudent} flag`, async () => {
       const sessionId = getUuid()
       const flags: UserSessionFlags[] = []
       const studentUSM = buildUserSessionMetrics({
@@ -775,13 +774,13 @@ describe('SessionFlagsService', () => {
       })
       await triggerSessionActions(sessionId, flags, studentUSM)
       expect(QueueService.add).not.toHaveBeenCalledWith(
-        Jobs.EmailStudentAbsentWarning,
+        'EmailStudentAbsentWarning',
         { delay: 0 },
         { sessionId }
       )
     })
 
-    test(`Should not queue ${Jobs.EmailStudentAbsentWarning} if studentUSM absentStudent does not equal 1`, async () => {
+    test(`Should not queue EmailStudentAbsentWarning if studentUSM absentStudent does not equal 1`, async () => {
       const sessionId = getUuid()
       const flags = [UserSessionFlags.absentStudent]
       const studentUSM = buildUserSessionMetrics({
@@ -790,13 +789,13 @@ describe('SessionFlagsService', () => {
       })
       await triggerSessionActions(sessionId, flags, studentUSM)
       expect(QueueService.add).not.toHaveBeenCalledWith(
-        Jobs.EmailStudentAbsentWarning,
+        'EmailStudentAbsentWarning',
         expect.anything(),
         { sessionId }
       )
     })
 
-    test(`Should queue ${Jobs.EmailStudentAbsentWarning} if studentUSM absentStudent exactly 1`, async () => {
+    test(`Should queue EmailStudentAbsentWarning if studentUSM absentStudent exactly 1`, async () => {
       const sessionId = getUuid()
       const flags = [UserSessionFlags.absentStudent]
       const studentUSM = buildUserSessionMetrics({
@@ -805,13 +804,13 @@ describe('SessionFlagsService', () => {
       })
       await triggerSessionActions(sessionId, flags, studentUSM)
       expect(QueueService.add).toHaveBeenCalledWith(
-        Jobs.EmailStudentAbsentWarning,
+        'EmailStudentAbsentWarning',
         { delay: 0 },
         { sessionId }
       )
     })
 
-    test(`Should not queue ${Jobs.EmailVolunteerAbsentStudentApology} if no ${UserSessionFlags.absentStudent} flag`, async () => {
+    test(`Should not queue EmailVolunteerAbsentStudentApology if no ${UserSessionFlags.absentStudent} flag`, async () => {
       const sessionId = getUuid()
       const flags: UserSessionFlags[] = []
       const studentUSM = buildUserSessionMetrics({
@@ -820,13 +819,13 @@ describe('SessionFlagsService', () => {
       })
       await triggerSessionActions(sessionId, flags, studentUSM)
       expect(QueueService.add).not.toHaveBeenCalledWith(
-        Jobs.EmailVolunteerAbsentStudentApology,
+        'EmailVolunteerAbsentStudentApology',
         expect.anything(),
         { sessionId }
       )
     })
 
-    test(`Should not queue ${Jobs.EmailVolunteerAbsentStudentApology} if volunteerUSM does not exist`, async () => {
+    test(`Should not queue EmailVolunteerAbsentStudentApology if volunteerUSM does not exist`, async () => {
       const sessionId = getUuid()
       const flags = [UserSessionFlags.absentStudent]
       const studentUSM = buildUserSessionMetrics({
@@ -834,13 +833,13 @@ describe('SessionFlagsService', () => {
       })
       await triggerSessionActions(sessionId, flags, studentUSM)
       expect(QueueService.add).not.toHaveBeenCalledWith(
-        Jobs.EmailVolunteerAbsentStudentApology,
+        'EmailVolunteerAbsentStudentApology',
         expect.anything(),
         { sessionId }
       )
     })
 
-    test(`Should not queue ${Jobs.EmailVolunteerAbsentStudentApology} if volunteerUSM does not have absentStudent total equal to 1`, async () => {
+    test(`Should not queue EmailVolunteerAbsentStudentApology if volunteerUSM does not have absentStudent total equal to 1`, async () => {
       const sessionId = getUuid()
       const flags = [UserSessionFlags.absentStudent]
       const studentUSM = buildUserSessionMetrics({
@@ -852,13 +851,13 @@ describe('SessionFlagsService', () => {
       })
       await triggerSessionActions(sessionId, flags, studentUSM, volunteerUSM)
       expect(QueueService.add).not.toHaveBeenCalledWith(
-        Jobs.EmailVolunteerAbsentStudentApology,
+        'EmailVolunteerAbsentStudentApology',
         expect.anything(),
         { sessionId }
       )
     })
 
-    test(`Should queue ${Jobs.EmailVolunteerAbsentStudentApology} if volunteerUSM has absentStudent total equal to exactly 1`, async () => {
+    test(`Should queue EmailVolunteerAbsentStudentApology if volunteerUSM has absentStudent total equal to exactly 1`, async () => {
       const sessionId = getUuid()
       const flags = [UserSessionFlags.absentStudent]
       const studentUSM = buildUserSessionMetrics({
@@ -870,13 +869,13 @@ describe('SessionFlagsService', () => {
       })
       await triggerSessionActions(sessionId, flags, studentUSM, volunteerUSM)
       expect(QueueService.add).toHaveBeenCalledWith(
-        Jobs.EmailVolunteerAbsentStudentApology,
+        'EmailVolunteerAbsentStudentApology',
         { delay: 0 },
         { sessionId }
       )
     })
 
-    test(`Should not queue ${Jobs.EmailVolunteerAbsentWarning} if no ${UserSessionFlags.absentVolunteer} flag`, async () => {
+    test(`Should not queue EmailVolunteerAbsentWarning if no ${UserSessionFlags.absentVolunteer} flag`, async () => {
       const sessionId = getUuid()
       const flags: UserSessionFlags[] = []
       const studentUSM = buildUserSessionMetrics({
@@ -885,13 +884,13 @@ describe('SessionFlagsService', () => {
       })
       await triggerSessionActions(sessionId, flags, studentUSM)
       expect(QueueService.add).not.toHaveBeenCalledWith(
-        Jobs.EmailVolunteerAbsentWarning,
+        'EmailVolunteerAbsentWarning',
         expect.anything(),
         { sessionId }
       )
     })
 
-    test(`Should not queue ${Jobs.EmailVolunteerAbsentWarning} if volunteerUSM does not exist`, async () => {
+    test(`Should not queue EmailVolunteerAbsentWarning if volunteerUSM does not exist`, async () => {
       const sessionId = getUuid()
       const flags = [UserSessionFlags.absentVolunteer]
       const studentUSM = buildUserSessionMetrics({
@@ -899,13 +898,13 @@ describe('SessionFlagsService', () => {
       })
       await triggerSessionActions(sessionId, flags, studentUSM)
       expect(QueueService.add).not.toHaveBeenCalledWith(
-        Jobs.EmailVolunteerAbsentWarning,
+        'EmailVolunteerAbsentWarning',
         expect.anything(),
         { sessionId }
       )
     })
 
-    test(`Should not queue ${Jobs.EmailVolunteerAbsentWarning} if volunteerUSM does not have absentVolunteer total equal to 1`, async () => {
+    test(`Should not queue EmailVolunteerAbsentWarning if volunteerUSM does not have absentVolunteer total equal to 1`, async () => {
       const sessionId = getUuid()
       const flags = [UserSessionFlags.absentVolunteer]
       const studentUSM = buildUserSessionMetrics({
@@ -917,13 +916,13 @@ describe('SessionFlagsService', () => {
       })
       await triggerSessionActions(sessionId, flags, studentUSM, volunteerUSM)
       expect(QueueService.add).not.toHaveBeenCalledWith(
-        Jobs.EmailVolunteerAbsentWarning,
+        'EmailVolunteerAbsentWarning',
         expect.anything(),
         { sessionId }
       )
     })
 
-    test(`Should queue ${Jobs.EmailVolunteerAbsentWarning} if volunteerUSM has absentVolunteer total equal to exactly 1`, async () => {
+    test(`Should queue EmailVolunteerAbsentWarning if volunteerUSM has absentVolunteer total equal to exactly 1`, async () => {
       const sessionId = getUuid()
       const flags = [UserSessionFlags.absentVolunteer]
       const studentUSM = buildUserSessionMetrics({
@@ -935,13 +934,13 @@ describe('SessionFlagsService', () => {
       })
       await triggerSessionActions(sessionId, flags, studentUSM, volunteerUSM)
       expect(QueueService.add).toHaveBeenCalledWith(
-        Jobs.EmailVolunteerAbsentWarning,
+        'EmailVolunteerAbsentWarning',
         { delay: 0 },
         { sessionId }
       )
     })
 
-    test(`Should not queue ${Jobs.EmailStudentAbsentVolunteerApology} if no ${UserSessionFlags.absentVolunteer} flag`, async () => {
+    test(`Should not queue EmailStudentAbsentVolunteerApology if no ${UserSessionFlags.absentVolunteer} flag`, async () => {
       const sessionId = getUuid()
       const flags: UserSessionFlags[] = []
       const studentUSM = buildUserSessionMetrics({
@@ -950,13 +949,13 @@ describe('SessionFlagsService', () => {
       })
       await triggerSessionActions(sessionId, flags, studentUSM)
       expect(QueueService.add).not.toHaveBeenCalledWith(
-        Jobs.EmailStudentAbsentVolunteerApology,
+        'EmailStudentAbsentVolunteerApology',
         expect.anything(),
         { sessionId }
       )
     })
 
-    test(`Should not queue ${Jobs.EmailStudentAbsentVolunteerApology} if studentUSM does not have absentVolunteer total equal to 1`, async () => {
+    test(`Should not queue EmailStudentAbsentVolunteerApology if studentUSM does not have absentVolunteer total equal to 1`, async () => {
       const sessionId = getUuid()
       const flags = [UserSessionFlags.absentVolunteer]
 
@@ -969,13 +968,13 @@ describe('SessionFlagsService', () => {
       })
       await triggerSessionActions(sessionId, flags, studentUSM, volunteerUSM)
       expect(QueueService.add).not.toHaveBeenCalledWith(
-        Jobs.EmailStudentAbsentVolunteerApology,
+        'EmailStudentAbsentVolunteerApology',
         expect.anything(),
         { sessionId }
       )
     })
 
-    test(`Should queue ${Jobs.EmailStudentAbsentVolunteerApology} if studentUSM has absentVolunteer total equal to exactly 1`, async () => {
+    test(`Should queue EmailStudentAbsentVolunteerApology if studentUSM has absentVolunteer total equal to exactly 1`, async () => {
       const sessionId = getUuid()
       const flags = [UserSessionFlags.absentVolunteer]
       const studentUSM = buildUserSessionMetrics({
@@ -987,13 +986,13 @@ describe('SessionFlagsService', () => {
       })
       await triggerSessionActions(sessionId, flags, studentUSM, volunteerUSM)
       expect(QueueService.add).toHaveBeenCalledWith(
-        Jobs.EmailStudentAbsentVolunteerApology,
+        'EmailStudentAbsentVolunteerApology',
         { delay: 0 },
         { sessionId }
       )
     })
 
-    test(`Should not queue ${Jobs.EmailStudentUnmatchedApology} if no ${UserSessionFlags.hasBeenUnmatched} flag`, async () => {
+    test(`Should not queue EmailStudentUnmatchedApology if no ${UserSessionFlags.hasBeenUnmatched} flag`, async () => {
       const sessionId = getUuid()
       const flags: UserSessionFlags[] = []
       const studentUSM = buildUserSessionMetrics({
@@ -1002,13 +1001,13 @@ describe('SessionFlagsService', () => {
       })
       await triggerSessionActions(sessionId, flags, studentUSM)
       expect(QueueService.add).not.toHaveBeenCalledWith(
-        Jobs.EmailStudentUnmatchedApology,
+        'EmailStudentUnmatchedApology',
         expect.anything(),
         { sessionId }
       )
     })
 
-    test(`Should not queue ${Jobs.EmailStudentUnmatchedApology} if studentUSM does not have hasBeenUnmatched total equal to 1`, async () => {
+    test(`Should not queue EmailStudentUnmatchedApology if studentUSM does not have hasBeenUnmatched total equal to 1`, async () => {
       const sessionId = getUuid()
       const flags = [UserSessionFlags.hasBeenUnmatched]
       const studentUSM = buildUserSessionMetrics({
@@ -1017,13 +1016,13 @@ describe('SessionFlagsService', () => {
       })
       await triggerSessionActions(sessionId, flags, studentUSM)
       expect(QueueService.add).not.toHaveBeenCalledWith(
-        Jobs.EmailStudentUnmatchedApology,
+        'EmailStudentUnmatchedApology',
         expect.anything(),
         { sessionId }
       )
     })
 
-    test(`Should queue ${Jobs.EmailStudentUnmatchedApology} if studentUSM has hasBeenUnmatched total equal to exactly 1`, async () => {
+    test(`Should queue EmailStudentUnmatchedApology if studentUSM has hasBeenUnmatched total equal to exactly 1`, async () => {
       const sessionId = getUuid()
       const flags = [UserSessionFlags.hasBeenUnmatched]
       const studentUSM = buildUserSessionMetrics({
@@ -1032,7 +1031,7 @@ describe('SessionFlagsService', () => {
       })
       await triggerSessionActions(sessionId, flags, studentUSM)
       expect(QueueService.add).toHaveBeenCalledWith(
-        Jobs.EmailStudentUnmatchedApology,
+        'EmailStudentUnmatchedApology',
         { delay: 0 },
         { sessionId }
       )
@@ -1040,7 +1039,7 @@ describe('SessionFlagsService', () => {
   })
 
   describe('triggerFeedbackActions', () => {
-    test(`Should not queue ${Jobs.EmailStudentOnlyLookingForAnswers} if no ${UserSessionFlags.onlyLookingForAnswers} flag`, async () => {
+    test(`Should not queue EmailStudentOnlyLookingForAnswers if no ${UserSessionFlags.onlyLookingForAnswers} flag`, async () => {
       const studentId = getUuid()
       const session = buildSession({ studentId })
       const sessionId = session.id
@@ -1053,13 +1052,13 @@ describe('SessionFlagsService', () => {
       })
       await triggerFeedbackActions(sessionId, flags, studentUSM)
       expect(QueueService.add).not.toHaveBeenCalledWith(
-        Jobs.EmailStudentOnlyLookingForAnswers,
+        'EmailStudentOnlyLookingForAnswers',
         expect.anything(),
         { sessionId }
       )
     })
 
-    test(`Should not queue ${Jobs.EmailStudentOnlyLookingForAnswers} if student USM onlyLookingForAnswers is not equal to 1`, async () => {
+    test(`Should not queue EmailStudentOnlyLookingForAnswers if student USM onlyLookingForAnswers is not equal to 1`, async () => {
       const studentId = getUuid()
       const session = buildSession({ studentId })
       const sessionId = session.id
@@ -1072,13 +1071,13 @@ describe('SessionFlagsService', () => {
       })
       await triggerFeedbackActions(sessionId, flags, studentUSM)
       expect(QueueService.add).not.toHaveBeenCalledWith(
-        Jobs.EmailStudentOnlyLookingForAnswers,
+        'EmailStudentOnlyLookingForAnswers',
         expect.anything(),
         { sessionId }
       )
     })
 
-    test(`Should queue ${Jobs.EmailStudentOnlyLookingForAnswers} if studentUSM has onlyLookingForAnswers total equal to 1`, async () => {
+    test(`Should queue EmailStudentOnlyLookingForAnswers if studentUSM has onlyLookingForAnswers total equal to 1`, async () => {
       const studentId = getUuid()
       const session = buildSession({ studentId, reported: true })
       const sessionId = session.id
@@ -1091,13 +1090,13 @@ describe('SessionFlagsService', () => {
       })
       await triggerFeedbackActions(sessionId, flags, studentUSM)
       expect(QueueService.add).toHaveBeenCalledWith(
-        Jobs.EmailStudentOnlyLookingForAnswers,
+        'EmailStudentOnlyLookingForAnswers',
         { delay: 0 },
         { sessionId }
       )
     })
 
-    test(`Should not queue ${Jobs.EmailSessionReported} if no ${UserSessionFlags.studentCrisis} flag`, async () => {
+    test(`Should not queue EmailSessionReported if no ${UserSessionFlags.studentCrisis} flag`, async () => {
       const studentId = getUuid()
       const volunteerId = getUuid()
       const session = buildSession({ studentId, volunteerId })
@@ -1110,7 +1109,7 @@ describe('SessionFlagsService', () => {
       })
       await triggerFeedbackActions(sessionId, flags, studentUSM)
       expect(QueueService.add).not.toHaveBeenCalledWith(
-        Jobs.EmailSessionReported,
+        'EmailSessionReported',
         expect.anything(),
         {
           sessionId,
@@ -1122,7 +1121,7 @@ describe('SessionFlagsService', () => {
       )
     })
 
-    test(`Should not queue ${Jobs.EmailSessionReported} if has ${UserSessionFlags.studentCrisis} flag, but session was already reported`, async () => {
+    test(`Should not queue EmailSessionReported if has ${UserSessionFlags.studentCrisis} flag, but session was already reported`, async () => {
       const studentId = getUuid()
       const volunteerId = getUuid()
       const session = buildSession({ studentId, volunteerId, reported: true })
@@ -1135,7 +1134,7 @@ describe('SessionFlagsService', () => {
       })
       await triggerFeedbackActions(sessionId, flags, studentUSM)
       expect(QueueService.add).not.toHaveBeenCalledWith(
-        Jobs.EmailSessionReported,
+        'EmailSessionReported',
         expect.anything(),
         {
           sessionId,
@@ -1147,7 +1146,7 @@ describe('SessionFlagsService', () => {
       )
     })
 
-    test(`Should not queue ${Jobs.EmailSessionReported} if has ${UserSessionFlags.studentCrisis} flag and session was not already reported`, async () => {
+    test(`Should not queue EmailSessionReported if has ${UserSessionFlags.studentCrisis} flag and session was not already reported`, async () => {
       const studentId = getUuid()
       const volunteerId = getUuid()
       const session = buildSession({ studentId, volunteerId, reported: false })
@@ -1160,7 +1159,7 @@ describe('SessionFlagsService', () => {
       })
       await triggerFeedbackActions(sessionId, flags, studentUSM)
       expect(QueueService.add).toHaveBeenCalledWith(
-        Jobs.EmailSessionReported,
+        'EmailSessionReported',
         { delay: 0 },
         {
           sessionId,

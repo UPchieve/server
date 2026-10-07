@@ -1,6 +1,5 @@
 import QueueService from '../../services/QueueService'
 import * as NTHSService from '../../services/NTHSGroupsService'
-import { Jobs } from './index'
 import { Job } from 'bull'
 import { UpdateNTHSChapterStatusJobData } from './updateNTHSChapterStatusForImpactPath'
 
@@ -33,7 +32,7 @@ export default async function (
   // ... and spawn a job to check if they are official via the "Impact Path"
   for (const chapter of notSchoolOfficialChapters) {
     await QueueService.add(
-      Jobs.UpdateNTHSChapterStatusForImpactPath,
+      'UpdateNTHSChapterStatusForImpactPath',
       { delay: 0 },
       {
         nthsGroupId: chapter.groupId,

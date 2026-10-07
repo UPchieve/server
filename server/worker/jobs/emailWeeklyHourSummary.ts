@@ -10,7 +10,6 @@ import {
 } from '../../models/Volunteer/queries'
 import { Job } from 'bull'
 import { ISOString } from '../../constants'
-import { Jobs } from '.'
 interface EmailWeeklyHourSummaryJobData {
   startDate: ISOString
   endDate: ISOString
@@ -71,7 +70,7 @@ export default async (
       await updateVolunteerHourSummaryIntroById(id)
   } catch (e) {
     throw new Error(
-      `Job/${Jobs.EmailWeeklyHourSummary} for userId: ${volunteer.id}, startDate: ${startDate}, endDate: ${endDate} with error: ${e}`
+      `Job/${job.name} for userId: ${volunteer.id}, startDate: ${startDate}, endDate: ${endDate} with error: ${e}`
     )
   }
 }

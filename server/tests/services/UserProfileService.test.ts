@@ -8,7 +8,6 @@ import { createAccountAction } from '../../models/UserAction'
 import { ACCOUNT_USER_ACTIONS, GRADES } from '../../constants'
 import { deleteContactByEmail } from '../../services/MailService'
 import QueueService from '../../services/QueueService'
-import { Jobs } from '../../worker/jobs'
 
 jest.mock('../../models/User/queries')
 jest.mock('../../models/UserAction')
@@ -126,7 +125,7 @@ describe('User Profile', () => {
       })
 
       expect(mockedQueueService.add).toHaveBeenCalledWith(
-        Jobs.SyncSendGridContact,
+        'SyncSendGridContact',
         { delay: 0 },
         { userId: mockedStudent.id }
       )

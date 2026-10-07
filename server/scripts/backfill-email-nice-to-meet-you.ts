@@ -1,6 +1,5 @@
 import { getVolunteersForNiceToMeetYou } from '../models/Volunteer'
 import * as MailService from '../services/MailService'
-import { Jobs } from '../worker/jobs'
 import { Job } from 'bull'
 import { asString } from '../utils/type-utils'
 import logger from '../logger'
@@ -36,8 +35,8 @@ export default async function BackfillEmailNiceToMeetYou(
       errors.push(`volunteer ${volunteer.id}: ${error}`)
     }
   }
-  logger.info(`Sent ${Jobs.EmailNiceToMeetYou} to ${totalEmailed} volunteers`)
+  logger.info(`Sent ${job.name} to ${totalEmailed} volunteers`)
   if (errors.length) {
-    throw new Error(`Failed to send ${Jobs.EmailNiceToMeetYou} to: ${errors}`)
+    throw new Error(`Failed to send ${job.name} to: ${errors}`)
   }
 }

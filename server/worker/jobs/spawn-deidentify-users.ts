@@ -1,5 +1,4 @@
 import { Job } from 'bull'
-import { Jobs } from '.'
 import { Ulid } from '../../models/pgUtils'
 import * as QueueService from '../../services/QueueService'
 
@@ -11,7 +10,7 @@ export default async (job: Job<SpawnDeidentifyUsersJob>): Promise<void> => {
 
   for (const userId of userIds) {
     await QueueService.add(
-      Jobs.DeidentifyUser,
+      'DeidentifyUser',
       {
         priority: 3,
         removeOnFail: false,

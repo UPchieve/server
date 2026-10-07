@@ -10,7 +10,6 @@ import updateNTHSChapterStatusForImpactPath, {
 import moment from 'moment'
 import 'moment-timezone'
 import { Job } from 'bull'
-import { Jobs } from '../../worker/jobs'
 import { NTHSGroupMemberWithRole } from '../../models/NTHSGroups'
 import {
   buildNTHSGroup,
@@ -32,7 +31,7 @@ const mockedSessionRepo = jest.mocked(SessionRepo)
 const mockedLogger = jest.mocked(logger)
 
 const DEFAULT_JOB = {
-  name: Jobs.UpdateNTHSChapterStatusForImpactPath,
+  name: 'UpdateNTHSChapterStatusForImpactPath',
   data: {
     nthsGroupId: '123',
     periodStart: moment().subtract(1, 'years').toDate(),

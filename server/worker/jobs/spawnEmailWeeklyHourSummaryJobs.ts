@@ -1,6 +1,5 @@
 import moment from 'moment'
 import 'moment-timezone'
-import { Jobs } from '.'
 import { getVolunteersForWeeklyHourSummary } from '../../models/Volunteer/queries'
 import logger from '../../logger'
 import QueueService from '../../services/QueueService'
@@ -36,7 +35,7 @@ export default async (
   for (const volunteer of volunteers) {
     try {
       await QueueService.add(
-        Jobs.EmailWeeklyHourSummary,
+        'EmailWeeklyHourSummary',
         {
           delay: 0,
           /*
@@ -60,15 +59,12 @@ export default async (
   }
 
   if (errors.length) {
-    logger.error(
-      `${Jobs.SpawnEmailWeeklyHourSummaryJobs}: Failed to queue jobs`,
-      {
-        err: 'Failed to queue jobs',
-        failedCount: errors.length,
-        lastMonday,
-        lastSunday,
-        errors,
-      }
-    )
+    logger.error('SpawnEmailWeeklyHourSummaryJobs: Failed to queue jobs', {
+      err: 'Failed to queue jobs',
+      failedCount: errors.length,
+      lastMonday,
+      lastSunday,
+      errors,
+    })
   }
 }

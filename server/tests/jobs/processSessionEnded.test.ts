@@ -1,5 +1,4 @@
 import { Job } from 'bull'
-import { Jobs } from '../../worker/jobs'
 import { getUuid } from '../../models/pgUtils'
 import * as ProgressReportsService from '../../services/ProgressReportsService'
 import * as IncentiveProgramService from '../../services/IncentiveProgramService'
@@ -24,7 +23,7 @@ describe('processSessionEnded', () => {
   const sessionId = getUuid()
   const job = {
     data: { sessionId },
-    name: Jobs.ProcessSessionEnded,
+    name: 'ProcessSessionEnded',
   } as Job<{ sessionId: string }>
 
   beforeEach(() => {
@@ -83,7 +82,7 @@ describe('processSessionEnded', () => {
     )
 
     await expect(processSessionEnded(job)).rejects.toThrow(
-      `Failed to complete ${Jobs.ProcessSessionEnded} for session ${sessionId}: Error: ${errorMessage}`
+      `Failed to complete ProcessSessionEnded for session ${sessionId}: Error: ${errorMessage}`
     )
   })
 })

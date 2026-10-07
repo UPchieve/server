@@ -1,10 +1,10 @@
+import { Job } from 'bull'
 import { flatten } from 'lodash'
 import logger from '../../logger'
 import { getVolunteersForEmailReference } from '../../models/Volunteer'
 import * as UserService from '../../services/UserService'
-import { Jobs } from '.'
 
-export default async (): Promise<void> => {
+export default async (job: Job<undefined>): Promise<void> => {
   const volunteers = await getVolunteersForEmailReference()
 
   const unsent = flatten(
@@ -29,8 +29,8 @@ export default async (): Promise<void> => {
     }
   }
 
-  logger.info(`Sent ${Jobs.EmailReferences} to ${totalEmailed} references`)
+  logger.info(`Sent ${job.name} to ${totalEmailed} references`)
   if (errors.length) {
-    throw new Error(`Failed to send ${Jobs.EmailReferences} to: ${errors}`)
+    throw new Error(`Failed to send ${job.name} to: ${errors}`)
   }
 }

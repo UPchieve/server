@@ -4,7 +4,6 @@ import * as NotifyVolunteerService from '../../services/NotifyVolunteerService'
 import * as sessionUtils from '../../utils/session-utils'
 import * as SessionRepo from '../../models/Session/queries'
 import logger from '../../logger'
-import { Jobs } from '.'
 import { asString } from '../../utils/type-utils'
 
 export interface EndUnmatchedSessionJobData {
@@ -20,17 +19,13 @@ export default async (job: Job<EndUnmatchedSessionJobData>): Promise<void> => {
 
   const fulfilled = sessionUtils.isSessionFulfilled(session)
   if (fulfilled) {
-    logger.info(
-      `Cancel ${Jobs.EndUnmatchedSession}: session ${sessionId} fulfilled`
-    )
+    logger.info(`Cancel ${job.name}: session ${sessionId} fulfilled`)
     return
   }
   try {
     await SessionService.endSession(sessionId, null, true, undefined, undefined)
-    logger.info(`Successfuly ${Jobs.EndUnmatchedSession}: session ${sessionId}`)
+    logger.info(`Successfuly ${job.name}: session ${sessionId}`)
   } catch (error) {
-    throw new Error(
-      `Failed to ${Jobs.EndUnmatchedSession}: session ${sessionId}: ${error}`
-    )
+    throw new Error(`Failed to ${job.name}: session ${sessionId}: ${error}`)
   }
 }

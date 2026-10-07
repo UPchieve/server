@@ -1,10 +1,9 @@
 import QueueService from '../services/QueueService'
-import { Jobs } from '../worker/jobs'
 
 async function main() {
   let exitCode = 0
   try {
-    const jobToQueue = 'Some sample job' as Jobs // Jobs.EmailOnboardingReminderOne
+    const jobToQueue = 'EndStaleSessions'
     await QueueService.add(jobToQueue, { delay: 0 })
     console.log('Added: ', jobToQueue)
   } catch (error) {

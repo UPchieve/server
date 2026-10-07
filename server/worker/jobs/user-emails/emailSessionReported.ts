@@ -6,7 +6,6 @@ import { getSessionById } from '../../../models/Session'
 import { safeAsync } from '../../../utils/safe-async'
 import { asString } from '../../../utils/type-utils'
 import { Uuid } from '../../../models/pgUtils'
-import { Jobs } from '..'
 import { getUserById } from '../../../services/UserService'
 
 export interface EmailSessionReportedJobData {
@@ -113,7 +112,7 @@ async function emailReportedSession(
     }
   }
   if (errMsg) {
-    throw new Error(`${Jobs.EmailSessionReported}: ${errMsg}`)
+    throw new Error(`${job.name}: ${errMsg}`)
   }
 }
 

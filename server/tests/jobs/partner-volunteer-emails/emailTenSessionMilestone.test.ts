@@ -13,7 +13,6 @@ import {
 import logger from '../../../logger'
 import emailVolunteerTenSessionMilestone from '../../../worker/jobs/volunteer-emails/emailTenSessionMilestone'
 import { asString } from '../../../utils/type-utils'
-import { Jobs } from '../../../worker/jobs'
 
 jest.mock('../../../models/Session')
 jest.mock('../../../models/Volunteer')
@@ -29,7 +28,7 @@ const mockedSendVolunteerTenSessionMilestone = mocked(
   MailService.sendVolunteerTenSessionMilestone
 )
 
-describe(`${Jobs.EmailVolunteerTenSessionMilestone}`, () => {
+describe(`EmailVolunteerTenSessionMilestone`, () => {
   beforeEach(() => {
     jest.clearAllMocks()
   })
@@ -40,7 +39,7 @@ describe(`${Jobs.EmailVolunteerTenSessionMilestone}`, () => {
 
     const job = {
       data: { volunteerId },
-      name: Jobs.EmailVolunteerTenSessionMilestone,
+      name: 'EmailVolunteerTenSessionMilestone',
     } as Job<{ volunteerId: Uuid }>
     await emailVolunteerTenSessionMilestone(job)
 
@@ -66,7 +65,7 @@ describe(`${Jobs.EmailVolunteerTenSessionMilestone}`, () => {
 
     const job = {
       data: { volunteerId: volunteer.id },
-      name: Jobs.EmailVolunteerTenSessionMilestone,
+      name: 'EmailVolunteerTenSessionMilestone',
     } as Job<{ volunteerId: Uuid }>
     await emailVolunteerTenSessionMilestone(job)
 
@@ -75,7 +74,7 @@ describe(`${Jobs.EmailVolunteerTenSessionMilestone}`, () => {
       emailTemplateId: config.sendgrid.volunteerTenSessionMilestoneTemplate,
     })
     expect(logger.info).toHaveBeenCalledWith(
-      `Volunteer ${volunteer.id} has already received ${Jobs.EmailVolunteerTenSessionMilestone}`
+      `Volunteer ${volunteer.id} has already received EmailVolunteerTenSessionMilestone`
     )
     expect(mockedSendVolunteerTenSessionMilestone).not.toHaveBeenCalled()
     expect(mockedCreateEmailNotification).not.toHaveBeenCalled()
@@ -92,7 +91,7 @@ describe(`${Jobs.EmailVolunteerTenSessionMilestone}`, () => {
 
     const job = {
       data: { volunteerId },
-      name: Jobs.EmailVolunteerTenSessionMilestone,
+      name: 'EmailVolunteerTenSessionMilestone',
     } as Job<{ volunteerId: Uuid }>
     await emailVolunteerTenSessionMilestone(job)
 
@@ -116,7 +115,7 @@ describe(`${Jobs.EmailVolunteerTenSessionMilestone}`, () => {
 
     const job = {
       data: { volunteerId },
-      name: Jobs.EmailVolunteerTenSessionMilestone,
+      name: 'EmailVolunteerTenSessionMilestone',
     } as Job<{ volunteerId: Uuid }>
     await emailVolunteerTenSessionMilestone(job)
 
@@ -132,7 +131,7 @@ describe(`${Jobs.EmailVolunteerTenSessionMilestone}`, () => {
       emailTemplateId: config.sendgrid.volunteerTenSessionMilestoneTemplate,
     })
     expect(logger.info).toHaveBeenCalledWith(
-      `Sent ${Jobs.EmailVolunteerTenSessionMilestone} to volunteer ${asString(volunteerId)}`
+      `Sent EmailVolunteerTenSessionMilestone to volunteer ${asString(volunteerId)}`
     )
   })
 
@@ -151,10 +150,10 @@ describe(`${Jobs.EmailVolunteerTenSessionMilestone}`, () => {
 
     const job = {
       data: { volunteerId },
-      name: Jobs.EmailVolunteerTenSessionMilestone,
+      name: 'EmailVolunteerTenSessionMilestone',
     } as Job<{ volunteerId: Uuid }>
     await expect(emailVolunteerTenSessionMilestone(job)).rejects.toThrow(
-      `Failed to send ${Jobs.EmailVolunteerTenSessionMilestone} to volunteer ${asString(volunteerId)}: Error: ${errorMessage}`
+      `Failed to send EmailVolunteerTenSessionMilestone to volunteer ${asString(volunteerId)}: Error: ${errorMessage}`
     )
   })
 })

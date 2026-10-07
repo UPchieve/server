@@ -2,7 +2,6 @@ import { Job } from 'bull'
 import logger from '../../../logger'
 import * as MailService from '../../../services/MailService'
 import { getStudentContactInfoById } from '../../../models/Student/queries'
-import { Jobs } from '../index'
 import { asString } from '../../../utils/type-utils'
 
 interface WelcomeEmail {
@@ -20,20 +19,20 @@ export default async (job: Job<WelcomeEmail>): Promise<void> => {
     try {
       const { firstName, email } = student
       if (
-        currentJob === Jobs.EmailStudentOnboardingHowItWorks ||
-        currentJob === Jobs.EmailStudentUseCases
+        currentJob === 'EmailStudentOnboardingHowItWorks' ||
+        currentJob === 'EmailStudentUseCases'
       )
         await MailService.sendStudentOnboardingHowItWorks(email, firstName)
-      if (currentJob === Jobs.EmailMeetOurVolunteers)
+      if (currentJob === 'EmailMeetOurVolunteers')
         await MailService.sendMeetOurVolunteers(email, firstName)
       if (
-        currentJob === Jobs.EmailStudentOnboardingMission ||
-        currentJob === Jobs.EmailIndependentLearning
+        currentJob === 'EmailStudentOnboardingMission' ||
+        currentJob === 'EmailIndependentLearning'
       )
         await MailService.sendStudentOnboardingMission(email, firstName)
       if (
-        currentJob === Jobs.EmailStudentOnboardingSurvey ||
-        currentJob === Jobs.EmailStudentGoalSetting
+        currentJob === 'EmailStudentOnboardingSurvey' ||
+        currentJob === 'EmailStudentGoalSetting'
       )
         await MailService.sendStudentOnboardingSurvey(email, firstName)
 

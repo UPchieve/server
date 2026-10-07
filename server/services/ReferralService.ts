@@ -6,7 +6,6 @@ import * as ReferralRepo from '../models/Referrals'
 import * as UserRepo from '../models/User'
 import type { UserRole } from '../types/users'
 import * as AnalyticsService from './AnalyticsService'
-import { Jobs } from '../worker/jobs'
 import QueueService from './QueueService'
 import config from '../config'
 import * as UserService from './UserService'
@@ -80,7 +79,7 @@ export async function queueReferredByEmailsForVolunteer({
   if (!referredBy) return
 
   await QueueService.add(
-    Jobs.SendReferralSignUpCelebrationEmail,
+    'SendReferralSignUpCelebrationEmail',
     { delay: 0 },
     {
       userId: referredBy,
@@ -105,7 +104,7 @@ export async function queueReferredByEmailsForVolunteer({
       !hasUserBeenSentCongratsEmail
     ) {
       await QueueService.add(
-        Jobs.SendAmbassadorCongratsEmail,
+        'SendAmbassadorCongratsEmail',
         { delay: 0 },
         {
           userId: referredBy,

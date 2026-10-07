@@ -3,7 +3,6 @@ import 'moment-timezone'
 import { Job } from 'bull'
 import * as db from '../db'
 import { getVolunteerIdsForElapsedAvailability } from '../models/Volunteer/queries'
-import { Jobs } from '../worker/jobs'
 import logger from '../logger'
 import { asString } from '../utils/type-utils'
 
@@ -137,9 +136,7 @@ export default async function backfillAvailabilityHistories(
     .hour(4)
 
   if (snapshotTimeEt.isSameOrAfter(endSnapshotTimeEt)) {
-    logger.warn(
-      `${Jobs.BackfillAvailabilityHistories}: start date must be before end date`
-    )
+    logger.warn(`${job.name}: start date must be before end date`)
     return
   }
 
@@ -183,7 +180,7 @@ export default async function backfillAvailabilityHistories(
         if (insertedRows > 0) totalRowsInserted += insertedRows
       } catch (error) {
         errors.push(
-          `${Jobs.BackfillAvailabilityHistories}: snapshot ${snapshotTimeUtc.toISOString()} for volunteer ${volunteerId} failed: ${error}`
+          `${job.name}: snapshot ${snapshotTimeUtc.toISOString()} for volunteer ${volunteerId} failed: ${error}`
         )
       }
     }
@@ -192,12 +189,10 @@ export default async function backfillAvailabilityHistories(
     snapshotTimeEt = snapshotTimeEt.add(1, 'day')
   }
 
-  logger.info(
-    `${Jobs.BackfillAvailabilityHistories}: inserted ${totalRowsInserted} history rows`
-  )
+  logger.info(`${job.name}: inserted ${totalRowsInserted} history rows`)
 
   if (errors.length)
     throw new Error(
-      `${Jobs.BackfillAvailabilityHistories}: errors (${errors.length}):\n${errors.join('\n')}`
+      `${job.name}: errors (${errors.length}):\n${errors.join('\n')}`
     )
 }

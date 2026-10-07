@@ -38,7 +38,6 @@ import { ReportSessionError } from '../../utils/session-utils'
 import { RoleContext } from '../../services/UserRolesService'
 import * as cache from '../../cache'
 import QueueService from '../../services/QueueService'
-import { Jobs } from '../../worker/jobs'
 import * as PhotoDnaService from '../../services/PhotoDnaService'
 import * as NotifyVolunteerService from '../../services/NotifyVolunteerService'
 import SocketService from '../../services/SocketService'
@@ -573,7 +572,7 @@ describe('SessionService', () => {
       await SessionService.processSessionReported(sessionId)
 
       expect(mockedQueueService.add).toHaveBeenLastCalledWith(
-        Jobs.EmailSessionReported,
+        'EmailSessionReported',
         { delay: 0 },
         jobData
       )
@@ -588,8 +587,7 @@ describe('SessionService', () => {
       await SessionService.processSessionReported(sessionId)
 
       const [, , data] = mockedQueueService.add.mock.calls[0]
-      expect(data.userId).toEqual(jobData.userId)
-      expect(data.sessionId).toEqual(sessionId)
+      expect(data).toMatchObject({ userId: jobData.userId, sessionId })
     })
 
     test('should not queue a job when the session was never reported', async () => {

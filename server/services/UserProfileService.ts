@@ -13,7 +13,6 @@ import * as MailService from './MailService'
 import { upsertStudent } from './UserCreationService'
 import { Ulid } from '../models/pgUtils'
 import QueueService from './QueueService'
-import { Jobs } from '../worker/jobs'
 import {
   deleteUsersSchoolsByUserId,
   upsertUsersSchool,
@@ -112,7 +111,7 @@ export async function updateUserProfile(
 }
 
 async function createOrUpdateSendGridContact(userId: Ulid) {
-  await QueueService.add(Jobs.SyncSendGridContact, { delay: 0 }, { userId })
+  await QueueService.add('SyncSendGridContact', { delay: 0 }, { userId })
 }
 
 export async function updateUserSmsConsent(

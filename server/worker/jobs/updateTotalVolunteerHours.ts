@@ -9,7 +9,6 @@ import logger from '../../logger'
 import { telecomHourSummaryStats } from '../../utils/reportUtils'
 import config from '../../config'
 import * as cache from '../../cache'
-import { Jobs } from './index'
 
 export type UpdateTotalVolunteerHoursJobData = {
   // Example: '2025-11-01T04:00:00.000Z'
@@ -63,18 +62,14 @@ async function updateTotalVolunteerHours(
       errors.push(`${volunteer.id}: ${error}\n`)
     }
   }
-  logger.info(
-    `Successfully ${Jobs.UpdateTotalVolunteerHours} for ${totalUpdated} volunteers`
-  )
+  logger.info(`Successfully ${job.name} for ${totalUpdated} volunteers`)
   await cache.save(
     config.cacheKeys.updateTotalVolunteerHoursLastRun,
     endDate.toISOString()
   )
 
   if (errors.length) {
-    throw new Error(
-      `Failed to ${Jobs.UpdateTotalVolunteerHours} for volunteers:\n${errors}`
-    )
+    throw new Error(`Failed to ${job.name} for volunteers:\n${errors}`)
   }
 }
 

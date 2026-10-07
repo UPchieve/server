@@ -1,10 +1,10 @@
-import { Jobs } from '.'
+import { Job } from 'bull'
 import { getReferencesToFollowup } from '../../models/Volunteer'
 import * as MailService from '../../services/MailService'
 import logger from '../../logger'
 
 // Runs every day at 10am EST
-export default async (): Promise<void> => {
+export default async (job: Job<undefined>): Promise<void> => {
   const oneDay = 1000 * 60 * 60 * 24 * 1
   const threeDaysAgo = Date.now() - oneDay * 3
   const fourDaysAgo = threeDaysAgo - oneDay
@@ -43,12 +43,8 @@ export default async (): Promise<void> => {
     }
   }
 
-  logger.info(
-    `Sent ${Jobs.EmailReferenceFollowup} to ${totalEmailed} references.`
-  )
+  logger.info(`Sent ${job.name} to ${totalEmailed} references.`)
   if (errors.length) {
-    throw new Error(
-      `Failed to send ${Jobs.EmailReferenceFollowup} to: ${errors}`
-    )
+    throw new Error(`Failed to send ${job.name} to: ${errors}`)
   }
 }

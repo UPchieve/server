@@ -35,7 +35,6 @@ import { partition } from 'lodash'
 import { processFeedbackMetrics } from './SessionFlagsService'
 import { TransactionClient } from '../db'
 import QueueService from './QueueService'
-import { Jobs } from '../worker/jobs'
 import { POST_SESSION_SURVEYS } from '../constants/surveys'
 import logger from '../logger'
 import { getSubjectAndTopic } from '../models/Subjects'
@@ -111,7 +110,7 @@ export async function saveUserSurvey(
 
       if (role.activeRole === USER_ROLES.STUDENT) {
         await QueueService.add(
-          Jobs.MaybeSendStudentFeedbackToVolunteer,
+          'MaybeSendStudentFeedbackToVolunteer',
           { delay: FIVE_MINUTES },
           { sessionId: userSurvey.sessionId }
         )

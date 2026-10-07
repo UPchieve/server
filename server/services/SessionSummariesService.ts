@@ -8,7 +8,6 @@ import * as PromptService from './PromptService'
 import logger from '../logger'
 import * as SessionSummariesRepo from '../models/SessionSummaries/queries'
 import QueueService from './QueueService'
-import { Jobs } from '../worker/jobs'
 import { getActiveClassesForStudent } from './StudentService'
 import type { UserRole } from '../types/users'
 import { isStudentSessionSummaryEnabled } from './FeatureFlagService'
@@ -189,12 +188,12 @@ export async function queueGenerateSessionSummaryForSession(sessionId: Uuid) {
   if (classes.length || isEnabledForStudent) {
     try {
       await QueueService.add(
-        Jobs.GenerateSessionSummary,
+        'GenerateSessionSummary',
         { delay: 0 },
         { sessionId }
       )
     } catch (error) {
-      logger.error(`Failed to queue ${Jobs.GenerateSessionSummary}`, {
+      logger.error('Failed to queue GenerateSessionSummary', {
         err: error,
         sessionId,
       })

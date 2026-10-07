@@ -2,7 +2,6 @@ import { Job } from 'bull'
 import * as MailService from '../../../services/MailService'
 import { asString } from '../../../utils/type-utils'
 import { Ulid } from '../../../models/pgUtils'
-import { Jobs } from '..'
 import { isSessionQualifiedForFallIncentive } from '../../../services/SessionService'
 import config from '../../../config'
 import {
@@ -97,7 +96,7 @@ export default async (
     FALL_INCENTIVE_MAX_QUALIFIED_GIFT_CARD_LIMIT
   ) {
     logger.info(
-      `${Jobs.EmailFallIncentiveSessionQualification} User ${userId} has reached the maximum number of qualification for gift cards (${FALL_INCENTIVE_MAX_QUALIFIED_GIFT_CARD_LIMIT})`
+      `${job.name} User ${userId} has reached the maximum number of qualification for gift cards (${FALL_INCENTIVE_MAX_QUALIFIED_GIFT_CARD_LIMIT})`
     )
     if (!hasReceivedCompletedChallengeEmail)
       await processCompletedFallIncentiveChallenge(userId, userEmail, firstName)
@@ -117,7 +116,7 @@ export default async (
       incentivePayload.maxQualifiedSessionsPerWeek
   ) {
     logger.info(
-      `${Jobs.EmailFallIncentiveSessionQualification} User ${userId} has reached the weekly limit of qualified emails (${incentivePayload.maxQualifiedSessionsPerWeek})`
+      `${job.name} User ${userId} has reached the weekly limit of qualified emails (${incentivePayload.maxQualifiedSessionsPerWeek})`
     )
     return
   }
@@ -132,7 +131,7 @@ export default async (
         emailTemplateId: config.sendgrid.qualifiedForGiftCardTemplate,
       })
       logger.info(
-        `Sent ${Jobs.EmailFallIncentiveSessionQualification} to student ${userId} gift card qualified email`
+        `Sent ${job.name} to student ${userId} gift card qualified email`
       )
       // Phase the user out of the program if we just sent their final qualified for gift card notification
       if (
@@ -163,13 +162,11 @@ export default async (
             config.sendgrid.stillTimeForQualifyingSessionTemplate,
         })
         logger.info(
-          `${Jobs.EmailFallIncentiveSessionQualification} sent student ${userId} session did not qualify email`
+          `${job.name} sent student ${userId} session did not qualify email`
         )
       }
     }
   } catch (error) {
-    throw new Error(
-      `Failed to send ${Jobs.EmailFallIncentiveSessionQualification} to student ${userId}: ${error}`
-    )
+    throw new Error(`Failed to send ${job.name} to student ${userId}: ${error}`)
   }
 }

@@ -7,7 +7,6 @@ import * as UserService from '../../../services/UserService'
 import { Job } from 'bull'
 import { buildUser } from '../../mocks/generate'
 import logger from '../../../logger'
-import { Jobs } from '../../../worker/jobs'
 
 jest.mock('../../../services/MailService')
 jest.mock('../../../logger')
@@ -24,6 +23,7 @@ describe('emailFallIncentiveInvitedToEnrollReminder', () => {
   test('Should return without sending email if no user is found', async () => {
     mockedUserService.getUserContactInfo.mockResolvedValueOnce(undefined)
     const jobData: Job<EmailFallIncentiveInvitedToEnrollReminderJobData> = {
+      name: 'EmailFallIncentiveInvitedToEnrollReminder',
       data: {
         userId: '123',
       },
@@ -40,6 +40,7 @@ describe('emailFallIncentiveInvitedToEnrollReminder', () => {
     const user = buildUser()
     mockedUserService.getUserContactInfo.mockResolvedValueOnce(user)
     const jobData: Job<EmailFallIncentiveInvitedToEnrollReminderJobData> = {
+      name: 'EmailFallIncentiveInvitedToEnrollReminder',
       data: {
         userId: user.id,
       },
@@ -50,7 +51,7 @@ describe('emailFallIncentiveInvitedToEnrollReminder', () => {
       mockedMailService.sendFallIncentiveInvitedToEnrollReminderEmail
     ).toHaveBeenCalledWith(user.email, user.firstName)
     expect(logger.info).toHaveBeenCalledWith(
-      `Sent ${Jobs.EmailFallIncentiveInvitedToEnrollReminder} to student ${user.id}`
+      `Sent EmailFallIncentiveInvitedToEnrollReminder to student ${user.id}`
     )
   })
 
@@ -62,6 +63,7 @@ describe('emailFallIncentiveInvitedToEnrollReminder', () => {
       error
     )
     const jobData: Job<EmailFallIncentiveInvitedToEnrollReminderJobData> = {
+      name: 'EmailFallIncentiveInvitedToEnrollReminder',
       data: {
         userId: user.id,
       },
@@ -70,7 +72,7 @@ describe('emailFallIncentiveInvitedToEnrollReminder', () => {
     await expect(
       emailFallIncentiveInvitedToEnrollReminder(jobData)
     ).rejects.toThrow(
-      `Failed to send ${Jobs.EmailFallIncentiveInvitedToEnrollReminder} to student ${user.id}: ${error}`
+      `Failed to send EmailFallIncentiveInvitedToEnrollReminder to student ${user.id}: ${error}`
     )
     expect(
       mockedMailService.sendFallIncentiveInvitedToEnrollReminderEmail

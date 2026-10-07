@@ -3,7 +3,6 @@ import { mocked } from 'jest-mock'
 import generateProgressReport from '../../worker/jobs/generateProgressReport'
 import * as ProgressReportsService from '../../services/ProgressReportsService'
 import * as FeatureFlagService from '../../services/FeatureFlagService'
-import { Jobs } from '../../worker/jobs'
 import * as SessionRepo from '../../models/Session'
 import { buildProgressReport, buildSession } from '../mocks/generate'
 import { getDbUlid } from '../../models/pgUtils'
@@ -20,7 +19,7 @@ const mockedFeatureFlagService = mocked(FeatureFlagService)
 const mockedSessionRepo = mocked(SessionRepo)
 const mockedSessionUtils = mocked(sessionUtils)
 
-describe(Jobs.GenerateProgressReport, () => {
+describe('GenerateProgressReport', () => {
   beforeEach(async () => {
     jest.resetAllMocks()
     jest.clearAllMocks()

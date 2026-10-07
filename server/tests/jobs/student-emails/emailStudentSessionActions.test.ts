@@ -17,7 +17,6 @@ import {
   hasUserBeenSentEmail,
 } from '../../../services/NotificationService'
 import logger from '../../../logger'
-import { Jobs } from '../../../worker/jobs'
 import emailStudentSessionActions from '../../../worker/jobs/student-emails/emailStudentSessionActions'
 
 jest.mock('../../../models/Session')
@@ -57,7 +56,7 @@ describe('emailStudentSessionActions', () => {
 
     const job = {
       data: { sessionId: session.id },
-      name: Jobs.EmailStudentAbsentWarning,
+      name: 'EmailStudentAbsentWarning',
     } as Job<{ sessionId: Uuid }>
     await emailStudentSessionActions(job)
 
@@ -101,7 +100,7 @@ describe('emailStudentSessionActions', () => {
 
     const job = {
       data: { sessionId: session.id },
-      name: Jobs.EmailStudentAbsentWarning,
+      name: 'EmailStudentAbsentWarning',
     } as Job<{ sessionId: Uuid }>
     await emailStudentSessionActions(job)
 
@@ -110,7 +109,7 @@ describe('emailStudentSessionActions', () => {
       emailTemplateId: config.sendgrid.studentAbsentWarningTemplate,
     })
     expect(logger.info).toHaveBeenCalledWith(
-      `Student ${student.id} has already received ${Jobs.EmailStudentAbsentWarning} for session ${session.id}`
+      `Student ${student.id} has already received EmailStudentAbsentWarning for session ${session.id}`
     )
     expect(mockedSendStudentAbsentWarning).not.toHaveBeenCalled()
   })
@@ -126,7 +125,7 @@ describe('emailStudentSessionActions', () => {
 
     const job = {
       data: { sessionId: session.id },
-      name: Jobs.EmailStudentAbsentWarning,
+      name: 'EmailStudentAbsentWarning',
     } as Job<{ sessionId: Uuid }>
     await emailStudentSessionActions(job)
 
@@ -140,7 +139,7 @@ describe('emailStudentSessionActions', () => {
       emailTemplateId: config.sendgrid.studentAbsentWarningTemplate,
     })
     expect(logger.info).toHaveBeenCalledWith(
-      `Emailed ${Jobs.EmailStudentAbsentWarning} to student ${session.studentId}`
+      `Emailed EmailStudentAbsentWarning to student ${session.studentId}`
     )
   })
 
@@ -160,7 +159,7 @@ describe('emailStudentSessionActions', () => {
 
     const job = {
       data: { sessionId: session.id },
-      name: Jobs.EmailStudentAbsentVolunteerApology,
+      name: 'EmailStudentAbsentVolunteerApology',
     } as Job<{ sessionId: Uuid }>
     await emailStudentSessionActions(job)
 
@@ -177,7 +176,7 @@ describe('emailStudentSessionActions', () => {
       emailTemplateId: config.sendgrid.studentAbsentVolunteerApologyTemplate,
     })
     expect(logger.info).toHaveBeenCalledWith(
-      `Emailed ${Jobs.EmailStudentAbsentVolunteerApology} to student ${session.studentId}`
+      `Emailed EmailStudentAbsentVolunteerApology to student ${session.studentId}`
     )
   })
 
@@ -192,7 +191,7 @@ describe('emailStudentSessionActions', () => {
 
     const job = {
       data: { sessionId: session.id },
-      name: Jobs.EmailStudentUnmatchedApology,
+      name: 'EmailStudentUnmatchedApology',
     } as Job<{ sessionId: Uuid }>
     await emailStudentSessionActions(job)
 
@@ -208,7 +207,7 @@ describe('emailStudentSessionActions', () => {
       emailTemplateId: config.sendgrid.studentUnmatchedApologyTemplate,
     })
     expect(logger.info).toHaveBeenCalledWith(
-      `Emailed ${Jobs.EmailStudentUnmatchedApology} to student ${session.studentId}`
+      `Emailed EmailStudentUnmatchedApology to student ${session.studentId}`
     )
   })
 
@@ -223,7 +222,7 @@ describe('emailStudentSessionActions', () => {
 
     const job = {
       data: { sessionId: session.id },
-      name: Jobs.EmailStudentOnlyLookingForAnswers,
+      name: 'EmailStudentOnlyLookingForAnswers',
     } as Job<{ sessionId: Uuid }>
     await emailStudentSessionActions(job)
 
@@ -237,7 +236,7 @@ describe('emailStudentSessionActions', () => {
       emailTemplateId: config.sendgrid.studentOnlyLookingForAnswersTemplate,
     })
     expect(logger.info).toHaveBeenCalledWith(
-      `Emailed ${Jobs.EmailStudentOnlyLookingForAnswers} to student ${session.studentId}`
+      `Emailed EmailStudentOnlyLookingForAnswers to student ${session.studentId}`
     )
   })
 
@@ -254,10 +253,10 @@ describe('emailStudentSessionActions', () => {
 
     const job = {
       data: { sessionId: session.id },
-      name: Jobs.EmailStudentAbsentWarning,
+      name: 'EmailStudentAbsentWarning',
     } as Job<{ sessionId: Uuid }>
     await expect(emailStudentSessionActions(job)).rejects.toThrow(
-      `Failed to email ${Jobs.EmailStudentAbsentWarning} to student ${session.studentId}: Error: ${errorMessage}`
+      `Failed to email EmailStudentAbsentWarning to student ${session.studentId}: Error: ${errorMessage}`
     )
   })
 })

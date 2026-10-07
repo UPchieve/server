@@ -9,7 +9,6 @@ import { createEmailNotification } from '../../../models/Notification'
 import { hasUserBeenSentEmail } from '../../../services/NotificationService'
 import logger from '../../../logger'
 import emailStudentFirstSessionCongrats from '../../../worker/jobs/student-emails/emailStudentFirstSessionCongrats'
-import { Jobs } from '../../../worker/jobs'
 
 jest.mock('../../../models/Session')
 jest.mock('../../../models/Notification')
@@ -26,7 +25,7 @@ const mockedSendStudentFirstSessionCongrats = mocked(
   MailService.sendStudentFirstSessionCongrats
 )
 
-describe(`${Jobs.EmailStudentFirstSessionCongrats}`, () => {
+describe(`EmailStudentFirstSessionCongrats`, () => {
   beforeEach(() => {
     jest.clearAllMocks()
   })
@@ -37,7 +36,7 @@ describe(`${Jobs.EmailStudentFirstSessionCongrats}`, () => {
 
     const job = {
       data: { sessionId },
-      name: Jobs.EmailStudentFirstSessionCongrats,
+      name: 'EmailStudentFirstSessionCongrats',
     } as Job<{ sessionId: string }>
     await emailStudentFirstSessionCongrats(job)
 
@@ -54,7 +53,7 @@ describe(`${Jobs.EmailStudentFirstSessionCongrats}`, () => {
 
     const job = {
       data: { sessionId },
-      name: Jobs.EmailStudentFirstSessionCongrats,
+      name: 'EmailStudentFirstSessionCongrats',
     } as Job<{ sessionId: string }>
     await emailStudentFirstSessionCongrats(job)
 
@@ -69,7 +68,7 @@ describe(`${Jobs.EmailStudentFirstSessionCongrats}`, () => {
     expect(mockedCreateEmailNotification).not.toHaveBeenCalled()
   })
 
-  test(`Should send ${Jobs.EmailStudentFirstSessionCongrats}`, async () => {
+  test(`Should send EmailStudentFirstSessionCongrats`, async () => {
     const student = buildStudent()
     const sessionId = getUuid()
     mockedGetStudentForEmailFirstSession.mockResolvedValueOnce(student)
@@ -79,7 +78,7 @@ describe(`${Jobs.EmailStudentFirstSessionCongrats}`, () => {
 
     const job = {
       data: { sessionId },
-      name: Jobs.EmailStudentFirstSessionCongrats,
+      name: 'EmailStudentFirstSessionCongrats',
     } as Job<{ sessionId: string }>
     await emailStudentFirstSessionCongrats(job)
 
@@ -108,7 +107,7 @@ describe(`${Jobs.EmailStudentFirstSessionCongrats}`, () => {
 
     const job = {
       data: { sessionId },
-      name: Jobs.EmailStudentFirstSessionCongrats,
+      name: 'EmailStudentFirstSessionCongrats',
     } as Job<{ sessionId: string }>
 
     await expect(emailStudentFirstSessionCongrats(job)).rejects.toThrow(

@@ -54,7 +54,6 @@ import {
 import { isReadyToCoach } from './VolunteerService'
 import { LEADERSHIP_TITLES, NTHSTitle } from '../constants/nths-titles'
 import { hoursInMs } from '../utils/time-utils'
-import { Jobs } from '../worker/jobs'
 import QueueService from './QueueService'
 
 export const APPROVAL_LIFETIME_HOURS = 720
@@ -70,7 +69,7 @@ export async function getGroups(userId: Ulid) {
 
 async function syncNthsUserToSendGrid(userId: Ulid) {
   await QueueService.add(
-    Jobs.SyncSendGridContact,
+    'SyncSendGridContact',
     { delay: SENDGRID_SYNC_DELAY_MS },
     { userId }
   )

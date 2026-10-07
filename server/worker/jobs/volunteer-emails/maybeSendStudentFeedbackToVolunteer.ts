@@ -1,10 +1,10 @@
 import { Job } from 'bull'
-import { Uuid } from 'id128'
 import {
   classifyFeedback,
   getStudentFeedbackForSession,
 } from '../../../services/SurveyService'
 import { asUlid } from '../../../utils/type-utils'
+import { Uuid } from '../../../models/pgUtils'
 import { getUserReferralLink } from '../../../models/User/index'
 import { getSessionById } from '../../../models/Session/index'
 import config from '../../../config'
