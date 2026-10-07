@@ -6109,6 +6109,7 @@ COPY upchieve.moderation_rules_flags (flag_id, rule_id) FROM stdin;
 COPY upchieve.moderation_type (id, name) FROM stdin;
 1	contextual
 2	realtime_image
+3	image_upload
 \.
 
 
@@ -6145,6 +6146,29 @@ realtime_image	15	0.75	0	25
 realtime_image	21	0.85	0	26
 realtime_image	22	0.85	0	27
 realtime_image	28	0.50	0	28
+image_upload	2	0.85	1	29
+image_upload	6	0.75	10	30
+image_upload	7	0.75	10	31
+image_upload	8	0.75	10	32
+image_upload	9	0.75	10	33
+image_upload	10	0.75	10	34
+image_upload	11	0.75	1	35
+image_upload	12	0.75	4	36
+image_upload	13	0.85	1	37
+image_upload	14	0.75	1	38
+image_upload	15	0.75	1	39
+image_upload	17	0.75	10	40
+image_upload	18	0.75	10	41
+image_upload	19	0.75	10	42
+image_upload	20	0.75	10	43
+image_upload	21	0.85	1	44
+image_upload	22	0.85	1	45
+image_upload	23	0.85	4	46
+image_upload	24	0.85	4	47
+image_upload	25	0.85	4	48
+image_upload	26	0.85	4	49
+image_upload	16	0.75	10	50
+image_upload	28	0.75	0	51
 \.
 
 
@@ -9265,14 +9289,14 @@ SELECT pg_catalog.setval('upchieve.moderation_rules_id_seq', 1, false);
 -- Name: moderation_settings_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.moderation_settings_id_seq', 28, true);
+SELECT pg_catalog.setval('upchieve.moderation_settings_id_seq', 51, true);
 
 
 --
 -- Name: moderation_type_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
 --
 
-SELECT pg_catalog.setval('upchieve.moderation_type_id_seq', 2, true);
+SELECT pg_catalog.setval('upchieve.moderation_type_id_seq', 3, true);
 
 
 --
@@ -9574,4 +9598,3 @@ SELECT pg_catalog.setval('upchieve.weekdays_id_seq', 1, false);
 --
 
 \unrestrict bPQhSKOVar3w9LENPfN0TbralXBaP73cV0LPCHCy83QLIp1lsrGeWgwYkTPRnMZ
-

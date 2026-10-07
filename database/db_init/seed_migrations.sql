@@ -112,6 +112,7 @@ COPY public.seed_migrations (version) FROM stdin;
 20260826174910
 20260904164311
 20260911120002
+20261007174005
 \.
 
 
@@ -120,4 +121,3 @@ COPY public.seed_migrations (version) FROM stdin;
 --
 
 \unrestrict nHKYSKrdB11twb7mwcmRNmROrJzcmS9l6aVW1H36thbI5FwWWcpEhoNhMokjxP1
-
