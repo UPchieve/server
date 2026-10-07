@@ -153,6 +153,10 @@ import { ZipCode } from '../../models/ZipCode/types'
 import { StudentAssignmentSubmissionPublic } from '../../contracts/assignments'
 import { NTHSGroupMemberWithRolePublic } from '../../contracts/nths-group'
 import { UserProductFlagsPublic } from '../../contracts/product-flags'
+import type {
+  SessionReportPublic,
+  UsageReportPublic,
+} from '../../contracts/reports'
 
 /** Suffixed with a uuid because users.email and parents_guardians.email are UNIQUE. */
 export function getEmail(): string {
@@ -1521,25 +1525,33 @@ export function buildSessionReportRow(
   }
 }
 
-export function buildSessionReportFormattedRow(
+export function buildSessionReportPublic(
   overrides: Partial<SessionReportRow> = {}
-): SessionReport {
-  const row = buildSessionReportRow(overrides)
+): SessionReportPublic {
+  const report = buildSessionReportRow(overrides)
   return {
-    Topic: row.topic,
-    Subtopic: row.subject,
-    'Created at': row.createdAt.toISOString(),
-    Messages: '10',
-    'First name': row.firstName,
-    'Last name': row.lastName,
-    Email: row.email,
-    Volunteer: row.volunteerJoined,
-    'Volunteer join date': row.volunteerJoinedAt
-      ? String(row.volunteerJoinedAt)
-      : new Date().toISOString(),
-    'Ended at': row.endedAt.toISOString(),
-    'Wait time': row.waitTimeMins ? String(row.waitTimeMins) : undefined,
-    'Session rating': row.sessionRating ? String(row.sessionRating) : undefined,
+    Topic: report.topic,
+    Subtopic: report.subject,
+    'Created at': moment(report.createdAt)
+      .tz('America/New_York')
+      .format('l h:mm a'),
+    Messages: String(report.totalMessages),
+    'First name': report.firstName,
+    'Last name': report.lastName,
+    Email: report.email,
+    'Partner site': report.partnerSite ?? '-',
+    'Sponsor org': report.sponsorOrg ?? '-',
+    Volunteer: report.volunteerJoined,
+    'Volunteer join date': report.volunteerJoinedAt
+      ? moment(report.volunteerJoinedAt)
+          .tz('America/New_York')
+          .format('l h:mm a')
+      : '',
+    'Ended at': moment(report.endedAt)
+      .tz('America/New_York')
+      .format('l h:mm a'),
+    'Wait time': report.waitTimeMins ? `${report.waitTimeMins}mins` : '',
+    'Session rating': report.sessionRating ? String(report.sessionRating) : '',
   }
 }
 
@@ -1565,24 +1577,26 @@ export function buildUsageReportRow(
   }
 }
 
-export function buildUsageReportFormattedRow(
+export function buildUsageReportRowPublic(
   overrides: Partial<UsageReportRow> = {}
-): UsageReport {
-  const row = buildUsageReportRow(overrides)
+): UsageReportPublic {
+  const report = buildUsageReportRow(overrides)
   return {
-    'First name': row.firstName,
-    'Last name': row.lastName,
-    Email: row.email,
-    'Minutes over date range': row.rangeSessionLengthMins,
-    'Total minutes': row.totalSessionLengthMins,
-    'Join date': row.joinDate.toISOString(),
-    'Total sessions': row.totalSessions,
-    'Sessions over date range': row.rangeTotalSessions,
-    'High school name': row.school ?? '',
-    'Partner site': row.partnerSite ?? '-',
-    'HS/College': row.school ? 'High school' : 'College',
-    'Sponsor Org': row.sponsorOrg ?? undefined,
-    'Partner Org': row.studentPartnerOrg ?? '-',
+    'First name': report.firstName,
+    'Last name': report.lastName,
+    Email: report.email,
+    'Join date': moment(report.joinDate)
+      .tz('America/New_York')
+      .format('l h:mm a'),
+    'Total sessions': report.totalSessions,
+    'Total minutes': report.totalSessionLengthMins,
+    'Sessions over date range': report.rangeTotalSessions,
+    'Minutes over date range': report.rangeSessionLengthMins,
+    'High school name': report.school ?? '',
+    'Partner site': report.partnerSite ?? '-',
+    'HS/College': report.school ? 'High school' : 'College',
+    'Sponsor Org': report.sponsorOrg ?? '-',
+    'Partner Org': report.studentPartnerOrg ?? '',
   }
 }
 

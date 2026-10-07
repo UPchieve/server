@@ -1,4 +1,4 @@
-import { Router } from 'express'
+import type { Router, Response } from 'express'
 import { createPushTokenByUserId } from '../../models/PushToken'
 import { authPassport } from '../../utils/auth-utils'
 import { asString } from '../../utils/type-utils'
@@ -7,7 +7,7 @@ export function routePushToken(router: Router): void {
   router.post(
     '/push-token/save',
     authPassport.isAuthenticated,
-    async function (req, res) {
+    async function (req, res: Response<void>) {
       const { token } = req.body
 
       try {
