@@ -1,5 +1,5 @@
 import { Job } from 'bull'
-import { log } from '../../logger'
+import logger from '../../../logger'
 import * as MailService from '../../../services/MailService'
 import { getVolunteerForOnboardingById } from '../../../services/VolunteerService'
 import { Jobs } from '../index'
@@ -46,7 +46,7 @@ export default async (job: Job<OnboardingReminder>): Promise<void> => {
         // Volunteer has not completed onboarding 10 days after sending onboarding reminder two
         await MailService.sendOnboardingReminderThree(email, firstName)
       }
-      log(`Emailed ${currentJob} to volunteer ${volunteerId}`)
+      logger.info(`Emailed ${currentJob} to volunteer ${volunteerId}`)
       if (nextJob)
         job.queue.add(
           nextJob,

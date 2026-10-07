@@ -4,7 +4,7 @@ import { Job } from 'bull'
 import * as db from '../db'
 import { getVolunteerIdsForElapsedAvailability } from '../models/Volunteer/queries'
 import { Jobs } from '../worker/jobs'
-import { log } from '../worker/logger'
+import logger from '../logger'
 import { asString } from '../utils/type-utils'
 
 type BackfillAvailabilityHistoriesData = {
@@ -137,7 +137,7 @@ export default async function backfillAvailabilityHistories(
     .hour(4)
 
   if (snapshotTimeEt.isSameOrAfter(endSnapshotTimeEt)) {
-    log(
+    logger.warn(
       `${Jobs.BackfillAvailabilityHistories}: start date must be before end date`
     )
     return
@@ -192,7 +192,7 @@ export default async function backfillAvailabilityHistories(
     snapshotTimeEt = snapshotTimeEt.add(1, 'day')
   }
 
-  log(
+  logger.info(
     `${Jobs.BackfillAvailabilityHistories}: inserted ${totalRowsInserted} history rows`
   )
 

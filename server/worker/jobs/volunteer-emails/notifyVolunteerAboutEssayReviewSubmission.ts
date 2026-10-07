@@ -1,5 +1,5 @@
 import { Job } from 'bull'
-import { log } from '../../logger'
+import logger from '../../../logger'
 import * as EssayReviewService from '../../../services/EssayReviewService'
 import * as MailService from '../../../services/MailService'
 import {
@@ -67,12 +67,12 @@ export default async function notifyVolunteersAboutEssayReviewSubmission(
     }
   }
 
-  log(
+  logger.info(
     `${Jobs.NotifyVolunteersAboutEssayReviewSubmission}: Notified ${notifiedCount} volunteers about submission ${job.data.submissionId}`
   )
 
   if (failedVolunteerIds.length) {
-    log(
+    logger.warn(
       `${Jobs.NotifyVolunteersAboutEssayReviewSubmission}: Failed to notify ${failedVolunteerIds.length} opted-in volunteers about submission ${job.data.submissionId}: ${failedVolunteerIds.join(', ')}`
     )
   }

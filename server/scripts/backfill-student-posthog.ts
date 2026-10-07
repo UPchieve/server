@@ -1,7 +1,7 @@
 import { processStudentTrackingPostHog } from '../services/StudentService'
 import { asUlid } from '../utils/type-utils'
 import { Job } from 'bull'
-import { log } from '../worker/logger'
+import logger from '../logger'
 
 type BackfillStudentPosthogData = {
   studentId: string
@@ -13,5 +13,7 @@ export default async function BackfillStudentPosthog(
   const studentId = asUlid(job.data.studentId)
 
   await processStudentTrackingPostHog(studentId)
-  log(`Successfully updated posthog association for student ${studentId}`)
+  logger.info(
+    `Successfully updated posthog association for student ${studentId}`
+  )
 }

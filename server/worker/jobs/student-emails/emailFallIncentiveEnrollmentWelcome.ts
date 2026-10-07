@@ -1,5 +1,5 @@
 import { Job } from 'bull'
-import { log } from '../../logger'
+import logger from '../../../logger'
 import * as MailService from '../../../services/MailService'
 import { asString } from '../../../utils/type-utils'
 import { Ulid } from '../../../models/pgUtils'
@@ -23,7 +23,9 @@ export default async (
       proxyEmail ?? email,
       firstName
     )
-    log(`Sent ${Jobs.EmailFallIncentiveEnrollmentWelcome} to student ${userId}`)
+    logger.info(
+      `Sent ${Jobs.EmailFallIncentiveEnrollmentWelcome} to student ${userId}`
+    )
   } catch (error) {
     throw new Error(
       `Failed to send ${Jobs.EmailFallIncentiveEnrollmentWelcome} to student ${userId}: ${error}`

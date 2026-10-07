@@ -1,5 +1,5 @@
 import { Job } from 'bull'
-import { log } from '../logger'
+import logger from '../../logger'
 import { Uuid } from '../../models/pgUtils'
 import { generateSessionSummaryForSession } from '../../services/SessionSummariesService'
 import { asString } from '../../utils/type-utils'
@@ -13,7 +13,7 @@ export default async (job: Job<GenerateSessionSummary>): Promise<void> => {
 
   try {
     await generateSessionSummaryForSession(sessionId)
-    log(`Successfully generated summaries for session ${sessionId}`)
+    logger.info(`Successfully generated summaries for session ${sessionId}`)
   } catch (error) {
     throw new Error(
       `Failed to generate summaries for session ${sessionId}. Error: ${error}`

@@ -6,13 +6,13 @@ import {
 } from '../models/Volunteer/queries'
 import { getTotalElapsedAvailabilityForDateRange } from '../services/AvailabilityService'
 import { Jobs } from '../worker/jobs'
-import { log } from '../worker/logger'
+import logger from '../logger'
 
 export default async function backfillElapsedAvailability() {
   // Don't run before the daily 4:00 AM ET cron job
   const nowEt = moment.tz('America/New_York')
   if (nowEt.hour() < 5) {
-    log(
+    logger.warn(
       `${Jobs.BackfillElapsedAvailability}: exiting — must run after 8:00 AM ET`
     )
     return
@@ -45,7 +45,7 @@ export default async function backfillElapsedAvailability() {
     }
   }
 
-  log(
+  logger.info(
     `Successfully ${Jobs.BackfillElapsedAvailability}: ${totalUpdated} volunteers`
   )
 

@@ -7,7 +7,7 @@ import { getStudentForEmailFirstSession } from '../../../models/Session'
 import * as MailService from '../../../services/MailService'
 import { createEmailNotification } from '../../../models/Notification'
 import { hasUserBeenSentEmail } from '../../../services/NotificationService'
-import { log } from '../../../worker/logger'
+import logger from '../../../logger'
 import emailStudentFirstSessionCongrats from '../../../worker/jobs/student-emails/emailStudentFirstSessionCongrats'
 import { Jobs } from '../../../worker/jobs'
 
@@ -15,6 +15,7 @@ jest.mock('../../../models/Session')
 jest.mock('../../../models/Notification')
 jest.mock('../../../services/NotificationService')
 jest.mock('../../../services/MailService')
+jest.mock('../../../logger')
 
 const mockedGetStudentForEmailFirstSession = mocked(
   getStudentForEmailFirstSession
@@ -61,7 +62,7 @@ describe(`${Jobs.EmailStudentFirstSessionCongrats}`, () => {
       userId: student.id,
       emailTemplateId: config.sendgrid.studentFirstSessionCongratsTemplate,
     })
-    expect(log).toHaveBeenCalledWith(
+    expect(logger.info).toHaveBeenCalledWith(
       `Student ${student.id} has already received ${job.name}`
     )
     expect(mockedSendStudentFirstSessionCongrats).not.toHaveBeenCalled()
@@ -90,7 +91,7 @@ describe(`${Jobs.EmailStudentFirstSessionCongrats}`, () => {
       userId: student.id,
       emailTemplateId: config.sendgrid.studentFirstSessionCongratsTemplate,
     })
-    expect(log).toHaveBeenCalledWith(
+    expect(logger.info).toHaveBeenCalledWith(
       `Sent ${job.name} to student ${student.id}`
     )
   })

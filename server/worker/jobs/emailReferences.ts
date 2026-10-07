@@ -1,5 +1,5 @@
 import { flatten } from 'lodash'
-import { log } from '../logger'
+import logger from '../../logger'
 import { getVolunteersForEmailReference } from '../../models/Volunteer'
 import * as UserService from '../../services/UserService'
 import { Jobs } from '.'
@@ -16,7 +16,7 @@ export default async (): Promise<void> => {
     })
   )
 
-  if (unsent.length === 0) return log('No references to email')
+  if (unsent.length === 0) return logger.info('No references to email')
 
   const errors: string[] = []
   let totalEmailed = 0
@@ -29,7 +29,7 @@ export default async (): Promise<void> => {
     }
   }
 
-  log(`Sent ${Jobs.EmailReferences} to ${totalEmailed} references`)
+  logger.info(`Sent ${Jobs.EmailReferences} to ${totalEmailed} references`)
   if (errors.length) {
     throw new Error(`Failed to send ${Jobs.EmailReferences} to: ${errors}`)
   }

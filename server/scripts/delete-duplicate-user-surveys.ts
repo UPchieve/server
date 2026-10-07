@@ -1,7 +1,7 @@
 import { deleteDuplicateUserSurveys } from '../models/Survey'
-import { log } from '../worker/logger'
+import logger from '../logger'
 
 export default async function main(): Promise<void> {
   await deleteDuplicateUserSurveys()
-  log(`Successfully deleted duplicate user surveys`)
+  logger.info(`Successfully deleted duplicate user surveys`)
 }

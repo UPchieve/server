@@ -1,5 +1,5 @@
 import { Job } from 'bull'
-import { log } from '../../logger'
+import logger from '../../../logger'
 import * as MailService from '../../../services/MailService'
 import { getStudentForEmailFirstSession } from '../../../models/Session'
 import { asString } from '../../../utils/type-utils'
@@ -27,14 +27,16 @@ export default async (
         emailTemplateId,
       })
       if (hasReceivedEmail)
-        return log(`Student ${student.id} has already received ${currentJob}`)
+        return logger.info(
+          `Student ${student.id} has already received ${currentJob}`
+        )
 
       await MailService.sendStudentFirstSessionCongrats(email, firstName)
       await createEmailNotification({
         userId: student.id,
         emailTemplateId,
       })
-      log(`Sent ${currentJob} to student ${studentId}`)
+      logger.info(`Sent ${currentJob} to student ${studentId}`)
     } catch (error) {
       throw new Error(
         `Failed to send ${currentJob} to student ${studentId}: ${error}`

@@ -3,18 +3,15 @@ import { getUuid } from '../../models/pgUtils'
 import * as VolunteerRepo from '../../models/Volunteer/queries'
 import backfillElapsedAvailability from '../../scripts/backfill-elapsed-availability'
 import * as AvailabilityService from '../../services/AvailabilityService'
-import * as Logger from '../../worker/logger'
+import logger from '../../logger'
 import { Jobs } from '../../worker/jobs'
 
 jest.mock('../../models/Volunteer/queries')
 jest.mock('../../services/AvailabilityService')
-jest.mock('../../worker/logger', () => ({
-  log: jest.fn(),
-}))
+jest.mock('../../logger')
 
 const mockedAvailabilityService = mocked(AvailabilityService)
 const mockedVolunteerRepo = mocked(VolunteerRepo)
-const mockedLogger = mocked(Logger)
 
 function setSystemTimeTo(dateIso: string) {
   jest.useFakeTimers()
@@ -31,7 +28,7 @@ describe('backfillElapsedAvailability', () => {
     setSystemTimeTo('2025-01-01T06:00:00Z')
     await backfillElapsedAvailability()
 
-    expect(mockedLogger.log).toHaveBeenCalledWith(
+    expect(logger.warn).toHaveBeenCalledWith(
       `${Jobs.BackfillElapsedAvailability}: exiting — must run after 8:00 AM ET`
     )
     expect(
@@ -56,7 +53,7 @@ describe('backfillElapsedAvailability', () => {
     expect(
       mockedVolunteerRepo.getVolunteerIdsForElapsedAvailability
     ).toHaveBeenCalled()
-    expect(mockedLogger.log).toHaveBeenCalledWith(
+    expect(logger.info).toHaveBeenCalledWith(
       expect.stringContaining(
         `Successfully ${Jobs.BackfillElapsedAvailability}: 0 volunteers`
       )
@@ -97,7 +94,7 @@ describe('backfillElapsedAvailability', () => {
     expect(
       mockedVolunteerRepo.setVolunteerElapsedAvailabilityById
     ).toHaveBeenNthCalledWith(2, volThreeId, 3)
-    expect(mockedLogger.log).toHaveBeenCalledWith(
+    expect(logger.info).toHaveBeenCalledWith(
       `Successfully ${Jobs.BackfillElapsedAvailability}: 2 volunteers`
     )
   })

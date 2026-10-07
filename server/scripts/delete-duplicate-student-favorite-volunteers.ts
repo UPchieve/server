@@ -1,15 +1,19 @@
 import * as StudentRepo from '../models/Student'
-import { log } from '../worker/logger'
+import logger from '../logger'
 import { runInTransaction, TransactionClient } from '../db'
 export const deleteDuplicateStudentFavoriteVolunteers =
   async (): Promise<void> => {
     const numDuplicates =
       await StudentRepo.countDuplicateStudentVolunteerFavorites()
     if (numDuplicates === 0) {
-      log('Found 0 duplicates in student_favorite_volunteers. Returning')
+      logger.info(
+        'Found 0 duplicates in student_favorite_volunteers. Returning'
+      )
       return
     }
-    log(`Found ${numDuplicates} duplicates in student_favorite_volunteers`)
+    logger.info(
+      `Found ${numDuplicates} duplicates in student_favorite_volunteers`
+    )
 
     await runInTransaction(async (tc: TransactionClient) => {
       const numDeleted =
@@ -21,7 +25,9 @@ export const deleteDuplicateStudentFavoriteVolunteers =
         )
       }
 
-      log(`Deleted ${numDeleted} duplicates from student_favorite_volunteers`)
+      logger.info(
+        `Deleted ${numDeleted} duplicates from student_favorite_volunteers`
+      )
     })
   }
 

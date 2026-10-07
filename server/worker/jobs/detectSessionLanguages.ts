@@ -1,5 +1,5 @@
 import { Job } from 'bull'
-import { log } from '../logger'
+import logger from '../../logger'
 import { Uuid } from '../../models/pgUtils'
 import { getMessagesForFrontend, getSessionById } from '../../models/Session'
 import {
@@ -55,7 +55,9 @@ export default async (
       // AWS Comprehend requires at least 20 characters in the input text for DetectDominantLanguage API
       transcript.length < MINIMUM_TRANSCRIPT_LENGTH_FOR_LANGUAGE_DETECTION
     ) {
-      log(`Not enough content to detect language for session ${session.id}`)
+      logger.info(
+        `Not enough content to detect language for session ${session.id}`
+      )
       return
     }
 

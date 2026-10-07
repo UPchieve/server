@@ -10,8 +10,6 @@ jest.mock('../services/FeatureFlagService')
 
 jest.mock('../services/EventsService')
 
-jest.mock('../worker/logger')
-
 const customVolunteerPartnerOrgList =
   process.env.SUBWAY_CUSTOM_VOLUNTEER_PARTNER_ORGS || 'example'
 const customVolunteerPartnerOrgs = customVolunteerPartnerOrgList.split(',')

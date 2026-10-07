@@ -1,6 +1,6 @@
 import { Job } from 'bull'
 import moment from 'moment'
-import { log } from '../../logger'
+import logger from '../../../logger'
 import * as MailService from '../../../services/MailService'
 import { Uuid } from '../../../models/pgUtils'
 import { getStudentContactInfoById } from '../../../models/Student/queries'
@@ -80,18 +80,19 @@ export default async (
   const { data, name: currentJob } = job
   const session = await getSessionById(data.sessionId)
   const student = await getStudentContactInfoById(session.studentId)
-  if (!student) return log(`No student found with id ${session.studentId}`)
+  if (!student)
+    return logger.info(`No student found with id ${session.studentId}`)
 
   const emailTemplateId = getSendGridTemplate(currentJob as Jobs)
   if (!emailTemplateId)
-    return log(`No email template id found for ${currentJob}`)
+    return logger.warn(`No email template id found for ${currentJob}`)
 
   const hasReceivedEmailForJob = await hasUserBeenSentEmail({
     userId: student.id,
     emailTemplateId,
   })
   if (hasReceivedEmailForJob)
-    return log(
+    return logger.info(
       `Student ${student.id} has already received ${currentJob} for session ${session.id}`
     )
 
@@ -113,7 +114,7 @@ export default async (
       emailTemplateId,
     })
 
-    log(`Emailed ${currentJob} to student ${session.studentId}`)
+    logger.info(`Emailed ${currentJob} to student ${session.studentId}`)
   } catch (error) {
     throw new Error(
       `Failed to email ${currentJob} to student ${session.studentId}: ${error}`

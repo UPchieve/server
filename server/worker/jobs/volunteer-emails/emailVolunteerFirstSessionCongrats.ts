@@ -1,5 +1,5 @@
 import { Job } from 'bull'
-import { log } from '../../logger'
+import logger from '../../../logger'
 import * as MailService from '../../../services/MailService'
 import { getVolunteerForEmailFirstSession } from '../../../models/Session'
 import { asString } from '../../../utils/type-utils'
@@ -30,7 +30,7 @@ export default async (
         emailTemplateId,
       })
       if (hasReceivedEmail)
-        return log(
+        return logger.info(
           `Volunteer ${volunteer.id} has already received ${currentJob}`
         )
 
@@ -39,7 +39,7 @@ export default async (
         userId: volunteer.id,
         emailTemplateId,
       })
-      log(`Sent ${currentJob} to volunteer ${volunteerId}`)
+      logger.info(`Sent ${currentJob} to volunteer ${volunteerId}`)
     } catch (error) {
       throw new Error(
         `Failed to send ${currentJob} to volunteer ${volunteerId}: ${error}`

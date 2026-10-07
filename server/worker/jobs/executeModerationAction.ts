@@ -1,5 +1,5 @@
 import { Job } from 'bull'
-import { log } from '../logger'
+import logger from '../../logger'
 import { Uuid } from '../../models/pgUtils'
 import {
   getSessionById,
@@ -33,7 +33,7 @@ export default async (job: Job<ExecuteModerationAction>): Promise<void> => {
           studentId,
           sessionId
         )
-        log(`Successfully executed action ${action.actionName}`)
+        logger.info(`Successfully executed action ${action.actionName}`)
       } catch (error) {
         throw new Error(
           `Failed to execute action ${action.actionName}. Error: ${error}`

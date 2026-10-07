@@ -10,7 +10,7 @@ import {
   createEmailNotification,
   hasUserBeenSentEmail,
 } from '../../../services/NotificationService'
-import { log } from '../../../worker/logger'
+import logger from '../../../logger'
 import emailVolunteerTenSessionMilestone from '../../../worker/jobs/volunteer-emails/emailTenSessionMilestone'
 import { asString } from '../../../utils/type-utils'
 import { Jobs } from '../../../worker/jobs'
@@ -19,6 +19,7 @@ jest.mock('../../../models/Session')
 jest.mock('../../../models/Volunteer')
 jest.mock('../../../services/NotificationService')
 jest.mock('../../../services/MailService')
+jest.mock('../../../logger')
 
 const mockedGetVolunteerContactInfoById = mocked(getVolunteerContactInfoById)
 const mockedGetSessionsVolunteerRating = mocked(getSessionsVolunteerRating)
@@ -51,7 +52,7 @@ describe(`${Jobs.EmailVolunteerTenSessionMilestone}`, () => {
         banned: false,
       }
     )
-    expect(log).toHaveBeenCalledWith(
+    expect(logger.info).toHaveBeenCalledWith(
       `No volunteer found with id ${volunteerId}`
     )
     expect(mockedSendVolunteerTenSessionMilestone).not.toHaveBeenCalled()
@@ -73,7 +74,7 @@ describe(`${Jobs.EmailVolunteerTenSessionMilestone}`, () => {
       userId: volunteer.id,
       emailTemplateId: config.sendgrid.volunteerTenSessionMilestoneTemplate,
     })
-    expect(log).toHaveBeenCalledWith(
+    expect(logger.info).toHaveBeenCalledWith(
       `Volunteer ${volunteer.id} has already received ${Jobs.EmailVolunteerTenSessionMilestone}`
     )
     expect(mockedSendVolunteerTenSessionMilestone).not.toHaveBeenCalled()
@@ -130,7 +131,7 @@ describe(`${Jobs.EmailVolunteerTenSessionMilestone}`, () => {
       userId: volunteer.id,
       emailTemplateId: config.sendgrid.volunteerTenSessionMilestoneTemplate,
     })
-    expect(log).toHaveBeenCalledWith(
+    expect(logger.info).toHaveBeenCalledWith(
       `Sent ${Jobs.EmailVolunteerTenSessionMilestone} to volunteer ${asString(volunteerId)}`
     )
   })

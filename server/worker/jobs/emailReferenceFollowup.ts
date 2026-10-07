@@ -1,7 +1,7 @@
 import { Jobs } from '.'
 import { getReferencesToFollowup } from '../../models/Volunteer'
 import * as MailService from '../../services/MailService'
-import { log } from '../logger'
+import logger from '../../logger'
 
 // Runs every day at 10am EST
 export default async (): Promise<void> => {
@@ -18,7 +18,7 @@ export default async (): Promise<void> => {
   const errors: string[] = []
 
   if (referencesToEmail.length === 0)
-    return log('No references to email for a follow-up')
+    return logger.info('No references to email for a follow-up')
 
   for (const reference of referencesToEmail) {
     try {
@@ -43,7 +43,9 @@ export default async (): Promise<void> => {
     }
   }
 
-  log(`Sent ${Jobs.EmailReferenceFollowup} to ${totalEmailed} references.`)
+  logger.info(
+    `Sent ${Jobs.EmailReferenceFollowup} to ${totalEmailed} references.`
+  )
   if (errors.length) {
     throw new Error(
       `Failed to send ${Jobs.EmailReferenceFollowup} to: ${errors}`

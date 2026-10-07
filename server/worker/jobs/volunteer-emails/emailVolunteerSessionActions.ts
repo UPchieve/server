@@ -1,6 +1,6 @@
 import { Job } from 'bull'
 import moment from 'moment'
-import { log } from '../../logger'
+import logger from '../../../logger'
 import * as MailService from '../../../services/MailService'
 import { Jobs } from '../index'
 import {
@@ -65,7 +65,7 @@ export default async (
   const { data, name: currentJob } = job
   const session = await getSessionById(data.sessionId)
   if (!session.volunteerId)
-    return log(`No volunteer found on session ${session.id}`)
+    return logger.info(`No volunteer found on session ${session.id}`)
 
   const volunteer = await getVolunteerContactInfoById(session.volunteerId, {
     deactivated: false,
@@ -73,23 +73,24 @@ export default async (
     banned: false,
   })
   if (!volunteer)
-    return log(`No volunteer found with id ${session.volunteerId}`)
+    return logger.info(`No volunteer found with id ${session.volunteerId}`)
 
   const emailTemplateId = getSendGridTemplate(currentJob as Jobs)
   if (!emailTemplateId)
-    return log(`No email template id found for ${currentJob}`)
+    return logger.warn(`No email template id found for ${currentJob}`)
 
   const hasReceivedEmailForJob = await hasUserBeenSentEmail({
     userId: volunteer.id,
     emailTemplateId,
   })
   if (hasReceivedEmailForJob)
-    return log(
+    return logger.info(
       `Volunteer ${volunteer.id} has already received ${currentJob} for session ${session.id}`
     )
 
   const student = await getStudentContactInfoById(session.studentId)
-  if (!student) return log(`No student found with id ${session.studentId}`)
+  if (!student)
+    return logger.info(`No student found with id ${session.studentId}`)
 
   try {
     const emailForJob = getEmailForJob(
@@ -106,7 +107,7 @@ export default async (
       emailTemplateId,
     })
 
-    log(`Emailed ${currentJob} to volunteer ${volunteer.id}`)
+    logger.info(`Emailed ${currentJob} to volunteer ${volunteer.id}`)
   } catch (error) {
     throw new Error(
       `Failed to email ${currentJob} to volunteer ${volunteer.id}: ${error}`

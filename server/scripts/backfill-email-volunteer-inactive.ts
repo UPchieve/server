@@ -16,7 +16,7 @@ import { getInactiveVolunteers } from '../models/Volunteer/queries'
 import { BLACKOUT_PERIOD_START, BLACKOUT_PERIOD_END } from '../constants'
 import { Job } from 'bull'
 import { asString } from '../utils/type-utils'
-import { log } from '../worker/logger'
+import logger from '../logger'
 
 type BackfillEmailVolunteersInactiveData = {
   startDate: string
@@ -125,7 +125,7 @@ async function sendEmailToInactiveVolunteers(
         await saveCurrentAvailabilityAsHistory(id)
         await clearAvailabilityForVolunteer(id)
       }
-      log(`Sent ${currentJob} to volunteer ${id}`)
+      logger.info(`Sent ${currentJob} to volunteer ${id}`)
     } catch (error) {
       errors.push(`${currentJob} to volunteer ${id}: ${error}`)
     }

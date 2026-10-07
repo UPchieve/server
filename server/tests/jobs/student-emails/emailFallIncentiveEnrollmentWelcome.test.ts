@@ -8,7 +8,7 @@ import { Job } from 'bull'
 import { getDbUlid } from '../../../models/pgUtils'
 import { buildUser } from '../../mocks/generate'
 import { Jobs } from '../../../worker/jobs'
-import { log } from '../../../worker/logger'
+import logger from '../../../logger'
 
 jest.mock('../../../services/MailService')
 jest.mock('../../../logger')
@@ -52,7 +52,7 @@ describe('EmailFallIncentiveEnrollmentWelcome', () => {
     expect(
       MailService.sendFallIncentiveEnrollmentWelcomeEmail
     ).toHaveBeenCalledWith(user.email, user.firstName)
-    expect(log).toHaveBeenCalledWith(
+    expect(logger.info).toHaveBeenCalledWith(
       `Sent ${Jobs.EmailFallIncentiveEnrollmentWelcome} to student ${user.id}`
     )
   })

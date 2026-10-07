@@ -1,7 +1,7 @@
 import moment from 'moment'
 import 'moment-timezone'
 import { Jobs } from '..'
-import { log } from '../../logger'
+import logger from '../../../logger'
 import {
   VolunteerContactInfo,
   updateVolunteerSentInactive30DayEmail,
@@ -43,7 +43,7 @@ async function sendEmailToInactiveVolunteers(
         await saveCurrentAvailabilityAsHistory(id)
         await clearAvailabilityForVolunteer(id)
       }
-      log(`Sent ${currentJob} to volunteer ${id}`)
+      logger.info(`Sent ${currentJob} to volunteer ${id}`)
     } catch (error) {
       errors.push(`${currentJob} to volunteer ${id}: ${error}`)
     }
@@ -67,7 +67,7 @@ export default async (): Promise<void> => {
 
   const todaysDate = new Date().getTime()
   if (todaysDate >= blackoutPeriodStart && todaysDate <= blackoutPeriodEnd) {
-    log(
+    logger.info(
       `Skipping ${Jobs.EmailVolunteerInactive} because today's date, ${new Date(
         todaysDate
       ).toISOString()}, is within the blackout period: ${new Date(

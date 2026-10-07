@@ -1,4 +1,3 @@
-import newrelic from 'newrelic'
 import * as db from '../db'
 import logger from '../logger'
 import { addJobProcessors } from './jobs'
@@ -14,7 +13,6 @@ const main = async (): Promise<void> => {
     addJobProcessors(queue)
     registerListeners()
   } catch (error) {
-    newrelic.noticeError(error as Error)
     // handle redis connection errors; for whatever reason Redis.ReplyError type is not in the declarations file
     if ((error as any).code === 'ECONNREFUSED') {
       logger.error(
@@ -29,5 +27,4 @@ const main = async (): Promise<void> => {
 
 main().catch((error) => {
   logger.error('error in worker main', { err: error })
-  newrelic.noticeError(error)
 })

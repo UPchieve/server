@@ -6,7 +6,7 @@ import * as MailService from '../../../services/MailService'
 import * as UserService from '../../../services/UserService'
 import { Job } from 'bull'
 import { buildUser } from '../../mocks/generate'
-import { log } from '../../../worker/logger'
+import logger from '../../../logger'
 import { Jobs } from '../../../worker/jobs'
 
 jest.mock('../../../services/MailService')
@@ -33,7 +33,7 @@ describe('emailFallIncentiveInvitedToEnrollReminder', () => {
     expect(
       mockedMailService.sendFallIncentiveInvitedToEnrollReminderEmail
     ).not.toHaveBeenCalled()
-    expect(log).not.toHaveBeenCalled()
+    expect(logger.info).not.toHaveBeenCalled()
   })
 
   test('Should send an invited reminder email if user is found', async () => {
@@ -49,7 +49,7 @@ describe('emailFallIncentiveInvitedToEnrollReminder', () => {
     expect(
       mockedMailService.sendFallIncentiveInvitedToEnrollReminderEmail
     ).toHaveBeenCalledWith(user.email, user.firstName)
-    expect(log).toHaveBeenCalledWith(
+    expect(logger.info).toHaveBeenCalledWith(
       `Sent ${Jobs.EmailFallIncentiveInvitedToEnrollReminder} to student ${user.id}`
     )
   })

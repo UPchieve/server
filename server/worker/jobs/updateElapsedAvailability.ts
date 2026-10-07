@@ -4,7 +4,7 @@ import {
   getVolunteerIdsForElapsedAvailability,
   updateVolunteerElapsedAvailabilityById,
 } from '../../models/Volunteer/queries'
-import { log } from '../logger'
+import logger from '../../logger'
 import { DAYS } from '../../constants'
 import { getElapsedAvailabilityForDay } from '../../services/AvailabilityService'
 import {
@@ -50,7 +50,7 @@ export default async (): Promise<void> => {
     }
     totalUpdated += 1
   }
-  log(
+  logger.info(
     `Successfully ${Jobs.UpdateElapsedAvailability} for ${totalUpdated} volunteers`
   )
   if (errors.length) {

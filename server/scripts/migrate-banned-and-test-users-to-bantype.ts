@@ -1,6 +1,5 @@
 import * as db from '../db'
 import logger from '../logger'
-import { log } from '../worker/logger'
 
 export default async function main() {
   try {
@@ -41,7 +40,7 @@ export async function migrateUsers(tc: db.TransactionClient) {
   // Count the number of users updated to shadow ban
   const numUsersShadowBanned = updateShadowBanQuery.rowCount
 
-  log(
+  logger.info(
     `Successfully updated ${numUsersCompleteBanned} banned users to complete ban ` +
       `and ${numUsersShadowBanned} test users to shadow banned.`
   )

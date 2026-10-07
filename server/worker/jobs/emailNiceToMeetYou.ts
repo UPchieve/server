@@ -1,4 +1,4 @@
-import { log } from '../logger'
+import logger from '../../logger'
 import { getVolunteersForNiceToMeetYou } from '../../models/Volunteer/queries'
 import * as MailService from '../../services/MailService'
 import { Jobs } from '.'
@@ -27,7 +27,7 @@ export default async (): Promise<void> => {
       errors.push(`volunteer ${volunteer.id}: ${error}`)
     }
   }
-  log(`Sent ${Jobs.EmailNiceToMeetYou} to ${totalEmailed} volunteers`)
+  logger.info(`Sent ${Jobs.EmailNiceToMeetYou} to ${totalEmailed} volunteers`)
   if (errors.length) {
     throw new Error(`Failed to send ${Jobs.EmailNiceToMeetYou} to: ${errors}`)
   }

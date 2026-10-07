@@ -1,5 +1,5 @@
 import { Job } from 'bull'
-import { log } from '../../logger'
+import logger from '../../../logger'
 import * as MailService from '../../../services/MailService'
 import { getStudentContactInfoById } from '../../../models/Student/queries'
 import { Jobs } from '../index'
@@ -37,7 +37,7 @@ export default async (job: Job<WelcomeEmail>): Promise<void> => {
       )
         await MailService.sendStudentOnboardingSurvey(email, firstName)
 
-      log(`Emailed ${currentJob} to student ${studentId}`)
+      logger.info(`Emailed ${currentJob} to student ${studentId}`)
     } catch (error) {
       throw new Error(
         `Failed to email ${currentJob} to student ${studentId}: ${error}`

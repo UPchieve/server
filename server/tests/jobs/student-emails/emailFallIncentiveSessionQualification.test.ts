@@ -10,7 +10,7 @@ import * as NotificationService from '../../../services/NotificationService'
 import * as IncentiveProgramService from '../../../services/IncentiveProgramService'
 import { Job } from 'bull'
 import { buildUser, buildUserProductFlags } from '../../mocks/generate'
-import { log } from '../../../worker/logger'
+import logger from '../../../logger'
 import { Jobs } from '../../../worker/jobs'
 import config from '../../../config'
 import { EVENTS } from '../../../constants'
@@ -79,7 +79,7 @@ describe('emailFallIncentiveSessionQualification', () => {
     } as Job<EmailFallIncentiveSessionQualificationJobData>
 
     await emailFallIncentiveSessionQualification(jobData)
-    expect(log).toHaveBeenCalledWith(
+    expect(logger.info).toHaveBeenCalledWith(
       `${Jobs.EmailFallIncentiveSessionQualification} User ${user.id} has reached the maximum number of qualification for gift cards (10)`
     )
     expect(
@@ -118,7 +118,7 @@ describe('emailFallIncentiveSessionQualification', () => {
     } as Job<EmailFallIncentiveSessionQualificationJobData>
 
     await emailFallIncentiveSessionQualification(jobData)
-    expect(log).toHaveBeenCalledWith(
+    expect(logger.info).toHaveBeenCalledWith(
       `${Jobs.EmailFallIncentiveSessionQualification} User ${user.id} has reached the maximum number of qualification for gift cards (10)`
     )
     expect(
@@ -224,7 +224,7 @@ describe('emailFallIncentiveSessionQualification', () => {
       sessionId,
       emailTemplateId: config.sendgrid.qualifiedForGiftCardTemplate,
     })
-    expect(log).toHaveBeenCalledWith(
+    expect(logger.info).toHaveBeenCalledWith(
       `Sent ${Jobs.EmailFallIncentiveSessionQualification} to student ${user.id} gift card qualified email`
     )
     expect(
@@ -289,7 +289,7 @@ describe('emailFallIncentiveSessionQualification', () => {
       sessionId,
       emailTemplateId: config.sendgrid.qualifiedForGiftCardTemplate,
     })
-    expect(log).toHaveBeenCalledWith(
+    expect(logger.info).toHaveBeenCalledWith(
       `Sent ${Jobs.EmailFallIncentiveSessionQualification} to student ${user.id} gift card qualified email`
     )
     expect(
@@ -395,7 +395,7 @@ describe('emailFallIncentiveSessionQualification', () => {
       sessionId,
       emailTemplateId: config.sendgrid.qualifiedForGiftCardTemplate,
     })
-    expect(log).toHaveBeenCalledWith(
+    expect(logger.info).toHaveBeenCalledWith(
       `Sent ${Jobs.EmailFallIncentiveSessionQualification} to student ${user.id} gift card qualified email`
     )
   })
@@ -531,7 +531,7 @@ describe('emailFallIncentiveSessionQualification', () => {
       sessionId,
       emailTemplateId: config.sendgrid.stillTimeForQualifyingSessionTemplate,
     })
-    expect(log).toHaveBeenCalledWith(
+    expect(logger.info).toHaveBeenCalledWith(
       `${Jobs.EmailFallIncentiveSessionQualification} sent student ${user.id} session did not qualify email`
     )
   })

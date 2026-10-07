@@ -3,7 +3,7 @@ import {
   updateVolunteersReadyToCoachByIds,
 } from '../../models/Volunteer/queries'
 import * as MailService from '../../services/MailService'
-import { log } from '../logger'
+import logger from '../../logger'
 import { Jobs } from '.'
 import QueueService from '../../services/QueueService'
 
@@ -31,7 +31,7 @@ export default async (): Promise<void> => {
 
   await updateVolunteersReadyToCoachByIds(succeededVolunteers)
 
-  log(
+  logger.info(
     `Sent ${Jobs.EmailReadyToCoach} to ${succeededVolunteers.length} volunteers`
   )
 

@@ -1,5 +1,5 @@
 import { Job } from 'bull'
-import { log } from '../../logger'
+import logger from '../../../logger'
 import * as MailService from '../../../services/MailService'
 import { getSessionsVolunteerRating } from '../../../models/Session'
 import { getVolunteerContactInfoById } from '../../../models/Volunteer'
@@ -31,7 +31,8 @@ export default async (job: Job<EmailTenSessionJobData>): Promise<void> => {
     banned: false,
   })
   // Do not send email if volunteer does not match email recipient spec
-  if (!volunteer) return log(`No volunteer found with id ${volunteerId}`)
+  if (!volunteer)
+    return logger.info(`No volunteer found with id ${volunteerId}`)
 
   const emailTemplateId = config.sendgrid.volunteerTenSessionMilestoneTemplate
   const hasReceivedEmail = await hasUserBeenSentEmail({
@@ -39,7 +40,9 @@ export default async (job: Job<EmailTenSessionJobData>): Promise<void> => {
     emailTemplateId,
   })
   if (hasReceivedEmail)
-    return log(`Volunteer ${volunteer.id} has already received ${currentJob}`)
+    return logger.info(
+      `Volunteer ${volunteer.id} has already received ${currentJob}`
+    )
 
   const sessions = await getSessionsVolunteerRating(volunteerId)
   if (sessions.length === 10) {
@@ -52,7 +55,7 @@ export default async (job: Job<EmailTenSessionJobData>): Promise<void> => {
         userId: volunteer.id,
         emailTemplateId,
       })
-      log(`Sent ${currentJob} to volunteer ${volunteerId}`)
+      logger.info(`Sent ${currentJob} to volunteer ${volunteerId}`)
     } catch (error) {
       throw new Error(
         `Failed to send ${currentJob} to volunteer ${volunteerId}: ${error}`

@@ -1,6 +1,5 @@
 import * as db from '../db'
 import logger from '../logger'
-import { log } from '../worker/logger'
 
 export default async function main() {
   try {
@@ -21,7 +20,7 @@ export default async function main() {
             subjects.name = 'reading'
             AND progress_report_prompts.active IS TRUE) AS subquery;
     `)
-    log('Successfully updated progress report prompt ids')
+    logger.info('Successfully updated progress report prompt ids')
   } catch (e) {
     logger.error('Failed to migrate progress report prompt ids', { err: e })
   }

@@ -16,7 +16,7 @@ import {
   createEmailNotification,
   hasUserBeenSentEmail,
 } from '../../../services/NotificationService'
-import { log } from '../../../worker/logger'
+import logger from '../../../logger'
 import { Jobs } from '../../../worker/jobs'
 import emailVolunteerSessionActions from '../../../worker/jobs/volunteer-emails/emailVolunteerSessionActions'
 
@@ -25,6 +25,7 @@ jest.mock('../../../models/Volunteer/queries')
 jest.mock('../../../models/Student/queries')
 jest.mock('../../../services/NotificationService')
 jest.mock('../../../services/MailService')
+jest.mock('../../../logger')
 
 const mockedGetSessionById = mocked(getSessionById)
 const mockedGetVolunteerContactInfoById = mocked(getVolunteerContactInfoById)
@@ -56,7 +57,7 @@ describe('emailVolunteerSessionActions', () => {
     await emailVolunteerSessionActions(job)
 
     expect(mockedGetSessionById).toHaveBeenCalledWith(session.id)
-    expect(log).toHaveBeenCalledWith(
+    expect(logger.info).toHaveBeenCalledWith(
       `No volunteer found on session ${session.id}`
     )
     expect(mockedGetVolunteerContactInfoById).not.toHaveBeenCalled()
@@ -85,7 +86,7 @@ describe('emailVolunteerSessionActions', () => {
         banned: false,
       }
     )
-    expect(log).toHaveBeenCalledWith(
+    expect(logger.info).toHaveBeenCalledWith(
       `No volunteer found with id ${session.volunteerId}`
     )
     expect(mockedSendVolunteerAbsentWarning).not.toHaveBeenCalled()
@@ -106,7 +107,7 @@ describe('emailVolunteerSessionActions', () => {
     } as Job<{ sessionId: Uuid }>
     await emailVolunteerSessionActions(job)
 
-    expect(log).toHaveBeenCalledWith(
+    expect(logger.warn).toHaveBeenCalledWith(
       `No email template id found for ${job.name}`
     )
     expect(mockedSendVolunteerAbsentWarning).not.toHaveBeenCalled()
@@ -129,7 +130,7 @@ describe('emailVolunteerSessionActions', () => {
     } as Job<{ sessionId: Uuid }>
     await emailVolunteerSessionActions(absentVolunteerJob)
 
-    expect(log).toHaveBeenCalledWith(
+    expect(logger.info).toHaveBeenCalledWith(
       `Volunteer ${volunteer.id} has already received ${absentVolunteerJob.name} for session ${session.id}`
     )
     expect(mockedHasUserBeenSentEmail).toHaveBeenCalledWith({
@@ -148,7 +149,7 @@ describe('emailVolunteerSessionActions', () => {
     } as Job<{ sessionId: Uuid }>
     await emailVolunteerSessionActions(absentStudentJob)
 
-    expect(log).toHaveBeenCalledWith(
+    expect(logger.info).toHaveBeenCalledWith(
       `Volunteer ${volunteer.id} has already received ${absentStudentJob.name} for session ${session.id}`
     )
     expect(mockedHasUserBeenSentEmail).toHaveBeenCalledWith({
@@ -175,7 +176,7 @@ describe('emailVolunteerSessionActions', () => {
     } as Job<{ sessionId: Uuid }>
     await emailVolunteerSessionActions(job)
 
-    expect(log).toHaveBeenCalledWith(
+    expect(logger.info).toHaveBeenCalledWith(
       `No student found with id ${session.studentId}`
     )
     expect(mockedGetStudentContactInfoById).toHaveBeenCalledWith(
@@ -216,7 +217,7 @@ describe('emailVolunteerSessionActions', () => {
       sessionId: session.id,
       emailTemplateId: config.sendgrid.volunteerAbsentWarningTemplate,
     })
-    expect(log).toHaveBeenCalledWith(
+    expect(logger.info).toHaveBeenCalledWith(
       `Emailed ${Jobs.EmailVolunteerAbsentWarning} to volunteer ${volunteer.id}`
     )
   })
@@ -253,7 +254,7 @@ describe('emailVolunteerSessionActions', () => {
       sessionId: session.id,
       emailTemplateId: config.sendgrid.volunteerAbsentStudentApologyTemplate,
     })
-    expect(log).toHaveBeenCalledWith(
+    expect(logger.info).toHaveBeenCalledWith(
       `Emailed ${Jobs.EmailVolunteerAbsentStudentApology} to volunteer ${volunteer.id}`
     )
   })

@@ -1,5 +1,5 @@
 import * as SessionService from '../../services/SessionService'
-import { log } from '../logger'
+import logger from '../../logger'
 import { Jobs } from '.'
 
 export default async (): Promise<void> => {
@@ -20,7 +20,9 @@ export default async (): Promise<void> => {
       errors.push(`session ${sessionId}: ${error}`)
     }
   }
-  log(`Successfuly ${Jobs.EndStaleSessions} for ${totalEnded} sessions.`)
+  logger.info(
+    `Successfuly ${Jobs.EndStaleSessions} for ${totalEnded} sessions.`
+  )
   if (errors.length) {
     throw new Error(`Failed to ${Jobs.EndStaleSessions} for: ${errors}`)
   }

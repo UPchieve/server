@@ -1,6 +1,6 @@
 import { Jobs } from '.'
 import 'moment-timezone'
-import { log } from '../logger'
+import logger from '../../logger'
 import { getStudentIdsForGradeLevelSgUpdate } from '../../models/Student'
 import {
   createContact,
@@ -20,7 +20,7 @@ async function pollContactJobStatus(
       const batchSize = `batch size ${startBatchSize} to ${endBatchSize}`
 
       if (status.status === 'completed')
-        log(
+        logger.info(
           `${Jobs.UpdateSendGridGradeLevels} - SendGrid job ${jobId} completed successfully for ${batchSize}`
         )
       else if (
@@ -46,7 +46,7 @@ async function pollContactJobStatus(
       maxDelay: 1000 * 60,
       numOfAttempts: 20,
       retry: (error: Error, attemptNumber: number) => {
-        log(
+        logger.info(
           `${Jobs.UpdateSendGridGradeLevels} - Checking SendGrid job status ${jobId} on attempt ${attemptNumber}`
         )
         return true
@@ -71,7 +71,7 @@ export default async (): Promise<void> => {
         numOfAttempts: 5,
         retry: (error: AxiosError, attemptNumber: number) => {
           if (error.response && error.response.status === 429) {
-            log(
+            logger.warn(
               `${Jobs.UpdateSendGridGradeLevels} - Rate limit exceeded on attempt ${attemptNumber}. Retrying...`
             )
             // Retry if rate-limit error
@@ -94,7 +94,7 @@ export default async (): Promise<void> => {
     }
   }
 
-  log(
+  logger.info(
     `Successfully ${Jobs.UpdateSendGridGradeLevels} for ${totalUpdated} students`
   )
   if (errors.length) {

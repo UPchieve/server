@@ -1,5 +1,5 @@
 import { Job } from 'bull'
-import { log } from '../../logger'
+import logger from '../../../logger'
 import * as MailService from '../../../services/MailService'
 import { getTextNotificationsByVolunteerId } from '../../../models/Notification/queries'
 import { getVolunteerForQuickTips } from '../../../models/Volunteer/queries'
@@ -25,7 +25,7 @@ export default async (job: Job<EmailQuickTipsJobData>): Promise<void> => {
     ) {
       try {
         await MailService.sendVolunteerQuickTips(email, firstName)
-        log(`Sent ${currentJob} to volunteer ${volunteerId}`)
+        logger.info(`Sent ${currentJob} to volunteer ${volunteerId}`)
       } catch (error) {
         throw new Error(
           `Failed to send ${currentJob} to volunteer ${volunteerId}: ${error}`

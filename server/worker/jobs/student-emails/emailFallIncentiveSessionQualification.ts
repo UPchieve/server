@@ -12,7 +12,7 @@ import {
 } from '../../../services/NotificationService'
 import { getUserFallIncentiveData } from '../../../services/IncentiveProgramService'
 import moment from 'moment'
-import { log } from '../../logger'
+import logger from '../../../logger'
 import { captureEvent } from '../../../services/AnalyticsService'
 import { EVENTS } from '../../../constants'
 
@@ -96,7 +96,7 @@ export default async (
     totalQualifiedForGiftCardsSent >=
     FALL_INCENTIVE_MAX_QUALIFIED_GIFT_CARD_LIMIT
   ) {
-    log(
+    logger.info(
       `${Jobs.EmailFallIncentiveSessionQualification} User ${userId} has reached the maximum number of qualification for gift cards (${FALL_INCENTIVE_MAX_QUALIFIED_GIFT_CARD_LIMIT})`
     )
     if (!hasReceivedCompletedChallengeEmail)
@@ -116,7 +116,7 @@ export default async (
     totalQualifiedEmailsSentThisWeek >=
       incentivePayload.maxQualifiedSessionsPerWeek
   ) {
-    log(
+    logger.info(
       `${Jobs.EmailFallIncentiveSessionQualification} User ${userId} has reached the weekly limit of qualified emails (${incentivePayload.maxQualifiedSessionsPerWeek})`
     )
     return
@@ -131,7 +131,7 @@ export default async (
         sessionId,
         emailTemplateId: config.sendgrid.qualifiedForGiftCardTemplate,
       })
-      log(
+      logger.info(
         `Sent ${Jobs.EmailFallIncentiveSessionQualification} to student ${userId} gift card qualified email`
       )
       // Phase the user out of the program if we just sent their final qualified for gift card notification
@@ -162,7 +162,7 @@ export default async (
           emailTemplateId:
             config.sendgrid.stillTimeForQualifyingSessionTemplate,
         })
-        log(
+        logger.info(
           `${Jobs.EmailFallIncentiveSessionQualification} sent student ${userId} session did not qualify email`
         )
       }

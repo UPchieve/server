@@ -1,5 +1,5 @@
 import { Job } from 'bull'
-import { log } from '../../logger'
+import logger from '../../../logger'
 import * as MailService from '../../../services/MailService'
 import { getTextNotificationsByVolunteerId } from '../../../models/Notification/queries'
 import { getPartnerVolunteerForLowHours } from '../../../models/Volunteer/queries'
@@ -35,7 +35,7 @@ export default async (job: Job<EmailLowHoursJobData>): Promise<void> => {
     if (textNotifications.length < 2 && totalHoursSelected < 5) {
       try {
         await MailService.sendPartnerVolunteerLowHoursSelected(email, firstName)
-        log(`Sent ${currentJob} to volunteer ${volunteerId}`)
+        logger.info(`Sent ${currentJob} to volunteer ${volunteerId}`)
       } catch (error) {
         throw new Error(
           `Failed to send ${currentJob} to volunteer ${volunteerId}: ${error}`

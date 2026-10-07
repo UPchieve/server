@@ -5,7 +5,7 @@ import {
   getVolunteersForTotalHours,
   updateVolunteerTotalHoursById,
 } from '../../models/Volunteer/queries'
-import { log } from '../logger'
+import logger from '../../logger'
 import { telecomHourSummaryStats } from '../../utils/reportUtils'
 import config from '../../config'
 import * as cache from '../../cache'
@@ -63,7 +63,7 @@ async function updateTotalVolunteerHours(
       errors.push(`${volunteer.id}: ${error}\n`)
     }
   }
-  log(
+  logger.info(
     `Successfully ${Jobs.UpdateTotalVolunteerHours} for ${totalUpdated} volunteers`
   )
   await cache.save(

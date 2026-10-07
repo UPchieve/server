@@ -1,4 +1,4 @@
-import { log } from '../logger'
+import logger from '../../logger'
 import { getVolunteersForWaitingReferences } from '../../models/Volunteer/queries'
 import * as MailService from '../../services/MailService'
 import { Jobs } from '.'
@@ -25,7 +25,7 @@ export default async (): Promise<void> => {
     }
   }
 
-  log(`Sent ${Jobs.EmailWaitingOnReferences} to ${totalEmailed}`)
+  logger.info(`Sent ${Jobs.EmailWaitingOnReferences} to ${totalEmailed}`)
   if (errors.length) {
     throw new Error(
       `Failed to send ${Jobs.EmailWaitingOnReferences} to: ${errors}`
