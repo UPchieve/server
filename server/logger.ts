@@ -4,14 +4,41 @@ import config from './config'
 import newrelic from 'newrelic'
 import { isDevEnvironment, isE2eEnvironment } from './utils/environments'
 
+// This is a denylist. We probably want to allowlist headers instead.
+// TODO(alex.lindsay): Determine which headers are actually useful for debugging,
+// and add to list.
+const redact = [
+  'err.config',
+  'err.request',
+  'err.req',
+  'err.response.config',
+  'err.response.request',
+  'req.headers.cookie',
+  'req.headers.authorization',
+  'req.headers["x-api-key"]',
+  'req.headers["x-load-test-key"]',
+  'req.headers["x-csrf-token"]',
+  'req.headers["x-twilio-signature"]',
+  'req.headers["g-recaptcha-response"]',
+  'res.headers["set-cookie"]',
+]
+
 // TODO: Update pino.
 export const pinoLogger =
   !isDevEnvironment() && !isE2eEnvironment()
     ? pino({
         level: config.logLevel,
+        redact: {
+          paths: redact,
+          remove: true,
+        },
       })
     : pino({
         level: config.logLevel,
+        redact: {
+          paths: redact,
+          remove: false,
+        },
         transport: {
           target: 'pino-pretty',
         },

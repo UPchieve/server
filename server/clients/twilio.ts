@@ -3,7 +3,7 @@ import config from '../config'
 import logger from '../logger'
 import { optOutSmsConsentForPhoneNumber } from '../services/UserProfileService'
 import { VERIFICATION_METHOD } from '../constants'
-import { maskContact } from '../utils/mask-contact'
+import { maskContact, maskPhone } from '../utils/mask-contact'
 
 const client =
   config.accountSid && config.authToken
@@ -22,9 +22,12 @@ export async function sendTextMessage(
   sessionId?: string
 ): Promise<string | undefined> {
   try {
-    logger.info(`Sending text message "${messageText}" to ${phoneNumber}`, {
-      sessionId,
-    })
+    logger.info(
+      `Sending text message "${messageText}" to ${maskPhone(phoneNumber)}`,
+      {
+        sessionId,
+      }
+    )
 
     // If stored phone number doesn't have international calling code (E.164 formatting)
     // then default to US number.

@@ -33,6 +33,19 @@ const app = express()
 app.use(
   pinoHttp({
     logger: pinoLogger,
+    serializers: {
+      req(req) {
+        req.url = req.url.split('?')[0]
+        delete req.query
+        if (req.headers.referer) {
+          req.headers = {
+            ...req.headers,
+            referer: req.headers.referer.split('?')[0],
+          }
+        }
+        return req
+      },
+    },
   })
 )
 
@@ -175,8 +188,8 @@ app.use((err: HttpError, req: Request, res: Response, _next: NextFunction) => {
     userId: req.user?.id,
     method: req.method,
     path: req.path,
-    url: req.url,
-    originalUrl: req.originalUrl,
+    url: req.url.split('?')[0],
+    originalUrl: req.originalUrl.split('?')[0],
     err,
   })
   // Attaching the error to the response means the error will be correctly

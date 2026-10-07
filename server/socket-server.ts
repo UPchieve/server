@@ -74,9 +74,6 @@ export default function (server: http.Server) {
       type: err.type,
       url: err.req?.url,
       query: err.req?._query ?? err.req?.query,
-      headers: {
-        cookie: err.req?.headers?.cookie,
-      },
     })
   })
 
