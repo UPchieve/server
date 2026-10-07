@@ -1122,19 +1122,6 @@ WHERE
     sessions.id = :sessionId!;
 
 
-/* @name volunteerSentMessageAfterSessionEnded */
-SELECT
-    session_messages.id
-FROM
-    sessions
-    JOIN session_messages ON sessions.id = session_messages.session_id
-WHERE
-    sessions.id = :sessionId
-    AND session_messages.sender_id = sessions.volunteer_id
-    AND session_messages.created_at > sessions.ended_at
-LIMIT 1;
-
-
 /* @name sessionHasBannedParticipant */
 SELECT
     sessions.id

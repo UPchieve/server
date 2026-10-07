@@ -3,7 +3,6 @@ import logger from '../../logger'
 import * as UserService from '../../services/UserService'
 import { sendBecomeAnAmbassadorEmail } from '../../services/MailService'
 import { Job } from 'bull'
-import { getSendAmbassadorOpportunityEmailFeatureFlag } from '../../services/FeatureFlagService'
 
 export type EmailBecomeAnAmbassadorJobData = {
   userId: Ulid
@@ -14,14 +13,6 @@ export default async function (
 ): Promise<void> {
   const jobName = 'SendBecomeAnAmbassadorEmail'
   try {
-    const isFeatureFlagEnabled =
-      await getSendAmbassadorOpportunityEmailFeatureFlag(job.data.userId)
-    if (!isFeatureFlagEnabled) {
-      logger.info(
-        `${jobName}: Skipping email send since the feature flag is not enabled`
-      )
-      return
-    }
     const user = await UserService.getUserContactInfo(job.data.userId)
     if (!user) {
       throw new Error(

@@ -6,10 +6,7 @@ import {
   hasActiveSubjectPrompt,
   ProgressReport,
 } from '../../services/ProgressReportsService'
-import {
-  getStemProgressReportEnabled,
-  getProgressReportsFeatureFlag,
-} from '../../services/FeatureFlagService'
+import { getStemProgressReportEnabled } from '../../services/FeatureFlagService'
 import config from '../../config'
 import { ProgressReportAnalysisTypes } from '../../models/ProgressReports'
 import logger from '../../logger'
@@ -46,20 +43,12 @@ export default async (job: Job<GenerateProgressReport>): Promise<void> => {
     }
   }
 
-  const isProgressReportsActive = await getProgressReportsFeatureFlag(
-    session.studentId
-  )
-  if (
-    !isSubjectPromptActive ||
-    !isProgressReportsActive ||
-    session.timeTutored < config.minSessionLength
-  ) {
+  if (!isSubjectPromptActive || session.timeTutored < config.minSessionLength) {
     logger.info(
       {
         sessionId,
         subject: session.subject,
         isSubjectPromptActive,
-        isProgressReportsActive,
       },
       "Couldn't generate progress report for session or subject"
     )

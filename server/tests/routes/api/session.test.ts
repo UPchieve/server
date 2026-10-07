@@ -767,24 +767,18 @@ describe('routeSession', () => {
   describe('POST /api/sessions/history/:sessionId/eligible', () => {
     test('returns session recap eligibility', async () => {
       const sessionId = getUuid()
-      const studentId = getUuid()
-      const volunteerId = getUuid()
       const isEligible = true
       mockedSessionService.isEligibleForSessionRecap.mockResolvedValueOnce(
         isEligible
       )
 
       const response = await sendPost(
-        `/api/sessions/history/${sessionId}/eligible`,
-        {
-          studentId,
-          volunteerId,
-        }
+        `/api/sessions/history/${sessionId}/eligible`
       )
       expect(response.status).toBe(200)
       expect(
         mockedSessionService.isEligibleForSessionRecap
-      ).toHaveBeenCalledWith(sessionId, studentId, volunteerId)
+      ).toHaveBeenCalledWith(sessionId)
       expect(response.body).toEqual({ isEligible })
     })
   })

@@ -105,18 +105,6 @@ WHERE
     AND volunteer_id = ANY (:volunteerIds!);
 
 
-/* @name getStudentPartnerInfoById */
-SELECT
-    student_profiles.user_id AS id,
-    student_partner_orgs.key AS student_partner_org,
-    student_profiles.school_id AS approved_highschool
-FROM
-    student_profiles
-    LEFT JOIN student_partner_orgs ON student_profiles.student_partner_org_id = student_partner_orgs.id
-WHERE
-    student_profiles.user_id = :userId!;
-
-
 /* @name deleteStudent */
 UPDATE
     users

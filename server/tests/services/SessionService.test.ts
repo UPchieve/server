@@ -2,7 +2,7 @@ import * as SessionService from '../../services/SessionService'
 import * as FeatureFlagService from '../../services/FeatureFlagService'
 import * as SessionRepo from '../../models/Session/queries'
 import * as SessionAudioRepo from '../../models/SessionAudio'
-import * as StudentRepo from '../../models/Student'
+import * as SubjectsRepo from '../../models/Subjects'
 import * as TeacherRepo from '../../models/Teacher'
 import * as UserRepo from '../../models/User'
 import {
@@ -28,8 +28,6 @@ import { GetSessionByIdResult } from '../../models/Session'
 import {
   DmIneligibilityReason,
   ensureCanJoinSession,
-  isEligibleForSessionRecap,
-  isRecapDmsAvailable,
 } from '../../services/SessionService'
 import { CurrentSession } from '../../types/session'
 import { RoleContext } from '../../services/UserRolesService'
@@ -37,18 +35,22 @@ import * as cache from '../../cache'
 import QueueService from '../../services/QueueService'
 import { Jobs } from '../../worker/jobs'
 import * as PhotoDnaService from '../../services/PhotoDnaService'
+import * as NotifyVolunteerService from '../../services/NotifyVolunteerService'
+import SocketService from '../../services/SocketService'
 
 jest.mock('../../models/Session/queries')
 jest.mock('../../models/User/queries')
 jest.mock('../../models/UserAction/queries')
 jest.mock('../../models/SessionAudio')
-jest.mock('../../models/Student/queries')
+jest.mock('../../models/Subjects')
 jest.mock('../../models/Teacher')
 jest.mock('../../services/FeatureFlagService')
 jest.mock('../../services/UserService')
 jest.mock('../../services/SessionFlagsService')
 jest.mock('../../services/QueueService')
 jest.mock('../../services/PhotoDnaService')
+jest.mock('../../services/NotifyVolunteerService')
+jest.mock('../../services/SocketService')
 jest.mock('../../cache')
 
 describe('SessionService', () => {
@@ -60,12 +62,13 @@ describe('SessionService', () => {
   const mockSessionRepo = mocked(SessionRepo)
   const mockedSessionAudioRepo = mocked(SessionAudioRepo)
   const mockFeatureFlagService = mocked(FeatureFlagService)
-  const mockStudentRepo = mocked(StudentRepo)
   const mockedTeacherRepo = mocked(TeacherRepo)
   const mockedUserRepo = mocked(UserRepo)
   const mockedCache = mocked(cache)
   const mockedQueueService = mocked(QueueService)
   const mockedPhotoDnaService = mocked(PhotoDnaService)
+  const mockedNotifyVolunteerService = mocked(NotifyVolunteerService)
+  const mockedSubjectsRepo = mocked(SubjectsRepo)
 
   describe('reportSession', () => {
     test('should ban the user with ban_type of COMPLETE when reported for STUDENT_RUDE', async () => {
@@ -337,12 +340,6 @@ describe('SessionService', () => {
       })
       mockSessionRepo.getSessionById.mockResolvedValue(session)
       mockSessionRepo.sessionHasBannedParticipant.mockResolvedValue(false)
-      mockFeatureFlagService.getAllowDmsToPartnerStudentsFeatureFlag.mockResolvedValue(
-        true
-      )
-      mockStudentRepo.getStudentPartnerInfoById.mockResolvedValue({
-        id: session.studentId,
-      })
     })
 
     const getActual = async () =>
@@ -359,121 +356,14 @@ describe('SessionService', () => {
       })
     })
 
-    it('Is not available to partner students unless the FF is on', async () => {
-      mockStudentRepo.getStudentPartnerInfoById.mockResolvedValue({
-        id: session.studentId,
-        studentPartnerOrg: 'some-partner-school',
-        approvedHighschool: 'HS',
-      })
-      mockFeatureFlagService.getAllowDmsToPartnerStudentsFeatureFlag.mockResolvedValue(
-        false
-      )
-      expect(await getActual()).toEqual({
-        eligible: false,
-        ineligibleReason: DmIneligibilityReason.PartnerStudentFeatureFlag,
-      })
-      mockFeatureFlagService.getAllowDmsToPartnerStudentsFeatureFlag.mockResolvedValue(
-        true
-      )
-      expect(await getActual()).toEqual({ eligible: true })
-    })
-
-    it('Is only true for students if the volunteer has already sent some DMs', async () => {
-      const actualForVolunteer = await isRecapDmsAvailable(
-        session.id,
-        session.volunteerId!
-      )
-      expect(actualForVolunteer).toEqual({ eligible: true })
-      const actualForStudent = await isRecapDmsAvailable(
-        session.id,
-        session.studentId
-      )
-      expect(actualForStudent).toEqual({
-        eligible: false,
-        ineligibleReason: DmIneligibilityReason.VolunteerHasNotInitiatedDmsYet,
-      })
-      mockSessionRepo.volunteerSentMessageAfterSessionEnded.mockResolvedValue(
-        true
-      )
-      const actualForStudentWhenThereAreDms = await isRecapDmsAvailable(
-        session.id,
-        session.studentId
-      )
-      expect(actualForStudentWhenThereAreDms).toEqual({ eligible: true })
-    })
-
-    it('Is also true for students if the student-initiate-dms feature flag is on', async () => {
-      mockFeatureFlagService.getStudentsInitiateDmsFeatureFlag.mockResolvedValue(
-        true
-      )
-      const actualForStudent = await isRecapDmsAvailable(
-        session.id,
-        session.studentId
-      )
-      expect(actualForStudent).toEqual({
-        eligible: true,
-      })
-    })
-  })
-
-  describe('isEligibleForSessionRecap', () => {
-    const sessionId = getDbUlid()
-    const studentId = getDbUlid()
-    const volunteerId = getDbUlid()
-
-    it('If the FF is off, the user is only eligible if they are not a partner student', async () => {
-      mockFeatureFlagService.getAllowDmsToPartnerStudentsFeatureFlag.mockResolvedValue(
-        false
-      )
-      mockSessionRepo.isEligibleForSessionRecap.mockResolvedValue(true)
-
-      mockStudentRepo.getStudentPartnerInfoById.mockResolvedValue({
-        id: studentId,
-      })
+    it.each([
+      ['the volunteer', true, () => session.volunteerId!],
+      ['the student', true, () => session.studentId],
+      ['an outsider', false, () => getDbUlid()],
+    ])('For %s, eligible is %s', async (_who, eligible, getUserId) => {
       expect(
-        await isEligibleForSessionRecap(sessionId, studentId, volunteerId)
-      ).toEqual(true)
-
-      mockStudentRepo.getStudentPartnerInfoById.mockResolvedValue({
-        id: studentId,
-        studentPartnerOrg: 'some-partner',
-      })
-      expect(
-        await isEligibleForSessionRecap(sessionId, studentId, volunteerId)
-      ).toEqual(false)
-    })
-
-    it('If the FF is on, the user is eligible even if they are a partner student', async () => {
-      mockFeatureFlagService.getAllowDmsToPartnerStudentsFeatureFlag.mockResolvedValue(
-        true
-      )
-      mockSessionRepo.isEligibleForSessionRecap.mockResolvedValue(true)
-
-      mockStudentRepo.getStudentPartnerInfoById.mockResolvedValue({
-        id: studentId,
-      })
-      expect(
-        await isEligibleForSessionRecap(sessionId, studentId, volunteerId)
-      ).toEqual(true)
-
-      mockStudentRepo.getStudentPartnerInfoById.mockResolvedValue({
-        id: studentId,
-        studentPartnerOrg: 'some-partner',
-      })
-      expect(
-        await isEligibleForSessionRecap(sessionId, studentId, volunteerId)
-      ).toEqual(true)
-    })
-
-    it('If the FF is on, the user is still ineligible if their session does not meet the criteria', async () => {
-      mockFeatureFlagService.getAllowDmsToPartnerStudentsFeatureFlag.mockResolvedValue(
-        true
-      )
-      mockSessionRepo.isEligibleForSessionRecap.mockResolvedValue(false)
-
-      expect(
-        await isEligibleForSessionRecap(sessionId, studentId, volunteerId)
-      ).toEqual(false)
+        await SessionService.isRecapDmsAvailable(session.id, getUserId())
+      ).toEqual({ eligible })
     })
   })
 
@@ -590,6 +480,57 @@ describe('SessionService', () => {
       ).toHaveBeenCalledWith(userId)
       expect(mockSessionRepo.getSessionById).not.toHaveBeenCalled()
       expect(mockSessionRepo.updateSessionPhotoKey).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('startSession', () => {
+    test('begins regular notifications for a new session with no requested coach', async () => {
+      const student = buildUserContactInfo()
+      const newSession = buildCurrentSession({ studentId: student.id })
+      mockedSubjectsRepo.getSubjectAndTopic.mockResolvedValue({
+        subjectName: 'algebraOne',
+        subjectId: 1,
+        subjectDisplayName: 'Algebra 1',
+        topicName: 'math',
+        topicId: 1,
+        topicDisplayName: 'Math',
+        toolType: 'whiteboard',
+      })
+      mockSessionRepo.createSession.mockResolvedValue(newSession)
+
+      await SessionService.startSession(student, {
+        subject: 'algebraOne',
+        topic: 'math',
+        sessionSubTopic: 'linearEquations',
+        sessionType: 'math',
+        userAgent: 'jest',
+      })
+
+      expect(
+        mockedNotifyVolunteerService.beginRegularNotifications
+      ).toHaveBeenCalledWith(newSession)
+    })
+  })
+
+  describe('handleSessionBreakout', () => {
+    test('begins regular notifications when the exclusive request was cleared', async () => {
+      const student = buildUserContactInfo()
+      const session = buildSession({ studentId: student.id })
+      const currentSession = buildCurrentSession({ studentId: student.id })
+      mockSessionRepo.getSessionById.mockResolvedValue(session)
+      mockedNotifyVolunteerService.clearExclusiveRequest.mockResolvedValue(true)
+      mockSessionRepo.getCurrentSessionBySessionId.mockResolvedValue(
+        currentSession
+      )
+      jest.mocked(SocketService.getInstance).mockReturnValue({
+        emitSessionChange: jest.fn(),
+      } as unknown as SocketService)
+
+      await SessionService.handleSessionBreakout(session.id, student)
+
+      expect(
+        mockedNotifyVolunteerService.beginRegularNotifications
+      ).toHaveBeenCalledWith(currentSession)
     })
   })
 

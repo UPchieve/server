@@ -56,18 +56,6 @@ export async function getUsingOurPlatformFlag(userId: Uuid) {
   return await isFeatureEnabled(FEATURE_FLAGS.USING_OUR_PLATFORM, userId)
 }
 
-export async function getAllowDmsToPartnerStudentsFeatureFlag(userId: Uuid) {
-  return isFeatureEnabled(FEATURE_FLAGS.ALLOW_DMS_TO_PARTNER_STUDENTS, userId)
-}
-
-export async function getProgressReportsFeatureFlag(userId: Uuid) {
-  return await isFeatureEnabled(
-    FEATURE_FLAGS.PROGRESS_REPORTS,
-    userId,
-    1000 * 5
-  )
-}
-
 export async function getCollegeListWorkSheetFlag(userId: Uuid) {
   return await isFeatureEnabled(FEATURE_FLAGS.COLLEGE_LIST_WORKSHEET, userId)
 }
@@ -102,51 +90,12 @@ export async function getTeacherGettingStartedAssignmentFlag(userId: Uuid) {
   )
 }
 
-export async function getGenerateSessionSummaryFeatureFlag(userId: Uuid) {
-  return await isFeatureEnabled(FEATURE_FLAGS.GENERATE_SESSION_SUMMARY, userId)
-}
-
 export async function getSessionSummaryFeatureFlag(userId: Uuid) {
   return await isFeatureEnabled(FEATURE_FLAGS.GET_SESSION_SUMMARY, userId)
 }
 
-export async function getDisplayVolunteerLanguagesFlag(userId: Uuid) {
-  return await isFeatureEnabled(
-    FEATURE_FLAGS.DISPLAY_VOLUNTEER_LANGUAGES,
-    userId
-  )
-}
-
-export async function getSendAmbassadorOpportunityEmailFeatureFlag(
-  userId: Uuid
-) {
-  return await isFeatureEnabled(
-    FEATURE_FLAGS.SEND_AMBASSADOR_OPPORTUNITY_EMAIL,
-    userId,
-    5 * 1000
-  )
-}
-
-export async function getSendPositiveStudentFeedbackEmailFeatureFlag(
-  userId: Uuid
-) {
-  return await isFeatureEnabled(
-    FEATURE_FLAGS.SEND_POSITIVE_STUDENT_FEEDBACK_EMAIL,
-    userId,
-    5 * 1000
-  )
-}
-
-export async function getStudentsInitiateDmsFeatureFlag(userId: Uuid) {
-  return await isFeatureEnabled(FEATURE_FLAGS.STUDENTS_INITIATE_DMS, userId)
-}
-
 export async function getStudentCreationDisabledFeatureFlag(userId: Uuid) {
   return await isFeatureEnabled(FEATURE_FLAGS.DISABLE_STUDENT_CREATION, userId)
-}
-
-export async function getNotifyTutorFlag(userId: Uuid) {
-  return isFeatureEnabled(FEATURE_FLAGS.NOTIFY_TUTOR, userId)
 }
 
 export async function isZwibserveEnabled(userId: Uuid) {

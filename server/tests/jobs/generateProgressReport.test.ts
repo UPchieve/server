@@ -25,9 +25,6 @@ describe(Jobs.GenerateProgressReport, () => {
   beforeEach(async () => {
     jest.resetAllMocks()
     jest.clearAllMocks()
-    mockedFeatureFlagService.getProgressReportsFeatureFlag.mockResolvedValue(
-      true
-    )
   })
 
   test('Should let progress report errors bubble up for progress report analysis', async () => {
@@ -155,33 +152,6 @@ describe(Jobs.GenerateProgressReport, () => {
       },
       'STEM Progress Report processing not enabled for user'
     )
-    expect(
-      mockedProgressReportsService.generateProgressReportForUser
-    ).toHaveBeenCalledTimes(0)
-  })
-
-  test('Should early exit if feature flag is false', async () => {
-    const session = await buildSession({
-      studentId: getDbUlid(),
-      subject: 'reading',
-      timeTutored: 1000 * 60,
-      toolType: 'documenteditor',
-    })
-    const job = {
-      data: {
-        sessionId: session.id,
-      },
-    }
-
-    mockedProgressReportsService.hasActiveSubjectPrompt.mockResolvedValueOnce(
-      true
-    )
-    mockedSessionRepo.getSessionById.mockResolvedValueOnce(session)
-    mockedFeatureFlagService.getProgressReportsFeatureFlag.mockResolvedValue(
-      false
-    )
-
-    await generateProgressReport(job as Job)
     expect(
       mockedProgressReportsService.generateProgressReportForUser
     ).toHaveBeenCalledTimes(0)

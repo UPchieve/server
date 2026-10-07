@@ -68,7 +68,6 @@ import {
   getSubjectAndTopic,
   SessionWithSubjectAndTopic,
 } from '../models/Subjects'
-import { getStudentPartnerInfoById } from '../models/Student'
 import { TransactionClient, runInTransaction, getClient } from '../db'
 import * as SessionAudioRepo from '../models/SessionAudio'
 import { SessionMessageType } from '../router/api/sockets'
@@ -304,7 +303,6 @@ export async function endSession(
     { delay: 0 },
     {
       sessionId,
-      studentId: session.student.id,
     }
   )
 
@@ -738,17 +736,13 @@ export async function startSession(
     await cache.sadd(config.cacheKeys.zwibserveSessions, newSession.id)
   }
 
-  const isNotifyTutorEnabled = await FeatureFlagsService.getNotifyTutorFlag(
-    user.id
-  )
-
   if (!isUserShadowBanned) {
     if (requestedVolunteerId) {
       await NotifyVolunteerService.notifyExclusiveVolunteer(
         newSession,
         requestedVolunteerId
       )
-    } else if (isNotifyTutorEnabled) {
+    } else {
       await NotifyVolunteerService.beginRegularNotifications(newSession)
     }
   }
@@ -1282,37 +1276,15 @@ export async function getSessionRecap(
 }
 
 export async function isEligibleForSessionRecap(
-  sessionId: Ulid,
-  studentId: Ulid,
-  volunteerId: Ulid
+  sessionId: Ulid
 ): Promise<boolean> {
-  const isAllowDmsToPartnerStudentsActive =
-    await FeatureFlagsService.getAllowDmsToPartnerStudentsFeatureFlag(
-      volunteerId
-    )
-  if (!isAllowDmsToPartnerStudentsActive) {
-    const student = await getStudentPartnerInfoById(studentId)
-    if (student?.studentPartnerOrg) return false
-  }
   return await SessionRepo.isEligibleForSessionRecap(sessionId)
 }
 
 export enum DmIneligibilityReason {
-  DmFeatureFlag = 'DmFeatureFlag',
-  PartnerStudentFeatureFlag = 'PartnerStudentFeatureFlag',
   SessionHasBannedParticipant = 'SessionHasBannedParticipant',
   Other = 'Other',
-  VolunteerHasNotInitiatedDmsYet = 'VolunteerHasNotInitiatedDmsYet',
 }
-/**
- *
- * - Banned users should not be able to send DMs in the recap page
- * - Coaches cannot send DMs to partner students unless the flag allow-dms-to-partner-students is on
- * - Coaches can send DMs once session ended.
- * - Students are not able to initiate the conversation. A coach must send the first message.
- *   We determine this by looking to see if a coach had sent a message after the
- *   session ended.
- */
 export async function isRecapDmsAvailable(
   sessionId: Ulid,
   userId: Ulid
@@ -1341,38 +1313,7 @@ export async function isRecapDmsAvailable(
   const isVolunteer = userId === volunteerId
   const isStudent = userId === studentId
 
-  const isAllowDmsToPartnerStudentsActive =
-    await FeatureFlagsService.getAllowDmsToPartnerStudentsFeatureFlag(
-      volunteerId
-    )
-  if (!isAllowDmsToPartnerStudentsActive) {
-    const student = await getStudentPartnerInfoById(studentId)
-    if (student?.studentPartnerOrg)
-      return {
-        eligible: false,
-        ineligibleReason: DmIneligibilityReason.PartnerStudentFeatureFlag,
-      }
-  }
-
-  // Only allow volunteers to initiate DMs
-  // Students may send DMs if a DM conversation has already been started
-  const sentMessages =
-    await SessionRepo.volunteerSentMessageAfterSessionEnded(sessionId)
-
-  // Students may only initiate DMs if the FF is on
-  const isStudentsInitiateDmsEnabled =
-    await FeatureFlagsService.getStudentsInitiateDmsFeatureFlag(userId)
-  if (isStudent) {
-    if (sentMessages || isStudentsInitiateDmsEnabled) {
-      return { eligible: true }
-    }
-    return {
-      eligible: false,
-      ineligibleReason: DmIneligibilityReason.VolunteerHasNotInitiatedDmsYet,
-    }
-  }
-
-  return { eligible: isVolunteer }
+  return { eligible: isVolunteer || isStudent }
 }
 
 export async function getStudentSessionDetails(
@@ -1560,15 +1501,9 @@ export async function handleSessionBreakout(
     await NotifyVolunteerService.clearExclusiveRequest(sessionId)
   const currentSession = await getCurrentSessionById(sessionId)
   if (wasCleared) {
-    // Only trigger tutor notifications for the session when the student
-    // is not banned or shadow-banned and the notifyTutor feature flag is enabled
-    const isNotifyTutorEnabled = await FeatureFlagsService.getNotifyTutorFlag(
-      user.id
-    )
     if (
       user.banType !== USER_BAN_TYPES.COMPLETE &&
-      user.banType !== USER_BAN_TYPES.SHADOW &&
-      isNotifyTutorEnabled
+      user.banType !== USER_BAN_TYPES.SHADOW
     ) {
       await NotifyVolunteerService.beginRegularNotifications(currentSession)
     }

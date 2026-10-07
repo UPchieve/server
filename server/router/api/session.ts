@@ -434,12 +434,8 @@ export function routeSession(router: Router) {
     async function (req, res) {
       try {
         const { sessionId } = req.params
-        const { studentId, volunteerId } = req.body
-        const isEligible = await SessionService.isEligibleForSessionRecap(
-          sessionId,
-          asString(studentId),
-          asString(volunteerId)
-        )
+        const isEligible =
+          await SessionService.isEligibleForSessionRecap(sessionId)
         res.json({ isEligible })
       } catch (err) {
         resError(res, err)

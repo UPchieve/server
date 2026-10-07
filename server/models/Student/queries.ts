@@ -28,32 +28,6 @@ import {
 } from './types'
 import config from '../../config'
 
-export type StudentPartnerInfo = {
-  id: Ulid
-  studentPartnerOrg?: string
-  approvedHighschool?: Ulid
-}
-
-export async function getStudentPartnerInfoById(
-  studentId: Ulid
-): Promise<StudentPartnerInfo | undefined> {
-  try {
-    const result = await pgQueries.getStudentPartnerInfoById.run(
-      {
-        userId: studentId,
-      },
-      getClient()
-    )
-    if (result.length)
-      return makeSomeOptional(result[0], [
-        'studentPartnerOrg',
-        'approvedHighschool',
-      ])
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
 export async function getStudentContactInfoById(
   studentId: Ulid
 ): Promise<StudentContactInfo | undefined> {

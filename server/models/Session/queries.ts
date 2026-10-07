@@ -1281,21 +1281,6 @@ export async function isEligibleForSessionRecap(
   }
 }
 
-export async function volunteerSentMessageAfterSessionEnded(
-  sessionId: Ulid
-): Promise<boolean> {
-  const client = await getClient()
-  try {
-    const result = await pgQueries.volunteerSentMessageAfterSessionEnded.run(
-      { sessionId },
-      client
-    )
-    return !!result.length
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
 export async function sessionHasBannedParticipant(
   sessionId: Ulid
 ): Promise<boolean> {

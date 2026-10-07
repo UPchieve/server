@@ -2566,43 +2566,6 @@ const getSessionRecapIR: any = {"usedParamSet":{"sessionId":true},"params":[{"na
 export const getSessionRecap = new PreparedQuery<IGetSessionRecapParams,IGetSessionRecapResult>(getSessionRecapIR);
 
 
-/** 'VolunteerSentMessageAfterSessionEnded' parameters type */
-export interface IVolunteerSentMessageAfterSessionEndedParams {
-  sessionId?: string | null | void;
-}
-
-/** 'VolunteerSentMessageAfterSessionEnded' return type */
-export interface IVolunteerSentMessageAfterSessionEndedResult {
-  /** not_pii: Primary key */
-  id: string;
-}
-
-/** 'VolunteerSentMessageAfterSessionEnded' query type */
-export interface IVolunteerSentMessageAfterSessionEndedQuery {
-  params: IVolunteerSentMessageAfterSessionEndedParams;
-  result: IVolunteerSentMessageAfterSessionEndedResult;
-}
-
-const volunteerSentMessageAfterSessionEndedIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":false,"transform":{"type":"scalar"},"locs":[{"a":144,"b":153}]}],"statement":"SELECT\n    session_messages.id\nFROM\n    sessions\n    JOIN session_messages ON sessions.id = session_messages.session_id\nWHERE\n    sessions.id = :sessionId\n    AND session_messages.sender_id = sessions.volunteer_id\n    AND session_messages.created_at > sessions.ended_at\nLIMIT 1"};
-
-/**
- * Query generated from SQL:
- * ```
- * SELECT
- *     session_messages.id
- * FROM
- *     sessions
- *     JOIN session_messages ON sessions.id = session_messages.session_id
- * WHERE
- *     sessions.id = :sessionId
- *     AND session_messages.sender_id = sessions.volunteer_id
- *     AND session_messages.created_at > sessions.ended_at
- * LIMIT 1
- * ```
- */
-export const volunteerSentMessageAfterSessionEnded = new PreparedQuery<IVolunteerSentMessageAfterSessionEndedParams,IVolunteerSentMessageAfterSessionEndedResult>(volunteerSentMessageAfterSessionEndedIR);
-
-
 /** 'SessionHasBannedParticipant' parameters type */
 export interface ISessionHasBannedParticipantParams {
   sessionId: string;

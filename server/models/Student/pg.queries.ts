@@ -347,46 +347,6 @@ const getFavoritedVolunteerIdsFromListIR: any = {"usedParamSet":{"studentId":tru
 export const getFavoritedVolunteerIdsFromList = new PreparedQuery<IGetFavoritedVolunteerIdsFromListParams,IGetFavoritedVolunteerIdsFromListResult>(getFavoritedVolunteerIdsFromListIR);
 
 
-/** 'GetStudentPartnerInfoById' parameters type */
-export interface IGetStudentPartnerInfoByIdParams {
-  userId: string;
-}
-
-/** 'GetStudentPartnerInfoById' return type */
-export interface IGetStudentPartnerInfoByIdResult {
-  /** pii: Foreign key to upchieve.schools */
-  approvedHighschool: string | null;
-  /** not_pii: Foreign key to upchieve.users */
-  id: string;
-  /** not_pii: Unique URL-safe slug */
-  studentPartnerOrg: string;
-}
-
-/** 'GetStudentPartnerInfoById' query type */
-export interface IGetStudentPartnerInfoByIdQuery {
-  params: IGetStudentPartnerInfoByIdParams;
-  result: IGetStudentPartnerInfoByIdResult;
-}
-
-const getStudentPartnerInfoByIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":317,"b":324}]}],"statement":"SELECT\n    student_profiles.user_id AS id,\n    student_partner_orgs.key AS student_partner_org,\n    student_profiles.school_id AS approved_highschool\nFROM\n    student_profiles\n    LEFT JOIN student_partner_orgs ON student_profiles.student_partner_org_id = student_partner_orgs.id\nWHERE\n    student_profiles.user_id = :userId!"};
-
-/**
- * Query generated from SQL:
- * ```
- * SELECT
- *     student_profiles.user_id AS id,
- *     student_partner_orgs.key AS student_partner_org,
- *     student_profiles.school_id AS approved_highschool
- * FROM
- *     student_profiles
- *     LEFT JOIN student_partner_orgs ON student_profiles.student_partner_org_id = student_partner_orgs.id
- * WHERE
- *     student_profiles.user_id = :userId!
- * ```
- */
-export const getStudentPartnerInfoById = new PreparedQuery<IGetStudentPartnerInfoByIdParams,IGetStudentPartnerInfoByIdResult>(getStudentPartnerInfoByIdIR);
-
-
 /** 'DeleteStudent' parameters type */
 export interface IDeleteStudentParams {
   email: string;
