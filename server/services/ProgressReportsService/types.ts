@@ -1,4 +1,4 @@
-import { Ulid } from '../../models/pgUtils'
+import { Uuid } from '../../types/shared'
 import {
   ProgressReportFocusAreas,
   ProgressReportInfoTypes,
@@ -9,39 +9,39 @@ import {
 import { UserSessionsFilter } from '../../models/Session'
 
 export type ProgressReportSession = {
-  reportId: Ulid
-  sessionId: Ulid
+  reportId: Uuid
+  sessionId: Uuid
   reportAnalysisType: ProgressReportAnalysisTypes
   createdAt: Date
   updatedAt: Date
 }
 
 export type ProgressReportDetail = {
-  id: Ulid
+  id: Uuid
   content: string
   focusArea: ProgressReportFocusAreas
   infoType: ProgressReportInfoTypes
 }
 
 export type ProgressReportSummary = {
-  id: Ulid
+  id: Uuid
   summary: string
   overallGrade: number
   details: ProgressReportDetail[]
   createdAt: Date
-  reportId: Ulid
+  reportId: Uuid
   sessionCreatedAt: Date
   reportReadAt?: Date
 }
 
 export type ProgressReportConcept = {
-  id: Ulid
+  id: Uuid
   name: string
   description: string
   grade: number
   details: ProgressReportDetail[]
   createdAt: Date
-  reportId: Ulid
+  reportId: Uuid
   reportReadAt?: Date
 }
 
@@ -68,8 +68,8 @@ export type ProgressReportPromptTemplateVariables = {
 }
 
 export type SaveProgressReportOptions = {
-  userId: Ulid
-  sessionIds: Ulid[]
+  userId: Uuid
+  sessionIds: Uuid[]
   data: ProgressReport
   analysisType: ProgressReportAnalysisTypes
   promptId: number
