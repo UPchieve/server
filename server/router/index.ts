@@ -1,6 +1,6 @@
 import { Express, Response } from 'express'
 import config from '../config'
-import logger, { logError } from '../logger'
+import logger from '../logger'
 import * as ContactFormRouter from './contact'
 import * as AuthRouter from './auth'
 import * as ApiRouter from './api'
@@ -57,7 +57,8 @@ export default function (app: Express, io: Server) {
         } = await getAllFlagsForId(distinctId, personProperties)
         res.status(200).json({ id: distinctId, ...flags, personProperties })
       } catch (e) {
-        logError(new Error(`Failed to bootstrap feature flags. ${e}`), {
+        logger.error('Failed to bootstrap feature flags', {
+          err: e,
           userId: distinctId,
         })
         res.status(200).json({ id: distinctId })

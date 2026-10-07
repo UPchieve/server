@@ -1,5 +1,5 @@
 import * as db from '../db'
-import { logError } from '../worker/logger'
+import logger from '../logger'
 import { log } from '../worker/logger'
 
 export default async function main() {
@@ -23,6 +23,6 @@ export default async function main() {
     `)
     log('Successfully updated progress report prompt ids')
   } catch (e) {
-    logError(e as Error)
+    logger.error('Failed to migrate progress report prompt ids', { err: e })
   }
 }

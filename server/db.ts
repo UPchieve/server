@@ -1,5 +1,4 @@
-import Sentry from '@sentry/node'
-import { logError } from './logger'
+import logger from './logger'
 import { Pool, PoolClient } from 'pg'
 import config from './config'
 
@@ -66,8 +65,7 @@ export async function setupDbConnection() {
       .connect()
       .then((v) => v.release())
   } catch (err) {
-    Sentry.captureException(err)
-    logError(err as Error)
+    logger.error('Failed to connect to the databases', { err })
     process.exit(1)
   }
 }
@@ -78,8 +76,7 @@ export async function connect(): Promise<void> {
       .connect()
       .then((v) => v.release())
   } catch (err) {
-    Sentry.captureException(err)
-    logError(err as Error)
+    logger.error('Failed to connect to the database', { err })
     process.exit(1)
   }
 }

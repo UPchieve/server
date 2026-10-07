@@ -1,5 +1,5 @@
 import * as db from '../db'
-import { logError } from '../worker/logger'
+import logger from '../logger'
 import { log } from '../worker/logger'
 
 export default async function main() {
@@ -10,7 +10,9 @@ export default async function main() {
       await migrateUsers(tc)
     })
   } catch (e) {
-    logError(e as Error)
+    logger.error('Failed to migrate banned and test users to ban type', {
+      err: e,
+    })
   }
 }
 

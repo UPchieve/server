@@ -2,7 +2,7 @@ import * as VisionService from '../VisionService'
 import { client as traceClient } from '../../clients/langfuse'
 import moment from 'moment'
 import { Ulid } from '../../models/pgUtils'
-import logger, { logError } from '../../logger'
+import logger from '../../logger'
 import { TransactionClient, runInTransaction } from '../../db'
 import {
   ProgressReportAnalysisTypes,
@@ -327,7 +327,11 @@ export async function saveProgressReport({
     })
     return reportId
   } catch (error) {
-    logError(error as Error)
+    logger.error('Failed to save progress report', {
+      err: error,
+      userId,
+      reportId,
+    })
     if (reportId) await updateProgressReportStatus(reportId, 'error')
     throw error
   }
@@ -345,7 +349,11 @@ export async function getSessionsToAnalyzeForProgressReport(
       const messages = await getMessagesForFrontend(session.id)
       sessionsWithMessages.push({ ...session, messages })
     } catch (error) {
-      logError(error as Error)
+      logger.error('Failed to get session messages for progress report', {
+        err: error,
+        userId,
+        sessionId: session.id,
+      })
     }
   }
 

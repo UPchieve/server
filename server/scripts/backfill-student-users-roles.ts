@@ -1,7 +1,7 @@
 import * as db from '../db'
 import * as UserRepo from '../models/User'
 import { USER_ROLES } from '../constants'
-import { logError } from '../worker/logger'
+import logger from '../logger'
 
 export default async function main() {
   try {
@@ -11,7 +11,7 @@ export default async function main() {
       await backfill(tc)
     })
   } catch (e) {
-    logError(e as Error)
+    logger.error('Failed to backfill student user roles', { err: e })
   }
 }
 

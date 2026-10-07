@@ -11,7 +11,7 @@ import {
 } from 'tremendous'
 import config from '../config'
 import * as cache from '../cache'
-import { logError } from '../logger'
+import logger from '../logger'
 import { Ulid, Uuid } from '../models/pgUtils'
 import { isProductionEnvironment } from '../utils/environments'
 
@@ -301,9 +301,11 @@ export async function getUserRewards(
     userRewards.total = userRewardResponse.total_count ?? 0
     return userRewards
   } catch (error) {
-    logError(
-      ((error as AxiosError).response?.data as Error) || (error as Error)
-    )
+    logger.error('Failed to get user rewards', {
+      err: error,
+      responseData: (error as AxiosError).response?.data,
+      userId,
+    })
     throw error
   }
 }
@@ -361,7 +363,11 @@ export async function getUserRewardByImpactStudySurveyCampaignId(
     if (!data.rewards) return []
     else return data.rewards
   } catch (error) {
-    logError(error as Error)
+    logger.error('Failed to get user reward for impact study campaign', {
+      err: error,
+      userId,
+      impactStudySurveyCampaignId,
+    })
     return []
   }
 }

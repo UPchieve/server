@@ -1,14 +1,12 @@
-import { captureException } from '@sentry/node'
 import * as UPFRepo from '../models/UserProductFlags'
 import * as VolunteerRepo from '../models/Volunteer'
 import * as UserActionRepo from '../models/UserAction'
 import * as ReferralService from '../services/ReferralService'
-import { createContact } from '../services/MailService'
 import { hashPassword } from '../utils/auth-utils'
-import { logError } from '../logger'
 import { ACCOUNT_USER_ACTIONS, USER_EVENTS } from '../constants'
 import { runInTransaction } from '../db'
 import { emitter } from '../services/EventsService'
+import logger from '../logger'
 
 // TODO: Move to UserCreationService.
 export async function createVolunteer(
@@ -32,8 +30,10 @@ export async function createVolunteer(
   try {
     await UPFRepo.createUPFByUserId(volunteer.id)
   } catch (err) {
-    captureException(err)
-    logError(err as Error)
+    logger.error('Failed to create UPF object for new user', {
+      err,
+      userId: volunteer.id,
+    })
   }
 
   try {
@@ -43,8 +43,10 @@ export async function createVolunteer(
       ipAddress: ip,
     })
   } catch (err) {
-    captureException(err)
-    logError(err as Error)
+    logger.error('Failed to create account action', {
+      err,
+      userId: volunteer.id,
+    })
   }
 
   emitter.emit(USER_EVENTS.USER_CREATED, volunteer.id)

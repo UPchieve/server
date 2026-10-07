@@ -1,11 +1,10 @@
 import axios from 'axios'
-import Sentry from '@sentry/node'
 import {
   IpAddress,
   getIpByRawString,
   insertIpByRawString,
 } from '../models/IpAddress'
-import { logError } from '../logger'
+import logger from '../logger'
 import { NotAllowedError } from '../models/Errors'
 import { asString } from '../utils/type-utils'
 import net from 'net'
@@ -32,8 +31,7 @@ export async function getIpWhoIs(rawIpString: string) {
     })) as any
     return data
   } catch (err) {
-    Sentry.captureException(err)
-    logError(err as Error)
+    logger.error('Failed to look up IP address', { err })
     // TODO: should we just throw here?
     return {}
   }

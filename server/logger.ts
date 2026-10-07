@@ -66,13 +66,4 @@ const logger = {
   },
 }
 
-// TODO: Consolidate into one logger file
-// TODO: Remove in favour of `logger.error`.
-export function logError(
-  error: Error,
-  customAttributes?: { [key: string]: string | number | boolean }
-): void {
-  newrelic.noticeError(error, customAttributes)
-}
-
 export default logger

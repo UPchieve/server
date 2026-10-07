@@ -6,9 +6,8 @@ import {
   ObjectCannedACL,
   DeleteObjectCommand,
 } from '@aws-sdk/client-s3'
-import * as Sentry from '@sentry/node'
 import config from '../config'
-import logger, { logError } from '../logger'
+import logger from '../logger'
 import { RekognitionClient } from '@aws-sdk/client-rekognition'
 import { ComprehendClient } from '@aws-sdk/client-comprehend'
 
@@ -49,8 +48,11 @@ export async function getObject(
     )
     return objectUrl
   } catch (error) {
-    Sentry.captureException(error)
-    logError(error as Error)
+    logger.error('Failed to get signed S3 object URL', {
+      err: error,
+      bucket,
+      s3Key,
+    })
     return ''
   }
 }
@@ -74,8 +76,10 @@ export async function getPhotoIdUploadUrl(
     )
     return uploadUrl
   } catch (error) {
-    Sentry.captureException(error)
-    logError(error as Error)
+    logger.error('Failed to get signed photo ID upload URL', {
+      err: error,
+      photoIdS3Key,
+    })
     return ''
   }
 }
@@ -93,8 +97,10 @@ export async function getPhotoIdUrl(photoIdS3Key: string): Promise<string> {
     )
     return photoUrl
   } catch (error) {
-    Sentry.captureException(error)
-    logError(error as Error)
+    logger.error('Failed to get signed photo ID URL', {
+      err: error,
+      photoIdS3Key,
+    })
     return ''
   }
 }
@@ -118,8 +124,10 @@ export async function getSessionPhotoUploadUrl(
     )
     return uploadUrl
   } catch (error) {
-    Sentry.captureException(error)
-    logError(error as Error)
+    logger.error('Failed to get signed session photo upload URL', {
+      err: error,
+      sessionPhotoS3Key,
+    })
     return ''
   }
 }

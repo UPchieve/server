@@ -8,10 +8,3 @@ export function log(message: string): void {
     level: config.logLevel,
   })
 }
-
-export function logError(
-  error: Error,
-  customAttributes?: { [key: string]: string | number | boolean }
-): void {
-  newrelic.noticeError(error, customAttributes)
-}

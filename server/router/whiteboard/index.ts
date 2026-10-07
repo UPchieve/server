@@ -1,8 +1,7 @@
-import * as Sentry from '@sentry/node'
 import express, { Express } from 'express'
 import expressWs from 'express-ws'
 import { KeyNotFoundError } from '../../cache'
-import logger, { logError } from '../../logger'
+import logger from '../../logger'
 import { WebSocketEmitter } from '../../services/WebSocketEmitterService'
 import { UpgradedWebSocket } from '../../services/WebSocketEmitterService/types'
 import * as WhiteboardService from '../../services/WhiteboardService'
@@ -29,7 +28,7 @@ const whiteboardChannel = 'whiteboard/'
 const wsEmitter = new WebSocketEmitter(whiteboardChannel, { encoder: encode })
 
 function sendErrorDocument(wsClient: WebSocket, error: Error) {
-  logError(error)
+  logger.error('Sending whiteboard error document', { err: error })
   return wsClient.send(
     encode({
       messageType: MessageType.ERROR,

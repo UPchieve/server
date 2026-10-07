@@ -1,6 +1,5 @@
 import { CustomError } from 'ts-custom-error'
 import { Response } from 'express'
-import * as Sentry from '@sentry/node'
 import {
   NotAllowedError,
   InputError,
@@ -17,8 +16,7 @@ import {
   CaughtError,
 } from '../models/Errors'
 import { RegistrationError, ResetError } from '../utils/auth-utils'
-import config from '../config'
-import logger, { logError } from '../logger'
+import logger from '../logger'
 import { ReportNoDataFoundError } from '../services/ReportService'
 import { ExistingUserError } from '../services/EligibilityService'
 
@@ -77,16 +75,11 @@ export function resError(
     // unknown error
     else status = 500
 
-    if (config.NODE_ENV === 'production' && status === 500) {
-      Sentry.captureException(err)
-      logError(err as Error)
-    }
-
     res.status(status).json({
       err: message.length ? message : err.message,
     })
   } else {
-    logger.error('Unexpected non-error type thrown', { err: err })
+    logger.error('Unexpected non-error type thrown', { err })
     res.status(500).json({ err: 'An unexpected error occurred.' })
   }
 }

@@ -19,7 +19,7 @@ import {
   buildStudent,
   buildSubjectAndTopic,
 } from '../mocks/generate'
-import logger, { logError } from '../../logger'
+import logger from '../../logger'
 import { EVENTS, PROGRESS_REPORT_JSON_INSTRUCTIONS } from '../../constants'
 import { invokeModel } from '../../services/OpenAIService'
 import * as sessionUtils from '../../utils/session-utils'
@@ -207,7 +207,14 @@ describe('saveProgressReport', () => {
     expect(
       mockedProgressReportsRepo.updateProgressReportStatus
     ).toHaveBeenCalledWith(reportId, 'error')
-    expect(logError).toHaveBeenCalledWith(error)
+    expect(logger.error).toHaveBeenCalledWith(
+      'Failed to save progress report',
+      {
+        err: error,
+        userId,
+        reportId,
+      }
+    )
   })
 })
 
@@ -306,7 +313,10 @@ describe('getSessionsToAnalyzeForProgressReport', () => {
       sessionId: session.id,
       subject: session.subjectName,
     })
-    expect(logError).toHaveBeenCalledWith(error)
+    expect(logger.error).toHaveBeenCalledWith(
+      'Failed to get session messages for progress report',
+      { err: error, userId, sessionId: session.id }
+    )
   })
 })
 

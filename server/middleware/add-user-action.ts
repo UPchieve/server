@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from 'express'
-import { captureException } from '@sentry/node'
-import { logError } from '../logger'
+import logger from '../logger'
 import { extractUser } from '../router/extract-user'
 import * as UserActionRepo from '../models/UserAction'
 import { ACCOUNT_USER_ACTIONS, QUIZ_USER_ACTIONS } from '../constants'
@@ -23,8 +22,10 @@ export async function addUserAction(
           ipAddress,
         })
       } catch (err) {
-        captureException(err)
-        logError(err as Error)
+        logger.error('Failed to create updated availability account action', {
+          err,
+          userId: id,
+        })
       }
     }
 
@@ -41,8 +42,11 @@ export async function addUserAction(
           getClient()
         ) // @TODO service fn
       } catch (err) {
-        captureException(err)
-        logError(err as Error)
+        logger.error('Failed to create started quiz action', {
+          err,
+          userId: id,
+          quizSubcategory: category,
+        })
       }
     }
 
@@ -54,8 +58,10 @@ export async function addUserAction(
           ipAddress,
         })
       } catch (err) {
-        captureException(err)
-        logError(err as Error)
+        logger.error('Failed to create updated profile account action', {
+          err,
+          userId: id,
+        })
       }
     }
   }
