@@ -37,6 +37,32 @@ async function trackLoggedIn(userId: Ulid, ipAddress?: string) {
   })
 }
 
+type SsoCallbackOutcome = 'success' | 'restart' | 'needsEmail' | 'failed'
+
+function logSsoCallback(
+  ssoProvider: string,
+  ssoCallbackOutcome: SsoCallbackOutcome,
+  ssoFailureReason?: string
+) {
+  const fields = { ssoProvider, ssoCallbackOutcome, ssoFailureReason }
+  if (ssoCallbackOutcome === 'failed') logger.warn(fields, 'SSO callback')
+  else logger.info(fields, 'SSO callback')
+}
+
+/**
+ * Why an SSO callback failed, from the first of:
+ * - `err`: passport errored (e.g. the token exchange failed), or logging the user in threw.
+ * - `data.errorMessage`: our own verify callback refused the login.
+ * - `data.message`: passport refused the callback itself (e.g. the `state` check failed).
+ */
+function getSsoFailureReason(
+  err: unknown,
+  data?: { errorMessage?: string; message?: string }
+) {
+  if (err instanceof Error) return err.message
+  return data?.errorMessage ?? data?.message
+}
+
 export function routes(app: Express) {
   const router = Router()
 
@@ -138,13 +164,15 @@ export function routes(app: Express) {
       userData = {},
     } = (req.session as SessionWithSsoData).sso ?? {}
     if (!provider || !isSupportedSsoProvider(provider)) {
+      const reason = `Unknown provider: ${provider}`
+      logSsoCallback(provider, 'failed', reason)
       res.redirect(
         AuthRedirect.failureRedirect(
           isLogin,
           provider,
           errorRedirect,
           userData,
-          `Unknown provider: ${provider}`
+          reason
         )
       )
       return
@@ -160,6 +188,7 @@ export function routes(app: Express) {
       req.query.code &&
       !req.query.state
     ) {
+      logSsoCallback(provider, 'restart')
       res.redirect(`/auth/sso?${new URLSearchParams({ provider })}`)
       return
     }
@@ -168,7 +197,7 @@ export function routes(app: Express) {
     passport.authenticate(
       strategy,
       async function (
-        _err: any,
+        err: unknown,
         user?: Express.User,
         data?: {
           profileId?: string
@@ -192,23 +221,36 @@ export function routes(app: Express) {
               lastName: data.lastName,
             },
           }
+          logSsoCallback(provider, 'needsEmail')
           return res.redirect(AuthRedirect.emailRedirect(validator))
         }
 
+        let loginError: unknown
         if (user) {
-          await req.asyncLogin(user)
-          return res.redirect(AuthRedirect.successRedirect(redirect))
-        } else {
-          return res.redirect(
-            AuthRedirect.failureRedirect(
-              isLogin,
-              provider,
-              errorRedirect,
-              userData,
-              data?.errorMessage
-            )
-          )
+          // Passport ignores this callback's promise, so a rejection here would hang the request.
+          try {
+            await req.asyncLogin(user)
+            logSsoCallback(provider, 'success')
+            return res.redirect(AuthRedirect.successRedirect(redirect))
+          } catch (e) {
+            loginError = e
+          }
         }
+
+        logSsoCallback(
+          provider,
+          'failed',
+          getSsoFailureReason(loginError ?? err, data)
+        )
+        return res.redirect(
+          AuthRedirect.failureRedirect(
+            isLogin,
+            provider,
+            errorRedirect,
+            userData,
+            data?.errorMessage
+          )
+        )
       }
     )(req, res)
   })

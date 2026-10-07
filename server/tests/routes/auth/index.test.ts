@@ -27,6 +27,7 @@ import { ACCOUNT_USER_ACTIONS } from '../../../constants'
 import { RoleContext } from '../../../services/UserRolesService'
 import { AppUser } from '../../types'
 import { getUuid } from '../../../models/pgUtils'
+import logger from '../../../logger'
 
 jest.mock('../../../services/AuthService')
 jest.mock('../../../services/UserCreationService')
@@ -88,6 +89,7 @@ const mockedUserAction = mocked(UserAction)
 const mockedUserQueries = mocked(UserQueries)
 const mockedLegacyUser = mocked(LegacyUser)
 const mockedPassport = mocked(passport)
+const mockedLogger = mocked(logger)
 
 const US_IP_ADDRESS = '161.185.160.93'
 const AUTH_ROUTE = '/auth'
@@ -297,11 +299,24 @@ describe('AuthRouter.routes', () => {
   })
 
   describe('GET /auth/oauth2/redirect', () => {
-    function mockEndingAuthenticate() {
-      mockedPassport.authenticate.mockReturnValueOnce(((
-        _req: ExpressRequest,
-        res: ExpressResponse
-      ) => res.end()) as ReturnType<typeof passport.authenticate>)
+    function mockAuthenticateResult(
+      err: unknown,
+      user: unknown,
+      info?: unknown
+    ) {
+      mockedPassport.authenticate.mockImplementationOnce(
+        (_strategy: unknown, callback: unknown) => () => {
+          if (typeof callback === 'function') callback(err, user, info)
+        }
+      )
+    }
+
+    function sendCallback() {
+      return sendGetQuery('/oauth2/redirect', {
+        provider: 'clever',
+        code: 'provider-code',
+        state: 'state',
+      })
     }
 
     test.each(['clever', 'classlink'])(
@@ -328,16 +343,101 @@ describe('AuthRouter.routes', () => {
     })
 
     test('authenticates when state is present', async () => {
-      mockEndingAuthenticate()
-      await sendGetQuery('/oauth2/redirect', {
-        provider: 'clever',
-        code: 'provider-code',
-        state: 'state',
-      })
+      mockAuthenticateResult(null, false)
+      await sendCallback()
       expect(mockedPassport.authenticate).toHaveBeenCalledWith(
         'clever',
         expect.any(Function)
       )
+    })
+
+    test('sends the user to the failure page when logging them in fails', async () => {
+      mockAuthenticateResult(null, { id: getUuid() })
+      asyncLogin.mockRejectedValueOnce(new Error('Session store unavailable'))
+      const response = await sendCallback()
+      expect(response.status).toBe(302)
+      expect(new URL(response.header.location).pathname).toBe(
+        '/clever-signin-instructions'
+      )
+    })
+
+    describe('logs the outcome', () => {
+      test('of a restart, not as a failure', async () => {
+        await sendGetQuery('/oauth2/redirect', {
+          provider: 'classlink',
+          code: 'provider-code',
+        })
+        expect(mockedLogger.info.mock.calls).toEqual([
+          [
+            { ssoProvider: 'classlink', ssoCallbackOutcome: 'restart' },
+            'SSO callback',
+          ],
+        ])
+        expect(mockedLogger.warn.mock.calls).toEqual([])
+      })
+
+      test('of a login', async () => {
+        mockAuthenticateResult(null, { id: getUuid() })
+        await sendCallback()
+        expect(mockedLogger.info.mock.calls).toEqual([
+          [
+            { ssoProvider: 'clever', ssoCallbackOutcome: 'success' },
+            'SSO callback',
+          ],
+        ])
+        expect(mockedLogger.warn.mock.calls).toEqual([])
+      })
+
+      test('of a failure, with the reason passport gives', async () => {
+        mockAuthenticateResult(null, false, {
+          message: 'Unable to verify authorization request state.',
+        })
+        await sendCallback()
+        expect(mockedLogger.warn.mock.calls).toEqual([
+          [
+            {
+              ssoProvider: 'clever',
+              ssoCallbackOutcome: 'failed',
+              ssoFailureReason: 'Unable to verify authorization request state.',
+            },
+            'SSO callback',
+          ],
+        ])
+      })
+
+      test('of a login that fails after the provider accepts it', async () => {
+        mockAuthenticateResult(null, { id: getUuid() })
+        asyncLogin.mockRejectedValueOnce(new Error('Session store unavailable'))
+        await sendCallback()
+        expect(mockedLogger.warn.mock.calls).toEqual([
+          [
+            {
+              ssoProvider: 'clever',
+              ssoCallbackOutcome: 'failed',
+              ssoFailureReason: 'Session store unavailable',
+            },
+            'SSO callback',
+          ],
+        ])
+        expect(mockedLogger.info.mock.calls).toEqual([])
+      })
+
+      test('of an unknown provider as a failure', async () => {
+        await sendGetQuery('/oauth2/redirect', {
+          code: 'provider-code',
+          state: 'state',
+        })
+        expect(mockedLogger.warn.mock.calls).toEqual([
+          [
+            {
+              ssoProvider: '',
+              ssoCallbackOutcome: 'failed',
+              ssoFailureReason: 'Unknown provider: ',
+            },
+            'SSO callback',
+          ],
+        ])
+      })
     })
   })
 
