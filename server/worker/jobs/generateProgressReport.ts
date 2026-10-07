@@ -4,7 +4,6 @@ import { Ulid } from '../../models/pgUtils'
 import {
   generateProgressReportForUser,
   hasActiveSubjectPrompt,
-  ProgressReport,
 } from '../../services/ProgressReportsService'
 import { getStemProgressReportEnabled } from '../../services/FeatureFlagService'
 import config from '../../config'
@@ -30,28 +29,22 @@ export default async (job: Job<GenerateProgressReport>): Promise<void> => {
       session.studentId
     )
     if (!isStemProgressReportEnabled) {
-      logger.info(
-        {
-          isStemProgressReportEnabled,
-          sessionId,
-          subject: session.subject,
-          userId: session.studentId,
-        },
-        'STEM Progress Report processing not enabled for user'
-      )
+      logger.info('STEM Progress Report processing not enabled for user', {
+        isStemProgressReportEnabled,
+        sessionId,
+        subject: session.subject,
+        userId: session.studentId,
+      })
       return
     }
   }
 
   if (!isSubjectPromptActive || session.timeTutored < config.minSessionLength) {
-    logger.info(
-      {
-        sessionId,
-        subject: session.subject,
-        isSubjectPromptActive,
-      },
-      "Couldn't generate progress report for session or subject"
-    )
+    logger.info("Couldn't generate progress report for session or subject", {
+      sessionId,
+      subject: session.subject,
+      isSubjectPromptActive,
+    })
     return
   }
 

@@ -27,10 +27,9 @@ export async function clearBullJobByStatus(job: Job<BullJobStatus>) {
           : await QueueService.queue.clean(gracePeriod, jobStatus)
       logger.info(`Removed ${removedJobs.length} ${jobStatus} Bull jobs`)
     } catch (error) {
-      logger.error(
-        error,
-        `An error occured while removing ${jobStatus} Bull jobs`
-      )
+      logger.error(`An error occured while removing ${jobStatus} Bull jobs`, {
+        err: error,
+      })
     }
   }
 }

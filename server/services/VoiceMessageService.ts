@@ -55,11 +55,10 @@ export const getFromStorage = async (
       voiceMessageId.toString()
     )
   } catch (error) {
-    logger.error(
-      `Getting the voice message failed ${voiceMessageId}: ${
-        (error as Error).message
-      }`
-    )
+    logger.error('Getting the voice message failed', {
+      err: error,
+      voiceMessageId,
+    })
     return ''
   }
 }

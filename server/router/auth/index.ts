@@ -45,8 +45,8 @@ function logSsoCallback(
   ssoFailureReason?: string
 ) {
   const fields = { ssoProvider, ssoCallbackOutcome, ssoFailureReason }
-  if (ssoCallbackOutcome === 'failed') logger.warn(fields, 'SSO callback')
-  else logger.info(fields, 'SSO callback')
+  if (ssoCallbackOutcome === 'failed') logger.warn('SSO callback', fields)
+  else logger.info('SSO callback', fields)
 }
 
 /**
@@ -516,7 +516,7 @@ export function routes(app: Express) {
         } catch (err) {
           // do not respond with info about no email match
           if (!(err instanceof LookupError)) return resError(res, err) // will handle sending response with status/error
-          logger.info(err) // log expected lookup errors
+          logger.info('No user found for password reset', { err }) // log expected lookup errors
         }
 
         if (req.user) {

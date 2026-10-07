@@ -257,10 +257,10 @@ const asAdminUpdate = asFactory<AdminUpdate>({
 
 export async function deleteUser(user: UserRepo.UserContactInfo) {
   if (user.banType) {
-    logger.warn(
-      { userId: user.id, banType: user.banType },
-      'Banned user attempted to delete account.'
-    )
+    logger.warn('Banned user attempted to delete account.', {
+      userId: user.id,
+      banType: user.banType,
+    })
     throw new NotAllowedError(
       'Unable to perform action - please reach out to support to finish deleting your account.'
     )

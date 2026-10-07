@@ -75,17 +75,14 @@ export async function getHourSummaryStats(
       getTimeTutoredForDateRange(volunteerId, fromDate, toDate),
     ]
   )
-  logger.info(
-    {
-      volunteerId,
-      quizzesPassed,
-      elapsedAvailability,
-      timeTutoredMS,
-      startDate: fromDate,
-      endDate: toDate,
-    },
-    'Calculating volunteer hourly summay stats'
-  )
+  logger.info('Calculating volunteer hourly summay stats', {
+    volunteerId,
+    quizzesPassed,
+    elapsedAvailability,
+    timeTutoredMS,
+    startDate: fromDate,
+    endDate: toDate,
+  })
 
   const timeTutoredInHours = Number(timeTutoredMS / 3600000).toFixed(2)
   const totalCoachingHours = Number(timeTutoredInHours)

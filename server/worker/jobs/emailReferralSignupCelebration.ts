@@ -32,11 +32,8 @@ export default async function (
     })
   } catch (err) {
     logger.error(
-      {
-        error: err,
-        userId: job.data.userId,
-      },
-      `${jobName}: Failed to send Referral SignUp Celebration Email to user: ${err}`
+      `${jobName}: Failed to send Referral SignUp Celebration Email to user`,
+      { err, userId: job.data.userId }
     )
   }
 }

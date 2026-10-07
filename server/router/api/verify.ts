@@ -24,11 +24,9 @@ const sendVerificationCommon = async (
     let status = 500
 
     if (err instanceof TwilioError) {
-      // custom logging for NR alerts
-      logger.error(
-        { 'error.name': 'twilio verification', error: err },
-        (err as Error).message
-      )
+      logger.error('Twilio verification error', {
+        err,
+      })
 
       if (err.status === 429) {
         status = 429
@@ -73,10 +71,9 @@ export function routeVerify(router: Router) {
       )
       res.json({ success: isVerified })
     } catch (err) {
-      logger.error(
-        { 'error.name': 'twilio verification', error: err },
-        (err as Error).message
-      )
+      logger.error('Twilio confirm verfication error', {
+        err,
+      })
 
       let status = 500
       let message =

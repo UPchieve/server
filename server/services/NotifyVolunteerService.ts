@@ -59,17 +59,17 @@ export async function notifyExclusiveVolunteer(
   )
 
   if (!volunteer) {
-    logger.error(
-      { volunteerId },
-      'notifyExclusiveVolunteer: No volunteer found'
-    )
+    logger.error('notifyExclusiveVolunteer: No volunteer found', {
+      err: 'No volunteer found',
+      volunteerId,
+    })
     return
   }
 
   if (!volunteer.phone) {
     logger.warn(
-      { sessionId: session.id, volunteerId },
-      'notifyExclusiveVolunteer: volunteer has no phone or is not eligible; skipping SMS'
+      'notifyExclusiveVolunteer: volunteer has no phone or is not eligible; skipping SMS',
+      { sessionId: session.id, volunteerId }
     )
     return
   }
@@ -89,10 +89,11 @@ export async function notifyExclusiveVolunteer(
       session.id
     )
   } catch (err) {
-    logger.error(
-      { sessionId: session.id, volunteerId, err },
-      'notifyExclusiveVolunteer: SMS send failed'
-    )
+    logger.error('notifyExclusiveVolunteer: SMS send failed', {
+      sessionId: session.id,
+      volunteerId,
+      err,
+    })
   }
 
   // Audit row — admin notifications panel + recently-notified guards depend
@@ -109,8 +110,8 @@ export async function notifyExclusiveVolunteer(
     })
   } catch (err) {
     logger.error(
-      { sessionId: session.id, volunteerId, err },
-      'notifyExclusiveVolunteer: failed to write notification audit row'
+      'notifyExclusiveVolunteer: failed to write notification audit row',
+      { sessionId: session.id, volunteerId, err }
     )
   }
 
@@ -132,8 +133,8 @@ export async function clearExclusiveRequest(sessionId: Uuid): Promise<boolean> {
     volunteerId = await cache.hget('exclusiveRequestSessions', sessionId)
   } catch (err) {
     logger.error(
-      { sessionId, err },
-      'clearExclusiveRequest: HGET failed; failing open (no cleanup)'
+      'clearExclusiveRequest: HGET failed; failing open (no cleanup)',
+      { sessionId, err }
     )
     return false
   }
@@ -142,7 +143,7 @@ export async function clearExclusiveRequest(sessionId: Uuid): Promise<boolean> {
   try {
     removed = await cache.hdel('exclusiveRequestSessions', sessionId)
   } catch (err) {
-    logger.error({ sessionId, err }, 'clearExclusiveRequest: HDEL failed')
+    logger.error('clearExclusiveRequest: HDEL failed', { sessionId, err })
     return false
   }
   if (removed === 0) return false // raced — someone else already cleared it

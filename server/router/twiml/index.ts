@@ -27,25 +27,22 @@ export function routes(app: Express): void {
 
         if (!userId) {
           logger.warn(
-            { phoneNumber },
-            `Unable to update opt-in/out user: No user found with phone number.`
+            `Unable to update opt-in/out user: No user found with phone number.`,
+            { phoneNumber }
           )
           return sendEmptyTwimlResponse(res)
         }
 
         await UserProfileService.updateUserSmsConsent(userId, hasGivenConsent)
-        logger.info(
-          {
-            hasGivenConsent,
-            userId,
-          },
-          `Updated sms_consent for user.`
-        )
+        logger.info(`Updated sms_consent for user.`, {
+          hasGivenConsent,
+          userId,
+        })
       }
 
       sendEmptyTwimlResponse(res)
     } catch (err) {
-      logger.error(err, 'Error processing opt-out webhook.')
+      logger.error('Error processing opt-out webhook.', { err })
       sendEmptyTwimlResponse(res)
     }
   })

@@ -73,8 +73,8 @@ describe('describeWhiteboardSnapshot', () => {
     )
     expect(result).toBe('')
     expect(mockedLogger.error).toHaveBeenCalledWith(
-      { err },
-      'Error while analyzing whiteboard snapshot for progress report'
+      'Error while analyzing whiteboard snapshot for progress report',
+      { err }
     )
   })
 })

@@ -17,26 +17,25 @@ export const pinoLogger =
         },
       })
 
-// TODO: Update args and their types.
+type LogContext = Record<string, unknown>
 const logger = {
-  debug(...args: any) {
-    // @ts-ignore
-    pinoLogger.debug(...args)
+  debug(message: string, context: LogContext = {}) {
+    pinoLogger.debug(context, message)
   },
-  info(...args: any) {
-    // @ts-ignore
-    pinoLogger.info(...args)
+  info(message: string, context: LogContext = {}) {
+    pinoLogger.info(context, message)
   },
-  warn(...args: any) {
-    // @ts-ignore
-    pinoLogger.warn(...args)
+  warn(message: string, context: LogContext = {}) {
+    pinoLogger.warn(context, message)
   },
-  error(...args: any) {
-    // @ts-ignore
-    pinoLogger.error(...args)
-    newrelic.noticeError(args[0])
-    Sentry.captureException(args)
-    newrelic.noticeError(args)
+  error(message: string, context: LogContext & { err: unknown }) {
+    pinoLogger.error(context, message)
+    const { err, ...attributes } = context
+    newrelic.noticeError(
+      err as Error,
+      attributes as Record<string, string | number | boolean>
+    )
+    Sentry.captureException(err, { extra: attributes })
   },
 }
 

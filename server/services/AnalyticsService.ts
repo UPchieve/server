@@ -137,11 +137,10 @@ export async function getPersonPropertiesForAnalytics(userId?: Ulid) {
       // TODO: TEACHER PROFILES.
     }
   } catch (error) {
-    logger.error(
-      `Failed to get person properties for analytics user ${
-        userId ?? 'Anonymous'
-      } - error ${error}`
-    )
+    logger.error('Failed to get person properties for analytics user', {
+      err: error,
+      userId: userId ?? 'Anonymous',
+    })
   }
   return personProperties
 }

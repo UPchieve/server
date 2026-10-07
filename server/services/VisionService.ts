@@ -90,8 +90,8 @@ export async function describeWhiteboardSnapshot(
     return result
   } catch (error) {
     logger.error(
-      { err: error },
-      'Error while analyzing whiteboard snapshot for progress report'
+      'Error while analyzing whiteboard snapshot for progress report',
+      { err: error }
     )
     return ''
   }

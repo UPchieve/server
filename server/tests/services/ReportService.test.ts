@@ -87,21 +87,21 @@ describe('ReportService', () => {
       // Verify the expected batch starts/finishes are logged
       times(3, (n) =>
         expect(mockedLogger.info).toHaveBeenCalledWith(
-          expect.anything(),
           expect.stringContaining(
             `Attempting to fetch volunteer batch #${n + 1}`
-          )
+          ),
+          expect.anything()
         )
       )
       times(3, (n) =>
         expect(mockedLogger.info).toHaveBeenCalledWith(
-          expect.anything(),
-          expect.stringContaining(`Completed batch #${n + 1}`)
+          expect.stringContaining(`Completed batch #${n + 1}`),
+          expect.anything()
         )
       )
       expect(mockedLogger.info).not.toHaveBeenCalledWith(
-        expect.anything(),
-        expect.stringContaining('batch #4')
+        expect.stringContaining('batch #4'),
+        expect.anything()
       )
     })
 
@@ -125,16 +125,16 @@ describe('ReportService', () => {
         ) // Called 2x per volunteer
         // Verify the expected batch starts/finishes are logged
         expect(mockedLogger.info).toHaveBeenCalledWith(
-          expect.anything(),
-          expect.stringContaining('Attempting to fetch volunteer batch #1')
+          expect.stringContaining('Attempting to fetch volunteer batch #1'),
+          expect.anything()
         )
         expect(mockedLogger.info).toHaveBeenCalledWith(
-          expect.anything(),
-          expect.stringContaining('Completed batch #1')
+          expect.stringContaining('Completed batch #1'),
+          expect.anything()
         )
         expect(mockedLogger.info).not.toHaveBeenCalledWith(
-          expect.anything(),
-          expect.stringContaining('batch #2')
+          expect.stringContaining('batch #2'),
+          expect.anything()
         )
       }
     )

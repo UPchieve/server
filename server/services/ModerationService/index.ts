@@ -144,7 +144,7 @@ async function detectPersonInImage({
 
     return labelFailures
   } catch (err) {
-    logger.error({ sessionId, err }, 'Failed to detect a person in image')
+    logger.error('Failed to detect a person in image', { sessionId, err })
     throw new Error(
       `Failed to detect a person in image for session ${sessionId}`
     )
@@ -209,7 +209,7 @@ async function detectImageModerationInfractions(
       })
       .map(moderationLabelToInfractionReason)
   } catch (err) {
-    logger.error({ sessionId, err }, 'Failed to moderate image')
+    logger.error('Failed to moderate image', { sessionId, err })
     throw new Error(`Failed to moderate image for session ${sessionId}`)
   }
 }
@@ -449,7 +449,7 @@ async function checkForFullAddresses({
       return null
     }
   } catch (err) {
-    logger.error({ sessionId, err }, 'Failed to detect addresses')
+    logger.error('Failed to detect addresses', { sessionId, err })
     return null
   }
 }
@@ -565,7 +565,7 @@ async function checkForQuestionableLinks({
       return null
     }
   } catch (err) {
-    logger.error({ sessionId, err }, 'Failed to detect questionable links')
+    logger.error('Failed to detect questionable links', { sessionId, err })
     return null
   }
 }
@@ -773,8 +773,8 @@ function settledInfractions<T>(
 ): T[] {
   if (settled.status === 'fulfilled') return settled.value
   logger.error(
-    { sessionId, detector, err: settled.reason },
-    'Text moderation detector failed; its infractions are missing from this result'
+    'Text moderation detector failed; its infractions are missing from this result',
+    { sessionId, detector, err: settled.reason }
   )
   return []
 }
@@ -859,15 +859,12 @@ export async function getIndividualSessionMessageModerationResponse({
 
     return response.results
   } catch (err) {
-    logger.error(
-      {
-        error: err,
-        censoredSessionMessageId:
-          censoredSessionMessage?.id ??
-          'No ID: Text was likely extracted from an image',
-      },
-      `Error while moderating session message`
-    )
+    logger.error(`Error while moderating session message`, {
+      err,
+      censoredSessionMessageId:
+        censoredSessionMessage?.id ??
+        'No ID: Text was likely extracted from an image',
+    })
   }
 }
 const getAiModerationResult = async (
@@ -1007,10 +1004,10 @@ export async function moderateMessage(
       return { failures: {} }
     } else {
       const failures = aiDecision?.reasons ?? regexDecision.failures.failures
-      logger.info(
-        { censoredSessionMessage, reasons: failures },
-        'Session message was censored'
-      )
+      logger.info('Session message was censored', {
+        censoredSessionMessage,
+        reasons: failures,
+      })
       return { failures }
     }
   }
@@ -1112,10 +1109,11 @@ export async function handleLiveMediaModerationInfraction(
 
     if (doLiveMediaBan) {
       await liveMediaBanUser(userId, sessionId)
-      logger.info(
-        { userId, sessionId, infractionId: insertedInfraction.id },
-        'Live media banned user'
-      )
+      logger.info('Live media banned user', {
+        userId,
+        sessionId,
+        infractionId: insertedInfraction.id,
+      })
     }
 
     await socketService.emitModerationInfractionEvent(userId, {
@@ -1414,8 +1412,16 @@ export async function moderateImage(
       }
       if (!moderationSettings[category]) {
         logger.error(
-          { category, confidence, userId, sessionId, assignmentId, source },
-          `Missing moderation setting for moderation category. Infraction ignored.`
+          'Missing moderation setting for moderation category. Infraction ignored.',
+          {
+            err: 'Missing moderation setting',
+            category,
+            confidence,
+            userId,
+            sessionId,
+            assignmentId,
+            source,
+          }
         )
         return confidence * 100 >= config.imageModerationMinConfidence
       }
@@ -1495,10 +1501,12 @@ export async function moderateScreenshareImage(options: {
             image: resizedImage,
             source: 'screenshare',
           })
-          logger.info(
-            { sessionId, reasons: infractions, imageUrl, userId },
-            'Screenshare image triggered moderation'
-          )
+          logger.info('Screenshare image triggered moderation', {
+            sessionId,
+            reasons: infractions,
+            imageUrl,
+            userId,
+          })
 
           const infractionRecord = infractions.reduce(
             (acc, reason) => {
@@ -1520,10 +1528,11 @@ export async function moderateScreenshareImage(options: {
         }
       })
       .catch((err) => {
-        logger.error(
-          { sessionId, userId, err },
-          'Failed to process screenshare moderation check.'
-        )
+        logger.error('Failed to process screenshare moderation check.', {
+          sessionId,
+          userId,
+          err,
+        })
       })
   })
 }
@@ -1645,7 +1654,7 @@ export const moderateTranscript = async (
         reason,
         config.contextualModerationConfidenceThreshold
       )
-      logger.warn({ reason }, 'No confidence threshold set for reason')
+      logger.warn('No confidence threshold set for reason', { reason })
     }
   }
 
@@ -1664,10 +1673,10 @@ export const moderateTranscript = async (
 
       // Check for undefined confidence and handle gracefully
       if (result.confidence == null) {
-        logger.warn(
-          { reason, result },
-          'Transcript moderation result missing confidence value'
-        )
+        logger.warn('Transcript moderation result missing confidence value', {
+          reason,
+          result,
+        })
         continue
       }
 

@@ -62,7 +62,7 @@ export async function invokeModel({
       results,
     }
   } catch (err) {
-    logger.warn(err, 'An unexpected OpenAI error occurred')
+    logger.warn('An unexpected OpenAI error occurred', { err })
     throw err
   }
 }

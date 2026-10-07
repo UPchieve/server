@@ -76,13 +76,10 @@ export async function startRecording(meetingId: string): Promise<string> {
     }
     return mediaPipelineId
   } catch (err) {
-    logger.error(
-      {
-        err,
-        meetingId,
-      },
-      `Error starting recording for Chime meeting`
-    )
+    logger.error(`Error starting recording for Chime meeting`, {
+      err,
+      meetingId,
+    })
     throw err
   }
 }
@@ -102,7 +99,7 @@ export async function startTranscription(meetingId: string) {
     return transcribeResponse.$metadata.httpStatusCode === 200
   } catch (error) {
     logger.error(`Error starting transcription for meetingID: ${meetingId}:`, {
-      error,
+      err: error,
       meetingId,
     })
     return false
@@ -117,6 +114,6 @@ export async function stopTranscription(meetingId: string) {
       })
     )
   } catch (error) {
-    logger.error('Error stopping transcription:', error)
+    logger.error('Error stopping transcription:', { err: error })
   }
 }

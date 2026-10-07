@@ -158,14 +158,11 @@ async function generateSessionSummary(
     }
   )
 
-  logger.info(
-    {
-      sessionId: metadata.sessionId,
-      userType: metadata.userType,
-      response,
-    },
-    `Received session summary completion`
-  )
+  logger.info(`Received session summary completion`, {
+    sessionId: metadata.sessionId,
+    userType: metadata.userType,
+    response,
+  })
   return response
 }
 
@@ -197,9 +194,10 @@ export async function queueGenerateSessionSummaryForSession(sessionId: Uuid) {
         { sessionId }
       )
     } catch (error) {
-      logger.error(
-        `Failed to queue ${Jobs.GenerateSessionSummary} for session ${sessionId}`
-      )
+      logger.error(`Failed to queue ${Jobs.GenerateSessionSummary}`, {
+        err: error,
+        sessionId,
+      })
     }
   }
 }

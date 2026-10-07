@@ -21,12 +21,12 @@ export default async function (job: Job<BackfillStudentAmbassadorRoleJobData>) {
         logger.info(`${jobName}: Added ambassador role for user ${userId}`)
       }
       const roleContext = await refreshRoleContext(userId, client)
-      logger.info(roleContext, `${jobName}: Refreshed role context for user.`)
+      logger.info(`${jobName}: Refreshed role context for user.`, {
+        userId,
+        roleContext,
+      })
     } catch (err) {
-      logger.error(
-        `${jobName}: Error while processing user ${userId}: ${err}`,
-        err
-      )
+      logger.error(`${jobName}: Error while processing user`, { err, userId })
     }
   }
 }

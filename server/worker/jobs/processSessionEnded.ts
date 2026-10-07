@@ -64,7 +64,10 @@ export default async (job: Job<ProcessSessionEndedJobData>): Promise<void> => {
       logger.info(`Finished after metric task ${afterMetricTask.name}`)
     }
   } catch (error) {
-    logger.error(error)
+    logger.error(`Failed to complete ${Jobs.ProcessSessionEnded}`, {
+      err: error,
+      sessionId,
+    })
     throw new Error(
       `Failed to complete ${Jobs.ProcessSessionEnded} for session ${sessionId}: ${error}`
     )

@@ -81,13 +81,10 @@ export async function recordProgress(
       // but it appears to happen on occasion.
       // TODO Remove once we figure out why.
       materialAlreadyCompleted = true
-      logger.warn(
-        {
-          courseKey,
-          materialKey,
-        },
-        'User has already completed this training material'
-      )
+      logger.warn('User has already completed this training material', {
+        courseKey,
+        materialKey,
+      })
     } else {
       completedMaterialKeys.push(materialKey)
     }

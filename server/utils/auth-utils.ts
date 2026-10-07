@@ -315,8 +315,11 @@ export async function checkEmail(email: string) {
   }
 
   if (await isBlockedEmailDomain(email)) {
-    logger.error({ email }, 'Email is from an invalid email provider')
-    throw new NotAllowedError('Something went wrong - please try again later')
+    const err = new NotAllowedError(
+      'Something went wrong - please try again later'
+    )
+    logger.error('Email is from an invalid email provider', { err, email })
+    throw err
   }
 }
 

@@ -19,10 +19,9 @@ export async function addReferralForUserByCode(
 ) {
   const referrerId = await getReferrerIdByCode(referredByCode, tc)
   if (!referrerId) {
-    logger.warn(
-      { referredByCode },
-      'Invalid referral code provided during registration'
-    )
+    logger.warn('Invalid referral code provided during registration', {
+      referredByCode,
+    })
     return
   }
 
@@ -39,7 +38,10 @@ export async function getReferrerIdByCode(
       const user = await UserRepo.getUserByReferralCode(referredByCode, tc)
       if (user) return user.id
     } catch (error) {
-      logger.error(error as Error)
+      logger.error('Failed to get user by referral code', {
+        err: error,
+        referredByCode,
+      })
     }
   }
 }

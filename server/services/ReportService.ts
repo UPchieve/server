@@ -173,7 +173,10 @@ export async function getTelecomReport(data: unknown) {
       new Date(endDate)
     )
   } catch (error) {
-    logger.error(error as Error)
+    logger.error('Failed to generate telecom report', {
+      err: error,
+      partnerOrg,
+    })
     throw new Error((error as Error).message)
   }
 }
@@ -247,7 +250,7 @@ export async function generatePartnerAnalyticsReport(
   const end: Date = moment(endDate, 'MM-DD-YYYY').toDate()
   const report: AnalyticsReportRow[] = []
   const batchSize = config.corporatePartnerReports.batchSize
-  logger.info(logData, `Partner analytics report: Using batchSize=${batchSize}`)
+  logger.info(`Partner analytics report: Using batchSize=${batchSize}`, logData)
 
   const associatedPartners = await getAssociatedPartnersAndSchools(partnerOrg)
 
@@ -256,8 +259,8 @@ export async function generatePartnerAnalyticsReport(
   do {
     batchNum = report.length / batchSize + 1
     logger.info(
-      logData,
-      `Partner analytics report: Attempting to fetch volunteer batch #${batchNum}`
+      `Partner analytics report: Attempting to fetch volunteer batch #${batchNum}`,
+      logData
     )
     nextCursor = await processBatch(
       partnerOrg,
@@ -269,17 +272,17 @@ export async function generatePartnerAnalyticsReport(
       report
     )
     logger.info(
-      logData,
-      `Partner analytics report: Completed batch #${batchNum}`
+      `Partner analytics report: Completed batch #${batchNum}`,
+      logData
     )
   } while (nextCursor)
 
-  logger.info(logData, 'Generated all volunteer rows for analytics report')
+  logger.info('Generated all volunteer rows for analytics report', logData)
 
   let summary: AnalyticsReportSummary = {} as AnalyticsReportSummary
   if (report.length > 0) {
     summary = await getAnalyticsReportSummary(partnerOrg, report, start, end)
-    logger.info(logData, 'Finished generating partner analytics report summary')
+    logger.info('Finished generating partner analytics report summary', logData)
   }
 
   return { summary, report }
@@ -341,7 +344,7 @@ export async function getAnalyticsReport(data: unknown) {
     const logData = {
       volunteerPartnerOrgId: partnerOrgId,
     }
-    logger.info(logData, 'Beginning partner analytics report generation')
+    logger.info('Beginning partner analytics report generation', logData)
 
     const analyticsReport = await generatePartnerAnalyticsReport(
       partnerOrg,
@@ -354,8 +357,8 @@ export async function getAnalyticsReport(data: unknown) {
         `No analytics report data for partner with id=${partnerOrgId}`
       )
     logger.info(
-      logData,
-      `Generated partner analytics report with length=${analyticsReport.report.length}`
+      `Generated partner analytics report with length=${analyticsReport.report.length}`,
+      logData
     )
     const reportFilePath = await writeAnalyticsReport(
       analyticsReport,
@@ -363,10 +366,10 @@ export async function getAnalyticsReport(data: unknown) {
       endDate,
       partnerOrg
     )
-    logger.info(logData, 'Finished writing partner analytics report')
+    logger.info('Finished writing partner analytics report', logData)
     return reportFilePath
   } catch (error) {
-    logger.error(error as Error)
+    logger.error('Failed to generate partner analytics report', { err: error })
     if (error instanceof InputError) throw error
     throw new Error(
       'Something went wrong while generating the analytics report'
@@ -378,7 +381,7 @@ export async function deleteReport(reportFilePath: string) {
   try {
     await fsPromises.rm(path.parse(reportFilePath).dir, { recursive: true })
   } catch (error) {
-    logger.error(error as Error)
+    logger.error('Failed to delete report', { err: error, reportFilePath })
     throw new Error((error as Error).message)
   }
 }

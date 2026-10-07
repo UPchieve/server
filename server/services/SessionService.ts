@@ -280,7 +280,8 @@ export async function endSession(
     try {
       await socketService.emitSessionChange(sessionId)
     } catch (err) {
-      logger.error(err, `Failed to emit session change after end session`, {
+      logger.error(`Failed to emit session change after end session`, {
+        err,
         sessionId: session.id,
       })
     }
@@ -289,7 +290,8 @@ export async function endSession(
   try {
     await SessionmeetingsService.endMeeting(sessionId)
   } catch (err) {
-    logger.error(err, `Failed to end session meeting`, {
+    logger.error(`Failed to end session meeting`, {
+      err,
       sessionId: session.id,
     })
   }
@@ -884,7 +886,8 @@ export async function joinSession(
       await NotifyVolunteerService.clearExclusiveRequest(session.id)
       await SocketService.getInstance().emitSessionChange(session.id)
     } catch (err) {
-      logger.error(err, `Failed to emit session change after volunteer join`, {
+      logger.error(`Failed to emit session change after volunteer join`, {
+        err,
         userId: user.id,
         sessionId: session.id,
       })
@@ -916,7 +919,8 @@ export async function joinSession(
         ...exclusiveProps,
       })
     } catch (error) {
-      logger.error(error, `Failed to log session join actions.`, {
+      logger.error(`Failed to log session join actions.`, {
+        err: error,
         userId: user.id,
         sessionId: session.id,
       })
@@ -934,7 +938,8 @@ export async function joinSession(
         )
       }
     } catch (error) {
-      logger.error(error, `Failed to send FCM notifications to student.`, {
+      logger.error(`Failed to send FCM notifications to student.`, {
+        err: error,
         studentId: session.studentId,
         userId: user.id,
         sessionId: session.id,
@@ -955,6 +960,7 @@ export async function joinSession(
       })
     } catch (error) {
       logger.error(`Failed to log session rejoined session actions`, {
+        err: error,
         userId: user.id,
         sessionId: session.id,
       })
@@ -1301,12 +1307,12 @@ export async function isRecapDmsAvailable(
   const studentId = session.studentId
   if (!volunteerId || !studentId) {
     logger.warn(
+      'isRecapDmsAvailable: Bad state - session is missing either student or volunteer',
       {
         sessionId,
         volunteerId,
         studentId,
-      },
-      'isRecapDmsAvailable: Bad state - session is missing either student or volunteer'
+      }
     )
     return { eligible: false, ineligibleReason: DmIneligibilityReason.Other }
   }
@@ -1464,7 +1470,10 @@ async function getCachedSession(
       return JSON.parse(cacheResults)
     }
   } catch (error) {
-    logger.error({ sessionId, error }, 'Failed to get session info from cache')
+    logger.error('Failed to get session info from cache', {
+      sessionId,
+      err: error,
+    })
   }
 }
 

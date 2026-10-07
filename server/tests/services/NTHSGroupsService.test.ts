@@ -152,10 +152,9 @@ describe('makeChaptersSchoolOfficial', () => {
       baseContact2.nthsGroupId,
     ])
 
-    expect(mockedLogger.warn).toHaveBeenCalledWith(
-      { groupId: baseContact1.nthsGroupId },
-      expect.any(String)
-    )
+    expect(mockedLogger.warn).toHaveBeenCalledWith(expect.any(String), {
+      groupId: baseContact1.nthsGroupId,
+    })
     expect(mockedNTHSRepo.updateSchoolAffiliationStatus).toHaveBeenCalledTimes(
       2
     )

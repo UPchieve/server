@@ -27,11 +27,8 @@ export default async function (
     })
   } catch (err) {
     logger.error(
-      {
-        error: err,
-        userId: job.data.userId,
-      },
-      `${jobName}: Failed to send Become An Ambassador email to user: ${err}`
+      `${jobName}: Failed to send Become An Ambassador email to user`,
+      { err, userId: job.data.userId }
     )
     throw err
   }

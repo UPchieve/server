@@ -360,7 +360,7 @@ export function routeUser(router: Router): void {
         clientUUID,
         role: user.roleContext.activeRole,
       }).catch((err) => {
-        logger.error({ err: err.cause, ...err.context }, err.message)
+        logger.error('Failed to track activity', { err })
       })
       return res.sendStatus(200)
     } catch (err) {
@@ -377,7 +377,7 @@ export function routeUser(router: Router): void {
         ipAddress,
         clientUUID,
       }).catch((err) => {
-        logger.error({ err: err.cause, ...err.context }, err.message)
+        logger.error('Failed to track passivity', { err })
       })
       return res.sendStatus(200)
     } catch (err) {
@@ -395,7 +395,7 @@ export function routeUser(router: Router): void {
             userId: user.id,
             clientUUID,
           }).catch((err) => {
-            logger.error({ err: err.cause, ...err.context }, err.message)
+            logger.error('Failed to set inactivity countdown', { err })
           })
         }
         return res.sendStatus(200)

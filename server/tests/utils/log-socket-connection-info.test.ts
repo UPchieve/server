@@ -38,6 +38,7 @@ describe('logSocketEvent', () => {
 
     logSocketEvent('client_connect_error', socket, data)
     expect(logger.error).toHaveBeenCalledWith(
+      'Socket event: client_connect_error',
       {
         eventName: 'client_connect_error',
         err: eventError,
@@ -51,8 +52,7 @@ describe('logSocketEvent', () => {
         transport: conn.transport.name,
         sessionId: socket.data.sessionId,
         ...data.metadata,
-      },
-      'Socket event: client_connect_error'
+      }
     )
   })
 
@@ -72,23 +72,20 @@ describe('logSocketEvent', () => {
     } as SocketUser
 
     logSocketEvent('disconnect', socket, reason)
-    expect(logger.info).toHaveBeenCalledWith(
-      {
-        eventName: 'disconnect',
-        disconnectReason: description,
-        disconnectIsError: false,
-        error: undefined,
-        errorMessage: undefined,
-        user: {
-          id: 'test-user-id-123',
-          roles: undefined,
-        },
-        rooms: ['room1', 'room2'],
-        transport: conn.transport.name,
-        sessionId: undefined,
+    expect(logger.info).toHaveBeenCalledWith('Socket event: disconnect', {
+      eventName: 'disconnect',
+      disconnectReason: description,
+      disconnectIsError: false,
+      error: undefined,
+      errorMessage: undefined,
+      user: {
+        id: 'test-user-id-123',
+        roles: undefined,
       },
-      'Socket event: disconnect'
-    )
+      rooms: ['room1', 'room2'],
+      transport: conn.transport.name,
+      sessionId: undefined,
+    })
   })
 
   it('Logs the disconnectReason when an error is received (client disconnect)', () => {
@@ -108,12 +105,12 @@ describe('logSocketEvent', () => {
 
     logSocketEvent('client_disconnect', socket, reason)
     expect(logger.error).toHaveBeenCalledWith(
+      'Socket event: client_disconnect',
       {
         eventName: 'client_disconnect',
         disconnectReason: description,
         disconnectIsError: true,
-        error: undefined,
-        errorMessage: undefined,
+        err: 'Socket disconnected with an error',
         user: {
           id: 'test-user-id-123',
           roles: undefined,
@@ -121,8 +118,7 @@ describe('logSocketEvent', () => {
         rooms: ['room1', 'room2'],
         transport: conn.transport.name,
         sessionId: undefined,
-      },
-      'Socket event: client_disconnect'
+      }
     )
   })
 })

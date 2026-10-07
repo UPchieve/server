@@ -54,8 +54,8 @@ export async function createTeacherClass(
       )
     } catch (err) {
       logger.error(
-        { err, userId, classId: newClass.id },
-        'Unable to create getting started assignment for new class'
+        'Unable to create getting started assignment for new class',
+        { err, userId, classId: newClass.id }
       )
     }
   }

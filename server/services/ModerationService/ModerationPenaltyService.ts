@@ -24,8 +24,8 @@ function getModerationPenaltyWeight(
 
   if (!moderationSetting) {
     logger.warn(
-      { moderationReason: infraction },
-      `Missing score for infraction category. Defaulting to severe score.`
+      `Missing score for infraction category. Defaulting to severe score.`,
+      { moderationReason: infraction }
     )
 
     return config.liveMediaBanInfractionScoreThreshold ?? 10

@@ -62,13 +62,13 @@ describe('getDocumentEditorImages', () => {
     const result = await QuillDocService.getDocEditorImages(quillDoc)
     expect(result).toEqual([])
     expect(logger.warn).toHaveBeenCalledWith(
+      expect.stringContaining(
+        'Failed to create buffer for document editor image'
+      ),
       expect.objectContaining({
         err: expect.anything(),
         imageType: 'base64',
-      }),
-      expect.stringContaining(
-        'Failed to create buffer for document editor image'
-      )
+      })
     )
   })
 })

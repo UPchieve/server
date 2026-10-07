@@ -564,19 +564,19 @@ describe('hasActiveSubjectPrompt', () => {
     expect(report).toMatchObject(progressReport)
     // First warning for failing to process editor content
     expect(logger.warn).toHaveBeenCalledWith(
+      expect.stringContaining('Failed to process document editor content'),
       expect.objectContaining({
         err: expect.anything(),
         sessionId: docEditorSession.id,
-      }),
-      expect.stringContaining('Failed to process document editor content')
+      })
     )
     // Second warning for failing to process images
     expect(logger.warn).toHaveBeenCalledWith(
+      expect.stringContaining('Failed to process document editor images'),
       expect.objectContaining({
         err: expect.anything(),
         sessionId: docEditorSession.id,
-      }),
-      expect.stringContaining('Failed to process document editor images')
+      })
     )
   })
 
@@ -646,11 +646,11 @@ describe('hasActiveSubjectPrompt', () => {
 
     expect(report).toMatchObject(progressReport)
     expect(logger.warn).toHaveBeenCalledWith(
+      expect.stringContaining('Failed to process whiteboard snapshot'),
       expect.objectContaining({
         err: expect.anything(),
         sessionId: session.id,
-      }),
-      expect.stringContaining('Failed to process whiteboard snapshot')
+      })
     )
   })
 })

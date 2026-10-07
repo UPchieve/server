@@ -60,7 +60,7 @@ export default class ClassLinkStrategy extends OAuth2Strategy {
       }
       return done(null, profile)
     } catch (error) {
-      logger.error(`Error getting ClassLink user profile: ${error}`)
+      logger.error('Error getting ClassLink user profile', { err: error })
       done(error as Error, false, {
         errorMessage: 'Failed to get user profile from ClassLink.',
       })

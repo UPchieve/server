@@ -9,7 +9,7 @@ export function listeners() {
   register(
     USER_EVENTS.USER_CREATED,
     async (userId: Uuid) => {
-      logger.info({ userId }, 'Account created')
+      logger.info('Account created', { userId })
     },
     'logAccountCreation'
   )

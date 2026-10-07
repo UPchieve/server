@@ -107,16 +107,13 @@ export async function getOrCreateSessionHolds( // exported for testing
   const coachIds = randomized.map((coach) => coach.userId)
   const holds = buildHolds(coachIds)
   await saveHoldsToCache(sessionData.id, holds)
-  logger.info(
-    {
-      sessionId: sessionData.id,
-      subject: sessionData.subject,
-      holdsCreated: holds.length,
-      forCoaches: holds.map((c) => c.coachId),
-      eligibleCoaches: coachData.length,
-    },
-    'Created holds for session'
-  )
+  logger.info('Created holds for session', {
+    sessionId: sessionData.id,
+    subject: sessionData.subject,
+    holdsCreated: holds.length,
+    forCoaches: holds.map((c) => c.coachId),
+    eligibleCoaches: coachData.length,
+  })
   return holds
 }
 
@@ -170,13 +167,10 @@ export async function dismissHold(coachId: Uuid, sessionId: Uuid) {
   // Get holds from cache
   const cachedHolds = await getCachedHoldsForSession(sessionId)
   if (!cachedHolds) {
-    logger.warn(
-      {
-        coachId,
-        sessionId,
-      },
-      'Could not find cached session holds while dismissing a hold'
-    )
+    logger.warn('Could not find cached session holds while dismissing a hold', {
+      coachId,
+      sessionId,
+    })
     return
   }
   const updatedHolds = buildUpdatedHolds(coachId, cachedHolds)

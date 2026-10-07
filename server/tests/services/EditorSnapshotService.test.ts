@@ -50,8 +50,8 @@ describe('generateWhiteboardSnapshot', () => {
       await EditorSnapshotService.generateWhiteboardSnapshot(whiteboardDocMock)
     expect(result).toBeUndefined()
     expect(logger.error).toHaveBeenCalledWith(
-      { err: error },
-      'Failed to render whiteboard snapshot'
+      'Failed to render whiteboard snapshot',
+      { err: error }
     )
   })
 })

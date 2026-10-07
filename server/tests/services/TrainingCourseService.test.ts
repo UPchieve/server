@@ -107,11 +107,11 @@ describe('TrainingCourseService', () => {
         mockedVolunteerRepo.updateVolunteerTrainingById
       ).not.toHaveBeenCalled()
       expect(mockedLogger.warn).toHaveBeenCalledWith(
+        'User has already completed this training material',
         {
           courseKey,
           materialKey,
-        },
-        'User has already completed this training material'
+        }
       )
       expect(result).toEqual({
         isComplete,

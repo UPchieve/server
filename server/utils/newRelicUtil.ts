@@ -1,5 +1,4 @@
 import nr from 'newrelic'
-
 import logger from '../logger'
 
 export function eventObservabilityWrapper(
@@ -10,27 +9,21 @@ export function eventObservabilityWrapper(
   return (...args: any[]) => {
     nr.startBackgroundTransaction(`event:${event}`, async () => {
       const transaction = nr.getTransaction()
-      logger.info(
-        `handling ${event} with ${name} on args ${JSON.stringify(args)}`
-      )
+      logger.info(`handling ${event} with ${name}`, { args })
       try {
         await handler(...args)
         logger.info(`${name} successfully handled event ${event}`)
       } catch (error) {
-        logger.error(error, `${name} error handling event ${event}`)
+        logger.error(`${name} error handling event ${event}`, { err: error })
       } finally {
         transaction.end()
       }
     }).catch((error) => {
-      logger.error(error, `error in event handler newrelic transaction`)
+      logger.error(`error in event handler newrelic transaction`, {
+        err: error,
+      })
     })
   }
-}
-
-type WebTransactionError = {
-  error: Error
-  details?: { [key: string]: string | number | boolean }
-  message?: string
 }
 
 export async function observeWebTransaction(
@@ -42,12 +35,12 @@ export async function observeWebTransaction(
 
     try {
       await webTransaction()
-    } catch (error: any) {
-      logger.error(error, false)
+    } catch (error) {
+      logger.error('Error in newrelic web transaction', { err: error })
     } finally {
       transaction.end()
     }
   }).catch((error) => {
-    logger.error(error, false)
+    logger.error('Error in newrelic web transaction', { err: error, url })
   })
 }

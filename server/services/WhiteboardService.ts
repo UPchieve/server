@@ -62,12 +62,12 @@ export async function deleteDoc(sessionId: Ulid) {
   try {
     const sessionKey = await getZwibserveOrCustomCollabKey(sessionId)
     ;(await cache.remove(sessionKey)) &&
-      logger.info({ sessionId }, 'Removed whiteboard doc from cache')
+      logger.info('Removed whiteboard doc from cache', { sessionId })
   } catch (error) {
-    logger.warn(
-      { err: error, sessionId },
-      "Couldn't remove whiteboard doc from cache"
-    )
+    logger.warn("Couldn't remove whiteboard doc from cache", {
+      err: error,
+      sessionId,
+    })
   }
 }
 
@@ -86,20 +86,18 @@ export const uploadedToStorage = async (
     return true
   } catch (error) {
     if (attempts === 1) {
-      logger.error(
-        `Retry uploading of whiteboard failed ${sessionId}: ${
-          (error as Error).message
-        }`
-      )
+      logger.error('Retry uploading of whiteboard failed', {
+        err: error,
+        sessionId,
+      })
 
       return false
     }
 
-    logger.error(
-      `Uploading of whiteboard failed ${sessionId}, retrying: ${
-        (error as Error).message
-      }`
-    )
+    logger.error('Uploading of whiteboard failed, retrying', {
+      err: error,
+      sessionId,
+    })
     attempts++
     return uploadedToStorage(sessionId, whiteboardDoc, attempts)
   }
@@ -114,7 +112,7 @@ export const getDocFromStorage = async (sessionId: Ulid): Promise<string> => {
     )
     return whiteboardDoc
   } catch (err) {
-    logger.warn({ err, sessionId }, 'Getting the whiteboard failed')
+    logger.warn('Getting the whiteboard failed', { err, sessionId })
     return ''
   }
 }
@@ -146,10 +144,9 @@ export async function loadZwibbler(): Promise<Zwibbler | undefined> {
       zwibbler = await loadZwibblerLib()
       return zwibbler
     } catch (err) {
-      logger.warn(
-        { err },
-        'Zwibbler load failed. Snapshots will be skipped for now.'
-      )
+      logger.warn('Zwibbler load failed. Snapshots will be skipped for now.', {
+        err,
+      })
       return
     } finally {
       if (!zwibbler) zwibblerLoad = undefined

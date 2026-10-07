@@ -162,7 +162,7 @@ describe('invokeModel', () => {
 
       await invokeText().catch(() => {})
 
-      expect(mocked(logger.error).mock.lastCall?.[0]).toMatchObject({
+      expect(mocked(logger.error).mock.lastCall?.[1]).toMatchObject({
         contentBlockTypes: ['thinking', 'text'],
       })
     })

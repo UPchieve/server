@@ -260,10 +260,11 @@ async function resolveCleverStudents(
       if (ucStudent) cleverStudentIdToUcId.set(cleverStudent.id, ucStudent.id)
     } catch (err) {
       // TODO: return a list of students that couldn't be rostered to the teacher
-      logger.warn(
-        { err, teacherId, cleverStudentId: cleverStudent.id },
-        'Skipped a Clever student while rostering a teacher.'
-      )
+      logger.warn('Skipped a Clever student while rostering a teacher.', {
+        err,
+        teacherId,
+        cleverStudentId: cleverStudent.id,
+      })
     }
   }
   return cleverStudentIdToUcId

@@ -140,11 +140,14 @@ async function askProvider<T>(
   const result = extractResponse(response, usingTools)
 
   if (result === null) {
-    logger.error(
-      { provider: provider.name, model, ...toContentShape(response) },
-      'Did not receive expected Claude response'
-    )
-    throw new NoClaudeResponseError(usingTools ? 'input' : 'text')
+    const err = new NoClaudeResponseError(usingTools ? 'input' : 'text')
+    logger.error('Did not receive expected Claude response', {
+      err,
+      provider: provider.name,
+      model,
+      ...toContentShape(response),
+    })
+    throw err
   }
 
   // The response is untyped JSON and T is the caller's, so this cannot be proven.
@@ -168,10 +171,10 @@ export async function invokeModel<T = string | ToolInput>(
       const result = await askProvider<T>(provider, payload, model, usingTools)
 
       if (isFallback) {
-        logger.warn(
-          { provider: provider.name, model },
-          'Claude request served by fallback provider'
-        )
+        logger.warn('Claude request served by fallback provider', {
+          provider: provider.name,
+          model,
+        })
       }
 
       return result
@@ -181,18 +184,20 @@ export async function invokeModel<T = string | ToolInput>(
       // Logged on its own, not just in aggregate: a fallback that has quietly
       // stopped working is the worst thing to discover during an outage.
       if (isFallback) {
-        logger.error(
-          { provider: provider.name, model, err: error },
-          'Claude fallback provider failed'
-        )
+        logger.error('Claude fallback provider failed', {
+          provider: provider.name,
+          model,
+          err: error,
+        })
       }
 
       if (!shouldTryNextProvider(error)) break
 
-      logger.warn(
-        { provider: provider.name, model, err: error },
-        'Claude provider failed, trying the fallback'
-      )
+      logger.warn('Claude provider failed, trying the fallback', {
+        provider: provider.name,
+        model,
+        err: error,
+      })
     }
   }
 

@@ -112,8 +112,8 @@ describe('SessionEditorActivity repo', () => {
         logThrottledEditorActivity(sessionId, userId, 'quill')
       ).resolves.toBeUndefined()
       expect(loggerWarnSpy).toHaveBeenCalledWith(
-        expect.objectContaining({ sessionId, userId, source: 'quill' }),
-        'Failed to log throttled session editor activity'
+        'Failed to log throttled session editor activity',
+        expect.objectContaining({ sessionId, userId, source: 'quill' })
       )
 
       loggerWarnSpy.mockRestore()

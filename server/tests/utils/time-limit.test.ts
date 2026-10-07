@@ -38,9 +38,8 @@ describe('timeLimit', () => {
     await new Promise((r) => setTimeout(r, waitInMs + 10))
     expect(mockedLogger.error).toHaveBeenCalledTimes(1)
     expect(mockedLogger.error).toHaveBeenCalledWith(
-      expect.objectContaining({
-        message: expect.stringContaining(partialErrorMessage),
-      })
+      'Passed in promise rejected',
+      { err: partialErrorMessage, waitInMs }
     )
   })
 
@@ -53,10 +52,9 @@ describe('timeLimit', () => {
       waitInMs: 1,
     })
     expect(result).toBe('it lost')
-    expect(mockedLogger.error).toHaveBeenCalledWith(
-      expect.objectContaining({
-        message: expect.stringContaining(partialMessage),
-      })
-    )
+    expect(mockedLogger.error).toHaveBeenCalledWith(partialMessage, {
+      err: 'Time limit reached',
+      waitInMs: 1,
+    })
   })
 })

@@ -72,8 +72,8 @@ export async function runWithModelObservation<T>(
   const { trace, ...generationOptions } = options
   if (!trace) {
     logger.info(
-      generationOptions,
-      'No trace found, continue callback execution'
+      'No trace found, continue callback execution',
+      generationOptions
     )
     return await cb()
   }

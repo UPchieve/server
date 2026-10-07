@@ -113,11 +113,11 @@ async function formatDocumentEditorPrompt(
       quillDoc = removeImageInsertsFromQuillDoc(session.quillDoc)
     } catch (error) {
       logger.warn(
+        'Failed to process document editor content. Continuing without editor content',
         {
           err: error,
           sessionId: session.id,
-        },
-        'Failed to process document editor content. Continuing without editor content'
+        }
       )
     }
 
@@ -128,11 +128,11 @@ async function formatDocumentEditorPrompt(
       }
     } catch (error) {
       logger.warn(
+        'Failed to process document editor images. Continuing without imageText',
         {
           err: error,
           sessionId: session.id,
-        },
-        'Failed to process document editor images. Continuing without imageText'
+        }
       )
     }
   }
@@ -164,8 +164,8 @@ async function formatWhiteboardPrompt(
     }
   } catch (error) {
     logger.warn(
-      { err: error, sessionId },
-      'Failed to process whiteboard snapshot. Continuing without whiteboard content'
+      'Failed to process whiteboard snapshot. Continuing without whiteboard content',
+      { err: error, sessionId }
     )
     editorText = '[Whiteboard content could not be processed]'
   }
@@ -199,10 +199,9 @@ async function getProgressReportImageText(
       )
       imageText += textSegments.join(' ')
     } catch (error) {
-      logger.warn(
-        { err: error },
-        'Failed to analyze a progress report image. Skipping'
-      )
+      logger.warn('Failed to analyze a progress report image. Skipping', {
+        err: error,
+      })
     }
   }
   trace.update({
@@ -351,15 +350,15 @@ export async function getSessionsToAnalyzeForProgressReport(
   }
 
   if (!sessions.length) {
-    logger.info(
-      { userId, filter },
-      'Progress Report found no sessions for filter'
-    )
+    logger.info('Progress Report found no sessions for filter', {
+      userId,
+      filter,
+    })
   } else if (!sessionsWithMessages.length) {
-    logger.info(
-      { userId, filter },
-      'Progress Report generated no session messages from filter'
-    )
+    logger.info('Progress Report generated no session messages from filter', {
+      userId,
+      filter,
+    })
   }
   return sessionsWithMessages
 }
@@ -396,10 +395,10 @@ export async function generateProgressReportForUser(
   })
 
   if (!reportId) {
-    logger.warn(
-      { userId, ...filter },
-      `No ${filter.subject} progress report generated`
-    )
+    logger.warn(`No ${filter.subject} progress report generated`, {
+      userId,
+      ...filter,
+    })
     return null
   }
 

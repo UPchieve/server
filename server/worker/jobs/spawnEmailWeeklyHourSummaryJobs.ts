@@ -61,10 +61,10 @@ export default async (
 
   if (errors.length) {
     logger.error(
-      '%s: Failed to queue %d! jobs: %o',
-      Jobs.SpawnEmailWeeklyHourSummaryJobs,
-      errors.length,
+      `${Jobs.SpawnEmailWeeklyHourSummaryJobs}: Failed to queue jobs`,
       {
+        err: 'Failed to queue jobs',
+        failedCount: errors.length,
         lastMonday,
         lastSunday,
         errors,

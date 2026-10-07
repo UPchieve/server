@@ -41,8 +41,8 @@ export async function getMemoryStatsByPattern(
       keyCount += batchCount
     } catch (error) {
       logger.error(
-        error,
-        `Couldn't get redis memory stats for some keys like: ${pattern}`
+        `Couldn't get redis memory stats for some keys like: ${pattern}`,
+        { err: error }
       )
     }
   }

@@ -21,27 +21,23 @@ export default async function (
     job.data.nthsGroupId
   )
   if (!adminsContactInfo.length) {
-    logger.warn(logData, 'NTHS chapter has no current admins to notify')
+    logger.warn('NTHS chapter has no current admins to notify', logData)
     return
   }
   const deactivatedUser = await UserService.getUserContactInfo(
     job.data.deactivatedUserId
   )
   if (!deactivatedUser?.firstName) {
-    log("Could not find deactivated user's contact info", logData, true)
-    throw new Error("Could not find deactivated user's contact info")
+    const err = new Error("Could not find deactivated user's contact info")
+    logger.error(err.message, { err, ...logData })
+    throw err
   }
   await MailService.sendNTHSChapterAdminsMemberDeactivationNotice(
     adminsContactInfo,
     deactivatedUser!.firstName
   )
-  log('NTHS chapter admins were notified of a deactivated member', {
+  logger.info('NTHS chapter admins were notified of a deactivated member', {
     ...logData,
     adminUserIds: adminsContactInfo.map((admin) => admin.userId),
   })
-}
-
-function log(message: string, logData: any, isError = false) {
-  const logLevelFunction = isError ? logger.error : logger.info
-  logLevelFunction(logData ?? {}, message)
 }

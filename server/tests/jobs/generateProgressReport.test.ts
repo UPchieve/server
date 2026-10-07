@@ -144,13 +144,13 @@ describe(Jobs.GenerateProgressReport, () => {
 
     await generateProgressReport(job as Job)
     expect(logger.info).toHaveBeenCalledWith(
+      'STEM Progress Report processing not enabled for user',
       {
         isStemProgressReportEnabled,
         sessionId: session.id,
         subject: session.subject,
         userId: session.studentId,
-      },
-      'STEM Progress Report processing not enabled for user'
+      }
     )
     expect(
       mockedProgressReportsService.generateProgressReportForUser

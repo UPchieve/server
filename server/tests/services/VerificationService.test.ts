@@ -85,12 +85,12 @@ describe('VerificationService', () => {
           VerificationService.initiateVerification(user, req)
         ).rejects.toThrow(new InputError(expectedErrorMsg))
         expect(mockLogger.warn).toHaveBeenCalledWith(
+          'Invalid phone number provided for verification.',
           expect.objectContaining({
             sendTo: req.sendTo,
             userId: user.id,
             verificationMethod: req.verificationMethod,
-          }),
-          'Invalid phone number provided for verification.'
+          })
         )
       }
     )
@@ -105,12 +105,12 @@ describe('VerificationService', () => {
         VerificationService.initiateVerification(user, req)
       ).rejects.toThrow(AlreadyInUseError)
       expect(mockLogger.warn).toHaveBeenCalledWith(
+        'Cannot complete verification - phone or email is already in use',
         expect.objectContaining({
           userId: user.id,
           verificationMethod: req.verificationMethod,
           sendTo: req.sendTo,
-        }),
-        'Cannot complete verification - phone or email is already in use'
+        })
       )
     })
 
@@ -124,12 +124,12 @@ describe('VerificationService', () => {
         VerificationService.initiateVerification(user, req)
       ).rejects.toThrow(LookupError)
       expect(mockLogger.warn).toHaveBeenCalledWith(
+        'Email addresses in verify did not match.',
         expect.objectContaining({
           userId: user.id,
           verificationMethod: req.verificationMethod,
           sendTo: req.sendTo,
-        }),
-        'Email addresses in verify did not match.'
+        })
       )
     })
 
@@ -144,14 +144,13 @@ describe('VerificationService', () => {
         VerificationService.initiateVerification(user, req)
       ).rejects.toThrow(expectedErr)
       expect(mockLogger.error).toHaveBeenCalledWith(
+        'Failed to send Twilio verification code.',
         expect.objectContaining({
           userId: user.id,
           verificationMethod: req.verificationMethod,
           sendTo: req.sendTo,
-          message: expectedErr.message,
-          status: expectedErr.status,
-        }),
-        'Failed to send Twilio verification code.'
+          err: expectedErr,
+        })
       )
     })
 

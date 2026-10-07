@@ -66,7 +66,7 @@ export default async (job: Job<DeidentifyUserJob>): Promise<void> => {
     await tc.query(`UPDATE users SET deleted = true WHERE id = $1`, [userId])
   })
 
-  logger.info({ userId }, 'Successfully deidentified user.')
+  logger.info('Successfully deidentified user.', { userId })
 }
 
 async function hardDeleteRows(userId: Ulid, tc: TransactionClient) {

@@ -60,53 +60,40 @@ export default function (server: http.Server) {
   SocketService.getInstance(io)
 
   io.engine.on('connection', (rawSocket) => {
-    logger.info(
-      {
-        engineSid: rawSocket.id,
-        transport: rawSocket.transport.name,
-      },
-      'Engine.IO connection'
-    )
+    logger.info('Engine.IO connection', {
+      engineSid: rawSocket.id,
+      transport: rawSocket.transport.name,
+    })
   })
 
   io.engine.on('connection_error', (err) => {
-    logger.warn(
-      {
-        err: err,
-        method: err.req?.method,
-        code: err.code,
-        type: err.type,
-        url: err.req?.url,
-        query: err.req?._query ?? err.req?.query,
-        headers: {
-          cookie: err.req?.headers?.cookie,
-        },
+    logger.warn('Engine.IO connection error', {
+      err: err,
+      method: err.req?.method,
+      code: err.code,
+      type: err.type,
+      url: err.req?.url,
+      query: err.req?._query ?? err.req?.query,
+      headers: {
+        cookie: err.req?.headers?.cookie,
       },
-
-      'Engine.IO connection error'
-    )
+    })
   })
 
   io.on('connection', (socket) => {
-    logger.info(
-      {
-        engineSid: (socket.conn as any).id,
-        socketId: socket.id,
-      },
-      'Socket.IO connection'
-    )
+    logger.info('Socket.IO connection', {
+      engineSid: (socket.conn as any).id,
+      socketId: socket.id,
+    })
 
     socket.on('disconnect', (reason, description) => {
-      logger.info(
-        {
-          engineSid: (socket.conn as any).id,
-          socketId: socket.id,
-          reason,
-          // Only 'transport error' comes with a cause, e.g. 'overlap from client'.
-          cause: description?.message,
-        },
-        'Socket.IO disconnect'
-      )
+      logger.info('Socket.IO disconnect', {
+        engineSid: (socket.conn as any).id,
+        socketId: socket.id,
+        reason,
+        // Only 'transport error' comes with a cause, e.g. 'overlap from client'.
+        cause: description?.message,
+      })
     })
   })
 

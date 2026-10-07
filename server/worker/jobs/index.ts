@@ -538,22 +538,19 @@ export const addJobProcessors = (queue: Queue): void => {
           userId: job.data?.userId,
         }
 
-        logger.info(loggingContext, `Processing job: ${job.name}`)
+        logger.info(`Processing job: ${job.name}`, loggingContext)
         await newrelic.startBackgroundTransaction(
           `job:${job.name}`,
           async () => {
             const transaction = newrelic.getTransaction()
             try {
               await jobProcessor.processor(job)
-              logger.info(loggingContext, `Completed job: ${job.name}`)
+              logger.info(`Completed job: ${job.name}`, loggingContext)
             } catch (error) {
-              logger.error(
-                {
-                  err: error,
-                  ...loggingContext,
-                },
-                `Error processing job: ${job.name}`
-              )
+              logger.error(`Error processing job: ${job.name}`, {
+                err: error,
+                ...loggingContext,
+              })
               throw error
             } finally {
               transaction.end()
@@ -563,6 +560,6 @@ export const addJobProcessors = (queue: Queue): void => {
       })
     }
   } catch (error) {
-    logger.error(error, `Error adding job processors`)
+    logger.error(`Error adding job processors`, { err: error })
   }
 }

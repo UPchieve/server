@@ -52,8 +52,8 @@ async function getPatternsFromCache(): Promise<
     }
   } catch (error) {
     logger.error(
-      { error },
-      'Failed to read and parse moderation text patterns from cache'
+      'Failed to read and parse moderation text patterns from cache',
+      { err: error }
     )
   }
 }

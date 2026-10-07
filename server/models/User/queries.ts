@@ -179,7 +179,10 @@ export async function getUserById(
       ret.email = ret.email.toLowerCase()
       const roles = (ret.roles ?? []).filter((r) => !!r)
       if (!roles.length) {
-        logger.error(`User with id ${ret.id} has no user roles.`)
+        logger.error('User has no user roles', {
+          err: 'User has no user roles',
+          userId: ret.id,
+        })
       }
       return {
         ...ret,

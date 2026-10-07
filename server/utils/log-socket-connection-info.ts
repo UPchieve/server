@@ -142,9 +142,15 @@ export const logSocketEvent = (
     }
     const message = `Socket event: ${event}`
     disconnectReason?.isError || error?.message
-      ? logger.error(analyticsData, message)
-      : logger.info(analyticsData, message)
+      ? logger.error(message, {
+          ...analyticsData,
+          err: error ?? 'Socket disconnected with an error',
+        })
+      : logger.info(message, analyticsData)
   } catch (err) {
-    logger.error(err, `Failed to log socket event for userId=${userId}`)
+    logger.error(`Failed to log socket event for user`, {
+      err,
+      userId,
+    })
   }
 }

@@ -440,11 +440,13 @@ export async function insertNthsGroupAction(
       tc
     )
     if (!results.length) {
-      logger.error(
-        { groupId, actionName },
-        'Failed to insert NTHS group action'
-      )
-      throw new Error('Failed to insert group action')
+      const err = new Error('Failed to insert group action')
+      logger.error('Failed to insert NTHS group action', {
+        err,
+        groupId,
+        actionName,
+      })
+      throw err
     }
     return makeSomeRequired(results[0], [
       'id',

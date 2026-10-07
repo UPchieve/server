@@ -57,20 +57,20 @@ export async function validateRequestRecaptcha(req: Request): Promise<boolean> {
   try {
     const token = req.headers['g-recaptcha-response']
     if (!token) {
-      logger.info(
-        { userId: req.user?.id },
-        'unable to check grecaptcha: no token in request headers'
-      )
+      logger.info('unable to check grecaptcha: no token in request headers', {
+        userId: req.user?.id,
+      })
       return false
     }
 
     const result = await getScore(token as string, req.ip)
     // TODO: Check action as well?
     if (!result.data || !result.data?.success) {
-      logger.error(
-        { data: JSON.stringify(result.data), userId: req.user?.id },
-        `failed to get grecaptcha score`
-      )
+      logger.error('failed to get grecaptcha score', {
+        err: 'Failed to get grecaptcha score',
+        data: JSON.stringify(result.data),
+        userId: req.user?.id,
+      })
       return false
     }
 
@@ -83,17 +83,17 @@ export async function validateRequestRecaptcha(req: Request): Promise<boolean> {
     }
 
     if (result.data.score < config.googleRecaptchaThreshold) {
-      logger.warn(logMetadata, `grecaptcha score is below threshold`)
+      logger.warn(`grecaptcha score is below threshold`, logMetadata)
       return false
     }
 
-    logger.info(logMetadata, 'grecaptcha score passes threshold')
+    logger.info('grecaptcha score passes threshold', logMetadata)
     return true
   } catch (err) {
-    logger.error(
-      { userId: req.user?.id, err },
-      'unexpected error in grecaptcha validation'
-    )
+    logger.error('unexpected error in grecaptcha validation', {
+      userId: req.user?.id,
+      err,
+    })
     return false
   }
 }

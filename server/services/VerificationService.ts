@@ -105,14 +105,14 @@ export async function initiateVerification(
 
   if (isPhoneVerification) {
     if (!isValidInternationalPhoneNumber(sendTo)) {
-      logger.warn(logData, 'Invalid phone number provided for verification.')
+      logger.warn('Invalid phone number provided for verification.', logData)
       throw new InputError('Must supply a valid phone number')
     }
     existingUserId = await getUserIdByPhone(sendTo)
   } else {
     // email verification
     if (!isValidEmail(sendTo)) {
-      logger.warn(logData, 'Invalid email provided for verification.')
+      logger.warn('Invalid email provided for verification.', logData)
       throw new InputError('Must supply a valid email address')
     }
     const existingUser = await getUserIdByEmail(sendTo)
@@ -132,10 +132,10 @@ export async function initiateVerification(
       verificationType !== VERIFICATION_TYPE.EMAIL_FOR_EMAIL &&
       !existingUserId
     ) {
-      logger.warn(
-        { ...logData, existingUserId },
-        'Email addresses in verify did not match.'
-      )
+      logger.warn('Email addresses in verify did not match.', {
+        ...logData,
+        existingUserId,
+      })
       throw new LookupError(
         'The email address you entered does not match your account email address'
       )
@@ -145,8 +145,8 @@ export async function initiateVerification(
   // Make sure the user from DB matches the one in the request
   if (existingUserId && !(userId === existingUserId)) {
     logger.warn(
-      logData,
-      `Cannot complete verification - phone or email is already in use`
+      `Cannot complete verification - phone or email is already in use`,
+      logData
     )
     throw new AlreadyInUseError(
       'The phone number or email address provided for verification is already in use'
@@ -165,13 +165,10 @@ export async function initiateVerification(
       message: string
       status: number
     }
-    logger.error(
-      {
-        ...logData,
-        ...error,
-      },
-      'Failed to send Twilio verification code.'
-    )
+    logger.error('Failed to send Twilio verification code.', {
+      err,
+      ...logData,
+    })
     throw new TwilioError(
       error.message ?? 'Could not send verification',
       error.status
@@ -265,7 +262,7 @@ export async function confirmVerification(
   }
 
   if (isVerified && forSignup) {
-    logger.info({ userId }, 'Account verified')
+    logger.info('Account verified', { userId })
   }
 
   return isVerified

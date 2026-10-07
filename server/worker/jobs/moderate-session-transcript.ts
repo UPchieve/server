@@ -57,7 +57,7 @@ export default async function moderateSessionTranscript(
     const recordWhiteboardFailure = (err: unknown, message: string) => {
       // ??= keeps the first failure if both steps fail.
       whiteboardFailure ??= { err }
-      logger.error({ err, sessionId: job.data.sessionId }, message)
+      logger.error(message, { err, sessionId: job.data.sessionId })
     }
 
     if (whiteboardDoc.length > 0) {

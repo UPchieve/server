@@ -120,7 +120,7 @@ export async function passportRegisterUser(
       return done(null, student)
     }
   } catch (err) {
-    logger.error({ err }, 'Error while registering user with SSO')
+    logger.error('Error while registering user with SSO', { err })
     return done(err, false)
   }
 }
@@ -163,8 +163,8 @@ async function rosterTeacher(
     )
   } catch (err) {
     logger.error(
-      { err, userId },
-      `Failed to roster teacher classes from ${options.providerName}.`
+      `Failed to roster teacher classes from ${options.providerName}.`,
+      { err, userId }
     )
   }
 }
@@ -268,7 +268,7 @@ export async function handleSSOStrategy(
       return done(null, teacher)
     }
   } catch (err) {
-    logger.error(err, `Failed ${options.providerName} SSO.`)
+    logger.error(`Failed ${options.providerName} SSO.`, { err })
     return done(null, false, {
       userType: profile.userType,
       errorMessage: `Failed ${options.providerName} SSO. Please try again or contact support.`,
@@ -296,10 +296,9 @@ export function addPassportAuthMiddleware() {
             !isDevEnvironment() &&
             email !== config.retoolAdminEmail
           ) {
-            logger.info(
-              { email: maskEmail(email) },
-              'Admin tried to sign in with email/password.'
-            )
+            logger.info('Admin tried to sign in with email/password.', {
+              email: maskEmail(email),
+            })
             return done(null, false)
           }
 

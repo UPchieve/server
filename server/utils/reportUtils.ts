@@ -312,15 +312,12 @@ export async function telecomHourSummaryStats(
       totalReferralMinutes: await totalReferralMinutes(volunteerId),
     } as HourSummaryStats
 
-    logger.info(
-      {
-        volunteerId,
-        ...stats,
-        startDate: start,
-        endDate: end,
-      },
-      'Calculating volunteer hourly summay stats'
-    )
+    logger.info('Calculating volunteer hourly summay stats', {
+      volunteerId,
+      ...stats,
+      startDate: start,
+      endDate: end,
+    })
 
     return stats
   } catch (error) {

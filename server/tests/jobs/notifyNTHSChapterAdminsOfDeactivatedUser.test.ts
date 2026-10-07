@@ -30,13 +30,10 @@ test('completes without an email when the chapter has no current admin', async (
 
   await notifyNTHSChapterAdminsOfDeactivatedUser(job)
 
-  expect(mockedLogger.warn).toHaveBeenCalledWith(
-    {
-      groupId: job.data.nthsGroupId,
-      deactivatedUserId: job.data.deactivatedUserId,
-    },
-    expect.any(String)
-  )
+  expect(mockedLogger.warn).toHaveBeenCalledWith(expect.any(String), {
+    groupId: job.data.nthsGroupId,
+    deactivatedUserId: job.data.deactivatedUserId,
+  })
   expect(
     mockedMailService.sendNTHSChapterAdminsMemberDeactivationNotice
   ).not.toHaveBeenCalled()

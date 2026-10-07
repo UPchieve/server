@@ -49,14 +49,15 @@ class SocketService {
   }
 
   async joinSession(socket: Socket, user: UserContactInfo, sessionId: Uuid) {
-    logger.info({ userId: user.id, sessionId }, 'Joining session')
+    logger.info('Joining session', { userId: user.id, sessionId })
     try {
       await SessionService.ensureCanJoinSession(user, sessionId)
     } catch (error) {
-      logger.error(
-        { userId: user.id, sessionId, error: JSON.stringify(error) },
-        'User cannot join session'
-      )
+      logger.error('User cannot join session', {
+        userId: user.id,
+        sessionId,
+        err: JSON.stringify(error),
+      })
       // A transient failure changes nothing: a concurrent join of this session
       // may have succeeded, and the client retries.
       if (error instanceof SessionJoinError) {
@@ -69,10 +70,10 @@ class SocketService {
     }
 
     const sessionRoom = getSessionRoom(sessionId)
-    logger.info(
-      { sessionRoom, sessionId },
-      'Got session room. Joining to the room now.'
-    )
+    logger.info('Got session room. Joining to the room now.', {
+      sessionRoom,
+      sessionId,
+    })
     await socket.join(sessionRoom)
     socket.data.sessionId = sessionId
 
@@ -81,16 +82,18 @@ class SocketService {
      * so we purposely don't await here. they are fine to finish in the background
      */
     this.emitSessionChange(sessionId).catch((error) => {
-      logger.error(
-        { userId: user.id, sessionRoom, error },
-        'Failed to emit session change after join'
-      )
+      logger.error('Failed to emit session change after join', {
+        userId: user.id,
+        sessionRoom,
+        err: error,
+      })
     })
     this.emitSessionPresence(user.id, sessionRoom, true).catch((error) => {
-      logger.error(
-        { userId: user.id, sessionRoom, error },
-        'Failed to emit session presence after join'
-      )
+      logger.error('Failed to emit session presence after join', {
+        userId: user.id,
+        sessionRoom,
+        err: error,
+      })
     })
   }
 
@@ -100,10 +103,11 @@ class SocketService {
     delete socket.data.sessionId
 
     this.emitSessionPresence(user.id, sessionRoom, false).catch((error) => {
-      logger.error(
-        { userId: user.id, sessionRoom, error },
-        'Failed to emit session presence after leave'
-      )
+      logger.error('Failed to emit session presence after leave', {
+        userId: user.id,
+        sessionRoom,
+        err: error,
+      })
     })
   }
 
@@ -112,16 +116,20 @@ class SocketService {
     roomName: string,
     hasJoined: boolean
   ) {
-    logger.info(
-      { userId, roomName, hasJoined },
-      'Emitting session presence: Fetching sockets'
-    )
+    logger.info('Emitting session presence: Fetching sockets', {
+      userId,
+      roomName,
+      hasJoined,
+    })
     const sessionSocketIds = await this.getAllSocketIdsInRoom(roomName)
     const userSocketIds = await this.getAllSocketIdsInRoom(userId)
-    logger.info(
-      { userId, roomName, hasJoined, userSocketIds, sessionSocketIds },
-      'Emitting session presence: Got back sockets'
-    )
+    logger.info('Emitting session presence: Got back sockets', {
+      userId,
+      roomName,
+      hasJoined,
+      userSocketIds,
+      sessionSocketIds,
+    })
 
     if (hasJoined) {
       // Emit to self if partner is connected to the session or not.
@@ -203,7 +211,7 @@ class SocketService {
       // The rejection has no caller to propagate to once deferred, so it must
       // be swallowed here or it becomes an unhandled rejection.
       this.broadcastSessionList().catch((error) => {
-        logger.error({ error }, 'Failed to broadcast session list')
+        logger.error('Failed to broadcast session list', { err: error })
       })
     },
     SESSION_LIST_DEBOUNCE_MS,
@@ -308,9 +316,11 @@ class SocketService {
     },
     err: Error
   ): void {
-    logger.error(
-      `User ${data.userId} could not join session ${data.sessionId}: ${err}`
-    )
+    logger.error('User could not join session', {
+      err,
+      userId: data.userId,
+      sessionId: data.sessionId,
+    })
     socket.emit('bump', data, err.toString())
   }
 
@@ -325,9 +335,7 @@ class SocketService {
     try {
       return await this.io.in(roomName).timeout(2000).fetchSockets()
     } catch (error) {
-      logger.error(
-        `Failed to fetch sockets. ${JSON.stringify({ error, roomName })}`
-      )
+      logger.error('Failed to fetch sockets', { err: error, roomName })
       return []
     }
   }

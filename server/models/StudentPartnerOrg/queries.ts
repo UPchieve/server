@@ -46,8 +46,8 @@ export async function getStudentPartnerOrgBySchoolId(
     if (result.length) {
       if (result.length > 1)
         logger.warn(
-          { schoolId },
-          'Found multiple student partner orgs for this school ID. Returning the first match'
+          'Found multiple student partner orgs for this school ID. Returning the first match',
+          { schoolId }
         )
       return makeSomeOptional(result[0], ['siteId', 'siteName', 'schoolId'])
     }

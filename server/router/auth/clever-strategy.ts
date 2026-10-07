@@ -88,7 +88,7 @@ export default class CleverStrategy extends OAuth2Strategy {
 
       return done(null, profile)
     } catch (error) {
-      logger.error(`Error getting Clever user profile: ${error}`)
+      logger.error('Error getting Clever user profile', { err: error })
       done(error as Error, false, {
         errorMessage: 'Failed to get user profile from Clever.',
       })

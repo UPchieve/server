@@ -184,11 +184,11 @@ async function getDocumentEditorContext(
     return { quillDoc, images: docImages }
   } catch (error) {
     logger.warn(
+      'Failed to process document editor context. Continuing without document editor context.',
       {
         err: error,
         sessionId,
-      },
-      'Failed to process document editor context. Continuing without document editor context.'
+      }
     )
     return { quillDoc: '', images: [] }
   }
@@ -252,9 +252,15 @@ export async function addMessageToConversation(
     )
     const conversation = await getTutorBotConversationById(conversationId, tc)
     if (!conversation) {
-      const errorMessage = `Unable to find tutor bot conversation by conversation id: ${conversationId}`
-      logger.error({ userId, conversationId }, errorMessage)
-      throw new Error(errorMessage)
+      const err = new Error(
+        `Unable to find tutor bot conversation by conversation id: ${conversationId}`
+      )
+      logger.error('Unable to find tutor bot conversation', {
+        err,
+        userId,
+        conversationId,
+      })
+      throw err
     }
 
     const { sessionId } = conversation
@@ -388,20 +394,14 @@ async function getAwsBedRockResponse(
   } catch (err) {
     // We could add a retry if we see this happening a fair amount
     botResponse = AWS_BEDROCK_TUTOR_ANSWER_FALLBACK
-    logger.error(
-      {
-        // Shape only. The interpolated prompt carries the student's
-        // conversation and the editor contents, and logger.error forwards to
-        // Sentry and New Relic unredacted.
-        promptVersion: promptData.version,
-        promptIsFallback: promptData.isFallback,
-        conversationId,
-        userId,
-        traceName: LF_TRACE_NAME,
-        err,
-      },
-      'AI tutor: Unprocessable response from aws bedrock'
-    )
+    logger.error('AI tutor: Unprocessable response from aws bedrock', {
+      promptVersion: promptData.version,
+      promptIsFallback: promptData.isFallback,
+      conversationId,
+      userId,
+      traceName: LF_TRACE_NAME,
+      err,
+    })
   }
 
   const message =

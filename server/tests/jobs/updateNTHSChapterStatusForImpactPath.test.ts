@@ -98,8 +98,8 @@ describe('updateNTHSChapterStatusForImpactPath', () => {
     await updateNTHSChapterStatusForImpactPath(DEFAULT_JOB)
 
     expect(mockedLogger.info).toHaveBeenCalledWith(
-      expect.anything(),
-      expect.stringContaining('Chapter status has been updated to OFFICIAL')
+      expect.stringContaining('Chapter status has been updated to OFFICIAL'),
+      expect.anything()
     )
     expect(NTHSService.insertNthsChapterStatus).toHaveBeenCalledWith(
       DEFAULT_JOB.data.nthsGroupId,
@@ -131,10 +131,9 @@ describe('updateNTHSChapterStatusForImpactPath', () => {
       DEFAULT_JOB.data.nthsGroupId,
       'OFFICIAL'
     )
-    expect(mockedLogger.warn).toHaveBeenCalledWith(
-      { groupId: DEFAULT_JOB.data.nthsGroupId },
-      expect.any(String)
-    )
+    expect(mockedLogger.warn).toHaveBeenCalledWith(expect.any(String), {
+      groupId: DEFAULT_JOB.data.nthsGroupId,
+    })
     expect(
       mockedMailService.sendNTHSChapterImpactPathOfficialStatusNotification
     ).not.toHaveBeenCalled()
@@ -166,11 +165,11 @@ describe('updateNTHSChapterStatusForImpactPath', () => {
       .map((member) => member.userId)
       .filter((id) => id !== notReadyCoachId)
     expect(mockedLogger.info).toHaveBeenCalledWith(
+      expect.stringContaining('Found 2 ready-to-coach members of NTHS chapter'),
       {
         groupId: DEFAULT_JOB.data.nthsGroupId,
         userIds: readyToCoachIds,
-      },
-      expect.stringContaining('Found 2 ready-to-coach members of NTHS chapter')
+      }
     )
     expect(NTHSService.insertNthsChapterStatus).toHaveBeenCalledWith(
       DEFAULT_JOB.data.nthsGroupId,
@@ -207,16 +206,16 @@ describe('updateNTHSChapterStatusForImpactPath', () => {
       .map((member) => member.userId)
       .filter((id) => id !== notActivatedCoachId)
     expect(mockedLogger.info).toHaveBeenCalledWith(
+      expect.stringContaining('Counted 2 eligible members for impact path'),
       {
         groupId: DEFAULT_JOB.data.nthsGroupId,
         newChapterStatus: 'PENDING',
         userIds: expectedEligibleMemberIds,
-      },
-      expect.stringContaining('Counted 2 eligible members for impact path')
+      }
     )
     expect(mockedLogger.info).toHaveBeenCalledWith(
-      expect.anything(),
-      expect.stringContaining('Chapter status has been updated to PENDING')
+      expect.stringContaining('Chapter status has been updated to PENDING'),
+      expect.anything()
     )
     expect(NTHSService.insertNthsChapterStatus).toHaveBeenCalledWith(
       DEFAULT_JOB.data.nthsGroupId,
@@ -260,16 +259,16 @@ describe('updateNTHSChapterStatusForImpactPath', () => {
       .map((member) => member.userId)
       .filter((id) => id !== deactivatedMemberId)
     expect(mockedLogger.info).toHaveBeenCalledWith(
+      expect.stringContaining('Counted 2 eligible members for impact path'),
       {
         groupId: DEFAULT_JOB.data.nthsGroupId,
         newChapterStatus: 'PENDING',
         userIds: expectedEligibleMemberIds,
-      },
-      expect.stringContaining('Counted 2 eligible members for impact path')
+      }
     )
     expect(mockedLogger.info).toHaveBeenCalledWith(
-      expect.anything(),
-      expect.stringContaining('Chapter status has been updated to PENDING')
+      expect.stringContaining('Chapter status has been updated to PENDING'),
+      expect.anything()
     )
     expect(NTHSService.insertNthsChapterStatus).toHaveBeenCalledWith(
       DEFAULT_JOB.data.nthsGroupId,
@@ -304,16 +303,16 @@ describe('updateNTHSChapterStatusForImpactPath', () => {
     await updateNTHSChapterStatusForImpactPath(DEFAULT_JOB)
 
     expect(mockedLogger.info).toHaveBeenCalledWith(
+      expect.stringContaining('Counted 2 eligible members for impact path'),
       {
         groupId: DEFAULT_JOB.data.nthsGroupId,
         newChapterStatus: 'PENDING',
         userIds: groupMembers.slice(2).map((member) => member.userId),
-      },
-      expect.stringContaining('Counted 2 eligible members for impact path')
+      }
     )
     expect(mockedLogger.info).toHaveBeenCalledWith(
-      expect.anything(),
-      expect.stringContaining('Chapter status has been updated to PENDING')
+      expect.stringContaining('Chapter status has been updated to PENDING'),
+      expect.anything()
     )
     expect(NTHSService.insertNthsChapterStatus).toHaveBeenCalledWith(
       DEFAULT_JOB.data.nthsGroupId,
@@ -352,13 +351,13 @@ describe('updateNTHSChapterStatusForImpactPath', () => {
     await updateNTHSChapterStatusForImpactPath(DEFAULT_JOB)
 
     expect(mockedLogger.info).toHaveBeenCalledWith(
+      expect.stringContaining(
+        `NTHS Impact Path Chapter Status:  Will remain OFFICIAL until end of year`
+      ),
       {
         groupId: DEFAULT_JOB.data.nthsGroupId,
         eligibleMembers: 2,
-      },
-      expect.stringContaining(
-        `NTHS Impact Path Chapter Status:  Will remain OFFICIAL until end of year`
-      )
+      }
     )
   })
 })

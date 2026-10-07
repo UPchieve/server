@@ -18,16 +18,16 @@ const main = async (): Promise<void> => {
     // handle redis connection errors; for whatever reason Redis.ReplyError type is not in the declarations file
     if ((error as any).code === 'ECONNREFUSED') {
       logger.error(
-        error,
-        `Could not connect to redis server; Check your redisConnectionString env var`
+        `Could not connect to redis server; Check your redisConnectionString env var`,
+        { err: error }
       )
     } else {
-      logger.error(error, `Error from worker process`)
+      logger.error(`Error from worker process`, { err: error })
     }
   }
 }
 
 main().catch((error) => {
-  logger.error(`error in worker main: ${error}`)
+  logger.error('error in worker main', { err: error })
   newrelic.noticeError(error)
 })

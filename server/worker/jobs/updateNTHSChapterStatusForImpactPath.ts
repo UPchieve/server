@@ -28,14 +28,11 @@ export default async function (job: Job<UpdateNTHSChapterStatusJobData>) {
   const periodEnd = new Date(job.data.periodEnd)
 
   const nthsGroupId = job.data.nthsGroupId
-  logger.info(
-    {
-      groupId: nthsGroupId,
-      periodStart,
-      periodEnd,
-    },
-    `${logPrefix}Checking NTHS impact path status for chapter`
-  )
+  logger.info(`${logPrefix}Checking NTHS impact path status for chapter`, {
+    groupId: nthsGroupId,
+    periodStart,
+    periodEnd,
+  })
 
   const previousChapterStatus =
     await NTHSService.getLatestNthsChapterStatus(nthsGroupId)
@@ -57,11 +54,11 @@ export default async function (job: Job<UpdateNTHSChapterStatusJobData>) {
     readyToCoachUserIds.has(member.userId)
   )
   logger.info(
+    `${logPrefix}Found ${readyToCoachUserIds.size} ready-to-coach members of NTHS chapter`,
     {
       groupId: nthsGroupId,
       userIds: Array.from(readyToCoachUserIds),
-    },
-    `${logPrefix}Found ${readyToCoachUserIds.size} ready-to-coach members of NTHS chapter`
+    }
   )
 
   // Check if at least  of them did 1 session during the period of [t1, t2]
@@ -86,44 +83,38 @@ export default async function (job: Job<UpdateNTHSChapterStatusJobData>) {
   }
 
   if (previousChapterStatus?.statusName == 'OFFICIAL') {
-    logger.info(
-      {
-        groupId: nthsGroupId,
-        eligibleMembers: eligibleMembers.length,
-      },
-      `${logPrefix} Will remain OFFICIAL until end of year`
-    )
+    logger.info(`${logPrefix} Will remain OFFICIAL until end of year`, {
+      groupId: nthsGroupId,
+      eligibleMembers: eligibleMembers.length,
+    })
     return
   }
 
   const newChapterStatusName: NTHSChapterStatusName =
     eligibleMembers.length >= 3 ? 'OFFICIAL' : 'PENDING'
   logger.info(
+    `${logPrefix}Counted ${eligibleMembers.length} eligible members for impact path for NTHS chapter`,
     {
       groupId: nthsGroupId,
       newChapterStatus: newChapterStatusName,
       userIds: eligibleMembers.map((member) => member.userId),
-    },
-    `${logPrefix}Counted ${eligibleMembers.length} eligible members for impact path for NTHS chapter`
+    }
   )
 
   if (
     previousChapterStatus &&
     previousChapterStatus.statusName === newChapterStatusName
   ) {
-    logger.info(
-      {
-        status: newChapterStatusName,
-        groupId: nthsGroupId,
-      },
-      `${logPrefix} unchanged`
-    )
+    logger.info(`${logPrefix} unchanged`, {
+      status: newChapterStatusName,
+      groupId: nthsGroupId,
+    })
     return
   }
   await NTHSService.insertNthsChapterStatus(nthsGroupId, newChapterStatusName)
   logger.info(
-    { groupId: nthsGroupId, status: newChapterStatusName },
-    `${logPrefix}Chapter status has been updated to ${newChapterStatusName}`
+    `${logPrefix}Chapter status has been updated to ${newChapterStatusName}`,
+    { groupId: nthsGroupId, status: newChapterStatusName }
   )
   if (newChapterStatusName === 'OFFICIAL') {
     const nthsChapter = await NTHSService.getNTHSGroupByID(nthsGroupId)
@@ -134,8 +125,8 @@ export default async function (job: Job<UpdateNTHSChapterStatusJobData>) {
     const emailRecipients = await getChapterAdminsContactInfo(nthsGroupId)
     if (!emailRecipients.length) {
       logger.warn(
-        { groupId: nthsGroupId },
-        `${logPrefix}NTHS chapter has no current admins to notify of official status`
+        `${logPrefix}NTHS chapter has no current admins to notify of official status`,
+        { groupId: nthsGroupId }
       )
       return
     }
@@ -144,11 +135,11 @@ export default async function (job: Job<UpdateNTHSChapterStatusJobData>) {
       chapterName
     )
     logger.info(
+      `${logPrefix}Sent chapter official notification to NTHS chapter admins`,
       {
         countUsersNotified: emailRecipients.length,
         groupId: nthsGroupId,
-      },
-      `${logPrefix}Sent chapter official notification to NTHS chapter admins`
+      }
     )
   }
 }

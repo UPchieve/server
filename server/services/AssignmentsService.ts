@@ -634,7 +634,8 @@ export async function isGettingStartedAssignment(
     return members.includes(assignmentId)
   } catch (error) {
     logger.error(
-      `Failed checking if assignment ${assignmentId} is a getting started assignment. Failed to retrieve members from cache key 'getting-started-assignments'. Error: ${error}`
+      "Failed checking if assignment is a getting started assignment. Failed to retrieve members from cache key 'getting-started-assignments'.",
+      { err: error, assignmentId }
     )
     return false
   }

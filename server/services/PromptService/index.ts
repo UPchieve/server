@@ -90,7 +90,7 @@ export async function getPromptWithFallback(
       options?.waitInMs
     )
   } catch (err) {
-    logger.error({ err }, 'Failed to getPrompt from Langfuse.')
+    logger.error('Failed to getPrompt from Langfuse.', { err })
   }
 
   if (!promptObject) {

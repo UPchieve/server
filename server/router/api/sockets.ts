@@ -1,7 +1,6 @@
 /**
  * Processes incoming socket messages
  */
-import Sentry from '@sentry/node'
 import newrelic from 'newrelic'
 import passport from 'passport'
 import { ResourceLockedError } from '@sesamecare-oss/redlock'
@@ -135,7 +134,7 @@ export function routeSockets(io: Server): void {
             isZwibserveSession,
           })
         } catch (error) {
-          logger.error(error, 'Unable to join socket')
+          logger.error('Unable to join socket', { err: error })
           callback({
             sessionId: data.sessionId,
             reason: error instanceof Error ? error.message : 'unknown error',
@@ -162,12 +161,13 @@ export function routeSockets(io: Server): void {
           if (!user) throw new Error('User not authenticated')
           if (user.roleContext.isActiveRole('volunteer') && !user.approved)
             throw new Error('Volunteer not approved')
-        } catch (error) {
+        } catch (err) {
           socket.emit('redirect')
-          logger.error(
-            error,
-            'Failed to join session socket: Invalid user state'
-          )
+          logger.error('Failed to join session socket: Invalid user state', {
+            err,
+            sessionId,
+            userId: user.id,
+          })
           return
         }
 
@@ -183,7 +183,7 @@ export function routeSockets(io: Server): void {
             userAgent,
             joinedFrom: data.joinedFrom,
           })
-        } catch (error) {
+        } catch (err) {
           const session = await SessionRepo.getSessionById(sessionId)
           socketService.bump(
             socket,
@@ -194,25 +194,25 @@ export function routeSockets(io: Server): void {
               sessionId: session.id,
               userId: user.id,
             },
-            error as Error
+            err as Error
           )
 
-          logger.error(
-            error,
-            { sessionId, userId: user.id },
-            `User ${user.id} failed to join session ${sessionId}`
-          )
+          logger.error(`User failed to join session`, {
+            err,
+            sessionId,
+            userId: user.id,
+          })
           return
         }
 
         try {
           await socketService.joinSession(socket, user, sessionId)
-        } catch (error) {
-          logger.error(
-            error,
-            { userId: user.id, sessionId },
-            `User ${user.id} failed to join sockets to session room for session ${sessionId}: ${error}`
-          )
+        } catch (err) {
+          logger.error('User failed to join sockets to session room', {
+            err,
+            sessionId,
+            userId: user.id,
+          })
         }
       })
     })
@@ -236,9 +236,13 @@ export function routeSockets(io: Server): void {
               user.id !== session.volunteerId
             )
               throw new Error('Not a session participant')
-          } catch (error) {
-            socket.emit('redirect', error as Error)
-            logger.error(error, { sessionId })
+          } catch (err) {
+            socket.emit('redirect', err as Error)
+            logger.error('Failed to join session', {
+              err,
+              sessionId,
+              userId: user.id,
+            })
             return
           }
 
@@ -249,9 +253,13 @@ export function routeSockets(io: Server): void {
             // Attach the sessionId to the socket for analytics and debugging purposes
             // Currently only one sessionId is attached to a socket at a time
             socket.data.sessionId = data.sessionId
-          } catch (error) {
-            socket.emit('sessions/recap:join-failed', error as Error)
-            logger.error(error, { sessionId }, 'Failed to join session recap')
+          } catch (err) {
+            socket.emit('sessions/recap:join-failed', err as Error)
+            logger.error('Failed to join session recap', {
+              err,
+              sessionId,
+              userId: user.id,
+            })
           }
         }
       )
@@ -264,8 +272,8 @@ export function routeSockets(io: Server): void {
           try {
             socket.leave(getSessionRoom(sessionId))
             delete socket.data.sessionId
-          } catch (error) {
-            logger.error(error, 'Failed leaving session recap')
+          } catch (err) {
+            logger.error('Failed leaving session recap', { err })
           }
         }
       )
@@ -277,14 +285,11 @@ export function routeSockets(io: Server): void {
           const user = await extractSocketUser(socket, true)
 
           if (!(await syncApprovedVolunteersRoom(socket, user))) {
-            logger.warn(
-              {
-                userId: user.id,
-                role: user.roleContext.activeRole,
-                approved: user.approved,
-              },
-              'Unauthorized to view session list'
-            )
+            logger.warn('Unauthorized to view session list', {
+              userId: user.id,
+              role: user.roleContext.activeRole,
+              approved: user.approved,
+            })
             callback({ status: 403 })
             return
           }
@@ -315,8 +320,8 @@ export function routeSockets(io: Server): void {
             status: 200,
             sessions: withHolds,
           })
-        } catch (error) {
-          logger.error(error, 'Failed getting unfulfilled sessions')
+        } catch (err) {
+          logger.error('Failed getting unfulfilled sessions', { err })
         }
       })
     })
@@ -328,8 +333,8 @@ export function routeSockets(io: Server): void {
           io.in(getSessionRoom(data.sessionId))
             .except(user.id)
             .emit('is-typing', { sessionId: data.sessionId })
-        } catch (error) {
-          logger.error(error, { data }, 'Failed emitting user is typing')
+        } catch (err) {
+          logger.error('Failed emitting user is typing', { err, data })
         }
       })
     })
@@ -341,8 +346,11 @@ export function routeSockets(io: Server): void {
           io.in(getSessionRoom(data.sessionId))
             .except(user.id)
             .emit('not-typing', { sessionId: data.sessionId })
-        } catch (error) {
-          logger.error(error, { data }, 'Failed emitting user is not typing')
+        } catch (err) {
+          logger.error('Failed emitting user is not typing', {
+            err,
+            data,
+          })
         }
       })
     })
@@ -358,8 +366,8 @@ export function routeSockets(io: Server): void {
           })
 
           io.in(getSessionRoom(sessionId)).emit('celebrate', { duration })
-        } catch (error) {
-          logger.error(error, { data }, 'Failed emitting celebrate')
+        } catch (err) {
+          logger.error('Failed emitting celebrate', { err, data })
         }
       })
     })
@@ -490,12 +498,12 @@ export function routeSockets(io: Server): void {
               io.to(partnerId).emit('dm:received', { sessionId })
             }
           }
-        } catch (error) {
+        } catch (err) {
           socket.emit('messageError', { sessionId: data.sessionId })
-          logger.error(
-            { err: error, sessionId: data.sessionId },
-            "Failed sending a session's message"
-          )
+          logger.error("Failed sending a session's message", {
+            err,
+            sessionId: data.sessionId,
+          })
         }
       })
     })
@@ -505,8 +513,8 @@ export function routeSockets(io: Server): void {
         try {
           if (await SessionService.didSessionEnd(sessionId)) {
             logger.warn(
-              { sessionId },
-              'Quill doc sent a requestQuillState event after the session ended already'
+              'Quill doc sent a requestQuillState event after the session ended already',
+              { sessionId }
             )
             return
           }
@@ -524,11 +532,14 @@ export function routeSockets(io: Server): void {
           socket.emit('quillState', {
             delta: doc,
           })
-        } catch (error) {
-          if (error instanceof ResourceLockedError) {
+        } catch (err) {
+          if (err instanceof ResourceLockedError) {
             socket.emit('retryLoadingDoc')
           }
-          logger.error(error, { sessionId }, 'Failed requesting the quill doc')
+          logger.error('Failed requesting the quill doc', {
+            err,
+            sessionId,
+          })
         }
       })
     })
@@ -540,19 +551,19 @@ export function routeSockets(io: Server): void {
           try {
             if (await SessionService.didSessionEnd(sessionId)) {
               logger.warn(
-                { sessionId },
-                'Quill doc sent a requestQuillStateV2 event after the session ended already'
+                'Quill doc sent a requestQuillStateV2 event after the session ended already',
+                { sessionId }
               )
               return
             }
             const updates = await QuillDocService.getDocumentUpdates(sessionId)
             socket.emit('quillStateV2', { updates })
-          } catch (error) {
-            logger.error(
-              error,
-              { sessionId, userId: socket.request.user?.id },
-              'Failed requesting Quill v2 doc'
-            )
+          } catch (err) {
+            logger.error('Failed requesting Quill v2 doc', {
+              err,
+              sessionId,
+              userId: socket.request.user?.id,
+            })
           }
         }
       )
@@ -568,8 +579,8 @@ export function routeSockets(io: Server): void {
             try {
               if (await SessionService.didSessionEnd(sessionId)) {
                 logger.warn(
-                  { sessionId },
-                  'Quill doc sent a transmitQuillDeltaV2 event after the session ended already'
+                  'Quill doc sent a transmitQuillDeltaV2 event after the session ended already',
+                  { sessionId }
                 )
                 return
               }
@@ -581,15 +592,12 @@ export function routeSockets(io: Server): void {
               io.to(getSessionRoom(sessionId)).emit('partnerQuillDeltaV2', {
                 update,
               })
-            } catch (error) {
-              logger.error(
-                error,
-                {
-                  sessionId,
-                  userId: socket.request.user?.id,
-                },
-                'Failed to transmit Quill v2 doc update.'
-              )
+            } catch (err) {
+              logger.error('Failed to transmit Quill v2 doc update.', {
+                err,
+                sessionId,
+                userId: socket.request.user?.id,
+              })
             }
           }
         )
@@ -611,19 +619,20 @@ export function routeSockets(io: Server): void {
         try {
           if (await SessionService.didSessionEnd(sessionId)) {
             logger.warn(
-              { sessionId },
-              'Quill doc sent a transmitQuillDelta event after the session ended already'
+              'Quill doc sent a transmitQuillDelta event after the session ended already',
+              { sessionId }
             )
             return
           }
           if (!userId) {
-            logger.error(
-              { sessionId },
-              'No user ID on socket in transmitQuillDelta'
-            )
-            throw new Error(
+            const err = new Error(
               `No user ID found during transmitQuillDelta of session ${sessionId}`
             )
+            logger.error('No user ID on socket in transmitQuillDelta', {
+              err,
+              sessionId,
+            })
+            throw err
           }
           delta.id = uuidv4()
           await QuillDocService.appendToDoc(sessionId, delta)
@@ -633,12 +642,12 @@ export function routeSockets(io: Server): void {
             .emit('partnerQuillDelta', {
               delta,
             })
-        } catch (error) {
-          logger.error(
-            error,
-            { sessionId, userId },
-            'Failed transmitting quill doc delta'
-          )
+        } catch (err) {
+          logger.error('Failed transmitting quill doc delta', {
+            err,
+            sessionId,
+            userId,
+          })
         }
       })
     })
@@ -652,12 +661,12 @@ export function routeSockets(io: Server): void {
             try {
               const user = await extractSocketUser(socket)
               await logThrottledEditorActivity(sessionId, user.id, 'whiteboard')
-            } catch (error) {
-              logger.error(
-                error,
-                { sessionId, userId: socket.request.user?.id },
-                'Failed logging whiteboard activity'
-              )
+            } catch (err) {
+              logger.error('Failed logging whiteboard activity', {
+                err,
+                sessionId,
+                userId: socket.request.user?.id,
+              })
             }
           }
         )
@@ -675,24 +684,23 @@ export function routeSockets(io: Server): void {
               .emit('quillPartnerSelection', {
                 range,
               })
-          } catch (error) {
-            logger.error(
-              error,
-              { sessionId, userId: socket.request.user?.id },
-              'Failed transmitting quill doc selection'
-            )
+          } catch (err) {
+            logger.error('Failed transmitting quill doc selection', {
+              err,
+              sessionId,
+              userId: socket.request.user?.id,
+            })
           }
         }
       )
     })
 
-    socket.on('error', async (error) => {
+    socket.on('error', async (err) => {
       await observeWebTransaction('/socket-io/error', async () => {
         try {
-          logger.error(`Socket error: ${error}`)
-          Sentry.captureException(error)
-        } catch (error) {
-          logger.error(error, 'Error capturing error')
+          logger.error('Socket error', { err })
+        } catch (err) {
+          logger.error('Error capturing error', { err })
         }
       })
     })
@@ -725,18 +733,15 @@ export function routeSockets(io: Server): void {
               clientUUID,
               ipAddress: extractSocketIp(socket),
             }).catch((err) => {
-              logger.error({ err: err.cause, ...err.context }, err.message)
+              logger.error('Failed to track inactivity', { err })
             })
           }
-        } catch (error) {
-          logger.error(
-            error,
-            {
-              sessionId: socket.data.sessionId,
-              userId: socket.request.user?.id,
-            },
-            'Failed disconnecting from socket'
-          )
+        } catch (err) {
+          logger.error('Failed disconnecting from socket', {
+            err,
+            sessionId: socket.data.sessionId,
+            userId: socket.request.user?.id,
+          })
         }
       })
     })
@@ -748,12 +753,12 @@ export function routeSockets(io: Server): void {
           try {
             const user = await extractSocketUser(socket)
             await socketService.leaveSession(socket, user, sessionId)
-          } catch (error) {
-            logger.error(
-              error,
-              { sessionId, userId: socket.request.user?.id },
-              'Failed to leave session'
-            )
+          } catch (err) {
+            logger.error('Failed to leave session', {
+              err,
+              sessionId,
+              userId: socket.request.user?.id,
+            })
           }
         })
     )
@@ -771,12 +776,11 @@ export function routeSockets(io: Server): void {
               sessionId,
               message ?? ''
             )
-          } catch (error) {
-            logger.error(
-              error,
-              { userId: socket.request.user?.id },
-              'Failed to relay share-info opt-in'
-            )
+          } catch (err) {
+            logger.error('Failed to relay share-info opt-in', {
+              err,
+              userId: socket.request.user?.id,
+            })
           }
         }
       )
@@ -809,12 +813,12 @@ export function routeSockets(io: Server): void {
           io.to(getSessionRoom(sessionId))
             .except(user.id)
             .emit('partnerUploadingImage')
-        } catch (error) {
-          logger.error(
-            error,
-            { sessionId, userId: socket.request.user?.id },
-            'Failed emitting partnerUploadingImage'
-          )
+        } catch (err) {
+          logger.error('Failed emitting partnerUploadingImage', {
+            err,
+            sessionId,
+            userId: socket.request.user?.id,
+          })
         }
       })
     })
@@ -833,12 +837,12 @@ export function routeSockets(io: Server): void {
                   moderationFailures,
                   uploadError,
                 })
-            } catch (error) {
-              logger.error(
-                error,
-                { sessionId, userId: socket.request.user?.id },
-                'Failed emitting partnerImageUploadFailed'
-              )
+            } catch (err) {
+              logger.error('Failed emitting partnerImageUploadFailed', {
+                err,
+                sessionId,
+                userId: socket.request.user?.id,
+              })
             }
           }
         )
@@ -854,12 +858,12 @@ export function routeSockets(io: Server): void {
             io.to(getSessionRoom(sessionId))
               .except(user.id)
               .emit('partnerImageUploadSuccess')
-          } catch (error) {
-            logger.error(
-              error,
-              { sessionId, userId: socket.request.user?.id },
-              'Failed emitting partnerImageUploadSuccess'
-            )
+          } catch (err) {
+            logger.error('Failed emitting partnerImageUploadSuccess', {
+              err,
+              sessionId,
+              userId: socket.request.user?.id,
+            })
           }
         }
       )
@@ -890,10 +894,11 @@ export function routeSockets(io: Server): void {
                 isBanned: false,
               })
           } catch (err) {
-            logger.error(
-              { err, sessionId, userId: socket.request.user?.id },
-              'Failed handling removePartnerLiveMediaBan event'
-            )
+            logger.error('Failed handling removePartnerLiveMediaBan event', {
+              err,
+              sessionId,
+              userId: socket.request.user?.id,
+            })
           }
         }
       )
@@ -907,10 +912,10 @@ export function routeSockets(io: Server): void {
           .except(user.id)
           .emit('partnerJoinedLiveMedia')
       } catch (err) {
-        logger.error(
-          { err, sessionId },
-          'Failed to let partner know screen share initiated'
-        )
+        logger.error('Failed to let partner know screen share initiated', {
+          err,
+          sessionId,
+        })
       }
     })
 
@@ -920,12 +925,8 @@ export function routeSockets(io: Server): void {
         await SessionService.dismissSessionHold(user.id, sessionId)
       } catch (err) {
         logger.error(
-          {
-            coachId: user.id,
-            sessionId,
-            err,
-          },
-          `Failed to dismiss session hold for user ${user.id} and session ${sessionId}`
+          `Failed to dismiss session hold for user ${user.id} and session ${sessionId}`,
+          { coachId: user.id, sessionId, err }
         )
       }
     })

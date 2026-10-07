@@ -28,16 +28,14 @@ export class WebSocketEmitter {
     this.SubClient.on('pmessage', this.onMessage)
 
     this.SubClient.on('error', (error) => {
-      logger.error(
-        { error },
-        `Redis WebSocketEmitter SubClient Error: ${error.name}`
-      )
+      logger.error(`Redis WebSocketEmitter SubClient Error: ${error.name}`, {
+        err: error,
+      })
     })
     this.PubClient.on('error', (error) => {
-      logger.error(
-        { error },
-        `Redis WebSocketEmitter PubClient Error: ${error.name}`
-      )
+      logger.error(`Redis WebSocketEmitter PubClient Error: ${error.name}`, {
+        err: error,
+      })
     })
   }
 
@@ -55,7 +53,7 @@ export class WebSocketEmitter {
         `Unsuitable WebSocket packet shape for room ${roomId}`
       )
     } catch (error) {
-      if (error instanceof Error) logger.error(error.message)
+      logger.error('Failed to parse WebSocket packet', { err: error, roomId })
       return
     }
 

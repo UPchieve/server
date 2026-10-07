@@ -7,7 +7,7 @@ import logger from '../../logger'
 async function submissionHandler(req: Request, res: Response) {
   const requestData = req.body as unknown
 
-  logger.debug(requestData as any)
+  logger.debug('Contact form submission', { requestData })
   await nr.startSegment(
     'router:contactFormSubmission:save',
     true,
@@ -18,7 +18,7 @@ async function submissionHandler(req: Request, res: Response) {
           message: 'contact form submission has been sent',
         })
       } catch (err) {
-        logger.error(err as Error)
+        logger.error('Failed to save contact form submission', { err })
         if (err instanceof RepoCreateError) {
           res.status(400).json({
             error: (err as Error).message,

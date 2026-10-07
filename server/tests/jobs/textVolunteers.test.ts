@@ -811,12 +811,9 @@ describe('textVolunteers', () => {
     }
     await textVolunteers(job as Job)
 
-    expect(mockedLogger.info).toHaveBeenCalledWith(
-      {
-        sessionId: job.data.sessionId,
-      },
-      'Session fulfilled.'
-    )
+    expect(mockedLogger.info).toHaveBeenCalledWith('Session fulfilled.', {
+      sessionId: job.data.sessionId,
+    })
     expect(mockedCacheService.getIfExists).not.toHaveBeenCalled()
   })
 
@@ -1571,8 +1568,8 @@ describe('textVolunteers', () => {
 
     expect(mockedTwilioClient.sendTextMessage).not.toHaveBeenCalled()
     expect(mockedLogger.warn).toHaveBeenCalledWith(
-      { sessionId, subject: SUBJECTS.ALGEBRA_ONE },
-      'No volunteers found to text for session.'
+      'No volunteers found to text for session.',
+      { sessionId, subject: SUBJECTS.ALGEBRA_ONE }
     )
   })
 

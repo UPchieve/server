@@ -33,19 +33,19 @@ export const queue = new Queue(config.workerQueueName, {
 })
 
 queue.on('error', (error) => {
-  logger.error(error, `error in queue`)
+  logger.error(`error in queue`, { err: error })
 })
 queue.on('stalled', (job) => {
-  logger.info({ job: job.name }, 'Worker job stalled.')
+  logger.info('Worker job stalled.', { job: job.name })
 })
 queue.on('lock-extension-failed', (job, error) => {
-  logger.error(
-    { err: error, job: job.name },
-    'Worker job failed to extend lock.'
-  )
+  logger.error('Worker job failed to extend lock.', {
+    err: error,
+    job: job.name,
+  })
 })
 queue.on('cleaned', (jobs, type) => {
-  logger.info({ jobs, type }, 'Worker jobs cleaned from queue.')
+  logger.info('Worker jobs cleaned from queue.', { jobs, type })
 })
 
 export type AddJobOptions = JobOptions & { delay: number }

@@ -535,14 +535,14 @@ export async function deactivateNonHighSchoolMember(
         )
       }
       logger.info(
-        logData,
-        'Removed non-high school user from all NTHS chapters'
+        'Removed non-high school user from all NTHS chapters',
+        logData
       )
     }, tc)
   } catch (err) {
     logger.error(
-      logData,
-      'Failed to deactivate non-high school user from all NTHS chapters'
+      'Failed to deactivate non-high school user from all NTHS chapters',
+      { err, ...logData }
     )
   }
 }
@@ -579,8 +579,8 @@ async function makeChapterSchoolOfficial(groupId: Ulid) {
     }
     if (!chapterAdmins.length) {
       logger.warn(
-        { groupId },
-        'NTHS chapter has no current admins; sending the school affiliation notice to advisors only'
+        'NTHS chapter has no current admins; sending the school affiliation notice to advisors only',
+        { groupId }
       )
     }
     const recipients = [...chapterAdmins, ...chapterAdvisors]

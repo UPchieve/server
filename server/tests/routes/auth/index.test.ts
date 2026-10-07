@@ -369,8 +369,8 @@ describe('AuthRouter.routes', () => {
         })
         expect(mockedLogger.info.mock.calls).toEqual([
           [
-            { ssoProvider: 'classlink', ssoCallbackOutcome: 'restart' },
             'SSO callback',
+            { ssoProvider: 'classlink', ssoCallbackOutcome: 'restart' },
           ],
         ])
         expect(mockedLogger.warn.mock.calls).toEqual([])
@@ -381,8 +381,8 @@ describe('AuthRouter.routes', () => {
         await sendCallback()
         expect(mockedLogger.info.mock.calls).toEqual([
           [
-            { ssoProvider: 'clever', ssoCallbackOutcome: 'success' },
             'SSO callback',
+            { ssoProvider: 'clever', ssoCallbackOutcome: 'success' },
           ],
         ])
         expect(mockedLogger.warn.mock.calls).toEqual([])
@@ -395,12 +395,12 @@ describe('AuthRouter.routes', () => {
         await sendCallback()
         expect(mockedLogger.warn.mock.calls).toEqual([
           [
+            'SSO callback',
             {
               ssoProvider: 'clever',
               ssoCallbackOutcome: 'failed',
               ssoFailureReason: 'Unable to verify authorization request state.',
             },
-            'SSO callback',
           ],
         ])
       })
@@ -411,12 +411,12 @@ describe('AuthRouter.routes', () => {
         await sendCallback()
         expect(mockedLogger.warn.mock.calls).toEqual([
           [
+            'SSO callback',
             {
               ssoProvider: 'clever',
               ssoCallbackOutcome: 'failed',
               ssoFailureReason: 'Session store unavailable',
             },
-            'SSO callback',
           ],
         ])
         expect(mockedLogger.info.mock.calls).toEqual([])
@@ -429,12 +429,12 @@ describe('AuthRouter.routes', () => {
         })
         expect(mockedLogger.warn.mock.calls).toEqual([
           [
+            'SSO callback',
             {
               ssoProvider: '',
               ssoCallbackOutcome: 'failed',
               ssoFailureReason: 'Unknown provider: ',
             },
-            'SSO callback',
           ],
         ])
       })

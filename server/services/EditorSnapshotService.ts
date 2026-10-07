@@ -18,7 +18,7 @@ export async function generateWhiteboardSnapshot(
     const rawBinary: string = await zwibbler.save(whiteboardDoc, 'png')
     return Buffer.from(rawBinary, 'binary')
   } catch (error) {
-    logger.error({ err: error }, 'Failed to render whiteboard snapshot')
+    logger.error('Failed to render whiteboard snapshot', { err: error })
     return
   }
 }

@@ -280,14 +280,11 @@ export async function getPostsessionSurveyDefinition(
       survey,
     }
   } else {
-    logger.warn(
-      {
-        surveyId,
-        userRole,
-        sessionId,
-      },
-      'Post-session survey is empty. Returning undefined'
-    )
+    logger.warn('Post-session survey is empty. Returning undefined', {
+      surveyId,
+      userRole,
+      sessionId,
+    })
   }
 
   function skipQuestion(first?: string, second?: string) {

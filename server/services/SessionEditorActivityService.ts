@@ -33,9 +33,11 @@ export async function logThrottledEditorActivity(
       source,
     })
   } catch (err) {
-    logger.warn(
-      { err, sessionId, userId, source },
-      'Failed to log throttled session editor activity'
-    )
+    logger.warn('Failed to log throttled session editor activity', {
+      err,
+      sessionId,
+      userId,
+      source,
+    })
   }
 }

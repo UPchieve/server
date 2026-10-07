@@ -365,9 +365,10 @@ export async function deleteAllUserSessions(userId: string) {
   try {
     await AuthRepo.deleteAuthSessionsByUserId(userId)
   } catch (err) {
-    logger.error(
-      `Unable to invalidate all user sessions on password reset: ${err}`
-    )
+    logger.error('Unable to invalidate all user sessions on password reset', {
+      err,
+      userId,
+    })
   }
 }
 
@@ -378,6 +379,6 @@ export async function getFederatedCredential(
   try {
     return FederatedCredentialRepo.getFederatedCredential(id, issuer)
   } catch (err) {
-    logger.error(`Failed to get federated credential.`)
+    logger.error('Failed to get federated credential', { err, issuer })
   }
 }

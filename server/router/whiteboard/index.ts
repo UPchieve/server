@@ -18,9 +18,11 @@ import {
 import WebSocket from 'ws'
 
 const captureUnimplemented = (sessionId: string, messageType: string): void => {
-  logger.error(
-    `Unimplemented Zwibbler message type ${messageType} called in session ${sessionId}`
-  )
+  logger.error('Unimplemented Zwibbler message type', {
+    err: 'Unimplemented Zwibbler message type',
+    messageType,
+    sessionId,
+  })
 }
 
 const whiteboardChannel = 'whiteboard/'
@@ -248,7 +250,9 @@ export function routes(app: Express): void {
       // use string here for socket room
       sessionId = asUlid(req.params.sessionId)
     } catch (error) {
-      logger.error(error as Error)
+      logger.error('Invalid session id for whiteboard connection', {
+        err: error,
+      })
       return
     }
 

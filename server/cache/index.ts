@@ -16,7 +16,7 @@ import logger from '../logger'
 
 const redisClient = new Redis(config.redisConnectionString)
 redisClient.on('error', (error) => {
-  logger.error({ error }, `Redis Cache Error: ${error.name}`)
+  logger.error(`Redis Cache Error: ${error.name}`, { err: error })
 })
 
 const redisLock = new Redlock([redisClient])

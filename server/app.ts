@@ -67,7 +67,7 @@ app.post(
     type: ['application/json', 'application/csp-report'],
   }),
   async function (req, res) {
-    logger.info(req.body, 'Content Security Report')
+    logger.info('Content Security Report', req.body)
     return res.sendStatus(201)
   }
 )
@@ -170,17 +170,15 @@ app.use((err: HttpError, req: Request, res: Response, _next: NextFunction) => {
   if (req.timedout) {
     err.httpStatus = 504
   }
-  logger.error(
-    {
-      reqId: req.id,
-      userId: req.user?.id,
-      method: req.method,
-      path: req.path,
-      url: req.url,
-      originalUrl: req.originalUrl,
-    },
-    err.message ?? 'An error occurred'
-  )
+  logger.error(err.message ?? 'An error occurred', {
+    reqId: req.id,
+    userId: req.user?.id,
+    method: req.method,
+    path: req.path,
+    url: req.url,
+    originalUrl: req.originalUrl,
+    err,
+  })
   // Attaching the error to the response means the error will be correctly
   // logged on the request by pino (instead of a generic error).
   res.err = err
@@ -194,7 +192,7 @@ fetchOrCreateRateLimit()
   .catch((error) => {
     logger.warn(
       `Error occurred while attempting to fetch or create Twilio rate limit`,
-      error.message
+      { err: error.message }
     )
   })
 

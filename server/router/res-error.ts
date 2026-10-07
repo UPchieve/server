@@ -29,8 +29,8 @@ export function resError(
 ): void {
   if (err instanceof CaughtError) {
     err.cause
-      ? logger.error({ err: err.cause, ...err.context }, err.message)
-      : logger.warn(err.context, err.message)
+      ? logger.error(err.message, { err: err.cause, ...err.context })
+      : logger.warn(err.message, err.context)
     const clientMessage = err.clientMessage ?? err.defaultClientMessage
     res.status(status ?? err.httpStatus).json({
       err: clientMessage,
@@ -44,7 +44,7 @@ export function resError(
   let message = ''
 
   if (err instanceof Error || err instanceof CustomError) {
-    logger.error(err as any)
+    logger.error(err.message, { err })
     if (status) {
       /* keep provided status */
     }
@@ -86,7 +86,7 @@ export function resError(
       err: message.length ? message : err.message,
     })
   } else {
-    logger.error(err, 'Unexpected non-error type thrown')
+    logger.error('Unexpected non-error type thrown', { err: err })
     res.status(500).json({ err: 'An unexpected error occurred.' })
   }
 }

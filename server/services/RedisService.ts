@@ -25,8 +25,8 @@ redisSubClient.on('message', async (channel, key) => {
 })
 
 redisClient.on('error', (error) => {
-  logger.error({ error }, `Redis Service Client Error: ${error.name}`)
+  logger.error(`Redis Service Client Error: ${error.name}`, { err: error })
 })
 redisSubClient.on('error', (error) => {
-  logger.error({ error }, `Redis Service SubClient Error: ${error.name}`)
+  logger.error(`Redis Service SubClient Error: ${error.name}`, { err: error })
 })

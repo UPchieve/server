@@ -68,7 +68,10 @@ export default async function upsertSchools(
     const filePath = path.join(baseDir, fileName)
 
     if (!fs.existsSync(filePath)) {
-      logger.error('UpsertSchools Job cannot find file `${filePath}`,')
+      logger.error('UpsertSchools Job cannot find file', {
+        err: 'Cannot find file',
+        filePath,
+      })
       continue
     }
 
@@ -83,24 +86,21 @@ export default async function upsertSchools(
     totalErrorCount += errorCount
 
     logger.info(
+      `UpsertSchools Job processed ${job.data.schoolDataType} school file`,
       {
         fileName,
         createdCount,
         updatedCount,
         errorCount,
-      },
-      `UpsertSchools Job processed ${job.data.schoolDataType} school file`
+      }
     )
   }
 
-  logger.info(
-    {
-      totalCreatedCount,
-      totalUpdatedCount,
-      totalErrorCount,
-    },
-    `UpsertSchools Job completed all files`
-  )
+  logger.info(`UpsertSchools Job completed all files`, {
+    totalCreatedCount,
+    totalUpdatedCount,
+    totalErrorCount,
+  })
 }
 
 async function processSchoolsFile(
@@ -133,8 +133,8 @@ async function processSchoolsFile(
     ) {
       errorCount++
       logger.warn(
-        { formattedSchool },
-        'Unable to upsert school: SchoolNcesMetadataRecord missing necessary value city, sch_name, or ncessch.'
+        'Unable to upsert school: SchoolNcesMetadataRecord missing necessary value city, sch_name, or ncessch.',
+        { formattedSchool }
       )
       continue
     }
@@ -149,16 +149,16 @@ async function processSchoolsFile(
           existingSchool.id,
           formattedSchool
         )
-        logger.info({ school: existingSchool }, 'Updated Existing School')
+        logger.info('Updated Existing School', { school: existingSchool })
         updatedCount++
       } else {
         await addSchool(formattedSchool)
-        logger.info({ school: formattedSchool }, 'Added School')
+        logger.info('Added School', { school: formattedSchool })
         createdCount++
       }
     } catch (err) {
       errorCount++
-      logger.warn({ err, school }, 'Failed to process school')
+      logger.warn('Failed to process school', { err, school })
     }
   }
 

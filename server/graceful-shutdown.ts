@@ -16,7 +16,7 @@ function gracefulShutdown(server: Server, pool: Pool, ioServer: SocketServer) {
     // immediately stop accepting new connections to the server
     server.close(async (err) => {
       if (err) {
-        logger.error(err as Error)
+        logger.error('Failed to close api server', { err })
         process.exit(1)
       }
       logger.info('api server closed')

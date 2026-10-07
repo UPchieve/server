@@ -66,19 +66,18 @@ export async function verifyTotpToken(
 ): Promise<boolean> {
   try {
     if (!isValidToken(token)) {
-      logger.warn(
-        { userId, token },
-        'User attempting to verify invalid TOTP token'
-      )
+      logger.warn('User attempting to verify invalid TOTP token', {
+        userId,
+        token,
+      })
       return false
     }
 
     const totpRecord = await TotpRepo.getSecretForUser(userId)
     if (!totpRecord) {
-      logger.warn(
-        { userId },
-        'User attempting to verify TOTP token before enrollment'
-      )
+      logger.warn('User attempting to verify TOTP token before enrollment', {
+        userId,
+      })
       return false
     }
 
@@ -89,7 +88,7 @@ export async function verifyTotpToken(
       window: TOTP_WINDOW_SIZE,
     })
     if (!result) {
-      logger.warn({ userId }, 'Invalid TOTP token')
+      logger.warn('Invalid TOTP token', { userId })
       return false
     }
 
@@ -110,16 +109,16 @@ export async function verifyTotpToken(
       lastUsedCounter: usedCounter,
     }
     if (totpRecord.verified) {
-      logger.info({ userId }, 'User verified TOTP')
+      logger.info('User verified TOTP', { userId })
     } else {
-      logger.info({ userId }, 'User enrolled in TOTP')
+      logger.info('User enrolled in TOTP', { userId })
       options.verified = true
     }
     await TotpRepo.updateSecretForUser(userId, options)
 
     return true
   } catch (err) {
-    logger.error({ err, userId }, 'Failed to verify TOTP token')
+    logger.error('Failed to verify TOTP token', { err, userId })
     return false
   }
 }

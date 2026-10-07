@@ -87,17 +87,14 @@ async function sendEmail(
   overrides: any = {}
 ): Promise<void> {
   if (isDevEnvironment() || isE2eEnvironment()) {
-    logger.debug(
-      {
-        toEmail,
-        fromEmail,
-        fromName,
-        templateId,
-        dynamicData,
-        overrides,
-      },
-      'sendEmail: skipping email send'
-    )
+    logger.debug('sendEmail: skipping email send', {
+      toEmail,
+      fromEmail,
+      fromName,
+      templateId,
+      dynamicData,
+      overrides,
+    })
     return
   }
 
@@ -132,15 +129,12 @@ async function sendBulkEmail(
   templateId: string
 ): Promise<void> {
   if (isDevEnvironment() || isE2eEnvironment()) {
-    logger.debug(
-      {
-        emails,
-        fromEmail,
-        fromName,
-        templateId,
-      },
-      'sendBulkEmail: skipping email send'
-    )
+    logger.debug('sendBulkEmail: skipping email send', {
+      emails,
+      fromEmail,
+      fromName,
+      templateId,
+    })
     return
   }
 

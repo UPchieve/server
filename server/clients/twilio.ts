@@ -22,10 +22,9 @@ export async function sendTextMessage(
   sessionId?: string
 ): Promise<string | undefined> {
   try {
-    logger.info(
-      { sessionId },
-      `Sending text message "${messageText}" to ${phoneNumber}`
-    )
+    logger.info(`Sending text message "${messageText}" to ${phoneNumber}`, {
+      sessionId,
+    })
 
     // If stored phone number doesn't have international calling code (E.164 formatting)
     // then default to US number.
@@ -50,10 +49,9 @@ export async function sendTextMessage(
     ) {
       await optOutSmsConsentForPhoneNumber(phoneNumber)
     }
-    logger.error(
-      { err },
-      'An unexpected error happened while sending a text message'
-    )
+    logger.error('An unexpected error happened while sending a text message', {
+      err,
+    })
   }
 }
 
@@ -101,10 +99,10 @@ export async function sendVerification(
         }
 
         if (error['code'] === TwilioErrorCodes.DELIVERY_ATTEMPT_BLOCKED) {
-          logger.warn(
-            { userId, sendTo: maskContact(sendTo) },
-            `Twilio flagged message as potentially fraudulent`
-          )
+          logger.warn(`Twilio flagged message as potentially fraudulent`, {
+            userId,
+            sendTo: maskContact(sendTo),
+          })
         }
       }
     )

@@ -117,7 +117,7 @@ const redlock = new Redlock([redisClient], { retryCount: 0 })
 redisSubClient.on('message', expiredKeyListener)
 async function expiredKeyListener(channel: string, expiredKey: string) {
   if (CacheKeys.isKeyExpiration(channel)) {
-    logger.warn({ expiredKey }, 'Cache key expired.')
+    logger.warn('Cache key expired.', { expiredKey })
   }
 
   if (CacheKeys.isPresenceNamespace(channel, expiredKey)) {
@@ -202,8 +202,8 @@ async function logPresenceExpirationError(
 ) {
   if (error instanceof ResourceLockedError) {
     logger.info(
-      context,
-      'Presence expiration already being processed by another server'
+      'Presence expiration already being processed by another server',
+      context
     )
     return
   }
@@ -220,31 +220,28 @@ async function logPresenceExpirationError(
 
     if (isContention) {
       logger.info(
-        context,
-        'Presence expiration already being processed by another server'
+        'Presence expiration already being processed by another server',
+        context
       )
       return
     }
 
-    logger.error(
-      {
-        ...context,
-        err: error,
-        causes: causes.map((cause) => ({
-          name: cause.name,
-          message: cause.message,
-          stack: cause.stack,
-        })),
-      },
-      'Redlock failure details'
-    )
+    logger.error('Redlock failure details', {
+      ...context,
+      err: error,
+      causes: causes.map((cause) => ({
+        name: cause.name,
+        message: cause.message,
+        stack: cause.stack,
+      })),
+    })
     return
   }
 
-  logger.error(
-    { err: error, ...context },
-    'Unknown error while processing presence expiration.'
-  )
+  logger.error('Unknown error while processing presence expiration.', {
+    err: error,
+    ...context,
+  })
 }
 
 /*
@@ -422,14 +419,14 @@ export async function trackInactivity({
      * they are backgrounded.
      */
     logger.warn(
+      `No cache active or passive related keys for user ${userId} with clientUUID ${clientUUID} was found when attempting to set user as INACTIVE_ON_SITE.
+      Since we're calling 'inactive' endpoint on log out, this can happen when the user logsout then closes the window (socket.io will send a 'disconnecting' event)
+      Probably not anything to worry about but getting a lot of these it might mean something is broken`,
       {
         userId,
         ipAddress,
         clientUUID,
-      },
-      `No cache active or passive related keys for user ${userId} with clientUUID ${clientUUID} was found when attempting to set user as INACTIVE_ON_SITE.
-      Since we're calling 'inactive' endpoint on log out, this can happen when the user logsout then closes the window (socket.io will send a 'disconnecting' event)
-      Probably not anything to worry about but getting a lot of these it might mean something is broken`
+      }
     )
   }
 

@@ -89,9 +89,10 @@ export async function getQuillDocV1(
     if (error instanceof ResourceLockedError && retries < 10)
       return getQuillDocV1(sessionId, retries + 1)
     else
-      logger.error(
-        `Failed to update and get document in the cache for session ${sessionId} - ${error}`
-      )
+      logger.error('Failed to update and get document in the cache', {
+        err: error,
+        sessionId,
+      })
     return
   }
 }
@@ -186,13 +187,13 @@ export async function ensureDocumentUpdateExists(sessionId: Uuid) {
 export async function deleteDoc(sessionId: Uuid): Promise<void> {
   try {
     ;(await cache.remove(sessionIdToKey(sessionId))) &&
-      logger.info({ sessionId }, 'Removed quill doc session key from cache')
+      logger.info('Removed quill doc session key from cache', { sessionId })
     ;(await cache.remove(getSessionDeltasKey(sessionId))) &&
-      logger.info({ sessionId }, 'Removing quill doc v1 delta key from cache')
+      logger.info('Removing quill doc v1 delta key from cache', { sessionId })
     ;(await cache.remove(getSessionDocumentUpdatesKey(sessionId))) &&
-      logger.info({ sessionId }, 'Removing quill doc updates from cache')
+      logger.info('Removing quill doc updates from cache', { sessionId })
   } catch (error) {
-    logger.warn({ err: error, sessionId }, "Couldn't remove all quill doc keys")
+    logger.warn("Couldn't remove all quill doc keys", { err: error, sessionId })
   }
 }
 
@@ -296,11 +297,11 @@ export async function getDocEditorImages(quillDoc: string): Promise<Buffer[]> {
       imageBuffers.push(buffer)
     } catch (error) {
       logger.warn(
+        'Failed to create buffer for document editor image. Skipping',
         {
           err: error,
           imageType: image.startsWith('data:image') ? 'base64' : 'url',
-        },
-        'Failed to create buffer for document editor image. Skipping'
+        }
       )
     }
   }

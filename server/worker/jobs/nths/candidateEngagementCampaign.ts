@@ -49,10 +49,9 @@ export default async function (job: Job<JobData>) {
     day12TemplateId: config.sendgrid.nthsCandidateEngagment.day12,
   })
 
-  logger.info(
-    { candidatesCount: candidates.length },
-    'Found nths candidates needing engagement'
-  )
+  logger.info('Found nths candidates needing engagement', {
+    candidatesCount: candidates.length,
+  })
 
   for (const { emailType, label, templateId } of engagementEmailsConfig) {
     const engagements = candidates.filter(
@@ -67,10 +66,9 @@ export default async function (job: Job<JobData>) {
           emailTemplateId: templateId,
         })
       }
-      logger.info(
-        { candidatesCount: engagements.length },
-        `Sent ${label} engagement to nths candidates`
-      )
+      logger.info(`Sent ${label} engagement to nths candidates`, {
+        candidatesCount: engagements.length,
+      })
     }
   }
 }

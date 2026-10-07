@@ -34,7 +34,7 @@ export function encrypt(
 
     return Buffer.concat([iv, authTag, encrypted]).toString('base64')
   } catch (err) {
-    logger.error({ err }, 'Encryption failed')
+    logger.error('Encryption failed', { err })
     throw new Error('Encryption failed')
   }
 }
@@ -70,7 +70,7 @@ export function decrypt(
     ])
     return decrypted.toString()
   } catch (err) {
-    logger.error({ err }, 'Decryption failed')
+    logger.error('Decryption failed', { err })
     throw new Error('Decryption failed')
   }
 }

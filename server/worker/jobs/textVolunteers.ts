@@ -71,17 +71,14 @@ export default async function textVolunteers(
   const schoolId = job.data.schoolId
   const studentPartnerOrg = job.data.studentPartnerOrg
 
-  logger.info(
-    {
-      sessionId,
-      notificationRound,
-    },
-    `TextVolunteers: Processing round ${notificationRound}`
-  )
+  logger.info(`TextVolunteers: Processing round ${notificationRound}`, {
+    sessionId,
+    notificationRound,
+  })
 
   const isSessionFulfilled = await SessionService.isSessionFulfilled(sessionId)
   if (isSessionFulfilled) {
-    logger.info({ sessionId }, 'Session fulfilled.')
+    logger.info('Session fulfilled.', { sessionId })
     return
   }
 
@@ -120,10 +117,10 @@ export default async function textVolunteers(
   ])
 
   if (!selectedTutors.length) {
-    logger.warn(
-      { sessionId, subject },
-      'No volunteers found to text for session.'
-    )
+    logger.warn('No volunteers found to text for session.', {
+      sessionId,
+      subject,
+    })
     return
   }
 

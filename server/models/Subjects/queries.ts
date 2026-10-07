@@ -91,7 +91,7 @@ export async function getSubjectsWithTopic(): Promise<AllSubjectsWithTopics> {
         }
       }
     } catch (err) {
-      logger.error(err, 'Failed to resolve subject quiz aliases')
+      logger.error('Failed to resolve subject quiz aliases', { err })
     }
 
     return subjects

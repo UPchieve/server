@@ -17,7 +17,7 @@ export default async function notifyApplicants(job: Job<JobData>) {
   const periodStart = new Date(job.data.periodStart)
   const periodEnd = new Date(job.data.periodEnd)
 
-  logger.info({ periodStart, periodEnd }, 'Finding denied applicants')
+  logger.info('Finding denied applicants', { periodStart, periodEnd })
   const deniedApplicants = await NthsApplicationRepo.needsDenialEmail(
     periodStart,
     periodEnd,
@@ -33,12 +33,13 @@ export default async function notifyApplicants(job: Job<JobData>) {
       })
     }
   }
-  logger.info(
-    { periodStart, periodEnd, deniedApplicantsCount: deniedApplicants.length },
-    'Emailed denied applicants'
-  )
+  logger.info('Emailed denied applicants', {
+    periodStart,
+    periodEnd,
+    deniedApplicantsCount: deniedApplicants.length,
+  })
 
-  logger.info({ periodStart, periodEnd }, 'Finding approved applicants')
+  logger.info('Finding approved applicants', { periodStart, periodEnd })
 
   const approvedApplicants = await NthsApplicationRepo.needsApprovalEmail(
     periodStart,
@@ -56,12 +57,9 @@ export default async function notifyApplicants(job: Job<JobData>) {
     }
   }
 
-  logger.info(
-    {
-      periodStart,
-      periodEnd,
-      approvedApplicantsCount: approvedApplicants.length,
-    },
-    'Emailed approved applicants'
-  )
+  logger.info('Emailed approved applicants', {
+    periodStart,
+    periodEnd,
+    approvedApplicantsCount: approvedApplicants.length,
+  })
 }
