@@ -11,17 +11,16 @@ import { createTestUser, createTestVolunteer } from './seed-utils'
 import * as NTHSApplicationService from '../../services/NTHSApplicationService'
 import * as NTHSApplicationRepo from '../../models/NTHSApplication'
 import * as VolunteerRepo from '../../models/Volunteer'
+import { VolunteerOccupations } from '../../models/Volunteer'
 import * as NTHSGroupsService from '../../services/NTHSGroupsService'
 import {
   NTHS_APPLICATION_FORMS,
   NTHSApplicationIneligibilityReason,
   NTHSApplicationNotEligibleError,
-  NTHSApplyRequirementStatus,
   SUBMITTABLE_FORM_VERSIONS,
 } from '../../services/NTHSApplicationService'
-import type { NTHSApplyPreview } from '../../services/NTHSApplicationService'
 import { NTHSCandidateApplicationStatus } from '../../models/NTHSGroups'
-import { GRADES, PHOTO_ID_STATUS, USER_BAN_TYPES } from '../../constants/user'
+import { GRADES, USER_BAN_TYPES } from '../../constants/user'
 import {
   InputError,
   NotAllowedError,
@@ -53,7 +52,8 @@ const UNLISTED_SCHOOL = {
 
 type CoachOverrides = {
   banType?: USER_BAN_TYPES
-  occupation?: string
+  // null leaves the coach with no occupation.
+  occupation?: string | null
   approved?: boolean
   onboarded?: boolean
   withSession?: boolean
@@ -83,10 +83,15 @@ async function createEligibleCoach(
     `UPDATE volunteer_profiles SET approved = $2, onboarded = $3 WHERE user_id = $1`,
     [user.id, overrides.approved ?? true, overrides.onboarded ?? true]
   )
-  await client.query(
-    `INSERT INTO volunteer_occupations (user_id, occupation) VALUES ($1, $2)`,
-    [user.id, overrides.occupation ?? 'A high school student']
-  )
+  if (overrides.occupation !== null) {
+    await client.query(
+      `INSERT INTO volunteer_occupations (user_id, occupation) VALUES ($1, $2)`,
+      [
+        user.id,
+        overrides.occupation ?? VolunteerOccupations.HIGH_SCHOOL_STUDENT,
+      ]
+    )
+  }
 
   if (overrides.withSession ?? true) {
     const student = await createTestUser(client)
@@ -372,23 +377,24 @@ describe('submitCandidateApplication', () => {
 
   test.each<[string, CoachOverrides | 'notAVolunteer']>([
     ['not a volunteer', 'notAVolunteer'],
-    ['not a high school student', { occupation: 'A college student' }],
-    ['not approved', { approved: false }],
-    ['not onboarded', { onboarded: false }],
-    ['completely banned', { banType: USER_BAN_TYPES.COMPLETE }],
-    ['shadow banned', { banType: USER_BAN_TYPES.SHADOW }],
-    ['without any sessions', { withSession: false }],
-    ['whose only session never ran', { timeTutored: 0 }],
+    ['banned from live media', { banType: USER_BAN_TYPES.LIVE_MEDIA }],
   ])('rejects an applicant %s', async (_label, overrides) => {
     const userId =
       overrides === 'notAVolunteer'
         ? (await createTestUser(client)).id
         : await createEligibleCoach(overrides)
+    const occupationsBefore = await VolunteerRepo.getVolunteerOccupations(
+      userId,
+      client
+    )
 
     await expect(submit(userId)).rejects.toThrow(
       NTHSApplicationNotEligibleError
     )
     expect(await applicationRows(userId)).toHaveLength(0)
+    expect(await VolunteerRepo.getVolunteerOccupations(userId, client)).toEqual(
+      occupationsBefore
+    )
   })
 
   test('does not disclose why an applicant is ineligible', async () => {
@@ -402,6 +408,34 @@ describe('submitCandidateApplication', () => {
       clientMessage: expect.not.stringContaining('ban'),
     })
   })
+
+  test.each<[string, string | null, VolunteerOccupations[]]>([
+    ['no occupation', null, [VolunteerOccupations.HIGH_SCHOOL_STUDENT]],
+    [
+      'another occupation',
+      VolunteerOccupations.UNDERGRAD_STUDENT,
+      [
+        VolunteerOccupations.HIGH_SCHOOL_STUDENT,
+        VolunteerOccupations.UNDERGRAD_STUDENT,
+      ],
+    ],
+    [
+      'the high school occupation already',
+      VolunteerOccupations.HIGH_SCHOOL_STUDENT,
+      [VolunteerOccupations.HIGH_SCHOOL_STUDENT],
+    ],
+  ])(
+    'records an applicant with %s as a high school student',
+    async (_label, occupation, expected) => {
+      const userId = await createEligibleCoach({ occupation })
+
+      await submit(userId)
+
+      expect(
+        (await VolunteerRepo.getVolunteerOccupations(userId, client)).sort()
+      ).toEqual(expected.sort())
+    }
+  )
 
   test('rejects a grade level outside high school', async () => {
     const userId = await createEligibleCoach()
@@ -775,155 +809,44 @@ describe('getApplicationEligibility', () => {
     expect(reasons).toEqual([])
   })
 
-  describe('apply preview', () => {
-    const { done, outstanding, inReview } = NTHSApplyRequirementStatus
-
-    const PREVIEW_AUDIENCE: CoachOverrides = {
-      onboarded: false,
-      withSession: false,
-    }
-
-    async function applyPreviewOf(userId: Ulid) {
-      const { applyPreview } =
-        await NTHSApplicationService.getApplicationEligibility(userId)
-      return applyPreview
-    }
-
-    async function joinAChapter(userId: Ulid) {
-      const president = await createEligibleCoach()
-      await submit(president)
-      await decide(president, NTHSCandidateApplicationStatus.approved)
-      const group = await NTHSGroupsService.foundGroup(president)
-      await NTHSGroupsService.joinGroupAsMemberByGroupId(
-        userId,
-        group.groupInfo.id
-      )
-    }
-
-    test.each<{
-      coach: string
-      overrides: CoachOverrides
-      prepare?: (userId: Ulid) => Promise<void>
-      requirements: NTHSApplyPreview['requirements']
-    }>([
+  test.each<[string, CoachOverrides]>([
+    ['who has not finished training', { onboarded: false }],
+    ['whose safety review is not approved', { approved: false }],
+    ['without any sessions', { withSession: false }],
+    ['whose only session never ran', { timeTutored: 0 }],
+    ['with no occupation', { occupation: null }],
+    ['with another occupation', { occupation: VolunteerOccupations.RETIRED }],
+    [
+      'missing every one of those',
       {
-        coach: 'a high school coach who has done nothing yet',
-        overrides: { onboarded: false, approved: false, withSession: false },
-        requirements: {
-          training: outstanding,
-          safetyReview: outstanding,
-          firstSession: outstanding,
-        },
+        onboarded: false,
+        approved: false,
+        withSession: false,
+        occupation: null,
       },
-      {
-        coach: 'a trained coach whose safety review is submitted',
-        overrides: { approved: false, withSession: false },
-        prepare: (userId) =>
-          VolunteerRepo.updateVolunteerPending(
-            userId,
-            false,
-            PHOTO_ID_STATUS.SUBMITTED
-          ),
-        requirements: {
-          training: done,
-          safetyReview: inReview,
-          firstSession: outstanding,
-        },
-      },
-      {
-        coach: 'an approved coach with no sessions',
-        overrides: { withSession: false },
-        requirements: {
-          training: done,
-          safetyReview: done,
-          firstSession: outstanding,
-        },
-      },
-      {
-        coach: 'an approved coach whose only session never ran',
-        overrides: { timeTutored: 0 },
-        requirements: {
-          training: done,
-          safetyReview: done,
-          firstSession: outstanding,
-        },
-      },
-      {
-        coach: 'a former chapter member who has not finished training',
-        overrides: { onboarded: false },
-        prepare: async (userId) => {
-          await joinAChapter(userId)
-          await deactivateMembership(userId)
-        },
-        requirements: {
-          training: outstanding,
-          safetyReview: done,
-          firstSession: done,
-        },
-      },
-    ])(
-      'gives a preview to $coach',
-      async ({ overrides, prepare, requirements }) => {
-        const userId = await createEligibleCoach(overrides)
-        await prepare?.(userId)
+    ],
+  ])('reports a coach %s as eligible', async (_label, overrides) => {
+    const userId = await createEligibleCoach(overrides)
 
-        expect((await applyPreviewOf(userId))?.requirements).toEqual(
-          requirements
-        )
-      }
-    )
+    const { eligible, reasons } =
+      await NTHSApplicationService.getApplicationEligibility(userId)
 
-    test.each<{
-      coach: string
-      overrides: CoachOverrides
-      prepare?: (userId: Ulid) => Promise<void>
-    }>([
-      { coach: 'a coach who meets every requirement', overrides: {} },
-      {
-        coach: 'a coach who is not in high school',
-        overrides: {
-          ...PREVIEW_AUDIENCE,
-          occupation: 'An undergraduate student',
-        },
-      },
-      {
-        coach: 'an active chapter member',
-        overrides: PREVIEW_AUDIENCE,
-        prepare: joinAChapter,
-      },
-    ])('withholds the preview from $coach', async ({ overrides, prepare }) => {
-      const userId = await createEligibleCoach(overrides)
-      await prepare?.(userId)
-
-      expect(await applyPreviewOf(userId)).toBeUndefined()
-    })
-
-    test.each([
-      NTHSCandidateApplicationStatus.applied,
-      NTHSCandidateApplicationStatus.approved,
-      NTHSCandidateApplicationStatus.denied,
-    ])(
-      'withholds the preview from a coach with a past %s application',
-      async (status) => {
-        const userId = await createEligibleCoach(PREVIEW_AUDIENCE)
-        await insertApplicationRow(userId, status)
-
-        expect(await applyPreviewOf(userId)).toBeUndefined()
-      }
-    )
-
-    test.each(Object.values(USER_BAN_TYPES))(
-      'withholds the preview from a coach with a %s ban',
-      async (banType) => {
-        const userId = await createEligibleCoach({
-          ...PREVIEW_AUDIENCE,
-          banType,
-        })
-
-        expect(await applyPreviewOf(userId)).toBeUndefined()
-      }
-    )
+    expect(eligible).toBe(true)
+    expect(reasons).toEqual([])
   })
+
+  test.each(Object.values(USER_BAN_TYPES))(
+    'reports a coach with a %s ban as ineligible',
+    async (banType) => {
+      const userId = await createEligibleCoach({ banType })
+
+      const { eligible, reasons } =
+        await NTHSApplicationService.getApplicationEligibility(userId)
+
+      expect(eligible).toBe(false)
+      expect(reasons).toEqual([NTHSApplicationIneligibilityReason.banned])
+    }
+  )
 })
 
 describe('getLatestCandidateApplication', () => {

@@ -13,11 +13,11 @@ import type {
   NTHSUnlistedSchool,
 } from '../models/NTHSApplication'
 import { NTHSCandidateApplicationStatus } from '../models/NTHSGroups'
-import { VolunteerOccupations } from '../models/Volunteer'
+import * as VolunteerRepo from '../models/Volunteer'
 import * as UsersGradeLevelsRepo from '../models/UsersGradeLevels'
 import * as UsersSchoolsRepo from '../models/UsersSchools'
 import { getSchoolById } from '../models/School'
-import { GRADES, PHOTO_ID_STATUS, USER_BAN_TYPES } from '../constants/user'
+import { GRADES, PHOTO_ID_STATUS } from '../constants/user'
 import { US_COUNTRY, US_STATE_CODES } from '../constants/geography'
 import { isHighSchoolGrade } from '../utils/grade-levels'
 import { getRoClient, runInTransaction, TransactionClient } from '../db'
@@ -280,7 +280,6 @@ function applyPreviewFor(
   facts: NTHSApplicationEligibilityFacts,
   reasons: NTHSApplicationIneligibilityReason[]
 ): NTHSApplyPreview | undefined {
-  // Any ban hides the preview, including live_media, which the banned reason skips.
   if (facts.banType) return
   if (!reasons.length) return
   if (!reasons.every((reason) => APPLY_PREVIEW_REASONS.includes(reason))) return
@@ -310,10 +309,7 @@ export async function getApplicationEligibility(
   tc: TransactionClient = getRoClient()
 ): Promise<NTHSApplicationEligibility> {
   const facts = await NTHSApplicationRepo.getCandidateApplicationEligibility(
-    {
-      userId,
-      highSchoolOccupation: VolunteerOccupations.HIGH_SCHOOL_STUDENT,
-    },
+    userId,
     tc
   )
 
@@ -324,19 +320,9 @@ export async function getApplicationEligibility(
     }
 
   const reasons: NTHSApplicationIneligibilityReason[] = []
-  if (!facts.isHighSchoolStudent)
-    reasons.push(NTHSApplicationIneligibilityReason.notAHighSchoolStudent)
-  if (!facts.onboarded)
-    reasons.push(NTHSApplicationIneligibilityReason.notOnboarded)
-  if (!facts.approved)
-    reasons.push(NTHSApplicationIneligibilityReason.notApproved)
-  if (
-    facts.banType === USER_BAN_TYPES.COMPLETE ||
-    facts.banType === USER_BAN_TYPES.SHADOW
-  )
+  if (facts.banType) {
     reasons.push(NTHSApplicationIneligibilityReason.banned)
-  if (!facts.hasCompletedSession)
-    reasons.push(NTHSApplicationIneligibilityReason.noCompletedSessions)
+  }
   if (facts.isActiveChapterMember)
     reasons.push(NTHSApplicationIneligibilityReason.alreadyInChapter)
   if (facts.hasPreviousApplication)
@@ -443,6 +429,13 @@ export async function submitCandidateApplication({
         'student_at_school',
         tc
       )
+    // A profile save without this occupation removes a coach from every
+    // chapter, so every applicant carries it.
+    await VolunteerRepo.insertVolunteerOccupations(
+      userId,
+      [VolunteerRepo.VolunteerOccupations.HIGH_SCHOOL_STUDENT],
+      tc
+    )
 
     return await NTHSApplicationRepo.createCandidateApplication(
       {

@@ -966,7 +966,10 @@ WHERE user_id = :userId!;
 INSERT INTO volunteer_occupations (user_id, occupation)
 SELECT
     :userId!,
-    UNNEST(:occupations!::text[]);
+    UNNEST(:occupations!::text[])
+ON CONFLICT (user_id,
+    occupation)
+    DO NOTHING;
 
 
 /* @name updateVolunteerProfile */

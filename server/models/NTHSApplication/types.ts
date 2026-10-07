@@ -4,7 +4,6 @@ import { Ulid, Uuid } from '../pgUtils'
 
 export enum NTHSApplicationIneligibilityReason {
   notAVolunteer = 'notAVolunteer',
-  notAHighSchoolStudent = 'notAHighSchoolStudent',
   notOnboarded = 'notOnboarded',
   notApproved = 'notApproved',
   banned = 'banned',
@@ -17,7 +16,6 @@ export type NTHSApplicationEligibilityFacts = {
   banType?: USER_BAN_TYPES
   onboarded: boolean
   approved: boolean
-  isHighSchoolStudent: boolean
   hasCompletedSession: boolean
   isActiveChapterMember: boolean
   hasPreviousApplication: boolean

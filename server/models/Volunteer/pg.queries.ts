@@ -2347,7 +2347,7 @@ export interface IInsertVolunteerOccupationsQuery {
   result: IInsertVolunteerOccupationsResult;
 }
 
-const insertVolunteerOccupationsIR: any = {"usedParamSet":{"userId":true,"occupations":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":67,"b":74}]},{"name":"occupations","required":true,"transform":{"type":"scalar"},"locs":[{"a":88,"b":100}]}],"statement":"INSERT INTO volunteer_occupations (user_id, occupation)\nSELECT\n    :userId!,\n    UNNEST(:occupations!::text[])"};
+const insertVolunteerOccupationsIR: any = {"usedParamSet":{"userId":true,"occupations":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":67,"b":74}]},{"name":"occupations","required":true,"transform":{"type":"scalar"},"locs":[{"a":88,"b":100}]}],"statement":"INSERT INTO volunteer_occupations (user_id, occupation)\nSELECT\n    :userId!,\n    UNNEST(:occupations!::text[])\nON CONFLICT (user_id,\n    occupation)\n    DO NOTHING"};
 
 /**
  * Query generated from SQL:
@@ -2356,6 +2356,9 @@ const insertVolunteerOccupationsIR: any = {"usedParamSet":{"userId":true,"occupa
  * SELECT
  *     :userId!,
  *     UNNEST(:occupations!::text[])
+ * ON CONFLICT (user_id,
+ *     occupation)
+ *     DO NOTHING
  * ```
  */
 export const insertVolunteerOccupations = new PreparedQuery<IInsertVolunteerOccupationsParams,IInsertVolunteerOccupationsResult>(insertVolunteerOccupationsIR);

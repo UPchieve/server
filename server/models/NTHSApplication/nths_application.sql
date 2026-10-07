@@ -54,14 +54,6 @@ SELECT
         SELECT
             1
         FROM
-            volunteer_occupations
-        WHERE
-            volunteer_occupations.user_id = users.id
-            AND volunteer_occupations.occupation = :highSchoolOccupation!) AS is_high_school_student,
-    EXISTS (
-        SELECT
-            1
-        FROM
             sessions
         WHERE
             sessions.volunteer_id = users.id

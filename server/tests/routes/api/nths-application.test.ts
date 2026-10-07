@@ -285,9 +285,10 @@ describe('GET /api/nths-application/eligibility', () => {
     mockedService.getApplicationEligibility.mockResolvedValueOnce({
       eligible: false,
       reasons: [
-        NTHSApplicationService.NTHSApplicationIneligibilityReason.notApproved,
         NTHSApplicationService.NTHSApplicationIneligibilityReason
-          .noCompletedSessions,
+          .alreadyInChapter,
+        NTHSApplicationService.NTHSApplicationIneligibilityReason
+          .alreadyApplied,
       ],
       currentGradeName: '11th',
     })
@@ -297,7 +298,7 @@ describe('GET /api/nths-application/eligibility', () => {
     expect(response.status).toBe(200)
     expect(response.body).toEqual({
       eligible: false,
-      reasons: ['notApproved', 'noCompletedSessions'],
+      reasons: ['alreadyInChapter', 'alreadyApplied'],
       currentGradeName: '11th',
     })
   })
@@ -308,7 +309,7 @@ describe('GET /api/nths-application/eligibility', () => {
       reasons: [
         NTHSApplicationService.NTHSApplicationIneligibilityReason.banned,
         NTHSApplicationService.NTHSApplicationIneligibilityReason
-          .noCompletedSessions,
+          .alreadyApplied,
       ],
       currentGradeName: '11th',
     })
@@ -316,7 +317,7 @@ describe('GET /api/nths-application/eligibility', () => {
     const response = await authedAgent.get('/api/nths-application/eligibility')
 
     expect(response.status).toBe(200)
-    expect(response.body.reasons).toEqual(['noCompletedSessions'])
+    expect(response.body.reasons).toEqual(['alreadyApplied'])
     expect(JSON.stringify(response.body)).not.toMatch(/banned/)
   })
 

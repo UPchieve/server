@@ -86,22 +86,18 @@ export async function getLatestCandidateApplicationStatus(
 }
 
 export async function getCandidateApplicationEligibility(
-  {
-    userId,
-    highSchoolOccupation,
-  }: { userId: Ulid; highSchoolOccupation: string },
+  userId: Ulid,
   tc: TransactionClient = getRoClient()
 ): Promise<NTHSApplicationEligibilityFacts | undefined> {
   try {
     const results = await pgQueries.candidateApplicationEligibility.run(
-      { userId, highSchoolOccupation },
+      { userId },
       tc
     )
     if (!results.length) return
     const row = makeSomeRequired(results[0], [
       'onboarded',
       'approved',
-      'isHighSchoolStudent',
       'hasCompletedSession',
       'isActiveChapterMember',
       'hasPreviousApplication',
@@ -110,7 +106,6 @@ export async function getCandidateApplicationEligibility(
       banType: row.banType,
       onboarded: row.onboarded,
       approved: row.approved,
-      isHighSchoolStudent: !!row.isHighSchoolStudent,
       hasCompletedSession: !!row.hasCompletedSession,
       isActiveChapterMember: !!row.isActiveChapterMember,
       hasPreviousApplication: !!row.hasPreviousApplication,
