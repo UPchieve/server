@@ -323,3 +323,4 @@ verify_migration_data_deletion:
         - database/migrations/**/*.sql
       when: manual
   allow_failure: false
+
