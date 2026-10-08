@@ -1,23 +1,35 @@
-import {
+import type {
   FeedbackPublic,
+  PostsessionSurveyGoalResponsePublic,
   PostsessionSurveyResponsePublic,
   ResponseDataPublic,
   SimpleSurveyResponsePublic,
   StudentCounselingFeedbackPublic,
   StudentTutoringFeedbackPublic,
+  SurveyQueryResponsePublic,
+  SurveyQuestionDefinitionPublic,
+  SurveyResponseDefinitionPublic,
+  SurveyUserResponseDefinitionPublic,
+  VolunteerContextResponsePublic,
   VolunteerFeedbackPublic,
-} from '../contracts/surveys'
-import {
+} from './surveys'
+import type {
   Feedback,
   ResponseData,
   StudentCounselingFeedback,
   StudentTutoringFeedback,
   VolunteerFeedback,
 } from '../models/Feedback'
-import {
+import type {
+  PostsessionSurveyGoalResponse,
   PostsessionSurveyResponse,
   SimpleSurveyResponse,
+  SurveyUserResponseDefinition,
+  SurveyQueryResponse,
+  SurveyQuestionDefinition,
+  SurveyResponseDefinition,
 } from '../models/Survey'
+import type { VolunteerContextResponse } from '../services/SurveyService'
 
 function toResponsePublicData(data: ResponseData): ResponseDataPublic {
   // Older surveys have different keys; keep their saved responses intact.
@@ -119,5 +131,74 @@ export function toPostsessionSurveyResponsePublic(
     response: survey.response,
     displayOrder: survey.displayOrder,
     score: survey.score,
+  }
+}
+
+function toSurveyResponseDefinitionPublic(
+  response: SurveyResponseDefinition
+): SurveyResponseDefinitionPublic {
+  return {
+    responseId: response.responseId,
+    responseText: response.responseText,
+    responseDisplayPriority: response.responseDisplayPriority,
+    responseDisplayImage: response.responseDisplayImage,
+  }
+}
+
+function toSurveyUserResponseDefinitionPublic(
+  response: SurveyUserResponseDefinition
+): SurveyUserResponseDefinitionPublic {
+  return {
+    responseId: response.responseId,
+    response: response.response,
+  }
+}
+
+function toSurveyQuestionDefinitionPublic(
+  question: SurveyQuestionDefinition
+): SurveyQuestionDefinitionPublic {
+  return {
+    questionId: question.questionId,
+    questionText: question.questionText,
+    displayPriority: question.displayPriority,
+    questionType: question.questionType,
+    responses: question.responses.map(toSurveyResponseDefinitionPublic),
+    userResponse: question.userResponse
+      ? toSurveyUserResponseDefinitionPublic(question.userResponse)
+      : undefined,
+  }
+}
+
+export function toSurveyQueryResponsePublic(
+  survey: SurveyQueryResponse
+): SurveyQueryResponsePublic {
+  return {
+    surveyId: survey.surveyId,
+    surveyTypeId: survey.surveyTypeId,
+    survey: survey.survey.map(toSurveyQuestionDefinitionPublic),
+    rewardAmount: survey.rewardAmount,
+  }
+}
+
+export function toVolunteerContextResponsePublic(
+  response: VolunteerContextResponse
+): VolunteerContextResponsePublic {
+  return {
+    totalStudentSessions: response.totalStudentSessions,
+    responses: response.responses.map(toSimpleSurveyResponsePublic),
+  }
+}
+
+export function toPostsessionSurveyGoalResponsePublic(
+  response: PostsessionSurveyGoalResponse
+): PostsessionSurveyGoalResponsePublic {
+  return {
+    sessionId: response.sessionId,
+    roleInSession: response.roleInSession,
+    submitterUserId: response.submitterUserId,
+    createdAt: response.createdAt.toISOString(),
+    surveyResponseChoiceId: response.surveyResponseChoiceId,
+    score: response.score,
+    choiceText: response.choiceText,
   }
 }

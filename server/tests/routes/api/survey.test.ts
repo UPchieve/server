@@ -129,6 +129,25 @@ describe('routeSurvey', () => {
   })
 
   describe('GET /api/survey/postsession', () => {
+    test('returns an empty object when no postsession survey exists', async () => {
+      const sessionId = getUuid()
+      const role = 'student'
+      mockedSurveyService.parseUserRole.mockReturnValueOnce(role)
+      mockedSurveyService.getPostsessionSurveyDefinition.mockResolvedValueOnce(
+        undefined
+      )
+
+      const response = await sendGet(
+        `/api/survey/postsession?sessionId=${sessionId}&role=${role}`
+      )
+
+      expect(response.status).toBe(200)
+      expect(response.body).toEqual({})
+      expect(
+        mockedSurveyService.getPostsessionSurveyDefinition
+      ).toHaveBeenCalledWith(sessionId, role)
+    })
+
     test('returns postsession survey definition', async () => {
       const sessionId = getUuid()
       const survey = buildSurveyQueryResponse()
@@ -220,6 +239,20 @@ describe('routeSurvey', () => {
   })
 
   describe('GET /api/survey/impact-study/responses', () => {
+    test('returns an empty body when no impact study submission exists', async () => {
+      mockedSurveyService.getLatestImpactStudySurveyResponses.mockResolvedValueOnce(
+        undefined
+      )
+
+      const response = await sendGet('/api/survey/impact-study/responses')
+
+      expect(response.status).toBe(200)
+      expect(response.text).toBe('')
+      expect(
+        mockedSurveyService.getLatestImpactStudySurveyResponses
+      ).toHaveBeenCalledWith(mockUser.id)
+    })
+
     test('returns latest impact study survey responses', async () => {
       const survey = buildSurveyQueryResponse()
       mockedSurveyService.getLatestImpactStudySurveyResponses.mockResolvedValueOnce(
