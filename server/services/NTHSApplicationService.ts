@@ -1,14 +1,9 @@
 import { Ulid, Uuid } from '../models/pgUtils'
 import * as NTHSApplicationRepo from '../models/NTHSApplication'
 import * as NTHSGroupsRepo from '../models/NTHSGroups'
-import {
-  NTHSApplicationIneligibilityReason,
-  NTHSApplyRequirementStatus,
-} from '../models/NTHSApplication'
+import { NTHSApplicationIneligibilityReason } from '../models/NTHSApplication'
 import type {
-  NTHSApplicationEligibilityFacts,
   NTHSApplicationResponses,
-  NTHSApplyPreview,
   NTHSCandidateApplication,
   NTHSUnlistedSchool,
 } from '../models/NTHSApplication'
@@ -17,7 +12,7 @@ import * as VolunteerRepo from '../models/Volunteer'
 import * as UsersGradeLevelsRepo from '../models/UsersGradeLevels'
 import * as UsersSchoolsRepo from '../models/UsersSchools'
 import { getSchoolById } from '../models/School'
-import { GRADES, PHOTO_ID_STATUS } from '../constants/user'
+import { GRADES } from '../constants/user'
 import { US_COUNTRY, US_STATE_CODES } from '../constants/geography'
 import { isHighSchoolGrade } from '../utils/grade-levels'
 import { getRoClient, runInTransaction, TransactionClient } from '../db'
@@ -27,8 +22,7 @@ import {
   NTHSApplicationExistsError,
 } from '../models/Errors'
 
-export { NTHSApplicationIneligibilityReason, NTHSApplyRequirementStatus }
-export type { NTHSApplyPreview }
+export { NTHSApplicationIneligibilityReason }
 
 // A submit with no formVersion comes from a tab opened before versions 2 and 3
 // shipped, which still shows the version 1 questions.
@@ -257,8 +251,6 @@ export type NTHSApplicationEligibility = {
   eligible: boolean
   reasons: NTHSApplicationIneligibilityReason[]
   currentGradeName?: string
-  // The eligibility route applies the preview switch before this reaches a client.
-  applyPreview?: NTHSApplyPreview
 }
 
 // The message stays generic: naming the reasons would tell a shadow-banned user
@@ -267,38 +259,6 @@ export class NTHSApplicationNotEligibleError extends CaughtError {
   readonly httpStatus = 403
   readonly defaultClientMessage =
     'You are not currently eligible to apply to start an NTHS chapter'
-}
-
-// Reasons a candidate can still clear on their own.
-const APPLY_PREVIEW_REASONS = [
-  NTHSApplicationIneligibilityReason.notOnboarded,
-  NTHSApplicationIneligibilityReason.notApproved,
-  NTHSApplicationIneligibilityReason.noCompletedSessions,
-]
-
-function applyPreviewFor(
-  facts: NTHSApplicationEligibilityFacts,
-  reasons: NTHSApplicationIneligibilityReason[]
-): NTHSApplyPreview | undefined {
-  if (facts.banType) return
-  if (!reasons.length) return
-  if (!reasons.every((reason) => APPLY_PREVIEW_REASONS.includes(reason))) return
-
-  return {
-    requirements: {
-      training: facts.onboarded
-        ? NTHSApplyRequirementStatus.done
-        : NTHSApplyRequirementStatus.outstanding,
-      safetyReview: facts.approved
-        ? NTHSApplyRequirementStatus.done
-        : facts.photoIdStatus === PHOTO_ID_STATUS.SUBMITTED
-          ? NTHSApplyRequirementStatus.inReview
-          : NTHSApplyRequirementStatus.outstanding,
-      firstSession: facts.hasCompletedSession
-        ? NTHSApplyRequirementStatus.done
-        : NTHSApplyRequirementStatus.outstanding,
-    },
-  }
 }
 
 // TODO: block when the applicant's school already has an active chapter. The
@@ -332,7 +292,6 @@ export async function getApplicationEligibility(
     eligible: reasons.length === 0,
     reasons,
     currentGradeName: facts.currentGradeName,
-    applyPreview: applyPreviewFor(facts, reasons),
   }
 }
 

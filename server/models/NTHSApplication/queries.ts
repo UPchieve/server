@@ -15,7 +15,7 @@ import type {
   NTHSCandidate,
 } from './types'
 import { NTHSCandidateApplicationStatus } from '../NTHSGroups/types'
-import { PHOTO_ID_STATUS, USER_ACTION } from '../../constants/user'
+import { USER_ACTION } from '../../constants/user'
 
 const NON_NULL_COLUMNS = [
   'id',
@@ -96,21 +96,14 @@ export async function getCandidateApplicationEligibility(
     )
     if (!results.length) return
     const row = makeSomeRequired(results[0], [
-      'onboarded',
-      'approved',
-      'hasCompletedSession',
       'isActiveChapterMember',
       'hasPreviousApplication',
     ])
     return {
       banType: row.banType,
-      onboarded: row.onboarded,
-      approved: row.approved,
-      hasCompletedSession: !!row.hasCompletedSession,
       isActiveChapterMember: !!row.isActiveChapterMember,
       hasPreviousApplication: !!row.hasPreviousApplication,
       currentGradeName: row.currentGradeName,
-      photoIdStatus: row.photoIdStatus as PHOTO_ID_STATUS | undefined,
     }
   } catch (err) {
     throw new RepoReadError(err)

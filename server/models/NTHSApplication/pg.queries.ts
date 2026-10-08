@@ -83,7 +83,7 @@ export interface ILatestCandidateApplicationQuery {
   result: ILatestCandidateApplicationResult;
 }
 
-const latestCandidateApplicationIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":233,"b":240}]}],"statement":"SELECT\n    id,\n    user_id,\n    status,\n    school_id,\n    unlisted_school,\n    form_version,\n    responses,\n    denied_notes,\n    decided_at,\n    activated_at,\n    created_at\nFROM\n    nths_candidate_applications\nWHERE\n    user_id = :userId!\nORDER BY\n    created_at DESC,\n    id DESC\nLIMIT 1                                                                                                                                                                                                                                                                                                                                                                                                                                   "};
+const latestCandidateApplicationIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":233,"b":240}]}],"statement":"SELECT\n    id,\n    user_id,\n    status,\n    school_id,\n    unlisted_school,\n    form_version,\n    responses,\n    denied_notes,\n    decided_at,\n    activated_at,\n    created_at\nFROM\n    nths_candidate_applications\nWHERE\n    user_id = :userId!\nORDER BY\n    created_at DESC,\n    id DESC\nLIMIT 1                                                                                                                                                                                                                                                                                                  "};
 
 /**
  * Query generated from SQL:
@@ -107,7 +107,7 @@ const latestCandidateApplicationIR: any = {"usedParamSet":{"userId":true},"param
  * ORDER BY
  *     created_at DESC,
  *     id DESC
- * LIMIT 1                                                                                                                                                                                                                                                                                                                                                                                                                                   
+ * LIMIT 1                                                                                                                                                                                                                                                                                                  
  * ```
  */
 export const latestCandidateApplication = new PreparedQuery<ILatestCandidateApplicationParams,ILatestCandidateApplicationResult>(latestCandidateApplicationIR);
@@ -120,18 +120,11 @@ export interface ICandidateApplicationEligibilityParams {
 
 /** 'CandidateApplicationEligibility' return type */
 export interface ICandidateApplicationEligibilityResult {
-  /** not_pii: Whether the volunteer application has been approved */
-  approved: boolean;
   /** not_pii: Type of ban (shadow, complete, live_media) */
   banType: ban_types | null;
   currentGradeName: string | null;
-  hasCompletedSession: boolean | null;
   hasPreviousApplication: boolean | null;
   isActiveChapterMember: boolean | null;
-  /** not_pii: Whether the volunteer has completed all onboarding steps */
-  onboarded: boolean;
-  /** not_pii: Human-readable name */
-  photoIdStatus: string;
 }
 
 /** 'CandidateApplicationEligibility' query type */
@@ -140,25 +133,14 @@ export interface ICandidateApplicationEligibilityQuery {
   result: ICandidateApplicationEligibilityResult;
 }
 
-const candidateApplicationEligibilityIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":1101,"b":1108}]}],"statement":"SELECT\n    users.ban_type,\n    volunteer_profiles.onboarded,\n    volunteer_profiles.approved,\n    current_grade_levels.current_grade_name,\n    photo_id_statuses.name AS photo_id_status,\n    EXISTS (\n        SELECT\n            1\n        FROM\n            sessions\n        WHERE\n            sessions.volunteer_id = users.id\n            AND sessions.time_tutored > 0) AS has_completed_session,\n    EXISTS (\n        SELECT\n            1\n        FROM\n            nths_group_members\n        WHERE\n            nths_group_members.user_id = users.id\n            AND nths_group_members.deactivated_at IS NULL) AS is_active_chapter_member,\n    EXISTS (\n        SELECT\n            1\n        FROM\n            nths_candidate_applications\n        WHERE\n            nths_candidate_applications.user_id = users.id) AS has_previous_application\nFROM\n    users\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN current_grade_levels ON current_grade_levels.user_id = users.id\n    LEFT JOIN photo_id_statuses ON photo_id_statuses.id = volunteer_profiles.photo_id_status\nWHERE\n    users.id = :userId!                                                                                                                                                                                              "};
+const candidateApplicationEligibilityIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":690,"b":697}]}],"statement":"SELECT\n    users.ban_type,\n    current_grade_levels.current_grade_name,\n    EXISTS (\n        SELECT\n            1\n        FROM\n            nths_group_members\n        WHERE\n            nths_group_members.user_id = users.id\n            AND nths_group_members.deactivated_at IS NULL) AS is_active_chapter_member,\n    EXISTS (\n        SELECT\n            1\n        FROM\n            nths_candidate_applications\n        WHERE\n            nths_candidate_applications.user_id = users.id) AS has_previous_application\nFROM\n    users\n    JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN current_grade_levels ON current_grade_levels.user_id = users.id\nWHERE\n    users.id = :userId!                                                                                                                                                                                              "};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
  *     users.ban_type,
- *     volunteer_profiles.onboarded,
- *     volunteer_profiles.approved,
  *     current_grade_levels.current_grade_name,
- *     photo_id_statuses.name AS photo_id_status,
- *     EXISTS (
- *         SELECT
- *             1
- *         FROM
- *             sessions
- *         WHERE
- *             sessions.volunteer_id = users.id
- *             AND sessions.time_tutored > 0) AS has_completed_session,
  *     EXISTS (
  *         SELECT
  *             1
@@ -178,7 +160,6 @@ const candidateApplicationEligibilityIR: any = {"usedParamSet":{"userId":true},"
  *     users
  *     JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
  *     LEFT JOIN current_grade_levels ON current_grade_levels.user_id = users.id
- *     LEFT JOIN photo_id_statuses ON photo_id_statuses.id = volunteer_profiles.photo_id_status
  * WHERE
  *     users.id = :userId!                                                                                                                                                                                              
  * ```

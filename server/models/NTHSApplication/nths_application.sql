@@ -40,24 +40,11 @@ LIMIT 1;
 /* The inner join to volunteer_profiles is what excludes students: they have no
  row, so the query returns nothing. current_grade_name comes from a view that
  advances the stored grade by academic year, so it is the value to show an
- applicant rather than the raw users_grade_levels row. photo_id_status is nullable,
- so an inner join to photo_id_statuses would drop every coach who has not started
- a safety review. */
+ applicant rather than the raw users_grade_levels row. */
 /* @name candidateApplicationEligibility */
 SELECT
     users.ban_type,
-    volunteer_profiles.onboarded,
-    volunteer_profiles.approved,
     current_grade_levels.current_grade_name,
-    photo_id_statuses.name AS photo_id_status,
-    EXISTS (
-        SELECT
-            1
-        FROM
-            sessions
-        WHERE
-            sessions.volunteer_id = users.id
-            AND sessions.time_tutored > 0) AS has_completed_session,
     EXISTS (
         SELECT
             1
@@ -77,7 +64,6 @@ FROM
     users
     JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id
     LEFT JOIN current_grade_levels ON current_grade_levels.user_id = users.id
-    LEFT JOIN photo_id_statuses ON photo_id_statuses.id = volunteer_profiles.photo_id_status
 WHERE
     users.id = :userId!;
 
