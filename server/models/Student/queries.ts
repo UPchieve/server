@@ -116,17 +116,6 @@ export async function isFavoriteVolunteer(
   }
 }
 
-type FavoriteVolunteer = {
-  volunteerId: Ulid
-  firstName: string
-  numSessions: number
-}
-
-type FavoriteVolunteersResponse = {
-  favoriteVolunteers: FavoriteVolunteer[]
-  isLastPage: boolean
-}
-
 export type UpdateFavoriteVolunteer = {
   studentId: Ulid
   volunteerId: Ulid

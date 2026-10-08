@@ -1,4 +1,4 @@
-import { Router } from 'express'
+import type { Router, Response } from 'express'
 import config from '../../config'
 import * as StudentRepo from '../../models/Student/queries'
 import { asBoolean, asNumber, asUlid, asString } from '../../utils/type-utils'
@@ -8,17 +8,30 @@ import * as StudentService from '../../services/StudentService'
 import * as AssignmentsService from '../../services/AssignmentsService'
 import { FavoriteLimitReachedError } from '../../services/Errors'
 import { authPassport } from '../../utils/auth-utils'
+import type {
+  ActivePartnerOrgsResponse,
+  ActiveStudentClassesResponse,
+  FavoriteLimitReachedResponse,
+  IsFavoriteVolunteerResponse,
+  PastVolunteersResponse,
+  RemainingFavoriteAmountResponse,
+} from '../../contracts/students'
+import {
+  toPastVolunteerPublic,
+  toStudentPartnerOrgInstancePublic,
+} from '../../contracts/students.mappers'
+import { toTeacherClassPublic } from '../../contracts/teachers.mappers'
+import { toStudentAssignmentPublic } from '../../contracts/assignments.mappers'
+import type { StudentAssignmentsResponse } from '../../contracts/assignments'
 
 export function routeStudents(router: Router): void {
   router.get(
     '/students/remaining-favorite-volunteers',
-    async function (req, res) {
+    async function (req, res: Response<RemainingFavoriteAmountResponse>) {
       try {
         const user = extractUser(req)
-        const totalFavoriteVolunteers: number =
-          (await StudentRepo.getTotalFavoriteVolunteers(
-            String(user.id)
-          )) as number
+        const totalFavoriteVolunteers =
+          await StudentRepo.getTotalFavoriteVolunteers(String(user.id))
         res.json({
           remaining: config.favoriteVolunteerLimit - totalFavoriteVolunteers,
         })
@@ -30,7 +43,7 @@ export function routeStudents(router: Router): void {
 
   router.get(
     '/students/favorite-volunteers/:volunteerId',
-    async function (req, res) {
+    async function (req, res: Response<IsFavoriteVolunteerResponse>) {
       try {
         const volunteerId = asString(req.params.volunteerId)
         const user = extractUser(req)
@@ -49,7 +62,10 @@ export function routeStudents(router: Router): void {
 
   router.post(
     '/students/favorite-volunteers/:volunteerId',
-    async function (req, res) {
+    async function (
+      req,
+      res: Response<IsFavoriteVolunteerResponse | FavoriteLimitReachedResponse>
+    ) {
       try {
         const volunteerId = asUlid(req.params.volunteerId)
         const user = extractUser(req)
@@ -81,51 +97,62 @@ export function routeStudents(router: Router): void {
   router.get(
     '/students/partners/active',
     authPassport.isAdmin,
-    async function (req, res) {
+    async function (req, res: Response<ActivePartnerOrgsResponse>) {
       try {
         const studentId = req.query.student
         const activePartners =
           await StudentService.adminGetActivePartnersForStudent(
             asString(studentId)
           )
-        res.json({ activePartners: activePartners || [] })
+        res.json({
+          activePartners:
+            activePartners?.map(toStudentPartnerOrgInstancePublic) ?? [],
+        })
       } catch (err) {
         resError(res, err)
       }
     }
   )
 
-  router.get('/students/classes', async function (req, res) {
-    try {
-      const user = extractUser(req)
-      const classes = await StudentService.getActiveClassesForStudent(user.id)
-      res.json({ classes })
-    } catch (err) {
-      resError(res, err)
+  router.get(
+    '/students/classes',
+    async function (req, res: Response<ActiveStudentClassesResponse>) {
+      try {
+        const user = extractUser(req)
+        const classes = await StudentService.getActiveClassesForStudent(user.id)
+        res.json({ classes: classes.map(toTeacherClassPublic) })
+      } catch (err) {
+        resError(res, err)
+      }
     }
-  })
+  )
 
-  router.get('/students/assignments', async function (req, res) {
-    try {
-      const user = extractUser(req)
-      const assignments = await AssignmentsService.getAssignmentsByStudentId(
-        user.id
-      )
-      res.json({ assignments })
-    } catch (err) {
-      resError(res, err)
+  router.get(
+    '/students/assignments',
+    async function (req, res: Response<StudentAssignmentsResponse>) {
+      try {
+        const user = extractUser(req)
+        const assignments = await AssignmentsService.getAssignmentsByStudentId(
+          user.id
+        )
+        res.json({ assignments: assignments.map(toStudentAssignmentPublic) })
+      } catch (err) {
+        resError(res, err)
+      }
     }
-  })
+  )
 
-  router.get('/students/past-volunteers', async function (req, res) {
-    try {
-      const user = extractUser(req)
-      const pastVolunteers = await StudentService.getPastVolunteersByStudentId(
-        String(user.id)
-      )
-      res.json({ pastVolunteers })
-    } catch (error) {
-      resError(res, error)
+  router.get(
+    '/students/past-volunteers',
+    async function (req, res: Response<PastVolunteersResponse>) {
+      try {
+        const user = extractUser(req)
+        const pastVolunteers =
+          await StudentService.getPastVolunteersByStudentId(String(user.id))
+        res.json({ pastVolunteers: pastVolunteers.map(toPastVolunteerPublic) })
+      } catch (error) {
+        resError(res, error)
+      }
     }
-  })
+  )
 }

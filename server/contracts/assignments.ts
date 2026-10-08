@@ -71,3 +71,7 @@ export type AssignmentUploadResponse = {
 export type StudentAssignmentResponse = {
   assignment?: StudentAssignmentPublic
 }
+
+export type StudentAssignmentsResponse = {
+  assignments: StudentAssignmentPublic[]
+}
