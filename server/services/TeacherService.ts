@@ -2,33 +2,32 @@ import _ from 'lodash'
 import { getClient, runInTransaction, TransactionClient } from '../db'
 import logger from '../logger'
 import { InputError } from '../models/Errors'
-import { Ulid, Uuid } from '../models/pgUtils'
+import type { Uuid } from '../types/shared'
 import * as AssignmentsService from './AssignmentsService'
 import * as StudentService from './StudentService'
 import * as StudentRepo from '../models/Student'
-import * as SubjectsRepo from '../models/Subjects'
 import * as TeacherRepo from '../models/Teacher'
 import * as TeacherClassRepo from '../models/TeacherClass'
 import * as UserRepo from '../models/User'
 import generateAlphanumericOfLength from '../utils/generate-alphanumeric'
 import { USER_BAN_REASONS, USER_BAN_TYPES } from '../constants'
 import { StudentUserProfile } from '../models/Student'
-import { TeacherClassWithStudents } from '../models/Teacher'
+import type { TeacherClass, TeacherClassWithStudents } from '../types/teachers'
 import { getTeacherGettingStartedAssignmentFlag } from './FeatureFlagService'
 
-export async function getTeacherById(userId: Ulid, tc?: TransactionClient) {
+export async function getTeacherById(userId: Uuid, tc?: TransactionClient) {
   return runInTransaction(async (tc: TransactionClient) => {
     return TeacherRepo.getTeacherById(userId, tc)
   }, tc)
 }
 
 export async function createTeacherClass(
-  userId: Ulid,
+  userId: Uuid,
   className: string,
   topicId?: number,
   cleverId?: string,
   tc?: TransactionClient
-) {
+): Promise<TeacherClass> {
   const newClass = await runInTransaction(async (tc: TransactionClient) => {
     const code = await generateUniqueClassCode(tc)
     const newClass = await TeacherRepo.createTeacherClass(
@@ -41,9 +40,7 @@ export async function createTeacherClass(
       },
       tc
     )
-    const topic = topicId ? await SubjectsRepo.getTopics(topicId, tc) : []
-
-    return { ...newClass, topic: topic[0] }
+    return newClass
   }, tc)
 
   // Don't fail the class creation for an experimental feature.
@@ -67,7 +64,7 @@ export async function createTeacherClass(
 }
 
 export async function getTeacherClasses(
-  userId: Ulid,
+  userId: Uuid,
   tc?: TransactionClient
 ): Promise<TeacherClassWithStudents[]> {
   return runInTransaction(async (tc: TransactionClient) => {
@@ -95,7 +92,7 @@ export async function getTeacherClassByClassCode(code: string) {
   })
 }
 
-export async function getTeacherClassById(id: Ulid) {
+export async function getTeacherClassById(id: Uuid) {
   return runInTransaction(async (tc: TransactionClient) => {
     const teacherClass = await TeacherRepo.getTeacherClassById(id, tc)
     return teacherClass
@@ -103,16 +100,16 @@ export async function getTeacherClassById(id: Ulid) {
 }
 
 export async function getStudentIdsInTeacherClass(
-  classId: Ulid,
+  classId: Uuid,
   tc: TransactionClient
-): Promise<Ulid[]> {
+): Promise<Uuid[]> {
   return runInTransaction(async (tc: TransactionClient) => {
     return TeacherRepo.getStudentIdsInTeacherClass(tc, classId)
   }, tc)
 }
 
 export async function getStudentsInTeacherClass(
-  classId: Ulid,
+  classId: Uuid,
   tc?: TransactionClient
 ): Promise<StudentUserProfile[]> {
   return runInTransaction(async (tc: TransactionClient) => {
@@ -140,7 +137,7 @@ export async function getTeacherSchoolIdFromClassCode(
 }
 
 export async function addStudentToTeacherClassByClassCode(
-  userId: Ulid,
+  userId: Uuid,
   classCode: string,
   tc?: TransactionClient
 ) {
@@ -159,7 +156,7 @@ export async function addStudentToTeacherClassByClassCode(
 }
 
 export async function addStudentsToTeacherClassById(
-  studentIds: Ulid[],
+  studentIds: Uuid[],
   classId: Uuid,
   tc: TransactionClient
 ) {
@@ -215,7 +212,7 @@ export async function deactivateTeacherClass(
   }, tc)
 }
 
-export async function removeStudentFromClass(studentId: Ulid, classId: Ulid) {
+export async function removeStudentFromClass(studentId: Uuid, classId: Uuid) {
   return runInTransaction(async (tc: TransactionClient) => {
     const teacherClass = await TeacherRepo.getTeacherClassById(classId, tc)
     if (!teacherClass) throw new InputError('Invalid class id.')
@@ -227,8 +224,8 @@ export async function removeStudentFromClass(studentId: Ulid, classId: Ulid) {
 }
 
 export async function removeStudentsFromTeacherClassById(
-  studentIds: Ulid[],
-  classId: Ulid,
+  studentIds: Uuid[],
+  classId: Uuid,
   tc: TransactionClient
 ) {
   return runInTransaction(async (tc: TransactionClient) => {
@@ -237,7 +234,7 @@ export async function removeStudentsFromTeacherClassById(
 }
 
 export async function adminUpdateTeacher(
-  teacherId: Ulid,
+  teacherId: Uuid,
   updateData: {
     firstName?: string
     lastName?: string
@@ -295,12 +292,12 @@ export async function adminUpdateTeacher(
 }
 
 export async function updateLastSuccessfulCleverSync(
-  teacherId: Ulid,
+  teacherId: Uuid,
   tc: TransactionClient
 ) {
   return TeacherRepo.updateLastSuccessfulCleverSync(teacherId, tc)
 }
 
-export async function getAllStudentsForTeacher(teacherId: Ulid) {
+export async function getAllStudentsForTeacher(teacherId: Uuid) {
   return TeacherRepo.getAllStudentsForTeacher(teacherId)
 }

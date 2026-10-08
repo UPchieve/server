@@ -108,7 +108,6 @@ import type {
   StudentAssignment,
   StudentAssignmentCompletionRow,
 } from '../../models/Assignments'
-import { SessionReport, UsageReport } from '../../services/ReportService'
 import { TelecomRow } from '../../utils/reportUtils'
 import { UserReward } from '../../services/RewardsService'
 import {
@@ -128,8 +127,9 @@ import { SessionSummary } from '../../models/SessionSummaries/types'
 import type { HeatMap } from '../../utils/session-utils'
 import type {
   TeacherClass,
-  TeacherClassResult,
-} from '../../models/TeacherClass'
+  TeacherClassForStudent,
+  TeacherClassWithStudents,
+} from '../../types/teachers'
 import type {
   GetTopicsResult,
   SubjectWithTopic,
@@ -139,7 +139,6 @@ import type {
 } from '../../models/Subjects'
 import type { SurveyQueryResponse } from '../../models/Survey'
 import type { SaveSurveyAndSubmissions } from '../../services/SurveyService'
-import { TeacherClassWithStudents } from '../../models/Teacher'
 import { Question } from '../../models/Question'
 import { MaterialType, TrainingCourse } from '../../utils/training-courses'
 import type {
@@ -151,6 +150,7 @@ import type {
 } from '../../contracts/tutor-bot'
 import { IneligibleStudentsWithSchoolInfo } from '../../models/IneligibleStudent/queries'
 import { ZipCode } from '../../models/ZipCode/types'
+import type { AssignmentPublic } from '../../contracts/assignments'
 import { StudentAssignmentSubmissionPublic } from '../../contracts/assignments'
 import { NTHSGroupMemberWithRolePublic } from '../../contracts/nths-group'
 import { UserProductFlagsPublic } from '../../contracts/product-flags'
@@ -163,6 +163,11 @@ import {
   PostsessionSurveyResponsePublic,
   SimpleSurveyResponsePublic,
 } from '../../contracts/surveys'
+import type { StudentUserProfilePublic } from '../../contracts/students'
+import type {
+  TeacherClassPublic,
+  TeacherClassForStudentPublic,
+} from '../../contracts/teachers'
 
 /** Suffixed with a uuid because users.email and parents_guardians.email are UNIQUE. */
 export function getEmail(): string {
@@ -350,6 +355,22 @@ export function buildStudentUserProfile(
     createdAt: student.createdAt,
     updatedAt: student.updatedAt,
     ...overrides,
+  }
+}
+
+export function buildStudentUserProfilePublic(
+  overrides: Partial<StudentUserProfile> = {}
+): StudentUserProfilePublic {
+  const student = buildStudentUserProfile(overrides)
+  return {
+    id: student.id,
+    userId: student.id,
+    email: student.email,
+    firstName: student.firstName,
+    lastName: student.lastName,
+    gradeLevel: student.gradeLevel,
+    schoolId: student.schoolId,
+    createdAt: student.createdAt.toISOString(),
   }
 }
 
@@ -1458,6 +1479,27 @@ export function buildAssignment(
   }
 }
 
+export function buildAssignmentPublic(
+  overrides: Partial<Assignment> = {}
+): AssignmentPublic {
+  const assignment = buildAssignment(overrides)
+  return {
+    id: assignment.id,
+    classId: assignment.classId,
+    description: assignment.description,
+    dueDate: assignment.dueDate?.toISOString(),
+    isRequired: assignment.isRequired,
+    minDurationInMinutes: assignment.minDurationInMinutes,
+    numberOfSessions: assignment.numberOfSessions,
+    startDate: assignment.startDate?.toISOString(),
+    subjectId: assignment.subjectId,
+    title: assignment.title,
+    isGettingStartedAssignment: assignment.isGettingStartedAssignment,
+    createdAt: assignment.createdAt.toISOString(),
+    subjectName: assignment.subjectName,
+  }
+}
+
 export function buildAssignmentPayload(
   overrides: Partial<{
     id: string
@@ -2297,17 +2339,29 @@ export function buildHeatMap(overrides: Partial<HeatMap> = {}): HeatMap {
   }
 }
 
-export function buildTeacherClassResult(
-  overrides: Partial<TeacherClassResult> = {}
-): TeacherClassResult {
+export function buildTeacherClassForStudent(
+  overrides: Partial<TeacherClassForStudent> = {}
+): TeacherClassForStudent {
   return {
     id: getUuid(),
     name: 'Teacher Class',
     active: true,
     topicId: 1,
     createdAt: new Date(),
-    updatedAt: new Date(),
     ...overrides,
+  }
+}
+
+export function buildTeacherClassForStudentPublic(
+  overrides: Partial<TeacherClassForStudent> = {}
+): TeacherClassForStudentPublic {
+  const teacherClass = buildTeacherClassForStudent(overrides)
+  return {
+    id: teacherClass.id,
+    name: teacherClass.name,
+    active: teacherClass.active,
+    topicId: teacherClass.topicId,
+    createdAt: teacherClass.createdAt.toISOString(),
   }
 }
 
@@ -2463,48 +2517,25 @@ export function buildTeacherClass(
     topicId: 1,
     active: true,
     createdAt: new Date(),
-    updatedAt: new Date(),
     ...overrides,
   }
 }
 
-export function buildTeacherClassByClassCode(
-  overrides: Partial<{
-    id: string
-    userId?: string | undefined
-    name: string
-    active: boolean
-    cleverId?: string
-    code: string
-    topicId?: number
-    createdAt: Date
-    updatedAt: Date
-    deactivatedOn?: Date
-  }> = {}
-): {
-  id: string
-  userId: string
-  name: string
-  active: boolean
-  code: string
-  cleverId: string
-  topicId: number
-  createdAt: Date
-  updatedAt: Date
-  deactivatedOn: Date
-} {
+export function buildTeacherClassPublic(
+  overrides: Partial<TeacherClass> = {}
+): TeacherClassPublic {
+  const teacherClass = buildTeacherClass(overrides)
   return {
-    id: getUuid(),
-    userId: getUuid(),
-    name: 'Algebra 1',
-    active: true,
-    code: getUuid(),
-    topicId: 1,
-    cleverId: getUuid(),
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    deactivatedOn: new Date(),
-    ...overrides,
+    id: teacherClass.id,
+    userId: teacherClass.userId,
+    name: teacherClass.name,
+    code: teacherClass.code,
+    active: teacherClass.active,
+    topicId: teacherClass.topicId,
+    cleverId: teacherClass.cleverId,
+    totalStudents: teacherClass.totalStudents,
+    deactivatedOn: teacherClass.deactivatedOn?.toISOString(),
+    createdAt: teacherClass.createdAt.toISOString(),
   }
 }
 

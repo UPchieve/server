@@ -2,10 +2,11 @@ import { mocked } from 'jest-mock'
 import request, { Test } from 'supertest'
 import { mockApp, mockPassportMiddleware, mockRouter } from '../../mock-app'
 import { routeAssignments } from '../../../router/api/assignments'
-import { toAssigmentPublic } from '../../../contracts/assignments.mappers'
+import { toAssignmentPublic } from '../../../contracts/assignments.mappers'
 import * as AssignmentsService from '../../../services/AssignmentsService'
 import {
   buildAssignment,
+  buildAssignmentPublic,
   buildStudentAssignmentCompletionRow,
   buildStudentAssignmentSubmissionPublic,
   buildUser,
@@ -63,13 +64,7 @@ describe('routeAssignments', () => {
         mockedAssignmentsService.isGettingStartedAssignment
       ).toHaveBeenCalledWith(assignment.id)
       expect(response.body).toEqual({
-        assignment: {
-          ...assignment,
-          startDate: assignment.startDate?.toISOString(),
-          dueDate: assignment.dueDate?.toISOString(),
-          createdAt: assignment.createdAt.toISOString(),
-          updatedAt: undefined,
-        },
+        assignment: buildAssignmentPublic(assignment),
       })
     })
 
@@ -158,11 +153,11 @@ describe('routeAssignments', () => {
   })
 })
 
-describe('toAssigmentPublic', () => {
+describe('toAssignmentPublic', () => {
   test('maps all fields and converts dates to ISO strings', () => {
     const assignment = buildAssignment()
 
-    const result = toAssigmentPublic(assignment)
+    const result = toAssignmentPublic(assignment)
 
     expect(result).toEqual({
       id: assignment.id,
@@ -184,7 +179,7 @@ describe('toAssigmentPublic', () => {
   test('drops updatedAt', () => {
     const assignment = buildAssignment({ updatedAt: new Date() })
 
-    const result = toAssigmentPublic(assignment)
+    const result = toAssignmentPublic(assignment)
 
     expect(result).not.toHaveProperty('updatedAt')
   })
@@ -195,7 +190,7 @@ describe('toAssigmentPublic', () => {
       startDate: undefined,
     })
 
-    const result = toAssigmentPublic(assignment)
+    const result = toAssignmentPublic(assignment)
 
     expect(result.dueDate).toBeUndefined()
     expect(result.startDate).toBeUndefined()
@@ -212,7 +207,7 @@ describe('toAssigmentPublic', () => {
       subjectName: undefined,
     })
 
-    const result = toAssigmentPublic(assignment)
+    const result = toAssignmentPublic(assignment)
 
     expect(result.description).toBeUndefined()
     expect(result.minDurationInMinutes).toBeUndefined()
@@ -226,7 +221,7 @@ describe('toAssigmentPublic', () => {
   test('preserves isRequired as false without coercion', () => {
     const assignment = buildAssignment({ isRequired: false })
 
-    const result = toAssigmentPublic(assignment)
+    const result = toAssignmentPublic(assignment)
 
     expect(result.isRequired).toBe(false)
   })

@@ -9,7 +9,10 @@ import * as StudentService from '../../services/StudentService'
 import * as SubjectsService from '../../services/SubjectsService'
 import * as TeacherService from '../../services/TeacherService'
 import * as UserCreationService from '../../services/UserCreationService'
-import { TeacherClass } from '../../models/Teacher'
+import {
+  buildTeacherClass,
+  buildTeacherClassWithStudents,
+} from '../mocks/generate'
 import { CreateUserResult } from '../../models/User'
 
 jest.mock('../../services/FederatedCredentialService')
@@ -60,7 +63,6 @@ describe('rosterTeacherClasses', () => {
       userId: teacherId,
       schoolId: 's-1',
       createdAt: new Date(),
-      updatedAt: new Date(),
     })
     mockedStudentService.getStudentByCleverId
       .mockResolvedValueOnce({
@@ -79,18 +81,9 @@ describe('rosterTeacherClasses', () => {
       .mockResolvedValueOnce(1)
       .mockResolvedValueOnce(2)
     mockedTeacherService.createTeacherClass
-      // @ts-ignore
-      .mockResolvedValueOnce({
-        id: 'newClass1',
-      })
-      // @ts-ignore
-      .mockResolvedValueOnce({
-        id: 'newClass2',
-      })
-      // @ts-ignore
-      .mockResolvedValueOnce({
-        id: 'newClass3',
-      })
+      .mockResolvedValueOnce(buildTeacherClass({ id: 'newClass1' }))
+      .mockResolvedValueOnce(buildTeacherClass({ id: 'newClass2' }))
+      .mockResolvedValueOnce(buildTeacherClass({ id: 'newClass3' }))
 
     await CleverRosterService.rosterTeacherClasses(
       teacherId,
@@ -179,7 +172,6 @@ describe('rosterTeacherClasses', () => {
       userId: teacherId,
       schoolId: 's-2',
       createdAt: new Date(),
-      updatedAt: new Date(),
     })
     mockedStudentService.getStudentByCleverId
       .mockResolvedValueOnce({
@@ -193,21 +185,21 @@ describe('rosterTeacherClasses', () => {
       })
     // All Clever classes exist in UPchieve - update all the students for those classes.
     mockedTeacherService.getTeacherClasses.mockResolvedValue([
-      // @ts-ignore
-      {
+      buildTeacherClassWithStudents({
         id: 'ucc-11',
         cleverId: 'cc-11',
-      },
-      // @ts-ignore
-      {
+        students: [],
+      }),
+      buildTeacherClassWithStudents({
         id: 'ucc-22',
         cleverId: 'cc-22',
-      },
-      // @ts-ignore
-      {
+        students: [],
+      }),
+      buildTeacherClassWithStudents({
         id: 'ucc-33',
         cleverId: 'cc-33',
-      },
+        students: [],
+      }),
     ])
     mockedTeacherService.getStudentIdsInTeacherClass
       // Add student cs-33 into class ucc-11.
@@ -249,7 +241,6 @@ describe('rosterTeacherClasses', () => {
       userId: teacherId,
       schoolId: 's-3',
       createdAt: new Date(),
-      updatedAt: new Date(),
     })
     mockedStudentService.getStudentByCleverId
       .mockResolvedValueOnce({
@@ -263,21 +254,21 @@ describe('rosterTeacherClasses', () => {
       })
     // None of these classes exist in Clever anymore.
     mockedTeacherService.getTeacherClasses.mockResolvedValue([
-      // @ts-ignore
-      {
+      buildTeacherClassWithStudents({
         id: 'ucc-111',
         cleverId: 'cc-111',
-      },
-      // @ts-ignore
-      {
+        students: [],
+      }),
+      buildTeacherClassWithStudents({
         id: 'ucc-222',
         cleverId: 'cc-222',
-      },
-      // @ts-ignore
-      {
+        students: [],
+      }),
+      buildTeacherClassWithStudents({
         id: 'ucc-333',
         cleverId: 'cc-333',
-      },
+        students: [],
+      }),
     ])
 
     await CleverRosterService.rosterTeacherClasses(
@@ -345,7 +336,6 @@ describe('rosterTeacherClasses', () => {
         userId: teacherId,
         schoolId: 's-4',
         createdAt: new Date(),
-        updatedAt: new Date(),
       })
       mockedStudentService.getStudentByCleverId.mockResolvedValue(undefined)
       mockedStudentService.getStudentByEmail.mockResolvedValue(undefined)
@@ -377,10 +367,9 @@ describe('rosterTeacherClasses', () => {
         },
       ]
       mockedSubjectsService.getTopicIdFromName.mockResolvedValue(0)
-      // @ts-ignore
-      mockedTeacherService.createTeacherClass.mockResolvedValue({
-        id: 'newClassA',
-      })
+      mockedTeacherService.createTeacherClass.mockResolvedValue(
+        buildTeacherClass({ id: 'newClassA' })
+      )
 
       await CleverRosterService.rosterTeacherClasses(
         teacherId,

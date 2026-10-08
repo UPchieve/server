@@ -6,13 +6,14 @@ import * as TeacherService from '../../../services/TeacherService'
 import * as AssignmentsService from '../../../services/AssignmentsService'
 import {
   buildAssignment,
+  buildAssignmentPublic,
   buildStudentUserProfile,
+  buildStudentUserProfilePublic,
   buildTeacherClass,
+  buildTeacherClassPublic,
   buildTeacherClassWithStudents,
   buildAssignmentPayload,
   buildUser,
-  buildGetTopicsResult,
-  buildTeacherClassByClassCode,
 } from '../../mocks/generate'
 import { getUuid } from '../../../models/pgUtils'
 import { RoleContext } from '../../../services/UserRolesService'
@@ -108,44 +109,29 @@ describe('routeTeachers', () => {
   describe('POST /api/teachers/class', () => {
     test('creates teacher class', async () => {
       const teacherClass = buildTeacherClass()
-      const topic = buildGetTopicsResult()
-      const mockTeacherClass = {
-        ...teacherClass,
-        topic,
-      }
       mockedTeacherService.createTeacherClass.mockResolvedValueOnce(
-        mockTeacherClass
+        teacherClass
       )
 
       const response = await sendPost('/api/teachers/class', {
         className: teacherClass.name,
-        topicId: topic.id,
+        topicId: teacherClass.topicId,
       })
       expect(response.status).toBe(200)
       expect(mockedTeacherService.createTeacherClass).toHaveBeenCalledWith(
         mockUser.id,
         teacherClass.name,
-        topic.id
+        teacherClass.topicId
       )
       expect(response.body).toEqual({
-        teacherClass: {
-          ...teacherClass,
-          topic,
-          createdAt: teacherClass.createdAt.toISOString(),
-          updatedAt: teacherClass.updatedAt.toISOString(),
-        },
+        teacherClass: buildTeacherClassPublic(teacherClass),
       })
     })
 
     test('creates teacher class with null topic id when omitted', async () => {
-      const teacherClass = buildTeacherClass()
-      const mockTeacherClass = {
-        ...teacherClass,
-        topic: undefined,
-      }
-      //   NOTE: topic is technically undefined when no topicId is provided
+      const teacherClass = buildTeacherClass({ topicId: undefined })
       mockedTeacherService.createTeacherClass.mockResolvedValueOnce(
-        mockTeacherClass as any
+        teacherClass
       )
 
       const response = await sendPost('/api/teachers/class', {
@@ -158,12 +144,7 @@ describe('routeTeachers', () => {
         null
       )
       expect(response.body).toEqual({
-        teacherClass: {
-          ...teacherClass,
-          topic: undefined,
-          createdAt: teacherClass.createdAt.toISOString(),
-          updatedAt: teacherClass.updatedAt.toISOString(),
-        },
+        teacherClass: buildTeacherClassPublic(teacherClass),
       })
     })
   })
@@ -171,7 +152,11 @@ describe('routeTeachers', () => {
   describe('GET /api/teachers/classes', () => {
     test('returns teacher classes', async () => {
       const teacherClasses = [
-        buildTeacherClassWithStudents(),
+        buildTeacherClassWithStudents({
+          cleverId: 'clever-class',
+          totalStudents: 2,
+          deactivatedOn: new Date(),
+        }),
         buildTeacherClassWithStudents(),
       ]
       mockedTeacherService.getTeacherClasses.mockResolvedValueOnce(
@@ -185,16 +170,10 @@ describe('routeTeachers', () => {
       )
       expect(response.body).toEqual({
         teacherClasses: teacherClasses.map((teacherClass) => ({
-          ...teacherClass,
-          students: teacherClass.students.map((student) => {
-            return {
-              ...student,
-              createdAt: student.createdAt.toISOString(),
-              updatedAt: student.updatedAt.toISOString(),
-            }
-          }),
-          createdAt: teacherClass.createdAt.toISOString(),
-          updatedAt: teacherClass.updatedAt.toISOString(),
+          ...buildTeacherClassPublic(teacherClass),
+          students: teacherClass.students.map((student) =>
+            buildStudentUserProfilePublic(student)
+          ),
         })),
       })
     })
@@ -214,18 +193,19 @@ describe('routeTeachers', () => {
         mockedTeacherService.getStudentsInTeacherClass
       ).toHaveBeenCalledWith(classId)
       expect(response.body).toEqual({
-        students: students.map((student) => ({
-          ...student,
-          createdAt: student.createdAt.toISOString(),
-          updatedAt: student.updatedAt.toISOString(),
-        })),
+        students: students.map((student) =>
+          buildStudentUserProfilePublic(student)
+        ),
       })
     })
   })
 
   describe('GET /api/teachers/class', () => {
     test('returns teacher class by class code', async () => {
-      const teacherClass = buildTeacherClassByClassCode()
+      const teacherClass = buildTeacherClass({
+        cleverId: 'clever-class',
+        deactivatedOn: new Date(),
+      })
       const classCode = teacherClass.code
       mockedTeacherService.getTeacherClassByClassCode.mockResolvedValueOnce(
         teacherClass
@@ -239,21 +219,28 @@ describe('routeTeachers', () => {
         mockedTeacherService.getTeacherClassByClassCode
       ).toHaveBeenCalledWith(classCode)
       expect(response.body).toEqual({
-        teacherClass: {
-          ...teacherClass,
-          createdAt: teacherClass.createdAt.toISOString(),
-          updatedAt: teacherClass.updatedAt.toISOString(),
-          deactivatedOn: teacherClass.deactivatedOn.toISOString(),
-        },
+        teacherClass: buildTeacherClassPublic(teacherClass),
       })
     })
   })
 
   describe('GET /api/teachers/class/:classId', () => {
+    test('returns an empty object when the class does not exist', async () => {
+      const classId = getUuid()
+      mockedTeacherService.getTeacherClassById.mockResolvedValueOnce(undefined)
+
+      const response = await sendGet(`/api/teachers/class/${classId}`)
+
+      expect(response.status).toBe(200)
+      expect(response.body).toEqual({})
+      expect(mockedTeacherService.getTeacherClassById).toHaveBeenCalledWith(
+        classId
+      )
+    })
+
     test('returns teacher class by id', async () => {
       const classId = getUuid()
       const teacherClass = buildTeacherClass()
-      //   TODO: The underlying type must be updated first
       mockedTeacherService.getTeacherClassById.mockResolvedValueOnce(
         teacherClass
       )
@@ -264,11 +251,7 @@ describe('routeTeachers', () => {
         classId
       )
       expect(response.body).toEqual({
-        teacherClass: {
-          ...teacherClass,
-          createdAt: teacherClass.createdAt.toISOString(),
-          updatedAt: teacherClass.updatedAt.toISOString(),
-        },
+        teacherClass: buildTeacherClassPublic(teacherClass),
       })
     })
   })
@@ -279,7 +262,6 @@ describe('routeTeachers', () => {
       const topicId = 2
       const updatedClass = buildTeacherClass({ name: newClassName, topicId })
       const id = getUuid()
-      //   TODO: The underlying type must be updated first
       mockedTeacherService.updateTeacherClass.mockResolvedValueOnce(
         updatedClass
       )
@@ -297,11 +279,7 @@ describe('routeTeachers', () => {
         topicId
       )
       expect(response.body).toEqual({
-        updatedClass: {
-          ...updatedClass,
-          createdAt: updatedClass.createdAt.toISOString(),
-          updatedAt: updatedClass.updatedAt.toISOString(),
-        },
+        updatedClass: buildTeacherClassPublic(updatedClass),
       })
     })
   })
@@ -310,7 +288,6 @@ describe('routeTeachers', () => {
     test('deactivates teacher class', async () => {
       const id = getUuid()
       const updatedClass = buildTeacherClass({ active: false })
-      //   TODO: The underlying type must be updated first
       mockedTeacherService.deactivateTeacherClass.mockResolvedValueOnce(
         updatedClass
       )
@@ -321,11 +298,7 @@ describe('routeTeachers', () => {
         id
       )
       expect(response.body).toEqual({
-        updatedClass: {
-          ...updatedClass,
-          createdAt: updatedClass.createdAt.toISOString(),
-          updatedAt: updatedClass.updatedAt.toISOString(),
-        },
+        updatedClass: buildTeacherClassPublic(updatedClass),
       })
     })
   })
@@ -335,7 +308,6 @@ describe('routeTeachers', () => {
       const classId = getUuid()
       const studentId = getUuid()
       const removedList = [{ studentId }]
-      //   TODO: The underlying type must be updated first. Mismatch on pgTyped type
       mockedTeacherService.removeStudentFromClass.mockResolvedValueOnce(
         removedList
       )
@@ -348,11 +320,39 @@ describe('routeTeachers', () => {
         studentId,
         classId
       )
-      expect(response.body).toEqual({ removedId: removedList })
+      expect(response.body).toEqual({
+        removedId: [{ studentId, studentid: studentId }],
+      })
     })
   })
 
   describe('PUT /api/teachers/assignment', () => {
+    test('preserves the saved assignment when an attached file is flagged', async () => {
+      const assignmentData = buildAssignmentPayload()
+      const assignment = buildAssignment(assignmentData)
+      const imageModerationInfractions = { 'first.jpg': ['GRAPHIC'] }
+      mockedAssignmentsService.asAssignment.mockReturnValueOnce(assignmentData)
+      mockedAssignmentsService.upsertAssignment.mockResolvedValueOnce({
+        assignment: { ...assignment, isCreated: true },
+        imageModerationInfractions,
+      })
+
+      const response = await sendPutWithFiles(
+        '/api/teachers/assignment',
+        assignmentData
+      )
+
+      expect(response.status).toBe(422)
+      expect(response.body).toEqual({
+        imageModerationInfractions,
+        assignment: {
+          ...buildAssignmentPublic(assignment),
+          studentIds: assignment.studentIds,
+          isCreated: true,
+        },
+      })
+    })
+
     test('creates assignment if not already created', async () => {
       const assignmentData = buildAssignmentPayload()
       const assignment = buildAssignment(assignmentData)
@@ -373,12 +373,9 @@ describe('routeTeachers', () => {
       )
       expect(response.body).toEqual({
         assignment: {
-          ...assignment,
+          ...buildAssignmentPublic(assignment),
+          studentIds: assignment.studentIds,
           isCreated: true,
-          createdAt: assignment.createdAt.toISOString(),
-          updatedAt: assignment.updatedAt.toISOString(),
-          dueDate: assignment.dueDate?.toISOString(),
-          startDate: assignment.startDate?.toISOString(),
         },
       })
     })
@@ -398,12 +395,9 @@ describe('routeTeachers', () => {
       expect(response.status).toBe(200)
       expect(response.body).toEqual({
         assignment: {
-          ...assignment,
+          ...buildAssignmentPublic(assignment),
+          studentIds: assignment.studentIds,
           isCreated: false,
-          createdAt: assignment.createdAt.toISOString(),
-          updatedAt: assignment.updatedAt.toISOString(),
-          dueDate: assignment.dueDate?.toISOString(),
-          startDate: assignment.startDate?.toISOString(),
         },
       })
     })
@@ -501,11 +495,8 @@ describe('routeTeachers', () => {
       )
       expect(response.body).toEqual({
         assignments: assignments.map((assignment) => ({
-          ...assignment,
-          createdAt: assignment.createdAt.toISOString(),
-          updatedAt: assignment.updatedAt.toISOString(),
-          dueDate: assignment.dueDate?.toISOString(),
-          startDate: assignment.startDate?.toISOString(),
+          ...buildAssignmentPublic(assignment),
+          studentIds: assignment.studentIds,
         })),
       })
     })
@@ -596,7 +587,10 @@ describe('routeTeachers', () => {
   describe('GET /api/teachers/class/:classId/assignments', () => {
     test('returns assignments by class id', async () => {
       const classId = getUuid()
-      const assignments = [buildAssignment(), buildAssignment()]
+      const assignments = [
+        buildAssignment({ studentIds: [getUuid(), getUuid()] }),
+        buildAssignment(),
+      ]
       mockedAssignmentsService.getAssignmentsByClassId.mockResolvedValueOnce(
         assignments
       )
@@ -610,11 +604,8 @@ describe('routeTeachers', () => {
       ).toHaveBeenCalledWith(classId)
       expect(response.body).toEqual({
         assignments: assignments.map((assignment) => ({
-          ...assignment,
-          createdAt: assignment.createdAt.toISOString(),
-          updatedAt: assignment.updatedAt.toISOString(),
-          dueDate: assignment.dueDate?.toISOString(),
-          startDate: assignment.startDate?.toISOString(),
+          ...buildAssignmentPublic(assignment),
+          studentIds: assignment.studentIds,
         })),
       })
     })
@@ -634,11 +625,8 @@ describe('routeTeachers', () => {
       ).toHaveBeenCalledWith(mockUser.id)
       expect(response.body).toEqual({
         assignments: assignments.map((assignment) => ({
-          ...assignment,
-          createdAt: assignment.createdAt.toISOString(),
-          updatedAt: assignment.updatedAt.toISOString(),
-          dueDate: assignment.dueDate?.toISOString(),
-          startDate: assignment.startDate?.toISOString(),
+          ...buildAssignmentPublic(assignment),
+          studentIds: assignment.studentIds,
         })),
       })
     })

@@ -1,10 +1,12 @@
 import type {
   PastVolunteerPublic,
   StudentPartnerOrgInstancePublic,
+  StudentUserProfilePublic,
 } from './students'
 import type {
   PastVolunteer,
   StudentPartnerOrgInstance,
+  StudentUserProfile,
 } from '../models/Student'
 
 export function toPastVolunteerPublic(
@@ -26,5 +28,20 @@ export function toStudentPartnerOrgInstancePublic(
     name: org.name,
     schoolId: org.schoolId,
     siteName: org.siteName,
+  }
+}
+
+export function toStudentProfilePublic(
+  student: StudentUserProfile
+): StudentUserProfilePublic {
+  return {
+    id: student.id,
+    userId: student.id,
+    email: student.email,
+    firstName: student.firstName,
+    lastName: student.lastName,
+    gradeLevel: student.gradeLevel,
+    schoolId: student.schoolId,
+    createdAt: student.createdAt.toISOString(),
   }
 }

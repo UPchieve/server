@@ -4,8 +4,7 @@ SELECT
     tc.name,
     active,
     topic_id,
-    tc.created_at,
-    tc.updated_at
+    tc.created_at
 FROM
     teacher_classes tc
     LEFT JOIN student_classes sc ON tc.id = sc.class_id
@@ -33,5 +32,5 @@ DELETE FROM student_classes
 WHERE user_id IN :studentIds!
     AND class_id = :classId!
 RETURNING
-    user_id AS studentId;
+    user_id AS student_id;
 

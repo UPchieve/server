@@ -20,7 +20,7 @@ import {
   toPastVolunteerPublic,
   toStudentPartnerOrgInstancePublic,
 } from '../../contracts/students.mappers'
-import { toTeacherClassPublic } from '../../contracts/teachers.mappers'
+import { toTeacherClassForStudentPublic } from '../../contracts/teachers.mappers'
 import { toStudentAssignmentPublic } from '../../contracts/assignments.mappers'
 import type { StudentAssignmentsResponse } from '../../contracts/assignments'
 
@@ -120,7 +120,7 @@ export function routeStudents(router: Router): void {
       try {
         const user = extractUser(req)
         const classes = await StudentService.getActiveClassesForStudent(user.id)
-        res.json({ classes: classes.map(toTeacherClassPublic) })
+        res.json({ classes: classes.map(toTeacherClassForStudentPublic) })
       } catch (err) {
         resError(res, err)
       }

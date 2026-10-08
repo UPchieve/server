@@ -1,7 +1,7 @@
 import { runInTransaction, TransactionClient } from '../db'
 import logger from '../logger'
 import { Ulid, Uuid } from '../models/pgUtils'
-import { TeacherClass, TeacherClassWithStudents } from '../models/Teacher'
+import type { TeacherClass, TeacherClassWithStudents } from '../types/teachers'
 import * as SchoolRepo from '../models/School'
 import * as CleverAPIService from './CleverAPIService'
 import * as FederatedCredentialService from './FederatedCredentialService'

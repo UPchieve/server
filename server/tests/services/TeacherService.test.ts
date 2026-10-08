@@ -28,7 +28,6 @@ describe('createTeacherClass', () => {
       active: true,
       topicId: undefined,
       createdAt: new Date(),
-      updatedAt: new Date(),
     }
     mockedTeacherRepo.createTeacherClass.mockResolvedValue(teacherClass)
 
@@ -58,7 +57,6 @@ describe('createTeacherClass', () => {
       active: true,
       topicId: undefined,
       createdAt: new Date(),
-      updatedAt: new Date(),
     }
     const topic = {
       id: 1,
@@ -85,11 +83,8 @@ describe('createTeacherClass', () => {
       },
       expect.toBeTransactionClient()
     )
-    expect(mockedSubjectsRepo.getTopics).toHaveBeenCalledWith(
-      topic.id,
-      expect.toBeTransactionClient()
-    )
-    expect(result).toEqual({ ...teacherClass, topic })
+    expect(mockedSubjectsRepo.getTopics).not.toHaveBeenCalled()
+    expect(result).toEqual(teacherClass)
   })
 
   test('throws error if cannot find unique class code after 5 attempts', async () => {
@@ -103,7 +98,6 @@ describe('createTeacherClass', () => {
         active: true,
         topicId: undefined,
         createdAt: new Date(),
-        updatedAt: new Date(),
         deactivatedOn: undefined,
       })
       .mockResolvedValueOnce({
@@ -115,7 +109,6 @@ describe('createTeacherClass', () => {
         active: true,
         topicId: undefined,
         createdAt: new Date(),
-        updatedAt: new Date(),
         deactivatedOn: undefined,
       })
       .mockResolvedValueOnce({
@@ -127,7 +120,6 @@ describe('createTeacherClass', () => {
         active: true,
         topicId: undefined,
         createdAt: new Date(),
-        updatedAt: new Date(),
         deactivatedOn: undefined,
       })
       .mockResolvedValueOnce({
@@ -139,7 +131,6 @@ describe('createTeacherClass', () => {
         active: true,
         topicId: undefined,
         createdAt: new Date(),
-        updatedAt: new Date(),
         deactivatedOn: undefined,
       })
       .mockResolvedValueOnce({
@@ -151,7 +142,6 @@ describe('createTeacherClass', () => {
         active: true,
         topicId: undefined,
         createdAt: new Date(),
-        updatedAt: new Date(),
         deactivatedOn: undefined,
       })
 
@@ -173,7 +163,6 @@ describe('createTeacherClass', () => {
         active: true,
         topicId: undefined,
         createdAt: new Date(),
-        updatedAt: new Date(),
         deactivatedOn: undefined,
       })
       .mockResolvedValueOnce({
@@ -185,7 +174,6 @@ describe('createTeacherClass', () => {
         active: true,
         topicId: undefined,
         createdAt: new Date(),
-        updatedAt: new Date(),
         deactivatedOn: undefined,
       })
       .mockResolvedValueOnce({
@@ -197,7 +185,6 @@ describe('createTeacherClass', () => {
         active: true,
         topicId: undefined,
         createdAt: new Date(),
-        updatedAt: new Date(),
         deactivatedOn: undefined,
       })
       .mockResolvedValueOnce({
@@ -209,7 +196,6 @@ describe('createTeacherClass', () => {
         active: true,
         topicId: undefined,
         createdAt: new Date(),
-        updatedAt: new Date(),
         deactivatedOn: undefined,
       })
       .mockResolvedValueOnce(undefined)
@@ -251,14 +237,12 @@ describe('getTeacherSchoolIdFromClassCode', () => {
       active: true,
       topicId: undefined,
       createdAt: new Date(),
-      updatedAt: new Date(),
       deactivatedOn: undefined,
     }
     const teacher = {
       userId: teacherClass.userId,
       schoolId: 'teacher-school-id',
       createdAt: new Date(),
-      updatedAt: new Date(),
     }
     mockedTeacherRepo.getTeacherClassByClassCode.mockResolvedValue(teacherClass)
     mockedTeacherRepo.getTeacherById.mockResolvedValue(teacher)
@@ -285,7 +269,6 @@ describe('getTeacherSchoolIdFromClassCode', () => {
       active: true,
       topicId: undefined,
       createdAt: new Date(),
-      updatedAt: new Date(),
       deactivatedOn: undefined,
     }
     mockedTeacherRepo.getTeacherClassByClassCode.mockResolvedValue(teacherClass)
@@ -308,7 +291,6 @@ describe('addStudentToTeacherClass', () => {
       active: true,
       topicId: undefined,
       createdAt: new Date(),
-      updatedAt: new Date(),
       deactivatedOn: undefined,
     }
     mockedTeacherRepo.getTeacherClassByClassCode.mockResolvedValue(teacherClass)
@@ -336,7 +318,6 @@ describe('addStudentToTeacherClass', () => {
       active: true,
       topicId: undefined,
       createdAt: new Date(),
-      updatedAt: new Date(),
       deactivatedOn: undefined,
     }
 

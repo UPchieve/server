@@ -1,5 +1,6 @@
+import type { ISODateString } from '../types/dates'
 import type { Uuid } from '../types/shared'
-import type { TeacherClassPublic } from './teachers'
+import type { TeacherClassForStudentPublic } from './teachers'
 
 export type PastVolunteerPublic = {
   volunteerId: Uuid
@@ -17,6 +18,17 @@ export type StudentPartnerOrgInstancePublic = {
   id: Uuid
   schoolId?: Uuid
   siteName?: string
+}
+
+export type StudentUserProfilePublic = {
+  id: Uuid
+  userId: Uuid
+  email: string
+  firstName: string
+  lastName: string
+  gradeLevel?: string
+  schoolId?: Uuid
+  createdAt: ISODateString
 }
 
 export type RemainingFavoriteAmountResponse = {
@@ -37,5 +49,5 @@ export type ActivePartnerOrgsResponse = {
 }
 
 export type ActiveStudentClassesResponse = {
-  classes: TeacherClassPublic[]
+  classes: TeacherClassForStudentPublic[]
 }

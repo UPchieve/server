@@ -18,8 +18,6 @@ export interface IGetTeacherClassesForStudentResult {
   name: string;
   /** not_pii: Foreign key to upchieve.topics */
   topicId: number | null;
-  /** not_pii */
-  updatedAt: Date;
 }
 
 /** 'GetTeacherClassesForStudent' query type */
@@ -28,7 +26,7 @@ export interface IGetTeacherClassesForStudentQuery {
   result: IGetTeacherClassesForStudentResult;
 }
 
-const getTeacherClassesForStudentIR: any = {"usedParamSet":{"studentId":true},"params":[{"name":"studentId","required":true,"transform":{"type":"scalar"},"locs":[{"a":201,"b":211}]}],"statement":"SELECT\n    tc.id,\n    tc.name,\n    active,\n    topic_id,\n    tc.created_at,\n    tc.updated_at\nFROM\n    teacher_classes tc\n    LEFT JOIN student_classes sc ON tc.id = sc.class_id\nWHERE\n    sc.user_id = :studentId!\n    AND tc.deactivated_on IS NULL\nORDER BY\n    tc.created_at ASC"};
+const getTeacherClassesForStudentIR: any = {"usedParamSet":{"studentId":true},"params":[{"name":"studentId","required":true,"transform":{"type":"scalar"},"locs":[{"a":182,"b":192}]}],"statement":"SELECT\n    tc.id,\n    tc.name,\n    active,\n    topic_id,\n    tc.created_at\nFROM\n    teacher_classes tc\n    LEFT JOIN student_classes sc ON tc.id = sc.class_id\nWHERE\n    sc.user_id = :studentId!\n    AND tc.deactivated_on IS NULL\nORDER BY\n    tc.created_at ASC"};
 
 /**
  * Query generated from SQL:
@@ -38,8 +36,7 @@ const getTeacherClassesForStudentIR: any = {"usedParamSet":{"studentId":true},"p
  *     tc.name,
  *     active,
  *     topic_id,
- *     tc.created_at,
- *     tc.updated_at
+ *     tc.created_at
  * FROM
  *     teacher_classes tc
  *     LEFT JOIN student_classes sc ON tc.id = sc.class_id
@@ -94,7 +91,7 @@ export interface IRemoveStudentsFromClassParams {
 /** 'RemoveStudentsFromClass' return type */
 export interface IRemoveStudentsFromClassResult {
   /** not_pii: Foreign key to upchieve.users */
-  studentid: string;
+  studentId: string;
 }
 
 /** 'RemoveStudentsFromClass' query type */
@@ -103,7 +100,7 @@ export interface IRemoveStudentsFromClassQuery {
   result: IRemoveStudentsFromClassResult;
 }
 
-const removeStudentsFromClassIR: any = {"usedParamSet":{"studentIds":true,"classId":true},"params":[{"name":"studentIds","required":true,"transform":{"type":"array_spread"},"locs":[{"a":45,"b":56}]},{"name":"classId","required":true,"transform":{"type":"scalar"},"locs":[{"a":77,"b":85}]}],"statement":"DELETE FROM student_classes\nWHERE user_id IN :studentIds!\n    AND class_id = :classId!\nRETURNING\n    user_id AS studentId"};
+const removeStudentsFromClassIR: any = {"usedParamSet":{"studentIds":true,"classId":true},"params":[{"name":"studentIds","required":true,"transform":{"type":"array_spread"},"locs":[{"a":45,"b":56}]},{"name":"classId","required":true,"transform":{"type":"scalar"},"locs":[{"a":77,"b":85}]}],"statement":"DELETE FROM student_classes\nWHERE user_id IN :studentIds!\n    AND class_id = :classId!\nRETURNING\n    user_id AS student_id"};
 
 /**
  * Query generated from SQL:
@@ -112,7 +109,7 @@ const removeStudentsFromClassIR: any = {"usedParamSet":{"studentIds":true,"class
  * WHERE user_id IN :studentIds!
  *     AND class_id = :classId!
  * RETURNING
- *     user_id AS studentId
+ *     user_id AS student_id
  * ```
  */
 export const removeStudentsFromClass = new PreparedQuery<IRemoveStudentsFromClassParams,IRemoveStudentsFromClassResult>(removeStudentsFromClassIR);

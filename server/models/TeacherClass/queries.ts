@@ -1,19 +1,22 @@
 import * as pgQueries from './pg.queries'
 import { getClient, TransactionClient } from '../../db'
-import { makeSomeOptional, Ulid, Uuid } from '../pgUtils'
+import { makeSomeRequired } from '../pgUtils'
 import { RepoDeleteError, RepoReadError } from '../Errors'
-import { TeacherClassResult } from './types'
+import type { Uuid } from '../../types/shared'
+import type { TeacherClassForStudent } from '../../types/teachers'
 
 export async function getTeacherClassesForStudent(
-  studentId: Ulid,
+  studentId: Uuid,
   tc: TransactionClient = getClient()
-): Promise<TeacherClassResult[]> {
+): Promise<TeacherClassForStudent[]> {
   try {
-    const teacherClasses = await pgQueries.getTeacherClassesForStudent.run(
+    const rows = await pgQueries.getTeacherClassesForStudent.run(
       { studentId },
       tc
     )
-    return teacherClasses.map((c) => makeSomeOptional(c, ['topicId']))
+    return rows.map((row) =>
+      makeSomeRequired(row, ['id', 'name', 'active', 'createdAt'])
+    )
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -24,26 +27,27 @@ export async function getTotalStudentsInClass(
   tc: TransactionClient
 ): Promise<number> {
   try {
-    const result = await pgQueries.getTotalStudentsInClass.run({ classId }, tc)
-    return result[0]?.count ?? 0
+    const [row] = await pgQueries.getTotalStudentsInClass.run({ classId }, tc)
+    return row?.count ?? 0
   } catch (err) {
     throw new RepoReadError(err)
   }
 }
 
 export async function removeStudentsFromClass(
-  studentIds: Ulid[],
+  studentIds: Uuid[],
   classId: Uuid,
   tc: TransactionClient
-) {
+): Promise<{ studentId: Uuid }[]> {
   try {
-    return pgQueries.removeStudentsFromClass.run(
+    const rows = await pgQueries.removeStudentsFromClass.run(
       {
         studentIds,
         classId,
       },
       tc
     )
+    return rows.map((row) => makeSomeRequired(row, ['studentId']))
   } catch (err) {
     throw new RepoDeleteError(err)
   }

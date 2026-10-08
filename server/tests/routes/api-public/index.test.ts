@@ -10,11 +10,11 @@ import {
   buildNTHSGroup,
   buildNTHSGroupWithMemberInfo,
   buildTeacherClass,
+  buildTeacherClassPublic,
   buildUser,
   getEmail,
 } from '../../mocks/generate'
 import { getUuid } from '../../../models/pgUtils'
-import { LegacyUserModel } from '../../../models/User/legacy-user'
 import { AppUser } from '../../types'
 
 jest.mock('../../../services/StudentService')
@@ -80,7 +80,6 @@ describe('routeApiPublic', () => {
       const email = mockUser.email
       const teacherClass = buildTeacherClass({ code: classCode })
 
-      // TODO: Update underlying type
       mockedTeacherService.addStudentToTeacherClassByClassCode.mockResolvedValueOnce(
         teacherClass
       )
@@ -94,11 +93,7 @@ describe('routeApiPublic', () => {
         mockedTeacherService.addStudentToTeacherClassByClassCode
       ).toHaveBeenCalledWith(mockUser.id, classCode)
       expect(response.body).toEqual({
-        teacherClass: {
-          ...teacherClass,
-          createdAt: teacherClass.createdAt.toISOString(),
-          updatedAt: teacherClass.updatedAt.toISOString(),
-        },
+        teacherClass: buildTeacherClassPublic(teacherClass),
       })
       expect(
         mockedTeacherService.getTeacherClassByClassCode
