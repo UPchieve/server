@@ -42,7 +42,7 @@ import * as PresenceService from '../../services/PresenceService'
 import { observeWebTransaction } from '../../utils/newRelicUtil'
 import { extractSocketIp } from '../../utils/extract-socket-ip'
 import sessionMiddleware from '../middleware/session'
-import { toCurrentSessionPublic } from '../../public/sessions'
+import { toCurrentSessionPublic } from '../../contracts/sessions.mappers'
 import { logThrottledEditorActivity } from '../../services/SessionEditorActivityService'
 import { isPlatformBanType } from '../../utils/ban-utils'
 

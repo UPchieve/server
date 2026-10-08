@@ -17,7 +17,7 @@ import {
   toNTHSGroupWithMemberInfoPublic,
   toNTHSChapterImpactPublic,
   toNTHSChapterRosterPublic,
-} from '../../public/nths'
+} from '../../contracts/nths.mappers'
 import type {
   NTHSActionName,
   NTHSChapterPeriodStarts,

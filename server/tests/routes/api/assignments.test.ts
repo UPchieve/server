@@ -2,7 +2,7 @@ import { mocked } from 'jest-mock'
 import request, { Test } from 'supertest'
 import { mockApp, mockPassportMiddleware, mockRouter } from '../../mock-app'
 import { routeAssignments } from '../../../router/api/assignments'
-import { toAssigmentPublic } from '../../../public/assignments'
+import { toAssigmentPublic } from '../../../contracts/assignments.mappers'
 import * as AssignmentsService from '../../../services/AssignmentsService'
 import {
   buildAssignment,

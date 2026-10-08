@@ -4,7 +4,7 @@ import {
   toAssigmentPublic,
   toAssignmentDocumentPublic,
   toStudentAssignmentSubmissionPublic,
-} from '../../public/assignments'
+} from '../../contracts/assignments.mappers'
 import { resError } from '../res-error'
 import { asString } from '../../utils/type-utils'
 import {

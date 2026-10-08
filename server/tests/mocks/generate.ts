@@ -112,6 +112,7 @@ import { SessionReport, UsageReport } from '../../services/ReportService'
 import { TelecomRow } from '../../utils/reportUtils'
 import { UserReward } from '../../services/RewardsService'
 import {
+  AdminSessionPublic,
   CurrentSessionPublic,
   SessionMessagePublic,
   SessionUserInfoPublic,
@@ -157,6 +158,11 @@ import type {
   SessionReportPublic,
   UsageReportPublic,
 } from '../../contracts/reports'
+import { SessionNotificationPublic } from '../../contracts/notifications'
+import {
+  PostsessionSurveyResponsePublic,
+  SimpleSurveyResponsePublic,
+} from '../../contracts/surveys'
 
 /** Suffixed with a uuid because users.email and parents_guardians.email are UNIQUE. */
 export function getEmail(): string {
@@ -756,6 +762,37 @@ export const buildSimpleSurveyResponse = (
   }
 
   return survey
+}
+
+export function buildSimpleSurveyResponsePublic(
+  overrides: Partial<SimpleSurveyResponse> = {}
+): SimpleSurveyResponsePublic {
+  const survey = buildSimpleSurveyResponse(overrides)
+
+  return {
+    displayLabel: survey.displayLabel,
+    response: survey.response,
+    score: survey.score,
+    displayOrder: survey.displayOrder,
+    questionId: survey.questionId,
+    displayImage: survey.displayImage,
+    responseId: survey.responseId,
+  }
+}
+
+export function buildPostsessionSurveyResponsePublic(
+  overrides: Partial<PostsessionSurveyResponse> = {}
+): PostsessionSurveyResponsePublic {
+  const survey = buildSurveyResponse(overrides)
+
+  return {
+    userRole: survey.userRole,
+    questionText: survey.questionText,
+    displayLabel: survey.displayLabel,
+    response: survey.response,
+    displayOrder: survey.displayOrder,
+    score: survey.score,
+  }
 }
 
 export const buildUserSurveySubmission = (
@@ -1779,6 +1816,10 @@ export function buildSessionToReview(
     reviewReasons: [],
     toReview: false,
     studentRating: 5,
+    studentCounselingFeedback: {
+      'rate-session': { rating: 4 },
+      'other-feedback': 'Helpful session',
+    },
     createdAt: new Date(),
     endedAt: new Date(),
     ...overrides,
@@ -1795,6 +1836,8 @@ export function buildAdminFilteredSession(
   return {
     id,
     _id: id,
+    volunteerFirstName: volunteer.firstName,
+    volunteerEmail: volunteer.email,
     volunteer: {
       firstname: volunteer.firstName,
       isBanned: false,
@@ -1804,6 +1847,7 @@ export function buildAdminFilteredSession(
     student: {
       firstname: student.firstName,
       isBanned: false,
+      isShadowBanned: true,
       isTestUser: false,
       totalPastSessions: 10,
     },
@@ -1813,6 +1857,7 @@ export function buildAdminFilteredSession(
     totalMessages: 100,
     reviewReasons: [],
     studentRating: 5,
+    volunteerRating: 4,
     createdAt: new Date(),
     endedAt: new Date(),
     ...overrides,
@@ -1828,7 +1873,7 @@ export function buildAdminSessionView(
   return {
     id,
     _id: id,
-    volunteerjoinedAt: currentSession.volunteerJoinedAt,
+    volunteerJoinedAt: currentSession.volunteerJoinedAt,
     endedBy: currentSession.student.id,
     feedbacks: undefined,
     surveyResponses: {
@@ -1854,6 +1899,64 @@ export function buildAdminSessionView(
     createdAt: new Date(),
     endedAt: new Date(),
     ...overrides,
+  }
+}
+
+export function buildAdminSessionViewPublic(
+  overrides: Partial<SessionByIdWithStudentAndVolunteer> = {}
+): AdminSessionPublic {
+  const session = buildAdminSessionView(overrides)
+
+  return {
+    createdAt: session.createdAt.toISOString(),
+    volunteerJoinedAt: session.volunteerJoinedAt?.toISOString(),
+    endedAt: session.endedAt?.toISOString(),
+    endedBy: session.endedBy,
+    feedbacks: session.feedbacks,
+    userAgent: session.userAgent
+      ? { ...session.userAgent, device: session.userAgent.device ?? '' }
+      : undefined,
+    surveyResponses: {
+      presessionSurvey: session.surveyResponses.presessionSurvey.map(
+        buildSimpleSurveyResponsePublic
+      ),
+      studentPostsessionSurvey:
+        session.surveyResponses.studentPostsessionSurvey.map(
+          buildPostsessionSurveyResponsePublic
+        ),
+      volunteerPostsessionSurvey:
+        session.surveyResponses.volunteerPostsessionSurvey.map(
+          buildPostsessionSurveyResponsePublic
+        ),
+    },
+    type: session.type,
+    subTopic: session.subTopic,
+    _id: session._id,
+    id: session.id,
+    quillDoc: session.quillDoc,
+    reviewReasons: session.reviewReasons,
+    reportReason: session.reportReason,
+    reportMessage: session.reportMessage,
+    timeTutored: session.timeTutored,
+    notifications: session.notifications?.map(buildSessionNotificationPublic),
+    photos: session.photos,
+    student: {
+      ...buildCurrentSessionUserPublic(session.student),
+      createdAt: session.student.createdAt.toISOString(),
+      pastSessions: session.student.pastSessions,
+      pastSessionsByRole: session.student.pastSessionsByRole,
+    },
+    volunteer: session.volunteer
+      ? {
+          ...buildCurrentSessionUserPublic(session.volunteer),
+          createdAt: session.volunteer.createdAt.toISOString(),
+          pastSessions: session.volunteer.pastSessions,
+          pastSessionsByRole: session.volunteer.pastSessionsByRole,
+        }
+      : undefined,
+    messages: session.messages.map(buildSessionMessagePublic),
+    toReview: session.toReview,
+    toolType: session.toolType,
   }
 }
 
@@ -1915,6 +2018,28 @@ export function buildSessionNotification(
   }
 }
 
+export function buildSessionNotificationPublic(
+  overrides: Partial<SessionNotification> = {}
+): SessionNotificationPublic {
+  const notification = buildSessionNotification(overrides)
+
+  return {
+    id: notification.id,
+    volunteer: {
+      firstname: notification.volunteer.firstname,
+      firstName: notification.volunteer.firstname,
+      volunteerPartnerOrg: notification.volunteer.volunteerPartnerOrg,
+    },
+    sentAt: notification.sentAt?.toISOString(),
+    type: notification.type,
+    method: notification.method,
+    wasSuccessful: notification.wasSuccessful,
+    messageId: notification.messageId,
+    priorityGroup: notification.priorityGroup,
+    sessionId: notification.sessionId,
+  }
+}
+
 export function buildTutorBotMessage(
   overrides: Partial<TutorBotMessage> = {}
 ): TutorBotMessage {
@@ -1933,7 +2058,10 @@ export function buildTutorBotMessagePublic(
 ): TutorBotMessagePublic {
   const message = buildTutorBotMessage(overrides)
   return {
-    ...message,
+    tutorBotConversationId: message.tutorBotConversationId,
+    userId: message.userId,
+    senderUserType: message.senderUserType,
+    message: message.message,
     createdAt: message.createdAt.toISOString(),
   }
 }
@@ -1975,14 +2103,14 @@ export function buildTutorBotTranscript(
 }
 
 export function buildTutorBotTranscriptPublic(
-  overrides: Partial<TutorBotTranscriptPublic> = {}
+  overrides: Partial<TutorBotTranscript> = {}
 ): TutorBotTranscriptPublic {
+  const transcript = buildTutorBotTranscript(overrides)
   return {
-    conversationId: getUuid(),
-    subjectId: 1,
-    sessionId: getUuid(),
-    messages: [buildTutorBotMessagePublic()],
-    ...overrides,
+    conversationId: transcript.conversationId,
+    subjectId: transcript.subjectId,
+    sessionId: transcript.sessionId,
+    messages: transcript.messages.map(buildTutorBotMessagePublic),
   }
 }
 

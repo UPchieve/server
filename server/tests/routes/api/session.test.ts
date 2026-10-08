@@ -5,6 +5,7 @@ import { mockApp, mockPassportMiddleware, mockRouter } from '../../mock-app'
 import {
   buildAdminFilteredSession,
   buildAdminSessionView,
+  buildAdminSessionViewPublic,
   buildCurrentSession,
   buildCurrentSessionPublic,
   buildLatestSession,
@@ -18,6 +19,7 @@ import {
   buildSessionToReview,
   buildStudentAssignment,
   buildTutorBotTranscript,
+  buildTutorBotTranscriptPublic,
   buildUser,
 } from '../../mocks/generate'
 import { routeSession } from '../../../router/api/session'
@@ -172,6 +174,8 @@ describe('routeSession', () => {
   describe('POST /api/session/join', () => {
     test('joins a session', async () => {
       const session = buildCurrentSession()
+      session.student.pastSessions = [getUuid()]
+      if (session.volunteer) session.volunteer.pastSessions = [getUuid()]
       const currentSessionPublic = buildCurrentSessionPublic(session)
       mockedSessionService.joinSession.mockResolvedValueOnce(session)
       mockedSessionService.isZwibserveSession.mockResolvedValueOnce(false)
@@ -197,6 +201,8 @@ describe('routeSession', () => {
         session: currentSessionPublic,
         isZwibserveSession: false,
       })
+      expect(response.body.session.student).not.toHaveProperty('pastSessions')
+      expect(response.body.session.volunteer).not.toHaveProperty('pastSessions')
     })
 
     test('returns the join refusal code', async () => {
@@ -483,8 +489,22 @@ describe('routeSession', () => {
     })
   })
 
-  // below
   describe('GET /api/sessions', () => {
+    test('preserves tutor details when the nested volunteer is absent', async () => {
+      const session = buildAdminFilteredSession({ volunteer: undefined })
+      const page = 1
+      mockedSessionService.adminFilteredSessions.mockResolvedValueOnce({
+        sessions: [session],
+        isLastPage: false,
+      })
+      const response = await sendGet(`/api/sessions?page=${page}`)
+      expect(response.status).toBe(200)
+      expect(response.body.sessions[0]).toMatchObject({
+        volunteerFirstName: session.volunteerFirstName,
+        volunteerEmail: session.volunteerEmail,
+      })
+    })
+
     test('returns filtered admin sessions', async () => {
       const session = buildAdminFilteredSession()
       const page = 1
@@ -512,8 +532,29 @@ describe('routeSession', () => {
   })
 
   describe('GET /api/session/:sessionId/admin', () => {
+    test('returns admin detail with partial legacy feedback', async () => {
+      const session = buildAdminSessionView()
+      session.feedbacks = {
+        id: session.id,
+        sessionId: session.id,
+        responseData: {
+          'rate-session': { rating: 5 },
+          'other-feedback': 'Helpful session',
+          'coach-ratings': { 'coach-friendly': 5 },
+        },
+      }
+      mockedSessionService.adminSessionView.mockResolvedValueOnce(session)
+      const response = await sendGet(`/api/session/${session.id}/admin`)
+      expect(response.status).toBe(200)
+      expect(response.body.session.feedbacks.responseData).toEqual(
+        session.feedbacks.responseData
+      )
+    })
+
     test('returns admin session view', async () => {
       const session = buildAdminSessionView()
+      session.student.pastSessions = [getUuid()]
+      if (session.volunteer) session.volunteer.pastSessions = [getUuid()]
       mockedSessionService.adminSessionView.mockResolvedValueOnce(session)
 
       const response = await sendGet(`/api/session/${session.id}/admin`)
@@ -522,27 +563,14 @@ describe('routeSession', () => {
         session.id
       )
       expect(response.body).toEqual({
-        session: {
-          ...session,
-          createdAt: session.createdAt.toISOString(),
-          endedAt: session.endedAt?.toISOString(),
-          volunteerjoinedAt: session.volunteerjoinedAt?.toISOString(),
-          messages: session.messages.map((message) => {
-            return {
-              ...message,
-              createdAt: message.createdAt.toISOString(),
-            }
-          }),
-          student: {
-            ...session.student,
-            createdAt: session.student?.createdAt.toISOString(),
-          },
-          volunteer: {
-            ...session.volunteer,
-            createdAt: session.volunteer?.createdAt.toISOString(),
-          },
-        },
+        session: buildAdminSessionViewPublic(session),
       })
+      expect(response.body.session.student.pastSessions).toEqual(
+        session.student.pastSessions
+      )
+      expect(response.body.session.volunteer.pastSessions).toEqual(
+        session.volunteer?.pastSessions
+      )
     })
   })
 
@@ -563,15 +591,7 @@ describe('routeSession', () => {
       ).toHaveBeenCalledWith({
         sessionId,
       })
-      expect(response.body).toEqual({
-        ...transcript,
-        messages: transcript.messages.map((message) => {
-          return {
-            ...message,
-            createdAt: message.createdAt.toISOString(),
-          }
-        }),
-      })
+      expect(response.body).toEqual(buildTutorBotTranscriptPublic(transcript))
     })
   })
 
@@ -628,6 +648,10 @@ describe('routeSession', () => {
       expect(response.body).toEqual({
         session: {
           ...session,
+          id: session._id,
+          subject: session.subTopic,
+          student: { ...session.student, id: session.student._id },
+          volunteer: { ...session.volunteer, id: session.volunteer._id },
           createdAt: session.createdAt.toISOString(),
           endedAt: session.endedAt.toISOString(),
         },
@@ -651,7 +675,15 @@ describe('routeSession', () => {
       expect(mockedSessionService.getSessionNotifications).toHaveBeenCalledWith(
         sessionId
       )
-      expect(response.body).toEqual({ notifications })
+      expect(response.body).toEqual({
+        notifications: notifications.map((notification) => ({
+          ...notification,
+          volunteer: {
+            ...notification.volunteer,
+            firstName: notification.volunteer.firstname,
+          },
+        })),
+      })
     })
   })
 
@@ -985,6 +1017,70 @@ describe('routeSession', () => {
         sessionId
       )
       expect(response.body).toEqual({ recordingId })
+    })
+  })
+
+  describe('POST /api/session/:sessionId/recap/:userId/update-last-seen', () => {
+    test('updates session last seen', async () => {
+      const sessionId = getUuid()
+      const userId = mockUser.id
+      mockedSessionService.updateSessionLastSeen.mockResolvedValueOnce()
+
+      const response = await sendPost(
+        `/api/session/${sessionId}/recap/${userId}/update-last-seen`
+      )
+      expect(response.status).toBe(200)
+      expect(mockedSessionService.updateSessionLastSeen).toHaveBeenCalledWith(
+        sessionId,
+        userId
+      )
+      expect(response.text).toBe('OK')
+    })
+
+    test('returns an error when the update fails', async () => {
+      const sessionId = getUuid()
+      const userId = mockUser.id
+      mockedSessionService.updateSessionLastSeen.mockRejectedValueOnce(
+        new Error('Last-seen update failed')
+      )
+      const response = await sendPost(
+        `/api/session/${sessionId}/recap/${userId}/update-last-seen`
+      )
+      expect(response.status).toBe(500)
+      expect(mockedSessionService.updateSessionLastSeen).toHaveBeenCalledWith(
+        sessionId,
+        userId
+      )
+    })
+  })
+
+  describe('GET /api/sessions/unread-dms', () => {
+    test('returns sessions with unread dms', async () => {
+      const sessionsWithUnreadDMs = [getUuid(), getUuid()]
+      mockedSessionService.sessionsWithUnreadDMs.mockResolvedValueOnce(
+        sessionsWithUnreadDMs
+      )
+
+      const response = await sendGet('/api/sessions/unread-dms')
+      expect(response.status).toBe(200)
+      expect(mockedSessionService.sessionsWithUnreadDMs).toHaveBeenCalledWith(
+        mockUser.id
+      )
+      expect(response.body).toEqual({ sessionsWithUnreadDMs })
+    })
+  })
+
+  describe('POST /api/session/:sessionId/breakout', () => {
+    test('handles session breakout', async () => {
+      const sessionId = getUuid()
+      mockedSessionService.handleSessionBreakout.mockResolvedValueOnce()
+
+      const response = await sendPost(`/api/session/${sessionId}/breakout`)
+      expect(response.status).toBe(200)
+      expect(mockedSessionService.handleSessionBreakout).toHaveBeenCalledWith(
+        sessionId,
+        mockUser
+      )
     })
   })
 

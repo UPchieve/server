@@ -10,7 +10,7 @@ import {
   ModerateMessageResponse,
 } from '../../contracts/moderate'
 import type { ErrorResponse } from '../../contracts/shared'
-import * as mappers from '../../public/moderate'
+import * as mappers from '../../contracts/moderate.mappers'
 
 export function routeModeration(router: Router): void {
   const upload = multer()

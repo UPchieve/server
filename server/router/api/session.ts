@@ -1,4 +1,4 @@
-import { Router } from 'express'
+import type { Router, Response } from 'express'
 import SocketService from '../../services/SocketService'
 import * as TutorBotService from '../../services/TutorBotService'
 import * as AssignmentsService from '../../services/AssignmentsService'
@@ -27,7 +27,44 @@ import {
 import { getDocEditorSessionImageUrl } from '../../services/AzureService'
 import { getSessionSummaryByUserType } from '../../services/SessionSummariesService'
 import { USER_ROLES } from '../../constants'
-import { toCurrentSessionPublic } from '../../public/sessions'
+import {
+  toAdminFilterSessionPublic,
+  toAdminSessionPublic,
+  toCurrentSessionPublic,
+  toLatestSessionPublic,
+  toPublicSessionPublic,
+  toSessionDetailPublic,
+  toSessionForRecapSessionPublic,
+  toSessionForSessionHistoryPublic,
+  toSessionsToReviewPublic,
+} from '../../contracts/sessions.mappers'
+import { toTutorBotTranscriptPublic } from '../../contracts/tutor-bot.mappers'
+import { toSessionNotificationPublic } from '../../contracts/notifications.mappers'
+import { toStudentAssignmentPublic } from '../../contracts/assignments.mappers'
+import type { TutorBotTranscriptPublic } from '../../contracts/tutor-bot'
+import type { StudentAssignmentResponse } from '../../contracts/assignments'
+import type {
+  AdminSessionViewResponse,
+  CheckSessionResponse,
+  CurrentSessionLookupResponse,
+  CurrentSessionResponse,
+  FilteredSessionsResponse,
+  FirstSessionDateResponse,
+  LatestSessionLookupResponse,
+  ReportMessageResponse,
+  SessionDetailResponse,
+  SessionHistoryResponse,
+  SessionHistoryTotalResponse,
+  SessionImageUploadResponse,
+  SessionNotificationsResponse,
+  SessionRecapEligibilityResponse,
+  SessionRecapResponse,
+  SessionReviewResponse,
+  StartRecordingResponse,
+  StartTranscriptionResponse,
+  UnreadDmsResponse,
+  PublicSessionResponse,
+} from '../../contracts/sessions'
 import { resSuccess } from '../res-success'
 
 export function routeSession(router: Router) {
@@ -35,7 +72,10 @@ export function routeSession(router: Router) {
   const socketService = SocketService.getInstance()
   const upload = multer()
 
-  router.route('/session/new').post(async function (req, res) {
+  router.route('/session/new').post(async function (
+    req,
+    res: Response<CurrentSessionResponse>
+  ) {
     try {
       const user = extractUser(req)
       const sessionData = asStartSessionData({
@@ -67,7 +107,10 @@ export function routeSession(router: Router) {
     }
   })
 
-  router.route('/session/join').post(async function (req, res) {
+  router.route('/session/join').post(async function (
+    req,
+    res: Response<CurrentSessionResponse>
+  ) {
     try {
       const user = extractUser(req)
       const sessionId = asUlid(req.body.sessionId)
@@ -97,7 +140,10 @@ export function routeSession(router: Router) {
     }
   })
 
-  router.route('/session/end').post(async function (req, res) {
+  router.route('/session/end').post(async function (
+    req,
+    res: Response<CurrentSessionResponse>
+  ) {
     try {
       if (!Object.prototype.hasOwnProperty.call(req.body, 'sessionId'))
         throw new InputError('Missing sessionId body string')
@@ -121,7 +167,10 @@ export function routeSession(router: Router) {
   })
 
   // TODO: Remove once no longer have legacy mobile app.
-  router.route('/session/check').post(async function (req, res) {
+  router.route('/session/check').post(async function (
+    req,
+    res: Response<CheckSessionResponse>
+  ) {
     try {
       if (!Object.prototype.hasOwnProperty.call(req.body, 'sessionId'))
         throw new InputError('Missing sessionId body string')
@@ -137,7 +186,10 @@ export function routeSession(router: Router) {
   })
 
   // TODO: switch to a GET request
-  router.route('/session/current').post(async function (req, res) {
+  router.route('/session/current').post(async function (
+    req,
+    res: Response<CurrentSessionLookupResponse>
+  ) {
     try {
       const user = extractUser(req)
       const session = await SessionService.currentSession(user.id)
@@ -155,7 +207,10 @@ export function routeSession(router: Router) {
     }
   })
 
-  router.route('/session/recap-dms').post(async function (req, res) {
+  router.route('/session/recap-dms').post(async function (
+    req,
+    res: Response<CurrentSessionLookupResponse>
+  ) {
     try {
       const user = extractUser(req)
       const sessionId = asString(req.body.sessionId)
@@ -177,7 +232,10 @@ export function routeSession(router: Router) {
     }
   })
 
-  router.route('/session/latest').post(async function (req, res) {
+  router.route('/session/latest').post(async function (
+    req,
+    res: Response<LatestSessionLookupResponse>
+  ) {
     try {
       const user = extractUser(req)
       const role = user.roleContext.activeRole
@@ -197,7 +255,7 @@ export function routeSession(router: Router) {
       } else {
         res.json({
           sessionId: latestSession.id,
-          data: latestSession,
+          data: toLatestSessionPublic(latestSession),
         })
       }
     } catch (error) {
@@ -208,7 +266,7 @@ export function routeSession(router: Router) {
   router.put(
     '/session/:sessionId/image',
     upload.single('image'),
-    async function (req, res) {
+    async function (req, res: Response<SessionImageUploadResponse>) {
       try {
         const user = extractUser(req)
 
@@ -238,13 +296,16 @@ export function routeSession(router: Router) {
   router.get(
     '/session/review',
     authPassport.isAdmin,
-    async function (req, res) {
+    async function (req, res: Response<SessionReviewResponse>) {
       try {
         const { sessions, isLastPage } = await SessionService.sessionsToReview(
           req.query.page as unknown,
           { studentFirstName: req.query.studentFirstName as string }
         )
-        res.json({ sessions, isLastPage })
+        res.json({
+          sessions: sessions.map(toSessionsToReviewPublic),
+          isLastPage,
+        })
       } catch (error) {
         resError(res, error)
       }
@@ -254,7 +315,7 @@ export function routeSession(router: Router) {
   router.put(
     '/session/:sessionId',
     authPassport.isAdmin,
-    async function (req, res) {
+    async function (req, res: Response<void>) {
       try {
         const { sessionId } = req.params
         await SessionService.reviewSession({
@@ -268,60 +329,74 @@ export function routeSession(router: Router) {
     }
   )
 
-  router.post('/session/:sessionId/report', async function (req, res) {
-    try {
-      const { sessionId } = req.params
-      const user = extractUser(req)
-      await SessionService.reportSession(user, {
-        sessionId,
-        ...req.body,
-      } as unknown)
-      res.json({ msg: 'Success' })
-    } catch (error) {
-      if (error instanceof ReportSessionError) return resError(res, error, 422)
-      resError(res, error)
+  router.post(
+    '/session/:sessionId/report',
+    async function (req, res: Response<ReportMessageResponse>) {
+      try {
+        const { sessionId } = req.params
+        const user = extractUser(req)
+        await SessionService.reportSession(user, {
+          sessionId,
+          ...req.body,
+        } as unknown)
+        res.json({ msg: 'Success' })
+      } catch (error) {
+        if (error instanceof ReportSessionError)
+          return resError(res, error, 422)
+        resError(res, error)
+      }
     }
-  })
+  )
 
-  router.post('/session/:sessionId/timed-out', async function (req, res) {
-    try {
-      const { sessionId } = req.params
-      const { timeout } = req.body
-      const { ip } = req
-      const user = extractUser(req)
-      const userAgent = req.get('User-Agent')
-      await SessionService.sessionTimedOut(user, {
-        sessionId,
-        timeout,
-        ip,
-        userAgent,
-      } as unknown)
-      res.sendStatus(200)
-    } catch (error) {
-      resError(res, error)
+  router.post(
+    '/session/:sessionId/timed-out',
+    async function (req, res: Response<void>) {
+      try {
+        const { sessionId } = req.params
+        const { timeout } = req.body
+        const { ip } = req
+        const user = extractUser(req)
+        const userAgent = req.get('User-Agent')
+        await SessionService.sessionTimedOut(user, {
+          sessionId,
+          timeout,
+          ip,
+          userAgent,
+        } as unknown)
+        res.sendStatus(200)
+      } catch (error) {
+        resError(res, error)
+      }
     }
-  })
+  )
 
-  router.get('/sessions', authPassport.isAdmin, async function (req, res) {
-    try {
-      const { sessions, isLastPage } =
-        await SessionService.adminFilteredSessions(req.query as unknown)
-      res.json({ sessions, isLastPage })
-    } catch (error) {
-      resError(res, error)
+  router.get(
+    '/sessions',
+    authPassport.isAdmin,
+    async function (req, res: Response<FilteredSessionsResponse>) {
+      try {
+        const { sessions, isLastPage } =
+          await SessionService.adminFilteredSessions(req.query as unknown)
+        res.json({
+          sessions: sessions.map(toAdminFilterSessionPublic),
+          isLastPage,
+        })
+      } catch (error) {
+        resError(res, error)
+      }
     }
-  })
+  )
 
   router.get(
     '/session/:sessionId/admin',
     authPassport.isAdmin,
-    async function (req, res) {
+    async function (req, res: Response<AdminSessionViewResponse>) {
       try {
         const { sessionId } = req.params
         const session = await SessionService.adminSessionView(
           sessionId as unknown
         )
-        res.json({ session })
+        res.json({ session: toAdminSessionPublic(session) })
       } catch (error) {
         resError(res, error)
       }
@@ -330,108 +405,136 @@ export function routeSession(router: Router) {
 
   router.put(
     '/session/:sessionId/tutor-bot-conversation',
-    async function (req, res) {
+    async function (req, res: Response<TutorBotTranscriptPublic>) {
       try {
         const botResponse =
           await TutorBotService.getOrCreateConversationBySessionId({
             sessionId: req.params.sessionId,
           })
-        return res.json(botResponse).status(200)
+        return res.json(toTutorBotTranscriptPublic(botResponse)).status(200)
       } catch (err) {
         resError(res, err)
       }
     }
   )
 
-  router.get('/session/:sessionId', async function (req, res) {
-    try {
-      const { sessionId } = req.params
-      // TODO: could be undefined
-      const session = await SessionService.publicSession(sessionId as unknown)
-      res.json({ session })
-    } catch (error) {
-      resError(res, error)
-    }
-  })
-
   router.get(
-    '/session/:sessionId/notifications',
-    authPassport.isAdmin,
-    async function (req, res) {
+    '/session/:sessionId',
+    async function (req, res: Response<PublicSessionResponse>) {
       try {
         const { sessionId } = req.params
-        const notifications = await SessionService.getSessionNotifications(
-          sessionId as unknown
-        )
-        res.json({ notifications })
+        // TODO: could be undefined
+        const session = await SessionService.publicSession(sessionId as unknown)
+        res.json({
+          session: session ? toPublicSessionPublic(session) : undefined,
+        })
       } catch (error) {
         resError(res, error)
       }
     }
   )
 
-  router.get('/session/:sessionId/assignment', async function (req, res) {
-    try {
-      const { sessionId } = req.params
-      const assignment =
-        await AssignmentsService.getStudentAssignmentForSession(sessionId)
-      res.json({ assignment })
-    } catch (error) {
-      resError(res, error)
-    }
-  })
-
-  router.get('/sessions/history', async function (req, res) {
-    try {
-      const user = extractUser(req)
-      const filter = SessionService.asSessionHistoryFilter(req.query)
-
-      const pastSessions = await SessionService.getSessionHistory(
-        user.id,
-        filter
-      )
-
-      res.json({ pastSessions })
-    } catch (err) {
-      resError(res, err)
-    }
-  })
-
-  router.get('/sessions/history/total', async function (req, res) {
-    try {
-      const user = extractUser(req)
-      const filter = {
-        studentId: req.query.studentId
-          ? asUlid(req.query.studentId)
-          : undefined,
-        volunteerId: req.query.volunteerId
-          ? asUlid(req.query.volunteerId)
-          : undefined,
+  router.get(
+    '/session/:sessionId/notifications',
+    authPassport.isAdmin,
+    async function (req, res: Response<SessionNotificationsResponse>) {
+      try {
+        const { sessionId } = req.params
+        const notifications = await SessionService.getSessionNotifications(
+          sessionId as unknown
+        )
+        res.json({
+          notifications: notifications.map(toSessionNotificationPublic),
+        })
+      } catch (error) {
+        resError(res, error)
       }
-      const total = await SessionService.getTotalSessionHistory(user.id, filter)
-
-      res.json({ total })
-    } catch (err) {
-      resError(res, err)
     }
-  })
+  )
 
-  router.get('/sessions/first-session-date', async function (req, res) {
-    try {
-      const user = extractUser(req)
-
-      const firstSessionDate =
-        await SessionService.getVolunteerFirstSessionDate(user.id)
-
-      resSuccess(res, { firstSessionDate })
-    } catch (err) {
-      resError(res, err)
+  router.get(
+    '/session/:sessionId/assignment',
+    async function (req, res: Response<StudentAssignmentResponse>) {
+      try {
+        const { sessionId } = req.params
+        const assignment =
+          await AssignmentsService.getStudentAssignmentForSession(sessionId)
+        res.json({
+          assignment: assignment
+            ? toStudentAssignmentPublic(assignment)
+            : undefined,
+        })
+      } catch (error) {
+        resError(res, error)
+      }
     }
-  })
+  )
+
+  router.get(
+    '/sessions/history',
+    async function (req, res: Response<SessionHistoryResponse>) {
+      try {
+        const user = extractUser(req)
+        const filter = SessionService.asSessionHistoryFilter(req.query)
+
+        const pastSessions = await SessionService.getSessionHistory(
+          user.id,
+          filter
+        )
+
+        res.json({
+          pastSessions: pastSessions.map(toSessionForSessionHistoryPublic),
+        })
+      } catch (err) {
+        resError(res, err)
+      }
+    }
+  )
+
+  router.get(
+    '/sessions/history/total',
+    async function (req, res: Response<SessionHistoryTotalResponse>) {
+      try {
+        const user = extractUser(req)
+        const filter = {
+          studentId: req.query.studentId
+            ? asUlid(req.query.studentId)
+            : undefined,
+          volunteerId: req.query.volunteerId
+            ? asUlid(req.query.volunteerId)
+            : undefined,
+        }
+        const total = await SessionService.getTotalSessionHistory(
+          user.id,
+          filter
+        )
+
+        res.json({ total })
+      } catch (err) {
+        resError(res, err)
+      }
+    }
+  )
+
+  router.get(
+    '/sessions/first-session-date',
+    async function (req, res: Response<FirstSessionDateResponse>) {
+      try {
+        const user = extractUser(req)
+
+        const firstSessionDate =
+          await SessionService.getVolunteerFirstSessionDate(user.id)
+
+        resSuccess(res, { firstSessionDate: firstSessionDate?.toISOString() })
+      } catch (err) {
+        resError(res, err)
+      }
+    }
+  )
 
   router.post(
     '/sessions/history/:sessionId/eligible',
-    async function (req, res) {
+    async function (req, res: Response<SessionRecapEligibilityResponse>) {
       try {
         const { sessionId } = req.params
         const isEligible =
@@ -443,71 +546,77 @@ export function routeSession(router: Router) {
     }
   )
 
-  router.get('/sessions/:sessionId/recap', async function (req, res) {
-    try {
-      const user = extractUser(req)
-      const { sessionId } = req.params
-      const isTeacher = user.roleContext.isActiveRole('teacher')
-      const isVolunteer = user.roleContext.isActiveRole('volunteer')
-      const isStudent = user.roleContext.isActiveRole('student')
-      const session = await SessionService.getSessionRecap(
-        asUlid(sessionId),
-        user.id,
-        isTeacher
-      )
-      const studentFeedbackForVolunteer =
-        await getStudentFeedbackForSession(sessionId)
-      const classifedFeedback = classifyFeedback(studentFeedbackForVolunteer)
-      if (isVolunteer && classifedFeedback.isPositive) {
-        const { response, ...withoutResponse } = classifedFeedback.feedback
-        session.feedbackFromStudent = withoutResponse
-      } else if (isStudent && studentFeedbackForVolunteer) {
-        const {
-          howMuchDidYourCoachPushYouToDoYourBestWorkToday,
-          howSupportiveWasYourCoachToday,
-        } = studentFeedbackForVolunteer
-        session.feedbackFromStudent = {
-          howMuchDidYourCoachPushYouToDoYourBestWorkToday,
-          howSupportiveWasYourCoachToday,
-        }
-      }
-      const isRecapDmsAvailable = await SessionService.isRecapDmsAvailable(
-        session.id,
-        user.id
-      )
-
-      let summary = ''
-      if (user.id === session.studentId) {
-        const sessionSummary = await getSessionSummaryByUserType(
-          session.id,
-          USER_ROLES.STUDENT
+  router.get(
+    '/sessions/:sessionId/recap',
+    async function (req, res: Response<SessionRecapResponse>) {
+      try {
+        const user = extractUser(req)
+        const { sessionId } = req.params
+        const isTeacher = user.roleContext.isActiveRole('teacher')
+        const isVolunteer = user.roleContext.isActiveRole('volunteer')
+        const isStudent = user.roleContext.isActiveRole('student')
+        const session = await SessionService.getSessionRecap(
+          asUlid(sessionId),
+          user.id,
+          isTeacher
         )
-        summary = sessionSummary?.summary ?? ''
+        const studentFeedbackForVolunteer =
+          await getStudentFeedbackForSession(sessionId)
+        const classifedFeedback = classifyFeedback(studentFeedbackForVolunteer)
+        if (isVolunteer && classifedFeedback.isPositive) {
+          const { response, ...withoutResponse } = classifedFeedback.feedback
+          session.feedbackFromStudent = withoutResponse
+        } else if (isStudent && studentFeedbackForVolunteer) {
+          const {
+            howMuchDidYourCoachPushYouToDoYourBestWorkToday,
+            howSupportiveWasYourCoachToday,
+          } = studentFeedbackForVolunteer
+          session.feedbackFromStudent = {
+            howMuchDidYourCoachPushYouToDoYourBestWorkToday,
+            howSupportiveWasYourCoachToday,
+          }
+        }
+        const isRecapDmsAvailable = await SessionService.isRecapDmsAvailable(
+          session.id,
+          user.id
+        )
+
+        let summary = ''
+        if (user.id === session.studentId) {
+          const sessionSummary = await getSessionSummaryByUserType(
+            session.id,
+            USER_ROLES.STUDENT
+          )
+          summary = sessionSummary?.summary ?? ''
+        }
+
+        res.json({
+          session: toSessionForRecapSessionPublic(session),
+          isRecapDmsAvailable: isRecapDmsAvailable.eligible,
+          summary: summary ?? '',
+        })
+      } catch (err) {
+        resError(res, err)
       }
-
-      res.json({
-        session,
-        isRecapDmsAvailable: isRecapDmsAvailable.eligible,
-        summary: summary ?? '',
-      })
-    } catch (err) {
-      resError(res, err)
     }
-  })
+  )
 
-  router.get('/sessions/student/:studentId', async function (req, res) {
-    try {
-      const studentId = req.params.studentId as string
-      const user = extractUser(req)
-      const sessionDetails = await SessionService.getStudentSessionDetails(
-        studentId,
-        user.id
-      )
-      res.json({ sessionDetails })
-    } catch (err) {
-      resError(res, err)
+  router.get(
+    '/sessions/student/:studentId',
+    async function (req, res: Response<SessionDetailResponse>) {
+      try {
+        const studentId = req.params.studentId as string
+        const user = extractUser(req)
+        const sessionDetails = await SessionService.getStudentSessionDetails(
+          studentId,
+          user.id
+        )
+        res.json({ sessionDetails: sessionDetails.map(toSessionDetailPublic) })
+      } catch (err) {
+        resError(res, err)
+      }
     }
-  })
+  )
 
   router.post('/sessions/:sessionId/meeting', async function (req, res) {
     try {
@@ -537,7 +646,7 @@ export function routeSession(router: Router) {
 
   router.post(
     '/sessions/:sessionId/meeting/start-transcription',
-    async function (req, res) {
+    async function (req, res: Response<StartTranscriptionResponse>) {
       try {
         const sessionId = req.params.sessionId
         const transcriptionStarted =
@@ -551,7 +660,7 @@ export function routeSession(router: Router) {
 
   router.post(
     '/sessions/:sessionId/meeting/start-recording',
-    async function (req, res) {
+    async function (req, res: Response<StartRecordingResponse>) {
       try {
         const sessionId = req.params.sessionId
         const recordingId =
@@ -573,37 +682,39 @@ export function routeSession(router: Router) {
 
   router.post(
     '/session/:sessionId/recap/:userId/update-last-seen',
-    async (req, res) => {
+    async (req, res: Response<void>) => {
       try {
         const sessionId = req.params.sessionId
         const userId = req.params.userId
 
-        const sessionLastSeenUpdated = SessionService.updateSessionLastSeen(
-          sessionId,
-          userId
-        )
+        await SessionService.updateSessionLastSeen(sessionId, userId)
 
-        return res.json({ sessionLastSeenUpdated })
+        return res.sendStatus(200)
       } catch (err) {
         resError(res, err)
       }
     }
   )
 
-  router.get('/sessions/unread-dms', async function (req, res) {
-    try {
-      const user = extractUser(req)
-      const sessionsWithUnreadDMs = await SessionService.sessionsWithUnreadDMs(
-        user.id
-      )
-      res.json({ sessionsWithUnreadDMs })
-    } catch (err) {
-      resError(res, err)
+  router.get(
+    '/sessions/unread-dms',
+    async function (req, res: Response<UnreadDmsResponse>) {
+      try {
+        const user = extractUser(req)
+        const sessionsWithUnreadDMs =
+          await SessionService.sessionsWithUnreadDMs(user.id)
+        res.json({ sessionsWithUnreadDMs })
+      } catch (err) {
+        resError(res, err)
+      }
     }
-  })
+  )
 
   // Student-driven "open this exclusive session up to all tutors".
-  router.route('/session/:sessionId/breakout').post(async function (req, res) {
+  router.route('/session/:sessionId/breakout').post(async function (
+    req,
+    res: Response<void>
+  ) {
     try {
       const user = extractUser(req)
       const sessionId = asUlid(req.params.sessionId)

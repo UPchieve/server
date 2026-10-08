@@ -1,7 +1,24 @@
-import type { Uuid } from '../../types/shared'
+import type { Uuid } from '../types/shared'
 
-// Legacy feedback
-export type ResponseData = {
+// Legacy survey
+export type FeedbackPublic = {
+  id: Uuid
+  sessionId: Uuid
+  studentId?: Uuid
+  volunteerId?: Uuid
+  comment?: string
+  // old names for topic/subject for legacy compatibility
+  type?: string
+  subTopic?: string
+  studentTutoringFeedback?: StudentTutoringFeedbackPublic
+  studentCounselingFeedback?: StudentCounselingFeedbackPublic
+  volunteerFeedback?: VolunteerFeedbackPublic
+  // old name for legacy feedback for legacy compatibility
+  responseData?: ResponseDataPublic
+}
+
+// Version-one feedback; newer counseling feedback is stored separately.
+export type ResponseDataPublic = {
   'coach-ratings'?: {
     'coach-knowedgable'?: number
     'coach-friendly'?: number
@@ -34,7 +51,7 @@ export type ResponseData = {
   'app-features-needed'?: string
 }
 
-export type StudentTutoringFeedback = {
+export type StudentTutoringFeedbackPublic = {
   'session-goal'?: number
   'subject-understanding'?: number
   'coach-rating'?: number
@@ -42,7 +59,7 @@ export type StudentTutoringFeedback = {
   'other-feedback'?: string
 }
 
-export type StudentCounselingFeedback = {
+export type StudentCounselingFeedbackPublic = {
   'rate-session'?: { rating?: number }
   'session-goal'?: string
   'coach-ratings'?: {
@@ -53,7 +70,7 @@ export type StudentCounselingFeedback = {
   'other-feedback'?: string
 }
 
-export type VolunteerFeedback = {
+export type VolunteerFeedbackPublic = {
   'session-enjoyable'?: number
   'session-improvements'?: string
   'student-understanding'?: number
@@ -61,18 +78,21 @@ export type VolunteerFeedback = {
   'other-feedback'?: string
 }
 
-export type Feedback = {
-  id: Uuid
-  sessionId: Uuid
-  studentId?: Uuid
-  volunteerId?: Uuid
-  comment?: string
-  // old names for topic/subject for legacy compatibility
-  type?: string
-  subTopic?: string
-  studentTutoringFeedback?: StudentTutoringFeedback
-  studentCounselingFeedback?: StudentCounselingFeedback
-  volunteerFeedback?: VolunteerFeedback
-  // old name for legacy feedback for legacy compatibility
-  responseData?: ResponseData
+export type SimpleSurveyResponsePublic = {
+  displayLabel: string
+  response: string
+  score: number
+  displayOrder: number
+  questionId: number
+  displayImage?: string
+  responseId?: number
+}
+
+export type PostsessionSurveyResponsePublic = {
+  userRole: string
+  questionText: string
+  displayLabel: string
+  response?: string
+  displayOrder: number
+  score: number
 }

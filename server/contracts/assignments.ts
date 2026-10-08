@@ -34,6 +34,23 @@ export type AssignmentDocumentPublic = {
   url: string
 }
 
+export type StudentAssignmentPublic = {
+  id: Uuid
+  assignedAt: ISODateString
+  classId?: Uuid
+  className?: string
+  description?: string
+  title?: string
+  numberOfSessions?: number
+  minDurationInMinutes?: number
+  isRequired: boolean
+  dueDate?: ISODateString
+  startDate?: ISODateString
+  subjectId?: number
+  subjectName?: string
+  submittedAt?: ISODateString
+}
+
 export type AssignmentResponse = {
   assignment?: AssignmentPublic
 }
@@ -44,4 +61,13 @@ export type StudentAssignmentCompletionResponse = {
 
 export type AssignmentDocumentsResponse = {
   assignmentDocuments: AssignmentDocumentPublic[]
+}
+
+export type AssignmentUploadResponse = {
+  // TODO: move to a shared types with other moderation types?
+  moderationFailures: Record<string, string[]>
+} | void
+
+export type StudentAssignmentResponse = {
+  assignment?: StudentAssignmentPublic
 }

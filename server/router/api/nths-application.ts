@@ -2,7 +2,7 @@ import { Request, Response, Router } from 'express'
 import { extractUser } from '../extract-user'
 import { resError } from '../res-error'
 import * as NTHSApplicationService from '../../services/NTHSApplicationService'
-import { toNTHSCandidateApplicationPublic } from '../../public/nths'
+import { toNTHSCandidateApplicationPublic } from '../../contracts/nths.mappers'
 import type {
   NTHSApplicationEligibilityResponse,
   NTHSCandidateApplicationResponse,

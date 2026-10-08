@@ -62,14 +62,9 @@ describe('routeTutorBot', () => {
     test('returns transcript for conversation', async () => {
       const conversationId = getUuid()
       const transcript = buildTutorBotTranscript({ conversationId })
-      const publicTranscript = buildTutorBotTranscriptPublic({
-        conversationId,
-      })
+      const publicTranscript = buildTutorBotTranscriptPublic(transcript)
       mockedTutorBotService.getTranscriptForConversation.mockResolvedValueOnce(
         transcript
-      )
-      mockedTutorBotService.toTutorBotTranscriptPublic.mockReturnValueOnce(
-        publicTranscript
       )
 
       const response = await sendGet(
@@ -79,9 +74,6 @@ describe('routeTutorBot', () => {
       expect(
         mockedTutorBotService.getTranscriptForConversation
       ).toHaveBeenCalledWith(conversationId)
-      expect(
-        mockedTutorBotService.toTutorBotTranscriptPublic
-      ).toHaveBeenCalledWith(transcript)
       expect(response.body).toEqual(publicTranscript)
     })
   })
@@ -102,9 +94,6 @@ describe('routeTutorBot', () => {
       mockedTutorBotService.addMessageToConversation.mockResolvedValueOnce(
         botResponse
       )
-      mockedTutorBotService.toTutorBotAddMessageResponsePublic.mockReturnValueOnce(
-        publicResponse
-      )
 
       const response = await sendPost(
         `/api/tutor-bot/conversations/${conversationId}/message`,
@@ -124,9 +113,6 @@ describe('routeTutorBot', () => {
         senderUserType: userMessage.senderUserType,
         subjectName,
       })
-      expect(
-        mockedTutorBotService.toTutorBotAddMessageResponsePublic
-      ).toHaveBeenCalledWith(botResponse)
       expect(response.body).toEqual(publicResponse)
     })
 
@@ -144,9 +130,6 @@ describe('routeTutorBot', () => {
       expect(response.status).toBe(422)
       expect(
         mockedTutorBotService.addMessageToConversation
-      ).not.toHaveBeenCalled()
-      expect(
-        mockedTutorBotService.toTutorBotAddMessageResponsePublic
       ).not.toHaveBeenCalled()
     })
   })
@@ -182,9 +165,6 @@ describe('routeTutorBot', () => {
       mockedTutorBotService.createTutorBotConversation.mockResolvedValueOnce(
         newConversation
       )
-      mockedTutorBotService.toNewConversationPublic.mockReturnValueOnce(
-        publicConversation
-      )
 
       const message = 'Can you help me get started?'
       const response = await sendPost('/api/tutor-bot/conversations', {
@@ -203,9 +183,6 @@ describe('routeTutorBot', () => {
         subjectId,
         sessionId,
       })
-      expect(
-        mockedTutorBotService.toNewConversationPublic
-      ).toHaveBeenCalledWith(newConversation)
       expect(response.body).toEqual(publicConversation)
     })
 
@@ -220,9 +197,6 @@ describe('routeTutorBot', () => {
         buildTutorBotNewConversationPublic(newConversation)
       mockedTutorBotService.createTutorBotConversation.mockResolvedValueOnce(
         newConversation
-      )
-      mockedTutorBotService.toNewConversationPublic.mockReturnValueOnce(
-        publicConversation
       )
       const message = 'I need help with this topic'
       const response = await sendPost('/api/tutor-bot/conversations', {
@@ -240,9 +214,6 @@ describe('routeTutorBot', () => {
         senderUserType: 'volunteer',
         subjectId,
       })
-      expect(
-        mockedTutorBotService.toNewConversationPublic
-      ).toHaveBeenCalledWith(newConversation)
       expect(response.body).toEqual(publicConversation)
     })
 
@@ -256,9 +227,6 @@ describe('routeTutorBot', () => {
       expect(
         mockedTutorBotService.createTutorBotConversation
       ).not.toHaveBeenCalled()
-      expect(
-        mockedTutorBotService.toNewConversationPublic
-      ).not.toHaveBeenCalled()
     })
 
     test('returns 422 for invalid subjectId', async () => {
@@ -270,9 +238,6 @@ describe('routeTutorBot', () => {
       expect(response.status).toBe(422)
       expect(
         mockedTutorBotService.createTutorBotConversation
-      ).not.toHaveBeenCalled()
-      expect(
-        mockedTutorBotService.toNewConversationPublic
       ).not.toHaveBeenCalled()
     })
   })
