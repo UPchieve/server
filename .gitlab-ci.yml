@@ -5,6 +5,12 @@ stages:
   - deploy
   - post-deploy
 
+include:
+  # Shared e2e job template which is owned by high-line
+  - project: upchieve/application/high-line
+    ref: main
+    file: .gitlab/ci/e2e.yml
+
 cache:
   key:
     files:
@@ -324,3 +330,20 @@ verify_migration_data_deletion:
       when: manual
   allow_failure: false
 
+# Runs high-line's e2e tests against this subway commit
+# Note: high-line owns the e2e job definition
+e2e_test:
+  extends: .e2e_base
+  variables:
+    HIGH_LINE_DIR: $CI_PROJECT_DIR/high-line
+    SUBWAY_DIR: $CI_PROJECT_DIR
+  before_script:
+    - git clone --depth=1 https://gitlab.com/upchieve/application/high-line.git $HIGH_LINE_DIR
+    - !reference [.e2e_base, before_script]
+  rules:
+    - if: '$TEST_DISABLED'
+      when: never
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event' # MR is created or updated.
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
+      variables:
+        E2E_CACHE_POLICY: pull-push
