@@ -35,7 +35,10 @@ describe('routeSubjects', () => {
 
   describe('GET /api/subjects', () => {
     test('returns subjects with topics', async () => {
-      const subjectOne = buildSubjectWithTopic({ name: 'algebraOne' })
+      const subjectOne = buildSubjectWithTopic({
+        name: 'apChemistry',
+        unlockQuizName: 'chemistry',
+      })
       const subjectTwo = buildSubjectWithTopic({ name: 'biology' })
       const subjects = {
         [subjectOne.name]: subjectOne,
