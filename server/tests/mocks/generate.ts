@@ -140,7 +140,11 @@ import type {
 import type { SurveyQueryResponse } from '../../models/Survey'
 import type { SaveSurveyAndSubmissions } from '../../services/SurveyService'
 import { Question } from '../../models/Question'
-import { MaterialType, TrainingCourse } from '../../utils/training-courses'
+import { MaterialType } from '../../constants/training'
+import type {
+  TrainingCourseWithUserProgress,
+  UserTrainingCourseProgressUpdate,
+} from '../../types/training'
 import type {
   TutorBotAddMessageResponsePublic,
   TutorBotGeneratedMessagePublic,
@@ -2550,18 +2554,8 @@ export function buildTeacherClassWithStudents(
 }
 
 export function buildTrainingCourse(
-  overrides: Partial<
-    TrainingCourse & {
-      isComplete: boolean
-      progress: number
-      completedMaterials: string[]
-    }
-  > = {}
-): TrainingCourse & {
-  isComplete: boolean
-  progress: number
-  completedMaterials: string[]
-} {
+  overrides: Partial<TrainingCourseWithUserProgress> = {}
+): TrainingCourseWithUserProgress {
   return {
     name: 'UPchieve 101',
     courseKey: 'upchieve101',
@@ -2573,6 +2567,7 @@ export function buildTrainingCourse(
           {
             name: 'Welcome to UPchieve!',
             materialKey: '31rgp3',
+            isCompleted: false,
             isRequired: true,
             type: MaterialType.VIDEO,
             resourceId: '459021055',
@@ -2591,12 +2586,8 @@ export function buildTrainingCourse(
 }
 
 export function buildTrainingCourseProgress(
-  overrides: Partial<{
-    progress: number
-    isComplete: boolean
-    completedMaterialKeys: string[]
-  }> = {}
-) {
+  overrides: Partial<UserTrainingCourseProgressUpdate> = {}
+): UserTrainingCourseProgressUpdate {
   return {
     progress: 25,
     isComplete: false,
@@ -2610,7 +2601,7 @@ export function buildQuizScoreResult(
     tries: number
     passed: boolean
     score: number
-    idCorrectAnswerMap: Record<string, string | number>
+    idCorrectAnswerMap: Record<string, string>
     isTrainingSubject: boolean
   }> = {}
 ) {
@@ -2629,10 +2620,8 @@ export function buildQuizScoreResult(
 export function buildTrainingQuestion(
   overrides: Partial<Question> = {}
 ): Question {
-  const id = 1
   return {
-    _id: id,
-    id,
+    id: 1,
     questionText: faker.lorem.sentence(),
     possibleAnswers: [
       {
@@ -2657,7 +2646,6 @@ export function buildTrainingQuestion(
     subcategory: 'test-subcategory',
     imageSrc: '',
     createdAt: new Date(),
-    updatedAt: new Date(),
     ...overrides,
   }
 }

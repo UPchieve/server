@@ -1,8 +1,5 @@
-import { Pgid } from '../pgUtils'
-
 export type Question = {
-  _id?: Pgid // legacy ID for frontend
-  id: Pgid
+  id: number
   questionText: string
   possibleAnswers: {
     txt: string
@@ -13,7 +10,6 @@ export type Question = {
   subcategory: string
   imageSrc?: string | undefined
   createdAt: Date
-  updatedAt: Date
 }
 
 export type ReviewMaterial = {

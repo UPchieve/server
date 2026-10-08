@@ -2,7 +2,6 @@ import {
   GRADES,
   REFERENCE_STATUS,
   SUBJECTS,
-  TRAINING,
   USER_BAN_TYPES,
 } from '../../constants'
 import { Ulid, Uuid } from '../pgUtils'
@@ -47,28 +46,6 @@ export type UserQuiz = {
   passed: boolean
   createdAt: Date
   updatedAt: Date
-}
-
-export type TrainingCourseData = {
-  complete: boolean
-  progress: number
-  completedMaterials: string[]
-}
-
-export type UserTrainingCourse = TrainingCourseData & {
-  userId: Uuid
-  trainingCourseId: number
-  createdAt: Date
-  updatedAt: Date
-}
-
-export type TrainingCourses = {
-  [TRAINING.UPCHIEVE_101]: TrainingCourseData
-  [TRAINING.UPCHIEVE_TRAINING]: TrainingCourseData
-  [TRAINING.TUTORING_SKILLS]: TrainingCourseData
-  [TRAINING.COLLEGE_COUNSELING]: TrainingCourseData
-  [TRAINING.COLLEGE_SKILLS]: TrainingCourseData
-  [TRAINING.SAT_STRATEGIES]: TrainingCourseData
 }
 
 export type UniqueStudentsHelped = {

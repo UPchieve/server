@@ -1,5 +1,4 @@
 import { UserContactInfo } from '../models/User'
-import { TrainingCourses } from '../models/Volunteer'
 import {
   getVolunteerTrainingCourses,
   updateVolunteerTrainingById,
@@ -7,18 +6,16 @@ import {
 import * as TrainingUtils from '../utils/training-courses'
 import logger from '../logger'
 import { runInTransaction, TransactionClient } from '../db'
-import { TrainingCourse } from '../utils/training-courses'
+import type {
+  TrainingCourses,
+  TrainingCourseWithUserProgress,
+  UserTrainingCourseProgressUpdate,
+} from '../types/training'
 
 export async function getCourse(
   volunteer: UserContactInfo,
   courseKey: keyof TrainingCourses
-): Promise<
-  TrainingCourse & {
-    isComplete: boolean
-    progress: number
-    completedMaterials: string[]
-  }
-> {
+): Promise<TrainingCourseWithUserProgress> {
   const userTrainingCourses = await getVolunteerTrainingCourses(volunteer.id)
   const foundCourse = userTrainingCourses[courseKey]
   // if the volunteer has no progress so far make a blank
@@ -32,30 +29,30 @@ export async function getCourse(
     {},
     await TrainingUtils.getCourse(courseKey, volunteer.id)
   )
-  course.modules.forEach((mod: any) => {
-    mod.materials.forEach((mat: any) => {
-      mat.isCompleted = userCourse.completedMaterials.includes(mat.materialKey)
-    })
-  })
 
   return {
     ...course,
+    // Mark which materials this user has already completed
+    modules: course.modules.map((module) => ({
+      ...module,
+      materials: module.materials.map((material) => ({
+        ...material,
+        isCompleted: userCourse.completedMaterials.includes(
+          material.materialKey
+        ),
+      })),
+    })),
     isComplete: userCourse.complete,
     progress: userCourse.progress,
     completedMaterials: userCourse.completedMaterials,
   }
 }
 
-interface CourseProgress {
-  progress: number
-  isComplete: boolean
-  completedMaterialKeys: string[]
-}
 export async function recordProgress(
   volunteer: UserContactInfo,
   courseKey: keyof TrainingCourses,
   materialKey: string
-): Promise<CourseProgress> {
+): Promise<UserTrainingCourseProgressUpdate> {
   return runInTransaction(async (tc: TransactionClient) => {
     const volunteerTrainingCourses = await getVolunteerTrainingCourses(
       volunteer.id,

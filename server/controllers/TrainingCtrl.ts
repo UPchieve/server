@@ -10,6 +10,7 @@ import * as VolunteerModel from '../models/Volunteer'
 import { asString } from '../utils/type-utils'
 import { getClient, runInTransaction, TransactionClient } from '../db'
 import config from '../config'
+import type { AnswerMap } from '../types/training'
 
 export async function getQuestions(
   category: string
@@ -43,8 +44,6 @@ export async function getQuestions(
   return shuffledQuestions.slice(0, config.totalQuizQuestions)
 }
 
-type AnswerMap = { [k: number]: string }
-
 // TODO: duck type validation
 export interface GetQuizScoreOptions {
   user: UserModel.UserContactInfo
@@ -57,7 +56,7 @@ export interface GetQuizScoreOutput {
   tries: number
   passed: boolean
   score: number
-  idCorrectAnswerMap: any
+  idCorrectAnswerMap: AnswerMap
   isTrainingSubject: boolean
 }
 

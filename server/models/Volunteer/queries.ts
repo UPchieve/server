@@ -27,7 +27,6 @@ import {
   Quizzes,
   Sponsorship,
   TextableVolunteer,
-  UserTrainingCourse,
   VolunteerOccupations,
   VolunteerProfileUpdate,
   VolunteersForAnalyticsReport,
@@ -37,7 +36,6 @@ import {
 import config from '../../config'
 import _ from 'lodash'
 import {
-  ACCOUNT_USER_ACTIONS,
   PHOTO_ID_STATUS,
   SUBJECTS,
   USER_BAN_TYPES,
@@ -51,6 +49,7 @@ import { UniqueStudentsHelped } from '.'
 import { insertUserRoleByUserId, UserRole } from '../User'
 import { getVolunteerPartnerOrgIdByKey } from '../VolunteerPartnerOrg'
 import { ReportNoDataFoundError } from '../../services/ReportService'
+import type { UserTrainingCourses } from '../../types/training'
 
 export type VolunteerContactInfo = {
   id: Ulid
@@ -707,39 +706,33 @@ export async function updateVolunteerTotalHoursById(
   }
 }
 
-export type TrainingCourse = {
-  userId: Ulid
-  complete: boolean
-  trainingCourse: string
-  progress: number
-  completedMaterials: string[]
-  createdAt: Date
-  updatedAt: Date
-  // legacy names for frontend
-  isComplete: boolean
-}
-type VolunteerTrainingCourses = { [key: string]: TrainingCourse }
 export async function getVolunteerTrainingCourses(
   userId: Ulid,
   tc?: TransactionClient
-): Promise<VolunteerTrainingCourses> {
+): Promise<UserTrainingCourses> {
   try {
     const result = await pgQueries.getVolunteerTrainingCourses.run(
       { userId },
       tc ?? getClient()
     )
-    const map: VolunteerTrainingCourses = {}
+    const map: UserTrainingCourses = {}
     for (const row of result) {
       const temp = { ...makeRequired(row) }
-      map[temp.trainingCourse] = {
-        ...temp,
-        isComplete: temp.complete,
-      }
+      map[temp.trainingCourse] = temp
     }
     return map
   } catch (err) {
     throw new RepoReadError(err)
   }
+}
+
+type UserTrainingCourseProgressRow = {
+  userId: Uuid
+  trainingCourseId: number
+  complete: boolean
+  progress: number
+  completedMaterials: string[]
+  createdAt: Date
 }
 
 export async function updateVolunteerTrainingById(
@@ -748,7 +741,7 @@ export async function updateVolunteerTrainingById(
   requiredMaterialKeys: string[],
   materialKey: string,
   tc?: TransactionClient
-): Promise<UserTrainingCourse> {
+): Promise<UserTrainingCourseProgressRow> {
   try {
     const results = await pgQueries.updateVolunteerTrainingById.run(
       {

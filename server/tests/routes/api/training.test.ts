@@ -74,8 +74,8 @@ describe('routeTraining', () => {
         questions: questions.map((question) => {
           return {
             ...question,
+            _id: question.id,
             createdAt: question.createdAt.toISOString(),
-            updatedAt: question.updatedAt.toISOString(),
           }
         }),
       })

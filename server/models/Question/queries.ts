@@ -4,12 +4,7 @@ import {
   RepoReadError,
   RepoUpdateError,
 } from '../Errors'
-import {
-  makeRequired,
-  makeSomeOptional,
-  makeSomeRequired,
-  Pgid,
-} from '../pgUtils'
+import { makeRequired, makeSomeOptional } from '../pgUtils'
 import {
   Question,
   Quiz,
@@ -31,7 +26,7 @@ export function parseQueryResult(result: QuestionQueryResult): Question {
       ? JSON.parse(result.possibleAnswers)
       : result.possibleAnswers
 
-  return { ...result, possibleAnswers, _id: result.id }
+  return { ...result, possibleAnswers }
 }
 
 export async function listQuestions(
@@ -93,7 +88,7 @@ export async function createQuestion(
 }
 
 export type QuestionUpdateOptions = {
-  id: Pgid
+  id: number
   question: Question
 }
 
@@ -138,7 +133,7 @@ export async function updateQuestion(
   }
 }
 
-export async function destroy(questionId: Pgid): Promise<void> {
+export async function destroy(questionId: number): Promise<void> {
   try {
     const result = await pgQueries.destroy.run({ questionId }, getClient())
     if (result.length && makeRequired(result[0].ok)) return

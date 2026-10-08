@@ -1,3 +1,4 @@
+import type { UserTrainingCourseProgress } from '../../types/training'
 import * as VolunteerService from '../../services/VolunteerService'
 import * as VolunteerRepo from '../../models/Volunteer'
 import * as UsersSchoolsRepo from '../../models/UsersSchools'
@@ -15,7 +16,7 @@ import {
   USER_BAN_TYPES,
 } from '../../constants'
 import { mocked } from 'jest-mock'
-import { TrainingCourse, VolunteerOccupations } from '../../models/Volunteer'
+import { VolunteerOccupations } from '../../models/Volunteer'
 import { hasCompletedVolunteerTraining } from '../../services/VolunteerService'
 import {
   buildNTHSGroupWithMemberInfo,
@@ -52,14 +53,15 @@ const mockVolunteer = {
   subjects: ['algebraOne'],
   availabilityLastModifiedAt: new Date(),
 }
-const COMPLETED_TRAINING_COURSE: Omit<TrainingCourse, 'trainingCourse'> = {
+const COMPLETED_TRAINING_COURSE: Omit<
+  UserTrainingCourseProgress,
+  'trainingCourse'
+> = {
   userId: mockVolunteer.id,
   complete: true,
   progress: 100,
   completedMaterials: [],
   createdAt: new Date(),
-  updatedAt: new Date(),
-  isComplete: true,
 }
 const mockIp = 'mock-ip'
 const tc = {} as TransactionClient
@@ -75,8 +77,6 @@ beforeEach(() => {
       progress: 100,
       completedMaterials: [],
       createdAt: new Date(),
-      updatedAt: new Date(),
-      isComplete: true,
     },
   })
   mockedVolunteerRepo.getQuizzesForVolunteers.mockResolvedValue({
@@ -164,7 +164,6 @@ describe('hasCompletedVolunteerTraining', () => {
       [TRAINING.UPCHIEVE_101]: {
         ...COMPLETED_TRAINING_COURSE,
         complete: false,
-        isComplete: false,
         trainingCourse: TRAINING.UPCHIEVE_101,
       },
     })
@@ -198,7 +197,6 @@ describe('hasCompletedVolunteerTraining', () => {
       [TRAINING.UPCHIEVE_101]: {
         ...COMPLETED_TRAINING_COURSE,
         complete: false,
-        isComplete: false,
         progress: 50,
         trainingCourse: TRAINING.UPCHIEVE_101,
       },
@@ -284,8 +282,6 @@ describe('onboardVolunteer', () => {
         progress: 50,
         completedMaterials: [],
         createdAt: new Date(),
-        updatedAt: new Date(),
-        isComplete: false,
       },
     })
     await VolunteerService.onboardVolunteer(mockVolunteer.id, mockIp, tc)

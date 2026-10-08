@@ -1,52 +1,8 @@
 import { find, chain, cloneDeep } from 'lodash'
 import { Ulid } from '../models/pgUtils'
 import { getUsingOurPlatformFlag } from '../services/FeatureFlagService'
-import { TRAINING_QUIZZES } from '../constants'
-
-export interface TrainingCourse {
-  name: string
-  courseKey: string
-  description: string
-  modules: TrainingModule[]
-  requiredCertifications: TRAINING_QUIZZES[]
-  // @TODO After deprecating the legacy training course (upchieve101), remove these props
-  quizKey?: string
-  quizName?: string
-}
-
-interface TrainingModule {
-  name: string
-  key?: string
-  materials: TrainingMaterial[]
-  quizKey?: string
-}
-
-export enum MaterialType {
-  VIDEO = 'video',
-  DOCUMENT = 'document',
-  LINK = 'link',
-  RESOURCES = 'resources',
-  OTHER = 'other',
-}
-
-interface TrainingMaterial {
-  name: string
-  description?: string
-  materialKey: string
-  isRequired: boolean
-  type: MaterialType
-  // the ID Vimeo gives a video when uploaded
-  resourceId?: string
-  linkUrl?: string
-  links?: TrainingMaterialLink[]
-  videoPDF?: string
-  linkLabel?: string
-}
-
-interface TrainingMaterialLink {
-  displayName: string
-  url: string
-}
+import { TRAINING_QUIZZES, MaterialType } from '../constants'
+import type { TrainingCourse } from '../types/training'
 
 /**
  *

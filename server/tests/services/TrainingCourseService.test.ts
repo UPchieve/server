@@ -1,5 +1,5 @@
 import * as VolunteerRepo from '../../models/Volunteer'
-import { recordProgress } from '../../services/TrainingCourseService'
+import { getCourse, recordProgress } from '../../services/TrainingCourseService'
 import { getDbUlid } from '../../models/pgUtils'
 import { faker } from '@faker-js/faker'
 import { UserContactInfo } from '../../models/User'
@@ -36,6 +36,51 @@ describe('TrainingCourseService', () => {
     jest.resetAllMocks()
   })
 
+  describe('getCourse', () => {
+    it('includes saved progress and marks completed materials', async () => {
+      const courseKey = TRAINING.UPCHIEVE_101
+      const materialKey = '7b6a76'
+      mockedVolunteerRepo.getVolunteerTrainingCourses.mockResolvedValueOnce({
+        [courseKey]: {
+          userId: volunteer.id,
+          trainingCourse: courseKey,
+          complete: false,
+          progress: 20,
+          completedMaterials: [materialKey],
+          createdAt: new Date(),
+        },
+      })
+
+      const course = await getCourse(volunteer, courseKey)
+      const materials = course.modules.flatMap((module) => module.materials)
+      expect(course).toMatchObject({
+        progress: 20,
+        isComplete: false,
+        completedMaterials: [materialKey],
+      })
+      expect(
+        materials
+          .filter((material) => material.isCompleted)
+          .map((material) => material.materialKey)
+      ).toEqual([materialKey])
+    })
+
+    it('returns empty progress when the user has not started the course', async () => {
+      mockedVolunteerRepo.getVolunteerTrainingCourses.mockResolvedValueOnce({})
+      const course = await getCourse(volunteer, TRAINING.UPCHIEVE_101)
+      expect(course).toMatchObject({
+        progress: 0,
+        isComplete: false,
+        completedMaterials: [],
+      })
+      expect(
+        course.modules
+          .flatMap((module) => module.materials)
+          .every((material) => material.isCompleted === false)
+      ).toBe(true)
+    })
+  })
+
   describe('recordProgress', () => {
     const courseKey = TRAINING.UPCHIEVE_101
     const materialKey = '7b6a76' // A required material (counts toward progress)
@@ -54,8 +99,6 @@ describe('TrainingCourseService', () => {
           progress,
           completedMaterials: [materialKey],
           createdAt: new Date(),
-          updatedAt: new Date(),
-          isComplete,
         },
       })
 
@@ -89,7 +132,6 @@ describe('TrainingCourseService', () => {
         progress: 20,
         completedMaterials: [materialKey],
         createdAt: new Date(),
-        updatedAt: new Date(),
       })
       const result = await recordProgress(volunteer, courseKey, materialKey)
       expect(
@@ -122,7 +164,6 @@ describe('TrainingCourseService', () => {
         progress: endingProgress,
         completedMaterials: [materialKey],
         createdAt: new Date(),
-        updatedAt: new Date(),
       })
 
       mockedVolunteerRepo.getVolunteerTrainingCourses.mockResolvedValue({
@@ -133,8 +174,6 @@ describe('TrainingCourseService', () => {
           progress: originalProgress,
           completedMaterials: [materialKey],
           createdAt: new Date(),
-          updatedAt: new Date(),
-          isComplete,
         },
       })
 
