@@ -29,7 +29,12 @@ import {
 import { insertSingleRow } from '../db-utils'
 import { adminUpdateUser, getUserContactInfo } from '../../services/UserService'
 import { getDbUlid } from '../../models/pgUtils'
-import { getLegacyUser } from '../../models/User/pg.queries'
+import {
+  getLegacyUser,
+  getUserForAdminDetail,
+} from '../../models/User/pg.queries'
+import { upsertUserGradeLevel } from '../../models/UsersGradeLevels'
+import { createTestUser, createTestVolunteer } from './seed-utils'
 
 const client = getClient()
 jest.mock('../../services/MailService')
@@ -541,5 +546,28 @@ describe('ban type users tests', () => {
     )
 
     expect(after.rows[0].ban_type).toBe(USER_BAN_TYPES.COMPLETE)
+  })
+})
+
+describe('getUserForAdminDetail', () => {
+  const getCurrentGrade = async (userId: string) => {
+    const result = await getUserForAdminDetail.run({ userId }, client)
+    expect(result.length).toEqual(1)
+    return (result[0] as any).current_grade
+  }
+
+  it('shows the grade level of a volunteer who reported one (e.g. a high schooler)', async () => {
+    const user = await createTestUser(client)
+    await createTestVolunteer(client, user.id)
+    await upsertUserGradeLevel(user.id, '9th', client)
+
+    expect(await getCurrentGrade(user.id)).toEqual('9th')
+  })
+
+  it('is null for a volunteer who has not reported a grade level', async () => {
+    const user = await createTestUser(client)
+    await createTestVolunteer(client, user.id)
+
+    expect(await getCurrentGrade(user.id)).toBeNull()
   })
 })

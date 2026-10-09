@@ -335,8 +335,9 @@ SELECT
     volunteer_profiles.city,
     volunteer_profiles.state,
     occupations.occupation,
-    -- Student specific fields:
+    -- Grade level, for students and for volunteers who reported being high schoolers:
     cgl.current_grade_name AS current_grade,
+    -- Student specific fields:
     student_profiles.postal_code AS zip_code,
     student_partner_orgs.name AS student_partner_org,
     student_partner_org_sites.name AS partner_site,
@@ -353,7 +354,7 @@ FROM
     LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id
     LEFT JOIN photo_id_statuses ON photo_id_statuses.id = volunteer_profiles.photo_id_status
     LEFT JOIN user_product_flags ON user_product_flags.user_id = users.id
-    LEFT JOIN current_grade_levels cgl ON cgl.user_id = student_profiles.user_id
+    LEFT JOIN current_grade_levels cgl ON cgl.user_id = users.id
     LEFT JOIN (
         SELECT
             COUNT(*) AS total
