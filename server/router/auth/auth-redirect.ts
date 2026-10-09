@@ -17,8 +17,24 @@ export class AuthRedirect {
     return `${protocol}://${config.client.host}`
   }
 
+  private static safePath(path: unknown, fallback: string) {
+    if (
+      typeof path !== 'string' ||
+      // The path is appended straight onto the host, so without a leading "/"
+      // a value like "@example.com" becomes the host.
+      path[0] !== '/' ||
+      // "//" and "/\" would point at another host if the path were ever used
+      // without the base.
+      path[1] === '/' ||
+      path[1] === '\\'
+    ) {
+      return fallback
+    }
+    return path
+  }
+
   static successRedirect(redirect?: string) {
-    return this.baseRedirect + (redirect ?? '')
+    return this.baseRedirect + this.safePath(redirect, '/')
   }
 
   static emailRedirect(validator: string) {
@@ -32,7 +48,7 @@ export class AuthRedirect {
   static failureRedirect(
     isLogin: boolean,
     provider: string,
-    errorRedirect: string,
+    errorRedirect: string | undefined,
     userData: Partial<RegisterStudentPayload | RegisterTeacherPayload> = {},
     errorMessage?: string
   ) {
@@ -55,17 +71,24 @@ export class AuthRedirect {
       if (value) params.append(key, value.toString())
     }
 
-    return this.baseRedirect + (errorRedirect ?? '') + '?' + params.toString()
+    return (
+      this.baseRedirect +
+      this.safePath(errorRedirect, '/') +
+      '?' +
+      params.toString()
+    )
   }
 
-  static loginFailureRedirect(
-    provider: string,
-    errorRedirect: string = '/login'
-  ) {
+  static loginFailureRedirect(provider: string, errorRedirect?: string) {
     const params = new URLSearchParams({
       400: 'true',
       provider: provider ?? '',
     })
-    return this.baseRedirect + errorRedirect + '?' + params.toString()
+    return (
+      this.baseRedirect +
+      this.safePath(errorRedirect, '/login') +
+      '?' +
+      params.toString()
+    )
   }
 }
