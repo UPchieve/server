@@ -28,7 +28,7 @@ export const timeLimit = async <ResolveWith>({
         resolve(fallbackReturnValue)
       }, waitInMs)
     }),
-    promise.catch((e) => {
+    promise.catch((e: unknown) => {
       logger.error('Passed in promise rejected', { err: e, waitInMs })
       return Promise.resolve(fallbackReturnValue)
     }),

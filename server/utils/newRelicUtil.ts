@@ -18,7 +18,7 @@ export function eventObservabilityWrapper(
       } finally {
         transaction.end()
       }
-    }).catch((error) => {
+    }).catch((error: unknown) => {
       logger.error(`error in event handler newrelic transaction`, {
         err: error,
       })
@@ -40,7 +40,7 @@ export async function observeWebTransaction(
     } finally {
       transaction.end()
     }
-  }).catch((error) => {
+  }).catch((error: unknown) => {
     logger.error('Error in newrelic web transaction', { err: error, url })
   })
 }

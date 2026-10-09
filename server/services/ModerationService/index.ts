@@ -1532,7 +1532,7 @@ export async function moderateScreenshareImage(options: {
           )
         }
       })
-      .catch((err) => {
+      .catch((err: unknown) => {
         logger.error('Failed to process screenshare moderation check.', {
           sessionId,
           userId,

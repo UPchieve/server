@@ -25,6 +25,6 @@ const main = async (): Promise<void> => {
   }
 }
 
-main().catch((error) => {
+main().catch((error: unknown) => {
   logger.error('error in worker main', { err: error })
 })

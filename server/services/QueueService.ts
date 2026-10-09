@@ -5,7 +5,6 @@ import type { JobData, JobName } from '../worker/jobs'
 import logger from '../logger'
 
 export const queue = new Queue(config.workerQueueName, {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   createClient: (() =>
     new Redis(config.redisConnectionString, {
       /**

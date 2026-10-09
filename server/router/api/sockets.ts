@@ -805,7 +805,7 @@ export function routeSockets(io: Server): void {
               userId: user.id,
               clientUUID,
               ipAddress: extractSocketIp(socket),
-            }).catch((err) => {
+            }).catch((err: unknown) => {
               logger.error('Failed to track inactivity', { err })
             })
           }

@@ -399,6 +399,7 @@ export function routeUser(router: Router): void {
       }
     }
   )
+
   router.post(
     '/user/track-presence/active',
     async function (req, res: Response<void>) {
@@ -411,7 +412,7 @@ export function routeUser(router: Router): void {
           ipAddress,
           clientUUID,
           role: user.roleContext.activeRole,
-        }).catch((err) => {
+        }).catch((err: unknown) => {
           logger.error('Failed to track activity', { err })
         })
         return res.sendStatus(200)
@@ -420,6 +421,7 @@ export function routeUser(router: Router): void {
       }
     }
   )
+
   router.post(
     '/user/track-presence/passive',
     async function (req, res: Response<void>) {
@@ -431,7 +433,7 @@ export function routeUser(router: Router): void {
           userId: user.id,
           ipAddress,
           clientUUID,
-        }).catch((err) => {
+        }).catch((err: unknown) => {
           logger.error('Failed to track passivity', { err })
         })
         return res.sendStatus(200)
@@ -440,6 +442,7 @@ export function routeUser(router: Router): void {
       }
     }
   )
+
   router.post(
     '/user/track-presence/check-for-inactivity',
     async function (req, res: Response<void>) {
@@ -450,7 +453,7 @@ export function routeUser(router: Router): void {
           PresenceService.setInactivityCountdown({
             userId: user.id,
             clientUUID,
-          }).catch((err) => {
+          }).catch((err: unknown) => {
             logger.error('Failed to set inactivity countdown', { err })
           })
         }

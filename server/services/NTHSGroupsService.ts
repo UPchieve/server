@@ -819,7 +819,7 @@ function queueStaffClosedEmail(groupId: Uuid) {
       'NTHSStaffChapterClosed',
       { delay: 0, ...NTHS_QUEUE_RETRY },
       { nthsGroupId: groupId }
-    ).catch((err) => {
+    ).catch((err: unknown) => {
       logger.error('Failed to queue NTHS staff close email', { groupId, err })
     }),
     fallbackReturnValue: undefined,

@@ -202,10 +202,10 @@ fetchOrCreateRateLimit()
   .then(() => {
     logger.info('Successfully loaded Twilio rate limit')
   })
-  .catch((error) => {
+  .catch((error: unknown) => {
     logger.warn(
       `Error occurred while attempting to fetch or create Twilio rate limit`,
-      { err: error.message }
+      { err: error }
     )
   })
 

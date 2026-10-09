@@ -86,20 +86,22 @@ class SocketService {
      * @NOTE we want to get the user joined to the session as quick as possible
      * so we purposely don't await here. they are fine to finish in the background
      */
-    this.emitSessionChange(sessionId).catch((error) => {
+    this.emitSessionChange(sessionId).catch((error: unknown) => {
       logger.error('Failed to emit session change after join', {
         userId: user.id,
         sessionRoom,
         err: error,
       })
     })
-    this.emitSessionPresence(user.id, sessionRoom, true).catch((error) => {
-      logger.error('Failed to emit session presence after join', {
-        userId: user.id,
-        sessionRoom,
-        err: error,
-      })
-    })
+    this.emitSessionPresence(user.id, sessionRoom, true).catch(
+      (error: unknown) => {
+        logger.error('Failed to emit session presence after join', {
+          userId: user.id,
+          sessionRoom,
+          err: error,
+        })
+      }
+    )
   }
 
   async leaveSession(socket: Socket, user: UserContactInfo, sessionId: Uuid) {
@@ -107,13 +109,15 @@ class SocketService {
     await socket.leave(sessionRoom)
     delete socket.data.sessionId
 
-    this.emitSessionPresence(user.id, sessionRoom, false).catch((error) => {
-      logger.error('Failed to emit session presence after leave', {
-        userId: user.id,
-        sessionRoom,
-        err: error,
-      })
-    })
+    this.emitSessionPresence(user.id, sessionRoom, false).catch(
+      (error: unknown) => {
+        logger.error('Failed to emit session presence after leave', {
+          userId: user.id,
+          sessionRoom,
+          err: error,
+        })
+      }
+    )
   }
 
   async emitSessionPresence(
@@ -223,7 +227,7 @@ class SocketService {
     () => {
       // The rejection has no caller to propagate to once deferred, so it must
       // be swallowed here or it becomes an unhandled rejection.
-      this.broadcastSessionList().catch((error) => {
+      this.broadcastSessionList().catch((error: unknown) => {
         logger.error('Failed to broadcast session list', { err: error })
       })
     },

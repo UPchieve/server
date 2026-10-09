@@ -166,7 +166,7 @@ export async function getNthsChapterRenewalDates(): Promise<NTHSRenewalDates | n
   // The Google client sets no request timeout, so a stalled read would
   // otherwise hold GET /nths-groups open.
   const dates: NTHSRenewalDates | null = await timeLimit({
-    promise: renewalDatesCache.get().catch((error) => {
+    promise: renewalDatesCache.get().catch((error: unknown) => {
       logger.error(
         'Could not read NTHS renewal dates; treating renewal as off',
         { err: error }

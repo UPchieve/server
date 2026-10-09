@@ -20,8 +20,10 @@
     "e2e:destroy": "docker compose --profile e2e down -v",
     "e2e:create": "docker compose --profile e2e down -v && docker compose --profile e2e up -d --wait",
     "lint": "pnpm run lint:backend:dry",
-    "lint:backend": "prettier --write \"server/**/*.ts\" > /dev/null",
-    "lint:backend:dry": "prettier --check \"server/**/*.ts\"",
+    "lint:backend": "prettier --write \"server/**/*.ts\" > /dev/null && pnpm run lint:eslint",
+    "lint:backend:dry": "prettier --check \"server/**/*.ts\" && pnpm run lint:eslint:dry",
+    "lint:eslint": "eslint server --fix",
+    "lint:eslint:dry": "eslint server",
     "lint:database": "prettier --write \"database/seeds/**/*.ts\" > /dev/null",
     "lint:database:dry": "prettier --check \"database/seeds/**/*.ts\"",
     "lint:sql": "./bin/lint_sql.sh server database/migrations database/seed-updates database/seeds",
@@ -181,6 +183,7 @@
     "@types/validator": "^13.6.3",
     "@types/ws": "^8.18.1",
     "dotenv": "^16.3.1",
+    "eslint": "^10.11.0",
     "ioredis-mock": "^8.13.1",
     "jest": "^29.7.0",
     "jest-express": "^1.12.0",
@@ -194,7 +197,8 @@
     "ts-node": "^8.9.0",
     "ts-node-dev": "^1.1.6",
     "type-fest": "^2.12.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.71.0"
   },
   "engines": {
     "node": "~24.22.1",
