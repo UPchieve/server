@@ -1,7 +1,7 @@
 import { FEATURE_FLAGS } from '../constants'
 import { client as productClient } from '../clients/product-client'
 import { timeLimit } from '../utils/time-limit'
-import * as AnalyticsService from './AnalyticsService'
+import type { AnalyticPersonPropertiesPublic } from '../contracts/analytics'
 import type { Uuid } from '../types/shared'
 
 async function isFeatureEnabled(
@@ -32,7 +32,7 @@ export async function getFeatureFlagPayload(
 
 export async function getAllFlagsForId(
   id: Uuid,
-  personProperties: AnalyticsService.AnalyticPersonProperties,
+  personProperties: Partial<AnalyticPersonPropertiesPublic>,
   waitInMs?: number
 ) {
   return await timeLimit({

@@ -1,3 +1,4 @@
+import type { AnalyticPersonPropertiesPublic } from './analytics'
 import type {
   NTHSGroupJoinPublic,
   NTHSGroupWithMemberInfoPublic,
@@ -33,3 +34,14 @@ export type ContactSubmissionResponse =
       message: 'contact form submission has been sent'
     }
   | { error: string }
+
+export type FeatureFlagResponse =
+  | {
+      id: string
+      featureFlags: Record<string, string | boolean>
+      featureFlagPayloads: Record<string, unknown>
+      personProperties: Partial<AnalyticPersonPropertiesPublic>
+    }
+  | {
+      id: string
+    }
