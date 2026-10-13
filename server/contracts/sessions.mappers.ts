@@ -14,7 +14,7 @@ import type {
   SessionDetailPublic,
   SessionSummaryPublic,
   AdminSessionUserPublic,
-} from '../contracts/sessions'
+} from '@upchieve/api-contracts/sessions'
 import type {
   LatestSession,
   SessionsToReview,

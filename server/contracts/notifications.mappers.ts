@@ -2,7 +2,7 @@ import type { Notification, SessionNotification } from '../models/Notification'
 import type {
   NotificationPublic,
   SessionNotificationPublic,
-} from '../contracts/notifications'
+} from '@upchieve/api-contracts/notifications'
 
 export function toNotificationPublic(
   notification: Notification

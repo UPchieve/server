@@ -1,0 +1,46 @@
+{
+  "name": "@upchieve/api-contracts",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Portable HTTP API contracts shared by UPchieve applications.",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    "./notifications": {
+      "types": "./dist/notifications.d.ts",
+      "default": "./dist/notifications.js"
+    },
+    "./sessions": {
+      "types": "./dist/sessions.d.ts",
+      "default": "./dist/sessions.js"
+    },
+    "./shared": {
+      "types": "./dist/shared.d.ts",
+      "default": "./dist/shared.js"
+    },
+    "./surveys": {
+      "types": "./dist/surveys.d.ts",
+      "default": "./dist/surveys.js"
+    },
+    "./user-agent": {
+      "types": "./dist/user-agent.d.ts",
+      "default": "./dist/user-agent.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc --project tsconfig.json",
+    "clean": "rm -rf dist",
+    "lint:package": "publint --pack pnpm --strict",
+    "lint:types": "npm_config_cache=./node_modules/.cache/npm attw --pack . --profile esm-only",
+    "prepack": "pnpm run build",
+    "typecheck": "tsc --project tsconfig.typecheck.json",
+    "validate:artifact": "pnpm run build && pnpm run lint:package && pnpm run lint:types"
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "0.18.5",
+    "publint": "0.3.25",
+    "typescript": "^5.9.3"
+  }
+}

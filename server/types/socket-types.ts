@@ -5,7 +5,7 @@ import { UnfulfilledSessions } from '../models/Session'
 import Delta from 'quill-delta'
 import { SessionMessageType } from '../router/api/sockets'
 import { USER_BAN_TYPES } from '../constants'
-import { CurrentSessionPublic } from '../contracts/sessions'
+import type { CurrentSessionPublic } from '@upchieve/api-contracts/sessions'
 
 export type SocketDelta = Delta & {
   id?: string

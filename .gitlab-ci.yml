@@ -217,12 +217,67 @@ test_backend:
   services:
     - redis:latest
   script:
+    - pnpm run build:api-contracts
     - pnpm run test:backend
   rules:
     - if: '$TEST_DISABLED'
       when: never
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event' # MR is created or updated.
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
+
+validate_api_contracts:
+  stage: test
+  extends: .node_setup
+  script:
+    - pnpm --filter @upchieve/api-contracts typecheck
+    - pnpm --filter @upchieve/api-contracts validate:artifact
+  rules:
+    - if: '$TEST_DISABLED'
+      when: never
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event' # MR is created or updated.
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
+
+publish_api_contracts_preview:
+  stage: pre-merge
+  extends: .node_setup
+  needs:
+    - job: validate_api_contracts
+  script:
+    - |
+      export BASE_VERSION="$(node -p "require('./packages/api-contracts/package.json').version")"
+      export PREVIEW_TIMESTAMP="$(date -u +t%Y%m%d%H%M%S)"
+      export PREVIEW_VERSION="${BASE_VERSION}-mr.${CI_MERGE_REQUEST_IID}.user${GITLAB_USER_ID}.${PREVIEW_TIMESTAMP}"
+    - export PREVIEW_TAG="mr-${CI_MERGE_REQUEST_IID}"
+    - export NPM_REGISTRY_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/npm/"
+    - cd packages/api-contracts
+    - npm version "$PREVIEW_VERSION" --no-git-tag-version
+    - npm pkg delete private
+    - printf '@upchieve:registry=%s\n' "$NPM_REGISTRY_URL" > .npmrc
+    - printf '//%s/api/v4/projects/%s/packages/npm/:_authToken=${CI_JOB_TOKEN}\n' "$CI_SERVER_HOST" "$CI_PROJECT_ID" >> .npmrc
+    - npm publish --access restricted --tag "$PREVIEW_TAG" --registry "$NPM_REGISTRY_URL"
+    - echo "Published @upchieve/api-contracts@$PREVIEW_VERSION"
+    - echo "High Line exact version - @upchieve/api-contracts@$PREVIEW_VERSION"
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+      when: manual
+  allow_failure: true
+
+publish_api_contracts:
+  stage: pre-merge
+  extends: .node_setup
+  needs:
+    - job: validate_api_contracts
+  script:
+    - export NPM_REGISTRY_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/npm/"
+    - cd packages/api-contracts
+    - npm pkg delete private
+    - printf '@upchieve:registry=%s\n' "$NPM_REGISTRY_URL" > .npmrc
+    - printf '//%s/api/v4/projects/%s/packages/npm/:_authToken=${CI_JOB_TOKEN}\n' "$CI_SERVER_HOST" "$CI_PROJECT_ID" >> .npmrc
+    - npm publish --access restricted --tag latest --registry "$NPM_REGISTRY_URL"
+    - echo "Published @upchieve/api-contracts@$(node -p \"require('./package.json').version\")"
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: manual
 
 test_database:
   stage: test

@@ -12,7 +12,7 @@ import type {
   SurveyUserResponseDefinitionPublic,
   VolunteerContextResponsePublic,
   VolunteerFeedbackPublic,
-} from './surveys'
+} from '@upchieve/api-contracts/surveys'
 import type {
   Feedback,
   ResponseData,

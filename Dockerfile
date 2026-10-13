@@ -18,9 +18,11 @@ RUN apt-get update && apt-get install -y apt-transport-https ca-certificates cur
     apt-get -y install doppler
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY packages/api-contracts/package.json ./packages/api-contracts/package.json
 RUN pnpm install --frozen-lockfile
 
 COPY tsconfig*.json ./
+COPY packages/api-contracts ./packages/api-contracts
 COPY server ./server
 COPY database ./database
 RUN pnpm run build

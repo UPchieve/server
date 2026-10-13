@@ -1,13 +1,12 @@
-import type { ISODateString } from '../types/dates'
-import type { Uuid } from '../types/shared'
-import type { UserActionAgentPublic } from './user-agent'
-import type { SessionNotificationPublic } from './notifications'
+import type { ISODateString, Uuid } from './shared.js'
+import type { UserActionAgentPublic } from './user-agent.js'
+import type { SessionNotificationPublic } from './notifications.js'
 import type {
   FeedbackPublic,
   PostsessionSurveyResponsePublic,
   SimpleSurveyResponsePublic,
   StudentCounselingFeedbackPublic,
-} from './surveys'
+} from './surveys.js'
 
 export type SessionUserInfoPublic = {
   // TODO: migrate all uses of `_id` to `id`

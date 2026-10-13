@@ -1,5 +1,4 @@
-import type { ISODateString } from '../types/dates'
-import type { Uuid } from '../types/shared'
+import type { ISODateString, Uuid } from './shared.js'
 
 // Legacy survey
 export type FeedbackPublic = {

@@ -5,7 +5,8 @@
   "scripts": {
     "preinstall": "npx only-allow pnpm",
     "prepare": "if [ -x ./bin/install_git_hooks.sh ]; then ./bin/install_git_hooks.sh; fi",
-    "build": "tsc --p tsconfig.server.json",
+    "build": "pnpm run build:api-contracts && tsc --p tsconfig.server.json",
+    "build:api-contracts": "pnpm --filter @upchieve/api-contracts build",
     "deploy:dev": "./bin/deploy.sh dev",
     "dev:revision": "az containerapp revision list --name development-container-app-subway --resource-group development-resource-group | jq -r '.[0] | \"\\(.name) - \\(.properties.runningState)\"'",
     "deploy:local": "./bin/deploy.sh",
@@ -71,6 +72,7 @@
   ],
   "dependencies": {
     "@anthropic-ai/foundry-sdk": "^0.4.5",
+    "@upchieve/api-contracts": "workspace:*",
     "@aws-sdk/client-bedrock-runtime": "^3.981.0",
     "@aws-sdk/client-chime-sdk-media-pipelines": "^3.777.0",
     "@aws-sdk/client-chime-sdk-meetings": "^3.731.1",

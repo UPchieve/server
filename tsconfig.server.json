@@ -17,6 +17,7 @@
     "database/",
     "server/dbutils",
     "node_modules/",
+    "packages/",
     "build/",
     "src/",
     "tests/",

@@ -61,7 +61,7 @@ import type {
   StartTranscriptionResponse,
   UnreadDmsResponse,
   PublicSessionResponse,
-} from '../../contracts/sessions'
+} from '@upchieve/api-contracts/sessions'
 import { resSuccess } from '../res-success'
 
 export function routeSession(router: Router) {

@@ -1,4 +1,4 @@
-import { UserActionAgentPublic } from '../contracts/user-agent'
+import type { UserActionAgentPublic } from '@upchieve/api-contracts/user-agent'
 import { UserActionAgent } from '../models/UserAction'
 
 export function toUserAgentPublic(

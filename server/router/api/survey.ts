@@ -24,7 +24,7 @@ import type {
   SurveyDefinitionResponse,
   SurveyQueryResponsePublic,
   VolunteerContextResponsePublic,
-} from '../../contracts/surveys'
+} from '@upchieve/api-contracts/surveys'
 import {
   toPostsessionSurveyResponsePublic,
   toSimpleSurveyResponsePublic,

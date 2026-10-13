@@ -112,7 +112,7 @@ import {
   CurrentSessionPublic,
   SessionMessagePublic,
   SessionUserInfoPublic,
-} from '../../contracts/sessions'
+} from '@upchieve/api-contracts/sessions'
 import type {
   TutorBotMessage,
   TutorBotTranscript,
@@ -162,11 +162,11 @@ import type {
   SessionReportPublic,
   UsageReportPublic,
 } from '../../contracts/reports'
-import type { SessionNotificationPublic } from '../../contracts/notifications'
+import type { SessionNotificationPublic } from '@upchieve/api-contracts/notifications'
 import type {
   PostsessionSurveyResponsePublic,
   SimpleSurveyResponsePublic,
-} from '../../contracts/surveys'
+} from '@upchieve/api-contracts/surveys'
 import type { StudentUserProfilePublic } from '../../contracts/students'
 import type {
   TeacherClassPublic,

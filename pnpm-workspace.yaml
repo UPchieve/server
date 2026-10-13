@@ -1,3 +1,6 @@
+packages:
+  - 'packages/*'
+
 allowBuilds:
   '@firebase/util': true
   '@newrelic/fn-inspect': true
