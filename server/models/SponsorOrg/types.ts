@@ -3,4 +3,5 @@ export type SponsorOrg = {
   name?: string
   schoolIds?: string[]
   studentPartnerOrgKeys?: string[]
+  studentPartnerOrgIds?: string[]
 }

@@ -10,7 +10,7 @@ import * as FedCredService from '../../../services/FederatedCredentialService'
 import * as UserCreationService from '../../../services/UserCreationService'
 import * as UserRepo from '../../../models/User/queries'
 import { SsoProviderNames } from '../../../utils/auth-utils'
-import { buildRegisterUser } from '../../mocks/generate'
+import { buildNewUser } from '../../mocks/generate'
 
 jest.mock('../../../models/User/queries')
 jest.mock('../../../services/FederatedCredentialService')
@@ -121,7 +121,7 @@ describe('Clever SSO teacher sign-in when rostering fails', () => {
 
 const PROVIDER_EMAIL = 'provider-owned@example.org'
 const VICTIM_EMAIL = 'victim@example.org'
-const NEW_STUDENT = buildRegisterUser()
+const NEW_STUDENT = buildNewUser()
 const GOOGLE_ISSUER = 'https://accounts.google.com'
 const GOOGLE_PROFILE: Profile = {
   provider: 'google',

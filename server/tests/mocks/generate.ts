@@ -175,6 +175,7 @@ import type {
   UserForAdminDetailWithRoleContextPublic,
 } from '../../contracts/users'
 import type {
+  NewUser,
   UserAdminBackground,
   UserForAdminDetail,
   UserForAdminDetailWithRoleContext,
@@ -2886,24 +2887,15 @@ export function serializeRoleContext(roleContext: RoleContext) {
   }
 }
 
-export function buildRegisterUser(
-  overrides: Partial<{
-    id: Uuid
-    firstName: string
-    email: string
-    userType: string
-    isAdmin: boolean
-    proxyEmail?: string | undefined
-  }> = {}
-) {
+export function buildNewUser(overrides: Partial<NewUser> = {}): NewUser {
   const user = buildUser()
   return {
     id: user.id,
     firstName: user.firstName,
     email: user.email,
     userType: 'student',
-    proxyEmail: user.proxyEmail,
     isAdmin: false,
+    proxyEmail: user.proxyEmail,
     ...overrides,
   }
 }

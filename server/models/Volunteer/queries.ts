@@ -1152,7 +1152,7 @@ export type CreateVolunteerPayload = {
   signupSourceId?: number
   otherSignupSource?: string
 }
-export type CreatedVolunteer = Omit<VolunteerContactInfo, 'roleContext'> & {
+export type CreatedVolunteer = VolunteerContactInfo & {
   deactivated: boolean
   testUser: boolean
   createdAt: Date

@@ -15,7 +15,7 @@ import {
   buildCreatedVolunteer,
   buildLegacyUser,
   buildLegacyUserPublic,
-  buildRegisterUser,
+  buildNewUser,
   buildStudentPartnerOrg,
   buildUser,
   buildVolunteerPartnerOrg,
@@ -448,7 +448,7 @@ describe('AuthRouter.routes', () => {
 
   describe('POST /auth/register/student', () => {
     test('registers a student and logs them in when password is present', async () => {
-      const student = buildRegisterUser({ userType: 'student ' })
+      const student = buildNewUser({ userType: 'student' })
       mockedUserCreationService.registerStudent.mockResolvedValueOnce(student)
 
       const response = await sendPost('/register/student', {
@@ -468,7 +468,7 @@ describe('AuthRouter.routes', () => {
     )
 
     test('registers a student without login when password is not present', async () => {
-      const student = buildRegisterUser({ userType: 'student ' })
+      const student = buildNewUser({ userType: 'student' })
       mockedUserCreationService.registerStudent.mockResolvedValueOnce(student)
 
       const response = await sendPost('/register/student', {
@@ -483,7 +483,7 @@ describe('AuthRouter.routes', () => {
     })
 
     test('does not forward request profileId/issuer to registerStudent', async () => {
-      const student = buildRegisterUser({ userType: 'student' })
+      const student = buildNewUser({ userType: 'student' })
       mockedUserCreationService.registerStudent.mockResolvedValueOnce(student)
 
       const response = await sendPost('/register/student', {
@@ -508,7 +508,7 @@ describe('AuthRouter.routes', () => {
 
   describe('POST /auth/register/student/open', () => {
     test('registers legacy open student and logs them in', async () => {
-      const student = buildRegisterUser({ userType: 'student ' })
+      const student = buildNewUser({ userType: 'student' })
       mockedUserCreationService.registerStudent.mockResolvedValueOnce(student)
 
       const response = await sendPost('/register/student/open', {
@@ -528,7 +528,7 @@ describe('AuthRouter.routes', () => {
 
   describe('POST /auth/register/student/partner', () => {
     test('registers legacy partner student and logs them in', async () => {
-      const student = buildRegisterUser({ userType: 'student ' })
+      const student = buildNewUser({ userType: 'student' })
       mockedUserCreationService.registerStudent.mockResolvedValueOnce(student)
 
       const response = await sendPost('/register/student/partner', {
@@ -551,7 +551,7 @@ describe('AuthRouter.routes', () => {
 
   describe('POST /auth/register/teacher', () => {
     test('registers teacher and logs them in', async () => {
-      const teacher = buildRegisterUser({
+      const teacher = buildNewUser({
         userType: 'teacher',
       })
       mockedUserCreationService.registerTeacher.mockResolvedValueOnce(teacher)
@@ -571,7 +571,7 @@ describe('AuthRouter.routes', () => {
     })
 
     test('does not forward request profileId/issuer to registerTeacher', async () => {
-      const teacher = buildRegisterUser({ userType: 'teacher' })
+      const teacher = buildNewUser({ userType: 'teacher' })
       mockedUserCreationService.registerTeacher.mockResolvedValueOnce(teacher)
 
       const response = await sendPost('/register/teacher', {
@@ -741,7 +741,12 @@ describe('AuthRouter.routes', () => {
       const response = await sendGet('/partner/student-partners')
       expect(response.status).toBe(200)
       expect(mockedAuthService.lookupStudentPartners).toHaveBeenCalledTimes(1)
-      expect(response.body).toEqual({ partnerOrgs })
+      expect(response.body).toEqual({
+        partnerOrgs: partnerOrgs.map((org) => ({
+          ...org,
+          displayName: org.name,
+        })),
+      })
     })
   })
 
@@ -758,13 +763,26 @@ describe('AuthRouter.routes', () => {
       const response = await sendGet('/partner/volunteer-partners')
       expect(response.status).toBe(200)
       expect(mockedAuthService.lookupVolunteerPartners).toHaveBeenCalledTimes(1)
-      expect(response.body).toEqual({ partnerOrgs })
+      expect(response.body).toEqual({
+        partnerOrgs: partnerOrgs.map((org) => ({
+          ...org,
+          displayName: org.name,
+        })),
+      })
     })
   })
 
   describe('GET /auth/partner/sponsor-orgs', () => {
     test('returns sponsor orgs', async () => {
-      const sponsorOrgs = [{ key: 'sponsor-1', name: 'Sponsor 1' }]
+      const sponsorOrgs = [
+        {
+          key: 'sponsor-1',
+          name: 'Sponsor 1',
+          schoolIds: ['school-1'],
+          studentPartnerOrgKeys: ['partner-1'],
+          studentPartnerOrgIds: ['partner-id-1'],
+        },
+      ]
       mockedAuthService.lookupSponsorOrgs.mockResolvedValueOnce(sponsorOrgs)
 
       const response = await sendGet('/partner/sponsor-orgs')
