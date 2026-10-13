@@ -1,4 +1,4 @@
-import { MaterialType, TRAINING_QUIZZES } from '../constants'
+import { MaterialType, TRAINING, TRAINING_QUIZZES } from '../constants'
 import type { AnswerMap } from '../types/training'
 import type { ISODateString } from '../types/dates'
 
@@ -98,4 +98,14 @@ export type QuizScoreResponse = {
 
 export type TrainingCourseResponse = {
   course: TrainingCourseWithUserProgressPublic
+}
+
+export type TrainingCourseProgressDataPublic = {
+  complete: boolean
+  progress: number
+  completedMaterials: string[]
+}
+export type TrainingCoursesPublic = {
+  [TRAINING.UPCHIEVE_101]: TrainingCourseProgressDataPublic
+  [TRAINING.UPCHIEVE_TRAINING]?: TrainingCourseProgressDataPublic
 }

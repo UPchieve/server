@@ -28,6 +28,7 @@ import { createAccountAction } from '../../models/UserAction'
 import { AuthRedirect } from './auth-redirect'
 import { v4 as uuidv4 } from 'uuid'
 import type { UserRole } from '../../types/users'
+import { toLegacyUserPublic } from '../../contracts/users.mappers'
 
 async function trackLoggedIn(userId: Ulid, ipAddress?: string) {
   await createAccountAction({
@@ -118,7 +119,7 @@ export function routes(app: Express) {
       }
 
       await trackLoggedIn(user.id, req.ip || '')
-      res.json({ user })
+      res.json({ user: toLegacyUserPublic(user) })
     }
   )
 

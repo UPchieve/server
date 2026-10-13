@@ -8,6 +8,7 @@ import * as UserService from '../../../services/UserService'
 import * as UserProfileService from '../../../services/UserProfileService'
 import {
   buildLegacyUser,
+  buildLegacyUserPublic,
   buildUser,
   getPhoneNumber,
   serializeRoleContext,
@@ -127,12 +128,7 @@ describe('routeUser', () => {
       expect(response.status).toBe(200)
       expect(mockedUserService.parseUser).toHaveBeenCalledWith(mockUser.id)
       expect(response.body).toEqual({
-        user: {
-          ...parsedUser,
-          createdAt: parsedUser.createdAt.toISOString(),
-          lastActivityAt: parsedUser.lastActivityAt?.toISOString(),
-          roleContext: serializeRoleContext(parsedUser.roleContext),
-        },
+        user: buildLegacyUserPublic(parsedUser),
       })
     })
   })
@@ -453,7 +449,7 @@ describe('routeUser', () => {
 
   describe('PUT /api/user/roles/active', () => {
     test('switches active role for user', async () => {
-      const switchedUser = buildUser({
+      const switchedUser = buildLegacyUser({
         id: mockUser.id,
         roleContext: new RoleContext(
           ['student', 'volunteer'],
@@ -476,13 +472,7 @@ describe('routeUser', () => {
       )
       expect(response.body).toEqual({
         activeRole: 'volunteer',
-        user: {
-          ...switchedUser,
-          createdAt: switchedUser.createdAt.toISOString(),
-          updatedAt: switchedUser.updatedAt.toISOString(),
-          lastActivityAt: switchedUser.lastActivityAt?.toISOString(),
-          roleContext: serializeRoleContext(switchedUser.roleContext),
-        },
+        user: buildLegacyUserPublic(switchedUser),
       })
     })
   })

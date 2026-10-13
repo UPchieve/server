@@ -168,6 +168,7 @@ import type {
   TeacherClassPublic,
   TeacherClassForStudentPublic,
 } from '../../contracts/teachers'
+import type { LegacyUserPublic } from '../../contracts/users'
 
 /** Suffixed with a uuid because users.email and parents_guardians.email are UNIQUE. */
 export function getEmail(): string {
@@ -437,24 +438,113 @@ export function buildStudentRow(overrides: Partial<Student> = {}): Student {
 export function buildLegacyUser(
   overrides: Partial<LegacyUserModel> = {}
 ): LegacyUserModel {
-  const { updatedAt, ...userRow } = buildUserRow()
+  const user = buildUserRow()
   return {
-    ...userRow,
-    _id: userRow.id,
-    firstname: userRow.firstName,
-    proxyEmail: '',
-    isBanned: false,
+    id: user.id,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    email: user.email,
+    proxyEmail: user.proxyEmail,
+    createdAt: user.createdAt,
+    verified: user.verified,
+    phone: user.phone,
+    college: undefined,
+    userType: 'student',
+    banType: undefined,
     banReason: undefined,
+    roleContext: new RoleContext(['student'], 'student', 'student'),
     isTestUser: false,
     isFakeUser: false,
     isDeactivated: false,
     pastSessions: [],
+    pastSessionsByRole: { asStudent: [], asVolunteer: [] },
     lastActivityAt: undefined,
+    referralCode: user.referralCode,
+    numReferredVolunteers: undefined,
     referredBy: undefined,
-    userType: 'student',
-    roleContext: new RoleContext(['student'], 'student', 'student'),
     sessionStats: {},
+    preferredLanguage: user.preferredLanguage,
+    signupSource: 'Other',
+    isOnboarded: false,
+    isApproved: false,
+    volunteerPartnerOrg: undefined,
+    subjects: [],
+    activeSubjects: [],
+    mutedSubjectAlerts: [],
+    totalActiveCertifications: undefined,
+    availability: undefined,
+    certifications: undefined,
+    availabilityLastModifiedAt: undefined,
+    trainingCourses: undefined,
+    occupation: undefined,
+    country: undefined,
+    timezone: undefined,
+    totalVolunteerHours: undefined,
+    hoursTutored: undefined,
+    hoursTutoredThisWeek: undefined,
+    elapsedAvailability: undefined,
+    references: undefined,
+    photoIdStatus: undefined,
+    uniqueStudentsHelpedCount: undefined,
+    hasCompletedVolunteerTraining: undefined,
+    gradeLevel: undefined,
+    schoolName: undefined,
+    latestRequestedSubjects: undefined,
+    numberOfStudentClasses: undefined,
+    issuers: undefined,
+    studentPartnerOrg: undefined,
+    isSchoolPartner: undefined,
+    usesClever: undefined,
+    usesGoogle: undefined,
+    usesClassLink: undefined,
+    studentAssignments: undefined,
+    ratings: undefined,
+    favoriteVolunteers: undefined,
+    lastSuccessfulCleverSync: undefined,
+    sponsorships: undefined,
     ...overrides,
+  }
+}
+
+export function buildLegacyUserPublic(
+  overrides: Partial<LegacyUserModel> = {}
+): LegacyUserPublic {
+  const user = buildLegacyUser(overrides)
+  return {
+    ...user,
+    _id: user.id,
+    firstname: user.firstName,
+    roles: user.roleContext.roles,
+    isAdmin: user.roleContext.isAdmin(),
+    isBanned: user.banType === 'complete',
+    roleContext: serializeRoleContext(user.roleContext),
+    createdAt: user.createdAt.toISOString(),
+    lastActivityAt: user.lastActivityAt?.toISOString(),
+    availabilityLastModifiedAt: user.availabilityLastModifiedAt?.toISOString(),
+    lastSuccessfulCleverSync: user.lastSuccessfulCleverSync?.toISOString(),
+    certifications: user.certifications
+      ? Object.fromEntries(
+          Object.entries(user.certifications).map(([subject, quiz]) => [
+            subject,
+            {
+              passed: quiz.passed,
+              tries: quiz.tries,
+              lastAttemptedAt: quiz.lastAttemptedAt?.toISOString(),
+            },
+          ])
+        )
+      : undefined,
+    references: user.references?.map((reference) => ({
+      ...reference,
+      _id: reference.id,
+    })),
+    studentAssignments: user.studentAssignments?.map((assignment) => ({
+      ...assignment,
+      assignedAt: assignment.assignedAt.toISOString(),
+      dueDate: assignment.dueDate?.toISOString(),
+      startDate: assignment.startDate?.toISOString(),
+      submittedAt: assignment.submittedAt?.toISOString(),
+    })),
   }
 }
 

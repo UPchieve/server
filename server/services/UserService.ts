@@ -1,6 +1,5 @@
 import crypto from 'crypto'
 import { mbToBytes } from '../utils/file-utils'
-import { omit } from 'lodash'
 import { Ulid, Uuid } from '../models/pgUtils'
 import { getPhotoIdUrl } from './AwsService'
 import {
@@ -38,7 +37,10 @@ import type { PrimaryUserRole } from '../types/users'
 import * as TeacherService from './TeacherService'
 import logger from '../logger'
 import { createAccountAction, createAdminAction } from '../models/UserAction'
-import { getLegacyUserObject } from '../models/User/legacy-user'
+import {
+  getLegacyUserObject,
+  type LegacyUserModel,
+} from '../models/User/legacy-user'
 import * as ModerationInfractionsService from '../models/ModerationInfractions'
 import { getClient, runInTransaction, TransactionClient } from '../db'
 import * as VolunteerService from './VolunteerService'
@@ -52,7 +54,7 @@ import * as StudentRepo from '../models/Student'
 import * as AwsService from './AwsService'
 import * as PhotoDnaService from './PhotoDnaService'
 
-export async function parseUser(userId: Ulid) {
+export async function parseUser(userId: Ulid): Promise<LegacyUserModel> {
   const user = await getLegacyUserObject(userId)
 
   user.numReferredVolunteers = await ReferralService.getReferredUsersCount(
@@ -74,7 +76,8 @@ export async function parseUser(userId: Ulid) {
 
     user.sponsorships =
       await VolunteerService.getActiveSponsorshipsByUserId(userId)
-    return omit(user, ['references', 'photoIdS3Key'])
+    const { references, photoIdS3Key, ...parsedUser } = user
+    return parsedUser
   }
 
   return user
@@ -718,7 +721,7 @@ export async function getUserForAdminDetail(
 export async function switchActiveRoleForUser(
   userId: string,
   role: PrimaryUserRole
-): Promise<{ activeRole: PrimaryUserRole; user: any }> {
+): Promise<{ activeRole: PrimaryUserRole; user: LegacyUserModel }> {
   const { newRoleContext } = await UserRolesService.switchActiveRole(
     userId,
     role

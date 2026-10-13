@@ -1,4 +1,4 @@
-import { Router } from 'express'
+import type { Router, Response } from 'express'
 import * as UserService from '../../services/UserService'
 import * as AwsService from '../../services/AwsService'
 import * as VolunteerService from '../../services/VolunteerService'
@@ -26,6 +26,11 @@ import { GRADES } from '../../constants'
 import config from '../../config'
 import multer from 'multer'
 import logger from '../../logger'
+import type {
+  LegacyUserResponse,
+  SwitchActiveRoleResponse,
+} from '../../contracts/users'
+import { toLegacyUserPublic } from '../../contracts/users.mappers'
 
 export const asEditProfilePayload = asFactory<EditUserProfilePayload>({
   smsConsent: asOptional(asBoolean),
@@ -48,12 +53,15 @@ export const asEditProfilePayload = asFactory<EditUserProfilePayload>({
 
 export function routeUser(router: Router): void {
   const upload = multer()
-  router.route('/user').get(async function (req, res) {
+  router.route('/user').get(async function (
+    req,
+    res: Response<LegacyUserResponse>
+  ) {
     const user = extractUser(req)
     const parsedUser = await UserService.parseUser(user.id)
 
     res.cacheControl = { noStore: true }
-    return res.json({ user: parsedUser })
+    return res.json({ user: toLegacyUserPublic(parsedUser) })
   })
 
   //TODO: We should have an read/create/update endpoint for each user type
@@ -313,19 +321,22 @@ export function routeUser(router: Router): void {
     }
   })
 
-  router.put('/user/roles/active', async function (req, res) {
-    try {
-      const reqUser = extractUser(req)
-      const requestedRole = req.body.activeRole
-      const { activeRole, user } = await UserService.switchActiveRoleForUser(
-        reqUser.id,
-        requestedRole
-      )
-      return res.json({ activeRole, user })
-    } catch (err) {
-      resError(res, err)
+  router.put(
+    '/user/roles/active',
+    async function (req, res: Response<SwitchActiveRoleResponse>) {
+      try {
+        const reqUser = extractUser(req)
+        const requestedRole = req.body.activeRole
+        const { activeRole, user } = await UserService.switchActiveRoleForUser(
+          reqUser.id,
+          requestedRole
+        )
+        return res.json({ activeRole, user: toLegacyUserPublic(user) })
+      } catch (err) {
+        resError(res, err)
+      }
     }
-  })
+  )
 
   router.post('/user/roles/volunteer', async function (req, res) {
     try {

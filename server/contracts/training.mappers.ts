@@ -1,4 +1,12 @@
 import type {
+  TrainingCourses,
+  TrainingCourseProgressData,
+} from '../types/training'
+import type {
+  TrainingCoursesPublic,
+  TrainingCourseProgressDataPublic,
+} from './training'
+import type {
   QuestionPublic,
   ReviewMaterialPublic,
   TrainingCourseMaterialPublic,
@@ -106,4 +114,24 @@ export function toUserTrainingCourseProgressUpdatePublic(
     isComplete: progress.isComplete,
     completedMaterialKeys: progress.completedMaterialKeys,
   }
+}
+export function toTrainingCourseProgressDataPublic(
+  course: TrainingCourseProgressData
+): TrainingCourseProgressDataPublic {
+  return {
+    complete: course.complete,
+    progress: course.progress,
+    completedMaterials: course.completedMaterials,
+  }
+}
+
+export function toTrainingCoursesPublic(
+  trainingCourses: TrainingCourses
+): TrainingCoursesPublic {
+  return Object.fromEntries(
+    Object.entries(trainingCourses).map(([courseKey, course]) => [
+      courseKey,
+      toTrainingCourseProgressDataPublic(course),
+    ])
+  ) as TrainingCoursesPublic
 }

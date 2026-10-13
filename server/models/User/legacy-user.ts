@@ -1,11 +1,16 @@
-import { makeRequired, makeSomeRequired, Ulid } from '../pgUtils'
-import { GRADES, USER_BAN_REASONS, USER_BAN_TYPES } from '../../constants'
+import { makeRequired, makeSomeRequired } from '../pgUtils'
+import {
+  GRADES,
+  USER_BAN_REASONS,
+  USER_BAN_TYPES,
+  REFERENCE_STATUS,
+} from '../../constants'
 import {
   Certifications,
   getActiveQuizzesForVolunteers,
   getCertificationsForVolunteer,
   getVolunteerTrainingCourses,
-  Reference,
+  ReferenceContactInfo,
   Sponsorship,
 } from '../Volunteer'
 import { Availability } from '../Availability/types'
@@ -30,41 +35,48 @@ import { StudentAssignment } from '../Assignments/types'
 import { RoleContext } from '../../services/UserRolesService'
 import { runInTransaction, TransactionClient } from '../../db'
 import type { TrainingCourses } from '../../types/training'
+import type { Json } from '../../types/shared'
+import type { Uuid } from '../../types/shared'
 
 export type LegacyUserModel = {
   // pg
-  id: Ulid
+  id: Uuid
   firstName: string
   lastName: string
   // mongo user
-  _id: Ulid
   createdAt: Date
   email: string
   proxyEmail?: string
   verified: boolean
-  firstname: string
   phone?: string
   college?: string
+  emailVerified?: boolean
+  phoneVerified?: boolean
+  smsConsent?: boolean
+  isVolunteer?: boolean
+  tutoringLanguages?: string[]
+  experience?: Json
+  partnerSite?: string
+  totalQuizzesPassed?: number
+  roleId?: number
   city?: string
   state?: string
   userType: UserRole
-  //leaving isBanned only to make this backwards-compatible with mobile
-  isBanned: boolean
   banType?: USER_BAN_TYPES
   banReason?: USER_BAN_REASONS
   roleContext: RoleContext
   isTestUser: boolean
   isFakeUser: boolean
   isDeactivated: boolean
-  pastSessions: Ulid[] // deprecated
+  pastSessions: Uuid[] // deprecated
   pastSessionsByRole: {
-    asStudent: Ulid[]
-    asVolunteer: Ulid[]
+    asStudent: Uuid[]
+    asVolunteer: Uuid[]
   }
   lastActivityAt?: Date
   referralCode: string
   numReferredVolunteers?: number
-  referredBy?: Ulid
+  referredBy?: Uuid
   sessionStats: UserSessionStats
   preferredLanguage: string
   signupSource?: string
@@ -86,20 +98,23 @@ export type LegacyUserModel = {
   totalVolunteerHours?: number
   hoursTutored?: number
   hoursTutoredThisWeek?: number
-  elapsedAvailability?: number
-  references?: Reference[]
+  elapsedAvailability?: string
+  references?: (ReferenceContactInfo & {
+    status: Uppercase<REFERENCE_STATUS>
+  })[]
+  photoIdS3Key?: string
   photoIdStatus?: string
   uniqueStudentsHelpedCount?: number
   hasCompletedVolunteerTraining?: boolean
   // student
   gradeLevel?: GRADES
   schoolName?: string
-  schoolId?: Ulid
+  schoolId?: Uuid
   // set only from student_profiles, independent of active role or the
   // possibly-different volunteer/teacher schoolId above
-  studentSchoolId?: Ulid
+  studentSchoolId?: Uuid
   latestRequestedSubjects?: string[]
-  numberOfStudentClasses?: number
+  numberOfStudentClasses?: string
   issuers?: string[]
   studentPartnerOrg?: string
   isSchoolPartner?: boolean
@@ -108,7 +123,7 @@ export type LegacyUserModel = {
   usesClassLink?: boolean
   studentAssignments?: StudentAssignment[]
   ratings?: PostsessionSurveyRatingsMetric
-  favoriteVolunteers?: Ulid[]
+  favoriteVolunteers?: Uuid[]
   // teacher
   lastSuccessfulCleverSync?: Date
 
@@ -118,7 +133,7 @@ export type LegacyUserModel = {
 
 // TODO: Actually make this legacy and clean this up.
 export async function getLegacyUserObject(
-  userId: Ulid,
+  userId: Uuid,
   client?: TransactionClient
 ): Promise<LegacyUserModel> {
   try {
@@ -129,7 +144,6 @@ export async function getLegacyUserObject(
       const baseUser = makeSomeRequired(baseResult[0], [
         'id',
         'firstName',
-        'firstname',
         'lastName',
         'createdAt',
         'email',
@@ -242,7 +256,6 @@ export async function getLegacyUserObject(
 
       const final = _.merge(
         {
-          _id: baseUser.id,
           userType: roleContext.activeRole,
           roles: roleContext.roles,
         },
@@ -250,7 +263,6 @@ export async function getLegacyUserObject(
         volunteerUser,
         studentUser,
         teacherUser,
-        { isBanned: baseUser.banType === 'complete' },
         {
           sessionStats,
         },

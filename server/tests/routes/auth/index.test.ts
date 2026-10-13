@@ -14,6 +14,7 @@ import * as LegacyUser from '../../../models/User/legacy-user'
 import {
   buildCreatedVolunteer,
   buildLegacyUser,
+  buildLegacyUserPublic,
   buildRegisterUser,
   buildStudentPartnerOrg,
   buildUser,
@@ -227,11 +228,7 @@ describe('AuthRouter.routes', () => {
         ipAddress: expect.any(String),
       })
       expect(response.body).toEqual({
-        user: {
-          ...user,
-          roleContext: serializeRoleContext(user.roleContext),
-          createdAt: user.createdAt.toISOString(),
-        },
+        user: buildLegacyUserPublic(user),
       })
     })
 
@@ -265,12 +262,7 @@ describe('AuthRouter.routes', () => {
         'volunteer'
       )
       expect(response.body).toEqual({
-        user: {
-          ...user,
-          roleContext: serializeRoleContext(newRoleContext),
-          userType: 'volunteer',
-          createdAt: user.createdAt.toISOString(),
-        },
+        user: buildLegacyUserPublic(user),
       })
     })
 
@@ -288,12 +280,7 @@ describe('AuthRouter.routes', () => {
       expect(response.status).toBe(200)
       expect(mockedUserRolesService.switchActiveRole).not.toHaveBeenCalled()
       expect(response.body).toEqual({
-        user: {
-          ...user,
-          roleContext: serializeRoleContext(user.roleContext),
-          userType: 'student',
-          createdAt: user.createdAt.toISOString(),
-        },
+        user: buildLegacyUserPublic(user),
       })
     })
   })
