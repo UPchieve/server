@@ -1,6 +1,7 @@
 stages:
   - build
   - test
+  - publish
   - pre-merge
   - deploy
   - post-deploy
@@ -235,10 +236,14 @@ validate_api_contracts:
     - if: '$TEST_DISABLED'
       when: never
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event' # MR is created or updated.
+      changes:
+        - packages/api-contracts/src/**/*
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
+      changes:
+        - packages/api-contracts/src/**/*
 
 publish_api_contracts_preview:
-  stage: pre-merge
+  stage: publish
   extends: .node_setup
   needs:
     - job: validate_api_contracts
@@ -259,11 +264,13 @@ publish_api_contracts_preview:
     - echo "High Line exact version - @upchieve/api-contracts@$PREVIEW_VERSION"
   rules:
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+      changes:
+        - packages/api-contracts/src/**/*
       when: manual
   allow_failure: true
 
 publish_api_contracts:
-  stage: pre-merge
+  stage: publish
   extends: .node_setup
   needs:
     - job: validate_api_contracts
@@ -271,12 +278,20 @@ publish_api_contracts:
     - export NPM_REGISTRY_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/npm/"
     - cd packages/api-contracts
     - npm pkg delete private
+    - export PACKAGE_VERSION="$(node -p 'require("./package.json").version')"
     - printf '@upchieve:registry=%s\n' "$NPM_REGISTRY_URL" > .npmrc
     - printf '//%s/api/v4/projects/%s/packages/npm/:_authToken=${CI_JOB_TOKEN}\n' "$CI_SERVER_HOST" "$CI_PROJECT_ID" >> .npmrc
+    - |
+      if npm view "@upchieve/api-contracts@$PACKAGE_VERSION" version --registry "$NPM_REGISTRY_URL" >/dev/null 2>&1; then
+        echo "@upchieve/api-contracts@$PACKAGE_VERSION is already published. Bump the version in package.json."
+        exit 1
+      fi
     - npm publish --access restricted --tag latest --registry "$NPM_REGISTRY_URL"
-    - echo "Published @upchieve/api-contracts@$(node -p \"require('./package.json').version\")"
+    - echo "Published @upchieve/api-contracts@$PACKAGE_VERSION"
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      changes:
+        - packages/api-contracts/src/**/*
       when: manual
 
 test_database:
