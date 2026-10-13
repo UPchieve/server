@@ -421,6 +421,7 @@ SELECT
     past_sessions_as_student.session_ids AS past_sessions_as_student,
     past_sessions_as_volunteer.session_ids AS past_sessions_as_volunteer,
     round(past_sessions_as_volunteer.time_tutored / 3600000::numeric, 2)::float AS hours_tutored,
+    past_sessions_as_volunteer.sessions_as_tutor,
     array_cat(total_subjects.subjects, computed_subjects.subjects) AS subjects,
     recent_availability.updated_at AS availability_last_modified_at,
     occupations.occupations AS occupation,
@@ -582,7 +583,8 @@ FROM
     LEFT JOIN LATERAL (
         SELECT
             array_agg(sessions.id ORDER BY sessions.created_at) AS session_ids,
-            sum(time_tutored) AS time_tutored
+            sum(time_tutored) AS time_tutored,
+            count(*) FILTER (WHERE time_tutored > 0)::int AS sessions_as_tutor
         FROM
             sessions
         WHERE

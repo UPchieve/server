@@ -34,7 +34,11 @@ import {
   getUserForAdminDetail,
 } from '../../models/User/pg.queries'
 import { upsertUserGradeLevel } from '../../models/UsersGradeLevels'
-import { createTestUser, createTestVolunteer } from './seed-utils'
+import {
+  createTestStudent,
+  createTestUser,
+  createTestVolunteer,
+} from './seed-utils'
 
 const client = getClient()
 jest.mock('../../services/MailService')
@@ -569,5 +573,59 @@ describe('getUserForAdminDetail', () => {
     await createTestVolunteer(client, user.id)
 
     expect(await getCurrentGrade(user.id)).toBeNull()
+  })
+})
+
+describe('getPersonPropertiesForAnalytics', () => {
+  const { getPersonPropertiesForAnalytics } = jest.requireActual<
+    typeof import('../../services/AnalyticsService')
+  >('../../services/AnalyticsService')
+
+  test('counts sessionsAsTutor for coaches only', async () => {
+    const coach = { id: (await createTestStudent(client)).user_id }
+    await createTestVolunteer(client, coach.id)
+    for (const role of ['student', 'volunteer'] as const) {
+      await insertSingleRow(
+        'users_roles',
+        buildUserRole(coach.id, role),
+        client
+      )
+    }
+    const studentId = (await createTestStudent(client)).user_id
+    await insertSingleRow(
+      'users_roles',
+      buildUserRole(studentId, 'student'),
+      client
+    )
+    const sessions = [
+      { studentId: studentId, volunteerId: coach.id, timeTutored: 60000 },
+      { studentId: studentId, volunteerId: coach.id, timeTutored: 1 },
+      { studentId: studentId, volunteerId: coach.id, timeTutored: 0 },
+      { studentId: coach.id, volunteerId: studentId, timeTutored: 60000 },
+    ]
+    for (const session of sessions) {
+      await insertSingleRow(
+        'sessions',
+        await buildSessionRow(session, client),
+        client
+      )
+    }
+
+    const newCoach = await createTestUser(client)
+    await createTestVolunteer(client, newCoach.id)
+    await insertSingleRow(
+      'users_roles',
+      buildUserRole(newCoach.id, 'volunteer'),
+      client
+    )
+
+    const coachProps = await getPersonPropertiesForAnalytics(coach.id)
+    expect(coachProps.hasStudentRole).toBe(true)
+    expect(coachProps.sessionsAsTutor).toBe(2)
+    const newCoachProps = await getPersonPropertiesForAnalytics(newCoach.id)
+    expect(newCoachProps.sessionsAsTutor).toBe(0)
+    const studentProps = await getPersonPropertiesForAnalytics(studentId)
+    expect(studentProps.hasStudentRole).toBe(true)
+    expect(studentProps).not.toHaveProperty('sessionsAsTutor')
   })
 })

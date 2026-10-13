@@ -53,6 +53,7 @@ export type AnalyticPersonProperties = {
   hasTeacherRole: boolean
   onboarded?: boolean
   approved?: boolean
+  sessionsAsTutor?: number
   partner?: string | null
   schoolPartner?: string | null
   partnerSchoolId?: Ulid | null
@@ -110,6 +111,7 @@ export async function getPersonPropertiesForAnalytics(
     if (user.roleContext.hasRole('volunteer')) {
       personProperties.onboarded = user.isOnboarded
       personProperties.approved = user.isApproved
+      personProperties.sessionsAsTutor = user.sessionsAsTutor
       personProperties.partner = user.volunteerPartnerOrg ?? null
 
       const certificationInfo = Object.entries(

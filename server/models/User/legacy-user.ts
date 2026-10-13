@@ -98,6 +98,7 @@ export type LegacyUserModel = {
   totalVolunteerHours?: number
   hoursTutored?: number
   hoursTutoredThisWeek?: number
+  sessionsAsTutor?: number
   elapsedAvailability?: string
   references?: (ReferenceContactInfo & {
     status: Uppercase<REFERENCE_STATUS>
