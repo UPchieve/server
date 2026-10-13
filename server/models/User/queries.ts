@@ -33,7 +33,7 @@ import {
   UserForAdmin,
   EditUserProfilePayload,
 } from './types'
-import type { UserRole } from '../../types/users'
+import type { UserRole, UserByReferralCode } from '../../types/users'
 import { IDeletePhoneResult } from './pg.queries'
 import { camelCaseKeys } from '../../tests/db-utils'
 import type { UserForAdminDetail } from '../../types/users'
@@ -215,7 +215,7 @@ export async function getUsersBanStatuses(userIds: Ulid[]): Promise<
 export async function getUserByReferralCode(
   referralCode: string,
   tc: TransactionClient = getClient()
-): Promise<{ id: Ulid; firstName: string } | undefined> {
+): Promise<UserByReferralCode | undefined> {
   try {
     const result = await pgQueries.getUserByReferralCode.run(
       { referralCode },

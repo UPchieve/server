@@ -341,3 +341,12 @@ export type NewVolunteerPublic = VolunteerContactInfoPublic & {
   signupSourceId?: number
   otherSignupSource?: string
 }
+
+export type UserByReferralCodePublic = {
+  id: Uuid
+  firstName: string
+}
+
+export type UserByReferralCodeResponse = {
+  user?: UserByReferralCodePublic
+}

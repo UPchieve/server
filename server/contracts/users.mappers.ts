@@ -1,6 +1,7 @@
 import type {
   ReferenceContactInfoPublic,
   UserAdminBackgroundPublic,
+  UserByReferralCodePublic,
   PastSessionForAdminPublic,
   UserForAdminDetailPublic,
   UserForAdminDetailWithRoleContextPublic,
@@ -8,6 +9,7 @@ import type {
 } from './users'
 import type {
   UserAdminBackground,
+  UserByReferralCode,
   UserForAdminDetail,
   UserForAdminDetailWithRoleContext,
 } from '../types/users'
@@ -343,4 +345,10 @@ export function toUserForAdminPublic(user: UserForAdmin): UserForAdminPublic {
     roles: user.roles,
     createdAt: user.createdAt?.toISOString(),
   }
+}
+
+export function toUserByReferralCodePublic(
+  user: UserByReferralCode
+): UserByReferralCodePublic {
+  return { id: user.id, firstName: user.firstName }
 }
