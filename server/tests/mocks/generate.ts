@@ -168,7 +168,16 @@ import type {
   TeacherClassPublic,
   TeacherClassForStudentPublic,
 } from '../../contracts/teachers'
-import type { LegacyUserPublic } from '../../contracts/users'
+import type {
+  LegacyUserPublic,
+  UserForAdminDetailPublic,
+  UserForAdminDetailWithRoleContextPublic,
+} from '../../contracts/users'
+import type {
+  UserAdminBackground,
+  UserForAdminDetail,
+  UserForAdminDetailWithRoleContext,
+} from '../../types/users'
 
 /** Suffixed with a uuid because users.email and parents_guardians.email are UNIQUE. */
 export function getEmail(): string {
@@ -545,6 +554,105 @@ export function buildLegacyUserPublic(
       startDate: assignment.startDate?.toISOString(),
       submittedAt: assignment.submittedAt?.toISOString(),
     })),
+  }
+}
+
+export function buildAdminBackground(
+  overrides: Partial<UserAdminBackground> = {}
+): UserAdminBackground {
+  return {
+    occupation: ['Tester'],
+    experience: undefined,
+    languages: ['English', 'Spanish'],
+    linkedInUrl: undefined,
+    country: 'USA',
+    state: 'NY',
+    city: 'Brooklyn',
+    college: 'UPchieve University',
+    company: 'UPchieve',
+    ...overrides,
+  }
+}
+
+export function buildUserForAdminDetail(
+  overrides: Partial<UserForAdminDetail> = {}
+): UserForAdminDetail {
+  const user = buildUserRow()
+  return {
+    id: user.id,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    email: user.email,
+    createdAt: user.createdAt,
+    isDeactivated: user.deactivated,
+    isDeleted: false,
+    isTestUser: user.testUser,
+    verified: user.verified,
+    banType: user.banType,
+    numPastSessions: 5,
+    isApproved: false,
+    isOnboarded: false,
+    volunteerPartnerOrg: undefined,
+    photoIdS3Key: undefined,
+    photoIdStatus: undefined,
+    currentGrade: undefined,
+    zipCode: undefined,
+    studentPartnerOrg: undefined,
+    partnerSite: undefined,
+    schoolId: undefined,
+    schoolName: undefined,
+    references: [],
+    pastSessions: undefined,
+    background: buildAdminBackground(),
+    ...overrides,
+  }
+}
+
+export function serializeUserForAdminDetail(
+  user: UserForAdminDetail
+): UserForAdminDetailPublic {
+  return {
+    ...user,
+    createdAt: user.createdAt.toISOString(),
+    pastSessions: user.pastSessions?.map((session) => ({
+      ...session,
+      _id: session.id,
+      createdAt: session.createdAt.toISOString(),
+      endedAt: session.endedAt?.toISOString(),
+      volunteerJoinedAt: session.volunteerJoinedAt?.toISOString(),
+    })),
+  }
+}
+
+export function buildUserForAdminDetailPublic(
+  overrides: Partial<UserForAdminDetail> = {}
+): UserForAdminDetailPublic {
+  const user = buildUserForAdminDetail(overrides)
+  return serializeUserForAdminDetail(user)
+}
+
+export function buildUserForAdminDetailWithRoleContext(
+  overrides: Partial<UserForAdminDetailWithRoleContext> = {}
+): UserForAdminDetailWithRoleContext {
+  const user = buildUserForAdminDetail(overrides)
+  return {
+    ...user,
+    roleContext: new RoleContext(['student'], 'student', 'student'),
+    photoUrl: undefined,
+    ...overrides,
+  }
+}
+
+export function buildUserForAdminDetailWithRoleContextPublic(
+  overrides: Partial<UserForAdminDetailWithRoleContext> = {}
+): UserForAdminDetailWithRoleContextPublic {
+  const user = buildUserForAdminDetailWithRoleContext(overrides)
+  return {
+    ...serializeUserForAdminDetail(user),
+    roleContext: serializeRoleContext(user.roleContext),
+    photoUrl: user.photoUrl,
+    userType: user.roleContext.legacyRole,
+    roles: user.roleContext.roles,
   }
 }
 

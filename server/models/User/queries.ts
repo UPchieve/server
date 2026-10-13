@@ -36,6 +36,7 @@ import {
 import type { UserRole } from '../../types/users'
 import { IDeletePhoneResult } from './pg.queries'
 import { camelCaseKeys } from '../../tests/db-utils'
+import type { UserForAdminDetail } from '../../types/users'
 
 export async function createUser(
   user: CreateUserPayload,
@@ -421,10 +422,11 @@ export async function getUsersForAdminSearch(
 
 export type PastSessionForAdmin = {
   id: Ulid
-  _id: Ulid
   type: string
   subTopic: string
   totalMessages: number
+  volunteerFirstName?: string
+  studentFirstName: string
   volunteer?: Ulid
   student: Ulid
   volunteerJoinedAt?: Date
@@ -450,17 +452,13 @@ export async function getPastSessionsForAdminDetail(
         'volunteerJoinedAt',
         'endedAt',
       ])
-      return {
-        ...temp,
-        _id: temp.id,
-      }
+      return temp
     })
   } catch (err) {
     throw new RepoReadError(err)
   }
 }
 
-// TODO: needs formal return type which is huge due to frontend
 // TODO: this query is making a request for user data on every page transition
 //        for new pastSessions to display. May be better served as a separate
 //        service method for getting the user's past sessions
@@ -469,7 +467,7 @@ export async function getUserForAdminDetail(
   limit: number,
   offset: number,
   client: TransactionClient = getClient()
-) {
+): Promise<UserForAdminDetail> {
   try {
     const userResult = await pgQueries.getUserForAdminDetail.run(
       { userId },
@@ -484,6 +482,7 @@ export async function getUserForAdminDetail(
       'isDeleted',
       'isTestUser',
       'verified',
+      'numPastSessions',
     ])
     if (user.email) {
       user.email = user.email.toLowerCase()

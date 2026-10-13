@@ -9,6 +9,8 @@ import * as UserProfileService from '../../../services/UserProfileService'
 import {
   buildLegacyUser,
   buildLegacyUserPublic,
+  buildUserForAdminDetailWithRoleContext,
+  buildUserForAdminDetailWithRoleContextPublic,
   buildUser,
   getPhoneNumber,
   serializeRoleContext,
@@ -386,7 +388,28 @@ describe('routeUser', () => {
 
   describe('GET /api/user/:userId', () => {
     test('returns admin user detail with userType and roles', async () => {
-      const user = buildLegacyUser()
+      const user = buildUserForAdminDetailWithRoleContext({
+        roleContext: new RoleContext(
+          ['student', 'volunteer'],
+          'volunteer',
+          'student'
+        ),
+        pastSessions: [
+          {
+            id: getUuid(),
+            type: 'math',
+            subTopic: 'algebraOne',
+            totalMessages: 5,
+            student: getUuid(),
+            studentFirstName: 'Student',
+            volunteer: getUuid(),
+            volunteerFirstName: 'Tutor',
+            createdAt: new Date(),
+            volunteerJoinedAt: new Date(),
+            endedAt: new Date(),
+          },
+        ],
+      })
       const userId = user.id
       mockedUserService.getUserForAdminDetail.mockResolvedValueOnce(user)
 
@@ -397,14 +420,9 @@ describe('routeUser', () => {
         10,
         0
       )
-      expect(response.body).toEqual({
-        ...user,
-        createdAt: user.createdAt.toISOString(),
-        lastActivityAt: user.lastActivityAt?.toISOString(),
-        userType: user.roleContext.activeRole,
-        roles: user.roleContext.roles,
-        roleContext: serializeRoleContext(user.roleContext),
-      })
+      expect(response.body).toEqual(
+        buildUserForAdminDetailWithRoleContextPublic(user)
+      )
     })
   })
 
