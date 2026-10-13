@@ -72,6 +72,7 @@ import {
   UserQuiz,
   VolunteerContactInfo,
   VolunteersForAnalyticsReport,
+  VolunteerToReview,
   VolunteerSessionHoldEligibilityData,
   VolunteerWithReadyToCoachInfo,
 } from '../../models/Volunteer'
@@ -178,6 +179,7 @@ import type {
   UserForAdminDetail,
   UserForAdminDetailWithRoleContext,
 } from '../../types/users'
+import type { VolunteerToReviewPublic } from '../../contracts/volunteers'
 
 /** Suffixed with a uuid because users.email and parents_guardians.email are UNIQUE. */
 export function getEmail(): string {
@@ -713,6 +715,38 @@ export function buildLegacyVolunteer(
     references: [],
     photoIdStatus: '',
     ...overrides,
+  }
+}
+
+export function buildVolunteerToReview(
+  overrides: Partial<VolunteerToReview> = {}
+): VolunteerToReview {
+  const user = buildUser()
+  return {
+    id: user.id,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    email: user.email,
+    createdAt: user.createdAt,
+    readyForReviewAt: new Date(),
+    ...overrides,
+  }
+}
+
+export function buildVolunteerToReviewPublic(
+  overrides: Partial<VolunteerToReview> = {}
+): VolunteerToReviewPublic {
+  const user = buildVolunteerToReview(overrides)
+  return {
+    id: user.id,
+    _id: user.id,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    firstname: user.firstName,
+    lastname: user.lastName,
+    email: user.email,
+    createdAt: user.createdAt.toISOString(),
+    readyForReviewAt: user.readyForReviewAt.toISOString(),
   }
 }
 
