@@ -3,7 +3,7 @@ import { mocked } from 'jest-mock'
 import { mockApp } from '../../mock-app'
 import * as NTHSGroupInviteRouter from '../../../router/nths-group-invite'
 import * as NTHSGroupsService from '../../../services/NTHSGroupsService'
-import { buildNTHSGroup } from '../../mocks/generate'
+import { buildNTHSGroup, buildNTHSGroupJoinPublic } from '../../mocks/generate'
 import { getUuid } from '../../../models/pgUtils'
 
 jest.mock('../../../services/NTHSGroupsService')
@@ -41,12 +41,11 @@ describe('routeNTHSGroupInvite', () => {
         mockedNTHSGroupsService.getNTHSGroupByInviteCode
       ).toHaveBeenCalledWith(group.inviteCode)
       expect(response.body).toEqual({
-        NTHSgroup: { ...group, createdAt: group.createdAt?.toISOString() },
+        NTHSgroup: buildNTHSGroupJoinPublic(group),
       })
     })
 
-    test('returns null nths group when invite code is not found', async () => {
-      // TODO: update return type from underlying function
+    test('returns an empty response when invite code is not found', async () => {
       mockedNTHSGroupsService.getNTHSGroupByInviteCode.mockResolvedValueOnce(
         undefined
       )
@@ -58,9 +57,7 @@ describe('routeNTHSGroupInvite', () => {
       expect(
         mockedNTHSGroupsService.getNTHSGroupByInviteCode
       ).toHaveBeenCalledWith(inviteCode)
-      expect(response.body).toEqual({
-        NTHSgroup: undefined,
-      })
+      expect(response.body).toStrictEqual({})
     })
 
     test('returns 422 when invite code param is invalid', async () => {

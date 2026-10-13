@@ -1,0 +1,29 @@
+import type {
+  NTHSGroupJoinPublic,
+  NTHSGroupWithMemberInfoPublic,
+} from './nths-group'
+import type { TeacherClassPublic } from './teachers'
+
+export type StudentClassResponse =
+  | { teacherClass: TeacherClassPublic }
+  | { isExistingStudent: boolean }
+
+export type NTHSJoinGroupResponse =
+  | {
+      NTHSGroup: NTHSGroupWithMemberInfoPublic
+    }
+  | {
+      groups: NTHSGroupWithMemberInfoPublic[]
+    }
+  | {
+      isExistingVolunteer: boolean | null
+    }
+
+export type NTHSInviteCodeResponse = {
+  NTHSGroup: NTHSGroupJoinPublic
+}
+
+// TODO: Refactor to only use `NTHSInviteCodeResponse`?
+export type NTHSInviteCodeInvitationResponse = {
+  NTHSgroup?: NTHSGroupJoinPublic
+}

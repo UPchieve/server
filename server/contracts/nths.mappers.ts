@@ -1,9 +1,10 @@
-import {
+import type {
   AdvisorPublic,
   NTHSActionPublic,
   NTHSGroupActionPublic,
   NTHSGroupMemberWithRolePublic,
   NTHSGroupPublic,
+  NTHSGroupJoinPublic,
   NTHSGroupWithMemberInfoPublic,
   NTHSUserInfoPublic,
   NTHSChapterImpactPublic,
@@ -35,6 +36,15 @@ export function toNTHSGroupPublic(group: NTHSGroup): NTHSGroupPublic {
     name: group.name,
     key: group.key,
     inviteCode: group.inviteCode,
+    createdAt: group.createdAt?.toISOString(),
+  }
+}
+
+export function toNTHSGroupJoinPublic(group: NTHSGroup): NTHSGroupJoinPublic {
+  return {
+    id: group.id,
+    name: group.name,
+    key: group.key,
     createdAt: group.createdAt?.toISOString(),
   }
 }

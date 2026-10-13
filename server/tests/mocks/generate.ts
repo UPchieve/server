@@ -152,15 +152,18 @@ import type {
 import { IneligibleStudentsWithSchoolInfo } from '../../models/IneligibleStudent/queries'
 import { ZipCode } from '../../models/ZipCode/types'
 import type { AssignmentPublic } from '../../contracts/assignments'
-import { StudentAssignmentSubmissionPublic } from '../../contracts/assignments'
-import { NTHSGroupMemberWithRolePublic } from '../../contracts/nths-group'
-import { UserProductFlagsPublic } from '../../contracts/product-flags'
+import type { StudentAssignmentSubmissionPublic } from '../../contracts/assignments'
+import type {
+  NTHSGroupMemberWithRolePublic,
+  NTHSGroupJoinPublic,
+} from '../../contracts/nths-group'
+import type { UserProductFlagsPublic } from '../../contracts/product-flags'
 import type {
   SessionReportPublic,
   UsageReportPublic,
 } from '../../contracts/reports'
-import { SessionNotificationPublic } from '../../contracts/notifications'
-import {
+import type { SessionNotificationPublic } from '../../contracts/notifications'
+import type {
   PostsessionSurveyResponsePublic,
   SimpleSurveyResponsePublic,
 } from '../../contracts/surveys'
@@ -1565,6 +1568,18 @@ export function buildNTHSGroup(overrides: Partial<NTHSGroup> = {}): NTHSGroup {
     createdAt: new Date(),
     inviteCode: faker.string.alpha({ length: 6 }),
     ...overrides,
+  }
+}
+
+export function buildNTHSGroupJoinPublic(
+  overrides: Partial<NTHSGroup> = {}
+): NTHSGroupJoinPublic {
+  const group = buildNTHSGroup(overrides)
+  return {
+    id: group.id,
+    name: group.name,
+    key: group.key,
+    createdAt: group.createdAt?.toISOString(),
   }
 }
 

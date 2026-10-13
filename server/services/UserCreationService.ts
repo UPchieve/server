@@ -480,6 +480,7 @@ export async function registerVolunteer(
         data.inviteCode,
         tc
       )
+      if (!group) throw new Error('Invalid team invite code')
       await NTHSGroupsService.joinGroupAsMemberByGroupId(
         user.id,
         group.id,

@@ -157,6 +157,7 @@ export async function registerVolunteer(
 
   if (inviteCode) {
     const group = await NTHSGroupsService.getNTHSGroupByInviteCode(inviteCode)
+    if (!group) throw new Error('Invalid team invite code')
     await NTHSGroupsService.joinGroupAsMemberByGroupId(volunteer.id, group.id)
   }
 
@@ -238,6 +239,7 @@ export async function registerPartnerVolunteer(
 
   if (inviteCode) {
     const group = await NTHSGroupsService.getNTHSGroupByInviteCode(inviteCode)
+    if (!group) throw new Error('Invalid team invite code')
     await NTHSGroupsService.joinGroupAsMemberByGroupId(volunteer.id, group.id)
   }
 
