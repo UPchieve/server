@@ -3,7 +3,7 @@ import { RepoReadError } from '../Errors'
 import { makeRequired, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import { UserSessionMetrics } from './types'
-import { UserRole } from '../User'
+import type { UserRole } from '../../types/users'
 
 export async function getUserSessionMetricsByUserId(
   userId: Ulid,

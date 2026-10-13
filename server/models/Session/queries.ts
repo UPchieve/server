@@ -41,7 +41,7 @@ import {
 } from '../Survey'
 import config from '../../config'
 import type { SessionHistoryFilter } from '../../services/SessionService'
-import { SessionUserRole } from '../../services/UserRolesService'
+import type { SessionUserRole } from '../../types/users'
 import type {
   MessageForFrontend,
   CurrentSession,

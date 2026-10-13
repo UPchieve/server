@@ -1,7 +1,7 @@
 import { client } from '../clients/product-client'
 import { Ulid } from '../models/pgUtils'
 import { GRADES } from '../constants'
-import { UserRole } from '../models/User'
+import type { UserRole } from '../types/users'
 import { getLegacyUserObject } from '../models/User/legacy-user'
 import { getUPFByUserId } from '../models/UserProductFlags'
 import { ISODateString } from '../types/dates'

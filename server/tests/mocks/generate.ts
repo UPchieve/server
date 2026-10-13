@@ -8,12 +8,8 @@ import {
   UsageReportRow,
 } from '../../models/Student'
 import { Availability } from '../../models/Availability'
-import {
-  User,
-  UserContactInfo,
-  UserForAdmin,
-  UserRole,
-} from '../../models/User'
+import { User, UserContactInfo, UserForAdmin } from '../../models/User'
+import type { UserRole } from '../../types/users'
 import { faker } from '@faker-js/faker'
 import _ from 'lodash'
 import createNewAvailability from '../../utils/create-new-availability'

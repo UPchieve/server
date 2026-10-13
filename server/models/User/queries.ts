@@ -28,12 +28,12 @@ import {
   CreateUserResult,
   ReportedUser,
   UpsertUserResult,
-  UserRole,
   UserContactInfo,
   UserForCreateSendGridContact,
   UserForAdmin,
   EditUserProfilePayload,
 } from './types'
+import type { UserRole } from '../../types/users'
 import { IDeletePhoneResult } from './pg.queries'
 import { camelCaseKeys } from '../../tests/db-utils'
 

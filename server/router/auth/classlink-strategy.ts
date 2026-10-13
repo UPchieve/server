@@ -7,7 +7,7 @@ import {
 import config from '../../config'
 import logger from '../../logger'
 import { Uuid } from '../../models/pgUtils'
-import { UserRole } from '../../models/User'
+import type { UserRole } from '../../types/users'
 import * as ClassLinkApiService from '../../services/ClassLinkApiService'
 import { SsoProvider } from '../../utils/auth-utils'
 

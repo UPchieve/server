@@ -23,7 +23,7 @@ import validator from 'validator'
 import session from 'express-session'
 import { validateRequestRecaptcha } from '../services/RecaptchaService'
 import { isBlockedEmailDomain } from './emailDomain-utils'
-import { UserRole } from '../models/User'
+import type { UserRole } from '../types/users'
 import {
   getVolunteerPartnerOrgForRegistrationByKey,
   VolunteerPartnerOrgForRegistration,

@@ -10,7 +10,7 @@ import * as SessionSummariesRepo from '../models/SessionSummaries/queries'
 import QueueService from './QueueService'
 import { Jobs } from '../worker/jobs'
 import { getActiveClassesForStudent } from './StudentService'
-import { UserRole } from '../models/User'
+import type { UserRole } from '../types/users'
 import { isStudentSessionSummaryEnabled } from './FeatureFlagService'
 import config from '../config'
 import {

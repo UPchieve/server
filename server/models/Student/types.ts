@@ -1,6 +1,6 @@
 import { GRADES, USER_BAN_TYPES } from '../../constants'
 import { Ulid, Uuid } from '../pgUtils'
-import { UserRole } from '../User'
+import type { UserRole } from '../../types/users'
 
 export type Student = {
   userId: Ulid

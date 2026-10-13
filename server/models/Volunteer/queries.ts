@@ -46,7 +46,8 @@ import {
   getAssociatedPartnersAndSchools,
 } from '../AssociatedPartner'
 import { UniqueStudentsHelped } from '.'
-import { insertUserRoleByUserId, UserRole } from '../User'
+import { insertUserRoleByUserId } from '../User'
+import type { UserRole } from '../../types/users'
 import { getVolunteerPartnerOrgIdByKey } from '../VolunteerPartnerOrg'
 import { ReportNoDataFoundError } from '../../services/ReportService'
 import type { UserTrainingCourses } from '../../types/training'

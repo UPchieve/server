@@ -9,7 +9,7 @@ import {
 import config from '../../config'
 import logger from '../../logger'
 import { Uuid } from '../../models/pgUtils'
-import { UserRole } from '../../models/User'
+import type { UserRole } from '../../types/users'
 import * as CleverAPIService from '../../services/CleverAPIService'
 import * as CleverRosterService from '../../services/CleverRosterService'
 import * as SchoolService from '../../services/SchoolService'

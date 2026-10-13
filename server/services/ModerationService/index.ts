@@ -53,7 +53,7 @@ import * as ShareableDomainsRepo from '../../models/ShareableDomains/queries'
 import { ClaudeToolChoice, ClaudeTools, invokeModel } from '../ClaudeService'
 import { ModerationInfraction } from '../../models/ModerationInfractions/types'
 import { runInTransaction, TransactionClient } from '../../db'
-import { PrimaryUserRole } from '../UserRolesService'
+import type { PrimaryUserRole } from '../../types/users'
 import { getImageDimensions, resize } from '../../utils/image-utils'
 import {
   getContextualSettings as getModerationContextualSettings,

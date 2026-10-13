@@ -27,7 +27,7 @@ import { ACCOUNT_USER_ACTIONS } from '../../constants'
 import { createAccountAction } from '../../models/UserAction'
 import { AuthRedirect } from './auth-redirect'
 import { v4 as uuidv4 } from 'uuid'
-import { UserRole } from '../../models/User'
+import type { UserRole } from '../../types/users'
 
 async function trackLoggedIn(userId: Ulid, ipAddress?: string) {
   await createAccountAction({

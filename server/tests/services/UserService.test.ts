@@ -6,7 +6,7 @@ import { buildStudent } from '../mocks/generate'
 import * as UserService from '../../services/UserService'
 import * as UserRolesService from '../../services/UserRolesService'
 import { getDbUlid } from '../../models/pgUtils'
-import { PrimaryUserRole } from '../../services/UserRolesService'
+import type { PrimaryUserRole } from '../../types/users'
 import * as StudentRepo from '../../models/Student'
 import * as UsersSchoolsRepo from '../../models/UsersSchools'
 import { beforeEach } from '@jest/globals'
@@ -47,7 +47,7 @@ describe('User Service', () => {
     it('Should throw an error if it is a volunteer account', async () => {
       const userId = getDbUlid()
       const mockRoleContext = {
-        roles: ['volunteer'] as UserRepo.UserRole[],
+        roles: ['volunteer'] as UserRole[],
         activeRole: 'volunteer' as PrimaryUserRole,
         legacyRole: 'volunteer' as PrimaryUserRole,
         hasRole: jest.fn().mockReturnValue(true),
@@ -63,7 +63,7 @@ describe('User Service', () => {
     it('Should throw an error if the account has the volunteer role', async () => {
       const userId = getDbUlid()
       const mockRoleContext = {
-        roles: ['volunteer'] as UserRepo.UserRole[],
+        roles: ['volunteer'] as UserRole[],
         activeRole: 'volunteer' as PrimaryUserRole,
         legacyRole: 'volunteer' as PrimaryUserRole,
         hasRole: jest.fn().mockReturnValue(true),
@@ -79,7 +79,7 @@ describe('User Service', () => {
     it('Should call deleteUserPhoneInfo', async () => {
       const userId = getDbUlid()
       const mockRoleContext = {
-        roles: ['student'] as UserRepo.UserRole[],
+        roles: ['student'] as UserRole[],
         activeRole: 'student' as PrimaryUserRole,
         legacyRole: 'student' as PrimaryUserRole,
         hasRole: jest.fn().mockReturnValue(false),
@@ -450,7 +450,7 @@ describe('User Service', () => {
 
     it('Updates the partner org for single role users', async () => {
       mockRoleContext = {
-        roles: ['volunteer'] as UserRepo.UserRole[],
+        roles: ['volunteer'] as UserRole[],
         activeRole: 'volunteer' as PrimaryUserRole,
         legacyRole: 'volunteer' as PrimaryUserRole,
         hasRole: (role: string) => role === 'volunteer',
@@ -474,7 +474,7 @@ describe('User Service', () => {
         id: '123',
       })
       const roleContext = {
-        roles: ['student', 'volunteer'] as UserRepo.UserRole[],
+        roles: ['student', 'volunteer'] as UserRole[],
         activeRole: 'volunteer' as PrimaryUserRole,
         legacyRole: 'student' as PrimaryUserRole,
         hasRole: (role) => ['student', 'volunteer'].includes(role),

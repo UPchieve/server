@@ -20,10 +20,7 @@ import {
   classifyFeedback,
   getStudentFeedbackForSession,
 } from '../../services/SurveyService'
-import {
-  PrimaryUserRole,
-  SessionUserRole,
-} from '../../services/UserRolesService'
+import type { PrimaryUserRole, SessionUserRole } from '../../types/users'
 import { getDocEditorSessionImageUrl } from '../../services/AzureService'
 import { getSessionSummaryByUserType } from '../../services/SessionSummariesService'
 import { USER_ROLES } from '../../constants'
