@@ -1,6 +1,9 @@
 import type { ISODateString } from '../types/dates'
 import type { Uuid } from '../types/shared'
-import { TutorBotHumanSenderType, TutorBotSenderType } from '../types/tutor-bot'
+import type {
+  TutorBotHumanSenderType,
+  TutorBotSenderType,
+} from '../types/tutor-bot'
 
 export type MessagePayload = {
   userId: string

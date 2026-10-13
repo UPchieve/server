@@ -1,4 +1,4 @@
-import { Router } from 'express'
+import type { Router, Request, Response } from 'express'
 import multer from 'multer'
 import * as TutorBotService from '../../services/TutorBotService'
 import { resError } from '../res-error'
@@ -9,8 +9,14 @@ import {
   asString,
 } from '../../utils/type-utils'
 import { InputError } from '../../models/Errors'
-import { ConversationPayload, MessagePayload } from '../../contracts/tutor-bot'
-import { TutorBotHumanSenderType } from '../../types/tutor-bot'
+import type {
+  ConversationPayload,
+  MessagePayload,
+  TutorBotAddMessageResponsePublic,
+  TutorBotNewConversationPublic,
+  TutorBotTranscriptPublic,
+} from '../../contracts/tutor-bot'
+import type { TutorBotHumanSenderType } from '../../types/tutor-bot'
 import {
   toTutorBotTranscriptPublic,
   toTutorBotAddMessageResponsePublic,
@@ -47,7 +53,7 @@ export function routeTutorBot(router: Router) {
 
   router.get(
     '/tutor-bot/conversations/:conversationId',
-    async function (req, res) {
+    async function (req, res: Response<TutorBotTranscriptPublic>) {
       try {
         const botResponse = await TutorBotService.getTranscriptForConversation(
           req.params.conversationId
@@ -62,7 +68,10 @@ export function routeTutorBot(router: Router) {
   router.post(
     '/tutor-bot/conversations/:conversationId/message',
     upload.single('snapshot'),
-    async function (req, res) {
+    async function (
+      req: Request,
+      res: Response<TutorBotAddMessageResponsePublic>
+    ) {
       try {
         const data = messageValidator({
           ...req.body,
@@ -84,7 +93,7 @@ export function routeTutorBot(router: Router) {
 
   router.patch(
     '/tutor-bot/conversations/:conversationId',
-    async function (req, res) {
+    async function (req, res: Response<void>) {
       try {
         await TutorBotService.linkTutorBotConversationToSessionId(
           req.params.conversationId,
@@ -97,17 +106,20 @@ export function routeTutorBot(router: Router) {
     }
   )
 
-  router.post('/tutor-bot/conversations', async (req, res) => {
-    try {
-      const data = conversationValidator({
-        ...req.body,
-        userId: req.user?.id,
-      })
-      const conversation =
-        await TutorBotService.createTutorBotConversation(data)
-      return res.json(toNewConversationPublic(conversation))
-    } catch (err) {
-      resError(res, err)
+  router.post(
+    '/tutor-bot/conversations',
+    async (req, res: Response<TutorBotNewConversationPublic>) => {
+      try {
+        const data = conversationValidator({
+          ...req.body,
+          userId: req.user?.id,
+        })
+        const conversation =
+          await TutorBotService.createTutorBotConversation(data)
+        return res.json(toNewConversationPublic(conversation))
+      } catch (err) {
+        resError(res, err)
+      }
     }
-  })
+  )
 }
