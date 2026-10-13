@@ -1,4 +1,4 @@
-import express, { Express, Router } from 'express'
+import express, { Express, Response, Router } from 'express'
 import * as Sentry from '@sentry/node'
 import { authPassport } from '../../utils/auth-utils'
 import * as SchoolService from '../../services/SchoolService'
@@ -15,50 +15,76 @@ import {
 import { getStudentSignupSources } from '../../services/StudentService'
 import { InputError } from '../../models/Errors'
 import { rpush } from '../../cache'
+import type {
+  CheckEligibilityPublic,
+  CheckZipCodeResponse,
+  IneligibleStudentsResponse,
+  IsEligibleResponse,
+  SchoolSearchResponse,
+  StudentSignupSourceResponse,
+  ZipCodeResponse,
+} from '../../contracts/eligibility'
+import {
+  toCheckEligibilityPublic,
+  toIneligibleStudentsWithSchoolInfoPublic,
+  toStudentSignupSourcePublic,
+  toZipCodePublic,
+} from '../../contracts/eligibility.mappers'
+import { toSchoolPublic } from '../../contracts/schools.mappers'
 
 export function routes(app: Express) {
   const router: Router = express.Router()
 
   // Check if a student is eligible
-  router.route('/check').post(async function (req, res) {
+  router.route('/check').post(async function (
+    req,
+    res: Response<CheckEligibilityPublic>
+  ) {
     try {
       const result = await checkEligibility(req.ip, req.body as unknown)
-      return res.json(result)
+      return res.json(toCheckEligibilityPublic(result))
     } catch (err) {
       resError(res, err)
     }
   })
 
-  router.route('/check/teacher').get(async (req, res) => {
-    try {
-      const schoolId = req.query.schoolId
-      if (!schoolId) {
-        throw new InputError('School ID must be provided.')
+  router
+    .route('/check/teacher')
+    .get(async (req, res: Response<IsEligibleResponse>) => {
+      try {
+        const schoolId = req.query.schoolId
+        if (!schoolId) {
+          throw new InputError('School ID must be provided.')
+        }
+        const isEligible = await verifyEligibility(
+          undefined,
+          asString(schoolId)
+        )
+        return res.json({ isEligible })
+      } catch (err) {
+        resError(res, err)
       }
-      const isEligible = await verifyEligibility(undefined, asString(schoolId))
-      return res.json({ isEligible })
-    } catch (err) {
-      resError(res, err)
-    }
-  })
+    })
 
-  router.route('/school/search').get(async (req, res) => {
-    const { q } = req.query
+  router
+    .route('/school/search')
+    .get(async (req, res: Response<SchoolSearchResponse>) => {
+      const { q } = req.query
 
-    try {
-      const results = await SchoolService.search(q as string)
-      res.json({
-        results: results,
-      })
-    } catch (error) {
-      resError(res, error)
-    }
-  })
+      try {
+        const results = await SchoolService.search(q as string)
+        res.json({
+          results: results.map(toSchoolPublic),
+        })
+      } catch (error) {
+        resError(res, error)
+      }
+    })
 
   router.put(
     '/school/:schoolId',
     authPassport.isAdmin,
-    async function (req, res) {
+    async function (req, res: Response<void>) {
       try {
         const schoolId = asUlid(req.params.schoolId)
         await SchoolService.adminUpdateSchool({
@@ -75,7 +101,7 @@ export function routes(app: Express) {
   router.post(
     '/school/approval',
     authPassport.isAdmin,
-    async function (req, res) {
+    async function (req, res: Response<void>) {
       try {
         const schoolId = asUlid(req.body.schoolId)
         const isApproved = asBoolean(req.body.isApproved)
@@ -91,7 +117,7 @@ export function routes(app: Express) {
   router.post(
     '/school/partner',
     authPassport.isAdmin,
-    async function (req, res) {
+    async function (req, res: Response<void>) {
       try {
         const schoolId = asUlid(req.body.schoolId)
         const isPartner = asBoolean(req.body.isPartner)
@@ -107,7 +133,7 @@ export function routes(app: Express) {
   router.get(
     '/ineligible-students',
     authPassport.isAdmin,
-    async function (req, res) {
+    async function (req, res: Response<IneligibleStudentsResponse>) {
       try {
         const PER_PAGE = 15
 
@@ -119,7 +145,12 @@ export function routes(app: Express) {
         )
         const isLastPage = ineligibleStudents.length < PER_PAGE
 
-        res.json({ ineligibleStudents, isLastPage })
+        res.json({
+          ineligibleStudents: ineligibleStudents.map(
+            toIneligibleStudentsWithSchoolInfoPublic
+          ),
+          isLastPage,
+        })
       } catch (err) {
         resError(res, err)
       }
@@ -129,7 +160,7 @@ export function routes(app: Express) {
   router.get(
     '/zip-codes/:zipCode',
     authPassport.isAdmin,
-    async function (req, res) {
+    async function (req, res: Response<ZipCodeResponse>) {
       const zipCode = asString(req.params.zipCode)
 
       try {
@@ -137,7 +168,7 @@ export function routes(app: Express) {
         if (!result) res.sendStatus(404)
         else
           res.json({
-            zipCode: { ...result },
+            zipCode: toZipCodePublic(result),
           })
       } catch (err) {
         Sentry.captureException(err)
@@ -146,7 +177,7 @@ export function routes(app: Express) {
     }
   )
 
-  router.get('/ip-check', async function (req, res) {
+  router.get('/ip-check', async function (req, res: Response<void>) {
     try {
       await IpAddressService.checkIpAddress(req.ip)
       res.sendStatus(200)
@@ -155,26 +186,34 @@ export function routes(app: Express) {
     }
   })
 
-  router.get('/check-zip-code/:zipCode', async function (req, res) {
-    try {
-      const zipCode = asString(req.params.zipCode)
-      const result = await checkZipCode(zipCode)
-      res.json({ isValidZipCode: result })
-    } catch (err) {
-      resError(res, err)
+  router.get(
+    '/check-zip-code/:zipCode',
+    async function (req, res: Response<CheckZipCodeResponse>) {
+      try {
+        const zipCode = asString(req.params.zipCode)
+        const result = await checkZipCode(zipCode)
+        res.json({ isValidZipCode: result })
+      } catch (err) {
+        resError(res, err)
+      }
     }
-  })
+  )
 
-  router.get('/signup-sources/students', async function (req, res) {
-    try {
-      const signupSources = await getStudentSignupSources()
-      res.json({ signupSources })
-    } catch (err) {
-      resError(res, err)
+  router.get(
+    '/signup-sources/students',
+    async function (req, res: Response<StudentSignupSourceResponse>) {
+      try {
+        const signupSources = await getStudentSignupSources()
+        res.json({
+          signupSources: signupSources?.map(toStudentSignupSourcePublic),
+        })
+      } catch (err) {
+        resError(res, err)
+      }
     }
-  })
+  )
 
-  router.post('/big-future/email', async function (req, res) {
+  router.post('/big-future/email', async function (req, res: Response<void>) {
     try {
       const email = asString(req.body.email)
       await rpush('big-future-emails', email)

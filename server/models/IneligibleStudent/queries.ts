@@ -31,7 +31,6 @@ export async function getIneligibleStudentByEmail(
 }
 
 export type IneligibleStudentsWithSchoolInfo = {
-  updatedAt: Date
   createdAt: Date
   email: string
   zipCode?: string
