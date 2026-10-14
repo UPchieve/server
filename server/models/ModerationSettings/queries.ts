@@ -7,6 +7,7 @@ import { ModerationType, GetModerationSettingResult } from './types'
 
 export const getContextualSettings = getSettings('contextual')
 export const getRealTimeSettings = getSettings('realtime_image')
+export const getImageUploadSettings = getSettings('image_upload')
 
 function getSettings(moderationType: ModerationType) {
   return async (client: TransactionClient = getClient()) => {

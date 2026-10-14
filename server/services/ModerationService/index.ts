@@ -57,6 +57,7 @@ import type { PrimaryUserRole } from '../../types/users'
 import { getImageDimensions, resize } from '../../utils/image-utils'
 import {
   getContextualSettings as getModerationContextualSettings,
+  getImageUploadSettings as getModerationImageUploadSettings,
   getRealTimeSettings as getModerationRealTimeSettings,
 } from '../../models/ModerationSettings/queries'
 import { GetModerationSettingResult } from '../../models/ModerationSettings/types'
@@ -1315,7 +1316,7 @@ export async function moderateImage(
     fit: 'inside',
     withoutEnlargement: !isBelowFloor,
   })
-  const moderationSettings = await getModerationRealTimeSettings()
+  const moderationSettings = await getModerationImageUploadSettings()
 
   const toolName = 'json_response'
 

@@ -1,4 +1,4 @@
-export type ModerationType = 'contextual' | 'realtime_image'
+export type ModerationType = 'contextual' | 'realtime_image' | 'image_upload'
 export type ModerationSettingResult = {
   name: string
   threshold: number
