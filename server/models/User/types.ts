@@ -1,6 +1,7 @@
 import { GRADES, USER_BAN_TYPES } from '../../constants'
 import { Pgid, Ulid } from '../pgUtils'
 import { RoleContext } from '../../services/UserRolesService'
+import { VolunteerPublicInfo } from '../Volunteer/types'
 
 import type { UserRole } from '../../types/users'
 
@@ -129,6 +130,7 @@ export type EditUserProfilePayload = {
   company?: string
   college?: string
   occupation?: string[]
+  publicProfileKeys?: VolunteerPublicInfo[]
   country?: string
   city?: string
   state?: string

@@ -7,6 +7,7 @@ import * as PresenceService from '../../services/PresenceService'
 import * as ReferralService from '../../services/ReferralService'
 import { updateUserProfile } from '../../services/UserProfileService'
 import { getUserIdByEmail, EditUserProfilePayload } from '../../models/User/'
+import { VolunteerPublicInfo } from '../../models/Volunteer/types'
 import { authPassport } from '../../utils/auth-utils'
 import { resError } from '../res-error'
 import {
@@ -59,6 +60,7 @@ export const asEditProfilePayload = asFactory<EditUserProfilePayload>({
   company: asOptional(asString),
   college: asOptional(asString),
   occupation: asOptional(asArray(asString)),
+  publicProfileKeys: asOptional(asArray(asEnum(VolunteerPublicInfo))),
   city: asOptional(asString),
   state: asOptional(asString),
   country: asOptional(asString),

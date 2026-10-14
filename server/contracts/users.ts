@@ -5,6 +5,7 @@ import {
   REFERENCE_STATUS,
 } from '../constants'
 import type { Availability } from '../models/Availability'
+import type { VolunteerPublicInfo } from '../models/Volunteer'
 import type { ISODateString } from '../types/dates'
 import type { Json, Uuid } from '../types/shared'
 import type { TrainingCoursesPublic } from '../contracts/training'
@@ -146,6 +147,7 @@ export type LegacyUserPublic = {
   availabilityLastModifiedAt?: ISODateString
   trainingCourses?: TrainingCoursesPublic
   occupation?: string[]
+  publicProfileKeys?: VolunteerPublicInfo[]
   country?: string
   timezone?: string
   totalVolunteerHours?: number
@@ -155,6 +157,7 @@ export type LegacyUserPublic = {
   references?: ReferencePublic[]
   photoIdStatus?: string
   uniqueStudentsHelpedCount?: number
+  numSessionsTutored?: number
   hasCompletedVolunteerTraining?: boolean
   // student
   gradeLevel?: GRADES

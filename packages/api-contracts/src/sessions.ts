@@ -8,6 +8,14 @@ import type {
   StudentCounselingFeedbackPublic,
 } from './surveys.js'
 
+// Only contains the fields the volunteer has chosen to share with students
+export type VolunteerPublicProfileStatsPublic = {
+  occupation?: string[]
+  totalVolunteerHours?: number
+  numStudentsHelped?: number
+  numSessionsTutored?: number
+}
+
 export type SessionUserInfoPublic = {
   // TODO: migrate all uses of `_id` to `id`
   _id: Uuid
@@ -15,6 +23,7 @@ export type SessionUserInfoPublic = {
   // TODO: remove `firstname` in favor of `firstName`. The frontend must be refactored first
   firstname: string
   firstName: string
+  publicProfileStats?: VolunteerPublicProfileStatsPublic
 }
 
 export type SessionMessagePublic = {

@@ -12,6 +12,7 @@ import {
   getVolunteerTrainingCourses,
   ReferenceContactInfo,
   Sponsorship,
+  VolunteerPublicInfo,
 } from '../Volunteer'
 import { Availability } from '../Availability/types'
 import { RepoReadError } from '../Errors'
@@ -93,6 +94,7 @@ export type LegacyUserModel = {
   availabilityLastModifiedAt?: Date
   trainingCourses?: TrainingCourses
   occupation?: string[]
+  publicProfileKeys?: VolunteerPublicInfo[]
   country?: string
   timezone?: string
   totalVolunteerHours?: number
@@ -106,6 +108,7 @@ export type LegacyUserModel = {
   photoIdS3Key?: string
   photoIdStatus?: string
   uniqueStudentsHelpedCount?: number
+  numSessionsTutored?: number
   hasCompletedVolunteerTraining?: boolean
   // student
   gradeLevel?: GRADES

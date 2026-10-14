@@ -533,6 +533,19 @@ WHERE (sessions.student_id = :userId!
 AND sessions.ended_at IS NULL;
 
 
+/* @name getCurrentSessionIdByVolunteerId */
+SELECT
+    id
+FROM
+    sessions
+WHERE
+    volunteer_id = :volunteerId!
+    AND ended_at IS NULL
+ORDER BY
+    created_at DESC
+LIMIT 1;
+
+
 /* @name getCurrentSessionBySessionId */
 SELECT
     sessions.id,

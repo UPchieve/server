@@ -682,6 +682,21 @@ export async function createSession(
   }
 }
 
+export async function getCurrentSessionIdByVolunteerId(
+  volunteerId: Uuid,
+  tc: TransactionClient = getRoClient()
+): Promise<Uuid | undefined> {
+  try {
+    const [row] = await pgQueries.getCurrentSessionIdByVolunteerId.run(
+      { volunteerId },
+      tc
+    )
+    return row?.id
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
 export async function getCurrentSessionByUserId(
   userId: Uuid,
   tc: TransactionClient = getClient()

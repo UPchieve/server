@@ -16,8 +16,8 @@ import * as cache from '../cache'
 import { UserContactInfo } from '../models/User'
 import { secondsInMs } from '../utils/time-utils'
 import { toCurrentSessionPublic } from '../contracts/sessions.mappers'
-import { ShareInfoPayload } from '../types/socket-types'
 import { SUBJECTS } from '../constants'
+import { VolunteerPublicProfileInfoShared } from '../models/Volunteer/types'
 import { SessionJoinError } from '../models/Errors'
 
 /**
@@ -154,18 +154,16 @@ class SocketService {
       .emit('sessions/partner:in-session', !!userSocketsInSession.length)
   }
 
-  // Relays the message a volunteer opted in to sharing to their session
-  // partner for experiment
-  async emitShareInfoOptIn(
-    userId: string,
+  // Sends a volunteer's updated shared info to the student in their session
+  emitSharedInfo(
     sessionId: Ulid,
-    message: ShareInfoPayload
-  ): Promise<void> {
-    const sessionRoom = getSessionRoom(sessionId)
+    volunteerId: Ulid,
+    publicProfileStats: VolunteerPublicProfileInfoShared
+  ): void {
     this.io
-      .to(sessionRoom)
-      .except(userId)
-      .emit('sessions/partner:share-info-opt-in', message)
+      .to(getSessionRoom(sessionId))
+      .except(volunteerId)
+      .emit('sessions/partner:public-profile-stats-updated', publicProfileStats)
   }
 
   private async broadcastSessionList(): Promise<void> {
@@ -230,6 +228,7 @@ class SocketService {
 
   async emitSessionChange(sessionId: Ulid): Promise<void> {
     const session = await SessionService.getCurrentSessionById(sessionId)
+    await SessionService.addVolunteerPublicProfileStatsTo(session)
     const sessionParticipants = [session.student.id]
     if (session.volunteer?.id) {
       sessionParticipants.push(session.volunteer.id)

@@ -1534,6 +1534,54 @@ WHERE
     user_id = :userId!;
 
 
+/* @name updateVolunteerPublicProfileInfoShared */
+-- Intentionally a full replace, not COALESCE'd like updateVolunteerProfile's
+-- columns above: the caller always sends the volunteer's complete desired
+-- selection (an empty array is a valid, deliberate "share nothing"), so
+-- there's no "leave this field alone" case for this column to preserve.
+UPDATE
+    volunteer_profiles
+SET
+    info_shared_with_students = :publicProfileKeys!
+WHERE
+    user_id = :userId!
+RETURNING
+    user_id AS ok;
+
+
+/* @name getVolunteerPublicProfileStats */
+SELECT
+    volunteer_profiles.info_shared_with_students::text[] AS public_profile_keys,
+    occupations.occupation,
+    COALESCE(session_stats.num_sessions_tutored, 0) AS num_sessions_tutored,
+    COALESCE(session_stats.num_students_helped, 0) AS num_students_helped,
+    round(COALESCE(session_stats.time_tutored, 0) / 3600000::numeric, 2)::float AS hours_tutored
+FROM
+    volunteer_profiles
+    LEFT JOIN (
+        SELECT
+            array_agg(occupation) AS occupation
+        FROM
+            volunteer_occupations
+        WHERE
+            user_id = :userId!
+        GROUP BY
+            user_id) AS occupations ON TRUE
+    LEFT JOIN (
+        SELECT
+            COUNT(*) FILTER (WHERE time_tutored > :minSessionLength!::int
+                    AND ended_at IS NOT NULL)::int AS num_sessions_tutored,
+                COUNT(DISTINCT student_id) FILTER (WHERE time_tutored >= :minSessionLength!::int
+                    AND ended_at IS NOT NULL)::int AS num_students_helped,
+                SUM(time_tutored) AS time_tutored
+            FROM
+                sessions
+        WHERE
+            volunteer_id = :userId!) AS session_stats ON TRUE
+WHERE
+    volunteer_profiles.user_id = :userId!;
+
+
 /* @name getSubjectAndReadyToCoachInfoByUserIds */
 WITH muted_subjects AS (
     SELECT

@@ -9,6 +9,7 @@ import {
 } from '../constants'
 import { Ulid, Uuid } from '../models/pgUtils'
 import { createAccountAction } from '../models/UserAction'
+import * as SessionRepo from '../models/Session'
 import * as VolunteerRepo from '../models/Volunteer'
 import * as UsersSchoolsRepo from '../models/UsersSchools'
 import * as UsersGradeLevelRepo from '../models/UsersGradeLevels'
@@ -19,17 +20,22 @@ import { getTotalElapsedAvailabilityForDateRange } from './AvailabilityService'
 import * as MailService from './MailService'
 import * as ReferralService from './ReferralService'
 import QueueService from './QueueService'
+import SocketService from './SocketService'
 import { getTimeTutoredForDateRange } from './SessionService'
 import { getQuizzesPassedForDateRangeById } from '../models/UserAction'
 import { getClient, runInTransaction, TransactionClient } from '../db'
 import {
+  VolunteerPublicInfo,
   Sponsorship,
   TextableVolunteer,
   VolunteerForOnboarding,
+  VolunteerPublicProfileInfoShared,
   VolunteerOccupations,
   VolunteerProfileUpdate,
+  VolunteerPublicProfileStats,
   VolunteerWithReadyToCoachInfo,
 } from '../models/Volunteer'
+import config from '../config'
 import * as cache from '../cache'
 import { getSubjectsWithTopic } from './SubjectsService'
 import logger from '../logger'
@@ -555,4 +561,45 @@ export function isReadyToCoach(status: {
     status.isApproved &&
     !isPlatformBanType(status.banType)
   )
+}
+
+export async function getInfoSharedWithStudents(
+  volunteerId: Ulid
+): Promise<VolunteerPublicProfileInfoShared | undefined> {
+  const shareInfoStats = await VolunteerRepo.getVolunteerPublicProfileStats(
+    volunteerId,
+    config.minSessionLength
+  )
+  return shareInfoStats
+    ? toVolunteerPublicProfileInfoShared(shareInfoStats)
+    : undefined
+}
+
+export async function emitSharedInfoToCurrentSession(volunteerId: Ulid) {
+  const [sessionId, publicProfileStats] = await Promise.all([
+    SessionRepo.getCurrentSessionIdByVolunteerId(volunteerId),
+    getInfoSharedWithStudents(volunteerId),
+  ])
+  if (!sessionId) return
+  SocketService.getInstance().emitSharedInfo(
+    sessionId,
+    volunteerId,
+    publicProfileStats ?? {}
+  )
+}
+
+function toVolunteerPublicProfileInfoShared(
+  shareInfoStats: VolunteerPublicProfileStats
+): VolunteerPublicProfileInfoShared {
+  const shared = shareInfoStats.publicProfileKeys
+  const sharedInfo: VolunteerPublicProfileInfoShared = {}
+  if (shared.includes(VolunteerPublicInfo.OCCUPATION))
+    sharedInfo.occupation = shareInfoStats.occupation
+  if (shared.includes(VolunteerPublicInfo.NUM_SESSIONS_TUTORED))
+    sharedInfo.numSessionsTutored = shareInfoStats.numSessionsTutored
+  if (shared.includes(VolunteerPublicInfo.NUM_STUDENTS_HELPED))
+    sharedInfo.numStudentsHelped = shareInfoStats.numStudentsHelped
+  if (shared.includes(VolunteerPublicInfo.TOTAL_VOLUNTEER_HOURS))
+    sharedInfo.totalVolunteerHours = shareInfoStats.totalVolunteerHours
+  return sharedInfo
 }

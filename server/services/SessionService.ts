@@ -58,6 +58,7 @@ import * as PhotoDnaService from './PhotoDnaService'
 import * as PushTokenService from './PushTokenService'
 import * as NotifyVolunteerService from './NotifyVolunteerService'
 import * as VolunteerRepo from '../models/Volunteer'
+import * as VolunteerService from './VolunteerService'
 import QueueService from './QueueService'
 import * as QuillDocService from './QuillDocService'
 import SocketService from './SocketService'
@@ -775,8 +776,28 @@ export async function checkSession(data: unknown) {
 
 export async function currentSession(userId: Uuid) {
   const session = await SessionRepo.getCurrentSessionByUserId(userId)
-  if (session) await addDocEditorVersionTo(session)
+  if (session) {
+    await addDocEditorVersionTo(session)
+    if (session.studentId === userId)
+      await addVolunteerPublicProfileStatsTo(session)
+  }
   return session
+}
+
+export async function addVolunteerPublicProfileStatsTo(
+  session: CurrentSession
+): Promise<void> {
+  if (!session.volunteer) return
+  try {
+    session.volunteer.publicProfileStats =
+      await VolunteerService.getInfoSharedWithStudents(session.volunteer.id)
+  } catch (err) {
+    logger.error('Failed to fetch volunteer shared info for session', {
+      err,
+      volunteerId: session.volunteer.id,
+      sessionId: session.id,
+    })
+  }
 }
 
 // TODO: Make sure all callers of SessionRepo.getSessionById call this function instead

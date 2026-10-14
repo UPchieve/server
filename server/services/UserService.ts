@@ -75,6 +75,12 @@ export async function parseUser(userId: Ulid): Promise<LegacyUserModel> {
     user.uniqueStudentsHelpedCount =
       await ImpactStatsService.uniqueStudentsHelpedCount(userId)
 
+    const shareInfoStats = await VolunteerRepo.getVolunteerPublicProfileStats(
+      userId,
+      config.minSessionLength
+    )
+    user.numSessionsTutored = shareInfoStats?.numSessionsTutored ?? 0
+
     user.sponsorships =
       await VolunteerService.getActiveSponsorshipsByUserId(userId)
     const { references, photoIdS3Key, ...parsedUser } = user

@@ -106,6 +106,21 @@ export type VolunteerWithReadyToCoachInfo = {
   banType?: USER_BAN_TYPES
 }
 
+export enum VolunteerPublicInfo {
+  OCCUPATION = 'occupation',
+  TOTAL_VOLUNTEER_HOURS = 'totalVolunteerHours',
+  NUM_STUDENTS_HELPED = 'numStudentsHelped',
+  NUM_SESSIONS_TUTORED = 'numSessionsTutored',
+}
+
+// Only contains the fields the volunteer has chosen to share with students
+export type VolunteerPublicProfileInfoShared = {
+  [VolunteerPublicInfo.OCCUPATION]?: string[]
+  [VolunteerPublicInfo.TOTAL_VOLUNTEER_HOURS]?: number
+  [VolunteerPublicInfo.NUM_STUDENTS_HELPED]?: number
+  [VolunteerPublicInfo.NUM_SESSIONS_TUTORED]?: number
+}
+
 export enum VolunteerOccupations {
   WORKING_PART_TIME = 'Working part-time',
   WORKING_FULL_TIME = 'Working full-time',

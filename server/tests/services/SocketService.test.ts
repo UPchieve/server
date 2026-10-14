@@ -21,6 +21,7 @@ jest.mock('../../models/Session/queries', () => ({
 jest.mock('../../services/SessionService', () => ({
   ensureCanJoinSession: jest.fn(),
   getCurrentSessionById: jest.fn(),
+  addVolunteerPublicProfileStatsTo: jest.fn(),
 }))
 jest.mock('../../services/SessionHoldsService', () => ({
   getEligibleOnlineCoaches: jest.fn(),

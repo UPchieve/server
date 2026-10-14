@@ -6,12 +6,11 @@ import Delta from 'quill-delta'
 import { SessionMessageType } from '../router/api/sockets'
 import { USER_BAN_TYPES } from '../constants'
 import type { CurrentSessionPublic } from '@upchieve/api-contracts/sessions'
+import { VolunteerPublicProfileInfoShared } from '../models/Volunteer/types'
 
 export type SocketDelta = Delta & {
   id?: string
 }
-
-export type ShareInfoPayload = string
 
 export type ClientToServerEvents = {
   join: (data: { sessionId: Ulid; joinedFrom: string }) => void
@@ -58,7 +57,6 @@ export type ClientToServerEvents = {
   }) => void
   addPartnerLiveMediaBan: (data: { sessionId: string }) => void
   joinedLiveMedia: (data: { sessionId: string }) => void
-  'sessions/share-info:opt-in': (message: ShareInfoPayload) => void
   dismissSessionHold: (data: { sessionId: string }) => void
 }
 
@@ -66,7 +64,9 @@ export type ServerToClientEvents = {
   redirect: (error?: Error) => void
   message: (data: { sessionId: Ulid; message: string }) => void
   'sessions/partner:in-session': (status: boolean) => void
-  'sessions/partner:share-info-opt-in': (message: ShareInfoPayload) => void
+  'sessions/partner:public-profile-stats-updated': (
+    publicProfileStats: VolunteerPublicProfileInfoShared
+  ) => void
   'sessions/recap:joined': () => void
   'sessions/recap:join-failed': (error: Error) => void
   celebrate: (data: { duration: number }) => void

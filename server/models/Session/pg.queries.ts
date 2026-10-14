@@ -1298,6 +1298,43 @@ const getCurrentSessionByUserIdIR: any = {"usedParamSet":{"userId":true},"params
 export const getCurrentSessionByUserId = new PreparedQuery<IGetCurrentSessionByUserIdParams,IGetCurrentSessionByUserIdResult>(getCurrentSessionByUserIdIR);
 
 
+/** 'GetCurrentSessionIdByVolunteerId' parameters type */
+export interface IGetCurrentSessionIdByVolunteerIdParams {
+  volunteerId: string;
+}
+
+/** 'GetCurrentSessionIdByVolunteerId' return type */
+export interface IGetCurrentSessionIdByVolunteerIdResult {
+  /** not_pii: Primary key */
+  id: string;
+}
+
+/** 'GetCurrentSessionIdByVolunteerId' query type */
+export interface IGetCurrentSessionIdByVolunteerIdQuery {
+  params: IGetCurrentSessionIdByVolunteerIdParams;
+  result: IGetCurrentSessionIdByVolunteerIdResult;
+}
+
+const getCurrentSessionIdByVolunteerIdIR: any = {"usedParamSet":{"volunteerId":true},"params":[{"name":"volunteerId","required":true,"transform":{"type":"scalar"},"locs":[{"a":57,"b":69}]}],"statement":"SELECT\n    id\nFROM\n    sessions\nWHERE\n    volunteer_id = :volunteerId!\n    AND ended_at IS NULL\nORDER BY\n    created_at DESC\nLIMIT 1"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     id
+ * FROM
+ *     sessions
+ * WHERE
+ *     volunteer_id = :volunteerId!
+ *     AND ended_at IS NULL
+ * ORDER BY
+ *     created_at DESC
+ * LIMIT 1
+ * ```
+ */
+export const getCurrentSessionIdByVolunteerId = new PreparedQuery<IGetCurrentSessionIdByVolunteerIdParams,IGetCurrentSessionIdByVolunteerIdResult>(getCurrentSessionIdByVolunteerIdIR);
+
+
 /** 'GetCurrentSessionBySessionId' parameters type */
 export interface IGetCurrentSessionBySessionIdParams {
   sessionId?: string | null | void;

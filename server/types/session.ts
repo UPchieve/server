@@ -1,4 +1,5 @@
 import { Uuid } from './shared'
+import { VolunteerPublicProfileInfoShared } from '../models/Volunteer/types'
 
 // TODO: Change name to SessionMessage, this should be a domain type, not a public type
 export type MessageForFrontend = {
@@ -19,6 +20,7 @@ export type CurrentSessionUser = {
     asStudent: Uuid[]
     asVolunteer: Uuid[]
   }
+  publicProfileStats?: VolunteerPublicProfileInfoShared
 }
 
 // This type represents the user's in-progress tutoring session

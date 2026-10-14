@@ -764,29 +764,6 @@ export function routeSockets(io: Server): void {
         })
     )
 
-    socket.on('sessions/share-info:opt-in', async (message) => {
-      await observeWebTransaction(
-        '/socket-io/sessions/share-info:opt-in',
-        async () => {
-          try {
-            const user = await extractSocketUser(socket)
-            const { sessionId } = socket.data
-            if (!sessionId) return
-            await socketService.emitShareInfoOptIn(
-              user.id,
-              sessionId,
-              message ?? ''
-            )
-          } catch (err) {
-            logger.error('Failed to relay share-info opt-in', {
-              err,
-              userId: socket.request.user?.id,
-            })
-          }
-        }
-      )
-    })
-
     socket.conn.once('upgrade', () => {
       socket.data.downgraded = false
       logSocketEvent('transportUpgrade', socket)

@@ -50,6 +50,7 @@ function toSessionUserInfoPublic(
     id: data.id,
     firstname: data.firstName,
     firstName: data.firstName,
+    publicProfileStats: data.publicProfileStats,
   }
 }
 

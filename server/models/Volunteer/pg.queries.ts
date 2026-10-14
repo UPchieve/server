@@ -3,6 +3,8 @@ import { PreparedQuery } from '@pgtyped/runtime';
 
 export type ban_types = 'complete' | 'live_media' | 'shadow';
 
+export type volunteer_info_type = 'numSessionsTutored' | 'numStudentsHelped' | 'occupation' | 'totalVolunteerHours';
+
 export type DateOrString = Date | string;
 
 export type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
@@ -10,6 +12,8 @@ export type Json = null | boolean | number | string | Json[] | { [key: string]: 
 export type NumberOrString = number | string;
 
 export type stringArray = (string)[];
+
+export type volunteer_info_typeArray = (volunteer_info_type)[];
 
 /** 'GetVolunteerContactInfoById' parameters type */
 export interface IGetVolunteerContactInfoByIdParams {
@@ -3700,6 +3704,107 @@ const getVolunteerOccupationsIR: any = {"usedParamSet":{"userId":true},"params":
  * ```
  */
 export const getVolunteerOccupations = new PreparedQuery<IGetVolunteerOccupationsParams,IGetVolunteerOccupationsResult>(getVolunteerOccupationsIR);
+
+
+/** 'UpdateVolunteerPublicProfileInfoShared' parameters type */
+export interface IUpdateVolunteerPublicProfileInfoSharedParams {
+  publicProfileKeys: volunteer_info_typeArray;
+  userId: string;
+}
+
+/** 'UpdateVolunteerPublicProfileInfoShared' return type */
+export interface IUpdateVolunteerPublicProfileInfoSharedResult {
+  /** not_pii: Foreign key to upchieve.users */
+  ok: string;
+}
+
+/** 'UpdateVolunteerPublicProfileInfoShared' query type */
+export interface IUpdateVolunteerPublicProfileInfoSharedQuery {
+  params: IUpdateVolunteerPublicProfileInfoSharedParams;
+  result: IUpdateVolunteerPublicProfileInfoSharedResult;
+}
+
+const updateVolunteerPublicProfileInfoSharedIR: any = {"usedParamSet":{"publicProfileKeys":true,"userId":true},"params":[{"name":"publicProfileKeys","required":true,"transform":{"type":"scalar"},"locs":[{"a":365,"b":383}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":405,"b":412}]}],"statement":"-- Intentionally a full replace, not COALESCE'd like updateVolunteerProfile's\n-- columns above: the caller always sends the volunteer's complete desired\n-- selection (an empty array is a valid, deliberate \"share nothing\"), so\n-- there's no \"leave this field alone\" case for this column to preserve.\nUPDATE\n    volunteer_profiles\nSET\n    info_shared_with_students = :publicProfileKeys!\nWHERE\n    user_id = :userId!\nRETURNING\n    user_id AS ok"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * -- Intentionally a full replace, not COALESCE'd like updateVolunteerProfile's
+ * -- columns above: the caller always sends the volunteer's complete desired
+ * -- selection (an empty array is a valid, deliberate "share nothing"), so
+ * -- there's no "leave this field alone" case for this column to preserve.
+ * UPDATE
+ *     volunteer_profiles
+ * SET
+ *     info_shared_with_students = :publicProfileKeys!
+ * WHERE
+ *     user_id = :userId!
+ * RETURNING
+ *     user_id AS ok
+ * ```
+ */
+export const updateVolunteerPublicProfileInfoShared = new PreparedQuery<IUpdateVolunteerPublicProfileInfoSharedParams,IUpdateVolunteerPublicProfileInfoSharedResult>(updateVolunteerPublicProfileInfoSharedIR);
+
+
+/** 'GetVolunteerPublicProfileStats' parameters type */
+export interface IGetVolunteerPublicProfileStatsParams {
+  minSessionLength: number;
+  userId: string;
+}
+
+/** 'GetVolunteerPublicProfileStats' return type */
+export interface IGetVolunteerPublicProfileStatsResult {
+  hoursTutored: number | null;
+  numSessionsTutored: number | null;
+  numStudentsHelped: number | null;
+  occupation: stringArray | null;
+  publicProfileKeys: stringArray | null;
+}
+
+/** 'GetVolunteerPublicProfileStats' query type */
+export interface IGetVolunteerPublicProfileStatsQuery {
+  params: IGetVolunteerPublicProfileStatsParams;
+  result: IGetVolunteerPublicProfileStatsResult;
+}
+
+const getVolunteerPublicProfileStatsIR: any = {"usedParamSet":{"userId":true,"minSessionLength":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":555,"b":562},{"a":1111,"b":1118},{"a":1185,"b":1192}]},{"name":"minSessionLength","required":true,"transform":{"type":"scalar"},"locs":[{"a":706,"b":723},{"a":879,"b":896}]}],"statement":"SELECT\n    volunteer_profiles.info_shared_with_students::text[] AS public_profile_keys,\n    occupations.occupation,\n    COALESCE(session_stats.num_sessions_tutored, 0) AS num_sessions_tutored,\n    COALESCE(session_stats.num_students_helped, 0) AS num_students_helped,\n    round(COALESCE(session_stats.time_tutored, 0) / 3600000::numeric, 2)::float AS hours_tutored\nFROM\n    volunteer_profiles\n    LEFT JOIN (\n        SELECT\n            array_agg(occupation) AS occupation\n        FROM\n            volunteer_occupations\n        WHERE\n            user_id = :userId!\n        GROUP BY\n            user_id) AS occupations ON TRUE\n    LEFT JOIN (\n        SELECT\n            COUNT(*) FILTER (WHERE time_tutored > :minSessionLength!::int\n                    AND ended_at IS NOT NULL)::int AS num_sessions_tutored,\n                COUNT(DISTINCT student_id) FILTER (WHERE time_tutored >= :minSessionLength!::int\n                    AND ended_at IS NOT NULL)::int AS num_students_helped,\n                SUM(time_tutored) AS time_tutored\n            FROM\n                sessions\n        WHERE\n            volunteer_id = :userId!) AS session_stats ON TRUE\nWHERE\n    volunteer_profiles.user_id = :userId!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     volunteer_profiles.info_shared_with_students::text[] AS public_profile_keys,
+ *     occupations.occupation,
+ *     COALESCE(session_stats.num_sessions_tutored, 0) AS num_sessions_tutored,
+ *     COALESCE(session_stats.num_students_helped, 0) AS num_students_helped,
+ *     round(COALESCE(session_stats.time_tutored, 0) / 3600000::numeric, 2)::float AS hours_tutored
+ * FROM
+ *     volunteer_profiles
+ *     LEFT JOIN (
+ *         SELECT
+ *             array_agg(occupation) AS occupation
+ *         FROM
+ *             volunteer_occupations
+ *         WHERE
+ *             user_id = :userId!
+ *         GROUP BY
+ *             user_id) AS occupations ON TRUE
+ *     LEFT JOIN (
+ *         SELECT
+ *             COUNT(*) FILTER (WHERE time_tutored > :minSessionLength!::int
+ *                     AND ended_at IS NOT NULL)::int AS num_sessions_tutored,
+ *                 COUNT(DISTINCT student_id) FILTER (WHERE time_tutored >= :minSessionLength!::int
+ *                     AND ended_at IS NOT NULL)::int AS num_students_helped,
+ *                 SUM(time_tutored) AS time_tutored
+ *             FROM
+ *                 sessions
+ *         WHERE
+ *             volunteer_id = :userId!) AS session_stats ON TRUE
+ * WHERE
+ *     volunteer_profiles.user_id = :userId!
+ * ```
+ */
+export const getVolunteerPublicProfileStats = new PreparedQuery<IGetVolunteerPublicProfileStatsParams,IGetVolunteerPublicProfileStatsResult>(getVolunteerPublicProfileStatsIR);
 
 
 /** 'GetSubjectAndReadyToCoachInfoByUserIds' parameters type */

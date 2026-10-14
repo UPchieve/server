@@ -394,6 +394,7 @@ SELECT
     volunteer_profiles.state,
     volunteer_profiles.city,
     volunteer_profiles.college,
+    volunteer_profiles.info_shared_with_students::text[] AS public_profile_keys,
     (
         CASE WHEN volunteer_profiles.user_id IS NOT NULL THEN
             TRUE

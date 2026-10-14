@@ -18,6 +18,8 @@ import {
   deleteUsersSchoolsByUserId,
   upsertUsersSchool,
 } from '../models/UsersSchools'
+import * as VolunteerService from './VolunteerService'
+import logger from '../logger'
 
 export async function updateUserProfile(
   user: UserContactInfo,
@@ -28,12 +30,21 @@ export async function updateUserProfile(
     await updateUserProfileById(user.id, data, tc)
 
     if (user.roleContext.isActiveRole('volunteer')) {
-      await updateSubjectAlerts(user.id, data.mutedSubjectAlerts, tc)
+      if (data.mutedSubjectAlerts) {
+        await updateSubjectAlerts(user.id, data.mutedSubjectAlerts, tc)
+      }
       if (data.occupation) {
         await VolunteerRepo.deleteVolunteerOccupations(user.id, tc)
         await VolunteerRepo.insertVolunteerOccupations(
           user.id,
           data.occupation,
+          tc
+        )
+      }
+      if (data.publicProfileKeys) {
+        await VolunteerRepo.updateVolunteerPublicProfileInfoShared(
+          user.id,
+          data.publicProfileKeys,
           tc
         )
       }
@@ -73,6 +84,17 @@ export async function updateUserProfile(
       await createOrUpdateSendGridContact(user.id)
     }
   })
+
+  if (data.publicProfileKeys && user.roleContext.isActiveRole('volunteer')) {
+    try {
+      await VolunteerService.emitSharedInfoToCurrentSession(user.id)
+    } catch (err) {
+      logger.error('Failed to emit updated shared info to current session', {
+        err,
+        userId: user.id,
+      })
+    }
+  }
 
   if (data.deactivated !== user.deactivated) {
     if (data.deactivated) {

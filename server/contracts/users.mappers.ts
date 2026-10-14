@@ -197,6 +197,7 @@ export function toLegacyUserPublic(user: LegacyUserModel): LegacyUserPublic {
       ? toTrainingCoursesPublic(user.trainingCourses)
       : undefined,
     occupation: user.occupation,
+    publicProfileKeys: user.publicProfileKeys,
     country: user.country,
     timezone: user.timezone,
     totalVolunteerHours: user.totalVolunteerHours,
@@ -206,6 +207,7 @@ export function toLegacyUserPublic(user: LegacyUserModel): LegacyUserPublic {
     references: user.references?.map(toReferencePublic),
     photoIdStatus: user.photoIdStatus,
     uniqueStudentsHelpedCount: user.uniqueStudentsHelpedCount,
+    numSessionsTutored: user.numSessionsTutored,
     hasCompletedVolunteerTraining: user.hasCompletedVolunteerTraining,
     gradeLevel: user.gradeLevel,
     schoolName: user.schoolName,

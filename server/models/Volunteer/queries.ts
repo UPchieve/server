@@ -25,6 +25,7 @@ import { Availability } from '../Availability/types'
 import { getAvailabilityForVolunteer } from '../Availability'
 import {
   Quizzes,
+  VolunteerPublicInfo,
   Sponsorship,
   TextableVolunteer,
   VolunteerOccupations,
@@ -1844,6 +1845,23 @@ export async function getVolunteerOccupations(
   }
 }
 
+export async function updateVolunteerPublicProfileInfoShared(
+  userId: Ulid,
+  publicProfileKeys: VolunteerPublicInfo[],
+  tc: TransactionClient = getClient()
+): Promise<void> {
+  try {
+    const result = await pgQueries.updateVolunteerPublicProfileInfoShared.run(
+      { userId, publicProfileKeys },
+      tc
+    )
+    if (!(result.length && makeRequired(result[0]).ok))
+      throw new RepoUpdateError('Update did not return ok')
+  } catch (err) {
+    throw new RepoUpdateError(err)
+  }
+}
+
 export async function getSubjectAndReadyToCoachInfoByUserIds(
   userIds: Ulid[],
   tc: TransactionClient = getRoClient()
@@ -1873,5 +1891,41 @@ export async function getSubjectAndReadyToCoachInfoByUserIds(
     })
   } catch (err) {
     throw new RepoReadError(err)
+  }
+}
+
+export type VolunteerPublicProfileStats = {
+  publicProfileKeys: VolunteerPublicInfo[]
+  occupation: VolunteerOccupations[]
+  numSessionsTutored: number
+  numStudentsHelped: number
+  totalVolunteerHours: number
+}
+
+export async function getVolunteerPublicProfileStats(
+  userId: Ulid,
+  minSessionLength: number,
+  tc: TransactionClient = getClient()
+): Promise<VolunteerPublicProfileStats | undefined> {
+  try {
+    const results = await pgQueries.getVolunteerPublicProfileStats.run(
+      { userId, minSessionLength },
+      tc
+    )
+    if (!results.length) return undefined
+    const row = makeSomeRequired(results[0], [
+      'numSessionsTutored',
+      'numStudentsHelped',
+      'hoursTutored',
+    ])
+    return {
+      publicProfileKeys: (row.publicProfileKeys ?? []) as VolunteerPublicInfo[],
+      occupation: (row.occupation ?? []) as VolunteerOccupations[],
+      numSessionsTutored: row.numSessionsTutored,
+      numStudentsHelped: row.numStudentsHelped,
+      totalVolunteerHours: row.hoursTutored,
+    }
+  } catch (error) {
+    throw new RepoReadError(error)
   }
 }
