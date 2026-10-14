@@ -505,28 +505,6 @@ function isTotpSessionValid(totpVerifiedAt?: number): boolean {
   )
 }
 
-function isAuthenticatedRedirect(
-  req: Request,
-  res: Response,
-  next: NextFunction
-) {
-  if (req.isAuthenticated()) {
-    return next()
-  }
-  return res.redirect('/')
-}
-
-function isAdminRedirect(
-  req: Express.Request,
-  res: Response,
-  next: NextFunction
-) {
-  if (req.user && req.user.isAdmin) {
-    return next()
-  }
-  return res.redirect('/')
-}
-
 async function checkRecaptcha(req: Request, res: Response, next: NextFunction) {
   if (isE2eEnvironment()) return next()
   const passes = await validateRequestRecaptcha(req)
@@ -546,7 +524,5 @@ export const authPassport = {
   isAdmin,
   isAdminOnly,
   isTotpSessionValid,
-  isAuthenticatedRedirect,
-  isAdminRedirect,
   checkRecaptcha,
 }

@@ -11,18 +11,12 @@ if (process.env.SUBWAY_REDIS_USE_TLS === 'true') {
   redisConnectionString = `redis://${redisHost}:${redisPort}`
 }
 
-const bannedServiceProviderList =
-  process.env.SUBWAY_BANNED_SERVICE_PROVIDERS || 'Example'
-const bannedServiceProviders = bannedServiceProviderList.split(',')
-
 const config = {
   NODE_ENV: process.env.NODE_ENV || 'dev',
-  SSL_CERT_PATH: '',
   // set host to your public IP address to test Twilio voice calling
   host: process.env.SUBWAY_SERVER_HOST || 'localhost:8080',
   apiOrigin: process.env.SUBWAY_SERVER_API_ORIGIN || 'http://localhost:3000',
   protocol: process.env.SUBWAY_SERVER_PROTOCOL || 'http',
-  additionalAllowedOrigins: process.env.SUBWAY_ADDITIONAL_ALLOWED_ORIGINS || '',
   sessionSecret: process.env.SUBWAY_SESSION_SECRET || 'secret',
   sessionCookieMaxAge: parseInt(
     process.env.SUBWAY_SESSION_COOKIE_MAX_AGE || '5184000000'
@@ -30,13 +24,6 @@ const config = {
   sessionCookieName: process.env.SUBWAY_SESSION_COOKIE_NAME || 'connect.sid',
   requestTimeout: process.env.REQUEST_TIMEOUT || '30000',
   saltRounds: 10,
-  smtp: {
-    host: process.env.SUBWAY_SMTP_HOST || 'smtp.mailtrap.io',
-    port: parseInt(process.env.SUBWAY_SMTP_PORT || '2525'),
-    secure: (process.env.SUBWAY_SMTP_SECURE as unknown as boolean) || false,
-    user: process.env.SUBWAY_SMTP_USER || '',
-    password: process.env.SUBWAY_SMTP_PASSWORD || '',
-  },
   sendgrid: {
     apiKey: process.env.SUBWAY_SENDGRID_API_KEY || 'SG.',
     contactTemplate: 'd-e79546f380874c58965c163f45df2ef4',
@@ -224,9 +211,6 @@ const config = {
     host: process.env.SUBWAY_CLIENT_HOST || 'localhost:8080',
   },
   apiPort: Number(process.env.SUBWAY_API_PORT) || 3000,
-  socketsPort: Number(process.env.SUBWAY_SOCKETS_PORT) || 3000,
-
-  socketApiKey: process.env.SUBWAY_SOCKET_API_KEY || 'bogus',
 
   socketIOAdminUsername: process.env.SUBWAY_SOCKET_IO_ADMIN_USERNAME || 'bogus',
 
@@ -270,7 +254,6 @@ const config = {
   // Twilio Credentials
   accountSid: process.env.SUBWAY_TWILIO_ACCOUNT_SID || '',
   authToken: process.env.SUBWAY_TWILIO_AUTH_TOKEN || '',
-  sendingNumber: process.env.SUBWAY_TWILIO_SENDING_NUMBER || '',
   twilioAccountVerificationServiceSid:
     process.env.SUBWAY_TWILIO_ACCOUNT_VERIFICATION_SERVICE_SID || '',
   twilioVerificationRateLimitUniqueName: 'userId',
@@ -305,9 +288,6 @@ const config = {
 
   workerQueueName: 'main',
   redisConnectionString,
-  redisHost,
-  redisPort,
-  redisPassword,
   postgresHost: process.env.SUBWAY_POSTGRES_HOST || 'localhost',
   postgresRoHost: process.env.SUBWAY_POSTGRES_RO_HOST || 'localhost',
   postgresAnalyticsHost:
@@ -324,7 +304,6 @@ const config = {
   firebase: {
     projectId: process.env.SUBWAY_FIREBASE_PROJECT_ID || '123456789012',
   },
-  bannedServiceProviders: bannedServiceProviders,
   awsS3: {
     accessKeyId: process.env.SUBWAY_AWS_ACCESSKEY || 'ACCESSKEY123',
     secretAccessKey:
@@ -349,11 +328,8 @@ const config = {
   awsModerationToolsRegion:
     process.env.SUBWAY_AWS_MODERATION_TOOLS_REGION || 'us-east-1',
   posthogToken: process.env.SUBWAY_POSTHOG_TOKEN || 'bogus',
-  posthogFeatureFlagApiToken:
-    process.env.SUBWAY_POSTHOG_FEATURE_FLAG_API_TOKEN || 'bogus',
   posthogPersonalApiToken:
     process.env.SUBWAY_POSTHOG_PERSONAL_API_TOKEN || 'bogus',
-  posthogProjectId: process.env.SUBWAY_POSTHOG_PROJECT_ID || 'bogus',
   // Flags isFeatureEnabled reports as on when there is no real PostHog token.
   posthogLocalFlags: (process.env.SUBWAY_POSTHOG_LOCAL_FLAGS || '').split(','),
 
@@ -369,7 +345,6 @@ const config = {
   azureClientId: process.env.AZURE_CLIENT_ID || 'bogus',
   azureTenantId: process.env.AZURE_TENANT_ID || 'bogus',
   azureStorageSecret: process.env.AZURE_CLIENT_SECRET || 'bogus',
-  azureSubscriptionId: process.env.AZURE_SUBSCRIPTION_ID || 'bogus',
   whiteboardStorageAccountName:
     process.env.SUBWAY_WHITEBOARD_STORAGE_ACCOUNT_NAME || 'bogus',
   whiteboardStorageContainer:
@@ -435,27 +410,17 @@ const config = {
 
   classlinkClientId: process.env.CLASSLINK_CLIENT_ID || 'bogus',
   classlinkClientSecret: process.env.CLASSLINK_CLIENT_SECRET || 'bogus',
-  classlinkRosterApiKey: process.env.CLASSLINK_ROSTER_API_KEY || 'bogus',
 
   totalQuizQuestions: Number(process.env.TOTAL_QUIZ_QUESTIONS) || 10,
   minSessionLength: Number(process.env.SUBWAY_SESSION_MIN_LENGTH) || 60000,
 
   openAIModelId: process.env.SUBWAY_OPEN_AI_MODEL_ID || 'bogus',
   openAIApiKey: process.env.SUBWAY_OPEN_AI_API_KEY || 'bogus',
-  subwayApiCredentials: process.env.SUBWAY_API_CREDENTIALS || 'bogus',
-  subwayAIVisionEndpoint: process.env.SUBWAY_VISION_AI_ENDPOINT || 'bogus',
-  subwayAIVisionApiKey: process.env.SUBWAY_VISION_AI_API_KEY || 'bogus',
 
   // Langfuse
   langfuseSecretKey: process.env.SUBWAY_LANGFUSE_SECRET_KEY || 'bogus',
   langfusePublicKey: process.env.SUBWAY_LANGFUSE_PUBLIC_KEY || 'bogus',
   langfuseBaseUrl: process.env.SUBWAY_LANGFUSE_BASEURL || 'bogus',
-
-  // Azure Content Safety
-  azureContentSafetyApiKey:
-    process.env.SUBWAY_AZURE_CONTENT_SAFETY_API_KEY || 'bogus',
-  azureContentSafetyBaseUrl:
-    process.env.SUBWAY_AZURE_CONTENT_SAFETY_BASE_URL || 'bogus',
 
   // Moderation
   liveMediaBanInfractionScoreThreshold:

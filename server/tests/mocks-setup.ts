@@ -49,13 +49,6 @@ jest.mock('../config', () => {
     azureClientId: 'bogus',
     azureTenantId: 'bogus',
     azureStorageSecret: 'bogus',
-    smtp: {
-      host: 'smtp.mailtrap.io',
-      port: 2525,
-      secure: false,
-      user: process.env.SUBWAY_SMTP_USER,
-      password: process.env.SUBWAY_SMTP_PASSWORD,
-    },
     mail: {
       senders: {
         noreply:
@@ -133,7 +126,6 @@ jest.mock('../config', () => {
         partnerOrgs: ['example', 'example2'],
       },
     },
-    bannedServiceProviders: ['Example'],
     notificationSchedule: [
       1 * 60 * 1000,
       12 * 1000,
@@ -173,7 +165,6 @@ jest.mock('../config', () => {
       batchSize: 2,
     },
 
-    subwayApiCredentials: 'bogus',
     apiPort: 3000,
 
     // Langfuse
