@@ -44,7 +44,6 @@ jest.mock('../../services/ReferralService')
 
 jest.mock('../../services/VolunteerService')
 jest.mock('../../services/MailService')
-jest.mock('../../services/AnalyticsService')
 jest.mock('../../models/EmailDomainBlocklist')
 jest.mock('../../services/QueueService', () => ({
   add: jest.fn(),

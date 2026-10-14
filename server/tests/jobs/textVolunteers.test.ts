@@ -35,7 +35,6 @@ jest.mock('../../services/SessionService')
 jest.mock('../../clients/twilio')
 jest.mock('../../services/SubjectsService')
 jest.mock('../../services/UserService')
-jest.mock('../../services/FeatureFlagService')
 jest.mock('../../logger')
 
 const mockedAssociatedPartnerService = mocked(AssociatedPartnerService)

@@ -25,7 +25,6 @@ jest.mock('../../../models/Student/queries')
 jest.mock('../../../models/Volunteer/queries')
 jest.mock('../../../services/NotificationService')
 jest.mock('../../../services/MailService')
-jest.mock('../../../worker/logger')
 
 const mockedGetSessionById = mocked(getSessionById)
 const mockedGetStudentContactInfoById = mocked(getStudentContactInfoById)

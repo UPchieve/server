@@ -16,7 +16,6 @@ import config from '../../../config'
 import { EVENTS } from '../../../constants'
 
 jest.mock('../../../logger')
-jest.mock('../../../services/AnalyticsService')
 jest.mock('../../../services/MailService')
 jest.mock('../../../services/SessionService')
 jest.mock('../../../services/NotificationService')

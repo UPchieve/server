@@ -14,7 +14,6 @@ import {
 } from '../mocks/generate'
 import { TransactionClient } from '../../db'
 jest.mock('../../services/VolunteerService')
-jest.mock('../../services/AnalyticsService')
 
 jest.mock('../../models/Volunteer')
 jest.mock('../../models/UserAction')

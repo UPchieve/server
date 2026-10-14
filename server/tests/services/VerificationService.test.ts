@@ -22,7 +22,6 @@ jest.mock('../../models/User/queries')
 jest.mock('../../clients/twilio')
 jest.mock('../../services/MailService')
 jest.mock('../../services/StudentService')
-jest.mock('../../services/FeatureFlagService')
 jest.mock('../../services/UserService')
 jest.mock('../../logger')
 

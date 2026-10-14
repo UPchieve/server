@@ -13,7 +13,6 @@ jest.mock('../../services/AiObservabilityService')
 jest.mock('../../utils/image-utils')
 jest.mock('../../utils/environments')
 jest.mock('../../config')
-jest.mock('@azure/core-auth')
 
 const mockedLogger = mocked(logger)
 const mockedAiObservabilityService = mocked(AiObservabilityService)

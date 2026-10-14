@@ -15,7 +15,6 @@ jest.mock('../../../models/Session')
 jest.mock('../../../models/Notification')
 jest.mock('../../../services/NotificationService')
 jest.mock('../../../services/MailService')
-jest.mock('../../../worker/logger')
 
 const mockedGetStudentForEmailFirstSession = mocked(
   getStudentForEmailFirstSession

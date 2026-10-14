@@ -30,7 +30,6 @@ jest.mock('../../services/OpenAIService', () => {
     invokeModel: jest.fn(),
   }
 })
-jest.mock('../../services/AnalyticsService')
 jest.mock('../../services/EditorSnapshotService')
 jest.mock('../../services/VisionService')
 jest.mock('../../models/ProgressReports')

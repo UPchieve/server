@@ -11,7 +11,6 @@ import logger from '../../logger'
 import * as sessionUtils from '../../utils/session-utils'
 
 jest.mock('../../services/ProgressReportsService')
-jest.mock('../../services/FeatureFlagService')
 jest.mock('../../models/Session')
 jest.mock('../../logger')
 jest.mock('../../utils/session-utils')

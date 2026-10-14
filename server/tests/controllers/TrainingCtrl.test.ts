@@ -26,7 +26,6 @@ import {
 import { buildVolunteerQuizMap } from '../mocks/repos/volunteer-repo.mock'
 import config from '../../config'
 jest.mock('../../services/VolunteerService')
-jest.mock('../../services/AnalyticsService')
 jest.mock('../../models/Question')
 jest.mock('../../models/Subjects')
 jest.mock('../../models/Volunteer')

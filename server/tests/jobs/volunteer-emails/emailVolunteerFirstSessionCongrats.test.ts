@@ -15,7 +15,6 @@ import { Jobs } from '../../../worker/jobs'
 jest.mock('../../../models/Session')
 jest.mock('../../../services/NotificationService')
 jest.mock('../../../services/MailService')
-jest.mock('../../../worker/logger')
 
 const mockedGetVolunteerForEmailFirstSession = mocked(
   getVolunteerForEmailFirstSession

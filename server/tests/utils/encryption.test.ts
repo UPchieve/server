@@ -1,7 +1,5 @@
 import { encrypt, decrypt } from '../../utils/encryption'
 
-jest.mock('../../worker/logger')
-
 describe('encryption utils', () => {
   const validKey = 'a'.repeat(64)
   const alternateKey = 'b'.repeat(64)

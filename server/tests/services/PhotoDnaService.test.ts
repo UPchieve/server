@@ -13,7 +13,6 @@ jest.mock('axios')
 jest.mock('../../services/AzureService')
 jest.mock('../../models/ModerationInfractions')
 jest.mock('../../utils/image-utils')
-jest.mock('../../services/FeatureFlagService')
 jest.mock('../../logger')
 
 const image = {

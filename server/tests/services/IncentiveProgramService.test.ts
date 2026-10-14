@@ -24,7 +24,6 @@ jest.mock('../../services/UserService')
 jest.mock('../../models/Session')
 jest.mock('../../models/UserProductFlags')
 jest.mock('../../services/QueueService')
-jest.mock('../../services/FeatureFlagService')
 
 const mockedUserService = mocked(UserService)
 const mockedUserProductFlagsRepo = mocked(UserProductFlagsRepo)

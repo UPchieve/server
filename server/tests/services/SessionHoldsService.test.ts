@@ -14,7 +14,6 @@ import {
 } from '../../services/SessionHoldsService'
 
 jest.mock('../../cache')
-jest.mock('../../services/FeatureFlagService')
 jest.mock('../../services/PresenceService')
 jest.mock('../../models/Session')
 jest.mock('../../models/Volunteer')
