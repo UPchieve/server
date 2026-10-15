@@ -8,11 +8,15 @@ import { switchActiveRole } from '../../services/UserRolesService'
 import {
   asResetConfirmData,
   authPassport,
+  countSessionCookies,
   getSsoProviderFromRequest,
+  getSsoRequestDiagnostics,
+  hasPendingOAuthState,
   isSupportedSsoProvider,
   registerStudentValidator,
   registerTeacherValidator,
   SessionWithSsoData,
+  SsoRequestDiagnostics,
 } from '../../utils/auth-utils'
 import { InputError, LookupError } from '../../models/Errors'
 import { resError } from '../res-error'
@@ -68,9 +72,15 @@ type SsoCallbackOutcome = 'success' | 'restart' | 'needsEmail' | 'failed'
 function logSsoCallback(
   ssoProvider: string,
   ssoCallbackOutcome: SsoCallbackOutcome,
-  ssoFailureReason?: string
+  ssoFailureReason?: string,
+  diagnostics?: SsoRequestDiagnostics
 ) {
-  const fields = { ssoProvider, ssoCallbackOutcome, ssoFailureReason }
+  const fields = {
+    ssoProvider,
+    ssoCallbackOutcome,
+    ssoFailureReason,
+    ...diagnostics,
+  }
   if (ssoCallbackOutcome === 'failed') logger.warn('SSO callback', fields)
   else logger.info('SSO callback', fields)
 }
@@ -166,7 +176,19 @@ export function routes(app: Express) {
       return
     }
 
-    ;(req.session as SessionWithSsoData).sso = {
+    const session = req.session as SessionWithSsoData
+    const previousStartedAt = session.sso?.startedAt
+    const startedAt = Date.now()
+    logger.info('SSO start', {
+      ssoProvider: provider,
+      ssoSessionCookieCount: countSessionCookies(req),
+      ssoFlowAlreadyPending: hasPendingOAuthState(session),
+      ssoMsSincePreviousStart: previousStartedAt
+        ? startedAt - previousStartedAt
+        : undefined,
+    })
+
+    session.sso = {
       userData: !isLogin
         ? {
             ...req.query,
@@ -181,6 +203,7 @@ export function routes(app: Express) {
       >,
       redirect: req.query.redirect as string,
       errorRedirect,
+      startedAt,
     }
 
     const strategy = provider
@@ -188,6 +211,8 @@ export function routes(app: Express) {
   })
   // Redirect URI for SSO providers.
   router.route('/oauth2/redirect').get((req, res: Response<void>) => {
+    // Read before passport.authenticate: a failed req.asyncLogin can regenerate the session.
+    const diagnostics = getSsoRequestDiagnostics(req)
     const {
       provider = getSsoProviderFromRequest(req),
       isLogin = true,
@@ -197,7 +222,7 @@ export function routes(app: Express) {
     } = (req.session as SessionWithSsoData).sso ?? {}
     if (!provider || !isSupportedSsoProvider(provider)) {
       const reason = `Unknown provider: ${provider}`
-      logSsoCallback(provider, 'failed', reason)
+      logSsoCallback(provider, 'failed', reason, diagnostics)
       res.redirect(
         AuthRedirect.failureRedirect(
           isLogin,
@@ -272,7 +297,8 @@ export function routes(app: Express) {
         logSsoCallback(
           provider,
           'failed',
-          getSsoFailureReason(loginError ?? err, data)
+          getSsoFailureReason(loginError ?? err, data),
+          diagnostics
         )
         return res.redirect(
           AuthRedirect.failureRedirect(

@@ -383,11 +383,11 @@ describe('AuthRouter.routes', () => {
         expect(mockedLogger.warn.mock.calls).toEqual([
           [
             'SSO callback',
-            {
+            expect.objectContaining({
               ssoProvider: 'clever',
               ssoCallbackOutcome: 'failed',
               ssoFailureReason: 'Unable to verify authorization request state.',
-            },
+            }),
           ],
         ])
       })
@@ -399,11 +399,11 @@ describe('AuthRouter.routes', () => {
         expect(mockedLogger.warn.mock.calls).toEqual([
           [
             'SSO callback',
-            {
+            expect.objectContaining({
               ssoProvider: 'clever',
               ssoCallbackOutcome: 'failed',
               ssoFailureReason: 'Session store unavailable',
-            },
+            }),
           ],
         ])
         expect(mockedLogger.info.mock.calls).toEqual([])
@@ -417,11 +417,11 @@ describe('AuthRouter.routes', () => {
         expect(mockedLogger.warn.mock.calls).toEqual([
           [
             'SSO callback',
-            {
+            expect.objectContaining({
               ssoProvider: '',
               ssoCallbackOutcome: 'failed',
               ssoFailureReason: 'Unknown provider: ',
-            },
+            }),
           ],
         ])
       })

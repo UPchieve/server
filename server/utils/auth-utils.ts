@@ -61,6 +61,7 @@ export interface SessionWithSsoData extends session.Session {
       issuer: string
       validator: string
     }
+    startedAt?: number
   }
 }
 
@@ -405,6 +406,36 @@ export function getSsoProviderFromRequest(req: Request): SsoProvider | '' {
   if (referer?.includes('classlink')) return 'classlink'
   if (isSupportedSsoProvider(queryProvider)) return queryProvider as SsoProvider
   return ''
+}
+
+export type SsoRequestDiagnostics = ReturnType<typeof getSsoRequestDiagnostics>
+
+export function countSessionCookies(req: Request) {
+  return (req.headers.cookie ?? '')
+    .split(';')
+    .filter((pair) => pair.trim().startsWith(`${config.sessionCookieName}=`))
+    .length
+}
+
+export function getSsoRequestDiagnostics(req: Request) {
+  const signedCookie: unknown = req.signedCookies?.[config.sessionCookieName]
+  return {
+    ssoSessionCookieCount: countSessionCookies(req),
+    ssoSessionFound:
+      typeof signedCookie === 'string' && signedCookie === req.sessionID,
+    ssoSessionAuthenticated: req.isAuthenticated(),
+    ssoSessionHasSsoData: !!(req.session as SessionWithSsoData).sso,
+  }
+}
+
+// passport-oauth2 (Clever, ClassLink) and passport-openidconnect (Google) keep a flow's state at
+// session['<oauth2|openidconnect>:<authorize host>'].state until a callback verifies it.
+export function hasPendingOAuthState(session: session.Session) {
+  return Object.entries(session).some(
+    ([key, value]) =>
+      (key.startsWith('oauth2:') || key.startsWith('openidconnect:')) &&
+      !!value?.state
+  )
 }
 
 // Passport functions
