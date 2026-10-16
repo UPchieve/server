@@ -19,6 +19,7 @@ import {
   routeNTHSGroups,
 } from '../../../router/api/nths-groups'
 import * as NTHSGroupsService from '../../../services/NTHSGroupsService'
+import * as NTHSChecklistProgressService from '../../../services/NTHSChecklistProgressService'
 import { RepoUpdateError } from '../../../models/Errors'
 import {
   NTHSCandidateApplicationStatus,
@@ -30,8 +31,10 @@ import {
 import { getUuid } from '../../../models/pgUtils'
 
 jest.mock('../../../services/NTHSGroupsService')
+jest.mock('../../../services/NTHSChecklistProgressService')
 
 const mockedNTHSGroupsService = mocked(NTHSGroupsService)
+const mockedNTHSChecklistProgressService = mocked(NTHSChecklistProgressService)
 
 let mockUser = buildVolunteer()
 
@@ -171,6 +174,171 @@ describe('routeNTHSGroups', () => {
         })
       }
     )
+  })
+
+  describe('GET /api/nths-groups/:groupId/checklist', () => {
+    test('returns the checklist with chapter progress to an active admin', async () => {
+      mockedNTHSGroupsService.getActiveGroupMember.mockResolvedValueOnce(
+        buildNTHSGroupMemberWithRole({ roleName: 'admin' })
+      )
+      mockedNTHSChecklistProgressService.getChecklistWithProgress.mockResolvedValueOnce(
+        {
+          checklist: {
+            spreadsheetId: 'spreadsheet-id',
+            sections: [
+              {
+                id: 1,
+                title: 'Get started',
+                order: 0,
+                items: [
+                  {
+                    key: 'recruit-members',
+                    order: 1,
+                    title: 'Recruit members',
+                    resources: [],
+                    checkable: true,
+                    skippable: false,
+                  },
+                ],
+              },
+            ],
+          },
+          progress: [
+            {
+              id: '1',
+              nthsGroupId: groupId,
+              itemKey: 'recruit-members',
+              status: 'complete',
+              updatedByUserId: mockUser.id,
+              createdAt: new Date('2026-10-14T12:00:00.000Z'),
+              updatedAt: new Date('2026-10-14T12:00:00.000Z'),
+            },
+          ],
+          groupCreatedAt: new Date('2026-10-01T12:00:00.000Z'),
+        }
+      )
+
+      const response = await sendGet(`/api/nths-groups/${groupId}/checklist`)
+
+      expect(response.status).toBe(200)
+      expect(
+        mockedNTHSChecklistProgressService.getChecklistWithProgress
+      ).toHaveBeenCalledWith(groupId)
+      expect(response.body).toEqual({
+        checklist: {
+          sections: [
+            {
+              id: 1,
+              title: 'Get started',
+              order: 0,
+              items: [
+                {
+                  key: 'recruit-members',
+                  order: 1,
+                  title: 'Recruit members',
+                  resources: [],
+                  checkable: true,
+                  skippable: false,
+                  status: 'complete',
+                },
+              ],
+            },
+          ],
+        },
+      })
+    })
+
+    test.each([
+      ['active member', buildNTHSGroupMemberWithRole({ roleName: 'member' })],
+      ['inactive/non-member', undefined],
+    ])('gives HTTP 403 to an %s', async (_requester, groupMember) => {
+      mockedNTHSGroupsService.getActiveGroupMember.mockResolvedValueOnce(
+        groupMember
+      )
+
+      const response = await sendGet(`/api/nths-groups/${groupId}/checklist`)
+
+      expect(response.status).toBe(403)
+      expect(
+        mockedNTHSChecklistProgressService.getChecklistWithProgress
+      ).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('PUT /api/nths-groups/:groupId/checklist/:itemKey', () => {
+    test('updates shared progress as an active admin', async () => {
+      mockedNTHSGroupsService.getActiveGroupMember.mockResolvedValueOnce(
+        buildNTHSGroupMemberWithRole({ roleName: 'admin' })
+      )
+      mockedNTHSChecklistProgressService.updateChecklistItemProgress.mockResolvedValueOnce(
+        {
+          id: '1',
+          nthsGroupId: groupId,
+          itemKey: 'recruit-members',
+          status: 'incomplete',
+          updatedByUserId: mockUser.id,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }
+      )
+
+      const response = await sendPut(
+        `/api/nths-groups/${groupId}/checklist/recruit-members`,
+        { status: 'incomplete' }
+      )
+
+      expect(response.status).toBe(200)
+      expect(response.body).toEqual({
+        itemKey: 'recruit-members',
+        status: 'incomplete',
+      })
+      expect(
+        mockedNTHSChecklistProgressService.updateChecklistItemProgress
+      ).toHaveBeenCalledWith({
+        nthsGroupId: groupId,
+        itemKey: 'recruit-members',
+        status: 'incomplete',
+        updatedByUserId: mockUser.id,
+      })
+    })
+
+    test.each([undefined, '', 'checked', 'complete-ish'])(
+      'gives HTTP 422 for status %j',
+      async (status) => {
+        mockedNTHSGroupsService.getActiveGroupMember.mockResolvedValueOnce(
+          buildNTHSGroupMemberWithRole({ roleName: 'admin' })
+        )
+
+        const response = await sendPut(
+          `/api/nths-groups/${groupId}/checklist/recruit-members`,
+          { status }
+        )
+
+        expect(response.status).toBe(422)
+        expect(
+          mockedNTHSChecklistProgressService.updateChecklistItemProgress
+        ).not.toHaveBeenCalled()
+      }
+    )
+
+    test.each([
+      ['active member', buildNTHSGroupMemberWithRole({ roleName: 'member' })],
+      ['inactive/non-member', undefined],
+    ])('gives HTTP 403 to an %s', async (_requester, groupMember) => {
+      mockedNTHSGroupsService.getActiveGroupMember.mockResolvedValueOnce(
+        groupMember
+      )
+
+      const response = await sendPut(
+        `/api/nths-groups/${groupId}/checklist/recruit-members`,
+        { status: 'complete' }
+      )
+
+      expect(response.status).toBe(403)
+      expect(
+        mockedNTHSChecklistProgressService.updateChecklistItemProgress
+      ).not.toHaveBeenCalled()
+    })
   })
 
   describe('PUT /api/nths-groups/:groupId/members/:memberId', () => {

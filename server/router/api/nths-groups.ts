@@ -2,6 +2,7 @@ import { NextFunction, Request, Response, Router } from 'express'
 import { extractUser } from '../extract-user'
 import { resError } from '../res-error'
 import * as NTHSGroupsService from '../../services/NTHSGroupsService'
+import * as NTHSChecklistProgressService from '../../services/NTHSChecklistProgressService'
 import {
   InputError,
   NotAuthenticatedError,
@@ -27,6 +28,13 @@ import { isNthsTitle, NTHS_TITLES } from '../../constants/nths-titles'
 import type { UpdateGroupMemberRequest } from '../../services/NTHSGroupsService'
 import { asDate, asUuid, isUuid } from '../../utils/type-utils'
 import { ONE_DAY_ELAPSED_MILLISECONDS } from '../../constants/time'
+import { toNTHSChecklistPublic } from '../../contracts/nths-checklist.mappers'
+import { isNTHSChecklistItemStatus } from '../../models/NTHSChecklistProgress'
+import type {
+  NTHSChecklistResponse,
+  UpdateNTHSChecklistItemProgressRequest,
+  UpdateNTHSChecklistItemProgressResponse,
+} from '@upchieve/api-contracts/nths-checklist'
 import type {
   NTHSActionsAndGroupActionsResponse,
   NTHSCreateActionResponse,
@@ -184,6 +192,62 @@ export function routeNTHSGroups(router: Router): void {
           )
           return res.json({
             members: members.map(toNTHSGroupMemberWithRolePublic),
+          })
+        } catch (err) {
+          resError(res, err)
+        }
+      }
+    )
+
+  router
+    .route('/nths-groups/:groupId/checklist')
+    .get(
+      isActiveGroupAdmin,
+      async (req: Request, res: Response<NTHSChecklistResponse>) => {
+        try {
+          const { checklist, progress, groupCreatedAt } =
+            await NTHSChecklistProgressService.getChecklistWithProgress(
+              req.params.groupId
+            )
+          return res.json({
+            checklist: toNTHSChecklistPublic(
+              checklist,
+              progress,
+              groupCreatedAt
+            ),
+          })
+        } catch (err) {
+          resError(res, err)
+        }
+      }
+    )
+
+  router
+    .route('/nths-groups/:groupId/checklist/:itemKey')
+    .put(
+      isActiveGroupAdmin,
+      async (
+        req: Request,
+        res: Response<UpdateNTHSChecklistItemProgressResponse>
+      ) => {
+        try {
+          const { status } = (req.body ??
+            {}) as Partial<UpdateNTHSChecklistItemProgressRequest>
+          if (!status || !isNTHSChecklistItemStatus(status))
+            throw new InputError(
+              'status must be complete, incomplete, or skipped'
+            )
+
+          const progress =
+            await NTHSChecklistProgressService.updateChecklistItemProgress({
+              nthsGroupId: req.params.groupId,
+              itemKey: req.params.itemKey,
+              status,
+              updatedByUserId: extractUser(req).id,
+            })
+          return res.json({
+            itemKey: progress.itemKey,
+            status: progress.status,
           })
         } catch (err) {
           resError(res, err)

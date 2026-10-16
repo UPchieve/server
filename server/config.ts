@@ -420,7 +420,9 @@ const config = {
     : Number(process.env.GOOGLE_RECAPTCHA_THRESHOLD),
 
   nthsChecklist: {
-    spreadsheetId: process.env.NTHS_CHECKLIST_SPREADSHEET_ID || '',
+    spreadsheetId:
+      process.env.NTHS_CHECKLIST_SPREADSHEET_ID ||
+      '1V5x3b5Ingjv1Rm_3ZwWtsUlUHgflyk2Erb6QRLk6VBE',
     serviceAccountEmail:
       process.env.NTHS_CHECKLIST_GOOGLE_SERVICE_ACCOUNT_EMAIL || '',
     privateKey: process.env.NTHS_CHECKLIST_GOOGLE_PRIVATE_KEY || '',

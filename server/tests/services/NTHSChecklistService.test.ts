@@ -118,6 +118,32 @@ describe('NTHSChecklistService', () => {
     ])
   })
 
+  test('ignores the README worksheet without validating or reading it', async () => {
+    const readReadmeRows = jest.fn()
+    const checklist = await parseChecklist({
+      spreadsheetId: 'spreadsheet-id',
+      worksheets: [
+        worksheet([], {
+          sheetId: 456,
+          title: '  ReAdMe ',
+          index: 0,
+          headerValues: [],
+          getRows: readReadmeRows,
+        }),
+        worksheet([validRow], { index: 1 }),
+      ],
+    })
+
+    expect(checklist.sections).toEqual([
+      expect.objectContaining({
+        id: 123,
+        title: 'Set up your chapter',
+        order: 1,
+      }),
+    ])
+    expect(readReadmeRows).not.toHaveBeenCalled()
+  })
+
   test('rejects duplicate item keys in the same worksheet', async () => {
     await expect(
       parseChecklist({

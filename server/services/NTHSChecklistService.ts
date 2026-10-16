@@ -15,6 +15,7 @@ import logger from '../logger'
 
 const GOOGLE_SHEETS_READONLY_SCOPE =
   'https://www.googleapis.com/auth/spreadsheets.readonly'
+const README_WORKSHEET_TITLE = 'readme'
 
 const REQUIRED_HEADERS = [
   'item_key',
@@ -52,6 +53,10 @@ export class NTHSChecklistValidationError extends Error {
     super(message)
     this.name = 'NTHSChecklistValidationError'
   }
+}
+
+function isReadmeWorksheet(worksheet: Pick<ChecklistWorksheet, 'title'>) {
+  return worksheet.title.trim().toLowerCase() === README_WORKSHEET_TITLE
 }
 
 function asTrimmedString(value: unknown): string | undefined {
@@ -190,6 +195,7 @@ export async function parseChecklist(source: {
 }): Promise<NTHSChecklist> {
   const sections = await Promise.all(
     source.worksheets
+      .filter((worksheet) => !isReadmeWorksheet(worksheet))
       .slice()
       .sort((left, right) => left.index - right.index)
       .map(parseWorksheet)
@@ -228,12 +234,13 @@ async function loadGoogleWorksheet(): ReturnType<ChecklistSource> {
     auth
   )
   await document.loadInfo()
-  await Promise.all(
-    document.sheetsByIndex.map((sheet) => sheet.loadHeaderRow())
+  const worksheets = document.sheetsByIndex.filter(
+    (worksheet) => !isReadmeWorksheet(worksheet)
   )
+  await Promise.all(worksheets.map((sheet) => sheet.loadHeaderRow()))
   return {
     spreadsheetId: document.spreadsheetId,
-    worksheets: document.sheetsByIndex,
+    worksheets,
   }
 }
 
