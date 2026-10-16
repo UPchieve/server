@@ -6309,6 +6309,14 @@ COPY upchieve.nths_group_actions (id, nths_group_id, nths_action_id, created_at)
 
 
 --
+-- Data for Name: nths_group_checklist_item_progress; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.nths_group_checklist_item_progress (id, nths_group_id, item_key, status, updated_by_user_id, created_at, updated_at) FROM stdin;
+\.
+
+
+--
 -- Data for Name: nths_group_roles; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
@@ -9346,6 +9354,13 @@ SELECT pg_catalog.setval('upchieve.nths_chapter_statuses_id_seq', 3, true);
 --
 
 SELECT pg_catalog.setval('upchieve.nths_group_actions_id_seq', 1, false);
+
+
+--
+-- Name: nths_group_checklist_item_progress_id_seq; Type: SEQUENCE SET; Schema: upchieve; Owner: admin
+--
+
+SELECT pg_catalog.setval('upchieve.nths_group_checklist_item_progress_id_seq', 1, false);
 
 
 --

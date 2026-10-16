@@ -3127,6 +3127,84 @@ ALTER TABLE upchieve.nths_group_actions ALTER COLUMN id ADD GENERATED ALWAYS AS 
 
 
 --
+-- Name: nths_group_checklist_item_progress; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.nths_group_checklist_item_progress (
+    id bigint NOT NULL,
+    nths_group_id uuid NOT NULL,
+    item_key text NOT NULL,
+    status text NOT NULL,
+    updated_by_user_id uuid NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: COLUMN nths_group_checklist_item_progress.id; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.nths_group_checklist_item_progress.id IS 'not_pii: Primary key';
+
+
+--
+-- Name: COLUMN nths_group_checklist_item_progress.nths_group_id; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.nths_group_checklist_item_progress.nths_group_id IS 'not_pii: Foreign key to upchieve.nths_groups';
+
+
+--
+-- Name: COLUMN nths_group_checklist_item_progress.item_key; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.nths_group_checklist_item_progress.item_key IS 'not_pii: Stable key for the checklist item';
+
+
+--
+-- Name: COLUMN nths_group_checklist_item_progress.status; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.nths_group_checklist_item_progress.status IS 'not_pii: Current checklist item status';
+
+
+--
+-- Name: COLUMN nths_group_checklist_item_progress.updated_by_user_id; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.nths_group_checklist_item_progress.updated_by_user_id IS 'pii: User who most recently updated the checklist item';
+
+
+--
+-- Name: COLUMN nths_group_checklist_item_progress.created_at; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.nths_group_checklist_item_progress.created_at IS 'not_pii';
+
+
+--
+-- Name: COLUMN nths_group_checklist_item_progress.updated_at; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.nths_group_checklist_item_progress.updated_at IS 'not_pii';
+
+
+--
+-- Name: nths_group_checklist_item_progress_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE upchieve.nths_group_checklist_item_progress ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME upchieve.nths_group_checklist_item_progress_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
 -- Name: nths_group_member_roles; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -12046,6 +12124,22 @@ ALTER TABLE ONLY upchieve.nths_group_actions
 
 
 --
+-- Name: nths_group_checklist_item_progress nths_group_checklist_item_progress_nths_group_id_item_key_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_group_checklist_item_progress
+    ADD CONSTRAINT nths_group_checklist_item_progress_nths_group_id_item_key_key UNIQUE (nths_group_id, item_key);
+
+
+--
+-- Name: nths_group_checklist_item_progress nths_group_checklist_item_progress_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_group_checklist_item_progress
+    ADD CONSTRAINT nths_group_checklist_item_progress_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: nths_group_member_roles nths_group_member_roles_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -14237,6 +14331,22 @@ ALTER TABLE ONLY upchieve.nths_group_actions
 
 
 --
+-- Name: nths_group_checklist_item_progress nths_group_checklist_item_progress_nths_group_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_group_checklist_item_progress
+    ADD CONSTRAINT nths_group_checklist_item_progress_nths_group_id_fkey FOREIGN KEY (nths_group_id) REFERENCES upchieve.nths_groups(id);
+
+
+--
+-- Name: nths_group_checklist_item_progress nths_group_checklist_item_progress_updated_by_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_group_checklist_item_progress
+    ADD CONSTRAINT nths_group_checklist_item_progress_updated_by_user_id_fkey FOREIGN KEY (updated_by_user_id) REFERENCES upchieve.users(id);
+
+
+--
 -- Name: nths_group_member_roles nths_group_member_roles_nths_group_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -15810,4 +15920,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260917202150'),
     ('20260918082750'),
     ('20260918161310'),
-    ('20261001122732');
+    ('20261001122732'),
+    ('20261014202000');
