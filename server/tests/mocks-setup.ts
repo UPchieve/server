@@ -158,6 +158,12 @@ jest.mock('../config', () => {
 
     // recaptcha
     googleRecaptchaThreshold: 0.5,
+    nthsChecklist: {
+      spreadsheetId: 'test-spreadsheet-id',
+      serviceAccountEmail: 'test-service-account@example.com',
+      privateKey: 'test-private-key',
+      cacheTtlMs: 5 * 60 * 1000,
+    },
 
     totalQuizQuestions: 10,
     minSessionLength: 60000,

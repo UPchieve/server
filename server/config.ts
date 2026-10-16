@@ -419,6 +419,15 @@ const config = {
     ? 0.5
     : Number(process.env.GOOGLE_RECAPTCHA_THRESHOLD),
 
+  nthsChecklist: {
+    spreadsheetId: process.env.NTHS_CHECKLIST_SPREADSHEET_ID || '',
+    serviceAccountEmail:
+      process.env.NTHS_CHECKLIST_GOOGLE_SERVICE_ACCOUNT_EMAIL || '',
+    privateKey: process.env.NTHS_CHECKLIST_GOOGLE_PRIVATE_KEY || '',
+    cacheTtlMs:
+      Number(process.env.NTHS_CHECKLIST_CACHE_TTL_MS) || 5 * 60 * 1000,
+  },
+
   cleverClientId: process.env.CLEVER_CLIENT_ID || 'bogus',
   cleverClientSecret: process.env.CLEVER_CLIENT_SECRET || 'bogus',
 

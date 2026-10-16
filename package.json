@@ -113,6 +113,8 @@
     "express-ws": "^5.0.2",
     "file-type-mime": "^0.4.7",
     "firebase-admin": "^13.6.0",
+    "google-auth-library": "^9.15.1",
+    "google-spreadsheet": "^4.1.4",
     "id128": "^1.6.6",
     "ioredis": "^5.8.1",
     "langfuse": "^3.11.2",
