@@ -1,5 +1,5 @@
 import { getClient, getRoClient, TransactionClient } from '../../db'
-import { RepoReadError, RepoUpsertError } from '../Errors'
+import { RepoCreateError, RepoReadError, RepoUpsertError } from '../Errors'
 import { makeRequired, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import type {
@@ -57,5 +57,25 @@ export async function upsertNTHSChecklistItemProgress(
     return toNTHSChecklistItemProgress(makeRequired(row))
   } catch (err) {
     throw new RepoUpsertError(err)
+  }
+}
+
+export async function insertNTHSChecklistItemProgressIfMissing(
+  args: {
+    nthsGroupId: Ulid
+    itemKey: string
+    status: NTHSChecklistItemStatus
+    updatedByUserId: Ulid
+  },
+  tc: TransactionClient = getClient()
+): Promise<NTHSChecklistItemProgress | undefined> {
+  try {
+    const [row] = await pgQueries.insertNthsChecklistItemProgressIfMissing.run(
+      args,
+      tc
+    )
+    return row ? toNTHSChecklistItemProgress(makeRequired(row)) : undefined
+  } catch (err) {
+    throw new RepoCreateError(err)
   }
 }

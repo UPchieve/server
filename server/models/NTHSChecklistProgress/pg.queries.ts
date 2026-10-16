@@ -54,6 +54,54 @@ const getNthsChecklistProgressByGroupIdIR: any = {"usedParamSet":{"nthsGroupId":
 export const getNthsChecklistProgressByGroupId = new PreparedQuery<IGetNthsChecklistProgressByGroupIdParams,IGetNthsChecklistProgressByGroupIdResult>(getNthsChecklistProgressByGroupIdIR);
 
 
+/** 'InsertNthsChecklistItemProgressIfMissing' parameters type */
+export interface IInsertNthsChecklistItemProgressIfMissingParams {
+  itemKey: string;
+  nthsGroupId: string;
+  status: string;
+  updatedByUserId: string;
+}
+
+/** 'InsertNthsChecklistItemProgressIfMissing' return type */
+export interface IInsertNthsChecklistItemProgressIfMissingResult {
+  /** not_pii */
+  createdAt: Date;
+  /** not_pii: Primary key */
+  id: string;
+  /** not_pii: Stable key for the checklist item */
+  itemKey: string;
+  /** not_pii: Foreign key to upchieve.nths_groups */
+  nthsGroupId: string;
+  /** not_pii: Current checklist item status */
+  status: string;
+  /** not_pii */
+  updatedAt: Date;
+  /** pii: User who most recently updated the checklist item */
+  updatedByUserId: string;
+}
+
+/** 'InsertNthsChecklistItemProgressIfMissing' query type */
+export interface IInsertNthsChecklistItemProgressIfMissingQuery {
+  params: IInsertNthsChecklistItemProgressIfMissingParams;
+  result: IInsertNthsChecklistItemProgressIfMissingResult;
+}
+
+const insertNthsChecklistItemProgressIfMissingIR: any = {"usedParamSet":{"nthsGroupId":true,"itemKey":true,"status":true,"updatedByUserId":true},"params":[{"name":"nthsGroupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":113,"b":125}]},{"name":"itemKey","required":true,"transform":{"type":"scalar"},"locs":[{"a":128,"b":136}]},{"name":"status","required":true,"transform":{"type":"scalar"},"locs":[{"a":139,"b":146}]},{"name":"updatedByUserId","required":true,"transform":{"type":"scalar"},"locs":[{"a":149,"b":165}]}],"statement":"INSERT INTO nths_group_checklist_item_progress (nths_group_id, item_key, status, updated_by_user_id)\n    VALUES (:nthsGroupId!, :itemKey!, :status!, :updatedByUserId!)\nON CONFLICT (nths_group_id, item_key)\n    DO NOTHING\nRETURNING\n    id, nths_group_id, item_key, status, updated_by_user_id, created_at, updated_at"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO nths_group_checklist_item_progress (nths_group_id, item_key, status, updated_by_user_id)
+ *     VALUES (:nthsGroupId!, :itemKey!, :status!, :updatedByUserId!)
+ * ON CONFLICT (nths_group_id, item_key)
+ *     DO NOTHING
+ * RETURNING
+ *     id, nths_group_id, item_key, status, updated_by_user_id, created_at, updated_at
+ * ```
+ */
+export const insertNthsChecklistItemProgressIfMissing = new PreparedQuery<IInsertNthsChecklistItemProgressIfMissingParams,IInsertNthsChecklistItemProgressIfMissingResult>(insertNthsChecklistItemProgressIfMissingIR);
+
+
 /** 'UpsertNthsChecklistItemProgress' parameters type */
 export interface IUpsertNthsChecklistItemProgressParams {
   itemKey: string;

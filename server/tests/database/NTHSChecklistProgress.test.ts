@@ -5,6 +5,7 @@
 import { getClient } from '../../db'
 import {
   getNTHSChecklistProgressByGroupId,
+  insertNTHSChecklistItemProgressIfMissing,
   upsertNTHSChecklistItemProgress,
 } from '../../models/NTHSChecklistProgress'
 import { getCanonicalDbUlid, Ulid } from '../../models/pgUtils'
@@ -23,6 +24,36 @@ async function createChapter(): Promise<Ulid> {
 }
 
 describe('NTHS checklist progress', () => {
+  test('inserts progress only when the group and item have no saved status', async () => {
+    const nthsGroupId = await createChapter()
+    const firstUser = await createTestUser(client)
+    const secondUser = await createTestUser(client)
+
+    const inserted = await insertNTHSChecklistItemProgressIfMissing({
+      nthsGroupId,
+      itemKey: 'complete-orientation',
+      status: 'incomplete',
+      updatedByUserId: firstUser.id,
+    })
+    const ignored = await insertNTHSChecklistItemProgressIfMissing({
+      nthsGroupId,
+      itemKey: 'complete-orientation',
+      status: 'complete',
+      updatedByUserId: secondUser.id,
+    })
+
+    expect(inserted).toMatchObject({
+      nthsGroupId,
+      itemKey: 'complete-orientation',
+      status: 'incomplete',
+      updatedByUserId: firstUser.id,
+    })
+    expect(ignored).toBeUndefined()
+    await expect(
+      getNTHSChecklistProgressByGroupId(nthsGroupId)
+    ).resolves.toEqual([inserted])
+  })
+
   test('stores an explicit incomplete status', async () => {
     const nthsGroupId = await createChapter()
     const user = await createTestUser(client)

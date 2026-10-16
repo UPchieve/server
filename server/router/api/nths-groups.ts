@@ -207,7 +207,8 @@ export function routeNTHSGroups(router: Router): void {
         try {
           const { checklist, progress, groupCreatedAt } =
             await NTHSChecklistProgressService.getChecklistWithProgress(
-              req.params.groupId
+              req.params.groupId,
+              extractUser(req).id
             )
           return res.json({
             checklist: toNTHSChecklistPublic(

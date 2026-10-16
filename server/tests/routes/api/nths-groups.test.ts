@@ -223,7 +223,7 @@ describe('routeNTHSGroups', () => {
       expect(response.status).toBe(200)
       expect(
         mockedNTHSChecklistProgressService.getChecklistWithProgress
-      ).toHaveBeenCalledWith(groupId)
+      ).toHaveBeenCalledWith(groupId, mockUser.id)
       expect(response.body).toEqual({
         checklist: {
           sections: [
