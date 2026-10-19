@@ -197,7 +197,7 @@ FROM
 INSERT INTO nths_groups (id, invite_code, name, KEY)
     VALUES (generate_ulid (), :inviteCode!, :name!, :key!)
 RETURNING
-    *;
+    id, name, KEY, created_at, invite_code;
 
 
 /* Removing someone who already left keeps their original departure time, which

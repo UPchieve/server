@@ -627,10 +627,6 @@ export interface ICreateGroupResult {
   key: string;
   /** not_pii: Human-readable name */
   name: string;
-  /** not_pii: Whether the NTHS chapter is receiving support from a partnership coordinator */
-  receivingCoordinatorSupport: boolean;
-  /** not_pii */
-  updatedAt: Date;
 }
 
 /** 'CreateGroup' query type */
@@ -639,7 +635,7 @@ export interface ICreateGroupQuery {
   result: ICreateGroupResult;
 }
 
-const createGroupIR: any = {"usedParamSet":{"inviteCode":true,"name":true,"key":true},"params":[{"name":"inviteCode","required":true,"transform":{"type":"scalar"},"locs":[{"a":83,"b":94}]},{"name":"name","required":true,"transform":{"type":"scalar"},"locs":[{"a":97,"b":102}]},{"name":"key","required":true,"transform":{"type":"scalar"},"locs":[{"a":105,"b":109}]}],"statement":"INSERT INTO nths_groups (id, invite_code, name, KEY)\n    VALUES (generate_ulid (), :inviteCode!, :name!, :key!)\nRETURNING\n    *                                                                                                                             "};
+const createGroupIR: any = {"usedParamSet":{"inviteCode":true,"name":true,"key":true},"params":[{"name":"inviteCode","required":true,"transform":{"type":"scalar"},"locs":[{"a":83,"b":94}]},{"name":"name","required":true,"transform":{"type":"scalar"},"locs":[{"a":97,"b":102}]},{"name":"key","required":true,"transform":{"type":"scalar"},"locs":[{"a":105,"b":109}]}],"statement":"INSERT INTO nths_groups (id, invite_code, name, KEY)\n    VALUES (generate_ulid (), :inviteCode!, :name!, :key!)\nRETURNING\n    id, name, KEY, created_at, invite_code                                                                                                                             "};
 
 /**
  * Query generated from SQL:
@@ -647,7 +643,7 @@ const createGroupIR: any = {"usedParamSet":{"inviteCode":true,"name":true,"key":
  * INSERT INTO nths_groups (id, invite_code, name, KEY)
  *     VALUES (generate_ulid (), :inviteCode!, :name!, :key!)
  * RETURNING
- *     *                                                                                                                             
+ *     id, name, KEY, created_at, invite_code                                                                                                                             
  * ```
  */
 export const createGroup = new PreparedQuery<ICreateGroupParams,ICreateGroupResult>(createGroupIR);

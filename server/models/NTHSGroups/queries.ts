@@ -373,7 +373,13 @@ export async function createGroup(
       tc
     )
 
-    return makeRequired(results[0])
+    return makeSomeRequired(results[0], [
+      'id',
+      'name',
+      'key',
+      'createdAt',
+      'inviteCode',
+    ])
   } catch (err) {
     throw new RepoCreateError(err)
   }
