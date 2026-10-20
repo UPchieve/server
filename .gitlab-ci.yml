@@ -263,7 +263,7 @@ publish_api_contracts_preview:
     - echo "Published @upchieve/api-contracts@$PREVIEW_VERSION"
     - echo "High Line exact version - @upchieve/api-contracts@$PREVIEW_VERSION"
   rules:
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event' && $CI_MERGE_REQUEST_EVENT_TYPE != 'merge_train'
       changes:
         - packages/api-contracts/src/**/*
       when: manual
@@ -394,7 +394,7 @@ verify_migration_data_deletion:
     - echo "If anything should be deleted/anonymized, update the DeidentifyUser job accordingly, then go ahead and run this job to continue with merging."
     - echo "If there is nothing to update, just go ahead and run this job!"
   rules:
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event' # MR is created or updated.
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event' && $CI_MERGE_REQUEST_EVENT_TYPE != 'merge_train'
       changes:
         - database/migrations/**/*.sql
       when: manual
