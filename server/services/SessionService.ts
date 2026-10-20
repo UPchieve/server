@@ -277,6 +277,9 @@ export async function endSession(
     }
   })
 
+  await NotifyVolunteerService.clearExclusiveRequest(sessionId)
+  await SessionHoldsService.clearSessionHolds(sessionId)
+
   if (socketService) {
     try {
       await socketService.emitSessionChange(sessionId)
@@ -296,10 +299,6 @@ export async function endSession(
       sessionId: session.id,
     })
   }
-
-  await NotifyVolunteerService.clearExclusiveRequest(sessionId)
-  await SessionHoldsService.clearSessionHolds(sessionId)
-  await SocketService.getInstance().emitSessionChange(session.id)
 
   await QueueService.add(
     Jobs.DetectSessionLanguages,
