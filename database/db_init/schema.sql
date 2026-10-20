@@ -3370,6 +3370,103 @@ COMMENT ON COLUMN upchieve.nths_group_members.deactivated_at IS 'not_pii: Timest
 
 
 --
+-- Name: nths_group_renewal_candidates; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.nths_group_renewal_candidates (
+    id uuid DEFAULT upchieve.generate_ulid() NOT NULL,
+    nths_group_id uuid NOT NULL,
+    school_year_starts_on date NOT NULL,
+    user_id uuid NOT NULL,
+    named_at timestamp with time zone,
+    named_by uuid,
+    accepted boolean,
+    responded_at timestamp with time zone,
+    commitments jsonb,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT accepted_and_responded_at_together CHECK (((accepted IS NULL) = (responded_at IS NULL)))
+);
+
+
+--
+-- Name: COLUMN nths_group_renewal_candidates.id; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.nths_group_renewal_candidates.id IS 'not_pii: Primary key';
+
+
+--
+-- Name: COLUMN nths_group_renewal_candidates.nths_group_id; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.nths_group_renewal_candidates.nths_group_id IS 'not_pii: Foreign key to upchieve.nths_groups';
+
+
+--
+-- Name: COLUMN nths_group_renewal_candidates.school_year_starts_on; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.nths_group_renewal_candidates.school_year_starts_on IS 'not_pii: First day of the school year the chapter is renewing for';
+
+
+--
+-- Name: COLUMN nths_group_renewal_candidates.user_id; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.nths_group_renewal_candidates.user_id IS 'not_pii: Foreign key to upchieve.users';
+
+
+--
+-- Name: COLUMN nths_group_renewal_candidates.named_at; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.nths_group_renewal_candidates.named_at IS 'not_pii: When an admin named the user as a successor; null for a member who answers at the member stage';
+
+
+--
+-- Name: COLUMN nths_group_renewal_candidates.named_by; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.nths_group_renewal_candidates.named_by IS 'not_pii: Foreign key to upchieve.users; the admin who named the user, null for a member who answers at the member stage';
+
+
+--
+-- Name: COLUMN nths_group_renewal_candidates.accepted; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.nths_group_renewal_candidates.accepted IS 'not_pii: true when the user accepted the presidency, false when they declined or stepped down, null before they answer';
+
+
+--
+-- Name: COLUMN nths_group_renewal_candidates.responded_at; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.nths_group_renewal_candidates.responded_at IS 'not_pii: When the user responded';
+
+
+--
+-- Name: COLUMN nths_group_renewal_candidates.commitments; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.nths_group_renewal_candidates.commitments IS 'not_pii: Commitment keys agreed at acceptance';
+
+
+--
+-- Name: COLUMN nths_group_renewal_candidates.created_at; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.nths_group_renewal_candidates.created_at IS 'not_pii';
+
+
+--
+-- Name: COLUMN nths_group_renewal_candidates.updated_at; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.nths_group_renewal_candidates.updated_at IS 'not_pii';
+
+
+--
 -- Name: nths_group_roles; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -3423,7 +3520,8 @@ CREATE TABLE upchieve.nths_group_school_affiliation (
     nths_school_affiliation_status_id integer NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
-    school_id uuid
+    school_id uuid,
+    released_at timestamp with time zone
 );
 
 
@@ -3470,6 +3568,13 @@ COMMENT ON COLUMN upchieve.nths_group_school_affiliation.school_id IS 'not_pii: 
 
 
 --
+-- Name: COLUMN nths_group_school_affiliation.released_at; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.nths_group_school_affiliation.released_at IS 'not_pii: When the chapter released the school; null while the chapter holds it';
+
+
+--
 -- Name: nths_groups; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -3480,7 +3585,8 @@ CREATE TABLE upchieve.nths_groups (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     invite_code character varying(6) NOT NULL,
-    receiving_coordinator_support boolean DEFAULT false NOT NULL
+    receiving_coordinator_support boolean DEFAULT false NOT NULL,
+    closed_at timestamp with time zone
 );
 
 
@@ -3538,6 +3644,13 @@ COMMENT ON COLUMN upchieve.nths_groups.invite_code IS 'not_pii: Short invite cod
 --
 
 COMMENT ON COLUMN upchieve.nths_groups.receiving_coordinator_support IS 'not_pii: Whether the NTHS chapter is receiving support from a partnership coordinator';
+
+
+--
+-- Name: COLUMN nths_groups.closed_at; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.nths_groups.closed_at IS 'not_pii: When the chapter closed; null while open';
 
 
 --
@@ -12164,6 +12277,22 @@ ALTER TABLE ONLY upchieve.nths_group_members
 
 
 --
+-- Name: nths_group_renewal_candidates nths_group_renewal_candidates_group_school_year_user_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_group_renewal_candidates
+    ADD CONSTRAINT nths_group_renewal_candidates_group_school_year_user_key UNIQUE (nths_group_id, school_year_starts_on, user_id);
+
+
+--
+-- Name: nths_group_renewal_candidates nths_group_renewal_candidates_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_group_renewal_candidates
+    ADD CONSTRAINT nths_group_renewal_candidates_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: nths_group_roles nths_group_roles_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -13148,14 +13277,6 @@ ALTER TABLE ONLY upchieve.nths_groups
 
 
 --
--- Name: nths_group_school_affiliation unique_school_id; Type: CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.nths_group_school_affiliation
-    ADD CONSTRAINT unique_school_id UNIQUE (school_id);
-
-
---
 -- Name: users_ip_addresses unique_user_id_ip_address_id; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -13598,6 +13719,13 @@ CREATE INDEX nths_group_member_title_histories_nths_group_id_user_id_idx ON upch
 
 
 --
+-- Name: nths_group_renewal_candidates_user_id_idx; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX nths_group_renewal_candidates_user_id_idx ON upchieve.nths_group_renewal_candidates USING btree (user_id);
+
+
+--
 -- Name: nths_groups_invite_code_index; Type: INDEX; Schema: upchieve; Owner: -
 --
 
@@ -13819,6 +13947,13 @@ CREATE INDEX student_classes_class_id_idx ON upchieve.student_classes USING btre
 --
 
 CREATE UNIQUE INDEX tutor_bot_conversations_unique_non_null_session_id ON upchieve.tutor_bot_conversations USING btree (session_id) WHERE (session_id IS NOT NULL);
+
+
+--
+-- Name: unique_school_id; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE UNIQUE INDEX unique_school_id ON upchieve.nths_group_school_affiliation USING btree (school_id) WHERE (released_at IS NULL);
 
 
 --
@@ -14384,6 +14519,30 @@ ALTER TABLE ONLY upchieve.nths_group_members
 
 ALTER TABLE ONLY upchieve.nths_group_members
     ADD CONSTRAINT nths_group_members_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
+
+
+--
+-- Name: nths_group_renewal_candidates nths_group_renewal_candidates_named_by_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_group_renewal_candidates
+    ADD CONSTRAINT nths_group_renewal_candidates_named_by_fkey FOREIGN KEY (named_by) REFERENCES upchieve.users(id);
+
+
+--
+-- Name: nths_group_renewal_candidates nths_group_renewal_candidates_nths_group_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_group_renewal_candidates
+    ADD CONSTRAINT nths_group_renewal_candidates_nths_group_id_fkey FOREIGN KEY (nths_group_id) REFERENCES upchieve.nths_groups(id);
+
+
+--
+-- Name: nths_group_renewal_candidates nths_group_renewal_candidates_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.nths_group_renewal_candidates
+    ADD CONSTRAINT nths_group_renewal_candidates_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
 
 
 --
@@ -15921,4 +16080,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260918082750'),
     ('20260918161310'),
     ('20261001122732'),
-    ('20261014202000');
+    ('20261014202000'),
+    ('20261019200000');

@@ -907,6 +907,8 @@ export interface IUpsertSchoolAffiliationStatusResult {
   nthsGroupId: string;
   /** not_pii: Foreign key to upchieve.nths_school_affiliation_statuses */
   nthsSchoolAffiliationStatusId: number;
+  /** not_pii: When the chapter released the school; null while the chapter holds it */
+  releasedAt: Date | null;
   /** not_pii: Foreign key to upchieve.schools */
   schoolId: string | null;
   status: string | null;

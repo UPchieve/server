@@ -6261,7 +6261,7 @@ COPY upchieve.nths_actions (id, name, created_at) FROM stdin;
 -- Data for Name: nths_groups; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.nths_groups (id, name, key, created_at, updated_at, invite_code, receiving_coordinator_support) FROM stdin;
+COPY upchieve.nths_groups (id, name, key, created_at, updated_at, invite_code, receiving_coordinator_support, closed_at) FROM stdin;
 \.
 
 
@@ -6351,6 +6351,14 @@ COPY upchieve.nths_group_members (nths_group_id, user_id, title, joined_at, upda
 
 
 --
+-- Data for Name: nths_group_renewal_candidates; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.nths_group_renewal_candidates (id, nths_group_id, school_year_starts_on, user_id, named_at, named_by, accepted, responded_at, commitments, created_at, updated_at) FROM stdin;
+\.
+
+
+--
 -- Data for Name: nths_school_affiliation_statuses; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
@@ -6368,7 +6376,7 @@ COPY upchieve.nths_school_affiliation_statuses (id, name, created_at) FROM stdin
 -- Data for Name: nths_group_school_affiliation; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.nths_group_school_affiliation (nths_group_id, nths_school_affiliation_status_id, created_at, updated_at, school_id) FROM stdin;
+COPY upchieve.nths_group_school_affiliation (nths_group_id, nths_school_affiliation_status_id, created_at, updated_at, school_id, released_at) FROM stdin;
 \.
 
 
