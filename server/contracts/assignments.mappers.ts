@@ -2,6 +2,7 @@ import {
   AssignmentDocumentPublic,
   AssignmentPublic,
   StudentAssignmentPublic,
+  StudentAssignmentSessionPublic,
   StudentAssignmentSubmissionPublic,
 } from './assignments'
 import {
@@ -71,5 +72,7 @@ export function toStudentAssignmentPublic(
     subjectId: assignment.subjectId,
     subjectName: assignment.subjectName,
     submittedAt: assignment.submittedAt?.toISOString(),
+    completedSessions:
+      assignment.completedSessions as StudentAssignmentSessionPublic[],
   }
 }

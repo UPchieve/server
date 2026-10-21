@@ -11,6 +11,7 @@ import {
   CreateStudentAssignmentResult,
   StudentAssignment,
   StudentAssignmentCompletionRow,
+  StudentAssignmentSession,
   UpsertAssignmentInput,
 } from './types'
 import * as pgQueries from './pg.queries'
@@ -267,9 +268,7 @@ export async function getSessionsForStudentAssignment(
   userId: Ulid,
   assignmentId: Uuid,
   tc: TransactionClient = getClient()
-): Promise<
-  { volunteerJoinedAt?: Date; endedAt?: Date; timeTutored: string }[]
-> {
+): Promise<StudentAssignmentSession[]> {
   try {
     const sessions = await pgQueries.getSessionsForStudentAssignment.run(
       { userId, assignmentId },

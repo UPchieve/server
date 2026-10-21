@@ -49,6 +49,13 @@ export type StudentAssignmentPublic = {
   subjectId?: number
   subjectName?: string
   submittedAt?: ISODateString
+  completedSessions?: StudentAssignmentSessionPublic[]
+}
+
+export type StudentAssignmentSessionPublic = {
+  volunteerJoinedAt?: ISODateString
+  endedAt?: ISODateString
+  timeTutored: string
 }
 
 export type AssignmentResponse = {

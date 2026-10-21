@@ -49,6 +49,13 @@ export type StudentAssignment = {
   subjectId?: number
   subjectName?: string
   submittedAt?: Date
+  completedSessions?: StudentAssignmentSession[]
+}
+
+export type StudentAssignmentSession = {
+  volunteerJoinedAt?: Date
+  endedAt?: Date
+  timeTutored: string
 }
 
 export type CreateStudentAssignmentInput = {
