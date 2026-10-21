@@ -1643,6 +1643,7 @@ export function buildNTHSGroupWithMemberInfo(
   const groupName = 'NTHS Chapter'
   const groupKey = 'nths-chapter'
   const inviteCode = faker.string.hexadecimal({ length: 6 })
+  const joinedAt = overrides.joinedAt ?? new Date()
   return {
     groupInfo: {
       id: groupId,
@@ -1653,11 +1654,11 @@ export function buildNTHSGroupWithMemberInfo(
     },
     memberInfo: {
       title: 'Member',
-      joinedAt: new Date(),
+      joinedAt,
       roleName: 'member',
     },
     memberTitle: 'Member',
-    joinedAt: new Date(),
+    joinedAt,
     groupId,
     groupName,
     groupKey,
