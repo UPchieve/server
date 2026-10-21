@@ -106,6 +106,8 @@ export interface IGetGroupByInviteCodeParams {
 
 /** 'GetGroupByInviteCode' return type */
 export interface IGetGroupByInviteCodeResult {
+  /** not_pii: When the chapter closed; null while open */
+  closedAt: Date | null;
   /** not_pii */
   createdAt: Date;
   /** not_pii: Primary key */
@@ -124,7 +126,7 @@ export interface IGetGroupByInviteCodeQuery {
   result: IGetGroupByInviteCodeResult;
 }
 
-const getGroupByInviteCodeIR: any = {"usedParamSet":{"inviteCode":true},"params":[{"name":"inviteCode","required":true,"transform":{"type":"scalar"},"locs":[{"a":111,"b":122}]}],"statement":"SELECT\n    id,\n    name,\n    KEY,\n    created_at,\n    invite_code\nFROM\n    nths_groups\nWHERE\n    invite_code = :inviteCode!"};
+const getGroupByInviteCodeIR: any = {"usedParamSet":{"inviteCode":true},"params":[{"name":"inviteCode","required":true,"transform":{"type":"scalar"},"locs":[{"a":126,"b":137}]}],"statement":"SELECT\n    id,\n    name,\n    KEY,\n    created_at,\n    invite_code,\n    closed_at\nFROM\n    nths_groups\nWHERE\n    invite_code = :inviteCode!"};
 
 /**
  * Query generated from SQL:
@@ -134,7 +136,8 @@ const getGroupByInviteCodeIR: any = {"usedParamSet":{"inviteCode":true},"params"
  *     name,
  *     KEY,
  *     created_at,
- *     invite_code
+ *     invite_code,
+ *     closed_at
  * FROM
  *     nths_groups
  * WHERE
@@ -151,6 +154,8 @@ export interface IGetGroupByIdParams {
 
 /** 'GetGroupById' return type */
 export interface IGetGroupByIdResult {
+  /** not_pii: When the chapter closed; null while open */
+  closedAt: Date | null;
   /** not_pii */
   createdAt: Date;
   /** not_pii: Primary key */
@@ -169,7 +174,7 @@ export interface IGetGroupByIdQuery {
   result: IGetGroupByIdResult;
 }
 
-const getGroupByIdIR: any = {"usedParamSet":{"groupId":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":102,"b":110}]}],"statement":"SELECT\n    id,\n    name,\n    KEY,\n    created_at,\n    invite_code\nFROM\n    nths_groups\nWHERE\n    id = :groupId!                                                                                                                                                        "};
+const getGroupByIdIR: any = {"usedParamSet":{"groupId":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":117,"b":125}]}],"statement":"SELECT\n    id,\n    name,\n    KEY,\n    created_at,\n    invite_code,\n    closed_at\nFROM\n    nths_groups\nWHERE\n    id = :groupId!                                                                                                          "};
 
 /**
  * Query generated from SQL:
@@ -179,14 +184,48 @@ const getGroupByIdIR: any = {"usedParamSet":{"groupId":true},"params":[{"name":"
  *     name,
  *     KEY,
  *     created_at,
- *     invite_code
+ *     invite_code,
+ *     closed_at
  * FROM
  *     nths_groups
  * WHERE
- *     id = :groupId!                                                                                                                                                        
+ *     id = :groupId!                                                                                                          
  * ```
  */
 export const getGroupById = new PreparedQuery<IGetGroupByIdParams,IGetGroupByIdResult>(getGroupByIdIR);
+
+
+/** 'GetGroupClosedAtForShare' parameters type */
+export interface IGetGroupClosedAtForShareParams {
+  groupId: string;
+}
+
+/** 'GetGroupClosedAtForShare' return type */
+export interface IGetGroupClosedAtForShareResult {
+  /** not_pii: When the chapter closed; null while open */
+  closedAt: Date | null;
+}
+
+/** 'GetGroupClosedAtForShare' query type */
+export interface IGetGroupClosedAtForShareQuery {
+  params: IGetGroupClosedAtForShareParams;
+  result: IGetGroupClosedAtForShareResult;
+}
+
+const getGroupClosedAtForShareIR: any = {"usedParamSet":{"groupId":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":57,"b":65}]}],"statement":"SELECT\n    closed_at\nFROM\n    nths_groups\nWHERE\n    id = :groupId! FOR SHARE                                                                                                                                                        "};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     closed_at
+ * FROM
+ *     nths_groups
+ * WHERE
+ *     id = :groupId! FOR SHARE                                                                                                                                                        
+ * ```
+ */
+export const getGroupClosedAtForShare = new PreparedQuery<IGetGroupClosedAtForShareParams,IGetGroupClosedAtForShareResult>(getGroupClosedAtForShareIR);
 
 
 /** 'GetNthsGroupAdminsContactInfo' parameters type */
@@ -1211,7 +1250,7 @@ export interface IGetAllNthsGroupsWithStatusQuery {
   result: IGetAllNthsGroupsWithStatusResult;
 }
 
-const getAllNthsGroupsWithStatusIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    groups.id AS group_id,\n    chapter_status.nths_chapter_status_id AS status_id,\n    chapter_statuses.name AS status_name,\n    school_aff.nths_school_affiliation_status_id AS school_affiliation_status_id,\n    school_aff_statuses.name AS school_affiliation_status_name\nFROM\n    nths_groups GROUPS\n    LEFT JOIN nths_chapters_statuses chapter_status ON chapter_status.nths_group_id = groups.id\n    LEFT JOIN nths_chapter_statuses chapter_statuses ON chapter_statuses.id = chapter_status.nths_chapter_status_id\n    LEFT JOIN nths_group_school_affiliation school_aff ON school_aff.nths_group_id = groups.id\n    LEFT JOIN nths_school_affiliation_statuses school_aff_statuses ON school_aff_statuses.id = school_aff.nths_school_affiliation_status_id                                                                                                                                                                                                                                                                                                                                                               "};
+const getAllNthsGroupsWithStatusIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    groups.id AS group_id,\n    chapter_status.nths_chapter_status_id AS status_id,\n    chapter_statuses.name AS status_name,\n    school_aff.nths_school_affiliation_status_id AS school_affiliation_status_id,\n    school_aff_statuses.name AS school_affiliation_status_name\nFROM\n    nths_groups GROUPS\n    LEFT JOIN nths_chapters_statuses chapter_status ON chapter_status.nths_group_id = groups.id\n    LEFT JOIN nths_chapter_statuses chapter_statuses ON chapter_statuses.id = chapter_status.nths_chapter_status_id\n    LEFT JOIN nths_group_school_affiliation school_aff ON school_aff.nths_group_id = groups.id\n    LEFT JOIN nths_school_affiliation_statuses school_aff_statuses ON school_aff_statuses.id = school_aff.nths_school_affiliation_status_id\nWHERE\n    groups.closed_at IS NULL                                                                                                                                                                                                                                                                                                                                                               "};
 
 /**
  * Query generated from SQL:
@@ -1227,7 +1266,9 @@ const getAllNthsGroupsWithStatusIR: any = {"usedParamSet":{},"params":[],"statem
  *     LEFT JOIN nths_chapters_statuses chapter_status ON chapter_status.nths_group_id = groups.id
  *     LEFT JOIN nths_chapter_statuses chapter_statuses ON chapter_statuses.id = chapter_status.nths_chapter_status_id
  *     LEFT JOIN nths_group_school_affiliation school_aff ON school_aff.nths_group_id = groups.id
- *     LEFT JOIN nths_school_affiliation_statuses school_aff_statuses ON school_aff_statuses.id = school_aff.nths_school_affiliation_status_id                                                                                                                                                                                                                                                                                                                                                               
+ *     LEFT JOIN nths_school_affiliation_statuses school_aff_statuses ON school_aff_statuses.id = school_aff.nths_school_affiliation_status_id
+ * WHERE
+ *     groups.closed_at IS NULL                                                                                                                                                                                                                                                                                                                                                               
  * ```
  */
 export const getAllNthsGroupsWithStatus = new PreparedQuery<IGetAllNthsGroupsWithStatusParams,IGetAllNthsGroupsWithStatusResult>(getAllNthsGroupsWithStatusIR);

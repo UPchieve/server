@@ -182,6 +182,16 @@ export class NTHSChapterSchoolFixedError extends CustomError {
   }
 }
 
+export class NTHSChapterClosedError extends CaughtError {
+  readonly httpStatus = 403
+  readonly defaultClientMessage =
+    "This chapter has closed and isn't accepting new members."
+
+  constructor() {
+    super({ message: 'The NTHS chapter has closed' })
+  }
+}
+
 export class NTHSApplicationExistsError extends CustomError {}
 
 export class NotAHighSchoolerNTHSJoinError extends CustomError {

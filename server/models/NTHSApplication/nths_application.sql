@@ -144,30 +144,6 @@ ORDER BY
 LIMIT 1;
 
 
-/* A school can be claimed in 2 ways, it can either have a corresponding
- nths_group_school_affiliation record for an existing nths_groups entry
- or there can already be an approved application where the applicant
- hasn't yet finished setting up the chapter. */
-/* @name isSchoolClaimedForNthsChapter */
-SELECT
-    (EXISTS (
-            SELECT
-                1
-            FROM
-                nths_group_school_affiliation
-            WHERE
-                school_id = :schoolId!)
-            OR EXISTS (
-                SELECT
-                    1
-                FROM
-                    nths_candidate_applications
-                WHERE
-                    school_id = :schoolId!
-                    AND activated_at IS NOT NULL
-                    AND user_id <> :userId!)) AS claimed;
-
-
 /* @name needsApplicationStatusEmail */
 SELECT
     nths.user_id,

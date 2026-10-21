@@ -37,7 +37,8 @@ SELECT
     name,
     KEY,
     created_at,
-    invite_code
+    invite_code,
+    closed_at
 FROM
     nths_groups
 WHERE
@@ -50,11 +51,23 @@ SELECT
     name,
     KEY,
     created_at,
-    invite_code
+    invite_code,
+    closed_at
 FROM
     nths_groups
 WHERE
     id = :groupId!;
+
+
+/* FOR SHARE makes a close that sets closed_at before ending memberships wait
+ for this join to commit. */
+/* @name getGroupClosedAtForShare */
+SELECT
+    closed_at
+FROM
+    nths_groups
+WHERE
+    id = :groupId! FOR SHARE;
 
 
 /* Leaving a chapter keeps the nths_group_member_roles row, so without the
@@ -392,7 +405,9 @@ FROM
     LEFT JOIN nths_chapters_statuses chapter_status ON chapter_status.nths_group_id = groups.id
     LEFT JOIN nths_chapter_statuses chapter_statuses ON chapter_statuses.id = chapter_status.nths_chapter_status_id
     LEFT JOIN nths_group_school_affiliation school_aff ON school_aff.nths_group_id = groups.id
-    LEFT JOIN nths_school_affiliation_statuses school_aff_statuses ON school_aff_statuses.id = school_aff.nths_school_affiliation_status_id;
+    LEFT JOIN nths_school_affiliation_statuses school_aff_statuses ON school_aff_statuses.id = school_aff.nths_school_affiliation_status_id
+WHERE
+    groups.closed_at IS NULL;
 
 
 /* Hours stay counted for a member later banned, deleted or departed, since

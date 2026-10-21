@@ -7,8 +7,15 @@ import * as PgClient from '../../db'
 import { getClient } from '../../db'
 import { getDbUlid, Ulid } from '../../models/pgUtils'
 import { getName } from '../mocks/generate'
-import { createTestUser, createTestVolunteer } from './seed-utils'
+import {
+  createChapter,
+  createTestUser,
+  createTestVolunteer,
+  sqlText,
+  withRealTransaction,
+} from './seed-utils'
 import * as NTHSGroupsService from '../../services/NTHSGroupsService'
+import { NTHSChapterClosedError } from '../../models/Errors'
 
 const client = getClient()
 
@@ -19,15 +26,6 @@ const OUTSIDE_VIEWER_ID = getDbUlid()
 
 let subjectId: number
 let defaultStudentId: Ulid
-
-async function createChapter(): Promise<Ulid> {
-  const groupId = getDbUlid()
-  await client.query(
-    `INSERT INTO nths_groups (id, name, key, invite_code) VALUES ($1, $2, $3, $4)`,
-    [groupId, getName(), `key-${groupId}`, groupId.slice(-6)]
-  )
-  return groupId
-}
 
 type AddMemberOptions = {
   roleName?: 'admin' | 'member'
@@ -139,7 +137,7 @@ beforeAll(async () => {
 
 describe('getChapterImpact', () => {
   test('the school year starts July 1, inclusive', async () => {
-    const groupId = await createChapter()
+    const groupId = await createChapter(client)
     const memberId = await addMember(groupId, {
       joinedAt: '2026-01-01T00:00:00.000Z',
     })
@@ -169,7 +167,7 @@ describe('getChapterImpact', () => {
   })
 
   test('counts distinct students helped rather than sessions', async () => {
-    const groupId = await createChapter()
+    const groupId = await createChapter(client)
     const memberId = await addMember(groupId)
     const otherStudent = await createTestUser(client)
     await addSession(memberId, {
@@ -199,7 +197,7 @@ describe('getChapterImpact', () => {
     // Exact half-hundredths round up.
     [90_000, 0.03],
   ])('reports %i ms as %f hours', async (timeTutoredMs, hours) => {
-    const groupId = await createChapter()
+    const groupId = await createChapter(client)
     const memberId = await addMember(groupId)
     await addSession(memberId, {
       volunteerJoinedAt: '2026-10-01T00:00:00.000Z',
@@ -229,7 +227,7 @@ describe('getChapterImpact', () => {
   ] as const)(
     '%s counts sessionsCompleted and membersTutoring correctly',
     async (_label, options, sessionsCompleted, membersTutoring) => {
-      const groupId = await createChapter()
+      const groupId = await createChapter(client)
       const memberId = await addMember(groupId, options)
       await addSession(memberId, {
         volunteerJoinedAt: '2026-10-01T00:00:00.000Z',
@@ -247,7 +245,7 @@ describe('getChapterImpact', () => {
   )
 
   test('counts each tutoring member once, and only for this school year', async () => {
-    const groupId = await createChapter()
+    const groupId = await createChapter(client)
     const busyId = await addMember(groupId, {
       joinedAt: '2026-01-01T00:00:00.000Z',
     })
@@ -273,7 +271,7 @@ describe('getChapterImpact', () => {
 
 describe('updateGroupMember', () => {
   test('removing a member who already left keeps their original departure time', async () => {
-    const groupId = await createChapter()
+    const groupId = await createChapter(client)
     await addMember(groupId, { roleName: 'admin' })
     const departedAt = '2026-10-01T00:00:00.000Z'
     const departedId = await addMember(groupId, {
@@ -293,7 +291,7 @@ describe('updateGroupMember', () => {
   })
 
   test('writes the role and title in a transaction it starts itself', async () => {
-    const groupId = await createChapter()
+    const groupId = await createChapter(client)
     await addMember(groupId, { roleName: 'admin' })
     const memberId = await addMember(groupId)
     mocked(PgClient).runInTransaction.mockClear()
@@ -321,7 +319,7 @@ describe('updateGroupMember', () => {
 
 describe('getChapterRoster', () => {
   test('lists current members, excluding test users, and keeps a banned member', async () => {
-    const groupId = await createChapter()
+    const groupId = await createChapter(client)
     const currentId = await addMember(groupId, { roleName: 'admin' })
     const bannedId = await addMember(groupId, { banType: 'complete' })
     await addMember(groupId, { testUser: true })
@@ -351,7 +349,7 @@ describe('getChapterRoster', () => {
 
   // A deleted account still needs a Remove action, so the roster keeps the row flagged accountClosed.
   test('keeps a deleted member flagged accountClosed', async () => {
-    const groupId = await createChapter()
+    const groupId = await createChapter(client)
     const deletedId = await addMember(groupId, { deleted: true })
     const memberId = await addMember(groupId)
 
@@ -374,7 +372,7 @@ describe('getChapterRoster', () => {
   })
 
   test('reports training and safety, defaulting to false without a profile', async () => {
-    const groupId = await createChapter()
+    const groupId = await createChapter(client)
     const untrainedId = await addMember(groupId, {
       onboarded: false,
       approved: false,
@@ -392,7 +390,7 @@ describe('getChapterRoster', () => {
   })
 
   test('counts this year and all time per member, reports last active with no year bound, and leaves it unset for a member who never tutored', async () => {
-    const groupId = await createChapter()
+    const groupId = await createChapter(client)
     const memberId = await addMember(groupId, {
       joinedAt: '2026-01-01T00:00:00.000Z',
     })
@@ -442,7 +440,7 @@ const NEW_YORK_STARTS = {
 
 describe('getChapterRoster periodHours', () => {
   test('counts each period from its start, inclusive', async () => {
-    const groupId = await createChapter()
+    const groupId = await createChapter(client)
     const memberId = await addMember(groupId)
     for (const volunteerJoinedAt of [
       '2026-11-01T03:59:59.999Z',
@@ -482,7 +480,7 @@ describe('getChapterRoster periodHours', () => {
 describe('getChapterRoster topTutorThisMonth', () => {
   // With no month start sent, "this month" is [2026-11-01T00:00Z, NOW).
   test('counts a session by the month it started in', async () => {
-    const groupId = await createChapter()
+    const groupId = await createChapter(client)
     const lateStarterId = await addMember(groupId, {
       joinedAt: '2026-01-01T00:00:00.000Z',
     })
@@ -519,7 +517,7 @@ describe('getChapterRoster topTutorThisMonth', () => {
   ] as const)(
     'top tutor eligibility for %s',
     async (_label, options, eligible) => {
-      const groupId = await createChapter()
+      const groupId = await createChapter(client)
       const subjectMemberId = await addMember(groupId, options)
       const otherId = await addMember(groupId)
       await addSession(subjectMemberId, {
@@ -539,7 +537,7 @@ describe('getChapterRoster topTutorThisMonth', () => {
   )
 
   test('counts presidents, so a co-president with the most hours is the top tutor', async () => {
-    const groupId = await createChapter()
+    const groupId = await createChapter(client)
     const presidentId = await addMember(groupId, {
       roleName: 'admin',
       title: 'President',
@@ -562,7 +560,7 @@ describe('getChapterRoster topTutorThisMonth', () => {
   })
 
   test('breaks a tie on hours by more sessions, then by the lower user id', async () => {
-    const groupId = await createChapter()
+    const groupId = await createChapter(client)
     const oneLongId = await addMember(groupId)
     const twoShortId = await addMember(groupId)
     await addSession(oneLongId, {
@@ -580,7 +578,7 @@ describe('getChapterRoster topTutorThisMonth', () => {
 
     expect(roster.topTutorThisMonth?.userId).toBe(twoShortId)
 
-    const tiedGroupId = await createChapter()
+    const tiedGroupId = await createChapter(client)
     const firstId = await addMember(tiedGroupId)
     const secondId = await addMember(tiedGroupId)
     for (const memberId of [firstId, secondId]) {
@@ -611,7 +609,7 @@ describe('the counted-session rule, across every reader', () => {
     groupId: Ulid
     memberId: Ulid
   }> {
-    const groupId = await createChapter()
+    const groupId = await createChapter(client)
     const memberId = await addMember(groupId, {
       joinedAt: '2026-11-05T00:00:00.000Z',
     })
@@ -753,7 +751,7 @@ describe('the counted-session rule, across every reader', () => {
   test.each(departedReaders)(
     '%s stops counting at the moment the member left',
     async (_label, readHours) => {
-      const groupId = await createChapter()
+      const groupId = await createChapter(client)
       const departedId = await addMember(groupId, {
         deactivatedAt: '2026-11-10T00:00:00.000Z',
       })
@@ -772,7 +770,7 @@ describe('the counted-session rule, across every reader', () => {
 
 describe('getChapterImpact this month', () => {
   test("counts only the viewer's own sessions from the month start, inclusive", async () => {
-    const groupId = await createChapter()
+    const groupId = await createChapter(client)
     const viewerId = await addMember(groupId, {
       joinedAt: '2026-01-01T00:00:00.000Z',
     })
@@ -801,8 +799,8 @@ describe('getChapterImpact this month', () => {
   })
 
   test('ignores a member’s hours from a chapter they never joined', async () => {
-    const groupId = await createChapter()
-    const otherGroupId = await createChapter()
+    const groupId = await createChapter(client)
+    const otherGroupId = await createChapter(client)
     const viewerId = await addMember(otherGroupId)
     await addSession(viewerId, {
       volunteerJoinedAt: '2026-11-02T00:00:00.000Z',
@@ -822,7 +820,7 @@ describe('getChapterImpact this month', () => {
 // nths_group_member_roles row stays behind when they leave.
 describe('getActiveGroupMember', () => {
   test('finds a current member and their role, but not one who has left', async () => {
-    const groupId = await createChapter()
+    const groupId = await createChapter(client)
     const adminId = await addMember(groupId, { roleName: 'admin' })
     const departedId = await addMember(groupId, {
       roleName: 'admin',
@@ -846,7 +844,7 @@ describe('getActiveGroupMember', () => {
 // must not put them back on the recipient list.
 describe('getNTHSGroupAdminsContactInfo', () => {
   test('includes every current admin, excluding one who has left', async () => {
-    const groupId = await createChapter()
+    const groupId = await createChapter(client)
     const firstAdminId = await addMember(groupId, { roleName: 'admin' })
     const secondAdminId = await addMember(groupId, { roleName: 'admin' })
     await addMember(groupId, {
@@ -864,7 +862,7 @@ describe('getNTHSGroupAdminsContactInfo', () => {
   })
 
   test('leaves out a deleted admin', async () => {
-    const groupId = await createChapter()
+    const groupId = await createChapter(client)
     const adminId = await addMember(groupId, { roleName: 'admin' })
     await addMember(groupId, { roleName: 'admin', deleted: true })
 
@@ -877,7 +875,7 @@ describe('getNTHSGroupAdminsContactInfo', () => {
 
 describe('getGroupMembers', () => {
   test('leaves out closed accounts only when asked to', async () => {
-    const groupId = await createChapter()
+    const groupId = await createChapter(client)
     const memberId = await addMember(groupId)
     const deletedId = await addMember(groupId, { deleted: true })
 
@@ -897,8 +895,8 @@ describe('getGroupMembers', () => {
 
 describe('deleteAction', () => {
   test('deletes every row for that action in that chapter, leaving other actions and other chapters untouched', async () => {
-    const groupId = await createChapter()
-    const otherGroupId = await createChapter()
+    const groupId = await createChapter(client)
+    const otherGroupId = await createChapter(client)
     await NTHSGroupsService.createAction(groupId, 'NAMED YOUR TEAM')
     // A duplicate: unique_action_per_group was dropped in
     // 20260213143219_drop_unique_action_per_group_add_school_references.
@@ -910,5 +908,114 @@ describe('deleteAction', () => {
 
     expect(await getActionNames(groupId)).toEqual(['REVIEWED RESOURCES'])
     expect(await getActionNames(otherGroupId)).toEqual(['NAMED YOUR TEAM'])
+  })
+})
+
+describe('joinGroupAsMemberByGroupId', () => {
+  const CLOSED_AT = '2026-10-02T00:00:00.000Z'
+
+  test.each([
+    ['a new member', false],
+    ['a former member', true],
+  ])('refuses %s of a closed chapter', async (_label, formerMember) => {
+    const groupId = await createChapter(client, CLOSED_AT)
+    const userId = formerMember
+      ? await addMember(groupId, { deactivatedAt: CLOSED_AT })
+      : (await createTestUser(client)).id
+
+    await expect(
+      NTHSGroupsService.joinGroupAsMemberByGroupId(userId, groupId)
+    ).rejects.toThrow(NTHSChapterClosedError)
+
+    // A former member keeps the one deactivated row; nobody gains a current one.
+    const { rows } = await client.query(
+      `SELECT deactivated_at FROM nths_group_members WHERE nths_group_id = $1 AND user_id = $2`,
+      [groupId, userId]
+    )
+    expect(rows).toHaveLength(formerMember ? 1 : 0)
+    expect(rows.every((row) => row.deactivated_at !== null)).toBe(true)
+  })
+
+  test('holds the chapter open until the join commits', async () => {
+    const groupId = await createChapter(client)
+    const userId = (await createTestUser(client)).id
+    let closeErrorCode: string | undefined
+    let attempted = false
+
+    withRealTransaction((tc) => ({
+      query: async (...args: unknown[]) => {
+        const result = await tc.query(...args)
+        const sql = sqlText(args)
+        if (!attempted && /closed_at\s+FROM\s+nths_groups/.test(sql)) {
+          attempted = true
+          const other = await (global as any).__TEST_DB_CLIENT__.connect()
+          try {
+            await other.query(`SET lock_timeout = '200ms'`)
+            await other.query(
+              `UPDATE nths_groups SET closed_at = now() WHERE id = $1`,
+              [groupId]
+            )
+          } catch (err) {
+            closeErrorCode = (err as { code?: string }).code
+          } finally {
+            other.release()
+          }
+        }
+        return result
+      },
+    }))
+
+    await NTHSGroupsService.joinGroupAsMemberByGroupId(userId, groupId)
+
+    expect(attempted).toBe(true)
+    expect(closeErrorCode).toBe('55P03')
+    const members = await client.query(
+      `SELECT 1 FROM nths_group_members WHERE nths_group_id = $1 AND user_id = $2`,
+      [groupId, userId]
+    )
+    expect(members.rows).toHaveLength(1)
+    const chapter = await client.query(
+      `SELECT closed_at FROM nths_groups WHERE id = $1`,
+      [groupId]
+    )
+    expect(chapter.rows[0].closed_at).toBeNull()
+  })
+})
+
+describe('getNTHSGroupByInviteCode', () => {
+  test('reports when the chapter closed', async () => {
+    const openId = await createChapter(client)
+    const closedId = await createChapter(client, '2026-10-02T00:00:00.000Z')
+    const codeOf = async (id: Ulid) =>
+      (
+        await client.query(
+          `SELECT invite_code FROM nths_groups WHERE id = $1`,
+          [id]
+        )
+      ).rows[0].invite_code
+
+    const open = await NTHSGroupsService.getNTHSGroupByInviteCode(
+      await codeOf(openId)
+    )
+    const closed = await NTHSGroupsService.getNTHSGroupByInviteCode(
+      await codeOf(closedId)
+    )
+
+    expect(open?.closedAt).toBeUndefined()
+    expect(closed?.closedAt).toEqual(new Date('2026-10-02T00:00:00.000Z'))
+  })
+})
+
+describe('getAllNTHSGroupsChapterStatus', () => {
+  test('leaves out closed chapters', async () => {
+    const openId = await createChapter(client)
+    const closedId = await createChapter(client, '2026-10-02T00:00:00.000Z')
+
+    const ids = (await NTHSGroupsService.getAllNTHSGroupsChapterStatus()).map(
+      (chapter) => chapter.groupId.replace(/-/g, '').toUpperCase()
+    )
+
+    expect(ids).toContain(openId)
+    expect(ids).not.toContain(closedId)
   })
 })

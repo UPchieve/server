@@ -126,27 +126,6 @@ export async function getActivatedCandidateApplication(
   }
 }
 
-export async function isSchoolClaimedForNTHSChapter(
-  {
-    schoolId,
-    userId,
-  }: {
-    schoolId: Uuid
-    userId: Ulid
-  },
-  tc: TransactionClient = getRoClient()
-): Promise<boolean> {
-  try {
-    const results = await pgQueries.isSchoolClaimedForNthsChapter.run(
-      { schoolId, userId },
-      tc
-    )
-    return !!results[0]?.claimed
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
 export async function getLatestCandidateApplication(
   userId: Ulid,
   tc: TransactionClient = getRoClient()

@@ -16,6 +16,7 @@ import {
   getEmail,
 } from '../../mocks/generate'
 import { getUuid } from '../../../models/pgUtils'
+import { NTHSChapterClosedError } from '../../../models/Errors'
 import { AppUser } from '../../types'
 
 jest.mock('../../../services/StudentService')
@@ -352,6 +353,31 @@ describe('routeApiPublic', () => {
         mockedVolunteerService.doesVolunteerWithEmailExist
       ).not.toHaveBeenCalled()
     })
+    test.each([
+      ['a signed-in coach', () => mockUser.email],
+      ['an anonymous visitor', () => 'new-coach@upchieve.org'],
+    ])('refuses %s when the chapter closed', async (_, getEmail) => {
+      mockedNTHSGroupsService.getNTHSGroupByInviteCode.mockResolvedValueOnce(
+        buildNTHSGroup({ inviteCode, closedAt: new Date('2026-10-02') })
+      )
+      mockedNTHSGroupsService.ensureChapterOpen.mockImplementationOnce(() => {
+        throw new NTHSChapterClosedError()
+      })
+
+      const response = await sendPost('/api-public/nths-groups/join', {
+        inviteCode,
+        email: getEmail(),
+      })
+
+      expect(response.status).toBe(403)
+      expect(response.body.err).toBe(
+        "This chapter has closed and isn't accepting new members."
+      )
+      expect(mockedNTHSGroupsService.getGroups).not.toHaveBeenCalled()
+      expect(
+        mockedVolunteerService.doesVolunteerWithEmailExist
+      ).not.toHaveBeenCalled()
+    })
   })
 
   describe('GET /api-public/nths-groups/:inviteCode', () => {
@@ -371,6 +397,21 @@ describe('routeApiPublic', () => {
       expect(response.body).toEqual({
         NTHSGroup: buildNTHSGroupJoinPublic(group),
       })
+    })
+
+    test('reports when the chapter closed', async () => {
+      const group = buildNTHSGroup({
+        closedAt: new Date('2026-10-02T00:00:00.000Z'),
+      })
+      mockedNTHSGroupsService.getNTHSGroupByInviteCode.mockResolvedValueOnce(
+        group
+      )
+
+      const response = await sendGet(
+        `/api-public/nths-groups/${group.inviteCode}`
+      )
+
+      expect(response.body.NTHSGroup.closedAt).toBe('2026-10-02T00:00:00.000Z')
     })
 
     test('returns 422 when invite code is invalid', async () => {

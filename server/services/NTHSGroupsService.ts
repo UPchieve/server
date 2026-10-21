@@ -42,6 +42,7 @@ import {
   NTHSChapterSchoolFixedError,
   NotAHighSchoolerNTHSJoinError,
   NotAllowedError,
+  NTHSChapterClosedError,
 } from '../models/Errors'
 import logger from '../logger'
 import QueueService from './QueueService'
@@ -189,9 +190,15 @@ export async function joinGroupAsMemberByGroupId(
   userId: Ulid,
   groupId: Ulid,
   roleName: NTHSGroupRoleName = 'member',
-  tc: TransactionClient = getClient()
+  tc?: TransactionClient
 ) {
   return await runInTransaction(async (client: TransactionClient) => {
+    const closedAt = await NTHSGroupsRepo.getGroupClosedAtForShare(
+      groupId,
+      client
+    )
+    ensureChapterOpen({ closedAt })
+
     const occupations = await getVolunteerOccupations(userId, client)
     if (
       occupations.length &&
@@ -218,6 +225,32 @@ export async function joinGroupAsMemberByGroupId(
     )
     return await NTHSGroupsRepo.getGroupsByUser(userId, client)
   }, tc)
+}
+
+export function ensureChapterOpen(group: { closedAt?: Date | null }) {
+  if (group.closedAt) {
+    throw new NTHSChapterClosedError()
+  }
+}
+
+// Signing up through a closed chapter's invite still creates the account; the
+// coach just isn't added to the chapter.
+export async function joinGroupAtSignup(
+  userId: Ulid,
+  inviteCode: Uuid,
+  tc?: TransactionClient
+) {
+  const group = await getNTHSGroupByInviteCode(inviteCode, tc)
+  if (!group) {
+    throw new Error('Invalid team invite code')
+  }
+  try {
+    await joinGroupAsMemberByGroupId(userId, group.id, 'member', tc)
+  } catch (err) {
+    if (!(err instanceof NTHSChapterClosedError)) {
+      throw err
+    }
+  }
 }
 
 export async function getNTHSGroupsByMember(

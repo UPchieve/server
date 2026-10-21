@@ -1,8 +1,10 @@
 import { faker } from '@faker-js/faker'
 import { USER_BAN_TYPES } from '../../constants'
+import { mocked } from 'jest-mock'
+import * as PgClient from '../../db'
 import { TransactionClient } from '../../db'
 import { getDbUlid, Ulid, Uuid } from '../../models/pgUtils'
-import { getEmail } from '../mocks/generate'
+import { getEmail, getName } from '../mocks/generate'
 
 export async function createTestUser(
   client: TransactionClient,
@@ -38,6 +40,24 @@ export async function createTestUser(
   }
 
   return user
+}
+
+export async function createChapter(
+  client: TransactionClient,
+  closedAt: string | null = null
+): Promise<Ulid> {
+  const groupId = getDbUlid()
+  await client.query(
+    `INSERT INTO nths_groups (id, name, key, invite_code, closed_at) VALUES ($1, $2, $3, $4, $5)`,
+    [groupId, getName(), `key-${groupId}`, groupId.slice(-6), closedAt]
+  )
+  return groupId
+}
+
+export function sqlText(args: unknown[]): string {
+  return typeof args[0] === 'string'
+    ? args[0]
+    : ((args[0] as { text?: string })?.text ?? '')
 }
 
 export async function createTestTeacher(
@@ -107,5 +127,27 @@ export async function addTestStudentToTestTeacherClass(
   await client.query(
     'INSERT INTO student_classes (user_id, class_id) VALUES ($1, $2)',
     [studentId, classId]
+  )
+}
+
+// db-mocks-setup's runInTransaction issues no BEGIN, so rollbacks and row locks
+// are only observable inside a real transaction.
+export function withRealTransaction(wrapClient?: (tc: any) => any) {
+  mocked(PgClient).runInTransaction.mockImplementationOnce(
+    async (cb, existingTc?: TransactionClient) => {
+      if (existingTc) return await cb(existingTc)
+      const tc = await (global as any).__TEST_DB_CLIENT__.connect()
+      try {
+        await tc.query('BEGIN')
+        const result = await cb(wrapClient ? wrapClient(tc) : tc)
+        await tc.query('COMMIT')
+        return result
+      } catch (err) {
+        await tc.query('ROLLBACK')
+        throw err
+      } finally {
+        tc.release()
+      }
+    }
   )
 }

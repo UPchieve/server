@@ -66,6 +66,7 @@ export function routes(app: Express) {
         if (!group) {
           throw new InputError('Invalid team invite code')
         }
+        NTHSGroupsService.ensureChapterOpen(group)
 
         if (
           authenticatedUser &&

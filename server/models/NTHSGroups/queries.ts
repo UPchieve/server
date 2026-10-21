@@ -112,7 +112,9 @@ export async function getGroupByInviteCode(
       },
       tc
     )
-    return results.map(makeRequired)[0]
+    return results.map((row) =>
+      makeSomeRequired(row, ['id', 'name', 'key', 'createdAt', 'inviteCode'])
+    )[0]
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -125,8 +127,29 @@ export async function getGroupById(
   try {
     const results = await pgQueries.getGroupById.run({ groupId }, tc)
     if (results.length) {
-      return makeRequired(results[0])
+      return makeSomeRequired(results[0], [
+        'id',
+        'name',
+        'key',
+        'createdAt',
+        'inviteCode',
+      ])
     }
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getGroupClosedAtForShare(
+  groupId: Ulid,
+  tc: TransactionClient
+): Promise<Date | undefined> {
+  try {
+    const results = await pgQueries.getGroupClosedAtForShare.run(
+      { groupId },
+      tc
+    )
+    return results[0] ? makeSomeRequired(results[0], []).closedAt : undefined
   } catch (err) {
     throw new RepoReadError(err)
   }

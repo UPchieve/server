@@ -2,12 +2,15 @@
  * @group database/parallel
  */
 
-import { mocked } from 'jest-mock'
-import * as PgClient from '../../db'
 import { getClient } from '../../db'
 import { getUuid, Ulid } from '../../models/pgUtils'
 import { getName } from '../mocks/generate'
-import { createTestUser, createTestVolunteer } from './seed-utils'
+import {
+  createTestUser,
+  createTestVolunteer,
+  sqlText,
+  withRealTransaction,
+} from './seed-utils'
 import * as NTHSApplicationService from '../../services/NTHSApplicationService'
 import * as NTHSApplicationRepo from '../../models/NTHSApplication'
 import * as VolunteerRepo from '../../models/Volunteer'
@@ -187,6 +190,22 @@ async function decide(
     status,
     deniedNotes,
   })
+}
+
+// What a close leaves behind: the chapter ended, every member out and the
+// school released.
+async function closeChapter(groupId: Ulid) {
+  await client.query(`UPDATE nths_groups SET closed_at = NOW() WHERE id = $1`, [
+    groupId,
+  ])
+  await client.query(
+    `UPDATE nths_group_members SET deactivated_at = NOW() WHERE nths_group_id = $1 AND deactivated_at IS NULL`,
+    [groupId]
+  )
+  await client.query(
+    `UPDATE nths_group_school_affiliation SET released_at = NOW() WHERE nths_group_id = $1`,
+    [groupId]
+  )
 }
 
 async function affiliationOf(groupId: Ulid) {
@@ -669,47 +688,24 @@ describe('submitCandidateApplication', () => {
     await setGradeLevel(userId, GRADES.NINTH, new Date().toISOString())
     expect(await gradeLevelOf(userId)).toBe(GRADES.NINTH)
 
-    // db-mocks-setup replaces runInTransaction with a passthrough that issues
-    // no BEGIN, so without a real transaction here the rollback cannot be
-    // observed and the grade would survive the failed submit.
-    mocked(PgClient).runInTransaction.mockImplementationOnce(async (cb) => {
-      const tc = await (global as any).__TEST_DB_CLIENT__.connect()
-      // The competing row has to land after every read the submit does and
-      // before its own insert, which is the only window the unique index
-      // closes. Triggering off the insert statement itself rather than a
-      // statement count keeps that true if the reads are reordered.
-      let raced = false
-      const racing = {
-        query: async (...args: unknown[]) => {
-          const sql =
-            typeof args[0] === 'string'
-              ? args[0]
-              : ((args[0] as { text?: string })?.text ?? '')
-          if (
-            !raced &&
-            sql.includes('INSERT INTO nths_candidate_applications')
-          ) {
-            raced = true
-            await insertApplicationRow(
-              userId,
-              NTHSCandidateApplicationStatus.applied
-            )
-          }
-          return await tc.query(...args)
-        },
-      }
-      try {
-        await tc.query('BEGIN')
-        const result = await cb(racing as any)
-        await tc.query('COMMIT')
-        return result
-      } catch (err) {
-        await tc.query('ROLLBACK')
-        throw err
-      } finally {
-        tc.release()
-      }
-    })
+    // The competing row has to land after every read the submit does and
+    // before its own insert, which is the only window the unique index
+    // closes. Triggering off the insert statement itself rather than a
+    // statement count keeps that true if the reads are reordered.
+    let raced = false
+    withRealTransaction((tc) => ({
+      query: async (...args: unknown[]) => {
+        const sql = sqlText(args)
+        if (!raced && sql.includes('INSERT INTO nths_candidate_applications')) {
+          raced = true
+          await insertApplicationRow(
+            userId,
+            NTHSCandidateApplicationStatus.applied
+          )
+        }
+        return await tc.query(...args)
+      },
+    }))
 
     await expect(
       submit(userId, { gradeLevel: GRADES.TWELVETH })
@@ -1018,5 +1014,26 @@ describe('foundGroup', () => {
     })
 
     expect((await affiliationOf(group.groupInfo.id)).school_id).toBe(schoolId)
+  })
+
+  describe('after a chapter closes', () => {
+    test('lets a newly approved coach found the released school again', async () => {
+      const schoolId = await createSchool()
+      const first = await createEligibleCoach()
+      await submit(first, { schoolId })
+      await decide(first, NTHSCandidateApplicationStatus.approved)
+      const closed = await NTHSGroupsService.foundGroup(first)
+      await closeChapter(closed.groupInfo.id)
+
+      const second = await createEligibleCoach()
+      await submit(second, { schoolId })
+      await decide(second, NTHSCandidateApplicationStatus.approved)
+      const reopened = await NTHSGroupsService.foundGroup(second)
+
+      expect(reopened.groupInfo.id).not.toBe(closed.groupInfo.id)
+      expect((await affiliationOf(reopened.groupInfo.id)).school_id).toBe(
+        schoolId
+      )
+    })
   })
 })

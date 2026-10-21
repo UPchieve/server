@@ -24,6 +24,7 @@ export type NTHSGroup = {
   key: string
   createdAt?: Date
   inviteCode: string
+  closedAt?: Date
 }
 
 export type NTHSUserInfo = {

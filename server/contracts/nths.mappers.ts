@@ -46,6 +46,7 @@ export function toNTHSGroupJoinPublic(group: NTHSGroup): NTHSGroupJoinPublic {
     name: group.name,
     key: group.key,
     createdAt: group.createdAt?.toISOString(),
+    closedAt: group.closedAt?.toISOString() ?? null,
   }
 }
 

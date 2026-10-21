@@ -476,17 +476,7 @@ export async function registerVolunteer(
     }
 
     if (data.inviteCode) {
-      const group = await NTHSGroupsService.getNTHSGroupByInviteCode(
-        data.inviteCode,
-        tc
-      )
-      if (!group) throw new Error('Invalid team invite code')
-      await NTHSGroupsService.joinGroupAsMemberByGroupId(
-        user.id,
-        group.id,
-        'member',
-        tc
-      )
+      await NTHSGroupsService.joinGroupAtSignup(user.id, data.inviteCode, tc)
     }
 
     return user

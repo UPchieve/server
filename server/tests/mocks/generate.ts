@@ -1633,6 +1633,7 @@ export function buildNTHSGroupJoinPublic(
     name: group.name,
     key: group.key,
     createdAt: group.createdAt?.toISOString(),
+    closedAt: group.closedAt?.toISOString() ?? null,
   }
 }
 

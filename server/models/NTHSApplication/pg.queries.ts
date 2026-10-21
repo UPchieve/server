@@ -326,7 +326,7 @@ export interface IActivatedCandidateApplicationQuery {
   result: IActivatedCandidateApplicationResult;
 }
 
-const activatedCandidateApplicationIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":86,"b":93}]}],"statement":"SELECT\n    id,\n    school_id\nFROM\n    nths_candidate_applications\nWHERE\n    user_id = :userId!\n    AND activated_at IS NOT NULL\nORDER BY\n    activated_at DESC,\n    id DESC\nLIMIT 1                                                                                                                                                                                                                                                                     "};
+const activatedCandidateApplicationIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":86,"b":93}]}],"statement":"SELECT\n    id,\n    school_id\nFROM\n    nths_candidate_applications\nWHERE\n    user_id = :userId!\n    AND activated_at IS NOT NULL\nORDER BY\n    activated_at DESC,\n    id DESC\nLIMIT 1"};
 
 /**
  * Query generated from SQL:
@@ -342,54 +342,10 @@ const activatedCandidateApplicationIR: any = {"usedParamSet":{"userId":true},"pa
  * ORDER BY
  *     activated_at DESC,
  *     id DESC
- * LIMIT 1                                                                                                                                                                                                                                                                     
+ * LIMIT 1
  * ```
  */
 export const activatedCandidateApplication = new PreparedQuery<IActivatedCandidateApplicationParams,IActivatedCandidateApplicationResult>(activatedCandidateApplicationIR);
-
-
-/** 'IsSchoolClaimedForNthsChapter' parameters type */
-export interface IIsSchoolClaimedForNthsChapterParams {
-  schoolId: string;
-  userId: string;
-}
-
-/** 'IsSchoolClaimedForNthsChapter' return type */
-export interface IIsSchoolClaimedForNthsChapterResult {
-  claimed: boolean | null;
-}
-
-/** 'IsSchoolClaimedForNthsChapter' query type */
-export interface IIsSchoolClaimedForNthsChapterQuery {
-  params: IIsSchoolClaimedForNthsChapterParams;
-  result: IIsSchoolClaimedForNthsChapterResult;
-}
-
-const isSchoolClaimedForNthsChapterIR: any = {"usedParamSet":{"schoolId":true,"userId":true},"params":[{"name":"schoolId","required":true,"transform":{"type":"scalar"},"locs":[{"a":167,"b":176},{"a":371,"b":380}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":466,"b":473}]}],"statement":"SELECT\n    (EXISTS (\n            SELECT\n                1\n            FROM\n                nths_group_school_affiliation\n            WHERE\n                school_id = :schoolId!)\n            OR EXISTS (\n                SELECT\n                    1\n                FROM\n                    nths_candidate_applications\n                WHERE\n                    school_id = :schoolId!\n                    AND activated_at IS NOT NULL\n                    AND user_id <> :userId!)) AS claimed"};
-
-/**
- * Query generated from SQL:
- * ```
- * SELECT
- *     (EXISTS (
- *             SELECT
- *                 1
- *             FROM
- *                 nths_group_school_affiliation
- *             WHERE
- *                 school_id = :schoolId!)
- *             OR EXISTS (
- *                 SELECT
- *                     1
- *                 FROM
- *                     nths_candidate_applications
- *                 WHERE
- *                     school_id = :schoolId!
- *                     AND activated_at IS NOT NULL
- *                     AND user_id <> :userId!)) AS claimed
- * ```
- */
-export const isSchoolClaimedForNthsChapter = new PreparedQuery<IIsSchoolClaimedForNthsChapterParams,IIsSchoolClaimedForNthsChapterResult>(isSchoolClaimedForNthsChapterIR);
 
 
 /** 'NeedsApplicationStatusEmail' parameters type */
