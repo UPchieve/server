@@ -7,7 +7,13 @@ import {
 import { RepoCreateError, RepoReadError } from '../Errors'
 import { getClient, TransactionClient } from '../../db'
 import * as pgQueries from './pg.queries'
-import { Ulid, makeSomeOptional, makeRequired, Uuid } from '../pgUtils'
+import {
+  Ulid,
+  makeSomeOptional,
+  makeRequired,
+  Uuid,
+  ensureWriteOk,
+} from '../pgUtils'
 
 export async function getTextNotificationsByVolunteerId(
   userId: Ulid
@@ -91,8 +97,7 @@ export async function createEmailNotification(
       },
       getClient()
     )
-    if (!(result.length && makeRequired(result[0]).ok))
-      throw new RepoCreateError('Insert query did not return ok')
+    ensureWriteOk(result)
   } catch (err) {
     throw new RepoCreateError(err)
   }

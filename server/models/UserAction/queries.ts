@@ -1,6 +1,6 @@
 import { getClient, TransactionClient } from '../../db'
 import * as pgQueries from './pg.queries'
-import { Ulid, makeRequired, makeSomeOptional } from '../pgUtils'
+import { Ulid, makeRequired, makeSomeOptional, ensureWriteOk } from '../pgUtils'
 import {
   RepoReadError,
   RepoCreateError,
@@ -137,8 +137,7 @@ export async function createQuizAction( // @TODO This needs to have a service fn
       },
       client
     )
-    if (!(result.length && makeRequired(result[0]).ok))
-      throw new Error('insertion of quiz user action did not return ok')
+    ensureWriteOk(result)
   } catch (err) {
     throw new RepoCreateError(err)
   }
@@ -180,8 +179,7 @@ export async function createSessionAction(
       },
       tc
     )
-    if (!(result.length && makeRequired(result[0]).ok))
-      throw new Error('insertion of session user action did not return ok')
+    ensureWriteOk(result)
   } catch (err) {
     throw new RepoCreateError(err)
   }
@@ -210,8 +208,7 @@ export async function createAccountAction(
       },
       client
     )
-    if (!(result.length && makeRequired(result[0]).ok))
-      throw new Error('insertion of account user action did not return ok')
+    ensureWriteOk(result)
   } catch (err) {
     throw new RepoCreateError(err)
   }
@@ -231,8 +228,7 @@ export async function createAdminAction(
       },
       tc ?? getClient()
     )
-    if (!(result.length && makeRequired(result[0]).ok))
-      throw new Error('insertion of admin user action did not return ok')
+    ensureWriteOk(result)
   } catch (err) {
     throw new RepoCreateError(err)
   }

@@ -1,6 +1,6 @@
 import { getClient, TransactionClient } from '../../db'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
-import { makeRequired, makeSomeOptional, Ulid } from '../pgUtils'
+import { makeRequired, makeSomeOptional, Ulid, ensureWriteOk } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import { ImpactStudyCampaign, UserProductFlags } from './types'
 import type { Json, Uuid } from '../../types/shared'
@@ -125,8 +125,7 @@ export async function updateSentInactiveThirtyDayEmail(
       { userId, sentInactiveThirtyDayEmail },
       getClient()
     )
-    if (result.length && makeRequired(result[0].ok)) return
-    throw new RepoUpdateError('Update query was not acknowledged')
+    ensureWriteOk(result)
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
@@ -142,8 +141,7 @@ export async function updateSentInactiveSixtyDayEmail(
       { userId, sentInactiveSixtyDayEmail },
       getClient()
     )
-    if (result.length && makeRequired(result[0].ok)) return
-    throw new RepoUpdateError('Update query was not acknowledged')
+    ensureWriteOk(result)
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
@@ -159,8 +157,7 @@ export async function updateSentInactiveNinetyDayEmail(
       { userId, sentInactiveNinetyDayEmail },
       getClient()
     )
-    if (result.length && makeRequired(result[0].ok)) return
-    throw new RepoUpdateError('Update query was not acknowledged')
+    ensureWriteOk(result)
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
@@ -233,8 +230,7 @@ export async function upsertImpactStudyCampaign(
       },
       tc ?? getClient()
     )
-    if (result.length && makeRequired(result[0].ok)) return
-    throw new RepoUpdateError('Update query was not acknowledged')
+    ensureWriteOk(result)
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)

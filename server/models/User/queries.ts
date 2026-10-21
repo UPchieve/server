@@ -9,6 +9,7 @@ import {
   getDbUlid,
   Uuid,
   generateReferralCode,
+  ensureWriteOk,
 } from '../pgUtils'
 import {
   RepoCreateError,
@@ -314,8 +315,7 @@ export async function updateUserPasswordById(
       { userId, password },
       getClient()
     )
-    if (!(result.length && makeRequired(result[0]).ok))
-      throw new RepoUpdateError('Update query did not return ok')
+    ensureWriteOk(result)
   } catch (err) {
     throw new RepoUpdateError(err)
   }
@@ -337,8 +337,7 @@ export async function updateUserVerifiedInfoById(
       )
   try {
     const result = await update
-    if (!(result.length && makeRequired(result[0]).ok))
-      throw new RepoUpdateError('Update query did not return ok')
+    ensureWriteOk(result)
 
     return {
       contact: result[0].ok,
@@ -357,8 +356,7 @@ export async function updateUserLastActivityById(
       { userId, lastActivityAt },
       getClient()
     )
-    if (!(result.length && makeRequired(result[0]).ok))
-      throw new RepoUpdateError('Update query did not return ok')
+    ensureWriteOk(result)
   } catch (err) {
     throw new RepoUpdateError(err)
   }
@@ -375,8 +373,7 @@ export async function banUserById(
       { userId, banType, banReason },
       tc
     )
-    if (!(result.length && makeRequired(result[0]).ok))
-      throw new RepoUpdateError('Update query did not return ok')
+    ensureWriteOk(result)
   } catch (err) {
     throw new RepoUpdateError(err)
   }
@@ -575,8 +572,7 @@ export async function insertUserRoleByUserId(
       { userId, roleName },
       tc ?? getClient()
     )
-    if (!(result.length && makeRequired(result[0]).ok))
-      throw new RepoUpdateError('Insert query did not return ok')
+    ensureWriteOk(result)
   } catch (err) {
     throw new RepoUpdateError(err)
   }
@@ -592,8 +588,7 @@ export async function updateUserPhoneNumberByUserId(
       { userId, phone },
       tc ?? getClient()
     )
-    if (!(result.length && makeRequired(result[0]).ok))
-      throw new RepoUpdateError('Insert query did not return ok')
+    ensureWriteOk(result)
   } catch (err) {
     throw new RepoUpdateError(err)
   }
@@ -766,8 +761,7 @@ export async function updateUserProxyEmail(
       { userId, proxyEmail },
       getClient()
     )
-    if (!(result.length && makeRequired(result[0]).ok))
-      throw new RepoUpdateError('Update query did not return ok')
+    ensureWriteOk(result)
   } catch (err) {
     throw new RepoUpdateError(err)
   }
@@ -813,8 +807,7 @@ export async function updatePreferredLanguageToUser(
       },
       tc ?? getClient()
     )
-    if (!(result.length && makeRequired(result[0]).ok))
-      throw new RepoUpdateError('Update query did not return ok')
+    ensureWriteOk(result)
   } catch (err) {
     throw new RepoUpdateError(err)
   }

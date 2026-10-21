@@ -6,10 +6,11 @@ import { Ulid } from '../models/pgUtils'
 import { CustomError } from 'ts-custom-error'
 import { CaughtError } from '../models/Errors'
 import { TOOL_TYPES } from '../constants'
-import { DAYS, HOURS } from '../constants'
+import { DAYS, HOURS, SESSION_REPORT_REASON } from '../constants'
 import { getSessionActivity, GetSessionByIdResult } from '../models/Session'
 import {
   asBoolean,
+  asEnum,
   asCamelCaseString,
   asDate,
   asFactory,
@@ -225,7 +226,7 @@ export interface ReportSessionData {
 }
 export const asReportSessionData = asFactory<ReportSessionData>({
   sessionId: asString,
-  reportReason: asString,
+  reportReason: asEnum<string>(SESSION_REPORT_REASON),
   reportMessage: asString,
   source: asOptional(asString),
 })

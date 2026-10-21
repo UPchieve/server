@@ -4,7 +4,12 @@ import {
   RepoReadError,
   RepoUpdateError,
 } from '../Errors'
-import { makeRequired, makeSomeOptional } from '../pgUtils'
+import {
+  makeRequired,
+  makeSomeOptional,
+  makeSomeRequired,
+  ensureWriteOk,
+} from '../pgUtils'
 import {
   Question,
   Quiz,
@@ -103,13 +108,15 @@ export async function updateQuestion(
       { name: question.category },
       client
     )
-    const quizId = makeRequired(quizUpsertResult[0]).id
+    const quizId = makeSomeRequired(quizUpsertResult[0], ['id']).id
 
     const subcategoryUpsertResult = await pgQueries.upsertQuizSubcategory.run(
       { name: question.subcategory, quizId },
       client
     )
-    const subcategoryId = makeRequired(subcategoryUpsertResult[0]).id
+    const subcategoryId = makeSomeRequired(subcategoryUpsertResult[0], [
+      'id',
+    ]).id
 
     // pg parser takes any array and makes it a native array, so JSON arrays
     // break it, so we must JSON.stringify any JSON array.
@@ -125,8 +132,7 @@ export async function updateQuestion(
       },
       client
     )
-    if (!(result.length && makeRequired(result[0]).ok))
-      throw new Error('insertion of question did not return ok')
+    ensureWriteOk(result)
     return question
   } catch (err) {
     throw new RepoUpdateError(err)
@@ -136,7 +142,7 @@ export async function updateQuestion(
 export async function destroy(questionId: number): Promise<void> {
   try {
     const result = await pgQueries.destroy.run({ questionId }, getClient())
-    if (result.length && makeRequired(result[0].ok)) return
+    ensureWriteOk(result)
   } catch (err) {
     throw new RepoDeleteError(err)
   }

@@ -6,8 +6,8 @@ import {
   Ulid,
   makeSomeOptional,
   getDbUlid,
-  makeRequired,
   makeSomeRequired,
+  ensureWriteOk,
 } from '../pgUtils'
 
 export async function getIneligibleStudentByEmail(
@@ -84,8 +84,7 @@ export async function insertIneligibleStudent(
       },
       getClient()
     )
-    if (!(result.length && makeRequired(result[0]).ok))
-      throw new Error('Insert did not return new row')
+    ensureWriteOk(result)
   } catch (err) {
     throw new RepoCreateError(err)
   }

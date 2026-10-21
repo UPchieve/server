@@ -6,6 +6,7 @@ import {
   makeSomeOptional,
   getDbUlid,
   makeSomeRequired,
+  ensureWriteOk,
 } from '../pgUtils'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import moment from 'moment'
@@ -73,8 +74,7 @@ export async function addSessionNotification(
       },
       getClient()
     )
-    if (!result.length && makeRequired(result[0]).ok)
-      throw new RepoCreateError('Insert notification did not return ok')
+    ensureWriteOk(result)
   } catch (err) {
     throw new RepoCreateError(err)
   }
@@ -206,10 +206,7 @@ export async function updateSessionFlagsById(
       { sessionId, flags },
       client
     )
-    if (!result.length && makeRequired(result[0]).ok)
-      throw new Error(
-        `Did not insert any session flags for session ${sessionId}`
-      )
+    ensureWriteOk(result, { sessionId })
   } catch (err) {
     throw new RepoUpdateError(err)
   }
@@ -229,8 +226,7 @@ export async function updateSessionReviewedStatusById(
       },
       getClient()
     )
-    if (!result.length && makeRequired(result[0]).ok)
-      throw new RepoUpdateError('Update query was not acknowledged')
+    ensureWriteOk(result)
   } catch (err) {
     throw new RepoUpdateError(err)
   }
@@ -337,8 +333,7 @@ export async function updateSessionReported(
       { id: getDbUlid(), sessionId, reportReason, reportMessage },
       getClient()
     )
-    if (!result.length && makeRequired(result[0]).ok)
-      throw new RepoUpdateError('Update query did not return ok')
+    ensureWriteOk(result)
   } catch (err) {
     throw new RepoUpdateError(err)
   }
@@ -353,8 +348,7 @@ export async function updateSessionTimeTutored(
       { sessionId, timeTutored },
       getClient()
     )
-    if (!result.length && makeRequired(result[0]).ok)
-      throw new RepoUpdateError('Update query did not return ok')
+    ensureWriteOk(result)
   } catch (err) {
     throw new RepoUpdateError(err)
   }
@@ -369,8 +363,7 @@ export async function updateSessionQuillDoc(
       { sessionId, quillDoc },
       getClient()
     )
-    if (!result.length && makeRequired(result[0]).ok)
-      throw new RepoUpdateError('Update query did not return ok')
+    ensureWriteOk(result)
   } catch (err) {
     throw new RepoUpdateError(err)
   }
@@ -385,8 +378,7 @@ export async function updateSessionHasWhiteboardDoc(
       { sessionId, hasWhiteboardDoc },
       getClient()
     )
-    if (!result.length && makeRequired(result[0]).ok)
-      throw new RepoUpdateError('Update query did not return ok')
+    ensureWriteOk(result)
   } catch (err) {
     throw new RepoUpdateError(err)
   }
@@ -1092,8 +1084,7 @@ export async function updateSessionReviewReasonsById(
       { sessionId, reviewed },
       dbClient
     )
-    if (!updateSessionResult.length && makeRequired(updateSessionResult[0]).ok)
-      throw new Error('Updating to_review did not return ok')
+    ensureWriteOk(updateSessionResult)
   } catch (err) {
     throw new RepoCreateError(err)
   }
@@ -1109,8 +1100,7 @@ export async function updateSessionFailedJoinsById(
       { sessionId, userId, reason },
       getClient()
     )
-    if (!result.length && makeRequired(result[0]).ok)
-      throw new RepoUpdateError('Update query did not return ok')
+    ensureWriteOk(result)
   } catch (err) {
     throw new RepoUpdateError(err)
   }
@@ -1125,8 +1115,7 @@ export async function updateSessionPhotoKey(
       { sessionId, photoKey },
       getClient()
     )
-    if (!result.length && makeRequired(result[0]).ok)
-      throw new RepoUpdateError('Update query did not return ok')
+    ensureWriteOk(result)
   } catch (err) {
     throw new RepoUpdateError(err)
   }
@@ -1560,8 +1549,7 @@ export async function updateSessionLastSeen(
       { sessionId, userId },
       getClient()
     )
-    if (!result.length || !makeSomeRequired(result[0], ['ok']).ok)
-      throw new RepoUpdateError('Did not update session last seen.')
+    ensureWriteOk(result)
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)

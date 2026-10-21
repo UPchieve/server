@@ -17,6 +17,7 @@ import {
   makeSomeOptional,
   Ulid,
   Uuid,
+  ensureWriteOk,
 } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import { USER_BAN_TYPES } from '../../constants'
@@ -175,8 +176,7 @@ export async function deleteStudent(studentId: Ulid, email: string) {
       { userId: studentId, email: email.toLowerCase() },
       getClient()
     )
-    if (result.length && makeRequired(result[0].ok)) return
-    throw new RepoUpdateError('Update query did not delete student')
+    ensureWriteOk(result)
   } catch (err) {
     throw new RepoUpdateError(err)
   }
@@ -246,10 +246,7 @@ export async function deactivateStudentPartnershipInstance(
         { userId: studentId, spoId: studentPartnerOrgId },
         tc
       )
-    if (!makeRequired(updateResult[0]).ok)
-      throw new Error(
-        `Deactivating active partner org instance failed for student ${studentId}`
-      )
+    ensureWriteOk(updateResult, { studentId })
   } catch (err) {
     throw new RepoUpdateError(err)
   }
@@ -296,10 +293,7 @@ export async function activateStudentPartnershipInstance(
       },
       tc
     )
-    if (!makeRequired(insertResult[0]).ok)
-      throw new Error(
-        `Inserting partner org ${newPartnerOrgId} instance failed for student ${studentId}`
-      )
+    ensureWriteOk(insertResult, { studentId, newPartnerOrgId })
   } catch (err) {
     throw new RepoCreateError(err)
   }

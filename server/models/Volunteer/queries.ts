@@ -14,6 +14,7 @@ import {
   generateReferralCode,
   makeSomeRequired,
   Uuid,
+  ensureWriteOk,
 } from '../pgUtils'
 import {
   RepoCreateError,
@@ -328,8 +329,7 @@ export async function updateVolunteerHourSummaryIntroById(
       { userId },
       getClient()
     )
-    if (!(result.length && makeRequired(result[0]).ok))
-      throw new RepoUpdateError('Update did not return ok')
+    ensureWriteOk(result)
   } catch (err) {
     throw new RepoUpdateError(err)
   }
@@ -345,8 +345,7 @@ export async function updateTimezoneByUserId(
       { userId, timezone },
       tc || getClient()
     )
-    if (!(result.length && makeRequired(result[0]).ok))
-      throw new RepoUpdateError('Update did not return ok')
+    ensureWriteOk(result)
   } catch (err) {
     throw new RepoUpdateError(err)
   }
@@ -506,8 +505,7 @@ export async function addVolunteerReferenceById(
       },
       getClient()
     )
-    if (!(result.length && makeRequired(result[0]).ok))
-      throw new RepoCreateError('Insert query did not return ok')
+    ensureWriteOk(result)
   } catch (err) {
     if (err instanceof RepoCreateError) throw err
     throw new RepoCreateError(err)
@@ -530,12 +528,10 @@ export async function updateVolunteerReferenceSubmission(
   referenceSubmission: ReferenceSubmission
 ): Promise<void> {
   try {
-    const result = await pgQueries.updateVolunteerReferenceSubmission.run(
+    await pgQueries.updateVolunteerReferenceSubmission.run(
       { referenceId, ...referenceSubmission },
       getClient()
     )
-    if (!result.length && makeRequired(result[0]).ok)
-      throw new RepoUpdateError('Update query did not return ok')
   } catch (err) {
     throw new RepoUpdateError(err)
   }
@@ -598,8 +594,7 @@ export async function updateVolunteerReferenceSentById(
       },
       getClient()
     )
-    if (!(result.length && makeRequired(result[0]).ok))
-      throw new RepoUpdateError('Update query did not return ok')
+    ensureWriteOk(result)
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
@@ -616,8 +611,7 @@ export async function updateVolunteerPending(
       { userId, approved, status: photoIdStatus.toLowerCase() },
       getClient()
     )
-    if (!result.length && makeRequired(result[0]).ok)
-      throw new RepoUpdateError('Update query did not return ok')
+    ensureWriteOk(result)
   } catch (err) {
     throw new RepoUpdateError(err)
   }
@@ -661,8 +655,7 @@ export async function updateVolunteerElapsedAvailabilityById(
       },
       getClient()
     )
-    if (!(result.length && makeRequired(result[0]).ok))
-      throw new RepoUpdateError('Update query did not return ok')
+    ensureWriteOk(result)
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
@@ -681,8 +674,7 @@ export async function setVolunteerElapsedAvailabilityById(
       },
       getClient()
     )
-    if (!(result.length && makeRequired(result[0]).ok))
-      throw new Error('Update query did not return ok')
+    ensureWriteOk(result)
   } catch (err) {
     throw new RepoUpdateError(err)
   }
@@ -700,8 +692,7 @@ export async function updateVolunteerTotalHoursById(
       },
       getClient()
     )
-    if (!(result.length && makeRequired(result[0]).ok))
-      throw new RepoUpdateError('Update query did not return ok')
+    ensureWriteOk(result)
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
@@ -777,8 +768,7 @@ export async function updateVolunteerPhotoIdById(
       },
       getClient()
     )
-    if (!(result.length && makeRequired(result[0]).ok))
-      throw new RepoUpdateError('Update query did not return ok')
+    ensureWriteOk(result)
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
@@ -795,8 +785,7 @@ export async function updateVolunteerSentInactive30DayEmail(
       },
       getClient()
     )
-    if (!(result.length && makeRequired(result[0]).ok))
-      throw new RepoUpdateError('Update query did not return ok')
+    ensureWriteOk(result)
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
@@ -813,8 +802,7 @@ export async function updateVolunteerSentInactive60DayEmail(
       },
       getClient()
     )
-    if (!(result.length && makeRequired(result[0]).ok))
-      throw new RepoUpdateError('Update query did not return ok')
+    ensureWriteOk(result)
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
@@ -831,8 +819,7 @@ export async function updateVolunteerSentInactive90DayEmail(
       },
       getClient()
     )
-    if (!(result.length && makeRequired(result[0]).ok))
-      throw new RepoUpdateError('Update query did not return ok')
+    ensureWriteOk(result)
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
@@ -1010,8 +997,7 @@ export async function updateVolunteerReferenceStatus(
       { referenceId, status },
       getClient()
     )
-    if (!result.length && makeRequired(result[0]).ok)
-      throw new RepoUpdateError('update query did not return ok')
+    ensureWriteOk(result)
   } catch (err) {
     throw new RepoUpdateError(err)
   }
@@ -1027,8 +1013,7 @@ export async function updateVolunteerApproved(
       { userId, approved },
       tc
     )
-    if (!result.length && makeRequired(result[0]).ok)
-      throw new RepoUpdateError('update query did not return ok')
+    ensureWriteOk(result)
   } catch (err) {
     throw new RepoUpdateError(err)
   }
@@ -1043,8 +1028,7 @@ export async function updateVolunteerOnboarded(
       { userId },
       tc ?? getClient()
     )
-    if (!result.length && makeRequired(result[0]).ok)
-      throw new RepoUpdateError('update query did not return ok')
+    ensureWriteOk(result)
   } catch (err) {
     throw new RepoUpdateError(err)
   }
@@ -1112,12 +1096,7 @@ export async function addVolunteerCertification(
   tc: TransactionClient = getClient()
 ): Promise<void> {
   try {
-    const result = await pgQueries.addVolunteerCertification.run(
-      { userId, subject },
-      tc
-    )
-    if (!result.length && makeRequired(result[0]).ok)
-      throw new RepoUpdateError('update query did not return ok')
+    await pgQueries.addVolunteerCertification.run({ userId, subject }, tc)
   } catch (err) {
     throw new RepoUpdateError(err)
   }
@@ -1134,8 +1113,7 @@ export async function updateVolunteerQuiz(
       { userId, quiz, passed },
       tc ?? getClient()
     )
-    if (!result.length && makeRequired(result[0]).ok)
-      throw new RepoUpdateError('update query did not return ok')
+    ensureWriteOk(result)
   } catch (err) {
     throw new RepoUpdateError(err)
   }
@@ -1212,10 +1190,7 @@ export async function createUserVolunteerPartnerOrgInstance(
       },
       tc
     )
-  if (!makeRequired(vpoInstanceResult)[0].ok)
-    throw new RepoCreateError(
-      'Could not create volunteer: user partner org instance creation did not return rows'
-    )
+  ensureWriteOk(vpoInstanceResult, { userId })
   return vpoInstanceResult
 }
 
@@ -1243,9 +1218,21 @@ export async function createVolunteer(
       },
       client
     )
-    if (!userResult.length && makeRequired(userResult[0]).id)
+    if (!userResult.length) {
       throw new Error('Insert query did not return new row')
-    const user = makeSomeOptional(userResult[0], ['banType'])
+    }
+    const user = makeSomeRequired(userResult[0], [
+      'banned',
+      'createdAt',
+      'deactivated',
+      'email',
+      'firstName',
+      'id',
+      'lastName',
+      'phone',
+      'smsConsent',
+      'testUser',
+    ])
     await createVolunteerProfile(
       userId,
       {
@@ -1329,7 +1316,7 @@ async function adminUpdateVolunteerPartnerOrgInstance(
     const activePartnerOrgInstanceResults =
       await pgQueries.getPartnerOrgsByVolunteer.run({ volunteerId }, client)
     const activePartnerOrgInstances = activePartnerOrgInstanceResults.map((v) =>
-      makeRequired(v)
+      makeSomeRequired(v, ['id', 'name'])
     )
 
     // volunteers should not have more than one partner org
@@ -1358,10 +1345,7 @@ async function adminUpdateVolunteerPartnerOrgInstance(
           { userId: volunteerId, vpoId: activeOrgInstance.id },
           client
         )
-      if (!makeRequired(updateResult[0]).ok)
-        throw new Error(
-          `Deactivating active partner org instance failed for volunteer ${volunteerId}`
-        )
+      ensureWriteOk(updateResult, { volunteerId })
     }
 
     /**
@@ -1385,10 +1369,10 @@ async function adminUpdateVolunteerPartnerOrgInstance(
           },
           client
         )
-      if (!makeRequired(insertResult[0]).ok)
-        throw new Error(
-          `Inserting new partner org instance failed for volunteer ${volunteerId}`
-        )
+      ensureWriteOk(insertResult, {
+        volunteerId,
+        vpoName: newPartnerOrg.partnerName,
+      })
     }
   } catch (err) {
     throw new RepoUpdateError(`Could not update volunteer partner org: ${err}`)
@@ -1435,15 +1419,8 @@ export async function updateVolunteerForAdmin(
         client
       )
 
-      if (
-        !(
-          userResult.length &&
-          profileResult.length &&
-          makeRequired(userResult[0]).ok &&
-          makeRequired(profileResult[0]).ok
-        )
-      )
-        throw new RepoUpdateError('update query did not return ok')
+      ensureWriteOk(userResult)
+      ensureWriteOk(profileResult)
     } catch (err) {
       throw new RepoUpdateError(err)
     }

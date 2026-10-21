@@ -30,6 +30,7 @@ import {
   ensureCanJoinSession,
 } from '../../services/SessionService'
 import { CurrentSession } from '../../types/session'
+import { InputError } from '../../models/Errors'
 import { RoleContext } from '../../services/UserRolesService'
 import * as cache from '../../cache'
 import QueueService from '../../services/QueueService'
@@ -133,6 +134,22 @@ describe('SessionService', () => {
         expect(mockSessionRepo.updateSessionReported).toHaveBeenCalledTimes(1)
       }
     )
+
+    test('rejects an unknown reportReason before writing a report or banning', async () => {
+      const user = buildVolunteer()
+
+      await expect(
+        SessionService.reportSession(user, {
+          sessionId: 'sessionId',
+          reportReason: 'reason',
+          reportMessage: 'message',
+          source: 'recap',
+        })
+      ).rejects.toThrow(InputError)
+
+      expect(mockSessionRepo.updateSessionReported).not.toHaveBeenCalled()
+      expect(UserRepo.banUserById).not.toHaveBeenCalled()
+    })
   })
 
   describe('Session audio', () => {

@@ -8,6 +8,7 @@ import {
   getDbUlid,
   makeRequired,
   Pgid,
+  ensureWriteOk,
 } from '../pgUtils'
 import { cleanIpString } from '../../utils/clean-ip-string'
 import { IP_ADDRESS_STATUS } from '../../constants'
@@ -56,8 +57,7 @@ export async function updateIpUserById(
       },
       getClient()
     )
-    if (!(result.length && makeRequired(result[0]).ok))
-      throw new Error('Insert query did not return ok')
+    ensureWriteOk(result)
   } catch (err) {
     throw new RepoCreateError(err)
   }
@@ -78,8 +78,7 @@ export async function updateIpStatusByUserId(
     )
     // We're ok not unbanning an IP if none are recorded for the user
     if (!result.length) return
-    if (!makeRequired(result[0]).ok)
-      throw new Error('Update query did not return ok')
+    ensureWriteOk(result)
   } catch (err) {
     throw new RepoUpdateError(err)
   }

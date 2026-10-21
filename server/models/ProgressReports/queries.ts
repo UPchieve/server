@@ -1,7 +1,13 @@
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import { TransactionClient, getClient } from '../../db'
 import * as pgQueries from './pg.queries'
-import { Ulid, getDbUlid, makeRequired, makeSomeOptional } from '../pgUtils'
+import {
+  Ulid,
+  getDbUlid,
+  makeRequired,
+  makeSomeOptional,
+  ensureWriteOk,
+} from '../pgUtils'
 import {
   ProgressReportAnalysisTypes,
   ProgressReportDetailInsert,
@@ -56,10 +62,7 @@ export async function insertProgressReportSession(
       },
       tc ?? getClient()
     )
-    if (!(result.length && makeRequired(result[0]).ok))
-      throw new RepoCreateError(
-        `insertProgressReportSession: Insert query did not return new row for report ${reportId}`
-      )
+    ensureWriteOk(result, { reportId })
   } catch (err) {
     throw new RepoCreateError(err)
   }
@@ -177,10 +180,7 @@ export async function updateProgressReportStatus(
       },
       tc ?? getClient()
     )
-    if (!(result.length && makeRequired(result[0]).ok))
-      throw new RepoUpdateError(
-        `updateProgressReportStatus: Update query did not return ok for ${reportId} to status ${status}`
-      )
+    ensureWriteOk(result, { reportId, status })
   } catch (err) {
     throw new RepoUpdateError(err)
   }
@@ -362,12 +362,7 @@ export async function updateProgressReportsReadAtByReportIds(
       { reportIds },
       tc ?? getClient()
     )
-    if (!(result.length && makeRequired(result[0]).ok))
-      throw new RepoUpdateError(
-        `updateProgressReportReadAt: Update query did not return ok for ${reportIds.join(
-          ','
-        )}`
-      )
+    ensureWriteOk(result, { reportIds })
   } catch (err) {
     throw new RepoUpdateError(err)
   }

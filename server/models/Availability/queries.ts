@@ -259,12 +259,10 @@ export async function clearAvailabilityForVolunteer(
   tc?: TransactionClient
 ): Promise<void> {
   try {
-    const result = await pgQueries.clearAvailabilityForVolunteer.run(
+    await pgQueries.clearAvailabilityForVolunteer.run(
       { userId },
       tc || getClient()
     )
-    if (!result.length && makeRequired(result[0]).ok)
-      throw new RepoUpdateError('Update query did not return ok')
   } catch (err) {
     throw new RepoUpdateError(err)
   }

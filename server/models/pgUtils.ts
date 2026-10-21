@@ -69,6 +69,20 @@ export function makeRequired<T>(obj: T): SetRequired<T, keyof T> {
   return temp as SetRequired<T, keyof T>
 }
 
+export function isWriteOk(result: ArrayLike<{ ok?: unknown }>): boolean {
+  return Boolean(result.length && result[0].ok)
+}
+
+export function ensureWriteOk(
+  result: ArrayLike<{ ok?: unknown }>,
+  context?: Record<string, unknown>
+): void {
+  if (!isWriteOk(result)) {
+    const suffix = context ? ` ${JSON.stringify(context)}` : ''
+    throw new Error(`Write query did not return ok${suffix}`)
+  }
+}
+
 type ObjectLike = { [k: string]: any }
 export function makeSomeOptional<T extends ObjectLike, U extends keyof T>(
   obj: T,

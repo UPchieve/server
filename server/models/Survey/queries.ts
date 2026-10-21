@@ -1,6 +1,11 @@
 import { getClient, getRoClient, TransactionClient } from '../../db'
 import { RepoCreateError, RepoDeleteError, RepoReadError } from '../Errors'
-import { makeRequired, makeSomeOptional } from '../pgUtils'
+import {
+  isWriteOk,
+  makeRequired,
+  makeSomeOptional,
+  makeSomeRequired,
+} from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import {
   SaveUserSurveySubmission,
@@ -37,9 +42,13 @@ export async function saveUserSurveyAndSubmissions(
       throw new RepoCreateError('Error upserting user survey')
     }
 
-    const survey = makeSomeOptional(result[0], [
-      'sessionId',
-      'progressReportId',
+    const survey = makeSomeRequired(result[0], [
+      'createdAt',
+      'id',
+      'surveyId',
+      'surveyTypeId',
+      'updatedAt',
+      'userId',
     ])
     const errors: string[] = []
     for (const submission of submissions) {
@@ -54,12 +63,13 @@ export async function saveUserSurveyAndSubmissions(
         },
         tc
       )
-      if (!result.length && makeRequired(result[0]).ok)
+      if (!isWriteOk(result)) {
         errors.push(
           `Insert query for user survey submission ${JSON.stringify(
             submission
           )} did not return ok`
         )
+      }
     }
     if (errors.length) throw new RepoReadError(errors.join('\n'))
   } catch (err) {
