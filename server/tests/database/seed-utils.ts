@@ -11,6 +11,7 @@ export async function createTestUser(
   overrides: {
     id?: Ulid
     email?: string
+    lastName?: string
     referredById?: Ulid
     banType?: USER_BAN_TYPES
   } = {}
@@ -23,7 +24,7 @@ export async function createTestUser(
       [
         overrides.id ?? getDbUlid(),
         faker.person.firstName(),
-        faker.person.lastName(),
+        overrides.lastName ?? faker.person.lastName(),
         overrides.email ?? getEmail(),
         faker.string.alphanumeric(20),
         overrides.banType ?? null,
@@ -72,7 +73,7 @@ export async function createTestTeacher(
 
 export async function createTestStudent(
   client: TransactionClient,
-  userOverrides?: { email?: string },
+  userOverrides?: Parameters<typeof createTestUser>[1],
   studentOverrides?: { gradeLevelId?: number }
 ) {
   const user = await createTestUser(client, userOverrides)

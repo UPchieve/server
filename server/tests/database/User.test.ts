@@ -9,6 +9,7 @@ import {
   createUser,
   CreateUserPayload,
   deleteUserPhoneInfo,
+  getUserForAdminDetail as getUserForAdminDetailFromRepo,
   upsertUser,
   UserContactInfo,
 } from '../../models/User'
@@ -573,6 +574,21 @@ describe('getUserForAdminDetail', () => {
     await createTestVolunteer(client, user.id)
 
     expect(await getCurrentGrade(user.id)).toBeNull()
+  })
+
+  it('hides the last name of a student without a volunteer profile', async () => {
+    const { user_id } = await createTestStudent(client, { lastName: 'Hidden' })
+
+    const user = await getUserForAdminDetailFromRepo(user_id, 0, 0, client)
+    expect(user.lastName).toBeUndefined()
+  })
+
+  it('shows the last name of a student who also has a volunteer profile', async () => {
+    const { user_id } = await createTestStudent(client, { lastName: 'Shown' })
+    await createTestVolunteer(client, user_id)
+
+    const user = await getUserForAdminDetailFromRepo(user_id, 0, 0, client)
+    expect(user.lastName).toEqual('Shown')
   })
 })
 

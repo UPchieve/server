@@ -307,7 +307,8 @@ SELECT
     users.id,
     users.first_name AS first_name,
     (
-        CASE WHEN student_profiles.user_id IS NOT NULL THEN
+        CASE WHEN student_profiles.user_id IS NOT NULL
+            AND volunteer_profiles.user_id IS NULL THEN
             NULL
         ELSE
             users.last_name
