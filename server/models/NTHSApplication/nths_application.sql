@@ -127,12 +127,14 @@ RETURNING
     created_at;
 
 
-/* Founding needs the school off the approval it is acting on. Ordered by
- activation so a later approval wins if a user somehow holds two. */
+/* The approval a coach founds from: its school, and activated_at for the
+ founding deadline. Ordered by activation so a later approval wins if a user
+ somehow holds two. */
 /* @name activatedCandidateApplication */
 SELECT
     id,
-    school_id
+    school_id,
+    activated_at
 FROM
     nths_candidate_applications
 WHERE

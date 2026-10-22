@@ -261,7 +261,7 @@ export interface IDecideCandidateApplicationQuery {
   result: IDecideCandidateApplicationResult;
 }
 
-const decideCandidateApplicationIR: any = {"usedParamSet":{"status":true,"deniedNotes":true,"userId":true},"params":[{"name":"status","required":true,"transform":{"type":"scalar"},"locs":[{"a":56,"b":63},{"a":152,"b":159}]},{"name":"deniedNotes","required":false,"transform":{"type":"scalar"},"locs":[{"a":85,"b":96}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":396,"b":403}]}],"statement":"UPDATE\n    nths_candidate_applications\nSET\n    status = :status!,\n    denied_notes = :deniedNotes,\n    decided_at = NOW(),\n    activated_at = CASE WHEN :status!::nths_candidate_application_status = 'approved' THEN\n        NOW()\n    END,\n    updated_at = NOW()\nWHERE\n    id = (\n        SELECT\n            id\n        FROM\n            nths_candidate_applications\n        WHERE\n            user_id = :userId!\n            AND status = 'applied'\n        ORDER BY\n            created_at DESC,\n            id DESC\n        LIMIT 1)\nAND status = 'applied'\nRETURNING\n    id,\n    user_id,\n    status,\n    school_id,\n    unlisted_school,\n    form_version,\n    responses,\n    denied_notes,\n    decided_at,\n    activated_at,\n    created_at                                                                                                                                              "};
+const decideCandidateApplicationIR: any = {"usedParamSet":{"status":true,"deniedNotes":true,"userId":true},"params":[{"name":"status","required":true,"transform":{"type":"scalar"},"locs":[{"a":56,"b":63},{"a":152,"b":159}]},{"name":"deniedNotes","required":false,"transform":{"type":"scalar"},"locs":[{"a":85,"b":96}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":396,"b":403}]}],"statement":"UPDATE\n    nths_candidate_applications\nSET\n    status = :status!,\n    denied_notes = :deniedNotes,\n    decided_at = NOW(),\n    activated_at = CASE WHEN :status!::nths_candidate_application_status = 'approved' THEN\n        NOW()\n    END,\n    updated_at = NOW()\nWHERE\n    id = (\n        SELECT\n            id\n        FROM\n            nths_candidate_applications\n        WHERE\n            user_id = :userId!\n            AND status = 'applied'\n        ORDER BY\n            created_at DESC,\n            id DESC\n        LIMIT 1)\nAND status = 'applied'\nRETURNING\n    id,\n    user_id,\n    status,\n    school_id,\n    unlisted_school,\n    form_version,\n    responses,\n    denied_notes,\n    decided_at,\n    activated_at,\n    created_at                                                                                                                                                                             "};
 
 /**
  * Query generated from SQL:
@@ -301,7 +301,7 @@ const decideCandidateApplicationIR: any = {"usedParamSet":{"status":true,"denied
  *     denied_notes,
  *     decided_at,
  *     activated_at,
- *     created_at                                                                                                                                              
+ *     created_at                                                                                                                                                                             
  * ```
  */
 export const decideCandidateApplication = new PreparedQuery<IDecideCandidateApplicationParams,IDecideCandidateApplicationResult>(decideCandidateApplicationIR);
@@ -314,6 +314,8 @@ export interface IActivatedCandidateApplicationParams {
 
 /** 'ActivatedCandidateApplication' return type */
 export interface IActivatedCandidateApplicationResult {
+  /** not_pii: When the approval was revealed to the applicant and chapter creation unlocked */
+  activatedAt: Date | null;
   /** not_pii: Primary key */
   id: number;
   /** pii: Foreign key to upchieve.schools */
@@ -326,14 +328,15 @@ export interface IActivatedCandidateApplicationQuery {
   result: IActivatedCandidateApplicationResult;
 }
 
-const activatedCandidateApplicationIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":86,"b":93}]}],"statement":"SELECT\n    id,\n    school_id\nFROM\n    nths_candidate_applications\nWHERE\n    user_id = :userId!\n    AND activated_at IS NOT NULL\nORDER BY\n    activated_at DESC,\n    id DESC\nLIMIT 1"};
+const activatedCandidateApplicationIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":104,"b":111}]}],"statement":"SELECT\n    id,\n    school_id,\n    activated_at\nFROM\n    nths_candidate_applications\nWHERE\n    user_id = :userId!\n    AND activated_at IS NOT NULL\nORDER BY\n    activated_at DESC,\n    id DESC\nLIMIT 1"};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
  *     id,
- *     school_id
+ *     school_id,
+ *     activated_at
  * FROM
  *     nths_candidate_applications
  * WHERE

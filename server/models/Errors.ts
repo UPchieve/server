@@ -224,3 +224,9 @@ export class UnauthorizedFeature extends CaughtError {
   readonly httpStatus = 403
   readonly defaultClientMessage = 'You are not authorized to use this feature'
 }
+
+export class NTHSApprovalExpiredError extends CaughtError {
+  readonly httpStatus = 422
+  readonly defaultClientMessage =
+    "Your approval to start an NTHS chapter has run out. Email nths@upchieve.org and we'll help you apply again."
+}

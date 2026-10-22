@@ -113,14 +113,14 @@ export async function getCandidateApplicationEligibility(
 export async function getActivatedCandidateApplication(
   userId: Ulid,
   tc: TransactionClient = getRoClient()
-): Promise<{ id: number; schoolId?: Uuid } | undefined> {
+): Promise<{ id: number; schoolId?: Uuid; activatedAt: Date } | undefined> {
   try {
     const results = await pgQueries.activatedCandidateApplication.run(
       { userId },
       tc
     )
     if (!results.length) return
-    return makeSomeRequired(results[0], ['id'])
+    return makeSomeRequired(results[0], ['id', 'activatedAt'])
   } catch (err) {
     throw new RepoReadError(err)
   }

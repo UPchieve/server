@@ -43,6 +43,7 @@ import {
   NotAHighSchoolerNTHSJoinError,
   NotAllowedError,
   NTHSChapterClosedError,
+  NTHSApprovalExpiredError,
 } from '../models/Errors'
 import logger from '../logger'
 import QueueService from './QueueService'
@@ -54,6 +55,13 @@ import {
 } from '../models/Volunteer'
 import { isReadyToCoach } from './VolunteerService'
 import { LEADERSHIP_TITLES, NTHSTitle } from '../constants/nths-titles'
+import { hoursInMs } from '../utils/time-utils'
+
+export const APPROVAL_LIFETIME_HOURS = 720
+
+function approvalExpiry(activatedAt: Date): Date {
+  return new Date(activatedAt.getTime() + hoursInMs(APPROVAL_LIFETIME_HOURS))
+}
 
 export async function getGroups(userId: Ulid) {
   return await NTHSGroupsRepo.getGroupsByUser(userId)
@@ -80,6 +88,11 @@ export async function foundGroup(
       throw new NotAllowedError(
         'An approved NTHS application is needed to start a chapter'
       )
+    if (new Date() >= approvalExpiry(application.activatedAt)) {
+      throw new NTHSApprovalExpiredError({
+        message: 'NTHS approval expired before the chapter was started',
+      })
+    }
 
     const inviteCode = generateAlphanumericOfLength(6)
     const name = `NTHS Chapter ${Number(await NTHSGroupsRepo.groupsCount(tc)) + 1}`
@@ -578,6 +591,14 @@ export async function deactivateNonHighSchoolMember(
       { err, ...logData }
     )
   }
+}
+
+export async function getApprovalExpiresAt(
+  userId: Ulid
+): Promise<Date | undefined> {
+  const application =
+    await NTHSApplicationRepo.getActivatedCandidateApplication(userId)
+  return application ? approvalExpiry(application.activatedAt) : undefined
 }
 
 export async function getLatestCandidateApplicationStatus(

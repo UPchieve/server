@@ -16,6 +16,7 @@ import * as NTHSApplicationRepo from '../../models/NTHSApplication'
 import * as VolunteerRepo from '../../models/Volunteer'
 import { VolunteerOccupations } from '../../models/Volunteer'
 import * as NTHSGroupsService from '../../services/NTHSGroupsService'
+import { hoursInMs, minutesInMs } from '../../utils/time-utils'
 import {
   NTHS_APPLICATION_FORMS,
   NTHSApplicationIneligibilityReason,
@@ -28,6 +29,7 @@ import {
   InputError,
   NotAllowedError,
   NTHSApplicationExistsError,
+  NTHSApprovalExpiredError,
   NTHSSchoolAlreadyClaimedError,
   NTHSChapterSchoolFixedError,
 } from '../../models/Errors'
@@ -865,6 +867,33 @@ describe('getLatestCandidateApplication', () => {
   })
 })
 
+describe('getApprovalExpiresAt', () => {
+  test('is the approval lifetime after the activation', async () => {
+    const userId = await createEligibleCoach()
+    await submit(userId)
+    await decide(userId, NTHSCandidateApplicationStatus.approved)
+    const activatedAt = new Date('2026-10-21T15:00:00.000Z')
+    await client.query(
+      `UPDATE nths_candidate_applications SET activated_at = $2 WHERE user_id = $1`,
+      [userId, activatedAt]
+    )
+
+    expect(await NTHSGroupsService.getApprovalExpiresAt(userId)).toEqual(
+      new Date(
+        activatedAt.getTime() +
+          hoursInMs(NTHSGroupsService.APPROVAL_LIFETIME_HOURS)
+      )
+    )
+  })
+
+  test('is undefined while the application is still pending', async () => {
+    const userId = await createEligibleCoach()
+    await submit(userId)
+
+    expect(await NTHSGroupsService.getApprovalExpiresAt(userId)).toBeUndefined()
+  })
+})
+
 describe('foundGroup', () => {
   test('refuses to create a chapter without an activated application', async () => {
     const userId = await createEligibleCoach()
@@ -893,6 +922,35 @@ describe('foundGroup', () => {
     const group = await NTHSGroupsService.foundGroup(userId)
 
     expect(group.groupInfo.id).toBeDefined()
+  })
+
+  test.each([
+    ['just before the approval runs out', -minutesInMs(1), true],
+    ['just after the approval runs out', minutesInMs(1), false],
+  ])('founding %s after approval', async (_label, msPastExpiry, allowed) => {
+    const userId = await createEligibleCoach()
+    await submit(userId)
+    await decide(userId, NTHSCandidateApplicationStatus.approved)
+    await client.query(
+      `UPDATE nths_candidate_applications
+          SET activated_at = $2
+        WHERE user_id = $1`,
+      [
+        userId,
+        new Date(
+          Date.now() -
+            hoursInMs(NTHSGroupsService.APPROVAL_LIFETIME_HOURS) -
+            msPastExpiry
+        ),
+      ]
+    )
+
+    const founding = NTHSGroupsService.foundGroup(userId)
+    if (allowed) {
+      expect((await founding).groupInfo.id).toBeDefined()
+    } else {
+      await expect(founding).rejects.toThrow(NTHSApprovalExpiredError)
+    }
   })
 
   test('refuses after a denial', async () => {

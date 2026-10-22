@@ -161,15 +161,17 @@ export function routeNTHSGroups(router: Router): void {
       try {
         const user = extractUser(req)
         const groups = await NTHSGroupsService.getGroups(user.id)
-        const candidateApplicationStatus =
+        const [candidateApplicationStatus, approvalExpiresAt] =
           groups.length === 0
-            ? await NTHSGroupsService.getLatestCandidateApplicationStatus(
-                user.id
-              )
-            : undefined
+            ? await Promise.all([
+                NTHSGroupsService.getLatestCandidateApplicationStatus(user.id),
+                NTHSGroupsService.getApprovalExpiresAt(user.id),
+              ])
+            : [undefined, undefined]
         res.json({
           groups: groups.map(toNTHSGroupWithMemberInfoPublic),
           candidateApplicationStatus,
+          approvalExpiresAt: approvalExpiresAt?.toISOString() ?? null,
         })
       } catch (error) {
         resError(res, error)

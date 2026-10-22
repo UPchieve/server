@@ -97,7 +97,11 @@ describe('routeNTHSGroups', () => {
     test('returns groups and candidateApplicationStatus when user has no groups', async () => {
       mockedNTHSGroupsService.getGroups.mockResolvedValueOnce([])
       mockedNTHSGroupsService.getLatestCandidateApplicationStatus.mockResolvedValueOnce(
-        NTHSCandidateApplicationStatus.applied
+        NTHSCandidateApplicationStatus.approved
+      )
+      const approvalExpiresAt = new Date('2026-11-20T15:00:00.000Z')
+      mockedNTHSGroupsService.getApprovalExpiresAt.mockResolvedValueOnce(
+        approvalExpiresAt
       )
 
       const response = await sendGet('/api/nths-groups')
@@ -110,7 +114,25 @@ describe('routeNTHSGroups', () => {
       ).toHaveBeenCalledWith(mockUser.id)
       expect(response.body).toEqual({
         groups: [],
+        candidateApplicationStatus: 'approved',
+        approvalExpiresAt: approvalExpiresAt.toISOString(),
+      })
+    })
+
+    test('returns a null approvalExpiresAt while the application is pending', async () => {
+      mockedNTHSGroupsService.getGroups.mockResolvedValueOnce([])
+      mockedNTHSGroupsService.getLatestCandidateApplicationStatus.mockResolvedValueOnce(
+        NTHSCandidateApplicationStatus.applied
+      )
+      mockedNTHSGroupsService.getApprovalExpiresAt.mockResolvedValueOnce(
+        undefined
+      )
+
+      const response = await sendGet('/api/nths-groups')
+      expect(response.body).toEqual({
+        groups: [],
         candidateApplicationStatus: 'applied',
+        approvalExpiresAt: null,
       })
     })
 
@@ -127,7 +149,11 @@ describe('routeNTHSGroups', () => {
       expect(
         mockedNTHSGroupsService.getLatestCandidateApplicationStatus
       ).not.toHaveBeenCalled()
+      expect(
+        mockedNTHSGroupsService.getApprovalExpiresAt
+      ).not.toHaveBeenCalled()
       expect(response.body).toEqual({
+        approvalExpiresAt: null,
         groups: [
           {
             ...group,

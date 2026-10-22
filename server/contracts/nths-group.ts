@@ -84,6 +84,7 @@ export type AdvisorPublic = {
 export type NTHSGroupsResponse = {
   groups: NTHSGroupWithMemberInfoPublic[]
   candidateApplicationStatus?: NTHSCandidateApplicationStatus
+  approvalExpiresAt: string | null
 }
 
 export type NTHSGroupMembersResponse = {
