@@ -2,10 +2,10 @@
 -- PostgreSQL database dump
 --
 
-\restrict bPQhSKOVar3w9LENPfN0TbralXBaP73cV0LPCHCy83QLIp1lsrGeWgwYkTPRnMZ
+\restrict CbpdBzDiEB8inuqe4gfZiSO4O2EkcErjjDOBXcbRDK15a4eMk3LsKwIAwu9eQPT
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
--- Dumped by pg_dump version 18.6
+-- Dumped by pg_dump version 15.17 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -278,7 +278,7 @@ COPY upchieve.assignments (id, class_id, description, title, number_of_sessions,
 -- Data for Name: sessions; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.sessions (id, student_id, volunteer_id, subject_id, has_whiteboard_doc, quill_doc, volunteer_joined_at, ended_at, reviewed, to_review, student_banned, time_tutored, created_at, updated_at, mongo_id, shadowbanned, ended_by_user_id) FROM stdin;
+COPY upchieve.sessions (id, student_id, volunteer_id, subject_id, has_whiteboard_doc, quill_doc, volunteer_joined_at, ended_at, reviewed, to_review, student_banned, time_tutored, created_at, updated_at, mongo_id, shadowbanned, ended_by_user_id, requested_volunteer_id, opened_to_all_at) FROM stdin;
 \.
 
 
@@ -9620,4 +9620,5 @@ SELECT pg_catalog.setval('upchieve.weekdays_id_seq', 1, false);
 -- PostgreSQL database dump complete
 --
 
-\unrestrict bPQhSKOVar3w9LENPfN0TbralXBaP73cV0LPCHCy83QLIp1lsrGeWgwYkTPRnMZ
+\unrestrict CbpdBzDiEB8inuqe4gfZiSO4O2EkcErjjDOBXcbRDK15a4eMk3LsKwIAwu9eQPT
+

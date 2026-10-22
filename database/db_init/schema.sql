@@ -1,7 +1,7 @@
 \restrict dbmate
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
--- Dumped by pg_dump version 18.6
+-- Dumped by pg_dump version 15.17 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -6719,7 +6719,9 @@ CREATE TABLE upchieve.sessions (
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     mongo_id character varying(24),
     shadowbanned boolean,
-    ended_by_user_id uuid
+    ended_by_user_id uuid,
+    requested_volunteer_id uuid,
+    opened_to_all_at timestamp with time zone
 );
 
 
@@ -6847,6 +6849,20 @@ COMMENT ON COLUMN upchieve.sessions.shadowbanned IS 'not_pii: Whether the studen
 --
 
 COMMENT ON COLUMN upchieve.sessions.ended_by_user_id IS 'not_pii: Foreign key to upchieve.users who ended the session';
+
+
+--
+-- Name: COLUMN sessions.requested_volunteer_id; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.sessions.requested_volunteer_id IS 'not_pii: Originally requested tutor, retained after opening to all tutors and matching';
+
+
+--
+-- Name: COLUMN sessions.opened_to_all_at; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.sessions.opened_to_all_at IS 'not_pii: When the student opened the request to all tutors';
 
 
 --
@@ -15042,6 +15058,14 @@ ALTER TABLE ONLY upchieve.sessions
 
 
 --
+-- Name: sessions sessions_requested_volunteer_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.sessions
+    ADD CONSTRAINT sessions_requested_volunteer_id_fkey FOREIGN KEY (requested_volunteer_id) REFERENCES upchieve.users(id);
+
+
+--
 -- Name: sessions_session_flags sessions_session_flags_session_flag_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -16081,4 +16105,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260918161310'),
     ('20261001122732'),
     ('20261014202000'),
-    ('20261019200000');
+    ('20261019200000'),
+    ('20261020173941');

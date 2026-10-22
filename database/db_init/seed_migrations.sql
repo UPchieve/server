@@ -2,10 +2,10 @@
 -- PostgreSQL database dump
 --
 
-\restrict nHKYSKrdB11twb7mwcmRNmROrJzcmS9l6aVW1H36thbI5FwWWcpEhoNhMokjxP1
+\restrict KkZGr2zGcHhypwFKXUxcPOfkuhobfHL7J1XPbFAh7uDfh66E4y1tVuZQXeBBKRl
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
--- Dumped by pg_dump version 18.6
+-- Dumped by pg_dump version 15.17 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -120,4 +120,5 @@ COPY public.seed_migrations (version) FROM stdin;
 -- PostgreSQL database dump complete
 --
 
-\unrestrict nHKYSKrdB11twb7mwcmRNmROrJzcmS9l6aVW1H36thbI5FwWWcpEhoNhMokjxP1
+\unrestrict KkZGr2zGcHhypwFKXUxcPOfkuhobfHL7J1XPbFAh7uDfh66E4y1tVuZQXeBBKRl
+
