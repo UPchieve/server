@@ -9,6 +9,7 @@ import {
   SESSION_REPORT_REASON,
   USER_BAN_TYPES,
   USER_BAN_REASONS,
+  UserSessionFlags,
 } from '../../constants'
 import { mocked } from 'jest-mock'
 import {
@@ -24,7 +25,7 @@ import {
   UnauthorizedFeature,
 } from '../../models/Errors'
 import { getDbUlid } from '../../models/pgUtils'
-import { GetSessionByIdResult } from '../../models/Session'
+import { GetSessionByIdResult, SessionActivity } from '../../models/Session'
 import {
   DmIneligibilityReason,
   ensureCanJoinSession,
@@ -38,6 +39,8 @@ import { Jobs } from '../../worker/jobs'
 import * as PhotoDnaService from '../../services/PhotoDnaService'
 import * as NotifyVolunteerService from '../../services/NotifyVolunteerService'
 import SocketService from '../../services/SocketService'
+import * as SessionFlagsService from '../../services/SessionFlagsService'
+import { minutesInMs } from '../../utils/time-utils'
 
 jest.mock('../../models/Session/queries')
 jest.mock('../../models/User/queries')
@@ -69,6 +72,7 @@ describe('SessionService', () => {
   const mockedPhotoDnaService = mocked(PhotoDnaService)
   const mockedNotifyVolunteerService = mocked(NotifyVolunteerService)
   const mockedSubjectsRepo = mocked(SubjectsRepo)
+  const mockedSessionFlagsService = mocked(SessionFlagsService)
 
   describe('reportSession', () => {
     test('should ban the user with ban_type of COMPLETE when reported for STUDENT_RUDE', async () => {
@@ -373,14 +377,104 @@ describe('SessionService', () => {
     })
 
     it.each([
-      ['the volunteer', true, () => session.volunteerId!],
-      ['the student', true, () => session.studentId],
-      ['an outsider', false, () => getDbUlid()],
-    ])('For %s, eligible is %s', async (_who, eligible, getUserId) => {
+      ['the volunteer', { eligible: true }, () => session.volunteerId!],
+      ['the student', { eligible: true }, () => session.studentId],
+      [
+        'an outsider',
+        {
+          eligible: false,
+          ineligibleReason: DmIneligibilityReason.NotSessionParticipant,
+        },
+        () => getDbUlid(),
+      ],
+    ])('For %s, answers %j', async (_who, expected, getUserId) => {
       expect(
         await SessionService.isRecapDmsAvailable(session.id, getUserId())
-      ).toEqual({ eligible })
+      ).toEqual(expected)
     })
+  })
+
+  describe('isEligibleForSessionRecap', () => {
+    const tutoredMs = minutesInMs(2)
+    let session: GetSessionByIdResult
+
+    beforeEach(() => {
+      const volunteerJoinedAt = new Date(Date.now() - minutesInMs(5))
+      session = buildSession({
+        studentId: getDbUlid(),
+        volunteerId: getDbUlid(),
+        volunteerJoinedAt,
+        endedAt: new Date(volunteerJoinedAt.getTime() + minutesInMs(3)),
+      })
+      mockSessionRepo.getSessionById.mockResolvedValue(session)
+      mockSessionRepo.sessionHasBannedParticipant.mockResolvedValue(false)
+      mockSessionRepo.getSessionActivity.mockResolvedValue([
+        {
+          user: session.studentId,
+          createdAt: new Date(volunteerJoinedAt.getTime() + tutoredMs),
+        } as SessionActivity,
+      ])
+      mockedSessionFlagsService.computeSessionFlags.mockResolvedValue([])
+      mockSessionRepo.isInSessionHistory.mockResolvedValue(true)
+    })
+
+    it('Is not eligible when a participant is banned', async () => {
+      mockSessionRepo.sessionHasBannedParticipant.mockResolvedValue(true)
+
+      expect(await SessionService.isEligibleForSessionRecap(session.id)).toBe(
+        false
+      )
+      expect(mockSessionRepo.isInSessionHistory).not.toHaveBeenCalled()
+    })
+
+    it.each([true, false])(
+      'Checks Session History with the stored time tutored, answering %s',
+      async (inSessionHistory) => {
+        session.timeTutored = tutoredMs
+        mockSessionRepo.isInSessionHistory.mockResolvedValue(inSessionHistory)
+
+        expect(await SessionService.isEligibleForSessionRecap(session.id)).toBe(
+          inSessionHistory
+        )
+        expect(mockSessionRepo.isInSessionHistory).toHaveBeenCalledWith(
+          session.id,
+          session.studentId,
+          undefined
+        )
+        expect(
+          mockedSessionFlagsService.computeSessionFlags
+        ).not.toHaveBeenCalled()
+        expect(mockSessionRepo.getSessionActivity).not.toHaveBeenCalled()
+      }
+    )
+
+    it.each([
+      ['no absence', [], [], tutoredMs],
+      ['a computed absence', [], [UserSessionFlags.absentStudent], 0],
+      ['a stored absence', [UserSessionFlags.absentVolunteer], [], 0],
+    ])(
+      'Before time tutored is stored, checks Session History with the time the job will store given %s',
+      async (_, storedFlags, computedFlags, expected) => {
+        session.flags = storedFlags
+        mockedSessionFlagsService.computeSessionFlags.mockResolvedValue(
+          computedFlags
+        )
+
+        await SessionService.isEligibleForSessionRecap(session.id)
+        expect(mockSessionRepo.isInSessionHistory).toHaveBeenCalledWith(
+          session.id,
+          session.studentId,
+          expected
+        )
+
+        session.flags = [...storedFlags, ...computedFlags]
+        await SessionService.processCalculateMetrics(session.id)
+        expect(mockSessionRepo.updateSessionTimeTutored).toHaveBeenCalledWith(
+          session.id,
+          expected
+        )
+      }
+    )
   })
 
   describe('processSessionReported', () => {

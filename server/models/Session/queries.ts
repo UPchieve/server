@@ -1276,17 +1276,23 @@ export async function getSessionRecap(
   }
 }
 
-export async function isEligibleForSessionRecap(
-  sessionId: Uuid
+export async function isInSessionHistory(
+  sessionId: Uuid,
+  studentId: Uuid,
+  unsavedTimeTutored?: number
 ): Promise<boolean> {
-  const client = await getClient()
   try {
-    const result = await pgQueries.isEligibleForSessionRecap.run(
-      { sessionId },
-      client
+    // Primary client: the check runs seconds after ended_at is written, which a replica may not have yet.
+    const result = await pgQueries.getFilteredSessionHistoryTotalCount.run(
+      {
+        userId: studentId,
+        sessionId,
+        unsavedTimeTutored,
+        minSessionLength: config.minSessionLength,
+      },
+      getClient()
     )
-    if (!result.length) return false
-    else return makeRequired(result[0]).isEligible
+    return !!result[0]?.count
   } catch (err) {
     throw new RepoReadError(err)
   }

@@ -18,7 +18,7 @@ import {
   getSessionTranscriptItems,
   getVolunteerFirstSessionDate,
   getVolunteersInSessions,
-  isEligibleForSessionRecap,
+  isInSessionHistory,
   isSessionFulfilled,
   updateSessionFlagsById,
   updateSessionReviewReasonsById,
@@ -918,56 +918,67 @@ describe('Session repo', () => {
     })
   })
 
-  describe('isEligibleForSessionRecap', () => {
-    it('Returns isEligible = true when the session meets all the criteria', async () => {
-      const baseSession = await buildSessionRow(
-        {
-          studentId,
-        },
-        dbClient
-      )
+  describe('isInSessionHistory', () => {
+    const longEnough = config.minSessionLength + 1
 
-      const baseSessionFromDb = await insertSingleRow(
+    beforeAll(async () => {
+      // Another listed session for the same student, so a check that ignored
+      // the session id would answer true.
+      await insertSingleRow(
         'sessions',
-        baseSession,
+        await buildSessionRow({
+          studentId,
+          volunteerId,
+          endedAt: new Date(),
+          timeTutored: longEnough,
+        }),
         dbClient
       )
-      const sessionId = baseSessionFromDb.id
+    })
 
-      const getResult = async () => {
-        return isEligibleForSessionRecap(sessionId)
+    it.each([
+      ['a stored time over the minimum', longEnough, undefined, true],
+      [
+        'a stored time at the minimum',
+        config.minSessionLength,
+        undefined,
+        false,
+      ],
+      ['an unsaved time over the minimum', 0, longEnough, true],
+      ['an unsaved time at the minimum', 0, config.minSessionLength, false],
+    ])(
+      'Matches Session History for %s',
+      async (_, timeTutored, unsavedTimeTutored, expected) => {
+        const session = await insertSingleRow(
+          'sessions',
+          await buildSessionRow({
+            studentId,
+            volunteerId,
+            endedAt: new Date(),
+            timeTutored,
+          }),
+          dbClient
+        )
+
+        expect(
+          await isInSessionHistory(session.id, studentId, unsavedTimeTutored)
+        ).toBe(expected)
       }
+    )
 
-      // Unmatched, ongoing session is not eligible
-      expect(await getResult()).toEqual(false)
-
-      // Matched, ongoing session is not eligible
-      await dbClient.query(
-        'UPDATE sessions SET volunteer_id = $1 WHERE id = $2',
-        [volunteerId, sessionId]
-      )
-      expect(await getResult()).toEqual(false)
-
-      // Matched, complete session is not eligible
-      await dbClient.query(
-        'UPDATE sessions SET ended_at = NOW() where id = $1',
-        [sessionId]
-      )
-      expect(await getResult()).toEqual(false)
-
-      // Session with at least 1 message from each user is eligible
-      await insertSingleRow(
-        'session_messages',
-        buildSessionMessageRow(studentId, sessionId),
+    it.each([
+      ['has not ended', { volunteerId, endedAt: undefined }],
+      ['has no coach', { volunteerId: undefined, endedAt: new Date() }],
+    ])('Excludes a session that %s', async (_, overrides) => {
+      const session = await insertSingleRow(
+        'sessions',
+        await buildSessionRow({ studentId, timeTutored: 0, ...overrides }),
         dbClient
       )
-      expect(await getResult()).toEqual(false)
-      await insertSingleRow(
-        'session_messages',
-        buildSessionMessageRow(volunteerId, sessionId),
-        dbClient
+
+      expect(await isInSessionHistory(session.id, studentId, longEnough)).toBe(
+        false
       )
-      expect(await getResult()).toEqual(true)
     })
   })
 

@@ -1043,48 +1043,18 @@ FROM
             AND volunteers.id = favorited.volunteer_id)
 WHERE
     sessions.time_tutored IS NOT NULL
-    AND sessions.time_tutored > :minSessionLength!::int
+    AND GREATEST (sessions.time_tutored, :unsavedTimeTutored::bigint) > :minSessionLength!::int
     AND sessions.volunteer_id IS NOT NULL
     AND sessions.ended_at IS NOT NULL
     AND sessions.student_id = coalesce(:studentId::uuid, sessions.student_id)
     AND sessions.volunteer_id = coalesce(:volunteerId::uuid, sessions.volunteer_id)
+    AND sessions.id = coalesce(:sessionId::uuid, sessions.id)
     AND (:studentFirstName::text IS NULL
         OR LOWER(students.first_name) = LOWER(:studentFirstName))
     AND (:volunteerFirstName::text IS NULL
         OR LOWER(volunteers.first_name) = LOWER(:volunteerFirstName))
     AND (:subjectName::text IS NULL
         OR subjects.name = :subjectName);
-
-
-/* @name isEligibleForSessionRecap */
-SELECT
-    CASE WHEN sessions.id IS NOT NULL THEN
-        TRUE
-    ELSE
-        FALSE
-    END AS is_eligible
-FROM
-    sessions
-WHERE
-    sessions.id = :sessionId!
-    AND sessions.volunteer_id IS NOT NULL
-    AND sessions.ended_at IS NOT NULL
-    AND EXISTS (
-        SELECT
-            1
-        FROM
-            session_messages
-        WHERE
-            session_id = sessions.id
-            AND sender_id = sessions.volunteer_id)
-    AND EXISTS (
-        SELECT
-            1
-        FROM
-            session_messages
-        WHERE
-            session_id = sessions.id
-            AND sender_id = sessions.student_id);
 
 
 /* @name getTotalSessionHistory */

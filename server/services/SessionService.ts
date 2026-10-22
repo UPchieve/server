@@ -74,7 +74,10 @@ import * as SessionAudioRepo from '../models/SessionAudio'
 import { SessionMessageType } from '../router/api/sockets'
 import * as TeacherService from './TeacherService'
 import { getSessionSummaryByUserType } from './SessionSummariesService'
-import { processReportMetrics } from './SessionFlagsService'
+import {
+  computeSessionFlags,
+  processReportMetrics,
+} from './SessionFlagsService'
 import * as SurveyService from './SurveyService'
 import type { SessionUserRole } from '../types/users'
 import * as FeatureFlagsService from './FeatureFlagService'
@@ -353,17 +356,24 @@ export async function processSessionTranscript(sessionId: Ulid) {
   }
 }
 
+async function calculateTimeTutoredGivenFlags(
+  session: SessionRepo.GetSessionByIdResult,
+  flags: string[]
+): Promise<number> {
+  if (
+    flags.includes(USER_SESSION_METRICS.absentStudent) ||
+    flags.includes(USER_SESSION_METRICS.absentVolunteer)
+  )
+    return 0
+  return sessionUtils.calculateTimeTutored(session)
+}
+
 export async function processCalculateMetrics(sessionId: Ulid) {
   const session = await SessionRepo.getSessionById(sessionId)
-  let timeTutored = 0
-  if (
-    !(
-      session.flags.includes(USER_SESSION_METRICS.absentStudent) ||
-      session.flags.includes(USER_SESSION_METRICS.absentVolunteer)
-    )
+  const timeTutored = await calculateTimeTutoredGivenFlags(
+    session,
+    session.flags
   )
-    timeTutored = await sessionUtils.calculateTimeTutored(session)
-
   await SessionRepo.updateSessionTimeTutored(sessionId, timeTutored)
 }
 
@@ -1304,11 +1314,29 @@ export async function getSessionRecap(
 export async function isEligibleForSessionRecap(
   sessionId: Ulid
 ): Promise<boolean> {
-  return await SessionRepo.isEligibleForSessionRecap(sessionId)
+  if (await SessionRepo.sessionHasBannedParticipant(sessionId)) return false
+  const session = await SessionRepo.getSessionById(sessionId)
+  // time_tutored reads 0 until ProcessSessionEnded stores it, and the chat asks
+  // a few seconds after the end, so work out the value the job will store.
+  const unsavedTimeTutored =
+    session.timeTutored === 0
+      ? await calculateTimeTutoredGivenFlags(session, [
+          // Stored flags keep an absence that messages sent after the end
+          // would hide from a recompute.
+          ...session.flags,
+          ...(await computeSessionFlags(session)),
+        ])
+      : undefined
+  return SessionRepo.isInSessionHistory(
+    session.id,
+    session.studentId,
+    unsavedTimeTutored
+  )
 }
 
 export enum DmIneligibilityReason {
   SessionHasBannedParticipant = 'SessionHasBannedParticipant',
+  NotSessionParticipant = 'NotSessionParticipant',
   Other = 'Other',
 }
 export async function isRecapDmsAvailable(
@@ -1338,8 +1366,13 @@ export async function isRecapDmsAvailable(
   }
   const isVolunteer = userId === volunteerId
   const isStudent = userId === studentId
+  if (!isVolunteer && !isStudent)
+    return {
+      eligible: false,
+      ineligibleReason: DmIneligibilityReason.NotSessionParticipant,
+    }
 
-  return { eligible: isVolunteer || isStudent }
+  return { eligible: true }
 }
 
 export async function getStudentSessionDetails(
