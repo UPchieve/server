@@ -193,13 +193,14 @@ export async function parseChecklist(source: {
   spreadsheetId: string
   worksheets: ChecklistWorksheet[]
 }): Promise<NTHSChecklist> {
-  const sections = await Promise.all(
+  const parsedSections = await Promise.all(
     source.worksheets
       .filter((worksheet) => !isReadmeWorksheet(worksheet))
       .slice()
       .sort((left, right) => left.index - right.index)
       .map(parseWorksheet)
   )
+  const sections = parsedSections.filter((section) => section.items.length > 0)
   const itemKeys = new Set<string>()
   for (const section of sections) {
     for (const item of section.items) {

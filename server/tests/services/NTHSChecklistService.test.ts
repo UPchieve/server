@@ -118,6 +118,28 @@ describe('NTHSChecklistService', () => {
     ])
   })
 
+  test('omits sections with no active items', async () => {
+    const checklist = await parseChecklist({
+      spreadsheetId: 'spreadsheet-id',
+      worksheets: [
+        worksheet([{ ...validRow, active: false }], {
+          sheetId: 456,
+          title: 'Draft section',
+          index: 0,
+        }),
+        worksheet([validRow], { index: 1 }),
+      ],
+    })
+
+    expect(checklist.sections).toEqual([
+      expect.objectContaining({
+        id: 123,
+        title: 'Set up your chapter',
+        order: 1,
+      }),
+    ])
+  })
+
   test('ignores the README worksheet without validating or reading it', async () => {
     const readReadmeRows = jest.fn()
     const checklist = await parseChecklist({
