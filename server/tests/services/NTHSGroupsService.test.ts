@@ -272,7 +272,15 @@ describe('isClearedToViewChapterMemberInfo', () => {
 
   it('clears an onboarded, approved, unbanned high-school volunteer', async () => {
     await expect(
-      NTHSService.isClearedToViewChapterMemberInfo(userId)
+      NTHSService.isClearedToViewChapterMemberInfo(userId, false)
+    ).resolves.toBe(true)
+  })
+
+  it('clears a high-school admin who is not ready to coach', async () => {
+    mockedVolunteerRepo.getVolunteersReadyToCoachStatus.mockResolvedValue([])
+
+    await expect(
+      NTHSService.isClearedToViewChapterMemberInfo(userId, true)
     ).resolves.toBe(true)
   })
 
@@ -280,6 +288,7 @@ describe('isClearedToViewChapterMemberInfo', () => {
   it.each([
     [
       'not onboarded',
+      false,
       () => {
         mockedVolunteerRepo.getVolunteersReadyToCoachStatus.mockResolvedValue([
           { ...readyToCoachStatus, isOnboarded: false },
@@ -288,6 +297,7 @@ describe('isClearedToViewChapterMemberInfo', () => {
     ],
     [
       'there is no volunteer profile row at all',
+      false,
       () => {
         mockedVolunteerRepo.getVolunteersReadyToCoachStatus.mockResolvedValue(
           []
@@ -296,17 +306,25 @@ describe('isClearedToViewChapterMemberInfo', () => {
     ],
     [
       'the high-school occupation is missing',
+      false,
       () => {
         mockedVolunteerRepo.getVolunteerOccupations.mockResolvedValue([
           VolunteerOccupations.WORKING_PART_TIME,
         ])
       },
     ],
-  ])('is not cleared when %s', async (_label, setup) => {
+    [
+      'the high-school occupation is missing for an admin',
+      true,
+      () => {
+        mockedVolunteerRepo.getVolunteerOccupations.mockResolvedValue([])
+      },
+    ],
+  ])('is not cleared when %s', async (_label, isAdmin, setup) => {
     setup()
 
     await expect(
-      NTHSService.isClearedToViewChapterMemberInfo(userId)
+      NTHSService.isClearedToViewChapterMemberInfo(userId, isAdmin)
     ).resolves.toBe(false)
   })
 })
@@ -542,4 +560,68 @@ describe('updateGroupMember', () => {
     )
     expect(mockedNTHSRepo.deactivateGroupMember).not.toHaveBeenCalled()
   })
+})
+
+describe('leaveGroup', () => {
+  const groupId = getDbUlid()
+
+  it.each(['member', 'admin'] as const)(
+    'lets a high school %s who is not the sole admin leave',
+    async (roleName) => {
+      const member = buildNTHSGroupMemberWithRole({ roleName })
+      mockedNTHSRepo.getGroupMembers.mockResolvedValueOnce([
+        buildNTHSGroupMemberWithRole({ roleName: 'admin' }),
+        member,
+      ])
+      mockedVolunteerRepo.getVolunteerOccupations.mockResolvedValue([
+        VolunteerOccupations.HIGH_SCHOOL_STUDENT,
+      ])
+
+      await NTHSService.leaveGroup(member.userId, groupId)
+
+      expect(mockedNTHSRepo.deactivateGroupMember).toHaveBeenCalledWith(
+        member.userId,
+        groupId
+      )
+    }
+  )
+
+  it('rejects a user with no membership row in the group', async () => {
+    mockedNTHSRepo.getGroupMembers.mockResolvedValueOnce([
+      buildNTHSGroupMemberWithRole({ roleName: 'admin' }),
+    ])
+
+    await expect(NTHSService.leaveGroup(getDbUlid(), groupId)).rejects.toThrow(
+      LookupError
+    )
+    expect(mockedNTHSRepo.deactivateGroupMember).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    ['lacks', 'can', [VolunteerOccupations.WORKING_PART_TIME], true],
+    ['has no occupation, so lacks', 'can', [], true],
+    ['has', 'cannot', [VolunteerOccupations.HIGH_SCHOOL_STUDENT], false],
+  ])(
+    'a sole admin who %s high school student %s leave',
+    async (_label, _verb, occupations, canLeave) => {
+      const soleAdmin = buildNTHSGroupMemberWithRole({ roleName: 'admin' })
+      mockedNTHSRepo.getGroupMembers.mockResolvedValueOnce([
+        soleAdmin,
+        buildNTHSGroupMemberWithRole(),
+      ])
+      mockedVolunteerRepo.getVolunteerOccupations.mockResolvedValueOnce(
+        occupations
+      )
+
+      const result = NTHSService.leaveGroup(soleAdmin.userId, groupId)
+
+      if (canLeave) {
+        await result
+        expect(mockedNTHSRepo.deactivateGroupMember).toHaveBeenCalled()
+      } else {
+        await expect(result).rejects.toThrow(CannotRemoveSoleNTHSAdminError)
+        expect(mockedNTHSRepo.deactivateGroupMember).not.toHaveBeenCalled()
+      }
+    }
+  )
 })

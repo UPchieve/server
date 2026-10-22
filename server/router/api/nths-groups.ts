@@ -77,12 +77,10 @@ async function requireClearedToViewMemberInfo(
   res: Response,
   next: NextFunction
 ) {
-  if (requesterIsGroupAdmin(res)) {
-    return next()
-  }
   if (
     await NTHSGroupsService.isClearedToViewChapterMemberInfo(
-      extractUser(req).id
+      extractUser(req).id,
+      requesterIsGroupAdmin(res)
     )
   ) {
     return next()
@@ -283,9 +281,7 @@ export function routeNTHSGroups(router: Router): void {
         const userId = req.user?.id
         if (!userId) throw new NotAuthenticatedError()
         const groupId = asUuid(req.params.groupId, 'groupId')
-        await NTHSGroupsService.updateGroupMember(userId, groupId, {
-          isActive: false,
-        })
+        await NTHSGroupsService.leaveGroup(userId, groupId)
         return res.sendStatus(204)
       } catch (err) {
         resError(res, err)

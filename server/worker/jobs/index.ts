@@ -69,7 +69,6 @@ import backfillSessionEndedTasks from '../../scripts/backfill-sessionEndedTasks'
 import spawnDeidentifyUsers from './spawn-deidentify-users'
 import updateNthsChapterStatusForImpactPath from './updateNTHSChapterStatusForImpactPath'
 import spawnUpdateNthsChapterStatusForImpactPath from './spawnUpdateNTHSChapterStatusForImpactPath'
-import notifyNTHSChapterAdminsOfDeactivatedUser from './notifyNTHSChapterAdminsOfDeactivatedUser'
 import executeModerationAction from './executeModerationAction'
 import deleteProxyEmailsIdenticalToEmails from './deleteProxyEmailsIdenticalToEmails'
 import notifyVolunteersAboutEssayReviewSubmission from './volunteer-emails/notifyVolunteerAboutEssayReviewSubmission'
@@ -165,7 +164,6 @@ export enum Jobs {
   UpdateCachedVolunteersForTextNotifications = 'UpdateCachedVolunteersForTextNotifications',
   UpdateNTHSChapterStatusForImpactPath = 'UpdateNTHSChapterStatusForImpactPath',
   SpawnUpdateNTHSChapterStatusForImpactPath = 'SpawnUpdateNTHSChapterStatusForImpactPath',
-  NotifyNTHSChapterAdminsOfDeactivatedUser = 'NotifyNTHSChapterAdminsOfDeactivatedUser',
   CleanUpProxyEmailsThatAreIdenticalToEmail = 'CleanUpProxyEmailsThatAreIdenticalToEmail',
 }
 
@@ -504,10 +502,6 @@ const jobProcessors: JobProcessor[] = [
   {
     name: Jobs.SpawnUpdateNTHSChapterStatusForImpactPath,
     processor: spawnUpdateNthsChapterStatusForImpactPath,
-  },
-  {
-    name: Jobs.NotifyNTHSChapterAdminsOfDeactivatedUser,
-    processor: notifyNTHSChapterAdminsOfDeactivatedUser,
   },
   {
     name: Jobs.CleanUpProxyEmailsThatAreIdenticalToEmail,

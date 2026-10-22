@@ -46,8 +46,6 @@ import {
   NTHSApprovalExpiredError,
 } from '../models/Errors'
 import logger from '../logger'
-import QueueService from './QueueService'
-import { Jobs } from '../worker/jobs'
 import {
   getVolunteerOccupations,
   getVolunteersReadyToCoachStatus,
@@ -266,13 +264,6 @@ export async function joinGroupAtSignup(
   }
 }
 
-export async function getNTHSGroupsByMember(
-  userId: Ulid,
-  tc: TransactionClient = getRoClient()
-): Promise<NTHSGroupWithMemberInfo[]> {
-  return await NTHSGroupsRepo.getGroupsByUser(userId, tc)
-}
-
 export type UpdateGroupMemberRequest = {
   role?: NTHSGroupRoleName
   title?: NTHSTitle
@@ -284,25 +275,15 @@ export async function updateGroupMember(
   nthsGroupId: Ulid,
   update: UpdateGroupMemberRequest
 ) {
-  const client = getClient()
-  const members = await NTHSGroupsRepo.getGroupMembers(nthsGroupId, client, {
-    includeDeactivated: true,
-  })
-  // Departed members remain valid targets; anyone with no membership row is
-  // rejected so a role can't be granted to an outsider.
-  const targetMember = members.find((member) => member.userId === userId)
-  if (!targetMember) {
-    throw new LookupError('User is not a member of this NTHS group')
-  }
+  const { members, targetMember } = await getMembersWithTarget(
+    nthsGroupId,
+    userId
+  )
   if (update.role === 'admin' && targetMember.deleted) {
     throw new InputError('Cannot make a deleted account an admin')
   }
   // Do not allow deactivating or demoting of the sole admin of the group
-  const activeAdmins = members.filter(
-    (member) =>
-      member.roleName === 'admin' && !member.deactivatedAt && !member.deleted
-  )
-  if (activeAdmins.length === 1 && userId === activeAdmins[0].userId) {
+  if (isSoleActiveAdmin(members, userId)) {
     if ((update.role && update.role !== 'admin') || update.isActive === false) {
       throw new CannotRemoveSoleNTHSAdminError()
     }
@@ -323,6 +304,46 @@ export async function updateGroupMember(
       await NTHSGroupsRepo.deactivateGroupMember(userId, nthsGroupId, tc)
     }
   })
+}
+
+// Departed members remain valid targets; anyone with no membership row is
+// rejected so a role can't be granted to an outsider.
+async function getMembersWithTarget(nthsGroupId: Ulid, userId: Ulid) {
+  const members = await NTHSGroupsRepo.getGroupMembers(
+    nthsGroupId,
+    getClient(),
+    { includeDeactivated: true }
+  )
+  const targetMember = members.find((member) => member.userId === userId)
+  if (!targetMember) {
+    throw new LookupError('User is not a member of this NTHS group')
+  }
+  return { members, targetMember }
+}
+
+function isSoleActiveAdmin(
+  members: NTHSGroupMemberWithRole[],
+  userId: Ulid
+): boolean {
+  const activeAdmins = members.filter(
+    (member) =>
+      member.roleName === 'admin' && !member.deactivatedAt && !member.deleted
+  )
+  return activeAdmins.length === 1 && activeAdmins[0].userId === userId
+}
+
+// A sole admin without high school student can leave: Chapter HQ's high school
+// notice is their only way out, and it hides the Members tab where they could
+// hand the chapter to someone else.
+export async function leaveGroup(userId: Ulid, nthsGroupId: Ulid) {
+  const { members } = await getMembersWithTarget(nthsGroupId, userId)
+  if (isSoleActiveAdmin(members, userId)) {
+    const occupations = await getVolunteerOccupations(userId, getClient())
+    if (occupations.includes(VolunteerOccupations.HIGH_SCHOOL_STUDENT)) {
+      throw new CannotRemoveSoleNTHSAdminError()
+    }
+  }
+  await NTHSGroupsRepo.deactivateGroupMember(userId, nthsGroupId)
 }
 
 function titleToWrite(
@@ -555,44 +576,6 @@ export async function getAllNTHSGroupsChapterStatus(): Promise<
   return NTHSGroupsRepo.getAllNTHSGroupsChapterStatus()
 }
 
-export async function deactivateNonHighSchoolMember(
-  userId: Ulid,
-  groups: NTHSGroupWithMemberInfo[] | undefined,
-  tc: TransactionClient = getClient()
-) {
-  const groupsToRemoveFrom: NTHSGroupWithMemberInfo[] =
-    groups ?? (await NTHSGroupsRepo.getGroupsByUser(userId, tc))
-  const logData = { userId, groupIds: groupsToRemoveFrom.map((g) => g.groupId) }
-  try {
-    await runInTransaction(async (client) => {
-      for (const group of groupsToRemoveFrom) {
-        await NTHSGroupsRepo.deactivateGroupMember(
-          userId,
-          group.groupId,
-          client
-        )
-        await QueueService.add(
-          Jobs.NotifyNTHSChapterAdminsOfDeactivatedUser,
-          { delay: 0 },
-          {
-            deactivatedUserId: userId,
-            nthsGroupId: group.groupId,
-          }
-        )
-      }
-      logger.info(
-        'Removed non-high school user from all NTHS chapters',
-        logData
-      )
-    }, tc)
-  } catch (err) {
-    logger.error(
-      'Failed to deactivate non-high school user from all NTHS chapters',
-      { err, ...logData }
-    )
-  }
-}
-
 export async function getApprovalExpiresAt(
   userId: Ulid
 ): Promise<Date | undefined> {
@@ -668,23 +651,23 @@ function utcPeriodStartsFor(instant: Date): NTHSChapterPeriodStarts {
 
 // Mirrors the chapter page's member-info gate (high-line src/store/modules/
 // volunteer.js isReadyToTutor + NTHSGroupsView.vue hidePageContentReason), so
-// a member the page shows content to never gets a 403 here.
+// a member the page shows content to never gets a 403 here. Admins skip the
+// ready-to-coach check only.
 export async function isClearedToViewChapterMemberInfo(
   userId: Ulid,
+  isAdmin: boolean,
   tc: TransactionClient = getClient()
 ): Promise<boolean> {
   const [[readyToCoachStatus], occupations] = await Promise.all([
-    getVolunteersReadyToCoachStatus([userId], tc),
+    isAdmin
+      ? Promise.resolve([])
+      : getVolunteersReadyToCoachStatus([userId], tc),
     getVolunteerOccupations(userId, tc),
   ])
-  const isHighSchoolStudent = occupations.includes(
-    VolunteerOccupations.HIGH_SCHOOL_STUDENT
-  )
-  return (
-    !!readyToCoachStatus &&
-    isReadyToCoach(readyToCoachStatus) &&
-    isHighSchoolStudent
-  )
+  if (!occupations.includes(VolunteerOccupations.HIGH_SCHOOL_STUDENT)) {
+    return false
+  }
+  return isAdmin || (!!readyToCoachStatus && isReadyToCoach(readyToCoachStatus))
 }
 
 export async function getChapterImpact(

@@ -1704,24 +1704,6 @@ export async function sendNTHSChapterSchoolAffiliationApprovedNotification(
   }
 }
 
-export async function sendNTHSChapterAdminsMemberDeactivationNotice(
-  recipients: { firstName: string; email: string }[],
-  deactivatedUserFirstName: string
-): Promise<void> {
-  for (const recipient of recipients) {
-    await sendEmail(
-      recipient.email,
-      config.mail.senders.nths,
-      'UPchieve',
-      config.sendgrid.nthsMemberDeactivationNoticeEmail,
-      {
-        firstName: recipient.firstName,
-        deactivatedUserFirstName,
-      }
-    )
-  }
-}
-
 export async function sendEssayReviewsToStudent({
   studentEmail,
   studentFirstName,

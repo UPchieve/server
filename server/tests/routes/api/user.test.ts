@@ -311,7 +311,6 @@ describe('routeUser', () => {
 
   describe('POST /api/user/volunteer-approval/background-information', () => {
     test('adds background information', async () => {
-      const wasRemovedFromNTHS = true
       const payload = {
         occupation: ['Working full-time'],
         experience: '2 years',
@@ -327,11 +326,7 @@ describe('routeUser', () => {
         otherSignupSource: 'Friend',
         highSchoolId: getUuid(),
       }
-      mockedVolunteerService.submitVolunteerBackgroundInfo.mockResolvedValueOnce(
-        {
-          wasRemovedFromNTHS,
-        }
-      )
+      mockedVolunteerService.submitVolunteerBackgroundInfo.mockResolvedValueOnce()
 
       const response = await sendPost(
         '/api/user/volunteer-approval/background-information',
@@ -353,7 +348,6 @@ describe('routeUser', () => {
         },
         expect.any(String)
       )
-      expect(response.body).toEqual({ wasRemovedFromNTHS })
     })
   })
 

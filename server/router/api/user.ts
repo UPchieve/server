@@ -37,7 +37,6 @@ import type {
   UserForAdminDetailWithRoleContextPublic,
   VolunteerApprovalResponse,
   VolunteerPhotoUploadResponse,
-  RemovedFromNTHSResponse,
   ReferredFriendsTotalResponse,
   UserIdByEmailResponse,
 } from '../../contracts/users'
@@ -224,7 +223,7 @@ export function routeUser(router: Router): void {
 
   router.post(
     '/user/volunteer-approval/background-information',
-    async (req, res: Response<RemovedFromNTHSResponse>) => {
+    async (req, res: Response<void>) => {
       const { ip } = req
       const user = extractUser(req)
 
@@ -264,13 +263,12 @@ export function routeUser(router: Router): void {
       }
 
       try {
-        const { wasRemovedFromNTHS } =
-          await VolunteerService.submitVolunteerBackgroundInfo(
-            user.id,
-            update,
-            ip
-          )
-        res.json({ wasRemovedFromNTHS })
+        await VolunteerService.submitVolunteerBackgroundInfo(
+          user.id,
+          update,
+          ip
+        )
+        res.sendStatus(200)
       } catch (error) {
         resError(res, error)
       }

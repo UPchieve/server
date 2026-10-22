@@ -388,8 +388,8 @@ export async function submitCandidateApplication({
         'student_at_school',
         tc
       )
-    // A profile save without this occupation removes a coach from every
-    // chapter, so every applicant carries it.
+    // Chapter HQ hides member details from a coach without this occupation,
+    // so every applicant carries it.
     await VolunteerRepo.insertVolunteerOccupations(
       userId,
       [VolunteerRepo.VolunteerOccupations.HIGH_SCHOOL_STUDENT],

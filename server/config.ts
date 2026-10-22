@@ -104,7 +104,6 @@ const config = {
     ambassadorCongratsTemplate: 'd-1c344164434544e4962ec2a125d647cf',
     nthsChapterBecameOfficialImpactPathEmail:
       'd-781878be86f94e6c9ce3fbc7d336d6bd',
-    nthsMemberDeactivationNoticeEmail: 'd-d4262bda50bb470abb770850d45cb083',
     nthsCandidateApplicationApproved: 'd-7bb5abafa4d14d6cb53540bd514447a7',
     nthsCandidateApplicationDenied: 'd-0db5c4e5f4de45de9c8ce7106765f0e9',
     nthsCandidateEngagment: {

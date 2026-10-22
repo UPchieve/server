@@ -2,7 +2,6 @@ import type { UserTrainingCourseProgress } from '../../types/training'
 import * as VolunteerService from '../../services/VolunteerService'
 import * as VolunteerRepo from '../../models/Volunteer'
 import * as UsersSchoolsRepo from '../../models/UsersSchools'
-import * as NTHSService from '../../services/NTHSGroupsService'
 import QueueService from '../../services/QueueService'
 import * as AnalyticsService from '../../services/AnalyticsService'
 import * as UserActionRepo from '../../models/UserAction'
@@ -18,16 +17,12 @@ import {
 import { mocked } from 'jest-mock'
 import { VolunteerOccupations } from '../../models/Volunteer'
 import { hasCompletedVolunteerTraining } from '../../services/VolunteerService'
-import {
-  buildNTHSGroupWithMemberInfo,
-  buildVolunteerContactInfo,
-} from '../mocks/generate'
+import { buildVolunteerContactInfo } from '../mocks/generate'
 import * as ReferralService from '../../services/ReferralService'
 import * as UsersGradeLevelRepo from '../../models/UsersGradeLevels'
 
 jest.mock('../../services/ReferralService')
 const mockedReferralService = mocked(ReferralService)
-jest.mock('../../services/NTHSGroupsService')
 jest.mock('../../models/Volunteer')
 jest.mock('../../models/UsersSchools')
 jest.mock('../../services/QueueService', () => ({
@@ -39,7 +34,6 @@ jest.mock('../../services/AnalyticsService', () => ({
 jest.mock('../../models/UserAction')
 jest.mock('../../models/UsersGradeLevels')
 
-const mockedNTHSService = mocked(NTHSService)
 const mockedVolunteerRepo = mocked(VolunteerRepo)
 const mockedUsersGradeLevelRepo = mocked(UsersGradeLevelRepo)
 const mockedUsersSchoolsRepo = mocked(UsersSchoolsRepo)
@@ -353,7 +347,6 @@ describe('submitBackgroundInfo', () => {
       mockedVolunteerRepo.getVolunteerContactInfoById.mockResolvedValue(
         volunteer
       )
-      mockedNTHSService.getNTHSGroupsByMember.mockResolvedValue([])
       await VolunteerService.submitVolunteerBackgroundInfo(volunteer.id, update)
       expect(mockedUserActionsRepo.createAccountAction).toHaveBeenCalledWith(
         {
@@ -385,7 +378,6 @@ describe('submitBackgroundInfo', () => {
       mockedVolunteerRepo.getVolunteerContactInfoById.mockResolvedValue(
         volunteer
       )
-      mockedNTHSService.getNTHSGroupsByMember.mockResolvedValue([])
       await VolunteerService.submitVolunteerBackgroundInfo(volunteer.id, {
         ...update,
         occupations: [VolunteerOccupations.UNDERGRAD_STUDENT],
@@ -406,7 +398,6 @@ describe('submitBackgroundInfo', () => {
         mockedVolunteerRepo.getVolunteerContactInfoById.mockResolvedValue(
           volunteer
         )
-        mockedNTHSService.getNTHSGroupsByMember.mockResolvedValue([])
         await VolunteerService.submitVolunteerBackgroundInfo(volunteer.id, {
           ...update,
           occupations: [VolunteerOccupations.HIGH_SCHOOL_STUDENT],
@@ -420,92 +411,6 @@ describe('submitBackgroundInfo', () => {
         ).toHaveBeenCalledWith(volunteer.id, gradeLevel, expect.anything())
       }
     )
-  })
-
-  describe('Removing users from NTHS', () => {
-    it('Deactivates NTHS member if they are not a high schooler', async () => {
-      const volunteer = buildVolunteerContactInfo()
-      mockedVolunteerRepo.getVolunteerContactInfoById.mockResolvedValue(
-        volunteer
-      )
-      const nthsGroup = buildNTHSGroupWithMemberInfo()
-      mockedNTHSService.getNTHSGroupsByMember.mockResolvedValue([nthsGroup])
-      await VolunteerService.submitVolunteerBackgroundInfo(volunteer.id, update)
-      expect(
-        mockedNTHSService.deactivateNonHighSchoolMember
-      ).toHaveBeenCalledTimes(1)
-      expect(
-        mockedNTHSService.deactivateNonHighSchoolMember
-      ).toHaveBeenCalledWith(volunteer.id, [nthsGroup], expect.anything())
-    })
-
-    it('Deactivates NTHS member if they are a high schooler but select a non-HS grade', async () => {
-      const volunteer = buildVolunteerContactInfo()
-      mockedVolunteerRepo.getVolunteerContactInfoById.mockResolvedValue(
-        volunteer
-      )
-      const nthsGroup = buildNTHSGroupWithMemberInfo()
-      mockedNTHSService.getNTHSGroupsByMember.mockResolvedValue([nthsGroup])
-      await VolunteerService.submitVolunteerBackgroundInfo(volunteer.id, {
-        ...update,
-        gradeLevel: '7th',
-      })
-      expect(
-        mockedNTHSService.deactivateNonHighSchoolMember
-      ).toHaveBeenCalledTimes(1)
-      expect(
-        mockedNTHSService.deactivateNonHighSchoolMember
-      ).toHaveBeenCalledWith(volunteer.id, [nthsGroup], expect.anything())
-    })
-
-    it('Does not deactivate NTHS member if they are a high schooler', async () => {
-      const volunteer = buildVolunteerContactInfo()
-      mockedVolunteerRepo.getVolunteerContactInfoById.mockResolvedValue(
-        volunteer
-      )
-      const nthsGroup = buildNTHSGroupWithMemberInfo()
-      mockedNTHSService.getNTHSGroupsByMember.mockResolvedValue([nthsGroup])
-      await VolunteerService.submitVolunteerBackgroundInfo(volunteer.id, {
-        ...update,
-        occupations: ['A high school student', 'Unemployed'],
-      })
-      expect(
-        mockedNTHSService.deactivateNonHighSchoolMember
-      ).not.toHaveBeenCalled()
-    })
-
-    it('Does not attempt to deactivate NTHS member if user is not in NTHS', async () => {
-      const volunteer = buildVolunteerContactInfo()
-      mockedVolunteerRepo.getVolunteerContactInfoById.mockResolvedValue(
-        volunteer
-      )
-      mockedNTHSService.getNTHSGroupsByMember.mockResolvedValue([])
-      await VolunteerService.submitVolunteerBackgroundInfo(volunteer.id, update)
-      expect(
-        mockedNTHSService.deactivateNonHighSchoolMember
-      ).not.toHaveBeenCalled()
-    })
-
-    it('Does not attempt to deactivate NTHS member if occupations are not a part of the update', async () => {
-      const volunteer = buildVolunteerContactInfo()
-      mockedVolunteerRepo.getVolunteerContactInfoById.mockResolvedValue(
-        volunteer
-      )
-      const nthsGroup = buildNTHSGroupWithMemberInfo()
-      mockedNTHSService.getNTHSGroupsByMember.mockResolvedValue([nthsGroup])
-      const actual = await VolunteerService.submitVolunteerBackgroundInfo(
-        volunteer.id,
-        {
-          experience: {
-            tutoring: '0-1 years',
-          },
-        }
-      )
-      expect(
-        mockedNTHSService.deactivateNonHighSchoolMember
-      ).not.toHaveBeenCalled()
-      expect(actual.wasRemovedFromNTHS).toEqual(false)
-    })
   })
 
   it('Throws an error if the volunteer cannot be found', async () => {

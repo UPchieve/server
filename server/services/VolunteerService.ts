@@ -15,7 +15,6 @@ import * as UsersSchoolsRepo from '../models/UsersSchools'
 import * as UsersGradeLevelRepo from '../models/UsersGradeLevels'
 import { Jobs } from '../worker/jobs'
 import * as AnalyticsService from './AnalyticsService'
-import * as NTHSService from './NTHSGroupsService'
 import { getTotalElapsedAvailabilityForDateRange } from './AvailabilityService'
 import * as MailService from './MailService'
 import * as ReferralService from './ReferralService'
@@ -39,7 +38,6 @@ import config from '../config'
 import * as cache from '../cache'
 import { getSubjectsWithTopic } from './SubjectsService'
 import logger from '../logger'
-import { isHighSchoolGrade } from '../utils/grade-levels'
 import { isPlatformBanType } from '../utils/ban-utils'
 import { daysInMs } from '../utils/time-utils'
 
@@ -257,8 +255,6 @@ export async function submitVolunteerBackgroundInfo(
   const volunteer = await VolunteerRepo.getVolunteerContactInfoById(userId)
   if (!volunteer) throw new Error('Volunteer for background info not found')
   const isPartnerVolunteer = !!volunteer.volunteerPartnerOrg
-  const nthsGroups = await NTHSService.getNTHSGroupsByMember(userId)
-  let wasRemovedFromNTHS = false
 
   await runInTransaction(async (tc) => {
     if (isPartnerVolunteer && !volunteer.approved) {
@@ -313,21 +309,6 @@ export async function submitVolunteerBackgroundInfo(
         tc
       )
     }
-    if (nthsGroups.length && update.occupations && update.occupations.length) {
-      // NTHS members have to be high schoolers. If this user is part of any NTHS chapters, and they are not in high school,
-      // they must be removed from the group immediately.
-      if (
-        !update.occupations.includes(
-          VolunteerOccupations.HIGH_SCHOOL_STUDENT
-        ) ||
-        !update.gradeLevel ||
-        !isHighSchoolGrade(update.gradeLevel)
-      ) {
-        wasRemovedFromNTHS = true
-        await NTHSService.deactivateNonHighSchoolMember(userId, nthsGroups, tc)
-      }
-    }
-
     if (update.gradeLevel) {
       await UsersGradeLevelRepo.upsertUserGradeLevel(
         userId,
@@ -349,8 +330,6 @@ export async function submitVolunteerBackgroundInfo(
       tc
     )
   })
-
-  return { wasRemovedFromNTHS }
 }
 
 /**

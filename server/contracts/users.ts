@@ -289,10 +289,6 @@ export type VolunteerApprovalResponse = {
   uploadUrl?: string
 }
 
-export type RemovedFromNTHSResponse = {
-  wasRemovedFromNTHS: boolean
-}
-
 export type ReferredFriendsTotalResponse = {
   referredFriendsArr: null[]
 }

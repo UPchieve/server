@@ -424,14 +424,13 @@ describe('routeNTHSGroups', () => {
 
   describe('DELETE /api/nths-groups/:groupId/leave', () => {
     test('deactivates the current user membership', async () => {
-      mockedNTHSGroupsService.updateGroupMember.mockResolvedValueOnce()
+      mockedNTHSGroupsService.leaveGroup.mockResolvedValueOnce()
 
       const response = await sendDelete(`/api/nths-groups/${groupId}/leave`)
       expect(response.status).toBe(204)
-      expect(mockedNTHSGroupsService.updateGroupMember).toHaveBeenCalledWith(
+      expect(mockedNTHSGroupsService.leaveGroup).toHaveBeenCalledWith(
         mockUser.id,
-        groupId,
-        { isActive: false }
+        groupId
       )
     })
 
@@ -444,13 +443,13 @@ describe('routeNTHSGroups', () => {
 
       const response = await sendDelete(`/api/nths-groups/${groupId}/leave`)
       expect(response.status).toBeGreaterThanOrEqual(400)
-      expect(mockedNTHSGroupsService.updateGroupMember).not.toHaveBeenCalled()
+      expect(mockedNTHSGroupsService.leaveGroup).not.toHaveBeenCalled()
     })
 
     test('gives HTTP 422 for a malformed groupId instead of a driver error', async () => {
       const response = await sendDelete('/api/nths-groups/not-a-uuid/leave')
       expect(response.status).toBe(422)
-      expect(mockedNTHSGroupsService.updateGroupMember).not.toHaveBeenCalled()
+      expect(mockedNTHSGroupsService.leaveGroup).not.toHaveBeenCalled()
     })
   })
 
@@ -1085,33 +1084,35 @@ describe('routeNTHSGroups', () => {
         },
       ],
     ] as const)(
-      '%s gates a member on isClearedToViewChapterMemberInfo, exempts an admin',
+      '%s refuses a requester the member-info gate does not clear, admin or not',
       async (route, read, mockRead) => {
-        mockedNTHSGroupsService.getActiveGroupMember.mockResolvedValueOnce(
-          buildNTHSGroupMemberWithRole({ roleName: 'member' })
-        )
-        mockedNTHSGroupsService.isClearedToViewChapterMemberInfo.mockResolvedValueOnce(
-          false
-        )
+        mockRead()
+        const cases = [
+          ['member', false],
+          ['admin', true],
+        ] as const
+        for (const [roleName, isAdmin] of cases) {
+          mockedNTHSGroupsService.getActiveGroupMember.mockResolvedValueOnce(
+            buildNTHSGroupMemberWithRole({ roleName })
+          )
+          mockedNTHSGroupsService.isClearedToViewChapterMemberInfo.mockResolvedValueOnce(
+            false
+          )
 
-        const memberResponse = await sendGet(route.replace(':groupId', groupId))
-        expect(memberResponse.status).toBe(403)
-        expect(memberResponse.body).toEqual({ err: 'Unauthorized' })
-        expect(
-          mockedNTHSGroupsService.isClearedToViewChapterMemberInfo
-        ).toHaveBeenCalledWith(mockUser.id)
-        expect(mockedNTHSGroupsService[read]).not.toHaveBeenCalled()
+          const response = await sendGet(route.replace(':groupId', groupId))
+          expect(response.status).toBe(403)
+          expect(response.body).toEqual({ err: 'Unauthorized' })
+          expect(
+            mockedNTHSGroupsService.isClearedToViewChapterMemberInfo
+          ).toHaveBeenLastCalledWith(mockUser.id, isAdmin)
+          expect(mockedNTHSGroupsService[read]).not.toHaveBeenCalled()
+        }
 
         mockedNTHSGroupsService.getActiveGroupMember.mockResolvedValueOnce(
           buildNTHSGroupMemberWithRole({ roleName: 'admin' })
         )
-        mockedNTHSGroupsService.isClearedToViewChapterMemberInfo.mockResolvedValueOnce(
-          false
-        )
-        mockRead()
-
-        const adminResponse = await sendGet(route.replace(':groupId', groupId))
-        expect(adminResponse.status).toBe(200)
+        const response = await sendGet(route.replace(':groupId', groupId))
+        expect(response.status).toBe(200)
         expect(mockedNTHSGroupsService[read]).toHaveBeenCalled()
       }
     )
