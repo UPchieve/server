@@ -176,6 +176,44 @@ describe('makeChaptersSchoolOfficial', () => {
       mockedMailService.sendNTHSChapterSchoolAffiliationApprovedNotification
     ).toHaveBeenCalledTimes(2)
   })
+
+  it('Skips a closed chapter and continues the batch', async () => {
+    mockedNTHSRepo.getGroupClosedAtForShare.mockResolvedValueOnce(
+      new Date('2026-10-01T00:00:00.000Z')
+    )
+    mockedNTHSRepo.getGroupAdminsContactInfo.mockResolvedValueOnce(
+      chapter2AdminContacts
+    )
+    mockedNTHSRepo.getAdvisorContactInfo.mockResolvedValueOnce(
+      chapter2AdvisorContacts
+    )
+
+    await NTHSService.makeChaptersSchoolOfficial([
+      baseContact1.nthsGroupId,
+      baseContact2.nthsGroupId,
+    ])
+
+    expect(mockedLogger.warn).toHaveBeenCalledWith(expect.any(String), {
+      groupId: baseContact1.nthsGroupId,
+    })
+    expect(mockedNTHSRepo.updateSchoolAffiliationStatus).toHaveBeenCalledTimes(
+      1
+    )
+    expect(mockedNTHSRepo.updateSchoolAffiliationStatus).toHaveBeenCalledWith(
+      'AFFILIATED',
+      baseContact2.nthsGroupId,
+      undefined
+    )
+    expect(
+      mockedMailService.sendNTHSChapterSchoolAffiliationApprovedNotification
+    ).toHaveBeenCalledTimes(1)
+    expect(
+      mockedMailService.sendNTHSChapterSchoolAffiliationApprovedNotification
+    ).toHaveBeenCalledWith(
+      [...chapter2AdminContacts, ...chapter2AdvisorContacts],
+      baseContact2.chapterName
+    )
+  })
 })
 
 describe('getChapterImpact', () => {
@@ -624,4 +662,26 @@ describe('leaveGroup', () => {
       }
     }
   )
+})
+
+describe('closeChapters', () => {
+  test('reports statuses in input order, and keeps going after a failure', async () => {
+    const [a, b, c] = ['a', 'b', 'c']
+    mockedNTHSRepo.closeGroup.mockImplementation(async (id) => {
+      if (id === b) throw new Error('boom')
+      return true
+    })
+
+    const results = await NTHSService.closeChapters([a, b, c])
+
+    expect(results).toEqual([
+      { chapterId: a, status: 'closed' },
+      { chapterId: b, status: 'failed' },
+      { chapterId: c, status: 'closed' },
+    ])
+    expect(mockedLogger.error).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({ groupId: b })
+    )
+  })
 })

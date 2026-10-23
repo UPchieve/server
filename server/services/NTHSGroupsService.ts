@@ -590,6 +590,49 @@ export async function getLatestCandidateApplicationStatus(
   return NTHSApplicationRepo.getLatestCandidateApplicationStatus(userId)
 }
 
+export type CloseChapterStatus =
+  | 'closed'
+  | 'alreadyClosed'
+  | 'notFound'
+  | 'failed'
+
+export async function closeChapter(
+  groupId: Uuid
+): Promise<Exclude<CloseChapterStatus, 'failed'>> {
+  return await runInTransaction(async (client: TransactionClient) => {
+    const closed = await NTHSGroupsRepo.closeGroup(groupId, client)
+    if (!closed) {
+      const group = await NTHSGroupsRepo.getGroupById(groupId, client)
+      return group ? 'alreadyClosed' : 'notFound'
+    }
+    await NTHSGroupsRepo.endAllGroupMemberships(groupId, client)
+    await NTHSGroupsRepo.releaseGroupSchoolAffiliation(groupId, client)
+    return 'closed'
+  })
+}
+
+export async function closeChapters(
+  groupIds: Uuid[]
+): Promise<{ chapterId: Uuid; status: CloseChapterStatus }[]> {
+  const results: { chapterId: Uuid; status: CloseChapterStatus }[] = []
+  for (const chapterId of groupIds) {
+    try {
+      results.push({ chapterId, status: await closeChapter(chapterId) })
+    } catch (err) {
+      logger.error('Failed to close NTHS chapter', {
+        groupId: chapterId,
+        err,
+      })
+      results.push({ chapterId, status: 'failed' })
+    }
+  }
+  return results
+}
+
+export async function getChapterCloseReport(groupIds: Uuid[]) {
+  return await NTHSGroupsRepo.getChapterCloseReport(groupIds)
+}
+
 export async function makeChaptersSchoolOfficial(groupIds: Ulid[]) {
   for (const id of groupIds) {
     await makeChapterSchoolOfficial(id)
@@ -598,6 +641,14 @@ export async function makeChaptersSchoolOfficial(groupIds: Ulid[]) {
 
 async function makeChapterSchoolOfficial(groupId: Ulid) {
   await runInTransaction(async (tc) => {
+    const closedAt = await NTHSGroupsRepo.getGroupClosedAtForShare(groupId, tc)
+    if (closedAt) {
+      logger.warn(
+        'NTHS chapter is closed; not marking it official or emailing anyone',
+        { groupId }
+      )
+      return
+    }
     await NTHSGroupsRepo.updateSchoolAffiliationStatus(
       'AFFILIATED',
       groupId,

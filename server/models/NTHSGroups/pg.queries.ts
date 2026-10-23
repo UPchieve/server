@@ -3,6 +3,8 @@ import { PreparedQuery } from '@pgtyped/runtime';
 
 export type DateOrString = Date | string;
 
+export type stringArray = (string)[];
+
 /** 'GetGroupsByUser' parameters type */
 export interface IGetGroupsByUserParams {
   userId: string;
@@ -1576,5 +1578,219 @@ const getNthsChapterMemberHoursTutoredIR: any = {"usedParamSet":{"minSessionLeng
  * ```
  */
 export const getNthsChapterMemberHoursTutored = new PreparedQuery<IGetNthsChapterMemberHoursTutoredParams,IGetNthsChapterMemberHoursTutoredResult>(getNthsChapterMemberHoursTutoredIR);
+
+
+/** 'CloseGroup' parameters type */
+export interface ICloseGroupParams {
+  groupId: string;
+}
+
+/** 'CloseGroup' return type */
+export interface ICloseGroupResult {
+  /** not_pii: Primary key */
+  id: string;
+}
+
+/** 'CloseGroup' query type */
+export interface ICloseGroupQuery {
+  params: ICloseGroupParams;
+  result: ICloseGroupResult;
+}
+
+const closeGroupIR: any = {"usedParamSet":{"groupId":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":88,"b":96}]}],"statement":"UPDATE\n    nths_groups\nSET\n    closed_at = NOW(),\n    updated_at = NOW()\nWHERE\n    id = :groupId!\n    AND closed_at IS NULL\nRETURNING\n    id"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE
+ *     nths_groups
+ * SET
+ *     closed_at = NOW(),
+ *     updated_at = NOW()
+ * WHERE
+ *     id = :groupId!
+ *     AND closed_at IS NULL
+ * RETURNING
+ *     id
+ * ```
+ */
+export const closeGroup = new PreparedQuery<ICloseGroupParams,ICloseGroupResult>(closeGroupIR);
+
+
+/** 'EndAllGroupMemberships' parameters type */
+export interface IEndAllGroupMembershipsParams {
+  groupId: string;
+}
+
+/** 'EndAllGroupMemberships' return type */
+export type IEndAllGroupMembershipsResult = void;
+
+/** 'EndAllGroupMemberships' query type */
+export interface IEndAllGroupMembershipsQuery {
+  params: IEndAllGroupMembershipsParams;
+  result: IEndAllGroupMembershipsResult;
+}
+
+const endAllGroupMembershipsIR: any = {"usedParamSet":{"groupId":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":175,"b":183}]}],"statement":"UPDATE\n    nths_group_members t\nSET\n    deactivated_at = g.closed_at,\n    updated_at = NOW()\nFROM\n    nths_groups g\nWHERE\n    g.id = t.nths_group_id\n    AND t.nths_group_id = :groupId!\n    AND t.deactivated_at IS NULL"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE
+ *     nths_group_members t
+ * SET
+ *     deactivated_at = g.closed_at,
+ *     updated_at = NOW()
+ * FROM
+ *     nths_groups g
+ * WHERE
+ *     g.id = t.nths_group_id
+ *     AND t.nths_group_id = :groupId!
+ *     AND t.deactivated_at IS NULL
+ * ```
+ */
+export const endAllGroupMemberships = new PreparedQuery<IEndAllGroupMembershipsParams,IEndAllGroupMembershipsResult>(endAllGroupMembershipsIR);
+
+
+/** 'ReleaseGroupSchoolAffiliation' parameters type */
+export interface IReleaseGroupSchoolAffiliationParams {
+  groupId: string;
+}
+
+/** 'ReleaseGroupSchoolAffiliation' return type */
+export type IReleaseGroupSchoolAffiliationResult = void;
+
+/** 'ReleaseGroupSchoolAffiliation' query type */
+export interface IReleaseGroupSchoolAffiliationQuery {
+  params: IReleaseGroupSchoolAffiliationParams;
+  result: IReleaseGroupSchoolAffiliationResult;
+}
+
+const releaseGroupSchoolAffiliationIR: any = {"usedParamSet":{"groupId":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":183,"b":191}]}],"statement":"UPDATE\n    nths_group_school_affiliation t\nSET\n    released_at = g.closed_at,\n    updated_at = NOW()\nFROM\n    nths_groups g\nWHERE\n    g.id = t.nths_group_id\n    AND t.nths_group_id = :groupId!\n    AND t.released_at IS NULL"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE
+ *     nths_group_school_affiliation t
+ * SET
+ *     released_at = g.closed_at,
+ *     updated_at = NOW()
+ * FROM
+ *     nths_groups g
+ * WHERE
+ *     g.id = t.nths_group_id
+ *     AND t.nths_group_id = :groupId!
+ *     AND t.released_at IS NULL
+ * ```
+ */
+export const releaseGroupSchoolAffiliation = new PreparedQuery<IReleaseGroupSchoolAffiliationParams,IReleaseGroupSchoolAffiliationResult>(releaseGroupSchoolAffiliationIR);
+
+
+/** 'GetChapterCloseReport' parameters type */
+export interface IGetChapterCloseReportParams {
+  groupIds: stringArray;
+}
+
+/** 'GetChapterCloseReport' return type */
+export interface IGetChapterCloseReportResult {
+  /** not_pii: When the chapter closed; null while open */
+  closedAt: Date | null;
+  /** not_pii */
+  createdAt: Date;
+  currentMemberCount: number | null;
+  /** not_pii: Primary key */
+  id: string;
+  /** not_pii: Human-readable name */
+  name: string;
+  /** not_pii: Human-readable name */
+  schoolName: string;
+}
+
+/** 'GetChapterCloseReport' query type */
+export interface IGetChapterCloseReportQuery {
+  params: IGetChapterCloseReportParams;
+  result: IGetChapterCloseReportResult;
+}
+
+const getChapterCloseReportIR: any = {"usedParamSet":{"groupIds":true},"params":[{"name":"groupIds","required":true,"transform":{"type":"scalar"},"locs":[{"a":587,"b":596}]}],"statement":"SELECT\n    g.id,\n    g.name,\n    g.created_at,\n    g.closed_at,\n    s.name AS school_name,\n    (\n        SELECT\n            count(*)::int\n        FROM\n            nths_group_members m\n            JOIN users u ON u.id = m.user_id\n        WHERE\n            m.nths_group_id = g.id\n            AND m.deactivated_at IS NULL\n            AND u.deleted IS NOT TRUE) AS current_member_count\nFROM\n    nths_groups g\n    LEFT JOIN nths_group_school_affiliation aff ON aff.nths_group_id = g.id\n        AND aff.released_at IS NULL\n    LEFT JOIN schools s ON s.id = aff.school_id\nWHERE\n    g.id = ANY (:groupIds!::uuid[])\nORDER BY\n    g.name"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     g.id,
+ *     g.name,
+ *     g.created_at,
+ *     g.closed_at,
+ *     s.name AS school_name,
+ *     (
+ *         SELECT
+ *             count(*)::int
+ *         FROM
+ *             nths_group_members m
+ *             JOIN users u ON u.id = m.user_id
+ *         WHERE
+ *             m.nths_group_id = g.id
+ *             AND m.deactivated_at IS NULL
+ *             AND u.deleted IS NOT TRUE) AS current_member_count
+ * FROM
+ *     nths_groups g
+ *     LEFT JOIN nths_group_school_affiliation aff ON aff.nths_group_id = g.id
+ *         AND aff.released_at IS NULL
+ *     LEFT JOIN schools s ON s.id = aff.school_id
+ * WHERE
+ *     g.id = ANY (:groupIds!::uuid[])
+ * ORDER BY
+ *     g.name
+ * ```
+ */
+export const getChapterCloseReport = new PreparedQuery<IGetChapterCloseReportParams,IGetChapterCloseReportResult>(getChapterCloseReportIR);
+
+
+/** 'GetChapterPresidents' parameters type */
+export interface IGetChapterPresidentsParams {
+  groupIds: stringArray;
+}
+
+/** 'GetChapterPresidents' return type */
+export interface IGetChapterPresidentsResult {
+  /** pii: First name */
+  firstName: string;
+  /** pii: Last name */
+  lastName: string;
+  /** not_pii: Foreign key to upchieve.nths_groups */
+  nthsGroupId: string;
+}
+
+/** 'GetChapterPresidents' query type */
+export interface IGetChapterPresidentsQuery {
+  params: IGetChapterPresidentsParams;
+  result: IGetChapterPresidentsResult;
+}
+
+const getChapterPresidentsIR: any = {"usedParamSet":{"groupIds":true},"params":[{"name":"groupIds","required":true,"transform":{"type":"scalar"},"locs":[{"a":162,"b":171}]}],"statement":"SELECT\n    m.nths_group_id,\n    u.first_name,\n    u.last_name\nFROM\n    nths_group_members m\n    JOIN users u ON u.id = m.user_id\nWHERE\n    m.nths_group_id = ANY (:groupIds!::uuid[])\n    AND m.title = 'President'\n    AND m.deactivated_at IS NULL\n    AND u.deleted IS NOT TRUE\nORDER BY\n    u.last_name,\n    u.first_name"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     m.nths_group_id,
+ *     u.first_name,
+ *     u.last_name
+ * FROM
+ *     nths_group_members m
+ *     JOIN users u ON u.id = m.user_id
+ * WHERE
+ *     m.nths_group_id = ANY (:groupIds!::uuid[])
+ *     AND m.title = 'President'
+ *     AND m.deactivated_at IS NULL
+ *     AND u.deleted IS NOT TRUE
+ * ORDER BY
+ *     u.last_name,
+ *     u.first_name
+ * ```
+ */
+export const getChapterPresidents = new PreparedQuery<IGetChapterPresidentsParams,IGetChapterPresidentsResult>(getChapterPresidentsIR);
 
 

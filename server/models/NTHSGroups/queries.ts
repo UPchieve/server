@@ -864,3 +864,84 @@ export async function getNthsChapterMemberHoursTutored(
     throw new RepoReadError(err)
   }
 }
+
+export async function closeGroup(
+  groupId: Uuid,
+  tc: TransactionClient
+): Promise<boolean> {
+  try {
+    const results = await pgQueries.closeGroup.run({ groupId }, tc)
+    return results.length > 0
+  } catch (err) {
+    throw new RepoUpdateError(err)
+  }
+}
+
+export async function endAllGroupMemberships(
+  groupId: Uuid,
+  tc: TransactionClient
+): Promise<void> {
+  try {
+    await pgQueries.endAllGroupMemberships.run({ groupId }, tc)
+  } catch (err) {
+    throw new RepoUpdateError(err)
+  }
+}
+
+export async function releaseGroupSchoolAffiliation(
+  groupId: Uuid,
+  tc: TransactionClient
+): Promise<void> {
+  try {
+    await pgQueries.releaseGroupSchoolAffiliation.run({ groupId }, tc)
+  } catch (err) {
+    throw new RepoUpdateError(err)
+  }
+}
+
+export type ChapterCloseReportRow = {
+  id: Uuid
+  name: string
+  createdAt: Date
+  closedAt: Date | null
+  schoolName: string | null
+  currentMemberCount: number
+  presidents: { firstName: string; lastName: string }[]
+}
+
+export async function getChapterCloseReport(
+  groupIds: Uuid[]
+): Promise<ChapterCloseReportRow[]> {
+  try {
+    const tc = getRoClient()
+    const chapters = await pgQueries.getChapterCloseReport.run({ groupIds }, tc)
+    const presidents = await pgQueries.getChapterPresidents.run(
+      { groupIds },
+      tc
+    )
+    return chapters.map((row) => {
+      const chapter = makeSomeRequired(row, [
+        'id',
+        'name',
+        'createdAt',
+        'currentMemberCount',
+      ])
+      return {
+        id: chapter.id,
+        name: chapter.name,
+        createdAt: chapter.createdAt,
+        closedAt: chapter.closedAt ?? null,
+        schoolName: chapter.schoolName ?? null,
+        currentMemberCount: chapter.currentMemberCount,
+        presidents: presidents
+          .map((p) =>
+            makeSomeRequired(p, ['nthsGroupId', 'firstName', 'lastName'])
+          )
+          .filter((p) => p.nthsGroupId === chapter.id)
+          .map((p) => ({ firstName: p.firstName, lastName: p.lastName })),
+      }
+    })
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}

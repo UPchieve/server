@@ -17,12 +17,21 @@ import {
   asNumber,
   asString,
   asUlid,
+  asUuid,
 } from '../../utils/type-utils'
 import * as NTHSGroupsService from '../../services/NTHSGroupsService'
 import { InputError } from '../../models/Errors'
 import * as EssayReviewService from '../../services/EssayReviewService'
 import { resSuccess } from '../res-success'
 import { extractUser } from '../extract-user'
+
+function parseChapterIds(ids: unknown) {
+  const chapterIds = asArray(asUuid)(ids, 'chapter id')
+  if (!chapterIds.length) {
+    throw new InputError('No chapter IDs provided')
+  }
+  return chapterIds
+}
 
 export function routeAdmin(apiRouter: Router): void {
   const router = Router()
@@ -129,6 +138,31 @@ export function routeAdmin(apiRouter: Router): void {
       }
       await NTHSGroupsService.makeChaptersSchoolOfficial(groupIds)
       res.status(201).send()
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
+  router.get('/nths/chapters', async function (req, res) {
+    try {
+      const chapters = await NTHSGroupsService.getChapterCloseReport(
+        parseChapterIds(
+          asString(req.query.ids)
+            .split(',')
+            .filter((id) => id !== '')
+        )
+      )
+      res.json({ chapters })
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
+  router.post('/nths/chapters/close', async function (req, res) {
+    try {
+      const chapterIds = parseChapterIds(req.body.chapterIds)
+      const results = await NTHSGroupsService.closeChapters(chapterIds)
+      res.json({ results })
     } catch (err) {
       resError(res, err)
     }

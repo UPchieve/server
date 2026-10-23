@@ -958,7 +958,11 @@ describe('joinGroupAsMemberByGroupId', () => {
           } catch (err) {
             closeErrorCode = (err as { code?: string }).code
           } finally {
-            other.release()
+            try {
+              await other.query('RESET lock_timeout')
+            } finally {
+              other.release()
+            }
           }
         }
         return result
@@ -979,6 +983,161 @@ describe('joinGroupAsMemberByGroupId', () => {
       [groupId]
     )
     expect(chapter.rows[0].closed_at).toBeNull()
+  })
+})
+
+describe('closeChapter', () => {
+  const ENDED_AT = '2026-09-01T00:00:00.000Z'
+
+  async function addAffiliation(groupId: Ulid) {
+    await client.query(
+      `INSERT INTO nths_group_school_affiliation (nths_group_id, nths_school_affiliation_status_id)
+       SELECT $1, id FROM nths_school_affiliation_statuses LIMIT 1`,
+      [groupId]
+    )
+  }
+
+  async function snapshot(groupId: Ulid) {
+    const chapter = await client.query(
+      `SELECT closed_at FROM nths_groups WHERE id = $1`,
+      [groupId]
+    )
+    const members = await client.query(
+      `SELECT user_id, deactivated_at FROM nths_group_members WHERE nths_group_id = $1 ORDER BY user_id`,
+      [groupId]
+    )
+    const affiliation = await client.query(
+      `SELECT released_at FROM nths_group_school_affiliation WHERE nths_group_id = $1`,
+      [groupId]
+    )
+    return {
+      closedAt: chapter.rows[0].closed_at as Date | null,
+      members: members.rows,
+      released: affiliation.rows.map((r) => r.released_at as Date | null),
+    }
+  }
+
+  test('ends current memberships at closed_at, keeps ended ones and every row', async () => {
+    const groupId = await createChapter(client)
+    await addAffiliation(groupId)
+    const current = await addMember(groupId)
+    const deleted = await addMember(groupId, { deleted: true })
+    const former = await addMember(groupId, { deactivatedAt: ENDED_AT })
+    const otherId = await createChapter(client)
+    await addAffiliation(otherId)
+    await addMember(otherId)
+
+    expect(await NTHSGroupsService.closeChapter(groupId)).toBe('closed')
+
+    const after = await snapshot(groupId)
+    expect(after.closedAt).not.toBeNull()
+    expect(after.members).toHaveLength(3)
+    expect(
+      after.members.find((m) => m.user_id === former).deactivated_at
+    ).toEqual(new Date(ENDED_AT))
+    const { rows } = await client.query(
+      `SELECT
+         (SELECT array_agg(m.user_id ORDER BY m.user_id) FROM nths_group_members m
+          WHERE m.nths_group_id = g.id AND m.deactivated_at = g.closed_at) AS ended,
+         (SELECT count(*)::int FROM nths_group_school_affiliation a
+          WHERE a.nths_group_id = g.id AND a.released_at = g.closed_at) AS released
+       FROM nths_groups g WHERE g.id = $1`,
+      [groupId]
+    )
+    expect(rows[0]).toEqual({ ended: [current, deleted].sort(), released: 1 })
+    const other = await snapshot(otherId)
+    expect(other.members.map((m) => m.deactivated_at)).toEqual([null])
+    expect(other.released).toEqual([null])
+  })
+
+  test('closes a chapter with no school affiliation', async () => {
+    const groupId = await createChapter(client)
+
+    expect(await NTHSGroupsService.closeChapter(groupId)).toBe('closed')
+    expect((await snapshot(groupId)).released).toEqual([])
+  })
+
+  test('a second close, or an unknown id, changes nothing', async () => {
+    const groupId = await createChapter(client)
+    await addAffiliation(groupId)
+    await addMember(groupId)
+    await NTHSGroupsService.closeChapter(groupId)
+    const first = await snapshot(groupId)
+
+    expect(await NTHSGroupsService.closeChapter(groupId)).toBe('alreadyClosed')
+    expect(await snapshot(groupId)).toEqual(first)
+    expect(
+      await NTHSGroupsService.closeChapter(
+        '00000000-0000-4000-8000-000000000000'
+      )
+    ).toBe('notFound')
+  })
+
+  test('makes a concurrent invite join wait, then refuses it', async () => {
+    const groupId = await createChapter(client)
+    const userId = (await createTestUser(client)).id
+    let join: Promise<unknown> | undefined
+
+    withRealTransaction((tc) => ({
+      query: async (...args: unknown[]) => {
+        const result = await tc.query(...args)
+        if (!join && /closed_at = NOW\(\)/.test(sqlText(args))) {
+          join = NTHSGroupsService.joinGroupAsMemberByGroupId(
+            userId,
+            groupId
+          ).then(
+            () => 'joined',
+            (err) => err
+          )
+          await new Promise((resolve) => setTimeout(resolve, 300))
+        }
+        return result
+      },
+    }))
+    withRealTransaction()
+
+    await NTHSGroupsService.closeChapter(groupId)
+
+    expect(await join).toBeInstanceOf(NTHSChapterClosedError)
+    expect((await snapshot(groupId)).members).toEqual([])
+  })
+})
+
+describe('getChapterCloseReport', () => {
+  test('lists each chapter its own current presidents and counts current members', async () => {
+    const groupId = await createChapter(client)
+    const president = await addMember(groupId, { title: 'President' })
+    await addMember(groupId)
+    await addMember(groupId, {
+      title: 'President',
+      deactivatedAt: '2026-09-01T00:00:00.000Z',
+    })
+    await addMember(groupId, { title: 'President', deleted: true })
+    const otherId = await createChapter(client)
+    const otherPresident = await addMember(otherId, { title: 'President' })
+    const nameOf = async (userId: Ulid) => {
+      const { rows } = await client.query(
+        `SELECT first_name, last_name FROM users WHERE id = $1`,
+        [userId]
+      )
+      return { firstName: rows[0].first_name, lastName: rows[0].last_name }
+    }
+
+    const chapters = await NTHSGroupsService.getChapterCloseReport([
+      groupId,
+      otherId,
+    ])
+    const byId = (id: Ulid) =>
+      chapters.find(
+        (c) =>
+          c.id.replace(/-/g, '').toUpperCase() ===
+          id.replace(/-/g, '').toUpperCase()
+      )!
+
+    expect(byId(groupId).currentMemberCount).toBe(2)
+    expect(byId(groupId).presidents).toEqual([await nameOf(president)])
+    expect(byId(otherId).currentMemberCount).toBe(1)
+    expect(byId(otherId).presidents).toEqual([await nameOf(otherPresident)])
   })
 })
 

@@ -575,3 +575,90 @@ WHERE
     m.nths_group_id = :groupId!
     AND m.user_id = :userId!;
 
+
+/* @name closeGroup */
+UPDATE
+    nths_groups
+SET
+    closed_at = NOW(),
+    updated_at = NOW()
+WHERE
+    id = :groupId!
+    AND closed_at IS NULL
+RETURNING
+    id;
+
+
+/* @name endAllGroupMemberships */
+UPDATE
+    nths_group_members t
+SET
+    deactivated_at = g.closed_at,
+    updated_at = NOW()
+FROM
+    nths_groups g
+WHERE
+    g.id = t.nths_group_id
+    AND t.nths_group_id = :groupId!
+    AND t.deactivated_at IS NULL;
+
+
+/* @name releaseGroupSchoolAffiliation */
+UPDATE
+    nths_group_school_affiliation t
+SET
+    released_at = g.closed_at,
+    updated_at = NOW()
+FROM
+    nths_groups g
+WHERE
+    g.id = t.nths_group_id
+    AND t.nths_group_id = :groupId!
+    AND t.released_at IS NULL;
+
+
+/* @name getChapterCloseReport */
+SELECT
+    g.id,
+    g.name,
+    g.created_at,
+    g.closed_at,
+    s.name AS school_name,
+    (
+        SELECT
+            count(*)::int
+        FROM
+            nths_group_members m
+            JOIN users u ON u.id = m.user_id
+        WHERE
+            m.nths_group_id = g.id
+            AND m.deactivated_at IS NULL
+            AND u.deleted IS NOT TRUE) AS current_member_count
+FROM
+    nths_groups g
+    LEFT JOIN nths_group_school_affiliation aff ON aff.nths_group_id = g.id
+        AND aff.released_at IS NULL
+    LEFT JOIN schools s ON s.id = aff.school_id
+WHERE
+    g.id = ANY (:groupIds!::uuid[])
+ORDER BY
+    g.name;
+
+
+/* @name getChapterPresidents */
+SELECT
+    m.nths_group_id,
+    u.first_name,
+    u.last_name
+FROM
+    nths_group_members m
+    JOIN users u ON u.id = m.user_id
+WHERE
+    m.nths_group_id = ANY (:groupIds!::uuid[])
+    AND m.title = 'President'
+    AND m.deactivated_at IS NULL
+    AND u.deleted IS NOT TRUE
+ORDER BY
+    u.last_name,
+    u.first_name;
+
