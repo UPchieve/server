@@ -10,6 +10,7 @@ import {
   processEmailVolunteer,
   processFirstSessionCongratsEmail,
   processSessionEditors,
+  processSessionEndedAnalytics,
   processSessionReported,
   processSessionTranscript,
 } from '../../services/SessionService'
@@ -29,7 +30,12 @@ const METRIC_TASKS = [
   queueGenerateProgressReportForUser,
 ]
 
-const AFTER_METRIC_TASK = [processSessionReported, processSessionTranscript]
+// Analytics runs last so a retry of an earlier failing task doesn't send duplicate events
+const AFTER_METRIC_TASK = [
+  processSessionReported,
+  processSessionTranscript,
+  processSessionEndedAnalytics,
+]
 
 export default async (job: Job<ProcessSessionEndedJobData>): Promise<void> => {
   const sessionId = asString(job.data.sessionId)

@@ -1,5 +1,6 @@
 import * as SessionService from '../../services/SessionService'
 import * as FeatureFlagService from '../../services/FeatureFlagService'
+import * as AnalyticsService from '../../services/AnalyticsService'
 import * as SessionRepo from '../../models/Session/queries'
 import * as SessionAudioRepo from '../../models/SessionAudio'
 import * as SubjectsRepo from '../../models/Subjects'
@@ -72,6 +73,7 @@ describe('SessionService', () => {
   const mockedPhotoDnaService = mocked(PhotoDnaService)
   const mockedNotifyVolunteerService = mocked(NotifyVolunteerService)
   const mockedSubjectsRepo = mocked(SubjectsRepo)
+  const mockedAnalyticsService = mocked(AnalyticsService)
   const mockedSessionFlagsService = mocked(SessionFlagsService)
 
   describe('reportSession', () => {
@@ -743,5 +745,62 @@ describe('SessionService', () => {
         else await expect(result).rejects.toThrow(NotAllowedError)
       }
     )
+  })
+
+  describe('processSessionEndedAnalytics', () => {
+    test('sends SESSION_CLOSED for both the student and the volunteer', async () => {
+      const studentId = getDbUlid()
+      const volunteerId = getDbUlid()
+      const session = buildSession({
+        studentId,
+        volunteerId,
+        timeTutored: 1200000,
+      })
+      mockSessionRepo.getSessionById.mockResolvedValue(session)
+
+      await SessionService.processSessionEndedAnalytics(session.id)
+
+      const expectedProperties = {
+        sessionId: session.id,
+        studentId,
+        volunteerId,
+        subject: session.subject,
+        topic: session.topic,
+        timeTutoredMs: 1200000,
+      }
+      expect(mockedAnalyticsService.captureEvent).toHaveBeenCalledTimes(2)
+      expect(mockedAnalyticsService.captureEvent).toHaveBeenCalledWith(
+        studentId,
+        'SESSION_CLOSED',
+        {
+          ...expectedProperties,
+          role: 'student',
+        }
+      )
+      expect(mockedAnalyticsService.captureEvent).toHaveBeenCalledWith(
+        volunteerId,
+        'SESSION_CLOSED',
+        { ...expectedProperties, role: 'volunteer' }
+      )
+    })
+
+    test('sends only the student event for an unmatched session', async () => {
+      const studentId = getDbUlid()
+      const session = buildSession({ studentId })
+      mockSessionRepo.getSessionById.mockResolvedValue(session)
+
+      await SessionService.processSessionEndedAnalytics(session.id)
+
+      expect(mockedAnalyticsService.captureEvent).toHaveBeenCalledTimes(1)
+      expect(mockedAnalyticsService.captureEvent).toHaveBeenCalledWith(
+        studentId,
+        'SESSION_CLOSED',
+        expect.objectContaining({
+          volunteerId: null,
+          timeTutoredMs: 0,
+          role: 'student',
+        })
+      )
+    })
   })
 })

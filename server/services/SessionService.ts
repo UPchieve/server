@@ -377,6 +377,30 @@ export async function processCalculateMetrics(sessionId: Ulid) {
   await SessionRepo.updateSessionTimeTutored(sessionId, timeTutored)
 }
 
+// Sent once per participant, however the session ended, so each side can be
+// analyzed as its own person. Unmatched sessions only send the student's event.
+// high-line's SESSION_ENDED is separate: it records the user who clicked End.
+export async function processSessionEndedAnalytics(sessionId: Ulid) {
+  const session = await SessionRepo.getSessionById(sessionId)
+  const properties = {
+    sessionId: session.id,
+    studentId: session.studentId,
+    volunteerId: session.volunteerId ?? null,
+    subject: session.subject,
+    topic: session.topic,
+    timeTutoredMs: session.timeTutored ?? 0,
+  }
+  captureEvent(session.studentId, EVENTS.SESSION_CLOSED, {
+    ...properties,
+    role: 'student',
+  })
+  if (session.volunteerId)
+    captureEvent(session.volunteerId, EVENTS.SESSION_CLOSED, {
+      ...properties,
+      role: 'volunteer',
+    })
+}
+
 export async function processFirstSessionCongratsEmail(sessionId: Ulid) {
   const session =
     await SessionRepo.getSessionByIdWithStudentAndVolunteer(sessionId)

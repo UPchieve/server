@@ -71,6 +71,9 @@ describe('processSessionEnded', () => {
     expect(mockedSessionService.processSessionTranscript).toHaveBeenCalledWith(
       sessionId
     )
+    expect(
+      mockedSessionService.processSessionEndedAnalytics
+    ).toHaveBeenCalledWith(sessionId)
   })
 
   test('should throw an error if one of the services fails', async () => {
