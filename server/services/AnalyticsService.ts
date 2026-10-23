@@ -5,6 +5,7 @@ import type { UserRole } from '../types/users'
 import { getLegacyUserObject } from '../models/User/legacy-user'
 import { getUPFByUserId } from '../models/UserProductFlags'
 import logger from '../logger'
+import { getNthsUserAttributes } from './NTHSUserAttributesService'
 
 export const captureEvent = (
   userId: Ulid,
@@ -51,6 +52,9 @@ export type AnalyticPersonProperties = {
   hasStudentRole: boolean
   hasVolunteerRole: boolean
   hasTeacherRole: boolean
+  isNthsMember: boolean
+  isNthsAdmin: boolean
+  isNthsPresident: boolean
   onboarded?: boolean
   approved?: boolean
   sessionsAsTutor?: number
@@ -78,7 +82,10 @@ export async function getPersonPropertiesForAnalytics(
     const user = await getLegacyUserObject(userId)
     if (!user) return personProperties
 
-    const productFlags = await getUPFByUserId(userId)
+    const [productFlags, nthsUserAttributes] = await Promise.all([
+      getUPFByUserId(userId),
+      getNthsUserAttributes(userId),
+    ])
 
     personProperties = {
       ucId: user.id,
@@ -90,6 +97,7 @@ export async function getPersonPropertiesForAnalytics(
       hasStudentRole: user.roleContext.hasRole('student'),
       hasVolunteerRole: user.roleContext.hasRole('volunteer'),
       hasTeacherRole: user.roleContext.hasRole('teacher'),
+      ...nthsUserAttributes,
       signupSource: user.signupSource,
       occupation: user.occupation,
       usesClever: user.usesClever ?? false,

@@ -13,6 +13,9 @@ type AnalyticPersonPropertiesFields = {
   hasStudentRole: boolean
   hasVolunteerRole: boolean
   hasTeacherRole: boolean
+  isNthsMember: boolean
+  isNthsAdmin: boolean
+  isNthsPresident: boolean
   onboarded?: boolean
   approved?: boolean
   partner?: string | null
