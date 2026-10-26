@@ -7,6 +7,7 @@ jest.mock('openai')
 jest.mock('@azure/core-auth')
 jest.mock('../services/AnalyticsService')
 jest.mock('../services/FeatureFlagService')
+jest.mock('../services/QueueService')
 
 jest.mock('../services/EventsService')
 

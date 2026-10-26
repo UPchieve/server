@@ -54,8 +54,11 @@ import {
 import { isReadyToCoach } from './VolunteerService'
 import { LEADERSHIP_TITLES, NTHSTitle } from '../constants/nths-titles'
 import { hoursInMs } from '../utils/time-utils'
+import { Jobs } from '../worker/jobs'
+import QueueService from './QueueService'
 
 export const APPROVAL_LIFETIME_HOURS = 720
+const SENDGRID_SYNC_DELAY_MS = 5000
 
 function approvalExpiry(activatedAt: Date): Date {
   return new Date(activatedAt.getTime() + hoursInMs(APPROVAL_LIFETIME_HOURS))
@@ -65,10 +68,18 @@ export async function getGroups(userId: Ulid) {
   return await NTHSGroupsRepo.getGroupsByUser(userId)
 }
 
+async function syncNthsUserToSendGrid(userId: Ulid) {
+  await QueueService.add(
+    Jobs.SyncSendGridContact,
+    { delay: SENDGRID_SYNC_DELAY_MS },
+    { userId }
+  )
+}
+
 export async function foundGroup(
   userId: Ulid
 ): Promise<NTHSGroupWithMemberInfo> {
-  return runInTransaction(async (tc: TransactionClient) => {
+  const result = await runInTransaction(async (tc: TransactionClient) => {
     const groups = await NTHSGroupsRepo.getGroupsByUser(userId, tc)
 
     // For now, let's enforce single group membership
@@ -162,6 +173,8 @@ export async function foundGroup(
 
     return result
   })
+  await syncNthsUserToSendGrid(userId)
+  return result
 }
 
 export async function updateGroupName(groupId: Ulid, name: string) {
@@ -203,7 +216,7 @@ export async function joinGroupAsMemberByGroupId(
   roleName: NTHSGroupRoleName = 'member',
   tc?: TransactionClient
 ) {
-  return await runInTransaction(async (client: TransactionClient) => {
+  const groups = await runInTransaction(async (client: TransactionClient) => {
     const closedAt = await NTHSGroupsRepo.getGroupClosedAtForShare(
       groupId,
       client
@@ -236,6 +249,8 @@ export async function joinGroupAsMemberByGroupId(
     )
     return await NTHSGroupsRepo.getGroupsByUser(userId, client)
   }, tc)
+  await syncNthsUserToSendGrid(userId)
+  return groups
 }
 
 export function ensureChapterOpen(group: { closedAt?: Date | null }) {
@@ -304,6 +319,7 @@ export async function updateGroupMember(
       await NTHSGroupsRepo.deactivateGroupMember(userId, nthsGroupId, tc)
     }
   })
+  await syncNthsUserToSendGrid(userId)
 }
 
 // Departed members remain valid targets; anyone with no membership row is
@@ -344,6 +360,7 @@ export async function leaveGroup(userId: Ulid, nthsGroupId: Ulid) {
     }
   }
   await NTHSGroupsRepo.deactivateGroupMember(userId, nthsGroupId)
+  await syncNthsUserToSendGrid(userId)
 }
 
 function titleToWrite(

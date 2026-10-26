@@ -22,6 +22,7 @@ jest.mock('../../db')
 jest.mock('../../models/NTHSGroups')
 jest.mock('../../models/Volunteer')
 jest.mock('../../services/MailService')
+jest.mock('../../services/QueueService')
 jest.mock('../../logger')
 
 const mockedLogger = jest.mocked(logger)

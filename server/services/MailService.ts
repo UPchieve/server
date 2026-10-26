@@ -19,6 +19,7 @@ import { getUPFByUserId } from '../models/UserProductFlags'
 import { buildAppLink } from '../utils/link-builders'
 import { isDevEnvironment, isE2eEnvironment } from '../utils/environments'
 import logger from '../logger'
+import { getNthsUserAttributes } from './NTHSUserAttributesService'
 
 sgMail.setApiKey(config.sendgrid.apiKey)
 
@@ -74,6 +75,9 @@ const SG_CUSTOM_FIELDS = {
   volunteerPartnerOrgDisplay: 'e14_T',
   studentGradeLevel: 'w20_T',
   fallIncentiveEnrollmentAt: 'e34_D',
+  isNthsMember: 'e66_T',
+  isNthsAdmin: 'e67_T',
+  isNthsPresident: 'e68_T',
 }
 
 // TODO: refactor sendEmail to better handle overrides with custom unsubscribe groups
@@ -1788,6 +1792,7 @@ export async function createContact(userIds: Ulid | Ulid[]): Promise<any> {
     if (!user) continue
     const userRoleContext = await UserRolesService.getRoleContext(userId)
     const productFlags = await getUPFByUserId(userId)
+    const nthsUserAttributes = await getNthsUserAttributes(userId)
     const customFields = {
       [SG_CUSTOM_FIELDS.isBanned]: String(
         user.banType === USER_BAN_TYPES.COMPLETE
@@ -1800,6 +1805,11 @@ export async function createContact(userIds: Ulid | Ulid[]): Promise<any> {
       [SG_CUSTOM_FIELDS.isTeacher]: String(userRoleContext.hasRole('teacher')),
       [SG_CUSTOM_FIELDS.isStudent]: String(userRoleContext.hasRole('student')),
       [SG_CUSTOM_FIELDS.isAdmin]: String(userRoleContext.isAdmin()),
+      [SG_CUSTOM_FIELDS.isNthsMember]: String(nthsUserAttributes.isNthsMember),
+      [SG_CUSTOM_FIELDS.isNthsAdmin]: String(nthsUserAttributes.isNthsAdmin),
+      [SG_CUSTOM_FIELDS.isNthsPresident]: String(
+        nthsUserAttributes.isNthsPresident
+      ),
       [SG_CUSTOM_FIELDS.joined]: user.createdAt,
     }
 
