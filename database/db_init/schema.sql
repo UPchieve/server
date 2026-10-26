@@ -1,7 +1,7 @@
 \restrict dbmate
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
--- Dumped by pg_dump version 15.17 (Homebrew)
+-- Dumped by pg_dump version 15.19 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -1369,6 +1369,54 @@ CREATE VIEW upchieve.current_grade_levels AS
         END AS current_grade_name
    FROM (grade_progression
      JOIN upchieve.grade_levels ON ((grade_progression.grade_level_id = grade_levels.id)));
+
+
+--
+-- Name: direct_message_conversations; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.direct_message_conversations (
+    id uuid NOT NULL,
+    volunteer_id uuid NOT NULL,
+    student_id uuid NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: COLUMN direct_message_conversations.id; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.direct_message_conversations.id IS 'not_pii: Primary key';
+
+
+--
+-- Name: COLUMN direct_message_conversations.volunteer_id; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.direct_message_conversations.volunteer_id IS 'not_pii: Foreign key';
+
+
+--
+-- Name: COLUMN direct_message_conversations.student_id; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.direct_message_conversations.student_id IS 'not_pii: Foreign key';
+
+
+--
+-- Name: COLUMN direct_message_conversations.created_at; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.direct_message_conversations.created_at IS 'not_pii';
+
+
+--
+-- Name: COLUMN direct_message_conversations.updated_at; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.direct_message_conversations.updated_at IS 'not_pii';
 
 
 --
@@ -12007,6 +12055,22 @@ ALTER TABLE ONLY upchieve.contact_form_submissions
 
 
 --
+-- Name: direct_message_conversations direct_message_conversations_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.direct_message_conversations
+    ADD CONSTRAINT direct_message_conversations_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: direct_message_conversations direct_message_conversations_volunteer_id_student_id_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.direct_message_conversations
+    ADD CONSTRAINT direct_message_conversations_volunteer_id_student_id_key UNIQUE (volunteer_id, student_id);
+
+
+--
 -- Name: email_domain_blocklist email_domain_blocklist_domain_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -13744,6 +13808,13 @@ CREATE INDEX censored_messages_session_id ON upchieve.censored_session_messages 
 
 
 --
+-- Name: direct_message_conversations_student_id; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX direct_message_conversations_student_id ON upchieve.direct_message_conversations USING btree (student_id);
+
+
+--
 -- Name: fed_creds_user_id_idx; Type: INDEX; Schema: upchieve; Owner: -
 --
 
@@ -14335,6 +14406,22 @@ ALTER TABLE ONLY upchieve.computed_subject_unlocks
 
 ALTER TABLE ONLY upchieve.contact_form_submissions
     ADD CONSTRAINT contact_form_submissions_user_id_fkey FOREIGN KEY (user_id) REFERENCES upchieve.users(id);
+
+
+--
+-- Name: direct_message_conversations direct_message_conversations_student_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.direct_message_conversations
+    ADD CONSTRAINT direct_message_conversations_student_id_fkey FOREIGN KEY (student_id) REFERENCES upchieve.users(id);
+
+
+--
+-- Name: direct_message_conversations direct_message_conversations_volunteer_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.direct_message_conversations
+    ADD CONSTRAINT direct_message_conversations_volunteer_id_fkey FOREIGN KEY (volunteer_id) REFERENCES upchieve.users(id);
 
 
 --
@@ -16251,4 +16338,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20261014202000'),
     ('20261019200000'),
     ('20261020173941'),
-    ('20261021203034');
+    ('20261021203034'),
+    ('20261021215331');

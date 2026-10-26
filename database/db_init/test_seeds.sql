@@ -2,10 +2,10 @@
 -- PostgreSQL database dump
 --
 
-\restrict CbpdBzDiEB8inuqe4gfZiSO4O2EkcErjjDOBXcbRDK15a4eMk3LsKwIAwu9eQPT
+\restrict gHKkWbXab02pbvfuLGGqYuPzMmpSEjF95MFmgQvCBUSjnX2ZTwv0BSc42dLXLRv
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
--- Dumped by pg_dump version 15.17 (Homebrew)
+-- Dumped by pg_dump version 15.19 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -499,6 +499,14 @@ COPY upchieve.computed_subject_unlocks (subject_id, certification_id, created_at
 --
 
 COPY upchieve.contact_form_submissions (id, user_id, user_email, message, topic, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: direct_message_conversations; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.direct_message_conversations (id, volunteer_id, student_id, created_at, updated_at) FROM stdin;
 \.
 
 
@@ -9620,5 +9628,5 @@ SELECT pg_catalog.setval('upchieve.weekdays_id_seq', 1, false);
 -- PostgreSQL database dump complete
 --
 
-\unrestrict CbpdBzDiEB8inuqe4gfZiSO4O2EkcErjjDOBXcbRDK15a4eMk3LsKwIAwu9eQPT
+\unrestrict gHKkWbXab02pbvfuLGGqYuPzMmpSEjF95MFmgQvCBUSjnX2ZTwv0BSc42dLXLRv
 
