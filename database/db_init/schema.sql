@@ -6449,14 +6449,14 @@ CREATE TABLE upchieve.session_offers (
     volunteer_id uuid NOT NULL,
     offered_at timestamp with time zone NOT NULL,
     outcome text NOT NULL,
-    policy_version text NOT NULL,
+    scorecard_version text NOT NULL,
     closed_at timestamp with time zone NOT NULL,
     input jsonb NOT NULL,
     output jsonb NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     CONSTRAINT session_offers_input_check CHECK ((jsonb_typeof(input) = 'array'::text)),
-    CONSTRAINT session_offers_outcome_check CHECK ((outcome = ANY (ARRAY['accepted'::text, 'declined'::text, 'expired'::text, 'withdrawn-by-student'::text, 'not-offered'::text]))),
+    CONSTRAINT session_offers_outcome_check CHECK ((outcome = ANY (ARRAY['accepted'::text, 'declined'::text, 'expired'::text, 'withdrawn-by-student'::text, 'shadow-offered'::text]))),
     CONSTRAINT session_offers_output_check CHECK ((jsonb_typeof(output) = 'object'::text))
 );
 
@@ -6465,7 +6465,7 @@ CREATE TABLE upchieve.session_offers (
 -- Name: TABLE session_offers; Type: COMMENT; Schema: upchieve; Owner: -
 --
 
-COMMENT ON TABLE upchieve.session_offers IS 'Closed offers of a session to a single coach, chosen by scoring eligible coaches. The not-offered outcome is used for debugging, they are generated but never sent to a user';
+COMMENT ON TABLE upchieve.session_offers IS 'Closed offers of a session to a single coach, chosen by scoring eligible coaches. The shadow-offered outcome is used for debugging, they are generated but never sent to a user';
 
 
 --
@@ -6504,10 +6504,10 @@ COMMENT ON COLUMN upchieve.session_offers.outcome IS 'not_pii: How the offer clo
 
 
 --
--- Name: COLUMN session_offers.policy_version; Type: COMMENT; Schema: upchieve; Owner: -
+-- Name: COLUMN session_offers.scorecard_version; Type: COMMENT; Schema: upchieve; Owner: -
 --
 
-COMMENT ON COLUMN upchieve.session_offers.policy_version IS 'not_pii: The policy used when making the offer';
+COMMENT ON COLUMN upchieve.session_offers.scorecard_version IS 'not_pii: The scorecard used when making the offer';
 
 
 --
@@ -6528,7 +6528,7 @@ COMMENT ON COLUMN upchieve.session_offers.input IS 'not_pii: Candidates passed t
 -- Name: COLUMN session_offers.output; Type: COMMENT; Schema: upchieve; Owner: -
 --
 
-COMMENT ON COLUMN upchieve.session_offers.output IS 'not_pii: Match scoring result (policy version and ranked candidates)';
+COMMENT ON COLUMN upchieve.session_offers.output IS 'not_pii: Match scoring result (scorecard version and ranked candidates)';
 
 
 --
@@ -16339,4 +16339,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20261019200000'),
     ('20261020173941'),
     ('20261021203034'),
-    ('20261021215331');
+    ('20261021215331'),
+    ('20261027143447');
