@@ -14,6 +14,7 @@ import {
   GetSessionByIdResult,
   UserSessionStats,
   UserSessionsFilter,
+  VolunteerLastSessionEndedAt,
   MessageType,
   SessionActivity,
 } from './types'
@@ -1544,6 +1545,18 @@ export async function getVolunteersInSessions(): Promise<Uuid[]> {
     getClient()
   )
   return result.map((r) => makeRequired(r).volunteerId)
+}
+
+export async function getLastSessionEndedAtByVolunteerIds(
+  volunteerIds: Uuid[]
+): Promise<VolunteerLastSessionEndedAt[]> {
+  if (!volunteerIds.length) return []
+  const result = await pgQueries.getLastSessionEndedAtByVolunteerIds.run(
+    { volunteerIds },
+    getClient()
+  )
+
+  return result.map((r) => makeSomeRequired(r, ['volunteerId', 'endedAt']))
 }
 
 export async function getSessionFlagsBySessionId(sessionId: Uuid) {

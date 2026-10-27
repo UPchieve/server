@@ -12,6 +12,7 @@ import {
 import { getClient } from '../../db'
 import {
   getFilteredSessionHistoryTotalCount,
+  getLastSessionEndedAtByVolunteerIds,
   getLatestSession,
   getMessagesForFrontend,
   getSessionActivity,
@@ -1211,5 +1212,54 @@ describe('Session repo', () => {
         ])
       }
     )
+  })
+
+  describe('getLastSessionEndedAtByVolunteerIds', () => {
+    test('returns the most recent ended_at for each volunteer with an ended session', async () => {
+      const multipleSessionsId = (await createTestUser(getClient())).id
+      await createTestVolunteer(getClient(), multipleSessionsId)
+      const activeOnlyId = (await createTestUser(getClient())).id
+      await createTestVolunteer(getClient(), activeOnlyId)
+      const noSessionsId = (await createTestUser(getClient())).id
+      await createTestVolunteer(getClient(), noSessionsId)
+
+      const olderEndedAt = moment().subtract(2, 'hours').toDate()
+      const latestEndedAt = moment().subtract(1, 'hours').toDate()
+      for (const endedAt of [latestEndedAt, olderEndedAt]) {
+        await insertSingleRow(
+          'sessions',
+          await buildSessionRow({
+            studentId,
+            volunteerId: multipleSessionsId,
+            volunteerJoinedAt: new Date(),
+            endedAt,
+          }),
+          getClient()
+        )
+      }
+      await insertSingleRow(
+        'sessions',
+        await buildSessionRow({
+          studentId,
+          volunteerId: activeOnlyId,
+          volunteerJoinedAt: new Date(),
+        }),
+        getClient()
+      )
+
+      const result = await getLastSessionEndedAtByVolunteerIds([
+        multipleSessionsId,
+        activeOnlyId,
+        noSessionsId,
+      ])
+
+      expect(result).toEqual([
+        { volunteerId: multipleSessionsId, endedAt: latestEndedAt },
+      ])
+    })
+
+    test('returns an empty array when given no volunteer ids', async () => {
+      expect(await getLastSessionEndedAtByVolunteerIds([])).toEqual([])
+    })
   })
 })

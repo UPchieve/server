@@ -1320,6 +1320,25 @@ WHERE
     AND ended_at IS NULL;
 
 
+/* @name getLastSessionEndedAtByVolunteerIds */
+SELECT
+    volunteers.id AS volunteer_id,
+    last_session.ended_at
+FROM
+    unnest(:volunteerIds!::uuid[]) AS volunteers (id)
+        JOIN LATERAL (
+            SELECT
+                ended_at
+            FROM
+                sessions
+            WHERE
+                sessions.volunteer_id = volunteers.id
+                AND sessions.ended_at IS NOT NULL
+            ORDER BY
+                sessions.ended_at DESC
+            LIMIT 1) AS last_session ON TRUE;
+
+
 /* @name getSessionFlagsBySessionId */
 SELECT
     ssf.session_flag_id,

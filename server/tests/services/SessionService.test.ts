@@ -681,6 +681,9 @@ describe('SessionService', () => {
         toolType: 'whiteboard',
       })
       mockSessionRepo.createSession.mockResolvedValue(newSession)
+      mockFeatureFlagService.isShadowSessionOffersEnabled.mockResolvedValue(
+        false
+      )
 
       await SessionService.startSession(student, {
         subject: 'algebraOne',

@@ -455,11 +455,21 @@ export async function trackInactivity({
 export type OnlineRole = 'student' | 'volunteer' | 'teacher'
 
 const ONLINE_KEY_PREFIX = 'presence:online'
+const ONLINE_SINCE_KEY_PREFIX = 'presence:online-since'
 const CLIENT_INDEX_KEY_PREFIX = 'presence:clients'
 const ONLINE_ROLES: OnlineRole[] = ['student', 'volunteer', 'teacher']
 
 function onlineKey(role: OnlineRole) {
   return `${ONLINE_KEY_PREFIX}:${role}`
+}
+
+/*
+ * hash of userId -> epoch-ms when the user entered the online set for this role.
+ * kept in lockstep with the online sorted sets: set (if absent) in markOnline,
+ * removed whenever the user is removed from the sorted set.
+ */
+function onlineSinceKey(role: OnlineRole) {
+  return `${ONLINE_SINCE_KEY_PREFIX}:${role}`
 }
 
 function nowInSeconds() {
@@ -485,6 +495,7 @@ async function removeFromOnlineSets(userId: Ulid) {
   const transaction = redisClient.multi()
   for (const role of ONLINE_ROLES) {
     transaction.zrem(onlineKey(role), userId)
+    transaction.hdel(onlineSinceKey(role), userId)
   }
   await transaction.exec()
 }
@@ -495,7 +506,19 @@ async function removeFromOnlineSets(userId: Ulid) {
  * with orphaned members.
  */
 async function sweepOnline(role: OnlineRole) {
-  await redisClient.zremrangebyscore(onlineKey(role), '-inf', nowInSeconds())
+  const now = nowInSeconds()
+  const expiredUserIds = await redisClient.zrangebyscore(
+    onlineKey(role),
+    '-inf',
+    now
+  )
+  if (!expiredUserIds.length) return
+
+  await redisClient
+    .multi()
+    .zremrangebyscore(onlineKey(role), '-inf', now)
+    .hdel(onlineSinceKey(role), ...expiredUserIds)
+    .exec()
 }
 
 /**
@@ -513,8 +536,10 @@ export async function markOnline(
   for (const onlineRole of ONLINE_ROLES) {
     if (onlineRole === role) {
       transaction.zadd(onlineKey(onlineRole), deadline, userId)
+      transaction.hsetnx(onlineSinceKey(onlineRole), userId, Date.now())
     } else {
       transaction.zrem(onlineKey(onlineRole), userId)
+      transaction.hdel(onlineSinceKey(onlineRole), userId)
     }
   }
 
@@ -527,16 +552,38 @@ export async function markOffline(userId: Ulid) {
   await removeFromOnlineSets(userId)
 }
 
+export type OnlineUser = { userId: Ulid; onlineSince: Date | null }
+
+export async function getOnlineUsers(role: OnlineRole): Promise<OnlineUser[]> {
+  await sweepOnline(role)
+  const userIds = await redisClient.zrangebyscore(
+    onlineKey(role),
+    nowInSeconds(),
+    '+inf'
+  )
+  if (!userIds.length) return []
+
+  const onlineSinces = await redisClient.hmget(onlineSinceKey(role), ...userIds)
+  return userIds.map((userId, i) => {
+    const onlineSince = onlineSinces[i]
+    return {
+      userId,
+      onlineSince: onlineSince ? new Date(Number(onlineSince)) : null,
+    }
+  })
+}
+
 export async function getOnlineUserIds(): Promise<
   Record<'students' | 'volunteers', Ulid[]>
 > {
-  await Promise.all([sweepOnline('student'), sweepOnline('volunteer')])
-  const now = nowInSeconds()
   const [students, volunteers] = await Promise.all([
-    redisClient.zrangebyscore(onlineKey('student'), now, '+inf'),
-    redisClient.zrangebyscore(onlineKey('volunteer'), now, '+inf'),
+    getOnlineUsers('student'),
+    getOnlineUsers('volunteer'),
   ])
-  return { students, volunteers }
+  return {
+    students: students.map(({ userId }) => userId),
+    volunteers: volunteers.map(({ userId }) => userId),
+  }
 }
 
 /*

@@ -3066,6 +3066,50 @@ const getVolunteersInSessionsIR: any = {"usedParamSet":{},"params":[],"statement
 export const getVolunteersInSessions = new PreparedQuery<IGetVolunteersInSessionsParams,IGetVolunteersInSessionsResult>(getVolunteersInSessionsIR);
 
 
+/** 'GetLastSessionEndedAtByVolunteerIds' parameters type */
+export interface IGetLastSessionEndedAtByVolunteerIdsParams {
+  volunteerIds: stringArray;
+}
+
+/** 'GetLastSessionEndedAtByVolunteerIds' return type */
+export interface IGetLastSessionEndedAtByVolunteerIdsResult {
+  /** not_pii: Timestamp when the session ended */
+  endedAt: Date | null;
+  volunteerId: string | null;
+}
+
+/** 'GetLastSessionEndedAtByVolunteerIds' query type */
+export interface IGetLastSessionEndedAtByVolunteerIdsQuery {
+  params: IGetLastSessionEndedAtByVolunteerIdsParams;
+  result: IGetLastSessionEndedAtByVolunteerIdsResult;
+}
+
+const getLastSessionEndedAtByVolunteerIdsIR: any = {"usedParamSet":{"volunteerIds":true},"params":[{"name":"volunteerIds","required":true,"transform":{"type":"scalar"},"locs":[{"a":84,"b":97}]}],"statement":"SELECT\n    volunteers.id AS volunteer_id,\n    last_session.ended_at\nFROM\n    unnest(:volunteerIds!::uuid[]) AS volunteers (id)\n        JOIN LATERAL (\n            SELECT\n                ended_at\n            FROM\n                sessions\n            WHERE\n                sessions.volunteer_id = volunteers.id\n                AND sessions.ended_at IS NOT NULL\n            ORDER BY\n                sessions.ended_at DESC\n            LIMIT 1) AS last_session ON TRUE"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     volunteers.id AS volunteer_id,
+ *     last_session.ended_at
+ * FROM
+ *     unnest(:volunteerIds!::uuid[]) AS volunteers (id)
+ *         JOIN LATERAL (
+ *             SELECT
+ *                 ended_at
+ *             FROM
+ *                 sessions
+ *             WHERE
+ *                 sessions.volunteer_id = volunteers.id
+ *                 AND sessions.ended_at IS NOT NULL
+ *             ORDER BY
+ *                 sessions.ended_at DESC
+ *             LIMIT 1) AS last_session ON TRUE
+ * ```
+ */
+export const getLastSessionEndedAtByVolunteerIds = new PreparedQuery<IGetLastSessionEndedAtByVolunteerIdsParams,IGetLastSessionEndedAtByVolunteerIdsResult>(getLastSessionEndedAtByVolunteerIdsIR);
+
+
 /** 'GetSessionFlagsBySessionId' parameters type */
 export interface IGetSessionFlagsBySessionIdParams {
   sessionId: string;

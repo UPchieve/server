@@ -135,6 +135,101 @@ describe('online presence sets', () => {
   })
 })
 
+describe('online since', () => {
+  const firstOnlineAt = new Date('2026-01-01T00:00:00Z')
+  const laterAt = new Date('2026-01-01T00:10:00Z')
+
+  beforeEach(() => {
+    jest.useFakeTimers().setSystemTime(firstOnlineAt)
+  })
+
+  afterEach(() => {
+    jest.useRealTimers()
+  })
+
+  test('getOnlineUsers returns when the user first came online', async () => {
+    const userId = getDbUlid()
+    await PresenceService.markOnline(userId, 'volunteer', getUuid())
+
+    jest.setSystemTime(laterAt)
+    await PresenceService.markOnline(userId, 'volunteer', getUuid())
+
+    expect(await PresenceService.getOnlineUsers('volunteer')).toEqual([
+      { userId, onlineSince: firstOnlineAt },
+    ])
+  })
+
+  test('markOffline resets online since for the next time the user comes online', async () => {
+    const userId = getDbUlid()
+    await PresenceService.markOnline(userId, 'volunteer', getUuid())
+    await PresenceService.markOffline(userId)
+
+    jest.setSystemTime(laterAt)
+    await PresenceService.markOnline(userId, 'volunteer', getUuid())
+
+    expect(await PresenceService.getOnlineUsers('volunteer')).toEqual([
+      { userId, onlineSince: laterAt },
+    ])
+  })
+
+  test('markOfflineIfNoPresence resets online since once the last client is gone', async () => {
+    const userId = getDbUlid()
+    const clientUUID = getUuid()
+    await PresenceService.markOnline(userId, 'volunteer', clientUUID)
+    await PresenceService.markOfflineIfNoPresence(userId, clientUUID)
+
+    jest.setSystemTime(laterAt)
+    await PresenceService.markOnline(userId, 'volunteer', getUuid())
+
+    expect(await PresenceService.getOnlineUsers('volunteer')).toEqual([
+      { userId, onlineSince: laterAt },
+    ])
+  })
+
+  test('a role change starts online since over in the new role', async () => {
+    const userId = getDbUlid()
+    const clientUUID = getUuid()
+    await PresenceService.markOnline(userId, 'student', clientUUID)
+
+    jest.setSystemTime(laterAt)
+    await PresenceService.markOnline(userId, 'volunteer', clientUUID)
+
+    expect(await PresenceService.getOnlineUsers('student')).toEqual([])
+    expect(await PresenceService.getOnlineUsers('volunteer')).toEqual([
+      { userId, onlineSince: laterAt },
+    ])
+  })
+
+  test('an expired user does not keep their online since when they come back', async () => {
+    const userId = getDbUlid()
+    await PresenceService.markOnline(userId, 'volunteer', getUuid())
+
+    // expire the user without an offline event, e.g. all servers went down
+    jest.advanceTimersByTime(
+      (PresenceService.CLIENT_INDEX_TTL_IN_SECONDS + 1) * 1000
+    )
+    expect(await PresenceService.getOnlineUsers('volunteer')).toEqual([])
+
+    const returnedAt = new Date()
+    await PresenceService.markOnline(userId, 'volunteer', getUuid())
+
+    expect(await PresenceService.getOnlineUsers('volunteer')).toEqual([
+      { userId, onlineSince: returnedAt },
+    ])
+  })
+
+  test('online since is null for an online user with no online since entry', async () => {
+    const userId = getDbUlid()
+    await PresenceService.markOnline(userId, 'volunteer', getUuid())
+    // e.g. the user was online before online-since tracking was deployed
+    await redisClient.hdel('presence:online-since:volunteer', userId)
+
+    expect(await PresenceService.getOnlineUsers('volunteer')).toEqual([
+      { userId, onlineSince: null },
+    ])
+  })
+})
+
 describe('trackActivity', () => {
   test('marks the user as online in their role set', async () => {
     const userId = getDbUlid()

@@ -176,3 +176,12 @@ export async function getSessionHoldsStudentFeatureFlagPayload(
   }
   return payload
 }
+
+export async function isShadowSessionOffersEnabled(
+  studentId: Uuid
+): Promise<boolean> {
+  return (
+    (await isFeatureEnabled(FEATURE_FLAGS.SHADOW_SESSION_OFFERS, studentId)) ??
+    false
+  )
+}

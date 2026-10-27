@@ -83,6 +83,7 @@ import * as FeatureFlagsService from './FeatureFlagService'
 import type { CurrentSession } from '../types/session'
 import { hoursInSeconds, minutesInMs, secondsInMs } from '../utils/time-utils'
 import * as ModerationService from './ModerationService'
+import * as SessionOfferService from './SessionOfferService'
 
 export async function reviewSession(data: unknown) {
   const { sessionId, reviewed, toReview } =
@@ -792,6 +793,18 @@ export async function startSession(
         requestedVolunteerId
       )
     } else {
+      FeatureFlagsService.isShadowSessionOffersEnabled(user.id).then(
+        (offersEnabled) => {
+          if (offersEnabled)
+            SessionOfferService.recordShadowOffer(newSession).catch((err) => {
+              logger.error('Failed to record shadow session offer', {
+                err,
+                sessionId: newSession.id,
+              })
+            })
+        }
+      )
+
       await NotifyVolunteerService.beginRegularNotifications(newSession)
     }
   }
