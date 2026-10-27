@@ -153,6 +153,10 @@ deploy_staging:
     - job: build_staging
       artifacts: true
     - job: test_backend
+      # make this optional so that the pipeline doesn't fail because it can't
+      # find the test_backend job. this is required for "break glass" situations
+      # where we want to get a hotfix out quickly, without waiting for tests.
+      optional: true
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
 
@@ -171,6 +175,10 @@ deploy_production:
     - job: build_production
       artifacts: true
     - job: test_backend
+      # make this optional so that the pipeline doesn't fail because it can't
+      # find the test_backend job. this is required for "break glass" situations
+      # where we want to get a hotfix out quickly, without waiting for tests.
+      optional: true
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
       when: manual

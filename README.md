@@ -284,3 +284,16 @@ You can run the worker queue locally as well as enqueue specific jobs:
 ## Socket IO Admin UI
 
 You can visualize the state of the application's sockets using the [Socket IO Admin UI](https://socket.io/docs/v4/admin-ui/). In non-development environments, you will need to authenticate to view the UI. See 1Pass for login instructions.
+
+## Deploying hotfixes
+
+If you're in a situation where you need to rush a deploy out and don't want to wait for tests to pass, here's what you do:
+
+1. Open your MR.
+2. In the GitLab UI, cancel the pipeline that gets automatically created.
+3. Create a new pipeline by clicking Run pipeline -> **Run pipeline with modified values**
+4. Add the `TEST_DISABLED` variable with any non-empty string value, like `'true'`
+5. Done. Now the pipeline will run and skip the tests.
+6. Repeat 1-5 once your MR is merged into main.
+
+A technical note: We need the `test_backend` job in the gitlab CI config file to have `optional: true` for this to work. That setting makes it so that the pipeline won't error because the `test_backend` job is missing. Making it optional makes it so that the job still exists in the pipeline, even if it can be skipped via TEST_DISABLED.
