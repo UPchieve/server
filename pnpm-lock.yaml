@@ -225,8 +225,8 @@ importers:
         specifier: ^3.2.0
         version: 3.3.1
       twilio:
-        specifier: ^5.13.1
-        version: 5.13.1
+        specifier: ^6.2.0
+        version: 6.2.0
       ua-parser-js:
         specifier: ^2.0.10
         version: 2.0.10
@@ -4737,10 +4737,6 @@ packages:
     resolution: {integrity: sha512-5LBh1Tls8c9xgGjw3QrMwETmTMVk0oFgvrFSvWx62llR2hcEInrKNZ2GZCCuuy2lvWrdl5jhbpeqc5hRYKFOcw==}
     engines: {node: '>=10'}
 
-  scmp@2.1.0:
-    resolution: {integrity: sha512-o/mRQGk9Rcer/jEEw/yw4mwo3EU/NvYvp577/Btqrym9Qy5/MdWGBqipbALgd2lrdWTJ5/gqDusxfnQBxOxT2Q==}
-    deprecated: Just use Node.js's crypto.timingSafeEqual()
-
   secure-json-parse@2.7.0:
     resolution: {integrity: sha512-6aU+Rwsezw7VR8/nyvKTx8QpWH9FrcYiXXlqC4z5d5XQBDRqtbfsRjnwGyqbi3gddNtWHuEk9OANUotL26qKUw==}
 
@@ -5146,9 +5142,9 @@ packages:
   tunnel-agent@0.6.0:
     resolution: {integrity: sha512-McnNiV1l8RYeY8tBgEpuodCC1mLUdbSN+CYBL7kJsJNInOP8UjDDEwdk6Mw60vdLLrr5NHKZhMAOSrR2NZuQ+w==}
 
-  twilio@5.13.1:
-    resolution: {integrity: sha512-sT+PkhptF4Mf7t8eXFFvPQx4w5VHnBIPXbltGPMFRe+R2GxfRdMuFbuNA/cEm0aQR6LFQOn33+fhClg+TjRVqQ==}
-    engines: {node: '>=14.0'}
+  twilio@6.2.0:
+    resolution: {integrity: sha512-zuwVhRa8gGIvaTjXIkRNcf7cPPQCeghMukMcG9WnhWmm7SLnregVpdIoYOSrOvlqMUYf6xP9A2ivsJNf6URoSg==}
+    engines: {node: '>=20.0.0'}
 
   type-detect@4.0.8:
     resolution: {integrity: sha512-0fr/mIH1dlO+x7TlcMy+bIDqKPsw/70tVyeHW787goQjhmqaZe10uwLujubK9q9Lg6Fiho1KUKDYz0Z7k7g5/g==}
@@ -11267,8 +11263,6 @@ snapshots:
     dependencies:
       xmlchars: 2.2.0
 
-  scmp@2.1.0: {}
-
   secure-json-parse@2.7.0: {}
 
   semver@6.3.1: {}
@@ -11736,14 +11730,13 @@ snapshots:
     dependencies:
       safe-buffer: 5.2.1
 
-  twilio@5.13.1:
+  twilio@6.2.0:
     dependencies:
       axios: 1.15.2
       dayjs: 1.11.19
       https-proxy-agent: 5.0.1
       jsonwebtoken: 9.0.3
       qs: 6.15.0
-      scmp: 2.1.0
       xmlbuilder: 13.0.2
     transitivePeerDependencies:
       - debug
