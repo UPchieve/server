@@ -601,6 +601,8 @@ export const getActiveSessionVolunteers = new PreparedQuery<IGetActiveSessionVol
 /** 'UpdateSessionReported' parameters type */
 export interface IUpdateSessionReportedParams {
   id: string;
+  reportedUserId: string;
+  reportingUserId: string;
   reportMessage: string;
   reportReason: string;
   sessionId: string;
@@ -618,7 +620,7 @@ export interface IUpdateSessionReportedQuery {
   result: IUpdateSessionReportedResult;
 }
 
-const updateSessionReportedIR: any = {"usedParamSet":{"id":true,"reportMessage":true,"reportReason":true,"sessionId":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":151,"b":154}]},{"name":"reportMessage","required":true,"transform":{"type":"scalar"},"locs":[{"a":184,"b":198}]},{"name":"reportReason","required":true,"transform":{"type":"scalar"},"locs":[{"a":360,"b":373}]},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":399,"b":409}]}],"statement":"INSERT INTO session_reports (id, report_reason_id, report_message, reporting_user_id, session_id, reported_user_id, created_at, updated_at)\nSELECT\n    :id!,\n    report_reasons.id,\n    :reportMessage!,\n    sessions.volunteer_id,\n    sessions.id,\n    sessions.student_id,\n    NOW(),\n    NOW()\nFROM\n    sessions\n    JOIN report_reasons ON report_reasons.reason = :reportReason!\nWHERE\n    sessions.id = :sessionId!\nRETURNING\n    id AS ok"};
+const updateSessionReportedIR: any = {"usedParamSet":{"id":true,"reportMessage":true,"reportingUserId":true,"reportedUserId":true,"reportReason":true,"sessionId":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":151,"b":154}]},{"name":"reportMessage","required":true,"transform":{"type":"scalar"},"locs":[{"a":184,"b":198}]},{"name":"reportingUserId","required":true,"transform":{"type":"scalar"},"locs":[{"a":205,"b":221}]},{"name":"reportedUserId","required":true,"transform":{"type":"scalar"},"locs":[{"a":245,"b":260}]},{"name":"reportReason","required":true,"transform":{"type":"scalar"},"locs":[{"a":353,"b":366}]},{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":392,"b":402}]}],"statement":"INSERT INTO session_reports (id, report_reason_id, report_message, reporting_user_id, session_id, reported_user_id, created_at, updated_at)\nSELECT\n    :id!,\n    report_reasons.id,\n    :reportMessage!,\n    :reportingUserId!,\n    sessions.id,\n    :reportedUserId!,\n    NOW(),\n    NOW()\nFROM\n    sessions\n    JOIN report_reasons ON report_reasons.reason = :reportReason!\nWHERE\n    sessions.id = :sessionId!\nRETURNING\n    id AS ok"};
 
 /**
  * Query generated from SQL:
@@ -628,9 +630,9 @@ const updateSessionReportedIR: any = {"usedParamSet":{"id":true,"reportMessage":
  *     :id!,
  *     report_reasons.id,
  *     :reportMessage!,
- *     sessions.volunteer_id,
+ *     :reportingUserId!,
  *     sessions.id,
- *     sessions.student_id,
+ *     :reportedUserId!,
  *     NOW(),
  *     NOW()
  * FROM

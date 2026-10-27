@@ -146,14 +146,32 @@ export async function reportSession(user: UserContactInfo, data: unknown) {
     sessionUtils.asReportSessionData(data)
   const session = await SessionRepo.getSessionById(sessionId)
   // Only matched sessions can be reported
-  if (!session.volunteerId)
+  if (!session.volunteerId) {
     throw new sessionUtils.ReportSessionError('Unable to report this session')
+  }
+  if (
+    !sessionUtils.isSessionParticipant(
+      session.studentId,
+      session.volunteerId,
+      user.id
+    )
+  ) {
+    throw new sessionUtils.ReportSessionError(
+      'Only session participants can report a session'
+    )
+  }
 
   const reportedBy = user
+  const isSessionVolunteer = reportedBy.id === session.volunteerId
+  const reportedUserId = isSessionVolunteer
+    ? session.studentId
+    : session.volunteerId
   await SessionRepo.updateSessionReported(
     sessionId,
     reportReason,
-    reportMessage
+    reportMessage,
+    reportedBy.id,
+    reportedUserId
   )
 
   // Autoban users if a session is reported from the recap page (DMs),
@@ -161,24 +179,20 @@ export async function reportSession(user: UserContactInfo, data: unknown) {
   const isBanReason =
     reportReason !== SESSION_REPORT_REASON.STUDENT_SAFETY &&
     (reportReason === SESSION_REPORT_REASON.STUDENT_RUDE || source === 'recap')
-  const isSessionVolunteer = reportedBy.id === session.volunteerId
-  const reportedUser = isSessionVolunteer
-    ? session.studentId
-    : session.volunteerId
   if (isBanReason) {
-    if (reportedUser === session.studentId) {
+    if (reportedUserId === session.studentId) {
       await UserRepo.banUserById(
-        reportedUser,
+        reportedUserId,
         USER_BAN_TYPES.COMPLETE,
         USER_BAN_REASONS.SESSION_REPORTED
       )
       await createAccountAction({
-        userId: reportedUser,
+        userId: reportedUserId,
         action: ACCOUNT_USER_ACTIONS.BANNED,
         sessionId: session.id,
         banReason: reportReason,
       })
-      AnalyticsService.captureEvent(reportedUser, EVENTS.ACCOUNT_BANNED, {
+      AnalyticsService.captureEvent(reportedUserId, EVENTS.ACCOUNT_BANNED, {
         event: EVENTS.ACCOUNT_BANNED,
         sessionId: session.id,
         banReason: USER_BAN_REASONS.SESSION_REPORTED,
@@ -197,7 +211,7 @@ export async function reportSession(user: UserContactInfo, data: unknown) {
 
   // Queue up job to send reporting alert emails
   const emailData = {
-    userId: reportedUser,
+    userId: reportedUserId,
     reportedBy: user.email,
     reportReason,
     reportMessage,

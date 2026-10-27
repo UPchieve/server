@@ -326,11 +326,20 @@ export async function getActiveSessionsWithVolunteers(): Promise<Uuid[]> {
 export async function updateSessionReported(
   sessionId: Uuid,
   reportReason: string,
-  reportMessage: string
+  reportMessage: string,
+  reportingUserId: Uuid,
+  reportedUserId: Uuid
 ): Promise<void> {
   try {
     const result = await pgQueries.updateSessionReported.run(
-      { id: getDbUlid(), sessionId, reportReason, reportMessage },
+      {
+        id: getDbUlid(),
+        sessionId,
+        reportReason,
+        reportMessage,
+        reportingUserId,
+        reportedUserId,
+      },
       getClient()
     )
     ensureWriteOk(result)

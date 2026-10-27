@@ -17,6 +17,7 @@ import {
   buildCurrentSession,
   buildRecapSession,
   buildSession,
+  buildStudent,
   buildUserContactInfo,
   buildVolunteer,
 } from '../mocks/generate'
@@ -33,6 +34,7 @@ import {
 } from '../../services/SessionService'
 import { CurrentSession } from '../../types/session'
 import { InputError } from '../../models/Errors'
+import { ReportSessionError } from '../../utils/session-utils'
 import { RoleContext } from '../../services/UserRolesService'
 import * as cache from '../../cache'
 import QueueService from '../../services/QueueService'
@@ -140,6 +142,58 @@ describe('SessionService', () => {
       }
     )
 
+    test.each([
+      {
+        filer: 'coach',
+        reporterIsCoach: true,
+        reason: SESSION_REPORT_REASON.STUDENT_RUDE,
+        dmFlag: UserSessionFlags.coachReportedStudentDm,
+      },
+      {
+        filer: 'student',
+        reporterIsCoach: false,
+        reason:
+          SESSION_REPORT_REASON.COACH_DM_TO_STUDENT_INAPPROPRIATE_LANGUAGE,
+        dmFlag: UserSessionFlags.studentReportedCoachDm,
+      },
+    ])(
+      'stores, flags and alerts with the $filer as reporter and the other participant as reported',
+      async ({ reporterIsCoach, reason, dmFlag }) => {
+        const coach = buildVolunteer()
+        const student = buildStudent()
+        const session = buildSession({
+          studentId: student.id,
+          volunteerId: coach.id,
+        })
+        const reportedUserId = reporterIsCoach ? student.id : coach.id
+        mockSessionRepo.getSessionById.mockResolvedValue(session)
+        mockSessionRepo.updateSessionReported.mockResolvedValue()
+
+        await SessionService.reportSession(reporterIsCoach ? coach : student, {
+          sessionId: session.id,
+          reportReason: reason,
+          reportMessage: 'message',
+          source: 'recap',
+        })
+
+        expect(mockSessionRepo.updateSessionReported).toHaveBeenCalledWith(
+          session.id,
+          reason,
+          'message',
+          reporterIsCoach ? coach.id : student.id,
+          reportedUserId
+        )
+        expect(mockSessionRepo.updateSessionFlagsById).toHaveBeenCalledWith(
+          session.id,
+          [dmFlag],
+          expect.anything()
+        )
+        const [cacheKey, emailData] = mockedCache.save.mock.calls[0]
+        expect(cacheKey).toBe(`${session.id}-reported`)
+        expect(JSON.parse(emailData as string).userId).toBe(reportedUserId)
+      }
+    )
+
     test('rejects an unknown reportReason before writing a report or banning', async () => {
       const user = buildVolunteer()
 
@@ -151,6 +205,26 @@ describe('SessionService', () => {
           source: 'recap',
         })
       ).rejects.toThrow(InputError)
+
+      expect(mockSessionRepo.updateSessionReported).not.toHaveBeenCalled()
+      expect(UserRepo.banUserById).not.toHaveBeenCalled()
+    })
+
+    test('rejects a report from someone outside the session', async () => {
+      const session = buildSession({
+        studentId: buildStudent().id,
+        volunteerId: buildVolunteer().id,
+      })
+      mockSessionRepo.getSessionById.mockResolvedValue(session)
+
+      await expect(
+        SessionService.reportSession(buildVolunteer(), {
+          sessionId: session.id,
+          reportReason: SESSION_REPORT_REASON.STUDENT_RUDE,
+          reportMessage: 'message',
+          source: 'recap',
+        })
+      ).rejects.toThrow(ReportSessionError)
 
       expect(mockSessionRepo.updateSessionReported).not.toHaveBeenCalled()
       expect(UserRepo.banUserById).not.toHaveBeenCalled()

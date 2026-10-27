@@ -21,6 +21,7 @@ import {
   isInSessionHistory,
   isSessionFulfilled,
   updateSessionFlagsById,
+  updateSessionReported,
   updateSessionReviewReasonsById,
   updateSessionToEnd,
   getSessionUsers,
@@ -28,7 +29,11 @@ import {
 import { camelCaseKeys, insertSingleRow } from '../db-utils'
 import { range } from 'lodash'
 import moment from 'moment'
-import { USER_SESSION_METRICS, UserSessionFlags } from '../../constants'
+import {
+  SESSION_REPORT_REASON,
+  USER_SESSION_METRICS,
+  UserSessionFlags,
+} from '../../constants'
 import {
   createTestStudent,
   createTestUser,
@@ -1162,5 +1167,49 @@ describe('Session repo', () => {
       expect(result).not.toContain(id2)
       expect(result).not.toContain(id4)
     })
+  })
+
+  describe('updateSessionReported', () => {
+    it.each([
+      { filer: 'student', studentFiled: true },
+      { filer: 'coach', studentFiled: false },
+    ])(
+      'Stores the passed reporter and reported user when the $filer files',
+      async ({ studentFiled }) => {
+        const student = await createTestStudent(dbClient)
+        const coach = await createTestUser(dbClient)
+        await createTestVolunteer(dbClient, coach.id)
+        const session = await insertSingleRow(
+          'sessions',
+          await buildSessionRow({
+            studentId: student.user_id,
+            volunteerId: coach.id,
+          }),
+          dbClient
+        )
+        const [reportingUserId, reportedUserId] = studentFiled
+          ? [student.user_id, coach.id]
+          : [coach.id, student.user_id]
+
+        await updateSessionReported(
+          session.id,
+          SESSION_REPORT_REASON.STUDENT_SAFETY,
+          'message',
+          reportingUserId,
+          reportedUserId
+        )
+
+        const { rows } = await dbClient.query(
+          'SELECT reporting_user_id, reported_user_id FROM session_reports WHERE session_id = $1',
+          [session.id]
+        )
+        expect(rows).toEqual([
+          {
+            reporting_user_id: reportingUserId,
+            reported_user_id: reportedUserId,
+          },
+        ])
+      }
+    )
   })
 })

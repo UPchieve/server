@@ -262,9 +262,9 @@ SELECT
     :id!,
     report_reasons.id,
     :reportMessage!,
-    sessions.volunteer_id,
+    :reportingUserId!,
     sessions.id,
-    sessions.student_id,
+    :reportedUserId!,
     NOW(),
     NOW()
 FROM
