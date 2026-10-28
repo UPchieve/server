@@ -37,6 +37,13 @@ export default async function (job: Job<UpdateNTHSChapterStatusJobData>) {
   const previousChapterStatus =
     await NTHSService.getLatestNthsChapterStatus(nthsGroupId)
 
+  if (previousChapterStatus?.statusName == 'OFFICIAL') {
+    logger.info(`${logPrefix} Will remain OFFICIAL until end of year`, {
+      groupId: nthsGroupId,
+    })
+    return
+  }
+
   // Current members only; getGroupMembers excludes deactivated by default.
   const alltimeMembers = await NTHSService.getGroupMembers(nthsGroupId)
 
@@ -80,14 +87,6 @@ export default async function (job: Job<UpdateNTHSChapterStatusJobData>) {
     if (usersSessions.some((session) => session.volunteerId === user.userId)) {
       eligibleMembers.push(user)
     }
-  }
-
-  if (previousChapterStatus?.statusName == 'OFFICIAL') {
-    logger.info(`${logPrefix} Will remain OFFICIAL until end of year`, {
-      groupId: nthsGroupId,
-      eligibleMembers: eligibleMembers.length,
-    })
-    return
   }
 
   const newChapterStatusName: NTHSChapterStatusName =

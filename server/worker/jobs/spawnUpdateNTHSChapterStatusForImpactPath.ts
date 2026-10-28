@@ -17,20 +17,14 @@ export type SpawnUpdateNTHSChapterStatusForImpactPathJobData = {
 /**
  * Spawns a job for each NTHS chapter to check if its status has changed, i.e. due to meeting the chapter
  * impact requirements.
- * Exclude chapters which are school affiliated because these ones are "official" chapters regardless of impact stats.
  */
 export default async function (
   job: Job<SpawnUpdateNTHSChapterStatusForImpactPathJobData>
 ) {
   const { periodStart, periodEnd } = job.data
-  // Get all chapters that are not already school-official...
   const allChapters = await NTHSService.getAllNTHSGroupsChapterStatus()
-  const notSchoolOfficialChapters = allChapters.filter(
-    (chapter) => chapter.schoolAffiliationStatusName !== 'AFFILIATED'
-  )
 
-  // ... and spawn a job to check if they are official via the "Impact Path"
-  for (const chapter of notSchoolOfficialChapters) {
+  for (const chapter of allChapters) {
     await QueueService.add(
       'UpdateNTHSChapterStatusForImpactPath',
       { delay: 0 },

@@ -355,8 +355,8 @@ describe('updateNTHSChapterStatusForImpactPath', () => {
       ),
       {
         groupId: DEFAULT_JOB.data.nthsGroupId,
-        eligibleMembers: 2,
       }
     )
+    expect(NTHSService.insertNthsChapterStatus).not.toHaveBeenCalled()
   })
 })
