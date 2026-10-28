@@ -24,6 +24,7 @@ import { InputError } from '../../models/Errors'
 import * as EssayReviewService from '../../services/EssayReviewService'
 import { resSuccess } from '../res-success'
 import { extractUser } from '../extract-user'
+import { asGroupMemberUpdate } from './nths-groups'
 
 function parseChapterIds(ids: unknown) {
   const chapterIds = asArray(asUuid)(ids, 'chapter id')
@@ -157,6 +158,38 @@ export function routeAdmin(apiRouter: Router): void {
       resError(res, err)
     }
   })
+
+  router.get(
+    '/nths/chapters/:chapterId/members/:userId',
+    async function (req, res) {
+      try {
+        res.json(
+          await NTHSGroupsService.getMemberForStaff(
+            asUuid(req.params.userId, 'userId'),
+            asUuid(req.params.chapterId, 'chapterId')
+          )
+        )
+      } catch (err) {
+        resError(res, err)
+      }
+    }
+  )
+
+  router.put(
+    '/nths/chapters/:chapterId/members/:userId',
+    async function (req, res) {
+      try {
+        await NTHSGroupsService.updateGroupMemberAsStaff(
+          asUuid(req.params.userId, 'userId'),
+          asUuid(req.params.chapterId, 'chapterId'),
+          asGroupMemberUpdate(req.body)
+        )
+        res.sendStatus(204)
+      } catch (err) {
+        resError(res, err)
+      }
+    }
+  )
 
   router.post('/nths/chapters/close', async function (req, res) {
     try {

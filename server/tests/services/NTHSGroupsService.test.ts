@@ -582,6 +582,37 @@ describe('updateGroupMember', () => {
     expect(mockedNTHSRepo.deactivateGroupMember).not.toHaveBeenCalled()
   })
 
+  it.each([
+    ['role', { isActive: false as const, role: 'admin' as const }],
+    [
+      'title',
+      { isActive: false as const, title: 'Executive Board Member' as const },
+    ],
+  ])('refuses a removal that also changes the %s', async (_, update) => {
+    const member = buildNTHSGroupMemberWithRole({ roleName: 'member' })
+    mockedNTHSRepo.getGroupMembers.mockResolvedValueOnce([member])
+
+    await expect(
+      NTHSService.updateGroupMember(member.userId, groupId, update)
+    ).rejects.toThrow(InputError)
+    expect(mockedNTHSRepo.deactivateGroupMember).not.toHaveBeenCalled()
+    expect(mockedNTHSRepo.upsertNthsGroupMemberRole).not.toHaveBeenCalled()
+  })
+
+  it('refuses a role or title change to a departed member', async () => {
+    const departed = buildNTHSGroupMemberWithRole({
+      deactivatedAt: new Date(),
+    })
+    mockedNTHSRepo.getGroupMembers.mockResolvedValueOnce([departed])
+
+    await expect(
+      NTHSService.updateGroupMember(departed.userId, groupId, {
+        role: 'admin',
+      })
+    ).rejects.toThrow(InputError)
+    expect(mockedNTHSRepo.upsertNthsGroupMemberRole).not.toHaveBeenCalled()
+  })
+
   it('lets a sole admin save an update that keeps them an active admin', async () => {
     const soleAdmin = buildNTHSGroupMemberWithRole({ roleName: 'admin' })
     mockedNTHSRepo.getGroupMembers.mockResolvedValueOnce([
@@ -599,6 +630,123 @@ describe('updateGroupMember', () => {
     )
     expect(mockedNTHSRepo.deactivateGroupMember).not.toHaveBeenCalled()
   })
+})
+
+describe('updateGroupMemberAsStaff', () => {
+  const groupId = getDbUlid()
+
+  it('lets staff demote the last admin and retitles a President to Member', async () => {
+    const soleAdmin = buildNTHSGroupMemberWithRole({
+      roleName: 'admin',
+      title: 'President',
+    })
+    mockedNTHSRepo.getGroupMembers.mockResolvedValueOnce([
+      soleAdmin,
+      buildNTHSGroupMemberWithRole(),
+    ])
+
+    await NTHSService.updateGroupMemberAsStaff(soleAdmin.userId, groupId, {
+      role: 'member',
+    })
+
+    expect(mockedNTHSRepo.upsertNthsGroupMemberRole).toHaveBeenCalledWith(
+      { userId: soleAdmin.userId, nthsGroupId: groupId, roleName: 'member' },
+      undefined
+    )
+    expect(mockedNTHSRepo.updateNthsGroupMemberTitle).toHaveBeenCalledWith(
+      { userId: soleAdmin.userId, nthsGroupId: groupId, title: 'Member' },
+      undefined
+    )
+  })
+
+  it('lets staff remove the last admin', async () => {
+    const soleAdmin = buildNTHSGroupMemberWithRole({ roleName: 'admin' })
+    mockedNTHSRepo.getGroupMembers.mockResolvedValueOnce([
+      soleAdmin,
+      buildNTHSGroupMemberWithRole(),
+    ])
+
+    await NTHSService.updateGroupMemberAsStaff(soleAdmin.userId, groupId, {
+      isActive: false,
+    })
+
+    expect(mockedNTHSRepo.deactivateGroupMember).toHaveBeenCalledWith(
+      soleAdmin.userId,
+      groupId,
+      undefined
+    )
+  })
+
+  it('refuses to make a deleted account an admin', async () => {
+    const deletedMember = buildNTHSGroupMemberWithRole({
+      roleName: 'member',
+      deleted: true,
+    })
+    mockedNTHSRepo.getGroupMembers.mockResolvedValueOnce([deletedMember])
+
+    await expect(
+      NTHSService.updateGroupMemberAsStaff(deletedMember.userId, groupId, {
+        role: 'admin',
+      })
+    ).rejects.toThrow(InputError)
+    expect(mockedNTHSRepo.upsertNthsGroupMemberRole).not.toHaveBeenCalled()
+  })
+})
+
+describe('getMemberForStaff', () => {
+  const groupId = getDbUlid()
+
+  const target = buildNTHSGroupMemberWithRole({ roleName: 'admin' })
+  const otherAdmin = buildNTHSGroupMemberWithRole({
+    roleName: 'admin',
+    title: 'Vice President',
+  })
+  const departedAdmin = buildNTHSGroupMemberWithRole({
+    roleName: 'admin',
+    deactivatedAt: new Date(),
+  })
+  const deletedAdmin = buildNTHSGroupMemberWithRole({
+    roleName: 'admin',
+    deleted: true,
+  })
+  const plainMember = buildNTHSGroupMemberWithRole({ roleName: 'member' })
+
+  it.each([
+    {
+      name: 'another current admin exists',
+      members: [target, otherAdmin, departedAdmin, plainMember],
+      isLastAdmin: false,
+      otherAdminIds: [otherAdmin.userId],
+    },
+    {
+      name: 'the target is the only current admin',
+      members: [target, departedAdmin],
+      isLastAdmin: true,
+      otherAdminIds: [],
+    },
+    {
+      name: 'the only other admin is a deleted account',
+      members: [target, deletedAdmin],
+      isLastAdmin: true,
+      otherAdminIds: [deletedAdmin.userId],
+    },
+  ])(
+    'reports the last admin flag and other current admins when $name',
+    async ({ members, isLastAdmin, otherAdminIds }) => {
+      mockedNTHSRepo.getGroupMembers.mockResolvedValue(members)
+      mockedNTHSRepo.getNthsGroupMemberForStaff.mockResolvedValue({
+        firstName: 'Ada',
+        lastName: 'Lovelace',
+        email: 'ada@example.com',
+        chapterName: 'Chapter',
+        chapterClosedAt: null,
+      })
+
+      const result = await NTHSService.getMemberForStaff(target.userId, groupId)
+      expect(result.member.isLastAdmin).toBe(isLastAdmin)
+      expect(result.otherAdmins.map((a) => a.userId)).toEqual(otherAdminIds)
+    }
+  )
 })
 
 describe('leaveGroup', () => {

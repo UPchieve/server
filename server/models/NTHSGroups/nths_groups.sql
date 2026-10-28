@@ -662,3 +662,19 @@ ORDER BY
     u.last_name,
     u.first_name;
 
+
+/* @name getNthsGroupMemberForStaff */
+SELECT
+    u.first_name,
+    u.last_name,
+    u.email,
+    g.name AS chapter_name,
+    g.closed_at AS chapter_closed_at
+FROM
+    nths_group_members m
+    JOIN users u ON u.id = m.user_id
+    JOIN nths_groups g ON g.id = m.nths_group_id
+WHERE
+    m.nths_group_id = :groupId!
+    AND m.user_id = :userId!;
+

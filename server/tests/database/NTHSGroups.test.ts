@@ -14,8 +14,9 @@ import {
   sqlText,
   withRealTransaction,
 } from './seed-utils'
+import * as NTHSGroupsRepo from '../../models/NTHSGroups'
 import * as NTHSGroupsService from '../../services/NTHSGroupsService'
-import { NTHSChapterClosedError } from '../../models/Errors'
+import { NTHSChapterClosedError, RepoReadError } from '../../models/Errors'
 
 const client = getClient()
 
@@ -1138,6 +1139,45 @@ describe('getChapterCloseReport', () => {
     expect(byId(groupId).presidents).toEqual([await nameOf(president)])
     expect(byId(otherId).currentMemberCount).toBe(1)
     expect(byId(otherId).presidents).toEqual([await nameOf(otherPresident)])
+  })
+})
+
+describe('getNthsGroupMemberForStaff', () => {
+  test('returns the member and chapter details, including for a departed member and a closed chapter', async () => {
+    const closedAt = '2026-09-01T00:00:00.000Z'
+    const groupId = await createChapter(client, closedAt)
+    const userId = await addMember(groupId, { deactivatedAt: closedAt })
+    const { rows } = await client.query(
+      `SELECT first_name, last_name, email FROM users WHERE id = $1`,
+      [userId]
+    )
+    const { rows: chapter } = await client.query(
+      `SELECT name FROM nths_groups WHERE id = $1`,
+      [groupId]
+    )
+
+    const result = await NTHSGroupsRepo.getNthsGroupMemberForStaff(
+      userId,
+      groupId
+    )
+
+    expect(result).toEqual({
+      firstName: rows[0].first_name,
+      lastName: rows[0].last_name,
+      email: rows[0].email,
+      chapterName: chapter[0].name,
+      chapterClosedAt: new Date(closedAt),
+    })
+  })
+
+  test('throws for a user who is not in that chapter', async () => {
+    const groupId = await createChapter(client)
+    const otherId = await createChapter(client)
+    const userId = await addMember(otherId)
+
+    await expect(
+      NTHSGroupsRepo.getNthsGroupMemberForStaff(userId, groupId)
+    ).rejects.toThrow(RepoReadError)
   })
 })
 

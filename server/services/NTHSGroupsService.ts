@@ -293,15 +293,59 @@ export async function updateGroupMember(
     nthsGroupId,
     userId
   )
-  if (update.role === 'admin' && targetMember.deleted) {
-    throw new InputError('Cannot make a deleted account an admin')
-  }
+  ensureNotDeletedAdminTarget(targetMember, update)
   // Do not allow deactivating or demoting of the sole admin of the group
   if (isSoleActiveAdmin(members, userId)) {
     if ((update.role && update.role !== 'admin') || update.isActive === false) {
       throw new CannotRemoveSoleNTHSAdminError()
     }
   }
+  await applyGroupMemberUpdate(targetMember, nthsGroupId, update)
+}
+
+export async function updateGroupMemberAsStaff(
+  userId: Ulid,
+  nthsGroupId: Ulid,
+  update: UpdateGroupMemberRequest
+) {
+  const { targetMember } = await getMembersWithTarget(nthsGroupId, userId)
+  ensureNotDeletedAdminTarget(targetMember, update)
+  await applyGroupMemberUpdate(targetMember, nthsGroupId, update)
+}
+
+function ensureNotDeletedAdminTarget(
+  targetMember: NTHSGroupMemberWithRole,
+  update: UpdateGroupMemberRequest
+) {
+  if (update.role === 'admin' && targetMember.deleted) {
+    throw new InputError('Cannot make a deleted account an admin')
+  }
+}
+
+async function applyGroupMemberUpdate(
+  targetMember: NTHSGroupMemberWithRole,
+  nthsGroupId: Ulid,
+  update: UpdateGroupMemberRequest
+) {
+  // A removal must end membership exactly as a leave does, so it cannot also
+  // promote, demote or retitle the member.
+  if (
+    update.isActive === false &&
+    (update.role !== undefined || update.title !== undefined)
+  ) {
+    throw new InputError('A removal cannot also change role or title')
+  }
+  // A departed member can't be changed. Removing them again is a no-op, so a
+  // stale roster's Remove click succeeds and keeps their departure time.
+  if (
+    targetMember.deactivatedAt &&
+    (update.role !== undefined || update.title !== undefined)
+  ) {
+    throw new InputError(
+      'This member has left the chapter and cannot be changed'
+    )
+  }
+  const userId = targetMember.userId
   const title = titleToWrite(targetMember, update)
   await runInTransaction(async (tc) => {
     if (update.role) {
@@ -319,6 +363,46 @@ export async function updateGroupMember(
     }
   })
   await syncNthsUserToSendGrid(userId)
+}
+
+export async function getMemberForStaff(userId: Ulid, nthsGroupId: Ulid) {
+  const { members, targetMember } = await getMembersWithTarget(
+    nthsGroupId,
+    userId
+  )
+  const details = await NTHSGroupsRepo.getNthsGroupMemberForStaff(
+    userId,
+    nthsGroupId
+  )
+  const otherAdmins = members.filter(
+    (m) => m.roleName === 'admin' && !m.deactivatedAt && m.userId !== userId
+  )
+  return {
+    member: {
+      userId,
+      firstName: details.firstName,
+      lastName: details.lastName,
+      email: details.email,
+      title: targetMember.title,
+      roleName: targetMember.roleName,
+      joinedAt: targetMember.joinedAt,
+      deactivatedAt: targetMember.deactivatedAt ?? null,
+      deleted: targetMember.deleted,
+      isLastAdmin: isSoleActiveAdmin(members, userId),
+    },
+    chapter: {
+      id: nthsGroupId,
+      name: details.chapterName,
+      closedAt: details.chapterClosedAt,
+    },
+    otherAdmins: otherAdmins.map((m) => ({
+      userId: m.userId,
+      firstName: m.firstName,
+      lastInitial: m.lastInitial,
+      title: m.title,
+      deleted: m.deleted,
+    })),
+  }
 }
 
 // Departed members remain valid targets; anyone with no membership row is
@@ -367,8 +451,8 @@ function titleToWrite(
   update: UpdateGroupMemberRequest
 ): NTHSTitle | undefined {
   if (update.title) {
-    if (member.deactivatedAt || member.deleted) {
-      throw new InputError('A title can only be set on a current member')
+    if (member.deleted) {
+      throw new InputError("A title can't be set on a deleted account")
     }
     if (
       LEADERSHIP_TITLES.includes(update.title) &&

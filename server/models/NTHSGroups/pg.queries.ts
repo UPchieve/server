@@ -1794,3 +1794,52 @@ const getChapterPresidentsIR: any = {"usedParamSet":{"groupIds":true},"params":[
 export const getChapterPresidents = new PreparedQuery<IGetChapterPresidentsParams,IGetChapterPresidentsResult>(getChapterPresidentsIR);
 
 
+/** 'GetNthsGroupMemberForStaff' parameters type */
+export interface IGetNthsGroupMemberForStaffParams {
+  groupId: string;
+  userId: string;
+}
+
+/** 'GetNthsGroupMemberForStaff' return type */
+export interface IGetNthsGroupMemberForStaffResult {
+  /** not_pii: When the chapter closed; null while open */
+  chapterClosedAt: Date | null;
+  /** not_pii: Human-readable name */
+  chapterName: string;
+  /** pii: User email address */
+  email: string;
+  /** pii: First name */
+  firstName: string;
+  /** pii: Last name */
+  lastName: string;
+}
+
+/** 'GetNthsGroupMemberForStaff' query type */
+export interface IGetNthsGroupMemberForStaffQuery {
+  params: IGetNthsGroupMemberForStaffParams;
+  result: IGetNthsGroupMemberForStaffResult;
+}
+
+const getNthsGroupMemberForStaffIR: any = {"usedParamSet":{"groupId":true,"userId":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":264,"b":272}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":294,"b":301}]}],"statement":"SELECT\n    u.first_name,\n    u.last_name,\n    u.email,\n    g.name AS chapter_name,\n    g.closed_at AS chapter_closed_at\nFROM\n    nths_group_members m\n    JOIN users u ON u.id = m.user_id\n    JOIN nths_groups g ON g.id = m.nths_group_id\nWHERE\n    m.nths_group_id = :groupId!\n    AND m.user_id = :userId!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     u.first_name,
+ *     u.last_name,
+ *     u.email,
+ *     g.name AS chapter_name,
+ *     g.closed_at AS chapter_closed_at
+ * FROM
+ *     nths_group_members m
+ *     JOIN users u ON u.id = m.user_id
+ *     JOIN nths_groups g ON g.id = m.nths_group_id
+ * WHERE
+ *     m.nths_group_id = :groupId!
+ *     AND m.user_id = :userId!
+ * ```
+ */
+export const getNthsGroupMemberForStaff = new PreparedQuery<IGetNthsGroupMemberForStaffParams,IGetNthsGroupMemberForStaffResult>(getNthsGroupMemberForStaffIR);
+
+

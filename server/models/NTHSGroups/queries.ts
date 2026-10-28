@@ -945,3 +945,44 @@ export async function getChapterCloseReport(
     throw new RepoReadError(err)
   }
 }
+
+export type NthsGroupMemberForStaff = {
+  firstName: string
+  lastName: string
+  email: string
+  chapterName: string
+  chapterClosedAt: Date | null
+}
+
+export async function getNthsGroupMemberForStaff(
+  userId: Ulid,
+  groupId: Uuid,
+  tc: TransactionClient = getClient()
+): Promise<NthsGroupMemberForStaff> {
+  try {
+    const [row] = await pgQueries.getNthsGroupMemberForStaff.run(
+      { groupId, userId },
+      tc
+    )
+    if (!row) {
+      throw new RepoReadError(
+        `User ${userId} is not a member of group ${groupId}`
+      )
+    }
+    const member = makeSomeRequired(row, [
+      'firstName',
+      'lastName',
+      'email',
+      'chapterName',
+    ])
+    return {
+      firstName: member.firstName,
+      lastName: member.lastName,
+      email: member.email,
+      chapterName: member.chapterName,
+      chapterClosedAt: member.chapterClosedAt ?? null,
+    }
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}

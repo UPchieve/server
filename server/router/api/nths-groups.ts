@@ -138,7 +138,7 @@ function asPeriodStart(
   return startsAt > now ? now : startsAt
 }
 
-function asGroupMemberUpdate(body: unknown): UpdateGroupMemberRequest {
+export function asGroupMemberUpdate(body: unknown): UpdateGroupMemberRequest {
   const { role, title, isActive } = (body ?? {}) as Record<string, unknown>
   if (role !== undefined && role !== 'admin' && role !== 'member') {
     throw new InputError('role must be admin or member')
