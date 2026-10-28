@@ -9,6 +9,7 @@ import * as UserCreationService from '../../services/UserCreationService'
 import * as AuthService from '../../services/AuthService'
 import { getIpWhoIs } from '../../services/IpAddressService'
 import { createChapter } from './seed-utils'
+import { getPhoneNumber } from '../mocks/generate'
 
 jest.mock('../../services/MailService')
 jest.mock('../../services/VolunteerService')
@@ -44,7 +45,7 @@ async function signUpThrough(
     password: 'Password123!',
     firstName: 'Chapter',
     lastName: 'Invite',
-    phone: `+1415555${Math.floor(1000 + Math.random() * 9000)}`,
+    phone: getPhoneNumber(),
     terms: true,
     ip: '127.0.0.1',
     inviteCode: groupId.slice(-6),
