@@ -1,6 +1,16 @@
+import type { NTHSRenewalPublic } from '../contracts/nths-group'
 import { schoolYearFor } from '../utils/school-year'
+import type { NTHSTitle } from '../constants/nths-titles'
+import type { Ulid } from '../models/pgUtils'
+import type { NTHSGroupWithMemberInfo } from '../models/NTHSGroups'
+import * as NTHSRenewalRepo from '../models/NTHSRenewal'
 import type { NTHSRenewalCandidacy } from '../models/NTHSRenewal'
-import type { NTHSRenewalDates } from './NTHSRenewalDatesService'
+import {
+  getNthsChapterRenewalDates,
+  type NTHSRenewalDates,
+} from './NTHSRenewalDatesService'
+import { getChapterMemberClearance } from './NTHSGroupsService'
+import { isNthsChapterRenewalEnabled } from './FeatureFlagService'
 
 export type NTHSRenewalPrompt =
   | 'none'
@@ -30,6 +40,8 @@ export type RenewalPromptInput = {
     candidacy: NTHSRenewalCandidacy
   }
 }
+
+const PRESIDENT: NTHSTitle = 'President'
 
 export type NTHSRenewalCycle = {
   year: number
@@ -142,4 +154,59 @@ export function renewalControlsFor(input: RenewalPromptInput): {
       now < cycle.memberStageAt,
     namingSelfAccepts: now >= cycle.successorConfirmationAt,
   }
+}
+
+function offRenewal(group: NTHSGroupWithMemberInfo): NTHSRenewalPublic {
+  return {
+    prompt: 'none',
+    closesOn: null,
+    commitmentsRequired: group.memberInfo.title !== PRESIDENT,
+    canNameSelf: false,
+    namingSelfAccepts: false,
+  }
+}
+
+export async function getRenewalsForViewer(
+  userId: Ulid,
+  groups: NTHSGroupWithMemberInfo[],
+  now: Date
+): Promise<NTHSRenewalPublic[]> {
+  if (!(await isNthsChapterRenewalEnabled(userId)))
+    return groups.map(offRenewal)
+  const dates = await getNthsChapterRenewalDates()
+  if (!dates) return groups.map(offRenewal)
+
+  const { schoolYearStartsOn } = nextRenewalCycle(dates, now)
+  const { isClearedAsAdmin, isClearedAsMember, isBanned } =
+    await getChapterMemberClearance(userId)
+  const renewals: NTHSRenewalPublic[] = []
+  for (const group of groups) {
+    const state = await NTHSRenewalRepo.getNthsRenewalState(
+      group.groupInfo.id,
+      userId,
+      schoolYearStartsOn.toISOString().slice(0, 10)
+    )
+    if (!state) {
+      renewals.push(offRenewal(group))
+      continue
+    }
+    const isAdmin = group.memberInfo.roleName === 'admin'
+    const input: RenewalPromptInput = {
+      dates,
+      now,
+      chapter: state,
+      viewer: {
+        isAdmin,
+        isCleared: isAdmin ? isClearedAsAdmin : isClearedAsMember,
+        isBanned,
+        candidacy: state.viewerCandidacy,
+      },
+    }
+    renewals.push({
+      ...offRenewal(group),
+      ...renewalPromptFor(input),
+      ...renewalControlsFor(input),
+    })
+  }
+  return renewals
 }

@@ -102,6 +102,10 @@ export async function isZwibserveEnabled(userId: Uuid) {
   return isFeatureEnabled(FEATURE_FLAGS.ZWIBSERVE, userId)
 }
 
+export async function isNthsChapterRenewalEnabled(userId: Uuid) {
+  return isFeatureEnabled(FEATURE_FLAGS.NTHS_CHAPTER_RENEWAL, userId)
+}
+
 export async function getStemProgressReportEnabled(userId: Uuid) {
   return await isFeatureEnabled(
     FEATURE_FLAGS.STEM_PROGRESS_REPORT,

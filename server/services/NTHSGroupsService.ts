@@ -51,6 +51,7 @@ import {
   getVolunteersReadyToCoachStatus,
   VolunteerOccupations,
 } from '../models/Volunteer'
+import { getUsersBanStatuses } from '../models/User'
 import { isReadyToCoach } from './VolunteerService'
 import { LEADERSHIP_TITLES, NTHSTitle } from '../constants/nths-titles'
 import { hoursInMs } from '../utils/time-utils'
@@ -800,6 +801,17 @@ function utcPeriodStartsFor(instant: Date): NTHSChapterPeriodStarts {
   }
 }
 
+function isClearedForRole(
+  isAdmin: boolean,
+  occupations: VolunteerOccupations[],
+  readyToCoachStatus: Parameters<typeof isReadyToCoach>[0] | undefined
+): boolean {
+  if (!occupations.includes(VolunteerOccupations.HIGH_SCHOOL_STUDENT)) {
+    return false
+  }
+  return isAdmin || (!!readyToCoachStatus && isReadyToCoach(readyToCoachStatus))
+}
+
 // Mirrors the chapter page's member-info gate (high-line src/store/modules/
 // volunteer.js isReadyToTutor + NTHSGroupsView.vue hidePageContentReason), so
 // a member the page shows content to never gets a 403 here. Admins skip the
@@ -815,10 +827,28 @@ export async function isClearedToViewChapterMemberInfo(
       : getVolunteersReadyToCoachStatus([userId], tc),
     getVolunteerOccupations(userId, tc),
   ])
-  if (!occupations.includes(VolunteerOccupations.HIGH_SCHOOL_STUDENT)) {
-    return false
+  return isClearedForRole(isAdmin, occupations, readyToCoachStatus)
+}
+
+// The ban comes from users.ban_type, since getVolunteersReadyToCoachStatus
+// inner-joins volunteer_profiles and drops banned members without one. It
+// applies to admins too, and covers live_media, which isReadyToCoach lets
+// through.
+export async function getChapterMemberClearance(userId: Ulid): Promise<{
+  isClearedAsAdmin: boolean
+  isClearedAsMember: boolean
+  isBanned: boolean
+}> {
+  const [[readyToCoachStatus], [banStatus], occupations] = await Promise.all([
+    getVolunteersReadyToCoachStatus([userId]),
+    getUsersBanStatuses([userId]),
+    getVolunteerOccupations(userId),
+  ])
+  return {
+    isClearedAsAdmin: isClearedForRole(true, occupations, readyToCoachStatus),
+    isClearedAsMember: isClearedForRole(false, occupations, readyToCoachStatus),
+    isBanned: !!banStatus?.banType,
   }
-  return isAdmin || (!!readyToCoachStatus && isReadyToCoach(readyToCoachStatus))
 }
 
 export async function getChapterImpact(

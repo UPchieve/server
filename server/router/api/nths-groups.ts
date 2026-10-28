@@ -3,6 +3,7 @@ import { extractUser } from '../extract-user'
 import { resError } from '../res-error'
 import * as NTHSGroupsService from '../../services/NTHSGroupsService'
 import * as NTHSChecklistProgressService from '../../services/NTHSChecklistProgressService'
+import * as NTHSRenewalService from '../../services/NTHSRenewalService'
 import {
   InputError,
   NotAuthenticatedError,
@@ -16,6 +17,7 @@ import {
   toNTHSGroupMemberWithRolePublic,
   toNTHSGroupPublic,
   toNTHSGroupWithMemberInfoPublic,
+  toNTHSGroupWithRenewalPublic,
   toNTHSChapterImpactPublic,
   toNTHSChapterRosterPublic,
 } from '../../contracts/nths.mappers'
@@ -166,8 +168,18 @@ export function routeNTHSGroups(router: Router): void {
                 NTHSGroupsService.getApprovalExpiresAt(user.id),
               ])
             : [undefined, undefined]
+        const renewals =
+          groups.length === 0
+            ? []
+            : await NTHSRenewalService.getRenewalsForViewer(
+                user.id,
+                groups,
+                new Date()
+              )
         res.json({
-          groups: groups.map(toNTHSGroupWithMemberInfoPublic),
+          groups: groups.map((group, i) =>
+            toNTHSGroupWithRenewalPublic(group, renewals[i])
+          ),
           candidateApplicationStatus,
           approvalExpiresAt: approvalExpiresAt?.toISOString() ?? null,
         })

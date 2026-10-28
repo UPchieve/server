@@ -6,6 +6,8 @@ import type {
   NTHSGroupPublic,
   NTHSGroupJoinPublic,
   NTHSGroupWithMemberInfoPublic,
+  NTHSGroupWithRenewalPublic,
+  NTHSRenewalPublic,
   NTHSUserInfoPublic,
   NTHSChapterImpactPublic,
   NTHSChapterRosterMemberPublic,
@@ -76,6 +78,16 @@ export function toNTHSGroupWithMemberInfoPublic(
     roleName: group.roleName,
     schoolAffiliationStatus: group.schoolAffiliationStatus ?? null,
     hasSchoolOnRecord: group.hasSchoolOnRecord,
+  }
+}
+
+export function toNTHSGroupWithRenewalPublic(
+  group: NTHSGroupWithMemberInfo,
+  renewal: NTHSRenewalPublic
+): NTHSGroupWithRenewalPublic {
+  return {
+    ...toNTHSGroupWithMemberInfoPublic(group),
+    renewal,
   }
 }
 

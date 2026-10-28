@@ -6,6 +6,7 @@ import {
 import type { NTHSTitle } from '../constants/nths-titles'
 import { ISODateString } from '../types/dates'
 import { Uuid } from '../types/shared'
+import type { NTHSRenewalPrompt } from '../services/NTHSRenewalService'
 
 export type NTHSGroupPublic = {
   id: Uuid
@@ -39,6 +40,18 @@ export type NTHSGroupWithMemberInfoPublic = {
   roleName: NTHSGroupRoleName
   schoolAffiliationStatus: NTHSSchoolAffiliationStatusName | null
   hasSchoolOnRecord: boolean
+}
+
+export type NTHSRenewalPublic = {
+  prompt: NTHSRenewalPrompt
+  closesOn: string | null
+  commitmentsRequired: boolean
+  canNameSelf: boolean
+  namingSelfAccepts: boolean
+}
+
+export type NTHSGroupWithRenewalPublic = NTHSGroupWithMemberInfoPublic & {
+  renewal: NTHSRenewalPublic
 }
 
 export type NTHSGroupMemberPublic = {
@@ -82,7 +95,7 @@ export type AdvisorPublic = {
 }
 
 export type NTHSGroupsResponse = {
-  groups: NTHSGroupWithMemberInfoPublic[]
+  groups: NTHSGroupWithRenewalPublic[]
   candidateApplicationStatus?: NTHSCandidateApplicationStatus
   approvalExpiresAt: string | null
 }

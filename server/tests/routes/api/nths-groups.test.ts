@@ -20,6 +20,7 @@ import {
 } from '../../../router/api/nths-groups'
 import * as NTHSGroupsService from '../../../services/NTHSGroupsService'
 import * as NTHSChecklistProgressService from '../../../services/NTHSChecklistProgressService'
+import * as NTHSRenewalService from '../../../services/NTHSRenewalService'
 import { RepoUpdateError } from '../../../models/Errors'
 import {
   NTHSCandidateApplicationStatus,
@@ -32,9 +33,11 @@ import { getUuid } from '../../../models/pgUtils'
 
 jest.mock('../../../services/NTHSGroupsService')
 jest.mock('../../../services/NTHSChecklistProgressService')
+jest.mock('../../../services/NTHSRenewalService')
 
 const mockedNTHSGroupsService = mocked(NTHSGroupsService)
 const mockedNTHSChecklistProgressService = mocked(NTHSChecklistProgressService)
+const mockedNTHSRenewalService = mocked(NTHSRenewalService)
 
 let mockUser = buildVolunteer()
 
@@ -112,6 +115,9 @@ describe('routeNTHSGroups', () => {
       expect(
         mockedNTHSGroupsService.getLatestCandidateApplicationStatus
       ).toHaveBeenCalledWith(mockUser.id)
+      expect(
+        mockedNTHSRenewalService.getRenewalsForViewer
+      ).not.toHaveBeenCalled()
       expect(response.body).toEqual({
         groups: [],
         candidateApplicationStatus: 'approved',
@@ -136,10 +142,20 @@ describe('routeNTHSGroups', () => {
       })
     })
 
-    test('returns groups and does not get candidateApplicationStatus when user has groups', async () => {
+    test('returns groups with their renewal and does not get candidateApplicationStatus when user has groups', async () => {
       const group = buildNTHSGroupWithMemberInfo()
       const groups = [group]
+      const renewal = {
+        prompt: 'member-must-answer' as const,
+        closesOn: '2027-09-30',
+        commitmentsRequired: true,
+        canNameSelf: false,
+        namingSelfAccepts: true,
+      }
       mockedNTHSGroupsService.getGroups.mockResolvedValueOnce(groups)
+      mockedNTHSRenewalService.getRenewalsForViewer.mockResolvedValueOnce([
+        renewal,
+      ])
 
       const response = await sendGet('/api/nths-groups')
       expect(response.status).toBe(200)
@@ -166,9 +182,13 @@ describe('routeNTHSGroups', () => {
               joinedAt: group.joinedAt.toISOString(),
             },
             joinedAt: group.joinedAt.toISOString(),
+            renewal,
           },
         ],
       })
+      expect(
+        mockedNTHSRenewalService.getRenewalsForViewer
+      ).toHaveBeenCalledWith(mockUser.id, groups, expect.any(Date))
     })
   })
 
