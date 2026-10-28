@@ -292,8 +292,8 @@ If you're in a situation where you need to rush a deploy out and don't want to w
 1. Open your MR.
 2. In the GitLab UI, cancel the pipeline that gets automatically created.
 3. Create a new pipeline by clicking Run pipeline -> **Run pipeline with modified values**
-4. Add the `TEST_DISABLED` variable with any non-empty string value, like `'true'`
+4. Add the `TEST_DISABLED` variable and set the value to a brief reason for our own tracking purposes.
 5. Done. Now the pipeline will run and skip the tests.
-6. Repeat 1-5 once your MR is merged into main.
+6. Repeat 2-5 once your MR is merged into main.
 
-A technical note: We need the `test_backend` job in the gitlab CI config file to have `optional: true` for this to work. That setting makes it so that the pipeline won't error because the `test_backend` job is missing. Making it optional makes it so that the job still exists in the pipeline, even if it can be skipped via TEST_DISABLED.
+A technical note: when TEST_DISABLED is set, test_backend is left out of the pipeline. The deploy jobs list test_backend under `needs`, which would normally make the pipeline fail because the job is missing, but setting it to `optional: true` lets the deploys run without it. When tests do run, the deploys still wait for them and won’t run if they fail.
