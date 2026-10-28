@@ -209,7 +209,7 @@ describe('NTHSChecklistService', () => {
     ])
   })
 
-  test('caches a valid result and serves it when refresh fails', async () => {
+  test('caches a valid result and serves it for a full TTL when refresh fails', async () => {
     let now = 0
     const source: jest.MockedFunction<ChecklistSource> = jest
       .fn()
@@ -223,8 +223,11 @@ describe('NTHSChecklistService', () => {
     const first = await cache.get()
     now = 101
     const stale = await cache.get()
+    now = 200
+    const stillStale = await cache.get()
 
     expect(stale).toBe(first)
+    expect(stillStale).toBe(first)
     expect(source).toHaveBeenCalledTimes(2)
   })
 

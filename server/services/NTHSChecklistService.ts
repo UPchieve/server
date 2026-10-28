@@ -1,6 +1,4 @@
-import { JWT } from 'google-auth-library'
 import {
-  GoogleSpreadsheet,
   GoogleSpreadsheetRow,
   GoogleSpreadsheetWorksheet,
 } from 'google-spreadsheet'
@@ -12,10 +10,12 @@ import type {
   NTHSChecklistSection,
 } from '../contracts/nths-checklist'
 import logger from '../logger'
-
-const GOOGLE_SHEETS_READONLY_SCOPE =
-  'https://www.googleapis.com/auth/spreadsheets.readonly'
-const README_WORKSHEET_TITLE = 'readme'
+import {
+  ensureHeaders,
+  isReadmeWorksheet,
+  loadGoogleSpreadsheet,
+  SheetCache,
+} from '../utils/google-spreadsheet'
 
 const REQUIRED_HEADERS = [
   'item_key',
@@ -53,10 +53,6 @@ export class NTHSChecklistValidationError extends Error {
     super(message)
     this.name = 'NTHSChecklistValidationError'
   }
-}
-
-function isReadmeWorksheet(worksheet: Pick<ChecklistWorksheet, 'title'>) {
-  return worksheet.title.trim().toLowerCase() === README_WORKSHEET_TITLE
 }
 
 function asTrimmedString(value: unknown): string | undefined {
@@ -133,20 +129,14 @@ export function parseResources(
     })
 }
 
-function assertHeaders(worksheet: ChecklistWorksheet): void {
-  const headers = new Set(worksheet.headerValues.map((header) => header.trim()))
-  for (const header of REQUIRED_HEADERS) {
-    if (!headers.has(header))
-      throw new NTHSChecklistValidationError(
-        `Worksheet "${worksheet.title}" is missing required ${header} column`
-      )
-  }
-}
-
 async function parseWorksheet(
   worksheet: ChecklistWorksheet
 ): Promise<NTHSChecklistSection> {
-  assertHeaders(worksheet)
+  ensureHeaders(
+    worksheet,
+    REQUIRED_HEADERS,
+    (message) => new NTHSChecklistValidationError(message)
+  )
   const rows = await worksheet.getRows()
   const itemKeys = new Set<string>()
   const items: NTHSChecklistItem[] = []
@@ -222,19 +212,11 @@ async function loadGoogleWorksheet(): ReturnType<ChecklistSource> {
   )
     throw new Error('NTHS checklist Google Sheets configuration is incomplete')
 
-  // Keep google-auth-library on v9 while using google-spreadsheet v4. The v10
-  // client returns native Headers, which google-spreadsheet v4 does not copy
-  // into its requests. Upgrade these dependencies together.
-  const auth = new JWT({
-    email: config.nthsChecklist.serviceAccountEmail,
-    key: config.nthsChecklist.privateKey.replace(/\\n/g, '\n'),
-    scopes: [GOOGLE_SHEETS_READONLY_SCOPE],
-  })
-  const document = new GoogleSpreadsheet(
+  const document = await loadGoogleSpreadsheet(
     config.nthsChecklist.spreadsheetId,
-    auth
+    config.nthsChecklist.serviceAccountEmail,
+    config.nthsChecklist.privateKey
   )
-  await document.loadInfo()
   const worksheets = document.sheetsByIndex.filter(
     (worksheet) => !isReadmeWorksheet(worksheet)
   )
@@ -245,42 +227,16 @@ async function loadGoogleWorksheet(): ReturnType<ChecklistSource> {
   }
 }
 
-export class NTHSChecklistCache {
-  private cached?: { checklist: NTHSChecklist; loadedAt: number }
-  private pending?: Promise<NTHSChecklist>
-
+export class NTHSChecklistCache extends SheetCache<
+  Awaited<ReturnType<ChecklistSource>>,
+  NTHSChecklist
+> {
   constructor(
-    private readonly source: ChecklistSource,
-    private readonly ttlMs: number,
-    private readonly now: () => number = Date.now
-  ) {}
-
-  async get(): Promise<NTHSChecklist> {
-    if (this.cached && this.now() - this.cached.loadedAt < this.ttlMs)
-      return this.cached.checklist
-    if (this.pending) return this.pending
-
-    this.pending = this.refresh()
-    try {
-      return await this.pending
-    } finally {
-      this.pending = undefined
-    }
-  }
-
-  private async refresh(): Promise<NTHSChecklist> {
-    try {
-      const checklist = await parseChecklist(await this.source())
-      this.cached = { checklist, loadedAt: this.now() }
-      return checklist
-    } catch (error) {
-      if (!this.cached) throw error
-      logger.warn(
-        'Failed to refresh NTHS checklist; serving last valid version',
-        { error }
-      )
-      return this.cached.checklist
-    }
+    source: ChecklistSource,
+    ttlMs: number,
+    now: () => number = Date.now
+  ) {
+    super(source, parseChecklist, ttlMs, now, 'NTHS checklist')
   }
 }
 

@@ -404,6 +404,10 @@ const config = {
       Number(process.env.NTHS_CHECKLIST_CACHE_TTL_MS) || 5 * 60 * 1000,
   },
 
+  nthsRenewal: {
+    spreadsheetId: process.env.NTHS_RENEWAL_SPREADSHEET_ID || '',
+  },
+
   cleverClientId: process.env.CLEVER_CLIENT_ID || 'bogus',
   cleverClientSecret: process.env.CLEVER_CLIENT_SECRET || 'bogus',
 
