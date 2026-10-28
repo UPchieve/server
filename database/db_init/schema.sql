@@ -1380,7 +1380,9 @@ CREATE TABLE upchieve.direct_message_conversations (
     volunteer_id uuid NOT NULL,
     student_id uuid NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    student_last_seen timestamp with time zone,
+    volunteer_last_seen timestamp with time zone
 );
 
 
@@ -1417,6 +1419,20 @@ COMMENT ON COLUMN upchieve.direct_message_conversations.created_at IS 'not_pii';
 --
 
 COMMENT ON COLUMN upchieve.direct_message_conversations.updated_at IS 'not_pii';
+
+
+--
+-- Name: COLUMN direct_message_conversations.student_last_seen; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.direct_message_conversations.student_last_seen IS 'not_pii: When the student last viewed the conversation';
+
+
+--
+-- Name: COLUMN direct_message_conversations.volunteer_last_seen; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.direct_message_conversations.volunteer_last_seen IS 'not_pii: When the volunteer last viewed the conversation';
 
 
 --
@@ -16428,4 +16444,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20261021203034'),
     ('20261021215331'),
     ('20261021223125'),
+    ('20261026150000'),
     ('20261027143447');
