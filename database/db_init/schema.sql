@@ -1420,6 +1420,62 @@ COMMENT ON COLUMN upchieve.direct_message_conversations.updated_at IS 'not_pii';
 
 
 --
+-- Name: direct_messages; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.direct_messages (
+    id uuid NOT NULL,
+    conversation_id uuid NOT NULL,
+    sender_id uuid NOT NULL,
+    contents text NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: COLUMN direct_messages.id; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.direct_messages.id IS 'not_pii: Primary key';
+
+
+--
+-- Name: COLUMN direct_messages.conversation_id; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.direct_messages.conversation_id IS 'not_pii: Foreign key';
+
+
+--
+-- Name: COLUMN direct_messages.sender_id; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.direct_messages.sender_id IS 'not_pii: Foreign key';
+
+
+--
+-- Name: COLUMN direct_messages.contents; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.direct_messages.contents IS 'not_pii: Text content of the chat message';
+
+
+--
+-- Name: COLUMN direct_messages.created_at; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.direct_messages.created_at IS 'not_pii';
+
+
+--
+-- Name: COLUMN direct_messages.updated_at; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.direct_messages.updated_at IS 'not_pii';
+
+
+--
 -- Name: email_domain_blocklist; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -12071,6 +12127,14 @@ ALTER TABLE ONLY upchieve.direct_message_conversations
 
 
 --
+-- Name: direct_messages direct_messages_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.direct_messages
+    ADD CONSTRAINT direct_messages_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: email_domain_blocklist email_domain_blocklist_domain_key; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -13815,6 +13879,13 @@ CREATE INDEX direct_message_conversations_student_id ON upchieve.direct_message_
 
 
 --
+-- Name: direct_messages_conversation_id_created_at; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX direct_messages_conversation_id_created_at ON upchieve.direct_messages USING btree (conversation_id, created_at);
+
+
+--
 -- Name: fed_creds_user_id_idx; Type: INDEX; Schema: upchieve; Owner: -
 --
 
@@ -14422,6 +14493,22 @@ ALTER TABLE ONLY upchieve.direct_message_conversations
 
 ALTER TABLE ONLY upchieve.direct_message_conversations
     ADD CONSTRAINT direct_message_conversations_volunteer_id_fkey FOREIGN KEY (volunteer_id) REFERENCES upchieve.users(id);
+
+
+--
+-- Name: direct_messages direct_messages_conversation_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.direct_messages
+    ADD CONSTRAINT direct_messages_conversation_id_fkey FOREIGN KEY (conversation_id) REFERENCES upchieve.direct_message_conversations(id);
+
+
+--
+-- Name: direct_messages direct_messages_sender_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.direct_messages
+    ADD CONSTRAINT direct_messages_sender_id_fkey FOREIGN KEY (sender_id) REFERENCES upchieve.users(id);
 
 
 --
@@ -16340,4 +16427,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20261020173941'),
     ('20261021203034'),
     ('20261021215331'),
+    ('20261021223125'),
     ('20261027143447');

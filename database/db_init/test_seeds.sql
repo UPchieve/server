@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict gHKkWbXab02pbvfuLGGqYuPzMmpSEjF95MFmgQvCBUSjnX2ZTwv0BSc42dLXLRv
+\restrict yhZo3U5DmCMyCkBbwS9T9pR6oUNmD9ZmWWignqLsGebBCQYNrRiCMQgc8ZampEw
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
 -- Dumped by pg_dump version 15.19 (Homebrew)
@@ -507,6 +507,14 @@ COPY upchieve.contact_form_submissions (id, user_id, user_email, message, topic,
 --
 
 COPY upchieve.direct_message_conversations (id, volunteer_id, student_id, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: direct_messages; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.direct_messages (id, conversation_id, sender_id, contents, created_at, updated_at) FROM stdin;
 \.
 
 
@@ -9628,5 +9636,5 @@ SELECT pg_catalog.setval('upchieve.weekdays_id_seq', 1, false);
 -- PostgreSQL database dump complete
 --
 
-\unrestrict gHKkWbXab02pbvfuLGGqYuPzMmpSEjF95MFmgQvCBUSjnX2ZTwv0BSc42dLXLRv
+\unrestrict yhZo3U5DmCMyCkBbwS9T9pR6oUNmD9ZmWWignqLsGebBCQYNrRiCMQgc8ZampEw
 
