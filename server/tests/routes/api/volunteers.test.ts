@@ -1,7 +1,7 @@
 import request, { Response } from 'supertest'
 import { mocked } from 'jest-mock'
 import { Request as ExpressRequest, Response as ExpressResponse } from 'express'
-import { mockApp, mockRouter } from '../../mock-app'
+import { mockApp, mockPassportMiddleware, mockRouter } from '../../mock-app'
 import { routeVolunteers } from '../../../router/api/volunteers'
 import * as VolunteersCtrl from '../../../controllers/VolunteersCtrl'
 import * as VolunteerService from '../../../services/VolunteerService'
@@ -9,6 +9,7 @@ import * as cache from '../../../cache'
 import config from '../../../config'
 import {
   buildHeatMap,
+  buildUser,
   buildVolunteerToReview,
   buildVolunteerToReviewPublic,
 } from '../../mocks/generate'
@@ -41,7 +42,10 @@ const mockedCache = mocked(cache)
 const router = mockRouter()
 routeVolunteers(router)
 
+const mockUser = buildUser()
+
 const app = mockApp()
+app.use(mockPassportMiddleware(() => mockUser))
 app.use('/api', router)
 
 const agent = request.agent(app)
@@ -216,6 +220,44 @@ describe('routeVolunteers', () => {
       expect(response.status).toBe(200)
       expect(mockedVolunteerService.getSubjectPresence).toHaveBeenCalled()
       expect(response.body).toEqual({ presenceBySubject })
+    })
+  })
+  describe('GET /api/volunteers/past-students', () => {
+    test('returns the past students for the volunteer', async () => {
+      const pastStudent = {
+        studentId: getUuid(),
+        firstName: 'Student',
+        sessionId: getUuid(),
+        subjectName: 'algebraOne',
+        subjectDisplayName: 'Algebra 1',
+        createdAt: new Date('2026-10-01T12:00:00.000Z'),
+        timeTutored: 600000,
+      }
+      mockedVolunteerService.getPastStudentsByVolunteerId.mockResolvedValueOnce(
+        [pastStudent]
+      )
+
+      const response = await sendGet('/api/volunteers/past-students')
+
+      expect(response.status).toBe(200)
+      expect(
+        mockedVolunteerService.getPastStudentsByVolunteerId
+      ).toHaveBeenCalledWith(mockUser.id)
+      expect(response.body).toEqual({
+        pastStudents: [
+          { ...pastStudent, createdAt: '2026-10-01T12:00:00.000Z' },
+        ],
+      })
+    })
+
+    test('returns 500 on failure', async () => {
+      mockedVolunteerService.getPastStudentsByVolunteerId.mockRejectedValueOnce(
+        new Error('Error')
+      )
+
+      const response = await sendGet('/api/volunteers/past-students')
+
+      expect(response.status).toBe(500)
     })
   })
 })

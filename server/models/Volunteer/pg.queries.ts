@@ -3932,3 +3932,71 @@ const getSubjectAndReadyToCoachInfoByUserIdsIR: any = {"usedParamSet":{"userIds"
 export const getSubjectAndReadyToCoachInfoByUserIds = new PreparedQuery<IGetSubjectAndReadyToCoachInfoByUserIdsParams,IGetSubjectAndReadyToCoachInfoByUserIdsResult>(getSubjectAndReadyToCoachInfoByUserIdsIR);
 
 
+/** 'GetPastStudentsByVolunteerId' parameters type */
+export interface IGetPastStudentsByVolunteerIdParams {
+  minSessionLength: NumberOrString;
+  volunteerId: string;
+}
+
+/** 'GetPastStudentsByVolunteerId' return type */
+export interface IGetPastStudentsByVolunteerIdResult {
+  /** not_pii */
+  createdAt: Date;
+  /** pii: First name */
+  firstName: string;
+  /** not_pii: Primary key */
+  sessionId: string;
+  /** not_pii: Foreign key to upchieve.users (the student) */
+  studentId: string;
+  /** not_pii: User-facing display name */
+  subjectDisplayName: string;
+  /** not_pii: Human-readable name */
+  subjectName: string;
+  /** not_pii: Duration of active tutoring in milliseconds */
+  timeTutored: string;
+}
+
+/** 'GetPastStudentsByVolunteerId' query type */
+export interface IGetPastStudentsByVolunteerIdQuery {
+  params: IGetPastStudentsByVolunteerIdParams;
+  result: IGetPastStudentsByVolunteerIdResult;
+}
+
+const getPastStudentsByVolunteerIdIR: any = {"usedParamSet":{"volunteerId":true,"minSessionLength":true},"params":[{"name":"volunteerId","required":true,"transform":{"type":"scalar"},"locs":[{"a":531,"b":543}]},{"name":"minSessionLength","required":true,"transform":{"type":"scalar"},"locs":[{"a":623,"b":640}]}],"statement":"SELECT\n    last_sessions.student_id,\n    users.first_name,\n    last_sessions.session_id,\n    subjects.name AS subject_name,\n    subjects.display_name AS subject_display_name,\n    last_sessions.created_at,\n    last_sessions.time_tutored\nFROM ( SELECT DISTINCT ON (sessions.student_id)\n        sessions.student_id,\n        sessions.id AS session_id,\n        sessions.subject_id,\n        sessions.created_at,\n        sessions.ended_at,\n        sessions.time_tutored\n    FROM\n        sessions\n    WHERE\n        sessions.volunteer_id = :volunteerId!\n        AND sessions.ended_at IS NOT NULL\n        AND sessions.time_tutored > :minSessionLength!\n    ORDER BY\n        sessions.student_id,\n        sessions.ended_at DESC) AS last_sessions\n    JOIN users ON users.id = last_sessions.student_id\n    JOIN subjects ON subjects.id = last_sessions.subject_id\nORDER BY\n    last_sessions.ended_at DESC"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     last_sessions.student_id,
+ *     users.first_name,
+ *     last_sessions.session_id,
+ *     subjects.name AS subject_name,
+ *     subjects.display_name AS subject_display_name,
+ *     last_sessions.created_at,
+ *     last_sessions.time_tutored
+ * FROM ( SELECT DISTINCT ON (sessions.student_id)
+ *         sessions.student_id,
+ *         sessions.id AS session_id,
+ *         sessions.subject_id,
+ *         sessions.created_at,
+ *         sessions.ended_at,
+ *         sessions.time_tutored
+ *     FROM
+ *         sessions
+ *     WHERE
+ *         sessions.volunteer_id = :volunteerId!
+ *         AND sessions.ended_at IS NOT NULL
+ *         AND sessions.time_tutored > :minSessionLength!
+ *     ORDER BY
+ *         sessions.student_id,
+ *         sessions.ended_at DESC) AS last_sessions
+ *     JOIN users ON users.id = last_sessions.student_id
+ *     JOIN subjects ON subjects.id = last_sessions.subject_id
+ * ORDER BY
+ *     last_sessions.ended_at DESC
+ * ```
+ */
+export const getPastStudentsByVolunteerId = new PreparedQuery<IGetPastStudentsByVolunteerIdParams,IGetPastStudentsByVolunteerIdResult>(getPastStudentsByVolunteerIdIR);
+
+

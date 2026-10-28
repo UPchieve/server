@@ -7,14 +7,19 @@ import * as cache from '../../cache'
 import type { Response, Router } from 'express'
 import { asNumber, asString } from '../../utils/type-utils'
 import { resError } from '../res-error'
-import { toVolunteerToReviewPublic } from '../../contracts/volunteers.mappers'
+import {
+  toPastStudentPublic,
+  toVolunteerToReviewPublic,
+} from '../../contracts/volunteers.mappers'
 import type {
   AggregateAvailabitiesResponse,
   LastHoursUpdatedResponse,
+  PastStudentsResponse,
   VolunteerPresenceResponse,
   VolunteersToReviewResponse,
 } from '../../contracts/volunteers'
 import type { ErrorResponse } from '../../contracts/shared'
+import { extractUser } from '../extract-user'
 
 export function routeVolunteers(router: Router): void {
   router.get(
@@ -109,6 +114,20 @@ export function routeVolunteers(router: Router): void {
         res.json({ presenceBySubject })
       } catch (err) {
         resError(res, err)
+      }
+    }
+  )
+
+  router.get(
+    '/volunteers/past-students',
+    async function (req, res: Response<PastStudentsResponse>) {
+      try {
+        const user = extractUser(req)
+        const pastStudents =
+          await VolunteerService.getPastStudentsByVolunteerId(user.id)
+        res.json({ pastStudents: pastStudents.map(toPastStudentPublic) })
+      } catch (error) {
+        resError(res, error)
       }
     }
   )

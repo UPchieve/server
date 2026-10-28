@@ -34,6 +34,7 @@ import {
   VolunteersForAnalyticsReport,
   VolunteerSubject,
   VolunteerSessionHoldEligibilityData,
+  VolunteerPastStudent,
 } from './types'
 import config from '../../config'
 import _ from 'lodash'
@@ -1902,6 +1903,36 @@ export async function getVolunteerPublicProfileStats(
       numStudentsHelped: row.numStudentsHelped,
       totalVolunteerHours: row.hoursTutored,
     }
+  } catch (error) {
+    throw new RepoReadError(error)
+  }
+}
+
+export async function getPastStudentsByVolunteerId(
+  volunteerId: Ulid,
+  tc: TransactionClient = getClient()
+): Promise<VolunteerPastStudent[]> {
+  try {
+    const results = await pgQueries.getPastStudentsByVolunteerId.run(
+      { volunteerId, minSessionLength: config.minSessionLength },
+      tc
+    )
+
+    return results.map((r) => {
+      const row = makeSomeRequired(r, [
+        'studentId',
+        'firstName',
+        'sessionId',
+        'subjectName',
+        'subjectDisplayName',
+        'createdAt',
+        'timeTutored',
+      ])
+      return {
+        ...row,
+        timeTutored: Number(row.timeTutored),
+      }
+    })
   } catch (error) {
     throw new RepoReadError(error)
   }

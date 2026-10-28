@@ -581,3 +581,9 @@ function toVolunteerPublicProfileInfoShared(
     sharedInfo.totalVolunteerHours = shareInfoStats.totalVolunteerHours
   return sharedInfo
 }
+
+export async function getPastStudentsByVolunteerId(
+  volunteerId: Ulid
+): Promise<VolunteerRepo.VolunteerPastStudent[]> {
+  return VolunteerRepo.getPastStudentsByVolunteerId(volunteerId)
+}

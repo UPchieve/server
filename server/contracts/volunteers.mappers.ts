@@ -1,5 +1,11 @@
-import type { VolunteerToReviewPublic } from '../contracts/volunteers'
-import type { VolunteerToReview } from '../models/Volunteer'
+import type {
+  PastStudentPublic,
+  VolunteerToReviewPublic,
+} from '../contracts/volunteers'
+import type {
+  VolunteerPastStudent,
+  VolunteerToReview,
+} from '../models/Volunteer'
 
 export function toVolunteerToReviewPublic(
   volunteer: VolunteerToReview
@@ -14,5 +20,19 @@ export function toVolunteerToReviewPublic(
     email: volunteer.email,
     createdAt: volunteer.createdAt.toISOString(),
     readyForReviewAt: volunteer.readyForReviewAt.toISOString(),
+  }
+}
+
+export function toPastStudentPublic(
+  student: VolunteerPastStudent
+): PastStudentPublic {
+  return {
+    studentId: student.studentId,
+    firstName: student.firstName,
+    sessionId: student.sessionId,
+    subjectName: student.subjectName,
+    subjectDisplayName: student.subjectDisplayName,
+    createdAt: student.createdAt.toISOString(),
+    timeTutored: student.timeTutored,
   }
 }

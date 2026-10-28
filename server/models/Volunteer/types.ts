@@ -157,3 +157,13 @@ export type VolunteerSessionHoldEligibilityData = {
   isReadyToCoach: boolean
   banType: USER_BAN_TYPES | null
 }
+
+export type VolunteerPastStudent = {
+  studentId: Ulid
+  sessionId: Ulid
+  subjectDisplayName: string
+  subjectName: string
+  createdAt: Date
+  firstName: string
+  timeTutored: number
+}

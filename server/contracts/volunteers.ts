@@ -32,3 +32,17 @@ export type LastHoursUpdatedResponse = {
 export type VolunteerPresenceResponse = {
   presenceBySubject: VolunteerSubjectPresenceMap
 }
+
+export type PastStudentPublic = {
+  studentId: Uuid
+  firstName: string
+  sessionId: Uuid
+  subjectName: string
+  subjectDisplayName: string
+  createdAt: ISODateString
+  timeTutored: number
+}
+
+export type PastStudentsResponse = {
+  pastStudents: PastStudentPublic[]
+}

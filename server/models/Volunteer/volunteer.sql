@@ -1672,3 +1672,34 @@ FROM
 WHERE
     u.id = ANY (:userIds!::uuid[]);
 
+
+/* @name getPastStudentsByVolunteerId */
+SELECT
+    last_sessions.student_id,
+    users.first_name,
+    last_sessions.session_id,
+    subjects.name AS subject_name,
+    subjects.display_name AS subject_display_name,
+    last_sessions.created_at,
+    last_sessions.time_tutored
+FROM ( SELECT DISTINCT ON (sessions.student_id)
+        sessions.student_id,
+        sessions.id AS session_id,
+        sessions.subject_id,
+        sessions.created_at,
+        sessions.ended_at,
+        sessions.time_tutored
+    FROM
+        sessions
+    WHERE
+        sessions.volunteer_id = :volunteerId!
+        AND sessions.ended_at IS NOT NULL
+        AND sessions.time_tutored > :minSessionLength!
+    ORDER BY
+        sessions.student_id,
+        sessions.ended_at DESC) AS last_sessions
+    JOIN users ON users.id = last_sessions.student_id
+    JOIN subjects ON subjects.id = last_sessions.subject_id
+ORDER BY
+    last_sessions.ended_at DESC;
+
