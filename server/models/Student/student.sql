@@ -57,27 +57,43 @@ WHERE
 
 /* @name getPastVolunteersByStudentId */
 SELECT
-    sessions.volunteer_id AS volunteer_id,
-    users.first_name AS first_name,
-    COUNT(*)::int AS num_sessions,
-    (student_favorite_volunteers.volunteer_id IS NOT NULL) AS is_favorite
-FROM
-    sessions
-    JOIN users ON users.id = sessions.volunteer_id
-    LEFT JOIN student_favorite_volunteers ON student_favorite_volunteers.student_id = sessions.student_id
-        AND student_favorite_volunteers.volunteer_id = sessions.volunteer_id
-WHERE
-    sessions.student_id = :studentId!
-    AND sessions.volunteer_id IS NOT NULL
-    AND sessions.ended_at IS NOT NULL
-    AND sessions.time_tutored IS NOT NULL
-    AND sessions.time_tutored > :minSessionLength
-GROUP BY
-    sessions.volunteer_id,
-    users.first_name,
-    student_favorite_volunteers.volunteer_id
+    volunteer_id,
+    first_name,
+    is_favorite,
+    num_sessions,
+    last_session_id,
+    last_session_subject_name,
+    last_session_subject_display_name,
+    last_session_created_at,
+    last_session_time_tutored
+FROM ( SELECT DISTINCT ON (sessions.volunteer_id)
+        sessions.volunteer_id AS volunteer_id,
+        users.first_name AS first_name,
+        (student_favorite_volunteers.volunteer_id IS NOT NULL) AS is_favorite,
+        (COUNT(*) OVER (PARTITION BY sessions.volunteer_id))::int AS num_sessions,
+        sessions.id AS last_session_id,
+        subjects.name AS last_session_subject_name,
+        subjects.display_name AS last_session_subject_display_name,
+        sessions.created_at AS last_session_created_at,
+        sessions.time_tutored AS last_session_time_tutored,
+        sessions.ended_at AS last_session_ended_at
+    FROM
+        sessions
+        JOIN users ON users.id = sessions.volunteer_id
+        JOIN subjects ON subjects.id = sessions.subject_id
+        LEFT JOIN student_favorite_volunteers ON student_favorite_volunteers.student_id = sessions.student_id
+            AND student_favorite_volunteers.volunteer_id = sessions.volunteer_id
+    WHERE
+        sessions.student_id = :studentId!
+        AND sessions.volunteer_id IS NOT NULL
+        AND sessions.ended_at IS NOT NULL
+        AND sessions.time_tutored IS NOT NULL
+        AND sessions.time_tutored > :minSessionLength
+    ORDER BY
+        sessions.volunteer_id,
+        sessions.ended_at DESC) AS past_volunteers
 ORDER BY
-    MAX(sessions.ended_at) DESC;
+    last_session_ended_at DESC;
 
 
 /* @name deleteFavoriteVolunteer */

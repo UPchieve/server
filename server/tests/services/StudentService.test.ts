@@ -4,6 +4,7 @@ import * as StudentRepo from '../../models/Student/queries'
 import { getDbUlid } from '../../models/pgUtils'
 import * as StudentService from '../../services/StudentService'
 import * as FavoritingService from '../../services/FavoritingService'
+import * as VolunteerService from '../../services/VolunteerService'
 import config from '../../config'
 import * as UserActionRepo from '../../models/UserAction/queries'
 import { ACCOUNT_USER_ACTIONS } from '../../constants'
@@ -13,44 +14,64 @@ jest.mock('../../models/User/queries')
 jest.mock('../../models/UserAction/queries')
 jest.mock('../../services/QueueService')
 jest.mock('../../services/FavoritingService')
+jest.mock('../../services/VolunteerService')
 
 const mockedStudentRepo = mocked(StudentRepo)
 const mockedUserActionRepo = mocked(UserActionRepo)
 const mockedFavoritingService = mocked(FavoritingService)
+const mockedVolunteerService = mocked(VolunteerService)
 
 beforeEach(async () => {
   jest.resetAllMocks()
 })
 
 describe('getPastVolunteers', () => {
-  test('Should retrieve a list of past volunteers', async () => {
-    const page = 2
-    const expected = [
+  test('Should retrieve past volunteers with the stats they chose to share', async () => {
+    const lastSession = {
+      sessionId: getDbUlid(),
+      subjectName: 'algebraOne',
+      subjectDisplayName: 'Algebra 1',
+      createdAt: new Date(),
+      timeTutored: 600000,
+    }
+    const pastVolunteers = [
       {
         volunteerId: getDbUlid(),
         firstName: getFirstName(),
+        numSessions: 3,
+        lastSession,
         isFavorite: true,
       },
       {
         volunteerId: getDbUlid(),
         firstName: getFirstName(),
-        isFavorite: false,
-      },
-      {
-        volunteerId: getDbUlid(),
-        firstName: getFirstName(),
+        numSessions: 1,
+        lastSession,
         isFavorite: false,
       },
     ]
+    const sharedStats = { occupation: ['Retired'], numStudentsHelped: 4 }
 
     mockedStudentRepo.getPastVolunteersByStudentId.mockResolvedValueOnce(
-      expected
+      pastVolunteers
     )
+    mockedVolunteerService.getInfoSharedWithStudents
+      .mockResolvedValueOnce(sharedStats)
+      .mockResolvedValueOnce(undefined)
 
     const result =
       await StudentService.getPastVolunteersByStudentId(getDbUlid())
 
-    expect(result).toEqual(expected)
+    expect(result).toEqual([
+      { ...pastVolunteers[0], publicProfileStats: sharedStats },
+      { ...pastVolunteers[1], publicProfileStats: {} },
+    ])
+    expect(
+      mockedVolunteerService.getInfoSharedWithStudents
+    ).toHaveBeenCalledWith(pastVolunteers[0].volunteerId)
+    expect(
+      mockedVolunteerService.getInfoSharedWithStudents
+    ).toHaveBeenCalledWith(pastVolunteers[1].volunteerId)
   })
 })
 

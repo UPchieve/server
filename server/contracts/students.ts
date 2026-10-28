@@ -2,11 +2,28 @@ import type { ISODateString } from '../types/dates'
 import type { Uuid } from '../types/shared'
 import type { TeacherClassForStudentPublic } from './teachers'
 
+export type PastVolunteerSessionPublic = {
+  sessionId: Uuid
+  subjectName: string
+  subjectDisplayName: string
+  createdAt: ISODateString
+  timeTutored: number
+}
+
+export type PastVolunteerProfileStatsPublic = {
+  occupation?: string[]
+  totalVolunteerHours?: number
+  numStudentsHelped?: number
+  numSessionsTutored?: number
+}
+
 export type PastVolunteerPublic = {
   volunteerId: Uuid
   firstName: string
   numSessions: number
+  lastSession: PastVolunteerSessionPublic
   isFavorite: boolean
+  publicProfileStats: PastVolunteerProfileStatsPublic
 }
 
 export type PastVolunteersResponse = {

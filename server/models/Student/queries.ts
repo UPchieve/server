@@ -720,10 +720,19 @@ export async function getStudentByCleverId(
   }
 }
 
+export type PastVolunteerSession = {
+  sessionId: Ulid
+  subjectName: string
+  subjectDisplayName: string
+  createdAt: Date
+  timeTutored: number
+}
+
 export type PastVolunteer = {
   volunteerId: Ulid
   firstName: string
   numSessions: number
+  lastSession: PastVolunteerSession
   isFavorite: boolean
 }
 
@@ -737,14 +746,32 @@ export async function getPastVolunteersByStudentId(
       getClient()
     )
     if (result.length) {
-      return result.map((r) =>
-        makeSomeRequired(r, [
+      return result.map((r) => {
+        const row = makeSomeRequired(r, [
           'volunteerId',
           'firstName',
           'numSessions',
           'isFavorite',
+          'lastSessionId',
+          'lastSessionSubjectName',
+          'lastSessionSubjectDisplayName',
+          'lastSessionCreatedAt',
+          'lastSessionTimeTutored',
         ])
-      )
+        return {
+          volunteerId: row.volunteerId,
+          firstName: row.firstName,
+          numSessions: row.numSessions,
+          isFavorite: row.isFavorite,
+          lastSession: {
+            sessionId: row.lastSessionId,
+            subjectName: row.lastSessionSubjectName,
+            subjectDisplayName: row.lastSessionSubjectDisplayName,
+            createdAt: row.lastSessionCreatedAt,
+            timeTutored: Number(row.lastSessionTimeTutored),
+          },
+        }
+      })
     }
 
     return []

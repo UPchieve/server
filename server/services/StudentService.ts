@@ -2,6 +2,7 @@ import { ACCOUNT_USER_ACTIONS, EVENTS } from '../constants'
 import QueueService from './QueueService'
 import * as AnalyticsService from './AnalyticsService'
 import * as FavoritingService from './FavoritingService'
+import * as VolunteerService from './VolunteerService'
 import * as StudentRepo from '../models/Student/queries'
 import * as UsersSchoolsRepo from '../models/UsersSchools'
 import * as StudentPartnerOrgRepo from '../models/StudentPartnerOrg/queries'
@@ -11,9 +12,11 @@ import { Ulid, Uuid } from '../models/pgUtils'
 import { FavoriteLimitReachedError } from './Errors'
 import { createAccountAction } from '../models/UserAction'
 import {
+  PastVolunteer,
   StudentPartnerOrgInstance,
   StudentSignupSources,
 } from '../models/Student/queries'
+import type { VolunteerPublicProfileInfoShared } from '../models/Volunteer/types'
 import type { TeacherClassForStudent } from '../types/teachers'
 import { runInTransaction, TransactionClient } from '../db'
 import { daysInMs } from '../utils/time-utils'
@@ -203,6 +206,22 @@ export async function getStudentByCleverId(
   return StudentRepo.getStudentByCleverId(cleverStudentId, tc)
 }
 
-export async function getPastVolunteersByStudentId(studentId: Ulid) {
-  return StudentRepo.getPastVolunteersByStudentId(studentId)
+export type PastVolunteerWithStats = PastVolunteer & {
+  publicProfileStats: VolunteerPublicProfileInfoShared
+}
+
+export async function getPastVolunteersByStudentId(
+  studentId: Ulid
+): Promise<PastVolunteerWithStats[]> {
+  const pastVolunteers =
+    await StudentRepo.getPastVolunteersByStudentId(studentId)
+  return Promise.all(
+    pastVolunteers.map(async (volunteer) => ({
+      ...volunteer,
+      publicProfileStats:
+        (await VolunteerService.getInfoSharedWithStudents(
+          volunteer.volunteerId
+        )) ?? {},
+    }))
+  )
 }

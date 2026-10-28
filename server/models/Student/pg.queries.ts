@@ -205,6 +205,16 @@ export interface IGetPastVolunteersByStudentIdResult {
   /** pii: First name */
   firstName: string;
   isFavorite: boolean | null;
+  /** not_pii */
+  lastSessionCreatedAt: Date;
+  /** not_pii: Primary key */
+  lastSessionId: string;
+  /** not_pii: User-facing display name */
+  lastSessionSubjectDisplayName: string;
+  /** not_pii: Human-readable name */
+  lastSessionSubjectName: string;
+  /** not_pii: Duration of active tutoring in milliseconds */
+  lastSessionTimeTutored: string;
   numSessions: number | null;
   /** not_pii: Foreign key to upchieve.users (the volunteer) */
   volunteerId: string | null;
@@ -216,33 +226,49 @@ export interface IGetPastVolunteersByStudentIdQuery {
   result: IGetPastVolunteersByStudentIdResult;
 }
 
-const getPastVolunteersByStudentIdIR: any = {"usedParamSet":{"studentId":true,"minSessionLength":true},"params":[{"name":"studentId","required":true,"transform":{"type":"scalar"},"locs":[{"a":479,"b":489}]},{"name":"minSessionLength","required":false,"transform":{"type":"scalar"},"locs":[{"a":645,"b":661}]}],"statement":"SELECT\n    sessions.volunteer_id AS volunteer_id,\n    users.first_name AS first_name,\n    COUNT(*)::int AS num_sessions,\n    (student_favorite_volunteers.volunteer_id IS NOT NULL) AS is_favorite\nFROM\n    sessions\n    JOIN users ON users.id = sessions.volunteer_id\n    LEFT JOIN student_favorite_volunteers ON student_favorite_volunteers.student_id = sessions.student_id\n        AND student_favorite_volunteers.volunteer_id = sessions.volunteer_id\nWHERE\n    sessions.student_id = :studentId!\n    AND sessions.volunteer_id IS NOT NULL\n    AND sessions.ended_at IS NOT NULL\n    AND sessions.time_tutored IS NOT NULL\n    AND sessions.time_tutored > :minSessionLength\nGROUP BY\n    sessions.volunteer_id,\n    users.first_name,\n    student_favorite_volunteers.volunteer_id\nORDER BY\n    MAX(sessions.ended_at) DESC"};
+const getPastVolunteersByStudentIdIR: any = {"usedParamSet":{"studentId":true,"minSessionLength":true},"params":[{"name":"studentId","required":true,"transform":{"type":"scalar"},"locs":[{"a":1223,"b":1233}]},{"name":"minSessionLength","required":false,"transform":{"type":"scalar"},"locs":[{"a":1405,"b":1421}]}],"statement":"SELECT\n    volunteer_id,\n    first_name,\n    is_favorite,\n    num_sessions,\n    last_session_id,\n    last_session_subject_name,\n    last_session_subject_display_name,\n    last_session_created_at,\n    last_session_time_tutored\nFROM ( SELECT DISTINCT ON (sessions.volunteer_id)\n        sessions.volunteer_id AS volunteer_id,\n        users.first_name AS first_name,\n        (student_favorite_volunteers.volunteer_id IS NOT NULL) AS is_favorite,\n        (COUNT(*) OVER (PARTITION BY sessions.volunteer_id))::int AS num_sessions,\n        sessions.id AS last_session_id,\n        subjects.name AS last_session_subject_name,\n        subjects.display_name AS last_session_subject_display_name,\n        sessions.created_at AS last_session_created_at,\n        sessions.time_tutored AS last_session_time_tutored,\n        sessions.ended_at AS last_session_ended_at\n    FROM\n        sessions\n        JOIN users ON users.id = sessions.volunteer_id\n        JOIN subjects ON subjects.id = sessions.subject_id\n        LEFT JOIN student_favorite_volunteers ON student_favorite_volunteers.student_id = sessions.student_id\n            AND student_favorite_volunteers.volunteer_id = sessions.volunteer_id\n    WHERE\n        sessions.student_id = :studentId!\n        AND sessions.volunteer_id IS NOT NULL\n        AND sessions.ended_at IS NOT NULL\n        AND sessions.time_tutored IS NOT NULL\n        AND sessions.time_tutored > :minSessionLength\n    ORDER BY\n        sessions.volunteer_id,\n        sessions.ended_at DESC) AS past_volunteers\nORDER BY\n    last_session_ended_at DESC"};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
- *     sessions.volunteer_id AS volunteer_id,
- *     users.first_name AS first_name,
- *     COUNT(*)::int AS num_sessions,
- *     (student_favorite_volunteers.volunteer_id IS NOT NULL) AS is_favorite
- * FROM
- *     sessions
- *     JOIN users ON users.id = sessions.volunteer_id
- *     LEFT JOIN student_favorite_volunteers ON student_favorite_volunteers.student_id = sessions.student_id
- *         AND student_favorite_volunteers.volunteer_id = sessions.volunteer_id
- * WHERE
- *     sessions.student_id = :studentId!
- *     AND sessions.volunteer_id IS NOT NULL
- *     AND sessions.ended_at IS NOT NULL
- *     AND sessions.time_tutored IS NOT NULL
- *     AND sessions.time_tutored > :minSessionLength
- * GROUP BY
- *     sessions.volunteer_id,
- *     users.first_name,
- *     student_favorite_volunteers.volunteer_id
+ *     volunteer_id,
+ *     first_name,
+ *     is_favorite,
+ *     num_sessions,
+ *     last_session_id,
+ *     last_session_subject_name,
+ *     last_session_subject_display_name,
+ *     last_session_created_at,
+ *     last_session_time_tutored
+ * FROM ( SELECT DISTINCT ON (sessions.volunteer_id)
+ *         sessions.volunteer_id AS volunteer_id,
+ *         users.first_name AS first_name,
+ *         (student_favorite_volunteers.volunteer_id IS NOT NULL) AS is_favorite,
+ *         (COUNT(*) OVER (PARTITION BY sessions.volunteer_id))::int AS num_sessions,
+ *         sessions.id AS last_session_id,
+ *         subjects.name AS last_session_subject_name,
+ *         subjects.display_name AS last_session_subject_display_name,
+ *         sessions.created_at AS last_session_created_at,
+ *         sessions.time_tutored AS last_session_time_tutored,
+ *         sessions.ended_at AS last_session_ended_at
+ *     FROM
+ *         sessions
+ *         JOIN users ON users.id = sessions.volunteer_id
+ *         JOIN subjects ON subjects.id = sessions.subject_id
+ *         LEFT JOIN student_favorite_volunteers ON student_favorite_volunteers.student_id = sessions.student_id
+ *             AND student_favorite_volunteers.volunteer_id = sessions.volunteer_id
+ *     WHERE
+ *         sessions.student_id = :studentId!
+ *         AND sessions.volunteer_id IS NOT NULL
+ *         AND sessions.ended_at IS NOT NULL
+ *         AND sessions.time_tutored IS NOT NULL
+ *         AND sessions.time_tutored > :minSessionLength
+ *     ORDER BY
+ *         sessions.volunteer_id,
+ *         sessions.ended_at DESC) AS past_volunteers
  * ORDER BY
- *     MAX(sessions.ended_at) DESC
+ *     last_session_ended_at DESC
  * ```
  */
 export const getPastVolunteersByStudentId = new PreparedQuery<IGetPastVolunteersByStudentIdParams,IGetPastVolunteersByStudentIdResult>(getPastVolunteersByStudentIdIR);

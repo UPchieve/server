@@ -173,22 +173,43 @@ describe('routeStudents', () => {
 
   describe('GET /api/students/past-volunteers', () => {
     test('Students should get a list of past volunteers', async () => {
-      const expected = [
+      const lastSession = {
+        sessionId: getUuid(),
+        subjectName: 'algebraOne',
+        subjectDisplayName: 'Algebra 1',
+        createdAt: new Date('2026-10-01T12:00:00.000Z'),
+        timeTutored: 600000,
+      }
+      const pastVolunteers = [
         {
           volunteerId: getUuid(),
           firstName: 'Test 1',
           numSessions: 3,
+          lastSession,
           isFavorite: true,
+          publicProfileStats: {
+            occupation: ['A graduate student'],
+            numSessionsTutored: 12,
+          },
         },
         {
           volunteerId: getUuid(),
           firstName: 'Test 2',
-          numSessions: 0,
+          numSessions: 1,
+          lastSession,
           isFavorite: false,
+          publicProfileStats: {},
         },
       ]
+      const expected = pastVolunteers.map((volunteer) => ({
+        ...volunteer,
+        lastSession: {
+          ...lastSession,
+          createdAt: '2026-10-01T12:00:00.000Z',
+        },
+      }))
       mockedStudentService.getPastVolunteersByStudentId.mockResolvedValueOnce(
-        expected
+        pastVolunteers
       )
       const response = await sendGet('/api/students/past-volunteers')
       expect(response.body).toEqual({ pastVolunteers: expected })
