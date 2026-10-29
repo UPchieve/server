@@ -55,6 +55,68 @@ export async function createChapter(
   return groupId
 }
 
+export type ChapterMemberOptions = {
+  title?: string | null
+  admin?: boolean
+  joinedAt?: string
+  deactivatedAt?: string | null
+  banType?: USER_BAN_TYPES
+  deleted?: boolean
+  deactivated?: boolean
+  testUser?: boolean
+  volunteerProfile?: boolean
+  onboarded?: boolean
+  approved?: boolean
+  highSchool?: boolean
+}
+
+export async function createChapterMember(
+  client: TransactionClient,
+  groupId: Ulid,
+  options: ChapterMemberOptions = {}
+): Promise<Ulid> {
+  const { id } = await createTestUser(client, { banType: options.banType })
+  await client.query(
+    `UPDATE users SET test_user = $2, deactivated = $3, deleted = $4 WHERE id = $1`,
+    [
+      id,
+      options.testUser ?? false,
+      options.deactivated ?? false,
+      options.deleted ?? false,
+    ]
+  )
+  if (options.volunteerProfile) {
+    await createTestVolunteer(client, id)
+    await client.query(
+      `UPDATE volunteer_profiles SET onboarded = $2, approved = $3 WHERE user_id = $1`,
+      [id, options.onboarded ?? true, options.approved ?? true]
+    )
+  }
+  if (options.highSchool) {
+    await client.query(
+      `INSERT INTO volunteer_occupations (user_id, occupation) VALUES ($1, 'A high school student')`,
+      [id]
+    )
+  }
+  await client.query(
+    `INSERT INTO nths_group_members (nths_group_id, user_id, title, joined_at, deactivated_at)
+     VALUES ($1, $2, $3, COALESCE($4::timestamptz, NOW()), $5)`,
+    [
+      groupId,
+      id,
+      options.title === undefined ? 'Member' : options.title,
+      options.joinedAt ?? null,
+      options.deactivatedAt ?? null,
+    ]
+  )
+  await client.query(
+    `INSERT INTO nths_group_member_roles (user_id, nths_group_id, role_id)
+     SELECT $1, $2, id FROM nths_group_roles WHERE name = $3`,
+    [id, groupId, options.admin ? 'admin' : 'member']
+  )
+  return id
+}
+
 export function sqlText(args: unknown[]): string {
   return typeof args[0] === 'string'
     ? args[0]

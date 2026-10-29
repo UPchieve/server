@@ -3,32 +3,10 @@
  */
 
 import { getClient } from '../../db'
-import { getDbUlid, Ulid } from '../../models/pgUtils'
-import { getName } from '../mocks/generate'
-import { createTestUser } from './seed-utils'
+import { Ulid } from '../../models/pgUtils'
+import { createChapter, createChapterMember } from './seed-utils'
 
 const client = getClient()
-
-async function createChapter(): Promise<Ulid> {
-  const groupId = getDbUlid()
-  await client.query(
-    `INSERT INTO nths_groups (id, name, key, invite_code) VALUES ($1, $2, $3, $4)`,
-    [groupId, getName(), `key-${groupId}`, groupId.slice(-6)]
-  )
-  return groupId
-}
-
-async function addMember(
-  groupId: Ulid,
-  title: string | null = 'Member'
-): Promise<Ulid> {
-  const user = await createTestUser(client)
-  await client.query(
-    `INSERT INTO nths_group_members (nths_group_id, user_id, title) VALUES ($1, $2, $3)`,
-    [groupId, user.id, title]
-  )
-  return user.id
-}
 
 async function getRecordedTitles(
   groupId: Ulid,
@@ -70,8 +48,10 @@ describe('nths_group_members title history', () => {
       expected: ['Member'],
     },
   ])('$name', async ({ initial, update, expected }) => {
-    const groupId = await createChapter()
-    const userId = await addMember(groupId, initial)
+    const groupId = await createChapter(client)
+    const userId = await createChapterMember(client, groupId, {
+      title: initial,
+    })
     if (update) {
       await client.query(
         `${update} WHERE nths_group_id = $1 AND user_id = $2`,

@@ -5,32 +5,17 @@
 import { getClient } from '../../db'
 import { getDbUlid, Ulid } from '../../models/pgUtils'
 import { getNthsRenewalState } from '../../models/NTHSRenewal'
-import { createChapter, createTestUser } from './seed-utils'
+import {
+  ChapterMemberOptions,
+  createChapter,
+  createChapterMember,
+} from './seed-utils'
 
 const client = getClient()
 
 const SCHOOL_YEAR = '2027-07-01'
 const OTHER_SCHOOL_YEAR = '2026-07-01'
 const NAMED_AT = '2027-05-03T15:00:00.000Z'
-
-type MemberOptions = { deactivatedAt?: string; deleted?: boolean }
-
-async function addMember(
-  groupId: Ulid,
-  options: MemberOptions = {}
-): Promise<Ulid> {
-  const user = await createTestUser(client)
-  await client.query(`UPDATE users SET deleted = $2 WHERE id = $1`, [
-    user.id,
-    options.deleted ?? false,
-  ])
-  await client.query(
-    `INSERT INTO nths_group_members (nths_group_id, user_id, title, deactivated_at)
-     VALUES ($1, $2, 'Member', $3)`,
-    [groupId, user.id, options.deactivatedAt ?? null]
-  )
-  return user.id
-}
 
 type CandidateOptions = {
   namedAt?: string | null
@@ -67,7 +52,7 @@ describe('getNthsRenewalState', () => {
   it('returns the chapter dates and nothing named for a fresh chapter', async () => {
     const closedAt = '2027-03-01T00:00:00.000Z'
     const groupId = await createChapter(client, closedAt)
-    const viewerId = await addMember(groupId)
+    const viewerId = await createChapterMember(client, groupId)
     const { rows } = await client.query(
       `UPDATE nths_groups SET created_at = $2 WHERE id = $1 RETURNING created_at`,
       [groupId, '2026-01-02T03:04:05.000Z']
@@ -104,13 +89,13 @@ describe('getNthsRenewalState', () => {
     ],
   ])('maps a viewer %s', async (_label, options, candidacy) => {
     const groupId = await createChapter(client)
-    const viewerId = await addMember(groupId)
+    const viewerId = await createChapterMember(client, groupId)
     await addCandidate(groupId, viewerId, options)
 
     expect((await stateFor(groupId, viewerId))?.viewerCandidacy).toBe(candidacy)
   })
 
-  it.each<[string, MemberOptions, CandidateOptions, boolean, boolean]>([
+  it.each<[string, ChapterMemberOptions, CandidateOptions, boolean, boolean]>([
     ['a current member accepted', {}, { accepted: true }, true, true],
     [
       'a deactivated member accepted',
@@ -153,8 +138,12 @@ describe('getNthsRenewalState', () => {
       hasNamedSuccessor
     ) => {
       const groupId = await createChapter(client)
-      const viewerId = await addMember(groupId)
-      const candidateId = await addMember(groupId, memberOptions)
+      const viewerId = await createChapterMember(client, groupId)
+      const candidateId = await createChapterMember(
+        client,
+        groupId,
+        memberOptions
+      )
       await addCandidate(groupId, candidateId, candidateOptions)
 
       await expect(stateFor(groupId, viewerId)).resolves.toMatchObject({
@@ -168,8 +157,8 @@ describe('getNthsRenewalState', () => {
   it('ignores another chapter’s candidates', async () => {
     const groupId = await createChapter(client)
     const otherGroupId = await createChapter(client)
-    const viewerId = await addMember(groupId)
-    const otherCandidate = await addMember(otherGroupId)
+    const viewerId = await createChapterMember(client, groupId)
+    const otherCandidate = await createChapterMember(client, otherGroupId)
     await addCandidate(otherGroupId, otherCandidate, { accepted: true })
 
     await expect(stateFor(groupId, viewerId)).resolves.toMatchObject({

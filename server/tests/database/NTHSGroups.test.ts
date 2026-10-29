@@ -8,9 +8,10 @@ import { getClient } from '../../db'
 import { getDbUlid, Ulid } from '../../models/pgUtils'
 import { getName } from '../mocks/generate'
 import {
+  ChapterMemberOptions,
   createChapter,
+  createChapterMember,
   createTestUser,
-  createTestVolunteer,
   sqlText,
   withRealTransaction,
 } from './seed-utils'
@@ -28,59 +29,15 @@ const OUTSIDE_VIEWER_ID = getDbUlid()
 let subjectId: number
 let defaultStudentId: Ulid
 
-type AddMemberOptions = {
-  roleName?: 'admin' | 'member'
-  title?: string
-  joinedAt?: string
-  deactivatedAt?: string | null
-  onboarded?: boolean
-  approved?: boolean
-  testUser?: boolean
-  deactivated?: boolean
-  deleted?: boolean
-  banType?: string
-  withProfile?: boolean
-}
-
-async function addMember(
+function addMember(
   groupId: Ulid,
-  options: AddMemberOptions = {}
+  options: ChapterMemberOptions = {}
 ): Promise<Ulid> {
-  const user = await createTestUser(client)
-  if (options.withProfile ?? true) {
-    await createTestVolunteer(client, user.id)
-    await client.query(
-      `UPDATE volunteer_profiles SET onboarded = $2, approved = $3 WHERE user_id = $1`,
-      [user.id, options.onboarded ?? true, options.approved ?? true]
-    )
-  }
-  await client.query(
-    `UPDATE users SET test_user = $2, deactivated = $3, ban_type = $4, deleted = $5 WHERE id = $1`,
-    [
-      user.id,
-      options.testUser ?? false,
-      options.deactivated ?? false,
-      options.banType ?? null,
-      options.deleted ?? false,
-    ]
-  )
-  await client.query(
-    `INSERT INTO nths_group_members (nths_group_id, user_id, title, joined_at, deactivated_at)
-     VALUES ($1, $2, $3, $4, $5)`,
-    [
-      groupId,
-      user.id,
-      options.title ?? 'Member',
-      options.joinedAt ?? '2026-07-01T00:00:00.000Z',
-      options.deactivatedAt ?? null,
-    ]
-  )
-  await client.query(
-    `INSERT INTO nths_group_member_roles (user_id, nths_group_id, role_id)
-     SELECT $1, $2, id FROM nths_group_roles WHERE name = $3`,
-    [user.id, groupId, options.roleName ?? 'member']
-  )
-  return user.id
+  return createChapterMember(client, groupId, {
+    volunteerProfile: true,
+    joinedAt: YEAR_STARTS_AT,
+    ...options,
+  })
 }
 
 type AddSessionOptions = {
@@ -273,7 +230,7 @@ describe('getChapterImpact', () => {
 describe('updateGroupMember', () => {
   test('removing a member who already left keeps their original departure time', async () => {
     const groupId = await createChapter(client)
-    await addMember(groupId, { roleName: 'admin' })
+    await addMember(groupId, { admin: true })
     const departedAt = '2026-10-01T00:00:00.000Z'
     const departedId = await addMember(groupId, {
       joinedAt: '2026-08-01T00:00:00.000Z',
@@ -293,7 +250,7 @@ describe('updateGroupMember', () => {
 
   test('writes the role and title in a transaction it starts itself', async () => {
     const groupId = await createChapter(client)
-    await addMember(groupId, { roleName: 'admin' })
+    await addMember(groupId, { admin: true })
     const memberId = await addMember(groupId)
     mocked(PgClient).runInTransaction.mockClear()
 
@@ -321,7 +278,7 @@ describe('updateGroupMember', () => {
 describe('getChapterRoster', () => {
   test('lists current members, excluding test users, and keeps a banned member', async () => {
     const groupId = await createChapter(client)
-    const currentId = await addMember(groupId, { roleName: 'admin' })
+    const currentId = await addMember(groupId, { admin: true })
     const bannedId = await addMember(groupId, { banType: 'complete' })
     await addMember(groupId, { testUser: true })
     await addMember(groupId, { deactivatedAt: '2026-10-01T00:00:00.000Z' })
@@ -378,7 +335,7 @@ describe('getChapterRoster', () => {
       onboarded: false,
       approved: false,
     })
-    const profilelessId = await addMember(groupId, { withProfile: false })
+    const profilelessId = await addMember(groupId, { volunteerProfile: false })
 
     const roster = await NTHSGroupsService.getChapterRoster(groupId, NOW)
     const byId = Object.fromEntries(roster.members.map((m) => [m.userId, m]))
@@ -540,11 +497,11 @@ describe('getChapterRoster topTutorThisMonth', () => {
   test('counts presidents, so a co-president with the most hours is the top tutor', async () => {
     const groupId = await createChapter(client)
     const presidentId = await addMember(groupId, {
-      roleName: 'admin',
+      admin: true,
       title: 'President',
     })
     const otherPresidentId = await addMember(groupId, {
-      roleName: 'admin',
+      admin: true,
       title: 'President',
     })
     await addSession(presidentId, {
@@ -822,9 +779,9 @@ describe('getChapterImpact this month', () => {
 describe('getActiveGroupMember', () => {
   test('finds a current member and their role, but not one who has left', async () => {
     const groupId = await createChapter(client)
-    const adminId = await addMember(groupId, { roleName: 'admin' })
+    const adminId = await addMember(groupId, { admin: true })
     const departedId = await addMember(groupId, {
-      roleName: 'admin',
+      admin: true,
       deactivatedAt: '2026-10-01T00:00:00.000Z',
     })
 
@@ -846,10 +803,10 @@ describe('getActiveGroupMember', () => {
 describe('getNTHSGroupAdminsContactInfo', () => {
   test('includes every current admin, excluding one who has left', async () => {
     const groupId = await createChapter(client)
-    const firstAdminId = await addMember(groupId, { roleName: 'admin' })
-    const secondAdminId = await addMember(groupId, { roleName: 'admin' })
+    const firstAdminId = await addMember(groupId, { admin: true })
+    const secondAdminId = await addMember(groupId, { admin: true })
     await addMember(groupId, {
-      roleName: 'admin',
+      admin: true,
       deactivatedAt: '2026-10-01T00:00:00.000Z',
     })
     await addMember(groupId)
@@ -864,8 +821,8 @@ describe('getNTHSGroupAdminsContactInfo', () => {
 
   test('leaves out a deleted admin', async () => {
     const groupId = await createChapter(client)
-    const adminId = await addMember(groupId, { roleName: 'admin' })
-    await addMember(groupId, { roleName: 'admin', deleted: true })
+    const adminId = await addMember(groupId, { admin: true })
+    await addMember(groupId, { admin: true, deleted: true })
 
     const admins =
       await NTHSGroupsService.getNTHSGroupAdminsContactInfo(groupId)

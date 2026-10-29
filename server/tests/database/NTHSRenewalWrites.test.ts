@@ -25,8 +25,8 @@ import {
 } from '../../services/NTHSRenewalService'
 import {
   createChapter,
+  createChapterMember,
   createTestUser,
-  createTestVolunteer,
   sqlText,
   withRealTransaction,
 } from './seed-utils'
@@ -107,43 +107,17 @@ async function chapter(
   return groupId
 }
 
-async function addMember(
+function addMember(
   groupId: Ulid,
-  options: MemberOptions = {}
+  { departed, highSchool = true, ...options }: MemberOptions = {}
 ): Promise<Ulid> {
-  const { id } = await createTestUser(client, { banType: options.banType })
-  await createTestVolunteer(client, id)
-  await client.query(
-    `UPDATE volunteer_profiles SET onboarded = $2, approved = true WHERE user_id = $1`,
-    [id, options.onboarded ?? true]
-  )
-  await client.query(`UPDATE users SET deleted = $2 WHERE id = $1`, [
-    id,
-    options.deleted ?? false,
-  ])
-  if (options.highSchool ?? true) {
-    await client.query(
-      `INSERT INTO volunteer_occupations (user_id, occupation) VALUES ($1, 'A high school student')`,
-      [id]
-    )
-  }
-  await client.query(
-    `INSERT INTO nths_group_members (nths_group_id, user_id, title, joined_at, deactivated_at)
-     VALUES ($1, $2, $3, $4, $5)`,
-    [
-      groupId,
-      id,
-      options.title ?? 'Member',
-      FOUNDED_AT,
-      options.departed ? DEPARTED_AT : null,
-    ]
-  )
-  await client.query(
-    `INSERT INTO nths_group_member_roles (user_id, nths_group_id, role_id)
-     SELECT $1, $2, id FROM nths_group_roles WHERE name = $3`,
-    [id, groupId, options.admin ? 'admin' : 'member']
-  )
-  return id
+  return createChapterMember(client, groupId, {
+    ...options,
+    highSchool,
+    volunteerProfile: true,
+    joinedAt: FOUNDED_AT,
+    deactivatedAt: departed ? DEPARTED_AT : null,
+  })
 }
 
 async function addCandidate(

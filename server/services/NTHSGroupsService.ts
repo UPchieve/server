@@ -206,6 +206,7 @@ export async function getNTHSGroupAdminsContactInfo(
   tc: TransactionClient = getRoClient()
 ): Promise<
   {
+    userId: Ulid
     nthsGroupId: Ulid
     firstName: string
     email: string
