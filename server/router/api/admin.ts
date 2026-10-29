@@ -24,7 +24,6 @@ import { InputError } from '../../models/Errors'
 import * as EssayReviewService from '../../services/EssayReviewService'
 import { resSuccess } from '../res-success'
 import { extractUser } from '../extract-user'
-import { asGroupMemberUpdate } from './nths-groups'
 
 function parseChapterIds(ids: unknown) {
   const chapterIds = asArray(asUuid)(ids, 'chapter id')
@@ -182,7 +181,7 @@ export function routeAdmin(apiRouter: Router): void {
         await NTHSGroupsService.updateGroupMemberAsStaff(
           asUuid(req.params.userId, 'userId'),
           asUuid(req.params.chapterId, 'chapterId'),
-          asGroupMemberUpdate(req.body)
+          NTHSGroupsService.asGroupMemberUpdate(req.body)
         )
         res.sendStatus(204)
       } catch (err) {

@@ -53,7 +53,12 @@ import {
 } from '../models/Volunteer'
 import { getUsersBanStatuses } from '../models/User'
 import { isReadyToCoach } from './VolunteerService'
-import { LEADERSHIP_TITLES, NTHSTitle } from '../constants/nths-titles'
+import {
+  isNthsTitle,
+  LEADERSHIP_TITLES,
+  NTHS_TITLES,
+  NTHSTitle,
+} from '../constants/nths-titles'
 import { hoursInMs } from '../utils/time-utils'
 import QueueService from './QueueService'
 
@@ -283,6 +288,20 @@ export type UpdateGroupMemberRequest = {
   role?: NTHSGroupRoleName
   title?: NTHSTitle
   isActive?: false
+}
+
+export function asGroupMemberUpdate(body: unknown): UpdateGroupMemberRequest {
+  const { role, title, isActive } = (body ?? {}) as Record<string, unknown>
+  if (role !== undefined && role !== 'admin' && role !== 'member') {
+    throw new InputError('role must be admin or member')
+  }
+  if (title !== undefined && !isNthsTitle(title)) {
+    throw new InputError(`title must be one of ${NTHS_TITLES.join(', ')}`)
+  }
+  if (isActive !== undefined && isActive !== false) {
+    throw new InputError('isActive can only be false')
+  }
+  return { role, title, isActive }
 }
 
 export async function updateGroupMember(

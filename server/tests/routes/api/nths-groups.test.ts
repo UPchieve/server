@@ -36,6 +36,9 @@ jest.mock('../../../services/NTHSChecklistProgressService')
 jest.mock('../../../services/NTHSRenewalService')
 
 const mockedNTHSGroupsService = mocked(NTHSGroupsService)
+const actualNTHSGroupsService = jest.requireActual<typeof NTHSGroupsService>(
+  '../../../services/NTHSGroupsService'
+)
 const mockedNTHSChecklistProgressService = mocked(NTHSChecklistProgressService)
 const mockedNTHSRenewalService = mocked(NTHSRenewalService)
 
@@ -93,6 +96,9 @@ describe('routeNTHSGroups', () => {
     // Cleared by default; the gate's own tests override it.
     mockedNTHSGroupsService.isClearedToViewChapterMemberInfo.mockResolvedValue(
       true
+    )
+    mockedNTHSGroupsService.asGroupMemberUpdate.mockImplementation(
+      actualNTHSGroupsService.asGroupMemberUpdate
     )
   })
 

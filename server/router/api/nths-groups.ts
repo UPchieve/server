@@ -26,8 +26,6 @@ import type {
   NTHSChapterPeriodStarts,
   NTHSGroupRoleName,
 } from '../../models/NTHSGroups'
-import { isNthsTitle, NTHS_TITLES } from '../../constants/nths-titles'
-import type { UpdateGroupMemberRequest } from '../../services/NTHSGroupsService'
 import {
   asArray,
   asDate,
@@ -151,20 +149,6 @@ function asPeriodStart(
       `${name} must be within the last ${PERIOD_START_MAX_AGE_DAYS} days`
     )
   return startsAt > now ? now : startsAt
-}
-
-export function asGroupMemberUpdate(body: unknown): UpdateGroupMemberRequest {
-  const { role, title, isActive } = (body ?? {}) as Record<string, unknown>
-  if (role !== undefined && role !== 'admin' && role !== 'member') {
-    throw new InputError('role must be admin or member')
-  }
-  if (title !== undefined && !isNthsTitle(title)) {
-    throw new InputError(`title must be one of ${NTHS_TITLES.join(', ')}`)
-  }
-  if (isActive !== undefined && isActive !== false) {
-    throw new InputError('isActive can only be false')
-  }
-  return { role, title, isActive }
 }
 
 function asCommitments(value: unknown): RenewalCommitments | undefined {
@@ -413,7 +397,7 @@ export function routeNTHSGroups(router: Router): void {
         await NTHSGroupsService.updateGroupMember(
           memberId,
           req.params.groupId,
-          asGroupMemberUpdate(req.body)
+          NTHSGroupsService.asGroupMemberUpdate(req.body)
         )
         return res.sendStatus(204)
       } catch (err) {
