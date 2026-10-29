@@ -3068,6 +3068,7 @@ export const getVolunteersInSessions = new PreparedQuery<IGetVolunteersInSession
 
 /** 'GetLastSessionEndedAtByVolunteerIds' parameters type */
 export interface IGetLastSessionEndedAtByVolunteerIdsParams {
+  minSessionLength: number;
   volunteerIds: stringArray;
 }
 
@@ -3084,7 +3085,7 @@ export interface IGetLastSessionEndedAtByVolunteerIdsQuery {
   result: IGetLastSessionEndedAtByVolunteerIdsResult;
 }
 
-const getLastSessionEndedAtByVolunteerIdsIR: any = {"usedParamSet":{"volunteerIds":true},"params":[{"name":"volunteerIds","required":true,"transform":{"type":"scalar"},"locs":[{"a":84,"b":97}]}],"statement":"SELECT\n    volunteers.id AS volunteer_id,\n    last_session.ended_at\nFROM\n    unnest(:volunteerIds!::uuid[]) AS volunteers (id)\n        JOIN LATERAL (\n            SELECT\n                ended_at\n            FROM\n                sessions\n            WHERE\n                sessions.volunteer_id = volunteers.id\n                AND sessions.ended_at IS NOT NULL\n            ORDER BY\n                sessions.ended_at DESC\n            LIMIT 1) AS last_session ON TRUE"};
+const getLastSessionEndedAtByVolunteerIdsIR: any = {"usedParamSet":{"volunteerIds":true,"minSessionLength":true},"params":[{"name":"volunteerIds","required":true,"transform":{"type":"scalar"},"locs":[{"a":84,"b":97}]},{"name":"minSessionLength","required":true,"transform":{"type":"scalar"},"locs":[{"a":429,"b":446}]}],"statement":"SELECT\n    volunteers.id AS volunteer_id,\n    last_session.ended_at\nFROM\n    unnest(:volunteerIds!::uuid[]) AS volunteers (id)\n        JOIN LATERAL (\n            SELECT\n                ended_at\n            FROM\n                sessions\n            WHERE\n                sessions.volunteer_id = volunteers.id\n                AND sessions.ended_at IS NOT NULL\n                AND sessions.ended_at - sessions.volunteer_joined_at > :minSessionLength!::int * INTERVAL '1 millisecond'\n            ORDER BY\n                sessions.ended_at DESC\n            LIMIT 1) AS last_session ON TRUE"};
 
 /**
  * Query generated from SQL:
@@ -3102,12 +3103,54 @@ const getLastSessionEndedAtByVolunteerIdsIR: any = {"usedParamSet":{"volunteerId
  *             WHERE
  *                 sessions.volunteer_id = volunteers.id
  *                 AND sessions.ended_at IS NOT NULL
+ *                 AND sessions.ended_at - sessions.volunteer_joined_at > :minSessionLength!::int * INTERVAL '1 millisecond'
  *             ORDER BY
  *                 sessions.ended_at DESC
  *             LIMIT 1) AS last_session ON TRUE
  * ```
  */
 export const getLastSessionEndedAtByVolunteerIds = new PreparedQuery<IGetLastSessionEndedAtByVolunteerIdsParams,IGetLastSessionEndedAtByVolunteerIdsResult>(getLastSessionEndedAtByVolunteerIdsIR);
+
+
+/** 'GetSessionCountsSinceByVolunteerIds' parameters type */
+export interface IGetSessionCountsSinceByVolunteerIdsParams {
+  minSessionLength: number;
+  since: DateOrString;
+  volunteerIds: stringArray;
+}
+
+/** 'GetSessionCountsSinceByVolunteerIds' return type */
+export interface IGetSessionCountsSinceByVolunteerIdsResult {
+  sessionCount: number | null;
+  /** not_pii: Foreign key to upchieve.users (the volunteer) */
+  volunteerId: string | null;
+}
+
+/** 'GetSessionCountsSinceByVolunteerIds' query type */
+export interface IGetSessionCountsSinceByVolunteerIdsQuery {
+  params: IGetSessionCountsSinceByVolunteerIdsParams;
+  result: IGetSessionCountsSinceByVolunteerIdsResult;
+}
+
+const getSessionCountsSinceByVolunteerIdsIR: any = {"usedParamSet":{"volunteerIds":true,"since":true,"minSessionLength":true},"params":[{"name":"volunteerIds","required":true,"transform":{"type":"scalar"},"locs":[{"a":126,"b":139}]},{"name":"since","required":true,"transform":{"type":"scalar"},"locs":[{"a":179,"b":185}]},{"name":"minSessionLength","required":true,"transform":{"type":"scalar"},"locs":[{"a":219,"b":236}]}],"statement":"SELECT\n    sessions.volunteer_id,\n    COUNT(*)::int AS session_count\nFROM\n    sessions\nWHERE\n    sessions.volunteer_id = ANY (:volunteerIds!::uuid[])\n    AND sessions.ended_at >= :since!\n    AND sessions.time_tutored > :minSessionLength!::int\nGROUP BY\n    sessions.volunteer_id"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     sessions.volunteer_id,
+ *     COUNT(*)::int AS session_count
+ * FROM
+ *     sessions
+ * WHERE
+ *     sessions.volunteer_id = ANY (:volunteerIds!::uuid[])
+ *     AND sessions.ended_at >= :since!
+ *     AND sessions.time_tutored > :minSessionLength!::int
+ * GROUP BY
+ *     sessions.volunteer_id
+ * ```
+ */
+export const getSessionCountsSinceByVolunteerIds = new PreparedQuery<IGetSessionCountsSinceByVolunteerIdsParams,IGetSessionCountsSinceByVolunteerIdsResult>(getSessionCountsSinceByVolunteerIdsIR);
 
 
 /** 'GetSessionFlagsBySessionId' parameters type */

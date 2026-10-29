@@ -14,6 +14,7 @@ import {
   getFilteredSessionHistoryTotalCount,
   getLastSessionEndedAtByVolunteerIds,
   getLatestSession,
+  getSessionCountsSinceByVolunteerIds,
   getMessagesForFrontend,
   getSessionActivity,
   getSessionTranscriptItems,
@@ -1215,6 +1216,29 @@ describe('Session repo', () => {
   })
 
   describe('getLastSessionEndedAtByVolunteerIds', () => {
+    const minSessionLength = config.minSessionLength
+
+    async function insertSessionLasting(
+      volunteerId: string,
+      endedAt: Date,
+      lengthMs: number,
+      overrides: Partial<Parameters<typeof buildSessionRow>[0]> = {}
+    ) {
+      await insertSingleRow(
+        'sessions',
+        await buildSessionRow({
+          studentId,
+          volunteerId,
+          volunteerJoinedAt: moment(endedAt)
+            .subtract(lengthMs, 'milliseconds')
+            .toDate(),
+          endedAt,
+          ...overrides,
+        }),
+        getClient()
+      )
+    }
+
     test('returns the most recent ended_at for each volunteer with an ended session', async () => {
       const multipleSessionsId = (await createTestUser(getClient())).id
       await createTestVolunteer(getClient(), multipleSessionsId)
@@ -1226,15 +1250,10 @@ describe('Session repo', () => {
       const olderEndedAt = moment().subtract(2, 'hours').toDate()
       const latestEndedAt = moment().subtract(1, 'hours').toDate()
       for (const endedAt of [latestEndedAt, olderEndedAt]) {
-        await insertSingleRow(
-          'sessions',
-          await buildSessionRow({
-            studentId,
-            volunteerId: multipleSessionsId,
-            volunteerJoinedAt: new Date(),
-            endedAt,
-          }),
-          getClient()
+        await insertSessionLasting(
+          multipleSessionsId,
+          endedAt,
+          minSessionLength + 1
         )
       }
       await insertSingleRow(
@@ -1247,19 +1266,153 @@ describe('Session repo', () => {
         getClient()
       )
 
-      const result = await getLastSessionEndedAtByVolunteerIds([
-        multipleSessionsId,
-        activeOnlyId,
-        noSessionsId,
-      ])
+      const result = await getLastSessionEndedAtByVolunteerIds(
+        [multipleSessionsId, activeOnlyId, noSessionsId],
+        minSessionLength
+      )
 
       expect(result).toEqual([
         { volunteerId: multipleSessionsId, endedAt: latestEndedAt },
       ])
     })
 
+    test('skips sessions the volunteer was in for minSessionLength or less', async () => {
+      const volunteerId = (await createTestUser(getClient())).id
+      await createTestVolunteer(getClient(), volunteerId)
+
+      const longEndedAt = moment().subtract(2, 'hours').toDate()
+      await insertSessionLasting(volunteerId, longEndedAt, minSessionLength + 1)
+      await insertSessionLasting(
+        volunteerId,
+        moment().subtract(1, 'hours').toDate(),
+        minSessionLength
+      )
+
+      expect(
+        await getLastSessionEndedAtByVolunteerIds(
+          [volunteerId],
+          minSessionLength
+        )
+      ).toEqual([{ volunteerId, endedAt: longEndedAt }])
+    })
+
+    test('counts a long enough session before time_tutored is stored', async () => {
+      const volunteerId = (await createTestUser(getClient())).id
+      await createTestVolunteer(getClient(), volunteerId)
+
+      const endedAt = moment().subtract(1, 'minute').toDate()
+      await insertSessionLasting(volunteerId, endedAt, minSessionLength + 1, {
+        timeTutored: 0,
+      })
+
+      expect(
+        await getLastSessionEndedAtByVolunteerIds(
+          [volunteerId],
+          minSessionLength
+        )
+      ).toEqual([{ volunteerId, endedAt }])
+    })
+
     test('returns an empty array when given no volunteer ids', async () => {
-      expect(await getLastSessionEndedAtByVolunteerIds([])).toEqual([])
+      expect(
+        await getLastSessionEndedAtByVolunteerIds([], minSessionLength)
+      ).toEqual([])
+    })
+  })
+
+  describe('getSessionCountsSinceByVolunteerIds', () => {
+    const minSessionLength = config.minSessionLength
+    const since = moment().subtract(30, 'days').toDate()
+
+    async function insertEndedSession(
+      overrides: Parameters<typeof buildSessionRow>[0]
+    ) {
+      await insertSingleRow(
+        'sessions',
+        await buildSessionRow({
+          volunteerJoinedAt: new Date(),
+          timeTutored: minSessionLength + 1,
+          ...overrides,
+        }),
+        getClient()
+      )
+    }
+
+    test('counts ended sessions since the given date that were long enough with a student', async () => {
+      const coachId = (await createTestUser(getClient())).id
+      await createTestVolunteer(getClient(), coachId)
+      const otherCoachId = (await createTestUser(getClient())).id
+      await createTestVolunteer(getClient(), otherCoachId)
+      const realStudentId = (await createTestStudent(getClient())).user_id
+
+      const included = moment().subtract(1, 'days').toDate()
+      const otherCoachIncluded = moment().subtract(2, 'days').toDate()
+      await insertEndedSession({
+        studentId: realStudentId,
+        volunteerId: coachId,
+        endedAt: included,
+      })
+      await insertEndedSession({
+        studentId: realStudentId,
+        volunteerId: coachId,
+        endedAt: since,
+      })
+      await insertEndedSession({
+        studentId: realStudentId,
+        volunteerId: otherCoachId,
+        endedAt: otherCoachIncluded,
+      })
+      // before since
+      await insertEndedSession({
+        studentId: realStudentId,
+        volunteerId: coachId,
+        endedAt: moment(since).subtract(1, 'minute').toDate(),
+      })
+      // too short
+      await insertEndedSession({
+        studentId: realStudentId,
+        volunteerId: coachId,
+        endedAt: included,
+        timeTutored: minSessionLength,
+      })
+      // not ended
+      await insertEndedSession({
+        studentId: realStudentId,
+        volunteerId: coachId,
+      })
+
+      const result = await getSessionCountsSinceByVolunteerIds(
+        [coachId, otherCoachId],
+        since,
+        minSessionLength
+      )
+
+      expect(result).toEqual(
+        expect.arrayContaining([
+          { volunteerId: coachId, sessionCount: 2 },
+          { volunteerId: otherCoachId, sessionCount: 1 },
+        ])
+      )
+      expect(result).toHaveLength(2)
+    })
+
+    test('leaves out volunteers with no matching sessions', async () => {
+      const coachId = (await createTestUser(getClient())).id
+      await createTestVolunteer(getClient(), coachId)
+
+      expect(
+        await getSessionCountsSinceByVolunteerIds(
+          [coachId],
+          since,
+          minSessionLength
+        )
+      ).toEqual([])
+    })
+
+    test('returns an empty array when given no volunteer ids', async () => {
+      expect(
+        await getSessionCountsSinceByVolunteerIds([], since, minSessionLength)
+      ).toEqual([])
     })
   })
 })

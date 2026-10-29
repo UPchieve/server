@@ -1,6 +1,5 @@
-import { ScoringCandidate } from '.'
 import { Scorecard } from './scorecard'
-import { scoreMetric } from './metric-scorers'
+import { ScoringCandidate, scoreMetric } from './metrics'
 
 export type ScoredCandidate = Readonly<{
   candidate: ScoringCandidate
@@ -23,11 +22,12 @@ export function compareRanked(a: ScoredCandidate, b: ScoredCandidate): number {
 
 export function score(
   scorecard: Scorecard,
-  candidate: ScoringCandidate
+  candidate: ScoringCandidate,
+  now: Date
 ): ScoredCandidate {
   const metricScores = Object.fromEntries(
     scorecard.metrics.map((metric) => {
-      return [metric.name, scoreMetric(metric, candidate)]
+      return [metric.name, scoreMetric(metric, candidate, now)]
     })
   )
   const total = Object.values(metricScores).reduce(

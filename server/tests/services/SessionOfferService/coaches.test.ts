@@ -1,11 +1,7 @@
 import * as SessionRepo from '../../../models/Session'
 import * as VolunteerRepo from '../../../models/Volunteer'
 import * as PresenceService from '../../../services/PresenceService'
-import { getDbUlid } from '../../../models/pgUtils'
-import {
-  buildScoringCandidates,
-  eligibleCoaches,
-} from '../../../services/SessionOfferService/coaches'
+import { eligibleCoaches } from '../../../services/SessionOfferService/coaches'
 import { minutesInMs } from '../../../utils/time-utils'
 import { SUBJECTS } from '../../../constants/subjects'
 import { buildVolunteerSessionHoldEligibilityData } from '../../mocks/generate'
@@ -70,88 +66,5 @@ describe('eligibleCoaches', () => {
     const actual = await eligibleCoaches(subject)
 
     expect(actual.map(({ userId }) => userId)).toEqual([canTutor])
-  })
-})
-
-describe('buildScoringCandidates', () => {
-  beforeEach(() => {
-    jest.useFakeTimers().setSystemTime(NOW)
-    mockedSessionRepo.getLastSessionEndedAtByVolunteerIds.mockResolvedValue([])
-  })
-
-  afterEach(() => {
-    jest.useRealTimers()
-  })
-
-  test('uses onlineSince when the coach has never had a session', async () => {
-    const userId = getDbUlid()
-
-    const actual = await buildScoringCandidates([
-      { userId, onlineSince: minutesAgo(30) },
-    ])
-
-    expect(actual).toEqual([
-      {
-        volunteerId: userId,
-        onlineAndWaitingInMs: minutesInMs(30),
-        timeSinceLastSessionInMs: null,
-      },
-    ])
-  })
-
-  test('uses onlineSince when the last session ended before the coach came online', async () => {
-    const userId = getDbUlid()
-    mockedSessionRepo.getLastSessionEndedAtByVolunteerIds.mockResolvedValue([
-      { volunteerId: userId, endedAt: minutesAgo(120) },
-    ])
-
-    const actual = await buildScoringCandidates([
-      { userId, onlineSince: minutesAgo(30) },
-    ])
-
-    expect(actual).toEqual([
-      {
-        volunteerId: userId,
-        onlineAndWaitingInMs: minutesInMs(30),
-        timeSinceLastSessionInMs: minutesInMs(120),
-      },
-    ])
-  })
-
-  test('uses lastSessionEndedAt when the session ended after the coach came online', async () => {
-    const userId = getDbUlid()
-    mockedSessionRepo.getLastSessionEndedAtByVolunteerIds.mockResolvedValue([
-      { volunteerId: userId, endedAt: minutesAgo(5) },
-    ])
-
-    const actual = await buildScoringCandidates([
-      { userId, onlineSince: minutesAgo(30) },
-    ])
-
-    expect(actual).toEqual([
-      {
-        volunteerId: userId,
-        onlineAndWaitingInMs: minutesInMs(5),
-        timeSinceLastSessionInMs: minutesInMs(5),
-      },
-    ])
-  })
-
-  test('skips coaches without an onlineSince', async () => {
-    const withOnlineSince = getDbUlid()
-    const withoutOnlineSince = getDbUlid()
-
-    const actual = await buildScoringCandidates([
-      { userId: withOnlineSince, onlineSince: minutesAgo(10) },
-      { userId: withoutOnlineSince, onlineSince: null },
-    ])
-
-    expect(actual).toEqual([
-      {
-        volunteerId: withOnlineSince,
-        onlineAndWaitingInMs: minutesInMs(10),
-        timeSinceLastSessionInMs: null,
-      },
-    ])
   })
 })

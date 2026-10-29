@@ -1,70 +1,74 @@
 import { DEFAULT_SCORECARD } from '../../../services/MatchScoringService/scorecard'
-import { rankCoaches } from '../../../services/MatchScoringService'
+import { rank } from '../../../services/MatchScoringService'
+import { ScoringCandidate } from '../../../services/MatchScoringService/metrics'
 import { daysInMs, minutesInMs } from '../../../utils/time-utils'
 
-describe('rankCoaches', () => {
-  test('no candidates', () => {
-    const scorecard = DEFAULT_SCORECARD
-    const result = rankCoaches({ candidates: [] }, scorecard)
-    expect(result).toStrictEqual({ scorecardVersion: '2', ranked: [] })
-  })
+const NOW = new Date('2026-10-28T12:00:00Z')
 
-  test('ranks 1 candidate', () => {
-    const scorecard = DEFAULT_SCORECARD
-    const waiting1min = {
-      volunteerId: 'waitingfor1min',
-      onlineAndWaitingInMs: minutesInMs(1),
-      timeSinceLastSessionInMs: daysInMs(1),
-    }
-    const result = rankCoaches(
-      {
-        candidates: [waiting1min],
-      },
-      scorecard
-    )
+function candidate(
+  volunteerId: string,
+  {
+    onlineMinutesAgo,
+    lastSessionDaysAgo,
+    sessionCount = 0,
+  }: {
+    onlineMinutesAgo: number
+    lastSessionDaysAgo: number | null
+    sessionCount?: number
+  }
+): ScoringCandidate {
+  return {
+    volunteerId,
+    facts: {
+      onlineSince: new Date(NOW.getTime() - minutesInMs(onlineMinutesAgo)),
+      lastSessionEndedAt:
+        lastSessionDaysAgo === null
+          ? null
+          : new Date(NOW.getTime() - daysInMs(lastSessionDaysAgo)),
+      sessionCountThisCalendarYear: sessionCount,
+    },
+  }
+}
 
-    expect(result).toStrictEqual({
-      scorecardVersion: '2',
-      ranked: [
-        {
-          candidate: waiting1min,
-          metricScores: { daysSinceLastSession: 1, timeWaitingForSession: 1 },
-          score: 2,
-        },
-      ],
-    })
-  })
-
+describe('rank', () => {
   test('ranks candidates', () => {
     const scorecard = DEFAULT_SCORECARD
-    const waiting1min = {
-      volunteerId: 'waitingfor1min',
-      onlineAndWaitingInMs: minutesInMs(1),
-      timeSinceLastSessionInMs: daysInMs(1),
-    }
-    const waiting10min = {
-      volunteerId: 'waitingfor10min',
-      onlineAndWaitingInMs: minutesInMs(10),
-      timeSinceLastSessionInMs: daysInMs(1),
-    }
-    const result = rankCoaches(
+    const waiting1min = candidate('waitingfor1min', {
+      onlineMinutesAgo: 1,
+      lastSessionDaysAgo: 1,
+    })
+    const waiting10min = candidate('waitingfor10min', {
+      onlineMinutesAgo: 10,
+      lastSessionDaysAgo: 1,
+    })
+    const result = rank(
       {
+        now: NOW,
         candidates: [waiting1min, waiting10min],
       },
       scorecard
     )
 
     expect(result).toStrictEqual({
-      scorecardVersion: '2',
+      scorecardVersion: '3',
+      now: NOW,
       ranked: [
         {
           candidate: waiting10min,
-          metricScores: { daysSinceLastSession: 1, timeWaitingForSession: 10 },
+          metricScores: {
+            daysSinceLastSession: 1,
+            timeWaitingForSession: 10,
+            sessionCountBonusForCalendarYear: 0,
+          },
           score: 11,
         },
         {
           candidate: waiting1min,
-          metricScores: { daysSinceLastSession: 1, timeWaitingForSession: 1 },
+          metricScores: {
+            daysSinceLastSession: 1,
+            timeWaitingForSession: 1,
+            sessionCountBonusForCalendarYear: 0,
+          },
           score: 2,
         },
       ],
@@ -73,34 +77,42 @@ describe('rankCoaches', () => {
 
   test('gives no daysSinceLastSession points to a coach who has never had a session', () => {
     const scorecard = DEFAULT_SCORECARD
-    const neverHadSession = {
-      volunteerId: 'neverHadSession',
-      onlineAndWaitingInMs: minutesInMs(10),
-      timeSinceLastSessionInMs: null,
-    }
-    const hadSessionYesterday = {
-      volunteerId: 'hadSessionYesterday',
-      onlineAndWaitingInMs: minutesInMs(10),
-      timeSinceLastSessionInMs: daysInMs(1),
-    }
-    const result = rankCoaches(
+    const neverHadSession = candidate('neverHadSession', {
+      onlineMinutesAgo: 10,
+      lastSessionDaysAgo: null,
+    })
+    const hadSessionYesterday = candidate('hadSessionYesterday', {
+      onlineMinutesAgo: 10,
+      lastSessionDaysAgo: 1,
+    })
+    const result = rank(
       {
+        now: NOW,
         candidates: [neverHadSession, hadSessionYesterday],
       },
       scorecard
     )
 
     expect(result).toStrictEqual({
-      scorecardVersion: '2',
+      scorecardVersion: '3',
+      now: NOW,
       ranked: [
         {
           candidate: hadSessionYesterday,
-          metricScores: { daysSinceLastSession: 1, timeWaitingForSession: 10 },
+          metricScores: {
+            daysSinceLastSession: 1,
+            timeWaitingForSession: 10,
+            sessionCountBonusForCalendarYear: 0,
+          },
           score: 11,
         },
         {
           candidate: neverHadSession,
-          metricScores: { daysSinceLastSession: 0, timeWaitingForSession: 10 },
+          metricScores: {
+            daysSinceLastSession: 0,
+            timeWaitingForSession: 10,
+            sessionCountBonusForCalendarYear: 0,
+          },
           score: 10,
         },
       ],
@@ -109,37 +121,64 @@ describe('rankCoaches', () => {
 
   test('tie breaks on volunteer id', () => {
     const scorecard = DEFAULT_SCORECARD
-    const a = {
-      volunteerId: 'waitingfor10minA',
-      onlineAndWaitingInMs: minutesInMs(10),
-      timeSinceLastSessionInMs: daysInMs(1),
-    }
-    const b = {
-      volunteerId: 'waitingfor10minB',
-      onlineAndWaitingInMs: minutesInMs(10),
-      timeSinceLastSessionInMs: daysInMs(1),
-    }
-    const result = rankCoaches(
+    const a = candidate('waitingfor10minA', {
+      onlineMinutesAgo: 10,
+      lastSessionDaysAgo: 1,
+    })
+    const b = candidate('waitingfor10minB', {
+      onlineMinutesAgo: 10,
+      lastSessionDaysAgo: 1,
+    })
+    const result = rank(
       {
+        now: NOW,
         candidates: [b, a],
       },
       scorecard
     )
 
     expect(result).toStrictEqual({
-      scorecardVersion: '2',
+      scorecardVersion: '3',
+      now: NOW,
       ranked: [
         {
           candidate: a,
-          metricScores: { daysSinceLastSession: 1, timeWaitingForSession: 10 },
+          metricScores: {
+            daysSinceLastSession: 1,
+            timeWaitingForSession: 10,
+            sessionCountBonusForCalendarYear: 0,
+          },
           score: 11,
         },
         {
           candidate: b,
-          metricScores: { daysSinceLastSession: 1, timeWaitingForSession: 10 },
+          metricScores: {
+            daysSinceLastSession: 1,
+            timeWaitingForSession: 10,
+            sessionCountBonusForCalendarYear: 0,
+          },
           score: 11,
         },
       ],
+    })
+  })
+
+  test('scores a metric as 0 when the candidate is missing a fact it needs', () => {
+    const scorecard = DEFAULT_SCORECARD
+    const { sessionCountThisCalendarYear, ...facts } = candidate('noCount', {
+      onlineMinutesAgo: 10,
+      lastSessionDaysAgo: 1,
+      sessionCount: 2,
+    }).facts
+    const result = rank(
+      { now: NOW, candidates: [{ volunteerId: 'noCount', facts }] },
+      scorecard
+    )
+
+    expect(result.ranked[0].metricScores).toStrictEqual({
+      daysSinceLastSession: 1,
+      timeWaitingForSession: 10,
+      sessionCountBonusForCalendarYear: 0,
     })
   })
 })

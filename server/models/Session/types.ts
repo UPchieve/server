@@ -26,6 +26,11 @@ export type VolunteerLastSessionEndedAt = {
   endedAt: Date
 }
 
+export type VolunteerSessionCount = {
+  volunteerId: Ulid
+  sessionCount: number
+}
+
 export type GetSessionByIdResult = {
   id: Ulid
   studentId: Ulid

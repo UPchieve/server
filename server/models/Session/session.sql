@@ -1334,9 +1334,24 @@ FROM
             WHERE
                 sessions.volunteer_id = volunteers.id
                 AND sessions.ended_at IS NOT NULL
+                AND sessions.ended_at - sessions.volunteer_joined_at > :minSessionLength!::int * INTERVAL '1 millisecond'
             ORDER BY
                 sessions.ended_at DESC
             LIMIT 1) AS last_session ON TRUE;
+
+
+/* @name getSessionCountsSinceByVolunteerIds */
+SELECT
+    sessions.volunteer_id,
+    COUNT(*)::int AS session_count
+FROM
+    sessions
+WHERE
+    sessions.volunteer_id = ANY (:volunteerIds!::uuid[])
+    AND sessions.ended_at >= :since!
+    AND sessions.time_tutored > :minSessionLength!::int
+GROUP BY
+    sessions.volunteer_id;
 
 
 /* @name getSessionFlagsBySessionId */

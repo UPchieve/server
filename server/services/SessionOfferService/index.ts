@@ -2,7 +2,7 @@ import { CurrentSession } from '../../types/session'
 import { Ulid } from '../../types/shared'
 import * as MatchScoringService from '../MatchScoringService'
 import * as SessionOfferRepo from '../../models/SessionOffer'
-import { buildScoringCandidates, eligibleCoaches } from './coaches'
+import { eligibleCoaches } from './coaches'
 import { DEFAULT_SCORECARD } from '../MatchScoringService/scorecard'
 import { SUBJECTS } from '../../constants/subjects'
 
@@ -50,14 +50,13 @@ export async function recordShadowOffer(session: CurrentSession) {
   const coaches = await eligibleCoaches(session.subject as SUBJECTS)
   if (!coaches.length) return
 
-  const candidates = await buildScoringCandidates(coaches)
-  if (!candidates.length) return
   const scorecard = DEFAULT_SCORECARD
-  const rankedCoaches = MatchScoringService.rankCoaches(
-    { candidates },
+  const { input, result } = await MatchScoringService.rankCoaches(
+    coaches,
     scorecard
   )
-  const { pending } = initOfferHistory(rankedCoaches, session)
+  if (!result.ranked.length) return
+  const { pending } = initOfferHistory(result, session)
 
   await SessionOfferRepo.insertSessionOffer({
     sessionId: pending.sessionId,
@@ -66,7 +65,7 @@ export async function recordShadowOffer(session: CurrentSession) {
     outcome: 'shadow-offered',
     closedAt: pending.offeredAt,
     scorecardVersion: scorecard.version,
-    input: candidates,
+    input: input.candidates,
     output: pending.scores,
   })
 }

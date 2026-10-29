@@ -33,6 +33,7 @@ describe('SessionOffer repo', () => {
       ]
       const output = {
         scorecardVersion: '1',
+        now: offeredAt,
         ranked: [
           {
             candidate: input[0],
@@ -66,7 +67,7 @@ describe('SessionOffer repo', () => {
           closed_at: offeredAt,
           scorecard_version: output.scorecardVersion,
           input,
-          output,
+          output: { ...output, now: offeredAt.toISOString() },
         }),
       ])
     })

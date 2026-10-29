@@ -1,4 +1,4 @@
-import { Metric } from './metric-scorers'
+import { Metric } from './metrics'
 
 export type Scorecard = Readonly<{
   version: string
@@ -7,7 +7,7 @@ export type Scorecard = Readonly<{
 }>
 
 export const DEFAULT_SCORECARD = {
-  version: '2',
+  version: '3',
   scale: 100,
   metrics: [
     {
@@ -30,6 +30,12 @@ export const DEFAULT_SCORECARD = {
         { from: 0, pointsPerUnit: 1 },
         { from: 7, pointsPerUnit: 2 },
       ],
+    },
+    {
+      name: 'sessionCountBonusForCalendarYear',
+      maxPoints: 30,
+      minSessions: 2,
+      maxSessions: 6,
     },
   ],
 } satisfies Scorecard
