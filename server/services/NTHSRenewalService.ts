@@ -278,6 +278,13 @@ export class NTHSRenewalNotOpenError extends CaughtError {
   readonly defaultClientMessage = 'Chapter renewal is not open right now'
 }
 
+export class NTHSRenewalSuccessorsChangedError extends CaughtError {
+  readonly httpStatus = 409
+  readonly defaultClientMessage =
+    'Who is named changed since you opened the list. Check the list and try again.'
+  readonly code = 'successors_changed'
+}
+
 export class NTHSRenewalCommitmentsRequiredError extends CaughtError {
   readonly httpStatus = 400
   readonly defaultClientMessage =
@@ -288,6 +295,12 @@ export class NTHSRenewalCommitmentsRequiredError extends CaughtError {
 export type NTHSAcceptanceReason = 'renewal'
 export type RenewalCommitments = Record<string, boolean>
 export type NTHSAcceptanceOutcome = 'accepted' | 'has_president'
+
+export type RenewalSuccessorsUpdate = {
+  userIds: Ulid[]
+  expectedUserIds: Ulid[]
+  commitments?: RenewalCommitments
+}
 
 type OpenRenewal = { dates: NTHSRenewalDates; cycle: NTHSRenewalCycle }
 
@@ -530,6 +543,165 @@ function mustAnswerFirst(
 ) {
   return (
     state.viewerCandidacy === 'named' && now >= cycle.successorConfirmationAt
+  )
+}
+
+type SuccessorChange = { add: Ulid[]; remove: Ulid[] }
+
+// From the successor date, an admin who names themselves also accepts in
+// this transaction, so a refusal (no commitments, not cleared) saves none
+// of the names.
+async function changeSuccessors(
+  callerId: Ulid,
+  groupId: Ulid,
+  commitments: RenewalCommitments | undefined,
+  now: Date,
+  planChange: (unanswered: Ulid[]) => SuccessorChange
+): Promise<NTHSRenewalPublic> {
+  const { dates, cycle } = await getOpenRenewal(callerId, now)
+  const schoolYearStartsOn = schoolYearDate(cycle)
+  const changedUserIds = await runInTransaction(async (tc) => {
+    const state = await lockRenewingChapter(callerId, groupId, cycle, tc)
+    if (!isNamingOpen(cycle, now) || state.hasConfirmedPresident) {
+      throw new NTHSRenewalNotOpenError({
+        message: 'NTHS successor naming is closed for this chapter',
+        context: { groupId },
+      })
+    }
+    const caller = await ensureEligibleMember(callerId, groupId, tc)
+    if (caller.roleName !== 'admin') {
+      throw notEligible(callerId, groupId)
+    }
+
+    const successors = await NTHSRenewalRepo.getRenewalSuccessors(
+      groupId,
+      schoolYearStartsOn,
+      tc
+    )
+    const unanswered = successors
+      .filter(({ accepted }) => accepted === null)
+      .map(({ userId }) => userId)
+    const { add, remove } = planChange(unanswered)
+    if (mustAnswerFirst(state, cycle, now) && (add.length || remove.length)) {
+      throw new NTHSRenewalNotOpenError({
+        message: 'A named successor answers before changing the list',
+        context: { groupId },
+      })
+    }
+    await ensureNameable(groupId, add, successors, tc)
+
+    const callerNamed = add.includes(callerId) || unanswered.includes(callerId)
+    const callerAccepts = callerNamed && now >= cycle.successorConfirmationAt
+    let acceptedCommitments: Record<string, true> | null = null
+    if (callerAccepts) {
+      await ensureCleared(callerId, caller, tc)
+      acceptedCommitments = commitmentsToStore(caller, commitments)
+    }
+
+    if (remove.length) {
+      await NTHSRenewalRepo.deleteUnansweredRenewalNominations(
+        groupId,
+        schoolYearStartsOn,
+        remove,
+        tc
+      )
+    }
+    if (add.length) {
+      await NTHSRenewalRepo.insertRenewalNominations(
+        groupId,
+        schoolYearStartsOn,
+        add,
+        callerId,
+        tc
+      )
+    }
+    if (!callerAccepts) return []
+    return await writeAcceptance(
+      caller,
+      state,
+      schoolYearStartsOn,
+      acceptedCommitments,
+      tc
+    )
+  })
+  await syncChangedMembers(changedUserIds)
+  return await renewalAfterWrite(callerId, groupId, dates, now)
+}
+
+async function ensureNameable(
+  groupId: Ulid,
+  userIds: Ulid[],
+  successors: NTHSRenewalSuccessor[],
+  tc: TransactionClient
+) {
+  if (!userIds.length) return
+  const members = await NTHSGroupsRepo.getGroupMembers(groupId, tc, {
+    excludeClosedAccounts: true,
+  })
+  const currentIds = new Set(members.map(({ userId }) => userId))
+  const answeredIds = new Set(
+    successors
+      .filter(({ accepted }) => accepted !== null)
+      .map(({ userId }) => userId)
+  )
+  for (const userId of userIds) {
+    if (!currentIds.has(userId)) {
+      throw new InputError('Only a current member of the chapter can be named')
+    }
+    if (answeredIds.has(userId)) {
+      throw new InputError(
+        'A member who stepped down this school year cannot be named again'
+      )
+    }
+  }
+}
+
+export async function setRenewalSuccessors(
+  callerId: Ulid,
+  groupId: Ulid,
+  update: RenewalSuccessorsUpdate,
+  now: Date
+): Promise<NTHSRenewalPublic> {
+  return await changeSuccessors(
+    callerId,
+    groupId,
+    update.commitments,
+    now,
+    (unanswered) => {
+      const expected = new Set(update.expectedUserIds)
+      if (
+        expected.size !== unanswered.length ||
+        !unanswered.every((userId) => expected.has(userId))
+      ) {
+        throw new NTHSRenewalSuccessorsChangedError({
+          message: 'NTHS successor list changed since it was loaded',
+          context: { groupId },
+        })
+      }
+      const wanted = new Set(update.userIds)
+      return {
+        add: [...wanted].filter((userId) => !unanswered.includes(userId)),
+        remove: unanswered.filter((userId) => !wanted.has(userId)),
+      }
+    }
+  )
+}
+
+export async function nameSelfAsSuccessor(
+  callerId: Ulid,
+  groupId: Ulid,
+  { commitments }: { commitments?: RenewalCommitments },
+  now: Date
+): Promise<NTHSRenewalPublic> {
+  return await changeSuccessors(
+    callerId,
+    groupId,
+    commitments,
+    now,
+    (unanswered) => ({
+      add: unanswered.includes(callerId) ? [] : [callerId],
+      remove: [],
+    })
   )
 }
 

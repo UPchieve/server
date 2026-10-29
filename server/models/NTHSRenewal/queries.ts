@@ -1,5 +1,11 @@
 import { getClient, TransactionClient } from '../../db'
-import { RepoReadError, RepoUpdateError, RepoUpsertError } from '../Errors'
+import {
+  RepoCreateError,
+  RepoDeleteError,
+  RepoReadError,
+  RepoUpdateError,
+  RepoUpsertError,
+} from '../Errors'
 import { makeSomeRequired, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 
@@ -89,6 +95,39 @@ export async function getRenewalSuccessors(
     })
   } catch (err) {
     throw new RepoReadError(err)
+  }
+}
+
+export async function insertRenewalNominations(
+  groupId: Ulid,
+  schoolYearStartsOn: string,
+  userIds: Ulid[],
+  namedBy: Ulid,
+  tc: TransactionClient
+): Promise<void> {
+  try {
+    await pgQueries.insertRenewalNominations.run(
+      { groupId, schoolYearStartsOn, userIds, namedBy },
+      tc
+    )
+  } catch (err) {
+    throw new RepoCreateError(err)
+  }
+}
+
+export async function deleteUnansweredRenewalNominations(
+  groupId: Ulid,
+  schoolYearStartsOn: string,
+  userIds: Ulid[],
+  tc: TransactionClient
+): Promise<void> {
+  try {
+    await pgQueries.deleteUnansweredRenewalNominations.run(
+      { groupId, schoolYearStartsOn, userIds },
+      tc
+    )
+  } catch (err) {
+    throw new RepoDeleteError(err)
   }
 }
 

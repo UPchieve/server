@@ -28,7 +28,13 @@ import type {
 } from '../../models/NTHSGroups'
 import { isNthsTitle, NTHS_TITLES } from '../../constants/nths-titles'
 import type { UpdateGroupMemberRequest } from '../../services/NTHSGroupsService'
-import { asDate, asObject, asUuid, isUuid } from '../../utils/type-utils'
+import {
+  asArray,
+  asDate,
+  asObject,
+  asUuid,
+  isUuid,
+} from '../../utils/type-utils'
 import { ONE_DAY_ELAPSED_MILLISECONDS } from '../../constants/time'
 import { toNTHSChecklistPublic } from '../../contracts/nths-checklist.mappers'
 import { isNTHSChecklistItemStatus } from '../../models/NTHSChecklistProgress'
@@ -51,7 +57,10 @@ import type {
   NTHSRenewalResponse,
   NTHSRenewalSuccessorsResponse,
 } from '../../contracts/nths-group'
-import type { RenewalCommitments } from '../../services/NTHSRenewalService'
+import type {
+  RenewalCommitments,
+  RenewalSuccessorsUpdate,
+} from '../../services/NTHSRenewalService'
 
 function requireActiveGroupMember(role?: NTHSGroupRoleName) {
   return async (req: Request, res: Response, next: NextFunction) => {
@@ -175,6 +184,15 @@ function commitmentsFrom(body: unknown): RenewalCommitments | undefined {
   )
 }
 
+function asSuccessorsUpdate(body: unknown): RenewalSuccessorsUpdate {
+  const { userIds, expectedUserIds } = (body ?? {}) as Record<string, unknown>
+  return {
+    userIds: asArray(asUuid)(userIds, 'userIds'),
+    expectedUserIds: asArray(asUuid)(expectedUserIds, 'expectedUserIds'),
+    commitments: commitmentsFrom(body),
+  }
+}
+
 export function routeNTHSGroups(router: Router): void {
   router
     .route('/nths-groups')
@@ -223,6 +241,46 @@ export function routeNTHSGroups(router: Router): void {
               new Date()
             )
           res.json({ successors, canEditSuccessors })
+        } catch (err) {
+          resError(res, err)
+        }
+      }
+    )
+
+  router
+    .route('/nths-groups/:groupId/renewal/successors')
+    .put(
+      isActiveGroupAdmin,
+      requireClearedToViewMemberInfo,
+      async (req: Request, res: Response<NTHSRenewalResponse>) => {
+        try {
+          const renewal = await NTHSRenewalService.setRenewalSuccessors(
+            extractUser(req).id,
+            req.params.groupId,
+            asSuccessorsUpdate(req.body),
+            new Date()
+          )
+          res.json({ renewal })
+        } catch (err) {
+          resError(res, err)
+        }
+      }
+    )
+
+  router
+    .route('/nths-groups/:groupId/renewal/successors/self')
+    .post(
+      isActiveGroupAdmin,
+      requireClearedToViewMemberInfo,
+      async (req: Request, res: Response<NTHSRenewalResponse>) => {
+        try {
+          const renewal = await NTHSRenewalService.nameSelfAsSuccessor(
+            extractUser(req).id,
+            req.params.groupId,
+            { commitments: commitmentsFrom(req.body) },
+            new Date()
+          )
+          res.json({ renewal })
         } catch (err) {
           resError(res, err)
         }

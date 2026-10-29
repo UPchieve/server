@@ -61,6 +61,26 @@ WHERE
     AND users.deleted IS NOT TRUE;
 
 
+/* @name insertRenewalNominations */
+INSERT INTO nths_group_renewal_candidates (nths_group_id, school_year_starts_on, user_id, named_at, named_by)
+SELECT
+    :groupId!,
+    :schoolYearStartsOn!::date,
+    nominee_id,
+    NOW(),
+    :namedBy!
+FROM
+    unnest(:userIds!::uuid[]) AS nominee_id;
+
+
+/* @name deleteUnansweredRenewalNominations */
+DELETE FROM nths_group_renewal_candidates
+WHERE nths_group_id = :groupId!
+    AND school_year_starts_on = :schoolYearStartsOn!::date
+    AND user_id = ANY (:userIds!)
+    AND accepted IS NULL;
+
+
 /* Keeps named_at and named_by on a named member's row. */
 /* @name upsertRenewalAnswer */
 INSERT INTO nths_group_renewal_candidates (nths_group_id, school_year_starts_on, user_id, accepted, responded_at, commitments)

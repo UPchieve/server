@@ -1084,6 +1084,7 @@ describe('routeNTHSGroups', () => {
       canNameSelf: false,
       namingSelfAccepts: false,
     } as const
+    const successorsBody = { userIds: [memberId], expectedUserIds: [] }
 
     test.each([
       [
@@ -1096,6 +1097,30 @@ describe('routeNTHSGroups', () => {
             canEditSuccessors: true,
           }),
         { successors: [], canEditSuccessors: true },
+      ],
+      [
+        'PUT /renewal/successors',
+        'admin',
+        () =>
+          sendPut(
+            `/api/nths-groups/${groupId}/renewal/successors`,
+            successorsBody
+          ),
+        () =>
+          mockedNTHSRenewalService.setRenewalSuccessors.mockResolvedValueOnce(
+            renewal
+          ),
+        { renewal },
+      ],
+      [
+        'POST /renewal/successors/self',
+        'admin',
+        () => sendPost(`/api/nths-groups/${groupId}/renewal/successors/self`),
+        () =>
+          mockedNTHSRenewalService.nameSelfAsSuccessor.mockResolvedValueOnce(
+            renewal
+          ),
+        { renewal },
       ],
       [
         'POST /renewal/accept',
@@ -1165,6 +1190,20 @@ describe('routeNTHSGroups', () => {
         'GET /renewal',
         () => sendGet(`/api/nths-groups/${groupId}/renewal`),
         'getRenewalSuccessors',
+      ],
+      [
+        'PUT /renewal/successors',
+        () =>
+          sendPut(
+            `/api/nths-groups/${groupId}/renewal/successors`,
+            successorsBody
+          ),
+        'setRenewalSuccessors',
+      ],
+      [
+        'POST /renewal/successors/self',
+        () => sendPost(`/api/nths-groups/${groupId}/renewal/successors/self`),
+        'nameSelfAsSuccessor',
       ],
     ] as const)(
       '%s refuses an admin the member-info gate does not clear',
