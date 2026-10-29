@@ -1076,6 +1076,61 @@ describe('routeNTHSGroups', () => {
     )
   })
 
+  describe('renewal routes', () => {
+    test.each([
+      [
+        'GET /renewal',
+        'admin',
+        () => sendGet(`/api/nths-groups/${groupId}/renewal`),
+        () =>
+          mockedNTHSRenewalService.getRenewalSuccessors.mockResolvedValueOnce({
+            successors: [],
+            canEditSuccessors: true,
+          }),
+        { successors: [], canEditSuccessors: true },
+      ],
+    ] as const)(
+      '%s needs an active %s and responds under named keys',
+      async (_label, role, send, mockService, body) => {
+        mockedNTHSGroupsService.getActiveGroupMember.mockResolvedValueOnce(
+          role === 'admin'
+            ? buildNTHSGroupMemberWithRole({ roleName: 'member' })
+            : undefined
+        )
+        expect((await send()).status).toBe(403)
+
+        mockedNTHSGroupsService.getActiveGroupMember.mockResolvedValueOnce(
+          buildNTHSGroupMemberWithRole({ roleName: role })
+        )
+        mockService()
+        const response = await send()
+        expect(response.status).toBe(200)
+        expect(response.body).toEqual(body)
+      }
+    )
+
+    test.each([
+      [
+        'GET /renewal',
+        () => sendGet(`/api/nths-groups/${groupId}/renewal`),
+        'getRenewalSuccessors',
+      ],
+    ] as const)(
+      '%s refuses an admin the member-info gate does not clear',
+      async (_label, send, service) => {
+        mockedNTHSGroupsService.getActiveGroupMember.mockResolvedValueOnce(
+          buildNTHSGroupMemberWithRole({ roleName: 'admin' })
+        )
+        mockedNTHSGroupsService.isClearedToViewChapterMemberInfo.mockResolvedValueOnce(
+          false
+        )
+
+        expect((await send()).status).toBe(403)
+        expect(mockedNTHSRenewalService[service]).not.toHaveBeenCalled()
+      }
+    )
+  })
+
   describe('the member-info gate', () => {
     test.each([
       [

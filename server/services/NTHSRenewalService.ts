@@ -2,9 +2,15 @@ import type { NTHSRenewalPublic } from '../contracts/nths-group'
 import { schoolYearFor } from '../utils/school-year'
 import type { NTHSTitle } from '../constants/nths-titles'
 import type { Ulid } from '../models/pgUtils'
+import { CaughtError } from '../models/Errors'
 import type { NTHSGroupWithMemberInfo } from '../models/NTHSGroups'
 import * as NTHSRenewalRepo from '../models/NTHSRenewal'
-import type { NTHSRenewalCandidacy } from '../models/NTHSRenewal'
+import type {
+  NTHSRenewalCandidacy,
+  NTHSRenewalState,
+  NTHSRenewalSuccessor,
+} from '../models/NTHSRenewal'
+import { getUsersBanStatuses } from '../models/User'
 import {
   getNthsChapterRenewalDates,
   type NTHSRenewalDates,
@@ -84,11 +90,18 @@ export function nextRenewalCycle(
   return cycleFor(dates, year + 1)
 }
 
+function isChapterRenewing(
+  chapter: { createdAt: Date; closedAt: Date | null },
+  cycle: NTHSRenewalCycle
+): boolean {
+  return !chapter.closedAt && chapter.createdAt < cycle.schoolYearStartsOn
+}
+
 function renewingCycle(input: RenewalPromptInput): NTHSRenewalCycle | null {
   const { dates, now, chapter } = input
-  if (!dates || chapter.closedAt) return null
+  if (!dates) return null
   const cycle = nextRenewalCycle(dates, now)
-  return chapter.createdAt < cycle.schoolYearStartsOn ? cycle : null
+  return isChapterRenewing(chapter, cycle) ? cycle : null
 }
 
 function promptFor(
@@ -166,6 +179,11 @@ function offRenewal(group: NTHSGroupWithMemberInfo): NTHSRenewalPublic {
   }
 }
 
+async function getRenewalDates(userId: Ulid): Promise<NTHSRenewalDates | null> {
+  if (!(await isNthsChapterRenewalEnabled(userId))) return null
+  return await getNthsChapterRenewalDates()
+}
+
 export async function getRenewalsForViewer(
   userId: Ulid,
   groups: NTHSGroupWithMemberInfo[],
@@ -209,4 +227,96 @@ export async function getRenewalsForViewer(
     })
   }
   return renewals
+}
+
+// Generic on purpose: naming the reason would tell a shadow-banned member they
+// are banned.
+export class NTHSRenewalNotEligibleError extends CaughtError {
+  readonly httpStatus = 403
+  readonly defaultClientMessage =
+    'You are not currently eligible to take part in chapter renewal'
+}
+
+export class NTHSRenewalNotOpenError extends CaughtError {
+  readonly httpStatus = 422
+  readonly defaultClientMessage = 'Chapter renewal is not open right now'
+}
+
+type OpenRenewal = { dates: NTHSRenewalDates; cycle: NTHSRenewalCycle }
+
+function schoolYearDate(cycle: NTHSRenewalCycle): string {
+  return cycle.schoolYearStartsOn.toISOString().slice(0, 10)
+}
+
+async function getOpenRenewal(userId: Ulid, now: Date): Promise<OpenRenewal> {
+  const dates = await getRenewalDates(userId)
+  if (!dates) {
+    throw new NTHSRenewalNotOpenError({
+      message: 'NTHS chapter renewal is off',
+      context: { userId },
+    })
+  }
+  return { dates, cycle: nextRenewalCycle(dates, now) }
+}
+
+function isRenewing(
+  state: NTHSRenewalState | undefined,
+  cycle: NTHSRenewalCycle
+): state is NTHSRenewalState {
+  return !!state && isChapterRenewing(state, cycle)
+}
+
+function isNamingOpen(cycle: NTHSRenewalCycle, now: Date): boolean {
+  return now >= cycle.nominationsOpenAt && now < cycle.memberStageAt
+}
+
+function notEligible(userId: Ulid, groupId: Ulid) {
+  return new NTHSRenewalNotEligibleError({
+    message: 'Member is not eligible for NTHS renewal',
+    context: { userId, groupId },
+  })
+}
+
+async function ensureNotBanned(userId: Ulid, groupId: Ulid) {
+  const [banStatus] = await getUsersBanStatuses([userId])
+  if (banStatus?.banType) {
+    throw notEligible(userId, groupId)
+  }
+}
+
+export async function getRenewalSuccessors(
+  userId: Ulid,
+  groupId: Ulid,
+  now: Date
+): Promise<{ successors: NTHSRenewalSuccessor[]; canEditSuccessors: boolean }> {
+  const { cycle } = await getOpenRenewal(userId, now)
+  await ensureNotBanned(userId, groupId)
+  const schoolYearStartsOn = schoolYearDate(cycle)
+  const state = await NTHSRenewalRepo.getNthsRenewalState(
+    groupId,
+    userId,
+    schoolYearStartsOn
+  )
+  const successors = await NTHSRenewalRepo.getRenewalSuccessors(
+    groupId,
+    schoolYearStartsOn
+  )
+  return {
+    successors,
+    canEditSuccessors:
+      isRenewing(state, cycle) &&
+      !state.hasConfirmedPresident &&
+      isNamingOpen(cycle, now) &&
+      !mustAnswerFirst(state, cycle, now),
+  }
+}
+
+function mustAnswerFirst(
+  state: NTHSRenewalState,
+  cycle: NTHSRenewalCycle,
+  now: Date
+) {
+  return (
+    state.viewerCandidacy === 'named' && now >= cycle.successorConfirmationAt
+  )
 }

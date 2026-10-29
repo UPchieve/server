@@ -36,3 +36,27 @@ FROM
 WHERE
     nths_groups.id = :groupId!;
 
+
+/* @name getRenewalSuccessors */
+SELECT
+    candidates.user_id,
+    users.first_name,
+    LEFT (users.last_name,
+        1) AS last_initial,
+    candidates.accepted,
+    namers.first_name AS "named_by_first_name?",
+    LEFT (namers.last_name,
+        1) AS named_by_last_initial
+FROM
+    nths_group_renewal_candidates candidates
+    JOIN nths_group_members members ON members.nths_group_id = candidates.nths_group_id
+        AND members.user_id = candidates.user_id
+        AND members.deactivated_at IS NULL
+    JOIN users ON users.id = candidates.user_id
+    LEFT JOIN users namers ON namers.id = candidates.named_by
+        AND namers.deleted IS NOT TRUE
+WHERE
+    candidates.nths_group_id = :groupId!
+    AND candidates.school_year_starts_on = :schoolYearStartsOn!::date
+    AND users.deleted IS NOT TRUE;
+

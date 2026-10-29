@@ -54,6 +54,19 @@ export type NTHSGroupWithRenewalPublic = NTHSGroupWithMemberInfoPublic & {
   renewal: NTHSRenewalPublic
 }
 
+export type NTHSRenewalSuccessorPublic = {
+  userId: Uuid
+  firstName: string
+  lastInitial: string
+  accepted: boolean | null
+  namedBy: { firstName: string; lastInitial: string } | null
+}
+
+export type NTHSRenewalSuccessorsResponse = {
+  successors: NTHSRenewalSuccessorPublic[]
+  canEditSuccessors: boolean
+}
+
 export type NTHSGroupMemberPublic = {
   nthsGroupId: Uuid
   userId: Uuid

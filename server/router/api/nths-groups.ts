@@ -47,6 +47,7 @@ import type {
   NTHSSchoolAffiliationResponse,
   NTHSChapterImpactResponse,
   NTHSChapterRosterResponse,
+  NTHSRenewalSuccessorsResponse,
 } from '../../contracts/nths-group'
 
 function requireActiveGroupMember(role?: NTHSGroupRoleName) {
@@ -187,6 +188,26 @@ export function routeNTHSGroups(router: Router): void {
         resError(res, error)
       }
     })
+
+  router
+    .route('/nths-groups/:groupId/renewal')
+    .get(
+      isActiveGroupAdmin,
+      requireClearedToViewMemberInfo,
+      async (req: Request, res: Response<NTHSRenewalSuccessorsResponse>) => {
+        try {
+          const { successors, canEditSuccessors } =
+            await NTHSRenewalService.getRenewalSuccessors(
+              extractUser(req).id,
+              req.params.groupId,
+              new Date()
+            )
+          res.json({ successors, canEditSuccessors })
+        } catch (err) {
+          resError(res, err)
+        }
+      }
+    )
 
   router
     .route('/nths-groups/:groupId/members')

@@ -53,3 +53,41 @@ export async function getNthsRenewalState(
     throw new RepoReadError(err)
   }
 }
+
+export type NTHSRenewalSuccessor = {
+  userId: Ulid
+  firstName: string
+  lastInitial: string
+  accepted: boolean | null
+  namedBy: { firstName: string; lastInitial: string } | null
+}
+
+export async function getRenewalSuccessors(
+  groupId: Ulid,
+  schoolYearStartsOn: string,
+  tc: TransactionClient = getClient()
+): Promise<NTHSRenewalSuccessor[]> {
+  try {
+    const rows = await pgQueries.getRenewalSuccessors.run(
+      { groupId, schoolYearStartsOn },
+      tc
+    )
+    return rows.map((row) => {
+      const required = makeSomeRequired(row, ['userId', 'firstName'])
+      return {
+        userId: required.userId,
+        firstName: required.firstName,
+        lastInitial: required.lastInitial ?? '',
+        accepted: required.accepted ?? null,
+        namedBy: required.namedByFirstName
+          ? {
+              firstName: required.namedByFirstName,
+              lastInitial: required.namedByLastInitial ?? '',
+            }
+          : null,
+      }
+    })
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
