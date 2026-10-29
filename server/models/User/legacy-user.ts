@@ -34,7 +34,7 @@ import type { UserRole } from '../../types/users'
 import * as AssignmentsService from '../../services/AssignmentsService'
 import { StudentAssignment } from '../Assignments/types'
 import { RoleContext } from '../../services/UserRolesService'
-import { runInTransaction, TransactionClient } from '../../db'
+import { getRoClient } from '../../db'
 import type { TrainingCourses } from '../../types/training'
 import type { Json } from '../../types/shared'
 import type { Uuid } from '../../types/shared'
@@ -137,153 +137,148 @@ export type LegacyUserModel = {
 
 // TODO: Actually make this legacy and clean this up.
 export async function getLegacyUserObject(
-  userId: Uuid,
-  client?: TransactionClient
+  userId: Uuid
 ): Promise<LegacyUserModel> {
   try {
-    return await runInTransaction(async (dbClient) => {
-      const baseResult = await pgQueries.getLegacyUser.run({ userId }, dbClient)
-      if (!baseResult.length)
-        throw new RepoReadError('Did not find Legacy User object')
-      const baseUser = makeSomeRequired(baseResult[0], [
-        'id',
-        'firstName',
-        'lastName',
-        'createdAt',
-        'email',
-        'verified',
-        'isTestUser',
-        'isDeactivated',
-        'referralCode',
-      ])
+    const dbClient = getRoClient()
+    const baseResult = await pgQueries.getLegacyUser.run({ userId }, dbClient)
+    if (!baseResult.length)
+      throw new RepoReadError('Did not find Legacy User object')
+    const baseUser = makeSomeRequired(baseResult[0], [
+      'id',
+      'firstName',
+      'lastName',
+      'createdAt',
+      'email',
+      'verified',
+      'isTestUser',
+      'isDeactivated',
+      'referralCode',
+    ])
 
-      // manually parse out incoming bigint to number
-      baseUser.hoursTutored =
-        baseUser.hoursTutored || Number(baseUser.hoursTutored)
-      // The frontend still expects ALL possible certification objects on the legacy user
-      // So we get all quizzes and map their name to a fresh QuizInfo object
-      const legacyCertificationsResult =
-        await pgQueries.getLegacyCertifications.run(undefined, dbClient)
-      const legacyCertifications = legacyCertificationsResult.reduce(
-        (agg, v) => {
-          const name = makeRequired(v).name
-          return {
-            ...agg,
-            [name]: {
-              tries: 0,
-              passed: false,
-              lastAttemptedAt: undefined,
-            },
-          }
+    // manually parse out incoming bigint to number
+    baseUser.hoursTutored =
+      baseUser.hoursTutored || Number(baseUser.hoursTutored)
+    // The frontend still expects ALL possible certification objects on the legacy user
+    // So we get all quizzes and map their name to a fresh QuizInfo object
+    const legacyCertificationsResult =
+      await pgQueries.getLegacyCertifications.run(undefined, dbClient)
+    const legacyCertifications = legacyCertificationsResult.reduce((agg, v) => {
+      const name = makeRequired(v).name
+      return {
+        ...agg,
+        [name]: {
+          tries: 0,
+          passed: false,
+          lastAttemptedAt: undefined,
         },
-        {}
+      }
+    }, {})
+    const sessionStats = await getUserSessionStats(userId)
+    const volunteerUser: any = {}
+    const studentUser: any = {}
+    const teacherUser: { usesClever?: boolean; usesClassLink?: boolean } = {}
+    const roleContext = await UserRolesService.getRoleContext(userId, true)
+    const ratings =
+      await SurveyService.getUserPostsessionGoalRatingsMetrics(userId)
+    if (roleContext.isActiveRole('student')) {
+      studentUser.latestRequestedSubjects =
+        await getUsersLatestSubjectsByUserId(baseUser.id)
+      studentUser.usesGoogle =
+        baseUser.issuers?.some((issuer) => issuer.includes('google')) ?? false
+      studentUser.usesClever =
+        baseUser.issuers?.some((issuer) => issuer.includes('clever')) ?? false
+      studentUser.usesClassLink =
+        baseUser.issuers?.some((issuer) => issuer.includes('classlink')) ??
+        false
+      delete baseUser.issuers
+      studentUser.studentAssignments =
+        await AssignmentsService.getAssignmentsByStudentId(baseUser.id)
+      studentUser.favoriteVolunteers =
+        await getFavoriteVolunteersByUserId(userId)
+    }
+    if (roleContext.isActiveRole('volunteer')) {
+      if (!baseUser.subjects) baseUser.subjects = []
+      if (!baseUser.activeSubjects) baseUser.activeSubjects = []
+      if (!baseUser.mutedSubjectAlerts) baseUser.mutedSubjectAlerts = []
+      volunteerUser.availability = await getAvailabilityForVolunteer(
+        userId,
+        dbClient
       )
-      const sessionStats = await getUserSessionStats(userId)
-      const volunteerUser: any = {}
-      const studentUser: any = {}
-      const teacherUser: { usesClever?: boolean; usesClassLink?: boolean } = {}
-      const roleContext = await UserRolesService.getRoleContext(userId, true)
-      const ratings =
-        await SurveyService.getUserPostsessionGoalRatingsMetrics(userId)
-      if (roleContext.isActiveRole('student')) {
-        studentUser.latestRequestedSubjects =
-          await getUsersLatestSubjectsByUserId(baseUser.id)
-        studentUser.usesGoogle =
-          baseUser.issuers?.some((issuer) => issuer.includes('google')) ?? false
-        studentUser.usesClever =
-          baseUser.issuers?.some((issuer) => issuer.includes('clever')) ?? false
-        studentUser.usesClassLink =
-          baseUser.issuers?.some((issuer) => issuer.includes('classlink')) ??
-          false
-        delete baseUser.issuers
-        studentUser.studentAssignments =
-          await AssignmentsService.getAssignmentsByStudentId(baseUser.id)
-        studentUser.favoriteVolunteers =
-          await getFavoriteVolunteersByUserId(userId)
-      }
-      if (roleContext.isActiveRole('volunteer')) {
-        if (!baseUser.subjects) baseUser.subjects = []
-        if (!baseUser.activeSubjects) baseUser.activeSubjects = []
-        if (!baseUser.mutedSubjectAlerts) baseUser.mutedSubjectAlerts = []
-        volunteerUser.availability = await getAvailabilityForVolunteer(
-          userId,
-          dbClient
-        )
-        const references = await getReferencesByVolunteer(userId, dbClient)
-        volunteerUser.references = references.map((ref) => ({
-          ...ref,
-          _id: ref.id,
-          status: ref.status.toUpperCase(),
-        }))
-        baseUser.photoIdStatus = baseUser.photoIdStatus?.toUpperCase()
-        const trainingCourses = await getVolunteerTrainingCourses(
-          userId,
-          dbClient
-        )
-        if (!trainingCourses['upchieve101']) {
-          trainingCourses['upchieve101'] = {
-            userId: baseUser.id,
-            trainingCourse: 'upchieve101',
-            complete: false,
-            completedMaterials: [],
-            progress: 0,
-            createdAt: new Date(),
-          }
-        }
-        // TODO: ask if we want to allow users to take quizzes in subjects they already unlocked
-        volunteerUser.trainingCourses = trainingCourses
-        volunteerUser.certifications = {
-          // legacyCertifications is a map of all of the quizzes defined via the `quizzes` table
-          ...legacyCertifications,
-          ...(await getQuizzesForVolunteers([userId], dbClient))[userId],
-          ...(await getCertificationsForVolunteer([userId], dbClient))[userId],
-        }
-        volunteerUser.hasCompletedVolunteerTraining =
-          await hasCompletedVolunteerTraining(userId, dbClient)
-        const totalActiveCerts = Object.keys(
-          (await getActiveQuizzesForVolunteers([userId], dbClient))[userId]
-        ).length
-        volunteerUser.totalActiveCertifications = totalActiveCerts
-      }
-      if (roleContext.isActiveRole('teacher')) {
-        teacherUser.usesClever =
-          baseUser.issuers?.some((issuer) => issuer.includes('clever')) ?? false
-        teacherUser.usesClassLink =
-          baseUser.issuers?.some((issuer) => issuer.includes('classlink')) ??
-          false
-      }
-
-      // @ts-ignore
-      // TODO: Legacy for frontend, but do not use in backend anymore.
-      // Update references to `user.isAdmin` in high-line to check the `roles` instead.
-      baseUser.isAdmin = roleContext.isAdmin()
-
-      const final = _.merge(
-        {
-          userType: roleContext.activeRole,
-          roles: roleContext.roles,
-        },
-        baseUser,
-        volunteerUser,
-        studentUser,
-        teacherUser,
-        {
-          sessionStats,
-        },
-        { ratings },
-        { roleContext },
-        { pastSessions: baseUser.pastSessions ?? [] },
-        {
-          pastSessionsByRole: {
-            asStudent: baseUser.pastSessionsAsStudent ?? [],
-            asVolunteer: baseUser.pastSessionsAsVolunteer ?? [],
-          },
-        }
+      const references = await getReferencesByVolunteer(userId, dbClient)
+      volunteerUser.references = references.map((ref) => ({
+        ...ref,
+        _id: ref.id,
+        status: ref.status.toUpperCase(),
+      }))
+      baseUser.photoIdStatus = baseUser.photoIdStatus?.toUpperCase()
+      const trainingCourses = await getVolunteerTrainingCourses(
+        userId,
+        dbClient
       )
-      delete final.pastSessionsAsStudent
-      delete final.pastSessionsAsVolunteer
-      return final as LegacyUserModel
-    }, client)
+      if (!trainingCourses['upchieve101']) {
+        trainingCourses['upchieve101'] = {
+          userId: baseUser.id,
+          trainingCourse: 'upchieve101',
+          complete: false,
+          completedMaterials: [],
+          progress: 0,
+          createdAt: new Date(),
+        }
+      }
+      // TODO: ask if we want to allow users to take quizzes in subjects they already unlocked
+      volunteerUser.trainingCourses = trainingCourses
+      volunteerUser.certifications = {
+        // legacyCertifications is a map of all of the quizzes defined via the `quizzes` table
+        ...legacyCertifications,
+        ...(await getQuizzesForVolunteers([userId], dbClient))[userId],
+        ...(await getCertificationsForVolunteer([userId], dbClient))[userId],
+      }
+      volunteerUser.hasCompletedVolunteerTraining =
+        await hasCompletedVolunteerTraining(userId, dbClient)
+      const totalActiveCerts = Object.keys(
+        (await getActiveQuizzesForVolunteers([userId], dbClient))[userId]
+      ).length
+      volunteerUser.totalActiveCertifications = totalActiveCerts
+    }
+    if (roleContext.isActiveRole('teacher')) {
+      teacherUser.usesClever =
+        baseUser.issuers?.some((issuer) => issuer.includes('clever')) ?? false
+      teacherUser.usesClassLink =
+        baseUser.issuers?.some((issuer) => issuer.includes('classlink')) ??
+        false
+    }
+
+    // @ts-ignore
+    // TODO: Legacy for frontend, but do not use in backend anymore.
+    // Update references to `user.isAdmin` in high-line to check the `roles` instead.
+    baseUser.isAdmin = roleContext.isAdmin()
+
+    const final = _.merge(
+      {
+        userType: roleContext.activeRole,
+        roles: roleContext.roles,
+      },
+      baseUser,
+      volunteerUser,
+      studentUser,
+      teacherUser,
+      {
+        sessionStats,
+      },
+      { ratings },
+      { roleContext },
+      { pastSessions: baseUser.pastSessions ?? [] },
+      {
+        pastSessionsByRole: {
+          asStudent: baseUser.pastSessionsAsStudent ?? [],
+          asVolunteer: baseUser.pastSessionsAsVolunteer ?? [],
+        },
+      }
+    )
+    delete final.pastSessionsAsStudent
+    delete final.pastSessionsAsVolunteer
+    return final as LegacyUserModel
   } catch (err) {
     throw new RepoReadError(err)
   }
