@@ -68,7 +68,7 @@ export async function getGroups(userId: Ulid) {
   return await NTHSGroupsRepo.getGroupsByUser(userId)
 }
 
-async function syncNthsUserToSendGrid(userId: Ulid) {
+export async function syncNthsUserToSendGrid(userId: Ulid) {
   await QueueService.add(
     'SyncSendGridContact',
     { delay: SENDGRID_SYNC_DELAY_MS },

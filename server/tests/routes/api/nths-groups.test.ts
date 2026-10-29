@@ -1077,6 +1077,14 @@ describe('routeNTHSGroups', () => {
   })
 
   describe('renewal routes', () => {
+    const renewal = {
+      prompt: 'none',
+      closesOn: null,
+      commitmentsRequired: false,
+      canNameSelf: false,
+      namingSelfAccepts: false,
+    } as const
+
     test.each([
       [
         'GET /renewal',
@@ -1088,6 +1096,16 @@ describe('routeNTHSGroups', () => {
             canEditSuccessors: true,
           }),
         { successors: [], canEditSuccessors: true },
+      ],
+      [
+        'POST /renewal/decline',
+        'member',
+        () => sendPost(`/api/nths-groups/${groupId}/renewal/decline`),
+        () =>
+          mockedNTHSRenewalService.declinePresidency.mockResolvedValueOnce(
+            renewal
+          ),
+        { renewal },
       ],
     ] as const)(
       '%s needs an active %s and responds under named keys',

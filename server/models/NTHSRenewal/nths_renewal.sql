@@ -60,3 +60,12 @@ WHERE
     AND candidates.school_year_starts_on = :schoolYearStartsOn!::date
     AND users.deleted IS NOT TRUE;
 
+
+/* Keeps named_at and named_by on a named member's row. */
+/* @name upsertRenewalAnswer */
+INSERT INTO nths_group_renewal_candidates (nths_group_id, school_year_starts_on, user_id, accepted, responded_at, commitments)
+    VALUES (:groupId!, :schoolYearStartsOn!::date, :userId!, :accepted!, NOW(), :commitments)
+ON CONFLICT ON CONSTRAINT nths_group_renewal_candidates_group_school_year_user_key
+    DO UPDATE SET
+        accepted = EXCLUDED.accepted, responded_at = EXCLUDED.responded_at, commitments = EXCLUDED.commitments, updated_at = NOW();
+

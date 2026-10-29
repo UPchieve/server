@@ -47,6 +47,7 @@ import type {
   NTHSSchoolAffiliationResponse,
   NTHSChapterImpactResponse,
   NTHSChapterRosterResponse,
+  NTHSRenewalResponse,
   NTHSRenewalSuccessorsResponse,
 } from '../../contracts/nths-group'
 
@@ -203,6 +204,24 @@ export function routeNTHSGroups(router: Router): void {
               new Date()
             )
           res.json({ successors, canEditSuccessors })
+        } catch (err) {
+          resError(res, err)
+        }
+      }
+    )
+
+  router
+    .route('/nths-groups/:groupId/renewal/decline')
+    .post(
+      isActiveGroupMember,
+      async (req: Request, res: Response<NTHSRenewalResponse>) => {
+        try {
+          const renewal = await NTHSRenewalService.declinePresidency(
+            extractUser(req).id,
+            req.params.groupId,
+            new Date()
+          )
+          res.json({ renewal })
         } catch (err) {
           resError(res, err)
         }

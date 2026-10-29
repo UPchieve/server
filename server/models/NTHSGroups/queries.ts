@@ -155,6 +155,17 @@ export async function getGroupClosedAtForShare(
   }
 }
 
+export async function lockGroupForMemberChange(
+  groupId: Ulid,
+  tc: TransactionClient
+): Promise<void> {
+  try {
+    await pgQueries.lockGroupForMemberChange.run({ groupId }, tc)
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
 export async function getGroupAdminsContactInfo(
   groupId: Ulid,
   tc: TransactionClient = getRoClient()

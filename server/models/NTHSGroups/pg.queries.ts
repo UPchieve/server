@@ -214,7 +214,7 @@ export interface IGetGroupClosedAtForShareQuery {
   result: IGetGroupClosedAtForShareResult;
 }
 
-const getGroupClosedAtForShareIR: any = {"usedParamSet":{"groupId":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":57,"b":65}]}],"statement":"SELECT\n    closed_at\nFROM\n    nths_groups\nWHERE\n    id = :groupId! FOR SHARE                                                                                                                                                        "};
+const getGroupClosedAtForShareIR: any = {"usedParamSet":{"groupId":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":57,"b":65}]}],"statement":"SELECT\n    closed_at\nFROM\n    nths_groups\nWHERE\n    id = :groupId! FOR SHARE                                                                                     "};
 
 /**
  * Query generated from SQL:
@@ -224,10 +224,44 @@ const getGroupClosedAtForShareIR: any = {"usedParamSet":{"groupId":true},"params
  * FROM
  *     nths_groups
  * WHERE
- *     id = :groupId! FOR SHARE                                                                                                                                                        
+ *     id = :groupId! FOR SHARE                                                                                     
  * ```
  */
 export const getGroupClosedAtForShare = new PreparedQuery<IGetGroupClosedAtForShareParams,IGetGroupClosedAtForShareResult>(getGroupClosedAtForShareIR);
+
+
+/** 'LockGroupForMemberChange' parameters type */
+export interface ILockGroupForMemberChangeParams {
+  groupId: string;
+}
+
+/** 'LockGroupForMemberChange' return type */
+export interface ILockGroupForMemberChangeResult {
+  /** not_pii: Primary key */
+  id: string;
+}
+
+/** 'LockGroupForMemberChange' query type */
+export interface ILockGroupForMemberChangeQuery {
+  params: ILockGroupForMemberChangeParams;
+  result: ILockGroupForMemberChangeResult;
+}
+
+const lockGroupForMemberChangeIR: any = {"usedParamSet":{"groupId":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":50,"b":58}]}],"statement":"SELECT\n    id\nFROM\n    nths_groups\nWHERE\n    id = :groupId!\nFOR NO KEY UPDATE                                                                                                                                                        "};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     id
+ * FROM
+ *     nths_groups
+ * WHERE
+ *     id = :groupId!
+ * FOR NO KEY UPDATE                                                                                                                                                        
+ * ```
+ */
+export const lockGroupForMemberChange = new PreparedQuery<ILockGroupForMemberChangeParams,ILockGroupForMemberChangeResult>(lockGroupForMemberChangeIR);
 
 
 /** 'GetNthsGroupAdminsContactInfo' parameters type */

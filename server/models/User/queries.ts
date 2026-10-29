@@ -197,13 +197,16 @@ export async function getUserById(
   }
 }
 
-export async function getUsersBanStatuses(userIds: Ulid[]): Promise<
+export async function getUsersBanStatuses(
+  userIds: Ulid[],
+  tc: TransactionClient = getClient()
+): Promise<
   {
     id: Ulid
     banType: USER_BAN_TYPES | null
   }[]
 > {
-  const result = await pgQueries.getUserBanStatus.run({ userIds }, getClient())
+  const result = await pgQueries.getUserBanStatus.run({ userIds }, tc)
   return result.map((row) => {
     const camelCased = camelCaseKeys(row)
     return {

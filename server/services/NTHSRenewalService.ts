@@ -2,8 +2,13 @@ import type { NTHSRenewalPublic } from '../contracts/nths-group'
 import { schoolYearFor } from '../utils/school-year'
 import type { NTHSTitle } from '../constants/nths-titles'
 import type { Ulid } from '../models/pgUtils'
-import { CaughtError } from '../models/Errors'
-import type { NTHSGroupWithMemberInfo } from '../models/NTHSGroups'
+import { getClient, runInTransaction, TransactionClient } from '../db'
+import { CaughtError, InputError } from '../models/Errors'
+import * as NTHSGroupsRepo from '../models/NTHSGroups'
+import type {
+  NTHSActiveGroupMember,
+  NTHSGroupWithMemberInfo,
+} from '../models/NTHSGroups'
 import * as NTHSRenewalRepo from '../models/NTHSRenewal'
 import type {
   NTHSRenewalCandidacy,
@@ -15,7 +20,10 @@ import {
   getNthsChapterRenewalDates,
   type NTHSRenewalDates,
 } from './NTHSRenewalDatesService'
-import { getChapterMemberClearance } from './NTHSGroupsService'
+import {
+  getChapterMemberClearance,
+  syncNthsUserToSendGrid,
+} from './NTHSGroupsService'
 import { isNthsChapterRenewalEnabled } from './FeatureFlagService'
 
 export type NTHSRenewalPrompt =
@@ -169,14 +177,23 @@ export function renewalControlsFor(input: RenewalPromptInput): {
   }
 }
 
-function offRenewal(group: NTHSGroupWithMemberInfo): NTHSRenewalPublic {
+type ViewerMembership = Pick<
+  NTHSActiveGroupMember,
+  'nthsGroupId' | 'title' | 'roleName'
+>
+
+function noRenewal(commitmentsRequired: boolean): NTHSRenewalPublic {
   return {
     prompt: 'none',
     closesOn: null,
-    commitmentsRequired: group.memberInfo.title !== PRESIDENT,
+    commitmentsRequired,
     canNameSelf: false,
     namingSelfAccepts: false,
   }
+}
+
+function offRenewal(membership: ViewerMembership): NTHSRenewalPublic {
+  return noRenewal(membership.title !== PRESIDENT)
 }
 
 async function getRenewalDates(userId: Ulid): Promise<NTHSRenewalDates | null> {
@@ -189,26 +206,37 @@ export async function getRenewalsForViewer(
   groups: NTHSGroupWithMemberInfo[],
   now: Date
 ): Promise<NTHSRenewalPublic[]> {
-  if (!(await isNthsChapterRenewalEnabled(userId)))
-    return groups.map(offRenewal)
-  const dates = await getNthsChapterRenewalDates()
-  if (!dates) return groups.map(offRenewal)
+  const memberships = groups.map(({ groupInfo, memberInfo }) => ({
+    nthsGroupId: groupInfo.id,
+    title: memberInfo.title,
+    roleName: memberInfo.roleName,
+  }))
+  const dates = await getRenewalDates(userId)
+  if (!dates) return memberships.map(offRenewal)
+  return await renewalsWithDates(userId, memberships, dates, now)
+}
 
-  const { schoolYearStartsOn } = nextRenewalCycle(dates, now)
+async function renewalsWithDates(
+  userId: Ulid,
+  memberships: ViewerMembership[],
+  dates: NTHSRenewalDates,
+  now: Date
+): Promise<NTHSRenewalPublic[]> {
+  const schoolYearStartsOn = schoolYearDate(nextRenewalCycle(dates, now))
   const { isClearedAsAdmin, isClearedAsMember, isBanned } =
     await getChapterMemberClearance(userId)
   const renewals: NTHSRenewalPublic[] = []
-  for (const group of groups) {
+  for (const membership of memberships) {
     const state = await NTHSRenewalRepo.getNthsRenewalState(
-      group.groupInfo.id,
+      membership.nthsGroupId,
       userId,
-      schoolYearStartsOn.toISOString().slice(0, 10)
+      schoolYearStartsOn
     )
     if (!state) {
-      renewals.push(offRenewal(group))
+      renewals.push(offRenewal(membership))
       continue
     }
-    const isAdmin = group.memberInfo.roleName === 'admin'
+    const isAdmin = membership.roleName === 'admin'
     const input: RenewalPromptInput = {
       dates,
       now,
@@ -221,7 +249,7 @@ export async function getRenewalsForViewer(
       },
     }
     renewals.push({
-      ...offRenewal(group),
+      ...offRenewal(membership),
       ...renewalPromptFor(input),
       ...renewalControlsFor(input),
     })
@@ -270,6 +298,43 @@ function isNamingOpen(cycle: NTHSRenewalCycle, now: Date): boolean {
   return now >= cycle.nominationsOpenAt && now < cycle.memberStageAt
 }
 
+async function lockRenewingChapter(
+  userId: Ulid,
+  groupId: Ulid,
+  cycle: NTHSRenewalCycle,
+  tc: TransactionClient
+): Promise<NTHSRenewalState> {
+  await NTHSGroupsRepo.lockGroupForMemberChange(groupId, tc)
+  const state = await NTHSRenewalRepo.getNthsRenewalState(
+    groupId,
+    userId,
+    schoolYearDate(cycle),
+    tc
+  )
+  if (!isRenewing(state, cycle)) {
+    throw new NTHSRenewalNotOpenError({
+      message: 'NTHS chapter is not renewing',
+      context: { userId, groupId },
+    })
+  }
+  return state
+}
+
+function ensureAnswerWindowOpen(
+  candidacy: NTHSRenewalCandidacy,
+  cycle: NTHSRenewalCycle,
+  now: Date
+) {
+  const opensAt =
+    candidacy === 'named' ? cycle.successorConfirmationAt : cycle.memberStageAt
+  if (now < opensAt || now >= cycle.closesAt) {
+    throw new NTHSRenewalNotOpenError({
+      message: 'NTHS renewal answers are not open for this member',
+      context: { candidacy },
+    })
+  }
+}
+
 function notEligible(userId: Ulid, groupId: Ulid) {
   return new NTHSRenewalNotEligibleError({
     message: 'Member is not eligible for NTHS renewal',
@@ -277,11 +342,50 @@ function notEligible(userId: Ulid, groupId: Ulid) {
   })
 }
 
-async function ensureNotBanned(userId: Ulid, groupId: Ulid) {
-  const [banStatus] = await getUsersBanStatuses([userId])
+async function ensureNotBanned(
+  userId: Ulid,
+  groupId: Ulid,
+  tc?: TransactionClient
+) {
+  const [banStatus] = await getUsersBanStatuses([userId], tc)
   if (banStatus?.banType) {
     throw notEligible(userId, groupId)
   }
+}
+
+async function ensureEligibleMember(
+  userId: Ulid,
+  groupId: Ulid,
+  tc: TransactionClient
+): Promise<NTHSActiveGroupMember> {
+  const member = await NTHSGroupsRepo.getActiveNthsGroupMember(
+    userId,
+    groupId,
+    tc
+  )
+  if (!member) {
+    throw notEligible(userId, groupId)
+  }
+  await ensureNotBanned(userId, groupId, tc)
+  return member
+}
+
+async function renewalAfterWrite(
+  userId: Ulid,
+  groupId: Ulid,
+  dates: NTHSRenewalDates,
+  now: Date
+): Promise<NTHSRenewalPublic> {
+  const membership = await NTHSGroupsRepo.getActiveNthsGroupMember(
+    userId,
+    groupId,
+    getClient()
+  )
+  if (!membership) {
+    return noRenewal(true)
+  }
+  const [renewal] = await renewalsWithDates(userId, [membership], dates, now)
+  return renewal
 }
 
 export async function getRenewalSuccessors(
@@ -319,4 +423,45 @@ function mustAnswerFirst(
   return (
     state.viewerCandidacy === 'named' && now >= cycle.successorConfirmationAt
   )
+}
+
+export async function declinePresidency(
+  userId: Ulid,
+  groupId: Ulid,
+  now: Date
+): Promise<NTHSRenewalPublic> {
+  const { dates, cycle } = await getOpenRenewal(userId, now)
+  const titleChanged = await runInTransaction(async (tc) => {
+    const state = await lockRenewingChapter(userId, groupId, cycle, tc)
+    const candidacy = state.viewerCandidacy
+    if (candidacy !== 'accepted' && candidacy !== 'declined') {
+      ensureAnswerWindowOpen(candidacy, cycle, now)
+    }
+    const member = await ensureEligibleMember(userId, groupId, tc)
+    if (candidacy === 'accepted') {
+      throw new InputError('You already accepted the presidency')
+    }
+    if (candidacy === 'declined') return false
+    if (candidacy === 'none' && state.hasConfirmedPresident) return false
+    await NTHSRenewalRepo.upsertRenewalAnswer(
+      {
+        groupId,
+        schoolYearStartsOn: schoolYearDate(cycle),
+        userId,
+        accepted: false,
+        commitments: null,
+      },
+      tc
+    )
+    if (candidacy !== 'named' || member.title !== PRESIDENT) return false
+    await NTHSGroupsRepo.updateNthsGroupMemberTitle(
+      { userId, nthsGroupId: groupId, title: 'Member' },
+      tc
+    )
+    return true
+  })
+  if (titleChanged) {
+    await syncNthsUserToSendGrid(userId)
+  }
+  return await renewalAfterWrite(userId, groupId, dates, now)
 }

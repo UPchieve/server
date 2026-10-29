@@ -70,6 +70,18 @@ WHERE
     id = :groupId! FOR SHARE;
 
 
+/* NO KEY UPDATE leaves FK checks from rows that reference the chapter
+ unblocked. */
+/* @name lockGroupForMemberChange */
+SELECT
+    id
+FROM
+    nths_groups
+WHERE
+    id = :groupId!
+FOR NO KEY UPDATE;
+
+
 /* Leaving a chapter keeps the nths_group_member_roles row, so without the
  nths_group_members join a departed admin still reads as an admin contact. */
 /* @name getNTHSGroupAdminsContactInfo */

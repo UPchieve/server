@@ -3,6 +3,8 @@ import { PreparedQuery } from '@pgtyped/runtime';
 
 export type DateOrString = Date | string;
 
+export type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
+
 /** 'GetNthsRenewalState' parameters type */
 export interface IGetNthsRenewalStateParams {
   groupId: string;
@@ -102,7 +104,7 @@ export interface IGetRenewalSuccessorsQuery {
   result: IGetRenewalSuccessorsResult;
 }
 
-const getRenewalSuccessorsIR: any = {"usedParamSet":{"groupId":true,"schoolYearStartsOn":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":662,"b":670}]},{"name":"schoolYearStartsOn","required":true,"transform":{"type":"scalar"},"locs":[{"a":715,"b":734}]}],"statement":"SELECT\n    candidates.user_id,\n    users.first_name,\n    LEFT (users.last_name,\n        1) AS last_initial,\n    candidates.accepted,\n    namers.first_name AS \"named_by_first_name?\",\n    LEFT (namers.last_name,\n        1) AS named_by_last_initial\nFROM\n    nths_group_renewal_candidates candidates\n    JOIN nths_group_members members ON members.nths_group_id = candidates.nths_group_id\n        AND members.user_id = candidates.user_id\n        AND members.deactivated_at IS NULL\n    JOIN users ON users.id = candidates.user_id\n    LEFT JOIN users namers ON namers.id = candidates.named_by\n        AND namers.deleted IS NOT TRUE\nWHERE\n    candidates.nths_group_id = :groupId!\n    AND candidates.school_year_starts_on = :schoolYearStartsOn!::date\n    AND users.deleted IS NOT TRUE"};
+const getRenewalSuccessorsIR: any = {"usedParamSet":{"groupId":true,"schoolYearStartsOn":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":662,"b":670}]},{"name":"schoolYearStartsOn","required":true,"transform":{"type":"scalar"},"locs":[{"a":715,"b":734}]}],"statement":"SELECT\n    candidates.user_id,\n    users.first_name,\n    LEFT (users.last_name,\n        1) AS last_initial,\n    candidates.accepted,\n    namers.first_name AS \"named_by_first_name?\",\n    LEFT (namers.last_name,\n        1) AS named_by_last_initial\nFROM\n    nths_group_renewal_candidates candidates\n    JOIN nths_group_members members ON members.nths_group_id = candidates.nths_group_id\n        AND members.user_id = candidates.user_id\n        AND members.deactivated_at IS NULL\n    JOIN users ON users.id = candidates.user_id\n    LEFT JOIN users namers ON namers.id = candidates.named_by\n        AND namers.deleted IS NOT TRUE\nWHERE\n    candidates.nths_group_id = :groupId!\n    AND candidates.school_year_starts_on = :schoolYearStartsOn!::date\n    AND users.deleted IS NOT TRUE                                                          "};
 
 /**
  * Query generated from SQL:
@@ -127,9 +129,42 @@ const getRenewalSuccessorsIR: any = {"usedParamSet":{"groupId":true,"schoolYearS
  * WHERE
  *     candidates.nths_group_id = :groupId!
  *     AND candidates.school_year_starts_on = :schoolYearStartsOn!::date
- *     AND users.deleted IS NOT TRUE
+ *     AND users.deleted IS NOT TRUE                                                          
  * ```
  */
 export const getRenewalSuccessors = new PreparedQuery<IGetRenewalSuccessorsParams,IGetRenewalSuccessorsResult>(getRenewalSuccessorsIR);
+
+
+/** 'UpsertRenewalAnswer' parameters type */
+export interface IUpsertRenewalAnswerParams {
+  accepted: boolean;
+  commitments?: Json | null | void;
+  groupId: string;
+  schoolYearStartsOn: DateOrString;
+  userId: string;
+}
+
+/** 'UpsertRenewalAnswer' return type */
+export type IUpsertRenewalAnswerResult = void;
+
+/** 'UpsertRenewalAnswer' query type */
+export interface IUpsertRenewalAnswerQuery {
+  params: IUpsertRenewalAnswerParams;
+  result: IUpsertRenewalAnswerResult;
+}
+
+const upsertRenewalAnswerIR: any = {"usedParamSet":{"groupId":true,"schoolYearStartsOn":true,"userId":true,"accepted":true,"commitments":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":139,"b":147}]},{"name":"schoolYearStartsOn","required":true,"transform":{"type":"scalar"},"locs":[{"a":150,"b":169}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":178,"b":185}]},{"name":"accepted","required":true,"transform":{"type":"scalar"},"locs":[{"a":188,"b":197}]},{"name":"commitments","required":false,"transform":{"type":"scalar"},"locs":[{"a":207,"b":218}]}],"statement":"INSERT INTO nths_group_renewal_candidates (nths_group_id, school_year_starts_on, user_id, accepted, responded_at, commitments)\n    VALUES (:groupId!, :schoolYearStartsOn!::date, :userId!, :accepted!, NOW(), :commitments)\nON CONFLICT ON CONSTRAINT nths_group_renewal_candidates_group_school_year_user_key\n    DO UPDATE SET\n        accepted = EXCLUDED.accepted, responded_at = EXCLUDED.responded_at, commitments = EXCLUDED.commitments, updated_at = NOW()"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO nths_group_renewal_candidates (nths_group_id, school_year_starts_on, user_id, accepted, responded_at, commitments)
+ *     VALUES (:groupId!, :schoolYearStartsOn!::date, :userId!, :accepted!, NOW(), :commitments)
+ * ON CONFLICT ON CONSTRAINT nths_group_renewal_candidates_group_school_year_user_key
+ *     DO UPDATE SET
+ *         accepted = EXCLUDED.accepted, responded_at = EXCLUDED.responded_at, commitments = EXCLUDED.commitments, updated_at = NOW()
+ * ```
+ */
+export const upsertRenewalAnswer = new PreparedQuery<IUpsertRenewalAnswerParams,IUpsertRenewalAnswerResult>(upsertRenewalAnswerIR);
 
 

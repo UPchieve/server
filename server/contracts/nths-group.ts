@@ -67,6 +67,10 @@ export type NTHSRenewalSuccessorsResponse = {
   canEditSuccessors: boolean
 }
 
+export type NTHSRenewalResponse = {
+  renewal: NTHSRenewalPublic
+}
+
 export type NTHSGroupMemberPublic = {
   nthsGroupId: Uuid
   userId: Uuid

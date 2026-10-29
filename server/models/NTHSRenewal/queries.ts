@@ -1,5 +1,5 @@
 import { getClient, TransactionClient } from '../../db'
-import { RepoReadError } from '../Errors'
+import { RepoReadError, RepoUpsertError } from '../Errors'
 import { makeSomeRequired, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 
@@ -89,5 +89,22 @@ export async function getRenewalSuccessors(
     })
   } catch (err) {
     throw new RepoReadError(err)
+  }
+}
+
+export async function upsertRenewalAnswer(
+  args: {
+    groupId: Ulid
+    schoolYearStartsOn: string
+    userId: Ulid
+    accepted: boolean
+    commitments: Record<string, true> | null
+  },
+  tc: TransactionClient
+): Promise<void> {
+  try {
+    await pgQueries.upsertRenewalAnswer.run(args, tc)
+  } catch (err) {
+    throw new RepoUpsertError(err)
   }
 }
