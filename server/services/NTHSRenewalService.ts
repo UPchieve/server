@@ -22,8 +22,10 @@ import {
 } from './NTHSRenewalDatesService'
 import {
   getChapterMemberClearance,
+  getChapterClearanceGaps,
   syncNthsUserToSendGrid,
 } from './NTHSGroupsService'
+import { COMMITMENTS } from './NTHSApplicationService'
 import { isNthsChapterRenewalEnabled } from './FeatureFlagService'
 
 export type NTHSRenewalPrompt =
@@ -265,10 +267,27 @@ export class NTHSRenewalNotEligibleError extends CaughtError {
     'You are not currently eligible to take part in chapter renewal'
 }
 
+export class NTHSRenewalNotClearedError extends CaughtError {
+  readonly httpStatus = 403
+  readonly defaultClientMessage =
+    'To accept the presidency, add high school student to your occupations and finish onboarding and approval'
+}
+
 export class NTHSRenewalNotOpenError extends CaughtError {
   readonly httpStatus = 422
   readonly defaultClientMessage = 'Chapter renewal is not open right now'
 }
+
+export class NTHSRenewalCommitmentsRequiredError extends CaughtError {
+  readonly httpStatus = 400
+  readonly defaultClientMessage =
+    'Agree to every commitment to accept the presidency'
+  readonly code = 'commitments_required'
+}
+
+export type NTHSAcceptanceReason = 'renewal'
+export type RenewalCommitments = Record<string, boolean>
+export type NTHSAcceptanceOutcome = 'accepted' | 'has_president'
 
 type OpenRenewal = { dates: NTHSRenewalDates; cycle: NTHSRenewalCycle }
 
@@ -370,6 +389,95 @@ async function ensureEligibleMember(
   return member
 }
 
+async function ensureCleared(
+  userId: Ulid,
+  member: NTHSActiveGroupMember,
+  tc: TransactionClient
+) {
+  const isAdmin = member.roleName === 'admin'
+  const { needsOccupation, needsOnboarding } = await getChapterClearanceGaps(
+    userId,
+    isAdmin,
+    tc
+  )
+  if (!needsOccupation && !needsOnboarding) {
+    return
+  }
+  const missing = []
+  if (needsOccupation) {
+    missing.push('add high school student to your occupations')
+  }
+  if (needsOnboarding) {
+    missing.push('finish onboarding and approval')
+  }
+  throw new NTHSRenewalNotClearedError({
+    message: 'Member is not cleared to accept the NTHS presidency',
+    clientMessage: `To accept the presidency, ${missing.join(' and ')}`,
+    context: { userId, isAdmin },
+  })
+}
+
+function commitmentsToStore(
+  member: NTHSActiveGroupMember,
+  commitments: RenewalCommitments | undefined
+): Record<string, true> | null {
+  if (member.title === PRESIDENT) return null
+  if (!COMMITMENTS.every(({ key }) => commitments?.[key] === true)) {
+    throw new NTHSRenewalCommitmentsRequiredError({
+      message: 'NTHS presidency accepted without every commitment',
+    })
+  }
+  return Object.fromEntries(COMMITMENTS.map(({ key }) => [key, true]))
+}
+
+async function writeAcceptance(
+  member: NTHSActiveGroupMember,
+  state: NTHSRenewalState,
+  schoolYearStartsOn: string,
+  commitments: Record<string, true> | null,
+  tc: TransactionClient
+): Promise<Ulid[]> {
+  const { userId, nthsGroupId } = member
+  await NTHSRenewalRepo.upsertRenewalAnswer(
+    {
+      groupId: nthsGroupId,
+      schoolYearStartsOn,
+      userId,
+      accepted: true,
+      commitments,
+    },
+    tc
+  )
+  const changed: Ulid[] = []
+  if (member.roleName !== 'admin' || member.title !== PRESIDENT) {
+    await NTHSGroupsRepo.upsertNthsGroupMemberRole(
+      { userId, nthsGroupId, roleName: 'admin' },
+      tc
+    )
+    await NTHSGroupsRepo.updateNthsGroupMemberTitle(
+      { userId, nthsGroupId, title: PRESIDENT },
+      tc
+    )
+    changed.push(userId)
+  }
+  if (!state.hasConfirmedPresident) {
+    changed.push(
+      ...(await NTHSRenewalRepo.demotePresidentsNotRenewing(
+        nthsGroupId,
+        schoolYearStartsOn,
+        tc
+      ))
+    )
+  }
+  return changed
+}
+
+async function syncChangedMembers(userIds: Ulid[]) {
+  for (const userId of new Set(userIds)) {
+    await syncNthsUserToSendGrid(userId)
+  }
+}
+
 async function renewalAfterWrite(
   userId: Ulid,
   groupId: Ulid,
@@ -423,6 +531,49 @@ function mustAnswerFirst(
   return (
     state.viewerCandidacy === 'named' && now >= cycle.successorConfirmationAt
   )
+}
+
+export async function acceptPresidency(
+  userId: Ulid,
+  groupId: Ulid,
+  acceptance: {
+    reason: NTHSAcceptanceReason
+    commitments?: RenewalCommitments
+  },
+  now: Date
+): Promise<{ renewal: NTHSRenewalPublic; outcome: NTHSAcceptanceOutcome }> {
+  const { dates, cycle } = await getOpenRenewal(userId, now)
+  const { outcome, changedUserIds } = await runInTransaction(async (tc) => {
+    const state = await lockRenewingChapter(userId, groupId, cycle, tc)
+    const alreadyAccepted = state.viewerCandidacy === 'accepted'
+    if (!alreadyAccepted) {
+      ensureAnswerWindowOpen(state.viewerCandidacy, cycle, now)
+    }
+    const member = await ensureEligibleMember(userId, groupId, tc)
+    if (alreadyAccepted) {
+      return { outcome: 'accepted' as const, changedUserIds: [] }
+    }
+    await ensureCleared(userId, member, tc)
+    const commitments = commitmentsToStore(member, acceptance.commitments)
+    if (state.viewerCandidacy !== 'named' && state.hasConfirmedPresident) {
+      return { outcome: 'has_president' as const, changedUserIds: [] }
+    }
+    return {
+      outcome: 'accepted' as const,
+      changedUserIds: await writeAcceptance(
+        member,
+        state,
+        schoolYearDate(cycle),
+        commitments,
+        tc
+      ),
+    }
+  })
+  await syncChangedMembers(changedUserIds)
+  return {
+    renewal: await renewalAfterWrite(userId, groupId, dates, now),
+    outcome,
+  }
 }
 
 export async function declinePresidency(

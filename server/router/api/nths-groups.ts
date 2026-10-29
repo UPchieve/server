@@ -28,7 +28,7 @@ import type {
 } from '../../models/NTHSGroups'
 import { isNthsTitle, NTHS_TITLES } from '../../constants/nths-titles'
 import type { UpdateGroupMemberRequest } from '../../services/NTHSGroupsService'
-import { asDate, asUuid, isUuid } from '../../utils/type-utils'
+import { asDate, asObject, asUuid, isUuid } from '../../utils/type-utils'
 import { ONE_DAY_ELAPSED_MILLISECONDS } from '../../constants/time'
 import { toNTHSChecklistPublic } from '../../contracts/nths-checklist.mappers'
 import { isNTHSChecklistItemStatus } from '../../models/NTHSChecklistProgress'
@@ -47,9 +47,11 @@ import type {
   NTHSSchoolAffiliationResponse,
   NTHSChapterImpactResponse,
   NTHSChapterRosterResponse,
+  NTHSRenewalAcceptResponse,
   NTHSRenewalResponse,
   NTHSRenewalSuccessorsResponse,
 } from '../../contracts/nths-group'
+import type { RenewalCommitments } from '../../services/NTHSRenewalService'
 
 function requireActiveGroupMember(role?: NTHSGroupRoleName) {
   return async (req: Request, res: Response, next: NextFunction) => {
@@ -156,6 +158,23 @@ export function asGroupMemberUpdate(body: unknown): UpdateGroupMemberRequest {
   return { role, title, isActive }
 }
 
+function asCommitments(value: unknown): RenewalCommitments | undefined {
+  if (value == null) return
+  const commitments = asObject(value, 'commitments')
+  for (const [key, agreed] of Object.entries(commitments)) {
+    if (typeof agreed !== 'boolean') {
+      throw new InputError(`commitments.${key} must be a boolean`)
+    }
+  }
+  return commitments as RenewalCommitments
+}
+
+function commitmentsFrom(body: unknown): RenewalCommitments | undefined {
+  return asCommitments(
+    (body as Record<string, unknown> | undefined)?.commitments
+  )
+}
+
 export function routeNTHSGroups(router: Router): void {
   router
     .route('/nths-groups')
@@ -204,6 +223,26 @@ export function routeNTHSGroups(router: Router): void {
               new Date()
             )
           res.json({ successors, canEditSuccessors })
+        } catch (err) {
+          resError(res, err)
+        }
+      }
+    )
+
+  router
+    .route('/nths-groups/:groupId/renewal/accept')
+    .post(
+      isActiveGroupMember,
+      async (req: Request, res: Response<NTHSRenewalAcceptResponse>) => {
+        try {
+          const { renewal, outcome } =
+            await NTHSRenewalService.acceptPresidency(
+              extractUser(req).id,
+              req.params.groupId,
+              { reason: 'renewal', commitments: commitmentsFrom(req.body) },
+              new Date()
+            )
+          res.json({ renewal, outcome })
         } catch (err) {
           resError(res, err)
         }

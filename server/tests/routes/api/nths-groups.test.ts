@@ -1098,6 +1098,17 @@ describe('routeNTHSGroups', () => {
         { successors: [], canEditSuccessors: true },
       ],
       [
+        'POST /renewal/accept',
+        'member',
+        () => sendPost(`/api/nths-groups/${groupId}/renewal/accept`),
+        () =>
+          mockedNTHSRenewalService.acceptPresidency.mockResolvedValueOnce({
+            renewal,
+            outcome: 'accepted',
+          }),
+        { renewal, outcome: 'accepted' },
+      ],
+      [
         'POST /renewal/decline',
         'member',
         () => sendPost(`/api/nths-groups/${groupId}/renewal/decline`),
@@ -1126,6 +1137,28 @@ describe('routeNTHSGroups', () => {
         expect(response.body).toEqual(body)
       }
     )
+
+    test('POST /renewal/accept treats null commitments as none', async () => {
+      mockedNTHSGroupsService.getActiveGroupMember.mockResolvedValueOnce(
+        buildNTHSGroupMemberWithRole({ roleName: 'member' })
+      )
+      mockedNTHSRenewalService.acceptPresidency.mockResolvedValueOnce({
+        renewal,
+        outcome: 'accepted',
+      })
+
+      const response = await sendPost(
+        `/api/nths-groups/${groupId}/renewal/accept`,
+        { commitments: null }
+      )
+      expect(response.status).toBe(200)
+      expect(mockedNTHSRenewalService.acceptPresidency).toHaveBeenCalledWith(
+        mockUser.id,
+        groupId,
+        { reason: 'renewal', commitments: undefined },
+        expect.any(Date)
+      )
+    })
 
     test.each([
       [

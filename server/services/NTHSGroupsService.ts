@@ -801,15 +801,45 @@ function utcPeriodStartsFor(instant: Date): NTHSChapterPeriodStarts {
   }
 }
 
+type ClearanceGaps = { needsOccupation: boolean; needsOnboarding: boolean }
+
+function clearanceGaps(
+  isAdmin: boolean,
+  occupations: VolunteerOccupations[],
+  readyToCoachStatus: Parameters<typeof isReadyToCoach>[0] | undefined
+): ClearanceGaps {
+  return {
+    needsOccupation: !occupations.includes(
+      VolunteerOccupations.HIGH_SCHOOL_STUDENT
+    ),
+    needsOnboarding:
+      !isAdmin && !(readyToCoachStatus && isReadyToCoach(readyToCoachStatus)),
+  }
+}
+
 function isClearedForRole(
   isAdmin: boolean,
   occupations: VolunteerOccupations[],
   readyToCoachStatus: Parameters<typeof isReadyToCoach>[0] | undefined
 ): boolean {
-  if (!occupations.includes(VolunteerOccupations.HIGH_SCHOOL_STUDENT)) {
-    return false
-  }
-  return isAdmin || (!!readyToCoachStatus && isReadyToCoach(readyToCoachStatus))
+  const { needsOccupation, needsOnboarding } = clearanceGaps(
+    isAdmin,
+    occupations,
+    readyToCoachStatus
+  )
+  return !needsOccupation && !needsOnboarding
+}
+
+export async function getChapterClearanceGaps(
+  userId: Ulid,
+  isAdmin: boolean,
+  tc: TransactionClient = getClient()
+): Promise<ClearanceGaps> {
+  const readyToCoach = isAdmin
+    ? []
+    : await getVolunteersReadyToCoachStatus([userId], tc)
+  const occupations = await getVolunteerOccupations(userId, tc)
+  return clearanceGaps(isAdmin, occupations, readyToCoach[0])
 }
 
 // Mirrors the chapter page's member-info gate (high-line src/store/modules/
@@ -821,13 +851,12 @@ export async function isClearedToViewChapterMemberInfo(
   isAdmin: boolean,
   tc: TransactionClient = getClient()
 ): Promise<boolean> {
-  const [[readyToCoachStatus], occupations] = await Promise.all([
-    isAdmin
-      ? Promise.resolve([])
-      : getVolunteersReadyToCoachStatus([userId], tc),
-    getVolunteerOccupations(userId, tc),
-  ])
-  return isClearedForRole(isAdmin, occupations, readyToCoachStatus)
+  const { needsOccupation, needsOnboarding } = await getChapterClearanceGaps(
+    userId,
+    isAdmin,
+    tc
+  )
+  return !needsOccupation && !needsOnboarding
 }
 
 // The ban comes from users.ban_type, since getVolunteersReadyToCoachStatus

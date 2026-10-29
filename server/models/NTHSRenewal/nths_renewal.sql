@@ -69,3 +69,33 @@ ON CONFLICT ON CONSTRAINT nths_group_renewal_candidates_group_school_year_user_k
     DO UPDATE SET
         accepted = EXCLUDED.accepted, responded_at = EXCLUDED.responded_at, commitments = EXCLUDED.commitments, updated_at = NOW();
 
+
+/* @name demotePresidentsNotRenewing */
+UPDATE
+    nths_group_members members
+SET
+    title = 'Member',
+    updated_at = NOW()
+FROM
+    users
+WHERE
+    users.id = members.user_id
+    AND users.deleted IS NOT TRUE
+    AND members.nths_group_id = :groupId!
+    AND members.deactivated_at IS NULL
+    AND members.title = 'President'
+    AND NOT EXISTS (
+        SELECT
+            1
+        FROM
+            nths_group_renewal_candidates candidates
+        WHERE
+            candidates.nths_group_id = members.nths_group_id
+            AND candidates.user_id = members.user_id
+            AND candidates.school_year_starts_on = :schoolYearStartsOn!::date
+            AND (candidates.accepted IS TRUE
+                OR (candidates.named_at IS NOT NULL
+                    AND candidates.accepted IS NULL)))
+RETURNING
+    members.user_id;
+

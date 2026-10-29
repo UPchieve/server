@@ -1,5 +1,5 @@
 import { getClient, TransactionClient } from '../../db'
-import { RepoReadError, RepoUpsertError } from '../Errors'
+import { RepoReadError, RepoUpdateError, RepoUpsertError } from '../Errors'
 import { makeSomeRequired, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 
@@ -106,5 +106,21 @@ export async function upsertRenewalAnswer(
     await pgQueries.upsertRenewalAnswer.run(args, tc)
   } catch (err) {
     throw new RepoUpsertError(err)
+  }
+}
+
+export async function demotePresidentsNotRenewing(
+  groupId: Ulid,
+  schoolYearStartsOn: string,
+  tc: TransactionClient
+): Promise<Ulid[]> {
+  try {
+    const rows = await pgQueries.demotePresidentsNotRenewing.run(
+      { groupId, schoolYearStartsOn },
+      tc
+    )
+    return rows.map((row) => makeSomeRequired(row, ['userId']).userId)
+  } catch (err) {
+    throw new RepoUpdateError(err)
   }
 }

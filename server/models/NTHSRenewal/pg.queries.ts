@@ -168,3 +168,58 @@ const upsertRenewalAnswerIR: any = {"usedParamSet":{"groupId":true,"schoolYearSt
 export const upsertRenewalAnswer = new PreparedQuery<IUpsertRenewalAnswerParams,IUpsertRenewalAnswerResult>(upsertRenewalAnswerIR);
 
 
+/** 'DemotePresidentsNotRenewing' parameters type */
+export interface IDemotePresidentsNotRenewingParams {
+  groupId: string;
+  schoolYearStartsOn: DateOrString;
+}
+
+/** 'DemotePresidentsNotRenewing' return type */
+export interface IDemotePresidentsNotRenewingResult {
+  /** not_pii: Foreign key to upchieve.users */
+  userId: string;
+}
+
+/** 'DemotePresidentsNotRenewing' query type */
+export interface IDemotePresidentsNotRenewingQuery {
+  params: IDemotePresidentsNotRenewingParams;
+  result: IDemotePresidentsNotRenewingResult;
+}
+
+const demotePresidentsNotRenewingIR: any = {"usedParamSet":{"groupId":true,"schoolYearStartsOn":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":205,"b":213}]},{"name":"schoolYearStartsOn","required":true,"transform":{"type":"scalar"},"locs":[{"a":585,"b":604}]}],"statement":"UPDATE\n    nths_group_members members\nSET\n    title = 'Member',\n    updated_at = NOW()\nFROM\n    users\nWHERE\n    users.id = members.user_id\n    AND users.deleted IS NOT TRUE\n    AND members.nths_group_id = :groupId!\n    AND members.deactivated_at IS NULL\n    AND members.title = 'President'\n    AND NOT EXISTS (\n        SELECT\n            1\n        FROM\n            nths_group_renewal_candidates candidates\n        WHERE\n            candidates.nths_group_id = members.nths_group_id\n            AND candidates.user_id = members.user_id\n            AND candidates.school_year_starts_on = :schoolYearStartsOn!::date\n            AND (candidates.accepted IS TRUE\n                OR (candidates.named_at IS NOT NULL\n                    AND candidates.accepted IS NULL)))\nRETURNING\n    members.user_id"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE
+ *     nths_group_members members
+ * SET
+ *     title = 'Member',
+ *     updated_at = NOW()
+ * FROM
+ *     users
+ * WHERE
+ *     users.id = members.user_id
+ *     AND users.deleted IS NOT TRUE
+ *     AND members.nths_group_id = :groupId!
+ *     AND members.deactivated_at IS NULL
+ *     AND members.title = 'President'
+ *     AND NOT EXISTS (
+ *         SELECT
+ *             1
+ *         FROM
+ *             nths_group_renewal_candidates candidates
+ *         WHERE
+ *             candidates.nths_group_id = members.nths_group_id
+ *             AND candidates.user_id = members.user_id
+ *             AND candidates.school_year_starts_on = :schoolYearStartsOn!::date
+ *             AND (candidates.accepted IS TRUE
+ *                 OR (candidates.named_at IS NOT NULL
+ *                     AND candidates.accepted IS NULL)))
+ * RETURNING
+ *     members.user_id
+ * ```
+ */
+export const demotePresidentsNotRenewing = new PreparedQuery<IDemotePresidentsNotRenewingParams,IDemotePresidentsNotRenewingResult>(demotePresidentsNotRenewingIR);
+
+

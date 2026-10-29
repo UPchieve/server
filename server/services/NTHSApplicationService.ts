@@ -39,7 +39,7 @@ type NTHSFormField = {
 }
 
 // The commitments are program policy, so every submittable version asks for them.
-const COMMITMENTS: NTHSFormField[] = [
+export const COMMITMENTS: NTHSFormField[] = [
   { key: 'commitWeeklyHours', type: 'attestation', required: true },
   { key: 'commitRecruitThreeTutors', type: 'attestation', required: true },
   { key: 'commitHostFourMeetings', type: 'attestation', required: true },

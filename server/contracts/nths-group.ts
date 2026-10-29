@@ -6,7 +6,10 @@ import {
 import type { NTHSTitle } from '../constants/nths-titles'
 import { ISODateString } from '../types/dates'
 import { Uuid } from '../types/shared'
-import type { NTHSRenewalPrompt } from '../services/NTHSRenewalService'
+import type {
+  NTHSAcceptanceOutcome,
+  NTHSRenewalPrompt,
+} from '../services/NTHSRenewalService'
 
 export type NTHSGroupPublic = {
   id: Uuid
@@ -69,6 +72,10 @@ export type NTHSRenewalSuccessorsResponse = {
 
 export type NTHSRenewalResponse = {
   renewal: NTHSRenewalPublic
+}
+
+export type NTHSRenewalAcceptResponse = NTHSRenewalResponse & {
+  outcome: NTHSAcceptanceOutcome
 }
 
 export type NTHSGroupMemberPublic = {

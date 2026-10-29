@@ -7,18 +7,25 @@ import { Ulid } from '../../models/pgUtils'
 import { InputError } from '../../models/Errors'
 import { USER_BAN_TYPES } from '../../constants'
 import type { NTHSTitle } from '../../constants/nths-titles'
+import { COMMITMENTS } from '../../services/NTHSApplicationService'
 import * as FeatureFlagService from '../../services/FeatureFlagService'
 import * as NTHSRenewalDatesService from '../../services/NTHSRenewalDatesService'
 import {
+  acceptPresidency,
   declinePresidency,
   getRenewalSuccessors,
+  NTHSRenewalCommitmentsRequiredError,
+  NTHSRenewalNotClearedError,
   NTHSRenewalNotEligibleError,
   NTHSRenewalNotOpenError,
+  type RenewalCommitments,
 } from '../../services/NTHSRenewalService'
 import {
   createChapter,
   createTestUser,
   createTestVolunteer,
+  sqlText,
+  withRealTransaction,
 } from './seed-utils'
 
 jest.mock('../../services/NTHSRenewalDatesService')
@@ -35,6 +42,7 @@ const DATES = {
 }
 const SCHOOL_YEAR = '2027-07-01'
 const FOUNDED_AT = '2027-02-10T15:00:00.000Z'
+const FOUNDED_AFTER_YEAR_START = '2027-07-15T15:00:00.000Z'
 const NAMED_AT = new Date('2027-05-03T15:00:00.000Z')
 const RESPONDED_AT = new Date('2027-08-03T15:00:00.000Z')
 const DEPARTED_AT = '2027-08-05T15:00:00.000Z'
@@ -43,6 +51,13 @@ const JUNE = new Date('2027-06-10T15:00:00.000Z')
 const JULY = new Date('2027-07-20T15:00:00.000Z')
 const AUGUST = new Date('2027-08-12T15:00:00.000Z')
 const SEPTEMBER = new Date('2027-09-16T15:00:00.000Z')
+const OCT_1_BEFORE_CLOSE = new Date('2027-10-01T10:00:00.000Z')
+const OCT_1_AFTER_CLOSE = new Date('2027-10-01T13:00:00.000Z')
+
+const ALL_COMMITMENTS: RenewalCommitments = Object.fromEntries(
+  COMMITMENTS.map(({ key }) => [key, true])
+)
+const ACCEPT = { reason: 'renewal' as const, commitments: ALL_COMMITMENTS }
 
 type MemberOptions = {
   admin?: boolean
@@ -70,7 +85,9 @@ type RefusalError = Error & {
 
 const HTTP_STATUS = new Map<ErrorClass, number>([
   [NTHSRenewalNotEligibleError, 403],
+  [NTHSRenewalNotClearedError, 403],
   [NTHSRenewalNotOpenError, 422],
+  [NTHSRenewalCommitmentsRequiredError, 400],
 ])
 
 async function chapter(
@@ -201,7 +218,10 @@ async function refuses(
   if (HTTP_STATUS.has(error)) {
     expect(err.httpStatus).toBe(HTTP_STATUS.get(error))
   }
-  if (error === NTHSRenewalNotEligibleError) {
+  if (
+    error === NTHSRenewalNotEligibleError ||
+    error === NTHSRenewalNotClearedError
+  ) {
     expect(`${err.message} ${err.clientMessage ?? ''}`).not.toMatch(/ban/i)
   }
   expect(await snapshot(groupId)).toEqual(before)
@@ -230,6 +250,396 @@ function turnRenewalOff() {
     .mocked(FeatureFlagService.isNthsChapterRenewalEnabled)
     .mockResolvedValue(false)
 }
+
+describe('acceptPresidency', () => {
+  test('a named President accepts with no commitments and keeps the title', async () => {
+    const groupId = await chapter()
+    const president = await addMember(groupId, PRESIDENT)
+    await addCandidate(groupId, president, { namedBy: president })
+
+    const result = await acceptPresidency(
+      president,
+      groupId,
+      { reason: 'renewal' },
+      AUGUST
+    )
+
+    expect(result.outcome).toBe('accepted')
+    expect(result.renewal.prompt).toBe('none')
+    expect(await candidate(groupId, president)).toMatchObject({
+      named_by: president,
+      accepted: true,
+      responded_at: expect.anything(),
+      commitments: null,
+    })
+    expect(await memberState(groupId, president)).toEqual({
+      title: 'President',
+      role: 'admin',
+    })
+  })
+
+  test('a named member who agrees to every commitment becomes an admin and President, and the unnamed President becomes a Member who stays admin', async () => {
+    const groupId = await chapter()
+    const outgoing = await addMember(groupId, PRESIDENT)
+    const successor = await addMember(groupId)
+    await addCandidate(groupId, successor, { namedBy: outgoing })
+
+    const result = await acceptPresidency(successor, groupId, ACCEPT, AUGUST)
+
+    expect(result.outcome).toBe('accepted')
+    expect(await candidate(groupId, successor)).toMatchObject({
+      accepted: true,
+      commitments: ALL_COMMITMENTS,
+    })
+    expect(await memberState(groupId, successor)).toEqual({
+      title: 'President',
+      role: 'admin',
+    })
+    expect(await memberState(groupId, outgoing)).toEqual({
+      title: 'Member',
+      role: 'admin',
+    })
+  })
+
+  const [firstKey] = Object.keys(ALL_COMMITMENTS)
+  const { [firstKey]: _dropped, ...missingOne } = ALL_COMMITMENTS
+  test.each<[string, RenewalCommitments | undefined]>([
+    ['no commitments', undefined],
+    ['one commitment missing', missingOne],
+    ['one commitment false', { ...ALL_COMMITMENTS, [firstKey]: false }],
+  ])(
+    'refuses a member without the President title who sends %s',
+    async (_label, commitments) => {
+      const groupId = await chapter()
+      await addMember(groupId, PRESIDENT)
+      const successor = await addMember(groupId)
+      await addCandidate(groupId, successor)
+
+      const err = await refuses(
+        groupId,
+        () =>
+          acceptPresidency(
+            successor,
+            groupId,
+            { reason: 'renewal', commitments },
+            AUGUST
+          ),
+        NTHSRenewalCommitmentsRequiredError
+      )
+      expect(err.code).toBe('commitments_required')
+    }
+  )
+
+  test('another named successor accepts after the chapter is confirmed and nobody loses the President title', async () => {
+    const groupId = await chapter()
+    const first = await addMember(groupId, PRESIDENT)
+    const second = await addMember(groupId, PRESIDENT)
+    const titledByHand = await addMember(groupId, PRESIDENT)
+    await addCandidate(groupId, first, { accepted: true })
+    await addCandidate(groupId, second)
+
+    const result = await acceptPresidency(
+      second,
+      groupId,
+      { reason: 'renewal' },
+      AUGUST
+    )
+
+    expect(result.outcome).toBe('accepted')
+    expect(await candidate(groupId, second)).toMatchObject({ accepted: true })
+    for (const userId of [first, second, titledByHand]) {
+      expect((await memberState(groupId, userId)).title).toBe('President')
+    }
+  })
+
+  test.each([
+    ['accepts before the close instant', OCT_1_BEFORE_CLOSE, true],
+    ['refuses after the close instant', OCT_1_AFTER_CLOSE, false],
+  ])(
+    'a named successor of a confirmed chapter on the day after the close date %s',
+    async (_label, now, accepts) => {
+      const groupId = await chapter()
+      const acceptor = await addMember(groupId, PRESIDENT)
+      const named = await addMember(groupId)
+      await addCandidate(groupId, acceptor, { accepted: true })
+      await addCandidate(groupId, named)
+      const act = () => acceptPresidency(named, groupId, ACCEPT, now)
+
+      if (accepts) {
+        await act()
+        expect(await candidate(groupId, named)).toMatchObject({
+          accepted: true,
+        })
+      } else {
+        await refuses(groupId, act, NTHSRenewalNotOpenError)
+      }
+    }
+  )
+
+  test.each<[string, MemberOptions, RenewalCommitments | undefined]>([
+    ['a plain member who agrees to every commitment', {}, ALL_COMMITMENTS],
+    ['a President with no commitments', PRESIDENT, undefined],
+  ])(
+    'at the member stage an unnamed caller accepts: %s',
+    async (_label, options, commitments) => {
+      const groupId = await chapter()
+      const caller = await addMember(groupId, options)
+
+      const result = await acceptPresidency(
+        caller,
+        groupId,
+        { reason: 'renewal', commitments },
+        SEPTEMBER
+      )
+
+      expect(result.outcome).toBe('accepted')
+      expect(await candidate(groupId, caller)).toMatchObject({
+        named_at: null,
+        named_by: null,
+        accepted: true,
+      })
+      expect(await memberState(groupId, caller)).toEqual({
+        title: 'President',
+        role: 'admin',
+      })
+    }
+  )
+
+  test.each<[string, CandidateOptions | null]>([
+    ['never answered', null],
+    ['stepped down earlier', { accepted: false }],
+  ])(
+    'an unnamed member of a confirmed chapter who %s gets has_president and nothing is written',
+    async (_label, answer) => {
+      const groupId = await chapter()
+      const acceptor = await addMember(groupId, PRESIDENT)
+      const caller = await addMember(groupId)
+      await addCandidate(groupId, acceptor, { accepted: true })
+      if (answer) {
+        await addCandidate(groupId, caller, answer)
+      }
+      const before = await snapshot(groupId)
+
+      const result = await acceptPresidency(caller, groupId, ACCEPT, SEPTEMBER)
+
+      expect(result.outcome).toBe('has_president')
+      expect(result.renewal.prompt).toBe('none')
+      expect(await snapshot(groupId)).toEqual(before)
+    }
+  )
+
+  test.each<[string, CandidateOptions]>([
+    ['stepped down as a named successor', { accepted: false }],
+    ['declined at the member stage', { namedAt: null, accepted: false }],
+  ])(
+    'a member who %s accepts from the member stage and keeps how they were named',
+    async (_label, options) => {
+      const groupId = await chapter()
+      const admin = await addMember(groupId, PRESIDENT)
+      const caller = await addMember(groupId)
+      await addCandidate(groupId, caller, {
+        ...options,
+        namedBy: options.namedAt === null ? null : admin,
+      })
+      const before = await candidate(groupId, caller)
+
+      await acceptPresidency(caller, groupId, ACCEPT, SEPTEMBER)
+
+      expect(await candidate(groupId, caller)).toMatchObject({
+        named_at: before.named_at,
+        named_by: before.named_by,
+        accepted: true,
+      })
+    }
+  )
+
+  test('a named President who hasn’t answered keeps the title when an unnamed member accepts', async () => {
+    const groupId = await chapter()
+    const namedPresident = await addMember(groupId, PRESIDENT)
+    const caller = await addMember(groupId)
+    await addCandidate(groupId, namedPresident)
+
+    await acceptPresidency(caller, groupId, ACCEPT, SEPTEMBER)
+
+    expect((await memberState(groupId, namedPresident)).title).toBe('President')
+    expect((await memberState(groupId, caller)).title).toBe('President')
+  })
+
+  test('once every earlier acceptor has left, the next acceptance strips an unnamed President again', async () => {
+    const groupId = await chapter()
+    const departedAcceptor = await addMember(groupId, {
+      ...PRESIDENT,
+      departed: true,
+    })
+    const titledMeanwhile = await addMember(groupId, PRESIDENT)
+    const named = await addMember(groupId)
+    await addCandidate(groupId, departedAcceptor, { accepted: true })
+    await addCandidate(groupId, named)
+
+    await acceptPresidency(named, groupId, ACCEPT, AUGUST)
+
+    expect(await memberState(groupId, titledMeanwhile)).toEqual({
+      title: 'Member',
+      role: 'admin',
+    })
+  })
+
+  test.each<[string, MemberOptions]>([
+    ['has left the chapter', { ...PRESIDENT, departed: true }],
+    ['has a deleted account', { ...PRESIDENT, deleted: true }],
+  ])(
+    'an unnamed President who %s keeps the title when a successor accepts',
+    async (_label, outgoing) => {
+      const groupId = await chapter()
+      const unnamedPresident = await addMember(groupId, outgoing)
+      const named = await addMember(groupId)
+      await addCandidate(groupId, named)
+
+      await acceptPresidency(named, groupId, ACCEPT, AUGUST)
+
+      expect((await memberState(groupId, unnamedPresident)).title).toBe(
+        'President'
+      )
+    }
+  )
+
+  test.each(Object.values(USER_BAN_TYPES))(
+    'refuses a named successor with a %s ban as not eligible',
+    async (banType) => {
+      const groupId = await chapter()
+      const caller = await addMember(groupId, { ...PRESIDENT, banType })
+      await addCandidate(groupId, caller)
+
+      await refuses(
+        groupId,
+        () => acceptPresidency(caller, groupId, ACCEPT, AUGUST),
+        NTHSRenewalNotEligibleError
+      )
+    }
+  )
+
+  test.each<[string, MemberOptions, Date]>([
+    [
+      'a named member who hasn’t finished onboarding',
+      { onboarded: false },
+      AUGUST,
+    ],
+    [
+      'a named member who isn’t a high school student',
+      { highSchool: false },
+      AUGUST,
+    ],
+    [
+      'an admin who isn’t a high school student, at the member stage',
+      { admin: true, highSchool: false },
+      SEPTEMBER,
+    ],
+  ])('refuses %s as not cleared', async (_label, options, now) => {
+    const groupId = await chapter()
+    const caller = await addMember(groupId, options)
+    if (now === AUGUST) {
+      await addCandidate(groupId, caller)
+    }
+
+    await refuses(
+      groupId,
+      () => acceptPresidency(caller, groupId, ACCEPT, now),
+      NTHSRenewalNotClearedError
+    )
+  })
+
+  test('clears an admin who is a high school student without finishing onboarding', async () => {
+    const groupId = await chapter()
+    const caller = await addMember(groupId, { ...PRESIDENT, onboarded: false })
+    await addCandidate(groupId, caller)
+
+    await acceptPresidency(caller, groupId, { reason: 'renewal' }, AUGUST)
+
+    expect(await candidate(groupId, caller)).toMatchObject({ accepted: true })
+  })
+
+  type WindowScenario = {
+    now: Date
+    candidate?: CandidateOptions
+    foundedAt?: string
+    flagOff?: boolean
+  }
+  test.each<[string, WindowScenario]>([
+    ['a named member before the successor date', { now: JULY, candidate: {} }],
+    ['an unnamed member before the member stage', { now: AUGUST }],
+    [
+      'a member who stepped down, before the member stage',
+      { now: AUGUST, candidate: { accepted: false } },
+    ],
+    [
+      'a member of a chapter founded after the school year began',
+      { now: SEPTEMBER, foundedAt: FOUNDED_AFTER_YEAR_START },
+    ],
+    [
+      'a named member while renewal is off',
+      { now: AUGUST, candidate: {}, flagOff: true },
+    ],
+  ])('refuses %s', async (_label, scenario) => {
+    const groupId = await chapter(scenario)
+    const caller = await addMember(groupId)
+    if (scenario.candidate) {
+      await addCandidate(groupId, caller, scenario.candidate)
+    }
+    if (scenario.flagOff) {
+      turnRenewalOff()
+    }
+
+    await refuses(
+      groupId,
+      () => acceptPresidency(caller, groupId, ACCEPT, scenario.now),
+      NTHSRenewalNotOpenError
+    )
+  })
+
+  test('refuses a named successor who has left the chapter', async () => {
+    const groupId = await chapter()
+    const caller = await addMember(groupId, { departed: true })
+    await addCandidate(groupId, caller)
+
+    await refuses(
+      groupId,
+      () => acceptPresidency(caller, groupId, ACCEPT, AUGUST),
+      NTHSRenewalNotEligibleError
+    )
+  })
+
+  test('stores only the program commitments', async () => {
+    const groupId = await chapter()
+    await addMember(groupId, PRESIDENT)
+    const successor = await addMember(groupId)
+    await addCandidate(groupId, successor)
+
+    await acceptPresidency(
+      successor,
+      groupId,
+      { ...ACCEPT, commitments: { ...ALL_COMMITMENTS, extra: true } },
+      AUGUST
+    )
+
+    expect((await candidate(groupId, successor)).commitments).toEqual(
+      ALL_COMMITMENTS
+    )
+  })
+
+  test('a named successor who accepts again gets accepted and nothing changes', async () => {
+    const groupId = await chapter()
+    await addMember(groupId, PRESIDENT)
+    const successor = await addMember(groupId)
+    await addCandidate(groupId, successor)
+    await acceptPresidency(successor, groupId, ACCEPT, AUGUST)
+    const before = await snapshot(groupId)
+
+    const result = await acceptPresidency(successor, groupId, ACCEPT, AUGUST)
+
+    expect(result.outcome).toBe('accepted')
+    expect(await snapshot(groupId)).toEqual(before)
+  })
+})
 
 describe('declinePresidency', () => {
   test('a named President steps down from the successor date, loses the title and stays admin', async () => {
@@ -479,4 +889,65 @@ test('the database allows one candidate row per chapter, school year and member'
   ).rejects.toMatchObject({
     constraint: 'nths_group_renewal_candidates_group_school_year_user_key',
   })
+})
+
+describe('chapter lock', () => {
+  const LOCK_STATEMENT = /FOR\s+(NO\s+KEY\s+)?UPDATE/i
+
+  async function probeChapterLock(groupId: Ulid): Promise<string | undefined> {
+    const other = await (global as any).__TEST_DB_CLIENT__.connect()
+    try {
+      await other.query(`SET lock_timeout = '200ms'`)
+      // FOR SHARE is the join path's mode; only a stronger lock blocks it.
+      await other.query(`SELECT id FROM nths_groups WHERE id = $1 FOR SHARE`, [
+        groupId,
+      ])
+    } catch (err) {
+      return (err as { code?: string }).code
+    } finally {
+      await other.query(`RESET lock_timeout`)
+      other.release()
+    }
+  }
+
+  test.each<[string, (groupId: Ulid) => Promise<() => Promise<unknown>>]>([
+    [
+      'acceptPresidency',
+      async (groupId) => {
+        const president = await addMember(groupId, PRESIDENT)
+        await addCandidate(groupId, president)
+        return () =>
+          acceptPresidency(president, groupId, { reason: 'renewal' }, AUGUST)
+      },
+    ],
+  ])(
+    '%s locks the chapter row before its first read',
+    async (_label, arrange) => {
+      const groupId = await chapter()
+      const act = await arrange(groupId)
+      let lockErrorCode: string | undefined
+      let probed = false
+
+      withRealTransaction((tc) => ({
+        query: async (...args: unknown[]) => {
+          const sql = sqlText(args)
+          if (
+            !probed &&
+            !LOCK_STATEMENT.test(sql) &&
+            /\b(FROM|INTO|UPDATE)\b/i.test(sql)
+          ) {
+            probed = true
+            lockErrorCode = await probeChapterLock(groupId)
+          }
+          return tc.query(...args)
+        },
+      }))
+
+      await act()
+
+      expect(probed).toBe(true)
+      // 55P03 is lock_not_available
+      expect(lockErrorCode).toBe('55P03')
+    }
+  )
 })
