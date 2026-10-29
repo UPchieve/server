@@ -14,6 +14,5 @@ export type InsertSessionOfferArgs = {
   outcome: SessionOfferOutcome
   closedAt: Date
   scorecardVersion: string
-  input: readonly object[]
   output: object
 }

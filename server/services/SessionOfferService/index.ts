@@ -51,10 +51,7 @@ export async function recordShadowOffer(session: CurrentSession) {
   if (!coaches.length) return
 
   const scorecard = DEFAULT_SCORECARD
-  const { input, result } = await MatchScoringService.rankCoaches(
-    coaches,
-    scorecard
-  )
+  const { result } = await MatchScoringService.rankCoaches(coaches, scorecard)
   if (!result.ranked.length) return
   const { pending } = initOfferHistory(result, session)
 
@@ -65,7 +62,6 @@ export async function recordShadowOffer(session: CurrentSession) {
     outcome: 'shadow-offered',
     closedAt: pending.offeredAt,
     scorecardVersion: scorecard.version,
-    input: input.candidates,
     output: pending.scores,
   })
 }

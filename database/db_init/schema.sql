@@ -6523,10 +6523,10 @@ CREATE TABLE upchieve.session_offers (
     outcome text NOT NULL,
     scorecard_version text NOT NULL,
     closed_at timestamp with time zone NOT NULL,
-    input jsonb NOT NULL,
     output jsonb NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    input jsonb,
     CONSTRAINT session_offers_input_check CHECK ((jsonb_typeof(input) = 'array'::text)),
     CONSTRAINT session_offers_outcome_check CHECK ((outcome = ANY (ARRAY['accepted'::text, 'declined'::text, 'expired'::text, 'withdrawn-by-student'::text, 'shadow-offered'::text]))),
     CONSTRAINT session_offers_output_check CHECK ((jsonb_typeof(output) = 'object'::text))
@@ -6590,13 +6590,6 @@ COMMENT ON COLUMN upchieve.session_offers.closed_at IS 'not_pii: Time the offer 
 
 
 --
--- Name: COLUMN session_offers.input; Type: COMMENT; Schema: upchieve; Owner: -
---
-
-COMMENT ON COLUMN upchieve.session_offers.input IS 'not_pii: Candidates passed to match scoring';
-
-
---
 -- Name: COLUMN session_offers.output; Type: COMMENT; Schema: upchieve; Owner: -
 --
 
@@ -6615,6 +6608,13 @@ COMMENT ON COLUMN upchieve.session_offers.created_at IS 'not_pii';
 --
 
 COMMENT ON COLUMN upchieve.session_offers.updated_at IS 'not_pii';
+
+
+--
+-- Name: COLUMN session_offers.input; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.session_offers.input IS 'not_pii: Deprecated, no longer written. Candidates are in output.ranked[].candidate';
 
 
 --
@@ -16445,4 +16445,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20261021215331'),
     ('20261021223125'),
     ('20261026150000'),
-    ('20261027143447');
+    ('20261027143447'),
+    ('20261029184723');

@@ -18,7 +18,6 @@ export async function insertSessionOffer(
         outcome: args.outcome,
         closedAt: args.closedAt,
         scorecardVersion: args.scorecardVersion,
-        input: JSON.stringify(args.input),
         output: JSON.stringify(args.output),
       },
       tc

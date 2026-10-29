@@ -17,7 +17,7 @@ const client = getClient()
 
 describe('SessionOffer repo', () => {
   describe('insertSessionOffer', () => {
-    test('inserts a closed offer with its scoring input and output', async () => {
+    test('inserts a closed offer with its scoring output', async () => {
       const student = await createTestStudent(client)
       const volunteer = await createTestUser(client)
       await createTestVolunteer(client, volunteer.id)
@@ -28,15 +28,15 @@ describe('SessionOffer repo', () => {
       await insertSingleRow('sessions', session, client)
 
       const offeredAt = new Date()
-      const input = [
-        { volunteerId: volunteer.id, onlineAndWaitingInMs: 60_000 },
-      ]
       const output = {
         scorecardVersion: '1',
         now: offeredAt,
         ranked: [
           {
-            candidate: input[0],
+            candidate: {
+              volunteerId: volunteer.id,
+              onlineAndWaitingInMs: 60_000,
+            },
             score: 1,
             metricScores: { timeWaitingForSession: 1 },
           },
@@ -50,7 +50,6 @@ describe('SessionOffer repo', () => {
         outcome: 'shadow-offered',
         closedAt: offeredAt,
         scorecardVersion: output.scorecardVersion,
-        input,
         output,
       })
 
@@ -66,7 +65,7 @@ describe('SessionOffer repo', () => {
           outcome: 'shadow-offered',
           closed_at: offeredAt,
           scorecard_version: output.scorecardVersion,
-          input,
+          input: null,
           output: { ...output, now: offeredAt.toISOString() },
         }),
       ])
