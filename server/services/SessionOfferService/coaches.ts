@@ -42,7 +42,7 @@ export async function eligibleCoaches(subject: SUBJECTS) {
  * coaches without an onlineSince are skipped since we can't tell how long
  * they've been waiting (see PresenceService.OnlineUser)
  */
-export async function calculateOnlineAndWaitingInMs(
+export async function buildScoringCandidates(
   coaches: PresenceService.OnlineUser[]
 ): Promise<MatchScoringService.ScoringCandidate[]> {
   const lastSessions = await SessionRepo.getLastSessionEndedAtByVolunteerIds(
@@ -61,6 +61,14 @@ export async function calculateOnlineAndWaitingInMs(
       onlineSince.getTime(),
       lastSessionEndedAt?.getTime() ?? 0
     )
-    return [{ volunteerId: userId, onlineAndWaitingInMs: now - waitingSince }]
+    return [
+      {
+        volunteerId: userId,
+        onlineAndWaitingInMs: now - waitingSince,
+        timeSinceLastSessionInMs: lastSessionEndedAt
+          ? now - lastSessionEndedAt.getTime()
+          : null,
+      },
+    ]
   })
 }

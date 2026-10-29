@@ -7,17 +7,28 @@ export type Scorecard = Readonly<{
 }>
 
 export const DEFAULT_SCORECARD = {
-  version: '1',
+  version: '2',
   scale: 100,
   metrics: [
     {
       name: 'timeWaitingForSession',
-      maxPoints: 600,
+      maxPoints: 100,
+      unit: 'minutes',
       // @TODO must be sorted by fromMinutes
       // could add a defensive toSorted in scorer
       segments: [
-        { fromMinutes: 0, pointsPerMinute: 1 },
-        { fromMinutes: 30, pointsPerMinute: 3 },
+        { from: 0, pointsPerUnit: 1 },
+        { from: 30, pointsPerUnit: 3 },
+      ],
+    },
+    {
+      name: 'daysSinceLastSession',
+      maxPoints: 50,
+      unit: 'days',
+      pointsIfNeverHadSession: 0,
+      segments: [
+        { from: 0, pointsPerUnit: 1 },
+        { from: 7, pointsPerUnit: 2 },
       ],
     },
   ],

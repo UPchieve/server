@@ -5,6 +5,7 @@ import type { Ulid } from '../../types/shared'
 export type ScoringCandidate = Readonly<{
   volunteerId: Ulid
   onlineAndWaitingInMs: number
+  timeSinceLastSessionInMs: number | null
 }>
 
 type MatchScoringInput = Readonly<{

@@ -2,7 +2,7 @@ import { CurrentSession } from '../../types/session'
 import { Ulid } from '../../types/shared'
 import * as MatchScoringService from '../MatchScoringService'
 import * as SessionOfferRepo from '../../models/SessionOffer'
-import { calculateOnlineAndWaitingInMs, eligibleCoaches } from './coaches'
+import { buildScoringCandidates, eligibleCoaches } from './coaches'
 import { DEFAULT_SCORECARD } from '../MatchScoringService/scorecard'
 import { SUBJECTS } from '../../constants/subjects'
 
@@ -50,7 +50,7 @@ export async function recordShadowOffer(session: CurrentSession) {
   const coaches = await eligibleCoaches(session.subject as SUBJECTS)
   if (!coaches.length) return
 
-  const candidates = await calculateOnlineAndWaitingInMs(coaches)
+  const candidates = await buildScoringCandidates(coaches)
   if (!candidates.length) return
   const scorecard = DEFAULT_SCORECARD
   const rankedCoaches = MatchScoringService.rankCoaches(

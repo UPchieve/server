@@ -3,7 +3,7 @@ import * as VolunteerRepo from '../../../models/Volunteer'
 import * as PresenceService from '../../../services/PresenceService'
 import { getDbUlid } from '../../../models/pgUtils'
 import {
-  calculateOnlineAndWaitingInMs,
+  buildScoringCandidates,
   eligibleCoaches,
 } from '../../../services/SessionOfferService/coaches'
 import { minutesInMs } from '../../../utils/time-utils'
@@ -73,7 +73,7 @@ describe('eligibleCoaches', () => {
   })
 })
 
-describe('calculateOnlineAndWaitingInMs', () => {
+describe('buildScoringCandidates', () => {
   beforeEach(() => {
     jest.useFakeTimers().setSystemTime(NOW)
     mockedSessionRepo.getLastSessionEndedAtByVolunteerIds.mockResolvedValue([])
@@ -86,12 +86,16 @@ describe('calculateOnlineAndWaitingInMs', () => {
   test('uses onlineSince when the coach has never had a session', async () => {
     const userId = getDbUlid()
 
-    const actual = await calculateOnlineAndWaitingInMs([
+    const actual = await buildScoringCandidates([
       { userId, onlineSince: minutesAgo(30) },
     ])
 
     expect(actual).toEqual([
-      { volunteerId: userId, onlineAndWaitingInMs: minutesInMs(30) },
+      {
+        volunteerId: userId,
+        onlineAndWaitingInMs: minutesInMs(30),
+        timeSinceLastSessionInMs: null,
+      },
     ])
   })
 
@@ -101,12 +105,16 @@ describe('calculateOnlineAndWaitingInMs', () => {
       { volunteerId: userId, endedAt: minutesAgo(120) },
     ])
 
-    const actual = await calculateOnlineAndWaitingInMs([
+    const actual = await buildScoringCandidates([
       { userId, onlineSince: minutesAgo(30) },
     ])
 
     expect(actual).toEqual([
-      { volunteerId: userId, onlineAndWaitingInMs: minutesInMs(30) },
+      {
+        volunteerId: userId,
+        onlineAndWaitingInMs: minutesInMs(30),
+        timeSinceLastSessionInMs: minutesInMs(120),
+      },
     ])
   })
 
@@ -116,12 +124,16 @@ describe('calculateOnlineAndWaitingInMs', () => {
       { volunteerId: userId, endedAt: minutesAgo(5) },
     ])
 
-    const actual = await calculateOnlineAndWaitingInMs([
+    const actual = await buildScoringCandidates([
       { userId, onlineSince: minutesAgo(30) },
     ])
 
     expect(actual).toEqual([
-      { volunteerId: userId, onlineAndWaitingInMs: minutesInMs(5) },
+      {
+        volunteerId: userId,
+        onlineAndWaitingInMs: minutesInMs(5),
+        timeSinceLastSessionInMs: minutesInMs(5),
+      },
     ])
   })
 
@@ -129,13 +141,17 @@ describe('calculateOnlineAndWaitingInMs', () => {
     const withOnlineSince = getDbUlid()
     const withoutOnlineSince = getDbUlid()
 
-    const actual = await calculateOnlineAndWaitingInMs([
+    const actual = await buildScoringCandidates([
       { userId: withOnlineSince, onlineSince: minutesAgo(10) },
       { userId: withoutOnlineSince, onlineSince: null },
     ])
 
     expect(actual).toEqual([
-      { volunteerId: withOnlineSince, onlineAndWaitingInMs: minutesInMs(10) },
+      {
+        volunteerId: withOnlineSince,
+        onlineAndWaitingInMs: minutesInMs(10),
+        timeSinceLastSessionInMs: null,
+      },
     ])
   })
 })
