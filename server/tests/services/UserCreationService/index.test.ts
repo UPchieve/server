@@ -501,6 +501,14 @@ describe('upsertStudent', () => {
     )
   })
 
+  test('leaves the grade level alone when none is given', async () => {
+    await upsertStudent({ gradeLevel: undefined, userId: 'student-id' })
+
+    expect(
+      mockedUsersGradeLevelsRepo.upsertUserGradeLevel
+    ).not.toHaveBeenCalled()
+  })
+
   describe('creates and/or deactivates studentPartnerOrg instance', () => {
     test('gets the active non-school and school partners with the correct parameters', async () => {
       const USER_ID = 'userId555'

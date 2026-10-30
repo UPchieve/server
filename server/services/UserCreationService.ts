@@ -49,6 +49,7 @@ import * as VolunteerService from './VolunteerService'
 import * as ReferralService from './ReferralService'
 import * as NTHSGroupsService from './NTHSGroupsService'
 import type { NewUser } from '../types/users'
+import { numberToGradeLevel } from '../utils/grade-levels'
 
 export interface RosterStudentPayload {
   cleverId?: string
@@ -217,7 +218,7 @@ export async function rosterPartnerStudents(
 
             const studentData = {
               userId: user.id,
-              gradeLevel: parseInt(student.gradeLevel).toFixed(0) + 'th',
+              gradeLevel: numberToGradeLevel(parseInt(student.gradeLevel)),
               schoolId,
             }
             await upsertStudent(studentData, tc)

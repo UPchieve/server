@@ -21,7 +21,6 @@ import {
   buildVolunteerPartnerOrg,
   getEmail,
   getLastName,
-  serializeRoleContext,
 } from '../../mocks/generate'
 import { mockApp, mockPassportMiddleware } from '../../mock-app'
 import { ACCOUNT_USER_ACTIONS } from '../../../constants'
@@ -462,10 +461,6 @@ describe('AuthRouter.routes', () => {
       expect(asyncLogin).toHaveBeenCalledWith(student)
       expect(response.body).toEqual({ user: student })
     })
-
-    test.todo(
-      'links fed cred to existing student and logs student in when validator matches'
-    )
 
     test('registers a student without login when password is not present', async () => {
       const student = buildNewUser({ userType: 'student' })

@@ -1,4 +1,3 @@
-import axios, { AxiosRequestConfig } from 'axios'
 import { isEmpty } from 'lodash'
 import passport from 'passport'
 import {
@@ -13,6 +12,7 @@ import type { UserRole } from '../../types/users'
 import * as CleverAPIService from '../../services/CleverAPIService'
 import * as CleverRosterService from '../../services/CleverRosterService'
 import * as SchoolService from '../../services/SchoolService'
+import { GRADES } from '../../constants'
 
 export type TCleverPassportProfile = passport.Profile & {
   issuer: string
@@ -22,6 +22,7 @@ export type TCleverPassportProfile = passport.Profile & {
     students: CleverAPIService.TCleverStudentData[]
   }
   userType: UserRole
+  gradeLevel?: GRADES
 }
 
 export default class CleverStrategy extends OAuth2Strategy {
@@ -84,6 +85,9 @@ export default class CleverStrategy extends OAuth2Strategy {
           : undefined,
         schoolId: upchieveSchoolId,
         userType,
+        gradeLevel: CleverRosterService.cleverGradeToUpchieveGrade(
+          user.roles.student?.grade
+        ),
       }
 
       return done(null, profile)

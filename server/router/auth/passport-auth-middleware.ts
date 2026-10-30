@@ -24,7 +24,7 @@ import { maskEmail } from '../../utils/mask-contact'
 import config from '../../config'
 import logger from '../../logger'
 import { Uuid } from '../../models/pgUtils'
-import { USER_ROLES_TYPE } from '../../constants'
+import { GRADES, USER_ROLES_TYPE } from '../../constants'
 import { getRoleContext } from '../../services/UserRolesService'
 
 async function passportLoginUser(
@@ -134,6 +134,7 @@ type SSOProfile = passport.Profile & {
     classes: CleverAPIService.TCleverSectionData[]
     students: CleverAPIService.TCleverStudentData[]
   }
+  gradeLevel?: GRADES
 }
 
 type SSOHandlerOptions = {
@@ -193,6 +194,9 @@ export async function handleSSOStrategy(
           studentPartnerOrgSiteName: (userData as RegisterStudentPayload)
             .studentPartnerOrgSiteName,
           userId: existingFedCred.userId,
+          gradeLevel:
+            profile.gradeLevel ??
+            (userData as RegisterStudentPayload).gradeLevel,
         }
         // Always upsert the student if there is data.
         await UserCreationService.upsertStudent(data)
@@ -221,6 +225,7 @@ export async function handleSSOStrategy(
         issuer: profile.issuer,
         firstName,
         lastName,
+        gradeLevel: profile.gradeLevel,
       })
     }
 
@@ -237,6 +242,9 @@ export async function handleSSOStrategy(
           studentPartnerOrgSiteName: (userData as RegisterStudentPayload)
             .studentPartnerOrgSiteName,
           userId: existingUser.id,
+          gradeLevel:
+            profile.gradeLevel ??
+            (userData as RegisterStudentPayload).gradeLevel,
         }
         await UserCreationService.upsertStudent(data)
       } else if (options.isTeacher(profile.userType)) {
@@ -253,6 +261,9 @@ export async function handleSSOStrategy(
     // If the user doesn't exist, register them.
     const data = {
       ...userData,
+      gradeLevel:
+        profile.gradeLevel ??
+        (userData as RegisterStudentPayload | undefined)?.gradeLevel,
       email,
       firstName,
       lastName,

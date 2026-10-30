@@ -10,6 +10,8 @@ import * as StudentService from './StudentService'
 import * as SubjectsService from './SubjectsService'
 import * as TeacherService from './TeacherService'
 import * as UserCreationService from './UserCreationService'
+import { GRADES } from '../constants'
+import { numberToGradeLevel } from '../utils/grade-levels'
 
 /**
  * Clever Secure Sync Integration (i.e. rostering with Clever).
@@ -392,4 +394,12 @@ export function categorizeStudentsInClass(
 
 export function isStudentInValidGrade(grade?: number) {
   return grade && grade > 5 && grade < 13
+}
+
+export function cleverGradeToUpchieveGrade(grade?: string): GRADES | undefined {
+  // https://dev.clever.com/docs/users#schema-users
+  const parsedGrade = CleverAPIService.parseCleverGrade(grade)
+  if (parsedGrade && isStudentInValidGrade(parsedGrade)) {
+    return numberToGradeLevel(parsedGrade)
+  }
 }

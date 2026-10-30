@@ -27,7 +27,7 @@ import logger from '../../logger'
 import { getLegacyUserObject } from '../../models/User/legacy-user'
 import { extractUser } from '../extract-user'
 import config from '../../config'
-import { ACCOUNT_USER_ACTIONS } from '../../constants'
+import { ACCOUNT_USER_ACTIONS, GRADES } from '../../constants'
 import { createAccountAction } from '../../models/UserAction'
 import { AuthRedirect } from './auth-redirect'
 import { v4 as uuidv4 } from 'uuid'
@@ -261,6 +261,7 @@ export function routes(app: Express) {
           issuer?: string
           firstName?: string
           lastName?: string
+          gradeLevel?: GRADES
           errorMessage?: string
         }
       ) {
@@ -276,6 +277,10 @@ export function routes(app: Express) {
               ...userData,
               firstName: data.firstName,
               lastName: data.lastName,
+              // only set grade level from SSO provider if it's provided, otherwise
+              // this could potentially overwrite the grade level provided in the sign up form
+              // which we'd want when the SSO provider doesn't give us one.
+              ...(data.gradeLevel && { gradeLevel: data.gradeLevel }),
             },
           }
           logSsoCallback(provider, 'needsEmail')

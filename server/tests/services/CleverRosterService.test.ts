@@ -14,6 +14,7 @@ import {
   buildTeacherClassWithStudents,
 } from '../mocks/generate'
 import { CreateUserResult } from '../../models/User'
+import { GRADES } from '../../constants'
 
 jest.mock('../../services/FederatedCredentialService')
 const mockedFedCredService = FederatedCredentialService
@@ -695,5 +696,31 @@ describe('rosterTeacherClasses', () => {
       expect(studentsToAdd.length).toBe(0)
       expect(studentsToRemove.length).toBe(4)
     })
+  })
+})
+
+describe('cleverGradeToUpchieveGrade', () => {
+  test.each([
+    ['6', GRADES.SIXTH],
+    ['9', GRADES.NINTH],
+    ['12', GRADES.TWELVETH],
+  ])('converts Clever grade %s to %s', (cleverGrade, expected) => {
+    expect(CleverRosterService.cleverGradeToUpchieveGrade(cleverGrade)).toBe(
+      expected
+    )
+  })
+
+  test.each([
+    '5',
+    '13',
+    'Kindergarten',
+    'PostGraduate',
+    'Ungraded',
+    '',
+    undefined,
+  ])('returns undefined for Clever grade %p', (cleverGrade) => {
+    expect(
+      CleverRosterService.cleverGradeToUpchieveGrade(cleverGrade)
+    ).toBeUndefined()
   })
 })
