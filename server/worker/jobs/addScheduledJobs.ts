@@ -110,6 +110,10 @@ export default async function addScheduledJobs() {
       },
       options: { repeat: { cron: '0 6 * * *', tz: 'America/New_York' } }, // each day at 6am
     },
+    {
+      name: 'SpawnNTHSChapterRenewal',
+      options: { repeat: { cron: '0 * * * *' } },
+    },
   ]
 
   const repeatableJobs = await QueueService.queue.getRepeatableJobs()

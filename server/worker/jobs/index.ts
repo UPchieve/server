@@ -74,6 +74,8 @@ import deleteProxyEmailsIdenticalToEmails from './deleteProxyEmailsIdenticalToEm
 import notifyVolunteersAboutEssayReviewSubmission from './volunteer-emails/notifyVolunteerAboutEssayReviewSubmission'
 import candidateEngagementCampaign from './nths/candidateEngagementCampaign'
 import applicationStatusNotification from './nths/applicationStatusNotification'
+import chapterRenewal from './nths/chapterRenewal'
+import spawnChapterRenewal from './nths/spawnChapterRenewal'
 
 type JobProcessor = ProcessPromiseFunction<any>
 export type JobName = keyof typeof jobProcessors
@@ -152,6 +154,8 @@ export const jobProcessors = {
   NotifyVolunteersAboutEssayReviewSubmission:
     notifyVolunteersAboutEssayReviewSubmission,
   NTHSCandidateEngagement: candidateEngagementCampaign,
+  NTHSChapterRenewal: chapterRenewal,
+  SpawnNTHSChapterRenewal: spawnChapterRenewal,
   RedisKeyMemStats: logRedisKeyMemStats,
   SendAmbassadorCongratsEmail: emailAmbassadorCongrats,
   SendBecomeAnAmbassadorEmail: emailBecomeAnAmbassador,

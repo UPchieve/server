@@ -59,7 +59,7 @@ import {
   NTHS_TITLES,
   NTHSTitle,
 } from '../constants/nths-titles'
-import { hoursInMs } from '../utils/time-utils'
+import { hoursInMs, secondsInMs } from '../utils/time-utils'
 import QueueService from './QueueService'
 
 export const APPROVAL_LIFETIME_HOURS = 720
@@ -76,7 +76,11 @@ export async function getGroups(userId: Ulid) {
 export async function syncNthsUserToSendGrid(userId: Ulid) {
   await QueueService.add(
     'SyncSendGridContact',
-    { delay: SENDGRID_SYNC_DELAY_MS },
+    {
+      delay: SENDGRID_SYNC_DELAY_MS,
+      attempts: 3,
+      backoff: { type: 'exponential', delay: secondsInMs(15) },
+    },
     { userId }
   )
 }
@@ -530,16 +534,23 @@ type CreateActionResponse = {
 export async function createAction(
   nthsGroupId: Ulid,
   action: NTHSActionName,
-  tc: TransactionClient = getClient()
+  tc?: TransactionClient
 ): Promise<CreateActionResponse> {
   return await runInTransaction(async (tc) => {
+    const status = NTHS_ACTIONS_TO_SCHOOL_AFFILIATION_STATUS_MAPPING[action]
+    if (status) {
+      const closedAt = await NTHSGroupsRepo.getGroupClosedAtForShare(
+        nthsGroupId,
+        tc
+      )
+      ensureChapterOpen({ closedAt })
+    }
     const createdAction = await NTHSGroupsRepo.insertNthsGroupAction(
       nthsGroupId,
       action,
       tc
     )
     let retVal = { action: createdAction }
-    const status = NTHS_ACTIONS_TO_SCHOOL_AFFILIATION_STATUS_MAPPING[action]
     if (status) {
       const updatedStatus = await NTHSGroupsRepo.updateSchoolAffiliationStatus(
         status,
@@ -721,15 +732,25 @@ export async function closeChapter(
   groupId: Uuid
 ): Promise<Exclude<CloseChapterStatus, 'failed'>> {
   return await runInTransaction(async (client: TransactionClient) => {
-    const closed = await NTHSGroupsRepo.closeGroup(groupId, client)
+    const closed = await closeGroupAndRelease(groupId, new Date(), client)
     if (!closed) {
       const group = await NTHSGroupsRepo.getGroupById(groupId, client)
       return group ? 'alreadyClosed' : 'notFound'
     }
-    await NTHSGroupsRepo.endAllGroupMemberships(groupId, client)
-    await NTHSGroupsRepo.releaseGroupSchoolAffiliation(groupId, client)
     return 'closed'
   })
+}
+
+export async function closeGroupAndRelease(
+  groupId: Uuid,
+  closedAt: Date,
+  tc: TransactionClient
+): Promise<boolean> {
+  const closed = await NTHSGroupsRepo.closeGroup(groupId, closedAt, tc)
+  if (!closed) return false
+  await NTHSGroupsRepo.endAllGroupMemberships(groupId, tc)
+  await NTHSGroupsRepo.releaseGroupSchoolAffiliation(groupId, tc)
+  return true
 }
 
 export async function closeChapters(

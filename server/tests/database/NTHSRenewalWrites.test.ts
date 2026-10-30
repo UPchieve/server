@@ -12,9 +12,11 @@ import * as FeatureFlagService from '../../services/FeatureFlagService'
 import * as NTHSRenewalDatesService from '../../services/NTHSRenewalDatesService'
 import {
   acceptPresidency,
+  closeDueChapter,
   declinePresidency,
   getRenewalSuccessors,
   nameSelfAsSuccessor,
+  nextRenewalCycle,
   setRenewalSuccessors,
   NTHSRenewalCommitmentsRequiredError,
   NTHSRenewalNotClearedError,
@@ -1375,6 +1377,18 @@ describe('chapter lock', () => {
       async (groupId) => {
         const admin = await addMember(groupId, PRESIDENT)
         return () => nameSelfAsSuccessor(admin, groupId, {}, JUNE)
+      },
+    ],
+    [
+      'closeDueChapter',
+      async (groupId) => {
+        await addMember(groupId, PRESIDENT)
+        return () =>
+          closeDueChapter(
+            groupId,
+            nextRenewalCycle(DATES, AUGUST),
+            OCT_1_AFTER_CLOSE
+          )
       },
     ],
   ])(

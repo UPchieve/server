@@ -878,10 +878,11 @@ export async function getNthsChapterMemberHoursTutored(
 
 export async function closeGroup(
   groupId: Uuid,
+  closedAt: Date,
   tc: TransactionClient
 ): Promise<boolean> {
   try {
-    const results = await pgQueries.closeGroup.run({ groupId }, tc)
+    const results = await pgQueries.closeGroup.run({ groupId, closedAt }, tc)
     return results.length > 0
   } catch (err) {
     throw new RepoUpdateError(err)

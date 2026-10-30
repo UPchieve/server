@@ -1,4 +1,6 @@
 import {
+  closeRenewalCycle,
+  nextRenewalCycle,
   renewalPromptFor,
   renewalControlsFor,
   type RenewalPromptInput,
@@ -624,6 +626,36 @@ describe('renewalControlsFor', () => {
     expect(renewalControlsFor(input(now, overrides))).toEqual({
       canNameSelf,
       namingSelfAccepts,
+    })
+  })
+})
+
+describe('renewal cycle windows', () => {
+  const at = (iso: string) => new Date(iso)
+
+  it.each<[string, string, number | undefined]>([
+    ['just before the close instant', '2026-10-01T11:59:59Z', undefined],
+    ['at the close instant', '2026-10-01T12:00:00Z', 2026],
+    ['just before the window ends', '2026-10-02T11:59:59Z', 2026],
+    ['when the window ends', '2026-10-02T12:00:00Z', undefined],
+  ])('closeRenewalCycle %s', (_label, now, year) => {
+    expect(closeRenewalCycle(DATES, at(now))?.year).toBe(year)
+  })
+
+  it('finds the previous year cycle when the close date is Dec 31', () => {
+    const dates = { ...DATES, closeDate: '12-31' }
+
+    expect(closeRenewalCycle(dates, at('2027-01-01T13:00:00Z'))?.year).toBe(
+      2026
+    )
+  })
+
+  it('derives the member email end, window end and sent-since from the cycle', () => {
+    expect(nextRenewalCycle(DATES, at('2026-09-20T12:00:00Z'))).toMatchObject({
+      year: 2026,
+      memberEmailEndsAt: at('2026-10-01T11:00:00Z'),
+      closeWindowEndsAt: at('2026-10-02T12:00:00Z'),
+      sentSince: at('2026-01-01T00:00:00Z'),
     })
   })
 })

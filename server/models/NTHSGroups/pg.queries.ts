@@ -176,7 +176,7 @@ export interface IGetGroupByIdQuery {
   result: IGetGroupByIdResult;
 }
 
-const getGroupByIdIR: any = {"usedParamSet":{"groupId":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":117,"b":125}]}],"statement":"SELECT\n    id,\n    name,\n    KEY,\n    created_at,\n    invite_code,\n    closed_at\nFROM\n    nths_groups\nWHERE\n    id = :groupId!                                                                                                          "};
+const getGroupByIdIR: any = {"usedParamSet":{"groupId":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":117,"b":125}]}],"statement":"SELECT\n    id,\n    name,\n    KEY,\n    created_at,\n    invite_code,\n    closed_at\nFROM\n    nths_groups\nWHERE\n    id = :groupId!                                                                                                                         "};
 
 /**
  * Query generated from SQL:
@@ -191,7 +191,7 @@ const getGroupByIdIR: any = {"usedParamSet":{"groupId":true},"params":[{"name":"
  * FROM
  *     nths_groups
  * WHERE
- *     id = :groupId!                                                                                                          
+ *     id = :groupId!                                                                                                                         
  * ```
  */
 export const getGroupById = new PreparedQuery<IGetGroupByIdParams,IGetGroupByIdResult>(getGroupByIdIR);
@@ -1616,6 +1616,7 @@ export const getNthsChapterMemberHoursTutored = new PreparedQuery<IGetNthsChapte
 
 /** 'CloseGroup' parameters type */
 export interface ICloseGroupParams {
+  closedAt: DateOrString;
   groupId: string;
 }
 
@@ -1631,7 +1632,7 @@ export interface ICloseGroupQuery {
   result: ICloseGroupResult;
 }
 
-const closeGroupIR: any = {"usedParamSet":{"groupId":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":88,"b":96}]}],"statement":"UPDATE\n    nths_groups\nSET\n    closed_at = NOW(),\n    updated_at = NOW()\nWHERE\n    id = :groupId!\n    AND closed_at IS NULL\nRETURNING\n    id"};
+const closeGroupIR: any = {"usedParamSet":{"closedAt":true,"groupId":true},"params":[{"name":"closedAt","required":true,"transform":{"type":"scalar"},"locs":[{"a":43,"b":52}]},{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":93,"b":101}]}],"statement":"UPDATE\n    nths_groups\nSET\n    closed_at = :closedAt!,\n    updated_at = NOW()\nWHERE\n    id = :groupId!\n    AND closed_at IS NULL\nRETURNING\n    id"};
 
 /**
  * Query generated from SQL:
@@ -1639,7 +1640,7 @@ const closeGroupIR: any = {"usedParamSet":{"groupId":true},"params":[{"name":"gr
  * UPDATE
  *     nths_groups
  * SET
- *     closed_at = NOW(),
+ *     closed_at = :closedAt!,
  *     updated_at = NOW()
  * WHERE
  *     id = :groupId!

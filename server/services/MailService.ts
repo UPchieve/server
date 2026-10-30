@@ -1642,6 +1642,29 @@ export async function sendNthsEngagementEmail(
   )
 }
 
+export type NthsRenewalEmailData = {
+  firstName: string
+  chapterName: string
+  closeDate: string
+  successorDate?: string
+  selfNamed?: boolean
+  chapterConfirmed?: boolean
+}
+
+export async function sendNthsRenewalEmail(
+  email: string,
+  templateId: string,
+  dynamicData: NthsRenewalEmailData
+) {
+  await sendEmail(
+    email,
+    config.mail.senders.nths,
+    'UPchieve',
+    templateId,
+    dynamicData
+  )
+}
+
 export async function sendVolunteerBanStudentApology(
   email: string,
   firstName: string
@@ -1853,6 +1876,7 @@ export async function createContact(userIds: Ulid | Ulid[]): Promise<any> {
       custom_fields: customFields,
     })
   }
+  if (!contacts.length) return
 
   const data = {
     list_ids: [contactListId],

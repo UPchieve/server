@@ -60,7 +60,7 @@ WHERE
 
 
 /* FOR SHARE makes a close that sets closed_at before ending memberships wait
- for this join to commit. */
+ for the caller's transaction to commit. */
 /* @name getGroupClosedAtForShare */
 SELECT
     closed_at
@@ -592,7 +592,7 @@ WHERE
 UPDATE
     nths_groups
 SET
-    closed_at = NOW(),
+    closed_at = :closedAt!,
     updated_at = NOW()
 WHERE
     id = :groupId!

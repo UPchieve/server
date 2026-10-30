@@ -93,6 +93,27 @@ beforeAll(async () => {
   defaultStudentId = student.id
 })
 
+async function closeFromOtherConnection(
+  groupId: Ulid
+): Promise<string | undefined> {
+  const other = await (global as any).__TEST_DB_CLIENT__.connect()
+  try {
+    await other.query(`SET lock_timeout = '200ms'`)
+    await other.query(
+      `UPDATE nths_groups SET closed_at = now() WHERE id = $1`,
+      [groupId]
+    )
+  } catch (err) {
+    return (err as { code?: string }).code
+  } finally {
+    try {
+      await other.query('RESET lock_timeout')
+    } finally {
+      other.release()
+    }
+  }
+}
+
 describe('getChapterImpact', () => {
   test('the school year starts July 1, inclusive', async () => {
     const groupId = await createChapter(client)
@@ -869,6 +890,62 @@ describe('deleteAction', () => {
   })
 })
 
+describe('createAction', () => {
+  test('refuses a school affiliation status for a closed chapter and writes nothing', async () => {
+    const groupId = await createChapter(client, '2026-10-02T00:00:00.000Z')
+
+    await expect(
+      NTHSGroupsService.createAction(
+        groupId,
+        'MARKED SCHOOL AFFILIATION IN PROGRESS'
+      )
+    ).rejects.toThrow(NTHSChapterClosedError)
+
+    expect(await getActionNames(groupId)).toEqual([])
+    const { rows } = await client.query(
+      `SELECT 1 FROM nths_group_school_affiliation WHERE nths_group_id = $1`,
+      [groupId]
+    )
+    expect(rows).toHaveLength(0)
+  })
+
+  test('makes a concurrent close wait until the action commits', async () => {
+    const groupId = await createChapter(client)
+    let closeErrorCode: string | undefined
+    let attempted = false
+
+    withRealTransaction((tc) => ({
+      query: async (...args: unknown[]) => {
+        const result = await tc.query(...args)
+        if (
+          !attempted &&
+          /closed_at\s+FROM\s+nths_groups/.test(sqlText(args))
+        ) {
+          attempted = true
+          closeErrorCode = await closeFromOtherConnection(groupId)
+        }
+        return result
+      },
+    }))
+
+    await NTHSGroupsService.createAction(
+      groupId,
+      'MARKED SCHOOL AFFILIATION IN PROGRESS'
+    )
+
+    expect(attempted).toBe(true)
+    expect(closeErrorCode).toBe('55P03')
+    expect(await getActionNames(groupId)).toEqual([
+      'MARKED SCHOOL AFFILIATION IN PROGRESS',
+    ])
+    const chapter = await client.query(
+      `SELECT closed_at FROM nths_groups WHERE id = $1`,
+      [groupId]
+    )
+    expect(chapter.rows[0].closed_at).toBeNull()
+  })
+})
+
 describe('joinGroupAsMemberByGroupId', () => {
   const CLOSED_AT = '2026-10-02T00:00:00.000Z'
 
@@ -906,22 +983,7 @@ describe('joinGroupAsMemberByGroupId', () => {
         const sql = sqlText(args)
         if (!attempted && /closed_at\s+FROM\s+nths_groups/.test(sql)) {
           attempted = true
-          const other = await (global as any).__TEST_DB_CLIENT__.connect()
-          try {
-            await other.query(`SET lock_timeout = '200ms'`)
-            await other.query(
-              `UPDATE nths_groups SET closed_at = now() WHERE id = $1`,
-              [groupId]
-            )
-          } catch (err) {
-            closeErrorCode = (err as { code?: string }).code
-          } finally {
-            try {
-              await other.query('RESET lock_timeout')
-            } finally {
-              other.release()
-            }
-          }
+          closeErrorCode = await closeFromOtherConnection(groupId)
         }
         return result
       },
@@ -1039,7 +1101,7 @@ describe('closeChapter', () => {
     withRealTransaction((tc) => ({
       query: async (...args: unknown[]) => {
         const result = await tc.query(...args)
-        if (!join && /closed_at = NOW\(\)/.test(sqlText(args))) {
+        if (!join && /SET\s+closed_at\s*=/.test(sqlText(args))) {
           join = NTHSGroupsService.joinGroupAsMemberByGroupId(
             userId,
             groupId

@@ -21,12 +21,14 @@ import {
   type NTHSRenewalDates,
 } from './NTHSRenewalDatesService'
 import {
+  closeGroupAndRelease,
   getChapterMemberClearance,
   getChapterClearanceGaps,
   syncNthsUserToSendGrid,
 } from './NTHSGroupsService'
 import { COMMITMENTS } from './NTHSApplicationService'
 import { isNthsChapterRenewalEnabled } from './FeatureFlagService'
+import { daysInMs, hoursInMs } from '../utils/time-utils'
 
 export type NTHSRenewalPrompt =
   | 'none'
@@ -65,9 +67,12 @@ export type NTHSRenewalCycle = {
   adminReminderAt: Date
   successorConfirmationAt: Date
   memberStageAt: Date
+  memberEmailEndsAt: Date
   closesAt: Date
+  closeWindowEndsAt: Date
   schoolYearStartsOn: Date
   closesOn: string
+  sentSince: Date
 }
 
 function openingInstant(year: number, monthDay: string, addDays = 0): Date {
@@ -76,28 +81,46 @@ function openingInstant(year: number, monthDay: string, addDays = 0): Date {
 }
 
 function cycleFor(dates: NTHSRenewalDates, year: number): NTHSRenewalCycle {
+  const closesAt = openingInstant(year, dates.closeDate, 1)
   return {
     year,
     nominationsOpenAt: openingInstant(year, dates.nominationsOpen),
     adminReminderAt: openingInstant(year, dates.adminReminder),
     successorConfirmationAt: openingInstant(year, dates.successorConfirmation),
     memberStageAt: openingInstant(year, dates.memberStage),
-    closesAt: openingInstant(year, dates.closeDate, 1),
+    // The close date ends at UTC-11, the last US time zone, so the member-stage email stops then.
+    memberEmailEndsAt: new Date(closesAt.getTime() - hoursInMs(1)),
+    closesAt,
+    closeWindowEndsAt: new Date(closesAt.getTime() + daysInMs(1)),
     schoolYearStartsOn: schoolYearFor(new Date(Date.UTC(year, 6, 1))).startsAt,
     closesOn: `${year}-${dates.closeDate}`,
+    sentSince: new Date(Date.UTC(year, 0, 1)),
   }
+}
+
+function recentCycles(dates: NTHSRenewalDates, now: Date): NTHSRenewalCycle[] {
+  const year = now.getUTCFullYear()
+  return [year - 1, year].map((candidate) => cycleFor(dates, candidate))
 }
 
 export function nextRenewalCycle(
   dates: NTHSRenewalDates,
   now: Date
 ): NTHSRenewalCycle {
-  const year = now.getUTCFullYear()
-  for (const candidate of [year - 1, year]) {
-    const cycle = cycleFor(dates, candidate)
-    if (cycle.closesAt > now) return cycle
-  }
-  return cycleFor(dates, year + 1)
+  return (
+    recentCycles(dates, now).find(({ closesAt }) => closesAt > now) ??
+    cycleFor(dates, now.getUTCFullYear() + 1)
+  )
+}
+
+export function closeRenewalCycle(
+  dates: NTHSRenewalDates,
+  now: Date
+): NTHSRenewalCycle | undefined {
+  return recentCycles(dates, now).find(
+    ({ closesAt, closeWindowEndsAt }) =>
+      closesAt <= now && now < closeWindowEndsAt
+  )
 }
 
 function isChapterRenewing(
@@ -304,7 +327,7 @@ export type RenewalSuccessorsUpdate = {
 
 type OpenRenewal = { dates: NTHSRenewalDates; cycle: NTHSRenewalCycle }
 
-function schoolYearDate(cycle: NTHSRenewalCycle): string {
+export function schoolYearDate(cycle: NTHSRenewalCycle): string {
   return cycle.schoolYearStartsOn.toISOString().slice(0, 10)
 }
 
@@ -787,4 +810,26 @@ export async function declinePresidency(
     await syncNthsUserToSendGrid(userId)
   }
   return await renewalAfterWrite(userId, groupId, dates, now)
+}
+
+export async function closeDueChapter(
+  groupId: Ulid,
+  cycle: NTHSRenewalCycle,
+  closedAt: Date
+): Promise<boolean> {
+  const affectedUserIds = await runInTransaction(async (tc) => {
+    await NTHSGroupsRepo.lockGroupForMemberChange(groupId, tc)
+    const stillDue = await NTHSRenewalRepo.getChapterDueToRenewalClose(
+      groupId,
+      schoolYearDate(cycle),
+      cycle.closesAt,
+      tc
+    )
+    if (!stillDue) return null
+    await closeGroupAndRelease(groupId, closedAt, tc)
+    return stillDue.affectedUserIds
+  })
+  if (!affectedUserIds) return false
+  await syncChangedMembers(affectedUserIds)
+  return true
 }

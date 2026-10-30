@@ -73,6 +73,12 @@ jest.mock('../config', () => {
         'd-e45797aba9d04bb29a9745988a52fc1f',
       volunteerTenSessionMilestoneTemplate:
         'd-0447cf80536a430881262f8f92044b73',
+      nthsRenewal: {
+        nominationsOpen: 'd-379d5307180041039403b112cd7dd38f',
+        namedSuccessor: 'd-df9e5e4357bb41a690562802b407f7e8',
+        memberStage: 'd-7a24b45b3605430e8e59035b52f1a2de',
+        chapterClosed: 'd-9bdffac5ac524baa9d6316ef258ec2f8',
+      },
     },
     volunteerPartnerManifests: {
       example: {

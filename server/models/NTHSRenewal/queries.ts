@@ -163,3 +163,103 @@ export async function demotePresidentsNotRenewing(
     throw new RepoUpdateError(err)
   }
 }
+
+export type NTHSRenewalEmailMember = NTHSRenewalEmailRecipient & {
+  isAdmin: boolean
+  chapterConfirmed: boolean
+  chapterHasNamed: boolean
+  namedUnanswered: boolean
+  selfNamed: boolean
+  sentTemplateIds: string[]
+}
+
+export async function getRenewalEmailMembers(
+  groupId: Ulid,
+  schoolYearStartsOn: string,
+  sentSince: Date,
+  templateIds: string[]
+): Promise<NTHSRenewalEmailMember[]> {
+  try {
+    const rows = await pgQueries.getRenewalEmailMembers.run(
+      { groupId, schoolYearStartsOn, sentSince, templateIds },
+      getClient()
+    )
+    return rows.map((row) =>
+      makeSomeRequired(row, [
+        'userId',
+        'email',
+        'firstName',
+        'chapterName',
+        'isAdmin',
+        'chapterConfirmed',
+        'chapterHasNamed',
+        'namedUnanswered',
+        'selfNamed',
+        'sentTemplateIds',
+      ])
+    )
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getRenewalCycleChapters(
+  schoolYearStartsOn: string,
+  closesAt: Date
+): Promise<Ulid[]> {
+  try {
+    const rows = await pgQueries.getRenewalCycleChapters.run(
+      { schoolYearStartsOn, closesAt },
+      getClient()
+    )
+    return rows.map((row) => makeSomeRequired(row, ['id']).id)
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export type NTHSChapterDueToClose = { affectedUserIds: Ulid[] }
+
+export async function getChapterDueToRenewalClose(
+  groupId: Ulid,
+  schoolYearStartsOn: string,
+  closesAt: Date,
+  tc: TransactionClient = getClient()
+): Promise<NTHSChapterDueToClose | undefined> {
+  try {
+    const [row] = await pgQueries.getChapterDueToRenewalClose.run(
+      { groupId, schoolYearStartsOn, closesAt },
+      tc
+    )
+    if (!row) return
+    return makeSomeRequired(row, ['affectedUserIds'])
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export type NTHSRenewalEmailRecipient = {
+  userId: Ulid
+  email: string
+  firstName: string
+  chapterName: string
+}
+
+export async function getRenewalClosedEmailRecipients(args: {
+  groupId: Ulid
+  schoolYearStartsOn: string
+  closesAt: Date
+  emailTemplateId: string
+}): Promise<NTHSRenewalEmailRecipient[]> {
+  try {
+    const rows = await pgQueries.getRenewalClosedEmailRecipients.run(
+      args,
+      getClient()
+    )
+    return rows.map((row) =>
+      makeSomeRequired(row, ['userId', 'email', 'firstName', 'chapterName'])
+    )
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
