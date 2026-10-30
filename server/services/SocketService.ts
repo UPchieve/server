@@ -4,15 +4,11 @@ import { debounce, difference, intersection } from 'lodash'
 import type { RemoteSocket } from 'socket.io'
 import logger from '../logger'
 import { Ulid, Uuid } from '../models/pgUtils'
-import {
-  getUnfulfilledSessions,
-  UnfulfilledSessions,
-} from '../models/Session/queries'
+import { getUnfulfilledSessions } from '../models/Session/queries'
 import getSessionRoom from '../utils/get-session-room'
 import { ProgressReport } from '../services/ProgressReportsService'
 import { ProgressReportAnalysisTypes } from '../models/ProgressReports'
 import * as SessionService from '../services/SessionService'
-import * as cache from '../cache'
 import { UserContactInfo } from '../models/User'
 import { secondsInMs } from '../utils/time-utils'
 import { toCurrentSessionPublic } from '../contracts/sessions.mappers'
@@ -171,10 +167,18 @@ class SocketService {
     const sessions = await getUnfulfilledSessions()
     const coachHoldEligibilities =
       await SessionHoldsService.getEligibleOnlineCoaches()
-    const sessionsWithExclusiveMetadata =
-      await this.addExclusiveSessionMetadata(sessions)
     const withHolds = []
-    for (const session of sessionsWithExclusiveMetadata) {
+    for (const session of sessions) {
+      // Only the requested tutor can accept, so skip general tutor holds
+      if (session.isExclusive) {
+        withHolds.push({
+          ...session,
+          subject: session.subTopic,
+          studentId: session.student.id,
+          holds: [],
+        })
+        continue
+      }
       const s = await SessionHoldsService.attachHoldData(
         {
           id: session.id,
@@ -215,16 +219,6 @@ class SocketService {
     SESSION_LIST_DEBOUNCE_MS,
     { maxWait: SESSION_LIST_MAX_WAIT_MS }
   )
-
-  async addExclusiveSessionMetadata(allSessions: UnfulfilledSessions[]) {
-    const exclusiveSessions = await cache.hgetall('exclusiveRequestSessions')
-    return allSessions.map((session) => {
-      const requestedVolunteerId = exclusiveSessions[session.id]
-      return requestedVolunteerId
-        ? { ...session, isExclusive: true, requestedVolunteerId }
-        : session
-    })
-  }
 
   async emitSessionChange(sessionId: Ulid): Promise<void> {
     const session = await SessionService.getCurrentSessionById(sessionId)

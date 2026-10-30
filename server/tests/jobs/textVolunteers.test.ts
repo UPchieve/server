@@ -18,12 +18,12 @@ import * as FavoritingService from '../../services/FavoritingService'
 import * as NotificationService from '../../services/NotificationService'
 import * as QueueService from '../../services/QueueService'
 import * as SessionService from '../../services/SessionService'
+import * as SessionRepo from '../../models/Session'
 import * as TwilioClient from '../../clients/twilio'
 import * as SubjectService from '../../services/SubjectsService'
 import * as UserService from '../../services/UserService'
-import * as FeatureFlagService from '../../services/FeatureFlagService'
 import { AssociatedPartner } from '../../models/AssociatedPartner'
-import { buildTextableVolunteer } from '../mocks/generate'
+import { buildSession, buildTextableVolunteer } from '../mocks/generate'
 import { ComputedSubjectUnlocks } from '../../models/Subjects'
 
 jest.mock('../../services/AssociatedPartnerService')
@@ -32,6 +32,7 @@ jest.mock('../../services/FavoritingService')
 jest.mock('../../services/NotificationService')
 jest.mock('../../services/QueueService')
 jest.mock('../../services/SessionService')
+jest.mock('../../models/Session')
 jest.mock('../../clients/twilio')
 jest.mock('../../services/SubjectsService')
 jest.mock('../../services/UserService')
@@ -47,7 +48,7 @@ const mockedTwilioClient = mocked(TwilioClient)
 const mockedLogger = mocked(logger)
 const mockedSubjectService = mocked(SubjectService)
 const mockedUserService = mocked(UserService)
-const mockedFeatureFlagService = mocked(FeatureFlagService)
+const mockedSessionRepo = mocked(SessionRepo)
 
 const COMPUTED_SUBJECT_UNLOCKS = {
   [SUBJECTS.INTEGRATED_MATH_ONE]: [
@@ -84,6 +85,11 @@ beforeEach(() => {
     COMPUTED_SUBJECT_UNLOCKS
   )
   mockedUserService.getUsersBanStatusesById.mockResolvedValue([])
+  mockedSessionRepo.getSessionById.mockResolvedValue(
+    buildSession({
+      studentId: getDbUlid(),
+    })
+  )
 })
 
 describe('filterSubjectEligibleVolunteers', () => {
@@ -814,6 +820,34 @@ describe('textVolunteers', () => {
       sessionId: job.data.sessionId,
     })
     expect(mockedCacheService.getIfExists).not.toHaveBeenCalled()
+  })
+
+  test('should early exit when student is shadowbanned', async () => {
+    const userId = getDbUlid()
+    const session = buildSession({
+      studentId: userId,
+      shadowbanned: true,
+    })
+    mockedSessionRepo.getSessionById.mockResolvedValueOnce(session)
+    await textVolunteers({
+      data: { sessionId: getDbUlid(), notificationRound: 1 },
+    } as Job)
+    expect(mockedTwilioClient.sendTextMessage).not.toHaveBeenCalled()
+    expect(mockedQueueService.add).not.toHaveBeenCalled()
+  })
+
+  test('should early exit when student requested a tutor', async () => {
+    const userId = getDbUlid()
+    const session = buildSession({
+      studentId: userId,
+      requestedVolunteerId: getDbUlid(),
+    })
+    mockedSessionRepo.getSessionById.mockResolvedValueOnce(session)
+    await textVolunteers({
+      data: { sessionId: getDbUlid(), notificationRound: 1 },
+    } as Job)
+    expect(mockedTwilioClient.sendTextMessage).not.toHaveBeenCalled()
+    expect(mockedQueueService.add).not.toHaveBeenCalled()
   })
 
   test.each(['shadow', 'complete'])(

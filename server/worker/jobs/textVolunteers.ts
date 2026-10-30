@@ -13,6 +13,8 @@ import * as CacheService from '../../cache'
 import * as FavoritingService from '../../services/FavoritingService'
 import * as NotificationService from '../../services/NotificationService'
 import * as SessionService from '../../services/SessionService'
+import * as SessionRepo from '../../models/Session'
+import { getRequestedVolunteerIdIfWaiting } from '../../utils/session-utils'
 import { sendTextMessage } from '../../clients/twilio'
 import * as QueueService from '../../services/QueueService'
 import * as UserService from '../../services/UserService'
@@ -21,7 +23,6 @@ import {
   getAndCacheAvailableVolunteers,
 } from './updateCachedVolunteersForTextNotifications'
 import { secondsInMs } from '../../utils/time-utils'
-import { VolunteerOccupations } from '../../models/Volunteer'
 
 const HIGH_LEVEL_SUBJECTS = new Set<SUBJECTS>([
   SUBJECTS.CALCULUS_AB,
@@ -80,6 +81,9 @@ export default async function textVolunteers(
     logger.info('Session fulfilled.', { sessionId })
     return
   }
+
+  const session = await SessionRepo.getSessionById(sessionId)
+  if (session.shadowbanned || getRequestedVolunteerIdIfWaiting(session)) return
 
   const allTextableVolunteers = await getTextableVolunteers()
 

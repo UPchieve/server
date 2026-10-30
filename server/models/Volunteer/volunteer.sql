@@ -6,7 +6,8 @@ SELECT
     phone,
     email,
     volunteer_partner_orgs.key AS volunteer_partner_org,
-    volunteer_profiles.approved
+    volunteer_profiles.approved,
+    sms_consent
 FROM
     users
     LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id

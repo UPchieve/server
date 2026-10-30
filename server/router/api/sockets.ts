@@ -294,13 +294,21 @@ export function routeSockets(io: Server): void {
             return
           }
 
-          const allSessions = await SessionRepo.getUnfulfilledSessions()
-          const sessions =
-            await socketService.addExclusiveSessionMetadata(allSessions)
+          const sessions = await SessionRepo.getUnfulfilledSessions()
           const coachHoldEligibilities =
             await SessionHoldsService.getEligibleOnlineCoaches()
           const withHolds = []
           for (const session of sessions) {
+            // Only the requested tutor can accept, so skip general tutor holds
+            if (session.isExclusive) {
+              withHolds.push({
+                ...session,
+                subject: session.subTopic,
+                studentId: session.student.id,
+                holds: [],
+              })
+              continue
+            }
             const s = await SessionHoldsService.attachHoldData(
               {
                 id: session.id,

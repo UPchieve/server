@@ -294,7 +294,6 @@ export async function endSession(
     }
   })
 
-  await NotifyVolunteerService.clearExclusiveRequest(sessionId)
   await SessionHoldsService.clearSessionHolds(sessionId)
 
   if (socketService) {
@@ -711,9 +710,12 @@ export async function startSession(
 
   const newSession = await runInTransaction(async (tc: TransactionClient) => {
     const newSession = await SessionRepo.createSession(
-      user.id,
-      subject,
-      user.banType === USER_BAN_TYPES.SHADOW,
+      {
+        studentId: user.id,
+        subject,
+        isShadowBanned: user.banType === USER_BAN_TYPES.SHADOW,
+        requestedVolunteerId,
+      },
       tc
     )
 
@@ -748,19 +750,6 @@ export async function startSession(
     return newSession
   })
 
-  // Hide the exclusive session from the volunteer broadcast as early as
-  // possible — immediately after the transaction commits, before any other
-  // awaits — to minimize the window in which a concurrent updateSessionList
-  // could broadcast it publicly.
-  const isUserShadowBanned = user.banType === USER_BAN_TYPES.SHADOW
-  if (requestedVolunteerId && !isUserShadowBanned) {
-    await cache.hset(
-      'exclusiveRequestSessions',
-      newSession.id,
-      requestedVolunteerId
-    )
-  }
-
   await saveSessionToCache({
     sessionId: newSession.id,
     topicId: subjectAndTopic.topicId,
@@ -786,9 +775,10 @@ export async function startSession(
     await cache.sadd(config.cacheKeys.zwibserveSessions, newSession.id)
   }
 
+  const isUserShadowBanned = user.banType === USER_BAN_TYPES.SHADOW
   if (!isUserShadowBanned) {
     if (requestedVolunteerId) {
-      await NotifyVolunteerService.notifyExclusiveVolunteer(
+      await NotifyVolunteerService.notifyRequestedVolunteer(
         newSession,
         requestedVolunteerId
       )
@@ -941,11 +931,7 @@ export async function joinSession(
   const isVolunteer = user.roleContext.isActiveRole('volunteer')
   const isInitialVolunteerJoin = isVolunteer && !session.volunteerId
   if (isInitialVolunteerJoin) {
-    // Peek at exclusivity state BEFORE clearExclusiveRequest wipes the HASH
-    // — we need to know whether this join converted an exclusive request,
-    // and if so, whether the joining volunteer is the one the student
-    // originally requested.
-    const exclusiveTo = await cache.hget('exclusiveRequestSessions', session.id)
+    const exclusiveTo = sessionUtils.getRequestedVolunteerIdIfWaiting(session)
     const wasExclusiveRequest = !!exclusiveTo
     const wasRequestedVolunteer = exclusiveTo === user.id
 
@@ -963,7 +949,6 @@ export async function joinSession(
     }
 
     try {
-      await NotifyVolunteerService.clearExclusiveRequest(session.id)
       await SocketService.getInstance().emitSessionChange(session.id)
     } catch (err) {
       logger.error(`Failed to emit session change after volunteer join`, {
@@ -1158,6 +1143,22 @@ export async function ensureCanJoinSession(
       message: 'Un-approved volunteer attempting to join session',
       clientMessage:
         'Your account must be approved before you can join a session.',
+      context: { sessionId, joiningUserId: user.id },
+    })
+  }
+
+  const pendingRequestedVolunteerId =
+    sessionUtils.getRequestedVolunteerIdIfWaiting(session)
+  if (
+    isVolunteer &&
+    pendingRequestedVolunteerId &&
+    pendingRequestedVolunteerId !== user.id
+  ) {
+    throw new SessionJoinError({
+      message: 'Session is reserved for another tutor',
+      clientMessage:
+        'This student is waiting for another tutor. Please choose another session.',
+      clientTitle: 'Session Unavailable',
       context: { sessionId, joiningUserId: user.id },
     })
   }
@@ -1595,31 +1596,26 @@ export async function sessionsWithUnreadDMs(userId: Ulid): Promise<string[]> {
   return sessions
 }
 
-export async function handleSessionBreakout(
-  sessionId: Uuid,
-  user: UserContactInfo
-) {
+export async function openSessionToAll(sessionId: Uuid, user: UserContactInfo) {
   const session = await SessionRepo.getSessionById(sessionId)
   if (session.studentId !== user.id) {
     throw new NotAllowedError(
       'Only the student in this session can open it up.'
     )
   }
-  if (sessionUtils.isSessionFulfilled(session)) {
-    throw new Error('Session is already matched or ended.')
-  }
-  const wasCleared =
-    await NotifyVolunteerService.clearExclusiveRequest(sessionId)
+  const opened = await SessionRepo.openSessionToAll(sessionId)
+  // Fetch the updated session to send back to the frontend
   const currentSession = await getCurrentSessionById(sessionId)
-  if (wasCleared) {
+  if (opened) {
     if (
       user.banType !== USER_BAN_TYPES.COMPLETE &&
       user.banType !== USER_BAN_TYPES.SHADOW
     ) {
-      await NotifyVolunteerService.beginRegularNotifications(currentSession)
+      await NotifyVolunteerService.beginRegularNotifications(currentSession, 0)
     }
     await SocketService.getInstance().emitSessionChange(session.id)
   }
+  return currentSession
 }
 
 export async function saveSessionImage({

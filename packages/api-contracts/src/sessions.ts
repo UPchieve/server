@@ -49,6 +49,8 @@ export type CurrentSessionPublic = {
   // TODO: Rename this property, this refers to a topic's name
   type: string
   subTopic: string
+  requestedVolunteerId?: Uuid
+  openedToAllAt?: ISODateString
   createdAt: ISODateString
   endedAt?: ISODateString
   endedBy?: Uuid
@@ -228,7 +230,6 @@ export type CurrentSessionResponse = {
   session: CurrentSessionPublic
   sessionId?: Uuid
   isZwibserveSession?: boolean
-  exclusiveVolunteerId?: Uuid | null
 }
 
 export type CheckSessionResponse = {

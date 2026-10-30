@@ -63,6 +63,8 @@ export type VolunteerContactInfo = {
   lastName: string
   volunteerPartnerOrg?: string
   approved?: boolean
+  // Optional because some queries using this type don't select sms_consent
+  smsConsent?: boolean
 }
 
 export type VolunteerContactInfoWithPhoneRequired = Omit<

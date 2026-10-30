@@ -37,6 +37,8 @@ export interface IGetVolunteerContactInfoByIdResult {
   lastName: string;
   /** pii: Phone number */
   phone: string | null;
+  /** not_pii: Whether the user has consented to receive SMS messages */
+  smsConsent: boolean;
   /** not_pii: Unique URL-safe slug */
   volunteerPartnerOrg: string;
 }
@@ -47,7 +49,7 @@ export interface IGetVolunteerContactInfoByIdQuery {
   result: IGetVolunteerContactInfoByIdResult;
 }
 
-const getVolunteerContactInfoByIdIR: any = {"usedParamSet":{"userId":true,"banned":true,"deactivated":true,"testUser":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":385,"b":392}]},{"name":"banned","required":false,"transform":{"type":"scalar"},"locs":[{"a":403,"b":409},{"a":440,"b":446},{"a":522,"b":528}]},{"name":"deactivated","required":false,"transform":{"type":"scalar"},"locs":[{"a":618,"b":629},{"a":679,"b":690}]},{"name":"testUser","required":false,"transform":{"type":"scalar"},"locs":[{"a":736,"b":744},{"a":792,"b":800}]}],"statement":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    phone,\n    email,\n    volunteer_partner_orgs.key AS volunteer_partner_org,\n    volunteer_profiles.approved\nFROM\n    users\n    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\nWHERE\n    users.id = :userId!\n    AND (:banned::boolean IS NULL\n        OR (:banned::boolean IS TRUE\n            AND users.ban_type = 'complete')\n        OR (:banned::boolean IS FALSE\n            AND users.ban_type IS DISTINCT FROM 'complete'))\n    AND (:deactivated::boolean IS NULL\n        OR users.deactivated = :deactivated::boolean)\n    AND deleted IS FALSE\n    AND (:testUser::boolean IS NULL\n        OR users.test_user = :testUser::boolean)"};
+const getVolunteerContactInfoByIdIR: any = {"usedParamSet":{"userId":true,"banned":true,"deactivated":true,"testUser":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":402,"b":409}]},{"name":"banned","required":false,"transform":{"type":"scalar"},"locs":[{"a":420,"b":426},{"a":457,"b":463},{"a":539,"b":545}]},{"name":"deactivated","required":false,"transform":{"type":"scalar"},"locs":[{"a":635,"b":646},{"a":696,"b":707}]},{"name":"testUser","required":false,"transform":{"type":"scalar"},"locs":[{"a":753,"b":761},{"a":809,"b":817}]}],"statement":"SELECT\n    users.id,\n    first_name,\n    last_name,\n    phone,\n    email,\n    volunteer_partner_orgs.key AS volunteer_partner_org,\n    volunteer_profiles.approved,\n    sms_consent\nFROM\n    users\n    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id\n    LEFT JOIN volunteer_partner_orgs ON volunteer_partner_orgs.id = volunteer_profiles.volunteer_partner_org_id\nWHERE\n    users.id = :userId!\n    AND (:banned::boolean IS NULL\n        OR (:banned::boolean IS TRUE\n            AND users.ban_type = 'complete')\n        OR (:banned::boolean IS FALSE\n            AND users.ban_type IS DISTINCT FROM 'complete'))\n    AND (:deactivated::boolean IS NULL\n        OR users.deactivated = :deactivated::boolean)\n    AND deleted IS FALSE\n    AND (:testUser::boolean IS NULL\n        OR users.test_user = :testUser::boolean)"};
 
 /**
  * Query generated from SQL:
@@ -59,7 +61,8 @@ const getVolunteerContactInfoByIdIR: any = {"usedParamSet":{"userId":true,"banne
  *     phone,
  *     email,
  *     volunteer_partner_orgs.key AS volunteer_partner_org,
- *     volunteer_profiles.approved
+ *     volunteer_profiles.approved,
+ *     sms_consent
  * FROM
  *     users
  *     LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = users.id

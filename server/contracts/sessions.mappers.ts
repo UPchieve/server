@@ -96,6 +96,8 @@ export function toCurrentSessionPublic(
     volunteerLanguages: session.volunteerLanguages,
     type: session.type,
     subTopic: session.subTopic,
+    requestedVolunteerId: session.requestedVolunteerId,
+    openedToAllAt: session.openedToAllAt?.toISOString(),
     createdAt: session.createdAt.toISOString(),
     endedAt: session.endedAt?.toISOString(),
     endedBy: session.endedBy,

@@ -1,6 +1,6 @@
 import Case from 'case'
 import { Socket } from 'socket.io'
-
+import type { Uuid } from '../types/shared'
 import config from '../config'
 import { Ulid } from '../models/pgUtils'
 import { CustomError } from 'ts-custom-error'
@@ -308,4 +308,15 @@ export function getSessionUrl(session: SessionForUrl): string {
   return `${config.protocol}://${config.client.host}/session/${Case.kebab(
     session.topic
   )}/${Case.kebab(session.subject)}/${session.id}`
+}
+
+export function getRequestedVolunteerIdIfWaiting(session: {
+  requestedVolunteerId?: string
+  openedToAllAt?: Date
+  volunteerId?: string
+  endedAt?: Date
+}): Uuid | undefined {
+  if (!session.openedToAllAt && !session.volunteerId && !session.endedAt) {
+    return session.requestedVolunteerId
+  }
 }

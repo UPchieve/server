@@ -3,7 +3,6 @@ import SocketService from '../../services/SocketService'
 import * as TutorBotService from '../../services/TutorBotService'
 import * as AssignmentsService from '../../services/AssignmentsService'
 import * as SessionService from '../../services/SessionService'
-import * as cache from '../../cache'
 import { authPassport } from '../../utils/auth-utils'
 import { InputError, LookupError } from '../../models/Errors'
 import { resError } from '../res-error'
@@ -121,16 +120,9 @@ export function routeSession(router: Router) {
       const isZwibserveSession = await SessionService.isZwibserveSession(
         session.id
       )
-      const exclusiveVolunteerId =
-        !session.volunteerId && !session.endedAt
-          ? await cache
-              .hget('exclusiveRequestSessions', session.id)
-              .catch(() => undefined)
-          : undefined
       res.json({
         session: currentSession,
         isZwibserveSession,
-        exclusiveVolunteerId,
       })
     } catch (error) {
       resError(res, error)
@@ -707,16 +699,15 @@ export function routeSession(router: Router) {
     }
   )
 
-  // Student-driven "open this exclusive session up to all tutors".
-  router.route('/session/:sessionId/breakout').post(async function (
+  router.route('/session/:sessionId/open-to-all').post(async function (
     req,
-    res: Response<void>
+    res: Response<CurrentSessionResponse>
   ) {
     try {
       const user = extractUser(req)
       const sessionId = asUlid(req.params.sessionId)
-      await SessionService.handleSessionBreakout(sessionId, user)
-      res.sendStatus(200)
+      const session = await SessionService.openSessionToAll(sessionId, user)
+      res.json({ session: toCurrentSessionPublic(session) })
     } catch (error) {
       resError(res, error)
     }

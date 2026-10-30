@@ -1070,14 +1070,22 @@ describe('routeSession', () => {
     })
   })
 
-  describe('POST /api/session/:sessionId/breakout', () => {
-    test('handles session breakout', async () => {
+  describe('POST /api/session/:sessionId/open-to-all', () => {
+    test('handles opening a session to all', async () => {
       const sessionId = getUuid()
-      mockedSessionService.handleSessionBreakout.mockResolvedValueOnce()
+      const session = buildCurrentSession({
+        id: sessionId,
+        openedToAllAt: new Date(),
+      })
+      mockedSessionService.openSessionToAll.mockResolvedValueOnce(session)
 
-      const response = await sendPost(`/api/session/${sessionId}/breakout`)
+      const response = await sendPost(`/api/session/${sessionId}/open-to-all`)
       expect(response.status).toBe(200)
-      expect(mockedSessionService.handleSessionBreakout).toHaveBeenCalledWith(
+      expect(response.body.session.id).toBe(sessionId)
+      expect(response.body.session.openedToAllAt).toBe(
+        session.openedToAllAt?.toISOString()
+      )
+      expect(mockedSessionService.openSessionToAll).toHaveBeenCalledWith(
         sessionId,
         mockUser
       )

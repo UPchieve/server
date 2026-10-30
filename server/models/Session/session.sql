@@ -31,6 +31,8 @@ SELECT
     subjects.name AS sub_topic,
     topics.name AS TYPE,
     sessions.volunteer_id AS volunteer,
+    sessions.requested_volunteer_id,
+    sessions.opened_to_all_at,
     sessions.created_at,
     users.id AS student_id,
     users.first_name AS student_first_name,
@@ -84,6 +86,8 @@ SELECT
     to_review,
     shadowbanned,
     (time_tutored)::float,
+    sessions.requested_volunteer_id,
+    sessions.opened_to_all_at,
     sessions.created_at,
     sessions.updated_at,
     session_reported_count.total <> 0 AS reported,
@@ -460,12 +464,13 @@ ORDER BY
 
 /* @name createSession */
 WITH inserted_session AS (
-INSERT INTO sessions (id, student_id, subject_id, shadowbanned, created_at, updated_at)
+INSERT INTO sessions (id, student_id, subject_id, shadowbanned, requested_volunteer_id, created_at, updated_at)
     SELECT
         :id!,
         :studentId!,
         subjects.id,
         :shadowbanned!,
+        :requestedVolunteerId,
         NOW(),
         NOW()
     FROM
@@ -493,6 +498,8 @@ SELECT
     sessions.volunteer_joined_at,
     sessions.volunteer_id,
     sessions.student_id,
+    sessions.requested_volunteer_id,
+    sessions.opened_to_all_at,
     sessions.ended_at,
     shadowbanned,
     tool_types.name AS tool_type,
@@ -559,6 +566,8 @@ SELECT
     sessions.volunteer_id,
     sessions.student_id,
     sessions.ended_at,
+    sessions.requested_volunteer_id,
+    sessions.opened_to_all_at,
     shadowbanned,
     tool_types.name AS tool_type,
     volunteer_profiles.languages AS volunteer_languages,
@@ -1392,4 +1401,20 @@ AND (sls.last_seen_at IS NULL
 AND s.time_tutored >= :minTimeTutored!
 GROUP BY
     s.id;
+
+
+/* @name openSessionToAll */
+UPDATE
+    sessions
+SET
+    opened_to_all_at = NOW(),
+    updated_at = NOW()
+WHERE
+    id = :sessionId!
+    AND requested_volunteer_id IS NOT NULL
+    AND opened_to_all_at IS NULL
+    AND volunteer_id IS NULL
+    AND ended_at IS NULL
+RETURNING
+    id;
 

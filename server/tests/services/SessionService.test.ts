@@ -76,6 +76,7 @@ describe('SessionService', () => {
   const mockedSubjectsRepo = mocked(SubjectsRepo)
   const mockedAnalyticsService = mocked(AnalyticsService)
   const mockedSessionFlagsService = mocked(SessionFlagsService)
+  const mockedSocketService = mocked(SocketService)
 
   describe('reportSession', () => {
     test('should ban the user with ban_type of COMPLETE when reported for STUDENT_RUDE', async () => {
@@ -699,25 +700,70 @@ describe('SessionService', () => {
     })
   })
 
-  describe('handleSessionBreakout', () => {
-    test('begins regular notifications when the exclusive request was cleared', async () => {
+  describe('openSessionToAll', () => {
+    test(`rejects opening another student's session`, async () => {
+      const student = buildUserContactInfo()
+      const session = buildSession({ studentId: getDbUlid() })
+      mockSessionRepo.getSessionById.mockResolvedValue(session)
+
+      await expect(
+        SessionService.openSessionToAll(session.id, student)
+      ).rejects.toThrow(NotAllowedError)
+
+      expect(mockSessionRepo.openSessionToAll).not.toHaveBeenCalled()
+      expect(
+        mockedNotifyVolunteerService.beginRegularNotifications
+      ).not.toHaveBeenCalled()
+    })
+
+    test('returns the matched session without notifying other volunteers', async () => {
       const student = buildUserContactInfo()
       const session = buildSession({ studentId: student.id })
-      const currentSession = buildCurrentSession({ studentId: student.id })
       mockSessionRepo.getSessionById.mockResolvedValue(session)
-      mockedNotifyVolunteerService.clearExclusiveRequest.mockResolvedValue(true)
+      const currentSession = buildCurrentSession({
+        id: session.id,
+        studentId: student.id,
+        volunteerId: getDbUlid(),
+      })
+      mockSessionRepo.openSessionToAll.mockResolvedValue(false)
       mockSessionRepo.getCurrentSessionBySessionId.mockResolvedValue(
         currentSession
       )
-      jest.mocked(SocketService.getInstance).mockReturnValue({
+
+      expect(
+        await SessionService.openSessionToAll(currentSession.id, student)
+      ).toEqual(currentSession)
+      expect(
+        mockedNotifyVolunteerService.beginRegularNotifications
+      ).not.toHaveBeenCalled()
+      expect(mockedSocketService.getInstance).not.toHaveBeenCalled()
+    })
+
+    test('begins regular notifications when the request is opened in the database', async () => {
+      const student = buildUserContactInfo()
+      const session = buildSession({ studentId: student.id })
+      const currentSession = buildCurrentSession({
+        id: session.id,
+        studentId: student.id,
+        openedToAllAt: new Date(),
+      })
+      mockSessionRepo.getSessionById.mockResolvedValue(session)
+      mockSessionRepo.openSessionToAll.mockResolvedValue(true)
+      mockSessionRepo.getCurrentSessionBySessionId.mockResolvedValue(
+        currentSession
+      )
+      mockedSocketService.getInstance.mockReturnValue({
         emitSessionChange: jest.fn(),
       } as unknown as SocketService)
 
-      await SessionService.handleSessionBreakout(session.id, student)
+      const result = await SessionService.openSessionToAll(session.id, student)
+
+      expect(result).toEqual(currentSession)
+      expect(mockSessionRepo.openSessionToAll).toHaveBeenCalledWith(session.id)
 
       expect(
         mockedNotifyVolunteerService.beginRegularNotifications
-      ).toHaveBeenCalledWith(currentSession)
+      ).toHaveBeenCalledWith(currentSession, 0)
     })
   })
 

@@ -82,6 +82,10 @@ export interface IGetUnfilledSessionsResult {
   /** not_pii: Primary key */
   id: string;
   isFirstTimeStudent: boolean | null;
+  /** not_pii: When the student opened the request to all tutors */
+  openedToAllAt: Date | null;
+  /** not_pii: Originally requested tutor, retained after opening to all tutors and matching */
+  requestedVolunteerId: string | null;
   /** not_pii: Type of ban (shadow, complete, live_media) */
   studentBanType: ban_types | null;
   /** pii: First name */
@@ -106,7 +110,7 @@ export interface IGetUnfilledSessionsQuery {
   result: IGetUnfilledSessionsResult;
 }
 
-const getUnfilledSessionsIR: any = {"usedParamSet":{"start":true},"params":[{"name":"start","required":true,"transform":{"type":"scalar"},"locs":[{"a":1116,"b":1122}]}],"statement":"SELECT\n    sessions.id,\n    subjects.name AS sub_topic,\n    topics.name AS TYPE,\n    sessions.volunteer_id AS volunteer,\n    sessions.created_at,\n    users.id AS student_id,\n    users.first_name AS student_first_name,\n    users.test_user AS student_test_user,\n    users.ban_type AS student_ban_type,\n    session_count.total = 1 AS is_first_time_student,\n    subjects.display_name AS subject_display_name,\n    (\n        SELECT\n            cgl.current_grade_name\n        FROM\n            current_grade_levels cgl\n        WHERE\n            cgl.user_id = users.id) AS current_grade_name\nFROM\n    sessions\n    JOIN users ON sessions.student_id = users.id\n    JOIN student_profiles ON student_profiles.user_id = sessions.student_id\n    LEFT JOIN subjects ON sessions.subject_id = subjects.id\n    LEFT JOIN topics ON subjects.topic_id = topics.id\n    JOIN LATERAL (\n        SELECT\n            COUNT(*) AS total\n        FROM\n            sessions\n        WHERE\n            student_id = users.id) AS session_count ON TRUE\nWHERE\n    sessions.volunteer_id IS NULL\n    AND sessions.ended_at IS NULL\n    AND sessions.created_at > :start!\n    AND users.ban_type IS DISTINCT FROM 'complete'\nORDER BY\n    sessions.created_at"};
+const getUnfilledSessionsIR: any = {"usedParamSet":{"start":true},"params":[{"name":"start","required":true,"transform":{"type":"scalar"},"locs":[{"a":1184,"b":1190}]}],"statement":"SELECT\n    sessions.id,\n    subjects.name AS sub_topic,\n    topics.name AS TYPE,\n    sessions.volunteer_id AS volunteer,\n    sessions.requested_volunteer_id,\n    sessions.opened_to_all_at,\n    sessions.created_at,\n    users.id AS student_id,\n    users.first_name AS student_first_name,\n    users.test_user AS student_test_user,\n    users.ban_type AS student_ban_type,\n    session_count.total = 1 AS is_first_time_student,\n    subjects.display_name AS subject_display_name,\n    (\n        SELECT\n            cgl.current_grade_name\n        FROM\n            current_grade_levels cgl\n        WHERE\n            cgl.user_id = users.id) AS current_grade_name\nFROM\n    sessions\n    JOIN users ON sessions.student_id = users.id\n    JOIN student_profiles ON student_profiles.user_id = sessions.student_id\n    LEFT JOIN subjects ON sessions.subject_id = subjects.id\n    LEFT JOIN topics ON subjects.topic_id = topics.id\n    JOIN LATERAL (\n        SELECT\n            COUNT(*) AS total\n        FROM\n            sessions\n        WHERE\n            student_id = users.id) AS session_count ON TRUE\nWHERE\n    sessions.volunteer_id IS NULL\n    AND sessions.ended_at IS NULL\n    AND sessions.created_at > :start!\n    AND users.ban_type IS DISTINCT FROM 'complete'\nORDER BY\n    sessions.created_at"};
 
 /**
  * Query generated from SQL:
@@ -116,6 +120,8 @@ const getUnfilledSessionsIR: any = {"usedParamSet":{"start":true},"params":[{"na
  *     subjects.name AS sub_topic,
  *     topics.name AS TYPE,
  *     sessions.volunteer_id AS volunteer,
+ *     sessions.requested_volunteer_id,
+ *     sessions.opened_to_all_at,
  *     sessions.created_at,
  *     users.id AS student_id,
  *     users.first_name AS student_first_name,
@@ -171,9 +177,13 @@ export interface IGetSessionByIdResult {
   hasWhiteboardDoc: boolean;
   /** not_pii: Primary key */
   id: string;
+  /** not_pii: When the student opened the request to all tutors */
+  openedToAllAt: Date | null;
   /** not_pii: Quill.js shared document content (user-generated text) */
   quillDoc: string | null;
   reported: boolean | null;
+  /** not_pii: Originally requested tutor, retained after opening to all tutors and matching */
+  requestedVolunteerId: string | null;
   /** not_pii: Whether the session has been reviewed by an admin */
   reviewed: boolean;
   /** not_pii: Whether the student was shadow banned when requesting the session */
@@ -207,7 +217,7 @@ export interface IGetSessionByIdQuery {
   result: IGetSessionByIdResult;
 }
 
-const getSessionByIdIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":1383,"b":1393}]}],"statement":"SELECT\n    sessions.id,\n    student_id,\n    volunteer_id,\n    subjects.id AS subject_id,\n    subjects.name AS subject,\n    subjects.display_name AS subject_display_name,\n    topics.name AS topic,\n    has_whiteboard_doc,\n    quill_doc,\n    volunteer_joined_at,\n    ended_at,\n    reviewed,\n    to_review,\n    shadowbanned,\n    (time_tutored)::float,\n    sessions.created_at,\n    sessions.updated_at,\n    session_reported_count.total <> 0 AS reported,\n    COALESCE(session_flag_array.flags, ARRAY[]::text[]) AS flags,\n    tool_types.name AS tool_type\nFROM\n    sessions\n    LEFT JOIN subjects ON subjects.id = sessions.subject_id\n    LEFT JOIN topics ON topics.id = subjects.topic_id\n    LEFT JOIN session_reports ON session_reports.session_id = sessions.id\n    LEFT JOIN LATERAL (\n        SELECT\n            COUNT(id)::int AS total\n        FROM\n            session_reports\n        WHERE\n            session_reports.session_id = sessions.id) AS session_reported_count ON TRUE\n    LEFT JOIN LATERAL (\n        SELECT\n            array_agg(name) AS flags\n        FROM\n            sessions_session_flags\n            LEFT JOIN session_flags ON session_flags.id = sessions_session_flags.session_flag_id\n        WHERE\n            sessions_session_flags.session_id = sessions.id) AS session_flag_array ON TRUE\n    JOIN tool_types ON subjects.tool_type_id = tool_types.id\nWHERE\n    sessions.id = :sessionId!"};
+const getSessionByIdIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":1451,"b":1461}]}],"statement":"SELECT\n    sessions.id,\n    student_id,\n    volunteer_id,\n    subjects.id AS subject_id,\n    subjects.name AS subject,\n    subjects.display_name AS subject_display_name,\n    topics.name AS topic,\n    has_whiteboard_doc,\n    quill_doc,\n    volunteer_joined_at,\n    ended_at,\n    reviewed,\n    to_review,\n    shadowbanned,\n    (time_tutored)::float,\n    sessions.requested_volunteer_id,\n    sessions.opened_to_all_at,\n    sessions.created_at,\n    sessions.updated_at,\n    session_reported_count.total <> 0 AS reported,\n    COALESCE(session_flag_array.flags, ARRAY[]::text[]) AS flags,\n    tool_types.name AS tool_type\nFROM\n    sessions\n    LEFT JOIN subjects ON subjects.id = sessions.subject_id\n    LEFT JOIN topics ON topics.id = subjects.topic_id\n    LEFT JOIN session_reports ON session_reports.session_id = sessions.id\n    LEFT JOIN LATERAL (\n        SELECT\n            COUNT(id)::int AS total\n        FROM\n            session_reports\n        WHERE\n            session_reports.session_id = sessions.id) AS session_reported_count ON TRUE\n    LEFT JOIN LATERAL (\n        SELECT\n            array_agg(name) AS flags\n        FROM\n            sessions_session_flags\n            LEFT JOIN session_flags ON session_flags.id = sessions_session_flags.session_flag_id\n        WHERE\n            sessions_session_flags.session_id = sessions.id) AS session_flag_array ON TRUE\n    JOIN tool_types ON subjects.tool_type_id = tool_types.id\nWHERE\n    sessions.id = :sessionId!"};
 
 /**
  * Query generated from SQL:
@@ -228,6 +238,8 @@ const getSessionByIdIR: any = {"usedParamSet":{"sessionId":true},"params":[{"nam
  *     to_review,
  *     shadowbanned,
  *     (time_tutored)::float,
+ *     sessions.requested_volunteer_id,
+ *     sessions.opened_to_all_at,
  *     sessions.created_at,
  *     sessions.updated_at,
  *     session_reported_count.total <> 0 AS reported,
@@ -1147,6 +1159,7 @@ export const getSessionAudioTranscriptMessagesForFrontend = new PreparedQuery<IG
 /** 'CreateSession' parameters type */
 export interface ICreateSessionParams {
   id: string;
+  requestedVolunteerId?: string | null | void;
   shadowbanned: boolean;
   studentId: string;
   subject: string;
@@ -1164,18 +1177,19 @@ export interface ICreateSessionQuery {
   result: ICreateSessionResult;
 }
 
-const createSessionIR: any = {"usedParamSet":{"id":true,"studentId":true,"shadowbanned":true,"subject":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":134,"b":137}]},{"name":"studentId","required":true,"transform":{"type":"scalar"},"locs":[{"a":148,"b":158}]},{"name":"shadowbanned","required":true,"transform":{"type":"scalar"},"locs":[{"a":190,"b":203}]},{"name":"subject","required":true,"transform":{"type":"scalar"},"locs":[{"a":295,"b":303}]}],"statement":"WITH inserted_session AS (\nINSERT INTO sessions (id, student_id, subject_id, shadowbanned, created_at, updated_at)\n    SELECT\n        :id!,\n        :studentId!,\n        subjects.id,\n        :shadowbanned!,\n        NOW(),\n        NOW()\n    FROM\n        subjects\n    WHERE\n        subjects.name = :subject!\n    RETURNING\n        *\n)\nSELECT\n    inserted_session.id\nFROM\n    inserted_session"};
+const createSessionIR: any = {"usedParamSet":{"id":true,"studentId":true,"shadowbanned":true,"requestedVolunteerId":true,"subject":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":158,"b":161}]},{"name":"studentId","required":true,"transform":{"type":"scalar"},"locs":[{"a":172,"b":182}]},{"name":"shadowbanned","required":true,"transform":{"type":"scalar"},"locs":[{"a":214,"b":227}]},{"name":"requestedVolunteerId","required":false,"transform":{"type":"scalar"},"locs":[{"a":238,"b":258}]},{"name":"subject","required":true,"transform":{"type":"scalar"},"locs":[{"a":350,"b":358}]}],"statement":"WITH inserted_session AS (\nINSERT INTO sessions (id, student_id, subject_id, shadowbanned, requested_volunteer_id, created_at, updated_at)\n    SELECT\n        :id!,\n        :studentId!,\n        subjects.id,\n        :shadowbanned!,\n        :requestedVolunteerId,\n        NOW(),\n        NOW()\n    FROM\n        subjects\n    WHERE\n        subjects.name = :subject!\n    RETURNING\n        *\n)\nSELECT\n    inserted_session.id\nFROM\n    inserted_session"};
 
 /**
  * Query generated from SQL:
  * ```
  * WITH inserted_session AS (
- * INSERT INTO sessions (id, student_id, subject_id, shadowbanned, created_at, updated_at)
+ * INSERT INTO sessions (id, student_id, subject_id, shadowbanned, requested_volunteer_id, created_at, updated_at)
  *     SELECT
  *         :id!,
  *         :studentId!,
  *         subjects.id,
  *         :shadowbanned!,
+ *         :requestedVolunteerId,
  *         NOW(),
  *         NOW()
  *     FROM
@@ -1209,6 +1223,10 @@ export interface IGetCurrentSessionByUserIdResult {
   endedBy: string | null;
   /** not_pii: Primary key */
   id: string;
+  /** not_pii: When the student opened the request to all tutors */
+  openedToAllAt: Date | null;
+  /** not_pii: Originally requested tutor, retained after opening to all tutors and matching */
+  requestedVolunteerId: string | null;
   /** not_pii: Whether the student was shadow banned when requesting the session */
   shadowbanned: boolean | null;
   studentBannedFromLiveMedia: boolean | null;
@@ -1241,7 +1259,7 @@ export interface IGetCurrentSessionByUserIdQuery {
   result: IGetCurrentSessionByUserIdResult;
 }
 
-const getCurrentSessionByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":1375,"b":1382},{"a":1415,"b":1422}]}],"statement":"SELECT\n    sessions.id,\n    subjects.name AS sub_topic,\n    subjects.name AS subject,\n    subjects.display_name AS subject_display_name,\n    topics.name AS TYPE,\n    topics.name AS topic,\n    sessions.created_at,\n    sessions.volunteer_joined_at,\n    sessions.volunteer_id,\n    sessions.student_id,\n    sessions.ended_at,\n    shadowbanned,\n    tool_types.name AS tool_type,\n    volunteer_profiles.languages AS volunteer_languages,\n    sessions.ended_by_user_id AS ended_by,\n    CASE WHEN sessions.volunteer_id IS NULL THEN\n        FALSE\n    WHEN (\n        SELECT\n            ban_type\n        FROM\n            upchieve.users\n        WHERE\n            id = sessions.volunteer_id) = 'live_media' THEN\n        TRUE\n    ELSE\n        FALSE\n    END AS volunteer_banned_from_live_media, CASE WHEN (\n        SELECT\n            ban_type\n        FROM\n            upchieve.users\n        WHERE\n            id = sessions.student_id) = 'live_media' THEN\n        TRUE\n    ELSE\n        FALSE\n    END AS student_banned_from_live_media\nFROM\n    sessions\n    JOIN users ON sessions.student_id = users.id\n    LEFT JOIN subjects ON sessions.subject_id = subjects.id\n    LEFT JOIN topics ON subjects.topic_id = topics.id\n    JOIN tool_types ON subjects.tool_type_id = tool_types.id\n    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = sessions.volunteer_id\nWHERE (sessions.student_id = :userId!\n    OR sessions.volunteer_id = :userId!)\nAND sessions.ended_at IS NULL"};
+const getCurrentSessionByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":1443,"b":1450},{"a":1483,"b":1490}]}],"statement":"SELECT\n    sessions.id,\n    subjects.name AS sub_topic,\n    subjects.name AS subject,\n    subjects.display_name AS subject_display_name,\n    topics.name AS TYPE,\n    topics.name AS topic,\n    sessions.created_at,\n    sessions.volunteer_joined_at,\n    sessions.volunteer_id,\n    sessions.student_id,\n    sessions.requested_volunteer_id,\n    sessions.opened_to_all_at,\n    sessions.ended_at,\n    shadowbanned,\n    tool_types.name AS tool_type,\n    volunteer_profiles.languages AS volunteer_languages,\n    sessions.ended_by_user_id AS ended_by,\n    CASE WHEN sessions.volunteer_id IS NULL THEN\n        FALSE\n    WHEN (\n        SELECT\n            ban_type\n        FROM\n            upchieve.users\n        WHERE\n            id = sessions.volunteer_id) = 'live_media' THEN\n        TRUE\n    ELSE\n        FALSE\n    END AS volunteer_banned_from_live_media, CASE WHEN (\n        SELECT\n            ban_type\n        FROM\n            upchieve.users\n        WHERE\n            id = sessions.student_id) = 'live_media' THEN\n        TRUE\n    ELSE\n        FALSE\n    END AS student_banned_from_live_media\nFROM\n    sessions\n    JOIN users ON sessions.student_id = users.id\n    LEFT JOIN subjects ON sessions.subject_id = subjects.id\n    LEFT JOIN topics ON subjects.topic_id = topics.id\n    JOIN tool_types ON subjects.tool_type_id = tool_types.id\n    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = sessions.volunteer_id\nWHERE (sessions.student_id = :userId!\n    OR sessions.volunteer_id = :userId!)\nAND sessions.ended_at IS NULL"};
 
 /**
  * Query generated from SQL:
@@ -1257,6 +1275,8 @@ const getCurrentSessionByUserIdIR: any = {"usedParamSet":{"userId":true},"params
  *     sessions.volunteer_joined_at,
  *     sessions.volunteer_id,
  *     sessions.student_id,
+ *     sessions.requested_volunteer_id,
+ *     sessions.opened_to_all_at,
  *     sessions.ended_at,
  *     shadowbanned,
  *     tool_types.name AS tool_type,
@@ -1352,6 +1372,10 @@ export interface IGetCurrentSessionBySessionIdResult {
   endedBy: string | null;
   /** not_pii: Primary key */
   id: string;
+  /** not_pii: When the student opened the request to all tutors */
+  openedToAllAt: Date | null;
+  /** not_pii: Originally requested tutor, retained after opening to all tutors and matching */
+  requestedVolunteerId: string | null;
   /** not_pii: Whether the student was shadow banned when requesting the session */
   shadowbanned: boolean | null;
   studentBannedFromLiveMedia: boolean | null;
@@ -1384,7 +1408,7 @@ export interface IGetCurrentSessionBySessionIdQuery {
   result: IGetCurrentSessionBySessionIdResult;
 }
 
-const getCurrentSessionBySessionIdIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":false,"transform":{"type":"scalar"},"locs":[{"a":1370,"b":1379}]}],"statement":"SELECT\n    sessions.id,\n    subjects.name AS sub_topic,\n    subjects.name AS subject,\n    subjects.display_name AS subject_display_name,\n    topics.name AS TYPE,\n    topics.name AS topic,\n    sessions.created_at,\n    sessions.volunteer_joined_at,\n    sessions.volunteer_id,\n    sessions.student_id,\n    sessions.ended_at,\n    shadowbanned,\n    tool_types.name AS tool_type,\n    volunteer_profiles.languages AS volunteer_languages,\n    sessions.ended_by_user_id AS ended_by,\n    CASE WHEN sessions.volunteer_id IS NULL THEN\n        FALSE\n    WHEN (\n        SELECT\n            ban_type\n        FROM\n            upchieve.users\n        WHERE\n            id = sessions.volunteer_id) = 'live_media' THEN\n        TRUE\n    ELSE\n        FALSE\n    END AS volunteer_banned_from_live_media, CASE WHEN (\n        SELECT\n            ban_type\n        FROM\n            upchieve.users\n        WHERE\n            id = sessions.student_id) = 'live_media' THEN\n        TRUE\n    ELSE\n        FALSE\n    END AS student_banned_from_live_media\nFROM\n    sessions\n    JOIN users ON sessions.student_id = users.id\n    LEFT JOIN subjects ON sessions.subject_id = subjects.id\n    LEFT JOIN topics ON subjects.topic_id = topics.id\n    JOIN tool_types ON subjects.tool_type_id = tool_types.id\n    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = sessions.volunteer_id\nWHERE\n    sessions.id = :sessionId"};
+const getCurrentSessionBySessionIdIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":false,"transform":{"type":"scalar"},"locs":[{"a":1438,"b":1447}]}],"statement":"SELECT\n    sessions.id,\n    subjects.name AS sub_topic,\n    subjects.name AS subject,\n    subjects.display_name AS subject_display_name,\n    topics.name AS TYPE,\n    topics.name AS topic,\n    sessions.created_at,\n    sessions.volunteer_joined_at,\n    sessions.volunteer_id,\n    sessions.student_id,\n    sessions.ended_at,\n    sessions.requested_volunteer_id,\n    sessions.opened_to_all_at,\n    shadowbanned,\n    tool_types.name AS tool_type,\n    volunteer_profiles.languages AS volunteer_languages,\n    sessions.ended_by_user_id AS ended_by,\n    CASE WHEN sessions.volunteer_id IS NULL THEN\n        FALSE\n    WHEN (\n        SELECT\n            ban_type\n        FROM\n            upchieve.users\n        WHERE\n            id = sessions.volunteer_id) = 'live_media' THEN\n        TRUE\n    ELSE\n        FALSE\n    END AS volunteer_banned_from_live_media, CASE WHEN (\n        SELECT\n            ban_type\n        FROM\n            upchieve.users\n        WHERE\n            id = sessions.student_id) = 'live_media' THEN\n        TRUE\n    ELSE\n        FALSE\n    END AS student_banned_from_live_media\nFROM\n    sessions\n    JOIN users ON sessions.student_id = users.id\n    LEFT JOIN subjects ON sessions.subject_id = subjects.id\n    LEFT JOIN topics ON subjects.topic_id = topics.id\n    JOIN tool_types ON subjects.tool_type_id = tool_types.id\n    LEFT JOIN volunteer_profiles ON volunteer_profiles.user_id = sessions.volunteer_id\nWHERE\n    sessions.id = :sessionId"};
 
 /**
  * Query generated from SQL:
@@ -1401,6 +1425,8 @@ const getCurrentSessionBySessionIdIR: any = {"usedParamSet":{"sessionId":true},"
  *     sessions.volunteer_id,
  *     sessions.student_id,
  *     sessions.ended_at,
+ *     sessions.requested_volunteer_id,
+ *     sessions.opened_to_all_at,
  *     shadowbanned,
  *     tool_types.name AS tool_type,
  *     volunteer_profiles.languages AS volunteer_languages,
@@ -3267,5 +3293,45 @@ const sessionsWithUnreadDMsIR: any = {"usedParamSet":{"userId":true,"minTimeTuto
  * ```
  */
 export const sessionsWithUnreadDMs = new PreparedQuery<ISessionsWithUnreadDMsParams,ISessionsWithUnreadDMsResult>(sessionsWithUnreadDMsIR);
+
+
+/** 'OpenSessionToAll' parameters type */
+export interface IOpenSessionToAllParams {
+  sessionId: string;
+}
+
+/** 'OpenSessionToAll' return type */
+export interface IOpenSessionToAllResult {
+  /** not_pii: Primary key */
+  id: string;
+}
+
+/** 'OpenSessionToAll' query type */
+export interface IOpenSessionToAllQuery {
+  params: IOpenSessionToAllParams;
+  result: IOpenSessionToAllResult;
+}
+
+const openSessionToAllIR: any = {"usedParamSet":{"sessionId":true},"params":[{"name":"sessionId","required":true,"transform":{"type":"scalar"},"locs":[{"a":92,"b":102}]}],"statement":"UPDATE\n    sessions\nSET\n    opened_to_all_at = NOW(),\n    updated_at = NOW()\nWHERE\n    id = :sessionId!\n    AND requested_volunteer_id IS NOT NULL\n    AND opened_to_all_at IS NULL\n    AND volunteer_id IS NULL\n    AND ended_at IS NULL\nRETURNING\n    id"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE
+ *     sessions
+ * SET
+ *     opened_to_all_at = NOW(),
+ *     updated_at = NOW()
+ * WHERE
+ *     id = :sessionId!
+ *     AND requested_volunteer_id IS NOT NULL
+ *     AND opened_to_all_at IS NULL
+ *     AND volunteer_id IS NULL
+ *     AND ended_at IS NULL
+ * RETURNING
+ *     id
+ * ```
+ */
+export const openSessionToAll = new PreparedQuery<IOpenSessionToAllParams,IOpenSessionToAllResult>(openSessionToAllIR);
 
 

@@ -1,12 +1,12 @@
-import { Ulid, Uuid } from '../pgUtils'
+import { Uuid } from '../../types/shared'
 import { USER_ROLES_TYPE } from '../../constants'
 import { SessionEditorActivity } from '../SessionEditorActivity/types'
 import { MessageForFrontend } from '../../types/session'
 
 export type Session = {
-  id: Ulid
-  studentId: Ulid
-  volunteerId?: Ulid
+  id: Uuid
+  studentId: Uuid
+  volunteerId?: Uuid
   subjectId: number
   hasWhiteboardDoc: boolean
   quillDoc?: string
@@ -17,24 +17,26 @@ export type Session = {
   studentBanned?: boolean
   timeTutored: number
   shadowbanned?: boolean
+  requestedVolunteerId?: Uuid
+  openedToAllAt?: Date
   createdAt: Date
   updatedAt: Date
 }
 
 export type VolunteerLastSessionEndedAt = {
-  volunteerId: Ulid
+  volunteerId: Uuid
   endedAt: Date
 }
 
 export type VolunteerSessionCount = {
-  volunteerId: Ulid
+  volunteerId: Uuid
   sessionCount: number
 }
 
 export type GetSessionByIdResult = {
-  id: Ulid
-  studentId: Ulid
-  volunteerId?: Ulid
+  id: Uuid
+  studentId: Uuid
+  volunteerId?: Uuid
   topic: string
   subjectId: number
   subject: string
@@ -42,7 +44,7 @@ export type GetSessionByIdResult = {
   quillDoc?: string
   volunteerJoinedAt?: Date
   endedAt?: Date
-  endedByUserId?: Ulid
+  endedByUserId?: Uuid
   reviewed: boolean
   toReview: boolean
   shadowbanned?: boolean
@@ -53,6 +55,8 @@ export type GetSessionByIdResult = {
   flags: string[]
   subjectDisplayName: string
   toolType: string
+  requestedVolunteerId?: Uuid
+  openedToAllAt?: Date
 }
 
 export type UserSessionStat = {
@@ -70,11 +74,11 @@ export type UserSessionsFilter = {
   end?: Date
   subject?: string
   topic?: string
-  sessionId?: Ulid
+  sessionId?: Uuid
 }
 
 export type FallIncentiveSession = {
-  id: Ulid
+  id: Uuid
   timeTutored: number
   flags: string[]
   reported: boolean

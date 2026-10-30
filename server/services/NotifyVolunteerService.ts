@@ -1,28 +1,19 @@
-import moment from 'moment'
-import * as AssociatedPartnerService from './AssociatedPartnerService'
 import type { Uuid } from '../types/shared'
 import * as StudentsRepo from '../models/Student'
 import * as SessionRepo from '../models/Session'
-import type { NotificationData } from '../models/Session'
 import * as VolunteerRepo from '../models/Volunteer'
 import { sendTextMessage } from '../clients/twilio'
-import {
-  VolunteerContactInfoWithPhoneRequired,
-  getVolunteersNotifiedBySessionId,
-} from '../models/Volunteer'
-import startsWithVowel from '../utils/starts-with-vowel'
-import { AssociatedPartner } from '../models/AssociatedPartner'
 import { CurrentSession } from '../types/session'
 import QueueService from './QueueService'
 import { secondsInMs } from '../utils/time-utils'
-import { EVENTS, SUBJECTS } from '../constants'
+import { EVENTS } from '../constants'
 import { getSessionUrl } from '../utils/session-utils'
-import * as cache from '../cache'
 import logger from '../logger'
 import { captureEvent } from './AnalyticsService'
 
 export async function beginRegularNotifications(
-  session: CurrentSession
+  session: CurrentSession,
+  delay = secondsInMs(30)
 ): Promise<void> {
   const student = await StudentsRepo.getStudentContactInfoById(
     session.studentId
@@ -31,9 +22,11 @@ export async function beginRegularNotifications(
 
   // Delay initial wave of notifications by 30 seconds to give
   // volunteers on the dashboard time to pick up the request.
+  // Skip the delay when opening a requested-tutor session to all volunteers,
+  // since the student has already been waiting.
   await QueueService.add(
     'TextVolunteers',
-    { delay: secondsInMs(30), jobId: `TextVolunteers:${session.id}` },
+    { delay, jobId: `TextVolunteers:${session.id}` },
     {
       sessionId: session.id,
       subject: session.subject,
@@ -48,7 +41,7 @@ export async function beginRegularNotifications(
 }
 
 // Notify a single volunteer that a student has specifically requested them.
-export async function notifyExclusiveVolunteer(
+export async function notifyRequestedVolunteer(
   session: CurrentSession,
   volunteerId: Uuid
 ): Promise<void> {
@@ -58,7 +51,7 @@ export async function notifyExclusiveVolunteer(
   )
 
   if (!volunteer) {
-    logger.error('notifyExclusiveVolunteer: No volunteer found', {
+    logger.error('notifyRequestedVolunteer: No volunteer found', {
       err: 'No volunteer found',
       volunteerId,
     })
@@ -67,9 +60,17 @@ export async function notifyExclusiveVolunteer(
 
   if (!volunteer.phone) {
     logger.warn(
-      'notifyExclusiveVolunteer: volunteer has no phone or is not eligible; skipping SMS',
+      'notifyRequestedVolunteer: volunteer has no phone or is not eligible; skipping SMS',
       { sessionId: session.id, volunteerId }
     )
+    return
+  }
+
+  if (!volunteer.smsConsent) {
+    logger.info('Skipping requested-tutor SMS: volunteer has not consented', {
+      sessionId: session.id,
+      volunteerId,
+    })
     return
   }
 
@@ -88,7 +89,7 @@ export async function notifyExclusiveVolunteer(
       session.id
     )
   } catch (err) {
-    logger.error('notifyExclusiveVolunteer: SMS send failed', {
+    logger.error('notifyRequestedVolunteer: SMS send failed', {
       sessionId: session.id,
       volunteerId,
       err,
@@ -109,7 +110,7 @@ export async function notifyExclusiveVolunteer(
     })
   } catch (err) {
     logger.error(
-      'notifyExclusiveVolunteer: failed to write notification audit row',
+      'notifyRequestedVolunteer: failed to write notification audit row',
       { sessionId: session.id, volunteerId, err }
     )
   }
@@ -122,29 +123,4 @@ export async function notifyExclusiveVolunteer(
     volunteerId,
     smsSent: !!carrierMessageId,
   })
-}
-
-// Atomically clear a session's exclusive-request state and notify the
-// targeted volunteer's open frontends.
-export async function clearExclusiveRequest(sessionId: Uuid): Promise<boolean> {
-  let volunteerId: Uuid | null
-  try {
-    volunteerId = await cache.hget('exclusiveRequestSessions', sessionId)
-  } catch (err) {
-    logger.error(
-      'clearExclusiveRequest: HGET failed; failing open (no cleanup)',
-      { sessionId, err }
-    )
-    return false
-  }
-  if (!volunteerId) return false
-  let removed: number = 0
-  try {
-    removed = await cache.hdel('exclusiveRequestSessions', sessionId)
-  } catch (err) {
-    logger.error('clearExclusiveRequest: HDEL failed', { sessionId, err })
-    return false
-  }
-  if (removed === 0) return false // raced — someone else already cleared it
-  return true
 }

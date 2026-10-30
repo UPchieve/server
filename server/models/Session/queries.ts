@@ -96,6 +96,8 @@ export type UnfulfilledSessions = {
   type: string
   volunteer?: Uuid
   subjectDisplayName: string
+  requestedVolunteerId?: Uuid
+  isExclusive: boolean
 }
 
 type CurrentSessionRow = {
@@ -115,6 +117,8 @@ type CurrentSessionRow = {
   studentBannedFromLiveMedia?: boolean
   volunteerBannedFromLiveMedia?: boolean
   volunteerLanguages?: string[]
+  requestedVolunteerId?: Uuid
+  openedToAllAt?: Date
   createdAt: Date
 }
 
@@ -139,6 +143,8 @@ function toCurrentSession(
     studentBannedFromLiveMedia: row.studentBannedFromLiveMedia ?? false,
     volunteerBannedFromLiveMedia: row.volunteerBannedFromLiveMedia ?? false,
     volunteerLanguages: row.volunteerLanguages ?? undefined,
+    requestedVolunteerId: row.requestedVolunteerId ?? undefined,
+    openedToAllAt: row.openedToAllAt ?? undefined,
     createdAt: row.createdAt,
   }
 }
@@ -156,14 +162,21 @@ export async function getUnfulfilledSessions(
     )
 
     return result.map((session) => {
-      const s = makeSomeOptional(session, [
-        'volunteer',
-        'studentBanType',
-        'currentGradeName',
+      const s = makeSomeRequired(session, [
+        'id',
+        'subTopic',
+        'type',
+        'createdAt',
+        'studentId',
+        'studentFirstName',
+        'studentTestUser',
+        'isFirstTimeStudent',
+        'subjectDisplayName',
       ])
       return {
         ...s,
         _id: s.id,
+        isExclusive: !!s.requestedVolunteerId && !s.openedToAllAt,
         student: {
           id: s.studentId,
           firstname: s.studentFirstName,
@@ -185,12 +198,22 @@ export async function getSessionById(
   try {
     const result = await pgQueries.getSessionById.run({ sessionId }, tc)
     if (!result.length) throw new RepoReadError('Session not found')
-    return makeSomeOptional(result[0], [
-      'volunteerId',
-      'quillDoc',
-      'volunteerJoinedAt',
-      'endedAt',
-      'shadowbanned',
+    return makeSomeRequired(result[0], [
+      'id',
+      'studentId',
+      'subjectId',
+      'subject',
+      'subjectDisplayName',
+      'topic',
+      'hasWhiteboardDoc',
+      'reviewed',
+      'toReview',
+      'timeTutored',
+      'createdAt',
+      'updatedAt',
+      'reported',
+      'flags',
+      'toolType',
     ])
   } catch (err) {
     throw new RepoReadError(err)
@@ -662,15 +685,26 @@ export async function getSessionByIdWithStudentAndVolunteer(
   }
 }
 
+type CreateSessionPayload = {
+  studentId: Uuid
+  subject: string
+  isShadowBanned: boolean
+  requestedVolunteerId?: Uuid
+}
+
 export async function createSession(
-  studentId: Uuid,
-  subject: string,
-  isShadowBanned: boolean,
+  data: CreateSessionPayload,
   tc: TransactionClient
 ): Promise<CurrentSession> {
   try {
     const [created] = await pgQueries.createSession.run(
-      { id: getDbUlid(), studentId, subject, shadowbanned: isShadowBanned },
+      {
+        id: getDbUlid(),
+        studentId: data.studentId,
+        subject: data.subject,
+        shadowbanned: data.isShadowBanned,
+        requestedVolunteerId: data.requestedVolunteerId,
+      },
       tc
     )
     if (!created) throw new RepoCreateError('Failed to create new session.')
@@ -708,14 +742,17 @@ export async function getCurrentSessionByUserId(
     const [row] = await pgQueries.getCurrentSessionByUserId.run({ userId }, tc)
     if (!row) return undefined
 
-    const session = makeSomeOptional(row, [
-      'volunteerJoinedAt',
-      'volunteerId',
-      'endedAt',
-      'endedBy',
-      'volunteerBannedFromLiveMedia',
-      'studentBannedFromLiveMedia',
-      'volunteerLanguages',
+    const session = makeSomeRequired(row, [
+      'id',
+      'subTopic',
+      'subject',
+      'subjectDisplayName',
+      'type',
+      'topic',
+      'createdAt',
+      'studentId',
+      'shadowbanned',
+      'toolType',
     ])
     const messages = await getMessagesForFrontend(session.id, tc)
     const { student, volunteer } = await getSessionUsers(
@@ -746,15 +783,16 @@ export async function getCurrentSessionBySessionId(
     )
     if (!row) return undefined
 
-    const session = makeSomeOptional(row, [
-      'volunteerJoinedAt',
-      'volunteerId',
-      'endedAt',
-      'endedBy',
-      'volunteerBannedFromLiveMedia',
-      'studentBannedFromLiveMedia',
-      'volunteerLanguages',
-      'shadowbanned',
+    const session = makeSomeRequired(row, [
+      'id',
+      'subTopic',
+      'subject',
+      'subjectDisplayName',
+      'type',
+      'topic',
+      'createdAt',
+      'studentId',
+      'toolType',
     ])
     const messages = await getMessagesForFrontend(session.id, tc)
     const { student, volunteer } = await getSessionUsers(
@@ -1612,5 +1650,17 @@ export async function sessionsWithUnreadDMs(
     return result.map((r) => makeRequired(r).id)
   } catch (err) {
     throw new RepoReadError(err)
+  }
+}
+
+export async function openSessionToAll(sessionId: Uuid): Promise<boolean> {
+  try {
+    const rows = await pgQueries.openSessionToAll.run(
+      { sessionId },
+      getClient()
+    )
+    return rows.length > 0
+  } catch (err) {
+    throw new RepoUpdateError(err)
   }
 }

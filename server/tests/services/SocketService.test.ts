@@ -52,6 +52,7 @@ describe('SocketService session list broadcasts', () => {
       createdAt: session.createdAt,
       type: session.type,
       subjectDisplayName: session.subjectDisplayName,
+      isExclusive: false,
     },
   ]
   const sessionsWithHolds = sessions.map((s) => ({

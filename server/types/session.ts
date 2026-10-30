@@ -47,6 +47,8 @@ export type CurrentSession = {
   volunteerBannedFromLiveMedia?: boolean
   volunteerLanguages?: string[]
   shadowbanned?: boolean
+  requestedVolunteerId?: Uuid
+  openedToAllAt?: Date
   createdAt: Date
 }
 
