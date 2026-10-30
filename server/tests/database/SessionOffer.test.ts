@@ -65,7 +65,6 @@ describe('SessionOffer repo', () => {
           outcome: 'shadow-offered',
           closed_at: offeredAt,
           scorecard_version: output.scorecardVersion,
-          input: null,
           output: { ...output, now: offeredAt.toISOString() },
         }),
       ])
