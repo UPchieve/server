@@ -18,10 +18,10 @@ import { VolunteerOccupations } from '../../models/Volunteer'
 import * as NTHSGroupsService from '../../services/NTHSGroupsService'
 import { hoursInMs, minutesInMs } from '../../utils/time-utils'
 import {
-  NTHS_APPLICATION_FORMS,
+  CURRENT_FORM_VERSION,
+  NTHS_APPLICATION_FIELDS,
   NTHSApplicationIneligibilityReason,
   NTHSApplicationNotEligibleError,
-  SUBMITTABLE_FORM_VERSIONS,
 } from '../../services/NTHSApplicationService'
 import { NTHSCandidateApplicationStatus } from '../../models/NTHSGroups'
 import { GRADES, USER_BAN_TYPES } from '../../constants/user'
@@ -38,16 +38,12 @@ jest.mock('../../services/MailService')
 
 const client = getClient()
 
-const RESPONSES = {
-  whyStartChapter: 'I want to build a chapter at my school',
-  leadershipExperience: 'I captained the debate team',
-  recruitmentIdea: 'Announce it at the club fair',
-  motivatingCoaches: 'Monthly recognition for the top tutors',
-  commitWeeklyHours: true,
-  commitFoundingPresident: true,
-  commitMonthlyMeetings: true,
-  commitRecruitHighSchoolersOnly: true,
-}
+const RESPONSES = Object.fromEntries(
+  NTHS_APPLICATION_FIELDS.map((field) => [
+    field.key,
+    field.type === 'attestation' ? true : `An answer to ${field.key}`,
+  ])
+)
 
 const UNLISTED_SCHOOL = {
   name: 'A School Not In Our Data',
@@ -161,15 +157,6 @@ async function applicationRows(userId: Ulid) {
   ).rows
 }
 
-function completeResponses(formVersion: number) {
-  return Object.fromEntries(
-    NTHS_APPLICATION_FORMS[formVersion].map((field) => [
-      field.key,
-      field.type === 'attestation' ? true : `An answer to ${field.key}`,
-    ])
-  )
-}
-
 async function submit(userId: Ulid, overrides: Record<string, unknown> = {}) {
   return NTHSApplicationService.submitCandidateApplication({
     userId,
@@ -257,7 +244,7 @@ describe('submitCandidateApplication', () => {
 
     expect(application.status).toBe(NTHSCandidateApplicationStatus.applied)
     expect(application.schoolId).toBe(schoolId)
-    expect(application.formVersion).toBe(1)
+    expect(application.formVersion).toBe(CURRENT_FORM_VERSION)
     expect(application.responses).toEqual(RESPONSES)
     expect(application.decidedAt).toBeUndefined()
     expect(await gradeLevelOf(userId)).toBe(GRADES.ELEVENTH)
@@ -468,12 +455,6 @@ describe('submitCandidateApplication', () => {
   })
 
   test.each([
-    [
-      'a missing attestation',
-      { ...RESPONSES, commitMonthlyMeetings: undefined },
-    ],
-    ['a refused attestation', { ...RESPONSES, commitWeeklyHours: false }],
-    ['a missing required answer', { ...RESPONSES, whyStartChapter: '' }],
     ['an answer that is not text', { ...RESPONSES, recruitmentIdea: 42 }],
     [
       'an answer past the length cap',
@@ -483,6 +464,8 @@ describe('submitCandidateApplication', () => {
       },
     ],
     ['a key the form never asked for', { ...RESPONSES, sneaky: 'payload' }],
+    ['a blank required answer', { ...RESPONSES, whyStartChapter: '' }],
+    ['a null required answer', { ...RESPONSES, whyStartChapter: null }],
   ])('rejects %s', async (_label, responses) => {
     const userId = await createEligibleCoach()
 
@@ -490,60 +473,34 @@ describe('submitCandidateApplication', () => {
     expect(await applicationRows(userId)).toHaveLength(0)
   })
 
-  describe.each(SUBMITTABLE_FORM_VERSIONS)('form version %i', (formVersion) => {
-    const fields = NTHS_APPLICATION_FORMS[formVersion]
-    const responses = completeResponses(formVersion)
+  // An attestation is checked whatever its required flag says, since every
+  // commitment has to be agreed to.
+  test.each(
+    NTHS_APPLICATION_FIELDS.filter(
+      (field) => field.required || field.type === 'attestation'
+    ).map((field) => field.key)
+  )('rejects an application missing %s', async (key) => {
+    const userId = await createEligibleCoach()
+    const { [key]: _omitted, ...incomplete } = RESPONSES
 
-    test('stores a complete application under its version', async () => {
-      const userId = await createEligibleCoach()
-
-      const application = await submit(userId, { formVersion, responses })
-
-      expect(application.formVersion).toBe(formVersion)
-      expect(application.responses).toEqual(responses)
-    })
-
-    // An attestation is checked whatever its required flag says, since every
-    // commitment has to be agreed to.
-    test.each(
-      fields
-        .filter((field) => field.required || field.type === 'attestation')
-        .map((field) => field.key)
-    )('rejects an application missing %s', async (key) => {
-      const userId = await createEligibleCoach()
-      const { [key]: _omitted, ...incomplete } = responses
-
-      await expect(
-        submit(userId, { formVersion, responses: incomplete })
-      ).rejects.toThrow(InputError)
-      expect(await applicationRows(userId)).toHaveLength(0)
-    })
-
-    test.each(
-      fields
-        .filter((field) => field.type === 'attestation')
-        .map((field) => field.key)
-    )('rejects an application that refuses %s', async (key) => {
-      const userId = await createEligibleCoach()
-      const refused = { ...responses, [key]: false }
-
-      await expect(
-        submit(userId, { formVersion, responses: refused })
-      ).rejects.toThrow(InputError)
-      expect(await applicationRows(userId)).toHaveLength(0)
-    })
+    await expect(submit(userId, { responses: incomplete })).rejects.toThrow(
+      InputError
+    )
+    expect(await applicationRows(userId)).toHaveLength(0)
   })
 
-  test('validates a submit without a version against version 1', async () => {
+  test.each(
+    NTHS_APPLICATION_FIELDS.filter((field) => field.type === 'attestation').map(
+      (field) => field.key
+    )
+  )('rejects an application that refuses %s', async (key) => {
     const userId = await createEligibleCoach()
+    const refused = { ...RESPONSES, [key]: false }
 
-    for (const formVersion of SUBMITTABLE_FORM_VERSIONS)
-      await expect(
-        submit(userId, { responses: completeResponses(formVersion) })
-      ).rejects.toThrow(InputError)
-    const application = await submit(userId)
-
-    expect(application.formVersion).toBe(1)
+    await expect(submit(userId, { responses: refused })).rejects.toThrow(
+      InputError
+    )
+    expect(await applicationRows(userId)).toHaveLength(0)
   })
 
   test('rejects an application with no school at all', async () => {

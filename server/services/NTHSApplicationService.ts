@@ -24,12 +24,6 @@ import {
 
 export { NTHSApplicationIneligibilityReason }
 
-// A submit with no formVersion comes from a tab opened before versions 2 and 3
-// shipped, which still shows the version 1 questions.
-const UNVERSIONED_SUBMIT_FORM_VERSION = 1
-export const SUBMITTABLE_FORM_VERSIONS = [2, 3] as const
-export type SubmittableFormVersion = (typeof SUBMITTABLE_FORM_VERSIONS)[number]
-
 const MAX_ANSWER_LENGTH = 2000
 
 type NTHSFormField = {
@@ -38,7 +32,6 @@ type NTHSFormField = {
   required: boolean
 }
 
-// The commitments are program policy, so every submittable version asks for them.
 export const COMMITMENTS: NTHSFormField[] = [
   { key: 'commitWeeklyHours', type: 'attestation', required: true },
   { key: 'commitRecruitThreeTutors', type: 'attestation', required: true },
@@ -51,60 +44,32 @@ export const COMMITMENTS: NTHSFormField[] = [
   },
 ]
 
-// Keyed by form_version so an old row stays readable. A key's meaning must
-// never change: a reword that keeps the same promise stays on its key, and a
-// changed question needs a new key and a new version.
-export const NTHS_APPLICATION_FORMS: Record<number, NTHSFormField[]> = {
-  1: [
-    { key: 'whyStartChapter', type: 'text', required: true },
-    { key: 'leadershipExperience', type: 'text', required: true },
-    { key: 'recruitmentIdea', type: 'text', required: true },
-    { key: 'motivatingCoaches', type: 'text', required: true },
-    { key: 'commitWeeklyHours', type: 'attestation', required: true },
-    { key: 'commitFoundingPresident', type: 'attestation', required: true },
-    { key: 'commitMonthlyMeetings', type: 'attestation', required: true },
-    {
-      key: 'commitRecruitHighSchoolersOnly',
-      type: 'attestation',
-      required: true,
-    },
-    { key: 'coPresidentEmail', type: 'text', required: false },
-    { key: 'howDidYouHear', type: 'text', required: false },
-  ],
-  2: [
-    { key: 'whyStartChapter', type: 'text', required: true },
-    { key: 'leadershipExperience', type: 'text', required: true },
-    { key: 'recruitmentIdea', type: 'text', required: true },
-    { key: 'motivatingCoaches', type: 'text', required: true },
-    ...COMMITMENTS,
-    { key: 'coPresidentEmail', type: 'text', required: false },
-    { key: 'howDidYouHear', type: 'text', required: false },
-  ],
-  3: [
-    { key: 'whyStartChapter', type: 'text', required: true },
-    { key: 'leadershipExperience', type: 'text', required: true },
-    ...COMMITMENTS,
-    { key: 'howDidYouHear', type: 'text', required: false },
-  ],
-}
+// Old rows keep the form_version they were submitted on, so bump this on any
+// change to which questions are asked: a question added, removed, or asking
+// something new (under a new key). A reword with the same meaning keeps its key
+// and the version. Version 3 was the retired short form, so the next is 4.
+export const CURRENT_FORM_VERSION = 2
 
-function validateResponses(
-  formVersion: number,
-  responses: NTHSApplicationResponses
-): void {
-  const fields = NTHS_APPLICATION_FORMS[formVersion]
-  if (!fields)
-    throw new InputError(`Unknown NTHS application form version ${formVersion}`)
+export const NTHS_APPLICATION_FIELDS: NTHSFormField[] = [
+  { key: 'whyStartChapter', type: 'text', required: true },
+  { key: 'leadershipExperience', type: 'text', required: true },
+  { key: 'recruitmentIdea', type: 'text', required: true },
+  { key: 'motivatingCoaches', type: 'text', required: true },
+  ...COMMITMENTS,
+  { key: 'coPresidentEmail', type: 'text', required: false },
+  { key: 'howDidYouHear', type: 'text', required: false },
+]
 
+function validateResponses(responses: NTHSApplicationResponses): void {
   const unknownKeys = Object.keys(responses).filter(
-    (key) => !fields.some((field) => field.key === key)
+    (key) => !NTHS_APPLICATION_FIELDS.some((field) => field.key === key)
   )
   if (unknownKeys.length)
     throw new InputError(
       `Unexpected answers on the NTHS application: ${unknownKeys.join(', ')}`
     )
 
-  for (const field of fields) {
+  for (const field of NTHS_APPLICATION_FIELDS) {
     const answer = responses[field.key]
     // An absent key has to read as unanswered. Treating it as a falsy "no"
     // would let an application through without its attestations.
@@ -311,14 +276,12 @@ export async function submitCandidateApplication({
   schoolId,
   unlistedSchool,
   gradeLevel,
-  formVersion,
   responses,
 }: {
   userId: Ulid
   schoolId?: Uuid
   unlistedSchool?: unknown
   gradeLevel: GRADES
-  formVersion?: SubmittableFormVersion
   responses: NTHSApplicationResponses
 }): Promise<NTHSCandidateApplication> {
   if (!isHighSchoolGrade(gradeLevel))
@@ -336,8 +299,7 @@ export async function submitCandidateApplication({
   if (!schoolId && !schoolDetails)
     throw new InputError('An application needs a school')
 
-  const validatedFormVersion = formVersion ?? UNVERSIONED_SUBMIT_FORM_VERSION
-  validateResponses(validatedFormVersion, responses)
+  validateResponses(responses)
 
   return await runInTransaction(async (tc: TransactionClient) => {
     // Runs before the eligibility check so these two states get their own message
@@ -402,7 +364,7 @@ export async function submitCandidateApplication({
         userId,
         schoolId,
         unlistedSchool: schoolDetails,
-        formVersion: validatedFormVersion,
+        formVersion: CURRENT_FORM_VERSION,
         responses,
       },
       tc
