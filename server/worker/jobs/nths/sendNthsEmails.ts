@@ -1,4 +1,5 @@
 import logger from '../../../logger'
+import type { Ulid } from '../../../models/pgUtils'
 import type { NTHSRenewalEmailRecipient } from '../../../models/NTHSRenewal'
 import {
   sendNthsRenewalEmail,
@@ -9,6 +10,7 @@ import { createEmailNotification } from '../../../services/NotificationService'
 export async function sendAndRecordNthsEmails<
   R extends NTHSRenewalEmailRecipient,
 >(
+  groupId: Ulid,
   templateId: string,
   recipients: R[],
   extraData: (recipient: R) => Partial<NthsRenewalEmailData> = () => ({})
@@ -25,6 +27,7 @@ export async function sendAndRecordNthsEmails<
       })
     } catch (err) {
       logger.error('Failed to send NTHS renewal email', {
+        groupId,
         userId,
         templateId,
         err,
@@ -37,6 +40,7 @@ export async function sendAndRecordNthsEmails<
       await createEmailNotification({ userId, emailTemplateId: templateId })
     } catch (err) {
       logger.error('NTHS renewal email sent but not recorded', {
+        groupId,
         userId,
         templateId,
         err,
@@ -45,7 +49,7 @@ export async function sendAndRecordNthsEmails<
     }
   }
   if (sent) {
-    logger.info('Sent NTHS renewal emails', { templateId, sent })
+    logger.info('Sent NTHS renewal emails', { groupId, templateId, sent })
   }
   return failures
 }

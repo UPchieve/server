@@ -23,7 +23,11 @@ export default async function staffChapterClosed(
       emailTemplateId: TEMPLATE_ID,
     })
     await syncChangedMembers(recipients.map((recipient) => recipient.userId))
-    failures = await sendAndRecordNthsEmails(TEMPLATE_ID, recipients)
+    failures = await sendAndRecordNthsEmails(
+      nthsGroupId,
+      TEMPLATE_ID,
+      recipients
+    )
   } catch (err) {
     logger.error('NTHS staff close email failed', {
       groupId: nthsGroupId,

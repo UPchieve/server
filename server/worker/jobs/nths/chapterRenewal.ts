@@ -141,6 +141,7 @@ async function sendPreCloseEmails(
     }
     failures.push(
       ...(await sendRenewalEmails(
+        groupId,
         email.templateId,
         recipients,
         cycle,
@@ -193,7 +194,12 @@ async function sendClosedEmails(
     closesAt: cycle.closesAt,
     emailTemplateId: TEMPLATES.chapterClosed,
   })
-  return await sendRenewalEmails(TEMPLATES.chapterClosed, recipients, cycle)
+  return await sendRenewalEmails(
+    groupId,
+    TEMPLATES.chapterClosed,
+    recipients,
+    cycle
+  )
 }
 
 async function isEnabledForAll(userIds: Ulid[]): Promise<boolean> {
@@ -204,6 +210,7 @@ async function isEnabledForAll(userIds: Ulid[]): Promise<boolean> {
 }
 
 async function sendRenewalEmails<R extends NTHSRenewalEmailRecipient>(
+  groupId: Ulid,
   templateId: string,
   recipients: R[],
   cycle: NTHSRenewalCycle,
@@ -216,8 +223,13 @@ async function sendRenewalEmails<R extends NTHSRenewalEmailRecipient>(
       enabled.push(recipient)
     }
   }
-  return await sendAndRecordNthsEmails(templateId, enabled, (recipient) => ({
-    closeDate,
-    ...extraData(recipient),
-  }))
+  return await sendAndRecordNthsEmails(
+    groupId,
+    templateId,
+    enabled,
+    (recipient) => ({
+      closeDate,
+      ...extraData(recipient),
+    })
+  )
 }
