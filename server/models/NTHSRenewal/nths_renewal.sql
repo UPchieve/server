@@ -44,6 +44,7 @@ SELECT
     LEFT (users.last_name,
         1) AS last_initial,
     candidates.accepted,
+    namers.id AS "named_by_id?",
     namers.first_name AS "named_by_first_name?",
     LEFT (namers.last_name,
         1) AS named_by_last_initial
@@ -58,7 +59,10 @@ FROM
 WHERE
     candidates.nths_group_id = :groupId!
     AND candidates.school_year_starts_on = :schoolYearStartsOn!::date
-    AND users.deleted IS NOT TRUE;
+    AND users.deleted IS NOT TRUE
+ORDER BY
+    candidates.named_at,
+    candidates.id;
 
 
 /* @name insertRenewalNominations */

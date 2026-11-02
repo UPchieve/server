@@ -348,7 +348,7 @@ describe('renewalPromptFor', () => {
       '2028-09-30',
     ],
   ])('%s', (_label, now, overrides, prompt, closesOn) => {
-    expect(renewalPromptFor(input(now, overrides))).toEqual({
+    expect(renewalPromptFor(input(now, overrides))).toMatchObject({
       prompt,
       closesOn,
     })
@@ -408,6 +408,8 @@ describe('renewalPromptFor', () => {
       expect(renewalPromptFor(input(now, overrides))).toEqual({
         prompt: 'none',
         closesOn: null,
+        successorConfirmationOn: null,
+        namingClosesOn: null,
       })
     })
   })
@@ -479,12 +481,52 @@ describe('renewalPromptFor', () => {
         '2027-12-31',
       ],
     ])('%s', (_label, now, overrides, prompt, closesOn) => {
-      expect(renewalPromptFor(input(now, overrides))).toEqual({
+      expect(renewalPromptFor(input(now, overrides))).toMatchObject({
         prompt,
         closesOn,
       })
     })
   })
+
+  it.each<[string, string, Overrides, string | null, string | null]>([
+    [
+      'renewing chapter',
+      '2027-05-03T15:00:00Z',
+      {},
+      '2027-08-01',
+      '2027-09-14',
+    ],
+    [
+      'moved member stage',
+      '2027-05-03T15:00:00Z',
+      { dates: { ...DATES, memberStage: '09-01' } },
+      '2027-08-01',
+      '2027-08-31',
+    ],
+    [
+      'after the close instant, the next cycle',
+      '2027-10-01T12:00:00Z',
+      {},
+      '2028-08-01',
+      '2028-09-14',
+    ],
+    [
+      'closed chapter',
+      '2027-05-03T15:00:00Z',
+      { chapter: { closedAt: new Date('2027-03-01T00:00:00Z') } },
+      null,
+      null,
+    ],
+    ['flag off', '2027-05-03T15:00:00Z', { dates: null }, null, null],
+  ])(
+    'dates the successor can accept and naming closes: %s',
+    (_label, now, overrides, successorConfirmationOn, namingClosesOn) => {
+      expect(renewalPromptFor(input(now, overrides))).toMatchObject({
+        successorConfirmationOn,
+        namingClosesOn,
+      })
+    }
+  )
 })
 
 describe('renewalControlsFor', () => {

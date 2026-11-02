@@ -70,7 +70,9 @@ function approvalExpiry(activatedAt: Date): Date {
 }
 
 export async function getGroups(userId: Ulid) {
-  return await NTHSGroupsRepo.getGroupsByUser(userId)
+  // Chapter HQ refetches right after a chapter is created, and an empty list
+  // from a lagging replica would send the founder back to the create page.
+  return await NTHSGroupsRepo.getGroupsByUser(userId, getClient())
 }
 
 export async function syncNthsUserToSendGrid(userId: Ulid) {

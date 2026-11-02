@@ -73,6 +73,8 @@ export type NTHSRenewalCycle = {
   schoolYearStartsOn: Date
   closesOn: string
   sentSince: Date
+  successorConfirmationOn: string
+  namingClosesOn: string
 }
 
 function openingInstant(year: number, monthDay: string, addDays = 0): Date {
@@ -95,6 +97,10 @@ function cycleFor(dates: NTHSRenewalDates, year: number): NTHSRenewalCycle {
     schoolYearStartsOn: schoolYearFor(new Date(Date.UTC(year, 6, 1))).startsAt,
     closesOn: `${year}-${dates.closeDate}`,
     sentSince: new Date(Date.UTC(year, 0, 1)),
+    successorConfirmationOn: `${year}-${dates.successorConfirmation}`,
+    namingClosesOn: openingInstant(year, dates.memberStage, -1)
+      .toISOString()
+      .slice(0, 10),
   }
 }
 
@@ -172,13 +178,28 @@ function promptFor(
   return 'none'
 }
 
-export function renewalPromptFor(input: RenewalPromptInput): {
-  prompt: NTHSRenewalPrompt
-  closesOn: string | null
-} {
+const NO_RENEWAL_DATES = {
+  closesOn: null,
+  successorConfirmationOn: null,
+  namingClosesOn: null,
+}
+
+export function renewalPromptFor(
+  input: RenewalPromptInput
+): Pick<
+  NTHSRenewalPublic,
+  'prompt' | 'closesOn' | 'successorConfirmationOn' | 'namingClosesOn'
+> {
   const cycle = renewingCycle(input)
-  if (!cycle || input.viewer.isBanned) return { prompt: 'none', closesOn: null }
-  return { prompt: promptFor(input, cycle), closesOn: cycle.closesOn }
+  if (!cycle || input.viewer.isBanned) {
+    return { prompt: 'none', ...NO_RENEWAL_DATES }
+  }
+  return {
+    prompt: promptFor(input, cycle),
+    closesOn: cycle.closesOn,
+    successorConfirmationOn: cycle.successorConfirmationOn,
+    namingClosesOn: cycle.namingClosesOn,
+  }
 }
 
 export function renewalControlsFor(input: RenewalPromptInput): {
@@ -210,7 +231,7 @@ type ViewerMembership = Pick<
 function noRenewal(commitmentsRequired: boolean): NTHSRenewalPublic {
   return {
     prompt: 'none',
-    closesOn: null,
+    ...NO_RENEWAL_DATES,
     commitmentsRequired,
     canNameSelf: false,
     namingSelfAccepts: false,
@@ -585,9 +606,17 @@ async function changeSuccessors(
   const schoolYearStartsOn = schoolYearDate(cycle)
   const changedUserIds = await runInTransaction(async (tc) => {
     const state = await lockRenewingChapter(callerId, groupId, cycle, tc)
-    if (!isNamingOpen(cycle, now) || state.hasConfirmedPresident) {
+    if (!isNamingOpen(cycle, now)) {
       throw new NTHSRenewalNotOpenError({
         message: 'NTHS successor naming is closed for this chapter',
+        context: { groupId },
+      })
+    }
+    if (state.hasConfirmedPresident) {
+      throw new NTHSRenewalNotOpenError({
+        message: 'NTHS chapter already has a confirmed president',
+        clientMessage:
+          'Someone has already accepted the presidency, so the list is closed.',
         context: { groupId },
       })
     }

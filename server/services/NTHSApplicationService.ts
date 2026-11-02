@@ -52,7 +52,8 @@ export const COMMITMENTS: NTHSFormField[] = [
 ]
 
 // Keyed by form_version so an old row stays readable. A key's meaning must
-// never change; a changed question needs a new key and a new version.
+// never change: a reword that keeps the same promise stays on its key, and a
+// changed question needs a new key and a new version.
 export const NTHS_APPLICATION_FORMS: Record<number, NTHSFormField[]> = {
   1: [
     { key: 'whyStartChapter', type: 'text', required: true },

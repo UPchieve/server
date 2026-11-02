@@ -154,6 +154,8 @@ describe('routeNTHSGroups', () => {
       const renewal = {
         prompt: 'member-must-answer' as const,
         closesOn: '2027-09-30',
+        successorConfirmationOn: '2027-08-01',
+        namingClosesOn: '2027-09-14',
         commitmentsRequired: true,
         canNameSelf: false,
         namingSelfAccepts: true,
@@ -1086,6 +1088,8 @@ describe('routeNTHSGroups', () => {
     const renewal = {
       prompt: 'none',
       closesOn: null,
+      successorConfirmationOn: null,
+      namingClosesOn: null,
       commitmentsRequired: false,
       canNameSelf: false,
       namingSelfAccepts: false,

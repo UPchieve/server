@@ -95,6 +95,8 @@ export interface IGetRenewalSuccessorsResult {
   lastInitial: string | null;
   /** pii: First name */
   namedByFirstName: string | null;
+  /** not_pii: Primary key */
+  namedById: string | null;
   namedByLastInitial: string | null;
   /** not_pii: Foreign key to upchieve.users */
   userId: string;
@@ -106,7 +108,7 @@ export interface IGetRenewalSuccessorsQuery {
   result: IGetRenewalSuccessorsResult;
 }
 
-const getRenewalSuccessorsIR: any = {"usedParamSet":{"groupId":true,"schoolYearStartsOn":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":662,"b":670}]},{"name":"schoolYearStartsOn","required":true,"transform":{"type":"scalar"},"locs":[{"a":715,"b":734}]}],"statement":"SELECT\n    candidates.user_id,\n    users.first_name,\n    LEFT (users.last_name,\n        1) AS last_initial,\n    candidates.accepted,\n    namers.first_name AS \"named_by_first_name?\",\n    LEFT (namers.last_name,\n        1) AS named_by_last_initial\nFROM\n    nths_group_renewal_candidates candidates\n    JOIN nths_group_members members ON members.nths_group_id = candidates.nths_group_id\n        AND members.user_id = candidates.user_id\n        AND members.deactivated_at IS NULL\n    JOIN users ON users.id = candidates.user_id\n    LEFT JOIN users namers ON namers.id = candidates.named_by\n        AND namers.deleted IS NOT TRUE\nWHERE\n    candidates.nths_group_id = :groupId!\n    AND candidates.school_year_starts_on = :schoolYearStartsOn!::date\n    AND users.deleted IS NOT TRUE"};
+const getRenewalSuccessorsIR: any = {"usedParamSet":{"groupId":true,"schoolYearStartsOn":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":695,"b":703}]},{"name":"schoolYearStartsOn","required":true,"transform":{"type":"scalar"},"locs":[{"a":748,"b":767}]}],"statement":"SELECT\n    candidates.user_id,\n    users.first_name,\n    LEFT (users.last_name,\n        1) AS last_initial,\n    candidates.accepted,\n    namers.id AS \"named_by_id?\",\n    namers.first_name AS \"named_by_first_name?\",\n    LEFT (namers.last_name,\n        1) AS named_by_last_initial\nFROM\n    nths_group_renewal_candidates candidates\n    JOIN nths_group_members members ON members.nths_group_id = candidates.nths_group_id\n        AND members.user_id = candidates.user_id\n        AND members.deactivated_at IS NULL\n    JOIN users ON users.id = candidates.user_id\n    LEFT JOIN users namers ON namers.id = candidates.named_by\n        AND namers.deleted IS NOT TRUE\nWHERE\n    candidates.nths_group_id = :groupId!\n    AND candidates.school_year_starts_on = :schoolYearStartsOn!::date\n    AND users.deleted IS NOT TRUE\nORDER BY\n    candidates.named_at,\n    candidates.id"};
 
 /**
  * Query generated from SQL:
@@ -117,6 +119,7 @@ const getRenewalSuccessorsIR: any = {"usedParamSet":{"groupId":true,"schoolYearS
  *     LEFT (users.last_name,
  *         1) AS last_initial,
  *     candidates.accepted,
+ *     namers.id AS "named_by_id?",
  *     namers.first_name AS "named_by_first_name?",
  *     LEFT (namers.last_name,
  *         1) AS named_by_last_initial
@@ -132,6 +135,9 @@ const getRenewalSuccessorsIR: any = {"usedParamSet":{"groupId":true,"schoolYearS
  *     candidates.nths_group_id = :groupId!
  *     AND candidates.school_year_starts_on = :schoolYearStartsOn!::date
  *     AND users.deleted IS NOT TRUE
+ * ORDER BY
+ *     candidates.named_at,
+ *     candidates.id
  * ```
  */
 export const getRenewalSuccessors = new PreparedQuery<IGetRenewalSuccessorsParams,IGetRenewalSuccessorsResult>(getRenewalSuccessorsIR);

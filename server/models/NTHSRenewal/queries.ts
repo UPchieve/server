@@ -65,7 +65,7 @@ export type NTHSRenewalSuccessor = {
   firstName: string
   lastInitial: string
   accepted: boolean | null
-  namedBy: { firstName: string; lastInitial: string } | null
+  namedBy: { userId: Ulid; firstName: string; lastInitial: string } | null
 }
 
 export async function getRenewalSuccessors(
@@ -85,12 +85,14 @@ export async function getRenewalSuccessors(
         firstName: required.firstName,
         lastInitial: required.lastInitial ?? '',
         accepted: required.accepted ?? null,
-        namedBy: required.namedByFirstName
-          ? {
-              firstName: required.namedByFirstName,
-              lastInitial: required.namedByLastInitial ?? '',
-            }
-          : null,
+        namedBy:
+          required.namedById && required.namedByFirstName
+            ? {
+                userId: required.namedById,
+                firstName: required.namedByFirstName,
+                lastInitial: required.namedByLastInitial ?? '',
+              }
+            : null,
       }
     })
   } catch (err) {

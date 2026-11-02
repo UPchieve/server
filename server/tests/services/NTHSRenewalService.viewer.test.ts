@@ -74,6 +74,8 @@ describe('getRenewalsForViewer', () => {
       {
         prompt: 'none',
         closesOn: null,
+        successorConfirmationOn: null,
+        namingClosesOn: null,
         commitmentsRequired: false,
         canNameSelf: false,
         namingSelfAccepts: false,
@@ -101,13 +103,18 @@ describe('getRenewalsForViewer', () => {
     mockedDatesService.getNthsChapterRenewalDates.mockResolvedValue(DATES)
     mockViewer()
 
-    await getRenewalsForViewer(userId, [president], inMay)
+    const [renewal] = await getRenewalsForViewer(userId, [president], inMay)
 
     expect(mockedRenewalRepo.getNthsRenewalState).toHaveBeenCalledWith(
       president.groupInfo.id,
       userId,
       '2027-07-01'
     )
+    expect(renewal).toMatchObject({
+      closesOn: '2027-09-30',
+      successorConfirmationOn: '2027-08-01',
+      namingClosesOn: '2027-09-14',
+    })
   })
 
   it('shows no prompt for a chapter with no renewal state', async () => {
@@ -117,7 +124,12 @@ describe('getRenewalsForViewer', () => {
 
     const [renewal] = await getRenewalsForViewer(userId, [president], inMay)
 
-    expect(renewal).toMatchObject({ prompt: 'none', closesOn: null })
+    expect(renewal).toMatchObject({
+      prompt: 'none',
+      closesOn: null,
+      successorConfirmationOn: null,
+      namingClosesOn: null,
+    })
   })
 
   it('treats an admin with a live media ban as banned', async () => {

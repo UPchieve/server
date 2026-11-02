@@ -48,6 +48,8 @@ export type NTHSGroupWithMemberInfoPublic = {
 export type NTHSRenewalPublic = {
   prompt: NTHSRenewalPrompt
   closesOn: string | null
+  successorConfirmationOn: string | null
+  namingClosesOn: string | null
   commitmentsRequired: boolean
   canNameSelf: boolean
   namingSelfAccepts: boolean
@@ -62,7 +64,7 @@ export type NTHSRenewalSuccessorPublic = {
   firstName: string
   lastInitial: string
   accepted: boolean | null
-  namedBy: { firstName: string; lastInitial: string } | null
+  namedBy: { userId: Uuid; firstName: string; lastInitial: string } | null
 }
 
 export type NTHSRenewalSuccessorsResponse = {

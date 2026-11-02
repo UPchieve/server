@@ -436,7 +436,7 @@ describe('setRenewalSuccessors', () => {
       turnRenewalOff()
     }
 
-    await refuses(
+    const err = await refuses(
       groupId,
       () =>
         setRenewalSuccessors(
@@ -450,6 +450,11 @@ describe('setRenewalSuccessors', () => {
         ),
       error
     )
+    if (scenario.confirmed) {
+      expect(err.clientMessage).toBe(
+        'Someone has already accepted the presidency, so the list is closed.'
+      )
+    }
   })
 
   test('names a banned member like any other', async () => {
@@ -1269,7 +1274,7 @@ describe('getRenewalSuccessors', () => {
 
     const { successors } = await getRenewalSuccessors(caller, groupId, AUGUST)
 
-    const callerName = await nameOf(caller)
+    const callerName = { userId: caller, ...(await nameOf(caller)) }
     const expected = [
       { userId: named, accepted: null, namedBy: callerName },
       { userId: namedByDeleted, accepted: null, namedBy: null },
