@@ -293,3 +293,29 @@ WHERE
             AND notifications.email_template_id = :emailTemplateId!
             AND notifications.sent_at >= :closesAt!);
 
+
+/* @name getStaffClosedEmailRecipients */
+SELECT
+    users.id AS user_id,
+    users.email,
+    users.first_name,
+    nths_groups.name AS chapter_name
+FROM
+    nths_groups
+    JOIN nths_group_members members ON members.nths_group_id = nths_groups.id
+        AND members.deactivated_at = nths_groups.closed_at
+    JOIN users ON users.id = members.user_id
+WHERE
+    nths_groups.id = :groupId!
+    AND users.deleted IS NOT TRUE
+    AND users.deactivated IS FALSE
+    AND NOT EXISTS (
+        SELECT
+            1
+        FROM
+            notifications
+        WHERE
+            notifications.user_id = users.id
+            AND notifications.email_template_id = :emailTemplateId!
+            AND notifications.sent_at >= nths_groups.closed_at);
+

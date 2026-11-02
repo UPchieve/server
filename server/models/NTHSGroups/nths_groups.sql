@@ -592,7 +592,7 @@ WHERE
 UPDATE
     nths_groups
 SET
-    closed_at = :closedAt!,
+    closed_at = COALESCE(:closedAt, NOW()),
     updated_at = NOW()
 WHERE
     id = :groupId!

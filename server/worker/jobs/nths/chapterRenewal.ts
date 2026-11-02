@@ -8,11 +8,7 @@ import type {
   NTHSRenewalEmailRecipient,
 } from '../../../models/NTHSRenewal'
 import { isNthsChapterRenewalEnabled } from '../../../services/FeatureFlagService'
-import {
-  sendNthsRenewalEmail,
-  type NthsRenewalEmailData,
-} from '../../../services/MailService'
-import { createEmailNotification } from '../../../services/NotificationService'
+import type { NthsRenewalEmailData } from '../../../services/MailService'
 import { isClearedToViewChapterMemberInfo } from '../../../services/NTHSGroupsService'
 import { getNthsChapterRenewalDates } from '../../../services/NTHSRenewalDatesService'
 import {
@@ -23,6 +19,7 @@ import {
   type NTHSRenewalCycle,
 } from '../../../services/NTHSRenewalService'
 import { hoursInMs } from '../../../utils/time-utils'
+import { sendAndRecordNthsEmails } from './sendNthsEmails'
 
 const TEMPLATES = config.sendgrid.nthsRenewal
 
@@ -213,43 +210,14 @@ async function sendRenewalEmails<R extends NTHSRenewalEmailRecipient>(
   extraData: (recipient: R) => Partial<NthsRenewalEmailData> = () => ({})
 ): Promise<string[]> {
   const closeDate = formatDate(new Date(cycle.closesOn))
-  const failures: string[] = []
-  let sent = 0
+  const enabled: R[] = []
   for (const recipient of recipients) {
-    const { userId, email, firstName, chapterName } = recipient
-    if (!(await isNthsChapterRenewalEnabled(userId))) {
-      continue
-    }
-    try {
-      await sendNthsRenewalEmail(email, templateId, {
-        firstName,
-        chapterName,
-        closeDate,
-        ...extraData(recipient),
-      })
-    } catch (err) {
-      logger.error('Failed to send NTHS renewal email', {
-        userId,
-        templateId,
-        err,
-      })
-      failures.push(`send ${templateId} to user ${userId}`)
-      continue
-    }
-    sent++
-    try {
-      await createEmailNotification({ userId, emailTemplateId: templateId })
-    } catch (err) {
-      logger.error('NTHS renewal email sent but not recorded', {
-        userId,
-        templateId,
-        err,
-      })
-      failures.push(`record ${templateId} for user ${userId}`)
+    if (await isNthsChapterRenewalEnabled(recipient.userId)) {
+      enabled.push(recipient)
     }
   }
-  if (sent) {
-    logger.info('Sent NTHS renewal emails', { templateId, sent })
-  }
-  return failures
+  return await sendAndRecordNthsEmails(templateId, enabled, (recipient) => ({
+    closeDate,
+    ...extraData(recipient),
+  }))
 }

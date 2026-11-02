@@ -2,6 +2,7 @@ import * as NTHSGroupsRepo from '../../models/NTHSGroups'
 import * as VolunteerRepo from '../../models/Volunteer'
 import * as MailService from '../../services/MailService'
 import * as NTHSService from '../../services/NTHSGroupsService'
+import QueueService from '../../services/QueueService'
 import * as db from '../../db'
 import logger from '../../logger'
 import { getDbUlid } from '../../models/pgUtils'
@@ -814,6 +815,14 @@ describe('leaveGroup', () => {
 })
 
 describe('closeChapters', () => {
+  beforeEach(() => {
+    jest.mocked(QueueService.add).mockResolvedValue(undefined as never)
+  })
+
+  afterEach(() => {
+    jest.useRealTimers()
+  })
+
   test('reports statuses in input order, and keeps going after a failure', async () => {
     const [a, b, c] = ['a', 'b', 'c']
     mockedNTHSRepo.closeGroup.mockImplementation(async (id) => {
@@ -831,6 +840,56 @@ describe('closeChapters', () => {
     expect(mockedLogger.error).toHaveBeenCalledWith(
       expect.any(String),
       expect.objectContaining({ groupId: b })
+    )
+    expect(mockedNTHSRepo.closeGroup.mock.calls[0][1]).toBeNull()
+  })
+
+  test('queues the closed email only for chapters this close closed, and a failed or stalled queue still reports closed', async () => {
+    jest.useFakeTimers()
+    mockedNTHSRepo.closeGroup.mockImplementation(async (id) => {
+      if (id === 'd') {
+        throw new Error('boom')
+      }
+      return !['b', 'x'].includes(id)
+    })
+    mockedNTHSRepo.getGroupById.mockImplementation(async (id) =>
+      id === 'b' ? ({ id } as never) : undefined
+    )
+    jest
+      .mocked(QueueService.add)
+      .mockImplementation(async (_name, _o, data) => {
+        const { nthsGroupId } = data as { nthsGroupId: string }
+        if (nthsGroupId === 'a') {
+          throw new Error('redis down')
+        }
+        if (nthsGroupId === 'c') {
+          await new Promise(() => {})
+        }
+      })
+
+    const results = await NTHSService.closeChapters(['a', 'b', 'c', 'd', 'x'])
+    await jest.advanceTimersByTimeAsync(2000)
+
+    expect(results.map(({ status }) => status)).toEqual([
+      'closed',
+      'alreadyClosed',
+      'closed',
+      'failed',
+      'notFound',
+    ])
+    expect(
+      jest.mocked(QueueService.add).mock.calls.map(([, , data]) => data)
+    ).toEqual([{ nthsGroupId: 'a' }, { nthsGroupId: 'c' }])
+    expect(jest.mocked(QueueService.add).mock.calls[0][1]).toEqual(
+      expect.objectContaining({ attempts: 3 })
+    )
+    expect(mockedLogger.error).toHaveBeenCalledWith(
+      'Failed to queue NTHS staff close email',
+      { groupId: 'a', err: new Error('redis down') }
+    )
+    expect(mockedLogger.error).toHaveBeenCalledWith(
+      expect.stringContaining('group c'),
+      expect.objectContaining({ err: 'Time limit reached' })
     )
   })
 })

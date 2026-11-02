@@ -590,3 +590,60 @@ const getRenewalClosedEmailRecipientsIR: any = {"usedParamSet":{"groupId":true,"
 export const getRenewalClosedEmailRecipients = new PreparedQuery<IGetRenewalClosedEmailRecipientsParams,IGetRenewalClosedEmailRecipientsResult>(getRenewalClosedEmailRecipientsIR);
 
 
+/** 'GetStaffClosedEmailRecipients' parameters type */
+export interface IGetStaffClosedEmailRecipientsParams {
+  emailTemplateId: string;
+  groupId: string;
+}
+
+/** 'GetStaffClosedEmailRecipients' return type */
+export interface IGetStaffClosedEmailRecipientsResult {
+  /** not_pii: Human-readable name */
+  chapterName: string;
+  /** pii: User email address */
+  email: string;
+  /** pii: First name */
+  firstName: string;
+  /** not_pii: Primary key */
+  userId: string;
+}
+
+/** 'GetStaffClosedEmailRecipients' query type */
+export interface IGetStaffClosedEmailRecipientsQuery {
+  params: IGetStaffClosedEmailRecipientsParams;
+  result: IGetStaffClosedEmailRecipientsResult;
+}
+
+const getStaffClosedEmailRecipientsIR: any = {"usedParamSet":{"groupId":true,"emailTemplateId":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":338,"b":346}]},{"name":"emailTemplateId","required":true,"transform":{"type":"scalar"},"locs":[{"a":615,"b":631}]}],"statement":"SELECT\n    users.id AS user_id,\n    users.email,\n    users.first_name,\n    nths_groups.name AS chapter_name\nFROM\n    nths_groups\n    JOIN nths_group_members members ON members.nths_group_id = nths_groups.id\n        AND members.deactivated_at = nths_groups.closed_at\n    JOIN users ON users.id = members.user_id\nWHERE\n    nths_groups.id = :groupId!\n    AND users.deleted IS NOT TRUE\n    AND users.deactivated IS FALSE\n    AND NOT EXISTS (\n        SELECT\n            1\n        FROM\n            notifications\n        WHERE\n            notifications.user_id = users.id\n            AND notifications.email_template_id = :emailTemplateId!\n            AND notifications.sent_at >= nths_groups.closed_at)"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     users.id AS user_id,
+ *     users.email,
+ *     users.first_name,
+ *     nths_groups.name AS chapter_name
+ * FROM
+ *     nths_groups
+ *     JOIN nths_group_members members ON members.nths_group_id = nths_groups.id
+ *         AND members.deactivated_at = nths_groups.closed_at
+ *     JOIN users ON users.id = members.user_id
+ * WHERE
+ *     nths_groups.id = :groupId!
+ *     AND users.deleted IS NOT TRUE
+ *     AND users.deactivated IS FALSE
+ *     AND NOT EXISTS (
+ *         SELECT
+ *             1
+ *         FROM
+ *             notifications
+ *         WHERE
+ *             notifications.user_id = users.id
+ *             AND notifications.email_template_id = :emailTemplateId!
+ *             AND notifications.sent_at >= nths_groups.closed_at)
+ * ```
+ */
+export const getStaffClosedEmailRecipients = new PreparedQuery<IGetStaffClosedEmailRecipientsParams,IGetStaffClosedEmailRecipientsResult>(getStaffClosedEmailRecipientsIR);
+
+

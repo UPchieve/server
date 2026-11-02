@@ -1645,7 +1645,7 @@ export async function sendNthsEngagementEmail(
 export type NthsRenewalEmailData = {
   firstName: string
   chapterName: string
-  closeDate: string
+  closeDate?: string
   successorDate?: string
   selfNamed?: boolean
   chapterConfirmed?: boolean

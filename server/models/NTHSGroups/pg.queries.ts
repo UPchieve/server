@@ -1616,7 +1616,7 @@ export const getNthsChapterMemberHoursTutored = new PreparedQuery<IGetNthsChapte
 
 /** 'CloseGroup' parameters type */
 export interface ICloseGroupParams {
-  closedAt: DateOrString;
+  closedAt?: DateOrString | null | void;
   groupId: string;
 }
 
@@ -1632,7 +1632,7 @@ export interface ICloseGroupQuery {
   result: ICloseGroupResult;
 }
 
-const closeGroupIR: any = {"usedParamSet":{"closedAt":true,"groupId":true},"params":[{"name":"closedAt","required":true,"transform":{"type":"scalar"},"locs":[{"a":43,"b":52}]},{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":93,"b":101}]}],"statement":"UPDATE\n    nths_groups\nSET\n    closed_at = :closedAt!,\n    updated_at = NOW()\nWHERE\n    id = :groupId!\n    AND closed_at IS NULL\nRETURNING\n    id"};
+const closeGroupIR: any = {"usedParamSet":{"closedAt":true,"groupId":true},"params":[{"name":"closedAt","required":false,"transform":{"type":"scalar"},"locs":[{"a":52,"b":60}]},{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":109,"b":117}]}],"statement":"UPDATE\n    nths_groups\nSET\n    closed_at = COALESCE(:closedAt, NOW()),\n    updated_at = NOW()\nWHERE\n    id = :groupId!\n    AND closed_at IS NULL\nRETURNING\n    id"};
 
 /**
  * Query generated from SQL:
@@ -1640,7 +1640,7 @@ const closeGroupIR: any = {"usedParamSet":{"closedAt":true,"groupId":true},"para
  * UPDATE
  *     nths_groups
  * SET
- *     closed_at = :closedAt!,
+ *     closed_at = COALESCE(:closedAt, NOW()),
  *     updated_at = NOW()
  * WHERE
  *     id = :groupId!

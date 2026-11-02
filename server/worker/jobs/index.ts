@@ -76,6 +76,7 @@ import candidateEngagementCampaign from './nths/candidateEngagementCampaign'
 import applicationStatusNotification from './nths/applicationStatusNotification'
 import chapterRenewal from './nths/chapterRenewal'
 import spawnChapterRenewal from './nths/spawnChapterRenewal'
+import staffChapterClosed from './nths/staffChapterClosed'
 
 type JobProcessor = ProcessPromiseFunction<any>
 export type JobName = keyof typeof jobProcessors
@@ -156,6 +157,7 @@ export const jobProcessors = {
   NTHSCandidateEngagement: candidateEngagementCampaign,
   NTHSChapterRenewal: chapterRenewal,
   SpawnNTHSChapterRenewal: spawnChapterRenewal,
+  NTHSStaffChapterClosed: staffChapterClosed,
   RedisKeyMemStats: logRedisKeyMemStats,
   SendAmbassadorCongratsEmail: emailAmbassadorCongrats,
   SendBecomeAnAmbassadorEmail: emailBecomeAnAmbassador,

@@ -265,3 +265,20 @@ export async function getRenewalClosedEmailRecipients(args: {
     throw new RepoReadError(err)
   }
 }
+
+export async function getStaffClosedEmailRecipients(args: {
+  groupId: Ulid
+  emailTemplateId: string
+}): Promise<NTHSRenewalEmailRecipient[]> {
+  try {
+    const rows = await pgQueries.getStaffClosedEmailRecipients.run(
+      args,
+      getClient()
+    )
+    return rows.map((row) =>
+      makeSomeRequired(row, ['userId', 'email', 'firstName', 'chapterName'])
+    )
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}

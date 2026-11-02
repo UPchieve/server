@@ -60,10 +60,15 @@ import {
   NTHSTitle,
 } from '../constants/nths-titles'
 import { hoursInMs, secondsInMs } from '../utils/time-utils'
+import { timeLimit } from '../utils/time-limit'
 import QueueService from './QueueService'
 
 export const APPROVAL_LIFETIME_HOURS = 720
 const SENDGRID_SYNC_DELAY_MS = 5000
+const NTHS_QUEUE_RETRY = {
+  attempts: 3,
+  backoff: { type: 'exponential' as const, delay: secondsInMs(15) },
+}
 
 function approvalExpiry(activatedAt: Date): Date {
   return new Date(activatedAt.getTime() + hoursInMs(APPROVAL_LIFETIME_HOURS))
@@ -78,13 +83,15 @@ export async function getGroups(userId: Ulid) {
 export async function syncNthsUserToSendGrid(userId: Ulid) {
   await QueueService.add(
     'SyncSendGridContact',
-    {
-      delay: SENDGRID_SYNC_DELAY_MS,
-      attempts: 3,
-      backoff: { type: 'exponential', delay: secondsInMs(15) },
-    },
+    { delay: SENDGRID_SYNC_DELAY_MS, ...NTHS_QUEUE_RETRY },
     { userId }
   )
+}
+
+export async function syncChangedMembers(userIds: Ulid[]) {
+  for (const userId of new Set(userIds)) {
+    await syncNthsUserToSendGrid(userId)
+  }
 }
 
 export async function foundGroup(
@@ -734,7 +741,8 @@ export async function closeChapter(
   groupId: Uuid
 ): Promise<Exclude<CloseChapterStatus, 'failed'>> {
   return await runInTransaction(async (client: TransactionClient) => {
-    const closed = await closeGroupAndRelease(groupId, new Date(), client)
+    // null stamps closed_at with the database clock, which the email retry compares with notifications.sent_at.
+    const closed = await closeGroupAndRelease(groupId, null, client)
     if (!closed) {
       const group = await NTHSGroupsRepo.getGroupById(groupId, client)
       return group ? 'alreadyClosed' : 'notFound'
@@ -745,7 +753,7 @@ export async function closeChapter(
 
 export async function closeGroupAndRelease(
   groupId: Uuid,
-  closedAt: Date,
+  closedAt: Date | null,
   tc: TransactionClient
 ): Promise<boolean> {
   const closed = await NTHSGroupsRepo.closeGroup(groupId, closedAt, tc)
@@ -760,17 +768,37 @@ export async function closeChapters(
 ): Promise<{ chapterId: Uuid; status: CloseChapterStatus }[]> {
   const results: { chapterId: Uuid; status: CloseChapterStatus }[] = []
   for (const chapterId of groupIds) {
+    let status: CloseChapterStatus
     try {
-      results.push({ chapterId, status: await closeChapter(chapterId) })
+      status = await closeChapter(chapterId)
     } catch (err) {
       logger.error('Failed to close NTHS chapter', {
         groupId: chapterId,
         err,
       })
-      results.push({ chapterId, status: 'failed' })
+      status = 'failed'
+    }
+    results.push({ chapterId, status })
+    if (status === 'closed') {
+      // Not awaited: a stalled Redis leaves queue adds pending, which would hang the staff request.
+      queueStaffClosedEmail(chapterId)
     }
   }
   return results
+}
+
+function queueStaffClosedEmail(groupId: Uuid) {
+  void timeLimit({
+    promise: QueueService.add(
+      'NTHSStaffChapterClosed',
+      { delay: 0, ...NTHS_QUEUE_RETRY },
+      { nthsGroupId: groupId }
+    ).catch((err) => {
+      logger.error('Failed to queue NTHS staff close email', { groupId, err })
+    }),
+    fallbackReturnValue: undefined,
+    timeLimitReachedErrorMessage: `Slow to queue NTHS staff close email for group ${groupId}, check the queue before resending`,
+  })
 }
 
 export async function getChapterCloseReport(groupIds: Uuid[]) {

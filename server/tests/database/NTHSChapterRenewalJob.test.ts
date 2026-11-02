@@ -19,6 +19,11 @@ import chapterRenewal, {
   type NTHSChapterRenewalJobData,
 } from '../../worker/jobs/nths/chapterRenewal'
 import spawnChapterRenewal from '../../worker/jobs/nths/spawnChapterRenewal'
+import staffChapterClosed, {
+  type NTHSStaffChapterClosedJobData,
+} from '../../worker/jobs/nths/staffChapterClosed'
+import { closeGroupAndRelease } from '../../services/NTHSGroupsService'
+import { minutesInMs } from '../../utils/time-utils'
 import {
   createChapter,
   createChapterMember,
@@ -735,6 +740,15 @@ describe('closing unconfirmed chapters', () => {
     expect(await closedAtOf(groupId)).toEqual(OCT_1_1300)
   })
 
+  test('keeps the run instant when the worker clock leads the database', async () => {
+    const { groupId } = await unconfirmedChapter()
+    const aheadOfDatabase = new Date(Date.now() + minutesInMs(1))
+
+    await closeGroupAndRelease(groupId, aheadOfDatabase, client)
+
+    expect(await closedAtOf(groupId)).toEqual(aheadOfDatabase)
+  })
+
   test('sends the closed email to each member the close ended, banned included, deactivated and deleted accounts excluded', async () => {
     const groupId = await chapter()
     const admin = await addMember(groupId, { admin: true })
@@ -1189,5 +1203,83 @@ describe('renewal email recipients', () => {
     await runChapterRenewal(SEPT_16)
 
     expect(recipients(TEMPLATES.namedSuccessor)).toEqual([named])
+  })
+})
+
+describe('staff close email', () => {
+  const runStaffClose = (nthsGroupId: Ulid) =>
+    staffChapterClosed({
+      data: { nthsGroupId },
+    } as Job<NTHSStaffChapterClosedJobData>)
+
+  const closeChapter = (groupId: Ulid) =>
+    closeGroupAndRelease(groupId, null, client)
+
+  async function staffClosedChapter() {
+    const groupId = await chapter()
+    const admin = await addMember(groupId, { admin: true })
+    const member = await addMember(groupId)
+    return { groupId, admin, member }
+  }
+
+  test('emails the members the close ended with no close date, whatever the flag says', async () => {
+    const { groupId, admin, member } = await staffClosedChapter()
+    flagOff.add(admin)
+    flagOff.add(member)
+    const banned = await addMember(groupId, {
+      banType: USER_BAN_TYPES.COMPLETE,
+    })
+    const tester = await addMember(groupId, { testUser: true })
+    await addMember(groupId, { deactivated: true })
+    await addMember(groupId, { deleted: true })
+    await addMember(groupId, { deactivatedAt: DEPARTED_AT })
+
+    await closeChapter(groupId)
+    await runStaffClose(groupId)
+
+    expect(recipients(TEMPLATES.chapterClosed)).toEqual(
+      [admin, member, banned, tester].sort()
+    )
+    for (const send of sends(TEMPLATES.chapterClosed)) {
+      expect(send.data).toEqual({
+        firstName: await nameOf(send.userId),
+        chapterName: await chapterName(groupId),
+      })
+      expect(await recorded(send.userId)).toEqual([TEMPLATES.chapterClosed])
+    }
+    expect(syncedUsers()).toEqual([admin, member, banned, tester].sort())
+  })
+
+  test('a closed email from an earlier chapter does not stop this one', async () => {
+    const { groupId, admin, member } = await staffClosedChapter()
+    await recordSent(member, TEMPLATES.chapterClosed, new Date(FOUNDED_AT))
+
+    await closeChapter(groupId)
+    await runStaffClose(groupId)
+
+    expect(recipients(TEMPLATES.chapterClosed)).toEqual([admin, member].sort())
+  })
+
+  test('a retry after a partial failure emails only who is left', async () => {
+    const { groupId, admin, member } = await staffClosedChapter()
+    await closeChapter(groupId)
+    const send = jest.mocked(MailService.sendNthsRenewalEmail)
+    send.mockImplementation(async (email) => {
+      if (emailToUser.get(email) === member) {
+        throw new Error('sendgrid down')
+      }
+    })
+
+    await expect(runStaffClose(groupId)).rejects.toThrow(
+      `send ${TEMPLATES.chapterClosed} to user ${member}`
+    )
+    expect(await recorded(admin)).toEqual([TEMPLATES.chapterClosed])
+    expect(await recorded(member)).toEqual([])
+
+    send.mockClear()
+    send.mockResolvedValue(undefined)
+    await runStaffClose(groupId)
+
+    expect(recipients(TEMPLATES.chapterClosed)).toEqual([member])
   })
 })

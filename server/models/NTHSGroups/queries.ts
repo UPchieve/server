@@ -878,7 +878,7 @@ export async function getNthsChapterMemberHoursTutored(
 
 export async function closeGroup(
   groupId: Uuid,
-  closedAt: Date,
+  closedAt: Date | null,
   tc: TransactionClient
 ): Promise<boolean> {
   try {

@@ -24,6 +24,7 @@ import {
   closeGroupAndRelease,
   getChapterMemberClearance,
   getChapterClearanceGaps,
+  syncChangedMembers,
   syncNthsUserToSendGrid,
 } from './NTHSGroupsService'
 import { COMMITMENTS } from './NTHSApplicationService'
@@ -527,12 +528,6 @@ async function writeAcceptance(
     )
   }
   return changed
-}
-
-async function syncChangedMembers(userIds: Ulid[]) {
-  for (const userId of new Set(userIds)) {
-    await syncNthsUserToSendGrid(userId)
-  }
 }
 
 async function renewalAfterWrite(
