@@ -43,6 +43,9 @@ import * as NotifyVolunteerService from '../../services/NotifyVolunteerService'
 import SocketService from '../../services/SocketService'
 import * as SessionFlagsService from '../../services/SessionFlagsService'
 import { minutesInMs } from '../../utils/time-utils'
+import * as VolunteerService from '../../services/VolunteerService'
+import * as VolunteerQueries from '../../models/Volunteer/queries'
+import { buildVolunteerContactInfo } from '../mocks/generate'
 
 jest.mock('../../models/Session/queries')
 jest.mock('../../models/User/queries')
@@ -58,6 +61,8 @@ jest.mock('../../services/NotifyVolunteerService')
 jest.mock('../../services/SocketService')
 jest.mock('../../services/SessionHoldsService')
 jest.mock('../../cache')
+jest.mock('../../services/VolunteerService')
+jest.mock('../../models/Volunteer/queries')
 
 describe('SessionService', () => {
   beforeEach(() => {
@@ -77,6 +82,8 @@ describe('SessionService', () => {
   const mockedSubjectsRepo = mocked(SubjectsRepo)
   const mockedAnalyticsService = mocked(AnalyticsService)
   const mockedSessionFlagsService = mocked(SessionFlagsService)
+  const mockedVolunteerService = mocked(VolunteerService)
+  const mockedVolunteerQueries = mocked(VolunteerQueries)
   const mockedSocketService = mocked(SocketService)
 
   describe('reportSession', () => {
@@ -778,6 +785,36 @@ describe('SessionService', () => {
       expect(
         mockedNotifyVolunteerService.beginRegularNotifications
       ).toHaveBeenCalledWith(newSession)
+    })
+    test('should not create a session when the requested volunteer is not certified in the subject', async () => {
+      const student = buildUserContactInfo()
+      mockedSubjectsRepo.getSubjectAndTopic.mockResolvedValue({
+        subjectName: 'algebraOne',
+        subjectId: 1,
+        subjectDisplayName: 'Algebra 1',
+        topicName: 'math',
+        topicId: 1,
+        topicDisplayName: 'Math',
+        toolType: 'whiteboard',
+      })
+      mockedVolunteerQueries.getVolunteerContactInfoById.mockResolvedValue(
+        buildVolunteerContactInfo()
+      )
+      mockedVolunteerService.canRequestSubjectWithVolunteer.mockResolvedValue(
+        false
+      )
+
+      await expect(
+        SessionService.startSession(student, {
+          subject: 'algebraOne',
+          topic: 'math',
+          sessionSubTopic: 'linearEquations',
+          sessionType: 'math',
+          userAgent: 'test',
+          requestedVolunteerId: getDbUlid(),
+        })
+      ).rejects.toThrow('Requested volunteer cannot tutor this subject')
+      expect(mockSessionRepo.createSession).not.toHaveBeenCalled()
     })
   })
 

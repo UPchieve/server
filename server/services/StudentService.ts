@@ -208,6 +208,7 @@ export async function getStudentByCleverId(
 
 export type PastVolunteerWithStats = PastVolunteer & {
   publicProfileStats: VolunteerPublicProfileInfoShared
+  subjects: string[]
 }
 
 export async function getPastVolunteersByStudentId(
@@ -222,6 +223,9 @@ export async function getPastVolunteersByStudentId(
         (await VolunteerService.getInfoSharedWithStudents(
           volunteer.volunteerId
         )) ?? {},
+      subjects: await VolunteerService.getVolunteerSubjectNames(
+        volunteer.volunteerId
+      ),
     }))
   )
 }

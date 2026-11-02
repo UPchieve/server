@@ -23,6 +23,7 @@ const mockedVolunteerService = mocked(VolunteerService)
 
 beforeEach(async () => {
   jest.resetAllMocks()
+  mockedVolunteerService.getVolunteerSubjectNames.mockResolvedValue([])
 })
 
 describe('getPastVolunteers', () => {
@@ -63,8 +64,16 @@ describe('getPastVolunteers', () => {
       await StudentService.getPastVolunteersByStudentId(getDbUlid())
 
     expect(result).toEqual([
-      { ...pastVolunteers[0], publicProfileStats: sharedStats },
-      { ...pastVolunteers[1], publicProfileStats: {} },
+      {
+        ...pastVolunteers[0],
+        subjects: [],
+        publicProfileStats: sharedStats,
+      },
+      {
+        ...pastVolunteers[1],
+        subjects: [],
+        publicProfileStats: {},
+      },
     ])
     expect(
       mockedVolunteerService.getInfoSharedWithStudents

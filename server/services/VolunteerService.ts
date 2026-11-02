@@ -587,3 +587,20 @@ export async function getPastStudentsByVolunteerId(
 ): Promise<VolunteerRepo.VolunteerPastStudent[]> {
   return VolunteerRepo.getPastStudentsByVolunteerId(volunteerId)
 }
+
+export async function getVolunteerSubjectNames(
+  volunteerId: Uuid
+): Promise<string[]> {
+  const subjects = await VolunteerRepo.getVolunteerSubjects(volunteerId)
+  return subjects
+    .filter((subject) => subject.active)
+    .map((subject) => subject.name)
+}
+
+export async function canRequestSubjectWithVolunteer(
+  volunteerId: Uuid,
+  subjectName: string
+): Promise<boolean> {
+  const subjects = await getVolunteerSubjectNames(volunteerId)
+  return subjects.includes(subjectName)
+}

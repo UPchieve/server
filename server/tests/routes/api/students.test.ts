@@ -184,6 +184,7 @@ describe('routeStudents', () => {
         {
           volunteerId: getUuid(),
           firstName: 'Test 1',
+          subjects: ['algebraOne'],
           numSessions: 3,
           lastSession,
           isFavorite: true,
@@ -195,6 +196,7 @@ describe('routeStudents', () => {
         {
           volunteerId: getUuid(),
           firstName: 'Test 2',
+          subjects: [],
           numSessions: 1,
           lastSession,
           isFavorite: false,

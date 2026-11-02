@@ -33,6 +33,7 @@ export function toPastVolunteerPublic(
     lastSession: toPastVolunteerSessionPublic(volunteer.lastSession),
     isFavorite: volunteer.isFavorite,
     publicProfileStats: volunteer.publicProfileStats,
+    subjects: volunteer.subjects,
   }
 }
 

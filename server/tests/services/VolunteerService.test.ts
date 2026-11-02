@@ -20,10 +20,12 @@ import { hasCompletedVolunteerTraining } from '../../services/VolunteerService'
 import { buildVolunteerContactInfo } from '../mocks/generate'
 import * as ReferralService from '../../services/ReferralService'
 import * as UsersGradeLevelRepo from '../../models/UsersGradeLevels'
+import { getDbUlid } from '../../models/pgUtils'
 
 jest.mock('../../services/ReferralService')
 const mockedReferralService = mocked(ReferralService)
 jest.mock('../../models/Volunteer')
+jest.mock('../../models/Session')
 jest.mock('../../models/UsersSchools')
 jest.mock('../../services/QueueService', () => ({
   add: jest.fn(),
@@ -508,5 +510,39 @@ describe('submitBackgroundInfo', () => {
     expect(result).toBe(
       count * VolunteerService.VOLUNTEER_MINUTES_EARNED_PER_REFERRAL
     )
+  })
+})
+
+describe('canRequestSubjectWithVolunteer', () => {
+  test('returns active subjects the volunteer is certified in', async () => {
+    mockedVolunteerRepo.getVolunteerSubjects.mockResolvedValue([
+      { name: 'algebraOne', active: true },
+      { name: 'reading', active: false },
+    ])
+    expect(
+      await VolunteerService.getVolunteerSubjectNames(getDbUlid())
+    ).toEqual(['algebraOne'])
+  })
+
+  test('returns true when the volunteer is certified in the subject', async () => {
+    mockedVolunteerRepo.getVolunteerSubjects.mockResolvedValue([
+      { name: 'algebraOne', active: true },
+    ])
+    expect(
+      await VolunteerService.canRequestSubjectWithVolunteer(
+        getDbUlid(),
+        'algebraOne'
+      )
+    ).toBe(true)
+  })
+
+  test('returns false when the volunteer is not certified in the subject', async () => {
+    mockedVolunteerRepo.getVolunteerSubjects.mockResolvedValue([])
+    expect(
+      await VolunteerService.canRequestSubjectWithVolunteer(
+        getDbUlid(),
+        'physics'
+      )
+    ).toBe(false)
   })
 })

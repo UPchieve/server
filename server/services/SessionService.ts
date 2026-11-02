@@ -697,6 +697,19 @@ export async function startSession(
         context: { userId: user.id, requestedVolunteerId },
       })
     }
+    if (
+      !(await VolunteerService.canRequestSubjectWithVolunteer(
+        requestedVolunteerId,
+        subject
+      ))
+    ) {
+      throw new sessionUtils.StartSessionError({
+        message: 'Requested volunteer cannot tutor this subject',
+        clientMessage:
+          'This coach is not available for that subject. Please choose another subject.',
+        context: { userId: user.id, requestedVolunteerId, subject },
+      })
+    }
     const activeVolunteerIds =
       await SessionRepo.getActiveSessionsWithVolunteers()
     if (activeVolunteerIds.includes(requestedVolunteerId)) {
