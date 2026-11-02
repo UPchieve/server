@@ -1202,6 +1202,31 @@ describe('routeNTHSGroups', () => {
     })
 
     test.each([
+      ['step-up', 200],
+      ['president', 422],
+    ])('POST /renewal/accept with reason %s', async (reason, status) => {
+      mockedNTHSGroupsService.getActiveGroupMember.mockResolvedValueOnce(
+        buildNTHSGroupMemberWithRole({ roleName: 'member' })
+      )
+      mockedNTHSRenewalService.acceptPresidency.mockResolvedValueOnce({
+        renewal,
+        outcome: 'accepted',
+      })
+
+      const response = await sendPost(
+        `/api/nths-groups/${groupId}/renewal/accept`,
+        { reason }
+      )
+
+      expect(response.status).toBe(status)
+      expect(
+        mockedNTHSRenewalService.acceptPresidency.mock.calls.map(
+          ([, , acceptance]) => acceptance.reason
+        )
+      ).toEqual(status === 200 ? [reason] : [])
+    })
+
+    test.each([
       [
         'GET /renewal',
         () => sendGet(`/api/nths-groups/${groupId}/renewal`),

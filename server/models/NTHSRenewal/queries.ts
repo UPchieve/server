@@ -18,6 +18,7 @@ export type NTHSRenewalState = {
   hasNamedSuccessor: boolean
   viewerCandidacy: NTHSRenewalCandidacy
   viewerNamedSelf: boolean
+  hasManager: boolean
 }
 
 function toCandidacy(row: {
@@ -49,6 +50,7 @@ export async function getNthsRenewalState(
       'hasConfirmedPresident',
       'hasNamedSuccessor',
       'viewerNamedSelf',
+      'hasManager',
     ])
     return {
       createdAt: required.createdAt,
@@ -57,6 +59,7 @@ export async function getNthsRenewalState(
       hasNamedSuccessor: required.hasNamedSuccessor,
       viewerCandidacy: toCandidacy(required),
       viewerNamedSelf: required.viewerNamedSelf,
+      hasManager: required.hasManager,
     }
   } catch (err) {
     throw new RepoReadError(err)
@@ -161,6 +164,22 @@ export async function demotePresidentsNotRenewing(
   try {
     const rows = await pgQueries.demotePresidentsNotRenewing.run(
       { groupId, schoolYearStartsOn },
+      tc
+    )
+    return rows.map((row) => makeSomeRequired(row, ['userId']).userId)
+  } catch (err) {
+    throw new RepoUpdateError(err)
+  }
+}
+
+export async function demoteOtherPresidents(
+  groupId: Ulid,
+  keepUserId: Ulid,
+  tc: TransactionClient
+): Promise<Ulid[]> {
+  try {
+    const rows = await pgQueries.demoteOtherPresidents.run(
+      { groupId, keepUserId },
       tc
     )
     return rows.map((row) => makeSomeRequired(row, ['userId']).userId)

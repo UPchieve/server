@@ -56,6 +56,7 @@ import type {
   NTHSRenewalSuccessorsResponse,
 } from '../../contracts/nths-group'
 import type {
+  NTHSAcceptanceReason,
   RenewalCommitments,
   RenewalSuccessorsUpdate,
 } from '../../services/NTHSRenewalService'
@@ -166,6 +167,13 @@ function commitmentsFrom(body: unknown): RenewalCommitments | undefined {
   return asCommitments(
     (body as Record<string, unknown> | undefined)?.commitments
   )
+}
+
+function acceptanceReasonFrom(body: unknown): NTHSAcceptanceReason {
+  const reason = (body as Record<string, unknown> | undefined)?.reason
+  if (reason === undefined) return 'renewal'
+  if (reason === 'renewal' || reason === 'step-up') return reason
+  throw new InputError('reason must be renewal or step-up')
 }
 
 function asSuccessorsUpdate(body: unknown): RenewalSuccessorsUpdate {
@@ -281,7 +289,10 @@ export function routeNTHSGroups(router: Router): void {
             await NTHSRenewalService.acceptPresidency(
               extractUser(req).id,
               req.params.groupId,
-              { reason: 'renewal', commitments: commitmentsFrom(req.body) },
+              {
+                reason: acceptanceReasonFrom(req.body),
+                commitments: commitmentsFrom(req.body),
+              },
               new Date()
             )
           res.json({ renewal, outcome })

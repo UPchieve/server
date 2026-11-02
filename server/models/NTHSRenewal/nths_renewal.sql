@@ -28,7 +28,23 @@ SELECT
         FROM current_member_candidates), FALSE) AS "has_named_successor!",
     viewer_candidate.named_at AS viewer_named_at,
     viewer_candidate.accepted AS viewer_accepted,
-    COALESCE(viewer_candidate.named_by = :viewerId!, FALSE) AS "viewer_named_self!"
+    COALESCE(viewer_candidate.named_by = :viewerId!, FALSE) AS "viewer_named_self!",
+    EXISTS (
+        SELECT
+            1
+        FROM
+            nths_group_members members
+            JOIN users ON users.id = members.user_id
+            JOIN nths_group_member_roles member_roles ON member_roles.nths_group_id = members.nths_group_id
+                AND member_roles.user_id = members.user_id
+            JOIN nths_group_roles roles ON roles.id = member_roles.role_id
+            JOIN volunteer_occupations occupations ON occupations.user_id = members.user_id
+        WHERE
+            members.nths_group_id = nths_groups.id
+            AND members.deactivated_at IS NULL
+            AND users.deleted IS NOT TRUE
+            AND roles.name = 'admin'
+            AND occupations.occupation = 'A high school student') AS "has_manager!"
 FROM
     nths_groups
     LEFT JOIN nths_group_renewal_candidates viewer_candidate ON viewer_candidate.nths_group_id = nths_groups.id
@@ -121,6 +137,25 @@ WHERE
             AND (candidates.accepted IS TRUE
                 OR (candidates.named_at IS NOT NULL
                     AND candidates.accepted IS NULL)))
+RETURNING
+    members.user_id;
+
+
+/* @name demoteOtherPresidents */
+UPDATE
+    nths_group_members members
+SET
+    title = 'Member',
+    updated_at = NOW()
+FROM
+    users
+WHERE
+    users.id = members.user_id
+    AND users.deleted IS NOT TRUE
+    AND members.nths_group_id = :groupId!
+    AND members.deactivated_at IS NULL
+    AND members.title = 'President'
+    AND members.user_id <> :keepUserId!
 RETURNING
     members.user_id;
 

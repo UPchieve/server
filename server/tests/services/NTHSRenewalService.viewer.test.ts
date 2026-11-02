@@ -55,6 +55,7 @@ function mockViewer(
     hasNamedSuccessor: false,
     viewerCandidacy: 'none',
     viewerNamedSelf: false,
+    hasManager: true,
     ...chapter,
   })
 }
@@ -83,8 +84,10 @@ describe('getRenewalsForViewer', () => {
     mockedFlags.isNthsChapterRenewalEnabled.mockResolvedValue(true)
   })
 
-  it('reads nothing while the renewal flag is off', async () => {
+  it('shows no renewal prompt while the renewal flag is off', async () => {
     mockedFlags.isNthsChapterRenewalEnabled.mockResolvedValue(false)
+    mockedDatesService.getNthsChapterRenewalDates.mockResolvedValue(DATES)
+    mockViewer()
 
     await expect(
       getRenewalsForViewer(userId, [president], inMay)
@@ -102,13 +105,23 @@ describe('getRenewalsForViewer', () => {
         acceptedPresidents: [],
       },
     ])
-    expect(mockedDatesService.getNthsChapterRenewalDates).not.toHaveBeenCalled()
-    expect(
-      mockedVolunteerRepo.getVolunteersReadyToCoachStatus
-    ).not.toHaveBeenCalled()
-    expect(mockedVolunteerRepo.getVolunteerOccupations).not.toHaveBeenCalled()
-    expect(mockedUserRepo.getUsersBanStatuses).not.toHaveBeenCalled()
-    expect(mockedRenewalRepo.getNthsRenewalState).not.toHaveBeenCalled()
+  })
+
+  it('offers step-up in place of the member prompt while the renewal flag is off', async () => {
+    mockedFlags.isNthsChapterRenewalEnabled.mockResolvedValue(false)
+    mockedDatesService.getNthsChapterRenewalDates.mockResolvedValue(DATES)
+    mockViewer(undefined, true, true, { hasManager: false })
+    const member = buildNTHSGroupWithMemberInfo({
+      memberInfo: { joinedAt: new Date(), roleName: 'member' },
+    })
+
+    const [renewal] = await getRenewalsForViewer(
+      userId,
+      [member],
+      inLateSeptember
+    )
+
+    expect(renewal.prompt).toBe('step-up')
   })
 
   it('reads nothing from the database when the flag is on but the dates are null', async () => {
