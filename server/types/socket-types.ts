@@ -7,6 +7,7 @@ import { SessionMessageType } from '../router/api/sockets'
 import { USER_BAN_TYPES } from '../constants'
 import type { CurrentSessionPublic } from '@upchieve/api-contracts/sessions'
 import { VolunteerPublicProfileInfoShared } from '../models/Volunteer/types'
+import type { VolunteerStatusesResponse } from '../contracts/students'
 
 export type SocketDelta = Delta & {
   id?: string
@@ -58,6 +59,13 @@ export type ClientToServerEvents = {
   addPartnerLiveMediaBan: (data: { sessionId: string }) => void
   joinedLiveMedia: (data: { sessionId: string }) => void
   dismissSessionHold: (data: { sessionId: string }) => void
+  'coach-status:join': (
+    callback: (result: VolunteerStatusesResponse | { error: string }) => void
+  ) => void
+  'coach-status:leave': () => void
+  'coach-status:get': (
+    callback: (result: VolunteerStatusesResponse | { error: string }) => void
+  ) => void
 }
 
 export type ServerToClientEvents = {
@@ -99,6 +107,7 @@ export type ServerToClientEvents = {
   partnerImageUploadSuccess: () => void
   partnerAckLiveMediaBan: (data: { isBanned: boolean }) => void
   partnerJoinedLiveMedia: () => void
+  'coaches:status-changed': () => void
 }
 
 export type InterServerEvents = {}

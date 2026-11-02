@@ -4,16 +4,23 @@ import * as SessionService from '../../../services/SessionService'
 import SocketService from '../../../services/SocketService'
 import { SessionJoinError } from '../../../models/Errors'
 import { SocketUser } from '../../../types/socket-types'
+import { buildUserContactInfo } from '../../mocks/generate'
+import { extractSocketUser } from '../../../router/extract-user'
+import { mocked } from 'jest-mock'
 
 jest.mock('../../../router/middleware/session', () => jest.fn())
 jest.mock('../../../services/SessionService')
 jest.mock('../../../services/SocketService')
-jest.mock('../../../router/extract-user', () => ({
-  extractSocketUser: jest.fn().mockResolvedValue({ id: 'user-id' }),
-}))
+jest.mock('../../../router/extract-user')
 jest.mock('../../../utils/newRelicUtil', () => ({
   observeWebTransaction: (_url: string, fn: () => Promise<void>) => fn(),
 }))
+
+const mockedSessionService = mocked(SessionService)
+const mockedSocketService = mocked(SocketService)
+const mockedExtractSocketUser = mocked(extractSocketUser)
+
+let mockUser = buildUserContactInfo()
 
 function connectSocket() {
   const io = { use: jest.fn(), on: jest.fn() }
@@ -22,11 +29,12 @@ function connectSocket() {
     ([event]) => event === 'connection'
   )![1]
   const socket = {
-    request: { user: { id: 'user-id' } },
+    request: { user: mockUser },
     recovered: false,
     data: {},
     conn: { on: jest.fn(), once: jest.fn() },
     join: jest.fn(),
+    leave: jest.fn(),
     emit: jest.fn(),
     on: jest.fn(),
     onAny: jest.fn(),
@@ -37,22 +45,26 @@ function connectSocket() {
 }
 
 describe('routeSockets', () => {
+  beforeEach(() => {
+    jest.resetAllMocks()
+    mockUser = buildUserContactInfo()
+    mockedExtractSocketUser.mockResolvedValue(mockUser)
+  })
+
   // Socket.IO sends CONNECT before the 'connection' handler runs, so a client
   // event can arrive while the connection setup is still awaiting.
   test('registers event handlers before the connection setup finishes, then runs it', () => {
-    jest
-      .mocked(SessionService.currentSession)
-      .mockReturnValue(new Promise(() => {}))
+    mockedSessionService.currentSession.mockReturnValue(new Promise(() => {}))
     const socket = connectSocket()
 
     expect(socket.on.mock.calls.map(([event]) => event)).toEqual(
       expect.arrayContaining(['sessions:join', 'sessions/recap:join'])
     )
-    expect(socket.join).toHaveBeenCalledWith('user-id')
+    expect(socket.join).toHaveBeenCalledWith(mockUser.id)
   })
 
   test('sessions:join failure ack carries the refusal code', async () => {
-    jest.mocked(SocketService.getInstance).mockReturnValue({
+    mockedSocketService.getInstance.mockReturnValue({
       joinSession: jest.fn().mockRejectedValue(
         new SessionJoinError({
           message: 'session ended',

@@ -1,6 +1,7 @@
 import type { ISODateString } from '../types/dates'
 import type { Uuid } from '../types/shared'
 import type { TeacherClassForStudentPublic } from './teachers'
+import type { VolunteerStatus } from '../types/users'
 
 export type PastVolunteerSessionPublic = {
   sessionId: Uuid
@@ -67,4 +68,8 @@ export type ActivePartnerOrgsResponse = {
 
 export type ActiveStudentClassesResponse = {
   classes: TeacherClassForStudentPublic[]
+}
+
+export type VolunteerStatusesResponse = {
+  statuses: Record<Uuid, VolunteerStatus>
 }

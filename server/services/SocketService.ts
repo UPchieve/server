@@ -15,6 +15,9 @@ import { toCurrentSessionPublic } from '../contracts/sessions.mappers'
 import { SUBJECTS } from '../constants'
 import { VolunteerPublicProfileInfoShared } from '../models/Volunteer/types'
 import { SessionJoinError } from '../models/Errors'
+import * as StudentRepo from '../models/Student/queries'
+import * as SessionRepo from '../models/Session/queries'
+import type { VolunteerStatus } from '../types/users'
 
 /**
  * This room receives broadcasts of unfulfilled sessions.
@@ -23,6 +26,7 @@ import { SessionJoinError } from '../models/Errors'
 export const APPROVED_VOLUNTEERS_ROOM = 'volunteers'
 const SESSION_LIST_DEBOUNCE_MS = 250
 const SESSION_LIST_MAX_WAIT_MS = 1000
+const VOLUNTEER_STATUS_ROOM_PREFIX = 'coach-status:'
 
 // TODO: Remove class wrapper.
 class SocketService {
@@ -226,6 +230,7 @@ class SocketService {
     const sessionParticipants = [session.student.id]
     if (session.volunteer?.id) {
       sessionParticipants.push(session.volunteer.id)
+      this.emitVolunteerStatusChanged(session.volunteer.id)
     }
     this.io
       .in(sessionParticipants)
@@ -317,6 +322,18 @@ class SocketService {
     socket.emit('bump', data, err.toString())
   }
 
+  emitVolunteerStatusChanged(volunteerId: string): void {
+    this.io.to(`coach-status:${volunteerId}`).emit('coaches:status-changed')
+  }
+
+  // Find users who still have a tab connected
+  // A failed check means we don't know their status, rather than that they're offline
+  async getConnectedUserIds(userIds: string[]): Promise<Set<string>> {
+    if (!userIds.length) return new Set()
+    const sockets = await this.io.in(userIds).timeout(2000).fetchSockets()
+    return new Set(userIds.filter((id) => sockets.some((s) => s.rooms.has(id))))
+  }
+
   private async getAllSocketIdsInRoom(roomName: string): Promise<string[]> {
     const sockets = await this.getAllSocketsInRoom(roomName)
     return sockets.map((socket) => socket.id)
@@ -331,6 +348,65 @@ class SocketService {
       logger.error('Failed to fetch sockets', { err: error, roomName })
       return []
     }
+  }
+
+  async leaveVolunteerStatusRooms(socket: Socket): Promise<void> {
+    await Promise.all(
+      this.getVolunteerStatusRooms(socket).map((room) => socket.leave(room))
+    )
+  }
+
+  async joinVolunteerStatusRooms(
+    socket: Socket,
+    studentId: Uuid
+  ): Promise<void> {
+    // Join status rooms for coaches this student has worked with
+    const volunteers = await StudentRepo.getPastVolunteersByStudentId(studentId)
+    // The student may have disconnected while we were loading their coaches
+    if (!socket.connected) return
+    await socket.join(
+      volunteers.map(
+        (volunteer) => `${VOLUNTEER_STATUS_ROOM_PREFIX}${volunteer.volunteerId}`
+      )
+    )
+  }
+
+  private getVolunteerStatusRooms(socket: Socket): string[] {
+    return [...socket.rooms].filter((room) =>
+      room.startsWith(VOLUNTEER_STATUS_ROOM_PREFIX)
+    )
+  }
+
+  async getVolunteerStatusesForSocket(socket: Socket) {
+    const volunteerIds = this.getVolunteerStatusRooms(socket).map((room) =>
+      room.slice(VOLUNTEER_STATUS_ROOM_PREFIX.length)
+    )
+    return this.getVolunteerStatuses(volunteerIds)
+  }
+
+  async getVolunteerStatuses(
+    volunteerIds: string[]
+  ): Promise<Record<string, VolunteerStatus>> {
+    if (!volunteerIds.length) {
+      return {}
+    }
+
+    const [connected, inSessions] = await Promise.all([
+      this.getConnectedUserIds(volunteerIds),
+      SessionRepo.getVolunteersInSessions(),
+    ])
+    const volunteersInSessions = new Set(inSessions)
+    const statuses: Record<string, VolunteerStatus> = {}
+    for (const volunteerId of volunteerIds) {
+      if (volunteersInSessions.has(volunteerId)) {
+        statuses[volunteerId] = 'in-session'
+      } else if (connected.has(volunteerId)) {
+        statuses[volunteerId] = 'online'
+      } else {
+        statuses[volunteerId] = 'offline'
+      }
+    }
+    return statuses
   }
 }
 

@@ -81,6 +81,9 @@ async function handleUser(socket: SocketUser, user: UserContactInfo) {
   // Join a user to their own room to handle the event where a user might have
   // multiple socket connections open
   await socket.join(user.id.toString())
+  if (user.roleContext.isActiveRole('volunteer')) {
+    SocketService.getInstance().emitVolunteerStatusChanged(user.id)
+  }
 
   const latestSession = await SessionService.currentSession(user.id)
 
@@ -913,6 +916,52 @@ export function routeSockets(io: Server): void {
           `Failed to dismiss session hold for user ${user.id} and session ${sessionId}`,
           { coachId: user.id, sessionId, err }
         )
+      }
+    })
+
+    socket.on('coach-status:join', async (callback) => {
+      if (typeof callback !== 'function') return
+
+      try {
+        const user = await extractSocketUser(socket)
+        if (!user.roleContext.isActiveRole('student')) {
+          throw new Error('Only students can receive coach status updates')
+        }
+
+        await socketService.joinVolunteerStatusRooms(socket, user.id)
+        const statuses =
+          await socketService.getVolunteerStatusesForSocket(socket)
+        callback({ statuses })
+      } catch (err) {
+        logger.error('Failed joining coach status rooms', { err })
+        callback({ error: 'Status unavailable' })
+      }
+    })
+
+    socket.on('coach-status:leave', async () => {
+      try {
+        await socketService.leaveVolunteerStatusRooms(socket)
+      } catch (err) {
+        logger.error('Failed leaving coach status rooms', { err })
+      }
+    })
+
+    socket.on('coach-status:get', async (callback) => {
+      if (typeof callback !== 'function') return
+
+      try {
+        const statuses =
+          await socketService.getVolunteerStatusesForSocket(socket)
+        callback({ statuses })
+      } catch (err) {
+        logger.error('Failed fetching coach statuses', { err })
+        callback({ error: 'Status unavailable' })
+      }
+    })
+
+    socket.on('disconnect', () => {
+      if (user?.roleContext.isActiveRole('volunteer')) {
+        socketService.emitVolunteerStatusChanged(user.id)
       }
     })
 

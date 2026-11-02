@@ -63,7 +63,7 @@ describe('SocketService session list broadcasts', () => {
   }))
   const participants = { timeout: jest.fn(), emit: jest.fn() }
   const volunteers = { emit: jest.fn() }
-  const io = { in: jest.fn() }
+  const io = { in: jest.fn(), to: jest.fn() }
   let service: SocketService
 
   beforeEach(() => {
@@ -79,6 +79,7 @@ describe('SocketService session list broadcasts', () => {
         holds: [],
       })
     )
+    io.to.mockReturnValue({ emit: jest.fn() })
     participants.timeout.mockReturnThis()
     io.in.mockImplementation((room: string | string[]) =>
       room === 'volunteers' ? volunteers : participants

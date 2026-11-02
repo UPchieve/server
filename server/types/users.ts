@@ -86,3 +86,5 @@ export type UserByReferralCode = {
   id: Uuid
   firstName: string
 }
+
+export type VolunteerStatus = 'online' | 'in-session' | 'offline'
