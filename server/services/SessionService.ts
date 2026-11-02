@@ -935,6 +935,8 @@ export async function joinSession(
     const wasExclusiveRequest = !!exclusiveTo
     const wasRequestedVolunteer = exclusiveTo === user.id
 
+    await ensureVolunteerHasNoOpenSession(user.id, session.id)
+
     try {
       await SessionRepo.updateSessionVolunteerById(session.id, user.id)
       session.volunteerId = user.id
@@ -1039,16 +1041,44 @@ const VOLUNTEER_ALREADY_JOINED_MESSAGE =
   'Another volunteer has already joined this session. Thanks for trying, we really appreciate it!'
 const VOLUNTEER_ALREADY_JOINED_TITLE = 'Session Fulfilled'
 
+const VOLUNTEER_IN_ANOTHER_SESSION_MESSAGE =
+  'You already have a session open. Select OK, then use the banner at the top of the page to return to it or end it.'
+const VOLUNTEER_IN_ANOTHER_SESSION_TITLE = 'Already in a session'
+
 const FAILED_JOIN_REASONS = {
   SESSION_HAS_ALREADY_ENDED: 'SESSION_HAS_ALREADY_ENDED',
   STUDENT_CAN_NOT_BE_VOLUNTEER: 'STUDENT_CAN_NOT_BE_VOLUNTEER',
   SESSION_ALREADY_HAS_A_VOLUNTEER: 'SESSION_ALREADY_HAS_A_VOLUNTEER',
   CAN_NOT_BE_YOUR_OWN_VOLUNTEER: 'CAN_NOT_BE_YOUR_OWN_VOLUNTEER',
+  VOLUNTEER_IN_ANOTHER_SESSION: 'VOLUNTEER_IN_ANOTHER_SESSION',
 } as const
 
 const SESSION_JOIN_ERROR_CODES = {
   SESSION_ENDED: 'SESSION_ENDED',
 } as const
+
+async function ensureVolunteerHasNoOpenSession(
+  volunteerId: Ulid,
+  sessionId: Ulid
+) {
+  const openSessionId = await SessionRepo.getCurrentSessionIdByVolunteerId(
+    volunteerId,
+    getClient()
+  )
+  if (!openSessionId || openSessionId === sessionId) return
+
+  await SessionRepo.updateSessionFailedJoinsById(
+    sessionId,
+    volunteerId,
+    FAILED_JOIN_REASONS.VOLUNTEER_IN_ANOTHER_SESSION
+  )
+  throw new SessionJoinError({
+    message: 'Volunteer with an open session attempting to join another',
+    clientMessage: VOLUNTEER_IN_ANOTHER_SESSION_MESSAGE,
+    clientTitle: VOLUNTEER_IN_ANOTHER_SESSION_TITLE,
+    context: { sessionId, joiningUserId: volunteerId, openSessionId },
+  })
+}
 
 // TODO(alex.lindsay): Audit all these session join failure reasons and failure state.
 export async function ensureCanJoinSession(

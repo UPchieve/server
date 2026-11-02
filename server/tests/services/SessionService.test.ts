@@ -33,7 +33,7 @@ import {
   ensureCanJoinSession,
 } from '../../services/SessionService'
 import { CurrentSession } from '../../types/session'
-import { InputError } from '../../models/Errors'
+import { InputError, SessionJoinError } from '../../models/Errors'
 import { ReportSessionError } from '../../utils/session-utils'
 import { RoleContext } from '../../services/UserRolesService'
 import * as cache from '../../cache'
@@ -56,6 +56,7 @@ jest.mock('../../services/QueueService')
 jest.mock('../../services/PhotoDnaService')
 jest.mock('../../services/NotifyVolunteerService')
 jest.mock('../../services/SocketService')
+jest.mock('../../services/SessionHoldsService')
 jest.mock('../../cache')
 
 describe('SessionService', () => {
@@ -423,6 +424,86 @@ describe('SessionService', () => {
           expect(error.code).toBe(code)
         }
       )
+    })
+  })
+
+  describe('joinSession', () => {
+    const setup = (openSessionId: string | undefined) => {
+      const volunteer = buildUserContactInfo({
+        approved: true,
+        roleContext: new RoleContext(['volunteer'], 'volunteer'),
+      })
+      const session = buildSession({ volunteerId: undefined })
+      mockSessionRepo.getCurrentSessionBySessionId.mockResolvedValue(
+        session as CurrentSession
+      )
+      mockedUserRepo.getUsersBanStatuses.mockResolvedValue([])
+      mockSessionRepo.getCurrentSessionIdByVolunteerId.mockResolvedValue(
+        openSessionId
+      )
+      mockedSocketService.getInstance.mockReturnValue({
+        emitSessionChange: jest.fn(),
+      } as any)
+      return { volunteer, session }
+    }
+
+    test('refuses a coach who has an open session and leaves the session without a coach', async () => {
+      const { volunteer, session } = setup(getDbUlid())
+
+      const error = await SessionService.joinSession(
+        volunteer,
+        session.id,
+        {}
+      ).catch((e) => e)
+
+      expect(error).toBeInstanceOf(SessionJoinError)
+      expect(mockSessionRepo.updateSessionFailedJoinsById).toHaveBeenCalledWith(
+        session.id,
+        volunteer.id,
+        'VOLUNTEER_IN_ANOTHER_SESSION'
+      )
+      expect(mockSessionRepo.updateSessionVolunteerById).not.toHaveBeenCalled()
+      expect(
+        mockSessionRepo.getCurrentSessionIdByVolunteerId
+      ).toHaveBeenCalledWith(volunteer.id, expect.anything())
+    })
+
+    test('does not refuse a coach already assigned to the session they reload', async () => {
+      const { volunteer, session } = setup(getDbUlid())
+      session.volunteerId = volunteer.id
+
+      await SessionService.joinSession(volunteer, session.id, {})
+
+      expect(
+        mockSessionRepo.updateSessionFailedJoinsById
+      ).not.toHaveBeenCalled()
+    })
+
+    test('does not refuse a coach whose open session is the one being joined', async () => {
+      const { volunteer, session } = setup(undefined)
+      mockSessionRepo.getCurrentSessionIdByVolunteerId.mockResolvedValue(
+        session.id
+      )
+
+      await SessionService.joinSession(volunteer, session.id, {})
+
+      expect(
+        mockSessionRepo.updateSessionFailedJoinsById
+      ).not.toHaveBeenCalled()
+    })
+
+    test('assigns a coach who has no open session', async () => {
+      const { volunteer, session } = setup(undefined)
+
+      await SessionService.joinSession(volunteer, session.id, {})
+
+      expect(mockSessionRepo.updateSessionVolunteerById).toHaveBeenCalledWith(
+        session.id,
+        volunteer.id
+      )
+      expect(
+        mockSessionRepo.updateSessionFailedJoinsById
+      ).not.toHaveBeenCalled()
     })
   })
 
