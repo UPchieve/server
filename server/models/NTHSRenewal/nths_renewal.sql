@@ -27,7 +27,8 @@ SELECT
                 AND accepted IS DISTINCT FROM FALSE)
         FROM current_member_candidates), FALSE) AS "has_named_successor!",
     viewer_candidate.named_at AS viewer_named_at,
-    viewer_candidate.accepted AS viewer_accepted
+    viewer_candidate.accepted AS viewer_accepted,
+    COALESCE(viewer_candidate.named_by = :viewerId!, FALSE) AS "viewer_named_self!"
 FROM
     nths_groups
     LEFT JOIN nths_group_renewal_candidates viewer_candidate ON viewer_candidate.nths_group_id = nths_groups.id

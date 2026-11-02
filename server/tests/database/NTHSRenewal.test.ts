@@ -21,6 +21,7 @@ type CandidateOptions = {
   namedAt?: string | null
   accepted?: boolean | null
   schoolYear?: string
+  namedBy?: Ulid | null
 }
 
 async function addCandidate(
@@ -31,8 +32,8 @@ async function addCandidate(
   const accepted = options.accepted ?? null
   await client.query(
     `INSERT INTO nths_group_renewal_candidates
-       (nths_group_id, school_year_starts_on, user_id, named_at, accepted, responded_at)
-     VALUES ($1, $2, $3, $4, $5, $6)`,
+       (nths_group_id, school_year_starts_on, user_id, named_at, accepted, responded_at, named_by)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)`,
     [
       groupId,
       options.schoolYear ?? SCHOOL_YEAR,
@@ -40,6 +41,7 @@ async function addCandidate(
       options.namedAt === undefined ? NAMED_AT : options.namedAt,
       accepted,
       accepted === null ? null : NAMED_AT,
+      options.namedBy ?? null,
     ]
   )
 }
@@ -93,6 +95,20 @@ describe('getNthsRenewalState', () => {
     await addCandidate(groupId, viewerId, options)
 
     expect((await stateFor(groupId, viewerId))?.viewerCandidacy).toBe(candidacy)
+  })
+
+  it.each<['viewer' | 'other' | 'nobody', boolean]>([
+    ['viewer', true],
+    ['other', false],
+    ['nobody', false],
+  ])('reports whether the viewer was named by %s', async (namer, expected) => {
+    const groupId = await createChapter(client)
+    const viewerId = await createChapterMember(client, groupId)
+    const otherId = await createChapterMember(client, groupId)
+    const namedBy = { viewer: viewerId, other: otherId, nobody: null }[namer]
+    await addCandidate(groupId, viewerId, { namedBy })
+
+    expect((await stateFor(groupId, viewerId))?.viewerNamedSelf).toBe(expected)
   })
 
   it.each<[string, ChapterMemberOptions, CandidateOptions, boolean, boolean]>([

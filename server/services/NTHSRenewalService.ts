@@ -51,6 +51,7 @@ export type RenewalPromptInput = {
     closedAt: Date | null
     hasConfirmedPresident: boolean
     hasNamedSuccessor: boolean
+    viewerNamedSelf: boolean
   }
   viewer: {
     isAdmin: boolean
@@ -206,11 +207,18 @@ export function renewalPromptFor(
 export function renewalControlsFor(input: RenewalPromptInput): {
   canNameSelf: boolean
   namingSelfAccepts: boolean
+  memberStageOpen: boolean
+  namedSelf: boolean
 } {
   const cycle = renewingCycle(input)
   const { now, chapter, viewer } = input
   if (!cycle || viewer.isBanned) {
-    return { canNameSelf: false, namingSelfAccepts: false }
+    return {
+      canNameSelf: false,
+      namingSelfAccepts: false,
+      memberStageOpen: false,
+      namedSelf: false,
+    }
   }
   return {
     canNameSelf:
@@ -221,6 +229,8 @@ export function renewalControlsFor(input: RenewalPromptInput): {
       now >= cycle.nominationsOpenAt &&
       now < cycle.memberStageAt,
     namingSelfAccepts: now >= cycle.successorConfirmationAt,
+    memberStageOpen: now >= cycle.memberStageAt,
+    namedSelf: chapter.viewerNamedSelf,
   }
 }
 
@@ -236,6 +246,9 @@ function noRenewal(commitmentsRequired: boolean): NTHSRenewalPublic {
     commitmentsRequired,
     canNameSelf: false,
     namingSelfAccepts: false,
+    namedSelf: false,
+    memberStageOpen: false,
+    acceptedPresidents: [],
   }
 }
 
@@ -261,6 +274,19 @@ export async function getRenewalsForViewer(
   const dates = await getRenewalDates(userId)
   if (!dates) return memberships.map(offRenewal)
   return await renewalsWithDates(userId, memberships, dates, now)
+}
+
+async function acceptedPresidentsOf(
+  groupId: Ulid,
+  schoolYearStartsOn: string
+): Promise<NTHSRenewalPublic['acceptedPresidents']> {
+  const successors = await NTHSRenewalRepo.getRenewalSuccessors(
+    groupId,
+    schoolYearStartsOn
+  )
+  return successors
+    .filter(({ accepted }) => accepted === true)
+    .map(({ firstName, lastInitial }) => ({ firstName, lastInitial }))
 }
 
 async function renewalsWithDates(
@@ -295,10 +321,18 @@ async function renewalsWithDates(
         candidacy: state.viewerCandidacy,
       },
     }
+    const renewalPrompt = renewalPromptFor(input)
     renewals.push({
       ...offRenewal(membership),
-      ...renewalPromptFor(input),
+      ...renewalPrompt,
       ...renewalControlsFor(input),
+      acceptedPresidents:
+        renewalPrompt.prompt === 'co-president-offer'
+          ? await acceptedPresidentsOf(
+              membership.nthsGroupId,
+              schoolYearStartsOn
+            )
+          : [],
     })
   }
   return renewals

@@ -2,6 +2,7 @@ import * as FeatureFlagService from '../../services/FeatureFlagService'
 import * as NTHSRenewalDatesService from '../../services/NTHSRenewalDatesService'
 import * as UserRepo from '../../models/User'
 import * as NTHSRenewalRepo from '../../models/NTHSRenewal'
+import type { NTHSRenewalState } from '../../models/NTHSRenewal'
 import * as VolunteerRepo from '../../models/Volunteer'
 import { VolunteerOccupations } from '../../models/Volunteer'
 import { getRenewalsForViewer } from '../../services/NTHSRenewalService'
@@ -35,7 +36,8 @@ const inLateSeptember = new Date('2027-09-20T15:00:00Z')
 function mockViewer(
   banType?: USER_BAN_TYPES,
   isOnboarded = true,
-  hasVolunteerProfile = true
+  hasVolunteerProfile = true,
+  chapter: Partial<NTHSRenewalState> = {}
 ) {
   mockedVolunteerRepo.getVolunteersReadyToCoachStatus.mockResolvedValue(
     hasVolunteerProfile ? [{ id: userId, isOnboarded, isApproved: true }] : []
@@ -52,7 +54,23 @@ function mockViewer(
     hasConfirmedPresident: false,
     hasNamedSuccessor: false,
     viewerCandidacy: 'none',
+    viewerNamedSelf: false,
+    ...chapter,
   })
+}
+
+function successor(
+  firstName: string,
+  lastInitial: string,
+  accepted: boolean | null
+) {
+  return {
+    userId: getDbUlid(),
+    firstName,
+    lastInitial,
+    accepted,
+    namedBy: null,
+  }
 }
 
 const president = buildNTHSGroupWithMemberInfo({
@@ -79,6 +97,9 @@ describe('getRenewalsForViewer', () => {
         commitmentsRequired: false,
         canNameSelf: false,
         namingSelfAccepts: false,
+        namedSelf: false,
+        memberStageOpen: false,
+        acceptedPresidents: [],
       },
     ])
     expect(mockedDatesService.getNthsChapterRenewalDates).not.toHaveBeenCalled()
@@ -131,6 +152,53 @@ describe('getRenewalsForViewer', () => {
       namingClosesOn: null,
     })
   })
+
+  it.each([
+    [
+      'co-president-offer',
+      { hasConfirmedPresident: true, viewerNamedSelf: false },
+      [{ firstName: 'Ada', lastInitial: 'L' }],
+      1,
+    ],
+    [
+      'successor-must-answer',
+      { hasConfirmedPresident: false, viewerNamedSelf: true },
+      [],
+      0,
+    ],
+  ])(
+    'reads the accepted presidents only on the %s prompt',
+    async (prompt, chapter, expected, successorReads) => {
+      mockedDatesService.getNthsChapterRenewalDates.mockResolvedValue(DATES)
+      mockViewer(undefined, true, true, {
+        ...chapter,
+        hasNamedSuccessor: true,
+        viewerCandidacy: 'named',
+      })
+      mockedRenewalRepo.getRenewalSuccessors.mockResolvedValue([
+        successor('Ada', 'L', true),
+        successor('Bo', 'K', null),
+        successor('Cy', 'M', false),
+      ])
+      const inAugust = new Date('2027-08-10T15:00:00Z')
+
+      const [renewal] = await getRenewalsForViewer(
+        userId,
+        [president],
+        inAugust
+      )
+
+      expect(renewal).toMatchObject({
+        prompt,
+        namedSelf: chapter.viewerNamedSelf,
+        memberStageOpen: false,
+      })
+      expect(renewal.acceptedPresidents).toEqual(expected)
+      expect(mockedRenewalRepo.getRenewalSuccessors).toHaveBeenCalledTimes(
+        successorReads
+      )
+    }
+  )
 
   it('treats an admin with a live media ban as banned', async () => {
     mockedDatesService.getNthsChapterRenewalDates.mockResolvedValue(DATES)

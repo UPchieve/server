@@ -29,6 +29,7 @@ function input(now: string, overrides: Overrides = {}): RenewalPromptInput {
       closedAt: null,
       hasConfirmedPresident: false,
       hasNamedSuccessor: false,
+      viewerNamedSelf: false,
       ...overrides.chapter,
     },
     viewer: {
@@ -47,6 +48,7 @@ const declined = { candidacy: 'declined' } as const
 const accepted = { candidacy: 'accepted' } as const
 const someoneNamed = { hasNamedSuccessor: true }
 const confirmed = { hasConfirmedPresident: true, hasNamedSuccessor: true }
+const selfNamed = { viewerNamedSelf: true }
 
 describe('renewalPromptFor', () => {
   it.each<[string, string, Overrides, string, string | null]>([
@@ -665,10 +667,53 @@ describe('renewalControlsFor', () => {
       false,
     ],
   ])('%s', (_label, now, overrides, canNameSelf, namingSelfAccepts) => {
-    expect(renewalControlsFor(input(now, overrides))).toEqual({
+    expect(renewalControlsFor(input(now, overrides))).toMatchObject({
       canNameSelf,
       namingSelfAccepts,
     })
+  })
+
+  it.each([
+    ['before the member stage', '2027-09-14T15:00:00Z', {}, false],
+    ['at the member stage', '2027-09-15T12:00:00Z', {}, true],
+    [
+      'for a banned viewer',
+      '2027-09-16T15:00:00Z',
+      { viewer: { ...admin, isBanned: true } },
+      false,
+    ],
+    ['with the flag off', '2027-09-16T15:00:00Z', { dates: null }, false],
+  ])('memberStageOpen %s', (_label, now, overrides, expected) => {
+    expect(renewalControlsFor(input(now, overrides)).memberStageOpen).toBe(
+      expected
+    )
+  })
+
+  it.each([
+    ['a self-named admin', { viewer: admin, chapter: selfNamed }, true],
+    [
+      'a self-named admin who is banned',
+      { viewer: { ...admin, isBanned: true }, chapter: selfNamed },
+      false,
+    ],
+    [
+      'a self-named admin of a chapter not renewing this cycle',
+      {
+        viewer: admin,
+        chapter: { ...selfNamed, createdAt: new Date('2027-07-20T00:00:00Z') },
+      },
+      false,
+    ],
+    [
+      'a self-named admin with the flag off',
+      { dates: null, viewer: admin, chapter: selfNamed },
+      false,
+    ],
+    ['an admin named by someone else', { viewer: admin }, false],
+  ])('namedSelf for %s', (_label, overrides, expected) => {
+    expect(
+      renewalControlsFor(input('2027-08-10T15:00:00Z', overrides)).namedSelf
+    ).toBe(expected)
   })
 })
 

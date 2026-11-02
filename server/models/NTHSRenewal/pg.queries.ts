@@ -26,6 +26,7 @@ export interface IGetNthsRenewalStateResult {
   viewerAccepted: boolean | null;
   /** not_pii: When an admin named the user as a successor; null for a member who answers at the member stage */
   viewerNamedAt: Date | null;
+  viewerNamedSelf: boolean;
 }
 
 /** 'GetNthsRenewalState' query type */
@@ -34,7 +35,7 @@ export interface IGetNthsRenewalStateQuery {
   result: IGetNthsRenewalStateResult;
 }
 
-const getNthsRenewalStateIR: any = {"usedParamSet":{"groupId":true,"schoolYearStartsOn":true,"viewerId":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":451,"b":459},{"a":1372,"b":1380}]},{"name":"schoolYearStartsOn","required":true,"transform":{"type":"scalar"},"locs":[{"a":508,"b":527},{"a":1268,"b":1287}]},{"name":"viewerId","required":true,"transform":{"type":"scalar"},"locs":[{"a":1334,"b":1343}]}],"statement":"WITH current_member_candidates AS (\n    SELECT\n        candidates.named_at,\n        candidates.accepted\n    FROM\n        nths_group_renewal_candidates candidates\n        JOIN nths_group_members members ON members.nths_group_id = candidates.nths_group_id\n            AND members.user_id = candidates.user_id\n            AND members.deactivated_at IS NULL\n        JOIN users ON users.id = candidates.user_id\n    WHERE\n        candidates.nths_group_id = :groupId!\n        AND candidates.school_year_starts_on = :schoolYearStartsOn!::date\n        AND users.deleted IS NOT TRUE\n)\nSELECT\n    nths_groups.created_at,\n    nths_groups.closed_at,\n    COALESCE((\n        SELECT\n            bool_or(accepted IS TRUE)\n        FROM current_member_candidates), FALSE) AS \"has_confirmed_president!\",\n    COALESCE((\n        SELECT\n            bool_or(named_at IS NOT NULL\n                AND accepted IS DISTINCT FROM FALSE)\n        FROM current_member_candidates), FALSE) AS \"has_named_successor!\",\n    viewer_candidate.named_at AS viewer_named_at,\n    viewer_candidate.accepted AS viewer_accepted\nFROM\n    nths_groups\n    LEFT JOIN nths_group_renewal_candidates viewer_candidate ON viewer_candidate.nths_group_id = nths_groups.id\n        AND viewer_candidate.school_year_starts_on = :schoolYearStartsOn!::date\n        AND viewer_candidate.user_id = :viewerId!\nWHERE\n    nths_groups.id = :groupId!"};
+const getNthsRenewalStateIR: any = {"usedParamSet":{"groupId":true,"schoolYearStartsOn":true,"viewerId":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":451,"b":459},{"a":1457,"b":1465}]},{"name":"schoolYearStartsOn","required":true,"transform":{"type":"scalar"},"locs":[{"a":508,"b":527},{"a":1353,"b":1372}]},{"name":"viewerId","required":true,"transform":{"type":"scalar"},"locs":[{"a":1124,"b":1133},{"a":1419,"b":1428}]}],"statement":"WITH current_member_candidates AS (\n    SELECT\n        candidates.named_at,\n        candidates.accepted\n    FROM\n        nths_group_renewal_candidates candidates\n        JOIN nths_group_members members ON members.nths_group_id = candidates.nths_group_id\n            AND members.user_id = candidates.user_id\n            AND members.deactivated_at IS NULL\n        JOIN users ON users.id = candidates.user_id\n    WHERE\n        candidates.nths_group_id = :groupId!\n        AND candidates.school_year_starts_on = :schoolYearStartsOn!::date\n        AND users.deleted IS NOT TRUE\n)\nSELECT\n    nths_groups.created_at,\n    nths_groups.closed_at,\n    COALESCE((\n        SELECT\n            bool_or(accepted IS TRUE)\n        FROM current_member_candidates), FALSE) AS \"has_confirmed_president!\",\n    COALESCE((\n        SELECT\n            bool_or(named_at IS NOT NULL\n                AND accepted IS DISTINCT FROM FALSE)\n        FROM current_member_candidates), FALSE) AS \"has_named_successor!\",\n    viewer_candidate.named_at AS viewer_named_at,\n    viewer_candidate.accepted AS viewer_accepted,\n    COALESCE(viewer_candidate.named_by = :viewerId!, FALSE) AS \"viewer_named_self!\"\nFROM\n    nths_groups\n    LEFT JOIN nths_group_renewal_candidates viewer_candidate ON viewer_candidate.nths_group_id = nths_groups.id\n        AND viewer_candidate.school_year_starts_on = :schoolYearStartsOn!::date\n        AND viewer_candidate.user_id = :viewerId!\nWHERE\n    nths_groups.id = :groupId!"};
 
 /**
  * Query generated from SQL:
@@ -67,7 +68,8 @@ const getNthsRenewalStateIR: any = {"usedParamSet":{"groupId":true,"schoolYearSt
  *                 AND accepted IS DISTINCT FROM FALSE)
  *         FROM current_member_candidates), FALSE) AS "has_named_successor!",
  *     viewer_candidate.named_at AS viewer_named_at,
- *     viewer_candidate.accepted AS viewer_accepted
+ *     viewer_candidate.accepted AS viewer_accepted,
+ *     COALESCE(viewer_candidate.named_by = :viewerId!, FALSE) AS "viewer_named_self!"
  * FROM
  *     nths_groups
  *     LEFT JOIN nths_group_renewal_candidates viewer_candidate ON viewer_candidate.nths_group_id = nths_groups.id

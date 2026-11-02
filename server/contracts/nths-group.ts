@@ -53,6 +53,9 @@ export type NTHSRenewalPublic = {
   commitmentsRequired: boolean
   canNameSelf: boolean
   namingSelfAccepts: boolean
+  namedSelf: boolean
+  memberStageOpen: boolean
+  acceptedPresidents: { firstName: string; lastInitial: string }[]
 }
 
 export type NTHSGroupWithRenewalPublic = NTHSGroupWithMemberInfoPublic & {

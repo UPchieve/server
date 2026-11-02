@@ -159,6 +159,9 @@ describe('routeNTHSGroups', () => {
         commitmentsRequired: true,
         canNameSelf: false,
         namingSelfAccepts: true,
+        namedSelf: false,
+        memberStageOpen: false,
+        acceptedPresidents: [],
       }
       mockedNTHSGroupsService.getGroups.mockResolvedValueOnce(groups)
       mockedNTHSRenewalService.getRenewalsForViewer.mockResolvedValueOnce([
@@ -1093,6 +1096,9 @@ describe('routeNTHSGroups', () => {
       commitmentsRequired: false,
       canNameSelf: false,
       namingSelfAccepts: false,
+      namedSelf: false,
+      memberStageOpen: false,
+      acceptedPresidents: [],
     } as const
     const successorsBody = { userIds: [memberId], expectedUserIds: [] }
 

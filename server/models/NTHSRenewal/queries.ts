@@ -17,6 +17,7 @@ export type NTHSRenewalState = {
   hasConfirmedPresident: boolean
   hasNamedSuccessor: boolean
   viewerCandidacy: NTHSRenewalCandidacy
+  viewerNamedSelf: boolean
 }
 
 function toCandidacy(row: {
@@ -47,6 +48,7 @@ export async function getNthsRenewalState(
       'createdAt',
       'hasConfirmedPresident',
       'hasNamedSuccessor',
+      'viewerNamedSelf',
     ])
     return {
       createdAt: required.createdAt,
@@ -54,6 +56,7 @@ export async function getNthsRenewalState(
       hasConfirmedPresident: required.hasConfirmedPresident,
       hasNamedSuccessor: required.hasNamedSuccessor,
       viewerCandidacy: toCandidacy(required),
+      viewerNamedSelf: required.viewerNamedSelf,
     }
   } catch (err) {
     throw new RepoReadError(err)
