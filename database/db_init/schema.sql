@@ -1524,6 +1524,77 @@ COMMENT ON COLUMN upchieve.direct_message_conversations.volunteer_last_seen IS '
 
 
 --
+-- Name: direct_message_flags; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.direct_message_flags (
+    id uuid NOT NULL,
+    conversation_id uuid NOT NULL,
+    session_flag_id integer NOT NULL,
+    censored_message_id uuid,
+    reviewed_at timestamp with time zone,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: TABLE direct_message_flags; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON TABLE upchieve.direct_message_flags IS 'Individual DM findings for human review using shared session_flags categories';
+
+
+--
+-- Name: COLUMN direct_message_flags.id; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.direct_message_flags.id IS 'not_pii: Primary key';
+
+
+--
+-- Name: COLUMN direct_message_flags.conversation_id; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.direct_message_flags.conversation_id IS 'not_pii: Foreign key';
+
+
+--
+-- Name: COLUMN direct_message_flags.session_flag_id; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.direct_message_flags.session_flag_id IS 'not_pii: Shared flag category';
+
+
+--
+-- Name: COLUMN direct_message_flags.censored_message_id; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.direct_message_flags.censored_message_id IS 'not_pii: Optional moderated attempt associated with the finding, including blocked content';
+
+
+--
+-- Name: COLUMN direct_message_flags.reviewed_at; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.direct_message_flags.reviewed_at IS 'not_pii: Null until reviewed';
+
+
+--
+-- Name: COLUMN direct_message_flags.created_at; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.direct_message_flags.created_at IS 'not_pii';
+
+
+--
+-- Name: COLUMN direct_message_flags.updated_at; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.direct_message_flags.updated_at IS 'not_pii';
+
+
+--
 -- Name: direct_messages; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -12230,6 +12301,14 @@ ALTER TABLE ONLY upchieve.direct_message_conversations
 
 
 --
+-- Name: direct_message_flags direct_message_flags_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.direct_message_flags
+    ADD CONSTRAINT direct_message_flags_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: direct_messages direct_messages_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -13989,6 +14068,20 @@ CREATE INDEX direct_message_conversations_student_id ON upchieve.direct_message_
 
 
 --
+-- Name: direct_message_flags_conversation_id_idx; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX direct_message_flags_conversation_id_idx ON upchieve.direct_message_flags USING btree (conversation_id);
+
+
+--
+-- Name: direct_message_flags_pending_idx; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX direct_message_flags_pending_idx ON upchieve.direct_message_flags USING btree (created_at, id) WHERE (reviewed_at IS NULL);
+
+
+--
 -- Name: direct_messages_conversation_id_created_at; Type: INDEX; Schema: upchieve; Owner: -
 --
 
@@ -14619,6 +14712,30 @@ ALTER TABLE ONLY upchieve.direct_message_conversations
 
 ALTER TABLE ONLY upchieve.direct_message_conversations
     ADD CONSTRAINT direct_message_conversations_volunteer_id_fkey FOREIGN KEY (volunteer_id) REFERENCES upchieve.users(id);
+
+
+--
+-- Name: direct_message_flags direct_message_flags_censored_message_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.direct_message_flags
+    ADD CONSTRAINT direct_message_flags_censored_message_id_fkey FOREIGN KEY (censored_message_id) REFERENCES upchieve.censored_direct_messages(id);
+
+
+--
+-- Name: direct_message_flags direct_message_flags_conversation_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.direct_message_flags
+    ADD CONSTRAINT direct_message_flags_conversation_id_fkey FOREIGN KEY (conversation_id) REFERENCES upchieve.direct_message_conversations(id);
+
+
+--
+-- Name: direct_message_flags direct_message_flags_session_flag_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.direct_message_flags
+    ADD CONSTRAINT direct_message_flags_session_flag_id_fkey FOREIGN KEY (session_flag_id) REFERENCES upchieve.session_flags(id);
 
 
 --
@@ -16558,4 +16675,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20261027143447'),
     ('20261029184723'),
     ('20261029185457'),
-    ('20261102190934');
+    ('20261102190934'),
+    ('20261102190935');
