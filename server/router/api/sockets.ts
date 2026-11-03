@@ -13,7 +13,7 @@ import {
   USER_BAN_REASONS,
 } from '../../constants'
 import logger from '../../logger'
-import { CaughtError } from '../../models/Errors'
+import { CaughtError, InputError } from '../../models/Errors'
 import { Ulid } from '../../models/pgUtils'
 import * as SessionRepo from '../../models/Session/queries'
 import * as SessionHoldsService from '../../services/SessionHoldsService'
@@ -44,6 +44,14 @@ import sessionMiddleware from '../middleware/session'
 import { toCurrentSessionPublic } from '../../contracts/sessions.mappers'
 import { logThrottledEditorActivity } from '../../services/SessionEditorActivityService'
 import { isPlatformBanType } from '../../utils/ban-utils'
+import * as DirectMessageService from '../../services/DirectMessageService'
+import { toDirectMessagePublic } from '../../contracts/direct-messages.mappers'
+import type {
+  DirectMessageErrorEvent,
+  NewDirectMessageEvent,
+  SendDirectMessagePayload,
+} from '../../contracts/direct-messages'
+import { asString, isUuid } from '../../utils/type-utils'
 
 export type SessionMessageType = 'audio-transcription' // todo - add 'chat' later
 
@@ -517,6 +525,45 @@ export function routeSockets(io: Server): void {
           })
         }
       })
+    })
+
+    socket.on('direct-message:send', async (data: SendDirectMessagePayload) => {
+      await observeWebTransaction(
+        '/socket-io/direct-message:send',
+        async () => {
+          try {
+            const { conversationId, contents, clientMessageId } = data ?? {}
+            if (!isUuid(conversationId))
+              throw new InputError('Invalid conversationId')
+            const user = await extractSocketUser(socket)
+
+            const { conversation, message } =
+              await DirectMessageService.sendMessage(
+                conversationId,
+                user,
+                asString(contents)
+              )
+
+            const messageData: NewDirectMessageEvent = {
+              ...toDirectMessagePublic(message),
+              clientMessageId,
+            }
+            io.to(conversation.studentId)
+              .to(conversation.volunteerId)
+              .emit('direct-message:new', messageData)
+          } catch (err) {
+            const errorData: DirectMessageErrorEvent = {
+              conversationId: data?.conversationId,
+              clientMessageId: data?.clientMessageId,
+            }
+            socket.emit('direct-message:error', errorData)
+            logger.error('Failed sending a direct message', {
+              err,
+              conversationId: data?.conversationId,
+            })
+          }
+        }
+      )
     })
 
     socket.on('requestQuillState', async ({ sessionId }) => {

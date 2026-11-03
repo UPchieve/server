@@ -1,6 +1,9 @@
 import { Server } from 'socket.io'
 import { routeSockets } from '../../../router/api/sockets'
 import * as SessionService from '../../../services/SessionService'
+import * as DirectMessageService from '../../../services/DirectMessageService'
+import { ConversationNotFoundError } from '../../../services/Errors'
+import { getUuid } from '../../../models/pgUtils'
 import SocketService from '../../../services/SocketService'
 import { SessionJoinError } from '../../../models/Errors'
 import { SocketUser } from '../../../types/socket-types'
@@ -10,6 +13,7 @@ import { mocked } from 'jest-mock'
 
 jest.mock('../../../router/middleware/session', () => jest.fn())
 jest.mock('../../../services/SessionService')
+jest.mock('../../../services/DirectMessageService')
 jest.mock('../../../services/SocketService')
 jest.mock('../../../router/extract-user')
 jest.mock('../../../utils/newRelicUtil', () => ({
@@ -19,11 +23,24 @@ jest.mock('../../../utils/newRelicUtil', () => ({
 const mockedSessionService = mocked(SessionService)
 const mockedSocketService = mocked(SocketService)
 const mockedExtractSocketUser = mocked(extractSocketUser)
+const mockedDirectMessageService = mocked(DirectMessageService)
 
 let mockUser = buildUserContactInfo()
 
-function connectSocket() {
-  const io = { use: jest.fn(), on: jest.fn() }
+// Records the rooms an `io.to(...)...emit(...)` chain was sent to
+function mockIo() {
+  const broadcast = { rooms: [] as string[], emit: jest.fn() }
+  const chain = {
+    to: jest.fn((room: string) => {
+      broadcast.rooms.push(room)
+      return chain
+    }),
+    emit: broadcast.emit,
+  }
+  return { io: { use: jest.fn(), on: jest.fn(), to: chain.to }, broadcast }
+}
+
+function connectSocket(io = mockIo().io) {
   routeSockets(io as unknown as Server)
   const onConnection = io.on.mock.calls.find(
     ([event]) => event === 'connection'
@@ -83,5 +100,95 @@ describe('routeSockets', () => {
     expect(callback).toHaveBeenCalledWith(
       expect.objectContaining({ success: false, code: 'SESSION_ENDED' })
     )
+  })
+
+  describe('direct-message:send', () => {
+    beforeEach(() => {
+      jest.clearAllMocks()
+    })
+
+    function getHandler(socket: ReturnType<typeof connectSocket>) {
+      return socket.on.mock.calls.find(
+        ([event]) => event === 'direct-message:send'
+      )![1]
+    }
+
+    test("sends the saved message to both participants' rooms", async () => {
+      const { io, broadcast } = mockIo()
+      const socket = connectSocket(io)
+      const conversation = {
+        id: getUuid(),
+        studentId: mockUser.id,
+        volunteerId: getUuid(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }
+      const message = {
+        id: getUuid(),
+        conversationId: conversation.id,
+        senderId: mockUser.id,
+        contents: 'Hi!',
+        createdAt: new Date('2026-10-01T12:00:00.000Z'),
+      }
+      mockedDirectMessageService.sendMessage.mockResolvedValue({
+        conversation,
+        message,
+      })
+
+      await getHandler(socket)({
+        conversationId: conversation.id,
+        contents: 'Hi!',
+        clientMessageId: 'client-1',
+      })
+
+      expect(DirectMessageService.sendMessage).toHaveBeenCalledWith(
+        conversation.id,
+        mockUser,
+        'Hi!'
+      )
+      expect(broadcast.rooms).toEqual([mockUser.id, conversation.volunteerId])
+      expect(broadcast.emit).toHaveBeenCalledWith('direct-message:new', {
+        ...message,
+        createdAt: '2026-10-01T12:00:00.000Z',
+        clientMessageId: 'client-1',
+      })
+      expect(socket.emit).not.toHaveBeenCalledWith(
+        'direct-message:error',
+        expect.anything()
+      )
+    })
+
+    test('tells only the sender when the message cannot be sent', async () => {
+      const { io, broadcast } = mockIo()
+      const socket = connectSocket(io)
+      const conversationId = getUuid()
+      mockedDirectMessageService.sendMessage.mockRejectedValue(
+        new ConversationNotFoundError()
+      )
+
+      await getHandler(socket)({
+        conversationId,
+        contents: 'Hi!',
+        clientMessageId: 'client-1',
+      })
+
+      expect(socket.emit).toHaveBeenCalledWith('direct-message:error', {
+        conversationId,
+        clientMessageId: 'client-1',
+      })
+      expect(broadcast.emit).not.toHaveBeenCalled()
+    })
+
+    test('rejects a malformed conversation id without sending', async () => {
+      const socket = connectSocket()
+
+      await getHandler(socket)({ conversationId: 'not-an-id', contents: 'Hi!' })
+
+      expect(DirectMessageService.sendMessage).not.toHaveBeenCalled()
+      expect(socket.emit).toHaveBeenCalledWith('direct-message:error', {
+        conversationId: 'not-an-id',
+        clientMessageId: undefined,
+      })
+    })
   })
 })

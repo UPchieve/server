@@ -101,3 +101,143 @@ const getConversationByParticipantsIR: any = {"usedParamSet":{"studentId":true,"
 export const getConversationByParticipants = new PreparedQuery<IGetConversationByParticipantsParams,IGetConversationByParticipantsResult>(getConversationByParticipantsIR);
 
 
+/** 'GetConversationForParticipant' parameters type */
+export interface IGetConversationForParticipantParams {
+  conversationId: string;
+  userId: string;
+}
+
+/** 'GetConversationForParticipant' return type */
+export interface IGetConversationForParticipantResult {
+  /** not_pii */
+  createdAt: Date;
+  /** not_pii: Primary key */
+  id: string;
+  /** not_pii: Foreign key */
+  studentId: string;
+  /** not_pii: When the student last viewed the conversation */
+  studentLastSeen: Date | null;
+  /** not_pii: Foreign key */
+  volunteerId: string;
+  /** not_pii: When the volunteer last viewed the conversation */
+  volunteerLastSeen: Date | null;
+}
+
+/** 'GetConversationForParticipant' query type */
+export interface IGetConversationForParticipantQuery {
+  params: IGetConversationForParticipantParams;
+  result: IGetConversationForParticipantResult;
+}
+
+const getConversationForParticipantIR: any = {"usedParamSet":{"conversationId":true,"userId":true},"params":[{"name":"conversationId","required":true,"transform":{"type":"scalar"},"locs":[{"a":165,"b":180}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":204,"b":211},{"a":239,"b":246}]}],"statement":"SELECT\n    id,\n    student_id,\n    volunteer_id,\n    student_last_seen,\n    volunteer_last_seen,\n    created_at\nFROM\n    direct_message_conversations\nWHERE\n    id = :conversationId!\n    AND (student_id = :userId!\n        OR volunteer_id = :userId!)"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     id,
+ *     student_id,
+ *     volunteer_id,
+ *     student_last_seen,
+ *     volunteer_last_seen,
+ *     created_at
+ * FROM
+ *     direct_message_conversations
+ * WHERE
+ *     id = :conversationId!
+ *     AND (student_id = :userId!
+ *         OR volunteer_id = :userId!)
+ * ```
+ */
+export const getConversationForParticipant = new PreparedQuery<IGetConversationForParticipantParams,IGetConversationForParticipantResult>(getConversationForParticipantIR);
+
+
+/** 'CreateDirectMessage' parameters type */
+export interface ICreateDirectMessageParams {
+  contents: string;
+  conversationId: string;
+  id: string;
+  senderId: string;
+}
+
+/** 'CreateDirectMessage' return type */
+export interface ICreateDirectMessageResult {
+  /** not_pii: Text content of the chat message */
+  contents: string;
+  /** not_pii: Foreign key */
+  conversationId: string;
+  /** not_pii */
+  createdAt: Date;
+  /** not_pii: Primary key */
+  id: string;
+  /** not_pii: Foreign key */
+  senderId: string;
+}
+
+/** 'CreateDirectMessage' query type */
+export interface ICreateDirectMessageQuery {
+  params: ICreateDirectMessageParams;
+  result: ICreateDirectMessageResult;
+}
+
+const createDirectMessageIR: any = {"usedParamSet":{"id":true,"conversationId":true,"senderId":true,"contents":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":107,"b":110}]},{"name":"conversationId","required":true,"transform":{"type":"scalar"},"locs":[{"a":113,"b":128}]},{"name":"senderId","required":true,"transform":{"type":"scalar"},"locs":[{"a":131,"b":140}]},{"name":"contents","required":true,"transform":{"type":"scalar"},"locs":[{"a":143,"b":152}]}],"statement":"INSERT INTO direct_messages (id, conversation_id, sender_id, contents, created_at, updated_at)\n    VALUES (:id!, :conversationId!, :senderId!, :contents!, NOW(), NOW())\nRETURNING\n    id, conversation_id, sender_id, contents, created_at"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO direct_messages (id, conversation_id, sender_id, contents, created_at, updated_at)
+ *     VALUES (:id!, :conversationId!, :senderId!, :contents!, NOW(), NOW())
+ * RETURNING
+ *     id, conversation_id, sender_id, contents, created_at
+ * ```
+ */
+export const createDirectMessage = new PreparedQuery<ICreateDirectMessageParams,ICreateDirectMessageResult>(createDirectMessageIR);
+
+
+/** 'GetDirectMessagesForConversation' parameters type */
+export interface IGetDirectMessagesForConversationParams {
+  conversationId: string;
+}
+
+/** 'GetDirectMessagesForConversation' return type */
+export interface IGetDirectMessagesForConversationResult {
+  /** not_pii: Text content of the chat message */
+  contents: string;
+  /** not_pii: Foreign key */
+  conversationId: string;
+  /** not_pii */
+  createdAt: Date;
+  /** not_pii: Primary key */
+  id: string;
+  /** not_pii: Foreign key */
+  senderId: string;
+}
+
+/** 'GetDirectMessagesForConversation' query type */
+export interface IGetDirectMessagesForConversationQuery {
+  params: IGetDirectMessagesForConversationParams;
+  result: IGetDirectMessagesForConversationResult;
+}
+
+const getDirectMessagesForConversationIR: any = {"usedParamSet":{"conversationId":true},"params":[{"name":"conversationId","required":true,"transform":{"type":"scalar"},"locs":[{"a":133,"b":148}]}],"statement":"SELECT\n    id,\n    conversation_id,\n    sender_id,\n    contents,\n    created_at\nFROM\n    direct_messages\nWHERE\n    conversation_id = :conversationId!\nORDER BY\n    created_at"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     id,
+ *     conversation_id,
+ *     sender_id,
+ *     contents,
+ *     created_at
+ * FROM
+ *     direct_messages
+ * WHERE
+ *     conversation_id = :conversationId!
+ * ORDER BY
+ *     created_at
+ * ```
+ */
+export const getDirectMessagesForConversation = new PreparedQuery<IGetDirectMessagesForConversationParams,IGetDirectMessagesForConversationResult>(getDirectMessagesForConversationIR);
+
+

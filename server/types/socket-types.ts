@@ -8,6 +8,11 @@ import { USER_BAN_TYPES } from '../constants'
 import type { CurrentSessionPublic } from '@upchieve/api-contracts/sessions'
 import { VolunteerPublicProfileInfoShared } from '../models/Volunteer/types'
 import type { VolunteerStatusesResponse } from '../contracts/students'
+import type {
+  DirectMessageErrorEvent,
+  NewDirectMessageEvent,
+  SendDirectMessagePayload,
+} from '../contracts/direct-messages'
 
 export type SocketDelta = Delta & {
   id?: string
@@ -34,6 +39,7 @@ export type ClientToServerEvents = {
     msgId?: string
   }) => void
   requestQuillState: (data: { sessionId: Ulid }) => void
+  'direct-message:send': (data: SendDirectMessagePayload) => void
   requestQuillStateV2: (data: { sessionId: Ulid }) => void
   transmitQuillDeltaV2: (data: { sessionId: Ulid; update: string }) => void
   transmitQuillDelta: (data: { sessionId: Ulid; delta: SocketDelta }) => void
@@ -82,6 +88,8 @@ export type ServerToClientEvents = {
   'is-typing': (data: { sessionId: Ulid }) => void
   'not-typing': (data: { sessionId: Ulid }) => void
   messageError: (data: { sessionId: Ulid }) => void
+  'direct-message:new': (data: NewDirectMessageEvent) => void
+  'direct-message:error': (data: DirectMessageErrorEvent) => void
   lastDeltaStored: (data: { delta: Delta }) => void
   quillState: (data: { delta: Delta | undefined }) => void
   retryLoadingDoc: () => void

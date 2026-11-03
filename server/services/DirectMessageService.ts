@@ -1,7 +1,11 @@
 import * as DirectMessageRepo from '../models/DirectMessage'
-import { NotAllowedError } from '../models/Errors'
+import { InputError, NotAllowedError } from '../models/Errors'
+import type { Ulid } from '../models/pgUtils'
 import type { UserContactInfo } from '../models/User'
-import type { DirectMessageConversation } from '../types/direct-messages'
+import type {
+  DirectMessage,
+  DirectMessageConversation,
+} from '../types/direct-messages'
 import type { Uuid } from '../types/shared'
 import { ConversationNotFoundError } from './Errors'
 
@@ -28,4 +32,43 @@ export async function getOrCreateConversation(
 
   if (!conversation) throw new ConversationNotFoundError()
   return conversation
+}
+
+async function ensureIsParticipant(conversationId: Ulid, userId: Ulid) {
+  const conversation = await DirectMessageRepo.getConversationForParticipant(
+    conversationId,
+    userId
+  )
+  if (!conversation) throw new ConversationNotFoundError()
+  return conversation
+}
+
+export async function getMessages(
+  conversationId: Ulid,
+  user: UserContactInfo
+): Promise<DirectMessage[]> {
+  await ensureIsParticipant(conversationId, user.id)
+  return DirectMessageRepo.getDirectMessagesForConversation(conversationId)
+}
+
+export async function sendMessage(
+  conversationId: Ulid,
+  user: UserContactInfo,
+  contents: string
+): Promise<{
+  conversation: DirectMessageConversation
+  message: DirectMessage
+}> {
+  const trimmedContents = contents.trim()
+  if (!trimmedContents) throw new InputError('Message cannot be empty')
+
+  const conversation = await ensureIsParticipant(conversationId, user.id)
+
+  // TODO: moderate the message before saving it
+  const message = await DirectMessageRepo.createDirectMessage({
+    conversationId,
+    senderId: user.id,
+    contents: trimmedContents,
+  })
+  return { conversation, message }
 }
