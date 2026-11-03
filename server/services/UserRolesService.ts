@@ -46,21 +46,34 @@ export async function getRoleContext(
   tc: TransactionClient = getClient()
 ): Promise<RoleContext> {
   const key = getRoleContextCacheKey(userId)
-  const roleContextStr = await CacheService.getIfExists(key)
-  if (!roleContextStr || forceRefetch) {
+  let roleContextStr: string | undefined
+  if (!forceRefetch) {
+    roleContextStr = await CacheService.getIfExists(key)
+  }
+  if (!roleContextStr) {
     // On cache miss: Create RoleContext from DB and save to cache
     const roles = await UserRepo.getUserRolesById(userId, tc)
     if (!roles.length) {
       throw new Error('User is missing roles')
     }
-    const legacyRole = roles.filter(
+    const primaryRoles = roles.filter(
       (r) => r !== 'admin' && r !== 'ambassador'
-    )[0] as PrimaryUserRole
+    ) as PrimaryUserRole[]
+    if (!primaryRoles.length) {
+      throw new Error('User is missing a primary role')
+    }
+    const legacyRole = primaryRoles[0]
     let activeRole = legacyRole
+    if (forceRefetch && primaryRoles.length > 1) {
+      roleContextStr = await CacheService.getIfExists(key)
+    }
     if (roleContextStr) {
       // Maintain activeRole if there is one
       const cachedRoleContext = JSON.parse(roleContextStr)
-      activeRole = cachedRoleContext?.activeRole ?? legacyRole
+      const cachedActiveRole = cachedRoleContext?.activeRole
+      if (primaryRoles.includes(cachedActiveRole)) {
+        activeRole = cachedActiveRole
+      }
     }
 
     const roleContext = new RoleContext(roles, activeRole, legacyRole)

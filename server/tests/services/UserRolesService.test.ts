@@ -76,24 +76,68 @@ describe('getRoleContext', () => {
     expect(mockedUserRepo.getUserRolesById).toHaveBeenCalled()
   })
 
-  it('Regenerates the RoleContext even if it is in the cache if forceRefetch = true', async () => {
+  it('Skips the cache lookup when forceRefetch = true and the user has one primary role', async () => {
+    mockedUserRepo.getUserRolesById.mockResolvedValue(['student', 'ambassador'])
+
+    const result = await UserRolesService.getRoleContext('some-key', true)
+
+    expect(mockedCacheService.getIfExists).not.toHaveBeenCalled()
+    expect(result.activeRole).toEqual('student')
+    expect(mockedCacheService.save).toHaveBeenCalledTimes(1)
+  })
+
+  it('Preserves the cached active role during a forced refresh', async () => {
     const existingRoleContext = new RoleContext(
-      ['student'],
-      'student',
+      ['student', 'volunteer'],
+      'volunteer',
       'student'
     )
     mockedCacheService.getIfExists.mockResolvedValue(
       JSON.stringify(existingRoleContext)
     )
-    mockedUserRepo.getUserRolesById.mockResolvedValue(['student', 'ambassador'])
+    mockedUserRepo.getUserRolesById.mockResolvedValue(['student', 'volunteer'])
+
     const result = await UserRolesService.getRoleContext('some-key', true)
-    expect(result.roles).toEqual(['student', 'ambassador'])
-    expect(result.legacyRole).toEqual(existingRoleContext.legacyRole)
-    expect(result.activeRole).toEqual(existingRoleContext.activeRole)
-    expect(mockedCacheService.getIfExists).toHaveBeenCalledWith(
-      `${config.cacheKeys.userRoleContextPrefix}some-key`
-    )
-    expect(mockedUserRepo.getUserRolesById).toHaveBeenCalled()
+
+    expect(result.activeRole).toEqual('volunteer')
+  })
+
+  it.each<{ description: string; cachedRoleContext?: string }>([
+    {
+      description: 'the cache is empty',
+    },
+    {
+      description: 'the cached active role is no longer assigned',
+      cachedRoleContext: JSON.stringify(
+        new RoleContext(
+          ['student', 'volunteer', 'teacher'],
+          'teacher',
+          'student'
+        )
+      ),
+    },
+  ])(
+    'Uses the legacy role when $description',
+    async ({ cachedRoleContext }) => {
+      mockedCacheService.getIfExists.mockResolvedValue(cachedRoleContext)
+      mockedUserRepo.getUserRolesById.mockResolvedValue([
+        'student',
+        'volunteer',
+      ])
+
+      const result = await UserRolesService.getRoleContext('some-key', true)
+
+      expect(result.activeRole).toEqual('student')
+    }
+  )
+
+  it('Throws when the user has no primary role', async () => {
+    mockedUserRepo.getUserRolesById.mockResolvedValue(['admin', 'ambassador'])
+
+    await expect(
+      UserRolesService.getRoleContext('some-key', true)
+    ).rejects.toThrow('User is missing a primary role')
+    expect(mockedCacheService.save).not.toHaveBeenCalled()
   })
 })
 
