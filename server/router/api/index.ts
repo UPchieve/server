@@ -18,6 +18,7 @@ import { routeTraining } from './training'
 import { routeUser } from './user'
 import { routeProductFlags } from './product-flags'
 import { routeStudents } from './students'
+import { routeDirectMessages } from './direct-messages'
 import { routeSubjects } from './subjects'
 import { routeProgressReports } from './progress-reports'
 import { routeTeachers } from './teachers'
@@ -56,6 +57,7 @@ export function routes(app: Express, io: Server): void {
   routeStats(router)
   routeProductFlags(router)
   routeStudents(router)
+  routeDirectMessages(router)
   routeSubjects(router)
   routeProgressReports(router)
   routeAdmin(router)
