@@ -2,10 +2,10 @@
 -- PostgreSQL database dump
 --
 
-\restrict kWpsQCKvUUdOJOhMeg8DYIvTfCevpijMMgsMDDiBS6tzndK8JiBdKYWKlQIJ9uW
+\restrict j0mgnItHWX6EIzEnzowA52tGxWf01bobg4EDnu1lmMXnpASVZ8gCz6MNn0rFNGO
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
--- Dumped by pg_dump version 15.19 (Homebrew)
+-- Dumped by pg_dump version 15.17 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -371,6 +371,22 @@ COPY upchieve.availability_histories (id, user_id, weekday_id, available_start, 
 
 
 --
+-- Data for Name: direct_message_conversations; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.direct_message_conversations (id, volunteer_id, student_id, created_at, updated_at, student_last_seen, volunteer_last_seen) FROM stdin;
+\.
+
+
+--
+-- Data for Name: censored_direct_messages; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.censored_direct_messages (id, conversation_id, sender_id, message, censored_by, reasons, blocked, created_at, updated_at) FROM stdin;
+\.
+
+
+--
 -- Data for Name: censored_session_messages; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
@@ -499,14 +515,6 @@ COPY upchieve.computed_subject_unlocks (subject_id, certification_id, created_at
 --
 
 COPY upchieve.contact_form_submissions (id, user_id, user_email, message, topic, created_at, updated_at) FROM stdin;
-\.
-
-
---
--- Data for Name: direct_message_conversations; Type: TABLE DATA; Schema: upchieve; Owner: admin
---
-
-COPY upchieve.direct_message_conversations (id, volunteer_id, student_id, created_at, updated_at, student_last_seen, volunteer_last_seen) FROM stdin;
 \.
 
 
@@ -7795,6 +7803,14 @@ COPY upchieve.session_messages (id, sender_id, contents, session_id, created_at,
 
 
 --
+-- Data for Name: session_offers; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.session_offers (id, session_id, volunteer_id, offered_at, outcome, scorecard_version, closed_at, output, created_at, updated_at) FROM stdin;
+\.
+
+
+--
 -- Data for Name: session_photos; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
@@ -9636,5 +9652,5 @@ SELECT pg_catalog.setval('upchieve.weekdays_id_seq', 1, false);
 -- PostgreSQL database dump complete
 --
 
-\unrestrict kWpsQCKvUUdOJOhMeg8DYIvTfCevpijMMgsMDDiBS6tzndK8JiBdKYWKlQIJ9uW
+\unrestrict j0mgnItHWX6EIzEnzowA52tGxWf01bobg4EDnu1lmMXnpASVZ8gCz6MNn0rFNGO
 

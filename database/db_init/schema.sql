@@ -1,7 +1,7 @@
 \restrict dbmate
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
--- Dumped by pg_dump version 15.19 (Homebrew)
+-- Dumped by pg_dump version 15.17 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -107,7 +107,8 @@ CREATE TYPE upchieve.ban_types AS ENUM (
 --
 
 CREATE TYPE upchieve.moderation_system AS ENUM (
-    'regex'
+    'regex',
+    'ai'
 );
 
 
@@ -818,6 +819,93 @@ CREATE SEQUENCE upchieve.ban_reasons_id_seq
 --
 
 ALTER SEQUENCE upchieve.ban_reasons_id_seq OWNED BY upchieve.ban_reasons.id;
+
+
+--
+-- Name: censored_direct_messages; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.censored_direct_messages (
+    id uuid NOT NULL,
+    conversation_id uuid NOT NULL,
+    sender_id uuid NOT NULL,
+    message text NOT NULL,
+    censored_by upchieve.moderation_system NOT NULL,
+    reasons text[] NOT NULL,
+    blocked boolean NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: TABLE censored_direct_messages; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON TABLE upchieve.censored_direct_messages IS 'DM message attempts recorded during moderation, following censored_session_messages';
+
+
+--
+-- Name: COLUMN censored_direct_messages.id; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.censored_direct_messages.id IS 'not_pii: Primary key';
+
+
+--
+-- Name: COLUMN censored_direct_messages.conversation_id; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.censored_direct_messages.conversation_id IS 'not_pii: Foreign key';
+
+
+--
+-- Name: COLUMN censored_direct_messages.sender_id; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.censored_direct_messages.sender_id IS 'not_pii: Foreign key';
+
+
+--
+-- Name: COLUMN censored_direct_messages.message; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.censored_direct_messages.message IS 'not_pii: Message text content';
+
+
+--
+-- Name: COLUMN censored_direct_messages.censored_by; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.censored_direct_messages.censored_by IS 'not_pii: Check that raised the concern, regex or ai; not necessarily the final decision maker';
+
+
+--
+-- Name: COLUMN censored_direct_messages.reasons; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.censored_direct_messages.reasons IS 'not_pii: Moderation reason/category names, without the raw provider response';
+
+
+--
+-- Name: COLUMN censored_direct_messages.blocked; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.censored_direct_messages.blocked IS 'not_pii: Whether the final moderation decision rejected delivery; independent of staff review and ban handling';
+
+
+--
+-- Name: COLUMN censored_direct_messages.created_at; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.censored_direct_messages.created_at IS 'not_pii';
+
+
+--
+-- Name: COLUMN censored_direct_messages.updated_at; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.censored_direct_messages.updated_at IS 'not_pii';
 
 
 --
@@ -12054,6 +12142,14 @@ ALTER TABLE ONLY upchieve.ban_reasons
 
 
 --
+-- Name: censored_direct_messages censored_direct_messages_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.censored_direct_messages
+    ADD CONSTRAINT censored_direct_messages_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: censored_session_messages censored_session_messages_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -13865,6 +13961,13 @@ CREATE INDEX availability_histories_user_id_recorded_at ON upchieve.availability
 
 
 --
+-- Name: censored_direct_messages_conversation_id_created_at_idx; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX censored_direct_messages_conversation_id_created_at_idx ON upchieve.censored_direct_messages USING btree (conversation_id, created_at);
+
+
+--
 -- Name: censored_messages_sent_at; Type: INDEX; Schema: upchieve; Owner: -
 --
 
@@ -14412,6 +14515,22 @@ ALTER TABLE ONLY upchieve.availability_histories
 
 ALTER TABLE ONLY upchieve.availability_histories
     ADD CONSTRAINT availability_histories_weekday_id_fkey FOREIGN KEY (weekday_id) REFERENCES upchieve.weekdays(id);
+
+
+--
+-- Name: censored_direct_messages censored_direct_messages_conversation_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.censored_direct_messages
+    ADD CONSTRAINT censored_direct_messages_conversation_id_fkey FOREIGN KEY (conversation_id) REFERENCES upchieve.direct_message_conversations(id);
+
+
+--
+-- Name: censored_direct_messages censored_direct_messages_sender_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.censored_direct_messages
+    ADD CONSTRAINT censored_direct_messages_sender_id_fkey FOREIGN KEY (sender_id) REFERENCES upchieve.users(id);
 
 
 --
@@ -16438,4 +16557,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20261026150000'),
     ('20261027143447'),
     ('20261029184723'),
-    ('20261029185457');
+    ('20261029185457'),
+    ('20261102190934');
