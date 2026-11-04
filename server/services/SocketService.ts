@@ -18,6 +18,10 @@ import { SessionJoinError } from '../models/Errors'
 import * as StudentRepo from '../models/Student/queries'
 import * as SessionRepo from '../models/Session/queries'
 import type { VolunteerStatus } from '../types/users'
+import {
+  SessionOfferClosedEvent,
+  SessionOfferEvent,
+} from '../types/socket-types'
 
 /**
  * This room receives broadcasts of unfulfilled sessions.
@@ -168,6 +172,10 @@ class SocketService {
 
   private async broadcastSessionList(): Promise<void> {
     const run = ++this.sessionListRun
+    // @TODO restore once offered sessions are hidden from other coaches
+    // const sessions = await SessionOfferService.withoutSessionsBeingOffered(
+    //   await getUnfulfilledSessions()
+    // )
     const sessions = await getUnfulfilledSessions()
     const coachHoldEligibilities =
       await SessionHoldsService.getEligibleOnlineCoaches()
@@ -243,6 +251,14 @@ class SocketService {
   async emitTutorBotMessage(sessionId: Ulid, messageData: any): Promise<void> {
     const socketRoom = getSessionRoom(sessionId)
     this.io.in(socketRoom).emit('tutorBotConversationMessage', messageData)
+  }
+
+  emitSessionOffer(volunteerId: Ulid, offer: SessionOfferEvent) {
+    this.io.to(volunteerId).emit('session-offer', offer)
+  }
+
+  emitSessionOfferClosed(volunteerId: Ulid, closed: SessionOfferClosedEvent) {
+    this.io.to(volunteerId).emit('session-offer:closed', closed)
   }
 
   async emitProgressReportProcessedToUser(

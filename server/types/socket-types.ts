@@ -13,9 +13,24 @@ import type {
   NewDirectMessageEvent,
   SendDirectMessagePayload,
 } from '../contracts/direct-messages'
+import type { SessionOfferOutcome } from '../models/SessionOffer'
 
 export type SocketDelta = Delta & {
   id?: string
+}
+
+export type SessionOfferEvent = {
+  sessionId: Ulid
+  subject: string
+  subjectDisplayName: string
+  topic: string
+  studentFirstName: string
+  expiresAt: Date
+}
+
+export type SessionOfferClosedEvent = {
+  sessionId: Ulid
+  outcome: SessionOfferOutcome
 }
 
 export type ClientToServerEvents = {
@@ -72,6 +87,7 @@ export type ClientToServerEvents = {
   'coach-status:get': (
     callback: (result: VolunteerStatusesResponse | { error: string }) => void
   ) => void
+  'session-offer:decline': (data: { sessionId: Ulid }) => void
 }
 
 export type ServerToClientEvents = {
@@ -85,6 +101,8 @@ export type ServerToClientEvents = {
   'sessions/recap:join-failed': (error: Error) => void
   celebrate: (data: { duration: number }) => void
   sessions: (sessions: UnfulfilledSessions[]) => void
+  'session-offer': (offer: SessionOfferEvent) => void
+  'session-offer:closed': (closed: SessionOfferClosedEvent) => void
   'is-typing': (data: { sessionId: Ulid }) => void
   'not-typing': (data: { sessionId: Ulid }) => void
   messageError: (data: { sessionId: Ulid }) => void

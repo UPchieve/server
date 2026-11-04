@@ -20,5 +20,5 @@ export enum FEATURE_FLAGS {
   BLOCK_AUDIO_CALL = 'block-audio-call',
   SESSION_HOLDS_COACH = 'session-holds-coach',
   SESSION_HOLDS_STUDENT = 'session-holds-student',
-  SHADOW_SESSION_OFFERS = 'shadow-session-offers',
+  SESSION_OFFERS = 'session-offers',
 }

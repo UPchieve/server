@@ -7,6 +7,7 @@ import { createAdapter } from '@socket.io/redis-streams-adapter'
 import config from './config'
 import { redisClient } from './services/RedisService'
 import SocketService from './services/SocketService'
+import * as SessionOfferService from './services/SessionOfferService'
 import { instrument } from '@socket.io/admin-ui'
 import { isDevEnvironment } from './utils/environments'
 import {
@@ -58,6 +59,7 @@ export default function (server: http.Server) {
   io.adapter(createAdapter(redisClient))
   // Instantiate the SocketService singleton
   SocketService.getInstance(io)
+  SessionOfferService.listenForOfferExpiries()
 
   io.engine.on('connection', (rawSocket) => {
     logger.info('Engine.IO connection', {

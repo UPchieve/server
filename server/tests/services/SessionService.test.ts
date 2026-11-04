@@ -42,6 +42,7 @@ import * as PhotoDnaService from '../../services/PhotoDnaService'
 import * as NotifyVolunteerService from '../../services/NotifyVolunteerService'
 import SocketService from '../../services/SocketService'
 import * as SessionFlagsService from '../../services/SessionFlagsService'
+import * as SessionOfferService from '../../services/SessionOfferService'
 import { minutesInMs } from '../../utils/time-utils'
 import * as VolunteerService from '../../services/VolunteerService'
 import * as VolunteerQueries from '../../models/Volunteer/queries'
@@ -60,6 +61,7 @@ jest.mock('../../services/PhotoDnaService')
 jest.mock('../../services/NotifyVolunteerService')
 jest.mock('../../services/SocketService')
 jest.mock('../../services/SessionHoldsService')
+jest.mock('../../services/SessionOfferService')
 jest.mock('../../cache')
 jest.mock('../../services/VolunteerService')
 jest.mock('../../models/Volunteer/queries')
@@ -757,7 +759,9 @@ describe('SessionService', () => {
   })
 
   describe('startSession', () => {
-    test('begins regular notifications for a new session with no requested coach', async () => {
+    const mockedSessionOfferService = mocked(SessionOfferService)
+
+    async function startNewSession() {
       const student = buildUserContactInfo()
       const newSession = buildCurrentSession({ studentId: student.id })
       mockedSubjectsRepo.getSubjectAndTopic.mockResolvedValue({
@@ -770,9 +774,6 @@ describe('SessionService', () => {
         toolType: 'whiteboard',
       })
       mockSessionRepo.createSession.mockResolvedValue(newSession)
-      mockFeatureFlagService.isShadowSessionOffersEnabled.mockResolvedValue(
-        false
-      )
 
       await SessionService.startSession(student, {
         subject: 'algebraOne',
@@ -781,11 +782,31 @@ describe('SessionService', () => {
         sessionType: 'math',
         userAgent: 'jest',
       })
+      return newSession
+    }
+
+    test('begins regular notifications for a new session with no requested coach', async () => {
+      const newSession = await startNewSession()
 
       expect(
         mockedNotifyVolunteerService.beginRegularNotifications
       ).toHaveBeenCalledWith(newSession)
+      expect(mockedSessionOfferService.makeInitialOffer).not.toHaveBeenCalled()
     })
+
+    test('offers the session and begins regular notifications when session offers are enabled', async () => {
+      mockFeatureFlagService.isSessionOffersEnabled.mockResolvedValue(true)
+
+      const newSession = await startNewSession()
+
+      expect(mockedSessionOfferService.makeInitialOffer).toHaveBeenCalledWith(
+        newSession
+      )
+      expect(
+        mockedNotifyVolunteerService.beginRegularNotifications
+      ).toHaveBeenCalledWith(newSession)
+    })
+
     test('should not create a session when the requested volunteer is not certified in the subject', async () => {
       const student = buildUserContactInfo()
       mockedSubjectsRepo.getSubjectAndTopic.mockResolvedValue({

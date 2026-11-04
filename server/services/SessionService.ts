@@ -295,6 +295,14 @@ export async function endSession(
   })
 
   await SessionHoldsService.clearSessionHolds(sessionId)
+  try {
+    await SessionOfferService.onOfferWithdrawn(sessionId)
+  } catch (err) {
+    logger.error('Failed to withdraw session offer after end session', {
+      err,
+      sessionId,
+    })
+  }
 
   if (socketService) {
     try {
@@ -721,6 +729,11 @@ export async function startSession(
     }
   }
 
+  const isOffering =
+    !requestedVolunteerId &&
+    user.banType !== USER_BAN_TYPES.SHADOW &&
+    (await FeatureFlagsService.isSessionOffersEnabled(user.id))
+
   const newSession = await runInTransaction(async (tc: TransactionClient) => {
     const newSession = await SessionRepo.createSession(
       {
@@ -788,6 +801,10 @@ export async function startSession(
     await cache.sadd(config.cacheKeys.zwibserveSessions, newSession.id)
   }
 
+  if (isOffering) {
+    await SessionOfferService.makeInitialOffer(newSession)
+  }
+
   const isUserShadowBanned = user.banType === USER_BAN_TYPES.SHADOW
   if (!isUserShadowBanned) {
     if (requestedVolunteerId) {
@@ -796,18 +813,8 @@ export async function startSession(
         requestedVolunteerId
       )
     } else {
-      FeatureFlagsService.isShadowSessionOffersEnabled(user.id).then(
-        (offersEnabled) => {
-          if (offersEnabled)
-            SessionOfferService.recordShadowOffer(newSession).catch((err) => {
-              logger.error('Failed to record shadow session offer', {
-                err,
-                sessionId: newSession.id,
-              })
-            })
-        }
-      )
-
+      // @TODO skip for sessions being offered once they are hidden from other
+      // coaches, the offers notify when they stop
       await NotifyVolunteerService.beginRegularNotifications(newSession)
     }
   }
@@ -960,6 +967,16 @@ export async function joinSession(
         clientTitle: VOLUNTEER_ALREADY_JOINED_TITLE,
         context: { sessionId: session.id, joiningUserId: user.id },
         cause: err,
+      })
+    }
+
+    try {
+      await SessionOfferService.onSessionJoined(session.id, user.id)
+    } catch (err) {
+      logger.error('Failed to close session offer after join', {
+        err,
+        userId: user.id,
+        sessionId: session.id,
       })
     }
 
