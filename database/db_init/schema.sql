@@ -9942,7 +9942,8 @@ CREATE TABLE upchieve.user_product_flags (
     paid_tutors_pilot_group upchieve.paid_tutors_pilot_groups,
     fall_incentive_enrollment_at timestamp with time zone,
     impact_study_enrollment_at timestamp with time zone,
-    impact_study_campaigns jsonb DEFAULT '{}'::jsonb
+    impact_study_campaigns jsonb DEFAULT '{}'::jsonb,
+    share_info_modal_dismissed_at timestamp with time zone
 );
 
 
@@ -10056,6 +10057,13 @@ COMMENT ON COLUMN upchieve.user_product_flags.impact_study_enrollment_at IS 'not
 --
 
 COMMENT ON COLUMN upchieve.user_product_flags.impact_study_campaigns IS 'not_pii: JSON map of impact study campaign assignments for the user';
+
+
+--
+-- Name: COLUMN user_product_flags.share_info_modal_dismissed_at; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.user_product_flags.share_info_modal_dismissed_at IS 'not_pii: When the volunteer first closed the share-info-with-students modal without choosing';
 
 
 --
@@ -16676,4 +16684,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20261029184723'),
     ('20261029185457'),
     ('20261102190934'),
-    ('20261102190935');
+    ('20261102190935'),
+    ('20261103153000');
