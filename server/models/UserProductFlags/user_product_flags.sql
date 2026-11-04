@@ -23,6 +23,7 @@ RETURNING
     fall_incentive_enrollment_at,
     impact_study_enrollment_at,
     impact_study_campaigns,
+    share_info_modal_dismissed_at,
     created_at,
     updated_at;
 
@@ -39,6 +40,7 @@ SELECT
     fall_incentive_enrollment_at,
     impact_study_enrollment_at,
     impact_study_campaigns,
+    share_info_modal_dismissed_at,
     created_at,
     updated_at
 FROM
@@ -117,4 +119,14 @@ WHERE
     user_id = :userId!
 RETURNING
     user_id AS ok;
+
+
+/* @name setShareInfoModalDismissedAt */
+INSERT INTO user_product_flags (user_id, share_info_modal_dismissed_at, created_at, updated_at)
+    VALUES (:userId!, NOW(), NOW(), NOW())
+ON CONFLICT (user_id)
+    DO UPDATE SET
+        share_info_modal_dismissed_at = COALESCE(user_product_flags.share_info_modal_dismissed_at, NOW()), updated_at = NOW()
+    RETURNING
+        share_info_modal_dismissed_at;
 

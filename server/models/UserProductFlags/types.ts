@@ -24,6 +24,7 @@ export type UserProductFlags = {
   fallIncentiveEnrollmentAt?: Date
   impactStudyEnrollmentAt?: Date
   impactStudyCampaigns?: ImpactStudyCampaignsMap
+  shareInfoModalDismissedAt?: Date
   createdAt: Date
   updatedAt: Date
 }

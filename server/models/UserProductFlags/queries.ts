@@ -16,6 +16,7 @@ type UserProductFlagsRow = {
   fallIncentiveEnrollmentAt: Date | null
   impactStudyEnrollmentAt: Date | null
   impactStudyCampaigns: Json | null
+  shareInfoModalDismissedAt: Date | null
   createdAt: Date
   updatedAt: Date
 }
@@ -54,6 +55,7 @@ function toUserProductFlags(row: UserProductFlagsRow): UserProductFlags {
     'fallIncentiveEnrollmentAt',
     'impactStudyEnrollmentAt',
     'impactStudyCampaigns',
+    'shareInfoModalDismissedAt',
   ])
   return {
     userId: flags.userId,
@@ -65,6 +67,7 @@ function toUserProductFlags(row: UserProductFlagsRow): UserProductFlags {
     gatesQualified: flags.gatesQualified,
     fallIncentiveEnrollmentAt: flags.fallIncentiveEnrollmentAt,
     impactStudyEnrollmentAt: flags.impactStudyEnrollmentAt,
+    shareInfoModalDismissedAt: flags.shareInfoModalDismissedAt,
     createdAt: flags.createdAt,
     updatedAt: flags.updatedAt,
     impactStudyCampaigns:
@@ -190,6 +193,22 @@ export async function enrollStudentToImpactStudy(
       tc ?? getClient()
     )
     if (result.length) return makeRequired(result[0]).impactStudyEnrollmentAt
+    throw new RepoUpdateError('Update query was not acknowledged')
+  } catch (err) {
+    if (err instanceof RepoUpdateError) throw err
+    throw new RepoUpdateError(err)
+  }
+}
+
+export async function setShareInfoModalDismissedAt(
+  userId: Ulid
+): Promise<Date> {
+  try {
+    const result = await pgQueries.setShareInfoModalDismissedAt.run(
+      { userId },
+      getClient()
+    )
+    if (result.length) return makeRequired(result[0]).shareInfoModalDismissedAt
     throw new RepoUpdateError('Update query was not acknowledged')
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err

@@ -72,6 +72,19 @@ describe('routeProductFlags', () => {
         flags: undefined,
       })
     })
+
+    test('includes when the coach dismissed the share-info modal', async () => {
+      const dismissedAt = new Date()
+      const flags = buildUserProductFlags({
+        shareInfoModalDismissedAt: dismissedAt,
+      })
+      mockedRepo.getUPFByUserId.mockResolvedValueOnce(flags)
+
+      const response = await sendGet('/api/product-flags')
+      expect(response.body.flags.shareInfoModalDismissedAt).toBe(
+        dismissedAt.toISOString()
+      )
+    })
   })
 
   describe('POST /api/product-flags/fall-incentive-enrollment/enroll', () => {
@@ -141,6 +154,35 @@ describe('routeProductFlags', () => {
       expect(response.body).toEqual({
         impactStudyEnrollmentAt: enrollmentDate.toISOString(),
       })
+    })
+  })
+
+  describe('POST /api/product-flags/share-info-modal-dismissed', () => {
+    test('records the dismissal and returns when it happened', async () => {
+      const dismissedAt = new Date()
+      mockedRepo.setShareInfoModalDismissedAt.mockResolvedValueOnce(dismissedAt)
+
+      const response = await sendPost(
+        '/api/product-flags/share-info-modal-dismissed'
+      )
+      expect(response.status).toBe(200)
+      expect(mockedRepo.setShareInfoModalDismissedAt).toHaveBeenCalledWith(
+        mockUser.id
+      )
+      expect(response.body).toEqual({
+        shareInfoModalDismissedAt: dismissedAt.toISOString(),
+      })
+    })
+
+    test('returns an error when the write fails', async () => {
+      mockedRepo.setShareInfoModalDismissedAt.mockRejectedValueOnce(
+        new Error('db down')
+      )
+
+      const response = await sendPost(
+        '/api/product-flags/share-info-modal-dismissed'
+      )
+      expect(response.status).toBe(500)
     })
   })
 })

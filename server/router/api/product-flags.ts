@@ -9,6 +9,7 @@ import { toUserProductFlagsPublic } from '../../contracts/product-flags.mappers'
 import {
   FallIncentiveEnrollmentResponse,
   ImpactStudyEnrollmentResponse,
+  ShareInfoModalDismissedResponse,
   UserProductFlagsResponse,
 } from '../../contracts/product-flags'
 
@@ -58,6 +59,19 @@ export function routeProductFlags(router: Router) {
           user.id
         )
         res.sendStatus(200)
+      } catch (err) {
+        resError(res, err)
+      }
+    })
+
+  router
+    .route('/product-flags/share-info-modal-dismissed')
+    .post(async function (req, res: Response<ShareInfoModalDismissedResponse>) {
+      try {
+        const user = extractUser(req)
+        const dismissedAt =
+          await UserProductFlagsRepo.setShareInfoModalDismissedAt(user.id)
+        res.json({ shareInfoModalDismissedAt: dismissedAt.toISOString() })
       } catch (err) {
         resError(res, err)
       }

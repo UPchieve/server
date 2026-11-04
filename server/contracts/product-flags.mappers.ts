@@ -47,5 +47,6 @@ export function toUserProductFlagsPublic(
     impactStudyCampaigns: toImpactStudyCampaignsMapPublic(
       flags.impactStudyCampaigns
     ),
+    shareInfoModalDismissedAt: flags.shareInfoModalDismissedAt?.toISOString(),
   }
 }

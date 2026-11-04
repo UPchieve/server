@@ -30,6 +30,8 @@ export interface ICreateUpfByUserIdResult {
   sentInactiveThirtyDayEmail: boolean;
   /** not_pii: Whether the ready-to-coach onboarding email has been sent */
   sentReadyToCoachEmail: boolean;
+  /** not_pii: When the volunteer first closed the share-info-with-students modal without choosing */
+  shareInfoModalDismissedAt: Date | null;
   /** not_pii */
   updatedAt: Date;
   /** not_pii: Foreign key to upchieve.users */
@@ -42,7 +44,7 @@ export interface ICreateUpfByUserIdQuery {
   result: ICreateUpfByUserIdResult;
 }
 
-const createUpfByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":76,"b":83},{"a":239,"b":246}]}],"statement":"INSERT INTO user_product_flags (user_id, created_at, updated_at)\nSELECT\n    :userId!,\n    NOW(),\n    NOW()\nWHERE\n    NOT EXISTS (\n        SELECT\n            1\n        FROM\n            user_product_flags\n        WHERE\n            user_id = :userId!)\nRETURNING\n    user_id,\n    sent_ready_to_coach_email,\n    sent_hour_summary_intro_email,\n    sent_inactive_thirty_day_email,\n    sent_inactive_sixty_day_email,\n    sent_inactive_ninety_day_email,\n    gates_qualified,\n    fall_incentive_enrollment_at,\n    impact_study_enrollment_at,\n    impact_study_campaigns,\n    created_at,\n    updated_at"};
+const createUpfByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":76,"b":83},{"a":239,"b":246}]}],"statement":"INSERT INTO user_product_flags (user_id, created_at, updated_at)\nSELECT\n    :userId!,\n    NOW(),\n    NOW()\nWHERE\n    NOT EXISTS (\n        SELECT\n            1\n        FROM\n            user_product_flags\n        WHERE\n            user_id = :userId!)\nRETURNING\n    user_id,\n    sent_ready_to_coach_email,\n    sent_hour_summary_intro_email,\n    sent_inactive_thirty_day_email,\n    sent_inactive_sixty_day_email,\n    sent_inactive_ninety_day_email,\n    gates_qualified,\n    fall_incentive_enrollment_at,\n    impact_study_enrollment_at,\n    impact_study_campaigns,\n    share_info_modal_dismissed_at,\n    created_at,\n    updated_at"};
 
 /**
  * Query generated from SQL:
@@ -71,6 +73,7 @@ const createUpfByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"nam
  *     fall_incentive_enrollment_at,
  *     impact_study_enrollment_at,
  *     impact_study_campaigns,
+ *     share_info_modal_dismissed_at,
  *     created_at,
  *     updated_at
  * ```
@@ -105,6 +108,8 @@ export interface IGetUpfByUserIdResult {
   sentInactiveThirtyDayEmail: boolean;
   /** not_pii: Whether the ready-to-coach onboarding email has been sent */
   sentReadyToCoachEmail: boolean;
+  /** not_pii: When the volunteer first closed the share-info-with-students modal without choosing */
+  shareInfoModalDismissedAt: Date | null;
   /** not_pii */
   updatedAt: Date;
   /** not_pii: Foreign key to upchieve.users */
@@ -117,7 +122,7 @@ export interface IGetUpfByUserIdQuery {
   result: IGetUpfByUserIdResult;
 }
 
-const getUpfByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":387,"b":394}]}],"statement":"SELECT\n    user_id,\n    sent_ready_to_coach_email,\n    sent_hour_summary_intro_email,\n    sent_inactive_thirty_day_email,\n    sent_inactive_sixty_day_email,\n    sent_inactive_ninety_day_email,\n    gates_qualified,\n    fall_incentive_enrollment_at,\n    impact_study_enrollment_at,\n    impact_study_campaigns,\n    created_at,\n    updated_at\nFROM\n    user_product_flags\nWHERE\n    user_id = :userId!"};
+const getUpfByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":422,"b":429}]}],"statement":"SELECT\n    user_id,\n    sent_ready_to_coach_email,\n    sent_hour_summary_intro_email,\n    sent_inactive_thirty_day_email,\n    sent_inactive_sixty_day_email,\n    sent_inactive_ninety_day_email,\n    gates_qualified,\n    fall_incentive_enrollment_at,\n    impact_study_enrollment_at,\n    impact_study_campaigns,\n    share_info_modal_dismissed_at,\n    created_at,\n    updated_at\nFROM\n    user_product_flags\nWHERE\n    user_id = :userId!"};
 
 /**
  * Query generated from SQL:
@@ -133,6 +138,7 @@ const getUpfByUserIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":
  *     fall_incentive_enrollment_at,
  *     impact_study_enrollment_at,
  *     impact_study_campaigns,
+ *     share_info_modal_dismissed_at,
  *     created_at,
  *     updated_at
  * FROM
@@ -363,5 +369,39 @@ const upsertImpactStudyCampaignIR: any = {"usedParamSet":{"campaignId":true,"cam
  * ```
  */
 export const upsertImpactStudyCampaign = new PreparedQuery<IUpsertImpactStudyCampaignParams,IUpsertImpactStudyCampaignResult>(upsertImpactStudyCampaignIR);
+
+
+/** 'SetShareInfoModalDismissedAt' parameters type */
+export interface ISetShareInfoModalDismissedAtParams {
+  userId: string;
+}
+
+/** 'SetShareInfoModalDismissedAt' return type */
+export interface ISetShareInfoModalDismissedAtResult {
+  /** not_pii: When the volunteer first closed the share-info-with-students modal without choosing */
+  shareInfoModalDismissedAt: Date | null;
+}
+
+/** 'SetShareInfoModalDismissedAt' query type */
+export interface ISetShareInfoModalDismissedAtQuery {
+  params: ISetShareInfoModalDismissedAtParams;
+  result: ISetShareInfoModalDismissedAtResult;
+}
+
+const setShareInfoModalDismissedAtIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":108,"b":115}]}],"statement":"INSERT INTO user_product_flags (user_id, share_info_modal_dismissed_at, created_at, updated_at)\n    VALUES (:userId!, NOW(), NOW(), NOW())\nON CONFLICT (user_id)\n    DO UPDATE SET\n        share_info_modal_dismissed_at = COALESCE(user_product_flags.share_info_modal_dismissed_at, NOW()), updated_at = NOW()\n    RETURNING\n        share_info_modal_dismissed_at"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO user_product_flags (user_id, share_info_modal_dismissed_at, created_at, updated_at)
+ *     VALUES (:userId!, NOW(), NOW(), NOW())
+ * ON CONFLICT (user_id)
+ *     DO UPDATE SET
+ *         share_info_modal_dismissed_at = COALESCE(user_product_flags.share_info_modal_dismissed_at, NOW()), updated_at = NOW()
+ *     RETURNING
+ *         share_info_modal_dismissed_at
+ * ```
+ */
+export const setShareInfoModalDismissedAt = new PreparedQuery<ISetShareInfoModalDismissedAtParams,ISetShareInfoModalDismissedAtResult>(setShareInfoModalDismissedAtIR);
 
 

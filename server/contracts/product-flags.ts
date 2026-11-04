@@ -23,6 +23,7 @@ export type UserProductFlagsPublic = {
   fallIncentiveEnrollmentAt?: ISODateString
   impactStudyEnrollmentAt?: ISODateString
   impactStudyCampaigns?: ImpactStudyCampaignsMapPublic
+  shareInfoModalDismissedAt?: ISODateString
 }
 
 export type UserProductFlagsResponse = {
@@ -32,6 +33,10 @@ export type UserProductFlagsResponse = {
 // TODO: Make a unified enrollment response type
 export type FallIncentiveEnrollmentResponse = {
   fallIncentiveEnrollmentAt: ISODateString
+}
+
+export type ShareInfoModalDismissedResponse = {
+  shareInfoModalDismissedAt: ISODateString
 }
 
 export type ImpactStudyEnrollmentResponse = {

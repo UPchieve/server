@@ -1390,6 +1390,7 @@ export function buildUserProductFlagsPublic(
     gatesQualified: flags.gatesQualified,
     fallIncentiveEnrollmentAt: flags.fallIncentiveEnrollmentAt?.toISOString(),
     impactStudyEnrollmentAt: flags.impactStudyEnrollmentAt?.toISOString(),
+    shareInfoModalDismissedAt: flags.shareInfoModalDismissedAt?.toISOString(),
     impactStudyCampaigns: flags.impactStudyCampaigns
       ? Object.fromEntries(
           Object.entries(flags.impactStudyCampaigns).map(([key, campaign]) => [
