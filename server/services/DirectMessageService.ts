@@ -72,3 +72,20 @@ export async function sendMessage(
   })
   return { conversation, message }
 }
+
+export async function markConversationSeen(
+  conversationId: Ulid,
+  user: UserContactInfo
+): Promise<void> {
+  const wasUpdated = await DirectMessageRepo.updateConversationLastSeen(
+    conversationId,
+    user.id
+  )
+  if (!wasUpdated) throw new ConversationNotFoundError()
+}
+
+export async function getUnreadMessageSenderIds(
+  user: UserContactInfo
+): Promise<Ulid[]> {
+  return DirectMessageRepo.getUnreadDirectMessageSenderIds(user.id)
+}

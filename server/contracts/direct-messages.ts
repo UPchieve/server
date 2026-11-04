@@ -17,6 +17,10 @@ export type DirectMessagesResponse = {
   messages: DirectMessagePublic[]
 }
 
+export type UnreadDirectMessagesResponse = {
+  senderIds: Uuid[]
+}
+
 export type SendDirectMessagePayload = {
   conversationId: Uuid
   contents: string

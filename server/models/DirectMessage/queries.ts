@@ -3,7 +3,7 @@ import type {
   DirectMessageConversation,
 } from '../../types/direct-messages'
 import * as pgQueries from './pg.queries'
-import { RepoCreateError, RepoReadError } from '../Errors'
+import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import { getClient, TransactionClient } from '../../db'
 import { getDbUlid, makeRequired, makeSomeRequired, Ulid } from '../pgUtils'
 import config from '../../config'
@@ -102,6 +102,37 @@ export async function getDirectMessagesForConversation(
       client ?? getClient()
     )
     return result.map((row) => makeRequired(row))
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function updateConversationLastSeen(
+  conversationId: Ulid,
+  userId: Ulid,
+  client?: TransactionClient
+): Promise<boolean> {
+  try {
+    const result = await pgQueries.updateConversationLastSeen.run(
+      { conversationId, userId },
+      client ?? getClient()
+    )
+    return result.length > 0
+  } catch (err) {
+    throw new RepoUpdateError(err)
+  }
+}
+
+export async function getUnreadDirectMessageSenderIds(
+  userId: Ulid,
+  client?: TransactionClient
+): Promise<Ulid[]> {
+  try {
+    const result = await pgQueries.getUnreadDirectMessageSenderIds.run(
+      { userId },
+      client ?? getClient()
+    )
+    return result.map((row) => makeSomeRequired(row, ['senderId']).senderId)
   } catch (err) {
     throw new RepoReadError(err)
   }

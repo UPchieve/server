@@ -241,3 +241,99 @@ const getDirectMessagesForConversationIR: any = {"usedParamSet":{"conversationId
 export const getDirectMessagesForConversation = new PreparedQuery<IGetDirectMessagesForConversationParams,IGetDirectMessagesForConversationResult>(getDirectMessagesForConversationIR);
 
 
+/** 'UpdateConversationLastSeen' parameters type */
+export interface IUpdateConversationLastSeenParams {
+  conversationId: string;
+  userId: string;
+}
+
+/** 'UpdateConversationLastSeen' return type */
+export interface IUpdateConversationLastSeenResult {
+  /** not_pii: Primary key */
+  id: string;
+}
+
+/** 'UpdateConversationLastSeen' query type */
+export interface IUpdateConversationLastSeenQuery {
+  params: IUpdateConversationLastSeenParams;
+  result: IUpdateConversationLastSeenResult;
+}
+
+const updateConversationLastSeenIR: any = {"usedParamSet":{"userId":true,"conversationId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":91,"b":98},{"a":214,"b":221},{"a":341,"b":348},{"a":376,"b":383}]},{"name":"conversationId","required":true,"transform":{"type":"scalar"},"locs":[{"a":302,"b":317}]}],"statement":"UPDATE\n    direct_message_conversations\nSET\n    student_last_seen = CASE WHEN student_id = :userId! THEN\n        NOW()\n    ELSE\n        student_last_seen\n    END,\n    volunteer_last_seen = CASE WHEN volunteer_id = :userId! THEN\n        NOW()\n    ELSE\n        volunteer_last_seen\n    END\nWHERE\n    id = :conversationId!\n    AND (student_id = :userId!\n        OR volunteer_id = :userId!)\nRETURNING\n    id"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE
+ *     direct_message_conversations
+ * SET
+ *     student_last_seen = CASE WHEN student_id = :userId! THEN
+ *         NOW()
+ *     ELSE
+ *         student_last_seen
+ *     END,
+ *     volunteer_last_seen = CASE WHEN volunteer_id = :userId! THEN
+ *         NOW()
+ *     ELSE
+ *         volunteer_last_seen
+ *     END
+ * WHERE
+ *     id = :conversationId!
+ *     AND (student_id = :userId!
+ *         OR volunteer_id = :userId!)
+ * RETURNING
+ *     id
+ * ```
+ */
+export const updateConversationLastSeen = new PreparedQuery<IUpdateConversationLastSeenParams,IUpdateConversationLastSeenResult>(updateConversationLastSeenIR);
+
+
+/** 'GetUnreadDirectMessageSenderIds' parameters type */
+export interface IGetUnreadDirectMessageSenderIdsParams {
+  userId: string;
+}
+
+/** 'GetUnreadDirectMessageSenderIds' return type */
+export interface IGetUnreadDirectMessageSenderIdsResult {
+  /** not_pii: Foreign key */
+  senderId: string;
+}
+
+/** 'GetUnreadDirectMessageSenderIds' query type */
+export interface IGetUnreadDirectMessageSenderIdsQuery {
+  params: IGetUnreadDirectMessageSenderIdsParams;
+  result: IGetUnreadDirectMessageSenderIdsResult;
+}
+
+const getUnreadDirectMessageSenderIdsIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":318,"b":325},{"a":505,"b":512},{"a":565,"b":572},{"a":600,"b":607}]}],"statement":"SELECT\n    unread.sender_id\nFROM\n    direct_message_conversations dmc\n    CROSS JOIN LATERAL (\n        SELECT\n            dm.sender_id\n        FROM\n            direct_messages dm\n        WHERE\n            dm.conversation_id = dmc.id\n            AND dm.created_at > COALESCE(\n                CASE WHEN dmc.student_id = :userId! THEN\n                    dmc.student_last_seen\n                ELSE\n                    dmc.volunteer_last_seen\n                END, '-infinity')\n            AND dm.sender_id != :userId!\n        LIMIT 1) unread\nWHERE\n    dmc.student_id = :userId!\n    OR dmc.volunteer_id = :userId!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     unread.sender_id
+ * FROM
+ *     direct_message_conversations dmc
+ *     CROSS JOIN LATERAL (
+ *         SELECT
+ *             dm.sender_id
+ *         FROM
+ *             direct_messages dm
+ *         WHERE
+ *             dm.conversation_id = dmc.id
+ *             AND dm.created_at > COALESCE(
+ *                 CASE WHEN dmc.student_id = :userId! THEN
+ *                     dmc.student_last_seen
+ *                 ELSE
+ *                     dmc.volunteer_last_seen
+ *                 END, '-infinity')
+ *             AND dm.sender_id != :userId!
+ *         LIMIT 1) unread
+ * WHERE
+ *     dmc.student_id = :userId!
+ *     OR dmc.volunteer_id = :userId!
+ * ```
+ */
+export const getUnreadDirectMessageSenderIds = new PreparedQuery<IGetUnreadDirectMessageSenderIdsParams,IGetUnreadDirectMessageSenderIdsResult>(getUnreadDirectMessageSenderIdsIR);
+
+

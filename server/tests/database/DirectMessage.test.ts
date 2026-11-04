@@ -230,6 +230,91 @@ describe('getConversationForParticipant', () => {
   })
 })
 
+describe('updateConversationLastSeen', () => {
+  async function getLastSeen(conversationId: Ulid) {
+    const [row] = (
+      await client.query(
+        'SELECT student_last_seen, volunteer_last_seen FROM direct_message_conversations WHERE id = $1',
+        [conversationId]
+      )
+    ).rows
+    return row
+  }
+
+  test("sets only the student's last-seen time when the student views it", async () => {
+    const { studentId, conversationId } = await createConversation()
+
+    const wasUpdated = await DirectMessageRepo.updateConversationLastSeen(
+      conversationId,
+      studentId
+    )
+
+    const lastSeen = await getLastSeen(conversationId)
+    expect(wasUpdated).toBe(true)
+    expect(lastSeen.student_last_seen).not.toBeNull()
+    expect(lastSeen.volunteer_last_seen).toBeNull()
+  })
+
+  test("sets only the volunteer's last-seen time when the volunteer views it", async () => {
+    const { volunteerId, conversationId } = await createConversation()
+
+    const wasUpdated = await DirectMessageRepo.updateConversationLastSeen(
+      conversationId,
+      volunteerId
+    )
+
+    const lastSeen = await getLastSeen(conversationId)
+    expect(wasUpdated).toBe(true)
+    expect(lastSeen.student_last_seen).toBeNull()
+    expect(lastSeen.volunteer_last_seen).not.toBeNull()
+  })
+
+  test('moves the last-seen time forward on later views', async () => {
+    const { studentId, conversationId } = await createConversation()
+    const earlier = new Date('2026-10-01T12:00:00Z')
+    await client.query(
+      'UPDATE direct_message_conversations SET student_last_seen = $1 WHERE id = $2',
+      [earlier, conversationId]
+    )
+
+    await DirectMessageRepo.updateConversationLastSeen(
+      conversationId,
+      studentId
+    )
+
+    const lastSeen = await getLastSeen(conversationId)
+    expect(lastSeen.student_last_seen.getTime()).toBeGreaterThan(
+      earlier.getTime()
+    )
+  })
+
+  test('returns false and changes nothing if the user is not in the conversation', async () => {
+    const { conversationId } = await createConversation()
+    const otherUser = await createTestUser(client)
+
+    const wasUpdated = await DirectMessageRepo.updateConversationLastSeen(
+      conversationId,
+      otherUser.id
+    )
+
+    const lastSeen = await getLastSeen(conversationId)
+    expect(wasUpdated).toBe(false)
+    expect(lastSeen.student_last_seen).toBeNull()
+    expect(lastSeen.volunteer_last_seen).toBeNull()
+  })
+
+  test('returns false if the conversation does not exist', async () => {
+    const { studentId } = await createParticipants()
+
+    const wasUpdated = await DirectMessageRepo.updateConversationLastSeen(
+      getDbUlid(),
+      studentId
+    )
+
+    expect(wasUpdated).toBe(false)
+  })
+})
+
 describe('direct messages', () => {
   async function insertMessage(
     conversationId: Ulid,
@@ -297,6 +382,139 @@ describe('direct messages', () => {
         await DirectMessageRepo.getDirectMessagesForConversation(conversationId)
 
       expect(messages.map((m) => m.contents)).toEqual(['first', 'second'])
+    })
+  })
+
+  describe('getUnreadDirectMessageSenderIds', () => {
+    const lastSeenAt = new Date('2026-10-02T12:00:00Z')
+    const beforeLastSeen = new Date('2026-10-01T12:00:00Z')
+    const afterLastSeen = new Date('2026-10-03T12:00:00Z')
+
+    async function setLastSeen(
+      conversationId: Ulid,
+      column: 'student_last_seen' | 'volunteer_last_seen',
+      at: Date
+    ) {
+      await client.query(
+        `UPDATE direct_message_conversations SET ${column} = $1 WHERE id = $2`,
+        [at, conversationId]
+      )
+    }
+
+    test('returns the volunteer when the student has never viewed the conversation', async () => {
+      const { studentId, volunteerId, conversationId } =
+        await createConversation()
+      await insertMessage(conversationId, volunteerId, 'Hi!', beforeLastSeen)
+
+      expect(
+        await DirectMessageRepo.getUnreadDirectMessageSenderIds(studentId)
+      ).toEqual([volunteerId])
+    })
+
+    test('returns the student when the volunteer has never viewed the conversation', async () => {
+      const { studentId, volunteerId, conversationId } =
+        await createConversation()
+      await insertMessage(conversationId, studentId, 'Hi!', beforeLastSeen)
+
+      expect(
+        await DirectMessageRepo.getUnreadDirectMessageSenderIds(volunteerId)
+      ).toEqual([studentId])
+    })
+
+    test('returns the sender of a message sent after the user last viewed the conversation', async () => {
+      const { studentId, volunteerId, conversationId } =
+        await createConversation()
+      await setLastSeen(conversationId, 'student_last_seen', lastSeenAt)
+      await insertMessage(conversationId, volunteerId, 'old', beforeLastSeen)
+      await insertMessage(conversationId, volunteerId, 'new', afterLastSeen)
+
+      expect(
+        await DirectMessageRepo.getUnreadDirectMessageSenderIds(studentId)
+      ).toEqual([volunteerId])
+    })
+
+    test('returns each sender once even with several unread messages', async () => {
+      const { studentId, volunteerId, conversationId } =
+        await createConversation()
+      await insertMessage(conversationId, volunteerId, 'one', beforeLastSeen)
+      await insertMessage(conversationId, volunteerId, 'two', afterLastSeen)
+
+      expect(
+        await DirectMessageRepo.getUnreadDirectMessageSenderIds(studentId)
+      ).toEqual([volunteerId])
+    })
+
+    test('returns senders from every conversation with unread messages', async () => {
+      const { studentId, volunteerId, conversationId } =
+        await createConversation()
+      const otherVolunteer = await createTestUser(client)
+      await insertSession(studentId, otherVolunteer.id)
+      const other = await DirectMessageRepo.getOrCreateConversation(
+        studentId,
+        otherVolunteer.id
+      )
+      await insertMessage(conversationId, volunteerId, 'Hi!', afterLastSeen)
+      await insertMessage(other!.id, otherVolunteer.id, 'Hey!', afterLastSeen)
+
+      const senderIds =
+        await DirectMessageRepo.getUnreadDirectMessageSenderIds(studentId)
+
+      expect(senderIds).toHaveLength(2)
+      expect(senderIds).toEqual(
+        expect.arrayContaining([volunteerId, otherVolunteer.id])
+      )
+    })
+
+    describe('returns nothing', () => {
+      test('if every message was sent before the user last viewed the conversation', async () => {
+        const { studentId, volunteerId, conversationId } =
+          await createConversation()
+        await setLastSeen(conversationId, 'student_last_seen', lastSeenAt)
+        await insertMessage(conversationId, volunteerId, 'Hi!', beforeLastSeen)
+
+        expect(
+          await DirectMessageRepo.getUnreadDirectMessageSenderIds(studentId)
+        ).toEqual([])
+      })
+
+      test("for the user's own messages", async () => {
+        const { studentId, conversationId } = await createConversation()
+        await insertMessage(conversationId, studentId, 'Hi!', afterLastSeen)
+
+        expect(
+          await DirectMessageRepo.getUnreadDirectMessageSenderIds(studentId)
+        ).toEqual([])
+      })
+
+      test("when only the other person's last-seen time is before the message", async () => {
+        const { studentId, volunteerId, conversationId } =
+          await createConversation()
+        await setLastSeen(conversationId, 'student_last_seen', afterLastSeen)
+        await setLastSeen(conversationId, 'volunteer_last_seen', beforeLastSeen)
+        await insertMessage(conversationId, volunteerId, 'Hi!', lastSeenAt)
+
+        expect(
+          await DirectMessageRepo.getUnreadDirectMessageSenderIds(studentId)
+        ).toEqual([])
+      })
+
+      test('if the conversation has no messages', async () => {
+        const { studentId } = await createConversation()
+
+        expect(
+          await DirectMessageRepo.getUnreadDirectMessageSenderIds(studentId)
+        ).toEqual([])
+      })
+
+      test("for conversations the user isn't in", async () => {
+        const { volunteerId, conversationId } = await createConversation()
+        const otherUser = await createTestUser(client)
+        await insertMessage(conversationId, volunteerId, 'Hi!', afterLastSeen)
+
+        expect(
+          await DirectMessageRepo.getUnreadDirectMessageSenderIds(otherUser.id)
+        ).toEqual([])
+      })
     })
   })
 })

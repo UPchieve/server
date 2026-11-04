@@ -9,6 +9,7 @@ import { toDirectMessagePublic } from '../../contracts/direct-messages.mappers'
 import type {
   DirectMessagesResponse,
   GetOrCreateConversationResponse,
+  UnreadDirectMessagesResponse,
 } from '../../contracts/direct-messages'
 
 function handleError(res: Response, error: unknown) {
@@ -55,6 +56,35 @@ export function routeDirectMessages(router: Router): void {
           user
         )
         res.json({ messages: messages.map(toDirectMessagePublic) })
+      } catch (error) {
+        handleError(res, error)
+      }
+    }
+  )
+
+  router.post(
+    '/conversations/:conversationId/last-seen',
+    async function (req, res: Response) {
+      try {
+        const conversationId = getConversationId(req)
+        if (!conversationId) return res.sendStatus(404)
+        const user = extractUser(req)
+        await DirectMessageService.markConversationSeen(conversationId, user)
+        res.sendStatus(204)
+      } catch (error) {
+        handleError(res, error)
+      }
+    }
+  )
+
+  router.get(
+    '/conversations/unread',
+    async function (req, res: Response<UnreadDirectMessagesResponse>) {
+      try {
+        const user = extractUser(req)
+        const senderIds =
+          await DirectMessageService.getUnreadMessageSenderIds(user)
+        res.json({ senderIds })
       } catch (error) {
         handleError(res, error)
       }

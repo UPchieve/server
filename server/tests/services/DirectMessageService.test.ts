@@ -187,4 +187,46 @@ describe('DirectMessageService', () => {
       expect(mockedDirectMessageRepo.createDirectMessage).not.toHaveBeenCalled()
     })
   })
+
+  describe('markConversationSeen', () => {
+    test("updates the user's last-seen time for the conversation", async () => {
+      const user = buildUserContactInfo()
+      const conversationId = getDbUlid()
+      mockedDirectMessageRepo.updateConversationLastSeen.mockResolvedValue(true)
+
+      await DirectMessageService.markConversationSeen(conversationId, user)
+
+      expect(
+        mockedDirectMessageRepo.updateConversationLastSeen
+      ).toHaveBeenCalledWith(conversationId, user.id)
+    })
+
+    test('throws if the user is not in the conversation', async () => {
+      const user = buildUserContactInfo()
+      mockedDirectMessageRepo.updateConversationLastSeen.mockResolvedValue(
+        false
+      )
+
+      await expect(
+        DirectMessageService.markConversationSeen(getDbUlid(), user)
+      ).rejects.toThrow(ConversationNotFoundError)
+    })
+  })
+
+  describe('getUnreadMessageSenderIds', () => {
+    test('returns the ids of users who sent the user unread messages', async () => {
+      const user = buildUserContactInfo()
+      const senderIds = [getDbUlid(), getDbUlid()]
+      mockedDirectMessageRepo.getUnreadDirectMessageSenderIds.mockResolvedValue(
+        senderIds
+      )
+
+      const result = await DirectMessageService.getUnreadMessageSenderIds(user)
+
+      expect(
+        mockedDirectMessageRepo.getUnreadDirectMessageSenderIds
+      ).toHaveBeenCalledWith(user.id)
+      expect(result).toEqual(senderIds)
+    })
+  })
 })

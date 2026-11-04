@@ -74,3 +74,50 @@ WHERE
 ORDER BY
     created_at;
 
+
+/* @name updateConversationLastSeen */
+UPDATE
+    direct_message_conversations
+SET
+    student_last_seen = CASE WHEN student_id = :userId! THEN
+        NOW()
+    ELSE
+        student_last_seen
+    END,
+    volunteer_last_seen = CASE WHEN volunteer_id = :userId! THEN
+        NOW()
+    ELSE
+        volunteer_last_seen
+    END
+WHERE
+    id = :conversationId!
+    AND (student_id = :userId!
+        OR volunteer_id = :userId!)
+RETURNING
+    id;
+
+
+/* @name getUnreadDirectMessageSenderIds */
+SELECT
+    unread.sender_id
+FROM
+    direct_message_conversations dmc
+    CROSS JOIN LATERAL (
+        SELECT
+            dm.sender_id
+        FROM
+            direct_messages dm
+        WHERE
+            dm.conversation_id = dmc.id
+            AND dm.created_at > COALESCE(
+                CASE WHEN dmc.student_id = :userId! THEN
+                    dmc.student_last_seen
+                ELSE
+                    dmc.volunteer_last_seen
+                END, '-infinity')
+            AND dm.sender_id != :userId!
+        LIMIT 1) unread
+WHERE
+    dmc.student_id = :userId!
+    OR dmc.volunteer_id = :userId!;
+

@@ -132,4 +132,69 @@ describe('routeDirectMessages', () => {
       expect(mockedDirectMessageService.getMessages).not.toHaveBeenCalled()
     })
   })
+
+  describe('POST /api/conversations/:conversationId/last-seen', () => {
+    test('marks the conversation as seen', async () => {
+      const conversationId = getUuid()
+      mockedDirectMessageService.markConversationSeen.mockResolvedValueOnce()
+
+      const response = await sendPost(
+        `/api/conversations/${conversationId}/last-seen`
+      )
+
+      expect(response.status).toBe(204)
+      expect(
+        mockedDirectMessageService.markConversationSeen
+      ).toHaveBeenCalledWith(conversationId, mockUser)
+    })
+
+    test('returns 404 if the user is not in the conversation', async () => {
+      mockedDirectMessageService.markConversationSeen.mockRejectedValueOnce(
+        new ConversationNotFoundError()
+      )
+
+      const response = await sendPost(
+        `/api/conversations/${getUuid()}/last-seen`
+      )
+
+      expect(response.status).toBe(404)
+    })
+
+    test('returns 404 for a malformed conversation id', async () => {
+      const response = await sendPost('/api/conversations/not-an-id/last-seen')
+
+      expect(response.status).toBe(404)
+      expect(
+        mockedDirectMessageService.markConversationSeen
+      ).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('GET /api/conversations/unread', () => {
+    test('returns the ids of users who sent the user unread messages', async () => {
+      const senderIds = [getUuid(), getUuid()]
+      mockedDirectMessageService.getUnreadMessageSenderIds.mockResolvedValueOnce(
+        senderIds
+      )
+
+      const response = await sendGet('/api/conversations/unread')
+
+      expect(response.status).toBe(200)
+      expect(
+        mockedDirectMessageService.getUnreadMessageSenderIds
+      ).toHaveBeenCalledWith(mockUser)
+      expect(response.body).toEqual({ senderIds })
+    })
+
+    test('returns an empty list when there are no unread messages', async () => {
+      mockedDirectMessageService.getUnreadMessageSenderIds.mockResolvedValueOnce(
+        []
+      )
+
+      const response = await sendGet('/api/conversations/unread')
+
+      expect(response.status).toBe(200)
+      expect(response.body).toEqual({ senderIds: [] })
+    })
+  })
 })
