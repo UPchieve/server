@@ -6,6 +6,7 @@ import { RepoCreateError } from '../Errors'
 
 export const CENSORED_BY = {
   regex: 'regex',
+  ai: 'ai',
 } as const
 
 export async function createCensoredMessage({

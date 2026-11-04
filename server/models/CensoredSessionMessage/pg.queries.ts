@@ -1,7 +1,7 @@
 /** Types generated for queries found in "server/models/CensoredSessionMessage/censored_session_message.sql" */
 import { PreparedQuery } from '@pgtyped/runtime';
 
-export type moderation_system = 'regex';
+export type moderation_system = 'ai' | 'regex';
 
 export type DateOrString = Date | string;
 
