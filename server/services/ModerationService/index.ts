@@ -868,7 +868,7 @@ export async function getIndividualSessionMessageModerationResponse({
     })
   }
 }
-const getAiModerationResult = async (
+export const getAiModerationResult = async (
   censoredSessionMessage: Pick<CensoredSessionMessage, 'message'> & {
     sessionId?: string
   },

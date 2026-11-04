@@ -230,3 +230,23 @@ export class NTHSApprovalExpiredError extends CaughtError {
   readonly defaultClientMessage =
     "Your approval to start an NTHS chapter has run out. Email nths@upchieve.org and we'll help you apply again."
 }
+
+export class DirectMessageModerationError extends CaughtError {
+  readonly httpStatus: number
+  readonly defaultClientMessage: string
+
+  constructor(
+    public readonly reasons: string[],
+    public readonly unavailable = false
+  ) {
+    const message = unavailable
+      ? 'Unable to check this message. Please try again.'
+      : 'This message could not be sent because it did not pass moderation.'
+    super({
+      message,
+      code: unavailable ? 'MODERATION_UNAVAILABLE' : 'MODERATION_BLOCKED',
+    })
+    this.httpStatus = unavailable ? 503 : 422
+    this.defaultClientMessage = message
+  }
+}

@@ -1,5 +1,9 @@
 import * as DirectMessageRepo from '../models/DirectMessage'
-import { InputError, NotAllowedError } from '../models/Errors'
+import {
+  DirectMessageModerationError,
+  InputError,
+  NotAllowedError,
+} from '../models/Errors'
 import type { Ulid } from '../models/pgUtils'
 import type { UserContactInfo } from '../models/User'
 import type {
@@ -8,6 +12,23 @@ import type {
 } from '../types/direct-messages'
 import type { Uuid } from '../types/shared'
 import { ConversationNotFoundError } from './Errors'
+import * as DirectMessageModerationService from './DirectMessageModerationService'
+import * as ModerationRepo from '../models/DirectMessageModeration/queries'
+import { getSessionFlagByModerationReason } from './ModerationService'
+import { runInTransaction } from '../db'
+import logger from '../logger'
+import type { DirectMessageModerationResult } from '../types/direct-message-moderation'
+
+function reviewCategory(reason: string) {
+  const normalized = reason.toUpperCase().replaceAll(' ', '_')
+  if (['EMAIL', 'PHONE', 'ADDRESS'].includes(normalized))
+    return getSessionFlagByModerationReason('PII')
+  if (normalized === 'LINK')
+    return getSessionFlagByModerationReason('PLATFORM_CIRCUMVENTION')
+  if (normalized === 'PROFANITY')
+    return getSessionFlagByModerationReason('INAPPROPRIATE_CONTENT')
+  return getSessionFlagByModerationReason(normalized)
+}
 
 export async function getOrCreateConversation(
   user: UserContactInfo,
@@ -64,12 +85,63 @@ export async function sendMessage(
 
   const conversation = await ensureIsParticipant(conversationId, user.id)
 
-  // TODO: moderate the message before saving it
-  const message = await DirectMessageRepo.createDirectMessage({
-    conversationId,
-    senderId: user.id,
-    contents: trimmedContents,
+  let moderation: DirectMessageModerationResult
+  try {
+    moderation = await DirectMessageModerationService.moderateMessage({
+      conversationId,
+      studentId: conversation.studentId,
+      volunteerId: conversation.volunteerId,
+      senderId: user.id,
+      message: trimmedContents,
+    })
+  } catch (err) {
+    logger.error('Could not moderate direct message', { err, conversationId })
+    moderation = {
+      blocked: true,
+      reasons: ['MODERATION_UNAVAILABLE'],
+      censoredBy: 'ai',
+      unavailable: true,
+    }
+  }
+
+  const message = await runInTransaction(async (client) => {
+    if (moderation.censoredBy) {
+      const censoredMessageId =
+        await ModerationRepo.createCensoredDirectMessage(
+          {
+            conversationId,
+            senderId: user.id,
+            message: trimmedContents,
+            censoredBy: moderation.censoredBy,
+            reasons: moderation.reasons,
+            blocked: moderation.blocked,
+          },
+          client
+        )
+      if (moderation.blocked && !moderation.unavailable) {
+        const categories = new Set(moderation.reasons.map(reviewCategory))
+        for (const flagName of categories) {
+          await ModerationRepo.createDirectMessageFlag(
+            { conversationId, censoredMessageId, flagName },
+            client
+          )
+        }
+      }
+    }
+    if (moderation.blocked) return
+    return DirectMessageRepo.createDirectMessage(
+      { conversationId, senderId: user.id, contents: trimmedContents },
+      client
+    )
   })
+
+  // Let the sender know the message was blocked, but keep the moderation records saved
+  if (!message) {
+    throw new DirectMessageModerationError(
+      moderation.reasons,
+      moderation.unavailable
+    )
+  }
   return { conversation, message }
 }
 

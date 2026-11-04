@@ -187,6 +187,12 @@ import type {
 import type { VolunteerToReviewPublic } from '../../contracts/volunteers'
 import type { School } from '../../models/School'
 import type { SchoolPublic } from '../../types/schools'
+import type {
+  DirectMessage,
+  DirectMessageConversation,
+} from '../../types/direct-messages'
+import type { DirectMessageModerationContext } from '../../types/direct-message-moderation'
+import type { RegexModerationResult } from '../../services/ModerationService/types'
 
 /** Suffixed with a uuid because users.email and parents_guardians.email are UNIQUE. */
 export function getEmail(): string {
@@ -3035,6 +3041,56 @@ export function buildVolunteerSessionHoldEligibilityData(
     isDeactivated: false,
     isReadyToCoach: true,
     banType: null,
+    ...overrides,
+  }
+}
+
+export function buildDirectMessageConversation(
+  overrides: Partial<DirectMessageConversation> = {}
+): DirectMessageConversation {
+  return {
+    id: getUuid(),
+    studentId: getUuid(),
+    volunteerId: getUuid(),
+    createdAt: new Date(),
+    ...overrides,
+  }
+}
+
+export function buildDirectMessage(
+  overrides: Partial<DirectMessage> = {}
+): DirectMessage {
+  return {
+    id: getUuid(),
+    conversationId: getUuid(),
+    senderId: getUuid(),
+    contents: 'Hello!',
+    createdAt: new Date(),
+    ...overrides,
+  }
+}
+
+export function buildDirectMessageModerationContext(
+  overrides: Partial<DirectMessageModerationContext> = {}
+): DirectMessageModerationContext {
+  const studentId = getUuid()
+  return {
+    conversationId: getUuid(),
+    studentId,
+    volunteerId: getUuid(),
+    senderId: studentId,
+    message: 'Hello!',
+    ...overrides,
+  }
+}
+
+export function buildRegexModerationResult(
+  overrides: Partial<RegexModerationResult> = {}
+): RegexModerationResult {
+  return {
+    isClean: true,
+    failures: { failures: {} },
+    sanitizedMessage: 'Hello!',
     ...overrides,
   }
 }

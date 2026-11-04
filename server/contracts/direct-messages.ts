@@ -34,4 +34,7 @@ export type NewDirectMessageEvent = DirectMessagePublic & {
 export type DirectMessageErrorEvent = {
   conversationId?: Uuid
   clientMessageId?: string
+  code?: 'MODERATION_BLOCKED' | 'MODERATION_UNAVAILABLE'
+  message?: string
+  reasons?: string[]
 }

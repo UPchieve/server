@@ -13,7 +13,11 @@ import {
   USER_BAN_REASONS,
 } from '../../constants'
 import logger from '../../logger'
-import { CaughtError, InputError } from '../../models/Errors'
+import {
+  CaughtError,
+  DirectMessageModerationError,
+  InputError,
+} from '../../models/Errors'
 import { Ulid } from '../../models/pgUtils'
 import * as SessionRepo from '../../models/Session/queries'
 import * as SessionHoldsService from '../../services/SessionHoldsService'
@@ -555,6 +559,13 @@ export function routeSockets(io: Server): void {
             const errorData: DirectMessageErrorEvent = {
               conversationId: data?.conversationId,
               clientMessageId: data?.clientMessageId,
+            }
+            if (err instanceof DirectMessageModerationError) {
+              errorData.code = err.unavailable
+                ? 'MODERATION_UNAVAILABLE'
+                : 'MODERATION_BLOCKED'
+              errorData.message = err.message
+              errorData.reasons = err.reasons
             }
             socket.emit('direct-message:error', errorData)
             logger.error('Failed sending a direct message', {
