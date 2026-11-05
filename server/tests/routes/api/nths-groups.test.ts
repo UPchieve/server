@@ -152,16 +152,9 @@ describe('routeNTHSGroups', () => {
       const group = buildNTHSGroupWithMemberInfo()
       const groups = [group]
       const renewal = {
-        prompt: 'member-must-answer' as const,
+        prompt: 'member-countdown' as const,
         closesOn: '2027-09-30',
         successorConfirmationOn: '2027-08-01',
-        namingClosesOn: '2027-09-14',
-        commitmentsRequired: true,
-        canNameSelf: false,
-        namingSelfAccepts: true,
-        namedSelf: false,
-        memberStageOpen: false,
-        acceptedPresidents: [],
       }
       mockedNTHSGroupsService.getGroups.mockResolvedValueOnce(groups)
       mockedNTHSRenewalService.getRenewalsForViewer.mockResolvedValueOnce([
@@ -1092,52 +1085,9 @@ describe('routeNTHSGroups', () => {
       prompt: 'none',
       closesOn: null,
       successorConfirmationOn: null,
-      namingClosesOn: null,
-      commitmentsRequired: false,
-      canNameSelf: false,
-      namingSelfAccepts: false,
-      namedSelf: false,
-      memberStageOpen: false,
-      acceptedPresidents: [],
     } as const
-    const successorsBody = { userIds: [memberId], expectedUserIds: [] }
 
     test.each([
-      [
-        'GET /renewal',
-        'admin',
-        () => sendGet(`/api/nths-groups/${groupId}/renewal`),
-        () =>
-          mockedNTHSRenewalService.getRenewalSuccessors.mockResolvedValueOnce({
-            successors: [],
-            canEditSuccessors: true,
-          }),
-        { successors: [], canEditSuccessors: true },
-      ],
-      [
-        'PUT /renewal/successors',
-        'admin',
-        () =>
-          sendPut(
-            `/api/nths-groups/${groupId}/renewal/successors`,
-            successorsBody
-          ),
-        () =>
-          mockedNTHSRenewalService.setRenewalSuccessors.mockResolvedValueOnce(
-            renewal
-          ),
-        { renewal },
-      ],
-      [
-        'POST /renewal/successors/self',
-        'admin',
-        () => sendPost(`/api/nths-groups/${groupId}/renewal/successors/self`),
-        () =>
-          mockedNTHSRenewalService.nameSelfAsSuccessor.mockResolvedValueOnce(
-            renewal
-          ),
-        { renewal },
-      ],
       [
         'POST /renewal/accept',
         'member',
@@ -1149,23 +1099,11 @@ describe('routeNTHSGroups', () => {
           }),
         { renewal, outcome: 'accepted' },
       ],
-      [
-        'POST /renewal/decline',
-        'member',
-        () => sendPost(`/api/nths-groups/${groupId}/renewal/decline`),
-        () =>
-          mockedNTHSRenewalService.declinePresidency.mockResolvedValueOnce(
-            renewal
-          ),
-        { renewal },
-      ],
     ] as const)(
       '%s needs an active %s and responds under named keys',
       async (_label, role, send, mockService, body) => {
         mockedNTHSGroupsService.getActiveGroupMember.mockResolvedValueOnce(
-          role === 'admin'
-            ? buildNTHSGroupMemberWithRole({ roleName: 'member' })
-            : undefined
+          undefined
         )
         expect((await send()).status).toBe(403)
 
@@ -1225,41 +1163,6 @@ describe('routeNTHSGroups', () => {
         )
       ).toEqual(status === 200 ? [reason] : [])
     })
-
-    test.each([
-      [
-        'GET /renewal',
-        () => sendGet(`/api/nths-groups/${groupId}/renewal`),
-        'getRenewalSuccessors',
-      ],
-      [
-        'PUT /renewal/successors',
-        () =>
-          sendPut(
-            `/api/nths-groups/${groupId}/renewal/successors`,
-            successorsBody
-          ),
-        'setRenewalSuccessors',
-      ],
-      [
-        'POST /renewal/successors/self',
-        () => sendPost(`/api/nths-groups/${groupId}/renewal/successors/self`),
-        'nameSelfAsSuccessor',
-      ],
-    ] as const)(
-      '%s refuses an admin the member-info gate does not clear',
-      async (_label, send, service) => {
-        mockedNTHSGroupsService.getActiveGroupMember.mockResolvedValueOnce(
-          buildNTHSGroupMemberWithRole({ roleName: 'admin' })
-        )
-        mockedNTHSGroupsService.isClearedToViewChapterMemberInfo.mockResolvedValueOnce(
-          false
-        )
-
-        expect((await send()).status).toBe(403)
-        expect(mockedNTHSRenewalService[service]).not.toHaveBeenCalled()
-      }
-    )
   })
 
   describe('the member-info gate', () => {

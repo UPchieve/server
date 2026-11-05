@@ -10,6 +10,7 @@ import updateNTHSChapterStatusForImpactPath, {
 import moment from 'moment'
 import 'moment-timezone'
 import { Job } from 'bull'
+import { USER_BAN_TYPES } from '../../constants'
 import { NTHSGroupMemberWithRole } from '../../models/NTHSGroups'
 import {
   buildNTHSGroup,
@@ -138,46 +139,39 @@ describe('updateNTHSChapterStatusForImpactPath', () => {
     ).not.toHaveBeenCalled()
   })
 
-  it('Does not count coaches who are not ready to coach', async () => {
-    const groupMembers = buildGroupMembers({ active: 3 })
-    mockedNTHSService.getGroupMembers.mockResolvedValue(groupMembers)
-    const readyToCoachInfo = groupMembers.map((member) =>
-      buildVolunteerWithReadyToCoachInfo({
-        id: member.userId,
-      })
-    )
-    const notReadyCoachId = readyToCoachInfo[0].id
-    readyToCoachInfo[0] = {
-      ...readyToCoachInfo[0],
-      isReadyToCoach: false,
+  it.each([
+    ['not onboarded', { isOnboarded: false }, 'PENDING'],
+    ['not approved', { isApproved: false }, 'PENDING'],
+    [
+      'banned',
+      { isReadyToCoach: false, banType: USER_BAN_TYPES.COMPLETE },
+      'OFFICIAL',
+    ],
+  ])(
+    'A member who is %s leaves the chapter %s when the other two tutored',
+    async (_label, status, expectedStatus) => {
+      const groupMembers = buildGroupMembers({ active: 3 })
+      mockedNTHSService.getGroupMembers.mockResolvedValue(groupMembers)
+      mockedVolunteersService.getVolunteersReadyToCoachStatus.mockResolvedValue(
+        groupMembers.map((member, i) =>
+          buildVolunteerWithReadyToCoachInfo({
+            id: member.userId,
+            ...(i === 0 && status),
+          })
+        )
+      )
+      mockedSessionRepo.getUserSessionsByUserId.mockImplementation(
+        async (userId) => [buildUserSession({ volunteerId: userId })]
+      )
+
+      await updateNTHSChapterStatusForImpactPath(DEFAULT_JOB)
+
+      expect(NTHSService.insertNthsChapterStatus).toHaveBeenCalledWith(
+        DEFAULT_JOB.data.nthsGroupId,
+        expectedStatus
+      )
     }
-    mockedVolunteersService.getVolunteersReadyToCoachStatus.mockResolvedValue(
-      readyToCoachInfo
-    )
-    mockedSessionRepo.getUserSessionsByUserId.mockImplementation(
-      async (userId) => [buildUserSession({ volunteerId: userId })]
-    )
-
-    await updateNTHSChapterStatusForImpactPath(DEFAULT_JOB)
-
-    const readyToCoachIds = groupMembers
-      .map((member) => member.userId)
-      .filter((id) => id !== notReadyCoachId)
-    expect(mockedLogger.info).toHaveBeenCalledWith(
-      expect.stringContaining('Found 2 ready-to-coach members of NTHS chapter'),
-      {
-        groupId: DEFAULT_JOB.data.nthsGroupId,
-        userIds: readyToCoachIds,
-      }
-    )
-    expect(NTHSService.insertNthsChapterStatus).toHaveBeenCalledWith(
-      DEFAULT_JOB.data.nthsGroupId,
-      'PENDING'
-    )
-    expect(
-      mockedMailService.sendNTHSChapterImpactPathOfficialStatusNotification
-    ).not.toHaveBeenCalled()
-  })
+  )
 
   it('Does not count ready to coach but not activated coaches', async () => {
     const groupMembers = buildGroupMembers({ active: 3 })

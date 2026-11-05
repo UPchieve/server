@@ -114,8 +114,8 @@ const config = {
     },
     nthsSchoolOfficialNotice: 'd-6f54afba78f84ae5b44b70a5d209e755',
     nthsRenewal: {
-      nominationsOpen: 'd-379d5307180041039403b112cd7dd38f',
-      namedSuccessor: 'd-df9e5e4357bb41a690562802b407f7e8',
+      handoff: 'd-379d5307180041039403b112cd7dd38f',
+      confirmReturn: 'd-df9e5e4357bb41a690562802b407f7e8',
       memberStage: 'd-7a24b45b3605430e8e59035b52f1a2de',
       chapterClosed: 'd-9bdffac5ac524baa9d6316ef258ec2f8',
     },

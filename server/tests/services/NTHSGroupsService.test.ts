@@ -13,6 +13,7 @@ import {
   LookupError,
 } from '../../models/Errors'
 import { VolunteerOccupations } from '../../models/Volunteer'
+import { USER_BAN_TYPES } from '../../constants'
 import {
   buildNTHSGroupMemberWithRole,
   buildNTHSChapterRosterMember,
@@ -324,7 +325,19 @@ describe('isClearedToViewChapterMemberInfo', () => {
     ).resolves.toBe(true)
   })
 
-  // VolunteerService.test.ts covers each isReadyToCoach case.
+  it.each(Object.values(USER_BAN_TYPES))(
+    'clears a ready member with a %s ban',
+    async (banType) => {
+      mockedVolunteerRepo.getVolunteersReadyToCoachStatus.mockResolvedValue([
+        { ...readyToCoachStatus, banType },
+      ])
+
+      await expect(
+        NTHSService.isClearedToViewChapterMemberInfo(userId, false)
+      ).resolves.toBe(true)
+    }
+  )
+
   it.each([
     [
       'not onboarded',
@@ -332,6 +345,15 @@ describe('isClearedToViewChapterMemberInfo', () => {
       () => {
         mockedVolunteerRepo.getVolunteersReadyToCoachStatus.mockResolvedValue([
           { ...readyToCoachStatus, isOnboarded: false },
+        ])
+      },
+    ],
+    [
+      'not approved',
+      false,
+      () => {
+        mockedVolunteerRepo.getVolunteersReadyToCoachStatus.mockResolvedValue([
+          { ...readyToCoachStatus, isApproved: false },
         ])
       },
     ],

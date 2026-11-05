@@ -41,7 +41,6 @@ function worksheet(
 
 const STEPS = [
   ['nominations_open', 5, 1],
-  ['admin_reminder', 6, 1],
   ['successor_confirmation', 8, 1],
   ['member_stage', 9, 15],
   ['close_date', 9, 30],
@@ -63,7 +62,6 @@ function sheet(dates: Cells[] = dateRows()): RenewalSource {
 
 const DATES = {
   nominationsOpen: '05-01',
-  adminReminder: '06-01',
   successorConfirmation: '08-01',
   memberStage: '09-15',
   closeDate: '09-30',
@@ -74,6 +72,18 @@ describe('parseRenewalDates', () => {
     await expect(parseRenewalDates(sheet())).resolves.toEqual(DATES)
     await expect(
       parseRenewalDates(sheet(dateRows({ nominations_open: [' 5 ', '1'] })))
+    ).resolves.toEqual(DATES)
+  })
+
+  it.each([
+    [6, 1],
+    [4, 1],
+    ['June', 40],
+  ])('ignores a retired admin_reminder row dated %s-%s', async (month, day) => {
+    await expect(
+      parseRenewalDates(
+        sheet([...dateRows(), { step: 'admin_reminder', month, day }])
+      )
     ).resolves.toEqual(DATES)
   })
 
@@ -107,17 +117,17 @@ describe('parseRenewalDates', () => {
     ],
     [
       'a fractional month',
-      sheet(dateRows({ admin_reminder: [6.5, 1] })),
+      sheet(dateRows({ nominations_open: [6.5, 1] })),
       /invalid month or day/,
     ],
     [
       'a text month',
-      sheet(dateRows({ admin_reminder: ['June', 1] })),
+      sheet(dateRows({ nominations_open: ['June', 1] })),
       /invalid month or day/,
     ],
     [
       'a date cell',
-      sheet(dateRows({ admin_reminder: ['2027-06-01', 1] })),
+      sheet(dateRows({ nominations_open: ['2027-06-01', 1] })),
       /invalid month or day/,
     ],
     [
@@ -128,7 +138,7 @@ describe('parseRenewalDates', () => {
     ['day 0', sheet(dateRows({ nominations_open: [5, 0] })), /not a real date/],
     [
       'day 31 in a 30-day month',
-      sheet(dateRows({ admin_reminder: [6, 31] })),
+      sheet(dateRows({ member_stage: [9, 31] })),
       /not a real date/,
     ],
     [
@@ -138,7 +148,7 @@ describe('parseRenewalDates', () => {
     ],
     [
       'out-of-order dates',
-      sheet(dateRows({ admin_reminder: [8, 15] })),
+      sheet(dateRows({ successor_confirmation: [4, 1] })),
       /strictly increasing/,
     ],
     [
@@ -212,7 +222,7 @@ describe('getNthsChapterRenewalDates', () => {
   })
 
   it('is off and logs an error for an invalid sheet with no earlier good copy', async () => {
-    serveSheet(sheet(dateRows({ admin_reminder: [8, 15] })))
+    serveSheet(sheet(dateRows({ successor_confirmation: [4, 1] })))
     const { reader, freshLogger } = freshReader()
     await expect(reader()).resolves.toBeNull()
     expect(freshLogger.error).toHaveBeenCalledTimes(1)
@@ -233,7 +243,7 @@ describe('getNthsChapterRenewalDates', () => {
   })
 
   it('reads a broken sheet once per cache interval, not on every call', async () => {
-    serveSheet(sheet(dateRows({ admin_reminder: [8, 15] })))
+    serveSheet(sheet(dateRows({ successor_confirmation: [4, 1] })))
     const { reader, freshLogger } = freshReader()
     await reader()
     await reader()

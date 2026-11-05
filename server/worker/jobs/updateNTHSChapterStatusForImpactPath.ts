@@ -47,24 +47,24 @@ export default async function (job: Job<UpdateNTHSChapterStatusJobData>) {
   // Current members only; getGroupMembers excludes deactivated by default.
   const alltimeMembers = await NTHSService.getGroupMembers(nthsGroupId)
 
-  // Filter down to those who are in ready to coach status
+  // Banned members still count: their sessions were real tutoring.
   const readyToCoachInfo =
     await VolunteersService.getVolunteersReadyToCoachStatus(
       alltimeMembers.map((member) => member.userId)
     )
-  const readyToCoachUserIds = new Set<Ulid>(
+  const onboardedApprovedUserIds = new Set<Ulid>(
     readyToCoachInfo
-      .filter((coach) => coach.isReadyToCoach)
+      .filter((coach) => coach.isOnboarded && coach.isApproved)
       .map((coach) => coach.id)
   )
-  const readyToCoachMembers = alltimeMembers.filter((member) =>
-    readyToCoachUserIds.has(member.userId)
+  const onboardedApprovedMembers = alltimeMembers.filter((member) =>
+    onboardedApprovedUserIds.has(member.userId)
   )
   logger.info(
-    `${logPrefix}Found ${readyToCoachUserIds.size} ready-to-coach members of NTHS chapter`,
+    `${logPrefix}Found ${onboardedApprovedUserIds.size} onboarded and approved members of NTHS chapter`,
     {
       groupId: nthsGroupId,
-      userIds: Array.from(readyToCoachUserIds),
+      userIds: Array.from(onboardedApprovedUserIds),
     }
   )
 
@@ -72,7 +72,7 @@ export default async function (job: Job<UpdateNTHSChapterStatusJobData>) {
   // where t1 = startDate
   // and t2 = min(endDate, deactivatedAt)
   const eligibleMembers: NTHSGroupMemberWithRole[] = []
-  for (const user of readyToCoachMembers) {
+  for (const user of onboardedApprovedMembers) {
     const endDate =
       user.deactivatedAt && user.deactivatedAt < periodEnd
         ? user.deactivatedAt

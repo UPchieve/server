@@ -15,33 +15,29 @@ const client = getClient()
 
 const SCHOOL_YEAR = '2027-07-01'
 const OTHER_SCHOOL_YEAR = '2026-07-01'
-const NAMED_AT = '2027-05-03T15:00:00.000Z'
+const RESPONDED_AT = '2027-08-03T15:00:00.000Z'
 
 type CandidateOptions = {
-  namedAt?: string | null
-  accepted?: boolean | null
+  accepted: boolean
   schoolYear?: string
-  namedBy?: Ulid | null
 }
 
+// Raw insert: answers through the service need a whole renewal cycle set up.
 async function addCandidate(
   groupId: Ulid,
   userId: Ulid,
-  options: CandidateOptions = {}
+  options: CandidateOptions
 ): Promise<void> {
-  const accepted = options.accepted ?? null
   await client.query(
     `INSERT INTO nths_group_renewal_candidates
-       (nths_group_id, school_year_starts_on, user_id, named_at, accepted, responded_at, named_by)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+       (nths_group_id, school_year_starts_on, user_id, accepted, responded_at)
+     VALUES ($1, $2, $3, $4, $5)`,
     [
       groupId,
       options.schoolYear ?? SCHOOL_YEAR,
       userId,
-      options.namedAt === undefined ? NAMED_AT : options.namedAt,
-      accepted,
-      accepted === null ? null : NAMED_AT,
-      options.namedBy ?? null,
+      options.accepted,
+      RESPONDED_AT,
     ]
   )
 }
@@ -51,7 +47,7 @@ async function stateFor(groupId: Ulid, viewerId: Ulid) {
 }
 
 describe('getNthsRenewalState', () => {
-  it('returns the chapter dates and nothing named for a fresh chapter', async () => {
+  it('returns the chapter dates and no answers for a fresh chapter', async () => {
     const closedAt = '2027-03-01T00:00:00.000Z'
     const groupId = await createChapter(client, closedAt)
     const viewerId = await createChapterMember(client, groupId)
@@ -66,7 +62,6 @@ describe('getNthsRenewalState', () => {
     expect(state?.closedAt?.toISOString()).toBe(closedAt)
     expect(state).toMatchObject({
       hasConfirmedPresident: false,
-      hasNamedSuccessor: false,
       viewerCandidacy: 'none',
     })
   })
@@ -76,17 +71,10 @@ describe('getNthsRenewalState', () => {
   })
 
   it.each<[string, CandidateOptions, string]>([
-    ['named and unanswered', { accepted: null }, 'named'],
     ['accepted', { accepted: true }, 'accepted'],
-    ['declined after being named', { accepted: false }, 'declined'],
     [
-      'declined at the member stage',
-      { namedAt: null, accepted: false },
-      'declined',
-    ],
-    [
-      'named for another school year',
-      { schoolYear: OTHER_SCHOOL_YEAR },
+      'accepted for another school year',
+      { accepted: true, schoolYear: OTHER_SCHOOL_YEAR },
       'none',
     ],
   ])('maps a viewer %s', async (_label, options, candidacy) => {
@@ -97,62 +85,24 @@ describe('getNthsRenewalState', () => {
     expect((await stateFor(groupId, viewerId))?.viewerCandidacy).toBe(candidacy)
   })
 
-  it.each<['viewer' | 'other' | 'nobody', boolean]>([
-    ['viewer', true],
-    ['other', false],
-    ['nobody', false],
-  ])('reports whether the viewer was named by %s', async (namer, expected) => {
-    const groupId = await createChapter(client)
-    const viewerId = await createChapterMember(client, groupId)
-    const otherId = await createChapterMember(client, groupId)
-    const namedBy = { viewer: viewerId, other: otherId, nobody: null }[namer]
-    await addCandidate(groupId, viewerId, { namedBy })
-
-    expect((await stateFor(groupId, viewerId))?.viewerNamedSelf).toBe(expected)
-  })
-
-  it.each<[string, ChapterMemberOptions, CandidateOptions, boolean, boolean]>([
-    ['a current member accepted', {}, { accepted: true }, true, true],
+  it.each<[string, ChapterMemberOptions, CandidateOptions, boolean]>([
+    ['a current member accepted', {}, { accepted: true }, true],
     [
       'a deactivated member accepted',
       { deactivatedAt: '2027-08-01T00:00:00.000Z' },
       { accepted: true },
       false,
-      false,
     ],
-    [
-      'a deleted member accepted',
-      { deleted: true },
-      { accepted: true },
-      false,
-      false,
-    ],
-    ['a current member is named', {}, {}, false, true],
-    [
-      'a deactivated member is named',
-      { deactivatedAt: '2027-08-01T00:00:00.000Z' },
-      {},
-      false,
-      false,
-    ],
-    ['a deleted member is named', { deleted: true }, {}, false, false],
-    ['a named member declined', {}, { accepted: false }, false, false],
+    ['a deleted member accepted', { deleted: true }, { accepted: true }, false],
     [
       'a member accepted for another school year',
       {},
       { accepted: true, schoolYear: OTHER_SCHOOL_YEAR },
       false,
-      false,
     ],
   ])(
     'counts the chapter state when %s',
-    async (
-      _label,
-      memberOptions,
-      candidateOptions,
-      hasConfirmedPresident,
-      hasNamedSuccessor
-    ) => {
+    async (_label, memberOptions, candidateOptions, hasConfirmedPresident) => {
       const groupId = await createChapter(client)
       const viewerId = await createChapterMember(client, groupId)
       const candidateId = await createChapterMember(
@@ -164,7 +114,6 @@ describe('getNthsRenewalState', () => {
 
       await expect(stateFor(groupId, viewerId)).resolves.toMatchObject({
         hasConfirmedPresident,
-        hasNamedSuccessor,
         viewerCandidacy: 'none',
       })
     }
@@ -179,7 +128,6 @@ describe('getNthsRenewalState', () => {
 
     await expect(stateFor(groupId, viewerId)).resolves.toMatchObject({
       hasConfirmedPresident: false,
-      hasNamedSuccessor: false,
     })
   })
 })

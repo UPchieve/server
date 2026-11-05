@@ -11,10 +11,6 @@ import * as FeatureFlagService from '../../services/FeatureFlagService'
 import * as NTHSRenewalDatesService from '../../services/NTHSRenewalDatesService'
 import { getGroups } from '../../services/NTHSGroupsService'
 import { getGroupMembers } from '../../models/NTHSGroups/queries'
-import {
-  insertRenewalNominations,
-  upsertRenewalAnswer,
-} from '../../models/NTHSRenewal/queries'
 import { insertVolunteerOccupations } from '../../models/Volunteer/queries'
 import {
   acceptPresidency,
@@ -34,7 +30,6 @@ const client = getClient()
 
 const DATES = {
   nominationsOpen: '05-01',
-  adminReminder: '06-01',
   successorConfirmation: '08-01',
   memberStage: '09-15',
   closeDate: '09-30',
@@ -97,33 +92,6 @@ async function addMember(
     )
   }
   return userId
-}
-
-async function addCandidate(
-  groupId: Ulid,
-  userId: Ulid,
-  namedBy: Ulid,
-  accepted: boolean | null = null
-) {
-  await insertRenewalNominations(
-    groupId,
-    SCHOOL_YEAR,
-    [userId],
-    namedBy,
-    client
-  )
-  if (accepted !== null) {
-    await upsertRenewalAnswer(
-      {
-        groupId,
-        schoolYearStartsOn: SCHOOL_YEAR,
-        userId,
-        accepted,
-        commitments: null,
-      },
-      client
-    )
-  }
 }
 
 async function candidate(groupId: Ulid, userId: Ulid) {
@@ -195,13 +163,18 @@ describe('step-up prompt', () => {
     expect(await promptFor(member, MAY)).toBe('step-up')
   })
 
+  test('offers step-up to a cleared member with a ban', async () => {
+    const groupId = await chapter()
+    const member = await addMember(groupId, {
+      banType: USER_BAN_TYPES.COMPLETE,
+    })
+
+    expect(await promptFor(member, MAY)).toBe('step-up')
+  })
+
   test.each<[string, MemberOptions]>([
     ['who hasn’t finished onboarding', { onboarded: false }],
     ['who isn’t a high school student', { highSchool: false }],
-    ...Object.values(USER_BAN_TYPES).map<[string, MemberOptions]>((banType) => [
-      `with a ${banType} ban`,
-      { banType },
-    ]),
   ])('offers no step-up to a member %s', async (_label, options) => {
     const groupId = await chapter()
     const member = await addMember(groupId, options)
@@ -248,17 +221,14 @@ describe('step-up prompt', () => {
 })
 
 describe('acceptPresidency to step up', () => {
-  test('makes the stepper an admin and President, and every other open-account President a Member who stays admin', async () => {
+  test('makes the stepper an admin and President and changes no other member', async () => {
     const groupId = await chapter()
-    const [deletedAdmin] = (await snapshot(groupId)).members.map(
-      (m) => m.user_id
-    )
-    const otherPresident = await addMember(groupId, {
-      ...PRESIDENT,
-      highSchool: false,
-    })
-    await addCandidate(groupId, otherPresident, deletedAdmin)
+    await addMember(groupId, { ...PRESIDENT, highSchool: false })
+    await addMember(groupId)
     const stepper = await addMember(groupId)
+    const others = async () =>
+      (await snapshot(groupId)).members.filter((m) => m.user_id !== stepper)
+    const before = await others()
 
     const result = await acceptPresidency(stepper, groupId, STEP_UP, MAY)
 
@@ -267,14 +237,7 @@ describe('acceptPresidency to step up', () => {
       title: 'President',
       role: 'admin',
     })
-    expect(await memberState(groupId, deletedAdmin)).toEqual({
-      title: 'President',
-      role: 'admin',
-    })
-    expect(await memberState(groupId, otherPresident)).toEqual({
-      title: 'Member',
-      role: 'admin',
-    })
+    expect(await others()).toEqual(before)
   })
 
   test('answers has_president and changes nothing once the chapter has a manager', async () => {
@@ -289,12 +252,6 @@ describe('acceptPresidency to step up', () => {
   })
 
   test.each<[string, MemberOptions, object, new (...args: any[]) => Error]>([
-    [
-      'a banned member',
-      { banType: USER_BAN_TYPES.SHADOW },
-      STEP_UP,
-      NTHSRenewalNotEligibleError,
-    ],
     [
       'a member who left',
       { departed: true },
@@ -334,37 +291,32 @@ describe('step-up across renewal dates', () => {
     expect((await snapshot(groupId)).candidates).toEqual([])
   })
 
+  test('a member who steps up from the confirmation date confirms the chapter', async () => {
+    const groupId = await chapter()
+    const stepper = await addMember(groupId)
+    const other = await addMember(groupId)
+
+    await acceptPresidency(stepper, groupId, STEP_UP, AUGUST)
+
+    expect(await candidate(groupId, stepper)).toMatchObject({
+      accepted: true,
+      commitments: ALL_COMMITMENTS,
+    })
+    expect(await promptFor(other, AUGUST)).toBe('none')
+  })
+
   test.each([
-    ['an unnamed member', null],
-    ['a named successor who stepped down', false],
+    ['confirmation opens', AUGUST],
+    ['the member stage', SEPTEMBER],
   ])(
-    '%s who steps up from the successor date confirms the chapter',
-    async (_label, accepted) => {
+    'a cleared member gets renewal’s member prompt from %s',
+    async (_label, now) => {
       const groupId = await chapter()
-      const [admin] = await getGroupMembers(groupId, client)
-      const stepper = await addMember(groupId)
-      const other = await addMember(groupId)
-      if (accepted !== null) {
-        await addCandidate(groupId, stepper, admin.userId, accepted)
-      }
+      const member = await addMember(groupId)
 
-      expect(await promptFor(stepper, AUGUST)).toBe('step-up')
-      await acceptPresidency(stepper, groupId, STEP_UP, AUGUST)
-
-      expect(await candidate(groupId, stepper)).toMatchObject({
-        accepted: true,
-        commitments: ALL_COMMITMENTS,
-      })
-      expect(await promptFor(other, AUGUST)).toBe('none')
+      expect(await promptFor(member, now)).toBe('member-countdown')
     }
   )
-
-  test('a cleared member gets renewal’s member prompt from the member stage', async () => {
-    const groupId = await chapter()
-    const member = await addMember(groupId)
-
-    expect(await promptFor(member, SEPTEMBER)).toBe('member-must-answer')
-  })
 
   test('after the close instant of a chapter with no confirmed president, offers no step-up and accepting changes nothing', async () => {
     const groupId = await chapter()

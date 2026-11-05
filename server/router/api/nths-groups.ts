@@ -26,13 +26,7 @@ import type {
   NTHSChapterPeriodStarts,
   NTHSGroupRoleName,
 } from '../../models/NTHSGroups'
-import {
-  asArray,
-  asDate,
-  asObject,
-  asUuid,
-  isUuid,
-} from '../../utils/type-utils'
+import { asDate, asObject, asUuid, isUuid } from '../../utils/type-utils'
 import { ONE_DAY_ELAPSED_MILLISECONDS } from '../../constants/time'
 import { toNTHSChecklistPublic } from '../../contracts/nths-checklist.mappers'
 import { isNTHSChecklistItemStatus } from '../../models/NTHSChecklistProgress'
@@ -52,13 +46,10 @@ import type {
   NTHSChapterImpactResponse,
   NTHSChapterRosterResponse,
   NTHSRenewalAcceptResponse,
-  NTHSRenewalResponse,
-  NTHSRenewalSuccessorsResponse,
 } from '../../contracts/nths-group'
 import type {
   NTHSAcceptanceReason,
   RenewalCommitments,
-  RenewalSuccessorsUpdate,
 } from '../../services/NTHSRenewalService'
 
 function requireActiveGroupMember(role?: NTHSGroupRoleName) {
@@ -176,15 +167,6 @@ function acceptanceReasonFrom(body: unknown): NTHSAcceptanceReason {
   throw new InputError('reason must be renewal or step-up')
 }
 
-function asSuccessorsUpdate(body: unknown): RenewalSuccessorsUpdate {
-  const { userIds, expectedUserIds } = (body ?? {}) as Record<string, unknown>
-  return {
-    userIds: asArray(asUuid)(userIds, 'userIds'),
-    expectedUserIds: asArray(asUuid)(expectedUserIds, 'expectedUserIds'),
-    commitments: commitmentsFrom(body),
-  }
-}
-
 export function routeNTHSGroups(router: Router): void {
   router
     .route('/nths-groups')
@@ -220,66 +202,6 @@ export function routeNTHSGroups(router: Router): void {
     })
 
   router
-    .route('/nths-groups/:groupId/renewal')
-    .get(
-      isActiveGroupAdmin,
-      requireClearedToViewMemberInfo,
-      async (req: Request, res: Response<NTHSRenewalSuccessorsResponse>) => {
-        try {
-          const { successors, canEditSuccessors } =
-            await NTHSRenewalService.getRenewalSuccessors(
-              extractUser(req).id,
-              req.params.groupId,
-              new Date()
-            )
-          res.json({ successors, canEditSuccessors })
-        } catch (err) {
-          resError(res, err)
-        }
-      }
-    )
-
-  router
-    .route('/nths-groups/:groupId/renewal/successors')
-    .put(
-      isActiveGroupAdmin,
-      requireClearedToViewMemberInfo,
-      async (req: Request, res: Response<NTHSRenewalResponse>) => {
-        try {
-          const renewal = await NTHSRenewalService.setRenewalSuccessors(
-            extractUser(req).id,
-            req.params.groupId,
-            asSuccessorsUpdate(req.body),
-            new Date()
-          )
-          res.json({ renewal })
-        } catch (err) {
-          resError(res, err)
-        }
-      }
-    )
-
-  router
-    .route('/nths-groups/:groupId/renewal/successors/self')
-    .post(
-      isActiveGroupAdmin,
-      requireClearedToViewMemberInfo,
-      async (req: Request, res: Response<NTHSRenewalResponse>) => {
-        try {
-          const renewal = await NTHSRenewalService.nameSelfAsSuccessor(
-            extractUser(req).id,
-            req.params.groupId,
-            { commitments: commitmentsFrom(req.body) },
-            new Date()
-          )
-          res.json({ renewal })
-        } catch (err) {
-          resError(res, err)
-        }
-      }
-    )
-
-  router
     .route('/nths-groups/:groupId/renewal/accept')
     .post(
       isActiveGroupMember,
@@ -296,24 +218,6 @@ export function routeNTHSGroups(router: Router): void {
               new Date()
             )
           res.json({ renewal, outcome })
-        } catch (err) {
-          resError(res, err)
-        }
-      }
-    )
-
-  router
-    .route('/nths-groups/:groupId/renewal/decline')
-    .post(
-      isActiveGroupMember,
-      async (req: Request, res: Response<NTHSRenewalResponse>) => {
-        try {
-          const renewal = await NTHSRenewalService.declinePresidency(
-            extractUser(req).id,
-            req.params.groupId,
-            new Date()
-          )
-          res.json({ renewal })
         } catch (err) {
           resError(res, err)
         }

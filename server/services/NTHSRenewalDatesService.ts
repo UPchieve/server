@@ -14,7 +14,6 @@ import { timeLimit } from '../utils/time-limit'
 
 export type NTHSRenewalDates = {
   nominationsOpen: string
-  adminReminder: string
   successorConfirmation: string
   memberStage: string
   closeDate: string
@@ -25,7 +24,6 @@ const READ_TIMEOUT_MS = 5000
 
 const STEP_KEYS = {
   nominations_open: 'nominationsOpen',
-  admin_reminder: 'adminReminder',
   successor_confirmation: 'successorConfirmation',
   member_stage: 'memberStage',
   close_date: 'closeDate',
@@ -96,6 +94,10 @@ async function parseDates(worksheet: RenewalWorksheet) {
   for (const row of await worksheet.getRows()) {
     const step = String(row.get('step') ?? '').trim()
     if (!step) {
+      continue
+    }
+    // The live sheet still carries this retired row.
+    if (step === 'admin_reminder') {
       continue
     }
     if (!Object.hasOwn(STEP_KEYS, step)) {

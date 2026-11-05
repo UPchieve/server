@@ -15,8 +15,10 @@ import {
   closeDueChapter,
   closeRenewalCycle,
   nextRenewalCycle,
+  renewalStage,
   schoolYearDate,
   type NTHSRenewalCycle,
+  type RenewalStage,
 } from '../../../services/NTHSRenewalService'
 import { hoursInMs } from '../../../utils/time-utils'
 import { sendAndRecordNthsEmails } from './sendNthsEmails'
@@ -30,9 +32,10 @@ export type NTHSChapterRenewalJobData = {
 
 type PreCloseEmail = {
   templateId: string
+  stage: RenewalStage
   sendFrom: Date
   sendUntil: Date
-  isRecipient: (member: NTHSRenewalEmailMember) => boolean | Promise<boolean>
+  isRecipient?: (member: NTHSRenewalEmailMember) => boolean | Promise<boolean>
   extraData?: (member: NTHSRenewalEmailMember) => Partial<NthsRenewalEmailData>
 }
 
@@ -79,36 +82,32 @@ function formatDate(date: Date): string {
   })
 }
 
+const isClearedAdmin = async (member: NTHSRenewalEmailMember) =>
+  member.isAdmin &&
+  (await isClearedToViewChapterMemberInfo(member.userId, true))
+
 function preCloseEmails(cycle: NTHSRenewalCycle): PreCloseEmail[] {
   return [
     {
-      templateId: TEMPLATES.nominationsOpen,
+      templateId: TEMPLATES.handoff,
+      stage: 'handoff',
       sendFrom: cycle.nominationsOpenAt,
-      sendUntil: cycle.memberStageAt,
-      isRecipient: async (member) =>
-        member.isAdmin &&
-        !member.chapterHasNamed &&
-        !member.chapterConfirmed &&
-        (await isClearedToViewChapterMemberInfo(member.userId, true)),
-      extraData: () => ({
-        successorDate: formatDate(cycle.successorConfirmationAt),
-      }),
+      sendUntil: cycle.successorConfirmationAt,
+      isRecipient: isClearedAdmin,
     },
     {
-      templateId: TEMPLATES.namedSuccessor,
+      templateId: TEMPLATES.confirmReturn,
+      stage: 'confirm',
       sendFrom: cycle.successorConfirmationAt,
       sendUntil: cycle.closesAt,
-      isRecipient: (member) => member.namedUnanswered,
-      extraData: (member) => ({
-        selfNamed: member.selfNamed,
-        chapterConfirmed: member.chapterConfirmed,
-      }),
+      isRecipient: isClearedAdmin,
+      extraData: (member) => ({ isPresident: member.isPresident }),
     },
     {
       templateId: TEMPLATES.memberStage,
-      sendFrom: cycle.memberStageAt,
+      stage: 'member',
+      sendFrom: cycle.successorConfirmationAt,
       sendUntil: cycle.memberEmailEndsAt,
-      isRecipient: (member) => !member.chapterConfirmed,
     },
   ]
 }
@@ -122,19 +121,28 @@ async function sendPreCloseEmails(
     ({ sendFrom, sendUntil }) => sendFrom <= now && now < sendUntil
   )
   if (!openEmails.length) return []
+  const schoolYearStartsOn = schoolYearDate(cycle)
   const members = await NTHSRenewalRepo.getRenewalEmailMembers(
     groupId,
-    schoolYearDate(cycle),
+    schoolYearStartsOn,
     cycle.sentSince,
     openEmails.map(({ templateId }) => templateId)
   )
+  if (!members.length) return []
+  const state = await NTHSRenewalRepo.getNthsRenewalState(
+    groupId,
+    undefined,
+    schoolYearStartsOn
+  )
+  if (!state) return []
   const failures: string[] = []
   for (const email of openEmails) {
     const recipients: NTHSRenewalEmailMember[] = []
     for (const member of members) {
       if (
+        renewalStage(state, cycle, now) === email.stage &&
         !member.sentTemplateIds.includes(email.templateId) &&
-        (await email.isRecipient(member))
+        (!email.isRecipient || (await email.isRecipient(member)))
       ) {
         recipients.push(member)
       }

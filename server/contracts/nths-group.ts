@@ -49,30 +49,10 @@ export type NTHSRenewalPublic = {
   prompt: NTHSRenewalPrompt
   closesOn: string | null
   successorConfirmationOn: string | null
-  namingClosesOn: string | null
-  commitmentsRequired: boolean
-  canNameSelf: boolean
-  namingSelfAccepts: boolean
-  namedSelf: boolean
-  memberStageOpen: boolean
-  acceptedPresidents: { firstName: string; lastInitial: string }[]
 }
 
 export type NTHSGroupWithRenewalPublic = NTHSGroupWithMemberInfoPublic & {
   renewal: NTHSRenewalPublic
-}
-
-export type NTHSRenewalSuccessorPublic = {
-  userId: Uuid
-  firstName: string
-  lastInitial: string
-  accepted: boolean | null
-  namedBy: { userId: Uuid; firstName: string; lastInitial: string } | null
-}
-
-export type NTHSRenewalSuccessorsResponse = {
-  successors: NTHSRenewalSuccessorPublic[]
-  canEditSuccessors: boolean
 }
 
 export type NTHSRenewalResponse = {

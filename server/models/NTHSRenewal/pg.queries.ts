@@ -11,7 +11,7 @@ export type stringArray = (string)[];
 export interface IGetNthsRenewalStateParams {
   groupId: string;
   schoolYearStartsOn: DateOrString;
-  viewerId: string;
+  viewerId?: string | null | void;
 }
 
 /** 'GetNthsRenewalState' return type */
@@ -22,12 +22,8 @@ export interface IGetNthsRenewalStateResult {
   createdAt: Date;
   hasConfirmedPresident: boolean;
   hasManager: boolean;
-  hasNamedSuccessor: boolean;
   /** not_pii: true when the user accepted the presidency, false when they declined or stepped down, null before they answer */
   viewerAccepted: boolean | null;
-  /** not_pii: When an admin named the user as a successor; null for a member who answers at the member stage */
-  viewerNamedAt: Date | null;
-  viewerNamedSelf: boolean;
 }
 
 /** 'GetNthsRenewalState' query type */
@@ -36,14 +32,13 @@ export interface IGetNthsRenewalStateQuery {
   result: IGetNthsRenewalStateResult;
 }
 
-const getNthsRenewalStateIR: any = {"usedParamSet":{"groupId":true,"schoolYearStartsOn":true,"viewerId":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":451,"b":459},{"a":2214,"b":2222}]},{"name":"schoolYearStartsOn","required":true,"transform":{"type":"scalar"},"locs":[{"a":508,"b":527},{"a":2110,"b":2129}]},{"name":"viewerId","required":true,"transform":{"type":"scalar"},"locs":[{"a":1124,"b":1133},{"a":2176,"b":2185}]}],"statement":"WITH current_member_candidates AS (\n    SELECT\n        candidates.named_at,\n        candidates.accepted\n    FROM\n        nths_group_renewal_candidates candidates\n        JOIN nths_group_members members ON members.nths_group_id = candidates.nths_group_id\n            AND members.user_id = candidates.user_id\n            AND members.deactivated_at IS NULL\n        JOIN users ON users.id = candidates.user_id\n    WHERE\n        candidates.nths_group_id = :groupId!\n        AND candidates.school_year_starts_on = :schoolYearStartsOn!::date\n        AND users.deleted IS NOT TRUE\n)\nSELECT\n    nths_groups.created_at,\n    nths_groups.closed_at,\n    COALESCE((\n        SELECT\n            bool_or(accepted IS TRUE)\n        FROM current_member_candidates), FALSE) AS \"has_confirmed_president!\",\n    COALESCE((\n        SELECT\n            bool_or(named_at IS NOT NULL\n                AND accepted IS DISTINCT FROM FALSE)\n        FROM current_member_candidates), FALSE) AS \"has_named_successor!\",\n    viewer_candidate.named_at AS viewer_named_at,\n    viewer_candidate.accepted AS viewer_accepted,\n    COALESCE(viewer_candidate.named_by = :viewerId!, FALSE) AS \"viewer_named_self!\",\n    EXISTS (\n        SELECT\n            1\n        FROM\n            nths_group_members members\n            JOIN users ON users.id = members.user_id\n            JOIN nths_group_member_roles member_roles ON member_roles.nths_group_id = members.nths_group_id\n                AND member_roles.user_id = members.user_id\n            JOIN nths_group_roles roles ON roles.id = member_roles.role_id\n            JOIN volunteer_occupations occupations ON occupations.user_id = members.user_id\n        WHERE\n            members.nths_group_id = nths_groups.id\n            AND members.deactivated_at IS NULL\n            AND users.deleted IS NOT TRUE\n            AND roles.name = 'admin'\n            AND occupations.occupation = 'A high school student') AS \"has_manager!\"\nFROM\n    nths_groups\n    LEFT JOIN nths_group_renewal_candidates viewer_candidate ON viewer_candidate.nths_group_id = nths_groups.id\n        AND viewer_candidate.school_year_starts_on = :schoolYearStartsOn!::date\n        AND viewer_candidate.user_id = :viewerId!\nWHERE\n    nths_groups.id = :groupId!"};
+const getNthsRenewalStateIR: any = {"usedParamSet":{"groupId":true,"schoolYearStartsOn":true,"viewerId":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":422,"b":430},{"a":1850,"b":1858}]},{"name":"schoolYearStartsOn","required":true,"transform":{"type":"scalar"},"locs":[{"a":479,"b":498},{"a":1747,"b":1766}]},{"name":"viewerId","required":false,"transform":{"type":"scalar"},"locs":[{"a":1813,"b":1821}]}],"statement":"WITH current_member_candidates AS (\n    SELECT\n        candidates.accepted\n    FROM\n        nths_group_renewal_candidates candidates\n        JOIN nths_group_members members ON members.nths_group_id = candidates.nths_group_id\n            AND members.user_id = candidates.user_id\n            AND members.deactivated_at IS NULL\n        JOIN users ON users.id = candidates.user_id\n    WHERE\n        candidates.nths_group_id = :groupId!\n        AND candidates.school_year_starts_on = :schoolYearStartsOn!::date\n        AND users.deleted IS NOT TRUE\n)\nSELECT\n    nths_groups.created_at,\n    nths_groups.closed_at,\n    COALESCE((\n        SELECT\n            bool_or(accepted IS TRUE)\n        FROM current_member_candidates), FALSE) AS \"has_confirmed_president!\",\n    viewer_candidate.accepted AS viewer_accepted,\n    EXISTS (\n        SELECT\n            1\n        FROM\n            nths_group_members members\n            JOIN users ON users.id = members.user_id\n            JOIN nths_group_member_roles member_roles ON member_roles.nths_group_id = members.nths_group_id\n                AND member_roles.user_id = members.user_id\n            JOIN nths_group_roles roles ON roles.id = member_roles.role_id\n            JOIN volunteer_occupations occupations ON occupations.user_id = members.user_id\n        WHERE\n            members.nths_group_id = nths_groups.id\n            AND members.deactivated_at IS NULL\n            AND users.deleted IS NOT TRUE\n            AND roles.name = 'admin'\n            AND occupations.occupation = 'A high school student') AS \"has_manager!\"\nFROM\n    nths_groups\n    LEFT JOIN nths_group_renewal_candidates viewer_candidate ON viewer_candidate.nths_group_id = nths_groups.id\n        AND viewer_candidate.school_year_starts_on = :schoolYearStartsOn!::date\n        AND viewer_candidate.user_id = :viewerId\nWHERE\n    nths_groups.id = :groupId!"};
 
 /**
  * Query generated from SQL:
  * ```
  * WITH current_member_candidates AS (
  *     SELECT
- *         candidates.named_at,
  *         candidates.accepted
  *     FROM
  *         nths_group_renewal_candidates candidates
@@ -63,14 +58,7 @@ const getNthsRenewalStateIR: any = {"usedParamSet":{"groupId":true,"schoolYearSt
  *         SELECT
  *             bool_or(accepted IS TRUE)
  *         FROM current_member_candidates), FALSE) AS "has_confirmed_president!",
- *     COALESCE((
- *         SELECT
- *             bool_or(named_at IS NOT NULL
- *                 AND accepted IS DISTINCT FROM FALSE)
- *         FROM current_member_candidates), FALSE) AS "has_named_successor!",
- *     viewer_candidate.named_at AS viewer_named_at,
  *     viewer_candidate.accepted AS viewer_accepted,
- *     COALESCE(viewer_candidate.named_by = :viewerId!, FALSE) AS "viewer_named_self!",
  *     EXISTS (
  *         SELECT
  *             1
@@ -91,142 +79,12 @@ const getNthsRenewalStateIR: any = {"usedParamSet":{"groupId":true,"schoolYearSt
  *     nths_groups
  *     LEFT JOIN nths_group_renewal_candidates viewer_candidate ON viewer_candidate.nths_group_id = nths_groups.id
  *         AND viewer_candidate.school_year_starts_on = :schoolYearStartsOn!::date
- *         AND viewer_candidate.user_id = :viewerId!
+ *         AND viewer_candidate.user_id = :viewerId
  * WHERE
  *     nths_groups.id = :groupId!
  * ```
  */
 export const getNthsRenewalState = new PreparedQuery<IGetNthsRenewalStateParams,IGetNthsRenewalStateResult>(getNthsRenewalStateIR);
-
-
-/** 'GetRenewalSuccessors' parameters type */
-export interface IGetRenewalSuccessorsParams {
-  groupId: string;
-  schoolYearStartsOn: DateOrString;
-}
-
-/** 'GetRenewalSuccessors' return type */
-export interface IGetRenewalSuccessorsResult {
-  /** not_pii: true when the user accepted the presidency, false when they declined or stepped down, null before they answer */
-  accepted: boolean | null;
-  /** pii: First name */
-  firstName: string;
-  lastInitial: string | null;
-  /** pii: First name */
-  namedByFirstName: string | null;
-  /** not_pii: Primary key */
-  namedById: string | null;
-  namedByLastInitial: string | null;
-  /** not_pii: Foreign key to upchieve.users */
-  userId: string;
-}
-
-/** 'GetRenewalSuccessors' query type */
-export interface IGetRenewalSuccessorsQuery {
-  params: IGetRenewalSuccessorsParams;
-  result: IGetRenewalSuccessorsResult;
-}
-
-const getRenewalSuccessorsIR: any = {"usedParamSet":{"groupId":true,"schoolYearStartsOn":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":695,"b":703}]},{"name":"schoolYearStartsOn","required":true,"transform":{"type":"scalar"},"locs":[{"a":748,"b":767}]}],"statement":"SELECT\n    candidates.user_id,\n    users.first_name,\n    LEFT (users.last_name,\n        1) AS last_initial,\n    candidates.accepted,\n    namers.id AS \"named_by_id?\",\n    namers.first_name AS \"named_by_first_name?\",\n    LEFT (namers.last_name,\n        1) AS named_by_last_initial\nFROM\n    nths_group_renewal_candidates candidates\n    JOIN nths_group_members members ON members.nths_group_id = candidates.nths_group_id\n        AND members.user_id = candidates.user_id\n        AND members.deactivated_at IS NULL\n    JOIN users ON users.id = candidates.user_id\n    LEFT JOIN users namers ON namers.id = candidates.named_by\n        AND namers.deleted IS NOT TRUE\nWHERE\n    candidates.nths_group_id = :groupId!\n    AND candidates.school_year_starts_on = :schoolYearStartsOn!::date\n    AND users.deleted IS NOT TRUE\nORDER BY\n    candidates.named_at,\n    candidates.id"};
-
-/**
- * Query generated from SQL:
- * ```
- * SELECT
- *     candidates.user_id,
- *     users.first_name,
- *     LEFT (users.last_name,
- *         1) AS last_initial,
- *     candidates.accepted,
- *     namers.id AS "named_by_id?",
- *     namers.first_name AS "named_by_first_name?",
- *     LEFT (namers.last_name,
- *         1) AS named_by_last_initial
- * FROM
- *     nths_group_renewal_candidates candidates
- *     JOIN nths_group_members members ON members.nths_group_id = candidates.nths_group_id
- *         AND members.user_id = candidates.user_id
- *         AND members.deactivated_at IS NULL
- *     JOIN users ON users.id = candidates.user_id
- *     LEFT JOIN users namers ON namers.id = candidates.named_by
- *         AND namers.deleted IS NOT TRUE
- * WHERE
- *     candidates.nths_group_id = :groupId!
- *     AND candidates.school_year_starts_on = :schoolYearStartsOn!::date
- *     AND users.deleted IS NOT TRUE
- * ORDER BY
- *     candidates.named_at,
- *     candidates.id
- * ```
- */
-export const getRenewalSuccessors = new PreparedQuery<IGetRenewalSuccessorsParams,IGetRenewalSuccessorsResult>(getRenewalSuccessorsIR);
-
-
-/** 'InsertRenewalNominations' parameters type */
-export interface IInsertRenewalNominationsParams {
-  groupId: string;
-  namedBy: string;
-  schoolYearStartsOn: DateOrString;
-  userIds: stringArray;
-}
-
-/** 'InsertRenewalNominations' return type */
-export type IInsertRenewalNominationsResult = void;
-
-/** 'InsertRenewalNominations' query type */
-export interface IInsertRenewalNominationsQuery {
-  params: IInsertRenewalNominationsParams;
-  result: IInsertRenewalNominationsResult;
-}
-
-const insertRenewalNominationsIR: any = {"usedParamSet":{"groupId":true,"schoolYearStartsOn":true,"namedBy":true,"userIds":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":121,"b":129}]},{"name":"schoolYearStartsOn","required":true,"transform":{"type":"scalar"},"locs":[{"a":136,"b":155}]},{"name":"namedBy","required":true,"transform":{"type":"scalar"},"locs":[{"a":195,"b":203}]},{"name":"userIds","required":true,"transform":{"type":"scalar"},"locs":[{"a":221,"b":229}]}],"statement":"INSERT INTO nths_group_renewal_candidates (nths_group_id, school_year_starts_on, user_id, named_at, named_by)\nSELECT\n    :groupId!,\n    :schoolYearStartsOn!::date,\n    nominee_id,\n    NOW(),\n    :namedBy!\nFROM\n    unnest(:userIds!::uuid[]) AS nominee_id"};
-
-/**
- * Query generated from SQL:
- * ```
- * INSERT INTO nths_group_renewal_candidates (nths_group_id, school_year_starts_on, user_id, named_at, named_by)
- * SELECT
- *     :groupId!,
- *     :schoolYearStartsOn!::date,
- *     nominee_id,
- *     NOW(),
- *     :namedBy!
- * FROM
- *     unnest(:userIds!::uuid[]) AS nominee_id
- * ```
- */
-export const insertRenewalNominations = new PreparedQuery<IInsertRenewalNominationsParams,IInsertRenewalNominationsResult>(insertRenewalNominationsIR);
-
-
-/** 'DeleteUnansweredRenewalNominations' parameters type */
-export interface IDeleteUnansweredRenewalNominationsParams {
-  groupId: string;
-  schoolYearStartsOn: DateOrString;
-  userIds: stringArray;
-}
-
-/** 'DeleteUnansweredRenewalNominations' return type */
-export type IDeleteUnansweredRenewalNominationsResult = void;
-
-/** 'DeleteUnansweredRenewalNominations' query type */
-export interface IDeleteUnansweredRenewalNominationsQuery {
-  params: IDeleteUnansweredRenewalNominationsParams;
-  result: IDeleteUnansweredRenewalNominationsResult;
-}
-
-const deleteUnansweredRenewalNominationsIR: any = {"usedParamSet":{"groupId":true,"schoolYearStartsOn":true,"userIds":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":64,"b":72}]},{"name":"schoolYearStartsOn","required":true,"transform":{"type":"scalar"},"locs":[{"a":106,"b":125}]},{"name":"userIds","required":true,"transform":{"type":"scalar"},"locs":[{"a":156,"b":164}]}],"statement":"DELETE FROM nths_group_renewal_candidates\nWHERE nths_group_id = :groupId!\n    AND school_year_starts_on = :schoolYearStartsOn!::date\n    AND user_id = ANY (:userIds!)\n    AND accepted IS NULL                                                          "};
-
-/**
- * Query generated from SQL:
- * ```
- * DELETE FROM nths_group_renewal_candidates
- * WHERE nths_group_id = :groupId!
- *     AND school_year_starts_on = :schoolYearStartsOn!::date
- *     AND user_id = ANY (:userIds!)
- *     AND accepted IS NULL                                                          
- * ```
- */
-export const deleteUnansweredRenewalNominations = new PreparedQuery<IDeleteUnansweredRenewalNominationsParams,IDeleteUnansweredRenewalNominationsResult>(deleteUnansweredRenewalNominationsIR);
 
 
 /** 'UpsertRenewalAnswer' parameters type */
@@ -262,105 +120,6 @@ const upsertRenewalAnswerIR: any = {"usedParamSet":{"groupId":true,"schoolYearSt
 export const upsertRenewalAnswer = new PreparedQuery<IUpsertRenewalAnswerParams,IUpsertRenewalAnswerResult>(upsertRenewalAnswerIR);
 
 
-/** 'DemotePresidentsNotRenewing' parameters type */
-export interface IDemotePresidentsNotRenewingParams {
-  groupId: string;
-  schoolYearStartsOn: DateOrString;
-}
-
-/** 'DemotePresidentsNotRenewing' return type */
-export interface IDemotePresidentsNotRenewingResult {
-  /** not_pii: Foreign key to upchieve.users */
-  userId: string;
-}
-
-/** 'DemotePresidentsNotRenewing' query type */
-export interface IDemotePresidentsNotRenewingQuery {
-  params: IDemotePresidentsNotRenewingParams;
-  result: IDemotePresidentsNotRenewingResult;
-}
-
-const demotePresidentsNotRenewingIR: any = {"usedParamSet":{"groupId":true,"schoolYearStartsOn":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":205,"b":213}]},{"name":"schoolYearStartsOn","required":true,"transform":{"type":"scalar"},"locs":[{"a":585,"b":604}]}],"statement":"UPDATE\n    nths_group_members members\nSET\n    title = 'Member',\n    updated_at = NOW()\nFROM\n    users\nWHERE\n    users.id = members.user_id\n    AND users.deleted IS NOT TRUE\n    AND members.nths_group_id = :groupId!\n    AND members.deactivated_at IS NULL\n    AND members.title = 'President'\n    AND NOT EXISTS (\n        SELECT\n            1\n        FROM\n            nths_group_renewal_candidates candidates\n        WHERE\n            candidates.nths_group_id = members.nths_group_id\n            AND candidates.user_id = members.user_id\n            AND candidates.school_year_starts_on = :schoolYearStartsOn!::date\n            AND (candidates.accepted IS TRUE\n                OR (candidates.named_at IS NOT NULL\n                    AND candidates.accepted IS NULL)))\nRETURNING\n    members.user_id"};
-
-/**
- * Query generated from SQL:
- * ```
- * UPDATE
- *     nths_group_members members
- * SET
- *     title = 'Member',
- *     updated_at = NOW()
- * FROM
- *     users
- * WHERE
- *     users.id = members.user_id
- *     AND users.deleted IS NOT TRUE
- *     AND members.nths_group_id = :groupId!
- *     AND members.deactivated_at IS NULL
- *     AND members.title = 'President'
- *     AND NOT EXISTS (
- *         SELECT
- *             1
- *         FROM
- *             nths_group_renewal_candidates candidates
- *         WHERE
- *             candidates.nths_group_id = members.nths_group_id
- *             AND candidates.user_id = members.user_id
- *             AND candidates.school_year_starts_on = :schoolYearStartsOn!::date
- *             AND (candidates.accepted IS TRUE
- *                 OR (candidates.named_at IS NOT NULL
- *                     AND candidates.accepted IS NULL)))
- * RETURNING
- *     members.user_id
- * ```
- */
-export const demotePresidentsNotRenewing = new PreparedQuery<IDemotePresidentsNotRenewingParams,IDemotePresidentsNotRenewingResult>(demotePresidentsNotRenewingIR);
-
-
-/** 'DemoteOtherPresidents' parameters type */
-export interface IDemoteOtherPresidentsParams {
-  groupId: string;
-  keepUserId: string;
-}
-
-/** 'DemoteOtherPresidents' return type */
-export interface IDemoteOtherPresidentsResult {
-  /** not_pii: Foreign key to upchieve.users */
-  userId: string;
-}
-
-/** 'DemoteOtherPresidents' query type */
-export interface IDemoteOtherPresidentsQuery {
-  params: IDemoteOtherPresidentsParams;
-  result: IDemoteOtherPresidentsResult;
-}
-
-const demoteOtherPresidentsIR: any = {"usedParamSet":{"groupId":true,"keepUserId":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":205,"b":213}]},{"name":"keepUserId","required":true,"transform":{"type":"scalar"},"locs":[{"a":317,"b":328}]}],"statement":"UPDATE\n    nths_group_members members\nSET\n    title = 'Member',\n    updated_at = NOW()\nFROM\n    users\nWHERE\n    users.id = members.user_id\n    AND users.deleted IS NOT TRUE\n    AND members.nths_group_id = :groupId!\n    AND members.deactivated_at IS NULL\n    AND members.title = 'President'\n    AND members.user_id <> :keepUserId!\nRETURNING\n    members.user_id"};
-
-/**
- * Query generated from SQL:
- * ```
- * UPDATE
- *     nths_group_members members
- * SET
- *     title = 'Member',
- *     updated_at = NOW()
- * FROM
- *     users
- * WHERE
- *     users.id = members.user_id
- *     AND users.deleted IS NOT TRUE
- *     AND members.nths_group_id = :groupId!
- *     AND members.deactivated_at IS NULL
- *     AND members.title = 'President'
- *     AND members.user_id <> :keepUserId!
- * RETURNING
- *     members.user_id
- * ```
- */
-export const demoteOtherPresidents = new PreparedQuery<IDemoteOtherPresidentsParams,IDemoteOtherPresidentsResult>(demoteOtherPresidentsIR);
-
-
 /** 'GetRenewalEmailMembers' parameters type */
 export interface IGetRenewalEmailMembersParams {
   groupId: string;
@@ -371,8 +130,6 @@ export interface IGetRenewalEmailMembersParams {
 
 /** 'GetRenewalEmailMembers' return type */
 export interface IGetRenewalEmailMembersResult {
-  chapterConfirmed: boolean;
-  chapterHasNamed: boolean;
   /** not_pii: Human-readable name */
   chapterName: string;
   /** pii: User email address */
@@ -380,8 +137,7 @@ export interface IGetRenewalEmailMembersResult {
   /** pii: First name */
   firstName: string;
   isAdmin: boolean;
-  namedUnanswered: boolean;
-  selfNamed: boolean;
+  isPresident: boolean;
   sentTemplateIds: stringArray;
   /** not_pii: Primary key */
   userId: string;
@@ -393,55 +149,18 @@ export interface IGetRenewalEmailMembersQuery {
   result: IGetRenewalEmailMembersResult;
 }
 
-const getRenewalEmailMembersIR: any = {"usedParamSet":{"groupId":true,"schoolYearStartsOn":true,"templateIds":true,"sentSince":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":535,"b":543},{"a":2406,"b":2414}]},{"name":"schoolYearStartsOn","required":true,"transform":{"type":"scalar"},"locs":[{"a":592,"b":611},{"a":2487,"b":2506}]},{"name":"templateIds","required":true,"transform":{"type":"scalar"},"locs":[{"a":1767,"b":1779}]},{"name":"sentSince","required":true,"transform":{"type":"scalar"},"locs":[{"a":1831,"b":1841}]}],"statement":"WITH current_candidates AS (\n    SELECT\n        candidates.nths_group_id,\n        candidates.user_id,\n        candidates.named_at,\n        candidates.named_by,\n        candidates.accepted\n    FROM\n        nths_group_renewal_candidates candidates\n        JOIN nths_group_members members ON members.nths_group_id = candidates.nths_group_id\n            AND members.user_id = candidates.user_id\n            AND members.deactivated_at IS NULL\n        JOIN users ON users.id = candidates.user_id\n    WHERE\n        candidates.nths_group_id = :groupId!\n        AND candidates.school_year_starts_on = :schoolYearStartsOn!::date\n        AND users.deleted IS NOT TRUE\n)\nSELECT\n    users.id AS user_id,\n    users.email,\n    users.first_name,\n    nths_groups.name AS chapter_name,\n    COALESCE(roles.name = 'admin', FALSE) AS \"is_admin!\",\n    EXISTS (\n        SELECT\n            1\n        FROM\n            current_candidates\n        WHERE\n            current_candidates.nths_group_id = nths_groups.id\n            AND current_candidates.accepted IS TRUE) AS \"chapter_confirmed!\",\n    EXISTS (\n        SELECT\n            1\n        FROM\n            current_candidates\n        WHERE\n            current_candidates.nths_group_id = nths_groups.id\n            AND current_candidates.named_at IS NOT NULL\n            AND current_candidates.accepted IS DISTINCT FROM FALSE) AS \"chapter_has_named!\",\n    COALESCE(own.named_at IS NOT NULL\n        AND own.accepted IS NULL, FALSE) AS \"named_unanswered!\",\n    COALESCE(own.named_by = users.id, FALSE) AS \"self_named!\",\n    ARRAY (\n        SELECT\n            notifications.email_template_id\n        FROM\n            notifications\n        WHERE\n            notifications.user_id = users.id\n            AND notifications.email_template_id = ANY (:templateIds!::text[])\n            AND notifications.sent_at >= :sentSince!) AS \"sent_template_ids!\"\nFROM\n    nths_groups\n    JOIN nths_group_members members ON members.nths_group_id = nths_groups.id\n        AND members.deactivated_at IS NULL\n    JOIN users ON users.id = members.user_id\n    LEFT JOIN nths_group_member_roles member_roles ON member_roles.nths_group_id = nths_groups.id\n        AND member_roles.user_id = users.id\n    LEFT JOIN nths_group_roles roles ON roles.id = member_roles.role_id\n    LEFT JOIN current_candidates own ON own.nths_group_id = nths_groups.id\n        AND own.user_id = users.id\nWHERE\n    nths_groups.id = :groupId!\n    AND nths_groups.closed_at IS NULL\n    AND nths_groups.created_at < :schoolYearStartsOn!::date::timestamp AT TIME ZONE 'UTC'\n    AND users.deleted IS NOT TRUE\n    AND users.deactivated IS FALSE\n    AND users.ban_type IS NULL"};
+const getRenewalEmailMembersIR: any = {"usedParamSet":{"templateIds":true,"sentSince":true,"groupId":true,"schoolYearStartsOn":true},"params":[{"name":"templateIds","required":true,"transform":{"type":"scalar"},"locs":[{"a":460,"b":472}]},{"name":"sentSince","required":true,"transform":{"type":"scalar"},"locs":[{"a":524,"b":534}]},{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":989,"b":997}]},{"name":"schoolYearStartsOn","required":true,"transform":{"type":"scalar"},"locs":[{"a":1070,"b":1089}]}],"statement":"SELECT\n    users.id AS user_id,\n    users.email,\n    users.first_name,\n    nths_groups.name AS chapter_name,\n    COALESCE(roles.name = 'admin', FALSE) AS \"is_admin!\",\n    COALESCE(members.title = 'President', FALSE) AS \"is_president!\",\n    ARRAY (\n        SELECT\n            notifications.email_template_id\n        FROM\n            notifications\n        WHERE\n            notifications.user_id = users.id\n            AND notifications.email_template_id = ANY (:templateIds!::text[])\n            AND notifications.sent_at >= :sentSince!) AS \"sent_template_ids!\"\nFROM\n    nths_groups\n    JOIN nths_group_members members ON members.nths_group_id = nths_groups.id\n        AND members.deactivated_at IS NULL\n    JOIN users ON users.id = members.user_id\n    LEFT JOIN nths_group_member_roles member_roles ON member_roles.nths_group_id = nths_groups.id\n        AND member_roles.user_id = users.id\n    LEFT JOIN nths_group_roles roles ON roles.id = member_roles.role_id\nWHERE\n    nths_groups.id = :groupId!\n    AND nths_groups.closed_at IS NULL\n    AND nths_groups.created_at < :schoolYearStartsOn!::date::timestamp AT TIME ZONE 'UTC'\n    AND users.deleted IS NOT TRUE\n    AND users.deactivated IS FALSE"};
 
 /**
  * Query generated from SQL:
  * ```
- * WITH current_candidates AS (
- *     SELECT
- *         candidates.nths_group_id,
- *         candidates.user_id,
- *         candidates.named_at,
- *         candidates.named_by,
- *         candidates.accepted
- *     FROM
- *         nths_group_renewal_candidates candidates
- *         JOIN nths_group_members members ON members.nths_group_id = candidates.nths_group_id
- *             AND members.user_id = candidates.user_id
- *             AND members.deactivated_at IS NULL
- *         JOIN users ON users.id = candidates.user_id
- *     WHERE
- *         candidates.nths_group_id = :groupId!
- *         AND candidates.school_year_starts_on = :schoolYearStartsOn!::date
- *         AND users.deleted IS NOT TRUE
- * )
  * SELECT
  *     users.id AS user_id,
  *     users.email,
  *     users.first_name,
  *     nths_groups.name AS chapter_name,
  *     COALESCE(roles.name = 'admin', FALSE) AS "is_admin!",
- *     EXISTS (
- *         SELECT
- *             1
- *         FROM
- *             current_candidates
- *         WHERE
- *             current_candidates.nths_group_id = nths_groups.id
- *             AND current_candidates.accepted IS TRUE) AS "chapter_confirmed!",
- *     EXISTS (
- *         SELECT
- *             1
- *         FROM
- *             current_candidates
- *         WHERE
- *             current_candidates.nths_group_id = nths_groups.id
- *             AND current_candidates.named_at IS NOT NULL
- *             AND current_candidates.accepted IS DISTINCT FROM FALSE) AS "chapter_has_named!",
- *     COALESCE(own.named_at IS NOT NULL
- *         AND own.accepted IS NULL, FALSE) AS "named_unanswered!",
- *     COALESCE(own.named_by = users.id, FALSE) AS "self_named!",
+ *     COALESCE(members.title = 'President', FALSE) AS "is_president!",
  *     ARRAY (
  *         SELECT
  *             notifications.email_template_id
@@ -459,15 +178,12 @@ const getRenewalEmailMembersIR: any = {"usedParamSet":{"groupId":true,"schoolYea
  *     LEFT JOIN nths_group_member_roles member_roles ON member_roles.nths_group_id = nths_groups.id
  *         AND member_roles.user_id = users.id
  *     LEFT JOIN nths_group_roles roles ON roles.id = member_roles.role_id
- *     LEFT JOIN current_candidates own ON own.nths_group_id = nths_groups.id
- *         AND own.user_id = users.id
  * WHERE
  *     nths_groups.id = :groupId!
  *     AND nths_groups.closed_at IS NULL
  *     AND nths_groups.created_at < :schoolYearStartsOn!::date::timestamp AT TIME ZONE 'UTC'
  *     AND users.deleted IS NOT TRUE
  *     AND users.deactivated IS FALSE
- *     AND users.ban_type IS NULL
  * ```
  */
 export const getRenewalEmailMembers = new PreparedQuery<IGetRenewalEmailMembersParams,IGetRenewalEmailMembersResult>(getRenewalEmailMembersIR);

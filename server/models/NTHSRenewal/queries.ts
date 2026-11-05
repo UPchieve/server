@@ -1,33 +1,20 @@
 import { getClient, TransactionClient } from '../../db'
-import {
-  RepoCreateError,
-  RepoDeleteError,
-  RepoReadError,
-  RepoUpdateError,
-  RepoUpsertError,
-} from '../Errors'
+import { RepoReadError, RepoUpsertError } from '../Errors'
 import { makeSomeRequired, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 
-export type NTHSRenewalCandidacy = 'none' | 'named' | 'accepted' | 'declined'
+export type NTHSRenewalCandidacy = 'none' | 'accepted'
 
 export type NTHSRenewalState = {
   createdAt: Date
   closedAt: Date | null
   hasConfirmedPresident: boolean
-  hasNamedSuccessor: boolean
   viewerCandidacy: NTHSRenewalCandidacy
-  viewerNamedSelf: boolean
   hasManager: boolean
 }
 
-function toCandidacy(row: {
-  viewerNamedAt?: Date
-  viewerAccepted?: boolean
-}): NTHSRenewalCandidacy {
+function toCandidacy(row: { viewerAccepted?: boolean }): NTHSRenewalCandidacy {
   if (row.viewerAccepted === true) return 'accepted'
-  if (row.viewerAccepted === false) return 'declined'
-  if (row.viewerNamedAt) return 'named'
   return 'none'
 }
 
@@ -35,7 +22,7 @@ function toCandidacy(row: {
 // time zone, which can shift a date column by a day.
 export async function getNthsRenewalState(
   groupId: Ulid,
-  viewerId: Ulid,
+  viewerId: Ulid | undefined,
   schoolYearStartsOn: string,
   tc: TransactionClient = getClient()
 ): Promise<NTHSRenewalState | undefined> {
@@ -48,94 +35,17 @@ export async function getNthsRenewalState(
     const required = makeSomeRequired(row, [
       'createdAt',
       'hasConfirmedPresident',
-      'hasNamedSuccessor',
-      'viewerNamedSelf',
       'hasManager',
     ])
     return {
       createdAt: required.createdAt,
       closedAt: required.closedAt ?? null,
       hasConfirmedPresident: required.hasConfirmedPresident,
-      hasNamedSuccessor: required.hasNamedSuccessor,
       viewerCandidacy: toCandidacy(required),
-      viewerNamedSelf: required.viewerNamedSelf,
       hasManager: required.hasManager,
     }
   } catch (err) {
     throw new RepoReadError(err)
-  }
-}
-
-export type NTHSRenewalSuccessor = {
-  userId: Ulid
-  firstName: string
-  lastInitial: string
-  accepted: boolean | null
-  namedBy: { userId: Ulid; firstName: string; lastInitial: string } | null
-}
-
-export async function getRenewalSuccessors(
-  groupId: Ulid,
-  schoolYearStartsOn: string,
-  tc: TransactionClient = getClient()
-): Promise<NTHSRenewalSuccessor[]> {
-  try {
-    const rows = await pgQueries.getRenewalSuccessors.run(
-      { groupId, schoolYearStartsOn },
-      tc
-    )
-    return rows.map((row) => {
-      const required = makeSomeRequired(row, ['userId', 'firstName'])
-      return {
-        userId: required.userId,
-        firstName: required.firstName,
-        lastInitial: required.lastInitial ?? '',
-        accepted: required.accepted ?? null,
-        namedBy:
-          required.namedById && required.namedByFirstName
-            ? {
-                userId: required.namedById,
-                firstName: required.namedByFirstName,
-                lastInitial: required.namedByLastInitial ?? '',
-              }
-            : null,
-      }
-    })
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
-export async function insertRenewalNominations(
-  groupId: Ulid,
-  schoolYearStartsOn: string,
-  userIds: Ulid[],
-  namedBy: Ulid,
-  tc: TransactionClient
-): Promise<void> {
-  try {
-    await pgQueries.insertRenewalNominations.run(
-      { groupId, schoolYearStartsOn, userIds, namedBy },
-      tc
-    )
-  } catch (err) {
-    throw new RepoCreateError(err)
-  }
-}
-
-export async function deleteUnansweredRenewalNominations(
-  groupId: Ulid,
-  schoolYearStartsOn: string,
-  userIds: Ulid[],
-  tc: TransactionClient
-): Promise<void> {
-  try {
-    await pgQueries.deleteUnansweredRenewalNominations.run(
-      { groupId, schoolYearStartsOn, userIds },
-      tc
-    )
-  } catch (err) {
-    throw new RepoDeleteError(err)
   }
 }
 
@@ -156,44 +66,9 @@ export async function upsertRenewalAnswer(
   }
 }
 
-export async function demotePresidentsNotRenewing(
-  groupId: Ulid,
-  schoolYearStartsOn: string,
-  tc: TransactionClient
-): Promise<Ulid[]> {
-  try {
-    const rows = await pgQueries.demotePresidentsNotRenewing.run(
-      { groupId, schoolYearStartsOn },
-      tc
-    )
-    return rows.map((row) => makeSomeRequired(row, ['userId']).userId)
-  } catch (err) {
-    throw new RepoUpdateError(err)
-  }
-}
-
-export async function demoteOtherPresidents(
-  groupId: Ulid,
-  keepUserId: Ulid,
-  tc: TransactionClient
-): Promise<Ulid[]> {
-  try {
-    const rows = await pgQueries.demoteOtherPresidents.run(
-      { groupId, keepUserId },
-      tc
-    )
-    return rows.map((row) => makeSomeRequired(row, ['userId']).userId)
-  } catch (err) {
-    throw new RepoUpdateError(err)
-  }
-}
-
 export type NTHSRenewalEmailMember = NTHSRenewalEmailRecipient & {
   isAdmin: boolean
-  chapterConfirmed: boolean
-  chapterHasNamed: boolean
-  namedUnanswered: boolean
-  selfNamed: boolean
+  isPresident: boolean
   sentTemplateIds: string[]
 }
 
@@ -215,10 +90,7 @@ export async function getRenewalEmailMembers(
         'firstName',
         'chapterName',
         'isAdmin',
-        'chapterConfirmed',
-        'chapterHasNamed',
-        'namedUnanswered',
-        'selfNamed',
+        'isPresident',
         'sentTemplateIds',
       ])
     )

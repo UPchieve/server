@@ -2,13 +2,11 @@ import {
   closeRenewalCycle,
   nextRenewalCycle,
   renewalPromptFor,
-  renewalControlsFor,
   type RenewalPromptInput,
 } from '../../services/NTHSRenewalService'
 
 const DATES = {
   nominationsOpen: '05-01',
-  adminReminder: '06-01',
   successorConfirmation: '08-01',
   memberStage: '09-15',
   closeDate: '09-30',
@@ -28,27 +26,23 @@ function input(now: string, overrides: Overrides = {}): RenewalPromptInput {
       createdAt: new Date('2027-02-10T15:00:00Z'),
       closedAt: null,
       hasConfirmedPresident: false,
-      hasNamedSuccessor: false,
-      viewerNamedSelf: false,
+      hasManager: true,
       ...overrides.chapter,
     },
     viewer: {
       isAdmin: false,
+      isPresident: false,
       isCleared: true,
-      isBanned: false,
-      candidacy: 'none',
       ...overrides.viewer,
     },
   }
 }
 
 const admin = { isAdmin: true }
-const named = { candidacy: 'named' } as const
-const declined = { candidacy: 'declined' } as const
-const accepted = { candidacy: 'accepted' } as const
-const someoneNamed = { hasNamedSuccessor: true }
-const confirmed = { hasConfirmedPresident: true, hasNamedSuccessor: true }
-const selfNamed = { viewerNamedSelf: true }
+const president = { isAdmin: true, isPresident: true }
+const uncleared = { isCleared: false }
+const confirmed = { hasConfirmedPresident: true }
+const unmanaged = { hasManager: false }
 
 describe('renewalPromptFor', () => {
   it.each<[string, string, Overrides, string, string | null]>([
@@ -60,249 +54,144 @@ describe('renewalPromptFor', () => {
       null,
     ],
     [
-      'admin before nominations open',
+      'admin before handoff opens',
       '2027-05-01T11:59:00Z',
       { viewer: admin },
       'none',
       '2027-09-30',
     ],
     [
-      'admin when nominations open at noon UTC',
+      'admin when handoff opens at noon UTC',
       '2027-05-01T12:00:00Z',
       { viewer: admin },
-      'name-successor-banner',
+      'handoff-banner',
       '2027-09-30',
     ],
     [
-      'solo president in May, nobody named',
-      '2027-05-03T15:00:00Z',
-      { viewer: admin },
-      'name-successor-banner',
+      'President just before confirmation opens',
+      '2027-08-01T11:59:00Z',
+      { viewer: president },
+      'handoff-banner',
       '2027-09-30',
     ],
     [
-      'admin who named themselves in May',
+      'uncleared admin in May',
       '2027-05-03T15:00:00Z',
-      { viewer: { ...admin, ...named }, chapter: someoneNamed },
-      'successors-named',
+      { viewer: { ...admin, ...uncleared } },
+      'none',
       '2027-09-30',
     ],
     ['plain member in May', '2027-05-03T15:00:00Z', {}, 'none', '2027-09-30'],
     [
-      'admin in June, nobody named',
-      '2027-06-03T15:00:00Z',
-      { viewer: admin },
-      'name-successor-reminder',
-      '2027-09-30',
-    ],
-    [
-      'admin just before the reminder date',
-      '2027-06-01T11:59:00Z',
-      { viewer: admin },
-      'name-successor-banner',
-      '2027-09-30',
-    ],
-    [
-      'admin in June, someone named',
-      '2027-06-20T15:00:00Z',
-      { viewer: admin, chapter: someoneNamed },
-      'successors-named',
-      '2027-09-30',
-    ],
-    [
-      'named plain member before the successor date',
-      '2027-07-15T15:00:00Z',
-      { viewer: named, chapter: someoneNamed },
+      'member of an unmanaged chapter in July',
+      '2027-07-20T15:00:00Z',
+      { chapter: unmanaged },
       'none',
       '2027-09-30',
     ],
     [
-      'named admin just before the successor date',
-      '2027-08-01T11:59:00Z',
-      { viewer: { ...admin, ...named }, chapter: someoneNamed },
-      'successors-named',
-      '2027-09-30',
-    ],
-    [
-      'named successor at the successor date',
+      'President when confirmation opens',
       '2027-08-01T12:00:00Z',
-      { viewer: named, chapter: someoneNamed },
-      'successor-must-answer',
+      { viewer: president },
+      'confirm-return',
       '2027-09-30',
     ],
     [
-      'named admin after the successor date',
-      '2027-08-03T15:00:00Z',
-      { viewer: { ...admin, ...named }, chapter: someoneNamed },
-      'successor-must-answer',
+      'admin without the President title in August',
+      '2027-08-10T15:00:00Z',
+      { viewer: admin },
+      'confirm-reminder',
       '2027-09-30',
     ],
     [
-      'named successor still unanswered in the member stage',
-      '2027-09-16T15:00:00Z',
-      { viewer: named, chapter: someoneNamed },
-      'successor-must-answer',
+      'uncleared President in August',
+      '2027-08-10T15:00:00Z',
+      { viewer: { ...president, ...uncleared } },
+      'president-not-cleared',
       '2027-09-30',
     ],
     [
-      'other named successor once the chapter is confirmed',
-      '2027-08-20T15:00:00Z',
-      { viewer: named, chapter: confirmed },
-      'co-president-offer',
+      'uncleared admin without the President title in August',
+      '2027-08-10T15:00:00Z',
+      { viewer: { ...admin, ...uncleared } },
+      'none',
       '2027-09-30',
     ],
     [
-      'other named successor just before the close instant',
-      '2027-10-01T11:59:00Z',
-      { viewer: named, chapter: confirmed },
-      'co-president-offer',
+      'plain member in August',
+      '2027-08-10T15:00:00Z',
+      {},
+      'none',
       '2027-09-30',
     ],
     [
       'the confirmed president',
       '2027-08-20T15:00:00Z',
-      { viewer: { ...admin, ...accepted }, chapter: confirmed },
+      { viewer: president, chapter: confirmed },
       'none',
       '2027-09-30',
     ],
     [
-      'another admin of a confirmed chapter',
-      '2027-08-20T15:00:00Z',
-      { viewer: admin, chapter: confirmed },
-      'none',
-      '2027-09-30',
-    ],
-    [
-      'plain member of a confirmed chapter in the member stage',
+      'member of a confirmed chapter in the member stage',
       '2027-09-16T15:00:00Z',
       { chapter: confirmed },
       'none',
       '2027-09-30',
     ],
     [
-      'member who stepped down in a confirmed chapter, in the member stage',
-      '2027-09-16T15:00:00Z',
-      { viewer: declined, chapter: confirmed },
+      'member of a confirmed unmanaged chapter in August',
+      '2027-08-10T15:00:00Z',
+      { chapter: { ...confirmed, ...unmanaged } },
       'none',
       '2027-09-30',
     ],
     [
-      'uncleared named successor of a confirmed chapter',
-      '2027-08-20T15:00:00Z',
-      { viewer: { ...named, isCleared: false }, chapter: confirmed },
-      'none',
-      '2027-09-30',
-    ],
-    [
-      'uncleared named successor',
-      '2027-08-02T15:00:00Z',
-      { viewer: { ...named, isCleared: false }, chapter: someoneNamed },
-      'successor-not-cleared',
-      '2027-09-30',
-    ],
-    [
-      'uncleared named successor in the member stage',
-      '2027-09-16T15:00:00Z',
-      { viewer: { ...named, isCleared: false }, chapter: someoneNamed },
-      'successor-not-cleared',
-      '2027-09-30',
-    ],
-    [
-      'member who stepped down, before the member stage',
-      '2027-08-05T15:00:00Z',
-      { viewer: declined },
-      'none',
-      '2027-09-30',
-    ],
-    [
-      'member who stepped down, just before the member stage',
-      '2027-09-15T11:59:00Z',
-      { viewer: declined },
-      'none',
-      '2027-09-30',
-    ],
-    [
-      'member who stepped down, at the member stage',
+      'plain member when the member stage opens',
       '2027-09-15T12:00:00Z',
-      { viewer: declined },
-      'decliner-countdown',
-      '2027-09-30',
-    ],
-    [
-      'decliner after Sept 30 ended in their zone, before the close instant',
-      '2027-10-01T05:00:00Z',
-      { viewer: declined },
-      'decliner-countdown',
-      '2027-09-30',
-    ],
-    [
-      'admin who stepped down, nobody named',
-      '2027-08-09T15:00:00Z',
-      { viewer: { ...admin, ...declined } },
-      'name-successor-reminder',
-      '2027-09-30',
-    ],
-    [
-      'admin who stepped down, someone else named',
-      '2027-08-09T15:00:00Z',
-      { viewer: { ...admin, ...declined }, chapter: someoneNamed },
-      'successors-named',
-      '2027-09-30',
-    ],
-    [
-      'plain member at the member stage',
-      '2027-09-16T15:00:00Z',
       {},
-      'member-must-answer',
+      'member-countdown',
       '2027-09-30',
     ],
     [
-      'unnamed admin at the member stage, nobody named',
+      'President at the member stage',
+      '2027-09-16T15:00:00Z',
+      { viewer: president },
+      'member-countdown',
+      '2027-09-30',
+    ],
+    [
+      'admin at the member stage',
       '2027-09-16T15:00:00Z',
       { viewer: admin },
-      'member-must-answer',
+      'member-countdown',
       '2027-09-30',
     ],
     [
-      'unnamed admin at the member stage, someone named',
+      'uncleared President at the member stage',
       '2027-09-16T15:00:00Z',
-      { viewer: admin, chapter: someoneNamed },
-      'member-must-answer',
+      { viewer: { ...president, ...uncleared } },
+      'member-not-cleared',
       '2027-09-30',
     ],
     [
       'uncleared plain member at the member stage',
       '2027-09-16T15:00:00Z',
-      { viewer: { isCleared: false } },
+      { viewer: uncleared },
       'member-not-cleared',
       '2027-09-30',
     ],
     [
-      'uncleared admin at the member stage',
-      '2027-09-16T15:00:00Z',
-      { viewer: { ...admin, isCleared: false } },
+      'member of an unmanaged chapter when confirmation opens',
+      '2027-08-01T12:00:00Z',
+      { chapter: unmanaged },
+      'member-countdown',
+      '2027-09-30',
+    ],
+    [
+      'uncleared member of an unmanaged chapter in August',
+      '2027-08-10T15:00:00Z',
+      { viewer: uncleared, chapter: unmanaged },
       'member-not-cleared',
-      '2027-09-30',
-    ],
-    [
-      'uncleared member who stepped down, at the member stage',
-      '2027-09-16T15:00:00Z',
-      { viewer: { ...declined, isCleared: false } },
-      'member-not-cleared',
-      '2027-09-30',
-    ],
-    [
-      'uncleared admin in May, nobody named',
-      '2027-05-03T15:00:00Z',
-      { viewer: { ...admin, isCleared: false } },
-      'none',
-      '2027-09-30',
-    ],
-    [
-      'uncleared admin in June, nobody named',
-      '2027-06-03T15:00:00Z',
-      { viewer: { ...admin, isCleared: false } },
-      'none',
       '2027-09-30',
     ],
     [
@@ -329,7 +218,7 @@ describe('renewalPromptFor', () => {
         viewer: admin,
         chapter: { createdAt: new Date('2027-06-30T23:59:00Z') },
       },
-      'name-successor-reminder',
+      'handoff-banner',
       '2027-09-30',
     ],
     [
@@ -343,9 +232,9 @@ describe('renewalPromptFor', () => {
       '2027-09-30',
     ],
     [
-      'named successor at the close instant moves to the next cycle',
+      'member at the close instant moves to the next cycle',
       '2027-10-01T12:00:00Z',
-      { viewer: named, chapter: confirmed },
+      {},
       'none',
       '2028-09-30',
     ],
@@ -353,66 +242,6 @@ describe('renewalPromptFor', () => {
     expect(renewalPromptFor(input(now, overrides))).toMatchObject({
       prompt,
       closesOn,
-    })
-  })
-
-  describe('a viewer with any ban gets no prompt', () => {
-    it.each<[string, string, Overrides]>([
-      [
-        'uncleared banned named successor',
-        '2027-08-02T15:00:00Z',
-        {
-          viewer: { ...named, isCleared: false, isBanned: true },
-          chapter: someoneNamed,
-        },
-      ],
-      [
-        'cleared banned named successor (live media ban)',
-        '2027-08-02T15:00:00Z',
-        { viewer: { ...named, isBanned: true }, chapter: someoneNamed },
-      ],
-      [
-        'banned named successor of a confirmed chapter',
-        '2027-08-20T15:00:00Z',
-        { viewer: { ...named, isBanned: true }, chapter: confirmed },
-      ],
-      [
-        'banned admin in May',
-        '2027-05-03T15:00:00Z',
-        { viewer: { ...admin, isBanned: true } },
-      ],
-      [
-        'banned admin in June',
-        '2027-06-03T15:00:00Z',
-        { viewer: { ...admin, isBanned: true } },
-      ],
-      [
-        'banned admin, someone named',
-        '2027-06-20T15:00:00Z',
-        { viewer: { ...admin, isBanned: true }, chapter: someoneNamed },
-      ],
-      [
-        'banned member at the member stage',
-        '2027-09-16T15:00:00Z',
-        { viewer: { isBanned: true } },
-      ],
-      [
-        'banned uncleared member at the member stage',
-        '2027-09-16T15:00:00Z',
-        { viewer: { isBanned: true, isCleared: false } },
-      ],
-      [
-        'banned member who stepped down, at the member stage',
-        '2027-09-16T15:00:00Z',
-        { viewer: { ...declined, isBanned: true } },
-      ],
-    ])('%s', (_label, now, overrides) => {
-      expect(renewalPromptFor(input(now, overrides))).toEqual({
-        prompt: 'none',
-        closesOn: null,
-        successorConfirmationOn: null,
-        namingClosesOn: null,
-      })
     })
   })
 
@@ -432,40 +261,25 @@ describe('renewalPromptFor', () => {
         '2027-10-15',
       ],
       [
-        'admin before the moved member stage, nobody named',
+        'President before the moved member stage',
         '2027-09-16T15:00:00Z',
-        { dates: movedMemberStage, viewer: admin },
-        'name-successor-reminder',
+        { dates: movedMemberStage, viewer: president },
+        'confirm-return',
         '2027-10-15',
       ],
       [
         'plain member at the moved member stage',
         '2027-09-22T12:00:00Z',
         { dates: movedMemberStage },
-        'member-must-answer',
+        'member-countdown',
         '2027-10-15',
       ],
       [
         'close date moved behind now',
         '2027-09-25T14:00:00Z',
-        { dates: { ...DATES, closeDate: '09-24' }, viewer: declined },
+        { dates: { ...DATES, closeDate: '09-24' } },
         'none',
         '2028-09-24',
-      ],
-      [
-        'close date on Dec 31 closes on Jan 1 noon UTC',
-        '2027-12-31T20:00:00Z',
-        {
-          dates: {
-            nominationsOpen: '01-15',
-            adminReminder: '02-01',
-            successorConfirmation: '03-01',
-            memberStage: '04-01',
-            closeDate: '12-31',
-          },
-        },
-        'member-must-answer',
-        '2027-12-31',
       ],
       [
         'close date on Dec 31, on Jan 1 before the close instant',
@@ -473,13 +287,12 @@ describe('renewalPromptFor', () => {
         {
           dates: {
             nominationsOpen: '01-15',
-            adminReminder: '02-01',
             successorConfirmation: '03-01',
             memberStage: '04-01',
             closeDate: '12-31',
           },
         },
-        'member-must-answer',
+        'member-countdown',
         '2027-12-31',
       ],
     ])('%s', (_label, now, overrides, prompt, closesOn) => {
@@ -490,231 +303,29 @@ describe('renewalPromptFor', () => {
     })
   })
 
-  it.each<[string, string, Overrides, string | null, string | null]>([
-    [
-      'renewing chapter',
-      '2027-05-03T15:00:00Z',
-      {},
-      '2027-08-01',
-      '2027-09-14',
-    ],
-    [
-      'moved member stage',
-      '2027-05-03T15:00:00Z',
-      { dates: { ...DATES, memberStage: '09-01' } },
-      '2027-08-01',
-      '2027-08-31',
-    ],
+  it.each<[string, string, Overrides, string | null]>([
+    ['renewing chapter', '2027-05-03T15:00:00Z', {}, '2027-08-01'],
     [
       'after the close instant, the next cycle',
       '2027-10-01T12:00:00Z',
       {},
       '2028-08-01',
-      '2028-09-14',
     ],
     [
       'closed chapter',
       '2027-05-03T15:00:00Z',
       { chapter: { closedAt: new Date('2027-03-01T00:00:00Z') } },
       null,
-      null,
     ],
-    ['flag off', '2027-05-03T15:00:00Z', { dates: null }, null, null],
+    ['flag off', '2027-05-03T15:00:00Z', { dates: null }, null],
   ])(
-    'dates the successor can accept and naming closes: %s',
-    (_label, now, overrides, successorConfirmationOn, namingClosesOn) => {
-      expect(renewalPromptFor(input(now, overrides))).toMatchObject({
-        successorConfirmationOn,
-        namingClosesOn,
-      })
+    'the date confirmation opens: %s',
+    (_label, now, overrides, successorConfirmationOn) => {
+      expect(
+        renewalPromptFor(input(now, overrides)).successorConfirmationOn
+      ).toBe(successorConfirmationOn)
     }
   )
-})
-
-describe('renewalControlsFor', () => {
-  it.each<[string, string, Overrides, boolean, boolean]>([
-    [
-      'flag off',
-      '2027-05-03T15:00:00Z',
-      { dates: null, viewer: admin },
-      false,
-      false,
-    ],
-    [
-      'admin before nominations open',
-      '2027-04-30T15:00:00Z',
-      { viewer: admin },
-      false,
-      false,
-    ],
-    [
-      'unnamed admin when nominations open',
-      '2027-05-01T12:00:00Z',
-      { viewer: admin },
-      true,
-      false,
-    ],
-    [
-      'unnamed admin in May',
-      '2027-05-03T15:00:00Z',
-      { viewer: admin },
-      true,
-      false,
-    ],
-    [
-      'unnamed admin in June, someone else named',
-      '2027-06-05T15:00:00Z',
-      { viewer: admin, chapter: someoneNamed },
-      true,
-      false,
-    ],
-    [
-      'unnamed admin just before the successor date',
-      '2027-08-01T11:59:00Z',
-      { viewer: admin },
-      true,
-      false,
-    ],
-    [
-      'unnamed admin at the successor date',
-      '2027-08-01T12:00:00Z',
-      { viewer: admin },
-      true,
-      true,
-    ],
-    [
-      'unnamed admin after the successor date',
-      '2027-08-10T15:00:00Z',
-      { viewer: admin },
-      true,
-      true,
-    ],
-    [
-      'named admin',
-      '2027-05-03T15:00:00Z',
-      { viewer: { ...admin, ...named }, chapter: someoneNamed },
-      false,
-      false,
-    ],
-    [
-      'admin who stepped down',
-      '2027-08-09T15:00:00Z',
-      { viewer: { ...admin, ...declined } },
-      false,
-      true,
-    ],
-    [
-      'admin of a confirmed chapter',
-      '2027-08-20T15:00:00Z',
-      { viewer: admin, chapter: confirmed },
-      false,
-      true,
-    ],
-    [
-      'unnamed admin when the member stage starts',
-      '2027-09-15T12:00:00Z',
-      { viewer: admin },
-      false,
-      true,
-    ],
-    [
-      'admin at the member stage',
-      '2027-09-16T15:00:00Z',
-      { viewer: admin },
-      false,
-      true,
-    ],
-    ['plain member in May', '2027-05-03T15:00:00Z', {}, false, false],
-    [
-      'uncleared admin in May',
-      '2027-05-03T15:00:00Z',
-      { viewer: { ...admin, isCleared: false } },
-      false,
-      false,
-    ],
-    [
-      'banned admin in May',
-      '2027-05-03T15:00:00Z',
-      { viewer: { ...admin, isBanned: true } },
-      false,
-      false,
-    ],
-    [
-      'banned admin after the successor date',
-      '2027-08-10T15:00:00Z',
-      { viewer: { ...admin, isBanned: true } },
-      false,
-      false,
-    ],
-    [
-      'admin of a closed chapter',
-      '2027-05-03T15:00:00Z',
-      {
-        viewer: admin,
-        chapter: { closedAt: new Date('2027-03-01T00:00:00Z') },
-      },
-      false,
-      false,
-    ],
-    [
-      'admin of a chapter not renewing this cycle',
-      '2027-08-10T15:00:00Z',
-      {
-        viewer: admin,
-        chapter: { createdAt: new Date('2027-07-20T00:00:00Z') },
-      },
-      false,
-      false,
-    ],
-  ])('%s', (_label, now, overrides, canNameSelf, namingSelfAccepts) => {
-    expect(renewalControlsFor(input(now, overrides))).toMatchObject({
-      canNameSelf,
-      namingSelfAccepts,
-    })
-  })
-
-  it.each([
-    ['before the member stage', '2027-09-14T15:00:00Z', {}, false],
-    ['at the member stage', '2027-09-15T12:00:00Z', {}, true],
-    [
-      'for a banned viewer',
-      '2027-09-16T15:00:00Z',
-      { viewer: { ...admin, isBanned: true } },
-      false,
-    ],
-    ['with the flag off', '2027-09-16T15:00:00Z', { dates: null }, false],
-  ])('memberStageOpen %s', (_label, now, overrides, expected) => {
-    expect(renewalControlsFor(input(now, overrides)).memberStageOpen).toBe(
-      expected
-    )
-  })
-
-  it.each([
-    ['a self-named admin', { viewer: admin, chapter: selfNamed }, true],
-    [
-      'a self-named admin who is banned',
-      { viewer: { ...admin, isBanned: true }, chapter: selfNamed },
-      false,
-    ],
-    [
-      'a self-named admin of a chapter not renewing this cycle',
-      {
-        viewer: admin,
-        chapter: { ...selfNamed, createdAt: new Date('2027-07-20T00:00:00Z') },
-      },
-      false,
-    ],
-    [
-      'a self-named admin with the flag off',
-      { dates: null, viewer: admin, chapter: selfNamed },
-      false,
-    ],
-    ['an admin named by someone else', { viewer: admin }, false],
-  ])('namedSelf for %s', (_label, overrides, expected) => {
-    expect(
-      renewalControlsFor(input('2027-08-10T15:00:00Z', overrides)).namedSelf
-    ).toBe(expected)
-  })
 })
 
 describe('renewal cycle windows', () => {

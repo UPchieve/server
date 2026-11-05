@@ -37,7 +37,6 @@ const client = getClient()
 
 const DATES = {
   nominationsOpen: '05-01',
-  adminReminder: '06-01',
   successorConfirmation: '08-01',
   memberStage: '09-15',
   closeDate: '09-30',
@@ -45,12 +44,10 @@ const DATES = {
 const SCHOOL_YEAR = '2026-07-01'
 const FOUNDED_AT = '2026-02-10T15:00:00.000Z'
 const FOUNDED_AFTER_YEAR_START = '2026-07-15T15:00:00.000Z'
-const NAMED_AT = new Date('2026-05-03T15:00:00.000Z')
 const RESPONDED_AT = new Date('2026-08-03T15:00:00.000Z')
 const DEPARTED_AT = '2026-04-05T15:00:00.000Z'
 
 const TEMPLATES = config.sendgrid.nthsRenewal
-const SUCCESSOR_DATE = 'August 1'
 const CLOSE_DATE = 'September 30'
 
 const at = (iso: string) => new Date(iso)
@@ -72,8 +69,6 @@ const OCT_1_1800 = at('2026-10-01T18:00:00.000Z')
 const OCT_2_1200 = at('2026-10-02T12:00:00.000Z')
 
 type CandidateOptions = {
-  namedAt?: Date | null
-  namedBy?: Ulid | null
   accepted?: boolean | null
   schoolYear?: string
   respondedAt?: Date
@@ -201,14 +196,12 @@ async function addCandidate(
   const accepted = options.accepted ?? null
   await client.query(
     `INSERT INTO nths_group_renewal_candidates
-       (nths_group_id, school_year_starts_on, user_id, named_at, named_by, accepted, responded_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+       (nths_group_id, school_year_starts_on, user_id, accepted, responded_at)
+     VALUES ($1, $2, $3, $4, $5)`,
     [
       groupId,
       options.schoolYear ?? SCHOOL_YEAR,
       userId,
-      options.namedAt === undefined ? NAMED_AT : options.namedAt,
-      options.namedBy ?? null,
       accepted,
       accepted === null ? null : (options.respondedAt ?? RESPONDED_AT),
     ]
@@ -326,7 +319,7 @@ async function confirmedChapter() {
   const groupId = await chapter()
   const acceptor = await addMember(groupId, { admin: true })
   const member = await addMember(groupId)
-  await addCandidate(groupId, acceptor, { namedBy: acceptor, accepted: true })
+  await addCandidate(groupId, acceptor, { accepted: true })
   return { groupId, acceptor, member }
 }
 
@@ -347,37 +340,31 @@ describe('chapter job spawner', () => {
   })
 })
 
-describe('nominations email', () => {
-  test('goes once to a cleared admin of a renewing chapter with nobody named, with the successor and close dates', async () => {
-    const { groupId, admin } = await unconfirmedChapter()
+describe('handoff email', () => {
+  test('goes once to a cleared admin of a renewing chapter, banned included, with the confirmation and close dates', async () => {
+    const groupId = await chapter()
+    const admin = await addMember(groupId, { admin: true })
+    const banned = await addMember(groupId, {
+      admin: true,
+      banType: USER_BAN_TYPES.COMPLETE,
+    })
+    await addMember(groupId, { admin: true, onboarded: false })
 
     await runChapterRenewal(MAY_3)
     await runChapterRenewal(MAY_4)
 
-    expect(sends()).toEqual([
-      {
-        userId: admin,
-        templateId: TEMPLATES.nominationsOpen,
-        data: {
-          firstName: await nameOf(admin),
-          chapterName: await chapterName(groupId),
-          successorDate: SUCCESSOR_DATE,
-          closeDate: CLOSE_DATE,
-        },
+    expect(recipients(TEMPLATES.handoff)).toHaveLength(3)
+    expect(sends(TEMPLATES.handoff)).toContainEqual({
+      userId: admin,
+      templateId: TEMPLATES.handoff,
+      data: {
+        firstName: await nameOf(admin),
+        chapterName: await chapterName(groupId),
+        closeDate: CLOSE_DATE,
       },
-    ])
-    expect(await recorded(admin)).toEqual([TEMPLATES.nominationsOpen])
-  })
-
-  test('reaches an admin who has not finished onboarding', async () => {
-    const admin = await addMember(await chapter(), {
-      admin: true,
-      onboarded: false,
     })
-
-    await runChapterRenewal(MAY_3)
-
-    expect(recipients()).toContain(admin)
+    expect(recipients(TEMPLATES.handoff)).toContain(banned)
+    expect(await recorded(admin)).toEqual([TEMPLATES.handoff])
   })
 
   test.each([
@@ -388,14 +375,6 @@ describe('nominations email', () => {
         addMember(await chapter(), { admin: true, highSchool: false }),
     ],
     [
-      'a banned admin',
-      async () =>
-        addMember(await chapter(), {
-          admin: true,
-          banType: USER_BAN_TYPES.COMPLETE,
-        }),
-    ],
-    [
       'an admin whose account is deactivated',
       async () =>
         addMember(await chapter(), { admin: true, deactivated: true }),
@@ -403,29 +382,6 @@ describe('nominations email', () => {
     [
       'a deleted admin',
       async () => addMember(await chapter(), { admin: true, deleted: true }),
-    ],
-    [
-      'an admin of a chapter with someone named',
-      async () => {
-        const groupId = await chapter()
-        const admin = await addMember(groupId, { admin: true })
-        await addCandidate(groupId, await addMember(groupId), {
-          namedBy: admin,
-        })
-        return admin
-      },
-    ],
-    [
-      'an admin of a chapter with a confirmed president nobody named',
-      async () => {
-        const groupId = await chapter()
-        const admin = await addMember(groupId, { admin: true })
-        await addCandidate(groupId, await addMember(groupId), {
-          namedAt: null,
-          accepted: true,
-        })
-        return admin
-      },
     ],
     [
       'an admin of a chapter founded after the school year began',
@@ -449,113 +405,80 @@ describe('nominations email', () => {
     expect(recipients()).not.toContain(userId)
   })
 
-  test('is not sent from the member stage on', async () => {
+  test('is not sent once confirmation opens', async () => {
     await unconfirmedChapter()
 
-    await runChapterRenewal(MEMBER_STAGE_OPENS)
+    await runChapterRenewal(AUG_2)
 
-    expect(sends(TEMPLATES.nominationsOpen)).toEqual([])
+    expect(sends(TEMPLATES.handoff)).toEqual([])
   })
 })
 
-describe('named successor email', () => {
-  test('goes once to each named member who has not answered, saying who named themselves', async () => {
-    const groupId = await chapter()
-    const admin = await addMember(groupId, { admin: true })
-    const member = await addMember(groupId)
-    await addCandidate(groupId, admin, { namedBy: admin })
-    await addCandidate(groupId, member, { namedBy: admin })
+describe('confirm email', () => {
+  test.each([
+    ['the President title', 'President', true],
+    ['another title', 'Member', false],
+  ])(
+    'goes once to a cleared admin with %s, with isPresident and the close date',
+    async (_label, title, isPresident) => {
+      const groupId = await chapter()
+      const admin = await addMember(groupId, { admin: true, title })
 
-    await runChapterRenewal(AUG_2)
-    await runChapterRenewal(AUG_3)
+      await runChapterRenewal(AUG_2)
+      await runChapterRenewal(AUG_3)
 
-    const common = {
-      chapterName: await chapterName(groupId),
-      closeDate: CLOSE_DATE,
-      chapterConfirmed: false,
-    }
-    expect(
-      sends(TEMPLATES.namedSuccessor).sort((a, b) =>
-        a.userId.localeCompare(b.userId)
-      )
-    ).toEqual(
-      [
+      expect(sends(TEMPLATES.confirmReturn)).toEqual([
         {
           userId: admin,
-          templateId: TEMPLATES.namedSuccessor,
-          data: { ...common, firstName: await nameOf(admin), selfNamed: true },
-        },
-        {
-          userId: member,
-          templateId: TEMPLATES.namedSuccessor,
+          templateId: TEMPLATES.confirmReturn,
           data: {
-            ...common,
-            firstName: await nameOf(member),
-            selfNamed: false,
+            firstName: await nameOf(admin),
+            chapterName: await chapterName(groupId),
+            closeDate: CLOSE_DATE,
+            isPresident,
           },
         },
-      ].sort((a, b) => a.userId.localeCompare(b.userId))
-    )
-  })
+      ])
+    }
+  )
 
-  test('tells a named member when someone else already accepted', async () => {
-    const { groupId, acceptor, member } = await confirmedChapter()
-    await addCandidate(groupId, member, { namedBy: acceptor })
-
-    await runChapterRenewal(AUG_2)
-
-    expect(sends(TEMPLATES.namedSuccessor)).toEqual([
-      expect.objectContaining({
-        userId: member,
-        data: expect.objectContaining({
-          selfNamed: false,
-          chapterConfirmed: true,
-        }),
-      }),
-    ])
-  })
-
-  test('goes to a named member who is not cleared', async () => {
-    const groupId = await chapter()
-    const admin = await addMember(groupId, { admin: true })
-    const uncleared = await addMember(groupId, {
-      highSchool: false,
-      onboarded: false,
-    })
-    await addCandidate(groupId, uncleared, { namedBy: admin })
+  test.each([
+    ['a plain member', () => unconfirmedChapter().then((c) => c.member)],
+    [
+      'an uncleared admin',
+      async () => {
+        const groupId = await chapter()
+        await addMember(groupId, { admin: true })
+        return addMember(groupId, { admin: true, highSchool: false })
+      },
+    ],
+    [
+      'an admin of a chapter with a confirmed president',
+      async () => (await confirmedChapter()).acceptor,
+    ],
+  ])('skips %s', async (_label, seed) => {
+    const userId = await seed()
 
     await runChapterRenewal(AUG_2)
 
-    expect(recipients(TEMPLATES.namedSuccessor)).toEqual([uncleared])
+    expect(recipients(TEMPLATES.confirmReturn)).not.toContain(userId)
   })
 
   test.each([
-    ['a banned named member', { banType: USER_BAN_TYPES.COMPLETE }, null],
-    ['a named member who stepped down', {}, false],
-  ])('skips %s', async (_label, options, accepted) => {
-    const groupId = await chapter()
-    const admin = await addMember(groupId, { admin: true })
-    const named = await addMember(groupId, options)
-    await addCandidate(groupId, named, { namedBy: admin, accepted })
+    ['before confirmation opens', BEFORE_SUCCESSOR_DATE, 0],
+    ['at the confirmation date', AUG_2, 1],
+    ['from the member stage on', MEMBER_STAGE_OPENS, 0],
+  ])('is sent %s: %i', async (_label, now, count) => {
+    await unconfirmedChapter()
 
-    await runChapterRenewal(AUG_2)
+    await runChapterRenewal(now)
 
-    expect(sends(TEMPLATES.namedSuccessor)).toEqual([])
-  })
-
-  test('is not sent before the successor date', async () => {
-    const groupId = await chapter()
-    const admin = await addMember(groupId, { admin: true })
-    await addCandidate(groupId, await addMember(groupId), { namedBy: admin })
-
-    await runChapterRenewal(BEFORE_SUCCESSOR_DATE)
-
-    expect(sends(TEMPLATES.namedSuccessor)).toEqual([])
+    expect(sends(TEMPLATES.confirmReturn)).toHaveLength(count)
   })
 })
 
 describe('member stage email', () => {
-  test('goes once to every current member of an unconfirmed renewing chapter, uncleared included, banned excluded', async () => {
+  test('goes once to every current member of an unconfirmed renewing chapter, uncleared and banned included', async () => {
     const groupId = await chapter()
     const admin = await addMember(groupId, { admin: true })
     const member = await addMember(groupId)
@@ -563,13 +486,18 @@ describe('member stage email', () => {
       highSchool: false,
       onboarded: false,
     })
-    await addMember(groupId, { banType: USER_BAN_TYPES.COMPLETE })
+    const banned = await addMember(groupId, {
+      banType: USER_BAN_TYPES.COMPLETE,
+    })
+    await addMember(groupId, { deactivated: true })
     await addMember(groupId, { deactivatedAt: DEPARTED_AT })
 
     await runChapterRenewal(SEPT_16)
     await runChapterRenewal(SEPT_17)
 
-    expect(recipients()).toEqual([admin, member, uncleared].sort())
+    expect(recipients(TEMPLATES.memberStage)).toEqual(
+      [admin, member, uncleared, banned].sort()
+    )
     expect(sends(TEMPLATES.memberStage)).toContainEqual({
       userId: member,
       templateId: TEMPLATES.memberStage,
@@ -590,12 +518,25 @@ describe('member stage email', () => {
   })
 
   test.each([
+    ['a managed chapter', true, 0],
+    ['an unmanaged chapter', false, 1],
+  ])('on the confirmation date, %s gets %i', async (_label, managed, count) => {
+    const groupId = await chapter()
+    await addMember(groupId, { admin: managed })
+    await addMember(groupId, { admin: true, highSchool: false })
+
+    await runChapterRenewal(AUG_2)
+
+    expect(sends(TEMPLATES.memberStage)).toHaveLength(count * 2)
+  })
+
+  test.each([
     ['is not sent before the member stage opens', AUG_3, 0],
     ['goes out at the instant the member stage opens', MEMBER_STAGE_OPENS, 1],
     ['stops at 11:00 UTC on the day after the close date', OCT_1_1100, 0],
   ])('the email %s', async (_label, now, count) => {
     const groupId = await chapter()
-    await addMember(groupId)
+    await addMember(groupId, { admin: true })
 
     await runChapterRenewal(now)
 
@@ -604,8 +545,8 @@ describe('member stage email', () => {
 
   test.each([
     [
-      'nominations',
-      TEMPLATES.nominationsOpen,
+      'handoff',
+      TEMPLATES.handoff,
       [MAY_3, MAY_4, MAY_5],
       async (groupId: Ulid, member: Ulid) => {
         await makeAdmin(groupId, member)
@@ -654,17 +595,15 @@ describe('renewal flag and dates', () => {
   test('sends nothing to a person with the flag off, then sends on the next run once it is on', async () => {
     const groupId = await chapter()
     const admin = await addMember(groupId, { admin: true })
-    const named = await addMember(groupId)
-    await addCandidate(groupId, named, { namedBy: admin })
-    flagOff.add(named)
+    flagOff.add(admin)
 
     await runChapterRenewal(AUG_2)
-    expect(recipients(TEMPLATES.namedSuccessor)).toEqual([])
-    expect(await recorded(named)).toEqual([])
+    expect(recipients(TEMPLATES.confirmReturn)).toEqual([])
+    expect(await recorded(admin)).toEqual([])
 
-    flagOff.delete(named)
+    flagOff.delete(admin)
     await runChapterRenewal(AUG_3)
-    expect(recipients(TEMPLATES.namedSuccessor)).toEqual([named])
+    expect(recipients(TEMPLATES.confirmReturn)).toEqual([admin])
   })
 
   test('sends and closes nothing when there are no renewal dates', async () => {
@@ -896,7 +835,7 @@ describe('closing unconfirmed chapters', () => {
 
 describe('closing under concurrent changes', () => {
   async function confirmPresident(groupId: Ulid, admin: Ulid) {
-    await addCandidate(groupId, admin, { namedBy: admin, accepted: true })
+    await addCandidate(groupId, admin, { accepted: true })
   }
 
   test('leaves a chapter open when its president is confirmed after the run read it as due', async () => {
@@ -1043,7 +982,6 @@ describe('closed email recipients', () => {
       await addMember(groupId)
       if (confirmed) {
         await addCandidate(groupId, president, {
-          namedBy: president,
           accepted: true,
         })
       }
@@ -1090,7 +1028,6 @@ describe('renewal confirmation scoping', () => {
     const groupId = await chapter()
     const acceptor = await addMember(groupId, { admin: true })
     await addCandidate(groupId, acceptor, {
-      namedBy: acceptor,
       accepted: true,
       schoolYear: '2025-07-01',
     })
@@ -1106,23 +1043,15 @@ describe('renewal confirmation scoping', () => {
     expect(recipients(TEMPLATES.chapterClosed)).toEqual([acceptor])
   })
 
-  test.each([
-    ['has not answered', null],
-    ['stepped down', false],
-  ])(
-    'a named successor who %s does not save the chapter',
-    async (_label, accepted) => {
-      const { groupId, admin, member } = await unconfirmedChapter()
-      await addCandidate(groupId, member, { namedBy: admin, accepted })
+  test('a member who has not answered does not save the chapter', async () => {
+    const { groupId, admin, member } = await unconfirmedChapter()
+    await addCandidate(groupId, member, { accepted: null })
 
-      await runChapterRenewal(OCT_1_1300)
+    await runChapterRenewal(OCT_1_1300)
 
-      expect(await closedAtOf(groupId)).not.toBeNull()
-      expect(recipients(TEMPLATES.chapterClosed)).toEqual(
-        [admin, member].sort()
-      )
-    }
-  )
+    expect(await closedAtOf(groupId)).not.toBeNull()
+    expect(recipients(TEMPLATES.chapterClosed)).toEqual([admin, member].sort())
+  })
 
   test('a confirmation for the previous school year does not stop the member-stage email', async () => {
     const { acceptor } = await chapterWithPreviousYearConfirmation()
@@ -1142,7 +1071,6 @@ describe('renewal confirmation scoping', () => {
       const acceptor = await addMember(groupId, { admin: true })
       const member = await addMember(groupId)
       await addCandidate(groupId, acceptor, {
-        namedBy: acceptor,
         accepted: true,
         respondedAt,
       })
@@ -1165,7 +1093,7 @@ describe('renewal email recipients', () => {
     ],
     ['was deleted', (_groupId: Ulid, userId: Ulid) => deleteAccount(userId)],
   ])(
-    'a chapter whose acceptor %s still gets the nominations and member-stage emails',
+    'a chapter whose acceptor %s still gets the handoff and member-stage emails',
     async (_label, remove) => {
       const { groupId, acceptor, member } = await confirmedChapter()
       const otherAdmin = await addMember(groupId, { admin: true })
@@ -1174,36 +1102,12 @@ describe('renewal email recipients', () => {
       await runChapterRenewal(MAY_3)
       await runChapterRenewal(SEPT_16)
 
-      expect(recipients(TEMPLATES.nominationsOpen)).toEqual([otherAdmin])
+      expect(recipients(TEMPLATES.handoff)).toEqual([otherAdmin])
       expect(recipients(TEMPLATES.memberStage)).toEqual(
         [otherAdmin, member].sort()
       )
     }
   )
-
-  test('nominations resume after the only named successor steps down', async () => {
-    const groupId = await chapter()
-    const admin = await addMember(groupId, { admin: true })
-    await addCandidate(groupId, await addMember(groupId), {
-      namedBy: admin,
-      accepted: false,
-    })
-
-    await runChapterRenewal(MAY_3)
-
-    expect(recipients(TEMPLATES.nominationsOpen)).toEqual([admin])
-  })
-
-  test('the named successor email still sends after the member stage opens', async () => {
-    const groupId = await chapter()
-    const admin = await addMember(groupId, { admin: true })
-    const named = await addMember(groupId)
-    await addCandidate(groupId, named, { namedBy: admin })
-
-    await runChapterRenewal(SEPT_16)
-
-    expect(recipients(TEMPLATES.namedSuccessor)).toEqual([named])
-  })
 })
 
 describe('staff close email', () => {
