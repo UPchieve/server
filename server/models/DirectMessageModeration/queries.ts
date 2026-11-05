@@ -3,14 +3,14 @@ import { getClient, TransactionClient } from '../../db'
 import { getDbUlid, makeRequired } from '../pgUtils'
 import { RepoCreateError, RepoReadError } from '../Errors'
 import type { Uuid } from '../../types/shared'
-import type { DirectMessageModerationSource } from '../../types/direct-message-moderation'
+import type { ModerationSystem } from '../../types/moderation'
 
 export async function createCensoredDirectMessage(
   data: {
     conversationId: Uuid
     senderId: Uuid
     message: string
-    censoredBy: DirectMessageModerationSource
+    censoredBy: ModerationSystem
     reasons: string[]
     blocked: boolean
   },

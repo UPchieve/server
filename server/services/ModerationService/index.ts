@@ -62,6 +62,10 @@ import {
 } from '../../models/ModerationSettings/queries'
 import { GetModerationSettingResult } from '../../models/ModerationSettings/types'
 import * as ModerationTypes from './types'
+import type {
+  DirectMessage,
+  DirectMessageModerationContext,
+} from '../../types/direct-messages'
 import { ModerationAIResult, ModerationSource } from './types'
 import { weightModerationInfractions } from './ModerationPenaltyService'
 import * as Regex from './regex'
@@ -1714,4 +1718,61 @@ export function getSessionFlagByModerationReason(
     default:
       return UserSessionFlags.generalModerationIssue
   }
+}
+
+type ContextualModerationResponse = {
+  confidence: number
+  reasons: string[]
+}
+
+export async function moderatePendingMessage(
+  data: DirectMessageModerationContext,
+  recentMessages: Pick<DirectMessage, 'senderId' | 'contents'>[],
+  trace: LangfuseTraceClient
+): Promise<string[]> {
+  const promptData = await PromptService.getPromptWithFallback(
+    PromptService.PromptName.DIRECT_MESSAGE_MODERATION
+  )
+
+  const input = JSON.stringify({
+    history: recentMessages.map((item) => ({
+      role: item.senderId === data.studentId ? 'student' : 'volunteer',
+      message: item.contents,
+    })),
+    pendingMessage: {
+      role: data.senderId === data.studentId ? 'student' : 'volunteer',
+      message: data.message,
+    },
+  })
+  const response = await runWithModelObservation(
+    () =>
+      OpenAIService.invokeModel({
+        prompt: promptData.prompt,
+        userMessage: input,
+      }),
+    {
+      trace,
+      name: 'moderatePendingDirectMessage',
+      model: OpenAIService.MODEL_ID,
+      input,
+      prompt: promptData.promptObject,
+    }
+  )
+  const result = response.results as ContextualModerationResponse
+  if (!Number.isFinite(result?.confidence) || !Array.isArray(result.reasons)) {
+    throw new Error('Could not read pending DM moderation result')
+  }
+  const settings = await getModerationContextualSettings()
+  const reasons = [...new Set(result.reasons)].filter((reason) => {
+    const threshold = Number(
+      settings[reason]?.threshold ??
+        config.contextualModerationConfidenceThreshold
+    )
+    const thresholdPercent = threshold <= 1 ? threshold * 100 : threshold
+    return result.confidence >= thresholdPercent
+  })
+  if (reasons.length) {
+    addTraceTags(trace, ['flagged-by-moderation'])
+  }
+  return reasons
 }

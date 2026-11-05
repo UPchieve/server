@@ -190,8 +190,8 @@ import type { SchoolPublic } from '../../types/schools'
 import type {
   DirectMessage,
   DirectMessageConversation,
+  DirectMessageModerationContext,
 } from '../../types/direct-messages'
-import type { DirectMessageModerationContext } from '../../types/direct-message-moderation'
 import type { RegexModerationResult } from '../../services/ModerationService/types'
 
 /** Suffixed with a uuid because users.email and parents_guardians.email are UNIQUE. */

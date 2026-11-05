@@ -23,6 +23,7 @@ export type ModelObservationName =
   | 'detectPiiInText'
   | 'isImageEducational'
   | 'moderateImage'
+  | 'moderatePendingDirectMessage'
 export type TraceTag = 'flagged-by-moderation'
 
 export type TraceOptions = {

@@ -1,12 +1,12 @@
 import { Ulid } from '../pgUtils'
-import { CENSORED_BY } from './queries'
+import type { ModerationSystem } from '../../types/moderation'
 
 export type CensoredSessionMessage = {
   id: Ulid
   senderId: Ulid
   message: string
   sessionId: Ulid
-  censoredBy: keyof typeof CENSORED_BY
+  censoredBy: ModerationSystem
   sentAt: Date
   shown: boolean
 }

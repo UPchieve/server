@@ -6,7 +6,7 @@ import * as ModerationService from '../../services/ModerationService'
 import * as Regex from '../../services/ModerationService/regex'
 import * as DirectMessageModerationRepo from '../../models/DirectMessageModeration/queries'
 import { client as langfuseClient } from '../../clients/langfuse'
-import type { DirectMessageModerationContext } from '../../types/direct-message-moderation'
+import type { DirectMessageModerationContext } from '../../types/direct-messages'
 import {
   buildDirectMessage,
   buildDirectMessageModerationContext,
@@ -33,7 +33,7 @@ beforeEach(() => {
   )
   mockedRegex.regexModerate.mockResolvedValue(buildRegexModerationResult())
   mockedDirectMessageModerationRepo.getRecentMessages.mockResolvedValue([])
-  mockedModerationService.moderateTranscript.mockResolvedValue([])
+  mockedModerationService.moderatePendingMessage.mockResolvedValue([])
 })
 
 afterEach(() => {
@@ -120,35 +120,17 @@ describe('moderateMessage', () => {
       expect(
         mockedDirectMessageModerationRepo.getRecentMessages
       ).toHaveBeenCalledWith(context.conversationId, 50)
-      expect(mockedModerationService.moderateTranscript).toHaveBeenCalledWith(
-        expect.objectContaining({
-          messages: [
-            expect.objectContaining({
-              messageId: previousMessage.id,
-              role: 'volunteer',
-            }),
-            expect.objectContaining({
-              messageId: 'pending',
-              role: 'student',
-              message: context.message,
-            }),
-          ],
-        }),
-        expect.anything()
-      )
+      expect(
+        mockedModerationService.moderatePendingMessage
+      ).toHaveBeenCalledWith(context, [previousMessage], expect.anything())
       expect(
         mockedModerationService.getAiModerationResult
       ).not.toHaveBeenCalled()
     })
 
-    test('blocks contextual violations and removes duplicate reasons', async () => {
-      mockedModerationService.moderateTranscript.mockResolvedValue([
-        {
-          reason: 'PLATFORM_CIRCUMVENTION',
-          message: 'context',
-          confidence: 90,
-        },
-        { reason: 'PLATFORM_CIRCUMVENTION', message: 'other', confidence: 90 },
+    test('blocks violations returned for the pending message', async () => {
+      mockedModerationService.moderatePendingMessage.mockResolvedValue([
+        'PLATFORM_CIRCUMVENTION',
       ])
       const result =
         await DirectMessageModerationService.moderateMessage(context)
@@ -160,7 +142,7 @@ describe('moderateMessage', () => {
     })
 
     test('prevents delivery when contextual moderation fails', async () => {
-      mockedModerationService.moderateTranscript.mockRejectedValue(
+      mockedModerationService.moderatePendingMessage.mockRejectedValue(
         new Error('AI error')
       )
       const result =
@@ -174,7 +156,7 @@ describe('moderateMessage', () => {
 
     test('prevents delivery when contextual moderation times out', async () => {
       jest.useFakeTimers()
-      mockedModerationService.moderateTranscript.mockReturnValue(
+      mockedModerationService.moderatePendingMessage.mockReturnValue(
         new Promise(() => {})
       )
       const moderation = DirectMessageModerationService.moderateMessage(context)

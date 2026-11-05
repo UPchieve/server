@@ -1,4 +1,5 @@
 import type { Ulid, Uuid } from './shared'
+import type { ModerationSystem } from './moderation'
 
 export type DirectMessageConversation = {
   id: Uuid
@@ -15,4 +16,19 @@ export type DirectMessage = {
   senderId: Ulid
   contents: string
   createdAt: Date
+}
+
+export type DirectMessageModerationResult = {
+  blocked: boolean
+  reasons: string[]
+  censoredBy?: ModerationSystem
+  unavailable?: boolean
+}
+
+export type DirectMessageModerationContext = {
+  conversationId: Uuid
+  studentId: Uuid
+  volunteerId: Uuid
+  senderId: Uuid
+  message: string
 }

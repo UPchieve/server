@@ -3,11 +3,7 @@ import { CensoredSessionMessage } from './types'
 import * as pgQueries from './pg.queries'
 import { getClient } from '../../db'
 import { RepoCreateError } from '../Errors'
-
-export const CENSORED_BY = {
-  regex: 'regex',
-  ai: 'ai',
-} as const
+export { CENSORED_BY } from '../../types/moderation'
 
 export async function createCensoredMessage({
   senderId,

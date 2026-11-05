@@ -9,6 +9,7 @@ import type { UserContactInfo } from '../models/User'
 import type {
   DirectMessage,
   DirectMessageConversation,
+  DirectMessageModerationResult,
 } from '../types/direct-messages'
 import type { Uuid } from '../types/shared'
 import { ConversationNotFoundError } from './Errors'
@@ -17,7 +18,6 @@ import * as ModerationRepo from '../models/DirectMessageModeration/queries'
 import { getSessionFlagByModerationReason } from './ModerationService'
 import { runInTransaction } from '../db'
 import logger from '../logger'
-import type { DirectMessageModerationResult } from '../types/direct-message-moderation'
 
 function reviewCategory(reason: string) {
   const normalized = reason.toUpperCase().replaceAll(' ', '_')

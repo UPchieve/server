@@ -10,6 +10,7 @@ export enum PromptName {
   TUTOR_BOT_GENERIC_SUBJECT_PROMPT = 'tutor-bot-generic-subject-prompt',
   TUTOR_BOT_COLLEGE_COUNSELING_PROMPT = 'tutor-bot-college-counseling-prompt',
   SESSION_TRANSCRIPT_MODERATION = 'session-transcript-moderation',
+  DIRECT_MESSAGE_MODERATION = 'direct-message-moderation',
   GET_ADDRESS_DETECTION_MODERATION_DECISION = 'get-address-detection-moderation-decision',
   SESSION_SUMMARY_TEACHER_PROMPT = 'session-summary-teacher-prompt',
   SESSION_SUMMARY_STUDENT_PROMPT = 'session-summary-student-prompt',
@@ -29,6 +30,8 @@ export const fallbackPrompts: { [promptName in PromptName]: string } = {
     FallbackPrompts.TUTOR_BOT_GENERIC_SUBJECT_PROMPT_FALLBACK,
   [PromptName.SESSION_TRANSCRIPT_MODERATION]:
     FallbackPrompts.FALLBACK_TRANSCRIPT_MODERATION_PROMPT,
+  [PromptName.DIRECT_MESSAGE_MODERATION]:
+    FallbackPrompts.DIRECT_MESSAGE_MODERATION_FALLBACK_PROMPT,
   [PromptName.GET_ADDRESS_DETECTION_MODERATION_DECISION]:
     FallbackPrompts.ADDRESS_DETECTION_FALLBACK_MODERATION_PROMPT,
   [PromptName.SESSION_SUMMARY_TEACHER_PROMPT]:

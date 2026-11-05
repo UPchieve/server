@@ -4,11 +4,10 @@ import * as Regex from './ModerationService/regex'
 import * as ModerationRepo from '../models/DirectMessageModeration/queries'
 import { timeLimit } from '../utils/time-limit'
 import { secondsInMs } from '../utils/time-utils'
-import type { SessionTranscript } from '../models/Session'
 import type {
   DirectMessageModerationContext,
   DirectMessageModerationResult,
-} from '../types/direct-message-moderation'
+} from '../types/direct-messages'
 
 const MODERATION_CONTEXT_SIZE = 50
 const MODERATION_TIMEOUT_MS = secondsInMs(10)
@@ -16,7 +15,7 @@ const MODERATION_TIMEOUT_MS = secondsInMs(10)
 export async function moderateMessage(
   data: DirectMessageModerationContext
 ): Promise<DirectMessageModerationResult> {
-  const { message, senderId, conversationId, studentId, volunteerId } = data
+  const { message, senderId, conversationId, volunteerId } = data
   const regex = await Regex.regexModerate(message)
   const trace = langfuseClient.trace({
     name: 'moderateDirectMessage',
@@ -45,39 +44,17 @@ export async function moderateMessage(
     conversationId,
     MODERATION_CONTEXT_SIZE
   )
-  const transcript: SessionTranscript = {
-    // Reuse the transcript type with the conversation ID
-    sessionId: conversationId,
-    messages: [
-      ...recentMessages.map((item) => ({
-        messageId: item.id,
-        userId: item.senderId,
-        message: item.contents,
-        createdAt: item.createdAt,
-        messageType: 'direct_message' as const,
-        role:
-          item.senderId === studentId
-            ? ('student' as const)
-            : ('volunteer' as const),
-      })),
-      {
-        // This message has not been saved yet
-        messageId: 'pending',
-        userId: senderId,
-        message,
-        createdAt: new Date(),
-        messageType: 'direct_message',
-        role: senderId === studentId ? 'student' : 'volunteer',
-      },
-    ],
-  }
-  const moderationResults = await timeLimit({
-    promise: ModerationService.moderateTranscript(transcript, trace),
+  const reasons = await timeLimit({
+    promise: ModerationService.moderatePendingMessage(
+      data,
+      recentMessages,
+      trace
+    ),
     fallbackReturnValue: null,
     timeLimitReachedErrorMessage: 'DM context moderation unavailable',
     waitInMs: MODERATION_TIMEOUT_MS,
   })
-  if (!Array.isArray(moderationResults)) {
+  if (!Array.isArray(reasons)) {
     return {
       blocked: true,
       reasons: ['MODERATION_UNAVAILABLE'],
@@ -86,9 +63,6 @@ export async function moderateMessage(
     }
   }
 
-  const reasons = [
-    ...new Set<string>(moderationResults.map((item) => item.reason)),
-  ]
   return {
     blocked: reasons.length > 0,
     reasons,
