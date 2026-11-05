@@ -14,6 +14,13 @@ export async function getEmailNotificationsByTemplateId(
   return NotificationRepo.getEmailNotificationsByTemplateId(data)
 }
 
+export async function getLatestEmailNotifications(
+  userIds: Ulid[],
+  emailTemplateIds: string[]
+) {
+  return NotificationRepo.getLatestEmailNotifications(userIds, emailTemplateIds)
+}
+
 export async function hasUserBeenSentEmail(
   data: NotificationRepo.GetEmailNotificationsProps
 ): Promise<boolean> {

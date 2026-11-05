@@ -1052,3 +1052,142 @@ describe('foundGroup', () => {
     })
   })
 })
+
+describe('getActiveCampaignPresidents', () => {
+  const cohortStart = new Date('2026-09-01T04:00:00.000Z')
+  const cohortEnd = new Date('2027-01-01T05:00:00.000Z')
+
+  async function createApprovedApplication(activatedAt: string) {
+    const user = await createTestUser(client)
+    const application = await client.query(
+      `INSERT INTO nths_candidate_applications
+         (user_id, status, form_version, responses, decided_at, activated_at)
+       VALUES ($1, 'approved', 1, '{}', $2, $2)
+       RETURNING id`,
+      [user.id, activatedAt]
+    )
+    return { applicationId: application.rows[0].id, userId: user.id }
+  }
+
+  async function createApplicantChapter(userId: Ulid, title?: string) {
+    const chapterId = getUuid()
+    await client.query(
+      `INSERT INTO nths_groups (id, name, key, invite_code)
+       VALUES ($1, $2, $3, $4)`,
+      [chapterId, getName(), `key-${chapterId}`, chapterId.slice(-6)]
+    )
+    await client.query(
+      `INSERT INTO nths_group_members (nths_group_id, user_id, title)
+       VALUES ($1, $2, $3)`,
+      [chapterId, userId, title]
+    )
+    return chapterId
+  }
+
+  test('returns approved presidents in the cohort who have no chapter', async () => {
+    const president = await createApprovedApplication(
+      '2026-10-15T14:00:00.000Z'
+    )
+
+    const results = await NTHSApplicationRepo.getActiveCampaignPresidents(
+      cohortStart,
+      cohortEnd,
+      client
+    )
+
+    expect(results).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          applicationId: president.applicationId,
+          userId: president.userId,
+          approvedAt: new Date('2026-10-15T14:00:00.000Z'),
+          chapterId: undefined,
+          chapterStatus: undefined,
+        }),
+      ])
+    )
+  })
+
+  test('uses the approved applicant as president without checking their membership title', async () => {
+    const president = await createApprovedApplication(
+      '2026-10-16T14:00:00.000Z'
+    )
+    const chapterId = await createApplicantChapter(president.userId)
+    await NTHSGroupsService.insertNthsChapterStatus(chapterId, 'PENDING')
+
+    const results = await NTHSApplicationRepo.getActiveCampaignPresidents(
+      cohortStart,
+      cohortEnd,
+      client
+    )
+
+    expect(results).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          userId: president.userId,
+          chapterId,
+          chapterStatus: 'PENDING',
+        }),
+      ])
+    )
+  })
+
+  test('excludes presidents whose latest chapter status is official', async () => {
+    const president = await createApprovedApplication(
+      '2026-10-17T14:00:00.000Z'
+    )
+    const chapterId = await createApplicantChapter(president.userId)
+    await NTHSGroupsService.insertNthsChapterStatus(chapterId, 'PENDING')
+    await NTHSGroupsService.insertNthsChapterStatus(chapterId, 'OFFICIAL')
+
+    const results = await NTHSApplicationRepo.getActiveCampaignPresidents(
+      cohortStart,
+      cohortEnd,
+      client
+    )
+
+    expect(results).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ userId: president.userId }),
+      ])
+    )
+  })
+
+  test('excludes chapters that do not have a pending status', async () => {
+    const withoutStatus = await createApprovedApplication(
+      '2026-10-18T14:00:00.000Z'
+    )
+    await createApplicantChapter(withoutStatus.userId)
+
+    const failed = await createApprovedApplication('2026-10-19T14:00:00.000Z')
+    const failedChapterId = await createApplicantChapter(failed.userId)
+    await NTHSGroupsService.insertNthsChapterStatus(failedChapterId, 'FAILED')
+
+    const results = await NTHSApplicationRepo.getActiveCampaignPresidents(
+      cohortStart,
+      cohortEnd,
+      client
+    )
+    const ids = new Set(results.map((president) => president.userId))
+
+    expect(ids.has(withoutStatus.userId)).toBe(false)
+    expect(ids.has(failed.userId)).toBe(false)
+  })
+
+  test('uses a half-open cohort date range', async () => {
+    const before = await createApprovedApplication('2026-09-01T03:59:59.999Z')
+    const atStart = await createApprovedApplication('2026-09-01T04:00:00.000Z')
+    const atEnd = await createApprovedApplication('2027-01-01T05:00:00.000Z')
+
+    const results = await NTHSApplicationRepo.getActiveCampaignPresidents(
+      cohortStart,
+      cohortEnd,
+      client
+    )
+    const ids = new Set(results.map((president) => president.userId))
+
+    expect(ids.has(before.userId)).toBe(false)
+    expect(ids.has(atStart.userId)).toBe(true)
+    expect(ids.has(atEnd.userId)).toBe(false)
+  })
+})

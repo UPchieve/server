@@ -53,10 +53,12 @@ jest.mock('../config', () => {
           process.env.SUBWAY_NOREPLY_EMAIL_SENDER || 'example@example.org',
         support:
           process.env.SUBWAY_SUPPORT_EMAIL_SENDER || 'example@example.org',
+        nths: 'nths@example.org',
       },
       receivers: {
         contact:
           process.env.SUBWAY_CONTACT_EMAIL_RECEIVER || 'example@example.org',
+        support: 'support@example.org',
       },
     },
     sendgrid: {
@@ -78,6 +80,18 @@ jest.mock('../config', () => {
         confirmReturn: 'd-df9e5e4357bb41a690562802b407f7e8',
         memberStage: 'd-7a24b45b3605430e8e59035b52f1a2de',
         chapterClosed: 'd-9bdffac5ac524baa9d6316ef258ec2f8',
+      },
+      nthsCandidateApplicationApproved: 'nths-application-approved',
+      nthsCandidateEngagment: {
+        setupDay3: 'setup-day-3',
+        recruitingDay3: 'recruiting-day-3',
+        recruitingDay8: 'recruiting-day-8',
+        recruitingDay14: 'recruiting-day-14',
+        recruitingDay18: 'recruiting-day-18',
+        activationA1: 'activation-a1',
+        activationA2: 'activation-a2',
+        activationA3: 'activation-a3',
+        day21Extension: 'day-21-extension',
       },
     },
     volunteerPartnerManifests: {

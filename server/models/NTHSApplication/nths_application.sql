@@ -150,12 +150,15 @@ LIMIT 1;
 SELECT
     nths.user_id,
     u.email,
-    u.first_name
+    u.first_name,
+    nths.activated_at
 FROM
     nths_candidate_applications nths
     JOIN users u ON u.id = nths.user_id
 WHERE
     nths.status = :application_status!
+    AND (:application_status!::nths_candidate_application_status <> 'approved'
+        OR nths.activated_at IS NOT NULL)
     AND nths.decided_at >= :cohort_start!
     AND nths.decided_at < :cohort_end!
     AND NOT EXISTS (
@@ -169,67 +172,42 @@ WHERE
             AND notifications.sent_at >= :cohort_start!);
 
 
-/* @name needsEngagementEmail */
+/* @name activeCampaignPresidents */
 SELECT
-    nths_candidates.user_id,
-    users.email,
+    application.id AS application_id,
+    application.user_id,
+    application.activated_at AS approved_at,
     users.first_name,
-    nths_candidates.email_type
-FROM (
-    SELECT
-        ca.user_id,
-        CASE WHEN ca.activated_at <= NOW() - INTERVAL '12 days'
-            AND NOT EXISTS (
-                SELECT
-                    1
-                FROM
-                    notifications n
-                WHERE
-                    n.user_id = ca.user_id
-                    AND n.sent_at >= :cohort_start!
-                    AND n.email_template_id = :twelve_day_template_id!) THEN
-            '12_day'
-        WHEN ca.activated_at <= NOW() - INTERVAL '8 days'
-            AND NOT EXISTS (
-                SELECT
-                    1
-                FROM
-                    notifications n
-                WHERE
-                    n.user_id = ca.user_id
-                    AND n.sent_at >= :cohort_start!
-                    AND n.email_template_id IN (:twelve_day_template_id!, :eight_day_template_id!)) THEN
-            '8_day'
-        WHEN ca.activated_at <= NOW() - INTERVAL '5 days'
-            AND NOT EXISTS (
-                SELECT
-                    1
-                FROM
-                    notifications n
-                WHERE
-                    n.user_id = ca.user_id
-                    AND n.sent_at >= :cohort_start!
-                    AND n.email_template_id IN (:twelve_day_template_id!, :eight_day_template_id!, :five_day_template_id!)) THEN
-            '5_day'
-        WHEN ca.activated_at <= NOW() - INTERVAL '3 days'
-            AND NOT EXISTS (
-                SELECT
-                    1
-                FROM
-                    notifications n
-                WHERE
-                    n.user_id = ca.user_id
-                    AND n.sent_at >= :cohort_start!
-                    AND n.email_template_id IN (:twelve_day_template_id!, :eight_day_template_id!, :five_day_template_id!, :three_day_template_id!)) THEN
-            '3_day'
-        END AS email_type
-    FROM
-        nths_candidate_applications ca
-    WHERE
-        ca.activated_at <= NOW() - INTERVAL '3 days'
-        AND ca.activated_at >= :cohort_start!
-        AND ca.activated_at <= :cohort_end!) AS nths_candidates
-    JOIN users users ON users.id = nths_candidates.user_id
+    users.email,
+    chapter.id AS chapter_id,
+    chapter.name AS chapter_name,
+    chapter.key AS chapter_key,
+    chapter.invite_code,
+    latest_status.status_name AS chapter_status
+FROM
+    nths_candidate_applications application
+    JOIN users ON users.id = application.user_id
+    LEFT JOIN nths_group_members membership ON membership.user_id = application.user_id
+        AND membership.deactivated_at IS NULL
+    LEFT JOIN nths_groups chapter ON chapter.id = membership.nths_group_id
+    LEFT JOIN LATERAL (
+        SELECT
+            statuses.name AS status_name
+        FROM
+            nths_chapters_statuses chapter_status
+            JOIN nths_chapter_statuses statuses ON statuses.id = chapter_status.nths_chapter_status_id
+        WHERE
+            chapter_status.nths_group_id = chapter.id
+        ORDER BY
+            chapter_status.created_at DESC
+        LIMIT 1) latest_status ON TRUE
 WHERE
-    nths_candidates.email_type IS NOT NULL;
+    application.activated_at IS NOT NULL
+    AND application.activated_at >= :cohortStart!
+    AND application.activated_at < :cohortEnd!
+    AND (chapter.id IS NULL
+        OR latest_status.status_name = 'PENDING')
+ORDER BY
+    application.activated_at,
+    application.id;
 

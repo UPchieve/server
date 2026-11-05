@@ -690,3 +690,44 @@ WHERE
     m.nths_group_id = :groupId!
     AND m.user_id = :userId!;
 
+
+/* @name getActiveMemberCounts */
+SELECT
+    nths_group_id AS group_id,
+    count(*)::int AS members_count
+FROM
+    nths_group_members
+WHERE
+    nths_group_id = ANY (:groupIds!::uuid[])
+    AND deactivated_at IS NULL
+GROUP BY
+    nths_group_id;
+
+
+/* @name getTutoringMemberCounts */
+SELECT
+    membership.nths_group_id AS group_id,
+    count(*)::int AS tutoring_members_count
+FROM
+    nths_group_members membership
+    JOIN users volunteer ON volunteer.id = membership.user_id
+        AND volunteer.test_user IS FALSE
+        AND volunteer.deleted IS NOT TRUE
+WHERE
+    membership.nths_group_id = ANY (:groupIds!::uuid[])
+    AND membership.deactivated_at IS NULL
+    AND EXISTS (
+        SELECT
+            1
+        FROM
+            sessions session
+            JOIN users student ON student.id = session.student_id
+                AND student.test_user IS FALSE
+        WHERE
+            session.volunteer_id = membership.user_id
+            AND session.ended_at IS NOT NULL
+            AND session.time_tutored > :minSessionLength!::int
+            AND session.volunteer_joined_at >= membership.joined_at)
+GROUP BY
+    membership.nths_group_id;
+

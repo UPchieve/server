@@ -872,6 +872,135 @@ describe('getGroupMembers', () => {
   })
 })
 
+describe('getActiveMemberCounts', () => {
+  test('counts active members for the requested chapters only', async () => {
+    const firstGroupId = await createChapter(client)
+    const secondGroupId = await createChapter(client)
+    const otherGroupId = await createChapter(client)
+    await addMember(firstGroupId)
+    await addMember(firstGroupId)
+    await addMember(firstGroupId, {
+      deactivatedAt: '2026-10-01T00:00:00.000Z',
+    })
+    await addMember(secondGroupId)
+    await addMember(otherGroupId)
+
+    const counts = await NTHSGroupsService.getActiveMemberCounts([
+      firstGroupId,
+      secondGroupId,
+    ])
+    const countsByGroupId = new Map(
+      counts.map(({ groupId, membersCount }) => [
+        groupId.replaceAll('-', '').toUpperCase(),
+        membersCount,
+      ])
+    )
+
+    expect(countsByGroupId.get(firstGroupId)).toBe(2)
+    expect(countsByGroupId.get(secondGroupId)).toBe(1)
+    expect(counts).toHaveLength(2)
+  })
+
+  test('returns no row for a requested chapter with no active members', async () => {
+    const groupId = await createChapter(client)
+    await addMember(groupId, {
+      deactivatedAt: '2026-10-01T00:00:00.000Z',
+    })
+
+    await expect(
+      NTHSGroupsService.getActiveMemberCounts([groupId])
+    ).resolves.toEqual([])
+  })
+})
+
+describe('getTutoringMemberCounts', () => {
+  test('counts each active member with a qualifying session once', async () => {
+    const firstGroupId = await createChapter(client)
+    const secondGroupId = await createChapter(client)
+    const otherGroupId = await createChapter(client)
+    const firstMemberId = await addMember(firstGroupId)
+    const secondMemberId = await addMember(secondGroupId)
+    const otherMemberId = await addMember(otherGroupId)
+    await addSession(firstMemberId, {
+      volunteerJoinedAt: '2026-07-02T00:00:00.000Z',
+      timeTutoredMs: 60001,
+    })
+    await addSession(firstMemberId, {
+      volunteerJoinedAt: '2026-07-03T00:00:00.000Z',
+    })
+    await addSession(secondMemberId, {
+      volunteerJoinedAt: '2026-07-02T00:00:00.000Z',
+    })
+    await addSession(otherMemberId, {
+      volunteerJoinedAt: '2026-07-02T00:00:00.000Z',
+    })
+
+    const counts = await NTHSGroupsService.getTutoringMemberCounts([
+      firstGroupId,
+      secondGroupId,
+    ])
+    const countsByGroupId = new Map(
+      counts.map(({ groupId, tutoringMembersCount }) => [
+        groupId.replaceAll('-', '').toUpperCase(),
+        tutoringMembersCount,
+      ])
+    )
+
+    expect(countsByGroupId.get(firstGroupId)).toBe(1)
+    expect(countsByGroupId.get(secondGroupId)).toBe(1)
+    expect(counts).toHaveLength(2)
+  })
+
+  test('does not combine short sessions or count otherwise ineligible sessions', async () => {
+    const groupId = await createChapter(client)
+    const shortSessionMemberId = await addMember(groupId)
+    const boundaryMemberId = await addMember(groupId)
+    const beforeJoiningMemberId = await addMember(groupId, {
+      joinedAt: '2026-07-10T00:00:00.000Z',
+    })
+    const unendedSessionMemberId = await addMember(groupId)
+    const testStudentMemberId = await addMember(groupId)
+    const departedMemberId = await addMember(groupId, {
+      deactivatedAt: '2026-10-01T00:00:00.000Z',
+    })
+    const testStudent = await createTestUser(client)
+    await client.query(`UPDATE users SET test_user = TRUE WHERE id = $1`, [
+      testStudent.id,
+    ])
+
+    await addSession(shortSessionMemberId, {
+      volunteerJoinedAt: '2026-07-02T00:00:00.000Z',
+      timeTutoredMs: 30000,
+    })
+    await addSession(shortSessionMemberId, {
+      volunteerJoinedAt: '2026-07-03T00:00:00.000Z',
+      timeTutoredMs: 30000,
+    })
+    await addSession(boundaryMemberId, {
+      volunteerJoinedAt: '2026-07-02T00:00:00.000Z',
+      timeTutoredMs: 60000,
+    })
+    await addSession(beforeJoiningMemberId, {
+      volunteerJoinedAt: '2026-07-09T00:00:00.000Z',
+    })
+    await addSession(unendedSessionMemberId, {
+      volunteerJoinedAt: '2026-07-02T00:00:00.000Z',
+      ended: false,
+    })
+    await addSession(testStudentMemberId, {
+      volunteerJoinedAt: '2026-07-02T00:00:00.000Z',
+      studentId: testStudent.id,
+    })
+    await addSession(departedMemberId, {
+      volunteerJoinedAt: '2026-07-02T00:00:00.000Z',
+    })
+
+    await expect(
+      NTHSGroupsService.getTutoringMemberCounts([groupId])
+    ).resolves.toEqual([])
+  })
+})
+
 describe('deleteAction', () => {
   test('deletes every row for that action in that chapter, leaving other actions and other chapters untouched', async () => {
     const groupId = await createChapter(client)

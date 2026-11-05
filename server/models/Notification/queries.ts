@@ -2,10 +2,11 @@ import {
   CreateEmailNotificationProps,
   EmailNotification,
   GetEmailNotificationsProps,
+  LatestEmailNotification,
   Notification,
 } from './types'
 import { RepoCreateError, RepoReadError } from '../Errors'
-import { getClient, TransactionClient } from '../../db'
+import { getClient, getRoClient, TransactionClient } from '../../db'
 import * as pgQueries from './pg.queries'
 import {
   Ulid,
@@ -117,6 +118,22 @@ export async function getEmailNotificationsByTemplateId(
       getClient()
     )
     return result.map((row) => makeSomeOptional(row, ['sessionId']))
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getLatestEmailNotifications(
+  userIds: Ulid[],
+  emailTemplateIds: string[],
+  tc: TransactionClient = getRoClient()
+): Promise<LatestEmailNotification[]> {
+  try {
+    const result = await pgQueries.getLatestEmailNotifications.run(
+      { userIds, emailTemplateIds },
+      tc
+    )
+    return result.map((row) => makeRequired(row))
   } catch (err) {
     throw new RepoReadError(err)
   }

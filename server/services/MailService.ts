@@ -20,6 +20,10 @@ import { buildAppLink } from '../utils/link-builders'
 import { isDevEnvironment, isE2eEnvironment } from '../utils/environments'
 import logger from '../logger'
 import { getNthsUserAttributes } from './NTHSUserAttributesService'
+import {
+  NTHSCampaignEmail,
+  NTHSCampaignMergeFieldsByEmail,
+} from '../constants/nths-campaign'
 
 sgMail.setApiKey(config.sendgrid.apiKey)
 
@@ -1594,11 +1598,14 @@ export async function sendStudentFavoritedVolunteerEmail(
 }
 
 export async function sendNTHSCandidateApplicationApproved(
-  recipients: { firstName: string; email: string }[]
+  recipients: { firstName: string; email: string; launchDate: string }[]
 ): Promise<void> {
   const emailData: BulkEmail[] = recipients.map((recipient) => ({
     to: recipient.email,
-    dynamicData: { firstName: recipient.firstName },
+    dynamicData: {
+      firstName: recipient.firstName,
+      launch_date: recipient.launchDate,
+    },
   }))
 
   await sendBulkEmail(
@@ -1660,6 +1667,23 @@ export async function sendNthsRenewalEmail(
     'UPchieve',
     templateId,
     dynamicData
+  )
+}
+
+export type NTHSCampaignEmailRecipient<T extends NTHSCampaignEmail> = {
+  to: string
+  dynamicData: NTHSCampaignMergeFieldsByEmail[T]
+}
+
+export async function sendNTHSCampaignEmail<T extends NTHSCampaignEmail>(
+  email: T,
+  recipients: NTHSCampaignEmailRecipient<T>[]
+): Promise<void> {
+  await sendBulkEmail(
+    recipients,
+    config.mail.senders.nths,
+    'UPchieve',
+    config.sendgrid.nthsCandidateEngagment[email]
   )
 }
 

@@ -15,6 +15,8 @@ import {
   NTHSGroupAction,
   NTHSGroupChapterStatusInfo,
   NTHSGroupMember,
+  NTHSGroupMemberCount,
+  NTHSGroupTutoringMemberCount,
   NTHSGroupMemberRole,
   NTHSGroupMemberWithRole,
   NTHSGroupRoleName,
@@ -544,6 +546,20 @@ export async function getGroupMembers(
   options?: GetGroupMembersOptions
 ): Promise<NTHSGroupMemberWithRole[]> {
   return await NTHSGroupsRepo.getGroupMembers(nthsGroupId, tc, options)
+}
+
+export async function getActiveMemberCounts(
+  groupIds: Ulid[],
+  tc: TransactionClient = getRoClient()
+): Promise<NTHSGroupMemberCount[]> {
+  return await NTHSGroupsRepo.getActiveMemberCounts(groupIds, tc)
+}
+
+export async function getTutoringMemberCounts(
+  groupIds: Ulid[],
+  tc: TransactionClient = getRoClient()
+): Promise<NTHSGroupTutoringMemberCount[]> {
+  return await NTHSGroupsRepo.getTutoringMemberCounts(groupIds, tc)
 }
 
 type CreateActionResponse = {

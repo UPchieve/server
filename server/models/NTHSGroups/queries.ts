@@ -33,6 +33,8 @@ import type {
   NTHSChapterPeriodStarts,
   NTHSChapterRosterMember,
   NTHSChapterTopTutor,
+  NTHSGroupMemberCount,
+  NTHSGroupTutoringMemberCount,
 } from './types'
 import type { NTHSTitle } from '../../constants/nths-titles'
 import { camelCaseKeys } from '../../tests/db-utils'
@@ -747,6 +749,33 @@ export async function getNthsChapterImpact(
         hoursTutored: row.hoursTutoredAllTime,
       },
     }
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getActiveMemberCounts(
+  groupIds: Ulid[],
+  tc: TransactionClient = getRoClient()
+): Promise<NTHSGroupMemberCount[]> {
+  try {
+    const results = await pgQueries.getActiveMemberCounts.run({ groupIds }, tc)
+    return results.map((row) => makeRequired(row))
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getTutoringMemberCounts(
+  groupIds: Ulid[],
+  tc: TransactionClient = getRoClient()
+): Promise<NTHSGroupTutoringMemberCount[]> {
+  try {
+    const results = await pgQueries.getTutoringMemberCounts.run(
+      { groupIds, minSessionLength: config.minSessionLength },
+      tc
+    )
+    return results.map((row) => makeRequired(row))
   } catch (err) {
     throw new RepoReadError(err)
   }

@@ -39,6 +39,11 @@ export type EmailNotification = {
   sentAt: Date
 }
 
+export type LatestEmailNotification = Pick<
+  EmailNotification,
+  'userId' | 'emailTemplateId' | 'sentAt'
+>
+
 export type CreateEmailNotificationProps = {
   userId: Ulid
   sessionId?: Ulid

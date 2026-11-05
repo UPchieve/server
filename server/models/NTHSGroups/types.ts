@@ -45,6 +45,16 @@ export type NTHSGroupMember = {
   deleted: boolean
 }
 
+export type NTHSGroupMemberCount = {
+  groupId: Ulid
+  membersCount: number
+}
+
+export type NTHSGroupTutoringMemberCount = {
+  groupId: Ulid
+  tutoringMembersCount: number
+}
+
 export type NTHSGroupMemberWithRole = NTHSGroupMember & {
   roleName: NTHSGroupRoleName
 }

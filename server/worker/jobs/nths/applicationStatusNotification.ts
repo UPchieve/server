@@ -7,6 +7,11 @@ import {
 import { createEmailNotification } from '../../../services/NotificationService'
 import * as NthsApplicationRepo from '../../../models/NTHSApplication'
 import config from '../../../config'
+import moment from 'moment'
+import 'moment-timezone'
+
+const CAMPAIGN_TIME_ZONE = 'America/New_York'
+const INITIAL_LAUNCH_DAY = 21
 
 export type JobData = {
   periodStart: Date
@@ -48,7 +53,16 @@ export default async function notifyApplicants(job: Job<JobData>) {
   )
 
   if (approvedApplicants.length) {
-    await sendNTHSCandidateApplicationApproved(approvedApplicants)
+    await sendNTHSCandidateApplicationApproved(
+      approvedApplicants.map((applicant) => ({
+        ...applicant,
+        launchDate: moment(applicant.activatedAt)
+          .tz(CAMPAIGN_TIME_ZONE)
+          .startOf('day')
+          .add(INITIAL_LAUNCH_DAY, 'days')
+          .format('MMMM D, YYYY'),
+      }))
+    )
     for (const approvedApplicant of approvedApplicants) {
       await createEmailNotification({
         userId: approvedApplicant.userId,

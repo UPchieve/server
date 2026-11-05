@@ -92,3 +92,21 @@ WHERE
         AND ((:end)::timestamptz IS NULL
             OR sent_at <= (:end)::timestamptz));
 
+
+/* @name getLatestEmailNotifications */
+SELECT
+    notifications.user_id,
+    notifications.email_template_id,
+    max(notifications.sent_at) AS sent_at
+FROM
+    notifications
+    JOIN notification_methods ON notification_methods.id = notifications.method_id
+WHERE
+    notification_methods.method = 'email'
+    AND notifications.user_id = ANY (:userIds!::uuid[])
+    AND notifications.email_template_id = ANY (:emailTemplateIds!::text[])
+    AND notifications.sent_at IS NOT NULL
+GROUP BY
+    notifications.user_id,
+    notifications.email_template_id;
+

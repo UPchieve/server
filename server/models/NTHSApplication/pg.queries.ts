@@ -361,6 +361,8 @@ export interface INeedsApplicationStatusEmailParams {
 
 /** 'NeedsApplicationStatusEmail' return type */
 export interface INeedsApplicationStatusEmailResult {
+  /** not_pii: When the approval was revealed to the applicant and chapter creation unlocked */
+  activatedAt: Date | null;
   /** pii: User email address */
   email: string;
   /** pii: First name */
@@ -375,7 +377,7 @@ export interface INeedsApplicationStatusEmailQuery {
   result: INeedsApplicationStatusEmailResult;
 }
 
-const needsApplicationStatusEmailIR: any = {"usedParamSet":{"application_status":true,"cohort_start":true,"cohort_end":true,"email_template_id":true},"params":[{"name":"application_status","required":true,"transform":{"type":"scalar"},"locs":[{"a":161,"b":180}]},{"name":"cohort_start","required":true,"transform":{"type":"scalar"},"locs":[{"a":209,"b":222},{"a":540,"b":553}]},{"name":"cohort_end","required":true,"transform":{"type":"scalar"},"locs":[{"a":250,"b":261}]},{"name":"email_template_id","required":true,"transform":{"type":"scalar"},"locs":[{"a":479,"b":497}]}],"statement":"SELECT\n    nths.user_id,\n    u.email,\n    u.first_name\nFROM\n    nths_candidate_applications nths\n    JOIN users u ON u.id = nths.user_id\nWHERE\n    nths.status = :application_status!\n    AND nths.decided_at >= :cohort_start!\n    AND nths.decided_at < :cohort_end!\n    AND NOT EXISTS (\n        SELECT\n            1\n        FROM\n            notifications notifications\n        WHERE\n            notifications.user_id = nths.user_id\n            AND notifications.email_template_id = :email_template_id!\n            AND notifications.sent_at >= :cohort_start!)"};
+const needsApplicationStatusEmailIR: any = {"usedParamSet":{"application_status":true,"cohort_start":true,"cohort_end":true,"email_template_id":true},"params":[{"name":"application_status","required":true,"transform":{"type":"scalar"},"locs":[{"a":184,"b":203},{"a":214,"b":233}]},{"name":"cohort_start","required":true,"transform":{"type":"scalar"},"locs":[{"a":353,"b":366},{"a":684,"b":697}]},{"name":"cohort_end","required":true,"transform":{"type":"scalar"},"locs":[{"a":394,"b":405}]},{"name":"email_template_id","required":true,"transform":{"type":"scalar"},"locs":[{"a":623,"b":641}]}],"statement":"SELECT\n    nths.user_id,\n    u.email,\n    u.first_name,\n    nths.activated_at\nFROM\n    nths_candidate_applications nths\n    JOIN users u ON u.id = nths.user_id\nWHERE\n    nths.status = :application_status!\n    AND (:application_status!::nths_candidate_application_status <> 'approved'\n        OR nths.activated_at IS NOT NULL)\n    AND nths.decided_at >= :cohort_start!\n    AND nths.decided_at < :cohort_end!\n    AND NOT EXISTS (\n        SELECT\n            1\n        FROM\n            notifications notifications\n        WHERE\n            notifications.user_id = nths.user_id\n            AND notifications.email_template_id = :email_template_id!\n            AND notifications.sent_at >= :cohort_start!)"};
 
 /**
  * Query generated from SQL:
@@ -383,12 +385,15 @@ const needsApplicationStatusEmailIR: any = {"usedParamSet":{"application_status"
  * SELECT
  *     nths.user_id,
  *     u.email,
- *     u.first_name
+ *     u.first_name,
+ *     nths.activated_at
  * FROM
  *     nths_candidate_applications nths
  *     JOIN users u ON u.id = nths.user_id
  * WHERE
  *     nths.status = :application_status!
+ *     AND (:application_status!::nths_candidate_application_status <> 'approved'
+ *         OR nths.activated_at IS NOT NULL)
  *     AND nths.decided_at >= :cohort_start!
  *     AND nths.decided_at < :cohort_end!
  *     AND NOT EXISTS (
@@ -405,102 +410,86 @@ const needsApplicationStatusEmailIR: any = {"usedParamSet":{"application_status"
 export const needsApplicationStatusEmail = new PreparedQuery<INeedsApplicationStatusEmailParams,INeedsApplicationStatusEmailResult>(needsApplicationStatusEmailIR);
 
 
-/** 'NeedsEngagementEmail' parameters type */
-export interface INeedsEngagementEmailParams {
-  cohort_end: DateOrString;
-  cohort_start: DateOrString;
-  eight_day_template_id: string;
-  five_day_template_id: string;
-  three_day_template_id: string;
-  twelve_day_template_id: string;
+/** 'ActiveCampaignPresidents' parameters type */
+export interface IActiveCampaignPresidentsParams {
+  cohortEnd: DateOrString;
+  cohortStart: DateOrString;
 }
 
-/** 'NeedsEngagementEmail' return type */
-export interface INeedsEngagementEmailResult {
+/** 'ActiveCampaignPresidents' return type */
+export interface IActiveCampaignPresidentsResult {
+  /** not_pii: Primary key */
+  applicationId: number;
+  /** not_pii: When the approval was revealed to the applicant and chapter creation unlocked */
+  approvedAt: Date | null;
+  /** not_pii: Primary key */
+  chapterId: string;
+  /** not_pii: Unique URL-safe slug */
+  chapterKey: string;
+  /** not_pii: Human-readable name */
+  chapterName: string;
+  /** not_pii: Human-readable name */
+  chapterStatus: string;
   /** pii: User email address */
   email: string;
-  emailType: string | null;
   /** pii: First name */
   firstName: string;
+  /** not_pii: Short invite code for joining the NTHS group */
+  inviteCode: string;
   /** not_pii: Foreign key to upchieve.users */
   userId: string;
 }
 
-/** 'NeedsEngagementEmail' query type */
-export interface INeedsEngagementEmailQuery {
-  params: INeedsEngagementEmailParams;
-  result: INeedsEngagementEmailResult;
+/** 'ActiveCampaignPresidents' query type */
+export interface IActiveCampaignPresidentsQuery {
+  params: IActiveCampaignPresidentsParams;
+  result: IActiveCampaignPresidentsResult;
 }
 
-const needsEngagementEmailIR: any = {"usedParamSet":{"cohort_start":true,"twelve_day_template_id":true,"eight_day_template_id":true,"five_day_template_id":true,"three_day_template_id":true,"cohort_end":true},"params":[{"name":"cohort_start","required":true,"transform":{"type":"scalar"},"locs":[{"a":441,"b":454},{"a":845,"b":858},{"a":1276,"b":1289},{"a":1731,"b":1744},{"a":2088,"b":2101}]},{"name":"twelve_day_template_id","required":true,"transform":{"type":"scalar"},"locs":[{"a":502,"b":525},{"a":908,"b":931},{"a":1339,"b":1362},{"a":1794,"b":1817}]},{"name":"eight_day_template_id","required":true,"transform":{"type":"scalar"},"locs":[{"a":934,"b":956},{"a":1365,"b":1387},{"a":1820,"b":1842}]},{"name":"five_day_template_id","required":true,"transform":{"type":"scalar"},"locs":[{"a":1390,"b":1411},{"a":1845,"b":1866}]},{"name":"three_day_template_id","required":true,"transform":{"type":"scalar"},"locs":[{"a":1869,"b":1891}]},{"name":"cohort_end","required":true,"transform":{"type":"scalar"},"locs":[{"a":2134,"b":2145}]}],"statement":"SELECT\n    nths_candidates.user_id,\n    users.email,\n    users.first_name,\n    nths_candidates.email_type\nFROM (\n    SELECT\n        ca.user_id,\n        CASE WHEN ca.activated_at <= NOW() - INTERVAL '12 days'\n            AND NOT EXISTS (\n                SELECT\n                    1\n                FROM\n                    notifications n\n                WHERE\n                    n.user_id = ca.user_id\n                    AND n.sent_at >= :cohort_start!\n                    AND n.email_template_id = :twelve_day_template_id!) THEN\n            '12_day'\n        WHEN ca.activated_at <= NOW() - INTERVAL '8 days'\n            AND NOT EXISTS (\n                SELECT\n                    1\n                FROM\n                    notifications n\n                WHERE\n                    n.user_id = ca.user_id\n                    AND n.sent_at >= :cohort_start!\n                    AND n.email_template_id IN (:twelve_day_template_id!, :eight_day_template_id!)) THEN\n            '8_day'\n        WHEN ca.activated_at <= NOW() - INTERVAL '5 days'\n            AND NOT EXISTS (\n                SELECT\n                    1\n                FROM\n                    notifications n\n                WHERE\n                    n.user_id = ca.user_id\n                    AND n.sent_at >= :cohort_start!\n                    AND n.email_template_id IN (:twelve_day_template_id!, :eight_day_template_id!, :five_day_template_id!)) THEN\n            '5_day'\n        WHEN ca.activated_at <= NOW() - INTERVAL '3 days'\n            AND NOT EXISTS (\n                SELECT\n                    1\n                FROM\n                    notifications n\n                WHERE\n                    n.user_id = ca.user_id\n                    AND n.sent_at >= :cohort_start!\n                    AND n.email_template_id IN (:twelve_day_template_id!, :eight_day_template_id!, :five_day_template_id!, :three_day_template_id!)) THEN\n            '3_day'\n        END AS email_type\n    FROM\n        nths_candidate_applications ca\n    WHERE\n        ca.activated_at <= NOW() - INTERVAL '3 days'\n        AND ca.activated_at >= :cohort_start!\n        AND ca.activated_at <= :cohort_end!) AS nths_candidates\n    JOIN users users ON users.id = nths_candidates.user_id\nWHERE\n    nths_candidates.email_type IS NOT NULL"};
+const activeCampaignPresidentsIR: any = {"usedParamSet":{"cohortStart":true,"cohortEnd":true},"params":[{"name":"cohortStart","required":true,"transform":{"type":"scalar"},"locs":[{"a":1126,"b":1138}]},{"name":"cohortEnd","required":true,"transform":{"type":"scalar"},"locs":[{"a":1175,"b":1185}]}],"statement":"SELECT\n    application.id AS application_id,\n    application.user_id,\n    application.activated_at AS approved_at,\n    users.first_name,\n    users.email,\n    chapter.id AS chapter_id,\n    chapter.name AS chapter_name,\n    chapter.key AS chapter_key,\n    chapter.invite_code,\n    latest_status.status_name AS chapter_status\nFROM\n    nths_candidate_applications application\n    JOIN users ON users.id = application.user_id\n    LEFT JOIN nths_group_members membership ON membership.user_id = application.user_id\n        AND membership.deactivated_at IS NULL\n    LEFT JOIN nths_groups chapter ON chapter.id = membership.nths_group_id\n    LEFT JOIN LATERAL (\n        SELECT\n            statuses.name AS status_name\n        FROM\n            nths_chapters_statuses chapter_status\n            JOIN nths_chapter_statuses statuses ON statuses.id = chapter_status.nths_chapter_status_id\n        WHERE\n            chapter_status.nths_group_id = chapter.id\n        ORDER BY\n            chapter_status.created_at DESC\n        LIMIT 1) latest_status ON TRUE\nWHERE\n    application.activated_at IS NOT NULL\n    AND application.activated_at >= :cohortStart!\n    AND application.activated_at < :cohortEnd!\n    AND (chapter.id IS NULL\n        OR latest_status.status_name = 'PENDING')\nORDER BY\n    application.activated_at,\n    application.id"};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
- *     nths_candidates.user_id,
- *     users.email,
+ *     application.id AS application_id,
+ *     application.user_id,
+ *     application.activated_at AS approved_at,
  *     users.first_name,
- *     nths_candidates.email_type
- * FROM (
- *     SELECT
- *         ca.user_id,
- *         CASE WHEN ca.activated_at <= NOW() - INTERVAL '12 days'
- *             AND NOT EXISTS (
- *                 SELECT
- *                     1
- *                 FROM
- *                     notifications n
- *                 WHERE
- *                     n.user_id = ca.user_id
- *                     AND n.sent_at >= :cohort_start!
- *                     AND n.email_template_id = :twelve_day_template_id!) THEN
- *             '12_day'
- *         WHEN ca.activated_at <= NOW() - INTERVAL '8 days'
- *             AND NOT EXISTS (
- *                 SELECT
- *                     1
- *                 FROM
- *                     notifications n
- *                 WHERE
- *                     n.user_id = ca.user_id
- *                     AND n.sent_at >= :cohort_start!
- *                     AND n.email_template_id IN (:twelve_day_template_id!, :eight_day_template_id!)) THEN
- *             '8_day'
- *         WHEN ca.activated_at <= NOW() - INTERVAL '5 days'
- *             AND NOT EXISTS (
- *                 SELECT
- *                     1
- *                 FROM
- *                     notifications n
- *                 WHERE
- *                     n.user_id = ca.user_id
- *                     AND n.sent_at >= :cohort_start!
- *                     AND n.email_template_id IN (:twelve_day_template_id!, :eight_day_template_id!, :five_day_template_id!)) THEN
- *             '5_day'
- *         WHEN ca.activated_at <= NOW() - INTERVAL '3 days'
- *             AND NOT EXISTS (
- *                 SELECT
- *                     1
- *                 FROM
- *                     notifications n
- *                 WHERE
- *                     n.user_id = ca.user_id
- *                     AND n.sent_at >= :cohort_start!
- *                     AND n.email_template_id IN (:twelve_day_template_id!, :eight_day_template_id!, :five_day_template_id!, :three_day_template_id!)) THEN
- *             '3_day'
- *         END AS email_type
- *     FROM
- *         nths_candidate_applications ca
- *     WHERE
- *         ca.activated_at <= NOW() - INTERVAL '3 days'
- *         AND ca.activated_at >= :cohort_start!
- *         AND ca.activated_at <= :cohort_end!) AS nths_candidates
- *     JOIN users users ON users.id = nths_candidates.user_id
+ *     users.email,
+ *     chapter.id AS chapter_id,
+ *     chapter.name AS chapter_name,
+ *     chapter.key AS chapter_key,
+ *     chapter.invite_code,
+ *     latest_status.status_name AS chapter_status
+ * FROM
+ *     nths_candidate_applications application
+ *     JOIN users ON users.id = application.user_id
+ *     LEFT JOIN nths_group_members membership ON membership.user_id = application.user_id
+ *         AND membership.deactivated_at IS NULL
+ *     LEFT JOIN nths_groups chapter ON chapter.id = membership.nths_group_id
+ *     LEFT JOIN LATERAL (
+ *         SELECT
+ *             statuses.name AS status_name
+ *         FROM
+ *             nths_chapters_statuses chapter_status
+ *             JOIN nths_chapter_statuses statuses ON statuses.id = chapter_status.nths_chapter_status_id
+ *         WHERE
+ *             chapter_status.nths_group_id = chapter.id
+ *         ORDER BY
+ *             chapter_status.created_at DESC
+ *         LIMIT 1) latest_status ON TRUE
  * WHERE
- *     nths_candidates.email_type IS NOT NULL
+ *     application.activated_at IS NOT NULL
+ *     AND application.activated_at >= :cohortStart!
+ *     AND application.activated_at < :cohortEnd!
+ *     AND (chapter.id IS NULL
+ *         OR latest_status.status_name = 'PENDING')
+ * ORDER BY
+ *     application.activated_at,
+ *     application.id
  * ```
  */
-export const needsEngagementEmail = new PreparedQuery<INeedsEngagementEmailParams,INeedsEngagementEmailResult>(needsEngagementEmailIR);
+export const activeCampaignPresidents = new PreparedQuery<IActiveCampaignPresidentsParams,IActiveCampaignPresidentsResult>(activeCampaignPresidentsIR);
 
 

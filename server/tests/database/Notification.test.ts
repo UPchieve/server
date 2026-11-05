@@ -3,7 +3,10 @@
  */
 
 import { getClient } from '../../db'
-import { getVolunteersNotifiedSince } from '../../models/Notification'
+import {
+  getLatestEmailNotifications,
+  getVolunteersNotifiedSince,
+} from '../../models/Notification'
 import { buildNotification } from '../mocks/generate'
 import { insertSingleRow } from '../db-utils'
 import moment from 'moment'
@@ -192,6 +195,102 @@ describe('Notification repo', () => {
       const result = await getVolunteersNotifiedSince(boundaryTime, 'voice')
 
       expect(result).toContain(volunteer.id)
+    })
+  })
+
+  describe('getLatestEmailNotifications', () => {
+    it('returns the latest matching email notification per user and template', async () => {
+      const firstUser = await createTestUser(dbClient)
+      const secondUser = await createTestUser(dbClient)
+      const firstSentAt = new Date('2026-10-01T12:00:00.000Z')
+      const latestSentAt = new Date('2026-10-02T12:00:00.000Z')
+      const templateId = 'campaign-a1'
+
+      for (const sentAt of [firstSentAt, latestSentAt]) {
+        await insertSingleRow(
+          'notifications',
+          buildNotification({
+            userId: firstUser.id,
+            sentAt,
+            methodId: EMAIL_METHOD_ID,
+            sessionId: undefined,
+            emailTemplateId: templateId,
+          }),
+          dbClient
+        )
+      }
+      await insertSingleRow(
+        'notifications',
+        buildNotification({
+          userId: secondUser.id,
+          sentAt: firstSentAt,
+          methodId: EMAIL_METHOD_ID,
+          sessionId: undefined,
+          emailTemplateId: templateId,
+        }),
+        dbClient
+      )
+
+      const results = await getLatestEmailNotifications(
+        [firstUser.id, secondUser.id],
+        [templateId],
+        dbClient
+      )
+
+      expect(results).toEqual(
+        expect.arrayContaining([
+          {
+            userId: firstUser.id,
+            emailTemplateId: templateId,
+            sentAt: latestSentAt,
+          },
+          {
+            userId: secondUser.id,
+            emailTemplateId: templateId,
+            sentAt: firstSentAt,
+          },
+        ])
+      )
+      expect(results).toHaveLength(2)
+    })
+
+    it('ignores other users, templates, and notification methods', async () => {
+      const includedUser = await createTestUser(dbClient)
+      const otherUser = await createTestUser(dbClient)
+      const sentAt = new Date('2026-10-03T12:00:00.000Z')
+
+      for (const notification of [
+        { userId: includedUser.id, methodId: EMAIL_METHOD_ID, template: 'r1' },
+        { userId: includedUser.id, methodId: EMAIL_METHOD_ID, template: 'r2' },
+        { userId: includedUser.id, methodId: SMS_METHOD_ID, template: 'r1' },
+        { userId: otherUser.id, methodId: EMAIL_METHOD_ID, template: 'r1' },
+      ]) {
+        await insertSingleRow(
+          'notifications',
+          buildNotification({
+            userId: notification.userId,
+            sentAt,
+            methodId: notification.methodId,
+            sessionId: undefined,
+            emailTemplateId: notification.template,
+          }),
+          dbClient
+        )
+      }
+
+      const results = await getLatestEmailNotifications(
+        [includedUser.id],
+        ['r1'],
+        dbClient
+      )
+
+      expect(results).toEqual([
+        {
+          userId: includedUser.id,
+          emailTemplateId: 'r1',
+          sentAt,
+        },
+      ])
     })
   })
 })

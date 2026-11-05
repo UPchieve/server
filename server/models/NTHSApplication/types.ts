@@ -1,4 +1,7 @@
-import { NTHSCandidateApplicationStatus } from '../NTHSGroups/types'
+import {
+  NTHSCandidateApplicationStatus,
+  NTHSChapterStatusName,
+} from '../NTHSGroups/types'
 import { USER_BAN_TYPES } from '../../constants/user'
 import { Ulid, Uuid } from '../pgUtils'
 
@@ -49,4 +52,17 @@ export type NTHSCandidate = {
   userId: string
   email: string
   firstName: string
+  activatedAt?: Date
+}
+
+export type NTHSApprovedCandidate = NTHSCandidate & { activatedAt: Date }
+
+export type NTHSActiveCampaignPresident = NTHSCandidate & {
+  applicationId: number
+  approvedAt: Date
+  chapterId?: Uuid
+  chapterName?: string
+  chapterKey?: string
+  inviteCode?: string
+  chapterStatus?: NTHSChapterStatusName
 }

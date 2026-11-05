@@ -3,6 +3,8 @@ import { PreparedQuery } from '@pgtyped/runtime';
 
 export type DateOrString = Date | string;
 
+export type stringArray = (string)[];
+
 /** 'GetTextNotificationsByVolunteerId' parameters type */
 export interface IGetTextNotificationsByVolunteerIdParams {
   userId: string;
@@ -262,5 +264,51 @@ const getEmailNotificationsByTemplateIdIR: any = {"usedParamSet":{"emailTemplate
  * ```
  */
 export const getEmailNotificationsByTemplateId = new PreparedQuery<IGetEmailNotificationsByTemplateIdParams,IGetEmailNotificationsByTemplateIdResult>(getEmailNotificationsByTemplateIdIR);
+
+
+/** 'GetLatestEmailNotifications' parameters type */
+export interface IGetLatestEmailNotificationsParams {
+  emailTemplateIds: stringArray;
+  userIds: stringArray;
+}
+
+/** 'GetLatestEmailNotifications' return type */
+export interface IGetLatestEmailNotificationsResult {
+  /** not_pii: Identifier of the email template used for the notification */
+  emailTemplateId: string | null;
+  sentAt: Date | null;
+  /** not_pii: Foreign key to upchieve.users; who the notification was sent to */
+  userId: string;
+}
+
+/** 'GetLatestEmailNotifications' query type */
+export interface IGetLatestEmailNotificationsQuery {
+  params: IGetLatestEmailNotificationsParams;
+  result: IGetLatestEmailNotificationsResult;
+}
+
+const getLatestEmailNotificationsIR: any = {"usedParamSet":{"userIds":true,"emailTemplateIds":true},"params":[{"name":"userIds","required":true,"transform":{"type":"scalar"},"locs":[{"a":304,"b":312}]},{"name":"emailTemplateIds","required":true,"transform":{"type":"scalar"},"locs":[{"a":370,"b":387}]}],"statement":"SELECT\n    notifications.user_id,\n    notifications.email_template_id,\n    max(notifications.sent_at) AS sent_at\nFROM\n    notifications\n    JOIN notification_methods ON notification_methods.id = notifications.method_id\nWHERE\n    notification_methods.method = 'email'\n    AND notifications.user_id = ANY (:userIds!::uuid[])\n    AND notifications.email_template_id = ANY (:emailTemplateIds!::text[])\n    AND notifications.sent_at IS NOT NULL\nGROUP BY\n    notifications.user_id,\n    notifications.email_template_id"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     notifications.user_id,
+ *     notifications.email_template_id,
+ *     max(notifications.sent_at) AS sent_at
+ * FROM
+ *     notifications
+ *     JOIN notification_methods ON notification_methods.id = notifications.method_id
+ * WHERE
+ *     notification_methods.method = 'email'
+ *     AND notifications.user_id = ANY (:userIds!::uuid[])
+ *     AND notifications.email_template_id = ANY (:emailTemplateIds!::text[])
+ *     AND notifications.sent_at IS NOT NULL
+ * GROUP BY
+ *     notifications.user_id,
+ *     notifications.email_template_id
+ * ```
+ */
+export const getLatestEmailNotifications = new PreparedQuery<IGetLatestEmailNotificationsParams,IGetLatestEmailNotificationsResult>(getLatestEmailNotificationsIR);
 
 

@@ -1878,3 +1878,95 @@ const getNthsGroupMemberForStaffIR: any = {"usedParamSet":{"groupId":true,"userI
 export const getNthsGroupMemberForStaff = new PreparedQuery<IGetNthsGroupMemberForStaffParams,IGetNthsGroupMemberForStaffResult>(getNthsGroupMemberForStaffIR);
 
 
+/** 'GetActiveMemberCounts' parameters type */
+export interface IGetActiveMemberCountsParams {
+  groupIds: stringArray;
+}
+
+/** 'GetActiveMemberCounts' return type */
+export interface IGetActiveMemberCountsResult {
+  /** not_pii: Foreign key to upchieve.nths_groups */
+  groupId: string;
+  membersCount: number | null;
+}
+
+/** 'GetActiveMemberCounts' query type */
+export interface IGetActiveMemberCountsQuery {
+  params: IGetActiveMemberCountsParams;
+  result: IGetActiveMemberCountsResult;
+}
+
+const getActiveMemberCountsIR: any = {"usedParamSet":{"groupIds":true},"params":[{"name":"groupIds","required":true,"transform":{"type":"scalar"},"locs":[{"a":132,"b":141}]}],"statement":"SELECT\n    nths_group_id AS group_id,\n    count(*)::int AS members_count\nFROM\n    nths_group_members\nWHERE\n    nths_group_id = ANY (:groupIds!::uuid[])\n    AND deactivated_at IS NULL\nGROUP BY\n    nths_group_id"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     nths_group_id AS group_id,
+ *     count(*)::int AS members_count
+ * FROM
+ *     nths_group_members
+ * WHERE
+ *     nths_group_id = ANY (:groupIds!::uuid[])
+ *     AND deactivated_at IS NULL
+ * GROUP BY
+ *     nths_group_id
+ * ```
+ */
+export const getActiveMemberCounts = new PreparedQuery<IGetActiveMemberCountsParams,IGetActiveMemberCountsResult>(getActiveMemberCountsIR);
+
+
+/** 'GetTutoringMemberCounts' parameters type */
+export interface IGetTutoringMemberCountsParams {
+  groupIds: stringArray;
+  minSessionLength: number;
+}
+
+/** 'GetTutoringMemberCounts' return type */
+export interface IGetTutoringMemberCountsResult {
+  /** not_pii: Foreign key to upchieve.nths_groups */
+  groupId: string;
+  tutoringMembersCount: number | null;
+}
+
+/** 'GetTutoringMemberCounts' query type */
+export interface IGetTutoringMemberCountsQuery {
+  params: IGetTutoringMemberCountsParams;
+  result: IGetTutoringMemberCountsResult;
+}
+
+const getTutoringMemberCountsIR: any = {"usedParamSet":{"groupIds":true,"minSessionLength":true},"params":[{"name":"groupIds","required":true,"transform":{"type":"scalar"},"locs":[{"a":319,"b":328}]},{"name":"minSessionLength","required":true,"transform":{"type":"scalar"},"locs":[{"a":734,"b":751}]}],"statement":"SELECT\n    membership.nths_group_id AS group_id,\n    count(*)::int AS tutoring_members_count\nFROM\n    nths_group_members membership\n    JOIN users volunteer ON volunteer.id = membership.user_id\n        AND volunteer.test_user IS FALSE\n        AND volunteer.deleted IS NOT TRUE\nWHERE\n    membership.nths_group_id = ANY (:groupIds!::uuid[])\n    AND membership.deactivated_at IS NULL\n    AND EXISTS (\n        SELECT\n            1\n        FROM\n            sessions session\n            JOIN users student ON student.id = session.student_id\n                AND student.test_user IS FALSE\n        WHERE\n            session.volunteer_id = membership.user_id\n            AND session.ended_at IS NOT NULL\n            AND session.time_tutored > :minSessionLength!::int\n            AND session.volunteer_joined_at >= membership.joined_at)\nGROUP BY\n    membership.nths_group_id"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     membership.nths_group_id AS group_id,
+ *     count(*)::int AS tutoring_members_count
+ * FROM
+ *     nths_group_members membership
+ *     JOIN users volunteer ON volunteer.id = membership.user_id
+ *         AND volunteer.test_user IS FALSE
+ *         AND volunteer.deleted IS NOT TRUE
+ * WHERE
+ *     membership.nths_group_id = ANY (:groupIds!::uuid[])
+ *     AND membership.deactivated_at IS NULL
+ *     AND EXISTS (
+ *         SELECT
+ *             1
+ *         FROM
+ *             sessions session
+ *             JOIN users student ON student.id = session.student_id
+ *                 AND student.test_user IS FALSE
+ *         WHERE
+ *             session.volunteer_id = membership.user_id
+ *             AND session.ended_at IS NOT NULL
+ *             AND session.time_tutored > :minSessionLength!::int
+ *             AND session.volunteer_joined_at >= membership.joined_at)
+ * GROUP BY
+ *     membership.nths_group_id
+ * ```
+ */
+export const getTutoringMemberCounts = new PreparedQuery<IGetTutoringMemberCountsParams,IGetTutoringMemberCountsResult>(getTutoringMemberCountsIR);
+
+

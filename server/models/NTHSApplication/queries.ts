@@ -13,6 +13,8 @@ import type {
   NTHSCandidateApplication,
   NTHSUnlistedSchool,
   NTHSCandidate,
+  NTHSActiveCampaignPresident,
+  NTHSApprovedCandidate,
 } from './types'
 import { NTHSCandidateApplicationStatus } from '../NTHSGroups/types'
 import { USER_ACTION } from '../../constants/user'
@@ -233,7 +235,7 @@ export async function needsApprovalEmail(
   cohortEndDate: Date,
   templateId: string,
   tc: TransactionClient = getClient()
-) {
+): Promise<NTHSApprovedCandidate[]> {
   try {
     const results = await pgQueries.needsApplicationStatusEmail.run(
       {
@@ -247,49 +249,42 @@ export async function needsApprovalEmail(
     if (!results.length) {
       return []
     }
-    return results.map((v) => asApplicant(v))
+    return results.map((row) =>
+      makeSomeRequired(row, ['email', 'userId', 'firstName', 'activatedAt'])
+    )
   } catch (err) {
     throw new RepoReadError(err)
   }
 }
 
-export async function needsEngagementEmail(
-  {
-    cohortStartDate,
-    cohortEndDate,
-    day3TemplateId: threeDayTemplatedId,
-    day5TemplateId: fiveDayTemplateId,
-    day8TemplateId: eightDayTemplateId,
-    day12TemplateId: twelveTemplateId,
-  }: {
-    cohortStartDate: Date
-    cohortEndDate: Date
-    day3TemplateId: string
-    day5TemplateId: string
-    day8TemplateId: string
-    day12TemplateId: string
-  },
-  tc: TransactionClient = getClient()
-) {
+export async function getActiveCampaignPresidents(
+  cohortStartDate: Date,
+  cohortEndDate: Date,
+  tc: TransactionClient = getRoClient()
+): Promise<NTHSActiveCampaignPresident[]> {
   try {
-    const results = await pgQueries.needsEngagementEmail.run(
+    const results = await pgQueries.activeCampaignPresidents.run(
       {
-        cohort_start: cohortStartDate,
-        cohort_end: cohortEndDate,
-        three_day_template_id: threeDayTemplatedId,
-        five_day_template_id: fiveDayTemplateId,
-        eight_day_template_id: eightDayTemplateId,
-        twelve_day_template_id: twelveTemplateId,
+        cohortStart: cohortStartDate,
+        cohortEnd: cohortEndDate,
       },
       tc
     )
-    if (!results.length) {
-      return []
-    }
 
-    return results.map((v) =>
-      makeSomeRequired(v, ['email', 'userId', 'firstName', 'emailType'])
-    )
+    return results.map((row) => {
+      const president = makeSomeRequired(row, [
+        'applicationId',
+        'userId',
+        'approvedAt',
+        'firstName',
+        'email',
+      ])
+      return {
+        ...president,
+        chapterStatus:
+          president.chapterStatus as NTHSActiveCampaignPresident['chapterStatus'],
+      }
+    })
   } catch (err) {
     throw new RepoReadError(err)
   }
