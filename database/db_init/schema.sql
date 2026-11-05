@@ -1534,7 +1534,8 @@ CREATE TABLE upchieve.direct_message_flags (
     censored_message_id uuid,
     reviewed_at timestamp with time zone,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    report_id uuid
 );
 
 
@@ -1592,6 +1593,13 @@ COMMENT ON COLUMN upchieve.direct_message_flags.created_at IS 'not_pii';
 --
 
 COMMENT ON COLUMN upchieve.direct_message_flags.updated_at IS 'not_pii';
+
+
+--
+-- Name: COLUMN direct_message_flags.report_id; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.direct_message_flags.report_id IS 'not_pii: Participant report associated with this review finding';
 
 
 --
@@ -14833,6 +14841,14 @@ ALTER TABLE ONLY upchieve.direct_message_flags
 
 
 --
+-- Name: direct_message_flags direct_message_flags_report_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.direct_message_flags
+    ADD CONSTRAINT direct_message_flags_report_id_fkey FOREIGN KEY (report_id) REFERENCES upchieve.direct_message_reports(id);
+
+
+--
 -- Name: direct_message_flags direct_message_flags_session_flag_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -16812,4 +16828,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20261102190934'),
     ('20261102190935'),
     ('20261103153000'),
-    ('20261104154633');
+    ('20261104154633'),
+    ('20261104154942');
