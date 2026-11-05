@@ -548,41 +548,33 @@ describe('updateGroupMember', () => {
     expect(mockedNTHSRepo.deactivateGroupMember).not.toHaveBeenCalled()
   })
 
-  it.each([
-    ['demoting', { role: 'member' as const }],
-    ['deactivating', { isActive: false }],
-  ])('refuses %s the sole admin', async (_, update) => {
+  it('lets the sole admin step down while another member is current', async () => {
     const soleAdmin = buildNTHSGroupMemberWithRole({ roleName: 'admin' })
     mockedNTHSRepo.getGroupMembers.mockResolvedValueOnce([
       soleAdmin,
       buildNTHSGroupMemberWithRole(),
     ])
 
-    await expect(
-      NTHSService.updateGroupMember(soleAdmin.userId, groupId, update)
-    ).rejects.toThrow(CannotRemoveSoleNTHSAdminError)
-    expect(mockedNTHSRepo.upsertNthsGroupMemberRole).not.toHaveBeenCalled()
-    expect(mockedNTHSRepo.deactivateGroupMember).not.toHaveBeenCalled()
+    await NTHSService.updateGroupMember(soleAdmin.userId, groupId, {
+      role: 'member',
+    })
+    expect(mockedNTHSRepo.upsertNthsGroupMemberRole).toHaveBeenCalled()
   })
 
   it.each([
     ['demoting', { role: 'member' as const }],
     ['deactivating', { isActive: false }],
   ])(
-    'refuses %s the sole live admin when a deleted account still holds the admin role',
+    'refuses %s the sole admin whose other members have all departed',
     async (_, update) => {
-      const soleLiveAdmin = buildNTHSGroupMemberWithRole({ roleName: 'admin' })
-      const deletedAdmin = buildNTHSGroupMemberWithRole({
-        roleName: 'admin',
-        deleted: true,
-      })
+      const soleAdmin = buildNTHSGroupMemberWithRole({ roleName: 'admin' })
       mockedNTHSRepo.getGroupMembers.mockResolvedValueOnce([
-        soleLiveAdmin,
-        deletedAdmin,
+        soleAdmin,
+        buildNTHSGroupMemberWithRole({ deactivatedAt: new Date() }),
       ])
 
       await expect(
-        NTHSService.updateGroupMember(soleLiveAdmin.userId, groupId, update)
+        NTHSService.updateGroupMember(soleAdmin.userId, groupId, update)
       ).rejects.toThrow(CannotRemoveSoleNTHSAdminError)
       expect(mockedNTHSRepo.upsertNthsGroupMemberRole).not.toHaveBeenCalled()
       expect(mockedNTHSRepo.deactivateGroupMember).not.toHaveBeenCalled()
@@ -808,19 +800,35 @@ describe('leaveGroup', () => {
   })
 
   it.each([
-    ['lacks', 'can', [VolunteerOccupations.WORKING_PART_TIME], true],
-    ['has no occupation, so lacks', 'can', [], true],
-    ['has', 'cannot', [VolunteerOccupations.HIGH_SCHOOL_STUDENT], false],
+    ['high school, with another current member', true, true, {}],
+    [
+      'high school, with only a departed member',
+      false,
+      true,
+      { deactivatedAt: new Date() },
+    ],
+    [
+      'high school, with only a deleted account',
+      false,
+      true,
+      { deleted: true },
+    ],
+    [
+      'not high school, with only a departed member',
+      true,
+      false,
+      { deactivatedAt: new Date() },
+    ],
   ])(
-    'a sole admin who %s high school student %s leave',
-    async (_label, _verb, occupations, canLeave) => {
+    'a sole admin who is %s: can leave is %s',
+    async (_label, canLeave, isHs, other) => {
       const soleAdmin = buildNTHSGroupMemberWithRole({ roleName: 'admin' })
       mockedNTHSRepo.getGroupMembers.mockResolvedValueOnce([
         soleAdmin,
-        buildNTHSGroupMemberWithRole(),
+        buildNTHSGroupMemberWithRole(other),
       ])
       mockedVolunteerRepo.getVolunteerOccupations.mockResolvedValueOnce(
-        occupations
+        isHs ? [VolunteerOccupations.HIGH_SCHOOL_STUDENT] : []
       )
 
       const result = NTHSService.leaveGroup(soleAdmin.userId, groupId)

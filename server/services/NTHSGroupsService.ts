@@ -327,8 +327,7 @@ export async function updateGroupMember(
     userId
   )
   ensureNotDeletedAdminTarget(targetMember, update)
-  // Do not allow deactivating or demoting of the sole admin of the group
-  if (isSoleActiveAdmin(members, userId)) {
+  if (isSoleAdminAndOnlyMember(members, userId)) {
     if ((update.role && update.role !== 'admin') || update.isActive === false) {
       throw new CannotRemoveSoleNTHSAdminError()
     }
@@ -464,12 +463,24 @@ function isSoleActiveAdmin(
   return activeAdmins.length === 1 && activeAdmins[0].userId === userId
 }
 
-// A sole admin without high school student can leave: Chapter HQ's high school
-// notice is their only way out, and it hides the Members tab where they could
-// hand the chapter to someone else.
+function isSoleAdminAndOnlyMember(
+  members: NTHSGroupMemberWithRole[],
+  userId: Ulid
+): boolean {
+  return (
+    isSoleActiveAdmin(members, userId) &&
+    !members.some(
+      (member) =>
+        member.userId !== userId && !member.deactivatedAt && !member.deleted
+    )
+  )
+}
+
+// An only member who isn't a high school student can still leave: Chapter
+// HQ's high school notice gives them no other way out.
 export async function leaveGroup(userId: Ulid, nthsGroupId: Ulid) {
   const { members } = await getMembersWithTarget(nthsGroupId, userId)
-  if (isSoleActiveAdmin(members, userId)) {
+  if (isSoleAdminAndOnlyMember(members, userId)) {
     const occupations = await getVolunteerOccupations(userId, getClient())
     if (occupations.includes(VolunteerOccupations.HIGH_SCHOOL_STUDENT)) {
       throw new CannotRemoveSoleNTHSAdminError()
