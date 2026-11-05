@@ -18,6 +18,8 @@ import * as ModerationRepo from '../models/DirectMessageModeration/queries'
 import { getSessionFlagByModerationReason } from './ModerationService'
 import { runInTransaction } from '../db'
 import logger from '../logger'
+import { EVENTS } from '../constants'
+import { captureEvent } from './AnalyticsService'
 
 function reviewCategory(reason: string) {
   const normalized = reason.toUpperCase().replaceAll(' ', '_')
@@ -142,6 +144,15 @@ export async function sendMessage(
       moderation.unavailable
     )
   }
+
+  captureEvent(user.id, EVENTS.DIRECT_MESSAGE_SENT, {
+    conversationId,
+    messageId: message.id,
+    studentId: conversation.studentId,
+    volunteerId: conversation.volunteerId,
+    senderRole: user.id === conversation.studentId ? 'student' : 'volunteer',
+    messageLength: trimmedContents.length,
+  })
   return { conversation, message }
 }
 

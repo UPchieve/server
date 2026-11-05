@@ -500,7 +500,7 @@ export function routeSockets(io: Server): void {
             )
             captureEvent(user.id, EVENTS.USER_SUBMITTED_SESSION_RECAP_DM, {
               sessionId: sessionId,
-              message,
+              messageLength: message?.length,
               isVolunteer: user.roleContext.isActiveRole('volunteer'),
               userType: user.roleContext.activeRole,
             })
