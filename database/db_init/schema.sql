@@ -1595,6 +1595,85 @@ COMMENT ON COLUMN upchieve.direct_message_flags.updated_at IS 'not_pii';
 
 
 --
+-- Name: direct_message_reports; Type: TABLE; Schema: upchieve; Owner: -
+--
+
+CREATE TABLE upchieve.direct_message_reports (
+    id uuid NOT NULL,
+    conversation_id uuid NOT NULL,
+    report_reason_id integer NOT NULL,
+    report_message text,
+    reporting_user_id uuid NOT NULL,
+    reported_user_id uuid NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: TABLE direct_message_reports; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON TABLE upchieve.direct_message_reports IS 'Participant reports about DM conversations';
+
+
+--
+-- Name: COLUMN direct_message_reports.id; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.direct_message_reports.id IS 'not_pii: Primary key';
+
+
+--
+-- Name: COLUMN direct_message_reports.conversation_id; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.direct_message_reports.conversation_id IS 'not_pii: Foreign key';
+
+
+--
+-- Name: COLUMN direct_message_reports.report_reason_id; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.direct_message_reports.report_reason_id IS 'not_pii: Shared report reason';
+
+
+--
+-- Name: COLUMN direct_message_reports.report_message; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.direct_message_reports.report_message IS 'not_pii: Optional report explanation';
+
+
+--
+-- Name: COLUMN direct_message_reports.reporting_user_id; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.direct_message_reports.reporting_user_id IS 'not_pii: Reporting user foreign key';
+
+
+--
+-- Name: COLUMN direct_message_reports.reported_user_id; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.direct_message_reports.reported_user_id IS 'not_pii: Reported user foreign key';
+
+
+--
+-- Name: COLUMN direct_message_reports.created_at; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.direct_message_reports.created_at IS 'not_pii';
+
+
+--
+-- Name: COLUMN direct_message_reports.updated_at; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.direct_message_reports.updated_at IS 'not_pii';
+
+
+--
 -- Name: direct_messages; Type: TABLE; Schema: upchieve; Owner: -
 --
 
@@ -12317,6 +12396,14 @@ ALTER TABLE ONLY upchieve.direct_message_flags
 
 
 --
+-- Name: direct_message_reports direct_message_reports_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.direct_message_reports
+    ADD CONSTRAINT direct_message_reports_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: direct_messages direct_messages_pkey; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -14090,6 +14177,13 @@ CREATE INDEX direct_message_flags_pending_idx ON upchieve.direct_message_flags U
 
 
 --
+-- Name: direct_message_reports_conversation_id; Type: INDEX; Schema: upchieve; Owner: -
+--
+
+CREATE INDEX direct_message_reports_conversation_id ON upchieve.direct_message_reports USING btree (conversation_id);
+
+
+--
 -- Name: direct_messages_conversation_id_created_at; Type: INDEX; Schema: upchieve; Owner: -
 --
 
@@ -14744,6 +14838,38 @@ ALTER TABLE ONLY upchieve.direct_message_flags
 
 ALTER TABLE ONLY upchieve.direct_message_flags
     ADD CONSTRAINT direct_message_flags_session_flag_id_fkey FOREIGN KEY (session_flag_id) REFERENCES upchieve.session_flags(id);
+
+
+--
+-- Name: direct_message_reports direct_message_reports_conversation_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.direct_message_reports
+    ADD CONSTRAINT direct_message_reports_conversation_id_fkey FOREIGN KEY (conversation_id) REFERENCES upchieve.direct_message_conversations(id);
+
+
+--
+-- Name: direct_message_reports direct_message_reports_report_reason_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.direct_message_reports
+    ADD CONSTRAINT direct_message_reports_report_reason_id_fkey FOREIGN KEY (report_reason_id) REFERENCES upchieve.report_reasons(id);
+
+
+--
+-- Name: direct_message_reports direct_message_reports_reported_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.direct_message_reports
+    ADD CONSTRAINT direct_message_reports_reported_user_id_fkey FOREIGN KEY (reported_user_id) REFERENCES upchieve.users(id);
+
+
+--
+-- Name: direct_message_reports direct_message_reports_reporting_user_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.direct_message_reports
+    ADD CONSTRAINT direct_message_reports_reporting_user_id_fkey FOREIGN KEY (reporting_user_id) REFERENCES upchieve.users(id);
 
 
 --
@@ -16685,4 +16811,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20261029185457'),
     ('20261102190934'),
     ('20261102190935'),
-    ('20261103153000');
+    ('20261103153000'),
+    ('20261104154633');

@@ -2,10 +2,10 @@
 -- PostgreSQL database dump
 --
 
-\restrict bMm09J56R9gW8evntycrqhUsUeFLAjDNSSID8SJUWRsNn8o1ejhmfcqLp5S05sk
+\restrict YoY1Cgk9cthBn7NLBGYyZbupzfGrVTKeuywt4bB1FLNn0yc2Z2a9zPYaYD8iHQF
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
--- Dumped by pg_dump version 15.17 (Debian 15.17-1.pgdg13+1)
+-- Dumped by pg_dump version 15.17 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -557,6 +557,31 @@ COPY upchieve.session_flags (id, name, created_at, updated_at) FROM stdin;
 --
 
 COPY upchieve.direct_message_flags (id, conversation_id, session_flag_id, censored_message_id, reviewed_at, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: report_reasons; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.report_reasons (id, reason, created_at, updated_at) FROM stdin;
+1	[Immediate ban] Student extremely rude/inappropriate	2024-08-28 00:28:44.025381+00	2024-08-28 00:28:44.025381+00
+2	I am worried for the immediate safety of this student	2024-08-28 00:28:44.025757+00	2024-08-28 00:28:44.025757+00
+3	LEGACY: Student was unresponsive	2024-08-28 00:28:44.026016+00	2024-08-28 00:28:44.026016+00
+4	LEGACY: Technical issue	2024-08-28 00:28:44.026311+00	2024-08-28 00:28:44.026311+00
+5	LEGACY: Other	2024-08-28 00:28:44.026549+00	2024-08-28 00:28:44.026549+00
+6	Coach asked me to connect off of UPchieve	2024-08-28 00:28:44.174187+00	2024-08-28 00:28:44.174187+00
+7	Coach made me feel uncomfortable or unsafe	2024-08-28 00:28:44.174187+00	2024-08-28 00:28:44.174187+00
+8	Coach used inappropriate language	2024-08-28 00:28:44.174187+00	2024-08-28 00:28:44.174187+00
+9	Coach talked about inappropriate and offensive topics	2024-08-28 00:28:44.174187+00	2024-08-28 00:28:44.174187+00
+\.
+
+
+--
+-- Data for Name: direct_message_reports; Type: TABLE DATA; Schema: upchieve; Owner: admin
+--
+
+COPY upchieve.direct_message_reports (id, conversation_id, report_reason_id, report_message, reporting_user_id, reported_user_id, created_at, updated_at) FROM stdin;
 \.
 
 
@@ -7701,23 +7726,6 @@ COPY upchieve.referrals (id, referred_by, user_id) FROM stdin;
 
 
 --
--- Data for Name: report_reasons; Type: TABLE DATA; Schema: upchieve; Owner: admin
---
-
-COPY upchieve.report_reasons (id, reason, created_at, updated_at) FROM stdin;
-1	[Immediate ban] Student extremely rude/inappropriate	2024-08-28 00:28:44.025381+00	2024-08-28 00:28:44.025381+00
-2	I am worried for the immediate safety of this student	2024-08-28 00:28:44.025757+00	2024-08-28 00:28:44.025757+00
-3	LEGACY: Student was unresponsive	2024-08-28 00:28:44.026016+00	2024-08-28 00:28:44.026016+00
-4	LEGACY: Technical issue	2024-08-28 00:28:44.026311+00	2024-08-28 00:28:44.026311+00
-5	LEGACY: Other	2024-08-28 00:28:44.026549+00	2024-08-28 00:28:44.026549+00
-6	Coach asked me to connect off of UPchieve	2024-08-28 00:28:44.174187+00	2024-08-28 00:28:44.174187+00
-7	Coach made me feel uncomfortable or unsafe	2024-08-28 00:28:44.174187+00	2024-08-28 00:28:44.174187+00
-8	Coach used inappropriate language	2024-08-28 00:28:44.174187+00	2024-08-28 00:28:44.174187+00
-9	Coach talked about inappropriate and offensive topics	2024-08-28 00:28:44.174187+00	2024-08-28 00:28:44.174187+00
-\.
-
-
---
 -- Data for Name: required_email_domains; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
@@ -9660,5 +9668,5 @@ SELECT pg_catalog.setval('upchieve.weekdays_id_seq', 1, false);
 -- PostgreSQL database dump complete
 --
 
-\unrestrict bMm09J56R9gW8evntycrqhUsUeFLAjDNSSID8SJUWRsNn8o1ejhmfcqLp5S05sk
+\unrestrict YoY1Cgk9cthBn7NLBGYyZbupzfGrVTKeuywt4bB1FLNn0yc2Z2a9zPYaYD8iHQF
 
