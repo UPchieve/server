@@ -6436,7 +6436,7 @@ COPY upchieve.nths_group_members (nths_group_id, user_id, title, joined_at, upda
 -- Data for Name: nths_group_renewal_candidates; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.nths_group_renewal_candidates (id, nths_group_id, school_year_starts_on, user_id, named_at, named_by, accepted, responded_at, commitments, created_at, updated_at) FROM stdin;
+COPY upchieve.nths_group_renewal_candidates (id, nths_group_id, school_year_starts_on, user_id, commitments, created_at, updated_at) FROM stdin;
 \.
 
 

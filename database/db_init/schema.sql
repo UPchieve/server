@@ -3744,14 +3744,9 @@ CREATE TABLE upchieve.nths_group_renewal_candidates (
     nths_group_id uuid NOT NULL,
     school_year_starts_on date NOT NULL,
     user_id uuid NOT NULL,
-    named_at timestamp with time zone,
-    named_by uuid,
-    accepted boolean,
-    responded_at timestamp with time zone,
     commitments jsonb,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL,
-    CONSTRAINT accepted_and_responded_at_together CHECK (((accepted IS NULL) = (responded_at IS NULL)))
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -3781,34 +3776,6 @@ COMMENT ON COLUMN upchieve.nths_group_renewal_candidates.school_year_starts_on I
 --
 
 COMMENT ON COLUMN upchieve.nths_group_renewal_candidates.user_id IS 'not_pii: Foreign key to upchieve.users';
-
-
---
--- Name: COLUMN nths_group_renewal_candidates.named_at; Type: COMMENT; Schema: upchieve; Owner: -
---
-
-COMMENT ON COLUMN upchieve.nths_group_renewal_candidates.named_at IS 'not_pii: When an admin named the user as a successor; null for a member who answers at the member stage';
-
-
---
--- Name: COLUMN nths_group_renewal_candidates.named_by; Type: COMMENT; Schema: upchieve; Owner: -
---
-
-COMMENT ON COLUMN upchieve.nths_group_renewal_candidates.named_by IS 'not_pii: Foreign key to upchieve.users; the admin who named the user, null for a member who answers at the member stage';
-
-
---
--- Name: COLUMN nths_group_renewal_candidates.accepted; Type: COMMENT; Schema: upchieve; Owner: -
---
-
-COMMENT ON COLUMN upchieve.nths_group_renewal_candidates.accepted IS 'not_pii: true when the user accepted the presidency, false when they declined or stepped down, null before they answer';
-
-
---
--- Name: COLUMN nths_group_renewal_candidates.responded_at; Type: COMMENT; Schema: upchieve; Owner: -
---
-
-COMMENT ON COLUMN upchieve.nths_group_renewal_candidates.responded_at IS 'not_pii: When the user responded';
 
 
 --
@@ -15233,14 +15200,6 @@ ALTER TABLE ONLY upchieve.nths_group_members
 
 
 --
--- Name: nths_group_renewal_candidates nths_group_renewal_candidates_named_by_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
---
-
-ALTER TABLE ONLY upchieve.nths_group_renewal_candidates
-    ADD CONSTRAINT nths_group_renewal_candidates_named_by_fkey FOREIGN KEY (named_by) REFERENCES upchieve.users(id);
-
-
---
 -- Name: nths_group_renewal_candidates nths_group_renewal_candidates_nths_group_id_fkey; Type: FK CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -16829,4 +16788,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20261102190935'),
     ('20261103153000'),
     ('20261104154633'),
-    ('20261104154942');
+    ('20261104154942'),
+    ('20261105134800');
