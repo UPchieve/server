@@ -68,22 +68,10 @@ const DATES = {
 }
 
 describe('parseRenewalDates', () => {
-  it('reads the five dates, accepting numbers typed as text', async () => {
+  it('reads the four dates, accepting numbers typed as text', async () => {
     await expect(parseRenewalDates(sheet())).resolves.toEqual(DATES)
     await expect(
       parseRenewalDates(sheet(dateRows({ nominations_open: [' 5 ', '1'] })))
-    ).resolves.toEqual(DATES)
-  })
-
-  it.each([
-    [6, 1],
-    [4, 1],
-    ['June', 40],
-  ])('ignores a retired admin_reminder row dated %s-%s', async (month, day) => {
-    await expect(
-      parseRenewalDates(
-        sheet([...dateRows(), { step: 'admin_reminder', month, day }])
-      )
     ).resolves.toEqual(DATES)
   })
 

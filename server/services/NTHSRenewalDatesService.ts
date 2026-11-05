@@ -96,10 +96,6 @@ async function parseDates(worksheet: RenewalWorksheet) {
     if (!step) {
       continue
     }
-    // The live sheet still carries this retired row.
-    if (step === 'admin_reminder') {
-      continue
-    }
     if (!Object.hasOwn(STEP_KEYS, step)) {
       invalid(`Unknown step "${step}"`)
     }
