@@ -7,6 +7,7 @@ import { Ulid } from '../../models/pgUtils'
 import { USER_BAN_TYPES } from '../../constants'
 import type { NTHSTitle } from '../../constants/nths-titles'
 import { COMMITMENTS } from '../../services/NTHSApplicationService'
+import { getNthsRenewalState } from '../../models/NTHSRenewal'
 import { leaveGroup } from '../../services/NTHSGroupsService'
 import * as FeatureFlagService from '../../services/FeatureFlagService'
 import * as NTHSRenewalDatesService from '../../services/NTHSRenewalDatesService'
@@ -41,7 +42,7 @@ const DATES = {
 const SCHOOL_YEAR = '2027-07-01'
 const FOUNDED_AT = '2027-02-10T15:00:00.000Z'
 const FOUNDED_AFTER_YEAR_START = '2027-07-15T15:00:00.000Z'
-const RESPONDED_AT = new Date('2027-08-03T15:00:00.000Z')
+const CREATED_AT = new Date('2027-08-03T15:00:00.000Z')
 const DEPARTED_AT = '2027-08-05T15:00:00.000Z'
 
 const JULY = new Date('2027-07-20T15:00:00.000Z')
@@ -101,23 +102,19 @@ function addMember(
   })
 }
 
-// Raw insert: the app never writes accepted = false or a second row for one member.
-async function insertCandidateRow(
-  groupId: Ulid,
-  userId: Ulid,
-  accepted: boolean
-): Promise<void> {
+// Raw insert: the app never writes a second row for one member.
+async function insertCandidateRow(groupId: Ulid, userId: Ulid): Promise<void> {
   await client.query(
     `INSERT INTO nths_group_renewal_candidates
-       (nths_group_id, school_year_starts_on, user_id, accepted, responded_at)
-     VALUES ($1, $2, $3, $4, $5)`,
-    [groupId, SCHOOL_YEAR, userId, accepted, RESPONDED_AT]
+       (nths_group_id, school_year_starts_on, user_id, created_at)
+     VALUES ($1, $2, $3, $4)`,
+    [groupId, SCHOOL_YEAR, userId, CREATED_AT]
   )
 }
 
 async function candidate(groupId: Ulid, userId: Ulid) {
   const { rows } = await client.query(
-    `SELECT accepted, responded_at, commitments
+    `SELECT commitments
      FROM nths_group_renewal_candidates
      WHERE nths_group_id = $1 AND user_id = $2 AND school_year_starts_on = $3`,
     [groupId, userId, SCHOOL_YEAR]
@@ -220,8 +217,6 @@ describe('acceptPresidency', () => {
       renewal: { prompt: 'none' },
     })
     expect(await candidate(groupId, president)).toMatchObject({
-      accepted: true,
-      responded_at: expect.anything(),
       commitments: ALL_COMMITMENTS,
     })
     expect(await memberState(groupId, president)).toEqual({
@@ -309,7 +304,6 @@ describe('acceptPresidency', () => {
       )
 
       expect(await candidate(groupId, caller)).toMatchObject({
-        accepted: true,
         commitments: ALL_COMMITMENTS,
       })
       expect(await memberState(groupId, caller)).toEqual({
@@ -342,9 +336,10 @@ describe('acceptPresidency', () => {
     const result = await acceptPresidency(president, groupId, ACCEPT, AUGUST)
 
     expect(result.outcome).toBe('accepted')
-    expect(await candidate(groupId, president)).toMatchObject({
-      accepted: true,
-    })
+    expect(
+      (await getNthsRenewalState(groupId, president, SCHOOL_YEAR))
+        ?.viewerCandidacy
+    ).toBe('accepted')
   })
 
   test.each(Object.values(USER_BAN_TYPES))(
@@ -401,9 +396,10 @@ describe('acceptPresidency', () => {
 
     await acceptPresidency(president, groupId, ACCEPT, AUGUST)
 
-    expect(await candidate(groupId, president)).toMatchObject({
-      accepted: true,
-    })
+    expect(
+      (await getNthsRenewalState(groupId, president, SCHOOL_YEAR))
+        ?.viewerCandidacy
+    ).toBe('accepted')
   })
 
   type WindowScenario = {
@@ -493,13 +489,11 @@ describe('acceptPresidency', () => {
 test('the database allows one candidate row per chapter, school year and member', async () => {
   const groupId = await chapter()
   const member = await addMember(groupId)
-  await insertCandidateRow(groupId, member, false)
+  await insertCandidateRow(groupId, member)
 
-  await expect(insertCandidateRow(groupId, member, true)).rejects.toMatchObject(
-    {
-      constraint: 'nths_group_renewal_candidates_group_school_year_user_key',
-    }
-  )
+  await expect(insertCandidateRow(groupId, member)).rejects.toMatchObject({
+    constraint: 'nths_group_renewal_candidates_group_school_year_user_key',
+  })
 })
 
 describe('chapter lock', () => {

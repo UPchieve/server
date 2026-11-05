@@ -15,10 +15,9 @@ const client = getClient()
 
 const SCHOOL_YEAR = '2027-07-01'
 const OTHER_SCHOOL_YEAR = '2026-07-01'
-const RESPONDED_AT = '2027-08-03T15:00:00.000Z'
+const CREATED_AT = '2027-08-03T15:00:00.000Z'
 
 type CandidateOptions = {
-  accepted: boolean
   schoolYear?: string
 }
 
@@ -26,19 +25,13 @@ type CandidateOptions = {
 async function addCandidate(
   groupId: Ulid,
   userId: Ulid,
-  options: CandidateOptions
+  options: CandidateOptions = {}
 ): Promise<void> {
   await client.query(
     `INSERT INTO nths_group_renewal_candidates
-       (nths_group_id, school_year_starts_on, user_id, accepted, responded_at)
-     VALUES ($1, $2, $3, $4, $5)`,
-    [
-      groupId,
-      options.schoolYear ?? SCHOOL_YEAR,
-      userId,
-      options.accepted,
-      RESPONDED_AT,
-    ]
+       (nths_group_id, school_year_starts_on, user_id, created_at)
+     VALUES ($1, $2, $3, $4)`,
+    [groupId, options.schoolYear ?? SCHOOL_YEAR, userId, CREATED_AT]
   )
 }
 
@@ -71,10 +64,10 @@ describe('getNthsRenewalState', () => {
   })
 
   it.each<[string, CandidateOptions, string]>([
-    ['accepted', { accepted: true }, 'accepted'],
+    ['accepted', {}, 'accepted'],
     [
       'accepted for another school year',
-      { accepted: true, schoolYear: OTHER_SCHOOL_YEAR },
+      { schoolYear: OTHER_SCHOOL_YEAR },
       'none',
     ],
   ])('maps a viewer %s', async (_label, options, candidacy) => {
@@ -86,18 +79,18 @@ describe('getNthsRenewalState', () => {
   })
 
   it.each<[string, ChapterMemberOptions, CandidateOptions, boolean]>([
-    ['a current member accepted', {}, { accepted: true }, true],
+    ['a current member accepted', {}, {}, true],
     [
       'a deactivated member accepted',
       { deactivatedAt: '2027-08-01T00:00:00.000Z' },
-      { accepted: true },
+      {},
       false,
     ],
-    ['a deleted member accepted', { deleted: true }, { accepted: true }, false],
+    ['a deleted member accepted', { deleted: true }, {}, false],
     [
       'a member accepted for another school year',
       {},
-      { accepted: true, schoolYear: OTHER_SCHOOL_YEAR },
+      { schoolYear: OTHER_SCHOOL_YEAR },
       false,
     ],
   ])(
@@ -124,7 +117,7 @@ describe('getNthsRenewalState', () => {
     const otherGroupId = await createChapter(client)
     const viewerId = await createChapterMember(client, groupId)
     const otherCandidate = await createChapterMember(client, otherGroupId)
-    await addCandidate(otherGroupId, otherCandidate, { accepted: true })
+    await addCandidate(otherGroupId, otherCandidate)
 
     await expect(stateFor(groupId, viewerId)).resolves.toMatchObject({
       hasConfirmedPresident: false,

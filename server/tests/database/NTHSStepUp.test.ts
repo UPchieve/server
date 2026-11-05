@@ -11,6 +11,7 @@ import * as FeatureFlagService from '../../services/FeatureFlagService'
 import * as NTHSRenewalDatesService from '../../services/NTHSRenewalDatesService'
 import { getGroups } from '../../services/NTHSGroupsService'
 import { getGroupMembers } from '../../models/NTHSGroups/queries'
+import { getNthsRenewalState } from '../../models/NTHSRenewal'
 import { insertVolunteerOccupations } from '../../models/Volunteer/queries'
 import {
   acceptPresidency,
@@ -96,7 +97,7 @@ async function addMember(
 
 async function candidate(groupId: Ulid, userId: Ulid) {
   const { rows } = await client.query(
-    `SELECT accepted, commitments FROM nths_group_renewal_candidates
+    `SELECT commitments FROM nths_group_renewal_candidates
      WHERE nths_group_id = $1 AND user_id = $2 AND school_year_starts_on = $3`,
     [groupId, userId, SCHOOL_YEAR]
   )
@@ -299,7 +300,6 @@ describe('step-up across renewal dates', () => {
     await acceptPresidency(stepper, groupId, STEP_UP, AUGUST)
 
     expect(await candidate(groupId, stepper)).toMatchObject({
-      accepted: true,
       commitments: ALL_COMMITMENTS,
     })
     expect(await promptFor(other, AUGUST)).toBe('none')
@@ -346,7 +346,10 @@ describe('step-up across renewal dates', () => {
     const result = await acceptPresidency(stepper, groupId, STEP_UP, AUGUST)
 
     expect(result.outcome).toBe('accepted')
-    expect(await candidate(groupId, stepper)).toMatchObject({ accepted: true })
+    expect(
+      (await getNthsRenewalState(groupId, stepper, SCHOOL_YEAR))
+        ?.viewerCandidacy
+    ).toBe('accepted')
   })
 
   test('offers no step-up and refuses it when the renewal dates can’t be read', async () => {

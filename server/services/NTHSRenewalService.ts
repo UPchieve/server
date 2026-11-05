@@ -469,7 +469,6 @@ async function writeAcceptance(
         groupId: nthsGroupId,
         schoolYearStartsOn,
         userId,
-        accepted: true,
         commitments,
       },
       tc

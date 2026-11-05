@@ -44,7 +44,7 @@ const DATES = {
 const SCHOOL_YEAR = '2026-07-01'
 const FOUNDED_AT = '2026-02-10T15:00:00.000Z'
 const FOUNDED_AFTER_YEAR_START = '2026-07-15T15:00:00.000Z'
-const RESPONDED_AT = new Date('2026-08-03T15:00:00.000Z')
+const CREATED_AT = new Date('2026-08-03T15:00:00.000Z')
 const DEPARTED_AT = '2026-04-05T15:00:00.000Z'
 
 const TEMPLATES = config.sendgrid.nthsRenewal
@@ -69,9 +69,8 @@ const OCT_1_1800 = at('2026-10-01T18:00:00.000Z')
 const OCT_2_1200 = at('2026-10-02T12:00:00.000Z')
 
 type CandidateOptions = {
-  accepted?: boolean | null
   schoolYear?: string
-  respondedAt?: Date
+  createdAt?: Date
 }
 
 type Send = {
@@ -193,17 +192,15 @@ async function addCandidate(
   userId: Ulid,
   options: CandidateOptions = {}
 ): Promise<void> {
-  const accepted = options.accepted ?? null
   await client.query(
     `INSERT INTO nths_group_renewal_candidates
-       (nths_group_id, school_year_starts_on, user_id, accepted, responded_at)
-     VALUES ($1, $2, $3, $4, $5)`,
+       (nths_group_id, school_year_starts_on, user_id, created_at)
+     VALUES ($1, $2, $3, $4)`,
     [
       groupId,
       options.schoolYear ?? SCHOOL_YEAR,
       userId,
-      accepted,
-      accepted === null ? null : (options.respondedAt ?? RESPONDED_AT),
+      options.createdAt ?? CREATED_AT,
     ]
   )
 }
@@ -319,7 +316,7 @@ async function confirmedChapter() {
   const groupId = await chapter()
   const acceptor = await addMember(groupId, { admin: true })
   const member = await addMember(groupId)
-  await addCandidate(groupId, acceptor, { accepted: true })
+  await addCandidate(groupId, acceptor)
   return { groupId, acceptor, member }
 }
 
@@ -835,7 +832,7 @@ describe('closing unconfirmed chapters', () => {
 
 describe('closing under concurrent changes', () => {
   async function confirmPresident(groupId: Ulid, admin: Ulid) {
-    await addCandidate(groupId, admin, { accepted: true })
+    await addCandidate(groupId, admin)
   }
 
   test('leaves a chapter open when its president is confirmed after the run read it as due', async () => {
@@ -981,9 +978,7 @@ describe('closed email recipients', () => {
       const president = await addMember(groupId, { admin: true })
       await addMember(groupId)
       if (confirmed) {
-        await addCandidate(groupId, president, {
-          accepted: true,
-        })
+        await addCandidate(groupId, president)
       }
       await handClose(groupId, closedAt)
 
@@ -1027,10 +1022,7 @@ describe('renewal confirmation scoping', () => {
   async function chapterWithPreviousYearConfirmation() {
     const groupId = await chapter()
     const acceptor = await addMember(groupId, { admin: true })
-    await addCandidate(groupId, acceptor, {
-      accepted: true,
-      schoolYear: '2025-07-01',
-    })
+    await addCandidate(groupId, acceptor, { schoolYear: '2025-07-01' })
     return { groupId, acceptor }
   }
 
@@ -1041,16 +1033,6 @@ describe('renewal confirmation scoping', () => {
 
     expect(await closedAtOf(groupId)).not.toBeNull()
     expect(recipients(TEMPLATES.chapterClosed)).toEqual([acceptor])
-  })
-
-  test('a member who has not answered does not save the chapter', async () => {
-    const { groupId, admin, member } = await unconfirmedChapter()
-    await addCandidate(groupId, member, { accepted: null })
-
-    await runChapterRenewal(OCT_1_1300)
-
-    expect(await closedAtOf(groupId)).not.toBeNull()
-    expect(recipients(TEMPLATES.chapterClosed)).toEqual([admin, member].sort())
   })
 
   test('a confirmation for the previous school year does not stop the member-stage email', async () => {
@@ -1066,14 +1048,11 @@ describe('renewal confirmation scoping', () => {
     ['after the close instant', at('2026-10-01T12:30:00.000Z')],
   ])(
     'an acceptance %s does not save the chapter',
-    async (_label, respondedAt) => {
+    async (_label, createdAt) => {
       const groupId = await chapter()
       const acceptor = await addMember(groupId, { admin: true })
       const member = await addMember(groupId)
-      await addCandidate(groupId, acceptor, {
-        accepted: true,
-        respondedAt,
-      })
+      await addCandidate(groupId, acceptor, { createdAt })
 
       await runChapterRenewal(OCT_1_1300)
 

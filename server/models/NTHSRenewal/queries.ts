@@ -13,9 +13,8 @@ export type NTHSRenewalState = {
   hasManager: boolean
 }
 
-function toCandidacy(row: { viewerAccepted?: boolean }): NTHSRenewalCandidacy {
-  if (row.viewerAccepted === true) return 'accepted'
-  return 'none'
+function toCandidacy(row: { viewerAccepted: boolean }): NTHSRenewalCandidacy {
+  return row.viewerAccepted ? 'accepted' : 'none'
 }
 
 // schoolYearStartsOn is 'YYYY-MM-DD': node-pg sends a Date in the process
@@ -36,6 +35,7 @@ export async function getNthsRenewalState(
       'createdAt',
       'hasConfirmedPresident',
       'hasManager',
+      'viewerAccepted',
     ])
     return {
       createdAt: required.createdAt,
@@ -54,7 +54,6 @@ export async function upsertRenewalAnswer(
     groupId: Ulid
     schoolYearStartsOn: string
     userId: Ulid
-    accepted: boolean
     commitments: Record<string, true> | null
   },
   tc: TransactionClient

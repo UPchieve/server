@@ -1,7 +1,7 @@
 /* @name getNthsRenewalState */
 WITH current_member_candidates AS (
     SELECT
-        candidates.accepted
+        candidates.user_id
     FROM
         nths_group_renewal_candidates candidates
         JOIN nths_group_members members ON members.nths_group_id = candidates.nths_group_id
@@ -16,11 +16,12 @@ WITH current_member_candidates AS (
 SELECT
     nths_groups.created_at,
     nths_groups.closed_at,
-    COALESCE((
+    EXISTS (
         SELECT
-            bool_or(accepted IS TRUE)
-        FROM current_member_candidates), FALSE) AS "has_confirmed_president!",
-    viewer_candidate.accepted AS viewer_accepted,
+            1
+        FROM
+            current_member_candidates) AS "has_confirmed_president!",
+    (viewer_candidate.user_id IS NOT NULL) AS "viewer_accepted!",
     EXISTS (
         SELECT
             1
@@ -47,11 +48,11 @@ WHERE
 
 
 /* @name upsertRenewalAnswer */
-INSERT INTO nths_group_renewal_candidates (nths_group_id, school_year_starts_on, user_id, accepted, responded_at, commitments)
-    VALUES (:groupId!, :schoolYearStartsOn!::date, :userId!, :accepted!, NOW(), :commitments)
+INSERT INTO nths_group_renewal_candidates (nths_group_id, school_year_starts_on, user_id, commitments)
+    VALUES (:groupId!, :schoolYearStartsOn!::date, :userId!, :commitments)
 ON CONFLICT ON CONSTRAINT nths_group_renewal_candidates_group_school_year_user_key
     DO UPDATE SET
-        accepted = EXCLUDED.accepted, responded_at = EXCLUDED.responded_at, commitments = EXCLUDED.commitments, updated_at = NOW();
+        commitments = EXCLUDED.commitments, updated_at = NOW();
 
 
 /* @name getRenewalEmailMembers */
@@ -135,8 +136,7 @@ SELECT
             WHERE
                 candidates.nths_group_id = nths_groups.id
                 AND candidates.school_year_starts_on = :schoolYearStartsOn!::date
-                AND candidates.accepted IS TRUE
-                AND candidates.responded_at < :closesAt!
+                AND candidates.created_at < :closesAt!
                 AND users.deleted IS NOT TRUE);
 
 
@@ -170,8 +170,7 @@ WHERE
         WHERE
             candidates.nths_group_id = nths_groups.id
             AND candidates.school_year_starts_on = :schoolYearStartsOn!::date
-            AND candidates.accepted IS TRUE
-            AND candidates.responded_at < :closesAt!
+            AND candidates.created_at < :closesAt!
             AND acceptors.deleted IS NOT TRUE)
     AND NOT EXISTS (
         SELECT
