@@ -14,6 +14,7 @@ import * as VolunteerRepo from '../models/Volunteer'
 import * as UsersSchoolsRepo from '../models/UsersSchools'
 import * as UsersGradeLevelRepo from '../models/UsersGradeLevels'
 import * as AnalyticsService from './AnalyticsService'
+import * as FeatureFlagService from './FeatureFlagService'
 import { getTotalElapsedAvailabilityForDateRange } from './AvailabilityService'
 import * as MailService from './MailService'
 import * as ReferralService from './ReferralService'
@@ -582,10 +583,35 @@ function toVolunteerPublicProfileInfoShared(
   return sharedInfo
 }
 
+export type VolunteerPastStudentWithDmStatus =
+  VolunteerRepo.VolunteerPastStudent & {
+    canDirectMessage: boolean
+  }
+
 export async function getPastStudentsByVolunteerId(
   volunteerId: Ulid
-): Promise<VolunteerRepo.VolunteerPastStudent[]> {
-  return VolunteerRepo.getPastStudentsByVolunteerId(volunteerId)
+): Promise<VolunteerPastStudentWithDmStatus[]> {
+  const pastStudents =
+    await VolunteerRepo.getPastStudentsByVolunteerId(volunteerId)
+  const dmFlagResults = await Promise.allSettled(
+    pastStudents.map((student) =>
+      FeatureFlagService.isDirectMessagesEnabled(student.studentId)
+    )
+  )
+
+  return pastStudents.map((student, i) => {
+    const result = dmFlagResults[i]
+    if (result.status === 'rejected') {
+      logger.error('Failed to check direct messages flag for student', {
+        err: result.reason,
+        studentId: student.studentId,
+      })
+    }
+    return {
+      ...student,
+      canDirectMessage: result.status === 'fulfilled' ? result.value : false,
+    }
+  })
 }
 
 export async function getVolunteerSubjectNames(

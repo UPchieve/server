@@ -220,3 +220,9 @@ export async function isInSessionOffersTestGroup(
     )) === 'test'
   )
 }
+
+export async function isDirectMessagesEnabled(userId: Uuid): Promise<boolean> {
+  return (
+    (await isFeatureEnabled(FEATURE_FLAGS.DIRECT_MESSAGES, userId)) ?? false
+  )
+}

@@ -24,7 +24,7 @@ export function toVolunteerToReviewPublic(
 }
 
 export function toPastStudentPublic(
-  student: VolunteerPastStudent
+  student: VolunteerPastStudent & { canDirectMessage: boolean }
 ): PastStudentPublic {
   return {
     studentId: student.studentId,
@@ -34,5 +34,6 @@ export function toPastStudentPublic(
     subjectDisplayName: student.subjectDisplayName,
     createdAt: student.createdAt.toISOString(),
     timeTutored: student.timeTutored,
+    canDirectMessage: student.canDirectMessage,
   }
 }

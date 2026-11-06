@@ -41,6 +41,7 @@ export type PastStudentPublic = {
   subjectDisplayName: string
   createdAt: ISODateString
   timeTutored: number
+  canDirectMessage: boolean
 }
 
 export type PastStudentsResponse = {
