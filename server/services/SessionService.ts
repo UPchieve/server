@@ -733,8 +733,11 @@ export async function startSession(
   const isOffering =
     !requestedVolunteerId &&
     user.banType !== USER_BAN_TYPES.SHADOW &&
+    // TEMPORARY: because we need to bucket by session, not student or coach,
+    // we can't use posthog. 50% of sessions are offered and the other 50%
+    // show up as a regular session in the list on the dashboard
     Math.random() < OFFERED_SESSION_SHARE &&
-    (await FeatureFlagsService.isSessionOffersEnabled(user.id, subject))
+    (await FeatureFlagsService.isSessionOffersEnabled(user.id))
 
   const newSession = await runInTransaction(async (tc: TransactionClient) => {
     const newSession = await SessionRepo.createSession(

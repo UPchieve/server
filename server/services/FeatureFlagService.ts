@@ -194,19 +194,12 @@ export async function getSessionHoldsStudentFeatureFlagPayload(
   return payload
 }
 
-type SessionOffersFlagPayload = {
-  subjects: string[]
-}
 export async function isSessionOffersEnabled(
-  studentId: Uuid,
-  subject: string
+  studentId: Uuid
 ): Promise<boolean> {
-  if (!(await isFeatureEnabled(FEATURE_FLAGS.SESSION_OFFERS, studentId))) {
-    return false
-  }
-  const payload: SessionOffersFlagPayload | false | undefined =
-    await getFeatureFlagPayload(FEATURE_FLAGS.SESSION_OFFERS, studentId)
-  return payload ? payload.subjects.includes(subject) : false
+  return (
+    (await isFeatureEnabled(FEATURE_FLAGS.SESSION_OFFERS, studentId)) ?? false
+  )
 }
 
 // the control variant counts as enabled, so compare the variant itself

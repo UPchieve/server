@@ -838,7 +838,7 @@ describe('SessionService', () => {
 
       expect(
         mockFeatureFlagService.isSessionOffersEnabled
-      ).toHaveBeenCalledWith(newSession.studentId, 'algebraOne')
+      ).toHaveBeenCalledWith(newSession.studentId)
       expect(
         mockedSessionOfferService.hideFromSessionList
       ).toHaveBeenCalledWith(newSession)
