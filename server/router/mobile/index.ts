@@ -1,15 +1,13 @@
-import admin from 'firebase-admin'
+import { cert, initializeApp } from 'firebase-admin/app'
 import config from '../../config'
 import express from 'express'
 
 export function routes(app: express.Express): void {
   // TODO: need to set FIREBASE_PRIVATE_KEY_JSON in local development to run
   if (process.env.FIREBASE_PRIVATE_KEY_JSON) {
-    admin.initializeApp({
+    initializeApp({
       projectId: config.firebase.projectId,
-      credential: admin.credential.cert(
-        JSON.parse(process.env.FIREBASE_PRIVATE_KEY_JSON)
-      ),
+      credential: cert(JSON.parse(process.env.FIREBASE_PRIVATE_KEY_JSON)),
     })
   }
 

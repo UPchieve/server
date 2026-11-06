@@ -1,4 +1,4 @@
-import { messaging } from 'firebase-admin'
+import { getMessaging } from 'firebase-admin/messaging'
 import Case from 'case'
 import { isDevEnvironment } from '../utils/environments'
 
@@ -13,7 +13,7 @@ async function sendToUser(
     return
   }
 
-  return await messaging().sendEachForMulticast({
+  return await getMessaging().sendEachForMulticast({
     tokens, // can also send to a topic (group of people)
     // ios and android process data a little differently, so setup separate objects for each
     apns: {
