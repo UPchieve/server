@@ -24,11 +24,12 @@ function toOfferSession(session: CurrentSession): OfferSession {
 }
 
 /**
- * hides the session from the session list. call before the session is
- * committed, or a coach could see it listed while it is being offered.
- * returns false if offering could not start, so the session should be listed
+ * hides the session from the session list so it can be offered.
+ * returns false if it could not be hidden, so the session should be listed
  */
-export async function startOffering(session: CurrentSession): Promise<boolean> {
+export async function hideFromSessionList(
+  session: CurrentSession
+): Promise<boolean> {
   try {
     await OfferStore.saveEmptyOfferHistory(toOfferSession(session))
     return true

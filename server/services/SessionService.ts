@@ -736,7 +736,6 @@ export async function startSession(
     Math.random() < OFFERED_SESSION_SHARE &&
     (await FeatureFlagsService.isSessionOffersEnabled(user.id, subject))
 
-  let isBeingOffered = false
   const newSession = await runInTransaction(async (tc: TransactionClient) => {
     const newSession = await SessionRepo.createSession(
       {
@@ -776,11 +775,12 @@ export async function startSession(
       tc
     )
 
-    if (isOffering)
-      isBeingOffered = await SessionOfferService.startOffering(newSession)
-
     return newSession
   })
+
+  let isBeingOffered = false
+  if (isOffering)
+    isBeingOffered = await SessionOfferService.hideFromSessionList(newSession)
 
   await saveSessionToCache({
     sessionId: newSession.id,

@@ -83,7 +83,7 @@ async function bringCoachOnline(
 
 // what startSession does for a session it offers
 async function startAndOffer(session: CurrentSession): Promise<void> {
-  await SessionOfferService.startOffering(session)
+  await SessionOfferService.hideFromSessionList(session)
   await SessionOfferService.makeInitialOffer(session)
 }
 
@@ -338,12 +338,12 @@ describe('makeInitialOffer', () => {
   })
 })
 
-describe('startOffering', () => {
+describe('hideFromSessionList', () => {
   test('hides the session from the session list without offering it to a coach', async () => {
     await bringCoachOnline()
     const session = buildCurrentSession()
 
-    expect(await SessionOfferService.startOffering(session)).toBe(true)
+    expect(await SessionOfferService.hideFromSessionList(session)).toBe(true)
 
     expect(await isBeingOffered(session.id)).toBe(true)
     expect(mockedSocketService.emitSessionOffer).not.toHaveBeenCalled()
@@ -355,14 +355,14 @@ describe('startOffering', () => {
       .mockRejectedValueOnce(new Error('redis down'))
     const session = buildCurrentSession()
 
-    let started: boolean
+    let hidden: boolean
     try {
-      started = await SessionOfferService.startOffering(session)
+      hidden = await SessionOfferService.hideFromSessionList(session)
     } finally {
       set.mockRestore()
     }
 
-    expect(started).toBe(false)
+    expect(hidden).toBe(false)
     expect(await isBeingOffered(session.id)).toBe(false)
   })
 })

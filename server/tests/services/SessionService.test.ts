@@ -44,7 +44,6 @@ import SocketService from '../../services/SocketService'
 import * as SessionFlagsService from '../../services/SessionFlagsService'
 import * as SessionOfferService from '../../services/SessionOfferService'
 import { OFFERED_SESSION_SHARE } from '../../services/SessionOfferService/offer-config'
-import { Pool } from 'pg'
 import { minutesInMs } from '../../utils/time-utils'
 import * as VolunteerService from '../../services/VolunteerService'
 import * as VolunteerQueries from '../../models/Volunteer/queries'
@@ -825,22 +824,24 @@ describe('SessionService', () => {
       expect(
         mockedNotifyVolunteerService.beginRegularNotifications
       ).toHaveBeenCalledWith(newSession)
-      expect(mockedSessionOfferService.startOffering).not.toHaveBeenCalled()
+      expect(
+        mockedSessionOfferService.hideFromSessionList
+      ).not.toHaveBeenCalled()
       expect(mockedSessionOfferService.makeInitialOffer).not.toHaveBeenCalled()
     })
 
     test('offers the session without regular notifications when session offers are enabled', async () => {
       mockFeatureFlagService.isSessionOffersEnabled.mockResolvedValue(true)
-      mockedSessionOfferService.startOffering.mockResolvedValue(true)
+      mockedSessionOfferService.hideFromSessionList.mockResolvedValue(true)
 
       const newSession = await startNewSession()
 
       expect(
         mockFeatureFlagService.isSessionOffersEnabled
       ).toHaveBeenCalledWith(newSession.studentId, 'algebraOne')
-      expect(mockedSessionOfferService.startOffering).toHaveBeenCalledWith(
-        newSession
-      )
+      expect(
+        mockedSessionOfferService.hideFromSessionList
+      ).toHaveBeenCalledWith(newSession)
       expect(mockedSessionOfferService.makeInitialOffer).toHaveBeenCalledWith(
         newSession
       )
@@ -849,30 +850,9 @@ describe('SessionService', () => {
       ).not.toHaveBeenCalled()
     })
 
-    test('hides an offered session before the session is committed', async () => {
-      mockFeatureFlagService.isSessionOffersEnabled.mockResolvedValue(true)
-      mockedSessionOfferService.startOffering.mockResolvedValue(true)
-      const pgClient = await new Pool({}).connect()
-      const query = jest.spyOn(pgClient, 'query')
-
-      try {
-        await startNewSession()
-
-        const commit = query.mock.calls.findIndex(
-          (args) => (args as unknown[])[0] === 'COMMIT'
-        )
-        expect(commit).not.toBe(-1)
-        expect(
-          mockedSessionOfferService.startOffering.mock.invocationCallOrder[0]
-        ).toBeLessThan(query.mock.invocationCallOrder[commit])
-      } finally {
-        query.mockRestore()
-      }
-    })
-
     test('begins regular notifications when offering the session cannot start', async () => {
       mockFeatureFlagService.isSessionOffersEnabled.mockResolvedValue(true)
-      mockedSessionOfferService.startOffering.mockResolvedValue(false)
+      mockedSessionOfferService.hideFromSessionList.mockResolvedValue(false)
 
       const newSession = await startNewSession()
 
@@ -888,7 +868,9 @@ describe('SessionService', () => {
 
       const newSession = await startNewSession()
 
-      expect(mockedSessionOfferService.startOffering).not.toHaveBeenCalled()
+      expect(
+        mockedSessionOfferService.hideFromSessionList
+      ).not.toHaveBeenCalled()
       expect(
         mockedNotifyVolunteerService.beginRegularNotifications
       ).toHaveBeenCalledWith(newSession)
