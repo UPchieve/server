@@ -1329,6 +1329,27 @@ WHERE
     AND ended_at IS NULL;
 
 
+/* @name getVolunteersInOrRequestedForSessions */
+SELECT
+    volunteer_id
+FROM
+    sessions
+WHERE
+    volunteer_joined_at IS NOT NULL
+    AND volunteer_id IS NOT NULL
+    AND ended_at IS NULL
+UNION
+SELECT
+    requested_volunteer_id
+FROM
+    sessions
+WHERE
+    requested_volunteer_id IS NOT NULL
+    AND opened_to_all_at IS NULL
+    AND volunteer_id IS NULL
+    AND ended_at IS NULL;
+
+
 /* @name getLastSessionEndedAtByVolunteerIds */
 SELECT
     volunteers.id AS volunteer_id,

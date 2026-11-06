@@ -9,19 +9,12 @@ import * as SessionOfferRepo from '../../models/SessionOffer'
 import logger from '../../logger'
 import { Ulid } from '../../types/shared'
 import { minutesInMs, secondsInMs } from '../../utils/time-utils'
-import {
-  ClosedOffer,
-  OfferHistory,
-  OfferHistoryWithPending,
-  OfferSession,
-} from './types'
+import { OfferHistory, OfferHistoryWithPending, OfferSession } from './types'
+import { OFFER_DURATION_MS } from './offer-config'
 
-/** @TODO decide per-offer duration and timeout grace period */
-// the time the coach has to respond
-export const OFFER_DURATION_MS = secondsInMs(30)
-// plus grace for high-line's response. when the timer expires, the offer has
-// timed out
-const OFFER_TIMEOUT_MS = OFFER_DURATION_MS + secondsInMs(10)
+// the time the coach has to respond, plus grace for high-line's response.
+// when the timer expires, the offer has timed out
+const OFFER_TIMEOUT_MS = OFFER_DURATION_MS + secondsInMs(5)
 
 // the claim is deleted when the offer closes or offering
 // stops, so it only lapses if subway dies mid-offer. it must outlast any live
@@ -82,7 +75,7 @@ function close(
   outcome: SessionOfferRepo.SessionOfferOutcome
 ): OfferHistory {
   return {
-    session: history.session,
+    ...history,
     pending: null,
     closed: [
       ...history.closed,
@@ -92,7 +85,7 @@ function close(
 }
 
 function parseOfferHistory(json: string): OfferHistory {
-  const OFFER_DATE_KEYS = ['offeredAt', 'closedAt']
+  const OFFER_DATE_KEYS = ['startedAt', 'offeredAt', 'closedAt']
   return JSON.parse(json, (key, value) =>
     OFFER_DATE_KEYS.includes(key) && typeof value === 'string'
       ? new Date(value)
@@ -111,7 +104,12 @@ export async function getOfferHistory(
 export async function saveEmptyOfferHistory(
   session: OfferSession
 ): Promise<void> {
-  const history: OfferHistory = { session, pending: null, closed: [] }
+  const history: OfferHistory = {
+    session,
+    startedAt: new Date(),
+    pending: null,
+    closed: [],
+  }
   await redisClient.set(
     historyKey(session.id),
     JSON.stringify(history),
@@ -275,10 +273,16 @@ export async function clearOfferHistory(sessionId: Ulid): Promise<boolean> {
   })
 }
 
+/** a null outcome closes the pending offer without saving it */
 export async function closePendingOfferAndClear(
   sessionId: Ulid,
-  outcomeFor: (volunteerId: Ulid) => SessionOfferRepo.SessionOfferOutcome
-): Promise<ClosedOffer | null> {
+  outcomeFor: (
+    history: OfferHistoryWithPending
+  ) => SessionOfferRepo.SessionOfferOutcome | null
+): Promise<{
+  volunteerId: Ulid
+  outcome: SessionOfferRepo.SessionOfferOutcome | null
+} | null> {
   // skips the lock for the common case of a session that was never offered
   if (!(await redisClient.exists(historyKey(sessionId)))) return null
 
@@ -291,13 +295,18 @@ export async function closePendingOfferAndClear(
 
       await deleteOfferHistory(sessionId, history)
       const { pending } = history
-      return pending
-        ? close({ ...history, pending }, outcomeFor(pending.volunteerId))
-        : null
+      if (!pending) return null
+
+      const outcome = outcomeFor({ ...history, pending })
+      return {
+        volunteerId: pending.volunteerId,
+        outcome,
+        history: outcome && close({ ...history, pending }, outcome),
+      }
     }
   )
   if (!closed) return null
 
-  await saveClosedOffer(closed)
-  return closed.closed[closed.closed.length - 1]
+  if (closed.history) await saveClosedOffer(closed.history)
+  return { volunteerId: closed.volunteerId, outcome: closed.outcome }
 }

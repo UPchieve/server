@@ -1586,6 +1586,15 @@ export async function getVolunteersInSessions(): Promise<Uuid[]> {
   return result.map((r) => makeRequired(r).volunteerId)
 }
 
+/** volunteers in a session, or requested by a student still waiting for them */
+export async function getVolunteersInOrRequestedForSessions(): Promise<Uuid[]> {
+  const result = await pgQueries.getVolunteersInOrRequestedForSessions.run(
+    undefined,
+    getClient()
+  )
+  return result.map((r) => makeRequired(r).volunteerId)
+}
+
 export async function getLastSessionEndedAtByVolunteerIds(
   volunteerIds: Uuid[],
   minSessionLength: number

@@ -11,6 +11,8 @@ import {
 } from '../../services/SessionService'
 import * as SessionHoldsService from '../../services/SessionHoldsService'
 import type SocketService from '../../services/SocketService'
+import { saveEmptyOfferHistory } from '../../services/SessionOfferService/offer-store'
+import { redisClient } from '../../services/RedisService'
 import { buildCurrentSession } from '../mocks/generate'
 
 jest.mock('../../cache', () => ({ hgetall: jest.fn() }))
@@ -92,9 +94,10 @@ describe('SocketService session list broadcasts', () => {
     })
   })
 
-  afterEach(() => {
+  afterEach(async () => {
     jest.clearAllTimers()
     jest.useRealTimers()
+    await redisClient.flushall()
   })
 
   test('debounces a burst of changes into one list broadcast', async () => {
@@ -145,6 +148,21 @@ describe('SocketService session list broadcasts', () => {
     olderQuery.resolve(sessions)
     await jest.advanceTimersByTimeAsync(0)
     expect(volunteers.emit).toHaveBeenCalledTimes(1)
+  })
+
+  test('leaves out sessions that are being offered', async () => {
+    await saveEmptyOfferHistory({
+      id: session.id,
+      subject: session.subject,
+      subjectDisplayName: session.subjectDisplayName,
+      topic: session.topic,
+      studentFirstName: session.student.firstName,
+    })
+
+    await service.emitSessionChange(session.id)
+    await jest.advanceTimersByTimeAsync(DEBOUNCE_MS)
+
+    expect(volunteers.emit).toHaveBeenCalledWith('sessions', [])
   })
 })
 

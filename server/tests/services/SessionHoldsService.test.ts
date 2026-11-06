@@ -279,23 +279,6 @@ describe('getOrCreateSessionHolds', () => {
     )
   })
 
-  // @TODO restore once offered sessions are hidden from other coaches
-  it.skip('Returns no holds if session offers are enabled for the student', async () => {
-    mockedFeatureFlagsService.isSessionOffersEnabled.mockResolvedValueOnce(true)
-
-    const actual = await SessionHoldsService.getOrCreateSessionHolds(
-      SESSION_DATA,
-      COACH_DATA
-    )
-
-    expect(actual).toEqual([])
-    expect(mockedCache.saveWithExpiration).toHaveBeenCalledWith(
-      `SESSION_HOLD:${SESSION_DATA.id}`,
-      JSON.stringify([]),
-      HOLD_PARAMETERS.SESSION_TTL_SECONDS
-    )
-  })
-
   it('Returns no holds if the subject is not enabled on the student feature flag', async () => {
     mockedCache.getIfExists.mockResolvedValueOnce(undefined)
     mockedFeatureFlagsService.getSessionHoldsStudentFeatureFlagPayload.mockResolvedValue(

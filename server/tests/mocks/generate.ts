@@ -791,6 +791,8 @@ export type SessionRow = {
   endedAt?: Date
   mongoId?: string
   endedByUserId?: string
+  requestedVolunteerId?: Ulid
+  openedToAllAt?: Date
 }
 
 export async function buildSessionRow(

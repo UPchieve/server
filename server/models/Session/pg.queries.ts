@@ -3092,6 +3092,48 @@ const getVolunteersInSessionsIR: any = {"usedParamSet":{},"params":[],"statement
 export const getVolunteersInSessions = new PreparedQuery<IGetVolunteersInSessionsParams,IGetVolunteersInSessionsResult>(getVolunteersInSessionsIR);
 
 
+/** 'GetVolunteersInOrRequestedForSessions' parameters type */
+export type IGetVolunteersInOrRequestedForSessionsParams = void;
+
+/** 'GetVolunteersInOrRequestedForSessions' return type */
+export interface IGetVolunteersInOrRequestedForSessionsResult {
+  volunteerId: string | null;
+}
+
+/** 'GetVolunteersInOrRequestedForSessions' query type */
+export interface IGetVolunteersInOrRequestedForSessionsQuery {
+  params: IGetVolunteersInOrRequestedForSessionsParams;
+  result: IGetVolunteersInOrRequestedForSessionsResult;
+}
+
+const getVolunteersInOrRequestedForSessionsIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    volunteer_id\nFROM\n    sessions\nWHERE\n    volunteer_joined_at IS NOT NULL\n    AND volunteer_id IS NOT NULL\n    AND ended_at IS NULL\nUNION\nSELECT\n    requested_volunteer_id\nFROM\n    sessions\nWHERE\n    requested_volunteer_id IS NOT NULL\n    AND opened_to_all_at IS NULL\n    AND volunteer_id IS NULL\n    AND ended_at IS NULL"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     volunteer_id
+ * FROM
+ *     sessions
+ * WHERE
+ *     volunteer_joined_at IS NOT NULL
+ *     AND volunteer_id IS NOT NULL
+ *     AND ended_at IS NULL
+ * UNION
+ * SELECT
+ *     requested_volunteer_id
+ * FROM
+ *     sessions
+ * WHERE
+ *     requested_volunteer_id IS NOT NULL
+ *     AND opened_to_all_at IS NULL
+ *     AND volunteer_id IS NULL
+ *     AND ended_at IS NULL
+ * ```
+ */
+export const getVolunteersInOrRequestedForSessions = new PreparedQuery<IGetVolunteersInOrRequestedForSessionsParams,IGetVolunteersInOrRequestedForSessionsResult>(getVolunteersInOrRequestedForSessionsIR);
+
+
 /** 'GetLastSessionEndedAtByVolunteerIds' parameters type */
 export interface IGetLastSessionEndedAtByVolunteerIdsParams {
   minSessionLength: number;

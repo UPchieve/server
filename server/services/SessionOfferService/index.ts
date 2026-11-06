@@ -5,13 +5,13 @@ import SocketService from '../SocketService'
 import * as SessionOfferRepo from '../../models/SessionOffer'
 import logger from '../../logger'
 import { eligibleCoaches } from './coaches'
-import * as OfferStore from './offerStore'
+import * as OfferStore from './offer-store'
 import { DEFAULT_SCORECARD } from '../MatchScoringService/scorecard'
 import { SUBJECTS } from '../../constants/subjects'
-import { OfferSession } from './types'
-
-/** @TODO decide how many coaches to offer a session to */
-export const MAX_OFFERS = 5
+import { OfferHistoryWithPending, OfferSession } from './types'
+import * as NotifyVolunteerService from '../NotifyVolunteerService'
+import * as SessionRepo from '../../models/Session'
+import { OFFERING_PERIOD_MS, OFFER_DURATION_MS } from './offer-config'
 
 function toOfferSession(session: CurrentSession): OfferSession {
   return {
@@ -23,16 +23,29 @@ function toOfferSession(session: CurrentSession): OfferSession {
   }
 }
 
-export async function makeInitialOffer(session: CurrentSession) {
+/**
+ * hides the session from the session list. call before the session is
+ * committed, or a coach could see it listed while it is being offered.
+ * returns false if offering could not start, so the session should be listed
+ */
+export async function startOffering(session: CurrentSession): Promise<boolean> {
   try {
-    const offerSession = toOfferSession(session)
-    await OfferStore.saveEmptyOfferHistory(offerSession)
-    await offerToTopCoach(offerSession)
+    await OfferStore.saveEmptyOfferHistory(toOfferSession(session))
+    return true
   } catch (err) {
     logger.error('Failed to start offering session', {
       err,
       sessionId: session.id,
     })
+    return false
+  }
+}
+
+export async function makeInitialOffer(session: CurrentSession): Promise<void> {
+  try {
+    await offerToTopCoach(toOfferSession(session))
+  } catch (err) {
+    logger.error('Failed to offer session', { err, sessionId: session.id })
   }
 }
 
@@ -69,9 +82,7 @@ async function offerToTopCoach(offerSession: OfferSession): Promise<void> {
       subjectDisplayName: session.subjectDisplayName,
       topic: session.topic,
       studentFirstName: session.studentFirstName,
-      expiresAt: new Date(
-        pending.offeredAt.getTime() + OfferStore.OFFER_DURATION_MS
-      ),
+      expiresAt: new Date(pending.offeredAt.getTime() + OFFER_DURATION_MS),
     })
   } catch (err) {
     logger.error('Failed to offer session, stopping offers', {
@@ -86,7 +97,9 @@ async function offerToNextCoach(sessionId: Ulid): Promise<void> {
   const history = await OfferStore.getOfferHistory(sessionId)
   // offering already stopped
   if (!history) return
-  if (history.closed.length >= MAX_OFFERS) return stopOffering(sessionId)
+  const offeringEndsAt = history.startedAt.getTime() + OFFERING_PERIOD_MS
+  if (Date.now() + OFFER_DURATION_MS > offeringEndsAt)
+    return stopOffering(sessionId)
 
   await offerToTopCoach(history.session)
 }
@@ -131,24 +144,28 @@ async function closeOffer(
 
 async function closeOffersFor(
   sessionId: Ulid,
-  outcomeFor: (volunteerId: Ulid) => SessionOfferRepo.SessionOfferOutcome
+  outcomeFor: (
+    history: OfferHistoryWithPending
+  ) => SessionOfferRepo.SessionOfferOutcome | null
 ): Promise<void> {
   const closed = await OfferStore.closePendingOfferAndClear(
     sessionId,
     outcomeFor
   )
   if (closed)
-    tellCoachOfferClosed(sessionId, closed.volunteerId, closed.outcome)
+    tellCoachOfferClosed(
+      sessionId,
+      closed.volunteerId,
+      closed.outcome ?? 'expired'
+    )
 }
 
-/** TEMPORARY: a coach other than the one with the pending offer picking it up counts as shadow-offered */
 export async function onSessionJoined(
   sessionId: Ulid,
   volunteerId: Ulid
 ): Promise<void> {
-  await closeOffersFor(sessionId, (offeredTo) =>
-    /** NOTE: shadow-offered is temporary. there won't be a ternary once we're actually offering */
-    offeredTo === volunteerId ? 'accepted' : 'shadow-offered'
+  await closeOffersFor(sessionId, ({ pending }) =>
+    pending.volunteerId === volunteerId ? 'accepted' : null
   )
 }
 
@@ -187,5 +204,9 @@ export function listenForOfferExpiries() {
 }
 
 async function stopOffering(sessionId: Ulid): Promise<void> {
-  await OfferStore.clearOfferHistory(sessionId)
+  if (!(await OfferStore.clearOfferHistory(sessionId))) return
+
+  const session = await SessionRepo.getCurrentSessionBySessionId(sessionId)
+  if (session) await NotifyVolunteerService.beginRegularNotifications(session)
+  await SocketService.getInstance().emitSessionChange(sessionId)
 }

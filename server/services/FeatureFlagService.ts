@@ -17,6 +17,19 @@ async function isFeatureEnabled(
   })
 }
 
+async function getFeatureFlagVariant(
+  featureFlagName: FEATURE_FLAGS,
+  userId: Uuid,
+  waitInMs?: number
+): Promise<string | boolean | undefined> {
+  return await timeLimit({
+    promise: productClient.getFeatureFlag(featureFlagName, userId),
+    fallbackReturnValue: false,
+    timeLimitReachedErrorMessage: `Posthog: 'getFeatureFlag' did not receive response for feature flag '${featureFlagName}'.`,
+    waitInMs,
+  })
+}
+
 export async function getFeatureFlagPayload(
   featureFlagName: FEATURE_FLAGS,
   userId: Uuid,
@@ -181,10 +194,29 @@ export async function getSessionHoldsStudentFeatureFlagPayload(
   return payload
 }
 
+type SessionOffersFlagPayload = {
+  subjects: string[]
+}
 export async function isSessionOffersEnabled(
-  studentId: Uuid
+  studentId: Uuid,
+  subject: string
+): Promise<boolean> {
+  if (!(await isFeatureEnabled(FEATURE_FLAGS.SESSION_OFFERS, studentId))) {
+    return false
+  }
+  const payload: SessionOffersFlagPayload | false | undefined =
+    await getFeatureFlagPayload(FEATURE_FLAGS.SESSION_OFFERS, studentId)
+  return payload ? payload.subjects.includes(subject) : false
+}
+
+// the control variant counts as enabled, so compare the variant itself
+export async function isInSessionOffersTestGroup(
+  coachId: Uuid
 ): Promise<boolean> {
   return (
-    (await isFeatureEnabled(FEATURE_FLAGS.SESSION_OFFERS, studentId)) ?? false
+    (await getFeatureFlagVariant(
+      FEATURE_FLAGS.SESSION_OFFERS_COACH,
+      coachId
+    )) === 'test'
   )
 }

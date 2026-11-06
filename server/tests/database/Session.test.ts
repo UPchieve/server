@@ -20,6 +20,7 @@ import {
   getSessionTranscriptItems,
   getVolunteerFirstSessionDate,
   getVolunteersInSessions,
+  getVolunteersInOrRequestedForSessions,
   isInSessionHistory,
   isSessionFulfilled,
   updateSessionFlagsById,
@@ -1168,6 +1169,52 @@ describe('Session repo', () => {
       expect(result).toContain(id3)
       expect(result).not.toContain(id2)
       expect(result).not.toContain(id4)
+    })
+  })
+
+  describe('getVolunteersInOrRequestedForSessions', () => {
+    test('returns volunteers in a session or requested by a student still waiting for them', async () => {
+      const [
+        inSession,
+        requested,
+        openedToAll,
+        requestEnded,
+        sessionEnded,
+        uninvolved,
+      ] = await Promise.all(
+        range(6).map(async () => {
+          const id = (await createTestUser(getClient())).id
+          await createTestVolunteer(getClient(), id)
+          return id
+        })
+      )
+
+      for (const row of [
+        { volunteerId: inSession, volunteerJoinedAt: new Date() },
+        { requestedVolunteerId: requested },
+        { requestedVolunteerId: openedToAll, openedToAllAt: new Date() },
+        { requestedVolunteerId: requestEnded, endedAt: new Date() },
+        {
+          volunteerId: sessionEnded,
+          volunteerJoinedAt: new Date(),
+          endedAt: new Date(),
+        },
+      ]) {
+        await insertSingleRow(
+          'sessions',
+          await buildSessionRow({ studentId, ...row }),
+          getClient()
+        )
+      }
+
+      const result = await getVolunteersInOrRequestedForSessions()
+
+      expect(result).toContain(inSession)
+      expect(result).toContain(requested)
+      expect(result).not.toContain(openedToAll)
+      expect(result).not.toContain(requestEnded)
+      expect(result).not.toContain(sessionEnded)
+      expect(result).not.toContain(uninvolved)
     })
   })
 

@@ -75,13 +75,6 @@ export async function getOrCreateSessionHolds( // exported for testing
     await FeatureFlagService.getSessionHoldsStudentFeatureFlag(
       sessionData.studentId
     )
-  // @TODO restore once offered sessions are hidden from other coaches
-  // const isHoldEnabledForSession =
-  //   (await FeatureFlagService.getSessionHoldsStudentFeatureFlag(
-  //     sessionData.studentId
-  //   )) &&
-  //   // session offers replace holds
-  //   !(await FeatureFlagService.isSessionOffersEnabled(sessionData.studentId))
   if (!isHoldEnabledForSession) {
     await saveHoldsToCache(sessionData.id, [])
     return []

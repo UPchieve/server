@@ -21,4 +21,5 @@ export enum FEATURE_FLAGS {
   SESSION_HOLDS_COACH = 'session-holds-coach',
   SESSION_HOLDS_STUDENT = 'session-holds-student',
   SESSION_OFFERS = 'session-offers',
+  SESSION_OFFERS_COACH = 'session-offers-coach',
 }

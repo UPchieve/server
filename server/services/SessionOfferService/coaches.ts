@@ -1,7 +1,9 @@
 import * as PresenceService from '../PresenceService'
+import * as FeatureFlagService from '../FeatureFlagService'
 import * as VolunteerRepo from '../../models/Volunteer'
 import * as SessionRepo from '../../models/Session'
 import { SUBJECTS } from '../../constants/subjects'
+import { filterAsync } from '../../utils/filter-async'
 
 export async function eligibleCoaches(subject: SUBJECTS) {
   const onlineCoaches = await PresenceService.getOnlineUsers('volunteer')
@@ -11,7 +13,7 @@ export async function eligibleCoaches(subject: SUBJECTS) {
   const coachData = await VolunteerRepo.getSubjectAndReadyToCoachInfoByUserIds(
     onlineCoaches.map(({ userId }) => userId)
   )
-  const inSessions = await SessionRepo.getVolunteersInSessions()
+  const unavailable = await SessionRepo.getVolunteersInOrRequestedForSessions()
   const availableCoacheIds = new Set(
     coachData
       .filter(
@@ -20,7 +22,7 @@ export async function eligibleCoaches(subject: SUBJECTS) {
           coach.banType !== 'complete' &&
           coach.banType !== 'shadow' &&
           !coach.isDeactivated &&
-          !inSessions.includes(coach.userId) &&
+          !unavailable.includes(coach.userId) &&
           coach.unlockedSubjects.includes(subject) &&
           !coach.mutedSubjects.includes(subject)
       )
@@ -32,5 +34,12 @@ export async function eligibleCoaches(subject: SUBJECTS) {
    * for opportunity cost scoring. for now, just return
    * `onlineSince`
    */
-  return onlineCoaches.filter(({ userId }) => availableCoacheIds.has(userId))
+  const availableCoaches = onlineCoaches.filter(({ userId }) =>
+    availableCoacheIds.has(userId)
+  )
+  return (
+    await filterAsync(availableCoaches, ({ userId }) =>
+      FeatureFlagService.isInSessionOffersTestGroup(userId)
+    )
+  ).filtered
 }

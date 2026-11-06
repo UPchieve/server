@@ -24,6 +24,7 @@ export type ClosedOffer = {
 
 export type OfferHistory = {
   session: OfferSession
+  startedAt: Date
   pending: Offer | null
   closed: ClosedOffer[]
 }

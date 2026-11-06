@@ -43,6 +43,8 @@ import * as NotifyVolunteerService from '../../services/NotifyVolunteerService'
 import SocketService from '../../services/SocketService'
 import * as SessionFlagsService from '../../services/SessionFlagsService'
 import * as SessionOfferService from '../../services/SessionOfferService'
+import { OFFERED_SESSION_SHARE } from '../../services/SessionOfferService/offer-config'
+import { Pool } from 'pg'
 import { minutesInMs } from '../../utils/time-utils'
 import * as VolunteerService from '../../services/VolunteerService'
 import * as VolunteerQueries from '../../models/Volunteer/queries'
@@ -453,6 +455,10 @@ describe('SessionService', () => {
       mockedSocketService.getInstance.mockReturnValue({
         emitSessionChange: jest.fn(),
       } as any)
+      mockSessionRepo.getSessionById.mockResolvedValue({
+        ...session,
+        volunteerId: volunteer.id,
+      })
       return { volunteer, session }
     }
 
@@ -513,6 +519,23 @@ describe('SessionService', () => {
       expect(
         mockSessionRepo.updateSessionFailedJoinsById
       ).not.toHaveBeenCalled()
+    })
+
+    test('refuses a coach when another coach was saved first', async () => {
+      const { volunteer, session } = setup(undefined)
+      mockSessionRepo.getSessionById.mockResolvedValue({
+        ...session,
+        volunteerId: getDbUlid(),
+      })
+
+      const error = await SessionService.joinSession(
+        volunteer,
+        session.id,
+        {}
+      ).catch((e) => e)
+
+      expect(error).toBeInstanceOf(SessionJoinError)
+      expect(mocked(SessionOfferService).onSessionJoined).not.toHaveBeenCalled()
     })
   })
 
@@ -785,23 +808,87 @@ describe('SessionService', () => {
       return newSession
     }
 
+    let random: jest.SpyInstance
+
+    beforeEach(() => {
+      // draws the session for offering
+      random = jest.spyOn(Math, 'random').mockReturnValue(0)
+    })
+
+    afterEach(() => {
+      random.mockRestore()
+    })
+
     test('begins regular notifications for a new session with no requested coach', async () => {
       const newSession = await startNewSession()
 
       expect(
         mockedNotifyVolunteerService.beginRegularNotifications
       ).toHaveBeenCalledWith(newSession)
+      expect(mockedSessionOfferService.startOffering).not.toHaveBeenCalled()
       expect(mockedSessionOfferService.makeInitialOffer).not.toHaveBeenCalled()
     })
 
-    test('offers the session and begins regular notifications when session offers are enabled', async () => {
+    test('offers the session without regular notifications when session offers are enabled', async () => {
+      mockFeatureFlagService.isSessionOffersEnabled.mockResolvedValue(true)
+      mockedSessionOfferService.startOffering.mockResolvedValue(true)
+
+      const newSession = await startNewSession()
+
+      expect(
+        mockFeatureFlagService.isSessionOffersEnabled
+      ).toHaveBeenCalledWith(newSession.studentId, 'algebraOne')
+      expect(mockedSessionOfferService.startOffering).toHaveBeenCalledWith(
+        newSession
+      )
+      expect(mockedSessionOfferService.makeInitialOffer).toHaveBeenCalledWith(
+        newSession
+      )
+      expect(
+        mockedNotifyVolunteerService.beginRegularNotifications
+      ).not.toHaveBeenCalled()
+    })
+
+    test('hides an offered session before the session is committed', async () => {
+      mockFeatureFlagService.isSessionOffersEnabled.mockResolvedValue(true)
+      mockedSessionOfferService.startOffering.mockResolvedValue(true)
+      const pgClient = await new Pool({}).connect()
+      const query = jest.spyOn(pgClient, 'query')
+
+      try {
+        await startNewSession()
+
+        const commit = query.mock.calls.findIndex(
+          (args) => (args as unknown[])[0] === 'COMMIT'
+        )
+        expect(commit).not.toBe(-1)
+        expect(
+          mockedSessionOfferService.startOffering.mock.invocationCallOrder[0]
+        ).toBeLessThan(query.mock.invocationCallOrder[commit])
+      } finally {
+        query.mockRestore()
+      }
+    })
+
+    test('begins regular notifications when offering the session cannot start', async () => {
+      mockFeatureFlagService.isSessionOffersEnabled.mockResolvedValue(true)
+      mockedSessionOfferService.startOffering.mockResolvedValue(false)
+
+      const newSession = await startNewSession()
+
+      expect(mockedSessionOfferService.makeInitialOffer).not.toHaveBeenCalled()
+      expect(
+        mockedNotifyVolunteerService.beginRegularNotifications
+      ).toHaveBeenCalledWith(newSession)
+    })
+
+    test('lists the session for every coach when it is not drawn for offering', async () => {
+      random.mockReturnValue(OFFERED_SESSION_SHARE)
       mockFeatureFlagService.isSessionOffersEnabled.mockResolvedValue(true)
 
       const newSession = await startNewSession()
 
-      expect(mockedSessionOfferService.makeInitialOffer).toHaveBeenCalledWith(
-        newSession
-      )
+      expect(mockedSessionOfferService.startOffering).not.toHaveBeenCalled()
       expect(
         mockedNotifyVolunteerService.beginRegularNotifications
       ).toHaveBeenCalledWith(newSession)

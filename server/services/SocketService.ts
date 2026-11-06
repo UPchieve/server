@@ -1,5 +1,6 @@
 import socketio, { Socket } from 'socket.io'
 import * as SessionHoldsService from './SessionHoldsService'
+import * as SessionOfferService from './SessionOfferService'
 import { debounce, difference, intersection } from 'lodash'
 import type { RemoteSocket } from 'socket.io'
 import logger from '../logger'
@@ -172,11 +173,9 @@ class SocketService {
 
   private async broadcastSessionList(): Promise<void> {
     const run = ++this.sessionListRun
-    // @TODO restore once offered sessions are hidden from other coaches
-    // const sessions = await SessionOfferService.withoutSessionsBeingOffered(
-    //   await getUnfulfilledSessions()
-    // )
-    const sessions = await getUnfulfilledSessions()
+    const sessions = await SessionOfferService.withoutSessionsBeingOffered(
+      await getUnfulfilledSessions()
+    )
     const coachHoldEligibilities =
       await SessionHoldsService.getEligibleOnlineCoaches()
     const withHolds = []

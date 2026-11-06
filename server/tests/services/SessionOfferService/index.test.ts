@@ -1,4 +1,9 @@
 import * as SessionOfferService from '../../../services/SessionOfferService'
+import {
+  OFFERING_PERIOD_MS,
+  OFFER_DURATION_MS,
+} from '../../../services/SessionOfferService/offer-config'
+import * as FeatureFlagService from '../../../services/FeatureFlagService'
 import * as NotifyVolunteerService from '../../../services/NotifyVolunteerService'
 import * as PresenceService from '../../../services/PresenceService'
 import SocketService from '../../../services/SocketService'
@@ -31,6 +36,7 @@ jest.mock('../../../models/Session')
 jest.mock('../../../models/SessionOffer')
 jest.mock('../../../models/Volunteer')
 
+const mockedFeatureFlagService = jest.mocked(FeatureFlagService)
 const mockedNotifyVolunteerService = jest.mocked(NotifyVolunteerService)
 const mockedSessionRepo = jest.mocked(SessionRepo)
 const mockedSessionOfferRepo = jest.mocked(SessionOfferRepo)
@@ -54,12 +60,16 @@ beforeEach(async () => {
   jest
     .mocked(SocketService.getInstance)
     .mockReturnValue(mockedSocketService as unknown as SocketService)
+  mockedFeatureFlagService.isInSessionOffersTestGroup.mockResolvedValue(true)
   mockedVolunteerRepo.getSubjectAndReadyToCoachInfoByUserIds.mockImplementation(
     async (userIds) => coaches.filter(({ userId }) => userIds.includes(userId))
   )
-  mockedSessionRepo.getVolunteersInSessions.mockResolvedValue([])
+  mockedSessionRepo.getVolunteersInOrRequestedForSessions.mockResolvedValue([])
   mockedSessionRepo.getLastSessionEndedAtByVolunteerIds.mockResolvedValue([])
   mockedSessionRepo.getSessionCountsSinceByVolunteerIds.mockResolvedValue([])
+  mockedSessionRepo.getCurrentSessionBySessionId.mockImplementation(
+    async (id) => buildCurrentSession({ id })
+  )
 })
 
 async function bringCoachOnline(
@@ -71,6 +81,12 @@ async function bringCoachOnline(
   return coach.userId
 }
 
+// what startSession does for a session it offers
+async function startAndOffer(session: CurrentSession): Promise<void> {
+  await SessionOfferService.startOffering(session)
+  await SessionOfferService.makeInitialOffer(session)
+}
+
 // coachId is whoever ranked first, not necessarily the first coach online
 async function offerSession(coachesOnline = 1): Promise<{
   session: CurrentSession
@@ -78,7 +94,7 @@ async function offerSession(coachesOnline = 1): Promise<{
 }> {
   for (let i = 0; i < coachesOnline; i++) await bringCoachOnline()
   const session = buildCurrentSession()
-  await SessionOfferService.makeInitialOffer(session)
+  await startAndOffer(session)
   return { session, coachId: lastOfferedCoach() }
 }
 
@@ -119,8 +135,19 @@ async function isBeingOffered(sessionId: Ulid): Promise<boolean> {
   return notOffered.length === 0
 }
 
-// offered sessions are listed and notified as soon as they are requested, so
-// stopping does neither
+// no coach took the offer, so the session goes to every coach as usual
+async function expectOpenedToEveryCoach(session: CurrentSession) {
+  expect(await isBeingOffered(session.id)).toBe(false)
+  expect(
+    mockedNotifyVolunteerService.beginRegularNotifications
+  ).toHaveBeenCalledTimes(1)
+  expect(
+    mockedNotifyVolunteerService.beginRegularNotifications
+  ).toHaveBeenCalledWith(expect.objectContaining({ id: session.id }))
+  expect(mockedSocketService.emitSessionChange).toHaveBeenCalledWith(session.id)
+}
+
+// the session was joined or ended, so no other coach should hear about it
 async function expectStoppedOffering(session: CurrentSession) {
   expect(await isBeingOffered(session.id)).toBe(false)
   expect(
@@ -150,7 +177,7 @@ describe('withoutSessionsBeingOffered', () => {
     await bringCoachOnline()
     const offered = buildCurrentSession()
     const notOffered = buildCurrentSession()
-    await SessionOfferService.makeInitialOffer(offered)
+    await startAndOffer(offered)
 
     const result = await SessionOfferService.withoutSessionsBeingOffered([
       offered,
@@ -183,7 +210,7 @@ describe('makeInitialOffer', () => {
     )
     const session = buildCurrentSession()
 
-    await SessionOfferService.makeInitialOffer(session)
+    await startAndOffer(session)
 
     expect(mockedSocketService.emitSessionOffer).toHaveBeenCalledTimes(1)
     expect(mockedSocketService.emitSessionOffer).toHaveBeenCalledWith(
@@ -206,8 +233,8 @@ describe('makeInitialOffer', () => {
     await bringCoachOnline()
     await bringCoachOnline()
 
-    await SessionOfferService.makeInitialOffer(buildCurrentSession())
-    await SessionOfferService.makeInitialOffer(buildCurrentSession())
+    await startAndOffer(buildCurrentSession())
+    await startAndOffer(buildCurrentSession())
 
     const [firstCoach, secondCoach] = offeredCoaches()
     expect(secondCoach).not.toBe(firstCoach)
@@ -217,19 +244,19 @@ describe('makeInitialOffer', () => {
     await offerSession()
     const session = buildCurrentSession()
 
-    await SessionOfferService.makeInitialOffer(session)
+    await startAndOffer(session)
 
     expect(mockedSocketService.emitSessionOffer).toHaveBeenCalledTimes(1)
-    await expectStoppedOffering(session)
+    await expectOpenedToEveryCoach(session)
   })
 
   test('stops offering when no coach is online', async () => {
     const session = buildCurrentSession()
 
-    await SessionOfferService.makeInitialOffer(session)
+    await startAndOffer(session)
 
     expect(mockedSocketService.emitSessionOffer).not.toHaveBeenCalled()
-    await expectStoppedOffering(session)
+    await expectOpenedToEveryCoach(session)
   })
 
   test.each<[string, Partial<VolunteerSessionHoldEligibilityData>]>([
@@ -246,21 +273,37 @@ describe('makeInitialOffer', () => {
     await bringCoachOnline(overrides)
     const session = buildCurrentSession()
 
-    await SessionOfferService.makeInitialOffer(session)
+    await startAndOffer(session)
 
     expect(mockedSocketService.emitSessionOffer).not.toHaveBeenCalled()
-    await expectStoppedOffering(session)
+    await expectOpenedToEveryCoach(session)
   })
 
-  test('stops offering when the only coach online is in a session', async () => {
+  test('stops offering when the only coach online is not in the test group', async () => {
     const coachId = await bringCoachOnline()
-    mockedSessionRepo.getVolunteersInSessions.mockResolvedValue([coachId])
+    mockedFeatureFlagService.isInSessionOffersTestGroup.mockResolvedValue(false)
     const session = buildCurrentSession()
 
-    await SessionOfferService.makeInitialOffer(session)
+    await startAndOffer(session)
+
+    expect(
+      mockedFeatureFlagService.isInSessionOffersTestGroup
+    ).toHaveBeenCalledWith(coachId)
+    expect(mockedSocketService.emitSessionOffer).not.toHaveBeenCalled()
+    await expectOpenedToEveryCoach(session)
+  })
+
+  test('stops offering when the only coach online is in or requested for a session', async () => {
+    const coachId = await bringCoachOnline()
+    mockedSessionRepo.getVolunteersInOrRequestedForSessions.mockResolvedValue([
+      coachId,
+    ])
+    const session = buildCurrentSession()
+
+    await startAndOffer(session)
 
     expect(mockedSocketService.emitSessionOffer).not.toHaveBeenCalled()
-    await expectStoppedOffering(session)
+    await expectOpenedToEveryCoach(session)
   })
 
   test('stops offering when making the offer fails', async () => {
@@ -270,10 +313,10 @@ describe('makeInitialOffer', () => {
     )
     const session = buildCurrentSession()
 
-    await SessionOfferService.makeInitialOffer(session)
+    await startAndOffer(session)
 
     expect(mockedSocketService.emitSessionOffer).not.toHaveBeenCalled()
-    await expectStoppedOffering(session)
+    await expectOpenedToEveryCoach(session)
   })
 
   test('frees the coach when sending the offer fails', async () => {
@@ -282,10 +325,10 @@ describe('makeInitialOffer', () => {
       throw new Error('socket down')
     })
     const failed = buildCurrentSession()
-    await SessionOfferService.makeInitialOffer(failed)
+    await startAndOffer(failed)
     const next = buildCurrentSession()
 
-    await SessionOfferService.makeInitialOffer(next)
+    await startAndOffer(next)
 
     expect(await isBeingOffered(failed.id)).toBe(false)
     expect(mockedSocketService.emitSessionOffer).toHaveBeenLastCalledWith(
@@ -293,21 +336,33 @@ describe('makeInitialOffer', () => {
       expect.objectContaining({ sessionId: next.id })
     )
   })
+})
 
-  test('does not offer or throw when saving the offer history fails', async () => {
+describe('startOffering', () => {
+  test('hides the session from the session list without offering it to a coach', async () => {
     await bringCoachOnline()
+    const session = buildCurrentSession()
+
+    expect(await SessionOfferService.startOffering(session)).toBe(true)
+
+    expect(await isBeingOffered(session.id)).toBe(true)
+    expect(mockedSocketService.emitSessionOffer).not.toHaveBeenCalled()
+  })
+
+  test('returns false without throwing when saving the offer history fails', async () => {
     const set = jest
       .spyOn(redisClient, 'set')
       .mockRejectedValueOnce(new Error('redis down'))
     const session = buildCurrentSession()
 
+    let started: boolean
     try {
-      await SessionOfferService.makeInitialOffer(session)
+      started = await SessionOfferService.startOffering(session)
     } finally {
       set.mockRestore()
     }
 
-    expect(mockedSocketService.emitSessionOffer).not.toHaveBeenCalled()
+    expect(started).toBe(false)
     expect(await isBeingOffered(session.id)).toBe(false)
   })
 })
@@ -326,7 +381,7 @@ describe('offering the session to the next coach', () => {
       await bringCoachOnline()
       await bringCoachOnline()
       const session = buildCurrentSession()
-      await SessionOfferService.makeInitialOffer(session)
+      await startAndOffer(session)
       const firstCoach = lastOfferedCoach()
 
       await closeOffer(session.id, firstCoach)
@@ -343,23 +398,103 @@ describe('offering the session to the next coach', () => {
     await expireOffer(session.id, coachId)
 
     expect(offeredCoaches()).toEqual([coachId])
-    await expectStoppedOffering(session)
+    await expectOpenedToEveryCoach(session)
+  })
+})
+
+describe('offering for up to OFFERING_PERIOD_MS', () => {
+  // enough that offering runs out of time before it runs out of coaches
+  const COACHES = Math.ceil(OFFERING_PERIOD_MS / OFFER_DURATION_MS) + 2
+
+  let offeringEndsAt: number
+
+  // only Date is faked, so redis keys expire as the clock moves
+  beforeEach(() => {
+    jest.useFakeTimers({
+      doNotFake: [
+        'hrtime',
+        'nextTick',
+        'performance',
+        'queueMicrotask',
+        'setImmediate',
+        'clearImmediate',
+        'setInterval',
+        'clearInterval',
+        'setTimeout',
+        'clearTimeout',
+      ],
+    })
+    offeringEndsAt = Date.now() + OFFERING_PERIOD_MS
   })
 
-  test(`stops offering after ${SessionOfferService.MAX_OFFERS} offers`, async () => {
-    for (let i = 0; i <= SessionOfferService.MAX_OFFERS; i++)
-      await bringCoachOnline()
-    const session = buildCurrentSession()
-    await SessionOfferService.makeInitialOffer(session)
+  afterEach(() => {
+    jest.useRealTimers()
+  })
 
-    for (let i = 0; i < SessionOfferService.MAX_OFFERS; i++)
-      await expireOffer(session.id, lastOfferedCoach())
-
-    expect(offeredCoaches()).toHaveLength(SessionOfferService.MAX_OFFERS)
-    expect(mockedSessionOfferRepo.insertSessionOffer).toHaveBeenCalledTimes(
-      SessionOfferService.MAX_OFFERS
+  function expiresAts(): number[] {
+    return mockedSocketService.emitSessionOffer.mock.calls.map(
+      ([, { expiresAt }]) => expiresAt.getTime()
     )
-    await expectStoppedOffering(session)
+  }
+
+  // each coach declines as their offer ends, so the offer history is written
+  // often enough not to lapse
+  async function keepOfferingUntil(session: CurrentSession, time: number) {
+    while (Date.now() + OFFER_DURATION_MS < time) {
+      jest.advanceTimersByTime(OFFER_DURATION_MS)
+      await SessionOfferService.onOfferDeclined(session.id, lastOfferedCoach())
+    }
+    jest.setSystemTime(time)
+  }
+
+  test('when every offer expires, offers until another could not close in time', async () => {
+    const { session } = await offerSession(COACHES)
+
+    while (await isBeingOffered(session.id)) {
+      const key = await timerKeyFor(session.id, lastOfferedCoach())
+      jest.advanceTimersByTime(await redisClient.pttl(key))
+      await hearExpiredKey(key)
+    }
+
+    expect(offeredCoaches().length).toBeLessThan(COACHES)
+    for (const expiresAt of expiresAts())
+      expect(expiresAt).toBeLessThanOrEqual(offeringEndsAt)
+    expect(Date.now() + OFFER_DURATION_MS).toBeGreaterThan(offeringEndsAt)
+    expect(mockedSessionOfferRepo.insertSessionOffer).toHaveBeenCalledTimes(
+      offeredCoaches().length
+    )
+    await expectOpenedToEveryCoach(session)
+  })
+
+  test('keeps offering when coaches decline right away', async () => {
+    const { session } = await offerSession(COACHES)
+
+    for (let i = 1; i < COACHES; i++)
+      await SessionOfferService.onOfferDeclined(session.id, lastOfferedCoach())
+
+    expect(offeredCoaches()).toHaveLength(COACHES)
+  })
+
+  test('offers the next coach when their offer would close right at the end', async () => {
+    const { session } = await offerSession(COACHES)
+    await keepOfferingUntil(session, offeringEndsAt - OFFER_DURATION_MS)
+    const offered = offeredCoaches().length
+
+    await SessionOfferService.onOfferDeclined(session.id, lastOfferedCoach())
+
+    expect(offeredCoaches()).toHaveLength(offered + 1)
+    expect(await isBeingOffered(session.id)).toBe(true)
+  })
+
+  test('stops offering when the next offer could not close in time', async () => {
+    const { session } = await offerSession(COACHES)
+    await keepOfferingUntil(session, offeringEndsAt - OFFER_DURATION_MS + 1)
+    const offered = offeredCoaches().length
+
+    await SessionOfferService.onOfferDeclined(session.id, lastOfferedCoach())
+
+    expect(offeredCoaches()).toHaveLength(offered)
+    await expectOpenedToEveryCoach(session)
   })
 })
 
@@ -403,27 +538,58 @@ describe('onSessionJoined', () => {
     await expectStoppedOffering(session)
   })
 
-  test('saves the offer as shadow-offered when another coach joins', async () => {
+  test('does not save the offer when another coach joins', async () => {
     const { session, coachId } = await offerSession(2)
 
     await SessionOfferService.onSessionJoined(session.id, getDbUlid())
 
-    expect(mockedSessionOfferRepo.insertSessionOffer).toHaveBeenCalledTimes(1)
-    expectSaved(session, coachId, 'shadow-offered')
+    expect(mockedSessionOfferRepo.insertSessionOffer).not.toHaveBeenCalled()
+    expect(mockedSocketService.emitSessionOfferClosed).toHaveBeenCalledWith(
+      coachId,
+      { sessionId: session.id, outcome: 'expired' }
+    )
     expect(offeredCoaches()).toEqual([coachId])
     await expectStoppedOffering(session)
+  })
+
+  test('does not save the next offer when a coach whose offer expired joins', async () => {
+    const { session, coachId: lateCoach } = await offerSession(2)
+    await expireOffer(session.id, lateCoach)
+    const nextCoach = lastOfferedCoach()
+
+    await SessionOfferService.onSessionJoined(session.id, lateCoach)
+
+    expect(mockedSessionOfferRepo.insertSessionOffer).toHaveBeenCalledTimes(1)
+    expectSaved(session, lateCoach, 'expired')
+    expect(mockedSocketService.emitSessionOfferClosed).toHaveBeenCalledWith(
+      nextCoach,
+      { sessionId: session.id, outcome: 'expired' }
+    )
+    expect(await isBeingOffered(session.id)).toBe(false)
+  })
+
+  test('saves the next offer as accepted when its coach joins after the expired coach', async () => {
+    const { session, coachId: lateCoach } = await offerSession(2)
+    await expireOffer(session.id, lateCoach)
+    const nextCoach = lastOfferedCoach()
+
+    await SessionOfferService.onSessionJoined(session.id, nextCoach)
+
+    expect(mockedSessionOfferRepo.insertSessionOffer).toHaveBeenCalledTimes(2)
+    expectSaved(session, lateCoach, 'expired')
+    expectSaved(session, nextCoach, 'accepted')
   })
 
   test('stops offering when a coach joins while offering starts', async () => {
     const session = buildCurrentSession()
 
     await Promise.all([
-      SessionOfferService.makeInitialOffer(session),
+      startAndOffer(session),
       SessionOfferService.onSessionJoined(session.id, getDbUlid()),
     ])
 
     expect(mockedSessionOfferRepo.insertSessionOffer).not.toHaveBeenCalled()
-    await expectStoppedOffering(session)
+    expect(await isBeingOffered(session.id)).toBe(false)
   })
 
   test('still stops offering when saving the offer fails', async () => {
@@ -460,7 +626,7 @@ describe('onOfferWithdrawn', () => {
     await SessionOfferService.onOfferWithdrawn(session.id)
     const next = buildCurrentSession()
 
-    await SessionOfferService.makeInitialOffer(next)
+    await startAndOffer(next)
 
     expect(mockedSocketService.emitSessionOffer).toHaveBeenLastCalledWith(
       coachId,
@@ -478,11 +644,11 @@ describe('onOfferWithdrawn', () => {
       }
     )
 
-    await SessionOfferService.makeInitialOffer(session)
+    await startAndOffer(session)
 
     expect(mockedSocketService.emitSessionOffer).not.toHaveBeenCalled()
     const next = buildCurrentSession()
-    await SessionOfferService.makeInitialOffer(next)
+    await startAndOffer(next)
     expect(mockedSocketService.emitSessionOffer).toHaveBeenCalledWith(
       coachId,
       expect.objectContaining({ sessionId: next.id })
@@ -510,7 +676,7 @@ describe('when an offer timer expires', () => {
     await expireOffer(session.id, coachId)
     const next = buildCurrentSession()
 
-    await SessionOfferService.makeInitialOffer(next)
+    await startAndOffer(next)
 
     expect(mockedSocketService.emitSessionOffer).toHaveBeenLastCalledWith(
       coachId,
@@ -594,11 +760,6 @@ describe('telling the coach their offer closed', () => {
       'accepted',
       (sessionId, coachId) =>
         SessionOfferService.onSessionJoined(sessionId, coachId),
-    ],
-    [
-      'shadow-offered',
-      (sessionId) =>
-        SessionOfferService.onSessionJoined(sessionId, getDbUlid()),
     ],
     [
       'declined',

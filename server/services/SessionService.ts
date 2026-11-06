@@ -84,6 +84,7 @@ import type { CurrentSession } from '../types/session'
 import { hoursInSeconds, minutesInMs, secondsInMs } from '../utils/time-utils'
 import * as ModerationService from './ModerationService'
 import * as SessionOfferService from './SessionOfferService'
+import { OFFERED_SESSION_SHARE } from './SessionOfferService/offer-config'
 
 export async function reviewSession(data: unknown) {
   const { sessionId, reviewed, toReview } =
@@ -732,8 +733,10 @@ export async function startSession(
   const isOffering =
     !requestedVolunteerId &&
     user.banType !== USER_BAN_TYPES.SHADOW &&
-    (await FeatureFlagsService.isSessionOffersEnabled(user.id))
+    Math.random() < OFFERED_SESSION_SHARE &&
+    (await FeatureFlagsService.isSessionOffersEnabled(user.id, subject))
 
+  let isBeingOffered = false
   const newSession = await runInTransaction(async (tc: TransactionClient) => {
     const newSession = await SessionRepo.createSession(
       {
@@ -773,6 +776,9 @@ export async function startSession(
       tc
     )
 
+    if (isOffering)
+      isBeingOffered = await SessionOfferService.startOffering(newSession)
+
     return newSession
   })
 
@@ -801,9 +807,7 @@ export async function startSession(
     await cache.sadd(config.cacheKeys.zwibserveSessions, newSession.id)
   }
 
-  if (isOffering) {
-    await SessionOfferService.makeInitialOffer(newSession)
-  }
+  if (isBeingOffered) await SessionOfferService.makeInitialOffer(newSession)
 
   const isUserShadowBanned = user.banType === USER_BAN_TYPES.SHADOW
   if (!isUserShadowBanned) {
@@ -812,9 +816,7 @@ export async function startSession(
         newSession,
         requestedVolunteerId
       )
-    } else {
-      // @TODO skip for sessions being offered once they are hidden from other
-      // coaches, the offers notify when they stop
+    } else if (!isBeingOffered) {
       await NotifyVolunteerService.beginRegularNotifications(newSession)
     }
   }
@@ -959,6 +961,9 @@ export async function joinSession(
 
     try {
       await SessionRepo.updateSessionVolunteerById(session.id, user.id)
+      const { volunteerId } = await SessionRepo.getSessionById(session.id)
+      if (volunteerId !== user.id)
+        throw new Error('Another volunteer joined first')
       session.volunteerId = user.id
     } catch (err) {
       throw new SessionJoinError({

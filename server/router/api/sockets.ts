@@ -56,6 +56,7 @@ import type {
   SendDirectMessagePayload,
 } from '../../contracts/direct-messages'
 import { asString, isUuid } from '../../utils/type-utils'
+import * as SessionOfferService from '../../services/SessionOfferService'
 
 export type SessionMessageType = 'audio-transcription' // todo - add 'chat' later
 
@@ -309,7 +310,10 @@ export function routeSockets(io: Server): void {
             return
           }
 
-          const sessions = await SessionRepo.getUnfulfilledSessions()
+          const sessions =
+            await SessionOfferService.withoutSessionsBeingOffered(
+              await SessionRepo.getUnfulfilledSessions()
+            )
           const coachHoldEligibilities =
             await SessionHoldsService.getEligibleOnlineCoaches()
           const withHolds = []
@@ -1014,6 +1018,15 @@ export function routeSockets(io: Server): void {
       } catch (err) {
         logger.error('Failed fetching coach statuses', { err })
         callback({ error: 'Status unavailable' })
+      }
+    })
+
+    socket.on('session-offer:decline', async ({ sessionId }) => {
+      try {
+        const user = await extractSocketUser(socket)
+        await SessionOfferService.onOfferDeclined(sessionId, user.id)
+      } catch (err) {
+        logger.error('Failed to decline session offer', { sessionId, err })
       }
     })
 
