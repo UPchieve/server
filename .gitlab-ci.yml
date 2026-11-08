@@ -329,7 +329,7 @@ test_database:
     - psql -h "postgres" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT 'OK' AS status;"
     - |
       for file in database/db_init/{schema,test_seeds,seed_migrations}.sql; do
-        PGPASSWORD=$POSTGRES_PASSWORD psql -h postgres -U $POSTGRES_USER -d $POSTGRES_DB -f $file
+        PGPASSWORD=$POSTGRES_PASSWORD psql -v ON_ERROR_STOP=1 -h postgres -U $POSTGRES_USER -d $POSTGRES_DB -f $file
       done
   script:
     - pnpm run test:database
