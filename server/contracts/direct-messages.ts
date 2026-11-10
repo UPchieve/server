@@ -38,3 +38,12 @@ export type DirectMessageErrorEvent = {
   message?: string
   reasons?: string[]
 }
+
+export type ReportDirectMessagePayload = {
+  reportReason: string
+  reportMessage?: string
+}
+
+export type ReportDirectMessageResponse = {
+  reportId: Uuid
+}

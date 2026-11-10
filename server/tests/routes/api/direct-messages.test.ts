@@ -3,11 +3,15 @@ import { mocked } from 'jest-mock'
 import { mockApp, mockPassportMiddleware, mockRouter } from '../../mock-app'
 import { routeDirectMessages } from '../../../router/api/direct-messages'
 import * as DirectMessageService from '../../../services/DirectMessageService'
+import * as DirectMessageReportService from '../../../services/DirectMessageReportService'
+import { SESSION_REPORT_REASON } from '../../../constants'
+import { InputError } from '../../../models/Errors'
 import { ConversationNotFoundError } from '../../../services/Errors'
 import { getUuid } from '../../../models/pgUtils'
 import { buildUserContactInfo } from '../../mocks/generate'
 
 jest.mock('../../../services/DirectMessageService')
+jest.mock('../../../services/DirectMessageReportService')
 jest.mock('../../../logger')
 
 const mockedDirectMessageService = mocked(DirectMessageService)
@@ -195,6 +199,53 @@ describe('routeDirectMessages', () => {
 
       expect(response.status).toBe(200)
       expect(response.body).toEqual({ senderIds: [] })
+    })
+  })
+
+  describe('POST /api/conversations/:conversationId/report', () => {
+    test('returns the report ID and uses the authenticated reporter', async () => {
+      const conversationId = getUuid()
+      const reportId = getUuid()
+      mocked(DirectMessageReportService.reportConversation).mockResolvedValue(
+        reportId
+      )
+      const payload = {
+        reportReason: SESSION_REPORT_REASON.COACH_DM_TO_STUDENT_CONNECT_OFFLINE,
+        reportMessage: 'Report message',
+      }
+      const response = await sendPost(
+        `/api/conversations/${conversationId}/report`,
+        payload
+      )
+      expect(response.status).toBe(200)
+      expect(response.body).toEqual({ reportId })
+      expect(
+        DirectMessageReportService.reportConversation
+      ).toHaveBeenCalledWith(conversationId, mockUser, {
+        ...payload,
+      })
+    })
+
+    test('returns 404 for a conversation the user cannot access', async () => {
+      mocked(DirectMessageReportService.reportConversation).mockRejectedValue(
+        new ConversationNotFoundError()
+      )
+      const response = await sendPost(
+        `/api/conversations/${getUuid()}/report`,
+        { reportReason: 'reason' }
+      )
+      expect(response.status).toBe(404)
+    })
+
+    test('returns 422 for an unsupported report reason', async () => {
+      mocked(DirectMessageReportService.reportConversation).mockRejectedValue(
+        new InputError('Invalid report reason')
+      )
+      const response = await sendPost(
+        `/api/conversations/${getUuid()}/report`,
+        { reportReason: 'invalid' }
+      )
+      expect(response.status).toBe(422)
     })
   })
 })

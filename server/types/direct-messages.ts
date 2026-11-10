@@ -32,3 +32,14 @@ export type DirectMessageModerationContext = {
   senderId: Uuid
   message: string
 }
+
+export type DirectMessageReport = {
+  id: Uuid
+  conversationId: Uuid
+  reportingUserId: Uuid
+  reportedUserId: Uuid
+  reportReason: string
+  reportMessage?: string
+  studentId: Uuid
+  volunteerId: Uuid
+}

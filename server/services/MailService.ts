@@ -24,6 +24,7 @@ import {
   NTHSCampaignEmail,
   NTHSCampaignMergeFieldsByEmail,
 } from '../constants/nths-campaign'
+import type { Uuid } from '../types/shared'
 
 sgMail.setApiKey(config.sendgrid.apiKey)
 
@@ -675,7 +676,9 @@ export async function sendBannedUserAlert(
   sessionId?: Ulid
 ): Promise<void> {
   const userAdminLink = buildAppLink(`admin/users/${userId}`)
-  const sessionAdminLink = buildAppLink(`admin/sessions/${sessionId}`)
+  const sessionAdminLink = sessionId
+    ? buildAppLink(`admin/sessions/${sessionId}`)
+    : undefined
   const overrides = {
     mail_settings: { bypass_list_management: { enable: true } },
   }
@@ -1953,4 +1956,30 @@ export async function checkContactJobStatus(
   )
 
   return response.data
+}
+
+export async function sendReportedDirectMessageAlert(data: {
+  reportId: Uuid
+  conversationId: Uuid
+  reportedUserId: Uuid
+  reportedByEmail: string
+  reportReason: string
+  reportMessage?: string
+}): Promise<void> {
+  // Reuse the session report email template for DM reports
+  await sendEmail(
+    config.mail.receivers.staff,
+    config.mail.senders.noreply,
+    'UPchieve',
+    config.sendgrid.reportedSessionAlertTemplate,
+    {
+      sessionId: `DM conversation ${data.conversationId}`,
+      sessionAdminLink: buildAppLink(
+        `admin/direct-messages/${data.conversationId}`
+      ),
+      reportedByEmail: data.reportedByEmail,
+      reportReason: data.reportReason,
+      reportMessage: data.reportMessage ?? '',
+    }
+  )
 }
