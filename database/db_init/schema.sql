@@ -134,6 +134,15 @@ CREATE TYPE upchieve.paid_tutors_pilot_groups AS ENUM (
 
 
 --
+-- Name: survey_question_display; Type: TYPE; Schema: upchieve; Owner: -
+--
+
+CREATE TYPE upchieve.survey_question_display AS ENUM (
+    'scale'
+);
+
+
+--
 -- Name: tutor_bot_conversation_user_type; Type: TYPE; Schema: upchieve; Owner: -
 --
 
@@ -5166,7 +5175,7 @@ CREATE TABLE upchieve.question_tags (
 -- Name: TABLE question_tags; Type: COMMENT; Schema: upchieve; Owner: -
 --
 
-COMMENT ON TABLE upchieve.question_tags IS '@deprecated? It''s an empty table';
+COMMENT ON TABLE upchieve.question_tags IS 'The impact study construct a survey question measures';
 
 
 --
@@ -8437,7 +8446,8 @@ CREATE TABLE upchieve.survey_questions (
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     response_display_text text,
     replacement_column_1 text,
-    replacement_column_2 text
+    replacement_column_2 text,
+    display upchieve.survey_question_display
 );
 
 
@@ -8505,6 +8515,13 @@ COMMENT ON COLUMN upchieve.survey_questions.replacement_column_2 IS 'not_pii: Se
 
 
 --
+-- Name: COLUMN survey_questions.display; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.survey_questions.display IS 'not_pii: How a client draws the question when its question type isn''t enough, like scale for 1 to 5 buttons';
+
+
+--
 -- Name: survey_questions_id_seq; Type: SEQUENCE; Schema: upchieve; Owner: -
 --
 
@@ -8535,7 +8552,7 @@ CREATE TABLE upchieve.survey_questions_question_tags (
 -- Name: TABLE survey_questions_question_tags; Type: COMMENT; Schema: upchieve; Owner: -
 --
 
-COMMENT ON TABLE upchieve.survey_questions_question_tags IS '@deprecated? Just an empty table';
+COMMENT ON TABLE upchieve.survey_questions_question_tags IS 'Which construct tags each survey question carries';
 
 
 --
@@ -16780,6 +16797,7 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20261021203034'),
     ('20261021215331'),
     ('20261021223125'),
+    ('20261026035226'),
     ('20261026150000'),
     ('20261027143447'),
     ('20261029184723'),
@@ -16789,4 +16807,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20261103153000'),
     ('20261104154633'),
     ('20261104154942'),
-    ('20261105134800');
+    ('20261105134800'),
+    ('20261106120000');

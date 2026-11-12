@@ -7984,50 +7984,50 @@ COPY upchieve.student_partner_orgs_volunteer_partner_orgs_instances (student_par
 -- Data for Name: survey_questions; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.survey_questions (id, question_type_id, question_text, created_at, updated_at, response_display_text, replacement_column_1, replacement_column_2) FROM stdin;
-7	1	Sorry to hear that, what happened?	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00	\N	\N	\N
-9	1	Overall, how supportive was your coach today?	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00	\N	\N	\N
-10	1	Overall, how much did your coach push you to do your best work today?	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00	\N	\N	\N
-11	3	This can be about the web app, the Academic Coach who helped you, the services UPchieve offers, etc.	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00	\N	\N	\N
-1	1	What is your primary goal for today's session?	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.123956+00	Their goal for the session:	\N	\N
-2	1	Where are you in the process of reaching your goal?	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.123956+00	How much progress they've made towards their goal:	\N	\N
-3	1	Overall, how do you feel about applying to college?	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.123956+00	How they feel about applying to college:	\N	\N
-4	1	How well do you understand the topic you want to talk about today?	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.123956+00	How well they understand the topic:	\N	\N
-17	1	Were there any student safety, academic integrity, or community guideline issues during this session?	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00	\N	\N	\N
-18	1	Please select all that apply	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00	\N	\N	\N
-19	3	This can be about the web app, the student you helped, technical issues, etc.	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00	\N	\N	\N
-13	1	%s's goal for this session was to %s. Were you able to help them achieve their goal?	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.140339+00	\N	student_name	student_goal
-6	1	Your goal for this session was to %s. Did UPchieve help you achieve your goal?	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.140339+00	\N	student_goal	\N
-8	1	Would you like to favorite your coach %s?	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.140339+00	\N	coach_name	\N
-14	1	How do you think %s feels about %s at the end of this session?	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.140339+00	\N	student_name	subject_name
-15	1	How do you think %s feels about the %s at the end of this session?	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.140339+00	\N	student_name	subject_name
-16	1	How do you think %s feels about applying to college at the end of this session?	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.140339+00	\N	student_name	\N
-12	1	Overall, how do you feel about the %s section?	2024-08-28 00:28:44.123956+00	2024-08-28 00:28:44.140339+00	How they feel about %s:	subject_name	\N
-5	1	Overall, how do you feel about %s?	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.140339+00	How they feel about %s:	subject_name	\N
-20	1	Rate your analysis	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00	\N	\N	\N
-21	1	What was the problem	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00	\N	\N	\N
-22	3	Tell us more about the issue or how we can improve	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00	\N	\N	\N
-23	3	What's your GPA right now?	2024-12-19 07:33:43.228852+00	2024-12-19 07:33:43.228852+00	\N	\N	\N
-24	3	What's your lowest grade this semester?	2024-12-19 07:33:43.228852+00	2024-12-19 07:33:43.228852+00	\N	\N	\N
-25	3	Where do you hope to go to college?	2024-12-19 07:33:43.228852+00	2024-12-19 07:33:43.228852+00	\N	\N	\N
-26	1	How confident are you about getting in?	2024-12-19 07:33:43.228852+00	2024-12-19 07:33:43.228852+00	\N	\N	\N
-27	3	What course is your lowest grade in (please be specific in the course name)?	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N	\N	\N
-28	3	How many AP courses are you taking this year?	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N	\N	\N
-29	3	How many IB courses are you taking this year?	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N	\N	\N
-30	3	How many Dual enrollment courses are you taking this year?	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N	\N	\N
-31	3	How many Honors courses are you taking this year?	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N	\N	\N
-32	1	What is your closest estimate of your current grades in school?	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N	\N	\N
-33	1	What is your lowest grade?	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N	\N	\N
-34	1	What subject is your lowest grade in?	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N	\N	\N
-35	1	Will you be the first person in your family to attend college?	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N	\N	\N
-36	1	Are you or have you ever been eligible for free or reduced price lunch at school?	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N	\N	\N
-37	1	Do you primarily speak English at home?	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N	\N	\N
-38	1	Do you have an IEP or 504 plan?	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N	\N	\N
-39	2	What is your ethnicity? (Select all that apply)	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N	\N	\N
-40	1	After this session, I want to keep working on %s.	2026-05-13 18:00:23.391782+00	2026-05-13 18:00:23.391782+00	\N	subject_name	\N
-41	1	During today's session, I felt like someone who can succeed in %s.	2026-05-13 18:00:23.391782+00	2026-05-13 18:00:23.391782+00	\N	subject_name	\N
-42	1	How confident are you right now that you can solve problems like the one you worked on today - on your own?	2026-05-13 18:00:23.391782+00	2026-05-13 18:00:23.391782+00	\N	\N	\N
-43	3	How far in school do you think you will get?	2026-05-13 18:00:23.391782+00	2026-05-13 18:00:23.391782+00	\N	\N	\N
+COPY upchieve.survey_questions (id, question_type_id, question_text, created_at, updated_at, response_display_text, replacement_column_1, replacement_column_2, display) FROM stdin;
+7	1	Sorry to hear that, what happened?	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00	\N	\N	\N	\N
+9	1	Overall, how supportive was your coach today?	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00	\N	\N	\N	\N
+10	1	Overall, how much did your coach push you to do your best work today?	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00	\N	\N	\N	\N
+11	3	This can be about the web app, the Academic Coach who helped you, the services UPchieve offers, etc.	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.117528+00	\N	\N	\N	\N
+1	1	What is your primary goal for today's session?	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.123956+00	Their goal for the session:	\N	\N	\N
+2	1	Where are you in the process of reaching your goal?	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.123956+00	How much progress they've made towards their goal:	\N	\N	\N
+3	1	Overall, how do you feel about applying to college?	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.123956+00	How they feel about applying to college:	\N	\N	\N
+4	1	How well do you understand the topic you want to talk about today?	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.123956+00	How well they understand the topic:	\N	\N	\N
+17	1	Were there any student safety, academic integrity, or community guideline issues during this session?	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00	\N	\N	\N	\N
+18	1	Please select all that apply	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00	\N	\N	\N	\N
+19	3	This can be about the web app, the student you helped, technical issues, etc.	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.126016+00	\N	\N	\N	\N
+13	1	%s's goal for this session was to %s. Were you able to help them achieve their goal?	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.140339+00	\N	student_name	student_goal	\N
+6	1	Your goal for this session was to %s. Did UPchieve help you achieve your goal?	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.140339+00	\N	student_goal	\N	\N
+8	1	Would you like to favorite your coach %s?	2024-08-28 00:28:44.117528+00	2024-08-28 00:28:44.140339+00	\N	coach_name	\N	\N
+14	1	How do you think %s feels about %s at the end of this session?	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.140339+00	\N	student_name	subject_name	\N
+15	1	How do you think %s feels about the %s at the end of this session?	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.140339+00	\N	student_name	subject_name	\N
+16	1	How do you think %s feels about applying to college at the end of this session?	2024-08-28 00:28:44.126016+00	2024-08-28 00:28:44.140339+00	\N	student_name	\N	\N
+12	1	Overall, how do you feel about the %s section?	2024-08-28 00:28:44.123956+00	2024-08-28 00:28:44.140339+00	How they feel about %s:	subject_name	\N	\N
+5	1	Overall, how do you feel about %s?	2024-08-28 00:28:44.102706+00	2024-08-28 00:28:44.140339+00	How they feel about %s:	subject_name	\N	\N
+20	1	Rate your analysis	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00	\N	\N	\N	\N
+21	1	What was the problem	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00	\N	\N	\N	\N
+22	3	Tell us more about the issue or how we can improve	2024-08-28 00:28:44.176491+00	2024-08-28 00:28:44.176491+00	\N	\N	\N	\N
+23	3	What's your GPA right now?	2024-12-19 07:33:43.228852+00	2024-12-19 07:33:43.228852+00	\N	\N	\N	\N
+24	3	What's your lowest grade this semester?	2024-12-19 07:33:43.228852+00	2024-12-19 07:33:43.228852+00	\N	\N	\N	\N
+25	3	Where do you hope to go to college?	2024-12-19 07:33:43.228852+00	2024-12-19 07:33:43.228852+00	\N	\N	\N	\N
+26	1	How confident are you about getting in?	2024-12-19 07:33:43.228852+00	2024-12-19 07:33:43.228852+00	\N	\N	\N	\N
+27	3	What course is your lowest grade in (please be specific in the course name)?	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N	\N	\N	\N
+28	3	How many AP courses are you taking this year?	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N	\N	\N	\N
+29	3	How many IB courses are you taking this year?	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N	\N	\N	\N
+30	3	How many Dual enrollment courses are you taking this year?	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N	\N	\N	\N
+31	3	How many Honors courses are you taking this year?	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N	\N	\N	\N
+32	1	What is your closest estimate of your current grades in school?	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N	\N	\N	\N
+33	1	What is your lowest grade?	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N	\N	\N	\N
+34	1	What subject is your lowest grade in?	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N	\N	\N	\N
+35	1	Will you be the first person in your family to attend college?	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N	\N	\N	\N
+36	1	Are you or have you ever been eligible for free or reduced price lunch at school?	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N	\N	\N	\N
+37	1	Do you primarily speak English at home?	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N	\N	\N	\N
+38	1	Do you have an IEP or 504 plan?	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N	\N	\N	\N
+39	2	What is your ethnicity? (Select all that apply)	2025-01-30 14:41:17.912923+00	2025-01-30 14:41:17.912923+00	\N	\N	\N	\N
+40	1	After this session, I want to keep working on %s.	2026-05-13 18:00:23.391782+00	2026-05-13 18:00:23.391782+00	\N	subject_name	\N	\N
+41	1	During today's session, I felt like someone who can succeed in %s.	2026-05-13 18:00:23.391782+00	2026-05-13 18:00:23.391782+00	\N	subject_name	\N	\N
+42	1	How confident are you right now that you can solve problems like the one you worked on today - on your own?	2026-05-13 18:00:23.391782+00	2026-05-13 18:00:23.391782+00	\N	\N	\N	\N
+43	3	How far in school do you think you will get?	2026-05-13 18:00:23.391782+00	2026-05-13 18:00:23.391782+00	\N	\N	\N	\N
 \.
 
 
