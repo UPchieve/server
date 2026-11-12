@@ -94,27 +94,41 @@ describe('Metrics', () => {
     const sessionCountBonusForCalendarYear: SessionCountBonusForCalendarYearMetric =
       {
         name: 'sessionCountBonusForCalendarYear',
-        maxPoints: 30,
-        minSessions: 2,
-        maxSessions: 6,
+        maxPoints: 50,
+        tiers: [
+          { from: 2, points: 50 },
+          { from: 7, points: 25 },
+          { from: 13, points: 0 },
+        ],
       }
-    const score = (sessionCount: number) =>
+    const score = (
+      sessionCount: number,
+      metric = sessionCountBonusForCalendarYear
+    ) =>
       Metrics.sessionCountBonusForCalendarYear.score(
-        sessionCountBonusForCalendarYear,
+        metric,
         { sessionCountThisCalendarYear: sessionCount },
         NOW
       )
 
-    test('gives maxPoints when the session count is within min and max (inclusive)', () => {
-      expect(score(2)).toBe(30)
-      expect(score(4)).toBe(30)
-      expect(score(6)).toBe(30)
-    })
-
-    test('gives 0 when the session count is outside min and max', () => {
+    test('gives 0 below the first tier', () => {
       expect(score(0)).toBe(0)
       expect(score(1)).toBe(0)
-      expect(score(7)).toBe(0)
+    })
+
+    test('gives the points of the highest tier the session count has reached', () => {
+      expect(score(2)).toBe(50)
+      expect(score(6)).toBe(50)
+      expect(score(7)).toBe(25)
+      expect(score(12)).toBe(25)
+      expect(score(13)).toBe(0)
+      expect(score(100)).toBe(0)
+    })
+
+    test('caps at maxPoints', () => {
+      expect(
+        score(2, { ...sessionCountBonusForCalendarYear, maxPoints: 30 })
+      ).toBe(30)
     })
   })
 })

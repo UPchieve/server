@@ -10,6 +10,7 @@ import { DEFAULT_SCORECARD } from '../MatchScoringService/scorecard'
 import { SUBJECTS } from '../../constants/subjects'
 import { OfferHistoryWithPending, OfferSession } from './types'
 import * as NotifyVolunteerService from '../NotifyVolunteerService'
+import * as PresenceService from '../PresenceService'
 import * as SessionRepo from '../../models/Session'
 import { OFFERING_PERIOD_MS, OFFER_DURATION_MS } from './offer-config'
 
@@ -182,12 +183,24 @@ export async function onOfferDeclined(
     await offerToNextCoach(sessionId)
 }
 
+async function markOfflineIfPassive(volunteerId: Ulid): Promise<void> {
+  try {
+    await PresenceService.markOfflineIfPassive(volunteerId)
+  } catch (err) {
+    logger.error('Failed to mark coach offline after their offer expired', {
+      err,
+      volunteerId,
+    })
+  }
+}
+
 async function onOfferExpired(
   sessionId: Ulid,
   volunteerId: Ulid
 ): Promise<void> {
-  if (await closeOffer(sessionId, volunteerId, 'expired'))
-    await offerToNextCoach(sessionId)
+  if (!(await closeOffer(sessionId, volunteerId, 'expired'))) return
+  await markOfflineIfPassive(volunteerId)
+  await offerToNextCoach(sessionId)
 }
 
 export function listenForOfferExpiries() {

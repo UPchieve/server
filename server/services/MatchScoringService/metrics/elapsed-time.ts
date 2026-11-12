@@ -21,8 +21,9 @@ export function pointsForElapsedTimeMetric(
   ms: number
 ): number {
   const units = ms / UNIT_IN_MS[metric.unit]
-  const points = metric.segments.reduce((points, segment, i) => {
-    const end = metric.segments[i + 1]?.from ?? Infinity
+  const segments = metric.segments.toSorted((a, b) => a.from - b.from)
+  const points = segments.reduce((points, segment, i) => {
+    const end = segments[i + 1]?.from ?? Infinity
     const unitsInSegment = Math.min(units, end) - segment.from
     return points + Math.max(0, unitsInSegment) * segment.pointsPerUnit
   }, 0)

@@ -57,7 +57,7 @@ import * as UserActionService from './UserActionService'
 const PRESENCE_KEY_PREFIX = 'user-presence'
 const ONE_MINUTE_IN_SECONDS = 60
 const PRESENCE_NO_ACTIVITY_IN_SECONDS = ONE_MINUTE_IN_SECONDS * 2
-const PRESENCE_PASSIVE_TIMEOUT_IN_SECONDS = ONE_MINUTE_IN_SECONDS * 60
+const PRESENCE_PASSIVE_TIMEOUT_IN_SECONDS = ONE_MINUTE_IN_SECONDS * 30
 const PASSIVE_MISSED_SESSION_GRACE_PERIOD_IN_SECONDS = ONE_MINUTE_IN_SECONDS
 
 enum CACHE_KEY_TYPE {
@@ -584,6 +584,44 @@ export async function getOnlineUserIds(): Promise<
     students: students.map(({ userId }) => userId),
     volunteers: volunteers.map(({ userId }) => userId),
   }
+}
+
+/*
+ * marks the user offline unless one of their clients is active. their passive
+ * clients are marked INACTIVE_ON_SITE, as they would be at the end of a
+ * missed session countdown.
+ */
+export async function markOfflineIfPassive(userId: Ulid) {
+  const clientUUIDs = await redisClient.zrangebyscore(
+    clientsKey(userId),
+    nowInSeconds(),
+    '+inf'
+  )
+  if (clientUUIDs.length) {
+    const activeClientCount = await redisClient.exists(
+      ...clientUUIDs.map((clientUUID) =>
+        CacheKeys.key(userId, clientUUID, CACHE_KEY_TYPE.ACTIVE_TIMEOUT)
+      )
+    )
+    if (activeClientCount > 0) return
+  }
+
+  for (const clientUUID of clientUUIDs) {
+    const deletedKeyCount = await CacheKeys.delete([
+      CacheKeys.key(userId, clientUUID, CACHE_KEY_TYPE.PASSIVE_TIMEOUT),
+      CacheKeys.key(userId, clientUUID, CACHE_KEY_TYPE.MAYBE_INACTIVE),
+    ])
+    if (deletedKeyCount >= 1) {
+      await UserActionService.createAccountAction({
+        action: ACCOUNT_USER_ACTIONS.INACTIVE_ON_SITE,
+        userId,
+        clientUUID,
+      })
+    }
+  }
+
+  await removeFromOnlineSets(userId)
+  await redisClient.del(clientsKey(userId))
 }
 
 /*

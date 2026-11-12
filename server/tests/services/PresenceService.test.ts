@@ -278,6 +278,116 @@ describe('trackActivity', () => {
   })
 })
 
+describe('markOfflineIfPassive', () => {
+  test('takes a passive user offline and logs INACTIVE_ON_SITE', async () => {
+    const userId = getDbUlid()
+    const clientUUID = getUuid()
+    await PresenceService.trackActivity({
+      userId,
+      clientUUID,
+      role: 'volunteer',
+    })
+    await PresenceService.trackPassivity({ userId, clientUUID })
+    expect((await PresenceService.getOnlineUserIds()).volunteers).toEqual([
+      userId,
+    ])
+
+    await PresenceService.markOfflineIfPassive(userId)
+
+    expect(await PresenceService.getOnlineUserIds()).toEqual({
+      students: [],
+      volunteers: [],
+    })
+    expect(
+      mockedUserActionService.createAccountAction
+    ).toHaveBeenLastCalledWith({
+      action: ACCOUNT_USER_ACTIONS.INACTIVE_ON_SITE,
+      userId,
+      clientUUID,
+    })
+  })
+
+  test('keeps an active user online', async () => {
+    const userId = getDbUlid()
+    const clientUUID = getUuid()
+    await PresenceService.trackActivity({
+      userId,
+      clientUUID,
+      role: 'volunteer',
+    })
+
+    await PresenceService.markOfflineIfPassive(userId)
+
+    expect((await PresenceService.getOnlineUserIds()).volunteers).toEqual([
+      userId,
+    ])
+    // only the ACTIVE_ON_SITE from trackActivity
+    expect(mockedUserActionService.createAccountAction).toHaveBeenCalledTimes(1)
+  })
+
+  test('keeps a user online while any of their clients is active', async () => {
+    const userId = getDbUlid()
+    const passiveClientUUID = getUuid()
+    const activeClientUUID = getUuid()
+    await PresenceService.trackActivity({
+      userId,
+      clientUUID: passiveClientUUID,
+      role: 'volunteer',
+    })
+    await PresenceService.trackPassivity({
+      userId,
+      clientUUID: passiveClientUUID,
+    })
+    await PresenceService.trackActivity({
+      userId,
+      clientUUID: activeClientUUID,
+      role: 'volunteer',
+    })
+
+    await PresenceService.markOfflineIfPassive(userId)
+
+    expect((await PresenceService.getOnlineUserIds()).volunteers).toEqual([
+      userId,
+    ])
+  })
+
+  test('takes a user with no presence keys offline without logging an action', async () => {
+    const userId = getDbUlid()
+    // e.g. an active-timeout expiry whose notification was never delivered
+    await PresenceService.markOnline(userId, 'volunteer', getUuid())
+
+    await PresenceService.markOfflineIfPassive(userId)
+
+    expect(await PresenceService.getOnlineUserIds()).toEqual({
+      students: [],
+      volunteers: [],
+    })
+    expect(mockedUserActionService.createAccountAction).not.toHaveBeenCalled()
+  })
+
+  test('a passive user who was taken offline comes back online on activity', async () => {
+    const userId = getDbUlid()
+    const clientUUID = getUuid()
+    await PresenceService.trackActivity({
+      userId,
+      clientUUID,
+      role: 'volunteer',
+    })
+    await PresenceService.trackPassivity({ userId, clientUUID })
+    await PresenceService.markOfflineIfPassive(userId)
+
+    await PresenceService.trackActivity({
+      userId,
+      clientUUID,
+      role: 'volunteer',
+    })
+
+    expect((await PresenceService.getOnlineUserIds()).volunteers).toEqual([
+      userId,
+    ])
+  })
+})
+
 describe('trackInactivity', () => {
   test('removes the user and logs INACTIVE_ON_SITE when their last presence keys are removed', async () => {
     const userId = getDbUlid()

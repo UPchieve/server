@@ -50,26 +50,26 @@ describe('rank', () => {
     )
 
     expect(result).toStrictEqual({
-      scorecardVersion: '3',
+      scorecardVersion: '4',
       now: NOW,
       ranked: [
         {
           candidate: waiting10min,
           metricScores: {
             daysSinceLastSession: 1,
-            timeWaitingForSession: 10,
+            timeWaitingForSession: 50,
             sessionCountBonusForCalendarYear: 0,
           },
-          score: 11,
+          score: 51,
         },
         {
           candidate: waiting1min,
           metricScores: {
             daysSinceLastSession: 1,
-            timeWaitingForSession: 1,
+            timeWaitingForSession: 5,
             sessionCountBonusForCalendarYear: 0,
           },
-          score: 2,
+          score: 6,
         },
       ],
     })
@@ -94,26 +94,26 @@ describe('rank', () => {
     )
 
     expect(result).toStrictEqual({
-      scorecardVersion: '3',
+      scorecardVersion: '4',
       now: NOW,
       ranked: [
         {
           candidate: hadSessionYesterday,
           metricScores: {
             daysSinceLastSession: 1,
-            timeWaitingForSession: 10,
+            timeWaitingForSession: 50,
             sessionCountBonusForCalendarYear: 0,
           },
-          score: 11,
+          score: 51,
         },
         {
           candidate: neverHadSession,
           metricScores: {
             daysSinceLastSession: 0,
-            timeWaitingForSession: 10,
+            timeWaitingForSession: 50,
             sessionCountBonusForCalendarYear: 0,
           },
-          score: 10,
+          score: 50,
         },
       ],
     })
@@ -138,26 +138,26 @@ describe('rank', () => {
     )
 
     expect(result).toStrictEqual({
-      scorecardVersion: '3',
+      scorecardVersion: '4',
       now: NOW,
       ranked: [
         {
           candidate: a,
           metricScores: {
             daysSinceLastSession: 1,
-            timeWaitingForSession: 10,
+            timeWaitingForSession: 50,
             sessionCountBonusForCalendarYear: 0,
           },
-          score: 11,
+          score: 51,
         },
         {
           candidate: b,
           metricScores: {
             daysSinceLastSession: 1,
-            timeWaitingForSession: 10,
+            timeWaitingForSession: 50,
             sessionCountBonusForCalendarYear: 0,
           },
-          score: 11,
+          score: 51,
         },
       ],
     })
@@ -177,7 +177,7 @@ describe('rank', () => {
 
     expect(result.ranked[0].metricScores).toStrictEqual({
       daysSinceLastSession: 1,
-      timeWaitingForSession: 10,
+      timeWaitingForSession: 50,
       sessionCountBonusForCalendarYear: 0,
     })
   })

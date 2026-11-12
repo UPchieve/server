@@ -9,6 +9,7 @@ import * as PresenceService from '../../../services/PresenceService'
 import SocketService from '../../../services/SocketService'
 import * as SessionRepo from '../../../models/Session'
 import * as SessionOfferRepo from '../../../models/SessionOffer'
+import * as UserActionService from '../../../services/UserActionService'
 import * as VolunteerRepo from '../../../models/Volunteer'
 import { VolunteerSessionHoldEligibilityData } from '../../../models/Volunteer/types'
 import {
@@ -35,6 +36,7 @@ jest.mock('../../../services/SocketService')
 jest.mock('../../../models/Session')
 jest.mock('../../../models/SessionOffer')
 jest.mock('../../../models/Volunteer')
+jest.mock('../../../services/UserActionService')
 
 const mockedFeatureFlagService = jest.mocked(FeatureFlagService)
 const mockedNotifyVolunteerService = jest.mocked(NotifyVolunteerService)
@@ -48,6 +50,7 @@ const mockedSocketService = {
 }
 
 let coaches: VolunteerSessionHoldEligibilityData[]
+let clientUUIDs: Map<Ulid, string>
 
 beforeAll(() => {
   SessionOfferService.listenForOfferExpiries()
@@ -57,6 +60,7 @@ beforeEach(async () => {
   jest.resetAllMocks()
   await redisClient.flushall()
   coaches = []
+  clientUUIDs = new Map()
   jest
     .mocked(SocketService.getInstance)
     .mockReturnValue(mockedSocketService as unknown as SocketService)
@@ -77,8 +81,18 @@ async function bringCoachOnline(
 ): Promise<Ulid> {
   const coach = buildVolunteerSessionHoldEligibilityData(overrides)
   coaches.push(coach)
-  await PresenceService.markOnline(coach.userId, 'volunteer', getUuid())
+  const clientUUID = getUuid()
+  clientUUIDs.set(coach.userId, clientUUID)
+  await PresenceService.markOnline(coach.userId, 'volunteer', clientUUID)
   return coach.userId
+}
+
+async function makeCoachActive(coachId: Ulid): Promise<void> {
+  await PresenceService.trackActivity({
+    userId: coachId,
+    clientUUID: clientUUIDs.get(coachId)!,
+    role: 'volunteer',
+  })
 }
 
 // what startSession does for a session it offers
@@ -671,8 +685,9 @@ describe('when an offer timer expires', () => {
     expectSaved(session, coachId, 'expired')
   })
 
-  test('frees the coach to be offered another session', async () => {
+  test('frees an active coach to be offered another session', async () => {
     const { session, coachId } = await offerSession()
+    await makeCoachActive(coachId)
     await expireOffer(session.id, coachId)
     const next = buildCurrentSession()
 
@@ -682,6 +697,17 @@ describe('when an offer timer expires', () => {
       coachId,
       expect.objectContaining({ sessionId: next.id })
     )
+  })
+
+  test('takes a passive coach offline so they are not offered another session', async () => {
+    const { session, coachId } = await offerSession()
+    await expireOffer(session.id, coachId)
+    const next = buildCurrentSession()
+
+    await startAndOffer(next)
+
+    expect(await PresenceService.getOnlineUsers('volunteer')).toEqual([])
+    expect(mockedSocketService.emitSessionOffer).toHaveBeenCalledTimes(1)
   })
 
   test('does nothing when the offer was already accepted', async () => {

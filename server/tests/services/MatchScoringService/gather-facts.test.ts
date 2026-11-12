@@ -152,7 +152,7 @@ describe('rankCoaches', () => {
       expect.objectContaining({ metric: 'notAMetric' })
     )
     expect(result.ranked[0].metricScores).toStrictEqual({
-      timeWaitingForSession: 10,
+      timeWaitingForSession: 50,
       daysSinceLastSession: 0,
       sessionCountBonusForCalendarYear: 0,
       notAMetric: 0,
