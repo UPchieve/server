@@ -328,9 +328,15 @@ export async function adminUpdateUser(data: unknown) {
   if (
     userBeforeUpdate.banType !== USER_BAN_TYPES.COMPLETE &&
     banType === USER_BAN_TYPES.COMPLETE
-  )
+  ) {
+    await createAdminAction(ACCOUNT_USER_ACTIONS.BANNED, userId)
     // TODO: queue email
     await MailService.sendBannedUserAlert(userId, 'admin')
+  }
+
+  if (userBeforeUpdate.banType === USER_BAN_TYPES.COMPLETE && !banType) {
+    await createAdminAction(ACCOUNT_USER_ACTIONS.UNBANNED, userId)
+  }
 
   //track shadow bans
   if (
