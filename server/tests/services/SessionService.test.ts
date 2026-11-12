@@ -50,6 +50,7 @@ import * as VolunteerQueries from '../../models/Volunteer/queries'
 import { buildVolunteerContactInfo } from '../mocks/generate'
 
 jest.mock('../../models/Session/queries')
+jest.mock('../../models/Student/queries')
 jest.mock('../../models/User/queries')
 jest.mock('../../models/UserAction/queries')
 jest.mock('../../models/SessionAudio')

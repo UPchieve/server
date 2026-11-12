@@ -39,6 +39,7 @@ import {
   updateSessionReviewReasonsById,
 } from '../models/Session'
 import * as SessionRepo from '../models/Session'
+import * as StudentRepo from '../models/Student'
 import { UserContactInfo } from '../models/User'
 import * as UserRepo from '../models/User'
 import {
@@ -733,6 +734,7 @@ export async function startSession(
   const isOffering =
     !requestedVolunteerId &&
     user.banType !== USER_BAN_TYPES.SHADOW &&
+    !(await StudentRepo.isTestUser(user.id)) &&
     // TEMPORARY: because we need to bucket by session, not student or coach,
     // we can't use posthog. 50% of sessions are offered and the other 50%
     // show up as a regular session in the list on the dashboard
