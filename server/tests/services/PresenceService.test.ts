@@ -230,6 +230,27 @@ describe('online since', () => {
   })
 })
 
+describe('countOnlineUsers', () => {
+  it('Counts correctly by role', async () => {
+    const studentIds = [getUuid(), getUuid()]
+    const volunteerIds = [getUuid(), getUuid()]
+    for (const id of studentIds) {
+      await PresenceService.markOnline(id, 'student', getUuid())
+    }
+    for (const id of volunteerIds) {
+      await PresenceService.markOnline(id, 'volunteer', getUuid())
+    }
+    const actualStudents = await PresenceService.countOnlineUsers('student')
+    const actualVolunteers = await PresenceService.countOnlineUsers('volunteer')
+    expect(actualStudents).toEqual(2)
+    expect(actualVolunteers).toEqual(2)
+  })
+
+  it('Counts 0 when there are none online', async () => {
+    expect(await PresenceService.countOnlineUsers('student')).toEqual(0)
+  })
+})
+
 describe('trackActivity', () => {
   test('marks the user as online in their role set', async () => {
     const userId = getDbUlid()

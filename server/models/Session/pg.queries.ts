@@ -3377,3 +3377,34 @@ const openSessionToAllIR: any = {"usedParamSet":{"sessionId":true},"params":[{"n
 export const openSessionToAll = new PreparedQuery<IOpenSessionToAllParams,IOpenSessionToAllResult>(openSessionToAllIR);
 
 
+/** 'CountOngoingMatchedSessions' parameters type */
+export type ICountOngoingMatchedSessionsParams = void;
+
+/** 'CountOngoingMatchedSessions' return type */
+export interface ICountOngoingMatchedSessionsResult {
+  total: number | null;
+}
+
+/** 'CountOngoingMatchedSessions' query type */
+export interface ICountOngoingMatchedSessionsQuery {
+  params: ICountOngoingMatchedSessionsParams;
+  result: ICountOngoingMatchedSessionsResult;
+}
+
+const countOngoingMatchedSessionsIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    count(*)::int AS total\nFROM\n    upchieve.sessions\nWHERE\n    ended_at IS NULL\n    AND volunteer_joined_at IS NOT NULL"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     count(*)::int AS total
+ * FROM
+ *     upchieve.sessions
+ * WHERE
+ *     ended_at IS NULL
+ *     AND volunteer_joined_at IS NOT NULL
+ * ```
+ */
+export const countOngoingMatchedSessions = new PreparedQuery<ICountOngoingMatchedSessionsParams,ICountOngoingMatchedSessionsResult>(countOngoingMatchedSessionsIR);
+
+

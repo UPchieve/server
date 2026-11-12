@@ -1329,7 +1329,7 @@ export async function generateAndStoreWaitTimeHeatMap(
   return heatMap
 }
 
-export async function getWaitTimeHeatMap(
+export async function getWaitTimeHeatMap( // @TODO Move to RealtimeStatsService
   user: UserContactInfo
 ): Promise<sessionUtils.HeatMap> {
   if (user.roleContext.isActiveRole('student'))

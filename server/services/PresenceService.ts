@@ -554,6 +554,12 @@ export async function markOffline(userId: Ulid) {
 
 export type OnlineUser = { userId: Ulid; onlineSince: Date | null }
 
+export async function countOnlineUsers(role: OnlineRole): Promise<number> {
+  await sweepOnline(role)
+  const result = await redisClient.zcount(onlineKey(role), 0, '+inf')
+  return Number(result)
+}
+
 export async function getOnlineUsers(role: OnlineRole): Promise<OnlineUser[]> {
   await sweepOnline(role)
   const userIds = await redisClient.zrangebyscore(

@@ -1673,3 +1673,15 @@ export async function openSessionToAll(sessionId: Uuid): Promise<boolean> {
     throw new RepoUpdateError(err)
   }
 }
+
+export async function countOngoingMatchedSessions(): Promise<number> {
+  try {
+    const result = await pgQueries.countOngoingMatchedSessions.run(
+      undefined,
+      getRoClient()
+    )
+    return result[0]?.total ?? 0
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}

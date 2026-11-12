@@ -1439,3 +1439,13 @@ WHERE
 RETURNING
     id;
 
+
+/* @name countOngoingMatchedSessions */
+SELECT
+    count(*)::int AS total
+FROM
+    upchieve.sessions
+WHERE
+    ended_at IS NULL
+    AND volunteer_joined_at IS NOT NULL;
+
