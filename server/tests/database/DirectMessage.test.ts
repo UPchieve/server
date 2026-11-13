@@ -320,12 +320,20 @@ describe('direct messages', () => {
     conversationId: Ulid,
     senderId: Ulid,
     contents: string,
-    createdAt: Date
+    createdAt: Date,
+    sentWhileShadowbanned: boolean | null = false
   ) {
     await client.query(
-      `INSERT INTO direct_messages (id, conversation_id, sender_id, contents, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $5)`,
-      [getDbUlid(), conversationId, senderId, contents, createdAt]
+      `INSERT INTO direct_messages (id, conversation_id, sender_id, contents, sent_while_shadowbanned, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $6)`,
+      [
+        getDbUlid(),
+        conversationId,
+        senderId,
+        contents,
+        sentWhileShadowbanned,
+        createdAt,
+      ]
     )
   }
 
@@ -337,6 +345,7 @@ describe('direct messages', () => {
         conversationId,
         senderId: studentId,
         contents: 'Hi!',
+        sentWhileShadowbanned: false,
       })
 
       const { rows } = await client.query(
@@ -349,8 +358,27 @@ describe('direct messages', () => {
         conversationId,
         senderId: studentId,
         contents: 'Hi!',
+        sentWhileShadowbanned: false,
         createdAt: rows[0].created_at,
       })
+    })
+
+    test('saves that the message was sent while shadow banned', async () => {
+      const { studentId, conversationId } = await createConversation()
+
+      const message = await DirectMessageRepo.createDirectMessage({
+        conversationId,
+        senderId: studentId,
+        contents: 'Hi!',
+        sentWhileShadowbanned: true,
+      })
+
+      const { rows } = await client.query(
+        'SELECT sent_while_shadowbanned FROM direct_messages WHERE id = $1',
+        [message.id]
+      )
+      expect(rows[0].sent_while_shadowbanned).toBe(true)
+      expect(message.sentWhileShadowbanned).toBe(true)
     })
   })
 
@@ -378,10 +406,88 @@ describe('direct messages', () => {
         new Date('2026-10-01T12:00:00Z')
       )
 
-      const messages =
-        await DirectMessageRepo.getDirectMessagesForConversation(conversationId)
+      const messages = await DirectMessageRepo.getDirectMessagesForConversation(
+        conversationId,
+        studentId
+      )
 
       expect(messages.map((m) => m.contents)).toEqual(['first', 'second'])
+    })
+
+    describe('messages sent while shadow banned', () => {
+      async function createConversationWithShadowbannedMessage() {
+        const conversation = await createConversation()
+        const { studentId, volunteerId, conversationId } = conversation
+        await insertMessage(
+          conversationId,
+          studentId,
+          'first',
+          new Date('2026-10-01T12:00:00Z')
+        )
+        await insertMessage(
+          conversationId,
+          studentId,
+          'shadowbanned',
+          new Date('2026-10-02T12:00:00Z'),
+          true
+        )
+        await insertMessage(
+          conversationId,
+          volunteerId,
+          'third',
+          new Date('2026-10-03T12:00:00Z')
+        )
+        return conversation
+      }
+
+      test('are hidden from the other participant', async () => {
+        const { volunteerId, conversationId } =
+          await createConversationWithShadowbannedMessage()
+
+        const messages =
+          await DirectMessageRepo.getDirectMessagesForConversation(
+            conversationId,
+            volunteerId
+          )
+
+        expect(messages.map((m) => m.contents)).toEqual(['first', 'third'])
+      })
+
+      test('are still shown to the sender', async () => {
+        const { studentId, conversationId } =
+          await createConversationWithShadowbannedMessage()
+
+        const messages =
+          await DirectMessageRepo.getDirectMessagesForConversation(
+            conversationId,
+            studentId
+          )
+
+        expect(messages.map((m) => m.contents)).toEqual([
+          'first',
+          'shadowbanned',
+          'third',
+        ])
+      })
+    })
+
+    test('shows messages with no shadow ban value to the other participant', async () => {
+      const { studentId, volunteerId, conversationId } =
+        await createConversation()
+      await insertMessage(
+        conversationId,
+        studentId,
+        'Hi!',
+        new Date('2026-10-01T12:00:00Z'),
+        null
+      )
+
+      const messages = await DirectMessageRepo.getDirectMessagesForConversation(
+        conversationId,
+        volunteerId
+      )
+
+      expect(messages.map((m) => m.contents)).toEqual(['Hi!'])
     })
   })
 
@@ -465,7 +571,46 @@ describe('direct messages', () => {
       )
     })
 
+    test('returns the sender of an unread message even if another unread message was sent while shadow banned', async () => {
+      const { studentId, volunteerId, conversationId } =
+        await createConversation()
+      await setLastSeen(conversationId, 'volunteer_last_seen', lastSeenAt)
+      await insertMessage(
+        conversationId,
+        studentId,
+        'shadowbanned',
+        afterLastSeen,
+        true
+      )
+      await insertMessage(
+        conversationId,
+        studentId,
+        'visible',
+        new Date('2026-10-04T12:00:00Z')
+      )
+
+      expect(
+        await DirectMessageRepo.getUnreadDirectMessageSenderIds(volunteerId)
+      ).toEqual([studentId])
+    })
+
     describe('returns nothing', () => {
+      test('if the only unread message was sent while shadow banned', async () => {
+        const { studentId, volunteerId, conversationId } =
+          await createConversation()
+        await insertMessage(
+          conversationId,
+          studentId,
+          'shadowbanned',
+          afterLastSeen,
+          true
+        )
+
+        expect(
+          await DirectMessageRepo.getUnreadDirectMessageSenderIds(volunteerId)
+        ).toEqual([])
+      })
+
       test('if every message was sent before the user last viewed the conversation', async () => {
         const { studentId, volunteerId, conversationId } =
           await createConversation()

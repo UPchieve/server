@@ -158,6 +158,7 @@ export interface ICreateDirectMessageParams {
   conversationId: string;
   id: string;
   senderId: string;
+  sentWhileShadowbanned: boolean;
 }
 
 /** 'CreateDirectMessage' return type */
@@ -172,6 +173,8 @@ export interface ICreateDirectMessageResult {
   id: string;
   /** not_pii: Foreign key */
   senderId: string;
+  /** not_pii: true when the sender was shadow banned at send time */
+  sentWhileShadowbanned: boolean | null;
 }
 
 /** 'CreateDirectMessage' query type */
@@ -180,15 +183,15 @@ export interface ICreateDirectMessageQuery {
   result: ICreateDirectMessageResult;
 }
 
-const createDirectMessageIR: any = {"usedParamSet":{"id":true,"conversationId":true,"senderId":true,"contents":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":107,"b":110}]},{"name":"conversationId","required":true,"transform":{"type":"scalar"},"locs":[{"a":113,"b":128}]},{"name":"senderId","required":true,"transform":{"type":"scalar"},"locs":[{"a":131,"b":140}]},{"name":"contents","required":true,"transform":{"type":"scalar"},"locs":[{"a":143,"b":152}]}],"statement":"INSERT INTO direct_messages (id, conversation_id, sender_id, contents, created_at, updated_at)\n    VALUES (:id!, :conversationId!, :senderId!, :contents!, NOW(), NOW())\nRETURNING\n    id, conversation_id, sender_id, contents, created_at"};
+const createDirectMessageIR: any = {"usedParamSet":{"id":true,"conversationId":true,"senderId":true,"contents":true,"sentWhileShadowbanned":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":132,"b":135}]},{"name":"conversationId","required":true,"transform":{"type":"scalar"},"locs":[{"a":138,"b":153}]},{"name":"senderId","required":true,"transform":{"type":"scalar"},"locs":[{"a":156,"b":165}]},{"name":"contents","required":true,"transform":{"type":"scalar"},"locs":[{"a":168,"b":177}]},{"name":"sentWhileShadowbanned","required":true,"transform":{"type":"scalar"},"locs":[{"a":180,"b":202}]}],"statement":"INSERT INTO direct_messages (id, conversation_id, sender_id, contents, sent_while_shadowbanned, created_at, updated_at)\n    VALUES (:id!, :conversationId!, :senderId!, :contents!, :sentWhileShadowbanned!, NOW(), NOW())\nRETURNING\n    id, conversation_id, sender_id, contents, sent_while_shadowbanned, created_at"};
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO direct_messages (id, conversation_id, sender_id, contents, created_at, updated_at)
- *     VALUES (:id!, :conversationId!, :senderId!, :contents!, NOW(), NOW())
+ * INSERT INTO direct_messages (id, conversation_id, sender_id, contents, sent_while_shadowbanned, created_at, updated_at)
+ *     VALUES (:id!, :conversationId!, :senderId!, :contents!, :sentWhileShadowbanned!, NOW(), NOW())
  * RETURNING
- *     id, conversation_id, sender_id, contents, created_at
+ *     id, conversation_id, sender_id, contents, sent_while_shadowbanned, created_at
  * ```
  */
 export const createDirectMessage = new PreparedQuery<ICreateDirectMessageParams,ICreateDirectMessageResult>(createDirectMessageIR);
@@ -197,6 +200,7 @@ export const createDirectMessage = new PreparedQuery<ICreateDirectMessageParams,
 /** 'GetDirectMessagesForConversation' parameters type */
 export interface IGetDirectMessagesForConversationParams {
   conversationId: string;
+  viewerId: string;
 }
 
 /** 'GetDirectMessagesForConversation' return type */
@@ -211,6 +215,8 @@ export interface IGetDirectMessagesForConversationResult {
   id: string;
   /** not_pii: Foreign key */
   senderId: string;
+  /** not_pii: true when the sender was shadow banned at send time */
+  sentWhileShadowbanned: boolean | null;
 }
 
 /** 'GetDirectMessagesForConversation' query type */
@@ -219,7 +225,7 @@ export interface IGetDirectMessagesForConversationQuery {
   result: IGetDirectMessagesForConversationResult;
 }
 
-const getDirectMessagesForConversationIR: any = {"usedParamSet":{"conversationId":true},"params":[{"name":"conversationId","required":true,"transform":{"type":"scalar"},"locs":[{"a":133,"b":148}]}],"statement":"SELECT\n    id,\n    conversation_id,\n    sender_id,\n    contents,\n    created_at\nFROM\n    direct_messages\nWHERE\n    conversation_id = :conversationId!\nORDER BY\n    created_at"};
+const getDirectMessagesForConversationIR: any = {"usedParamSet":{"conversationId":true,"viewerId":true},"params":[{"name":"conversationId","required":true,"transform":{"type":"scalar"},"locs":[{"a":162,"b":177}]},{"name":"viewerId","required":true,"transform":{"type":"scalar"},"locs":[{"a":247,"b":256}]}],"statement":"SELECT\n    id,\n    conversation_id,\n    sender_id,\n    contents,\n    sent_while_shadowbanned,\n    created_at\nFROM\n    direct_messages\nWHERE\n    conversation_id = :conversationId!\n    AND (sent_while_shadowbanned IS NOT TRUE\n        OR sender_id = :viewerId!)\nORDER BY\n    created_at"};
 
 /**
  * Query generated from SQL:
@@ -229,11 +235,14 @@ const getDirectMessagesForConversationIR: any = {"usedParamSet":{"conversationId
  *     conversation_id,
  *     sender_id,
  *     contents,
+ *     sent_while_shadowbanned,
  *     created_at
  * FROM
  *     direct_messages
  * WHERE
  *     conversation_id = :conversationId!
+ *     AND (sent_while_shadowbanned IS NOT TRUE
+ *         OR sender_id = :viewerId!)
  * ORDER BY
  *     created_at
  * ```
@@ -305,7 +314,7 @@ export interface IGetUnreadDirectMessageSenderIdsQuery {
   result: IGetUnreadDirectMessageSenderIdsResult;
 }
 
-const getUnreadDirectMessageSenderIdsIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":318,"b":325},{"a":505,"b":512},{"a":565,"b":572},{"a":600,"b":607}]}],"statement":"SELECT\n    unread.sender_id\nFROM\n    direct_message_conversations dmc\n    CROSS JOIN LATERAL (\n        SELECT\n            dm.sender_id\n        FROM\n            direct_messages dm\n        WHERE\n            dm.conversation_id = dmc.id\n            AND dm.created_at > COALESCE(\n                CASE WHEN dmc.student_id = :userId! THEN\n                    dmc.student_last_seen\n                ELSE\n                    dmc.volunteer_last_seen\n                END, '-infinity')\n            AND dm.sender_id != :userId!\n        LIMIT 1) unread\nWHERE\n    dmc.student_id = :userId!\n    OR dmc.volunteer_id = :userId!"};
+const getUnreadDirectMessageSenderIdsIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":318,"b":325},{"a":505,"b":512},{"a":620,"b":627},{"a":655,"b":662}]}],"statement":"SELECT\n    unread.sender_id\nFROM\n    direct_message_conversations dmc\n    CROSS JOIN LATERAL (\n        SELECT\n            dm.sender_id\n        FROM\n            direct_messages dm\n        WHERE\n            dm.conversation_id = dmc.id\n            AND dm.created_at > COALESCE(\n                CASE WHEN dmc.student_id = :userId! THEN\n                    dmc.student_last_seen\n                ELSE\n                    dmc.volunteer_last_seen\n                END, '-infinity')\n            AND dm.sender_id != :userId!\n            AND dm.sent_while_shadowbanned IS NOT TRUE\n        LIMIT 1) unread\nWHERE\n    dmc.student_id = :userId!\n    OR dmc.volunteer_id = :userId!"};
 
 /**
  * Query generated from SQL:
@@ -328,6 +337,7 @@ const getUnreadDirectMessageSenderIdsIR: any = {"usedParamSet":{"userId":true},"
  *                     dmc.volunteer_last_seen
  *                 END, '-infinity')
  *             AND dm.sender_id != :userId!
+ *             AND dm.sent_while_shadowbanned IS NOT TRUE
  *         LIMIT 1) unread
  * WHERE
  *     dmc.student_id = :userId!

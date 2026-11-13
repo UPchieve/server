@@ -18,7 +18,7 @@ import * as ModerationRepo from '../models/DirectMessageModeration/queries'
 import { getSessionFlagByModerationReason } from './ModerationService'
 import { runInTransaction } from '../db'
 import logger from '../logger'
-import { EVENTS } from '../constants'
+import { EVENTS, USER_BAN_TYPES } from '../constants'
 import { captureEvent } from './AnalyticsService'
 
 function reviewCategory(reason: string) {
@@ -71,7 +71,10 @@ export async function getMessages(
   user: UserContactInfo
 ): Promise<DirectMessage[]> {
   await ensureIsParticipant(conversationId, user.id)
-  return DirectMessageRepo.getDirectMessagesForConversation(conversationId)
+  return DirectMessageRepo.getDirectMessagesForConversation(
+    conversationId,
+    user.id
+  )
 }
 
 export async function sendMessage(
@@ -131,8 +134,17 @@ export async function sendMessage(
       }
     }
     if (moderation.blocked) return
+    // Shadow-banned students' messages are saved but hidden from the volunteer
+    const sentWhileShadowbanned =
+      user.id === conversation.studentId &&
+      user.banType === USER_BAN_TYPES.SHADOW
     return DirectMessageRepo.createDirectMessage(
-      { conversationId, senderId: user.id, contents: trimmedContents },
+      {
+        conversationId,
+        senderId: user.id,
+        contents: trimmedContents,
+        sentWhileShadowbanned,
+      },
       client
     )
   })

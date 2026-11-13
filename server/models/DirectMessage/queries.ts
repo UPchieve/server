@@ -5,7 +5,7 @@ import type {
 import * as pgQueries from './pg.queries'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import { getClient, TransactionClient } from '../../db'
-import { getDbUlid, makeRequired, makeSomeRequired, Ulid } from '../pgUtils'
+import { getDbUlid, makeSomeRequired, Ulid } from '../pgUtils'
 import config from '../../config'
 
 export async function createConversationIfEligible(
@@ -78,6 +78,7 @@ export async function createDirectMessage(
     conversationId: Ulid
     senderId: Ulid
     contents: string
+    sentWhileShadowbanned: boolean
   },
   client?: TransactionClient
 ): Promise<DirectMessage> {
@@ -86,7 +87,13 @@ export async function createDirectMessage(
       { id: getDbUlid(), ...data },
       client ?? getClient()
     )
-    return makeRequired(result[0])
+    return makeSomeRequired(result[0], [
+      'id',
+      'conversationId',
+      'senderId',
+      'contents',
+      'createdAt',
+    ])
   } catch (err) {
     throw new RepoCreateError(err)
   }
@@ -94,14 +101,23 @@ export async function createDirectMessage(
 
 export async function getDirectMessagesForConversation(
   conversationId: Ulid,
+  viewerId: Ulid,
   client?: TransactionClient
 ): Promise<DirectMessage[]> {
   try {
     const result = await pgQueries.getDirectMessagesForConversation.run(
-      { conversationId },
+      { conversationId, viewerId },
       client ?? getClient()
     )
-    return result.map((row) => makeRequired(row))
+    return result.map((row) =>
+      makeSomeRequired(row, [
+        'id',
+        'conversationId',
+        'senderId',
+        'contents',
+        'createdAt',
+      ])
+    )
   } catch (err) {
     throw new RepoReadError(err)
   }

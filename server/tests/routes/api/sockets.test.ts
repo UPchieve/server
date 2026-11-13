@@ -162,6 +162,57 @@ describe('routeSockets', () => {
       )
     })
 
+    test("sends a message sent while shadow banned only to the student's room", async () => {
+      const { io, broadcast } = mockIo()
+      const socket = connectSocket(io)
+      const conversation = buildDirectMessageConversation({
+        studentId: mockUser.id,
+      })
+      const message = buildDirectMessage({
+        conversationId: conversation.id,
+        senderId: mockUser.id,
+        sentWhileShadowbanned: true,
+        createdAt: new Date('2026-10-01T12:00:00.000Z'),
+      })
+      mockedDirectMessageService.sendMessage.mockResolvedValue({
+        conversation,
+        message,
+      })
+
+      await getHandler(socket)({
+        conversationId: conversation.id,
+        contents: message.contents,
+        clientMessageId: 'client-1',
+      })
+
+      expect(broadcast.rooms).toEqual([mockUser.id])
+      // The sender can't tell their message was hidden
+      const { sentWhileShadowbanned, ...publicMessage } = message
+      expect(broadcast.emit).toHaveBeenCalledWith('direct-message:new', {
+        ...publicMessage,
+        createdAt: '2026-10-01T12:00:00.000Z',
+        clientMessageId: 'client-1',
+      })
+    })
+
+    test('refreshes the sender so a ban applied after they connected is used', async () => {
+      const socket = connectSocket()
+      const conversation = buildDirectMessageConversation({
+        studentId: mockUser.id,
+      })
+      mockedDirectMessageService.sendMessage.mockResolvedValue({
+        conversation,
+        message: buildDirectMessage({ conversationId: conversation.id }),
+      })
+
+      await getHandler(socket)({
+        conversationId: conversation.id,
+        contents: 'Hi!',
+      })
+
+      expect(mockedExtractSocketUser).toHaveBeenCalledWith(socket, true)
+    })
+
     test('tells only the sender when the message cannot be sent', async () => {
       const { io, broadcast } = mockIo()
       const socket = connectSocket(io)

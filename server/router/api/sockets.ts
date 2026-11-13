@@ -543,7 +543,8 @@ export function routeSockets(io: Server): void {
             const { conversationId, contents, clientMessageId } = data ?? {}
             if (!isUuid(conversationId))
               throw new InputError('Invalid conversationId')
-            const user = await extractSocketUser(socket)
+            // Refresh so a ban applied after the socket connected is respected
+            const user = await extractSocketUser(socket, true)
 
             const { conversation, message } =
               await DirectMessageService.sendMessage(
@@ -556,9 +557,11 @@ export function routeSockets(io: Server): void {
               ...toDirectMessagePublic(message),
               clientMessageId,
             }
-            io.to(conversation.studentId)
-              .to(conversation.volunteerId)
-              .emit('direct-message:new', messageData)
+            // Don't send message to volunteer if it was sent while student was shadowbanned
+            const recipients = message.sentWhileShadowbanned
+              ? io.to(conversation.studentId)
+              : io.to(conversation.studentId).to(conversation.volunteerId)
+            recipients.emit('direct-message:new', messageData)
           } catch (err) {
             const errorData: DirectMessageErrorEvent = {
               conversationId: data?.conversationId,

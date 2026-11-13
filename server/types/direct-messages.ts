@@ -15,6 +15,7 @@ export type DirectMessage = {
   conversationId: Ulid
   senderId: Ulid
   contents: string
+  sentWhileShadowbanned?: boolean
   createdAt: Date
 }
 

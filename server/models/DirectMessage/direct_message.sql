@@ -54,10 +54,10 @@ WHERE
 
 
 /* @name createDirectMessage */
-INSERT INTO direct_messages (id, conversation_id, sender_id, contents, created_at, updated_at)
-    VALUES (:id!, :conversationId!, :senderId!, :contents!, NOW(), NOW())
+INSERT INTO direct_messages (id, conversation_id, sender_id, contents, sent_while_shadowbanned, created_at, updated_at)
+    VALUES (:id!, :conversationId!, :senderId!, :contents!, :sentWhileShadowbanned!, NOW(), NOW())
 RETURNING
-    id, conversation_id, sender_id, contents, created_at;
+    id, conversation_id, sender_id, contents, sent_while_shadowbanned, created_at;
 
 
 /* @name getDirectMessagesForConversation */
@@ -66,11 +66,14 @@ SELECT
     conversation_id,
     sender_id,
     contents,
+    sent_while_shadowbanned,
     created_at
 FROM
     direct_messages
 WHERE
     conversation_id = :conversationId!
+    AND (sent_while_shadowbanned IS NOT TRUE
+        OR sender_id = :viewerId!)
 ORDER BY
     created_at;
 
@@ -116,6 +119,7 @@ FROM
                     dmc.volunteer_last_seen
                 END, '-infinity')
             AND dm.sender_id != :userId!
+            AND dm.sent_while_shadowbanned IS NOT TRUE
         LIMIT 1) unread
 WHERE
     dmc.student_id = :userId!

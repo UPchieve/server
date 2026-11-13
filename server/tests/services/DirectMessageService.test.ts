@@ -18,6 +18,7 @@ import {
 import * as DirectMessageModerationService from '../../services/DirectMessageModerationService'
 import * as DirectMessageModerationRepo from '../../models/DirectMessageModeration/queries'
 import * as Db from '../../db'
+import { USER_BAN_TYPES } from '../../constants'
 
 jest.mock('../../models/DirectMessage')
 jest.mock('../../services/DirectMessageModerationService')
@@ -138,7 +139,7 @@ describe('DirectMessageService', () => {
       ).toHaveBeenCalledWith(conversation.id, user.id)
       expect(
         mockedDirectMessageRepo.getDirectMessagesForConversation
-      ).toHaveBeenCalledWith(conversation.id)
+      ).toHaveBeenCalledWith(conversation.id, user.id)
       expect(result).toEqual(messages)
     })
 
@@ -180,10 +181,55 @@ describe('DirectMessageService', () => {
           conversationId: conversation.id,
           senderId: user.id,
           contents: 'Hi!',
+          sentWhileShadowbanned: false,
         },
         transactionClient
       )
       expect(result).toEqual({ conversation, message })
+    })
+
+    describe('marking messages sent while shadow banned', () => {
+      async function sendAs(
+        user: ReturnType<typeof buildUserContactInfo>,
+        role: 'student' | 'volunteer'
+      ) {
+        const conversation = buildDirectMessageConversation(
+          role === 'student' ? { studentId: user.id } : { volunteerId: user.id }
+        )
+        mockedDirectMessageRepo.getConversationForParticipant.mockResolvedValue(
+          conversation
+        )
+        mockedDirectMessageRepo.createDirectMessage.mockResolvedValue(
+          buildDirectMessage()
+        )
+        await DirectMessageService.sendMessage(conversation.id, user, 'Hi!')
+        return mockedDirectMessageRepo.createDirectMessage.mock.calls[0][0]
+          .sentWhileShadowbanned
+      }
+
+      test('marks a message from a shadow-banned student', async () => {
+        const user = buildUserContactInfo({ banType: USER_BAN_TYPES.SHADOW })
+
+        expect(await sendAs(user, 'student')).toBe(true)
+      })
+
+      test('does not mark a message from a shadow-banned volunteer', async () => {
+        const user = buildUserContactInfo({
+          banType: USER_BAN_TYPES.SHADOW,
+          roles: ['volunteer'],
+          roleContext: new RoleContext(['volunteer'], 'volunteer', 'volunteer'),
+        })
+
+        expect(await sendAs(user, 'volunteer')).toBe(false)
+      })
+
+      test('does not mark a message from a student with a complete ban', async () => {
+        const user = buildUserContactInfo({
+          banType: USER_BAN_TYPES.COMPLETE,
+        })
+
+        expect(await sendAs(user, 'student')).toBe(false)
+      })
     })
 
     test('logs the blocked message and queues review without delivering it', async () => {
