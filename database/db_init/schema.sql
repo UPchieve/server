@@ -1,7 +1,7 @@
 \restrict dbmate
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
--- Dumped by pg_dump version 15.17 (Homebrew)
+-- Dumped by pg_dump version 15.19 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -1700,7 +1700,8 @@ CREATE TABLE upchieve.direct_messages (
     sender_id uuid NOT NULL,
     contents text NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    sent_while_shadowbanned boolean DEFAULT false
 );
 
 
@@ -1744,6 +1745,13 @@ COMMENT ON COLUMN upchieve.direct_messages.created_at IS 'not_pii';
 --
 
 COMMENT ON COLUMN upchieve.direct_messages.updated_at IS 'not_pii';
+
+
+--
+-- Name: COLUMN direct_messages.sent_while_shadowbanned; Type: COMMENT; Schema: upchieve; Owner: -
+--
+
+COMMENT ON COLUMN upchieve.direct_messages.sent_while_shadowbanned IS 'not_pii: true when the sender was shadow banned at send time';
 
 
 --
@@ -16808,4 +16816,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20261104154633'),
     ('20261104154942'),
     ('20261105134800'),
-    ('20261106120000');
+    ('20261106120000'),
+    ('20261106150000');

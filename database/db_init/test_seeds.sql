@@ -2,10 +2,10 @@
 -- PostgreSQL database dump
 --
 
-\restrict ec7XN1DD5XmkC1aRT7WEyaO6MBXa3xqu7RCoOk9OYX2dk25d75wpJf0KdjFSUyu
+\restrict QwJBSSECAMAgmQ0gMieRBGQmuKbsf7eKWkn7tQlHbDA3bhtnA7p2VVeh8kb2RKV
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
--- Dumped by pg_dump version 15.17 (Homebrew)
+-- Dumped by pg_dump version 15.19 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -589,7 +589,7 @@ COPY upchieve.direct_message_flags (id, conversation_id, session_flag_id, censor
 -- Data for Name: direct_messages; Type: TABLE DATA; Schema: upchieve; Owner: admin
 --
 
-COPY upchieve.direct_messages (id, conversation_id, sender_id, contents, created_at, updated_at) FROM stdin;
+COPY upchieve.direct_messages (id, conversation_id, sender_id, contents, created_at, updated_at, sent_while_shadowbanned) FROM stdin;
 \.
 
 
@@ -9668,5 +9668,5 @@ SELECT pg_catalog.setval('upchieve.weekdays_id_seq', 1, false);
 -- PostgreSQL database dump complete
 --
 
-\unrestrict ec7XN1DD5XmkC1aRT7WEyaO6MBXa3xqu7RCoOk9OYX2dk25d75wpJf0KdjFSUyu
+\unrestrict QwJBSSECAMAgmQ0gMieRBGQmuKbsf7eKWkn7tQlHbDA3bhtnA7p2VVeh8kb2RKV
 
