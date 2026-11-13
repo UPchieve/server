@@ -1,7 +1,7 @@
-\restrict dbmate
+\restrict oWuD8HnzgdLuKiw2ewmfKizlvEi4livY93YqUgIxEIkKrex4ePLBxlYLEdFcgab
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
--- Dumped by pg_dump version 15.19 (Homebrew)
+-- Dumped by pg_dump version 15.18 (Ubuntu 15.18-1.pgdg22.04+1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -13589,6 +13589,14 @@ ALTER TABLE ONLY upchieve.subjects
 
 
 --
+-- Name: surveys_context survey_id_subject_id_survey_type_id; Type: CONSTRAINT; Schema: upchieve; Owner: -
+--
+
+ALTER TABLE ONLY upchieve.surveys_context
+    ADD CONSTRAINT survey_id_subject_id_survey_type_id UNIQUE NULLS NOT DISTINCT (survey_id, subject_id, survey_type_id);
+
+
+--
 -- Name: users_surveys survey_id_user_id_session_id_survey_type_id; Type: CONSTRAINT; Schema: upchieve; Owner: -
 --
 
@@ -16493,7 +16501,7 @@ ALTER TABLE ONLY upchieve.volunteer_references
 -- PostgreSQL database dump complete
 --
 
-\unrestrict dbmate
+\unrestrict oWuD8HnzgdLuKiw2ewmfKizlvEi4livY93YqUgIxEIkKrex4ePLBxlYLEdFcgab
 
 
 --
@@ -16819,4 +16827,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20261105134800'),
     ('20261106120000'),
     ('20261106150000'),
-    ('20261113202123');
+    ('20261113202123'),
+    ('20261113220026');

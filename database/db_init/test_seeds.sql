@@ -5,7 +5,7 @@
 \restrict ZGD3Lwoxe5OwhmwMk1hibUryivwke0IITuyTcbC1bmVUYzlrKD6WOnfMSchbkGM
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
--- Dumped by pg_dump version 15.19 (Homebrew)
+-- Dumped by pg_dump version 15.18 (Ubuntu 15.18-1.pgdg22.04+1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
