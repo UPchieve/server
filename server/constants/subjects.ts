@@ -125,6 +125,8 @@ export enum SOCIAL_STUDIES_SUBJECTS {
   US_HISTORY = 'usHistory',
 }
 
+export const PRACTICE_SESSION_SUBJECT = 'onboarding'
+
 export const SUBJECTS = {
   ...MATH_SUBJECTS,
   ...SCIENCE_SUBJECTS,

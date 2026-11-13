@@ -86,6 +86,7 @@ import { hoursInSeconds, minutesInMs, secondsInMs } from '../utils/time-utils'
 import * as ModerationService from './ModerationService'
 import * as SessionOfferService from './SessionOfferService'
 import { OFFERED_SESSION_SHARE } from './SessionOfferService/offer-config'
+import { PRACTICE_SESSION_SUBJECT } from '../constants/subjects'
 
 export async function reviewSession(data: unknown) {
   const { sessionId, reviewed, toReview } =
@@ -733,6 +734,7 @@ export async function startSession(
 
   const isOffering =
     !requestedVolunteerId &&
+    subject !== PRACTICE_SESSION_SUBJECT &&
     user.banType !== USER_BAN_TYPES.SHADOW &&
     !(await StudentRepo.isTestUser(user.id)) &&
     // TEMPORARY: because we need to bucket by session, not student or coach,
