@@ -91,7 +91,7 @@ If you use jj (the Right Choice 🌠), a solution has been created for you alrea
 
 ### App Dependencies
 
-On Linux systems you may need to install [`docker-compose` manually](https://docs.docker.com/compose/install/); on Windows and MacOS it ships with base docker. A docker-compose yaml specifies how to spin up Mongo, Redis, PostgreSQL, and PGAdmin containers to support the server, and also seeds the PostgreSQL database with test data.
+On Linux systems you may need to install [`docker-compose` manually](https://docs.docker.com/compose/install/); on Windows and MacOS it ships with base docker. A docker-compose yaml specifies how to spin up Redis, PostgreSQL, PGAdmin and graffiti (the whiteboard server) containers to support the server, and also seeds the PostgreSQL database with test data.
 
 1. Run the following command to start the containers
 

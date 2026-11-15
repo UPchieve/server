@@ -22,6 +22,15 @@ x-pg-initdb-volumes: &pg-initdb-volumes
     - ./database/db_init/test_seeds.sql:/docker-entrypoint-initdb.d/d.sql
     - ./database/db_init/seed_migrations.sql:/docker-entrypoint-initdb.d/e.sql
 
+x-graffiti: &graffiti
+    build: https://gitlab.com/upchieve/graffiti.git#main
+    # The image's entrypoint runs graffiti under `doppler run`, which needs a Doppler token this container doesn't have.
+    entrypoint: ["/usr/local/bin/graffiti"]
+
+x-graffiti-env: &graffiti-env
+    # New Relic's agent won't start without a 40-character key. New Relic rejects this one.
+    NEW_RELIC_LICENSE_KEY: "0000000000000000000000000000000000000000"
+
 services:
     postgres:
         profiles: ["dev"]
@@ -42,6 +51,16 @@ services:
         command: valkey-server --notify-keyspace-events Ex
         volumes:
             - ./redis-volume:/data
+    graffiti:
+        <<: *graffiti
+        profiles: ["dev"]
+        environment:
+            <<: *graffiti-env
+            SUBWAY_REDIS_HOST: redis
+        ports:
+            - "4545:4545"
+        depends_on:
+            - redis
     pgadmin:
         profiles: ["dev"]
         image: dpage/pgadmin4
@@ -102,6 +121,17 @@ services:
         ports:
             - "5501:6379"
         image: valkey/valkey:8.1.9
+    graffiti-e2e:
+        <<: *graffiti
+        profiles: ["e2e"]
+        container_name: graffiti-e2e
+        environment:
+            <<: *graffiti-env
+            SUBWAY_REDIS_HOST: redis-e2e
+        ports:
+            - "5503:4545"
+        depends_on:
+            - redis-e2e
     database-ci:
         profiles: ["db-test"]
         image: *pg-image
