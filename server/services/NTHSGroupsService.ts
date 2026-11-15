@@ -1,6 +1,8 @@
 import { Ulid, Uuid } from '../models/pgUtils'
 import * as NTHSGroupsRepo from '../models/NTHSGroups'
 import * as NTHSApplicationRepo from '../models/NTHSApplication'
+import * as NTHSEligibilityRepo from '../models/NTHSEligibility'
+import * as UserRepo from '../models/User'
 import { sendNTHSChapterSchoolAffiliationApprovedNotification } from './MailService'
 import {
   GetGroupMembersOptions,
@@ -47,13 +49,18 @@ import {
   NTHSChapterClosedError,
   NTHSApprovalExpiredError,
 } from '../models/Errors'
+import { EVENTS, GRADES } from '../constants'
 import logger from '../logger'
 import {
   getVolunteerOccupations,
   getVolunteersReadyToCoachStatus,
   VolunteerOccupations,
 } from '../models/Volunteer'
-import { isReadyToCoach } from './VolunteerService'
+import * as VolunteerRepo from '../models/Volunteer'
+import {
+  isReadyToCoach,
+  queueOnboardingReminderOneEmail,
+} from './VolunteerService'
 import {
   isNthsTitle,
   LEADERSHIP_TITLES,
@@ -63,6 +70,18 @@ import {
 import { hoursInMs, secondsInMs } from '../utils/time-utils'
 import { timeLimit } from '../utils/time-limit'
 import QueueService from './QueueService'
+import { isHighSchoolGrade } from '../utils/grade-levels'
+import { captureEvent } from './AnalyticsService'
+import {
+  NthsStudentConversionConfigurationError,
+  NthsStudentConversionEligibilityError,
+} from './NTHSEligibilityService'
+import { getNthsStudentConversionChapterId } from './FeatureFlagService'
+import {
+  getRoleContext,
+  RoleContext,
+  updateRoleContextCache,
+} from './UserRolesService'
 
 export const APPROVAL_LIFETIME_HOURS = 720
 const SENDGRID_SYNC_DELAY_MS = 5000
@@ -271,6 +290,80 @@ export async function joinGroupAsMemberByGroupId(
   }, tc)
   await syncNthsUserToSendGrid(userId)
   return groups
+}
+
+export async function addAtLargeMember(userId: string): Promise<void> {
+  const existingRoleContext = await getRoleContext(userId)
+  const eligibility = await NTHSEligibilityRepo.getAtLargeEligibility(userId)
+
+  if (
+    !eligibility ||
+    eligibility.deleted ||
+    eligibility.deactivated ||
+    eligibility.testUser ||
+    !!eligibility.banType ||
+    !eligibility.roles.includes('student') ||
+    eligibility.roles.includes('volunteer') ||
+    !eligibility.gradeLevel ||
+    !isHighSchoolGrade(eligibility.gradeLevel as GRADES)
+  ) {
+    throw new NthsStudentConversionEligibilityError({
+      userId,
+      eligibility,
+    })
+  }
+
+  const chapterId = await getNthsStudentConversionChapterId(userId)
+  if (!chapterId) throw new NthsStudentConversionConfigurationError()
+  const chapter = await NTHSGroupsRepo.getGroupById(chapterId)
+  if (!chapter) throw new NthsStudentConversionConfigurationError()
+  ensureChapterOpen(chapter)
+  if (await NTHSGroupsRepo.getActiveNthsGroupMember(userId, chapterId)) {
+    throw new AlreadyInNTHSGroupError()
+  }
+
+  await runInTransaction(async (tc) => {
+    await UserRepo.insertUserRoleByUserId(userId, 'volunteer', tc)
+    await VolunteerRepo.createVolunteerProfile(
+      userId,
+      { timezone: null, partnerOrgId: null },
+      tc
+    )
+    await VolunteerRepo.insertVolunteerOccupations(
+      userId,
+      [VolunteerOccupations.HIGH_SCHOOL_STUDENT],
+      tc
+    )
+    await NTHSGroupsRepo.joinGroupById(
+      {
+        userId,
+        groupId: chapterId,
+        title: 'Member',
+      },
+      tc
+    )
+    await NTHSGroupsRepo.upsertNthsGroupMemberRole(
+      {
+        userId,
+        nthsGroupId: chapterId,
+        roleName: 'member',
+      },
+      tc
+    )
+  })
+
+  captureEvent(userId, EVENTS.ADDED_VOLUNTEER_ROLE, {
+    source: 'nths',
+  })
+  await updateRoleContextCache(
+    userId,
+    new RoleContext(
+      [...existingRoleContext.roles, 'volunteer'],
+      existingRoleContext.activeRole,
+      existingRoleContext.legacyRole
+    )
+  )
+  await queueOnboardingReminderOneEmail(userId)
 }
 
 export function ensureChapterOpen(group: { closedAt?: Date | null }) {

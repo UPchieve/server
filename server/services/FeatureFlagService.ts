@@ -202,6 +202,16 @@ export async function isSessionOffersEnabled(
   )
 }
 
+export async function getNthsStudentConversionChapterId(
+  userId: Uuid
+): Promise<string | undefined> {
+  const payload = await getFeatureFlagPayload(
+    FEATURE_FLAGS.STUDENT_TO_VOLUNTEER_HOURS_PAGE,
+    userId
+  )
+  return typeof payload?.chapterId === 'string' ? payload.chapterId : undefined
+}
+
 // the control variant counts as enabled, so compare the variant itself
 export async function isInSessionOffersTestGroup(
   coachId: Uuid

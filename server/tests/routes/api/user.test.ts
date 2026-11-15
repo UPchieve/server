@@ -17,10 +17,9 @@ import {
   buildUserForAdmin,
 } from '../../mocks/generate'
 import { getUuid } from '../../../models/pgUtils'
-import { NotAllowedError } from '../../../models/Errors'
+import { InputError, NotAllowedError } from '../../../models/Errors'
 import * as AwsService from '../../../services/AwsService'
 import * as VolunteerService from '../../../services/VolunteerService'
-import * as UserRolesService from '../../../services/UserRolesService'
 import * as PresenceService from '../../../services/PresenceService'
 import * as UserModel from '../../../models/User'
 import { RoleContext } from '../../../services/UserRolesService'
@@ -48,13 +47,6 @@ jest.mock('../../../utils/auth-utils', () => {
 })
 jest.mock('../../../services/AwsService')
 jest.mock('../../../services/VolunteerService')
-jest.mock('../../../services/UserRolesService', () => {
-  const actual = jest.requireActual('../../../services/UserRolesService')
-  return {
-    ...actual,
-    addVolunteerRoleToUser: jest.fn(),
-  }
-})
 jest.mock('../../../services/PresenceService')
 jest.mock('../../../models/User')
 jest.mock('../../../logger')
@@ -64,7 +56,6 @@ const mockedUserService = mocked(UserService)
 const mockedUserProfileService = mocked(UserProfileService)
 const mockedAwsService = mocked(AwsService)
 const mockedVolunteerService = mocked(VolunteerService)
-const mockedUserRolesService = mocked(UserRolesService)
 const mockedPresenceService = mocked(PresenceService)
 const mockedUserModel = mocked(UserModel)
 
@@ -486,18 +477,6 @@ describe('routeUser', () => {
         activeRole: 'volunteer',
         user: buildLegacyUserPublic(switchedUser),
       })
-    })
-  })
-
-  describe('POST /api/user/roles/volunteer', () => {
-    test('adds volunteer role to user', async () => {
-      mockedUserRolesService.addVolunteerRoleToUser.mockResolvedValueOnce()
-
-      const response = await sendPost('/api/user/roles/volunteer')
-      expect(response.status).toBe(201)
-      expect(
-        mockedUserRolesService.addVolunteerRoleToUser
-      ).toHaveBeenCalledWith(mockUser.id)
     })
   })
 

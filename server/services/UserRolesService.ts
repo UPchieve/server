@@ -5,7 +5,7 @@ import * as VolunteerRepo from '../models/Volunteer'
 import * as VolunteerService from './VolunteerService'
 import * as CacheService from '../cache'
 import config from '../config'
-import { InputError } from '../models/Errors'
+import { InputError, NotAllowedError } from '../models/Errors'
 import { captureEvent } from './AnalyticsService'
 import { EVENTS } from '../constants'
 
@@ -113,7 +113,7 @@ export async function switchActiveRole(
   return { newRoleContext }
 }
 
-async function updateRoleContextCache(
+export async function updateRoleContextCache(
   userId: string,
   newRoleContext: RoleContext
 ): Promise<void> {

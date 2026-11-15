@@ -168,6 +168,19 @@ function acceptanceReasonFrom(body: unknown): NTHSAcceptanceReason {
 }
 
 export function routeNTHSGroups(router: Router): void {
+  router.post(
+    '/nths-groups/at-large/member',
+    async (req: Request, res: Response<void>) => {
+      try {
+        const user = extractUser(req)
+        await NTHSGroupsService.addAtLargeMember(user.id)
+        return res.sendStatus(201)
+      } catch (err) {
+        resError(res, err)
+      }
+    }
+  )
+
   router
     .route('/nths-groups')
     .get(async (req: Request, res: Response<NTHSGroupsResponse>) => {
