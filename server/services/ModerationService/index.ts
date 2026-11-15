@@ -36,6 +36,7 @@ import {
 import { timeLimit } from '../../utils/time-limit'
 import * as PromptService from '../PromptService'
 import * as SessionService from '../SessionService'
+import * as BanService from '../BanService'
 import SocketService from '../SocketService'
 import config from '../../config'
 import * as ModerationInfractionsRepo from '../../models/ModerationInfractions'
@@ -1113,7 +1114,7 @@ export async function handleLiveMediaModerationInfraction(
       infractionScore >= config.liveMediaBanInfractionScoreThreshold
 
     if (doLiveMediaBan) {
-      await liveMediaBanUser(userId, sessionId)
+      await BanService.liveMediaBanUser(userId, sessionId)
       logger.info('Live media banned user', {
         userId,
         sessionId,
@@ -1151,7 +1152,7 @@ export async function handleLiveMediaModerationInfraction(
         tc
       )
 
-      await liveMediaBanUser(userId, sessionId, tc)
+      await BanService.liveMediaBanUser(userId, sessionId, tc)
     })
 
     await socketService.emitModerationInfractionEvent(userId, {
@@ -1172,30 +1173,6 @@ export async function handleLiveMediaModerationInfraction(
       }
     )
   }
-}
-
-async function liveMediaBanUser(
-  userId: string,
-  sessionId: string,
-  transactionClient?: TransactionClient
-): Promise<void> {
-  await runInTransaction(async (tc) => {
-    await UsersRepo.banUserById(
-      userId,
-      USER_BAN_TYPES.LIVE_MEDIA,
-      USER_BAN_REASONS.AUTOMATED_MODERATION,
-      tc
-    )
-    await SessionService.markSessionForReview(
-      sessionId,
-      [UserSessionFlags.liveMediaBan],
-      tc
-    )
-  }, transactionClient)
-  await SocketService.getInstance().emitUserLiveMediaBannedEvents(
-    userId,
-    sessionId
-  )
 }
 
 export function isStreamStoppingReason(

@@ -6,12 +6,7 @@ import passport from 'passport'
 import { ResourceLockedError } from '@sesamecare-oss/redlock'
 import { Server, Socket } from 'socket.io'
 import { v4 as uuidv4 } from 'uuid'
-import {
-  EVENTS,
-  SESSION_USER_ACTIONS,
-  SUBJECTS,
-  USER_BAN_REASONS,
-} from '../../constants'
+import { EVENTS, SESSION_USER_ACTIONS, SUBJECTS } from '../../constants'
 import logger from '../../logger'
 import {
   CaughtError,
@@ -21,7 +16,8 @@ import {
 import { Ulid } from '../../models/pgUtils'
 import * as SessionRepo from '../../models/Session/queries'
 import * as SessionHoldsService from '../../services/SessionHoldsService'
-import { banUserById, UserContactInfo } from '../../models/User'
+import { UserContactInfo } from '../../models/User'
+import * as BanService from '../../services/BanService'
 import type { UserRole } from '../../types/users'
 import { captureEvent } from '../../services/AnalyticsService'
 import QueueService from '../../services/QueueService'
@@ -922,24 +918,22 @@ export function routeSockets(io: Server): void {
       )
     })
 
-    socket.on('removePartnerLiveMediaBan', async ({ sessionId, banType }) => {
+    socket.on('removePartnerLiveMediaBan', async () => {
       await observeWebTransaction(
         '/socket-io/removePartnerLiveMediaBan',
         async () => {
           try {
-            const session = await SessionRepo.getSessionById(sessionId)
             const user = await extractSocketUser(socket)
-            const partnerUserId =
-              user.id === session.volunteerId
-                ? session.studentId
-                : session.volunteerId
-
-            //Bypass typescript and insert null for banType
-            await banUserById(
-              partnerUserId as string,
-              banType,
-              USER_BAN_REASONS.AUTOMATED_MODERATION
+            const sessionId = await BanService.removePartnerLiveMediaBan(
+              user.id
             )
+
+            if (!sessionId) {
+              logger.warn('removePartnerLiveMediaBan: ban not removed', {
+                userId: user.id,
+              })
+              return
+            }
 
             io.to(getSessionRoom(sessionId))
               .except(user.id)
@@ -949,7 +943,6 @@ export function routeSockets(io: Server): void {
           } catch (err) {
             logger.error('Failed handling removePartnerLiveMediaBan event', {
               err,
-              sessionId,
               userId: socket.request.user?.id,
             })
           }

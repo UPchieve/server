@@ -828,6 +828,44 @@ const updateUserBanByIdIR: any = {"usedParamSet":{"banType":true,"banReason":tru
 export const updateUserBanById = new PreparedQuery<IUpdateUserBanByIdParams,IUpdateUserBanByIdResult>(updateUserBanByIdIR);
 
 
+/** 'RemoveLiveMediaBanById' parameters type */
+export interface IRemoveLiveMediaBanByIdParams {
+  userId: string;
+}
+
+/** 'RemoveLiveMediaBanById' return type */
+export interface IRemoveLiveMediaBanByIdResult {
+  /** not_pii: Primary key */
+  ok: string;
+}
+
+/** 'RemoveLiveMediaBanById' query type */
+export interface IRemoveLiveMediaBanByIdQuery {
+  params: IRemoveLiveMediaBanByIdParams;
+  result: IRemoveLiveMediaBanByIdResult;
+}
+
+const removeLiveMediaBanByIdIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":106,"b":113}]}],"statement":"UPDATE\n    users\nSET\n    ban_type = NULL,\n    ban_reason_id = NULL,\n    updated_at = NOW()\nWHERE\n    id = :userId!\n    AND ban_type = 'live_media'\nRETURNING\n    id AS ok"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE
+ *     users
+ * SET
+ *     ban_type = NULL,
+ *     ban_reason_id = NULL,
+ *     updated_at = NOW()
+ * WHERE
+ *     id = :userId!
+ *     AND ban_type = 'live_media'
+ * RETURNING
+ *     id AS ok
+ * ```
+ */
+export const removeLiveMediaBanById = new PreparedQuery<IRemoveLiveMediaBanByIdParams,IRemoveLiveMediaBanByIdResult>(removeLiveMediaBanByIdIR);
+
+
 /** 'GetUsersForAdminSearch' parameters type */
 export interface IGetUsersForAdminSearchParams {
   email?: string | null | void;

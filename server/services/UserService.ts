@@ -361,7 +361,7 @@ export async function adminUpdateUser(data: unknown) {
 
   //track reversing live_media bans
   if (userBeforeUpdate.banType === USER_BAN_TYPES.LIVE_MEDIA && !banType) {
-    await createAdminAction(ACCOUNT_USER_ACTIONS.UNLIVE_MEDIA_BANNED, userId)
+    await createAdminAction(ACCOUNT_USER_ACTIONS.LIVE_MEDIA_BAN_REMOVED, userId)
     await ModerationInfractionsService.deactivateModerationInfractionByUserId(
       userId
     )

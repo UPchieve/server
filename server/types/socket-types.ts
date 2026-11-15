@@ -4,7 +4,6 @@ import { Ulid } from '../models/pgUtils'
 import { UnfulfilledSessions } from '../models/Session'
 import Delta from 'quill-delta'
 import { SessionMessageType } from '../router/api/sockets'
-import { USER_BAN_TYPES } from '../constants'
 import type { CurrentSessionPublic } from '@upchieve/api-contracts/sessions'
 import { VolunteerPublicProfileInfoShared } from '../models/Volunteer/types'
 import type { VolunteerStatusesResponse } from '../contracts/students'
@@ -73,10 +72,7 @@ export type ClientToServerEvents = {
     uploadError?: string
   }) => void
   imageUploadSuccess: (data: { sessionId: Ulid }) => void
-  removePartnerLiveMediaBan: (data: {
-    sessionId: string
-    banType: USER_BAN_TYPES
-  }) => void
+  removePartnerLiveMediaBan: () => void
   addPartnerLiveMediaBan: (data: { sessionId: string }) => void
   joinedLiveMedia: (data: { sessionId: string }) => void
   dismissSessionHold: (data: { sessionId: string }) => void

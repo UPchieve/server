@@ -10,6 +10,7 @@ import {
   CreateUserPayload,
   deleteUserPhoneInfo,
   getUserForAdminDetail as getUserForAdminDetailFromRepo,
+  removeLiveMediaBanById,
   upsertUser,
   UserContactInfo,
 } from '../../models/User'
@@ -551,6 +552,60 @@ describe('ban type users tests', () => {
     )
 
     expect(after.rows[0].ban_type).toBe(USER_BAN_TYPES.COMPLETE)
+  })
+})
+
+describe('removeLiveMediaBanById', () => {
+  async function getBan(userId: string) {
+    const result = await client.query(
+      'SELECT ban_type, ban_reason_id FROM upchieve.users WHERE id = $1',
+      [userId]
+    )
+    return result.rows[0]
+  }
+
+  test('clears a live media ban and its reason', async () => {
+    const user = await createTestUser(client)
+    await banUserById(
+      user.id,
+      USER_BAN_TYPES.LIVE_MEDIA,
+      USER_BAN_REASONS.SESSION_REPORTED
+    )
+    expect(await getBan(user.id)).toEqual({
+      ban_type: USER_BAN_TYPES.LIVE_MEDIA,
+      ban_reason_id: expect.any(Number),
+    })
+
+    const removed = await removeLiveMediaBanById(user.id)
+
+    expect(removed).toBe(true)
+    expect(await getBan(user.id)).toEqual({
+      ban_type: null,
+      ban_reason_id: null,
+    })
+  })
+
+  test.each([USER_BAN_TYPES.SHADOW, USER_BAN_TYPES.COMPLETE])(
+    'does not clear a %s ban',
+    async (banType) => {
+      const user = await createTestUser(client)
+      await banUserById(user.id, banType, USER_BAN_REASONS.SESSION_REPORTED)
+      const before = await getBan(user.id)
+
+      const removed = await removeLiveMediaBanById(user.id)
+
+      expect(removed).toBe(false)
+      expect(await getBan(user.id)).toEqual(before)
+    }
+  )
+
+  test('returns false for a user with no ban', async () => {
+    const user = await createTestUser(client)
+
+    const removed = await removeLiveMediaBanById(user.id)
+
+    expect(removed).toBe(false)
+    expect((await getBan(user.id)).ban_type).toBeNull()
   })
 })
 

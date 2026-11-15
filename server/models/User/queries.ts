@@ -382,6 +382,18 @@ export async function banUserById(
   }
 }
 
+export async function removeLiveMediaBanById(
+  userId: Ulid,
+  tc: TransactionClient = getClient()
+): Promise<boolean> {
+  try {
+    const result = await pgQueries.removeLiveMediaBanById.run({ userId }, tc)
+    return result.length > 0
+  } catch (err) {
+    throw new RepoUpdateError(err)
+  }
+}
+
 type UserQuery = {
   userId: string | undefined
   firstName: string | undefined

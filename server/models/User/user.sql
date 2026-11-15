@@ -259,6 +259,20 @@ RETURNING
     id AS ok;
 
 
+/* @name removeLiveMediaBanById */
+UPDATE
+    users
+SET
+    ban_type = NULL,
+    ban_reason_id = NULL,
+    updated_at = NOW()
+WHERE
+    id = :userId!
+    AND ban_type = 'live_media'
+RETURNING
+    id AS ok;
+
+
 /* @name getUsersForAdminSearch */
 SELECT
     users.id,
