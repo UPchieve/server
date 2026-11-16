@@ -181,7 +181,8 @@ CREATE TYPE upchieve.volunteer_info_type AS ENUM (
     'occupation',
     'totalVolunteerHours',
     'numStudentsHelped',
-    'numSessionsTutored'
+    'numSessionsTutored',
+    'onlineStatus'
 );
 
 
@@ -16817,4 +16818,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20261104154942'),
     ('20261105134800'),
     ('20261106120000'),
-    ('20261106150000');
+    ('20261106150000'),
+    ('20261113202123');

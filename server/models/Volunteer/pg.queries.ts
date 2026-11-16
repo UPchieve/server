@@ -3,7 +3,7 @@ import { PreparedQuery } from '@pgtyped/runtime';
 
 export type ban_types = 'complete' | 'live_media' | 'shadow';
 
-export type volunteer_info_type = 'numSessionsTutored' | 'numStudentsHelped' | 'occupation' | 'totalVolunteerHours';
+export type volunteer_info_type = 'numSessionsTutored' | 'numStudentsHelped' | 'occupation' | 'onlineStatus' | 'totalVolunteerHours';
 
 export type DateOrString = Date | string;
 
