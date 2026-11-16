@@ -1841,6 +1841,21 @@ export async function updateVolunteerPublicProfileInfoShared(
     throw new RepoUpdateError(err)
   }
 }
+export async function getVolunteersSharingOnlineStatus(
+  volunteerIds: Ulid[],
+  tc: TransactionClient = getRoClient()
+): Promise<Ulid[]> {
+  if (!volunteerIds.length) return []
+  try {
+    const results = await pgQueries.getVolunteersSharingOnlineStatus.run(
+      { volunteerIds },
+      tc
+    )
+    return results.map((row) => makeRequired(row).userId)
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
 
 export async function getSubjectAndReadyToCoachInfoByUserIds(
   userIds: Ulid[],

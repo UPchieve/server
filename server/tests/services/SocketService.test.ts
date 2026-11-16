@@ -2,8 +2,10 @@ import type { Server, Socket } from 'socket.io'
 import * as cache from '../../cache'
 import {
   getUnfulfilledSessions,
+  getVolunteersInSessions,
   UnfulfilledSessions,
 } from '../../models/Session/queries'
+import { getVolunteersSharingOnlineStatus } from '../../models/Volunteer/queries'
 import type { UserContactInfo } from '../../models/User'
 import {
   ensureCanJoinSession,
@@ -19,6 +21,10 @@ jest.mock('../../cache', () => ({ hgetall: jest.fn() }))
 jest.mock('../../logger', () => ({ error: jest.fn(), info: jest.fn() }))
 jest.mock('../../models/Session/queries', () => ({
   getUnfulfilledSessions: jest.fn(),
+  getVolunteersInSessions: jest.fn(),
+}))
+jest.mock('../../models/Volunteer/queries', () => ({
+  getVolunteersSharingOnlineStatus: jest.fn(),
 }))
 jest.mock('../../services/SessionService', () => ({
   ensureCanJoinSession: jest.fn(),
@@ -32,6 +38,10 @@ jest.mock('../../services/SessionHoldsService', () => ({
 
 const mockedGetUnfulfilledSessions = jest.mocked(getUnfulfilledSessions)
 const mockedGetCurrentSessionById = jest.mocked(getCurrentSessionById)
+const mockedGetVolunteersInSessions = jest.mocked(getVolunteersInSessions)
+const mockedGetVolunteersSharingOnlineStatus = jest.mocked(
+  getVolunteersSharingOnlineStatus
+)
 const mockedCache = jest.mocked(cache)
 const mockedSessionHolds = jest.mocked(SessionHoldsService)
 
@@ -206,5 +216,105 @@ describe('SocketService.joinSession', () => {
       isRefusal ? [['sessions-session-a']] : []
     )
     expect(socket.data.sessionId).toBe(expected)
+  })
+})
+
+describe('SocketService coach statuses', () => {
+  const statusRoom = { emit: jest.fn() }
+  const presence = { timeout: jest.fn(), fetchSockets: jest.fn() }
+  const io = { in: jest.fn(), to: jest.fn() }
+  let service: SocketService
+
+  function connectedSocket(userId: string) {
+    return { rooms: new Set([userId]) }
+  }
+
+  beforeEach(() => {
+    jest.resetAllMocks()
+    io.to.mockReturnValue(statusRoom)
+    io.in.mockReturnValue(presence)
+    presence.timeout.mockReturnThis()
+    presence.fetchSockets.mockResolvedValue([])
+    mockedGetVolunteersInSessions.mockResolvedValue([])
+    mockedGetVolunteersSharingOnlineStatus.mockResolvedValue([])
+
+    jest.isolateModules(() => {
+      const { default: SocketService } =
+        require('../../services/SocketService') as typeof import('../../services/SocketService')
+      service = SocketService.getInstance(io as unknown as Server)
+    })
+  })
+
+  describe('getVolunteerStatuses', () => {
+    test('only reports coaches who share their online status', async () => {
+      mockedGetVolunteersSharingOnlineStatus.mockResolvedValue([
+        'online-coach',
+        'busy-coach',
+        'offline-coach',
+      ])
+      mockedGetVolunteersInSessions.mockResolvedValue([
+        'busy-coach',
+        'private-busy-coach',
+      ])
+      presence.fetchSockets.mockResolvedValue([
+        connectedSocket('online-coach'),
+        connectedSocket('private-online-coach'),
+      ])
+
+      const statuses = await service.getVolunteerStatuses([
+        'online-coach',
+        'busy-coach',
+        'offline-coach',
+        'private-online-coach',
+        'private-busy-coach',
+      ])
+
+      // Coaches who haven't opted in are left out, not shown as offline
+      expect(statuses).toEqual({
+        'online-coach': 'online',
+        'busy-coach': 'in-session',
+        'offline-coach': 'offline',
+      })
+      expect(io.in).toHaveBeenCalledWith([
+        'online-coach',
+        'busy-coach',
+        'offline-coach',
+      ])
+    })
+
+    test('reports nothing when no coach shares their online status', async () => {
+      presence.fetchSockets.mockResolvedValue([connectedSocket('coach')])
+
+      await expect(service.getVolunteerStatuses(['coach'])).resolves.toEqual({})
+      expect(presence.fetchSockets).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('notifyVolunteerPresenceStatusChanged', () => {
+    test('pings students watching a coach who shares their status', async () => {
+      mockedGetVolunteersSharingOnlineStatus.mockResolvedValue(['coach'])
+
+      await service.notifyVolunteerPresenceStatusChanged('coach')
+
+      expect(io.to).toHaveBeenCalledWith('coach-status:coach')
+      expect(statusRoom.emit).toHaveBeenCalledWith('coaches:status-changed')
+    })
+
+    test("doesn't ping for a coach who hasn't shared their status", async () => {
+      await service.notifyVolunteerPresenceStatusChanged('coach')
+
+      expect(statusRoom.emit).not.toHaveBeenCalled()
+    })
+
+    test("doesn't ping or reject when the sharing lookup fails", async () => {
+      mockedGetVolunteersSharingOnlineStatus.mockRejectedValue(
+        new Error('db down')
+      )
+
+      await expect(
+        service.notifyVolunteerPresenceStatusChanged('coach')
+      ).resolves.toBeUndefined()
+      expect(statusRoom.emit).not.toHaveBeenCalled()
+    })
   })
 })

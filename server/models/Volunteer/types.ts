@@ -111,6 +111,7 @@ export enum VolunteerPublicInfo {
   TOTAL_VOLUNTEER_HOURS = 'totalVolunteerHours',
   NUM_STUDENTS_HELPED = 'numStudentsHelped',
   NUM_SESSIONS_TUTORED = 'numSessionsTutored',
+  ONLINE_STATUS = 'onlineStatus',
 }
 
 // Only contains the fields the volunteer has chosen to share with students

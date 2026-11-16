@@ -18,6 +18,7 @@ import { VolunteerPublicProfileInfoShared } from '../models/Volunteer/types'
 import { SessionJoinError } from '../models/Errors'
 import * as StudentRepo from '../models/Student/queries'
 import * as SessionRepo from '../models/Session/queries'
+import * as VolunteerRepo from '../models/Volunteer/queries'
 import type { VolunteerStatus } from '../types/users'
 import {
   SessionOfferClosedEvent,
@@ -241,7 +242,7 @@ class SocketService {
     const sessionParticipants = [session.student.id]
     if (session.volunteer?.id) {
       sessionParticipants.push(session.volunteer.id)
-      this.emitVolunteerStatusChanged(session.volunteer.id)
+      void this.notifyVolunteerPresenceStatusChanged(session.volunteer.id)
     }
     this.io
       .in(sessionParticipants)
@@ -342,7 +343,25 @@ class SocketService {
   }
 
   emitVolunteerStatusChanged(volunteerId: string): void {
-    this.io.to(`coach-status:${volunteerId}`).emit('coaches:status-changed')
+    this.io
+      .to(`${VOLUNTEER_STATUS_ROOM_PREFIX}${volunteerId}`)
+      .emit('coaches:status-changed')
+  }
+
+  async notifyVolunteerPresenceStatusChanged(
+    volunteerId: string
+  ): Promise<void> {
+    try {
+      const sharing = await VolunteerRepo.getVolunteersSharingOnlineStatus([
+        volunteerId,
+      ])
+      if (sharing.length) this.emitVolunteerStatusChanged(volunteerId)
+    } catch (err) {
+      logger.error('Failed to notify volunteer status change', {
+        err,
+        volunteerId,
+      })
+    }
   }
 
   // Find users who still have a tab connected
@@ -406,17 +425,20 @@ class SocketService {
   async getVolunteerStatuses(
     volunteerIds: string[]
   ): Promise<Record<string, VolunteerStatus>> {
-    if (!volunteerIds.length) {
+    // Only coaches who opted in to sharing their status are reported at all
+    const sharingIds =
+      await VolunteerRepo.getVolunteersSharingOnlineStatus(volunteerIds)
+    if (!sharingIds.length) {
       return {}
     }
 
     const [connected, inSessions] = await Promise.all([
-      this.getConnectedUserIds(volunteerIds),
+      this.getConnectedUserIds(sharingIds),
       SessionRepo.getVolunteersInSessions(),
     ])
     const volunteersInSessions = new Set(inSessions)
     const statuses: Record<string, VolunteerStatus> = {}
-    for (const volunteerId of volunteerIds) {
+    for (const volunteerId of sharingIds) {
       if (volunteersInSessions.has(volunteerId)) {
         statuses[volunteerId] = 'in-session'
       } else if (connected.has(volunteerId)) {

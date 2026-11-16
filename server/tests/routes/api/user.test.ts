@@ -153,6 +153,19 @@ describe('routeUser', () => {
       )
     })
 
+    test('accepts online status as info shared with students', async () => {
+      mockedUserProfileService.updateUserProfile.mockResolvedValueOnce()
+      const publicProfileKeys = ['occupation', 'onlineStatus']
+
+      const response = await sendPut('/api/user', { publicProfileKeys })
+      expect(response.status).toBe(200)
+      expect(mockedUserProfileService.updateUserProfile).toHaveBeenCalledWith(
+        mockUser,
+        expect.any(String),
+        { deactivated: false, publicProfileKeys }
+      )
+    })
+
     test('defaults deactivated to false when not provided', async () => {
       mockedUserProfileService.updateUserProfile.mockResolvedValueOnce()
 

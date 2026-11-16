@@ -18,6 +18,7 @@ import {
   upsertUsersSchool,
 } from '../models/UsersSchools'
 import * as VolunteerService from './VolunteerService'
+import SocketService from './SocketService'
 import logger from '../logger'
 
 export async function updateUserProfile(
@@ -89,6 +90,14 @@ export async function updateUserProfile(
       await VolunteerService.emitSharedInfoToCurrentSession(user.id)
     } catch (err) {
       logger.error('Failed to emit updated shared info to current session', {
+        err,
+        userId: user.id,
+      })
+    }
+    try {
+      SocketService.getInstance().emitVolunteerStatusChanged(user.id)
+    } catch (err) {
+      logger.error('Failed to emit volunteer status change', {
         err,
         userId: user.id,
       })

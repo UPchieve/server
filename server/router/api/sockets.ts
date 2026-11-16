@@ -91,7 +91,9 @@ async function handleUser(socket: SocketUser, user: UserContactInfo) {
   // multiple socket connections open
   await socket.join(user.id.toString())
   if (user.roleContext.isActiveRole('volunteer')) {
-    SocketService.getInstance().emitVolunteerStatusChanged(user.id)
+    void SocketService.getInstance().notifyVolunteerPresenceStatusChanged(
+      user.id
+    )
   }
 
   const latestSession = await SessionService.currentSession(user.id)
@@ -1028,7 +1030,7 @@ export function routeSockets(io: Server): void {
 
     socket.on('disconnect', () => {
       if (user?.roleContext.isActiveRole('volunteer')) {
-        socketService.emitVolunteerStatusChanged(user.id)
+        void socketService.notifyVolunteerPresenceStatusChanged(user.id)
       }
     })
 

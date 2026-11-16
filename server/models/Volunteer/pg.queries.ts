@@ -3810,6 +3810,40 @@ const getVolunteerPublicProfileStatsIR: any = {"usedParamSet":{"userId":true,"mi
 export const getVolunteerPublicProfileStats = new PreparedQuery<IGetVolunteerPublicProfileStatsParams,IGetVolunteerPublicProfileStatsResult>(getVolunteerPublicProfileStatsIR);
 
 
+/** 'GetVolunteersSharingOnlineStatus' parameters type */
+export interface IGetVolunteersSharingOnlineStatusParams {
+  volunteerIds: stringArray;
+}
+
+/** 'GetVolunteersSharingOnlineStatus' return type */
+export interface IGetVolunteersSharingOnlineStatusResult {
+  /** not_pii: Foreign key to upchieve.users */
+  userId: string;
+}
+
+/** 'GetVolunteersSharingOnlineStatus' query type */
+export interface IGetVolunteersSharingOnlineStatusQuery {
+  params: IGetVolunteersSharingOnlineStatusParams;
+  result: IGetVolunteersSharingOnlineStatusResult;
+}
+
+const getVolunteersSharingOnlineStatusIR: any = {"usedParamSet":{"volunteerIds":true},"params":[{"name":"volunteerIds","required":true,"transform":{"type":"scalar"},"locs":[{"a":72,"b":85}]}],"statement":"SELECT\n    user_id\nFROM\n    volunteer_profiles\nWHERE\n    user_id = ANY (:volunteerIds!::uuid[])\n    AND 'onlineStatus' = ANY (info_shared_with_students)"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     user_id
+ * FROM
+ *     volunteer_profiles
+ * WHERE
+ *     user_id = ANY (:volunteerIds!::uuid[])
+ *     AND 'onlineStatus' = ANY (info_shared_with_students)
+ * ```
+ */
+export const getVolunteersSharingOnlineStatus = new PreparedQuery<IGetVolunteersSharingOnlineStatusParams,IGetVolunteersSharingOnlineStatusResult>(getVolunteersSharingOnlineStatusIR);
+
+
 /** 'GetSubjectAndReadyToCoachInfoByUserIds' parameters type */
 export interface IGetSubjectAndReadyToCoachInfoByUserIdsParams {
   userIds: stringArray;

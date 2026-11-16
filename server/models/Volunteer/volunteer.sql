@@ -1583,6 +1583,16 @@ WHERE
     volunteer_profiles.user_id = :userId!;
 
 
+/* @name getVolunteersSharingOnlineStatus */
+SELECT
+    user_id
+FROM
+    volunteer_profiles
+WHERE
+    user_id = ANY (:volunteerIds!::uuid[])
+    AND 'onlineStatus' = ANY (info_shared_with_students);
+
+
 /* @name getSubjectAndReadyToCoachInfoByUserIds */
 WITH muted_subjects AS (
     SELECT

@@ -16,9 +16,12 @@ import {
   getVolunteerContactInfoById,
   getVolunteersForTextNotifications,
   getVolunteersReadyToCoachStatus,
+  getVolunteersSharingOnlineStatus,
   updateVolunteerForAdmin,
   updateVolunteerOnboarded,
+  updateVolunteerPublicProfileInfoShared,
   updateVolunteerTrainingById,
+  VolunteerPublicInfo,
 } from '../../models/Volunteer'
 import moment from 'moment'
 import { getClient } from '../../db'
@@ -331,6 +334,43 @@ describe('VolunteerRepo', () => {
         isOnboarded: true,
         banType: 'shadow',
       })
+    })
+  })
+
+  describe('getVolunteersSharingOnlineStatus', () => {
+    const createVolunteerSharing = async (shared?: VolunteerPublicInfo[]) => {
+      const user = await createTestUser(client)
+      await createTestVolunteer(client, user.id, {})
+      if (shared)
+        await updateVolunteerPublicProfileInfoShared(user.id, shared, client)
+      return user.id
+    }
+
+    it('returns only the volunteers who chose to share their online status', async () => {
+      const sharingStatus = await createVolunteerSharing([
+        VolunteerPublicInfo.OCCUPATION,
+        VolunteerPublicInfo.ONLINE_STATUS,
+      ])
+      const sharingOtherInfo = await createVolunteerSharing([
+        VolunteerPublicInfo.OCCUPATION,
+      ])
+      const sharingNothing = await createVolunteerSharing([])
+      const undecided = await createVolunteerSharing()
+      // Shares their status but wasn't asked about
+      await createVolunteerSharing([VolunteerPublicInfo.ONLINE_STATUS])
+
+      const result = await getVolunteersSharingOnlineStatus(
+        [sharingStatus, sharingOtherInfo, sharingNothing, undecided],
+        client
+      )
+
+      expect(result).toEqual([sharingStatus])
+    })
+
+    it('returns nothing when given no volunteers', async () => {
+      await createVolunteerSharing([VolunteerPublicInfo.ONLINE_STATUS])
+
+      expect(await getVolunteersSharingOnlineStatus([], client)).toEqual([])
     })
   })
 

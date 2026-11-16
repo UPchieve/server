@@ -8,6 +8,8 @@ import { createAccountAction } from '../../models/UserAction'
 import { ACCOUNT_USER_ACTIONS, GRADES } from '../../constants'
 import { deleteContactByEmail } from '../../services/MailService'
 import QueueService from '../../services/QueueService'
+import SocketService from '../../services/SocketService'
+import { VolunteerPublicInfo } from '../../models/Volunteer/types'
 
 jest.mock('../../models/User/queries')
 jest.mock('../../models/UserAction')
@@ -16,10 +18,14 @@ jest.mock('../../services/UserCreationService')
 jest.mock('../../models/UsersSchools')
 jest.mock('../../models/UsersGradeLevels')
 jest.mock('../../services/QueueService')
+jest.mock('../../services/SocketService')
+jest.mock('../../services/VolunteerService')
+jest.mock('../../models/Volunteer/queries')
 
 const mockUserRepo = mocked(UserRepo)
 const mockedStudentService = mocked(StudentService)
 const mockedQueueService = mocked(QueueService)
+const mockedSocketService = mocked(SocketService)
 const mockGetStudentUser = () => buildStudent()
 const mockedStudent = mockGetStudentUser()
 const mockedVolunteer = buildVolunteer()
@@ -129,6 +135,61 @@ describe('User Profile', () => {
         { delay: 0 },
         { userId: mockedStudent.id }
       )
+    })
+
+    describe('coach status sharing', () => {
+      const emitVolunteerStatusChanged = jest.fn()
+
+      beforeEach(() => {
+        mockedSocketService.getInstance.mockReturnValue({
+          emitVolunteerStatusChanged,
+        } as unknown as SocketService)
+      })
+
+      it.each([
+        ['on', [VolunteerPublicInfo.ONLINE_STATUS]],
+        ['off', []],
+      ])(
+        'tells students to re-fetch coach status when sharing is saved with online status %s',
+        async (_, publicProfileKeys) => {
+          await updateUserProfile(mockedVolunteer, '123', {
+            ...DEFAULT_REQUEST,
+            publicProfileKeys,
+          })
+
+          expect(emitVolunteerStatusChanged).toHaveBeenCalledWith(
+            mockedVolunteer.id
+          )
+        }
+      )
+
+      it("doesn't emit a status change when sharing choices aren't part of the update", async () => {
+        await updateUserProfile(mockedVolunteer, '123', DEFAULT_REQUEST)
+
+        expect(emitVolunteerStatusChanged).not.toHaveBeenCalled()
+      })
+
+      it("doesn't emit a status change for a student", async () => {
+        await updateUserProfile(mockedStudent, '123', {
+          ...DEFAULT_REQUEST,
+          publicProfileKeys: [VolunteerPublicInfo.ONLINE_STATUS],
+        })
+
+        expect(emitVolunteerStatusChanged).not.toHaveBeenCalled()
+      })
+
+      it('still saves the profile when the status change fails to emit', async () => {
+        emitVolunteerStatusChanged.mockImplementationOnce(() => {
+          throw new Error('socket server unavailable')
+        })
+
+        await expect(
+          updateUserProfile(mockedVolunteer, '123', {
+            ...DEFAULT_REQUEST,
+            publicProfileKeys: [VolunteerPublicInfo.ONLINE_STATUS],
+          })
+        ).resolves.not.toThrow()
+      })
     })
 
     it("doesn't queue a SendGrid sync job when gradeLevel is absent and user isn't (de)activating", async () => {
