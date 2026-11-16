@@ -2,10 +2,8 @@ import type {
   PastStudentPublic,
   VolunteerToReviewPublic,
 } from '../contracts/volunteers'
-import type {
-  VolunteerPastStudent,
-  VolunteerToReview,
-} from '../models/Volunteer'
+import type { VolunteerToReview } from '../models/Volunteer'
+import type { VolunteerPastStudentWithDmStatus } from '../services/VolunteerService'
 
 export function toVolunteerToReviewPublic(
   volunteer: VolunteerToReview
@@ -24,7 +22,7 @@ export function toVolunteerToReviewPublic(
 }
 
 export function toPastStudentPublic(
-  student: VolunteerPastStudent & { canDirectMessage: boolean }
+  student: VolunteerPastStudentWithDmStatus
 ): PastStudentPublic {
   return {
     studentId: student.studentId,
@@ -35,5 +33,6 @@ export function toPastStudentPublic(
     createdAt: student.createdAt.toISOString(),
     timeTutored: student.timeTutored,
     canDirectMessage: student.canDirectMessage,
+    directMessageUnavailableReason: student.directMessageUnavailableReason,
   }
 }

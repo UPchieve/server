@@ -166,4 +166,5 @@ export type VolunteerPastStudent = {
   createdAt: Date
   firstName: string
   timeTutored: number
+  studentBanType?: USER_BAN_TYPES
 }

@@ -1,7 +1,10 @@
 import type { ISODateString } from '../types/dates'
 import type { Uuid } from '../types/shared'
 import type { AvailabilityAggregation } from '../controllers/VolunteersCtrl'
-import type { VolunteerSubjectPresenceMap } from '../services/VolunteerService'
+import type {
+  DirectMessageUnavailableReason,
+  VolunteerSubjectPresenceMap,
+} from '../services/VolunteerService'
 
 export type VolunteerToReviewPublic = {
   id: Uuid
@@ -42,6 +45,7 @@ export type PastStudentPublic = {
   createdAt: ISODateString
   timeTutored: number
   canDirectMessage: boolean
+  directMessageUnavailableReason?: DirectMessageUnavailableReason
 }
 
 export type PastStudentsResponse = {

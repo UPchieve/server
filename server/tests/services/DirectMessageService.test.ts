@@ -18,12 +18,14 @@ import {
 import * as DirectMessageModerationService from '../../services/DirectMessageModerationService'
 import * as DirectMessageModerationRepo from '../../models/DirectMessageModeration/queries'
 import * as Db from '../../db'
+import * as UserRepo from '../../models/User'
 import { USER_BAN_TYPES } from '../../constants'
 
 jest.mock('../../models/DirectMessage')
 jest.mock('../../services/DirectMessageModerationService')
 jest.mock('../../models/DirectMessageModeration/queries')
 jest.mock('../../db')
+jest.mock('../../models/User')
 
 const mockedDirectMessageRepo = mocked(DirectMessageRepo)
 const mockedDirectMessageModerationService = mocked(
@@ -31,6 +33,7 @@ const mockedDirectMessageModerationService = mocked(
 )
 const mockedDirectMessageModerationRepo = mocked(DirectMessageModerationRepo)
 const mockedDb = mocked(Db)
+const mockedUserRepo = mocked(UserRepo)
 const transactionClient = new Pool()
 
 afterAll(async () => {
@@ -47,6 +50,7 @@ describe('DirectMessageService', () => {
     mockedDb.runInTransaction.mockImplementation(async (cb) =>
       cb(transactionClient)
     )
+    mockedUserRepo.getUsersBanStatuses.mockResolvedValue([])
   })
 
   describe('getOrCreateConversation', () => {
@@ -87,6 +91,53 @@ describe('DirectMessageService', () => {
       expect(
         mockedDirectMessageRepo.getOrCreateConversation
       ).toHaveBeenCalledWith(studentId, volunteer.id)
+    })
+
+    test('does not let a volunteer message a shadow-banned student', async () => {
+      const volunteer = buildUserContactInfo({
+        roles: ['volunteer'],
+        roleContext: new RoleContext(['volunteer'], 'volunteer', 'volunteer'),
+      })
+      const studentId = getDbUlid()
+      mockedUserRepo.getUsersBanStatuses.mockResolvedValue([
+        { id: studentId, banType: USER_BAN_TYPES.SHADOW },
+      ])
+
+      const result = DirectMessageService.getOrCreateConversation(
+        volunteer,
+        studentId
+      )
+
+      await expect(result).rejects.toThrow(NotAllowedError)
+      await expect(result).rejects.toThrow(
+        "You can't message this student right now"
+      )
+      expect(mockedUserRepo.getUsersBanStatuses).toHaveBeenCalledWith([
+        studentId,
+      ])
+      expect(
+        mockedDirectMessageRepo.getOrCreateConversation
+      ).not.toHaveBeenCalled()
+    })
+
+    test('lets a shadow-banned student get their conversation', async () => {
+      const student = buildUserContactInfo({ banType: USER_BAN_TYPES.SHADOW })
+      const volunteerId = getDbUlid()
+      const conversation = buildDirectMessageConversation({
+        studentId: student.id,
+        volunteerId,
+      })
+      mockedDirectMessageRepo.getOrCreateConversation.mockResolvedValue(
+        conversation
+      )
+
+      const result = await DirectMessageService.getOrCreateConversation(
+        student,
+        volunteerId
+      )
+
+      expect(result).toEqual(conversation)
+      expect(mockedUserRepo.getUsersBanStatuses).not.toHaveBeenCalled()
     })
 
     test('throws if the pair has not had a session together', async () => {
@@ -186,6 +237,37 @@ describe('DirectMessageService', () => {
         transactionClient
       )
       expect(result).toEqual({ conversation, message })
+    })
+
+    test('does not let a volunteer message a shadow-banned student', async () => {
+      const volunteer = buildUserContactInfo({
+        roles: ['volunteer'],
+        roleContext: new RoleContext(['volunteer'], 'volunteer', 'volunteer'),
+      })
+      const conversation = buildDirectMessageConversation({
+        volunteerId: volunteer.id,
+      })
+      mockedDirectMessageRepo.getConversationForParticipant.mockResolvedValue(
+        conversation
+      )
+      mockedUserRepo.getUsersBanStatuses.mockResolvedValue([
+        { id: conversation.studentId, banType: USER_BAN_TYPES.SHADOW },
+      ])
+
+      await expect(
+        DirectMessageService.sendMessage(conversation.id, volunteer, 'Hi!')
+      ).rejects.toThrow(NotAllowedError)
+
+      expect(mockedUserRepo.getUsersBanStatuses).toHaveBeenCalledWith([
+        conversation.studentId,
+      ])
+      expect(
+        mockedDirectMessageModerationService.moderateMessage
+      ).not.toHaveBeenCalled()
+      expect(
+        mockedDirectMessageModerationRepo.createCensoredDirectMessage
+      ).not.toHaveBeenCalled()
+      expect(mockedDirectMessageRepo.createDirectMessage).not.toHaveBeenCalled()
     })
 
     describe('marking messages sent while shadow banned', () => {

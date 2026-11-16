@@ -1,4 +1,5 @@
 import * as DirectMessageRepo from '../models/DirectMessage'
+import * as UserRepo from '../models/User'
 import {
   DirectMessageModerationError,
   InputError,
@@ -32,6 +33,13 @@ function reviewCategory(reason: string) {
   return getSessionFlagByModerationReason(normalized)
 }
 
+// Don't let volunteers message shadow banned students
+async function checkStudentBanStatus(studentId: Ulid) {
+  const [status] = await UserRepo.getUsersBanStatuses([studentId])
+  if (status?.banType === USER_BAN_TYPES.SHADOW)
+    throw new NotAllowedError("You can't message this student right now")
+}
+
 export async function getOrCreateConversation(
   user: UserContactInfo,
   partnerId: Uuid
@@ -44,6 +52,7 @@ export async function getOrCreateConversation(
   } else if (user.roleContext.isActiveRole('volunteer')) {
     studentId = partnerId
     volunteerId = user.id
+    await checkStudentBanStatus(studentId)
   } else {
     throw new NotAllowedError('Only students and coaches can send messages')
   }
@@ -89,6 +98,8 @@ export async function sendMessage(
   if (!trimmedContents) throw new InputError('Message cannot be empty')
 
   const conversation = await ensureIsParticipant(conversationId, user.id)
+  if (user.id === conversation.volunteerId)
+    await checkStudentBanStatus(conversation.studentId)
 
   let moderation: DirectMessageModerationResult
   try {

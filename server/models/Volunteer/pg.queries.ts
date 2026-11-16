@@ -3949,6 +3949,8 @@ export interface IGetPastStudentsByVolunteerIdResult {
   firstName: string;
   /** not_pii: Primary key */
   sessionId: string;
+  /** not_pii: Type of ban (shadow, complete, live_media) */
+  studentBanType: ban_types | null;
   /** not_pii: Foreign key to upchieve.users (the student) */
   studentId: string;
   /** not_pii: User-facing display name */
@@ -3965,7 +3967,7 @@ export interface IGetPastStudentsByVolunteerIdQuery {
   result: IGetPastStudentsByVolunteerIdResult;
 }
 
-const getPastStudentsByVolunteerIdIR: any = {"usedParamSet":{"volunteerId":true,"minSessionLength":true},"params":[{"name":"volunteerId","required":true,"transform":{"type":"scalar"},"locs":[{"a":531,"b":543}]},{"name":"minSessionLength","required":true,"transform":{"type":"scalar"},"locs":[{"a":623,"b":640}]}],"statement":"SELECT\n    last_sessions.student_id,\n    users.first_name,\n    last_sessions.session_id,\n    subjects.name AS subject_name,\n    subjects.display_name AS subject_display_name,\n    last_sessions.created_at,\n    last_sessions.time_tutored\nFROM ( SELECT DISTINCT ON (sessions.student_id)\n        sessions.student_id,\n        sessions.id AS session_id,\n        sessions.subject_id,\n        sessions.created_at,\n        sessions.ended_at,\n        sessions.time_tutored\n    FROM\n        sessions\n    WHERE\n        sessions.volunteer_id = :volunteerId!\n        AND sessions.ended_at IS NOT NULL\n        AND sessions.time_tutored > :minSessionLength!\n    ORDER BY\n        sessions.student_id,\n        sessions.ended_at DESC) AS last_sessions\n    JOIN users ON users.id = last_sessions.student_id\n    JOIN subjects ON subjects.id = last_sessions.subject_id\nORDER BY\n    last_sessions.ended_at DESC"};
+const getPastStudentsByVolunteerIdIR: any = {"usedParamSet":{"volunteerId":true,"minSessionLength":true},"params":[{"name":"volunteerId","required":true,"transform":{"type":"scalar"},"locs":[{"a":571,"b":583}]},{"name":"minSessionLength","required":true,"transform":{"type":"scalar"},"locs":[{"a":663,"b":680}]}],"statement":"SELECT\n    last_sessions.student_id,\n    users.first_name,\n    users.ban_type AS student_ban_type,\n    last_sessions.session_id,\n    subjects.name AS subject_name,\n    subjects.display_name AS subject_display_name,\n    last_sessions.created_at,\n    last_sessions.time_tutored\nFROM ( SELECT DISTINCT ON (sessions.student_id)\n        sessions.student_id,\n        sessions.id AS session_id,\n        sessions.subject_id,\n        sessions.created_at,\n        sessions.ended_at,\n        sessions.time_tutored\n    FROM\n        sessions\n    WHERE\n        sessions.volunteer_id = :volunteerId!\n        AND sessions.ended_at IS NOT NULL\n        AND sessions.time_tutored > :minSessionLength!\n    ORDER BY\n        sessions.student_id,\n        sessions.ended_at DESC) AS last_sessions\n    JOIN users ON users.id = last_sessions.student_id\n    JOIN subjects ON subjects.id = last_sessions.subject_id\nORDER BY\n    last_sessions.ended_at DESC"};
 
 /**
  * Query generated from SQL:
@@ -3973,6 +3975,7 @@ const getPastStudentsByVolunteerIdIR: any = {"usedParamSet":{"volunteerId":true,
  * SELECT
  *     last_sessions.student_id,
  *     users.first_name,
+ *     users.ban_type AS student_ban_type,
  *     last_sessions.session_id,
  *     subjects.name AS subject_name,
  *     subjects.display_name AS subject_display_name,

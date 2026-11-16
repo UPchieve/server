@@ -1678,6 +1678,7 @@ WHERE
 SELECT
     last_sessions.student_id,
     users.first_name,
+    users.ban_type AS student_ban_type,
     last_sessions.session_id,
     subjects.name AS subject_name,
     subjects.display_name AS subject_display_name,

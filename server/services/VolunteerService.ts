@@ -583,9 +583,13 @@ function toVolunteerPublicProfileInfoShared(
   return sharedInfo
 }
 
+// Volunteers shouldn't know that students are shadow banned
+export type DirectMessageUnavailableReason = 'NOT_ENABLED' | 'UNAVAILABLE'
+
 export type VolunteerPastStudentWithDmStatus =
   VolunteerRepo.VolunteerPastStudent & {
     canDirectMessage: boolean
+    directMessageUnavailableReason?: DirectMessageUnavailableReason
   }
 
 export async function getPastStudentsByVolunteerId(
@@ -595,11 +599,21 @@ export async function getPastStudentsByVolunteerId(
     await VolunteerRepo.getPastStudentsByVolunteerId(volunteerId)
   const dmFlagResults = await Promise.allSettled(
     pastStudents.map((student) =>
-      FeatureFlagService.isDirectMessagesEnabled(student.studentId)
+      student.studentBanType === USER_BAN_TYPES.SHADOW
+        ? false
+        : FeatureFlagService.isDirectMessagesEnabled(student.studentId)
     )
   )
 
   return pastStudents.map((student, i) => {
+    if (student.studentBanType === USER_BAN_TYPES.SHADOW) {
+      return {
+        ...student,
+        canDirectMessage: false,
+        directMessageUnavailableReason: 'UNAVAILABLE',
+      }
+    }
+
     const result = dmFlagResults[i]
     if (result.status === 'rejected') {
       logger.error('Failed to check direct messages flag for student', {
@@ -607,9 +621,14 @@ export async function getPastStudentsByVolunteerId(
         studentId: student.studentId,
       })
     }
+    const canDirectMessage =
+      result.status === 'fulfilled' ? result.value : false
     return {
       ...student,
-      canDirectMessage: result.status === 'fulfilled' ? result.value : false,
+      canDirectMessage,
+      directMessageUnavailableReason: canDirectMessage
+        ? undefined
+        : 'NOT_ENABLED',
     }
   })
 }
