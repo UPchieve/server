@@ -1449,3 +1449,13 @@ WHERE
     ended_at IS NULL
     AND volunteer_joined_at IS NOT NULL;
 
+
+/* @name getPendingReviewCount */
+SELECT
+    COUNT(*)::int AS count
+FROM
+    sessions
+WHERE
+    to_review IS TRUE
+    AND reviewed IS FALSE;
+

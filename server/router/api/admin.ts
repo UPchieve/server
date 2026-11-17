@@ -24,6 +24,8 @@ import { InputError } from '../../models/Errors'
 import * as EssayReviewService from '../../services/EssayReviewService'
 import { resSuccess } from '../res-success'
 import { extractUser } from '../extract-user'
+import * as SafetyReviewService from '../../services/SafetyReviewService'
+import { ConversationNotFoundError } from '../../services/Errors'
 
 function parseChapterIds(ids: unknown) {
   const chapterIds = asArray(asUuid)(ids, 'chapter id')
@@ -268,6 +270,85 @@ export function routeAdmin(apiRouter: Router): void {
       resError(res, error)
     }
   })
+
+  router.get('/safety-reviews/counts', async function (_req, res) {
+    try {
+      const counts = await SafetyReviewService.getReviewCounts()
+      res.json(counts)
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
+  router.get('/direct-message-reviews', async function (req, res) {
+    try {
+      const page = req.query.page === undefined ? 1 : Number(req.query.page)
+      if (!Number.isSafeInteger(page) || page < 1) {
+        throw new InputError('Invalid page')
+      }
+      const reviews =
+        await SafetyReviewService.getPendingDirectMessageReviews(page)
+      res.json(reviews)
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+  router.get(
+    '/direct-message-reviews/:conversationId',
+    async function (req, res) {
+      try {
+        const conversationId = asUuid(req.params.conversationId)
+        const review =
+          await SafetyReviewService.getDirectMessageReview(conversationId)
+        res.json(review)
+      } catch (err) {
+        if (err instanceof ConversationNotFoundError) {
+          res.sendStatus(404)
+          return
+        }
+        resError(res, err)
+      }
+    }
+  )
+  router.get(
+    '/direct-message-reviews/:conversationId/messages',
+    async function (req, res) {
+      try {
+        const conversationId = asUuid(req.params.conversationId)
+        const beforeId =
+          req.query.beforeId === undefined
+            ? undefined
+            : asUuid(req.query.beforeId)
+        const messages =
+          await SafetyReviewService.getDirectMessageReviewMessages(
+            conversationId,
+            beforeId
+          )
+        res.json(messages)
+      } catch (err) {
+        resError(res, err)
+      }
+    }
+  )
+  router.post(
+    '/direct-message-reviews/:conversationId/review',
+    async function (req, res) {
+      try {
+        const flagIds = asArray(asUuid)(req.body?.flagIds)
+        if (!flagIds.length) {
+          throw new InputError('Select flags to review')
+        }
+        const reviewedCount =
+          await SafetyReviewService.markDirectMessageFlagsReviewed(
+            asUuid(req.params.conversationId),
+            flagIds
+          )
+        res.json({ reviewedCount })
+      } catch (err) {
+        resError(res, err)
+      }
+    }
+  )
 
   apiRouter.use('/admin', authPassport.isAdmin, router)
 }

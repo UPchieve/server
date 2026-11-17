@@ -1685,3 +1685,15 @@ export async function countOngoingMatchedSessions(): Promise<number> {
     throw new RepoReadError(err)
   }
 }
+
+export async function getPendingReviewCount() {
+  try {
+    const [row] = await pgQueries.getPendingReviewCount.run(
+      undefined,
+      getClient()
+    )
+    return makeSomeRequired(row, ['count']).count
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}

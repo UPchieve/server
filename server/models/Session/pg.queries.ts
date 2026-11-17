@@ -3408,3 +3408,34 @@ const countOngoingMatchedSessionsIR: any = {"usedParamSet":{},"params":[],"state
 export const countOngoingMatchedSessions = new PreparedQuery<ICountOngoingMatchedSessionsParams,ICountOngoingMatchedSessionsResult>(countOngoingMatchedSessionsIR);
 
 
+/** 'GetPendingReviewCount' parameters type */
+export type IGetPendingReviewCountParams = void;
+
+/** 'GetPendingReviewCount' return type */
+export interface IGetPendingReviewCountResult {
+  count: number | null;
+}
+
+/** 'GetPendingReviewCount' query type */
+export interface IGetPendingReviewCountQuery {
+  params: IGetPendingReviewCountParams;
+  result: IGetPendingReviewCountResult;
+}
+
+const getPendingReviewCountIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    COUNT(*)::int AS count\nFROM\n    sessions\nWHERE\n    to_review IS TRUE\n    AND reviewed IS FALSE"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     COUNT(*)::int AS count
+ * FROM
+ *     sessions
+ * WHERE
+ *     to_review IS TRUE
+ *     AND reviewed IS FALSE
+ * ```
+ */
+export const getPendingReviewCount = new PreparedQuery<IGetPendingReviewCountParams,IGetPendingReviewCountResult>(getPendingReviewCountIR);
+
+

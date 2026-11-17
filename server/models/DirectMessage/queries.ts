@@ -5,12 +5,13 @@ import type {
 import * as pgQueries from './pg.queries'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import { getClient, TransactionClient } from '../../db'
-import { getDbUlid, makeSomeRequired, Ulid } from '../pgUtils'
+import { getDbUlid, makeSomeRequired } from '../pgUtils'
 import config from '../../config'
+import type { Uuid } from '../../types/shared'
 
 export async function createConversationIfEligible(
-  studentId: Ulid,
-  volunteerId: Ulid,
+  studentId: Uuid,
+  volunteerId: Uuid,
   client?: TransactionClient
 ): Promise<void> {
   try {
@@ -29,8 +30,8 @@ export async function createConversationIfEligible(
 }
 
 export async function getOrCreateConversation(
-  studentId: Ulid,
-  volunteerId: Ulid,
+  studentId: Uuid,
+  volunteerId: Uuid,
   client?: TransactionClient
 ): Promise<DirectMessageConversation | undefined> {
   await createConversationIfEligible(studentId, volunteerId, client)
@@ -52,8 +53,8 @@ export async function getOrCreateConversation(
 }
 
 export async function getConversationForParticipant(
-  conversationId: Ulid,
-  userId: Ulid,
+  conversationId: Uuid,
+  userId: Uuid,
   client?: TransactionClient
 ): Promise<DirectMessageConversation | undefined> {
   try {
@@ -75,8 +76,8 @@ export async function getConversationForParticipant(
 
 export async function createDirectMessage(
   data: {
-    conversationId: Ulid
-    senderId: Ulid
+    conversationId: Uuid
+    senderId: Uuid
     contents: string
     sentWhileShadowbanned: boolean
   },
@@ -100,8 +101,8 @@ export async function createDirectMessage(
 }
 
 export async function getDirectMessagesForConversation(
-  conversationId: Ulid,
-  viewerId: Ulid,
+  conversationId: Uuid,
+  viewerId: Uuid,
   client?: TransactionClient
 ): Promise<DirectMessage[]> {
   try {
@@ -124,8 +125,8 @@ export async function getDirectMessagesForConversation(
 }
 
 export async function updateConversationLastSeen(
-  conversationId: Ulid,
-  userId: Ulid,
+  conversationId: Uuid,
+  userId: Uuid,
   client?: TransactionClient
 ): Promise<boolean> {
   try {
@@ -140,9 +141,9 @@ export async function updateConversationLastSeen(
 }
 
 export async function getUnreadDirectMessageSenderIds(
-  userId: Ulid,
+  userId: Uuid,
   client?: TransactionClient
-): Promise<Ulid[]> {
+): Promise<Uuid[]> {
   try {
     const result = await pgQueries.getUnreadDirectMessageSenderIds.run(
       { userId },
@@ -151,5 +152,107 @@ export async function getUnreadDirectMessageSenderIds(
     return result.map((row) => makeSomeRequired(row, ['senderId']).senderId)
   } catch (err) {
     throw new RepoReadError(err)
+  }
+}
+
+export async function getPendingReviewCount() {
+  try {
+    const [row] = await pgQueries.getPendingReviewCount.run(
+      undefined,
+      getClient()
+    )
+    return makeSomeRequired(row, ['count']).count
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getPendingReviewConversations(
+  limit: number,
+  offset: number
+) {
+  try {
+    const rows = await pgQueries.getPendingReviewConversations.run(
+      { limit, offset },
+      getClient()
+    )
+    return rows.map((row) =>
+      makeSomeRequired(row, [
+        'id',
+        'studentId',
+        'volunteerId',
+        'studentName',
+        'volunteerName',
+        'oldestFlagAt',
+        'pendingFlags',
+        'reasons',
+      ])
+    )
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getConversationForReview(conversationId: Uuid) {
+  try {
+    const [row] = await pgQueries.getConversationForReview.run(
+      { conversationId },
+      getClient()
+    )
+    return row
+      ? makeSomeRequired(row, [
+          'id',
+          'studentId',
+          'volunteerId',
+          'studentName',
+          'volunteerName',
+        ])
+      : undefined
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getPendingReviewFlags(conversationId: Uuid) {
+  try {
+    const rows = await pgQueries.getPendingReviewFlags.run(
+      { conversationId },
+      getClient()
+    )
+    return rows.map((row) =>
+      makeSomeRequired(row, ['id', 'category', 'createdAt'])
+    )
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function getMessagesForReview(
+  conversationId: Uuid,
+  limit: number,
+  beforeId?: Uuid
+) {
+  try {
+    const rows = await pgQueries.getMessagesForReview.run(
+      { conversationId, limit, beforeId },
+      getClient()
+    )
+    return rows.map((row) =>
+      makeSomeRequired(row, ['id', 'senderId', 'contents', 'createdAt'])
+    )
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
+export async function markFlagsReviewed(conversationId: Uuid, flagIds: Uuid[]) {
+  try {
+    const rows = await pgQueries.markFlagsReviewed.run(
+      { conversationId, flagIds },
+      getClient()
+    )
+    return rows.length
+  } catch (err) {
+    throw new RepoUpdateError(err)
   }
 }

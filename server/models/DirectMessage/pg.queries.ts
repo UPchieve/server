@@ -1,7 +1,11 @@
 /** Types generated for queries found in "server/models/DirectMessage/direct_message.sql" */
 import { PreparedQuery } from '@pgtyped/runtime';
 
+export type moderation_system = 'ai' | 'regex';
+
 export type NumberOrString = number | string;
+
+export type stringArray = (string)[];
 
 /** 'CreateConversationIfEligible' parameters type */
 export interface ICreateConversationIfEligibleParams {
@@ -345,5 +349,318 @@ const getUnreadDirectMessageSenderIdsIR: any = {"usedParamSet":{"userId":true},"
  * ```
  */
 export const getUnreadDirectMessageSenderIds = new PreparedQuery<IGetUnreadDirectMessageSenderIdsParams,IGetUnreadDirectMessageSenderIdsResult>(getUnreadDirectMessageSenderIdsIR);
+
+
+/** 'GetPendingReviewCount' parameters type */
+export type IGetPendingReviewCountParams = void;
+
+/** 'GetPendingReviewCount' return type */
+export interface IGetPendingReviewCountResult {
+  count: number | null;
+}
+
+/** 'GetPendingReviewCount' query type */
+export interface IGetPendingReviewCountQuery {
+  params: IGetPendingReviewCountParams;
+  result: IGetPendingReviewCountResult;
+}
+
+const getPendingReviewCountIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    COUNT(DISTINCT conversation_id)::int AS count\nFROM\n    direct_message_flags\nWHERE\n    reviewed_at IS NULL"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     COUNT(DISTINCT conversation_id)::int AS count
+ * FROM
+ *     direct_message_flags
+ * WHERE
+ *     reviewed_at IS NULL
+ * ```
+ */
+export const getPendingReviewCount = new PreparedQuery<IGetPendingReviewCountParams,IGetPendingReviewCountResult>(getPendingReviewCountIR);
+
+
+/** 'GetPendingReviewConversations' parameters type */
+export interface IGetPendingReviewConversationsParams {
+  limit: NumberOrString;
+  offset: NumberOrString;
+}
+
+/** 'GetPendingReviewConversations' return type */
+export interface IGetPendingReviewConversationsResult {
+  /** not_pii: Primary key */
+  id: string;
+  oldestFlagAt: Date | null;
+  pendingFlags: number | null;
+  reasons: stringArray | null;
+  /** not_pii: Foreign key */
+  studentId: string;
+  /** pii: First name */
+  studentName: string;
+  /** not_pii: Foreign key */
+  volunteerId: string;
+  /** pii: First name */
+  volunteerName: string;
+}
+
+/** 'GetPendingReviewConversations' query type */
+export interface IGetPendingReviewConversationsQuery {
+  params: IGetPendingReviewConversationsParams;
+  result: IGetPendingReviewConversationsResult;
+}
+
+const getPendingReviewConversationsIR: any = {"usedParamSet":{"limit":true,"offset":true},"params":[{"name":"limit","required":true,"transform":{"type":"scalar"},"locs":[{"a":983,"b":989}]},{"name":"offset","required":true,"transform":{"type":"scalar"},"locs":[{"a":998,"b":1005}]}],"statement":"SELECT\n    direct_message_conversations.id,\n    direct_message_conversations.student_id,\n    direct_message_conversations.volunteer_id,\n    students.first_name AS student_name,\n    volunteers.first_name AS volunteer_name,\n    MIN(direct_message_flags.created_at) AS oldest_flag_at,\n    COUNT(*)::int AS pending_flags,\n    array_agg(DISTINCT session_flags.name) AS reasons\nFROM\n    direct_message_flags\n    JOIN direct_message_conversations ON direct_message_conversations.id = direct_message_flags.conversation_id\n    JOIN users students ON students.id = direct_message_conversations.student_id\n    JOIN users volunteers ON volunteers.id = direct_message_conversations.volunteer_id\n    JOIN session_flags ON session_flags.id = direct_message_flags.session_flag_id\nWHERE\n    direct_message_flags.reviewed_at IS NULL\nGROUP BY\n    direct_message_conversations.id,\n    students.first_name,\n    volunteers.first_name\nORDER BY\n    oldest_flag_at,\n    direct_message_conversations.id\nLIMIT :limit! OFFSET :offset!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     direct_message_conversations.id,
+ *     direct_message_conversations.student_id,
+ *     direct_message_conversations.volunteer_id,
+ *     students.first_name AS student_name,
+ *     volunteers.first_name AS volunteer_name,
+ *     MIN(direct_message_flags.created_at) AS oldest_flag_at,
+ *     COUNT(*)::int AS pending_flags,
+ *     array_agg(DISTINCT session_flags.name) AS reasons
+ * FROM
+ *     direct_message_flags
+ *     JOIN direct_message_conversations ON direct_message_conversations.id = direct_message_flags.conversation_id
+ *     JOIN users students ON students.id = direct_message_conversations.student_id
+ *     JOIN users volunteers ON volunteers.id = direct_message_conversations.volunteer_id
+ *     JOIN session_flags ON session_flags.id = direct_message_flags.session_flag_id
+ * WHERE
+ *     direct_message_flags.reviewed_at IS NULL
+ * GROUP BY
+ *     direct_message_conversations.id,
+ *     students.first_name,
+ *     volunteers.first_name
+ * ORDER BY
+ *     oldest_flag_at,
+ *     direct_message_conversations.id
+ * LIMIT :limit! OFFSET :offset!
+ * ```
+ */
+export const getPendingReviewConversations = new PreparedQuery<IGetPendingReviewConversationsParams,IGetPendingReviewConversationsResult>(getPendingReviewConversationsIR);
+
+
+/** 'GetConversationForReview' parameters type */
+export interface IGetConversationForReviewParams {
+  conversationId: string;
+}
+
+/** 'GetConversationForReview' return type */
+export interface IGetConversationForReviewResult {
+  /** not_pii: Primary key */
+  id: string;
+  /** not_pii: Foreign key */
+  studentId: string;
+  /** pii: First name */
+  studentName: string;
+  /** not_pii: Foreign key */
+  volunteerId: string;
+  /** pii: First name */
+  volunteerName: string;
+}
+
+/** 'GetConversationForReview' query type */
+export interface IGetConversationForReviewQuery {
+  params: IGetConversationForReviewParams;
+  result: IGetConversationForReviewResult;
+}
+
+const getConversationForReviewIR: any = {"usedParamSet":{"conversationId":true},"params":[{"name":"conversationId","required":true,"transform":{"type":"scalar"},"locs":[{"a":471,"b":486}]}],"statement":"SELECT\n    direct_message_conversations.id,\n    direct_message_conversations.student_id,\n    direct_message_conversations.volunteer_id,\n    students.first_name AS student_name,\n    volunteers.first_name AS volunteer_name\nFROM\n    direct_message_conversations\n    JOIN users students ON students.id = direct_message_conversations.student_id\n    JOIN users volunteers ON volunteers.id = direct_message_conversations.volunteer_id\nWHERE\n    direct_message_conversations.id = :conversationId!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     direct_message_conversations.id,
+ *     direct_message_conversations.student_id,
+ *     direct_message_conversations.volunteer_id,
+ *     students.first_name AS student_name,
+ *     volunteers.first_name AS volunteer_name
+ * FROM
+ *     direct_message_conversations
+ *     JOIN users students ON students.id = direct_message_conversations.student_id
+ *     JOIN users volunteers ON volunteers.id = direct_message_conversations.volunteer_id
+ * WHERE
+ *     direct_message_conversations.id = :conversationId!
+ * ```
+ */
+export const getConversationForReview = new PreparedQuery<IGetConversationForReviewParams,IGetConversationForReviewResult>(getConversationForReviewIR);
+
+
+/** 'GetPendingReviewFlags' parameters type */
+export interface IGetPendingReviewFlagsParams {
+  conversationId: string;
+}
+
+/** 'GetPendingReviewFlags' return type */
+export interface IGetPendingReviewFlagsResult {
+  /** not_pii: Whether the final moderation decision rejected delivery; independent of staff review and ban handling */
+  blocked: boolean;
+  /** not_pii: Human-readable name */
+  category: string;
+  /** not_pii: Check that raised the concern, regex or ai; not necessarily the final decision maker */
+  censoredBy: moderation_system;
+  /** not_pii: Message text content */
+  censoredMessage: string;
+  /** not_pii */
+  createdAt: Date;
+  /** not_pii: Primary key */
+  id: string;
+  /** not_pii: Moderation reason/category names, without the raw provider response */
+  reasons: stringArray;
+  /** not_pii: Reported user foreign key */
+  reportedUserId: string;
+  /** not_pii: Reporting user foreign key */
+  reportingUserId: string;
+  /** not_pii: Optional report explanation */
+  reportMessage: string | null;
+  /** not_pii: Reason for the action (text or JSON) */
+  reportReason: string;
+  /** not_pii: Foreign key */
+  senderId: string;
+}
+
+/** 'GetPendingReviewFlags' query type */
+export interface IGetPendingReviewFlagsQuery {
+  params: IGetPendingReviewFlagsParams;
+  result: IGetPendingReviewFlagsResult;
+}
+
+const getPendingReviewFlagsIR: any = {"usedParamSet":{"conversationId":true},"params":[{"name":"conversationId","required":true,"transform":{"type":"scalar"},"locs":[{"a":967,"b":982}]}],"statement":"SELECT\n    direct_message_flags.id,\n    session_flags.name AS category,\n    direct_message_flags.created_at,\n    censored_direct_messages.message AS censored_message,\n    censored_direct_messages.sender_id,\n    censored_direct_messages.blocked,\n    censored_direct_messages.censored_by,\n    censored_direct_messages.reasons,\n    direct_message_reports.report_message,\n    report_reasons.reason AS report_reason,\n    direct_message_reports.reporting_user_id,\n    direct_message_reports.reported_user_id\nFROM\n    direct_message_flags\n    JOIN session_flags ON session_flags.id = direct_message_flags.session_flag_id\n    LEFT JOIN censored_direct_messages ON censored_direct_messages.id = direct_message_flags.censored_message_id\n    LEFT JOIN direct_message_reports ON direct_message_reports.id = direct_message_flags.report_id\n    LEFT JOIN report_reasons ON report_reasons.id = direct_message_reports.report_reason_id\nWHERE\n    direct_message_flags.conversation_id = :conversationId!\n    AND direct_message_flags.reviewed_at IS NULL\nORDER BY\n    direct_message_flags.created_at,\n    direct_message_flags.id"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     direct_message_flags.id,
+ *     session_flags.name AS category,
+ *     direct_message_flags.created_at,
+ *     censored_direct_messages.message AS censored_message,
+ *     censored_direct_messages.sender_id,
+ *     censored_direct_messages.blocked,
+ *     censored_direct_messages.censored_by,
+ *     censored_direct_messages.reasons,
+ *     direct_message_reports.report_message,
+ *     report_reasons.reason AS report_reason,
+ *     direct_message_reports.reporting_user_id,
+ *     direct_message_reports.reported_user_id
+ * FROM
+ *     direct_message_flags
+ *     JOIN session_flags ON session_flags.id = direct_message_flags.session_flag_id
+ *     LEFT JOIN censored_direct_messages ON censored_direct_messages.id = direct_message_flags.censored_message_id
+ *     LEFT JOIN direct_message_reports ON direct_message_reports.id = direct_message_flags.report_id
+ *     LEFT JOIN report_reasons ON report_reasons.id = direct_message_reports.report_reason_id
+ * WHERE
+ *     direct_message_flags.conversation_id = :conversationId!
+ *     AND direct_message_flags.reviewed_at IS NULL
+ * ORDER BY
+ *     direct_message_flags.created_at,
+ *     direct_message_flags.id
+ * ```
+ */
+export const getPendingReviewFlags = new PreparedQuery<IGetPendingReviewFlagsParams,IGetPendingReviewFlagsResult>(getPendingReviewFlagsIR);
+
+
+/** 'GetMessagesForReview' parameters type */
+export interface IGetMessagesForReviewParams {
+  beforeId?: string | null | void;
+  conversationId: string;
+  limit: NumberOrString;
+}
+
+/** 'GetMessagesForReview' return type */
+export interface IGetMessagesForReviewResult {
+  /** not_pii: Text content of the chat message */
+  contents: string;
+  /** not_pii */
+  createdAt: Date;
+  /** not_pii: Primary key */
+  id: string;
+  /** not_pii: Foreign key */
+  senderId: string;
+}
+
+/** 'GetMessagesForReview' query type */
+export interface IGetMessagesForReviewQuery {
+  params: IGetMessagesForReviewParams;
+  result: IGetMessagesForReviewResult;
+}
+
+const getMessagesForReviewIR: any = {"usedParamSet":{"conversationId":true,"beforeId":true,"limit":true},"params":[{"name":"conversationId","required":true,"transform":{"type":"scalar"},"locs":[{"a":112,"b":127},{"a":414,"b":429}]},{"name":"beforeId","required":false,"transform":{"type":"scalar"},"locs":[{"a":138,"b":146},{"a":360,"b":368}]},{"name":"limit","required":true,"transform":{"type":"scalar"},"locs":[{"a":481,"b":487}]}],"statement":"SELECT\n    id,\n    sender_id,\n    contents,\n    created_at\nFROM\n    direct_messages\nWHERE\n    conversation_id = :conversationId!\n    AND (:beforeId::uuid IS NULL\n        OR (created_at,\n            id) < (\n            SELECT\n                created_at,\n                id\n            FROM\n                direct_messages\n            WHERE\n                id = :beforeId::uuid\n                AND conversation_id = :conversationId!))\nORDER BY\n    created_at DESC,\n    id DESC\nLIMIT :limit!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     id,
+ *     sender_id,
+ *     contents,
+ *     created_at
+ * FROM
+ *     direct_messages
+ * WHERE
+ *     conversation_id = :conversationId!
+ *     AND (:beforeId::uuid IS NULL
+ *         OR (created_at,
+ *             id) < (
+ *             SELECT
+ *                 created_at,
+ *                 id
+ *             FROM
+ *                 direct_messages
+ *             WHERE
+ *                 id = :beforeId::uuid
+ *                 AND conversation_id = :conversationId!))
+ * ORDER BY
+ *     created_at DESC,
+ *     id DESC
+ * LIMIT :limit!
+ * ```
+ */
+export const getMessagesForReview = new PreparedQuery<IGetMessagesForReviewParams,IGetMessagesForReviewResult>(getMessagesForReviewIR);
+
+
+/** 'MarkFlagsReviewed' parameters type */
+export interface IMarkFlagsReviewedParams {
+  conversationId: string;
+  flagIds: stringArray;
+}
+
+/** 'MarkFlagsReviewed' return type */
+export interface IMarkFlagsReviewedResult {
+  /** not_pii: Primary key */
+  id: string;
+}
+
+/** 'MarkFlagsReviewed' query type */
+export interface IMarkFlagsReviewedQuery {
+  params: IMarkFlagsReviewedParams;
+  result: IMarkFlagsReviewedResult;
+}
+
+const markFlagsReviewedIR: any = {"usedParamSet":{"conversationId":true,"flagIds":true},"params":[{"name":"conversationId","required":true,"transform":{"type":"scalar"},"locs":[{"a":112,"b":127}]},{"name":"flagIds","required":true,"transform":{"type":"scalar"},"locs":[{"a":147,"b":155}]}],"statement":"UPDATE\n    direct_message_flags\nSET\n    reviewed_at = NOW(),\n    updated_at = NOW()\nWHERE\n    conversation_id = :conversationId!\n    AND id = ANY (:flagIds!)\n    AND reviewed_at IS NULL\nRETURNING\n    id"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE
+ *     direct_message_flags
+ * SET
+ *     reviewed_at = NOW(),
+ *     updated_at = NOW()
+ * WHERE
+ *     conversation_id = :conversationId!
+ *     AND id = ANY (:flagIds!)
+ *     AND reviewed_at IS NULL
+ * RETURNING
+ *     id
+ * ```
+ */
+export const markFlagsReviewed = new PreparedQuery<IMarkFlagsReviewedParams,IMarkFlagsReviewedResult>(markFlagsReviewedIR);
 
 
