@@ -1,12 +1,15 @@
+import moment from 'moment-timezone'
 import type { Uuid } from '../types/shared'
 import * as StudentsRepo from '../models/Student'
 import * as SessionRepo from '../models/Session'
 import * as VolunteerRepo from '../models/Volunteer'
+import * as AvailabilityRepo from '../models/Availability'
+import countAvailabilitySelected from '../utils/count-availability-selected'
 import { sendTextMessage } from '../clients/twilio'
 import { CurrentSession } from '../types/session'
 import QueueService from './QueueService'
 import { secondsInMs } from '../utils/time-utils'
-import { EVENTS } from '../constants'
+import { DAYS, EVENTS, HOURS } from '../constants'
 import { getSessionUrl } from '../utils/session-utils'
 import logger from '../logger'
 import { captureEvent } from './AnalyticsService'
@@ -49,11 +52,12 @@ export async function notifyRequestedVolunteer(
     volunteerId,
     { banned: false, deactivated: false, testUser: false }
   )
+  const logContext = { sessionId: session.id, volunteerId }
 
   if (!volunteer) {
     logger.error('notifyRequestedVolunteer: No volunteer found', {
       err: 'No volunteer found',
-      volunteerId,
+      ...logContext,
     })
     return
   }
@@ -61,15 +65,40 @@ export async function notifyRequestedVolunteer(
   if (!volunteer.phone) {
     logger.warn(
       'notifyRequestedVolunteer: volunteer has no phone or is not eligible; skipping SMS',
-      { sessionId: session.id, volunteerId }
+      logContext
     )
     return
   }
 
   if (!volunteer.smsConsent) {
-    logger.info('Skipping requested-tutor SMS: volunteer has not consented', {
-      sessionId: session.id,
-      volunteerId,
+    logger.info(
+      'Skipping requested-tutor SMS: volunteer has not consented',
+      logContext
+    )
+    return
+  }
+
+  try {
+    const availability =
+      await AvailabilityRepo.getAvailabilityForVolunteer(volunteerId)
+    // If the tutor has no hours selected, text them anytime.
+    // Otherwise, only text during their selected hours.
+    if (countAvailabilitySelected(availability) > 0) {
+      const now = moment().tz('America/New_York')
+      const day = DAYS[now.day()]
+      const hour = HOURS[now.hour()]
+      if (!availability[day][hour]) {
+        logger.info(
+          'Skipping requested-tutor SMS: outside availability',
+          logContext
+        )
+        return
+      }
+    }
+  } catch (err) {
+    logger.error('Failed to check requested-tutor SMS eligibility', {
+      ...logContext,
+      err,
     })
     return
   }
