@@ -81,7 +81,8 @@ export default async function (job: Job<UpdateNTHSChapterStatusJobData>) {
     }
     await MailService.sendNTHSChapterImpactPathOfficialStatusNotification(
       emailRecipients,
-      chapterName
+      chapterName,
+      schoolYearToDate.membersTutoring
     )
     logger.info(
       `${logPrefix}Sent chapter official notification to NTHS chapter admins`,

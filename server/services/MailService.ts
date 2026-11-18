@@ -1722,7 +1722,8 @@ export async function sendVolunteerThanksForReport(
 
 export async function sendNTHSChapterImpactPathOfficialStatusNotification(
   recipients: { firstName: string; email: string }[],
-  chapterName: string
+  chapterName: string,
+  tutoringCount: number
 ): Promise<void> {
   for (const recipient of recipients) {
     await sendEmail(
@@ -1733,6 +1734,7 @@ export async function sendNTHSChapterImpactPathOfficialStatusNotification(
       {
         firstName: recipient.firstName,
         chapterName,
+        tutoring_count: tutoringCount,
       }
     )
   }
