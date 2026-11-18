@@ -1286,7 +1286,7 @@ export interface IGetAllNthsGroupsWithStatusQuery {
   result: IGetAllNthsGroupsWithStatusResult;
 }
 
-const getAllNthsGroupsWithStatusIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    groups.id AS group_id,\n    chapter_status.nths_chapter_status_id AS status_id,\n    chapter_statuses.name AS status_name,\n    school_aff.nths_school_affiliation_status_id AS school_affiliation_status_id,\n    school_aff_statuses.name AS school_affiliation_status_name\nFROM\n    nths_groups GROUPS\n    LEFT JOIN nths_chapters_statuses chapter_status ON chapter_status.nths_group_id = groups.id\n    LEFT JOIN nths_chapter_statuses chapter_statuses ON chapter_statuses.id = chapter_status.nths_chapter_status_id\n    LEFT JOIN nths_group_school_affiliation school_aff ON school_aff.nths_group_id = groups.id\n    LEFT JOIN nths_school_affiliation_statuses school_aff_statuses ON school_aff_statuses.id = school_aff.nths_school_affiliation_status_id\nWHERE\n    groups.closed_at IS NULL                                                                                                                                                                                                                                                                                                                                                               "};
+const getAllNthsGroupsWithStatusIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT\n    groups.id AS group_id,\n    chapter_status.nths_chapter_status_id AS status_id,\n    chapter_statuses.name AS status_name,\n    school_aff.nths_school_affiliation_status_id AS school_affiliation_status_id,\n    school_aff_statuses.name AS school_affiliation_status_name\nFROM\n    nths_groups GROUPS\n    LEFT JOIN nths_chapters_statuses chapter_status ON chapter_status.nths_group_id = groups.id\n    LEFT JOIN nths_chapter_statuses chapter_statuses ON chapter_statuses.id = chapter_status.nths_chapter_status_id\n    LEFT JOIN nths_group_school_affiliation school_aff ON school_aff.nths_group_id = groups.id\n    LEFT JOIN nths_school_affiliation_statuses school_aff_statuses ON school_aff_statuses.id = school_aff.nths_school_affiliation_status_id\nWHERE\n    groups.closed_at IS NULL                                                                                                                                                                                                                                                  "};
 
 /**
  * Query generated from SQL:
@@ -1304,7 +1304,7 @@ const getAllNthsGroupsWithStatusIR: any = {"usedParamSet":{},"params":[],"statem
  *     LEFT JOIN nths_group_school_affiliation school_aff ON school_aff.nths_group_id = groups.id
  *     LEFT JOIN nths_school_affiliation_statuses school_aff_statuses ON school_aff_statuses.id = school_aff.nths_school_affiliation_status_id
  * WHERE
- *     groups.closed_at IS NULL                                                                                                                                                                                                                                                                                                                                                               
+ *     groups.closed_at IS NULL                                                                                                                                                                                                                                                  
  * ```
  */
 export const getAllNthsGroupsWithStatus = new PreparedQuery<IGetAllNthsGroupsWithStatusParams,IGetAllNthsGroupsWithStatusResult>(getAllNthsGroupsWithStatusIR);
@@ -1320,6 +1320,7 @@ export interface IGetNthsChapterImpactParams {
 
 /** 'GetNthsChapterImpact' return type */
 export interface IGetNthsChapterImpactResult {
+  hasOfficialStatus: boolean | null;
   hoursTutoredAllTime: number | null;
   hoursTutoredThisYear: number | null;
   membersTutoringThisYear: number | null;
@@ -1335,7 +1336,7 @@ export interface IGetNthsChapterImpactQuery {
   result: IGetNthsChapterImpactResult;
 }
 
-const getNthsChapterImpactIR: any = {"usedParamSet":{"startsAt":true,"endsAt":true,"minSessionLength":true,"groupId":true},"params":[{"name":"startsAt","required":true,"transform":{"type":"scalar"},"locs":[{"a":59,"b":68},{"a":276,"b":285},{"a":513,"b":522},{"a":809,"b":818}]},{"name":"endsAt","required":true,"transform":{"type":"scalar"},"locs":[{"a":106,"b":113},{"a":323,"b":330},{"a":568,"b":575},{"a":856,"b":863}]},{"name":"minSessionLength","required":true,"transform":{"type":"scalar"},"locs":[{"a":1153,"b":1170}]},{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":1440,"b":1448}]}],"statement":"SELECT\n    count(*) FILTER (WHERE s.volunteer_joined_at >= :startsAt!\n        AND s.volunteer_joined_at < :endsAt!)::int AS sessions_completed_this_year,\n    count(*)::int AS sessions_completed_all_time,\n    count(DISTINCT s.student_id) FILTER (WHERE s.volunteer_joined_at >= :startsAt!\n        AND s.volunteer_joined_at < :endsAt!)::int AS students_helped_this_year,\n    count(DISTINCT s.student_id)::int AS students_helped_all_time,\n    round(COALESCE(sum(s.time_tutored) FILTER (WHERE s.volunteer_joined_at >= :startsAt!\n                AND s.volunteer_joined_at < :endsAt!), 0) / 3600000::numeric, 2)::float AS hours_tutored_this_year,\n    round(COALESCE(sum(s.time_tutored), 0) / 3600000::numeric, 2)::float AS hours_tutored_all_time,\n    count(DISTINCT m.user_id) FILTER (WHERE s.volunteer_joined_at >= :startsAt!\n        AND s.volunteer_joined_at < :endsAt!\n        AND m.deactivated_at IS NULL\n        AND u.deleted IS NOT TRUE)::int AS members_tutoring_this_year\nFROM\n    nths_group_members m\n    JOIN users u ON u.id = m.user_id\n    JOIN sessions s ON s.volunteer_id = m.user_id\n        AND s.ended_at IS NOT NULL\n        AND s.time_tutored > :minSessionLength!::int\n        AND s.volunteer_joined_at >= m.joined_at\n        AND (m.deactivated_at IS NULL\n            OR s.volunteer_joined_at < m.deactivated_at)\n    JOIN users student ON student.id = s.student_id\n        AND student.test_user IS FALSE\nWHERE\n    m.nths_group_id = :groupId!\n    AND u.test_user IS FALSE                                                                                                                                      "};
+const getNthsChapterImpactIR: any = {"usedParamSet":{"startsAt":true,"endsAt":true,"groupId":true,"minSessionLength":true},"params":[{"name":"startsAt","required":true,"transform":{"type":"scalar"},"locs":[{"a":59,"b":68},{"a":276,"b":285},{"a":513,"b":522},{"a":809,"b":818}]},{"name":"endsAt","required":true,"transform":{"type":"scalar"},"locs":[{"a":106,"b":113},{"a":323,"b":330},{"a":568,"b":575},{"a":856,"b":863}]},{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":1255,"b":1263},{"a":1856,"b":1864}]},{"name":"minSessionLength","required":true,"transform":{"type":"scalar"},"locs":[{"a":1569,"b":1586}]}],"statement":"SELECT\n    count(*) FILTER (WHERE s.volunteer_joined_at >= :startsAt!\n        AND s.volunteer_joined_at < :endsAt!)::int AS sessions_completed_this_year,\n    count(*)::int AS sessions_completed_all_time,\n    count(DISTINCT s.student_id) FILTER (WHERE s.volunteer_joined_at >= :startsAt!\n        AND s.volunteer_joined_at < :endsAt!)::int AS students_helped_this_year,\n    count(DISTINCT s.student_id)::int AS students_helped_all_time,\n    round(COALESCE(sum(s.time_tutored) FILTER (WHERE s.volunteer_joined_at >= :startsAt!\n                AND s.volunteer_joined_at < :endsAt!), 0) / 3600000::numeric, 2)::float AS hours_tutored_this_year,\n    round(COALESCE(sum(s.time_tutored), 0) / 3600000::numeric, 2)::float AS hours_tutored_all_time,\n    count(DISTINCT m.user_id) FILTER (WHERE s.volunteer_joined_at >= :startsAt!\n        AND s.volunteer_joined_at < :endsAt!\n        AND m.deactivated_at IS NULL\n        AND u.deleted IS NOT TRUE\n        AND vp.onboarded IS TRUE\n        AND vp.approved IS TRUE)::int AS members_tutoring_this_year,\n    EXISTS (\n        SELECT\n            1\n        FROM\n            nths_chapters_statuses cs\n            JOIN nths_chapter_statuses st ON st.id = cs.nths_chapter_status_id\n        WHERE\n            cs.nths_group_id = :groupId!\n            AND st.name = 'OFFICIAL') AS has_official_status\nFROM\n    nths_group_members m\n    JOIN users u ON u.id = m.user_id\n    LEFT JOIN volunteer_profiles vp ON vp.user_id = m.user_id\n    JOIN sessions s ON s.volunteer_id = m.user_id\n        AND s.ended_at IS NOT NULL\n        AND s.time_tutored > :minSessionLength!::int\n        AND s.volunteer_joined_at >= m.joined_at\n        AND (m.deactivated_at IS NULL\n            OR s.volunteer_joined_at < m.deactivated_at)\n    JOIN users student ON student.id = s.student_id\n        AND student.test_user IS FALSE\nWHERE\n    m.nths_group_id = :groupId!\n    AND u.test_user IS FALSE                                                                                                                                      "};
 
 /**
  * Query generated from SQL:
@@ -1353,10 +1354,22 @@ const getNthsChapterImpactIR: any = {"usedParamSet":{"startsAt":true,"endsAt":tr
  *     count(DISTINCT m.user_id) FILTER (WHERE s.volunteer_joined_at >= :startsAt!
  *         AND s.volunteer_joined_at < :endsAt!
  *         AND m.deactivated_at IS NULL
- *         AND u.deleted IS NOT TRUE)::int AS members_tutoring_this_year
+ *         AND u.deleted IS NOT TRUE
+ *         AND vp.onboarded IS TRUE
+ *         AND vp.approved IS TRUE)::int AS members_tutoring_this_year,
+ *     EXISTS (
+ *         SELECT
+ *             1
+ *         FROM
+ *             nths_chapters_statuses cs
+ *             JOIN nths_chapter_statuses st ON st.id = cs.nths_chapter_status_id
+ *         WHERE
+ *             cs.nths_group_id = :groupId!
+ *             AND st.name = 'OFFICIAL') AS has_official_status
  * FROM
  *     nths_group_members m
  *     JOIN users u ON u.id = m.user_id
+ *     LEFT JOIN volunteer_profiles vp ON vp.user_id = m.user_id
  *     JOIN sessions s ON s.volunteer_id = m.user_id
  *         AND s.ended_at IS NOT NULL
  *         AND s.time_tutored > :minSessionLength!::int

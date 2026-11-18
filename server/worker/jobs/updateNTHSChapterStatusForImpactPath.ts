@@ -1,12 +1,11 @@
 import { Ulid } from '../../models/pgUtils'
 import { Job } from 'bull'
 import * as NTHSService from '../../services/NTHSGroupsService'
-import * as VolunteersService from '../../services/VolunteerService'
-import * as SessionRepo from '../../models/Session'
 import {
+  getNthsChapterImpact,
   NTHSChapterStatusName,
-  NTHSGroupMemberWithRole,
 } from '../../models/NTHSGroups'
+import { schoolYearFor } from '../../utils/school-year'
 import logger from '../../logger'
 import * as MailService from '../../services/MailService'
 
@@ -14,90 +13,41 @@ const logPrefix = `NTHS Impact Path Chapter Status: `
 
 export type UpdateNTHSChapterStatusJobData = {
   nthsGroupId: Ulid
-  periodStart: Date
-  periodEnd: Date
 }
 
 /**
  * Calculate the NTHS chapter's status (i.e. "official" or "pending") based off of their group impact.
  */
 export default async function (job: Job<UpdateNTHSChapterStatusJobData>) {
-  // At compile time, these are dates, but they are date strings at runtime
-  // Convert back to dates here so we can make use of the Date APIs without throwing runtime errors.
-  const periodStart = new Date(job.data.periodStart)
-  const periodEnd = new Date(job.data.periodEnd)
-
   const nthsGroupId = job.data.nthsGroupId
   logger.info(`${logPrefix}Checking NTHS impact path status for chapter`, {
     groupId: nthsGroupId,
-    periodStart,
-    periodEnd,
   })
 
-  const previousChapterStatus =
-    await NTHSService.getLatestNthsChapterStatus(nthsGroupId)
+  const schoolYear = schoolYearFor(new Date())
+  const { hasOfficialStatus, schoolYearToDate } = await getNthsChapterImpact(
+    nthsGroupId,
+    schoolYear.startsAt,
+    schoolYear.endsAt
+  )
 
-  if (previousChapterStatus?.statusName == 'OFFICIAL') {
-    logger.info(`${logPrefix} Will remain OFFICIAL until end of year`, {
+  if (hasOfficialStatus) {
+    logger.info(`${logPrefix}Already OFFICIAL; skipping`, {
       groupId: nthsGroupId,
     })
     return
   }
 
-  // Current members only; getGroupMembers excludes deactivated by default.
-  const alltimeMembers = await NTHSService.getGroupMembers(nthsGroupId)
-
-  // Banned members still count: their sessions were real tutoring.
-  const readyToCoachInfo =
-    await VolunteersService.getVolunteersReadyToCoachStatus(
-      alltimeMembers.map((member) => member.userId)
-    )
-  const onboardedApprovedUserIds = new Set<Ulid>(
-    readyToCoachInfo
-      .filter((coach) => coach.isOnboarded && coach.isApproved)
-      .map((coach) => coach.id)
-  )
-  const onboardedApprovedMembers = alltimeMembers.filter((member) =>
-    onboardedApprovedUserIds.has(member.userId)
-  )
-  logger.info(
-    `${logPrefix}Found ${onboardedApprovedUserIds.size} onboarded and approved members of NTHS chapter`,
-    {
-      groupId: nthsGroupId,
-      userIds: Array.from(onboardedApprovedUserIds),
-    }
-  )
-
-  // Check if at least  of them did 1 session during the period of [t1, t2]
-  // where t1 = startDate
-  // and t2 = min(endDate, deactivatedAt)
-  const eligibleMembers: NTHSGroupMemberWithRole[] = []
-  for (const user of onboardedApprovedMembers) {
-    const endDate =
-      user.deactivatedAt && user.deactivatedAt < periodEnd
-        ? user.deactivatedAt
-        : periodEnd
-    const usersSessions = await SessionRepo.getUserSessionsByUserId(
-      user.userId,
-      {
-        start: periodStart,
-        end: endDate,
-      }
-    )
-    if (usersSessions.some((session) => session.volunteerId === user.userId)) {
-      eligibleMembers.push(user)
-    }
-  }
-
+  const previousChapterStatus =
+    await NTHSService.getLatestNthsChapterStatus(nthsGroupId)
   const newChapterStatusName: NTHSChapterStatusName =
-    eligibleMembers.length >= 3 ? 'OFFICIAL' : 'PENDING'
+    schoolYearToDate.membersTutoring >=
+    NTHSService.CHAPTER_GOALS.membersTutoring
+      ? 'OFFICIAL'
+      : 'PENDING'
   logger.info(
-    `${logPrefix}Counted ${eligibleMembers.length} eligible members for impact path for NTHS chapter`,
-    {
-      groupId: nthsGroupId,
-      newChapterStatus: newChapterStatusName,
-      userIds: eligibleMembers.map((member) => member.userId),
-    }
+    `${logPrefix}Counted ${schoolYearToDate.membersTutoring} members tutoring for NTHS chapter`,
+    { groupId: nthsGroupId, newChapterStatus: newChapterStatusName }
   )
 
   if (

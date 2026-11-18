@@ -425,8 +425,7 @@ WHERE
 /* Hours stay counted for a member later banned, deleted or departed, since
  dropping a banned member would disclose the ban to their peers.
  users.deactivated is the notifications opt-out, so members_tutoring_this_year
- does not check it. The official-status job does not yet apply the same
- counted-session and test-student filters as this query. */
+ does not check it. */
 /* @name getNthsChapterImpact */
 SELECT
     count(*) FILTER (WHERE s.volunteer_joined_at >= :startsAt!
@@ -441,10 +440,22 @@ SELECT
     count(DISTINCT m.user_id) FILTER (WHERE s.volunteer_joined_at >= :startsAt!
         AND s.volunteer_joined_at < :endsAt!
         AND m.deactivated_at IS NULL
-        AND u.deleted IS NOT TRUE)::int AS members_tutoring_this_year
+        AND u.deleted IS NOT TRUE
+        AND vp.onboarded IS TRUE
+        AND vp.approved IS TRUE)::int AS members_tutoring_this_year,
+    EXISTS (
+        SELECT
+            1
+        FROM
+            nths_chapters_statuses cs
+            JOIN nths_chapter_statuses st ON st.id = cs.nths_chapter_status_id
+        WHERE
+            cs.nths_group_id = :groupId!
+            AND st.name = 'OFFICIAL') AS has_official_status
 FROM
     nths_group_members m
     JOIN users u ON u.id = m.user_id
+    LEFT JOIN volunteer_profiles vp ON vp.user_id = m.user_id
     JOIN sessions s ON s.volunteer_id = m.user_id
         AND s.ended_at IS NOT NULL
         AND s.time_tutored > :minSessionLength!::int

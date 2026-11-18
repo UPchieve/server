@@ -224,6 +224,7 @@ describe('getChapterImpact', () => {
   const viewerId = getDbUlid()
   const at = new Date('2026-09-13T12:00:00.000Z')
   const totals = {
+    hasOfficialStatus: false,
     schoolYearToDate: {
       sessionsCompleted: 4,
       studentsHelped: 2,
@@ -261,7 +262,8 @@ describe('getChapterImpact', () => {
     expect(impact).toEqual({
       groupId,
       schoolYear: { label: '2026–27', startsAt, endsAt },
-      ...totals,
+      schoolYearToDate: totals.schoolYearToDate,
+      allTime: totals.allTime,
       goals: NTHSService.CHAPTER_GOALS,
       topTutorThisMonth: topTutor,
       viewerHoursThisMonth: 1.5,

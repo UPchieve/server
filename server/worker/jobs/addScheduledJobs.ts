@@ -86,10 +86,6 @@ export default async function addScheduledJobs() {
     },
     {
       name: 'SpawnUpdateNTHSChapterStatusForImpactPath',
-      data: {
-        periodStart: moment('2026-09-01').tz('America/New_York').toDate(),
-        periodEnd: moment('2026-12-31').tz('America/New_York').toDate(),
-      },
       options: { repeat: { cron: '0 * * * *', tz: 'America/New_York' } }, // Every hour at minute 0
     },
 

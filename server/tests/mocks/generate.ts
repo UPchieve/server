@@ -74,7 +74,6 @@ import {
   VolunteersForAnalyticsReport,
   VolunteerToReview,
   VolunteerSessionHoldEligibilityData,
-  VolunteerWithReadyToCoachInfo,
 } from '../../models/Volunteer'
 import { SubjectAndTopic } from '../../models/Subjects'
 import { UserProductFlags } from '../../models/UserProductFlags'
@@ -1606,19 +1605,6 @@ export function buildNTHSGroupMemberWithRolePublic(
     lastInitial: member.lastInitial,
     roleName: member.roleName,
     accountClosed: member.deleted,
-  }
-}
-
-export function buildVolunteerWithReadyToCoachInfo(
-  overrides: Partial<VolunteerWithReadyToCoachInfo> = {}
-): VolunteerWithReadyToCoachInfo {
-  return {
-    id: getDbUlid(),
-    isApproved: true,
-    isOnboarded: true,
-    isReadyToCoach: true,
-    banType: undefined,
-    ...overrides,
   }
 }
 

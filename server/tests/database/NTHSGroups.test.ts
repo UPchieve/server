@@ -203,6 +203,8 @@ describe('getChapterImpact', () => {
     // Departed: the session still counts toward the chapter total, but a
     // member who has left never counts as currently tutoring.
     ['a departed member', { deactivatedAt: '2026-10-15T00:00:00.000Z' }, 1, 0],
+    ['a member not onboarded', { onboarded: false }, 1, 0],
+    ['a member not approved', { approved: false }, 1, 0],
   ] as const)(
     '%s counts sessionsCompleted and membersTutoring correctly',
     async (_label, options, sessionsCompleted, membersTutoring) => {
@@ -246,6 +248,29 @@ describe('getChapterImpact', () => {
 
     expect(impact.schoolYearToDate.membersTutoring).toBe(1)
   })
+
+  test.each([
+    ['an OFFICIAL row then a later PENDING row', ['OFFICIAL', 'PENDING'], true],
+    ['only PENDING rows', ['PENDING'], false],
+  ] as const)(
+    'hasOfficialStatus with %s is %s',
+    async (_label, statuses, expected) => {
+      const otherGroupId = await createChapter(client)
+      await NTHSGroupsService.insertNthsChapterStatus(otherGroupId, 'OFFICIAL')
+      const groupId = await createChapter(client)
+      for (const status of statuses) {
+        await NTHSGroupsService.insertNthsChapterStatus(groupId, status)
+      }
+
+      const { hasOfficialStatus } = await NTHSGroupsRepo.getNthsChapterImpact(
+        groupId,
+        new Date(YEAR_STARTS_AT),
+        new Date('2027-07-01T00:00:00.000Z')
+      )
+
+      expect(hasOfficialStatus).toBe(expected)
+    }
+  )
 })
 
 describe('updateGroupMember', () => {

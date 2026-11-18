@@ -721,7 +721,11 @@ export async function getNthsChapterImpact(
   startsAt: Date,
   endsAt: Date,
   tc: TransactionClient = getRoClient()
-): Promise<Pick<NTHSChapterImpact, 'schoolYearToDate' | 'allTime'>> {
+): Promise<
+  Pick<NTHSChapterImpact, 'schoolYearToDate' | 'allTime'> & {
+    hasOfficialStatus: boolean
+  }
+> {
   try {
     const results = await pgQueries.getNthsChapterImpact.run(
       { groupId, startsAt, endsAt, minSessionLength: config.minSessionLength },
@@ -735,8 +739,10 @@ export async function getNthsChapterImpact(
       'sessionsCompletedAllTime',
       'studentsHelpedAllTime',
       'hoursTutoredAllTime',
+      'hasOfficialStatus',
     ])
     return {
+      hasOfficialStatus: row.hasOfficialStatus,
       schoolYearToDate: {
         studentsHelped: row.studentsHelpedThisYear,
         sessionsCompleted: row.sessionsCompletedThisYear,
