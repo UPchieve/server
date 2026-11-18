@@ -73,6 +73,7 @@ import QueueService from './QueueService'
 import { isHighSchoolGrade } from '../utils/grade-levels'
 import { captureEvent } from './AnalyticsService'
 import {
+  NthsHighSchoolEligibilityError,
   NthsStudentConversionConfigurationError,
   NthsStudentConversionEligibilityError,
 } from './NTHSEligibilityService'
@@ -304,12 +305,18 @@ export async function addAtLargeMember(userId: string): Promise<void> {
     !!eligibility.banType ||
     !eligibility.roles.includes('student') ||
     eligibility.roles.includes('volunteer') ||
-    !eligibility.gradeLevel ||
-    !isHighSchoolGrade(eligibility.gradeLevel as GRADES)
+    !eligibility.gradeLevel
   ) {
     throw new NthsStudentConversionEligibilityError({
       userId,
       eligibility,
+    })
+  }
+
+  if (!isHighSchoolGrade(eligibility.gradeLevel as GRADES)) {
+    throw new NthsHighSchoolEligibilityError({
+      userId,
+      gradeLevel: eligibility.gradeLevel,
     })
   }
 
