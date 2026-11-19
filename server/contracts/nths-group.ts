@@ -185,6 +185,7 @@ export type NTHSChapterImpactPublic = {
   topTutorThisMonth?: NTHSChapterTopTutorPublic
   // Only ever the requester's own hours.
   viewerHoursThisMonth: number
+  official: boolean
 }
 
 export type NTHSChapterImpactResponse = {

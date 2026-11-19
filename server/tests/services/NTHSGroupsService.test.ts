@@ -267,8 +267,28 @@ describe('getChapterImpact', () => {
       goals: NTHSService.CHAPTER_GOALS,
       topTutorThisMonth: topTutor,
       viewerHoursThisMonth: 1.5,
+      official: false,
     })
   })
+
+  it.each([
+    ['a stored OFFICIAL status below the goal', true, 2, true],
+    ['no stored status with the goal reached', false, 3, true],
+    ['no stored status below the goal', false, 2, false],
+  ])(
+    'reports official for %s',
+    async (_label, hasOfficialStatus, membersTutoring, expected) => {
+      mockedNTHSRepo.getNthsChapterImpact.mockResolvedValue({
+        ...totals,
+        hasOfficialStatus,
+        schoolYearToDate: { ...totals.schoolYearToDate, membersTutoring },
+      })
+
+      const impact = await NTHSService.getChapterImpact(groupId, viewerId, at)
+
+      expect(impact.official).toBe(expected)
+    }
+  )
 
   it.each([
     ['no month start sent', undefined, new Date('2026-09-01T00:00:00.000Z')],

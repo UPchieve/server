@@ -191,6 +191,7 @@ export type NTHSChapterImpact = {
   goals: NTHSChapterGoals
   topTutorThisMonth?: NTHSChapterTopTutor
   viewerHoursThisMonth: number
+  official: boolean
 }
 
 export type NTHSChapterRosterMember = {

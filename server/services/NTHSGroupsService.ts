@@ -1105,6 +1105,9 @@ export async function getChapterImpact(
     goals: CHAPTER_GOALS,
     topTutorThisMonth,
     viewerHoursThisMonth,
+    official:
+      totals.hasOfficialStatus ||
+      totals.schoolYearToDate.membersTutoring >= CHAPTER_GOALS.membersTutoring,
   }
 }
 

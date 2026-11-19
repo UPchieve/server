@@ -1738,6 +1738,7 @@ export function buildNTHSChapterImpact(
     allTime: { studentsHelped: 0, sessionsCompleted: 0, hoursTutored: 0 },
     goals: { hoursTutored: 40, membersTutoring: 3 },
     viewerHoursThisMonth: 0,
+    official: false,
     ...overrides,
   }
 }

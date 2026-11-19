@@ -903,6 +903,7 @@ describe('routeNTHSGroups', () => {
             schoolYearToDate,
             allTime,
             goals,
+            official: true,
           },
         }
       )
@@ -915,6 +916,7 @@ describe('routeNTHSGroups', () => {
         goals,
         topTutorThisMonth,
         viewerHoursThisMonth: 1.5,
+        official: true,
       })
     })
 

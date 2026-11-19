@@ -180,6 +180,7 @@ export function toNTHSChapterImpactPublic(
       impact.topTutorThisMonth &&
       toNTHSChapterTopTutorPublic(impact.topTutorThisMonth),
     viewerHoursThisMonth: impact.viewerHoursThisMonth,
+    official: impact.official,
   }
 }
 
