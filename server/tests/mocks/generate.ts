@@ -2093,6 +2093,17 @@ export function buildCurrentSession(
   }
 }
 
+export function buildWaitingCurrentSession(
+  overrides: Partial<CurrentSession> = {}
+): CurrentSession {
+  return buildCurrentSession({
+    volunteerId: undefined,
+    volunteer: undefined,
+    volunteerJoinedAt: undefined,
+    ...overrides,
+  })
+}
+
 export function buildCurrentSessionPublic(
   overrides: Partial<CurrentSession> = {}
 ): CurrentSessionPublic {

@@ -2,7 +2,7 @@ import { DEFAULT_SCORECARD, Scorecard } from './scorecard'
 import { compareRanked, score, ScoredCandidate } from './score'
 import { CandidateFacts, Metrics, ScoringCandidate } from './metrics'
 import { Fact, FactContext } from './facts'
-import type { OnlineUser } from '../PresenceService'
+import type { QueueUser } from '../SessionOfferService/queue'
 import logger from '../../logger'
 
 export type MatchScoringInput = Readonly<{
@@ -17,12 +17,13 @@ export type MatchScoringResult = Readonly<{
 }>
 
 async function gatherFacts(
-  coaches: readonly OnlineUser[],
+  coaches: readonly QueueUser[],
   scorecard: Scorecard
 ): Promise<MatchScoringInput> {
-  const scoringCoaches = coaches.flatMap(({ userId, onlineSince }) =>
-    onlineSince ? [{ volunteerId: userId, onlineSince }] : []
-  )
+  const scoringCoaches = coaches.map(({ userId, inQueueSince }) => ({
+    volunteerId: userId,
+    inQueueSince,
+  }))
   const now = new Date()
   const ctx: FactContext = { coaches: scoringCoaches, now }
   const facts = new Set(
@@ -65,7 +66,7 @@ export function rank(
 }
 
 export async function rankCoaches(
-  coaches: readonly OnlineUser[],
+  coaches: readonly QueueUser[],
   scorecard: Scorecard
 ): Promise<{ input: MatchScoringInput; result: MatchScoringResult }> {
   const input = await gatherFacts(coaches, scorecard)

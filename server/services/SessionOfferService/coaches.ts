@@ -4,27 +4,30 @@ import * as VolunteerRepo from '../../models/Volunteer'
 import * as SessionRepo from '../../models/Session'
 import { SUBJECTS } from '../../constants/subjects'
 import { filterAsync } from '../../utils/filter-async'
+import { canCoachSubject } from '../../utils/coach-utils'
+import * as Queue from './queue'
+import type { QueueUser } from './queue'
 
-export async function eligibleCoaches(subject: SUBJECTS) {
-  const onlineCoaches = await PresenceService.getOnlineUsers('volunteer')
-
-  if (!onlineCoaches.length) return []
+export async function eligibleCoaches(subject: SUBJECTS): Promise<QueueUser[]> {
+  // The top coach needs to be (1) eligible for the subject, (2) in the queue, (3) actively online right now
+  // There is a grace period if a user disconnects/goes inactive before we kick them out of the queue
+  // But if we're going to select the top coach to make an offer to, we should ensure that they are
+  // connected/present right *now* (i.e. don't send out offers while they are maybe momentarily disconnected
+  const onlineIds = new Set(await PresenceService.getOnlineUsers('volunteer'))
+  const queuedOnlineCoaches = (await Queue.getQueueUsers()).filter(
+    ({ userId }) => onlineIds.has(userId)
+  )
+  if (!queuedOnlineCoaches.length) return []
 
   const coachData = await VolunteerRepo.getSubjectAndReadyToCoachInfoByUserIds(
-    onlineCoaches.map(({ userId }) => userId)
+    queuedOnlineCoaches.map(({ userId }) => userId)
   )
   const unavailable = await SessionRepo.getVolunteersInOrRequestedForSessions()
   const availableCoacheIds = new Set(
     coachData
       .filter(
         (coach) =>
-          coach.isReadyToCoach &&
-          coach.banType !== 'complete' &&
-          coach.banType !== 'shadow' &&
-          !coach.isDeactivated &&
-          !unavailable.includes(coach.userId) &&
-          coach.unlockedSubjects.includes(subject) &&
-          !coach.mutedSubjects.includes(subject)
+          canCoachSubject(coach, subject) && !unavailable.includes(coach.userId)
       )
       .map(({ userId }) => userId)
   )
@@ -32,9 +35,9 @@ export async function eligibleCoaches(subject: SUBJECTS) {
   /**
    * @NOTE at some point we might want `unlockedSubjects`
    * for opportunity cost scoring. for now, just return
-   * `onlineSince`
+   * `inQueueSince`
    */
-  const availableCoaches = onlineCoaches.filter(({ userId }) =>
+  const availableCoaches = queuedOnlineCoaches.filter(({ userId }) =>
     availableCoacheIds.has(userId)
   )
   return (

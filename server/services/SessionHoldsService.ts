@@ -10,6 +10,7 @@ import * as FeatureFlagService from './FeatureFlagService'
 import moment from 'moment'
 import { minutesInSeconds } from '../utils/time-utils'
 import { filterAsync } from '../utils/filter-async'
+import { canCoach } from '../utils/coach-utils'
 import { VolunteerSessionHoldEligibilityData } from '../models/Volunteer'
 
 const coachHoldLengthSeconds = 10
@@ -277,12 +278,7 @@ export async function getEligibleOnlineCoaches(): Promise<
     await VolunteerRepo.getSubjectAndReadyToCoachInfoByUserIds(onlineCoachIds)
   const inSessions = await SessionRepo.getVolunteersInSessions()
   const availableCoaches = coachData.filter(
-    (coach) =>
-      coach.isReadyToCoach &&
-      coach.banType !== 'complete' &&
-      coach.banType !== 'shadow' &&
-      !coach.isDeactivated &&
-      !inSessions.includes(coach.userId)
+    (coach) => canCoach(coach) && !inSessions.includes(coach.userId)
   )
 
   // Remove coaches who have a current or upcoming hold

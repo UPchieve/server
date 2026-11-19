@@ -7,10 +7,14 @@ import { RoleContext } from '../../services/UserRolesService'
 import config from '../../config'
 import type { UserRole } from '../../types/users'
 
+import * as SessionOfferService from '../../services/SessionOfferService'
+
 jest.mock('../../models/User/queries')
 jest.mock('../../cache')
+jest.mock('../../services/SessionOfferService')
 const mockedUserRepo = mocked(UserRepo)
 const mockedCacheService = mocked(CacheService)
+const mockedSessionOfferService = mocked(SessionOfferService)
 
 beforeEach(() => {
   jest.resetAllMocks()
@@ -165,5 +169,30 @@ describe('switchActiveRole', () => {
         )
       )
     )
+    expect(mockedSessionOfferService.leaveQueue).not.toHaveBeenCalled()
+  })
+
+  it('Removes the coach from the queue when switching away from volunteer', async () => {
+    const userId = 'some-user'
+    mockedCacheService.getIfExists.mockResolvedValue(
+      JSON.stringify(
+        new RoleContext(['student', 'volunteer'], 'volunteer', 'volunteer')
+      )
+    )
+    await UserRolesService.switchActiveRole(userId, 'student')
+    expect(mockedSessionOfferService.leaveQueue).toHaveBeenCalledWith(
+      userId,
+      'switched role'
+    )
+  })
+
+  it('Does not touch the queue when the role is unchanged', async () => {
+    mockedCacheService.getIfExists.mockResolvedValue(
+      JSON.stringify(
+        new RoleContext(['student', 'volunteer'], 'volunteer', 'volunteer')
+      )
+    )
+    await UserRolesService.switchActiveRole('some-user', 'volunteer')
+    expect(mockedSessionOfferService.leaveQueue).not.toHaveBeenCalled()
   })
 })

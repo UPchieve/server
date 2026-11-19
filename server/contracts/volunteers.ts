@@ -51,3 +51,9 @@ export type PastStudentPublic = {
 export type PastStudentsResponse = {
   pastStudents: PastStudentPublic[]
 }
+
+export type GetQueueStatusResponse = {
+  isInQueue: boolean
+  /** when the coach last joined the queue; null when they aren't in it */
+  inQueueSince: ISODateString | null
+}

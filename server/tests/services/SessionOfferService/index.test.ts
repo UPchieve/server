@@ -6,11 +6,16 @@ import {
 import * as FeatureFlagService from '../../../services/FeatureFlagService'
 import * as NotifyVolunteerService from '../../../services/NotifyVolunteerService'
 import * as PresenceService from '../../../services/PresenceService'
+import * as UserActionService from '../../../services/UserActionService'
+import * as AnalyticsService from '../../../services/AnalyticsService'
+import { ACCOUNT_USER_ACTIONS, EVENTS } from '../../../constants'
 import SocketService from '../../../services/SocketService'
 import * as SessionRepo from '../../../models/Session'
 import * as SessionOfferRepo from '../../../models/SessionOffer'
-import * as UserActionService from '../../../services/UserActionService'
 import * as VolunteerRepo from '../../../models/Volunteer'
+import * as StudentRepo from '../../../models/Student'
+import * as UserRepo from '../../../models/User'
+import QueueService from '../../../services/QueueService'
 import { VolunteerSessionHoldEligibilityData } from '../../../models/Volunteer/types'
 import {
   EXPIRED_KEY_CHANNEL,
@@ -18,7 +23,7 @@ import {
   redisSubClient,
 } from '../../../services/RedisService'
 import {
-  buildCurrentSession,
+  buildWaitingCurrentSession,
   buildVolunteerSessionHoldEligibilityData,
 } from '../../mocks/generate'
 import { getDbUlid, getUuid } from '../../../models/pgUtils'
@@ -36,7 +41,11 @@ jest.mock('../../../services/SocketService')
 jest.mock('../../../models/Session')
 jest.mock('../../../models/SessionOffer')
 jest.mock('../../../models/Volunteer')
+jest.mock('../../../models/Student')
+jest.mock('../../../models/User')
+jest.mock('../../../services/QueueService')
 jest.mock('../../../services/UserActionService')
+jest.mock('../../../services/AnalyticsService')
 
 const mockedFeatureFlagService = jest.mocked(FeatureFlagService)
 const mockedNotifyVolunteerService = jest.mocked(NotifyVolunteerService)
@@ -47,12 +56,16 @@ const mockedSocketService = {
   emitSessionOffer: jest.fn(),
   emitSessionOfferClosed: jest.fn(),
   emitSessionChange: jest.fn(),
+  emitLeftQueue: jest.fn(),
 }
 
 let coaches: VolunteerSessionHoldEligibilityData[]
 let clientUUIDs: Map<Ulid, string>
 
 beforeAll(() => {
+  // what an API instance runs: the shared offline handlers (via registerListeners
+  // in the real app) plus the API-only expiry listeners
+  SessionOfferService.registerOfflineHandlers()
   SessionOfferService.listenForOfferExpiries()
 })
 
@@ -69,10 +82,15 @@ beforeEach(async () => {
     async (userIds) => coaches.filter(({ userId }) => userIds.includes(userId))
   )
   mockedSessionRepo.getVolunteersInOrRequestedForSessions.mockResolvedValue([])
+  mockedSessionRepo.getVolunteersInSessions.mockResolvedValue([])
+  mockedVolunteerRepo.getActiveSponsorshipsByUserId.mockResolvedValue([])
+  mockedVolunteerRepo.getUserIdsWithActiveSponsorship.mockResolvedValue([])
+  jest.mocked(StudentRepo).getStudentProfilesByUserIds.mockResolvedValue([])
+  jest.mocked(UserRepo).getUsersBanStatuses.mockResolvedValue([])
   mockedSessionRepo.getLastSessionEndedAtByVolunteerIds.mockResolvedValue([])
   mockedSessionRepo.getSessionCountsSinceByVolunteerIds.mockResolvedValue([])
   mockedSessionRepo.getCurrentSessionBySessionId.mockImplementation(
-    async (id) => buildCurrentSession({ id })
+    async (id) => buildWaitingCurrentSession({ id })
   )
 })
 
@@ -84,7 +102,16 @@ async function bringCoachOnline(
   const clientUUID = getUuid()
   clientUUIDs.set(coach.userId, clientUUID)
   await PresenceService.markOnline(coach.userId, 'volunteer', clientUUID)
+  await SessionOfferService.joinQueue(coach.userId)
   return coach.userId
+}
+
+async function makeCoachPassive(coachId: Ulid): Promise<void> {
+  await makeCoachActive(coachId)
+  await PresenceService.trackPassivity({
+    userId: coachId,
+    clientUUID: clientUUIDs.get(coachId)!,
+  })
 }
 
 async function makeCoachActive(coachId: Ulid): Promise<void> {
@@ -107,7 +134,7 @@ async function offerSession(coachesOnline = 1): Promise<{
   coachId: Ulid
 }> {
   for (let i = 0; i < coachesOnline; i++) await bringCoachOnline()
-  const session = buildCurrentSession()
+  const session = buildWaitingCurrentSession()
   await startAndOffer(session)
   return { session, coachId: lastOfferedCoach() }
 }
@@ -186,11 +213,112 @@ function expectSaved(
   )
 }
 
+describe('getInQueueSince', () => {
+  const JOINED_AT = new Date('2026-11-13T15:00:00.000Z')
+
+  // only Date is faked, so join times are exact
+  beforeEach(() => {
+    jest.useFakeTimers({
+      doNotFake: [
+        'hrtime',
+        'nextTick',
+        'performance',
+        'queueMicrotask',
+        'setImmediate',
+        'clearImmediate',
+        'setInterval',
+        'clearInterval',
+        'setTimeout',
+        'clearTimeout',
+      ],
+    })
+    jest.setSystemTime(JOINED_AT)
+  })
+
+  afterEach(() => {
+    jest.useRealTimers()
+  })
+
+  test('is when the coach joined the queue', async () => {
+    const coachId = getDbUlid()
+
+    await SessionOfferService.joinQueue(coachId)
+
+    expect(await SessionOfferService.getInQueueSince(coachId)).toEqual(
+      JOINED_AT
+    )
+  })
+
+  test('is null for a coach who never joined the queue', async () => {
+    expect(await SessionOfferService.getInQueueSince(getDbUlid())).toBeNull()
+  })
+
+  test('is null once the coach leaves the queue', async () => {
+    const coachId = getDbUlid()
+    await SessionOfferService.joinQueue(coachId)
+
+    await SessionOfferService.leaveQueue(coachId, 'manually exited queue')
+
+    expect(await SessionOfferService.getInQueueSince(coachId)).toBeNull()
+  })
+
+  test('keeps the original time when a coach already in the queue joins again', async () => {
+    const coachId = getDbUlid()
+    await SessionOfferService.joinQueue(coachId)
+    jest.advanceTimersByTime(5 * 60 * 1000)
+
+    await SessionOfferService.joinQueue(coachId)
+
+    expect(await SessionOfferService.getInQueueSince(coachId)).toEqual(
+      JOINED_AT
+    )
+  })
+
+  test('is the latest join time after the coach leaves and rejoins', async () => {
+    const coachId = getDbUlid()
+    await SessionOfferService.joinQueue(coachId)
+    await SessionOfferService.leaveQueue(coachId, 'manually exited queue')
+    jest.advanceTimersByTime(5 * 60 * 1000)
+
+    await SessionOfferService.joinQueue(coachId)
+
+    expect(await SessionOfferService.getInQueueSince(coachId)).toEqual(
+      new Date(JOINED_AT.getTime() + 5 * 60 * 1000)
+    )
+  })
+})
+
+describe('queue analytics events', () => {
+  test('joinQueue captures QUEUE_JOINED', async () => {
+    const coachId = getDbUlid()
+
+    await SessionOfferService.joinQueue(coachId)
+
+    expect(AnalyticsService.captureEvent).toHaveBeenCalledWith(
+      coachId,
+      EVENTS.QUEUE_JOINED
+    )
+  })
+
+  test('leaveQueue captures QUEUE_LEFT with the reason', async () => {
+    const coachId = getDbUlid()
+    await SessionOfferService.joinQueue(coachId)
+
+    await SessionOfferService.leaveQueue(coachId, 'manually exited queue')
+
+    expect(AnalyticsService.captureEvent).toHaveBeenCalledWith(
+      coachId,
+      EVENTS.QUEUE_LEFT,
+      { reason: 'manually exited queue' }
+    )
+  })
+})
+
 describe('withoutSessionsBeingOffered', () => {
   test('leaves out sessions that are being offered', async () => {
     await bringCoachOnline()
-    const offered = buildCurrentSession()
-    const notOffered = buildCurrentSession()
+    const offered = buildWaitingCurrentSession()
+    const notOffered = buildWaitingCurrentSession()
     await startAndOffer(offered)
 
     const result = await SessionOfferService.withoutSessionsBeingOffered([
@@ -222,7 +350,7 @@ describe('makeInitialOffer', () => {
           ),
         }))
     )
-    const session = buildCurrentSession()
+    const session = buildWaitingCurrentSession()
 
     await startAndOffer(session)
 
@@ -247,8 +375,8 @@ describe('makeInitialOffer', () => {
     await bringCoachOnline()
     await bringCoachOnline()
 
-    await startAndOffer(buildCurrentSession())
-    await startAndOffer(buildCurrentSession())
+    await startAndOffer(buildWaitingCurrentSession())
+    await startAndOffer(buildWaitingCurrentSession())
 
     const [firstCoach, secondCoach] = offeredCoaches()
     expect(secondCoach).not.toBe(firstCoach)
@@ -256,7 +384,7 @@ describe('makeInitialOffer', () => {
 
   test('stops offering when every coach already has an offer', async () => {
     await offerSession()
-    const session = buildCurrentSession()
+    const session = buildWaitingCurrentSession()
 
     await startAndOffer(session)
 
@@ -265,7 +393,7 @@ describe('makeInitialOffer', () => {
   })
 
   test('stops offering when no coach is online', async () => {
-    const session = buildCurrentSession()
+    const session = buildWaitingCurrentSession()
 
     await startAndOffer(session)
 
@@ -285,7 +413,7 @@ describe('makeInitialOffer', () => {
     ['is shadow banned', { banType: USER_BAN_TYPES.SHADOW }],
   ])('stops offering when the only coach online %s', async (_, overrides) => {
     await bringCoachOnline(overrides)
-    const session = buildCurrentSession()
+    const session = buildWaitingCurrentSession()
 
     await startAndOffer(session)
 
@@ -293,10 +421,25 @@ describe('makeInitialOffer', () => {
     await expectOpenedToEveryCoach(session)
   })
 
+  test('expects a passive coach to respond to a session no coach was offered', async () => {
+    const coachId = await bringCoachOnline()
+    await makeCoachPassive(coachId)
+    mockedFeatureFlagService.isInSessionOffersTestGroup.mockResolvedValue(false)
+    const session = buildWaitingCurrentSession()
+
+    await startAndOffer(session)
+
+    expect(jest.mocked(QueueService).add).toHaveBeenCalledWith(
+      'MarkPassiveCoachesInactive',
+      expect.anything(),
+      expect.objectContaining({ sessionId: session.id, coachIds: [coachId] })
+    )
+  })
+
   test('stops offering when the only coach online is not in the test group', async () => {
     const coachId = await bringCoachOnline()
     mockedFeatureFlagService.isInSessionOffersTestGroup.mockResolvedValue(false)
-    const session = buildCurrentSession()
+    const session = buildWaitingCurrentSession()
 
     await startAndOffer(session)
 
@@ -312,7 +455,7 @@ describe('makeInitialOffer', () => {
     mockedSessionRepo.getVolunteersInOrRequestedForSessions.mockResolvedValue([
       coachId,
     ])
-    const session = buildCurrentSession()
+    const session = buildWaitingCurrentSession()
 
     await startAndOffer(session)
 
@@ -325,7 +468,7 @@ describe('makeInitialOffer', () => {
     mockedSessionRepo.getLastSessionEndedAtByVolunteerIds.mockRejectedValue(
       new Error('db down')
     )
-    const session = buildCurrentSession()
+    const session = buildWaitingCurrentSession()
 
     await startAndOffer(session)
 
@@ -338,9 +481,9 @@ describe('makeInitialOffer', () => {
     mockedSocketService.emitSessionOffer.mockImplementationOnce(() => {
       throw new Error('socket down')
     })
-    const failed = buildCurrentSession()
+    const failed = buildWaitingCurrentSession()
     await startAndOffer(failed)
-    const next = buildCurrentSession()
+    const next = buildWaitingCurrentSession()
 
     await startAndOffer(next)
 
@@ -352,10 +495,42 @@ describe('makeInitialOffer', () => {
   })
 })
 
+describe('claimTopCoach', () => {
+  test('ranks only coaches who are both online and in the queue', async () => {
+    const onlineAndQueued = await bringCoachOnline()
+    // online, but left the queue
+    const onlineNotQueued = await bringCoachOnline()
+    await SessionOfferService.leaveQueue(
+      onlineNotQueued,
+      'manually exited queue'
+    )
+    // in the queue, but not online
+    const queuedNotOnline = buildVolunteerSessionHoldEligibilityData()
+    coaches.push(queuedNotOnline)
+    await SessionOfferService.joinQueue(queuedNotOnline.userId)
+    const session = buildWaitingCurrentSession()
+    // claiming a coach needs the offer history that hiding the session saves
+    await SessionOfferService.hideFromSessionList(session)
+
+    const offer = await SessionOfferService.claimTopCoach({
+      id: session.id,
+      subject: session.subject,
+      subjectDisplayName: session.subjectDisplayName,
+      topic: session.topic,
+      studentFirstName: session.student.firstName,
+    })
+
+    expect(
+      offer?.pending.scores.ranked.map(({ candidate }) => candidate.volunteerId)
+    ).toEqual([onlineAndQueued])
+    expect(offer?.pending.volunteerId).toBe(onlineAndQueued)
+  })
+})
+
 describe('hideFromSessionList', () => {
   test('hides the session from the session list without offering it to a coach', async () => {
     await bringCoachOnline()
-    const session = buildCurrentSession()
+    const session = buildWaitingCurrentSession()
 
     expect(await SessionOfferService.hideFromSessionList(session)).toBe(true)
 
@@ -367,7 +542,7 @@ describe('hideFromSessionList', () => {
     const set = jest
       .spyOn(redisClient, 'set')
       .mockRejectedValueOnce(new Error('redis down'))
-    const session = buildCurrentSession()
+    const session = buildWaitingCurrentSession()
 
     let hidden: boolean
     try {
@@ -394,7 +569,7 @@ describe('offering the session to the next coach', () => {
     async (_, closeOffer) => {
       await bringCoachOnline()
       await bringCoachOnline()
-      const session = buildCurrentSession()
+      const session = buildWaitingCurrentSession()
       await startAndOffer(session)
       const firstCoach = lastOfferedCoach()
 
@@ -595,7 +770,7 @@ describe('onSessionJoined', () => {
   })
 
   test('stops offering when a coach joins while offering starts', async () => {
-    const session = buildCurrentSession()
+    const session = buildWaitingCurrentSession()
 
     await Promise.all([
       startAndOffer(session),
@@ -622,6 +797,50 @@ describe('onSessionJoined', () => {
 
     expect(mockedSessionOfferRepo.insertSessionOffer).not.toHaveBeenCalled()
   })
+
+  describe('leaving the queue', () => {
+    function expectLeftQueueForJoining(coachId: Ulid) {
+      expect(mockedSocketService.emitLeftQueue).toHaveBeenCalledTimes(1)
+      expect(mockedSocketService.emitLeftQueue).toHaveBeenCalledWith(
+        coachId,
+        'joined session'
+      )
+    }
+
+    test('the coach with the offer leaves the queue when they join', async () => {
+      const { session, coachId } = await offerSession()
+
+      await SessionOfferService.onSessionJoined(session.id, coachId)
+
+      expect(await SessionOfferService.isInQueue(coachId)).toBe(false)
+      expectLeftQueueForJoining(coachId)
+    })
+
+    test('a coach leaves the queue when they join a session offered to another coach', async () => {
+      // Technically this shouldn't happen, but just in case, here's a test O_O"
+      const { session, coachId: offeredCoach } = await offerSession()
+      const joiningCoach = await bringCoachOnline()
+
+      await SessionOfferService.onSessionJoined(session.id, joiningCoach)
+
+      expect(await SessionOfferService.isInQueue(joiningCoach)).toBe(false)
+      expectLeftQueueForJoining(joiningCoach)
+      // only the coach who joined leaves the queue
+      expect(await SessionOfferService.isInQueue(offeredCoach)).toBe(true)
+    })
+
+    test('a coach leaves the queue when they join a session that was never offered', async () => {
+      const coachId = await bringCoachOnline()
+
+      await SessionOfferService.onSessionJoined(
+        buildWaitingCurrentSession().id,
+        coachId
+      )
+
+      expect(await SessionOfferService.isInQueue(coachId)).toBe(false)
+      expectLeftQueueForJoining(coachId)
+    })
+  })
 })
 
 describe('onOfferWithdrawn', () => {
@@ -638,7 +857,7 @@ describe('onOfferWithdrawn', () => {
   test('frees the coach to be offered another session', async () => {
     const { session, coachId } = await offerSession()
     await SessionOfferService.onOfferWithdrawn(session.id)
-    const next = buildCurrentSession()
+    const next = buildWaitingCurrentSession()
 
     await startAndOffer(next)
 
@@ -650,7 +869,7 @@ describe('onOfferWithdrawn', () => {
 
   test('no coach is offered a session the student ended while coaches were being ranked', async () => {
     const coachId = await bringCoachOnline()
-    const session = buildCurrentSession()
+    const session = buildWaitingCurrentSession()
     mockedSessionRepo.getLastSessionEndedAtByVolunteerIds.mockImplementationOnce(
       async () => {
         await SessionOfferService.onOfferWithdrawn(session.id)
@@ -661,7 +880,7 @@ describe('onOfferWithdrawn', () => {
     await startAndOffer(session)
 
     expect(mockedSocketService.emitSessionOffer).not.toHaveBeenCalled()
-    const next = buildCurrentSession()
+    const next = buildWaitingCurrentSession()
     await startAndOffer(next)
     expect(mockedSocketService.emitSessionOffer).toHaveBeenCalledWith(
       coachId,
@@ -689,7 +908,7 @@ describe('when an offer timer expires', () => {
     const { session, coachId } = await offerSession()
     await makeCoachActive(coachId)
     await expireOffer(session.id, coachId)
-    const next = buildCurrentSession()
+    const next = buildWaitingCurrentSession()
 
     await startAndOffer(next)
 
@@ -702,7 +921,7 @@ describe('when an offer timer expires', () => {
   test('takes a passive coach offline so they are not offered another session', async () => {
     const { session, coachId } = await offerSession()
     await expireOffer(session.id, coachId)
-    const next = buildCurrentSession()
+    const next = buildWaitingCurrentSession()
 
     await startAndOffer(next)
 
@@ -826,5 +1045,142 @@ describe('telling the coach their offer closed', () => {
     await expireOffer(session.id, coachId)
 
     expect(offeredCoaches()).toHaveLength(2)
+  })
+})
+
+describe('Inactivity/presence grace period before kicking the coach out of the queue', () => {
+  async function simulateDisconnect(coachId: Ulid) {
+    await PresenceService.trackInactivity({
+      userId: coachId,
+      clientUUID: clientUUIDs.get(coachId)!,
+    })
+  }
+
+  // socket drops, then the new page tracks activity with the same client UUID
+  async function simulatePageRefresh(coachId: Ulid) {
+    await simulateDisconnect(coachId)
+    await makeCoachActive(coachId)
+  }
+
+  async function gracePeriodKeyFor(coachId: Ulid): Promise<string | undefined> {
+    const [key] = await redisClient.keys(`*leave-queue-grace*${coachId}`)
+    return key
+  }
+
+  async function listenForExpiredGracePeriod(coachId: Ulid) {
+    const key = await gracePeriodKeyFor(coachId)
+    // asserting the key exists makes the test fail if the grace period never started
+    expect(key).toBeDefined()
+    await hearExpiredKey(key!)
+  }
+
+  async function isInQueue(coachId: Ulid) {
+    return SessionOfferService.isInQueue(coachId)
+  }
+
+  it('Keeps them in the queue until the grace period is over', async () => {
+    const coachId = await bringCoachOnline()
+    await simulateDisconnect(coachId)
+    expect(mockedSocketService.emitLeftQueue).not.toHaveBeenCalled()
+    expect(await isInQueue(coachId)).toEqual(true)
+
+    // Now test that once the grace period is over, they are kicked out of the queue
+    await listenForExpiredGracePeriod(coachId)
+    expect(mockedSocketService.emitLeftQueue).toHaveBeenCalled()
+    expect(await isInQueue(coachId)).toEqual(false)
+  })
+
+  it('Keeps coach in the queue when they refresh the page', async () => {
+    const coachId = await bringCoachOnline()
+    await simulatePageRefresh(coachId)
+    await listenForExpiredGracePeriod(coachId)
+    expect(mockedSocketService.emitLeftQueue).not.toHaveBeenCalled()
+    expect(await isInQueue(coachId)).toEqual(true)
+  })
+
+  it('Still records the disconnect in presence', async () => {
+    const coachId = await bringCoachOnline()
+    // trackInactivity only logs INACTIVE_ON_SITE for a client with presence keys,
+    // which trackActivity creates
+    await makeCoachActive(coachId)
+    await simulateDisconnect(coachId)
+
+    expect(await PresenceService.getOnlineUsers('volunteer')).toEqual([])
+    expect(
+      jest.mocked(UserActionService).createAccountAction
+    ).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: ACCOUNT_USER_ACTIONS.INACTIVE_ON_SITE,
+        userId: coachId,
+      })
+    )
+    expect(await isInQueue(coachId)).toEqual(true) // grace period has not run out yet
+    await listenForExpiredGracePeriod(coachId)
+    expect(await isInQueue(coachId)).toEqual(false) // now it has.
+  })
+
+  it('Restarts the grace period on each disconnect', async () => {
+    // only Date is faked, so redis keys expire as the clock moves
+    jest.useFakeTimers({
+      doNotFake: [
+        'hrtime',
+        'nextTick',
+        'performance',
+        'queueMicrotask',
+        'setImmediate',
+        'clearImmediate',
+        'setInterval',
+        'clearInterval',
+        'setTimeout',
+        'clearTimeout',
+      ],
+    })
+    try {
+      const coachId = await bringCoachOnline()
+      await simulateDisconnect(coachId)
+      const key = (await gracePeriodKeyFor(coachId))!
+      const fullGracePeriodMs = await redisClient.pttl(key)
+
+      // partway through the grace period, the coach comes back and disconnects again
+      jest.advanceTimersByTime(fullGracePeriodMs / 2)
+      expect(await redisClient.pttl(key)).toBeLessThan(fullGracePeriodMs)
+      await makeCoachActive(coachId)
+      await simulateDisconnect(coachId)
+
+      expect(await redisClient.pttl(key)).toEqual(fullGracePeriodMs)
+    } finally {
+      jest.useRealTimers()
+    }
+  })
+
+  it('Emits once when the expiry is heard twice', async () => {
+    // every subway server hears each key expiry
+    const coachId = await bringCoachOnline()
+    await simulateDisconnect(coachId)
+    const key = (await gracePeriodKeyFor(coachId))!
+
+    await hearExpiredKey(key)
+    await hearExpiredKey(key)
+
+    expect(mockedSocketService.emitLeftQueue).toHaveBeenCalledTimes(1)
+    expect(mockedSocketService.emitLeftQueue).toHaveBeenCalledWith(
+      coachId,
+      'inactive'
+    )
+  })
+
+  it('Does nothing for a coach who left manually during the grace period', async () => {
+    const coachId = await bringCoachOnline()
+    await simulateDisconnect(coachId)
+    await SessionOfferService.leaveQueue(coachId, 'manually exited queue')
+
+    await listenForExpiredGracePeriod(coachId)
+
+    expect(mockedSocketService.emitLeftQueue).toHaveBeenCalledTimes(1)
+    expect(mockedSocketService.emitLeftQueue).toHaveBeenCalledWith(
+      coachId,
+      'manually exited queue'
+    )
+    expect(await isInQueue(coachId)).toEqual(false)
   })
 })

@@ -3440,6 +3440,47 @@ const getActiveSponsorshipsByUserIdIR: any = {"usedParamSet":{"userId":true},"pa
 export const getActiveSponsorshipsByUserId = new PreparedQuery<IGetActiveSponsorshipsByUserIdParams,IGetActiveSponsorshipsByUserIdResult>(getActiveSponsorshipsByUserIdIR);
 
 
+/** 'GetUserIdsWithActiveSponsorship' parameters type */
+export interface IGetUserIdsWithActiveSponsorshipParams {
+  sponsorOrgKey: string;
+  userIds: stringArray;
+}
+
+/** 'GetUserIdsWithActiveSponsorship' return type */
+export interface IGetUserIdsWithActiveSponsorshipResult {
+  /** not_pii: Foreign key to upchieve.users */
+  userId: string | null;
+}
+
+/** 'GetUserIdsWithActiveSponsorship' query type */
+export interface IGetUserIdsWithActiveSponsorshipQuery {
+  params: IGetUserIdsWithActiveSponsorshipParams;
+  result: IGetUserIdsWithActiveSponsorshipResult;
+}
+
+const getUserIdsWithActiveSponsorshipIR: any = {"usedParamSet":{"userIds":true,"sponsorOrgKey":true},"params":[{"name":"userIds","required":true,"transform":{"type":"scalar"},"locs":[{"a":587,"b":595}]},{"name":"sponsorOrgKey","required":true,"transform":{"type":"scalar"},"locs":[{"a":625,"b":639}]}],"statement":"SELECT DISTINCT\n    users_volunteer_partner_orgs_instances.user_id\nFROM\n    users_volunteer_partner_orgs_instances\n    JOIN sponsor_orgs_volunteer_partner_orgs_instances ON users_volunteer_partner_orgs_instances.volunteer_partner_org_id = sponsor_orgs_volunteer_partner_orgs_instances.volunteer_partner_org_id\n    JOIN sponsor_orgs ON sponsor_orgs_volunteer_partner_orgs_instances.sponsor_org_id = sponsor_orgs.id\n    JOIN sponsor_orgs_upchieve_instances ON sponsor_orgs.id = sponsor_orgs_upchieve_instances.sponsor_org_id\nWHERE\n    users_volunteer_partner_orgs_instances.user_id = ANY (:userIds!)\n    AND sponsor_orgs.key = :sponsorOrgKey!\n    AND users_volunteer_partner_orgs_instances.deactivated_on IS NULL\n    AND sponsor_orgs_volunteer_partner_orgs_instances.deactivated_on IS NULL\n    AND sponsor_orgs_upchieve_instances.deactivated_on IS NULL"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT DISTINCT
+ *     users_volunteer_partner_orgs_instances.user_id
+ * FROM
+ *     users_volunteer_partner_orgs_instances
+ *     JOIN sponsor_orgs_volunteer_partner_orgs_instances ON users_volunteer_partner_orgs_instances.volunteer_partner_org_id = sponsor_orgs_volunteer_partner_orgs_instances.volunteer_partner_org_id
+ *     JOIN sponsor_orgs ON sponsor_orgs_volunteer_partner_orgs_instances.sponsor_org_id = sponsor_orgs.id
+ *     JOIN sponsor_orgs_upchieve_instances ON sponsor_orgs.id = sponsor_orgs_upchieve_instances.sponsor_org_id
+ * WHERE
+ *     users_volunteer_partner_orgs_instances.user_id = ANY (:userIds!)
+ *     AND sponsor_orgs.key = :sponsorOrgKey!
+ *     AND users_volunteer_partner_orgs_instances.deactivated_on IS NULL
+ *     AND sponsor_orgs_volunteer_partner_orgs_instances.deactivated_on IS NULL
+ *     AND sponsor_orgs_upchieve_instances.deactivated_on IS NULL
+ * ```
+ */
+export const getUserIdsWithActiveSponsorship = new PreparedQuery<IGetUserIdsWithActiveSponsorshipParams,IGetUserIdsWithActiveSponsorshipResult>(getUserIdsWithActiveSponsorshipIR);
+
+
 /** 'GetVolunteerSubjects' parameters type */
 export interface IGetVolunteerSubjectsParams {
   userId: string;

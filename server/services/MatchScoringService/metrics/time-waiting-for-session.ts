@@ -1,5 +1,5 @@
 import { defineMetric } from './define'
-import { lastSessionEndedAt, onlineSince } from '../facts'
+import { inQueueSince, lastSessionEndedAt } from '../facts'
 import {
   PointsForElapsedTimeMetric,
   pointsForElapsedTimeMetric,
@@ -11,10 +11,10 @@ export type TimeWaitingForSessionMetric =
 
 export const timeWaitingForSession =
   defineMetric<TimeWaitingForSessionMetric>()({
-    needs: [onlineSince, lastSessionEndedAt],
-    score(metric, { onlineSince, lastSessionEndedAt }, now) {
+    needs: [inQueueSince, lastSessionEndedAt],
+    score(metric, { inQueueSince, lastSessionEndedAt }, now) {
       const waitingSince = Math.max(
-        onlineSince.getTime(),
+        inQueueSince.getTime(),
         lastSessionEndedAt?.getTime() ?? 0
       )
       return pointsForElapsedTimeMetric(metric, now.getTime() - waitingSince)

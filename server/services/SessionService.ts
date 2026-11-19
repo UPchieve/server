@@ -85,7 +85,7 @@ import type { CurrentSession } from '../types/session'
 import { hoursInSeconds, minutesInMs, secondsInMs } from '../utils/time-utils'
 import * as ModerationService from './ModerationService'
 import * as SessionOfferService from './SessionOfferService'
-import { OFFERED_SESSION_SHARE } from './SessionOfferService/offer-config'
+import * as PresenceService from './PresenceService'
 import { PRACTICE_SESSION_SUBJECT } from '../constants/subjects'
 
 export async function reviewSession(data: unknown) {
@@ -737,10 +737,6 @@ export async function startSession(
     subject !== PRACTICE_SESSION_SUBJECT &&
     user.banType !== USER_BAN_TYPES.SHADOW &&
     !(await StudentRepo.isTestUser(user.id)) &&
-    // TEMPORARY: because we need to bucket by session, not student or coach,
-    // we can't use posthog. 50% of sessions are offered and the other 50%
-    // show up as a regular session in the list on the dashboard
-    Math.random() < OFFERED_SESSION_SHARE &&
     (await FeatureFlagsService.isSessionOffersEnabled(user.id))
 
   const newSession = await runInTransaction(async (tc: TransactionClient) => {
@@ -825,6 +821,7 @@ export async function startSession(
       )
     } else if (!isBeingOffered) {
       await NotifyVolunteerService.beginRegularNotifications(newSession)
+      await PresenceService.expectPassiveCoachesToRespondTo(newSession)
     }
   }
 
@@ -1684,6 +1681,7 @@ export async function openSessionToAll(sessionId: Uuid, user: UserContactInfo) {
       user.banType !== USER_BAN_TYPES.SHADOW
     ) {
       await NotifyVolunteerService.beginRegularNotifications(currentSession, 0)
+      await PresenceService.expectPassiveCoachesToRespondTo(currentSession)
     }
     await SocketService.getInstance().emitSessionChange(session.id)
   }

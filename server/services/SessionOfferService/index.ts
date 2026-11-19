@@ -1,4 +1,5 @@
 import { CurrentSession } from '../../types/session'
+import { captureEvent } from '../AnalyticsService'
 import { Ulid } from '../../types/shared'
 import * as MatchScoringService from '../MatchScoringService'
 import SocketService from '../SocketService'
@@ -8,11 +9,18 @@ import { eligibleCoaches } from './coaches'
 import * as OfferStore from './offer-store'
 import { DEFAULT_SCORECARD } from '../MatchScoringService/scorecard'
 import { SUBJECTS } from '../../constants/subjects'
-import { OfferHistoryWithPending, OfferSession } from './types'
+import {
+  LeaveQueueReason,
+  OfferHistoryWithPending,
+  OfferSession,
+} from './types'
 import * as NotifyVolunteerService from '../NotifyVolunteerService'
 import * as PresenceService from '../PresenceService'
+import { registerOfflineHandler } from '../PresenceService/offline-handlers'
 import * as SessionRepo from '../../models/Session'
 import { OFFERING_PERIOD_MS, OFFER_DURATION_MS } from './offer-config'
+import * as Queue from './queue'
+import { EVENTS } from '../../constants'
 
 function toOfferSession(session: CurrentSession): OfferSession {
   return {
@@ -60,7 +68,10 @@ export async function withoutSessionsBeingOffered<T extends { id: Ulid }>(
   return sessions.filter(({ id }) => !beingOffered.has(id))
 }
 
-async function claimTopCoach(session: OfferSession) {
+/**
+ * exported just for testing!
+ */
+export async function claimTopCoach(session: OfferSession) {
   const coaches = await eligibleCoaches(session.subject as SUBJECTS)
   if (!coaches.length) return null
 
@@ -166,9 +177,19 @@ export async function onSessionJoined(
   sessionId: Ulid,
   volunteerId: Ulid
 ): Promise<void> {
-  await closeOffersFor(sessionId, ({ pending }) =>
-    pending.volunteerId === volunteerId ? 'accepted' : null
-  )
+  try {
+    await closeOffersFor(sessionId, ({ pending }) =>
+      pending.volunteerId === volunteerId ? 'accepted' : null
+    )
+  } catch (err) {
+    logger.error(`Error while closing offers for ${sessionId}`, {
+      err,
+      sessionId,
+      joinedVolunteerId: volunteerId,
+    })
+  } finally {
+    await leaveQueue(volunteerId, 'joined session')
+  }
 }
 
 export async function onOfferWithdrawn(sessionId: Ulid): Promise<void> {
@@ -203,6 +224,42 @@ async function onOfferExpired(
   await offerToNextCoach(sessionId)
 }
 
+/**
+ * Registers what should happen when a coach goes offline.
+ *
+ * This MUST run in every process that can mark a user offline!
+ *
+ * The worker also loads PresenceService, so it also runs:
+ *  - PresenceService's presence-key expiry listener. Every process hears every
+ *    expiry, but only the one that wins the redlock acts on it, so a worker
+ *    can be the one to mark a coach offline.
+ *  - sweepOnline, through getOnlineUsers/countOnlineUsers in worker jobs.
+ *
+ * Both remove the coach from the online set and run that process's offline
+ * handlers. If the worker had no handlers registered, the grace period would
+ * never start and the coach would stay in the queue indefinitely. That's
+ * why this is called from the shared registerListeners() init and not from
+ * listenForOfferExpiries(), which only API instances run.
+ *
+ * The handler only sets a Redis key, so it's safe to run from any process.
+ */
+export function registerOfflineHandlers() {
+  registerOfflineHandler(
+    ['volunteer'],
+    'Start grace period for kicking the coach out of the queue',
+    async (coachId: Ulid) => {
+      await Queue.startLeaveQueueGracePeriod(coachId)
+    }
+  )
+}
+
+/**
+ * Listens for offer timer and queue grace period key expiries.
+ *
+ * Every instance hears each expiry, so these handlers have to be safe to
+ * run more than once. For the grace period, the atomic ZREM in
+ * {@link Queue.removeFromQueue} makes sure only one instance emits `left queue`.
+ */
 export function listenForOfferExpiries() {
   OfferStore.onOfferTimerExpired(async (sessionId, volunteerId) => {
     try {
@@ -215,12 +272,65 @@ export function listenForOfferExpiries() {
       })
     }
   })
+
+  // If the grace period key for this user has expired, we need to kick them out of the queue.
+  Queue.onLeaveQueueGracePeriodExpired(async (coachId: Ulid) => {
+    try {
+      if (!(await PresenceService.isOnline(coachId, 'volunteer'))) {
+        return await leaveQueue(coachId, 'inactive')
+      }
+    } catch (err) {
+      logger.error('Failed to handle queue exit grace period expiry', {
+        err,
+        coachId,
+      })
+    }
+  })
 }
 
 async function stopOffering(sessionId: Ulid): Promise<void> {
   if (!(await OfferStore.clearOfferHistory(sessionId))) return
 
   const session = await SessionRepo.getCurrentSessionBySessionId(sessionId)
-  if (session) await NotifyVolunteerService.beginRegularNotifications(session)
+  if (session) {
+    await NotifyVolunteerService.beginRegularNotifications(session)
+    await PresenceService.expectPassiveCoachesToRespondTo(session)
+  }
   await SocketService.getInstance().emitSessionChange(sessionId)
+}
+
+export async function joinQueue(coachId: Ulid) {
+  const added = await Queue.addToQueue(coachId)
+  if (added) {
+    captureEvent(coachId, EVENTS.QUEUE_JOINED)
+  } else {
+    logger.warn('User was not joined to queue', { userId: coachId })
+  }
+}
+
+export async function leaveQueue(coachId: Ulid, reason: LeaveQueueReason) {
+  const removed = await Queue.removeFromQueue(coachId)
+  if (removed) {
+    captureEvent(coachId, EVENTS.QUEUE_LEFT, {
+      reason,
+    })
+    // Avoid emitting the event if the user was not actually removed / wasn't in the queue in the first place
+    SocketService.getInstance().emitLeftQueue(coachId, reason)
+  } else {
+    logger.warn('User was not removed from queue', {
+      userId: coachId,
+      intendedLeaveReason: reason,
+    })
+  }
+}
+
+export async function isInQueue(coachId: Ulid): Promise<boolean> {
+  return Queue.isUserInQueue(coachId)
+}
+
+/**
+ * when the coach last joined the queue, or null if they aren't in it
+ */
+export async function getInQueueSince(coachId: Ulid): Promise<Date | null> {
+  return Queue.getInQueueSince(coachId)
 }

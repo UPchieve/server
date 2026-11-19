@@ -34,12 +34,6 @@ export class AppendLengthZeroError extends CustomError {
   }
 }
 
-export class KeyDeletionFailureError extends CustomError {
-  constructor(attemptedKey: string) {
-    super(`deletion of key ${attemptedKey} failed`)
-  }
-}
-
 export async function save(key: string, value: string): Promise<void> {
   await redisClient.set(key, value)
 }
@@ -140,9 +134,12 @@ export async function hdel(key: string, ...fields: string[]) {
 export async function addToSortedSet(
   key: string,
   value: string,
-  score: number
+  score: number,
+  opts: { onlyIfNew?: boolean } = {}
 ) {
-  await redisClient.zadd(key, score, value)
+  return opts.onlyIfNew
+    ? redisClient.zadd(key, 'NX', score, value)
+    : redisClient.zadd(key, score, value)
 }
 
 export async function getFromSortedSetByRange(

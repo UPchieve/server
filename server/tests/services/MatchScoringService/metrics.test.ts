@@ -21,10 +21,10 @@ describe('Metrics', () => {
         { from: 30, pointsPerUnit: 3 },
       ],
     }
-    const score = (onlineSince: Date, lastSessionEndedAt: Date | null) =>
+    const score = (inQueueSince: Date, lastSessionEndedAt: Date | null) =>
       Metrics.timeWaitingForSession.score(
         timeWaitingForSession,
-        { onlineSince, lastSessionEndedAt },
+        { inQueueSince, lastSessionEndedAt },
         NOW
       )
 
@@ -40,11 +40,11 @@ describe('Metrics', () => {
       expect(scoreOnlineFor(60)).toBe(100)
     })
 
-    test('uses onlineSince when the last session ended before the coach came online', () => {
+    test('uses inQueueSince when the last session ended before the coach joined the queue', () => {
       expect(score(ago(minutesInMs(30)), ago(minutesInMs(120)))).toBe(30)
     })
 
-    test('uses lastSessionEndedAt when the session ended after the coach came online', () => {
+    test('uses lastSessionEndedAt when the session ended after the coach joined the queue', () => {
       expect(score(ago(minutesInMs(30)), ago(minutesInMs(5)))).toBe(5)
     })
   })

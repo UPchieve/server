@@ -2,6 +2,7 @@ import moment from 'moment'
 import config from '../../config'
 import * as VolunteersCtrl from '../../controllers/VolunteersCtrl'
 import * as VolunteerService from '../../services/VolunteerService'
+import * as SessionOfferService from '../../services/SessionOfferService'
 import { authPassport } from '../../utils/auth-utils'
 import * as cache from '../../cache'
 import type { Response, Router } from 'express'
@@ -13,6 +14,7 @@ import {
 } from '../../contracts/volunteers.mappers'
 import type {
   AggregateAvailabitiesResponse,
+  GetQueueStatusResponse,
   LastHoursUpdatedResponse,
   PastStudentsResponse,
   VolunteerPresenceResponse,
@@ -128,6 +130,42 @@ export function routeVolunteers(router: Router): void {
         res.json({ pastStudents: pastStudents.map(toPastStudentPublic) })
       } catch (error) {
         resError(res, error)
+      }
+    }
+  )
+
+  router.post('/volunteers/queue/join', async function (req, res) {
+    try {
+      const userId = extractUser(req).id
+      await SessionOfferService.joinQueue(userId)
+      res.status(201).send()
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
+  router.post('/volunteers/queue/leave', async function (req, res) {
+    try {
+      const userId = extractUser(req).id
+      await SessionOfferService.leaveQueue(userId, 'manually exited queue')
+      res.status(201).send()
+    } catch (err) {
+      resError(res, err)
+    }
+  })
+
+  router.get(
+    '/volunteers/queue',
+    async function (req, res: Response<GetQueueStatusResponse>) {
+      try {
+        const userId = extractUser(req).id
+        const inQueueSince = await SessionOfferService.getInQueueSince(userId)
+        res.json({
+          isInQueue: inQueueSince !== null,
+          inQueueSince: inQueueSince?.toISOString() ?? null,
+        })
+      } catch (err) {
+        resError(res, err)
       }
     }
   )

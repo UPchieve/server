@@ -320,3 +320,16 @@ export function getRequestedVolunteerIdIfWaiting(session: {
     return session.requestedVolunteerId
   }
 }
+
+export function isGenerallyAvailableSession(session: {
+  requestedVolunteerId?: string
+  openedToAllAt?: Date
+  volunteerId?: string
+  endedAt?: Date
+}): boolean {
+  return (
+    !session.volunteerId &&
+    !session.endedAt &&
+    !getRequestedVolunteerIdIfWaiting(session)
+  )
+}

@@ -13,6 +13,7 @@ import {
   UserSessionFlags,
 } from '../../constants'
 import { mocked } from 'jest-mock'
+import * as PresenceService from '../../services/PresenceService'
 import {
   buildCurrentSession,
   buildRecapSession,
@@ -43,7 +44,6 @@ import * as NotifyVolunteerService from '../../services/NotifyVolunteerService'
 import SocketService from '../../services/SocketService'
 import * as SessionFlagsService from '../../services/SessionFlagsService'
 import * as SessionOfferService from '../../services/SessionOfferService'
-import { OFFERED_SESSION_SHARE } from '../../services/SessionOfferService/offer-config'
 import { minutesInMs } from '../../utils/time-utils'
 import * as VolunteerService from '../../services/VolunteerService'
 import * as VolunteerQueries from '../../models/Volunteer/queries'
@@ -64,6 +64,7 @@ jest.mock('../../services/NotifyVolunteerService')
 jest.mock('../../services/SocketService')
 jest.mock('../../services/SessionHoldsService')
 jest.mock('../../services/SessionOfferService')
+jest.mock('../../services/PresenceService')
 jest.mock('../../cache')
 jest.mock('../../services/VolunteerService')
 jest.mock('../../models/Volunteer/queries')
@@ -826,6 +827,9 @@ describe('SessionService', () => {
         mockedNotifyVolunteerService.beginRegularNotifications
       ).toHaveBeenCalledWith(newSession)
       expect(
+        mocked(PresenceService).expectPassiveCoachesToRespondTo
+      ).toHaveBeenCalledWith(newSession)
+      expect(
         mockedSessionOfferService.hideFromSessionList
       ).not.toHaveBeenCalled()
       expect(mockedSessionOfferService.makeInitialOffer).not.toHaveBeenCalled()
@@ -849,6 +853,9 @@ describe('SessionService', () => {
       expect(
         mockedNotifyVolunteerService.beginRegularNotifications
       ).not.toHaveBeenCalled()
+      expect(
+        mocked(PresenceService).expectPassiveCoachesToRespondTo
+      ).not.toHaveBeenCalled()
     })
 
     test('begins regular notifications when offering the session cannot start', async () => {
@@ -858,20 +865,6 @@ describe('SessionService', () => {
       const newSession = await startNewSession()
 
       expect(mockedSessionOfferService.makeInitialOffer).not.toHaveBeenCalled()
-      expect(
-        mockedNotifyVolunteerService.beginRegularNotifications
-      ).toHaveBeenCalledWith(newSession)
-    })
-
-    test('lists the session for every coach when it is not drawn for offering', async () => {
-      random.mockReturnValue(OFFERED_SESSION_SHARE)
-      mockFeatureFlagService.isSessionOffersEnabled.mockResolvedValue(true)
-
-      const newSession = await startNewSession()
-
-      expect(
-        mockedSessionOfferService.hideFromSessionList
-      ).not.toHaveBeenCalled()
       expect(
         mockedNotifyVolunteerService.beginRegularNotifications
       ).toHaveBeenCalledWith(newSession)
@@ -973,6 +966,9 @@ describe('SessionService', () => {
       expect(
         mockedNotifyVolunteerService.beginRegularNotifications
       ).toHaveBeenCalledWith(currentSession, 0)
+      expect(
+        mocked(PresenceService).expectPassiveCoachesToRespondTo
+      ).toHaveBeenCalledWith(currentSession)
     })
   })
 

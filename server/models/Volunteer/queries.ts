@@ -1730,6 +1730,21 @@ export async function getActiveSponsorshipsByUserId(
   }
 }
 
+export async function getUserIdsWithActiveSponsorship(
+  userIds: Ulid[],
+  sponsorOrgKey: string
+): Promise<Ulid[]> {
+  try {
+    const result = await pgQueries.getUserIdsWithActiveSponsorship.run(
+      { userIds, sponsorOrgKey },
+      getRoClient()
+    )
+    return result.map((v) => makeRequired(v).userId)
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
 export async function getVolunteerSubjects(
   userId: Uuid,
   tc?: TransactionClient

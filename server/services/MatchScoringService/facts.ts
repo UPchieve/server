@@ -3,7 +3,7 @@ import config from '../../config'
 import { startOfUtcYear } from '../../utils/time-utils'
 import type { Ulid } from '../../types/shared'
 
-export type ScoringCoach = Readonly<{ volunteerId: Ulid; onlineSince: Date }>
+export type ScoringCoach = Readonly<{ volunteerId: Ulid; inQueueSince: Date }>
 
 export type FactContext = Readonly<{
   coaches: readonly ScoringCoach[]
@@ -28,11 +28,11 @@ function defineFact<const K extends string, V>(
   return { key, load }
 }
 
-export const onlineSince = defineFact(
-  'onlineSince',
+export const inQueueSince = defineFact(
+  'inQueueSince',
   async () =>
-    ({ onlineSince }) =>
-      onlineSince
+    ({ inQueueSince }) =>
+      inQueueSince
 )
 
 export const lastSessionEndedAt = defineFact(

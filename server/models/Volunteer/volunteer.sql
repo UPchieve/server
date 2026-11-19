@@ -1428,6 +1428,22 @@ WHERE
     AND sponsor_orgs_upchieve_instances.deactivated_on IS NULL;
 
 
+/* @name getUserIdsWithActiveSponsorship */
+SELECT DISTINCT
+    users_volunteer_partner_orgs_instances.user_id
+FROM
+    users_volunteer_partner_orgs_instances
+    JOIN sponsor_orgs_volunteer_partner_orgs_instances ON users_volunteer_partner_orgs_instances.volunteer_partner_org_id = sponsor_orgs_volunteer_partner_orgs_instances.volunteer_partner_org_id
+    JOIN sponsor_orgs ON sponsor_orgs_volunteer_partner_orgs_instances.sponsor_org_id = sponsor_orgs.id
+    JOIN sponsor_orgs_upchieve_instances ON sponsor_orgs.id = sponsor_orgs_upchieve_instances.sponsor_org_id
+WHERE
+    users_volunteer_partner_orgs_instances.user_id = ANY (:userIds!)
+    AND sponsor_orgs.key = :sponsorOrgKey!
+    AND users_volunteer_partner_orgs_instances.deactivated_on IS NULL
+    AND sponsor_orgs_volunteer_partner_orgs_instances.deactivated_on IS NULL
+    AND sponsor_orgs_upchieve_instances.deactivated_on IS NULL;
+
+
 /* @name getVolunteerSubjects */
 SELECT
     subjects.name,

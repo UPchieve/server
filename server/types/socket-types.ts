@@ -6,6 +6,7 @@ import Delta from 'quill-delta'
 import { SessionMessageType } from '../router/api/sockets'
 import type { CurrentSessionPublic } from '@upchieve/api-contracts/sessions'
 import { VolunteerPublicProfileInfoShared } from '../models/Volunteer/types'
+import type { LeaveQueueReason } from '../services/SessionOfferService/types'
 import type { VolunteerStatusesResponse } from '../contracts/students'
 import type {
   DirectMessageErrorEvent,
@@ -130,6 +131,7 @@ export type ServerToClientEvents = {
   partnerAckLiveMediaBan: (data: { isBanned: boolean }) => void
   partnerJoinedLiveMedia: () => void
   'coaches:status-changed': () => void
+  'queue:left': (data: { reason: LeaveQueueReason }) => void
 }
 
 export type InterServerEvents = {}

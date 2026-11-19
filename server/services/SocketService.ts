@@ -24,6 +24,7 @@ import {
   SessionOfferClosedEvent,
   SessionOfferEvent,
 } from '../types/socket-types'
+import { LeaveQueueReason } from './SessionOfferService/types'
 
 /**
  * This room receives broadcasts of unfulfilled sessions.
@@ -162,6 +163,10 @@ class SocketService {
       .to(roomName)
       .except(userId)
       .emit('sessions/partner:in-session', !!userSocketsInSession.length)
+  }
+
+  emitLeftQueue(userId: string, reason: LeaveQueueReason): void {
+    this.io.to(userId).emit('queue:left', { reason })
   }
 
   // Sends a volunteer's updated shared info to the student in their session

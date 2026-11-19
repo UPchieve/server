@@ -30,3 +30,9 @@ export type OfferHistory = {
 }
 
 export type OfferHistoryWithPending = OfferHistory & { pending: Offer }
+
+export type LeaveQueueReason =
+  | 'manually exited queue'
+  | 'inactive'
+  | 'joined session'
+  | 'switched role'

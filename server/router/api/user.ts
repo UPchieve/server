@@ -443,24 +443,11 @@ export function routeUser(router: Router): void {
     }
   )
 
+  /** @TODO remove this once high-line is deployed */
   router.post(
     '/user/track-presence/check-for-inactivity',
-    async function (req, res: Response<void>) {
-      try {
-        const user = extractUser(req)
-        const clientUUID = req.body.clientUUID
-        if (user.id && typeof clientUUID === 'string') {
-          PresenceService.setInactivityCountdown({
-            userId: user.id,
-            clientUUID,
-          }).catch((err: unknown) => {
-            logger.error('Failed to set inactivity countdown', { err })
-          })
-        }
-        return res.sendStatus(200)
-      } catch (err) {
-        resError(res, err)
-      }
+    function (_req, res: Response<void>) {
+      return res.sendStatus(200)
     }
   )
 

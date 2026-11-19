@@ -8,11 +8,11 @@ const NOW = new Date('2026-10-28T12:00:00Z')
 function candidate(
   volunteerId: string,
   {
-    onlineMinutesAgo,
+    inQueueMinutesAgo,
     lastSessionDaysAgo,
     sessionCount = 0,
   }: {
-    onlineMinutesAgo: number
+    inQueueMinutesAgo: number
     lastSessionDaysAgo: number | null
     sessionCount?: number
   }
@@ -20,7 +20,7 @@ function candidate(
   return {
     volunteerId,
     facts: {
-      onlineSince: new Date(NOW.getTime() - minutesInMs(onlineMinutesAgo)),
+      inQueueSince: new Date(NOW.getTime() - minutesInMs(inQueueMinutesAgo)),
       lastSessionEndedAt:
         lastSessionDaysAgo === null
           ? null
@@ -34,11 +34,11 @@ describe('rank', () => {
   test('ranks candidates', () => {
     const scorecard = DEFAULT_SCORECARD
     const waiting1min = candidate('waitingfor1min', {
-      onlineMinutesAgo: 1,
+      inQueueMinutesAgo: 1,
       lastSessionDaysAgo: 1,
     })
     const waiting10min = candidate('waitingfor10min', {
-      onlineMinutesAgo: 10,
+      inQueueMinutesAgo: 10,
       lastSessionDaysAgo: 1,
     })
     const result = rank(
@@ -78,11 +78,11 @@ describe('rank', () => {
   test('gives no daysSinceLastSession points to a coach who has never had a session', () => {
     const scorecard = DEFAULT_SCORECARD
     const neverHadSession = candidate('neverHadSession', {
-      onlineMinutesAgo: 10,
+      inQueueMinutesAgo: 10,
       lastSessionDaysAgo: null,
     })
     const hadSessionYesterday = candidate('hadSessionYesterday', {
-      onlineMinutesAgo: 10,
+      inQueueMinutesAgo: 10,
       lastSessionDaysAgo: 1,
     })
     const result = rank(
@@ -122,11 +122,11 @@ describe('rank', () => {
   test('tie breaks on volunteer id', () => {
     const scorecard = DEFAULT_SCORECARD
     const a = candidate('waitingfor10minA', {
-      onlineMinutesAgo: 10,
+      inQueueMinutesAgo: 10,
       lastSessionDaysAgo: 1,
     })
     const b = candidate('waitingfor10minB', {
-      onlineMinutesAgo: 10,
+      inQueueMinutesAgo: 10,
       lastSessionDaysAgo: 1,
     })
     const result = rank(
@@ -166,7 +166,7 @@ describe('rank', () => {
   test('scores a metric as 0 when the candidate is missing a fact it needs', () => {
     const scorecard = DEFAULT_SCORECARD
     const { sessionCountThisCalendarYear, ...facts } = candidate('noCount', {
-      onlineMinutesAgo: 10,
+      inQueueMinutesAgo: 10,
       lastSessionDaysAgo: 1,
       sessionCount: 2,
     }).facts

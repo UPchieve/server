@@ -561,42 +561,6 @@ describe('routeUser', () => {
     })
   })
 
-  describe('POST /api/user/track-presence/check-for-inactivity', () => {
-    test('sets inactivity countdown when user id and clientUUID are present', async () => {
-      const clientUUID = getUuid()
-      mockedPresenceService.setInactivityCountdown.mockResolvedValueOnce()
-
-      const response = await sendPost(
-        '/api/user/track-presence/check-for-inactivity',
-        {
-          clientUUID,
-        }
-      )
-      expect(response.status).toBe(200)
-      expect(mockedPresenceService.setInactivityCountdown).toHaveBeenCalledWith(
-        {
-          userId: mockUser.id,
-          clientUUID,
-        }
-      )
-    })
-
-    test('does not set inactivity countdown when clientUUID is not a string', async () => {
-      const clientUUID = undefined
-      const response = await sendPost(
-        '/api/user/track-presence/check-for-inactivity',
-        {
-          clientUUID,
-        }
-      )
-
-      expect(response.status).toBe(200)
-      expect(
-        mockedPresenceService.setInactivityCountdown
-      ).not.toHaveBeenCalled()
-    })
-  })
-
   describe('PUT /api/user/volunteer/complete-sso-signup', () => {
     test('completes volunteer sso signup', async () => {
       const payload = {

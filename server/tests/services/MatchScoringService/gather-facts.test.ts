@@ -44,8 +44,8 @@ describe('rankCoaches', () => {
 
     const { input: actual } = await rankCoaches(
       [
-        { userId: withHistory, onlineSince: minutesAgo(10) },
-        { userId: withoutHistory, onlineSince: minutesAgo(30) },
+        { userId: withHistory, inQueueSince: minutesAgo(10) },
+        { userId: withoutHistory, inQueueSince: minutesAgo(30) },
       ],
       DEFAULT_SCORECARD
     )
@@ -56,7 +56,7 @@ describe('rankCoaches', () => {
         {
           volunteerId: withHistory,
           facts: {
-            onlineSince: minutesAgo(10),
+            inQueueSince: minutesAgo(10),
             lastSessionEndedAt: minutesAgo(120),
             sessionCountThisCalendarYear: 2,
           },
@@ -64,7 +64,7 @@ describe('rankCoaches', () => {
         {
           volunteerId: withoutHistory,
           facts: {
-            onlineSince: minutesAgo(30),
+            inQueueSince: minutesAgo(30),
             lastSessionEndedAt: null,
             sessionCountThisCalendarYear: 0,
           },
@@ -82,32 +82,13 @@ describe('rankCoaches', () => {
 
   test('loads a fact once when several metrics need it', async () => {
     await rankCoaches(
-      [{ userId: getDbUlid(), onlineSince: minutesAgo(10) }],
+      [{ userId: getDbUlid(), inQueueSince: minutesAgo(10) }],
       DEFAULT_SCORECARD
     )
 
     expect(
       mockedSessionRepo.getLastSessionEndedAtByVolunteerIds
     ).toHaveBeenCalledTimes(1)
-  })
-
-  test('skips coaches without an onlineSince', async () => {
-    const withOnlineSince = getDbUlid()
-
-    const { input: actual } = await rankCoaches(
-      [
-        { userId: withOnlineSince, onlineSince: minutesAgo(10) },
-        { userId: getDbUlid(), onlineSince: null },
-      ],
-      DEFAULT_SCORECARD
-    )
-
-    expect(actual.candidates.map(({ volunteerId }) => volunteerId)).toEqual([
-      withOnlineSince,
-    ])
-    expect(
-      mockedSessionRepo.getLastSessionEndedAtByVolunteerIds
-    ).toHaveBeenCalledWith([withOnlineSince], config.minSessionLength)
   })
 
   test('does not load facts the scorecard does not need', async () => {
@@ -120,7 +101,7 @@ describe('rankCoaches', () => {
     }
 
     const { input: actual } = await rankCoaches(
-      [{ userId, onlineSince: minutesAgo(10) }],
+      [{ userId, inQueueSince: minutesAgo(10) }],
       scorecard
     )
 
@@ -143,7 +124,7 @@ describe('rankCoaches', () => {
     } as unknown as Scorecard
 
     const { result } = await rankCoaches(
-      [{ userId, onlineSince: minutesAgo(10) }],
+      [{ userId, inQueueSince: minutesAgo(10) }],
       scorecard
     )
 

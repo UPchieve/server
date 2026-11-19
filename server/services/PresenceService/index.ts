@@ -3,15 +3,30 @@ import {
   ExecutionError,
   ResourceLockedError,
 } from '@sesamecare-oss/redlock'
-import { ACCOUNT_USER_ACTIONS } from '../constants'
-import logger from '../logger'
-import { Ulid } from '../models/pgUtils'
+import { ACCOUNT_USER_ACTIONS } from '../../constants'
+import logger from '../../logger'
+import { Ulid } from '../../models/pgUtils'
 import {
   redisSubClient,
   redisClient,
   EXPIRED_KEY_CHANNEL,
-} from './RedisService'
-import * as UserActionService from './UserActionService'
+} from '../RedisService'
+import * as UserActionService from '../UserActionService'
+import QueueService from '../QueueService'
+import * as VolunteerRepo from '../../models/Volunteer'
+import * as SessionRepo from '../../models/Session'
+import * as StudentRepo from '../../models/Student'
+import * as UserRepo from '../../models/User'
+import { getRoClient } from '../../db'
+import { SUBJECTS } from '../../constants/subjects'
+import { CurrentSession } from '../../types/session'
+import { filterAsync } from '../../utils/filter-async'
+import { secondsInMs } from '../../utils/time-utils'
+import { canCoachSubject } from '../../utils/coach-utils'
+import { isPlatformBanType } from '../../utils/ban-utils'
+import { isGenerallyAvailableSession } from '../../utils/session-utils'
+import { runOfflineHandlers } from './offline-handlers'
+import { ChainableCommander } from 'ioredis'
 
 /*
  *  This service tracks when a user is active, passive, or inactive on high-line.
@@ -49,7 +64,7 @@ import * as UserActionService from './UserActionService'
  *    5. Some time later, high-line reconnects and tiggers a `trackActivity` again with clientUUID 123
  *    6. We create a new Redis key and log `ACCOUNT_USER_ACTIONS.ACTIVE_ON_SITE` - great! :D
  *    7. The user gets up to make a sandwich; after receiving no activity for the duration of the the active key timeout, we set them as `PASSIVE_ON_SITE`
- *    8. A session comes in that they are qualified to take; we start a countdown to inactivity.
+ *    8. A session comes in that they are qualified to take; we start a countdown to inactivity (a delayed MarkPassiveCoachesInactive job).
  *    9. The countdown passes and the user is still inactive (maybe they dropped their sandwich and had to make another one), we mark them as `INACTIVE_ON_SITE`
  *    10. They finish eating and come back; we mark them as `ACTIVE_ON_SITE`
  */
@@ -67,12 +82,8 @@ enum CACHE_KEY_TYPE {
    */
   ACTIVE_TIMEOUT = 'active-timeout',
   /*
-   * This key is used as a countdown when a PASSIVE_ON_SITE user has a session that they can pick up come in.
-   * If they are not active at the end of the countdown, they become INACTIVE_ON_SITE
-   */
-  MAYBE_INACTIVE = 'maybe-inactive',
-  /*
    * This key is used to mark passive users as inactive after a long period of inactivity when no eligible sessions have come in.
+   * Its value is the epoch-ms time the client became passive.
    * We may want to revisit this one but it should protect against users leaving the tab open all night and staying passive.
    *
    * NOTE: This should be pretty rare as it will only fire if there have been NO sessions that this user is eligible for.
@@ -94,10 +105,6 @@ class CacheKeys {
 
   static key(userId: string, clientUUID: string, keyType: CACHE_KEY_TYPE) {
     return `${PRESENCE_KEY_PREFIX}:${keyType}:${userId}:${clientUUID}`
-  }
-
-  static isMaybeInactive(keyType: string) {
-    return keyType === CACHE_KEY_TYPE.MAYBE_INACTIVE
   }
 
   static isActiveTimeout(keyType: string) {
@@ -133,10 +140,6 @@ async function expiredKeyListener(channel: string, expiredKey: string) {
             clientUUID,
           })
 
-          await CacheKeys.delete([
-            CacheKeys.key(userId, clientUUID, CACHE_KEY_TYPE.MAYBE_INACTIVE),
-          ])
-
           const passiveTimeoutKey = CacheKeys.key(
             userId,
             clientUUID,
@@ -145,7 +148,7 @@ async function expiredKeyListener(channel: string, expiredKey: string) {
 
           await redisClient.set(
             passiveTimeoutKey,
-            1,
+            Date.now(),
             'EX',
             PRESENCE_PASSIVE_TIMEOUT_IN_SECONDS
           )
@@ -165,27 +168,8 @@ async function expiredKeyListener(channel: string, expiredKey: string) {
           })
           await CacheKeys.delete([
             CacheKeys.key(userId, clientUUID, CACHE_KEY_TYPE.ACTIVE_TIMEOUT),
-            CacheKeys.key(userId, clientUUID, CACHE_KEY_TYPE.MAYBE_INACTIVE),
           ])
           await markOfflineIfNoPresence(userId, clientUUID)
-        } else if (CacheKeys.isMaybeInactive(keyType)) {
-          const passiveTimeoutKey = CacheKeys.key(
-            userId,
-            clientUUID,
-            CACHE_KEY_TYPE.PASSIVE_TIMEOUT
-          )
-          // If user is still passive after missing an eligible session, mark them as inactive.
-          if (await redisClient.exists(passiveTimeoutKey)) {
-            await UserActionService.createAccountAction({
-              action: ACCOUNT_USER_ACTIONS.INACTIVE_ON_SITE,
-              userId,
-              clientUUID,
-            })
-            await CacheKeys.delete([
-              CacheKeys.key(userId, clientUUID, CACHE_KEY_TYPE.PASSIVE_TIMEOUT),
-            ])
-            await markOfflineIfNoPresence(userId, clientUUID)
-          }
         } else {
           throw Error(`Unhandled ${PRESENCE_KEY_PREFIX} key: ${expiredKey}`)
         }
@@ -265,7 +249,6 @@ export async function trackActivity({
 
   await CacheKeys.delete([
     CacheKeys.key(userId, clientUUID, CACHE_KEY_TYPE.PASSIVE_TIMEOUT),
-    CacheKeys.key(userId, clientUUID, CACHE_KEY_TYPE.MAYBE_INACTIVE),
   ])
 
   const key = CacheKeys.key(userId, clientUUID, CACHE_KEY_TYPE.ACTIVE_TIMEOUT)
@@ -322,10 +305,7 @@ export async function trackPassivity({
    */
   if (!activeKeyExists) return
 
-  await CacheKeys.delete([
-    activeTimeoutKey,
-    CacheKeys.key(userId, clientUUID, CACHE_KEY_TYPE.MAYBE_INACTIVE),
-  ])
+  await CacheKeys.delete([activeTimeoutKey])
 
   const key = CacheKeys.key(userId, clientUUID, CACHE_KEY_TYPE.PASSIVE_TIMEOUT)
   await UserActionService.createAccountAction({
@@ -334,45 +314,147 @@ export async function trackPassivity({
     clientUUID,
     ipAddress,
   })
-  await redisClient.set(key, 1, 'EX', PRESENCE_PASSIVE_TIMEOUT_IN_SECONDS)
+  await redisClient.set(
+    key,
+    Date.now(),
+    'EX',
+    PRESENCE_PASSIVE_TIMEOUT_IN_SECONDS
+  )
+}
+
+const AMERICA_COUNTS_SPONSORSHIP = 'america-counts'
+const AMERICA_COUNTS_SUBJECTS = [
+  '6thGradeMath',
+  '7thGradeMath',
+  '8thGradeMath',
+  'prealgebra',
+  'algebraOne',
+]
+const AMERICA_COUNTS_GRADES = ['6th', '7th', '8th', '9th']
+
+async function isShownToAmericaCountsCoaches(
+  session: CurrentSession
+): Promise<boolean> {
+  if (!AMERICA_COUNTS_SUBJECTS.includes(session.subject)) return false
+  const [student] = await StudentRepo.getStudentProfilesByUserIds(
+    getRoClient(),
+    [session.studentId]
+  )
+  return AMERICA_COUNTS_GRADES.includes(student?.gradeLevel ?? '')
+}
+
+async function coachIdsWhoCannotSee(
+  session: CurrentSession,
+  coachIds: Ulid[]
+): Promise<Ulid[]> {
+  if (await isShownToAmericaCountsCoaches(session)) return []
+  return VolunteerRepo.getUserIdsWithActiveSponsorship(
+    coachIds,
+    AMERICA_COUNTS_SPONSORSHIP
+  )
+}
+
+async function liveClientUUIDs(userId: Ulid): Promise<string[]> {
+  return redisClient.zrangebyscore(clientsKey(userId), nowInSeconds(), '+inf')
+}
+
+async function hasBeenPassiveSince(
+  userId: Ulid,
+  time: number
+): Promise<boolean> {
+  const clientUUIDs = await liveClientUUIDs(userId)
+  if (!clientUUIDs.length) return false
+
+  const passiveSinces = await redisClient.mget(
+    clientUUIDs.map((clientUUID) =>
+      CacheKeys.key(userId, clientUUID, CACHE_KEY_TYPE.PASSIVE_TIMEOUT)
+    )
+  )
+  return passiveSinces.every(
+    (passiveSince) => passiveSince !== null && Number(passiveSince) <= time
+  )
+}
+
+/**
+ * @NOTE
+ * America Counts coaches only see middle-school math sessions on their
+ * dashboard (subjects/grades in AMERICA_COUNTS_*). Their client hides every
+ * other session, so they never get the chance to respond to it, and we
+ * shouldn't mark them inactive for missing it. The constants mirror
+ * high-line's AmericaCountsVolunteerService.isEligibleSession.
+ */
+async function passiveCoachesWhoCanTake(
+  session: CurrentSession,
+  listedAtEpochMs: number
+): Promise<Ulid[]> {
+  const onlineCoachIds = await getOnlineUsers('volunteer')
+  if (!onlineCoachIds.length) return []
+
+  const [coaches, coachIdsInSessions, coachIdsWhoCannotSeeSession] =
+    await Promise.all([
+      VolunteerRepo.getSubjectAndReadyToCoachInfoByUserIds(onlineCoachIds),
+      SessionRepo.getVolunteersInSessions(),
+      coachIdsWhoCannotSee(session, onlineCoachIds),
+    ])
+  const subject = session.subject as SUBJECTS
+  const coachIdsWhoCanTake = coaches
+    .filter(
+      (coach) =>
+        canCoachSubject(coach, subject) &&
+        !coachIdsInSessions.includes(coach.userId) &&
+        !coachIdsWhoCannotSeeSession.includes(coach.userId)
+    )
+    .map(({ userId }) => userId)
+
+  const { filtered, rejected } = await filterAsync(
+    coachIdsWhoCanTake,
+    (coachId) => hasBeenPassiveSince(coachId, listedAtEpochMs)
+  )
+  if (rejected.length) throw rejected[0][1]
+  return filtered
+}
+
+async function isStudentPlatformBanned(studentId: Ulid): Promise<boolean> {
+  const banStatuses = await UserRepo.getUsersBanStatuses([studentId])
+  return banStatuses.some(({ banType }) => isPlatformBanType(banType))
 }
 
 /*
- * This is called when the session list is updated for a volunteer.
- * If they are currently active or inactive, do nothing.
- * If they are currently in a countdown, do nothing.
- * If they are currently passive, with no countdown, set a cache key with a PASSIVE_MISSED_SESSION_GRACE_PERIOD_IN_SECONDS
- * TTL, when it expires, check to see if they are still passive (expiredKeyListener). if they are,
- * mark them as INACTIVE_ON_SITE
+ * Called when a session is listed for every coach. The passive coaches who can take it
+ * have PASSIVE_MISSED_SESSION_GRACE_PERIOD_IN_SECONDS to become active, after which
+ * the MarkPassiveCoachesInactive job calls markOfflineIfPassive.
  */
-export async function setInactivityCountdown({
-  userId,
-  clientUUID,
-  TTL_IN_SECONDS = PASSIVE_MISSED_SESSION_GRACE_PERIOD_IN_SECONDS,
-}: {
-  userId: string
-  clientUUID: string
-  TTL_IN_SECONDS?: number
-}) {
-  const maybeInactiveKey = CacheKeys.key(
-    userId,
-    clientUUID,
-    CACHE_KEY_TYPE.MAYBE_INACTIVE
-  )
-  const isNotCurrentlyInCountdown =
-    !(await redisClient.exists(maybeInactiveKey))
+export async function expectPassiveCoachesToRespondTo(
+  session: CurrentSession
+): Promise<void> {
+  try {
+    if (
+      !isGenerallyAvailableSession(session) ||
+      (await StudentRepo.isTestUser(session.studentId)) ||
+      (await isStudentPlatformBanned(session.studentId))
+    )
+      return
 
-  const passiveTimeoutKey = CacheKeys.key(
-    userId,
-    clientUUID,
-    CACHE_KEY_TYPE.PASSIVE_TIMEOUT
-  )
-  const isPassive = await redisClient.exists(passiveTimeoutKey)
-  const canStartCountdown = isPassive && isNotCurrentlyInCountdown
-  if (canStartCountdown) {
-    // When this key expires, we will check to see if the user
-    // is still PASSIVE_ON_SITE, if they are, set them as INACTIVE_ON_SITE
-    await redisClient.set(maybeInactiveKey, 1, 'EX', TTL_IN_SECONDS)
+    const listedAtEpochMs = Date.now()
+    const coachIds = await passiveCoachesWhoCanTake(session, listedAtEpochMs)
+    if (!coachIds.length) return
+
+    await QueueService.add(
+      'MarkPassiveCoachesInactive',
+      {
+        delay: secondsInMs(PASSIVE_MISSED_SESSION_GRACE_PERIOD_IN_SECONDS),
+        jobId: `MarkPassiveCoachesInactive:${session.id}`,
+        attempts: 5,
+        backoff: { type: 'exponential', delay: secondsInMs(5) },
+        removeOnComplete: true,
+      },
+      { sessionId: session.id, coachIds, listedAtEpochMs }
+    )
+  } catch (err) {
+    logger.error('Failed to schedule marking passive coaches inactive', {
+      err,
+      sessionId: session.id,
+    })
   }
 }
 
@@ -383,8 +465,8 @@ export async function setInactivityCountdown({
  *     take any sessions
  *  3. they are PASSIVE_ON_SITE and a session request came in that they are qualified to take,
  *     if they are still PASSIVE_ON_SITE after PASSIVE_MISSED_SESSION_GRACE_PERIOD_IN_SECONDS of the request, we assume they
- *     are INACTIVE_ON_SITE and mark them as such. the mechanism that triggers this is in high-line:
- *     when a session comes in, high-line hits the /user/track-presence/check-for-inactivity endpoint
+ *     are INACTIVE_ON_SITE and mark them as such. the mechanism that triggers this is in subway:
+ *     when a session is listed for every coach, expectPassiveCoachesToRespondTo schedules the check
  */
 export async function trackInactivity({
   userId,
@@ -398,7 +480,6 @@ export async function trackInactivity({
   const deletedKeyCount = await CacheKeys.delete([
     CacheKeys.key(userId, clientUUID, CACHE_KEY_TYPE.ACTIVE_TIMEOUT),
     CacheKeys.key(userId, clientUUID, CACHE_KEY_TYPE.PASSIVE_TIMEOUT),
-    CacheKeys.key(userId, clientUUID, CACHE_KEY_TYPE.MAYBE_INACTIVE),
   ])
 
   if (deletedKeyCount >= 1) {
@@ -455,21 +536,11 @@ export async function trackInactivity({
 export type OnlineRole = 'student' | 'volunteer' | 'teacher'
 
 const ONLINE_KEY_PREFIX = 'presence:online'
-const ONLINE_SINCE_KEY_PREFIX = 'presence:online-since'
 const CLIENT_INDEX_KEY_PREFIX = 'presence:clients'
 const ONLINE_ROLES: OnlineRole[] = ['student', 'volunteer', 'teacher']
 
 function onlineKey(role: OnlineRole) {
   return `${ONLINE_KEY_PREFIX}:${role}`
-}
-
-/*
- * hash of userId -> epoch-ms when the user entered the online set for this role.
- * kept in lockstep with the online sorted sets: set (if absent) in markOnline,
- * removed whenever the user is removed from the sorted set.
- */
-function onlineSinceKey(role: OnlineRole) {
-  return `${ONLINE_SINCE_KEY_PREFIX}:${role}`
 }
 
 function nowInSeconds() {
@@ -491,34 +562,76 @@ function clientsKey(userId: Ulid) {
 export const CLIENT_INDEX_TTL_IN_SECONDS =
   ONE_MINUTE_IN_SECONDS + PRESENCE_PASSIVE_TIMEOUT_IN_SECONDS
 
-async function removeFromOnlineSets(userId: Ulid) {
-  const transaction = redisClient.multi()
-  for (const role of ONLINE_ROLES) {
-    transaction.zrem(onlineKey(role), userId)
-    transaction.hdel(onlineSinceKey(role), userId)
+/**
+ * Removes a user from the given online role sets, effectively marking them
+ * offline for those role(s), and runs the role exit handlers for each role
+ * they were actually in.
+ *
+ * This and {@link sweepOnline} are the ONLY ways a user should leave an online role
+ * set-- this is so that the role exit handlers always run. So, don't zrem from the online sets
+ * anywhere else!
+ *
+ * Callers that need other writes in the same transaction (and the same
+ * trip to redis) chain them onto the transaction in the `alongWith` callback.
+ */
+async function markRolesOffline(
+  userId: Ulid,
+  roles: OnlineRole[],
+  alongWith?: (txn: ChainableCommander) => void
+) {
+  const txn = redisClient.multi()
+  for (const role of roles) {
+    txn.zrem(onlineKey(role), userId)
   }
-  await transaction.exec()
+  // the caller's commands go after ours, so they can't shift our result indexes
+  alongWith?.(txn)
+
+  const results = (await txn.exec()) ?? []
+
+  // results[i] is the zrem for roles[i]; removedCount is 1 only if
+  // the user was actually in that role set, so handlers run only for roles they left
+  for (const [i, role] of roles.entries()) {
+    const [err, removedCount] = results[i] ?? []
+    if (!err && removedCount === 1) await runOfflineHandlers(userId, role)
+  }
 }
 
-/*
+/**
+ * the user has no live clients left: remove them from every role and drop
+ * their client index (plus any `extraKeysToDelete`, e.g. the passive keys
+ * markOfflineIfPassive is done with), in one transaction and one trip to Redis
+ */
+export async function markOffline(
+  userId: Ulid,
+  extraKeysToDelete: string[] = []
+) {
+  await markRolesOffline(userId, ONLINE_ROLES, (txn) =>
+    txn.del(...extraKeysToDelete, clientsKey(userId))
+  )
+}
+
+/**
  * drops members whose deadline has already passed. reads already filter by score
- * so this is only about keeping the sorted sets from growing forever
- * with orphaned members.
+ * so this is mostly about keeping the sorted sets from growing forever
+ * with orphaned members, and about running the role exit handlers for users
+ * whose offline event was never delivered.
+ *
+ * like {@link markRolesOffline}, this is one of the only ways a user leaves an online
+ * role set. it removes by score instead of by user, all in one transaction, so a
+ * user who refreshes their deadline between the read and the remove is never
+ * removed.
  */
 async function sweepOnline(role: OnlineRole) {
   const now = nowInSeconds()
-  const expiredUserIds = await redisClient.zrangebyscore(
-    onlineKey(role),
-    '-inf',
-    now
-  )
+  const results = await redisClient
+    .multi()
+    .zrangebyscore(onlineKey(role), '-inf', now)
+    .zremrangebyscore(onlineKey(role), '-inf', now)
+    .exec()
+  const expiredUserIds = (results?.[0]?.[1] as Ulid[] | undefined) ?? []
   if (!expiredUserIds.length) return
 
-  await redisClient
-    .multi()
-    .zremrangebyscore(onlineKey(role), '-inf', now)
-    .hdel(onlineSinceKey(role), ...expiredUserIds)
-    .exec()
+  for (const userId of expiredUserIds) await runOfflineHandlers(userId, role)
 }
 
 /**
@@ -531,28 +644,23 @@ export async function markOnline(
   clientUUID: string
 ) {
   const deadline = nowInSeconds() + CLIENT_INDEX_TTL_IN_SECONDS
-  const transaction = redisClient.multi()
 
-  for (const onlineRole of ONLINE_ROLES) {
-    if (onlineRole === role) {
-      transaction.zadd(onlineKey(onlineRole), deadline, userId)
-      transaction.hsetnx(onlineSinceKey(onlineRole), userId, Date.now())
-    } else {
-      transaction.zrem(onlineKey(onlineRole), userId)
-      transaction.hdel(onlineSinceKey(onlineRole), userId)
-    }
-  }
-
-  transaction.zadd(clientsKey(userId), deadline, clientUUID)
-  transaction.expire(clientsKey(userId), CLIENT_INDEX_TTL_IN_SECONDS)
-  await transaction.exec()
+  /*
+   * A user is in at most one role set, so being marked online in this role
+   * means leaving any other. That's a role switch, not going offline, but it
+   * still has to go through markRolesOffline so the role exit handlers run
+   * (e.g. a coach leaving the volunteer role leaves the session queue).
+   */
+  await markRolesOffline(
+    userId,
+    ONLINE_ROLES.filter((onlineRole) => onlineRole !== role),
+    (txn) =>
+      txn
+        .zadd(onlineKey(role), deadline, userId)
+        .zadd(clientsKey(userId), deadline, clientUUID)
+        .expire(clientsKey(userId), CLIENT_INDEX_TTL_IN_SECONDS)
+  )
 }
-
-export async function markOffline(userId: Ulid) {
-  await removeFromOnlineSets(userId)
-}
-
-export type OnlineUser = { userId: Ulid; onlineSince: Date | null }
 
 export async function countOnlineUsers(role: OnlineRole): Promise<number> {
   await sweepOnline(role)
@@ -560,23 +668,14 @@ export async function countOnlineUsers(role: OnlineRole): Promise<number> {
   return Number(result)
 }
 
-export async function getOnlineUsers(role: OnlineRole): Promise<OnlineUser[]> {
+export async function getOnlineUsers(role: OnlineRole): Promise<Ulid[]> {
   await sweepOnline(role)
   const userIds = await redisClient.zrangebyscore(
     onlineKey(role),
     nowInSeconds(),
     '+inf'
   )
-  if (!userIds.length) return []
-
-  const onlineSinces = await redisClient.hmget(onlineSinceKey(role), ...userIds)
-  return userIds.map((userId, i) => {
-    const onlineSince = onlineSinces[i]
-    return {
-      userId,
-      onlineSince: onlineSince ? new Date(Number(onlineSince)) : null,
-    }
-  })
+  return userIds
 }
 
 export async function getOnlineUserIds(): Promise<
@@ -587,22 +686,28 @@ export async function getOnlineUserIds(): Promise<
     getOnlineUsers('volunteer'),
   ])
   return {
-    students: students.map(({ userId }) => userId),
-    volunteers: volunteers.map(({ userId }) => userId),
+    students,
+    volunteers,
   }
 }
 
-/*
+/**
  * marks the user offline unless one of their clients is active. their passive
  * clients are marked INACTIVE_ON_SITE, as they would be at the end of a
  * missed session countdown.
+ *
+ * the passive keys are deleted last, so that if any step fails the user is
+ * still passive and a retry can finish marking them.
  */
-export async function markOfflineIfPassive(userId: Ulid) {
-  const clientUUIDs = await redisClient.zrangebyscore(
-    clientsKey(userId),
-    nowInSeconds(),
-    '+inf'
+export async function markOfflineIfPassive(
+  userId: Ulid,
+  { passiveSinceEpochMs }: { passiveSinceEpochMs?: number } = {}
+) {
+  const clientUUIDs = await liveClientUUIDs(userId)
+  const passiveKeys = clientUUIDs.map((clientUUID) =>
+    CacheKeys.key(userId, clientUUID, CACHE_KEY_TYPE.PASSIVE_TIMEOUT)
   )
+  let passiveSinces: (string | null)[] = []
   if (clientUUIDs.length) {
     const activeClientCount = await redisClient.exists(
       ...clientUUIDs.map((clientUUID) =>
@@ -610,14 +715,21 @@ export async function markOfflineIfPassive(userId: Ulid) {
       )
     )
     if (activeClientCount > 0) return
+    passiveSinces = await redisClient.mget(passiveKeys)
   }
 
-  for (const clientUUID of clientUUIDs) {
-    const deletedKeyCount = await CacheKeys.delete([
-      CacheKeys.key(userId, clientUUID, CACHE_KEY_TYPE.PASSIVE_TIMEOUT),
-      CacheKeys.key(userId, clientUUID, CACHE_KEY_TYPE.MAYBE_INACTIVE),
-    ])
-    if (deletedKeyCount >= 1) {
+  if (
+    passiveSinceEpochMs !== undefined &&
+    (!clientUUIDs.length ||
+      !passiveSinces.every(
+        (passiveSince) =>
+          passiveSince !== null && Number(passiveSince) <= passiveSinceEpochMs
+      ))
+  )
+    return
+
+  for (const [i, clientUUID] of clientUUIDs.entries()) {
+    if (passiveSinces[i] !== null) {
       await UserActionService.createAccountAction({
         action: ACCOUNT_USER_ACTIONS.INACTIVE_ON_SITE,
         userId,
@@ -626,11 +738,13 @@ export async function markOfflineIfPassive(userId: Ulid) {
     }
   }
 
-  await removeFromOnlineSets(userId)
-  await redisClient.del(clientsKey(userId))
+  // the passive keys are deleted together with the online-set removal (one
+  // atomic transaction), and only after everything above succeeded, so a
+  // failure leaves the coach passive for a retry to finish
+  await markOffline(userId, passiveKeys)
 }
 
-/*
+/**
  * removes the user from the online sets only if they have no remaining live
  * presence keys, so users with multiple devices/tabs stay online until their
  * last connection goes inactive.
@@ -646,8 +760,13 @@ export async function markOfflineIfNoPresence(
   await transaction.exec()
 
   const remainingClients = await redisClient.zcard(clientIndexKey)
-  if (remainingClients === 0) {
-    await removeFromOnlineSets(userId)
-    await redisClient.del(clientIndexKey)
-  }
+  if (remainingClients === 0) await markOffline(userId)
+}
+
+export async function isOnline(
+  userId: Ulid,
+  role: OnlineRole
+): Promise<boolean> {
+  const deadline = await redisClient.zscore(onlineKey(role), userId)
+  return deadline !== null && Number(deadline) > nowInSeconds()
 }

@@ -46,6 +46,7 @@ import updateBasicAccessViews from '../../scripts/update-basic-access-views'
 import migrateProgressReportPromptIds from '../../scripts/migrate-progress-report-prompt-ids'
 import spawnEmailWeeklyHourSummaryJobs from './spawnEmailWeeklyHourSummaryJobs'
 import textVolunteers from './textVolunteers'
+import markPassiveCoachesInactive from './markPassiveCoachesInactive'
 import moderateSessionTranscript from '../jobs/moderate-session-transcript'
 import migrateBannedAndTestUsersToBanType from '../../scripts/migrate-banned-and-test-users-to-bantype'
 import updateSendGridGradeLevels from './updateSendGridGradeLevels'
@@ -148,6 +149,7 @@ export const jobProcessors = {
   GenerateAndStoreWaitTimeHeatMap: generateAndStoreWaitTimeHeatMap,
   GenerateProgressReport: generateProgressReport,
   GenerateSessionSummary: generateSessionSummary,
+  MarkPassiveCoachesInactive: markPassiveCoachesInactive,
   MaybeSendStudentFeedbackToVolunteer: maybeSendStudentFeedbackToVolunteer,
   MigrateBannedAndTestUsersToBanType: migrateBannedAndTestUsersToBanType,
   MigrateProgressReportPromptIds: migrateProgressReportPromptIds,

@@ -8,6 +8,7 @@ import config from '../config'
 import { InputError, NotAllowedError } from '../models/Errors'
 import { captureEvent } from './AnalyticsService'
 import { EVENTS } from '../constants'
+import * as SessionOfferService from './SessionOfferService'
 
 export class RoleContext {
   readonly roles: UserRole[]
@@ -110,6 +111,8 @@ export async function switchActiveRole(
     existingRoleContext.legacyRole
   )
   await updateRoleContextCache(userId, newRoleContext)
+  if (existingRoleContext.activeRole === 'volunteer')
+    await SessionOfferService.leaveQueue(userId, 'switched role')
   return { newRoleContext }
 }
 
