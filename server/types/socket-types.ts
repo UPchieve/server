@@ -132,6 +132,8 @@ export type ServerToClientEvents = {
   partnerJoinedLiveMedia: () => void
   'coaches:status-changed': () => void
   'queue:left': (data: { reason: LeaveQueueReason }) => void
+  'queue:joined': (data: { joinedAt: Date }) => void
+  // @TODO: Remove me after high-line starts listening for queue:joined instead
   'queue:rejoinedAfterSession': (data: { joinedAt: Date }) => void
 }
 

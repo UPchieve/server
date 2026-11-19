@@ -329,6 +329,7 @@ export async function joinQueue(coachId: Ulid): Promise<Date | undefined> {
   }
   const joinedAt = await Queue.addToQueue(coachId)
   if (joinedAt) {
+    SocketService.getInstance().emitJoinedQueue(coachId, joinedAt)
     captureEvent(coachId, EVENTS.QUEUE_JOINED)
   } else {
     logger.warn('User was not joined to queue', { userId: coachId })
@@ -396,7 +397,6 @@ export async function maybeRejoinQueue(coachId: Ulid) {
     if (isOnlineInCoachMode && isEligible) {
       const joinedAt = await joinQueue(coachId)
       if (joinedAt) {
-        SocketService.getInstance().emitRejoinedQueue(coachId, joinedAt)
         captureEvent(coachId, EVENTS.AUTO_REJOINED_QUEUE, {
           userId: coachId,
         })

@@ -443,14 +443,6 @@ export function routeUser(router: Router): void {
     }
   )
 
-  /** @TODO remove this once high-line is deployed */
-  router.post(
-    '/user/track-presence/check-for-inactivity',
-    function (_req, res: Response<void>) {
-      return res.sendStatus(200)
-    }
-  )
-
   router.put(
     '/user/volunteer/complete-sso-signup',
     async function (req, res: Response<void>) {

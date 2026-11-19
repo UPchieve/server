@@ -58,7 +58,7 @@ const mockedSocketService = {
   emitSessionOfferClosed: jest.fn(),
   emitSessionChange: jest.fn(),
   emitLeftQueue: jest.fn(),
-  emitRejoinedQueue: jest.fn(),
+  emitJoinedQueue: jest.fn(),
 }
 
 let coaches: VolunteerSessionHoldEligibilityData[]
@@ -105,6 +105,8 @@ async function bringCoachOnlineAndJoinQueue(
   clientUUIDs.set(coach.userId, clientUUID)
   await PresenceService.markOnline(coach.userId, 'volunteer', clientUUID)
   await SessionOfferService.joinQueue(coach.userId)
+  // clear the emit that happens in joinQueue - it's just part of test setup.
+  mockedSocketService.emitJoinedQueue.mockClear()
   return coach.userId
 }
 
@@ -929,6 +931,26 @@ describe('onSessionJoined', () => {
   })
 })
 
+describe('joinQueue', () => {
+  it('Emits the queue joined event if actually joined to the queue', async () => {
+    const coach = buildVolunteerSessionHoldEligibilityData()
+    await PresenceService.markOnline(coach.userId, 'volunteer', getUuid())
+    await SessionOfferService.joinQueue(coach.userId)
+    expect(mockedSocketService.emitJoinedQueue).toHaveBeenCalledTimes(1)
+    expect(mockedSocketService.emitJoinedQueue).toHaveBeenCalledWith(
+      coach.userId,
+      expect.any(Date)
+    )
+  })
+
+  it('Does not emit the queue joined event if NOT actually joined to the queue', async () => {
+    const coachId = await bringCoachOnlineAndJoinQueue()
+    await PresenceService.markOffline(coachId)
+    await SessionOfferService.joinQueue(coachId)
+    expect(mockedSocketService.emitJoinedQueue).not.toHaveBeenCalled()
+  })
+})
+
 describe('maybeRejoinQueue', () => {
   afterEach(() => {
     jest.restoreAllMocks()
@@ -962,7 +984,7 @@ describe('maybeRejoinQueue', () => {
       mockedVolunteerRepo.getSubjectAndReadyToCoachInfoByUserIds
     ).not.toHaveBeenCalled()
     expect(addToQueue).not.toHaveBeenCalled()
-    expect(mockedSocketService.emitRejoinedQueue).not.toHaveBeenCalled()
+    expect(mockedSocketService.emitJoinedQueue).not.toHaveBeenCalled()
     expect(await SessionOfferService.isInQueue(coachId)).toBe(false)
   })
 
@@ -989,7 +1011,7 @@ describe('maybeRejoinQueue', () => {
     expect(
       mockedVolunteerRepo.getSubjectAndReadyToCoachInfoByUserIds
     ).toHaveBeenCalledTimes(1)
-    expect(mockedSocketService.emitRejoinedQueue).toHaveBeenCalledTimes(1)
+    expect(mockedSocketService.emitJoinedQueue).toHaveBeenCalledTimes(1)
     expect(await SessionOfferService.isInQueue(coachId)).toBe(true)
   })
 
@@ -1020,7 +1042,7 @@ describe('maybeRejoinQueue', () => {
     await SessionOfferService.maybeRejoinQueue(coachId)
 
     expect(addToQueue).not.toHaveBeenCalled()
-    expect(mockedSocketService.emitRejoinedQueue).not.toHaveBeenCalled()
+    expect(mockedSocketService.emitJoinedQueue).not.toHaveBeenCalled()
     expect(await SessionOfferService.isInQueue(coachId)).toBe(false)
   })
 
@@ -1046,7 +1068,7 @@ describe('maybeRejoinQueue', () => {
       await SessionOfferService.maybeRejoinQueue(coachId)
 
       expect(addToQueue).not.toHaveBeenCalled()
-      expect(mockedSocketService.emitRejoinedQueue).not.toHaveBeenCalled()
+      expect(mockedSocketService.emitJoinedQueue).not.toHaveBeenCalled()
       expect(await SessionOfferService.isInQueue(coachId)).toBe(false)
     }
   )
@@ -1056,8 +1078,8 @@ describe('maybeRejoinQueue', () => {
 
     await SessionOfferService.maybeRejoinQueue(coachId)
 
-    expect(mockedSocketService.emitRejoinedQueue).toHaveBeenCalledTimes(1)
-    expect(mockedSocketService.emitRejoinedQueue).toHaveBeenCalledWith(
+    expect(mockedSocketService.emitJoinedQueue).toHaveBeenCalledTimes(1)
+    expect(mockedSocketService.emitJoinedQueue).toHaveBeenCalledWith(
       coachId,
       await SessionOfferService.getInQueueSince(coachId)
     )
@@ -1082,7 +1104,7 @@ describe('maybeRejoinQueue', () => {
 
     await SessionOfferService.maybeRejoinQueue(coachId)
 
-    expect(mockedSocketService.emitRejoinedQueue).not.toHaveBeenCalled()
+    expect(mockedSocketService.emitJoinedQueue).not.toHaveBeenCalled()
   })
 })
 
