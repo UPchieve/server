@@ -19,6 +19,7 @@ import { VolunteerOccupations } from '../../models/Volunteer'
 import { hasCompletedVolunteerTraining } from '../../services/VolunteerService'
 import { buildVolunteerContactInfo } from '../mocks/generate'
 import * as ReferralService from '../../services/ReferralService'
+import * as FeatureFlagService from '../../services/FeatureFlagService'
 import * as UsersGradeLevelRepo from '../../models/UsersGradeLevels'
 import { getDbUlid } from '../../models/pgUtils'
 
@@ -544,5 +545,68 @@ describe('canRequestSubjectWithVolunteer', () => {
         'physics'
       )
     ).toBe(false)
+  })
+})
+
+describe('getPastStudentsByVolunteerId', () => {
+  const volunteerId = getDbUlid()
+  const buildPastStudent = (
+    studentBanType?: USER_BAN_TYPES
+  ): VolunteerRepo.VolunteerPastStudent => ({
+    studentId: getDbUlid(),
+    sessionId: getDbUlid(),
+    subjectDisplayName: 'Algebra 1',
+    subjectName: 'algebraOne',
+    createdAt: new Date(),
+    firstName: 'Student',
+    timeTutored: 1000,
+    studentBanType,
+  })
+
+  beforeEach(() => {
+    jest
+      .spyOn(FeatureFlagService, 'isDirectMessagesEnabled')
+      .mockResolvedValue(true)
+  })
+
+  test.each([USER_BAN_TYPES.SHADOW, USER_BAN_TYPES.COMPLETE])(
+    'marks %s banned students as unavailable without checking the flag',
+    async (banType) => {
+      const student = buildPastStudent(banType)
+      mockedVolunteerRepo.getPastStudentsByVolunteerId.mockResolvedValue([
+        student,
+      ])
+
+      const result =
+        await VolunteerService.getPastStudentsByVolunteerId(volunteerId)
+
+      expect(result).toEqual([
+        {
+          ...student,
+          canDirectMessage: false,
+          directMessageUnavailableReason: 'UNAVAILABLE',
+        },
+      ])
+      expect(FeatureFlagService.isDirectMessagesEnabled).not.toHaveBeenCalled()
+    }
+  )
+
+  test('lets volunteers message students who are not banned or only live media banned', async () => {
+    const students = [
+      buildPastStudent(),
+      buildPastStudent(USER_BAN_TYPES.LIVE_MEDIA),
+    ]
+    mockedVolunteerRepo.getPastStudentsByVolunteerId.mockResolvedValue(students)
+
+    const result =
+      await VolunteerService.getPastStudentsByVolunteerId(volunteerId)
+
+    expect(result).toEqual(
+      students.map((student) => ({
+        ...student,
+        canDirectMessage: true,
+        directMessageUnavailableReason: undefined,
+      }))
+    )
   })
 })

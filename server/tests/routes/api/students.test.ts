@@ -188,6 +188,7 @@ describe('routeStudents', () => {
           numSessions: 3,
           lastSession,
           isFavorite: true,
+          isUnavailable: false,
           publicProfileStats: {
             occupation: ['A graduate student'],
             numSessionsTutored: 12,
@@ -200,6 +201,7 @@ describe('routeStudents', () => {
           numSessions: 1,
           lastSession,
           isFavorite: false,
+          isUnavailable: true,
           publicProfileStats: {},
         },
       ]

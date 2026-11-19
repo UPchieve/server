@@ -42,6 +42,7 @@ describe('getPastVolunteers', () => {
         numSessions: 3,
         lastSession,
         isFavorite: true,
+        isUnavailable: false,
       },
       {
         volunteerId: getDbUlid(),
@@ -49,6 +50,7 @@ describe('getPastVolunteers', () => {
         numSessions: 1,
         lastSession,
         isFavorite: false,
+        isUnavailable: true,
       },
     ]
     const sharedStats = { occupation: ['Retired'], numStudentsHelped: 4 }

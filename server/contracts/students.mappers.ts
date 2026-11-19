@@ -34,6 +34,7 @@ export function toPastVolunteerPublic(
     isFavorite: volunteer.isFavorite,
     publicProfileStats: volunteer.publicProfileStats,
     subjects: volunteer.subjects,
+    isUnavailable: volunteer.isUnavailable,
   }
 }
 

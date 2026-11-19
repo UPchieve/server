@@ -734,6 +734,7 @@ export type PastVolunteer = {
   numSessions: number
   lastSession: PastVolunteerSession
   isFavorite: boolean
+  isUnavailable: boolean
 }
 
 export async function getPastVolunteersByStudentId(
@@ -757,12 +758,14 @@ export async function getPastVolunteersByStudentId(
           'lastSessionSubjectDisplayName',
           'lastSessionCreatedAt',
           'lastSessionTimeTutored',
+          'isUnavailable',
         ])
         return {
           volunteerId: row.volunteerId,
           firstName: row.firstName,
           numSessions: row.numSessions,
           isFavorite: row.isFavorite,
+          isUnavailable: row.isUnavailable,
           lastSession: {
             sessionId: row.lastSessionId,
             subjectName: row.lastSessionSubjectName,

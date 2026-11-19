@@ -33,11 +33,19 @@ function reviewCategory(reason: string) {
   return getSessionFlagByModerationReason(normalized)
 }
 
-// Don't let volunteers message shadow banned students
 async function checkStudentBanStatus(studentId: Ulid) {
   const [status] = await UserRepo.getUsersBanStatuses([studentId])
-  if (status?.banType === USER_BAN_TYPES.SHADOW)
+  if (
+    status?.banType === USER_BAN_TYPES.SHADOW ||
+    status?.banType === USER_BAN_TYPES.COMPLETE
+  )
     throw new NotAllowedError("You can't message this student right now")
+}
+
+async function checkVolunteerBanStatus(volunteerId: Ulid) {
+  const [status] = await UserRepo.getUsersBanStatuses([volunteerId])
+  if (status?.banType === USER_BAN_TYPES.COMPLETE)
+    throw new NotAllowedError("You can't message this coach right now")
 }
 
 export async function getOrCreateConversation(
@@ -49,6 +57,7 @@ export async function getOrCreateConversation(
   if (user.roleContext.isActiveRole('student')) {
     studentId = user.id
     volunteerId = partnerId
+    await checkVolunteerBanStatus(volunteerId)
   } else if (user.roleContext.isActiveRole('volunteer')) {
     studentId = partnerId
     volunteerId = user.id
@@ -97,9 +106,14 @@ export async function sendMessage(
   const trimmedContents = contents.trim()
   if (!trimmedContents) throw new InputError('Message cannot be empty')
 
+  if (user.banType === USER_BAN_TYPES.COMPLETE)
+    throw new NotAllowedError("You can't send messages right now")
+
   const conversation = await ensureIsParticipant(conversationId, user.id)
   if (user.id === conversation.volunteerId)
     await checkStudentBanStatus(conversation.studentId)
+  else if (user.id === conversation.studentId)
+    await checkVolunteerBanStatus(conversation.volunteerId)
 
   let moderation: DirectMessageModerationResult
   try {

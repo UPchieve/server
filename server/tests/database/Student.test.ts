@@ -6,6 +6,7 @@ import {
   addStudentsToTeacherClass,
   adminUpdateStudentUser,
   getFavoritedVolunteerIdsFromList,
+  getPastVolunteersByStudentId,
   getStudentContactInfoById,
   upsertStudentProfile,
 } from '../../models/Student/queries'
@@ -20,6 +21,8 @@ import {
 } from './seed-utils'
 import { insertSingleRow } from '../db-utils'
 import { getEmail } from '../mocks/generate'
+import config from '../../config'
+import { USER_BAN_TYPES } from '../../constants'
 
 const client = getClient()
 
@@ -413,3 +416,28 @@ async function createTeacherClass() {
     )
   ).rows[0]
 }
+
+describe('getPastVolunteersByStudentId', () => {
+  test.each([
+    [undefined, false],
+    [USER_BAN_TYPES.LIVE_MEDIA, false],
+    [USER_BAN_TYPES.SHADOW, false],
+    [USER_BAN_TYPES.COMPLETE, true],
+  ])(
+    'a volunteer with ban type %s is unavailable: %s',
+    async (banType, expected) => {
+      const student = await createTestUser(client)
+      const volunteer = await createTestUser(client, { banType })
+      await client.query(
+        `INSERT INTO sessions (id, student_id, volunteer_id, subject_id, volunteer_joined_at, ended_at, time_tutored)
+         VALUES ($1, $2, $3, 1, NOW(), NOW(), $4)`,
+        [getDbUlid(), student.id, volunteer.id, config.minSessionLength + 1]
+      )
+
+      const [pastVolunteer] = await getPastVolunteersByStudentId(student.id)
+
+      expect(pastVolunteer.volunteerId).toBe(volunteer.id)
+      expect(pastVolunteer.isUnavailable).toBe(expected)
+    }
+  )
+})

@@ -65,7 +65,8 @@ SELECT
     last_session_subject_name,
     last_session_subject_display_name,
     last_session_created_at,
-    last_session_time_tutored
+    last_session_time_tutored,
+    is_unavailable
 FROM ( SELECT DISTINCT ON (sessions.volunteer_id)
         sessions.volunteer_id AS volunteer_id,
         users.first_name AS first_name,
@@ -76,7 +77,8 @@ FROM ( SELECT DISTINCT ON (sessions.volunteer_id)
         subjects.display_name AS last_session_subject_display_name,
         sessions.created_at AS last_session_created_at,
         sessions.time_tutored AS last_session_time_tutored,
-        sessions.ended_at AS last_session_ended_at
+        sessions.ended_at AS last_session_ended_at,
+        (users.ban_type IS NOT DISTINCT FROM 'complete') AS is_unavailable
     FROM
         sessions
         JOIN users ON users.id = sessions.volunteer_id

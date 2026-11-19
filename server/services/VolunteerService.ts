@@ -583,8 +583,13 @@ function toVolunteerPublicProfileInfoShared(
   return sharedInfo
 }
 
-// Volunteers shouldn't know that students are shadow banned
 export type DirectMessageUnavailableReason = 'NOT_ENABLED' | 'UNAVAILABLE'
+
+function isDirectMessageBlockingBan(banType?: USER_BAN_TYPES | null) {
+  return (
+    banType === USER_BAN_TYPES.SHADOW || banType === USER_BAN_TYPES.COMPLETE
+  )
+}
 
 export type VolunteerPastStudentWithDmStatus =
   VolunteerRepo.VolunteerPastStudent & {
@@ -599,14 +604,14 @@ export async function getPastStudentsByVolunteerId(
     await VolunteerRepo.getPastStudentsByVolunteerId(volunteerId)
   const dmFlagResults = await Promise.allSettled(
     pastStudents.map((student) =>
-      student.studentBanType === USER_BAN_TYPES.SHADOW
+      isDirectMessageBlockingBan(student.studentBanType)
         ? false
         : FeatureFlagService.isDirectMessagesEnabled(student.studentId)
     )
   )
 
   return pastStudents.map((student, i) => {
-    if (student.studentBanType === USER_BAN_TYPES.SHADOW) {
+    if (isDirectMessageBlockingBan(student.studentBanType)) {
       return {
         ...student,
         canDirectMessage: false,
