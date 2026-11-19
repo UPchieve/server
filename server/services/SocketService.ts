@@ -169,6 +169,10 @@ class SocketService {
     this.io.to(userId).emit('queue:left', { reason })
   }
 
+  emitRejoinedQueue(userId: string, joinedAt: Date): void {
+    this.io.to(userId).emit('queue:rejoinedAfterSession', { joinedAt })
+  }
+
   // Sends a volunteer's updated shared info to the student in their session
   emitSharedInfo(
     sessionId: Ulid,

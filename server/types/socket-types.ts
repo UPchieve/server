@@ -132,6 +132,7 @@ export type ServerToClientEvents = {
   partnerJoinedLiveMedia: () => void
   'coaches:status-changed': () => void
   'queue:left': (data: { reason: LeaveQueueReason }) => void
+  'queue:rejoinedAfterSession': (data: { joinedAt: Date }) => void
 }
 
 export type InterServerEvents = {}

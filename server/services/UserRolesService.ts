@@ -9,6 +9,7 @@ import { InputError, NotAllowedError } from '../models/Errors'
 import { captureEvent } from './AnalyticsService'
 import { EVENTS } from '../constants'
 import * as SessionOfferService from './SessionOfferService'
+import logger from '../logger'
 
 export class RoleContext {
   readonly roles: UserRole[]
@@ -111,8 +112,20 @@ export async function switchActiveRole(
     existingRoleContext.legacyRole
   )
   await updateRoleContextCache(userId, newRoleContext)
-  if (existingRoleContext.activeRole === 'volunteer')
-    await SessionOfferService.leaveQueue(userId, 'switched role')
+  if (existingRoleContext.activeRole === 'volunteer') {
+    try {
+      await SessionOfferService.leaveQueue(userId, 'switched role')
+    } catch (err) {
+      // We should be able to leave the queue but if not, we don't need to fail b/c
+      // we have a fallback that will eventually remove them from the queue when
+      // their volunteer role remains inactive after the grace period. See SessionOfferService.
+      logger.error('Failed to remove coach from the queue after role switch', {
+        err,
+        userId,
+        newActiveRole,
+      })
+    }
+  }
   return { newRoleContext }
 }
 

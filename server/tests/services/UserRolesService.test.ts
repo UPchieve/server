@@ -186,6 +186,29 @@ describe('switchActiveRole', () => {
     )
   })
 
+  it('Still switches the role when removing the coach from the queue fails', async () => {
+    const userId = 'some-user'
+    mockedCacheService.getIfExists.mockResolvedValue(
+      JSON.stringify(
+        new RoleContext(['student', 'volunteer'], 'volunteer', 'volunteer')
+      )
+    )
+    mockedSessionOfferService.leaveQueue.mockRejectedValue(
+      new Error('redis is down')
+    )
+
+    const { newRoleContext } = await UserRolesService.switchActiveRole(
+      userId,
+      'student'
+    )
+
+    expect(newRoleContext.activeRole).toEqual('student')
+    expect(mockedCacheService.save).toHaveBeenCalledWith(
+      `${config.cacheKeys.userRoleContextPrefix}${userId}`,
+      JSON.stringify(newRoleContext)
+    )
+  })
+
   it('Does not touch the queue when the role is unchanged', async () => {
     mockedCacheService.getIfExists.mockResolvedValue(
       JSON.stringify(

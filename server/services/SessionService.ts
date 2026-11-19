@@ -297,6 +297,10 @@ export async function endSession(
     }
   })
 
+  if (endedSession.volunteerId) {
+    await SessionOfferService.maybeRejoinQueue(endedSession.volunteerId)
+  }
+
   await SessionHoldsService.clearSessionHolds(sessionId)
   try {
     await SessionOfferService.onOfferWithdrawn(sessionId)

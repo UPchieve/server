@@ -21,7 +21,10 @@ import {
   buildStudent,
   buildUserContactInfo,
   buildVolunteer,
+  buildWaitingCurrentSession,
 } from '../mocks/generate'
+import * as AssignmentsService from '../../services/AssignmentsService'
+import * as SessionMeetingService from '../../services/SessionMeetingService'
 import {
   LookupError,
   NotAllowedError,
@@ -537,6 +540,75 @@ describe('SessionService', () => {
 
       expect(error).toBeInstanceOf(SessionJoinError)
       expect(mocked(SessionOfferService).onSessionJoined).not.toHaveBeenCalled()
+    })
+
+    describe('scheduling the coach to rejoin the queue', () => {
+      // onSessionJoined takes the coach out of the queue and, if they were in it,
+      // writes the rejoin key (covered in SessionOfferService/index.test.ts)
+      test('hands the first join to SessionOfferService, which writes the rejoin key', async () => {
+        const { volunteer, session } = setup(undefined)
+
+        await SessionService.joinSession(volunteer, session.id, {})
+
+        expect(
+          mocked(SessionOfferService).onSessionJoined
+        ).toHaveBeenCalledTimes(1)
+        expect(
+          mocked(SessionOfferService).onSessionJoined
+        ).toHaveBeenCalledWith(session.id, volunteer.id)
+
+        // Now join the session again and make sure onSessionJoined still only called once
+        await SessionService.joinSession(volunteer, session.id, {})
+
+        expect(
+          mocked(SessionOfferService).onSessionJoined
+        ).toHaveBeenCalledTimes(1)
+      })
+    })
+  })
+
+  describe('endSession', () => {
+    beforeEach(() => {
+      jest
+        .spyOn(AssignmentsService, 'updateStudentAssignmentAfterSession')
+        .mockResolvedValue()
+      jest.spyOn(SessionMeetingService, 'endMeeting').mockResolvedValue()
+    })
+
+    afterEach(() => {
+      jest.restoreAllMocks()
+    })
+
+    async function endSession(session: CurrentSession) {
+      mockSessionRepo.getCurrentSessionBySessionId.mockResolvedValue(session)
+      mockSessionRepo.updateSessionToEnd.mockResolvedValue({
+        ...session,
+        endedAt: new Date(),
+      })
+      await SessionService.endSession(session.id, session.studentId)
+    }
+
+    test('tries to put the coach back in the queue when a matched session ends', async () => {
+      const session = buildCurrentSession()
+
+      await endSession(session)
+
+      expect(
+        mocked(SessionOfferService).maybeRejoinQueue
+      ).toHaveBeenCalledTimes(1)
+      expect(mocked(SessionOfferService).maybeRejoinQueue).toHaveBeenCalledWith(
+        session.volunteerId
+      )
+    })
+
+    test('does not try to put anyone back in the queue when an unmatched session ends', async () => {
+      const session = buildWaitingCurrentSession()
+
+      await endSession(session)
+
+      expect(
+        mocked(SessionOfferService).maybeRejoinQueue
+      ).not.toHaveBeenCalled()
     })
   })
 

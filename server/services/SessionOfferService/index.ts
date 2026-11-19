@@ -20,6 +20,9 @@ import { registerOfflineHandler } from '../PresenceService/offline-handlers'
 import * as SessionRepo from '../../models/Session'
 import { OFFERING_PERIOD_MS, OFFER_DURATION_MS } from './offer-config'
 import * as Queue from './queue'
+import Logger from '../../logger'
+import * as VolunteerRepo from '../../models/Volunteer'
+import { canCoach } from '../../utils/coach-utils'
 import { EVENTS } from '../../constants'
 
 function toOfferSession(session: CurrentSession): OfferSession {
@@ -177,6 +180,7 @@ export async function onSessionJoined(
   sessionId: Ulid,
   volunteerId: Ulid
 ): Promise<void> {
+  let leftQueue = false
   try {
     await closeOffersFor(sessionId, ({ pending }) =>
       pending.volunteerId === volunteerId ? 'accepted' : null
@@ -188,7 +192,18 @@ export async function onSessionJoined(
       joinedVolunteerId: volunteerId,
     })
   } finally {
-    await leaveQueue(volunteerId, 'joined session')
+    leftQueue = await leaveQueue(volunteerId, 'joined session')
+  }
+
+  try {
+    if (leftQueue) {
+      await scheduleCoachToRejoinQueue(volunteerId) // only schedule rejoins for people who were in the queue to begin with
+    }
+  } catch (err) {
+    logger.error(
+      'Failed to schedule coach to rejoin queue after session ends',
+      { err, sessionId, volunteerId }
+    )
   }
 }
 
@@ -277,7 +292,7 @@ export function listenForOfferExpiries() {
   Queue.onLeaveQueueGracePeriodExpired(async (coachId: Ulid) => {
     try {
       if (!(await PresenceService.isOnline(coachId, 'volunteer'))) {
-        return await leaveQueue(coachId, 'inactive')
+        await leaveQueue(coachId, 'inactive')
       }
     } catch (err) {
       logger.error('Failed to handle queue exit grace period expiry', {
@@ -299,16 +314,27 @@ async function stopOffering(sessionId: Ulid): Promise<void> {
   await SocketService.getInstance().emitSessionChange(sessionId)
 }
 
-export async function joinQueue(coachId: Ulid) {
-  const added = await Queue.addToQueue(coachId)
-  if (added) {
+/**
+ * Returns the Date the queue was joined at if it was joined.
+ * @param coachId
+ */
+export async function joinQueue(coachId: Ulid): Promise<Date | undefined> {
+  const joinedAt = await Queue.addToQueue(coachId)
+  if (joinedAt) {
     captureEvent(coachId, EVENTS.QUEUE_JOINED)
   } else {
     logger.warn('User was not joined to queue', { userId: coachId })
   }
+  return joinedAt
 }
 
-export async function leaveQueue(coachId: Ulid, reason: LeaveQueueReason) {
+/**
+ * Returns true if the coach was in the queue and left it, false otherwise
+ */
+export async function leaveQueue(
+  coachId: Ulid,
+  reason: LeaveQueueReason
+): Promise<boolean> {
   const removed = await Queue.removeFromQueue(coachId)
   if (removed) {
     captureEvent(coachId, EVENTS.QUEUE_LEFT, {
@@ -322,6 +348,7 @@ export async function leaveQueue(coachId: Ulid, reason: LeaveQueueReason) {
       intendedLeaveReason: reason,
     })
   }
+  return removed
 }
 
 export async function isInQueue(coachId: Ulid): Promise<boolean> {
@@ -333,4 +360,41 @@ export async function isInQueue(coachId: Ulid): Promise<boolean> {
  */
 export async function getInQueueSince(coachId: Ulid): Promise<Date | null> {
   return Queue.getInQueueSince(coachId)
+}
+
+export async function scheduleCoachToRejoinQueue(coachId: Ulid) {
+  await Queue.scheduleQueueRejoin(coachId)
+  captureEvent(coachId, EVENTS.SCHEDULED_USER_TO_REJOIN_QUEUE, {
+    userId: coachId,
+  })
+}
+
+/**
+ * Rejoins the coach to the queue if we had scheduled this to happen once they become available again.
+ * This serves as a mechanism for us to add coaches back to the queue after they are removed from it
+ * for picking up a session.
+ */
+export async function maybeRejoinQueue(coachId: Ulid) {
+  try {
+    const scheduledAt = await Queue.takeQueueRejoin(coachId)
+    if (!scheduledAt) {
+      return
+    }
+    const [isOnlineInCoachMode, coachEligibilities] = await Promise.all([
+      PresenceService.isOnline(coachId, 'volunteer'),
+      VolunteerRepo.getSubjectAndReadyToCoachInfoByUserIds([coachId]),
+    ])
+    const isEligible = canCoach(coachEligibilities[0])
+    if (isOnlineInCoachMode && isEligible) {
+      const joinedAt = await joinQueue(coachId)
+      if (joinedAt) {
+        SocketService.getInstance().emitRejoinedQueue(coachId, joinedAt)
+        captureEvent(coachId, EVENTS.AUTO_REJOINED_QUEUE, {
+          userId: coachId,
+        })
+      }
+    }
+  } catch (err) {
+    Logger.error('maybeRejoinQueue failed', { err, coachId })
+  }
 }

@@ -1,4 +1,5 @@
 import * as SessionOfferService from '../../../services/SessionOfferService'
+import * as Queue from '../../../services/SessionOfferService/queue'
 import {
   OFFERING_PERIOD_MS,
   OFFER_DURATION_MS,
@@ -57,6 +58,7 @@ const mockedSocketService = {
   emitSessionOfferClosed: jest.fn(),
   emitSessionChange: jest.fn(),
   emitLeftQueue: jest.fn(),
+  emitRejoinedQueue: jest.fn(),
 }
 
 let coaches: VolunteerSessionHoldEligibilityData[]
@@ -94,7 +96,7 @@ beforeEach(async () => {
   )
 })
 
-async function bringCoachOnline(
+async function bringCoachOnlineAndJoinQueue(
   overrides: Partial<VolunteerSessionHoldEligibilityData> = {}
 ): Promise<Ulid> {
   const coach = buildVolunteerSessionHoldEligibilityData(overrides)
@@ -133,7 +135,7 @@ async function offerSession(coachesOnline = 1): Promise<{
   session: CurrentSession
   coachId: Ulid
 }> {
-  for (let i = 0; i < coachesOnline; i++) await bringCoachOnline()
+  for (let i = 0; i < coachesOnline; i++) await bringCoachOnlineAndJoinQueue()
   const session = buildWaitingCurrentSession()
   await startAndOffer(session)
   return { session, coachId: lastOfferedCoach() }
@@ -316,7 +318,7 @@ describe('queue analytics events', () => {
 
 describe('withoutSessionsBeingOffered', () => {
   test('leaves out sessions that are being offered', async () => {
-    await bringCoachOnline()
+    await bringCoachOnlineAndJoinQueue()
     const offered = buildWaitingCurrentSession()
     const notOffered = buildWaitingCurrentSession()
     await startAndOffer(offered)
@@ -338,9 +340,9 @@ describe('withoutSessionsBeingOffered', () => {
 
 describe('makeInitialOffer', () => {
   test('offers the session to the top-ranked coach', async () => {
-    await bringCoachOnline()
-    const topCoach = await bringCoachOnline()
-    await bringCoachOnline()
+    await bringCoachOnlineAndJoinQueue()
+    const topCoach = await bringCoachOnlineAndJoinQueue()
+    await bringCoachOnlineAndJoinQueue()
     mockedSessionRepo.getLastSessionEndedAtByVolunteerIds.mockImplementation(
       async (volunteerIds) =>
         volunteerIds.map((volunteerId) => ({
@@ -372,8 +374,8 @@ describe('makeInitialOffer', () => {
   })
 
   test('skips coaches who already have an offer for another session', async () => {
-    await bringCoachOnline()
-    await bringCoachOnline()
+    await bringCoachOnlineAndJoinQueue()
+    await bringCoachOnlineAndJoinQueue()
 
     await startAndOffer(buildWaitingCurrentSession())
     await startAndOffer(buildWaitingCurrentSession())
@@ -412,7 +414,7 @@ describe('makeInitialOffer', () => {
     ['is banned', { banType: USER_BAN_TYPES.COMPLETE }],
     ['is shadow banned', { banType: USER_BAN_TYPES.SHADOW }],
   ])('stops offering when the only coach online %s', async (_, overrides) => {
-    await bringCoachOnline(overrides)
+    await bringCoachOnlineAndJoinQueue(overrides)
     const session = buildWaitingCurrentSession()
 
     await startAndOffer(session)
@@ -422,7 +424,7 @@ describe('makeInitialOffer', () => {
   })
 
   test('expects a passive coach to respond to a session no coach was offered', async () => {
-    const coachId = await bringCoachOnline()
+    const coachId = await bringCoachOnlineAndJoinQueue()
     await makeCoachPassive(coachId)
     mockedFeatureFlagService.isInSessionOffersTestGroup.mockResolvedValue(false)
     const session = buildWaitingCurrentSession()
@@ -437,7 +439,7 @@ describe('makeInitialOffer', () => {
   })
 
   test('stops offering when the only coach online is not in the test group', async () => {
-    const coachId = await bringCoachOnline()
+    const coachId = await bringCoachOnlineAndJoinQueue()
     mockedFeatureFlagService.isInSessionOffersTestGroup.mockResolvedValue(false)
     const session = buildWaitingCurrentSession()
 
@@ -451,7 +453,7 @@ describe('makeInitialOffer', () => {
   })
 
   test('stops offering when the only coach online is in or requested for a session', async () => {
-    const coachId = await bringCoachOnline()
+    const coachId = await bringCoachOnlineAndJoinQueue()
     mockedSessionRepo.getVolunteersInOrRequestedForSessions.mockResolvedValue([
       coachId,
     ])
@@ -464,7 +466,7 @@ describe('makeInitialOffer', () => {
   })
 
   test('stops offering when making the offer fails', async () => {
-    await bringCoachOnline()
+    await bringCoachOnlineAndJoinQueue()
     mockedSessionRepo.getLastSessionEndedAtByVolunteerIds.mockRejectedValue(
       new Error('db down')
     )
@@ -477,7 +479,7 @@ describe('makeInitialOffer', () => {
   })
 
   test('frees the coach when sending the offer fails', async () => {
-    const coachId = await bringCoachOnline()
+    const coachId = await bringCoachOnlineAndJoinQueue()
     mockedSocketService.emitSessionOffer.mockImplementationOnce(() => {
       throw new Error('socket down')
     })
@@ -497,9 +499,9 @@ describe('makeInitialOffer', () => {
 
 describe('claimTopCoach', () => {
   test('ranks only coaches who are both online and in the queue', async () => {
-    const onlineAndQueued = await bringCoachOnline()
+    const onlineAndQueued = await bringCoachOnlineAndJoinQueue()
     // online, but left the queue
-    const onlineNotQueued = await bringCoachOnline()
+    const onlineNotQueued = await bringCoachOnlineAndJoinQueue()
     await SessionOfferService.leaveQueue(
       onlineNotQueued,
       'manually exited queue'
@@ -529,7 +531,7 @@ describe('claimTopCoach', () => {
 
 describe('hideFromSessionList', () => {
   test('hides the session from the session list without offering it to a coach', async () => {
-    await bringCoachOnline()
+    await bringCoachOnlineAndJoinQueue()
     const session = buildWaitingCurrentSession()
 
     expect(await SessionOfferService.hideFromSessionList(session)).toBe(true)
@@ -567,8 +569,8 @@ describe('offering the session to the next coach', () => {
   ])(
     'offers the session to a coach who has not had it when the offer %s',
     async (_, closeOffer) => {
-      await bringCoachOnline()
-      await bringCoachOnline()
+      await bringCoachOnlineAndJoinQueue()
+      await bringCoachOnlineAndJoinQueue()
       const session = buildWaitingCurrentSession()
       await startAndOffer(session)
       const firstCoach = lastOfferedCoach()
@@ -819,7 +821,7 @@ describe('onSessionJoined', () => {
     test('a coach leaves the queue when they join a session offered to another coach', async () => {
       // Technically this shouldn't happen, but just in case, here's a test O_O"
       const { session, coachId: offeredCoach } = await offerSession()
-      const joiningCoach = await bringCoachOnline()
+      const joiningCoach = await bringCoachOnlineAndJoinQueue()
 
       await SessionOfferService.onSessionJoined(session.id, joiningCoach)
 
@@ -830,7 +832,7 @@ describe('onSessionJoined', () => {
     })
 
     test('a coach leaves the queue when they join a session that was never offered', async () => {
-      const coachId = await bringCoachOnline()
+      const coachId = await bringCoachOnlineAndJoinQueue()
 
       await SessionOfferService.onSessionJoined(
         buildWaitingCurrentSession().id,
@@ -840,6 +842,203 @@ describe('onSessionJoined', () => {
       expect(await SessionOfferService.isInQueue(coachId)).toBe(false)
       expectLeftQueueForJoining(coachId)
     })
+  })
+
+  describe('scheduling the coach to rejoin the queue', () => {
+    test('writes the rejoin key for a coach who was in the queue', async () => {
+      const coachId = await bringCoachOnlineAndJoinQueue()
+
+      await SessionOfferService.onSessionJoined(
+        buildWaitingCurrentSession().id,
+        coachId
+      )
+
+      expect(await Queue.takeQueueRejoin(coachId)).toBeInstanceOf(Date)
+    })
+
+    test('captures an analytics event when the coach is scheduled to rejoin', async () => {
+      const coachId = await bringCoachOnlineAndJoinQueue()
+
+      await SessionOfferService.onSessionJoined(
+        buildWaitingCurrentSession().id,
+        coachId
+      )
+
+      expect(AnalyticsService.captureEvent).toHaveBeenCalledWith(
+        coachId,
+        EVENTS.SCHEDULED_USER_TO_REJOIN_QUEUE,
+        { userId: coachId }
+      )
+    })
+
+    test('does not write the rejoin key for a coach who was not in the queue', async () => {
+      const coachId = await bringCoachOnlineAndJoinQueue()
+      await SessionOfferService.leaveQueue(coachId, 'manually exited queue')
+
+      await SessionOfferService.onSessionJoined(
+        buildWaitingCurrentSession().id,
+        coachId
+      )
+
+      expect(await Queue.takeQueueRejoin(coachId)).toBeUndefined()
+    })
+  })
+})
+
+describe('maybeRejoinQueue', () => {
+  afterEach(() => {
+    jest.restoreAllMocks()
+  })
+
+  // a queued coach who joined a session: out of the queue, with a rejoin scheduled
+  async function coachInSessionFromQueue(): Promise<Ulid> {
+    const coachId = await bringCoachOnlineAndJoinQueue()
+    await SessionOfferService.leaveQueue(coachId, 'joined session')
+    await Queue.scheduleQueueRejoin(coachId)
+    return coachId
+  }
+
+  test('does nothing when no rejoin was scheduled', async () => {
+    // online and eligible, but not in the queue when they joined the session,
+    // so onSessionJoined never scheduled a rejoin
+    const coachId = await bringCoachOnlineAndJoinQueue()
+    await SessionOfferService.leaveQueue(coachId, 'manually exited queue')
+    await SessionOfferService.onSessionJoined(
+      buildWaitingCurrentSession().id,
+      coachId
+    )
+    const takeQueueRejoin = jest.spyOn(Queue, 'takeQueueRejoin')
+    const addToQueue = jest.spyOn(Queue, 'addToQueue')
+
+    await SessionOfferService.maybeRejoinQueue(coachId)
+
+    expect(takeQueueRejoin).toHaveBeenCalledWith(coachId)
+    await expect(takeQueueRejoin.mock.results[0].value).resolves.toBeUndefined()
+    expect(
+      mockedVolunteerRepo.getSubjectAndReadyToCoachInfoByUserIds
+    ).not.toHaveBeenCalled()
+    expect(addToQueue).not.toHaveBeenCalled()
+    expect(mockedSocketService.emitRejoinedQueue).not.toHaveBeenCalled()
+    expect(await SessionOfferService.isInQueue(coachId)).toBe(false)
+  })
+
+  test('clears the scheduled rejoin', async () => {
+    const coachId = await coachInSessionFromQueue()
+    const takeQueueRejoin = jest.spyOn(Queue, 'takeQueueRejoin')
+
+    await SessionOfferService.maybeRejoinQueue(coachId)
+
+    expect(takeQueueRejoin).toHaveBeenCalledWith(coachId)
+    expect(await Queue.takeQueueRejoin(coachId)).toBeUndefined()
+  })
+
+  test('only one of two simultaneous calls acts on the scheduled rejoin', async () => {
+    // e.g. the student and coach both end the session at the same moment
+    const coachId = await coachInSessionFromQueue()
+
+    await Promise.all([
+      SessionOfferService.maybeRejoinQueue(coachId),
+      SessionOfferService.maybeRejoinQueue(coachId),
+    ])
+
+    // only the call that took the key goes on to rejoin
+    expect(
+      mockedVolunteerRepo.getSubjectAndReadyToCoachInfoByUserIds
+    ).toHaveBeenCalledTimes(1)
+    expect(mockedSocketService.emitRejoinedQueue).toHaveBeenCalledTimes(1)
+    expect(await SessionOfferService.isInQueue(coachId)).toBe(true)
+  })
+
+  test('clears the scheduled rejoin even when the coach cannot rejoin', async () => {
+    const coachId = await coachInSessionFromQueue()
+    jest.spyOn(PresenceService, 'isOnline').mockResolvedValue(false)
+
+    await SessionOfferService.maybeRejoinQueue(coachId)
+
+    expect(await Queue.takeQueueRejoin(coachId)).toBeUndefined()
+  })
+
+  test('puts an online, eligible coach back in the queue', async () => {
+    const coachId = await coachInSessionFromQueue()
+    const addToQueue = jest.spyOn(Queue, 'addToQueue')
+
+    await SessionOfferService.maybeRejoinQueue(coachId)
+
+    expect(addToQueue).toHaveBeenCalledWith(coachId)
+    expect(await SessionOfferService.isInQueue(coachId)).toBe(true)
+  })
+
+  test('does not put a coach back in the queue when they are offline', async () => {
+    const coachId = await coachInSessionFromQueue()
+    jest.spyOn(PresenceService, 'isOnline').mockResolvedValue(false)
+    const addToQueue = jest.spyOn(Queue, 'addToQueue')
+
+    await SessionOfferService.maybeRejoinQueue(coachId)
+
+    expect(addToQueue).not.toHaveBeenCalled()
+    expect(mockedSocketService.emitRejoinedQueue).not.toHaveBeenCalled()
+    expect(await SessionOfferService.isInQueue(coachId)).toBe(false)
+  })
+
+  test.each([
+    { why: 'complete banned', overrides: { banType: USER_BAN_TYPES.COMPLETE } },
+    { why: 'shadow banned', overrides: { banType: USER_BAN_TYPES.SHADOW } },
+    { why: 'no longer ready to coach', overrides: { isReadyToCoach: false } },
+    { why: 'deactivated', overrides: { isDeactivated: true } },
+  ])(
+    'does not put a coach back in the queue or tell them they rejoined when they are now $why',
+    async ({ overrides }) => {
+      const coachId = await coachInSessionFromQueue()
+      mockedVolunteerRepo.getSubjectAndReadyToCoachInfoByUserIds.mockResolvedValue(
+        [
+          buildVolunteerSessionHoldEligibilityData({
+            userId: coachId,
+            ...overrides,
+          }),
+        ]
+      )
+      const addToQueue = jest.spyOn(Queue, 'addToQueue')
+
+      await SessionOfferService.maybeRejoinQueue(coachId)
+
+      expect(addToQueue).not.toHaveBeenCalled()
+      expect(mockedSocketService.emitRejoinedQueue).not.toHaveBeenCalled()
+      expect(await SessionOfferService.isInQueue(coachId)).toBe(false)
+    }
+  )
+
+  test('tells the coach they rejoined, with the time they rejoined', async () => {
+    const coachId = await coachInSessionFromQueue()
+
+    await SessionOfferService.maybeRejoinQueue(coachId)
+
+    expect(mockedSocketService.emitRejoinedQueue).toHaveBeenCalledTimes(1)
+    expect(mockedSocketService.emitRejoinedQueue).toHaveBeenCalledWith(
+      coachId,
+      await SessionOfferService.getInQueueSince(coachId)
+    )
+  })
+
+  test('captures an analytics event when the coach is auto rejoined to the queue', async () => {
+    const coachId = await coachInSessionFromQueue()
+
+    await SessionOfferService.maybeRejoinQueue(coachId)
+
+    expect(AnalyticsService.captureEvent).toHaveBeenCalledWith(
+      coachId,
+      EVENTS.AUTO_REJOINED_QUEUE,
+      { userId: coachId }
+    )
+  })
+
+  test('does not tell the coach they rejoined when joining the queue returns no Date', async () => {
+    // addToQueue returns no Date when the coach is already in the queue or was unable to be added
+    const coachId = await coachInSessionFromQueue()
+    jest.spyOn(Queue, 'addToQueue').mockResolvedValue(undefined)
+
+    await SessionOfferService.maybeRejoinQueue(coachId)
+
+    expect(mockedSocketService.emitRejoinedQueue).not.toHaveBeenCalled()
   })
 })
 
@@ -868,7 +1067,7 @@ describe('onOfferWithdrawn', () => {
   })
 
   test('no coach is offered a session the student ended while coaches were being ranked', async () => {
-    const coachId = await bringCoachOnline()
+    const coachId = await bringCoachOnlineAndJoinQueue()
     const session = buildWaitingCurrentSession()
     mockedSessionRepo.getLastSessionEndedAtByVolunteerIds.mockImplementationOnce(
       async () => {
@@ -1079,7 +1278,7 @@ describe('Inactivity/presence grace period before kicking the coach out of the q
   }
 
   it('Keeps them in the queue until the grace period is over', async () => {
-    const coachId = await bringCoachOnline()
+    const coachId = await bringCoachOnlineAndJoinQueue()
     await simulateDisconnect(coachId)
     expect(mockedSocketService.emitLeftQueue).not.toHaveBeenCalled()
     expect(await isInQueue(coachId)).toEqual(true)
@@ -1091,7 +1290,7 @@ describe('Inactivity/presence grace period before kicking the coach out of the q
   })
 
   it('Keeps coach in the queue when they refresh the page', async () => {
-    const coachId = await bringCoachOnline()
+    const coachId = await bringCoachOnlineAndJoinQueue()
     await simulatePageRefresh(coachId)
     await listenForExpiredGracePeriod(coachId)
     expect(mockedSocketService.emitLeftQueue).not.toHaveBeenCalled()
@@ -1099,7 +1298,7 @@ describe('Inactivity/presence grace period before kicking the coach out of the q
   })
 
   it('Still records the disconnect in presence', async () => {
-    const coachId = await bringCoachOnline()
+    const coachId = await bringCoachOnlineAndJoinQueue()
     // trackInactivity only logs INACTIVE_ON_SITE for a client with presence keys,
     // which trackActivity creates
     await makeCoachActive(coachId)
@@ -1136,7 +1335,7 @@ describe('Inactivity/presence grace period before kicking the coach out of the q
       ],
     })
     try {
-      const coachId = await bringCoachOnline()
+      const coachId = await bringCoachOnlineAndJoinQueue()
       await simulateDisconnect(coachId)
       const key = (await gracePeriodKeyFor(coachId))!
       const fullGracePeriodMs = await redisClient.pttl(key)
@@ -1155,7 +1354,7 @@ describe('Inactivity/presence grace period before kicking the coach out of the q
 
   it('Emits once when the expiry is heard twice', async () => {
     // every subway server hears each key expiry
-    const coachId = await bringCoachOnline()
+    const coachId = await bringCoachOnlineAndJoinQueue()
     await simulateDisconnect(coachId)
     const key = (await gracePeriodKeyFor(coachId))!
 
@@ -1170,11 +1369,9 @@ describe('Inactivity/presence grace period before kicking the coach out of the q
   })
 
   it('Does nothing for a coach who left manually during the grace period', async () => {
-    const coachId = await bringCoachOnline()
+    const coachId = await bringCoachOnlineAndJoinQueue()
     await simulateDisconnect(coachId)
     await SessionOfferService.leaveQueue(coachId, 'manually exited queue')
-
-    await listenForExpiredGracePeriod(coachId)
 
     expect(mockedSocketService.emitLeftQueue).toHaveBeenCalledTimes(1)
     expect(mockedSocketService.emitLeftQueue).toHaveBeenCalledWith(
