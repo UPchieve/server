@@ -319,6 +319,14 @@ async function stopOffering(sessionId: Ulid): Promise<void> {
  * @param coachId
  */
 export async function joinQueue(coachId: Ulid): Promise<Date | undefined> {
+  const isOnlineAsVolunteer = await PresenceService.isOnline(
+    coachId,
+    'volunteer'
+  )
+  if (!isOnlineAsVolunteer) {
+    logger.warn('Non-volunteer attempted to join queue', { userId: coachId })
+    return
+  }
   const joinedAt = await Queue.addToQueue(coachId)
   if (joinedAt) {
     captureEvent(coachId, EVENTS.QUEUE_JOINED)

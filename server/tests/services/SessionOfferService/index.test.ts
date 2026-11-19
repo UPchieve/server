@@ -108,6 +108,11 @@ async function bringCoachOnlineAndJoinQueue(
   return coach.userId
 }
 
+async function joinQueueAsOnlineCoach(coachId: Ulid): Promise<void> {
+  await PresenceService.markOnline(coachId, 'volunteer', getUuid())
+  await SessionOfferService.joinQueue(coachId)
+}
+
 async function makeCoachPassive(coachId: Ulid): Promise<void> {
   await makeCoachActive(coachId)
   await PresenceService.trackPassivity({
@@ -244,7 +249,7 @@ describe('getInQueueSince', () => {
   test('is when the coach joined the queue', async () => {
     const coachId = getDbUlid()
 
-    await SessionOfferService.joinQueue(coachId)
+    await joinQueueAsOnlineCoach(coachId)
 
     expect(await SessionOfferService.getInQueueSince(coachId)).toEqual(
       JOINED_AT
@@ -257,7 +262,7 @@ describe('getInQueueSince', () => {
 
   test('is null once the coach leaves the queue', async () => {
     const coachId = getDbUlid()
-    await SessionOfferService.joinQueue(coachId)
+    await joinQueueAsOnlineCoach(coachId)
 
     await SessionOfferService.leaveQueue(coachId, 'manually exited queue')
 
@@ -266,10 +271,10 @@ describe('getInQueueSince', () => {
 
   test('keeps the original time when a coach already in the queue joins again', async () => {
     const coachId = getDbUlid()
-    await SessionOfferService.joinQueue(coachId)
+    await joinQueueAsOnlineCoach(coachId)
     jest.advanceTimersByTime(5 * 60 * 1000)
 
-    await SessionOfferService.joinQueue(coachId)
+    await joinQueueAsOnlineCoach(coachId)
 
     expect(await SessionOfferService.getInQueueSince(coachId)).toEqual(
       JOINED_AT
@@ -278,11 +283,11 @@ describe('getInQueueSince', () => {
 
   test('is the latest join time after the coach leaves and rejoins', async () => {
     const coachId = getDbUlid()
-    await SessionOfferService.joinQueue(coachId)
+    await joinQueueAsOnlineCoach(coachId)
     await SessionOfferService.leaveQueue(coachId, 'manually exited queue')
     jest.advanceTimersByTime(5 * 60 * 1000)
 
-    await SessionOfferService.joinQueue(coachId)
+    await joinQueueAsOnlineCoach(coachId)
 
     expect(await SessionOfferService.getInQueueSince(coachId)).toEqual(
       new Date(JOINED_AT.getTime() + 5 * 60 * 1000)
@@ -290,11 +295,50 @@ describe('getInQueueSince', () => {
   })
 })
 
+describe('joinQueue', () => {
+  test('does not add a coach who is not online', async () => {
+    const coachId = getDbUlid()
+
+    const joinedAt = await SessionOfferService.joinQueue(coachId)
+
+    expect(joinedAt).toBeUndefined()
+    expect(await SessionOfferService.isInQueue(coachId)).toBe(false)
+    expect(AnalyticsService.captureEvent).not.toHaveBeenCalledWith(
+      coachId,
+      EVENTS.QUEUE_JOINED
+    )
+  })
+
+  test('does not add a user who is online in a role other than volunteer', async () => {
+    const userId = getDbUlid()
+    await PresenceService.markOnline(userId, 'student', getUuid())
+
+    const joinedAt = await SessionOfferService.joinQueue(userId)
+
+    expect(joinedAt).toBeUndefined()
+    expect(await SessionOfferService.isInQueue(userId)).toBe(false)
+    expect(AnalyticsService.captureEvent).not.toHaveBeenCalledWith(
+      userId,
+      EVENTS.QUEUE_JOINED
+    )
+  })
+
+  test('adds a coach who is online as a volunteer', async () => {
+    const coachId = getDbUlid()
+    await PresenceService.markOnline(coachId, 'volunteer', getUuid())
+
+    const joinedAt = await SessionOfferService.joinQueue(coachId)
+
+    expect(joinedAt).toBeInstanceOf(Date)
+    expect(await SessionOfferService.isInQueue(coachId)).toBe(true)
+  })
+})
+
 describe('queue analytics events', () => {
   test('joinQueue captures QUEUE_JOINED', async () => {
     const coachId = getDbUlid()
 
-    await SessionOfferService.joinQueue(coachId)
+    await joinQueueAsOnlineCoach(coachId)
 
     expect(AnalyticsService.captureEvent).toHaveBeenCalledWith(
       coachId,
@@ -304,7 +348,7 @@ describe('queue analytics events', () => {
 
   test('leaveQueue captures QUEUE_LEFT with the reason', async () => {
     const coachId = getDbUlid()
-    await SessionOfferService.joinQueue(coachId)
+    await joinQueueAsOnlineCoach(coachId)
 
     await SessionOfferService.leaveQueue(coachId, 'manually exited queue')
 
@@ -506,10 +550,10 @@ describe('claimTopCoach', () => {
       onlineNotQueued,
       'manually exited queue'
     )
-    // in the queue, but not online
+    // in the queue, but not online (e.g. went offline during the leave-queue grace period)
     const queuedNotOnline = buildVolunteerSessionHoldEligibilityData()
     coaches.push(queuedNotOnline)
-    await SessionOfferService.joinQueue(queuedNotOnline.userId)
+    await Queue.addToQueue(queuedNotOnline.userId)
     const session = buildWaitingCurrentSession()
     // claiming a coach needs the offer history that hiding the session saves
     await SessionOfferService.hideFromSessionList(session)
