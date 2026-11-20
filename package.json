@@ -113,6 +113,7 @@
     "express-cache-controller": "^1.1.0",
     "express-session": "^1.14.2",
     "express-ws": "^5.0.2",
+    "fast-jwt": "^6.3.6",
     "file-type-mime": "^0.4.7",
     "firebase-admin": "^14.5.0",
     "google-auth-library": "^9.15.1",

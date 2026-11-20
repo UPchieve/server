@@ -494,6 +494,10 @@ const config = {
   zwibblerNodeUrl: process.env.ZWIBBLER_NODE_URL || 'bogus',
   slackAlertWebHookUrl: process.env.SUBWAY_SLACK_ALERT_WEBHOOK_URL || 'bogus',
 
+  // Whiteboard authorization
+  whiteboardTokenPrivateKey:
+    process.env.WHITEBOARD_TOKEN_PRIVATE_KEY || 'bogus',
+
   // used for retool apps that need to access the admin api
   retoolAdminEmail: process.env.SUBWAY_RETOOL_ADMIN_EMAIL,
 
