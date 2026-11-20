@@ -44,4 +44,16 @@ describe('isBlockedEmailDomain', () => {
       'subdomain.example.com'
     )
   })
+
+  test('normalizes the domain before checking the blocklist', async () => {
+    mockedRepo.getEmailDomainBlocklistEntry.mockResolvedValueOnce({
+      id: 1,
+      domain: 'blocked.com',
+    })
+
+    expect(await isBlockedEmailDomain('User@BLOCKED.COM')).toBe(true)
+    expect(mockedRepo.getEmailDomainBlocklistEntry).toHaveBeenCalledWith(
+      'blocked.com'
+    )
+  })
 })

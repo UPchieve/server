@@ -17,6 +17,11 @@ jest.mock('@sendgrid/mail', () => ({
   },
 }))
 
+jest.mock('../../utils/emailDomain-utils', () => ({
+  ...jest.requireActual('../../utils/emailDomain-utils'),
+  isBlockedEmailDomain: jest.fn().mockResolvedValue(false),
+}))
+
 jest.mock('../../utils/environments', () => ({
   ...jest.requireActual('../../utils/environments'),
   isDevEnvironment: () => false,

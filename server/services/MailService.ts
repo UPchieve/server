@@ -18,6 +18,10 @@ import { getFullStudentPartnerOrgByKey } from '../models/StudentPartnerOrg'
 import { getUPFByUserId } from '../models/UserProductFlags'
 import { buildAppLink } from '../utils/link-builders'
 import { isDevEnvironment, isE2eEnvironment } from '../utils/environments'
+import {
+  getEmailDomain,
+  isBlockedEmailDomain,
+} from '../utils/emailDomain-utils'
 import logger from '../logger'
 import { getNthsUserAttributes } from './NTHSUserAttributesService'
 import {
@@ -107,6 +111,14 @@ async function sendEmail(
     return
   }
 
+  if (await isBlockedEmailDomain(toEmail)) {
+    logger.info('sendEmail: skipping blocked email domain', {
+      domain: getEmailDomain(toEmail),
+      templateId,
+    })
+    return
+  }
+
   const msg = {
     to: toEmail,
     from: {
@@ -147,7 +159,27 @@ async function sendBulkEmail(
     return
   }
 
-  const emailData: sgMail.MailDataRequired[] = emails.map(
+  const blockedDomains = new Map<string, boolean>()
+  const allowedEmails: BulkEmail[] = []
+  for (const email of emails) {
+    const domain = getEmailDomain(email.to)
+    if (!blockedDomains.has(domain)) {
+      blockedDomains.set(domain, await isBlockedEmailDomain(email.to))
+    }
+    if (!blockedDomains.get(domain)) {
+      allowedEmails.push(email)
+    }
+  }
+
+  if (allowedEmails.length < emails.length) {
+    logger.info('sendBulkEmail: skipping blocked email domains', {
+      blockedCount: emails.length - allowedEmails.length,
+      templateId,
+    })
+  }
+  if (!allowedEmails.length) return
+
+  const emailData: sgMail.MailDataRequired[] = allowedEmails.map(
     ({ to, dynamicData, overrides }) => ({
       to,
       from: {
