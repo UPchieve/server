@@ -31,6 +31,7 @@ import * as SessionSummariesService from '../../../services/SessionSummariesServ
 import * as SocketServiceModule from '../../../services/SocketService'
 import * as SurveyService from '../../../services/SurveyService'
 import * as TutorBotService from '../../../services/TutorBotService'
+import * as WhiteboardTokenService from '../../../services/WhiteboardTokenService'
 import { ReportSessionError } from '../../../utils/session-utils'
 import { getUuid } from '../../../models/pgUtils'
 import { RoleContext } from '../../../services/UserRolesService'
@@ -63,6 +64,7 @@ jest.mock('../../../services/SocketService', () => ({
 }))
 jest.mock('../../../services/SurveyService')
 jest.mock('../../../services/TutorBotService')
+jest.mock('../../../services/WhiteboardTokenService')
 jest.mock('../../../utils/auth-utils', () => ({
   authPassport: {
     isAdmin,
@@ -77,6 +79,7 @@ const mockedSocketServiceModule = mocked(SocketServiceModule)
 const mockedSessionSummariesService = mocked(SessionSummariesService)
 const mockedSurveyService = mocked(SurveyService)
 const mockedTutorBotService = mocked(TutorBotService)
+const mockedWhiteboardTokenService = mocked(WhiteboardTokenService)
 
 let mockUser = buildUser()
 const userAgent = 'test-user-agent'
@@ -123,6 +126,44 @@ describe('routeSession', () => {
     mockedSocketServiceModule.default.getInstance.mockReturnValue(
       socketService as never
     )
+    mockedWhiteboardTokenService.WHITEBOARD_COOKIE_NAME = 'whiteboard_token'
+    mockedWhiteboardTokenService.WHITEBOARD_TOKEN_TTL_MS = 3600000
+    mockedWhiteboardTokenService.getWhiteboardCookieOptions.mockReturnValue({
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+      maxAge: 3600000,
+      path: '/graffiti/whiteboard/room/test',
+    })
+  })
+
+  afterEach(() => {
+    jest.restoreAllMocks()
+  })
+
+  describe('POST /api/session/:sessionId/whiteboard-token', () => {
+    test('sets a whiteboard token cookie for an authorized user', async () => {
+      const sessionId = getUuid()
+      mockedWhiteboardTokenService.getWhiteboardToken.mockResolvedValue({
+        token: 'signed-whiteboard-token',
+        expiresAt: '2026-01-01T13:00:00.000Z',
+      })
+
+      const response = await sendPost(
+        `/api/session/${sessionId}/whiteboard-token`
+      )
+
+      expect(response.status).toBe(200)
+      expect(response.body).toEqual({
+        expiresAt: '2026-01-01T13:00:00.000Z',
+      })
+      expect(
+        mockedWhiteboardTokenService.getWhiteboardToken
+      ).toHaveBeenCalledWith(mockUser.id, sessionId)
+      expect(response.headers['set-cookie']).toEqual([
+        expect.stringContaining('whiteboard_token=signed-whiteboard-token'),
+      ])
+    })
   })
 
   describe('POST /api/session/new', () => {

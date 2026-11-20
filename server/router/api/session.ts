@@ -3,6 +3,7 @@ import SocketService from '../../services/SocketService'
 import * as TutorBotService from '../../services/TutorBotService'
 import * as AssignmentsService from '../../services/AssignmentsService'
 import * as SessionService from '../../services/SessionService'
+import * as WhiteboardTokenService from '../../services/WhiteboardTokenService'
 import { authPassport } from '../../utils/auth-utils'
 import { InputError, LookupError } from '../../models/Errors'
 import { resError } from '../res-error'
@@ -128,6 +129,26 @@ export function routeSession(router: Router) {
       resError(res, error)
     }
   })
+
+  router
+    .route('/session/:sessionId/whiteboard-token')
+    .post(async function (req, res) {
+      try {
+        const user = extractUser(req)
+        const sessionId = asUlid(req.params.sessionId)
+        const { token, expiresAt } =
+          await WhiteboardTokenService.getWhiteboardToken(user.id, sessionId)
+
+        res.cookie(
+          WhiteboardTokenService.WHITEBOARD_COOKIE_NAME,
+          token,
+          WhiteboardTokenService.getWhiteboardCookieOptions(sessionId)
+        )
+        res.status(200).send({ expiresAt })
+      } catch (error) {
+        resError(res, error)
+      }
+    })
 
   router.route('/session/end').post(async function (
     req,

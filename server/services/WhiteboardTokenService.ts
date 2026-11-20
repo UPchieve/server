@@ -44,13 +44,14 @@ export async function ensureUserCanJoinWhiteboard(
   throw new NotAllowedError('Not authorized to access this whiteboard')
 }
 
-export async function getWhiteboardJWT(
+export async function getWhiteboardToken(
   userId: Ulid,
   sessionId: Ulid
-): Promise<string> {
+): Promise<{ token: string; expiresAt: string }> {
   await ensureUserCanJoinWhiteboard(userId, sessionId)
 
   const claims: WhiteboardTokenClaims = { sessionId, sub: userId }
+  const expiresAt = new Date(Date.now() + WHITEBOARD_TOKEN_TTL_MS).toISOString()
 
   const sign = createSigner({
     key: config.whiteboardTokenPrivateKey,
@@ -60,7 +61,7 @@ export async function getWhiteboardJWT(
     aud: 'graffiti',
   })
 
-  return sign(claims)
+  return { token: sign(claims), expiresAt }
 }
 
 export function getWhiteboardCookieOptions(sessionId: Ulid): CookieOptions {

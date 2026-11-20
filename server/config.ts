@@ -496,7 +496,7 @@ const config = {
 
   // Whiteboard authorization
   whiteboardTokenPrivateKey:
-    process.env.WHITEBOARD_TOKEN_PRIVATE_KEY || 'bogus',
+    process.env.WHITEBOARD_AUTH_TOKEN_PRIVATE || 'bogus',
 
   // used for retool apps that need to access the admin api
   retoolAdminEmail: process.env.SUBWAY_RETOOL_ADMIN_EMAIL,

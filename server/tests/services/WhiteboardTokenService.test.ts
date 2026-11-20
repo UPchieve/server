@@ -20,6 +20,10 @@ describe('WhiteboardTokenService', () => {
     jest.resetAllMocks()
   })
 
+  afterEach(() => {
+    jest.restoreAllMocks()
+  })
+
   function setWhiteboardTokenPrivateKey(): string {
     const { privateKey, publicKey } = generateKeyPairSync('ed25519')
     const privateKeyPem = privateKey.export({ type: 'pkcs8', format: 'pem' })
@@ -81,16 +85,17 @@ describe('WhiteboardTokenService', () => {
     )
   })
 
-  test('returns a signed, one-hour token for an authorized user', async () => {
+  test('returns a signed token and its expiration for an authorized user', async () => {
     const userId = getDbUlid()
     const session = buildCurrentSession({ studentId: userId })
     mockedSessionService.getCurrentSessionById.mockResolvedValue(session)
     const publicKey = setWhiteboardTokenPrivateKey()
+    jest
+      .spyOn(Date, 'now')
+      .mockReturnValue(new Date('2026-01-01T12:00:00.000Z').getTime())
 
-    const token = await WhiteboardTokenService.getWhiteboardJWT(
-      userId,
-      session.id
-    )
+    const { token, expiresAt } =
+      await WhiteboardTokenService.getWhiteboardToken(userId, session.id)
     const verify = createVerifier({
       key: publicKey,
       algorithms: ['EdDSA'],
@@ -100,6 +105,7 @@ describe('WhiteboardTokenService', () => {
     })
     const { payload, header } = verify(token)
 
+    expect(expiresAt).toBe('2026-01-01T13:00:00.000Z')
     expect(header).toEqual({
       alg: 'EdDSA',
       typ: 'JWT',
