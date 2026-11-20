@@ -57,3 +57,7 @@ export type GetQueueStatusResponse = {
   /** when the coach last joined the queue; null when they aren't in it */
   inQueueSince: ISODateString | null
 }
+
+export type JoinQueueResultPublic = {
+  joinedAt: Date | null
+}

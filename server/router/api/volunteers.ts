@@ -9,12 +9,14 @@ import type { Response, Router } from 'express'
 import { asNumber, asString } from '../../utils/type-utils'
 import { resError } from '../res-error'
 import {
+  toJoinQueuePublic,
   toPastStudentPublic,
   toVolunteerToReviewPublic,
 } from '../../contracts/volunteers.mappers'
 import type {
   AggregateAvailabitiesResponse,
   GetQueueStatusResponse,
+  JoinQueueResultPublic,
   LastHoursUpdatedResponse,
   PastStudentsResponse,
   VolunteerPresenceResponse,
@@ -134,15 +136,18 @@ export function routeVolunteers(router: Router): void {
     }
   )
 
-  router.post('/volunteers/queue/join', async function (req, res) {
-    try {
-      const userId = extractUser(req).id
-      await SessionOfferService.joinQueue(userId)
-      res.status(201).send()
-    } catch (err) {
-      resError(res, err)
+  router.post(
+    '/volunteers/queue/join',
+    async function (req, res: Response<JoinQueueResultPublic>) {
+      try {
+        const userId = extractUser(req).id
+        const joinedAt = await SessionOfferService.joinQueue(userId)
+        res.json(toJoinQueuePublic({ joinedAt }))
+      } catch (err) {
+        resError(res, err)
+      }
     }
-  })
+  )
 
   router.post('/volunteers/queue/leave', async function (req, res) {
     try {

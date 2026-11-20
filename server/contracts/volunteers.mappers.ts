@@ -1,6 +1,7 @@
 import type {
   PastStudentPublic,
   VolunteerToReviewPublic,
+  JoinQueueResultPublic,
 } from '../contracts/volunteers'
 import type { VolunteerToReview } from '../models/Volunteer'
 import type { VolunteerPastStudentWithDmStatus } from '../services/VolunteerService'
@@ -34,5 +35,13 @@ export function toPastStudentPublic(
     timeTutored: student.timeTutored,
     canDirectMessage: student.canDirectMessage,
     directMessageUnavailableReason: student.directMessageUnavailableReason,
+  }
+}
+
+export function toJoinQueuePublic(data: {
+  joinedAt: Date | undefined
+}): JoinQueueResultPublic {
+  return {
+    joinedAt: data.joinedAt ?? null,
   }
 }
