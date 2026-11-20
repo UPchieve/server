@@ -17,7 +17,6 @@ import { USER_BAN_TYPES } from '../../constants'
 import {
   buildNTHSGroupMemberWithRole,
   buildNTHSChapterRosterMember,
-  buildNTHSChapterTopTutor,
 } from '../mocks/generate'
 
 jest.mock('../../db')
@@ -221,7 +220,6 @@ describe('makeChaptersSchoolOfficial', () => {
 
 describe('getChapterImpact', () => {
   const groupId = getDbUlid()
-  const viewerId = getDbUlid()
   const at = new Date('2026-09-13T12:00:00.000Z')
   const totals = {
     hasOfficialStatus: false,
@@ -240,16 +238,10 @@ describe('getChapterImpact', () => {
 
   beforeEach(() => {
     mockedNTHSRepo.getNthsChapterImpact.mockResolvedValue(totals)
-    mockedNTHSRepo.getNthsChapterTopTutor.mockResolvedValue(undefined)
-    mockedNTHSRepo.getNthsChapterMemberHoursTutored.mockResolvedValue(0)
   })
 
-  it('reports the totals, goals, top tutor and viewer hours for the school year containing `at`', async () => {
-    const topTutor = buildNTHSChapterTopTutor()
-    mockedNTHSRepo.getNthsChapterTopTutor.mockResolvedValue(topTutor)
-    mockedNTHSRepo.getNthsChapterMemberHoursTutored.mockResolvedValue(1.5)
-
-    const impact = await NTHSService.getChapterImpact(groupId, viewerId, at)
+  it('reports the totals and goals for the school year containing `at`', async () => {
+    const impact = await NTHSService.getChapterImpact(groupId, at)
 
     const startsAt = new Date('2026-07-01T00:00:00.000Z')
     const endsAt = new Date('2027-07-01T00:00:00.000Z')
@@ -265,8 +257,6 @@ describe('getChapterImpact', () => {
       schoolYearToDate: totals.schoolYearToDate,
       allTime: totals.allTime,
       goals: NTHSService.CHAPTER_GOALS,
-      topTutorThisMonth: topTutor,
-      viewerHoursThisMonth: 1.5,
       official: false,
     })
   })
@@ -284,33 +274,9 @@ describe('getChapterImpact', () => {
         schoolYearToDate: { ...totals.schoolYearToDate, membersTutoring },
       })
 
-      const impact = await NTHSService.getChapterImpact(groupId, viewerId, at)
+      const impact = await NTHSService.getChapterImpact(groupId, at)
 
       expect(impact.official).toBe(expected)
-    }
-  )
-
-  it.each([
-    ['no month start sent', undefined, new Date('2026-09-01T00:00:00.000Z')],
-    [
-      'the browser month start',
-      new Date('2026-09-01T04:00:00.000Z'),
-      new Date('2026-09-01T04:00:00.000Z'),
-    ],
-  ])(
-    'measures the month from %s, falling back to the UTC 1st',
-    async (_label, monthStartsAt, expectedStart) => {
-      await NTHSService.getChapterImpact(groupId, viewerId, at, monthStartsAt)
-
-      expect(mockedNTHSRepo.getNthsChapterTopTutor).toHaveBeenCalledWith(
-        groupId,
-        expectedStart,
-        at,
-        undefined
-      )
-      expect(
-        mockedNTHSRepo.getNthsChapterMemberHoursTutored
-      ).toHaveBeenCalledWith(groupId, viewerId, expectedStart, at, undefined)
     }
   )
 })
@@ -510,12 +476,6 @@ describe('getChapterRoster', () => {
         new Date(at),
         undefined
       )
-      expect(mockedNTHSRepo.getNthsChapterTopTutor).toHaveBeenCalledWith(
-        groupId,
-        new Date(monthStartsAt),
-        new Date(at),
-        undefined
-      )
     }
   )
 
@@ -538,12 +498,6 @@ describe('getChapterRoster', () => {
         lastTwoWeeksStartsAt: new Date('2027-01-25T00:00:00.000Z'),
         monthStartsAt,
       },
-      at,
-      undefined
-    )
-    expect(mockedNTHSRepo.getNthsChapterTopTutor).toHaveBeenCalledWith(
-      groupId,
-      monthStartsAt,
       at,
       undefined
     )

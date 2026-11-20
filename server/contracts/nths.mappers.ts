@@ -12,7 +12,6 @@ import type {
   NTHSChapterImpactPublic,
   NTHSChapterRosterMemberPublic,
   NTHSChapterRosterPublic,
-  NTHSChapterTopTutorPublic,
   NTHSSchoolYearPublic,
 } from '../contracts/nths-group'
 import { NTHSCandidateApplicationPublic } from '../contracts/nths-application'
@@ -27,7 +26,6 @@ import {
   NTHSChapterImpact,
   NTHSChapterRoster,
   NTHSChapterRosterMember,
-  NTHSChapterTopTutor,
 } from '../models/NTHSGroups'
 import { NTHSCandidateApplication } from '../models/NTHSApplication'
 import { SchoolYear } from '../utils/school-year'
@@ -176,10 +174,6 @@ export function toNTHSChapterImpactPublic(
     schoolYearToDate: impact.schoolYearToDate,
     allTime: impact.allTime,
     goals: impact.goals,
-    topTutorThisMonth:
-      impact.topTutorThisMonth &&
-      toNTHSChapterTopTutorPublic(impact.topTutorThisMonth),
-    viewerHoursThisMonth: impact.viewerHoursThisMonth,
     official: impact.official,
   }
 }
@@ -205,18 +199,6 @@ export function toNTHSChapterRosterMemberPublic(
   }
 }
 
-export function toNTHSChapterTopTutorPublic(
-  topTutor: NTHSChapterTopTutor
-): NTHSChapterTopTutorPublic {
-  return {
-    userId: topTutor.userId,
-    firstName: topTutor.firstName,
-    lastInitial: topTutor.lastInitial,
-    hoursTutored: topTutor.hoursTutored,
-    sessionsCompleted: topTutor.sessionsCompleted,
-  }
-}
-
 export function toNTHSChapterRosterPublic(
   roster: NTHSChapterRoster
 ): NTHSChapterRosterPublic {
@@ -224,8 +206,5 @@ export function toNTHSChapterRosterPublic(
     groupId: roster.groupId,
     schoolYear: toNTHSSchoolYearPublic(roster.schoolYear),
     members: roster.members.map(toNTHSChapterRosterMemberPublic),
-    topTutorThisMonth:
-      roster.topTutorThisMonth &&
-      toNTHSChapterTopTutorPublic(roster.topTutorThisMonth),
   }
 }

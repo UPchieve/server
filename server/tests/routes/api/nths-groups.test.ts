@@ -9,7 +9,6 @@ import {
   buildNTHSGroupMemberWithRolePublic,
   buildNTHSGroupWithMemberInfo,
   buildNTHSChapterRosterMember,
-  buildNTHSChapterTopTutor,
   buildUser,
   buildVolunteer,
 } from '../../mocks/generate'
@@ -860,7 +859,6 @@ describe('routeNTHSGroups', () => {
 
   describe('GET /api/nths-groups/:groupId/impact', () => {
     function sendImpactGet(
-      query: Record<string, string> = {},
       overrides: {
         roleName?: NTHSGroupRoleName
         impact?: Partial<NTHSChapterImpact>
@@ -874,13 +872,10 @@ describe('routeNTHSGroups', () => {
       mockedNTHSGroupsService.getChapterImpact.mockResolvedValueOnce(
         buildNTHSChapterImpact({ groupId, schoolYear, ...overrides.impact })
       )
-      return sendGet(
-        `/api/nths-groups/${groupId}/impact?${new URLSearchParams(query)}`
-      )
+      return sendGet(`/api/nths-groups/${groupId}/impact`)
     }
 
     test('serializes the impact for the response body', async () => {
-      const topTutorThisMonth = buildNTHSChapterTopTutor({ userId: memberId })
       const schoolYearToDate = {
         studentsHelped: 4,
         sessionsCompleted: 6,
@@ -894,19 +889,14 @@ describe('routeNTHSGroups', () => {
       }
       const goals = { hoursTutored: 40, membersTutoring: 3 }
 
-      const response = await sendImpactGet(
-        {},
-        {
-          impact: {
-            topTutorThisMonth,
-            viewerHoursThisMonth: 1.5,
-            schoolYearToDate,
-            allTime,
-            goals,
-            official: true,
-          },
-        }
-      )
+      const response = await sendImpactGet({
+        impact: {
+          schoolYearToDate,
+          allTime,
+          goals,
+          official: true,
+        },
+      })
       expect(response.status).toBe(200)
       expect(response.body.impact).toEqual({
         groupId,
@@ -914,27 +904,7 @@ describe('routeNTHSGroups', () => {
         schoolYearToDate,
         allTime,
         goals,
-        topTutorThisMonth,
-        viewerHoursThisMonth: 1.5,
         official: true,
-      })
-    })
-
-    describe('monthStartsAt', () => {
-      test('counts the signed-in member from the month start the browser sent', async () => {
-        const monthStartsAt = new Date(Date.now() - 14 * DAY_MS)
-
-        const response = await sendImpactGet({
-          monthStartsAt: monthStartsAt.toISOString(),
-        })
-
-        expect(response.status).toBe(200)
-        expect(mockedNTHSGroupsService.getChapterImpact).toHaveBeenCalledWith(
-          groupId,
-          mockUser.id,
-          expect.any(Date),
-          monthStartsAt
-        )
       })
     })
 
@@ -969,7 +939,7 @@ describe('routeNTHSGroups', () => {
       )
     }
 
-    test('returns training, safety, account and activity fields per member, and the top tutor', async () => {
+    test('returns training, safety, account and activity fields per member', async () => {
       const joinedAt = new Date('2026-08-01T00:00:00.000Z')
       const lastActiveAt = new Date('2026-09-11T00:00:00.000Z')
       const member = buildNTHSChapterRosterMember({
@@ -989,18 +959,16 @@ describe('routeNTHSGroups', () => {
         },
         lastActiveAt,
       })
-      const topTutorThisMonth = buildNTHSChapterTopTutor({ userId: memberId })
 
       const response = await sendRosterGet(
         {},
-        { roster: { members: [member], topTutorThisMonth } }
+        { roster: { members: [member] } }
       )
       expect(response.status).toBe(200)
       expect(response.body).toEqual({
         roster: {
           groupId,
           schoolYear: schoolYearPublic,
-          topTutorThisMonth,
           members: [
             {
               ...member,

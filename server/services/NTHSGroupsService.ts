@@ -1074,37 +1074,22 @@ export async function getChapterMemberClearance(userId: Ulid): Promise<{
 
 export async function getChapterImpact(
   groupId: Ulid,
-  viewerId: Ulid,
   at: Date,
-  monthStartsAt?: Date,
   tc: TransactionClient = getRoClient()
 ): Promise<NTHSChapterImpact> {
   const schoolYear = schoolYearFor(at)
-  const monthStart = monthStartsAt ?? utcPeriodStartsFor(at).monthStartsAt
-  const [totals, topTutorThisMonth, viewerHoursThisMonth] = await Promise.all([
-    NTHSGroupsRepo.getNthsChapterImpact(
-      groupId,
-      schoolYear.startsAt,
-      schoolYear.endsAt,
-      tc
-    ),
-    NTHSGroupsRepo.getNthsChapterTopTutor(groupId, monthStart, at, tc),
-    NTHSGroupsRepo.getNthsChapterMemberHoursTutored(
-      groupId,
-      viewerId,
-      monthStart,
-      at,
-      tc
-    ),
-  ])
+  const totals = await NTHSGroupsRepo.getNthsChapterImpact(
+    groupId,
+    schoolYear.startsAt,
+    schoolYear.endsAt,
+    tc
+  )
   return {
     groupId,
     schoolYear,
     schoolYearToDate: totals.schoolYearToDate,
     allTime: totals.allTime,
     goals: CHAPTER_GOALS,
-    topTutorThisMonth,
-    viewerHoursThisMonth,
     official:
       totals.hasOfficialStatus ||
       totals.schoolYearToDate.membersTutoring >= CHAPTER_GOALS.membersTutoring,
@@ -1131,28 +1116,19 @@ export async function getChapterRoster(
       periodStarts.lastTwoWeeksStartsAt ?? utcStarts.lastTwoWeeksStartsAt,
     monthStartsAt: periodStarts.monthStartsAt ?? utcStarts.monthStartsAt,
   }
-  const [rows, topTutorThisMonth] = await Promise.all([
-    NTHSGroupsRepo.getNthsChapterRoster(
-      groupId,
-      schoolYear.startsAt,
-      schoolYear.endsAt,
-      starts,
-      at,
-      tc
-    ),
-    NTHSGroupsRepo.getNthsChapterTopTutor(
-      groupId,
-      starts.monthStartsAt,
-      at,
-      tc
-    ),
-  ])
+  const rows = await NTHSGroupsRepo.getNthsChapterRoster(
+    groupId,
+    schoolYear.startsAt,
+    schoolYear.endsAt,
+    starts,
+    at,
+    tc
+  )
   return {
     groupId,
     schoolYear,
     members: includeClosedAccounts
       ? rows
       : rows.filter((row) => !row.accountClosed),
-    topTutorThisMonth,
   }
 }

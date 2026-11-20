@@ -5,7 +5,7 @@
 import { mocked } from 'jest-mock'
 import * as PgClient from '../../db'
 import { getClient } from '../../db'
-import { getDbUlid, Ulid } from '../../models/pgUtils'
+import { Ulid } from '../../models/pgUtils'
 import { getName } from '../mocks/generate'
 import {
   ChapterMemberOptions,
@@ -24,7 +24,6 @@ const client = getClient()
 // Anywhere inside the 2026-27 school year, starting 2026-07-01.
 const NOW = new Date('2026-11-15T00:00:00.000Z')
 const YEAR_STARTS_AT = '2026-07-01T00:00:00.000Z'
-const OUTSIDE_VIEWER_ID = getDbUlid()
 
 let subjectId: number
 let defaultStudentId: Ulid
@@ -127,11 +126,7 @@ describe('getChapterImpact', () => {
     })
     await addSession(memberId, { volunteerJoinedAt: YEAR_STARTS_AT })
 
-    const impact = await NTHSGroupsService.getChapterImpact(
-      groupId,
-      OUTSIDE_VIEWER_ID,
-      NOW
-    )
+    const impact = await NTHSGroupsService.getChapterImpact(groupId, NOW)
 
     expect(impact.schoolYearToDate).toMatchObject({
       sessionsCompleted: 1,
@@ -160,11 +155,7 @@ describe('getChapterImpact', () => {
       studentId: otherStudent.id,
     })
 
-    const impact = await NTHSGroupsService.getChapterImpact(
-      groupId,
-      OUTSIDE_VIEWER_ID,
-      NOW
-    )
+    const impact = await NTHSGroupsService.getChapterImpact(groupId, NOW)
 
     expect(impact.schoolYearToDate.sessionsCompleted).toBe(3)
     expect(impact.schoolYearToDate.studentsHelped).toBe(2)
@@ -183,11 +174,7 @@ describe('getChapterImpact', () => {
       timeTutoredMs,
     })
 
-    const impact = await NTHSGroupsService.getChapterImpact(
-      groupId,
-      OUTSIDE_VIEWER_ID,
-      NOW
-    )
+    const impact = await NTHSGroupsService.getChapterImpact(groupId, NOW)
 
     expect(impact.schoolYearToDate.hoursTutored).toBe(hours)
     expect(impact.allTime.hoursTutored).toBe(hours)
@@ -214,11 +201,7 @@ describe('getChapterImpact', () => {
         volunteerJoinedAt: '2026-10-01T00:00:00.000Z',
       })
 
-      const impact = await NTHSGroupsService.getChapterImpact(
-        groupId,
-        OUTSIDE_VIEWER_ID,
-        NOW
-      )
+      const impact = await NTHSGroupsService.getChapterImpact(groupId, NOW)
 
       expect(impact.schoolYearToDate.sessionsCompleted).toBe(sessionsCompleted)
       expect(impact.schoolYearToDate.membersTutoring).toBe(membersTutoring)
@@ -240,11 +223,7 @@ describe('getChapterImpact', () => {
       volunteerJoinedAt: '2026-06-01T00:00:00.000Z',
     })
 
-    const impact = await NTHSGroupsService.getChapterImpact(
-      groupId,
-      OUTSIDE_VIEWER_ID,
-      NOW
-    )
+    const impact = await NTHSGroupsService.getChapterImpact(groupId, NOW)
 
     expect(impact.schoolYearToDate.membersTutoring).toBe(1)
   })
@@ -481,127 +460,6 @@ describe('getChapterRoster periodHours', () => {
   })
 })
 
-describe('getChapterRoster topTutorThisMonth', () => {
-  // With no month start sent, "this month" is [2026-11-01T00:00Z, NOW).
-  test('counts a session by the month it started in', async () => {
-    const groupId = await createChapter(client)
-    const lateStarterId = await addMember(groupId, {
-      joinedAt: '2026-01-01T00:00:00.000Z',
-    })
-    const topId = await addMember(groupId, {
-      joinedAt: '2026-01-01T00:00:00.000Z',
-    })
-    // Starts in October and ends in November.
-    await addSession(lateStarterId, {
-      volunteerJoinedAt: '2026-10-31T23:50:00.000Z',
-      timeTutoredMs: 5_400_000,
-    })
-    await addSession(topId, { volunteerJoinedAt: '2026-11-01T00:00:00.000Z' })
-
-    const roster = await NTHSGroupsService.getChapterRoster(groupId, NOW)
-
-    expect(roster.topTutorThisMonth).toEqual({
-      userId: topId,
-      firstName: expect.any(String),
-      lastInitial: expect.any(String),
-      hoursTutored: 0.75,
-      sessionsCompleted: 1,
-    })
-  })
-
-  test.each([
-    [
-      'a member who has left the chapter',
-      { deactivatedAt: '2026-11-10T00:00:00.000Z' },
-      false,
-    ],
-    ['a test user', { testUser: true }, false],
-    ['a deleted account', { deleted: true }, false],
-    ['a deactivated account', { deactivated: true }, true],
-  ] as const)(
-    'top tutor eligibility for %s',
-    async (_label, options, eligible) => {
-      const groupId = await createChapter(client)
-      const subjectMemberId = await addMember(groupId, options)
-      const otherId = await addMember(groupId)
-      await addSession(subjectMemberId, {
-        volunteerJoinedAt: '2026-11-05T00:00:00.000Z',
-        timeTutoredMs: 5_400_000,
-      })
-      await addSession(otherId, {
-        volunteerJoinedAt: '2026-11-05T00:00:00.000Z',
-      })
-
-      const roster = await NTHSGroupsService.getChapterRoster(groupId, NOW)
-
-      expect(roster.topTutorThisMonth?.userId).toBe(
-        eligible ? subjectMemberId : otherId
-      )
-    }
-  )
-
-  test('counts presidents, so a co-president with the most hours is the top tutor', async () => {
-    const groupId = await createChapter(client)
-    const presidentId = await addMember(groupId, {
-      admin: true,
-      title: 'President',
-    })
-    const otherPresidentId = await addMember(groupId, {
-      admin: true,
-      title: 'President',
-    })
-    await addSession(presidentId, {
-      volunteerJoinedAt: '2026-11-05T00:00:00.000Z',
-      timeTutoredMs: 5_400_000,
-    })
-    await addSession(otherPresidentId, {
-      volunteerJoinedAt: '2026-11-05T00:00:00.000Z',
-    })
-
-    const roster = await NTHSGroupsService.getChapterRoster(groupId, NOW)
-
-    expect(roster.topTutorThisMonth?.userId).toBe(presidentId)
-  })
-
-  test('breaks a tie on hours by more sessions, then by the lower user id', async () => {
-    const groupId = await createChapter(client)
-    const oneLongId = await addMember(groupId)
-    const twoShortId = await addMember(groupId)
-    await addSession(oneLongId, {
-      volunteerJoinedAt: '2026-11-05T00:00:00.000Z',
-      timeTutoredMs: 5_400_000,
-    })
-    await addSession(twoShortId, {
-      volunteerJoinedAt: '2026-11-05T00:00:00.000Z',
-    })
-    await addSession(twoShortId, {
-      volunteerJoinedAt: '2026-11-06T00:00:00.000Z',
-    })
-
-    const roster = await NTHSGroupsService.getChapterRoster(groupId, NOW)
-
-    expect(roster.topTutorThisMonth?.userId).toBe(twoShortId)
-
-    const tiedGroupId = await createChapter(client)
-    const firstId = await addMember(tiedGroupId)
-    const secondId = await addMember(tiedGroupId)
-    for (const memberId of [firstId, secondId]) {
-      await addSession(memberId, {
-        volunteerJoinedAt: '2026-11-05T00:00:00.000Z',
-      })
-    }
-
-    const tiedRoster = await NTHSGroupsService.getChapterRoster(
-      tiedGroupId,
-      NOW
-    )
-
-    expect(tiedRoster.topTutorThisMonth?.userId).toBe(
-      [firstId, secondId].sort()[0]
-    )
-  })
-})
-
 // nths_groups.sql repeats the counted-session predicate in each query, so each reader gets the same fixture.
 describe('the counted-session rule, across every reader', () => {
   type CountedSessionReader = (
@@ -654,11 +512,7 @@ describe('the counted-session rule, across every reader', () => {
     [
       'chapter schoolYearToDate',
       async (groupId) => {
-        const impact = await NTHSGroupsService.getChapterImpact(
-          groupId,
-          OUTSIDE_VIEWER_ID,
-          NOW
-        )
+        const impact = await NTHSGroupsService.getChapterImpact(groupId, NOW)
         return {
           sessions: impact.schoolYearToDate.sessionsCompleted,
           hours: impact.schoolYearToDate.hoursTutored,
@@ -687,27 +541,6 @@ describe('the counted-session rule, across every reader', () => {
         }
       },
     ],
-    [
-      'roster topTutorThisMonth',
-      async (groupId) => {
-        const roster = await NTHSGroupsService.getChapterRoster(groupId, NOW)
-        return {
-          sessions: roster.topTutorThisMonth?.sessionsCompleted,
-          hours: roster.topTutorThisMonth?.hoursTutored ?? -1,
-        }
-      },
-    ],
-    [
-      'viewerHoursThisMonth',
-      async (groupId, memberId) => {
-        const impact = await NTHSGroupsService.getChapterImpact(
-          groupId,
-          memberId,
-          NOW
-        )
-        return { hours: impact.viewerHoursThisMonth }
-      },
-    ],
   ]
 
   test.each(readers)(
@@ -731,23 +564,8 @@ describe('the counted-session rule, across every reader', () => {
     [
       'chapter schoolYearToDate',
       async (groupId) => {
-        const impact = await NTHSGroupsService.getChapterImpact(
-          groupId,
-          OUTSIDE_VIEWER_ID,
-          NOW
-        )
+        const impact = await NTHSGroupsService.getChapterImpact(groupId, NOW)
         return impact.schoolYearToDate.hoursTutored
-      },
-    ],
-    [
-      'viewerHoursThisMonth',
-      async (groupId, departedId) => {
-        const impact = await NTHSGroupsService.getChapterImpact(
-          groupId,
-          departedId,
-          NOW
-        )
-        return impact.viewerHoursThisMonth
       },
     ],
   ]
@@ -770,54 +588,6 @@ describe('the counted-session rule, across every reader', () => {
       expect(await readHours(groupId, departedId)).toBe(0.75)
     }
   )
-})
-
-describe('getChapterImpact this month', () => {
-  test("counts only the viewer's own sessions from the month start, inclusive", async () => {
-    const groupId = await createChapter(client)
-    const viewerId = await addMember(groupId, {
-      joinedAt: '2026-01-01T00:00:00.000Z',
-    })
-    const otherId = await addMember(groupId)
-    // Last month, excluded.
-    await addSession(viewerId, {
-      volunteerJoinedAt: '2026-10-31T23:59:59.999Z',
-    })
-    // Exactly at the month start, counted.
-    await addSession(viewerId, {
-      volunteerJoinedAt: '2026-11-01T00:00:00.000Z',
-      timeTutoredMs: 5_400_000,
-    })
-    // Another member's session never counts toward the viewer's hours.
-    await addSession(otherId, {
-      volunteerJoinedAt: '2026-11-05T00:00:00.000Z',
-    })
-
-    const impact = await NTHSGroupsService.getChapterImpact(
-      groupId,
-      viewerId,
-      NOW
-    )
-
-    expect(impact.viewerHoursThisMonth).toBe(1.5)
-  })
-
-  test('ignores a member’s hours from a chapter they never joined', async () => {
-    const groupId = await createChapter(client)
-    const otherGroupId = await createChapter(client)
-    const viewerId = await addMember(otherGroupId)
-    await addSession(viewerId, {
-      volunteerJoinedAt: '2026-11-02T00:00:00.000Z',
-    })
-
-    const impact = await NTHSGroupsService.getChapterImpact(
-      groupId,
-      viewerId,
-      NOW
-    )
-
-    expect(impact.viewerHoursThisMonth).toBe(0)
-  })
 })
 
 // Every chapter route guard relies on this to reject a departed member, whose

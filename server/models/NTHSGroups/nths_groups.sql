@@ -542,63 +542,6 @@ ORDER BY
     m.user_id;
 
 
-/* @name getNthsChapterTopTutor */
-SELECT
-    m.user_id,
-    u.first_name,
-    LEFT (u.last_name,
-        1) AS last_initial,
-    count(*)::int AS sessions_completed,
-    round(sum(s.time_tutored) / 3600000::numeric, 2)::float AS hours_tutored
-FROM
-    nths_group_members m
-    JOIN users u ON u.id = m.user_id
-    JOIN sessions s ON s.volunteer_id = m.user_id
-        AND s.ended_at IS NOT NULL
-        AND s.time_tutored > :minSessionLength!::int
-        AND s.volunteer_joined_at >= m.joined_at
-        AND (m.deactivated_at IS NULL
-            OR s.volunteer_joined_at < m.deactivated_at)
-        AND s.volunteer_joined_at >= :startsAt!
-        AND s.volunteer_joined_at < :endsAt!
-    JOIN users student ON student.id = s.student_id
-        AND student.test_user IS FALSE
-WHERE
-    m.nths_group_id = :groupId!
-    AND m.deactivated_at IS NULL
-    AND u.test_user IS FALSE
-    AND u.deleted IS NOT TRUE
-GROUP BY
-    m.user_id,
-    u.first_name,
-    u.last_name
-ORDER BY
-    sum(s.time_tutored) DESC,
-    sessions_completed DESC,
-    m.user_id
-LIMIT 1;
-
-
-/* @name getNthsChapterMemberHoursTutored */
-SELECT
-    round(COALESCE(sum(s.time_tutored), 0) / 3600000::numeric, 2)::float AS hours_tutored
-FROM
-    nths_group_members m
-    JOIN sessions s ON s.volunteer_id = m.user_id
-        AND s.ended_at IS NOT NULL
-        AND s.time_tutored > :minSessionLength!::int
-        AND s.volunteer_joined_at >= m.joined_at
-        AND (m.deactivated_at IS NULL
-            OR s.volunteer_joined_at < m.deactivated_at)
-        AND s.volunteer_joined_at >= :startsAt!
-        AND s.volunteer_joined_at < :endsAt!
-    JOIN users student ON student.id = s.student_id
-        AND student.test_user IS FALSE
-WHERE
-    m.nths_group_id = :groupId!
-    AND m.user_id = :userId!;
-
-
 /* @name closeGroup */
 UPDATE
     nths_groups

@@ -32,7 +32,6 @@ import type {
   NTHSChapterImpact,
   NTHSChapterPeriodStarts,
   NTHSChapterRosterMember,
-  NTHSChapterTopTutor,
   NTHSGroupMemberCount,
   NTHSGroupTutoringMemberCount,
 } from './types'
@@ -858,54 +857,6 @@ export async function getNthsChapterRoster(
         },
       }
     })
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
-export async function getNthsChapterTopTutor(
-  groupId: Ulid,
-  startsAt: Date,
-  endsAt: Date,
-  tc: TransactionClient = getRoClient()
-): Promise<NTHSChapterTopTutor | undefined> {
-  try {
-    const results = await pgQueries.getNthsChapterTopTutor.run(
-      { groupId, startsAt, endsAt, minSessionLength: config.minSessionLength },
-      tc
-    )
-    if (!results.length) return
-    return makeSomeRequired(results[0], [
-      'userId',
-      'firstName',
-      'lastInitial',
-      'sessionsCompleted',
-      'hoursTutored',
-    ])
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
-export async function getNthsChapterMemberHoursTutored(
-  groupId: Ulid,
-  userId: Ulid,
-  startsAt: Date,
-  endsAt: Date,
-  tc: TransactionClient = getRoClient()
-): Promise<number> {
-  try {
-    const results = await pgQueries.getNthsChapterMemberHoursTutored.run(
-      {
-        groupId,
-        userId,
-        startsAt,
-        endsAt,
-        minSessionLength: config.minSessionLength,
-      },
-      tc
-    )
-    return makeSomeRequired(results[0], ['hoursTutored']).hoursTutored
   } catch (err) {
     throw new RepoReadError(err)
   }

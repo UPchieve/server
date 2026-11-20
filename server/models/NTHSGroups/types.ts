@@ -175,22 +175,12 @@ export type NTHSChapterImpactTotals = {
   hoursTutored: number
 }
 
-export type NTHSChapterTopTutor = {
-  userId: Ulid
-  firstName: string
-  lastInitial: string
-  sessionsCompleted: number
-  hoursTutored: number
-}
-
 export type NTHSChapterImpact = {
   groupId: Ulid
   schoolYear: SchoolYear
   schoolYearToDate: NTHSChapterImpactTotals & { membersTutoring: number }
   allTime: NTHSChapterImpactTotals
   goals: NTHSChapterGoals
-  topTutorThisMonth?: NTHSChapterTopTutor
-  viewerHoursThisMonth: number
   official: boolean
 }
 
@@ -215,5 +205,4 @@ export type NTHSChapterRoster = {
   groupId: Ulid
   schoolYear: SchoolYear
   members: NTHSChapterRosterMember[]
-  topTutorThisMonth?: NTHSChapterTopTutor
 }

@@ -459,18 +459,9 @@ export function routeNTHSGroups(router: Router): void {
       requireClearedToViewMemberInfo,
       async (req: Request, res: Response<NTHSChapterImpactResponse>) => {
         try {
-          const user = extractUser(req)
-          const now = new Date()
-          const monthStartsAt = asPeriodStart(
-            req.query.monthStartsAt,
-            'monthStartsAt',
-            now
-          )
           const impact = await NTHSGroupsService.getChapterImpact(
             req.params.groupId,
-            user.id,
-            now,
-            monthStartsAt
+            new Date()
           )
           res.json({ impact: toNTHSChapterImpactPublic(impact) })
         } catch (err) {

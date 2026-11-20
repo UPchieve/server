@@ -164,14 +164,6 @@ export type NTHSPeriodHoursPublic = {
 
 export type NTHSPeriodSessionsPublic = NTHSPeriodHoursPublic
 
-export type NTHSChapterTopTutorPublic = {
-  userId: Uuid
-  firstName: string
-  lastInitial: string
-  hoursTutored: number
-  sessionsCompleted: number
-}
-
 export type NTHSChapterImpactPublic = {
   groupId: Uuid
   schoolYear: NTHSSchoolYearPublic
@@ -181,10 +173,6 @@ export type NTHSChapterImpactPublic = {
     hoursTutored: number
     membersTutoring: number
   }
-  // This month's fields run from monthStartsAt (or the UTC 1st of the month) to now.
-  topTutorThisMonth?: NTHSChapterTopTutorPublic
-  // Only ever the requester's own hours.
-  viewerHoursThisMonth: number
   official: boolean
 }
 
@@ -215,9 +203,6 @@ export type NTHSChapterRosterPublic = {
   groupId: Uuid
   schoolYear: NTHSSchoolYearPublic
   members: NTHSChapterRosterMemberPublic[]
-  // From monthStartsAt (or the UTC 1st of the month) to now. Omitted when no
-  // member qualifies.
-  topTutorThisMonth?: NTHSChapterTopTutorPublic
 }
 
 export type NTHSChapterRosterResponse = {
