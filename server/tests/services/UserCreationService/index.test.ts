@@ -35,6 +35,7 @@ import {
   OTHER_SIGNUP_SOURCE_ID,
   ROSTER_SIGNUP_SOURCE_ID,
 } from './fixtures'
+import { Issuer } from '../../../services/FederatedCredentialService'
 
 describe('rosterPartnerStudents', () => {
   beforeAll(() => installAuthAndSignupMocks('Roster'))
@@ -217,11 +218,15 @@ describe('registerStudent', () => {
   test('creates user with fed cred', async () => {
     const USER_ID = 'registerStudentWithFedCred'
     const student = buildStudent({ password: undefined })
-    const fedCred = { profileId: 'profile-id', issuer: 'google' }
+    const fedCred = { profileId: 'profile-id', issuer: Issuer.GOOGLE }
     mockCreatedUser(student, { id: USER_ID })
 
     await registerStudent(student, fedCred)
 
+    expect(mockedAuthUtils.checkNames).toHaveBeenCalledWith(
+      student.firstName,
+      student.lastName
+    )
     expect(mockedUserRepo.createUser).toHaveBeenCalledWith(
       expect.objectContaining({
         emailVerified: true,
@@ -237,11 +242,27 @@ describe('registerStudent', () => {
     )
   })
 
+  test.each([Issuer.CLEVER, Issuer.CLASSLINK])(
+    'accepts a dotted student surname from %s',
+    async (issuer) => {
+      const student = buildStudent({ lastName: 'St.Test', password: undefined })
+      mockCreatedUser(student, { id: 'dottedSurnameStudent' })
+
+      await registerStudent(student, { profileId: 'profile-id', issuer })
+      expect(mockedAuthUtils.checkEmail).toHaveBeenCalledWith(student.email)
+      expect(mockedAuthUtils.checkNames).not.toHaveBeenCalled()
+      expect(mockedUserRepo.createUser).toHaveBeenCalledWith(
+        expect.objectContaining({ lastName: 'St.Test' }),
+        expect.toBeTransactionClient()
+      )
+    }
+  )
+
   test('ignores fed cred fields the user supplied in the  payload', async () => {
     const USER_ID = 'registerStudentSmuggledFedCred'
     const student = buildStudent({
       profileId: 'attacker-supplied-profile-id',
-      issuer: 'https://accounts.google.com',
+      issuer: Issuer.CLEVER,
     })
     mockCreatedUser(student, { id: USER_ID })
 
@@ -740,6 +761,22 @@ describe('upsertStudent', () => {
 describe('registerTeacher', () => {
   beforeAll(() => installAuthAndSignupMocks('Other'))
   beforeEach(() => jest.clearAllMocks())
+
+  test.each([Issuer.CLEVER, Issuer.CLASSLINK])(
+    'accepts a dotted teacher surname from %s',
+    async (issuer) => {
+      const teacher = buildTeacher({ lastName: 'St.Test', password: undefined })
+      mockCreatedUser(teacher, { id: 'dottedSurnameTeacher' })
+
+      await registerTeacher(teacher, { profileId: 'profile-id', issuer })
+      expect(mockedAuthUtils.checkEmail).toHaveBeenCalledWith(teacher.email)
+      expect(mockedAuthUtils.checkNames).not.toHaveBeenCalled()
+      expect(mockedUserRepo.createUser).toHaveBeenCalledWith(
+        expect.objectContaining({ lastName: 'St.Test' }),
+        expect.toBeTransactionClient()
+      )
+    }
+  )
 
   test('validates input', async () => {
     const data = buildTeacher({

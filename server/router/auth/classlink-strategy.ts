@@ -10,6 +10,7 @@ import { Uuid } from '../../models/pgUtils'
 import type { UserRole } from '../../types/users'
 import * as ClassLinkApiService from '../../services/ClassLinkApiService'
 import { SsoProvider } from '../../utils/auth-utils'
+import { Issuer } from '../../services/FederatedCredentialService'
 
 export type ClassLinkPassportProfile = passport.Profile & {
   issuer: string
@@ -20,7 +21,7 @@ export type ClassLinkPassportProfile = passport.Profile & {
 // TODO: Centralize shared logic with CleverStrategy to helpers
 export default class ClassLinkStrategy extends OAuth2Strategy {
   name: SsoProvider = 'classlink'
-  static baseUrl: string = 'https://launchpad.classlink.com'
+  static baseUrl: string = Issuer.CLASSLINK
   static authPath: string = '/oauth2/v2/auth'
   static tokenPath: string = '/oauth2/v2/token'
 

@@ -1,8 +1,8 @@
 import { runInTransaction, TransactionClient } from '../db'
-import { Ulid } from '../models/pgUtils'
 import * as Repo from '../models/FederatedCredential'
 
 export enum Issuer {
+  CLASSLINK = 'https://launchpad.classlink.com',
   CLEVER = 'https://clever.com',
   GOOGLE = 'https://accounts.google.com',
 }

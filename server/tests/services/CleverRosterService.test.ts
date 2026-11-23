@@ -1,7 +1,6 @@
 import _ from 'lodash'
 import { mocked } from 'jest-mock'
 
-import { getDbUlid } from '../../../database/seeds/utils'
 import * as CleverAPIService from '../../services/CleverAPIService'
 import * as CleverRosterService from '../../services/CleverRosterService'
 import * as FederatedCredentialService from '../../services/FederatedCredentialService'
@@ -10,10 +9,10 @@ import * as SubjectsService from '../../services/SubjectsService'
 import * as TeacherService from '../../services/TeacherService'
 import * as UserCreationService from '../../services/UserCreationService'
 import {
+  buildNewUser,
   buildTeacherClass,
   buildTeacherClassWithStudents,
 } from '../mocks/generate'
-import { CreateUserResult } from '../../models/User'
 import { GRADES } from '../../constants'
 
 jest.mock('../../services/FederatedCredentialService')
@@ -321,7 +320,7 @@ describe('rosterTeacherClasses', () => {
       {
         id: 'cs-b',
         email: 'b@up.org',
-        name: { first: 'Bo', last: 'J.Bell' },
+        name: { first: 'Bo', last: 'Bell' },
         roles: { student: { grade: 9 } },
       },
       {
@@ -342,18 +341,10 @@ describe('rosterTeacherClasses', () => {
       mockedStudentService.getStudentByEmail.mockResolvedValue(undefined)
       mockedTeacherService.getTeacherClasses.mockResolvedValue([])
       mockedUserCreationService.registerStudent.mockImplementation(
-        async (data, fedCred) => {
-          // Clever names like "J.Bell" fail name validation.
-          if (data.lastName?.includes('.'))
-            throw new Error('Names cannot contain a URL')
-          return {
-            id: `uc-${fedCred?.profileId}`,
-            isAdmin: false,
-            userType: 'student',
-            firstName: 'any',
-            proxyEmail: 'any',
-            email: 'any',
-          } as CreateUserResult
+        async (_data, fedCred) => {
+          if (fedCred?.profileId === 'cs-b')
+            throw new Error('Could not create student')
+          return buildNewUser({ id: `uc-${fedCred?.profileId}` })
         }
       )
     })

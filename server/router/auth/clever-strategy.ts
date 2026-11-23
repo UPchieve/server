@@ -13,6 +13,7 @@ import * as CleverAPIService from '../../services/CleverAPIService'
 import * as CleverRosterService from '../../services/CleverRosterService'
 import * as SchoolService from '../../services/SchoolService'
 import { GRADES } from '../../constants'
+import { Issuer } from '../../services/FederatedCredentialService'
 
 export type TCleverPassportProfile = passport.Profile & {
   issuer: string
@@ -27,7 +28,7 @@ export type TCleverPassportProfile = passport.Profile & {
 
 export default class CleverStrategy extends OAuth2Strategy {
   name: string = 'clever'
-  static baseUrl: string = 'https://clever.com'
+  static baseUrl: string = Issuer.CLEVER
 
   constructor(
     options: Partial<StrategyOptionsWithRequest>,

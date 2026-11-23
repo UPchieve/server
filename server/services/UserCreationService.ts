@@ -50,6 +50,7 @@ import * as ReferralService from './ReferralService'
 import * as NTHSGroupsService from './NTHSGroupsService'
 import type { NewUser } from '../types/users'
 import { numberToGradeLevel } from '../utils/grade-levels'
+import { Issuer } from './FederatedCredentialService'
 
 export interface RosterStudentPayload {
   cleverId?: string
@@ -290,12 +291,20 @@ export async function rosterPartnerStudents(
   }
 }
 
+function isTrustedNameIssuer(fedCred?: FedCred): boolean {
+  return (
+    fedCred?.issuer === Issuer.CLEVER || fedCred?.issuer === Issuer.CLASSLINK
+  )
+}
+
 export async function verifyStudentData(
   data: RegisterStudentPayload,
   fedCred?: FedCred
 ) {
   await checkEmail(data.email)
-  checkNames(data.firstName, data.lastName)
+  if (!isTrustedNameIssuer(fedCred)) {
+    checkNames(data.firstName, data.lastName)
+  }
   await AuthService.checkUser(data.email)
   if (usePassword(data)) {
     checkPassword(data.password)
@@ -669,7 +678,9 @@ export async function registerTeacher(
   fedCred?: FedCred
 ): Promise<NewUser> {
   await checkEmail(data.email)
-  checkNames(data.firstName, data.lastName)
+  if (!isTrustedNameIssuer(fedCred)) {
+    checkNames(data.firstName, data.lastName)
+  }
   if (usePassword(data)) {
     checkPassword(data.password)
   }
