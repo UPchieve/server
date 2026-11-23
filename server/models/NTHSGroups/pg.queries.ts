@@ -273,7 +273,6 @@ export interface IGetNthsGroupAdminsContactInfoParams {
 export interface IGetNthsGroupAdminsContactInfoResult {
   /** not_pii: Human-readable name */
   chapterName: string;
-  /** pii: User email address */
   email: string;
   /** pii: First name */
   firstName: string;
@@ -288,7 +287,7 @@ export interface IGetNthsGroupAdminsContactInfoQuery {
   result: IGetNthsGroupAdminsContactInfoResult;
 }
 
-const getNthsGroupAdminsContactInfoIR: any = {"usedParamSet":{"groupId":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":91,"b":99},{"a":482,"b":490}]}],"statement":"SELECT\n    u.id AS user_id,\n    u.first_name,\n    u.email,\n    g.name AS chapter_name,\n    :groupId!::uuid AS nths_group_id\nFROM\n    nths_group_member_roles mr\n    JOIN nths_group_roles roles ON roles.id = mr.role_id\n    JOIN nths_groups g ON g.id = mr.nths_group_id\n    JOIN users u ON U.id = mr.user_id\n    JOIN nths_group_members ngm ON ngm.user_id = mr.user_id\n        AND ngm.nths_group_id = mr.nths_group_id\n        AND ngm.deactivated_at IS NULL\nWHERE\n    mr.nths_group_id = :groupId!::uuid\n    AND roles.name = 'admin'\n    AND u.deleted IS NOT TRUE"};
+const getNthsGroupAdminsContactInfoIR: any = {"usedParamSet":{"groupId":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":128,"b":136},{"a":519,"b":527}]}],"statement":"SELECT\n    u.id AS user_id,\n    u.first_name,\n    COALESCE(u.proxy_email, u.email) AS \"email!\",\n    g.name AS chapter_name,\n    :groupId!::uuid AS nths_group_id\nFROM\n    nths_group_member_roles mr\n    JOIN nths_group_roles roles ON roles.id = mr.role_id\n    JOIN nths_groups g ON g.id = mr.nths_group_id\n    JOIN users u ON U.id = mr.user_id\n    JOIN nths_group_members ngm ON ngm.user_id = mr.user_id\n        AND ngm.nths_group_id = mr.nths_group_id\n        AND ngm.deactivated_at IS NULL\nWHERE\n    mr.nths_group_id = :groupId!::uuid\n    AND roles.name = 'admin'\n    AND u.deleted IS NOT TRUE"};
 
 /**
  * Query generated from SQL:
@@ -296,7 +295,7 @@ const getNthsGroupAdminsContactInfoIR: any = {"usedParamSet":{"groupId":true},"p
  * SELECT
  *     u.id AS user_id,
  *     u.first_name,
- *     u.email,
+ *     COALESCE(u.proxy_email, u.email) AS "email!",
  *     g.name AS chapter_name,
  *     :groupId!::uuid AS nths_group_id
  * FROM

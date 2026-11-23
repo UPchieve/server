@@ -58,7 +58,7 @@ ON CONFLICT ON CONSTRAINT nths_group_renewal_candidates_group_school_year_user_k
 /* @name getRenewalEmailMembers */
 SELECT
     users.id AS user_id,
-    users.email,
+    COALESCE(users.proxy_email, users.email) AS "email!",
     users.first_name,
     nths_groups.name AS chapter_name,
     COALESCE(roles.name = 'admin', FALSE) AS "is_admin!",
@@ -143,7 +143,7 @@ SELECT
 /* @name getRenewalClosedEmailRecipients */
 SELECT
     users.id AS user_id,
-    users.email,
+    COALESCE(users.proxy_email, users.email) AS "email!",
     users.first_name,
     nths_groups.name AS chapter_name
 FROM
@@ -186,7 +186,7 @@ WHERE
 /* @name getStaffClosedEmailRecipients */
 SELECT
     users.id AS user_id,
-    users.email,
+    COALESCE(users.proxy_email, users.email) AS "email!",
     users.first_name,
     nths_groups.name AS chapter_name
 FROM

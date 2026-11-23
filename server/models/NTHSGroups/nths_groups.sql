@@ -88,7 +88,7 @@ FOR NO KEY UPDATE;
 SELECT
     u.id AS user_id,
     u.first_name,
-    u.email,
+    COALESCE(u.proxy_email, u.email) AS "email!",
     g.name AS chapter_name,
     :groupId!::uuid AS nths_group_id
 FROM

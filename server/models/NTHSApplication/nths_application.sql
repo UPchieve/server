@@ -149,7 +149,7 @@ LIMIT 1;
 /* @name needsApplicationStatusEmail */
 SELECT
     nths.user_id,
-    u.email,
+    COALESCE(u.proxy_email, u.email) AS "email!",
     u.first_name,
     nths.activated_at
 FROM
@@ -178,7 +178,7 @@ SELECT
     application.user_id,
     application.activated_at AS approved_at,
     users.first_name,
-    users.email,
+    COALESCE(users.proxy_email, users.email) AS "email!",
     chapter.id AS chapter_id,
     chapter.name AS chapter_name,
     chapter.key AS chapter_key,

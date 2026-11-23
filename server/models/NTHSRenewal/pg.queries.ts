@@ -131,7 +131,6 @@ export interface IGetRenewalEmailMembersParams {
 export interface IGetRenewalEmailMembersResult {
   /** not_pii: Human-readable name */
   chapterName: string;
-  /** pii: User email address */
   email: string;
   /** pii: First name */
   firstName: string;
@@ -148,14 +147,14 @@ export interface IGetRenewalEmailMembersQuery {
   result: IGetRenewalEmailMembersResult;
 }
 
-const getRenewalEmailMembersIR: any = {"usedParamSet":{"templateIds":true,"sentSince":true,"groupId":true,"schoolYearStartsOn":true},"params":[{"name":"templateIds","required":true,"transform":{"type":"scalar"},"locs":[{"a":460,"b":472}]},{"name":"sentSince","required":true,"transform":{"type":"scalar"},"locs":[{"a":524,"b":534}]},{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":989,"b":997}]},{"name":"schoolYearStartsOn","required":true,"transform":{"type":"scalar"},"locs":[{"a":1070,"b":1089}]}],"statement":"SELECT\n    users.id AS user_id,\n    users.email,\n    users.first_name,\n    nths_groups.name AS chapter_name,\n    COALESCE(roles.name = 'admin', FALSE) AS \"is_admin!\",\n    COALESCE(members.title = 'President', FALSE) AS \"is_president!\",\n    ARRAY (\n        SELECT\n            notifications.email_template_id\n        FROM\n            notifications\n        WHERE\n            notifications.user_id = users.id\n            AND notifications.email_template_id = ANY (:templateIds!::text[])\n            AND notifications.sent_at >= :sentSince!) AS \"sent_template_ids!\"\nFROM\n    nths_groups\n    JOIN nths_group_members members ON members.nths_group_id = nths_groups.id\n        AND members.deactivated_at IS NULL\n    JOIN users ON users.id = members.user_id\n    LEFT JOIN nths_group_member_roles member_roles ON member_roles.nths_group_id = nths_groups.id\n        AND member_roles.user_id = users.id\n    LEFT JOIN nths_group_roles roles ON roles.id = member_roles.role_id\nWHERE\n    nths_groups.id = :groupId!\n    AND nths_groups.closed_at IS NULL\n    AND nths_groups.created_at < :schoolYearStartsOn!::date::timestamp AT TIME ZONE 'UTC'\n    AND users.deleted IS NOT TRUE\n    AND users.deactivated IS FALSE"};
+const getRenewalEmailMembersIR: any = {"usedParamSet":{"templateIds":true,"sentSince":true,"groupId":true,"schoolYearStartsOn":true},"params":[{"name":"templateIds","required":true,"transform":{"type":"scalar"},"locs":[{"a":501,"b":513}]},{"name":"sentSince","required":true,"transform":{"type":"scalar"},"locs":[{"a":565,"b":575}]},{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":1030,"b":1038}]},{"name":"schoolYearStartsOn","required":true,"transform":{"type":"scalar"},"locs":[{"a":1111,"b":1130}]}],"statement":"SELECT\n    users.id AS user_id,\n    COALESCE(users.proxy_email, users.email) AS \"email!\",\n    users.first_name,\n    nths_groups.name AS chapter_name,\n    COALESCE(roles.name = 'admin', FALSE) AS \"is_admin!\",\n    COALESCE(members.title = 'President', FALSE) AS \"is_president!\",\n    ARRAY (\n        SELECT\n            notifications.email_template_id\n        FROM\n            notifications\n        WHERE\n            notifications.user_id = users.id\n            AND notifications.email_template_id = ANY (:templateIds!::text[])\n            AND notifications.sent_at >= :sentSince!) AS \"sent_template_ids!\"\nFROM\n    nths_groups\n    JOIN nths_group_members members ON members.nths_group_id = nths_groups.id\n        AND members.deactivated_at IS NULL\n    JOIN users ON users.id = members.user_id\n    LEFT JOIN nths_group_member_roles member_roles ON member_roles.nths_group_id = nths_groups.id\n        AND member_roles.user_id = users.id\n    LEFT JOIN nths_group_roles roles ON roles.id = member_roles.role_id\nWHERE\n    nths_groups.id = :groupId!\n    AND nths_groups.closed_at IS NULL\n    AND nths_groups.created_at < :schoolYearStartsOn!::date::timestamp AT TIME ZONE 'UTC'\n    AND users.deleted IS NOT TRUE\n    AND users.deactivated IS FALSE"};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
  *     users.id AS user_id,
- *     users.email,
+ *     COALESCE(users.proxy_email, users.email) AS "email!",
  *     users.first_name,
  *     nths_groups.name AS chapter_name,
  *     COALESCE(roles.name = 'admin', FALSE) AS "is_admin!",
@@ -302,7 +301,6 @@ export interface IGetRenewalClosedEmailRecipientsParams {
 export interface IGetRenewalClosedEmailRecipientsResult {
   /** not_pii: Human-readable name */
   chapterName: string;
-  /** pii: User email address */
   email: string;
   /** pii: First name */
   firstName: string;
@@ -316,14 +314,14 @@ export interface IGetRenewalClosedEmailRecipientsQuery {
   result: IGetRenewalClosedEmailRecipientsResult;
 }
 
-const getRenewalClosedEmailRecipientsIR: any = {"usedParamSet":{"groupId":true,"schoolYearStartsOn":true,"closesAt":true,"emailTemplateId":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":338,"b":346}]},{"name":"schoolYearStartsOn","required":true,"transform":{"type":"scalar"},"locs":[{"a":381,"b":400},{"a":1166,"b":1185}]},{"name":"closesAt","required":true,"transform":{"type":"scalar"},"locs":[{"a":471,"b":480},{"a":965,"b":974},{"a":1233,"b":1242},{"a":1548,"b":1557}]},{"name":"emailTemplateId","required":true,"transform":{"type":"scalar"},"locs":[{"a":1489,"b":1505}]}],"statement":"SELECT\n    users.id AS user_id,\n    users.email,\n    users.first_name,\n    nths_groups.name AS chapter_name\nFROM\n    nths_groups\n    JOIN nths_group_members members ON members.nths_group_id = nths_groups.id\n        AND members.deactivated_at = nths_groups.closed_at\n    JOIN users ON users.id = members.user_id\nWHERE\n    nths_groups.id = :groupId!\n    AND nths_groups.created_at < :schoolYearStartsOn!::date::timestamp AT TIME ZONE 'UTC'\n    AND nths_groups.closed_at >= :closesAt!\n    AND users.deleted IS NOT TRUE\n    AND users.deactivated IS FALSE\n    AND NOT EXISTS (\n        SELECT\n            1\n        FROM\n            nths_group_renewal_candidates candidates\n            JOIN nths_group_members acceptor_members ON acceptor_members.nths_group_id = candidates.nths_group_id\n                AND acceptor_members.user_id = candidates.user_id\n                AND (acceptor_members.deactivated_at IS NULL\n                    OR acceptor_members.deactivated_at > :closesAt!)\n            JOIN users acceptors ON acceptors.id = candidates.user_id\n        WHERE\n            candidates.nths_group_id = nths_groups.id\n            AND candidates.school_year_starts_on = :schoolYearStartsOn!::date\n            AND candidates.created_at < :closesAt!\n            AND acceptors.deleted IS NOT TRUE)\n    AND NOT EXISTS (\n        SELECT\n            1\n        FROM\n            notifications\n        WHERE\n            notifications.user_id = users.id\n            AND notifications.email_template_id = :emailTemplateId!\n            AND notifications.sent_at >= :closesAt!)"};
+const getRenewalClosedEmailRecipientsIR: any = {"usedParamSet":{"groupId":true,"schoolYearStartsOn":true,"closesAt":true,"emailTemplateId":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":379,"b":387}]},{"name":"schoolYearStartsOn","required":true,"transform":{"type":"scalar"},"locs":[{"a":422,"b":441},{"a":1207,"b":1226}]},{"name":"closesAt","required":true,"transform":{"type":"scalar"},"locs":[{"a":512,"b":521},{"a":1006,"b":1015},{"a":1274,"b":1283},{"a":1589,"b":1598}]},{"name":"emailTemplateId","required":true,"transform":{"type":"scalar"},"locs":[{"a":1530,"b":1546}]}],"statement":"SELECT\n    users.id AS user_id,\n    COALESCE(users.proxy_email, users.email) AS \"email!\",\n    users.first_name,\n    nths_groups.name AS chapter_name\nFROM\n    nths_groups\n    JOIN nths_group_members members ON members.nths_group_id = nths_groups.id\n        AND members.deactivated_at = nths_groups.closed_at\n    JOIN users ON users.id = members.user_id\nWHERE\n    nths_groups.id = :groupId!\n    AND nths_groups.created_at < :schoolYearStartsOn!::date::timestamp AT TIME ZONE 'UTC'\n    AND nths_groups.closed_at >= :closesAt!\n    AND users.deleted IS NOT TRUE\n    AND users.deactivated IS FALSE\n    AND NOT EXISTS (\n        SELECT\n            1\n        FROM\n            nths_group_renewal_candidates candidates\n            JOIN nths_group_members acceptor_members ON acceptor_members.nths_group_id = candidates.nths_group_id\n                AND acceptor_members.user_id = candidates.user_id\n                AND (acceptor_members.deactivated_at IS NULL\n                    OR acceptor_members.deactivated_at > :closesAt!)\n            JOIN users acceptors ON acceptors.id = candidates.user_id\n        WHERE\n            candidates.nths_group_id = nths_groups.id\n            AND candidates.school_year_starts_on = :schoolYearStartsOn!::date\n            AND candidates.created_at < :closesAt!\n            AND acceptors.deleted IS NOT TRUE)\n    AND NOT EXISTS (\n        SELECT\n            1\n        FROM\n            notifications\n        WHERE\n            notifications.user_id = users.id\n            AND notifications.email_template_id = :emailTemplateId!\n            AND notifications.sent_at >= :closesAt!)"};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
  *     users.id AS user_id,
- *     users.email,
+ *     COALESCE(users.proxy_email, users.email) AS "email!",
  *     users.first_name,
  *     nths_groups.name AS chapter_name
  * FROM
@@ -376,7 +374,6 @@ export interface IGetStaffClosedEmailRecipientsParams {
 export interface IGetStaffClosedEmailRecipientsResult {
   /** not_pii: Human-readable name */
   chapterName: string;
-  /** pii: User email address */
   email: string;
   /** pii: First name */
   firstName: string;
@@ -390,14 +387,14 @@ export interface IGetStaffClosedEmailRecipientsQuery {
   result: IGetStaffClosedEmailRecipientsResult;
 }
 
-const getStaffClosedEmailRecipientsIR: any = {"usedParamSet":{"groupId":true,"emailTemplateId":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":338,"b":346}]},{"name":"emailTemplateId","required":true,"transform":{"type":"scalar"},"locs":[{"a":615,"b":631}]}],"statement":"SELECT\n    users.id AS user_id,\n    users.email,\n    users.first_name,\n    nths_groups.name AS chapter_name\nFROM\n    nths_groups\n    JOIN nths_group_members members ON members.nths_group_id = nths_groups.id\n        AND members.deactivated_at = nths_groups.closed_at\n    JOIN users ON users.id = members.user_id\nWHERE\n    nths_groups.id = :groupId!\n    AND users.deleted IS NOT TRUE\n    AND users.deactivated IS FALSE\n    AND NOT EXISTS (\n        SELECT\n            1\n        FROM\n            notifications\n        WHERE\n            notifications.user_id = users.id\n            AND notifications.email_template_id = :emailTemplateId!\n            AND notifications.sent_at >= nths_groups.closed_at)"};
+const getStaffClosedEmailRecipientsIR: any = {"usedParamSet":{"groupId":true,"emailTemplateId":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":379,"b":387}]},{"name":"emailTemplateId","required":true,"transform":{"type":"scalar"},"locs":[{"a":656,"b":672}]}],"statement":"SELECT\n    users.id AS user_id,\n    COALESCE(users.proxy_email, users.email) AS \"email!\",\n    users.first_name,\n    nths_groups.name AS chapter_name\nFROM\n    nths_groups\n    JOIN nths_group_members members ON members.nths_group_id = nths_groups.id\n        AND members.deactivated_at = nths_groups.closed_at\n    JOIN users ON users.id = members.user_id\nWHERE\n    nths_groups.id = :groupId!\n    AND users.deleted IS NOT TRUE\n    AND users.deactivated IS FALSE\n    AND NOT EXISTS (\n        SELECT\n            1\n        FROM\n            notifications\n        WHERE\n            notifications.user_id = users.id\n            AND notifications.email_template_id = :emailTemplateId!\n            AND notifications.sent_at >= nths_groups.closed_at)"};
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
  *     users.id AS user_id,
- *     users.email,
+ *     COALESCE(users.proxy_email, users.email) AS "email!",
  *     users.first_name,
  *     nths_groups.name AS chapter_name
  * FROM
