@@ -1,6 +1,7 @@
 import { Job } from 'bull'
 import logger from '../../../logger'
 import * as MailService from '../../../services/MailService'
+import { isStudentCoachModeBlocked } from '../../../services/FeatureFlagService'
 import { getVolunteerForOnboardingById } from '../../../services/VolunteerService'
 import { asString } from '../../../utils/type-utils'
 
@@ -11,6 +12,12 @@ interface OnboardingReminder {
 export default async (job: Job<OnboardingReminder>): Promise<void> => {
   const { name: currentJob } = job
   const volunteerId = asString(job.data.volunteerId)
+  if (await isStudentCoachModeBlocked(volunteerId)) {
+    logger.info(
+      `Skipped ${currentJob} for volunteer ${volunteerId}: coach mode is blocked`
+    )
+    return
+  }
   const volunteer = await getVolunteerForOnboardingById(volunteerId)
 
   if (volunteer) {

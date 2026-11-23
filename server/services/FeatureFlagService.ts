@@ -119,6 +119,10 @@ export async function isNthsChapterRenewalEnabled(userId: Uuid) {
   return isFeatureEnabled(FEATURE_FLAGS.NTHS_CHAPTER_RENEWAL, userId)
 }
 
+export async function isStudentCoachModeBlocked(userId: Uuid) {
+  return isFeatureEnabled(FEATURE_FLAGS.BLOCK_STUDENT_COACH_MODE, userId)
+}
+
 export async function getStemProgressReportEnabled(userId: Uuid) {
   return await isFeatureEnabled(
     FEATURE_FLAGS.STEM_PROGRESS_REPORT,

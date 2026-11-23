@@ -18,6 +18,7 @@ export enum FEATURE_FLAGS {
   // experimented/slowly rolled out.
   // They are never to be removed as part of a "launch".
   BLOCK_SESSION_IMAGE_UPLOAD = 'block-session-image-upload',
+  BLOCK_STUDENT_COACH_MODE = 'block-student-coach-mode',
   BLOCK_SCREENSHARE = 'block-screenshare',
   BLOCK_AUDIO_CALL = 'block-audio-call',
   SESSION_HOLDS_COACH = 'session-holds-coach',
