@@ -1696,6 +1696,8 @@ export function buildNTHSChapterRosterMember(
     },
     rangeHours: 0,
     rangeSessions: 0,
+    studentsHelpedThisYear: 0,
+    subjects: [],
     ...overrides,
   }
 }

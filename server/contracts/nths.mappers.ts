@@ -198,6 +198,8 @@ export function toNTHSChapterRosterMemberPublic(
     rangeHours: member.rangeHours,
     rangeSessions: member.rangeSessions,
     lastActiveAt: member.lastActiveAt?.toISOString(),
+    studentsHelpedThisYear: member.studentsHelpedThisYear,
+    subjects: member.subjects,
   }
 }
 

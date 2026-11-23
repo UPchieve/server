@@ -200,6 +200,9 @@ export type NTHSChapterRosterMemberPublic = {
   // The member's most recent counted session, with no school-year bound, so it
   // can predate the year the counts above cover.
   lastActiveAt?: ISODateString
+  studentsHelpedThisYear: number
+  // Display names of the active subjects the member can tutor, alphabetical.
+  subjects: string[]
 }
 
 export type NTHSChapterRosterPublic = {

@@ -496,7 +496,9 @@ SELECT
     act.sessions_all_time,
     act.hours_range,
     act.sessions_range,
-    act.last_active_at
+    act.last_active_at,
+    act.students_helped_this_year,
+    COALESCE(subj.subjects, ARRAY[]::text[]) AS subjects
 FROM
     nths_group_members m
     JOIN users u ON u.id = m.user_id
@@ -528,7 +530,9 @@ FROM
                             AND s.volunteer_joined_at < :rangeEndsAt), 0) / 3600000::numeric, 2)::float AS hours_range,
                 count(*) FILTER (WHERE s.volunteer_joined_at >= :rangeStartsAt
                     AND s.volunteer_joined_at < :rangeEndsAt)::int AS sessions_range,
-                max(s.volunteer_joined_at) AS last_active_at
+                max(s.volunteer_joined_at) AS last_active_at,
+                count(DISTINCT s.student_id) FILTER (WHERE s.volunteer_joined_at >= :startsAt!
+                    AND s.volunteer_joined_at < :endsAt!)::int AS students_helped_this_year
             FROM
                 sessions s
             JOIN users student ON student.id = s.student_id
@@ -540,6 +544,17 @@ FROM
             AND s.volunteer_joined_at >= m.joined_at
             AND (m.deactivated_at IS NULL
                 OR s.volunteer_joined_at < m.deactivated_at)) act ON TRUE
+    LEFT JOIN LATERAL (
+        SELECT
+            array_agg(subj_row.display_name ORDER BY lower(subj_row.display_name)
+                COLLATE "C") AS subjects
+        FROM
+            users_unlocked_subjects_view unlocked
+            CROSS JOIN LATERAL unnest(unlocked.unlocked_subjects) AS unlocked_name
+            JOIN subjects subj_row ON subj_row.name = unlocked_name
+                AND subj_row.active
+        WHERE
+            unlocked.user_id = m.user_id) subj ON TRUE
 WHERE
     m.nths_group_id = :groupId!
     AND m.deactivated_at IS NULL

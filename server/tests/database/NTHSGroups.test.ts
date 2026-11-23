@@ -15,6 +15,8 @@ import {
   sqlText,
   withRealTransaction,
 } from './seed-utils'
+import * as VolunteerRepo from '../../models/Volunteer'
+import * as UserRepo from '../../models/User'
 import * as NTHSGroupsRepo from '../../models/NTHSGroups'
 import * as NTHSGroupsService from '../../services/NTHSGroupsService'
 import { NTHSChapterClosedError, RepoReadError } from '../../models/Errors'
@@ -418,6 +420,60 @@ describe('getChapterRoster', () => {
     expect(byId[neverTutoredId].periodHours.allTime).toBe(0)
     expect(byId[neverTutoredId].periodSessions.allTime).toBe(0)
     expect(byId[neverTutoredId].lastActiveAt).toBeUndefined()
+  })
+  test('lists the active subjects a member is certified for, alphabetical, with computed and muted ones included and retired ones left out', async () => {
+    const groupId = await createChapter(client)
+    const memberId = await addMember(groupId)
+    const noneId = await addMember(groupId)
+    for (const quiz of [
+      'precalculus',
+      'calculusBC',
+      'usHistory',
+      'applications',
+    ]) {
+      await VolunteerRepo.addVolunteerCertification(memberId, quiz, client)
+    }
+    await UserRepo.updateSubjectAlerts(memberId, ['precalculus'], client)
+
+    // Integrated Math Three also needs statistics, which the member lacks.
+    const roster = await NTHSGroupsService.getChapterRoster(groupId, NOW)
+    const byId = Object.fromEntries(roster.members.map((m) => [m.userId, m]))
+
+    expect(byId[memberId].subjects).toEqual([
+      'AP U.S. History',
+      'Applications',
+      'Integrated Math Four',
+      'Precalculus',
+      'U.S. History',
+    ])
+    expect(byId[noneId].subjects).toEqual([])
+  })
+
+  test('counts a student tutored twice once, and skips sessions outside the school year', async () => {
+    const groupId = await createChapter(client)
+    const memberId = await addMember(groupId, {
+      joinedAt: '2026-06-01T00:00:00.000Z',
+    })
+    const otherStudent = (await createTestUser(client)).id
+    const lastYearStudent = (await createTestUser(client)).id
+    await addSession(memberId, {
+      volunteerJoinedAt: '2026-10-01T00:00:00.000Z',
+    })
+    await addSession(memberId, {
+      volunteerJoinedAt: '2026-10-02T00:00:00.000Z',
+    })
+    await addSession(memberId, {
+      volunteerJoinedAt: '2026-10-03T00:00:00.000Z',
+      studentId: otherStudent,
+    })
+    await addSession(memberId, {
+      volunteerJoinedAt: '2026-06-20T00:00:00.000Z',
+      studentId: lastYearStudent,
+    })
+
+    const roster = await NTHSGroupsService.getChapterRoster(groupId, NOW)
+
+    expect(roster.members[0].studentsHelpedThisYear).toBe(2)
   })
 })
 

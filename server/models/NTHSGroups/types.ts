@@ -206,6 +206,8 @@ export type NTHSChapterRosterMember = {
   rangeHours: number
   rangeSessions: number
   lastActiveAt?: Date
+  studentsHelpedThisYear: number
+  subjects: string[]
 }
 
 export type NTHSChapterRoster = {

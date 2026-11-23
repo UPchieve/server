@@ -846,6 +846,8 @@ export async function getNthsChapterRoster(
         'sessionsAllTime',
         'hoursRange',
         'sessionsRange',
+        'studentsHelpedThisYear',
+        'subjects',
       ])
       return {
         ...member,
