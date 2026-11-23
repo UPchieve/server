@@ -29,7 +29,6 @@ import {
   asCredentialData,
   asVolunteerRegData,
   asPartnerVolunteerRegData,
-  asResetConfirmData,
   RegistrationError,
   ResetError,
   checkPassword,
@@ -45,21 +44,16 @@ import { NotAllowedError, InputError, LookupError } from '../models/Errors'
 import logger from '../logger'
 import * as ReferralService from './ReferralService'
 import * as VolunteerService from './VolunteerService'
-import { getIpWhoIs } from './IpAddressService'
+import { getIpWhoIs, isAllowedCountryCode } from './IpAddressService'
 import * as MailService from './MailService'
-import { Ulid } from '../models/pgUtils'
 import * as AuthRepo from '../models/Auth'
 import { FederatedCredential } from '../models/FederatedCredential'
-import QueueService from './QueueService'
-import * as UserService from './UserService'
-import * as NotificationService from './NotificationService'
-import config from '../config'
 import * as NTHSGroupsService from './NTHSGroupsService'
 
 export async function checkIpAddress(ip: string): Promise<void> {
   const { country_code: countryCode } = await getIpWhoIs(ip)
 
-  if (countryCode && countryCode !== 'US') {
+  if (!isAllowedCountryCode(countryCode)) {
     throw new NotAllowedError(
       'Cannot register from an international IP address'
     )

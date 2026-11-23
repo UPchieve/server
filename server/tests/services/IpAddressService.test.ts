@@ -50,21 +50,33 @@ describe('checkIpAddress', () => {
     ).rejects.toBeInstanceOf(NotAllowedError)
   })
 
+  test.each(['PR', 'VI', 'GU', 'AS', 'MP'])(
+    'Should allow an IP address in U.S. territory %s',
+    async (countryCode) => {
+      const territoryIpAddress = '136.145.11.224'
+
+      mockedAxios.get.mockResolvedValueOnce(mockIpWhoIsReturnValue(countryCode))
+      await expect(
+        IpAddressService.checkIpAddress(territoryIpAddress)
+      ).resolves.toBeUndefined()
+    }
+  )
+
   test('Should not throw error for valid IPv4 address', async () => {
     const newYorkIpAddress = '161.185.160.93'
 
     mockedAxios.get.mockResolvedValueOnce(mockIpWhoIsReturnValue('US'))
-    expect(() =>
+    await expect(
       IpAddressService.checkIpAddress(newYorkIpAddress)
-    ).not.toThrow()
+    ).resolves.toBeUndefined()
   })
 
   test('Should not throw error for valid IPv6 address', async () => {
     const newYorkIpAddress = '2604:a880:400:d1::75a:a001'
 
     mockedAxios.get.mockResolvedValueOnce(mockIpWhoIsReturnValue('US'))
-    expect(() =>
+    await expect(
       IpAddressService.checkIpAddress(newYorkIpAddress)
-    ).not.toThrow()
+    ).resolves.toBeUndefined()
   })
 })

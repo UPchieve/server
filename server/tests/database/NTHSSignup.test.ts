@@ -13,7 +13,10 @@ import { getPhoneNumber } from '../mocks/generate'
 
 jest.mock('../../services/MailService')
 jest.mock('../../services/VolunteerService')
-jest.mock('../../services/IpAddressService')
+jest.mock('../../services/IpAddressService', () => ({
+  ...jest.requireActual('../../services/IpAddressService'),
+  getIpWhoIs: jest.fn(),
+}))
 
 const client = getClient()
 

@@ -49,6 +49,13 @@ export async function findOrCreateIpAddress(
   return newIpAddress
 }
 
+const ALLOWED_COUNTRY_CODES = new Set(['US', 'PR', 'VI', 'GU', 'AS', 'MP'])
+
+export function isAllowedCountryCode(countryCode?: string): boolean {
+  if (!countryCode) return true
+  return ALLOWED_COUNTRY_CODES.has(countryCode)
+}
+
 function isValidIp(ip: string): boolean {
   // net.isIp return 0 for non-IPs, 4 for ipv4, and 6 for ipv6
   return net.isIP(ip) > 0
@@ -59,5 +66,5 @@ export async function checkIpAddress(data: unknown | string) {
   if (!isValidIp(ip)) throw new Error('Not a valid IP address')
 
   const { country_code: countryCode } = await getIpWhoIs(ip)
-  if (countryCode && countryCode !== 'US') throw new NotAllowedError()
+  if (!isAllowedCountryCode(countryCode)) throw new NotAllowedError()
 }
