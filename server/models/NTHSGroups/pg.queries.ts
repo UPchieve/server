@@ -12,6 +12,8 @@ export interface IGetGroupsByUserParams {
 
 /** 'GetGroupsByUser' return type */
 export interface IGetGroupsByUserResult {
+  /** not_pii */
+  groupCreatedAt: Date;
   /** not_pii: Primary key */
   groupId: string;
   /** not_pii: Unique URL-safe slug */
@@ -37,7 +39,7 @@ export interface IGetGroupsByUserQuery {
   result: IGetGroupsByUserResult;
 }
 
-const getGroupsByUserIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":456,"b":463},{"a":817,"b":824}]}],"statement":"SELECT\n    ngm.title AS member_title,\n    ngm.joined_at,\n    ng.id AS group_id,\n    ng.name AS group_name,\n    ng.key AS group_key,\n    ng.invite_code,\n    roles.name AS role_name,\n    aff_statuses.name AS school_affiliation_status,\n    aff.school_id IS NOT NULL AS has_school_on_record\nFROM\n    nths_group_members ngm\n    INNER JOIN nths_groups ng ON ng.id = ngm.nths_group_id\n    INNER JOIN nths_group_member_roles member_roles ON member_roles.user_id = :userId!\n        AND member_roles.nths_group_id = ng.id\n    INNER JOIN nths_group_roles roles ON roles.id = member_roles.role_id\n    LEFT JOIN nths_group_school_affiliation aff ON aff.nths_group_id = ngm.nths_group_id\n    LEFT JOIN nths_school_affiliation_statuses aff_statuses ON aff_statuses.id = aff.nths_school_affiliation_status_id\nWHERE\n    ngm.user_id = :userId!\n    AND ngm.deactivated_at IS NULL"};
+const getGroupsByUserIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":495,"b":502},{"a":856,"b":863}]}],"statement":"SELECT\n    ngm.title AS member_title,\n    ngm.joined_at,\n    ng.id AS group_id,\n    ng.name AS group_name,\n    ng.key AS group_key,\n    ng.invite_code,\n    ng.created_at AS group_created_at,\n    roles.name AS role_name,\n    aff_statuses.name AS school_affiliation_status,\n    aff.school_id IS NOT NULL AS has_school_on_record\nFROM\n    nths_group_members ngm\n    INNER JOIN nths_groups ng ON ng.id = ngm.nths_group_id\n    INNER JOIN nths_group_member_roles member_roles ON member_roles.user_id = :userId!\n        AND member_roles.nths_group_id = ng.id\n    INNER JOIN nths_group_roles roles ON roles.id = member_roles.role_id\n    LEFT JOIN nths_group_school_affiliation aff ON aff.nths_group_id = ngm.nths_group_id\n    LEFT JOIN nths_school_affiliation_statuses aff_statuses ON aff_statuses.id = aff.nths_school_affiliation_status_id\nWHERE\n    ngm.user_id = :userId!\n    AND ngm.deactivated_at IS NULL"};
 
 /**
  * Query generated from SQL:
@@ -49,6 +51,7 @@ const getGroupsByUserIR: any = {"usedParamSet":{"userId":true},"params":[{"name"
  *     ng.name AS group_name,
  *     ng.key AS group_key,
  *     ng.invite_code,
+ *     ng.created_at AS group_created_at,
  *     roles.name AS role_name,
  *     aff_statuses.name AS school_affiliation_status,
  *     aff.school_id IS NOT NULL AS has_school_on_record
@@ -1393,6 +1396,8 @@ export interface IGetNthsChapterRosterParams {
   minSessionLength: number;
   monthStartsAt: DateOrString;
   periodEndsAt: DateOrString;
+  rangeEndsAt?: DateOrString | null | void;
+  rangeStartsAt?: DateOrString | null | void;
   startsAt: DateOrString;
   weekStartsAt: DateOrString;
 }
@@ -1404,6 +1409,7 @@ export interface IGetNthsChapterRosterResult {
   firstName: string;
   hoursAllTime: number | null;
   hoursLastTwoWeeks: number | null;
+  hoursRange: number | null;
   hoursThisMonth: number | null;
   hoursThisWeek: number | null;
   hoursThisYear: number | null;
@@ -1416,6 +1422,7 @@ export interface IGetNthsChapterRosterResult {
   safetyApproved: boolean | null;
   sessionsAllTime: number | null;
   sessionsLastTwoWeeks: number | null;
+  sessionsRange: number | null;
   sessionsThisMonth: number | null;
   sessionsThisWeek: number | null;
   sessionsThisYear: number | null;
@@ -1432,7 +1439,7 @@ export interface IGetNthsChapterRosterQuery {
   result: IGetNthsChapterRosterResult;
 }
 
-const getNthsChapterRosterIR: any = {"usedParamSet":{"startsAt":true,"endsAt":true,"weekStartsAt":true,"periodEndsAt":true,"lastTwoWeeksStartsAt":true,"monthStartsAt":true,"minSessionLength":true,"groupId":true},"params":[{"name":"startsAt","required":true,"transform":{"type":"scalar"},"locs":[{"a":1032,"b":1041},{"a":1219,"b":1228}]},{"name":"endsAt","required":true,"transform":{"type":"scalar"},"locs":[{"a":1091,"b":1098},{"a":1286,"b":1293}]},{"name":"weekStartsAt","required":true,"transform":{"type":"scalar"},"locs":[{"a":1440,"b":1453},{"a":2226,"b":2239}]},{"name":"periodEndsAt","required":true,"transform":{"type":"scalar"},"locs":[{"a":1511,"b":1524},{"a":1750,"b":1763},{"a":1987,"b":2000},{"a":2289,"b":2302},{"a":2468,"b":2481},{"a":2645,"b":2658}]},{"name":"lastTwoWeeksStartsAt","required":true,"transform":{"type":"scalar"},"locs":[{"a":1671,"b":1692},{"a":2397,"b":2418}]},{"name":"monthStartsAt","required":true,"transform":{"type":"scalar"},"locs":[{"a":1915,"b":1929},{"a":2581,"b":2595}]},{"name":"minSessionLength","required":true,"transform":{"type":"scalar"},"locs":[{"a":3079,"b":3096}]},{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":3300,"b":3308}]}],"statement":"SELECT\n    m.user_id,\n    m.title,\n    m.joined_at,\n    u.first_name,\n    LEFT (u.last_name,\n        1) AS last_initial,\n    roles.name AS role_name,\n    COALESCE(vp.onboarded, FALSE) AS training_complete,\n    COALESCE(vp.approved, FALSE) AS safety_approved,\n    u.deleted IS TRUE AS account_closed,\n    act.sessions_this_year,\n    act.hours_this_year,\n    act.hours_this_week,\n    act.hours_last_two_weeks,\n    act.hours_this_month,\n    act.hours_all_time,\n    act.sessions_this_week,\n    act.sessions_last_two_weeks,\n    act.sessions_this_month,\n    act.sessions_all_time,\n    act.last_active_at\nFROM\n    nths_group_members m\n    JOIN users u ON u.id = m.user_id\n    JOIN nths_group_member_roles member_roles ON member_roles.user_id = m.user_id\n        AND member_roles.nths_group_id = m.nths_group_id\n    JOIN nths_group_roles roles ON roles.id = member_roles.role_id\n    LEFT JOIN volunteer_profiles vp ON vp.user_id = m.user_id\n    LEFT JOIN LATERAL (\n        SELECT\n            count(*) FILTER (WHERE s.volunteer_joined_at >= :startsAt!\n                    AND s.volunteer_joined_at < :endsAt!)::int AS sessions_this_year,\n                round(COALESCE(sum(s.time_tutored) FILTER (WHERE s.volunteer_joined_at >= :startsAt!\n                            AND s.volunteer_joined_at < :endsAt!), 0) / 3600000::numeric, 2)::float AS hours_this_year,\n                round(COALESCE(sum(s.time_tutored) FILTER (WHERE s.volunteer_joined_at >= :weekStartsAt!\n                            AND s.volunteer_joined_at < :periodEndsAt!), 0) / 3600000::numeric, 2)::float AS hours_this_week,\n                round(COALESCE(sum(s.time_tutored) FILTER (WHERE s.volunteer_joined_at >= :lastTwoWeeksStartsAt!\n                            AND s.volunteer_joined_at < :periodEndsAt!), 0) / 3600000::numeric, 2)::float AS hours_last_two_weeks,\n                round(COALESCE(sum(s.time_tutored) FILTER (WHERE s.volunteer_joined_at >= :monthStartsAt!\n                            AND s.volunteer_joined_at < :periodEndsAt!), 0) / 3600000::numeric, 2)::float AS hours_this_month,\n                round(COALESCE(sum(s.time_tutored), 0) / 3600000::numeric, 2)::float AS hours_all_time,\n                count(*) FILTER (WHERE s.volunteer_joined_at >= :weekStartsAt!\n                    AND s.volunteer_joined_at < :periodEndsAt!)::int AS sessions_this_week,\n                count(*) FILTER (WHERE s.volunteer_joined_at >= :lastTwoWeeksStartsAt!\n                    AND s.volunteer_joined_at < :periodEndsAt!)::int AS sessions_last_two_weeks,\n                count(*) FILTER (WHERE s.volunteer_joined_at >= :monthStartsAt!\n                    AND s.volunteer_joined_at < :periodEndsAt!)::int AS sessions_this_month,\n                count(*)::int AS sessions_all_time,\n                max(s.volunteer_joined_at) AS last_active_at\n            FROM\n                sessions s\n            JOIN users student ON student.id = s.student_id\n                AND student.test_user IS FALSE\n        WHERE\n            s.volunteer_id = m.user_id\n            AND s.ended_at IS NOT NULL\n            AND s.time_tutored > :minSessionLength!::int\n            AND s.volunteer_joined_at >= m.joined_at\n            AND (m.deactivated_at IS NULL\n                OR s.volunteer_joined_at < m.deactivated_at)) act ON TRUE\nWHERE\n    m.nths_group_id = :groupId!\n    AND m.deactivated_at IS NULL\n    AND u.test_user IS FALSE\nORDER BY\n    u.first_name,\n    m.user_id"};
+const getNthsChapterRosterIR: any = {"usedParamSet":{"startsAt":true,"endsAt":true,"weekStartsAt":true,"periodEndsAt":true,"lastTwoWeeksStartsAt":true,"monthStartsAt":true,"rangeStartsAt":true,"rangeEndsAt":true,"minSessionLength":true,"groupId":true},"params":[{"name":"startsAt","required":true,"transform":{"type":"scalar"},"locs":[{"a":1077,"b":1086},{"a":1264,"b":1273}]},{"name":"endsAt","required":true,"transform":{"type":"scalar"},"locs":[{"a":1136,"b":1143},{"a":1331,"b":1338}]},{"name":"weekStartsAt","required":true,"transform":{"type":"scalar"},"locs":[{"a":1485,"b":1498},{"a":2271,"b":2284}]},{"name":"periodEndsAt","required":true,"transform":{"type":"scalar"},"locs":[{"a":1556,"b":1569},{"a":1795,"b":1808},{"a":2032,"b":2045},{"a":2334,"b":2347},{"a":2513,"b":2526},{"a":2690,"b":2703}]},{"name":"lastTwoWeeksStartsAt","required":true,"transform":{"type":"scalar"},"locs":[{"a":1716,"b":1737},{"a":2442,"b":2463}]},{"name":"monthStartsAt","required":true,"transform":{"type":"scalar"},"locs":[{"a":1960,"b":1974},{"a":2626,"b":2640}]},{"name":"rangeStartsAt","required":false,"transform":{"type":"scalar"},"locs":[{"a":2877,"b":2890},{"a":3076,"b":3089}]},{"name":"rangeEndsAt","required":false,"transform":{"type":"scalar"},"locs":[{"a":2948,"b":2959},{"a":3139,"b":3150}]},{"name":"minSessionLength","required":true,"transform":{"type":"scalar"},"locs":[{"a":3514,"b":3531}]},{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":3735,"b":3743}]}],"statement":"SELECT\n    m.user_id,\n    m.title,\n    m.joined_at,\n    u.first_name,\n    LEFT (u.last_name,\n        1) AS last_initial,\n    roles.name AS role_name,\n    COALESCE(vp.onboarded, FALSE) AS training_complete,\n    COALESCE(vp.approved, FALSE) AS safety_approved,\n    u.deleted IS TRUE AS account_closed,\n    act.sessions_this_year,\n    act.hours_this_year,\n    act.hours_this_week,\n    act.hours_last_two_weeks,\n    act.hours_this_month,\n    act.hours_all_time,\n    act.sessions_this_week,\n    act.sessions_last_two_weeks,\n    act.sessions_this_month,\n    act.sessions_all_time,\n    act.hours_range,\n    act.sessions_range,\n    act.last_active_at\nFROM\n    nths_group_members m\n    JOIN users u ON u.id = m.user_id\n    JOIN nths_group_member_roles member_roles ON member_roles.user_id = m.user_id\n        AND member_roles.nths_group_id = m.nths_group_id\n    JOIN nths_group_roles roles ON roles.id = member_roles.role_id\n    LEFT JOIN volunteer_profiles vp ON vp.user_id = m.user_id\n    LEFT JOIN LATERAL (\n        SELECT\n            count(*) FILTER (WHERE s.volunteer_joined_at >= :startsAt!\n                    AND s.volunteer_joined_at < :endsAt!)::int AS sessions_this_year,\n                round(COALESCE(sum(s.time_tutored) FILTER (WHERE s.volunteer_joined_at >= :startsAt!\n                            AND s.volunteer_joined_at < :endsAt!), 0) / 3600000::numeric, 2)::float AS hours_this_year,\n                round(COALESCE(sum(s.time_tutored) FILTER (WHERE s.volunteer_joined_at >= :weekStartsAt!\n                            AND s.volunteer_joined_at < :periodEndsAt!), 0) / 3600000::numeric, 2)::float AS hours_this_week,\n                round(COALESCE(sum(s.time_tutored) FILTER (WHERE s.volunteer_joined_at >= :lastTwoWeeksStartsAt!\n                            AND s.volunteer_joined_at < :periodEndsAt!), 0) / 3600000::numeric, 2)::float AS hours_last_two_weeks,\n                round(COALESCE(sum(s.time_tutored) FILTER (WHERE s.volunteer_joined_at >= :monthStartsAt!\n                            AND s.volunteer_joined_at < :periodEndsAt!), 0) / 3600000::numeric, 2)::float AS hours_this_month,\n                round(COALESCE(sum(s.time_tutored), 0) / 3600000::numeric, 2)::float AS hours_all_time,\n                count(*) FILTER (WHERE s.volunteer_joined_at >= :weekStartsAt!\n                    AND s.volunteer_joined_at < :periodEndsAt!)::int AS sessions_this_week,\n                count(*) FILTER (WHERE s.volunteer_joined_at >= :lastTwoWeeksStartsAt!\n                    AND s.volunteer_joined_at < :periodEndsAt!)::int AS sessions_last_two_weeks,\n                count(*) FILTER (WHERE s.volunteer_joined_at >= :monthStartsAt!\n                    AND s.volunteer_joined_at < :periodEndsAt!)::int AS sessions_this_month,\n                count(*)::int AS sessions_all_time,\n                round(COALESCE(sum(s.time_tutored) FILTER (WHERE s.volunteer_joined_at >= :rangeStartsAt\n                            AND s.volunteer_joined_at < :rangeEndsAt), 0) / 3600000::numeric, 2)::float AS hours_range,\n                count(*) FILTER (WHERE s.volunteer_joined_at >= :rangeStartsAt\n                    AND s.volunteer_joined_at < :rangeEndsAt)::int AS sessions_range,\n                max(s.volunteer_joined_at) AS last_active_at\n            FROM\n                sessions s\n            JOIN users student ON student.id = s.student_id\n                AND student.test_user IS FALSE\n        WHERE\n            s.volunteer_id = m.user_id\n            AND s.ended_at IS NOT NULL\n            AND s.time_tutored > :minSessionLength!::int\n            AND s.volunteer_joined_at >= m.joined_at\n            AND (m.deactivated_at IS NULL\n                OR s.volunteer_joined_at < m.deactivated_at)) act ON TRUE\nWHERE\n    m.nths_group_id = :groupId!\n    AND m.deactivated_at IS NULL\n    AND u.test_user IS FALSE\nORDER BY\n    u.first_name,\n    m.user_id"};
 
 /**
  * Query generated from SQL:
@@ -1458,6 +1465,8 @@ const getNthsChapterRosterIR: any = {"usedParamSet":{"startsAt":true,"endsAt":tr
  *     act.sessions_last_two_weeks,
  *     act.sessions_this_month,
  *     act.sessions_all_time,
+ *     act.hours_range,
+ *     act.sessions_range,
  *     act.last_active_at
  * FROM
  *     nths_group_members m
@@ -1486,6 +1495,10 @@ const getNthsChapterRosterIR: any = {"usedParamSet":{"startsAt":true,"endsAt":tr
  *                 count(*) FILTER (WHERE s.volunteer_joined_at >= :monthStartsAt!
  *                     AND s.volunteer_joined_at < :periodEndsAt!)::int AS sessions_this_month,
  *                 count(*)::int AS sessions_all_time,
+ *                 round(COALESCE(sum(s.time_tutored) FILTER (WHERE s.volunteer_joined_at >= :rangeStartsAt
+ *                             AND s.volunteer_joined_at < :rangeEndsAt), 0) / 3600000::numeric, 2)::float AS hours_range,
+ *                 count(*) FILTER (WHERE s.volunteer_joined_at >= :rangeStartsAt
+ *                     AND s.volunteer_joined_at < :rangeEndsAt)::int AS sessions_range,
  *                 max(s.volunteer_joined_at) AS last_active_at
  *             FROM
  *                 sessions s

@@ -72,6 +72,15 @@ async function addSession(
   )
 }
 
+// created_at is set by the column default, so no literal can stand in for it.
+async function getChapterCreatedAt(groupId: Ulid): Promise<Date> {
+  const { rows } = await client.query(
+    `SELECT created_at FROM nths_groups WHERE id = $1`,
+    [groupId]
+  )
+  return rows[0].created_at
+}
+
 async function getActionNames(groupId: Ulid): Promise<string[]> {
   const { rows } = await client.query(
     `SELECT actions.name AS action_name
@@ -457,6 +466,77 @@ describe('getChapterRoster periodHours', () => {
       allTime: 6,
     })
     expect(roster.members[0].hoursThisYear).toBe(4.5)
+  })
+})
+
+describe('getChapterRoster range counts', () => {
+  test('counts only sessions in the range that start after the member joined', async () => {
+    const groupId = await createChapter(client)
+    const memberId = await addMember(groupId, {
+      joinedAt: '2026-11-05T00:00:00.000Z',
+    })
+    for (const volunteerJoinedAt of [
+      '2026-11-03T12:00:00.000Z',
+      '2026-11-07T12:00:00.000Z',
+      '2026-11-12T12:00:00.000Z',
+    ]) {
+      await addSession(memberId, { volunteerJoinedAt })
+    }
+
+    const roster = await NTHSGroupsService.getChapterRoster(
+      groupId,
+      NOW,
+      undefined,
+      {
+        range: {
+          startsAt: new Date('2026-11-01T00:00:00.000Z'),
+          endsAt: new Date('2026-11-10T00:00:00.000Z'),
+        },
+      }
+    )
+
+    expect(roster.members[0].rangeHours).toBe(0.75)
+    expect(roster.members[0].rangeSessions).toBe(1)
+  })
+
+  test('counts a session at the range start and leaves out one at the range end', async () => {
+    const groupId = await createChapter(client)
+    const memberId = await addMember(groupId, {
+      joinedAt: '2026-11-01T00:00:00.000Z',
+    })
+    for (const volunteerJoinedAt of [
+      '2026-11-05T00:00:00.000Z',
+      '2026-11-10T00:00:00.000Z',
+    ]) {
+      await addSession(memberId, { volunteerJoinedAt })
+    }
+
+    const roster = await NTHSGroupsService.getChapterRoster(
+      groupId,
+      NOW,
+      undefined,
+      {
+        range: {
+          startsAt: new Date('2026-11-05T00:00:00.000Z'),
+          endsAt: new Date('2026-11-10T00:00:00.000Z'),
+        },
+      }
+    )
+
+    expect(roster.members[0].rangeSessions).toBe(1)
+  })
+
+  test('reports zero when no range is sent', async () => {
+    const groupId = await createChapter(client)
+    const memberId = await addMember(groupId)
+    await addSession(memberId, {
+      volunteerJoinedAt: '2026-11-07T12:00:00.000Z',
+    })
+
+    const roster = await NTHSGroupsService.getChapterRoster(groupId, NOW)
+
+    expect(roster.members[0].rangeHours).toBe(0)
+    expect(roster.members[0].rangeSessions).toBe(0)
   })
 })
 
@@ -1121,6 +1201,19 @@ describe('getNthsGroupMemberForStaff', () => {
     await expect(
       NTHSGroupsRepo.getNthsGroupMemberForStaff(userId, groupId)
     ).rejects.toThrow(RepoReadError)
+  })
+})
+
+describe('getGroups', () => {
+  test('sends the chapter founding date', async () => {
+    const groupId = await createChapter(client)
+    const adminId = await addMember(groupId, { admin: true })
+
+    const groups = await NTHSGroupsService.getGroups(adminId)
+
+    expect(groups[0].groupInfo.createdAt).toEqual(
+      await getChapterCreatedAt(groupId)
+    )
   })
 })
 

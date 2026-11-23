@@ -31,6 +31,7 @@ import type {
   NTHSCandidateApplicationStatus,
   NTHSChapterImpact,
   NTHSChapterPeriodStarts,
+  NTHSChapterRange,
   NTHSChapterRosterMember,
   NTHSGroupMemberCount,
   NTHSGroupTutoringMemberCount,
@@ -53,6 +54,7 @@ export async function getGroupsByUser(
     )
     return results.map((row) => {
       const camelCased = makeSomeRequired(row, [
+        'groupCreatedAt',
         'groupId',
         'groupKey',
         'groupName',
@@ -77,6 +79,7 @@ export async function getGroupsByUser(
           name: camelCased.groupName,
           key: camelCased.groupKey,
           inviteCode: camelCased.inviteCode,
+          createdAt: camelCased.groupCreatedAt,
         },
         memberInfo: {
           joinedAt: camelCased.joinedAt,
@@ -792,6 +795,7 @@ export async function getNthsChapterRoster(
   endsAt: Date,
   periodStarts: NTHSChapterPeriodStarts,
   periodEndsAt: Date,
+  range?: NTHSChapterRange,
   tc: TransactionClient = getRoClient()
 ): Promise<NTHSChapterRosterMember[]> {
   try {
@@ -802,6 +806,8 @@ export async function getNthsChapterRoster(
         endsAt,
         ...periodStarts,
         periodEndsAt,
+        rangeStartsAt: range?.startsAt,
+        rangeEndsAt: range?.endsAt,
         minSessionLength: config.minSessionLength,
       },
       tc
@@ -816,6 +822,8 @@ export async function getNthsChapterRoster(
         sessionsLastTwoWeeks,
         sessionsThisMonth,
         sessionsAllTime,
+        hoursRange,
+        sessionsRange,
         ...member
       } = makeSomeRequired(row, [
         'userId',
@@ -836,9 +844,13 @@ export async function getNthsChapterRoster(
         'sessionsLastTwoWeeks',
         'sessionsThisMonth',
         'sessionsAllTime',
+        'hoursRange',
+        'sessionsRange',
       ])
       return {
         ...member,
+        rangeHours: hoursRange,
+        rangeSessions: sessionsRange,
         title: member.title as NTHSTitle,
         roleName: member.roleName as NTHSGroupRoleName,
         periodHours: {

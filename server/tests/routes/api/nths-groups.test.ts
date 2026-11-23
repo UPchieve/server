@@ -957,6 +957,8 @@ describe('routeNTHSGroups', () => {
           thisSchoolYear: 1.5,
           allTime: 2.25,
         },
+        rangeHours: 1.25,
+        rangeSessions: 4,
         lastActiveAt,
       })
 
@@ -977,6 +979,10 @@ describe('routeNTHSGroups', () => {
             },
           ],
         },
+      })
+      expect(response.body.roster.members[0]).toMatchObject({
+        rangeHours: 1.25,
+        rangeSessions: 4,
       })
     })
 
@@ -1029,6 +1035,76 @@ describe('routeNTHSGroups', () => {
         expect(periodStarts.monthStartsAt.getTime()).toBeLessThanOrEqual(
           now.getTime()
         )
+      })
+    })
+
+    describe('range params', () => {
+      test('clamps a range end ahead of server time', async () => {
+        const response = await sendRosterGet({
+          rangeStartsAt: daysAgo(3).toISOString(),
+          rangeEndsAt: new Date(
+            Date.now() + 2 * 24 * 60 * 60_000
+          ).toISOString(),
+        })
+
+        expect(response.status).toBe(200)
+        const [, now, , options] =
+          mockedNTHSGroupsService.getChapterRoster.mock.calls[0]
+        expect(options.range.endsAt).toEqual(now)
+      })
+
+      test('passes a range older than 62 days to the service', async () => {
+        const startsAt = daysAgo(200)
+        const endsAt = daysAgo(150)
+
+        const response = await sendRosterGet({
+          rangeStartsAt: startsAt.toISOString(),
+          rangeEndsAt: endsAt.toISOString(),
+        })
+
+        expect(response.status).toBe(200)
+        expect(mockedNTHSGroupsService.getChapterRoster).toHaveBeenCalledWith(
+          groupId,
+          expect.any(Date),
+          expect.anything(),
+          { includeClosedAccounts: true, range: { startsAt, endsAt } }
+        )
+      })
+
+      test('ignores the range for a member who is not an admin', async () => {
+        const response = await sendRosterGet(
+          {
+            rangeStartsAt: daysAgo(200).toISOString(),
+            rangeEndsAt: daysAgo(150).toISOString(),
+          },
+          { roleName: 'member' }
+        )
+
+        expect(response.status).toBe(200)
+        expect(
+          mockedNTHSGroupsService.getChapterRoster.mock.calls[0][3]?.range
+        ).toBeUndefined()
+      })
+
+      test.each([
+        ['only a start', { rangeStartsAt: daysAgo(3).toISOString() }],
+        ['only an end', { rangeEndsAt: daysAgo(3).toISOString() }],
+        [
+          'a start after the end',
+          {
+            rangeStartsAt: daysAgo(2).toISOString(),
+            rangeEndsAt: daysAgo(3).toISOString(),
+          },
+        ],
+        [
+          'a malformed start',
+          { rangeStartsAt: 'monday', rangeEndsAt: daysAgo(1).toISOString() },
+        ],
+      ])('gives HTTP 422 for %s', async (_, query) => {
+        const response = await sendRosterGet(query)
+
+        expect(response.status).toBe(422)
+        expect(mockedNTHSGroupsService.getChapterRoster).not.toHaveBeenCalled()
       })
     })
 

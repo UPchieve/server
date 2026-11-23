@@ -6,6 +6,7 @@ SELECT
     ng.name AS group_name,
     ng.key AS group_key,
     ng.invite_code,
+    ng.created_at AS group_created_at,
     roles.name AS role_name,
     aff_statuses.name AS school_affiliation_status,
     aff.school_id IS NOT NULL AS has_school_on_record
@@ -493,6 +494,8 @@ SELECT
     act.sessions_last_two_weeks,
     act.sessions_this_month,
     act.sessions_all_time,
+    act.hours_range,
+    act.sessions_range,
     act.last_active_at
 FROM
     nths_group_members m
@@ -521,6 +524,10 @@ FROM
                 count(*) FILTER (WHERE s.volunteer_joined_at >= :monthStartsAt!
                     AND s.volunteer_joined_at < :periodEndsAt!)::int AS sessions_this_month,
                 count(*)::int AS sessions_all_time,
+                round(COALESCE(sum(s.time_tutored) FILTER (WHERE s.volunteer_joined_at >= :rangeStartsAt
+                            AND s.volunteer_joined_at < :rangeEndsAt), 0) / 3600000::numeric, 2)::float AS hours_range,
+                count(*) FILTER (WHERE s.volunteer_joined_at >= :rangeStartsAt
+                    AND s.volunteer_joined_at < :rangeEndsAt)::int AS sessions_range,
                 max(s.volunteer_joined_at) AS last_active_at
             FROM
                 sessions s

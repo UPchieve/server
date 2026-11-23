@@ -1694,6 +1694,8 @@ export function buildNTHSChapterRosterMember(
       thisSchoolYear: 0,
       allTime: 0,
     },
+    rangeHours: 0,
+    rangeSessions: 0,
     ...overrides,
   }
 }

@@ -27,6 +27,7 @@ import {
   NTHSChapterGoals,
   NTHSChapterImpact,
   NTHSChapterPeriodStarts,
+  NTHSChapterRange,
   NTHSChapterRoster,
 } from '../models/NTHSGroups'
 import {
@@ -1098,6 +1099,7 @@ export async function getChapterImpact(
 
 type GetChapterRosterOptions = {
   includeClosedAccounts?: boolean
+  range?: NTHSChapterRange
 }
 
 export async function getChapterRoster(
@@ -1122,6 +1124,7 @@ export async function getChapterRoster(
     schoolYear.endsAt,
     starts,
     at,
+    options.range,
     tc
   )
   return {

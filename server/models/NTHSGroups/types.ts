@@ -154,6 +154,11 @@ export type NTHSChapterPeriodStarts = {
   monthStartsAt: Date
 }
 
+export type NTHSChapterRange = {
+  startsAt: Date
+  endsAt: Date
+}
+
 export type NTHSPeriodHours = {
   thisWeek: number
   lastTwoWeeks: number
@@ -198,6 +203,8 @@ export type NTHSChapterRosterMember = {
   hoursThisYear: number
   periodHours: NTHSPeriodHours
   periodSessions: NTHSPeriodSessions
+  rangeHours: number
+  rangeSessions: number
   lastActiveAt?: Date
 }
 

@@ -194,6 +194,9 @@ export type NTHSChapterRosterMemberPublic = {
   hoursThisYear: number
   periodHours: NTHSPeriodHoursPublic
   periodSessions: NTHSPeriodSessionsPublic
+  // Zero unless an admin's request names a range.
+  rangeHours: number
+  rangeSessions: number
   // The member's most recent counted session, with no school-year bound, so it
   // can predate the year the counts above cover.
   lastActiveAt?: ISODateString

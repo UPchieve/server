@@ -396,6 +396,7 @@ describe('getChapterRoster', () => {
       new Date('2027-07-01T00:00:00.000Z'),
       expect.anything(),
       at,
+      undefined,
       undefined
     )
     expect(roster.schoolYear.label).toBe('2026–27')
@@ -474,6 +475,7 @@ describe('getChapterRoster', () => {
           monthStartsAt: new Date(monthStartsAt),
         },
         new Date(at),
+        undefined,
         undefined
       )
     }
@@ -499,6 +501,7 @@ describe('getChapterRoster', () => {
         monthStartsAt,
       },
       at,
+      undefined,
       undefined
     )
   })

@@ -24,6 +24,7 @@ import {
 import type {
   NTHSActionName,
   NTHSChapterPeriodStarts,
+  NTHSChapterRange,
   NTHSGroupRoleName,
 } from '../../models/NTHSGroups'
 import { asDate, asObject, asUuid, isUuid } from '../../utils/type-utils'
@@ -141,6 +142,21 @@ function asPeriodStart(
       `${name} must be within the last ${PERIOD_START_MAX_AGE_DAYS} days`
     )
   return startsAt > now ? now : startsAt
+}
+
+function asRange(
+  startValue: unknown,
+  endValue: unknown,
+  now: Date
+): NTHSChapterRange | undefined {
+  if (startValue === undefined && endValue === undefined) return
+  const startsAt = asDate(startValue, 'rangeStartsAt')
+  const endsAt = asDate(endValue, 'rangeEndsAt')
+  const clampedEndsAt = endsAt > now ? now : endsAt
+  if (startsAt >= clampedEndsAt) {
+    throw new InputError('rangeStartsAt must be before rangeEndsAt')
+  }
+  return { startsAt, endsAt: clampedEndsAt }
 }
 
 function asCommitments(value: unknown): RenewalCommitments | undefined {
@@ -501,7 +517,12 @@ export function routeNTHSGroups(router: Router): void {
             req.params.groupId,
             now,
             periodStarts,
-            { includeClosedAccounts: requesterIsGroupAdmin(res) }
+            {
+              includeClosedAccounts: requesterIsGroupAdmin(res),
+              range: requesterIsGroupAdmin(res)
+                ? asRange(req.query.rangeStartsAt, req.query.rangeEndsAt, now)
+                : undefined,
+            }
           )
           res.json({ roster: toNTHSChapterRosterPublic(roster) })
         } catch (err) {
