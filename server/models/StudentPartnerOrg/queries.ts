@@ -1,7 +1,7 @@
 import { PoolClient } from 'pg'
 import { getClient, TransactionClient } from '../../db'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
-import { makeRequired, makeSomeOptional, Ulid } from '../pgUtils'
+import { makeSomeRequired, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import {
   CreateUserStudentPartnerOrgInstancePayload,
@@ -25,7 +25,11 @@ export async function getStudentPartnerOrgByKey(
       tc
     )
     if (result.length) {
-      return makeSomeOptional(result[0], ['siteId', 'siteName', 'schoolId'])
+      return makeSomeRequired(result[0], [
+        'partnerId',
+        'partnerKey',
+        'partnerName',
+      ])
     }
   } catch (err) {
     throw new RepoReadError(err)
@@ -49,7 +53,11 @@ export async function getStudentPartnerOrgBySchoolId(
           'Found multiple student partner orgs for this school ID. Returning the first match',
           { schoolId }
         )
-      return makeSomeOptional(result[0], ['siteId', 'siteName', 'schoolId'])
+      return makeSomeRequired(result[0], [
+        'partnerId',
+        'partnerKey',
+        'partnerName',
+      ])
     }
   } catch (err) {
     throw new RepoReadError(err)
@@ -64,7 +72,16 @@ export async function getFullStudentPartnerOrgByKey(key: string) {
     )
     if (!result.length)
       throw new Error(`no student partner org found with key ${key}`)
-    return makeSomeOptional(result[0], ['sites'])
+    return makeSomeRequired(result[0], [
+      'collegeSignup',
+      'deactivated',
+      'highSchoolSignup',
+      'isSchool',
+      'key',
+      'name',
+      'schoolSignupRequired',
+      'signupCode',
+    ])
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -77,7 +94,16 @@ export async function getStudentPartnerOrgs() {
       getClient()
     )
     const orgs: StudentPartnerOrg[] = result.map((org) => {
-      const temp = makeSomeOptional(org, ['sites'])
+      const temp = makeSomeRequired(org, [
+        'collegeSignup',
+        'deactivated',
+        'highSchoolSignup',
+        'isSchool',
+        'key',
+        'name',
+        'schoolSignupRequired',
+        'signupCode',
+      ])
       return {
         ...temp,
         displayName: temp.name,
@@ -97,11 +123,11 @@ export async function getStudentPartnerOrgKeyByCode(
       { signupCode },
       getClient()
     )
-    if (!(result.length && makeRequired(result[0])))
+    if (!(result.length && makeSomeRequired(result[0], ['key'])))
       throw new Error(
         `no student partner org found with signup code ${signupCode}`
       )
-    return makeRequired(result[0]).key
+    return makeSomeRequired(result[0], ['key']).key
   } catch (err) {
     throw new RepoReadError(err)
   }

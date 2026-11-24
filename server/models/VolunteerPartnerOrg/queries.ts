@@ -1,7 +1,7 @@
 import { PoolClient } from 'pg'
 import { getClient, TransactionClient } from '../../db'
 import { RepoReadError, RepoUpdateError } from '../Errors'
-import { makeRequired, makeSomeOptional, Ulid } from '../pgUtils'
+import { makeSomeRequired, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import {
   VolunteerPartnerOrg,
@@ -17,9 +17,9 @@ export async function getVolunteerPartnerOrgForRegistrationByKey(
         { key },
         getClient()
       )
-    if (!(result.length && makeRequired(result[0])))
+    if (!(result.length && makeSomeRequired(result[0], ['domains', 'key'])))
       throw new Error(`no volunteer partner org found with key ${key}`)
-    return makeSomeOptional(result[0], ['domains'])
+    return makeSomeRequired(result[0], ['key'])
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -33,9 +33,25 @@ export async function getFullVolunteerPartnerOrgByKey(
       { key },
       getClient()
     )
-    if (!(result.length && makeRequired(result[0])))
+    if (
+      !(
+        result.length &&
+        makeSomeRequired(result[0], [
+          'deactivated',
+          'domains',
+          'key',
+          'name',
+          'receiveWeeklyHourSummaryEmail',
+        ])
+      )
+    )
       throw new Error(`no volunteer partner org found with key ${key}`)
-    return makeSomeOptional(result[0], ['domains'])
+    return makeSomeRequired(result[0], [
+      'deactivated',
+      'key',
+      'name',
+      'receiveWeeklyHourSummaryEmail',
+    ])
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -68,7 +84,12 @@ export async function getVolunteerPartnerOrgs(): Promise<
       getClient()
     )
     const orgs: VolunteerPartnerOrg[] = result.map((org) => {
-      const temp = makeSomeOptional(org, ['domains'])
+      const temp = makeSomeRequired(org, [
+        'deactivated',
+        'key',
+        'name',
+        'receiveWeeklyHourSummaryEmail',
+      ])
       return {
         ...temp,
         // TODO: remove reference to display name in frontend

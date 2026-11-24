@@ -1,6 +1,6 @@
 import { getClient, TransactionClient } from '../../db'
 import { RepoReadError } from '../Errors'
-import { makeSomeOptional, Ulid } from '../pgUtils'
+import { makeSomeRequired, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import { Feedback } from './types'
 import { fixNumberInt } from '../../utils/fix-number-int'
@@ -24,15 +24,7 @@ function buildFeedback(rows: FeedbackByResult[]): Feedback {
     throw new Error('Found more than 2 feedbacks for a session')
   }
   const newRows = rows.map((v) =>
-    makeSomeOptional(v, [
-      'legacyFeedbacks',
-      'studentCounselingFeedback',
-      'studentTutoringFeedback',
-      'volunteerFeedback',
-      'responseData',
-      'type',
-      'subTopic',
-    ])
+    makeSomeRequired(v, ['id', 'sessionId', 'userId', 'userRole'])
   )
   const feedback: Feedback = {
     id: newRows[0].id,

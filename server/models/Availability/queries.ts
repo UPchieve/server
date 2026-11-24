@@ -1,12 +1,6 @@
 import { getClient, TransactionClient } from '../../db'
 import * as pgQueries from './pg.queries'
-import {
-  Ulid,
-  Uuid,
-  getDbUlid,
-  makeRequired,
-  makeSomeOptional,
-} from '../pgUtils'
+import { Ulid, Uuid, getDbUlid, makeSomeRequired } from '../pgUtils'
 
 import _ from 'lodash'
 import moment from 'moment'
@@ -100,7 +94,17 @@ export async function getAvailabilityForVolunteer(
       { userId },
       tc
     )
-    return buildAvailabilityModel(result.map((v) => makeRequired(v)))
+    return buildAvailabilityModel(
+      result.map((v) =>
+        makeSomeRequired(v, [
+          'availableEnd',
+          'availableStart',
+          'id',
+          'timezone',
+          'weekday',
+        ])
+      )
+    )
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -116,7 +120,16 @@ export async function getAvailabilityForVolunteerHeatmap(
     )
     const availabilities: AvailabilitySnapshot[] = []
     const groups = _.groupBy(
-      result.map((v) => makeRequired(v)),
+      result.map((v) =>
+        makeSomeRequired(v, [
+          'availableEnd',
+          'availableStart',
+          'id',
+          'timezone',
+          'userId',
+          'weekday',
+        ])
+      ),
       (row) => row.userId
     )
     for (const user in groups) {
@@ -143,7 +156,16 @@ export async function getAvailabilityHistoryForDatesByVolunteerId(
         { userId, start, end },
         getClient()
       )
-    const rows = result.map((row) => makeRequired(row))
+    const rows = result.map((row) =>
+      makeSomeRequired(row, [
+        'availableEnd',
+        'availableStart',
+        'id',
+        'recordedAt',
+        'timezone',
+        'weekday',
+      ])
+    )
     const rowsByDate = _.groupBy(rows, 'recordedAt')
 
     const histories: AvailabilityHistory[] = []
@@ -151,7 +173,16 @@ export async function getAvailabilityHistoryForDatesByVolunteerId(
       new Date(a[0]) > new Date(b[0]) ? 1 : -1
     )) {
       const availability = buildAvailabilityModel(
-        rows.map((v) => makeRequired(v))
+        rows.map((v) =>
+          makeSomeRequired(v, [
+            'availableEnd',
+            'availableStart',
+            'id',
+            'recordedAt',
+            'timezone',
+            'weekday',
+          ])
+        )
       )
       histories.push({
         volunteerId: userId,
@@ -176,7 +207,9 @@ export async function getLegacyAvailabilityHistoryForDatesByVolunteerId(
         { userId, start, end },
         getClient()
       )
-    const rows = result.map((row) => makeSomeOptional(row, ['timezone']))
+    const rows = result.map((row) =>
+      makeSomeRequired(row, ['id', 'legacyAvailability', 'recordedAt'])
+    )
     const rowsByDate = _.groupBy(rows, 'recordedAt')
     const histories: AvailabilityHistory[] = []
     for (const [date, rows] of Object.entries(rowsByDate).sort((a, b) =>
@@ -212,7 +245,7 @@ export async function saveCurrentAvailabilityAsHistory(
     )
     const errors = []
     for (const row of result) {
-      if (!makeRequired(row).ok)
+      if (!makeSomeRequired(row, ['ok']).ok)
         errors.push(`AvailabilityHistory row ${row} did not save correctly`)
     }
     if (errors.length) throw new Error(errors.join('\n'))
@@ -246,7 +279,7 @@ export async function updateAvailabilityByVolunteerId(
   const errors: string[] = []
   for (const row of rows) {
     const result = await pgQueries.insertNewAvailability.run({ ...row }, tc)
-    if (!(result.length && makeRequired(result[0])))
+    if (!(result.length && makeSomeRequired(result[0], ['ok'])))
       errors.push(
         `Availability row ${JSON.stringify(row)} did not save correctly`
       )

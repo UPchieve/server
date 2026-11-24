@@ -2,13 +2,7 @@ import { IneligibleStudent } from './types'
 import { RepoCreateError, RepoDeleteError, RepoReadError } from '../Errors'
 import { getClient } from '../../db'
 import * as pgQueries from './pg.queries'
-import {
-  Ulid,
-  makeSomeOptional,
-  getDbUlid,
-  makeSomeRequired,
-  ensureWriteOk,
-} from '../pgUtils'
+import { Ulid, getDbUlid, makeSomeRequired, ensureWriteOk } from '../pgUtils'
 
 export async function getIneligibleStudentByEmail(
   email: string
@@ -19,11 +13,11 @@ export async function getIneligibleStudentByEmail(
       getClient()
     )
     if (!result.length) return
-    return makeSomeOptional(result[0], [
-      'zipCode',
-      'ipAddress',
-      'school',
-      'currentGrade',
+    return makeSomeRequired(result[0], [
+      'createdAt',
+      'email',
+      'id',
+      'updatedAt',
     ])
   } catch (err) {
     throw new RepoReadError(err)

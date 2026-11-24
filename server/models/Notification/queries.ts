@@ -8,13 +8,7 @@ import {
 import { RepoCreateError, RepoReadError } from '../Errors'
 import { getClient, getRoClient, TransactionClient } from '../../db'
 import * as pgQueries from './pg.queries'
-import {
-  Ulid,
-  makeSomeOptional,
-  makeRequired,
-  Uuid,
-  ensureWriteOk,
-} from '../pgUtils'
+import { Ulid, makeSomeRequired, Uuid, ensureWriteOk } from '../pgUtils'
 
 export async function getTextNotificationsByVolunteerId(
   userId: Ulid
@@ -25,7 +19,14 @@ export async function getTextNotificationsByVolunteerId(
       getClient()
     )
     return result.map((v) =>
-      makeSomeOptional(v, ['sentAt', 'messageId', 'wasSuccessful'])
+      makeSomeRequired(v, [
+        'id',
+        'method',
+        'priorityGroup',
+        'sessionId',
+        'type',
+        'volunteer',
+      ])
     )
   } catch (err) {
     throw new RepoReadError(err)
@@ -41,7 +42,7 @@ export async function getVolunteersNotifiedSince(
       { notifiedSince, method },
       getClient()
     )
-    return result.map((v) => makeRequired(v).id)
+    return result.map((v) => makeSomeRequired(v, ['id']).id)
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -65,11 +66,13 @@ export async function getSessionNotificationsWithSessionId(
       client
     )
     return result.map((v) => {
-      const row: any = makeSomeOptional(v, [
-        'sentAt',
-        'messageId',
-        'wasSuccessful',
-        'volunteerPartnerOrg',
+      const row: any = makeSomeRequired(v, [
+        'firstName',
+        'id',
+        'method',
+        'priorityGroup',
+        'sessionId',
+        'type',
       ])
       row.volunteer = {
         firstname: row.firstName,
@@ -117,7 +120,9 @@ export async function getEmailNotificationsByTemplateId(
       },
       getClient()
     )
-    return result.map((row) => makeSomeOptional(row, ['sessionId']))
+    return result.map((row) =>
+      makeSomeRequired(row, ['emailTemplateId', 'sentAt', 'userId'])
+    )
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -133,7 +138,9 @@ export async function getLatestEmailNotifications(
       { userIds, emailTemplateIds },
       tc
     )
-    return result.map((row) => makeRequired(row))
+    return result.map((row) =>
+      makeSomeRequired(row, ['emailTemplateId', 'sentAt', 'userId'])
+    )
   } catch (err) {
     throw new RepoReadError(err)
   }

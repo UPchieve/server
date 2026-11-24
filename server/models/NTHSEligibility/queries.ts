@@ -1,6 +1,6 @@
 import { getClient, TransactionClient } from '../../db'
 import { RepoReadError } from '../Errors'
-import { makeSomeOptional, Ulid } from '../pgUtils'
+import { makeSomeRequired, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 
 export async function getAtLargeEligibility(
@@ -10,7 +10,12 @@ export async function getAtLargeEligibility(
   try {
     const result = await pgQueries.getAtLargeEligibility.run({ userId }, tc)
     if (!result.length) return undefined
-    return makeSomeOptional(result[0], ['banType', 'gradeLevel'])
+    return makeSomeRequired(result[0], [
+      'deactivated',
+      'deleted',
+      'roles',
+      'testUser',
+    ])
   } catch (err) {
     throw new RepoReadError(err)
   }

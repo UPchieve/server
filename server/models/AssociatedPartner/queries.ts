@@ -1,6 +1,6 @@
 import * as pgQueries from './pg.queries'
 import { getClient } from '../../db'
-import { makeSomeOptional } from '../pgUtils'
+import { makeSomeRequired } from '../pgUtils'
 import { RepoReadError, RepoUpdateError } from '../Errors'
 import { AssociatedPartner, AssociatedPartnersAndSchools } from './types'
 import * as SponsorOrgRepo from '../SponsorOrg/queries'
@@ -13,12 +13,11 @@ export async function getAssociatedPartners(): Promise<AssociatedPartner[]> {
       getClient()
     )
     const orgs: AssociatedPartner[] = result.map((org) =>
-      makeSomeOptional(org, [
-        'studentPartnerOrg',
-        'studentPartnerOrgId',
-        'studentOrgDisplay',
-        'studentSponsorOrgId',
-        'studentSponsorOrg',
+      makeSomeRequired(org, [
+        'key',
+        'volunteerOrgDisplay',
+        'volunteerPartnerOrg',
+        'volunteerPartnerOrgId',
       ])
     )
     return orgs
@@ -37,12 +36,11 @@ export async function getAssociatedPartnerByKey(
     )
     if (!result.length)
       throw new Error(`no associated partner found with key ${key}`)
-    return makeSomeOptional(result[0], [
-      'studentPartnerOrg',
-      'studentPartnerOrgId',
-      'studentOrgDisplay',
-      'studentSponsorOrgId',
-      'studentSponsorOrg',
+    return makeSomeRequired(result[0], [
+      'key',
+      'volunteerOrgDisplay',
+      'volunteerPartnerOrg',
+      'volunteerPartnerOrgId',
     ])
   } catch (err) {
     throw new RepoReadError(err)
@@ -59,12 +57,11 @@ export async function getAssociatedPartnerByPartnerOrg(
         getClient()
       )
     if (result.length) {
-      return makeSomeOptional(result[0], [
-        'studentPartnerOrg',
-        'studentPartnerOrgId',
-        'studentOrgDisplay',
-        'studentSponsorOrgId',
-        'studentSponsorOrg',
+      return makeSomeRequired(result[0], [
+        'key',
+        'volunteerOrgDisplay',
+        'volunteerPartnerOrg',
+        'volunteerPartnerOrgId',
       ])
     }
   } catch (err) {
@@ -81,12 +78,11 @@ export async function getAssociatedPartnerBySponsorOrg(
       getClient()
     )
     if (result.length) {
-      return makeSomeOptional(result[0], [
-        'studentPartnerOrg',
-        'studentPartnerOrgId',
-        'studentOrgDisplay',
-        'studentSponsorOrgId',
-        'studentSponsorOrg',
+      return makeSomeRequired(result[0], [
+        'key',
+        'volunteerOrgDisplay',
+        'volunteerPartnerOrg',
+        'volunteerPartnerOrgId',
       ])
     }
   } catch (err) {
@@ -104,12 +100,11 @@ export async function getAssociatedPartnerByVolunteerPartnerKey(
         getClient()
       )
     if (result.length)
-      return makeSomeOptional(result[0], [
-        'studentPartnerOrg',
-        'studentPartnerOrgId',
-        'studentOrgDisplay',
-        'studentSponsorOrgId',
-        'studentSponsorOrg',
+      return makeSomeRequired(result[0], [
+        'key',
+        'volunteerOrgDisplay',
+        'volunteerPartnerOrg',
+        'volunteerPartnerOrgId',
       ])
   } catch (err) {
     throw new RepoReadError(err)

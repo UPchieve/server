@@ -15,14 +15,7 @@ import {
   UpsertAssignmentInput,
 } from './types'
 import * as pgQueries from './pg.queries'
-import {
-  Ulid,
-  getDbUlid,
-  makeSomeOptional,
-  makeSomeRequired,
-  Uuid,
-  makeRequired,
-} from '../pgUtils'
+import { Ulid, getDbUlid, makeSomeRequired, Uuid } from '../pgUtils'
 
 export async function upsertAssignment(
   data: UpsertAssignmentInput,
@@ -100,15 +93,13 @@ export async function getAssignmentById(
     )
 
     if (assignment.length) {
-      return makeSomeOptional(assignment[0], [
-        'description',
-        'title',
-        'numberOfSessions',
-        'minDurationInMinutes',
-        'dueDate',
-        'startDate',
-        'subjectId',
-        'subjectName',
+      return makeSomeRequired(assignment[0], [
+        'classId',
+        'createdAt',
+        'id',
+        'isRequired',
+        'teacherId',
+        'updatedAt',
       ])
     }
   } catch (err) {
@@ -126,7 +117,9 @@ export async function createStudentsAssignmentsForAll(
       { userIds: studentIds, assignmentIds },
       tc
     )
-    return result.map((r) => makeRequired(r))
+    return result.map((r) =>
+      makeSomeRequired(r, ['assignmentId', 'createdAt', 'updatedAt', 'userId'])
+    )
   } catch (err) {
     throw new RepoCreateError(err)
   }
@@ -219,7 +212,7 @@ export async function getStudentAssignmentCompletion(
     const studentAssignments =
       await pgQueries.getStudentAssignmentCompletion.run({ assignmentId }, tc)
     return studentAssignments.map((assignment) =>
-      makeSomeOptional(assignment, ['submittedAt'])
+      makeSomeRequired(assignment, ['firstName', 'lastName'])
     )
   } catch (err) {
     throw new RepoReadError(err)
@@ -274,9 +267,7 @@ export async function getSessionsForStudentAssignment(
       { userId, assignmentId },
       tc
     )
-    return sessions.map((s) =>
-      makeSomeOptional(s, ['volunteerJoinedAt', 'endedAt'])
-    )
+    return sessions.map((s) => makeSomeRequired(s, ['timeTutored']))
   } catch (err) {
     throw new RepoReadError(err)
   }
