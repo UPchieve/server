@@ -2,7 +2,7 @@ import { InsertSessionAudioTranscriptMessageArgs } from './types'
 import { RepoCreateError } from '../Errors'
 import * as pgQueries from './pg.queries'
 import { getClient } from '../../db'
-import { getDbUlid, makeRequired } from '../pgUtils'
+import { getDbUlid, makeSomeRequired } from '../pgUtils'
 export async function insertSessionAudioTranscriptMessage(
   data: InsertSessionAudioTranscriptMessageArgs,
   client = getClient()
@@ -22,7 +22,7 @@ export async function insertSessionAudioTranscriptMessage(
       throw new RepoCreateError(
         'Failed to create SessionAudioTranscriptMessage'
       )
-    return makeRequired(results[0]).id
+    return makeSomeRequired(results[0], ['id']).id
   } catch (err) {
     throw new RepoCreateError(err)
   }

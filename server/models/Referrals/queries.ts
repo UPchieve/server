@@ -1,6 +1,6 @@
 import { getClient, getRoClient, TransactionClient } from '../../db'
 import { RepoCreateError, RepoReadError } from '../Errors'
-import { makeRequired, Ulid } from '../pgUtils'
+import { makeSomeRequired, Ulid } from '../pgUtils'
 import type { UserRole } from '../../types/users'
 import * as pgQueries from './pg.queries'
 
@@ -38,7 +38,7 @@ export async function getReferredUsersWithFilter(
       },
       getRoClient()
     )
-    return result.map((row) => makeRequired(row))
+    return result.map((row) => makeSomeRequired(row, ['id', 'roles']))
   } catch (err) {
     throw new RepoReadError(err)
   }

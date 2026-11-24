@@ -1,6 +1,6 @@
 import { TransactionClient } from '../../db'
 import * as pgQueries from './pg.queries'
-import { getDbUlid, makeRequired, Ulid } from '../pgUtils'
+import { getDbUlid, makeSomeRequired, Ulid } from '../pgUtils'
 import { RepoCreateError } from '../Errors'
 
 export async function createParentGuardian(
@@ -18,7 +18,7 @@ export async function createParentGuardian(
     )
     if (!result.length)
       throw new RepoCreateError('createParentGuardian returned 0 rows.')
-    return makeRequired(result[0])
+    return makeSomeRequired(result[0], ['id'])
   } catch (err) {
     throw new RepoCreateError(err)
   }
