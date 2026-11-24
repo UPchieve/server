@@ -20,12 +20,15 @@ import * as DirectMessageModerationRepo from '../../models/DirectMessageModerati
 import * as Db from '../../db'
 import * as UserRepo from '../../models/User'
 import { USER_BAN_TYPES } from '../../constants'
+import * as QueueService from '../../services/QueueService'
+import logger from '../../logger'
 
 jest.mock('../../models/DirectMessage')
 jest.mock('../../services/DirectMessageModerationService')
 jest.mock('../../models/DirectMessageModeration/queries')
 jest.mock('../../db')
 jest.mock('../../models/User')
+jest.mock('../../services/QueueService')
 
 const mockedDirectMessageRepo = mocked(DirectMessageRepo)
 const mockedDirectMessageModerationService = mocked(
@@ -34,6 +37,7 @@ const mockedDirectMessageModerationService = mocked(
 const mockedDirectMessageModerationRepo = mocked(DirectMessageModerationRepo)
 const mockedDb = mocked(Db)
 const mockedUserRepo = mocked(UserRepo)
+const mockedQueueService = mocked(QueueService)
 const transactionClient = new Pool()
 
 afterAll(async () => {
@@ -51,6 +55,7 @@ describe('DirectMessageService', () => {
       cb(transactionClient)
     )
     mockedUserRepo.getUsersBanStatuses.mockResolvedValue([])
+    mockedQueueService.add.mockResolvedValue(undefined as any)
   })
 
   describe('getOrCreateConversation', () => {
@@ -434,6 +439,89 @@ describe('DirectMessageService', () => {
       })
     })
 
+    test.each([
+      ['student', 'volunteer'],
+      ['volunteer', 'student'],
+    ] as const)(
+      'queues a new DM email to the other participant when a %s sends a message',
+      async (senderRole, recipientRole) => {
+        const user = buildUserContactInfo()
+        const partnerId = getDbUlid()
+        const conversation = buildDirectMessageConversation(
+          senderRole === 'student'
+            ? { studentId: user.id, volunteerId: partnerId }
+            : { studentId: partnerId, volunteerId: user.id }
+        )
+        mockedDirectMessageRepo.getConversationForParticipant.mockResolvedValue(
+          conversation
+        )
+        mockedDirectMessageRepo.createDirectMessage.mockResolvedValue(
+          buildDirectMessage()
+        )
+
+        await DirectMessageService.sendMessage(conversation.id, user, 'Hi!')
+
+        expect(mockedQueueService.add).toHaveBeenCalledWith(
+          'EmailNewDirectMessage',
+          { delay: 0, removeOnComplete: true },
+          { recipientId: partnerId, recipientRole }
+        )
+      }
+    )
+
+    test('does not queue a new DM email for a message from a shadow-banned student', async () => {
+      const user = buildUserContactInfo({ banType: USER_BAN_TYPES.SHADOW })
+      const conversation = buildDirectMessageConversation({
+        studentId: user.id,
+      })
+      mockedDirectMessageRepo.getConversationForParticipant.mockResolvedValue(
+        conversation
+      )
+      mockedDirectMessageRepo.createDirectMessage.mockResolvedValue(
+        buildDirectMessage()
+      )
+
+      await DirectMessageService.sendMessage(conversation.id, user, 'Hi!')
+
+      expect(mockedQueueService.add).not.toHaveBeenCalled()
+    })
+
+    test('still delivers the message and logs if the email job cannot be queued', async () => {
+      const user = buildUserContactInfo()
+      const conversation = buildDirectMessageConversation({
+        studentId: user.id,
+      })
+      const message = buildDirectMessage()
+      mockedDirectMessageRepo.getConversationForParticipant.mockResolvedValue(
+        conversation
+      )
+      mockedDirectMessageRepo.createDirectMessage.mockResolvedValue(message)
+      const queueError = new Error('Redis down')
+      mockedQueueService.add.mockRejectedValue(queueError)
+      const loggerErrorSpy = jest
+        .spyOn(logger, 'error')
+        .mockImplementation(() => logger)
+
+      const result = await DirectMessageService.sendMessage(
+        conversation.id,
+        user,
+        'Hi!'
+      )
+      // Let the fire-and-forget rejection handler run
+      await new Promise(setImmediate)
+
+      expect(result).toEqual({ conversation, message })
+      expect(loggerErrorSpy).toHaveBeenCalledWith(
+        'Could not queue new direct message email',
+        {
+          err: queueError,
+          conversationId: conversation.id,
+          messageId: message.id,
+        }
+      )
+      loggerErrorSpy.mockRestore()
+    })
+
     test('logs the blocked message and queues review without delivering it', async () => {
       const user = buildUserContactInfo()
       const conversation = buildDirectMessageConversation({
@@ -460,6 +548,7 @@ describe('DirectMessageService', () => {
       expect(
         DirectMessageModerationRepo.createDirectMessageFlag
       ).toHaveBeenCalledTimes(1)
+      expect(mockedQueueService.add).not.toHaveBeenCalled()
     })
 
     test('logs regex evidence even when AI allows delivery', async () => {

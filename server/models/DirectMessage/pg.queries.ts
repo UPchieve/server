@@ -664,3 +664,44 @@ const markFlagsReviewedIR: any = {"usedParamSet":{"conversationId":true,"flagIds
 export const markFlagsReviewed = new PreparedQuery<IMarkFlagsReviewedParams,IMarkFlagsReviewedResult>(markFlagsReviewedIR);
 
 
+/** 'GetUnreadDirectMessageCount' parameters type */
+export interface IGetUnreadDirectMessageCountParams {
+  userId: string;
+}
+
+/** 'GetUnreadDirectMessageCount' return type */
+export interface IGetUnreadDirectMessageCountResult {
+  count: number | null;
+}
+
+/** 'GetUnreadDirectMessageCount' query type */
+export interface IGetUnreadDirectMessageCountQuery {
+  params: IGetUnreadDirectMessageCountParams;
+  result: IGetUnreadDirectMessageCountResult;
+}
+
+const getUnreadDirectMessageCountIR: any = {"usedParamSet":{"userId":true},"params":[{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":163,"b":170},{"a":198,"b":205},{"a":228,"b":235},{"a":341,"b":348}]}],"statement":"SELECT\n    COUNT(dm.id)::int AS count\nFROM\n    direct_message_conversations dmc\n    JOIN direct_messages dm ON dm.conversation_id = dmc.id\nWHERE (dmc.student_id = :userId!\n    OR dmc.volunteer_id = :userId!)\nAND dm.sender_id != :userId!\nAND dm.sent_while_shadowbanned IS NOT TRUE\nAND dm.created_at > COALESCE(\n    CASE WHEN dmc.student_id = :userId! THEN\n        dmc.student_last_seen\n    ELSE\n        dmc.volunteer_last_seen\n    END, '-infinity')"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     COUNT(dm.id)::int AS count
+ * FROM
+ *     direct_message_conversations dmc
+ *     JOIN direct_messages dm ON dm.conversation_id = dmc.id
+ * WHERE (dmc.student_id = :userId!
+ *     OR dmc.volunteer_id = :userId!)
+ * AND dm.sender_id != :userId!
+ * AND dm.sent_while_shadowbanned IS NOT TRUE
+ * AND dm.created_at > COALESCE(
+ *     CASE WHEN dmc.student_id = :userId! THEN
+ *         dmc.student_last_seen
+ *     ELSE
+ *         dmc.volunteer_last_seen
+ *     END, '-infinity')
+ * ```
+ */
+export const getUnreadDirectMessageCount = new PreparedQuery<IGetUnreadDirectMessageCountParams,IGetUnreadDirectMessageCountResult>(getUnreadDirectMessageCountIR);
+
+

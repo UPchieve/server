@@ -27,6 +27,7 @@ import generateAndStoreWaitTimeHeatMap from './generateAndStoreWaitTimeHeatMap'
 import emailPartnerVolunteerLowHoursSelected from './partner-volunteer-emails/emailLowHoursSelected'
 import emailSessionReported from './user-emails/emailSessionReported'
 import emailDirectMessageReported from './user-emails/emailDirectMessageReported'
+import emailNewDirectMessage from './user-emails/emailNewDirectMessage'
 import emailStudentFirstSessionCongrats from './student-emails/emailStudentFirstSessionCongrats'
 import emailStudentOnboardingSeries from './student-emails/emailStudentOnboardingSeries'
 import emailStudentSessionActions from './student-emails/emailStudentSessionActions'
@@ -124,6 +125,7 @@ export const jobProcessors = {
   EmailReferences: emailReferences,
   EmailSessionReported: emailSessionReported,
   EmailDirectMessageReported: emailDirectMessageReported,
+  EmailNewDirectMessage: emailNewDirectMessage,
   EmailStudentAbsentVolunteerApology: emailStudentSessionActions,
   EmailStudentAbsentWarning: emailStudentSessionActions,
   EmailStudentFirstSessionCongrats: emailStudentFirstSessionCongrats,

@@ -256,3 +256,18 @@ export async function markFlagsReviewed(conversationId: Uuid, flagIds: Uuid[]) {
     throw new RepoUpdateError(err)
   }
 }
+
+export async function getUnreadDirectMessageCount(
+  userId: Uuid,
+  client?: TransactionClient
+): Promise<number> {
+  try {
+    const result = await pgQueries.getUnreadDirectMessageCount.run(
+      { userId },
+      client ?? getClient()
+    )
+    return result[0]?.count ?? 0
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}

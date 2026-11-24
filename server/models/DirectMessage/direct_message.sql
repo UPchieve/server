@@ -246,3 +246,21 @@ WHERE
 RETURNING
     id;
 
+
+/* @name getUnreadDirectMessageCount */
+SELECT
+    COUNT(dm.id)::int AS count
+FROM
+    direct_message_conversations dmc
+    JOIN direct_messages dm ON dm.conversation_id = dmc.id
+WHERE (dmc.student_id = :userId!
+    OR dmc.volunteer_id = :userId!)
+AND dm.sender_id != :userId!
+AND dm.sent_while_shadowbanned IS NOT TRUE
+AND dm.created_at > COALESCE(
+    CASE WHEN dmc.student_id = :userId! THEN
+        dmc.student_last_seen
+    ELSE
+        dmc.volunteer_last_seen
+    END, '-infinity');
+

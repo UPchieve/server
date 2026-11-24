@@ -1248,6 +1248,32 @@ export async function sendCoachReported(
   await sendEmail(email, sender, from, template, { firstName }, overrides)
 }
 
+export async function sendNewDirectMessageNotification(
+  email: string,
+  firstName: string,
+  recipientRole: 'student' | 'volunteer',
+  numUnreadMessages: number
+): Promise<void> {
+  const sender = config.mail.senders.noreply
+  const from = 'The UPchieve Team'
+  const template =
+    recipientRole === 'student'
+      ? config.sendgrid.studentNewDirectMessageTemplate
+      : config.sendgrid.volunteerNewDirectMessageTemplate
+  const overrides = {
+    categories: [`${recipientRole} - new direct message`],
+  }
+
+  await sendEmail(
+    email,
+    sender,
+    from,
+    template,
+    { firstName, numUnreadMessages },
+    overrides
+  )
+}
+
 export async function sendStudentAbsentWarning(
   email: string,
   firstName: string

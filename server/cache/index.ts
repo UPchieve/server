@@ -53,6 +53,19 @@ export async function saveWithExpiration(
   await redisClient.set(key, value, 'EX', seconds)
 }
 
+/**
+ * Atomically sets the key only if it doesn't already exist.
+ * @returns true if the key was set, false if it already existed
+ */
+export async function setIfNotExists(
+  key: string,
+  value: string,
+  seconds: number
+): Promise<boolean> {
+  const result = await redisClient.set(key, value, 'EX', seconds, 'NX')
+  return result === 'OK'
+}
+
 export async function getTimeToExpiration(key: string): Promise<number> {
   return await redisClient.ttl(key)
 }

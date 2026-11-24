@@ -678,6 +678,14 @@ export async function getOnlineUsers(role: OnlineRole): Promise<Ulid[]> {
   return userIds
 }
 
+export async function isUserOnline(
+  userId: Ulid,
+  role: OnlineRole
+): Promise<boolean> {
+  const deadline = await redisClient.zscore(onlineKey(role), userId)
+  return deadline !== null && Number(deadline) > nowInSeconds()
+}
+
 export async function getOnlineUserIds(): Promise<
   Record<'students' | 'volunteers', Ulid[]>
 > {

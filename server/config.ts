@@ -89,6 +89,8 @@ const config = {
     emailSessionRecapMessage: 'd-68bab541136540928e640c06b1cbba16',
     favoritingEmail: 'd-14d04d49145448019283306e473bbf13',
     studentReportedCoachDmTemplate: 'd-eb1e40492ed04d37add0d3bc124152ef',
+    volunteerNewDirectMessageTemplate: 'd-9f6bc2e907494c5fa7d3d0f9f755ad39',
+    studentNewDirectMessageTemplate: 'd-2b4fdf808e60463784ac4bcab5026fe0',
     fallIncentiveEnrollmentWelcomeTemplate:
       'd-914f98ad37c3461eaacc1c2bf27f097d',
     fallIncentiveInvitedToEnrollReminderTemplate:

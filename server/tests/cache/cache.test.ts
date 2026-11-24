@@ -73,6 +73,23 @@ test('Should insert key with custom expiry', async () => {
   expect(ttl).toBeLessThan(1001)
 })
 
+test('setIfNotExists only sets the key when it does not already exist', async () => {
+  const testKey = uuid()
+
+  await expect(Cache.setIfNotExists(testKey, 'first', 1000)).resolves.toBe(true)
+  await expect(Cache.setIfNotExists(testKey, 'second', 1000)).resolves.toBe(
+    false
+  )
+
+  await expect(Cache.get(testKey)).resolves.toEqual('first')
+  const ttl = await Cache.getTimeToExpiration(testKey)
+  expect(ttl).toBeGreaterThan(0)
+  expect(ttl).toBeLessThan(1001)
+
+  // clean up
+  await Cache.remove(testKey)
+})
+
 test('Should insert key with default expiry', async () => {
   const testKey = uuid()
   const testValue = faker.lorem.words(10)

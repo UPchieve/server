@@ -264,6 +264,39 @@ describe('online status', () => {
   })
 })
 
+describe('isUserOnline', () => {
+  test('is true only for the role the user is online in', async () => {
+    const userId = getDbUlid()
+    await PresenceService.markOnline(userId, 'volunteer', getUuid())
+
+    expect(await PresenceService.isUserOnline(userId, 'volunteer')).toBe(true)
+    expect(await PresenceService.isUserOnline(userId, 'student')).toBe(false)
+  })
+
+  test('is false for a user who was never online or has gone offline', async () => {
+    const userId = getDbUlid()
+    expect(await PresenceService.isUserOnline(userId, 'volunteer')).toBe(false)
+
+    await PresenceService.markOnline(userId, 'volunteer', getUuid())
+    await PresenceService.markOffline(userId)
+
+    expect(await PresenceService.isUserOnline(userId, 'volunteer')).toBe(false)
+  })
+
+  test('is false once the online deadline has passed', async () => {
+    jest.useFakeTimers().setSystemTime(new Date('2026-01-01T00:00:00Z'))
+    const userId = getDbUlid()
+    await PresenceService.markOnline(userId, 'volunteer', getUuid())
+
+    jest.advanceTimersByTime(
+      (PresenceService.CLIENT_INDEX_TTL_IN_SECONDS + 1) * 1000
+    )
+
+    expect(await PresenceService.isUserOnline(userId, 'volunteer')).toBe(false)
+    jest.useRealTimers()
+  })
+})
+
 describe('countOnlineUsers', () => {
   it('Counts correctly by role', async () => {
     const studentIds = [getUuid(), getUuid()]

@@ -21,6 +21,7 @@ import { runInTransaction } from '../db'
 import logger from '../logger'
 import { EVENTS, USER_BAN_TYPES } from '../constants'
 import { captureEvent } from './AnalyticsService'
+import * as QueueService from './QueueService'
 
 function reviewCategory(reason: string) {
   const normalized = reason.toUpperCase().replaceAll(' ', '_')
@@ -134,6 +135,10 @@ export async function sendMessage(
     }
   }
 
+  const senderIsStudent = user.id === conversation.studentId
+  const sentWhileShadowbanned =
+    senderIsStudent && user.banType === USER_BAN_TYPES.SHADOW
+
   const message = await runInTransaction(async (client) => {
     if (moderation.censoredBy) {
       const censoredMessageId =
@@ -159,10 +164,6 @@ export async function sendMessage(
       }
     }
     if (moderation.blocked) return
-    // Shadow-banned students' messages are saved but hidden from the volunteer
-    const sentWhileShadowbanned =
-      user.id === conversation.studentId &&
-      user.banType === USER_BAN_TYPES.SHADOW
     return DirectMessageRepo.createDirectMessage(
       {
         conversationId,
@@ -187,9 +188,31 @@ export async function sendMessage(
     messageId: message.id,
     studentId: conversation.studentId,
     volunteerId: conversation.volunteerId,
-    senderRole: user.id === conversation.studentId ? 'student' : 'volunteer',
+    senderRole: senderIsStudent ? 'student' : 'volunteer',
     messageLength: trimmedContents.length,
   })
+
+  // Email the recipient (throttled to once per hour in the job), unless the
+  // message is hidden from them because the sender is shadow banned
+  if (!sentWhileShadowbanned) {
+    QueueService.add(
+      'EmailNewDirectMessage',
+      { delay: 0, removeOnComplete: true },
+      {
+        recipientId: senderIsStudent
+          ? conversation.volunteerId
+          : conversation.studentId,
+        recipientRole: senderIsStudent ? 'volunteer' : 'student',
+      }
+    ).catch((err: unknown) => {
+      logger.error('Could not queue new direct message email', {
+        err,
+        conversationId,
+        messageId: message.id,
+      })
+    })
+  }
+
   return { conversation, message }
 }
 

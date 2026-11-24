@@ -108,7 +108,7 @@ export type UserForAdmin = {
 
 export type ReportedUser = Pick<
   User,
-  'id' | 'firstName' | 'lastName' | 'email' | 'createdAt'
+  'id' | 'firstName' | 'lastName' | 'email' | 'createdAt' | 'banType'
 > & {
   isDeactivated: boolean
   isTestUser: boolean
