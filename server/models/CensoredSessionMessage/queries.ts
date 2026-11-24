@@ -1,4 +1,4 @@
-import { getDbUlid, makeRequired } from '../pgUtils'
+import { getDbUlid, makeSomeRequired } from '../pgUtils'
 import { CensoredSessionMessage } from './types'
 import * as pgQueries from './pg.queries'
 import { getClient } from '../../db'
@@ -33,7 +33,17 @@ export async function createCensoredMessage({
       },
       getClient()
     )
-    if (result.length) return makeRequired(result[0])
+    if (result.length) {
+      return makeSomeRequired(result[0], [
+        'id',
+        'senderId',
+        'message',
+        'sessionId',
+        'censoredBy',
+        'sentAt',
+        'shown',
+      ])
+    }
     throw new RepoCreateError(
       'createCensoredMessage: Insert query did not return new row'
     )

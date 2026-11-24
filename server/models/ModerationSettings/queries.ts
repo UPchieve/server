@@ -2,7 +2,7 @@ import _ from 'lodash'
 import { getClient, TransactionClient } from '../../db'
 import * as pgQueries from './pg.queries'
 import { RepoReadError } from '../Errors'
-import { makeRequired } from '../pgUtils'
+import { makeSomeRequired } from '../pgUtils'
 import { ModerationType, GetModerationSettingResult } from './types'
 
 export const getContextualSettings = getSettings('contextual')
@@ -20,7 +20,11 @@ function getSettings(moderationType: ModerationType) {
       )
 
       const results = result.map((row) => {
-        const data = makeRequired(row)
+        const data = makeSomeRequired(row, [
+          'name',
+          'threshold',
+          'penaltyWeight',
+        ])
         return {
           name: data.name,
           threshold: Number(data.threshold),

@@ -1,6 +1,6 @@
 import * as pgQueries from './pg.queries'
 import { getClient, TransactionClient } from '../../db'
-import { getDbUlid, makeRequired, makeSomeRequired } from '../pgUtils'
+import { getDbUlid, makeSomeRequired } from '../pgUtils'
 import { RepoCreateError, RepoReadError } from '../Errors'
 import type { Uuid } from '../../types/shared'
 import type { DirectMessageReport } from '../../types/direct-messages'
@@ -56,7 +56,7 @@ export async function createReport(
       client
     )
     if (!row) throw new Error('DM report reason not found')
-    return makeRequired(row).id
+    return makeSomeRequired(row, ['id']).id
   } catch (err) {
     throw new RepoCreateError(err)
   }
