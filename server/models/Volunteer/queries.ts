@@ -7,8 +7,6 @@ import {
 } from '../../db'
 import * as pgQueries from './pg.queries'
 import {
-  makeRequired,
-  makeSomeOptional,
   Ulid,
   getDbUlid,
   generateReferralCode,
@@ -91,10 +89,12 @@ export async function getVolunteerContactInfoById(
       getClient()
     )
     if (!result.length) return
-    const ret = makeSomeOptional(result[0], [
-      'volunteerPartnerOrg',
-      'phone',
-      'approved',
+    const ret = makeSomeRequired(result[0], [
+      'email',
+      'firstName',
+      'id',
+      'lastName',
+      'smsConsent',
     ])
     ret.email = ret.email.toLowerCase()
     return ret
@@ -112,7 +112,7 @@ export async function getSubjectsForVolunteer(
       { userId },
       tc ?? getClient()
     )
-    const subjects = result.map((v) => makeRequired(v).subject)
+    const subjects = result.map((v) => makeSomeRequired(v, ['subject']).subject)
     return subjects
   } catch (err) {
     throw new RepoReadError(err)
@@ -130,7 +130,7 @@ export async function getVolunteerContactInfoByIds(
       dbClient
     )
     return result.map((v) => {
-      const ret = makeSomeOptional(v, ['volunteerPartnerOrg', 'phone'])
+      const ret = makeSomeRequired(v, ['email', 'firstName', 'id', 'lastName'])
       ret.email = ret.email.toLowerCase()
       return ret
     })
@@ -148,7 +148,7 @@ export async function getVolunteersForBlackoutOver(
       getClient()
     )
     return result.map((v) => {
-      const ret = makeSomeOptional(v, ['volunteerPartnerOrg', 'phone'])
+      const ret = makeSomeRequired(v, ['email', 'firstName', 'id', 'lastName'])
       ret.email = ret.email.toLowerCase()
       return ret
     })
@@ -171,9 +171,11 @@ export async function getVolunteerForQuickTips(
       getClient()
     )
     if (!vResult.length) return
-    const volunteer = makeSomeOptional(vResult[0], [
-      'volunteerPartnerOrg',
-      'phone',
+    const volunteer = makeSomeRequired(vResult[0], [
+      'email',
+      'firstName',
+      'id',
+      'lastName',
     ])
     const availability = await getAvailabilityForVolunteer(userId)
     volunteer.email = volunteer.email.toLowerCase()
@@ -197,7 +199,13 @@ export async function getPartnerVolunteerForLowHours(
       getClient()
     )
     if (!vResult.length) return
-    const volunteer = makeSomeOptional(vResult[0], ['phone']) // volunteerPartnerOrg must exist
+    const volunteer = makeSomeRequired(vResult[0], [
+      'email',
+      'firstName',
+      'id',
+      'lastName',
+      'volunteerPartnerOrg',
+    ])
     volunteer.email = volunteer.email.toLowerCase()
     const availability = await getAvailabilityForVolunteer(userId)
     return {
@@ -222,7 +230,16 @@ export async function getQuizzesForVolunteers(
       { userIds },
       client
     )
-    const rows = result.map((v) => makeRequired(v))
+    const rows = result.map((v) =>
+      makeSomeRequired(v, [
+        'active',
+        'lastAttemptedAt',
+        'name',
+        'passed',
+        'tries',
+        'userId',
+      ])
+    )
     const rowsByUser = _.groupBy(rows, (v) => v.userId)
     const map: VolunteerQuizMap = {}
     for (const user of userIds) {
@@ -252,7 +269,9 @@ export async function getCertificationsForVolunteer(
       { userIds },
       client
     )
-    const rows = result.map((v) => makeRequired(v))
+    const rows = result.map((v) =>
+      makeSomeRequired(v, ['active', 'lastAttemptedAt', 'name', 'userId'])
+    )
     const rowsByUser = _.groupBy(rows, (v) => v.userId)
     const map: VolunteerQuizMap = {}
     for (const user of userIds) {
@@ -282,7 +301,15 @@ export async function getActiveQuizzesForVolunteers(
       { userIds },
       client
     )
-    const rows = result.map((v) => makeRequired(v))
+    const rows = result.map((v) =>
+      makeSomeRequired(v, [
+        'lastAttemptedAt',
+        'name',
+        'passed',
+        'tries',
+        'userId',
+      ])
+    )
     const rowsByUser = _.groupBy(rows, (v) => v.userId)
     const map: VolunteerQuizMap = {}
     for (const user of userIds) {
@@ -318,7 +345,15 @@ export async function getVolunteersForWeeklyHourSummary(
       { startOfWeek },
       getClient()
     )
-    return result.map((v) => makeSomeOptional(v, ['volunteerPartnerOrg']))
+    return result.map((v) =>
+      makeSomeRequired(v, [
+        'email',
+        'firstName',
+        'id',
+        'lastName',
+        'sentHourSummaryIntroEmail',
+      ])
+    )
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -360,7 +395,7 @@ export async function getVolunteerIdsForElapsedAvailability(): Promise<Ulid[]> {
       undefined,
       getClient()
     )
-    return result.map((v) => makeRequired(v).userId)
+    return result.map((v) => makeSomeRequired(v, ['userId']).userId)
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -377,7 +412,7 @@ export async function getVolunteersForTotalHours(): Promise<
       { targetPartnerOrgs: config.customVolunteerPartnerOrgs },
       getClient()
     )
-    const rows = result.map((v) => makeRequired(v))
+    const rows = result.map((v) => makeSomeRequired(v, ['id']))
     const quizzes = await getQuizzesForVolunteers(rows.map((v) => v.id))
     return rows.map((v) => ({
       ...v,
@@ -417,10 +452,13 @@ export async function getVolunteerForOnboardingById(
       tc
     )
     if (!result.length) return
-    const volunteer = makeSomeOptional(result[0], [
-      'availabilityLastModifiedAt',
-      'country',
-      'volunteerPartnerOrgKey',
+    const volunteer = makeSomeRequired(result[0], [
+      'approved',
+      'email',
+      'firstName',
+      'id',
+      'onboarded',
+      'subjects',
     ])
     if (volunteer.email) {
       volunteer.email = volunteer.email.toLowerCase()
@@ -443,7 +481,9 @@ export async function getVolunteersForTelecomReport(
       { partnerOrg },
       getAnalyticsClient()
     )
-    const rows = result.map((v) => makeSomeOptional(v, ['volunteerPartnerOrg']))
+    const rows = result.map((v) =>
+      makeSomeRequired(v, ['createdAt', 'email', 'firstName', 'id', 'lastName'])
+    )
     const quizzes = await getQuizzesForVolunteers(rows.map((v) => v.id))
     return rows.map((v) => ({
       ...v,
@@ -462,7 +502,7 @@ export async function getVolunteersNotifiedBySessionId(
       { sessionId },
       getClient()
     )
-    return result.map((v) => makeRequired(v).userId)
+    return result.map((v) => makeSomeRequired(v, ['userId']).userId)
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -481,7 +521,7 @@ export async function getVolunteerByReference(
       getClient()
     )
     if (!result.length) return
-    const ret = makeRequired(result[0])
+    const ret = makeSomeRequired(result[0], ['referenceEmail', 'volunteerId'])
     ret.referenceEmail = ret.referenceEmail.toLowerCase()
     return ret
   } catch (err) {
@@ -560,21 +600,21 @@ export async function getInactiveVolunteers(
       getClient()
     )
     const thirties = thirtyResult.map((v) =>
-      makeSomeOptional(v, ['volunteerPartnerOrg', 'phone'])
+      makeSomeRequired(v, ['email', 'firstName', 'id', 'lastName'])
     )
     const sixtyResult = await pgQueries.getInactiveVolunteers.run(
       { start: sixtyDaysAgoStartOfDay, end: sixtyDaysAgoEndOfDay },
       getClient()
     )
     const sixties = sixtyResult.map((v) =>
-      makeSomeOptional(v, ['volunteerPartnerOrg', 'phone'])
+      makeSomeRequired(v, ['email', 'firstName', 'id', 'lastName'])
     )
     const ninetyResult = await pgQueries.getInactiveVolunteers.run(
       { start: ninetyDaysAgoStartOfDay, end: ninetyDaysAgoEndOfDay },
       getClient()
     )
     const nineties = ninetyResult.map((v) =>
-      makeSomeOptional(v, ['volunteerPartnerOrg', 'phone'])
+      makeSomeRequired(v, ['email', 'firstName', 'id', 'lastName'])
     )
 
     return {
@@ -633,7 +673,7 @@ export async function updateVolunteersReadyToCoachByIds(
     const errors: string[] = []
     for (const row of result) {
       try {
-        if (!makeRequired(row).ok)
+        if (!makeSomeRequired(row, ['ok']).ok)
           throw new Error('Updated row did not return ok')
       } catch (err) {
         errors.push((err as Error).message)
@@ -713,7 +753,17 @@ export async function getVolunteerTrainingCourses(
     )
     const map: UserTrainingCourses = {}
     for (const row of result) {
-      const temp = { ...makeRequired(row) }
+      const temp = {
+        ...makeSomeRequired(row, [
+          'complete',
+          'completedMaterials',
+          'createdAt',
+          'progress',
+          'trainingCourse',
+          'updatedAt',
+          'userId',
+        ]),
+      }
       map[temp.trainingCourse] = temp
     }
     return map
@@ -750,7 +800,15 @@ export async function updateVolunteerTrainingById(
     )
     if (!results.length)
       throw new RepoUpdateError('Update query did not return ok')
-    return makeRequired(results[0])
+    return makeSomeRequired(results[0], [
+      'complete',
+      'completedMaterials',
+      'createdAt',
+      'progress',
+      'trainingCourseId',
+      'updatedAt',
+      'userId',
+    ])
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
@@ -846,7 +904,16 @@ export async function getVolunteersForEmailReference(): Promise<
       undefined,
       getClient()
     )
-    const references = result.map((v) => makeRequired(v))
+    const references = result.map((v) =>
+      makeSomeRequired(v, [
+        'email',
+        'firstName',
+        'id',
+        'lastName',
+        'status',
+        'userId',
+      ])
+    )
     const volunteers = await getVolunteerContactInfoByIds(
       references.map((v) => v.userId)
     )
@@ -901,7 +968,13 @@ export async function getReferencesByVolunteer(
       client
     )
     return result.map((v) => {
-      const ret = makeRequired(v)
+      const ret = makeSomeRequired(v, [
+        'email',
+        'firstName',
+        'id',
+        'lastName',
+        'status',
+      ])
       ret.email = ret.email.toLowerCase()
       return ret
     })
@@ -948,7 +1021,15 @@ export async function checkReferenceExistsBeforeAdding(
       { userId, email: email.toLowerCase() },
       getClient()
     )
-    if (result.length) return makeRequired(result[0])
+    if (result.length)
+      return makeSomeRequired(result[0], [
+        'actions',
+        'email',
+        'firstName',
+        'id',
+        'lastName',
+        'status',
+      ])
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -1047,7 +1128,7 @@ export async function getVolunteersForNiceToMeetYou(
       getClient()
     )
     return result.map((v) => {
-      const ret = makeSomeOptional(v, ['volunteerPartnerOrg', 'phone'])
+      const ret = makeSomeRequired(v, ['email', 'firstName', 'id', 'lastName'])
       ret.email = ret.email.toLowerCase()
       return ret
     })
@@ -1065,7 +1146,7 @@ export async function getVolunteersForReadyToCoach(): Promise<
       getClient()
     )
     return result.map((v) => {
-      const ret = makeSomeOptional(v, ['volunteerPartnerOrg', 'phone'])
+      const ret = makeSomeRequired(v, ['email', 'firstName', 'id', 'lastName'])
       ret.email = ret.email.toLowerCase()
       return ret
     })
@@ -1084,7 +1165,7 @@ export async function getVolunteersForWaitingReferences(
       getClient()
     )
     return result.map((v) => {
-      const ret = makeSomeOptional(v, ['volunteerPartnerOrg', 'phone'])
+      const ret = makeSomeRequired(v, ['email', 'firstName', 'id', 'lastName'])
       ret.email = ret.email.toLowerCase()
       return ret
     })
@@ -1284,7 +1365,9 @@ export async function getVolunteerPartnerOrgByKey(
       },
       client
     )
-    return result.length ? makeRequired(result[0]) : undefined
+    return result.length
+      ? makeSomeRequired(result[0], ['partnerId', 'partnerKey', 'partnerName'])
+      : undefined
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -1448,7 +1531,16 @@ export async function getVolunteersToReview(
       getClient()
     )
     return result.map((v) => {
-      const ret = makeRequired(v)
+      const ret = makeSomeRequired(v, [
+        'createdAt',
+        'email',
+        'firstName',
+        'firstname',
+        'id',
+        'lastName',
+        'lastname',
+        'readyForReviewAt',
+      ])
       ret.email = ret.email.toLowerCase()
       return ret
     })
@@ -1476,7 +1568,15 @@ export async function getReferencesToFollowup(
       getClient()
     )
     return result.map((v) => {
-      const ret = makeRequired(v)
+      const ret = makeSomeRequired(v, [
+        'referenceEmail',
+        'referenceFirstName',
+        'referenceId',
+        'referenceLastName',
+        'volunteerFirstName',
+        'volunteerId',
+        'volunteerLastName',
+      ])
       ret.referenceEmail = ret.referenceEmail.toLowerCase()
       return ret
     })
@@ -1495,7 +1595,7 @@ export async function getQuizzesPassedForDateRange(
       { userId, start, end },
       getClient()
     )
-    return makeRequired(result[0]).total
+    return makeSomeRequired(result[0], ['total']).total
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -1619,9 +1719,10 @@ export async function getVolunteerForScheduleUpdate(
       tc
     )
     if (!result.length) throw new RepoReadError('Volunteer not found')
-    const volunteer = makeSomeOptional(result[0], [
-      'volunteerPartnerOrg',
-      'subjects',
+    const volunteer = makeSomeRequired(result[0], [
+      'id',
+      'onboarded',
+      'passedRequiredTraining',
     ])
     const availability = await getAvailabilityForVolunteer(volunteer.id, tc)
     return {
@@ -1653,11 +1754,26 @@ export async function getUniqueStudentsHelpedForAnalyticsReportSummary(
         },
         getRoClient()
       )
-    if (!(result.length && makeRequired(result[0])))
+    if (
+      !(
+        result.length &&
+        makeSomeRequired(result[0], [
+          'totalUniquePartnerStudentsHelped',
+          'totalUniquePartnerStudentsHelpedWithinRange',
+          'totalUniqueStudentsHelped',
+          'totalUniqueStudentsHelpedWithinRange',
+        ])
+      )
+    )
       throw new Error(
         `no volunteer partner org found with key ${volunteerPartnerOrg}`
       )
-    return makeRequired(result[0])
+    return makeSomeRequired(result[0], [
+      'totalUniquePartnerStudentsHelped',
+      'totalUniquePartnerStudentsHelpedWithinRange',
+      'totalUniqueStudentsHelped',
+      'totalUniqueStudentsHelpedWithinRange',
+    ])
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -1696,10 +1812,26 @@ export async function getVolunteersForAnalyticsReport(
     }
 
     const volunteers = result.map((row) => {
-      const temp = makeSomeOptional(row, [
-        'state',
-        'dateOnboarded',
-        'availabilityLastModifiedAt',
+      const temp = makeSomeRequired(row, [
+        'createdAt',
+        'email',
+        'firstName',
+        'isOnboarded',
+        'lastName',
+        'totalNotifications',
+        'totalNotificationsWithinRange',
+        'totalPartnerSessions',
+        'totalPartnerSessionsWithinRange',
+        'totalPartnerTimeTutored',
+        'totalPartnerTimeTutoredWithinRange',
+        'totalQuizzesPassed',
+        'totalSessions',
+        'totalSessionsWithinRange',
+        'totalUniquePartnerStudentsHelped',
+        'totalUniquePartnerStudentsHelpedWithinRange',
+        'totalUniqueStudentsHelped',
+        'totalUniqueStudentsHelpedWithinRange',
+        'userId',
       ])
       return {
         ...temp,
@@ -1724,7 +1856,7 @@ export async function getActiveSponsorshipsByUserId(
       { userId },
       getRoClient()
     )
-    return result.map((v) => makeRequired(v))
+    return result.map((v) => makeSomeRequired(v, ['id', 'key', 'name']))
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -1739,7 +1871,7 @@ export async function getUserIdsWithActiveSponsorship(
       { userIds, sponsorOrgKey },
       getRoClient()
     )
-    return result.map((v) => makeRequired(v).userId)
+    return result.map((v) => makeSomeRequired(v, ['userId']).userId)
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -1754,7 +1886,8 @@ export async function getVolunteerSubjects(
       { userId },
       tc ?? getClient()
     )
-    if (result.length) return result.map((row) => makeRequired(row))
+    if (result.length)
+      return result.map((row) => makeSomeRequired(row, ['active', 'name']))
     return []
   } catch (err) {
     throw new RepoReadError(err)
@@ -1770,7 +1903,8 @@ export async function getVolunteerMutedSubjects(
       { userId },
       tc ?? getClient()
     )
-    if (result.length) return result.map((row) => makeRequired(row))
+    if (result.length)
+      return result.map((row) => makeSomeRequired(row, ['active', 'name']))
     return []
   } catch (err) {
     throw new RepoReadError(err)
@@ -1787,7 +1921,13 @@ export async function getVolunteersForTextNotifications(): Promise<
         getRoClient()
       )
     return rawResults.map((row) =>
-      makeSomeOptional(row, ['volunteerPartnerOrgKey', 'occupations'])
+      makeSomeRequired(row, [
+        'firstName',
+        'id',
+        'mutedSubjects',
+        'phone',
+        'unlockedSubjects',
+      ])
     )
   } catch (err) {
     throw new RepoReadError(err)
@@ -1850,7 +1990,7 @@ export async function updateVolunteerPublicProfileInfoShared(
       { userId, publicProfileKeys },
       tc
     )
-    if (!(result.length && makeRequired(result[0]).ok))
+    if (!(result.length && makeSomeRequired(result[0], ['ok']).ok))
       throw new RepoUpdateError('Update did not return ok')
   } catch (err) {
     throw new RepoUpdateError(err)
@@ -1866,7 +2006,7 @@ export async function getVolunteersSharingOnlineStatus(
       { volunteerIds },
       tc
     )
-    return results.map((row) => makeRequired(row).userId)
+    return results.map((row) => makeSomeRequired(row, ['userId']).userId)
   } catch (err) {
     throw new RepoReadError(err)
   }
