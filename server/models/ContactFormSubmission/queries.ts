@@ -2,7 +2,7 @@ import { ContactFormSubmission } from './types'
 import { RepoCreateError } from '../Errors'
 import { getClient } from '../../db'
 import * as pgQueries from './pg.queries'
-import { Ulid, getDbUlid, makeRequired } from '../pgUtils'
+import { Ulid, getDbUlid, makeSomeRequired } from '../pgUtils'
 
 export async function createContactFormByUser(
   userId: Ulid,
@@ -19,7 +19,16 @@ export async function createContactFormByUser(
       },
       getClient()
     )
-    if (result.length) return makeRequired(result[0])
+    if (result.length)
+      return makeSomeRequired(result[0], [
+        'createdAt',
+        'id',
+        'message',
+        'topic',
+        'updatedAt',
+        'userEmail',
+        'userId',
+      ])
     throw new RepoCreateError('Insert query did not return new row')
   } catch (err) {
     throw new RepoCreateError(err)
@@ -41,7 +50,16 @@ export async function createContactFormByEmail(
       },
       getClient()
     )
-    if (result.length) return makeRequired(result[0])
+    if (result.length)
+      return makeSomeRequired(result[0], [
+        'createdAt',
+        'id',
+        'message',
+        'topic',
+        'updatedAt',
+        'userEmail',
+        'userId',
+      ])
     throw new RepoCreateError('Insert query did not return new row')
   } catch (err) {
     throw new RepoCreateError(err)

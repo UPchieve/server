@@ -2,7 +2,7 @@ import { PushToken } from './types'
 import { RepoCreateError, RepoReadError, RepoDeleteError } from '../Errors'
 import { getClient, TransactionClient } from '../../db'
 import * as pgQueries from './pg.queries'
-import { Ulid, getDbUlid, makeRequired } from '../pgUtils'
+import { Ulid, getDbUlid, makeSomeRequired } from '../pgUtils'
 
 export async function getPushTokensByUserId(
   userId: Ulid
@@ -12,7 +12,9 @@ export async function getPushTokensByUserId(
       { userId },
       getClient()
     )
-    return result.map((v) => makeRequired(v))
+    return result.map((v) =>
+      makeSomeRequired(v, ['createdAt', 'id', 'token', 'updatedAt', 'user'])
+    )
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -29,7 +31,13 @@ export async function createPushTokenByUserId(
       getClient()
     )
     if (!result.length) throw new Error('Insert query did not return new row')
-    return makeRequired(result[0])
+    return makeSomeRequired(result[0], [
+      'createdAt',
+      'id',
+      'token',
+      'updatedAt',
+      'user',
+    ])
   } catch (err) {
     throw new RepoCreateError(err)
   }

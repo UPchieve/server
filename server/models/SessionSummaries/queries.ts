@@ -1,6 +1,6 @@
 import { getClient, TransactionClient } from '../../db'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
-import { getDbUlid, makeRequired, makeSomeOptional, Uuid } from '../pgUtils'
+import { getDbUlid, makeSomeRequired, Uuid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import { USER_ROLES_TYPE } from '../../constants'
 import { SessionSummary } from './types'
@@ -19,7 +19,14 @@ export async function addSessionSummary(
     )
     if (!result.length)
       throw new RepoCreateError('Insert summary did not return ok')
-    return makeRequired(result[0])
+    return makeSomeRequired(result[0], [
+      'createdAt',
+      'id',
+      'sessionId',
+      'summary',
+      'traceId',
+      'userType',
+    ])
   } catch (err) {
     throw new RepoUpdateError(err)
   }
@@ -35,7 +42,14 @@ export async function getSessionSummaryByUserType(
       { sessionId, userType },
       tc ?? getClient()
     )
-    if (summaries.length) return makeSomeOptional(summaries[0], ['traceId'])
+    if (summaries.length)
+      return makeSomeRequired(summaries[0], [
+        'createdAt',
+        'id',
+        'sessionId',
+        'summary',
+        'userType',
+      ])
   } catch (err) {
     throw new RepoReadError(err)
   }

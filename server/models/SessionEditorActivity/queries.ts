@@ -1,6 +1,6 @@
 import { getClient, TransactionClient } from '../../db'
 import { RepoReadError } from '../Errors'
-import { getDbUlid, makeRequired, Ulid, Uuid } from '../pgUtils'
+import { getDbUlid, makeSomeRequired, Ulid, Uuid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import { SessionEditorActivity } from './types'
 import { EditorActivitySource, InsertSessionEditorActivityArgs } from './types'
@@ -16,7 +16,13 @@ export async function getSessionEditorActivity(
       tc
     )
     return results.map((result) => {
-      const res = makeRequired(result)
+      const res = makeSomeRequired(result, [
+        'createdAt',
+        'id',
+        'sessionId',
+        'source',
+        'userId',
+      ])
       return { ...res, source: res.source as EditorActivitySource }
     })
   } catch (error) {
@@ -41,7 +47,7 @@ export async function insertSessionEditorActivity(
     if (!results.length) {
       throw new RepoCreateError('Failed to create SessionEditorActivity')
     }
-    return makeRequired(results[0]).id
+    return makeSomeRequired(results[0], ['id']).id
   } catch (err) {
     throw new RepoCreateError(err)
   }

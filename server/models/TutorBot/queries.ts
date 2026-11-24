@@ -1,7 +1,7 @@
 import { getClient, TransactionClient } from '../../db'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import * as pgQueries from './pg.queries'
-import { makeSomeOptional, makeRequired, getDbUlid } from '../pgUtils'
+import { makeSomeRequired, getDbUlid } from '../pgUtils'
 import {
   InsertTutorBotConversationMessagePayload,
   InsertTutorBotConversationPayload,
@@ -62,7 +62,9 @@ export async function getTutorBotConversationById(
       client
     )
     return row
-      ? toTutorBotConversation(makeSomeOptional(row, ['sessionId']))
+      ? toTutorBotConversation(
+          makeSomeRequired(row, ['createdAt', 'id', 'subjectId', 'userId'])
+        )
       : undefined
   } catch (err) {
     throw new RepoReadError(err)
@@ -81,7 +83,9 @@ export async function getTutorBotConversationBySessionId(
       client
     )
     return row
-      ? toTutorBotConversation(makeSomeOptional(row, ['sessionId']))
+      ? toTutorBotConversation(
+          makeSomeRequired(row, ['createdAt', 'id', 'subjectId', 'userId'])
+        )
       : undefined
   } catch (err) {
     throw new RepoReadError(err)
@@ -99,7 +103,17 @@ export async function getTutorBotConversationMessagesById(
       },
       client
     )
-    return rows.map((row) => toTutorBotMessage(makeRequired(row)))
+    return rows.map((row) =>
+      toTutorBotMessage(
+        makeSomeRequired(row, [
+          'createdAt',
+          'message',
+          'senderUserType',
+          'tutorBotConversationId',
+          'userId',
+        ])
+      )
+    )
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -188,7 +202,16 @@ export async function insertTutorBotConversationMessage(
       },
       client
     )
-    if (result.length) return toTutorBotMessage(makeRequired(result[0]))
+    if (result.length)
+      return toTutorBotMessage(
+        makeSomeRequired(result[0], [
+          'createdAt',
+          'message',
+          'senderUserType',
+          'tutorBotConversationId',
+          'userId',
+        ])
+      )
     throw new RepoCreateError('Failed to insert tutor bot conversation message')
   } catch (err) {
     throw new RepoCreateError(err)

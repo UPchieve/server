@@ -1,4 +1,4 @@
-import { makeRequired, Ulid } from '../pgUtils'
+import { makeSomeRequired, Ulid } from '../pgUtils'
 import { UserSchoolAssociationType, UsersSchool } from './types'
 import { RepoDeleteError, RepoUpsertError } from '../Errors'
 import * as pgQueries from './pg.queries'
@@ -24,7 +24,13 @@ export async function upsertUsersSchool(
         `Did not get back any row inserted into users_schools for user ${userId} and school ${schoolId}`
       )
     }
-    return makeRequired(results[0])
+    return makeSomeRequired(results[0], [
+      'associationType',
+      'createdAt',
+      'schoolId',
+      'updatedAt',
+      'userId',
+    ])
   } catch (err) {
     throw new RepoUpsertError(err)
   }

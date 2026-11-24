@@ -1,6 +1,6 @@
 import { getClient, TransactionClient } from '../../db'
 import * as pgQueries from './pg.queries'
-import { Ulid, makeRequired, makeSomeOptional, ensureWriteOk } from '../pgUtils'
+import { Ulid, makeSomeRequired, ensureWriteOk } from '../pgUtils'
 import {
   RepoReadError,
   RepoCreateError,
@@ -31,7 +31,7 @@ export async function getQuizzesPassedForDateRangeById(
         { userId, start, end },
         getClient()
       )
-    if (result.length) return makeRequired(result[0]).total
+    if (result.length) return makeSomeRequired(result[0], ['total']).total
     return 0
   } catch (err) {
     throw new RepoReadError(err)
@@ -49,7 +49,8 @@ export async function getQuizzesPassedForDateRangeForTelecomReportByVolunteerId(
         { userId, start, end },
         getClient()
       )
-    if (result.length) return result.map((row) => makeRequired(row))
+    if (result.length)
+      return result.map((row) => makeSomeRequired(row, ['createdAt']))
     return []
   } catch (err) {
     throw new RepoReadError(err)
@@ -65,13 +66,7 @@ export async function getSessionRequestedUserAgentFromSessionId(
         { sessionId },
         getClient()
       )
-    if (result.length)
-      return makeSomeOptional(result[0], [
-        'browser',
-        'browserVersion',
-        'operatingSystemVersion',
-        'operatingSystem',
-      ])
+    if (result.length) return makeSomeRequired(result[0], ['device', 'id'])
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -80,7 +75,7 @@ export async function getSessionRequestedUserAgentFromSessionId(
 export async function userHasTakenQuiz(userId: Ulid): Promise<boolean> {
   try {
     const result = await pgQueries.userHasTakenQuiz.run({ userId }, getClient())
-    if (result.length) return makeRequired(result[0]).exists
+    if (result.length) return makeSomeRequired(result[0], ['exists']).exists
     return false
   } catch (err) {
     throw new RepoReadError(err)
@@ -99,7 +94,7 @@ export async function upsertIpAddress(
     if (!result.length) {
       throw new Error(`Error upserting IP address: ${ip}`)
     }
-    return makeRequired(result[0]).id
+    return makeSomeRequired(result[0], ['id']).id
   } catch (err) {
     throw new RepoUpdateError(err)
   }

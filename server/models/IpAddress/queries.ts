@@ -4,9 +4,8 @@ import { getClient, TransactionClient } from '../../db'
 import * as pgQueries from './pg.queries'
 import {
   Ulid,
-  makeSomeOptional,
+  makeSomeRequired,
   getDbUlid,
-  makeRequired,
   Pgid,
   ensureWriteOk,
 } from '../pgUtils'
@@ -22,7 +21,13 @@ export async function getIpByRawString(
       getClient()
     )
     if (!result.length) return
-    return makeRequired(result[0])
+    return makeSomeRequired(result[0], [
+      'createdAt',
+      'id',
+      'ip',
+      'status',
+      'updatedAt',
+    ])
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -38,7 +43,7 @@ export async function insertIpByRawString(ip: string): Promise<IpAddress> {
       getClient()
     )
     if (!result.length) throw new Error('Insert did not return new row')
-    return makeSomeOptional(result[0], ['status'])
+    return makeSomeRequired(result[0], ['createdAt', 'id', 'ip', 'updatedAt'])
   } catch (err) {
     throw new RepoReadError(err)
   }

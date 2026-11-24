@@ -1,12 +1,6 @@
 import { getClient } from '../../db'
 import * as pgQueries from './pg.queries'
-import {
-  makeRequired,
-  makeSomeOptional,
-  Ulid,
-  getDbUlid,
-  makeSomeRequired,
-} from '../pgUtils'
+import { Ulid, getDbUlid, makeSomeRequired } from '../pgUtils'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import { SessionAudio } from './types'
 
@@ -21,10 +15,11 @@ export async function getSessionAudioBySessionId(
       getClient()
     )
     if (results.length) {
-      return makeSomeOptional(results[0], [
-        'resourceUri',
-        'studentJoinedAt',
-        'volunteerJoinedAt',
+      return makeSomeRequired(results[0], [
+        'createdAt',
+        'id',
+        'sessionId',
+        'updatedAt',
       ])
     }
   } catch (err) {
@@ -55,10 +50,11 @@ export async function createSessionAudio({
       },
       getClient()
     )
-    return makeSomeOptional(result[0], [
-      'resourceUri',
-      'volunteerJoinedAt',
-      'studentJoinedAt',
+    return makeSomeRequired(result[0], [
+      'createdAt',
+      'id',
+      'sessionId',
+      'updatedAt',
     ])
   } catch (err) {
     throw new RepoCreateError(err)
@@ -87,10 +83,11 @@ export async function updateSessionAudio({
       getClient()
     )
     if (result.length)
-      return makeSomeOptional(result[0], [
-        'studentJoinedAt',
-        'volunteerJoinedAt',
-        'resourceUri',
+      return makeSomeRequired(result[0], [
+        'createdAt',
+        'id',
+        'sessionId',
+        'updatedAt',
       ])
   } catch (err) {
     throw new RepoUpdateError(err)

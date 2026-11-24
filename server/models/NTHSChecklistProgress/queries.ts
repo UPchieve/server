@@ -1,6 +1,6 @@
 import { getClient, getRoClient, TransactionClient } from '../../db'
 import { RepoCreateError, RepoReadError, RepoUpsertError } from '../Errors'
-import { makeRequired, Ulid } from '../pgUtils'
+import { makeSomeRequired, Ulid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import type {
   NTHSChecklistItemProgress,
@@ -36,7 +36,19 @@ export async function getNTHSChecklistProgressByGroupId(
       { nthsGroupId },
       tc
     )
-    return rows.map((row) => toNTHSChecklistItemProgress(makeRequired(row)))
+    return rows.map((row) =>
+      toNTHSChecklistItemProgress(
+        makeSomeRequired(row, [
+          'createdAt',
+          'id',
+          'itemKey',
+          'nthsGroupId',
+          'status',
+          'updatedAt',
+          'updatedByUserId',
+        ])
+      )
+    )
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -54,7 +66,17 @@ export async function upsertNTHSChecklistItemProgress(
   try {
     const [row] = await pgQueries.upsertNthsChecklistItemProgress.run(args, tc)
     if (!row) throw new Error('Failed to upsert NTHS checklist item progress')
-    return toNTHSChecklistItemProgress(makeRequired(row))
+    return toNTHSChecklistItemProgress(
+      makeSomeRequired(row, [
+        'createdAt',
+        'id',
+        'itemKey',
+        'nthsGroupId',
+        'status',
+        'updatedAt',
+        'updatedByUserId',
+      ])
+    )
   } catch (err) {
     throw new RepoUpsertError(err)
   }
@@ -74,7 +96,19 @@ export async function insertNTHSChecklistItemProgressIfMissing(
       args,
       tc
     )
-    return row ? toNTHSChecklistItemProgress(makeRequired(row)) : undefined
+    return row
+      ? toNTHSChecklistItemProgress(
+          makeSomeRequired(row, [
+            'createdAt',
+            'id',
+            'itemKey',
+            'nthsGroupId',
+            'status',
+            'updatedAt',
+            'updatedByUserId',
+          ])
+        )
+      : undefined
   } catch (err) {
     throw new RepoCreateError(err)
   }

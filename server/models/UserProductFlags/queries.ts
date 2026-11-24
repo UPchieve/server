@@ -1,6 +1,6 @@
 import { getClient, TransactionClient } from '../../db'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
-import { makeRequired, makeSomeOptional, Ulid, ensureWriteOk } from '../pgUtils'
+import { makeSomeRequired, Ulid, ensureWriteOk } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import { ImpactStudyCampaign, UserProductFlags } from './types'
 import type { Json, Uuid } from '../../types/shared'
@@ -51,11 +51,16 @@ function toImpactStudyCampaignsMap(
 }
 
 function toUserProductFlags(row: UserProductFlagsRow): UserProductFlags {
-  const flags = makeSomeOptional(row, [
-    'fallIncentiveEnrollmentAt',
-    'impactStudyEnrollmentAt',
-    'impactStudyCampaigns',
-    'shareInfoModalDismissedAt',
+  const flags = makeSomeRequired(row, [
+    'createdAt',
+    'gatesQualified',
+    'sentHourSummaryIntroEmail',
+    'sentInactiveNinetyDayEmail',
+    'sentInactiveSixtyDayEmail',
+    'sentInactiveThirtyDayEmail',
+    'sentReadyToCoachEmail',
+    'updatedAt',
+    'userId',
   ])
   return {
     userId: flags.userId,
@@ -175,7 +180,9 @@ export async function enrollStudentToFallIncentiveProgram(
       { userId },
       getClient()
     )
-    if (result.length) return makeRequired(result[0]).fallIncentiveEnrollmentAt
+    if (result.length)
+      return makeSomeRequired(result[0], ['fallIncentiveEnrollmentAt'])
+        .fallIncentiveEnrollmentAt
     throw new RepoUpdateError('Update query was not acknowledged')
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
@@ -192,7 +199,9 @@ export async function enrollStudentToImpactStudy(
       { userId },
       tc ?? getClient()
     )
-    if (result.length) return makeRequired(result[0]).impactStudyEnrollmentAt
+    if (result.length)
+      return makeSomeRequired(result[0], ['impactStudyEnrollmentAt'])
+        .impactStudyEnrollmentAt
     throw new RepoUpdateError('Update query was not acknowledged')
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
@@ -208,7 +217,9 @@ export async function setShareInfoModalDismissedAt(
       { userId },
       getClient()
     )
-    if (result.length) return makeRequired(result[0]).shareInfoModalDismissedAt
+    if (result.length)
+      return makeSomeRequired(result[0], ['shareInfoModalDismissedAt'])
+        .shareInfoModalDismissedAt
     throw new RepoUpdateError('Update query was not acknowledged')
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
