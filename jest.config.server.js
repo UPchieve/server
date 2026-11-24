@@ -14,6 +14,7 @@ module.exports = {
   ],
   testPathIgnorePatterns: [
     '<rootDir>/server/tests/database',
+    '<rootDir>/server/tests/e2e',
     '<rootDir>/server/tests/integration',
   ],
 

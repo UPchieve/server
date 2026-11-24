@@ -96,7 +96,7 @@ On Linux systems you may need to install [`docker-compose` manually](https://doc
 1. Run the following command to start the containers
 
 ```shell
-$ docker-compose --profile dev up -d
+$ pnpm run dev:services
 ```
 
 2. Confirm PostgreSQL is running and the database is properly seeded by making a query in a DB admin tool
@@ -271,6 +271,14 @@ There are three ways to enqueue jobs:
   - Go to TaskForce -> Dashboard -> Production queue -> "Add a new job"
 
 ### Testing locally
+
+For service integration tests, run `pnpm dev:test:integration` with Docker running.
+This starts the E2E services, runs the tests, and stops the services. To run only
+the tests against already-running services, use `pnpm test:integration`. The
+E2E service setup removes its test database volume when it starts and stops.
+
+The separate `pnpm test:integration:live` suite calls live providers, requires
+1Password and Doppler credentials, and can incur charges.
 
 You can run the worker queue locally as well as enqueue specific jobs:
 

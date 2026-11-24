@@ -30,6 +30,7 @@ x-graffiti: &graffiti
 x-graffiti-env: &graffiti-env
     # New Relic's agent won't start without a 40-character key. New Relic rejects this one.
     NEW_RELIC_LICENSE_KEY: "0000000000000000000000000000000000000000"
+    WHITEBOARD_AUTH_TOKEN_PUBLIC: ${WHITEBOARD_AUTH_TOKEN_PUBLIC:?Set WHITEBOARD_AUTH_TOKEN_PUBLIC before starting Graffiti}
 
 services:
     postgres:

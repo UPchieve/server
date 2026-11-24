@@ -408,9 +408,9 @@ verify_migration_data_deletion:
       when: manual
   allow_failure: false
 
-# Runs high-line's e2e tests against this subway commit
+# Runs high-line's E2E tests against this subway commit.
 # Note: high-line owns the e2e job definition
-e2e_test:
+high_line_e2e_test:
   extends: .e2e_base
   variables:
     HIGH_LINE_DIR: $CI_PROJECT_DIR/high-line
@@ -425,3 +425,30 @@ e2e_test:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.
       variables:
         E2E_CACHE_POLICY: pull-push
+
+# Runs Subway's service integration tests against Graffiti.
+subway_integration_test:
+  extends: .node_setup
+  services:
+    - name: redis:6.2.1
+      alias: redis
+  before_script:
+    - !reference [.node_setup, before_script]
+    - curl -fsSL https://go.dev/dl/go1.25.14.linux-amd64.tar.gz | tar -C /usr/local -xz
+    - git clone --depth=1 https://gitlab.com/upchieve/graffiti.git /tmp/graffiti
+    - CGO_ENABLED=0 /usr/local/go/bin/go build -C /tmp/graffiti -o /usr/local/bin/graffiti
+    - |
+      WHITEBOARD_AUTH_TOKEN_PUBLIC="$(node -e 'const r = require("dotenv").config({ path: ".env.e2e", processEnv: {} }); if (r.error) throw r.error; process.stdout.write(r.parsed.WHITEBOARD_AUTH_TOKEN_PUBLIC || "")')"
+      if [ -z "$WHITEBOARD_AUTH_TOKEN_PUBLIC" ]; then
+        echo 'WHITEBOARD_AUTH_TOKEN_PUBLIC is missing from .env.e2e' >&2
+        exit 1
+      fi
+      WHITEBOARD_AUTH_TOKEN_PUBLIC="$WHITEBOARD_AUTH_TOKEN_PUBLIC" SUBWAY_REDIS_HOST=redis PORT=5503 NEW_RELIC_LICENSE_KEY=0000000000000000000000000000000000000000 graffiti > graffiti.log 2>&1 &
+    - curl -sf --retry 15 --retry-connrefused --retry-delay 1 http://localhost:5503/graffiti/healthz || (cat graffiti.log; exit 1)
+  script:
+    - pnpm run test:integration
+  rules:
+    - if: '$TEST_DISABLED'
+      when: never
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event' # MR is created or updated.
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Committed to main.

@@ -12,7 +12,7 @@ import {
 } from '../../services/ClaudeService'
 import { TypedImage } from '../../utils/image-utils'
 
-// Only via `pnpm test:integration`: costs money and needs live credentials.
+// Only via `pnpm test:integration:live`: costs money and needs live credentials.
 // The unit tests pin the payload we build. These prove a provider accepts it
 // and that the caller gets usable data back.
 

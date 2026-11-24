@@ -2,7 +2,7 @@ const serverConfig = require('./jest.config.server.js')
 
 /**
  * Jest config for the integration suite.
- * @see package.json -> "test:integration"
+ * @see package.json -> "test:integration:live"
  */
 module.exports = {
   roots: ['<rootDir>/server/tests/integration'],
