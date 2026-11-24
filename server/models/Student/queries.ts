@@ -11,14 +11,7 @@ import {
   RepoUpdateError,
   RepoUpsertError,
 } from '../Errors'
-import {
-  makeRequired,
-  makeSomeRequired,
-  makeSomeOptional,
-  Ulid,
-  Uuid,
-  ensureWriteOk,
-} from '../pgUtils'
+import { makeSomeRequired, Ulid, Uuid, ensureWriteOk } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import { USER_BAN_TYPES } from '../../constants'
 import {
@@ -40,7 +33,7 @@ export async function getStudentContactInfoById(
       getClient()
     )
     if (result.length) {
-      const ret = makeSomeOptional(result[0], ['schoolId', 'studentPartnerOrg'])
+      const ret = makeSomeRequired(result[0], ['email', 'firstName', 'id'])
       ret.email = ret.email.toLowerCase()
       return ret
     }
@@ -61,7 +54,7 @@ export async function getStudentByEmail(
       tc
     )
     if (result.length) {
-      return makeRequired(result[0])
+      return makeSomeRequired(result[0], ['id'])
     }
   } catch (err) {
     throw new RepoReadError(err)
@@ -79,7 +72,7 @@ export async function isTestUser(
       },
       tc
     )
-    if (result.length) return makeRequired(result[0]).testUser
+    if (result.length) return makeSomeRequired(result[0], ['testUser']).testUser
     return false
   } catch (err) {
     throw new RepoReadError(err)
@@ -94,7 +87,7 @@ export async function getTotalFavoriteVolunteers(
       { userId },
       getClient()
     )
-    if (result.length) return makeRequired(result[0]).total
+    if (result.length) return makeSomeRequired(result[0], ['total']).total
     return 0
   } catch (err) {
     throw new RepoReadError(err)
@@ -110,7 +103,11 @@ export async function isFavoriteVolunteer(
       { studentId, volunteerId },
       getClient()
     )
-    if (result.length && makeRequired(result[0]).volunteerId) return true
+    if (
+      result.length &&
+      makeSomeRequired(result[0], ['volunteerId']).volunteerId
+    )
+      return true
     return false
   } catch (err) {
     throw new RepoReadError(err)
@@ -148,7 +145,7 @@ export async function addFavoriteVolunteer(
       tc ?? getClient()
     )
     if (result.length) {
-      return makeRequired(result[0])
+      return makeSomeRequired(result[0], ['studentId', 'volunteerId'])
     }
   } catch (err) {
     throw new RepoUpdateError(err)
@@ -164,7 +161,7 @@ export async function getFavoritedVolunteerIdsFromList(
       { studentId, volunteerIds },
       getClient()
     )
-    return result.map((r) => makeRequired(r).volunteerId)
+    return result.map((r) => makeSomeRequired(r, ['volunteerId']).volunteerId)
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -205,7 +202,7 @@ export async function getStudentPartnerOrgByKey(
       client
     )
     return result.length
-      ? makeSomeOptional(result[0], ['siteId', 'siteName', 'schoolId'])
+      ? makeSomeRequired(result[0], ['partnerId', 'partnerKey', 'partnerName'])
       : undefined
   } catch (err) {
     throw new RepoReadError(err)
@@ -227,7 +224,7 @@ export async function getPartnerOrgsByStudent(
     const activePartnerOrgInstanceResults =
       await pgQueries.getPartnerOrgsByStudent.run({ studentId }, tc)
     const activePartnerOrgInstances = activePartnerOrgInstanceResults.map((v) =>
-      makeSomeOptional(v, ['schoolId', 'siteName'])
+      makeSomeRequired(v, ['id', 'name'])
     )
     return activePartnerOrgInstances
   } catch (err) {
@@ -437,12 +434,17 @@ export async function getSessionReport(
 
     if (result.length) {
       return result.map((r) =>
-        makeSomeOptional(r, [
-          'partnerSite',
-          'waitTimeMins',
-          'volunteerJoinedAt',
-          'sessionRating',
-          'sponsorOrg',
+        makeSomeRequired(r, [
+          'createdAt',
+          'email',
+          'endedAt',
+          'firstName',
+          'lastName',
+          'sessionId',
+          'subject',
+          'topic',
+          'totalMessages',
+          'volunteerJoined',
         ])
       )
     }
@@ -505,11 +507,16 @@ export async function getUsageReport(
 
     if (result.length) {
       for (const row of result) {
-        const session = makeSomeOptional(row, [
-          'partnerSite',
-          'studentPartnerOrg',
-          'school',
-          'sponsorOrg',
+        const session = makeSomeRequired(row, [
+          'email',
+          'firstName',
+          'joinDate',
+          'lastName',
+          'rangeSessionLengthMins',
+          'rangeTotalSessions',
+          'totalSessionLengthMins',
+          'totalSessions',
+          'userId',
         ])
         row.email = row.email.toLowerCase()
         report.push({
@@ -539,7 +546,7 @@ export async function getStudentSignupSources(): Promise<
     )
     if (result.length) {
       // query returns sources in a random order, but we want to make sure Other is at the end
-      const res = result.map((row) => makeRequired(row))
+      const res = result.map((row) => makeSomeRequired(row, ['id', 'name']))
       const otherIndex = res.findIndex((x) => x.name === 'Other')
       const other = res.splice(otherIndex, 1)[0]
       res.push(other)
@@ -569,9 +576,7 @@ export async function getActivePartnersForStudent(
     )
 
     if (result.length)
-      return result.map((row) =>
-        makeSomeOptional(row, ['schoolId', 'siteName'])
-      )
+      return result.map((row) => makeSomeRequired(row, ['id', 'name']))
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -584,7 +589,8 @@ export async function getStudentIdsForGradeLevelSgUpdate(): Promise<Ulid[]> {
       getClient()
     )
 
-    if (result.length) return result.map((row) => makeRequired(row).userId)
+    if (result.length)
+      return result.map((row) => makeSomeRequired(row, ['userId']).userId)
     return []
   } catch (err) {
     throw new RepoReadError(err)
@@ -597,11 +603,7 @@ export async function countDuplicateStudentVolunteerFavorites(): Promise<number>
       undefined,
       getClient()
     )
-    if (
-      result.length &&
-      result[0].duplicates !== null &&
-      makeRequired(result[0].duplicates)
-    ) {
+    if (result.length && result[0].duplicates !== null) {
       return result[0].duplicates!
     }
     throw new RepoReadError(
@@ -620,11 +622,7 @@ export async function deleteDuplicateStudentVolunteerFavorites(
       undefined,
       tc
     )
-    if (
-      result.length &&
-      result[0].deleted !== null &&
-      makeRequired(result[0])
-    ) {
+    if (result.length && result[0].deleted !== null) {
       return result[0].deleted!
     }
 
@@ -658,7 +656,17 @@ export async function getStudentProfilesByUserIds(
       tc
     )
     if (result.length) {
-      return result.map((r) => makeSomeOptional(r, ['gradeLevel', 'schoolId']))
+      return result.map((r) =>
+        makeSomeRequired(r, [
+          'createdAt',
+          'email',
+          'firstName',
+          'id',
+          'lastName',
+          'updatedAt',
+          'userId',
+        ])
+      )
     }
 
     return []
