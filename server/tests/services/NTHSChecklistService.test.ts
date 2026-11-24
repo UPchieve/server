@@ -187,6 +187,102 @@ describe('NTHSChecklistService', () => {
     ).rejects.toThrow('duplicate item_key "complete-orientation" across')
   })
 
+  describe('section-intro row', () => {
+    const introRow = (overrides: Record<string, unknown> = {}) => ({
+      item_key: ' section-intro ',
+      title: ' Weeks 1-3 ',
+      description: ' Get the chapter running. ',
+      ...overrides,
+    })
+
+    test('becomes timeframe and intro without ever being an item', async () => {
+      const checklist = await parseChecklist({
+        spreadsheetId: 'spreadsheet-id',
+        worksheets: [
+          worksheet([introRow(), validRow]),
+          worksheet(
+            [
+              introRow({ title: 'All year', description: ' ' }),
+              { ...validRow, item_key: 'other' },
+            ],
+            { sheetId: 456, index: 1 }
+          ),
+          worksheet([{ ...validRow, item_key: 'no-intro' }], {
+            sheetId: 789,
+            index: 2,
+          }),
+        ],
+      })
+
+      expect(checklist.sections.map((s) => s.items.map((i) => i.key))).toEqual([
+        ['complete-orientation'],
+        ['other'],
+        ['no-intro'],
+      ])
+      expect(checklist.sections[0]).toMatchObject({
+        timeframe: 'Weeks 1-3',
+        intro: 'Get the chapter running.',
+      })
+      expect(checklist.sections[1].timeframe).toBe('All year')
+      expect(checklist.sections[1].intro).toBeUndefined()
+      expect(checklist.sections[2].timeframe).toBeUndefined()
+      expect(checklist.sections[2].intro).toBeUndefined()
+    })
+
+    test('first row in a tab wins and none count as duplicate keys', async () => {
+      const checklist = await parseChecklist({
+        spreadsheetId: 'spreadsheet-id',
+        worksheets: [
+          worksheet([
+            introRow(),
+            introRow({ title: 'Later', description: 'Later intro' }),
+            validRow,
+          ]),
+          worksheet([introRow(), { ...validRow, item_key: 'other' }], {
+            sheetId: 456,
+            index: 1,
+          }),
+        ],
+      })
+
+      expect(checklist.sections[0]).toMatchObject({
+        timeframe: 'Weeks 1-3',
+        intro: 'Get the chapter running.',
+      })
+      expect(checklist.sections).toHaveLength(2)
+    })
+
+    test.each([
+      { item_key: 'SECTION-INTRO', active: 'false' },
+      {
+        item_key: 'Section-intro',
+        active: '',
+        checkable: '',
+        skippable: undefined,
+      },
+    ])('matches %j whatever its case or other columns', async (overrides) => {
+      const checklist = await parseChecklist({
+        spreadsheetId: 'spreadsheet-id',
+        worksheets: [worksheet([introRow(overrides), validRow])],
+      })
+
+      expect(checklist.sections[0]).toMatchObject({
+        timeframe: 'Weeks 1-3',
+        intro: 'Get the chapter running.',
+      })
+      expect(checklist.sections[0].items).toHaveLength(1)
+    })
+
+    test('drops a tab holding only the intro row', async () => {
+      const checklist = await parseChecklist({
+        spreadsheetId: 'spreadsheet-id',
+        worksheets: [worksheet([introRow()])],
+      })
+
+      expect(checklist.sections).toEqual([])
+    })
+  })
+
   test('allows resource labels while their links are unfinished', () => {
     expect(parseResources('Kickoff guide, Members', 'row')).toEqual([
       { label: 'Kickoff guide' },
@@ -197,7 +293,7 @@ describe('NTHSChecklistService', () => {
   test('keeps valid resources and ignores malformed entries', () => {
     expect(
       parseResources(
-        'Orientation:https://nationaltutor.org/orientation, Broken:ftp://example.com, Members',
+        'Orientation:https://nationaltutor.org/orientation, Broken:ftp://example.com, Manage:/groups/manage, Offsite://example.com, Slash:/\\evil.com, Spaced:/a b, Upper:HTTPS://example.com/Form, Members',
         'row'
       )
     ).toEqual([
@@ -205,6 +301,8 @@ describe('NTHSChecklistService', () => {
         label: 'Orientation',
         url: 'https://nationaltutor.org/orientation',
       },
+      { label: 'Manage', url: '/groups/manage' },
+      { label: 'Upper', url: 'https://example.com/Form' },
       { label: 'Members' },
     ])
   })

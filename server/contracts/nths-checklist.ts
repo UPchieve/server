@@ -18,6 +18,8 @@ export type NTHSChecklistSection = {
   id: number
   title: string
   order: number
+  intro?: string
+  timeframe?: string
   items: NTHSChecklistItem[]
 }
 

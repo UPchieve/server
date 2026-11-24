@@ -20,6 +20,8 @@ export function toNTHSChecklistPublic(
       id: section.id,
       title: section.title,
       order: section.order,
+      intro: section.intro,
+      timeframe: section.timeframe,
       items: section.items.map((item): NTHSChecklistItemPublic => {
         const dueDate =
           groupCreatedAt && item.daysToComplete !== undefined

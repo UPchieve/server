@@ -17,6 +17,8 @@ import {
   SheetCache,
 } from '../utils/google-spreadsheet'
 
+const SECTION_INTRO_KEY = 'section-intro'
+
 const REQUIRED_HEADERS = [
   'item_key',
   'title',
@@ -114,9 +116,16 @@ export function parseResources(
     .map((resource) => resource.trim())
     .filter(Boolean)
     .flatMap((resource) => {
-      const externalLink = resource.match(/^([^:]+):(https?:\/\/.+)$/i)
-      if (externalLink)
-        return [{ label: externalLink[1].trim(), url: externalLink[2].trim() }]
+      const link =
+        resource.match(/^([^:]+):(https?:\/\/.+)$/i) ??
+        resource.match(/^([^:]+):(\/(?!\/)[^\s\\]*)$/)
+      if (link) {
+        // high-line opens a link in a new tab only when it starts with a lowercase "http"
+        const url = link[2]
+          .trim()
+          .replace(/^https?:/i, (scheme) => scheme.toLowerCase())
+        return [{ label: link[1].trim(), url }]
+      }
 
       if (resource.includes(':')) {
         logger.warn('Ignoring invalid NTHS checklist resource', {
@@ -140,9 +149,19 @@ async function parseWorksheet(
   const rows = await worksheet.getRows()
   const itemKeys = new Set<string>()
   const items: NTHSChecklistItem[] = []
+  let intro: { timeframe?: string; intro?: string } | undefined
 
   for (const [rowIndex, row] of rows.entries()) {
     const location = `Worksheet "${worksheet.title}" row ${rowIndex + 2}`
+    if (
+      asTrimmedString(row.get('item_key'))?.toLowerCase() === SECTION_INTRO_KEY
+    ) {
+      intro ??= {
+        timeframe: asTrimmedString(row.get('title')),
+        intro: asTrimmedString(row.get('description')),
+      }
+      continue
+    }
     const active = parseBoolean(row.get('active'), 'active', location)
     if (!active) continue
 
@@ -175,6 +194,8 @@ async function parseWorksheet(
     id: worksheet.sheetId,
     title: worksheet.title,
     order: worksheet.index,
+    ...(intro?.intro && { intro: intro.intro }),
+    ...(intro?.timeframe && { timeframe: intro.timeframe }),
     items,
   }
 }

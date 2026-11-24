@@ -83,6 +83,27 @@ describe('toNTHSChecklistPublic', () => {
     })
   })
 
+  test('passes section intro and timeframe through', () => {
+    const [section] = toNTHSChecklistPublic(
+      {
+        ...checklist,
+        sections: [
+          {
+            ...checklist.sections[0],
+            intro: 'Get going.',
+            timeframe: 'Weeks 1-3',
+          },
+        ],
+      },
+      []
+    ).sections
+
+    expect(section).toMatchObject({
+      intro: 'Get going.',
+      timeframe: 'Weeks 1-3',
+    })
+  })
+
   test('does not expose checklist source or progress audit fields', () => {
     const result = toNTHSChecklistPublic(checklist, [progress])
 
