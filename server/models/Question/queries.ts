@@ -1,15 +1,5 @@
-import {
-  RepoCreateError,
-  RepoDeleteError,
-  RepoReadError,
-  RepoUpdateError,
-} from '../Errors'
-import {
-  makeRequired,
-  makeSomeOptional,
-  makeSomeRequired,
-  ensureWriteOk,
-} from '../pgUtils'
+import { RepoReadError } from '../Errors'
+import { makeRequired, makeSomeOptional } from '../pgUtils'
 import {
   Question,
   Quiz,
@@ -48,115 +38,6 @@ export async function listQuestions(
   }
 }
 
-export async function createQuestion(
-  question: Question,
-  client: TransactionClient
-): Promise<Question> {
-  try {
-    const quizUpsertResult = await pgQueries.upsertQuiz.run(
-      { name: question.category },
-      client
-    )
-    const quizId = makeRequired(quizUpsertResult[0]).id
-
-    const subcategoryUpsertResult = await pgQueries.upsertQuizSubcategory.run(
-      { name: question.subcategory, quizId },
-      client
-    )
-    const subcategoryId = makeRequired(subcategoryUpsertResult[0]).id
-
-    // pg parser takes any array and makes it a native array, so JSON arrays
-    // break it, so we must JSON.stringify any JSON array.
-    // https://github.com/adelsz/pgtyped/issues/263
-    const result = await pgQueries.create.run(
-      {
-        questionText: question.questionText,
-        possibleAnswers: JSON.stringify(question.possibleAnswers),
-        correctAnswer: question.correctAnswer,
-        imageSrc: question.imageSrc,
-        subcategoryId,
-      },
-      client
-    )
-    if (result.length) {
-      const newQuestion = makeSomeOptional(result[0], ['imageSrc'])
-      const toRtn = parseQueryResult({
-        ...newQuestion,
-        category: question.category,
-        subcategory: question.subcategory,
-      })
-      return toRtn
-    } else throw new Error('insertion of question did not return new row')
-  } catch (err) {
-    throw new RepoCreateError(err)
-  }
-}
-
-export type QuestionUpdateOptions = {
-  id: number
-  question: Question
-}
-
-export async function updateQuestion(
-  options: QuestionUpdateOptions,
-  client: TransactionClient
-): Promise<Question> {
-  try {
-    const question = options.question
-
-    const quizUpsertResult = await pgQueries.upsertQuiz.run(
-      { name: question.category },
-      client
-    )
-    const quizId = makeSomeRequired(quizUpsertResult[0], ['id']).id
-
-    const subcategoryUpsertResult = await pgQueries.upsertQuizSubcategory.run(
-      { name: question.subcategory, quizId },
-      client
-    )
-    const subcategoryId = makeSomeRequired(subcategoryUpsertResult[0], [
-      'id',
-    ]).id
-
-    // pg parser takes any array and makes it a native array, so JSON arrays
-    // break it, so we must JSON.stringify any JSON array.
-    // https://github.com/adelsz/pgtyped/issues/263
-    const result = await pgQueries.update.run(
-      {
-        questionId: options.id,
-        correctAnswer: question.correctAnswer,
-        imageSrc: question.imageSrc,
-        questionText: question.questionText,
-        subcategoryId: subcategoryId,
-        possibleAnswers: JSON.stringify(question.possibleAnswers),
-      },
-      client
-    )
-    ensureWriteOk(result)
-    return question
-  } catch (err) {
-    throw new RepoUpdateError(err)
-  }
-}
-
-export async function destroy(questionId: number): Promise<void> {
-  try {
-    const result = await pgQueries.destroy.run({ questionId }, getClient())
-    ensureWriteOk(result)
-  } catch (err) {
-    throw new RepoDeleteError(err)
-  }
-}
-
-export async function getCategories(): Promise<pgQueries.ICategoriesResult[]> {
-  try {
-    const result = await pgQueries.categories.run(undefined, getClient())
-    return result.map((v) => makeRequired(v))
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
 export async function getSubcategoriesForQuiz(
   quizName: string
 ): Promise<pgQueries.IGetSubcategoriesForQuizResult[]> {
@@ -177,24 +58,6 @@ export async function getMultipleQuestionsById(
   try {
     const questions = await pgQueries.getMultipleQuestionsById.run(
       { ids },
-      getClient()
-    )
-    const result = questions.map((v) => makeSomeOptional(v, ['imageSrc']))
-    const parsedResult = result.map((res) => parseQueryResult(res))
-    return parsedResult
-  } catch (err) {
-    throw new RepoReadError(err)
-  }
-}
-
-export async function getQuestionsByCategory(
-  category: string,
-  limit: number,
-  offset: number
-): Promise<Question[]> {
-  try {
-    const questions = await pgQueries.getQuestionsByCategory.run(
-      { category, limit, offset },
       getClient()
     )
     const result = questions.map((v) => makeSomeOptional(v, ['imageSrc']))
