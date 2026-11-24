@@ -1,7 +1,7 @@
 import * as pgQueries from './pg.queries'
 import { getClient, TransactionClient } from '../../db'
 import { RepoUpdateError } from '../Errors'
-import { makeRequired } from '../pgUtils'
+import { makeSomeRequired } from '../pgUtils'
 
 export async function upsertCity(
   cityName: string,
@@ -14,7 +14,7 @@ export async function upsertCity(
       tc
     )
     if (city.length) {
-      return makeRequired(city[0])
+      return makeSomeRequired(city[0], ['id'])
     }
   } catch (err) {
     throw new RepoUpdateError(err)

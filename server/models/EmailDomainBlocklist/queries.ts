@@ -1,6 +1,6 @@
 import { getClient } from '../../db'
 import { RepoReadError } from '../Errors'
-import { makeRequired } from '../pgUtils'
+import { makeSomeRequired } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import { GetEmailDomainBlocklistEntryResult } from './types'
 
@@ -14,7 +14,7 @@ export async function getEmailDomainBlocklistEntry(
       tc
     )
     if (result.length > 0) {
-      return makeRequired(result[0])
+      return makeSomeRequired(result[0], ['id', 'domain'])
     }
   } catch (err) {
     throw new RepoReadError(err)

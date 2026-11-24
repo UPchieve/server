@@ -1,6 +1,6 @@
 import { RepoCreateError, RepoReadError, RepoTransactionError } from '../Errors'
 import { ZipCode } from './types'
-import { makeSomeOptional } from '../pgUtils'
+import { makeSomeRequired } from '../pgUtils'
 import { getClient, TransactionClient } from '../../db'
 import * as pgQueries from './pg.queries'
 import config from '../../config'
@@ -26,7 +26,11 @@ export async function getZipCodeByZipCode(
     )
 
     if (result.length) {
-      return makeSomeOptional(result[0], ['cbsaIncome', 'stateIncome'])
+      return makeSomeRequired(result[0], [
+        'zipCode',
+        'medianIncome',
+        'isEligible',
+      ])
     }
   } catch (err) {
     throw new RepoReadError(err)
