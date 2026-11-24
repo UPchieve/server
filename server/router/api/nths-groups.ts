@@ -5,6 +5,10 @@ import * as NTHSGroupsService from '../../services/NTHSGroupsService'
 import * as NTHSChecklistProgressService from '../../services/NTHSChecklistProgressService'
 import * as NTHSRenewalService from '../../services/NTHSRenewalService'
 import {
+  getNthsHomeContent,
+  type NTHSHomeContent,
+} from '../../services/NTHSHomeContentService'
+import {
   InputError,
   NotAuthenticatedError,
   NTHSGroupNameTakenError,
@@ -480,6 +484,20 @@ export function routeNTHSGroups(router: Router): void {
             new Date()
           )
           res.json({ impact: toNTHSChapterImpactPublic(impact) })
+        } catch (err) {
+          resError(res, err)
+        }
+      }
+    )
+
+  router
+    .route('/nths-groups/:groupId/home-content')
+    .get(
+      isActiveGroupMember,
+      requireClearedToViewMemberInfo,
+      async (req: Request, res: Response<NTHSHomeContent>) => {
+        try {
+          res.json(await getNthsHomeContent(requesterIsGroupAdmin(res)))
         } catch (err) {
           resError(res, err)
         }

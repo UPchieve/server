@@ -20,6 +20,7 @@ import {
 import * as NTHSGroupsService from '../../../services/NTHSGroupsService'
 import * as NTHSChecklistProgressService from '../../../services/NTHSChecklistProgressService'
 import * as NTHSRenewalService from '../../../services/NTHSRenewalService'
+import * as NTHSHomeContentService from '../../../services/NTHSHomeContentService'
 import { RepoUpdateError } from '../../../models/Errors'
 import {
   NTHSCandidateApplicationStatus,
@@ -33,6 +34,7 @@ import { getUuid } from '../../../models/pgUtils'
 jest.mock('../../../services/NTHSGroupsService')
 jest.mock('../../../services/NTHSChecklistProgressService')
 jest.mock('../../../services/NTHSRenewalService')
+jest.mock('../../../services/NTHSHomeContentService')
 
 const mockedNTHSGroupsService = mocked(NTHSGroupsService)
 const actualNTHSGroupsService = jest.requireActual<typeof NTHSGroupsService>(
@@ -915,6 +917,30 @@ describe('routeNTHSGroups', () => {
         mockedNTHSGroupsService.getActiveGroupMember
       ).not.toHaveBeenCalled()
       expect(mockedNTHSGroupsService.getChapterImpact).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('GET /api/nths-groups/:groupId/home-content', () => {
+    test.each([
+      ['admin', true],
+      ['member', false],
+    ])('a %s is served content for isAdmin %p', async (roleName, isAdmin) => {
+      const content = {
+        tips: ['one'],
+        links: [{ title: 'T', body: 'B', link: '/x', forMembers: true }],
+      }
+      mockedNTHSGroupsService.getActiveGroupMember.mockResolvedValueOnce(
+        buildNTHSGroupMemberWithRole({ roleName })
+      )
+      jest
+        .mocked(NTHSHomeContentService.getNthsHomeContent)
+        .mockResolvedValueOnce(content)
+      const response = await sendGet(`/api/nths-groups/${groupId}/home-content`)
+      expect(response.status).toBe(200)
+      expect(response.body).toEqual(content)
+      expect(NTHSHomeContentService.getNthsHomeContent).toHaveBeenCalledWith(
+        isAdmin
+      )
     })
   })
 
