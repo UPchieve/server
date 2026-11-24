@@ -1,13 +1,7 @@
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import { TransactionClient, getClient } from '../../db'
 import * as pgQueries from './pg.queries'
-import {
-  Ulid,
-  getDbUlid,
-  makeRequired,
-  makeSomeOptional,
-  ensureWriteOk,
-} from '../pgUtils'
+import { Ulid, getDbUlid, makeSomeRequired, ensureWriteOk } from '../pgUtils'
 import {
   ProgressReportAnalysisTypes,
   ProgressReportDetailInsert,
@@ -38,7 +32,7 @@ export async function insertProgressReport(
       },
       tc ?? getClient()
     )
-    if (result.length) return makeRequired(result[0]).id
+    if (result.length) return makeSomeRequired(result[0], ['id']).id
     throw new RepoCreateError(
       `insertProgressReport: Insert query did not return new row for user ${userId}`
     )
@@ -83,7 +77,7 @@ export async function insertProgressReportSummary(
       },
       tc ?? getClient()
     )
-    if (result.length) return makeRequired(result[0]).id
+    if (result.length) return makeSomeRequired(result[0], ['id']).id
     throw new RepoCreateError(
       `insertProgressReportSummary: Insert query did not return new row for report ${reportId}`
     )
@@ -108,7 +102,7 @@ export async function insertProgressReportSummaryDetail(
       },
       tc ?? getClient()
     )
-    if (result.length) return makeRequired(result[0]).id
+    if (result.length) return makeSomeRequired(result[0], ['id']).id
     throw new RepoCreateError(
       `insertProgressReportSummaryDetail: Insert query did not return new row for report summary ${reportSummaryId}`
     )
@@ -133,7 +127,7 @@ export async function insertProgressReportConcept(
       },
       tc ?? getClient()
     )
-    if (result.length) return makeRequired(result[0]).id
+    if (result.length) return makeSomeRequired(result[0], ['id']).id
     throw new RepoCreateError(
       `insertProgressReportConcept: Insert query did not return new row for report ${reportId}`
     )
@@ -158,7 +152,7 @@ export async function insertProgressReportConceptDetail(
       },
       tc ?? getClient()
     )
-    if (result.length) return makeRequired(result[0]).id
+    if (result.length) return makeSomeRequired(result[0], ['id']).id
     throw new RepoCreateError(
       `insertProgressReportConceptDetail: Insert query did not return new row for progress report concept ${reportConceptId}`
     )
@@ -202,7 +196,7 @@ export async function getProgressReportInfoBySessionId(
       tc ?? getClient()
     )
     if (result.length) {
-      const data = makeSomeOptional(result[0], ['readAt'])
+      const data = makeSomeRequired(result[0], ['createdAt', 'id', 'status'])
       return {
         ...data,
         status: data.status as ProgressReportStatuses,
@@ -225,7 +219,7 @@ export async function getProgressReportByReportId(
       tc ?? getClient()
     )
     if (result.length) {
-      const data = makeSomeOptional(result[0], ['readAt'])
+      const data = makeSomeRequired(result[0], ['createdAt', 'id', 'status'])
       return {
         ...data,
         status: data.status as ProgressReportStatuses,
@@ -248,7 +242,20 @@ export async function getProgressReportSummariesForMany(
       tc ?? getClient()
     )
     if (result.length)
-      return result.map((v) => makeSomeOptional(v, ['reportReadAt']))
+      return result.map((v) =>
+        makeSomeRequired(v, [
+          'content',
+          'createdAt',
+          'detailId',
+          'focusArea',
+          'id',
+          'infoType',
+          'overallGrade',
+          'reportId',
+          'sessionCreatedAt',
+          'summary',
+        ])
+      )
     return []
   } catch (err) {
     throw new RepoReadError(err)
@@ -267,7 +274,20 @@ export async function getProgressReportConceptsByReportId(
       tc ?? getClient()
     )
     if (result.length)
-      return result.map((v) => makeSomeOptional(v, ['reportReadAt']))
+      return result.map((v) =>
+        makeSomeRequired(v, [
+          'content',
+          'createdAt',
+          'description',
+          'detailId',
+          'focusArea',
+          'grade',
+          'id',
+          'infoType',
+          'name',
+          'reportId',
+        ])
+      )
     return []
   } catch (err) {
     throw new RepoReadError(err)
@@ -296,7 +316,16 @@ export async function getProgressReportSessionsForSubjectByPagination(
         },
         tc ?? getClient()
       )
-    if (result.length) return result.map((row) => makeRequired(row))
+    if (result.length)
+      return result.map((row) =>
+        makeSomeRequired(row, [
+          'createdAt',
+          'id',
+          'subject',
+          'topic',
+          'topicIconLink',
+        ])
+      )
     return []
   } catch (err) {
     throw new RepoReadError(err)
@@ -319,7 +348,8 @@ export async function getAllProgressReportIdsByUserIdAndSubject(
         },
         tc ?? getClient()
       )
-    if (result.length) return result.map((row) => makeRequired(row).id)
+    if (result.length)
+      return result.map((row) => makeSomeRequired(row, ['id']).id)
     return []
   } catch (err) {
     throw new RepoReadError(err)
@@ -342,7 +372,7 @@ export async function getLatestProgressReportIdBySubject(
       tc ?? getClient()
     )
     if (result.length) {
-      const data = makeSomeOptional(result[0], ['readAt'])
+      const data = makeSomeRequired(result[0], ['createdAt', 'id', 'status'])
       return {
         ...data,
         status: data.status as ProgressReportStatuses,
@@ -379,7 +409,9 @@ export async function getUnreadSubjectReportsCountByUserId(
       },
       tc ?? getClient()
     )
-    return result.map((row) => makeRequired(row))
+    return result.map((row) =>
+      makeSomeRequired(row, ['subject', 'totalUnreadReports'])
+    )
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -397,7 +429,7 @@ export async function getLatestProgressReportOverviewSubjectByUserId(
         },
         tc ?? getClient()
       )
-    if (result.length) return makeRequired(result[0]).name
+    if (result.length) return makeSomeRequired(result[0], ['name']).name
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -413,7 +445,7 @@ export async function getActiveSubjectPromptBySubjectName(
       tc ?? getClient()
     )
     if (result.length) {
-      const data = makeRequired(result[0])
+      const data = makeSomeRequired(result[0], ['id', 'prompt'])
       if (!data.prompt)
         throw new RepoReadError(
           `getActivePromptBySubjectName: Empty progress report prompt for subject ${subject}`

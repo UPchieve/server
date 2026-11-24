@@ -1,5 +1,5 @@
 import { RepoReadError } from '../Errors'
-import { makeRequired, makeSomeOptional } from '../pgUtils'
+import { makeSomeRequired } from '../pgUtils'
 import {
   Question,
   Quiz,
@@ -30,7 +30,18 @@ export async function listQuestions(
   try {
     const questions = await pgQueries.list.run({ ...filters }, getClient())
 
-    const result = questions.map((v) => makeSomeOptional(v, ['imageSrc']))
+    const result = questions.map((v) =>
+      makeSomeRequired(v, [
+        'category',
+        'correctAnswer',
+        'createdAt',
+        'id',
+        'possibleAnswers',
+        'questionText',
+        'subcategory',
+        'updatedAt',
+      ])
+    )
     const parsedResult = result.map((res) => parseQueryResult(res))
     return parsedResult
   } catch (err) {
@@ -46,7 +57,7 @@ export async function getSubcategoriesForQuiz(
       { quizName },
       getClient()
     )
-    return result.map((v) => makeRequired(v))
+    return result.map((v) => makeSomeRequired(v, ['name']))
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -60,7 +71,18 @@ export async function getMultipleQuestionsById(
       { ids },
       getClient()
     )
-    const result = questions.map((v) => makeSomeOptional(v, ['imageSrc']))
+    const result = questions.map((v) =>
+      makeSomeRequired(v, [
+        'category',
+        'correctAnswer',
+        'createdAt',
+        'id',
+        'possibleAnswers',
+        'questionText',
+        'subcategory',
+        'updatedAt',
+      ])
+    )
     const parsedResult = result.map((res) => parseQueryResult(res))
     return parsedResult
   } catch (err) {
@@ -76,7 +98,9 @@ export async function getQuizReviewMaterials(
       { category },
       getClient()
     )
-    const result = materials.map((v) => makeRequired(v))
+    const result = materials.map((v) =>
+      makeSomeRequired(v, ['category', 'image', 'pdf', 'title'])
+    )
     return result
   } catch (err) {
     throw new RepoReadError(err)
@@ -89,7 +113,12 @@ export async function getQuizByName(
   try {
     const results = await pgQueries.getQuizByName.run({ quizName }, getClient())
     if (results.length) {
-      return makeRequired(results[0])
+      return makeSomeRequired(results[0], [
+        'active',
+        'id',
+        'name',
+        'questionsPerSubcategory',
+      ])
     }
   } catch (err) {
     throw new RepoReadError(err)
@@ -109,7 +138,19 @@ export async function getQuizCertUnlocksByQuizName(
       return results.map((unlock) => {
         const camelCased = camelCaseKeys(unlock)
         if (camelCased.isSubjectCertification) {
-          return makeRequired(camelCased) as QuizSubjectUnlockCertInfo
+          return makeSomeRequired(camelCased, [
+            'isSubjectCertification',
+            'quizDisplayName',
+            'quizDisplayOrder',
+            'quizName',
+            'topicDashboardOrder',
+            'topicDisplayName',
+            'topicName',
+            'topicTrainingOrder',
+            'unlockedCertDisplayName',
+            'unlockedCertDisplayOrder',
+            'unlockedCertName',
+          ]) as QuizSubjectUnlockCertInfo
         }
         return {
           quizName: camelCased.quizName,

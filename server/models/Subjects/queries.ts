@@ -1,6 +1,6 @@
 import * as pgQueries from './pg.queries'
 import { getClient, getRoClient, TransactionClient } from '../../db'
-import { makeRequired, makeSomeOptional, Ulid } from '../pgUtils'
+import { makeSomeRequired, Ulid } from '../pgUtils'
 import { RepoReadError } from '../Errors'
 import logger from '../../logger'
 
@@ -37,7 +37,27 @@ export async function getSubjectAndTopic(
       tc
     )
 
-    if (result.length && makeRequired(result[0])) return makeRequired(result[0])
+    if (
+      result.length &&
+      makeSomeRequired(result[0], [
+        'subjectDisplayName',
+        'subjectId',
+        'subjectName',
+        'toolType',
+        'topicDisplayName',
+        'topicId',
+        'topicName',
+      ])
+    )
+      return makeSomeRequired(result[0], [
+        'subjectDisplayName',
+        'subjectId',
+        'subjectName',
+        'toolType',
+        'topicDisplayName',
+        'topicId',
+        'topicName',
+      ])
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -54,7 +74,15 @@ export async function getTopics(
       },
       tc
     )
-    return results.map((r) => makeSomeOptional(r, ['iconLink']))
+    return results.map((r) =>
+      makeSomeRequired(r, [
+        'dashboardOrder',
+        'displayName',
+        'id',
+        'name',
+        'trainingOrder',
+      ])
+    )
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -64,7 +92,19 @@ export async function getSubjectsWithTopic(): Promise<AllSubjectsWithTopics> {
   try {
     const result = await pgQueries.getSubjects.run(undefined, getClient())
     const mappedResult = result.map((row) =>
-      makeSomeOptional(row, ['topicIconLink', 'topicColor'])
+      makeSomeRequired(row, [
+        'active',
+        'displayName',
+        'displayOrder',
+        'id',
+        'isComputedUnlock',
+        'name',
+        'topicDashboardOrder',
+        'topicDisplayName',
+        'topicId',
+        'topicName',
+        'topicTrainingOrder',
+      ])
     )
     const subjects = {} as AllSubjectsWithTopics
     for (const row of mappedResult) {
@@ -80,7 +120,7 @@ export async function getSubjectsWithTopic(): Promise<AllSubjectsWithTopics> {
       )
       const quizNameBySubject = new Map(
         aliasRows.map((alias) => {
-          const row = makeRequired(alias)
+          const row = makeSomeRequired(alias, ['quizName', 'subjectName'])
           return [row.subjectName, row.quizName]
         })
       )
@@ -178,7 +218,17 @@ export async function getCertSubjectUnlocks(): Promise<TrainingRowPerTopic> {
     )
     // remove certifications that unlock themselves
     const computedSubjects = certificationUnlocks
-      .map((v) => makeRequired(v))
+      .map((v) =>
+        makeSomeRequired(v, [
+          'certDisplayName',
+          'certDisplayOrder',
+          'certName',
+          'topicName',
+          'unlockedSubjectDisplayName',
+          'unlockedSubjectDisplayOrder',
+          'unlockedSubjectName',
+        ])
+      )
       .filter((row) => row.unlockedSubjectName !== row.certName)
 
     const computedSubjectGrouped = _.groupBy(
@@ -212,7 +262,17 @@ export async function getComputedSubjectUnlocks(): Promise<TrainingRowPerTopic> 
     )
     // remove certifications that unlock themselves
     const computedSubjects = certificationUnlocks
-      .map((v) => makeRequired(v))
+      .map((v) =>
+        makeSomeRequired(v, [
+          'certDisplayName',
+          'certDisplayOrder',
+          'certName',
+          'topicName',
+          'unlockedSubjectDisplayName',
+          'unlockedSubjectDisplayOrder',
+          'unlockedSubjectName',
+        ])
+      )
       .filter((row) => row.unlockedSubjectName !== row.certName)
 
     const computedSubjectGrouped = _.groupBy(
@@ -244,7 +304,7 @@ export async function getRequiredCertificationsByComputedSubjectUnlock(): Promis
       )
     const mapping: ComputedSubjectUnlocks = {} as ComputedSubjectUnlocks
     results.forEach((row) => {
-      const unlocks = makeRequired(row)
+      const unlocks = makeSomeRequired(row, ['name', 'requiredCertifications'])
       mapping[unlocks.name as SUBJECTS] =
         unlocks.requiredCertifications as SUBJECTS[]
     })
@@ -262,7 +322,19 @@ export async function getQuizCertUnlocks(): Promise<TrainingRowPerTopic> {
       getClient()
     )
     const mappedQuizCertificationsResults = quizCertificationResults.map((v) =>
-      makeRequired(v)
+      makeSomeRequired(v, [
+        'quizDisplayName',
+        'quizDisplayOrder',
+        'quizIsActive',
+        'quizName',
+        'topicDashboardOrder',
+        'topicDisplayName',
+        'topicName',
+        'topicTrainingOrder',
+        'unlockedCertDisplayName',
+        'unlockedCertDisplayOrder',
+        'unlockedCertName',
+      ])
     )
 
     const quizTopicGroups = _.groupBy(
@@ -293,7 +365,9 @@ export async function getTrainingCourses(): Promise<TrainingCourses[]> {
       getClient()
     )
     if (result.length) {
-      return result.map((row) => makeRequired(row))
+      return result.map((row) =>
+        makeSomeRequired(row, ['displayName', 'id', 'name'])
+      )
     }
     return []
   } catch (err) {
@@ -312,7 +386,14 @@ export async function getVolunteerTrainingData(): Promise<TrainingView> {
     )
     const subjectTypes: TrainingItemWithOrder[] = topics
       .map((v) => {
-        const mappedTopics = makeRequired(v)
+        const mappedTopics = makeSomeRequired(v, [
+          'dashboardOrder',
+          'displayName',
+          'iconLink',
+          'id',
+          'name',
+          'trainingOrder',
+        ])
         return {
           ...mappedTopics,
           key: mappedTopics.name,
@@ -326,7 +407,7 @@ export async function getVolunteerTrainingData(): Promise<TrainingView> {
     const quizCertificationUnlocks = await getQuizCertUnlocks()
     const trainingCourses = await getTrainingCourses()
     const requiredTraining = trainingCourses.map((v) => {
-      const mappedTraining = makeRequired(v)
+      const mappedTraining = makeSomeRequired(v, ['displayName', 'id', 'name'])
       return {
         displayName: mappedTraining.displayName,
         key: mappedTraining.name,
@@ -374,7 +455,8 @@ export async function getSubjectType(
 ): Promise<string | undefined> {
   try {
     const result = await pgQueries.getSubjectType.run({ subject }, getClient())
-    if (result.length) return makeRequired(result[0]).subjectType
+    if (result.length)
+      return makeSomeRequired(result[0], ['subjectType']).subjectType
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -390,7 +472,7 @@ export async function getSubjectNameIdMapping(): Promise<{
       throw new RepoReadError(
         'Select query did not return ok (subjectNameIdMappingResult)'
       )
-    subjectNameIdMappingResult.map((v) => makeRequired(v))
+    subjectNameIdMappingResult.map((v) => makeSomeRequired(v, ['id', 'name']))
     let subjectNameIdMapping: { [name: string]: number } = {}
     for (const subjectNameAndId of subjectNameIdMappingResult) {
       subjectNameIdMapping[subjectNameAndId.name] = subjectNameAndId.id
@@ -425,7 +507,19 @@ export async function getSubjectsForTopicByTopicId(
     )
     if (result.length)
       return result.map((row) =>
-        makeSomeOptional(row, ['topicIconLink', 'topicColor'])
+        makeSomeRequired(row, [
+          'active',
+          'displayName',
+          'displayOrder',
+          'id',
+          'isComputedUnlock',
+          'name',
+          'topicDashboardOrder',
+          'topicDisplayName',
+          'topicId',
+          'topicName',
+          'topicTrainingOrder',
+        ])
       )
     return []
   } catch (err) {
@@ -442,7 +536,13 @@ export async function getSessionSubjectAndTopic(
       getRoClient()
     )
     if (results.length) {
-      return makeRequired(results[0])
+      return makeSomeRequired(results[0], [
+        'sessionId',
+        'subjectId',
+        'subjectName',
+        'topicId',
+        'topicName',
+      ])
     }
   } catch (err) {
     throw new RepoReadError(err)
