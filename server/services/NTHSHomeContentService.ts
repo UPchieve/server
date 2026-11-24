@@ -21,11 +21,45 @@ export type NTHSHomeLink = {
 
 export type NTHSHomeContent = { tips: string[]; links: NTHSHomeLink[] }
 
+export type NTHSResourceCard = {
+  title: string
+  body: string
+  link: string
+  icon: string
+}
+
+export type NTHSResourceGroup = {
+  title: string
+  subtitle: string
+  icon: string
+  cards: NTHSResourceCard[]
+}
+
+export type NTHSResources = { groups: NTHSResourceGroup[] }
+
+type ParsedResourceGroup = Omit<NTHSResourceGroup, 'cards'> & {
+  cards: Array<NTHSResourceCard & { forMembers: boolean }>
+}
+
+type ParsedHomeSheet = NTHSHomeContent & { resources: ParsedResourceGroup[] }
+
 const TIPS_WORKSHEET_TITLE = 'tips'
 const LINKS_WORKSHEET_TITLE = 'links'
+const RESOURCES_WORKSHEET_TITLE = 'resources'
+const RESOURCE_GROUPS_WORKSHEET_TITLE = 'resource_groups'
 const READ_TIMEOUT_MS = 5000
 export const TIPS_HEADERS = ['tip', 'live']
 export const LINKS_HEADERS = ['title', 'body', 'link', 'members', 'live']
+export const RESOURCES_HEADERS = [
+  'group',
+  'title',
+  'body',
+  'link',
+  'icon',
+  'members',
+  'live',
+]
+export const RESOURCE_GROUPS_HEADERS = ['group', 'subtitle', 'icon']
 
 type HomeWorksheet = Pick<
   GoogleSpreadsheetWorksheet,
@@ -66,32 +100,108 @@ function isShownLink(link: string): boolean {
   )
 }
 
+function parseLinkRow(row: { get(key: string): unknown }): NTHSHomeLink | null {
+  const title = cell(row, 'title')
+  const link = cell(row, 'link')
+  if (!isChecked(row, 'live') || !title || !isShownLink(link)) return null
+  return {
+    title,
+    body: cell(row, 'body'),
+    link,
+    forMembers: isChecked(row, 'members'),
+  }
+}
+
+function groupKey(name: string): string {
+  return name.trim().toLowerCase()
+}
+
+async function parseResources(
+  source: HomeSource
+): Promise<ParsedResourceGroup[]> {
+  try {
+    const cardsSheet = findWorksheet(
+      source.worksheets,
+      RESOURCES_WORKSHEET_TITLE
+    )
+    const groupsSheet = findWorksheet(
+      source.worksheets,
+      RESOURCE_GROUPS_WORKSHEET_TITLE
+    )
+    const [groupRows, cardRows] = await Promise.all([
+      groupsSheet.getRows(),
+      cardsSheet.getRows(),
+    ])
+    ensureHeaders(
+      cardsSheet,
+      RESOURCES_HEADERS,
+      (message) => new Error(message)
+    )
+    ensureHeaders(
+      groupsSheet,
+      RESOURCE_GROUPS_HEADERS,
+      (message) => new Error(message)
+    )
+
+    const groups = new Map<string, ParsedResourceGroup>()
+    for (const row of groupRows) {
+      const name = cell(row, 'group')
+      if (!name || groups.has(groupKey(name))) {
+        continue
+      }
+      groups.set(groupKey(name), {
+        title: name,
+        subtitle: cell(row, 'subtitle'),
+        icon: cell(row, 'icon').toLowerCase(),
+        cards: [],
+      })
+    }
+    for (const row of cardRows) {
+      const parsed = parseLinkRow(row)
+      if (!parsed) {
+        continue
+      }
+      const group = groups.get(groupKey(cell(row, 'group')))
+      if (!group) {
+        logger.warn('Ignoring NTHS resource with an unknown group', {
+          title: parsed.title,
+          group: cell(row, 'group'),
+        })
+        continue
+      }
+      group.cards.push({
+        ...parsed,
+        icon: cell(row, 'icon').toLowerCase(),
+      })
+    }
+    return [...groups.values()]
+  } catch (error) {
+    logger.error('Could not parse NTHS resources; showing none', {
+      err: error,
+    })
+    return []
+  }
+}
+
 export async function parseHomeContent(
   source: HomeSource
-): Promise<NTHSHomeContent> {
+): Promise<ParsedHomeSheet> {
   const tipsSheet = findWorksheet(source.worksheets, TIPS_WORKSHEET_TITLE)
   const linksSheet = findWorksheet(source.worksheets, LINKS_WORKSHEET_TITLE)
   ensureHeaders(tipsSheet, TIPS_HEADERS, (message) => new Error(message))
   ensureHeaders(linksSheet, LINKS_HEADERS, (message) => new Error(message))
 
-  const tips = (await tipsSheet.getRows())
+  const [tipRows, linkRows, resources] = await Promise.all([
+    tipsSheet.getRows(),
+    linksSheet.getRows(),
+    parseResources(source),
+  ])
+  const tips = tipRows
     .filter((row) => isChecked(row, 'live'))
     .map((row) => cell(row, 'tip'))
     .filter(Boolean)
-  const links = (await linksSheet.getRows()).flatMap((row) => {
-    const title = cell(row, 'title')
-    const link = cell(row, 'link')
-    if (!isChecked(row, 'live') || !title || !isShownLink(link)) return []
-    return [
-      {
-        title,
-        body: cell(row, 'body'),
-        link,
-        forMembers: isChecked(row, 'members'),
-      },
-    ]
-  })
-  return { tips, links }
+  const links = linkRows.flatMap((row) => parseLinkRow(row) ?? [])
+  return { tips, links, resources }
 }
 
 async function loadHomeSheet(): Promise<HomeSource> {
@@ -103,9 +213,19 @@ async function loadHomeSheet(): Promise<HomeSource> {
   const worksheets = document.sheetsByIndex.filter(
     (worksheet) =>
       isWorksheetTitled(worksheet, TIPS_WORKSHEET_TITLE) ||
-      isWorksheetTitled(worksheet, LINKS_WORKSHEET_TITLE)
+      isWorksheetTitled(worksheet, LINKS_WORKSHEET_TITLE) ||
+      isWorksheetTitled(worksheet, RESOURCES_WORKSHEET_TITLE) ||
+      isWorksheetTitled(worksheet, RESOURCE_GROUPS_WORKSHEET_TITLE)
   )
-  await Promise.all(worksheets.map((sheet) => sheet.loadHeaderRow()))
+  await Promise.all(
+    worksheets
+      .filter(
+        (sheet) =>
+          isWorksheetTitled(sheet, TIPS_WORKSHEET_TITLE) ||
+          isWorksheetTitled(sheet, LINKS_WORKSHEET_TITLE)
+      )
+      .map((sheet) => sheet.loadHeaderRow())
+  )
   return { worksheets }
 }
 
@@ -119,26 +239,23 @@ const homeContentCache = new SheetCache(
 
 let lastFailureAt: number | undefined
 
-export async function getNthsHomeContent(
-  isAdmin: boolean
-): Promise<NTHSHomeContent> {
-  const empty: NTHSHomeContent = { tips: [], links: [] }
+async function readHomeSheet(): Promise<ParsedHomeSheet | null> {
   if (
     !config.nthsRenewal.spreadsheetId ||
     !config.nthsChecklist.serviceAccountEmail ||
     !config.nthsChecklist.privateKey
   )
-    return empty
+    return null
   // A failed read with no good copy is not cached by SheetCache; wait out the
   // TTL so a broken sheet costs one Google read and one error per interval.
   if (
     lastFailureAt !== undefined &&
     Date.now() - lastFailureAt < config.nthsChecklist.cacheTtlMs
   )
-    return empty
+    return null
   // The Google client sets no request timeout, so a stalled read would
   // otherwise hold the route open.
-  const content: NTHSHomeContent | null = await timeLimit({
+  const content: ParsedHomeSheet | null = await timeLimit({
     promise: homeContentCache.get().catch((error: unknown) => {
       logger.error('Could not read NTHS home content; showing none', {
         err: error,
@@ -151,7 +268,30 @@ export async function getNthsHomeContent(
     waitInMs: READ_TIMEOUT_MS,
   })
   lastFailureAt = content ? undefined : Date.now()
-  if (!content) return empty
-  if (isAdmin) return content
+  return content
+}
+
+export async function getNthsHomeContent(
+  isAdmin: boolean
+): Promise<NTHSHomeContent> {
+  const content = await readHomeSheet()
+  if (!content) return { tips: [], links: [] }
+  if (isAdmin) return { tips: content.tips, links: content.links }
   return { tips: [], links: content.links.filter((l) => l.forMembers) }
+}
+
+export async function getNthsResources(
+  isAdmin: boolean
+): Promise<NTHSResources> {
+  const content = await readHomeSheet()
+  if (!content) return { groups: [] }
+  const groups = content.resources
+    .map(({ cards, ...group }) => ({
+      ...group,
+      cards: cards
+        .filter((card) => isAdmin || card.forMembers)
+        .map(({ forMembers: _forMembers, ...card }) => card),
+    }))
+    .filter((group) => group.cards.length > 0)
+  return { groups }
 }

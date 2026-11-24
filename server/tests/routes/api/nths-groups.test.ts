@@ -729,10 +729,26 @@ describe('routeNTHSGroups', () => {
   // getActiveGroupMember finds nobody for someone outside the chapter or for a
   // member who left it.
   test.each([
-    ['/api/nths-groups/:groupId/members', 'getGroupMembers'],
-    ['/api/nths-groups/:groupId/actions', 'getActionsForGroup'],
-    ['/api/nths-groups/:groupId/impact', 'getChapterImpact'],
-    ['/api/nths-groups/:groupId/roster', 'getChapterRoster'],
+    [
+      '/api/nths-groups/:groupId/members',
+      () => mockedNTHSGroupsService.getGroupMembers,
+    ],
+    [
+      '/api/nths-groups/:groupId/actions',
+      () => mockedNTHSGroupsService.getActionsForGroup,
+    ],
+    [
+      '/api/nths-groups/:groupId/impact',
+      () => mockedNTHSGroupsService.getChapterImpact,
+    ],
+    [
+      '/api/nths-groups/:groupId/roster',
+      () => mockedNTHSGroupsService.getChapterRoster,
+    ],
+    [
+      '/api/nths-groups/:groupId/resources',
+      () => NTHSHomeContentService.getNthsResources,
+    ],
   ] as const)(
     'GET %s gives HTTP 403 to a non-member or departed member',
     async (route, read) => {
@@ -747,7 +763,7 @@ describe('routeNTHSGroups', () => {
         mockUser.id,
         groupId
       )
-      expect(mockedNTHSGroupsService[read]).not.toHaveBeenCalled()
+      expect(read()).not.toHaveBeenCalled()
     }
   )
 
@@ -939,6 +955,36 @@ describe('routeNTHSGroups', () => {
       expect(response.status).toBe(200)
       expect(response.body).toEqual(content)
       expect(NTHSHomeContentService.getNthsHomeContent).toHaveBeenCalledWith(
+        isAdmin
+      )
+    })
+  })
+
+  describe('GET /api/nths-groups/:groupId/resources', () => {
+    test.each([
+      ['admin', true],
+      ['member', false],
+    ])('a %s is served resources for isAdmin %p', async (roleName, isAdmin) => {
+      const resources = {
+        groups: [
+          {
+            title: 'Start',
+            subtitle: 'First steps',
+            icon: 'star',
+            cards: [{ title: 'Guide', body: 'Read', link: '/x', icon: 'book' }],
+          },
+        ],
+      }
+      mockedNTHSGroupsService.getActiveGroupMember.mockResolvedValueOnce(
+        buildNTHSGroupMemberWithRole({ roleName })
+      )
+      jest
+        .mocked(NTHSHomeContentService.getNthsResources)
+        .mockResolvedValueOnce(resources)
+      const response = await sendGet(`/api/nths-groups/${groupId}/resources`)
+      expect(response.status).toBe(200)
+      expect(response.body).toEqual(resources)
+      expect(NTHSHomeContentService.getNthsResources).toHaveBeenCalledWith(
         isAdmin
       )
     })
@@ -1241,14 +1287,14 @@ describe('routeNTHSGroups', () => {
     test.each([
       [
         '/api/nths-groups/:groupId/members',
-        'getGroupMembers',
+        () => mockedNTHSGroupsService.getGroupMembers,
         () => {
           mockedNTHSGroupsService.getGroupMembers.mockResolvedValueOnce([])
         },
       ],
       [
         '/api/nths-groups/:groupId/impact',
-        'getChapterImpact',
+        () => mockedNTHSGroupsService.getChapterImpact,
         () => {
           mockedNTHSGroupsService.getChapterImpact.mockResolvedValueOnce(
             buildNTHSChapterImpact({ groupId, schoolYear })
@@ -1257,11 +1303,20 @@ describe('routeNTHSGroups', () => {
       ],
       [
         '/api/nths-groups/:groupId/roster',
-        'getChapterRoster',
+        () => mockedNTHSGroupsService.getChapterRoster,
         () => {
           mockedNTHSGroupsService.getChapterRoster.mockResolvedValueOnce(
             buildNTHSChapterRoster({ groupId, schoolYear })
           )
+        },
+      ],
+      [
+        '/api/nths-groups/:groupId/resources',
+        () => NTHSHomeContentService.getNthsResources,
+        () => {
+          jest
+            .mocked(NTHSHomeContentService.getNthsResources)
+            .mockResolvedValueOnce({ groups: [] })
         },
       ],
     ] as const)(
@@ -1286,7 +1341,7 @@ describe('routeNTHSGroups', () => {
           expect(
             mockedNTHSGroupsService.isClearedToViewChapterMemberInfo
           ).toHaveBeenLastCalledWith(mockUser.id, isAdmin)
-          expect(mockedNTHSGroupsService[read]).not.toHaveBeenCalled()
+          expect(read()).not.toHaveBeenCalled()
         }
 
         mockedNTHSGroupsService.getActiveGroupMember.mockResolvedValueOnce(
@@ -1294,7 +1349,7 @@ describe('routeNTHSGroups', () => {
         )
         const response = await sendGet(route.replace(':groupId', groupId))
         expect(response.status).toBe(200)
-        expect(mockedNTHSGroupsService[read]).toHaveBeenCalled()
+        expect(read()).toHaveBeenCalled()
       }
     )
   })

@@ -6,7 +6,9 @@ import * as NTHSChecklistProgressService from '../../services/NTHSChecklistProgr
 import * as NTHSRenewalService from '../../services/NTHSRenewalService'
 import {
   getNthsHomeContent,
+  getNthsResources,
   type NTHSHomeContent,
+  type NTHSResources,
 } from '../../services/NTHSHomeContentService'
 import {
   InputError,
@@ -498,6 +500,20 @@ export function routeNTHSGroups(router: Router): void {
       async (req: Request, res: Response<NTHSHomeContent>) => {
         try {
           res.json(await getNthsHomeContent(requesterIsGroupAdmin(res)))
+        } catch (err) {
+          resError(res, err)
+        }
+      }
+    )
+
+  router
+    .route('/nths-groups/:groupId/resources')
+    .get(
+      isActiveGroupMember,
+      requireClearedToViewMemberInfo,
+      async (req: Request, res: Response<NTHSResources>) => {
+        try {
+          res.json(await getNthsResources(requesterIsGroupAdmin(res)))
         } catch (err) {
           resError(res, err)
         }
