@@ -6,14 +6,7 @@ import {
   RepoUpsertError,
 } from '../Errors'
 import { PartnerSchool, School } from './types'
-import {
-  getDbUlid,
-  makeRequired,
-  makeSomeRequired,
-  makeSomeOptional,
-  Ulid,
-  Uuid,
-} from '../pgUtils'
+import { getDbUlid, makeSomeRequired, Ulid, Uuid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import { getClient, runInTransaction, TransactionClient } from '../../db'
 import * as geoQueries from '../Geography/pg.queries'
@@ -120,12 +113,7 @@ export async function updateApproval(
   isApproved: boolean
 ): Promise<void> {
   try {
-    const result = await pgQueries.updateApproval.run(
-      { schoolId, isApproved },
-      getClient()
-    )
-
-    if (result.length) return makeRequired(result[0])
+    await pgQueries.updateApproval.run({ schoolId, isApproved }, getClient())
   } catch (err) {
     throw new RepoUpdateError(err)
   }
@@ -145,10 +133,7 @@ export async function updateIsPartner( // @TODO - Split into separate query func
   try {
     // Set schools.partner.
     // @TODO Drop this column and let student_partner_orgs_upchieve_instances be the source of truth
-    const result = await pgQueries.updateIsPartner.run(
-      { schoolId, isPartner },
-      client
-    )
+    await pgQueries.updateIsPartner.run({ schoolId, isPartner }, client)
     const school = await getSchoolById(schoolId, client)
     if (!school)
       throw new Error(
@@ -162,7 +147,6 @@ export async function updateIsPartner( // @TODO - Split into separate query func
     } else {
       await deactivateSchoolStudentPartnerOrgs(schoolId, client)
     }
-    if (result.length) return makeRequired(result[0])
   } catch (err) {
     throw new RepoUpdateError(err)
   }
@@ -183,7 +167,7 @@ export async function adminUpdateSchool( // @TODO - Split into separate query fu
         { name: city, state },
         client
       )
-      cityId = makeRequired(result[0]).id
+      cityId = makeSomeRequired(result[0], ['id']).id
     }
 
     await pgQueries.adminUpdateSchool.run(
@@ -198,7 +182,9 @@ export async function adminUpdateSchool( // @TODO - Split into separate query fu
 export async function schoolSearch(query: string): Promise<School[]> {
   try {
     const results = await pgQueries.schoolSearch.run({ query }, getClient())
-    return results.map((v) => makeSomeOptional(v, ['district']))
+    return results.map((v) =>
+      makeSomeRequired(v, ['city', 'id', 'name', 'similarityScore', 'state'])
+    )
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -230,7 +216,7 @@ export async function getSchoolByNcesId(
       tc
     )
     if (school.length) {
-      return makeRequired(school[0])
+      return makeSomeRequired(school[0], ['id'])
     }
   } catch (err) {
     throw new RepoReadError(err)
@@ -252,7 +238,7 @@ export async function createSchool(
       tc
     )
     if (school.length) {
-      return makeRequired(school[0])
+      return makeSomeRequired(school[0], ['id'])
     }
   } catch (err) {
     throw new RepoCreateError(err)
@@ -300,9 +286,7 @@ export async function getPartnerSchools(
 ): Promise<PartnerSchool[] | undefined> {
   try {
     const schools = await pgQueries.getPartnerSchools.run(undefined, tc)
-    return schools.map((s) =>
-      makeSomeOptional(s, ['partnerKey', 'partnerSites'])
-    )
+    return schools.map((s) => makeSomeRequired(s, ['schoolId', 'schoolName']))
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -338,7 +322,7 @@ export async function getUpchieveSchoolIdFromCleverId(
       tc
     )
     if (result.length) {
-      return makeRequired(result[0]).upchieveSchoolId
+      return makeSomeRequired(result[0], ['upchieveSchoolId']).upchieveSchoolId
     }
   } catch (err) {
     throw new RepoReadError(err)

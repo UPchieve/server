@@ -1,11 +1,6 @@
 import { getClient, getRoClient, TransactionClient } from '../../db'
 import { RepoCreateError, RepoDeleteError, RepoReadError } from '../Errors'
-import {
-  isWriteOk,
-  makeRequired,
-  makeSomeOptional,
-  makeSomeRequired,
-} from '../pgUtils'
+import { isWriteOk, makeSomeRequired } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import {
   SaveUserSurveySubmission,
@@ -103,7 +98,7 @@ export async function getStudentsPresessionGoal(
       },
       getClient()
     )
-    if (result.length) return makeSomeOptional(result[0], ['goal']).goal
+    if (result.length) return makeSomeRequired(result[0], []).goal
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -119,12 +114,13 @@ export async function getSimpleSurveyDefinition(
       getClient()
     )
     const resultArr = result.map((v) =>
-      makeSomeOptional(v, [
-        'responseId',
-        'responseDisplayImage',
-        'responseDisplayPriority',
-        'responseText',
-        'rewardAmount',
+      makeSomeRequired(v, [
+        'displayPriority',
+        'questionId',
+        'questionText',
+        'questionType',
+        'surveyId',
+        'surveyTypeId',
       ])
     )
     return formatSurveyDefinition(resultArr)
@@ -143,12 +139,13 @@ export async function getSimpleSurveyDefinitionBySurveyId(
       tc ?? getClient()
     )
     const resultArr = result.map((v) =>
-      makeSomeOptional(v, [
-        'responseId',
-        'responseDisplayImage',
-        'responseDisplayPriority',
-        'responseText',
-        'rewardAmount',
+      makeSomeRequired(v, [
+        'displayPriority',
+        'questionId',
+        'questionText',
+        'questionType',
+        'surveyId',
+        'surveyTypeId',
       ])
     )
     return formatSurveyDefinition(resultArr)
@@ -173,10 +170,14 @@ export async function getPostsessionSurveyDefinition(
     )
     if (result.length) {
       return result.map((r) =>
-        makeSomeOptional(r, [
-          'firstReplacementColumn',
-          'secondReplacementColumn',
-          'responses',
+        makeSomeRequired(r, [
+          'displayPriority',
+          'name',
+          'questionId',
+          'questionText',
+          'questionType',
+          'surveyId',
+          'surveyTypeId',
         ])
       )
     }
@@ -272,7 +273,13 @@ export async function getPresessionSurveyResponse(
     )
     if (result.length)
       return result.map((row) =>
-        makeSomeOptional(row, ['displayImage', 'responseId'])
+        makeSomeRequired(row, [
+          'displayLabel',
+          'displayOrder',
+          'questionId',
+          'response',
+          'score',
+        ])
       )
     return []
   } catch (err) {
@@ -301,7 +308,15 @@ export async function getPostsessionSurveyResponse(
         client
       )
       if (result.length)
-        return result.map((row) => makeSomeOptional(row, ['response']))
+        return result.map((row) =>
+          makeSomeRequired(row, [
+            'displayLabel',
+            'displayOrder',
+            'questionText',
+            'score',
+            'userRole',
+          ])
+        )
       return []
     } else {
       const result = await pgQueries.getVolunteerPostsessionSurveyResponse.run(
@@ -309,7 +324,15 @@ export async function getPostsessionSurveyResponse(
         client
       )
       if (result.length)
-        return result.map((row) => makeSomeOptional(row, ['response']))
+        return result.map((row) =>
+          makeSomeRequired(row, [
+            'displayLabel',
+            'displayOrder',
+            'questionText',
+            'score',
+            'userRole',
+          ])
+        )
       return []
     }
   } catch (err) {
@@ -374,7 +397,14 @@ export async function getProgressReportSurveyResponse(
     )
     if (result.length)
       return result.map((row) =>
-        makeSomeOptional(row, ['displayImage', 'responseId'])
+        makeSomeRequired(row, [
+          'displayLabel',
+          'displayOrder',
+          'questionId',
+          'response',
+          'score',
+          'userSurveyId',
+        ])
       )
     return []
   } catch (err) {
@@ -393,7 +423,17 @@ export const getUserPostsessionSurveyResponses = async (
         },
         getRoClient()
       )
-    return ratings.map((r) => makeRequired(r)) ?? []
+    return ratings.map((r) =>
+      makeSomeRequired(r, [
+        'choiceText',
+        'createdAt',
+        'roleInSession',
+        'score',
+        'sessionId',
+        'submitterUserId',
+        'surveyResponseChoiceId',
+      ])
+    )
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -409,7 +449,15 @@ export async function getLatestUserSubmissionsForSurveyBySurveyType(
       getClient()
     )
     if (result.length)
-      return result.map((row) => makeSomeOptional(row, ['responseId']))
+      return result.map((row) =>
+        makeSomeRequired(row, [
+          'displayLabel',
+          'displayOrder',
+          'questionId',
+          'response',
+          'score',
+        ])
+      )
     return []
   } catch (err) {
     throw new RepoReadError(err)
@@ -427,7 +475,15 @@ export async function getLatestUserSubmissionsForSurveyBySurveyId(
       tc ?? getClient()
     )
     if (result.length)
-      return result.map((row) => makeSomeOptional(row, ['responseId']))
+      return result.map((row) =>
+        makeSomeRequired(row, [
+          'displayLabel',
+          'displayOrder',
+          'questionId',
+          'response',
+          'score',
+        ])
+      )
     return []
   } catch (err) {
     throw new RepoReadError(err)
@@ -443,7 +499,7 @@ export async function getSurveyIdForLatestImpactStudySurveySubmission(
         { userId },
         getClient()
       )
-    if (result.length) return makeRequired(result[0]).surveyId
+    if (result.length) return makeSomeRequired(result[0], ['surveyId']).surveyId
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -457,7 +513,9 @@ export async function getSurveyTypeFromSurveyTypeId(
       { surveyTypeId },
       getClient()
     )
-    if (result.length) return makeRequired(result[0]).surveyType as SurveyType
+    if (result.length)
+      return makeSomeRequired(result[0], ['surveyType'])
+        .surveyType as SurveyType
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -472,12 +530,7 @@ export async function getStudentFeedbackForSession(
       { sessionId },
       tc ?? getClient()
     )
-    if (result.length)
-      return makeSomeOptional(result[0], [
-        'response',
-        'howMuchDidYourCoachPushYouToDoYourBestWorkToday',
-        'howSupportiveWasYourCoachToday',
-      ])
+    if (result.length) return makeSomeRequired(result[0], ['sessionId'])
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -495,7 +548,7 @@ export async function isSubjectSupportedBySurvey(
       },
       getClient()
     )
-    return row ? makeRequired(row).isSupported : false
+    return row ? makeSomeRequired(row, ['isSupported']).isSupported : false
   } catch (err) {
     throw new RepoReadError(err)
   }
