@@ -116,7 +116,14 @@ export class RepoTransactionError extends CustomError {
   }
 }
 
-export class NotAllowedError extends CustomError {}
+export class NotAllowedError extends CaughtError {
+  readonly httpStatus = 403
+  readonly defaultClientMessage = "You don't have access to that."
+
+  constructor(message: string) {
+    super({ message, clientMessage: message })
+  }
+}
 export class InputError extends CustomError {}
 export class LookupError extends CaughtError {
   readonly httpStatus = 422
@@ -126,9 +133,12 @@ export class LookupError extends CaughtError {
     super({ message, clientMessage: message })
   }
 }
-export class NotAuthenticatedError extends CustomError {
+export class NotAuthenticatedError extends CaughtError {
+  readonly httpStatus = 401
+  readonly defaultClientMessage = 'Request is not authenticated'
+
   constructor() {
-    super('Request is not authenticated')
+    super({ message: 'Request is not authenticated' })
   }
 }
 export class AlreadyInUseError extends CaughtError {

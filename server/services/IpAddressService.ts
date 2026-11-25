@@ -66,5 +66,9 @@ export async function checkIpAddress(data: unknown | string) {
   if (!isValidIp(ip)) throw new Error('Not a valid IP address')
 
   const { country_code: countryCode } = await getIpWhoIs(ip)
-  if (!isAllowedCountryCode(countryCode)) throw new NotAllowedError()
+  if (!isAllowedCountryCode(countryCode)) {
+    throw new NotAllowedError(
+      'Cannot register from an international IP address'
+    )
+  }
 }

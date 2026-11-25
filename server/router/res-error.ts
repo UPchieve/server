@@ -1,11 +1,6 @@
 import { CustomError } from 'ts-custom-error'
 import { Response } from 'express'
-import {
-  NotAllowedError,
-  InputError,
-  NotAuthenticatedError,
-  CaughtError,
-} from '../models/Errors'
+import { InputError, CaughtError } from '../models/Errors'
 import logger from '../logger'
 
 export function resError(
@@ -32,10 +27,6 @@ export function resError(
     if (status) {
       /* keep provided status */
     }
-    // user is not authenticated
-    else if (err instanceof NotAuthenticatedError) status = 401
-    // user is authenthicated, but not authorized to retrieve resource
-    else if (err instanceof NotAllowedError) status = 403
     // bad input
     else if (err instanceof InputError) status = 422
     // response timeout
