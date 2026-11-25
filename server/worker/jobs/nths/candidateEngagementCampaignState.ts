@@ -120,10 +120,10 @@ export function selectNTHSCampaignEmail(
     const daysSinceA1 = today.diff(a1Day, 'days')
     tryAddCandidate(
       'activationA2',
-      daysSinceA1 >= 4 && state.sentAt.activationA3 == null,
+      hasChapter && daysSinceA1 >= 4 && state.sentAt.activationA3 == null,
       6
     )
-    tryAddCandidate('activationA3', daysSinceA1 >= 9, 7)
+    tryAddCandidate('activationA3', hasChapter && daysSinceA1 >= 9, 7)
   }
 
   tryAddCandidate('day21Extension', hasChapter && campaignDay >= 21, 8)

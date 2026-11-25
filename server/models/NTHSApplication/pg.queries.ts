@@ -354,7 +354,6 @@ export const activatedCandidateApplication = new PreparedQuery<IActivatedCandida
 /** 'NeedsApplicationStatusEmail' parameters type */
 export interface INeedsApplicationStatusEmailParams {
   application_status: nths_candidate_application_status;
-  cohort_end: DateOrString;
   cohort_start: DateOrString;
   email_template_id: string;
 }
@@ -376,7 +375,7 @@ export interface INeedsApplicationStatusEmailQuery {
   result: INeedsApplicationStatusEmailResult;
 }
 
-const needsApplicationStatusEmailIR: any = {"usedParamSet":{"application_status":true,"cohort_start":true,"cohort_end":true,"email_template_id":true},"params":[{"name":"application_status","required":true,"transform":{"type":"scalar"},"locs":[{"a":221,"b":240},{"a":251,"b":270}]},{"name":"cohort_start","required":true,"transform":{"type":"scalar"},"locs":[{"a":390,"b":403},{"a":721,"b":734}]},{"name":"cohort_end","required":true,"transform":{"type":"scalar"},"locs":[{"a":431,"b":442}]},{"name":"email_template_id","required":true,"transform":{"type":"scalar"},"locs":[{"a":660,"b":678}]}],"statement":"SELECT\n    nths.user_id,\n    COALESCE(u.proxy_email, u.email) AS \"email!\",\n    u.first_name,\n    nths.activated_at\nFROM\n    nths_candidate_applications nths\n    JOIN users u ON u.id = nths.user_id\nWHERE\n    nths.status = :application_status!\n    AND (:application_status!::nths_candidate_application_status <> 'approved'\n        OR nths.activated_at IS NOT NULL)\n    AND nths.decided_at >= :cohort_start!\n    AND nths.decided_at < :cohort_end!\n    AND NOT EXISTS (\n        SELECT\n            1\n        FROM\n            notifications notifications\n        WHERE\n            notifications.user_id = nths.user_id\n            AND notifications.email_template_id = :email_template_id!\n            AND notifications.sent_at >= :cohort_start!)"};
+const needsApplicationStatusEmailIR: any = {"usedParamSet":{"application_status":true,"cohort_start":true,"email_template_id":true},"params":[{"name":"application_status","required":true,"transform":{"type":"scalar"},"locs":[{"a":221,"b":240},{"a":251,"b":270}]},{"name":"cohort_start","required":true,"transform":{"type":"scalar"},"locs":[{"a":390,"b":403},{"a":682,"b":695}]},{"name":"email_template_id","required":true,"transform":{"type":"scalar"},"locs":[{"a":621,"b":639}]}],"statement":"SELECT\n    nths.user_id,\n    COALESCE(u.proxy_email, u.email) AS \"email!\",\n    u.first_name,\n    nths.activated_at\nFROM\n    nths_candidate_applications nths\n    JOIN users u ON u.id = nths.user_id\nWHERE\n    nths.status = :application_status!\n    AND (:application_status!::nths_candidate_application_status <> 'approved'\n        OR nths.activated_at IS NOT NULL)\n    AND nths.decided_at >= :cohort_start!\n    AND NOT EXISTS (\n        SELECT\n            1\n        FROM\n            notifications notifications\n        WHERE\n            notifications.user_id = nths.user_id\n            AND notifications.email_template_id = :email_template_id!\n            AND notifications.sent_at >= :cohort_start!)"};
 
 /**
  * Query generated from SQL:
@@ -394,7 +393,6 @@ const needsApplicationStatusEmailIR: any = {"usedParamSet":{"application_status"
  *     AND (:application_status!::nths_candidate_application_status <> 'approved'
  *         OR nths.activated_at IS NOT NULL)
  *     AND nths.decided_at >= :cohort_start!
- *     AND nths.decided_at < :cohort_end!
  *     AND NOT EXISTS (
  *         SELECT
  *             1
@@ -411,7 +409,6 @@ export const needsApplicationStatusEmail = new PreparedQuery<INeedsApplicationSt
 
 /** 'ActiveCampaignPresidents' parameters type */
 export interface IActiveCampaignPresidentsParams {
-  cohortEnd: DateOrString;
   cohortStart: DateOrString;
 }
 
@@ -444,7 +441,7 @@ export interface IActiveCampaignPresidentsQuery {
   result: IActiveCampaignPresidentsResult;
 }
 
-const activeCampaignPresidentsIR: any = {"usedParamSet":{"cohortStart":true,"cohortEnd":true},"params":[{"name":"cohortStart","required":true,"transform":{"type":"scalar"},"locs":[{"a":1167,"b":1179}]},{"name":"cohortEnd","required":true,"transform":{"type":"scalar"},"locs":[{"a":1216,"b":1226}]}],"statement":"SELECT\n    application.id AS application_id,\n    application.user_id,\n    application.activated_at AS approved_at,\n    users.first_name,\n    COALESCE(users.proxy_email, users.email) AS \"email!\",\n    chapter.id AS chapter_id,\n    chapter.name AS chapter_name,\n    chapter.key AS chapter_key,\n    chapter.invite_code,\n    latest_status.status_name AS chapter_status\nFROM\n    nths_candidate_applications application\n    JOIN users ON users.id = application.user_id\n    LEFT JOIN nths_group_members membership ON membership.user_id = application.user_id\n        AND membership.deactivated_at IS NULL\n    LEFT JOIN nths_groups chapter ON chapter.id = membership.nths_group_id\n    LEFT JOIN LATERAL (\n        SELECT\n            statuses.name AS status_name\n        FROM\n            nths_chapters_statuses chapter_status\n            JOIN nths_chapter_statuses statuses ON statuses.id = chapter_status.nths_chapter_status_id\n        WHERE\n            chapter_status.nths_group_id = chapter.id\n        ORDER BY\n            chapter_status.created_at DESC\n        LIMIT 1) latest_status ON TRUE\nWHERE\n    application.activated_at IS NOT NULL\n    AND application.activated_at >= :cohortStart!\n    AND application.activated_at < :cohortEnd!\n    AND (chapter.id IS NULL\n        OR latest_status.status_name = 'PENDING')\nORDER BY\n    application.activated_at,\n    application.id"};
+const activeCampaignPresidentsIR: any = {"usedParamSet":{"cohortStart":true},"params":[{"name":"cohortStart","required":true,"transform":{"type":"scalar"},"locs":[{"a":1167,"b":1179}]}],"statement":"SELECT\n    application.id AS application_id,\n    application.user_id,\n    application.activated_at AS approved_at,\n    users.first_name,\n    COALESCE(users.proxy_email, users.email) AS \"email!\",\n    chapter.id AS chapter_id,\n    chapter.name AS chapter_name,\n    chapter.key AS chapter_key,\n    chapter.invite_code,\n    latest_status.status_name AS chapter_status\nFROM\n    nths_candidate_applications application\n    JOIN users ON users.id = application.user_id\n    LEFT JOIN nths_group_members membership ON membership.user_id = application.user_id\n        AND membership.deactivated_at IS NULL\n    LEFT JOIN nths_groups chapter ON chapter.id = membership.nths_group_id\n    LEFT JOIN LATERAL (\n        SELECT\n            statuses.name AS status_name\n        FROM\n            nths_chapters_statuses chapter_status\n            JOIN nths_chapter_statuses statuses ON statuses.id = chapter_status.nths_chapter_status_id\n        WHERE\n            chapter_status.nths_group_id = chapter.id\n        ORDER BY\n            chapter_status.created_at DESC\n        LIMIT 1) latest_status ON TRUE\nWHERE\n    application.activated_at IS NOT NULL\n    AND application.activated_at >= :cohortStart!\n    AND (chapter.id IS NULL\n        OR latest_status.status_name = 'PENDING')\nORDER BY\n    application.activated_at,\n    application.id"};
 
 /**
  * Query generated from SQL:
@@ -480,7 +477,6 @@ const activeCampaignPresidentsIR: any = {"usedParamSet":{"cohortStart":true,"coh
  * WHERE
  *     application.activated_at IS NOT NULL
  *     AND application.activated_at >= :cohortStart!
- *     AND application.activated_at < :cohortEnd!
  *     AND (chapter.id IS NULL
  *         OR latest_status.status_name = 'PENDING')
  * ORDER BY

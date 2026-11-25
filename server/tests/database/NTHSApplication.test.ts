@@ -1055,7 +1055,6 @@ describe('foundGroup', () => {
 
 describe('getActiveCampaignPresidents', () => {
   const cohortStart = new Date('2026-09-01T04:00:00.000Z')
-  const cohortEnd = new Date('2027-01-01T05:00:00.000Z')
 
   async function createApprovedApplication(activatedAt: string) {
     const user = await createTestUser(client)
@@ -1091,7 +1090,6 @@ describe('getActiveCampaignPresidents', () => {
 
     const results = await NTHSApplicationRepo.getActiveCampaignPresidents(
       cohortStart,
-      cohortEnd,
       client
     )
 
@@ -1117,7 +1115,6 @@ describe('getActiveCampaignPresidents', () => {
 
     const results = await NTHSApplicationRepo.getActiveCampaignPresidents(
       cohortStart,
-      cohortEnd,
       client
     )
 
@@ -1142,7 +1139,6 @@ describe('getActiveCampaignPresidents', () => {
 
     const results = await NTHSApplicationRepo.getActiveCampaignPresidents(
       cohortStart,
-      cohortEnd,
       client
     )
 
@@ -1165,7 +1161,6 @@ describe('getActiveCampaignPresidents', () => {
 
     const results = await NTHSApplicationRepo.getActiveCampaignPresidents(
       cohortStart,
-      cohortEnd,
       client
     )
     const ids = new Set(results.map((president) => president.userId))
@@ -1174,20 +1169,19 @@ describe('getActiveCampaignPresidents', () => {
     expect(ids.has(failed.userId)).toBe(false)
   })
 
-  test('uses a half-open cohort date range', async () => {
+  test('includes every president approved from the cohort start on', async () => {
     const before = await createApprovedApplication('2026-09-01T03:59:59.999Z')
     const atStart = await createApprovedApplication('2026-09-01T04:00:00.000Z')
-    const atEnd = await createApprovedApplication('2027-01-01T05:00:00.000Z')
+    const nextYear = await createApprovedApplication('2027-01-15T15:00:00.000Z')
 
     const results = await NTHSApplicationRepo.getActiveCampaignPresidents(
       cohortStart,
-      cohortEnd,
       client
     )
     const ids = new Set(results.map((president) => president.userId))
 
     expect(ids.has(before.userId)).toBe(false)
     expect(ids.has(atStart.userId)).toBe(true)
-    expect(ids.has(atEnd.userId)).toBe(false)
+    expect(ids.has(nextYear.userId)).toBe(true)
   })
 })

@@ -207,7 +207,6 @@ export async function decideCandidateApplication(
 
 export async function needsDenialEmail(
   cohortStartDate: Date,
-  cohortEndDate: Date,
   templateId: string,
   tc: TransactionClient = getClient()
 ) {
@@ -216,7 +215,6 @@ export async function needsDenialEmail(
       {
         application_status: 'denied',
         cohort_start: cohortStartDate,
-        cohort_end: cohortEndDate,
         email_template_id: templateId,
       },
       tc
@@ -232,7 +230,6 @@ export async function needsDenialEmail(
 
 export async function needsApprovalEmail(
   cohortStartDate: Date,
-  cohortEndDate: Date,
   templateId: string,
   tc: TransactionClient = getClient()
 ): Promise<NTHSApprovedCandidate[]> {
@@ -241,7 +238,6 @@ export async function needsApprovalEmail(
       {
         application_status: 'approved',
         cohort_start: cohortStartDate,
-        cohort_end: cohortEndDate,
         email_template_id: templateId,
       },
       tc
@@ -259,14 +255,12 @@ export async function needsApprovalEmail(
 
 export async function getActiveCampaignPresidents(
   cohortStartDate: Date,
-  cohortEndDate: Date,
   tc: TransactionClient = getRoClient()
 ): Promise<NTHSActiveCampaignPresident[]> {
   try {
     const results = await pgQueries.activeCampaignPresidents.run(
       {
         cohortStart: cohortStartDate,
-        cohortEnd: cohortEndDate,
       },
       tc
     )

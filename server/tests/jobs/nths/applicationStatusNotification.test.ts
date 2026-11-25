@@ -18,7 +18,6 @@ const mockedNotifications = jest.mocked(NotificationService)
 const JOB = {
   data: {
     periodStart: new Date('2026-09-01T04:00:00.000Z'),
-    periodEnd: new Date('2027-01-01T05:00:00.000Z'),
   },
 } as Job<JobData>
 
@@ -29,6 +28,21 @@ beforeEach(() => {
   mockedMail.sendNTHSCandidateApplicationApproved.mockResolvedValue()
   mockedMail.sendNTHSCandidateApplicationDenied.mockResolvedValue()
   mockedNotifications.createEmailNotification.mockResolvedValue()
+})
+
+describe('NTHSApplicationStatus', () => {
+  test('looks up decisions from the period start', async () => {
+    await notifyApplicants(JOB)
+
+    expect(mockedApplications.needsDenialEmail).toHaveBeenCalledWith(
+      new Date('2026-09-01T04:00:00.000Z'),
+      config.sendgrid.nthsCandidateApplicationDenied
+    )
+    expect(mockedApplications.needsApprovalEmail).toHaveBeenCalledWith(
+      new Date('2026-09-01T04:00:00.000Z'),
+      config.sendgrid.nthsCandidateApplicationApproved
+    )
+  })
 })
 
 describe('NTHSApplicationStatus approval email', () => {

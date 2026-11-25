@@ -21,9 +21,8 @@ const NOW = new Date('2026-10-15T14:00:00.000Z')
 const JOB = {
   data: {
     cohortStartDate: new Date('2026-09-01T04:00:00.000Z'),
-    cohortEndDate: new Date('2027-01-01T05:00:00.000Z'),
   },
-} as Job<{ cohortStartDate: Date; cohortEndDate: Date }>
+} as Job<{ cohortStartDate: Date }>
 
 function president(
   overrides: Partial<NTHSActiveCampaignPresident> = {}
@@ -98,6 +97,9 @@ describe('NTHSCandidateEngagement v3', () => {
 
     await candidateEngagementCampaign(JOB)
 
+    expect(mockedApplications.getActiveCampaignPresidents).toHaveBeenCalledWith(
+      new Date('2026-09-01T04:00:00.000Z')
+    )
     expect(mockedGroups.getTutoringMemberCounts).toHaveBeenCalledWith([
       activationPresident.chapterId,
     ])

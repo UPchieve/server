@@ -27,7 +27,6 @@ const CAMPAIGN_TIME_ZONE = 'America/New_York'
 
 type JobData = {
   cohortStartDate: Date
-  cohortEndDate: Date
 }
 
 type SelectedCampaignEmail = {
@@ -225,11 +224,8 @@ async function sendPendingRecipients(
 
 export default async function (job: Job<JobData>) {
   const cohortStartDate = new Date(job.data.cohortStartDate)
-  const cohortEndDate = new Date(job.data.cohortEndDate)
-  const presidents = await NthsApplicationRepo.getActiveCampaignPresidents(
-    cohortStartDate,
-    cohortEndDate
-  )
+  const presidents =
+    await NthsApplicationRepo.getActiveCampaignPresidents(cohortStartDate)
 
   if (!presidents.length) {
     logger.info('Found no active NTHS candidate engagement presidents')

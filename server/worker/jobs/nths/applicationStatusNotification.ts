@@ -15,17 +15,14 @@ const INITIAL_LAUNCH_DAY = 21
 
 export type JobData = {
   periodStart: Date
-  periodEnd: Date
 }
 
 export default async function notifyApplicants(job: Job<JobData>) {
   const periodStart = new Date(job.data.periodStart)
-  const periodEnd = new Date(job.data.periodEnd)
 
-  logger.info('Finding denied applicants', { periodStart, periodEnd })
+  logger.info('Finding denied applicants', { periodStart })
   const deniedApplicants = await NthsApplicationRepo.needsDenialEmail(
     periodStart,
-    periodEnd,
     config.sendgrid.nthsCandidateApplicationDenied
   )
 
@@ -40,15 +37,13 @@ export default async function notifyApplicants(job: Job<JobData>) {
   }
   logger.info('Emailed denied applicants', {
     periodStart,
-    periodEnd,
     deniedApplicantsCount: deniedApplicants.length,
   })
 
-  logger.info('Finding approved applicants', { periodStart, periodEnd })
+  logger.info('Finding approved applicants', { periodStart })
 
   const approvedApplicants = await NthsApplicationRepo.needsApprovalEmail(
     periodStart,
-    periodEnd,
     config.sendgrid.nthsCandidateApplicationApproved
   )
 
@@ -73,7 +68,6 @@ export default async function notifyApplicants(job: Job<JobData>) {
 
   logger.info('Emailed approved applicants', {
     periodStart,
-    periodEnd,
     approvedApplicantsCount: approvedApplicants.length,
   })
 }

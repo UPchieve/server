@@ -190,6 +190,22 @@ describe('selectNTHSCampaignEmail', () => {
     ).toBeUndefined()
   })
 
+  test.each([9, 14])(
+    'sends no activation email on day %i after the president loses their chapter',
+    (day) => {
+      expect(
+        selectNTHSCampaignEmail(
+          state({
+            chapterId: undefined,
+            membersCount: 0,
+            sentAt: { activationA1: atCampaignDay(5) },
+          }),
+          atCampaignDay(day)
+        )
+      ).toBeUndefined()
+    }
+  )
+
   test('gives D21 precedence and extends the launch date to day 60', () => {
     const selection = selectNTHSCampaignEmail(state(), atCampaignDay(21))
 

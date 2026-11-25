@@ -160,7 +160,6 @@ WHERE
     AND (:application_status!::nths_candidate_application_status <> 'approved'
         OR nths.activated_at IS NOT NULL)
     AND nths.decided_at >= :cohort_start!
-    AND nths.decided_at < :cohort_end!
     AND NOT EXISTS (
         SELECT
             1
@@ -204,7 +203,6 @@ FROM
 WHERE
     application.activated_at IS NOT NULL
     AND application.activated_at >= :cohortStart!
-    AND application.activated_at < :cohortEnd!
     AND (chapter.id IS NULL
         OR latest_status.status_name = 'PENDING')
 ORDER BY

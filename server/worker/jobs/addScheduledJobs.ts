@@ -93,7 +93,6 @@ export default async function addScheduledJobs() {
       name: 'NTHSApplicationStatus',
       data: {
         periodStart: moment('2026-09-01').tz('America/New_York').toDate(),
-        periodEnd: moment('2026-12-31').tz('America/New_York').toDate(),
       },
       options: { repeat: { cron: '*/15 * * * *' } }, // every 15 minutes
     },
@@ -102,7 +101,6 @@ export default async function addScheduledJobs() {
       name: 'NTHSCandidateEngagement',
       data: {
         cohortStartDate: moment('2026-09-01').tz('America/New_York').toDate(),
-        cohortEndDate: moment('2026-12-31').tz('America/New_York').toDate(),
       },
       options: { repeat: { cron: '0 6 * * *', tz: 'America/New_York' } }, // each day at 6am
     },
