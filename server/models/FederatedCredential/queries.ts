@@ -1,6 +1,6 @@
 import { getClient, TransactionClient } from '../../db'
 import * as pgQueries from './pg.queries'
-import { makeRequired, Ulid } from '../pgUtils'
+import { makeSomeRequired, Ulid } from '../pgUtils'
 import { RepoDeleteError, RepoReadError, RepoUpdateError } from '../Errors'
 
 export async function getFederatedCredential(id: string, issuer: string) {
@@ -11,7 +11,7 @@ export async function getFederatedCredential(id: string, issuer: string) {
     )
 
     if (result.length) {
-      return makeRequired(result[0])
+      return makeSomeRequired(result[0], ['id', 'issuer', 'userId'])
     }
   } catch (err) {
     throw new RepoReadError(err)
@@ -25,7 +25,7 @@ export async function getFederatedCredentialForUser(userId: Ulid) {
       getClient()
     )
     if (result.length) {
-      return makeRequired(result[0])
+      return makeSomeRequired(result[0], ['id', 'issuer', 'userId'])
     }
   } catch (err) {
     throw new RepoReadError(err)
