@@ -149,36 +149,56 @@ export class HttpError extends CustomError {
   }
 }
 
-export class AlreadyInNTHSGroupError extends CustomError {
+export class AlreadyInNTHSGroupError extends CaughtError {
+  readonly httpStatus = 422
+  readonly defaultClientMessage = 'User already in a group'
+
   constructor() {
-    super('User already in a group')
+    super({ message: 'User already in a group' })
   }
 }
-export class NTHSGroupNameTakenError extends CustomError {
+export class NTHSGroupNameTakenError extends CaughtError {
+  readonly httpStatus = 422
+  readonly defaultClientMessage = 'That team name is already taken.'
+
   constructor(message: string) {
-    super(message)
+    super({ message, clientMessage: message })
   }
 }
 
-export class CannotRemoveSoleNTHSAdminError extends CustomError {
+export class CannotRemoveSoleNTHSAdminError extends CaughtError {
+  readonly httpStatus = 422
+  readonly defaultClientMessage =
+    'Cannot remove the only existing admin of a group'
+
   constructor() {
-    super('Cannot remove the only existing admin of a group')
+    super({ message: 'Cannot remove the only existing admin of a group' })
   }
 }
 
-export class NTHSSchoolAlreadyClaimedError extends CustomError {
+export class NTHSSchoolAlreadyClaimedError extends CaughtError {
+  readonly httpStatus = 422
+  readonly defaultClientMessage =
+    'Another NTHS chapter is already associated with this school. Contact nths@upchieve.org for assistance.'
+
   constructor() {
-    super(
-      'Another NTHS chapter is already associated with this school. Contact nths@upchieve.org for assistance.'
-    )
+    super({
+      message:
+        'Another NTHS chapter is already associated with this school. Contact nths@upchieve.org for assistance.',
+    })
   }
 }
 
-export class NTHSChapterSchoolFixedError extends CustomError {
+export class NTHSChapterSchoolFixedError extends CaughtError {
+  readonly httpStatus = 422
+  readonly defaultClientMessage =
+    'This chapter is already associated with a school. Contact nths@upchieve.org to change it.'
+
   constructor() {
-    super(
-      'This chapter is already associated with a school. Contact nths@upchieve.org to change it.'
-    )
+    super({
+      message:
+        'This chapter is already associated with a school. Contact nths@upchieve.org to change it.',
+    })
   }
 }
 
@@ -205,11 +225,24 @@ export class NTHSFormerMemberJoinError extends CaughtError {
   }
 }
 
-export class NTHSApplicationExistsError extends CustomError {}
+export class NTHSApplicationExistsError extends CaughtError {
+  readonly httpStatus = 409
+  readonly defaultClientMessage = 'You already have an NTHS application.'
 
-export class NotAHighSchoolerNTHSJoinError extends CustomError {
+  constructor(message: string) {
+    super({ message, clientMessage: message })
+  }
+}
+
+export class NotAHighSchoolerNTHSJoinError extends CaughtError {
+  readonly httpStatus = 422
+  readonly defaultClientMessage =
+    'You must be a current high school student to join NTHS'
+
   constructor() {
-    super('You must be a current high school student to join NTHS')
+    super({
+      message: 'You must be a current high school student to join NTHS',
+    })
   }
 }
 

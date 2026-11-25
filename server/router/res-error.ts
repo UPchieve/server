@@ -6,13 +6,6 @@ import {
   LookupError,
   NotAuthenticatedError,
   AlreadyInUseError,
-  AlreadyInNTHSGroupError,
-  CannotRemoveSoleNTHSAdminError,
-  NTHSGroupNameTakenError,
-  NTHSSchoolAlreadyClaimedError,
-  NTHSChapterSchoolFixedError,
-  NTHSApplicationExistsError,
-  NotAHighSchoolerNTHSJoinError,
   CaughtError,
 } from '../models/Errors'
 import logger from '../logger'
@@ -49,14 +42,7 @@ export function resError(
     else if (err instanceof LookupError) status = 422
     // bad input
     else if (err instanceof InputError) status = 422
-    else if (err instanceof AlreadyInNTHSGroupError) status = 422
-    else if (err instanceof NTHSSchoolAlreadyClaimedError) status = 422
-    else if (err instanceof NTHSChapterSchoolFixedError) status = 422
-    else if (err instanceof NTHSGroupNameTakenError) status = 422
-    else if (err instanceof CannotRemoveSoleNTHSAdminError) status = 422
-    else if (err instanceof NotAHighSchoolerNTHSJoinError) status = 422
     else if (err instanceof AlreadyInUseError) status = 409
-    else if (err instanceof NTHSApplicationExistsError) status = 409
     // response timeout
     else if (err.message === 'Response timeout') status = 408
     // unknown error
