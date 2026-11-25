@@ -71,7 +71,8 @@ export default async function (job: Job<UpdateNTHSChapterStatusJobData>) {
       throw new Error(`Could not find NTHS group with ID ${nthsGroupId}`)
     }
     const chapterName = nthsChapter.name
-    const emailRecipients = await getChapterAdminsContactInfo(nthsGroupId)
+    const emailRecipients =
+      await NTHSService.getNTHSGroupAdminsContactInfo(nthsGroupId)
     if (!emailRecipients.length) {
       logger.warn(
         `${logPrefix}NTHS chapter has no current admins to notify of official status`,
@@ -92,13 +93,4 @@ export default async function (job: Job<UpdateNTHSChapterStatusJobData>) {
       }
     )
   }
-}
-
-async function getChapterAdminsContactInfo(nthsGroupId: Ulid): Promise<
-  {
-    firstName: string
-    email: string
-  }[]
-> {
-  return await NTHSService.getNTHSGroupAdminsContactInfo(nthsGroupId)
 }

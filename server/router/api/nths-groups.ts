@@ -4,11 +4,15 @@ import { resError } from '../res-error'
 import * as NTHSGroupsService from '../../services/NTHSGroupsService'
 import * as NTHSChecklistProgressService from '../../services/NTHSChecklistProgressService'
 import * as NTHSRenewalService from '../../services/NTHSRenewalService'
+import type {
+  NTHSChapterImpactResponse,
+  NTHSChapterRosterResponse,
+  NTHSHomeContent,
+  NTHSResources,
+} from '@upchieve/api-contracts/nths-groups'
 import {
   getNthsHomeContent,
   getNthsResources,
-  type NTHSHomeContent,
-  type NTHSResources,
 } from '../../services/NTHSHomeContentService'
 import {
   InputError,
@@ -50,8 +54,6 @@ import type {
   NTHSGroupsResponse,
   NTHSNewGroupResponse,
   NTHSSchoolAffiliationResponse,
-  NTHSChapterImpactResponse,
-  NTHSChapterRosterResponse,
   NTHSRenewalAcceptResponse,
 } from '../../contracts/nths-group'
 import type {

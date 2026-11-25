@@ -2,40 +2,22 @@ import type {
   GoogleSpreadsheetRow,
   GoogleSpreadsheetWorksheet,
 } from 'google-spreadsheet'
+import type {
+  NTHSHomeContent,
+  NTHSHomeLink,
+  NTHSResourceCard,
+  NTHSResourceGroup,
+  NTHSResources,
+} from '@upchieve/api-contracts/nths-groups'
 import config from '../config'
 import logger from '../logger'
 import {
   ensureHeaders,
   isWorksheetTitled,
   loadGoogleSpreadsheet,
+  readSheetWithBackoff,
   SheetCache,
 } from '../utils/google-spreadsheet'
-import { timeLimit } from '../utils/time-limit'
-
-export type NTHSHomeLink = {
-  title: string
-  body: string
-  link: string
-  forMembers: boolean
-}
-
-export type NTHSHomeContent = { tips: string[]; links: NTHSHomeLink[] }
-
-export type NTHSResourceCard = {
-  title: string
-  body: string
-  link: string
-  icon: string
-}
-
-export type NTHSResourceGroup = {
-  title: string
-  subtitle: string
-  icon: string
-  cards: NTHSResourceCard[]
-}
-
-export type NTHSResources = { groups: NTHSResourceGroup[] }
 
 type ParsedResourceGroup = Omit<NTHSResourceGroup, 'cards'> & {
   cards: Array<NTHSResourceCard & { forMembers: boolean }>
@@ -132,16 +114,8 @@ async function parseResources(
       groupsSheet.getRows(),
       cardsSheet.getRows(),
     ])
-    ensureHeaders(
-      cardsSheet,
-      RESOURCES_HEADERS,
-      (message) => new Error(message)
-    )
-    ensureHeaders(
-      groupsSheet,
-      RESOURCE_GROUPS_HEADERS,
-      (message) => new Error(message)
-    )
+    ensureHeaders(cardsSheet, RESOURCES_HEADERS)
+    ensureHeaders(groupsSheet, RESOURCE_GROUPS_HEADERS)
 
     const groups = new Map<string, ParsedResourceGroup>()
     for (const row of groupRows) {
@@ -188,8 +162,8 @@ export async function parseHomeContent(
 ): Promise<ParsedHomeSheet> {
   const tipsSheet = findWorksheet(source.worksheets, TIPS_WORKSHEET_TITLE)
   const linksSheet = findWorksheet(source.worksheets, LINKS_WORKSHEET_TITLE)
-  ensureHeaders(tipsSheet, TIPS_HEADERS, (message) => new Error(message))
-  ensureHeaders(linksSheet, LINKS_HEADERS, (message) => new Error(message))
+  ensureHeaders(tipsSheet, TIPS_HEADERS)
+  ensureHeaders(linksSheet, LINKS_HEADERS)
 
   const [tipRows, linkRows, resources] = await Promise.all([
     tipsSheet.getRows(),
@@ -237,38 +211,22 @@ const homeContentCache = new SheetCache(
   'NTHS home content'
 )
 
-let lastFailureAt: number | undefined
+const homeContentFailure: { at?: number } = {}
 
-async function readHomeSheet(): Promise<ParsedHomeSheet | null> {
-  if (
-    !config.nthsRenewal.spreadsheetId ||
-    !config.nthsChecklist.serviceAccountEmail ||
-    !config.nthsChecklist.privateKey
-  )
-    return null
-  // A failed read with no good copy is not cached by SheetCache; wait out the
-  // TTL so a broken sheet costs one Google read and one error per interval.
-  if (
-    lastFailureAt !== undefined &&
-    Date.now() - lastFailureAt < config.nthsChecklist.cacheTtlMs
-  )
-    return null
-  // The Google client sets no request timeout, so a stalled read would
-  // otherwise hold the route open.
-  const content: ParsedHomeSheet | null = await timeLimit({
-    promise: homeContentCache.get().catch((error: unknown) => {
-      logger.error('Could not read NTHS home content; showing none', {
-        err: error,
-      })
-      return null
-    }),
-    fallbackReturnValue: null,
-    timeLimitReachedErrorMessage:
-      'Timed out reading NTHS home content; showing none',
-    waitInMs: READ_TIMEOUT_MS,
+function readHomeSheet(): Promise<ParsedHomeSheet | null> {
+  return readSheetWithBackoff({
+    cache: homeContentCache,
+    failure: homeContentFailure,
+    errorLog: 'Could not read NTHS home content; showing none',
+    timeoutMessage: 'Timed out reading NTHS home content; showing none',
+    timeoutMs: READ_TIMEOUT_MS,
+    isConfigured: !!(
+      config.nthsRenewal.spreadsheetId &&
+      config.nthsChecklist.serviceAccountEmail &&
+      config.nthsChecklist.privateKey
+    ),
+    backoffMs: config.nthsChecklist.cacheTtlMs,
   })
-  lastFailureAt = content ? undefined : Date.now()
-  return content
 }
 
 export async function getNthsHomeContent(

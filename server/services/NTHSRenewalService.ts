@@ -20,6 +20,7 @@ import {
   getChapterMemberClearance,
   getChapterClearanceGaps,
   syncChangedMembers,
+  hasNoGaps,
 } from './NTHSGroupsService'
 import { COMMITMENTS } from './NTHSApplicationService'
 import { isNthsChapterRenewalEnabled } from './FeatureFlagService'
@@ -420,12 +421,9 @@ async function ensureCleared(
   tc: TransactionClient
 ) {
   const isAdmin = member.roleName === 'admin'
-  const { needsOccupation, needsOnboarding } = await getChapterClearanceGaps(
-    userId,
-    isAdmin,
-    tc
-  )
-  if (!needsOccupation && !needsOnboarding) {
+  const gaps = await getChapterClearanceGaps(userId, isAdmin, tc)
+  const { needsOccupation, needsOnboarding } = gaps
+  if (hasNoGaps(gaps)) {
     return
   }
   const missing = []

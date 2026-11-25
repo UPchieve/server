@@ -902,13 +902,12 @@ describe('routeNTHSGroups', () => {
   describe('GET /api/nths-groups/:groupId/impact', () => {
     function sendImpactGet(
       overrides: {
-        roleName?: NTHSGroupRoleName
         impact?: Partial<NTHSChapterImpact>
       } = {}
     ) {
       mockedNTHSGroupsService.getActiveGroupMember.mockResolvedValueOnce(
         buildNTHSGroupMemberWithRole({
-          roleName: overrides.roleName ?? 'member',
+          roleName: 'member',
         })
       )
       mockedNTHSGroupsService.getChapterImpact.mockResolvedValueOnce(
@@ -1044,8 +1043,6 @@ describe('routeNTHSGroups', () => {
         lastInitial: 'N',
         joinedAt,
         accountClosed: true,
-        sessionsThisYear: 2,
-        hoursThisYear: 1.5,
         periodHours: {
           thisWeek: 0.75,
           lastTwoWeeks: 1.5,
@@ -1070,6 +1067,8 @@ describe('routeNTHSGroups', () => {
           members: [
             {
               ...member,
+              sessionsThisYear: undefined,
+              hoursThisYear: undefined,
               joinedAt: joinedAt.toISOString(),
               lastActiveAt: lastActiveAt.toISOString(),
             },

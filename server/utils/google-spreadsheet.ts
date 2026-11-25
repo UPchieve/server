@@ -1,6 +1,7 @@
 import { JWT } from 'google-auth-library'
 import { GoogleSpreadsheet } from 'google-spreadsheet'
 import logger from '../logger'
+import { timeLimit } from './time-limit'
 
 const GOOGLE_SHEETS_READONLY_SCOPE =
   'https://www.googleapis.com/auth/spreadsheets.readonly'
@@ -39,7 +40,7 @@ export function isReadmeWorksheet(worksheet: { title: string }): boolean {
 export function ensureHeaders(
   worksheet: { title: string; headerValues: string[] },
   required: readonly string[],
-  makeError: (message: string) => Error
+  makeError: (message: string) => Error = (message) => new Error(message)
 ): void {
   const headers = new Set(worksheet.headerValues.map((header) => header.trim()))
   for (const header of required) {
@@ -93,4 +94,41 @@ export class SheetCache<Source, Value> {
       return this.cached.value
     }
   }
+}
+
+export async function readSheetWithBackoff<Source, Value>({
+  cache,
+  failure,
+  errorLog,
+  timeoutMessage,
+  timeoutMs,
+  isConfigured,
+  backoffMs,
+}: {
+  cache: SheetCache<Source, Value>
+  failure: { at?: number }
+  errorLog: string
+  timeoutMessage: string
+  timeoutMs: number
+  isConfigured: boolean
+  backoffMs: number
+}): Promise<Value | null> {
+  if (!isConfigured) return null
+  // A failed read with no good copy is not cached by SheetCache; wait out the
+  // TTL so a broken sheet costs one Google read and one error per interval.
+  if (failure.at !== undefined && Date.now() - failure.at < backoffMs)
+    return null
+  // The Google client sets no request timeout, so a stalled read would
+  // otherwise hold its caller open.
+  const value: Value | null = await timeLimit({
+    promise: cache.get().catch((error: unknown) => {
+      logger.error(errorLog, { err: error })
+      return null
+    }),
+    fallbackReturnValue: null,
+    timeLimitReachedErrorMessage: timeoutMessage,
+    waitInMs: timeoutMs,
+  })
+  failure.at = value === null ? Date.now() : undefined
+  return value
 }

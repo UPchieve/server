@@ -9,11 +9,13 @@ import type {
   NTHSGroupWithRenewalPublic,
   NTHSRenewalPublic,
   NTHSUserInfoPublic,
+} from '../contracts/nths-group'
+import type {
   NTHSChapterImpactPublic,
   NTHSChapterRosterMemberPublic,
   NTHSChapterRosterPublic,
   NTHSSchoolYearPublic,
-} from '../contracts/nths-group'
+} from '@upchieve/api-contracts/nths-groups'
 import { NTHSCandidateApplicationPublic } from '../contracts/nths-application'
 import {
   Advisor,
@@ -191,8 +193,6 @@ export function toNTHSChapterRosterMemberPublic(
     trainingComplete: member.trainingComplete,
     safetyApproved: member.safetyApproved,
     accountClosed: member.accountClosed,
-    sessionsThisYear: member.sessionsThisYear,
-    hoursThisYear: member.hoursThisYear,
     periodHours: member.periodHours,
     periodSessions: member.periodSessions,
     rangeHours: member.rangeHours,

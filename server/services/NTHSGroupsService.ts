@@ -16,7 +16,6 @@ import {
   NTHSGroup,
   NTHSGroupAction,
   NTHSGroupChapterStatusInfo,
-  NTHSGroupMember,
   NTHSGroupMemberCount,
   NTHSGroupTutoringMemberCount,
   NTHSGroupMemberRole,
@@ -103,7 +102,7 @@ export async function getGroups(userId: Ulid) {
   return await NTHSGroupsRepo.getGroupsByUser(userId, getClient())
 }
 
-export async function syncNthsUserToSendGrid(userId: Ulid) {
+async function syncNthsUserToSendGrid(userId: Ulid) {
   await QueueService.add(
     'SyncSendGridContact',
     { delay: SENDGRID_SYNC_DELAY_MS, ...NTHS_QUEUE_RETRY },
@@ -821,14 +820,6 @@ export async function submitSchoolAffiliation({
   })
 }
 
-export async function getAlltimeMembersByGroupId(
-  nthsGroupId: Ulid
-): Promise<NTHSGroupMember[]> {
-  return await NTHSGroupsRepo.getGroupMembers(nthsGroupId, undefined, {
-    includeDeactivated: true,
-  })
-}
-
 export async function getLatestNthsChapterStatus(
   groupId: Ulid
 ): Promise<NTHSChapterStatus | undefined> {
@@ -1005,6 +996,10 @@ function utcPeriodStartsFor(instant: Date): NTHSChapterPeriodStarts {
 
 type ClearanceGaps = { needsOccupation: boolean; needsOnboarding: boolean }
 
+export function hasNoGaps({ needsOccupation, needsOnboarding }: ClearanceGaps) {
+  return !needsOccupation && !needsOnboarding
+}
+
 function clearanceGaps(
   isAdmin: boolean,
   occupations: VolunteerOccupations[],
@@ -1026,12 +1021,7 @@ function isClearedForRole(
   occupations: VolunteerOccupations[],
   readyToCoachStatus: Parameters<typeof isReadyToCoach>[0] | undefined
 ): boolean {
-  const { needsOccupation, needsOnboarding } = clearanceGaps(
-    isAdmin,
-    occupations,
-    readyToCoachStatus
-  )
-  return !needsOccupation && !needsOnboarding
+  return hasNoGaps(clearanceGaps(isAdmin, occupations, readyToCoachStatus))
 }
 
 export async function getChapterClearanceGaps(
@@ -1055,12 +1045,7 @@ export async function isClearedToViewChapterMemberInfo(
   isAdmin: boolean,
   tc: TransactionClient = getClient()
 ): Promise<boolean> {
-  const { needsOccupation, needsOnboarding } = await getChapterClearanceGaps(
-    userId,
-    isAdmin,
-    tc
-  )
-  return !needsOccupation && !needsOnboarding
+  return hasNoGaps(await getChapterClearanceGaps(userId, isAdmin, tc))
 }
 
 export async function getChapterMemberClearance(userId: Ulid): Promise<{

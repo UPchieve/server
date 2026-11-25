@@ -1,6 +1,6 @@
 {
   "name": "@upchieve/api-contracts",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
   "description": "Portable HTTP API contracts shared by UPchieve applications.",
   "type": "module",
@@ -11,6 +11,10 @@
     "./nths-checklist": {
       "types": "./dist/nths-checklist.d.ts",
       "default": "./dist/nths-checklist.js"
+    },
+    "./nths-groups": {
+      "types": "./dist/nths-groups.d.ts",
+      "default": "./dist/nths-groups.js"
     },
     "./notifications": {
       "types": "./dist/notifications.d.ts",

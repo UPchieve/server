@@ -3,14 +3,13 @@ import type {
   GoogleSpreadsheetWorksheet,
 } from 'google-spreadsheet'
 import config from '../config'
-import logger from '../logger'
 import {
   ensureHeaders,
   isWorksheetTitled,
   loadGoogleSpreadsheet,
+  readSheetWithBackoff,
   SheetCache,
 } from '../utils/google-spreadsheet'
-import { timeLimit } from '../utils/time-limit'
 
 export type NTHSRenewalDates = {
   nominationsOpen: string
@@ -147,37 +146,21 @@ const renewalDatesCache = new SheetCache(
   'NTHS renewal dates'
 )
 
-let lastFailureAt: number | undefined
+const renewalDatesFailure: { at?: number } = {}
 
-export async function getNthsChapterRenewalDates(): Promise<NTHSRenewalDates | null> {
-  if (
-    !config.nthsRenewal.spreadsheetId ||
-    !config.nthsChecklist.serviceAccountEmail ||
-    !config.nthsChecklist.privateKey
-  )
-    return null
-  // A failed read with no good copy is not cached by SheetCache; wait out the
-  // TTL so a broken sheet costs one Google read and one error per interval.
-  if (
-    lastFailureAt !== undefined &&
-    Date.now() - lastFailureAt < config.nthsChecklist.cacheTtlMs
-  )
-    return null
-  // The Google client sets no request timeout, so a stalled read would
-  // otherwise hold GET /nths-groups open.
-  const dates: NTHSRenewalDates | null = await timeLimit({
-    promise: renewalDatesCache.get().catch((error: unknown) => {
-      logger.error(
-        'Could not read NTHS renewal dates; treating renewal as off',
-        { err: error }
-      )
-      return null
-    }),
-    fallbackReturnValue: null,
-    timeLimitReachedErrorMessage:
+export function getNthsChapterRenewalDates(): Promise<NTHSRenewalDates | null> {
+  return readSheetWithBackoff({
+    cache: renewalDatesCache,
+    failure: renewalDatesFailure,
+    errorLog: 'Could not read NTHS renewal dates; treating renewal as off',
+    timeoutMessage:
       'Timed out reading NTHS renewal dates; treating renewal as off',
-    waitInMs: READ_TIMEOUT_MS,
+    timeoutMs: READ_TIMEOUT_MS,
+    isConfigured: !!(
+      config.nthsRenewal.spreadsheetId &&
+      config.nthsChecklist.serviceAccountEmail &&
+      config.nthsChecklist.privateKey
+    ),
+    backoffMs: config.nthsChecklist.cacheTtlMs,
   })
-  lastFailureAt = dates ? undefined : Date.now()
-  return dates
 }

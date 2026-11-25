@@ -695,39 +695,22 @@ describe('the counted-session rule, across every reader', () => {
     }
   )
 
-  type DepartedHoursReader = (
-    groupId: Ulid,
-    departedId: Ulid
-  ) => Promise<number>
+  test('chapter schoolYearToDate stops counting at the moment the member left', async () => {
+    const groupId = await createChapter(client)
+    const departedId = await addMember(groupId, {
+      deactivatedAt: '2026-11-10T00:00:00.000Z',
+    })
+    await addSession(departedId, {
+      volunteerJoinedAt: '2026-11-09T23:59:59.999Z',
+    })
+    await addSession(departedId, {
+      volunteerJoinedAt: '2026-11-10T00:00:00.000Z',
+      timeTutoredMs: 5_400_000,
+    })
 
-  const departedReaders: [string, DepartedHoursReader][] = [
-    [
-      'chapter schoolYearToDate',
-      async (groupId) => {
-        const impact = await NTHSGroupsService.getChapterImpact(groupId, NOW)
-        return impact.schoolYearToDate.hoursTutored
-      },
-    ],
-  ]
-
-  test.each(departedReaders)(
-    '%s stops counting at the moment the member left',
-    async (_label, readHours) => {
-      const groupId = await createChapter(client)
-      const departedId = await addMember(groupId, {
-        deactivatedAt: '2026-11-10T00:00:00.000Z',
-      })
-      await addSession(departedId, {
-        volunteerJoinedAt: '2026-11-09T23:59:59.999Z',
-      })
-      await addSession(departedId, {
-        volunteerJoinedAt: '2026-11-10T00:00:00.000Z',
-        timeTutoredMs: 5_400_000,
-      })
-
-      expect(await readHours(groupId, departedId)).toBe(0.75)
-    }
-  )
+    const impact = await NTHSGroupsService.getChapterImpact(groupId, NOW)
+    expect(impact.schoolYearToDate.hoursTutored).toBe(0.75)
+  })
 })
 
 // Every chapter route guard relies on this to reject a departed member, whose
