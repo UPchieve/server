@@ -1,4 +1,4 @@
-import { makeRequired, makeSomeRequired } from '../pgUtils'
+import { makeSomeRequired } from '../pgUtils'
 import {
   GRADES,
   USER_BAN_REASONS,
@@ -164,7 +164,7 @@ export async function getLegacyUserObject(
     const legacyCertificationsResult =
       await pgQueries.getLegacyCertifications.run(undefined, dbClient)
     const legacyCertifications = legacyCertificationsResult.reduce((agg, v) => {
-      const name = makeRequired(v).name
+      const name = makeSomeRequired(v, ['name']).name
       return {
         ...agg,
         [name]: {

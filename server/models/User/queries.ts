@@ -2,8 +2,6 @@ import logger from '../../logger'
 import { getClient, TransactionClient } from '../../db'
 import * as pgQueries from './pg.queries'
 import {
-  makeRequired,
-  makeSomeOptional,
   makeSomeRequired,
   Ulid,
   getDbUlid,
@@ -66,7 +64,7 @@ export async function createUser(
       tc
     )
     if (!result.length) throw new RepoCreateError('createUser returned 0 rows.')
-    return makeSomeOptional(result[0], ['proxyEmail'])
+    return makeSomeRequired(result[0], ['email', 'firstName', 'id'])
   } catch (err) {
     throw new RepoCreateError(err)
   }
@@ -98,7 +96,12 @@ export async function upsertUser(
       tc
     )
     if (!result.length) throw new RepoUpsertError('upsertUser returned 0 rows.')
-    return makeSomeOptional(result[0], ['proxyEmail'])
+    return makeSomeRequired(result[0], [
+      'email',
+      'firstName',
+      'id',
+      'isCreated',
+    ])
   } catch (err) {
     throw new RepoUpsertError(err)
   }
@@ -109,7 +112,7 @@ export async function getUserIdByPhone(
 ): Promise<Ulid | undefined> {
   try {
     const result = await pgQueries.getUserIdByPhone.run({ phone }, getClient())
-    if (result.length) return makeRequired(result[0]).id
+    if (result.length) return makeSomeRequired(result[0], ['id']).id
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -121,7 +124,14 @@ export async function getUserVerificationByEmail(email: string) {
       { email: email.toLowerCase() },
       getClient()
     )
-    if (result.length) return makeRequired(result[0])
+    if (result.length)
+      return makeSomeRequired(result[0], [
+        'email',
+        'emailVerified',
+        'id',
+        'phoneVerified',
+        'verified',
+      ])
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -135,7 +145,7 @@ export async function getUserIdByEmail(
       { email: email.toLowerCase() },
       getClient()
     )
-    if (result.length) return makeRequired(result[0])
+    if (result.length) return makeSomeRequired(result[0], ['email', 'id'])
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -149,7 +159,7 @@ export async function getUserRolesById(
     const result = await pgQueries.getUserRolesById.run({ id }, tc)
     return result
       .filter((row) => !!row.name)
-      .map((row) => makeRequired(row).name as UserRole)
+      .map((row) => makeSomeRequired(row, ['name']).name as UserRole)
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -168,15 +178,14 @@ export async function getUserById(
       tc
     )
     if (result.length) {
-      const ret = makeSomeOptional(result[0], [
-        'volunteerPartnerOrg',
-        'studentPartnerOrg',
-        'approved',
-        'lastActivityAt',
-        'phone',
-        'banType',
-        'roles',
-        'proxyEmail',
+      const ret = makeSomeRequired(result[0], [
+        'deactivated',
+        'email',
+        'firstName',
+        'id',
+        'phoneVerified',
+        'referralCode',
+        'smsConsent',
       ])
       ret.email = ret.email.toLowerCase()
       const roles = (ret.roles ?? []).filter((r) => !!r)
@@ -226,7 +235,7 @@ export async function getUserByReferralCode(
       tc
     )
     if (result.length) {
-      return makeRequired(result[0])
+      return makeSomeRequired(result[0], ['firstName', 'id'])
     }
   } catch (err) {
     throw new RepoReadError(err)
@@ -245,7 +254,7 @@ export async function getUserReferralLink(
       tc ?? getClient()
     )
     if (result.length) {
-      return makeRequired(result[0])
+      return makeSomeRequired(result[0], ['email', 'firstName', 'referralCode'])
     }
   } catch (err) {
     throw new RepoReadError(err)
@@ -267,8 +276,7 @@ export async function getUserForPassport(
       { email: email.toLowerCase() },
       getClient()
     )
-    if (result.length)
-      return makeSomeOptional(result[0], ['password', 'proxyEmail'])
+    if (result.length) return makeSomeRequired(result[0], ['email', 'id'])
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -286,7 +294,7 @@ export async function getUserByResetToken(
       throw new RepoReadError('More than one user with reset token.')
     }
     if (result.length) {
-      return makeRequired(result[0])
+      return makeSomeRequired(result[0], ['email', 'id'])
     }
   } catch (err) {
     throw new RepoReadError(err)
@@ -424,7 +432,12 @@ export async function getUsersForAdminSearch(
       client
     )
     return result.map((v) => {
-      const user = makeSomeOptional(v, ['lastName'])
+      const user = makeSomeRequired(v, [
+        'createdAt',
+        'email',
+        'firstName',
+        'id',
+      ])
       return user
     })
   } catch (err) {
@@ -458,11 +471,14 @@ export async function getPastSessionsForAdminDetail(
       client
     )
     return result.map((v) => {
-      const temp = makeSomeOptional(v, [
-        'volunteer',
-        'volunteerFirstName',
-        'volunteerJoinedAt',
-        'endedAt',
+      const temp = makeSomeRequired(v, [
+        'createdAt',
+        'id',
+        'student',
+        'studentFirstName',
+        'subTopic',
+        'totalMessages',
+        'type',
       ])
       return temp
     })
@@ -549,14 +565,16 @@ export async function getUserToCreateSendGridContact(
       getClient()
     )
     if (result.length) {
-      return makeSomeOptional(result[0], [
-        'banType',
-        'lastActivityAt',
-        'studentGradeLevel',
-        'studentPartnerOrg',
-        'studentPartnerOrgDisplay',
-        'volunteerPartnerOrg',
-        'volunteerPartnerOrgDisplay',
+      return makeSomeRequired(result[0], [
+        'createdAt',
+        'email',
+        'firstName',
+        'id',
+        'isVolunteer',
+        'lastName',
+        'phoneVerified',
+        'smsConsent',
+        'testUser',
       ])
     }
   } catch (err) {
@@ -570,7 +588,7 @@ export async function getTotalSessionsByUserId(userId: Ulid): Promise<number> {
       { userId },
       getClient()
     )
-    if (result.length) return makeRequired(result[0]).total
+    if (result.length) return makeSomeRequired(result[0], ['total']).total
     return 0
   } catch (err) {
     throw new RepoReadError(err)
@@ -701,7 +719,7 @@ export async function deleteUserPhoneInfo(
       },
       getClient()
     )
-    if (result.length) return makeRequired(result[0])
+    if (result.length) return makeSomeRequired(result[0], ['ok'])
   } catch (err) {
     if (err instanceof RepoUpdateError) throw err
     throw new RepoUpdateError(err)
@@ -722,7 +740,12 @@ export async function getUserVerificationInfoById(
       { userId },
       getClient()
     )
-    if (result.length) return makeRequired(result[0])
+    if (result.length)
+      return makeSomeRequired(result[0], [
+        'emailVerified',
+        'phoneVerified',
+        'verified',
+      ])
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -739,10 +762,15 @@ export async function getReportedUser(
       getClient()
     )
     if (result.length) {
-      const ret = makeSomeOptional(result[0], [
-        'studentPartnerOrg',
-        'volunteerPartnerOrg',
-        'banType',
+      const ret = makeSomeRequired(result[0], [
+        'createdAt',
+        'email',
+        'firstName',
+        'id',
+        'isDeactivated',
+        'isTestUser',
+        'isVolunteer',
+        'lastName',
       ])
       ret.email = ret.email.toLowerCase()
       return ret
@@ -760,7 +788,8 @@ export async function getUsersLatestSubjectsByUserId(
       { userId },
       getClient()
     )
-    if (result.length) return result.map((row) => makeRequired(row).subject)
+    if (result.length)
+      return result.map((row) => makeSomeRequired(row, ['subject']).subject)
     return []
   } catch (err) {
     throw new RepoReadError(err)
@@ -850,7 +879,9 @@ export async function getFavoriteVolunteersByUserId(
       getClient()
     )
 
-    return result.map((row) => makeRequired(row).volunteerId)
+    return result.map(
+      (row) => makeSomeRequired(row, ['volunteerId']).volunteerId
+    )
   } catch (err) {
     throw new RepoReadError(err)
   }
