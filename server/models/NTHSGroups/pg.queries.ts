@@ -1804,6 +1804,42 @@ const getNthsGroupMemberForStaffIR: any = {"usedParamSet":{"groupId":true,"userI
 export const getNthsGroupMemberForStaff = new PreparedQuery<IGetNthsGroupMemberForStaffParams,IGetNthsGroupMemberForStaffResult>(getNthsGroupMemberForStaffIR);
 
 
+/** 'HasNthsGroupMemberRow' parameters type */
+export interface IHasNthsGroupMemberRowParams {
+  groupId: string;
+  userId: string;
+}
+
+/** 'HasNthsGroupMemberRow' return type */
+export interface IHasNthsGroupMemberRowResult {
+  exists: boolean;
+}
+
+/** 'HasNthsGroupMemberRow' query type */
+export interface IHasNthsGroupMemberRowQuery {
+  params: IHasNthsGroupMemberRowParams;
+  result: IHasNthsGroupMemberRowResult;
+}
+
+const hasNthsGroupMemberRowIR: any = {"usedParamSet":{"groupId":true,"userId":true},"params":[{"name":"groupId","required":true,"transform":{"type":"scalar"},"locs":[{"a":135,"b":143}]},{"name":"userId","required":true,"transform":{"type":"scalar"},"locs":[{"a":171,"b":178}]}],"statement":"SELECT\n    EXISTS (\n        SELECT\n            1\n        FROM\n            nths_group_members\n        WHERE\n            nths_group_id = :groupId!\n            AND user_id = :userId!) AS \"exists!\""};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *     EXISTS (
+ *         SELECT
+ *             1
+ *         FROM
+ *             nths_group_members
+ *         WHERE
+ *             nths_group_id = :groupId!
+ *             AND user_id = :userId!) AS "exists!"
+ * ```
+ */
+export const hasNthsGroupMemberRow = new PreparedQuery<IHasNthsGroupMemberRowParams,IHasNthsGroupMemberRowResult>(hasNthsGroupMemberRowIR);
+
+
 /** 'GetActiveMemberCounts' parameters type */
 export interface IGetActiveMemberCountsParams {
   groupIds: stringArray;

@@ -529,6 +529,30 @@ describe('routeNTHSGroups', () => {
       })
     })
 
+    test.each([
+      [422, 'a missing name', undefined, []],
+      [422, 'a name of only spaces', '   ', []],
+      [422, 'a 65-character name', 'a'.repeat(65), []],
+      [
+        200,
+        'a 64-character name padded with spaces',
+        ` ${'a'.repeat(64)} `,
+        [[groupId, 'a'.repeat(64)]],
+      ],
+    ])('responds %i to %s', async (status, _, name, saves) => {
+      mockedNTHSGroupsService.getActiveGroupMember.mockResolvedValueOnce(
+        buildNTHSGroupMemberWithRole({ roleName: 'admin' })
+      )
+      mockedNTHSGroupsService.updateGroupName.mockResolvedValueOnce(
+        buildNTHSGroup()
+      )
+
+      const response = await sendPut(`/api/nths-groups/${groupId}`, { name })
+
+      expect(response.status).toBe(status)
+      expect(mockedNTHSGroupsService.updateGroupName.mock.calls).toEqual(saves)
+    })
+
     test('sends group name taken error response', async () => {
       const member = buildNTHSGroupMemberWithRole({ roleName: 'admin' })
       mockedNTHSGroupsService.getActiveGroupMember.mockResolvedValueOnce(member)

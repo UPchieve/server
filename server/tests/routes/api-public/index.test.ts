@@ -16,7 +16,10 @@ import {
   getEmail,
 } from '../../mocks/generate'
 import { getUuid } from '../../../models/pgUtils'
-import { NTHSChapterClosedError } from '../../../models/Errors'
+import {
+  NTHSChapterClosedError,
+  NTHSFormerMemberJoinError,
+} from '../../../models/Errors'
 import { AppUser } from '../../types'
 
 jest.mock('../../../services/StudentService')
@@ -377,6 +380,24 @@ describe('routeApiPublic', () => {
       expect(
         mockedVolunteerService.doesVolunteerWithEmailExist
       ).not.toHaveBeenCalled()
+    })
+
+    test('refuses a former member of the chapter', async () => {
+      mockedNTHSGroupsService.getNTHSGroupByInviteCode.mockResolvedValueOnce(
+        buildNTHSGroup({ inviteCode })
+      )
+      mockedNTHSGroupsService.getGroups.mockResolvedValueOnce([])
+      mockedNTHSGroupsService.joinGroupAsMemberByGroupId.mockRejectedValueOnce(
+        new NTHSFormerMemberJoinError()
+      )
+
+      const response = await sendPost('/api-public/nths-groups/join', {
+        inviteCode,
+        email: mockUser.email,
+      })
+
+      expect(response.status).toBe(403)
+      expect(response.body.code).toBe('NTHS_FORMER_MEMBER')
     })
   })
 

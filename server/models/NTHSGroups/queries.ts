@@ -159,6 +159,22 @@ export async function getGroupClosedAtForShare(
   }
 }
 
+export async function hasNthsGroupMemberRow(
+  userId: Ulid,
+  groupId: Ulid,
+  tc: TransactionClient
+): Promise<boolean> {
+  try {
+    const [row] = await pgQueries.hasNthsGroupMemberRow.run(
+      { groupId, userId },
+      tc
+    )
+    return row.exists
+  } catch (err) {
+    throw new RepoReadError(err)
+  }
+}
+
 export async function lockGroupForMemberChange(
   groupId: Ulid,
   tc: TransactionClient

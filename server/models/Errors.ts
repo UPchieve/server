@@ -192,6 +192,19 @@ export class NTHSChapterClosedError extends CaughtError {
   }
 }
 
+export class NTHSFormerMemberJoinError extends CaughtError {
+  readonly httpStatus = 403
+  readonly defaultClientMessage =
+    "You can't rejoin a chapter you left or were removed from."
+
+  constructor() {
+    super({
+      message: 'The user is a former member of this NTHS chapter',
+      code: 'NTHS_FORMER_MEMBER',
+    })
+  }
+}
+
 export class NTHSApplicationExistsError extends CustomError {}
 
 export class NotAHighSchoolerNTHSJoinError extends CustomError {

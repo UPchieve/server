@@ -48,6 +48,7 @@ import {
   NotAHighSchoolerNTHSJoinError,
   NotAllowedError,
   NTHSChapterClosedError,
+  NTHSFormerMemberJoinError,
   NTHSApprovalExpiredError,
 } from '../models/Errors'
 import { EVENTS, GRADES } from '../constants'
@@ -263,6 +264,9 @@ export async function joinGroupAsMemberByGroupId(
       client
     )
     ensureChapterOpen({ closedAt })
+    if (await NTHSGroupsRepo.hasNthsGroupMemberRow(userId, groupId, client)) {
+      throw new NTHSFormerMemberJoinError()
+    }
 
     const occupations = await getVolunteerOccupations(userId, client)
     if (

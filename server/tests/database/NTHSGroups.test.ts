@@ -19,7 +19,11 @@ import * as VolunteerRepo from '../../models/Volunteer'
 import * as UserRepo from '../../models/User'
 import * as NTHSGroupsRepo from '../../models/NTHSGroups'
 import * as NTHSGroupsService from '../../services/NTHSGroupsService'
-import { NTHSChapterClosedError, RepoReadError } from '../../models/Errors'
+import {
+  NTHSChapterClosedError,
+  NTHSFormerMemberJoinError,
+  RepoReadError,
+} from '../../models/Errors'
 
 const client = getClient()
 
@@ -1029,6 +1033,25 @@ describe('joinGroupAsMemberByGroupId', () => {
     )
     expect(rows).toHaveLength(formerMember ? 1 : 0)
     expect(rows.every((row) => row.deactivated_at !== null)).toBe(true)
+  })
+
+  test('refuses a user whose membership in an open chapter ended', async () => {
+    const groupId = await createChapter(client)
+    const userId = await addMember(groupId, {
+      deactivatedAt: '2026-10-02T00:00:00.000Z',
+    })
+
+    await expect(
+      NTHSGroupsService.joinGroupAsMemberByGroupId(userId, groupId)
+    ).rejects.toThrow(NTHSFormerMemberJoinError)
+
+    const { rows } = await client.query(
+      `SELECT deactivated_at, title FROM nths_group_members WHERE nths_group_id = $1 AND user_id = $2`,
+      [groupId, userId]
+    )
+    expect(rows).toHaveLength(1)
+    expect(rows[0].deactivated_at).not.toBeNull()
+    expect(rows[0].title).toBe('Member')
   })
 
   test('holds the chapter open until the join commits', async () => {

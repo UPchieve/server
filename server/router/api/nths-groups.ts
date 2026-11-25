@@ -133,6 +133,7 @@ const PERIOD_START_MAX_AGE_MS =
 // Browser clocks can run a few minutes fast; clamp a start just ahead of
 // server time instead of rejecting it.
 const CLOCK_SKEW_TOLERANCE_MS = 5 * 60 * 1000
+const CHAPTER_NAME_MAX_LENGTH = 64
 
 function asPeriodStart(
   value: unknown,
@@ -388,7 +389,16 @@ export function routeNTHSGroups(router: Router): void {
       isActiveGroupAdmin,
       async (req, res: Response<NTHSGroupPublicResponse>) => {
         try {
-          const name = req.body.name
+          const name =
+            typeof req.body.name === 'string' ? req.body.name.trim() : ''
+          if (!name) {
+            throw new InputError('Chapter name is required')
+          }
+          if (name.length > CHAPTER_NAME_MAX_LENGTH) {
+            throw new InputError(
+              `Chapter names can be up to ${CHAPTER_NAME_MAX_LENGTH} characters`
+            )
+          }
           const group = await NTHSGroupsService.updateGroupName(
             req.params.groupId,
             name

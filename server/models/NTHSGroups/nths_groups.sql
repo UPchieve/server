@@ -667,6 +667,18 @@ WHERE
     AND m.user_id = :userId!;
 
 
+/* @name hasNthsGroupMemberRow */
+SELECT
+    EXISTS (
+        SELECT
+            1
+        FROM
+            nths_group_members
+        WHERE
+            nths_group_id = :groupId!
+            AND user_id = :userId!) AS "exists!";
+
+
 /* @name getActiveMemberCounts */
 SELECT
     nths_group_id AS group_id,
