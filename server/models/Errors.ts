@@ -124,7 +124,14 @@ export class NotAllowedError extends CaughtError {
     super({ message, clientMessage: message })
   }
 }
-export class InputError extends CustomError {}
+export class InputError extends CaughtError {
+  readonly httpStatus = 422
+  readonly defaultClientMessage = "Something in that request isn't right."
+
+  constructor(message: string) {
+    super({ message, clientMessage: message })
+  }
+}
 export class LookupError extends CaughtError {
   readonly httpStatus = 422
   readonly defaultClientMessage = "We couldn't find what you were looking for."

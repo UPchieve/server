@@ -1,6 +1,6 @@
 import { CustomError } from 'ts-custom-error'
 import { Response } from 'express'
-import { InputError, CaughtError } from '../models/Errors'
+import { CaughtError } from '../models/Errors'
 import logger from '../logger'
 
 export function resError(
@@ -27,8 +27,6 @@ export function resError(
     if (status) {
       /* keep provided status */
     }
-    // bad input
-    else if (err instanceof InputError) status = 422
     // response timeout
     else if (err.message === 'Response timeout') status = 408
     // unknown error

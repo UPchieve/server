@@ -347,6 +347,7 @@ describe('routeApiPublic', () => {
       expect(response.status).toBe(422)
       expect(response.body).toEqual({
         err: 'Invalid team invite code',
+        clientMessage: 'Invalid team invite code',
       })
       expect(
         mockedNTHSGroupsService.getNTHSGroupByInviteCode
