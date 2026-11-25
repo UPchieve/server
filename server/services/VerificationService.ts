@@ -96,7 +96,6 @@ export async function initiateVerification(
 
   const logData = {
     userId,
-    sendTo,
     verificationMethod,
   }
 

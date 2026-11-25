@@ -26,13 +26,12 @@ import {
 import validator from 'validator'
 import session from 'express-session'
 import { validateRequestRecaptcha } from '../services/RecaptchaService'
-import { isBlockedEmailDomain } from './emailDomain-utils'
+import { getEmailDomain, isBlockedEmailDomain } from './emailDomain-utils'
 import type { UserRole } from '../types/users'
 import {
   getVolunteerPartnerOrgForRegistrationByKey,
   VolunteerPartnerOrgForRegistration,
 } from '../models/VolunteerPartnerOrg'
-import logger from '../logger'
 import { hoursInMs } from './time-utils'
 import { extractUser } from '../router/extract-user'
 import { isE2eEnvironment } from './environments'
@@ -335,11 +334,9 @@ export async function checkEmail(email: string) {
   }
 
   if (await isBlockedEmailDomain(email)) {
-    const err = new NotAllowedError(
-      'Something went wrong - please try again later'
-    )
-    logger.error('Email is from an invalid email provider', { err, email })
-    throw err
+    throw new NotAllowedError('Something went wrong - please try again later', {
+      blockedEmailDomain: getEmailDomain(email),
+    })
   }
 }
 

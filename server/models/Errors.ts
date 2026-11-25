@@ -120,8 +120,8 @@ export class NotAllowedError extends CaughtError {
   readonly httpStatus = 403
   readonly defaultClientMessage = "You don't have access to that."
 
-  constructor(message: string) {
-    super({ message, clientMessage: message })
+  constructor(message: string, context?: Record<string, unknown>) {
+    super({ message, clientMessage: message, context })
   }
 }
 export class InputError extends CaughtError {

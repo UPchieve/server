@@ -61,9 +61,9 @@ describe('email validator', () => {
       id: 123,
       domain: 'mailshan.com',
     })
-    await expect(checkEmail('user@mailshan.com')).rejects.toThrow(
-      NotAllowedError
-    )
+    const err = await checkEmail('user@mailshan.com').catch((e) => e)
+    expect(err).toBeInstanceOf(NotAllowedError)
+    expect(err.context).toEqual({ blockedEmailDomain: 'mailshan.com' })
   })
 })
 

@@ -85,11 +85,10 @@ describe('VerificationService', () => {
         ).rejects.toThrow(new InputError(expectedErrorMsg))
         expect(mockLogger.warn).toHaveBeenCalledWith(
           'Invalid phone number provided for verification.',
-          expect.objectContaining({
-            sendTo: req.sendTo,
+          {
             userId: user.id,
             verificationMethod: req.verificationMethod,
-          })
+          }
         )
       }
     )
@@ -105,11 +104,10 @@ describe('VerificationService', () => {
       ).rejects.toThrow(AlreadyInUseError)
       expect(mockLogger.warn).toHaveBeenCalledWith(
         'Cannot complete verification - phone or email is already in use',
-        expect.objectContaining({
+        {
           userId: user.id,
           verificationMethod: req.verificationMethod,
-          sendTo: req.sendTo,
-        })
+        }
       )
     })
 
@@ -124,11 +122,10 @@ describe('VerificationService', () => {
       ).rejects.toThrow(LookupError)
       expect(mockLogger.warn).toHaveBeenCalledWith(
         'Email addresses in verify did not match.',
-        expect.objectContaining({
+        {
           userId: user.id,
           verificationMethod: req.verificationMethod,
-          sendTo: req.sendTo,
-        })
+        }
       )
     })
 
@@ -144,12 +141,11 @@ describe('VerificationService', () => {
       ).rejects.toThrow(expectedErr)
       expect(mockLogger.error).toHaveBeenCalledWith(
         'Failed to send Twilio verification code.',
-        expect.objectContaining({
+        {
           userId: user.id,
           verificationMethod: req.verificationMethod,
-          sendTo: req.sendTo,
           err: expectedErr,
-        })
+        }
       )
     })
 

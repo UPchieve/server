@@ -374,8 +374,8 @@ export async function getAnalyticsReport(data: unknown) {
     logger.info('Finished writing partner analytics report', logData)
     return reportFilePath
   } catch (error) {
-    logger.error('Failed to generate partner analytics report', { err: error })
     if (error instanceof InputError) throw error
+    logger.error('Failed to generate partner analytics report', { err: error })
     throw new Error(
       'Something went wrong while generating the analytics report'
     )

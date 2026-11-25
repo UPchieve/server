@@ -2,7 +2,6 @@ import { createVerifier } from 'fast-jwt'
 import { generateKeyPairSync } from 'node:crypto'
 import config from '../../config'
 import { NotAllowedError } from '../../models/Errors'
-import logger from '../../logger'
 import * as SessionService from '../../services/SessionService'
 import * as WhiteboardTokenService from '../../services/WhiteboardTokenService'
 import { buildCurrentSession } from '../mocks/generate'
@@ -10,11 +9,9 @@ import { getDbUlid } from '../../models/pgUtils'
 import { mocked } from 'jest-mock'
 
 jest.mock('../../services/SessionService')
-jest.mock('../../logger')
 
 describe('WhiteboardTokenService', () => {
   const mockedSessionService = mocked(SessionService)
-  const mockedLogger = jest.mocked(logger)
 
   beforeEach(() => {
     jest.resetAllMocks()
@@ -51,17 +48,16 @@ describe('WhiteboardTokenService', () => {
     })
     mockedSessionService.getCurrentSessionById.mockResolvedValue(session)
 
-    await expect(
-      WhiteboardTokenService.ensureUserCanJoinWhiteboard(userId, session.id)
-    ).rejects.toBeInstanceOf(NotAllowedError)
-    expect(mockedLogger.warn).toHaveBeenCalledWith(
-      'Unauthorized whiteboard join attempt',
-      {
-        userId,
-        sessionId: session.id,
-        reason: 'not_session_participant',
-      }
-    )
+    const err = await WhiteboardTokenService.ensureUserCanJoinWhiteboard(
+      userId,
+      session.id
+    ).catch((e) => e)
+    expect(err).toBeInstanceOf(NotAllowedError)
+    expect(err.context).toEqual({
+      userId,
+      sessionId: session.id,
+      reason: 'not_session_participant',
+    })
   })
 
   test('rejects an ended session', async () => {
@@ -72,17 +68,16 @@ describe('WhiteboardTokenService', () => {
     })
     mockedSessionService.getCurrentSessionById.mockResolvedValue(session)
 
-    await expect(
-      WhiteboardTokenService.ensureUserCanJoinWhiteboard(userId, session.id)
-    ).rejects.toBeInstanceOf(NotAllowedError)
-    expect(mockedLogger.warn).toHaveBeenCalledWith(
-      'Unauthorized whiteboard join attempt',
-      {
-        userId,
-        sessionId: session.id,
-        reason: 'ended_session',
-      }
-    )
+    const err = await WhiteboardTokenService.ensureUserCanJoinWhiteboard(
+      userId,
+      session.id
+    ).catch((e) => e)
+    expect(err).toBeInstanceOf(NotAllowedError)
+    expect(err.context).toEqual({
+      userId,
+      sessionId: session.id,
+      reason: 'ended_session',
+    })
   })
 
   test('returns a signed token and its expiration for an authorized user', async () => {

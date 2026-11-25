@@ -2,7 +2,6 @@ import { createSigner } from 'fast-jwt'
 import type { CookieOptions } from 'express'
 import { NotAllowedError } from '../models/Errors'
 import type { Ulid } from '../models/pgUtils'
-import logger from '../logger'
 import config from '../config'
 import * as SessionService from './SessionService'
 import { isProductionEnvironment } from '../utils/environments'
@@ -24,24 +23,22 @@ export async function ensureUserCanJoinWhiteboard(
   const session = await SessionService.getCurrentSessionById(sessionId)
 
   if (session.endedAt) {
-    logger.warn('Unauthorized whiteboard join attempt', {
+    throw new NotAllowedError('Not authorized to access this whiteboard', {
       userId,
       sessionId,
       reason: 'ended_session',
     })
-    throw new NotAllowedError('Not authorized to access this whiteboard')
   }
 
   if (isSessionParticipant(session.studentId, session.volunteerId, userId)) {
     return
   }
 
-  logger.warn('Unauthorized whiteboard join attempt', {
+  throw new NotAllowedError('Not authorized to access this whiteboard', {
     userId,
     sessionId,
     reason: 'not_session_participant',
   })
-  throw new NotAllowedError('Not authorized to access this whiteboard')
 }
 
 export async function getWhiteboardToken(

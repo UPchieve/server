@@ -35,7 +35,6 @@ import * as UserRolesService from './UserRolesService'
 import { RoleContext } from './UserRolesService'
 import type { PrimaryUserRole } from '../types/users'
 import * as TeacherService from './TeacherService'
-import logger from '../logger'
 import { createAccountAction, createAdminAction } from '../models/UserAction'
 import {
   getLegacyUserObject,
@@ -267,12 +266,9 @@ const asAdminUpdate = asFactory<AdminUpdate>({
 
 export async function deleteUser(user: UserRepo.UserContactInfo) {
   if (user.banType) {
-    logger.warn('Banned user attempted to delete account.', {
-      userId: user.id,
-      banType: user.banType,
-    })
     throw new NotAllowedError(
-      'Unable to perform action - please reach out to support to finish deleting your account.'
+      'Unable to perform action - please reach out to support to finish deleting your account.',
+      { userId: user.id, banType: user.banType }
     )
   }
 
