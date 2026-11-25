@@ -1,13 +1,7 @@
 import { TransactionClient, getClient, getRoClient } from '../../db'
 import * as pgQueries from './pg.queries'
 import { getSessionEditorActivity } from '../SessionEditorActivity/queries'
-import {
-  makeRequired,
-  makeSomeOptional,
-  getDbUlid,
-  makeSomeRequired,
-  ensureWriteOk,
-} from '../pgUtils'
+import { getDbUlid, makeSomeRequired, ensureWriteOk } from '../pgUtils'
 import { RepoCreateError, RepoReadError, RepoUpdateError } from '../Errors'
 import moment from 'moment'
 import {
@@ -290,13 +284,15 @@ export async function getSessionsToReview(
     )
     return Promise.all(
       result.map(async (v) => {
-        const temp = makeSomeOptional(v, [
-          'volunteer',
-          'volunteerFirstName',
-          'reviewReasons',
-          'studentCounselingFeedback',
-          'flags',
-          'endedAt',
+        const temp = makeSomeRequired(v, [
+          'createdAt',
+          'id',
+          'isReported',
+          'studentFirstName',
+          'subTopic',
+          'toReview',
+          'totalMessages',
+          'type',
         ])
         const studentRating = await getSessionRating(
           temp.id,
@@ -330,7 +326,7 @@ export async function getTotalTimeTutoredForDateRange(
     )
     if (!(result.length && result[0].total)) return 0
     // manually parse out incoming bigint to number
-    return Number(makeRequired(result[0]).total)
+    return Number(makeSomeRequired(result[0], ['total']).total)
   } catch (error) {
     throw new RepoReadError(error)
   }
@@ -342,7 +338,7 @@ export async function getActiveSessionsWithVolunteers(): Promise<Uuid[]> {
       undefined,
       getClient()
     )
-    return result.map((v) => makeRequired(v).volunteerId)
+    return result.map((v) => makeSomeRequired(v, ['volunteerId']).volunteerId)
   } catch (error) {
     throw new RepoReadError(error)
   }
@@ -457,7 +453,7 @@ export async function getLongRunningSessions(
       { start, end },
       getClient()
     )
-    return result.map((v) => makeRequired(v).id)
+    return result.map((v) => makeSomeRequired(v, ['id']).id)
   } catch (error) {
     throw new RepoReadError(error)
   }
@@ -486,7 +482,17 @@ export async function getPublicSessionById(
       getClient()
     )
     if (!result.length) return
-    const rawRow = makeRequired(result[0])
+    const rawRow = makeSomeRequired(result[0], [
+      'createdAt',
+      'endedAt',
+      'id',
+      'studentFirstName',
+      'studentId',
+      'subTopic',
+      'type',
+      'volunteerFirstName',
+      'volunteerId',
+    ])
     return {
       ...rawRow,
       _id: rawRow.id,
@@ -556,16 +562,20 @@ export async function getMessagesForFrontend(
   try {
     const result = (
       await pgQueries.getSessionMessagesForFrontend.run({ sessionId }, tc)
-    ).map((v) => makeRequired(v))
+    ).map((v) =>
+      makeSomeRequired(v, ['contents', 'createdAt', 'id', 'sessionId', 'user'])
+    )
     const voiceResult = (
       await pgQueries.getSessionVoiceMessagesForFrontend.run({ sessionId }, tc)
-    ).map((v) => makeSomeOptional(v, ['transcript']))
+    ).map((v) => makeSomeRequired(v, ['createdAt', 'id', 'sessionId', 'user']))
     const transcriptResult = (
       await pgQueries.getSessionAudioTranscriptMessagesForFrontend.run(
         { sessionId },
         tc
       )
-    ).map((v) => makeRequired(v))
+    ).map((v) =>
+      makeSomeRequired(v, ['createdAt', 'id', 'message', 'sessionId', 'user'])
+    )
 
     // insert voice messages
     const merged: SessionMessageRow[] = result
@@ -628,16 +638,15 @@ export async function getSessionByIdWithStudentAndVolunteer(
       client
     )
     if (!sessionResult.length) throw new Error('Session not found')
-    const session = makeSomeOptional(sessionResult[0], [
-      'volunteerId',
-      'volunteerJoinedAt',
-      'photos',
-      'endedAt',
-      'endedBy',
-      'quillDoc',
-      'reportMessage',
-      'reportReason',
-      'reviewReasons',
+    const session = makeSomeRequired(sessionResult[0], [
+      'createdAt',
+      'id',
+      'studentId',
+      'subTopic',
+      'timeTutored',
+      'toReview',
+      'toolType',
+      'type',
     ])
     const { student, volunteer } = await getSessionUsers(
       session.id,
@@ -836,7 +845,21 @@ export async function getMessageInfoByMessageId(
       { messageId },
       client
     )
-    if (result.length) return makeRequired(result[0])
+    if (result.length)
+      return makeSomeRequired(result[0], [
+        'contents',
+        'createdAt',
+        'senderId',
+        'sentAfterSession',
+        'sessionEndedAt',
+        'sessionId',
+        'studentEmail',
+        'studentFirstName',
+        'studentUserId',
+        'volunteerEmail',
+        'volunteerFirstName',
+        'volunteerUserId',
+      ])
   } catch (error) {
     throw new RepoReadError(error)
   }
@@ -893,7 +916,7 @@ export async function addMessageToSessionById(
       getClient()
     )
     if (!result.length) throw new RepoCreateError('Insert did not return ok')
-    return makeRequired(result[0]).id
+    return makeSomeRequired(result[0], ['id']).id
   } catch (err) {
     throw new RepoUpdateError(err)
   }
@@ -913,7 +936,9 @@ export async function getSessionsWithAvgWaitTimePerDayAndHour(
       { start, end },
       getClient()
     )
-    return result.map((v) => makeRequired(v))
+    return result.map((v) =>
+      makeSomeRequired(v, ['averageWaitTime', 'day', 'hour'])
+    )
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -933,7 +958,7 @@ export async function getSessionsVolunteerRating(
     )
     return Promise.all(
       result.map(async (row) => {
-        const session = makeSomeOptional(row, ['volunteerFeedback'])
+        const session = makeSomeRequired(row, ['id'])
         const sessionVolunteerRating: SessionVolunteerRating = {
           id: session.id,
         }
@@ -970,7 +995,7 @@ export async function getStudentForEmailFirstSession(
       getClient()
     )
     if (!result.length) return
-    const ret = makeRequired(result[0])
+    const ret = makeSomeRequired(result[0], ['email', 'firstName', 'id'])
     ret.email = ret.email.toLowerCase()
     return ret
   } catch (err) {
@@ -990,7 +1015,7 @@ export async function getVolunteerForEmailFirstSession(
       getClient()
     )
     if (!result.length) return
-    const ret = makeRequired(result[0])
+    const ret = makeSomeRequired(result[0], ['email', 'firstName', 'id'])
     ret.email = ret.email.toLowerCase()
     return ret
   } catch (err) {
@@ -1047,15 +1072,17 @@ export async function getSessionsForAdminFilter(
       getClient()
     )
     const sessions = sessionResult.map((v) =>
-      makeSomeOptional(v, [
-        'volunteerEmail',
-        'volunteerFirstName',
-        'volunteerBanType',
-        'volunteerTestUser',
-        'volunteerTotalPastSessions',
-        'reviewReasons',
-        'studentBanType',
-        'volunteerBanType',
+      makeSomeRequired(v, [
+        'createdAt',
+        'endedAt',
+        'id',
+        'studentEmail',
+        'studentFirstName',
+        'studentTestUser',
+        'studentTotalPastSessions',
+        'subTopic',
+        'totalMessages',
+        'type',
       ])
     )
     const sessionsInfo = sessions.map(async (session) => {
@@ -1190,7 +1217,18 @@ export async function getSessionsForVolunteerHourSummary(
       { volunteerId, start, end },
       getClient()
     )
-    if (result.length) return result.map((row) => makeRequired(row))
+    if (result.length)
+      return result.map((row) =>
+        makeSomeRequired(row, [
+          'createdAt',
+          'endedAt',
+          'sessionId',
+          'subject',
+          'timeTutored',
+          'topic',
+          'volunteerJoinedAt',
+        ])
+      )
     return []
   } catch (err) {
     throw new RepoReadError(err)
@@ -1228,7 +1266,22 @@ export async function getFilteredSessionHistory(
       params,
       getRoClient()
     )
-    if (result.length) return result.map((v) => makeRequired(v))
+    if (result.length)
+      return result.map((v) =>
+        makeSomeRequired(v, [
+          'createdAt',
+          'id',
+          'isFavorited',
+          'studentFirstName',
+          'studentId',
+          'subject',
+          'timeTutored',
+          'topic',
+          'topicIconLink',
+          'volunteerFirstName',
+          'volunteerId',
+        ])
+      )
     return []
   } catch (err) {
     throw new RepoReadError(err)
@@ -1274,7 +1327,7 @@ export async function getVolunteerFirstSessionDate(
       getRoClient()
     )
     if (result.length) {
-      return makeSomeOptional(result[0], ['firstSessionDate']).firstSessionDate
+      return makeSomeRequired(result[0], []).firstSessionDate
     }
     return undefined
   } catch (err) {
@@ -1316,7 +1369,22 @@ export async function getSessionRecap(
     )
     if (!sessionResult.length) throw new RepoReadError('Session not found')
 
-    const session = makeSomeOptional(sessionResult[0], ['quillDoc'])
+    const session = makeSomeRequired(sessionResult[0], [
+      'createdAt',
+      'endedAt',
+      'hasWhiteboardDoc',
+      'id',
+      'isFavorited',
+      'studentFirstName',
+      'studentId',
+      'subject',
+      'subjectKey',
+      'timeTutored',
+      'topic',
+      'topicIconLink',
+      'volunteerFirstName',
+      'volunteerId',
+    ])
     const messages = await getMessagesForFrontend(sessionId, client)
 
     return { ...session, messages }
@@ -1399,7 +1467,16 @@ export async function getUserSessionsByUserId( // @TODO Make a service function 
       },
       getClient()
     )
-    return result.map((v) => makeSomeOptional(v, ['volunteerId', 'quillDoc']))
+    return result.map((v) =>
+      makeSomeRequired(v, [
+        'createdAt',
+        'id',
+        'studentId',
+        'subjectName',
+        'toolType',
+        'topicName',
+      ])
+    )
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -1417,7 +1494,14 @@ export async function getUserSessionStats(
       getClient()
     )
     const userSessionStats: UserSessionStats = {}
-    for (const subject of result.map((v) => makeRequired(v))) {
+    for (const subject of result.map((v) =>
+      makeSomeRequired(v, [
+        'subjectName',
+        'topicName',
+        'totalHelped',
+        'totalRequested',
+      ])
+    )) {
       const { subjectName, topicName, totalRequested, totalHelped } = subject
       userSessionStats[subjectName] = {
         totalRequested,
@@ -1501,7 +1585,17 @@ export async function getStudentSessionDetails(
       { studentId },
       getClient()
     )
-    return sessionDetails.map((s) => makeSomeOptional(s, ['volunteerId']))
+    return sessionDetails.map((s) =>
+      makeSomeRequired(s, [
+        'createdAt',
+        'endedAt',
+        'firstName',
+        'id',
+        'lastName',
+        'messageCount',
+        'name',
+      ])
+    )
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -1540,7 +1634,14 @@ export async function getSessionTranscriptItems(sessionId: Uuid) {
       getClient()
     )
     return result.map((row) => {
-      const camelCased = makeRequired(row)
+      const camelCased = makeSomeRequired(row, [
+        'createdAt',
+        'message',
+        'messageId',
+        'messageType',
+        'role',
+        'userId',
+      ])
       return {
         ...camelCased,
         messageType: camelCased.messageType as MessageType,
@@ -1564,7 +1665,7 @@ export async function getUniqueStudentsHelpedCount(
       },
       getClient()
     )
-    return makeRequired(result[0]).total
+    return makeSomeRequired(result[0], ['total']).total
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -1575,7 +1676,7 @@ export async function isSessionFulfilled(sessionId: Uuid): Promise<boolean> {
     { sessionId },
     getClient()
   )
-  return makeRequired(result[0]).isFulfilled
+  return makeSomeRequired(result[0], ['isFulfilled']).isFulfilled
 }
 
 export async function getVolunteersInSessions(): Promise<Uuid[]> {
@@ -1583,7 +1684,7 @@ export async function getVolunteersInSessions(): Promise<Uuid[]> {
     undefined,
     getClient()
   )
-  return result.map((r) => makeRequired(r).volunteerId)
+  return result.map((r) => makeSomeRequired(r, ['volunteerId']).volunteerId)
 }
 
 /** volunteers in a session, or requested by a student still waiting for them */
@@ -1592,7 +1693,7 @@ export async function getVolunteersInOrRequestedForSessions(): Promise<Uuid[]> {
     undefined,
     getClient()
   )
-  return result.map((r) => makeRequired(r).volunteerId)
+  return result.map((r) => makeSomeRequired(r, ['volunteerId']).volunteerId)
 }
 
 export async function getLastSessionEndedAtByVolunteerIds(
@@ -1628,7 +1729,7 @@ export async function getSessionFlagsBySessionId(sessionId: Uuid) {
     getClient()
   )
 
-  return result.map((r) => makeRequired(r))
+  return result.map((r) => makeSomeRequired(r, ['name', 'sessionFlagId']))
 }
 
 export async function updateSessionLastSeen(
@@ -1656,7 +1757,7 @@ export async function sessionsWithUnreadDMs(
       { userId, minTimeTutored },
       getClient()
     )
-    return result.map((r) => makeRequired(r).id)
+    return result.map((r) => makeSomeRequired(r, ['id']).id)
   } catch (err) {
     throw new RepoReadError(err)
   }
