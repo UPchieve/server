@@ -15,9 +15,7 @@ import {
   NotAHighSchoolerNTHSJoinError,
   CaughtError,
 } from '../models/Errors'
-import { RegistrationError, ResetError } from '../utils/auth-utils'
 import logger from '../logger'
-import { ReportNoDataFoundError } from '../services/ReportService'
 
 export function resError(
   res: Response,
@@ -49,10 +47,6 @@ export function resError(
     else if (err instanceof NotAllowedError) status = 403
     // database lookup unexpectedly returned null
     else if (err instanceof LookupError) status = 422
-    // business logic errors
-    else if (err instanceof RegistrationError) status = 422
-    else if (err instanceof ResetError) status = 422
-    else if (err instanceof ReportNoDataFoundError) status = 422
     // bad input
     else if (err instanceof InputError) status = 422
     else if (err instanceof AlreadyInNTHSGroupError) status = 422

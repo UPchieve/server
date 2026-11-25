@@ -1,7 +1,6 @@
 import { randomBytes } from 'crypto'
 import bcrypt from 'bcrypt'
 import passport from 'passport'
-import { CustomError } from 'ts-custom-error'
 import { Ulid } from '../models/pgUtils'
 import { Request, Response, NextFunction } from 'express'
 import config from '../config'
@@ -9,7 +8,12 @@ import { getUserForAuth } from '../services/UserService'
 import { getUserIdByPhone } from '../models/User/queries'
 import { GRADES } from '../constants'
 
-import { InputError, LookupError, NotAllowedError } from '../models/Errors'
+import {
+  CaughtError,
+  InputError,
+  LookupError,
+  NotAllowedError,
+} from '../models/Errors'
 import isValidInternationalPhoneNumber from './is-valid-international-phone-number'
 import {
   asString,
@@ -33,8 +37,23 @@ import { hoursInMs } from './time-utils'
 import { extractUser } from '../router/extract-user'
 import { isE2eEnvironment } from './environments'
 // Custom errors
-export class RegistrationError extends CustomError {}
-export class ResetError extends CustomError {}
+export class RegistrationError extends CaughtError {
+  readonly httpStatus = 422
+  readonly defaultClientMessage =
+    "We couldn't create your account. Please check your details and try again."
+  constructor(message: string) {
+    super({ message, clientMessage: message })
+  }
+}
+
+export class ResetError extends CaughtError {
+  readonly httpStatus = 422
+  readonly defaultClientMessage =
+    "We couldn't reset your password. Please try again."
+  constructor(message: string) {
+    super({ message, clientMessage: message })
+  }
+}
 
 // Function signature interfaces
 export interface CredentialData {

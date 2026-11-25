@@ -5,7 +5,6 @@ import 'moment-timezone'
 import _ from 'lodash'
 import exceljs from 'exceljs'
 import { v4 as uuidv4 } from 'uuid'
-import { CustomError } from 'ts-custom-error'
 import logger from '../logger'
 import { REPORT_FILE_NAMES } from '../constants'
 import config from '../config'
@@ -21,7 +20,7 @@ import {
   validateStudentSessionReportQuery,
   validateStudentUsageReportQuery,
 } from '../utils/reportUtils'
-import { InputError } from '../models/Errors'
+import { CaughtError, InputError } from '../models/Errors'
 import * as VolunteerService from './VolunteerService'
 import { asFactory, asString } from '../utils/type-utils'
 import * as StudentRepo from '../models/Student/queries'
@@ -34,7 +33,13 @@ import {
 import type { Uuid } from '../types/shared'
 import type { SessionReportRow } from '../models/Student/queries'
 
-export class ReportNoDataFoundError extends CustomError {}
+export class ReportNoDataFoundError extends CaughtError {
+  readonly httpStatus = 422
+  readonly defaultClientMessage = 'No data was found for this report.'
+  constructor(message: string) {
+    super({ message, clientMessage: message })
+  }
+}
 
 const fsPromises = fs.promises
 
