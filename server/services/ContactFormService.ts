@@ -72,9 +72,9 @@ export async function saveContactFormSubmission(data: unknown) {
       try {
         if (!userId) {
           await ContactFormSubmissionRepo.createContactFormByEmail(
+            userEmail,
             message,
-            topic,
-            userEmail
+            topic
           )
         } else {
           await ContactFormSubmissionRepo.createContactFormByUser(
@@ -94,7 +94,7 @@ export async function saveContactFormSubmission(data: unknown) {
     true,
     async () => {
       try {
-        await sendContactForm(userEmail, message, topic)
+        await sendContactForm(topic, message, userEmail)
       } catch (err) {
         throw err
       }

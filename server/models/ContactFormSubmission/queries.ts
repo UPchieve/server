@@ -58,7 +58,6 @@ export async function createContactFormByEmail(
         'topic',
         'updatedAt',
         'userEmail',
-        'userId',
       ])
     throw new RepoCreateError('Insert query did not return new row')
   } catch (err) {

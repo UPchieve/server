@@ -25,7 +25,6 @@ export async function insertSessionMeeting(
       'externalId',
       'id',
       'provider',
-      'recordingId',
       'sessionId',
       'updatedAt',
     ])
