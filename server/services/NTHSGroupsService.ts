@@ -117,7 +117,8 @@ export async function syncChangedMembers(userIds: Ulid[]) {
 }
 
 export async function foundGroup(
-  userId: Ulid
+  userId: Ulid,
+  requestedName?: string
 ): Promise<NTHSGroupWithMemberInfo> {
   const result = await runInTransaction(async (tc: TransactionClient) => {
     const groups = await NTHSGroupsRepo.getGroupsByUser(userId, tc)
@@ -144,8 +145,9 @@ export async function foundGroup(
     }
 
     const inviteCode = generateAlphanumericOfLength(6)
-    const name = `NTHS Chapter ${Number(await NTHSGroupsRepo.groupsCount(tc)) + 1}`
-    const key = name.split(' ').join('-').toLowerCase()
+    const defaultName = `NTHS Chapter ${Number(await NTHSGroupsRepo.groupsCount(tc)) + 1}`
+    const name = requestedName ?? defaultName
+    const key = defaultName.split(' ').join('-').toLowerCase()
     const group = await NTHSGroupsRepo.createGroup(
       { inviteCode, name, key },
       tc

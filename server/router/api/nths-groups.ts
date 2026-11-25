@@ -18,6 +18,7 @@ import {
   InputError,
   NotAuthenticatedError,
   NTHSGroupNameTakenError,
+  RepoCreateError,
   RepoUpdateError,
 } from '../../models/Errors'
 import {
@@ -379,9 +380,32 @@ export function routeNTHSGroups(router: Router): void {
     .post(async (req: Request, res: Response<NTHSNewGroupResponse>) => {
       try {
         const user = extractUser(req)
-        const group = await NTHSGroupsService.foundGroup(user.id)
+        const suppliedName = req.body?.name
+        let name: string | undefined
+        if (suppliedName !== undefined) {
+          name = typeof suppliedName === 'string' ? suppliedName.trim() : ''
+          if (!name) throw new InputError('Chapter name is required')
+          if (name.length > CHAPTER_NAME_MAX_LENGTH) {
+            throw new InputError(
+              `Chapter names can be up to ${CHAPTER_NAME_MAX_LENGTH} characters`
+            )
+          }
+        }
+        const group =
+          name === undefined
+            ? await NTHSGroupsService.foundGroup(user.id)
+            : await NTHSGroupsService.foundGroup(user.id, name)
         res.json({ group: toNTHSGroupWithMemberInfoPublic(group) })
       } catch (error) {
+        if (
+          error instanceof RepoCreateError &&
+          error.message.includes('unique_name')
+        ) {
+          return resError(
+            res,
+            new NTHSGroupNameTakenError('That team name is already taken.')
+          )
+        }
         resError(res, error)
       }
     })
