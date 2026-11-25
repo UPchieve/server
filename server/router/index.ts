@@ -44,7 +44,9 @@ export default function (app: Express, io: Server) {
     async function (req, res: Response<FeatureFlagResponse>) {
       const user = extractUserIfExists(req)
       const phCookie = req.cookies[`ph_${config.posthogToken}_posthog`]
-      const distinctId = phCookie ? JSON.parse(phCookie).distinct_id : uuidv4()
+      const distinctId =
+        user?.id ?? (phCookie ? JSON.parse(phCookie).distinct_id : uuidv4())
+      const isIdentifiedID = !!user?.id
       try {
         const analyticsProperties = await getPersonPropertiesForAnalytics(
           user?.id
@@ -55,13 +57,15 @@ export default function (app: Express, io: Server) {
           featureFlags: Record<string, boolean | string>
           featureFlagPayloads: Record<string, unknown>
         } = await getAllFlagsForId(distinctId, personProperties)
-        res.status(200).json({ id: distinctId, ...flags, personProperties })
+        res
+          .status(200)
+          .json({ id: distinctId, ...flags, personProperties, isIdentifiedID })
       } catch (e) {
         logger.error('Failed to bootstrap feature flags', {
           err: e,
           userId: distinctId,
         })
-        res.status(200).json({ id: distinctId })
+        res.status(200).json({ id: distinctId, isIdentifiedID })
       }
     }
   )
