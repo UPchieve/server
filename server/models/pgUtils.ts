@@ -19,9 +19,9 @@ export function generateReferralCode(userId: Ulid): string {
  * pgTyped DOES NOT actually modify the incoming data to use camelCase keys even
  * though it does do so for the return type. As such we must manually convert the
  * keys to camelCase at runtime. This function is invoked at the start of
- * makeRequired and makeSomeOptional which themselves are necessary for parsing
- * incoming postgres data to convert null->undefined and, with the inclusion of
- * this function, convert snake_case keys to camelCase keys.
+ * makeSomeRequired which itself is necessary for parsing incoming postgres
+ * data to convert null->undefined and, with the inclusion of this function,
+ * convert snake_case keys to camelCase keys.
  *
  * Note that the below types/functions only work for flat objects, i.e. no
  * arrays or nesting. With SQL queries this should fit the return type anyways
@@ -57,18 +57,6 @@ type SetOptional<BaseType, Keys extends keyof BaseType> = {
 } & { [K in Keys]: Optional<BaseType[K]> }
 
 class UnexpectedNullError extends CustomError {}
-export function makeRequired<T>(obj: T): SetRequired<T, keyof T> {
-  const temp = camelCaseKeys(obj)
-  for (const [key, value] of Object.entries(temp)) {
-    if (value === null || value === undefined) {
-      throw new UnexpectedNullError(
-        `Key ${key} was unexpectedly null or undefined`
-      )
-    }
-  }
-  return temp as SetRequired<T, keyof T>
-}
-
 export function isWriteOk(result: ArrayLike<{ ok?: unknown }>): boolean {
   return Boolean(result.length && result[0].ok)
 }
@@ -84,23 +72,6 @@ export function ensureWriteOk(
 }
 
 type ObjectLike = { [k: string]: any }
-export function makeSomeOptional<T extends ObjectLike, U extends keyof T>(
-  obj: T,
-  optionals: U[]
-): SetOptional<SetRequired<T, keyof T>, U> {
-  const temp = camelCaseKeys(obj)
-  for (const [key, value] of Object.entries(temp) as [keyof T, any]) {
-    if (value === null || value === undefined) {
-      if (optionals.includes(key)) temp[key] = undefined
-      else
-        throw new UnexpectedNullError(
-          `Key ${key} was unexpectedly null or undefined`
-        )
-    }
-  }
-  return temp as SetOptional<SetRequired<T, keyof T>, U>
-}
-
 export function makeSomeRequired<T extends ObjectLike, U extends keyof T>(
   obj: T,
   requireds: U[]

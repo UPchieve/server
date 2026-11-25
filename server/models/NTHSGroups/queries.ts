@@ -6,13 +6,7 @@ import {
   RepoUpsertError,
   RepoUpdateError,
 } from '../Errors'
-import {
-  makeRequired,
-  makeSomeOptional,
-  makeSomeRequired,
-  Ulid,
-  Uuid,
-} from '../pgUtils'
+import { makeSomeRequired, Ulid, Uuid } from '../pgUtils'
 import * as pgQueries from './pg.queries'
 import type {
   NTHSAction,
@@ -99,7 +93,7 @@ export async function getInviteCodeForGroup(groupId: Ulid) {
       { id: groupId },
       getRoClient()
     )
-    return results.map(makeRequired)[0]
+    return results.map((row) => makeSomeRequired(row, ['inviteCode']))[0]
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -234,7 +228,15 @@ export async function getAdvisorContactInfo(
   try {
     const results = await pgQueries.getAdvisorContactInfo.run({ groupId }, tc)
     if (results.length) {
-      return results.map((row) => makeRequired(row))
+      return results.map((row) =>
+        makeSomeRequired(row, [
+          'firstName',
+          'lastName',
+          'email',
+          'nthsGroupId',
+          'chapterName',
+        ])
+      )
     }
   } catch (err) {
     throw new RepoReadError(err)
@@ -639,7 +641,17 @@ export async function addNTHSAdvisor(
 ): Promise<Advisor> {
   try {
     const results = await pgQueries.insertNthsAdvisor.run(args, tc)
-    return makeSomeOptional(results[0], ['phone', 'phoneExtension', 'schoolId'])
+    return makeSomeRequired(results[0], [
+      'id',
+      'nthsGroupId',
+      'firstName',
+      'lastName',
+      'email',
+      'title',
+      'verified',
+      'createdAt',
+      'updatedAt',
+    ])
   } catch (err) {
     throw new RepoCreateError(err)
   }
@@ -673,11 +685,13 @@ export async function getChapterStatus(
       tc
     )
     if (results.length) {
-      const row = makeRequired(results[0])
-      return makeRequired({
-        ...row,
-        statusName: row.statusName as NTHSChapterStatusName,
-      })
+      const row = makeSomeRequired(results[0], [
+        'groupId',
+        'statusName',
+        'createdAt',
+        'statusId',
+      ])
+      return { ...row, statusName: row.statusName as NTHSChapterStatusName }
     }
   } catch (err) {
     throw new RepoReadError(err)
@@ -702,11 +716,13 @@ export async function insertChapterStatus(
         'Did not get back insert results when inserting NTHS chapter status'
       )
     }
-    const row = makeRequired(results[0])
-    return makeRequired({
-      ...row,
-      statusName: row.statusName as NTHSChapterStatusName,
-    })
+    const row = makeSomeRequired(results[0], [
+      'groupId',
+      'statusName',
+      'createdAt',
+      'statusId',
+    ])
+    return { ...row, statusName: row.statusName as NTHSChapterStatusName }
   } catch (err) {
     throw new RepoCreateError(err)
   }
@@ -784,7 +800,9 @@ export async function getActiveMemberCounts(
 ): Promise<NTHSGroupMemberCount[]> {
   try {
     const results = await pgQueries.getActiveMemberCounts.run({ groupIds }, tc)
-    return results.map((row) => makeRequired(row))
+    return results.map((row) =>
+      makeSomeRequired(row, ['groupId', 'membersCount'])
+    )
   } catch (err) {
     throw new RepoReadError(err)
   }
@@ -799,7 +817,9 @@ export async function getTutoringMemberCounts(
       { groupIds, minSessionLength: config.minSessionLength },
       tc
     )
-    return results.map((row) => makeRequired(row))
+    return results.map((row) =>
+      makeSomeRequired(row, ['groupId', 'tutoringMembersCount'])
+    )
   } catch (err) {
     throw new RepoReadError(err)
   }

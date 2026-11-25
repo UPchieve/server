@@ -5,13 +5,7 @@
 import { faker } from '@faker-js/faker'
 import moment from 'moment'
 import { getClient } from '../../db'
-import {
-  getDbUlid,
-  makeRequired,
-  makeSomeOptional,
-  Ulid,
-  Uuid,
-} from '../../models/pgUtils'
+import { getDbUlid, makeSomeRequired, Ulid, Uuid } from '../../models/pgUtils'
 import * as AssignmentsRepo from '../../models/Assignments'
 import { getEmail } from '../mocks/generate'
 
@@ -57,7 +51,7 @@ describe('upsertAssignment', () => {
       [teacherClass.id]
     )
     expect(actualRows.rowCount).toBe(1)
-    const actual = makeRequired(actualRows.rows[0])
+    const actual = makeSomeRequired(actualRows.rows[0], [])
     expect(created.id).toBe(actual.id)
     expect(created.createdAt).toEqual(actual.createdAt)
     expect(created.updatedAt).toEqual(actual.updatedAt)
@@ -109,7 +103,7 @@ describe('upsertAssignment', () => {
       [assignment.id]
     )
 
-    const actual = makeRequired(actualRows.rows[0])
+    const actual = makeSomeRequired(actualRows.rows[0], [])
     expect(input.id).toBe(actual.id)
     expect(input.classId).toBe(actual.classId)
     expect(input.description).toBe(actual.description)
@@ -175,9 +169,7 @@ describe('createStudentsAssignmentsForAll', () => {
       [assignment1.id, assignment2.id]
     )
     expect(actualRows.rowCount).toBe(4)
-    const actual = actualRows.rows.map((r) =>
-      makeSomeOptional(r, ['submittedAt'])
-    )
+    const actual = actualRows.rows.map((r) => makeSomeRequired(r, []))
     expect(result).toEqual(expect.objectContaining(actual))
   })
 })
@@ -267,7 +259,7 @@ describe('getAssignmentById', () => {
       [assignment.id]
     )
     expect(actualAssignment).toEqual(
-      expect.objectContaining(makeRequired(expectedAssignment.rows[0]))
+      expect.objectContaining(makeSomeRequired(expectedAssignment.rows[0], []))
     )
   })
 })
