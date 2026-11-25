@@ -2271,7 +2271,7 @@ paths:
         '200':
           description: Returns an object with boolean `isEligible`
         '422':
-          description: Returned if email already in use
+          description: Returned if the request body is invalid
   /api-public/eligibility/check-zip-code/{zipCode}:
     get:
       tags:

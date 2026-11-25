@@ -7,7 +7,6 @@ import {
 import { getUserIdByEmail } from '../models/User/queries'
 import { asFactory, asString, asEnum, asOptional } from '../utils/type-utils'
 import { ELIGIBLE_GRADE_LEVELS, GRADES } from '../constants'
-import { CustomError } from 'ts-custom-error'
 import { School } from '../models/School'
 import { ZipCode } from '../models/ZipCode'
 import config from '../config'
@@ -41,8 +40,6 @@ export type CheckEligibility = {
   isCollegeStudent?: boolean
   isExistingUser?: boolean
 }
-
-export class ExistingUserError extends CustomError {}
 
 export async function checkEligibility(
   ip: string = '',

@@ -18,7 +18,6 @@ import {
 import { RegistrationError, ResetError } from '../utils/auth-utils'
 import logger from '../logger'
 import { ReportNoDataFoundError } from '../services/ReportService'
-import { ExistingUserError } from '../services/EligibilityService'
 
 export function resError(
   res: Response,
@@ -39,8 +38,6 @@ export function resError(
     return
   }
 
-  let message = ''
-
   if (err instanceof Error || err instanceof CustomError) {
     logger.error(err.message, { err })
     if (status) {
@@ -56,10 +53,6 @@ export function resError(
     else if (err instanceof RegistrationError) status = 422
     else if (err instanceof ResetError) status = 422
     else if (err instanceof ReportNoDataFoundError) status = 422
-    else if (err instanceof ExistingUserError) {
-      status = 422
-      message = 'Email already in use'
-    }
     // bad input
     else if (err instanceof InputError) status = 422
     else if (err instanceof AlreadyInNTHSGroupError) status = 422
@@ -76,7 +69,7 @@ export function resError(
     else status = 500
 
     res.status(status).json({
-      err: message.length ? message : err.message,
+      err: err.message,
     })
   } else {
     logger.error('Unexpected non-error type thrown', { err })
