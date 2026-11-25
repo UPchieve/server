@@ -249,6 +249,48 @@ describe('getNthsHomeContent', () => {
     expect(member.links.map((l) => l.title)).toEqual(['Library'])
   })
 
+  it.each([
+    [
+      'an https address',
+      'https://example.org/admin',
+      'https://example.org/admin',
+    ],
+    ['an app page', '/groups/manage', '/groups/manage'],
+    ['blank', '', 'https://example.org/a'],
+    [
+      'not an allowed address',
+      'http://example.org/admin',
+      'https://example.org/a',
+    ],
+  ])(
+    'sends an admin to the admin link when it is %s, and a member to the link',
+    async (_label, adminLink, adminHref) => {
+      mockedLoad.mockResolvedValue(
+        sheetsFor([
+          tipsTab,
+          worksheet(
+            'links',
+            ['title', 'body', 'link', 'members', 'live'],
+            [link({ members: 'TRUE', admin_link: adminLink })]
+          ),
+        ])
+      )
+      let reader: typeof getNthsHomeContent = getNthsHomeContent
+      jest.isolateModules(() => {
+        reader =
+          require('../../services/NTHSHomeContentService').getNthsHomeContent
+      })
+      const row = {
+        title: 'Library',
+        body: 'Read',
+        link: 'https://example.org/a',
+        forMembers: true,
+      }
+      expect((await reader(true)).links).toEqual([{ ...row, link: adminHref }])
+      expect((await reader(false)).links).toEqual([row])
+    }
+  )
+
   const blankTab = (title: string) => ({
     ...worksheet(title, [], []),
     get headerValues(): string[] {

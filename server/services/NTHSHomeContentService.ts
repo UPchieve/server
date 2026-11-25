@@ -23,7 +23,12 @@ type ParsedResourceGroup = Omit<NTHSResourceGroup, 'cards'> & {
   cards: Array<NTHSResourceCard & { forMembers: boolean }>
 }
 
-type ParsedHomeSheet = NTHSHomeContent & { resources: ParsedResourceGroup[] }
+type ParsedHomeLink = NTHSHomeLink & { adminLink: string | null }
+
+type ParsedHomeSheet = Omit<NTHSHomeContent, 'links'> & {
+  links: ParsedHomeLink[]
+  resources: ParsedResourceGroup[]
+}
 
 const TIPS_WORKSHEET_TITLE = 'tips'
 const LINKS_WORKSHEET_TITLE = 'links'
@@ -92,6 +97,15 @@ function parseLinkRow(row: { get(key: string): unknown }): NTHSHomeLink | null {
     link,
     forMembers: isChecked(row, 'members'),
   }
+}
+
+function parseHomeLinkRow(row: {
+  get(key: string): unknown
+}): ParsedHomeLink | null {
+  const parsed = parseLinkRow(row)
+  if (!parsed) return null
+  const adminLink = cell(row, 'admin_link')
+  return { ...parsed, adminLink: isShownLink(adminLink) ? adminLink : null }
 }
 
 function groupKey(name: string): string {
@@ -174,7 +188,7 @@ export async function parseHomeContent(
     .filter((row) => isChecked(row, 'live'))
     .map((row) => cell(row, 'tip'))
     .filter(Boolean)
-  const links = linkRows.flatMap((row) => parseLinkRow(row) ?? [])
+  const links = linkRows.flatMap((row) => parseHomeLinkRow(row) ?? [])
   return { tips, links, resources }
 }
 
@@ -234,8 +248,21 @@ export async function getNthsHomeContent(
 ): Promise<NTHSHomeContent> {
   const content = await readHomeSheet()
   if (!content) return { tips: [], links: [] }
-  if (isAdmin) return { tips: content.tips, links: content.links }
-  return { tips: [], links: content.links.filter((l) => l.forMembers) }
+  if (isAdmin) {
+    return {
+      tips: content.tips,
+      links: content.links.map(({ adminLink, ...link }) => ({
+        ...link,
+        link: adminLink ?? link.link,
+      })),
+    }
+  }
+  return {
+    tips: [],
+    links: content.links
+      .filter((link) => link.forMembers)
+      .map(({ adminLink: _adminLink, ...link }) => link),
+  }
 }
 
 export async function getNthsResources(
