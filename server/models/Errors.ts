@@ -118,13 +118,27 @@ export class RepoTransactionError extends CustomError {
 
 export class NotAllowedError extends CustomError {}
 export class InputError extends CustomError {}
-export class LookupError extends CustomError {}
+export class LookupError extends CaughtError {
+  readonly httpStatus = 422
+  readonly defaultClientMessage = "We couldn't find what you were looking for."
+
+  constructor(message: string) {
+    super({ message, clientMessage: message })
+  }
+}
 export class NotAuthenticatedError extends CustomError {
   constructor() {
     super('Request is not authenticated')
   }
 }
-export class AlreadyInUseError extends CustomError {}
+export class AlreadyInUseError extends CaughtError {
+  readonly httpStatus = 409
+  readonly defaultClientMessage = "That's already in use."
+
+  constructor(message: string) {
+    super({ message, clientMessage: message })
+  }
+}
 export class TwilioError extends CustomError {
   message: string
   status: number

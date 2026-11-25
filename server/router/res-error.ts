@@ -3,9 +3,7 @@ import { Response } from 'express'
 import {
   NotAllowedError,
   InputError,
-  LookupError,
   NotAuthenticatedError,
-  AlreadyInUseError,
   CaughtError,
 } from '../models/Errors'
 import logger from '../logger'
@@ -38,11 +36,8 @@ export function resError(
     else if (err instanceof NotAuthenticatedError) status = 401
     // user is authenthicated, but not authorized to retrieve resource
     else if (err instanceof NotAllowedError) status = 403
-    // database lookup unexpectedly returned null
-    else if (err instanceof LookupError) status = 422
     // bad input
     else if (err instanceof InputError) status = 422
-    else if (err instanceof AlreadyInUseError) status = 409
     // response timeout
     else if (err.message === 'Response timeout') status = 408
     // unknown error
