@@ -5,7 +5,7 @@ export function isDevEnvironment() {
 }
 
 export function isE2eEnvironment() {
-  return config.NODE_ENV === 'test_e2e' || config.NODE_ENV === 'test_e2e_ci'
+  return config.NODE_ENV === 'test_e2e'
 }
 
 export function isProductionEnvironment() {
